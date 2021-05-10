@@ -47,7 +47,6 @@ header = "options/resource_manager_options.h"
   long       = "rweight=VAL=N"
   type       = "std::string"
   handler    = "setResourceWeight"
-  read_only  = true
   help       = "set a single resource weight"
 
 [[option]]

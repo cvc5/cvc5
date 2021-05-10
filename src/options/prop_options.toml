@@ -10,7 +10,6 @@ header = "options/prop_options.h"
   type       = "double"
   default    = "0.0"
   predicates = ["doubleGreaterOrEqual0", "doubleLessOrEqual1"]
-  read_only  = true
   help       = "sets the frequency of random decisions in the sat solver (P=0.0 by default)"
 
 [[option]]
@@ -44,7 +43,6 @@ header = "options/prop_options.h"
   long       = "restart-int-base=N"
   type       = "unsigned"
   default    = "25"
-  read_only  = true
   help       = "sets the base restart interval for the sat solver (N=25 by default)"
 
 [[option]]
@@ -54,7 +52,6 @@ header = "options/prop_options.h"
   type       = "double"
   default    = "3.0"
   predicates = ["doubleGreaterOrEqual0"]
-  read_only  = true
   help       = "sets the restart interval increase factor for the sat solver (F=3.0 by default)"
 
 [[option]]
@@ -63,7 +60,6 @@ header = "options/prop_options.h"
   long       = "refine-conflicts"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "refine theory conflict clauses (default false)"
 
 [[option]]
@@ -80,5 +76,4 @@ header = "options/prop_options.h"
   long       = "minisat-dump-dimacs"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "instead of solving minisat dumps the asserted clauses in Dimacs format"

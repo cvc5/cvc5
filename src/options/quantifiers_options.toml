@@ -67,7 +67,6 @@ header = "options/quantifiers_options.h"
   long       = "var-elim-quant"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "enable simple variable elimination for quantified formulas"
 
 [[option]]
@@ -76,7 +75,6 @@ header = "options/quantifiers_options.h"
   long       = "var-ineq-elim-quant"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "enable variable elimination based on infinite projection of unbound arithmetic variables"
 
 [[option]]
@@ -85,7 +83,6 @@ header = "options/quantifiers_options.h"
   long       = "dt-var-exp-quant"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "expand datatype variables bound to one constructor in quantifiers"
 
 [[option]]
@@ -112,7 +109,6 @@ header = "options/quantifiers_options.h"
   long       = "cond-var-split-quant"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "split quantified formulas that lead to variable eliminations"
 
 [[option]]
@@ -121,7 +117,6 @@ header = "options/quantifiers_options.h"
   long       = "cond-var-split-agg-quant"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "aggressive split quantified formulas that lead to variable eliminations"
 
 [[option]]
@@ -165,7 +160,6 @@ header = "options/quantifiers_options.h"
   long       = "ag-miniscope-quant"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "perform aggressive miniscoping for quantifiers"
 
 [[option]]
@@ -174,7 +168,6 @@ header = "options/quantifiers_options.h"
   long       = "elim-taut-quant"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "eliminate tautological disjuncts of quantified formulas"
 
 [[option]]
@@ -183,7 +176,6 @@ header = "options/quantifiers_options.h"
   long       = "ext-rewrite-quant"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "apply extended rewriting to bodies of quantified formulas"
 
 [[option]]
@@ -233,7 +225,6 @@ header = "options/quantifiers_options.h"
   long       = "register-quant-body-terms"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "consider ground terms within bodies of quantified formulas for matching"
 
 [[option]]
@@ -242,7 +233,6 @@ header = "options/quantifiers_options.h"
   long       = "strict-triggers"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "only instantiate quantifiers with user patterns based on triggers"
 
 [[option]]
@@ -251,7 +241,6 @@ header = "options/quantifiers_options.h"
   long       = "relevant-triggers"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "prefer triggers that are more relevant based on SInE style analysis"
 
 [[option]]
@@ -260,7 +249,6 @@ header = "options/quantifiers_options.h"
   long       = "relational-triggers"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "choose relational triggers such as x = f(y), x >= f(y)"
 
 [[option]]
@@ -285,7 +273,6 @@ header = "options/quantifiers_options.h"
   long       = "multi-trigger-when-single"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "select multi triggers when single triggers exist"
 
 [[option]]
@@ -294,7 +281,6 @@ header = "options/quantifiers_options.h"
   long       = "multi-trigger-priority"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "only try multi triggers if single triggers give no instantiations"
 
 [[option]]
@@ -303,7 +289,6 @@ header = "options/quantifiers_options.h"
   long       = "multi-trigger-cache"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "caching version of multi triggers"
 
 [[option]]
@@ -312,7 +297,6 @@ header = "options/quantifiers_options.h"
   long       = "multi-trigger-linear"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "implementation of multi triggers where maximum number of instantiations is linear wrt number of ground terms"
 
 # Trigger selection mode.
@@ -421,7 +405,6 @@ header = "options/quantifiers_options.h"
   long       = "increment-triggers"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "generate additional triggers as needed during search"
 
 [[option]]
@@ -490,7 +473,6 @@ header = "options/quantifiers_options.h"
   long       = "inst-level-input-only"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "only input terms are assigned instantiation level zero"
 
 [[option]]
@@ -525,7 +507,6 @@ header = "options/quantifiers_options.h"
   long       = "full-saturate-quant-rd"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "whether to use relevant domain first for enumerative instantiation strategy"
 
 [[option]]
@@ -534,7 +515,6 @@ header = "options/quantifiers_options.h"
   long       = "full-saturate-quant-limit=N"
   type       = "int"
   default    = "-1"
-  read_only  = true
   help       = "maximum number of rounds of enumerative instantiation to apply (-1 means no limit)"
   
 [[option]]
@@ -543,7 +523,6 @@ header = "options/quantifiers_options.h"
   long       = "fs-interleave"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "interleave enumerative instantiation with other techniques"
 
 [[option]]
@@ -552,7 +531,6 @@ header = "options/quantifiers_options.h"
   long       = "fs-stratify"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "stratify effort levels in enumerative instantiation, which favors speed over fairness"
 
 [[option]]
@@ -561,7 +539,6 @@ header = "options/quantifiers_options.h"
   long       = "fs-sum"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "enumerating tuples of quantifiers by increasing the sum of indices, rather than the maximum"
 
 [[option]]
@@ -570,7 +547,6 @@ header = "options/quantifiers_options.h"
   long       = "literal-matching=MODE"
   type       = "LiteralMatchMode"
   default    = "USE"
-  read_only  = true
   help       = "choose literal matching mode"
   help_mode  = "Literal match modes."
 [[option.mode.NONE]]
@@ -610,7 +586,6 @@ header = "options/quantifiers_options.h"
   long       = "quant-fun-wd"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "assume that function defined by quantifiers are well defined"
 
 [[option]]
@@ -627,7 +602,6 @@ header = "options/quantifiers_options.h"
   long       = "fmf-fun-rlv"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "find models for recursively defined functions, assumes functions are admissible, allows empty type when function is irrelevant"
 
 [[option]]
@@ -662,7 +636,6 @@ header = "options/quantifiers_options.h"
   long       = "mbqi-interleave"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "interleave model-based quantifier instantiation with other techniques"
 
 [[option]]
@@ -679,7 +652,6 @@ header = "options/quantifiers_options.h"
   long       = "fmf-fresh-dc"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "use fresh distinguished representative when applying Inst-Gen techniques"
 
 [[option]]
@@ -688,7 +660,6 @@ header = "options/quantifiers_options.h"
   long       = "fmf-fmc-simple"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "simple models in full model check for finite model finding"
 
 [[option]]
@@ -721,7 +692,6 @@ header = "options/quantifiers_options.h"
   long       = "fmf-type-completion-thresh=N"
   type       = "int"
   default    = "1000"
-  read_only  = true
   help       = "the maximum cardinality of an interpreted type for which exhaustive enumeration in finite model finding is attempted"
 
 [[option]]
@@ -738,7 +708,6 @@ header = "options/quantifiers_options.h"
   long       = "quant-cf-mode=MODE"
   type       = "QcfMode"
   default    = "PROP_EQ"
-  read_only  = true
   help       = "what effort to apply conflict find mechanism"
   help_mode  = "Quantifier conflict find modes."
 [[option.mode.CONFLICT_ONLY]]
@@ -757,7 +726,6 @@ header = "options/quantifiers_options.h"
   long       = "quant-cf-when=MODE"
   type       = "QcfWhenMode"
   default    = "DEFAULT"
-  read_only  = true
   help       = "when to invoke conflict find mechanism for quantifiers"
   help_mode  = "Quantifier conflict find modes."
 [[option.mode.DEFAULT]]
@@ -795,7 +763,6 @@ header = "options/quantifiers_options.h"
   long       = "qcf-nested-conflict"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "consider conflicts for nested quantifiers"
 
 [[option]]
@@ -804,7 +771,6 @@ header = "options/quantifiers_options.h"
   long       = "qcf-vo-exp"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "qcf experimental variable ordering"
 
 [[option]]
@@ -821,7 +787,6 @@ header = "options/quantifiers_options.h"
   long       = "qcf-eager-test"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "optimization, test qcf instances eagerly"
 
 [[option]]
@@ -830,7 +795,6 @@ header = "options/quantifiers_options.h"
   long       = "qcf-eager-check-rd"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "optimization, eagerly check relevant domain of matched position"
 
 [[option]]
@@ -839,7 +803,6 @@ header = "options/quantifiers_options.h"
   long       = "qcf-skip-rd"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "optimization, skip instances based on possibly irrelevant portions of quantified formulas"
 
 ### Induction options
@@ -850,7 +813,6 @@ header = "options/quantifiers_options.h"
   long       = "quant-ind"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "use all available techniques for inductive reasoning"
 
 [[option]]
@@ -883,7 +845,6 @@ header = "options/quantifiers_options.h"
   long       = "conjecture-gen-per-round=N"
   type       = "int"
   default    = "1"
-  read_only  = true
   help       = "number of conjectures to generate per instantiation round"
 
 [[option]]
@@ -892,7 +853,6 @@ header = "options/quantifiers_options.h"
   long       = "conjecture-no-filter"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "do not filter conjectures"
 
 [[option]]
@@ -925,7 +885,6 @@ header = "options/quantifiers_options.h"
   long       = "conjecture-gen-gt-enum=N"
   type       = "int"
   default    = "50"
-  read_only  = true
   help       = "number of ground terms to generate for model filtering"
 
 [[option]]
@@ -934,7 +893,6 @@ header = "options/quantifiers_options.h"
   long       = "conjecture-gen-uee-intro"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "more aggressive merging for universal equality engine, introduces terms"
 
 [[option]]
@@ -943,7 +901,6 @@ header = "options/quantifiers_options.h"
   long       = "conjecture-gen-max-depth=N"
   type       = "int"
   default    = "3"
-  read_only  = true
   help       = "maximum depth of terms to consider for conjectures"
 
 ### Synthesis options
@@ -954,7 +911,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-inference"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "attempt to preprocess arbitrary inputs to sygus conjectures"
 
 [[option]]
@@ -989,7 +945,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-si-partial"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "combined techniques for synthesis conjectures that are partially single invocation"
 
 # Solution reconstruction modes for single invocation conjectures
@@ -1025,7 +980,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-si-rcons-limit=N"
   type       = "int"
   default    = "10000"
-  read_only  = true
   help       = "number of rounds of enumeration to use during solution reconstruction (negative means unlimited)"
 
 [[option]]
@@ -1034,7 +988,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-si-reconstruct-const"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "include constants when reconstruct solutions for single invocation conjectures in original grammar"
 
 [[option]]
@@ -1043,7 +996,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-si-abort"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "abort if synthesis conjecture is not single invocation"
 
 [[option]]
@@ -1052,7 +1004,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-crepair-abort"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "abort if constant repair techniques are not applicable"
 
 # Modes for piecewise-independent unification for synthesis (see Barbosa et al
@@ -1109,7 +1060,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-qe-preproc"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "use quantifier elimination as a preprocessing step for sygus"
 
 [[option]]
@@ -1141,7 +1091,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-active-gen=MODE"
   type       = "SygusActiveGenMode"
   default    = "AUTO"
-  read_only  = true
   help       = "mode for actively-generated sygus enumerators"
   help_mode  = "Modes for actively-generated sygus enumerators."
 [[option.mode.NONE]]
@@ -1174,7 +1123,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-min-grammar"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "statically minimize sygus grammars"
 
 [[option]]
@@ -1183,7 +1131,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-add-const-grammar"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "statically add constants appearing in conjecture to grammars"
 
 [[option]]
@@ -1192,7 +1139,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-grammar-norm"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "statically normalize sygus grammars based on flattening (linearization)"
 
 [[option]]
@@ -1201,7 +1147,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-templ-embed-grammar"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "embed sygus templates into grammars"
 
 [[option]]
@@ -1249,7 +1194,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-inv-templ-when-sg"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "use invariant templates (with solution reconstruction) for syntax guided problems"
 
 [[option]]
@@ -1258,7 +1202,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-auto-unfold"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "enable approach which automatically unfolds transition systems for directly solving invariant synthesis problems"
 
 [[option]]
@@ -1291,7 +1234,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-eval-unfold"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "do unfolding of sygus evaluation functions"
 
 [[option]]
@@ -1300,7 +1242,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-eval-unfold-bool"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "do unfolding of Boolean evaluation functions that appear in refinement lemmas"
 
 [[option]]
@@ -1377,7 +1318,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-rr"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "use sygus to enumerate and verify correctness of rewrite rules"
 
 [[option]]
@@ -1450,7 +1390,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-sample-grammar"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "when applicable, use grammar for choosing sample points"
 
 [[option]]
@@ -1690,7 +1629,6 @@ header = "options/quantifiers_options.h"
   long       = "cegqi-min-bounds"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "use minimally constrained lower/upper bound for counterexample-based quantifier instantiation"
 
 [[option]]
@@ -1699,7 +1637,6 @@ header = "options/quantifiers_options.h"
   long       = "cegqi-round-up-lia"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "round up integer lower bounds in substitutions for counterexample-based quantifier instantiation"
 
 [[option]]
@@ -1716,7 +1653,6 @@ header = "options/quantifiers_options.h"
   long       = "cegqi-nopt"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "non-optimal bounds for counterexample-based quantifier instantiation"
 
 # CEGQI for BV
@@ -1795,7 +1731,6 @@ header = "options/quantifiers_options.h"
   long       = "quant-alpha-equiv"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "infer alpha equivalence between quantified formulas"
 
 [[option]]
@@ -1812,7 +1747,6 @@ header = "options/quantifiers_options.h"
   long       = "macros-quant-mode=MODE"
   type       = "MacrosQuantMode"
   default    = "GROUND_UF"
-  read_only  = true
   help       = "mode for quantifiers macro expansion"
   help_mode  = "Modes for quantifiers macro expansion."
 [[option.mode.ALL]]
@@ -1851,7 +1785,6 @@ header = "options/quantifiers_options.h"
   long       = "ho-matching"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "do higher-order matching algorithm for triggers with variable operators"
 
 [[option]]
@@ -1860,7 +1793,6 @@ header = "options/quantifiers_options.h"
   long       = "ho-matching-var-priority"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "give priority to variable arguments over constant arguments"
 
 [[option]]
@@ -1869,7 +1801,6 @@ header = "options/quantifiers_options.h"
   long       = "ho-merge-term-db"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "merge term indices modulo equality"
 
 [[option]]
@@ -1878,7 +1809,6 @@ header = "options/quantifiers_options.h"
   long       = "ho-elim"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "eagerly eliminate higher-order constraints"
 
 [[option]]
@@ -1887,7 +1817,6 @@ header = "options/quantifiers_options.h"
   long       = "ho-elim-store-ax"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "use store axiom during ho-elim"
 
 ### Output options

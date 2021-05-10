@@ -8,7 +8,6 @@ header = "options/main_options.h"
   short      = "V"
   long       = "version"
   type       = "bool"
-  read_only  = true
   alternate  = false
   help       = "identify this cvc5 binary"
 
@@ -18,7 +17,6 @@ header = "options/main_options.h"
   short      = "h"
   long       = "help"
   type       = "bool"
-  read_only  = true
   alternate  = false
   help       = "full command line reference"
 
@@ -27,7 +25,6 @@ header = "options/main_options.h"
   long       = "show-config"
   type       = "void"
   handler    = "showConfiguration"
-  read_only  = true
   help       = "show cvc5 static configuration"
 
 [[option]]
@@ -35,7 +32,6 @@ header = "options/main_options.h"
   long       = "copyright"
   type       = "void"
   handler    = "copyright"
-  read_only  = true
   help       = "show cvc5 copyright information"
 
 [[option]]
@@ -45,7 +41,6 @@ header = "options/main_options.h"
   long       = "seed=N"
   type       = "uint64_t"
   default    = "0"
-  read_only  = true
   help       = "seed for random number generator"
 
 [[option]]
@@ -53,7 +48,6 @@ header = "options/main_options.h"
   long       = "show-debug-tags"
   type       = "void"
   handler    = "showDebugTags"
-  read_only  = true
   help       = "show all available tags for debugging"
 
 [[option]]
@@ -61,7 +55,6 @@ header = "options/main_options.h"
   long       = "show-trace-tags"
   type       = "void"
   handler    = "showTraceTags"
-  read_only  = true
   help       = "show all available tags for tracing"
 
 [[option]]
@@ -70,7 +63,6 @@ header = "options/main_options.h"
   long       = "early-exit"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "do not run destructors at exit; default on except in debug builds"
 
 [[option]]
@@ -86,7 +78,6 @@ header = "options/main_options.h"
   long       = "interactive-prompt"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "interactive prompting while in interactive mode"
 
 [[option]]
@@ -95,7 +86,6 @@ header = "options/main_options.h"
   long       = "segv-spin"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "spin on segfault/other crash waiting for gdb"
 
 [[option]]
@@ -104,5 +94,4 @@ header = "options/main_options.h"
   long       = "tear-down-incremental=N"
   type       = "int"
   default    = "0"
-  read_only  = true
   help       = "implement PUSH/POP/multi-query by destroying and recreating SmtEngine every N queries"
