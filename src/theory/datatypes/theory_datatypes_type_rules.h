@@ -44,32 +44,14 @@ struct DatatypeUpdateTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-struct DatatypeAscriptionTypeRule {
+struct DatatypeAscriptionTypeRule
+{
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-struct ConstructorProperties {
+struct ConstructorProperties
+{
   static Cardinality computeCardinality(TypeNode type);
-};
-
-struct TupleUpdateTypeRule {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-};
-
-class TupleUpdateOpTypeRule
-{
- public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-};
-
-struct RecordUpdateTypeRule {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-};
-
-class RecordUpdateOpTypeRule
-{
- public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
 class DtSizeTypeRule {

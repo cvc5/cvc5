@@ -109,6 +109,12 @@ cdef class Datatype:
         term.cterm = self.cd.getConstructorTerm(name.encode())
         return term
 
+    def getSelector(self, str name):
+        """Return a selector by name."""
+        cdef DatatypeSelector ds = DatatypeSelector(self.solver)
+        ds.cds = self.cd.getSelector(name.encode())
+        return ds
+
     def getNumConstructors(self):
         """:return: number of constructors."""
         return self.cd.getNumConstructors()
@@ -267,6 +273,11 @@ cdef class DatatypeSelector:
         term.cterm = self.cds.getSelectorTerm()
         return term
 
+    def getUpdaterTerm(self):
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cds.getUpdaterTerm()
+        return term
+
     def getRangeSort(self):
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.cds.getRangeSort()
@@ -303,6 +314,9 @@ cdef class Op:
 
     def getKind(self):
         return kind(<int> self.cop.getKind())
+    
+    def isIndexed(self):
+        return self.cop.isIndexed()
 
     def isNull(self):
         return self.cop.isNull()
@@ -681,8 +695,11 @@ cdef class Solver:
 
     def mkInteger(self, val):
         cdef Term term = Term(self)
-        integer = int(val)
-        term.cterm = self.csolver.mkInteger("{}".format(integer).encode())
+        if isinstance(val, str):
+            term.cterm = self.csolver.mkInteger(<const string &> str(val).encode())
+        else:
+            assert(isinstance(val, int))
+            term.cterm = self.csolver.mkInteger((<int?> val))
         return term
 
     def mkReal(self, val, den=None):
@@ -1466,6 +1483,10 @@ cdef class Term:
     def __hash__(self):
         return ctermhash(self.cterm)
 
+
+    def getId(self):
+        return self.cterm.getId()
+
     def getKind(self):
         return kind(<int> self.cterm.getKind())
 
@@ -1474,20 +1495,33 @@ cdef class Term:
         sort.csort = self.cterm.getSort()
         return sort
 
-    def substitute(self, list es, list replacements):
+    def substitute(self, term_or_list_1, term_or_list_2):
+        # The resulting term after substitution
+        cdef Term term = Term(self.solver)
+        # lists for substitutions
         cdef vector[c_Term] ces
         cdef vector[c_Term] creplacements
-        cdef Term term = Term(self.solver)
+        
+        # normalize the input parameters to be lists
+        if isinstance(term_or_list_1, list):
+            assert isinstance(term_or_list_2, list)
+            es = term_or_list_1
+            replacements = term_or_list_2
+            if len(es) != len(replacements):
+                raise RuntimeError("Expecting list inputs to substitute to "
+                                   "have the same length but got: "
+                                   "{} and {}".format(len(es), len(replacements)))
 
-        if len(es) != len(replacements):
-            raise RuntimeError("Expecting list inputs to substitute to "
-                               "have the same length but got: "
-                               "{} and {}".format(len(es), len(replacements)))
+            for e, r in zip(es, replacements):
+                ces.push_back((<Term?> e).cterm)
+                creplacements.push_back((<Term?> r).cterm)
 
-        for e, r in zip(es, replacements):
-            ces.push_back((<Term?> e).cterm)
-            creplacements.push_back((<Term?> r).cterm)
-
+        else:
+            # add the single elements to the vectors
+            ces.push_back((<Term?> term_or_list_1).cterm)
+            creplacements.push_back((<Term?> term_or_list_2).cterm)
+        
+        # call the API substitute method with lists
         term.cterm = self.cterm.substitute(ces, creplacements)
         return term
 
