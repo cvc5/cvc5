@@ -30,8 +30,8 @@ namespace bv {
  * Bit-blasting registrar.
  *
  * The CnfStream calls preRegister() if it encounters a theory atom.
- * This registrar bit-blasts given atom and remembers what aotms were
- * bit-blasted.
+ * This registrar bit-blasts given atom and remembers which bit-vector atoms
+ * were bit-blasted.
  *
  * This registrar is needed when --bitblast=eager is enabled.
  */
@@ -64,7 +64,10 @@ class BBRegistrar : public prop::Registrar
   }
 
  private:
+  /** The bitblaster used. */
   BBSimple* d_bitblaster;
+
+  /** Stores bit-vector atoms encounterd on preRegister(). */
   std::unordered_set<TNode, TNodeHashFunction> d_registeredAtoms;
 };
 
@@ -183,23 +186,25 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
     std::vector<prop::SatLiteral> unsat_assumptions;
     d_satSolver->getUnsatAssumptions(unsat_assumptions);
 
+    Node conflict;
+    // Unsat assumptions produce conflict.
     if (unsat_assumptions.size() > 0)
     {
-      std::vector<Node> conflict;
+      std::vector<Node> conf;
       for (const prop::SatLiteral& lit : unsat_assumptions)
       {
-        conflict.push_back(d_literalFactCache[lit]);
-        Debug("bv-bitblast") << "unsat assumption (" << lit
-                             << "): " << conflict.back() << std::endl;
+        conf.push_back(d_literalFactCache[lit]);
+        Debug("bv-bitblast")
+            << "unsat assumption (" << lit << "): " << conf.back() << std::endl;
       }
-
-      d_im.conflict(nm->mkAnd(conflict), InferenceId::BV_BITBLAST_CONFLICT);
+      conflict = nm->mkAnd(conf);
     }
-    else
+    else  // Input assertions produce conflict.
     {
       std::vector<Node> assertions(d_assertions.begin(), d_assertions.end());
-      d_im.conflict(nm->mkAnd(assertions), InferenceId::BV_BITBLAST_CONFLICT);
+      conflict = nm->mkAnd(assertions);
     }
+    d_im.conflict(conflict, InferenceId::BV_BITBLAST_CONFLICT);
   }
 }
 
@@ -208,6 +213,12 @@ bool BVSolverBitblast::preNotifyFact(
 {
   Valuation& val = d_state.getValuation();
 
+  /**
+   * Check whether `fact` is an input assertion on user-level 0.
+   *
+   * If this is the case we can assert `fact` to the SAT solver instead of
+   * using assumptions.
+   */
   if (val.isSatLiteral(fact) && !val.isDecision(fact)
       && val.getDecisionLevel(fact) == 0 && val.getIntroLevel(fact) == 0)
   {
@@ -384,14 +395,16 @@ void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)
     d_cnfStream->ensureLiteral(fact[0]);
   }
 
-  /* convertAndAssert does not make the connection between the BV atom
-   * and it's bit-blasted form. Thus, we add the equalities now. */
+  /* convertAndAssert() does not make the connection between the bit-vector
+   * atom and it's bit-blasted form (it only calls preRegister() from the
+   * registrar). Thus, we add the equalities now. */
   auto& registeredAtoms = d_bbRegistrar->getRegisteredAtoms();
   for (auto atom : registeredAtoms)
   {
     Node bb_atom = d_bitblaster->getStoredBBAtom(atom);
     d_cnfStream->convertAndAssert(atom.eqNode(bb_atom), false, false);
   }
+  // Clear cache since we only need to do this once per bit-blasted atom.
   registeredAtoms.clear();
 }
 

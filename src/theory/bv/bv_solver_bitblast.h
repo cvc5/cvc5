@@ -83,6 +83,12 @@ class BVSolverBitblast : public BVSolver
    */
   Node getValue(TNode node);
 
+  /**
+   * Handle BITVECTOR_EAGER_ATOM atoms and assert/assume to CnfStream.
+   *
+   * @param assertFact: Indicates whether the fact should be asserted (true) or
+   * assumed (false).
+   */
   void handleEagerAtom(TNode fact, bool assertFact);
 
   /**
@@ -112,6 +118,11 @@ class BVSolverBitblast : public BVSolver
    */
   context::CDQueue<Node> d_bbFacts;
 
+  /**
+   * Bit-blast queue for user-level 0 input facts sent to this solver.
+   *
+   * Get populated on preNotifyFact().
+   */
   context::CDQueue<Node> d_bbInputFacts;
 
   /** Corresponds to the SAT literals of the currently asserted facts. */
