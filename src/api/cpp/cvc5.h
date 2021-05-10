@@ -1256,11 +1256,10 @@ class CVC5_EXPORT Term
    */
   bool isString() const;
   /**
-   * @return the string term as a native string constant.
-   *
    * Note: This method is not to be confused with toString() which returns the
    * term in some string representation, whatever data it may hold.
    * Asserts isString().
+   * @return the string term as a native string constant.
    */
   std::wstring getString() const;
 
