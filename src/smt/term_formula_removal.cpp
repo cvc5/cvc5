@@ -442,8 +442,7 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
       skolem = sm->mkPurifySkolem(
           node,
           "btvK",
-          "a Boolean term variable introduced during term formula removal",
-          NodeManager::SKOLEM_BOOL_TERM_VAR);
+          "a Boolean term variable introduced during term formula removal");
       d_skolem_cache.insert(node, skolem);
 
       // The new assertion
