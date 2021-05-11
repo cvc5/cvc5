@@ -688,8 +688,7 @@ const api::Grammar* SynthFunCommand::getGrammar() const { return d_grammar; }
 
 void SynthFunCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  api::Term varList = solver->mkTerm(api::BOUND_VAR_LIST, d_vars);
-  sm->addFunctionToSynthesize(d_fun, varList);
+  sm->addFunctionToSynthesize(d_fun);
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -848,15 +847,24 @@ void CheckSynthCommand::invoke(api::Solver* solver, SymbolManager* sm)
     if (d_result.isUnsat()
         && options::sygusOut() != options::SygusSolutionOutMode::STATUS)
     {
-      std::vector<std::pair<api::Term, api::Term>> synthFuns = sm->getFunctionsToSynthesize();
+      std::vector<api::Term> synthFuns = sm->getFunctionsToSynthesize();
       d_solution << "(" << std::endl;
       Printer * p = Printer::getPrinter(language::output::LANG_SYGUS_V2);
-      for (std::pair<api::Term, api::Term>& fs : synthFuns)
+      for (api::Term& f : synthFuns)
       {
-        api::Term f = fs.first;
         api::Term sol = solver->getSynthSolution(f);
-        std::vector<api::Term> formals(fs.second.begin(), fs.second.end());
-        p->toStreamCmdDefineFunction(d_solution, f.toString(), termVectorToNodes(formals), sortToTypeNode(f.getSort().getFunctionCodomainSort()), termToNode(sol));
+        std::vector<api::Term> formals;
+        if (sol.getKind()==api::LAMBDA)
+        {
+          formals.insert(formals.end(), sol[0].begin(), sol[0].end());
+          sol = sol[1];
+        }
+        api::Sort rangeSort = f.getSort();
+        if (rangeSort.isFunction())
+        {
+          rangeSort = rangeSort.getFunctionCodomainSort();
+        }
+        p->toStreamCmdDefineFunction(d_solution, f.toString(), termVectorToNodes(formals), sortToTypeNode(rangeSort), termToNode(sol));
       }
       d_solution << ")" << std::endl;
     }
