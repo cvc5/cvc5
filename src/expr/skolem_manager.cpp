@@ -215,11 +215,6 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix,
   return NodeManager::currentNM()->mkSkolem(prefix, type, comment, flags);
 }
 
-Node SkolemManager::mkBooleanTermVariable(Node t)
-{
-  return mkPurifySkolem(t, "", "", NodeManager::SKOLEM_BOOL_TERM_VAR);
-}
-
 ProofGenerator* SkolemManager::getProofGenerator(Node t) const
 {
   std::map<Node, ProofGenerator*>::const_iterator it = d_gens.find(t);
