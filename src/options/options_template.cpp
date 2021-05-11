@@ -57,7 +57,6 @@ extern int optreset;
 // clang-format off
 ${headers_module}$
 
-#include "options/options_holder.h"
 #include "base/cvc5config.h"
 #include "options/base_handlers.h"
 
