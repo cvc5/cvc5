@@ -97,12 +97,13 @@ Node SkolemCache::mkTypedSkolemCached(
     // exists k. k = a
     case SK_PURIFY:
     {
-      // for sequences of Booleans, we may purify Boolean terms, in which case they
-      // must be Boolean term variables.
-      int flags = a.getType().isBoolean() ? NodeManager::SKOLEM_BOOL_TERM_VAR : NodeManager::SKOLEM_DEFAULT;
+      // for sequences of Booleans, we may purify Boolean terms, in which case
+      // they must be Boolean term variables.
+      int flags = a.getType().isBoolean() ? NodeManager::SKOLEM_BOOL_TERM_VAR
+                                          : NodeManager::SKOLEM_DEFAULT;
       sk = sm->mkPurifySkolem(a, c, "string purify skolem", flags);
     }
-      break;
+    break;
     // these are eliminated by normalizeStringSkolem
     case SK_ID_V_SPT:
     case SK_ID_V_SPT_REV:
