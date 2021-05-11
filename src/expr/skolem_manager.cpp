@@ -330,9 +330,8 @@ Node SkolemManager::mkSkolemInternal(Node w,
     return w.getAttribute(sfa);
   }
   // make the new skolem
-  if (flags & NodeManager::SKOLEM_BOOL_TERM_VAR)
+  if (w.getType().isBoolean())
   {
-    Assert (w.getType().isBoolean());
     k = nm->mkBooleanTermVariable();
   }
   else
