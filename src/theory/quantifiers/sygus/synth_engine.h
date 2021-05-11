@@ -57,8 +57,6 @@ class SynthEngine : public QuantifiersModule
   void registerQuantifier(Node q) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const override { return "SynthEngine"; }
-  /** print solution for synthesis conjectures */
-  void printSynthSolution(std::ostream& out);
   /** get synth solutions
    *
    * This function adds entries to sol_map that map functions-to-synthesize

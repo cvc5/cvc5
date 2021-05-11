@@ -246,18 +246,6 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
   return conj->doRefine();
 }
 
-void SynthEngine::printSynthSolution(std::ostream& out)
-{
-  Assert(!d_conjs.empty());
-  for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
-  {
-    if (d_conjs[i]->isAssigned())
-    {
-      d_conjs[i]->printSynthSolution(out);
-    }
-  }
-}
-
 bool SynthEngine::getSynthSolutions(
     std::map<Node, std::map<Node, Node> >& sol_map)
 {

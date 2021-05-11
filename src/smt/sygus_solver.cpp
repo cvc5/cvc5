@@ -251,18 +251,6 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
   return true;
 }
 
-void SygusSolver::printSynthSolution(std::ostream& out)
-{
-  QuantifiersEngine* qe = d_smtSolver.getQuantifiersEngine();
-  if (qe == nullptr)
-  {
-    InternalError()
-        << "SygusSolver::printSynthSolution(): Cannot print synth solution in "
-           "the current logic, which does not include quantifiers";
-  }
-  qe->printSynthSolution(out);
-}
-
 void SygusSolver::checkSynthSolution(Assertions& as)
 {
   NodeManager* nm = NodeManager::currentNM();

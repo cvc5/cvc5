@@ -160,7 +160,7 @@ name   = "SMT layer"
   category   = "regular"
   long       = "sygus-out=MODE"
   type       = "SygusSolutionOutMode"
-  default    = "STATUS_AND_DEF"
+  default    = "STANDARD"
   help       = "output mode for sygus"
   help_mode  = "Modes for sygus solution output."
 [[option.mode.STATUS]]
