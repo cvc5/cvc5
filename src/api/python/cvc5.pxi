@@ -1598,35 +1598,12 @@ cdef class Term:
         term.cterm = self.cterm.iteTerm(then_t.cterm, else_t.cterm)
         return term
 
-    def isInt32(self):
-        return self.cterm.isInt32()
-
-    def getInt32(self):
-        return self.cterm.getInt32()
-    
-    def isUInt32(self):
-        return self.cterm.isUInt32()
-    
-    def getUInt32(self):
-        return self.cterm.getUInt32()
-    
-    def isInt64(self):
-        return self.cterm.isInt64()
-    
-    def getInt64(self):
-        return self.cterm.getInt64()
-    
-    def isUInt64(self):
-        return self.cterm.isUInt64()
-    
-    def getUInt64(self):
-        return self.cterm.getUInt64()
-    
     def isInteger(self):
         return self.cterm.isInteger()
     
     def getInteger(self):
         return self.cterm.getInteger().decode()
+
     def toPythonObj(self):
         '''
         Converts a constant value Term to a Python object.

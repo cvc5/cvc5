@@ -372,14 +372,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
             Term operator*() except +
         const_iterator begin() except +
         const_iterator end() except +
-        bint isInt32() except +
-        int32_t getInt32() except +
-        bint isUInt32() except +
-        uint32_t getUInt32() except +
         bint isInt64() except +
         int64_t getInt64() except +
-        bint isUInt64() except +
-        uint64_t getUInt64() except +
         bint isInteger() except +
         string getInteger() except +
 
