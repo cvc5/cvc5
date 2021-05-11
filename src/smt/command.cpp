@@ -849,12 +849,12 @@ void CheckSynthCommand::invoke(api::Solver* solver, SymbolManager* sm)
     {
       std::vector<api::Term> synthFuns = sm->getFunctionsToSynthesize();
       d_solution << "(" << std::endl;
-      Printer * p = Printer::getPrinter(language::output::LANG_SYGUS_V2);
+      Printer* p = Printer::getPrinter(language::output::LANG_SYGUS_V2);
       for (api::Term& f : synthFuns)
       {
         api::Term sol = solver->getSynthSolution(f);
         std::vector<api::Term> formals;
-        if (sol.getKind()==api::LAMBDA)
+        if (sol.getKind() == api::LAMBDA)
         {
           formals.insert(formals.end(), sol[0].begin(), sol[0].end());
           sol = sol[1];
@@ -864,7 +864,11 @@ void CheckSynthCommand::invoke(api::Solver* solver, SymbolManager* sm)
         {
           rangeSort = rangeSort.getFunctionCodomainSort();
         }
-        p->toStreamCmdDefineFunction(d_solution, f.toString(), termVectorToNodes(formals), sortToTypeNode(rangeSort), termToNode(sol));
+        p->toStreamCmdDefineFunction(d_solution,
+                                     f.toString(),
+                                     termVectorToNodes(formals),
+                                     sortToTypeNode(rangeSort),
+                                     termToNode(sol));
       }
       d_solution << ")" << std::endl;
     }
