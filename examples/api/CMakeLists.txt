@@ -37,5 +37,5 @@ set(SYGUS_EXAMPLES_API
 )
 
 foreach(example ${SYGUS_EXAMPLES_API})
-  cvc5_add_example(${example} "${example} utils.h utils.cpp" "api")
+  cvc5_add_example(${example} "${example}.cpp utils.h utils.cpp" "api")
 endforeach()
