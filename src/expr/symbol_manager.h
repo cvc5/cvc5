@@ -102,7 +102,8 @@ class CVC5_EXPORT SymbolManager
    */
   std::vector<api::Term> getModelDeclareTerms() const;
   /**
-   * @return The functions we have declared that should be printed in a response to check-synth.
+   * @return The functions we have declared that should be printed in a response
+   * to check-synth.
    */
   std::vector<api::Term> getFunctionsToSynthesize() const;
   /**
