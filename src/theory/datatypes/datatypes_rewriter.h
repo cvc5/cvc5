@@ -58,6 +58,8 @@ class DatatypesRewriter : public TheoryRewriter
   static RewriteResponse rewriteSelector(TNode in);
   /** rewrite tester term in */
   static RewriteResponse rewriteTester(TNode in);
+  /** rewrite updater term in */
+  static RewriteResponse rewriteUpdater(TNode in);
 
   /** collect references
    *

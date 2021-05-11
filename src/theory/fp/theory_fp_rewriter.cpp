@@ -32,11 +32,13 @@
  *       - Samuel Figuer results
  */
 
+#include "theory/fp/theory_fp_rewriter.h"
+
 #include <algorithm>
 
 #include "base/check.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/fp/fp_converter.h"
-#include "theory/fp/theory_fp_rewriter.h"
 
 namespace cvc5 {
 namespace theory {
@@ -73,6 +75,46 @@ namespace rewrite {
   {
     Unreachable() << "sort kind (" << node.getKind()
                   << ") found in expression?";
+  }
+
+  RewriteResponse removeToFPGeneric(TNode node, bool isPreRewrite)
+  {
+    Assert(!isPreRewrite);
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_GENERIC);
+
+    FloatingPointToFPGeneric info =
+        node.getOperator().getConst<FloatingPointToFPGeneric>();
+
+    uint32_t children = node.getNumChildren();
+
+    Node op;
+    NodeManager* nm = NodeManager::currentNM();
+
+    if (children == 1)
+    {
+      op = nm->mkConst(FloatingPointToFPIEEEBitVector(info));
+      return RewriteResponse(REWRITE_AGAIN, nm->mkNode(op, node[0]));
+    }
+    Assert(children == 2);
+    Assert(node[0].getType().isRoundingMode());
+
+    TypeNode t = node[1].getType();
+
+    if (t.isFloatingPoint())
+    {
+      op = nm->mkConst(FloatingPointToFPFloatingPoint(info));
+    }
+    else if (t.isReal())
+    {
+      op = nm->mkConst(FloatingPointToFPReal(info));
+    }
+    else
+    {
+      Assert(t.isBitVector());
+      op = nm->mkConst(FloatingPointToFPSignedBitVector(info));
+    }
+
+    return RewriteResponse(REWRITE_AGAIN, nm->mkNode(op, node[0], node[1]));
   }
 
   RewriteResponse removeDoubleNegation(TNode node, bool isPreRewrite)
@@ -329,6 +371,28 @@ namespace rewrite {
     {
       return RewriteResponse(REWRITE_DONE,
                              NodeManager::currentNM()->mkConst(false));
+    }
+    return RewriteResponse(REWRITE_DONE, node);
+  }
+
+  RewriteResponse toFPSignedBV(TNode node, bool isPreRewrite)
+  {
+    Assert(!isPreRewrite);
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR);
+
+    /* symFPU does not allow conversions from signed bit-vector of size 1 */
+    if (node[1].getType().getBitVectorSize() == 1)
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      Node op = nm->mkConst(FloatingPointToFPUnsignedBitVector(
+          node.getOperator().getConst<FloatingPointToFPSignedBitVector>()));
+      Node fromubv = nm->mkNode(op, node[0], node[1]);
+      return RewriteResponse(
+          REWRITE_AGAIN_FULL,
+          nm->mkNode(kind::ITE,
+                     node[1].eqNode(bv::utils::mkOne(1)),
+                     nm->mkNode(kind::FLOATINGPOINT_NEG, fromubv),
+                     fromubv));
     }
     return RewriteResponse(REWRITE_DONE, node);
   }
@@ -736,15 +800,16 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_REAL);
 
     TNode op = node.getOperator();
-    const FloatingPointToFPReal &param = op.getConst<FloatingPointToFPReal>();
+    const FloatingPointSize& size =
+        op.getConst<FloatingPointToFPReal>().getSize();
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
     Rational arg(node[1].getConst<Rational>());
 
-    FloatingPoint res(param.getSize(), rm, arg);
+    FloatingPoint res(size, rm, arg);
 
     Node lit = NodeManager::currentNM()->mkConst(res);
-    
+
     return RewriteResponse(REWRITE_DONE, lit);
   }
 
@@ -753,16 +818,27 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR);
 
     TNode op = node.getOperator();
-    const FloatingPointToFPSignedBitVector &param = op.getConst<FloatingPointToFPSignedBitVector>();
+    const FloatingPointSize& size =
+        op.getConst<FloatingPointToFPSignedBitVector>().getSize();
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
-    BitVector arg(node[1].getConst<BitVector>());
+    BitVector sbv(node[1].getConst<BitVector>());
 
-    FloatingPoint res(param.getSize(), rm, arg, true);
+    NodeManager* nm = NodeManager::currentNM();
 
-    Node lit = NodeManager::currentNM()->mkConst(res);
-    
-    return RewriteResponse(REWRITE_DONE, lit);
+    /* symFPU does not allow conversions from signed bit-vector of size 1 */
+    if (sbv.getSize() == 1)
+    {
+      FloatingPoint fromubv(size, rm, sbv, false);
+      if (sbv.isBitSet(0))
+      {
+        return RewriteResponse(REWRITE_DONE, nm->mkConst(fromubv.negate()));
+      }
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(fromubv));
+    }
+
+    return RewriteResponse(REWRITE_DONE,
+                           nm->mkConst(FloatingPoint(size, rm, sbv, true)));
   }
 
   RewriteResponse convertFromUBV(TNode node, bool isPreRewrite)
@@ -770,15 +846,16 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR);
 
     TNode op = node.getOperator();
-    const FloatingPointToFPUnsignedBitVector &param = op.getConst<FloatingPointToFPUnsignedBitVector>();
+    const FloatingPointSize& size =
+        op.getConst<FloatingPointToFPUnsignedBitVector>().getSize();
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
     BitVector arg(node[1].getConst<BitVector>());
 
-    FloatingPoint res(param.getSize(), rm, arg, false);
+    FloatingPoint res(size, rm, arg, false);
 
     Node lit = NodeManager::currentNM()->mkConst(res);
-    
+
     return RewriteResponse(REWRITE_DONE, lit);
   }
 
@@ -787,13 +864,12 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_UBV);
 
     TNode op = node.getOperator();
-    const FloatingPointToUBV &param = op.getConst<FloatingPointToUBV>();
+    const BitVectorSize& size = op.getConst<FloatingPointToUBV>().d_bv_size;
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
     FloatingPoint arg(node[1].getConst<FloatingPoint>());
 
-    FloatingPoint::PartialBitVector res(
-        arg.convertToBV(param.d_bv_size, rm, false));
+    FloatingPoint::PartialBitVector res(arg.convertToBV(size, rm, false));
 
     if (res.second) {
       Node lit = NodeManager::currentNM()->mkConst(res.first);
@@ -809,13 +885,12 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_SBV);
 
     TNode op = node.getOperator();
-    const FloatingPointToSBV &param = op.getConst<FloatingPointToSBV>();
+    const BitVectorSize& size = op.getConst<FloatingPointToSBV>().d_bv_size;
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
     FloatingPoint arg(node[1].getConst<FloatingPoint>());
 
-    FloatingPoint::PartialBitVector res(
-        arg.convertToBV(param.d_bv_size, rm, true));
+    FloatingPoint::PartialBitVector res(arg.convertToBV(size, rm, true));
 
     if (res.second) {
       Node lit = NodeManager::currentNM()->mkConst(res.first);
@@ -848,7 +923,8 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_UBV_TOTAL);
 
     TNode op = node.getOperator();
-    const FloatingPointToUBVTotal &param = op.getConst<FloatingPointToUBVTotal>();
+    const BitVectorSize& size =
+        op.getConst<FloatingPointToUBVTotal>().d_bv_size;
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
     FloatingPoint arg(node[1].getConst<FloatingPoint>());
@@ -857,14 +933,12 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     if (node[2].getMetaKind() == kind::metakind::CONSTANT) {
       BitVector partialValue(node[2].getConst<BitVector>());
 
-      BitVector folded(
-          arg.convertToBVTotal(param.d_bv_size, rm, false, partialValue));
+      BitVector folded(arg.convertToBVTotal(size, rm, false, partialValue));
       Node lit = NodeManager::currentNM()->mkConst(folded);
       return RewriteResponse(REWRITE_DONE, lit);
 
     } else {
-      FloatingPoint::PartialBitVector res(
-          arg.convertToBV(param.d_bv_size, rm, false));
+      FloatingPoint::PartialBitVector res(arg.convertToBV(size, rm, false));
 
       if (res.second) {
 	Node lit = NodeManager::currentNM()->mkConst(res.first);
@@ -881,7 +955,8 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_SBV_TOTAL);
 
     TNode op = node.getOperator();
-    const FloatingPointToSBVTotal &param = op.getConst<FloatingPointToSBVTotal>();
+    const BitVectorSize& size =
+        op.getConst<FloatingPointToSBVTotal>().d_bv_size;
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
     FloatingPoint arg(node[1].getConst<FloatingPoint>());
@@ -890,14 +965,12 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     if (node[2].getMetaKind() == kind::metakind::CONSTANT) {
       BitVector partialValue(node[2].getConst<BitVector>());
 
-      BitVector folded(
-          arg.convertToBVTotal(param.d_bv_size, rm, true, partialValue));
+      BitVector folded(arg.convertToBVTotal(size, rm, true, partialValue));
       Node lit = NodeManager::currentNM()->mkConst(folded);
       return RewriteResponse(REWRITE_DONE, lit);
 
     } else {
-      FloatingPoint::PartialBitVector res(
-          arg.convertToBV(param.d_bv_size, rm, true));
+      FloatingPoint::PartialBitVector res(arg.convertToBV(size, rm, true));
 
       if (res.second) {
 	Node lit = NodeManager::currentNM()->mkConst(res.first);
@@ -1049,7 +1122,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
 {
   /* Set up the pre-rewrite dispatch table */
-  for (unsigned i = 0; i < kind::LAST_KIND; ++i)
+  for (uint32_t i = 0; i < kind::LAST_KIND; ++i)
   {
     d_preRewriteTable[i] = rewrite::notFP;
   }
@@ -1140,7 +1213,7 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
   d_preRewriteTable[kind::ROUNDINGMODE_BITBLAST] = rewrite::identity;
 
   /* Set up the post-rewrite dispatch table */
-  for (unsigned i = 0; i < kind::LAST_KIND; ++i)
+  for (uint32_t i = 0; i < kind::LAST_KIND; ++i)
   {
     d_postRewriteTable[i] = rewrite::notFP;
   }
@@ -1197,10 +1270,11 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
       rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_REAL] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] =
-      rewrite::identity;
+      rewrite::toFPSignedBV;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] =
       rewrite::identity;
-  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] =
+      rewrite::removeToFPGeneric;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
@@ -1228,7 +1302,7 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
   d_postRewriteTable[kind::ROUNDINGMODE_BITBLAST] = rewrite::identity;
 
   /* Set up the post-rewrite constant fold table */
-  for (unsigned i = 0; i < kind::LAST_KIND; ++i)
+  for (uint32_t i = 0; i < kind::LAST_KIND; ++i)
   {
     // Note that this is identity, not notFP
     // Constant folding is called after post-rewrite

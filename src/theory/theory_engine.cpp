@@ -31,6 +31,7 @@
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
 #include "smt/dump.h"
+#include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "smt/output_manager.h"
 #include "theory/combination_care_graph.h"
@@ -145,7 +146,7 @@ void TheoryEngine::finishInit()
   // Initialize the theory combination architecture
   if (options::tcMode() == options::TcMode::CARE_GRAPH)
   {
-    d_tc.reset(new CombinationCareGraph(*this, paraTheories, d_pnm));
+    d_tc.reset(new CombinationCareGraph(*this, d_env, paraTheories, d_pnm));
   }
   else
   {
@@ -156,7 +157,7 @@ void TheoryEngine::finishInit()
   if (options::relevanceFilter())
   {
     d_relManager.reset(
-        new RelevanceManager(d_userContext, theory::Valuation(this)));
+        new RelevanceManager(d_env.getUserContext(), theory::Valuation(this)));
   }
 
   // initialize the quantifiers engine
@@ -205,48 +206,55 @@ void TheoryEngine::finishInit()
 
 ProofNodeManager* TheoryEngine::getProofNodeManager() const { return d_pnm; }
 
-TheoryEngine::TheoryEngine(context::Context* context,
-                           context::UserContext* userContext,
-                           ResourceManager* rm,
-                           const LogicInfo& logicInfo,
+context::Context* TheoryEngine::getSatContext() const
+{
+  return d_env.getContext();
+}
+
+context::UserContext* TheoryEngine::getUserContext() const
+{
+  return d_env.getUserContext();
+}
+
+TheoryEngine::TheoryEngine(Env& env,
                            OutputManager& outMgr,
                            ProofNodeManager* pnm)
     : d_propEngine(nullptr),
-      d_context(context),
-      d_userContext(userContext),
-      d_logicInfo(logicInfo),
+      d_env(env),
+      d_logicInfo(env.getLogicInfo()),
       d_outMgr(outMgr),
       d_pnm(pnm),
-      d_lazyProof(
-          d_pnm != nullptr ? new LazyCDProof(
-              d_pnm, nullptr, d_userContext, "TheoryEngine::LazyCDProof")
-                           : nullptr),
-      d_tepg(new TheoryEngineProofGenerator(d_pnm, d_userContext)),
+      d_lazyProof(d_pnm != nullptr
+                      ? new LazyCDProof(d_pnm,
+                                        nullptr,
+                                        d_env.getUserContext(),
+                                        "TheoryEngine::LazyCDProof")
+                      : nullptr),
+      d_tepg(new TheoryEngineProofGenerator(d_pnm, d_env.getUserContext())),
       d_tc(nullptr),
       d_sharedSolver(nullptr),
       d_quantEngine(nullptr),
-      d_decManager(new DecisionManager(userContext)),
+      d_decManager(new DecisionManager(d_env.getUserContext())),
       d_relManager(nullptr),
       d_eager_model_building(false),
-      d_inConflict(context, false),
+      d_inConflict(d_env.getContext(), false),
       d_inSatMode(false),
       d_hasShutDown(false),
-      d_incomplete(context, false),
-      d_incompleteTheory(context, THEORY_BUILTIN),
-      d_incompleteId(context, IncompleteId::UNKNOWN),
-      d_propagationMap(context),
-      d_propagationMapTimestamp(context, 0),
-      d_propagatedLiterals(context),
-      d_propagatedLiteralsIndex(context, 0),
-      d_atomRequests(context),
+      d_incomplete(d_env.getContext(), false),
+      d_incompleteTheory(d_env.getContext(), THEORY_BUILTIN),
+      d_incompleteId(d_env.getContext(), IncompleteId::UNKNOWN),
+      d_propagationMap(d_env.getContext()),
+      d_propagationMapTimestamp(d_env.getContext(), 0),
+      d_propagatedLiterals(d_env.getContext()),
+      d_propagatedLiteralsIndex(d_env.getContext(), 0),
+      d_atomRequests(d_env.getContext()),
       d_combineTheoriesTime(smtStatisticsRegistry().registerTimer(
           "TheoryEngine::combineTheoriesTime")),
       d_true(),
       d_false(),
       d_interrupted(false),
-      d_resourceManager(rm),
       d_inPreregister(false),
-      d_factsAsserted(context, false),
+      d_factsAsserted(d_env.getContext(), false),
       d_attr_handle()
 {
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST;
@@ -1041,7 +1049,7 @@ void TheoryEngine::assertFact(TNode literal)
 bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
   Debug("theory::propagate") << "TheoryEngine::propagate(" << literal << ", " << theory << ")" << endl;
 
-  Trace("dtview::prop") << std::string(d_context->getLevel(), ' ')
+  Trace("dtview::prop") << std::string(d_env.getContext()->getLevel(), ' ')
                         << ":THEORY-PROP: " << literal << endl;
 
   // spendResource();
@@ -1924,7 +1932,7 @@ bool TheoryEngine::isFiniteType(TypeNode tn) const
 
 void TheoryEngine::spendResource(Resource r)
 {
-  d_resourceManager->spendResource(r);
+  d_env.getResourceManager()->spendResource(r);
 }
 
 void TheoryEngine::initializeProofChecker(ProofChecker* pc)

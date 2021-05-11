@@ -67,20 +67,11 @@ void PreprocessingPassContext::recordSymbolsInAssertions(
   }
 }
 
-void PreprocessingPassContext::addModelSubstitution(const Node& lhs,
-                                                    const Node& rhs)
-{
-  getTheoryEngine()->getModel()->addSubstitution(
-      lhs, d_smt->expandDefinitions(rhs, false));
-}
-
 void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                const Node& rhs,
                                                ProofGenerator* pg)
 {
   getTopLevelSubstitutions().addSubstitution(lhs, rhs, pg);
-  // also add as a model substitution
-  addModelSubstitution(lhs, rhs);
 }
 
 void PreprocessingPassContext::addSubstitution(const Node& lhs,
@@ -89,8 +80,6 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                const std::vector<Node>& args)
 {
   getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, {}, args);
-  // also add as a model substitution
-  addModelSubstitution(lhs, rhs);
 }
 
 ProofNodeManager* PreprocessingPassContext::getProofNodeManager()

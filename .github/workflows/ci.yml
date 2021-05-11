@@ -1,28 +1,24 @@
-on: [push, pull_request]
+on: [push, pull_request, pull_request_target]
 name: CI
 
 jobs:
   build:
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        name: [
-          production,
-          production-clang,
-          production-dbg,
-          production-dbg-clang
-        ]
-
-        exclude:
-          - name: production-clang
-            os: macos-latest
-          - name: production-dbg
-            os: macos-latest
-          - name: production-dbg-clang
-            os: macos-latest
-
         include:
-          - name: production
+          - name: ubuntu:production
+            os: ubuntu-latest
+            config: production --auto-download --all-bindings --editline --docs
+            cache-key: production
+            python-bindings: true
+            build-documentation: true
+            check-examples: true
+            exclude_regress: 3-4
+            run_regression_args: --no-check-unsat-cores --no-check-proofs
+
+          - name: macos:production
+            os: macos-latest
             config: production --auto-download --all-bindings --editline
             cache-key: production
             python-bindings: true
@@ -30,31 +26,31 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
-          - name: production-clang
+          - name: ubuntu:production-clang
+            os: ubuntu-latest
+            env: CC=clang CXX=clang++
             config: production --auto-download
             cache-key: productionclang
             check-examples: true
-            env: CC=clang CXX=clang++
-            os: ubuntu-latest
             exclude_regress: 3-4
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
-          - name: production-dbg
+          - name: ubuntu:production-dbg
+            os: ubuntu-latest
             config: production --auto-download --assertions --tracing --unit-testing --editline
             cache-key: dbg
-            os: ubuntu-latest
             exclude_regress: 3-4
             run_regression_args: --no-check-unsat-cores
 
-          - name: production-dbg-clang
+          - name: ubuntu:production-dbg-clang
+            os: ubuntu-latest
+            env: CC=clang CXX=clang++
             config: production --auto-download --assertions --tracing --unit-testing --cln --gpl
             cache-key: dbgclang
-            env: CC=clang CXX=clang++
-            os: ubuntu-latest
             exclude_regress: 3-4
             run_regression_args: --no-check-proofs
 
-    name: ${{ matrix.os }}:${{ matrix.name }}
+    name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -108,6 +104,13 @@ jobs:
         python3 -m pip install \
           Cython==0.29.* --install-option="--no-cython-compile"
         echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
+    
+    - name: Install Documentation Dependencies
+      if: matrix.build-documentation
+      run: |
+        sudo apt-get install -y doxygen python3-docutils python3-jinja2
+        python3 -m pip install \
+          sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme breathe
 
     # The GitHub action for caching currently does not support modifying an
     # already existing cache. We thus have a few different possibilities:
@@ -139,7 +142,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: deps/install
-        key: aux-tools-${{ runner.os }}-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+        key: cvc5-aux-tools-${{ runner.os }}-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
 
     - name: Setup Auxiliary Tools
       if: steps.restore-aux-tools.outputs.cache-hit != 'true'
@@ -151,8 +154,8 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ccache-dir
-        key: ccache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}
-        restore-keys: ccache-${{ runner.os }}-${{ matrix.cache-key }}-
+        key: cvc5-ccache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}
+        restore-keys: cvc5-ccache-${{ runner.os }}-${{ matrix.cache-key }}-
 
     - name: Configure ccache
       run: |
@@ -167,8 +170,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: build/deps
-        key: deps-${{ runner.os }}-${{ matrix.cache-key }}-${{ hashFiles('cmake/Find**', 'cmake/deps-helper.cmake') }}-${{ hashFiles('.github/workflows/ci.yml') }}
-        restore-keys: deps-${{ runner.os }}-${{ matrix.cache-key }}-
+        key: cvc5-deps-${{ runner.os }}-${{ matrix.cache-key }}-${{ hashFiles('cmake/Find**', 'cmake/deps-helper.cmake') }}-${{ hashFiles('.github/workflows/ci.yml') }}
 
     - name: Configure
       run: |
@@ -215,3 +217,79 @@ jobs:
         make -j2
         ctest -j2 --output-on-failure
       working-directory: examples
+
+    - name: Build Documentation
+      if: matrix.build-documentation
+      run: make -j2 docs-gh
+      working-directory: build
+    
+    - name: Store Documentation
+      if: matrix.build-documentation
+      uses: actions/upload-artifact@v2
+      with:
+        name: documentation
+        path: build/docs/sphinx-gh/
+
+  upload-docs:
+    if: github.event_name == 'push' || github.event_name == 'pull_request_target'
+    name: upload-docs
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    needs: build
+    steps:
+      - name: Setup Deploy Key
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+            ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+            ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
+      
+      - name: Setup Context
+        run: |
+          if [ "${{ github.event_name }}" == "push" ] ; then
+            NAME=$(echo "${GITHUB_REF}" | sed "s,refs/heads/,,")
+            HASH=${{ github.sha }}
+            echo "Identified branch $NAME"
+          elif [ "${{ github.event_name }}" == "pull_request_target" ] ; then
+            NAME="${{ github.event.number }}"
+            HASH="${{ github.event.pull_request.head.sha }}"
+            echo "Identified PR #$NAME (from $HASH)"
+            NAME="pr$NAME"
+          fi
+          echo "NAME=$NAME" >> $GITHUB_ENV
+          echo "HASH=$HASH" >> $GITHUB_ENV
+
+      - name: Clone Documentation Repository
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          git config --global user.email "docbot@cvc5"
+          git config --global user.name "DocBot"
+          git clone git@github.com:cvc5/docs-ci.git target/
+      
+      - name: Fetch artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: documentation
+          path: docs-new
+
+      - name: Update docs
+        continue-on-error: true
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          if [ -n "$NAME" ]; then
+            mv docs-new target/docs-$NAME-$HASH
+            cd target/
+            rm -f docs-$NAME
+            ln -s docs-$NAME-$HASH docs-$NAME
+            git add docs-$NAME docs-$NAME-$HASH
+
+            python3 genindex.py
+            git add README.md
+            git commit -m "Update docs for $NAME"
+
+            git push
+          else
+            echo "Ignored run"
+          fi

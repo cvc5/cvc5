@@ -18,21 +18,23 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "prop/prop_engine.h"
-#include "theory/quantifiers_engine.h"
+#include "smt/env.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_builder.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
 namespace cvc5 {
 namespace theory {
 
-ModelManager::ModelManager(TheoryEngine& te, EqEngineManager& eem)
+ModelManager::ModelManager(TheoryEngine& te, Env& env, EqEngineManager& eem)
     : d_te(te),
-      d_logicInfo(te.getLogicInfo()),
+      d_env(env),
       d_eem(eem),
       d_modelEqualityEngine(nullptr),
       d_modelEqualityEngineAlloc(nullptr),
-      d_model(nullptr),
+      d_model(new TheoryModel(
+          env, "DefaultModel", options::assignFunctionValues())),
       d_modelBuilder(nullptr),
       d_modelBuilt(false),
       d_modelBuiltSuccess(false)
@@ -44,21 +46,13 @@ ModelManager::~ModelManager() {}
 void ModelManager::finishInit(eq::EqualityEngineNotify* notify)
 {
   // construct the model
-  const LogicInfo& logicInfo = d_te.getLogicInfo();
+  const LogicInfo& logicInfo = d_env.getLogicInfo();
   // Initialize the model and model builder.
   if (logicInfo.isQuantified())
   {
     QuantifiersEngine* qe = d_te.getQuantifiersEngine();
     Assert(qe != nullptr);
     d_modelBuilder = qe->getModelBuilder();
-    d_model = qe->getModel();
-  }
-  else
-  {
-    context::Context* u = d_te.getUserContext();
-    d_alocModel.reset(
-        new TheoryModel(u, "DefaultModel", options::assignFunctionValues()));
-    d_model = d_alocModel.get();
   }
 
   // make the default builder, e.g. in the case that the quantifiers engine does
@@ -142,13 +136,13 @@ void ModelManager::postProcessModel(bool incomplete)
     }
     Trace("model-builder-debug")
         << "  PostProcessModel on theory: " << theoryId << std::endl;
-    t->postProcessModel(d_model);
+    t->postProcessModel(d_model.get());
   }
   // also call the model builder's post-process model
-  d_modelBuilder->postProcessModel(incomplete, d_model);
+  d_modelBuilder->postProcessModel(incomplete, d_model.get());
 }
 
-theory::TheoryModel* ModelManager::getModel() { return d_model; }
+theory::TheoryModel* ModelManager::getModel() { return d_model.get(); }
 
 bool ModelManager::collectModelBooleanVariables()
 {

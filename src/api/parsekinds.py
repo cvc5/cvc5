@@ -33,7 +33,7 @@ C = ','
 US = '_'
 NL = '\n'
 
-# Enum Declarations
+# Expected C++ Enum Declarations
 ENUM_START = 'enum CVC5_EXPORT Kind'
 ENUM_END = CCB + SC
 
@@ -61,10 +61,29 @@ class KindsParser:
     }
 
     def __init__(self):
+        # dictionary from C++ Kind name to shortened name
         self.kinds = OrderedDict()
+        # dictionary from shortened name to documentation comment
+        self.kinds_doc = OrderedDict()
+        # the end token for the current type of block
+        # none if not in a block comment or macro
         self.endtoken = None
+        # stack of end tokens
         self.endtoken_stack = []
+        # boolean that is true when in the kinds enum
         self.in_kinds = False
+        # latest block comment - used for kinds documentation
+        self.latest_block_comment = ""
+
+    def get_comment(self, kind_name):
+        '''
+        Look up a documentation comment for a Kind by name
+        Accepts both full C++ name and shortened name
+        '''
+        try:
+            return self.kinds_doc[kind_name]
+        except KeyError:
+            return self.kinds_doc[self.kinds[kind_name]]
 
     def format_name(self, name):
         '''
@@ -99,6 +118,22 @@ class KindsParser:
 
         return name
 
+    def format_comment(self, comment):
+        '''
+        Removes the C++ syntax for block comments and returns just the text
+        '''
+        assert comment[0]  == '/', \
+            "Expecting to start with / but got %s" % comment[0]
+        assert comment[-1] == '/', \
+            "Expecting to end with / but got %s" % comment[-1]
+        res = ""
+        for line in comment.strip("/* \t").split("\n"):
+            line = line.strip("*")
+            if line:
+                res += line
+                res += "\n"
+        return res
+
     def ignore_block(self, line):
         '''
         Returns a boolean telling self.parse whether to ignore a line or not.
@@ -109,6 +144,9 @@ class KindsParser:
         # check if entering block comment or macro block
         for token in self.tokenmap:
             if token in line:
+                # if entering block comment, override previous block comment
+                if token == BLOCK_COMMENT_BEGIN:
+                    self.latest_block_comment = line
                 if self.tokenmap[token] not in line:
                     if self.endtoken is not None:
                         self.endtoken_stack.append(self.endtoken)
@@ -117,6 +155,9 @@ class KindsParser:
 
         # check if currently in block comment or macro block
         if self.endtoken is not None:
+            # if in block comment, record the line
+            if self.endtoken == BLOCK_COMMENT_END:
+                self.latest_block_comment += "\n" + line
             # check if reached the end of block comment or macro block
             if self.endtoken in line:
                 if self.endtoken_stack:
@@ -150,7 +191,10 @@ class KindsParser:
                     line = line[:line.find(EQ)].strip()
                 elif C in line:
                     line = line[:line.find(C)].strip()
-                self.kinds[line] = self.format_name(line)
+                fmt_name = self.format_name(line)
+                self.kinds[line] = fmt_name
+                fmt_comment = self.format_comment(self.latest_block_comment)
+                self.kinds_doc[fmt_name] = fmt_comment
             elif ENUM_START in line:
                 self.in_kinds = True
                 continue
