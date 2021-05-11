@@ -18,7 +18,7 @@
 #include <iostream>
 
 /**
- * Get define-fun command as string
+ * Get define-fun command as string.
  * @param f the function to print
  * @param params the function parameters
  * @param body the function body
