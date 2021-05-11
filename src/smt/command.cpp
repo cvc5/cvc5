@@ -688,7 +688,8 @@ const api::Grammar* SynthFunCommand::getGrammar() const { return d_grammar; }
 
 void SynthFunCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  sm->addFunctionToSynthesize(d_fun);
+  api::Term varList = solver->mkTerm(api::BOUND_VAR_LIST, d_vars);
+  sm->addFunctionToSynthesize(d_fun, varList);
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -847,11 +848,15 @@ void CheckSynthCommand::invoke(api::Solver* solver, SymbolManager* sm)
     if (d_result.isUnsat()
         && options::sygusOut() != options::SygusSolutionOutMode::STATUS)
     {
-      std::vector<api::Term> synthFuns = sm->getFunctionsToSynthesize();
+      std::vector<std::pair<api::Term, api::Term>> synthFuns = sm->getFunctionsToSynthesize();
       d_solution << "(" << std::endl;
-      for (size_t i=0, nfuns = synthFuns.size(); i<nfuns; i++)
+      Printer * p = Printer::getPrinter(language::output::LANG_SYGUS_V2);
+      for (std::pair<api::Term, api::Term>& fs : synthFuns)
       {
-        
+        api::Term f = fs.first;
+        api::Term sol = solver->getSynthSolution(f);
+        std::vector<api::Term> formals(fs.second.begin(), fs.second.end());
+        p->toStreamCmdDefineFunction(d_solution, f.toString(), termVectorToNodes(formals), sortToTypeNode(f.getSort().getFunctionCodomainSort()), termToNode(sol));
       }
       d_solution << ")" << std::endl;
     }
