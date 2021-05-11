@@ -26,12 +26,22 @@
 // clang-format off
 ${includes}$
 
-${holder_spec}$
-
 namespace cvc5 {
 namespace options {
 
 ${modes}$
+
+#if defined(CVC5_MUZZLED) || defined(CVC5_COMPETITION_MODE)
+#  define DO_SEMANTIC_CHECKS_BY_DEFAULT false
+#else /* CVC5_MUZZLED || CVC5_COMPETITION_MODE */
+#  define DO_SEMANTIC_CHECKS_BY_DEFAULT true
+#endif /* CVC5_MUZZLED || CVC5_COMPETITION_MODE */
+
+struct Holder${id_cap}$ {
+${holder_spec}$
+};
+
+#undef DO_SEMANTIC_CHECKS_BY_DEFAULT
 
 ${decls}$
 
