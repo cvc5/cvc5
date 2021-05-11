@@ -974,9 +974,6 @@ cdef class Solver:
             term.cterm = self.csolver.synthInv(symbol.encode(), <const vector[c_Term]&> v, grammar.cgrammar)
         return term
 
-    def printSynthSolution(self):
-        self.csolver.printSynthSolution(cout)
-
     @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
         '''
