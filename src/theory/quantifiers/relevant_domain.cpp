@@ -15,6 +15,8 @@
 
 #include "theory/quantifiers/relevant_domain.h"
 
+#include "expr/term_context.h"
+#include "expr/term_context_stack.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_registry.h"
@@ -22,8 +24,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "expr/term_context_stack.h"
-#include "expr/term_context.h"
 
 using namespace cvc5::kind;
 
@@ -121,7 +121,7 @@ void RelevantDomain::compute(){
       Node q = fm->getAssertedQuantifier( i );
       Node icf = d_qreg.getInstConstantBody(q);
       Trace("rel-dom-debug") << "compute relevant domain for " << icf << std::endl;
-      computeRelevantDomain( q );
+      computeRelevantDomain(q);
     }
 
     Trace("rel-dom-debug") << "account for ground terms" << std::endl;
@@ -165,21 +165,21 @@ void RelevantDomain::compute(){
 
 void RelevantDomain::computeRelevantDomain(Node q)
 {
-  Assert (q.getKind()==FORALL);
+  Assert(q.getKind() == FORALL);
   Node n = d_qreg.getInstConstantBody(q);
   // we care about polarity in the traversal, so we use a polarity term context
   PolarityTermContext tc;
   TCtxStack ctx(&tc);
   ctx.pushInitial(n);
-  std::unordered_set<
-        std::pair<Node, uint32_t>,
-        PairHashFunction<Node, uint32_t, NodeHashFunction> > visited;
+  std::unordered_set<std::pair<Node, uint32_t>,
+                     PairHashFunction<Node, uint32_t, NodeHashFunction> >
+      visited;
   std::pair<Node, uint32_t> curr;
   Node node;
   uint32_t nodeVal;
   std::unordered_set<
-        std::pair<Node, uint32_t>,
-        PairHashFunction<Node, uint32_t, NodeHashFunction> >::const_iterator itc;
+      std::pair<Node, uint32_t>,
+      PairHashFunction<Node, uint32_t, NodeHashFunction> >::const_iterator itc;
   bool hasPol, pol;
   while (!ctx.empty())
   {
@@ -204,11 +204,17 @@ void RelevantDomain::computeRelevantDomain(Node q)
   }
 }
 
-void RelevantDomain::computeRelevantDomainNode( Node q, Node n, bool hasPol, bool pol ) {
+void RelevantDomain::computeRelevantDomainNode(Node q,
+                                               Node n,
+                                               bool hasPol,
+                                               bool pol)
+{
   Trace("rel-dom-debug") << "Compute relevant domain " << n << "..." << std::endl;
   Node op = d_treg.getTermDatabase()->getMatchOperator(n);
-  if( !op.isNull() ){
-    for( size_t i=0, nchild = n.getNumChildren(); i<nchild; i++ ){
+  if (!op.isNull())
+  {
+    for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+    {
       RDomain * rf = getRDomain( op, i );
       if( n[i].getKind()==ITE ){
         for( unsigned j=1; j<=2; j++ ){
