@@ -23,6 +23,7 @@
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "expr/term_context_stack.h"
+#include "expr/term_context.h"
 
 using namespace cvc5::kind;
 
@@ -166,7 +167,7 @@ void RelevantDomain::computeRelevantDomain(Node q)
 {
   Assert (q.getKind()==FORALL);
   Node n = d_qreg.getInstConstantBody(q);
-  NodeManager* nm = NodeManager::currentNM();
+  // we care about polarity in the traversal, so we use a polarity term context
   PolarityTermContext tc;
   TCtxStack ctx(&tc);
   ctx.pushInitial(n);
@@ -184,15 +185,19 @@ void RelevantDomain::computeRelevantDomain(Node q)
   {
     curr = ctx.getCurrent();
     itc = visited.find(curr);
-    node = curr.first;
-    nodeVal = curr.second;
     ctx.pop();
-    PolarityTermContext::getFlags(nodeVal, hasPol, pol);
-    computeRelevantDomainNode(q, node, hasPol, pol);
     if (itc == visited.end())
     {
+      visited.insert(curr);
+      node = curr.first;
+      // if not a quantified formula
       if (!node.isClosure())
       {
+        nodeVal = curr.second;
+        // get the polarity of the current term and process it
+        PolarityTermContext::getFlags(nodeVal, hasPol, pol);
+        computeRelevantDomainNode(q, node, hasPol, pol);
+        // traverse the children
         ctx.pushChildren(node, nodeVal);
       }
     }
