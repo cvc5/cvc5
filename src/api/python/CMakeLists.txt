@@ -87,6 +87,10 @@ from .pycvc5 import *
 # fake a submodule for dotted imports, e.g. from pycvc5.kinds import *
 sys.modules['%s.%s'%(__name__, kinds.__name__)] = kinds")
 
+file(COPY z3compat/__init__.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/pycvc5/z3compat)
+file(COPY z3compat/z3.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/pycvc5/z3compat)
+file(COPY z3compat/z3printer.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/pycvc5/z3compat)
+
 # figure out if we're in a virtualenv
 execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
   COMMAND

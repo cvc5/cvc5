@@ -24,6 +24,7 @@ from distutils.core import setup
 from distutils.command.clean import clean
 from distutils.command.install import install
 
+
 class PyCVC5Install(install):
 
     # Calls the default run command, then deletes the build area
@@ -35,9 +36,15 @@ class PyCVC5Install(install):
         c.finalize_options()
         c.run()
 
-setup(name='pycvc5',
-      version='${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}',
-      packages=['pycvc5'],
-      package_dir={'pycvc5': '${CMAKE_CURRENT_BINARY_DIR}/pycvc5'},
-      package_data={'pycvc5': ['pycvc5.so']},
-      cmdclass={'install': PyCVC5Install})
+
+setup(
+    name="pycvc5",
+    version="${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}",
+    packages=["pycvc5", "pycvc5.z3compat"],
+    package_dir={
+        "pycvc5": "${CMAKE_CURRENT_BINARY_DIR}/pycvc5",
+        "pycvc5.compat": "${CMAKE_CURRENT_BINARY_DIR}/pycvc5/z3compat",
+    },
+    package_data={"pycvc5": ["pycvc5.so"]},
+    cmdclass={"install": PyCVC5Install},
+)
