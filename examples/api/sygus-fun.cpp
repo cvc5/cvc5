@@ -41,14 +41,18 @@
  *
  * (check-synth)
  *
- * The printed output to this example should be equivalent to:
- * (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
- * (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
+ * The printed output for this example should be equivalent to:
+ * (
+ *   (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
+ *   (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
+ * )
  */
 
 #include <cvc5/cvc5.h>
 
 #include <iostream>
+
+#include "utils.h"
 
 using namespace cvc5::api;
 
@@ -126,9 +130,12 @@ int main()
   if (slv.checkSynth().isUnsat())
   {
     // Output should be equivalent to:
-    // (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
-    // (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
-    slv.printSynthSolution(std::cout);
+    // (
+    //   (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
+    //   (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
+    // )
+    std::vector<Term> terms = {max, min};
+    printSynthSolutions(terms, slv.getSynthSolutions(terms));
   }
 
   return 0;
