@@ -181,9 +181,6 @@ class Printer
   /** Print get-instantiations command */
   void toStreamCmdGetInstantiations(std::ostream& out) const;
 
-  /** Print get-synth-solution command */
-  void toStreamCmdGetSynthSolution(std::ostream& out) const;
-
   /** Print get-interpol command */
   void toStreamCmdGetInterpol(std::ostream& out,
                               const std::string& name,

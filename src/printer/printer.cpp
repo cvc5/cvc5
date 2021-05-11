@@ -333,11 +333,6 @@ void Printer::toStreamCmdGetInstantiations(std::ostream& out) const
   printUnknownCommand(out, "get-instantiations");
 }
 
-void Printer::toStreamCmdGetSynthSolution(std::ostream& out) const
-{
-  printUnknownCommand(out, "get-synth-solution");
-}
-
 void Printer::toStreamCmdGetInterpol(std::ostream& out,
                                      const std::string& name,
                                      Node conj,

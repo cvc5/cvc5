@@ -688,6 +688,7 @@ const api::Grammar* SynthFunCommand::getGrammar() const { return d_grammar; }
 
 void SynthFunCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
+  sm->addFunctionToSynthesize(d_fun);
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -835,7 +836,7 @@ void CheckSynthCommand::invoke(api::Solver* solver, SymbolManager* sm)
     {
       if (options::sygusOut() == options::SygusSolutionOutMode::STANDARD)
       {
-        d_solution << "(fail)" << endl;
+        d_solution << "fail" << endl;
       }
       else
       {
@@ -846,12 +847,13 @@ void CheckSynthCommand::invoke(api::Solver* solver, SymbolManager* sm)
     if (d_result.isUnsat()
         && options::sygusOut() != options::SygusSolutionOutMode::STATUS)
     {
-      // printing a synthesis solution is a non-constant
-      // method, since it invokes a sophisticated algorithm
-      // (Figure 5 of Reynolds et al. CAV 2015).
-      // Hence, we must call here print solution here,
-      // instead of during printResult.
-      solver->printSynthSolution(d_solution);
+      std::vector<api::Term> synthFuns = sm->getFunctionsToSynthesize();
+      d_solution << "(" << std::endl;
+      for (size_t i=0, nfuns = synthFuns.size(); i<nfuns; i++)
+      {
+        
+      }
+      d_solution << ")" << std::endl;
     }
   }
   catch (exception& e)
@@ -2056,57 +2058,6 @@ void GetInstantiationsCommand::toStream(std::ostream& out,
                                         OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetInstantiations(out);
-}
-
-/* -------------------------------------------------------------------------- */
-/* class GetSynthSolutionCommand                                              */
-/* -------------------------------------------------------------------------- */
-
-GetSynthSolutionCommand::GetSynthSolutionCommand() : d_solver(nullptr) {}
-void GetSynthSolutionCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  try
-  {
-    d_solver = solver;
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-void GetSynthSolutionCommand::printResult(std::ostream& out,
-                                          uint32_t verbosity) const
-{
-  if (!ok())
-  {
-    this->Command::printResult(out, verbosity);
-  }
-  else
-  {
-    d_solver->printSynthSolution(out);
-  }
-}
-
-Command* GetSynthSolutionCommand::clone() const
-{
-  GetSynthSolutionCommand* c = new GetSynthSolutionCommand();
-  c->d_solver = d_solver;
-  return c;
-}
-
-std::string GetSynthSolutionCommand::getCommandName() const
-{
-  return "get-synth-solution";
-}
-
-void GetSynthSolutionCommand::toStream(std::ostream& out,
-                                       int toDepth,
-                                       size_t dag,
-                                       OutputLanguage language) const
-{
-  Printer::getPrinter(language)->toStreamCmdGetSynthSolution(out);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -1091,25 +1091,6 @@ class CVC5_EXPORT GetInstantiationsCommand : public Command
   api::Solver* d_solver;
 }; /* class GetInstantiationsCommand */
 
-class CVC5_EXPORT GetSynthSolutionCommand : public Command
-{
- public:
-  GetSynthSolutionCommand();
-
-  void invoke(api::Solver* solver, SymbolManager* sm) override;
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* clone() const override;
-  std::string getCommandName() const override;
-  void toStream(
-      std::ostream& out,
-      int toDepth = -1,
-      size_t dag = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const override;
-
- protected:
-  api::Solver* d_solver;
-}; /* class GetSynthSolutionCommand */
-
 /** The command (get-interpol s B (G)?)
  *
  * This command asks for an interpolant from the current set of assertions and
