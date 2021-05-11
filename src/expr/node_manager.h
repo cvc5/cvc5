@@ -574,6 +574,7 @@ class NodeManager
     SKOLEM_NO_NOTIFY = 1,  /**< do not notify subscribers */
     SKOLEM_EXACT_NAME = 2, /**< do not make the name unique by adding the id */
     SKOLEM_IS_GLOBAL = 4  /**< global vars appear in models even after a pop */
+  };                         /* enum SkolemFlags */
 
   /** Create a instantiation constant with the given type. */
   Node mkInstConstant(const TypeNode& type);
