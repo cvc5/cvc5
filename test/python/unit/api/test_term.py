@@ -928,7 +928,7 @@ def test_term_children(solver):
   with pytest.raises(RuntimeError):
       tnull[0]
 
-def test_get_integer(solver):
+def test_is_integer(solver):
   int1 = solver.mkInteger("-18446744073709551616")
   int2 = solver.mkInteger("-18446744073709551615")
   int3 = solver.mkInteger("-4294967296")
@@ -961,17 +961,17 @@ def test_get_integer(solver):
   with pytest.raises(RuntimeError):
       solver.mkInteger("-00")
 
-  assert int1.getInteger() == "-18446744073709551616"
-  assert int2.getInteger() == "-18446744073709551615"
-  assert int3.getInteger() == "-4294967296"
-  assert int4.getInteger() == "-4294967295"
-  assert int5.getInteger() == "-10"
-  assert int6.getInteger() == "0"
-  assert int7.getInteger() == "10"
-  assert int8.getInteger() == "4294967295"
-  assert int9.getInteger() == "4294967296"
-  assert int10.getInteger() == "18446744073709551615"
-  assert int11.getInteger() == "18446744073709551616"
+  assert int1.isInteger()
+  assert int2.isInteger()
+  assert int3.isInteger()
+  assert int4.isInteger()
+  assert int5.isInteger()
+  assert int6.isInteger()
+  assert int7.isInteger()
+  assert int8.isInteger()
+  assert int9.isInteger()
+  assert int10.isInteger()
+  assert int11.isInteger()
 
 
 def test_const_array(solver):

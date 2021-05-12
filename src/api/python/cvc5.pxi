@@ -1601,9 +1601,6 @@ cdef class Term:
     def isInteger(self):
         return self.cterm.isInteger()
     
-    def getInteger(self):
-        return self.cterm.getInteger().decode()
-
     def toPythonObj(self):
         '''
         Converts a constant value Term to a Python object.

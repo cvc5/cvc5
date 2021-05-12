@@ -375,7 +375,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isInt64() except +
         int64_t getInt64() except +
         bint isInteger() except +
-        string getInteger() except +
 
     cdef cppclass TermHashFunction:
         TermHashFunction() except +
