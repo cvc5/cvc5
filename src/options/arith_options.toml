@@ -410,6 +410,14 @@ name   = "Arithmetic theory"
   help       = "incremental linearization approach to non-linear"
 
 [[option]]
+  name       = "nlExtLight"
+  category   = "regular"
+  long       = "nl-ext-light"
+  type       = "bool"
+  default    = "true"
+  help       = "incremental linearization approach to non-linear"
+
+[[option]]
   name       = "nlExtResBound"
   category   = "regular"
   long       = "nl-ext-rbound"
