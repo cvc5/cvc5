@@ -69,6 +69,7 @@ class String
       : d_str(toInternal(s, useEscSequences))
   {
   }
+  explicit String(const std::wstring& s);
   explicit String(const char* s, bool useEscSequences = false)
       : d_str(toInternal(std::string(s), useEscSequences))
   {

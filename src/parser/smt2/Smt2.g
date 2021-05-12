@@ -1726,7 +1726,7 @@ termAtomic[cvc5::api::Term& atomTerm]
     | CHAR_TOK HEX_LITERAL 
       {
         std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
-        atomTerm = SOLVER->mkChar(hexStr);
+        atomTerm = PARSER_STATE->mkCharConstant(hexStr);
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {

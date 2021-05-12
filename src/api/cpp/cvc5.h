@@ -1391,16 +1391,6 @@ class CVC5_EXPORT Term
   std::set<Term> getSet() const;
 
   /**
-   * @return true if the term is a single string character.
-   */
-  bool isChar() const;
-  /**
-   * Asserts isChar().
-   * @return the representation of a single character as a string that holds the
-   * unicode code point as hexadecimal numer.
-   */
-  std::string getChar() const;
-  /**
    * @return true if the term is a constant sequence.
    */
   bool isSequence() const;
@@ -3232,35 +3222,23 @@ class CVC5_EXPORT Solver
   Term mkSepNil(const Sort& sort) const;
 
   /**
-   * Create a String constant.
+   * Create a String constant from a `std::string` which may contain SMT-LIB
+   * compatible escape sequences like `\u1234` to encode unicode characters.
    * @param s the string this constant represents
-   * @param useEscSequences determines whether escape sequences in \p s should
-   * be converted to the corresponding character
+   * @param useEscSequences determines whether escape sequences in `s` should
+   * be converted to the corresponding unicode character
    * @return the String constant
    */
   Term mkString(const std::string& s, bool useEscSequences = false) const;
 
   /**
-   * Create a String constant.
-   * @param c the character this constant represents
+   * Create a String constant from a `std::wstring`.
+   * This method does not support escape sequences as `std::wstring` already
+   * supports unicode characters.
+   * @param s the string this constant represents
    * @return the String constant
    */
-  Term mkString(const unsigned char c) const;
-
-  /**
-   * Create a String constant.
-   * @param s a list of unsigned (unicode) values this constant represents as
-   * string
-   * @return the String constant
-   */
-  Term mkString(const std::vector<uint32_t>& s) const;
-
-  /**
-   * Create a character constant from a given string.
-   * @param s the string denoting the code point of the character (in base 16)
-   * @return the character constant
-   */
-  Term mkChar(const std::string& s) const;
+  Term mkString(const std::wstring& s) const;
 
   /**
    * Create an empty sequence of the given element sort.

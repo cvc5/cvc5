@@ -3069,38 +3069,6 @@ std::set<Term> Term::getSet() const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Term::isChar() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  //////// all checks before this line
-  return d_node->getKind() == cvc5::Kind::CONST_STRING
-         && d_node->getConst<String>().getVec().size() == 1;
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-std::string Term::getChar() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(
-      d_node->getKind() == cvc5::Kind::CONST_STRING
-          && d_node->getConst<String>().getVec().size() == 1,
-      *d_node)
-      << "Term to be a single character when calling getChar()";
-  //////// all checks before this line
-  unsigned codePoint = d_node->getConst<String>().getVec()[0];
-  const char* digits = "0123456789ABCDEF";
-  std::string res;
-  for (; codePoint > 0; codePoint /= 16)
-  {
-    res += digits[codePoint % 16];
-  }
-  std::reverse(res.begin(), res.end());
-  return res;
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
 bool Term::isSequence() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -4878,21 +4846,6 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
   return mkValHelper<cvc5::BitVector>(cvc5::BitVector(size, val));
 }
 
-Term Solver::mkCharFromStrHelper(const std::string& s) const
-{
-  CVC5_API_CHECK(s.find_first_not_of("0123456789abcdefABCDEF", 0)
-                     == std::string::npos
-                 && s.size() <= 5 && s.size() > 0)
-      << "Unexpected string for hexadecimal character " << s;
-  uint32_t val = static_cast<uint32_t>(std::stoul(s, 0, 16));
-  CVC5_API_CHECK(val < String::num_codes())
-      << "Not a valid code point for hexadecimal character " << s;
-  //////// all checks before this line
-  std::vector<unsigned> cpts;
-  cpts.push_back(val);
-  return mkValHelper<cvc5::String>(cvc5::String(cpts));
-}
-
 Term Solver::getValueHelper(const Term& term) const
 {
   // Note: Term is checked in the caller to avoid double checks
@@ -5729,32 +5682,12 @@ Term Solver::mkString(const std::string& s, bool useEscSequences) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkString(const unsigned char c) const
-{
-  NodeManagerScope scope(getNodeManager());
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return mkValHelper<cvc5::String>(cvc5::String(std::string(1, c)));
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkString(const std::vector<uint32_t>& s) const
+Term Solver::mkString(const std::wstring& s) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkValHelper<cvc5::String>(cvc5::String(s));
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkChar(const std::string& s) const
-{
-  NodeManagerScope scope(getNodeManager());
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return mkCharFromStrHelper(s);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
