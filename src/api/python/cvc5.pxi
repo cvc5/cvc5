@@ -33,6 +33,7 @@ from cvc5kinds cimport Kind as c_Kind
 
 cdef extern from "Python.h":
     wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *)
+    void PyMem_Free(void*)
 
 ################################## DECORATORS #################################
 def expand_list_arg(num_req_args=0):
@@ -743,8 +744,9 @@ cdef class Solver:
     def mkString(self, str s):
         cdef Term term = Term(self)
         cdef Py_ssize_t size
-        cdef const wchar_t* tmp = PyUnicode_AsWideCharString(s, &size)
+        cdef wchar_t* tmp = PyUnicode_AsWideCharString(s, &size)
         term.cterm = self.csolver.mkString(c_wstring(tmp, size))
+        PyMem_Free(tmp)
         return term
 
     def mkEmptySequence(self, Sort sort):
