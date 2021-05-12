@@ -1127,6 +1127,7 @@ set(regress_0_tests
   regress0/strings/issue5816-re-kind.smt2
   regress0/strings/issue5915-repl-ctn-rewrite.smt2
   regress0/strings/issue6203-3-unfold-trivial-true.smt2
+  regress0/strings/issue6510-seq-bool.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2

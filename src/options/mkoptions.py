@@ -50,13 +50,13 @@ import toml
 
 ### Allowed attributes for module/option
 
-MODULE_ATTR_REQ = ['id', 'name', 'header']
+MODULE_ATTR_REQ = ['id', 'name']
 MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option']
 
 OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
     'name', 'help', 'help_mode', 'smt_name', 'short', 'long', 'default',
-    'includes', 'handler', 'predicates', 'read_only',
+    'includes', 'handler', 'predicates',
     'alternate', 'mode'
 ]
 
@@ -133,15 +133,6 @@ TPL_OPTION_STRUCT_RW = \
   type operator()() const;
   static constexpr const char* name = "{long_name}";
 }} thread_local {name};"""
-
-TPL_OPTION_STRUCT_RO = \
-"""extern struct {name}__option_t
-{{
-  typedef {type} type;
-  type operator()() const;
-  static constexpr const char* name = "{long_name}";
-}} thread_local {name};"""
-
 
 TPL_DECL_SET = \
 """template <> options::{name}__option_t::type& Options::ref(
@@ -241,13 +232,13 @@ class Module(object):
     An options module represents a MODULE_options.toml option configuration
     file and contains lists of options.
     """
-    def __init__(self, d):
-        self.__dict__ = dict((k, None) for k in MODULE_ATTR_ALL)
+    def __init__(self, d, filename):
+        self.__dict__ = {k: d.get(k, None) for k in MODULE_ATTR_ALL}
         self.options = []
-        for (attr, val) in d.items():
-            assert attr in self.__dict__
-            if val:
-                self.__dict__[attr] = val
+        self.id = self.id.lower()
+        self.id_cap = self.id.upper()
+        self.filename = os.path.splitext(os.path.split(filename)[-1])[0]
+        self.header = os.path.join('options', '{}.h'.format(self.filename))
 
 
 class Option(object):
@@ -260,12 +251,11 @@ class Option(object):
         self.__dict__ = dict((k, None) for k in OPTION_ATTR_ALL)
         self.includes = []
         self.predicates = []
-        self.read_only = False
         self.alternate = True    # add --no- alternative long option for bool
         self.filename = None
         for (attr, val) in d.items():
             assert attr in self.__dict__
-            if attr in ['read_only', 'alternate'] or val:
+            if attr == 'alternate' or val:
                 self.__dict__[attr] = val
 
 
@@ -274,6 +264,7 @@ def die(msg):
 
 
 def perr(filename, msg, option = None):
+    msg_suffix = ''
     if option:
         if option.name:
             msg_suffix = "option '{}' ".format(option.name)
@@ -461,7 +452,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
             holder_specs.append(TPL_HOLDER_MACRO_ATTR.format(name=option.name))
 
         # Generate module declaration
-        tpl_decl = TPL_OPTION_STRUCT_RO if option.read_only else TPL_OPTION_STRUCT_RW
+        tpl_decl = TPL_OPTION_STRUCT_RW
         if option.long:
             long_name = option.long.split('=')[0]
         else:
@@ -469,8 +460,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         decls.append(tpl_decl.format(name=option.name, type=option.type, long_name = long_name))
 
         # Generate module specialization
-        if not option.read_only:
-            specs.append(TPL_DECL_SET.format(name=option.name))
+        specs.append(TPL_DECL_SET.format(name=option.name))
         specs.append(TPL_DECL_OP_BRACKET.format(name=option.name))
         specs.append(TPL_DECL_WAS_SET_BY_USER.format(name=option.name))
 
@@ -492,8 +482,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         ### Generate code for {module.name}_options.cpp
 
         # Accessors
-        if not option.read_only:
-            accs.append(TPL_IMPL_SET.format(name=option.name))
+        accs.append(TPL_IMPL_SET.format(name=option.name))
         accs.append(TPL_IMPL_OP_BRACKET.format(name=option.name))
         accs.append(TPL_IMPL_WAS_SET_BY_USER.format(name=option.name))
 
@@ -537,6 +526,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
     write_file(dst_dir, '{}.h'.format(filename), tpl_module_h.format(
         filename=filename,
         header=module.header,
+        id_cap=module.id_cap,
         id=module.id,
         includes='\n'.join(sorted(list(includes))),
         holder_spec=' \\\n'.join(holder_specs),
@@ -546,7 +536,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         modes=''.join(mode_decl)))
 
     write_file(dst_dir, '{}.cpp'.format(filename), tpl_module_cpp.format(
-        filename=filename,
+        header=module.header,
         accs='\n'.join(accs),
         defs='\n'.join(defs),
         modes=''.join(mode_impl)))
@@ -920,7 +910,7 @@ def parse_module(filename, module):
     # attributes are defined.
     check_attribs(filename,
                   MODULE_ATTR_REQ, MODULE_ATTR_ALL, module, 'module')
-    res = Module(module)
+    res = Module(module, filename)
 
     if 'option' in module:
         for attribs in module['option']:
