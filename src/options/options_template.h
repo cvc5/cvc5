@@ -36,7 +36,9 @@ class Solver;
 namespace options {
   struct OptionsHolder;
   class OptionsHandler;
+// clang-format off
 ${holder_fwd_decls}$
+// clang-format on
   }  // namespace options
 
 class OptionsListener;
@@ -48,7 +50,9 @@ class CVC5_EXPORT Options
   /** The handler for the options of the theory. */
   options::OptionsHandler* d_handler;
 
+// clang-format off
 ${holder_mem_decls}$
+// clang-format on
 
   /** The current Options in effect */
   static thread_local Options* s_current;
@@ -105,7 +109,9 @@ public:
   Options(OptionsListener* ol = nullptr);
   ~Options();
 
+// clang-format off
 ${holder_getter_decls}$
+// clang-format on
 
   /**
    * Copies the value of the options stored in OptionsHolder into the current
