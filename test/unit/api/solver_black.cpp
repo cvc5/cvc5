@@ -684,16 +684,6 @@ TEST_F(TestApiBlackSolver, mkString)
             "\"asdf\\u{5c}nasdf\"");
 }
 
-TEST_F(TestApiBlackSolver, mkChar)
-{
-  ASSERT_NO_THROW(d_solver.mkChar(std::string("0123")));
-  ASSERT_NO_THROW(d_solver.mkChar("aA"));
-  ASSERT_THROW(d_solver.mkChar(""), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkChar("0g0"), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkChar("100000"), CVC5ApiException);
-  ASSERT_EQ(d_solver.mkChar("abc"), d_solver.mkChar("ABC"));
-}
-
 TEST_F(TestApiBlackSolver, mkTerm)
 {
   Sort bv32 = d_solver.mkBitVectorSort(32);

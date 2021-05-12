@@ -942,13 +942,6 @@ TEST_F(TestApiBlackTerm, getSet)
   ASSERT_EQ(std::set<Term>({i1, i2}), s5.getSet());
 }
 
-TEST_F(TestApiBlackTerm, getChar)
-{
-  Term c = d_solver.mkChar("15");
-  ASSERT_TRUE(c.isChar());
-  ASSERT_EQ("15", c.getChar());
-}
-
 TEST_F(TestApiBlackTerm, getSequence)
 {
   Sort s = d_solver.mkSequenceSort(d_solver.getIntegerSort());
