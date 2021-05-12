@@ -296,10 +296,6 @@ public:
  int nVars() const;     // The current number of variables.
  int nFreeVars() const;
  bool isDecision(Var x) const;  // is the given var a decision?
- int32_t getLevel(Var x) const;  // Return decision level of x.
-
- int32_t getIntroLevel(
-     Var x) const;  // Return user-level when x was introduced.
 
  // Debugging SMT explanations
  //
@@ -535,12 +531,12 @@ protected:
     bool     isPropagated     (Var x) const; // Does the variable have a propagated variables
     bool     isPropagatedBy   (Var x, const Clause& c) const; // Is the value of the variable propagated by the clause Clause C
 
-    int      level            (Var x) const;
-    int      user_level       (Var x) const; // User level at which this variable was asserted
-    int      intro_level      (Var x) const; // User level at which this variable was created
     int      trail_index      (Var x) const; // Index in the trail
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
 public:
+    int      level            (Var x) const;
+    int      user_level       (Var x) const; // User level at which this variable was asserted
+    int      intro_level      (Var x) const; // User level at which this variable was created
     bool     withinBudget     (uint64_t amount)      const;
     bool withinBudget(Resource r) const;
 
@@ -588,16 +584,6 @@ inline bool Solver::isDecision(Var x) const
                    << (vardata[x].d_reason == CRef_Undef) << " && " << level(x)
                    << " > 0" << std::endl;
   return vardata[x].d_reason == CRef_Undef && level(x) > 0;
-}
-
-inline int32_t Solver::getLevel(Var x) const
-{
-  return level(x);
-}
-
-inline int32_t Solver::getIntroLevel(Var x) const
-{
-  return vardata[x].d_intro_level;
 }
 
 inline int Solver::level(Var x) const
