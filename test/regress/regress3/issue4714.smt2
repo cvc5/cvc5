@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --check-models
-; EXPECT: unknown
+; EXPECT: sat 
 (set-logic UFNIRA)
 (declare-fun c (Int) Int)
 (define-fun d ((k Int)) Int (- (c k) 10))

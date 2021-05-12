@@ -1,0 +1,89 @@
+name: Upload Docs
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+
+jobs:
+  upload-docs:
+    name: upload-docs
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    if: github.repository == 'cvc5/cvc5'
+    steps:
+      - name: Setup Deploy Key
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+            ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+            ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
+
+      - name: Clone Documentation Repository
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          git config --global user.email "docbot@cvc5"
+          git config --global user.name "DocBot"
+          git clone git@github.com:cvc5/docs-ci.git target/
+      
+      - name: Download artifact
+        uses: actions/github-script@v3.1.0
+        with:
+          script: |
+            var artifacts = await github.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{github.event.workflow_run.id }},
+            });
+            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "documentation"
+            })[0];
+            var download = await github.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            var fs = require('fs');
+            fs.writeFileSync('${{github.workspace}}/download.zip', Buffer.from(download.data));
+
+      - name: Unpack artifact
+        run: unzip download.zip -d docs-new/
+      
+      - name: Setup Context
+        run: |
+          HASH=${{ github.event.workflow_run.head_commit.id }}
+          if [ "${{ github.event.workflow_run.event }}" == "push" ] ; then
+            NAME=${{ github.event.workflow_run.head_branch }}
+            echo "Identified branch $NAME"
+          elif [ "${{ github.event.workflow_run.event }}" == "pull_request" ] ; then
+            NAME=$(cat docs-new/prnum)
+            rm docs-new/prnum
+            echo "Identified PR #$NAME (from $HASH)"
+            NAME="pr$NAME"
+          fi
+          echo "NAME=$NAME" >> $GITHUB_ENV
+          echo "HASH=$HASH" >> $GITHUB_ENV
+
+      - name: Update docs
+        continue-on-error: true
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          if [ -n "$NAME" ]; then
+            mv docs-new target/docs-$NAME-$HASH
+            cd target/
+            rm -f docs-$NAME
+            ln -s docs-$NAME-$HASH docs-$NAME
+            git add docs-$NAME docs-$NAME-$HASH
+
+            python3 genindex.py
+            git add README.md
+            git commit -m "Update docs for $NAME"
+
+            git push
+          else
+            echo "Ignored run"
+          fi

@@ -15,6 +15,7 @@
  * For each <module>_options.toml configuration file, mkoptions.py
  * expands this template and generates a <module>_options.cpp file.
  */
+#include "${header}$"
 
 #include <iostream>
 

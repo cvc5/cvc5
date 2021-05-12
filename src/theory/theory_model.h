@@ -23,12 +23,14 @@
 
 #include "theory/ee_setup_info.h"
 #include "theory/rep_set.h"
-#include "theory/substitutions.h"
 #include "theory/type_enumerator.h"
 #include "theory/type_set.h"
 #include "theory/uf/equality_engine.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace theory {
 
 /** Theory Model class.
@@ -38,16 +40,16 @@ namespace theory {
  * (1) d_equalityEngine : an equality engine object, which stores
  *     an equivalence relation over all terms that exist in
  *     the current set of assertions.
- * (2) d_substitutions : a substitution map storing cases of
- *     explicitly solved terms, for instance during preprocessing.
- * (3) d_reps : a map from equivalence class representatives of
+ * (2) d_reps : a map from equivalence class representatives of
  *     the equality engine to the (constant) representatives
  *     assigned to that equivalence class.
- * (4) d_uf_models : a map from uninterpreted functions to their
+ * (3) d_uf_models : a map from uninterpreted functions to their
  *     lambda representation.
- * (5) d_rep_set : a data structure that allows interpretations
+ * (4) d_rep_set : a data structure that allows interpretations
  *     for types to be represented as terms. This is useful for
  *     finite model finding.
+ * Additionally, models are dependent on top-level substitutions stored in the
+ * d_env class.
  *
  * These data structures are built after a full effort check with
  * no lemmas sent, within a call to:
@@ -79,8 +81,9 @@ namespace theory {
 class TheoryModel
 {
   friend class TheoryEngineModelBuilder;
-public:
-  TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
+
+ public:
+  TheoryModel(Env& env, std::string name, bool enableFuncModels);
   virtual ~TheoryModel();
   /**
    * Finish init, where ee is the equality engine the model should use.
@@ -90,8 +93,6 @@ public:
   /** reset the model */
   virtual void reset();
   //---------------------------- for building the model
-  /** Adds a substitution from x to t. */
-  void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
   /** assert equality holds in the model
    *
    * This method returns true if and only if the equality engine of this model
@@ -328,10 +329,10 @@ public:
   Cardinality getCardinality(TypeNode t) const;
 
   //---------------------------- function values
-  /** a map from functions f to a list of all APPLY_UF terms with operator f */
-  std::map< Node, std::vector< Node > > d_uf_terms;
-  /** a map from functions f to a list of all HO_APPLY terms with first argument f */
-  std::map< Node, std::vector< Node > > d_ho_uf_terms;
+  /** Does this model have terms for the given uninterpreted function? */
+  bool hasUfTerms(Node f) const;
+  /** Get the terms for uninterpreted function f */
+  const std::vector<Node>& getUfTerms(Node f) const;
   /** are function values enabled? */
   bool areFunctionValuesEnabled() const;
   /** assign function value f to definition f_def */
@@ -355,10 +356,10 @@ public:
   std::string debugPrintModelEqc() const;
 
  protected:
+  /** Reference to the environmanet */
+  Env& d_env;
   /** Unique name of this model */
   std::string d_name;
-  /** substitution map for this model */
-  SubstitutionMap d_substitutions;
   /** equality engine containing all known equalities/disequalities */
   eq::EqualityEngine* d_equalityEngine;
   /** approximations (see recordApproximation) */
@@ -423,6 +424,11 @@ public:
   //---------------------------- end separation logic
 
   //---------------------------- function values
+  /** a map from functions f to a list of all APPLY_UF terms with operator f */
+  std::map<Node, std::vector<Node> > d_uf_terms;
+  /** a map from functions f to a list of all HO_APPLY terms with first argument
+   * f */
+  std::map<Node, std::vector<Node> > d_ho_uf_terms;
   /** whether function models are enabled */
   bool d_enableFuncModels;
   /** map from function terms to the (lambda) definitions

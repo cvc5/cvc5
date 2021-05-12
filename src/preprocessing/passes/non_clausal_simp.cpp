@@ -298,7 +298,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Node assertion = (*assertionsToPreprocess)[i];
-    TrustNode assertionNew = newSubstitutions->apply(assertion);
+    TrustNode assertionNew = newSubstitutions->applyTrusted(assertion);
     Trace("non-clausal-simplify") << "assertion = " << assertion << std::endl;
     if (!assertionNew.isNull())
     {
@@ -310,7 +310,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
     for (;;)
     {
-      assertionNew = constantPropagations->apply(assertion);
+      assertionNew = constantPropagations->applyTrusted(assertion);
       if (assertionNew.isNull())
       {
         break;
@@ -327,34 +327,32 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         << "non-clausal preprocessed: " << assertion << std::endl;
   }
 
-  // add substitutions to model, or as assertions if needed (when incremental)
-  NodeManager* nm = NodeManager::currentNM();
-  for (SubstitutionMap::iterator pos = nss.begin(); pos != nss.end(); ++pos)
+  // If necessary, add as assertions if needed (when incremental). This is
+  // necessary because certain variables cannot truly be eliminated when
+  // we are in incremental mode. For example, say our first call to check-sat
+  // is a formula F containing variable x. On the second call to check-sat,
+  // say we solve a top-level assertion (= x t). Since the solver already has
+  // constraints involving x, we must still keep (= x t) as an assertion.
+  // However, notice that we do not retract the substitution { x -> t }. This
+  // means that all *subsequent* assertions after (= x t) will replace x by t.
+  if (assertionsToPreprocess->storeSubstsInAsserts())
   {
-    Node lhs = (*pos).first;
-    TrustNode trhs = newSubstitutions->apply((*pos).second);
-    Node rhs = trhs.isNull() ? (*pos).second : trhs.getNode();
-    // If using incremental, we must check whether this variable has occurred
-    // before now. If it hasn't we can add this as a substitution.
-    if (!assertionsToPreprocess->storeSubstsInAsserts()
-        || d_preprocContext->getSymsInAssertions().find(lhs)
-               == d_preprocContext->getSymsInAssertions().end())
+    for (const std::pair<const Node, const Node>& pos: nss)
     {
-      Trace("non-clausal-simplify")
-          << "substitute: " << lhs << " " << rhs << std::endl;
-      d_preprocContext->addModelSubstitution(lhs, rhs);
-    }
-    else
-    {
-      // if it has, the substitution becomes an assertion
-      Node eq = nm->mkNode(kind::EQUAL, lhs, rhs);
-      Trace("non-clausal-simplify")
-          << "substitute: will notify SAT layer of substitution: " << eq
-          << std::endl;
-       trhs = newSubstitutions->apply((*pos).first);
-       Assert(!trhs.isNull());
-       assertionsToPreprocess->addSubstitutionNode(trhs.getProven(),
-       trhs.getGenerator());
+      Node lhs = pos.first;
+      // If using incremental, we must check whether this variable has occurred
+      // before now. If it has, we must add as an assertion.
+      if (d_preprocContext->getSymsInAssertions().contains(lhs))
+      {
+        // if it has, the substitution becomes an assertion
+        TrustNode trhs = newSubstitutions->applyTrusted(lhs);
+        Assert(!trhs.isNull());
+        Trace("non-clausal-simplify")
+            << "substitute: will notify SAT layer of substitution: "
+            << trhs.getProven() << std::endl;
+        assertionsToPreprocess->addSubstitutionNode(trhs.getProven(),
+                                                    trhs.getGenerator());
+      }
     }
   }
 
@@ -438,6 +436,12 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   }
 
   propagator->setNeedsFinish(true);
+
+  // Note that typically ttls.apply(assert)==assert here.
+  // However, this invariant is invalidated for cases where we use explicit
+  // equality assertions for variables solved in incremental mode that already
+  // exist in assertions, as described above.
+
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
@@ -450,7 +454,7 @@ Node NonClausalSimp::processLearnedLit(Node lit,
   TrustNode tlit;
   if (subs != nullptr)
   {
-    tlit = subs->apply(lit);
+    tlit = subs->applyTrusted(lit);
     if (!tlit.isNull())
     {
       lit = processRewrittenLearnedLit(tlit);
@@ -463,7 +467,7 @@ Node NonClausalSimp::processLearnedLit(Node lit,
   {
     for (;;)
     {
-      tlit = cp->apply(lit);
+      tlit = cp->applyTrusted(lit);
       if (tlit.isNull())
       {
         break;

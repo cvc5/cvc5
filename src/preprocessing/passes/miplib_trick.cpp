@@ -550,7 +550,6 @@ PreprocessingPassResult MipLibTrick::applyInternal(
                   << "unexpected solution from arith's ppAssert()";
               Assert(nullMap.empty())
                   << "unexpected substitution from arith's ppAssert()";
-              d_preprocContext->addModelSubstitution(*ii, newVar.eqNode(one));
               newVars.push_back(newVar);
               varRef = newVar;
             }

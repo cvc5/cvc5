@@ -19,8 +19,10 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "theory/rewriter.h"
+#include "theory/trust_substitutions.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -29,11 +31,9 @@ using namespace cvc5::context;
 namespace cvc5 {
 namespace theory {
 
-TheoryModel::TheoryModel(context::Context* c,
-                         std::string name,
-                         bool enableFuncModels)
-    : d_name(name),
-      d_substitutions(c),
+TheoryModel::TheoryModel(Env& env, std::string name, bool enableFuncModels)
+    : d_env(env),
+      d_name(name),
       d_equalityEngine(nullptr),
       d_using_model_core(false),
       d_enableFuncModels(enableFuncModels)
@@ -137,7 +137,7 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
 Node TheoryModel::getValue(TNode n) const
 {
   //apply substitutions
-  Node nn = d_substitutions.apply(n);
+  Node nn = d_env.getTopLevelSubstitutions().apply(n);
   Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
   nn = getModelValue(nn);
@@ -365,26 +365,6 @@ Node TheoryModel::getModelValue(TNode n) const
 
   d_modelCache[n] = n;
   return n;
-}
-
-/** add substitution */
-void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
-  if( !d_substitutions.hasSubstitution( x ) ){
-    Debug("model") << "Add substitution in model " << x << " -> " << t << std::endl;
-    d_substitutions.addSubstitution( x, t, invalidateCache );
-  } else {
-#ifdef CVC5_ASSERTIONS
-    Node oldX = d_substitutions.getSubstitution(x);
-    // check that either the old substitution is the same, or it now maps to the new substitution
-    if(oldX != t && d_substitutions.apply(oldX) != d_substitutions.apply(t)) {
-      InternalError()
-          << "Two incompatible substitutions added to TheoryModel:\n"
-          << "the term:    " << x << "\n"
-          << "old mapping: " << d_substitutions.apply(oldX) << "\n"
-          << "new mapping: " << d_substitutions.apply(t);
-    }
-#endif /* CVC5_ASSERTIONS */
-  }
 }
 
 /** add term */
@@ -681,6 +661,18 @@ bool TheoryModel::areDisequal(TNode a, TNode b)
   }
 }
 
+bool TheoryModel::hasUfTerms(Node f) const
+{
+  return d_uf_terms.find(f) != d_uf_terms.end();
+}
+
+const std::vector<Node>& TheoryModel::getUfTerms(Node f) const
+{
+  const auto it = d_uf_terms.find(f);
+  Assert(it != d_uf_terms.end());
+  return it->second;
+}
+
 bool TheoryModel::areFunctionValuesEnabled() const
 {
   return d_enableFuncModels;
@@ -735,7 +727,7 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
     Node n = it->first;
     Assert(!n.isNull());
     // should not have been solved for in a substitution
-    Assert(d_substitutions.apply(n) == n);
+    Assert(d_env.getTopLevelSubstitutions().apply(n) == n);
     if( !hasAssignedFunctionDefinition( n ) ){
       Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
       if( options::ufHo() ){

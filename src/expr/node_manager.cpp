@@ -724,7 +724,7 @@ TypeNode NodeManager::mkDatatypeUpdateType(TypeNode domain, TypeNode range)
       domain.isDatatype(), domain, "cannot create non-datatype upater type");
   // It is a function type domain x range -> domain, we store only the
   // arguments
-  return mkTypeNode(kind::DT_UPDATE_TYPE, domain, range);
+  return mkTypeNode(kind::UPDATER_TYPE, domain, range);
 }
 
 TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vector< TypeNode >& types, unsigned index ) {

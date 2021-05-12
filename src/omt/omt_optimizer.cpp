@@ -17,20 +17,23 @@
 
 #include "omt/bitvector_optimizer.h"
 #include "omt/integer_optimizer.h"
-#include "options/smt_options.h"
-#include "smt/smt_engine.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/smt_engine_subsolver.h"
 
 using namespace cvc5::theory;
 using namespace cvc5::smt;
 namespace cvc5::omt {
 
-std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForNode(TNode targetNode,
-                                                                bool isSigned)
+bool OMTOptimizer::nodeSupportsOptimization(TNode node)
+{
+  TypeNode type = node.getType();
+  // only supports Integer and BitVectors as of now
+  return (type.isInteger() || type.isBitVector());
+}
+
+std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(
+    OptimizationObjective& objective)
 {
   // the datatype of the target node
-  TypeNode objectiveType = targetNode.getType(true);
+  TypeNode objectiveType = objective.getTarget().getType(true);
   if (objectiveType.isInteger())
   {
     // integer type: use OMTOptimizerInteger
@@ -39,7 +42,8 @@ std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForNode(TNode targetNode
   else if (objectiveType.isBitVector())
   {
     // bitvector type: use OMTOptimizerBitVector
-    return std::unique_ptr<OMTOptimizer>(new OMTOptimizerBitVector(isSigned));
+    return std::unique_ptr<OMTOptimizer>(
+        new OMTOptimizerBitVector(objective.bvIsSigned()));
   }
   else
   {
@@ -47,24 +51,126 @@ std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForNode(TNode targetNode
   }
 }
 
-std::unique_ptr<SmtEngine> OMTOptimizer::createOptCheckerWithTimeout(
-    SmtEngine* parentSMTSolver, bool needsTimeout, unsigned long timeout)
+Node OMTOptimizer::mkStrongIncrementalExpression(
+    NodeManager* nm, TNode lhs, TNode rhs, OptimizationObjective& objective)
 {
-  std::unique_ptr<SmtEngine> optChecker;
-  // initializeSubSolver will copy the options and theories enabled
-  // from the current solver to optChecker and adds timeout
-  theory::initializeSubsolver(optChecker, needsTimeout, timeout);
-  // we need to be in incremental mode for multiple objectives since we need to
-  // push pop we need to produce models to inrement on our objective
-  optChecker->setOption("incremental", "true");
-  optChecker->setOption("produce-models", "true");
-  // Move assertions from the parent solver to the subsolver
-  std::vector<Node> p_assertions = parentSMTSolver->getExpandedAssertions();
-  for (const Node& e : p_assertions)
+  constexpr const char lhsTypeError[] =
+      "lhs type does not match or is not implicitly convertable to the target "
+      "type";
+  constexpr const char rhsTypeError[] =
+      "rhs type does not match or is not implicitly convertable to the target "
+      "type";
+  TypeNode targetType = objective.getTarget().getType();
+  switch (objective.getType())
   {
-    optChecker->assertFormula(e);
+    case OptimizationObjective::MINIMIZE:
+    {
+      if (targetType.isInteger())
+      {
+        Assert(lhs.getType().isInteger()) << lhsTypeError;
+        Assert(rhs.getType().isInteger()) << rhsTypeError;
+        return nm->mkNode(Kind::LT, lhs, rhs);
+      }
+      else if (targetType.isBitVector())
+      {
+        Assert(lhs.getType() == targetType) << lhsTypeError;
+        Assert(rhs.getType() == targetType) << rhsTypeError;
+        return (objective.bvIsSigned())
+                   ? (nm->mkNode(Kind::BITVECTOR_SLT, lhs, rhs))
+                   : (nm->mkNode(Kind::BITVECTOR_ULT, lhs, rhs));
+      }
+      else
+      {
+        Unimplemented() << "Target type does not support optimization";
+      }
+    }
+    case OptimizationObjective::MAXIMIZE:
+    {
+      if (targetType.isInteger())
+      {
+        Assert(lhs.getType().isInteger()) << lhsTypeError;
+        Assert(rhs.getType().isInteger()) << rhsTypeError;
+        return nm->mkNode(Kind::GT, lhs, rhs);
+      }
+      else if (targetType.isBitVector())
+      {
+        Assert(lhs.getType() == targetType) << lhsTypeError;
+        Assert(rhs.getType() == targetType) << rhsTypeError;
+        return (objective.bvIsSigned())
+                   ? (nm->mkNode(Kind::BITVECTOR_SGT, lhs, rhs))
+                   : (nm->mkNode(Kind::BITVECTOR_UGT, lhs, rhs));
+      }
+      else
+      {
+        Unimplemented() << "Target type does not support optimization";
+      }
+    }
+    default:
+      CVC5_FATAL() << "Optimization objective is neither MAXIMIZE nor MINIMIZE";
   }
-  return optChecker;
+  Unreachable();
+}
+
+Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
+                                               TNode lhs,
+                                               TNode rhs,
+                                               OptimizationObjective& objective)
+{
+  constexpr const char lhsTypeError[] =
+      "lhs type does not match or is not implicitly convertable to the target "
+      "type";
+  constexpr const char rhsTypeError[] =
+      "rhs type does not match or is not implicitly convertable to the target "
+      "type";
+  TypeNode targetType = objective.getTarget().getType();
+  switch (objective.getType())
+  {
+    case OptimizationObjective::MINIMIZE:
+    {
+      if (targetType.isInteger())
+      {
+        Assert(lhs.getType().isInteger()) << lhsTypeError;
+        Assert(rhs.getType().isInteger()) << rhsTypeError;
+        return nm->mkNode(Kind::LEQ, lhs, rhs);
+      }
+      else if (targetType.isBitVector())
+      {
+        Assert(lhs.getType() == targetType) << lhsTypeError;
+        Assert(rhs.getType() == targetType) << rhsTypeError;
+        return (objective.bvIsSigned())
+                   ? (nm->mkNode(Kind::BITVECTOR_SLE, lhs, rhs))
+                   : (nm->mkNode(Kind::BITVECTOR_ULE, lhs, rhs));
+      }
+      else
+      {
+        Unimplemented() << "Target type does not support optimization";
+      }
+    }
+    case OptimizationObjective::MAXIMIZE:
+    {
+      if (targetType.isInteger())
+      {
+        Assert(lhs.getType().isInteger()) << lhsTypeError;
+        Assert(rhs.getType().isInteger()) << rhsTypeError;
+        return nm->mkNode(Kind::GEQ, lhs, rhs);
+      }
+      else if (targetType.isBitVector())
+      {
+        Assert(lhs.getType() == targetType) << lhsTypeError;
+        Assert(rhs.getType() == targetType) << rhsTypeError;
+        return (objective.bvIsSigned())
+                   ? (nm->mkNode(Kind::BITVECTOR_SGE, lhs, rhs))
+                   : (nm->mkNode(Kind::BITVECTOR_UGE, lhs, rhs));
+      }
+      else
+      {
+        Unimplemented() << "Target type does not support optimization";
+      }
+    }
+    default:
+      CVC5_FATAL() << "Optimization objective is neither MAXIMIZE nor MINIMIZE";
+  }
+  Unreachable();
 }
 
 }  // namespace cvc5::omt
