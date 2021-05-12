@@ -82,3 +82,37 @@ def testGetString():
     s2 = '❤️cvc5❤️'
     t2 = solver.mkString(s2)
     assert s2 == t2.toPythonObj()
+
+
+def testGetValueInt():
+    solver = pycvc5.Solver()
+    solver.setOption("produce-models", "true")
+
+    intsort = solver.getIntegerSort()
+    x = solver.mkConst(intsort, "x")
+    solver.assertFormula(solver.mkTerm(kinds.Equal, x, solver.mkInteger(6)))
+
+    r = solver.checkSat()
+    assert r.isSat()
+
+    xval = solver.getValue(x)
+    assert xval.toPythonObj() == 6
+
+
+def testGetValueReal():
+    solver = pycvc5.Solver()
+    solver.setOption("produce-models", "true")
+
+    realsort = solver.getRealSort()
+    x = solver.mkConst(realsort, "x")
+    y = solver.mkConst(realsort, "y")
+    solver.assertFormula(solver.mkTerm(kinds.Equal, x, solver.mkReal("6")))
+    solver.assertFormula(solver.mkTerm(kinds.Equal, y, solver.mkReal("8.33")))
+
+    r = solver.checkSat()
+    assert r.isSat()
+
+    xval = solver.getValue(x)
+    yval = solver.getValue(y)
+    assert xval.toPythonObj() == Fraction("6")
+    assert yval.toPythonObj() == Fraction("8.33")

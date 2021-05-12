@@ -20,7 +20,7 @@ namespace cvc5 {
 std::ostream& operator<<(std::ostream& os, const ParseOp& p)
 {
   std::stringstream out;
-  out << "(ParseOp ";
+  out << "(ParseOp";
   if (!p.d_expr.isNull())
   {
     out << " :expr " << p.d_expr;

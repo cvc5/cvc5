@@ -146,7 +146,7 @@ void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
   }
 }
 
-TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
+TrustNode TrustSubstitutionMap::applyTrusted(Node n, bool doRewrite)
 {
   Trace("trust-subs") << "TrustSubstitutionMap::addSubstitution: apply " << n
                       << std::endl;
@@ -167,6 +167,11 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   d_eqtIndex[eq] = d_tsubs.size();
   // this class will provide a proof if asked
   return TrustNode::mkTrustRewrite(n, ns, this);
+}
+
+Node TrustSubstitutionMap::apply(Node n, bool doRewrite)
+{
+  return d_subs.apply(n, doRewrite);
 }
 
 std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)

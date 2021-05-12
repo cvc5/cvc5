@@ -382,6 +382,14 @@ RewriteResponse TheoryBVRewriter::RewriteComp(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
+RewriteResponse TheoryBVRewriter::RewriteEagerAtom(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<EvalEagerAtom>>::apply(node);
+
+  return RewriteResponse(REWRITE_DONE, resultNode);
+}
+
 RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
   Node resultNode = node; 
   resultNode = LinearRewriteStrategy
@@ -732,6 +740,7 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_ULTBV ] = RewriteUltBv;
   d_rewriteTable [ kind::BITVECTOR_SLTBV ] = RewriteSltBv;
   d_rewriteTable [ kind::BITVECTOR_ITE ] = RewriteITEBv;
+  d_rewriteTable[kind::BITVECTOR_EAGER_ATOM] = RewriteEagerAtom;
 
   d_rewriteTable [ kind::BITVECTOR_TO_NAT ] = RewriteBVToNat;
   d_rewriteTable [ kind::INT_TO_BITVECTOR ] = RewriteIntToBV;

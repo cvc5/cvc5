@@ -14,12 +14,14 @@
 
 """
 This script reads cvc5/src/api/cpp/cvc5_kind.h and generates
-cvc/Kind.java file which declare all the cvc5 kinds.
+cvc5/Kind.java file which declares all cvc5 kinds.
 """
 
 import argparse
 import os
 import sys
+import re
+
 
 # get access to cvc5/src/api/parsekinds.py
 sys.path.insert(0, os.path.abspath('${CMAKE_SOURCE_DIR}/src/api'))
@@ -32,12 +34,12 @@ DEFAULT_PREFIX = 'Kind'
 # Code Blocks
 
 KINDS_JAVA_TOP = \
-    r"""package cvc;
+    r"""package cvc5;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public enum Kind 
+public enum Kind
 {
 """
 
@@ -60,11 +62,11 @@ KINDS_JAVA_BOTTOM = \
     }
   }
 
-  public static Kind fromInt(int value) throws CVCApiException
+  public static Kind fromInt(int value) throws CVC5ApiException
   {
     if (value < INTERNAL_KIND.value || value > LAST_KIND.value)
     {
-      throw new CVCApiException("Kind value " + value + " is outside the valid range ["
+      throw new CVC5ApiException("Kind value " + value + " is outside the valid range ["
           + INTERNAL_KIND.value + "," + LAST_KIND.value + "]");
     }
     return kindMap.get(value);
@@ -77,15 +79,47 @@ KINDS_JAVA_BOTTOM = \
 }
 """
 
+# mapping from c++ patterns to java
+CPP_JAVA_MAPPING = \
+    {
+        r"\bbool\b": "boolean",
+        r"\bconst\b\s?": "",
+        r"\bint32_t\b": "int",
+        r"\bint64_t\b": "long",
+        r"\buint32_t\b": "int",
+        r"\buint64_t\b": "long",
+        r"\bunsigned char\b": "byte",
+        r"cvc5::api::": "cvc5.",
+        r"Term::Term\(\)": "Solver.getNullTerm()",
+        r"Solver::": "Solver.",
+        r"std::vector<int>": "int[]",
+        r"std::vector<Term>": "Term[]",
+        r"std::string": "String",
+        r"&": "",
+        r"::": "."
+    }
+
+
+# convert from c++ doc to java doc
+def format_comment(comment):
+    for pattern, replacement in CPP_JAVA_MAPPING.items():
+        comment = re.sub(pattern, replacement, comment)
+    java_comment = "\n  /**"
+    for line in comment.split("\n"):
+        java_comment += "\n   * " + line
+    java_comment = "  " + java_comment.strip() + "/"
+    return java_comment
+
 
 # Files generation
-
 def gen_java(parser: KindsParser, filename):
     f = open(filename, "w")
     code = KINDS_JAVA_TOP
     enum_value = -2  # initial enum value
     for kind, name in parser.kinds.items():
-        code += "  {name}({enum_value}),\n".format(name=kind, enum_value=enum_value)
+        comment = parser.get_comment(kind)
+        comment = format_comment(comment)
+        code += "{comment}\n  {name}({enum_value}),\n".format(comment=comment, name=kind, enum_value=enum_value)
         enum_value = enum_value + 1
     code += KINDS_JAVA_BOTTOM
     f.write(code)

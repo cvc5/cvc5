@@ -273,7 +273,6 @@ void ArithIteUtils::addSubstitution(TNode f, TNode t){
   Debug("arith::ite") << "adding " << f << " -> " << t << endl;
   d_subcount = d_subcount + 1;
   d_subs->addSubstitution(f, t);
-  d_model->addSubstitution(f, t);
 }
 
 Node ArithIteUtils::applySubstitutions(TNode f){
