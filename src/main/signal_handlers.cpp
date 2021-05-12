@@ -85,7 +85,8 @@ void sigterm_handler(int sig, siginfo_t* info, void*)
 {
   safe_print(STDERR_FILENO, "cvc5 interrupted by SIGTERM.\n");
   print_statistics();
-  abort();
+  signal(sig, SIG_DFL);
+  raise(sig);
 }
 
 /** Handler for SIGINT, i.e., when the user hits control C. */
@@ -93,7 +94,8 @@ void sigint_handler(int sig, siginfo_t* info, void*)
 {
   safe_print(STDERR_FILENO, "cvc5 interrupted by user.\n");
   print_statistics();
-  abort();
+  signal(sig, SIG_DFL);
+  raise(sig);
 }
 
 #ifdef HAVE_SIGALTSTACK
@@ -126,7 +128,8 @@ void segv_handler(int sig, siginfo_t* info, void* c)
   if (!segvSpin)
   {
     print_statistics();
-    abort();
+    signal(sig, SIG_DFL);
+    raise(sig);
   }
   else
   {
@@ -165,7 +168,8 @@ void segv_handler(int sig, siginfo_t* info, void* c)
     safe_print(STDERR_FILENO, "Looks like a NULL pointer was dereferenced.\n");
   }
   print_statistics();
-  abort();
+  signal(sig, SIG_DFL);
+  raise(sig);
 #endif /* CVC5_DEBUG */
 }
 #endif /* HAVE_SIGALTSTACK */
@@ -179,7 +183,8 @@ void ill_handler(int sig, siginfo_t* info, void*)
   if (!segvSpin)
   {
     print_statistics();
-    abort();
+    signal(sig, SIG_DFL);
+    raise(sig);
   }
   else
   {
@@ -203,7 +208,8 @@ void ill_handler(int sig, siginfo_t* info, void*)
 #else  /* CVC5_DEBUG */
   safe_print(STDERR_FILENO, "cvc5 executed an illegal instruction.\n");
   print_statistics();
-  abort();
+  signal(sig, SIG_DFL);
+  raise(sig);
 #endif /* CVC5_DEBUG */
 }
 
