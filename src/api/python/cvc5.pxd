@@ -372,8 +372,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
             Term operator*() except +
         const_iterator begin() except +
         const_iterator end() except +
-        bint isInt64() except +
-        int64_t getInt64() except +
         bint isInteger() except +
 
     cdef cppclass TermHashFunction:
