@@ -1,9 +1,8 @@
-on: [push, pull_request, pull_request_target]
+on: [push, pull_request]
 name: CI
 
 jobs:
   build:
-    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
     strategy:
       matrix:
         include:
@@ -220,7 +219,11 @@ jobs:
 
     - name: Build Documentation
       if: matrix.build-documentation
-      run: make -j2 docs-gh
+      run: |
+        make -j2 docs-gh
+        if [ "${{ github.event_name }}" == "pull_request" ] ; then
+          echo "${{ github.event.number }}" > docs/sphinx-gh/prnum
+        fi
       working-directory: build
     
     - name: Store Documentation
@@ -229,67 +232,3 @@ jobs:
       with:
         name: documentation
         path: build/docs/sphinx-gh/
-
-  upload-docs:
-    if: github.event_name == 'push' || github.event_name == 'pull_request_target'
-    name: upload-docs
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    needs: build
-    steps:
-      - name: Setup Deploy Key
-        env:
-            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: |
-            ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-            ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
-      
-      - name: Setup Context
-        run: |
-          if [ "${{ github.event_name }}" == "push" ] ; then
-            NAME=$(echo "${GITHUB_REF}" | sed "s,refs/heads/,,")
-            HASH=${{ github.sha }}
-            echo "Identified branch $NAME"
-          elif [ "${{ github.event_name }}" == "pull_request_target" ] ; then
-            NAME="${{ github.event.number }}"
-            HASH="${{ github.event.pull_request.head.sha }}"
-            echo "Identified PR #$NAME (from $HASH)"
-            NAME="pr$NAME"
-          fi
-          echo "NAME=$NAME" >> $GITHUB_ENV
-          echo "HASH=$HASH" >> $GITHUB_ENV
-
-      - name: Clone Documentation Repository
-        env:
-            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: |
-          git config --global user.email "docbot@cvc5"
-          git config --global user.name "DocBot"
-          git clone git@github.com:cvc5/docs-ci.git target/
-      
-      - name: Fetch artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: documentation
-          path: docs-new
-
-      - name: Update docs
-        continue-on-error: true
-        env:
-            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: |
-          if [ -n "$NAME" ]; then
-            mv docs-new target/docs-$NAME-$HASH
-            cd target/
-            rm -f docs-$NAME
-            ln -s docs-$NAME-$HASH docs-$NAME
-            git add docs-$NAME docs-$NAME-$HASH
-
-            python3 genindex.py
-            git add README.md
-            git commit -m "Update docs for $NAME"
-
-            git push
-          else
-            echo "Ignored run"
-          fi
