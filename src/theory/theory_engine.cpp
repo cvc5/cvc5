@@ -146,7 +146,7 @@ void TheoryEngine::finishInit()
   // Initialize the theory combination architecture
   if (options::tcMode() == options::TcMode::CARE_GRAPH)
   {
-    d_tc.reset(new CombinationCareGraph(*this, paraTheories, d_pnm));
+    d_tc.reset(new CombinationCareGraph(*this, d_env, paraTheories, d_pnm));
   }
   else
   {
