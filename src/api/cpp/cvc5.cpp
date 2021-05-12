@@ -1909,12 +1909,6 @@ Term Op::operator[](size_t index) const
           Rational(d_node->getConst<Divisible>().k));
       break;
     }
-    case RECORD_UPDATE:
-    {
-      t = d_solver->mkValHelper<cvc5::String>(
-          cvc5::String(d_node->getConst<RecordUpdate>().getField()));
-      break;
-    }
     case BITVECTOR_REPEAT:
     {
       t = d_solver->mkValHelper<cvc5::Rational>(
@@ -1967,12 +1961,6 @@ Term Op::operator[](size_t index) const
     {
       t = d_solver->mkValHelper<cvc5::Rational>(
           d_node->getConst<FloatingPointToSBV>().d_bv_size.d_size);
-      break;
-    }
-    case TUPLE_UPDATE:
-    {
-      t = d_solver->mkValHelper<cvc5::Rational>(
-          d_node->getConst<TupleUpdate>().getIndex());
       break;
     }
     case REGEXP_REPEAT:
@@ -2244,13 +2232,6 @@ std::vector<api::Term> Op::getIndicesHelper() const
       indices.push_back(t);
       break;
     }
-    case RECORD_UPDATE:
-    {
-      Term t = d_solver->mkValHelper<cvc5::String>(
-          cvc5::String(d_node->getConst<RecordUpdate>().getField()));
-      indices.push_back(t);
-      break;
-    }
     case BITVECTOR_REPEAT:
     {
       Term t = d_solver->mkValHelper<cvc5::Rational>(
@@ -2311,13 +2292,6 @@ std::vector<api::Term> Op::getIndicesHelper() const
     {
       Term t = d_solver->mkValHelper<cvc5::Rational>(
           d_node->getConst<FloatingPointToSBV>().d_bv_size.d_size);
-      indices.push_back(t);
-      break;
-    }
-    case TUPLE_UPDATE:
-    {
-      Term t = d_solver->mkValHelper<cvc5::Rational>(
-          d_node->getConst<TupleUpdate>().getIndex());
       indices.push_back(t);
       break;
     }
