@@ -115,8 +115,7 @@ class CVC5_EXPORT Input
    */
   static Input* newStreamInput(InputLanguage lang,
                                std::istream& input,
-                               const std::string& name,
-                               bool lineBuffered = false);
+                               const std::string& name);
 
   /** Create an input for the given string
    *
