@@ -32,7 +32,7 @@ namespace passes {
 
 class RealToInt : public PreprocessingPass
 {
-  using NodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
+  using NodeMap = context::CDHashMap<Node, Node>;
 
  public:
   RealToInt(PreprocessingPassContext* preprocContext);

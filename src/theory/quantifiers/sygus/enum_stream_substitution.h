@@ -82,11 +82,11 @@ class EnumStreamPermutation
   /** value to which we are generating permutations */
   Node d_value;
   /** generated permutations (modulo rewriting) */
-  std::unordered_set<Node, NodeHashFunction> d_perm_values;
+  std::unordered_set<Node> d_perm_values;
   /** retrieves variables occurring in value */
   void collectVars(Node n,
                    std::vector<Node>& vars,
-                   std::unordered_set<Node, NodeHashFunction>& visited);
+                   std::unordered_set<Node>& visited);
   /** Utility for stepwise application of Heap's algorithm for permutation
    *
    * see https://en.wikipedia.org/wiki/Heap%27s_algorithm
@@ -229,7 +229,7 @@ class EnumStreamSubstitution
    */
   Node d_last;
   /** generated combinations */
-  std::unordered_set<Node, NodeHashFunction> d_comb_values;
+  std::unordered_set<Node> d_comb_values;
   /** permutation utility */
   EnumStreamPermutation d_stream_permutations;
   /** Utility for stepwise generation of ordered subsets of size k from n

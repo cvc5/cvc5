@@ -87,7 +87,7 @@ namespace cvc5 {
 **/
 class IntBlaster
 {
-  using CDNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
+  using CDNodeMap = context::CDHashMap<Node, Node>;
 
  public:
   /**
@@ -319,13 +319,13 @@ class IntBlaster
    * Range constraints of the form 0 <= x < 2^k
    * These are added for every new integer variable that we introduce.
    */
-  context::CDHashSet<Node, NodeHashFunction> d_rangeAssertions;
+  context::CDHashSet<Node> d_rangeAssertions;
 
   /**
    * A set of "bitwise" equalities over integers for BITVECTOR_AND
    *   used in for options::SolveBVAsIntMode::BITWISE
    */
-  context::CDHashSet<Node, NodeHashFunction> d_bitwiseAssertions;
+  context::CDHashSet<Node> d_bitwiseAssertions;
 
   /** Useful constants */
   Node d_zero;

@@ -57,7 +57,7 @@ Node EvalSygusInvarianceTest::doEvaluateWithUnfolding(TermDbSygus* tds, Node n)
 bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
 {
   TNode tnvn = nvn;
-  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+  std::unordered_map<TNode, TNode> cache;
   for (const Node& c : d_terms)
   {
     Node conj_subs = c.substitute(d_var, tnvn, cache);

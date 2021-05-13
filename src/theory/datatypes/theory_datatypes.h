@@ -42,9 +42,9 @@ class TheoryDatatypes : public Theory {
  private:
   typedef context::CDList<Node> NodeList;
   /** maps nodes to an index in a vector */
-  typedef context::CDHashMap<Node, size_t, NodeHashFunction> NodeUIntMap;
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
+  typedef context::CDHashMap<Node, size_t> NodeUIntMap;
+  typedef context::CDHashMap<Node, bool> BoolMap;
+  typedef context::CDHashMap<Node, Node> NodeMap;
 
  private:
   //notification class for equality engine

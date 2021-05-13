@@ -305,7 +305,7 @@ Node BVSolverBitblast::getValue(TNode node)
         nb << cur.getOperator();
       }
 
-      std::unordered_map<Node, Node, NodeHashFunction>::iterator iit;
+      std::unordered_map<Node, Node>::iterator iit;
       for (const TNode& child : cur)
       {
         iit = d_modelCache.find(child);

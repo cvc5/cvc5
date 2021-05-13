@@ -92,7 +92,7 @@ void RelevanceManager::computeRelevance()
   d_computed = true;
   d_rset.clear();
   Trace("rel-manager") << "RelevanceManager::computeRelevance..." << std::endl;
-  std::unordered_map<TNode, int, TNodeHashFunction> cache;
+  std::unordered_map<TNode, int> cache;
   for (const Node& node: d_input)
   {
     TNode n = node;
@@ -123,7 +123,7 @@ bool RelevanceManager::isBooleanConnective(TNode cur)
 bool RelevanceManager::updateJustifyLastChild(
     TNode cur,
     std::vector<int>& childrenJustify,
-    std::unordered_map<TNode, int, TNodeHashFunction>& cache)
+    std::unordered_map<TNode, int>& cache)
 {
   // This method is run when we are informed that child index of cur
   // has justify status lastChildJustify. We return true if we would like to
@@ -226,13 +226,12 @@ bool RelevanceManager::updateJustifyLastChild(
   return false;
 }
 
-int RelevanceManager::justify(
-    TNode n, std::unordered_map<TNode, int, TNodeHashFunction>& cache)
+int RelevanceManager::justify(TNode n, std::unordered_map<TNode, int>& cache)
 {
   // the vector of values of children
-  std::unordered_map<TNode, std::vector<int>, TNodeHashFunction> childJustify;
-  std::unordered_map<TNode, int, TNodeHashFunction>::iterator it;
-  std::unordered_map<TNode, std::vector<int>, TNodeHashFunction>::iterator itc;
+  std::unordered_map<TNode, std::vector<int>> childJustify;
+  std::unordered_map<TNode, int>::iterator it;
+  std::unordered_map<TNode, std::vector<int>>::iterator itc;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -315,8 +314,8 @@ bool RelevanceManager::isRelevant(Node lit)
   return d_rset.find(lit) != d_rset.end();
 }
 
-const std::unordered_set<TNode, TNodeHashFunction>&
-RelevanceManager::getRelevantAssertions(bool& success)
+const std::unordered_set<TNode>& RelevanceManager::getRelevantAssertions(
+    bool& success)
 {
   if (!d_computed)
   {

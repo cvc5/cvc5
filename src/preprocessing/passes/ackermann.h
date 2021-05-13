@@ -38,11 +38,9 @@ namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using TNodeSet = std::unordered_set<TNode, TNodeHashFunction>;
-using FunctionToArgsMap =
-    std::unordered_map<TNode, TNodeSet, TNodeHashFunction>;
-using USortToBVSizeMap =
-    std::unordered_map<TypeNode, size_t, TypeNode::HashFunction>;
+using TNodeSet = std::unordered_set<TNode>;
+using FunctionToArgsMap = std::unordered_map<TNode, TNodeSet>;
+using USortToBVSizeMap = std::unordered_map<TypeNode, size_t>;
 
 class Ackermann : public PreprocessingPass
 {

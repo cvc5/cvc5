@@ -255,12 +255,6 @@ class SkolemManager
                      const std::string& comment = "",
                      int flags = NodeManager::SKOLEM_DEFAULT);
   /**
-   * Make Boolean term variable for term t. This is a special case of
-   * mkPurifySkolem above, where the returned term has kind
-   * BOOLEAN_TERM_VARIABLE.
-   */
-  Node mkBooleanTermVariable(Node t);
-  /**
    * Get proof generator for existentially quantified formula q. This returns
    * the proof generator that was provided in a call to mkSkolem above.
    */
