@@ -1,4 +1,4 @@
-This module is based on part of the Z3 distribution.
+Much of the code and almost all of the API module is based on part of the Z3 distribution.
 Its license follows.
 
 Z3

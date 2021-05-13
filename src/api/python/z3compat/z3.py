@@ -1,8 +1,8 @@
 ############################################
-# Copyright (c) 2021 The CVC5 Developers
+# Copyright (c) 2021 The cvc5 Developers
 #               2012 The Microsoft Corporation
 #
-# CVC5's Z3-based Python interface
+# cvc5's Z3-based Python interface
 #
 # Author: Alex Ozdemir (aozdemir)
 # pyz3 Author: Leonardo de Moura (leonardo)
@@ -11,8 +11,7 @@
 """
 cvc5 is an SMT solver.
 
-This is its Z3-based (and---as much as possible---Z3-compatible) python
-interface.
+This is its (as much as possible) Z3-compatible python interface.
 
 Several online tutorials for Z3Py are available at:
 http://rise4fun.com/Z3Py/tutorial/guide
@@ -111,7 +110,7 @@ def _to_param_value(val):
 class Context(object):
     """A Context manages all terms, configurations, etc.
 
-    In CVC4's API, these are managed by a solver, but we keep the Context class
+    In cvc5's API, these are managed by a solver, but we keep the Context class
     (which just wraps a solver) for compatiblity.
 
     It's only responsibilities are:
@@ -124,7 +123,7 @@ class Context(object):
         self.solver.setOption("produce-models", "true")
         # Map from (name, sort) pairs to constant terms
         self.vars = {}
-        # An incresing identifier used to make fresh identifiers
+        # An increasing identifier used to make fresh identifiers
         self.next_fresh_var = 0
 
     def __del__(self):
