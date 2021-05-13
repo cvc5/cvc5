@@ -1490,9 +1490,6 @@ cdef class Term:
     def getKind(self):
         return kind(<int> self.cterm.getKind())
 
-    def getId(self):
-        return self.cterm.getId()
-
     def getSort(self):
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.cterm.getSort()
