@@ -123,7 +123,7 @@ class SygusRepairConst
   /** reverse map of d_sk_to_fo */
   std::map<Node, Node> d_fo_to_sk;
   /** a cache of satisfiability queries of the form [***] above we have tried */
-  std::unordered_set<Node, NodeHashFunction> d_queries;
+  std::unordered_set<Node> d_queries;
   /**
    * Register information for sygus type tn, tprocessed stores the set of
    * already registered types.

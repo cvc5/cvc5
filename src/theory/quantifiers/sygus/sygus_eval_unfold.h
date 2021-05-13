@@ -132,7 +132,7 @@ class SygusEvalUnfold
   /** sygus term database associated with this utility */
   TermDbSygus* d_tds;
   /** the set of evaluation terms we have already processed */
-  std::unordered_set<Node, NodeHashFunction> d_eval_processed;
+  std::unordered_set<Node> d_eval_processed;
   /** map from evaluation heads to evaluation function applications */
   std::map<Node, std::vector<Node> > d_evals;
   /**
@@ -150,7 +150,7 @@ class SygusEvalUnfold
    * This maps anchor terms to the set of shared selector chains with
    * them as an anchor, for example x may map to { x, x.1, x.2, x.1.1 }.
    */
-  std::map<Node, std::unordered_set<Node, NodeHashFunction> > d_subterms;
+  std::map<Node, std::unordered_set<Node> > d_subterms;
 };
 
 }  // namespace quantifiers

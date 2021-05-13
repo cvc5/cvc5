@@ -40,7 +40,7 @@ class SplitZeroCheck
   void check();
 
  private:
-  using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
+  using NodeSet = context::CDHashSet<Node>;
 
   /** Basic data that is shared with other checks */
   ExtState* d_data;

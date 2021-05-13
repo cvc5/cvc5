@@ -16,7 +16,7 @@
 #include "parser/antlr_input.h"
 
 #include <antlr3.h>
-#include <limits.h>
+#include <limits>
 
 #include "base/check.h"
 #include "base/output.h"

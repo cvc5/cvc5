@@ -1047,7 +1047,10 @@ struct Count {
   {}
 };
 
-inline static void insert(std::unordered_map<TNode, Count, TNodeHashFunction>& map, TNode node, bool neg) {
+inline static void insert(std::unordered_map<TNode, Count>& map,
+                          TNode node,
+                          bool neg)
+{
   if(map.find(node) == map.end()) {
     Count c = neg? Count(0,1) : Count(1, 0);
     map[node] = c; 
@@ -1073,7 +1076,7 @@ inline Node RewriteRule<AndSimplify>::apply(TNode node)
 
   NodeManager *nm = NodeManager::currentNM();
   // this will remove duplicates
-  std::unordered_map<TNode, Count, TNodeHashFunction> subterms;
+  std::unordered_map<TNode, Count> subterms;
   unsigned size = utils::getSize(node);
   BitVector constant = BitVector::mkOnes(size);
   for (unsigned i = 0; i < node.getNumChildren(); ++i)
@@ -1110,8 +1113,7 @@ inline Node RewriteRule<AndSimplify>::apply(TNode node)
     children.push_back(utils::mkConst(constant)); 
   }
 
-  std::unordered_map<TNode, Count, TNodeHashFunction>::const_iterator it =
-      subterms.begin();
+  std::unordered_map<TNode, Count>::const_iterator it = subterms.begin();
 
   for (; it != subterms.end(); ++it)
   {
@@ -1163,7 +1165,7 @@ Node RewriteRule<FlattenAssocCommutNoDuplicates>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<FlattenAssocCommut>(" << node << ")" << std::endl;
   std::vector<Node> processingStack;
   processingStack.push_back(node);
-  std::unordered_set<TNode, TNodeHashFunction> processed;
+  std::unordered_set<TNode> processed;
   std::vector<Node> children;
   Kind kind = node.getKind(); 
   
@@ -1200,7 +1202,7 @@ inline Node RewriteRule<OrSimplify>::apply(TNode node)
 
   NodeManager *nm = NodeManager::currentNM();
   // this will remove duplicates
-  std::unordered_map<TNode, Count, TNodeHashFunction> subterms;
+  std::unordered_map<TNode, Count> subterms;
   unsigned size = utils::getSize(node);
   BitVector constant(size, (unsigned)0);
 
@@ -1238,8 +1240,7 @@ inline Node RewriteRule<OrSimplify>::apply(TNode node)
     children.push_back(utils::mkConst(constant));
   }
 
-  std::unordered_map<TNode, Count, TNodeHashFunction>::const_iterator it =
-      subterms.begin();
+  std::unordered_map<TNode, Count>::const_iterator it = subterms.begin();
 
   for (; it != subterms.end(); ++it)
   {
@@ -1283,7 +1284,7 @@ inline Node RewriteRule<XorSimplify>::apply(TNode node)
                       << std::endl;
 
   NodeManager *nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Count, TNodeHashFunction> subterms;
+  std::unordered_map<TNode, Count> subterms;
   unsigned size = utils::getSize(node);
   BitVector constant;
   bool const_set = false;
@@ -1321,8 +1322,7 @@ inline Node RewriteRule<XorSimplify>::apply(TNode node)
 
   std::vector<Node> children;
 
-  std::unordered_map<TNode, Count, TNodeHashFunction>::const_iterator it =
-      subterms.begin();
+  std::unordered_map<TNode, Count>::const_iterator it = subterms.begin();
   unsigned true_count = 0;
   bool seen_false = false;
   for (; it != subterms.end(); ++it)
