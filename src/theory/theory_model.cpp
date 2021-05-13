@@ -184,7 +184,7 @@ Cardinality TheoryModel::getCardinality(TypeNode tn) const
 
 Node TheoryModel::getModelValue(TNode n) const
 {
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_modelCache.find(n);
+  std::unordered_map<Node, Node>::iterator it = d_modelCache.find(n);
   if (it != d_modelCache.end()) {
     return (*it).second;
   }

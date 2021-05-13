@@ -1018,11 +1018,10 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
   return rewriteNode(res);
 }
 
-Node TermDbSygus::evaluateWithUnfolding(
-    Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited)
+Node TermDbSygus::evaluateWithUnfolding(Node n,
+                                        std::unordered_map<Node, Node>& visited)
 {
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
-      visited.find(n);
+  std::unordered_map<Node, Node>::iterator it = visited.find(n);
   if( it==visited.end() ){
     Node ret = n;
     while (ret.getKind() == DT_SYGUS_EVAL
@@ -1068,7 +1067,7 @@ Node TermDbSygus::evaluateWithUnfolding(
 
 Node TermDbSygus::evaluateWithUnfolding(Node n)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> visited;
+  std::unordered_map<Node, Node> visited;
   return evaluateWithUnfolding(n, visited);
 }
 

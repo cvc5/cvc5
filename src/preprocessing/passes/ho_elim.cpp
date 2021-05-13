@@ -39,7 +39,7 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  std::unordered_map<Node, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<Node, Node>::iterator it;
   std::vector<Node> visit;
   TNode cur;
   visit.push_back(n);
@@ -57,7 +57,7 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
         // must also get free variables in lambda
         std::vector<Node> lvars;
         std::vector<TypeNode> ftypes;
-        std::unordered_set<Node, NodeHashFunction> fvs;
+        std::unordered_set<Node> fvs;
         expr::getFreeVariables(cur, fvs);
         std::vector<Node> nvars;
         std::vector<Node> vars;
@@ -155,7 +155,7 @@ Node HoElim::eliminateHo(Node n)
   Trace("ho-elim-assert") << "Ho-elim assertion: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
+  std::unordered_map<Node, Node>::iterator it;
   std::map<Node, Node> preReplace;
   std::map<Node, Node>::iterator itr;
   std::vector<TNode> visit;
@@ -258,7 +258,7 @@ Node HoElim::eliminateHo(Node n)
               << std::endl;
           if (typeChanged)
           {
-            std::unordered_map<TNode, Node, TNodeHashFunction>::iterator ito =
+            std::unordered_map<TNode, Node>::iterator ito =
                 d_visited_op.find(op);
             if (ito == d_visited_op.end())
             {

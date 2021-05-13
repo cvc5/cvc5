@@ -80,8 +80,8 @@ class EqualityEngine;
  */
 class ProofEqEngine : public EagerProofGenerator
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
+  typedef context::CDHashSet<Node, std::hash<Node>> NodeSet;
+  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, std::hash<Node>>
       NodeProofMap;
 
  public:

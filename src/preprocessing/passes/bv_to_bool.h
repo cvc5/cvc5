@@ -26,7 +26,7 @@ namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-typedef std::unordered_map<Node, Node, NodeHashFunction> NodeNodeMap;
+typedef std::unordered_map<Node, Node> NodeNodeMap;
 
 class BVToBool : public PreprocessingPass
 {

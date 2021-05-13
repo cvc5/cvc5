@@ -98,7 +98,7 @@ class NodeDfsIterator
   // Absent if we haven't visited it.
   // Set to `false` if we've already pre-visited it (enqueued its children).
   // Set to `true` if we've also already post-visited it.
-  std::unordered_map<TNode, bool, TNodeHashFunction> d_visited;
+  std::unordered_map<TNode, bool> d_visited;
 
   // The visit order that this iterator is using
   VisitOrder d_order;

@@ -43,7 +43,7 @@ namespace datatypes {
 class InferProofCons : public ProofGenerator
 {
   typedef context::
-      CDHashMap<Node, std::shared_ptr<DatatypesInference>, NodeHashFunction>
+      CDHashMap<Node, std::shared_ptr<DatatypesInference>, std::hash<Node>>
           NodeDatatypesInferenceMap;
 
  public:

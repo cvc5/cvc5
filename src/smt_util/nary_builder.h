@@ -49,7 +49,7 @@ private:
   Node case_assoccomm(TNode n);
   Node case_other(TNode n);
 
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node> NodeMap;
   NodeMap d_cache;
 };/* class RePairAssocCommutativeOperators */
 

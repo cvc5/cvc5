@@ -197,8 +197,7 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args);
  * We have that { a, b, c, e } are added to syms. Notice that expr::getSymbols
  * excludes variables whose kind is BOUND_VARIABLE.
  */
-void getFreeSymbolsSygusType(TypeNode sdt,
-                             std::unordered_set<Node, NodeHashFunction>& syms);
+void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms);
 
 /** Substitute and generalize a sygus datatype type
  *

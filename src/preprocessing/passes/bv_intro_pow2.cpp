@@ -30,7 +30,7 @@ namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
+using NodeMap = std::unordered_map<Node, Node>;
 using namespace cvc5::theory;
 
 namespace {
@@ -87,7 +87,7 @@ BvIntroPow2::BvIntroPow2(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult BvIntroPow2::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  std::unordered_map<Node, Node> cache;
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Node cur = (*assertionsToPreprocess)[i];

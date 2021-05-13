@@ -102,7 +102,7 @@ class TConvSeqProofGenerator : public ProofGenerator
 
  protected:
   using NodeIndexPairHashFunction =
-      PairHashFunction<Node, size_t, NodeHashFunction>;
+      PairHashFunction<Node, size_t, std::hash<Node>>;
   typedef context::
       CDHashMap<std::pair<Node, size_t>, Node, NodeIndexPairHashFunction>
           NodeIndexNodeMap;

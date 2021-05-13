@@ -107,14 +107,14 @@ class Cegis : public SygusModule
   /** refinement lemmas */
   std::vector<Node> d_refinement_lemmas;
   /** (processed) conjunctions of refinement lemmas that are not unit */
-  std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_conj;
+  std::unordered_set<Node> d_refinement_lemma_conj;
   /** (processed) conjunctions of refinement lemmas that are unit */
-  std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_unit;
+  std::unordered_set<Node> d_refinement_lemma_unit;
   /** substitution entailed by d_refinement_lemma_unit */
   std::vector<Node> d_rl_eval_hds;
   std::vector<Node> d_rl_vals;
   /** all variables appearing in refinement lemmas */
-  std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_vars;
+  std::unordered_set<Node> d_refinement_lemma_vars;
 
   /** adds lem as a refinement lemma */
   void addRefinementLemma(Node lem);

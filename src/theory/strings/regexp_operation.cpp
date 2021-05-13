@@ -63,7 +63,7 @@ bool RegExpOpr::checkConstRegExp( Node r ) {
 RegExpConstType RegExpOpr::getRegExpConstType(Node r)
 {
   Assert(r.getType().isRegExp());
-  std::unordered_map<Node, RegExpConstType, NodeHashFunction>::iterator it;
+  std::unordered_map<Node, RegExpConstType>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(r);
@@ -1345,8 +1345,8 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
 Node RegExpOpr::removeIntersection(Node r) {
   Assert(checkConstRegExp(r));
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(r);

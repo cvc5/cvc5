@@ -45,21 +45,22 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   enum SearchResult {FOUND_SPLITTER, NO_SPLITTER, DONT_KNOW};
 
   typedef std::vector<std::pair<Node, Node> > SkolemList;
-  typedef context::CDHashMap<Node, SkolemList, NodeHashFunction> SkolemCache;
+  typedef context::CDHashMap<Node, SkolemList, std::hash<Node>> SkolemCache;
   typedef std::vector<Node> ChildList;
   typedef context::
-      CDHashMap<Node, std::pair<ChildList, ChildList>, NodeHashFunction>
+      CDHashMap<Node, std::pair<ChildList, ChildList>, std::hash<Node>>
           ChildCache;
-  typedef context::CDHashMap<Node,Node,NodeHashFunction> SkolemMap;
+  typedef context::CDHashMap<Node, Node, std::hash<Node>> SkolemMap;
   typedef context::CDHashMap<Node,
                              std::pair<DecisionWeight, DecisionWeight>,
-                             NodeHashFunction>
+                             std::hash<Node>>
       WeightCache;
 
   // being 'justified' is monotonic with respect to decisions
-  typedef context::CDHashSet<Node,NodeHashFunction> JustifiedSet;
+  typedef context::CDHashSet<Node, std::hash<Node>> JustifiedSet;
   JustifiedSet d_justified;
-  typedef context::CDHashMap<Node,DecisionWeight,NodeHashFunction> ExploredThreshold;
+  typedef context::CDHashMap<Node, DecisionWeight, std::hash<Node>>
+      ExploredThreshold;
   ExploredThreshold d_exploredThreshold;
   context::CDO<unsigned>  d_prvsIndex;
   context::CDO<unsigned>  d_threshPrvsIndex;
@@ -86,13 +87,13 @@ class JustificationHeuristic : public ITEDecisionStrategy {
    * splitter. Can happen when exploring assertion corresponding to a
    * term-ITE.
    */
-  std::unordered_set<Node,NodeHashFunction> d_visited;
+  std::unordered_set<Node> d_visited;
 
   /**
    * Set to track visited nodes in a dfs search done in computeSkolems
    * function
    */
-  std::unordered_set<Node, NodeHashFunction> d_visitedComputeSkolems;
+  std::unordered_set<Node> d_visitedComputeSkolems;
 
   /** current decision for the recursive call */
   prop::SatLiteral d_curDecision;
@@ -172,7 +173,7 @@ private:
   * For big and/or nodes, a cache to save starting index into children
   * for efficiently.
   */
- typedef context::CDHashMap<Node, int, NodeHashFunction> StartIndexCache;
+ typedef context::CDHashMap<Node, int, std::hash<Node>> StartIndexCache;
  StartIndexCache d_startIndexCache;
  int getStartIndex(TNode node);
  void saveStartIndex(TNode node, int val);

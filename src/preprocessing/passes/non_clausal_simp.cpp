@@ -294,7 +294,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << "Resize non-clausal learned literals to " << j << std::endl;
   learned_literals.resize(j);
 
-  std::unordered_set<TNode, TNodeHashFunction> s;
+  std::unordered_set<TNode> s;
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Node assertion = (*assertionsToPreprocess)[i];

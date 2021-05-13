@@ -103,7 +103,7 @@ bool hasClosure(Node n);
  * @return true iff this node contains a free variable.
  */
 bool getFreeVariables(TNode n,
-                      std::unordered_set<Node, NodeHashFunction>& fvs,
+                      std::unordered_set<Node>& fvs,
                       bool computeFv = true);
 /**
  * Get the free variables in n, that is, the subterms of n of kind
@@ -116,8 +116,8 @@ bool getFreeVariables(TNode n,
  * @return true iff this node contains a free variable.
  */
 bool getFreeVariablesScope(TNode n,
-                           std::unordered_set<Node, NodeHashFunction>& fvs,
-                           std::unordered_set<TNode, TNodeHashFunction>& scope,
+                           std::unordered_set<Node>& fvs,
+                           std::unordered_set<TNode>& scope,
                            bool computeFv = true);
 
 /**
@@ -126,7 +126,7 @@ bool getFreeVariablesScope(TNode n,
  * @param vs The set which free variables are added to
  * @return true iff this node contains a free variable.
  */
-bool getVariables(TNode n, std::unordered_set<TNode, TNodeHashFunction>& vs);
+bool getVariables(TNode n, std::unordered_set<TNode>& vs);
 
 /**
  * For term n, this function collects the symbols that occur as a subterms
@@ -134,7 +134,7 @@ bool getVariables(TNode n, std::unordered_set<TNode, TNodeHashFunction>& vs);
  * @param n The node under investigation
  * @param syms The set which the symbols of n are added to
  */
-void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms);
+void getSymbols(TNode n, std::unordered_set<Node>& syms);
 
 /**
  * For term n, this function collects the symbols that occur as a subterms
@@ -144,8 +144,8 @@ void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms);
  * @param visited A cache to be used for visited nodes.
  */
 void getSymbols(TNode n,
-                std::unordered_set<Node, NodeHashFunction>& syms,
-                std::unordered_set<TNode, TNodeHashFunction>& visited);
+                std::unordered_set<Node>& syms,
+                std::unordered_set<TNode>& visited);
 
 /**
  * For term n, this function collects the subterms of n whose kind is k.
@@ -157,7 +157,7 @@ void getSymbols(TNode n,
 void getKindSubterms(TNode n,
                      Kind k,
                      bool topLevel,
-                     std::unordered_set<Node, NodeHashFunction>& ts);
+                     std::unordered_set<Node>& ts);
 
 /**
  * For term n, this function collects the operators that occur in n.
@@ -165,9 +165,8 @@ void getKindSubterms(TNode n,
  * @param ops The map (from each type to operators of that type) which the
  * operators of n are added to
  */
-void getOperatorsMap(
-    TNode n,
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops);
+void getOperatorsMap(TNode n,
+                     std::map<TypeNode, std::unordered_set<Node>>& ops);
 
 /**
  * For term n, this function collects the operators that occur in n.
@@ -176,10 +175,9 @@ void getOperatorsMap(
  * operators of n are added to
  * @param visited A cache to be used for visited nodes.
  */
-void getOperatorsMap(
-    TNode n,
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops,
-    std::unordered_set<TNode, TNodeHashFunction>& visited);
+void getOperatorsMap(TNode n,
+                     std::map<TypeNode, std::unordered_set<Node>>& ops,
+                     std::unordered_set<TNode>& visited);
 
 /*
  * Substitution of Nodes in a capture avoiding way.
@@ -208,8 +206,7 @@ Node substituteCaptureAvoiding(TNode n,
  * @param t The type node under investigation
  * @param types The set which component types are added to.
  */
-void getComponentTypes(
-    TypeNode t, std::unordered_set<TypeNode, TypeNodeHashFunction>& types);
+void getComponentTypes(TypeNode t, std::unordered_set<TypeNode>& types);
 
 /** match
  *
@@ -230,9 +227,7 @@ void getComponentTypes(
  * @param subs the mapping from free vars in `n1` to terms in `n2`
  * @return whether or not `n2` is an instance of `n1`
  */
-bool match(Node n1,
-           Node n2,
-           std::unordered_map<Node, Node, NodeHashFunction>& subs);
+bool match(Node n1, Node n2, std::unordered_map<Node, Node>& subs);
 
 }  // namespace expr
 }  // namespace cvc5

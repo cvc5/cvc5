@@ -166,7 +166,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   // get crowding lits and the position of the last clause that includes
   // them. The factoring step must be added after the last inclusion and before
   // its elimination.
-  std::unordered_set<TNode, TNodeHashFunction> crowding;
+  std::unordered_set<TNode> crowding;
   std::vector<std::pair<Node, size_t>> lastInclusion;
   // positions of eliminators of crowding literals, which are the positions of
   // the clauses that eliminate crowding literals *after* their last inclusion
@@ -752,7 +752,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       // We build it rather than taking conclusionLits because the order may be
       // different
       std::vector<Node> factoredLits;
-      std::unordered_set<TNode, TNodeHashFunction> clauseSet;
+      std::unordered_set<TNode> clauseSet;
       for (size_t i = 0, size = chainConclusionLits.size(); i < size; ++i)
       {
         if (clauseSet.count(chainConclusionLits[i]))

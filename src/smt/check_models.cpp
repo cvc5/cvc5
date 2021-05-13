@@ -53,7 +53,7 @@ void CheckModels::checkModel(Model* m,
 
   theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
   Trace("check-model") << "checkModel: Check assertions..." << std::endl;
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  std::unordered_map<Node, Node> cache;
   // the list of assertions that did not rewrite to true
   std::vector<Node> noCheckList;
   // Now go through all our user assertions checking if they're satisfied.

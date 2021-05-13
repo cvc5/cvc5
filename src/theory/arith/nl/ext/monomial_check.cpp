@@ -238,7 +238,7 @@ void MonomialCheck::checkMagnitude(unsigned c)
   Trace("nl-ext-comp") << "Compute redundancies for " << lemmas.size()
                        << " lemmas." << std::endl;
   // naive
-  std::unordered_set<Node, NodeHashFunction> r_lemmas;
+  std::unordered_set<Node> r_lemmas;
   for (std::map<int, std::map<Node, std::map<Node, Node> > >::iterator itb =
            cmp_infers.begin();
        itb != cmp_infers.end();

@@ -55,8 +55,7 @@ bool NestedQe::hasProcessed(Node q) const
   return d_qnqe.find(q) != d_qnqe.end();
 }
 
-bool NestedQe::getNestedQuantification(
-    Node q, std::unordered_set<Node, NodeHashFunction>& nqs)
+bool NestedQe::getNestedQuantification(Node q, std::unordered_set<Node>& nqs)
 {
   expr::getKindSubterms(q[1], kind::FORALL, true, nqs);
   return !nqs.empty();
@@ -64,7 +63,7 @@ bool NestedQe::getNestedQuantification(
 
 bool NestedQe::hasNestedQuantification(Node q)
 {
-  std::unordered_set<Node, NodeHashFunction> nqs;
+  std::unordered_set<Node> nqs;
   return getNestedQuantification(q, nqs);
 }
 
@@ -79,7 +78,7 @@ Node NestedQe::doNestedQe(Node q, bool keepTopLevel)
     inputExists = true;
   }
   Assert(q.getKind() == kind::FORALL);
-  std::unordered_set<Node, NodeHashFunction> nqs;
+  std::unordered_set<Node> nqs;
   if (!getNestedQuantification(q, nqs))
   {
     Trace("cegqi-nested-qe-debug")

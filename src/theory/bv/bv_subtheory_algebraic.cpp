@@ -47,7 +47,7 @@ namespace {
 void collectVariables(TNode node, utils::NodeSet& vars)
 {
   std::vector<TNode> stack;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
 
   stack.push_back(node);
   while (!stack.empty())

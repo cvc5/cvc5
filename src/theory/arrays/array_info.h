@@ -86,8 +86,7 @@ public:
   }
 };/* class Info */
 
-
-typedef std::unordered_map<Node, Info*, NodeHashFunction> CNodeInfoMap;
+typedef std::unordered_map<Node, Info*> CNodeInfoMap;
 
 /**
  * Class keeping track of the following information for canonical

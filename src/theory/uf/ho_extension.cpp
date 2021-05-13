@@ -128,7 +128,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
     NodeNodeMap::const_iterator itus = d_uf_std_skolem.find(f);
     if (itus == d_uf_std_skolem.end())
     {
-      std::unordered_set<Node, NodeHashFunction> fvs;
+      std::unordered_set<Node> fvs;
       expr::getFreeVariables(f, fvs);
       Node lem;
       if (!fvs.empty())

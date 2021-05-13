@@ -93,8 +93,8 @@ class TheoryFp : public Theory
 
  protected:
   using ConversionAbstractionMap =
-      context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>;
-  using AbstractionMap = context::CDHashMap<Node, Node, NodeHashFunction>;
+      context::CDHashMap<TypeNode, Node, std::hash<TypeNode>>;
+  using AbstractionMap = context::CDHashMap<Node, Node, std::hash<Node>>;
 
   /** Equality engine. */
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -121,7 +121,7 @@ class TheoryFp : public Theory
   void registerTerm(TNode node);
   bool isRegistered(TNode node);
 
-  context::CDHashSet<Node, NodeHashFunction> d_registeredTerms;
+  context::CDHashSet<Node, std::hash<Node>> d_registeredTerms;
 
   /** The word-blaster. Translates FP -> BV. */
   std::unique_ptr<FpConverter> d_conv;

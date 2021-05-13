@@ -47,15 +47,6 @@ namespace expr {
  */
 class TypeNode {
 
-public:
-
-  // for hash_maps, hash_sets..
-  struct HashFunction {
-    size_t operator()(TypeNode node) const {
-      return (size_t) node.getId();
-    }
-  };/* struct HashFunction */
-
 private:
 
   /**
@@ -92,20 +83,22 @@ private:
    * Cache-aware, recursive version of substitute() used by the public
    * member function with a similar signature.
    */
-  TypeNode substitute(const TypeNode& type, const TypeNode& replacement,
-                      std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const;
+  TypeNode substitute(const TypeNode& type,
+                      const TypeNode& replacement,
+                      std::unordered_map<TypeNode, TypeNode>& cache) const;
 
   /**
    * Cache-aware, recursive version of substitute() used by the public
    * member function with a similar signature.
    */
   template <class Iterator1, class Iterator2>
-  TypeNode substitute(Iterator1 typesBegin, Iterator1 typesEnd,
-                      Iterator2 replacementsBegin, Iterator2 replacementsEnd,
-                      std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const;
+  TypeNode substitute(Iterator1 typesBegin,
+                      Iterator1 typesEnd,
+                      Iterator2 replacementsBegin,
+                      Iterator2 replacementsEnd,
+                      std::unordered_map<TypeNode, TypeNode>& cache) const;
 
-public:
-
+ public:
   /** Default constructor, makes a null expression. */
   TypeNode() : d_nv(&expr::NodeValue::null()) { }
 
@@ -735,9 +728,17 @@ inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
   return out;
 }
 
-typedef TypeNode::HashFunction TypeNodeHashFunction;
-
 }  // namespace cvc5
+
+namespace std {
+
+template <>
+struct hash<cvc5::TypeNode>
+{
+  size_t operator()(const cvc5::TypeNode& tn) const;
+};
+
+}  // namespace std
 
 #include "expr/node_manager.h"
 
@@ -746,7 +747,7 @@ namespace cvc5 {
 inline TypeNode
 TypeNode::substitute(const TypeNode& type,
                      const TypeNode& replacement) const {
-  std::unordered_map<TypeNode, TypeNode, HashFunction> cache;
+  std::unordered_map<TypeNode, TypeNode> cache;
   return substitute(type, replacement, cache);
 }
 
@@ -756,19 +757,21 @@ TypeNode::substitute(Iterator1 typesBegin,
                      Iterator1 typesEnd,
                      Iterator2 replacementsBegin,
                      Iterator2 replacementsEnd) const {
-  std::unordered_map<TypeNode, TypeNode, HashFunction> cache;
+  std::unordered_map<TypeNode, TypeNode> cache;
   return substitute(typesBegin, typesEnd,
                     replacementsBegin, replacementsEnd, cache);
 }
 
 template <class Iterator1, class Iterator2>
-TypeNode TypeNode::substitute(Iterator1 typesBegin,
-                              Iterator1 typesEnd,
-                              Iterator2 replacementsBegin,
-                              Iterator2 replacementsEnd,
-                              std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const {
+TypeNode TypeNode::substitute(
+    Iterator1 typesBegin,
+    Iterator1 typesEnd,
+    Iterator2 replacementsBegin,
+    Iterator2 replacementsEnd,
+    std::unordered_map<TypeNode, TypeNode>& cache) const
+{
   // in cache?
-  std::unordered_map<TypeNode, TypeNode, HashFunction>::const_iterator i = cache.find(*this);
+  std::unordered_map<TypeNode, TypeNode>::const_iterator i = cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }

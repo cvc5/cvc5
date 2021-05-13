@@ -111,12 +111,10 @@ public:
      TypeNode range,
      Node bvl,
      const std::string& fun,
-     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& extra_cons,
-     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
-         exclude_cons,
-     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
-         include_cons,
-     std::unordered_set<Node, NodeHashFunction>& term_irrelevant);
+     std::map<TypeNode, std::unordered_set<Node>>& extra_cons,
+     std::map<TypeNode, std::unordered_set<Node>>& exclude_cons,
+     std::map<TypeNode, std::unordered_set<Node>>& include_cons,
+     std::unordered_set<Node>& term_irrelevant);
 
  /**
   * Make the default sygus datatype type corresponding to builtin type range.
@@ -125,10 +123,10 @@ public:
                                     Node bvl,
                                     const std::string& fun)
  {
-   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> extra_cons;
-   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> exclude_cons;
-   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> include_cons;
-   std::unordered_set<Node, NodeHashFunction> term_irrelevant;
+   std::map<TypeNode, std::unordered_set<Node>> extra_cons;
+   std::map<TypeNode, std::unordered_set<Node>> exclude_cons;
+   std::map<TypeNode, std::unordered_set<Node>> include_cons;
+   std::unordered_set<Node> term_irrelevant;
    return mkSygusDefaultType(range,
                              bvl,
                              fun,
@@ -183,9 +181,8 @@ public:
   /** is the syntax restricted? */
   bool d_is_syntax_restricted;
   /** collect terms */
-  void collectTerms(
-      Node n,
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& consts);
+  void collectTerms(Node n,
+                    std::map<TypeNode, std::unordered_set<Node>>& consts);
   //---------------- grammar construction
   /** A class for generating sygus datatypes */
   class SygusDatatypeGenerator
@@ -211,12 +208,12 @@ public:
     /** Should we include constructor with operator op? */
     bool shouldInclude(Node op) const;
     /** The constructors that should be excluded. */
-    std::unordered_set<Node, NodeHashFunction> d_exclude_cons;
+    std::unordered_set<Node> d_exclude_cons;
     /**
      * If this set is non-empty, then only include variables and constructors
      * from it.
      */
-    std::unordered_set<Node, NodeHashFunction> d_include_cons;
+    std::unordered_set<Node> d_include_cons;
     /** The sygus datatype we are generating. */
     SygusDatatype d_sdt;
   };
@@ -236,13 +233,10 @@ public:
       TypeNode range,
       Node bvl,
       const std::string& fun,
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
-          extra_cons,
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
-          exclude_cons,
-      const std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
-          include_cons,
-      std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
+      std::map<TypeNode, std::unordered_set<Node>>& extra_cons,
+      std::map<TypeNode, std::unordered_set<Node>>& exclude_cons,
+      const std::map<TypeNode, std::unordered_set<Node>>& include_cons,
+      std::unordered_set<Node>& term_irrelevant,
       std::vector<SygusDatatypeGenerator>& sdts,
       std::set<TypeNode>& unres);
 

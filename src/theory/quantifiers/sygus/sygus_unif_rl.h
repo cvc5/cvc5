@@ -30,10 +30,10 @@ namespace quantifiers {
 
 using BoolNodePair = std::pair<bool, Node>;
 using BoolNodePairHashFunction =
-    PairHashFunction<bool, Node, BoolHashFunction, NodeHashFunction>;
+    PairHashFunction<bool, Node, BoolHashFunction, std::hash<Node>>;
 using BoolNodePairMap =
     std::unordered_map<BoolNodePair, Node, BoolNodePairHashFunction>;
-using NodePairMap = std::unordered_map<Node, Node, NodeHashFunction>;
+using NodePairMap = std::unordered_map<Node, Node>;
 using NodePair = std::pair<Node, Node>;
 
 class SynthConjecture;
@@ -120,7 +120,7 @@ class SygusUnifRl : public SygusUnif
   /** Whether we are additionally using information gain heuristics */
   bool d_useCondPoolIGain;
   /* Functions-to-synthesize (a.k.a. candidates) with unification strategies */
-  std::unordered_set<Node, NodeHashFunction> d_unif_candidates;
+  std::unordered_set<Node> d_unif_candidates;
   /** construct sol */
   Node constructSol(Node f,
                     Node e,
@@ -248,7 +248,7 @@ class SygusUnifRl : public SygusUnif
     /** gathered evaluation point heads */
     std::vector<Node> d_hds;
     /** all enumerated model values for conditions */
-    std::unordered_set<Node, NodeHashFunction> d_cond_mvs;
+    std::unordered_set<Node> d_cond_mvs;
     /** get condition enumerator */
     Node getConditionEnumerator() const { return d_cond_enum; }
     /** set conditions */
@@ -262,7 +262,7 @@ class SygusUnifRl : public SygusUnif
     Node d_false;
     /** Accumulates solutions built when considering all enumerated condition
      * values (which may generate repeated solutions) */
-    std::unordered_set<Node, NodeHashFunction> d_sols;
+    std::unordered_set<Node> d_sols;
     /**
      * Conditional enumerator variables corresponding to the condition values in
      * d_conds. These are used for generating separation lemmas during

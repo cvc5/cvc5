@@ -87,7 +87,7 @@ namespace cvc5 {
 class LetBinding
 {
   using NodeList = context::CDList<Node>;
-  using NodeIdMap = context::CDHashMap<Node, uint32_t, NodeHashFunction>;
+  using NodeIdMap = context::CDHashMap<Node, uint32_t, std::hash<Node>>;
 
  public:
   LetBinding(uint32_t thresh = 2);

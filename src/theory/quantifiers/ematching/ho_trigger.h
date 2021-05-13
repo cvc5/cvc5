@@ -145,7 +145,7 @@ class HigherOrderTrigger : public Trigger
   std::map<TNode, std::vector<Node> > d_ho_var_bvs;
   std::map<TNode, Node> d_ho_var_bvl;
   /** the set of types of ho variables */
-  std::unordered_set<TypeNode, TypeNodeHashFunction> d_ho_var_types;
+  std::unordered_set<TypeNode> d_ho_var_types;
   /** add higher-order type predicate lemmas
    *
    * Adds lemmas of the form P( f ), where P is the predicate

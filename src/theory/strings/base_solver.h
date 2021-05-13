@@ -39,7 +39,7 @@ namespace strings {
  */
 class BaseSolver
 {
-  using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
+  using NodeSet = context::CDHashSet<Node, std::hash<Node>>;
 
  public:
   BaseSolver(SolverState& s, InferenceManager& im);

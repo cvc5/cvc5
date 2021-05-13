@@ -37,7 +37,6 @@ template <bool ref_count> class NodeTemplate;
 typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
 class TypeNode;
-struct NodeHashFunction;
 
 class Env;
 class NodeManager;

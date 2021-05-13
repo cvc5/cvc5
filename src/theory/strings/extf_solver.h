@@ -81,7 +81,7 @@ class ExtfInfoTmp
  */
 class ExtfSolver
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<Node, std::hash<Node>> NodeSet;
 
  public:
   ExtfSolver(SolverState& s,

@@ -116,8 +116,8 @@ NlExtPurify::NlExtPurify(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult NlExtPurify::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  unordered_map<Node, Node, NodeHashFunction> cache;
-  unordered_map<Node, Node, NodeHashFunction> bcache;
+  unordered_map<Node, Node> cache;
+  unordered_map<Node, Node> bcache;
   std::vector<Node> var_eq;
   unsigned size = assertionsToPreprocess->size();
   for (unsigned i = 0; i < size; ++i)

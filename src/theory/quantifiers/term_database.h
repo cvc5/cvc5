@@ -65,13 +65,13 @@ class DbList
  * lazily for performance reasons.
  */
 class TermDb : public QuantifiersUtil {
-  using NodeBoolMap = context::CDHashMap<Node, bool, NodeHashFunction>;
+  using NodeBoolMap = context::CDHashMap<Node, bool, std::hash<Node>>;
   using NodeList = context::CDList<Node>;
-  using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
+  using NodeSet = context::CDHashSet<Node, std::hash<Node>>;
   using TypeNodeDbListMap = context::
-      CDHashMap<TypeNode, std::shared_ptr<DbList>, TypeNodeHashFunction>;
+      CDHashMap<TypeNode, std::shared_ptr<DbList>, std::hash<TypeNode>>;
   using NodeDbListMap =
-      context::CDHashMap<Node, std::shared_ptr<DbList>, NodeHashFunction>;
+      context::CDHashMap<Node, std::shared_ptr<DbList>, std::hash<Node>>;
 
  public:
   TermDb(QuantifiersState& qs,
@@ -316,7 +316,7 @@ class TermDb : public QuantifiersUtil {
   Node d_true;
   Node d_false;
   /** map from type nodes to a fresh variable we introduced */
-  std::unordered_map<TypeNode, Node, TypeNodeHashFunction> d_type_fv;
+  std::unordered_map<TypeNode, Node> d_type_fv;
   /** inactive map */
   NodeBoolMap d_inactive_map;
   /** count of the number of non-redundant ground terms per operator */

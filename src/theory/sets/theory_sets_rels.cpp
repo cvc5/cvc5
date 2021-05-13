@@ -28,9 +28,10 @@ namespace sets {
 
 typedef std::map< Node, std::vector< Node > >::iterator                                         MEM_IT;
 typedef std::map< kind::Kind_t, std::vector< Node > >::iterator                                 KIND_TERM_IT;
-typedef std::map< Node, std::unordered_set< Node, NodeHashFunction > >::iterator                     TC_GRAPH_IT;
+typedef std::map<Node, std::unordered_set<Node> >::iterator TC_GRAPH_IT;
 typedef std::map< Node, std::map< kind::Kind_t, std::vector< Node > > >::iterator               TERM_IT;
-typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFunction > > >::iterator   TC_IT;
+typedef std::map<Node, std::map<Node, std::unordered_set<Node> > >::iterator
+    TC_IT;
 
 TheorySetsRels::TheorySetsRels(SolverState& s,
                                InferenceManager& im,
@@ -281,7 +282,7 @@ void TheorySetsRels::check(Theory::Effort level)
     NodeManager* nm = NodeManager::currentNM();
 
     Node join_image_rel = join_image_term[0];
-    std::unordered_set< Node, NodeHashFunction > hasChecked;
+    std::unordered_set<Node> hasChecked;
     Node join_image_rel_rep = getRepresentative( join_image_rel );
     std::vector< Node >::iterator mem_rep_it = (*rel_mem_it).second.begin();
     MEM_IT rel_mem_exp_it = d_rReps_memberReps_exp_cache.find( join_image_rel_rep );
@@ -544,14 +545,14 @@ void TheorySetsRels::check(Theory::Effort level)
       if( tc_graph_it != (tc_it->second).end() ) {
         (tc_graph_it->second).insert( mem_rep_snd );
       } else {
-        std::unordered_set< Node, NodeHashFunction > sets;
+        std::unordered_set<Node> sets;
         sets.insert( mem_rep_snd );
         (tc_it->second)[mem_rep_fst] = sets;
       }
     } else {
       std::map< Node, Node > exp_map;
-      std::unordered_set< Node, NodeHashFunction > sets;
-      std::map< Node, std::unordered_set<Node, NodeHashFunction> > element_map;
+      std::unordered_set<Node> sets;
+      std::map<Node, std::unordered_set<Node> > element_map;
       sets.insert( mem_rep_snd );
       element_map[mem_rep_fst] = sets;
       d_tcr_tcGraph[tc_rel] = element_map;
@@ -609,7 +610,7 @@ void TheorySetsRels::check(Theory::Effort level)
     TC_IT tc_it = d_rRep_tcGraph.find( getRepresentative(tc_rel[0]) );
     if( tc_it != d_rRep_tcGraph.end() ) {
       bool isReachable = false;
-      std::unordered_set<Node, NodeHashFunction> seen;
+      std::unordered_set<Node> seen;
       isTCReachable( getRepresentative( RelsUtils::nthElementOfTuple(mem_rep, 0) ),
                      getRepresentative( RelsUtils::nthElementOfTuple(mem_rep, 1) ), seen, tc_it->second, isReachable );
       return isReachable;
@@ -617,8 +618,13 @@ void TheorySetsRels::check(Theory::Effort level)
     return false;
   }
 
-  void TheorySetsRels::isTCReachable( Node start, Node dest, std::unordered_set<Node, NodeHashFunction>& hasSeen,
-                                    std::map< Node, std::unordered_set< Node, NodeHashFunction > >& tc_graph, bool& isReachable ) {
+  void TheorySetsRels::isTCReachable(
+      Node start,
+      Node dest,
+      std::unordered_set<Node>& hasSeen,
+      std::map<Node, std::unordered_set<Node> >& tc_graph,
+      bool& isReachable)
+  {
     if(hasSeen.find(start) == hasSeen.end()) {
       hasSeen.insert(start);
     }
@@ -630,7 +636,7 @@ void TheorySetsRels::check(Theory::Effort level)
         isReachable = true;
         return;
       } else {
-        std::unordered_set< Node, NodeHashFunction >::iterator set_it = pair_set_it->second.begin();
+        std::unordered_set<Node>::iterator set_it = pair_set_it->second.begin();
 
         while( set_it != pair_set_it->second.end() ) {
           // need to check if *set_it has been looked already
@@ -645,7 +651,7 @@ void TheorySetsRels::check(Theory::Effort level)
 
   void TheorySetsRels::buildTCGraphForRel( Node tc_rel ) {
     std::map< Node, Node > rel_tc_graph_exps;
-    std::map< Node, std::unordered_set<Node, NodeHashFunction> > rel_tc_graph;
+    std::map<Node, std::unordered_set<Node> > rel_tc_graph;
 
     Node rel_rep = getRepresentative( tc_rel[0] );
     Node tc_rel_rep = getRepresentative( tc_rel );
@@ -656,10 +662,11 @@ void TheorySetsRels::check(Theory::Effort level)
       Node fst_element_rep = getRepresentative( RelsUtils::nthElementOfTuple( members[i], 0 ));
       Node snd_element_rep = getRepresentative( RelsUtils::nthElementOfTuple( members[i], 1 ));
       Node tuple_rep = RelsUtils::constructPair( rel_rep, fst_element_rep, snd_element_rep );
-      std::map< Node, std::unordered_set<Node, NodeHashFunction> >::iterator rel_tc_graph_it = rel_tc_graph.find( fst_element_rep );
+      std::map<Node, std::unordered_set<Node> >::iterator rel_tc_graph_it =
+          rel_tc_graph.find(fst_element_rep);
 
       if( rel_tc_graph_it == rel_tc_graph.end() ) {
-        std::unordered_set< Node, NodeHashFunction > snd_elements;
+        std::unordered_set<Node> snd_elements;
         snd_elements.insert( snd_element_rep );
         rel_tc_graph[fst_element_rep] = snd_elements;
         rel_tc_graph_exps[tuple_rep] = exps[i];
@@ -676,19 +683,23 @@ void TheorySetsRels::check(Theory::Effort level)
     }
   }
 
-  void TheorySetsRels::doTCInference( std::map< Node, std::unordered_set<Node, NodeHashFunction> > rel_tc_graph, std::map< Node, Node > rel_tc_graph_exps, Node tc_rel ) {
+  void TheorySetsRels::doTCInference(
+      std::map<Node, std::unordered_set<Node> > rel_tc_graph,
+      std::map<Node, Node> rel_tc_graph_exps,
+      Node tc_rel)
+  {
     Trace("rels-debug") << "[Theory::Rels] ****** doTCInference !" << std::endl;
     for (TC_GRAPH_IT tc_graph_it = rel_tc_graph.begin();
          tc_graph_it != rel_tc_graph.end();
          ++tc_graph_it)
     {
-      for (std::unordered_set<Node, NodeHashFunction>::iterator
-               snd_elements_it = tc_graph_it->second.begin();
+      for (std::unordered_set<Node>::iterator snd_elements_it =
+               tc_graph_it->second.begin();
            snd_elements_it != tc_graph_it->second.end();
            ++snd_elements_it)
       {
         std::vector< Node > reasons;
-        std::unordered_set<Node, NodeHashFunction> seen;
+        std::unordered_set<Node> seen;
         Node tuple = RelsUtils::constructPair( tc_rel, getRepresentative( tc_graph_it->first ), getRepresentative( *snd_elements_it) );
         Assert(rel_tc_graph_exps.find(tuple) != rel_tc_graph_exps.end());
         Node exp   = rel_tc_graph_exps.find( tuple )->second;
@@ -701,8 +712,15 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-debug") << "[Theory::Rels] ****** Done with doTCInference !" << std::endl;
   }
 
-  void TheorySetsRels::doTCInference(Node tc_rel, std::vector< Node > reasons, std::map< Node, std::unordered_set< Node, NodeHashFunction > >& tc_graph,
-                                       std::map< Node, Node >& rel_tc_graph_exps, Node start_node_rep, Node cur_node_rep, std::unordered_set< Node, NodeHashFunction >& seen ) {
+  void TheorySetsRels::doTCInference(
+      Node tc_rel,
+      std::vector<Node> reasons,
+      std::map<Node, std::unordered_set<Node> >& tc_graph,
+      std::map<Node, Node>& rel_tc_graph_exps,
+      Node start_node_rep,
+      Node cur_node_rep,
+      std::unordered_set<Node>& seen)
+  {
     NodeManager* nm = NodeManager::currentNM();
     Node tc_mem = RelsUtils::constructPair( tc_rel, RelsUtils::nthElementOfTuple((reasons.front())[0], 0), RelsUtils::nthElementOfTuple((reasons.back())[0], 1) );
     std::vector< Node > all_reasons( reasons );
@@ -737,8 +755,7 @@ void TheorySetsRels::check(Theory::Effort level)
     seen.insert( cur_node_rep );
     TC_GRAPH_IT  cur_set = tc_graph.find( cur_node_rep );
     if( cur_set != tc_graph.end() ) {
-      for (std::unordered_set<Node, NodeHashFunction>::iterator set_it =
-               cur_set->second.begin();
+      for (std::unordered_set<Node>::iterator set_it = cur_set->second.begin();
            set_it != cur_set->second.end();
            ++set_it)
       {

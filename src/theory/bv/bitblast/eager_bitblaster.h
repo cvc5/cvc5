@@ -56,7 +56,7 @@ class EagerBitblaster : public TBitblaster<Node>
  private:
   context::Context* d_context;
 
-  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
+  typedef std::unordered_set<TNode> TNodeSet;
   std::unique_ptr<prop::SatSolver> d_satSolver;
   std::unique_ptr<BitblastingRegistrar> d_bitblastingRegistrar;
 

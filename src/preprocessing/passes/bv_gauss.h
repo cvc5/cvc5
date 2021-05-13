@@ -96,9 +96,8 @@ class BVGauss : public PreprocessingPass
                           std::vector<Integer>& rhs,
                           std::vector<std::vector<Integer>>& lhs);
 
-  static Result gaussElimRewriteForUrem(
-      const std::vector<Node>& equations,
-      std::unordered_map<Node, Node, NodeHashFunction>& res);
+  static Result gaussElimRewriteForUrem(const std::vector<Node>& equations,
+                                        std::unordered_map<Node, Node>& res);
 
   static unsigned getMinBwExpr(Node expr);
 };

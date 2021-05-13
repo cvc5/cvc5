@@ -247,8 +247,8 @@ class QuantifiersRewriter : public TheoryRewriter
    */
   static Node computePrenex(Node q,
                             Node body,
-                            std::unordered_set<Node, NodeHashFunction>& args,
-                            std::unordered_set<Node, NodeHashFunction>& nargs,
+                            std::unordered_set<Node>& args,
+                            std::unordered_set<Node>& nargs,
                             bool pol,
                             bool prenexAgg);
   /**

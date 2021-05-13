@@ -66,7 +66,7 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
     // trivial case
     return tw;
   }
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   TNode curw;
@@ -123,8 +123,7 @@ bool WitnessFormGenerator::requiresWitnessFormIntro(Node t) const
   return !tr.isConst() || !tr.getConst<bool>();
 }
 
-const std::unordered_set<Node, NodeHashFunction>&
-WitnessFormGenerator::getWitnessFormEqs() const
+const std::unordered_set<Node>& WitnessFormGenerator::getWitnessFormEqs() const
 {
   return d_eqs;
 }

@@ -36,8 +36,7 @@ void SynthConjectureProcessFun::init(Node f)
   Assert(f.getType().isFunction());
 
   // initialize the arguments
-  std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>
-      type_to_init_deq_id;
+  std::unordered_map<TypeNode, unsigned> type_to_init_deq_id;
   std::vector<TypeNode> argTypes = f.getType().getArgTypes();
   for (unsigned j = 0; j < argTypes.size(); j++)
   {
@@ -77,8 +76,7 @@ bool SynthConjectureProcessFun::isArgVar(Node n, unsigned& arg_index)
 {
   if (n.isVar())
   {
-    std::unordered_map<Node, unsigned, NodeHashFunction>::iterator ita =
-        d_arg_var_num.find(n);
+    std::unordered_map<Node, unsigned>::iterator ita = d_arg_var_num.find(n);
     if (ita != d_arg_var_num.end())
     {
       arg_index = ita->second;
@@ -90,13 +88,11 @@ bool SynthConjectureProcessFun::isArgVar(Node n, unsigned& arg_index)
 
 Node SynthConjectureProcessFun::inferDefinition(
     Node n,
-    std::unordered_map<Node, unsigned, NodeHashFunction>& term_to_arg_carry,
-    std::unordered_map<Node,
-                       std::unordered_set<Node, NodeHashFunction>,
-                       NodeHashFunction>& free_vars)
+    std::unordered_map<Node, unsigned>& term_to_arg_carry,
+    std::unordered_map<Node, std::unordered_set<Node>>& free_vars)
 {
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::stack<TNode> visit;
   TNode cur;
   visit.push(n);
@@ -115,7 +111,7 @@ Node SynthConjectureProcessFun::inferDefinition(
       else
       {
         // if it is term used by another argument, use it
-        std::unordered_map<Node, unsigned, NodeHashFunction>::iterator itt =
+        std::unordered_map<Node, unsigned>::iterator itt =
             term_to_arg_carry.find(cur);
         if (itt != term_to_arg_carry.end())
         {
@@ -185,7 +181,7 @@ unsigned SynthConjectureProcessFun::assignRelevantDef(
   }
   unsigned rid = args[id];
   // for merging previously equivalent definitions
-  std::unordered_map<Node, unsigned, NodeHashFunction> prev_defs;
+  std::unordered_map<Node, unsigned> prev_defs;
   for (unsigned j = 0; j < args.size(); j++)
   {
     unsigned i = args[j];
@@ -199,8 +195,7 @@ unsigned SynthConjectureProcessFun::assignRelevantDef(
       else
       {
         Node t = d_arg_props[i].d_template;
-        std::unordered_map<Node, unsigned, NodeHashFunction>::iterator itt =
-            prev_defs.find(t);
+        std::unordered_map<Node, unsigned>::iterator itt = prev_defs.find(t);
         if (itt != prev_defs.end())
         {
           // merge previously equivalent definitions
@@ -254,10 +249,8 @@ void SynthConjectureProcessFun::processTerms(
     std::vector<Node>& ns,
     std::vector<Node>& ks,
     Node nf,
-    std::unordered_set<Node, NodeHashFunction>& synth_fv,
-    std::unordered_map<Node,
-                       std::unordered_set<Node, NodeHashFunction>,
-                       NodeHashFunction>& free_vars)
+    std::unordered_set<Node>& synth_fv,
+    std::unordered_map<Node, std::unordered_set<Node>>& free_vars)
 {
   Assert(ns.size() == ks.size());
   Trace("sygus-process-arg-deps") << "Process " << ns.size()
@@ -266,14 +259,14 @@ void SynthConjectureProcessFun::processTerms(
 
   // get the relevant variables
   // relevant variables are those that appear in the body of the conjunction
-  std::unordered_set<Node, NodeHashFunction> rlv_vars;
+  std::unordered_set<Node> rlv_vars;
   Assert(free_vars.find(nf) != free_vars.end());
   rlv_vars = free_vars[nf];
 
   // get the single occurrence variables
   // single occurrence variables are those that appear in only one position,
   // as an argument to the function-to-synthesize.
-  std::unordered_map<Node, bool, NodeHashFunction> single_occ_variables;
+  std::unordered_map<Node, bool> single_occ_variables;
   for (unsigned index = 0; index < ns.size(); index++)
   {
     Node n = ns[index];
@@ -282,7 +275,7 @@ void SynthConjectureProcessFun::processTerms(
       Node nn = n[i];
       if (nn.isVar())
       {
-        std::unordered_map<Node, bool, NodeHashFunction>::iterator its =
+        std::unordered_map<Node, bool>::iterator its =
             single_occ_variables.find(nn);
         if (its == single_occ_variables.end())
         {
@@ -296,12 +289,10 @@ void SynthConjectureProcessFun::processTerms(
       }
       else
       {
-        std::unordered_map<Node,
-                           std::unordered_set<Node, NodeHashFunction>,
-                           NodeHashFunction>::iterator itf = free_vars.find(nn);
+        std::unordered_map<Node, std::unordered_set<Node>>::iterator itf =
+            free_vars.find(nn);
         Assert(itf != free_vars.end());
-        for (std::unordered_set<Node, NodeHashFunction>::iterator itfv =
-                 itf->second.begin();
+        for (std::unordered_set<Node>::iterator itfv = itf->second.begin();
              itfv != itf->second.end();
              ++itfv)
         {
@@ -327,10 +318,9 @@ void SynthConjectureProcessFun::processTerms(
     std::unordered_map<unsigned, Node> n_arg_map;
     // terms to the argument that is carrying it.
     // the arguments in the range of this map must be marked as relevant.
-    std::unordered_map<Node, unsigned, NodeHashFunction> term_to_arg_carry;
+    std::unordered_map<Node, unsigned> term_to_arg_carry;
     // map of terms to (unprocessed) arguments where it occurs
-    std::unordered_map<Node, std::vector<unsigned>, NodeHashFunction>
-        term_to_args;
+    std::unordered_map<Node, std::vector<unsigned>> term_to_args;
 
     // initialize
     for (unsigned a = 0; a < n.getNumChildren(); a++)
@@ -408,8 +398,8 @@ void SynthConjectureProcessFun::processTerms(
     // list of all arguments
     std::vector<Node> arg_list;
     // now look at the terms for unprocessed arguments
-    for (std::unordered_map<Node, std::vector<unsigned>, NodeHashFunction>::
-             iterator it = term_to_args.begin();
+    for (std::unordered_map<Node, std::vector<unsigned>>::iterator it =
+             term_to_args.begin();
          it != term_to_args.end();
          ++it)
     {
@@ -454,8 +444,8 @@ void SynthConjectureProcessFun::processTerms(
       {
         infer_def_t = Node::null();
         // see if we can infer a definition
-        for (std::unordered_map<Node, std::vector<unsigned>, NodeHashFunction>::
-                 iterator it = term_to_args.begin();
+        for (std::unordered_map<Node, std::vector<unsigned>>::iterator it =
+                 term_to_args.begin();
              it != term_to_args.end();
              ++it)
         {
@@ -483,8 +473,8 @@ void SynthConjectureProcessFun::processTerms(
       while (arg_list_counter < arg_list.size() && !success)
       {
         Node curr = arg_list[arg_list_counter];
-        std::unordered_map<Node, std::vector<unsigned>, NodeHashFunction>::
-            iterator it = term_to_args.find(curr);
+        std::unordered_map<Node, std::vector<unsigned>>::iterator it =
+            term_to_args.find(curr);
         if (it != term_to_args.end())
         {
           Trace("sygus-process-arg-deps") << "  *** Decide relevant " << curr
@@ -548,7 +538,7 @@ Node SynthConjectureProcess::postSimplify(Node q)
 
     // get the base on the conjecture
     Node base = q[1];
-    std::unordered_set<Node, NodeHashFunction> synth_fv;
+    std::unordered_set<Node> synth_fv;
     if (base.getKind() == NOT && base[0].getKind() == FORALL)
     {
       for (unsigned j = 0, size = base[0][0].getNumChildren(); j < size; j++)
@@ -617,8 +607,9 @@ bool SynthConjectureProcess::getIrrelevantArgs(
   return false;
 }
 
-void SynthConjectureProcess::processConjunct(
-    Node n, Node f, std::unordered_set<Node, NodeHashFunction>& synth_fv)
+void SynthConjectureProcess::processConjunct(Node n,
+                                             Node f,
+                                             std::unordered_set<Node>& synth_fv)
 {
   Trace("sygus-process-arg-deps") << "Process conjunct: " << std::endl;
   Trace("sygus-process-arg-deps") << "  " << n << " for synth fun " << f
@@ -626,24 +617,20 @@ void SynthConjectureProcess::processConjunct(
 
   // first, flatten the conjunct
   // make a copy of free variables since we may add new ones
-  std::unordered_set<Node, NodeHashFunction> synth_fv_n = synth_fv;
-  std::unordered_map<Node, Node, NodeHashFunction> defs;
+  std::unordered_set<Node> synth_fv_n = synth_fv;
+  std::unordered_map<Node, Node> defs;
   Node nf = flatten(n, f, synth_fv_n, defs);
 
   Trace("sygus-process-arg-deps") << "Flattened to: " << std::endl;
   Trace("sygus-process-arg-deps") << "  " << nf << std::endl;
 
   // get free variables in nf
-  std::unordered_map<Node,
-                     std::unordered_set<Node, NodeHashFunction>,
-                     NodeHashFunction>
-      free_vars;
+  std::unordered_map<Node, std::unordered_set<Node>> free_vars;
   getFreeVariables(nf, synth_fv_n, free_vars);
   // get free variables in each application
   std::vector<Node> ns;
   std::vector<Node> ks;
-  for (std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
-           defs.begin();
+  for (std::unordered_map<Node, Node>::iterator it = defs.begin();
        it != defs.end();
        ++it)
   {
@@ -666,11 +653,11 @@ void SynthConjectureProcess::processConjunct(
 Node SynthConjectureProcess::SynthConjectureProcess::flatten(
     Node n,
     Node f,
-    std::unordered_set<Node, NodeHashFunction>& synth_fv,
-    std::unordered_map<Node, Node, NodeHashFunction>& defs)
+    std::unordered_set<Node>& synth_fv,
+    std::unordered_map<Node, Node>& defs)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> visited;
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
+  std::unordered_map<Node, Node> visited;
+  std::unordered_map<Node, Node>::iterator it;
   std::stack<Node> visit;
   Node cur;
   visit.push(n);
@@ -730,15 +717,13 @@ Node SynthConjectureProcess::SynthConjectureProcess::flatten(
 
 void SynthConjectureProcess::getFreeVariables(
     Node n,
-    std::unordered_set<Node, NodeHashFunction>& synth_fv,
-    std::unordered_map<Node,
-                       std::unordered_set<Node, NodeHashFunction>,
-                       NodeHashFunction>& free_vars)
+    std::unordered_set<Node>& synth_fv,
+    std::unordered_map<Node, std::unordered_set<Node>>& free_vars)
 {
   // first must compute free variables in each subterm of n,
   // as well as contains_synth_fun
-  std::unordered_map<Node, bool, NodeHashFunction> visited;
-  std::unordered_map<Node, bool, NodeHashFunction>::iterator it;
+  std::unordered_map<Node, bool> visited;
+  std::unordered_map<Node, bool>::iterator it;
   std::stack<Node> visit;
   Node cur;
   visit.push(n);

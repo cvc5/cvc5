@@ -76,8 +76,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
                                          std::vector<Node>& vals,
                                          std::vector<Node>& exps)
 {
-  std::map<Node, std::unordered_set<Node, NodeHashFunction> >::iterator its =
-      d_subterms.find(a);
+  std::map<Node, std::unordered_set<Node> >::iterator its = d_subterms.find(a);
   if (its == d_subterms.end())
   {
     return;

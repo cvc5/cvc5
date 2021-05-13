@@ -123,7 +123,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 
   BoundInference bounds;
 
-  std::unordered_set<Node, NodeHashFunction> init_assertions;
+  std::unordered_set<Node> init_assertions;
 
   for (Theory::assertions_iterator it = d_containing.facts_begin();
        it != d_containing.facts_end();

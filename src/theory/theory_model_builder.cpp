@@ -340,7 +340,7 @@ bool TheoryEngineModelBuilder::isExcludedUSortValue(
 void TheoryEngineModelBuilder::addToTypeList(
     TypeNode tn,
     std::vector<TypeNode>& type_list,
-    std::unordered_set<TypeNode, TypeNodeHashFunction>& visiting)
+    std::unordered_set<TypeNode>& visiting)
 {
   if (std::find(type_list.begin(), type_list.end(), tn) == type_list.end())
   {
@@ -427,11 +427,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
   // the set of equivalence classes that are "assignable", i.e. those that have
   // an assignable expression in them (see isAssignable), and have not already
   // been assigned a constant.
-  std::unordered_set<Node, NodeHashFunction> assignableEqc;
+  std::unordered_set<Node> assignableEqc;
   // The set of equivalence classes that are "evaluable", i.e. those that have
   // an expression in them that is not assignable, and have not already been
   // assigned a constant.
-  std::unordered_set<Node, NodeHashFunction> evaluableEqc;
+  std::unordered_set<Node> evaluableEqc;
   // Assigner objects for relevant equivalence classes that require special
   // ways of assigning values, e.g. those that take into account assignment
   // exclusion sets.
@@ -449,7 +449,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
   // should we compute assigner objects?
   bool computeAssigners = tm->hasAssignmentExclusionSets();
   // the set of exclusion sets we have processed
-  std::unordered_set<Node, NodeHashFunction> processedExcSet;
+  std::unordered_set<Node> processedExcSet;
   for (; !eqcs_i.isFinished(); ++eqcs_i)
   {
     Node eqc = *eqcs_i;
@@ -591,13 +591,13 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     {
       assertedReps[eqc] = rep;
       typeRepSet.add(eqct.getBaseType(), eqc);
-      std::unordered_set<TypeNode, TypeNodeHashFunction> visiting;
+      std::unordered_set<TypeNode> visiting;
       addToTypeList(eqct.getBaseType(), type_list, visiting);
     }
     else
     {
       typeNoRepSet.add(eqct, eqc);
-      std::unordered_set<TypeNode, TypeNodeHashFunction> visiting;
+      std::unordered_set<TypeNode> visiting;
       addToTypeList(eqct, type_list, visiting);
     }
 

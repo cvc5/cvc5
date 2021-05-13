@@ -109,8 +109,8 @@ std::ostream& operator<<(std::ostream& out, const ArrayStoreAll& asa) {
 }
 
 size_t ArrayStoreAllHashFunction::operator()(const ArrayStoreAll& asa) const {
-  return TypeNodeHashFunction()(asa.getType())
-         * NodeHashFunction()(asa.getValue());
+  return std::hash<TypeNode>()(asa.getType())
+         * std::hash<Node>()(asa.getValue());
 }
 
 }  // namespace cvc5

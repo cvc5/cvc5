@@ -274,7 +274,7 @@ CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
 CegHandledStatus CegInstantiator::isCbqiTerm(Node n)
 {
   CegHandledStatus ret = CEG_HANDLED;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -846,7 +846,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   }
   Trace("cegqi-inst-debug") << "[3] try based on assertions." << std::endl;
   d_curr_iphase[pv] = CEG_INST_PHASE_ASSERTION;
-  std::unordered_set<Node, NodeHashFunction> lits;
+  std::unordered_set<Node> lits;
   for (unsigned r = 0; r < 2; r++)
   {
     TheoryId tid = r == 0 ? Theory::theoryOf(pvtn) : THEORY_UF;
@@ -1104,8 +1104,7 @@ bool CegInstantiator::isEligibleForInstantiation(Node n) const
 bool CegInstantiator::canApplyBasicSubstitution( Node n, std::vector< Node >& non_basic ){
   Assert(d_prog_var.find(n) != d_prog_var.end());
   if( !non_basic.empty() ){
-    for (std::unordered_set<Node, NodeHashFunction>::iterator it =
-             d_prog_var[n].begin();
+    for (std::unordered_set<Node>::iterator it = d_prog_var[n].begin();
          it != d_prog_var[n].end();
          ++it)
     {
@@ -1439,7 +1438,7 @@ Node CegInstantiator::getModelValue( Node n ) {
 Node CegInstantiator::getBoundVariable(TypeNode tn)
 {
   unsigned index = 0;
-  std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>::iterator itb =
+  std::unordered_map<TypeNode, unsigned>::iterator itb =
       d_bound_var_index.find(tn);
   if (itb != d_bound_var_index.end())
   {
@@ -1529,9 +1528,9 @@ void CegInstantiator::registerCounterexampleLemma(Node lem,
   }
 
   // register variables that were introduced during TheoryEngine preprocessing
-  std::unordered_set<Node, NodeHashFunction> ceSyms;
+  std::unordered_set<Node> ceSyms;
   expr::getSymbols(lem, ceSyms);
-  std::unordered_set<Node, NodeHashFunction> qSyms;
+  std::unordered_set<Node> qSyms;
   expr::getSymbols(d_quant, qSyms);
   // all variables that are in counterexample lemma but not in quantified
   // formula

@@ -131,7 +131,7 @@ bool ArithEntail::checkApprox(Node ar)
       // c.isNull() means c = 1
       bool isOverApprox = !c.isNull() && c.getConst<Rational>().sgn() == -1;
       std::vector<Node>& approx = mApprox[v];
-      std::unordered_set<Node, NodeHashFunction> visited;
+      std::unordered_set<Node> visited;
       std::vector<Node> toProcess;
       toProcess.push_back(v);
       do
@@ -561,7 +561,7 @@ bool ArithEntail::checkWithEqAssumption(Node assumption, Node a, bool strict)
                           << ", strict=" << strict << std::endl;
 
   // Find candidates variables to compute substitutions for
-  std::unordered_set<Node, NodeHashFunction> candVars;
+  std::unordered_set<Node> candVars;
   std::vector<Node> toVisit = {assumption};
   while (!toVisit.empty())
   {

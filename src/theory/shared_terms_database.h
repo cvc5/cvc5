@@ -47,7 +47,7 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   IntStat d_statSharedTerms;
 
   // Needs to be a map from Nodes as after a backtrack they might not exist
-  typedef std::unordered_map<Node, shared_terms_list, TNodeHashFunction> SharedTermsMap;
+  typedef std::unordered_map<Node, shared_terms_list> SharedTermsMap;
 
   /** A map from atoms to a list of shared terms */
   SharedTermsMap d_atomsToTerms;
@@ -66,12 +66,12 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   SharedTermsTheoriesMap d_termsToTheories;
 
   /** Map from term to theories that have already been notified about the shared term */
-  typedef context::CDHashMap<TNode, theory::TheoryIdSet, TNodeHashFunction>
+  typedef context::CDHashMap<TNode, theory::TheoryIdSet, std::hash<TNode>>
       AlreadyNotifiedMap;
   AlreadyNotifiedMap d_alreadyNotifiedMap;
 
   /** The registered equalities for propagation */
-  typedef context::CDHashSet<Node, NodeHashFunction> RegisteredEqualitiesSet;
+  typedef context::CDHashSet<Node, std::hash<Node>> RegisteredEqualitiesSet;
   RegisteredEqualitiesSet d_registeredEqualities;
 
  private:

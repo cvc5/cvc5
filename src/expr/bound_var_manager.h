@@ -98,7 +98,7 @@ class BoundVarManager
   /** Whether we keep cache values */
   bool d_keepCacheVals;
   /** The set of cache values we have used */
-  std::unordered_set<Node, NodeHashFunction> d_cacheVals;
+  std::unordered_set<Node> d_cacheVals;
 };
 
 }  // namespace cvc5

@@ -32,17 +32,16 @@ namespace bv {
 typedef std::vector<TNode> ArgsVec;
 
 class AbstractionModule {
-  using NodeVecMap =
-      std::unordered_map<Node, std::vector<Node>, NodeHashFunction>;
-  using NodeTNodeMap = std::unordered_map<Node, TNode, NodeHashFunction>;
-  using TNodeTNodeMap = std::unordered_map<TNode, TNode, TNodeHashFunction>;
-  using NodeNodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
-  using TNodeNodeMap = std::unordered_map<Node, TNode, NodeHashFunction>;
-  using TNodeSet = std::unordered_set<TNode, TNodeHashFunction>;
+  using NodeVecMap = std::unordered_map<Node, std::vector<Node>>;
+  using NodeTNodeMap = std::unordered_map<Node, TNode>;
+  using TNodeTNodeMap = std::unordered_map<TNode, TNode>;
+  using NodeNodeMap = std::unordered_map<Node, Node>;
+  using TNodeNodeMap = std::unordered_map<Node, TNode>;
+  using TNodeSet = std::unordered_set<TNode>;
   using IntNodeMap = std::unordered_map<unsigned, Node>;
   using IndexMap = std::unordered_map<unsigned, unsigned>;
   using SkolemMap = std::unordered_map<unsigned, std::vector<Node> >;
-  using SignatureMap = std::unordered_map<TNode, unsigned, TNodeHashFunction>;
+  using SignatureMap = std::unordered_map<TNode, unsigned>;
 
   struct Statistics {
     SizeStat<NodeNodeMap> d_numFunctionsAbstracted;
@@ -77,15 +76,15 @@ class AbstractionModule {
   };
 
   class ArgsTable {
-    std::unordered_map<TNode, ArgsTableEntry, TNodeHashFunction > d_data;
+    std::unordered_map<TNode, ArgsTableEntry> d_data;
     bool hasEntry(TNode signature) const;
   public:
-    typedef std::unordered_map<TNode, ArgsTableEntry, TNodeHashFunction >::iterator iterator;
-    ArgsTable() {}
-    void addEntry(TNode signature, const ArgsVec& args);
-    ArgsTableEntry& getEntry(TNode signature);
-    iterator begin() { return d_data.begin(); }
-    iterator end() { return d_data.end(); }
+   typedef std::unordered_map<TNode, ArgsTableEntry>::iterator iterator;
+   ArgsTable() {}
+   void addEntry(TNode signature, const ArgsVec& args);
+   ArgsTableEntry& getEntry(TNode signature);
+   iterator begin() { return d_data.begin(); }
+   iterator end() { return d_data.end(); }
   };
 
   /**

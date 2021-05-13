@@ -1128,9 +1128,8 @@ Node SygusUnifIo::constructSol(
     if (ret_dt.isNull() && !retValMod)
     {
       bool firstTime = true;
-      std::unordered_set<Node, NodeHashFunction> intersection;
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
-          pit;
+      std::unordered_set<Node> intersection;
+      std::map<TypeNode, std::unordered_set<Node>>::iterator pit;
       for (size_t i = 0, nvals = x.d_vals.size(); i < nvals; i++)
       {
         if (x.d_vals[i].getConst<bool>())

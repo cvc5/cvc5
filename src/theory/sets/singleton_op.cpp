@@ -28,7 +28,7 @@ std::ostream& operator<<(std::ostream& out, const SingletonOp& op)
 
 size_t SingletonOpHashFunction::operator()(const SingletonOp& op) const
 {
-  return TypeNodeHashFunction()(op.getType());
+  return std::hash<TypeNode>()(op.getType());
 }
 
 SingletonOp::SingletonOp(const TypeNode& elementType)

@@ -97,7 +97,7 @@ class AssertionList
   /** The list of assertions */
   std::vector<TNode> d_dlist;
   /** The set of assertions for fast membership testing in the above vector */
-  std::unordered_set<TNode, TNodeHashFunction> d_dlistSet;
+  std::unordered_set<TNode> d_dlistSet;
   /** The index of the next assertion to satify */
   context::CDO<size_t> d_dindex;
 };

@@ -828,7 +828,7 @@ class Theory {
    * This is a utility function for constructing a copy of the currently shared terms
    * in a queriable form.  As this is
    */
-  std::unordered_set<TNode, TNodeHashFunction> currentlySharedTerms() const;
+  std::unordered_set<TNode> currentlySharedTerms() const;
 
   /**
    * This allows the theory to be queried for whether a literal, lit, is

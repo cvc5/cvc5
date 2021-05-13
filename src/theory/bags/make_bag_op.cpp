@@ -28,7 +28,7 @@ std::ostream& operator<<(std::ostream& out, const MakeBagOp& op)
 
 size_t MakeBagOpHashFunction::operator()(const MakeBagOp& op) const
 {
-  return TypeNodeHashFunction()(op.getType());
+  return std::hash<TypeNode>()(op.getType());
 }
 
 MakeBagOp::MakeBagOp(const TypeNode& elementType)

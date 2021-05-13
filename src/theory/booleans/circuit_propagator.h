@@ -63,8 +63,7 @@ class CircuitPropagator
     ASSIGNED_TO_FALSE,
   };
 
-  typedef std::unordered_map<Node, std::vector<Node>, NodeHashFunction>
-      BackEdgesMap;
+  typedef std::unordered_map<Node, std::vector<Node>> BackEdgesMap;
 
   /**
    * Construct a new CircuitPropagator.
@@ -172,7 +171,7 @@ class CircuitPropagator
   /**
    * Assignment status of each node.
    */
-  typedef context::CDHashMap<TNode, AssignmentStatus, TNodeHashFunction>
+  typedef context::CDHashMap<TNode, AssignmentStatus, std::hash<TNode>>
       AssignmentMap;
 
   /**
@@ -245,7 +244,7 @@ class CircuitPropagator
 
   /** Nodes that have been attached already (computed forward edges for) */
   // All the nodes we've visited so far
-  context::CDHashSet<Node, NodeHashFunction> d_seen;
+  context::CDHashSet<Node, std::hash<Node>> d_seen;
 
   AssignmentMap d_state;
 

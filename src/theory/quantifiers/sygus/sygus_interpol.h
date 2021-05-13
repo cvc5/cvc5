@@ -122,10 +122,9 @@ class SygusInterpol
    * @param conj input argument
    * @param result the return value
    */
-  void getIncludeCons(
-      const std::vector<Node>& axioms,
-      const Node& conj,
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& result);
+  void getIncludeCons(const std::vector<Node>& axioms,
+                      const Node& conj,
+                      std::map<TypeNode, std::unordered_set<Node>>& result);
 
   /**
    * Set up the grammar for the interpol-to-synthesis.
@@ -180,7 +179,7 @@ class SygusInterpol
   /**
    * unordered set for shared symbols between axioms and conjecture.
    */
-  std::unordered_set<Node, NodeHashFunction> d_symSetShared;
+  std::unordered_set<Node> d_symSetShared;
   /**
    * free variables created from d_syms.
    */

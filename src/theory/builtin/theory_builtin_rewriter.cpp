@@ -144,9 +144,13 @@ TypeNode TheoryBuiltinRewriter::getArrayTypeForFunctionType(TypeNode ftn)
   return ret;
 }
 
-Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec( TNode a, TNode bvl, unsigned bvlIndex, 
-                                                                std::unordered_map< TNode, Node, TNodeHashFunction >& visited ){
-  std::unordered_map< TNode, Node, TNodeHashFunction >::iterator it = visited.find( a );
+Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec(
+    TNode a,
+    TNode bvl,
+    unsigned bvlIndex,
+    std::unordered_map<TNode, Node>& visited)
+{
+  std::unordered_map<TNode, Node>::iterator it = visited.find(a);
   if( it==visited.end() ){
     Node ret;
     if( bvlIndex<bvl.getNumChildren() ){
@@ -185,7 +189,7 @@ Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec( TNode a, TNode b
 
 Node TheoryBuiltinRewriter::getLambdaForArrayRepresentation( TNode a, TNode bvl ){
   Assert(a.getType().isArray());
-  std::unordered_map< TNode, Node, TNodeHashFunction > visited;
+  std::unordered_map<TNode, Node> visited;
   Trace("builtin-rewrite-debug") << "Get lambda for : " << a << ", with variables " << bvl << std::endl;
   Node body = getLambdaForArrayRepresentationRec( a, bvl, 0, visited );
   if( !body.isNull() ){

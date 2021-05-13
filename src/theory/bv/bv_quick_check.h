@@ -100,8 +100,7 @@ class BVQuickCheck
   bool collectModelValues(theory::TheoryModel* model,
                           const std::set<Node>& termSet);
 
-  typedef std::unordered_set<TNode, TNodeHashFunction>::const_iterator
-      vars_iterator;
+  typedef std::unordered_set<TNode>::const_iterator vars_iterator;
   vars_iterator beginVars();
   vars_iterator endVars();
 

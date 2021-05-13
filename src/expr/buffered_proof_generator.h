@@ -33,7 +33,7 @@ class ProofStep;
  */
 class BufferedProofGenerator : public ProofGenerator
 {
-  typedef context::CDHashMap<Node, std::shared_ptr<ProofStep>, NodeHashFunction>
+  typedef context::CDHashMap<Node, std::shared_ptr<ProofStep>, std::hash<Node>>
       NodeProofStepMap;
 
  public:

@@ -104,7 +104,7 @@ class BvInverter
                    Node pv,
                    Node sv,
                    std::vector<unsigned>& path,
-                   std::unordered_set<TNode, TNodeHashFunction>& visited);
+                   std::unordered_set<TNode>& visited);
 
   /** Helper function for getInv.
    *

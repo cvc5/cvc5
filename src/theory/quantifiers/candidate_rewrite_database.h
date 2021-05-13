@@ -124,7 +124,7 @@ class CandidateRewriteDatabase : public ExprMiner
   /** candidate rewrite filter */
   CandidateRewriteFilter d_crewrite_filter;
   /** the cache for results of addTerm */
-  std::unordered_map<Node, Node, NodeHashFunction> d_add_term_cache;
+  std::unordered_map<Node, Node> d_add_term_cache;
 };
 
 }  // namespace quantifiers

@@ -33,10 +33,8 @@ namespace theory {
 class TypeSet
 {
  public:
-  typedef std::unordered_map<TypeNode, std::set<Node>*, TypeNodeHashFunction>
-      TypeSetMap;
-  typedef std::unordered_map<TypeNode, TypeEnumerator*, TypeNodeHashFunction>
-      TypeToTypeEnumMap;
+  typedef std::unordered_map<TypeNode, std::set<Node>*> TypeSetMap;
+  typedef std::unordered_map<TypeNode, TypeEnumerator*> TypeToTypeEnumMap;
   typedef TypeSetMap::iterator iterator;
   typedef TypeSetMap::const_iterator const_iterator;
 
@@ -81,7 +79,7 @@ class TypeSet
    * (very low expression depth).
    */
   void addSubTerms(TNode n,
-                   std::unordered_set<TNode, TNodeHashFunction>& visited,
+                   std::unordered_set<TNode>& visited,
                    bool topLevel = true);
 }; /* class TypeSet */
 

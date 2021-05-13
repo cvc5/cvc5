@@ -107,8 +107,8 @@ Node QuantifiersMacros::solve(Node lit, bool reqGround)
 
 bool QuantifiersMacros::containsBadOp(Node n, Node op, bool reqGround)
 {
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);

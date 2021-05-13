@@ -420,7 +420,7 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
     if (check)
     {
       Kind nck = nc.getKind();
-      std::unordered_set<Node, NodeHashFunction> bvs;
+      std::unordered_set<Node> bvs;
       if (nck == kind::MATCH_BIND_CASE)
       {
         for (const Node& v : nc[0])

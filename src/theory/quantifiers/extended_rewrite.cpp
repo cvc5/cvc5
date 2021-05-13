@@ -783,7 +783,7 @@ Node ExtendedRewriter::extendedRewriteBcp(
   // the processing terms
   std::vector<Node> clauses;
   // the terms we have propagated information to
-  std::unordered_set<Node, NodeHashFunction> prop_clauses;
+  std::unordered_set<Node> prop_clauses;
   // the assignment
   std::map<Node, Node> assign;
   std::vector<Node> avars;
@@ -1531,8 +1531,8 @@ Node ExtendedRewriter::partialSubstitute(Node n,
                                          const std::map<Node, Node>& assign,
                                          const std::map<Kind, bool>& rkinds)
 {
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::map<Node, Node>::const_iterator ita;
   std::vector<TNode> visit;
   TNode cur;

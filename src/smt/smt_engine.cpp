@@ -1330,7 +1330,7 @@ std::vector<Node> SmtEngine::getExpandedAssertions()
   std::vector<Node> easserts = getAssertions();
   // must expand definitions
   std::vector<Node> eassertsProc;
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  std::unordered_map<Node, Node> cache;
   for (const Node& e : easserts)
   {
     Node eae = d_pp->expandDefinitions(e, cache);

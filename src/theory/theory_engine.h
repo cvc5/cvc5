@@ -68,10 +68,10 @@ struct NodeTheoryPair {
 };/* struct NodeTheoryPair */
 
 struct NodeTheoryPairHashFunction {
-  NodeHashFunction hashFunction;
+  std::hash<Node> hashFunction;
   // Hash doesn't take into account the timestamp
   size_t operator()(const NodeTheoryPair& pair) const {
-    uint64_t hash = fnv1a::fnv1a_64(NodeHashFunction()(pair.d_node));
+    uint64_t hash = fnv1a::fnv1a_64(std::hash<Node>()(pair.d_node));
     return static_cast<size_t>(fnv1a::fnv1a_64(pair.d_theory, hash));
   }
 };/* struct NodeTheoryPairHashFunction */
@@ -162,7 +162,7 @@ class TheoryEngine {
    * An empty set of relevant assertions, which is returned as a dummy value for
    * getRelevantAssertions when relevance is disabled.
    */
-  std::unordered_set<TNode, TNodeHashFunction> d_emptyRelevantSet;
+  std::unordered_set<TNode> d_emptyRelevantSet;
 
   /** are we in eager model building mode? (see setEagerModelBuilding). */
   bool d_eager_model_building;
@@ -637,8 +637,7 @@ class TheoryEngine {
    * relevance manager failed to compute relevant assertions due to an internal
    * error.
    */
-  const std::unordered_set<TNode, TNodeHashFunction>& getRelevantAssertions(
-      bool& success);
+  const std::unordered_set<TNode>& getRelevantAssertions(bool& success);
 
   /**
    * Forwards an entailment check according to the given theoryOfMode.

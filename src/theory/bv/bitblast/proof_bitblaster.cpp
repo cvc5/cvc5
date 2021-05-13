@@ -81,7 +81,7 @@ void BBProof::bbAtom(TNode node)
 {
   std::vector<TNode> visit;
   visit.push_back(node);
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
 
   bool fproofs =
       options::proofGranularityMode() != options::ProofGranularityMode::OFF;

@@ -38,11 +38,11 @@ namespace strings {
 class RegExpSolver
 {
   typedef context::CDList<Node> NodeList;
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashMap<Node, unsigned, NodeHashFunction> NodeUIntMap;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashMap<Node, bool, std::hash<Node>> NodeBoolMap;
+  typedef context::CDHashMap<Node, int, std::hash<Node>> NodeIntMap;
+  typedef context::CDHashMap<Node, unsigned, std::hash<Node>> NodeUIntMap;
+  typedef context::CDHashMap<Node, Node, std::hash<Node>> NodeNodeMap;
+  typedef context::CDHashSet<Node, std::hash<Node>> NodeSet;
 
  public:
   RegExpSolver(SolverState& s,

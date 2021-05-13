@@ -924,7 +924,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_unique1)
       d_two);
 
   std::vector<Node> eqs = {eq1, eq2, eq3};
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   BVGauss::Result ret = BVGauss::gaussElimRewriteForUrem(eqs, res);
   ASSERT_EQ(ret, BVGauss::Result::UNIQUE);
   ASSERT_EQ(res.size(), 3);
@@ -1030,7 +1030,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_unique2)
       d_two);
 
   std::vector<Node> eqs = {eq1, eq2, eq3};
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   BVGauss::Result ret = BVGauss::gaussElimRewriteForUrem(eqs, res);
   ASSERT_EQ(ret, BVGauss::Result::UNIQUE);
   ASSERT_EQ(res.size(), 3);
@@ -1041,7 +1041,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_unique2)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial1a)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
   /* -------------------------------------------------------------------
@@ -1167,7 +1167,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial1a)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial1b)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
   /* -------------------------------------------------------------------
@@ -1291,7 +1291,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial1b)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial2)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
   /* -------------------------------------------------------------------
@@ -1380,7 +1380,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial2)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial3)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
   /* -------------------------------------------------------------------
@@ -1509,7 +1509,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial3)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial4)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
   /* -------------------------------------------------------------------
@@ -1660,7 +1660,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial4)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial5)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
   /* -------------------------------------------------------------------
@@ -1772,7 +1772,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial5)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial6)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
   /* -------------------------------------------------------------------
@@ -1860,7 +1860,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial6)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_with_expr_partial)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
   /* -------------------------------------------------------------------
@@ -2011,7 +2011,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_with_expr_partial)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_nary_partial)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
   /* -------------------------------------------------------------------
@@ -2182,7 +2182,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_nary_partial)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid1)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
   /* -------------------------------------------------------------------
@@ -2230,7 +2230,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid1)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid2)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
   /* -------------------------------------------------------------------
@@ -2301,7 +2301,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid2)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_invalid)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
   /* -------------------------------------------------------------------
@@ -2401,7 +2401,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique1)
   AssertionPipeline apipe;
   apipe.push_back(a);
   passes::BVGauss bgauss(nullptr, "bv-gauss-unit");
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   PreprocessingPassResult pres = bgauss.applyInternal(&apipe);
   ASSERT_EQ(pres, PreprocessingPassResult::NO_CONFLICT);
   Node resx = d_nodeManager->mkNode(
@@ -2490,7 +2490,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique2)
   apipe.push_back(eq4);
   apipe.push_back(eq5);
   passes::BVGauss bgauss(nullptr, "bv-gauss-unit");
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   PreprocessingPassResult pres = bgauss.applyInternal(&apipe);
   ASSERT_EQ(pres, PreprocessingPassResult::NO_CONFLICT);
   Node resx1 = d_nodeManager->mkNode(
@@ -2542,7 +2542,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_partial)
   apipe.push_back(eq1);
   apipe.push_back(eq2);
   passes::BVGauss bgauss(nullptr, "bv-gauss-unit");
-  std::unordered_map<Node, Node, NodeHashFunction> res;
+  std::unordered_map<Node, Node> res;
   PreprocessingPassResult pres = bgauss.applyInternal(&apipe);
   ASSERT_EQ(pres, PreprocessingPassResult::NO_CONFLICT);
   ASSERT_EQ(apipe.size(), 4);

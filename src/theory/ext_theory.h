@@ -164,10 +164,10 @@ class ExtTheoryCallback
  */
 class ExtTheory
 {
-  using NodeBoolMap = context::CDHashMap<Node, bool, NodeHashFunction>;
+  using NodeBoolMap = context::CDHashMap<Node, bool, std::hash<Node>>;
   using NodeExtReducedIdMap =
-      context::CDHashMap<Node, ExtReducedId, NodeHashFunction>;
-  using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
+      context::CDHashMap<Node, ExtReducedId, std::hash<Node>>;
+  using NodeSet = context::CDHashSet<Node, std::hash<Node>>;
 
  public:
   /** constructor

@@ -68,7 +68,7 @@ class BBSimple : public TBitblaster<Node>
   /** Caches variables for which we already created bits. */
   TNodeSet d_variables;
   /** Stores bit-blasted atoms. */
-  std::unordered_map<Node, Node, NodeHashFunction> d_bbAtoms;
+  std::unordered_map<Node, Node> d_bbAtoms;
   /** Theory state. */
   TheoryState* d_state;
 };

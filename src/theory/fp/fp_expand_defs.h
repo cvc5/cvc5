@@ -33,11 +33,11 @@ class FpExpandDefs
 {
   using PairTypeNodeHashFunction = PairHashFunction<TypeNode,
                                                     TypeNode,
-                                                    TypeNodeHashFunction,
-                                                    TypeNodeHashFunction>;
+                                                    std::hash<TypeNode>,
+                                                    std::hash<TypeNode>>;
   /** Uninterpreted functions for undefined cases of non-total operators. */
   using ComparisonUFMap =
-      context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>;
+      context::CDHashMap<TypeNode, Node, std::hash<TypeNode>>;
   /** Uninterpreted functions for lazy handling of conversions. */
   using ConversionUFMap = context::
       CDHashMap<std::pair<TypeNode, TypeNode>, Node, PairTypeNodeHashFunction>;

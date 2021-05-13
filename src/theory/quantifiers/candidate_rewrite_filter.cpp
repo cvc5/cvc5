@@ -227,8 +227,7 @@ bool CandidateRewriteFilter::notify(Node s,
   Assert(!s.isNull());
   n = d_drewrite->toExternal(n);
   Assert(!n.isNull());
-  std::map<Node, std::unordered_set<Node, NodeHashFunction> >::iterator it =
-      d_pairs.find(n);
+  std::map<Node, std::unordered_set<Node> >::iterator it = d_pairs.find(n);
   if (Trace.isOn("crf-match"))
   {
     Trace("crf-match") << "  " << s << " matches " << n

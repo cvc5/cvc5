@@ -102,7 +102,7 @@ TrustNode Skolemize::process(Node q)
 
 bool Skolemize::getSkolemConstants(Node q, std::vector<Node>& skolems)
 {
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction>::iterator it =
+  std::unordered_map<Node, std::vector<Node>>::iterator it =
       d_skolem_constants.find(q);
   if (it != d_skolem_constants.end())
   {
@@ -114,7 +114,7 @@ bool Skolemize::getSkolemConstants(Node q, std::vector<Node>& skolems)
 
 Node Skolemize::getSkolemConstant(Node q, unsigned i)
 {
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction>::iterator it =
+  std::unordered_map<Node, std::vector<Node>>::iterator it =
       d_skolem_constants.find(q);
   if (it != d_skolem_constants.end())
   {
@@ -326,8 +326,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
 Node Skolemize::getSkolemizedBody(Node f)
 {
   Assert(f.getKind() == FORALL);
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
-      d_skolem_body.find(f);
+  std::unordered_map<Node, Node>::iterator it = d_skolem_body.find(f);
   if (it == d_skolem_body.end())
   {
     std::vector<TypeNode> fvTypes;
@@ -381,8 +380,7 @@ bool Skolemize::isInductionTerm(Node n)
 void Skolemize::getSkolemTermVectors(
     std::map<Node, std::vector<Node> >& sks) const
 {
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction>::const_iterator
-      itk;
+  std::unordered_map<Node, std::vector<Node>>::const_iterator itk;
   for (const auto& p : d_skolemized)
   {
     Node q = p.first;

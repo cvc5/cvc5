@@ -114,12 +114,11 @@ static bool isInvertible(Kind k, unsigned index)
          || k == BITVECTOR_SHL;
 }
 
-Node BvInverter::getPathToPv(
-    Node lit,
-    Node pv,
-    Node sv,
-    std::vector<unsigned>& path,
-    std::unordered_set<TNode, TNodeHashFunction>& visited)
+Node BvInverter::getPathToPv(Node lit,
+                             Node pv,
+                             Node sv,
+                             std::vector<unsigned>& path,
+                             std::unordered_set<TNode>& visited)
 {
   if (visited.find(lit) == visited.end())
   {
@@ -169,7 +168,7 @@ Node BvInverter::getPathToPv(Node lit,
                              std::vector<unsigned>& path,
                              bool projectNl)
 {
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
   Node slit = getPathToPv(lit, pv, sv, path, visited);
   // if we are able to find a (invertible) path to pv
   if (!slit.isNull() && !pvs.isNull())

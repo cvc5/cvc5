@@ -61,7 +61,7 @@ class EnumValGeneratorBasic : public EnumValGenerator
   /** the current term */
   Node d_currTerm;
   /** cache of (enumerated) builtin values we have enumerated so far */
-  std::unordered_set<Node, NodeHashFunction> d_cache;
+  std::unordered_set<Node> d_cache;
 };
 
 }  // namespace quantifiers

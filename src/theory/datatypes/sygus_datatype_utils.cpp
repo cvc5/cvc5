@@ -60,7 +60,7 @@ Node applySygusArgs(const DType& dt,
   TNode val;
   if (!op.hasAttribute(SygusVarFreeAttribute()))
   {
-    std::unordered_set<Node, NodeHashFunction> fvs;
+    std::unordered_set<Node> fvs;
     if (expr::getFreeVariables(op, fvs))
     {
       if (fvs.size() == 1)
@@ -294,8 +294,8 @@ typedef expr::Attribute<BuiltinVarToSygusAttributeId, Node>
 
 Node sygusToBuiltin(Node n, bool isExternal)
 {
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   unsigned index;
@@ -410,8 +410,8 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
   std::vector<Node> eargs;
   bool svarsInit = false;
   std::vector<Node> svars;
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   unsigned index;
@@ -521,8 +521,7 @@ Node builtinVarToSygus(Node v)
   return Node::null();
 }
 
-void getFreeSymbolsSygusType(TypeNode sdt,
-                             std::unordered_set<Node, NodeHashFunction>& syms)
+void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms)
 {
   // datatype types we need to process
   std::vector<TypeNode> typeToProcess;

@@ -58,11 +58,10 @@ bool CegGrammarConstructor::hasSyntaxRestrictions(Node q)
 }
 
 void CegGrammarConstructor::collectTerms(
-    Node n,
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& consts)
+    Node n, std::map<TypeNode, std::unordered_set<Node>>& consts)
 {
-  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
-  std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, bool> visited;
+  std::unordered_map<TNode, bool>::iterator it;
   std::stack<TNode> visit;
   TNode cur;
   visit.push(n);
@@ -100,13 +99,13 @@ Node CegGrammarConstructor::process(Node q,
   // now, construct the grammar
   Trace("cegqi") << "SynthConjecture : convert to deep embedding..."
                  << std::endl;
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> extra_cons;
+  std::map<TypeNode, std::unordered_set<Node>> extra_cons;
   if( options::sygusAddConstGrammar() ){
     Trace("cegqi") << "SynthConjecture : collect constants..." << std::endl;
     collectTerms( q[1], extra_cons );
   }
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> exc_cons;
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> inc_cons;
+  std::map<TypeNode, std::unordered_set<Node>> exc_cons;
+  std::map<TypeNode, std::unordered_set<Node>> inc_cons;
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -148,7 +147,7 @@ Node CegGrammarConstructor::process(Node q,
       // check which arguments are irrelevant
       std::unordered_set<unsigned> arg_irrelevant;
       d_parent->getProcess()->getIrrelevantArgs(sf, arg_irrelevant);
-      std::unordered_set<Node, NodeHashFunction> term_irlv;
+      std::unordered_set<Node> term_irlv;
       // convert to term
       for (const unsigned& arg : arg_irrelevant)
       {
@@ -279,8 +278,8 @@ Node CegGrammarConstructor::process(Node q,
 Node CegGrammarConstructor::convertToEmbedding(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::stack<TNode> visit;
   TNode cur;
   visit.push(n);
@@ -552,12 +551,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     TypeNode range,
     Node bvl,
     const std::string& fun,
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& extra_cons,
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
-        exclude_cons,
-    const std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
-        include_cons,
-    std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
+    std::map<TypeNode, std::unordered_set<Node>>& extra_cons,
+    std::map<TypeNode, std::unordered_set<Node>>& exclude_cons,
+    const std::map<TypeNode, std::unordered_set<Node>>& include_cons,
+    std::unordered_set<Node>& term_irrelevant,
     std::vector<SygusDatatypeGenerator>& sdts,
     std::set<TypeNode>& unres)
 {
@@ -601,8 +598,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   // create placeholders for collected types
   std::vector<TypeNode> unres_types;
   std::map<TypeNode, TypeNode> type_to_unres;
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::const_iterator
-      itc;
+  std::map<TypeNode, std::unordered_set<Node>>::const_iterator itc;
   // maps types to the index of its "any term" grammar construction
   std::map<TypeNode, std::pair<unsigned, bool>> typeToGAnyTerm;
   options::SygusGrammarConsMode sgcm = options::sygusGrammarConsMode();
@@ -726,12 +722,11 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     }
     else
     {
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
-          itec = extra_cons.find(types[i]);
+      std::map<TypeNode, std::unordered_set<Node>>::iterator itec =
+          extra_cons.find(types[i]);
       if (itec != extra_cons.end())
       {
-        for (std::unordered_set<Node, NodeHashFunction>::iterator set_it =
-                 itec->second.begin();
+        for (std::unordered_set<Node>::iterator set_it = itec->second.begin();
              set_it != itec->second.end();
              ++set_it)
         {
@@ -1493,16 +1488,14 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
     TypeNode range,
     Node bvl,
     const std::string& fun,
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& extra_cons,
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
-        exclude_cons,
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
-        include_cons,
-    std::unordered_set<Node, NodeHashFunction>& term_irrelevant)
+    std::map<TypeNode, std::unordered_set<Node>>& extra_cons,
+    std::map<TypeNode, std::unordered_set<Node>>& exclude_cons,
+    std::map<TypeNode, std::unordered_set<Node>>& include_cons,
+    std::unordered_set<Node>& term_irrelevant)
 {
   Trace("sygus-grammar-def") << "*** Make sygus default type " << range << ", make datatypes..." << std::endl;
-  for (std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
-           it = extra_cons.begin();
+  for (std::map<TypeNode, std::unordered_set<Node>>::iterator it =
+           extra_cons.begin();
        it != extra_cons.end();
        ++it)
   {

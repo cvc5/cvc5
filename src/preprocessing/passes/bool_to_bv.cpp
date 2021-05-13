@@ -144,7 +144,7 @@ Node BoolToBV::lowerNode(const TNode& node, bool allowIteIntroduction)
 {
   std::vector<TNode> to_visit;
   to_visit.push_back(node);
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
 
   while (!to_visit.empty())
   {
@@ -309,7 +309,7 @@ Node BoolToBV::lowerIte(const TNode& node)
 {
   std::vector<TNode> visit;
   visit.push_back(node);
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
 
   while (!visit.empty())
   {

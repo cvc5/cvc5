@@ -28,8 +28,7 @@ RConsObligationInfo::RConsObligationInfo(Node builtin) : d_builtins({builtin})
 {
 }
 
-const std::unordered_set<Node, NodeHashFunction>&
-RConsObligationInfo::getBuiltins() const
+const std::unordered_set<Node>& RConsObligationInfo::getBuiltins() const
 {
   return d_builtins;
 }
@@ -44,8 +43,8 @@ void RConsObligationInfo::addBuiltin(Node builtin)
   d_builtins.emplace(builtin);
 }
 
-const std::unordered_set<Node, NodeHashFunction>&
-RConsObligationInfo::getCandidateSolutions() const
+const std::unordered_set<Node>& RConsObligationInfo::getCandidateSolutions()
+    const
 {
   return d_candSols;
 }
@@ -55,8 +54,7 @@ void RConsObligationInfo::addCandidateSolutionToWatchSet(Node candSol)
   d_watchSet.emplace(candSol);
 }
 
-const std::unordered_set<Node, NodeHashFunction>&
-RConsObligationInfo::getWatchSet() const
+const std::unordered_set<Node>& RConsObligationInfo::getWatchSet() const
 {
   return d_watchSet;
 }
@@ -66,8 +64,7 @@ std::string RConsObligationInfo::obToString(Node k,
 {
   std::stringstream ss;
   ss << "([";
-  std::unordered_set<Node, NodeHashFunction>::const_iterator it =
-      obInfo.getBuiltins().cbegin();
+  std::unordered_set<Node>::const_iterator it = obInfo.getBuiltins().cbegin();
   ss << *it;
   ++it;
   while (it != obInfo.getBuiltins().cend())
@@ -81,10 +78,9 @@ std::string RConsObligationInfo::obToString(Node k,
 
 void RConsObligationInfo::printCandSols(
     const Node& root,
-    const std::unordered_map<Node, RConsObligationInfo, NodeHashFunction>&
-        obInfo)
+    const std::unordered_map<Node, RConsObligationInfo>& obInfo)
 {
-  std::unordered_set<Node, NodeHashFunction> visited;
+  std::unordered_set<Node> visited;
   std::vector<Node> stack;
   stack.push_back(root);
 
@@ -103,7 +99,7 @@ void RConsObligationInfo::printCandSols(
     for (const Node& j : obInfo.at(k).getCandidateSolutions())
     {
       Trace("sygus-rcons") << datatypes::utils::sygusToBuiltin(j) << " ";
-      std::unordered_set<TNode, TNodeHashFunction> subObs;
+      std::unordered_set<TNode> subObs;
       expr::getVariables(j, subObs);
       for (const TNode& l : subObs)
       {

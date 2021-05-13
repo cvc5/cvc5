@@ -177,9 +177,9 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   // Bad case: have to recompute value counts and/or possibly switch out
   // default value
   store = n;
-  std::unordered_set<TNode, TNodeHashFunction> indexSet;
-  std::unordered_map<TNode, uint32_t, TNodeHashFunction> elementsMap;
-  std::unordered_map<TNode, uint32_t, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> indexSet;
+  std::unordered_map<TNode, uint32_t> elementsMap;
+  std::unordered_map<TNode, uint32_t>::iterator it;
   uint32_t count;
   uint32_t max = 0;
   TNode maxValue;

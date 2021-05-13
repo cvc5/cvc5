@@ -28,7 +28,7 @@ std::ostream& operator<<(std::ostream& out, const EmptyBag& asa)
 
 size_t EmptyBagHashFunction::operator()(const EmptyBag& es) const
 {
-  return TypeNodeHashFunction()(es.getType());
+  return std::hash<TypeNode>()(es.getType());
 }
 
 /**

@@ -156,7 +156,7 @@ enum ConstraintType {LowerBound, Equality, UpperBound, Disequality};
 
 typedef context::CDList<ConstraintCP> CDConstraintList;
 
-typedef std::unordered_map<Node, ConstraintP, NodeHashFunction> NodetoConstraintMap;
+typedef std::unordered_map<Node, ConstraintP> NodetoConstraintMap;
 
 typedef size_t ConstraintRuleID;
 static const ConstraintRuleID ConstraintRuleIdSentinel = std::numeric_limits<ConstraintRuleID>::max();

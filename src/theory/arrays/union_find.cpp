@@ -45,9 +45,9 @@ void UnionFind<NodeType, NodeHash>::notify() {
 // The following declarations allow us to put functions in the .cpp file
 // instead of the header, since we know which instantiations are needed.
 
-template void UnionFind<Node, NodeHashFunction>::notify();
+template void UnionFind<Node, std::hash<Node>>::notify();
 
-template void UnionFind<TNode, TNodeHashFunction>::notify();
+template void UnionFind<TNode, std::hash<TNode>>::notify();
 
 }  // namespace arrays
 }  // namespace theory

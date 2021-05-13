@@ -266,11 +266,11 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
   // nodes.
 
   // the final rewritten form of terms
-  std::unordered_map<Node, Node, TNodeHashFunction> visited;
+  std::unordered_map<Node, Node> visited;
   // the rewritten form of terms we have processed so far
-  std::unordered_map<Node, Node, TNodeHashFunction> rewritten;
-  std::unordered_map<Node, Node, TNodeHashFunction>::iterator it;
-  std::unordered_map<Node, Node, TNodeHashFunction>::iterator itr;
+  std::unordered_map<Node, Node> rewritten;
+  std::unordered_map<Node, Node>::iterator it;
+  std::unordered_map<Node, Node>::iterator itr;
   std::map<Node, std::shared_ptr<ProofNode> >::iterator itc;
   Trace("tconv-pf-gen-rewrite")
       << "TConvProofGenerator::getProofForRewriting: " << toStringDebug()

@@ -199,7 +199,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
 
   if (d_rewriteStack == nullptr)
   {
-    d_rewriteStack.reset(new std::unordered_set<Node, NodeHashFunction>());
+    d_rewriteStack.reset(new std::unordered_set<Node>());
   }
 #endif
 

@@ -54,8 +54,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   NodeManager* nm = NodeManager::currentNM();
 
   // initialize the candidate rewrite
-  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
-  std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, bool> visited;
+  std::unordered_map<TNode, bool>::iterator it;
   std::vector<TNode> visit;
   // Get all usable terms from the input. A term is usable if it does not
   // contain a quantified subterm

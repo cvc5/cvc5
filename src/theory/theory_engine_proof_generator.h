@@ -39,7 +39,7 @@ namespace cvc5 {
 class TheoryEngineProofGenerator : public ProofGenerator
 {
   typedef context::
-      CDHashMap<Node, std::shared_ptr<LazyCDProof>, NodeHashFunction>
+      CDHashMap<Node, std::shared_ptr<LazyCDProof>, std::hash<Node>>
           NodeLazyCDProofMap;
 
  public:

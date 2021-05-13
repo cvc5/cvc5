@@ -1119,8 +1119,8 @@ theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
   return d_sharedSolver->getEqualityStatus(a, b);
 }
 
-const std::unordered_set<TNode, TNodeHashFunction>&
-TheoryEngine::getRelevantAssertions(bool& success)
+const std::unordered_set<TNode>& TheoryEngine::getRelevantAssertions(
+    bool& success)
 {
   // if we are not in SAT mode, or there is no relevance manager, we fail
   if (!d_inSatMode || d_relManager == nullptr)
@@ -1203,10 +1203,9 @@ TrustNode TheoryEngine::getExplanation(TNode node)
 struct AtomsCollect {
 
   std::vector<TNode> d_atoms;
-  std::unordered_set<TNode, TNodeHashFunction> d_visited;
+  std::unordered_set<TNode> d_visited;
 
-public:
-
+ public:
   typedef void return_type;
 
   bool alreadyVisited(TNode current, TNode parent) {
@@ -1508,7 +1507,7 @@ theory::TrustNode TheoryEngine::getExplanation(
   // vector of trust nodes to explain at the end
   std::vector<std::pair<TheoryId, TrustNode>> texplains;
   // cache of nodes we have already explained by some theory
-  std::unordered_map<Node, size_t, NodeHashFunction> cache;
+  std::unordered_map<Node, size_t> cache;
 
   while (i < explanationVector.size()) {
     // Get the current literal to explain

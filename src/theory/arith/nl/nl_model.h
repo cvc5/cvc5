@@ -322,7 +322,7 @@ class NlModel
    * These literals are exempt from check-model, since they are satisfied by
    * definition of our model construction.
    */
-  std::unordered_map<Node, Node, NodeHashFunction> d_check_model_solved;
+  std::unordered_map<Node, Node> d_check_model_solved;
   /** did we use an approximation on this call to last-call effort? */
   bool d_used_approx;
 }; /* class NlModel */

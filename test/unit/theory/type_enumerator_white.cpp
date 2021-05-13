@@ -248,7 +248,7 @@ TEST_F(TestTheoryWhiteTypeEnumerator, arrays_infinite)
 {
   TypeEnumerator te(d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                d_nodeManager->integerType()));
-  std::unordered_set<Node, NodeHashFunction> elts;
+  std::unordered_set<Node> elts;
   for (uint32_t i = 0; i < 1000; ++i)
   {
     ASSERT_FALSE(te.isFinished());

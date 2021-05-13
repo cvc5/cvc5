@@ -29,8 +29,7 @@ Node TermEnumeration::getEnumerateTerm(TypeNode tn, unsigned index)
 {
   Trace("term-db-enum") << "Get enumerate term " << tn << " " << index
                         << std::endl;
-  std::unordered_map<TypeNode, size_t, TypeNodeHashFunction>::iterator it =
-      d_typ_enum_map.find(tn);
+  std::unordered_map<TypeNode, size_t>::iterator it = d_typ_enum_map.find(tn);
   size_t teIndex;
   if (it == d_typ_enum_map.end())
   {

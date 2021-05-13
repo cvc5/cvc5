@@ -60,7 +60,7 @@ class BBProof
   /** The associated term conversion proof generator. */
   TConvProofGenerator* d_tcpg;
   /** Map bit-vector nodes to bit-blasted nodes. */
-  std::unordered_map<Node, Node, NodeHashFunction> d_bbMap;
+  std::unordered_map<Node, Node> d_bbMap;
 };
 
 }  // namespace bv

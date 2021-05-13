@@ -47,9 +47,9 @@ namespace quantifiers {
 
 class BoundedIntegers : public QuantifiersModule
 {
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef context::CDHashMap<Node, bool, std::hash<Node>> NodeBoolMap;
+  typedef context::CDHashMap<Node, int, std::hash<Node>> NodeIntMap;
+  typedef context::CDHashMap<Node, Node, std::hash<Node>> NodeNodeMap;
   typedef context::CDHashMap<int, bool> IntBoolMap;
 private:
   //for determining bounds

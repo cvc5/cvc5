@@ -140,7 +140,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     // remove duplicates while keeping the order of children
-    std::unordered_set<TNode, TNodeHashFunction> clauseSet;
+    std::unordered_set<TNode> clauseSet;
     std::vector<Node> disjuncts;
     unsigned size = children[0].getNumChildren();
     for (unsigned i = 0; i < size; ++i)
@@ -166,7 +166,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
-    std::unordered_set<Node, NodeHashFunction> clauseSet1, clauseSet2;
+    std::unordered_set<Node> clauseSet1, clauseSet2;
     if (children[0].getKind() == kind::OR)
     {
       clauseSet1.insert(children[0].begin(), children[0].end());
@@ -201,7 +201,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     Node falseNode = nm->mkConst(false);
     std::vector<Node> clauseNodes;
     // literals to be removed from the virtual lhs clause of the resolution
-    std::unordered_map<Node, unsigned, NodeHashFunction> lhsElim;
+    std::unordered_map<Node, unsigned> lhsElim;
     for (std::size_t i = 0, argsSize = args.size(); i < argsSize; i = i + 2)
     {
       // whether pivot should occur as is or negated depends on the polarity of
@@ -320,7 +320,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     for (std::size_t i = 0, childrenSize = children.size(); i < childrenSize;
          ++i)
     {
-      std::unordered_set<Node, NodeHashFunction> elim;
+      std::unordered_set<Node> elim;
       // literals to be removed from "first" clause
       if (i < childrenSize - 1)
       {
@@ -387,8 +387,8 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     }
     Trace("bool-pfcheck") << "clause: " << clauseNodes << "\n";
     // check that set representation is the same as of the given conclusion
-    std::unordered_set<Node, NodeHashFunction> clauseComputed{
-        clauseNodes.begin(), clauseNodes.end()};
+    std::unordered_set<Node> clauseComputed{clauseNodes.begin(),
+                                            clauseNodes.end()};
     Trace("bool-pfcheck") << "clauseSet: " << clauseComputed << "\n" << pop;
     if (clauseComputed.empty())
     {
@@ -415,8 +415,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    std::unordered_set<Node, NodeHashFunction> clauseGiven{args[0].begin(),
-                                                           args[0].end()};
+    std::unordered_set<Node> clauseGiven{args[0].begin(), args[0].end()};
     return clauseComputed == clauseGiven ? args[0] : Node::null();
   }
   if (id == PfRule::SPLIT)

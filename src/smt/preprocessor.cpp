@@ -112,12 +112,12 @@ void Preprocessor::cleanup() { d_processor.cleanup(); }
 
 Node Preprocessor::expandDefinitions(const Node& n)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  std::unordered_map<Node, Node> cache;
   return expandDefinitions(n, cache);
 }
 
-Node Preprocessor::expandDefinitions(
-    const Node& node, std::unordered_map<Node, Node, NodeHashFunction>& cache)
+Node Preprocessor::expandDefinitions(const Node& node,
+                                     std::unordered_map<Node, Node>& cache)
 {
   Trace("smt") << "SMT expandDefinitions(" << node << ")" << endl;
   // Substitute out any abstract values in node.

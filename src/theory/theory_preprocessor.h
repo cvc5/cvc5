@@ -72,7 +72,7 @@ namespace theory {
  */
 class TheoryPreprocessor
 {
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
+  typedef context::CDHashMap<Node, Node, std::hash<Node>> NodeMap;
 
  public:
   /** Constructs a theory preprocessor */

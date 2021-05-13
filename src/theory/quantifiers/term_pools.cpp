@@ -98,7 +98,7 @@ void TermPools::getTermsForPool(Node p, std::vector<Node>& terms)
   // if we have yet to compute terms on this round
   if (dom.d_currTerms.empty())
   {
-    std::unordered_set<Node, NodeHashFunction> reps;
+    std::unordered_set<Node> reps;
     // eliminate modulo equality
     for (const Node& t : dom.d_terms)
     {

@@ -144,10 +144,8 @@ struct SynthConjectureProcessFun
       std::vector<Node>& ns,
       std::vector<Node>& ks,
       Node nf,
-      std::unordered_set<Node, NodeHashFunction>& synth_fv,
-      std::unordered_map<Node,
-                         std::unordered_set<Node, NodeHashFunction>,
-                         NodeHashFunction>& free_vars);
+      std::unordered_set<Node>& synth_fv,
+      std::unordered_map<Node, std::unordered_set<Node>>& free_vars);
   /** is the i^th argument of the function-to-synthesize of this class relevant?
    */
   bool isArgRelevant(unsigned i);
@@ -169,7 +167,7 @@ struct SynthConjectureProcessFun
   /** map from d_arg_vars to the argument #
    * they represent.
    */
-  std::unordered_map<Node, unsigned, NodeHashFunction> d_arg_var_num;
+  std::unordered_map<Node, unsigned> d_arg_var_num;
   /** check match
    * This function returns true iff we can infer:
    *   cn * { x -> n_arg_map[d_arg_var_num[x]] | x in d_arg_vars } = n
@@ -217,10 +215,8 @@ struct SynthConjectureProcessFun
    */
   Node inferDefinition(
       Node n,
-      std::unordered_map<Node, unsigned, NodeHashFunction>& term_to_arg_carry,
-      std::unordered_map<Node,
-                         std::unordered_set<Node, NodeHashFunction>,
-                         NodeHashFunction>& free_vars);
+      std::unordered_map<Node, unsigned>& term_to_arg_carry,
+      std::unordered_map<Node, std::unordered_set<Node>>& free_vars);
   /** Assign relevant definition
    *
    * If def is non-null,
@@ -322,9 +318,7 @@ class SynthConjectureProcess
    * is the set of (inner) universal variables in the synthesis
    * conjecture.
    */
-  void processConjunct(Node n,
-                       Node f,
-                       std::unordered_set<Node, NodeHashFunction>& synth_fv);
+  void processConjunct(Node n, Node f, std::unordered_set<Node>& synth_fv);
   /** flatten
    *
    * Flattens all applications of f in term n.
@@ -337,18 +331,16 @@ class SynthConjectureProcess
    */
   Node flatten(Node n,
                Node f,
-               std::unordered_set<Node, NodeHashFunction>& synth_fv,
-               std::unordered_map<Node, Node, NodeHashFunction>& defs);
+               std::unordered_set<Node>& synth_fv,
+               std::unordered_map<Node, Node>& defs);
   /** get free variables
    * Constructs a map of all free variables that occur in n
    * from synth_fv and stores them in the map free_vars.
    */
   void getFreeVariables(
       Node n,
-      std::unordered_set<Node, NodeHashFunction>& synth_fv,
-      std::unordered_map<Node,
-                         std::unordered_set<Node, NodeHashFunction>,
-                         NodeHashFunction>& free_vars);
+      std::unordered_set<Node>& synth_fv,
+      std::unordered_map<Node, std::unordered_set<Node>>& free_vars);
   /** for each synth-fun, information that is specific to this conjecture */
   std::map<Node, SynthConjectureProcessFun> d_sf_info;
 

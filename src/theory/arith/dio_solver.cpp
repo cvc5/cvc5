@@ -294,7 +294,7 @@ bool DioSolver::queueEmpty() const{
 }
 
 Node DioSolver::columnGcdIsOne() const{
-  std::unordered_map<Node, Integer, NodeHashFunction> gcdMap;
+  std::unordered_map<Node, Integer> gcdMap;
 
   std::deque<TrailIndex>::const_iterator iter, end;
   for(iter = d_currentF.begin(), end = d_currentF.end(); iter != end; ++iter){

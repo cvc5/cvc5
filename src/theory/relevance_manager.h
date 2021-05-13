@@ -104,8 +104,7 @@ class RelevanceManager
    *
    * The value of this return is only valid if success was not updated to false.
    */
-  const std::unordered_set<TNode, TNodeHashFunction>& getRelevantAssertions(
-      bool& success);
+  const std::unordered_set<TNode>& getRelevantAssertions(bool& success);
 
  private:
   /**
@@ -124,8 +123,7 @@ class RelevanceManager
    * This method returns 1 if we justified n to be true, -1 means
    * justified n to be false, 0 means n could not be justified.
    */
-  int justify(TNode n,
-              std::unordered_map<TNode, int, TNodeHashFunction>& cache);
+  int justify(TNode n, std::unordered_map<TNode, int>& cache);
   /** Is the top symbol of cur a Boolean connective? */
   bool isBooleanConnective(TNode cur);
   /**
@@ -140,16 +138,15 @@ class RelevanceManager
    * @return True if we wish to visit the next child. If this is the case, then
    * the justify value of the current child is added to childrenJustify.
    */
-  bool updateJustifyLastChild(
-      TNode cur,
-      std::vector<int>& childrenJustify,
-      std::unordered_map<TNode, int, TNodeHashFunction>& cache);
+  bool updateJustifyLastChild(TNode cur,
+                              std::vector<int>& childrenJustify,
+                              std::unordered_map<TNode, int>& cache);
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /** The input assertions */
   NodeList d_input;
   /** The current relevant selection. */
-  std::unordered_set<TNode, TNodeHashFunction> d_rset;
+  std::unordered_set<TNode> d_rset;
   /** Have we computed the relevant selection this round? */
   bool d_computed;
   /**

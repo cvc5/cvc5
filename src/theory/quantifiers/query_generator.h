@@ -70,7 +70,7 @@ class QueryGenerator : public ExprMiner
 
  private:
   /** cache of all terms registered to this generator */
-  std::unordered_set<Node, NodeHashFunction> d_terms;
+  std::unordered_set<Node> d_terms;
   /** the threshold used by this module for maximum number of sat points */
   unsigned d_deqThresh;
   /**

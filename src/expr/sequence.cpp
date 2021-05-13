@@ -374,7 +374,7 @@ size_t SequenceHashFunction::operator()(const Sequence& s) const
   const std::vector<Node>& vec = s.getVec();
   for (const Node& n : vec)
   {
-    ret = fnv1a::fnv1a_64(ret, NodeHashFunction()(n));
+    ret = fnv1a::fnv1a_64(ret, std::hash<Node>()(n));
   }
   return ret;
 }

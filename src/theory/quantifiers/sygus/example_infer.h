@@ -107,8 +107,7 @@ class ExampleInfer
    */
   bool collectExamples(
       Node n,
-      std::map<std::pair<bool, bool>,
-               std::unordered_set<Node, NodeHashFunction>>& visited,
+      std::map<std::pair<bool, bool>, std::unordered_set<Node>>& visited,
       bool hasPol,
       bool pol);
   /** Pointer to the sygus term database */

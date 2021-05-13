@@ -43,33 +43,33 @@ namespace theory {
 class SubstitutionMap {
 
 public:
+ typedef context::CDHashMap<Node, Node, std::hash<Node>> NodeMap;
 
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
-
-  typedef NodeMap::iterator iterator;
-  typedef NodeMap::const_iterator const_iterator;
+ typedef NodeMap::iterator iterator;
+ typedef NodeMap::const_iterator const_iterator;
 
 private:
+ typedef std::unordered_map<Node, Node> NodeCache;
+ /** A dummy context used by this class if none is provided */
+ context::Context d_context;
 
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeCache;
-  /** A dummy context used by this class if none is provided */
-  context::Context d_context;
+ /** The variables, in order of addition */
+ NodeMap d_substitutions;
 
-  /** The variables, in order of addition */
-  NodeMap d_substitutions;
+ /** Cache of the already performed substitutions */
+ NodeCache d_substitutionCache;
 
-  /** Cache of the already performed substitutions */
-  NodeCache d_substitutionCache;
+ /** Has the cache been invalidated? */
+ bool d_cacheInvalidated;
 
-  /** Has the cache been invalidated? */
-  bool d_cacheInvalidated;
+ /** Internal method that performs substitution */
+ Node internalSubstitute(TNode t, NodeCache& cache);
 
-  /** Internal method that performs substitution */
-  Node internalSubstitute(TNode t, NodeCache& cache);
+ /** Helper class to invalidate cache on user pop */
+ class CacheInvalidator : public context::ContextNotifyObj
+ {
+   bool& d_cacheInvalidated;
 
-  /** Helper class to invalidate cache on user pop */
-  class CacheInvalidator : public context::ContextNotifyObj {
-    bool& d_cacheInvalidated;
   protected:
    void contextNotifyPop() override { d_cacheInvalidated = true; }
 
@@ -79,7 +79,7 @@ private:
       d_cacheInvalidated(cacheInvalidated) {
     }
 
-  };/* class SubstitutionMap::CacheInvalidator */
+ }; /* class SubstitutionMap::CacheInvalidator */
 
   /**
    * This object is notified on user pop and marks the SubstitutionMap's
