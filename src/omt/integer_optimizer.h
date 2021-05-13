@@ -28,20 +28,21 @@ class OMTOptimizerInteger : public OMTOptimizer
  public:
   OMTOptimizerInteger() = default;
   virtual ~OMTOptimizerInteger() = default;
-  smt::OptimizationResult minimize(SmtEngine* parentSMTSolver,
+  smt::OptimizationResult minimize(SmtEngine* optChecker,
                                    TNode target) override;
-  smt::OptimizationResult maximize(SmtEngine* parentSMTSolver,
+  smt::OptimizationResult maximize(SmtEngine* optChecker,
                                    TNode target) override;
 
  private:
   /**
    * Handles the optimization query specified by objType
-   * (objType = MINIMIZE / MAXIMIZE)
+   * isMinimize = true will trigger minimization, 
+   * otherwise trigger maximization
    **/
   smt::OptimizationResult optimize(
-      SmtEngine* parentSMTSolver,
+      SmtEngine* optChecker,
       TNode target,
-      smt::OptimizationObjective::ObjectiveType objType);
+      bool isMinimize);
 };
 
 }  // namespace cvc5::omt

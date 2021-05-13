@@ -152,8 +152,7 @@ Node TermDb::getOrMakeTypeGroundTerm(TypeNode tn, bool reqVar)
 
 Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
 {
-  std::unordered_map<TypeNode, Node, TypeNodeHashFunction>::iterator it =
-      d_type_fv.find(tn);
+  std::unordered_map<TypeNode, Node>::iterator it = d_type_fv.find(tn);
   if (it == d_type_fv.end())
   {
     SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();

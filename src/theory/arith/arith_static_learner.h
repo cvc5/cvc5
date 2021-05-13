@@ -39,9 +39,9 @@ private:
   /**
    * Map from a node to it's minimum and maximum.
    */
-  typedef context::CDHashMap<Node, DeltaRational, NodeHashFunction> CDNodeToMinMaxMap;
-  CDNodeToMinMaxMap d_minMap;
-  CDNodeToMinMaxMap d_maxMap;
+ typedef context::CDHashMap<Node, DeltaRational> CDNodeToMinMaxMap;
+ CDNodeToMinMaxMap d_minMap;
+ CDNodeToMinMaxMap d_maxMap;
 
 public:
   ArithStaticLearner(context::Context* userContext);

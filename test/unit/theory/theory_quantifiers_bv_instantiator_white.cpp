@@ -113,7 +113,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvMult)
   Node zero = mkZero(32);
   Node one = mkOne(32);
   BvLinearAttribute is_linear;
-  std::unordered_map<Node, bool, NodeHashFunction> contains_x;
+  std::unordered_map<Node, bool> contains_x;
 
   contains_x[x] = true;
   contains_x[neg_x] = true;
@@ -211,7 +211,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   Node c = mkVar(32);
   Node d = mkVar(32);
   BvLinearAttribute is_linear;
-  std::unordered_map<Node, bool, NodeHashFunction> contains_x;
+  std::unordered_map<Node, bool> contains_x;
 
   contains_x[x] = true;
   contains_x[neg_x] = true;
@@ -334,7 +334,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
   Node one = mkOne(32);
   Node ntrue = mkTrue();
   BvLinearAttribute is_linear;
-  std::unordered_map<Node, bool, NodeHashFunction> contains_x;
+  std::unordered_map<Node, bool> contains_x;
 
   contains_x[x] = true;
   contains_x[neg_x] = true;

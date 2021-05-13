@@ -19,11 +19,13 @@
 
 #include "base/modal_exception.h"
 #include "options/smt_options.h"
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_interpol.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/trust_substitutions.h"
 
 using namespace cvc5::theory;
 
@@ -50,7 +52,7 @@ bool InterpolationSolver::getInterpol(const Node& conj,
                           << std::endl;
   std::vector<Node> axioms = d_parent->getExpandedAssertions();
   // must expand definitions
-  Node conjn = d_parent->expandDefinitions(conj);
+  Node conjn = d_parent->getEnv().getTopLevelSubstitutions().apply(conj);
   std::string name("A");
 
   quantifiers::SygusInterpol interpolSolver;

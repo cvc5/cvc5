@@ -41,9 +41,6 @@ Options
     predicates ... (list)   functions that check whether given option value is
                             valid
     includes   ... (list)   header files required by handler/predicates
-    read_only  ... (bool)   true: option should not provide a ::set method,
-                            false (default): option should provide a ::set
-                            method to set the option value
     alternate  ... (bool)   true (default): add --no-<long> alternative option
                             false: omit --no-<long> alternative option
     help       ... (string) documentation (required if category is not
@@ -71,7 +68,6 @@ Options
       handler    = "stringToOutputLanguage"
       predicates = []
       includes   = ["options/language.h"]
-      read_only  = false
       help       = "force output language (default is \"auto\"; see --output-lang help)"
 
 

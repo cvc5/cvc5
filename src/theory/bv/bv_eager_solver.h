@@ -45,8 +45,8 @@ class EagerBitblastSolver {
   bool collectModelInfo(theory::TheoryModel* m, bool fullModel);
 
  private:
-  context::CDHashSet<Node, NodeHashFunction> d_assertionSet;
-  context::CDHashSet<Node, NodeHashFunction> d_assumptionSet;
+  context::CDHashSet<Node> d_assertionSet;
+  context::CDHashSet<Node> d_assumptionSet;
   context::Context* d_context;
 
   /** Bitblasters */

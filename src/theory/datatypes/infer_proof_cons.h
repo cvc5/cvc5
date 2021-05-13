@@ -42,9 +42,8 @@ namespace datatypes {
  */
 class InferProofCons : public ProofGenerator
 {
-  typedef context::
-      CDHashMap<Node, std::shared_ptr<DatatypesInference>, NodeHashFunction>
-          NodeDatatypesInferenceMap;
+  typedef context::CDHashMap<Node, std::shared_ptr<DatatypesInference>>
+      NodeDatatypesInferenceMap;
 
  public:
   InferProofCons(context::Context* c, ProofNodeManager* pnm);

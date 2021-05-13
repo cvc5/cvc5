@@ -544,7 +544,6 @@ TEST_F(TestApiBlackSolver, mkOp)
   ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, EQUAL), CVC5ApiException);
 
   // mkOp(Kind kind, const std::string& arg)
-  ASSERT_NO_THROW(d_solver.mkOp(RECORD_UPDATE, "asdf"));
   ASSERT_NO_THROW(d_solver.mkOp(DIVISIBLE, "2147483648"));
   ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, "asdf"), CVC5ApiException);
 
