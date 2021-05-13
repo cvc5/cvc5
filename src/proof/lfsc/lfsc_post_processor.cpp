@@ -215,7 +215,8 @@ bool LfscProofPostprocessCallback::update(Node res,
       // or if we have a null terminator.
       // special case: constructors and apply uf are not treated as n-ary; these
       // symbols have function types that expect n arguments.
-      bool isNary = NodeManager::isNAryKind(k) && k != kind::APPLY_CONSTRUCTOR && k != kind::APPLY_UF;
+      bool isNary = NodeManager::isNAryKind(k) && k != kind::APPLY_CONSTRUCTOR
+                    && k != kind::APPLY_UF;
       if (isNary && (nchildren > 2 || !nullTerm.isNull()))
       {
         // get the null terminator for the kind, which may mean we are doing

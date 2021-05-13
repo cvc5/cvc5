@@ -1122,12 +1122,12 @@ Node SequencesRewriter::rewriteRangeRegExp(TNode node)
     // re.range( "A", "A" ) ---> str.to_re( "A" )
     return returnRewrite(node, retNode, Rewrite::RE_RANGE_SINGLE);
   }
-  
+
   bool appliedCh = true;
   unsigned ch[2];
   for (size_t i = 0; i < 2; ++i)
   {
-    if (node[i].isConst() || node[i].getConst<String>().size()!=1)
+    if (node[i].isConst() || node[i].getConst<String>().size() != 1)
     {
       appliedCh = false;
       break;

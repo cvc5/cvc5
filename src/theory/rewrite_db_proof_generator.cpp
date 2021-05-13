@@ -77,8 +77,7 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
   d_db.getMatches(eqi, &d_notify);
   d_currRecLimit++;
   // if we cached it during the above call, we succeeded
-  std::unordered_map<Node, DslPfRule>::iterator it =
-      d_pcache.find(eqi);
+  std::unordered_map<Node, DslPfRule>::iterator it = d_pcache.find(eqi);
   if (it != d_pcache.end())
   {
     Assert(it->second != DslPfRule::FAIL);
@@ -185,8 +184,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
 {
   Assert(eqi.getKind() == kind::EQUAL);
   // already cached?
-  std::unordered_map<Node, DslPfRule>::iterator it =
-      d_pcache.find(eqi);
+  std::unordered_map<Node, DslPfRule>::iterator it = d_pcache.find(eqi);
   if (it != d_pcache.end())
   {
     if (it->second != DslPfRule::FAIL)
@@ -348,8 +346,7 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
 
 Node RewriteDbProofCons::doEvaluate(Node n)
 {
-  std::unordered_map<Node, Node>::iterator itv =
-      d_evalCache.find(n);
+  std::unordered_map<Node, Node>::iterator itv = d_evalCache.find(n);
   if (itv != d_evalCache.end())
   {
     return itv->second;

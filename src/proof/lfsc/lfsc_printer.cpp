@@ -72,7 +72,8 @@ void LfscPrinter::print(std::ostream& out,
     // note that we must get all "component types" of a type, so that
     // e.g. U is printed as a sort declaration when we have type (Array U Int).
     TypeNode st = s.getType();
-    if (st.isConstructor() || st.isSelector() || st.isTester() || st.isUpdater())
+    if (st.isConstructor() || st.isSelector() || st.isTester()
+        || st.isUpdater())
     {
       // can ignore these types
       continue;
@@ -144,7 +145,8 @@ void LfscPrinter::print(std::ostream& out,
   for (const Node& s : syms)
   {
     TypeNode st = s.getType();
-    if (st.isConstructor() || st.isSelector() || st.isTester() || st.isUpdater())
+    if (st.isConstructor() || st.isSelector() || st.isTester()
+        || st.isUpdater())
     {
       // constructors, selector, testers, updaters are defined by the datatype
       continue;
