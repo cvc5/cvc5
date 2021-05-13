@@ -21,6 +21,7 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
+#include "parser/input_parser.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/smt2/smt2.h"
@@ -90,10 +91,11 @@ class TestParserBlackParser : public TestInternal
                                        .withOptions(d_options)
                                        .withInputLanguage(d_lang)
                                        .build());
-    parser->setInput(Input::newStringInput(d_lang, goodInput, "test"));
+    std::unique_ptr<InputParser> inputParser =
+        parser->parseString("test", goodInput);
     ASSERT_FALSE(parser->done());
     Command* cmd;
-    while ((cmd = parser->nextCommand()) != NULL)
+    while ((cmd = inputParser->nextCommand()) != NULL)
     {
       Debug("parser") << "Parsed command: " << (*cmd) << std::endl;
       delete cmd;
@@ -110,11 +112,12 @@ class TestParserBlackParser : public TestInternal
                                        .withInputLanguage(d_lang)
                                        .withStrictMode(strictMode)
                                        .build());
-    parser->setInput(Input::newStringInput(d_lang, badInput, "test"));
+    std::unique_ptr<InputParser> inputParser =
+        parser->parseString("test", badInput);
     ASSERT_THROW(
         {
           Command* cmd;
-          while ((cmd = parser->nextCommand()) != NULL)
+          while ((cmd = inputParser->nextCommand()) != NULL)
           {
             Debug("parser") << "Parsed command: " << (*cmd) << std::endl;
             delete cmd;
@@ -131,7 +134,8 @@ class TestParserBlackParser : public TestInternal
                                        .withOptions(d_options)
                                        .withInputLanguage(d_lang)
                                        .build());
-    parser->setInput(Input::newStringInput(d_lang, goodExpr, "test"));
+    std::unique_ptr<InputParser> inputParser =
+        parser->parseString("test", goodExpr);
     if (d_lang == LANG_SMTLIB_V2)
     {
       /* Use QF_LIA to make multiplication ("*") available */
@@ -142,9 +146,9 @@ class TestParserBlackParser : public TestInternal
     ASSERT_FALSE(parser->done());
     setupContext(*parser);
     ASSERT_FALSE(parser->done());
-    api::Term e = parser->nextExpression();
+    api::Term e = inputParser->nextExpression();
     ASSERT_FALSE(e.isNull());
-    e = parser->nextExpression();
+    e = inputParser->nextExpression();
     ASSERT_TRUE(parser->done());
     ASSERT_TRUE(e.isNull());
   }
@@ -166,10 +170,11 @@ class TestParserBlackParser : public TestInternal
                                        .withInputLanguage(d_lang)
                                        .withStrictMode(strictMode)
                                        .build());
-    parser->setInput(Input::newStringInput(d_lang, badExpr, "test"));
+    std::unique_ptr<InputParser> inputParser =
+        parser->parseString("test", badExpr);
     setupContext(*parser);
     ASSERT_FALSE(parser->done());
-    ASSERT_THROW(api::Term e = parser->nextExpression();
+    ASSERT_THROW(api::Term e = inputParser->nextExpression();
                  std::cout << std::endl
                            << "Bad expr succeeded." << std::endl
                            << "Input: <<" << badExpr << ">>" << std::endl

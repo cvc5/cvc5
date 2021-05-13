@@ -70,6 +70,7 @@ class InputStream
   const std::string getName() const;
 }; /* class InputStream */
 
+class InputParser;
 class Parser;
 
 /**
@@ -81,6 +82,7 @@ class Parser;
 class CVC5_EXPORT Input
 {
   friend class Parser; // for parseError, parseCommand, parseExpr
+  friend class InputParser;  // for parseError, parseCommand, parseExpr
   friend class ParserBuilder;
 
   /** The input stream. */

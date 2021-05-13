@@ -31,6 +31,7 @@
 
 #include "api/cpp/cvc5.h"
 #include "options/set_language.h"
+#include "parser/input_parser.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"
@@ -104,19 +105,19 @@ std::string parse(std::string instr,
   SymbolManager symman(&solver);
   std::unique_ptr<Parser> parser(
       ParserBuilder(&solver, &symman).withInputLanguage(ilang).build());
-  parser->setInput(
-      Input::newStringInput(ilang, declarations, "internal-buffer"));
+  std::unique_ptr<InputParser> inputParser =
+      parser->parseString("internal-buffer", declarations);
   // we don't need to execute the commands, but we DO need to parse them to
   // get the declarations
-  while (Command* c = parser->nextCommand())
+  while (Command* c = inputParser->nextCommand())
   {
     delete c;
   }
   assert(parser->done());  // parser should be done
-  parser->setInput(Input::newStringInput(ilang, instr, "internal-buffer"));
-  api::Term e = parser->nextExpression();
+  inputParser = parser->parseString("internal-buffer", instr);
+  api::Term e = inputParser->nextExpression();
   std::string s = e.toString();
-  assert(parser->nextExpression().isNull());  // next expr should be null
+  assert(inputParser->nextExpression().isNull());  // next expr should be null
   return s;
 }
 

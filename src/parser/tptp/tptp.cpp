@@ -34,9 +34,12 @@ namespace parser {
 
 Tptp::Tptp(api::Solver* solver,
            SymbolManager* sm,
+           InputLanguage lang,
            bool strictMode,
            bool parseOnly)
-    : Parser(solver, sm, strictMode, parseOnly), d_cnf(false), d_fof(false)
+    : Parser(solver, sm, lang, strictMode, parseOnly),
+      d_cnf(false),
+      d_fof(false)
 {
   addTheory(Tptp::THEORY_CORE);
 

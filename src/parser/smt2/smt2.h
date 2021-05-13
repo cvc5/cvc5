@@ -66,6 +66,7 @@ class Smt2 : public Parser
  protected:
   Smt2(api::Solver* solver,
        SymbolManager* sm,
+       InputLanguage lang,
        bool strictMode = false,
        bool parseOnly = false);
 

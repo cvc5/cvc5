@@ -20,6 +20,7 @@
 #include "api/cpp/cvc5.h"
 #include "options/options.h"
 #include "options/set_language.h"
+#include "parser/input_parser.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"
@@ -62,16 +63,15 @@ void testGetInfo(api::Solver* solver, const char* s)
 
   std::unique_ptr<Parser> p(
       ParserBuilder(solver, symman.get(), solver->getOptions()).build());
-  p->setInput(Input::newStringInput(language::input::LANG_SMTLIB_V2,
-                                    string("(get-info ") + s + ")",
-                                    "<internal>"));
+  std::unique_ptr<InputParser> inputParser =
+      p->parseString("<internal>", string("(get-info ") + s + ")");
   assert(p != NULL);
-  Command* c = p->nextCommand();
+  Command* c = inputParser->nextCommand();
   assert(c != NULL);
   cout << c << endl;
   stringstream ss;
   c->invoke(solver, symman.get(), ss);
-  assert(p->nextCommand() == NULL);
+  assert(inputParser->nextCommand() == NULL);
   delete c;
   cout << ss.str() << endl << endl;
 }

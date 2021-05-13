@@ -19,6 +19,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <memory>
 #include <sstream>
 #include <unordered_set>
 
@@ -28,6 +29,7 @@
 #include "expr/kind.h"
 #include "options/options.h"
 #include "parser/input.h"
+#include "parser/input_parser.h"
 #include "parser/parser_exception.h"
 #include "smt/command.h"
 
@@ -39,9 +41,11 @@ namespace parser {
 
 Parser::Parser(api::Solver* solver,
                SymbolManager* sm,
+               InputLanguage lang,
                bool strictMode,
                bool parseOnly)
     : d_symman(sm),
+      d_lang(lang),
       d_symtab(sm->getSymbolTable()),
       d_assertionLevel(0),
       d_anonymousFunctionCount(0),
@@ -63,6 +67,33 @@ Parser::~Parser() {
     delete command;
   }
   d_commandQueue.clear();
+}
+
+std::unique_ptr<InputParser> Parser::parseFile(const std::string& fname,
+                                               bool useMmap)
+{
+  d_input = Input::newFileInput(d_lang, fname, useMmap);
+  d_input->setParser(*this);
+  d_done = false;
+  return std::unique_ptr<InputParser>(new InputParser(this, d_input));
+}
+
+std::unique_ptr<InputParser> Parser::parseStream(const std::string& name,
+                                                 std::istream& stream)
+{
+  d_input = Input::newStreamInput(d_lang, stream, name);
+  d_input->setParser(*this);
+  d_done = false;
+  return std::unique_ptr<InputParser>(new InputParser(this, d_input));
+}
+
+std::unique_ptr<InputParser> Parser::parseString(const std::string& name,
+                                                 const std::string& str)
+{
+  d_input = Input::newStringInput(d_lang, str, name);
+  d_input->setParser(*this);
+  d_done = false;
+  return std::unique_ptr<InputParser>(new InputParser(this, d_input));
 }
 
 api::Solver* Parser::getSolver() const { return d_solver; }
@@ -665,54 +696,18 @@ void Parser::checkFunctionLike(api::Term fun)
   }
 }
 
+bool Parser::hasCommand() { return !d_commandQueue.empty(); }
+
 void Parser::addOperator(api::Kind kind) { d_logicOperators.insert(kind); }
 
 void Parser::preemptCommand(Command* cmd) { d_commandQueue.push_back(cmd); }
-Command* Parser::nextCommand()
-{
-  Debug("parser") << "nextCommand()" << std::endl;
-  Command* cmd = NULL;
-  if (!d_commandQueue.empty()) {
-    cmd = d_commandQueue.front();
-    d_commandQueue.pop_front();
-    setDone(cmd == NULL);
-  } else {
-    try {
-      cmd = d_input->parseCommand();
-      d_commandQueue.push_back(cmd);
-      cmd = d_commandQueue.front();
-      d_commandQueue.pop_front();
-      setDone(cmd == NULL);
-    } catch (ParserException& e) {
-      setDone();
-      throw;
-    } catch (exception& e) {
-      setDone();
-      parseError(e.what());
-    }
-  }
-  Debug("parser") << "nextCommand() => " << cmd << std::endl;
-  return cmd;
-}
 
-api::Term Parser::nextExpression()
+Command* Parser::getNextCommand()
 {
-  Debug("parser") << "nextExpression()" << std::endl;
-  api::Term result;
-  if (!done()) {
-    try {
-      result = d_input->parseExpr();
-      setDone(result.isNull());
-    } catch (ParserException& e) {
-      setDone();
-      throw;
-    } catch (exception& e) {
-      setDone();
-      parseError(e.what());
-    }
-  }
-  Debug("parser") << "nextExpression() => " << result << std::endl;
-  return result;
+  Assert(!d_commandQueue.empty());
+  Command* cmd = d_commandQueue.front();
+  d_commandQueue.pop_front();
+  return cmd;
 }
 
 void Parser::attributeNotSupported(const std::string& attr) {

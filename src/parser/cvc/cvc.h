@@ -38,9 +38,10 @@ class Cvc : public Parser
  protected:
   Cvc(api::Solver* solver,
       SymbolManager* sm,
+      InputLanguage lang,
       bool strictMode = false,
       bool parseOnly = false)
-      : Parser(solver, sm, strictMode, parseOnly)
+      : Parser(solver, sm, lang, strictMode, parseOnly)
   {
   }
 };

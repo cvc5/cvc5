@@ -38,6 +38,8 @@ set(libcvc5parser_src_files
   cvc/cvc_input.h
   input.cpp
   input.h
+  input_parser.cpp
+  input_parser.h
   line_buffer.cpp
   line_buffer.h
   memory_mapped_input_buffer.cpp

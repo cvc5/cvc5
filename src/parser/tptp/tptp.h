@@ -90,6 +90,7 @@ class Tptp : public Parser {
  protected:
   Tptp(api::Solver* solver,
        SymbolManager* sm,
+       InputLanguage lang,
        bool strictMode = false,
        bool parseOnly = false);
 

@@ -35,6 +35,7 @@
 #include "main/time_limit.h"
 #include "options/options.h"
 #include "options/set_language.h"
+#include "parser/input_parser.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"
@@ -261,14 +262,13 @@ int runCvc5(int argc, char* argv[], Options& opts)
                                   pExecutor->getSymbolManager(),
                                   opts);
       std::unique_ptr<Parser> parser(parserBuilder.build());
+      std::unique_ptr<InputParser> inputParser;
       if( inputFromStdin ) {
-        parser->setInput(
-            Input::newStreamInput(opts.getInputLanguage(), cin, filename));
+        inputParser = parser->parseStream(filename, cin);
       }
       else
       {
-        parser->setInput(Input::newFileInput(
-            opts.getInputLanguage(), filename, opts.getMemoryMap()));
+        inputParser = parser->parseFile(filename, opts.getMemoryMap());
       }
 
       vector< vector<Command*> > allCommands;
@@ -284,7 +284,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
         }
 
         try {
-          cmd.reset(parser->nextCommand());
+          cmd.reset(inputParser->nextCommand());
           if (cmd == nullptr) break;
         } catch (UnsafeInterruptException& e) {
           interrupted = true;
@@ -417,14 +417,13 @@ int runCvc5(int argc, char* argv[], Options& opts)
                                   pExecutor->getSymbolManager(),
                                   opts);
       std::unique_ptr<Parser> parser(parserBuilder.build());
+      std::unique_ptr<InputParser> inputParser;
       if( inputFromStdin ) {
-        parser->setInput(
-            Input::newStreamInput(opts.getInputLanguage(), cin, filename));
+        inputParser = parser->parseStream(filename, cin);
       }
       else
       {
-        parser->setInput(Input::newFileInput(
-            opts.getInputLanguage(), filename, opts.getMemoryMap()));
+        inputParser = parser->parseFile(filename, opts.getMemoryMap());
       }
 
       bool interrupted = false;
@@ -436,7 +435,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
           break;
         }
         try {
-          cmd.reset(parser->nextCommand());
+          cmd.reset(inputParser->nextCommand());
           if (cmd == nullptr) break;
         } catch (UnsafeInterruptException& e) {
           interrupted = true;

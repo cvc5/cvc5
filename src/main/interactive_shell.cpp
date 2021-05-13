@@ -17,11 +17,13 @@
  */
 #include "main/interactive_shell.h"
 
+#include <string.h>
+
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <set>
-#include <string.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -43,6 +45,7 @@
 #include "options/language.h"
 #include "options/options.h"
 #include "parser/input.h"
+#include "parser/input_parser.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"
@@ -306,8 +309,8 @@ restart:
     }
   }
 
-  d_parser->setInput(Input::newStringInput(d_options.getInputLanguage(),
-                                           input, INPUT_FILENAME));
+  std::unique_ptr<InputParser> inputParser =
+      d_parser->parseString(INPUT_FILENAME, input);
 
   /* There may be more than one command in the input. Build up a
      sequence. */
@@ -316,7 +319,7 @@ restart:
 
   try
   {
-    while ((cmd = d_parser->nextCommand()))
+    while ((cmd = inputParser->nextCommand()))
     {
       cmd_seq->addCommand(cmd);
       if (dynamic_cast<QuitCommand*>(cmd) != NULL)

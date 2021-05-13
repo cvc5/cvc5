@@ -65,19 +65,20 @@ Parser* ParserBuilder::build()
   switch (d_lang)
   {
     case language::input::LANG_SYGUS_V2:
-      parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
+      parser = new Smt2(d_solver, d_symman, d_lang, d_strictMode, d_parseOnly);
       break;
     case language::input::LANG_TPTP:
-      parser = new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly);
+      parser = new Tptp(d_solver, d_symman, d_lang, d_strictMode, d_parseOnly);
       break;
     default:
       if (language::isInputLang_smt2(d_lang))
       {
-        parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
+        parser =
+            new Smt2(d_solver, d_symman, d_lang, d_strictMode, d_parseOnly);
       }
       else
       {
-        parser = new Cvc(d_solver, d_symman, d_strictMode, d_parseOnly);
+        parser = new Cvc(d_solver, d_symman, d_lang, d_strictMode, d_parseOnly);
       }
       break;
   }

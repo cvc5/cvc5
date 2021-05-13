@@ -105,131 +105,157 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
 class CVC5_EXPORT Parser
 {
   friend class ParserBuilder;
-private:
 
- /** The input that we're parsing. */
- std::unique_ptr<Input> d_input;
+ private:
+  /** The input that we're parsing. */
+  Input* d_input;
 
- /**
-  * Reference to the symbol manager, which manages the symbol table used by
-  * this parser.
-  */
- SymbolManager* d_symman;
+  /**
+   * Reference to the symbol manager, which manages the symbol table used by
+   * this parser.
+   */
+  SymbolManager* d_symman;
 
- /**
-  * This current symbol table used by this parser, from symbol manager.
-  */
- SymbolTable* d_symtab;
+  /** The language that we are parsing. */
+  InputLanguage d_lang;
 
- /**
-  * The level of the assertions in the declaration scope.  Things declared
-  * after this level are bindings from e.g. a let, a quantifier, or a
-  * lambda.
-  */
- size_t d_assertionLevel;
+  /**
+   * This current symbol table used by this parser, from symbol manager.
+   */
+  SymbolTable* d_symtab;
 
- /** How many anonymous functions we've created. */
- size_t d_anonymousFunctionCount;
+  /**
+   * The level of the assertions in the declaration scope.  Things declared
+   * after this level are bindings from e.g. a let, a quantifier, or a
+   * lambda.
+   */
+  size_t d_assertionLevel;
 
- /** Are we done */
- bool d_done;
+  /** How many anonymous functions we've created. */
+  size_t d_anonymousFunctionCount;
 
- /** Are semantic checks enabled during parsing? */
- bool d_checksEnabled;
+  /** Are we done */
+  bool d_done;
 
- /** Are we parsing in strict mode? */
- bool d_strictMode;
+  /** Are semantic checks enabled during parsing? */
+  bool d_checksEnabled;
 
- /** Are we only parsing? */
- bool d_parseOnly;
+  /** Are we parsing in strict mode? */
+  bool d_strictMode;
 
- /**
-  * Can we include files?  (Set to false for security purposes in
-  * e.g. the online version.)
-  */
- bool d_canIncludeFile;
+  /** Are we only parsing? */
+  bool d_parseOnly;
 
- /**
-  * Whether the logic has been forced with --force-logic.
-  */
- bool d_logicIsForced;
+  /**
+   * Can we include files?  (Set to false for security purposes in
+   * e.g. the online version.)
+   */
+  bool d_canIncludeFile;
 
- /**
-  * The logic, if d_logicIsForced == true.
-  */
- std::string d_forcedLogic;
+  /**
+   * Whether the logic has been forced with --force-logic.
+   */
+  bool d_logicIsForced;
 
- /** The set of operators available in the current logic. */
- std::set<api::Kind> d_logicOperators;
+  /**
+   * The logic, if d_logicIsForced == true.
+   */
+  std::string d_forcedLogic;
 
- /** The set of attributes already warned about. */
- std::set<std::string> d_attributesWarnedAbout;
+  /** The set of operators available in the current logic. */
+  std::set<api::Kind> d_logicOperators;
 
- /**
-  * The current set of unresolved types.  We can get by with this NOT
-  * being on the scope, because we can only have one DATATYPE
-  * definition going on at one time.  This is a bit hackish; we
-  * depend on mkMutualDatatypeTypes() to check everything and clear
-  * this out.
-  */
- std::set<api::Sort> d_unresolved;
+  /** The set of attributes already warned about. */
+  std::set<std::string> d_attributesWarnedAbout;
 
- /**
-  * "Preemption commands": extra commands implied by subterms that
-  * should be issued before the currently-being-parsed command is
-  * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
-  *
-  * Owns the memory of the Commands in the queue.
-  */
- std::list<Command*> d_commandQueue;
+  /**
+   * The current set of unresolved types.  We can get by with this NOT
+   * being on the scope, because we can only have one DATATYPE
+   * definition going on at one time.  This is a bit hackish; we
+   * depend on mkMutualDatatypeTypes() to check everything and clear
+   * this out.
+   */
+  std::set<api::Sort> d_unresolved;
 
- /** Lookup a symbol in the given namespace (as specified by the type).
-  * Only returns a symbol if it is not overloaded, returns null otherwise.
-  */
- api::Term getSymbol(const std::string& var_name, SymbolType type);
+  /**
+   * "Preemption commands": extra commands implied by subterms that
+   * should be issued before the currently-being-parsed command is
+   * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
+   *
+   * Owns the memory of the Commands in the queue.
+   */
+  std::list<Command*> d_commandQueue;
 
-protected:
- /** The API Solver object. */
- api::Solver* d_solver;
+  /** Lookup a symbol in the given namespace (as specified by the type).
+   * Only returns a symbol if it is not overloaded, returns null otherwise.
+   */
+  api::Term getSymbol(const std::string& var_name, SymbolType type);
 
- /**
-  * Create a parser state.
-  *
-  * @attention The parser takes "ownership" of the given
-  * input and will delete it on destruction.
-  *
-  * @param solver solver API object
-  * @param symm reference to the symbol manager
-  * @param input the parser input
-  * @param strictMode whether to incorporate strict(er) compliance checks
-  * @param parseOnly whether we are parsing only (and therefore certain checks
-  * need not be performed, like those about unimplemented features, @see
-  * unimplementedFeature())
-  */
- Parser(api::Solver* solver,
-        SymbolManager* sm,
-        bool strictMode = false,
-        bool parseOnly = false);
+ protected:
+  /** The API Solver object. */
+  api::Solver* d_solver;
 
-public:
+  /**
+   * Create a parser state.
+   *
+   * @attention The parser takes "ownership" of the given
+   * input and will delete it on destruction.
+   *
+   * @param solver solver API object
+   * @param symm reference to the symbol manager
+   * @param input the parser input
+   * @param strictMode whether to incorporate strict(er) compliance checks
+   * @param parseOnly whether we are parsing only (and therefore certain checks
+   * need not be performed, like those about unimplemented features, @see
+   * unimplementedFeature())
+   */
+  Parser(api::Solver* solver,
+         SymbolManager* sm,
+         InputLanguage lang,
+         bool strictMode = false,
+         bool parseOnly = false);
 
+ public:
   virtual ~Parser();
+
+  /**
+   * Parse a file with this parser.
+   *
+   * @param fname The name of the file to parse.
+   * @param useMmap Whether to map the file.
+   * @return An `InputParser` that can be used to retrieve commands/expressions.
+   */
+  std::unique_ptr<InputParser> parseFile(const std::string& fname,
+                                         bool useMmap);
+
+  /**
+   * Parse a input stream with this parser.
+   *
+   * @param name The name of the stream (used for parser errors)
+   * @param stream The stream to parse.
+   * @return An `InputParser` that can be used to retrieve commands/expressions.
+   */
+  std::unique_ptr<InputParser> parseStream(const std::string& name,
+                                           std::istream& stream);
+
+  /**
+   * Parse a string with this parser.
+   *
+   * @param name The name of the stream (used for parser errors)
+   * @param str The string to parse.
+   * @return An `InputParser` that can be used to retrieve commands/expressions.
+   */
+  std::unique_ptr<InputParser> parseString(const std::string& name,
+                                           const std::string& str);
 
   /** Get the associated solver. */
   api::Solver* getSolver() const;
 
   /** Get the associated input. */
-  Input* getInput() const { return d_input.get(); }
+  Input* getInput() const { return d_input; }
 
   /** Get unresolved sorts */
   inline std::set<api::Sort>& getUnresolvedSorts() { return d_unresolved; }
-
-  /** Deletes and replaces the current parser input. */
-  void setInput(Input* input)  {
-    d_input.reset(input);
-    d_input->setParser(*this);
-    d_done = false;
-  }
 
   /**
    * Check if we are done -- either the end of input has been reached, or some
@@ -637,6 +663,9 @@ public:
    */
   void addOperator(api::Kind kind);
 
+  /** Is there a command in the queue? */
+  bool hasCommand();
+
   /**
    * Preempt the next returned command with other ones; used to
    * support the :named attribute in SMT-LIBv2, which implicitly
@@ -644,6 +673,9 @@ public:
    * because function and predicate symbols are implicitly declared.
    */
   void preemptCommand(Command* cmd);
+
+  /** Get the next command from the queue. */
+  Command* getNextCommand();
 
   /** Is the symbol bound to a boolean variable? */
   bool isBoolean(const std::string& name);
@@ -655,12 +687,6 @@ public:
 
   /** Is the symbol bound to a predicate? */
   bool isPredicate(const std::string& name);
-
-  /** Parse and return the next command. */
-  Command* nextCommand();
-
-  /** Parse and return the next expression. */
-  api::Term nextExpression();
 
   /** Issue a warning to the user. */
   void warning(const std::string& msg) { d_input->warning(msg); }
