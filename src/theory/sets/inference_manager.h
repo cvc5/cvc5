@@ -36,7 +36,7 @@ class TheorySetsPrivate;
  */
 class InferenceManager : public InferenceManagerBuffered
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   InferenceManager(Theory& t, SolverState& s, ProofNodeManager* pnm);

@@ -87,7 +87,7 @@ class BVSolverBitblast : public BVSolver
    * Is cleared at the beginning of a getValue() call if the
    * `d_invalidateModelCache` flag is set to true.
    */
-  std::unordered_map<Node, Node, NodeHashFunction> d_modelCache;
+  std::unordered_map<Node, Node> d_modelCache;
 
   /** Bit-blaster used to bit-blast atoms/terms. */
   std::unique_ptr<BBSimple> d_bitblaster;
@@ -123,8 +123,7 @@ class BVSolverBitblast : public BVSolver
   BVProofRuleChecker d_bvProofChecker;
 
   /** Stores the SatLiteral for a given fact. */
-  context::CDHashMap<Node, prop::SatLiteral, NodeHashFunction>
-      d_factLiteralCache;
+  context::CDHashMap<Node, prop::SatLiteral> d_factLiteralCache;
 
   /** Reverse map of `d_factLiteralCache`. */
   context::CDHashMap<prop::SatLiteral, Node, prop::SatLiteralHashFunction>

@@ -804,7 +804,7 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
     }
   }
 
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
   std::stack<TNode> working;
   std::set<TNode> relevantVariables;
   for (std::set<Node>::const_iterator i(relevantTerms.begin());

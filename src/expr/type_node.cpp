@@ -29,11 +29,13 @@ namespace cvc5 {
 
 TypeNode TypeNode::s_null( &expr::NodeValue::null() );
 
-TypeNode TypeNode::substitute(const TypeNode& type,
-                              const TypeNode& replacement,
-                              std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const {
+TypeNode TypeNode::substitute(
+    const TypeNode& type,
+    const TypeNode& replacement,
+    std::unordered_map<TypeNode, TypeNode>& cache) const
+{
   // in cache?
-  std::unordered_map<TypeNode, TypeNode, HashFunction>::const_iterator i = cache.find(*this);
+  std::unordered_map<TypeNode, TypeNode>::const_iterator i = cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
@@ -683,3 +685,12 @@ TypeNode TypeNode::getBagElementType() const
 }
 
 }  // namespace cvc5
+
+namespace std {
+
+size_t hash<cvc5::TypeNode>::operator()(const cvc5::TypeNode& tn) const
+{
+  return tn.getId();
+}
+
+}  // namespace std

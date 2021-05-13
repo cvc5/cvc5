@@ -54,8 +54,8 @@ class TermRegistry;
 // TODO: organize this more/review this, github issue #1163
 class QuantifiersEngine {
   friend class ::cvc5::TheoryEngine;
-  typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashMap<Node, bool> BoolMap;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   QuantifiersEngine(quantifiers::QuantifiersState& qstate,

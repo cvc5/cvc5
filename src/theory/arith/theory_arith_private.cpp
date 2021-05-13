@@ -3975,7 +3975,7 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
 
   // Delta lasts at least the duration of the function call
   const Rational& delta = d_partialModel.getDelta();
-  std::unordered_set<TNode, TNodeHashFunction> shared = d_containing.currentlySharedTerms();
+  std::unordered_set<TNode> shared = d_containing.currentlySharedTerms();
 
   // TODO:
   // This is not very good for user push/pop....
@@ -4446,7 +4446,7 @@ bool TheoryArithPrivate::tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, b
 
 Node flattenImplication(Node imp){
   NodeBuilder nb(kind::OR);
-  std::unordered_set<Node, NodeHashFunction> included;
+  std::unordered_set<Node> included;
   Node left = imp[0];
   Node right = imp[1];
 
