@@ -69,15 +69,9 @@ void LfscPrinter::print(std::ostream& out,
   std::unordered_set<TypeNode> sts;
   for (const Node& s : syms)
   {
+    TypeNode st = s.getType();
     // note that we must get all "component types" of a type, so that
     // e.g. U is printed as a sort declaration when we have type (Array U Int).
-    TypeNode st = s.getType();
-    if (st.isConstructor() || st.isSelector() || st.isTester()
-        || st.isUpdater())
-    {
-      // can ignore these types
-      continue;
-    }
     std::unordered_set<TypeNode> types;
     expr::getComponentTypes(st, types);
     std::unordered_set<size_t> tupleArity;
