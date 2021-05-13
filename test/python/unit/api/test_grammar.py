@@ -18,9 +18,11 @@ import pytest
 import pycvc5
 from pycvc5 import kinds, Term
 
+
 @pytest.fixture
 def solver():
     return pycvc5.Solver()
+
 
 def test_add_rule(solver):
     boolean = solver.getBooleanSort()
