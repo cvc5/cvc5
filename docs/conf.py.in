@@ -18,6 +18,11 @@ sys.path.insert(0, '${CMAKE_CURRENT_SOURCE_DIR}/ext/')
 # path to python api
 sys.path.insert(0, '${CMAKE_BINARY_DIR}/src/api/python')
 
+if("${BUILD_BINDINGS_PYTHON}" == "ON"):
+        tags.add('bindings_python')
+if("${BUILD_BINDINGS_JAVA}" == "ON"):
+        tags.add('bindings_java')
+
 
 # -- Project information -----------------------------------------------------
 

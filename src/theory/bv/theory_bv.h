@@ -122,6 +122,13 @@ class TheoryBV : public Theory
   /** The notify class for equality engine. */
   TheoryEqNotifyClass d_notify;
 
+  /** TheoryBV statistics. */
+  struct Statistics
+  {
+    Statistics(const std::string& name);
+    IntStat d_solveSubstitutions;
+  } d_stats;
+
 }; /* class TheoryBV */
 
 }  // namespace bv

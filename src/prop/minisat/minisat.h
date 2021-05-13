@@ -123,6 +123,7 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
   public:
    Statistics(StatisticsRegistry& registry);
    void init(Minisat::SimpSolver* d_minisat);
+   void deinit();
   };/* class MinisatSatSolver::Statistics */
   Statistics d_statistics;
 

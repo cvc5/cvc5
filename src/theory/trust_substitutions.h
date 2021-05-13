@@ -38,14 +38,16 @@ namespace theory {
  */
 class TrustSubstitutionMap : public ProofGenerator
 {
-  using NodeUIntMap = context::CDHashMap<Node, size_t, NodeHashFunction>;
+  using NodeUIntMap = context::CDHashMap<Node, size_t>;
 
  public:
   TrustSubstitutionMap(context::Context* c,
-                       ProofNodeManager* pnm,
+                       ProofNodeManager* pnm = nullptr,
                        std::string name = "TrustSubstitutionMap",
                        PfRule trustId = PfRule::PREPROCESS_LEMMA,
                        MethodId ids = MethodId::SB_DEFAULT);
+  /** Set proof node manager */
+  void setProofNodeManager(ProofNodeManager* pnm);
   /** Gets a reference to the underlying substitution map */
   SubstitutionMap& get();
   /**
@@ -87,7 +89,9 @@ class TrustSubstitutionMap : public ProofGenerator
    * proving n = n*sigma, where the proof generator is provided by this class
    * (when proofs are enabled).
    */
-  TrustNode apply(Node n, bool doRewrite = true);
+  TrustNode applyTrusted(Node n, bool doRewrite = true);
+  /** Same as above, without proofs */
+  Node apply(Node n, bool doRewrite = true);
 
   /** Get the proof for formula f */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
@@ -105,8 +109,6 @@ class TrustSubstitutionMap : public ProofGenerator
   context::Context* d_ctx;
   /** The substitution map */
   SubstitutionMap d_subs;
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** A context-dependent list of trust nodes */
   context::CDList<TrustNode> d_tsubs;
   /** Theory proof step buffer */
@@ -118,7 +120,7 @@ class TrustSubstitutionMap : public ProofGenerator
   /**
    * A context-dependent list of LazyCDProof, allocated for internal steps.
    */
-  CDProofSet<LazyCDProof> d_helperPf;
+  std::unique_ptr<CDProofSet<LazyCDProof>> d_helperPf;
   /** Name for debugging */
   std::string d_name;
   /**

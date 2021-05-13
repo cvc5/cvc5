@@ -34,6 +34,8 @@
 
 namespace cvc5 {
 
+using Record = std::vector<std::pair<std::string, TypeNode>>;
+
 namespace api {
 class Solver;
 }
@@ -987,10 +989,13 @@ class NodeManager
   TypeNode mkConstructorType(const std::vector<TypeNode>& args, TypeNode range);
 
   /** Make a type representing a selector with the given parameterization */
-  inline TypeNode mkSelectorType(TypeNode domain, TypeNode range);
+  TypeNode mkSelectorType(TypeNode domain, TypeNode range);
 
   /** Make a type representing a tester with given parameterization */
-  inline TypeNode mkTesterType(TypeNode domain);
+  TypeNode mkTesterType(TypeNode domain);
+
+  /** Make a type representing an updater with the given parameterization */
+  TypeNode mkDatatypeUpdateType(TypeNode domain, TypeNode range);
 
   /** Bits for use in mkSort() flags. */
   enum
@@ -1129,22 +1134,6 @@ inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
                 "option --uf-ho.");
   Debug("sets") << "making sets type " << elementType << std::endl;
   return mkTypeNode(kind::SET_TYPE, elementType);
-}
-
-inline TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range) {
-  CheckArgument(domain.isDatatype(), domain,
-                "cannot create non-datatype selector type");
-  CheckArgument(range.isFirstClass(),
-                range,
-                "cannot have selector fields that are not first-class types. "
-                "Try option --uf-ho.");
-  return mkTypeNode(kind::SELECTOR_TYPE, domain, range);
-}
-
-inline TypeNode NodeManager::mkTesterType(TypeNode domain) {
-  CheckArgument(domain.isDatatype(), domain,
-                "cannot create non-datatype tester");
-  return mkTypeNode(kind::TESTER_TYPE, domain );
 }
 
 inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {

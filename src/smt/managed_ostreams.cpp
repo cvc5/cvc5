@@ -22,6 +22,7 @@
 
 #include "base/check.h"
 #include "options/open_ostream.h"
+#include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "smt/update_ostream.h"
 

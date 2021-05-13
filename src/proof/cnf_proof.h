@@ -32,14 +32,14 @@ namespace prop {
 
 class CnfProof;
 
-typedef std::unordered_map<Node, Node, NodeHashFunction> NodeToNode;
+typedef std::unordered_map<Node, Node> NodeToNode;
 typedef std::unordered_set<ClauseId> ClauseIdSet;
 
 typedef context::CDHashMap<ClauseId, Node> ClauseIdToNode;
 typedef std::pair<Node, Node> NodePair;
 typedef std::set<NodePair> NodePairSet;
 
-typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+typedef std::unordered_set<Node> NodeSet;
 
 class CnfProof {
 protected:

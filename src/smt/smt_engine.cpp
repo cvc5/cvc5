@@ -26,8 +26,10 @@
 #include "options/expr_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
+#include "options/option_exception.h"
 #include "options/printer_options.h"
 #include "options/proof_options.h"
+#include "options/resource_manager_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
@@ -38,7 +40,6 @@
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
 #include "smt/check_models.h"
-#include "smt/defined_function.h"
 #include "smt/dump.h"
 #include "smt/dump_manager.h"
 #include "smt/env.h"
@@ -86,7 +87,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
     : d_env(new Env(nm, optr)),
       d_state(new SmtEngineState(getContext(), getUserContext(), *this)),
       d_absValues(new AbstractValues(getNodeManager())),
-      d_asserts(new Assertions(getUserContext(), *d_absValues.get())),
+      d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
       d_routListener(new ResourceOutListener(*this)),
       d_snmListener(new SmtNodeManagerListener(*getDumpManager(), d_outMgr)),
       d_smtSolver(nullptr),
@@ -95,7 +96,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       d_checkModels(nullptr),
       d_pfManager(nullptr),
       d_ucManager(nullptr),
-      d_definedFunctions(nullptr),
       d_sygusSolver(nullptr),
       d_abductSolver(nullptr),
       d_interpolSolver(nullptr),
@@ -129,11 +129,11 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // make statistics
   d_stats.reset(new SmtEngineStatistics());
   // reset the preprocessor
-  d_pp.reset(new smt::Preprocessor(
-      *this, getUserContext(), *d_absValues.get(), *d_stats));
+  d_pp.reset(
+      new smt::Preprocessor(*this, *d_env.get(), *d_absValues.get(), *d_stats));
   // make the SMT solver
   d_smtSolver.reset(
-      new SmtSolver(*this, *d_state, getResourceManager(), *d_pp, *d_stats));
+      new SmtSolver(*this, *d_env.get(), *d_state, *d_pp, *d_stats));
   // make the SyGuS solver
   d_sygusSolver.reset(
       new SygusSolver(*d_smtSolver, *d_pp, getUserContext(), d_outMgr));
@@ -149,8 +149,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // being parsed from the input file. Because of this, we cannot trust
   // that d_env->getOption(options::unsatCores) is set correctly yet.
   d_proofManager.reset(new ProofManager(getUserContext()));
-
-  d_definedFunctions = new (true) DefinedFunctionMap(getUserContext());
 }
 
 bool SmtEngine::isFullyInited() const { return d_state->isFullyInited(); }
@@ -245,7 +243,7 @@ void SmtEngine::finishInit()
   {
     d_model.reset(new Model(tm));
     // make the check models utility
-    d_checkModels.reset(new CheckModels(*d_smtSolver.get()));
+    d_checkModels.reset(new CheckModels(*d_env.get()));
   }
 
   // global push/pop around everything, to ensure proper destruction
@@ -315,8 +313,6 @@ SmtEngine::~SmtEngine()
     // global push/pop around everything, to ensure proper destruction
     // of context-dependent data structures
     d_state->cleanup();
-
-    d_definedFunctions->deleteSelf();
 
     //destroy all passes before destroying things that they refer to
     d_pp->cleanup();
@@ -644,36 +640,26 @@ void SmtEngine::defineFunction(Node func,
   ss << language::SetLanguage(
             language::SetLanguage::getLanguage(Dump.getStream()))
      << func;
-  std::vector<Node> nFormals;
-  nFormals.reserve(formals.size());
 
-  for (const Node& formal : formals)
-  {
-    nFormals.push_back(formal);
-  }
-
-  DefineFunctionNodeCommand nc(ss.str(), func, nFormals, formula);
+  DefineFunctionNodeCommand nc(ss.str(), func, formals, formula);
   getDumpManager()->addToDump(nc, "declarations");
 
   // type check body
   debugCheckFunctionBody(formula, formals, func);
 
   // Substitute out any abstract values in formula
-  Node formNode = d_absValues->substituteAbstractValues(formula);
-  DefinedFunction def(func, formals, formNode);
-  // Permit (check-sat) (define-fun ...) (get-value ...) sequences.
-  // Otherwise, (check-sat) (get-value ((! foo :named bar))) breaks
-  // d_haveAdditions = true;
-  Debug("smt") << "definedFunctions insert " << func << " " << formNode << endl;
-
-  if (global)
+  Node def = d_absValues->substituteAbstractValues(formula);
+  if (!formals.empty())
   {
-    d_definedFunctions->insertAtContextLevelZero(func, def);
+    NodeManager* nm = NodeManager::currentNM();
+    def = nm->mkNode(
+        kind::LAMBDA, nm->mkNode(kind::BOUND_VAR_LIST, formals), def);
   }
-  else
-  {
-    d_definedFunctions->insert(func, def);
-  }
+  // A define-fun is treated as a (higher-order) assertion. It is provided
+  // to the assertions object. It will be added as a top-level substitution
+  // within this class, possibly multiple times if global is true.
+  Node feq = func.eqNode(def);
+  d_asserts->addDefineFunDefinition(feq, global);
 }
 
 void SmtEngine::defineFunctionsRec(
@@ -746,7 +732,7 @@ void SmtEngine::defineFunctionsRec(
     //   notice we don't call assertFormula directly, since this would
     //   duplicate the output on raw-benchmark.
     // add define recursive definition to the assertions
-    d_asserts->addDefineFunRecDefinition(lem, global);
+    d_asserts->addDefineFunDefinition(lem, global);
   }
 }
 
@@ -762,12 +748,6 @@ void SmtEngine::defineFunctionRec(Node func,
   std::vector<Node> formulas;
   formulas.push_back(formula);
   defineFunctionsRec(funcs, formals_multi, formulas, global);
-}
-
-bool SmtEngine::isDefinedFunction(Node func)
-{
-  Debug("smt") << "isDefined function " << func << "?" << std::endl;
-  return d_definedFunctions->find(func) != d_definedFunctions->end();
 }
 
 Result SmtEngine::quickCheck() {
@@ -1149,15 +1129,13 @@ Node SmtEngine::simplify(const Node& ex)
   return d_pp->simplify(ex);
 }
 
-Node SmtEngine::expandDefinitions(const Node& ex, bool expandOnly)
+Node SmtEngine::expandDefinitions(const Node& ex)
 {
-  getResourceManager()->spendResource(
-      Resource::PreprocessStep);
-
+  getResourceManager()->spendResource(Resource::PreprocessStep);
   SmtScope smts(this);
   finishInit();
   d_state->doPendingPops();
-  return d_pp->expandDefinitions(ex, expandOnly);
+  return d_pp->expandDefinitions(ex);
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
@@ -1293,6 +1271,7 @@ Result SmtEngine::blockModel()
       ModelBlocker::getModelBlocker(eassertsProc,
                                     m->getTheoryModel(),
                                     d_env->getOption(options::blockModelsMode));
+  Trace("smt") << "Block formula: " << eblocker << std::endl;
   return assertFormula(eblocker);
 }
 
@@ -1351,7 +1330,7 @@ std::vector<Node> SmtEngine::getExpandedAssertions()
   std::vector<Node> easserts = getAssertions();
   // must expand definitions
   std::vector<Node> eassertsProc;
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  std::unordered_map<Node, Node> cache;
   for (const Node& e : easserts)
   {
     Node eae = d_pp->expandDefinitions(e, cache);
@@ -1359,6 +1338,7 @@ std::vector<Node> SmtEngine::getExpandedAssertions()
   }
   return eassertsProc;
 }
+Env& SmtEngine::getEnv() { return *d_env.get(); }
 
 void SmtEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 {
@@ -1400,7 +1380,7 @@ void SmtEngine::checkProof()
   std::shared_ptr<ProofNode> pePfn = pe->getProof();
   if (d_env->getOption(options::checkProofs))
   {
-    d_pfManager->checkProof(pePfn, *d_asserts, *d_definedFunctions);
+    d_pfManager->checkProof(pePfn, *d_asserts);
   }
 }
 
@@ -1443,8 +1423,7 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
     pepf = pe->getProof();
   }
   Assert(pepf != nullptr);
-  std::shared_ptr<ProofNode> pfn =
-      d_pfManager->getFinalProof(pepf, *d_asserts, *d_definedFunctions);
+  std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(pepf, *d_asserts);
   std::vector<Node> core;
   d_ucManager->getUnsatCore(pfn, *d_asserts, core);
   return UnsatCore(core);
@@ -1475,8 +1454,9 @@ void SmtEngine::checkUnsatCore() {
 
   Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions"
            << std::endl;
+  theory::TrustSubstitutionMap& tls = d_env->getTopLevelSubstitutions();
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
-    Node assertionAfterExpansion = expandDefinitions(*i);
+    Node assertionAfterExpansion = tls.apply(*i, false);
     Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i
              << ", expanded to " << assertionAfterExpansion << "\n";
     coreChecker->assertFormula(assertionAfterExpansion);
@@ -1513,6 +1493,14 @@ void SmtEngine::checkModel(bool hardFailure) {
   Model* m = getAvailableModel("check model");
   Assert(m != nullptr);
 
+  // check the model with the theory engine for debugging
+  if (options::debugCheckModels())
+  {
+    TheoryEngine* te = getTheoryEngine();
+    Assert(te != nullptr);
+    te->checkTheoryAssertionsWithModel(hardFailure);
+  }
+
   // check the model with the check models utility
   Assert(d_checkModels != nullptr);
   d_checkModels->checkModel(m, al, hardFailure);
@@ -1537,8 +1525,8 @@ void SmtEngine::getRelevantInstantiationTermVectors(
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
   Assert(pe->getProof() != nullptr);
-  std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(
-      pe->getProof(), *d_asserts, *d_definedFunctions);
+  std::shared_ptr<ProofNode> pfn =
+      d_pfManager->getFinalProof(pe->getProof(), *d_asserts);
   d_ucManager->getRelevantInstantiations(pfn, insts);
 }
 
@@ -1567,7 +1555,7 @@ std::string SmtEngine::getProof()
   Assert(pe->getProof() != nullptr);
   Assert(d_pfManager);
   std::ostringstream ss;
-  d_pfManager->printProof(ss, pe->getProof(), *d_asserts, *d_definedFunctions);
+  d_pfManager->printProof(ss, pe->getProof(), *d_asserts);
   return ss.str();
 }
 

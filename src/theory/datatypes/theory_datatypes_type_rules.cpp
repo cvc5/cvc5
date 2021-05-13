@@ -203,6 +203,46 @@ TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
+                                             TNode n,
+                                             bool check)
+{
+  Assert(n.getKind() == kind::APPLY_UPDATER);
+  TypeNode updType = n.getOperator().getType(check);
+  Assert(updType.getNumChildren() == 2);
+  if (check)
+  {
+    for (size_t i = 0; i < 2; i++)
+    {
+      TypeNode childType = n[i].getType(check);
+      TypeNode t = updType[i];
+      if (t.isParametricDatatype())
+      {
+        Debug("typecheck-idt")
+            << "typecheck parameterized update: " << n << std::endl;
+        TypeMatcher m(t);
+        if (!m.doMatching(t, childType))
+        {
+          throw TypeCheckingExceptionPrivate(
+              n,
+              "matching failed for update argument of parameterized datatype");
+        }
+      }
+      else
+      {
+        Debug("typecheck-idt") << "typecheck update: " << n << std::endl;
+        Debug("typecheck-idt") << "test type: " << updType << std::endl;
+        if (!t.isComparableTo(childType))
+        {
+          throw TypeCheckingExceptionPrivate(n, "bad type for update argument");
+        }
+      }
+    }
+  }
+  // type is the first argument
+  return updType[0];
+}
+
 TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
                                                  bool check)
@@ -246,78 +286,6 @@ Cardinality ConstructorProperties::computeCardinality(TypeNode type)
     c *= type[i].getCardinality();
   }
   return c;
-}
-
-TypeNode TupleUpdateTypeRule::computeType(NodeManager* nodeManager,
-                                          TNode n,
-                                          bool check)
-{
-  Assert(n.getKind() == kind::TUPLE_UPDATE);
-  const TupleUpdate& tu = n.getOperator().getConst<TupleUpdate>();
-  TypeNode tupleType = n[0].getType(check);
-  TypeNode newValue = n[1].getType(check);
-  if (check)
-  {
-    if (!tupleType.isTuple())
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "Tuple-update expression formed over non-tuple");
-    }
-    if (tu.getIndex() >= tupleType.getTupleLength())
-    {
-      std::stringstream ss;
-      ss << "Tuple-update expression index `" << tu.getIndex()
-         << "' is not a valid index; tuple type only has "
-         << tupleType.getTupleLength() << " fields";
-      throw TypeCheckingExceptionPrivate(n, ss.str().c_str());
-    }
-  }
-  return tupleType;
-}
-
-TypeNode TupleUpdateOpTypeRule::computeType(NodeManager* nodeManager,
-                                            TNode n,
-                                            bool check)
-{
-  Assert(n.getKind() == kind::TUPLE_UPDATE_OP);
-  return nodeManager->builtinOperatorType();
-}
-
-TypeNode RecordUpdateTypeRule::computeType(NodeManager* nodeManager,
-                                           TNode n,
-                                           bool check)
-{
-  Assert(n.getKind() == kind::RECORD_UPDATE);
-  NodeManagerScope nms(nodeManager);
-  const RecordUpdate& ru = n.getOperator().getConst<RecordUpdate>();
-  TypeNode recordType = n[0].getType(check);
-  TypeNode newValue = n[1].getType(check);
-  if (check)
-  {
-    if (!recordType.isRecord())
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "Record-update expression formed over non-record");
-    }
-    const DType& dt = recordType.getDType();
-    const DTypeConstructor& recCons = dt[0];
-    if (recCons.getSelectorIndexForName(ru.getField()) == -1)
-    {
-      std::stringstream ss;
-      ss << "Record-update field `" << ru.getField()
-         << "' is not a valid field name for the record type";
-      throw TypeCheckingExceptionPrivate(n, ss.str().c_str());
-    }
-  }
-  return recordType;
-}
-
-TypeNode RecordUpdateOpTypeRule::computeType(NodeManager* nodeManager,
-                                             TNode n,
-                                             bool check)
-{
-  Assert(n.getKind() == kind::RECORD_UPDATE_OP);
-  return nodeManager->builtinOperatorType();
 }
 
 TypeNode DtSizeTypeRule::computeType(NodeManager* nodeManager,
@@ -452,7 +420,7 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
     if (check)
     {
       Kind nck = nc.getKind();
-      std::unordered_set<Node, NodeHashFunction> bvs;
+      std::unordered_set<Node> bvs;
       if (nck == kind::MATCH_BIND_CASE)
       {
         for (const Node& v : nc[0])

@@ -55,6 +55,7 @@
 #include <cerrno>
 #include <cstring>
 
+#include "base/exception.h"
 #include "signal_handlers.h"
 
 namespace cvc5 {

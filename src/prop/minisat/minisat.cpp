@@ -37,6 +37,7 @@ MinisatSatSolver::MinisatSatSolver(StatisticsRegistry& registry)
 
 MinisatSatSolver::~MinisatSatSolver()
 {
+  d_statistics.deinit();
   delete d_minisat;
 }
 
@@ -315,6 +316,18 @@ void MinisatSatSolver::Statistics::init(Minisat::SimpSolver* minisat){
   d_statLearntsLiterals.set(minisat->learnts_literals);
   d_statMaxLiterals.set(minisat->max_literals);
   d_statTotLiterals.set(minisat->tot_literals);
+}
+void MinisatSatSolver::Statistics::deinit()
+{
+  d_statStarts.reset();
+  d_statDecisions.reset();
+  d_statRndDecisions.reset();
+  d_statPropagations.reset();
+  d_statConflicts.reset();
+  d_statClausesLiterals.reset();
+  d_statLearntsLiterals.reset();
+  d_statMaxLiterals.reset();
+  d_statTotLiterals.reset();
 }
 
 }  // namespace prop

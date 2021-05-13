@@ -704,6 +704,29 @@ TypeNode NodeManager::mkConstructorType(const std::vector<TypeNode>& args,
   return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
 }
 
+TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range)
+{
+  CheckArgument(
+      domain.isDatatype(), domain, "cannot create non-datatype selector type");
+  return mkTypeNode(kind::SELECTOR_TYPE, domain, range);
+}
+
+TypeNode NodeManager::mkTesterType(TypeNode domain)
+{
+  CheckArgument(
+      domain.isDatatype(), domain, "cannot create non-datatype tester");
+  return mkTypeNode(kind::TESTER_TYPE, domain);
+}
+
+TypeNode NodeManager::mkDatatypeUpdateType(TypeNode domain, TypeNode range)
+{
+  CheckArgument(
+      domain.isDatatype(), domain, "cannot create non-datatype upater type");
+  // It is a function type domain x range -> domain, we store only the
+  // arguments
+  return mkTypeNode(kind::UPDATER_TYPE, domain, range);
+}
+
 TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vector< TypeNode >& types, unsigned index ) {
   if( index==types.size() ){
     if( d_data.isNull() ){

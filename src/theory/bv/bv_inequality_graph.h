@@ -99,17 +99,18 @@ class InequalityGraph : public context::ContextNotifyObj{
 
       return (*(d_model->find(left))).second.value < (*(d_model->find(right))).second.value; 
     }
-  }; 
+  };
 
-  typedef std::unordered_map<TNode, ReasonId, TNodeHashFunction> ReasonToIdMap;
-  typedef std::unordered_map<TNode, TermId, TNodeHashFunction> TermNodeToIdMap;
+  typedef std::unordered_map<TNode, ReasonId> ReasonToIdMap;
+  typedef std::unordered_map<TNode, TermId> TermNodeToIdMap;
 
   typedef std::vector<InequalityEdge> Edges; 
   typedef std::unordered_set<TermId> TermIdSet;
 
-  typedef std::priority_queue<TermId, std::vector<TermId>, QueueComparator> BFSQueue; 
-  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+  typedef std::priority_queue<TermId, std::vector<TermId>, QueueComparator>
+      BFSQueue;
+  typedef std::unordered_set<TNode> TNodeSet;
+  typedef std::unordered_set<Node> NodeSet;
 
   std::vector<InequalityNode> d_ineqNodes;
   std::vector< Edges > d_ineqEdges;
@@ -206,7 +207,7 @@ class InequalityGraph : public context::ContextNotifyObj{
   
   /*** The currently asserted disequalities */
   context::CDQueue<TNode> d_disequalities;
-  typedef context::CDHashSet<Node, NodeHashFunction> CDNodeSet;
+  typedef context::CDHashSet<Node> CDNodeSet;
   CDNodeSet d_disequalitiesAlreadySplit; 
   Node makeDiseqSplitLemma(TNode diseq); 
   /** Backtracking mechanisms **/

@@ -58,21 +58,19 @@ TEST_F(TestTheoryWhiteIntOpt, max)
   d_smtEngine->assertFormula(upb);
   d_smtEngine->assertFormula(lowb);
 
-  const ObjectiveType max_type = ObjectiveType::OBJECTIVE_MAXIMIZE;
 
   // We activate our objective so the subsolver knows to optimize it
-  d_optslv->activateObj(max_cost, max_type);
+  d_optslv->pushObjective(max_cost, OptimizationObjective::MAXIMIZE);
 
-  OptResult r = d_optslv->checkOpt();
+  OptimizationResult::ResultType r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
+  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
 
   // We expect max_cost == 99
-  ASSERT_EQ(d_optslv->objectiveGetValue(),
-            d_nodeManager->mkConst(Rational("99")));
+  ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
+            Rational("99"));
 
-  std::cout << "Optimized max value is: " << d_optslv->objectiveGetValue()
-            << std::endl;
+  d_optslv->popObjective();
 }
 
 TEST_F(TestTheoryWhiteIntOpt, min)
@@ -92,21 +90,19 @@ TEST_F(TestTheoryWhiteIntOpt, min)
   d_smtEngine->assertFormula(upb);
   d_smtEngine->assertFormula(lowb);
 
-  const ObjectiveType min_type = ObjectiveType::OBJECTIVE_MINIMIZE;
 
   // We activate our objective so the subsolver knows to optimize it
-  d_optslv->activateObj(max_cost, min_type);
+  d_optslv->pushObjective(max_cost, OptimizationObjective::MINIMIZE);
 
-  OptResult r = d_optslv->checkOpt();
+  OptimizationResult::ResultType r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
+  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
 
   // We expect max_cost == 99
-  ASSERT_EQ(d_optslv->objectiveGetValue(),
-            d_nodeManager->mkConst(Rational("1")));
+  ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
+            Rational("1"));
 
-  std::cout << "Optimized max value is: " << d_optslv->objectiveGetValue()
-            << std::endl;
+  d_optslv->popObjective();
 }
 
 TEST_F(TestTheoryWhiteIntOpt, result)
@@ -126,16 +122,16 @@ TEST_F(TestTheoryWhiteIntOpt, result)
   d_smtEngine->assertFormula(upb);
   d_smtEngine->assertFormula(lowb);
 
-  const ObjectiveType max_type = ObjectiveType::OBJECTIVE_MAXIMIZE;
 
   // We activate our objective so the subsolver knows to optimize it
-  d_optslv->activateObj(max_cost, max_type);
+  d_optslv->pushObjective(max_cost, OptimizationObjective::MAXIMIZE);
 
   // This should return OPT_UNSAT since 0 > x > 100 is impossible.
-  OptResult r = d_optslv->checkOpt();
+  OptimizationResult::ResultType r = d_optslv->checkOpt();
   
   // We expect our check to have returned UNSAT
-  ASSERT_EQ(r, OptResult::OPT_UNSAT);
+  ASSERT_EQ(r, OptimizationResult::UNSAT);
+  d_optslv->popObjective();
 }
 
 TEST_F(TestTheoryWhiteIntOpt, open_interval)
@@ -161,18 +157,16 @@ TEST_F(TestTheoryWhiteIntOpt, open_interval)
   */
   Node cost3 = d_nodeManager->mkNode(kind::PLUS, cost1, cost2);
 
-  const ObjectiveType min_type = ObjectiveType::OBJECTIVE_MINIMIZE;
-  d_optslv->activateObj(cost3, min_type);
+  d_optslv->pushObjective(cost3, OptimizationObjective::MINIMIZE);
 
-  OptResult r = d_optslv->checkOpt();
+  OptimizationResult::ResultType r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
+  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
 
   // expect the minimum result of cost3 = cost1 + cost2 to be 1 + 111 = 112
-  ASSERT_EQ(d_optslv->objectiveGetValue(),
-            d_nodeManager->mkConst(Rational("112")));
-  std::cout << "Optimized min value is: " << d_optslv->objectiveGetValue()
-            << std::endl;
+  ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
+            Rational("112"));
+  d_optslv->popObjective();
 }
 
 }  // namespace test

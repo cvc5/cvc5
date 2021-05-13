@@ -98,7 +98,8 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   theory::TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
-  if (options::produceProofs())
+  if (options::produceProofs()
+      && options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS)
   {
     Assert(options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF
            || tte.getGenerator());
@@ -216,7 +217,7 @@ void TheoryProxy::getSkolems(TNode node,
                              std::vector<Node>& skAsserts,
                              std::vector<Node>& sks)
 {
-  std::unordered_set<Node, NodeHashFunction> skolems;
+  std::unordered_set<Node> skolems;
   d_skdm->getSkolems(node, skolems);
   for (const Node& k : skolems)
   {

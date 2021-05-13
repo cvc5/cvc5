@@ -42,6 +42,7 @@
 
 namespace cvc5 {
 
+class Env;
 class ResourceManager;
 class OutputManager;
 class TheoryEngineProofGenerator;
@@ -67,10 +68,10 @@ struct NodeTheoryPair {
 };/* struct NodeTheoryPair */
 
 struct NodeTheoryPairHashFunction {
-  NodeHashFunction hashFunction;
+  std::hash<Node> hashFunction;
   // Hash doesn't take into account the timestamp
   size_t operator()(const NodeTheoryPair& pair) const {
-    uint64_t hash = fnv1a::fnv1a_64(NodeHashFunction()(pair.d_node));
+    uint64_t hash = fnv1a::fnv1a_64(std::hash<Node>()(pair.d_node));
     return static_cast<size_t>(fnv1a::fnv1a_64(pair.d_theory, hash));
   }
 };/* struct NodeTheoryPairHashFunction */
@@ -107,11 +108,10 @@ class TheoryEngine {
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
 
-  /** Our context */
-  context::Context* d_context;
-
-  /** Our user context */
-  context::UserContext* d_userContext;
+  /**
+   * Reference to the environment.
+   */
+  Env& d_env;
 
   /**
    * A table of from theory IDs to theory pointers. Never use this table
@@ -127,6 +127,7 @@ class TheoryEngine {
    * the cost of walking the DAG on registration, etc.
    */
   const LogicInfo& d_logicInfo;
+
   /** The separation logic location and data types */
   TypeNode d_sepLocType;
   TypeNode d_sepDataType;
@@ -161,7 +162,7 @@ class TheoryEngine {
    * An empty set of relevant assertions, which is returned as a dummy value for
    * getRelevantAssertions when relevance is disabled.
    */
-  std::unordered_set<TNode, TNodeHashFunction> d_emptyRelevantSet;
+  std::unordered_set<TNode> d_emptyRelevantSet;
 
   /** are we in eager model building mode? (see setEagerModelBuilding). */
   bool d_eager_model_building;
@@ -290,16 +291,10 @@ class TheoryEngine {
 
   /** Whether we were just interrupted (or not) */
   bool d_interrupted;
-  ResourceManager* d_resourceManager;
 
  public:
   /** Constructs a theory engine */
-  TheoryEngine(context::Context* context,
-               context::UserContext* userContext,
-               ResourceManager* rm,
-               const LogicInfo& logic,
-               OutputManager& outMgr,
-               ProofNodeManager* pnm);
+  TheoryEngine(Env& env, OutputManager& outMgr, ProofNodeManager* pnm);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -318,8 +313,8 @@ class TheoryEngine {
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new theory::EngineOutputChannel(this, theoryId);
-    d_theoryTable[theoryId] = new TheoryClass(d_context,
-                                              d_userContext,
+    d_theoryTable[theoryId] = new TheoryClass(getSatContext(),
+                                              getUserContext(),
                                               *d_theoryOut[theoryId],
                                               theory::Valuation(this),
                                               d_logicInfo,
@@ -358,12 +353,12 @@ class TheoryEngine {
   /**
    * Get a pointer to the underlying sat context.
    */
-  context::Context* getSatContext() const { return d_context; }
+  context::Context* getSatContext() const;
 
   /**
    * Get a pointer to the underlying user context.
    */
-  context::UserContext* getUserContext() const { return d_userContext; }
+  context::UserContext* getUserContext() const;
 
   /**
    * Get a pointer to the underlying quantifiers engine.
@@ -642,8 +637,7 @@ class TheoryEngine {
    * relevance manager failed to compute relevant assertions due to an internal
    * error.
    */
-  const std::unordered_set<TNode, TNodeHashFunction>& getRelevantAssertions(
-      bool& success);
+  const std::unordered_set<TNode>& getRelevantAssertions(bool& success);
 
   /**
    * Forwards an entailment check according to the given theoryOfMode.
