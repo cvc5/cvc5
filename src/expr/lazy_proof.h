@@ -92,8 +92,7 @@ class LazyCDProof : public CDProof
   bool hasGenerator(Node fact) const;
 
  protected:
-  typedef context::CDHashMap<Node, ProofGenerator*, NodeHashFunction>
-      NodeProofGeneratorMap;
+  typedef context::CDHashMap<Node, ProofGenerator*> NodeProofGeneratorMap;
   /** Maps facts that can be proven to generators */
   NodeProofGeneratorMap d_gens;
   /** The default proof generator */

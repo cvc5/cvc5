@@ -246,8 +246,7 @@ class CDProof : public ProofGenerator
   std::string identify() const override;
 
  protected:
-  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
-      NodeProofNodeMap;
+  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofNodeMap;
   /** The proof manager, used for allocating new ProofNode objects */
   ProofNodeManager* d_manager;
   /** A dummy context used by this class if none is provided */

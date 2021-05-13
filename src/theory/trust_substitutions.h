@@ -38,7 +38,7 @@ namespace theory {
  */
 class TrustSubstitutionMap : public ProofGenerator
 {
-  using NodeUIntMap = context::CDHashMap<Node, size_t, NodeHashFunction>;
+  using NodeUIntMap = context::CDHashMap<Node, size_t>;
 
  public:
   TrustSubstitutionMap(context::Context* c,

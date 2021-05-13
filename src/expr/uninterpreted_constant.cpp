@@ -90,7 +90,7 @@ std::ostream& operator<<(std::ostream& out, const UninterpretedConstant& uc) {
 size_t UninterpretedConstantHashFunction::operator()(
     const UninterpretedConstant& uc) const
 {
-  return TypeNodeHashFunction()(uc.getType())
+  return std::hash<TypeNode>()(uc.getType())
          * IntegerHashFunction()(uc.getIndex());
 }
 

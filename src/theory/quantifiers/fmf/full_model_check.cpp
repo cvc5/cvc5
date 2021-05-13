@@ -42,7 +42,7 @@ struct ModelBasisArgSort
 {
   std::vector< Node > d_terms;
   // number of arguments that are model-basis terms
-  std::unordered_map<Node, unsigned, NodeHashFunction> d_mba_count;
+  std::unordered_map<Node, unsigned> d_mba_count;
   bool operator() (int i,int j) {
     return (d_mba_count[d_terms[i]] < d_mba_count[d_terms[j]]);
   }

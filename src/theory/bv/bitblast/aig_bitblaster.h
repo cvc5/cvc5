@@ -56,8 +56,8 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
   static Abc_Ntk_t* currentAigNtk();
 
  private:
-  typedef std::unordered_map<TNode, Abc_Obj_t*, TNodeHashFunction> TNodeAigMap;
-  typedef std::unordered_map<Node, Abc_Obj_t*, NodeHashFunction> NodeAigMap;
+  typedef std::unordered_map<TNode, Abc_Obj_t*> TNodeAigMap;
+  typedef std::unordered_map<Node, Abc_Obj_t*> NodeAigMap;
 
   static thread_local Abc_Ntk_t* s_abcAigNetwork;
   std::unique_ptr<context::Context> d_nullContext;

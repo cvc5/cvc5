@@ -45,8 +45,7 @@ namespace strings {
  */
 class InferProofCons : public ProofGenerator
 {
-  typedef context::CDHashMap<Node, std::shared_ptr<InferInfo>, NodeHashFunction>
-      NodeInferInfoMap;
+  typedef context::CDHashMap<Node, std::shared_ptr<InferInfo>> NodeInferInfoMap;
 
  public:
   InferProofCons(context::Context* c,
