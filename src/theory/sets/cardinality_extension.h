@@ -62,7 +62,7 @@ namespace sets {
  */
 class CardinalityExtension
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   /**

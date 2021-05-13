@@ -62,10 +62,9 @@ class TermEnumeration
    */
   QuantifiersBoundInference* d_qbi;
   /** ground terms enumerated for types */
-  std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>
-      d_enum_terms;
+  std::unordered_map<TypeNode, std::vector<Node>> d_enum_terms;
   /** map from type to the index of its type enumerator in d_typ_enum. */
-  std::unordered_map<TypeNode, size_t, TypeNodeHashFunction> d_typ_enum_map;
+  std::unordered_map<TypeNode, size_t> d_typ_enum_map;
   /** type enumerators */
   std::vector<TypeEnumerator> d_typ_enum;
 };

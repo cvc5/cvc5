@@ -123,7 +123,7 @@ Node TermUtil::getRemoveQuantifiers( Node n ) {
 
 //quantified simplify
 Node TermUtil::getQuantSimplify( Node n ) {
-  std::unordered_set<Node, NodeHashFunction> fvs;
+  std::unordered_set<Node> fvs;
   expr::getFreeVariables(n, fvs);
   if (fvs.empty())
   {
@@ -156,8 +156,8 @@ void TermUtil::computeVarContainsInternal(Node n,
                                           Kind k,
                                           std::vector<Node>& vars)
 {
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);

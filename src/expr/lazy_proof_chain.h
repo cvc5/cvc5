@@ -144,7 +144,7 @@ class LazyCDProofChain : public ProofGenerator
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /** Maps facts that can be proven to generators */
-  context::CDHashMap<Node, ProofGenerator*, NodeHashFunction> d_gens;
+  context::CDHashMap<Node, ProofGenerator*> d_gens;
   /** The default proof generator (if one exists) */
   ProofGenerator* d_defGen;
 };

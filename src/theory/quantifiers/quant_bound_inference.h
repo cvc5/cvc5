@@ -116,7 +116,7 @@ class QuantifiersBoundInference
   /** Whether finite model finding is enabled */
   bool d_isFmf;
   /** may complete */
-  std::unordered_map<TypeNode, bool, TypeNodeHashFunction> d_may_complete;
+  std::unordered_map<TypeNode, bool> d_may_complete;
   /** The bounded integers module, which may help infer bounds */
   BoundedIntegers* d_bint;
 };

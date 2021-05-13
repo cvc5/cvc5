@@ -228,8 +228,7 @@ class Rewriter {
   /** The proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;
 #ifdef CVC5_ASSERTIONS
-  std::unique_ptr<std::unordered_set<Node, NodeHashFunction>> d_rewriteStack =
-      nullptr;
+  std::unique_ptr<std::unordered_set<Node>> d_rewriteStack = nullptr;
 #endif /* CVC5_ASSERTIONS */
 };/* class Rewriter */
 

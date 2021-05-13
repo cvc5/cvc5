@@ -117,14 +117,14 @@ class HoElim : public PreprocessingPass
    * Stores the set of nodes we have current visited and their results
    * in steps [1] and [2] of this pass.
    */
-  std::unordered_map<Node, Node, NodeHashFunction> d_visited;
+  std::unordered_map<Node, Node> d_visited;
   /**
    * Stores the mapping from functions f to their corresponding function H(f)
    * in the encoding for step [2] of this pass.
    */
-  std::unordered_map<TNode, Node, TNodeHashFunction> d_visited_op;
+  std::unordered_map<TNode, Node> d_visited_op;
   /** The set of all function types encountered in assertions. */
-  std::unordered_set<TypeNode, TypeNodeHashFunction> d_funTypes;
+  std::unordered_set<TypeNode> d_funTypes;
 
   /**
    * Get ho apply uf, this returns App_{@_{T1 x T2 ... x Tn -> T}}

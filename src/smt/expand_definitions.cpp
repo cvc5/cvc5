@@ -42,17 +42,16 @@ ExpandDefs::ExpandDefs(Env& env, SmtEngineStatistics& stats)
 
 ExpandDefs::~ExpandDefs() {}
 
-Node ExpandDefs::expandDefinitions(
-    TNode n, std::unordered_map<Node, Node, NodeHashFunction>& cache)
+Node ExpandDefs::expandDefinitions(TNode n,
+                                   std::unordered_map<Node, Node>& cache)
 {
   TrustNode trn = expandDefinitions(n, cache, nullptr);
   return trn.isNull() ? Node(n) : trn.getNode();
 }
 
-TrustNode ExpandDefs::expandDefinitions(
-    TNode n,
-    std::unordered_map<Node, Node, NodeHashFunction>& cache,
-    TConvProofGenerator* tpg)
+TrustNode ExpandDefs::expandDefinitions(TNode n,
+                                        std::unordered_map<Node, Node>& cache,
+                                        TConvProofGenerator* tpg)
 {
   const TNode orig = n;
   std::stack<std::tuple<Node, Node, bool>> worklist;
@@ -87,8 +86,7 @@ TrustNode ExpandDefs::expandDefinitions(
       }
 
       // maybe it's in the cache
-      std::unordered_map<Node, Node, NodeHashFunction>::iterator cacheHit =
-          cache.find(n);
+      std::unordered_map<Node, Node>::iterator cacheHit = cache.find(n);
       if (cacheHit != cache.end())
       {
         TNode ret = (*cacheHit).second;

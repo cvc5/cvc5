@@ -46,7 +46,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  std::unordered_set<Node, NodeHashFunction> symset;
+  std::unordered_set<Node> symset;
   for (size_t i = 0, size = asserts.size(); i < size; i++)
   {
     expr::getSymbols(asserts[i], symset);
