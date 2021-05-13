@@ -89,7 +89,7 @@ Node LfscNodeConverter::postConvert(Node n)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
-    if (tn.isConstructor() || tn.isSelector() || tn.isTester())
+    if (tn.isConstructor() || tn.isSelector() || tn.isTester() || tn.isUpdater())
     {
       // TODO: should be given user names
       return n;
@@ -132,7 +132,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // Assert(d_symbols.find(n.getOperator()) != d_symbols.end());
     return convert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
-  else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER)
+  else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER || k==APPLY_UPDATER)
   {
     // must convert other kinds of apply to functions, since we convert to
     // HO_APPLY

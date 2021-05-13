@@ -209,11 +209,13 @@ bool LfscProofPostprocessCallback::update(Node res,
       cdp->addStep(opEq, PfRule::REFL, {}, {op});
       size_t nchildren = children.size();
       Node nullTerm = LfscNodeConverter::getNullTerminator(k);
+      // special case: constructors are not treated as n-ary.
+      bool isNary = NodeManager::isNAryKind(k) && k != kind::APPLY_CONSTRUCTOR;
       // Are we doing congruence of an n-ary operator? If so, notice that op
       // is a binary operator and we must apply congruence in a special way.
       // Note we use the first block of code if we have more than 2 children,
       // or if we have a null terminator.
-      if (NodeManager::isNAryKind(k) && (nchildren > 2 || !nullTerm.isNull()))
+      if (isNary && (nchildren > 2 || !nullTerm.isNull()))
       {
         // get the null terminator for the kind, which may mean we are doing
         // a special kind of congruence for n-ary kinds whose base is a REFL
