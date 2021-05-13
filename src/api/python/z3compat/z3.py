@@ -152,7 +152,7 @@ class Context(object):
         return name
 
     def __eq__(self, o):
-        return self.solver == o.solver
+        return self.solver is o.solver
 
 
 # Global Z3 context
