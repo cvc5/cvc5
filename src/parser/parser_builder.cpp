@@ -31,38 +31,29 @@
 namespace cvc5 {
 namespace parser {
 
-ParserBuilder::ParserBuilder(api::Solver* solver,
-                             SymbolManager* sm,
-                             const std::string& filename)
-    : d_filename(filename), d_solver(solver), d_symman(sm)
+ParserBuilder::ParserBuilder(api::Solver* solver, SymbolManager* sm)
+    : d_solver(solver), d_symman(sm)
 {
-  init(solver, sm, filename);
+  init(solver, sm);
 }
 
 ParserBuilder::ParserBuilder(api::Solver* solver,
                              SymbolManager* sm,
-                             const std::string& filename,
                              const Options& options)
-    : d_filename(filename), d_solver(solver), d_symman(sm)
+    : d_solver(solver), d_symman(sm)
 {
-  init(solver, sm, filename);
+  init(solver, sm);
   withOptions(options);
 }
 
-void ParserBuilder::init(api::Solver* solver,
-                         SymbolManager* sm,
-                         const std::string& filename)
+void ParserBuilder::init(api::Solver* solver, SymbolManager* sm)
 {
-  d_inputType = FILE_INPUT;
   d_lang = language::input::LANG_AUTO;
-  d_filename = filename;
-  d_streamInput = NULL;
   d_solver = solver;
   d_symman = sm;
   d_checksEnabled = true;
   d_strictMode = false;
   d_canIncludeFile = true;
-  d_mmap = false;
   d_parseOnly = false;
   d_logicIsForced = false;
   d_forcedLogic = "";
@@ -70,39 +61,23 @@ void ParserBuilder::init(api::Solver* solver,
 
 Parser* ParserBuilder::build()
 {
-  Input* input = NULL;
-  switch( d_inputType ) {
-  case FILE_INPUT:
-    input = Input::newFileInput(d_lang, d_filename, d_mmap);
-    break;
-  case STREAM_INPUT:
-    Assert(d_streamInput != NULL);
-    input = Input::newStreamInput(d_lang, *d_streamInput, d_filename);
-    break;
-  case STRING_INPUT:
-    input = Input::newStringInput(d_lang, d_stringInput, d_filename);
-    break;
-  }
-
-  Assert(input != NULL);
-
   Parser* parser = NULL;
   switch (d_lang)
   {
     case language::input::LANG_SYGUS_V2:
-      parser = new Smt2(d_solver, d_symman, input, d_strictMode, d_parseOnly);
+      parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
       break;
     case language::input::LANG_TPTP:
-      parser = new Tptp(d_solver, d_symman, input, d_strictMode, d_parseOnly);
+      parser = new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly);
       break;
     default:
       if (language::isInputLang_smt2(d_lang))
       {
-        parser = new Smt2(d_solver, d_symman, input, d_strictMode, d_parseOnly);
+        parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
       }
       else
       {
-        parser = new Cvc(d_solver, d_symman, input, d_strictMode, d_parseOnly);
+        parser = new Cvc(d_solver, d_symman, d_strictMode, d_parseOnly);
       }
       break;
   }
@@ -131,29 +106,8 @@ ParserBuilder& ParserBuilder::withChecks(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withSolver(api::Solver* solver)
-{
-  d_solver = solver;
-  return *this;
-}
-
-ParserBuilder& ParserBuilder::withFileInput() {
-  d_inputType = FILE_INPUT;
-  return *this;
-}
-
-ParserBuilder& ParserBuilder::withFilename(const std::string& filename) {
-  d_filename = filename;
-  return *this;
-}
-
 ParserBuilder& ParserBuilder::withInputLanguage(InputLanguage lang) {
   d_lang = lang;
-  return *this;
-}
-
-ParserBuilder& ParserBuilder::withMmap(bool flag) {
-  d_mmap = flag;
   return *this;
 }
 
@@ -166,7 +120,6 @@ ParserBuilder& ParserBuilder::withOptions(const Options& options) {
   ParserBuilder& retval = *this;
   retval =
       retval.withInputLanguage(options.getInputLanguage())
-      .withMmap(options.getMemoryMap())
       .withChecks(options.getSemanticChecks())
       .withStrictMode(options.getStrictParsing())
       .withParseOnly(options.getParseOnly())
@@ -191,18 +144,6 @@ ParserBuilder& ParserBuilder::withIncludeFile(bool flag) {
 ParserBuilder& ParserBuilder::withForcedLogic(const std::string& logic) {
   d_logicIsForced = true;
   d_forcedLogic = logic;
-  return *this;
-}
-
-ParserBuilder& ParserBuilder::withStreamInput(std::istream& input) {
-  d_inputType = STREAM_INPUT;
-  d_streamInput = &input;
-  return *this;
-}
-
-ParserBuilder& ParserBuilder::withStringInput(const std::string& input) {
-  d_inputType = STRING_INPUT;
-  d_stringInput = input;
   return *this;
 }
 

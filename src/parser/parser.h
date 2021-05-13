@@ -19,6 +19,7 @@
 #define CVC5__PARSER__PARSER_H
 
 #include <list>
+#include <memory>
 #include <set>
 #include <string>
 
@@ -107,7 +108,7 @@ class CVC5_EXPORT Parser
 private:
 
  /** The input that we're parsing. */
- Input* d_input;
+ std::unique_ptr<Input> d_input;
 
  /**
   * Reference to the symbol manager, which manages the symbol table used by
@@ -207,7 +208,6 @@ protected:
   */
  Parser(api::Solver* solver,
         SymbolManager* sm,
-        Input* input,
         bool strictMode = false,
         bool parseOnly = false);
 
@@ -219,17 +219,14 @@ public:
   api::Solver* getSolver() const;
 
   /** Get the associated input. */
-  inline Input* getInput() const {
-    return d_input;
-  }
+  Input* getInput() const { return d_input.get(); }
 
   /** Get unresolved sorts */
   inline std::set<api::Sort>& getUnresolvedSorts() { return d_unresolved; }
 
   /** Deletes and replaces the current parser input. */
   void setInput(Input* input)  {
-    delete d_input;
-    d_input = input;
+    d_input.reset(input);
     d_input->setParser(*this);
     d_done = false;
   }

@@ -40,28 +40,19 @@ class TestParseBlackParserBuilder : public TestApi
  protected:
   void SetUp() override { d_symman.reset(new SymbolManager(&d_solver)); }
 
-  void checkEmptyInput(ParserBuilder& builder)
+  void checkEmptyInput(Parser* parser)
   {
-    Parser* parser = builder.build();
-    ASSERT_NE(parser, nullptr);
-
     api::Term e = parser->nextExpression();
     ASSERT_TRUE(e.isNull());
-
-    delete parser;
   }
 
-  void checkTrueInput(ParserBuilder& builder)
+  void checkTrueInput(Parser* parser)
   {
-    Parser* parser = builder.build();
-    ASSERT_NE(parser, nullptr);
-
     api::Term e = parser->nextExpression();
     ASSERT_EQ(e, d_solver.mkTrue());
 
     e = parser->nextExpression();
     ASSERT_TRUE(e.isNull());
-    delete parser;
   }
 
   char* mkTemp()
@@ -80,8 +71,11 @@ TEST_F(TestParseBlackParserBuilder, empty_file_input)
   char* filename = mkTemp();
   ASSERT_NE(filename, nullptr);
 
-  checkEmptyInput(ParserBuilder(&d_solver, d_symman.get(), filename)
-                      .withInputLanguage(LANG_CVC));
+  std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get())
+                                     .withInputLanguage(LANG_CVC)
+                                     .build());
+  parser->setInput(Input::newFileInput(LANG_CVC, filename, false));
+  checkEmptyInput(parser.get());
 
   remove(filename);
   free(filename);
@@ -95,8 +89,11 @@ TEST_F(TestParseBlackParserBuilder, simple_file_input)
   fs << "TRUE" << std::endl;
   fs.close();
 
-  checkTrueInput(ParserBuilder(&d_solver, d_symman.get(), filename)
-                     .withInputLanguage(LANG_CVC));
+  std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get())
+                                     .withInputLanguage(LANG_CVC)
+                                     .build());
+  parser->setInput(Input::newFileInput(LANG_CVC, filename, false));
+  checkTrueInput(parser.get());
 
   remove(filename);
   free(filename);
@@ -104,32 +101,40 @@ TEST_F(TestParseBlackParserBuilder, simple_file_input)
 
 TEST_F(TestParseBlackParserBuilder, empty_string_input)
 {
-  checkEmptyInput(ParserBuilder(&d_solver, d_symman.get(), "foo")
-                      .withInputLanguage(LANG_CVC)
-                      .withStringInput(""));
+  std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get())
+                                     .withInputLanguage(LANG_CVC)
+                                     .build());
+  parser->setInput(Input::newStringInput(LANG_CVC, "", "foo"));
+  checkEmptyInput(parser.get());
 }
 
 TEST_F(TestParseBlackParserBuilder, true_string_input)
 {
-  checkTrueInput(ParserBuilder(&d_solver, d_symman.get(), "foo")
-                     .withInputLanguage(LANG_CVC)
-                     .withStringInput("TRUE"));
+  std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get())
+                                     .withInputLanguage(LANG_CVC)
+                                     .build());
+  parser->setInput(Input::newStringInput(LANG_CVC, "TRUE", "foo"));
+  checkTrueInput(parser.get());
 }
 
 TEST_F(TestParseBlackParserBuilder, empty_stream_input)
 {
   std::stringstream ss("", std::ios_base::in);
-  checkEmptyInput(ParserBuilder(&d_solver, d_symman.get(), "foo")
-                      .withInputLanguage(LANG_CVC)
-                      .withStreamInput(ss));
+  std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get())
+                                     .withInputLanguage(LANG_CVC)
+                                     .build());
+  parser->setInput(Input::newStreamInput(LANG_CVC, ss, "foo"));
+  checkEmptyInput(parser.get());
 }
 
 TEST_F(TestParseBlackParserBuilder, true_stream_input)
 {
   std::stringstream ss("TRUE", std::ios_base::in);
-  checkTrueInput(ParserBuilder(&d_solver, d_symman.get(), "foo")
-                     .withInputLanguage(LANG_CVC)
-                     .withStreamInput(ss));
+  std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get())
+                                     .withInputLanguage(LANG_CVC)
+                                     .build());
+  parser->setInput(Input::newStreamInput(LANG_CVC, ss, "foo"));
+  checkTrueInput(parser.get());
 }
 
 }  // namespace test
