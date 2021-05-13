@@ -1,6 +1,5 @@
 id     = "DRIVER"
 name   = "Driver"
-header = "options/main_options.h"
 
 [[option]]
   name       = "version"

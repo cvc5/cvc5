@@ -1,6 +1,5 @@
 id     = "resource_manager"
 name   = "Resource Manager options"
-header = "options/resource_manager_options.h"
 
 [[option]]
   name       = "cumulativeMillisecondLimit"

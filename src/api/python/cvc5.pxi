@@ -663,7 +663,7 @@ cdef class Solver:
                 op.cop = self.csolver.mkOp(k.k, <int?> arg0)
             else:
                 raise ValueError("Unsupported signature"
-                                 " mkOp: {}".format(" X ".join([k, arg0])))
+                                 " mkOp: {}".format(" X ".join([str(k), str(arg0)])))
         else:
             if isinstance(arg0, int) and isinstance(arg1, int):
                 op.cop = self.csolver.mkOp(k.k, <int> arg0,

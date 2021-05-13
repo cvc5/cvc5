@@ -1,6 +1,5 @@
 id     = "PROOF"
 name   = "Proof"
-header = "options/proof_options.h"
 
 [[option]]
   name       = "proofFormatMode"

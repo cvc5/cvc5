@@ -1,6 +1,5 @@
 id     = "SEP"
 name   = "Sep"
-header = "options/sep_options.h"
 
 [[option]]
   name       = "sepCheckNeg"

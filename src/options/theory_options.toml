@@ -1,6 +1,5 @@
 id     = "THEORY"
 name   = "Theory layer"
-header = "options/theory_options.h"
 
 [[option]]
   name       = "theoryOfMode"

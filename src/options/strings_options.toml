@@ -1,6 +1,5 @@
 id     = "STRINGS"
 name   = "Strings theory"
-header = "options/strings_options.h"
 
 [[option]]
   name       = "stringExp"

@@ -1,6 +1,5 @@
 id     = "SMT"
 name   = "SMT layer"
-header = "options/smt_options.h"
 
 [[option]]
   name       = "dumpModeString"

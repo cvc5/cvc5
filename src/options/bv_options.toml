@@ -1,6 +1,5 @@
 id     = "BV"
 name   = "Bitvector theory"
-header = "options/bv_options.h"
 
 [[option]]
   name       = "bvSatSolver"
