@@ -45,8 +45,10 @@ jobs:
           git log
           first=`git rev-list --max-parents=0 HEAD`
           last=`git rev-list --until=1.month.ago -n1 HEAD`
-          git rebase -Xtheirs --onto $first $last
-          git log
+          if [ -n "$last" ]; then
+            git rebase -Xtheirs --onto $first $last
+            git log
+          fi
       
       - name: Push
         env:
