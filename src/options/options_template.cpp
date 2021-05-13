@@ -57,7 +57,6 @@ extern int optreset;
 // clang-format off
 ${headers_module}$
 
-#include "options/options_holder.h"
 #include "base/cvc5config.h"
 #include "options/base_handlers.h"
 
@@ -223,8 +222,10 @@ void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* h
 }
 
 Options::Options(OptionsListener* ol)
-    : d_holder(new options::OptionsHolder()),
-      d_handler(new options::OptionsHandler(this)),
+    : d_handler(new options::OptionsHandler(this)),
+// clang-format off
+${holder_mem_inits}$
+// clang-format on
       d_olisten(ol)
 {}
 
@@ -234,9 +235,13 @@ Options::~Options() {
 
 void Options::copyValues(const Options& options){
   if(this != &options) {
-    *d_holder = *options.d_holder;
+// clang-format off
+${holder_mem_copy}$
+// clang-format on
   }
 }
+
+${holder_getter_impl}$
 
 std::string Options::formatThreadOptionException(const std::string& option) {
   std::stringstream ss;
@@ -390,7 +395,7 @@ std::vector<std::string> Options::parseOptions(Options* options,
   if(x != NULL) {
     progName = x + 1;
   }
-  options->d_holder->binary_name = std::string(progName);
+  options->base().binary_name = std::string(progName);
 
   std::vector<std::string> nonoptions;
   options->parseOptionsRecursive(argc, argv, &nonoptions);
