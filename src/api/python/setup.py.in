@@ -39,5 +39,5 @@ setup(name='pycvc5',
       version='${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}',
       packages=['pycvc5'],
       package_dir={'pycvc5': '${CMAKE_CURRENT_BINARY_DIR}/pycvc5'},
-      package_data={'pycvc5': ['pycvc5.so']},
+      package_data={'pycvc5': ['pycvc5*.so']},
       cmdclass={'install': PyCVC5Install})

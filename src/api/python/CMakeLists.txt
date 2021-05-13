@@ -19,6 +19,43 @@ if(POLICY CMP0057)
   cmake_policy(SET CMP0057 NEW)
 endif()
 
+# Check that scikit-build is installed
+# Provides CMake files for Python bindings
+execute_process(
+  COMMAND
+  ${PYTHON_EXECUTABLE} -c "import skbuild"
+  RESULT_VARIABLE
+  RET_SKBUILD
+  ERROR_QUIET
+  )
+
+if(RET_SKBUILD)
+  message(FATAL_ERROR
+    "Could not find Python module skbuild. Install via `pip install scikit-build'.")
+endif()
+
+# Find cmake modules distributed with scikit-build
+# They are distributed under <scikit-build directory>/resources/cmake
+execute_process(
+  COMMAND
+    ${PYTHON_EXECUTABLE} -c "from __future__ import print_function;\
+                             import os; import skbuild;\
+                             print(os.path.dirname(skbuild.__file__) + \
+                             os.path.sep + 'resources' + os.path.sep + 'cmake', end='')"
+  OUTPUT_VARIABLE
+    SKBUILD_CMAKE_MODULE_PATH
+  RESULT_VARIABLE
+    RET_SKBUILD_CMAKE_MODULE_PATH
+  )
+
+if (RET_SKBUILD_CMAKE_MODULE_PATH)
+  message(FATAL_ERROR "Failed to find CMake module path from scikit-build")
+endif()
+
+# Add scikit-build cmake files to cmake module path
+# Required for Cython target below
+list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
+
 find_package(PythonExtensions REQUIRED)
 find_package(Cython 0.29 REQUIRED)
 
