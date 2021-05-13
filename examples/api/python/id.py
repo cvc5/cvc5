@@ -11,8 +11,8 @@
 # directory for licensing information.
 # #############################################################################
 #
-# A simple demonstration of the solving capabilities of the cvc5 sets solver
-# through the Python API. This is a direct translation of sets-new.cpp.
+# A simple demonstration of the getId function exposed by the cvc5 terms python
+# API
 ##
 
 import pycvc5
@@ -20,10 +20,6 @@ from pycvc5 import kinds
 
 if __name__ == "__main__":
     slv = pycvc5.Solver()
-
-    # Optionally, set the logic. We need at least UF for equality predicate,
-    # integers (LIA) and sets (FS).
-    slv.setLogic("QF_UFLIAFS")
 
     integer = slv.getIntegerSort()
     set_ = slv.mkSetSort(integer)
