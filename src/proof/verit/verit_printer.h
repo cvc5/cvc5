@@ -53,9 +53,9 @@ class VeritProofPrinter
   std::string prefix;
   /** A list of assumption lists, one for every level of the nested proof node
    */
-  std::vector<std::unordered_map<Node, int, NodeHashFunction>> assumptions;
+  std::vector<std::unordered_map<Node, int>> assumptions;
   /** A list of step lists, one for every level of the nested proof node */
-  std::vector<std::unordered_map<Node, int, NodeHashFunction>> steps;
+  std::vector<std::unordered_map<Node, int>> steps;
 };
 
 }  // namespace proof
