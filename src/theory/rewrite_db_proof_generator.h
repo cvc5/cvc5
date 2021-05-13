@@ -63,11 +63,11 @@ class RewriteDbProofCons : public ProofGenerator
   /** the evaluator utility */
   Evaluator d_eval;
   /** cache for exists rule */
-  std::unordered_map<Node, DslPfRule, NodeHashFunction> d_pcache;
+  std::unordered_map<Node, DslPfRule> d_pcache;
   /** the maximum depth tried for rules that have failed */
-  std::unordered_map<Node, unsigned, NodeHashFunction> d_pcacheFailMaxDepth;
+  std::unordered_map<Node, unsigned> d_pcacheFailMaxDepth;
   /** the evaluation cache */
-  std::unordered_map<Node, Node, NodeHashFunction> d_evalCache;
+  std::unordered_map<Node, Node> d_evalCache;
   /** common constants */
   Node d_true;
   Node d_false;

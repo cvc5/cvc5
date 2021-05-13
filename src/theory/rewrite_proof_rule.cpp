@@ -62,12 +62,12 @@ void RewriteProofRule::init(const std::string& name,
   }
   d_conc = conc;
 
-  std::unordered_set<Node, NodeHashFunction> fvs;
+  std::unordered_set<Node> fvs;
   expr::getFreeVariables(conc, fvs);
 
   d_numFv = fvs.size();
 
-  std::unordered_set<Node, NodeHashFunction> fvsCond;
+  std::unordered_set<Node> fvsCond;
   for (const Node& c : d_cond)
   {
     expr::getFreeVariables(c, fvsCond);
@@ -85,8 +85,8 @@ void RewriteProofRule::init(const std::string& name,
 Node RewriteProofRule::purifySideConditions(Node n, std::vector<Node>& scs)
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);

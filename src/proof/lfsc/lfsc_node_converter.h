@@ -83,7 +83,7 @@ class LfscNodeConverter : public NodeConverter
   /** terms with different syntax than smt2 */
   std::map<std::tuple<Kind, TypeNode, std::string>, Node> d_symbolsMap;
   /** the set of all internally generated symbols */
-  std::unordered_set<Node, NodeHashFunction> d_symbols;
+  std::unordered_set<Node> d_symbols;
   /** arrow type constructor */
   TypeNode d_arrow;
   /** the type of LFSC sorts, which can appear in terms */

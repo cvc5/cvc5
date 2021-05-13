@@ -51,8 +51,8 @@ void LfscPrinter::print(std::ostream& out,
 
   Trace("lfsc-print-debug") << "; print declarations" << std::endl;
   // [1] compute and print the declarations
-  std::unordered_set<Node, NodeHashFunction> syms;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<Node> syms;
+  std::unordered_set<TNode> visited;
   std::vector<Node> iasserts;
   std::map<Node, size_t> passumeMap;
   for (size_t i = 0, nasserts = assertions.size(); i < nasserts; i++)
@@ -66,7 +66,7 @@ void LfscPrinter::print(std::ostream& out,
   Trace("lfsc-print-debug") << "; print sorts" << std::endl;
   // [1a] user declared sorts
   std::stringstream preamble;
-  std::unordered_set<TypeNode, TypeNodeHashFunction> sts;
+  std::unordered_set<TypeNode> sts;
   for (const Node& s : syms)
   {
     // note that we must get all "component types" of a type, so that
@@ -77,7 +77,7 @@ void LfscPrinter::print(std::ostream& out,
       // can ignore these types
       continue;
     }
-    std::unordered_set<TypeNode, TypeNodeHashFunction> types;
+    std::unordered_set<TypeNode> types;
     expr::getComponentTypes(st, types);
     std::unordered_set<size_t> tupleArity;
     for (const TypeNode& stc : types)

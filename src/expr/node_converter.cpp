@@ -31,7 +31,7 @@ Node NodeConverter::convert(Node n)
   }
   Trace("nconv-debug") << "NodeConverter::convert: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
+  std::unordered_map<Node, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -131,7 +131,7 @@ TypeNode NodeConverter::convertType(TypeNode tn)
     return tn;
   }
   Trace("nconv-debug") << "NodeConverter::convertType: " << tn << std::endl;
-  std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction>::iterator it;
+  std::unordered_map<TypeNode, TypeNode>::iterator it;
   std::vector<TypeNode> visit;
   TypeNode cur;
   visit.push_back(tn);

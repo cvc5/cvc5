@@ -81,13 +81,13 @@ class NodeConverter
   /** Add to type cache */
   void addToTypeCache(TypeNode cur, TypeNode ret);
   /** Node cache for preConvert */
-  std::unordered_map<Node, Node, NodeHashFunction> d_preCache;
+  std::unordered_map<Node, Node> d_preCache;
   /** Node cache for postConvert */
-  std::unordered_map<Node, Node, NodeHashFunction> d_cache;
+  std::unordered_map<Node, Node> d_cache;
   /** TypeNode cache for preConvert */
-  std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction> d_preTCache;
+  std::unordered_map<TypeNode, TypeNode> d_preTCache;
   /** TypeNode cache for postConvert */
-  std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction> d_tcache;
+  std::unordered_map<TypeNode, TypeNode> d_tcache;
   /** Whether this node converter is idempotent. */
   bool d_forceIdem;
 };

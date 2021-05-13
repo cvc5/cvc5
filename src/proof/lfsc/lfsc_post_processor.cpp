@@ -137,7 +137,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
       // turn into binary
       Node cur = children[0];
-      std::unordered_set<Node, NodeHashFunction> processed;
+      std::unordered_set<Node> processed;
       processed.insert(children.begin(), children.end());
       for (size_t i = 1, size = children.size(); i < size; i++)
       {

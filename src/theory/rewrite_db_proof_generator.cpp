@@ -77,7 +77,7 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
   d_db.getMatches(eqi, &d_notify);
   d_currRecLimit++;
   // if we cached it during the above call, we succeeded
-  std::unordered_map<Node, DslPfRule, NodeHashFunction>::iterator it =
+  std::unordered_map<Node, DslPfRule>::iterator it =
       d_pcache.find(eqi);
   if (it != d_pcache.end())
   {
@@ -185,7 +185,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
 {
   Assert(eqi.getKind() == kind::EQUAL);
   // already cached?
-  std::unordered_map<Node, DslPfRule, NodeHashFunction>::iterator it =
+  std::unordered_map<Node, DslPfRule>::iterator it =
       d_pcache.find(eqi);
   if (it != d_pcache.end())
   {
@@ -246,10 +246,10 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
 bool RewriteDbProofCons::ensureProofInternal(Node eqi)
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
-  std::unordered_map<TNode, std::vector<Node>, TNodeHashFunction> premises;
-  std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
-  std::unordered_map<Node, DslPfRule, NodeHashFunction>::iterator itd;
+  std::unordered_map<TNode, bool> visited;
+  std::unordered_map<TNode, std::vector<Node>> premises;
+  std::unordered_map<TNode, bool>::iterator it;
+  std::unordered_map<Node, DslPfRule>::iterator itd;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(eqi);
@@ -307,7 +307,7 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
           visited[cur] = false;
           const RewriteProofRule& rpr = d_db.getRule(itd->second);
           // compute premises based on the used substitution
-          std::unordered_map<Node, Node, NodeHashFunction> subs;
+          std::unordered_map<Node, Node> subs;
           if (!expr::match(rpr.getConclusion(), cur, subs))
           {
             Assert(false);
@@ -348,7 +348,7 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
 
 Node RewriteDbProofCons::doEvaluate(Node n)
 {
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator itv =
+  std::unordered_map<Node, Node>::iterator itv =
       d_evalCache.find(n);
   if (itv != d_evalCache.end())
   {

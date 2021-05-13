@@ -235,8 +235,8 @@ void LeanPrinter::printSortsAndConstants(std::ostream& out,
                                          std::shared_ptr<ProofNode> pfn)
 {
   // Print user defined sorts and constants of those sorts
-  std::unordered_set<Node, NodeHashFunction> syms;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<Node> syms;
+  std::unordered_set<TNode> visited;
   std::vector<Node> iasserts;
   for (const Node& a : assertions)
   {
@@ -245,7 +245,7 @@ void LeanPrinter::printSortsAndConstants(std::ostream& out,
   }
   int sortCount = 1;
   int symCount = 1;
-  std::unordered_set<TypeNode, TypeNodeHashFunction> sts;
+  std::unordered_set<TypeNode> sts;
   for (const Node& s : syms)
   {
     TypeNode st = s.getType();
