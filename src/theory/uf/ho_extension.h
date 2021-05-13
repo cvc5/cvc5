@@ -49,8 +49,8 @@ class TheoryUF;
  */
 class HoExtension
 {
-  typedef context::CDHashSet<Node, std::hash<Node>> NodeSet;
-  typedef context::CDHashMap<Node, Node, std::hash<Node>> NodeNodeMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
   HoExtension(TheoryState& state, TheoryInferenceManager& im);

@@ -51,9 +51,9 @@ class InequalitySolver : public SubtheorySolver
     Statistics();
   };
 
-  context::CDHashSet<Node, std::hash<Node>> d_assertionSet;
+  context::CDHashSet<Node> d_assertionSet;
   InequalityGraph d_inequalityGraph;
-  context::CDHashMap<Node, TNode, std::hash<Node>> d_explanations;
+  context::CDHashMap<Node, TNode> d_explanations;
   context::CDO<bool> d_isComplete;
   typedef std::unordered_set<Node> NodeSet;
   NodeSet d_ineqTerms;

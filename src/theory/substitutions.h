@@ -43,7 +43,7 @@ namespace theory {
 class SubstitutionMap {
 
 public:
- typedef context::CDHashMap<Node, Node, std::hash<Node>> NodeMap;
+ typedef context::CDHashMap<Node, Node> NodeMap;
 
  typedef NodeMap::iterator iterator;
  typedef NodeMap::const_iterator const_iterator;

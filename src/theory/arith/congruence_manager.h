@@ -101,7 +101,7 @@ private:
    * This is node is potentially both the propagation or
    * Rewriter::rewrite(propagation).
    */
-  typedef context::CDHashMap<Node, size_t, std::hash<Node>> ExplainMap;
+  typedef context::CDHashMap<Node, size_t> ExplainMap;
   ExplainMap d_explanationMap;
 
   ConstraintDatabase& d_constraintDatabase;

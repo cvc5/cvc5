@@ -61,8 +61,8 @@ public:
  */
 class TheorySetsRels {
   typedef context::CDList<Node> NodeList;
-  typedef context::CDHashSet<Node, std::hash<Node> > NodeSet;
-  typedef context::CDHashMap<Node, Node, std::hash<Node> > NodeMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashMap<Node, Node> NodeMap;
 
  public:
   TheorySetsRels(SolverState& s,

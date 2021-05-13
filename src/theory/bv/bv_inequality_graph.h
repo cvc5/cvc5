@@ -207,7 +207,7 @@ class InequalityGraph : public context::ContextNotifyObj{
   
   /*** The currently asserted disequalities */
   context::CDQueue<TNode> d_disequalities;
-  typedef context::CDHashSet<Node, std::hash<Node>> CDNodeSet;
+  typedef context::CDHashSet<Node> CDNodeSet;
   CDNodeSet d_disequalitiesAlreadySplit; 
   Node makeDiseqSplitLemma(TNode diseq); 
   /** Backtracking mechanisms **/

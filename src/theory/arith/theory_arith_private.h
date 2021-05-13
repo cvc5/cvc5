@@ -193,7 +193,7 @@ private:
    * A superset of all of the assertions that currently are not the literal for
    * their constraint do not match constraint literals. Not just the witnesses.
    */
-  context::CDInsertHashMap<Node, ConstraintP, std::hash<Node>>
+  context::CDInsertHashMap<Node, ConstraintP>
       d_assertionsThatDoNotMatchTheirLiterals;
 
   /** Returns true if x is of type Integer. */
@@ -267,7 +267,7 @@ private:
   /**
    * Contains all nodes that have been preregistered
    */
-  context::CDHashSet<Node, std::hash<Node>> d_preregisteredNodes;
+  context::CDHashSet<Node> d_preregisteredNodes;
 
   /**
    * Manages information about the assignment and upper and lower bounds on

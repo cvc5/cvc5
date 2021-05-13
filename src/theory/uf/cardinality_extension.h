@@ -39,8 +39,8 @@ class TheoryUF;
 class CardinalityExtension
 {
  protected:
-  typedef context::CDHashMap<Node, bool, std::hash<Node>> NodeBoolMap;
-  typedef context::CDHashMap<Node, int, std::hash<Node>> NodeIntMap;
+  typedef context::CDHashMap<Node, bool> NodeBoolMap;
+  typedef context::CDHashMap<Node, int> NodeIntMap;
 
  public:
   /**

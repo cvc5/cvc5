@@ -66,12 +66,11 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   SharedTermsTheoriesMap d_termsToTheories;
 
   /** Map from term to theories that have already been notified about the shared term */
-  typedef context::CDHashMap<TNode, theory::TheoryIdSet, std::hash<TNode>>
-      AlreadyNotifiedMap;
+  typedef context::CDHashMap<TNode, theory::TheoryIdSet> AlreadyNotifiedMap;
   AlreadyNotifiedMap d_alreadyNotifiedMap;
 
   /** The registered equalities for propagation */
-  typedef context::CDHashSet<Node, std::hash<Node>> RegisteredEqualitiesSet;
+  typedef context::CDHashSet<Node> RegisteredEqualitiesSet;
   RegisteredEqualitiesSet d_registeredEqualities;
 
  private:

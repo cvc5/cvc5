@@ -193,7 +193,7 @@ class QuantConflictFind : public QuantifiersModule
 {
   friend class MatchGen;
   friend class QuantInfo;
-  typedef context::CDHashMap<Node, bool, std::hash<Node>> NodeBoolMap;
+  typedef context::CDHashMap<Node, bool> NodeBoolMap;
 
  private:
   context::CDO< bool > d_conflict;

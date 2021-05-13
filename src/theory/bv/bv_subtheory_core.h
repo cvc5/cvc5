@@ -102,7 +102,7 @@ class CoreSolver : public SubtheorySolver {
   std::unique_ptr<ExtTheory> d_extTheory;
 
   /** To make sure we keep the explanations */
-  context::CDHashSet<Node, std::hash<Node>> d_reasons;
+  context::CDHashSet<Node> d_reasons;
   ModelValue d_modelValues;
   void buildModel();
   bool assertFactToEqualityEngine(TNode fact, TNode reason);
@@ -112,8 +112,8 @@ class CoreSolver : public SubtheorySolver {
   /** Whether we need a last call effort check */
   bool d_needsLastCallCheck;
   /** For extended functions */
-  context::CDHashSet<Node, std::hash<Node>> d_extf_range_infer;
-  context::CDHashSet<Node, std::hash<Node>> d_extf_collapse_infer;
+  context::CDHashSet<Node> d_extf_range_infer;
+  context::CDHashSet<Node> d_extf_collapse_infer;
 
   /** do extended function inferences
    *

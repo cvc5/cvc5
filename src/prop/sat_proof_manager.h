@@ -567,7 +567,7 @@ class SatProofManager
 
   /** All clauses added to the SAT solver, kept in a context-dependent manner.
    */
-  context::CDHashSet<Node, std::hash<Node>> d_assumptions;
+  context::CDHashSet<Node> d_assumptions;
 
   /**
    * A placeholder that may be used to store the literal with the final

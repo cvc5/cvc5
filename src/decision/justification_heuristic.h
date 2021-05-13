@@ -45,22 +45,17 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   enum SearchResult {FOUND_SPLITTER, NO_SPLITTER, DONT_KNOW};
 
   typedef std::vector<std::pair<Node, Node> > SkolemList;
-  typedef context::CDHashMap<Node, SkolemList, std::hash<Node>> SkolemCache;
+  typedef context::CDHashMap<Node, SkolemList> SkolemCache;
   typedef std::vector<Node> ChildList;
-  typedef context::
-      CDHashMap<Node, std::pair<ChildList, ChildList>, std::hash<Node>>
-          ChildCache;
-  typedef context::CDHashMap<Node, Node, std::hash<Node>> SkolemMap;
-  typedef context::CDHashMap<Node,
-                             std::pair<DecisionWeight, DecisionWeight>,
-                             std::hash<Node>>
+  typedef context::CDHashMap<Node, std::pair<ChildList, ChildList>> ChildCache;
+  typedef context::CDHashMap<Node, Node> SkolemMap;
+  typedef context::CDHashMap<Node, std::pair<DecisionWeight, DecisionWeight>>
       WeightCache;
 
   // being 'justified' is monotonic with respect to decisions
-  typedef context::CDHashSet<Node, std::hash<Node>> JustifiedSet;
+  typedef context::CDHashSet<Node> JustifiedSet;
   JustifiedSet d_justified;
-  typedef context::CDHashMap<Node, DecisionWeight, std::hash<Node>>
-      ExploredThreshold;
+  typedef context::CDHashMap<Node, DecisionWeight> ExploredThreshold;
   ExploredThreshold d_exploredThreshold;
   context::CDO<unsigned>  d_prvsIndex;
   context::CDO<unsigned>  d_threshPrvsIndex;
@@ -173,7 +168,7 @@ private:
   * For big and/or nodes, a cache to save starting index into children
   * for efficiently.
   */
- typedef context::CDHashMap<Node, int, std::hash<Node>> StartIndexCache;
+ typedef context::CDHashMap<Node, int> StartIndexCache;
  StartIndexCache d_startIndexCache;
  int getStartIndex(TNode node);
  void saveStartIndex(TNode node, int val);

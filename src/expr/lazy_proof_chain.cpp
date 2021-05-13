@@ -63,9 +63,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
   std::unordered_map<Node, std::shared_ptr<ProofNode>> toConnect;
   // leaves of proof node links in the chain, i.e. assumptions, yet to be
   // expanded
-  std::unordered_map<Node,
-                     std::vector<std::shared_ptr<ProofNode>>,
-                     std::hash<Node>>
+  std::unordered_map<Node, std::vector<std::shared_ptr<ProofNode>>>
       assumptionsToExpand;
   // invariant of the loop below, the first iteration notwithstanding:
   //   visit = domain(assumptionsToExpand) \ domain(toConnect)

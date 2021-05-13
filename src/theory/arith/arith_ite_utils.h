@@ -64,7 +64,7 @@ class ArithIteUtils {
   Integer d_one;
 
   context::CDO<unsigned> d_subcount;
-  typedef context::CDInsertHashMap<Node, Node, std::hash<Node>> CDNodeMap;
+  typedef context::CDInsertHashMap<Node, Node> CDNodeMap;
   CDNodeMap d_skolems;
 
   typedef std::map<Node, std::set<Node> > ImpMap;

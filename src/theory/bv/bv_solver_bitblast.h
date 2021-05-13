@@ -123,8 +123,7 @@ class BVSolverBitblast : public BVSolver
   BVProofRuleChecker d_bvProofChecker;
 
   /** Stores the SatLiteral for a given fact. */
-  context::CDHashMap<Node, prop::SatLiteral, std::hash<Node>>
-      d_factLiteralCache;
+  context::CDHashMap<Node, prop::SatLiteral> d_factLiteralCache;
 
   /** Reverse map of `d_factLiteralCache`. */
   context::CDHashMap<prop::SatLiteral, Node, prop::SatLiteralHashFunction>

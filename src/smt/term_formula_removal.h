@@ -155,7 +155,7 @@ class RemoveTermFormulas {
    *   d_skolem_cache[ite( G, a, b )] = k, and
    *   d_tfCache[<ite( G, a, b ),0>] = d_tfCache[<ite( G, a, b ),1>] = k.
    */
-  context::CDInsertHashMap<Node, Node, std::hash<Node>> d_skolem_cache;
+  context::CDInsertHashMap<Node, Node> d_skolem_cache;
 
   /** gets the skolem for node
    *

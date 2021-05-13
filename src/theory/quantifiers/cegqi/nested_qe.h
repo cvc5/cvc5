@@ -30,7 +30,7 @@ namespace quantifiers {
 
 class NestedQe
 {
-  using NodeNodeMap = context::CDHashMap<Node, Node, std::hash<Node>>;
+  using NodeNodeMap = context::CDHashMap<Node, Node>;
 
  public:
   NestedQe(context::UserContext* u);

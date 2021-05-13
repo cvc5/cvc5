@@ -49,8 +49,8 @@ class BVSolverLazy : public BVSolver
   context::Context* d_context;
 
   /** Context dependent set of atoms we already propagated */
-  context::CDHashSet<Node, std::hash<Node>> d_alreadyPropagatedSet;
-  context::CDHashSet<Node, std::hash<Node>> d_sharedTermsSet;
+  context::CDHashSet<Node> d_alreadyPropagatedSet;
+  context::CDHashSet<Node> d_sharedTermsSet;
 
   std::vector<std::unique_ptr<SubtheorySolver>> d_subtheories;
   std::unordered_map<SubTheory, SubtheorySolver*, std::hash<int>>
@@ -149,7 +149,7 @@ class BVSolverLazy : public BVSolver
    * Keeps a map from nodes to the subtheory that propagated it so that we can
    * explain it properly.
    */
-  typedef context::CDHashMap<Node, SubTheory, std::hash<Node>> PropagatedMap;
+  typedef context::CDHashMap<Node, SubTheory> PropagatedMap;
   PropagatedMap d_propagatedBy;
 
   std::unique_ptr<EagerBitblastSolver> d_eagerSolver;

@@ -41,8 +41,8 @@ namespace prop {
  */
 class SkolemDefManager
 {
-  using NodeNodeMap = context::CDInsertHashMap<Node, Node, std::hash<Node>>;
-  using NodeSet = context::CDHashSet<Node, std::hash<Node>>;
+  using NodeNodeMap = context::CDInsertHashMap<Node, Node>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   SkolemDefManager(context::Context* context,

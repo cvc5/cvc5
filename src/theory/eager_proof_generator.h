@@ -87,8 +87,7 @@ namespace theory {
  */
 class EagerProofGenerator : public ProofGenerator
 {
-  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, std::hash<Node>>
-      NodeProofNodeMap;
+  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofNodeMap;
 
  public:
   EagerProofGenerator(ProofNodeManager* pnm,

@@ -65,7 +65,7 @@ class TermRegistry;
  */
 class Skolemize
 {
-  typedef context::CDHashMap<Node, Node, std::hash<Node>> NodeNodeMap;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
   Skolemize(QuantifiersState& qs, TermRegistry& tr, ProofNodeManager* pnm);

@@ -79,7 +79,7 @@ class CoreInferInfo
 class CoreSolver
 {
   friend class InferenceManager;
-  using NodeIntMap = context::CDHashMap<Node, int, std::hash<Node>>;
+  using NodeIntMap = context::CDHashMap<Node, int>;
 
  public:
   CoreSolver(SolverState& s,

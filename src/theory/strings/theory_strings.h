@@ -60,7 +60,7 @@ namespace strings {
  */
 class TheoryStrings : public Theory {
   friend class InferenceManager;
-  typedef context::CDHashSet<Node, std::hash<Node>> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
 
  public:

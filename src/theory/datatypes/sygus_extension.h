@@ -64,10 +64,10 @@ class InferenceManager;
  */
 class SygusExtension
 {
-  typedef context::CDHashMap<Node, int, std::hash<Node>> IntMap;
-  typedef context::CDHashMap<Node, Node, std::hash<Node>> NodeMap;
-  typedef context::CDHashMap<Node, bool, std::hash<Node>> BoolMap;
-  typedef context::CDHashSet<Node, std::hash<Node>> NodeSet;
+  typedef context::CDHashMap<Node, int> IntMap;
+  typedef context::CDHashMap<Node, Node> NodeMap;
+  typedef context::CDHashMap<Node, bool> BoolMap;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   SygusExtension(TheoryState& s,

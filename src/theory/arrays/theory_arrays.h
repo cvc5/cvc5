@@ -215,7 +215,7 @@ class TheoryArrays : public Theory {
   void explain(TNode literal, Node& exp);
 
   /** For debugging only- checks invariants about when things are preregistered*/
-  context::CDHashSet<Node, std::hash<Node>> d_isPreRegistered;
+  context::CDHashSet<Node> d_isPreRegistered;
 
   /** Helper for preRegisterTerm, also used internally */
   void preRegisterTermInternal(TNode n);
@@ -374,7 +374,7 @@ class TheoryArrays : public Theory {
   context::CDQueue<RowLemmaType> d_RowQueue;
   context::CDHashSet<RowLemmaType, RowLemmaTypeHashFunction > d_RowAlreadyAdded;
 
-  typedef context::CDHashSet<Node, std::hash<Node>> CDNodeSet;
+  typedef context::CDHashSet<Node> CDNodeSet;
 
   CDNodeSet d_sharedArrays;
   CDNodeSet d_sharedOther;
@@ -420,11 +420,11 @@ class TheoryArrays : public Theory {
   // List of nodes that need permanent references in this context
   context::CDList<Node> d_permRef;
   context::CDList<Node> d_modelConstraints;
-  context::CDHashSet<Node, std::hash<Node>> d_lemmasSaved;
+  context::CDHashSet<Node> d_lemmasSaved;
   std::vector<Node> d_lemmas;
 
   // Default values for each mayEqual equivalence class
-  typedef context::CDHashMap<Node, Node, std::hash<Node>> DefValMap;
+  typedef context::CDHashMap<Node, Node> DefValMap;
   DefValMap d_defValues;
 
   typedef std::unordered_map<std::pair<TNode, TNode>, CTNodeList*, TNodePairHashFunction> ReadBucketMap;

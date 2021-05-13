@@ -101,7 +101,7 @@ class InstLemmaList
 class Instantiate : public QuantifiersUtil
 {
   using NodeInstListMap =
-      context::CDHashMap<Node, std::shared_ptr<InstLemmaList>, std::hash<Node>>;
+      context::CDHashMap<Node, std::shared_ptr<InstLemmaList>>;
 
  public:
   Instantiate(QuantifiersState& qs,
@@ -352,7 +352,7 @@ class Instantiate : public QuantifiersUtil
    * The list of quantified formulas for which the domain of d_c_inst_match_trie
    * is valid.
    */
-  context::CDHashSet<Node, std::hash<Node>> d_c_inst_match_trie_dom;
+  context::CDHashSet<Node> d_c_inst_match_trie_dom;
   /**
    * A CDProof storing instantiation steps.
    */

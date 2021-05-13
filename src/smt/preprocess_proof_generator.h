@@ -55,8 +55,7 @@ namespace smt {
  */
 class PreprocessProofGenerator : public ProofGenerator
 {
-  typedef context::CDHashMap<Node, theory::TrustNode, std::hash<Node>>
-      NodeTrustNodeMap;
+  typedef context::CDHashMap<Node, theory::TrustNode> NodeTrustNodeMap;
 
  public:
   /**

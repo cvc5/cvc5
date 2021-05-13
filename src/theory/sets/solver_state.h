@@ -43,7 +43,7 @@ class TheorySetsPrivate;
  */
 class SolverState : public TheoryState
 {
-  typedef context::CDHashMap<Node, size_t, std::hash<Node>> NodeIntMap;
+  typedef context::CDHashMap<Node, size_t> NodeIntMap;
 
  public:
   SolverState(context::Context* c,

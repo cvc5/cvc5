@@ -57,10 +57,7 @@ class PreprocessingPassContext
     return d_circuitPropagator;
   }
 
-  context::CDHashSet<Node, std::hash<Node>>& getSymsInAssertions()
-  {
-    return d_symsInAssertions;
-  }
+  context::CDHashSet<Node>& getSymsInAssertions() { return d_symsInAssertions; }
 
   void spendResource(Resource r);
 
@@ -107,7 +104,7 @@ class PreprocessingPassContext
    * The (user-context-dependent) set of symbols that occur in at least one
    * assertion in the current user context.
    */
-  context::CDHashSet<Node, std::hash<Node>> d_symsInAssertions;
+  context::CDHashSet<Node> d_symsInAssertions;
 
 };  // class PreprocessingPassContext
 

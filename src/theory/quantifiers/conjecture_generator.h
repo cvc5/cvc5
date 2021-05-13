@@ -239,8 +239,8 @@ class ConjectureGenerator : public QuantifiersModule
   friend class SubsEqcIndex;
   friend class TermGenerator;
   friend class TermGenEnv;
-  typedef context::CDHashMap<Node, Node, std::hash<Node> > NodeMap;
-  typedef context::CDHashMap<Node, bool, std::hash<Node> > BoolMap;
+  typedef context::CDHashMap<Node, Node> NodeMap;
+  typedef context::CDHashMap<Node, bool> BoolMap;
   // this class maintains a congruence closure for *universal* facts
  private:
   //notification class for equality engine

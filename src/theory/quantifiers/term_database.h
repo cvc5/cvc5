@@ -65,13 +65,12 @@ class DbList
  * lazily for performance reasons.
  */
 class TermDb : public QuantifiersUtil {
-  using NodeBoolMap = context::CDHashMap<Node, bool, std::hash<Node>>;
+  using NodeBoolMap = context::CDHashMap<Node, bool>;
   using NodeList = context::CDList<Node>;
-  using NodeSet = context::CDHashSet<Node, std::hash<Node>>;
-  using TypeNodeDbListMap = context::
-      CDHashMap<TypeNode, std::shared_ptr<DbList>, std::hash<TypeNode>>;
-  using NodeDbListMap =
-      context::CDHashMap<Node, std::shared_ptr<DbList>, std::hash<Node>>;
+  using NodeSet = context::CDHashSet<Node>;
+  using TypeNodeDbListMap =
+      context::CDHashMap<TypeNode, std::shared_ptr<DbList>>;
+  using NodeDbListMap = context::CDHashMap<Node, std::shared_ptr<DbList>>;
 
  public:
   TermDb(QuantifiersState& qs,

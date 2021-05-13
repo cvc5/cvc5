@@ -65,8 +65,8 @@ class InstRewriterCegqi : public InstantiationRewriter
  */
 class InstStrategyCegqi : public QuantifiersModule
 {
-  typedef context::CDHashSet<Node, std::hash<Node>> NodeSet;
-  typedef context::CDHashMap<Node, int, std::hash<Node>> NodeIntMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashMap<Node, int> NodeIntMap;
 
  public:
   InstStrategyCegqi(QuantifiersState& qs,

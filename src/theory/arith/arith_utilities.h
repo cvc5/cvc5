@@ -36,7 +36,7 @@ namespace arith {
 //Sets of Nodes
 typedef std::unordered_set<Node> NodeSet;
 typedef std::unordered_set<TNode> TNodeSet;
-typedef context::CDHashSet<Node, std::hash<Node>> CDNodeSet;
+typedef context::CDHashSet<Node> CDNodeSet;
 
 //Maps from Nodes -> ArithVars, and vice versa
 typedef std::unordered_map<Node, ArithVar> NodeToArithVarMap;

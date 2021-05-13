@@ -54,9 +54,8 @@ namespace prop {
   }  // namespace prop
 
 typedef std::unordered_map<ClauseId, prop::SatClause*> IdToSatClause;
-typedef context::CDHashSet<Node, std::hash<Node>> CDNodeSet;
-typedef context::CDHashMap<Node, std::vector<Node>, std::hash<Node>>
-    CDNodeToNodes;
+typedef context::CDHashSet<Node> CDNodeSet;
+typedef context::CDHashMap<Node, std::vector<Node>> CDNodeToNodes;
 typedef std::unordered_set<ClauseId> IdHashSet;
 
 class ProofManager {
