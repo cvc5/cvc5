@@ -9,7 +9,7 @@
 ############################################
 
 """
-CVC5 is an SMT solver.
+cvc5 is an SMT solver.
 
 This is its Z3-based (and---as much as possible---Z3-compatible) python
 interface.
@@ -18,7 +18,7 @@ Several online tutorials for Z3Py are available at:
 http://rise4fun.com/Z3Py/tutorial/guide
 
 Please send feedback, comments and/or corrections on the Issue tracker for
-https://github.com/CVC5/CVC5.git. Your comments are very valuable.
+https://github.com/cvc5/cvc5.git. Your comments are very valuable.
 
 Small example: TODO
 """
