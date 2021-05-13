@@ -88,7 +88,9 @@ void LfscPrinter::print(std::ostream& out,
         sts.insert(stc);
         if (stc.isSort())
         {
-          preamble << "(declare " << stc << " sort)" << std::endl;
+          preamble << "(declare ";
+          printType(preamble, stc);
+          preamble << " sort)" << std::endl;
         }
         else if (stc.isDatatype())
         {
@@ -114,9 +116,9 @@ void LfscPrinter::print(std::ostream& out,
           }
           else
           {
-            preamble << "(declare "
-                     << LfscNodeConverter::getNameForUserName(dt.getName())
-                     << " sort)" << std::endl;
+            preamble << "(declare ";
+            printType(preamble, stc);
+            preamble << " sort)" << std::endl;
           }
           for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
           {

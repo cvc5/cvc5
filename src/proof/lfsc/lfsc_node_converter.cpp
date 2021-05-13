@@ -263,7 +263,7 @@ Node LfscNodeConverter::postConvert(Node n)
   else if (k == GEQ || k == GT || k == LEQ || k == LT || k == MINUS
            || k == DIVISION || k == DIVISION_TOTAL || k == INTS_DIVISION
            || k == INTS_DIVISION_TOTAL || k == INTS_MODULUS
-           || k == INTS_MODULUS_TOTAL || k == UMINUS
+           || k == INTS_MODULUS_TOTAL || k == UMINUS || k == POW
            || isIndexedOperatorKind(k))
   {
     // must give special names to SMT-LIB operators with arithmetic subtyping
@@ -483,7 +483,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     {
       std::stringstream ss;
       tn.toStream(ss, language::output::LANG_SMTLIB_V2_6);
-      if (false && (tn.isSort() || tn.isDatatype()))
+      if (tn.isSort() || ( tn.isDatatype() && !tn.isTuple()))
       {
         std::stringstream sss;
         sss << LfscNodeConverter::getNameForUserName(ss.str());
@@ -510,7 +510,11 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     if (k == PARAMETRIC_DATATYPE)
     {
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
-      op = getSymbolInternal(k, ftype, tn.getDType().getName());
+      // the operator has been converted; it is no longer a datatype, thus
+      // we must print to get its name.
+      std::stringstream ss;
+      ss << tn[0];
+      op = getSymbolInternal(k, ftype, ss.str());
     }
     else if (k == SORT_TYPE)
     {
@@ -795,7 +799,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   if (k == PLUS || k == MULT || k == NONLINEAR_MULT || k == GEQ || k == GT
       || k == LEQ || k == LT || k == MINUS || k == DIVISION
       || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
-      || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == UMINUS)
+      || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == UMINUS || k == POW)
   {
     // currently allow subtyping
     opName << "a.";
