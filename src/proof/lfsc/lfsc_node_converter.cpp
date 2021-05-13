@@ -164,8 +164,8 @@ Node LfscNodeConverter::postConvert(Node n)
       // already converted
       do
       {
-        Assert(n[0].getKind() == APPLY_UF);
         n = n[0];
+        Assert(n.getKind() == APPLY_UF || n.getKind()==CONST_RATIONAL);
       } while (n.getKind() != CONST_RATIONAL);
     }
     TypeNode tnv = nm->mkFunctionType(tn, tn);
@@ -289,7 +289,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // ((forall x1 T1) ((forall x2 T2) ... ((forall xk Tk) P))). We use
     // SEXPR to do this, which avoids the need for indexed operators.
     Node ret = n[1];
-    Node cop = getOperatorOfClosure(n);
+    Node cop = getOperatorOfClosure(n, true);
     for (size_t i = 0, nchild = n[0].getNumChildren(); i < nchild; i++)
     {
       size_t ii = (nchild - 1) - i;
@@ -837,7 +837,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   return getSymbolInternal(k, ftype, opName.str());
 }
 
-Node LfscNodeConverter::getOperatorOfClosure(Node q)
+Node LfscNodeConverter::getOperatorOfClosure(Node q, bool macroApply)
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode bodyType = nm->mkFunctionType(q[1].getType(), q.getType());
@@ -846,8 +846,13 @@ Node LfscNodeConverter::getOperatorOfClosure(Node q)
   TypeNode intType = nm->integerType();
   TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, bodyType);
   Kind k = q.getKind();
-  return getSymbolInternal(
-      k, ftype, printer::smt2::Smt2Printer::smtKindString(k));
+  std::stringstream opName;
+  if (!macroApply)
+  {
+    opName << "f_";
+  }
+  opName << printer::smt2::Smt2Printer::smtKindString(k);
+  return getSymbolInternal(k, ftype, opName.str());
 }
 
 Node LfscNodeConverter::getOperatorOfBoundVar(Node cop, Node v)

@@ -161,20 +161,21 @@ bool LfscProofPostprocessCallback::update(Node res,
       // different for closures
       if (res[0].isClosure())
       {
-        // FIXME
-        return false;
         if (res[0][0] != res[1][0])
         {
-          // TODO: cannot convert congruence with different variables currently
+          // cannot convert congruence with different variables currently
           return false;
         }
         Node cop = d_tproc.getOperatorOfClosure(res[0]);
+        Trace("lfsc-pp-qcong") << "Operator for closure " << cop << std::endl;
         // start with base case body = body'
         Node curL = children[1][0];
         Node curR = children[1][1];
         Node currEq = children[1];
+        Trace("lfsc-pp-qcong") << "Base congruence " << currEq << std::endl;
         for (size_t i = 0, nvars = res[0][0].getNumChildren(); i < nvars; i++)
         {
+          Trace("lfsc-pp-qcong") << "Process child " << i << std::endl;
           // CONG rules for each variable
           Node v = res[0][0][nvars - 1 - i];
           Node vop = d_tproc.getOperatorOfBoundVar(cop, v);
@@ -188,11 +189,11 @@ bool LfscProofPostprocessCallback::update(Node res,
           }
           else
           {
-            curL = nm->mkNode(HO_APPLY, vop, children[i][0]);
-            curR = nm->mkNode(HO_APPLY, vop, children[i][1]);
+            curL = nm->mkNode(HO_APPLY, vop, curL);
+            curR = nm->mkNode(HO_APPLY, vop, curR);
             nextEq = curL.eqNode(curR);
           }
-          addLfscRule(cdp, nextEq, {currEq, vopEq}, LfscRule::CONG, {});
+          addLfscRule(cdp, nextEq, {vopEq, currEq}, LfscRule::CONG, {});
           currEq = nextEq;
         }
         return true;
