@@ -127,8 +127,12 @@ print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')")
 set(INSTALL_CMD
     "${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/setup.py install")
 # if we're in a virtualenv, we install it in the virtualenv lib location
+# otherwise install in site-packages
+# option --single-version-externally-managed prevents it from being
+# an .egg distribution and --record records the list of installed files
 if ("${IN_VIRTUALENV}" STREQUAL "NO")
-  set(INSTALL_CMD "${INSTALL_CMD} --prefix=${CMAKE_INSTALL_PREFIX}")
+  set(INSTALL_CMD "${INSTALL_CMD} --prefix=${CMAKE_INSTALL_PREFIX}
+--single-version-externally-managed --record=pycvc5-installed-files.txt")
 endif()
 
 message("Python bindings install command: ${INSTALL_CMD}")
