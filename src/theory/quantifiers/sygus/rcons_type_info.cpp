@@ -64,12 +64,12 @@ Node RConsTypeInfo::addTerm(Node n)
   return d_crd->addTerm(n, false, out);
 }
 
-void RConsTypeInfo::setBuiltinToOb(Node t, Obligation* ob)
+void RConsTypeInfo::setBuiltinToOb(Node t, RConsObligation* ob)
 {
   d_ob.emplace(t, ob);
 }
 
-Obligation* RConsTypeInfo::builtinToOb(Node t)
+RConsObligation* RConsTypeInfo::builtinToOb(Node t)
 {
   auto it = d_ob.find(t);
   if (it != d_ob.cend())

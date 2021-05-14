@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Reconstruct Obligation Info class implementation.
+ * RConsObligation class implementation.
  */
 
 #include "rcons_obligation.h"
@@ -25,57 +25,58 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-Obligation::Obligation(TypeNode stn, Node t) : d_ts({t})
+RConsObligation::RConsObligation(TypeNode stn, Node t) : d_ts({t})
 {
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   d_k = sm->mkDummySkolem("sygus_rcons", stn);
 }
 
-TypeNode Obligation::getType() const { return d_k.getType(); }
+TypeNode RConsObligation::getType() const { return d_k.getType(); }
 
-Node Obligation::getSkolem() const { return d_k; }
+Node RConsObligation::getSkolem() const { return d_k; }
 
-void Obligation::addBuiltin(Node builtin) { d_ts.emplace(builtin); }
+void RConsObligation::addBuiltin(Node builtin) { d_ts.emplace(builtin); }
 
-const std::unordered_set<Node, NodeHashFunction>& Obligation::getBuiltins()
+const std::unordered_set<Node, NodeHashFunction>& RConsObligation::getBuiltins()
     const
 {
   return d_ts;
 }
 
-void Obligation::addCandidateSolution(Node candSol)
+void RConsObligation::addCandidateSolution(Node candSol)
 {
   d_candSols.emplace(candSol);
 }
 
 const std::unordered_set<Node, NodeHashFunction>&
-Obligation::getCandidateSolutions() const
+RConsObligation::getCandidateSolutions() const
 {
   return d_candSols;
 }
 
-void Obligation::addCandidateSolutionToWatchSet(Node candSol)
+void RConsObligation::addCandidateSolutionToWatchSet(Node candSol)
 {
   d_watchSet.emplace(candSol);
 }
 
-const std::unordered_set<Node, NodeHashFunction>& Obligation::getWatchSet()
+const std::unordered_set<Node, NodeHashFunction>& RConsObligation::getWatchSet()
     const
 {
   return d_watchSet;
 }
 
-void Obligation::printCandSols(
-    const Obligation* root, const std::vector<std::unique_ptr<Obligation>>& obs)
+void RConsObligation::printCandSols(
+    const RConsObligation* root,
+    const std::vector<std::unique_ptr<RConsObligation>>& obs)
 {
   std::unordered_set<Node, NodeHashFunction> visited;
-  std::vector<const Obligation*> stack;
+  std::vector<const RConsObligation*> stack;
   stack.push_back(root);
   Trace("sygus-rcons") << std::endl << "Eq classes: " << std::endl << '[';
 
   while (!stack.empty())
   {
-    const Obligation* curr = stack.back();
+    const RConsObligation* curr = stack.back();
     stack.pop_back();
     visited.emplace(curr->getSkolem());
 
@@ -93,7 +94,7 @@ void Obligation::printCandSols(
       for (TNode var : vars)
       {
         if (visited.find(var) == visited.cend())
-          for (const std::unique_ptr<Obligation>& ob : obs)
+          for (const std::unique_ptr<RConsObligation>& ob : obs)
           {
             if (ob->getSkolem() == var)
             {
@@ -108,7 +109,7 @@ void Obligation::printCandSols(
   Trace("sygus-rcons") << ']' << std::endl;
 }
 
-std::ostream& operator<<(std::ostream& out, const Obligation& ob)
+std::ostream& operator<<(std::ostream& out, const RConsObligation& ob)
 {
   out << '(' << ob.getType() << ", " << ob.getSkolem() << ", {";
   std::unordered_set<Node, NodeHashFunction>::const_iterator it =

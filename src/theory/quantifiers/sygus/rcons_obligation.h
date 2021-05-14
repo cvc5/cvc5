@@ -33,7 +33,7 @@ namespace quantifiers {
  * obligation is not stored in this class as it can be inferred from the type of
  * the skolem k.
  */
-class Obligation
+class RConsObligation
 {
  public:
   /**
@@ -42,7 +42,7 @@ class Obligation
    * @param stn sygus datatype type to reconstruct `t` into
    * @param t builtin term to reconstruct
    */
-  Obligation(TypeNode stn, Node t);
+  RConsObligation(TypeNode stn, Node t);
 
   /**
    * @return sygus datatype type to reconstruct equivalent builtin terms into
@@ -105,12 +105,12 @@ class Obligation
    *
    * For example, if we have:
    *
-   * Obs = [(c_z1, {(+ 1 (- x))}, (c_z2, (- x)), (c_z3, x), (c_z4, 0)]
-   * CandSols = {c_z1 -> {(c_+ c_1 c_z2)}, c_z2 -> {(c_- c_z3)},
-   *             c_z3 -> {c_x}, c_z4 -> {c_0}}
-   * root = c_z1
+   * Obs = [(k1, {(+ 1 (- x))}, (k2, (- x)), (k3, x), (k4, 0)]
+   * CandSols = {k1 -> {(c_+ c_1 k2)}, k2 -> {(c_- k3)},
+   *             k3 -> {c_x}, k4 -> {c_0}}
+   * root = k1
    *
-   * Then, the set of reachable obligations from `root` is {c_z1, c_z2, c_z3}
+   * Then, the set of reachable obligations from `root` is {k1, k2, k3}
    *
    * \note requires enabling "sygus-rcons" trace
    *
@@ -118,8 +118,9 @@ class Obligation
    * @param obs a list of obligations containing at least 1 obligation
    * @param
    */
-  static void printCandSols(const Obligation* root,
-                            const std::vector<std::unique_ptr<Obligation>>& obs);
+  static void printCandSols(
+      const RConsObligation* root,
+      const std::vector<std::unique_ptr<RConsObligation>>& obs);
 
  private:
   /** Skolem representing this obligation used to embed obligations in candidate
@@ -139,17 +140,15 @@ class Obligation
    * a term in `d_ts` and hence solves this obligation. For example, given:
    *   d_ts = {(+ x y)}
    * a possible set of candidate solutions would be:
-   *   d_candSols = {(c_+ c_z1 c_z2), (c_+ c_x c_z2), (c_+ c_z1 c_y),
-   *                 (c_+ c_x c_y)}
-   * where c_z1 and c_z2 are skolems. Notice that `d_candSols` may contain a
+   *   d_candSols = {(c_+ k1 k2), (c_+ c_x k2), (c_+ k1 c_y), (c_+ c_x c_y)}
+   * where k1 and k2 are skolems. Notice that `d_candSols` may contain a
    * pure term that solves the obligation ((c_+ c_x c_y) in this example).
    */
   std::unordered_set<Node, NodeHashFunction> d_candSols;
   /** A set of candidate solutions waiting for this obligation to be solved.
    *
-   * In the example above, (c_+ c_z1 c_z2) and (c_+ c_x c_z2) are in
-   * the watch-set of c_z2. Similarly, (c_+ c_z1 c_z2) and (c_+ c_z1 c_y) are in
-   * the watch-set of c_z1.
+   * In the example above, (c_+ k1 k2) and (c_+ c_x k2) are in the watch-set of
+   * k2. Similarly, (c_+ k1 k2) and (c_+ k1 c_y) are in the watch-set of k1.
    */
   std::unordered_set<Node, NodeHashFunction> d_watchSet;
 };
@@ -161,7 +160,7 @@ class Obligation
  * @param ob the obligation to print
  * @return a reference to the given output stream `out`
  */
-std::ostream& operator<<(std::ostream& out, const Obligation& ob);
+std::ostream& operator<<(std::ostream& out, const RConsObligation& ob);
 
 }  // namespace quantifiers
 }  // namespace theory
