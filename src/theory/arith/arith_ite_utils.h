@@ -48,7 +48,7 @@ class ArithIteUtils {
   SubstitutionMap* d_subs;
   TheoryModel* d_model;
 
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node> NodeMap;
   // cache for reduce vars
   NodeMap d_reduceVar; // if reduceVars[n].isNull(), treat reduceVars[n] == n
 
@@ -58,13 +58,13 @@ class ArithIteUtils {
 
 
   NodeMap d_reduceGcd;
-  typedef std::unordered_map<Node, Integer, NodeHashFunction> NodeIntegerMap;
+  typedef std::unordered_map<Node, Integer> NodeIntegerMap;
   NodeIntegerMap d_gcds;
 
   Integer d_one;
 
   context::CDO<unsigned> d_subcount;
-  typedef context::CDInsertHashMap<Node, Node, NodeHashFunction> CDNodeMap;
+  typedef context::CDInsertHashMap<Node, Node> CDNodeMap;
   CDNodeMap d_skolems;
 
   typedef std::map<Node, std::set<Node> > ImpMap;

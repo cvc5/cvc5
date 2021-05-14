@@ -49,9 +49,9 @@ class UnconstrainedSimplifier : public PreprocessingPass
   /** number of expressions eliminated due to unconstrained simplification */
   IntStat d_numUnconstrainedElim;
 
-  using TNodeCountMap = std::unordered_map<TNode, unsigned, TNodeHashFunction>;
-  using TNodeMap = std::unordered_map<TNode, TNode, TNodeHashFunction>;
-  using TNodeSet = std::unordered_set<TNode, TNodeHashFunction>;
+  using TNodeCountMap = std::unordered_map<TNode, unsigned>;
+  using TNodeMap = std::unordered_map<TNode, TNode>;
+  using TNodeSet = std::unordered_set<TNode>;
 
   TNodeCountMap d_visited;
   TNodeMap d_visitedOnce;

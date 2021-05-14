@@ -46,7 +46,6 @@ class CVC5_EXPORT ParserBuilder
 {
   enum InputType {
     FILE_INPUT,
-    LINE_BUFFERED_STREAM_INPUT,
     STREAM_INPUT,
     STRING_INPUT
   };
@@ -176,9 +175,6 @@ class CVC5_EXPORT ParserBuilder
 
   /** Set the parser to use the given stream for its input. */
   ParserBuilder& withStreamInput(std::istream& input);
-
-  /** Set the parser to use the given stream for its input. */
-  ParserBuilder& withLineBufferedStreamInput(std::istream& input);
 
   /** Set the parser to use the given string for its input. */
   ParserBuilder& withStringInput(const std::string& input);
