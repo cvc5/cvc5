@@ -652,7 +652,7 @@ public:
   bool isTester() const;
 
   /** Is this a datatype updater type */
-  bool isDatatypeUpdater() const;
+  bool isUpdater() const;
 
   /** Get the internal Datatype specification from a datatype type */
   const DType& getDType() const;

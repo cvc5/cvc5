@@ -32,6 +32,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         DatatypeConstructor operator[](const string& name) except +
         DatatypeConstructor getConstructor(const string& name) except +
         Term getConstructorTerm(const string& name) except +
+        DatatypeSelector getSelector(const string& name) except +
         size_t getNumConstructors() except +
         bint isParametric() except +
         bint isCodatatype() except +
@@ -89,6 +90,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         DatatypeSelector() except +
         string getName() except +
         Term getSelectorTerm() except +
+        Term getUpdaterTerm() except +
         Sort getRangeSort() except +
         string toString() except +
 
@@ -100,6 +102,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Kind getKind() except +
         Sort getSort() except +
         bint isNull() except +
+        bint isIndexed() except +
         T getIndices[T]() except +
         string toString() except +
 
@@ -180,6 +183,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkFalse() except +
         Term mkBoolean(bint val) except +
         Term mkPi() except +
+        Term mkInteger(const uint64_t i) except +
         Term mkInteger(const string& s) except +
         Term mkReal(const string& s) except +
         Term mkRegexpEmpty() except +
@@ -338,9 +342,10 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint operator==(const Term&) except +
         bint operator!=(const Term&) except +
         Term operator[](size_t idx) except +
+        uint64_t getId() except +
         Kind getKind() except +
         Sort getSort() except +
-        Term substitute(const vector[Term] es, const vector[Term] & reps) except +
+        Term substitute(const vector[Term] & es, const vector[Term] & reps) except +
         bint hasOp() except +
         Op getOp() except +
         bint isNull() except +

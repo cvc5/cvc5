@@ -70,8 +70,8 @@ void PreprocessingPassContext::recordSymbolsInAssertions(
 void PreprocessingPassContext::addModelSubstitution(const Node& lhs,
                                                     const Node& rhs)
 {
-  getTheoryEngine()->getModel()->addSubstitution(
-      lhs, d_smt->expandDefinitions(rhs, false));
+  getTheoryEngine()->getModel()->addSubstitution(lhs,
+                                                 d_smt->expandDefinitions(rhs));
 }
 
 void PreprocessingPassContext::addSubstitution(const Node& lhs,

@@ -243,8 +243,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {APPLY_SELECTOR, cvc5::Kind::APPLY_SELECTOR},
     {APPLY_CONSTRUCTOR, cvc5::Kind::APPLY_CONSTRUCTOR},
     {APPLY_TESTER, cvc5::Kind::APPLY_TESTER},
-    {TUPLE_UPDATE, cvc5::Kind::TUPLE_UPDATE},
-    {RECORD_UPDATE, cvc5::Kind::RECORD_UPDATE},
+    {APPLY_UPDATER, cvc5::Kind::APPLY_UPDATER},
     {DT_SIZE, cvc5::Kind::DT_SIZE},
     {TUPLE_PROJECT, cvc5::Kind::TUPLE_PROJECT},
     /* Separation Logic ---------------------------------------------------- */
@@ -550,10 +549,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::APPLY_CONSTRUCTOR, APPLY_CONSTRUCTOR},
         {cvc5::Kind::APPLY_SELECTOR_TOTAL, INTERNAL_KIND},
         {cvc5::Kind::APPLY_TESTER, APPLY_TESTER},
-        {cvc5::Kind::TUPLE_UPDATE_OP, TUPLE_UPDATE},
-        {cvc5::Kind::TUPLE_UPDATE, TUPLE_UPDATE},
-        {cvc5::Kind::RECORD_UPDATE_OP, RECORD_UPDATE},
-        {cvc5::Kind::RECORD_UPDATE, RECORD_UPDATE},
+        {cvc5::Kind::APPLY_UPDATER, APPLY_UPDATER},
         {cvc5::Kind::DT_SIZE, DT_SIZE},
         {cvc5::Kind::TUPLE_PROJECT, TUPLE_PROJECT},
         /* Separation Logic ------------------------------------------------ */
@@ -661,8 +657,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
 
 /* Set of kinds for indexed operators */
 const static std::unordered_set<Kind> s_indexed_kinds(
-    {RECORD_UPDATE,
-     DIVISIBLE,
+    {DIVISIBLE,
      IAND,
      BITVECTOR_REPEAT,
      BITVECTOR_ZERO_EXTEND,
@@ -672,7 +667,6 @@ const static std::unordered_set<Kind> s_indexed_kinds(
      INT_TO_BITVECTOR,
      FLOATINGPOINT_TO_UBV,
      FLOATINGPOINT_TO_SBV,
-     TUPLE_UPDATE,
      BITVECTOR_EXTRACT,
      FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
      FLOATINGPOINT_TO_FP_FLOATINGPOINT,
@@ -718,7 +712,8 @@ bool isDefinedKind(Kind k) { return k > UNDEFINED_KIND && k < LAST_KIND; }
 bool isApplyKind(cvc5::Kind k)
 {
   return (k == cvc5::Kind::APPLY_UF || k == cvc5::Kind::APPLY_CONSTRUCTOR
-          || k == cvc5::Kind::APPLY_SELECTOR || k == cvc5::Kind::APPLY_TESTER);
+          || k == cvc5::Kind::APPLY_SELECTOR || k == cvc5::Kind::APPLY_TESTER
+          || k == cvc5::Kind::APPLY_UPDATER);
 }
 
 #ifdef CVC5_ASSERTIONS
@@ -1190,6 +1185,15 @@ bool Sort::isTester() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isTester();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Sort::isUpdater() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isUpdater();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1852,7 +1856,6 @@ size_t Op::getNumIndices() const
   switch (k)
   {
     case DIVISIBLE: size = 1; break;
-    case RECORD_UPDATE: size = 1; break;
     case BITVECTOR_REPEAT: size = 1; break;
     case BITVECTOR_ZERO_EXTEND: size = 1; break;
     case BITVECTOR_SIGN_EXTEND: size = 1; break;
@@ -1862,7 +1865,6 @@ size_t Op::getNumIndices() const
     case IAND: size = 1; break;
     case FLOATINGPOINT_TO_UBV: size = 1; break;
     case FLOATINGPOINT_TO_SBV: size = 1; break;
-    case TUPLE_UPDATE: size = 1; break;
     case REGEXP_REPEAT: size = 1; break;
     case BITVECTOR_EXTRACT: size = 2; break;
     case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR: size = 2; break;
@@ -1892,12 +1894,10 @@ std::string Op::getIndices() const
   CVC5_API_CHECK(!d_node->isNull())
       << "Expecting a non-null internal expression. This Op is not indexed.";
   Kind k = intToExtKind(d_node->getKind());
-  CVC5_API_CHECK(k == DIVISIBLE || k == RECORD_UPDATE)
-      << "Can't get string index from"
-      << " kind " << kindToString(k);
+  CVC5_API_CHECK(k == DIVISIBLE) << "Can't get string index from"
+                                 << " kind " << kindToString(k);
   //////// all checks before this line
-  return k == DIVISIBLE ? d_node->getConst<Divisible>().k.toString()
-                        : d_node->getConst<RecordUpdate>().getField();
+  return d_node->getConst<Divisible>().k.toString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1938,7 +1938,6 @@ uint32_t Op::getIndices() const
     case FLOATINGPOINT_TO_SBV:
       i = d_node->getConst<FloatingPointToSBV>().d_bv_size.d_size;
       break;
-    case TUPLE_UPDATE: i = d_node->getConst<TupleUpdate>().getIndex(); break;
     case REGEXP_REPEAT:
       i = d_node->getConst<RegExpRepeat>().d_repeatAmount;
       break;
@@ -3062,6 +3061,15 @@ Term DatatypeSelector::getSelectorTerm() const
   ////////
   CVC5_API_TRY_CATCH_END;
 }
+Term DatatypeSelector::getUpdaterTerm() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return Term(d_solver, d_stor->getUpdater());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
 
 Sort DatatypeSelector::getRangeSort() const
 {
@@ -3424,7 +3432,17 @@ Term Datatype::getConstructorTerm(const std::string& name) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return getConstructor(name).getConstructorTerm();
+  return getConstructorForName(name).getConstructorTerm();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+DatatypeSelector Datatype::getSelector(const std::string& name) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return getSelectorForName(name);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3577,6 +3595,30 @@ DatatypeConstructor Datatype::getConstructorForName(
                               << getName() << " exists, among " << snames.str();
   }
   return DatatypeConstructor(d_solver, (*d_dtype)[index]);
+}
+
+DatatypeSelector Datatype::getSelectorForName(const std::string& name) const
+{
+  bool foundSel = false;
+  size_t index = 0;
+  size_t sindex = 0;
+  for (size_t i = 0, ncons = getNumConstructors(); i < ncons; i++)
+  {
+    int si = (*d_dtype)[i].getSelectorIndexForName(name);
+    if (si >= 0)
+    {
+      sindex = static_cast<size_t>(si);
+      index = i;
+      foundSel = true;
+      break;
+    }
+  }
+  if (!foundSel)
+  {
+    CVC5_API_CHECK(foundSel)
+        << "No select " << name << " for datatype " << getName() << " exists";
+  }
+  return DatatypeSelector(d_solver, (*d_dtype)[index][sindex]);
 }
 
 Datatype::const_iterator::const_iterator(const Solver* slv,
@@ -5806,29 +5848,18 @@ Op Solver::mkOp(Kind kind, const std::string& arg) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_KIND_CHECK(kind);
-  CVC5_API_KIND_CHECK_EXPECTED((kind == RECORD_UPDATE) || (kind == DIVISIBLE),
-                               kind)
-      << "RECORD_UPDATE or DIVISIBLE";
+  CVC5_API_KIND_CHECK_EXPECTED((kind == DIVISIBLE), kind) << "DIVISIBLE";
   //////// all checks before this line
   Op res;
-  if (kind == RECORD_UPDATE)
-  {
-    res = Op(this,
-             kind,
-             *mkValHelper<cvc5::RecordUpdate>(cvc5::RecordUpdate(arg)).d_node);
-  }
-  else
-  {
-    /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
-     * throws an std::invalid_argument exception. For consistency, we treat it
-     * as invalid. */
-    CVC5_API_ARG_CHECK_EXPECTED(arg != ".", arg)
-        << "a string representing an integer, real or rational value.";
-    res = Op(this,
-             kind,
-             *mkValHelper<cvc5::Divisible>(cvc5::Divisible(cvc5::Integer(arg)))
-                  .d_node);
-  }
+  /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
+   * throws an std::invalid_argument exception. For consistency, we treat it
+   * as invalid. */
+  CVC5_API_ARG_CHECK_EXPECTED(arg != ".", arg)
+      << "a string representing an integer, real or rational value.";
+  res = Op(this,
+           kind,
+           *mkValHelper<cvc5::Divisible>(cvc5::Divisible(cvc5::Integer(arg)))
+                .d_node);
   return res;
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -5904,11 +5935,6 @@ Op Solver::mkOp(Kind kind, uint32_t arg) const
           kind,
           *mkValHelper<cvc5::FloatingPointToSBV>(cvc5::FloatingPointToSBV(arg))
                .d_node);
-      break;
-    case TUPLE_UPDATE:
-      res = Op(this,
-               kind,
-               *mkValHelper<cvc5::TupleUpdate>(cvc5::TupleUpdate(arg)).d_node);
       break;
     case REGEXP_REPEAT:
       res =

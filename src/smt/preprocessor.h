@@ -85,16 +85,12 @@ class Preprocessor
    * simplification or normalization is done.
    *
    * @param n The node to expand
-   * @param expandOnly if true, then the expandDefinitions function of
-   * TheoryEngine is not called on subterms of n.
    * @return The expanded term.
    */
-  Node expandDefinitions(const Node& n, bool expandOnly = false);
+  Node expandDefinitions(const Node& n);
   /** Same as above, with a cache of previous results. */
   Node expandDefinitions(
-      const Node& n,
-      std::unordered_map<Node, Node, NodeHashFunction>& cache,
-      bool expandOnly = false);
+      const Node& n, std::unordered_map<Node, Node, NodeHashFunction>& cache);
   /**
    * Set proof node manager. Enables proofs in this preprocessor.
    */
