@@ -67,7 +67,6 @@ add_custom_command(
     ${JNI_HEADERS}
   BYPRODUCTS
     ${JNI_HEADERS}
-  ALL
   COMMAND
     # generate jni header files
     ${Java_JAVAC_EXECUTABLE} -h ${JNI_DIR} ${JAVA_FILES} -d ${JNI_DIR}
@@ -99,8 +98,8 @@ target_include_directories(cvc5jni PUBLIC ${JNI_INCLUDE_DIRS})
 target_include_directories(cvc5jni PUBLIC ${PROJECT_SOURCE_DIR}/src)
 target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
 target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
-target_link_libraries(cvc5jni ${JNI_LIBRARIES})
-target_link_libraries(cvc5jni cvc5)
+target_link_libraries(cvc5jni PRIVATE ${JNI_LIBRARIES})
+target_link_libraries(cvc5jni PRIVATE cvc5)
 
 set(CVC5_JAR "cvc5-${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}.jar")
 
@@ -115,4 +114,3 @@ add_jar(cvc5jar
 add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5)
 
 set(CVC5_JAR_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CVC5_JAR}" CACHE STRING "cvc5 jar" FORCE)
-set(CVC5_JNI_PATH "${CMAKE_CURRENT_BINARY_DIR}" CACHE STRING "cvc5 jni path" FORCE)
