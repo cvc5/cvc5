@@ -31,17 +31,13 @@ std::string defineFunToString(const cvc5::api::Term& f,
 {
   std::stringstream ss;
   ss << "(define-fun " << f << " (";
-  std::vector<cvc5::api::Term>::const_iterator it = params.cbegin(),
-                                               cend = params.cend();
-  if (it != cend)
+  for (size_t i = 0, n = params.size(); i < n; ++i)
   {
-    ss << '(' << *it << ' ' << it->getSort() << ')';
-    ++it;
-  }
-  while (it != cend)
-  {
-    ss << " (" << *it << ' ' << it->getSort() << ')';
-    ++it;
+    if (i > 0)
+    {
+      ss << ' ';
+    }
+    ss << '(' << params[i] << ' ' << params[i].getSort() << ')';
   }
   ss << ") " << sort << ' ' << body << ')';
   return ss.str();
