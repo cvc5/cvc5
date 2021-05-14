@@ -209,7 +209,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       Node opEq = op.eqNode(op);
       cdp->addStep(opEq, PfRule::REFL, {}, {op});
       size_t nchildren = children.size();
-      Node nullTerm = LfscNodeConverter::getNullTerminator(k, res[0].getType());
+      Node nullTerm = d_tproc.getNullTerminator(k, res[0].getType());
       // Are we doing congruence of an n-ary operator? If so, notice that op
       // is a binary operator and we must apply congruence in a special way.
       // Note we use the first block of code if we have more than 2 children,
@@ -318,7 +318,7 @@ bool LfscProofPostprocessCallback::update(Node res,
     break;
     case PfRule::AND_INTRO:
     {
-      Node cur = LfscNodeConverter::getNullTerminator(AND);
+      Node cur = d_tproc.getNullTerminator(AND);
       size_t nchildren = children.size();
       for (size_t j = 0; j < nchildren; j++)
       {
@@ -340,7 +340,7 @@ bool LfscProofPostprocessCallback::update(Node res,
     case PfRule::ARITH_SUM_UB:
     {
       // proof of null terminator base 0 = 0
-      Node zero = LfscNodeConverter::getNullTerminator(PLUS);
+      Node zero = d_tproc.getNullTerminator(PLUS);
       Node cur = zero.eqNode(zero);
       cdp->addStep(cur, PfRule::REFL, {}, {zero});
       for (size_t i = 0, size = children.size(); i < size; i++)
@@ -397,7 +397,7 @@ Node LfscProofPostprocessCallback::mkChain(Kind k,
   size_t nchildren = children.size();
   size_t i = 0;
   // do we have a null terminator? If so, we start with it.
-  Node ret = LfscNodeConverter::getNullTerminator(k, children[0].getType());
+  Node ret = d_tproc.getNullTerminator(k, children[0].getType());
   if (ret.isNull())
   {
     ret = children[nchildren - 1];

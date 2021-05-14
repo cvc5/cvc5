@@ -74,7 +74,7 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
                    LfscRule lr,
                    const std::vector<Node>& args);
   /** Make chained form of a term */
-  static Node mkChain(Kind k, const std::vector<Node>& children);
+  Node mkChain(Kind k, const std::vector<Node>& children);
   /** Make fresh dummy predicate */
   static Node mkDummyPredicate();
 };

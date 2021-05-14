@@ -40,7 +40,7 @@ class LfscNodeConverter : public NodeConverter
    * Get the null terminator for kind k and type tn. The type tn can be
    * omitted if applications of kind k do not have parametric type.
    */
-  static Node getNullTerminator(Kind k, TypeNode tn = TypeNode::null());
+  Node getNullTerminator(Kind k, TypeNode tn = TypeNode::null());
   /**
    * Return the properly named operator for n of the form (f t1 ... tn), where
    * f could be interpreted or uninterpreted.  This method is used for cases

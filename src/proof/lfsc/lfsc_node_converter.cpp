@@ -713,6 +713,12 @@ Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
     case BITVECTOR_MULT:
       nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
       break;
+    case BITVECTOR_CONCAT:
+    {
+      TypeNode bvz = nm->mkBitVectorType(0);
+      nullTerm = getSymbolInternal(k, bvz, "emptybv");
+    }
+      break;
     default:
       // not handled as null-terminated
       break;
