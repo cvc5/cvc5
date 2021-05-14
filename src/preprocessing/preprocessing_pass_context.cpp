@@ -55,8 +55,8 @@ void PreprocessingPassContext::spendResource(Resource r)
 void PreprocessingPassContext::recordSymbolsInAssertions(
     const std::vector<Node>& assertions)
 {
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<Node, NodeHashFunction> syms;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<Node> syms;
   for (TNode cn : assertions)
   {
     expr::getSymbols(cn, syms, visited);
@@ -67,20 +67,11 @@ void PreprocessingPassContext::recordSymbolsInAssertions(
   }
 }
 
-void PreprocessingPassContext::addModelSubstitution(const Node& lhs,
-                                                    const Node& rhs)
-{
-  getTheoryEngine()->getModel()->addSubstitution(lhs,
-                                                 d_smt->expandDefinitions(rhs));
-}
-
 void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                const Node& rhs,
                                                ProofGenerator* pg)
 {
   getTopLevelSubstitutions().addSubstitution(lhs, rhs, pg);
-  // also add as a model substitution
-  addModelSubstitution(lhs, rhs);
 }
 
 void PreprocessingPassContext::addSubstitution(const Node& lhs,
@@ -89,8 +80,6 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                const std::vector<Node>& args)
 {
   getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, {}, args);
-  // also add as a model substitution
-  addModelSubstitution(lhs, rhs);
 }
 
 ProofNodeManager* PreprocessingPassContext::getProofNodeManager()

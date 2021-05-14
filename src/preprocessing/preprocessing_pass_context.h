@@ -57,10 +57,7 @@ class PreprocessingPassContext
     return d_circuitPropagator;
   }
 
-  context::CDHashSet<Node, NodeHashFunction>& getSymsInAssertions()
-  {
-    return d_symsInAssertions;
-  }
+  context::CDHashSet<Node>& getSymsInAssertions() { return d_symsInAssertions; }
 
   void spendResource(Resource r);
 
@@ -78,15 +75,8 @@ class PreprocessingPassContext
   void recordSymbolsInAssertions(const std::vector<Node>& assertions);
 
   /**
-   * Add substitution to theory model. This method should only be called if
-   * we have already added the substitution to the top-level substitutions
-   * class. Otherwise, addSubstitution should be called instead.
-   * @param lhs The node replaced by node 'rhs'
-   * @param rhs The node to substitute node 'lhs'
-   */
-  void addModelSubstitution(const Node& lhs, const Node& rhs);
-  /**
-   * Add substitution to the top-level substitutions and to the theory model.
+   * Add substitution to the top-level substitutions, which also as a
+   * consequence is used by the theory model.
    * @param lhs The node replaced by node 'rhs'
    * @param rhs The node to substitute node 'lhs'
    * @param pg The proof generator that can provide a proof of lhs == rhs.
@@ -114,7 +104,7 @@ class PreprocessingPassContext
    * The (user-context-dependent) set of symbols that occur in at least one
    * assertion in the current user context.
    */
-  context::CDHashSet<Node, NodeHashFunction> d_symsInAssertions;
+  context::CDHashSet<Node> d_symsInAssertions;
 
 };  // class PreprocessingPassContext
 

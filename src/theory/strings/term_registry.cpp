@@ -437,8 +437,7 @@ const context::CDList<TNode>& TermRegistry::getFunctionTerms() const
   return d_functionsTerms;
 }
 
-const context::CDHashSet<Node, NodeHashFunction>& TermRegistry::getInputVars()
-    const
+const context::CDHashSet<Node>& TermRegistry::getInputVars() const
 {
   return d_inputVars;
 }

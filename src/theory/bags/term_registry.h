@@ -36,7 +36,7 @@ class SolverState;
  */
 class TermRegistry
 {
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
+  typedef context::CDHashMap<Node, Node> NodeMap;
 
  public:
   TermRegistry(SolverState& state, InferenceManager& im);

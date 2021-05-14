@@ -341,6 +341,11 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term()
         bint operator==(const Term&) except +
         bint operator!=(const Term&) except +
+        bint operator<(const Term&) except +
+        bint operator>(const Term&) except +
+        bint operator<=(const Term&) except +
+        bint operator>=(const Term&) except +
+        size_t getNumChildren() except +
         Term operator[](size_t idx) except +
         uint64_t getId() except +
         Kind getKind() except +
@@ -367,6 +372,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
             Term operator*() except +
         const_iterator begin() except +
         const_iterator end() except +
+        bint isInteger() except +
 
     cdef cppclass TermHashFunction:
         TermHashFunction() except +

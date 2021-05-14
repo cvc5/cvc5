@@ -95,7 +95,7 @@ class RConsTypeInfo
    * possible to have multiple obligations to reconstruct the same builtin term
    * from different sygus datatype types.
    */
-  std::unordered_map<Node, RConsObligation*, NodeHashFunction> d_ob;
+  std::unordered_map<Node, RConsObligation*> d_ob;
 };
 
 }  // namespace quantifiers

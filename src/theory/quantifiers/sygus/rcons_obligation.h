@@ -66,7 +66,7 @@ class RConsObligation
   /**
    * @return equivalent builtin terms to reconstruct for this obligation
    */
-  const std::unordered_set<Node, NodeHashFunction>& getBuiltins() const;
+  const std::unordered_set<Node>& getBuiltins() const;
 
   /**
    * Add candidate solution to the set of candidate solutions for the
@@ -79,8 +79,7 @@ class RConsObligation
   /**
    * @return set of candidate solutions for this obligation
    */
-  const std::unordered_set<Node, NodeHashFunction>& getCandidateSolutions()
-      const;
+  const std::unordered_set<Node>& getCandidateSolutions() const;
 
   /**
    * Add candidate solution to the set of candidate solutions waiting for the
@@ -93,7 +92,7 @@ class RConsObligation
   /**
    * @return set of candidate solutions waiting for this obligation to be solved
    */
-  const std::unordered_set<Node, NodeHashFunction>& getWatchSet() const;
+  const std::unordered_set<Node>& getWatchSet() const;
 
   /**
    * Print all reachable obligations and their candidate solutions from
@@ -131,7 +130,7 @@ class RConsObligation
    * To solve the obligation, one of these builtin terms must be reconstructed
    * in the specified grammar (sygus datatype type) of the obligation.
    */
-  std::unordered_set<Node, NodeHashFunction> d_ts;
+  std::unordered_set<Node> d_ts;
   /** A set of candidate solutions to this obligation.
    *
    * Each candidate solution is a sygus datatype term containing skolem subterms
@@ -144,13 +143,13 @@ class RConsObligation
    * where k1 and k2 are skolems. Notice that `d_candSols` may contain a
    * pure term that solves the obligation ((c_+ c_x c_y) in this example).
    */
-  std::unordered_set<Node, NodeHashFunction> d_candSols;
+  std::unordered_set<Node> d_candSols;
   /** A set of candidate solutions waiting for this obligation to be solved.
    *
    * In the example above, (c_+ k1 k2) and (c_+ c_x k2) are in the watch-set of
    * k2. Similarly, (c_+ k1 k2) and (c_+ k1 c_y) are in the watch-set of k1.
    */
-  std::unordered_set<Node, NodeHashFunction> d_watchSet;
+  std::unordered_set<Node> d_watchSet;
 };
 
 /**

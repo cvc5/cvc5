@@ -28,9 +28,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-using BuiltinSet = std::unordered_set<Node, NodeHashFunction>;
-using TypeBuiltinSetMap =
-    std::unordered_map<TypeNode, BuiltinSet, TypeNodeHashFunction>;
+using BuiltinSet = std::unordered_set<Node>;
+using TypeBuiltinSetMap = std::unordered_map<TypeNode, BuiltinSet>;
 
 /** SygusReconstruct
  *
@@ -293,9 +292,8 @@ class SygusReconstruct : public expr::NotifyMatch
    *
    * @param pool a pool of patterns/shapes to print
    */
-  void printPool(const std::unordered_map<TypeNode,
-                                          std::vector<Node>,
-                                          TypeNodeHashFunction>& pool) const;
+  void printPool(
+      const std::unordered_map<TypeNode, std::vector<Node>>& pool) const;
 
   /** pointer to the sygus term database */
   TermDbSygus* d_tds;
@@ -305,19 +303,18 @@ class SygusReconstruct : public expr::NotifyMatch
   /** a list of obligations to solve */
   std::vector<std::unique_ptr<RConsObligation>> d_obs;
   /** a map from a sygus datatype type to its reconstruction info */
-  std::unordered_map<TypeNode, RConsTypeInfo, TypeNodeHashFunction> d_stnInfo;
+  std::unordered_map<TypeNode, RConsTypeInfo> d_stnInfo;
 
   /** a map from an obligation's skolem to its sygus solution (if it exists) */
-  std::unordered_map<TNode, TNode, TNodeHashFunction> d_sol;
+  std::unordered_map<TNode, TNode> d_sol;
 
   /** a map from a candidate solution to its sub-obligations */
-  std::unordered_map<Node, std::vector<RConsObligation*>, NodeHashFunction>
-      d_subObs;
+  std::unordered_map<Node, std::vector<RConsObligation*>> d_subObs;
   /** a map from a candidate solution to its parent obligation */
-  std::unordered_map<Node, RConsObligation*, NodeHashFunction> d_parentOb;
+  std::unordered_map<Node, RConsObligation*> d_parentOb;
 
   /** a cache of sygus variables treated as ground terms by matching */
-  std::unordered_map<Node, Node, NodeHashFunction> d_sygusVars;
+  std::unordered_map<Node, Node> d_sygusVars;
 
   /** A trie for filtering out redundant terms from the paterns pool */
   expr::MatchTrie d_poolTrie;

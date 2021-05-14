@@ -359,14 +359,11 @@ class CegInstantiator {
   /** cache from nodes to the set of variables it contains
     * (from the quantified formula we are instantiating).
     */
-  std::unordered_map<Node,
-                     std::unordered_set<Node, NodeHashFunction>,
-                     NodeHashFunction>
-      d_prog_var;
+  std::unordered_map<Node, std::unordered_set<Node>> d_prog_var;
   /** cache of the set of terms that we have established are
    * ineligible for instantiation.
     */
-  std::unordered_set<Node, NodeHashFunction> d_inelig;
+  std::unordered_set<Node> d_inelig;
   /** ensures n is in d_prog_var and d_inelig. */
   void computeProgVars(Node n);
   //-------------------------------end globally cached
@@ -379,7 +376,7 @@ class CegInstantiator {
   /** map from types to representatives of that type */
   std::map<TypeNode, std::vector<Node> > d_curr_type_eqc;
   /** solved asserts */
-  std::unordered_set<Node, NodeHashFunction> d_solved_asserts;
+  std::unordered_set<Node> d_solved_asserts;
   /** process assertions
    * This is called once at the beginning of check to
    * set up all necessary information for constructing instantiations,
@@ -389,16 +386,14 @@ class CegInstantiator {
   /** cache bound variables for type returned
    * by getBoundVariable(...).
    */
-  std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>
-      d_bound_var;
+  std::unordered_map<TypeNode, std::vector<Node>> d_bound_var;
   /** current index of bound variables for type.
    * The next call to getBoundVariable(...) for
    * type tn returns the d_bound_var_index[tn]^th
    * element of d_bound_var[tn], or a fresh variable
    * if not in bounds.
    */
-  std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>
-      d_bound_var_index;
+  std::unordered_map<TypeNode, unsigned> d_bound_var_index;
   //-------------------------------end cached per round
 
   //-------------------------------data per theory
@@ -434,7 +429,7 @@ class CegInstantiator {
    */
   std::vector<Node> d_vars;
   /** set form of d_vars */
-  std::unordered_set<Node, NodeHashFunction> d_vars_set;
+  std::unordered_set<Node> d_vars_set;
   /** index of variables reported in instantiation */
   std::vector<unsigned> d_var_order_index;
   /** number of input variables

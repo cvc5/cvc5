@@ -26,6 +26,7 @@
 namespace cvc5 {
 
 class TheoryEngine;
+class Env;
 
 namespace theory {
 
@@ -42,7 +43,7 @@ class TheoryModel;
 class ModelManager
 {
  public:
-  ModelManager(TheoryEngine& te, EqEngineManager& eem);
+  ModelManager(TheoryEngine& te, Env& env, EqEngineManager& eem);
   virtual ~ModelManager();
   /**
    * Finish initializing this class, which allocates the model, the model
@@ -125,8 +126,8 @@ class ModelManager
   void collectTerms(TheoryId tid, TNode n, std::set<Node>& termSet) const;
   /** Reference to the theory engine */
   TheoryEngine& d_te;
-  /** Logic info of theory engine (cached) */
-  const LogicInfo& d_logicInfo;
+  /** Reference to the environment */
+  Env& d_env;
   /** The equality engine manager */
   EqEngineManager& d_eem;
   /**

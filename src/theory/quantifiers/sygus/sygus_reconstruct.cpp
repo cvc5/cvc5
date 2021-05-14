@@ -65,7 +65,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
 
   // the set of unique (up to rewriting) patterns/shapes in the grammar used by
   // matching
-  std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction> pool;
+  std::unordered_map<TypeNode, std::vector<Node>> pool;
 
   uint64_t count = 0;
 
@@ -435,10 +435,10 @@ void SygusReconstruct::removeReconstructedTerms(
 Node SygusReconstruct::mkGround(Node n) const
 {
   // get the set of bound variables in n
-  std::unordered_set<TNode, TNodeHashFunction> vars;
+  std::unordered_set<TNode> vars;
   expr::getVariables(n, vars);
 
-  std::unordered_map<TNode, TNode, TNodeHashFunction> subs;
+  std::unordered_map<TNode, TNode> subs;
 
   // generate a ground value for each one of those variables
   for (const TNode& var : vars)
@@ -483,8 +483,7 @@ void SygusReconstruct::clear()
 }
 
 void SygusReconstruct::printPool(
-    const std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>&
-        pool) const
+    const std::unordered_map<TypeNode, std::vector<Node>>& pool) const
 {
   Trace("sygus-rcons") << std::endl << "Pool:" << std::endl << '{';
 

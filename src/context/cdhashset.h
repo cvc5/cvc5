@@ -25,8 +25,9 @@
 namespace cvc5 {
 namespace context {
 
-template <class V, class HashFcn>
-class CDHashSet : protected CDInsertHashMap<V, bool, HashFcn> {
+template <class V, class HashFcn = std::hash<V>>
+class CDHashSet : protected CDInsertHashMap<V, bool, HashFcn>
+{
   typedef CDInsertHashMap<V, bool, HashFcn> super;
 
   // no copy or assignment
@@ -152,7 +153,7 @@ public:
     return super::insertAtContextLevelZero(v, true);
   }
 
-};/* class CDHashSet */
+}; /* class CDHashSet */
 
 }  // namespace context
 }  // namespace cvc5

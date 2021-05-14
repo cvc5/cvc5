@@ -472,10 +472,10 @@ int PatternTermSelector::isInstanceOf(Node n1,
 {
   Assert(n1 != n2);
   int status = 0;
-  std::unordered_set<TNode, TNodeHashFunction> subs_vars;
+  std::unordered_set<TNode> subs_vars;
   std::unordered_set<
       std::pair<TNode, TNode>,
-      PairHashFunction<TNode, TNode, TNodeHashFunction, TNodeHashFunction> >
+      PairHashFunction<TNode, TNode, std::hash<TNode>, std::hash<TNode>>>
       visited;
   std::vector<std::pair<TNode, TNode> > visit;
   std::pair<TNode, TNode> cur;
