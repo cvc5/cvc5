@@ -1516,6 +1516,10 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       {
         opts.set(options::nlExt, false);
       }
+      if (!opts.wasSetByUser(options::nlExtLight))
+      {
+        opts.set(options::nlExtLight, true);
+      }
       if (!opts.wasSetByUser(options::nlRlvMode))
       {
         opts.set(options::nlRlvMode, options::NlRlvMode::INTERLEAVE);
