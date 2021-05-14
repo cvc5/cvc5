@@ -16,7 +16,7 @@
 #include "parser/antlr_input.h"
 
 #include <antlr3.h>
-#include <limits.h>
+#include <limits>
 
 #include "base/check.h"
 #include "base/output.h"
@@ -152,61 +152,13 @@ AntlrInputStream::newFileInputStream(const std::string& name,
   return new AntlrInputStream(name, input, false, NULL, NULL);
 }
 
-
-AntlrInputStream*
-AntlrInputStream::newStreamInputStream(std::istream& input,
-                                       const std::string& name,
-                                       bool lineBuffered)
+AntlrInputStream* AntlrInputStream::newStreamInputStream(
+    std::istream& input, const std::string& name)
 {
   pANTLR3_INPUT_STREAM inputStream = NULL;
   pANTLR3_UINT8 inputStringCopy = NULL;
-  LineBuffer* line_buffer = NULL;
-
-  if(lineBuffered) {
-    line_buffer = new LineBuffer(&input);
-    inputStream = newAntlr3BufferedStream(input, name, line_buffer);
-  } else {
-
-    // Since these are all NULL on entry, realloc will be called
-    char *basep = NULL, *boundp = NULL, *cp = NULL;
-    /* 64KB seems like a reasonable default size. */
-    size_t bufSize = 0x10000;
-
-    /* Keep going until we can't go no more. */
-    while( !input.eof() && !input.fail() ) {
-
-      if( cp == boundp ) {
-        /* We ran out of room in the buffer. Realloc at double the size. */
-        ptrdiff_t offset = cp - basep;
-        basep = (char *) realloc(basep, bufSize);
-        if( basep == NULL ) {
-          throw InputStreamException("Failed buffering input stream: " + name);
-        }
-        cp = basep + offset;
-        boundp = basep + bufSize;
-        bufSize *= 2;
-      }
-
-      /* Read as much as we have room for. */
-      input.read( cp, boundp - cp );
-      cp += input.gcount();
-    }
-
-    /* Make sure the fail bit didn't get set. */
-    if( !input.eof() ) {
-      throw InputStreamException("Stream input failed: " + name);
-    }
-    ptrdiff_t offset = cp - basep;
-    Assert(offset >= 0);
-    Assert(offset <= std::numeric_limits<uint32_t>::max());
-    inputStringCopy = (pANTLR3_UINT8)basep;
-    inputStream = newAntrl3InPlaceStream(inputStringCopy, (uint32_t) offset, name);
-  }
-
-  if( inputStream == NULL ) {
-    throw InputStreamException("Couldn't initialize input: " + name);
-  }
-
+  LineBuffer* line_buffer = new LineBuffer(&input);
+  inputStream = newAntlr3BufferedStream(input, name, line_buffer);
   return new AntlrInputStream(name, inputStream, false, inputStringCopy,
                               line_buffer);
 }

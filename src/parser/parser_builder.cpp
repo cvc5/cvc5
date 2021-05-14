@@ -75,10 +75,6 @@ Parser* ParserBuilder::build()
   case FILE_INPUT:
     input = Input::newFileInput(d_lang, d_filename, d_mmap);
     break;
-  case LINE_BUFFERED_STREAM_INPUT:
-    Assert(d_streamInput != NULL);
-    input = Input::newStreamInput(d_lang, *d_streamInput, d_filename, true);
-    break;
   case STREAM_INPUT:
     Assert(d_streamInput != NULL);
     input = Input::newStreamInput(d_lang, *d_streamInput, d_filename);
@@ -200,12 +196,6 @@ ParserBuilder& ParserBuilder::withForcedLogic(const std::string& logic) {
 
 ParserBuilder& ParserBuilder::withStreamInput(std::istream& input) {
   d_inputType = STREAM_INPUT;
-  d_streamInput = &input;
-  return *this;
-}
-
-ParserBuilder& ParserBuilder::withLineBufferedStreamInput(std::istream& input) {
-  d_inputType = LINE_BUFFERED_STREAM_INPUT;
   d_streamInput = &input;
   return *this;
 }
