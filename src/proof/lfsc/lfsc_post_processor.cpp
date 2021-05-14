@@ -199,6 +199,12 @@ bool LfscProofPostprocessCallback::update(Node res,
         return true;
       }
       Kind k = res[0].getKind();
+      if (k==HO_APPLY)
+      {
+        // HO_APPLY congruence is a single application of LFSC congruence
+        addLfscRule(cdp, res, children, LfscRule::CONG, {});
+        return true;
+      }
       // We are proving f(t1, ..., tn) = f(s1, ..., sn), nested.
       // First, get the operator, which will be used for printing the base
       // REFL step. Notice this may be for interpreted or uninterpreted

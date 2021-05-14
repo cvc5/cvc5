@@ -715,6 +715,9 @@ Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
       break;
     case BITVECTOR_CONCAT:
     {
+      // the null terminator of bitvector concat is a dummy variable of
+      // bit-vector type with zero width, regardless of the type of the overall
+      // concat.
       TypeNode bvz = nm->mkBitVectorType(0);
       nullTerm = getSymbolInternal(k, bvz, "emptybv");
     }
