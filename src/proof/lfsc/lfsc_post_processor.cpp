@@ -209,7 +209,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       Node opEq = op.eqNode(op);
       cdp->addStep(opEq, PfRule::REFL, {}, {op});
       size_t nchildren = children.size();
-      Node nullTerm = LfscNodeConverter::getNullTerminator(k);
+      Node nullTerm = LfscNodeConverter::getNullTerminator(k, res[0].getType());
       // Are we doing congruence of an n-ary operator? If so, notice that op
       // is a binary operator and we must apply congruence in a special way.
       // Note we use the first block of code if we have more than 2 children,
@@ -397,7 +397,7 @@ Node LfscProofPostprocessCallback::mkChain(Kind k,
   size_t nchildren = children.size();
   size_t i = 0;
   // do we have a null terminator? If so, we start with it.
-  Node ret = LfscNodeConverter::getNullTerminator(k);
+  Node ret = LfscNodeConverter::getNullTerminator(k, children[0].getType());
   if (ret.isNull())
   {
     ret = children[nchildren - 1];

@@ -23,6 +23,7 @@
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "theory/bv/theory_bv_utils.h"
 
 using namespace cvc5::kind;
 
@@ -237,7 +238,7 @@ Node LfscNodeConverter::postConvert(Node n)
       return charVec[0];
     }
     std::reverse(charVec.begin(), charVec.end());
-    Node ret = postConvert(getNullTerminator(STRING_CONCAT));
+    Node ret = postConvert(getNullTerminator(STRING_CONCAT, tn));
     for (size_t i = 0, size = charVec.size(); i < size; i++)
     {
       ret = nm->mkNode(STRING_CONCAT, charVec[i], ret);
@@ -350,7 +351,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // This makes the AST above distinguishable from (or A B C D E),
     // which otherwise would both have representation:
     //   (or A (or B (or C (or D E))))
-    Node nullTerm = getNullTerminator(k);
+    Node nullTerm = getNullTerminator(k, tn);
     // Most operators simply get binarized
     Node ret;
     size_t istart = 0;
@@ -683,14 +684,16 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Node n)
   return indices;
 }
 
-Node LfscNodeConverter::getNullTerminator(Kind k)
+Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node nullTerm;
   switch (k)
   {
     case OR: nullTerm = nm->mkConst(false); break;
-    case AND: nullTerm = nm->mkConst(true); break;
+    case AND: 
+    case SEP_STAR:
+      nullTerm = nm->mkConst(true); break;
     case PLUS: nullTerm = nm->mkConst(Rational(0)); break;
     case MULT:
     case NONLINEAR_MULT: nullTerm = nm->mkConst(Rational(1)); break;
@@ -698,6 +701,17 @@ Node LfscNodeConverter::getNullTerminator(Kind k)
     case REGEXP_CONCAT:
       // the language containing only the empty string
       nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
+      break;
+    case BITVECTOR_AND:
+      nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
+      break;
+    case BITVECTOR_OR:
+    case BITVECTOR_PLUS:
+    case BITVECTOR_XOR:
+      nullTerm = theory::bv::utils::mkZero(tn.getBitVectorSize());
+      break;
+    case BITVECTOR_MULT:
+      nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
       break;
     default:
       // not handled as null-terminated
