@@ -13,7 +13,7 @@
                  (or Start Start) (ite Start Start Start)))))
 
 (define-fun eqReduce ((p Bool) (q Bool)) Bool
-  (or (and p q) (and (not p) (not q))))
+  (and (or p (not q)) (or (not p) q)))
 
 (declare-var p Bool)
 (declare-var q Bool)
