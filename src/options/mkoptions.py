@@ -699,7 +699,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options_h, tpl_options_cpp):
 
             if option.long:
                 cases.append(
-                    'case {}:// --{}'.format(
+                    'case {}: // --{}'.format(
                         g_getopt_long_start + len(getopt_long),
                         option.long))
                 add_getopt_long(option.long, argument_req, getopt_long)
@@ -814,9 +814,6 @@ def codegen_all_modules(modules, dst_dir, tpl_options_h, tpl_options_cpp):
                 cases.append('  break;')
 
                 options_handler.extend(cases)
-
-                add_getopt_long('no-{}'.format(option.long), argument_req,
-                                getopt_long)
 
             optname = option.long
             # collect options available to the SMT-frontend
