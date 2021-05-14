@@ -36,16 +36,20 @@
  *
  * (check-synth)
  *
- * The printed output to this example should look like:
- * (define-fun id1 ((x Int)) Int (+ x (+ x (- x))))
- * (define-fun id2 ((x Int)) Int x)
- * (define-fun id3 ((x Int)) Int (+ x 0))
- * (define-fun id4 ((x Int)) Int (+ x (+ x (- x))))
+ * The printed output for this example should look like:
+ * (
+ *   (define-fun id1 ((x Int)) Int (+ x (+ x (- x))))
+ *   (define-fun id2 ((x Int)) Int x)
+ *   (define-fun id3 ((x Int)) Int (+ x 0))
+ *   (define-fun id4 ((x Int)) Int (+ x (+ x (- x))))
+ * )
  */
 
 #include <cvc5/cvc5.h>
 
 #include <iostream>
+
+#include "utils.h"
 
 using namespace cvc5::api;
 
@@ -114,11 +118,14 @@ int main()
   if (slv.checkSynth().isUnsat())
   {
     // Output should be equivalent to:
-    // (define-fun id1 ((x Int)) Int (+ x (+ x (- x))))
-    // (define-fun id2 ((x Int)) Int x)
-    // (define-fun id3 ((x Int)) Int (+ x 0))
-    // (define-fun id4 ((x Int)) Int (+ x (+ x (- x))))
-    slv.printSynthSolution(std::cout);
+    // (
+    //   (define-fun id1 ((x Int)) Int (+ x (+ x (- x))))
+    //   (define-fun id2 ((x Int)) Int x)
+    //   (define-fun id3 ((x Int)) Int (+ x 0))
+    //   (define-fun id4 ((x Int)) Int (+ x (+ x (- x))))
+    // )
+    std::vector<Term> terms = {id1, id2, id3, id4};
+    printSynthSolutions(terms, slv.getSynthSolutions(terms));
   }
 
   return 0;
