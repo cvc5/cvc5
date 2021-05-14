@@ -88,7 +88,7 @@ TPL_IMPL_ASSIGN = \
   auto parsedval = {handler};
   {predicates}
   {module}().{name} = parsedval;
-  {module}().{name}__setByUser__ = true;
+  {module}().{name}__setByUser = true;
   Trace("options") << "user assigned option {name}" << std::endl;
 }}"""
 
@@ -100,7 +100,7 @@ TPL_IMPL_ASSIGN_BOOL = \
 {{
   {predicates}
   {module}().{name} = value;
-  {module}().{name}__setByUser__ = true;
+  {module}().{name}__setByUser = true;
   Trace("options") << "user assigned option {name}" << std::endl;
 }}"""
 
@@ -116,10 +116,18 @@ TPL_GETOPT_LONG = '{{ "{}", {}_argument, nullptr, {} }},'
 TPL_PUSHBACK_PREEMPT = 'extender->pushBackPreemption({});'
 
 TPL_HOLDER_MACRO_ATTR = "  {type} {name};\\\n"
-TPL_HOLDER_MACRO_ATTR += "  bool {name}__setByUser__ = false;"
+TPL_HOLDER_MACRO_ATTR += "  bool {name}__setByUser = false;"
 
 TPL_HOLDER_MACRO_ATTR_DEF = "  {type} {name} = {default};\\\n"
-TPL_HOLDER_MACRO_ATTR_DEF += "  bool {name}__setByUser__ = false;"
+TPL_HOLDER_MACRO_ATTR_DEF += "  bool {name}__setByUser = false;"
+
+TPL_DECL_SET_DEFAULT = 'void default_{name}(Options& opts, {type} value);'
+TPL_IMPL_SET_DEFAULT = TPL_DECL_SET_DEFAULT[:-1] + '''
+{{
+    if (!opts.{module}().{name}__setByUser) {{
+        opts.{module}().{name} = value;
+    }}
+}}'''
 
 TPL_OPTION_STRUCT_RW = \
 """extern struct {name}__option_t
@@ -150,14 +158,13 @@ TPL_IMPL_OP_BRACKET = TPL_DECL_OP_BRACKET[:-1] + \
   return {module}().{name};
 }}"""
 
-
 TPL_DECL_WAS_SET_BY_USER = \
 """template <> bool Options::wasSetByUser(options::{name}__option_t) const;"""
 
 TPL_IMPL_WAS_SET_BY_USER = TPL_DECL_WAS_SET_BY_USER[:-1] + \
 """
 {{
-  return {module}().{name}__setByUser__;
+  return {module}().{name}__setByUser;
 }}"""
 
 # Option specific methods
@@ -456,6 +463,8 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
     decls = []
     specs = []
     inls = []
+    default_decl = []
+    default_impl = []
     mode_decl = []
     mode_impl = []
 
@@ -489,6 +498,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         decls.append(tpl_decl.format(name=option.name, type=option.type, long_name = long_name))
 
         # Generate module specialization
+        default_decl.append(TPL_DECL_SET_DEFAULT.format(module=module.id, name=option.name, type=option.type))
         specs.append(TPL_DECL_SET.format(name=option.name))
         specs.append(TPL_DECL_OP_BRACKET.format(name=option.name))
         specs.append(TPL_DECL_WAS_SET_BY_USER.format(name=option.name))
@@ -511,6 +521,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         ### Generate code for {module.name}_options.cpp
 
         # Accessors
+        default_impl.append(TPL_IMPL_SET_DEFAULT.format(module=module.id, name=option.name, type=option.type))
         accs.append(TPL_IMPL_SET.format(module=module.id, name=option.name))
         accs.append(TPL_IMPL_OP_BRACKET.format(module=module.id, name=option.name))
         accs.append(TPL_IMPL_WAS_SET_BY_USER.format(module=module.id, name=option.name))
@@ -562,11 +573,14 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         decls='\n'.join(decls),
         specs='\n'.join(specs),
         inls='\n'.join(inls),
+        defaults='\n'.join(default_decl),
         modes=''.join(mode_decl)))
 
     write_file(dst_dir, '{}.cpp'.format(filename), tpl_module_cpp.format(
         header=module.header,
+        id=module.id,
         accs='\n'.join(accs),
+        defaults='\n'.join(default_impl),
         defs='\n'.join(defs),
         modes=''.join(mode_impl)))
 
@@ -838,7 +852,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options_h, tpl_options_cpp):
                 if option.mode and option.type not in default:
                     default = '{}::{}'.format(option.type, default)
                 defaults.append('{}({})'.format(option.name, default))
-                defaults.append('{}__setByUser__(false)'.format(option.name))
+                defaults.append('{}__setByUser(false)'.format(option.name))
 
     write_file(dst_dir, 'options.h', tpl_options_h.format(
         holder_fwd_decls=get_holder_fwd_decls(modules),
