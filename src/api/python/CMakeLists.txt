@@ -131,8 +131,10 @@ set(INSTALL_CMD
 # option --single-version-externally-managed prevents it from being
 # an .egg distribution and --record records the list of installed files
 if ("${IN_VIRTUALENV}" STREQUAL "NO")
-  set(INSTALL_CMD "${INSTALL_CMD} --prefix=${CMAKE_INSTALL_PREFIX}
---single-version-externally-managed --record=pycvc5-installed-files.txt")
+  set(INSTALL_CMD "${INSTALL_CMD}
+          --prefix=${CMAKE_INSTALL_PREFIX}
+          --single-version-externally-managed
+          --record=pycvc5-installed-files.txt")
 endif()
 
 message("Python bindings install command: ${INSTALL_CMD}")
