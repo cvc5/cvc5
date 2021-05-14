@@ -3,7 +3,7 @@ name   = "Decision heuristics"
 
 [[option]]
   name       = "decisionMode"
-  smt_name   = "decision-mode"
+  alias      = ["decision-mode"]
   category   = "regular"
   long       = "decision=MODE"
   type       = "DecisionMode"
