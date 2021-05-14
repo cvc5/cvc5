@@ -37,8 +37,7 @@ Node RConsObligation::getSkolem() const { return d_k; }
 
 void RConsObligation::addBuiltin(Node builtin) { d_ts.emplace(builtin); }
 
-const std::unordered_set<Node, NodeHashFunction>& RConsObligation::getBuiltins()
-    const
+const std::unordered_set<Node>& RConsObligation::getBuiltins() const
 {
   return d_ts;
 }
@@ -48,8 +47,7 @@ void RConsObligation::addCandidateSolution(Node candSol)
   d_candSols.emplace(candSol);
 }
 
-const std::unordered_set<Node, NodeHashFunction>&
-RConsObligation::getCandidateSolutions() const
+const std::unordered_set<Node>& RConsObligation::getCandidateSolutions() const
 {
   return d_candSols;
 }
@@ -59,8 +57,7 @@ void RConsObligation::addCandidateSolutionToWatchSet(Node candSol)
   d_watchSet.emplace(candSol);
 }
 
-const std::unordered_set<Node, NodeHashFunction>& RConsObligation::getWatchSet()
-    const
+const std::unordered_set<Node>& RConsObligation::getWatchSet() const
 {
   return d_watchSet;
 }
@@ -69,7 +66,7 @@ void RConsObligation::printCandSols(
     const RConsObligation* root,
     const std::vector<std::unique_ptr<RConsObligation>>& obs)
 {
-  std::unordered_set<Node, NodeHashFunction> visited;
+  std::unordered_set<Node> visited;
   std::vector<const RConsObligation*> stack;
   stack.push_back(root);
   Trace("sygus-rcons") << std::endl << "Eq classes: " << std::endl << '[';
@@ -89,7 +86,7 @@ void RConsObligation::printCandSols(
       Trace("sygus-rcons") << "    "
                            << datatypes::utils::sygusToBuiltin(candSol)
                            << std::endl;
-      std::unordered_set<TNode, TNodeHashFunction> vars;
+      std::unordered_set<TNode> vars;
       expr::getVariables(candSol, vars);
       for (TNode var : vars)
       {
@@ -112,8 +109,7 @@ void RConsObligation::printCandSols(
 std::ostream& operator<<(std::ostream& out, const RConsObligation& ob)
 {
   out << '(' << ob.getType() << ", " << ob.getSkolem() << ", {";
-  std::unordered_set<Node, NodeHashFunction>::const_iterator it =
-      ob.getBuiltins().cbegin();
+  std::unordered_set<Node>::const_iterator it = ob.getBuiltins().cbegin();
   out << *it;
   ++it;
   while (it != ob.getBuiltins().cend())
