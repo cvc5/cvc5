@@ -704,7 +704,6 @@ def codegen_all_modules(modules, dst_dir, tpl_options_h, tpl_options_cpp):
                 add_getopt_long(option.long, argument_req, getopt_long)
                 if option.alias:
                     for alias in option.alias:
-
                         cases.append(
                             'case {}: // --{}'.format(
                                 g_getopt_long_start + len(getopt_long),
