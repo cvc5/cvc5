@@ -24,6 +24,8 @@ set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/TermTest.java
 )
 
+#get_target_property(CVC5_JAR_PATH cvc5jar JAR_FILE)
+
 # build junit tests
 add_custom_target(
   build-junit-tests
@@ -40,6 +42,8 @@ add_custom_target(
 add_dependencies(build-junit-tests JUnit-EP-jar)
 # make sure cvc.jar file is built first
 add_dependencies(build-junit-tests cvc5jar)
+
+get_filename_component(CVC5_JNI_PATH ${CVC5_JAR_PATH} DIRECTORY)
 
 # run junit tests
 add_custom_target(

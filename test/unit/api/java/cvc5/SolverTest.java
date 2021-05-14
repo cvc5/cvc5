@@ -560,7 +560,6 @@ class SolverTest
     // assertThrows(CVC5ApiException.class, () -> d_solver.mkOp(BITVECTOR_EXTRACT, EQUAL));
 
     // mkOp(Kind kind, const std::string& arg)
-    assertDoesNotThrow(() -> d_solver.mkOp(RECORD_UPDATE, "asdf"));
     assertDoesNotThrow(() -> d_solver.mkOp(DIVISIBLE, "2147483648"));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkOp(BITVECTOR_EXTRACT, "asdf"));
 

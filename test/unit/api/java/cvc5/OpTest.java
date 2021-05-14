@@ -62,11 +62,6 @@ class GrammarTest
     assertTrue(divisible_ot.isIndexed());
     String divisible_idx = divisible_ot.getStringIndices()[0];
     assertEquals(divisible_idx, "4");
-
-    Op record_update_ot = d_solver.mkOp(RECORD_UPDATE, "test");
-    String record_update_idx = record_update_ot.getStringIndices()[0];
-    assertEquals(record_update_idx, "test");
-    assertThrows(CVC5ApiException.class, () -> record_update_ot.getIntegerIndices());
   }
 
   @Test void getIndicesUint() throws CVC5ApiException
@@ -75,6 +70,7 @@ class GrammarTest
     assertTrue(bitvector_repeat_ot.isIndexed());
     int bitvector_repeat_idx = bitvector_repeat_ot.getIntegerIndices()[0];
     assertEquals(bitvector_repeat_idx, 5);
+
     // unlike bitvector_repeat_ot.getIndices<std::pair<uint32_t, uint32_t>>() in c++,
     // this does not throw in Java
     // assertThrows(CVC5ApiException.class, () -> bitvector_repeat_ot.getIntegerIndices());
@@ -106,11 +102,6 @@ class GrammarTest
     Op floatingpoint_to_sbv_ot = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 13);
     int floatingpoint_to_sbv_idx = floatingpoint_to_sbv_ot.getIntegerIndices()[0];
     assertEquals(floatingpoint_to_sbv_idx, 13);
-
-    Op tuple_update_ot = d_solver.mkOp(TUPLE_UPDATE, 5);
-    int tuple_update_idx = tuple_update_ot.getIntegerIndices()[0];
-    assertEquals(tuple_update_idx, 5);
-    assertThrows(CVC5ApiException.class, () -> tuple_update_ot.getStringIndices());
   }
 
   @Test void getIndicesPairUint() throws CVC5ApiException
