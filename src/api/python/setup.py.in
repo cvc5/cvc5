@@ -30,5 +30,6 @@ setup(name='pycvc5',
       url='https://github.com/cvc5/cvc5',
       zip_safe=False,
       packages=['pycvc5'],
-      package_data={'pycvc5': ['pycvc5*.so']},
+      package_dir={'':'${CMAKE_CURRENT_BINARY_DIR}'},
+      package_data={'': ['pycvc5*.so']},
       extras_require={'test': ['pytest']})

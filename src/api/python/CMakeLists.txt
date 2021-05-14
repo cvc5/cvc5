@@ -23,6 +23,9 @@ endif()
 # Provides CMake files for Python bindings
 check_python_module("skbuild" "scikit-build")
 
+# setuptools for installing the module
+check_python_module("setuptools")
+
 # Find cmake modules distributed with scikit-build
 # They are distributed under <scikit-build directory>/resources/cmake
 execute_process(
