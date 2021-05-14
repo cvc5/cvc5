@@ -86,10 +86,10 @@ class TestParserBlackParser : public TestInternal
   void tryGoodInput(const std::string goodInput)
   {
     d_symman.reset(new SymbolManager(d_solver.get()));
-    Parser* parser = ParserBuilder(d_solver.get(), d_symman.get())
-                         .withOptions(d_options)
-                         .withInputLanguage(d_lang)
-                         .build();
+    std::unique_ptr<Parser> parser(ParserBuilder(d_solver.get(), d_symman.get())
+                                       .withOptions(d_options)
+                                       .withInputLanguage(d_lang)
+                                       .build());
     parser->setInput(Input::newStringInput(d_lang, goodInput, "test"));
     ASSERT_FALSE(parser->done());
     Command* cmd;
@@ -100,17 +100,16 @@ class TestParserBlackParser : public TestInternal
     }
 
     ASSERT_TRUE(parser->done());
-    delete parser;
   }
 
   void tryBadInput(const std::string badInput, bool strictMode = false)
   {
     d_symman.reset(new SymbolManager(d_solver.get()));
-    Parser* parser = ParserBuilder(d_solver.get(), d_symman.get())
-                         .withOptions(d_options)
-                         .withInputLanguage(d_lang)
-                         .withStrictMode(strictMode)
-                         .build();
+    std::unique_ptr<Parser> parser(ParserBuilder(d_solver.get(), d_symman.get())
+                                       .withOptions(d_options)
+                                       .withInputLanguage(d_lang)
+                                       .withStrictMode(strictMode)
+                                       .build());
     parser->setInput(Input::newStringInput(d_lang, badInput, "test"));
     ASSERT_THROW(
         {
@@ -123,22 +122,21 @@ class TestParserBlackParser : public TestInternal
           std::cout << "\nBad input succeeded:\n" << badInput << std::endl;
         },
         ParserException);
-    delete parser;
   }
 
   void tryGoodExpr(const std::string goodExpr)
   {
     d_symman.reset(new SymbolManager(d_solver.get()));
-    Parser* parser = ParserBuilder(d_solver.get(), d_symman.get())
-                         .withOptions(d_options)
-                         .withInputLanguage(d_lang)
-                         .build();
+    std::unique_ptr<Parser> parser(ParserBuilder(d_solver.get(), d_symman.get())
+                                       .withOptions(d_options)
+                                       .withInputLanguage(d_lang)
+                                       .build());
     parser->setInput(Input::newStringInput(d_lang, goodExpr, "test"));
     if (d_lang == LANG_SMTLIB_V2)
     {
       /* Use QF_LIA to make multiplication ("*") available */
       std::unique_ptr<Command> cmd(
-          static_cast<Smt2*>(parser)->setLogic("QF_LIA"));
+          static_cast<Smt2*>(parser.get())->setLogic("QF_LIA"));
     }
 
     ASSERT_FALSE(parser->done());
@@ -149,7 +147,6 @@ class TestParserBlackParser : public TestInternal
     e = parser->nextExpression();
     ASSERT_TRUE(parser->done());
     ASSERT_TRUE(e.isNull());
-    delete parser;
   }
 
   /**
@@ -164,11 +161,11 @@ class TestParserBlackParser : public TestInternal
   void tryBadExpr(const std::string badExpr, bool strictMode = false)
   {
     d_symman.reset(new SymbolManager(d_solver.get()));
-    Parser* parser = ParserBuilder(d_solver.get(), d_symman.get())
-                         .withOptions(d_options)
-                         .withInputLanguage(d_lang)
-                         .withStrictMode(strictMode)
-                         .build();
+    std::unique_ptr<Parser> parser(ParserBuilder(d_solver.get(), d_symman.get())
+                                       .withOptions(d_options)
+                                       .withInputLanguage(d_lang)
+                                       .withStrictMode(strictMode)
+                                       .build());
     parser->setInput(Input::newStringInput(d_lang, badExpr, "test"));
     setupContext(*parser);
     ASSERT_FALSE(parser->done());
@@ -178,7 +175,6 @@ class TestParserBlackParser : public TestInternal
                            << "Input: <<" << badExpr << ">>" << std::endl
                            << "Output: <<" << e << ">>" << std::endl;
                  , ParserException);
-    delete parser;
   }
 
   Options d_options;
