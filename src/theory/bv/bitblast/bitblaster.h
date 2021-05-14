@@ -38,8 +38,8 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
-typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
-typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
+typedef std::unordered_set<Node> NodeSet;
+typedef std::unordered_set<TNode> TNodeSet;
 
 /**
  * The Bitblaster that manages the mapping between Nodes
@@ -52,9 +52,9 @@ class TBitblaster
 {
  protected:
   typedef std::vector<T> Bits;
-  typedef std::unordered_map<Node, Bits, NodeHashFunction> TermDefMap;
-  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  typedef std::unordered_map<Node, Node, NodeHashFunction> ModelCache;
+  typedef std::unordered_map<Node, Bits> TermDefMap;
+  typedef std::unordered_set<TNode> TNodeSet;
+  typedef std::unordered_map<Node, Node> ModelCache;
 
   typedef void (*TermBBStrategy)(TNode, Bits&, TBitblaster<T>*);
   typedef T (*AtomBBStrategy)(TNode, TBitblaster<T>*);

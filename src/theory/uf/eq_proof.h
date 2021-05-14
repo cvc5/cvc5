@@ -88,10 +88,9 @@ class EqProof
    * equalities)
    * @return the node that is the conclusion of the proof as added to p.
    */
-  Node addToProof(
-      CDProof* p,
-      std::unordered_map<Node, Node, NodeHashFunction>& visited,
-      std::unordered_set<Node, NodeHashFunction>& assumptions) const;
+  Node addToProof(CDProof* p,
+                  std::unordered_map<Node, Node>& visited,
+                  std::unordered_set<Node>& assumptions) const;
 
   /** Removes all reflexivity steps, i.e. (= t t), from premises. */
   void cleanReflPremises(std::vector<Node>& premises) const;
@@ -173,7 +172,7 @@ class EqProof
       Node conclusion,
       std::vector<Node>& premises,
       CDProof* p,
-      std::unordered_set<Node, NodeHashFunction>& assumptions) const;
+      std::unordered_set<Node>& assumptions) const;
 
   /** Expand coarse-grained transitivity steps for theory disequalities
    *
@@ -347,8 +346,8 @@ class EqProof
       Node conclusion,
       std::vector<std::vector<Node>>& transitivityMatrix,
       CDProof* p,
-      std::unordered_map<Node, Node, NodeHashFunction>& visited,
-      std::unordered_set<Node, NodeHashFunction>& assumptions,
+      std::unordered_map<Node, Node>& visited,
+      std::unordered_set<Node>& assumptions,
       bool isNary) const;
 
 }; /* class EqProof */

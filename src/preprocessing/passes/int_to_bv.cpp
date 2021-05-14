@@ -38,7 +38,7 @@ namespace passes {
 using namespace std;
 using namespace cvc5::theory;
 
-using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
+using NodeMap = std::unordered_map<Node, Node>;
 
 namespace {
 

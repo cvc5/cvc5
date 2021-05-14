@@ -137,7 +137,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
     NodeManager* nm = NodeManager::currentNM();
     // representatives of strings that are the LHS of positive memberships that
     // we unfolded
-    std::unordered_set<Node, NodeHashFunction> repUnfold;
+    std::unordered_set<Node> repUnfold;
     // check positive (e=0), then negative (e=1) memberships
     for (unsigned e = 0; e < 2; e++)
     {
@@ -329,7 +329,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
 
 bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
 {
-  std::unordered_set<Node, NodeHashFunction> remove;
+  std::unordered_set<Node> remove;
 
   for (const Node& m1 : mems)
   {

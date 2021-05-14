@@ -39,7 +39,7 @@ class FirstOrderModel;
  */
 class TermRegistry
 {
-  using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   TermRegistry(QuantifiersState& qs,

@@ -188,6 +188,18 @@ bool Valuation::isDecision(Node lit) const {
   return d_engine->getPropEngine()->isDecision(lit);
 }
 
+int32_t Valuation::getDecisionLevel(Node lit) const
+{
+  Assert(d_engine != nullptr);
+  return d_engine->getPropEngine()->getDecisionLevel(lit);
+}
+
+int32_t Valuation::getIntroLevel(Node lit) const
+{
+  Assert(d_engine != nullptr);
+  return d_engine->getPropEngine()->getIntroLevel(lit);
+}
+
 unsigned Valuation::getAssertionLevel() const{
   Assert(d_engine != nullptr);
   return d_engine->getPropEngine()->getAssertionLevel();
