@@ -21,18 +21,7 @@ endif()
 
 # Check that scikit-build is installed
 # Provides CMake files for Python bindings
-execute_process(
-  COMMAND
-  ${PYTHON_EXECUTABLE} -c "import skbuild"
-  RESULT_VARIABLE
-  RET_SKBUILD
-  ERROR_QUIET
-  )
-
-if(RET_SKBUILD)
-  message(FATAL_ERROR
-    "Could not find Python module skbuild. Install via `pip install scikit-build'.")
-endif()
+check_python_module("skbuild" "scikit-build")
 
 # Find cmake modules distributed with scikit-build
 # They are distributed under <scikit-build directory>/resources/cmake
