@@ -239,10 +239,10 @@ class ConjectureGenerator : public QuantifiersModule
   friend class SubsEqcIndex;
   friend class TermGenerator;
   friend class TermGenEnv;
-  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
-  typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-//this class maintains a congruence closure for *universal* facts
-private:
+  typedef context::CDHashMap<Node, Node> NodeMap;
+  typedef context::CDHashMap<Node, bool> BoolMap;
+  // this class maintains a congruence closure for *universal* facts
+ private:
   //notification class for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
     ConjectureGenerator& d_sg;

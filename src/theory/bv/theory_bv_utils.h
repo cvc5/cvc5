@@ -28,13 +28,13 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
-typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
-typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
+typedef std::unordered_set<Node> NodeSet;
+typedef std::unordered_set<TNode> TNodeSet;
 
 namespace utils {
 
-typedef std::unordered_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
-typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+typedef std::unordered_map<TNode, bool> TNodeBoolMap;
+typedef std::unordered_set<Node> NodeSet;
 
 /* Get the bit-width of given node. */
 unsigned getSize(TNode node);

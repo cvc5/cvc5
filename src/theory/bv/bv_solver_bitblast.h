@@ -33,6 +33,8 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
+class BBRegistrar;
+
 /**
  * Bit-blasting solver with support for different SAT back ends.
  */
@@ -87,13 +89,14 @@ class BVSolverBitblast : public BVSolver
    * Is cleared at the beginning of a getValue() call if the
    * `d_invalidateModelCache` flag is set to true.
    */
-  std::unordered_map<Node, Node, NodeHashFunction> d_modelCache;
+  std::unordered_map<Node, Node> d_modelCache;
 
   /** Bit-blaster used to bit-blast atoms/terms. */
   std::unique_ptr<BBSimple> d_bitblaster;
 
   /** Used for initializing `d_cnfStream`. */
   std::unique_ptr<prop::NullRegistrar> d_nullRegistrar;
+
   std::unique_ptr<context::Context> d_nullContext;
 
   /** SAT solver back end (configured via options::bvSatSolver. */
@@ -108,8 +111,18 @@ class BVSolverBitblast : public BVSolver
    */
   context::CDQueue<Node> d_bbFacts;
 
+  /**
+   * Bit-blast queue for user-level 0 input facts sent to this solver.
+   *
+   * Get populated on preNotifyFact().
+   */
+  context::CDQueue<Node> d_bbInputFacts;
+
   /** Corresponds to the SAT literals of the currently asserted facts. */
   context::CDList<prop::SatLiteral> d_assumptions;
+
+  /** Stores the current input assertions. */
+  context::CDList<Node> d_assertions;
 
   /** Flag indicating whether `d_modelCache` should be invalidated. */
   context::CDO<bool> d_invalidateModelCache;
@@ -123,8 +136,7 @@ class BVSolverBitblast : public BVSolver
   BVProofRuleChecker d_bvProofChecker;
 
   /** Stores the SatLiteral for a given fact. */
-  context::CDHashMap<Node, prop::SatLiteral, NodeHashFunction>
-      d_factLiteralCache;
+  context::CDHashMap<Node, prop::SatLiteral> d_factLiteralCache;
 
   /** Reverse map of `d_factLiteralCache`. */
   context::CDHashMap<prop::SatLiteral, Node, prop::SatLiteralHashFunction>

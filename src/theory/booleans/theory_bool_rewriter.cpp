@@ -45,7 +45,7 @@ RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
  */
 RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
 {
-  typedef std::unordered_set<TNode, TNodeHashFunction> node_set;
+  typedef std::unordered_set<TNode> node_set;
 
   node_set visited;
   visited.insert(skipNode);
