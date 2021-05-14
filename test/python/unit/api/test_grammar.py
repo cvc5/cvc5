@@ -88,7 +88,7 @@ def test_add_rules(solver):
         g.addRules(start, solver.mkBoolean(False))
 
 
-def testAdd_any_constant(solver):
+def test_add_any_constant(solver):
     boolean = solver.getBooleanSort()
 
     null_term = Term(solver)
