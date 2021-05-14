@@ -57,7 +57,7 @@ class RConsObligationInfo
   /**
    * @return equivalent builtin terms to reconstruct for this class' obligation
    */
-  const std::unordered_set<Node, NodeHashFunction>& getBuiltins() const;
+  const std::unordered_set<Node>& getBuiltins() const;
 
   /**
    * Add candidate solution to the set of candidate solutions for the
@@ -70,8 +70,7 @@ class RConsObligationInfo
   /**
    * @return set of candidate solutions for this class' obligation
    */
-  const std::unordered_set<Node, NodeHashFunction>& getCandidateSolutions()
-      const;
+  const std::unordered_set<Node>& getCandidateSolutions() const;
 
   /**
    * Add candidate solution to the set of candidate solutions waiting for the
@@ -85,7 +84,7 @@ class RConsObligationInfo
    * @return set of candidate solutions waiting for this class' obligation
    * to be solved
    */
-  const std::unordered_set<Node, NodeHashFunction>& getWatchSet() const;
+  const std::unordered_set<Node>& getWatchSet() const;
 
   /**
    * Return a string representation of an obligation.
@@ -120,8 +119,7 @@ class RConsObligationInfo
    */
   static void printCandSols(
       const Node& root,
-      const std::unordered_map<Node, RConsObligationInfo, NodeHashFunction>&
-          obInfo);
+      const std::unordered_map<Node, RConsObligationInfo>& obInfo);
 
  private:
   /** Equivalent builtin terms for this class' obligation.
@@ -129,7 +127,7 @@ class RConsObligationInfo
    * To solve the obligation, one of these builtin terms must be reconstructed
    * in the specified grammar (sygus datatype type) of the obligation.
    */
-  std::unordered_set<Node, NodeHashFunction> d_builtins;
+  std::unordered_set<Node> d_builtins;
   /** A set of candidate solutions to this class' obligation.
    *
    * Each candidate solution is a sygus datatype term containing skolem subterms
@@ -143,7 +141,7 @@ class RConsObligationInfo
    * where c_z1 and c_z2 are skolems. Notice that `d_candSols` may contain a
    * pure term that solves the obligation ((c_+ c_x c_y) in this example).
    */
-  std::unordered_set<Node, NodeHashFunction> d_candSols;
+  std::unordered_set<Node> d_candSols;
   /** A set of candidate solutions waiting for this class' obligation to
    * be solved.
    *
@@ -151,7 +149,7 @@ class RConsObligationInfo
    * the watch-set of c_z2. Similarly, (c_+ c_z1 c_z2) and (c_+ c_z1 c_y) are in
    * the watch-set of c_z1.
    */
-  std::unordered_set<Node, NodeHashFunction> d_watchSet;
+  std::unordered_set<Node> d_watchSet;
 };
 
 }  // namespace quantifiers

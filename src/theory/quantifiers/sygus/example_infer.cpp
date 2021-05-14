@@ -41,8 +41,7 @@ bool ExampleInfer::initialize(Node n, const std::vector<Node>& candidates)
     d_examplesOut[v].clear();
     d_examplesTerm[v].clear();
   }
-  std::map<std::pair<bool, bool>, std::unordered_set<Node, NodeHashFunction>>
-      visited;
+  std::map<std::pair<bool, bool>, std::unordered_set<Node>> visited;
   // n is negated conjecture
   if (!collectExamples(n, visited, true, false))
   {
@@ -86,8 +85,7 @@ bool ExampleInfer::initialize(Node n, const std::vector<Node>& candidates)
 
 bool ExampleInfer::collectExamples(
     Node n,
-    std::map<std::pair<bool, bool>, std::unordered_set<Node, NodeHashFunction>>&
-        visited,
+    std::map<std::pair<bool, bool>, std::unordered_set<Node>>& visited,
     bool hasPol,
     bool pol)
 {
