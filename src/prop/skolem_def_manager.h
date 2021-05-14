@@ -41,8 +41,8 @@ namespace prop {
  */
 class SkolemDefManager
 {
-  using NodeNodeMap = context::CDInsertHashMap<Node, Node, NodeHashFunction>;
-  using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
+  using NodeNodeMap = context::CDInsertHashMap<Node, Node>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   SkolemDefManager(context::Context* context,
@@ -81,8 +81,7 @@ class SkolemDefManager
    * @param n The node to traverse
    * @param skolems The set where the skolems are added
    */
-  void getSkolems(TNode n,
-                  std::unordered_set<Node, NodeHashFunction>& skolems) const;
+  void getSkolems(TNode n, std::unordered_set<Node>& skolems) const;
   /** Does n have skolems having definitions managed by this class? */
   bool hasSkolems(TNode n) const;
 

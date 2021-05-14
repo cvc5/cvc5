@@ -30,7 +30,7 @@ namespace quantifiers {
 
 class NestedQe
 {
-  using NodeNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
+  using NodeNodeMap = context::CDHashMap<Node, Node>;
 
  public:
   NestedQe(context::UserContext* u);
@@ -53,8 +53,7 @@ class NestedQe
    * Get nested quantification. Returns true if q has nested quantifiers.
    * Adds each nested quantifier in the body of q to nqs.
    */
-  static bool getNestedQuantification(
-      Node q, std::unordered_set<Node, NodeHashFunction>& nqs);
+  static bool getNestedQuantification(Node q, std::unordered_set<Node>& nqs);
   /**
    * Does quantified formula q have nested quantification?
    */

@@ -108,12 +108,12 @@ class BoolToBV : public PreprocessingPass
       Note: it only keeps mappings for ITEs of type bit-vector.
       Other ITEs will be in the d_lowerCache
    */
-  std::unordered_map<Node, Node, NodeHashFunction> d_iteBVLowerCache;
+  std::unordered_map<Node, Node> d_iteBVLowerCache;
 
   /** Keeps track of other lowered nodes
       -- will be cleared periodically in ITE mode
   */
-  std::unordered_map<Node, Node, NodeHashFunction> d_lowerCache;
+  std::unordered_map<Node, Node> d_lowerCache;
 
   /** Stores the bool-to-bv mode option */
   options::BoolToBVMode d_boolToBVMode;

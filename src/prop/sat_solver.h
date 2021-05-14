@@ -168,6 +168,16 @@ class CDCLTSatSolverInterface : public SatSolver
 
   virtual bool isDecision(SatVariable decn) const = 0;
 
+  /**
+   * Return the current decision level of `lit`.
+   */
+  virtual int32_t getDecisionLevel(SatVariable v) const { return -1; }
+
+  /**
+   * Return the user-context level when `lit` was introduced..
+   */
+  virtual int32_t getIntroLevel(SatVariable v) const { return -1; }
+
   virtual std::shared_ptr<ProofNode> getProof() = 0;
 
 }; /* class CDCLTSatSolverInterface */

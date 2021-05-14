@@ -41,7 +41,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
   std::vector<Node> vars;
   std::vector<Node> subs;
   Trace("model-core") << "Assignments: " << std::endl;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(formula);

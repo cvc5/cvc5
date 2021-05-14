@@ -200,7 +200,7 @@ class TConvProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofForRewriting(Node n);
 
  protected:
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /** The (lazy) context dependent proof object. */
