@@ -365,8 +365,7 @@ def get_long_name(option):
     """
     if option.long:
         return long_get_option(option.long)
-    else:
-        return None
+    return None
 
 
 def is_numeric_cpp_type(ctype):

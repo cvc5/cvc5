@@ -49,7 +49,7 @@ name   = "SMT layer"
 
 [[option]]
   name       = "expandDefinitions"
-  long   = "expand-definitions"
+  long       = "expand-definitions"
   category   = "regular"
   type       = "bool"
   default    = "false"
