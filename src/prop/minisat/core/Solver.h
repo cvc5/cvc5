@@ -531,12 +531,12 @@ protected:
     bool     isPropagated     (Var x) const; // Does the variable have a propagated variables
     bool     isPropagatedBy   (Var x, const Clause& c) const; // Is the value of the variable propagated by the clause Clause C
 
-    int      level            (Var x) const;
-    int      user_level       (Var x) const; // User level at which this variable was asserted
-    int      intro_level      (Var x) const; // User level at which this variable was created
     int      trail_index      (Var x) const; // Index in the trail
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
 public:
+    int      level            (Var x) const;
+    int      user_level       (Var x) const; // User level at which this variable was asserted
+    int      intro_level      (Var x) const; // User level at which this variable was created
     bool     withinBudget     (uint64_t amount)      const;
     bool withinBudget(Resource r) const;
 
