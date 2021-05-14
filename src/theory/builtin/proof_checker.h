@@ -137,6 +137,9 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * is derived from
    * @param ids The method identifier of the substitution, by default SB_DEFAULT
    * specifying that lhs/rhs of equalities are interpreted as a substitution.
+   * @param ida The method identifier of the substitution application, by
+   * default SB_SEQUENTIAL specifying that substitutions are to be applied
+   * sequentially
    * @return The substituted form of n.
    */
   static Node applySubstitution(Node n,
@@ -154,6 +157,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * @param n The node to substitute and rewrite,
    * @param exp The (set of) equalities corresponding to the substitution
    * @param ids The method identifier of the substitution.
+   * @param ida The method identifier of the substitution application.
    * @param idr The method identifier of the rewriter.
    * @return The substituted, rewritten form of n.
    */
@@ -166,8 +170,8 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   static bool getMethodId(TNode n, MethodId& i);
   /**
    * Get method identifiers from args starting at the given index. Store their
-   * values into ids, idr. This method returns false if args does not contain
-   * valid method identifiers at position index in args.
+   * values into ids, ida, and idr. This method returns false if args does not
+   * contain valid method identifiers at position index in args.
    */
   bool getMethodIds(const std::vector<Node>& args,
                     MethodId& ids,
@@ -175,8 +179,8 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
                     MethodId& idr,
                     size_t index);
   /**
-   * Add method identifiers ids and idr as nodes to args. This does not add ids
-   * or idr if their values are the default ones.
+   * Add method identifiers ids, ida and idr as nodes to args. This does not add
+   * ids, ida or idr if their values are the default ones.
    */
   static void addMethodIds(std::vector<Node>& args,
                            MethodId ids,

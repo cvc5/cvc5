@@ -61,7 +61,7 @@ void getFreeAssumptionsMap(
   //   after postvisiting SCOPE1: { y: 1 }
   //   after postvisiting SCOPE2: {}
   //
-  std::unordered_map<Node, uint32_t, NodeHashFunction> scopeDepth;
+  std::unordered_map<Node, uint32_t> scopeDepth;
   std::shared_ptr<ProofNode> cur;
   visit.push_back(pn);
   do

@@ -60,18 +60,15 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       << "LazyCDProofChain::getProofFor " << fact << "\n";
   // which facts have had proofs retrieved for. This is maintained to avoid
   // cycles. It also saves the proof node of the fact
-  std::unordered_map<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
-      toConnect;
+  std::unordered_map<Node, std::shared_ptr<ProofNode>> toConnect;
   // leaves of proof node links in the chain, i.e. assumptions, yet to be
   // expanded
-  std::unordered_map<Node,
-                     std::vector<std::shared_ptr<ProofNode>>,
-                     NodeHashFunction>
+  std::unordered_map<Node, std::vector<std::shared_ptr<ProofNode>>>
       assumptionsToExpand;
   // invariant of the loop below, the first iteration notwithstanding:
   //   visit = domain(assumptionsToExpand) \ domain(toConnect)
   std::vector<Node> visit{fact};
-  std::unordered_map<Node, bool, NodeHashFunction> visited;
+  std::unordered_map<Node, bool> visited;
   Node cur;
   do
   {

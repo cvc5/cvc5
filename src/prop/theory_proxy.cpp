@@ -217,7 +217,7 @@ void TheoryProxy::getSkolems(TNode node,
                              std::vector<Node>& skAsserts,
                              std::vector<Node>& sks)
 {
-  std::unordered_set<Node, NodeHashFunction> skolems;
+  std::unordered_set<Node> skolems;
   d_skdm->getSkolems(node, skolems);
   for (const Node& k : skolems)
   {

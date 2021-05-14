@@ -481,6 +481,8 @@ bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args,
       break;
     }
   }
+  Trace("builtin-pfcheck") << "Got MethodIds ids/ida/idr: " << ids << " / "
+                           << ida << " / " << idr << "\n";
   return true;
 }
 

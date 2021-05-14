@@ -78,7 +78,7 @@ namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using CDNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
+using CDNodeMap = context::CDHashMap<Node, Node>;
 
 class BVToInt : public PreprocessingPass
 {
@@ -272,7 +272,7 @@ class BVToInt : public PreprocessingPass
    * A set of constraints of the form 0 <= x < 2^k
    * These are added for every new integer variable that we introduce.
    */
-  context::CDHashSet<Node, NodeHashFunction> d_rangeAssertions;
+  context::CDHashSet<Node> d_rangeAssertions;
 
   /**
    * Useful constants

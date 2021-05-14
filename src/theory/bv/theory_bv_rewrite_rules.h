@@ -108,6 +108,7 @@ enum RewriteRuleId
   EvalSle,
   EvalITEBv,
   EvalComp,
+  EvalEagerAtom,
 
   /// simplification rules
   /// all of these rules decrease formula size
@@ -270,6 +271,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case EvalSltBv:           out << "EvalSltBv";           return out;
   case EvalITEBv:           out << "EvalITEBv";           return out;
   case EvalComp:            out << "EvalComp";            return out;
+  case EvalEagerAtom: out << "EvalEagerAtom"; return out;
   case EvalExtract :        out << "EvalExtract";         return out;
   case EvalSignExtend :     out << "EvalSignExtend";      return out;
   case EvalRotateLeft :     out << "EvalRotateLeft";      return out;
