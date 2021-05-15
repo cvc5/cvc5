@@ -17,9 +17,11 @@ import sys
 
 from pycvc5 import kinds
 
+
 @pytest.fixture
 def solver():
     return pycvc5.Solver()
+
 
 def test_recoverable_exception(solver):
     solver.setOption("produce-models", "true")
@@ -28,6 +30,7 @@ def test_recoverable_exception(solver):
     with pytest.raises(RuntimeError):
         c = solver.getValue(x)
 
+
 def test_supports_floating_point(solver):
     if solver.supportsFloatingPoint():
         solver.mkRoundingMode(pycvc5.RoundNearestTiesToEven)
@@ -35,20 +38,26 @@ def test_supports_floating_point(solver):
         with pytest.raises(RuntimeError):
             solver.mkRoundingMode(pycvc5.RoundNearestTiesToEven)
 
+
 def test_get_boolean_sort(solver):
     solver.getBooleanSort()
+
 
 def test_get_integer_sort(solver):
     solver.getIntegerSort()
 
+
 def test_get_real_sort(solver):
     solver.getRealSort()
+
 
 def test_get_reg_exp_sort(solver):
     solver.getRegExpSort()
 
+
 def test_get_string_sort(solver):
     solver.getStringSort()
+
 
 def test_get_rounding_mode_sort(solver):
     if solver.supportsFloatingPoint():
@@ -56,6 +65,7 @@ def test_get_rounding_mode_sort(solver):
     else:
         with pytest.raises(RuntimeError):
             solver.getRoundingModeSort()
+
 
 def test_mk_array_sort(solver):
     boolSort = solver.getBooleanSort()
@@ -78,10 +88,12 @@ def test_mk_array_sort(solver):
     with pytest.raises(RuntimeError):
         slv.mkArraySort(boolSort, boolSort)
 
+
 def test_mk_bit_vector_sort(solver):
-    solver.mkBitVectorSort(32);
+    solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
         solver.mkBitVectorSort(0)
+
 
 def test_mk_floating_point_sort(solver):
     if solver.supportsFloatingPoint():
@@ -93,6 +105,7 @@ def test_mk_floating_point_sort(solver):
     else:
         with pytest.raises(RuntimeError):
             solver.mkFloatingPointSort(4, 8)
+
 
 def test_mk_datatype_sort(solver):
     dtypeSpec = solver.mkDatatypeDecl("list")
@@ -111,9 +124,10 @@ def test_mk_datatype_sort(solver):
     with pytest.raises(RuntimeError):
         solver.mkDatatypeSort(throwsDtypeSpec)
 
+
 def test_mk_datatype_sorts(solver):
     slv = pycvc5.Solver()
-    
+
     dtypeSpec1 = solver.mkDatatypeDecl("list1")
     cons1 = solver.mkDatatypeConstructorDecl("cons1")
     cons1.addSelector("head1", solver.getIntegerSort())
@@ -127,7 +141,7 @@ def test_mk_datatype_sorts(solver):
     dtypeSpec2.addConstructor(cons2)
     nil2 = solver.mkDatatypeConstructorDecl("nil2")
     dtypeSpec2.addConstructor(nil2)
-    
+
     decls = [dtypeSpec1, dtypeSpec2]
     solver.mkDatatypeSorts(decls, [])
 
@@ -154,6 +168,7 @@ def test_mk_datatype_sorts(solver):
     solver.mkDatatypeSorts(udecls, unresSorts)
     with pytest.raises(RuntimeError):
         slv.mkDatatypeSorts(udecls, unresSorts)
+
 
 def test_mk_function_sort(solver):
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
@@ -183,7 +198,7 @@ def test_mk_function_sort(solver):
         solver.mkFunctionSort([solver.getIntegerSort(),\
                 solver.mkUninterpretedSort("u")],\
                 funSort2)
-    
+
     slv = pycvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.mkFunctionSort(solver.mkUninterpretedSort("u"),\
@@ -201,9 +216,11 @@ def test_mk_function_sort(solver):
     with pytest.raises(RuntimeError):
         slv.mkFunctionSort(sorts2, solver.getIntegerSort())
 
+
 def test_mk_param_sort(solver):
     solver.mkParamSort("T")
     solver.mkParamSort("")
+
 
 def test_mk_predicate_sort(solver):
     solver.mkPredicateSort([solver.getIntegerSort()])
@@ -219,6 +236,7 @@ def test_mk_predicate_sort(solver):
     with pytest.raises(RuntimeError):
         slv.mkPredicateSort([solver.getIntegerSort()])
 
+
 def test_mk_record_sort(solver):
     fields = [("b", solver.getBooleanSort()),\
               ("bv", solver.mkBitVectorSort(8)),\
@@ -229,6 +247,7 @@ def test_mk_record_sort(solver):
     recSort = solver.mkRecordSort(fields)
     recSort.getDatatype()
 
+
 def test_mk_set_sort(solver):
     solver.mkSetSort(solver.getBooleanSort())
     solver.mkSetSort(solver.getIntegerSort())
@@ -236,6 +255,7 @@ def test_mk_set_sort(solver):
     slv = pycvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.mkSetSort(solver.mkBitVectorSort(4))
+
 
 def test_mk_sequence_sort(solver):
     solver.mkSequenceSort(solver.getBooleanSort())
@@ -245,15 +265,18 @@ def test_mk_sequence_sort(solver):
     with pytest.raises(RuntimeError):
         slv.mkSequenceSort(solver.getIntegerSort())
 
+
 def test_mk_uninterpreted_sort(solver):
     solver.mkUninterpretedSort("u")
     solver.mkUninterpretedSort("")
+
 
 def test_mk_sortConstructor_sort(solver):
     solver.mkSortConstructorSort("s", 2)
     solver.mkSortConstructorSort("", 2)
     with pytest.raises(RuntimeError):
         solver.mkSortConstructorSort("", 0)
+
 
 def test_mk_tuple_sort(solver):
     solver.mkTupleSort([solver.getIntegerSort()])
@@ -265,6 +288,7 @@ def test_mk_tuple_sort(solver):
     slv = pycvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.mkTupleSort([solver.getIntegerSort()])
+
 
 def test_mk_var(solver):
     boolSort = solver.getBooleanSort()
@@ -282,9 +306,11 @@ def test_mk_var(solver):
     with pytest.raises(RuntimeError):
         slv.mkVar(boolSort, "x")
 
+
 def test_mk_boolean(solver):
     solver.mkBoolean(True)
     solver.mkBoolean(False)
+
 
 def test_mk_rounding_mode(solver):
     if solver.supportsFloatingPoint():
@@ -292,6 +318,7 @@ def test_mk_rounding_mode(solver):
     else:
         with pytest.raises(RuntimeError):
             solver.mkRoundingMode(pycvc5.RoundTowardZero)
+
 
 def test_mk_uninterpreted_const(solver):
     solver.mkUninterpretedConst(solver.getBooleanSort(), 1)
@@ -301,6 +328,7 @@ def test_mk_uninterpreted_const(solver):
     with pytest.raises(RuntimeError):
         slv.mkUninterpretedConst(solver.getBooleanSort(), 1)
 
+
 def test_mk_floating_point(solver):
     t1 = solver.mkBitVector(8)
     t2 = solver.mkBitVector(4)
@@ -308,12 +336,12 @@ def test_mk_floating_point(solver):
     if (solver.supportsFloatingPoint()):
         solver.mkFloatingPoint(3, 5, t1)
     else:
-        with pytest.raises(RuntimeError):  
+        with pytest.raises(RuntimeError):
             solver.mkFloatingPoint(3, 5, t1)
 
-    with pytest.raises(RuntimeError): 
+    with pytest.raises(RuntimeError):
         solver.mkFloatingPoint(0, 5, pycvc5.Term(solver))
-    with pytest.raises(RuntimeError): 
+    with pytest.raises(RuntimeError):
         solver.mkFloatingPoint(0, 5, t1)
     with pytest.raises(RuntimeError):
         solver.mkFloatingPoint(3, 0, t1)
@@ -327,6 +355,7 @@ def test_mk_floating_point(solver):
         with pytest.raises(RuntimeError):
             slv.mkFloatingPoint(3, 5, t1)
 
+
 def test_mk_empty_set(solver):
     slv = pycvc5.Solver()
     s = solver.mkSetSort(solver.getBooleanSort())
@@ -337,6 +366,7 @@ def test_mk_empty_set(solver):
     with pytest.raises(RuntimeError):
         slv.mkEmptySet(s)
 
+
 def test_mk_empty_sequence(solver):
     slv = pycvc5.Solver()
     s = solver.mkSequenceSort(solver.getBooleanSort())
@@ -345,9 +375,11 @@ def test_mk_empty_sequence(solver):
     with pytest.raises(RuntimeError):
         slv.mkEmptySequence(s)
 
+
 def test_mk_false(solver):
     solver.mkFalse()
     solver.mkFalse()
+
 
 def test_mk_nan(solver):
     if (solver.supportsFloatingPoint()):
@@ -356,12 +388,14 @@ def test_mk_nan(solver):
         with pytest.raises(RuntimeError):
             solver.mkNaN(3, 5)
 
+
 def test_mk_neg_zero(solver):
     if (solver.supportsFloatingPoint()):
         solver.mkNegZero(3, 5)
     else:
         with pytest.raises(RuntimeError):
             solver.mkNegZero(3, 5)
+
 
 def test_mk_neg_inf(solver):
     if (solver.supportsFloatingPoint()):
@@ -370,12 +404,14 @@ def test_mk_neg_inf(solver):
         with pytest.raises(RuntimeError):
             solver.mkNegInf(3, 5)
 
+
 def test_mk_pos_inf(solver):
     if (solver.supportsFloatingPoint()):
         solver.mkPosInf(3, 5)
     else:
         with pytest.raises(RuntimeError):
             solver.mkPosInf(3, 5)
+
 
 def test_mk_pos_zero(solver):
     if (solver.supportsFloatingPoint()):
@@ -384,8 +420,10 @@ def test_mk_pos_zero(solver):
         with pytest.raises(RuntimeError):
             solver.mkPosZero(3, 5)
 
+
 def test_mk_pi(solver):
     solver.mkPi()
+
 
 def test_mk_integer(solver):
     solver.mkInteger("123")
@@ -450,6 +488,7 @@ def test_mk_integer(solver):
     solver.mkInteger(val4)
     solver.mkInteger(val4)
 
+
 def test_mk_real(solver):
     solver.mkReal("123")
     solver.mkReal("1.23")
@@ -493,10 +532,10 @@ def test_mk_real(solver):
     with pytest.raises(RuntimeError):
         solver.mkReal("/2")
 
-    val1 = 1;
-    val2 = -1;
-    val3 = 1;
-    val4 = -1;
+    val1 = 1
+    val2 = -1
+    val3 = 1
+    val4 = -1
     solver.mkReal(val1)
     solver.mkReal(val2)
     solver.mkReal(val3)
@@ -507,15 +546,18 @@ def test_mk_real(solver):
     solver.mkReal(val3, val3)
     solver.mkReal(val4, val4)
 
+
 def test_mk_regexp_empty(solver):
     strSort = solver.getStringSort()
     s = solver.mkConst(strSort, "s")
     solver.mkTerm(kinds.StringInRegexp, s, solver.mkRegexpEmpty())
 
+
 def test_mk_regexp_sigma(solver):
     strSort = solver.getStringSort()
     s = solver.mkConst(strSort, "s")
     solver.mkTerm(kinds.StringInRegexp, s, solver.mkRegexpSigma())
+
 
 def test_mk_sep_nil(solver):
     solver.mkSepNil(solver.getBooleanSort())
@@ -525,9 +567,11 @@ def test_mk_sep_nil(solver):
     with pytest.raises(RuntimeError):
         slv.mkSepNil(solver.getIntegerSort())
 
+
 def test_mk_true(solver):
     solver.mkTrue()
     solver.mkTrue()
+
 
 def test_mk_universe_set(solver):
     solver.mkUniverseSet(solver.getBooleanSort())
@@ -536,6 +580,7 @@ def test_mk_universe_set(solver):
     slv = pycvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.mkUniverseSet(solver.getBooleanSort())
+
 
 def test_mk_const(solver):
     boolSort = solver.getBooleanSort()
@@ -555,6 +600,7 @@ def test_mk_const(solver):
     slv = pycvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.mkConst(boolSort)
+
 
 def test_mk_const_array(solver):
     intSort = solver.getIntegerSort()
@@ -579,6 +625,7 @@ def test_mk_const_array(solver):
     with pytest.raises(RuntimeError):
         slv.mkConstArray(arrSort, zero2)
 
+
 def test_declare_fun(solver):
     bvSort = solver.mkBitVectorSort(32)
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
@@ -595,10 +642,12 @@ def test_declare_fun(solver):
     with pytest.raises(RuntimeError):
         slv.declareFun("f1", [], bvSort)
 
+
 def test_declare_sort(solver):
     solver.declareSort("s", 0)
     solver.declareSort("s", 2)
     solver.declareSort("", 2)
+
 
 def test_define_fun(solver):
     bvSort = solver.mkBitVectorSort(32)
@@ -657,6 +706,7 @@ def test_define_fun(solver):
     with pytest.raises(RuntimeError):
         slv.defineFun("ff", [b12, b22], bvSort2, v1)
 
+
 def test_define_fun_rec(solver):
     bvSort = solver.mkBitVectorSort(32)
     funSort1 = solver.mkFunctionSort([bvSort, bvSort], bvSort)
@@ -714,6 +764,7 @@ def test_define_fun_rec(solver):
     with pytest.raises(RuntimeError):
         slv.defineFunRec("ff", [b12, b22], bvSort2, v1)
 
+
 def test_define_fun_rec_wrong_logic(solver):
     solver.setLogic("QF_BV")
     bvSort = solver.mkBitVectorSort(32)
@@ -725,6 +776,7 @@ def test_define_fun_rec_wrong_logic(solver):
         solver.defineFunRec("f", [], bvSort, v)
     with pytest.raises(RuntimeError):
         solver.defineFunRec(f, [b, b], v)
+
 
 def test_uf_iteration(solver):
     intSort = solver.getIntegerSort()
@@ -741,6 +793,7 @@ def test_uf_iteration(solver):
         assert idx < 3
         assert c == expected_children[idx]
         idx = idx + 1
+
 
 def test_get_info(solver):
     solver.getInfo("name")
