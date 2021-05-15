@@ -40,8 +40,9 @@ execute_process(
     RET_SKBUILD_CMAKE_MODULE_PATH
   )
 
-if (RET_SKBUILD_CMAKE_MODULE_PATH)
-  message(FATAL_ERROR "Failed to find CMake module path from scikit-build")
+if (NOT EXISTS ${SKBUILD_CMAKE_MODULE_PATH})
+  message(FATAL_ERROR "Expected CMake module path from
+                       scikit-build at ${SKBUILD_CMAKE_MODULE_PATH}")
 endif()
 
 # Add scikit-build cmake files to cmake module path
