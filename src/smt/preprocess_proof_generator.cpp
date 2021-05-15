@@ -126,7 +126,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
                     << ") input " << f << std::endl;
   Node curr = f;
   std::vector<Node> transChildren;
-  std::unordered_set<Node, NodeHashFunction> processed;
+  std::unordered_set<Node> processed;
   bool success;
   // we connect the proof of f to its source via the map d_src until we
   // discover that its source is a preprocessing lemma (a lemma stored in d_src)

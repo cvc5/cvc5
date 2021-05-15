@@ -51,8 +51,7 @@ class ExpandDefs
    * @param cache Cache of previous results
    * @return The expanded term.
    */
-  Node expandDefinitions(
-      TNode n, std::unordered_map<Node, Node, NodeHashFunction>& cache);
+  Node expandDefinitions(TNode n, std::unordered_map<Node, Node>& cache);
 
   /**
    * Set proof node manager, which signals this class to enable proofs using the
@@ -65,10 +64,9 @@ class ExpandDefs
    * Helper function for above, called to specify if we want proof production
    * based on the optional argument tpg.
    */
-  theory::TrustNode expandDefinitions(
-      TNode n,
-      std::unordered_map<Node, Node, NodeHashFunction>& cache,
-      TConvProofGenerator* tpg);
+  theory::TrustNode expandDefinitions(TNode n,
+                                      std::unordered_map<Node, Node>& cache,
+                                      TConvProofGenerator* tpg);
   /** Reference to the environment. */
   Env& d_env;
   /** Reference to the SMT stats */

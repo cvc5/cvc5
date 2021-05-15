@@ -58,10 +58,8 @@ class SubstitutionEx
     }
   };
 
-  typedef std::unordered_map<Node, SubstitutionElement, NodeHashFunction>
-      Substitutions;
-  typedef std::unordered_map<Node, SubstitutionElement, NodeHashFunction>
-      SubstitutionsCache;
+  typedef std::unordered_map<Node, SubstitutionElement> Substitutions;
+  typedef std::unordered_map<Node, SubstitutionElement> SubstitutionsCache;
 
   Substitutions d_substitutions;
   SubstitutionsCache d_cache;
@@ -103,9 +101,9 @@ struct WorklistElement
   WorklistElement() : node(), id(-1) {}
 };
 
-typedef std::unordered_map<Node, Node, NodeHashFunction> NodeNodeMap;
-typedef std::unordered_map<Node, unsigned, NodeHashFunction> NodeIdMap;
-typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
+typedef std::unordered_map<Node, Node> NodeNodeMap;
+typedef std::unordered_map<Node, unsigned> NodeIdMap;
+typedef std::unordered_set<TNode> TNodeSet;
 
 class ExtractSkolemizer
 {
@@ -124,7 +122,7 @@ class ExtractSkolemizer
     ExtractList() : base(1), extracts() {}
     void addExtract(Extract& e);
   };
-  typedef std::unordered_map<Node, ExtractList, NodeHashFunction> VarExtractMap;
+  typedef std::unordered_map<Node, ExtractList> VarExtractMap;
   context::Context d_emptyContext;
   VarExtractMap d_varToExtract;
   theory::SubstitutionMap* d_modelMap;
