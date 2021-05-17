@@ -1,0 +1,5 @@
+(set-logic QF_UF)
+(define-fun f () Bool (! false :named foo))
+(define-const g Bool false)
+(set-info :status sat)
+(check-sat)
