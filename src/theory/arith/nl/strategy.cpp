@@ -109,11 +109,12 @@ void Strategy::initializeStrategy()
   {
     one << InferStep::ICP << InferStep::BREAK;
   }
-  if (options::nlExt() || options::nlExtLight())
+  if (options::nlExt() == options::NlExtMode::FULL
+      || options::nlExt() == options::NlExtMode::LIGHT)
   {
     one << InferStep::NL_INIT << InferStep::BREAK;
   }
-  if (options::nlExt())
+  if (options::nlExt() == options::NlExtMode::FULL)
   {
     one << InferStep::TRANS_INIT << InferStep::BREAK;
     if (options::nlExtSplitZero())
@@ -124,12 +125,13 @@ void Strategy::initializeStrategy()
   }
   one << InferStep::IAND_INIT;
   one << InferStep::IAND_INITIAL << InferStep::BREAK;
-  if (options::nlExt() || options::nlExtLight())
+  if (options::nlExt() == options::NlExtMode::FULL
+      || options::nlExt() == options::NlExtMode::LIGHT)
   {
     one << InferStep::NL_MONOMIAL_SIGN << InferStep::BREAK;
     one << InferStep::NL_MONOMIAL_MAGNITUDE0 << InferStep::BREAK;
   }
-  if (options::nlExt())
+  if (options::nlExt() == options::NlExtMode::FULL)
   {
     one << InferStep::TRANS_MONOTONIC << InferStep::BREAK;
     one << InferStep::NL_MONOMIAL_MAGNITUDE1 << InferStep::BREAK;
