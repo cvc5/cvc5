@@ -510,6 +510,9 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     Node op;
     if (k == PARAMETRIC_DATATYPE)
     {
+      // erase first child, which repeats the datatype
+      targs.erase(targs.begin(), targs.begin()+1);
+      types.erase(types.begin(), types.begin()+1);
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       // the operator has been converted; it is no longer a datatype, thus
       // we must print to get its name.

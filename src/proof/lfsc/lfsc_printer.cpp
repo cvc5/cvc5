@@ -67,6 +67,7 @@ void LfscPrinter::print(std::ostream& out,
   // [1a] user declared sorts
   std::stringstream preamble;
   std::unordered_set<TypeNode> sts;
+  std::unordered_set<size_t> tupleArity;
   for (const Node& s : syms)
   {
     TypeNode st = s.getType();
@@ -74,7 +75,6 @@ void LfscPrinter::print(std::ostream& out,
     // e.g. U is printed as a sort declaration when we have type (Array U Int).
     std::unordered_set<TypeNode> types;
     expr::getComponentTypes(st, types);
-    std::unordered_set<size_t> tupleArity;
     for (const TypeNode& stc : types)
     {
       if (sts.find(stc) == sts.end())
@@ -89,6 +89,11 @@ void LfscPrinter::print(std::ostream& out,
         else if (stc.isDatatype())
         {
           const DType& dt = stc.getDType();
+          if (stc.getKind()==PARAMETRIC_DATATYPE)
+          {
+            // skip the instance of a parametric datatype
+            continue;
+          }
           preamble << "; DATATYPE " << dt.getName() << std::endl;
           if (dt.isTuple())
           {
@@ -112,7 +117,17 @@ void LfscPrinter::print(std::ostream& out,
           {
             preamble << "(declare ";
             printType(preamble, stc);
-            preamble << " sort)" << std::endl;
+            std::stringstream cdttparens;
+            if (dt.isParametric())
+            {
+              std::vector<TypeNode> params = dt.getParameters();
+              for (const TypeNode& tn : params)
+              {
+                preamble << " (! " << tn << " sort";
+                cdttparens << ")";
+              }
+            }
+            preamble << " sort)" << cdttparens.str() << std::endl;
           }
           for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
           {
@@ -562,7 +577,33 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       break;
       */
     case PfRule::STRING_EAGER_REDUCTION:
-    case PfRule::STRING_REDUCTION: pf << h << as[0]; break;
+    {
+      Kind k = as[0].getKind();
+      if (k==STRING_TO_CODE || k==STRING_STRCTN || k == STRING_STRIDOF)
+      {
+        pf << h << as[0]; 
+      }
+      else
+      {
+        // not yet defined for other kinds
+        return false;
+      }
+    }
+      break;
+    case PfRule::STRING_REDUCTION:
+    {
+      Kind k = as[0].getKind();
+      if (k==STRING_SUBSTR || k == STRING_STRIDOF)
+      {
+        pf << h << as[0]; 
+      }
+      else
+      {
+        // not yet defined for other kinds
+        return false;
+      }
+    }
+      break;
     // quantifiers
     case PfRule::SKOLEM_INTRO:
     {
