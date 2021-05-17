@@ -58,17 +58,14 @@ class BBRegistrar : public prop::Registrar
     }
   }
 
-  std::unordered_set<TNode, TNodeHashFunction>& getRegisteredAtoms()
-  {
-    return d_registeredAtoms;
-  }
+  std::unordered_set<TNode>& getRegisteredAtoms() { return d_registeredAtoms; }
 
  private:
   /** The bitblaster used. */
   BBSimple* d_bitblaster;
 
   /** Stores bit-vector atoms encounterd on preRegister(). */
-  std::unordered_set<TNode, TNodeHashFunction> d_registeredAtoms;
+  std::unordered_set<TNode> d_registeredAtoms;
 };
 
 BVSolverBitblast::BVSolverBitblast(TheoryState* s,
