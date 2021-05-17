@@ -1047,11 +1047,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   else if (p.d_kind == api::APPLY_SELECTOR && !p.d_expr.isNull())
   {
     // tuple selector case
-    if (!p.d_expr.isUInt64())
+    if (!p.d_expr.isUInt64Value())
     {
       parseError("index of tupSel is larger than size of uint64_t");
     }
-    uint64_t n = p.d_expr.getUInt64();
+    uint64_t n = p.d_expr.getUInt64Value();
     if (args.size() != 1)
     {
       parseError("tupSel should only be applied to one tuple argument");
