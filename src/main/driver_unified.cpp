@@ -259,16 +259,20 @@ int runCvc5(int argc, char* argv[], Options& opts)
 
       ParserBuilder parserBuilder(pExecutor->getSolver(),
                                   pExecutor->getSymbolManager(),
-                                  filename,
                                   opts);
-
+      std::unique_ptr<Parser> parser(parserBuilder.build());
       if( inputFromStdin ) {
-        parserBuilder.withStreamInput(cin);
+        parser->setInput(
+            Input::newStreamInput(opts.getInputLanguage(), cin, filename));
+      }
+      else
+      {
+        parser->setInput(Input::newFileInput(
+            opts.getInputLanguage(), filename, opts.getMemoryMap()));
       }
 
       vector< vector<Command*> > allCommands;
       allCommands.push_back(vector<Command*>());
-      std::unique_ptr<Parser> parser(parserBuilder.build());
       int needReset = 0;
       // true if one of the commands was interrupted
       bool interrupted = false;
@@ -411,14 +415,18 @@ int runCvc5(int argc, char* argv[], Options& opts)
 
       ParserBuilder parserBuilder(pExecutor->getSolver(),
                                   pExecutor->getSymbolManager(),
-                                  filename,
                                   opts);
-
+      std::unique_ptr<Parser> parser(parserBuilder.build());
       if( inputFromStdin ) {
-        parserBuilder.withStreamInput(cin);
+        parser->setInput(
+            Input::newStreamInput(opts.getInputLanguage(), cin, filename));
+      }
+      else
+      {
+        parser->setInput(Input::newFileInput(
+            opts.getInputLanguage(), filename, opts.getMemoryMap()));
       }
 
-      std::unique_ptr<Parser> parser(parserBuilder.build());
       bool interrupted = false;
       while (status)
       {
