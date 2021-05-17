@@ -1534,7 +1534,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       opts.set(options::nlCad, true);
       if (!opts.wasSetByUser(options::nlExt))
       {
-        opts.set(options::nlExt, false);
+        opts.set(options::nlExt, options::NlExtMode::LIGHT);
       }
       if (!opts.wasSetByUser(options::nlRlvMode))
       {
@@ -1557,7 +1557,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       Notice() << "Cannot use --" << options::nlCad.name
                << " without configuring with --poly." << std::endl;
       opts.set(options::nlCad, false);
-      opts.set(options::nlExt, true);
+      opts.set(options::nlExt, options::NlExtMode::FULL);
     }
   }
 #endif
