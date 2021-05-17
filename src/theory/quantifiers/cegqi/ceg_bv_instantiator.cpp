@@ -270,8 +270,8 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
                                        Node pv,
                                        CegInstEffort effort)
 {
-  std::unordered_map<Node, std::vector<unsigned>, NodeHashFunction>::iterator
-      iti = d_var_to_inst_id.find(pv);
+  std::unordered_map<Node, std::vector<unsigned>>::iterator iti =
+      d_var_to_inst_id.find(pv);
   if (iti == d_var_to_inst_id.end())
   {
     // no bounds
@@ -317,7 +317,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
 
       // get the slack value introduced for the asserted literal
       Node curr_slack_val;
-      std::unordered_map<Node, Node, NodeHashFunction>::iterator itms =
+      std::unordered_map<Node, Node>::iterator itms =
           d_alit_to_model_slack.find(alit);
       if (itms != d_alit_to_model_slack.end())
       {
@@ -382,12 +382,12 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
                                                 Node lit)
 {
   // result of rewriting the visited term
-  std::stack<std::unordered_map<TNode, Node, TNodeHashFunction> > visited;
-  visited.push(std::unordered_map<TNode, Node, TNodeHashFunction>());
+  std::stack<std::unordered_map<TNode, Node>> visited;
+  visited.push(std::unordered_map<TNode, Node>());
   // whether the visited term contains pv
-  std::unordered_map<Node, bool, NodeHashFunction> visited_contains_pv;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
-  std::unordered_map<TNode, Node, TNodeHashFunction> curr_subs;
+  std::unordered_map<Node, bool> visited_contains_pv;
+  std::unordered_map<TNode, Node>::iterator it;
+  std::unordered_map<TNode, Node> curr_subs;
   std::stack<std::stack<TNode> > visit;
   TNode cur;
   visit.push(std::stack<TNode>());
@@ -400,8 +400,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
 
     if (it == visited.top().end())
     {
-      std::unordered_map<TNode, Node, TNodeHashFunction>::iterator itc =
-          curr_subs.find(cur);
+      std::unordered_map<TNode, Node>::iterator itc = curr_subs.find(cur);
       if (itc != curr_subs.end())
       {
         visited.top()[cur] = itc->second;
@@ -422,7 +421,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
           // of this witness expression since we are
           // now in the context { cur[0][0] -> bv },
           // hence we push a context here
-          visited.push(std::unordered_map<TNode, Node, TNodeHashFunction>());
+          visited.push(std::unordered_map<TNode, Node>());
           visit.push(std::stack<TNode>());
         }
         visited.top()[cur] = Node::null();
@@ -507,7 +506,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
   if (Trace.isOn("cegqi-bv-nl"))
   {
     std::vector<TNode> trace_visit;
-    std::unordered_set<TNode, TNodeHashFunction> trace_visited;
+    std::unordered_set<TNode> trace_visited;
 
     trace_visit.push_back(result);
     do
@@ -535,7 +534,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
     Node pv,
     Node n,
     std::vector<Node>& children,
-    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv)
+    std::unordered_map<Node, bool>& contains_pv)
 {
   NodeManager* nm = NodeManager::currentNM();
 
@@ -648,7 +647,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
     Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
     // map from terms to bitvector extracts applied to that term
     std::map<Node, std::vector<Node> > extract_map;
-    std::unordered_set<TNode, TNodeHashFunction> visited;
+    std::unordered_set<TNode> visited;
     Trace("cegqi-bv-pp-debug2") << "Register ce lemma " << lem << std::endl;
     collectExtracts(lem, extract_map, visited);
     for (std::pair<const Node, std::vector<Node> >& es : extract_map)
@@ -728,8 +727,8 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
 
 void BvInstantiatorPreprocess::collectExtracts(
     Node lem,
-    std::map<Node, std::vector<Node> >& extract_map,
-    std::unordered_set<TNode, TNodeHashFunction>& visited)
+    std::map<Node, std::vector<Node>>& extract_map,
+    std::unordered_set<TNode>& visited)
 {
   std::vector<TNode> visit;
   TNode cur;

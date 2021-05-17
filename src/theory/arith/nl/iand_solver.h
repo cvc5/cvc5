@@ -39,7 +39,7 @@ class NlModel;
  */
 class IAndSolver
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   IAndSolver(InferenceManager& im, ArithState& state, NlModel& model);

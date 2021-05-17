@@ -31,10 +31,9 @@ namespace parser {
 
 Smt2::Smt2(api::Solver* solver,
            SymbolManager* sm,
-           Input* input,
            bool strictMode,
            bool parseOnly)
-    : Parser(solver, sm, input, strictMode, parseOnly),
+    : Parser(solver, sm, strictMode, parseOnly),
       d_logicSet(false),
       d_seenSetLogic(false)
 {

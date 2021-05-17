@@ -1,23 +1,18 @@
 id     = "SMT"
 name   = "SMT layer"
-header = "options/smt_options.h"
 
 [[option]]
   name       = "dumpModeString"
-  smt_name   = "dump"
   category   = "common"
   long       = "dump=MODE"
   type       = "std::string"
-  read_only  = true
   help       = "dump preprocessed assertions, etc., see --dump=help"
 
 [[option]]
   name       = "dumpToFileName"
-  smt_name   = "dump-to"
   category   = "common"
   long       = "dump-to=FILE"
   type       = "std::string"
-  read_only  = true
   help       = "all dumping goes to FILE (instead of stdout)"
 
 [[option]]
@@ -30,7 +25,7 @@ header = "options/smt_options.h"
 
 [[option]]
   name       = "simplificationMode"
-  smt_name   = "simplification-mode"
+  alias      = ["simplification-mode"]
   category   = "regular"
   long       = "simplification=MODE"
   type       = "SimplificationMode"
@@ -50,16 +45,14 @@ header = "options/smt_options.h"
   long       = "static-learning"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use static learning (on by default)"
 
 [[option]]
   name       = "expandDefinitions"
-  smt_name   = "expand-definitions"
+  long       = "expand-definitions"
   category   = "regular"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "always expand symbol definitions in output"
 
 [[option]]
@@ -91,7 +84,6 @@ header = "options/smt_options.h"
   long       = "dump-models"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "output models after every SAT/INVALID/UNKNOWN response"
 
 [[option]]
@@ -144,7 +136,6 @@ header = "options/smt_options.h"
   long       = "dump-proofs"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "output proofs after every UNSAT/VALID response"
 
 [[option]]
@@ -160,7 +151,6 @@ header = "options/smt_options.h"
   long       = "dump-instantiations"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "output instantiations of quantified formulas after every UNSAT/VALID response"
 
 [[option]]
@@ -190,7 +180,6 @@ header = "options/smt_options.h"
   long       = "sygus-print-callbacks"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use sygus print callbacks to print sygus terms in the user-provided form (disable for debugging)"
 
 [[option]]
@@ -202,7 +191,6 @@ header = "options/smt_options.h"
 
 [[option]]
   name       = "unsatCoresMode"
-  smt_name   = "unsat-cores-mode"
   category   = "regular"
   long       = "unsat-cores-mode=MODE"
   type       = "UnsatCoresMode"
@@ -246,7 +234,6 @@ header = "options/smt_options.h"
   long       = "dump-unsat-cores-full"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "dump the full unsat core, including unlabeled assertions"
 
 [[option]]
@@ -255,7 +242,6 @@ header = "options/smt_options.h"
   long       = "produce-unsat-assumptions"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "turn on unsat assumptions generation"
 
 [[option]]
@@ -276,7 +262,7 @@ header = "options/smt_options.h"
 
 [[option]]
   name       = "interactiveMode"
-  smt_name   = "interactive-mode"
+  long       = "interactive-mode"
   category   = "undocumented"
   type       = "bool"
   predicates = ["setProduceAssertions"]
@@ -366,7 +352,6 @@ header = "options/smt_options.h"
   long       = "simp-ite-hunt-zombies=N"
   type       = "uint32_t"
   default    = "524288"
-  read_only  = true
   help       = "post ite compression enables zombie removal while the number of nodes is above this threshold"
 
 [[option]]
@@ -392,17 +377,15 @@ header = "options/smt_options.h"
   long       = "abstract-values"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "in models, output arrays (and in future, maybe others) using abstract values, as required by the SMT-LIB standard"
 
 [[option]]
   name       = "modelUninterpPrint"
-  smt_name   = "model-uninterp-print"
+  alias      = ["model-uninterp-print"]
   category   = "regular"
   long       = "model-u-print=MODE"
   type       = "ModelUninterpPrintMode"
   default    = "None"
-  read_only  = true
   help       = "determines how to print uninterpreted elements in models"
   help_mode  = "uninterpreted elements in models printing  modes."
 [[option.mode.DtEnum]]
@@ -425,23 +408,20 @@ header = "options/smt_options.h"
   long       = "model-witness-value"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "in models, use a witness constant for choice functions"
 
 [[option]]
   name       = "regularChannelName"
-  smt_name   = "regular-output-channel"
+  long       = "regular-output-channel=CHANNEL"
   category   = "regular"
   type       = "std::string"
-  read_only  = true
   help       = "set the regular output channel of the solver"
 
 [[option]]
   name       = "diagnosticChannelName"
-  smt_name   = "diagnostic-output-channel"
+  long       = "diagnostic-output-channel=CHANNEL"
   category   = "regular"
   type       = "std::string"
-  read_only  = true
   help       = "set the diagnostic output channel of the solver"
 
 [[option]]
@@ -450,7 +430,6 @@ header = "options/smt_options.h"
   long       = "force-no-limit-cpu-while-dump"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "Force no CPU limit when dumping models and proofs"
 
 [[option]]
@@ -459,7 +438,6 @@ header = "options/smt_options.h"
   long       = "foreign-theory-rewrite"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "Cross-theory rewrites"
 
 [[option]]
@@ -489,7 +467,6 @@ header = "options/smt_options.h"
   long       = "bvand-integer-granularity=N"
   type       = "uint32_t"
   default    = "1"
-  read_only  = true
   help       = "granularity to use in --solve-bv-as-int mode and for iand operator (experimental)"
 
 [[option]]
@@ -498,7 +475,6 @@ header = "options/smt_options.h"
   long       = "iand-mode=mode"
   type       = "IandMode"
   default    = "VALUE"
-  read_only  = true
   help       = "Set the refinement scheme for integer AND"
   help_mode  = "Refinement modes for integer AND"
   [[option.mode.VALUE]]
@@ -517,7 +493,6 @@ header = "options/smt_options.h"
   long       = "solve-int-as-bv=N"
   type       = "uint32_t"
   default    = "0"
-  read_only  = true
   help       = "attempt to solve a pure integer satisfiable problem by bitblasting in sufficient bitwidth (experimental)"
 
 [[option]]
@@ -526,7 +501,6 @@ header = "options/smt_options.h"
   long       = "solve-real-as-int"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
 
 [[option]]
@@ -535,7 +509,6 @@ header = "options/smt_options.h"
   long       = "produce-interpols=MODE"
   type       = "ProduceInterpols"
   default    = "NONE"
-  read_only  = true
   help       = "support the get-interpol command"
   help_mode  = "Interpolants grammar mode"
 [[option.mode.NONE]]
@@ -563,7 +536,6 @@ header = "options/smt_options.h"
   long       = "produce-abducts"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "support the get-abduct command"
 
 [[option]]
@@ -572,7 +544,6 @@ header = "options/smt_options.h"
   long       = "check-interpols"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "checks whether produced solutions to get-interpol are correct"
 
 [[option]]
@@ -581,5 +552,4 @@ header = "options/smt_options.h"
   long       = "check-abducts"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "checks whether produced solutions to get-abduct are correct"

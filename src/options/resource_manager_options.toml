@@ -1,10 +1,8 @@
-id     = "resource_manager"
+id     = "RESMAN"
 name   = "Resource Manager options"
-header = "options/resource_manager_options.h"
 
 [[option]]
   name       = "cumulativeMillisecondLimit"
-  smt_name   = "tlimit"
   category   = "common"
   long       = "tlimit=MS"
   type       = "uint64_t"
@@ -12,7 +10,6 @@ header = "options/resource_manager_options.h"
 
 [[option]]
   name       = "perCallMillisecondLimit"
-  smt_name   = "tlimit-per"
   category   = "common"
   long       = "tlimit-per=MS"
   type       = "uint64_t"
@@ -20,7 +17,6 @@ header = "options/resource_manager_options.h"
 
 [[option]]
   name       = "cumulativeResourceLimit"
-  smt_name   = "rlimit"
   category   = "common"
   long       = "rlimit=N"
   type       = "uint64_t"
@@ -28,7 +24,7 @@ header = "options/resource_manager_options.h"
 
 [[option]]
   name       = "perCallResourceLimit"
-  smt_name   = "reproducible-resource-limit"
+  alias      = ["reproducible-resource-limit"]
   category   = "common"
   long       = "rlimit-per=N"
   type       = "uint64_t"
@@ -47,7 +43,6 @@ header = "options/resource_manager_options.h"
   long       = "rweight=VAL=N"
   type       = "std::string"
   handler    = "setResourceWeight"
-  read_only  = true
   help       = "set a single resource weight"
 
 [[option]]

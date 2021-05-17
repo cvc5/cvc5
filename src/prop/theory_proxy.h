@@ -155,7 +155,7 @@ class TheoryProxy : public Registrar
    * Set of all lemmas that have been "shared" in the portfolio---i.e.,
    * all imported and exported lemmas.
    */
-  std::unordered_set<Node, NodeHashFunction> d_shared;
+  std::unordered_set<Node> d_shared;
 
   /** The theory preprocessor */
   theory::TheoryPreprocessor d_tpp;

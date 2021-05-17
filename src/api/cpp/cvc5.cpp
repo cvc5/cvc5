@@ -4488,7 +4488,7 @@ void Grammar::addSygusConstructorVariables(DatatypeDecl& dt,
 
 bool Grammar::containsFreeVariables(const Term& rule) const
 {
-  std::unordered_set<TNode, TNodeHashFunction> scope;
+  std::unordered_set<TNode> scope;
 
   for (const Term& sygusVar : d_sygusVars)
   {
@@ -4500,7 +4500,7 @@ bool Grammar::containsFreeVariables(const Term& rule) const
     scope.emplace(*ntsymbol.d_node);
   }
 
-  std::unordered_set<Node, NodeHashFunction> fvs;
+  std::unordered_set<Node> fvs;
   return expr::getFreeVariablesScope(*rule.d_node, fvs, scope, false);
 }
 
@@ -7497,7 +7497,7 @@ size_t hash<cvc5::api::Op>::operator()(const cvc5::api::Op& t) const
 {
   if (t.isIndexedHelper())
   {
-    return cvc5::NodeHashFunction()(*t.d_node);
+    return std::hash<cvc5::Node>()(*t.d_node);
   }
   else
   {
@@ -7513,12 +7513,12 @@ size_t std::hash<cvc5::api::RoundingMode>::operator()(
 
 size_t std::hash<cvc5::api::Sort>::operator()(const cvc5::api::Sort& s) const
 {
-  return cvc5::TypeNodeHashFunction()(*s.d_type);
+  return std::hash<cvc5::TypeNode>()(*s.d_type);
 }
 
 size_t std::hash<cvc5::api::Term>::operator()(const cvc5::api::Term& t) const
 {
-  return cvc5::NodeHashFunction()(*t.d_node);
+  return std::hash<cvc5::Node>()(*t.d_node);
 }
 
 }  // namespace std
