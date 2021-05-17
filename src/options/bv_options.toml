@@ -243,3 +243,11 @@ name   = "Bitvector theory"
   name = "simple"
   help = "Enables simple bitblasting solver with proof support."
 
+[[option]]
+  name       = "bvAssertInput"
+  category   = "regular"
+  long       = "bv-assert-input"
+  type       = "bool"
+  default    = "false"
+  help       = "assert input assertions on user-level 0 instead of assuming them in the bit-vector SAT solver"
+
