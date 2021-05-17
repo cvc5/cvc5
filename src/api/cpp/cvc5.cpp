@@ -3043,6 +3043,8 @@ void Term::collectSet(std::set<Term>& set,
                       const cvc5::Node& node,
                       const Solver* slv)
 {
+  // We asserted that node has a set type, and node.isConst()
+  // Thus, node only contains of EMPTYSET, UNION and SINGLETON.
   switch (node.getKind())
   {
     case cvc5::Kind::EMPTYSET: break;
