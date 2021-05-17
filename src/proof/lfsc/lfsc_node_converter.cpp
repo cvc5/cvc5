@@ -24,6 +24,7 @@
 #include "printer/smt2/smt2_printer.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/strings/word.h"
 
 using namespace cvc5::kind;
 
@@ -245,6 +246,25 @@ Node LfscNodeConverter::postConvert(Node n)
     }
     return ret;
   }
+  else if (k == CONST_SEQUENCE)
+  {
+    const std::vector<Node>& charVec = n.getConst<Sequence>().getVec();
+    TypeNode etype = nm->mkFunctionType(d_sortType, tn);
+    Node ret = getSymbolInternal(k, etype, "seq.empty");
+    ret = nm->mkNode(APPLY_UF, ret, typeAsNode(convertType(tn)));
+    std::vector<Node> vecu;
+    for (size_t i = 0, size = charVec.size(); i < size; i++)
+    {
+      Node u = nm->mkNode(SEQ_UNIT, postConvert(charVec[size-(i+1)]));
+      if (size==1)
+      {
+        // singleton case
+        return u;
+      }
+      ret = nm->mkNode(STRING_CONCAT, u, ret);
+    }
+    return ret;
+  }
   else if (k == STORE_ALL)
   {
     Node t = typeAsNode(convertType(tn));
@@ -276,12 +296,12 @@ Node LfscNodeConverter::postConvert(Node n)
     children.insert(children.end(), n.begin(), n.end());
     return nm->mkNode(APPLY_UF, children);
   }
-  else if (k == EMPTYSET || k == UNIVERSE_SET)
+  else if (k == EMPTYSET || k == UNIVERSE_SET || k==EMPTYBAG)
   {
     Node t = typeAsNode(convertType(tn));
     TypeNode etype = nm->mkFunctionType(d_sortType, tn);
     Node ef =
-        getSymbolInternal(k, etype, k == EMPTYSET ? "emptyset" : "univset");
+        getSymbolInternal(k, etype, k == EMPTYSET ? "emptyset" : ( k == UNIVERSE_SET ? "univset" : "emptybag") );
     return nm->mkNode(APPLY_UF, ef, t);
   }
   else if (n.isClosure())
@@ -700,7 +720,10 @@ Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
     case PLUS: nullTerm = nm->mkConst(Rational(0)); break;
     case MULT:
     case NONLINEAR_MULT: nullTerm = nm->mkConst(Rational(1)); break;
-    case STRING_CONCAT: nullTerm = nm->mkConst(String("")); break;
+    case STRING_CONCAT:
+      // handles strings and sequences
+      nullTerm = theory::strings::Word::mkEmptyWord(tn);
+    break;
     case REGEXP_CONCAT:
       // the language containing only the empty string
       nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));

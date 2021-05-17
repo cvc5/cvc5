@@ -281,7 +281,11 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
                '--dump-unsat-cores-full' not in all_args and \
                '--no-produce-proofs' not in all_args and \
                '--no-check-proofs' not in all_args and \
+               '--dump-instantiations' not in all_args and \
+               '--debug-inst' not in all_args and \
                '-i' not in all_args and \
+               '-iq' not in all_args and \
+               '-mi' not in all_args and \
                '--incremental' not in all_args and \
                ':incremental true' not in benchmark_content and \
                '--global-negate' not in all_args and \
