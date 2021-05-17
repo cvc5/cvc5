@@ -39,6 +39,8 @@ enum class SkolemFunId
   SQRT,
   /** a wrongly applied selector */
   SELECTOR_WRONG,
+  /** a shared selector */
+  SHARED_SELECTOR,
   /** an application of seq.nth that is out of bounds */
   SEQ_NTH_OOB,
 };

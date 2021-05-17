@@ -90,7 +90,7 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
   {
     // (and (>= (str.indexof x y n) (- 1)) (<= (str.indexof x y n) (str.len
     // x)))
-    Node l = utils::mkNLength(t[0]);
+    Node l = nm->mkNode(STRING_LENGTH, t[0]);
     lemma = nm->mkNode(AND,
                        nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
                        nm->mkNode(LEQ, t, l));
