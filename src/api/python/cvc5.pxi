@@ -1594,7 +1594,7 @@ cdef class Term:
         return term
 
     def isInteger(self):
-        return self.cterm.isInteger()
+        return self.cterm.isIntegerValue()
     
     def toPythonObj(self):
         '''
