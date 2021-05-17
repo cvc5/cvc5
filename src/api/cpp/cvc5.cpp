@@ -2914,7 +2914,8 @@ bool Term::isTupleValue() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->getKind() == cvc5::Kind::APPLY_CONSTRUCTOR;
+  return d_node->getKind() == cvc5::Kind::APPLY_CONSTRUCTOR && d_node->isConst()
+         && d_node->getType().getDType().isTuple();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2922,8 +2923,10 @@ std::vector<Term> Term::getTupleValue() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(
-      d_node->getKind() == cvc5::Kind::APPLY_CONSTRUCTOR, *d_node)
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::APPLY_CONSTRUCTOR
+                                  && d_node->isConst()
+                                  && d_node->getType().getDType().isTuple(),
+                              *d_node)
       << "Term to be a tuple value when calling getTupleValue()";
   //////// all checks before this line
   std::vector<Term> res;
