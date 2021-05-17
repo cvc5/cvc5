@@ -121,7 +121,7 @@ TPL_HOLDER_MACRO_ATTR += "  bool {name}__setByUser = false;"
 TPL_HOLDER_MACRO_ATTR_DEF = "  {type} {name} = {default};\\\n"
 TPL_HOLDER_MACRO_ATTR_DEF += "  bool {name}__setByUser = false;"
 
-TPL_DECL_SET_DEFAULT = 'void default_{name}(Options& opts, {type} value);'
+TPL_DECL_SET_DEFAULT = 'void setDefault{funcname}(Options& opts, {type} value);'
 TPL_IMPL_SET_DEFAULT = TPL_DECL_SET_DEFAULT[:-1] + '''
 {{
     if (!opts.{module}().{name}__setByUser) {{
@@ -497,8 +497,10 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
             long_name = ""
         decls.append(tpl_decl.format(name=option.name, type=option.type, long_name = long_name))
 
+        capoptionname = option.name[0].capitalize() + option.name[1:]
+
         # Generate module specialization
-        default_decl.append(TPL_DECL_SET_DEFAULT.format(module=module.id, name=option.name, type=option.type))
+        default_decl.append(TPL_DECL_SET_DEFAULT.format(module=module.id, name=option.name, funcname=capoptionname, type=option.type))
         specs.append(TPL_DECL_SET.format(name=option.name))
         specs.append(TPL_DECL_OP_BRACKET.format(name=option.name))
         specs.append(TPL_DECL_WAS_SET_BY_USER.format(name=option.name))
@@ -521,7 +523,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         ### Generate code for {module.name}_options.cpp
 
         # Accessors
-        default_impl.append(TPL_IMPL_SET_DEFAULT.format(module=module.id, name=option.name, type=option.type))
+        default_impl.append(TPL_IMPL_SET_DEFAULT.format(module=module.id, name=option.name, funcname=capoptionname, type=option.type))
         accs.append(TPL_IMPL_SET.format(module=module.id, name=option.name))
         accs.append(TPL_IMPL_OP_BRACKET.format(module=module.id, name=option.name))
         accs.append(TPL_IMPL_WAS_SET_BY_USER.format(module=module.id, name=option.name))
