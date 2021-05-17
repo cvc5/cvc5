@@ -34,8 +34,7 @@ void QuantifiersBoundInference::finishInit(BoundedIntegers* b) { d_bint = b; }
 
 bool QuantifiersBoundInference::mayComplete(TypeNode tn)
 {
-  std::unordered_map<TypeNode, bool, TypeNodeHashFunction>::iterator it =
-      d_may_complete.find(tn);
+  std::unordered_map<TypeNode, bool>::iterator it = d_may_complete.find(tn);
   if (it == d_may_complete.end())
   {
     // cache

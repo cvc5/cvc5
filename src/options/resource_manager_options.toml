@@ -1,4 +1,4 @@
-id     = "resource_manager"
+id     = "RESMAN"
 name   = "Resource Manager options"
 
 [[option]]

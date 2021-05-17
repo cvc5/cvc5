@@ -210,7 +210,7 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
     Trace("strings-debug-model") << d_esolver.debugPrintModel() << std::endl;
   }
   Trace("strings-model") << "TheoryStrings::collectModelValues" << std::endl;
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > repSet;
+  std::map<TypeNode, std::unordered_set<Node> > repSet;
   // Generate model
   // get the relevant string equivalence classes
   for (const Node& s : termSet)
@@ -222,9 +222,7 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
       repSet[tn].insert(r);
     }
   }
-  for (const std::pair<const TypeNode,
-                       std::unordered_set<Node, NodeHashFunction> >& rst :
-       repSet)
+  for (const std::pair<const TypeNode, std::unordered_set<Node> >& rst : repSet)
   {
     // get partition of strings of equal lengths, per type
     std::map<TypeNode, std::vector<std::vector<Node> > > colT;
@@ -241,12 +239,11 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
   return true;
 }
 
-bool TheoryStrings::collectModelInfoType(
-    TypeNode tn,
-    const std::unordered_set<Node, NodeHashFunction>& repSet,
-    std::vector<std::vector<Node> >& col,
-    std::vector<Node>& lts,
-    TheoryModel* m)
+bool TheoryStrings::collectModelInfoType(TypeNode tn,
+                                         const std::unordered_set<Node>& repSet,
+                                         std::vector<std::vector<Node> >& col,
+                                         std::vector<Node>& lts,
+                                         TheoryModel* m)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::map< Node, Node > processed;
@@ -331,6 +328,7 @@ bool TheoryStrings::collectModelInfoType(
               // otherwise, it is a shared term
               argVal = d_valuation.getModelValue(nfe.d_nf[0][0]);
             }
+            Assert(!argVal.isNull());
             Node c = Rewriter::rewrite(nm->mkNode(SEQ_UNIT, argVal));
             pure_eq_assign[eqc] = c;
             Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";

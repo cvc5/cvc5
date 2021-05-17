@@ -55,8 +55,8 @@ void PreprocessingPassContext::spendResource(Resource r)
 void PreprocessingPassContext::recordSymbolsInAssertions(
     const std::vector<Node>& assertions)
 {
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<Node, NodeHashFunction> syms;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<Node> syms;
   for (TNode cn : assertions)
   {
     expr::getSymbols(cn, syms, visited);

@@ -193,8 +193,8 @@ private:
    * A superset of all of the assertions that currently are not the literal for
    * their constraint do not match constraint literals. Not just the witnesses.
    */
-  context::CDInsertHashMap<Node, ConstraintP, NodeHashFunction> d_assertionsThatDoNotMatchTheirLiterals;
-
+  context::CDInsertHashMap<Node, ConstraintP>
+      d_assertionsThatDoNotMatchTheirLiterals;
 
   /** Returns true if x is of type Integer. */
   inline bool isInteger(ArithVar x) const {
@@ -267,8 +267,7 @@ private:
   /**
    * Contains all nodes that have been preregistered
    */
-  context::CDHashSet<Node, NodeHashFunction> d_preregisteredNodes;
-
+  context::CDHashSet<Node> d_preregisteredNodes;
 
   /**
    * Manages information about the assignment and upper and lower bounds on
