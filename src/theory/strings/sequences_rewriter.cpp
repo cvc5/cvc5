@@ -1129,12 +1129,30 @@ Node SequencesRewriter::rewriteDifferenceRegExp(TNode node)
 Node SequencesRewriter::rewriteRangeRegExp(TNode node)
 {
   Assert(node.getKind() == REGEXP_RANGE);
+  NodeManager* nm = NodeManager::currentNM();
   if (node[0] == node[1])
   {
-    NodeManager* nm = NodeManager::currentNM();
     Node retNode = nm->mkNode(STRING_TO_REGEXP, node[0]);
     // re.range( "A", "A" ) ---> str.to_re( "A" )
     return returnRewrite(node, retNode, Rewrite::RE_RANGE_SINGLE);
+  }
+
+  bool appliedCh = true;
+  unsigned ch[2];
+  for (size_t i = 0; i < 2; ++i)
+  {
+    if (node[i].isConst() || node[i].getConst<String>().size() != 1)
+    {
+      appliedCh = false;
+      break;
+    }
+    ch[i] = node[i].getConst<String>().front();
+  }
+  if (appliedCh && ch[0] > ch[1])
+  {
+    // re.range( "B", "A" ) ---> re.none
+    Node retNode = nm->mkNode(REGEXP_EMPTY, {});
+    return returnRewrite(node, retNode, Rewrite::RE_RANGE_EMPTY);
   }
   return node;
 }
