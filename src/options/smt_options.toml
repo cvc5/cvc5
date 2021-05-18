@@ -1,5 +1,5 @@
 id     = "SMT"
-name   = "SMT layer"
+name   = "SMT Layer"
 
 [[option]]
   name       = "dumpModeString"

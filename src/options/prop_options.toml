@@ -1,5 +1,5 @@
 id     = "PROP"
-name   = "SAT layer"
+name   = "SAT Layer"
 
 [[option]]
   name       = "satRandomFreq"

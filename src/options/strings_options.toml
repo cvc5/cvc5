@@ -1,5 +1,5 @@
 id     = "STRINGS"
-name   = "Strings theory"
+name   = "Strings Theory"
 
 [[option]]
   name       = "stringExp"

@@ -344,7 +344,7 @@ class SphinxGenerator:
     def render(self, dstdir, filename):
         res = []
 
-        res.append('Most commonly-used cvc5 options')
+        res.append('Most Commonly-Used cvc5 Options')
         res.append('===============================')
         for opt in self.common:
             fmt = '``{}``'
@@ -359,11 +359,11 @@ class SphinxGenerator:
             res.append('    ')
 
         res.append('')
-        res.append('Additional cvc5 options')
+        res.append('Additional cvc5 Options')
         res.append('=======================')
         for module in self.others:
             res.append('')
-            res.append('{} module'.format(module))
+            res.append('{} Module'.format(module))
             res.append('-' * (len(module) + 8))
             for opt in self.others[module]:
                 desc = '``{}``'
