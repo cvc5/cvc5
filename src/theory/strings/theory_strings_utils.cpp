@@ -243,19 +243,21 @@ std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x)
   {
     for (const Node& c : x)
     {
-      if (c.getKind() == EQUAL)
+      if (c.getKind() != EQUAL)
       {
-        if (Word::isEmpty(c[0]))
-        {
-          emptyNodes.insert(c[1]);
-        }
-        else if (Word::isEmpty(c[1]))
-        {
-          emptyNodes.insert(c[0]);
-        }
+        allEmptyEqs = false;
+        continue;
       }
-      else
+
+      if (Word::isEmpty(c[0]))
       {
+        emptyNodes.insert(c[1]);
+      }
+      else if (Word::isEmpty(c[1]))
+      {
+        emptyNodes.insert(c[0]);
+      }
+      else {
         allEmptyEqs = false;
       }
     }
