@@ -14,5 +14,5 @@
 ##
 
 # Add unit tests.
-cvc4_add_unit_test_white(pass_bv_gauss_white preprocessing)
-cvc4_add_unit_test_white(pass_foreign_theory_rewrite_white preprocessing)
+cvc5_add_unit_test_white(pass_bv_gauss_white preprocessing)
+cvc5_add_unit_test_white(pass_foreign_theory_rewrite_white preprocessing)

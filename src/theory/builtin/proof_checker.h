@@ -64,6 +64,21 @@ enum class MethodId : uint32_t
   SB_LITERAL,
   // P is interpreted as P -> true using Node::substitute
   SB_FORMULA,
+  //---------------------------- Substitution applications
+  // multiple substitutions are applied sequentially
+  SBA_SEQUENTIAL,
+  // multiple substitutions are applied simultaneously
+  SBA_SIMUL,
+  // multiple substitutions are applied to fix point
+  SBA_FIXPOINT
+  // For example, for x -> u, y -> f(z), z -> g(x), applying this substituion to
+  // y gives:
+  // - f(g(x)) for SBA_SEQUENTIAL
+  // - f(z) for SBA_SIMUL
+  // - f(g(u)) for SBA_FIXPOINT
+  // Notice that SBA_FIXPOINT should provide a terminating rewrite system
+  // as a substitution, or else non-termination will occur during proof
+  // checking.
 };
 /** Converts a rewriter id to a string. */
 const char* toString(MethodId id);
@@ -122,14 +137,19 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * is derived from
    * @param ids The method identifier of the substitution, by default SB_DEFAULT
    * specifying that lhs/rhs of equalities are interpreted as a substitution.
+   * @param ida The method identifier of the substitution application, by
+   * default SB_SEQUENTIAL specifying that substitutions are to be applied
+   * sequentially
    * @return The substituted form of n.
    */
   static Node applySubstitution(Node n,
                                 Node exp,
-                                MethodId ids = MethodId::SB_DEFAULT);
+                                MethodId ids = MethodId::SB_DEFAULT,
+                                MethodId ida = MethodId::SBA_SEQUENTIAL);
   static Node applySubstitution(Node n,
                                 const std::vector<Node>& exp,
-                                MethodId ids = MethodId::SB_DEFAULT);
+                                MethodId ids = MethodId::SB_DEFAULT,
+                                MethodId ida = MethodId::SBA_SEQUENTIAL);
   /** Apply substitution + rewriting
    *
    * Combines the above two steps.
@@ -137,29 +157,35 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * @param n The node to substitute and rewrite,
    * @param exp The (set of) equalities corresponding to the substitution
    * @param ids The method identifier of the substitution.
+   * @param ida The method identifier of the substitution application.
    * @param idr The method identifier of the rewriter.
    * @return The substituted, rewritten form of n.
    */
   Node applySubstitutionRewrite(Node n,
                                 const std::vector<Node>& exp,
                                 MethodId ids = MethodId::SB_DEFAULT,
+                                MethodId ida = MethodId::SBA_SEQUENTIAL,
                                 MethodId idr = MethodId::RW_REWRITE);
   /** get a method identifier from a node, return false if we fail */
   static bool getMethodId(TNode n, MethodId& i);
   /**
    * Get method identifiers from args starting at the given index. Store their
-   * values into ids, idr. This method returns false if args does not contain
-   * valid method identifiers at position index in args.
+   * values into ids, ida, and idr. This method returns false if args does not
+   * contain valid method identifiers at position index in args.
    */
   bool getMethodIds(const std::vector<Node>& args,
                     MethodId& ids,
+                    MethodId& ida,
                     MethodId& idr,
                     size_t index);
   /**
-   * Add method identifiers ids and idr as nodes to args. This does not add ids
-   * or idr if their values are the default ones.
+   * Add method identifiers ids, ida and idr as nodes to args. This does not add
+   * ids, ida or idr if their values are the default ones.
    */
-  static void addMethodIds(std::vector<Node>& args, MethodId ids, MethodId idr);
+  static void addMethodIds(std::vector<Node>& args,
+                           MethodId ids,
+                           MethodId ida,
+                           MethodId idr);
 
   /** get a TheoryId from a node, return false if we fail */
   static bool getTheoryId(TNode n, TheoryId& tid);

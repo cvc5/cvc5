@@ -1,4 +1,4 @@
-; COMMAND-LINE: --bitblast=eager --no-check-models  --no-check-unsat-cores
+; COMMAND-LINE: --bitblast=eager  --no-check-unsat-cores
 ; REQUIRES: cryptominisat
 ; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --no-check-unsat-cores
 ; EXPECT: unsat

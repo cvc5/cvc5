@@ -44,14 +44,15 @@ void SkolemDefManager::notifySkolemDefinition(TNode skolem, Node def)
 TNode SkolemDefManager::getDefinitionForSkolem(TNode skolem) const
 {
   NodeNodeMap::const_iterator it = d_skDefs.find(skolem);
-  AlwaysAssert(it != d_skDefs.end()) << "No skolem def for " << skolem;
+  Assert(it != d_skDefs.end()) << "No skolem def for " << skolem;
   return it->second;
 }
 
 void SkolemDefManager::notifyAsserted(TNode literal,
-                                      std::vector<TNode>& activatedSkolems)
+                                      std::vector<TNode>& activatedSkolems,
+                                      bool useDefs)
 {
-  std::unordered_set<Node, NodeHashFunction> skolems;
+  std::unordered_set<Node> skolems;
   getSkolems(literal, skolems);
   for (const Node& k : skolems)
   {
@@ -61,8 +62,18 @@ void SkolemDefManager::notifyAsserted(TNode literal,
       continue;
     }
     d_skActive.insert(k);
-    // add to the activated list
-    activatedSkolems.push_back(k);
+    if (useDefs)
+    {
+      // add its definition to the activated list
+      NodeNodeMap::const_iterator it = d_skDefs.find(k);
+      Assert(it != d_skDefs.end());
+      activatedSkolems.push_back(it->second);
+    }
+    else
+    {
+      // add to the activated list
+      activatedSkolems.push_back(k);
+    }
   }
 }
 
@@ -79,8 +90,8 @@ typedef expr::Attribute<HasSkolemComputedTag, bool> HasSkolemComputedAttr;
 
 bool SkolemDefManager::hasSkolems(TNode n) const
 {
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -134,11 +145,11 @@ bool SkolemDefManager::hasSkolems(TNode n) const
   return n.getAttribute(HasSkolemAttr());
 }
 
-void SkolemDefManager::getSkolems(
-    TNode n, std::unordered_set<Node, NodeHashFunction>& skolems) const
+void SkolemDefManager::getSkolems(TNode n,
+                                  std::unordered_set<Node>& skolems) const
 {
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);

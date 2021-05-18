@@ -13,7 +13,7 @@
  * A multi-precision integer constant.
  */
 
-// these gestures are used to avoid a public header dependence on cvc4autoconfig.h
+// these gestures are used to avoid a public header dependence on base/cvc5config.h
 
 #if @CVC5_NEED_INT64_T_OVERLOADS@
 #  define CVC5_NEED_INT64_T_OVERLOADS
@@ -28,14 +28,8 @@
 
 #ifdef CVC5_CLN_IMP
 #  include "util/integer_cln_imp.h"
-#  if SWIG
-     %include "util/integer_cln_imp.h"
-#  endif /* SWIG */
 #endif /* CVC5_CLN_IMP */
 
 #ifdef CVC5_GMP_IMP
 #  include "util/integer_gmp_imp.h"
-#  if SWIG
-     %include "util/integer_gmp_imp.h"
-#  endif /* SWIG */
 #endif /* CVC5_GMP_IMP */

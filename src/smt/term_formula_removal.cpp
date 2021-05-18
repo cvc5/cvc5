@@ -516,7 +516,7 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
 
 Node RemoveTermFormulas::getSkolemForNode(Node k) const
 {
-  context::CDInsertHashMap<Node, Node, NodeHashFunction>::const_iterator itk =
+  context::CDInsertHashMap<Node, Node>::const_iterator itk =
       d_skolem_cache.find(k);
   if (itk != d_skolem_cache.end())
   {

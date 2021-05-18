@@ -1,10 +1,9 @@
 id     = "UF"
 name   = "Uninterpreted functions theory"
-header = "options/uf_options.h"
 
 [[option]]
   name       = "ufSymmetryBreaker"
-  smt_name   = "uf-symmetry-breaker"
+  alias      = ["uf-symmetry-breaker"]
   category   = "regular"
   long       = "symmetry-breaker"
   type       = "bool"
@@ -17,7 +16,6 @@ header = "options/uf_options.h"
   long       = "uf-ss-totality-limited=N"
   type       = "int"
   default    = "-1"
-  read_only  = true
   help       = "apply totality axioms, but only up to cardinality N (-1 == do not apply totality axioms, default)"
 
 [[option]]
@@ -26,7 +24,6 @@ header = "options/uf_options.h"
   long       = "uf-ss-totality-sym-break"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "apply symmetry breaking for totality axioms"
 
 [[option]]
@@ -35,7 +32,6 @@ header = "options/uf_options.h"
   long       = "uf-ss-abort-card=N"
   type       = "int"
   default    = "-1"
-  read_only  = true
   help       = "tells the uf with cardinality to only consider models that interpret uninterpreted sorts of cardinality at most N (-1 == no limit, default)"
 
 [[option]]
@@ -44,7 +40,6 @@ header = "options/uf_options.h"
   long       = "uf-ss=MODE"
   type       = "UfssMode"
   default    = "FULL"
-  read_only  = true
   help       = "mode of operation for uf with cardinality solver."
   help_mode  = "UF with cardinality options currently supported by the --uf-ss option when combined with finite model finding."
 [[option.mode.FULL]]
@@ -63,7 +58,6 @@ header = "options/uf_options.h"
   long       = "uf-ss-fair"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use fair strategy for finite model finding multiple sorts"
 
 [[option]]

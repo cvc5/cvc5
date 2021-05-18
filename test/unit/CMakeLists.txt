@@ -33,11 +33,10 @@ add_custom_target(units
   DEPENDS build-units)
 
 set(CVC5_UNIT_TEST_FLAGS_BLACK
-  -D__BUILDING_CVC4LIB_UNIT_TEST -D__BUILDING_CVC4PARSERLIB_UNIT_TEST
-  -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS)
+  -D__BUILDING_CVC5LIB_UNIT_TEST -D__BUILDING_CVC5PARSERLIB_UNIT_TEST)
 
 # Generate and add unit test.
-macro(cvc4_add_unit_test is_white name output_dir)
+macro(cvc5_add_unit_test is_white name output_dir)
   set(test_src ${CMAKE_CURRENT_LIST_DIR}/${name}.cpp)
   add_executable(${name} ${test_src})
   target_compile_definitions(${name} PRIVATE ${CVC5_UNIT_TEST_FLAGS_BLACK})
@@ -79,11 +78,11 @@ macro(cvc4_add_unit_test is_white name output_dir)
   set_tests_properties(${test_name} PROPERTIES LABELS "unit")
 endmacro()
 
-macro(cvc4_add_unit_test_black name output_dir)
-  cvc4_add_unit_test(FALSE ${name} ${output_dir})
+macro(cvc5_add_unit_test_black name output_dir)
+  cvc5_add_unit_test(FALSE ${name} ${output_dir})
 endmacro()
-macro(cvc4_add_unit_test_white name output_dir)
-  cvc4_add_unit_test(TRUE ${name} ${output_dir})
+macro(cvc5_add_unit_test_white name output_dir)
+  cvc5_add_unit_test(TRUE ${name} ${output_dir})
 endmacro()
 
 add_subdirectory(api)

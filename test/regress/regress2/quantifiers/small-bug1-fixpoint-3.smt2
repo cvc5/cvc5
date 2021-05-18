@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cegqi-all --no-check-models
+; COMMAND-LINE: --cegqi-all
 ; EXPECT: sat
 ;AJR:BROKEN
 (set-logic UFBV)

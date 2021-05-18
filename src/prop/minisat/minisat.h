@@ -58,6 +58,8 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
 
   SatValue solve() override;
   SatValue solve(long unsigned int&) override;
+  SatValue solve(const std::vector<SatLiteral>& assumptions) override;
+  void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions) override;
 
   bool ok() const override;
 
@@ -83,6 +85,10 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
 
   bool isDecision(SatVariable decn) const override;
 
+  int32_t getDecisionLevel(SatVariable v) const override;
+
+  int32_t getIntroLevel(SatVariable v) const override;
+
   /** Retrieve a pointer to the unerlying solver. */
   Minisat::SimpSolver* getSolver() { return d_minisat; }
 
@@ -100,6 +106,14 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
   /** Context we will be using to synchronize the sat solver */
   context::Context* d_context;
 
+  /**
+   * Stores assumptions passed via last solve() call.
+   *
+   * It is used in getUnsatAssumptions() to determine which of the literals in
+   * the final conflict clause are assumptions.
+   */
+  std::unordered_set<SatLiteral, SatLiteralHashFunction> d_assumptions;
+
   void setupOptions();
 
   class Statistics {
@@ -113,6 +127,7 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
   public:
    Statistics(StatisticsRegistry& registry);
    void init(Minisat::SimpSolver* d_minisat);
+   void deinit();
   };/* class MinisatSatSolver::Statistics */
   Statistics d_statistics;
 

@@ -47,6 +47,8 @@ class TheoryBVRewriter : public TheoryRewriter
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
 
+  TrustNode expandDefinition(Node node) override;
+
  private:
   static RewriteResponse IdentityRewrite(TNode node, bool prerewrite = false);
   static RewriteResponse UndefinedRewrite(TNode node, bool prerewrite = false);
@@ -95,6 +97,7 @@ class TheoryBVRewriter : public TheoryRewriter
   static RewriteResponse RewriteRotateLeft(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteRedor(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteRedand(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteEagerAtom(TNode node, bool prerewrite = false);
 
   static RewriteResponse RewriteBVToNat(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteIntToBV(TNode node, bool prerewrite = false);

@@ -1,6 +1,5 @@
 id     = "ARITH"
 name   = "Arithmetic theory"
-header = "options/arith_options.h"
 
 [[option]]
   name       = "arithUnateLemmaMode"
@@ -8,7 +7,6 @@ header = "options/arith_options.h"
   long       = "unate-lemmas=MODE"
   type       = "ArithUnateLemmaMode"
   default    = "ALL"
-  read_only  = true
   help       = "determines which lemmas to add before solving (default is 'all', see --unate-lemmas=help)"
   help_mode  = "Unate lemmas are generated before SAT search begins using the relationship of constant terms and polynomials."
 [[option.mode.ALL]]
@@ -29,7 +27,6 @@ header = "options/arith_options.h"
   long       = "arith-prop=MODE"
   type       = "ArithPropagationMode"
   default    = "BOTH_PROP"
-  read_only  = true
   help       = "turns on arithmetic propagation (default is 'old', see --arith-prop=help)"
   help_mode  = "This decides on kind of propagation arithmetic attempts to do during the search."
 [[option.mode.NO_PROP]]
@@ -77,7 +74,6 @@ header = "options/arith_options.h"
   long       = "error-selection-rule=RULE"
   type       = "ErrorSelectionRule"
   default    = "MINIMUM_AMOUNT"
-  read_only  = true
   help       = "change the pivot rule for the basic variable (default is 'min', see --pivot-rule help)"
   help_mode  = "This decides on the rule used by simplex during heuristic rounds for deciding the next basic variable to select."
 [[option.mode.MINIMUM_AMOUNT]]
@@ -99,7 +95,6 @@ header = "options/arith_options.h"
   long       = "simplex-check-period=N"
   type       = "uint16_t"
   default    = "200"
-  read_only  = true
   help       = "the number of pivots to do in simplex before rechecking for a conflict on all variables"
 
 # This is the pivots per basic variable that can be done using heuristic choices
@@ -120,7 +115,6 @@ header = "options/arith_options.h"
   long       = "prop-row-length=N"
   type       = "uint16_t"
   default    = "16"
-  read_only  = true
   help       = "sets the maximum row length to be used in propagation"
 
 [[option]]
@@ -129,7 +123,6 @@ header = "options/arith_options.h"
   long       = "dio-solver"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "turns on Linear Diophantine Equation solver (Griggio, JSAT 2012)"
 
 # Whether to split (= x y) into (and (<= x y) (>= x y)) in
@@ -144,7 +137,6 @@ header = "options/arith_options.h"
 
 [[option]]
   name       = "arithMLTrick"
-  smt_name   = "miplib-trick"
   category   = "regular"
   long       = "miplib-trick"
   type       = "bool"
@@ -153,12 +145,10 @@ header = "options/arith_options.h"
 
 [[option]]
   name       = "arithMLTrickSubstitutions"
-  smt_name   = "miplib-trick-subs"
   category   = "regular"
   long       = "miplib-trick-subs=N"
   type       = "unsigned"
   default    = "1"
-  read_only  = true
   help       = "do substitution for miplib 'tmp' vars if defined in <= N eliminated vars"
 
 [[option]]
@@ -175,7 +165,6 @@ header = "options/arith_options.h"
   long       = "maxCutsInContext=N"
   type       = "unsigned"
   default    = "65535"
-  read_only  = true
   help       = "maximum cuts in a given context before signalling a restart"
 
 [[option]]
@@ -184,7 +173,6 @@ header = "options/arith_options.h"
   long       = "revert-arith-models-on-unsat"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "revert the arithmetic model to a known safe model on unsat if one is cached"
 
 [[option]]
@@ -281,7 +269,6 @@ header = "options/arith_options.h"
   long       = "se-solve-int"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "attempt to use the approximate solve integer method on standard effort"
 
 [[option]]
@@ -290,7 +277,6 @@ header = "options/arith_options.h"
   long       = "lemmas-on-replay-failure"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "attempt to use external lemmas if approximate solve integer failed"
 
 [[option]]
@@ -299,7 +285,6 @@ header = "options/arith_options.h"
   long       = "dio-turns=N"
   type       = "int"
   default    = "10"
-  read_only  = true
   help       = "turns in a row dio solver cutting gets"
 
 [[option]]
@@ -308,7 +293,6 @@ header = "options/arith_options.h"
   long       = "rr-turns=N"
   type       = "int"
   default    = "3"
-  read_only  = true
   help       = "round robin turn"
 
 [[option]]
@@ -317,7 +301,6 @@ header = "options/arith_options.h"
   long       = "dio-repeat"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "handle dio solver constraints in mass or one at a time"
 
 [[option]]
@@ -326,7 +309,6 @@ header = "options/arith_options.h"
   long       = "replay-early-close-depth=N"
   type       = "int"
   default    = "1"
-  read_only  = true
   help       = "multiples of the depths to try to close the approx log eagerly"
 
 [[option]]
@@ -335,7 +317,6 @@ header = "options/arith_options.h"
   long       = "replay-failure-penalty=N"
   type       = "int"
   default    = "100"
-  read_only  = true
   help       = "number of solve integer attempts to skips after a numeric failure"
 
 [[option]]
@@ -344,7 +325,6 @@ header = "options/arith_options.h"
   long       = "replay-num-err-penalty=N"
   type       = "int"
   default    = "4194304"
-  read_only  = true
   help       = "number of solve integer attempts to skips after a numeric failure"
 
 [[option]]
@@ -353,7 +333,6 @@ header = "options/arith_options.h"
   long       = "replay-reject-cut=N"
   type       = "unsigned"
   default    = "25500"
-  read_only  = true
   help       = "maximum complexity of any coefficient while replaying cuts"
 
 [[option]]
@@ -362,7 +341,6 @@ header = "options/arith_options.h"
   long       = "replay-lemma-reject-cut=N"
   type       = "unsigned"
   default    = "25500"
-  read_only  = true
   help       = "maximum complexity of any coefficient while outputting replaying cut lemmas"
 
 [[option]]
@@ -371,7 +349,6 @@ header = "options/arith_options.h"
   long       = "replay-soi-major-threshold=T"
   type       = "double"
   default    = ".01"
-  read_only  = true
   help       = "threshold for a major tolerance failure by the approximate solver"
 
 [[option]]
@@ -380,7 +357,6 @@ header = "options/arith_options.h"
   long       = "replay-soi-major-threshold-pen=N"
   type       = "int"
   default    = "50"
-  read_only  = true
   help       = "threshold for a major tolerance failure by the approximate solver"
 
 [[option]]
@@ -389,7 +365,6 @@ header = "options/arith_options.h"
   long       = "replay-soi-minor-threshold=T"
   type       = "double"
   default    = ".0001"
-  read_only  = true
   help       = "threshold for a minor tolerance failure by the approximate solver"
 
 [[option]]
@@ -398,7 +373,6 @@ header = "options/arith_options.h"
   long       = "replay-soi-minor-threshold-pen=N"
   type       = "int"
   default    = "10"
-  read_only  = true
   help       = "threshold for a minor tolerance failure by the approximate solver"
 
 [[option]]
@@ -407,7 +381,6 @@ header = "options/arith_options.h"
   long       = "pp-assert-max-sub-size=N"
   type       = "unsigned"
   default    = "2"
-  read_only  = true
   help       = "threshold for substituting an equality in ppAssert"
 
 [[option]]
@@ -416,7 +389,6 @@ header = "options/arith_options.h"
   long       = "arith-no-partial-fun"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "do not use partial function semantics for arithmetic (not SMT LIB compliant)"
 
 [[option]]
@@ -430,10 +402,20 @@ header = "options/arith_options.h"
 [[option]]
   name       = "nlExt"
   category   = "regular"
-  long       = "nl-ext"
-  type       = "bool"
-  default    = "true"
+  long       = "nl-ext=MODE"
+  type       = "NlExtMode"
+  default    = "FULL"
   help       = "incremental linearization approach to non-linear"
+  help_mode  = "Modes for the non-linear linearization"
+[[option.mode.NONE]]
+  name = "none"
+  help = "Disable linearization approach"
+[[option.mode.LIGHT]]
+  name = "light"
+  help = "Only use a few light-weight lemma schemes"
+[[option.mode.FULL]]
+  name = "full"
+  help = "Use all lemma schemes"
 
 [[option]]
   name       = "nlExtResBound"
@@ -441,7 +423,6 @@ header = "options/arith_options.h"
   long       = "nl-ext-rbound"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "use resolution-style inference for inferring new bounds in non-linear incremental linearization solver"
 
 [[option]]
@@ -450,7 +431,6 @@ header = "options/arith_options.h"
   long       = "nl-ext-factor"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use factoring inference in non-linear incremental linearization solver"
 
 [[option]]
@@ -475,7 +455,6 @@ header = "options/arith_options.h"
   long       = "nl-ext-tf-tplanes"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use non-terminating tangent plane strategy for transcendental functions for non-linear incremental linearization solver"
 
 [[option]]
@@ -484,7 +463,6 @@ header = "options/arith_options.h"
   long       = "nl-ext-ent-conf"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "check for entailed conflicts in non-linear solver"
 
 [[option]]
@@ -493,7 +471,6 @@ header = "options/arith_options.h"
   long       = "nl-ext-rewrite"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "do context-dependent simplification based on rewrites in non-linear solver"
 
 [[option]]
@@ -502,7 +479,6 @@ header = "options/arith_options.h"
   long       = "nl-ext-purify"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "purify non-linear terms at preprocess"
 
 [[option]]
@@ -511,7 +487,6 @@ header = "options/arith_options.h"
   long       = "nl-ext-split-zero"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "initial splits on zero for all variables"
 
 [[option]]
@@ -528,7 +503,6 @@ header = "options/arith_options.h"
   long       = "nl-ext-inc-prec"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "whether to increment the precision for irrational function constraints"
 
 [[option]]
@@ -555,7 +529,6 @@ header = "options/arith_options.h"
   long       = "arith-brab"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "whether to use simple rounding, similar to a unit-cube test, for integers"
 
 [[option]]

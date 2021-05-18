@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cegqi --no-check-models
+; COMMAND-LINE: --cegqi
 ; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)

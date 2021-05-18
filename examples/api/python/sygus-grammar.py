@@ -17,11 +17,11 @@
 ##
 
 import copy
-import pycvc4
-from pycvc4 import kinds
+import pycvc5
+from pycvc5 import kinds
 
 if __name__ == "__main__":
-  slv = pycvc4.Solver()
+  slv = pycvc5.Solver()
 
   # required options
   slv.setOption("lang", "sygus2")

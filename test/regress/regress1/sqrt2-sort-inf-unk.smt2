@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sort-inference --no-check-models
+; COMMAND-LINE: --sort-inference
 ; EXPECT: sat
 (set-logic QF_NRA)
 (declare-fun x () Real)

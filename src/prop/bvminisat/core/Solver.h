@@ -79,7 +79,7 @@ private:
     /** To notify */
     Notify* d_notify;
 
-    /** Cvc4 context */
+    /** cvc5 context */
     cvc5::context::Context* c;
 
     /** True constant */
@@ -235,8 +235,8 @@ public:
 
  // Statistics: (read-only member variable)
  //
- uint64_t solves, starts, decisions, rnd_decisions, propagations, conflicts;
- uint64_t dec_vars, clauses_literals, learnts_literals, max_literals,
+ int64_t solves, starts, decisions, rnd_decisions, propagations, conflicts;
+ int64_t dec_vars, clauses_literals, learnts_literals, max_literals,
      tot_literals;
 
  // Bitvector Propagations

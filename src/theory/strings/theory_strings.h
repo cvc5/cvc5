@@ -60,8 +60,9 @@ namespace strings {
  */
 class TheoryStrings : public Theory {
   friend class InferenceManager;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashSet<TypeNode, TypeNodeHashFunction> TypeNodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
+
  public:
   TheoryStrings(context::Context* c,
                 context::UserContext* u,
@@ -94,8 +95,6 @@ class TheoryStrings : public Theory {
   void shutdown() override {}
   /** preregister term */
   void preRegisterTerm(TNode n) override;
-  /** Expand definition */
-  TrustNode expandDefinition(Node n) override;
   //--------------------------------- standard check
   /** Do we need a check call at last call effort? */
   bool needsCheckLastEffort() override;
@@ -197,12 +196,11 @@ class TheoryStrings : public Theory {
    *
    * Returns false if a conflict is discovered while doing this assignment.
    */
-  bool collectModelInfoType(
-      TypeNode tn,
-      const std::unordered_set<Node, NodeHashFunction>& repSet,
-      std::vector<std::vector<Node> >& col,
-      std::vector<Node>& lts,
-      TheoryModel* m);
+  bool collectModelInfoType(TypeNode tn,
+                            const std::unordered_set<Node>& repSet,
+                            std::vector<std::vector<Node>>& col,
+                            std::vector<Node>& lts,
+                            TheoryModel* m);
 
   /** assert pending fact
    *

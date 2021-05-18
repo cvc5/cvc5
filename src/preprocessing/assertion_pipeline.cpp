@@ -103,7 +103,7 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
   {
     d_pppg->notifyPreprocessed(d_nodes[i], n, pgen);
   }
-  else if (options::unsatCores())
+  else if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
   {
     ProofManager::currentPM()->addDependence(n, d_nodes[i]);
   }
@@ -204,7 +204,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       d_pppg->notifyNewAssert(newConjr, lcp);
     }
   }
-  if (options::unsatCores())
+  if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
   {
     ProofManager::currentPM()->addDependence(newConjr, d_nodes[i]);
   }

@@ -41,7 +41,7 @@
 
 #include "time_limit.h"
 
-#include "cvc4autoconfig.h"
+#include "base/cvc5config.h"
 
 #if HAVE_SETITIMER
 #include <signal.h>
@@ -55,6 +55,7 @@
 #include <cerrno>
 #include <cstring>
 
+#include "base/exception.h"
 #include "signal_handlers.h"
 
 namespace cvc5 {

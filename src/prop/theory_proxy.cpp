@@ -24,6 +24,7 @@
 #include "proof/cnf_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
+#include "prop/skolem_def_manager.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
@@ -34,7 +35,8 @@ namespace prop {
 
 TheoryProxy::TheoryProxy(PropEngine* propEngine,
                          TheoryEngine* theoryEngine,
-                         DecisionEngine* decisionEngine,
+                         decision::DecisionEngine* decisionEngine,
+                         SkolemDefManager* skdm,
                          context::Context* context,
                          context::UserContext* userContext,
                          ProofNodeManager* pnm)
@@ -44,7 +46,7 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
       d_theoryEngine(theoryEngine),
       d_queue(context),
       d_tpp(*theoryEngine, userContext, pnm),
-      d_skdm(new SkolemDefManager(context, userContext))
+      d_skdm(skdm)
 {
 }
 
@@ -96,12 +98,14 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   theory::TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
-  if (options::produceProofs())
+  if (options::produceProofs()
+      && options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS)
   {
-    Assert(options::unsatCoresNew() || tte.getGenerator());
+    Assert(options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF
+           || tte.getGenerator());
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }
-  else if (options::unsatCores())
+  else if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
   {
     ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
   }
@@ -213,7 +217,7 @@ void TheoryProxy::getSkolems(TNode node,
                              std::vector<Node>& skAsserts,
                              std::vector<Node>& sks)
 {
-  std::unordered_set<Node, NodeHashFunction> skolems;
+  std::unordered_set<Node> skolems;
   d_skdm->getSkolems(node, skolems);
   for (const Node& k : skolems)
   {

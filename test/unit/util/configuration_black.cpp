@@ -77,7 +77,7 @@ TEST_F(TestUtilBlackConfiguration, static_flags)
 
 TEST_F(TestUtilBlackConfiguration, package_name)
 {
-  ASSERT_EQ(Configuration::getPackageName(), "cvc4");
+  ASSERT_EQ(Configuration::getPackageName(), "cvc5");
 }
 
 TEST_F(TestUtilBlackConfiguration, versions)

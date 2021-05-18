@@ -1,7 +1,7 @@
 Exceptions
 ==========
 
-The CVC5 API communicates certain errors using exceptions. We broadly
+The cvc5 API communicates certain errors using exceptions. We broadly
 distinguish two types of exceptions: :cpp:class:`CVC5ApiException
 <cvc5::api::CVC5ApiException>` and :cpp:class:`CVC5ApiRecoverableException
 <cvc5::api::CVC5ApiRecoverableException>` (which is derived from

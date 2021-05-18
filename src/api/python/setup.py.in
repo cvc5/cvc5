@@ -35,9 +35,9 @@ class PyCVC5Install(install):
         c.finalize_options()
         c.run()
 
-setup(name='pycvc4',
+setup(name='pycvc5',
       version='${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}',
-      packages=['pycvc4'],
-      package_dir={'pycvc4': '${CMAKE_CURRENT_BINARY_DIR}/pycvc4'},
-      package_data={'pycvc4': ['pycvc4.so']},
+      packages=['pycvc5'],
+      package_dir={'pycvc5': '${CMAKE_CURRENT_BINARY_DIR}/pycvc5'},
+      package_data={'pycvc5': ['pycvc5.so']},
       cmdclass={'install': PyCVC5Install})

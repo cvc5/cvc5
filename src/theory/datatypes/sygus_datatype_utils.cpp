@@ -21,6 +21,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/evaluator.h"
@@ -59,7 +60,7 @@ Node applySygusArgs(const DType& dt,
   TNode val;
   if (!op.hasAttribute(SygusVarFreeAttribute()))
   {
-    std::unordered_set<Node, NodeHashFunction> fvs;
+    std::unordered_set<Node> fvs;
     if (expr::getFreeVariables(op, fvs))
     {
       if (fvs.size() == 1)
@@ -138,60 +139,6 @@ Kind getEliminateKind(Kind ok)
   return nk;
 }
 
-Node eliminatePartialOperators(Node n)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-
-    if (it == visited.end())
-    {
-      visited[cur] = Node::null();
-      visit.push_back(cur);
-      for (const Node& cn : cur)
-      {
-        visit.push_back(cn);
-      }
-    }
-    else if (it->second.isNull())
-    {
-      Node ret = cur;
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (cur.getMetaKind() == metakind::PARAMETERIZED)
-      {
-        children.push_back(cur.getOperator());
-      }
-      for (const Node& cn : cur)
-      {
-        it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
-      }
-      Kind ok = cur.getKind();
-      Kind nk = getEliminateKind(ok);
-      if (nk != ok || childChanged)
-      {
-        ret = nm->mkNode(nk, children);
-      }
-      visited[cur] = ret;
-    }
-  } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
-  return visited[n];
-}
-
 Node mkSygusTerm(const DType& dt,
                  unsigned i,
                  const std::vector<Node>& children,
@@ -235,7 +182,6 @@ Node mkSygusTerm(const DType& dt,
         // expandDefinitions.
         opn = smt::currentSmtEngine()->expandDefinitions(op);
         opn = Rewriter::rewrite(opn);
-        opn = eliminatePartialOperators(opn);
         SygusOpRewrittenAttribute sora;
         op.setAttribute(sora, opn);
       }
@@ -348,8 +294,8 @@ typedef expr::Attribute<BuiltinVarToSygusAttributeId, Node>
 
 Node sygusToBuiltin(Node n, bool isExternal)
 {
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   unsigned index;
@@ -464,8 +410,8 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
   std::vector<Node> eargs;
   bool svarsInit = false;
   std::vector<Node> svars;
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   unsigned index;
@@ -575,8 +521,7 @@ Node builtinVarToSygus(Node v)
   return Node::null();
 }
 
-void getFreeSymbolsSygusType(TypeNode sdt,
-                             std::unordered_set<Node, NodeHashFunction>& syms)
+void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms)
 {
   // datatype types we need to process
   std::vector<TypeNode> typeToProcess;

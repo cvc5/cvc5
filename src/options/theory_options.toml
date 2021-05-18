@@ -1,10 +1,8 @@
 id     = "THEORY"
 name   = "Theory layer"
-header = "options/theory_options.h"
 
 [[option]]
   name       = "theoryOfMode"
-  smt_name   = "theoryof-mode"
   category   = "expert"
   long       = "theoryof-mode=MODE"
   type       = "TheoryOfMode"
@@ -32,7 +30,6 @@ header = "options/theory_options.h"
   long       = "condense-function-values"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "condense values for functions in models rather than explicitly representing them"
 
 [[option]]
