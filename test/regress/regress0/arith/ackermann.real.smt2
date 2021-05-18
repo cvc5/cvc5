@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ackermann --no-check-models  --no-check-unsat-cores
+; COMMAND-LINE: --ackermann  --no-check-unsat-cores
 ; EXPECT: unsat
 (set-logic QF_UFNRA)
 

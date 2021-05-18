@@ -214,9 +214,12 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
           TNode r = node[1];
           TypeNode ltype = l.getType();
           TypeNode rtype = r.getType();
-          if (ltype != rtype)
+          // If the types are different, we must assign based on type due
+          // to handling subtypes (limited to arithmetic). Also, if we are
+          // a Boolean equality, we must assign THEORY_BOOL.
+          if (ltype != rtype || ltype.isBoolean())
           {
-            tid = Theory::theoryOf(l.getType());
+            tid = Theory::theoryOf(ltype);
           }
           else
           {
@@ -338,8 +341,9 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   return tm->isLegalElimination(x, val);
 }
 
-std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{
-  std::unordered_set<TNode, TNodeHashFunction> currentlyShared;
+std::unordered_set<TNode> Theory::currentlySharedTerms() const
+{
+  std::unordered_set<TNode> currentlyShared;
   for (shared_terms_iterator i = shared_terms_begin(),
            i_end = shared_terms_end(); i != i_end; ++i) {
     currentlyShared.insert (*i);

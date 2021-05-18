@@ -431,18 +431,31 @@ TypeNode FloatingPointToFPGenericTypeRule::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    /* As this is a generic kind intended only for parsing,
-     * the checking here is light.  For better checking, use
-     * expandDefinitions first.
-     */
-
-    size_t children = n.getNumChildren();
-    for (size_t i = 0; i < children; ++i)
+    uint32_t nchildren = n.getNumChildren();
+    if (nchildren == 1)
     {
-      n[i].getType(check);
+      if (!n[0].getType(check).isBitVector())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "first argument must be a bit-vector");
+      }
+    }
+    else
+    {
+      Assert(nchildren == 2);
+      if (!n[0].getType(check).isRoundingMode())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "first argument must be a roundingmode");
+      }
+      TypeNode tn = n[1].getType(check);
+      if (!tn.isBitVector() && !tn.isFloatingPoint() && !tn.isReal())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "second argument must be a bit-vector, floating-point or Real");
+      }
     }
   }
-
   return nodeManager->mkFloatingPointType(info.getSize());
 }
 

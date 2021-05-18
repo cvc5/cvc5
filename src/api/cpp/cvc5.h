@@ -13,7 +13,7 @@
  * The cvc5 C++ API.
  */
 
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 
 #ifndef CVC5__API__CVC5_H
 #define CVC5__API__CVC5_H
@@ -63,7 +63,7 @@ struct APIStatistics;
  * Base class for all API exceptions.
  * If thrown, all API objects may be in an unsafe state.
  */
-class CVC4_EXPORT CVC5ApiException : public std::exception
+class CVC5_EXPORT CVC5ApiException : public std::exception
 {
  public:
   /**
@@ -96,7 +96,7 @@ class CVC4_EXPORT CVC5ApiException : public std::exception
  * A recoverable API exception.
  * If thrown, API objects can still be used.
  */
-class CVC4_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
+class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
 {
  public:
   /**
@@ -121,7 +121,7 @@ class CVC4_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
 /**
  * Encapsulation of a three-valued solver result, with explanations.
  */
-class CVC4_EXPORT Result
+class CVC5_EXPORT Result
 {
   friend class Solver;
 
@@ -230,7 +230,7 @@ class CVC4_EXPORT Result
  * @param r the result to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Result& r) CVC4_EXPORT;
+std::ostream& operator<<(std::ostream& out, const Result& r) CVC5_EXPORT;
 
 /**
  * Serialize an UnknownExplanation to given stream.
@@ -239,7 +239,7 @@ std::ostream& operator<<(std::ostream& out, const Result& r) CVC4_EXPORT;
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         enum Result::UnknownExplanation e) CVC4_EXPORT;
+                         enum Result::UnknownExplanation e) CVC5_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
@@ -250,7 +250,7 @@ class Datatype;
 /**
  * The sort of a cvc5 term.
  */
-class CVC4_EXPORT Sort
+class CVC5_EXPORT Sort
 {
   friend class cvc5::Command;
   friend class DatatypeConstructor;
@@ -260,7 +260,7 @@ class CVC4_EXPORT Sort
   friend class Op;
   friend class Solver;
   friend class Grammar;
-  friend struct SortHashFunction;
+  friend struct std::hash<Sort>;
   friend class Term;
 
  public:
@@ -398,6 +398,11 @@ class CVC4_EXPORT Sort
    * @return true if the sort is a tester sort
    */
   bool isTester() const;
+  /**
+   * Is this a datatype updater sort?
+   * @return true if the sort is a datatype updater sort
+   */
+  bool isUpdater() const;
   /**
    * Is this a function sort?
    * @return true if the sort is a function sort
@@ -749,15 +754,25 @@ class CVC4_EXPORT Sort
  * @param s the sort to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Sort& s) CVC4_EXPORT;
+std::ostream& operator<<(std::ostream& out, const Sort& s) CVC5_EXPORT;
+
+}  // namespace api
+}  // namespace cvc5
+
+namespace std {
 
 /**
  * Hash function for Sorts.
  */
-struct CVC4_EXPORT SortHashFunction
+template <>
+struct CVC5_EXPORT hash<cvc5::api::Sort>
 {
-  size_t operator()(const Sort& s) const;
+  size_t operator()(const cvc5::api::Sort& s) const;
 };
+
+}  // namespace std
+
+namespace cvc5::api {
 
 /* -------------------------------------------------------------------------- */
 /* Op                                                                     */
@@ -768,11 +783,11 @@ struct CVC4_EXPORT SortHashFunction
  * An operator is a term that represents certain operators, instantiated
  * with its required parameters, e.g., a term of kind BITVECTOR_EXTRACT.
  */
-class CVC4_EXPORT Op
+class CVC5_EXPORT Op
 {
   friend class Solver;
   friend class Term;
-  friend struct OpHashFunction;
+  friend struct std::hash<Op>;
 
  public:
   /**
@@ -817,6 +832,11 @@ class CVC4_EXPORT Op
    * @return true iff this operator is indexed
    */
   bool isIndexed() const;
+
+  /**
+   * @return the number of indices of this op
+   */
+  size_t getNumIndices() const;
 
   /**
    * Get the indices used to create this Op.
@@ -884,6 +904,28 @@ class CVC4_EXPORT Op
   std::shared_ptr<cvc5::Node> d_node;
 };
 
+/**
+ * Serialize an operator to given stream.
+ * @param out the output stream
+ * @param t the operator to be serialized to the given output stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out, const Op& t) CVC5_EXPORT;
+
+}  // namespace cvc5::api
+
+namespace std {
+/**
+ * Hash function for Ops.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::api::Op>
+{
+  size_t operator()(const cvc5::api::Op& t) const;
+};
+}  // namespace std
+
+namespace cvc5::api {
 /* -------------------------------------------------------------------------- */
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -891,7 +933,7 @@ class CVC4_EXPORT Op
 /**
  * A cvc5 Term.
  */
-class CVC4_EXPORT Term
+class CVC5_EXPORT Term
 {
   friend class cvc5::Command;
   friend class Datatype;
@@ -899,7 +941,7 @@ class CVC4_EXPORT Term
   friend class DatatypeSelector;
   friend class Solver;
   friend class Grammar;
-  friend struct TermHashFunction;
+  friend struct std::hash<Term>;
 
  public:
   /**
@@ -1278,20 +1320,12 @@ class CVC4_EXPORT Term
 };
 
 /**
- * Hash function for Terms.
- */
-struct CVC4_EXPORT TermHashFunction
-{
-  size_t operator()(const Term& t) const;
-};
-
-/**
  * Serialize a term to given stream.
  * @param out the output stream
  * @param t the term to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Term& t) CVC4_EXPORT;
+std::ostream& operator<<(std::ostream& out, const Term& t) CVC5_EXPORT;
 
 /**
  * Serialize a vector of terms to given stream.
@@ -1300,7 +1334,7 @@ std::ostream& operator<<(std::ostream& out, const Term& t) CVC4_EXPORT;
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const std::vector<Term>& vector) CVC4_EXPORT;
+                         const std::vector<Term>& vector) CVC5_EXPORT;
 
 /**
  * Serialize a set of terms to the given stream.
@@ -1309,7 +1343,7 @@ std::ostream& operator<<(std::ostream& out,
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const std::set<Term>& set) CVC4_EXPORT;
+                         const std::set<Term>& set) CVC5_EXPORT;
 
 /**
  * Serialize an unordered_set of terms to the given stream.
@@ -1319,8 +1353,8 @@ std::ostream& operator<<(std::ostream& out,
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const std::unordered_set<Term, TermHashFunction>&
-                             unordered_set) CVC4_EXPORT;
+                         const std::unordered_set<Term>& unordered_set)
+    CVC5_EXPORT;
 
 /**
  * Serialize a map of terms to the given stream.
@@ -1331,7 +1365,7 @@ std::ostream& operator<<(std::ostream& out,
  */
 template <typename V>
 std::ostream& operator<<(std::ostream& out,
-                         const std::map<Term, V>& map) CVC4_EXPORT;
+                         const std::map<Term, V>& map) CVC5_EXPORT;
 
 /**
  * Serialize an unordered_map of terms to the given stream.
@@ -1342,24 +1376,23 @@ std::ostream& operator<<(std::ostream& out,
  */
 template <typename V>
 std::ostream& operator<<(std::ostream& out,
-                         const std::unordered_map<Term, V, TermHashFunction>&
-                             unordered_map) CVC4_EXPORT;
+                         const std::unordered_map<Term, V>& unordered_map)
+    CVC5_EXPORT;
 
-/**
- * Serialize an operator to given stream.
- * @param out the output stream
- * @param t the operator to be serialized to the given output stream
- * @return the output stream
- */
-std::ostream& operator<<(std::ostream& out, const Op& t) CVC4_EXPORT;
+}  // namespace cvc5::api
 
+namespace std {
 /**
- * Hash function for Ops.
+ * Hash function for Terms.
  */
-struct CVC4_EXPORT OpHashFunction
+template <>
+struct CVC5_EXPORT hash<cvc5::api::Term>
 {
-  size_t operator()(const Op& t) const;
+  size_t operator()(const cvc5::api::Term& t) const;
 };
+}  // namespace std
+
+namespace cvc5::api {
 
 /* -------------------------------------------------------------------------- */
 /* Datatypes                                                                  */
@@ -1371,7 +1404,7 @@ class DatatypeIterator;
 /**
  * A cvc5 datatype constructor declaration.
  */
-class CVC4_EXPORT DatatypeConstructorDecl
+class CVC5_EXPORT DatatypeConstructorDecl
 {
   friend class DatatypeDecl;
   friend class Solver;
@@ -1441,7 +1474,7 @@ class Solver;
 /**
  * A cvc5 datatype declaration.
  */
-class CVC4_EXPORT DatatypeDecl
+class CVC5_EXPORT DatatypeDecl
 {
   friend class DatatypeConstructorArg;
   friend class Solver;
@@ -1545,8 +1578,9 @@ class CVC4_EXPORT DatatypeDecl
 /**
  * A cvc5 datatype selector.
  */
-class CVC4_EXPORT DatatypeSelector
+class CVC5_EXPORT DatatypeSelector
 {
+  friend class Datatype;
   friend class DatatypeConstructor;
   friend class Solver;
 
@@ -1569,6 +1603,12 @@ class CVC4_EXPORT DatatypeSelector
    * @return the selector term
    */
   Term getSelectorTerm() const;
+
+  /**
+   * Get the upater operator of this datatype selector.
+   * @return the updater term
+   */
+  Term getUpdaterTerm() const;
 
   /** @return the range sort of this argument. */
   Sort getRangeSort() const;
@@ -1614,7 +1654,7 @@ class CVC4_EXPORT DatatypeSelector
 /**
  * A cvc5 datatype constructor.
  */
-class CVC4_EXPORT DatatypeConstructor
+class CVC5_EXPORT DatatypeConstructor
 {
   friend class Datatype;
   friend class Solver;
@@ -1841,7 +1881,7 @@ class CVC4_EXPORT DatatypeConstructor
 /**
  * A cvc5 datatype.
  */
-class CVC4_EXPORT Datatype
+class CVC5_EXPORT Datatype
 {
   friend class Solver;
   friend class Sort;
@@ -1879,6 +1919,15 @@ class CVC4_EXPORT Datatype
    * first is returned.
    */
   Term getConstructorTerm(const std::string& name) const;
+
+  /**
+   * Get the datatype constructor with the given name.
+   * This is a linear search through the constructors and their selectors, so
+   * in case of multiple, similarly-named selectors, the first is returned.
+   * @param name the name of the datatype selector
+   * @return the datatype selector with the given name
+   */
+  DatatypeSelector getSelector(const std::string& name) const;
 
   /** @return the name of this Datatype. */
   std::string getName() const;
@@ -2042,6 +2091,13 @@ class CVC4_EXPORT Datatype
   DatatypeConstructor getConstructorForName(const std::string& name) const;
 
   /**
+   * Return selector for name.
+   * @param name The name of selector to find
+   * @return the selector object for the name
+   */
+  DatatypeSelector getSelectorForName(const std::string& name) const;
+
+  /**
    * Helper for isNull checks. This prevents calling an API function with
    * CVC5_API_CHECK_NOT_NULL
    */
@@ -2067,7 +2123,7 @@ class CVC4_EXPORT Datatype
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const DatatypeDecl& dtdecl) CVC4_EXPORT;
+                         const DatatypeDecl& dtdecl) CVC5_EXPORT;
 
 /**
  * Serialize a datatype constructor declaration to given stream.
@@ -2076,7 +2132,7 @@ std::ostream& operator<<(std::ostream& out,
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const DatatypeConstructorDecl& ctordecl) CVC4_EXPORT;
+                         const DatatypeConstructorDecl& ctordecl) CVC5_EXPORT;
 
 /**
  * Serialize a vector of datatype constructor declarations to given stream.
@@ -2087,7 +2143,7 @@ std::ostream& operator<<(std::ostream& out,
  */
 std::ostream& operator<<(std::ostream& out,
                          const std::vector<DatatypeConstructorDecl>& vector)
-    CVC4_EXPORT;
+    CVC5_EXPORT;
 
 /**
  * Serialize a datatype to given stream.
@@ -2095,7 +2151,7 @@ std::ostream& operator<<(std::ostream& out,
  * @param dtype the datatype to be serialized to given stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Datatype& dtype) CVC4_EXPORT;
+std::ostream& operator<<(std::ostream& out, const Datatype& dtype) CVC5_EXPORT;
 
 /**
  * Serialize a datatype constructor to given stream.
@@ -2104,7 +2160,7 @@ std::ostream& operator<<(std::ostream& out, const Datatype& dtype) CVC4_EXPORT;
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const DatatypeConstructor& ctor) CVC4_EXPORT;
+                         const DatatypeConstructor& ctor) CVC5_EXPORT;
 
 /**
  * Serialize a datatype selector to given stream.
@@ -2113,7 +2169,7 @@ std::ostream& operator<<(std::ostream& out,
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const DatatypeSelector& stor) CVC4_EXPORT;
+                         const DatatypeSelector& stor) CVC5_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Grammar                                                                    */
@@ -2122,7 +2178,7 @@ std::ostream& operator<<(std::ostream& out,
 /**
  * A Sygus Grammar.
  */
-class CVC4_EXPORT Grammar
+class CVC5_EXPORT Grammar
 {
   friend class cvc5::Command;
   friend class Solver;
@@ -2201,7 +2257,7 @@ class CVC4_EXPORT Grammar
   void addSygusConstructorTerm(
       DatatypeDecl& dt,
       const Term& term,
-      const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const;
+      const std::unordered_map<Term, Sort>& ntsToUnres) const;
 
   /**
    * Purify SyGuS grammar term.
@@ -2221,11 +2277,10 @@ class CVC4_EXPORT Grammar
    * @param ntsToUnres mapping from non-terminals to their unresolved sorts
    * @return the purfied term
    */
-  Term purifySygusGTerm(
-      const Term& term,
-      std::vector<Term>& args,
-      std::vector<Sort>& cargs,
-      const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const;
+  Term purifySygusGTerm(const Term& term,
+                        std::vector<Term>& args,
+                        std::vector<Sort>& cargs,
+                        const std::unordered_map<Term, Sort>& ntsToUnres) const;
 
   /**
    * This adds constructors to \p dt for sygus variables in \p d_sygusVars
@@ -2252,11 +2307,11 @@ class CVC4_EXPORT Grammar
   /** The non-terminal symbols of this grammar. */
   std::vector<Term> d_ntSyms;
   /** The mapping from non-terminal symbols to their production terms. */
-  std::unordered_map<Term, std::vector<Term>, TermHashFunction> d_ntsToTerms;
+  std::unordered_map<Term, std::vector<Term>> d_ntsToTerms;
   /** The set of non-terminals that can be arbitrary constants. */
-  std::unordered_set<Term, TermHashFunction> d_allowConst;
+  std::unordered_set<Term> d_allowConst;
   /** The set of non-terminals that can be sygus variables. */
-  std::unordered_set<Term, TermHashFunction> d_allowVars;
+  std::unordered_set<Term> d_allowVars;
   /** Did we call resolve() before? */
   bool d_isResolved;
 };
@@ -2267,7 +2322,7 @@ class CVC4_EXPORT Grammar
  * @param g the grammar to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_EXPORT;
+std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC5_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Rounding Mode for Floating-Points                                          */
@@ -2287,7 +2342,7 @@ std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_EXPORT;
  * Standard 754.
  * \endverbatim
  */
-enum CVC4_EXPORT RoundingMode
+enum CVC5_EXPORT RoundingMode
 {
   /**
    * Round to the nearest even number.
@@ -2323,13 +2378,20 @@ enum CVC4_EXPORT RoundingMode
   ROUND_NEAREST_TIES_TO_AWAY,
 };
 
+}  // namespace cvc5::api
+
+namespace std {
+
 /**
  * Hash function for RoundingModes.
  */
-struct CVC4_EXPORT RoundingModeHashFunction
+template <>
+struct CVC5_EXPORT hash<cvc5::api::RoundingMode>
 {
-  inline size_t operator()(const RoundingMode& rm) const;
+  size_t operator()(cvc5::api::RoundingMode rm) const;
 };
+}  // namespace std
+namespace cvc5::api {
 
 /* -------------------------------------------------------------------------- */
 /* Statistics                                                                 */
@@ -2337,45 +2399,81 @@ struct CVC4_EXPORT RoundingModeHashFunction
 
 /**
  * Represents a snapshot of a single statistic value.
- * A value can be of type int64_t, double, std::string or a histogram
+ * A value can be of type `int64_t`, `double`, `std::string` or a histogram
  * (`std::map<std::string, uint64_t>`).
- * The value type can be queried (using `isInt`, `isString`, etc.) and
- * the stored value can be accessed (using `getInt`, `getString`, etc.).
+ * The value type can be queried (using `isInt()`, `isDouble()`, etc.) and
+ * the stored value can be accessed (using `getInt()`, `getDouble()`, etc.).
+ * It is possible to query whether this statistic is an expert statistic by
+ * `isExpert()` and whether its value is the default value by `isDefault()`.
  */
-class CVC4_EXPORT Stat
+class CVC5_EXPORT Stat
 {
   struct StatData;
 
  public:
   friend class Statistics;
   friend std::ostream& operator<<(std::ostream& os, const Stat& sv);
+  /** Representation of a histogram: maps names to frequencies. */
   using HistogramData = std::map<std::string, uint64_t>;
-  /** Create from the given value. */
+  /** Can only be obtained from a `Statistics` object. */
   Stat() = delete;
+  /** Copy constructor */
   Stat(const Stat& s);
+  /** Destructor */
   ~Stat();
+  /** Copy assignment */
   Stat& operator=(const Stat& s);
 
-  /** Is this value intended for experts only? */
+  /**
+   * Is this value intended for experts only?
+   * @return Whether this is an expert statistic.
+   */
   bool isExpert() const;
-  /** Does this value hold the default value? */
+  /**
+   * Does this value hold the default value?
+   * @return Whether this is a defaulted statistic.
+   */
   bool isDefault() const;
 
-  /** Is this value an integer? */
+  /**
+   * Is this value an integer?
+   * @return Whether the value is an integer.
+   */
   bool isInt() const;
-  /** Return the integer value */
+  /**
+   * Return the integer value.
+   * @return The integer value.
+   */
   int64_t getInt() const;
-  /** Is this value a double? */
+  /**
+   * Is this value a double?
+   * @return Whether the value is a double.
+   */
   bool isDouble() const;
-  /** Return the double value */
+  /**
+   * Return the double value.
+   * @return The double value.
+   */
   double getDouble() const;
-  /** Is this value an string? */
+  /**
+   * Is this value a string?
+   * @return Whether the value is a string.
+   */
   bool isString() const;
-  /** Return the string value */
+  /**
+   * Return the string value.
+   * @return The string value.
+   */
   const std::string& getString() const;
-  /** Is this value an histogram? */
+  /**
+   * Is this value a histogram?
+   * @return Whether the value is a histogram.
+   */
   bool isHistogram() const;
-  /** Return the histogram value */
+  /**
+   * Return the histogram value.
+   * @return The histogram value.
+   */
   const HistogramData& getHistogram() const;
 
  private:
@@ -2387,32 +2485,33 @@ class CVC4_EXPORT Stat
   std::unique_ptr<StatData> d_data;
 };
 
-std::ostream& operator<<(std::ostream& os, const Stat& sv) CVC4_EXPORT;
+/**
+ * Print a `Stat` object to an ``std::ostream``.
+ */
+std::ostream& operator<<(std::ostream& os, const Stat& sv) CVC5_EXPORT;
 
 /**
  * Represents a snapshot of the solver statistics.
  * Once obtained, an instance of this class is independent of the `Solver`
  * object: it will not change when the solvers internal statistics do, it
  * will not be invalidated if the solver is destroyed.
- * Statistics are generally categorized as public and expert statistics.
- * Furthermore, statistics may hold the default values and thus be not of
- * interest.
  * Iterating on this class (via `begin()` and `end()`) shows only public
- * statistics that have been set. By passing appropriate flags to `begin()`,
- * statistics that are expert, unchanged, or both, can be included as well.
- * A single statistic value is represented as `Stat`.
+ * statistics that have been changed. By passing appropriate flags to
+ * `begin()`, statistics that are expert, defaulted, or both, can be
+ * included as well. A single statistic value is represented as `Stat`.
  */
-class CVC4_EXPORT Statistics
+class CVC5_EXPORT Statistics
 {
  public:
-  friend Solver;
+  friend class Solver;
+  /** How the statistics are stored internally. */
   using BaseType = std::map<std::string, Stat>;
 
-  /** Custom iterator to hide expert statistics from regular iteration */
+  /** Custom iterator to hide certain statistics from regular iteration */
   class iterator
   {
    public:
-    friend Statistics;
+    friend class Statistics;
     BaseType::const_reference operator*() const;
     BaseType::const_pointer operator->() const;
     iterator& operator++();
@@ -2426,7 +2525,7 @@ class CVC4_EXPORT Statistics
     iterator(BaseType::const_iterator it,
              const BaseType& base,
              bool expert,
-             bool def);
+             bool defaulted);
     bool isVisible() const;
     BaseType::const_iterator d_it;
     const BaseType* d_base;
@@ -2434,17 +2533,23 @@ class CVC4_EXPORT Statistics
     bool d_showDefault = false;
   };
 
-  /** Retrieve the statistic with the given name. */
+  /**
+   * Retrieve the statistic with the given name.
+   * Asserts that a statistic with the given name actually exists and throws
+   * a `CVC4ApiRecoverableException` if it does not.
+   * @param name Name of the statistic.
+   * @return The statistic with the given name.
+   */
   const Stat& get(const std::string& name);
   /**
    * Begin iteration over the statistics values.
    * By default, only entries that are public (non-expert) and have been set
    * are visible while the others are skipped.
-   * With `expert` set to true, expert statistics are shown as well.
-   * With `def` set to true, defaulted statistics are shown as well.
+   * @param expert If set to true, expert statistics are shown as well.
+   * @param defaulted If set to true, defaulted statistics are shown as well.
    */
-  iterator begin(bool expert = false, bool def = false) const;
-  /** end iteration */
+  iterator begin(bool expert = false, bool defaulted = false) const;
+  /** End iteration */
   iterator end() const;
 
  private:
@@ -2453,7 +2558,8 @@ class CVC4_EXPORT Statistics
   /** Internal data */
   BaseType d_stats;
 };
-std::ostream& operator<<(std::ostream& out, const Statistics& stats) CVC4_EXPORT;
+std::ostream& operator<<(std::ostream& out,
+                         const Statistics& stats) CVC5_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Solver                                                                     */
@@ -2462,7 +2568,7 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats) CVC4_EXPORT
 /**
  * A cvc5 solver.
  */
-class CVC4_EXPORT Solver
+class CVC5_EXPORT Solver
 {
   friend class Datatype;
   friend class DatatypeDecl;
@@ -2812,7 +2918,6 @@ class CVC4_EXPORT Solver
 
   /**
    * Create operator of kind:
-   *   - RECORD_UPDATE
    *   - DIVISIBLE (to support arbitrary precision integers)
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
@@ -3567,6 +3672,19 @@ class CVC4_EXPORT Solver
   Term getSeparationNilTerm() const;
 
   /**
+   * Declare a symbolic pool of terms with the given initial value.
+   * SMT-LIB:
+   * \verbatim
+   * ( declare-pool <symbol> <sort> ( <term>* ) )
+   * \endverbatim
+   * @param symbol The name of the pool
+   * @param sort The sort of the elements of the pool.
+   * @param initValue The initial value of the pool
+   */
+  Term declarePool(const std::string& symbol,
+                   const Sort& sort,
+                   const std::vector<Term>& initValue) const;
+  /**
    * Pop (a) level(s) from the assertion stack.
    * SMT-LIB:
    * \verbatim
@@ -3992,6 +4110,6 @@ class CVC4_EXPORT Solver
   std::unique_ptr<Random> d_rng;
 };
 
-}  // namespace api
-}  // namespace cvc5
+}  // namespace cvc5::api
+
 #endif

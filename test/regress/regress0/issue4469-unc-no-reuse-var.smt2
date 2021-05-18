@@ -1,4 +1,4 @@
-; COMMAND-LINE: --unconstrained-simp --no-check-models
+; COMMAND-LINE: --unconstrained-simp
 ; EXPECT: sat
 (set-logic QF_AUFBVLIA)
 (declare-fun a () Int)

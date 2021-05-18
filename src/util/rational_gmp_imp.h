@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include "cvc4_export.h"  // remove when Cvc language support is removed
+#include "cvc5_export.h"  // remove when Cvc language support is removed
 #include "util/gmp_util.h"
 #include "util/integer.h"
 #include "util/maybe.h"
@@ -44,7 +44,7 @@ namespace cvc5 {
  * in danger of invoking the char* constructor, from whence you will segfault.
  */
 
-class CVC4_EXPORT Rational
+class CVC5_EXPORT Rational
 {
  public:
   /**
@@ -327,7 +327,7 @@ struct RationalHashFunction
   inline size_t operator()(const cvc5::Rational& r) const { return r.hash(); }
 }; /* struct RationalHashFunction */
 
-std::ostream& operator<<(std::ostream& os, const Rational& n) CVC4_EXPORT;
+std::ostream& operator<<(std::ostream& os, const Rational& n) CVC5_EXPORT;
 
 }  // namespace cvc5
 

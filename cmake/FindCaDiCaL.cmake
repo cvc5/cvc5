@@ -39,7 +39,11 @@ if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
 endif()
 
 if(NOT CaDiCaL_FOUND_SYSTEM)
-  check_auto_download("CaDiCaL" "--no-cadical")
+  check_ep_downloaded("CaDiCaL-EP")
+  if(NOT CaDiCaL-EP_DOWNLOADED)
+    check_auto_download("CaDiCaL" "--no-cadical")
+  endif()
+
   include(CheckSymbolExists)
   include(ExternalProject)
 
@@ -57,6 +61,14 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
     set(CXXFLAGS "${CXXFLAGS} -DNUNLOCKED")
   endif()
 
+  if("${CMAKE_GENERATOR}" STREQUAL "Unix Makefiles")
+    # use $(MAKE) instead of "make" to allow for parallel builds
+    set(make_cmd "$(MAKE)")
+  else()
+    # $(MAKE) does not work with ninja
+    set(make_cmd "make")
+  endif()
+
   ExternalProject_Add(
     CaDiCaL-EP
     ${COMMON_EP_CONFIG}
@@ -71,12 +83,12 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
       sed -i.orig -e "s,@CXX@,${CMAKE_CXX_COMPILER}," -e
       "s,@CXXFLAGS@,${CXXFLAGS}," -e "s,@MAKEFLAGS@,,"
       <SOURCE_DIR>/build/makefile
-    # use $(MAKE) instead of "make" to allow for parallel builds
-    BUILD_COMMAND $(MAKE) -C <SOURCE_DIR>/build libcadical.a
+    BUILD_COMMAND ${make_cmd} -C <SOURCE_DIR>/build libcadical.a
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libcadical.a
                     <INSTALL_DIR>/lib/libcadical.a
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/src/cadical.hpp
             <INSTALL_DIR>/include/cadical.hpp
+    BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcadical.a
   )
 
   set(CaDiCaL_INCLUDE_DIR "${DEPS_BASE}/include/")

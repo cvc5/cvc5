@@ -21,7 +21,6 @@
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2_input.h"
-#include "util/bitvector.h"
 
 // ANTLR defines these, which is really bad!
 #undef true
@@ -32,10 +31,9 @@ namespace parser {
 
 Smt2::Smt2(api::Solver* solver,
            SymbolManager* sm,
-           Input* input,
            bool strictMode,
            bool parseOnly)
-    : Parser(solver, sm, input, strictMode, parseOnly),
+    : Parser(solver, sm, strictMode, parseOnly),
       d_logicSet(false),
       d_seenSetLogic(false)
 {
@@ -136,6 +134,7 @@ void Smt2::addDatatypesOperators()
 
   if (!strictModeEnabled())
   {
+    Parser::addOperator(api::APPLY_UPDATER);
     addOperator(api::DT_SIZE, "dt.size");
   }
 }

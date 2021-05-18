@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # get-authors
-# Copyright (c) 2009-2020  The CVC4 Project
+# Copyright (c) 2009-2021  The cvc5 Project
 #
 # usage: get-authors [ files... ]
 #

@@ -31,7 +31,7 @@ namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
+using NodeMap = std::unordered_map<Node, Node>;
 
 class NlExtPurify : public PreprocessingPass
 {

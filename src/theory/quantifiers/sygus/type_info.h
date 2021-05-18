@@ -82,6 +82,11 @@ class SygusTypeInfo
    */
   bool hasIte() const;
   /**
+   * Returns true if this sygus type has a constructor whose sygus operator is
+   * a Boolean connective.
+   */
+  bool hasBoolConnective() const;
+  /**
    * Get the builtin kind for the i^th constructor of this sygus type. If the
    * i^th constructor does not encode an application of a builtin kind, this
    * method returns UNDEFINED_KIND.
@@ -196,6 +201,11 @@ class SygusTypeInfo
    * or is a lambda whose body is ITE.
    */
   bool d_hasIte;
+  /**
+   * Whether this sygus type has a constructor whose sygus operator is a
+   * Boolean connective.
+   */
+  bool d_hasBoolConnective;
   /**
    * Maps constructor indices to the constant that they encode, if any.
    */

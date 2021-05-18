@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of CVC4 output classes.
+ * Black box testing of cvc5 output classes.
  */
 
 #include <iostream>

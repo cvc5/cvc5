@@ -91,7 +91,7 @@ class OverloadedTypeTrie {
  public:
   OverloadedTypeTrie(Context* c, bool allowFunVariants = false)
       : d_overloaded_symbols(
-            new (true) CDHashSet<api::Term, api::TermHashFunction>(c)),
+            new (true) CDHashSet<api::Term, std::hash<api::Term>>(c)),
         d_allowFunctionVariants(allowFunVariants)
   {
   }
@@ -153,7 +153,7 @@ class OverloadedTypeTrie {
    * above. */
   std::unordered_map<std::string, TypeArgTrie> d_overload_type_arg_trie;
   /** The set of overloaded symbols. */
-  CDHashSet<api::Term, api::TermHashFunction>* d_overloaded_symbols;
+  CDHashSet<api::Term, std::hash<api::Term>>* d_overloaded_symbols;
   /** allow function variants
    * This is true if we allow overloading (non-constant) functions that expect
    * the same argument types.

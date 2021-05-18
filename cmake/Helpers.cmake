@@ -99,20 +99,20 @@ macro(add_required_c_cxx_flag flag)
   add_required_cxx_flag(${flag})
 endmacro()
 
-# CVC4 Boolean options are three-valued to detect if an option was set by the
+# cvc5 Boolean options are three-valued to detect if an option was set by the
 # user. The available values are: IGNORE (default), ON, OFF
 # Default options do not override options that were set by the user, i.e.,
-# cvc4_set_option only sets an option if it's value is still IGNORE.
+# cvc5_set_option only sets an option if it's value is still IGNORE.
 # This e.g., allows the user to disable proofs for debug builds (where proofs
 # are enabled by default).
-macro(cvc4_option var description)
+macro(cvc5_option var description)
   set(${var} IGNORE CACHE STRING "${description}")
   # Provide drop down menu options in cmake-gui
   set_property(CACHE ${var} PROPERTY STRINGS IGNORE ON OFF)
 endmacro()
 
 # Only set option if the user did not set an option.
-macro(cvc4_set_option var value)
+macro(cvc5_set_option var value)
   if(${var} STREQUAL "IGNORE")
     set(${var} ${value})
   endif()
@@ -145,12 +145,12 @@ function(print_config str var)
 endfunction()
 
 
-# Collect all source files that are required to build libcvc4 in LIBCVC4_SRCS
-# or LIBCVC4_GEN_SRCS. If GENERATED is the first argument the sources are
-# added to LIBCVC4_GEN_SRCS. All sources are prepended with the absolute
+# Collect all source files that are required to build libcvc5 in LIBCVC5_SRCS
+# or LIBCVC5_GEN_SRCS. If GENERATED is the first argument the sources are
+# added to LIBCVC5_GEN_SRCS. All sources are prepended with the absolute
 # current path path. CMAKE_CURRENT_BINARY_DIR is prepended
 # to generated source files.
-macro(libcvc4_add_sources)
+macro(libcvc5_add_sources)
   set(_sources ${ARGV})
 
   # Check if the first argument is GENERATED.
@@ -158,10 +158,10 @@ macro(libcvc4_add_sources)
   if(${_generated} STREQUAL "GENERATED")
     list(REMOVE_AT _sources 0)
     set(_cur_path ${CMAKE_CURRENT_BINARY_DIR})
-    set(_append_to LIBCVC4_GEN_SRCS)
+    set(_append_to LIBCVC5_GEN_SRCS)
   else()
     set(_cur_path ${CMAKE_CURRENT_SOURCE_DIR})
-    set(_append_to LIBCVC4_SRCS)
+    set(_append_to LIBCVC5_SRCS)
   endif()
 
   # Prepend source files with current path.
@@ -191,13 +191,17 @@ function(check_python_module module)
       RET_MODULE_TEST
     ERROR_QUIET
   )
+  set(module_name ${ARGN})
+  if(NOT module_name)
+    set(module_name ${module})
+  endif()
 
   if(RET_MODULE_TEST)
     message(FATAL_ERROR
-        "Could not find module ${module} for Python "
+        "Could not find module ${module_name} for Python "
         "version ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}. "
-        "Make sure to install ${module} for this Python version "
-        "via \n`${PYTHON_EXECUTABLE} -m pip install ${module}'.\n"
+        "Make sure to install ${module_name} for this Python version "
+        "via \n`${PYTHON_EXECUTABLE} -m pip install ${module_name}'.\n"
         "Note: You need to have pip installed for this Python version.")
   endif()
 endfunction()

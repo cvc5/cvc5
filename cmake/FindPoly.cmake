@@ -38,7 +38,11 @@ if(Poly_INCLUDE_DIR
 endif()
 
 if(NOT Poly_FOUND_SYSTEM)
-  check_auto_download("Poly" "--no-poly")
+  check_ep_downloaded("Poly-EP")
+  if(NOT Poly-EP_DOWNLOADED)
+    check_auto_download("Poly" "--no-poly")
+  endif()
+
   include(ExternalProject)
 
   set(Poly_VERSION "0.1.9")
@@ -47,7 +51,7 @@ if(NOT Poly_FOUND_SYSTEM)
   if(CCWIN)
     # Roughly following https://stackoverflow.com/a/44383330/2375725
     set(patchcmd
-        PATCH_COMMAND
+        COMMAND
         patch
         <SOURCE_DIR>/src/CMakeLists.txt
         ${CMAKE_CURRENT_LIST_DIR}/deps-utils/Poly-patch-cmake.patch
@@ -66,19 +70,28 @@ if(NOT Poly_FOUND_SYSTEM)
     unset(patchcmd)
   endif()
 
+  get_target_property(GMP_INCLUDE_DIR GMP INTERFACE_INCLUDE_DIRECTORIES)
+  get_target_property(GMP_LIBRARY GMP IMPORTED_LOCATION)
+  get_filename_component(GMP_LIB_PATH "${GMP_LIBRARY}" DIRECTORY)
+
   ExternalProject_Add(
     Poly-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/SRI-CSL/libpoly/archive/refs/tags/v${Poly_VERSION}.tar.gz
     URL_HASH SHA1=7af3bbb7a2bca6ef2a41e79447baac08ff30d2fd
     DOWNLOAD_NAME libpoly.tar.gz
-    ${patchcmd}
+    PATCH_COMMAND
+      sed -i.orig
+      "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"
+      <SOURCE_DIR>/CMakeLists.txt ${patchcmd}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                -DLIBPOLY_BUILD_PYTHON_API=OFF
                -DLIBPOLY_BUILD_STATIC=ON
                -DLIBPOLY_BUILD_STATIC_PIC=ON
+               -DCMAKE_INCLUDE_PATH=${GMP_INCLUDE_DIR}
+               -DCMAKE_LIBRARY_PATH=${GMP_LIB_PATH}
     BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} static_pic_poly static_pic_polyxx
     INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} install
     COMMAND ${CMAKE_COMMAND} -E copy src/libpicpoly.a
@@ -107,6 +120,7 @@ set_target_properties(Poly PROPERTIES IMPORTED_LOCATION "${Poly_LIBRARIES}")
 set_target_properties(
   Poly PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
 )
+target_link_libraries(Poly INTERFACE GMP)
 
 add_library(Polyxx STATIC IMPORTED GLOBAL)
 set_target_properties(Polyxx PROPERTIES IMPORTED_LOCATION "${PolyXX_LIBRARIES}")

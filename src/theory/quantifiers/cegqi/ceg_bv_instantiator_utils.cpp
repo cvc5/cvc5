@@ -59,10 +59,9 @@ Node getPvCoeff(TNode pv, TNode n)
   return coeff;
 }
 
-Node normalizePvMult(
-    TNode pv,
-    const std::vector<Node>& children,
-    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv)
+Node normalizePvMult(TNode pv,
+                     const std::vector<Node>& children,
+                     std::unordered_map<Node, bool>& contains_pv)
 {
   bool neg, neg_coeff = false;
   bool found_pv = false;
@@ -139,10 +138,9 @@ Node normalizePvMult(
 
 #ifdef CVC5_ASSERTIONS
 namespace {
-bool isLinearPlus(
-    TNode n,
-    TNode pv,
-    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv)
+bool isLinearPlus(TNode n,
+                  TNode pv,
+                  std::unordered_map<Node, bool>& contains_pv)
 {
   Node coeff;
   Assert(n.getAttribute(BvLinearAttribute()));
@@ -163,10 +161,9 @@ bool isLinearPlus(
 }  // namespace
 #endif
 
-Node normalizePvPlus(
-    Node pv,
-    const std::vector<Node>& children,
-    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv)
+Node normalizePvPlus(Node pv,
+                     const std::vector<Node>& children,
+                     std::unordered_map<Node, bool>& contains_pv)
 {
   NodeManager* nm;
   NodeBuilder nb_c(BITVECTOR_PLUS);
@@ -252,10 +249,9 @@ Node normalizePvPlus(
   return result;
 }
 
-Node normalizePvEqual(
-    Node pv,
-    const std::vector<Node>& children,
-    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv)
+Node normalizePvEqual(Node pv,
+                      const std::vector<Node>& children,
+                      std::unordered_map<Node, bool>& contains_pv)
 {
   Assert(children.size() == 2);
 

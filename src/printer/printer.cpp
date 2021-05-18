@@ -56,10 +56,6 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
   case LANG_AST:
     return unique_ptr<Printer>(new printer::ast::AstPrinter());
 
-  case LANG_CVC3:
-    return unique_ptr<Printer>(
-        new printer::cvc::CvcPrinter(/* cvc3-mode = */ true));
-
   default: Unhandled() << lang;
   }
 }
@@ -131,25 +127,31 @@ void Printer::toStream(std::ostream& out, const SkolemList& sks) const
 
 Printer* Printer::getPrinter(OutputLanguage lang)
 {
-  if(lang == language::output::LANG_AUTO) {
-  // Infer the language to use for output.
-  //
-  // Options can be null in certain circumstances (e.g., when printing
-  // the singleton "null" expr.  So we guard against segfault
-  if(not Options::isCurrentNull()) {
-    if(options::outputLanguage.wasSetByUser()) {
-      lang = options::outputLanguage();
+  if (lang == language::output::LANG_AUTO)
+  {
+    // Infer the language to use for output.
+    //
+    // Options can be null in certain circumstances (e.g., when printing
+    // the singleton "null" expr.  So we guard against segfault
+    if (not Options::isCurrentNull())
+    {
+      if (Options::current().wasSetByUser(options::outputLanguage))
+      {
+        lang = options::outputLanguage();
+      }
+      if (lang == language::output::LANG_AUTO
+          && Options::current().wasSetByUser(options::inputLanguage))
+      {
+        lang = language::toOutputLanguage(options::inputLanguage());
+      }
     }
-    if(lang == language::output::LANG_AUTO && options::inputLanguage.wasSetByUser()) {
-      lang = language::toOutputLanguage(options::inputLanguage());
-     }
-   }
-   if (lang == language::output::LANG_AUTO)
-   {
-     lang = language::output::LANG_SMTLIB_V2_6;  // default
-   }
+    if (lang == language::output::LANG_AUTO)
+    {
+      lang = language::output::LANG_SMTLIB_V2_6;  // default
+    }
   }
-  if(d_printers[lang] == NULL) {
+  if (d_printers[lang] == nullptr)
+  {
     d_printers[lang] = makePrinter(lang);
   }
   return d_printers[lang].get();
@@ -192,6 +194,14 @@ void Printer::toStreamCmdDeclareFunction(std::ostream& out,
                                          TypeNode type) const
 {
   printUnknownCommand(out, "declare-fun");
+}
+
+void Printer::toStreamCmdDeclarePool(std::ostream& out,
+                                     const std::string& id,
+                                     TypeNode type,
+                                     const std::vector<Node>& initValue) const
+{
+  printUnknownCommand(out, "declare-pool");
 }
 
 void Printer::toStreamCmdDeclareType(std::ostream& out,

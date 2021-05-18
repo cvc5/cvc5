@@ -45,7 +45,6 @@
 #include "preprocessing/passes/nl_ext_purify.h"
 #include "preprocessing/passes/non_clausal_simp.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
-#include "preprocessing/passes/quantifier_macros.h"
 #include "preprocessing/passes/quantifiers_preprocess.h"
 #include "preprocessing/passes/real_to_int.h"
 #include "preprocessing/passes/rewrite.h"
@@ -149,7 +148,6 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("ackermann", callCtor<Ackermann>);
   registerPassInfo("ext-rew-pre", callCtor<ExtRewPre>);
   registerPassInfo("theory-preprocess", callCtor<TheoryPreprocess>);
-  registerPassInfo("quantifier-macros", callCtor<QuantifierMacros>);
   registerPassInfo("nl-ext-purify", callCtor<NlExtPurify>);
   registerPassInfo("bool-to-bv", callCtor<BoolToBV>);
   registerPassInfo("ho-elim", callCtor<HoElim>);

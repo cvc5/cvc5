@@ -54,6 +54,26 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
   return res; 
 }
 
+TrustNode TheoryBVRewriter::expandDefinition(Node node)
+{
+  Debug("bitvector-expandDefinition")
+      << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
+  Node ret;
+  switch (node.getKind())
+  {
+    case kind::BITVECTOR_SDIV:
+    case kind::BITVECTOR_SREM:
+    case kind::BITVECTOR_SMOD: ret = eliminateBVSDiv(node); break;
+
+    default: break;
+  }
+  if (!ret.isNull() && node != ret)
+  {
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
+  }
+  return TrustNode::null();
+}
+
 RewriteResponse TheoryBVRewriter::RewriteBitOf(TNode node, bool prerewrite)
 {
   Node resultNode = LinearRewriteStrategy<RewriteRule<BitOfConst>>::apply(node);
@@ -358,6 +378,14 @@ RewriteResponse TheoryBVRewriter::RewriteComp(TNode node, bool prerewrite)
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<EvalComp>, RewriteRule<BvComp> >::apply(
           node);
+
+  return RewriteResponse(REWRITE_DONE, resultNode);
+}
+
+RewriteResponse TheoryBVRewriter::RewriteEagerAtom(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<EvalEagerAtom>>::apply(node);
 
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
@@ -712,6 +740,7 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_ULTBV ] = RewriteUltBv;
   d_rewriteTable [ kind::BITVECTOR_SLTBV ] = RewriteSltBv;
   d_rewriteTable [ kind::BITVECTOR_ITE ] = RewriteITEBv;
+  d_rewriteTable[kind::BITVECTOR_EAGER_ATOM] = RewriteEagerAtom;
 
   d_rewriteTable [ kind::BITVECTOR_TO_NAT ] = RewriteBVToNat;
   d_rewriteTable [ kind::INT_TO_BITVECTOR ] = RewriteIntToBV;

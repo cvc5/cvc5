@@ -350,7 +350,6 @@ function(add_cython_target _name)
   if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR
      CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
     set(cython_debug_arg "--gdb")
-    set(embed_pos_arg "--embed-positions")
     set(line_directives_arg "--line-directives")
   endif()
 

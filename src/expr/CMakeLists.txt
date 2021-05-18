@@ -13,7 +13,7 @@
 # The build system configuration.
 ##
 
-libcvc4_add_sources(
+libcvc5_add_sources(
   array_store_all.cpp
   array_store_all.h
   ascription_type.cpp
@@ -112,8 +112,6 @@ libcvc4_add_sources(
   dtype_cons.cpp
   dtype_selector.h
   dtype_selector.cpp
-  record.cpp
-  record.h
   sequence.cpp
   sequence.h
   subs.cpp
@@ -124,7 +122,7 @@ libcvc4_add_sources(
   uninterpreted_constant.h
 )
 
-libcvc4_add_sources(GENERATED
+libcvc5_add_sources(GENERATED
   kind.cpp
   kind.h
   metakind.cpp

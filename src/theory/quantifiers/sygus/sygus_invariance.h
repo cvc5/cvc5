@@ -138,7 +138,7 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
    */
   bool d_is_conjunctive;
   /** cache of n -> the simplified form of eval( n ) */
-  std::unordered_map<Node, Node, NodeHashFunction> d_visited;
+  std::unordered_map<Node, Node> d_visited;
 };
 
 /** EquivSygusInvarianceTest

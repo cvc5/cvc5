@@ -251,7 +251,7 @@ void ExtfSolver::checkExtfEval(int effort)
   bool has_nreduce = false;
   std::vector<Node> terms = d_extt.getActive();
   // the set of terms we have done extf inferences for
-  std::unordered_set<Node, NodeHashFunction> inferProcessed;
+  std::unordered_set<Node> inferProcessed;
   for (const Node& n : terms)
   {
     // Setup information about n, including if it is equal to a constant.

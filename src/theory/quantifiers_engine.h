@@ -54,8 +54,8 @@ class TermRegistry;
 // TODO: organize this more/review this, github issue #1163
 class QuantifiersEngine {
   friend class ::cvc5::TheoryEngine;
-  typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashMap<Node, bool> BoolMap;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   QuantifiersEngine(quantifiers::QuantifiersState& qstate,
@@ -69,8 +69,6 @@ class QuantifiersEngine {
   //---------------------- utilities
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() const;
-  /** get model */
-  quantifiers::FirstOrderModel* getModel() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
   //---------------------- end utilities
@@ -194,6 +192,8 @@ public:
   quantifiers::QuantifiersRegistry& d_qreg;
   /** The term registry */
   quantifiers::TermRegistry& d_treg;
+  /** model builder */
+  std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
   //------------- end quantifiers utilities

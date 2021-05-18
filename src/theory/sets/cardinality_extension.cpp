@@ -115,7 +115,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
 
   if (it == d_univProxy.end())
   {
-    // Force cvc4 to build the cardinality graph for the universe set
+    // Force cvc5 to build the cardinality graph for the universe set
     proxy = d_treg.getProxy(univ);
     d_univProxy[univ] = proxy;
   }

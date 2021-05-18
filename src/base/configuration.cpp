@@ -21,8 +21,8 @@
 #include <sstream>
 #include <string>
 
-#include "cvc4autoconfig.h"
 #include "base/configuration_private.h"
+#include "base/cvc5config.h"
 
 #if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
 #  include "base/Debug_tags.h"

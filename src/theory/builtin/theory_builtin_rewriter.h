@@ -40,8 +40,11 @@ class TheoryBuiltinRewriter : public TheoryRewriter
   // conversions between lambdas and arrays
  private:
   /** recursive helper for getLambdaForArrayRepresentation */
-  static Node getLambdaForArrayRepresentationRec( TNode a, TNode bvl, unsigned bvlIndex, 
-                                                  std::unordered_map< TNode, Node, TNodeHashFunction >& visited );
+  static Node getLambdaForArrayRepresentationRec(
+      TNode a,
+      TNode bvl,
+      unsigned bvlIndex,
+      std::unordered_map<TNode, Node>& visited);
   /** recursive helper for getArrayRepresentationForLambda */
   static Node getArrayRepresentationForLambdaRec(TNode n, TypeNode retType);
 

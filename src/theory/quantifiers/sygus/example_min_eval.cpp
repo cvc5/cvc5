@@ -32,7 +32,7 @@ ExampleMinEval::ExampleMinEval(Node n,
   d_vars.insert(d_vars.end(), vars.begin(), vars.end());
 
   // compute its free variables
-  std::unordered_set<Node, NodeHashFunction> fvs;
+  std::unordered_set<Node> fvs;
   expr::getFreeVariables(n, fvs);
   for (size_t i = 0, vsize = vars.size(); i < vsize; i++)
   {

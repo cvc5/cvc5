@@ -22,17 +22,22 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "prop/skolem_def_manager.h"
 #include "theory/output_channel.h"
 #include "theory/trust_node.h"
 #include "util/result.h"
 
 namespace cvc5 {
 
+class Env;
 class ResourceManager;
-class DecisionEngine;
 class OutputManager;
 class ProofNodeManager;
 class TheoryEngine;
+
+namespace decision {
+class DecisionEngine;
+}
 
 namespace prop {
 
@@ -52,10 +57,8 @@ class PropEngine
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(TheoryEngine*,
-             context::Context* satContext,
-             context::UserContext* userContext,
-             ResourceManager* rm,
+  PropEngine(TheoryEngine* te,
+             Env& env,
              OutputManager& outMgr,
              ProofNodeManager* pnm);
 
@@ -152,6 +155,22 @@ class PropEngine
    * returns true for both lit and the negation of lit.
    */
   bool isDecision(Node lit) const;
+
+  /**
+   * Return the current decision level of `lit`.
+   *
+   * @param lit: The node in question, must have an associated SAT literal.
+   * @return Decision level of the SAT variable of `lit` (phase is disregarded),
+   *         or -1 if `lit` has not been assigned yet.
+   */
+  int32_t getDecisionLevel(Node lit) const;
+
+  /**
+   * Return the user-context level when `lit` was introduced..
+   *
+   * @return User-context level or -1 if not yet introduced.
+   */
+  int32_t getIntroLevel(Node lit) const;
 
   /**
    * Checks the current context for satisfiability.
@@ -282,6 +301,13 @@ class PropEngine
 
   /** Is proof enabled? */
   bool isProofEnabled() const;
+
+  /** Retrieve unsat core from SAT solver for assumption-based unsat cores. */
+  void getUnsatCore(std::vector<Node>& core);
+
+  /** Return the prop engine proof for assumption-based unsat cores. */
+  std::shared_ptr<ProofNode> getRefutation();
+
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();
@@ -330,11 +356,14 @@ class PropEngine
   /** The theory engine we will be using */
   TheoryEngine* d_theoryEngine;
 
-  /** The decision engine we will be using */
-  std::unique_ptr<DecisionEngine> d_decisionEngine;
+  /** Reference to the environment */
+  Env& d_env;
 
-  /** The context */
-  context::Context* d_context;
+  /** The decision engine we will be using */
+  std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
+
+  /** The skolem definition manager */
+  std::unique_ptr<SkolemDefManager> d_skdm;
 
   /** SAT solver's proxy back to theories; kept around for dtor cleanup */
   TheoryProxy* d_theoryProxy;
@@ -358,11 +387,15 @@ class PropEngine
 
   /** Whether we were just interrupted (or not) */
   bool d_interrupted;
-  /** Pointer to resource manager for associated SmtEngine */
-  ResourceManager* d_resourceManager;
 
   /** Reference to the output manager of the smt engine */
   OutputManager& d_outMgr;
+
+  /**
+   * Stores assumptions added via assertInternal() if assumption-based unsat
+   * cores are enabled.
+   */
+  context::CDList<Node> d_assumptions;
 };
 
 }  // namespace prop

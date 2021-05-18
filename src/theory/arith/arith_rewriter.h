@@ -28,11 +28,19 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
+class OperatorElim;
+
 class ArithRewriter : public TheoryRewriter
 {
  public:
+  ArithRewriter(OperatorElim& oe);
   RewriteResponse preRewrite(TNode n) override;
   RewriteResponse postRewrite(TNode n) override;
+  /**
+   * Expand definition, which eliminates extended operators like div/mod in
+   * the given node.
+   */
+  TrustNode expandDefinition(Node node) override;
 
  private:
   static Node makeSubtractionNode(TNode l, TNode r);
@@ -70,6 +78,8 @@ class ArithRewriter : public TheoryRewriter
   }
   /** return rewrite */
   static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
+  /** The operator elimination utility */
+  OperatorElim& d_opElim;
 }; /* class ArithRewriter */
 
 }  // namespace arith

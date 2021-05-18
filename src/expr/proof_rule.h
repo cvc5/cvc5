@@ -106,19 +106,19 @@ enum class PfRule : uint32_t
   // rewritten form under a (proven) substitution.
   //
   // Children: (P1:F1, ..., Pn:Fn)
-  // Arguments: (t, (ids (idr)?)?)
+  // Arguments: (t, (ids (ida (idr)?)?)?)
   // ---------------------------------------------------------------
   // Conclusion: (= t t')
   // where
   //   t' is
-  //   Rewriter{idr}(t*sigma{ids}(Fn)*...*sigma{ids}(F1))
+  //   Rewriter{idr}(t*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1))
   //
   // In other words, from the point of view of Skolem forms, this rule
   // transforms t to t' by standard substitution + rewriting.
   //
-  // The argument ids and idr is optional and specify the identifier of the
-  // substitution and rewriter respectively to be used. For details, see
-  // theory/builtin/proof_checker.h.
+  // The arguments ids, ida and idr are optional and specify the identifier of
+  // the substitution, the substitution application and rewriter respectively to
+  // be used. For details, see theory/builtin/proof_checker.h.
   MACRO_SR_EQ_INTRO,
   // ======== Substitution + Rewriting predicate introduction
   //
@@ -126,11 +126,11 @@ enum class PfRule : uint32_t
   // that it rewrites to true under a proven substitution.
   //
   // Children: (P1:F1, ..., Pn:Fn)
-  // Arguments: (F, (ids (idr)?)?)
+  // Arguments: (F, (ids (ida (idr)?)?)?)
   // ---------------------------------------------------------------
   // Conclusion: F
   // where
-  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
+  //   Rewriter{idr}(F*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1)) == true
   // where ids and idr are method identifiers.
   //
   // More generally, this rule also holds when:
@@ -152,12 +152,12 @@ enum class PfRule : uint32_t
   // rewritten form under a proven substitution.
   //
   // Children: (P1:F, P2:F1, ..., P_{n+1}:Fn)
-  // Arguments: ((ids (idr)?)?)
+  // Arguments: ((ids (ida (idr)?)?)?)
   // ----------------------------------------
   // Conclusion: F'
   // where
   //   F' is
-  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)).
+  //   Rewriter{idr}(F*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1)).
   // where ids and idr are method identifiers.
   //
   // We rewrite only on the Skolem form of F, similar to MACRO_SR_EQ_INTRO.
@@ -169,12 +169,12 @@ enum class PfRule : uint32_t
   // substitution.
   //
   // Children: (P1:F, P2:F1, ..., P_{n+1}:Fn)
-  // Arguments: (G, (ids (idr)?)?)
+  // Arguments: (G, (ids (ida (idr)?)?)?)
   // ----------------------------------------
   // Conclusion: G
   // where
-  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) ==
-  //   Rewriter{idr}(G*sigma{ids}(Fn)*...*sigma{ids}(F1))
+  //   Rewriter{idr}(F*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1)) ==
+  //   Rewriter{idr}(G*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1))
   //
   // More generally, this rule also holds when:
   //   Rewriter::rewrite(toOriginal(F')) == Rewriter::rewrite(toOriginal(G'))
@@ -247,6 +247,14 @@ enum class PfRule : uint32_t
   // where F is an equality (= t t') that holds by a form of substitution that
   // could not be determined by the TrustSubstitutionMap.
   TRUST_SUBS_MAP,
+  // ========= SAT Refutation for assumption-based unsat cores
+  // Children: (P1, ..., Pn)
+  // Arguments: none
+  // ---------------------
+  // Conclusion: false
+  // Note: P1, ..., Pn correspond to the unsat core determined by the SAT
+  // solver.
+  SAT_REFUTATION,
 
   //================================================= Boolean rules
   // ======== Resolution
@@ -701,12 +709,74 @@ enum class PfRule : uint32_t
   ARRAYS_TRUST,
 
   //================================================= Bit-Vector rules
+  // Note: bitblast() represents the result of the bit-blasted term as a
+  //       bit-vector consisting of the output bits of the bit-blasted circuit
+  //       representation of the term. Terms are bit-blasted according to the
+  //       strategies defined in
+  //       theory/bv/bitblast/bitblast_strategies_template.h.
   // ======== Bitblast
   // Children: none
   // Arguments: (t)
   // ---------------------
   // Conclusion: (= t bitblast(t))
   BV_BITBLAST,
+  // ======== Bitblast Bit-Vector Constant
+  // Children: none
+  // Arguments: (= t bitblast(t))
+  // ---------------------
+  // Conclusion: (= t bitblast(t))
+  BV_BITBLAST_CONST,
+  // ======== Bitblast Bit-Vector Variable
+  // Children: none
+  // Arguments: (= t bitblast(t))
+  // ---------------------
+  // Conclusion: (= t bitblast(t))
+  BV_BITBLAST_VAR,
+  // ======== Bitblast Bit-Vector Terms
+  // TODO cvc4-projects issue #275
+  // Children: none
+  // Arguments: (= (KIND bitblast(child_1) ... bitblast(child_n)) bitblast(t))
+  // ---------------------
+  // Conclusion: (= (KIND bitblast(child_1) ... bitblast(child_n)) bitblast(t))
+  BV_BITBLAST_EQUAL,
+  BV_BITBLAST_ULT,
+  BV_BITBLAST_ULE,
+  BV_BITBLAST_UGT,
+  BV_BITBLAST_UGE,
+  BV_BITBLAST_SLT,
+  BV_BITBLAST_SLE,
+  BV_BITBLAST_SGT,
+  BV_BITBLAST_SGE,
+  BV_BITBLAST_NOT,
+  BV_BITBLAST_CONCAT,
+  BV_BITBLAST_AND,
+  BV_BITBLAST_OR,
+  BV_BITBLAST_XOR,
+  BV_BITBLAST_XNOR,
+  BV_BITBLAST_NAND,
+  BV_BITBLAST_NOR,
+  BV_BITBLAST_COMP,
+  BV_BITBLAST_MULT,
+  BV_BITBLAST_PLUS,
+  BV_BITBLAST_SUB,
+  BV_BITBLAST_NEG,
+  BV_BITBLAST_UDIV,
+  BV_BITBLAST_UREM,
+  BV_BITBLAST_SDIV,
+  BV_BITBLAST_SREM,
+  BV_BITBLAST_SMOD,
+  BV_BITBLAST_SHL,
+  BV_BITBLAST_LSHR,
+  BV_BITBLAST_ASHR,
+  BV_BITBLAST_ULTBV,
+  BV_BITBLAST_SLTBV,
+  BV_BITBLAST_ITE,
+  BV_BITBLAST_EXTRACT,
+  BV_BITBLAST_REPEAT,
+  BV_BITBLAST_ZERO_EXTEND,
+  BV_BITBLAST_SIGN_EXTEND,
+  BV_BITBLAST_ROTATE_RIGHT,
+  BV_BITBLAST_ROTATE_LEFT,
   // ======== Eager Atom
   // Children: none
   // Arguments: (F)

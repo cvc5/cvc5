@@ -21,6 +21,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/regexp_entail.h"
+#include "theory/strings/skolem_cache.h"
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
@@ -467,13 +468,20 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
             if (StringsEntail::stripSymbolicLength(
                     pfxv1, rpfxv1, 1, lenPfx0, true))
             {
-              std::vector<Node> sfxv0(v0.begin() + i, v0.end());
-              pfxv1.insert(pfxv1.end(), v1.begin() + j, v1.end());
-              Node ret = nm->mkNode(kind::AND,
-                                    pfx0.eqNode(utils::mkConcat(rpfxv1, stype)),
-                                    utils::mkConcat(sfxv0, stype)
-                                        .eqNode(utils::mkConcat(pfxv1, stype)));
-              return returnRewrite(node, ret, Rewrite::SPLIT_EQ_STRIP_R);
+              // The rewrite requires the full left-hand prefix length to be
+              // stripped (otherwise we would have to keep parts of the
+              // left-hand prefix).
+              if (lenPfx0.isConst() && lenPfx0.getConst<Rational>().isZero())
+              {
+                std::vector<Node> sfxv0(v0.begin() + i, v0.end());
+                pfxv1.insert(pfxv1.end(), v1.begin() + j, v1.end());
+                Node ret =
+                    nm->mkNode(kind::AND,
+                               pfx0.eqNode(utils::mkConcat(rpfxv1, stype)),
+                               utils::mkConcat(sfxv0, stype)
+                                   .eqNode(utils::mkConcat(pfxv1, stype)));
+                return returnRewrite(node, ret, Rewrite::SPLIT_EQ_STRIP_R);
+              }
             }
 
             // If the prefix of the right-hand side is (strictly) longer than
@@ -495,13 +503,20 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
             if (StringsEntail::stripSymbolicLength(
                     pfxv0, rpfxv0, 1, lenPfx1, true))
             {
-              pfxv0.insert(pfxv0.end(), v0.begin() + i, v0.end());
-              std::vector<Node> sfxv1(v1.begin() + j, v1.end());
-              Node ret = nm->mkNode(kind::AND,
-                                    utils::mkConcat(rpfxv0, stype).eqNode(pfx1),
-                                    utils::mkConcat(pfxv0, stype)
-                                        .eqNode(utils::mkConcat(sfxv1, stype)));
-              return returnRewrite(node, ret, Rewrite::SPLIT_EQ_STRIP_L);
+              // The rewrite requires the full right-hand prefix length to be
+              // stripped (otherwise we would have to keep parts of the
+              // right-hand prefix).
+              if (lenPfx1.isConst() && lenPfx1.getConst<Rational>().isZero())
+              {
+                pfxv0.insert(pfxv0.end(), v0.begin() + i, v0.end());
+                std::vector<Node> sfxv1(v1.begin() + j, v1.end());
+                Node ret =
+                    nm->mkNode(kind::AND,
+                               utils::mkConcat(rpfxv0, stype).eqNode(pfx1),
+                               utils::mkConcat(pfxv0, stype)
+                                   .eqNode(utils::mkConcat(sfxv1, stype)));
+                return returnRewrite(node, ret, Rewrite::SPLIT_EQ_STRIP_L);
+              }
             }
 
             // If the prefix of the left-hand side is (strictly) longer than
@@ -1512,6 +1527,30 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
 RewriteResponse SequencesRewriter::preRewrite(TNode node)
 {
   return RewriteResponse(REWRITE_DONE, node);
+}
+
+TrustNode SequencesRewriter::expandDefinition(Node node)
+{
+  Trace("strings-exp-def") << "SequencesRewriter::expandDefinition : " << node
+                           << std::endl;
+
+  if (node.getKind() == kind::SEQ_NTH)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node s = node[0];
+    Node n = node[1];
+    // seq.nth(s, n) --> ite(0 <= n < len(s), seq.nth_total(s,n), Uf(s, n))
+    Node cond = nm->mkNode(AND,
+                           nm->mkNode(LEQ, nm->mkConst(Rational(0)), n),
+                           nm->mkNode(LT, n, nm->mkNode(STRING_LENGTH, s)));
+    Node ss = nm->mkNode(SEQ_NTH_TOTAL, s, n);
+    Node uf = SkolemCache::mkSkolemSeqNth(s.getType(), "Uf");
+    Node u = nm->mkNode(APPLY_UF, uf, s, n);
+    Node ret = nm->mkNode(ITE, cond, ss, u);
+    Trace("strings-exp-def") << "...return " << ret << std::endl;
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 Node SequencesRewriter::rewriteSeqNth(Node node)

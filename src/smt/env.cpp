@@ -24,6 +24,7 @@
 #include "smt/dump_manager.h"
 #include "smt/smt_engine_stats.h"
 #include "theory/rewriter.h"
+#include "theory/trust_substitutions.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 
@@ -31,35 +32,35 @@ using namespace cvc5::smt;
 
 namespace cvc5 {
 
-Env::Env(NodeManager* nm)
+Env::Env(NodeManager* nm, Options* opts)
     : d_context(new context::Context()),
       d_userContext(new context::UserContext()),
       d_nodeManager(nm),
       d_proofNodeManager(nullptr),
       d_rewriter(new theory::Rewriter()),
+      d_topLevelSubs(new theory::TrustSubstitutionMap(d_userContext.get())),
       d_dumpManager(new DumpManager(d_userContext.get())),
       d_logic(),
       d_statisticsRegistry(std::make_unique<StatisticsRegistry>()),
-      d_resourceManager(std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options))
+      d_options(),
+      d_resourceManager()
 {
+  if (opts != nullptr)
+  {
+    d_options.copyValues(*opts);
+  }
+  d_resourceManager = std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
 }
 
 Env::~Env() {}
 
-void Env::setOptions(Options* optr)
-{
-  if (optr != nullptr)
-  {
-    // if we provided a set of options, copy their values to the options
-    // owned by this Env.
-    d_options.copyValues(*optr);
-  }
-}
-
 void Env::setProofNodeManager(ProofNodeManager* pnm)
 {
+  Assert(pnm != nullptr);
+  Assert(d_proofNodeManager == nullptr);
   d_proofNodeManager = pnm;
   d_rewriter->setProofNodeManager(pnm);
+  d_topLevelSubs->setProofNodeManager(pnm);
 }
 
 void Env::shutdown()
@@ -79,6 +80,11 @@ NodeManager* Env::getNodeManager() const { return d_nodeManager; }
 ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 
 theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
+
+theory::TrustSubstitutionMap& Env::getTopLevelSubstitutions()
+{
+  return *d_topLevelSubs.get();
+}
 
 DumpManager* Env::getDumpManager() { return d_dumpManager.get(); }
 

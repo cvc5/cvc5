@@ -19,6 +19,7 @@
 
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
+#include "expr/proof_node_algorithm.h"
 #include "expr/term_context.h"
 #include "expr/term_context_stack.h"
 
@@ -133,6 +134,9 @@ Node TConvProofGenerator::registerRewriteStep(Node t,
                                               uint32_t tctx,
                                               bool isPre)
 {
+  Assert(!t.isNull());
+  Assert(!s.isNull());
+
   if (t == s)
   {
     return Node::null();
@@ -233,6 +237,24 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   return pfn;
 }
 
+std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node n)
+{
+  LazyCDProof lpf(
+      d_proof.getManager(), &d_proof, nullptr, d_name + "::LazyCDProofRew");
+  Node conc = getProofForRewriting(n, lpf, d_tcontext);
+  if (conc[1] == n)
+  {
+    // assertion failure in debug
+    Assert(false) << "TConvProofGenerator::getProofForRewriting: " << identify()
+                  << ": don't ask for trivial proofs";
+    lpf.addStep(conc, PfRule::REFL, {}, {n});
+  }
+  std::shared_ptr<ProofNode> pfn = lpf.getProofFor(conc);
+  Assert(pfn != nullptr);
+  Trace("tconv-pf-gen-debug") << "... proof is " << *pfn << std::endl;
+  return pfn;
+}
+
 Node TConvProofGenerator::getProofForRewriting(Node t,
                                                LazyCDProof& pf,
                                                TermContext* tctx)
@@ -244,11 +266,11 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
   // nodes.
 
   // the final rewritten form of terms
-  std::unordered_map<Node, Node, TNodeHashFunction> visited;
+  std::unordered_map<Node, Node> visited;
   // the rewritten form of terms we have processed so far
-  std::unordered_map<Node, Node, TNodeHashFunction> rewritten;
-  std::unordered_map<Node, Node, TNodeHashFunction>::iterator it;
-  std::unordered_map<Node, Node, TNodeHashFunction>::iterator itr;
+  std::unordered_map<Node, Node> rewritten;
+  std::unordered_map<Node, Node>::iterator it;
+  std::unordered_map<Node, Node>::iterator itr;
   std::map<Node, std::shared_ptr<ProofNode> >::iterator itc;
   Trace("tconv-pf-gen-rewrite")
       << "TConvProofGenerator::getProofForRewriting: " << toStringDebug()

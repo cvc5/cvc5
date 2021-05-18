@@ -32,11 +32,12 @@ namespace prop {
 //// DPllMinisatSatSolver
 
 MinisatSatSolver::MinisatSatSolver(StatisticsRegistry& registry)
-    : d_minisat(NULL), d_context(NULL), d_statistics(registry)
+    : d_minisat(NULL), d_context(NULL), d_assumptions(), d_statistics(registry)
 {}
 
 MinisatSatSolver::~MinisatSatSolver()
 {
+  d_statistics.deinit();
   delete d_minisat;
 }
 
@@ -193,6 +194,40 @@ SatValue MinisatSatSolver::solve() {
   return result;
 }
 
+SatValue MinisatSatSolver::solve(const std::vector<SatLiteral>& assumptions)
+{
+  setupOptions();
+  d_minisat->budgetOff();
+
+  d_assumptions.clear();
+  Minisat::vec<Minisat::Lit> assumps;
+
+  for (const SatLiteral& lit : assumptions)
+  {
+    Minisat::Lit mlit = toMinisatLit(lit);
+    assumps.push(mlit);
+    d_assumptions.emplace(lit);
+  }
+
+  SatValue result = toSatLiteralValue(d_minisat->solve(assumps));
+  d_minisat->clearInterrupt();
+  return result;
+}
+
+void MinisatSatSolver::getUnsatAssumptions(
+    std::vector<SatLiteral>& unsat_assumptions)
+{
+  for (size_t i = 0, size = d_minisat->d_conflict.size(); i < size; ++i)
+  {
+    Minisat::Lit mlit = d_minisat->d_conflict[i];
+    SatLiteral lit = ~toSatLiteral(mlit);
+    if (d_assumptions.find(lit) != d_assumptions.end())
+    {
+      unsat_assumptions.push_back(lit);
+    }
+  }
+}
+
 bool MinisatSatSolver::ok() const {
   return d_minisat->okay();
 }
@@ -222,6 +257,16 @@ void MinisatSatSolver::requirePhase(SatLiteral lit) {
 
 bool MinisatSatSolver::isDecision(SatVariable decn) const {
   return d_minisat->isDecision( decn );
+}
+
+int32_t MinisatSatSolver::getDecisionLevel(SatVariable v) const
+{
+  return d_minisat->level(v);
+}
+
+int32_t MinisatSatSolver::getIntroLevel(SatVariable v) const
+{
+  return d_minisat->intro_level(v);
 }
 
 SatProofManager* MinisatSatSolver::getProofManager()
@@ -281,6 +326,18 @@ void MinisatSatSolver::Statistics::init(Minisat::SimpSolver* minisat){
   d_statLearntsLiterals.set(minisat->learnts_literals);
   d_statMaxLiterals.set(minisat->max_literals);
   d_statTotLiterals.set(minisat->tot_literals);
+}
+void MinisatSatSolver::Statistics::deinit()
+{
+  d_statStarts.reset();
+  d_statDecisions.reset();
+  d_statRndDecisions.reset();
+  d_statPropagations.reset();
+  d_statConflicts.reset();
+  d_statClausesLiterals.reset();
+  d_statLearntsLiterals.reset();
+  d_statMaxLiterals.reset();
+  d_statTotLiterals.reset();
 }
 
 }  // namespace prop
