@@ -134,7 +134,7 @@ void LfscPrinter::print(std::ostream& out,
             const DTypeConstructor& cons = dt[i];
             std::stringstream sscons;
             sscons << d_tproc.convert(cons.getConstructor());
-            std::string cname = sscons.str();
+            std::string cname = LfscNodeConverter::getNameForUserName(sscons.str());
             // print construct/tester
             preamble << "(declare " << cname << " term)" << std::endl;
             preamble << "(declare is-" << cname << " term)" << std::endl;
@@ -143,7 +143,10 @@ void LfscPrinter::print(std::ostream& out,
               const DTypeSelector& arg = cons[j];
               // print selector
               Node si = d_tproc.convert(arg.getSelector());
-              preamble << "(declare " << si << " term)" << std::endl;
+              std::stringstream sns;
+              sns << si;
+              std::string sname = LfscNodeConverter::getNameForUserName(sns.str());
+              preamble << "(declare " << sname << " term)" << std::endl;
             }
           }
           preamble << "; END DATATYPE " << std::endl;

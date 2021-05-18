@@ -94,7 +94,7 @@ Node LfscNodeConverter::postConvert(Node n)
     if (tn.isConstructor() || tn.isSelector() || tn.isTester()
         || tn.isUpdater())
     {
-      // TODO: should be given user names
+      // note these are not converted to their user named (cvc.) symbols here
       return n;
     }
     // skolems v print as their witness forms
@@ -802,12 +802,33 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       }
       opName << printer::smt2::Smt2Printer::smtKindString(k);
     }
-    else if (k == APPLY_TESTER)
+    else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER
+           || k == APPLY_UPDATER)
     {
       // use is-C instead of (_ is C) syntax for testers
-      unsigned cindex = DType::indexOf(op);
+      unsigned index = DType::indexOf(op);
       const DType& dt = DType::datatypeOf(op);
-      opName << "is-" << dt[cindex].getConstructor();
+      if (k == APPLY_TESTER)
+      {
+        opName << "is-";
+      }
+      else if (k == APPLY_UPDATER)
+      {
+        opName << "update-";
+      }
+      if (k==APPLY_TESTER || k==APPLY_CONSTRUCTOR)
+      {
+        std::stringstream ssc;
+        ssc << dt[index].getConstructor();
+        opName << getNameForUserName(ssc.str());
+      }
+      else if (k==APPLY_SELECTOR || k==APPLY_UPDATER)
+      {
+        unsigned cindex = DType::cindexOf(op);
+        std::stringstream sss;
+        sss << dt[cindex][index].getSelector();
+        opName << getNameForUserName(sss.str());
+      }
     }
     else
     {
