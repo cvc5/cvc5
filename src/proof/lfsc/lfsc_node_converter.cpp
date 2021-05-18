@@ -660,7 +660,7 @@ bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
   return k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
          || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
          || k == BITVECTOR_ROTATE_LEFT || k == BITVECTOR_ROTATE_RIGHT
-         || k == INT_TO_BITVECTOR;
+         || k == INT_TO_BITVECTOR || k == IAND;
 }
 
 std::vector<Node> LfscNodeConverter::getOperatorIndices(Node n)
@@ -671,36 +671,39 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Node n)
   Kind k = n.getKind();
   switch (k)
   {
-    case kind::BITVECTOR_EXTRACT_OP:
+    case BITVECTOR_EXTRACT_OP:
     {
       BitVectorExtract p = n.getConst<BitVectorExtract>();
       indices.push_back(nm->mkConst(Rational(p.d_high)));
       indices.push_back(nm->mkConst(Rational(p.d_low)));
       break;
     }
-    case kind::BITVECTOR_REPEAT_OP:
+    case BITVECTOR_REPEAT_OP:
       indices.push_back(
           nm->mkConst(Rational(n.getConst<BitVectorRepeat>().d_repeatAmount)));
       break;
-    case kind::BITVECTOR_ZERO_EXTEND_OP:
+    case BITVECTOR_ZERO_EXTEND_OP:
       indices.push_back(nm->mkConst(
           Rational(n.getConst<BitVectorZeroExtend>().d_zeroExtendAmount)));
       break;
-    case kind::BITVECTOR_SIGN_EXTEND_OP:
+    case BITVECTOR_SIGN_EXTEND_OP:
       indices.push_back(nm->mkConst(
           Rational(n.getConst<BitVectorSignExtend>().d_signExtendAmount)));
       break;
-    case kind::BITVECTOR_ROTATE_LEFT_OP:
+    case BITVECTOR_ROTATE_LEFT_OP:
       indices.push_back(nm->mkConst(
           Rational(n.getConst<BitVectorRotateLeft>().d_rotateLeftAmount)));
       break;
-    case kind::BITVECTOR_ROTATE_RIGHT_OP:
+    case BITVECTOR_ROTATE_RIGHT_OP:
       indices.push_back(nm->mkConst(
           Rational(n.getConst<BitVectorRotateRight>().d_rotateRightAmount)));
       break;
-    case kind::INT_TO_BITVECTOR_OP:
+    case INT_TO_BITVECTOR_OP:
       indices.push_back(
           nm->mkConst(Rational(n.getConst<IntToBitVector>().d_size)));
+      break;
+    case IAND_OP:
+      indices.push_back(nm->mkConst(Rational(n.getConst<IntAnd>().d_size)));
       break;
     default: Assert(false); break;
   }
