@@ -30,16 +30,15 @@ check_python_module("setuptools")
 # They are distributed under <scikit-build directory>/resources/cmake
 execute_process(
   COMMAND
-    ${PYTHON_EXECUTABLE} -c \
-      "from __future__ import print_function; \
+    ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; \
       import os; import skbuild; \
-      cmake_module_path=os.path.join(os.path.dirname(skbuild.__file__),
-      'resources', 'cmake'); print(cmake_module_path, end='')"
+      cmake_module_path=os.path.join(os.path.dirname(skbuild.__file__), \
+        'resources', 'cmake'); print(cmake_module_path, end='')"
   OUTPUT_VARIABLE
     SKBUILD_CMAKE_MODULE_PATH
   RESULT_VARIABLE
     RET_SKBUILD_CMAKE_MODULE_PATH
-  )
+)
 
 if (NOT EXISTS ${SKBUILD_CMAKE_MODULE_PATH})
   message(FATAL_ERROR "Expected CMake module path from
