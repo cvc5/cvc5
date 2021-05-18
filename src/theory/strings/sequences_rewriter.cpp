@@ -1312,12 +1312,16 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   else if (r.getKind() == REGEXP_RANGE)
   {
     // x in re.range( char_i, char_j ) ---> i <= str.code(x) <= j
-    Node xcode = nm->mkNode(STRING_TO_CODE, x);
-    Node retNode =
-        nm->mkNode(AND,
-                   nm->mkNode(LEQ, nm->mkNode(STRING_TO_CODE, r[0]), xcode),
-                   nm->mkNode(LEQ, xcode, nm->mkNode(STRING_TO_CODE, r[1])));
-    return returnRewrite(node, retNode, Rewrite::RE_IN_RANGE);
+    // we do not do this if the arguments are not constant
+    if (RegExpEntail::isConstRegExp(r))
+    {
+      Node xcode = nm->mkNode(STRING_TO_CODE, x);
+      Node retNode =
+          nm->mkNode(AND,
+                    nm->mkNode(LEQ, nm->mkNode(STRING_TO_CODE, r[0]), xcode),
+                    nm->mkNode(LEQ, xcode, nm->mkNode(STRING_TO_CODE, r[1])));
+      return returnRewrite(node, retNode, Rewrite::RE_IN_RANGE);
+    }
   }
   else if (r.getKind() == REGEXP_COMPLEMENT)
   {
