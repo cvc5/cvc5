@@ -314,7 +314,10 @@ command [std::unique_ptr<cvc5::Command>* cmd]
       }
 
       t = PARSER_STATE->mkFlatFunctionType(sorts, t, flattenVars);
-      PARSER_STATE->pushScope();
+      if (sortedVarNames.size() > 0)
+      {
+        PARSER_STATE->pushScope();
+      }
       terms = PARSER_STATE->bindBoundVars(sortedVarNames);
     }
     term[expr, expr2]
@@ -325,7 +328,10 @@ command [std::unique_ptr<cvc5::Command>* cmd]
         expr = PARSER_STATE->mkHoApply(expr, flattenVars);
         terms.insert(terms.end(), flattenVars.begin(), flattenVars.end());
       }
-      PARSER_STATE->popScope();
+      if (sortedVarNames.size() > 0)
+      {
+        PARSER_STATE->popScope();
+      }
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
