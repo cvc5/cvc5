@@ -115,6 +115,10 @@ cdef class Datatype:
         ds.cds = self.cd.getSelector(name.encode())
         return ds
 
+    def getName(self):
+        return self.cd.getName().decode()
+
+
     def getNumConstructors(self):
         """:return: number of constructors."""
         return self.cd.getNumConstructors()
@@ -172,7 +176,7 @@ cdef class DatatypeConstructor:
         if isinstance(index, int) and index >= 0:
             ds.cds = self.cdc[(<int?> index)]
         elif isinstance(index, str):
-            ds.cds = self.cdc[(<const string &> name.encode())]
+            ds.cds = self.cdc[(<const string &> index.encode())]
         else:
             raise ValueError("Expecting a non-negative integer or string")
         return ds
@@ -183,6 +187,11 @@ cdef class DatatypeConstructor:
     def getConstructorTerm(self):
         cdef Term term = Term(self.solver)
         term.cterm = self.cdc.getConstructorTerm()
+        return term
+    
+    def getSpecializedConstructorTerm(self, Sort retSort):
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cdc.getSpecializedConstructorTerm(retSort.csort)
         return term
 
     def getTesterTerm(self):
@@ -250,6 +259,9 @@ cdef class DatatypeDecl:
 
     def isParametric(self):
         return self.cdd.isParametric()
+
+    def getName(self):
+        return self.cdd.getName().decode()
 
     def __str__(self):
         return self.cdd.toString().decode()
@@ -494,9 +506,19 @@ cdef class Solver:
         sort.csort = self.csolver.mkDatatypeSort(dtypedecl.cdd)
         return sort
 
-    def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts):
+    @expand_list_arg(num_req_args=1)
+    def mkDatatypeSorts(self, *args): 
+        '''
+        Supports the following arguments:
+        std::vector<Sort> mkDatatypeSorts(const std::vector<DatatypeDecl>& dtypedecls)
+        std::vector<Sort> mkDatatypeSorts(const std::vector<DatatypeDecl>& dtypedecls, const std::set<Sort>& unresolvedSorts)
+        '''
+        assert len(args) == 1 or len(args) == 2
+        dtypedecls = args[0]
+        unresolvedSorts = []
+        if len(args) == 2:
+            unresolvedSorts = args[1]
         sorts = []
-
         cdef vector[c_DatatypeDecl] decls
         for decl in dtypedecls:
             decls.push_back((<DatatypeDecl?> decl).cdd)
