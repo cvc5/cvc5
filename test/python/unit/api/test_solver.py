@@ -1467,44 +1467,6 @@ def test_mk_sygus_grammar(solver):
         slv.mkSygusGrammar([boolVar2], [intVar])
 
 
-def test_synth_fun(solver):
-    #    null = solver.getNullSort()
-    boolean = solver.getBooleanSort()
-    integer = solver.getIntegerSort()
-
-    nullTerm = pycvc5.Term(solver)
-    x = solver.mkVar(boolean)
-
-    start1 = solver.mkVar(boolean)
-    start2 = solver.mkVar(integer)
-
-    g1 = solver.mkSygusGrammar([x], [start1])
-    g1.addRule(start1, solver.mkBoolean(False))
-
-    g2 = solver.mkSygusGrammar([x], [start2])
-    g2.addRule(start2, solver.mkInteger(0))
-
-    solver.synthFun("", [], boolean)
-    solver.synthFun("f1", [x], boolean)
-    solver.synthFun("f2", [x], boolean, g1)
-
-    with pytest.raises(RuntimeError):
-        solver.synthFun("f3", [nullTerm], boolean)
-
-
-#    with pytest.raises(RuntimeError):
-#        solver.synthFun("f4", [], null)
-    with pytest.raises(RuntimeError):
-        solver.synthFun("f6", [x], boolean, g2)
-    slv = pycvc5.Solver()
-    x2 = slv.mkVar(slv.getBooleanSort())
-    slv.synthFun("f1", [x2], slv.getBooleanSort())
-    with pytest.raises(RuntimeError):
-        slv.synthFun("", [], solver.getBooleanSort())
-    with pytest.raises(RuntimeError):
-        slv.synthFun("f1", [x], solver.getBooleanSort())
-
-
 def test_synth_inv(solver):
     boolean = solver.getBooleanSort()
     integer = solver.getIntegerSort()
