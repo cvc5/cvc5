@@ -1256,7 +1256,7 @@ class CVC5_EXPORT Term
    */
   bool isStringValue() const;
   /**
-   * Note: This method is not to be confused with toStringValue() which returns
+   * Note: This method is not to be confused with toString() which returns
    * the term in some string representation, whatever data it may hold. Asserts
    * isStringValue().
    * @return the string term as a native string value.
