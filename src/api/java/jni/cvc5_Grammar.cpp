@@ -1,3 +1,18 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The cvc5 Java API.
+ */
+
 #include "cvc5_Grammar.h"
 
 #include "api/cpp/cvc5.h"
@@ -52,19 +67,17 @@ JNIEXPORT void JNICALL Java_cvc5_Grammar_addRules(JNIEnv* env,
   Term* ntSymbol = (Term*)ntSymbolPointer;
   // get the size of pointers
   jsize size = env->GetArrayLength(rulePointers);
-  // allocate buffer for the long array
-  jlong* cRules = new jlong[size];
+
+  std::vector<jlong> cRules(size);
   // copy java array to the buffer
-  env->GetLongArrayRegion(rulePointers, 0, size, cRules);
+  env->GetLongArrayRegion(rulePointers, 0, size, cRules.data());
   // copy the terms into a vector
   std::vector<Term> rules;
-  for (jsize i = 0; i < size; i++)
+  for (jlong cRule : cRules)
   {
-    Term* term = (Term*)cRules[i];
+    Term* term = (Term*)(cRule);
     rules.push_back(*term);
   }
-  // free the buffer memory
-  delete[] cRules;
 
   current->addRules(*ntSymbol, rules);
   CVC5_JAVA_API_TRY_CATCH_END(env);
