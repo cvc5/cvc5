@@ -1331,3 +1331,312 @@ def test_check_sat(solver):
     solver.checkSat()
     with pytest.raises(RuntimeError):
         solver.checkSat()
+
+
+def test_check_sat_assuming(solver):
+    solver.setOption("incremental", "false")
+    solver.checkSatAssuming(solver.mkTrue())
+    with pytest.raises(RuntimeError):
+        solver.checkSatAssuming(solver.mkTrue())
+    slv = pycvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.checkSatAssuming(solver.mkTrue())
+
+
+def test_check_sat_assuming1(solver):
+    boolSort = solver.getBooleanSort()
+    x = solver.mkConst(boolSort, "x")
+    y = solver.mkConst(boolSort, "y")
+    z = solver.mkTerm(kinds.And, x, y)
+    solver.setOption("incremental", "true")
+    solver.checkSatAssuming(solver.mkTrue())
+    with pytest.raises(RuntimeError):
+        solver.checkSatAssuming(pycvc5.Term(solver))
+    solver.checkSatAssuming(solver.mkTrue())
+    solver.checkSatAssuming(z)
+    slv = pycvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.checkSatAssuming(solver.mkTrue())
+
+
+def test_check_sat_assuming2(solver):
+    solver.setOption("incremental", "true")
+
+    uSort = solver.mkUninterpretedSort("u")
+    intSort = solver.getIntegerSort()
+    boolSort = solver.getBooleanSort()
+    uToIntSort = solver.mkFunctionSort(uSort, intSort)
+    intPredSort = solver.mkFunctionSort(intSort, boolSort)
+
+    n = pycvc5.Term(solver)
+    # Constants
+    x = solver.mkConst(uSort, "x")
+    y = solver.mkConst(uSort, "y")
+    # Functions
+    f = solver.mkConst(uToIntSort, "f")
+    p = solver.mkConst(intPredSort, "p")
+    # Values
+    zero = solver.mkInteger(0)
+    one = solver.mkInteger(1)
+    # Terms
+    f_x = solver.mkTerm(kinds.ApplyUf, f, x)
+    f_y = solver.mkTerm(kinds.ApplyUf, f, y)
+    summ = solver.mkTerm(kinds.Plus, f_x, f_y)
+    p_0 = solver.mkTerm(kinds.ApplyUf, p, zero)
+    p_f_y = solver.mkTerm(kinds.ApplyUf, p, f_y)
+    # Assertions
+    assertions =\
+        solver.mkTerm(kinds.And,\
+                      [solver.mkTerm(kinds.Leq, zero, f_x),  # 0 <= f(x)
+                       solver.mkTerm(kinds.Leq, zero, f_y),  # 0 <= f(y)
+                       solver.mkTerm(kinds.Leq, summ, one),  # f(x) + f(y) <= 1
+                       p_0.notTerm(),                        # not p(0)
+                       p_f_y                                 # p(f(y))
+                      ])
+
+    solver.checkSatAssuming(solver.mkTrue())
+    solver.assertFormula(assertions)
+    solver.checkSatAssuming(solver.mkTerm(kinds.Distinct, x, y))
+    solver.checkSatAssuming(
+        [solver.mkFalse(),
+         solver.mkTerm(kinds.Distinct, x, y)])
+    with pytest.raises(RuntimeError):
+        solver.checkSatAssuming(n)
+    with pytest.raises(RuntimeError):
+        solver.checkSatAssuming([n, solver.mkTerm(kinds.Distinct, x, y)])
+    slv = pycvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.checkSatAssuming(solver.mkTrue())
+
+
+def test_set_logic(solver):
+    solver.setLogic("AUFLIRA")
+    with pytest.raises(RuntimeError):
+        solver.setLogic("AF_BV")
+    solver.assertFormula(solver.mkTrue())
+    with pytest.raises(RuntimeError):
+        solver.setLogic("AUFLIRA")
+
+
+def test_set_option(solver):
+    solver.setOption("bv-sat-solver", "minisat")
+    with pytest.raises(RuntimeError):
+        solver.setOption("bv-sat-solver", "1")
+    solver.assertFormula(solver.mkTrue())
+    with pytest.raises(RuntimeError):
+        solver.setOption("bv-sat-solver", "minisat")
+
+
+def test_reset_assertions(solver):
+    solver.setOption("incremental", "true")
+
+    bvSort = solver.mkBitVectorSort(4)
+    one = solver.mkBitVector(4, 1)
+    x = solver.mkConst(bvSort, "x")
+    ule = solver.mkTerm(kinds.BVUle, x, one)
+    srem = solver.mkTerm(kinds.BVSrem, one, x)
+    solver.push(4)
+    slt = solver.mkTerm(kinds.BVSlt, srem, one)
+    solver.resetAssertions()
+    solver.checkSatAssuming([slt, ule])
+
+
+def test_mk_sygus_grammar(solver):
+    nullTerm = pycvc5.Term(solver)
+    boolTerm = solver.mkBoolean(True)
+    boolVar = solver.mkVar(solver.getBooleanSort())
+    intVar = solver.mkVar(solver.getIntegerSort())
+
+    solver.mkSygusGrammar([], [intVar])
+    solver.mkSygusGrammar([boolVar], [intVar])
+    with pytest.raises(RuntimeError):
+        solver.mkSygusGrammar([], [])
+    with pytest.raises(RuntimeError):
+        solver.mkSygusGrammar([], [nullTerm])
+    with pytest.raises(RuntimeError):
+        solver.mkSygusGrammar([], [boolTerm])
+    with pytest.raises(RuntimeError):
+        solver.mkSygusGrammar([boolTerm], [intVar])
+    slv = pycvc5.Solver()
+    boolVar2 = slv.mkVar(slv.getBooleanSort())
+    intVar2 = slv.mkVar(slv.getIntegerSort())
+    slv.mkSygusGrammar([boolVar2], [intVar2])
+    with pytest.raises(RuntimeError):
+        slv.mkSygusGrammar([boolVar], [intVar2])
+    with pytest.raises(RuntimeError):
+        slv.mkSygusGrammar([boolVar2], [intVar])
+
+
+def test_synth_fun(solver):
+    #    null = solver.getNullSort()
+    boolean = solver.getBooleanSort()
+    integer = solver.getIntegerSort()
+
+    nullTerm = pycvc5.Term(solver)
+    x = solver.mkVar(boolean)
+
+    start1 = solver.mkVar(boolean)
+    start2 = solver.mkVar(integer)
+
+    g1 = solver.mkSygusGrammar([x], [start1])
+    g1.addRule(start1, solver.mkBoolean(False))
+
+    g2 = solver.mkSygusGrammar([x], [start2])
+    g2.addRule(start2, solver.mkInteger(0))
+
+    solver.synthFun("", [], boolean)
+    solver.synthFun("f1", [x], boolean)
+    solver.synthFun("f2", [x], boolean, g1)
+
+    with pytest.raises(RuntimeError):
+        solver.synthFun("f3", [nullTerm], boolean)
+
+
+#    with pytest.raises(RuntimeError):
+#        solver.synthFun("f4", [], null)
+    with pytest.raises(RuntimeError):
+        solver.synthFun("f6", [x], boolean, g2)
+    slv = pycvc5.Solver()
+    x2 = slv.mkVar(slv.getBooleanSort())
+    slv.synthFun("f1", [x2], slv.getBooleanSort())
+    with pytest.raises(RuntimeError):
+        slv.synthFun("", [], solver.getBooleanSort())
+    with pytest.raises(RuntimeError):
+        slv.synthFun("f1", [x], solver.getBooleanSort())
+
+
+def test_synth_inv(solver):
+    boolean = solver.getBooleanSort()
+    integer = solver.getIntegerSort()
+
+    nullTerm = pycvc5.Term(solver)
+    x = solver.mkVar(boolean)
+
+    start1 = solver.mkVar(boolean)
+    start2 = solver.mkVar(integer)
+
+    g1 = solver.mkSygusGrammar([x], [start1])
+    g1.addRule(start1, solver.mkBoolean(False))
+
+    g2 = solver.mkSygusGrammar([x], [start2])
+    g2.addRule(start2, solver.mkInteger(0))
+
+    solver.synthInv("", [])
+    solver.synthInv("i1", [x])
+    solver.synthInv("i2", [x], g1)
+
+    with pytest.raises(RuntimeError):
+        solver.synthInv("i3", [nullTerm])
+    with pytest.raises(RuntimeError):
+        solver.synthInv("i4", [x], g2)
+
+
+def test_add_sygus_constraint(solver):
+    nullTerm = pycvc5.Term(solver)
+    boolTerm = solver.mkBoolean(True)
+    intTerm = solver.mkInteger(1)
+
+    solver.addSygusConstraint(boolTerm)
+    with pytest.raises(RuntimeError):
+        solver.addSygusConstraint(nullTerm)
+    with pytest.raises(RuntimeError):
+        solver.addSygusConstraint(intTerm)
+
+    slv = pycvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.addSygusConstraint(boolTerm)
+
+
+def test_add_sygus_inv_constraint(solver):
+    boolean = solver.getBooleanSort()
+    real = solver.getRealSort()
+
+    nullTerm = pycvc5.Term(solver)
+    intTerm = solver.mkInteger(1)
+
+    inv = solver.declareFun("inv", [real], boolean)
+    pre = solver.declareFun("pre", [real], boolean)
+    trans = solver.declareFun("trans", [real, real], boolean)
+    post = solver.declareFun("post", [real], boolean)
+
+    inv1 = solver.declareFun("inv1", [real], real)
+
+    trans1 = solver.declareFun("trans1", [boolean, real], boolean)
+    trans2 = solver.declareFun("trans2", [real, boolean], boolean)
+    trans3 = solver.declareFun("trans3", [real, real], real)
+
+    solver.addSygusInvConstraint(inv, pre, trans, post)
+
+    with pytest.raises(RuntimeError):
+        solver.addSygusInvConstraint(nullTerm, pre, trans, post)
+    with pytest.raises(RuntimeError):
+        solver.addSygusInvConstraint(inv, nullTerm, trans, post)
+    with pytest.raises(RuntimeError):
+        solver.addSygusInvConstraint(inv, pre, nullTerm, post)
+    with pytest.raises(RuntimeError):
+        solver.addSygusInvConstraint(inv, pre, trans, nullTerm)
+
+    with pytest.raises(RuntimeError):
+        solver.addSygusInvConstraint(intTerm, pre, trans, post)
+
+    with pytest.raises(RuntimeError):
+        solver.addSygusInvConstraint(inv1, pre, trans, post)
+
+    with pytest.raises(RuntimeError):
+        solver.addSygusInvConstraint(inv, trans, trans, post)
+
+    with pytest.raises(RuntimeError):
+        solver.addSygusInvConstraint(inv, pre, intTerm, post)
+    with pytest.raises(RuntimeError):
+        solver.addSygusInvConstraint(inv, pre, pre, post)
+    with pytest.raises(RuntimeError):
+        solver.addSygusInvConstraint(inv, pre, trans1, post)
+    with pytest.raises(RuntimeError):
+        solver.addSygusInvConstraint(inv, pre, trans2, post)
+    with pytest.raises(RuntimeError):
+        solver.addSygusInvConstraint(inv, pre, trans3, post)
+
+    with pytest.raises(RuntimeError):
+        solver.addSygusInvConstraint(inv, pre, trans, trans)
+    slv = pycvc5.Solver()
+    boolean2 = slv.getBooleanSort()
+    real2 = slv.getRealSort()
+    inv22 = slv.declareFun("inv", [real2], boolean2)
+    pre22 = slv.declareFun("pre", [real2], boolean2)
+    trans22 = slv.declareFun("trans", [real2, real2], boolean2)
+    post22 = slv.declareFun("post", [real2], boolean2)
+    slv.addSygusInvConstraint(inv22, pre22, trans22, post22)
+    with pytest.raises(RuntimeError):
+        slv.addSygusInvConstraint(inv, pre22, trans22, post22)
+    with pytest.raises(RuntimeError):
+        slv.addSygusInvConstraint(inv22, pre, trans22, post22)
+    with pytest.raises(RuntimeError):
+        slv.addSygusInvConstraint(inv22, pre22, trans, post22)
+    with pytest.raises(RuntimeError):
+        slv.addSygusInvConstraint(inv22, pre22, trans22, post)
+
+
+def test_get_synth_solution(solver):
+    solver.setOption("lang", "sygus2")
+    solver.setOption("incremental", "false")
+
+    nullTerm = pycvc5.Term(solver)
+    x = solver.mkBoolean(False)
+    f = solver.synthFun("f", [], solver.getBooleanSort())
+
+    with pytest.raises(RuntimeError):
+        solver.getSynthSolution(f)
+
+    solver.checkSynth()
+
+    solver.getSynthSolution(f)
+    solver.getSynthSolution(f)
+
+    with pytest.raises(RuntimeError):
+        solver.getSynthSolution(nullTerm)
+    with pytest.raises(RuntimeError):
+        solver.getSynthSolution(x)
+
+    slv = pycvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.getSynthSolution(f)
