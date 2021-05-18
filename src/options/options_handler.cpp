@@ -196,7 +196,7 @@ void OptionsHandler::setBitblastAig(std::string option, bool arg)
       }
     } else {
       options::BitblastMode mode = stringToBitblastMode("eager");
-      Options::current().set(options::bitblastMode, mode);
+      d_options->bv().bitblastMode = mode;
     }
   }
 }
@@ -231,13 +231,13 @@ InstFormatMode OptionsHandler::stringToInstFormatMode(std::string option,
 // decision/options_handlers.h
 void OptionsHandler::setDecisionModeStopOnly(std::string option, DecisionMode m)
 {
-  Options::current().set(options::decisionStopOnly, m == DecisionMode::RELEVANCY);
+  d_options->decision().decisionStopOnly = (m == DecisionMode::RELEVANCY);
 }
 
 void OptionsHandler::setProduceAssertions(std::string option, bool value)
 {
-  Options::current().set(options::produceAssertions, value);
-  Options::current().set(options::interactiveMode, value);
+  d_options->smt().produceAssertions = value;
+  d_options->smt().interactiveMode = value;
 }
 
 void OptionsHandler::setStats(const std::string& option, bool value)
@@ -486,7 +486,7 @@ OutputLanguage OptionsHandler::stringToOutputLanguage(std::string option,
                                                       std::string optarg)
 {
   if(optarg == "help") {
-    Options::current().set(options::languageHelp, true);
+    d_options->base().languageHelp = true;
     return language::output::LANG_AUTO;
   }
 
@@ -504,7 +504,7 @@ InputLanguage OptionsHandler::stringToInputLanguage(std::string option,
                                                     std::string optarg)
 {
   if(optarg == "help") {
-    Options::current().set(options::languageHelp, true);
+    d_options->base().languageHelp = true;
     return language::input::LANG_AUTO;
   }
 
@@ -549,12 +549,12 @@ void OptionsHandler::setVerbosity(std::string option, int value)
 }
 
 void OptionsHandler::increaseVerbosity(std::string option) {
-  Options::current().set(options::verbosity, options::verbosity() + 1);
+  d_options->base().verbosity += 1;
   setVerbosity(option, options::verbosity());
 }
 
 void OptionsHandler::decreaseVerbosity(std::string option) {
-  Options::current().set(options::verbosity, options::verbosity() - 1);
+  d_options->base().verbosity -= 1;
   setVerbosity(option, options::verbosity());
 }
 
