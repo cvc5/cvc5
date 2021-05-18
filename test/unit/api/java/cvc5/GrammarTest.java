@@ -45,7 +45,7 @@ class GrammarTest
 
     assertDoesNotThrow(() -> g.addRule(start, d_solver.mkBoolean(false)));
 
-    assertThrows(CVC5ApiException.class, () -> g.addRule(nullTerm, d_solver.mkBoolean(false)));;
+    assertThrows(CVC5ApiException.class, () -> g.addRule(nullTerm, d_solver.mkBoolean(false)));
     assertThrows(CVC5ApiException.class, () -> g.addRule(start, nullTerm));
     assertThrows(CVC5ApiException.class, () -> g.addRule(nts, d_solver.mkBoolean(false)));
     assertThrows(CVC5ApiException.class, () -> g.addRule(start, d_solver.mkInteger(0)));

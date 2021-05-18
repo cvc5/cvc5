@@ -67,19 +67,17 @@ JNIEXPORT void JNICALL Java_cvc5_Grammar_addRules(JNIEnv* env,
   Term* ntSymbol = (Term*)ntSymbolPointer;
   // get the size of pointers
   jsize size = env->GetArrayLength(rulePointers);
-  // allocate buffer for the long array
-  jlong* cRules = new jlong[size];
+
+  std::vector<jlong> cRules(size);
   // copy java array to the buffer
-  env->GetLongArrayRegion(rulePointers, 0, size, cRules);
+  env->GetLongArrayRegion(rulePointers, 0, size, cRules.data());
   // copy the terms into a vector
   std::vector<Term> rules;
-  for (jsize i = 0; i < size; i++)
+  for (jlong cRule : cRules)
   {
-    Term* term = (Term*)cRules[i];
+    Term* term = (Term*)(cRule);
     rules.push_back(*term);
   }
-  // free the buffer memory
-  delete[] cRules;
 
   current->addRules(*ntSymbol, rules);
   CVC5_JAVA_API_TRY_CATCH_END(env);
