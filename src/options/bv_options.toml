@@ -3,7 +3,6 @@ name   = "Bitvector theory"
 
 [[option]]
   name       = "bvSatSolver"
-  smt_name   = "bv-sat-solver"
   category   = "expert"
   long       = "bv-sat-solver=MODE"
   type       = "SatSolverMode"
@@ -22,7 +21,6 @@ name   = "Bitvector theory"
 
 [[option]]
   name       = "bitblastMode"
-  smt_name   = "bitblast"
   category   = "regular"
   long       = "bitblast=MODE"
   type       = "BitblastMode"
@@ -104,7 +102,6 @@ name   = "Bitvector theory"
 
 [[option]]
   name       = "boolToBitvector"
-  smt_name   = "bool-to-bv"
   category   = "regular"
   long       = "bool-to-bv=MODE"
   type       = "BoolToBVMode"
