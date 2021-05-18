@@ -380,13 +380,7 @@ class SphinxGenerator:
                 res.append(val.format(opt['help']))
                 res.append('    ')
 
-        res.append('')
-        res.append('.. _alternate target:')
-        res.append('')
-        res.append(':sup:`-\-no-` Each of these options has a --no-OPTIONNAME variant, which reverses the sense of the option.')
-
         write_file(dstdir, filename, '\n'.join(res))
-
 
 
 def die(msg):
