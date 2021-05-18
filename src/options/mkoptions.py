@@ -115,11 +115,11 @@ TPL_GETOPT_LONG = '{{ "{}", {}_argument, nullptr, {} }},'
 
 TPL_PUSHBACK_PREEMPT = 'extender->pushBackPreemption({});'
 
-TPL_HOLDER_MACRO_ATTR = "  {type} {name};\\\n"
-TPL_HOLDER_MACRO_ATTR += "  bool {name}__setByUser = false;"
+TPL_HOLDER_MACRO_ATTR = '''  {type} {name};
+  bool {name}__setByUser = false;'''
 
-TPL_HOLDER_MACRO_ATTR_DEF = "  {type} {name} = {default};\\\n"
-TPL_HOLDER_MACRO_ATTR_DEF += "  bool {name}__setByUser = false;"
+TPL_HOLDER_MACRO_ATTR_DEF = '''  {type} {name} = {default};
+  bool {name}__setByUser = false;'''
 
 TPL_DECL_SET_DEFAULT = 'void setDefault{funcname}(Options& opts, {type} value);'
 TPL_IMPL_SET_DEFAULT = TPL_DECL_SET_DEFAULT[:-1] + '''
@@ -571,7 +571,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         id_cap=module.id_cap,
         id=module.id,
         includes='\n'.join(sorted(list(includes))),
-        holder_spec=' \\\n'.join(holder_specs),
+        holder_spec='\n'.join(holder_specs),
         decls='\n'.join(decls),
         specs='\n'.join(specs),
         inls='\n'.join(inls),
