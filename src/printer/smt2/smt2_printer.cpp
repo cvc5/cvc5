@@ -1342,7 +1342,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
 
 void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
 {
-  // TODO: should be able to call this
+  // we currently must call TypeNode::toStream here.
   tn.toStream(out, language::output::LANG_SMTLIB_V2_6);
 }
 
