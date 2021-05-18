@@ -207,7 +207,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   Node zero = nm->mkConst(Rational(0)), one = nm->mkConst(Rational(1));
   Node trueNode = nm->mkConst(true);
 
-  unordered_map<TNode, Node, TNodeHashFunction> intVars;
+  unordered_map<TNode, Node> intVars;
   for (TNode v0 : d_boolVars)
   {
     if (propagator->isAssigned(v0))

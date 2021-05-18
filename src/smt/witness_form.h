@@ -72,7 +72,7 @@ class WitnessFormGenerator : public ProofGenerator
    * where k is a skolem, containing all rewrite steps used in calls to
    * getProofFor during the entire lifetime of this generator.
    */
-  const std::unordered_set<Node, NodeHashFunction>& getWitnessFormEqs() const;
+  const std::unordered_set<Node>& getWitnessFormEqs() const;
 
  private:
   /**
@@ -88,9 +88,9 @@ class WitnessFormGenerator : public ProofGenerator
   /** The term conversion proof generator */
   TConvProofGenerator d_tcpg;
   /** The nodes we have already added rewrite steps for in d_tcpg */
-  std::unordered_set<TNode, TNodeHashFunction> d_visited;
+  std::unordered_set<TNode> d_visited;
   /** The set of equalities added as proof steps */
-  std::unordered_set<Node, NodeHashFunction> d_eqs;
+  std::unordered_set<Node> d_eqs;
   /** Lazy proof storing witness intro steps */
   LazyCDProof d_wintroPf;
   /** CDProof for justifying purification existentials */

@@ -44,8 +44,8 @@ namespace theory {
  */
 class TheoryEngineModelBuilder
 {
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
-  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+  typedef std::unordered_map<Node, Node> NodeMap;
+  typedef std::unordered_set<Node> NodeSet;
 
  public:
   TheoryEngineModelBuilder();
@@ -164,10 +164,9 @@ class TheoryEngineModelBuilder
    * For example, if tn is (Array Int Bool) and type_list is empty,
    * then we append ( Int, Bool, (Array Int Bool) ) to type_list.
    */
-  void addToTypeList(
-      TypeNode tn,
-      std::vector<TypeNode>& type_list,
-      std::unordered_set<TypeNode, TypeNodeHashFunction>& visiting);
+  void addToTypeList(TypeNode tn,
+                     std::vector<TypeNode>& type_list,
+                     std::unordered_set<TypeNode>& visiting);
   /** assign function f based on the model m.
   * This construction is based on "table form". For example:
   * (f 0 1) = 1

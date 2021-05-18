@@ -50,10 +50,9 @@ class CoreSolverExtTheoryCallback : public ExtTheoryCallback
  * Bitvector equality solver
  */
 class CoreSolver : public SubtheorySolver {
-  typedef std::unordered_map<TNode, Node, TNodeHashFunction> ModelValue;
-  typedef std::unordered_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
-  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-
+  typedef std::unordered_map<TNode, Node> ModelValue;
+  typedef std::unordered_map<TNode, bool> TNodeBoolMap;
+  typedef std::unordered_set<TNode> TNodeSet;
 
   struct Statistics {
     IntStat d_numCallstoCheck;
@@ -103,7 +102,7 @@ class CoreSolver : public SubtheorySolver {
   std::unique_ptr<ExtTheory> d_extTheory;
 
   /** To make sure we keep the explanations */
-  context::CDHashSet<Node, NodeHashFunction> d_reasons;
+  context::CDHashSet<Node> d_reasons;
   ModelValue d_modelValues;
   void buildModel();
   bool assertFactToEqualityEngine(TNode fact, TNode reason);
@@ -113,8 +112,8 @@ class CoreSolver : public SubtheorySolver {
   /** Whether we need a last call effort check */
   bool d_needsLastCallCheck;
   /** For extended functions */
-  context::CDHashSet<Node, NodeHashFunction> d_extf_range_infer;
-  context::CDHashSet<Node, NodeHashFunction> d_extf_collapse_infer;
+  context::CDHashSet<Node> d_extf_range_infer;
+  context::CDHashSet<Node> d_extf_collapse_infer;
 
   /** do extended function inferences
    *

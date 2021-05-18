@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext --no-check-models
+; COMMAND-LINE: --nl-ext=full --no-check-models
 ; EXPECT: sat
 (set-logic QF_NRAT)
 (set-info :status sat)
