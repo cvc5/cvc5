@@ -136,5 +136,4 @@ add_jar(cvc5jar
 )
 
 add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5)
-
-set(CVC5_JAR_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CVC5_JAR}" CACHE STRING "cvc5 jar" FORCE)
+get_target_property(CVC5_JAR_PATH cvc5jar JAR_FILE)
