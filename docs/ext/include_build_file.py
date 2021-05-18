@@ -11,7 +11,8 @@ class IncludeBuildFile(SphinxDirective):
 
         .. include-build-file:: <filename>
 
-        The argument should be proper filenames to rst files.
+    The argument should be a filename of an rst files within one of the
+    folders given by the `ibf_folders` config option.
     """
 
     # The "arguments" are actually the content of the directive
