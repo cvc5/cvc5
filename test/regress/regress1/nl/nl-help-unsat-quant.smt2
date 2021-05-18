@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext
+; COMMAND-LINE: --nl-ext=full
 ; EXPECT: unsat
 (set-logic UFNIA)
 (set-info :status unsat)
