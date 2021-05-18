@@ -798,6 +798,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::PRODUCT:
   case kind::TRANSPOSE:
   case kind::TCLOSURE:
+  case kind::IDEN:
+  case kind::JOIN_IMAGE:
     out << smtKindString(k, d_variant) << " ";
     break;
   case kind::COMPREHENSION: out << smtKindString(k, d_variant) << " "; break;
@@ -1205,6 +1207,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::PRODUCT: return "product";
   case kind::TRANSPOSE: return "transpose";
   case kind::TCLOSURE: return "tclosure";
+  case kind::IDEN: return "iden";
+  case kind::JOIN_IMAGE: return "join_image";
 
   // bag theory
   case kind::BAG_TYPE: return "Bag";

@@ -135,7 +135,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // Assert(d_symbols.find(n.getOperator()) != d_symbols.end());
     return convert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
-  else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER
+  else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER  // || k == APPLY_SELECTOR_TOTAL
            || k == APPLY_UPDATER)
   {
     // must convert other kinds of apply to functions, since we convert to
@@ -805,7 +805,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       }
       opName << printer::smt2::Smt2Printer::smtKindString(k);
     }
-    else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER
+    else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_SELECTOR_TOTAL || k == APPLY_TESTER
            || k == APPLY_UPDATER)
     {
       // use is-C instead of (_ is C) syntax for testers
@@ -831,6 +831,10 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
         std::stringstream sss;
         sss << dt[cindex][index].getSelector();
         opName << getNameForUserName(sss.str());
+      }
+      else if (k == APPLY_SELECTOR_TOTAL)
+      {
+        // FIXME
       }
     }
     else
