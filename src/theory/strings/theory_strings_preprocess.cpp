@@ -190,12 +190,6 @@ Node StringsPreprocess::reduce(Node t,
         nm->integerType(), t, SkolemCache::SK_PURIFY, "iok");
 
     Node negone = nm->mkConst(Rational(-1));
-    Node krange = nm->mkNode(GEQ, skk, negone);
-    // assert:   indexof( x, y, n ) >= -1
-    asserts.push_back(krange);
-    krange = nm->mkNode(GEQ, nm->mkNode(STRING_LENGTH, x), skk);
-    // assert:   len( x ) >= indexof( x, y, z )
-    asserts.push_back(krange);
 
     // substr( x, n, len( x ) - n )
     Node st = nm->mkNode(STRING_SUBSTR,
