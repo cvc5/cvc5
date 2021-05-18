@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext
+; COMMAND-LINE: --nl-ext=full
 ; EXPECT: sat
 (set-logic QF_NRAT)
 (set-info :status sat)

@@ -23,7 +23,6 @@ name   = "Datatypes theory"
 
 [[option]]
   name       = "dtPoliteOptimize"
-  smt_name   = "dt-polite-optimize"
   category   = "experimental"
   long       = "dt-polite-optimize"
   type       = "bool"
