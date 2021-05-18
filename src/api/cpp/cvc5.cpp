@@ -2939,7 +2939,7 @@ std::vector<Term> Term::getTupleValue() const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Term::isPosZero() const
+bool Term::isFloatingPointPosZero() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -2953,7 +2953,7 @@ bool Term::isPosZero() const
   ////////
   CVC5_API_TRY_CATCH_END;
 }
-bool Term::isNegZero() const
+bool Term::isFloatingPointNegZero() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -2967,7 +2967,7 @@ bool Term::isNegZero() const
   ////////
   CVC5_API_TRY_CATCH_END;
 }
-bool Term::isPosInf() const
+bool Term::isFloatingPointPosInf() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -2981,7 +2981,7 @@ bool Term::isPosInf() const
   ////////
   CVC5_API_TRY_CATCH_END;
 }
-bool Term::isNegInf() const
+bool Term::isFloatingPointNegInf() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -2995,7 +2995,7 @@ bool Term::isNegInf() const
   ////////
   CVC5_API_TRY_CATCH_END;
 }
-bool Term::isNaN() const
+bool Term::isFloatingPointNaN() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;

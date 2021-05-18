@@ -1350,25 +1350,25 @@ class CVC5_EXPORT Term
   /**
    * @return true if the term is the floating-point value for positive zero.
    */
-  bool isPosZero() const;
+  bool isFloatingPointPosZero() const;
   /**
    * @return true if the term is the floating-point value for negative zero.
    */
-  bool isNegZero() const;
+  bool isFloatingPointNegZero() const;
   /**
    * @return true if the term is the floating-point value for positive
    * infinity.
    */
-  bool isPosInf() const;
+  bool isFloatingPointPosInf() const;
   /**
    * @return true if the term is the floating-point value for negative
    * infinity.
    */
-  bool isNegInf() const;
+  bool isFloatingPointNegInf() const;
   /**
    * @return true if the term is the floating-point value for not a number.
    */
-  bool isNaN() const;
+  bool isFloatingPointNaN() const;
   /**
    * @return true if the term is a floating-point value.
    */

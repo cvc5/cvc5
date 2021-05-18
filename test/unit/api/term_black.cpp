@@ -915,18 +915,18 @@ TEST_F(TestApiBlackTerm, getFloatingPoint)
   Term fp = d_solver.mkFloatingPoint(5, 11, bvval);
 
   ASSERT_TRUE(fp.isFloatingPointValue());
-  ASSERT_FALSE(fp.isPosZero());
-  ASSERT_FALSE(fp.isNegZero());
-  ASSERT_FALSE(fp.isPosInf());
-  ASSERT_FALSE(fp.isNegInf());
-  ASSERT_FALSE(fp.isNaN());
+  ASSERT_FALSE(fp.isFloatingPointPosZero());
+  ASSERT_FALSE(fp.isFloatingPointNegZero());
+  ASSERT_FALSE(fp.isFloatingPointPosInf());
+  ASSERT_FALSE(fp.isFloatingPointNegInf());
+  ASSERT_FALSE(fp.isFloatingPointNaN());
   ASSERT_EQ(std::make_tuple(5u, 11u, bvval), fp.getFloatingPointValue());
 
-  ASSERT_TRUE(d_solver.mkPosZero(5, 11).isPosZero());
-  ASSERT_TRUE(d_solver.mkNegZero(5, 11).isNegZero());
-  ASSERT_TRUE(d_solver.mkPosInf(5, 11).isPosInf());
-  ASSERT_TRUE(d_solver.mkNegInf(5, 11).isNegInf());
-  ASSERT_TRUE(d_solver.mkNaN(5, 11).isNaN());
+  ASSERT_TRUE(d_solver.mkPosZero(5, 11).isFloatingPointPosZero());
+  ASSERT_TRUE(d_solver.mkNegZero(5, 11).isFloatingPointNegZero());
+  ASSERT_TRUE(d_solver.mkPosInf(5, 11).isFloatingPointPosInf());
+  ASSERT_TRUE(d_solver.mkNegInf(5, 11).isFloatingPointNegInf());
+  ASSERT_TRUE(d_solver.mkNaN(5, 11).isFloatingPointNaN());
 }
 
 TEST_F(TestApiBlackTerm, getSet)
