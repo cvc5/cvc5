@@ -286,7 +286,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
 
 bool SygusRepairConst::mustRepair(Node n)
 {
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -365,8 +365,8 @@ Node SygusRepairConst::getSkeleton(Node n,
   }
   NodeManager* nm = NodeManager::currentNM();
   // get the most general candidate skeleton of n
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -464,8 +464,8 @@ Node SygusRepairConst::getFoQuery(Node body,
   // now, we must replace all terms of the form eval( z_i, t1...tn ) with
   // a fresh first-order variable w_i, where z_i is a variable introduced in
   // the skeleton inference step (z_i is a variable in sk_vars).
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(body);
@@ -577,8 +577,8 @@ bool SygusRepairConst::getFitToLogicExcludeVar(LogicInfo& logic,
   // should have at least one restriction
   Assert(restrictLA);
 
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);

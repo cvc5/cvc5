@@ -83,7 +83,7 @@ class ArithPreprocess
   /** The operator elimination utility */
   OperatorElim& d_opElim;
   /** The set of assertions that were reduced */
-  context::CDHashMap<Node, bool, NodeHashFunction> d_reduced;
+  context::CDHashMap<Node, bool> d_reduced;
 };
 
 }  // namespace arith

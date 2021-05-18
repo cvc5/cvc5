@@ -3,7 +3,6 @@ name   = "Theory layer"
 
 [[option]]
   name       = "theoryOfMode"
-  smt_name   = "theoryof-mode"
   category   = "expert"
   long       = "theoryof-mode=MODE"
   type       = "TheoryOfMode"

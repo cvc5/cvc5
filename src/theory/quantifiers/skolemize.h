@@ -65,7 +65,7 @@ class TermRegistry;
  */
 class Skolemize
 {
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
   Skolemize(QuantifiersState& qs, TermRegistry& tr, ProofNodeManager* pnm);
@@ -146,10 +146,9 @@ class Skolemize
   /** quantified formulas that have been skolemized */
   NodeNodeMap d_skolemized;
   /** map from quantified formulas to the list of skolem constants */
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction>
-      d_skolem_constants;
+  std::unordered_map<Node, std::vector<Node>> d_skolem_constants;
   /** map from quantified formulas to their skolemized body */
-  std::unordered_map<Node, Node, NodeHashFunction> d_skolem_body;
+  std::unordered_map<Node, Node> d_skolem_body;
   /** Pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** Eager proof generator for skolemization lemmas */

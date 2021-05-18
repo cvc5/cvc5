@@ -102,10 +102,10 @@ std::string parse(std::string instr,
   solver.setOption("input-language", input_language);
   solver.setOption("output-language", output_language);
   SymbolManager symman(&solver);
-  Parser* parser = ParserBuilder(&solver, &symman, "internal-buffer")
-                       .withStringInput(declarations)
-                       .withInputLanguage(ilang)
-                       .build();
+  std::unique_ptr<Parser> parser(
+      ParserBuilder(&solver, &symman).withInputLanguage(ilang).build());
+  parser->setInput(
+      Input::newStringInput(ilang, declarations, "internal-buffer"));
   // we don't need to execute the commands, but we DO need to parse them to
   // get the declarations
   while (Command* c = parser->nextCommand())
@@ -117,7 +117,6 @@ std::string parse(std::string instr,
   api::Term e = parser->nextExpression();
   std::string s = e.toString();
   assert(parser->nextExpression().isNull());  // next expr should be null
-  delete parser;
   return s;
 }
 
