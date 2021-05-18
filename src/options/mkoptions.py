@@ -116,11 +116,11 @@ TPL_GETOPT_LONG = '{{ "{}", {}_argument, nullptr, {} }},'
 
 TPL_PUSHBACK_PREEMPT = 'extender->pushBackPreemption({});'
 
-TPL_HOLDER_MACRO_ATTR = '''  {type} {name};
-  bool {name}__setByUser = false;'''
+TPL_HOLDER_MACRO_ATTR = "  {type} {name};\\\n"
+TPL_HOLDER_MACRO_ATTR += "  bool {name}__setByUser__ = false;"
 
-TPL_HOLDER_MACRO_ATTR_DEF = '''  {type} {name} = {default};
-  bool {name}__setByUser = false;'''
+TPL_HOLDER_MACRO_ATTR_DEF = "  {type} {name} = {default};\\\n"
+TPL_HOLDER_MACRO_ATTR_DEF += "  bool {name}__setByUser__ = false;"
 
 TPL_NAME_DECL = 'static constexpr const char* {name}__name = "{long_name}";'
 
