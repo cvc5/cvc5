@@ -55,7 +55,8 @@ MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option']
 
 OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
-    'name', 'help', 'help_mode', 'smt_name', 'short', 'long', 'default',
+    'name', 'short', 'long', 'alias',
+    'help', 'help_mode', 'default',
     'includes', 'handler', 'predicates',
     'alternate', 'mode'
 ]
@@ -288,6 +289,13 @@ class Option(object):
             assert attr in self.__dict__
             if attr == 'alternate' or val:
                 self.__dict__[attr] = val
+        self.long_name = None
+        self.long_opt = None
+        if self.long:
+            r = self.long.split('=', 1)
+            self.long_name = r[0]
+            if len(r) > 1:
+                self.long_opt = r[1]
 
 
 def die(msg):
@@ -351,13 +359,13 @@ def long_get_option(name):
     return name.split('=')[0]
 
 
-def get_smt_name(option):
+def get_long_name(option):
     """
-    Determine the name of the option used as SMT option name. If no smt_name is
-    given it defaults to the long option name.
+    Determine the name of the option used as option name.
     """
-    assert option.smt_name or option.long
-    return option.smt_name if option.smt_name else long_get_option(option.long)
+    if option.long:
+        return long_get_option(option.long)
+    return None
 
 
 def is_numeric_cpp_type(ctype):
@@ -381,24 +389,29 @@ def format_include(include):
     return '#include "{}"'.format(include)
 
 
-def help_format_options(short_name, long_name):
+def help_format_options(option):
     """
     Format short and long options for the cmdline documentation
-    (--long | -short).
+    (--long | --alias | -short).
     """
     opts = []
-    arg = None
-    if long_name:
-        opts.append('--{}'.format(long_name))
-        long_name = long_name.split('=')
-        if len(long_name) > 1:
-            arg = long_name[1]
-
-    if short_name:
-        if arg:
-            opts.append('-{} {}'.format(short_name, arg))
+    if option.long:
+        if option.long_opt:
+            opts.append('--{}={}'.format(option.long_name, option.long_opt))
         else:
-            opts.append('-{}'.format(short_name))
+            opts.append('--{}'.format(option.long_name))
+    
+    if option.alias:
+        if option.long_opt:
+            opts.extend(['--{}={}'.format(a, option.long_opt) for a in option.alias])
+        else:
+            opts.extend(['--{}'.format(a) for a in option.alias])
+
+    if option.short:
+        if option.long_opt:
+            opts.append('-{} {}'.format(option.short, option.long_opt))
+        else:
+            opts.append('-{}'.format(option.short))
 
     return ' | '.join(opts)
 
@@ -571,41 +584,32 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         modes=''.join(mode_impl)))
 
 
-def docgen(category, name, smt_name, short_name, long_name, ctype, default,
-           help_msg, alternate, help_common, help_others):
-    """
-    Generate the documentation for --help.
-    """
-
-    ### Generate documentation
-    if category == 'common':
-        doc_cmd = help_common
-    else:
-        doc_cmd = help_others
-
-    help_msg = help_msg if help_msg else '[undocumented]'
-    if category == 'expert':
-        help_msg += ' (EXPERTS only)'
-
-    opts = help_format_options(short_name, long_name)
-
-    # Generate documentation for cmdline options
-    if opts and category != 'undocumented':
-        help_cmd = help_msg
-        if ctype == 'bool' and alternate:
-            help_cmd += ' [*]'
-        doc_cmd.extend(help_format(help_cmd, opts))
-
-
 def docgen_option(option, help_common, help_others):
     """
     Generate documentation for options.
     """
-    docgen(option.category, option.name, option.smt_name,
-           option.short, option.long, option.type, option.default,
-           option.help, option.alternate,
-           help_common,
-           help_others)
+
+    if option.category == 'undocumented':
+        return
+
+    help_msg = option.help
+    if option.category == 'expert':
+        help_msg += ' (EXPERTS only)'
+
+    opts = help_format_options(option)
+
+    # Generate documentation for cmdline options
+    if opts and option.category != 'undocumented':
+        help_cmd = help_msg
+        if option.type == 'bool' and option.alternate:
+            help_cmd += ' [*]'
+        
+        res = help_format(help_cmd, opts)
+
+        if option.category == 'common':
+            help_common.extend(res)
+        else:
+            help_others.extend(res)
 
 
 def add_getopt_long(long_name, argument_req, getopt_long):
@@ -651,7 +655,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options_h, tpl_options_cpp):
         for option in \
             sorted(module.options, key=lambda x: x.long if x.long else x.name):
             assert option.type != 'void' or option.name is None
-            assert option.name or option.smt_name or option.short or option.long
+            assert option.name or option.short or option.long
             argument_req = option.type not in ['bool', 'void']
 
             docgen_option(option, help_common, help_others)
@@ -694,10 +698,17 @@ def codegen_all_modules(modules, dst_dir, tpl_options_h, tpl_options_cpp):
 
             if option.long:
                 cases.append(
-                    'case {}:// --{}'.format(
+                    'case {}: // --{}'.format(
                         g_getopt_long_start + len(getopt_long),
                         option.long))
                 add_getopt_long(option.long, argument_req, getopt_long)
+                if option.alias:
+                    for alias in option.alias:
+                        cases.append(
+                            'case {}: // --{}'.format(
+                                g_getopt_long_start + len(getopt_long),
+                                alias))
+                        add_getopt_long(alias, argument_req, getopt_long)
 
             if cases:
                 if option.type == 'bool' and option.name:
@@ -715,45 +726,43 @@ def codegen_all_modules(modules, dst_dir, tpl_options_h, tpl_options_cpp):
                 elif handler:
                     cases.append('{};'.format(handler))
 
-                cases.append('  break;\n')
+                cases.append('  break;')
 
                 options_handler.extend(cases)
 
 
             # Generate handlers for setOption/getOption
-            if option.smt_name or option.long:
-                # Make smt_name and long name available via set/get-option
+            if option.long:
+                # Make long and alias names available via set/get-option
                 keys = set()
-                if option.smt_name:
-                    keys.add(option.smt_name)
                 if option.long:
                     keys.add(long_get_option(option.long))
+                if option.alias:
+                    keys.update(option.alias)
                 assert keys
 
                 cond = ' || '.join(
                     ['key == "{}"'.format(x) for x in sorted(keys)])
-
-                smtname = get_smt_name(option)
 
                 setoption_handlers.append('if({}) {{'.format(cond))
                 if option.type == 'bool':
                     setoption_handlers.append(
                         TPL_CALL_ASSIGN_BOOL.format(
                             name=option.name,
-                            option='"{}"'.format(smtname),
+                            option='key',
                             value='optionarg == "true"'))
                 elif argument_req and option.name:
                     setoption_handlers.append(
                         TPL_CALL_ASSIGN.format(
                             name=option.name,
-                            option='"{}"'.format(smtname)))
+                            option='key'))
                 elif option.handler:
                     h = 'handler->{handler}("{smtname}"'
                     if argument_req:
                         h += ', optionarg'
                     h += ');'
                     setoption_handlers.append(
-                        h.format(handler=option.handler, smtname=smtname))
+                        h.format(handler=option.handler, smtname=option.long_name))
 
                 setoption_handlers.append('return;')
                 setoption_handlers.append('}')
@@ -785,17 +794,26 @@ def codegen_all_modules(modules, dst_dir, tpl_options_h, tpl_options_cpp):
                     'case {}:// --no-{}'.format(
                         g_getopt_long_start + len(getopt_long),
                         option.long))
-                cases.append(
-                    TPL_CALL_ASSIGN_BOOL.format(
-                        name=option.name, option='option', value='false'))
-                cases.append('  break;\n')
-
-                options_handler.extend(cases)
 
                 add_getopt_long('no-{}'.format(option.long), argument_req,
                                 getopt_long)
+                if option.alias:
+                    for alias in option.alias:
+                        cases.append(
+                            'case {}:// --no-{}'.format(
+                                g_getopt_long_start + len(getopt_long),
+                                alias))
+                        add_getopt_long('no-{}'.format(alias), argument_req,
+                                getopt_long)
 
-            optname = option.smt_name if option.smt_name else option.long
+                cases.append(
+                    TPL_CALL_ASSIGN_BOOL.format(
+                        name=option.name, option='option', value='false'))
+                cases.append('  break;')
+
+                options_handler.extend(cases)
+
+            optname = option.long
             # collect options available to the SMT-frontend
             if optname:
                 options_smt.append('"{}",'.format(optname))
@@ -822,7 +840,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options_h, tpl_options_cpp):
                 tpl = None
                 if option.type == 'bool':
                     tpl = TPL_IMPL_ASSIGN_BOOL
-                elif option.short or option.long or option.smt_name:
+                elif option.short or option.long:
                     tpl = TPL_IMPL_ASSIGN
                 if tpl:
                     custom_handlers.append(tpl.format(
