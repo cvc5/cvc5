@@ -82,8 +82,7 @@ def test_mk_datatype_sorts(solver):
   for i in range(0, len(dtdecls)):
       assert dtsorts[i].isDatatype()
       assert not dtsorts[i].getDatatype().isFinite()
-      #TODO FIX!!!
-      # assert dtsorts[i].getDatatype().getName() == dtdecls[i].getName()
+      assert dtsorts[i].getDatatype().getName() == dtdecls[i].getName()
   # verify the resolution was correct
   dtTree = dtsorts[0].getDatatype()
   dtcTreeNode = dtTree[0]
