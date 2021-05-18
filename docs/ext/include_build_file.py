@@ -26,6 +26,7 @@ class IncludeBuildFile(SphinxDirective):
                 filename = candidate
                 break
         content = open(filename).readlines()
+        content = [line.rstrip('\n') for line in content]
         # parse the string list
         node = nodes.Element()
         nested_parse_with_titles(self.state, StringList(content), node)
