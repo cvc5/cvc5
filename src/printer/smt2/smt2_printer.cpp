@@ -245,7 +245,9 @@ void Smt2Printer::toStream(std::ostream& out,
       const std::vector<Node>& snvec = sn.getVec();
       if (snvec.empty())
       {
-        out << "(as seq.empty " << n.getType() << ")";
+        out << "(as seq.empty ";
+        toStreamType(out, n.getType());
+        out << ")";
       }
       if (snvec.size() > 1)
       {
@@ -264,7 +266,9 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::STORE_ALL: {
       ArrayStoreAll asa = n.getConst<ArrayStoreAll>();
-      out << "((as const " << asa.getType() << ") " << asa.getValue() << ")";
+      out << "((as const ";
+      toStreamType(out, asa.getType());
+      out << ") " << asa.getValue() << ")";
       break;
     }
 
@@ -284,7 +288,8 @@ void Smt2Printer::toStream(std::ostream& out,
           out << "(Tuple";
           for (unsigned int i = 0; i < nargs; i++)
           {
-            out << " " << dt[0][i].getRangeType();
+            out << " ";
+            toStreamType(out, dt[0][i].getRangeType());
           }
           out << ")";
         }
@@ -305,11 +310,15 @@ void Smt2Printer::toStream(std::ostream& out,
     }
 
     case kind::EMPTYSET:
-      out << "(as emptyset " << n.getConst<EmptySet>().getType() << ")";
+      out << "(as emptyset ";
+      toStreamType(out, n.getConst<EmptySet>().getType());
+      out << ")";
       break;
 
     case kind::EMPTYBAG:
-      out << "(as emptybag " << n.getConst<EmptyBag>().getType() << ")";
+      out << "(as emptybag ";
+      toStreamType(out, n.getConst<EmptyBag>().getType());
+      out << ")";
       break;
     case kind::BITVECTOR_EXTRACT_OP:
     {
@@ -774,7 +783,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::BITVECTOR_ROTATE_LEFT:
   case kind::BITVECTOR_ROTATE_RIGHT:
   case kind::INT_TO_BITVECTOR:
-    out << n.getOperator() << ' ';
+    toStream(out, n.getOperator(), toDepth, nullptr);
+    out << ' ';
     stillNeedToPrintParams = false;
     break;
 
@@ -1176,6 +1186,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BITVECTOR_SIGN_EXTEND: return "sign_extend";
   case kind::BITVECTOR_ROTATE_LEFT: return "rotate_left";
   case kind::BITVECTOR_ROTATE_RIGHT: return "rotate_right";
+  case kind::INT_TO_BITVECTOR: return "int2bv";
 
   case kind::UNION: return "union";
   case kind::INTERSECTION: return "intersection";
@@ -1323,6 +1334,12 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
 
   // no SMT way to print these
   return kind::kindToString(k);
+}
+
+void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
+{
+  // we currently must call TypeNode::toStream here.
+  tn.toStream(out, language::output::LANG_SMTLIB_V2_6);
 }
 
 template <class T>
