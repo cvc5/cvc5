@@ -38,7 +38,6 @@ const char* toString(PfRule id)
     //================================================= Trusted rules
     case PfRule::THEORY_LEMMA: return "THEORY_LEMMA";
     case PfRule::THEORY_REWRITE: return "THEORY_REWRITE";
-    case PfRule::TRUST: return "TRUST";
     case PfRule::PREPROCESS: return "PREPROCESS";
     case PfRule::PREPROCESS_LEMMA: return "PREPROCESS_LEMMA";
     case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";

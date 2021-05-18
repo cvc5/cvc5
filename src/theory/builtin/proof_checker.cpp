@@ -75,7 +75,6 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::THEORY_REWRITE, this);
   pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
   // trusted rules
-  pc->registerTrustedChecker(PfRule::TRUST, this, 1);
   pc->registerTrustedChecker(PfRule::THEORY_LEMMA, this, 1);
   pc->registerTrustedChecker(PfRule::PREPROCESS, this, 3);
   pc->registerTrustedChecker(PfRule::PREPROCESS_LEMMA, this, 3);
@@ -294,11 +293,6 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       return ant.notNode();
     }
     return nm->mkNode(IMPLIES, ant, children[0]);
-  }
-  else if (id == PfRule::TRUST)
-  {
-    Assert(args.size() == 1);
-    return args[0];
   }
   else if (id == PfRule::SUBS)
   {
