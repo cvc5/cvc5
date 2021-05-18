@@ -257,7 +257,8 @@ std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x)
       {
         emptyNodes.insert(c[0]);
       }
-      else {
+      else
+      {
         allEmptyEqs = false;
       }
     }
