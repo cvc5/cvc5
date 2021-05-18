@@ -2414,7 +2414,9 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   utils::getConcat(node[1], children1);
   if (!cmp_conr.isNull())
   {
-    if (cmp_conr.getConst<bool>())
+    // to show that the first argument definitely contains the second, the first
+    // argument after the given index must be non-empty
+    if (cmp_conr.getConst<bool>() && !Word::isEmpty(fstr))
     {
       if (node[2].isConst() && node[2].getConst<Rational>().sgn() == 0)
       {
