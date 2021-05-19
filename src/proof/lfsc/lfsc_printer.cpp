@@ -93,7 +93,7 @@ void LfscPrinter::print(std::ostream& out,
       else if (stc.isDatatype())
       {
         const DType& dt = stc.getDType();
-        if (stc.getKind()==PARAMETRIC_DATATYPE)
+        if (stc.getKind() == PARAMETRIC_DATATYPE)
         {
           // skip the instance of a parametric datatype
           continue;
@@ -138,7 +138,8 @@ void LfscPrinter::print(std::ostream& out,
           const DTypeConstructor& cons = dt[i];
           std::stringstream sscons;
           sscons << d_tproc.convert(cons.getConstructor());
-          std::string cname = LfscNodeConverter::getNameForUserName(sscons.str());
+          std::string cname =
+              LfscNodeConverter::getNameForUserName(sscons.str());
           // print construct/tester
           preamble << "(declare " << cname << " term)" << std::endl;
           preamble << "(declare is-" << cname << " term)" << std::endl;
@@ -149,7 +150,8 @@ void LfscPrinter::print(std::ostream& out,
             Node si = d_tproc.convert(arg.getSelector());
             std::stringstream sns;
             sns << si;
-            std::string sname = LfscNodeConverter::getNameForUserName(sns.str());
+            std::string sname =
+                LfscNodeConverter::getNameForUserName(sns.str());
             preamble << "(declare " << sname << " term)" << std::endl;
           }
         }
@@ -585,9 +587,9 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::STRING_EAGER_REDUCTION:
     {
       Kind k = as[0].getKind();
-      if (k==STRING_TO_CODE || k==STRING_STRCTN || k == STRING_STRIDOF)
+      if (k == STRING_TO_CODE || k == STRING_STRCTN || k == STRING_STRIDOF)
       {
-        pf << h << as[0]; 
+        pf << h << as[0];
       }
       else
       {
@@ -595,13 +597,13 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         return false;
       }
     }
-      break;
+    break;
     case PfRule::STRING_REDUCTION:
     {
       Kind k = as[0].getKind();
-      if (k==STRING_SUBSTR || k == STRING_STRIDOF)
+      if (k == STRING_SUBSTR || k == STRING_STRIDOF)
       {
-        pf << h << as[0]; 
+        pf << h << as[0];
       }
       else
       {
@@ -609,7 +611,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         return false;
       }
     }
-      break;
+    break;
     // quantifiers
     case PfRule::SKOLEM_INTRO:
     {

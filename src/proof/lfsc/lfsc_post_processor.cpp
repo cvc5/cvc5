@@ -199,7 +199,7 @@ bool LfscProofPostprocessCallback::update(Node res,
         return true;
       }
       Kind k = res[0].getKind();
-      if (k==HO_APPLY)
+      if (k == HO_APPLY)
       {
         // HO_APPLY congruence is a single application of LFSC congruence
         addLfscRule(cdp, res, children, LfscRule::CONG, {});

@@ -799,9 +799,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::TRANSPOSE:
   case kind::TCLOSURE:
   case kind::IDEN:
-  case kind::JOIN_IMAGE:
-    out << smtKindString(k, d_variant) << " ";
-    break;
+  case kind::JOIN_IMAGE: out << smtKindString(k, d_variant) << " "; break;
   case kind::COMPREHENSION: out << smtKindString(k, d_variant) << " "; break;
   case kind::SINGLETON:
   {

@@ -22,9 +22,9 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
-#include "theory/uf/theory_uf_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
+#include "theory/uf/theory_uf_rewriter.h"
 
 using namespace cvc5::kind;
 
@@ -135,7 +135,8 @@ Node LfscNodeConverter::postConvert(Node n)
     // Assert(d_symbols.find(n.getOperator()) != d_symbols.end());
     return convert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
-  else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER  // || k == APPLY_SELECTOR_TOTAL
+  else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR
+           || k == APPLY_TESTER  // || k == APPLY_SELECTOR_TOTAL
            || k == APPLY_UPDATER)
   {
     // must convert other kinds of apply to functions, since we convert to
@@ -167,7 +168,7 @@ Node LfscNodeConverter::postConvert(Node n)
       do
       {
         n = n[0];
-        Assert(n.getKind() == APPLY_UF || n.getKind()==CONST_RATIONAL);
+        Assert(n.getKind() == APPLY_UF || n.getKind() == CONST_RATIONAL);
       } while (n.getKind() != CONST_RATIONAL);
     }
     TypeNode tnv = nm->mkFunctionType(tn, tn);
@@ -255,8 +256,8 @@ Node LfscNodeConverter::postConvert(Node n)
     std::vector<Node> vecu;
     for (size_t i = 0, size = charVec.size(); i < size; i++)
     {
-      Node u = nm->mkNode(SEQ_UNIT, postConvert(charVec[size-(i+1)]));
-      if (size==1)
+      Node u = nm->mkNode(SEQ_UNIT, postConvert(charVec[size - (i + 1)]));
+      if (size == 1)
       {
         // singleton case
         return u;
@@ -296,12 +297,15 @@ Node LfscNodeConverter::postConvert(Node n)
     children.insert(children.end(), n.begin(), n.end());
     return nm->mkNode(APPLY_UF, children);
   }
-  else if (k == EMPTYSET || k == UNIVERSE_SET || k==EMPTYBAG)
+  else if (k == EMPTYSET || k == UNIVERSE_SET || k == EMPTYBAG)
   {
     Node t = typeAsNode(convertType(tn));
     TypeNode etype = nm->mkFunctionType(d_sortType, tn);
-    Node ef =
-        getSymbolInternal(k, etype, k == EMPTYSET ? "emptyset" : ( k == UNIVERSE_SET ? "univset" : "emptybag") );
+    Node ef = getSymbolInternal(
+        k,
+        etype,
+        k == EMPTYSET ? "emptyset"
+                      : (k == UNIVERSE_SET ? "univset" : "emptybag"));
     return nm->mkNode(APPLY_UF, ef, t);
   }
   else if (n.isClosure())
@@ -504,7 +508,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     {
       std::stringstream ss;
       tn.toStream(ss, language::output::LANG_SMTLIB_V2_6);
-      if (tn.isSort() || ( tn.isDatatype() && !tn.isTuple()))
+      if (tn.isSort() || (tn.isDatatype() && !tn.isTuple()))
       {
         std::stringstream sss;
         sss << LfscNodeConverter::getNameForUserName(ss.str());
@@ -531,8 +535,8 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     if (k == PARAMETRIC_DATATYPE)
     {
       // erase first child, which repeats the datatype
-      targs.erase(targs.begin(), targs.begin()+1);
-      types.erase(types.begin(), types.begin()+1);
+      targs.erase(targs.begin(), targs.begin() + 1);
+      types.erase(types.begin(), types.begin() + 1);
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       // the operator has been converted; it is no longer a datatype, thus
       // we must print to get its name.
@@ -717,16 +721,15 @@ Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
   switch (k)
   {
     case OR: nullTerm = nm->mkConst(false); break;
-    case AND: 
-    case SEP_STAR:
-      nullTerm = nm->mkConst(true); break;
+    case AND:
+    case SEP_STAR: nullTerm = nm->mkConst(true); break;
     case PLUS: nullTerm = nm->mkConst(Rational(0)); break;
     case MULT:
     case NONLINEAR_MULT: nullTerm = nm->mkConst(Rational(1)); break;
     case STRING_CONCAT:
       // handles strings and sequences
       nullTerm = theory::strings::Word::mkEmptyWord(tn);
-    break;
+      break;
     case REGEXP_CONCAT:
       // the language containing only the empty string
       nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
@@ -750,7 +753,7 @@ Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
       TypeNode bvz = nm->mkBitVectorType(0);
       nullTerm = getSymbolInternal(k, bvz, "emptybv");
     }
-      break;
+    break;
     default:
       // not handled as null-terminated
       break;
@@ -805,8 +808,9 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       }
       opName << printer::smt2::Smt2Printer::smtKindString(k);
     }
-    else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_SELECTOR_TOTAL || k == APPLY_TESTER
-           || k == APPLY_UPDATER)
+    else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR
+             || k == APPLY_SELECTOR_TOTAL || k == APPLY_TESTER
+             || k == APPLY_UPDATER)
     {
       // use is-C instead of (_ is C) syntax for testers
       unsigned index = DType::indexOf(op);
@@ -819,13 +823,13 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       {
         opName << "update-";
       }
-      if (k==APPLY_TESTER || k==APPLY_CONSTRUCTOR)
+      if (k == APPLY_TESTER || k == APPLY_CONSTRUCTOR)
       {
         std::stringstream ssc;
         ssc << dt[index].getConstructor();
         opName << getNameForUserName(ssc.str());
       }
-      else if (k==APPLY_SELECTOR || k==APPLY_UPDATER)
+      else if (k == APPLY_SELECTOR || k == APPLY_UPDATER)
       {
         unsigned cindex = DType::cindexOf(op);
         std::stringstream sss;
@@ -876,7 +880,8 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   if (k == PLUS || k == MULT || k == NONLINEAR_MULT || k == GEQ || k == GT
       || k == LEQ || k == LT || k == MINUS || k == DIVISION
       || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
-      || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == UMINUS || k == POW)
+      || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == UMINUS
+      || k == POW)
   {
     // currently allow subtyping
     opName << "a.";

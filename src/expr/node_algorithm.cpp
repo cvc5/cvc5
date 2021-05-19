@@ -647,18 +647,15 @@ Node substituteCaptureAvoiding(TNode n,
   return visited[n];
 }
 
-void getTypes(
-    TNode n,
-    std::unordered_set<TypeNode>& types)
+void getTypes(TNode n, std::unordered_set<TypeNode>& types)
 {
   std::unordered_set<TNode> visited;
   getTypes(n, types, visited);
 }
 
-void getTypes(
-    TNode n,
-    std::unordered_set<TypeNode>& types,
-    std::unordered_set<TNode>& visited)
+void getTypes(TNode n,
+              std::unordered_set<TypeNode>& types,
+              std::unordered_set<TNode>& visited)
 {
   std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;

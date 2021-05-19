@@ -867,11 +867,9 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode stype = nm->mkSelectorType(dtt, t);
   Node nindex = nm->mkConst(Rational(index));
-  //s = sm->mkSkolemFunction(SkolemFunId::SHARED_SELECTOR, stype, nindex);
-  s = sm->mkDummySkolem(ss.str(),
-                        stype,
-                        "is a shared selector",
-                        NodeManager::SKOLEM_NO_NOTIFY);
+  // s = sm->mkSkolemFunction(SkolemFunId::SHARED_SELECTOR, stype, nindex);
+  s = sm->mkDummySkolem(
+      ss.str(), stype, "is a shared selector", NodeManager::SKOLEM_NO_NOTIFY);
   d_sharedSel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;
