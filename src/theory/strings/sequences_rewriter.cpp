@@ -2449,8 +2449,8 @@ Node SequencesRewriter::rewriteIndexof(Node node)
         }
       }
       // To show that the first argument definitely contains the second, the
-      // index must a valid index in the first argument. This ensures that
-      // (str.index t "" n) is not rewritten to something other than -1 when n
+      // index must be a valid index in the first argument. This ensures that
+      // (str.indexof t "" n) is not rewritten to something other than -1 when n
       // is beyond the length of t. This is not required for the above rewrites,
       // which only apply when n=0.
       if (ArithEntail::check(node[2]) && ArithEntail::check(len0, node[2]))
@@ -2461,7 +2461,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
         if (StringsEntail::stripSymbolicLength(children0, nr, 1, new_len))
         {
           // For example:
-          // z>str.len( x1 ) and str.contains( x2, y )-->true
+          // z>=0 and z>str.len( x1 ) and str.contains( x2, y )-->true
           // implies
           // str.indexof( str.++( x1, x2 ), y, z ) --->
           // str.len( x1 ) + str.indexof( x2, y, z-str.len(x1) )
