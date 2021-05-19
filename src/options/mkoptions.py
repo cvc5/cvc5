@@ -366,7 +366,6 @@ class SphinxGenerator:
         res.append(val.format(opt['help']))
 
         if opt['modes']:
-            print(opt['modes'])
             res.append(val.format(''))
             res.append(val.format(opt['help_mode']))
             res.append(val.format(''))
