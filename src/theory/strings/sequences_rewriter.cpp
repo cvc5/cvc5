@@ -1129,6 +1129,17 @@ Node SequencesRewriter::rewriteDifferenceRegExp(TNode node)
 Node SequencesRewriter::rewriteRangeRegExp(TNode node)
 {
   Assert(node.getKind() == REGEXP_RANGE);
+  unsigned ch[2];
+  for (size_t i = 0; i < 2; ++i)
+  {
+    if (!node[i].isConst() || node[i].getConst<String>().size() != 1)
+    {
+      // not applied to constants, it is not handled
+      return node;
+    }
+    ch[i] = node[i].getConst<String>().front();
+  }
+  
   NodeManager* nm = NodeManager::currentNM();
   if (node[0] == node[1])
   {
@@ -1137,18 +1148,7 @@ Node SequencesRewriter::rewriteRangeRegExp(TNode node)
     return returnRewrite(node, retNode, Rewrite::RE_RANGE_SINGLE);
   }
 
-  bool appliedCh = true;
-  unsigned ch[2];
-  for (size_t i = 0; i < 2; ++i)
-  {
-    if (node[i].isConst() || node[i].getConst<String>().size() != 1)
-    {
-      appliedCh = false;
-      break;
-    }
-    ch[i] = node[i].getConst<String>().front();
-  }
-  if (appliedCh && ch[0] > ch[1])
+  if (ch[0] > ch[1])
   {
     // re.range( "B", "A" ) ---> re.none
     Node retNode = nm->mkNode(REGEXP_EMPTY, {});
