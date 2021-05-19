@@ -43,6 +43,7 @@ extensions = [
         'sphinxcontrib.bibtex',
         'sphinx_tabs.tabs',
         'examples',
+        'include_build_file',
 ]
 
 bibtex_bibfiles = ['references.bib']
@@ -69,3 +70,6 @@ html_css_files = ['custom.css']
 # -- Breathe configuration ---------------------------------------------------
 breathe_default_project = "cvc5"
 breathe_domain_by_extension = {"h" : "cpp"}
+
+# where to look for include-build-file
+ibf_folders = ['${CMAKE_CURRENT_BINARY_DIR}']
