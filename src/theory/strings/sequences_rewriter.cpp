@@ -2414,11 +2414,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   utils::getConcat(node[1], children1);
   if (!cmp_conr.isNull())
   {
-    // to show that the first argument definitely contains the second, the first
-    // argument after the given index must be non-empty. This ensures that
-    // (str.index t "" n) is not rewritten to something other than -1 when n
-    // is beyond the length of t.
-    if (cmp_conr.getConst<bool>() && !Word::isEmpty(fstr))
+    if (cmp_conr.getConst<bool>())
     {
       if (node[2].isConst() && node[2].getConst<Rational>().sgn() == 0)
       {
@@ -2452,23 +2448,30 @@ Node SequencesRewriter::rewriteIndexof(Node node)
           return returnRewrite(node, ret, Rewrite::IDOF_STRIP_CNST_ENDPTS);
         }
       }
-
-      // strip symbolic length
-      Node new_len = node[2];
-      std::vector<Node> nr;
-      if (StringsEntail::stripSymbolicLength(children0, nr, 1, new_len))
+      // To show that the first argument definitely contains the second, the first
+      // argument after the given index must be non-empty. This ensures that
+      // (str.index t "" n) is not rewritten to something other than -1 when n
+      // is beyond the length of t. This is not required for the above rewrites,
+      // which only apply when n=0.
+      if (StringsEntail::checkNonEmpty(fstr))
       {
-        // For example:
-        // z>str.len( x1 ) and str.contains( x2, y )-->true
-        // implies
-        // str.indexof( str.++( x1, x2 ), y, z ) --->
-        // str.len( x1 ) + str.indexof( x2, y, z-str.len(x1) )
-        Node nn = utils::mkConcat(children0, stype);
-        Node ret =
-            nm->mkNode(kind::PLUS,
-                       nm->mkNode(kind::MINUS, node[2], new_len),
-                       nm->mkNode(kind::STRING_STRIDOF, nn, node[1], new_len));
-        return returnRewrite(node, ret, Rewrite::IDOF_STRIP_SYM_LEN);
+        // strip symbolic length
+        Node new_len = node[2];
+        std::vector<Node> nr;
+        if (StringsEntail::stripSymbolicLength(children0, nr, 1, new_len))
+        {
+          // For example:
+          // z>str.len( x1 ) and str.contains( x2, y )-->true
+          // implies
+          // str.indexof( str.++( x1, x2 ), y, z ) --->
+          // str.len( x1 ) + str.indexof( x2, y, z-str.len(x1) )
+          Node nn = utils::mkConcat(children0, stype);
+          Node ret =
+              nm->mkNode(kind::PLUS,
+                        nm->mkNode(kind::MINUS, node[2], new_len),
+                        nm->mkNode(kind::STRING_STRIDOF, nn, node[1], new_len));
+          return returnRewrite(node, ret, Rewrite::IDOF_STRIP_SYM_LEN);
+        }
       }
     }
     else
