@@ -137,14 +137,8 @@ libcvc5_add_sources(
   printer/tptp/tptp_printer.cpp
   printer/tptp/tptp_printer.h
   proof/clause_id.h
-  proof/cnf_proof.cpp
-  proof/cnf_proof.h
   proof/dot/dot_printer.cpp
   proof/dot/dot_printer.h
-  proof/proof_manager.cpp
-  proof/proof_manager.h
-  proof/sat_proof.h
-  proof/sat_proof_implementation.h
   proof/unsat_core.cpp
   proof/unsat_core.h
   prop/bv_sat_solver_notify.h

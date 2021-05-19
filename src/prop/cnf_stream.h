@@ -164,8 +164,6 @@ class CnfStream {
   /** Retrieves map from literals to nodes. */
   const CnfStream::LiteralToNodeMap& getNodeCache() const;
 
-  void setProof(CnfProof* proof);
-
  protected:
   /**
    * Same as above, except that uses the saved d_removable flag. It calls the
@@ -242,9 +240,6 @@ class CnfStream {
 
   /** The name of this CNF stream*/
   std::string d_name;
-
-  /** Pointer to the proof corresponding to this CnfStream */
-  CnfProof* d_cnfProof;
 
   /**
    * Are we asserting a removable clause (true) or a permanent clause (false).
