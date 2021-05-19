@@ -40,7 +40,7 @@ SIG_DIR="$BASE_DIR/lfsc-signatures"
 mkdir -p $SIG_DIR
 
 # download and unpack signatures
-sig_version="44296371894b45a4d3ee7f5ae5720fd5aff7e93f"
+sig_version="4e41b34977e960c3765c8d2d49b8835580a7b04c"
 download "https://github.com/CVC4/signatures/archive/$sig_version.tar.gz" $BASE_DIR/tmp/signatures.tgz
 tar --strip 1 -xzf $BASE_DIR/tmp/signatures.tgz -C $SIG_DIR
 
