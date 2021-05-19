@@ -80,9 +80,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (opts.wasSetByUser(options::unsatCoresMode))
     {
       Notice()
-          << "Overriding OFF unsat-core mode since cores were requested..\n";
+          << "Overriding OFF unsat-core mode since cores were requested.\n";
     }
-    opts.set(options::unsatCoresMode, options::UnsatCoresMode::OLD_PROOF);
+    opts.set(options::unsatCoresMode, options::UnsatCoresMode::ASSUMPTIONS);
   }
 
   if (options::checkProofs() || options::dumpProofs())
@@ -352,7 +352,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         || options::sygusInference() || options::sygusRewSynthInput())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
-      isSygus = true;
       usesSygus = true;
     }
     else if (options::sygusInst())
@@ -397,7 +396,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     opts.set(options::unsatCores, true);
     if (options::unsatCoresMode() == options::UnsatCoresMode::OFF)
     {
-      opts.set(options::unsatCoresMode, options::UnsatCoresMode::OLD_PROOF);
+      opts.set(options::unsatCoresMode, options::UnsatCoresMode::ASSUMPTIONS);
     }
   }
 
@@ -415,9 +414,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // whether we want to force safe unsat cores, i.e., if we are in the OLD_PROOF
-  // unsat core mode, since new ones are experimental
+  // unsat core mode or ASSUMPTIONS, the new default, since other ones are
+  // experimental
   bool safeUnsatCores =
-      options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF;
+      options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF
+      || options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS;
 
   // Disable options incompatible with incremental solving, unsat cores or
   // output an error if enabled explicitly. It is also currently incompatible
