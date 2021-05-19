@@ -80,9 +80,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (opts.wasSetByUser(options::unsatCoresMode))
     {
       Notice()
-          << "Overriding OFF unsat-core mode since cores were requested..\n";
+          << "Overriding OFF unsat-core mode since cores were requested.\n";
     }
-    opts.set(options::unsatCoresMode, options::UnsatCoresMode::OLD_PROOF);
+    opts.set(options::unsatCoresMode, options::UnsatCoresMode::ASSUMPTIONS);
   }
 
   if (options::checkProofs() || options::dumpProofs())
@@ -311,13 +311,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // Note we allow E-matching by default to support combinations of sequences
     // and quantifiers.
   }
-  // whether we must disable proofs
-  bool disableProofs = false;
+  // whether we must disable proofs. There are three levels: no disable, partial
+  // disable (i.e., allows proofs for cores), full disable
+  unsigned disableProofs = 0;
   if (options::globalNegate())
   {
     // When global negate answers "unsat", it is not due to showing a set of
     // formulas is unsat. Thus, proofs do not apply.
-    disableProofs = true;
+    disableProofs = 2;
   }
 
   // new unsat core specific restrictions for proofs
@@ -377,20 +378,27 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       // When sygus answers "unsat", it is not due to showing a set of
       // formulas is unsat in the standard way. Thus, proofs do not apply.
-      disableProofs = true;
+      disableProofs = 1;
     }
   }
 
   // if we requiring disabling proofs, disable them now
   if (disableProofs && options::produceProofs())
   {
-    opts.set(options::unsatCores, false);
-    opts.set(options::unsatCoresMode, options::UnsatCoresMode::OFF);
-    if (options::produceProofs())
+    if (disableProofs > 1)
     {
-      Notice() << "SmtEngine: turning off produce-proofs." << std::endl;
+      opts.set(options::unsatCores, false);
+      opts.set(options::unsatCoresMode, options::UnsatCoresMode::OFF);
+      if (options::produceProofs())
+      {
+        Notice() << "SmtEngine: turning off produce-proofs." << std::endl;
+      }
+      opts.set(options::produceProofs, false);
     }
-    opts.set(options::produceProofs, false);
+    if (options::checkProofs() || options::proofEagerChecking())
+    {
+      Notice() << "SmtEngine: turning off proof checking.\n";
+    }
     opts.set(options::checkProofs, false);
     opts.set(options::proofEagerChecking, false);
   }
@@ -401,7 +409,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     opts.set(options::unsatCores, true);
     if (options::unsatCoresMode() == options::UnsatCoresMode::OFF)
     {
-      opts.set(options::unsatCoresMode, options::UnsatCoresMode::OLD_PROOF);
+      opts.set(options::unsatCoresMode, options::UnsatCoresMode::ASSUMPTIONS);
     }
   }
 
@@ -419,9 +427,10 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // whether we want to force safe unsat cores, i.e., if we are in the OLD_PROOF
-  // unsat core mode, since new ones are experimental
+  // unsat core mode or ASSUMPTIONS, the new default, since other ones are experimental
   bool safeUnsatCores =
-      options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF;
+      options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF
+      || options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS;
 
   // Disable options incompatible with incremental solving, unsat cores or
   // output an error if enabled explicitly. It is also currently incompatible
