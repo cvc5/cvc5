@@ -32,9 +32,9 @@ cardinality TESTER_TYPE \
     "theory/builtin/theory_builtin_type_rules.h"
 
 # tester type has a constructor type
-operator DT_UPDATE_TYPE 2 "datatype update"
+operator UPDATER_TYPE 2 "datatype update"
 # can re-use function cardinality
-cardinality DT_UPDATE_TYPE \
+cardinality UPDATER_TYPE \
     "::cvc5::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
 
@@ -45,7 +45,7 @@ parameterized APPLY_SELECTOR_TOTAL [SELECTOR_TYPE] 1 "selector application; para
 
 parameterized APPLY_TESTER TESTER_TYPE 1 "tester application; first parameter is a tester, second is a datatype term"
 
-parameterized APPLY_DT_UPDATE DT_UPDATE_TYPE 2 "datatype update application; first parameter is an update, second is a datatype term to update, third is the value to update with"
+parameterized APPLY_UPDATER UPDATER_TYPE 2 "datatype updater application; first parameter is an update, second is a datatype term to update, third is the value to update with"
 
 constant DATATYPE_TYPE \
     ::cvc5::DatatypeIndexConstant \
@@ -89,29 +89,11 @@ typerule APPLY_CONSTRUCTOR ::cvc5::theory::datatypes::DatatypeConstructorTypeRul
 typerule APPLY_SELECTOR ::cvc5::theory::datatypes::DatatypeSelectorTypeRule
 typerule APPLY_SELECTOR_TOTAL ::cvc5::theory::datatypes::DatatypeSelectorTypeRule
 typerule APPLY_TESTER ::cvc5::theory::datatypes::DatatypeTesterTypeRule
-typerule APPLY_DT_UPDATE ::cvc5::theory::datatypes::DatatypeUpdateTypeRule
+typerule APPLY_UPDATER ::cvc5::theory::datatypes::DatatypeUpdateTypeRule
 typerule APPLY_TYPE_ASCRIPTION ::cvc5::theory::datatypes::DatatypeAscriptionTypeRule
 
 # constructor applications are constant if they are applied only to constants
 construle APPLY_CONSTRUCTOR ::cvc5::theory::datatypes::DatatypeConstructorTypeRule
-
-constant TUPLE_UPDATE_OP \
-        ::cvc5::TupleUpdate \
-        ::cvc5::TupleUpdateHashFunction \
-        "util/tuple.h" \
-        "operator for a tuple update; payload is an instance of the cvc5::TupleUpdate class"
-parameterized TUPLE_UPDATE TUPLE_UPDATE_OP 2 "tuple update; first parameter is a TUPLE_UPDATE_OP (which references an index), second is the tuple, third is the element to store in the tuple at the given index"
-typerule TUPLE_UPDATE_OP ::cvc5::theory::datatypes::TupleUpdateOpTypeRule
-typerule TUPLE_UPDATE ::cvc5::theory::datatypes::TupleUpdateTypeRule
-
-constant RECORD_UPDATE_OP \
-        ::cvc5::RecordUpdate \
-        ::cvc5::RecordUpdateHashFunction \
-        "expr/record.h" \
-        "operator for a record update; payload is an instance cvc5::RecordUpdate class"
-parameterized RECORD_UPDATE RECORD_UPDATE_OP 2 "record update; first parameter is a RECORD_UPDATE_OP (which references a field), second is a record term to update, third is the element to store in the record in the given field"
-typerule RECORD_UPDATE_OP ::cvc5::theory::datatypes::RecordUpdateOpTypeRule
-typerule RECORD_UPDATE ::cvc5::theory::datatypes::RecordUpdateTypeRule
 
 operator DT_SIZE 1 "datatypes size"
 typerule DT_SIZE ::cvc5::theory::datatypes::DtSizeTypeRule

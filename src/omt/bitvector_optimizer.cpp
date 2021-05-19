@@ -43,13 +43,11 @@ BitVector OMTOptimizerBitVector::computeAverage(const BitVector& a,
                         + aMod2PlusbMod2Div2));
 }
 
-OptimizationResult OMTOptimizerBitVector::minimize(SmtEngine* parentSMTSolver,
+OptimizationResult OMTOptimizerBitVector::minimize(SmtEngine* optChecker,
                                                    TNode target)
 {
   // the smt engine to which we send intermediate queries
   // for the binary search.
-  std::unique_ptr<SmtEngine> optChecker =
-      OMTOptimizer::createOptCheckerWithTimeout(parentSMTSolver, false);
   NodeManager* nm = optChecker->getNodeManager();
   Result intermediateSatResult = optChecker->checkSat();
   // Model-value of objective (used in optimization loop)
@@ -137,13 +135,11 @@ OptimizationResult OMTOptimizerBitVector::minimize(SmtEngine* parentSMTSolver,
   return OptimizationResult(OptimizationResult::OPTIMAL, value);
 }
 
-OptimizationResult OMTOptimizerBitVector::maximize(SmtEngine* parentSMTSolver,
+OptimizationResult OMTOptimizerBitVector::maximize(SmtEngine* optChecker,
                                                    TNode target)
 {
   // the smt engine to which we send intermediate queries
   // for the binary search.
-  std::unique_ptr<SmtEngine> optChecker =
-      OMTOptimizer::createOptCheckerWithTimeout(parentSMTSolver, false);
   NodeManager* nm = optChecker->getNodeManager();
   Result intermediateSatResult = optChecker->checkSat();
   // Model-value of objective (used in optimization loop)

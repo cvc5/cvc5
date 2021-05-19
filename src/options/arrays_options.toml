@@ -1,6 +1,5 @@
 id     = "ARRAYS"
-name   = "Arrays theory"
-header = "options/arrays_options.h"
+name   = "Arrays Theory"
 
 [[option]]
   name       = "arraysOptimizeLinear"

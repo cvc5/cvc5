@@ -87,19 +87,19 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
   }
   Trace("pnm-scope") << "ProofNodeManager::mkScope " << assumps << std::endl;
   // we first ensure the assumptions are flattened
-  std::unordered_set<Node, NodeHashFunction> ac{assumps.begin(), assumps.end()};
+  std::unordered_set<Node> ac{assumps.begin(), assumps.end()};
   // map from the rewritten form of assumptions to the original. This is only
   // computed in the rare case when we need rewriting to match the
   // assumptions. An example of this is for Boolean constant equalities in
   // scoped proofs from the proof equality engine.
-  std::unordered_map<Node, Node, NodeHashFunction> acr;
+  std::unordered_map<Node, Node> acr;
   // whether we have compute the map above
   bool computedAcr = false;
 
   // The free assumptions of the proof
   std::map<Node, std::vector<std::shared_ptr<ProofNode>>> famap;
   expr::getFreeAssumptionsMap(pf, famap);
-  std::unordered_set<Node, NodeHashFunction> acu;
+  std::unordered_set<Node> acu;
   for (const std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>&
            fa : famap)
   {
@@ -153,8 +153,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
         }
       }
       Node ar = theory::Rewriter::rewrite(a);
-      std::unordered_map<Node, Node, NodeHashFunction>::iterator itr =
-          acr.find(ar);
+      std::unordered_map<Node, Node>::iterator itr = acr.find(ar);
       if (itr != acr.end())
       {
         aMatch = itr->second;

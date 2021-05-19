@@ -68,7 +68,7 @@ class ProofEqEngine;
  */
 class TheoryInferenceManager
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   /**

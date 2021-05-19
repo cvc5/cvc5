@@ -285,7 +285,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         Trace("si-prt-debug") << "...normalized invocations to " << cr
                               << std::endl;
         // now must check if it has other bound variables
-        std::unordered_set<Node, NodeHashFunction> fvs;
+        std::unordered_set<Node> fvs;
         expr::getFreeVariables(cr, fvs);
         // bound variables must be contained in the single invocation variables
         for (const Node& bv : fvs)
@@ -316,7 +316,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         Trace("si-prt") << "...not single invocation." << std::endl;
         singleInvocation = false;
         // rename bound variables with maximal overlap with si_vars
-        std::unordered_set<Node, NodeHashFunction> fvs;
+        std::unordered_set<Node> fvs;
         expr::getFreeVariables(cr, fvs);
         std::vector<Node> termsNs;
         std::vector<Node> subsNs;
@@ -349,7 +349,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
       Trace("si-prt") << ".....got si=" << singleInvocation
                       << ", result : " << cr << std::endl;
       d_conjuncts[2].push_back(cr);
-      std::unordered_set<Node, NodeHashFunction> fvs;
+      std::unordered_set<Node> fvs;
       expr::getFreeVariables(cr, fvs);
       d_all_vars.insert(fvs.begin(), fvs.end());
       if (singleInvocation)

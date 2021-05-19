@@ -29,6 +29,7 @@ set(EXAMPLES_API_PYTHON
   sygus-fun
   sygus-grammar
   sygus-inv
+  id
 )
 
 find_package(PythonInterp ${CVC5_BINDINGS_PYTHON_VERSION} REQUIRED)

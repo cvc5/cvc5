@@ -93,7 +93,7 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   std::vector<Node> free_functions;
 
   std::vector<TNode> visit;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
 
   // add top-level conjuncts to eassertions
   std::vector<Node> assertions_proc = assertions;

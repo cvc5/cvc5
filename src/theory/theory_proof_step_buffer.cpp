@@ -186,7 +186,7 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
   }
   children.clear();
   // remove duplicates while keeping the order of children
-  std::unordered_set<TNode, TNodeHashFunction> clauseSet;
+  std::unordered_set<TNode> clauseSet;
   unsigned size = n.getNumChildren();
   for (unsigned i = 0; i < size; ++i)
   {
