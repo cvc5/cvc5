@@ -1151,7 +1151,8 @@ Node SequencesRewriter::rewriteRangeRegExp(TNode node)
   if (ch[0] > ch[1])
   {
     // re.range( "B", "A" ) ---> re.none
-    Node retNode = nm->mkNode(REGEXP_EMPTY, {});
+    std::vector<Node> emptyVec;
+    Node retNode = nm->mkNode(REGEXP_EMPTY, emptyVec);
     return returnRewrite(node, retNode, Rewrite::RE_RANGE_EMPTY);
   }
   return node;
