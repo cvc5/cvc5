@@ -162,10 +162,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
           "Incremental eager bit-blasting is currently "
           "only supported for QF_BV. Try --bitblast=lazy.");
     }
-
-    // Force lazy solver since we don't handle EAGER_ATOMS in the
-    // BVSolver::BITBLAST solver.
-    opts.set(options::bvSolver, options::BVSolver::LAZY);
   }
 
   /* Only BVSolver::LAZY natively supports int2bv and nat2bv, for other solvers
@@ -357,7 +353,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         || options::sygusInference() || options::sygusRewSynthInput())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
-      isSygus = true;
       usesSygus = true;
     }
     else if (options::sygusInst())
@@ -427,7 +422,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // whether we want to force safe unsat cores, i.e., if we are in the OLD_PROOF
-  // unsat core mode or ASSUMPTIONS, the new default, since other ones are experimental
+  // unsat core mode or ASSUMPTIONS, the new default, since other ones are
+  // experimental
   bool safeUnsatCores =
       options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF
       || options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS;
