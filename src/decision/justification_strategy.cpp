@@ -126,8 +126,8 @@ SatLiteral JustificationStrategy::getNext()
 
     if (ji == nullptr)
     {
-      // NOTE: lastChildVal should be SAT_VALUE_TRUE here, although this is
-      // not the case if backtracking occurred.
+      // the assertion we just processed should have value true
+      Assert(lastChildVal == SAT_VALUE_TRUE);
       if (!d_currUnderStatus.isNull())
       {
         // notify status if we are watching it
