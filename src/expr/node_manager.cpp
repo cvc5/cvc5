@@ -1152,4 +1152,11 @@ Kind NodeManager::getKindForFunction(TNode fun)
   return kind::UNDEFINED_KIND;
 }
 
+Node NodeManager::mkNode(Kind kind, std::initializer_list<TNode> children)
+{
+  NodeBuilder nb(this, kind);
+  nb.append(children.begin(), children.end());
+  return nb.constructNode();
+}
+
 }  // namespace cvc5
