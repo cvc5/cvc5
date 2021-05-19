@@ -55,10 +55,13 @@ void LfscPrinter::print(std::ostream& out,
   std::unordered_set<TNode> visited;
   std::vector<Node> iasserts;
   std::map<Node, size_t> passumeMap;
+  std::unordered_set<TypeNode> types;
+  std::unordered_set<TNode> typeVisited;
   for (size_t i = 0, nasserts = assertions.size(); i < nasserts; i++)
   {
     Node a = assertions[i];
     expr::getSymbols(a, syms, visited);
+    expr::getTypes(a, types, typeVisited);
     iasserts.push_back(d_tproc.convert(a));
     // remember the assumption name
     passumeMap[a] = i;
@@ -68,89 +71,89 @@ void LfscPrinter::print(std::ostream& out,
   std::stringstream preamble;
   std::unordered_set<TypeNode> sts;
   std::unordered_set<size_t> tupleArity;
-  for (const Node& s : syms)
+  for (const TypeNode& st : types)
   {
-    TypeNode st = s.getType();
     // note that we must get all "component types" of a type, so that
     // e.g. U is printed as a sort declaration when we have type (Array U Int).
-    std::unordered_set<TypeNode> types;
-    expr::getComponentTypes(st, types);
-    for (const TypeNode& stc : types)
+    std::unordered_set<TypeNode> ctypes;
+    expr::getComponentTypes(st, ctypes);
+    for (const TypeNode& stc : ctypes)
     {
-      if (sts.find(stc) == sts.end())
+      if (sts.find(stc) != sts.end())
       {
-        sts.insert(stc);
-        if (stc.isSort())
+        continue;
+      }
+      sts.insert(stc);
+      if (stc.isSort())
+      {
+        preamble << "(declare ";
+        printType(preamble, stc);
+        preamble << " sort)" << std::endl;
+      }
+      else if (stc.isDatatype())
+      {
+        const DType& dt = stc.getDType();
+        if (stc.getKind()==PARAMETRIC_DATATYPE)
+        {
+          // skip the instance of a parametric datatype
+          continue;
+        }
+        preamble << "; DATATYPE " << dt.getName() << std::endl;
+        if (dt.isTuple())
+        {
+          const DTypeConstructor& cons = dt[0];
+          size_t arity = cons.getNumArgs();
+          if (tupleArity.find(arity) == tupleArity.end())
+          {
+            tupleArity.insert(arity);
+            preamble << "(declare Tuple_" << arity << " ";
+            std::stringstream tcparen;
+            for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
+            {
+              preamble << "(! s" << j << " sort ";
+              tcparen << ")";
+            }
+            preamble << "sort" << tcparen.str() << ")";
+          }
+          preamble << std::endl;
+        }
+        else
         {
           preamble << "(declare ";
           printType(preamble, stc);
-          preamble << " sort)" << std::endl;
+          std::stringstream cdttparens;
+          if (dt.isParametric())
+          {
+            std::vector<TypeNode> params = dt.getParameters();
+            for (const TypeNode& tn : params)
+            {
+              preamble << " (! " << tn << " sort";
+              cdttparens << ")";
+            }
+          }
+          preamble << " sort)" << cdttparens.str() << std::endl;
         }
-        else if (stc.isDatatype())
+        for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
         {
-          const DType& dt = stc.getDType();
-          if (stc.getKind()==PARAMETRIC_DATATYPE)
+          const DTypeConstructor& cons = dt[i];
+          std::stringstream sscons;
+          sscons << d_tproc.convert(cons.getConstructor());
+          std::string cname = LfscNodeConverter::getNameForUserName(sscons.str());
+          // print construct/tester
+          preamble << "(declare " << cname << " term)" << std::endl;
+          preamble << "(declare is-" << cname << " term)" << std::endl;
+          for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
           {
-            // skip the instance of a parametric datatype
-            continue;
+            const DTypeSelector& arg = cons[j];
+            // print selector
+            Node si = d_tproc.convert(arg.getSelector());
+            std::stringstream sns;
+            sns << si;
+            std::string sname = LfscNodeConverter::getNameForUserName(sns.str());
+            preamble << "(declare " << sname << " term)" << std::endl;
           }
-          preamble << "; DATATYPE " << dt.getName() << std::endl;
-          if (dt.isTuple())
-          {
-            const DTypeConstructor& cons = dt[0];
-            size_t arity = cons.getNumArgs();
-            if (tupleArity.find(arity) == tupleArity.end())
-            {
-              tupleArity.insert(arity);
-              preamble << "(declare Tuple_" << arity << " ";
-              std::stringstream tcparen;
-              for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
-              {
-                preamble << "(! s" << j << " sort ";
-                tcparen << ")";
-              }
-              preamble << "sort" << tcparen.str() << ")";
-            }
-            preamble << std::endl;
-          }
-          else
-          {
-            preamble << "(declare ";
-            printType(preamble, stc);
-            std::stringstream cdttparens;
-            if (dt.isParametric())
-            {
-              std::vector<TypeNode> params = dt.getParameters();
-              for (const TypeNode& tn : params)
-              {
-                preamble << " (! " << tn << " sort";
-                cdttparens << ")";
-              }
-            }
-            preamble << " sort)" << cdttparens.str() << std::endl;
-          }
-          for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
-          {
-            const DTypeConstructor& cons = dt[i];
-            std::stringstream sscons;
-            sscons << d_tproc.convert(cons.getConstructor());
-            std::string cname = LfscNodeConverter::getNameForUserName(sscons.str());
-            // print construct/tester
-            preamble << "(declare " << cname << " term)" << std::endl;
-            preamble << "(declare is-" << cname << " term)" << std::endl;
-            for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
-            {
-              const DTypeSelector& arg = cons[j];
-              // print selector
-              Node si = d_tproc.convert(arg.getSelector());
-              std::stringstream sns;
-              sns << si;
-              std::string sname = LfscNodeConverter::getNameForUserName(sns.str());
-              preamble << "(declare " << sname << " term)" << std::endl;
-            }
-          }
-          preamble << "; END DATATYPE " << std::endl;
         }
+        preamble << "; END DATATYPE " << std::endl;
       }
     }
   }
