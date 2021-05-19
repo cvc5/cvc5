@@ -2144,7 +2144,6 @@ void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to)
   // FIXME what is this CRef_lazy
   if (cr == CRef_Lazy) return;
 
-  CRef old = cr;  // save the old reference
   Clause& c = operator[](cr);
   if (c.reloced()) { cr = c.relocation(); return; }
 

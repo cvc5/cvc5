@@ -1068,8 +1068,6 @@ class CVC5_EXPORT SmtEngine
   /** The SMT solver */
   std::unique_ptr<smt::SmtSolver> d_smtSolver;
 
-  /** The (old) proof manager TODO (project #37): delete this */
-  std::unique_ptr<ProofManager> d_proofManager;
   /**
    * The SMT-level model object, which contains information about how to
    * print the model, as well as a pointer to the underlying TheoryModel

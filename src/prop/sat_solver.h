@@ -24,6 +24,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "expr/proof_node_manager.h"
+#include "proof/clause_id.h"
 #include "prop/bv_sat_solver_notify.h"
 #include "prop/sat_solver_types.h"
 #include "util/statistics_stats.h"
