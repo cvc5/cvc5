@@ -130,7 +130,7 @@ class JustificationStrategy
   AssertionList d_skolemAssertions;
 
   /** Mapping from non-negated nodes to their SAT value */
-  context::CDInsertHashMap<Node, prop::SatValue, NodeHashFunction> d_justified;
+  context::CDInsertHashMap<Node, prop::SatValue> d_justified;
   /** A justify stack */
   JustifyStack d_stack;
   /** The last decision literal */

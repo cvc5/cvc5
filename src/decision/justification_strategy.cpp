@@ -130,6 +130,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
 
     if (ji == nullptr)
     {
+      AlwaysAssert(lastChildVal == SAT_VALUE_TRUE);
       // assertion should be true?
       // AlwaysAssert(lastChildVal == SAT_VALUE_TRUE) << "Previous assertion "
       // << d_current.get() << " had value " << lastChildVal;
@@ -438,7 +439,7 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
   // check if we have already determined the value
   // notice that d_justified may contain nodes that are not assigned SAT values,
   // since this class infers when the value of nodes can be determined.
-  context::CDInsertHashMap<Node, SatValue, NodeHashFunction>::const_iterator
+  context::CDInsertHashMap<Node, SatValue>::const_iterator
       jit = d_justified.find(atom);
   if (jit != d_justified.end())
   {
