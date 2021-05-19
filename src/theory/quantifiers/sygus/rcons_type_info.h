@@ -24,6 +24,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
+class RConsObligation;
+
 /**
  * A utility class for Sygus Reconstruct datatype types (grammar non-terminals).
  * This class is mainly responsible for enumerating sygus datatype type terms
@@ -67,18 +69,18 @@ class RConsTypeInfo
   /**
    * Set the obligation responsible for solving the given builtin term.
    *
-   * @param builtin The builtin term
+   * @param t The builtin term
    * @param ob The corresponding obligation
    */
-  void setBuiltinToOb(Node builtin, Node ob);
+  void setBuiltinToOb(Node t, RConsObligation* ob);
 
   /**
    * Return the obligation responsible for solving the given builtin term.
    *
-   * @param builtin The builtin term
+   * @param t The builtin term
    * @return The corresponding obligation
    */
-  Node builtinToOb(Node builtin);
+  RConsObligation* builtinToOb(Node t);
 
  private:
   /** Sygus terms enumerator for this class' Sygus datatype type */
@@ -93,7 +95,7 @@ class RConsTypeInfo
    * possible to have multiple obligations to reconstruct the same builtin term
    * from different sygus datatype types.
    */
-  std::unordered_map<Node, Node> d_ob;
+  std::unordered_map<Node, RConsObligation*> d_ob;
 };
 
 }  // namespace quantifiers
