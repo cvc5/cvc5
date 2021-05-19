@@ -2467,9 +2467,9 @@ Node SequencesRewriter::rewriteIndexof(Node node)
           // str.len( x1 ) + str.indexof( x2, y, z-str.len(x1) )
           Node nn = utils::mkConcat(children0, stype);
           Node ret = nm->mkNode(
-              kind::PLUS,
-              nm->mkNode(kind::MINUS, node[2], new_len),
-              nm->mkNode(kind::STRING_STRIDOF, nn, node[1], new_len));
+              PLUS,
+              nm->mkNode(MINUS, node[2], new_len),
+              nm->mkNode(STRING_STRIDOF, nn, node[1], new_len));
           return returnRewrite(node, ret, Rewrite::IDOF_STRIP_SYM_LEN);
         }
       }
