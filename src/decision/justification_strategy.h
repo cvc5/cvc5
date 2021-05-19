@@ -174,7 +174,7 @@ class JustificationStrategy
   void insertToAssertionList(std::vector<TNode>& toProcess, bool useSkolemList);
   /**
    * Refresh current assertion. This ensures that d_stack has a current
-   * assertion to satisfy. If does not already have one, we take the next
+   * assertion to satisfy. If it does not already have one, we take the next
    * assertion from the list of input assertions, or from the relevant
    * skolem definitions based on the JutificationSkolemMode mode.
    *
