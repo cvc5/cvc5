@@ -1129,6 +1129,17 @@ Node SequencesRewriter::rewriteDifferenceRegExp(TNode node)
 Node SequencesRewriter::rewriteRangeRegExp(TNode node)
 {
   Assert(node.getKind() == REGEXP_RANGE);
+  unsigned ch[2];
+  for (size_t i = 0; i < 2; ++i)
+  {
+    if (!node[i].isConst() || node[i].getConst<String>().size() != 1)
+    {
+      // not applied to characters, it is not handled
+      return node;
+    }
+    ch[i] = node[i].getConst<String>().front();
+  }
+
   NodeManager* nm = NodeManager::currentNM();
   if (node[0] == node[1])
   {
@@ -1137,18 +1148,7 @@ Node SequencesRewriter::rewriteRangeRegExp(TNode node)
     return returnRewrite(node, retNode, Rewrite::RE_RANGE_SINGLE);
   }
 
-  bool appliedCh = true;
-  unsigned ch[2];
-  for (size_t i = 0; i < 2; ++i)
-  {
-    if (node[i].isConst() || node[i].getConst<String>().size() != 1)
-    {
-      appliedCh = false;
-      break;
-    }
-    ch[i] = node[i].getConst<String>().front();
-  }
-  if (appliedCh && ch[0] > ch[1])
+  if (ch[0] > ch[1])
   {
     // re.range( "B", "A" ) ---> re.none
     Node retNode = nm->mkNode(REGEXP_EMPTY, {});
@@ -2452,23 +2452,30 @@ Node SequencesRewriter::rewriteIndexof(Node node)
           return returnRewrite(node, ret, Rewrite::IDOF_STRIP_CNST_ENDPTS);
         }
       }
-
-      // strip symbolic length
-      Node new_len = node[2];
-      std::vector<Node> nr;
-      if (StringsEntail::stripSymbolicLength(children0, nr, 1, new_len))
+      // To show that the first argument definitely contains the second, the
+      // index must be a valid index in the first argument. This ensures that
+      // (str.indexof t "" n) is not rewritten to something other than -1 when n
+      // is beyond the length of t. This is not required for the above rewrites,
+      // which only apply when n=0.
+      if (ArithEntail::check(node[2]) && ArithEntail::check(len0, node[2]))
       {
-        // For example:
-        // z>str.len( x1 ) and str.contains( x2, y )-->true
-        // implies
-        // str.indexof( str.++( x1, x2 ), y, z ) --->
-        // str.len( x1 ) + str.indexof( x2, y, z-str.len(x1) )
-        Node nn = utils::mkConcat(children0, stype);
-        Node ret =
-            nm->mkNode(kind::PLUS,
-                       nm->mkNode(kind::MINUS, node[2], new_len),
-                       nm->mkNode(kind::STRING_STRIDOF, nn, node[1], new_len));
-        return returnRewrite(node, ret, Rewrite::IDOF_STRIP_SYM_LEN);
+        // strip symbolic length
+        Node new_len = node[2];
+        std::vector<Node> nr;
+        if (StringsEntail::stripSymbolicLength(children0, nr, 1, new_len))
+        {
+          // For example:
+          // z>=0 and z>str.len( x1 ) and str.contains( x2, y )-->true
+          // implies
+          // str.indexof( str.++( x1, x2 ), y, z ) --->
+          // str.len( x1 ) + str.indexof( x2, y, z-str.len(x1) )
+          Node nn = utils::mkConcat(children0, stype);
+          Node ret =
+              nm->mkNode(PLUS,
+                         nm->mkNode(MINUS, node[2], new_len),
+                         nm->mkNode(STRING_STRIDOF, nn, node[1], new_len));
+          return returnRewrite(node, ret, Rewrite::IDOF_STRIP_SYM_LEN);
+        }
       }
     }
     else

@@ -1,5 +1,5 @@
 id     = "EXPR"
-name   = "Expression package"
+name   = "Expression"
 
 [[option]]
   name       = "defaultExprDepth"

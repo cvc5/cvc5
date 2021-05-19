@@ -1,5 +1,5 @@
 id     = "THEORY"
-name   = "Theory layer"
+name   = "Theory Layer"
 
 [[option]]
   name       = "theoryOfMode"

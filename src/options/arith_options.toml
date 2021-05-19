@@ -1,5 +1,5 @@
 id     = "ARITH"
-name   = "Arithmetic theory"
+name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithUnateLemmaMode"
