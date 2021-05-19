@@ -116,6 +116,11 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
           }
           else if (rc.getKind() == REGEXP_RANGE || rc.getKind() == REGEXP_SIGMA)
           {
+            if (!isConstRegExp(rc))
+            {
+              // if a non-standard re.range term, abort
+              return Node::null();
+            }
             std::vector<unsigned> ssVec;
             ssVec.push_back(t == 0 ? s.back() : s.front());
             cvc5::String ss(ssVec);
@@ -328,21 +333,48 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
 
 bool RegExpEntail::isConstRegExp(TNode t)
 {
-  if (t.getKind() == STRING_TO_REGEXP)
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(t);
+  do
   {
-    return t[0].isConst();
-  }
-  else if (t.isVar())
-  {
-    return false;
-  }
-  for (unsigned i = 0; i < t.getNumChildren(); ++i)
-  {
-    if (!isConstRegExp(t[i]))
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
     {
-      return false;
+      visited.insert(cur);
+      Kind ck = cur.getKind();
+      if (ck == STRING_TO_REGEXP)
+      {
+        if (!cur[0].isConst())
+        {
+          return false;
+        }
+      }
+      else if (ck == REGEXP_RANGE)
+      {
+        for (const Node& cn : cur)
+        {
+          if (!cn.isConst() || cn.getConst<String>().size() != 1)
+          {
+            return false;
+          }
+        }
+      }
+      else if (cur.isVar())
+      {
+        return false;
+      }
+      else
+      {
+        for (const Node& cn : cur)
+        {
+          visit.push_back(cn);
+        }
+      }
     }
-  }
+  } while (!visit.empty());
   return true;
 }
 

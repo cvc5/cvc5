@@ -130,7 +130,7 @@ class TheoryFp : public Theory
   void convertAndEquateTerm(TNode node);
 
   /** Interaction with the rest of the solver **/
-  void handleLemma(Node node, InferenceId id = InferenceId::UNKNOWN);
+  void handleLemma(Node node, InferenceId id);
   /**
    * Called when literal node is inferred by the equality engine. This
    * propagates node on the output channel.
