@@ -1139,7 +1139,7 @@ Node SequencesRewriter::rewriteRangeRegExp(TNode node)
     }
     ch[i] = node[i].getConst<String>().front();
   }
-  
+
   NodeManager* nm = NodeManager::currentNM();
   if (node[0] == node[1])
   {
