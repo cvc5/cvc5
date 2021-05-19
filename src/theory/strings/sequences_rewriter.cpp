@@ -2448,12 +2448,12 @@ Node SequencesRewriter::rewriteIndexof(Node node)
           return returnRewrite(node, ret, Rewrite::IDOF_STRIP_CNST_ENDPTS);
         }
       }
-      // To show that the first argument definitely contains the second, the first
-      // argument after the given index must be non-empty. This ensures that
+      // To show that the first argument definitely contains the second, the
+      // index must a valid index in the first argument. This ensures that
       // (str.index t "" n) is not rewritten to something other than -1 when n
       // is beyond the length of t. This is not required for the above rewrites,
       // which only apply when n=0.
-      if (StringsEntail::checkNonEmpty(fstr))
+      if (ArithEntail::check(node[2]) && ArithEntail::check(len0, node[2]))
       {
         // strip symbolic length
         Node new_len = node[2];
