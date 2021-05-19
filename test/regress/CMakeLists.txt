@@ -534,6 +534,7 @@ set(regress_0_tests
   regress0/define-fun-model.smt2
   regress0/distinct.smtv1.smt2
   regress0/dump-unsat-core-full.smt2
+  regress0/echo.smt2
   regress0/eqrange1.smt2
   regress0/eqrange2.smt2
   regress0/eqrange3.smt2
