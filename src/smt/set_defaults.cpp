@@ -313,12 +313,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
   // whether we must disable proofs. There are three levels: no disable, partial
   // disable (i.e., allows proofs for cores), full disable
-  unsigned disableProofs = 0;
+  bool disableProofs = false;
   if (options::globalNegate())
   {
     // When global negate answers "unsat", it is not due to showing a set of
     // formulas is unsat. Thus, proofs do not apply.
-    disableProofs = 2;
+    disableProofs = true;
   }
 
   // new unsat core specific restrictions for proofs
@@ -357,7 +357,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         || options::sygusInference() || options::sygusRewSynthInput())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
-      isSygus = true;
       usesSygus = true;
     }
     else if (options::sygusInst())
@@ -378,15 +377,13 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       // When sygus answers "unsat", it is not due to showing a set of
       // formulas is unsat in the standard way. Thus, proofs do not apply.
-      disableProofs = 1;
+      disableProofs = true;
     }
   }
 
   // if we requiring disabling proofs, disable them now
   if (disableProofs && options::produceProofs())
   {
-    if (disableProofs > 1)
-    {
       opts.set(options::unsatCores, false);
       opts.set(options::unsatCoresMode, options::UnsatCoresMode::OFF);
       if (options::produceProofs())
@@ -394,11 +391,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         Notice() << "SmtEngine: turning off produce-proofs." << std::endl;
       }
       opts.set(options::produceProofs, false);
-    }
-    if (options::checkProofs() || options::proofEagerChecking())
-    {
-      Notice() << "SmtEngine: turning off proof checking.\n";
-    }
     opts.set(options::checkProofs, false);
     opts.set(options::proofEagerChecking, false);
   }
