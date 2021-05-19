@@ -8,3 +8,4 @@ We create a solver, declare a Boolean variable and check whether it is entailed 
     ../../examples/api/cpp/helloworld.cpp
     ../../examples/api/java/HelloWorld.java
     ../../examples/api/python/helloworld.py
+    ../../examples/api/smtlib/helloworld.smt2
