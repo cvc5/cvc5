@@ -384,13 +384,13 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // if we requiring disabling proofs, disable them now
   if (disableProofs && options::produceProofs())
   {
-      opts.set(options::unsatCores, false);
-      opts.set(options::unsatCoresMode, options::UnsatCoresMode::OFF);
-      if (options::produceProofs())
-      {
-        Notice() << "SmtEngine: turning off produce-proofs." << std::endl;
-      }
-      opts.set(options::produceProofs, false);
+    opts.set(options::unsatCores, false);
+    opts.set(options::unsatCoresMode, options::UnsatCoresMode::OFF);
+    if (options::produceProofs())
+    {
+      Notice() << "SmtEngine: turning off produce-proofs." << std::endl;
+    }
+    opts.set(options::produceProofs, false);
     opts.set(options::checkProofs, false);
     opts.set(options::proofEagerChecking, false);
   }
@@ -419,7 +419,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // whether we want to force safe unsat cores, i.e., if we are in the OLD_PROOF
-  // unsat core mode or ASSUMPTIONS, the new default, since other ones are experimental
+  // unsat core mode or ASSUMPTIONS, the new default, since other ones are
+  // experimental
   bool safeUnsatCores =
       options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF
       || options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS;
