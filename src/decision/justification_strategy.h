@@ -70,7 +70,7 @@ namespace decision {
  *     ...The value of (and A B) is false
  *   - Moving to the next literal, the desired value of C is true
  *     ...The value of C is unassigned, return C as a decision.
- * After deciding C, the solver may backtrack, or otherwise end up in a state
+ * After deciding C, assuming no backtracking occurs, we end up in a state
  * where we have assigned:
  *   { A -> false, E -> true, C -> true }
  * In the next call to getNext, this module will proceed, keeping the stack

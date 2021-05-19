@@ -558,6 +558,9 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
       // assertions, for uniformity via a method notifyJustified(currAtom)
     }
   }
+  // clear since toProcess may contain nodes with 0 ref count after returning
+  // otherwise
+  toProcess.clear();
 }
 
 bool JustificationStrategy::refreshCurrentAssertion()
