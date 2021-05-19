@@ -1182,7 +1182,12 @@ void Smt2::notifyNamedExpression(api::Term& expr, std::string name)
 {
   checkUserSymbol(name);
   // remember the expression name in the symbol manager
-  getSymbolManager()->setExpressionName(expr, name, false);
+  if (getSymbolManager()->setExpressionName(expr, name, false)
+      == NamingResult::ERROR_IN_BINDER)
+  {
+    parseError(
+        "Cannot name a term in a binder (e.g., quantifiers, definitions)");
+  }
   // define the variable
   defineVar(name, expr);
   // set the last named term, which ensures that we catch when assertions are
