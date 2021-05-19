@@ -337,10 +337,12 @@ bool RegExpEntail::isConstRegExp(TNode t)
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(t);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end()) {
+    if (visited.find(cur) == visited.end())
+    {
       visited.insert(cur);
       Kind ck = cur.getKind();
       if (ck == STRING_TO_REGEXP)
@@ -366,7 +368,8 @@ bool RegExpEntail::isConstRegExp(TNode t)
       }
       else
       {
-        for (const Node& cn : cur ){
+        for (const Node& cn : cur)
+        {
           visit.push_back(cn);
         }
       }

@@ -1318,8 +1318,8 @@ Node SequencesRewriter::rewriteMembership(TNode node)
       Node xcode = nm->mkNode(STRING_TO_CODE, x);
       Node retNode =
           nm->mkNode(AND,
-                    nm->mkNode(LEQ, nm->mkNode(STRING_TO_CODE, r[0]), xcode),
-                    nm->mkNode(LEQ, xcode, nm->mkNode(STRING_TO_CODE, r[1])));
+                     nm->mkNode(LEQ, nm->mkNode(STRING_TO_CODE, r[0]), xcode),
+                     nm->mkNode(LEQ, xcode, nm->mkNode(STRING_TO_CODE, r[1])));
       return returnRewrite(node, retNode, Rewrite::RE_IN_RANGE);
     }
   }
