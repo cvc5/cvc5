@@ -61,10 +61,9 @@ Node getPvCoeff(TNode pv, TNode n);
  * a null node otherwise. If pv does not occur in children it returns a
  * multiplication over children.
  */
-Node normalizePvMult(
-    TNode pv,
-    const std::vector<Node>& children,
-    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv);
+Node normalizePvMult(TNode pv,
+                     const std::vector<Node>& children,
+                     std::unordered_map<Node, bool>& contains_pv);
 
 /**
  * Normalizes the children of a BITVECTOR_PLUS w.r.t. pv. contains_pv marks
@@ -81,10 +80,9 @@ Node normalizePvMult(
  * a null node otherwise. If pv does not occur in children it returns an
  * addition over children.
  */
-Node normalizePvPlus(
-    Node pv,
-    const std::vector<Node>& children,
-    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv);
+Node normalizePvPlus(Node pv,
+                     const std::vector<Node>& children,
+                     std::unordered_map<Node, bool>& contains_pv);
 
 /**
  * Linearize an equality w.r.t. pv such that pv only occurs once. contains_pv
@@ -97,10 +95,9 @@ Node normalizePvPlus(
  *
  *   pv * (-a - 1) = c - b.
  */
-Node normalizePvEqual(
-    Node pv,
-    const std::vector<Node>& children,
-    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv);
+Node normalizePvEqual(Node pv,
+                      const std::vector<Node>& children,
+                      std::unordered_map<Node, bool>& contains_pv);
 
 }  // namespace utils
 }  // namespace quantifiers

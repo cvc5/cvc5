@@ -59,7 +59,7 @@ SymmetryBreaker::Template::Template() :
 }
 
 TNode SymmetryBreaker::Template::find(TNode n) {
-  unordered_map<TNode, TNode, TNodeHashFunction>::iterator i = d_reps.find(n);
+  unordered_map<TNode, TNode>::iterator i = d_reps.find(n);
   if(i == d_reps.end()) {
     return n;
   } else {
@@ -396,7 +396,7 @@ void SymmetryBreaker::assertFormula(TNode phi) {
         break;
       }
     }
-    unordered_map<TNode, set<TNode>, TNodeHashFunction>& ps = t.partitions();
+    unordered_map<TNode, set<TNode>>& ps = t.partitions();
     for (auto& kv : ps)
     {
       Debug("ufsymm") << "UFSYMM partition*: " << kv.first;
@@ -416,11 +416,12 @@ void SymmetryBreaker::assertFormula(TNode phi) {
   }
   if(!d_template.match(phi)) {
     // we hit a bad match, extract the partitions and reset the template
-    unordered_map<TNode, set<TNode>, TNodeHashFunction>& ps = d_template.partitions();
+    unordered_map<TNode, set<TNode>>& ps = d_template.partitions();
     Debug("ufsymm") << "UFSYMM hit a bad match---have " << ps.size() << " partitions:" << endl;
-    for(unordered_map<TNode, set<TNode>, TNodeHashFunction>::iterator i = ps.begin();
-        i != ps.end();
-        ++i) {
+    for (unordered_map<TNode, set<TNode>>::iterator i = ps.begin();
+         i != ps.end();
+         ++i)
+    {
       Debug("ufsymm") << "UFSYMM partition: " << (*i).first;
       set<TNode>& p = (*i).second;
       if(Debug.isOn("ufsymm")) {

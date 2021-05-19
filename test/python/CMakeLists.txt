@@ -29,3 +29,5 @@ endmacro()
 # add specific test files
 cvc5_add_python_api_test(pytest_solver unit/api/test_solver.py)
 cvc5_add_python_api_test(pytest_sort unit/api/test_sort.py)
+cvc5_add_python_api_test(pytest_term unit/api/test_term.py)
+cvc5_add_python_api_test(pytest_grammar unit/api/test_grammar.py)

@@ -19,9 +19,13 @@ libcvc5_add_sources(
   api/cpp/cvc5.h
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
+  decision/assertion_list.cpp
+  decision/assertion_list.h
   decision/decision_attributes.h
   decision/decision_engine.cpp
   decision/decision_engine.h
+  decision/decision_engine_old.cpp
+  decision/decision_engine_old.h
   decision/decision_strategy.h
   decision/justification_heuristic.cpp
   decision/justification_heuristic.h
@@ -218,7 +222,6 @@ libcvc5_add_sources(
   smt/check_models.h
   smt/command.cpp
   smt/command.h
-  smt/defined_function.h
   smt/dump.cpp
   smt/dump.h
   smt/dump_manager.cpp
@@ -812,8 +815,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/example_infer.h
   theory/quantifiers/sygus/example_min_eval.cpp
   theory/quantifiers/sygus/example_min_eval.h
-  theory/quantifiers/sygus/rcons_obligation_info.cpp
-  theory/quantifiers/sygus/rcons_obligation_info.h
+  theory/quantifiers/sygus/rcons_obligation.cpp
+  theory/quantifiers/sygus/rcons_obligation.h
   theory/quantifiers/sygus/rcons_type_info.cpp
   theory/quantifiers/sygus/rcons_type_info.h
   theory/quantifiers/sygus/sygus_abduct.cpp

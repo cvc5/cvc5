@@ -112,8 +112,6 @@ libcvc5_add_sources(
   dtype_cons.cpp
   dtype_selector.h
   dtype_selector.cpp
-  record.cpp
-  record.h
   sequence.cpp
   sequence.h
   subs.cpp

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cegqi-bv
+; COMMAND-LINE: --cegqi-bv -q
 ; EXPECT: sat
 (set-logic BV)
 (set-info :status sat)

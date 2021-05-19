@@ -14,92 +14,80 @@
  */
 #include "decision/decision_engine.h"
 
-#include "decision/decision_attributes.h"
-#include "decision/justification_heuristic.h"
-#include "expr/node.h"
+#include "decision/decision_engine_old.h"
 #include "options/decision_options.h"
-#include "options/smt_options.h"
+#include "prop/sat_solver.h"
 #include "util/resource_manager.h"
-
-using namespace std;
 
 namespace cvc5 {
 namespace decision {
 
-DecisionEngine::DecisionEngine(context::Context* sc,
-                               context::UserContext* uc,
+DecisionEngine::DecisionEngine(context::Context* c,
+                               context::UserContext* u,
+                               prop::SkolemDefManager* skdm,
                                ResourceManager* rm)
-    : d_cnfStream(nullptr),
-      d_satSolver(nullptr),
-      d_satContext(sc),
-      d_userContext(uc),
-      d_result(sc, SAT_VALUE_UNKNOWN),
-      d_engineState(0),
+    : d_decEngineOld(new DecisionEngineOld(c, u)),
       d_resourceManager(rm),
-      d_enabledITEStrategy(nullptr)
+      d_useOld(true)
 {
-  Trace("decision") << "Creating decision engine" << std::endl;
 }
 
-void DecisionEngine::init()
+void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss,
+                                prop::CnfStream* cs)
 {
-  Assert(d_engineState == 0);
-  d_engineState = 1;
-
-  Trace("decision-init") << "DecisionEngine::init()" << std::endl;
-  Trace("decision-init") << " * options->decisionMode: "
-                         << options::decisionMode() << std:: endl;
-  Trace("decision-init") << " * options->decisionStopOnly: "
-                         << options::decisionStopOnly() << std::endl;
-
-  if (options::decisionMode() == options::DecisionMode::JUSTIFICATION)
+  if (d_useOld)
   {
-    d_enabledITEStrategy.reset(new decision::JustificationHeuristic(
-        this, d_userContext, d_satContext));
+    d_decEngineOld->setSatSolver(ss);
+    d_decEngineOld->setCnfStream(cs);
+    return;
   }
 }
 
-void DecisionEngine::shutdown()
-{
-  Trace("decision") << "Shutting down decision engine" << std::endl;
+void DecisionEngine::presolve() {}
 
-  Assert(d_engineState == 1);
-  d_engineState = 2;
-  d_enabledITEStrategy.reset(nullptr);
-}
-
-SatLiteral DecisionEngine::getNext(bool& stopSearch)
+prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
   d_resourceManager->spendResource(Resource::DecisionStep);
-  Assert(d_cnfStream != nullptr)
-      << "Forgot to set cnfStream for decision engine?";
-  Assert(d_satSolver != nullptr)
-      << "Forgot to set satSolver for decision engine?";
+  if (d_useOld)
+  {
+    return d_decEngineOld->getNext(stopSearch);
+  }
+  return undefSatLiteral;
+}
 
-  return d_enabledITEStrategy == nullptr
-             ? undefSatLiteral
-             : d_enabledITEStrategy->getNext(stopSearch);
+bool DecisionEngine::isDone()
+{
+  if (d_useOld)
+  {
+    return d_decEngineOld->isDone();
+  }
+  return false;
 }
 
 void DecisionEngine::addAssertion(TNode assertion)
 {
-  // new assertions, reset whatever result we knew
-  d_result = SAT_VALUE_UNKNOWN;
-  if (d_enabledITEStrategy != nullptr)
+  if (d_useOld)
   {
-    d_enabledITEStrategy->addAssertion(assertion);
+    d_decEngineOld->addAssertion(assertion);
+    return;
   }
 }
 
 void DecisionEngine::addSkolemDefinition(TNode lem, TNode skolem)
 {
-  // new assertions, reset whatever result we knew
-  d_result = SAT_VALUE_UNKNOWN;
-  if (d_enabledITEStrategy != nullptr)
+  if (d_useOld)
   {
-    d_enabledITEStrategy->addSkolemDefinition(lem, skolem);
+    d_decEngineOld->addSkolemDefinition(lem, skolem);
   }
 }
 
+void DecisionEngine::notifyAsserted(TNode n)
+{
+  if (d_useOld)
+  {
+    return;
+  }
 }
+
+}  // namespace decision
 }  // namespace cvc5

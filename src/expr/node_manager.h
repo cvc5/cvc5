@@ -34,6 +34,8 @@
 
 namespace cvc5 {
 
+using Record = std::vector<std::pair<std::string, TypeNode>>;
+
 namespace api {
 class Solver;
 }

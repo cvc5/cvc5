@@ -1,6 +1,5 @@
 id     = "PRINTER"
 name   = "Printing"
-header = "options/printer_options.h"
 
 [[option]]
   name       = "modelFormatMode"

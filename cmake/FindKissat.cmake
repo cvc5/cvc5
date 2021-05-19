@@ -63,6 +63,7 @@ if(NOT Kissat_FOUND_SYSTEM)
                     <INSTALL_DIR>/lib/libkissat.a
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/src/kissat.h
             <INSTALL_DIR>/include/kissat/kissat.h
+    BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libkissat.a
   )
 
   set(Kissat_INCLUDE_DIR "${DEPS_BASE}/include/")

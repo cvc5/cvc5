@@ -1,3 +1,15 @@
+.wy-nav-content {
+  background: #f9fffa;
+}
+
+.wy-menu-vertical a {
+  color: #f9fffa;
+}
+
+.wy-menu-vertical a:hover, a:focus {
+  color: #0099e6;
+}
+
 code {
     border: 0px !important;
 }
@@ -8,4 +20,33 @@ code.xref {
 
 .rst-content code {
     padding: 1px !important;
+    background: unset !important;
+}
+
+a {
+  color: #0099e6;
+}
+
+a:visited {
+  color: #0099e6;
+}
+
+a:hover, a:focus {
+  color: #739900;
+}
+
+.wy-side-nav-search {
+  background-color: #0099e6;
+}
+
+.wy-side-nav-search > a {
+  color: #f9fffa;
+}
+
+.wy-side-nav-search input[type="text"] {
+  border-color: #0077b3;
+}
+
+.wy-body-for-nav {
+  background: #343131;
 }

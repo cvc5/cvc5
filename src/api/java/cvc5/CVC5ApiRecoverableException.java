@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King
+ *   Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -10,18 +10,16 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A class representing a record definition.
+ * The cvc5 java API.
  */
 
-#include "expr/record.h"
 
-#include "base/check.h"
-#include "base/output.h"
+package cvc5;
 
-namespace cvc5 {
-
-std::ostream& operator<<(std::ostream& out, const RecordUpdate& t) {
-  return out << "[" << t.getField() << "]";
+public class CVC5ApiRecoverableException extends CVC5ApiException
+{
+  public CVC5ApiRecoverableException(String message)
+  {
+    super(message);
+  }
 }
-
-}  // namespace cvc5

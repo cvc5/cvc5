@@ -114,7 +114,8 @@ class ResourceManager
 {
  public:
   /** Construct a resource manager. */
-  ResourceManager(StatisticsRegistry& statistics_registry, Options& options);
+  ResourceManager(StatisticsRegistry& statistics_registry,
+                  const Options& options);
   /** Default destructor. */
   ~ResourceManager();
   /** Can not be copied. */
@@ -173,6 +174,7 @@ class ResourceManager
   void registerListener(Listener* listener);
 
  private:
+  const Options& d_options;
   /** The per-call wall clock timer. */
   WallClockTimer d_perCallTimer;
 

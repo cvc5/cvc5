@@ -291,8 +291,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
 
   // compute the concavity
   int region = -1;
-  std::unordered_map<Node, int, NodeHashFunction>::iterator itr =
-      d_tstate.d_tf_region.find(tf);
+  std::unordered_map<Node, int>::iterator itr = d_tstate.d_tf_region.find(tf);
   if (itr != d_tstate.d_tf_region.end())
   {
     region = itr->second;

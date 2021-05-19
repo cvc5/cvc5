@@ -18,6 +18,11 @@ sys.path.insert(0, '${CMAKE_CURRENT_SOURCE_DIR}/ext/')
 # path to python api
 sys.path.insert(0, '${CMAKE_BINARY_DIR}/src/api/python')
 
+if("${BUILD_BINDINGS_PYTHON}" == "ON"):
+        tags.add('bindings_python')
+if("${BUILD_BINDINGS_JAVA}" == "ON"):
+        tags.add('bindings_java')
+
 
 # -- Project information -----------------------------------------------------
 
@@ -38,6 +43,7 @@ extensions = [
         'sphinxcontrib.bibtex',
         'sphinx_tabs.tabs',
         'examples',
+        'include_build_file',
 ]
 
 bibtex_bibfiles = ['references.bib']
@@ -64,3 +70,6 @@ html_css_files = ['custom.css']
 # -- Breathe configuration ---------------------------------------------------
 breathe_default_project = "cvc5"
 breathe_domain_by_extension = {"h" : "cpp"}
+
+# where to look for include-build-file
+ibf_folders = ['${CMAKE_CURRENT_BINARY_DIR}']

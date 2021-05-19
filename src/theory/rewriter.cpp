@@ -179,6 +179,11 @@ void Rewriter::registerPostRewriteEqual(
   d_postRewritersEqual[tid] = fn;
 }
 
+TheoryRewriter* Rewriter::getTheoryRewriter(theory::TheoryId theoryId)
+{
+  return d_theoryRewriters[theoryId];
+}
+
 Rewriter* Rewriter::getInstance()
 {
   return smt::currentSmtEngine()->getRewriter();
@@ -194,7 +199,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
 
   if (d_rewriteStack == nullptr)
   {
-    d_rewriteStack.reset(new std::unordered_set<Node, NodeHashFunction>());
+    d_rewriteStack.reset(new std::unordered_set<Node>());
   }
 #endif
 

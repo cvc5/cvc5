@@ -29,6 +29,7 @@
 
 namespace cvc5 {
 
+class Env;
 class ResourceManager;
 class OutputManager;
 class ProofNodeManager;
@@ -56,10 +57,8 @@ class PropEngine
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(TheoryEngine*,
-             context::Context* satContext,
-             context::UserContext* userContext,
-             ResourceManager* rm,
+  PropEngine(TheoryEngine* te,
+             Env& env,
              OutputManager& outMgr,
              ProofNodeManager* pnm);
 
@@ -156,6 +155,22 @@ class PropEngine
    * returns true for both lit and the negation of lit.
    */
   bool isDecision(Node lit) const;
+
+  /**
+   * Return the current decision level of `lit`.
+   *
+   * @param lit: The node in question, must have an associated SAT literal.
+   * @return Decision level of the SAT variable of `lit` (phase is disregarded),
+   *         or -1 if `lit` has not been assigned yet.
+   */
+  int32_t getDecisionLevel(Node lit) const;
+
+  /**
+   * Return the user-context level when `lit` was introduced..
+   *
+   * @return User-context level or -1 if not yet introduced.
+   */
+  int32_t getIntroLevel(Node lit) const;
 
   /**
    * Checks the current context for satisfiability.
@@ -341,11 +356,11 @@ class PropEngine
   /** The theory engine we will be using */
   TheoryEngine* d_theoryEngine;
 
+  /** Reference to the environment */
+  Env& d_env;
+
   /** The decision engine we will be using */
   std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
-
-  /** The context */
-  context::Context* d_context;
 
   /** The skolem definition manager */
   std::unique_ptr<SkolemDefManager> d_skdm;
@@ -372,8 +387,6 @@ class PropEngine
 
   /** Whether we were just interrupted (or not) */
   bool d_interrupted;
-  /** Pointer to resource manager for associated SmtEngine */
-  ResourceManager* d_resourceManager;
 
   /** Reference to the output manager of the smt engine */
   OutputManager& d_outMgr;
