@@ -233,7 +233,8 @@ class SkolemManager
    */
   Node mkSkolemFunction(SkolemFunId id,
                         TypeNode tn,
-                        Node cacheVal = Node::null());
+                        Node cacheVal = Node::null(),
+                        int flags = NodeManager::SKOLEM_DEFAULT);
   /**
    * Create a skolem constant with the given name, type, and comment. This
    * should only be used if the definition of the skolem does not matter.
