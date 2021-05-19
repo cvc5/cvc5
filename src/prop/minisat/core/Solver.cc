@@ -887,10 +887,6 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 
   int max_resolution_level = 0;  // Maximal level of the resolved clauses
 
-  if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
-  {
-    ProofManager::getSatProof()->startResChain(confl);
-    }
     if (needProof())
     {
       d_pfManager->startResChain(ca[confl]);
@@ -949,17 +945,9 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
             }
 
             // FIXME: can we do it lazily if we actually need the proof?
-            if (level(var(q)) == 0)
+            if (level(var(q)) == 0 && needProof())
             {
-              if (options::unsatCoresMode()
-                  == options::UnsatCoresMode::OLD_PROOF)
-              {
-                ProofManager::getSatProof()->resolveOutUnit(q);
-              }
-              if (needProof())
-              {
-                d_pfManager->addResolutionStep(q);
-              }
+              d_pfManager->addResolutionStep(q);
             }
           }
         }
@@ -972,19 +960,12 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         seen[var(p)] = 0;
         pathC--;
 
-        if (pathC > 0 && confl != CRef_Undef)
+        if (pathC > 0 && confl != CRef_Undef && needProof())
         {
-          if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
-          {
-            ProofManager::getSatProof()->addResolutionStep(p, confl, sign(p));
-          }
-          if (needProof())
-          {
-            d_pfManager->addResolutionStep(ca[confl], p);
-          }
+          d_pfManager->addResolutionStep(ca[confl], p);
         }
 
-    }while (pathC > 0);
+    } while (pathC > 0);
     out_learnt[0] = ~p;
     if (Debug.isOn("newproof::sat"))
     {
@@ -1014,11 +995,6 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
                 // Literal is not redundant
                 out_learnt[j++] = out_learnt[i];
               } else {
-                if (options::unsatCoresMode()
-                    == options::UnsatCoresMode::OLD_PROOF)
-                {
-                  ProofManager::getSatProof()->storeLitRedundant(out_learnt[i]);
-                }
                 if (needProof())
                 {
                   Debug("newproof::sat")
@@ -1449,12 +1425,6 @@ void Solver::removeSatisfied(vec<CRef>& cs)
     for (i = j = 0; i < cs.size(); i++){
         Clause& c = ca[cs[i]];
         if (satisfied(c)) {
-          if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF
-              && locked(c))
-          {
-            // store a resolution of the literal c propagated
-            ProofManager::getSatProof()->storeUnitResolution(c[0]);
-          }
           removeClause(cs[i]);
         }
         else
@@ -1557,10 +1527,6 @@ lbool Solver::search(int nof_conflicts)
 
       if (decisionLevel() == 0)
       {
-        if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
-        {
-          ProofManager::getSatProof()->finalizeProof(confl);
-        }
         if (needProof())
         {
           if (confl == CRef_Lazy)
@@ -1584,10 +1550,6 @@ lbool Solver::search(int nof_conflicts)
       if (learnt_clause.size() == 1)
       {
         uncheckedEnqueue(learnt_clause[0]);
-        if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
-        {
-          ProofManager::getSatProof()->endResChain(learnt_clause[0]);
-        }
         if (needProof())
         {
           d_pfManager->endResChain(learnt_clause[0]);
@@ -1602,11 +1564,6 @@ lbool Solver::search(int nof_conflicts)
         attachClause(cr);
         claBumpActivity(ca[cr]);
         uncheckedEnqueue(learnt_clause[0], cr);
-        if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
-        {
-          ClauseId id = ProofManager::getSatProof()->registerClause(cr, LEARNT);
-          ProofManager::getSatProof()->endResChain(id);
-        }
         if (needProof())
         {
           d_pfManager->endResChain(ca[cr]);
@@ -1943,12 +1900,7 @@ void Solver::relocAll(ClauseAllocator& to)
             vec<Watcher>& ws = watches[p];
             for (int j = 0; j < ws.size(); j++)
             {
-              ca.reloc(ws[j].cref,
-                       to,
-                       options::unsatCoresMode()
-                               == options::UnsatCoresMode::OLD_PROOF
-                           ? ProofManager::getSatProof()
-                           : nullptr);
+              ca.reloc(ws[j].cref, to);
             }
         }
 
@@ -1960,37 +1912,20 @@ void Solver::relocAll(ClauseAllocator& to)
         if (hasReasonClause(v)
             && (ca[reason(v)].reloced() || locked(ca[reason(v)])))
         {
-          ca.reloc(
-              vardata[v].d_reason,
-              to,
-              options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF
-                  ? ProofManager::getSatProof()
-                  : nullptr);
+          ca.reloc(vardata[v].d_reason, to);
         }
     }
     // All learnt:
     //
     for (int i = 0; i < clauses_removable.size(); i++)
     {
-      ca.reloc(clauses_removable[i],
-               to,
-               options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF
-                   ? ProofManager::getSatProof()
-                   : nullptr);
+      ca.reloc(clauses_removable[i], to);
     }
     // All original:
     //
     for (int i = 0; i < clauses_persistent.size(); i++)
     {
-      ca.reloc(clauses_persistent[i],
-               to,
-               options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF
-                   ? ProofManager::getSatProof()
-                   : nullptr);
-    }
-    if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
-    {
-      ProofManager::getSatProof()->finishUpdateCRef();
+      ca.reloc(clauses_persistent[i], to);
     }
 }
 
@@ -2133,9 +2068,6 @@ CRef Solver::updateLemmas() {
   // Last index in the trail
   int backtrack_index = trail.size();
 
-  Assert(options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF
-         || lemmas.size() == static_cast<int>(lemmas_cnf_assertion.size()));
-
   // Attach all the clauses and enqueue all the propagations
   for (int j = 0; j < lemmas.size(); ++j)
   {
@@ -2193,11 +2125,8 @@ CRef Solver::updateLemmas() {
     }
   }
 
-  Assert(options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF
-         || lemmas.size() == static_cast<int>(lemmas_cnf_assertion.size()));
   // Clear the lemmas
   lemmas.clear();
-  lemmas_cnf_assertion.clear();
   lemmas_removable.clear();
 
   if (conflict != CRef_Undef) {
@@ -2209,9 +2138,7 @@ CRef Solver::updateLemmas() {
   return conflict;
 }
 
-void ClauseAllocator::reloc(CRef& cr,
-                            ClauseAllocator& to,
-                            cvc5::TSatProof<Solver>* proof)
+void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to)
 {
   Debug("minisat") << "ClauseAllocator::reloc: cr " << cr << std::endl;
   // FIXME what is this CRef_lazy
@@ -2223,10 +2150,6 @@ void ClauseAllocator::reloc(CRef& cr,
 
   cr = to.alloc(c.level(), c, c.removable());
   c.relocate(cr);
-  if (proof)
-  {
-    proof->updateCRef(old, cr);
-  }
   // Copy extra data-fields:
   // (This could be cleaned-up. Generalize Clause-constructor to be applicable here instead?)
   to[cr].mark(c.mark());

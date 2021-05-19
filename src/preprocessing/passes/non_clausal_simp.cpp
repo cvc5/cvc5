@@ -69,7 +69,7 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult NonClausalSimp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Assert(options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF
+  Assert(options::unsatCoresMode() == options::UnsatCoresMode::OFF
          || isProofEnabled())
       << "Unsat cores with non-clausal simp only supported with new proofs. "
          "Cores mode is "
