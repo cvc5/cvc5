@@ -311,8 +311,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // Note we allow E-matching by default to support combinations of sequences
     // and quantifiers.
   }
-  // whether we must disable proofs. There are three levels: no disable, partial
-  // disable (i.e., allows proofs for cores), full disable
+  // whether we must disable proofs
   bool disableProofs = false;
   if (options::globalNegate())
   {
