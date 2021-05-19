@@ -2410,6 +2410,7 @@ set(regress_2_tests
   regress2/strings/cmu-repl-len-nterm.smt2
   regress2/strings/issue3203.smt2
   regress2/strings/issue5381.smt2
+  regress2/strings/issue6483.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/range-perf.smt2
