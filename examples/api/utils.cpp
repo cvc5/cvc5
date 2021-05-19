@@ -21,6 +21,7 @@
  * Get the string version of define-fun command.
  * @param f the function to print
  * @param params the function parameters
+ * @param sort the function return sort
  * @param body the function body
  * @return a string version of define-fun
  */
