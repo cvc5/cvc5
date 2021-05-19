@@ -15,6 +15,8 @@ cvc5 API Documentation
 .. toctree::
    :maxdepth: 1
 
+   installation/installation
+   binary/binary
    cpp/cpp
    python/python
    references
