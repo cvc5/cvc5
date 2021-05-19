@@ -266,9 +266,15 @@ void PropEngine::assertInternal(
   {
     if (input)
     {
-      Assert(!negated);
       d_cnfStream->ensureLiteral(node);
-      d_assumptions.push_back(node);
+      if (negated)
+      {
+        d_assumptions.push_back(node.notNode());
+      }
+      else
+      {
+        d_assumptions.push_back(node);
+      }
     }
     else
     {
