@@ -20,12 +20,14 @@ from pycvc5 import kinds
 # Get the string version of define-fun command.
 # @param f the function to print
 # @param params the function parameters
-# @param sort the function return sort
 # @param body the function body
 # @return a string version of define-fun
 
 
-def define_fun_to_string(f, params, sort, body):
+def define_fun_to_string(f, params, body):
+    sort = f.getSort()
+    if sort.isFunction():
+        sort = f.getSort().getFunctionCodomainSort()
     result = ""
     result += "(define-fun " + str(f) + " ("
     for i in range(0, len(params)):
@@ -49,8 +51,5 @@ def print_synth_solutions(terms, sols):
         if sols[i].getKind() == kinds.Lambda:
             params += sols[i][0]
             body = sols[i][1]
-        rangeSort = terms[i].getSort()
-        if (rangeSort.isFunction()):
-            rangeSort = rangeSort.getFunctionCodomainSort()
-        result += "  " + define_fun_to_string(terms[i], params, rangeSort, body) + "\n"
+        result += "  " + define_fun_to_string(terms[i], params, body) + "\n"
     print(result)
