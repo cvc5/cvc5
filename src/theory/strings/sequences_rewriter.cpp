@@ -1129,12 +1129,30 @@ Node SequencesRewriter::rewriteDifferenceRegExp(TNode node)
 Node SequencesRewriter::rewriteRangeRegExp(TNode node)
 {
   Assert(node.getKind() == REGEXP_RANGE);
+  NodeManager* nm = NodeManager::currentNM();
   if (node[0] == node[1])
   {
-    NodeManager* nm = NodeManager::currentNM();
     Node retNode = nm->mkNode(STRING_TO_REGEXP, node[0]);
     // re.range( "A", "A" ) ---> str.to_re( "A" )
     return returnRewrite(node, retNode, Rewrite::RE_RANGE_SINGLE);
+  }
+
+  bool appliedCh = true;
+  unsigned ch[2];
+  for (size_t i = 0; i < 2; ++i)
+  {
+    if (node[i].isConst() || node[i].getConst<String>().size() != 1)
+    {
+      appliedCh = false;
+      break;
+    }
+    ch[i] = node[i].getConst<String>().front();
+  }
+  if (appliedCh && ch[0] > ch[1])
+  {
+    // re.range( "B", "A" ) ---> re.none
+    Node retNode = nm->mkNode(REGEXP_EMPTY, {});
+    return returnRewrite(node, retNode, Rewrite::RE_RANGE_EMPTY);
   }
   return node;
 }
@@ -1294,12 +1312,16 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   else if (r.getKind() == REGEXP_RANGE)
   {
     // x in re.range( char_i, char_j ) ---> i <= str.code(x) <= j
-    Node xcode = nm->mkNode(STRING_TO_CODE, x);
-    Node retNode =
-        nm->mkNode(AND,
-                   nm->mkNode(LEQ, nm->mkNode(STRING_TO_CODE, r[0]), xcode),
-                   nm->mkNode(LEQ, xcode, nm->mkNode(STRING_TO_CODE, r[1])));
-    return returnRewrite(node, retNode, Rewrite::RE_IN_RANGE);
+    // we do not do this if the arguments are not constant
+    if (RegExpEntail::isConstRegExp(r))
+    {
+      Node xcode = nm->mkNode(STRING_TO_CODE, x);
+      Node retNode =
+          nm->mkNode(AND,
+                     nm->mkNode(LEQ, nm->mkNode(STRING_TO_CODE, r[0]), xcode),
+                     nm->mkNode(LEQ, xcode, nm->mkNode(STRING_TO_CODE, r[1])));
+      return returnRewrite(node, retNode, Rewrite::RE_IN_RANGE);
+    }
   }
   else if (r.getKind() == REGEXP_COMPLEMENT)
   {
