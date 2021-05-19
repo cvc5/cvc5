@@ -1,5 +1,5 @@
-Linear Arithmetic
-=================
+Theory of Linear Arithmetic
+===========================
 
 This example asserts three constraints over an integer variable :code:`x` and a real variable :code:`y`.
 Firstly, it checks that these constraints entail an upper bound on the difference :code:`y - x <= 2/3`.

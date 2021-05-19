@@ -9,7 +9,15 @@ For every example, the same problem is constructed and solved using different in
     :maxdepth: 2
  
     helloworld
+    bitvectors
+    bitvectors_and_arrays
+    combination
     datatypes
+    extract
     lineararith
+    sequences
     sets
     strings
+    sygus-fun
+    sygus-grammar
+    sygus-inv

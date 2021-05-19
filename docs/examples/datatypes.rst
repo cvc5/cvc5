@@ -1,5 +1,5 @@
-Datatypes
-===========
+Theory of Datatypes
+===================
 
 
 .. api-examples::
