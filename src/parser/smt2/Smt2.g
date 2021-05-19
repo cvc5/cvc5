@@ -1013,14 +1013,8 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
-    { /* add variables to parser state before parsing term */
-      Debug("parser") << "define const: '" << name << "'" << std::endl;
-      PARSER_STATE->pushScope();
-      terms = PARSER_STATE->bindBoundVars(sortedVarNames);
-    }
     term[e, e2]
     {
-      PARSER_STATE->popScope();
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
