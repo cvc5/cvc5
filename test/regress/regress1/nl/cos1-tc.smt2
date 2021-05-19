@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext --no-nl-ext-tf-tplanes --no-nl-ext-inc-prec
+; COMMAND-LINE: --nl-ext=full --no-nl-ext-tf-tplanes --no-nl-ext-inc-prec
 ; EXPECT: unknown
 (set-logic UFNRAT)
 (declare-fun f (Real) Real)

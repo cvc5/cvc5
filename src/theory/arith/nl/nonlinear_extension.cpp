@@ -218,7 +218,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
   // relevance here, since we may have discarded literals that are relevant
   // that are entailed based on the techniques in getAssertions.
   std::vector<Node> passertions = assertions;
-  if (options::nlExt())
+  if (options::nlExt() == options::NlExtMode::FULL)
   {
     // preprocess the assertions with the trancendental solver
     if (!d_trSlv.preprocessAssertionsCheckModel(passertions))
@@ -474,8 +474,8 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
       }
 
       // we are incomplete
-      if (options::nlExt() && options::nlExtIncPrecision()
-          && d_model.usedApproximate())
+      if (options::nlExt() == options::NlExtMode::FULL
+          && options::nlExtIncPrecision() && d_model.usedApproximate())
       {
         d_trSlv.incrementTaylorDegree();
         needsRecheck = true;
