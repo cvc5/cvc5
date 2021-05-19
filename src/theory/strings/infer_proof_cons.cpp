@@ -679,7 +679,8 @@ void InferProofCons::convert(InferenceId infer,
     }
     break;
     // ========================== unit injectivity
-    case InferenceId::STRINGS_UNIT_INJ: { 
+    case InferenceId::STRINGS_UNIT_INJ:
+    {
       ps.d_rule = PfRule::STRING_SEQ_UNIT_INJ;
     }
     break;
