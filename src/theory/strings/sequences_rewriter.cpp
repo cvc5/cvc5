@@ -1134,7 +1134,7 @@ Node SequencesRewriter::rewriteRangeRegExp(TNode node)
   {
     if (!node[i].isConst() || node[i].getConst<String>().size() != 1)
     {
-      // not applied to constants, it is not handled
+      // not applied to characters, it is not handled
       return node;
     }
     ch[i] = node[i].getConst<String>().front();
