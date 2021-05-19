@@ -6,12 +6,6 @@
 cvc5 API Documentation
 ======================
 
-
-* :ref:`genindex`
-
-
----------------
-
 .. toctree::
    :maxdepth: 1
 
@@ -19,6 +13,6 @@ cvc5 API Documentation
    binary/binary
    cpp/cpp
    python/python
-   references
    examples/examples
-   options
+   references
+   genindex
