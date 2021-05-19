@@ -1,5 +1,5 @@
 id     = "RESMAN"
-name   = "Resource Manager options"
+name   = "Resource Manager"
 
 [[option]]
   name       = "cumulativeMillisecondLimit"
