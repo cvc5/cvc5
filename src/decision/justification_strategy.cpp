@@ -471,6 +471,7 @@ bool JustificationStrategy::isDone() { return !refreshCurrentAssertion(); }
 
 void JustificationStrategy::addAssertion(TNode assertion)
 {
+  Trace("jh-assert") << "addAssertion " << assertion << std::endl;
   std::vector<TNode> toProcess;
   toProcess.push_back(assertion);
   insertToAssertionList(toProcess, false);
@@ -478,6 +479,7 @@ void JustificationStrategy::addAssertion(TNode assertion)
 
 void JustificationStrategy::addSkolemDefinition(TNode lem, TNode skolem)
 {
+  Trace("jh-assert") << "addSkolemDefinition " << lem << " / " << skolem << std::endl;
   if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ALWAYS)
   {
     // just add to main assertions list
