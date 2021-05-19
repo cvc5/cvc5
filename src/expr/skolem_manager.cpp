@@ -191,8 +191,10 @@ Node SkolemManager::mkPurifySkolem(Node t,
   return k;
 }
 
-Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal,
-                     int flags)
+Node SkolemManager::mkSkolemFunction(SkolemFunId id,
+                                     TypeNode tn,
+                                     Node cacheVal,
+                                     int flags)
 {
   std::tuple<SkolemFunId, TypeNode, Node> key(id, tn, cacheVal);
   std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node>::iterator it =
