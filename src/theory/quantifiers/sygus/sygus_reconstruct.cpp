@@ -16,7 +16,6 @@
 #include "theory/quantifiers/sygus/sygus_reconstruct.h"
 
 #include "expr/node_algorithm.h"
-#include "expr/skolem_manager.h"
 #include "smt/command.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/rewriter.h"
@@ -48,20 +47,16 @@ Node SygusReconstruct::reconstructSolution(Node sol,
 
   initialize(stn);
 
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
+  /** a set of builtin terms to reconstruct satisfied for each sygus datatype */
+  TypeBuiltinSetMap termsToRecons;
 
-  /** a set of obligations that are not yet satisfied for each sygus datatype */
-  TypeObligationSetMap unsolvedObs;
-
-  // paramaters sol and stn constitute the main obligation to satisfy
-  Node mainOb = sm->mkDummySkolem("sygus_rcons", stn);
-
-  // add the main obligation to the set of obligations that are not yet
-  // satisfied
-  unsolvedObs[stn].emplace(mainOb);
-  d_obInfo.emplace(mainOb, RConsObligationInfo(sol));
-  d_stnInfo[stn].setBuiltinToOb(sol, mainOb);
+  // add the main obligation to the set of obligations
+  // paramaters stn and sol constitute the main obligation to satisfy
+  d_obs.push_back(std::make_unique<RConsObligation>(stn, sol));
+  termsToRecons[stn].emplace(sol);
+  d_stnInfo[stn].setBuiltinToOb(sol, d_obs[0].get());
+  RConsObligation* ob0 = d_obs[0].get();
+  Node k0 = ob0->getSkolem();
 
   // We need to add the main obligation to the crd in case it cannot be broken
   // down by matching. By doing so, we can solve the obligation using
@@ -75,13 +70,13 @@ Node SygusReconstruct::reconstructSolution(Node sol,
   uint64_t count = 0;
 
   // algorithm
-  while (d_sol[mainOb].isNull() && count < enumLimit)
+  while (d_sol[k0].isNull() && count < enumLimit)
   {
     // enumeration phase
-    // a temporary set of new obligations cached for processing in the match
-    // phase
-    TypeObligationSetMap obsPrime;
-    for (const std::pair<const TypeNode, ObligationSet>& pair : unsolvedObs)
+    // a temporary set of new terms to reconstruct cached for processing in the
+    // match phase
+    TypeBuiltinSetMap termsToReconsPrime;
+    for (const std::pair<const TypeNode, BuiltinSet>& pair : termsToRecons)
     {
       // enumerate a new term
       Trace("sygus-rcons") << "enum: " << stn << ": ";
@@ -96,18 +91,19 @@ Node SygusReconstruct::reconstructSolution(Node sol,
       if (sz.isConst())
       {
         Node rep = d_stnInfo[pair.first].addTerm(builtin);
-        Node k = d_stnInfo[pair.first].builtinToOb(rep);
+        RConsObligation* ob = d_stnInfo[pair.first].builtinToOb(rep);
         // check if the enumerated term solves an obligation
-        if (k.isNull())
+        if (ob == nullptr)
         {
           // if not, create an "artifical" obligation whose solution would be
           // the enumerated term
-          k = sm->mkDummySkolem("sygus_rcons", pair.first);
-          d_obInfo.emplace(k, RConsObligationInfo(builtin));
-          d_stnInfo[pair.first].setBuiltinToOb(builtin, k);
+          d_obs.push_back(
+              std::make_unique<RConsObligation>(pair.first, builtin));
+          d_stnInfo[pair.first].setBuiltinToOb(builtin, d_obs.back().get());
+          ob = d_obs.back().get();
         }
         // mark the obligation as solved
-        markSolved(k, sz);
+        markSolved(ob, sz);
         // Since we added the term to the candidate rewrite database, there is
         // no point in adding it to the pool too
         continue;
@@ -118,49 +114,46 @@ Node SygusReconstruct::reconstructSolution(Node sol,
         // then, this is a new term and we should add it to pool
         d_poolTrie.addTerm(builtin);
         pool[pair.first].push_back(sz);
-        for (Node k : pair.second)
+        for (const Node& t : pair.second)
         {
-          if (d_sol[k].isNull())
+          RConsObligation* ob = d_stnInfo[pair.first].builtinToOb(t);
+          if (d_sol[ob->getSkolem()].isNull())
           {
-            Trace("sygus-rcons")
-                << "ob: " << RConsObligationInfo::obToString(k, d_obInfo[k])
-                << std::endl;
-            // try to match obligation k with the enumerated term sz
-            TypeObligationSetMap temp = matchNewObs(k, sz);
+            Trace("sygus-rcons") << "ob: " << *ob << std::endl;
+            // try to match builtin term `t` with the enumerated term sz
+            TypeBuiltinSetMap temp = matchNewObs(t, sz);
             // cache the new obligations for processing in the match phase
-            for (const std::pair<const TypeNode, ObligationSet>& tempPair :
-                 temp)
+            for (const std::pair<const TypeNode, BuiltinSet>& tempPair : temp)
             {
-              obsPrime[tempPair.first].insert(tempPair.second.cbegin(),
-                                              tempPair.second.cend());
+              termsToReconsPrime[tempPair.first].insert(
+                  tempPair.second.cbegin(), tempPair.second.cend());
             }
           }
         }
       }
     }
     // match phase
-    while (!obsPrime.empty())
+    while (!termsToReconsPrime.empty())
     {
-      // a temporary set of new obligations cached for later processing
-      TypeObligationSetMap obsDPrime;
-      for (const std::pair<const TypeNode, ObligationSet>& pair : obsPrime)
+      // a temporary set of new terms to reconstruct cached for later processing
+      TypeBuiltinSetMap obsDPrime;
+      for (const std::pair<const TypeNode, BuiltinSet>& pair :
+           termsToReconsPrime)
       {
-        for (const Node& k : pair.second)
+        for (const Node& t : pair.second)
         {
-          unsolvedObs[pair.first].emplace(k);
-          if (d_sol[k].isNull())
+          termsToRecons[pair.first].emplace(t);
+          RConsObligation* ob = d_stnInfo[pair.first].builtinToOb(t);
+          if (d_sol[ob->getSkolem()].isNull())
           {
-            Trace("sygus-rcons")
-                << "ob: " << RConsObligationInfo::obToString(k, d_obInfo[k])
-                << std::endl;
-            for (Node sz : pool[pair.first])
+            Trace("sygus-rcons") << "ob: " << *ob << std::endl;
+            for (const Node& sz : pool[pair.first])
             {
-              // try to match each newly generated and cached obligation
-              // with patterns in pool
-              TypeObligationSetMap temp = matchNewObs(k, sz);
-              // cache the new obligations for later processing
-              for (const std::pair<const TypeNode, ObligationSet>& tempPair :
-                   temp)
+              // try to match each newly generated and cached term with patterns
+              // in pool
+              TypeBuiltinSetMap temp = matchNewObs(t, sz);
+              // cache the new terms for later processing
+              for (const std::pair<const TypeNode, BuiltinSet>& tempPair : temp)
               {
                 obsDPrime[tempPair.first].insert(tempPair.second.cbegin(),
                                                  tempPair.second.cend());
@@ -169,165 +162,163 @@ Node SygusReconstruct::reconstructSolution(Node sol,
           }
         }
       }
-      obsPrime = std::move(obsDPrime);
+      termsToReconsPrime = std::move(obsDPrime);
     }
-    // remove solved obligations from unsolvedObs
-    removeSolvedObs(unsolvedObs);
+    // remove reconstructed terms from termsToRecons
+    removeReconstructedTerms(termsToRecons);
     ++count;
   }
 
   if (Trace("sygus-rcons").isConnected())
   {
-    RConsObligationInfo::printCandSols(mainOb, d_obInfo);
+    RConsObligation::printCandSols(ob0, d_obs);
     printPool(pool);
   }
 
   // if the main obligation is solved, return the solution
-  if (!d_sol[mainOb].isNull())
+  if (!d_sol[k0].isNull())
   {
     reconstructed = 1;
     // The algorithm mostly works with rewritten terms and may not notice that
     // the original terms contain variables eliminated by the rewriter. For
     // example, rewrite((ite true 0 z)) = 0. In such cases, we replace those
     // variables with ground values.
-    return d_sol[mainOb].isConst() ? Node(d_sol[mainOb])
-                                   : mkGround(d_sol[mainOb]);
+    return d_sol[k0].isConst() ? Node(d_sol[k0]) : mkGround(d_sol[k0]);
   }
 
   // we ran out of elements, return null
   reconstructed = -1;
   Warning() << CommandFailure(
       "Cannot get synth function: reconstruction to syntax failed.");
-  return d_sol[mainOb];
+  return Node::null();
 }
 
-TypeObligationSetMap SygusReconstruct::matchNewObs(Node k, Node sz)
+TypeBuiltinSetMap SygusReconstruct::matchNewObs(Node t, Node sz)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  TypeObligationSetMap obsPrime;
+  TypeBuiltinSetMap termsToReconsPrime;
 
-  // obligations generated by match. Note that we might have already seen (and
-  // even solved) those obligations, hence the name "candidate obligations"
-  std::unordered_map<Node, Node> candObs;
+  // substitutions generated by match. Note that we might have already seen (and
+  // even solved) obligations corresponsing to those substitutions
+  NodePairMap matches;
   // the builtin terms corresponding to sygus variables in the grammar are bound
   // variables. However, we want the `match` method to treat them as ground
   // terms. So, we add redundant substitutions
-  candObs.insert(d_sygusVars.cbegin(), d_sygusVars.cend());
+  matches.insert(d_sygusVars.cbegin(), d_sygusVars.cend());
 
-  // try to match the obligation's builtin terms with the pattern sz
-  for (Node builtin : d_obInfo[k].getBuiltins())
+  // try to match the builtin term with the pattern sz
+  if (expr::match(
+          Rewriter::rewrite(datatypes::utils::sygusToBuiltin(sz)), t, matches))
   {
-    if (expr::match(Rewriter::rewrite(datatypes::utils::sygusToBuiltin(sz)),
-                    builtin,
-                    candObs))
+    // the bound variables z generated by the enumerators are reused across
+    // enumerated terms, so we need to replace them with our own skolems
+    NodePairMap subs;
+    Trace("sygus-rcons") << "-- ct: " << sz << std::endl;
+    // remove redundant substitutions
+    for (const std::pair<const Node, Node>& pair : d_sygusVars)
     {
-      // the bound variables z generated by the enumerators are reused across
-      // enumerated terms, so we need to replace them with our own skolems
-      std::vector<std::pair<Node, Node>> subs;
-      Trace("sygus-rcons") << "-- ct: " << sz << std::endl;
-      // remove redundant substitutions
-      for (const std::pair<const Node, Node>& pair : d_sygusVars)
+      matches.erase(pair.first);
+    }
+    // for each match
+    for (const std::pair<const Node, Node>& match : matches)
+    {
+      TypeNode stn = datatypes::utils::builtinVarToSygus(match.first).getType();
+      RConsObligation* newOb;
+      // did we come across an equivalent obligation before?
+      Node rep = d_stnInfo[stn].addTerm(match.second);
+      RConsObligation* repOb = d_stnInfo[stn].builtinToOb(rep);
+      if (repOb != nullptr)
       {
-        candObs.erase(pair.first);
-      }
-      // for each candidate obligation
-      for (const std::pair<const Node, Node>& candOb : candObs)
-      {
-        TypeNode stn =
-            datatypes::utils::builtinVarToSygus(candOb.first).getType();
-        Node newVar;
-        // did we come across an equivalent obligation before?
-        Node rep = d_stnInfo[stn].addTerm(candOb.second);
-        Node repOb = d_stnInfo[stn].builtinToOb(rep);
-        if (!repOb.isNull())
+        // if so, use the original obligation
+        newOb = repOb;
+        // while `match.second` is equivalent to `rep`, it may be easier to
+        // reconstruct than `rep`. For example:
+        //
+        // Grammar: S -> p | q | (not S) | (and S S) | (or S S)
+        // rep = (= p q)
+        // match.second = (or (and p q) (and (not p) (not q)))
+        //
+        // In this case, `match.second` is easy to reconstruct by matching
+        // because it only uses operators that are already in the grammar.
+        // `rep`, on the other hand, cannot be reconstructed by matching and
+        // can only be solved by enumeration (currently).
+        //
+        // At this point, we do not know which one is easier to reconstruct by
+        // matching, so we add `match.second` to the set of equivalent builtin
+        // terms in `repOb` and match against both terms.
+        if (repOb->getBuiltins().find(match.second)
+            == repOb->getBuiltins().cend())
         {
-          // if so, use the original obligation
-          newVar = repOb;
-          // while `candOb.second` is equivalent to `rep`, it may be easier to
-          // reconstruct than `rep`. For example:
-          //
-          // Grammar: S -> p | q | (not S) | (and S S) | (or S S)
-          // rep = (= p q)
-          // candOb.second = (or (and p q) (and (not p) (not q)))
-          //
-          // In this case, `candOb.second` is easy to reconstruct by matching
-          // because it only uses operators that are already in the grammar.
-          // `rep`, on the other hand, is cannot be reconstructed by matching
-          // and can only be solved by enumeration (currently).
-          //
-          // At this point, we do not know which one is easier to reconstruct by
-          // matching, so we add `candOb.second` to the set of equivalent
-          // builtin terms corresponding to `k` and match against both terms.
-          d_obInfo[repOb].addBuiltin(candOb.second);
-          d_stnInfo[stn].setBuiltinToOb(candOb.second, repOb);
+          repOb->addBuiltin(match.second);
+          d_stnInfo[stn].setBuiltinToOb(match.second, repOb);
+          termsToReconsPrime[stn].emplace(match.second);
         }
-        else
-        {
-          // otherwise, create a new obligation of the corresponding sygus type
-          newVar = sm->mkDummySkolem("sygus_rcons", stn);
-          d_obInfo.emplace(newVar, candOb.second);
-          d_stnInfo[stn].setBuiltinToOb(candOb.second, newVar);
-          // if the candidate obligation is a constant and the grammar allows
-          // random constants
-          if (candOb.second.isConst()
-              && k.getType().getDType().getSygusAllowConst())
-          {
-            // then immediately solve the obligation
-            markSolved(newVar, d_tds->getProxyVariable(stn, candOb.second));
-          }
-          else
-          {
-            // otherwise, add this candidate obligation to this list of
-            // obligations
-            obsPrime[stn].emplace(newVar);
-          }
-        }
-        subs.emplace_back(datatypes::utils::builtinVarToSygus(candOb.first),
-                          newVar);
-      }
-      // replace original free vars in sz with new ones
-      if (!subs.empty())
-      {
-        sz = sz.substitute(subs.cbegin(), subs.cend());
-      }
-      // sz is solved if it has no sub-obligations or if all of them are solved
-      bool isSolved = true;
-      for (const std::pair<Node, Node>& sub : subs)
-      {
-        if (d_sol[sub.second].isNull())
-        {
-          isSolved = false;
-          d_subObs[sz].push_back(sub.second);
-        }
-      }
-
-      if (isSolved)
-      {
-        // As it traverses sz, substitute populates its input cache with TNodes
-        // that are not preserved by this module and maybe destroyed after the
-        // method call. To avoid referencing those unsafe TNodes throughout this
-        // module, we pass a iterators of d_sol instead.
-        Node s = sz.substitute(d_sol.cbegin(), d_sol.cend());
-        markSolved(k, s);
       }
       else
       {
-        // add sz as a possible solution to obligation k
-        d_obInfo[k].addCandidateSolution(sz);
-        d_parentOb[sz] = k;
-        d_obInfo[d_subObs[sz].back()].addCandidateSolutionToWatchSet(sz);
+        // otherwise, create a new obligation of the corresponding sygus type
+        d_obs.push_back(std::make_unique<RConsObligation>(stn, match.second));
+        d_stnInfo[stn].setBuiltinToOb(match.second, d_obs.back().get());
+        newOb = d_obs.back().get();
+        // if the match is a constant and the grammar allows random constants
+        if (match.second.isConst() && stn.getDType().getSygusAllowConst())
+        {
+          // then immediately solve the obligation
+          markSolved(newOb, d_tds->getProxyVariable(stn, match.second));
+        }
+        else
+        {
+          // otherwise, add this match to the list of obligations
+          termsToReconsPrime[stn].emplace(match.second);
+        }
       }
+      subs.emplace(datatypes::utils::builtinVarToSygus(match.first),
+                   newOb->getSkolem());
+    }
+    // replace original free vars in sz with new ones
+    if (!subs.empty())
+    {
+      sz = sz.substitute(subs.cbegin(), subs.cend());
+    }
+    // sz is solved if it has no sub-obligations or if all of them are solved
+    bool isSolved = true;
+    for (const std::pair<const Node, Node>& match : matches)
+    {
+      TypeNode stn = datatypes::utils::builtinVarToSygus(match.first).getType();
+      RConsObligation* ob = d_stnInfo[stn].builtinToOb(match.second);
+      if (d_sol[ob->getSkolem()].isNull())
+      {
+        isSolved = false;
+        d_subObs[sz].push_back(ob);
+      }
+    }
+
+    RConsObligation* ob = d_stnInfo[sz.getType()].builtinToOb(t);
+
+    if (isSolved)
+    {
+      // As it traverses sz, substitute populates its input cache with TNodes
+      // that are not preserved by this module and maybe destroyed after the
+      // method call. To avoid referencing those unsafe TNodes throughout this
+      // module, we pass a iterators of d_sol instead.
+      Node s = sz.substitute(d_sol.cbegin(), d_sol.cend());
+      markSolved(ob, s);
+    }
+    else
+    {
+      // add sz as a possible solution to ob
+      ob->addCandidateSolution(sz);
+      d_parentOb[sz] = ob;
+      d_subObs[sz].back()->addCandidateSolutionToWatchSet(sz);
     }
   }
 
-  return obsPrime;
+  return termsToReconsPrime;
 }
 
-void SygusReconstruct::markSolved(Node k, Node s)
+void SygusReconstruct::markSolved(RConsObligation* ob, Node s)
 {
-  // return if obligation k is already solved
-  if (!d_sol[k].isNull())
+  // return if ob is already solved
+  if (!d_sol[ob->getSkolem()].isNull())
   {
     return;
   }
@@ -336,26 +327,26 @@ void SygusReconstruct::markSolved(Node k, Node s)
   Trace("sygus-rcons") << "builtin sol: " << datatypes::utils::sygusToBuiltin(s)
                        << std::endl;
 
-  // First, mark `k` as solved
-  d_obInfo[k].addCandidateSolution(s);
-  d_sol[k] = s;
-  d_parentOb[s] = k;
+  // First, mark ob as solved
+  ob->addCandidateSolution(s);
+  d_sol[ob->getSkolem()] = s;
+  d_parentOb[s] = ob;
 
-  std::vector<Node> stack;
-  stack.push_back(k);
+  std::vector<RConsObligation*> stack;
+  stack.push_back(ob);
 
   while (!stack.empty())
   {
-    Node curr = stack.back();
+    RConsObligation* curr = stack.back();
     stack.pop_back();
 
     // for each partial solution/parent of the now solved obligation `curr`
-    for (Node parent : d_obInfo[curr].getWatchSet())
+    for (const Node& parent : curr->getWatchSet())
     {
       // remove `curr` and (possibly) other solved obligations from its list
       // of children
       while (!d_subObs[parent].empty()
-             && !d_sol[d_subObs[parent].back()].isNull())
+             && !d_sol[d_subObs[parent].back()->getSkolem()].isNull())
       {
         d_subObs[parent].pop_back();
       }
@@ -367,12 +358,12 @@ void SygusReconstruct::markSolved(Node k, Node s)
         // corresponding obligation
         // pass iterators of d_sol to avoid populating it with unsafe TNodes
         Node parentSol = parent.substitute(d_sol.cbegin(), d_sol.cend());
-        Node parentOb = d_parentOb[parent];
+        RConsObligation* parentOb = d_parentOb[parent];
         // proceed only if parent obligation is not already solved
-        if (d_sol[parentOb].isNull())
+        if (d_sol[parentOb->getSkolem()].isNull())
         {
-          d_obInfo[parentOb].addCandidateSolution(parentSol);
-          d_sol[parentOb] = parentSol;
+          parentOb->addCandidateSolution(parentSol);
+          d_sol[parentOb->getSkolem()] = parentSol;
           d_parentOb[parentSol] = parentOb;
           // repeat the same process for the parent obligation
           stack.push_back(parentOb);
@@ -382,8 +373,7 @@ void SygusReconstruct::markSolved(Node k, Node s)
       {
         // if it does have remaining children, add it to the watch list of one
         // of them (picked arbitrarily)
-        d_obInfo[d_subObs[parent].back()].addCandidateSolutionToWatchSet(
-            parent);
+        d_subObs[parent].back()->addCandidateSolutionToWatchSet(parent);
       }
     }
   }
@@ -422,20 +412,21 @@ void SygusReconstruct::initialize(TypeNode stn)
   }
 }
 
-void SygusReconstruct::removeSolvedObs(TypeObligationSetMap& unsolvedObs)
+void SygusReconstruct::removeReconstructedTerms(
+    TypeBuiltinSetMap& termsToRecons)
 {
-  for (std::pair<const TypeNode, ObligationSet>& tempPair : unsolvedObs)
+  for (std::pair<const TypeNode, BuiltinSet>& pair : termsToRecons)
   {
-    ObligationSet::iterator it = tempPair.second.begin();
-    while (it != tempPair.second.end())
+    BuiltinSet::iterator it = pair.second.begin();
+    while (it != pair.second.end())
     {
-      if (d_sol[*it].isNull())
+      if (d_sol[d_stnInfo[pair.first].builtinToOb(*it)->getSkolem()].isNull())
       {
         ++it;
       }
       else
       {
-        it = tempPair.second.erase(it);
+        it = pair.second.erase(it);
       }
     }
   }
@@ -482,7 +473,7 @@ bool SygusReconstruct::notify(Node s,
 
 void SygusReconstruct::clear()
 {
-  d_obInfo.clear();
+  d_obs.clear();
   d_stnInfo.clear();
   d_sol.clear();
   d_subObs.clear();
@@ -494,25 +485,27 @@ void SygusReconstruct::clear()
 void SygusReconstruct::printPool(
     const std::unordered_map<TypeNode, std::vector<Node>>& pool) const
 {
-  Trace("sygus-rcons") << "\nPool:\n[";
+  Trace("sygus-rcons") << std::endl << "Pool:" << std::endl << '{';
 
   for (const std::pair<const TypeNode, std::vector<Node>>& pair : pool)
   {
-    Trace("sygus-rcons") << std::endl << pair.first << ":\n[" << std::endl;
+    Trace("sygus-rcons") << std::endl
+                         << "  " << pair.first << ':' << std::endl
+                         << "  [" << std::endl;
 
     for (const Node& sygusTerm : pair.second)
     {
-      Trace("sygus-rcons") << "  "
+      Trace("sygus-rcons") << "    "
                            << Rewriter::rewrite(
                                   datatypes::utils::sygusToBuiltin(sygusTerm))
                                   .toString()
                            << std::endl;
     }
 
-    Trace("sygus-rcons") << "]" << std::endl;
+    Trace("sygus-rcons") << "  ]" << std::endl;
   }
 
-  Trace("sygus-rcons") << "]" << std::endl;
+  Trace("sygus-rcons") << '}' << std::endl;
 }
 
 }  // namespace quantifiers

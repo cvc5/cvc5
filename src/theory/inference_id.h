@@ -67,6 +67,13 @@ enum class InferenceId
   ARITH_BB_LEMMA,
   ARITH_DIO_CUT,
   ARITH_DIO_DECOMPOSITION,
+  // unate lemma during presolve
+  ARITH_UNATE,
+  // row implication
+  ARITH_ROW_IMPL,
+  // a split that occurs when the non-linear solver changes values of arithmetic
+  // variables in a model, but those variables are inconsistent with assignments
+  // from another theory
   ARITH_SPLIT_FOR_NL_MODEL,
   //-------------------- preprocessing
   // equivalence of term and its preprocessed form
@@ -229,6 +236,15 @@ enum class InferenceId
   // (dt.size t) >= 0
   DATATYPES_SYGUS_MT_POS,
   // ---------------------------------- end datatypes theory
+
+  //-------------------------------------- floating point theory
+  // a lemma sent during TheoryFp::ppRewrite
+  FP_PREPROCESS,
+  // a lemma sent during TheoryFp::convertAndEquateTerm
+  FP_EQUATE_TERM,
+  // a lemma sent during TheoryFp::registerTerm
+  FP_REGISTER_TERM,
+  //-------------------------------------- end floating point theory
 
   //-------------------------------------- quantifiers theory
   //-------------------- types of instantiations.
@@ -397,6 +413,7 @@ enum class InferenceId
   SETS_RELS_PRODUCE_COMPOSE,
   SETS_RELS_PRODUCT_SPLIT,
   SETS_RELS_TCLOSURE_FWD,
+  SETS_RELS_TCLOSURE_UP,
   SETS_RELS_TRANSPOSE_EQ,
   SETS_RELS_TRANSPOSE_REV,
   SETS_RELS_TUPLE_REDUCTION,
