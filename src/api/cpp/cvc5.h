@@ -945,7 +945,7 @@ class CVC5_EXPORT Term
 
  public:
   /**
-   * Constructor.
+   * Constructor for a null term.
    */
   Term();
 
@@ -973,28 +973,28 @@ class CVC5_EXPORT Term
   bool operator!=(const Term& t) const;
 
   /**
-   * Comparison for ordering on terms.
+   * Comparison for ordering on terms by their id.
    * @param t the term to compare to
    * @return true if this term is less than t
    */
   bool operator<(const Term& t) const;
 
   /**
-   * Comparison for ordering on terms.
+   * Comparison for ordering on terms by their id.
    * @param t the term to compare to
    * @return true if this term is greater than t
    */
   bool operator>(const Term& t) const;
 
   /**
-   * Comparison for ordering on terms.
+   * Comparison for ordering on terms by their id.
    * @param t the term to compare to
    * @return true if this term is less than or equal to t
    */
   bool operator<=(const Term& t) const;
 
   /**
-   * Comparison for ordering on terms.
+   * Comparison for ordering on terms by their id.
    * @param t the term to compare to
    * @return true if this term is greater than or equal to t
    */
