@@ -69,12 +69,6 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult NonClausalSimp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Assert(options::unsatCoresMode() == options::UnsatCoresMode::OFF
-         || isProofEnabled())
-      << "Unsat cores with non-clausal simp only supported with new proofs. "
-         "Cores mode is "
-      << options::unsatCoresMode() << "\n";
-
   d_preprocContext->spendResource(Resource::PreprocessStep);
 
   theory::booleans::CircuitPropagator* propagator =
