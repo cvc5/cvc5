@@ -3,6 +3,7 @@ from fractions import Fraction
 import sys
 
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
+from libc.stddef cimport wchar_t
 
 from libcpp.pair cimport pair
 from libcpp.set cimport set
@@ -26,8 +27,13 @@ from cvc5 cimport ROUND_TOWARD_NEGATIVE, ROUND_TOWARD_ZERO
 from cvc5 cimport ROUND_NEAREST_TIES_TO_AWAY
 from cvc5 cimport Term as c_Term
 from cvc5 cimport hash as c_hash
+from cvc5 cimport wstring as c_wstring
 
 from cvc5kinds cimport Kind as c_Kind
+
+cdef extern from "Python.h":
+    wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *)
+    void PyMem_Free(void*)
 
 ################################## DECORATORS #################################
 def expand_list_arg(num_req_args=0):
@@ -735,23 +741,12 @@ cdef class Solver:
         term.cterm = self.csolver.mkSepNil(sort.csort)
         return term
 
-    def mkString(self, str_or_vec):
+    def mkString(self, str s):
         cdef Term term = Term(self)
-        cdef vector[unsigned] v
-        if isinstance(str_or_vec, str):
-            for u in str_or_vec:
-                v.push_back(<unsigned> ord(u))
-            term.cterm = self.csolver.mkString(<const vector[unsigned]&> v)
-        elif isinstance(str_or_vec, list):
-            for u in str_or_vec:
-                if not isinstance(u, int):
-                    raise ValueError("List should contain ints but got: {}"
-                                     .format(str_or_vec))
-                v.push_back(<unsigned> u)
-            term.cterm = self.csolver.mkString(<const vector[unsigned]&> v)
-        else:
-            raise ValueError("Expected string or vector of ASCII codes"
-                             " but got: {}".format(str_or_vec))
+        cdef Py_ssize_t size
+        cdef wchar_t* tmp = PyUnicode_AsWideCharString(s, &size)
+        term.cterm = self.csolver.mkString(c_wstring(tmp, size))
+        PyMem_Free(tmp)
         return term
 
     def mkEmptySequence(self, Sort sort):
@@ -1609,7 +1604,7 @@ cdef class Term:
         return term
 
     def isInteger(self):
-        return self.cterm.isInteger()
+        return self.cterm.isIntegerValue()
     
     def toPythonObj(self):
         '''

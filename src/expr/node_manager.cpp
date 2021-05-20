@@ -930,28 +930,9 @@ Node NodeManager::mkVar(const std::string& name, const TypeNode& type)
   return n;
 }
 
-Node* NodeManager::mkVarPtr(const std::string& name, const TypeNode& type)
-{
-  Node* n = NodeBuilder(this, kind::VARIABLE).constructNodePtr();
-  setAttribute(*n, TypeAttr(), type);
-  setAttribute(*n, TypeCheckedAttr(), true);
-  setAttribute(*n, expr::VarNameAttr(), name);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(*n);
-  }
-  return n;
-}
-
 Node NodeManager::mkBoundVar(const std::string& name, const TypeNode& type) {
   Node n = mkBoundVar(type);
   setAttribute(n, expr::VarNameAttr(), name);
-  return n;
-}
-
-Node* NodeManager::mkBoundVarPtr(const std::string& name,
-                                 const TypeNode& type) {
-  Node* n = mkBoundVarPtr(type);
-  setAttribute(*n, expr::VarNameAttr(), name);
   return n;
 }
 
@@ -1072,28 +1053,10 @@ Node NodeManager::mkVar(const TypeNode& type)
   return n;
 }
 
-Node* NodeManager::mkVarPtr(const TypeNode& type)
-{
-  Node* n = NodeBuilder(this, kind::VARIABLE).constructNodePtr();
-  setAttribute(*n, TypeAttr(), type);
-  setAttribute(*n, TypeCheckedAttr(), true);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(*n);
-  }
-  return n;
-}
-
 Node NodeManager::mkBoundVar(const TypeNode& type) {
   Node n = NodeBuilder(this, kind::BOUND_VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
-  return n;
-}
-
-Node* NodeManager::mkBoundVarPtr(const TypeNode& type) {
-  Node* n = NodeBuilder(this, kind::BOUND_VARIABLE).constructNodePtr();
-  setAttribute(*n, TypeAttr(), type);
-  setAttribute(*n, TypeCheckedAttr(), true);
   return n;
 }
 

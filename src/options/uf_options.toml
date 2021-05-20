@@ -1,5 +1,5 @@
 id     = "UF"
-name   = "Uninterpreted functions theory"
+name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "ufSymmetryBreaker"

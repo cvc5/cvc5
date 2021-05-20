@@ -1,5 +1,5 @@
 id     = "BV"
-name   = "Bitvector theory"
+name   = "Bitvector Theory"
 
 [[option]]
   name       = "bvSatSolver"
