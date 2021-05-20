@@ -1092,7 +1092,7 @@ TrustNode Constraint::split()
     auto ltPf = d_database->d_pnm->mkNode(
         PfRule::MACRO_SR_PRED_TRANSFORM, {nGeqPf}, {ltNode});
     auto sumPf = d_database->d_pnm->mkNode(
-        PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
+        PfRule::MACRO_ARITH_SCALE_SUM_UB,
         {gtPf, ltPf},
         {nm->mkConst<Rational>(-1), nm->mkConst<Rational>(1)});
     auto botPf = d_database->d_pnm->mkNode(
@@ -1779,10 +1779,8 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           }
 
           // Apply the scaled-sum rule.
-          std::shared_ptr<ProofNode> sumPf =
-              pnm->mkNode(PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
-                          farkasChildren,
-                          farkasCoeffs);
+          std::shared_ptr<ProofNode> sumPf = pnm->mkNode(
+              PfRule::MACRO_ARITH_SCALE_SUM_UB, farkasChildren, farkasCoeffs);
 
           // Provable rewrite the result
           auto botPf = pnm->mkNode(
@@ -2081,7 +2079,7 @@ void ConstraintDatabase::proveOr(std::vector<TrustNode>& out,
     int sndSign = negateSecond ? -1 : 1;
     auto bot_pf =
         d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
-                      {d_pnm->mkNode(PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
+                      {d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
                                      {pf_neg_la, pf_neg_lb},
                                      {nm->mkConst<Rational>(-1 * sndSign),
                                       nm->mkConst<Rational>(sndSign)})},
