@@ -6,6 +6,7 @@
 ; EXPECT: "str\ing"
 ; EXPECT: "str\\ing"
 ; EXPECT: "str\"
+; EXPECT: "\u{65}"
 (echo "str""")
 (echo "str""ing")
 (echo "hi")
@@ -14,3 +15,4 @@
 (echo "str\ing")
 (echo "str\\ing")
 (echo "str\")
+(echo "\u{65}")
