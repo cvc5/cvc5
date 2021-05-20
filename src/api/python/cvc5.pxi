@@ -958,6 +958,19 @@ cdef class Solver:
         t.cterm = self.csolver.getSynthSolution(term.cterm)
         return t
 
+    def getSynthSolutions(self, list terms):
+        result = []
+        cdef vector[c_Term] vec
+        for t in terms:
+            vec.push_back((<Term?> t).cterm)
+        cresult = self.csolver.getSynthSolutions(vec)
+        for s in cresult:
+            term = Term(self)
+            term.cterm = s
+            result.append(term)
+        return result
+
+
     def synthInv(self, symbol, bound_vars, Grammar grammar=None):
         cdef Term term = Term(self)
         cdef vector[c_Term] v
@@ -968,9 +981,6 @@ cdef class Solver:
         else:
             term.cterm = self.csolver.synthInv(symbol.encode(), <const vector[c_Term]&> v, grammar.cgrammar)
         return term
-
-    def printSynthSolution(self):
-        self.csolver.printSynthSolution(cout)
 
     @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
@@ -1550,9 +1560,9 @@ cdef class Term:
         term.cterm = self.cterm.getConstArrayBase()
         return term
 
-    def getConstSequenceElements(self):
+    def getSequenceValue(self):
         elems = []
-        for e in self.cterm.getConstSequenceElements():
+        for e in self.cterm.getSequenceValue():
             term = Term(self.solver)
             term.cterm = e
             elems.append(term)

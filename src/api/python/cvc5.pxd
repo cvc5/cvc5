@@ -180,7 +180,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Term] getSynthSolutions(const vector[Term]& terms) except +
         Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +
         Term synthInv(const string& symbol, const vector[Term]& bound_vars, Grammar grammar) except +
-        void printSynthSolution(ostream& out) except +
         # End of sygus related functions
 
         Term mkTrue() except +
@@ -359,7 +358,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Op getOp() except +
         bint isNull() except +
         Term getConstArrayBase() except +
-        vector[Term] getConstSequenceElements() except +
         Term notTerm() except +
         Term andTerm(const Term& t) except +
         Term orTerm(const Term& t) except +
@@ -377,6 +375,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         const_iterator begin() except +
         const_iterator end() except +
         bint isIntegerValue() except +
+        vector[Term] getSequenceValue() except +
 
     cdef cppclass TermHashFunction:
         TermHashFunction() except +
