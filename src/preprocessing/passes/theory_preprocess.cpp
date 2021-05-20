@@ -20,7 +20,6 @@
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "proof/proof_manager.h"
 #include "prop/prop_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
@@ -58,12 +57,6 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
     {
       imap[assertions->size()] = newSkolems[j];
       assertions->pushBackTrusted(newAsserts[j]);
-      // new assertions have a dependence on the node (old pf architecture)
-      if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
-      {
-        ProofManager::currentPM()->addDependence(newAsserts[j].getProven(),
-                                                 assertion);
-      }
     }
   }
 
