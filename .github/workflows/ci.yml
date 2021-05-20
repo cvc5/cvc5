@@ -179,14 +179,14 @@ jobs:
           --werror
 
     - name: Build
-      run: make -j2
+      run: make -j2 VERBOSE=1
       working-directory: build
 
     - name: ccache Statistics
       run: ccache -s
 
     - name: Run CTest
-      run: make -j2 check
+      run: make -j2 check VERBOSE=1
       env:
         ARGS: --output-on-failure -LE regress[${{ matrix.exclude_regress }}]
         CVC5_REGRESSION_ARGS: --no-early-exit
