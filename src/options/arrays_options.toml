@@ -1,5 +1,5 @@
 id     = "ARRAYS"
-name   = "Arrays theory"
+name   = "Arrays Theory"
 
 [[option]]
   name       = "arraysOptimizeLinear"

@@ -48,9 +48,9 @@ class SymbolManager::Implementation
 
   ~Implementation() { d_context.pop(); }
   /** set expression name */
-  bool setExpressionName(api::Term t,
-                         const std::string& name,
-                         bool isAssertion = false);
+  NamingResult setExpressionName(api::Term t,
+                                 const std::string& name,
+                                 bool isAssertion = false);
   /** get expression name */
   bool getExpressionName(api::Term t,
                          std::string& name,
@@ -97,15 +97,17 @@ class SymbolManager::Implementation
   CDO<bool> d_hasPushedScope;
 };
 
-bool SymbolManager::Implementation::setExpressionName(api::Term t,
-                                                      const std::string& name,
-                                                      bool isAssertion)
+NamingResult SymbolManager::Implementation::setExpressionName(
+    api::Term t, const std::string& name, bool isAssertion)
 {
   Trace("sym-manager") << "SymbolManager: set expression name: " << t << " -> "
                        << name << ", isAssertion=" << isAssertion << std::endl;
-  // cannot name subexpressions under quantifiers
-  PrettyCheckArgument(
-      !d_hasPushedScope.get(), name, "cannot name function in a scope");
+  if (d_hasPushedScope.get())
+  {
+    // cannot name subexpressions under binders
+    return NamingResult::ERROR_IN_BINDER;
+  }
+
   if (isAssertion)
   {
     d_namedAsserts.insert(t);
@@ -113,10 +115,10 @@ bool SymbolManager::Implementation::setExpressionName(api::Term t,
   if (d_names.find(t) != d_names.end())
   {
     // already named assertion
-    return false;
+    return NamingResult::ERROR_ALREADY_NAMED;
   }
   d_names[t] = name;
-  return true;
+  return NamingResult::SUCCESS;
 }
 
 bool SymbolManager::Implementation::getExpressionName(api::Term t,
@@ -269,9 +271,9 @@ SymbolManager::~SymbolManager() {}
 
 SymbolTable* SymbolManager::getSymbolTable() { return &d_symtabAllocated; }
 
-bool SymbolManager::setExpressionName(api::Term t,
-                                      const std::string& name,
-                                      bool isAssertion)
+NamingResult SymbolManager::setExpressionName(api::Term t,
+                                              const std::string& name,
+                                              bool isAssertion)
 {
   return d_implementation->setExpressionName(t, name, isAssertion);
 }

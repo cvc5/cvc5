@@ -299,6 +299,103 @@ class Option(object):
                 self.long_opt = r[1]
 
 
+class SphinxGenerator:
+    def __init__(self):
+        self.common = []
+        self.others = {}
+
+    def add(self, module, option):
+        if option.category == 'undocumented':
+            return
+        if not option.long and not option.short:
+            return
+        names = []
+        if option.long:
+            if option.long_opt:
+                names.append('--{}={}'.format(option.long_name, option.long_opt))
+            else:
+                names.append('--{}'.format(option.long_name))
+        
+        if option.alias:
+            if option.long_opt:
+                names.extend(['--{}={}'.format(a, option.long_opt) for a in option.alias])
+            else:
+                names.extend(['--{}'.format(a) for a in option.alias])
+
+        if option.short:
+            if option.long_opt:
+                names.append('-{} {}'.format(option.short, option.long_opt))
+            else:
+                names.append('-{}'.format(option.short))
+        
+        modes = None
+        if option.mode:
+            modes = {}
+            for _, data in option.mode.items():
+                assert len(data) == 1
+                data = data[0]
+                modes[data['name']] = data.get('help', '')
+
+        data = {
+            'name': names,
+            'help': option.help,
+            'expert': option.category == 'expert',
+            'alternate': option.type == 'bool' and option.alternate,
+            'help_mode': option.help_mode,
+            'modes': modes,
+        }
+
+        if option.category == 'common':
+            self.common.append(data)
+        else:
+            if module.name not in self.others:
+                self.others[module.name] = []
+            self.others[module.name].append(data)
+    
+    def __render_option(self, res, opt):
+        desc = '``{}``'
+        val = '    {}'
+        if opt['expert']:
+            res.append('.. admonition:: This option is intended for Experts only!')
+            res.append('    ')
+            desc = '    ' + desc
+            val = '    ' + val
+
+        if opt['alternate']:
+            desc += ' (also ``--no-*``)'
+        res.append(desc.format(' | '.join(opt['name'])))
+        res.append(val.format(opt['help']))
+
+        if opt['modes']:
+            res.append(val.format(''))
+            res.append(val.format(opt['help_mode']))
+            res.append(val.format(''))
+            for k, v in opt['modes'].items():
+                res.append(val.format(':{}: {}'.format(k, v)))
+        res.append('    ')
+
+
+    def render(self, dstdir, filename):
+        res = []
+
+        res.append('Most Commonly-Used cvc5 Options')
+        res.append('===============================')
+        for opt in self.common:
+            self.__render_option(res, opt)
+
+        res.append('')
+        res.append('Additional cvc5 Options')
+        res.append('=======================')
+        for module in self.others:
+            res.append('')
+            res.append('{} Module'.format(module))
+            res.append('-' * (len(module) + 8))
+            for opt in self.others[module]:
+                self.__render_option(res, opt)
+
+        write_file(dstdir, filename, '\n'.join(res))
+
+
 def die(msg):
     sys.exit('[error] {}'.format(msg))
 
@@ -630,7 +727,7 @@ def add_getopt_long(long_name, argument_req, getopt_long):
             'required' if argument_req else 'no', value))
 
 
-def codegen_all_modules(modules, dst_dir, tpl_options_h, tpl_options_cpp):
+def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_cpp):
     """
     Generate code for all option modules (options.cpp, options_holder.h).
     """
@@ -649,6 +746,8 @@ def codegen_all_modules(modules, dst_dir, tpl_options_h, tpl_options_cpp):
     setoption_handlers = []  # handlers for set-option command
     getoption_handlers = []  # handlers for get-option command
 
+    sphinxgen = SphinxGenerator()
+
     for module in modules:
         headers_module.append(format_include(module.header))
 
@@ -663,6 +762,8 @@ def codegen_all_modules(modules, dst_dir, tpl_options_h, tpl_options_cpp):
             argument_req = option.type not in ['bool', 'void']
 
             docgen_option(option, help_common, help_others)
+
+            sphinxgen.add(module, option)
 
             # Generate handler call
             handler = None
@@ -889,6 +990,8 @@ def codegen_all_modules(modules, dst_dir, tpl_options_h, tpl_options_cpp):
         getoption_handlers='\n'.join(getoption_handlers)
     ))
 
+    if os.path.isdir('{}/docs/'.format(build_dir)):
+        sphinxgen.render('{}/docs/'.format(build_dir), 'options_generated.rst')
 
 def lstrip(prefix, s):
     """
@@ -1014,8 +1117,9 @@ def mkoptions_main():
         die('missing arguments')
 
     src_dir = sys.argv[1]
-    dst_dir = sys.argv[2]
-    filenames = sys.argv[3:]
+    build_dir = sys.argv[2]
+    dst_dir = sys.argv[3]
+    filenames = sys.argv[4:]
 
     # Check if given directories exist.
     for d in [src_dir, dst_dir]:
@@ -1056,7 +1160,7 @@ def mkoptions_main():
         codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp)
 
     # Create options.cpp and options_holder.h in destination directory
-    codegen_all_modules(modules, dst_dir, tpl_options_h, tpl_options_cpp)
+    codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_cpp)
 
 
 

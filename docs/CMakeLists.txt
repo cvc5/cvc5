@@ -26,7 +26,7 @@ set(SPHINX_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
 configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/conf.py)
 
 add_custom_target(docs ALL
-                  DEPENDS docs-cpp docs-python
+                  DEPENDS docs-cpp docs-python gen-options
                   COMMAND
                     ${SPHINX_EXECUTABLE} -b html
                     -c ${CMAKE_CURRENT_BINARY_DIR}

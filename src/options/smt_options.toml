@@ -1,5 +1,5 @@
 id     = "SMT"
-name   = "SMT layer"
+name   = "SMT Layer"
 
 [[option]]
   name       = "dumpModeString"
@@ -187,7 +187,7 @@ name   = "SMT layer"
   category   = "regular"
   long       = "produce-unsat-cores"
   type       = "bool"
-  help       = "turn on unsat core generation"
+  help       = "turn on unsat core generation. Unless otherwise specified, cores will be produced using SAT soving under assumptions and preprocessing proofs."
 
 [[option]]
   name       = "unsatCoresMode"
@@ -200,9 +200,6 @@ name   = "SMT layer"
 [[option.mode.OFF]]
   name = "off"
   help = "Do not produce unsat cores."
-[[option.mode.OLD_PROOF]]
-  name = "old-proof"
-  help = "Produce unsat cores from old proof infrastructure."
 [[option.mode.SAT_PROOF]]
   name = "sat-proof"
   help = "Produce unsat cores from SAT and preprocessing proofs."

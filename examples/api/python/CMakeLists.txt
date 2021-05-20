@@ -53,5 +53,5 @@ foreach(example ${EXAMPLES_API_PYTHON})
   )
   set_tests_properties(${example_test} PROPERTIES
     LABELS "example"
-    ENVIRONMENT PYTHONPATH=${PYTHON_MODULE_PATH})
+    ENVIRONMENT PYTHONPATH=${PYTHON_MODULE_PATH}:${CMAKE_SOURCE_DIR}/api/python)
 endforeach()
