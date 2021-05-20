@@ -567,6 +567,7 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
 
 bool JustificationStrategy::refreshCurrentAssertion()
 {
+  Trace("jh-process") << "refreshCurrentAssertion" << std::endl;
   // if we already have a current assertion, nothing to be done
   TNode curr = d_stack.getCurrentAssertion();
   if (!curr.isNull())
@@ -604,6 +605,7 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(bool useSkolemList)
   SatValue currValue;
   while (!curr.isNull())
   {
+    Trace("jh-process") << "Check assertion " << curr << std::endl;
     // we never add theory literals to our assertions lists
     Assert(!isTheoryLiteral(curr));
     currValue = lookupValue(curr);
