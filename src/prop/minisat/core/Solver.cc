@@ -1765,7 +1765,8 @@ lbool Solver::search(int nof_conflicts)
       // If this was a final check, we are satisfiable
       if (check_type == CHECK_FINAL)
       {
-        bool decisionEngineDone = (decisionLevel() >= assumptions.size()) && d_proxy->isDecisionEngineDone();
+        bool decisionEngineDone = (decisionLevel() >= assumptions.size())
+                                  && d_proxy->isDecisionEngineDone();
         // Unless a lemma has added more stuff to the queues
         if (!decisionEngineDone
             && (!order_heap.empty() || qhead < trail.size()))

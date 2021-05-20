@@ -439,8 +439,8 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
   // check if we have already determined the value
   // notice that d_justified may contain nodes that are not assigned SAT values,
   // since this class infers when the value of nodes can be determined.
-  context::CDInsertHashMap<Node, SatValue>::const_iterator
-      jit = d_justified.find(atom);
+  context::CDInsertHashMap<Node, SatValue>::const_iterator jit =
+      d_justified.find(atom);
   if (jit != d_justified.end())
   {
     return pol ? jit->second : invertValue(jit->second);
@@ -479,7 +479,8 @@ void JustificationStrategy::addAssertion(TNode assertion)
 
 void JustificationStrategy::addSkolemDefinition(TNode lem, TNode skolem)
 {
-  Trace("jh-assert") << "addSkolemDefinition " << lem << " / " << skolem << std::endl;
+  Trace("jh-assert") << "addSkolemDefinition " << lem << " / " << skolem
+                     << std::endl;
   if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ALWAYS)
   {
     // just add to main assertions list
