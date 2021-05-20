@@ -23,7 +23,6 @@
 #include "expr/term_context_stack.h"
 #include "expr/term_conversion_proof_generator.h"
 #include "options/smt_options.h"
-#include "proof/proof_manager.h"
 
 using namespace std;
 

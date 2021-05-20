@@ -30,6 +30,15 @@ namespace cvc5 {
 
 static_assert(UCHAR_MAX == 255, "Unsigned char is assumed to have 256 values.");
 
+String::String(const std::wstring& s)
+{
+  d_str.resize(s.size());
+  for (size_t i = 0, n = s.size(); i < n; ++i)
+  {
+    d_str[i] = static_cast<unsigned>(s[i]);
+  }
+}
+
 String::String(const std::vector<unsigned> &s) : d_str(s)
 {
 #ifdef CVC5_ASSERTIONS

@@ -22,9 +22,6 @@
 #include "expr/node.h"
 #include "options/bv_options.h"
 #include "proof/clause_id.h"
-#include "proof/cnf_proof.h"
-#include "proof/proof_manager.h"
-#include "proof/sat_proof.h"
 #include "prop/minisat/minisat.h"
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
@@ -54,7 +51,6 @@ CnfStream::CnfStream(SatSolver* satSolver,
       d_flitPolicy(flpol),
       d_registrar(registrar),
       d_name(name),
-      d_cnfProof(nullptr),
       d_removable(false),
       d_resourceManager(rm)
 {
@@ -86,10 +82,6 @@ bool CnfStream::assertClause(TNode node, SatClause& c)
 
   ClauseId clauseId = d_satSolver->addClause(c, d_removable);
 
-  if (d_cnfProof && clauseId != ClauseIdUndef)
-  {
-    d_cnfProof->registerConvertedClause(clauseId);
-  }
   return clauseId != ClauseIdUndef;
 }
 
@@ -159,26 +151,10 @@ void CnfStream::ensureLiteral(TNode n)
     // If we were called with something other than a theory atom (or
     // Boolean variable), we get a SatLiteral that is definitionally
     // equal to it.
-    //
-    // We are setting the current assertion to be null. This is because `toCNF`
-    // may add clauses to the SAT solver and we look up the current assertion
-    // in that case. Setting it to null ensures that the assertion stack is
-    // non-empty and that we are not associating a bogus assertion with the
-    // clause. This should be ok because we use the mapping back to assertions
-    // for clauses from input assertions only.
-    if (d_cnfProof)
-    {
-      d_cnfProof->pushCurrentAssertion(Node::null());
-    }
     // These are not removable and have no proof ID
     d_removable = false;
 
     SatLiteral lit = toCNF(n, false);
-
-    if (d_cnfProof)
-    {
-      d_cnfProof->popCurrentAssertion();
-    }
 
     // Store backward-mappings
     // These may already exist
@@ -239,7 +215,6 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
   if (preRegister) {
     // In case we are re-entered due to lemmas, save our state
     bool backupRemovable = d_removable;
-    // Should be fine since cnfProof current assertion is stack based.
     d_registrar->preRegister(node);
     d_removable = backupRemovable;
   }
@@ -275,11 +250,6 @@ void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const {
 bool CnfStream::isNotifyFormula(TNode node) const
 {
   return d_notifyFormulas.find(node) != d_notifyFormulas.end();
-}
-
-void CnfStream::setProof(CnfProof* proof) {
-  Assert(d_cnfProof == NULL);
-  d_cnfProof = proof;
 }
 
 SatLiteral CnfStream::convertAtom(TNode node)
@@ -737,17 +707,7 @@ void CnfStream::convertAndAssert(TNode node,
                << ", negated = " << (negated ? "true" : "false")
                << ", removable = " << (removable ? "true" : "false") << ")\n";
   d_removable = removable;
-
-  if (d_cnfProof)
-  {
-    d_cnfProof->pushCurrentAssertion(negated ? node.notNode() : (Node)node,
-                                     input);
-  }
   convertAndAssert(node, negated);
-  if (d_cnfProof)
-  {
-    d_cnfProof->popCurrentAssertion();
-  }
 }
 
 void CnfStream::convertAndAssert(TNode node, bool negated)
