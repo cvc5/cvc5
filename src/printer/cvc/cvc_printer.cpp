@@ -709,14 +709,14 @@ void CvcPrinter::toStreamNode(std::ostream& out,
       unsigned numc = n.getNumChildren()-2;
       unsigned child = 0;
       while (child < numc) {
-        out << "BVADD(";
+        out << "BVPLUS(";
         out << n.getType().getBitVectorSize();
         out << ',';
         toStreamNode(out, n[child], depth, false, lbind);
         out << ',';
         ++child;
       }
-      out << "BVADD(";
+      out << "BVPLUS(";
       out << n.getType().getBitVectorSize();
       out << ',';
       toStreamNode(out, n[child], depth, false, lbind);
