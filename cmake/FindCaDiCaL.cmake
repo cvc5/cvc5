@@ -83,6 +83,9 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
       sed -i.orig -e "s,@CXX@,${CMAKE_CXX_COMPILER}," -e
       "s,@CXXFLAGS@,${CXXFLAGS}," -e "s,@MAKEFLAGS@,,"
       <SOURCE_DIR>/build/makefile
+    # This is a temporary patch until fixed upstream
+    PATCH_COMMAND
+      sed -i.orig "5i#include <cstddef>" <SOURCE_DIR>/src/reap.hpp
     BUILD_COMMAND ${make_cmd} -C <SOURCE_DIR>/build libcadical.a
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libcadical.a
                     <INSTALL_DIR>/lib/libcadical.a
