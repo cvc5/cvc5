@@ -180,7 +180,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Term] getSynthSolutions(const vector[Term]& terms) except +
         Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +
         Term synthInv(const string& symbol, const vector[Term]& bound_vars, Grammar grammar) except +
-        void printSynthSolution(ostream& out) except +
         # End of sygus related functions
 
         Term mkTrue() except +

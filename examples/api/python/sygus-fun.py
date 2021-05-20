@@ -17,6 +17,7 @@
 
 import copy
 import pycvc5
+import utils
 from pycvc5 import kinds
 
 if __name__ == "__main__":
@@ -93,5 +94,5 @@ if __name__ == "__main__":
     # Output should be equivalent to:
     # (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
     # (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
-    slv.printSynthSolution()
-
+    terms = [max, min]
+    utils.print_synth_solutions(terms, slv.getSynthSolutions(terms))

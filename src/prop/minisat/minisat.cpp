@@ -22,7 +22,6 @@
 #include "options/prop_options.h"
 #include "options/smt_options.h"
 #include "proof/clause_id.h"
-#include "proof/sat_proof.h"
 #include "prop/minisat/simp/SimpSolver.h"
 #include "util/statistics_stats.h"
 
