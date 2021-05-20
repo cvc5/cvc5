@@ -1077,7 +1077,7 @@ TEST_F(TestApiBlackTerm, constArray)
       d_solver.mkTerm(STORE, stores, d_solver.mkReal(4), d_solver.mkReal(5));
 }
 
-TEST_F(TestApiBlackTerm, constSequenceElements)
+TEST_F(TestApiBlackTerm, getSequenceValue)
 {
   Sort realsort = d_solver.getRealSort();
   Sort seqsort = d_solver.mkSequenceSort(realsort);
@@ -1085,13 +1085,13 @@ TEST_F(TestApiBlackTerm, constSequenceElements)
 
   ASSERT_EQ(s.getKind(), CONST_SEQUENCE);
   // empty sequence has zero elements
-  std::vector<Term> cs = s.getConstSequenceElements();
+  std::vector<Term> cs = s.getSequenceValue();
   ASSERT_TRUE(cs.empty());
 
   // A seq.unit app is not a constant sequence (regardless of whether it is
   // applied to a constant).
   Term su = d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal(1));
-  ASSERT_THROW(su.getConstSequenceElements(), CVC5ApiException);
+  ASSERT_THROW(su.getSequenceValue(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTerm, termScopedToString)

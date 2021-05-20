@@ -1054,13 +1054,6 @@ class CVC5_EXPORT Term
   bool isNull() const;
 
   /**
-   *  Return the elements of a constant sequence
-   *  throws an exception if the kind is not CONST_SEQUENCE
-   *  @return the elements of the constant sequence.
-   */
-  std::vector<Term> getConstSequenceElements() const;
-
-  /**
    * Boolean negation.
    * @return the Boolean negation of this term
    */

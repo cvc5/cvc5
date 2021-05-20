@@ -359,7 +359,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Op getOp() except +
         bint isNull() except +
         Term getConstArrayBase() except +
-        vector[Term] getConstSequenceElements() except +
         Term notTerm() except +
         Term andTerm(const Term& t) except +
         Term orTerm(const Term& t) except +
@@ -377,6 +376,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         const_iterator begin() except +
         const_iterator end() except +
         bint isIntegerValue() except +
+        vector[Term] getSequenceValue() except +
 
     cdef cppclass TermHashFunction:
         TermHashFunction() except +
