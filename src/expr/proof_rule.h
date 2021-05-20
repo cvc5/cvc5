@@ -77,8 +77,6 @@ enum class PfRule : uint32_t
   // proof with no free assumptions always concludes a valid formula.
   SCOPE,
 
-  //%%%%%%%%%%%%%  BEGIN SHOULD BE AUTO GENERATED
-
   //======================== Builtin theory (common node operations)
   // ======== Substitution
   // Children: (P1:F1, ..., Pn:Fn)
@@ -1463,8 +1461,6 @@ enum class PfRule : uint32_t
   // Conclusion: (Q)
   // where Q' is the representation of Q to be printed by the veriT printer.
   VERIT_RULE,
-
-  //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
   //================================================= Unknown rule
   UNKNOWN,

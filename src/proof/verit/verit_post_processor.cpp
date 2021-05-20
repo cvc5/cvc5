@@ -2882,9 +2882,9 @@ bool VeritProofPostprocessFinalCallback::update(
 VeritProofPostprocess::VeritProofPostprocess(ProofNodeManager* pnm)
     : d_pnm(pnm),
       d_cb(d_pnm),
-      d_updater(d_pnm, d_cb, false, false, false),
+      d_updater(d_pnm, d_cb, false, false),
       d_fcb(d_pnm),
-      d_finalize(d_pnm, d_fcb, false, false, false)
+      d_finalize(d_pnm, d_fcb, false, false)
 {
 }
 

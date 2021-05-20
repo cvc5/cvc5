@@ -90,6 +90,7 @@ PR finished:
 (95) Arrays proof checker
 (96) arrays proof producing (req 95)
 (97) term conversion sequence generator
+(98) enable proofs on CI
 (99) SAT rules to Boolean checker [Haniel]
 (100) fixes for instantiate, quantifiers proof checker
 (101) strings misc changes to preprocess, base (req 31, 43)
@@ -133,15 +134,15 @@ PR finished:
 (140) nl-ext proofs [Gereon]
 (141) nl transcendental proofs [Gereon]
 (142) instantiation list utility
+(143) unsat core support in SmtEngine, update regressions for unsat core option name [Haniel]
 (144) quantifiers instantiation printing refactoring (req 142)
+(147) SEXPR simply typed
 
 PRs ready:
 
 (70) rewriter unit test [Andres] (req 36, 37)
-(98) enable proofs on CI *
 (133) Boolean proof checker unit test [Haniel]
-(143) unsat core support in SmtEngine, update regressions for unsat core option name [Haniel]
-(145) term processor
+(145) node converter
 (146) proof letify
 
 PRs future:
@@ -155,5 +156,4 @@ PRs future:
 Wish list:
 
 (57) compilation of rewrite DSL into DSL rewrite rule database initialization [Andres] (req 56)
-- SEXPR simply typed
 - arith op eliminate proof producing, defining axioms (req 30)

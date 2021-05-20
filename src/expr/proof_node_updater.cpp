@@ -38,11 +38,9 @@ bool ProofNodeUpdaterCallback::update(Node res,
 ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm,
                                    ProofNodeUpdaterCallback& cb,
                                    bool mergeSubproofs,
-                                   bool trackScope,
                                    bool autoSym)
     : d_pnm(pnm),
       d_cb(cb),
-      d_trackScope(trackScope),
       d_debugFreeAssumps(false),
       d_mergeSubproofs(mergeSubproofs),
       d_autoSym(autoSym)

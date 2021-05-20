@@ -434,7 +434,7 @@ void LfscProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   d_cb->initializeUpdate();
   // do not automatically add symmetry steps, since this leads to
   // non-termination for example on policy_variable.smt2
-  ProofNodeUpdater updater(d_pnm, *(d_cb.get()), false, false, false);
+  ProofNodeUpdater updater(d_pnm, *(d_cb.get()), false, false);
   updater.process(pf);
 }
 

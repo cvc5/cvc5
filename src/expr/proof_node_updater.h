@@ -87,14 +87,12 @@ class ProofNodeUpdater
    * @param cb The callback to apply to each node
    * @param mergeSubproofs Whether to automatically merge subproofs within
    * the same SCOPE that prove the same fact.
-   * @param trackScope Whether to track the current assumptions in scope
    * @param autoSym Whether intermediate CDProof objects passed to updater
    * callbacks automatically introduce SYMM steps.
    */
   ProofNodeUpdater(ProofNodeManager* pnm,
                    ProofNodeUpdaterCallback& cb,
                    bool mergeSubproofs = false,
-                   bool trackScope = false,
                    bool autoSym = true);
   /**
    * Post-process, which performs the main post-processing technique described
@@ -148,8 +146,6 @@ class ProofNodeUpdater
   void runFinalize(std::shared_ptr<ProofNode> cur,
                    const std::vector<Node>& fa,
                    std::map<Node, std::shared_ptr<ProofNode>>& resCache);
-  /** Are we tracking the scope assumptions? */
-  bool d_trackScope;
   /** Are we debugging free assumptions? */
   bool d_debugFreeAssumps;
   /** The initial free assumptions */
