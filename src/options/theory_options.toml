@@ -1,9 +1,8 @@
 id     = "THEORY"
-name   = "Theory layer"
+name   = "Theory Layer"
 
 [[option]]
   name       = "theoryOfMode"
-  smt_name   = "theoryof-mode"
   category   = "expert"
   long       = "theoryof-mode=MODE"
   type       = "TheoryOfMode"

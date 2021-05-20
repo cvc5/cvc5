@@ -7,16 +7,21 @@
 
 (set-logic UF)
 
-(synth-fun f ((p Bool) (q Bool) (r Bool)) Bool
+(synth-fun f ((p Bool) (q Bool) (r Bool) (s Bool)) Bool
   ((Start Bool))
-  ((Start Bool (true false p q r (not Start) (and Start Start) (or Start Start)))))
+  ((Start Bool (p q r s (not Start) (and Start Start)
+                 (or Start Start) (ite Start Start Start)))))
 
-(define-fun eqReduce ((p Bool) (q Bool)) Bool (or (and p q) (and (not p) (not q))))
+(define-fun eqReduce ((p Bool) (q Bool)) Bool
+  (and (or p (not q)) (or (not p) q)))
 
 (declare-var p Bool)
 (declare-var q Bool)
 (declare-var r Bool)
+(declare-var s Bool)
 
-(constraint (= (f p q r) (and (= (and p q) (and q r)) (eqReduce (and p q) (and q r)))))
+(constraint (= (f p q r s) (and (= (and p q) (and q r))
+                                (ite s (eqReduce (and p q) (and q r)) 
+                                       (eqReduce (and p q) (and p r))))))
 
 (check-synth)

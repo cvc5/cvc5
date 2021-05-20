@@ -39,5 +39,4 @@ macro(cvc5_add_python_api_test name filename)
 endmacro()
 
 cvc5_add_python_api_test(pytest_datatype_api test_datatype_api.py)
-cvc5_add_python_api_test(pytest_grammar test_grammar.py)
 cvc5_add_python_api_test(pytest_to_python_obj test_to_python_obj.py)

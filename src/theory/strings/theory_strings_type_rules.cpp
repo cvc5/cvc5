@@ -277,8 +277,6 @@ TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     TNode::iterator it = n.begin();
-    unsigned ch[2];
-
     for (int i = 0; i < 2; ++i)
     {
       TypeNode t = (*it).getType(check);
@@ -287,26 +285,7 @@ TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
         throw TypeCheckingExceptionPrivate(
             n, "expecting a string term in regexp range");
       }
-      if (!(*it).isConst())
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "expecting a constant string term in regexp range");
-      }
-      if ((*it).getConst<String>().size() != 1)
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "expecting a single constant string term in regexp range");
-      }
-      unsigned ci = (*it).getConst<String>().front();
-      ch[i] = ci;
       ++it;
-    }
-    if (ch[0] > ch[1])
-    {
-      throw TypeCheckingExceptionPrivate(
-          n,
-          "expecting the first constant is less or equal to the second one in "
-          "regexp range");
     }
   }
   return nodeManager->regExpType();

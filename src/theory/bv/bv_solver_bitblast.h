@@ -33,6 +33,8 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
+class BBRegistrar;
+
 /**
  * Bit-blasting solver with support for different SAT back ends.
  */
@@ -82,6 +84,14 @@ class BVSolverBitblast : public BVSolver
   Node getValue(TNode node);
 
   /**
+   * Handle BITVECTOR_EAGER_ATOM atoms and assert/assume to CnfStream.
+   *
+   * @param assertFact: Indicates whether the fact should be asserted (true) or
+   * assumed (false).
+   */
+  void handleEagerAtom(TNode fact, bool assertFact);
+
+  /**
    * Cache for getValue() calls.
    *
    * Is cleared at the beginning of a getValue() call if the
@@ -93,7 +103,7 @@ class BVSolverBitblast : public BVSolver
   std::unique_ptr<BBSimple> d_bitblaster;
 
   /** Used for initializing `d_cnfStream`. */
-  std::unique_ptr<prop::NullRegistrar> d_nullRegistrar;
+  std::unique_ptr<BBRegistrar> d_bbRegistrar;
   std::unique_ptr<context::Context> d_nullContext;
 
   /** SAT solver back end (configured via options::bvSatSolver. */
@@ -108,8 +118,18 @@ class BVSolverBitblast : public BVSolver
    */
   context::CDQueue<Node> d_bbFacts;
 
+  /**
+   * Bit-blast queue for user-level 0 input facts sent to this solver.
+   *
+   * Get populated on preNotifyFact().
+   */
+  context::CDQueue<Node> d_bbInputFacts;
+
   /** Corresponds to the SAT literals of the currently asserted facts. */
   context::CDList<prop::SatLiteral> d_assumptions;
+
+  /** Stores the current input assertions. */
+  context::CDList<Node> d_assertions;
 
   /** Flag indicating whether `d_modelCache` should be invalidated. */
   context::CDO<bool> d_invalidateModelCache;

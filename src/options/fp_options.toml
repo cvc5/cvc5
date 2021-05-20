@@ -1,5 +1,5 @@
 id     = "FP"
-name   = "Fp"
+name   = "Floating-Point"
 
 [[option]]
   name       = "fpExp"

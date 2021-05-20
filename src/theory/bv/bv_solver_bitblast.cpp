@@ -26,15 +26,59 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
+/**
+ * Bit-blasting registrar.
+ *
+ * The CnfStream calls preRegister() if it encounters a theory atom.
+ * This registrar bit-blasts given atom and remembers which bit-vector atoms
+ * were bit-blasted.
+ *
+ * This registrar is needed when --bitblast=eager is enabled.
+ */
+class BBRegistrar : public prop::Registrar
+{
+ public:
+  BBRegistrar(BBSimple* bb) : d_bitblaster(bb) {}
+
+  void preRegister(Node n) override
+  {
+    if (d_registeredAtoms.find(n) != d_registeredAtoms.end())
+    {
+      return;
+    }
+    /* We are only interested in bit-vector atoms. */
+    if ((n.getKind() == kind::EQUAL && n[0].getType().isBitVector())
+        || n.getKind() == kind::BITVECTOR_ULT
+        || n.getKind() == kind::BITVECTOR_ULE
+        || n.getKind() == kind::BITVECTOR_SLT
+        || n.getKind() == kind::BITVECTOR_SLE)
+    {
+      d_registeredAtoms.insert(n);
+      d_bitblaster->bbAtom(n);
+    }
+  }
+
+  std::unordered_set<TNode>& getRegisteredAtoms() { return d_registeredAtoms; }
+
+ private:
+  /** The bitblaster used. */
+  BBSimple* d_bitblaster;
+
+  /** Stores bit-vector atoms encounterd on preRegister(). */
+  std::unordered_set<TNode> d_registeredAtoms;
+};
+
 BVSolverBitblast::BVSolverBitblast(TheoryState* s,
                                    TheoryInferenceManager& inferMgr,
                                    ProofNodeManager* pnm)
     : BVSolver(*s, inferMgr),
       d_bitblaster(new BBSimple(s)),
-      d_nullRegistrar(new prop::NullRegistrar()),
+      d_bbRegistrar(new BBRegistrar(d_bitblaster.get())),
       d_nullContext(new context::Context()),
       d_bbFacts(s->getSatContext()),
+      d_bbInputFacts(s->getSatContext()),
       d_assumptions(s->getSatContext()),
+      d_assertions(s->getSatContext()),
       d_invalidateModelCache(s->getSatContext(), true),
       d_inSatMode(s->getSatContext(), false),
       d_epg(pnm ? new EagerProofGenerator(pnm, s->getUserContext(), "")
@@ -59,7 +103,7 @@ BVSolverBitblast::BVSolverBitblast(TheoryState* s,
           smtStatisticsRegistry(), "theory::bv::BVSolverBitblast"));
   }
   d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
-                                        d_nullRegistrar.get(),
+                                        d_bbRegistrar.get(),
                                         d_nullContext.get(),
                                         nullptr,
                                         smt::currentResourceManager()));
@@ -76,6 +120,30 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
     }
   }
 
+  NodeManager* nm = NodeManager::currentNM();
+
+  /* Process input assertions bit-blast queue. */
+  while (!d_bbInputFacts.empty())
+  {
+    Node fact = d_bbInputFacts.front();
+    d_bbInputFacts.pop();
+    /* Bit-blast fact and cache literal. */
+    if (d_factLiteralCache.find(fact) == d_factLiteralCache.end())
+    {
+      if (fact.getKind() == kind::BITVECTOR_EAGER_ATOM)
+      {
+        handleEagerAtom(fact, true);
+      }
+      else
+      {
+        d_bitblaster->bbAtom(fact);
+        Node bb_fact = d_bitblaster->getStoredBBAtom(fact);
+        d_cnfStream->convertAndAssert(bb_fact, false, false);
+      }
+    }
+    d_assertions.push_back(fact);
+  }
+
   /* Process bit-blast queue and store SAT literals. */
   while (!d_bbFacts.empty())
   {
@@ -84,11 +152,19 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
     /* Bit-blast fact and cache literal. */
     if (d_factLiteralCache.find(fact) == d_factLiteralCache.end())
     {
-      d_bitblaster->bbAtom(fact);
-      Node bb_fact = d_bitblaster->getStoredBBAtom(fact);
-      d_cnfStream->ensureLiteral(bb_fact);
-
-      prop::SatLiteral lit = d_cnfStream->getLiteral(bb_fact);
+      prop::SatLiteral lit;
+      if (fact.getKind() == kind::BITVECTOR_EAGER_ATOM)
+      {
+        handleEagerAtom(fact, false);
+        lit = d_cnfStream->getLiteral(fact[0]);
+      }
+      else
+      {
+        d_bitblaster->bbAtom(fact);
+        Node bb_fact = d_bitblaster->getStoredBBAtom(fact);
+        d_cnfStream->ensureLiteral(bb_fact);
+        lit = d_cnfStream->getLiteral(bb_fact);
+      }
       d_factLiteralCache[fact] = lit;
       d_literalFactCache[lit] = fact;
     }
@@ -106,25 +182,51 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
   {
     std::vector<prop::SatLiteral> unsat_assumptions;
     d_satSolver->getUnsatAssumptions(unsat_assumptions);
-    Assert(unsat_assumptions.size() > 0);
 
-    std::vector<Node> conflict;
-    for (const prop::SatLiteral& lit : unsat_assumptions)
+    Node conflict;
+    // Unsat assumptions produce conflict.
+    if (unsat_assumptions.size() > 0)
     {
-      conflict.push_back(d_literalFactCache[lit]);
-      Debug("bv-bitblast") << "unsat assumption (" << lit
-                           << "): " << conflict.back() << std::endl;
+      std::vector<Node> conf;
+      for (const prop::SatLiteral& lit : unsat_assumptions)
+      {
+        conf.push_back(d_literalFactCache[lit]);
+        Debug("bv-bitblast")
+            << "unsat assumption (" << lit << "): " << conf.back() << std::endl;
+      }
+      conflict = nm->mkAnd(conf);
     }
-
-    NodeManager* nm = NodeManager::currentNM();
-    d_im.conflict(nm->mkAnd(conflict), InferenceId::BV_BITBLAST_CONFLICT);
+    else  // Input assertions produce conflict.
+    {
+      std::vector<Node> assertions(d_assertions.begin(), d_assertions.end());
+      conflict = nm->mkAnd(assertions);
+    }
+    d_im.conflict(conflict, InferenceId::BV_BITBLAST_CONFLICT);
   }
 }
 
 bool BVSolverBitblast::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
-  d_bbFacts.push_back(fact);
+  Valuation& val = d_state.getValuation();
+
+  /**
+   * Check whether `fact` is an input assertion on user-level 0.
+   *
+   * If this is the case we can assert `fact` to the SAT solver instead of
+   * using assumptions.
+   */
+  if (options::bvAssertInput() && val.isSatLiteral(fact)
+      && !val.isDecision(fact) && val.getDecisionLevel(fact) == 0
+      && val.getIntroLevel(fact) == 0)
+  {
+    d_bbInputFacts.push_back(fact);
+  }
+  else
+  {
+    d_bbFacts.push_back(fact);
+  }
+
   return false;  // Return false to enable equality engine reasoning in Theory.
 }
 
@@ -276,6 +378,32 @@ Node BVSolverBitblast::getValue(TNode node)
   auto it = d_modelCache.find(node);
   Assert(it != d_modelCache.end());
   return it->second;
+}
+
+void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)
+{
+  Assert(fact.getKind() == kind::BITVECTOR_EAGER_ATOM);
+
+  if (assertFact)
+  {
+    d_cnfStream->convertAndAssert(fact[0], false, false);
+  }
+  else
+  {
+    d_cnfStream->ensureLiteral(fact[0]);
+  }
+
+  /* convertAndAssert() does not make the connection between the bit-vector
+   * atom and it's bit-blasted form (it only calls preRegister() from the
+   * registrar). Thus, we add the equalities now. */
+  auto& registeredAtoms = d_bbRegistrar->getRegisteredAtoms();
+  for (auto atom : registeredAtoms)
+  {
+    Node bb_atom = d_bitblaster->getStoredBBAtom(atom);
+    d_cnfStream->convertAndAssert(atom.eqNode(bb_atom), false, false);
+  }
+  // Clear cache since we only need to do this once per bit-blasted atom.
+  registeredAtoms.clear();
 }
 
 }  // namespace bv

@@ -271,9 +271,15 @@ void PropEngine::assertInternal(
   {
     if (input)
     {
-      Assert(!negated);
       d_cnfStream->ensureLiteral(node);
-      d_assumptions.push_back(node);
+      if (negated)
+      {
+        d_assumptions.push_back(node.notNode());
+      }
+      else
+      {
+        d_assumptions.push_back(node);
+      }
     }
     else
     {
@@ -338,6 +344,20 @@ void PropEngine::requirePhase(TNode n, bool phase) {
 bool PropEngine::isDecision(Node lit) const {
   Assert(isSatLiteral(lit));
   return d_satSolver->isDecision(d_cnfStream->getLiteral(lit).getSatVariable());
+}
+
+int32_t PropEngine::getDecisionLevel(Node lit) const
+{
+  Assert(isSatLiteral(lit));
+  return d_satSolver->getDecisionLevel(
+      d_cnfStream->getLiteral(lit).getSatVariable());
+}
+
+int32_t PropEngine::getIntroLevel(Node lit) const
+{
+  Assert(isSatLiteral(lit));
+  return d_satSolver->getIntroLevel(
+      d_cnfStream->getLiteral(lit).getSatVariable());
 }
 
 void PropEngine::printSatisfyingAssignment(){

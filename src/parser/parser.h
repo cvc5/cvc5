@@ -19,6 +19,7 @@
 #define CVC5__PARSER__PARSER_H
 
 #include <list>
+#include <memory>
 #include <set>
 #include <string>
 
@@ -107,7 +108,7 @@ class CVC5_EXPORT Parser
 private:
 
  /** The input that we're parsing. */
- Input* d_input;
+ std::unique_ptr<Input> d_input;
 
  /**
   * Reference to the symbol manager, which manages the symbol table used by
@@ -207,7 +208,6 @@ protected:
   */
  Parser(api::Solver* solver,
         SymbolManager* sm,
-        Input* input,
         bool strictMode = false,
         bool parseOnly = false);
 
@@ -219,17 +219,14 @@ public:
   api::Solver* getSolver() const;
 
   /** Get the associated input. */
-  inline Input* getInput() const {
-    return d_input;
-  }
+  Input* getInput() const { return d_input.get(); }
 
   /** Get unresolved sorts */
   inline std::set<api::Sort>& getUnresolvedSorts() { return d_unresolved; }
 
   /** Deletes and replaces the current parser input. */
   void setInput(Input* input)  {
-    delete d_input;
-    d_input = input;
+    d_input.reset(input);
     d_input->setParser(*this);
     d_done = false;
   }
@@ -760,6 +757,14 @@ public:
    */
   api::Term mkStringConstant(const std::string& s);
 
+  /**
+   * Make string constant from a single character in hex representation
+   *
+   * This makes the string constant based on the character from the strings,
+   * represented as a hexadecimal code point.
+   */
+  api::Term mkCharConstant(const std::string& s);
+
   /** ad-hoc string escaping
    *
    * Returns the (internal) vector of code points corresponding to processing
@@ -770,7 +775,7 @@ public:
    * \\, \x[N] and octal escape sequences of the form \[c1]([c2]([c3])?)? where
    * c1, c2, c3 are digits from 0 to 7.
    */
-  std::vector<unsigned> processAdHocStringEsc(const std::string& s);
+  std::wstring processAdHocStringEsc(const std::string& s);
 }; /* class Parser */
 
 }  // namespace parser

@@ -1,5 +1,5 @@
 id     = "DATATYPES"
-name   = "Datatypes theory"
+name   = "Datatypes Theory"
 
 # How to handle selectors applied to incorrect constructors.  If this option is set,
 # then we do not rewrite such a selector term to an arbitrary ground term.  
@@ -23,7 +23,6 @@ name   = "Datatypes theory"
 
 [[option]]
   name       = "dtPoliteOptimize"
-  smt_name   = "dt-polite-optimize"
   category   = "experimental"
   long       = "dt-polite-optimize"
   type       = "bool"
