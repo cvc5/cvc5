@@ -89,7 +89,7 @@ enum RewriteRuleId
   EvalXor,
   EvalNot,
   EvalMult,
-  EvalPlus,
+  EvalAdd,
   EvalUdiv,
   EvalUrem,
   EvalShl,
@@ -181,14 +181,14 @@ enum RewriteRuleId
   DoubleNeg,
   NegMult,
   NegSub,
-  NegPlus,
+  NegAdd,
   NotConcat,
   NotAnd,  // not sure why this would help (not done)
   NotOr,   // not sure why this would help (not done)
   NotXor,  // not sure why this would help (not done)
   FlattenAssocCommut,
   FlattenAssocCommutNoDuplicates,
-  PlusCombineLikeTerms,
+  AddCombineLikeTerms,
   MultSimplify,
   MultDistribConst,
   MultDistrib,
@@ -198,10 +198,10 @@ enum RewriteRuleId
   OrSimplify,
   XorSimplify,
   BitwiseSlicing,
-  NormalizeEqPlusNeg,
+  NormalizeEqAddNeg,
   // rules to simplify bitblasting
-  BBPlusNeg,
-  UltPlusOne,
+  BBAddNeg,
+  UltAddOne,
   ConcatToMult,
   IsPowerOfTwo,
   MultSltMult,
@@ -258,7 +258,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case EvalXor :            out << "EvalXor";             return out;
   case EvalNot :            out << "EvalNot";             return out;
   case EvalMult :           out << "EvalMult";            return out;
-  case EvalPlus :           out << "EvalPlus";            return out;
+  case EvalAdd: out << "EvalAdd"; return out;
   case EvalUdiv :           out << "EvalUdiv";            return out;
   case EvalUrem :           out << "EvalUrem";            return out;
   case EvalShl :            out << "EvalShl";             return out;
@@ -340,8 +340,10 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case NotIdemp :                  out << "NotIdemp"; return out;
   case UleSelf:                    out << "UleSelf"; return out; 
   case FlattenAssocCommut:     out << "FlattenAssocCommut"; return out;
-  case FlattenAssocCommutNoDuplicates:     out << "FlattenAssocCommutNoDuplicates"; return out; 
-  case PlusCombineLikeTerms: out << "PlusCombineLikeTerms"; return out;
+  case FlattenAssocCommutNoDuplicates:
+    out << "FlattenAssocCommutNoDuplicates";
+    return out;
+  case AddCombineLikeTerms: out << "AddCombineLikeTerms"; return out;
   case MultSimplify: out << "MultSimplify"; return out;
   case MultDistribConst: out << "MultDistribConst"; return out;
   case SolveEq : out << "SolveEq"; return out;
@@ -351,8 +353,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case AndSimplify : out << "AndSimplify"; return out;
   case OrSimplify : out << "OrSimplify"; return out;
   case XorSimplify : out << "XorSimplify"; return out;
-  case NegPlus : out << "NegPlus"; return out;
-  case BBPlusNeg : out << "BBPlusNeg"; return out;
+  case NegAdd: out << "NegAdd"; return out;
+  case BBAddNeg: out << "BBAddNeg"; return out;
   case UltOne : out << "UltOne"; return out;
   case SltZero : out << "SltZero"; return out;
   case ZeroUlt : out << "ZeroUlt"; return out;
@@ -366,11 +368,11 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case BitwiseSlicing : out << "BitwiseSlicing"; return out;
   case ExtractSignExtend : out << "ExtractSignExtend"; return out;
   case MultDistrib: out << "MultDistrib"; return out;
-  case UltPlusOne: out << "UltPlusOne"; return out;
+  case UltAddOne: out << "UltAddOne"; return out;
   case ConcatToMult: out << "ConcatToMult"; return out;
   case IsPowerOfTwo: out << "IsPowerOfTwo"; return out;
   case MultSltMult: out << "MultSltMult"; return out;
-  case NormalizeEqPlusNeg: out << "NormalizeEqPlusNeg"; return out;
+  case NormalizeEqAddNeg: out << "NormalizeEqAddNeg"; return out;
   case BitOfConst: out << "BitOfConst"; return out;
   default:
     Unreachable();
@@ -513,7 +515,7 @@ struct AllRewriteRules {
   RewriteRule<EvalNot>                        rule29;
   RewriteRule<EvalSlt>                        rule30;
   RewriteRule<EvalMult>                       rule31;
-  RewriteRule<EvalPlus>                       rule32;
+  RewriteRule<EvalAdd> rule32;
   RewriteRule<XorSimplify>                    rule33;
   RewriteRule<EvalUdiv>                       rule34;
   RewriteRule<EvalUrem>                       rule35;
@@ -582,13 +584,13 @@ struct AllRewriteRules {
   RewriteRule<NotIdemp>                       rule102;
   RewriteRule<UleSelf>                        rule103;
   RewriteRule<FlattenAssocCommut>             rule104;
-  RewriteRule<PlusCombineLikeTerms>           rule105;
+  RewriteRule<AddCombineLikeTerms> rule105;
   RewriteRule<MultSimplify>                   rule106;
   RewriteRule<MultDistribConst>               rule107;
   RewriteRule<AndSimplify>                    rule108;
   RewriteRule<OrSimplify>                     rule109;
-  RewriteRule<NegPlus>                        rule110;
-  RewriteRule<BBPlusNeg>                      rule111;
+  RewriteRule<NegAdd> rule110;
+  RewriteRule<BBAddNeg> rule111;
   RewriteRule<SolveEq>                        rule112;
   RewriteRule<BitwiseEq>                      rule113;
   RewriteRule<UltOne>                         rule114;
@@ -596,7 +598,7 @@ struct AllRewriteRules {
   RewriteRule<BVToNatEliminate>               rule116;
   RewriteRule<IntToBVEliminate>               rule117;
   RewriteRule<MultDistrib>                    rule118;
-  RewriteRule<UltPlusOne>                     rule119;
+  RewriteRule<UltAddOne> rule119;
   RewriteRule<ConcatToMult>                   rule120;
   RewriteRule<IsPowerOfTwo>                   rule121;
   RewriteRule<RedorEliminate>                 rule122;
@@ -606,7 +608,7 @@ struct AllRewriteRules {
   RewriteRule<SignExtendUltConst>             rule126;
   RewriteRule<ZeroExtendUltConst>             rule127;
   RewriteRule<MultSltMult>                    rule128;
-  RewriteRule<NormalizeEqPlusNeg>             rule129;
+  RewriteRule<NormalizeEqAddNeg> rule129;
   RewriteRule<BvComp>                         rule130;
   RewriteRule<BvIteConstCond>                 rule131;
   RewriteRule<BvIteEqualChildren>             rule132;

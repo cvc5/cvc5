@@ -192,7 +192,7 @@ unsigned BVGauss::getMinBwExpr(Node expr)
           break;
         }
 
-        case kind::BITVECTOR_PLUS:
+        case kind::BITVECTOR_ADD:
         {
           Integer maxval = Integer(0);
           for (const Node& nn : n)
@@ -490,7 +490,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
 
       /* Split into matrix columns */
       Kind k = n.getKind();
-      if (k == kind::BITVECTOR_PLUS)
+      if (k == kind::BITVECTOR_ADD)
       {
         for (const Node& nn : n) { stack.push_back(nn); }
       }
@@ -668,16 +668,15 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
         }
         else
         {
-          Node tmp = stack.size() == 1
-                         ? stack[0]
-                         : nm->mkNode(kind::BITVECTOR_PLUS, stack);
+          Node tmp = stack.size() == 1 ? stack[0]
+                                       : nm->mkNode(kind::BITVECTOR_ADD, stack);
 
           if (rhs[prow] != 0)
           {
-            tmp = nm->mkNode(kind::BITVECTOR_PLUS,
-                             bv::utils::mkConst(
-                                 bv::utils::getSize(vvars[pcol]), rhs[prow]),
-                             tmp);
+            tmp = nm->mkNode(
+                kind::BITVECTOR_ADD,
+                bv::utils::mkConst(bv::utils::getSize(vvars[pcol]), rhs[prow]),
+                tmp);
           }
           Assert(!is_bv_const(tmp));
           res[vvars[pcol]] = nm->mkNode(kind::BITVECTOR_UREM, tmp, prime);
@@ -730,7 +729,7 @@ PreprocessingPassResult BVGauss::applyInternal(
         continue;
       }
 
-      if (urem[0].getKind() == kind::BITVECTOR_PLUS && is_bv_const(urem[1]))
+      if (urem[0].getKind() == kind::BITVECTOR_ADD && is_bv_const(urem[1]))
       {
         equations[urem[1]].push_back(a);
       }

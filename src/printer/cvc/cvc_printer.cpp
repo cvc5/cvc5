@@ -702,20 +702,21 @@ void CvcPrinter::toStreamNode(std::ostream& out,
       op << "@";
       opType = INFIX;
       break;
-    case kind::BITVECTOR_PLUS: {
-      // This interprets a BITVECTOR_PLUS as a bvadd in SMT-LIB
+    case kind::BITVECTOR_ADD:
+    {
+      // This interprets a BITVECTOR_ADD as a bvadd in SMT-LIB
       Assert(n.getType().isBitVector());
       unsigned numc = n.getNumChildren()-2;
       unsigned child = 0;
       while (child < numc) {
-        out << "BVPLUS(";
+        out << "BVADD(";
         out << n.getType().getBitVectorSize();
         out << ',';
         toStreamNode(out, n[child], depth, false, lbind);
         out << ',';
         ++child;
       }
-      out << "BVPLUS(";
+      out << "BVADD(";
       out << n.getType().getBitVectorSize();
       out << ',';
       toStreamNode(out, n[child], depth, false, lbind);
