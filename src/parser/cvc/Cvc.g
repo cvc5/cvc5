@@ -165,7 +165,7 @@ tokens {
   BITVECTOR_TOK = 'BITVECTOR';
   LEFTSHIFT_TOK = '<<';
   RIGHTSHIFT_TOK = '>>';
-  BVADD_TOK = 'BVADD';
+  BVPLUS_TOK = 'BVPLUS';
   BVSUB_TOK = 'BVSUB';
   BVUDIV_TOK = 'BVUDIV';
   BVSDIV_TOK = 'BVSDIV';
@@ -303,7 +303,7 @@ int getOperatorPrecedence(int type) {
   case BVASHR_TOK:
   case BVLSHR_TOK: return 10;
   case BVUMINUS_TOK:
-  case BVADD_TOK:
+  case BVPLUS_TOK:
   case BVSUB_TOK: return 11;
   case BVNEG_TOK: return 12;
   case BVXNOR_TOK: return 13;
@@ -1895,11 +1895,11 @@ bvTerm[cvc5::api::Term& f]
   | BVUMINUS_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(cvc5::api::BITVECTOR_NEG, f); }
     /* BV addition */
-  | BVADD_TOK LPAREN k=numeral COMMA formula[f] { args.push_back(f); }
+  | BVPLUS_TOK LPAREN k=numeral COMMA formula[f] { args.push_back(f); }
     ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN
     {
       if (k <= 0) {
-        PARSER_STATE->parseError("BVADD(k,_,_) must have k > 0");
+        PARSER_STATE->parseError("BVPLUS(k,_,_) must have k > 0");
       }
       for (unsigned i = 0; i < args.size(); ++ i) {
         ENSURE_BV_SIZE(k, args[i]);
@@ -2357,7 +2357,7 @@ IDENTIFIER : (ALPHA | '_') (ALPHA | DIGIT | '_' | '\'' | '\\' | '?' | '$' | '~')
 /**
  * Same as an integer literal converted to an unsigned int, but
  * slightly more convenient AND works around a strange ANTLR bug (?)
- * in the BVADD/BVMINUS/BVMULT rules where $INTEGER_LITERAL was
+ * in the BVPLUS/BVMINUS/BVMULT rules where $INTEGER_LITERAL was
  * returning a reference to the wrong token?!
  */
 numeral returns [unsigned k = 0]
