@@ -352,6 +352,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         || options::sygusInference() || options::sygusRewSynthInput())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
+      isSygus = true;
       usesSygus = true;
     }
     else if (options::sygusInst())
