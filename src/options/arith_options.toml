@@ -1,5 +1,5 @@
 id     = "ARITH"
-name   = "Arithmetic theory"
+name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithUnateLemmaMode"
@@ -137,7 +137,6 @@ name   = "Arithmetic theory"
 
 [[option]]
   name       = "arithMLTrick"
-  smt_name   = "miplib-trick"
   category   = "regular"
   long       = "miplib-trick"
   type       = "bool"
@@ -146,7 +145,6 @@ name   = "Arithmetic theory"
 
 [[option]]
   name       = "arithMLTrickSubstitutions"
-  smt_name   = "miplib-trick-subs"
   category   = "regular"
   long       = "miplib-trick-subs=N"
   type       = "unsigned"
@@ -404,10 +402,20 @@ name   = "Arithmetic theory"
 [[option]]
   name       = "nlExt"
   category   = "regular"
-  long       = "nl-ext"
-  type       = "bool"
-  default    = "true"
+  long       = "nl-ext=MODE"
+  type       = "NlExtMode"
+  default    = "FULL"
   help       = "incremental linearization approach to non-linear"
+  help_mode  = "Modes for the non-linear linearization"
+[[option.mode.NONE]]
+  name = "none"
+  help = "Disable linearization approach"
+[[option.mode.LIGHT]]
+  name = "light"
+  help = "Only use a few light-weight lemma schemes"
+[[option.mode.FULL]]
+  name = "full"
+  help = "Use all lemma schemes"
 
 [[option]]
   name       = "nlExtResBound"

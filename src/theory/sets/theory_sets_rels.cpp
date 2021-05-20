@@ -59,9 +59,9 @@ void TheorySetsRels::check(Theory::Effort level)
   {
     collectRelsInfo();
     check();
-    doPendingInfers();
+    d_im.doPendingLemmas();
   }
-  Assert(d_pending.empty());
+  Assert(!d_im.hasPendingLemma());
   Trace("rels") << "\n[sets-rels] ******************************* Done with "
                    "the relational solver *******************************\n"
                 << std::endl;
@@ -596,8 +596,7 @@ void TheorySetsRels::check(Theory::Effort level)
                                   RelsUtils::constructPair(tc_rel, sk_1, sk_2),
                                   tc_rel))));
 
-    Node tc_lemma = nm->mkNode(IMPLIES, reason, conc);
-    d_pending.push_back(tc_lemma);
+    sendInfer(conc, InferenceId::SETS_RELS_TCLOSURE_UP, reason);
   }
 
   bool TheorySetsRels::isTCReachable( Node mem_rep, Node tc_rel ) {
@@ -1118,35 +1117,6 @@ void TheorySetsRels::check(Theory::Effort level)
 
   }
 
-  void TheorySetsRels::doPendingInfers()
-  {
-    // process the inferences in d_pending
-    if (!d_state.isInConflict())
-    {
-      for (const Node& p : d_pending)
-      {
-        if (p.getKind() == IMPLIES)
-        {
-          processInference(p[1], InferenceId::UNKNOWN, p[0]);
-        }
-        else
-        {
-          processInference(p, InferenceId::UNKNOWN, d_trueNode);
-        }
-        if (d_state.isInConflict())
-        {
-          break;
-        }
-      }
-      // if we are still not in conflict, send lemmas
-      if (!d_state.isInConflict())
-      {
-        d_im.doPendingLemmas();
-      }
-    }
-    d_pending.clear();
-  }
-
   void TheorySetsRels::processInference(Node conc, InferenceId id, Node exp)
   {
     Trace("sets-pinfer") << "Process inference: " << exp << " => " << conc
@@ -1355,7 +1325,7 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-lemma") << "Rels::lemma " << fact << " from " << reason
                         << " by " << id << std::endl;
     Node lemma = NodeManager::currentNM()->mkNode(IMPLIES, reason, fact);
-    d_pending.push_back(lemma);
+    d_im.addPendingLemma(lemma, id);
   }
 }
 }

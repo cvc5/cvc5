@@ -1,9 +1,9 @@
 id     = "PROP"
-name   = "SAT layer"
+name   = "SAT Layer"
 
 [[option]]
   name       = "satRandomFreq"
-  smt_name   = "random-frequency"
+  alias      = ["random-frequency"]
   category   = "regular"
   long       = "random-freq=P"
   type       = "double"
@@ -13,7 +13,6 @@ name   = "SAT layer"
 
 [[option]]
   name       = "satRandomSeed"
-  smt_name   = "random-seed"
   category   = "regular"
   long       = "random-seed=S"
   type       = "uint32_t"

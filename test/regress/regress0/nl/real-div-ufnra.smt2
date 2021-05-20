@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext --simplification=none
+; COMMAND-LINE: --nl-ext=full --simplification=none
 ; EXPECT: sat
 (set-logic QF_UFNRA)
 (set-info :status sat)

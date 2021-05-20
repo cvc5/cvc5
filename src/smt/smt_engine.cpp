@@ -1394,8 +1394,8 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   if (!d_env->getOption(options::unsatCores))
   {
     throw ModalException(
-        "Cannot get an unsat core when produce-unsat-cores[-new] or "
-        "produce-proofs option is off.");
+        "Cannot get an unsat core when produce-unsat-cores or produce-proofs "
+        "option is off.");
   }
   if (d_state->getMode() != SmtMode::UNSAT)
   {
