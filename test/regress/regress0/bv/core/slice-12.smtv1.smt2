@@ -1,5 +1,5 @@
 ; REQUIRES: cryptominisat
-; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --no-check-unsat-cores
+; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat
 ; EXPECT: unsat
 (set-option :incremental false)
 (set-info :status unsat)
