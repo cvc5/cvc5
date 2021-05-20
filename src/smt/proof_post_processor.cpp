@@ -22,7 +22,6 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
@@ -1072,7 +1071,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       Node scaled =
           steps.tryStep(PfRule::MODUS_PONENS, {scalarCmpAndRel, impl}, {});
       Assert(!scaled.isNull());
-      scaledRels.emplace_back(std::move(scaled));
+      scaledRels.emplace_back(scaled);
     }
 
     Node sumBounds = steps.tryStep(PfRule::ARITH_SUM_UB, scaledRels, {});
