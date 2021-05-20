@@ -175,7 +175,6 @@ jobs:
       run: |
         ${{ matrix.env }} ./configure.sh ${{ matrix.config }} \
           --prefix=$(pwd)/build/install \
-          --unit-testing \
           --werror
 
     - name: Build
