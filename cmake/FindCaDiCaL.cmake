@@ -54,7 +54,7 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   # avoid configure script and instantiate the makefile manually the configure
   # scripts unnecessarily fails for cross compilation thus we do the bare
   # minimum from the configure script here
-  set(CXXFLAGS "-fPIC -O3 -DNDEBUG -DQUIET -std=c++11")
+  set(CXXFLAGS "-fPIC -O3 -DNDEBUG -DQUIET")
   # check for getc_unlocked
   check_symbol_exists("getc_unlocked" "cstdio" HAVE_UNLOCKED_IO)
   if(NOT HAVE_UNLOCKED_IO)
