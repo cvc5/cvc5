@@ -2309,25 +2309,6 @@ bool Term::isNull() const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::vector<Term> Term::getConstSequenceElements() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_node->getKind() == cvc5::Kind::CONST_SEQUENCE)
-      << "Expecting a CONST_SEQUENCE Term when calling "
-         "getConstSequenceElements()";
-  //////// all checks before this line
-  const std::vector<Node>& elems = d_node->getConst<Sequence>().getVec();
-  std::vector<Term> terms;
-  for (const Node& t : elems)
-  {
-    terms.push_back(Term(d_solver, t));
-  }
-  return terms;
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 Term Term::notTerm() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
