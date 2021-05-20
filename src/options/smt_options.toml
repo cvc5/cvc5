@@ -1,9 +1,8 @@
 id     = "SMT"
-name   = "SMT layer"
+name   = "SMT Layer"
 
 [[option]]
   name       = "dumpModeString"
-  smt_name   = "dump"
   category   = "common"
   long       = "dump=MODE"
   type       = "std::string"
@@ -11,7 +10,6 @@ name   = "SMT layer"
 
 [[option]]
   name       = "dumpToFileName"
-  smt_name   = "dump-to"
   category   = "common"
   long       = "dump-to=FILE"
   type       = "std::string"
@@ -27,7 +25,7 @@ name   = "SMT layer"
 
 [[option]]
   name       = "simplificationMode"
-  smt_name   = "simplification-mode"
+  alias      = ["simplification-mode"]
   category   = "regular"
   long       = "simplification=MODE"
   type       = "SimplificationMode"
@@ -51,7 +49,7 @@ name   = "SMT layer"
 
 [[option]]
   name       = "expandDefinitions"
-  smt_name   = "expand-definitions"
+  long       = "expand-definitions"
   category   = "regular"
   type       = "bool"
   default    = "false"
@@ -189,11 +187,10 @@ name   = "SMT layer"
   category   = "regular"
   long       = "produce-unsat-cores"
   type       = "bool"
-  help       = "turn on unsat core generation"
+  help       = "turn on unsat core generation. Unless otherwise specified, cores will be produced using SAT soving under assumptions and preprocessing proofs."
 
 [[option]]
   name       = "unsatCoresMode"
-  smt_name   = "unsat-cores-mode"
   category   = "regular"
   long       = "unsat-cores-mode=MODE"
   type       = "UnsatCoresMode"
@@ -265,7 +262,7 @@ name   = "SMT layer"
 
 [[option]]
   name       = "interactiveMode"
-  smt_name   = "interactive-mode"
+  long       = "interactive-mode"
   category   = "undocumented"
   type       = "bool"
   predicates = ["setProduceAssertions"]
@@ -384,7 +381,7 @@ name   = "SMT layer"
 
 [[option]]
   name       = "modelUninterpPrint"
-  smt_name   = "model-uninterp-print"
+  alias      = ["model-uninterp-print"]
   category   = "regular"
   long       = "model-u-print=MODE"
   type       = "ModelUninterpPrintMode"
@@ -415,14 +412,14 @@ name   = "SMT layer"
 
 [[option]]
   name       = "regularChannelName"
-  smt_name   = "regular-output-channel"
+  long       = "regular-output-channel=CHANNEL"
   category   = "regular"
   type       = "std::string"
   help       = "set the regular output channel of the solver"
 
 [[option]]
   name       = "diagnosticChannelName"
-  smt_name   = "diagnostic-output-channel"
+  long       = "diagnostic-output-channel=CHANNEL"
   category   = "regular"
   type       = "std::string"
   help       = "set the diagnostic output channel of the solver"

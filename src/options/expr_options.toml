@@ -1,5 +1,5 @@
 id     = "EXPR"
-name   = "Expression package"
+name   = "Expression"
 
 [[option]]
   name       = "defaultExprDepth"
@@ -12,7 +12,6 @@ name   = "Expression package"
 
 [[option]]
   name       = "defaultDagThresh"
-  smt_name   = "dag-thresh"
   category   = "regular"
   long       = "dag-thresh=N"
   type       = "int"

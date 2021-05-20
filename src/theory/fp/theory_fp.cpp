@@ -243,13 +243,13 @@ TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
                               nm->mkNode(kind::FLOATINGPOINT_ISNAN, node[0]),
                               nm->mkNode(kind::FLOATINGPOINT_ISINF, node[0])),
                    nm->mkNode(kind::EQUAL, res, node[1]));
-    handleLemma(pd);
+    handleLemma(pd, InferenceId::FP_PREPROCESS);
 
     Node z =
         nm->mkNode(kind::IMPLIES,
                    nm->mkNode(kind::FLOATINGPOINT_ISZ, node[0]),
                    nm->mkNode(kind::EQUAL, res, nm->mkConst(Rational(0U))));
-    handleLemma(z);
+    handleLemma(z, InferenceId::FP_PREPROCESS);
 
     // TODO : bounds on the output from largest floats, #1914
   }
@@ -262,7 +262,7 @@ TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 
     Node nnan =
         nm->mkNode(kind::NOT, nm->mkNode(kind::FLOATINGPOINT_ISNAN, res));
-    handleLemma(nnan);
+    handleLemma(nnan, InferenceId::FP_PREPROCESS);
 
     Node z = nm->mkNode(
         kind::IMPLIES,
@@ -271,7 +271,7 @@ TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
                    res,
                    nm->mkConst(FloatingPoint::makeZero(
                        res.getType().getConst<FloatingPointSize>(), false))));
-    handleLemma(z);
+    handleLemma(z, InferenceId::FP_PREPROCESS);
 
     // TODO : rounding-mode specific bounds on floats that don't give infinity
     // BEWARE of directed rounding!   #1914
@@ -346,7 +346,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
               kind::EQUAL,
               nm->mkNode(kind::FLOATINGPOINT_GEQ, concrete[0], floatValue),
               nm->mkNode(kind::GEQ, abstract, concreteValue)));
-      handleLemma(fg);
+      handleLemma(fg, InferenceId::FP_PREPROCESS);
 
       Node fl = nm->mkNode(
           kind::IMPLIES,
@@ -355,7 +355,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
               kind::EQUAL,
               nm->mkNode(kind::FLOATINGPOINT_LEQ, concrete[0], floatValue),
               nm->mkNode(kind::LEQ, abstract, concreteValue)));
-      handleLemma(fl);
+      handleLemma(fl, InferenceId::FP_PREPROCESS);
 
       // Then the backwards constraints
       Node floatAboveAbstract = Rewriter::rewrite(
@@ -373,7 +373,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
               nm->mkNode(
                   kind::FLOATINGPOINT_GEQ, concrete[0], floatAboveAbstract),
               nm->mkNode(kind::GEQ, abstract, abstractValue)));
-      handleLemma(bg);
+      handleLemma(bg, InferenceId::FP_PREPROCESS);
 
       Node floatBelowAbstract = Rewriter::rewrite(
           nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
@@ -390,7 +390,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
               nm->mkNode(
                   kind::FLOATINGPOINT_LEQ, concrete[0], floatBelowAbstract),
               nm->mkNode(kind::LEQ, abstract, abstractValue)));
-      handleLemma(bl);
+      handleLemma(bl, InferenceId::FP_PREPROCESS);
       // TODO : see if the overflow conditions could be improved #1914
 
       return true;
@@ -454,7 +454,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
               kind::EQUAL,
               nm->mkNode(kind::GEQ, concrete[1], realValue),
               nm->mkNode(kind::FLOATINGPOINT_GEQ, abstract, concreteValue)));
-      handleLemma(fg);
+      handleLemma(fg, InferenceId::FP_PREPROCESS);
 
       Node fl = nm->mkNode(
           kind::IMPLIES,
@@ -463,7 +463,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
               kind::EQUAL,
               nm->mkNode(kind::LEQ, concrete[1], realValue),
               nm->mkNode(kind::FLOATINGPOINT_LEQ, abstract, concreteValue)));
-      handleLemma(fl);
+      handleLemma(fl, InferenceId::FP_PREPROCESS);
 
       // Then the backwards constraints
       if (!abstractValue.getConst<FloatingPoint>().isInfinite())
@@ -480,7 +480,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
                 kind::EQUAL,
                 nm->mkNode(kind::GEQ, concrete[1], realValueOfAbstract),
                 nm->mkNode(kind::FLOATINGPOINT_GEQ, abstract, abstractValue)));
-        handleLemma(bg);
+        handleLemma(bg, InferenceId::FP_PREPROCESS);
 
         Node bl = nm->mkNode(
             kind::IMPLIES,
@@ -489,7 +489,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
                 kind::EQUAL,
                 nm->mkNode(kind::LEQ, concrete[1], realValueOfAbstract),
                 nm->mkNode(kind::FLOATINGPOINT_LEQ, abstract, abstractValue)));
-        handleLemma(bl);
+        handleLemma(bl, InferenceId::FP_PREPROCESS);
       }
 
       return true;
@@ -536,7 +536,8 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
     NodeManager *nm = NodeManager::currentNM();
 
     handleLemma(
-        nm->mkNode(kind::EQUAL, addA, nm->mkConst(::cvc5::BitVector(1U, 1U))));
+        nm->mkNode(kind::EQUAL, addA, nm->mkConst(::cvc5::BitVector(1U, 1U))),
+        InferenceId::FP_EQUATE_TERM);
 #endif
 
     ++oldAdditionalAssertions;
@@ -553,11 +554,13 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
 #ifdef SYMFPUPROPISBOOL
       handleLemma(nm->mkNode(kind::EQUAL, node, converted));
 #else
-      handleLemma(nm->mkNode(
-          kind::EQUAL,
-          node,
-          nm->mkNode(
-              kind::EQUAL, converted, nm->mkConst(::cvc5::BitVector(1U, 1U)))));
+      handleLemma(
+          nm->mkNode(kind::EQUAL,
+                     node,
+                     nm->mkNode(kind::EQUAL,
+                                converted,
+                                nm->mkConst(::cvc5::BitVector(1U, 1U)))),
+          InferenceId::FP_EQUATE_TERM);
 #endif
 
     } else {
@@ -569,7 +572,8 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
       Assert(converted.getType().isBitVector());
 
       handleLemma(
-          NodeManager::currentNM()->mkNode(kind::EQUAL, node, converted));
+          NodeManager::currentNM()->mkNode(kind::EQUAL, node, converted),
+          InferenceId::FP_EQUATE_TERM);
     }
   }
 
@@ -640,7 +644,8 @@ void TheoryFp::registerTerm(TNode node) {
         Unreachable() << "Only isNaN, isInf and isZero have aliases";
       }
 
-      handleLemma(nm->mkNode(kind::EQUAL, node, equalityAlias));
+      handleLemma(nm->mkNode(kind::EQUAL, node, equalityAlias),
+                  InferenceId::FP_REGISTER_TERM);
     }
 
     // Use symfpu to produce an equivalent bit-vector statement
