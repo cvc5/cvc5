@@ -689,64 +689,318 @@ TEST_F(TestApiBlackTerm, getInteger)
   ASSERT_THROW(d_solver.mkInteger("-01"), CVC5ApiException);
   ASSERT_THROW(d_solver.mkInteger("-00"), CVC5ApiException);
 
-  ASSERT_TRUE(!int1.isInt32() && !int1.isUInt32() && !int1.isInt64()
-              && !int1.isUInt64() && int1.isInteger());
-  ASSERT_EQ(int1.getInteger(), "-18446744073709551616");
-  ASSERT_TRUE(!int2.isInt32() && !int2.isUInt32() && !int2.isInt64()
-              && !int2.isUInt64() && int2.isInteger());
-  ASSERT_EQ(int2.getInteger(), "-18446744073709551615");
-  ASSERT_TRUE(!int3.isInt32() && !int3.isUInt32() && int3.isInt64()
-              && !int3.isUInt64() && int3.isInteger());
-  ASSERT_EQ(int3.getInt64(), -4294967296);
-  ASSERT_EQ(int3.getInteger(), "-4294967296");
-  ASSERT_TRUE(!int4.isInt32() && !int4.isUInt32() && int4.isInt64()
-              && !int4.isUInt64() && int4.isInteger());
-  ASSERT_EQ(int4.getInt64(), -4294967295);
-  ASSERT_EQ(int4.getInteger(), "-4294967295");
-  ASSERT_TRUE(int5.isInt32() && !int5.isUInt32() && int5.isInt64()
-              && !int5.isUInt64() && int5.isInteger());
-  ASSERT_EQ(int5.getInt32(), -10);
-  ASSERT_EQ(int5.getInt64(), -10);
-  ASSERT_EQ(int5.getInteger(), "-10");
-  ASSERT_TRUE(int6.isInt32() && int6.isUInt32() && int6.isInt64()
-              && int6.isUInt64() && int6.isInteger());
-  ASSERT_EQ(int6.getInt32(), 0);
-  ASSERT_EQ(int6.getUInt32(), 0);
-  ASSERT_EQ(int6.getInt64(), 0);
-  ASSERT_EQ(int6.getUInt64(), 0);
-  ASSERT_EQ(int6.getInteger(), "0");
-  ASSERT_TRUE(int7.isInt32() && int7.isUInt32() && int7.isInt64()
-              && int7.isUInt64() && int7.isInteger());
-  ASSERT_EQ(int7.getInt32(), 10);
-  ASSERT_EQ(int7.getUInt32(), 10);
-  ASSERT_EQ(int7.getInt64(), 10);
-  ASSERT_EQ(int7.getUInt64(), 10);
-  ASSERT_EQ(int7.getInteger(), "10");
-  ASSERT_TRUE(!int8.isInt32() && int8.isUInt32() && int8.isInt64()
-              && int8.isUInt64() && int8.isInteger());
-  ASSERT_EQ(int8.getUInt32(), 4294967295);
-  ASSERT_EQ(int8.getInt64(), 4294967295);
-  ASSERT_EQ(int8.getUInt64(), 4294967295);
-  ASSERT_EQ(int8.getInteger(), "4294967295");
-  ASSERT_TRUE(!int9.isInt32() && !int9.isUInt32() && int9.isInt64()
-              && int9.isUInt64() && int9.isInteger());
-  ASSERT_EQ(int9.getInt64(), 4294967296);
-  ASSERT_EQ(int9.getUInt64(), 4294967296);
-  ASSERT_EQ(int9.getInteger(), "4294967296");
-  ASSERT_TRUE(!int10.isInt32() && !int10.isUInt32() && !int10.isInt64()
-              && int10.isUInt64() && int10.isInteger());
-  ASSERT_EQ(int10.getUInt64(), 18446744073709551615ull);
-  ASSERT_EQ(int10.getInteger(), "18446744073709551615");
-  ASSERT_TRUE(!int11.isInt32() && !int11.isUInt32() && !int11.isInt64()
-              && !int11.isUInt64() && int11.isInteger());
-  ASSERT_EQ(int11.getInteger(), "18446744073709551616");
+  ASSERT_TRUE(!int1.isInt32Value() && !int1.isUInt32Value()
+              && !int1.isInt64Value() && !int1.isUInt64Value()
+              && int1.isIntegerValue());
+  ASSERT_EQ(int1.getIntegerValue(), "-18446744073709551616");
+  ASSERT_TRUE(!int2.isInt32Value() && !int2.isUInt32Value()
+              && !int2.isInt64Value() && !int2.isUInt64Value()
+              && int2.isIntegerValue());
+  ASSERT_EQ(int2.getIntegerValue(), "-18446744073709551615");
+  ASSERT_TRUE(!int3.isInt32Value() && !int3.isUInt32Value()
+              && int3.isInt64Value() && !int3.isUInt64Value()
+              && int3.isIntegerValue());
+  ASSERT_EQ(int3.getInt64Value(), -4294967296);
+  ASSERT_EQ(int3.getIntegerValue(), "-4294967296");
+  ASSERT_TRUE(!int4.isInt32Value() && !int4.isUInt32Value()
+              && int4.isInt64Value() && !int4.isUInt64Value()
+              && int4.isIntegerValue());
+  ASSERT_EQ(int4.getInt64Value(), -4294967295);
+  ASSERT_EQ(int4.getIntegerValue(), "-4294967295");
+  ASSERT_TRUE(int5.isInt32Value() && !int5.isUInt32Value()
+              && int5.isInt64Value() && !int5.isUInt64Value()
+              && int5.isIntegerValue());
+  ASSERT_EQ(int5.getInt32Value(), -10);
+  ASSERT_EQ(int5.getInt64Value(), -10);
+  ASSERT_EQ(int5.getIntegerValue(), "-10");
+  ASSERT_TRUE(int6.isInt32Value() && int6.isUInt32Value() && int6.isInt64Value()
+              && int6.isUInt64Value() && int6.isIntegerValue());
+  ASSERT_EQ(int6.getInt32Value(), 0);
+  ASSERT_EQ(int6.getUInt32Value(), 0);
+  ASSERT_EQ(int6.getInt64Value(), 0);
+  ASSERT_EQ(int6.getUInt64Value(), 0);
+  ASSERT_EQ(int6.getIntegerValue(), "0");
+  ASSERT_TRUE(int7.isInt32Value() && int7.isUInt32Value() && int7.isInt64Value()
+              && int7.isUInt64Value() && int7.isIntegerValue());
+  ASSERT_EQ(int7.getInt32Value(), 10);
+  ASSERT_EQ(int7.getUInt32Value(), 10);
+  ASSERT_EQ(int7.getInt64Value(), 10);
+  ASSERT_EQ(int7.getUInt64Value(), 10);
+  ASSERT_EQ(int7.getIntegerValue(), "10");
+  ASSERT_TRUE(!int8.isInt32Value() && int8.isUInt32Value()
+              && int8.isInt64Value() && int8.isUInt64Value()
+              && int8.isIntegerValue());
+  ASSERT_EQ(int8.getUInt32Value(), 4294967295);
+  ASSERT_EQ(int8.getInt64Value(), 4294967295);
+  ASSERT_EQ(int8.getUInt64Value(), 4294967295);
+  ASSERT_EQ(int8.getIntegerValue(), "4294967295");
+  ASSERT_TRUE(!int9.isInt32Value() && !int9.isUInt32Value()
+              && int9.isInt64Value() && int9.isUInt64Value()
+              && int9.isIntegerValue());
+  ASSERT_EQ(int9.getInt64Value(), 4294967296);
+  ASSERT_EQ(int9.getUInt64Value(), 4294967296);
+  ASSERT_EQ(int9.getIntegerValue(), "4294967296");
+  ASSERT_TRUE(!int10.isInt32Value() && !int10.isUInt32Value()
+              && !int10.isInt64Value() && int10.isUInt64Value()
+              && int10.isIntegerValue());
+  ASSERT_EQ(int10.getUInt64Value(), 18446744073709551615ull);
+  ASSERT_EQ(int10.getIntegerValue(), "18446744073709551615");
+  ASSERT_TRUE(!int11.isInt32Value() && !int11.isUInt32Value()
+              && !int11.isInt64Value() && !int11.isUInt64Value()
+              && int11.isIntegerValue());
+  ASSERT_EQ(int11.getIntegerValue(), "18446744073709551616");
 }
 
 TEST_F(TestApiBlackTerm, getString)
 {
   Term s1 = d_solver.mkString("abcde");
-  ASSERT_TRUE(s1.isString());
-  ASSERT_EQ(s1.getString(), L"abcde");
+  ASSERT_TRUE(s1.isStringValue());
+  ASSERT_EQ(s1.getStringValue(), L"abcde");
+}
+
+TEST_F(TestApiBlackTerm, getReal)
+{
+  Term real1 = d_solver.mkReal("0");
+  Term real2 = d_solver.mkReal(".0");
+  Term real3 = d_solver.mkReal("-17");
+  Term real4 = d_solver.mkReal("-3/5");
+  Term real5 = d_solver.mkReal("12.7");
+  Term real6 = d_solver.mkReal("1/4294967297");
+  Term real7 = d_solver.mkReal("4294967297");
+  Term real8 = d_solver.mkReal("1/18446744073709551617");
+  Term real9 = d_solver.mkReal("18446744073709551617");
+
+  ASSERT_TRUE(real1.isRealValue() && real1.isReal64Value()
+              && real1.isReal32Value());
+  ASSERT_TRUE(real2.isRealValue() && real2.isReal64Value()
+              && real2.isReal32Value());
+  ASSERT_TRUE(real3.isRealValue() && real3.isReal64Value()
+              && real3.isReal32Value());
+  ASSERT_TRUE(real4.isRealValue() && real4.isReal64Value()
+              && real4.isReal32Value());
+  ASSERT_TRUE(real5.isRealValue() && real5.isReal64Value()
+              && real5.isReal32Value());
+  ASSERT_TRUE(real6.isRealValue() && real6.isReal64Value());
+  ASSERT_TRUE(real7.isRealValue() && real7.isReal64Value());
+  ASSERT_TRUE(real8.isRealValue());
+  ASSERT_TRUE(real9.isRealValue());
+
+  ASSERT_EQ(std::make_pair(0, 1u), real1.getReal32Value());
+  ASSERT_EQ(std::make_pair(0l, 1ul), real1.getReal64Value());
+  ASSERT_EQ("0", real1.getRealValue());
+
+  ASSERT_EQ(std::make_pair(0, 1u), real2.getReal32Value());
+  ASSERT_EQ(std::make_pair(0l, 1ul), real2.getReal64Value());
+  ASSERT_EQ("0", real2.getRealValue());
+
+  ASSERT_EQ(std::make_pair(-17, 1u), real3.getReal32Value());
+  ASSERT_EQ(std::make_pair(-17l, 1ul), real3.getReal64Value());
+  ASSERT_EQ("-17", real3.getRealValue());
+
+  ASSERT_EQ(std::make_pair(-3, 5u), real4.getReal32Value());
+  ASSERT_EQ(std::make_pair(-3l, 5ul), real4.getReal64Value());
+  ASSERT_EQ("-3/5", real4.getRealValue());
+
+  ASSERT_EQ(std::make_pair(127, 10u), real5.getReal32Value());
+  ASSERT_EQ(std::make_pair(127l, 10ul), real5.getReal64Value());
+  ASSERT_EQ("127/10", real5.getRealValue());
+
+  ASSERT_EQ(std::make_pair(1l, 4294967297ul), real6.getReal64Value());
+  ASSERT_EQ("1/4294967297", real6.getRealValue());
+
+  ASSERT_EQ(std::make_pair(4294967297l, 1ul), real7.getReal64Value());
+  ASSERT_EQ("4294967297", real7.getRealValue());
+
+  ASSERT_EQ("1/18446744073709551617", real8.getRealValue());
+
+  ASSERT_EQ("18446744073709551617", real9.getRealValue());
+}
+
+TEST_F(TestApiBlackTerm, getConstArrayBase)
+{
+  Sort intsort = d_solver.getIntegerSort();
+  Sort arrsort = d_solver.mkArraySort(intsort, intsort);
+  Term one = d_solver.mkInteger(1);
+  Term constarr = d_solver.mkConstArray(arrsort, one);
+
+  ASSERT_TRUE(constarr.isConstArray());
+  ASSERT_EQ(one, constarr.getConstArrayBase());
+}
+
+TEST_F(TestApiBlackTerm, getBoolean)
+{
+  Term b1 = d_solver.mkBoolean(true);
+  Term b2 = d_solver.mkBoolean(false);
+
+  ASSERT_TRUE(b1.isBooleanValue());
+  ASSERT_TRUE(b2.isBooleanValue());
+  ASSERT_TRUE(b1.getBooleanValue());
+  ASSERT_FALSE(b2.getBooleanValue());
+}
+
+TEST_F(TestApiBlackTerm, getBitVector)
+{
+  Term b1 = d_solver.mkBitVector(8, 15);
+  Term b2 = d_solver.mkBitVector("00001111", 2);
+  Term b3 = d_solver.mkBitVector("15", 10);
+  Term b4 = d_solver.mkBitVector("0f", 16);
+  Term b5 = d_solver.mkBitVector(8, "00001111", 2);
+  Term b6 = d_solver.mkBitVector(8, "15", 10);
+  Term b7 = d_solver.mkBitVector(8, "0f", 16);
+
+  ASSERT_TRUE(b1.isBitVectorValue());
+  ASSERT_TRUE(b2.isBitVectorValue());
+  ASSERT_TRUE(b3.isBitVectorValue());
+  ASSERT_TRUE(b4.isBitVectorValue());
+  ASSERT_TRUE(b5.isBitVectorValue());
+  ASSERT_TRUE(b6.isBitVectorValue());
+  ASSERT_TRUE(b7.isBitVectorValue());
+
+  ASSERT_EQ("00001111", b1.getBitVectorValue(2));
+  ASSERT_EQ("15", b1.getBitVectorValue(10));
+  ASSERT_EQ("f", b1.getBitVectorValue(16));
+  ASSERT_EQ("00001111", b2.getBitVectorValue(2));
+  ASSERT_EQ("15", b2.getBitVectorValue(10));
+  ASSERT_EQ("f", b2.getBitVectorValue(16));
+  ASSERT_EQ("1111", b3.getBitVectorValue(2));
+  ASSERT_EQ("15", b3.getBitVectorValue(10));
+  ASSERT_EQ("f", b3.getBitVectorValue(16));
+  ASSERT_EQ("00001111", b4.getBitVectorValue(2));
+  ASSERT_EQ("15", b4.getBitVectorValue(10));
+  ASSERT_EQ("f", b4.getBitVectorValue(16));
+  ASSERT_EQ("00001111", b5.getBitVectorValue(2));
+  ASSERT_EQ("15", b5.getBitVectorValue(10));
+  ASSERT_EQ("f", b5.getBitVectorValue(16));
+  ASSERT_EQ("00001111", b6.getBitVectorValue(2));
+  ASSERT_EQ("15", b6.getBitVectorValue(10));
+  ASSERT_EQ("f", b6.getBitVectorValue(16));
+  ASSERT_EQ("00001111", b7.getBitVectorValue(2));
+  ASSERT_EQ("15", b7.getBitVectorValue(10));
+  ASSERT_EQ("f", b7.getBitVectorValue(16));
+}
+
+TEST_F(TestApiBlackTerm, getAbstractValue)
+{
+  Term v1 = d_solver.mkAbstractValue(1);
+  Term v2 = d_solver.mkAbstractValue("15");
+  Term v3 = d_solver.mkAbstractValue("18446744073709551617");
+
+  ASSERT_TRUE(v1.isAbstractValue());
+  ASSERT_TRUE(v2.isAbstractValue());
+  ASSERT_TRUE(v3.isAbstractValue());
+  ASSERT_EQ("1", v1.getAbstractValue());
+  ASSERT_EQ("15", v2.getAbstractValue());
+  ASSERT_EQ("18446744073709551617", v3.getAbstractValue());
+}
+
+TEST_F(TestApiBlackTerm, getTuple)
+{
+  Sort s1 = d_solver.getIntegerSort();
+  Sort s2 = d_solver.getRealSort();
+  Sort s3 = d_solver.getStringSort();
+
+  Term t1 = d_solver.mkInteger(15);
+  Term t2 = d_solver.mkReal(17, 25);
+  Term t3 = d_solver.mkString("abc");
+
+  Term tup = d_solver.mkTuple({s1, s2, s3}, {t1, t2, t3});
+
+  ASSERT_TRUE(tup.isTupleValue());
+  ASSERT_EQ(std::vector<Term>({t1, t2, t3}), tup.getTupleValue());
+}
+
+TEST_F(TestApiBlackTerm, getFloatingPoint)
+{
+  Term bvval = d_solver.mkBitVector("0000110000000011");
+  Term fp = d_solver.mkFloatingPoint(5, 11, bvval);
+
+  ASSERT_TRUE(fp.isFloatingPointValue());
+  ASSERT_FALSE(fp.isFloatingPointPosZero());
+  ASSERT_FALSE(fp.isFloatingPointNegZero());
+  ASSERT_FALSE(fp.isFloatingPointPosInf());
+  ASSERT_FALSE(fp.isFloatingPointNegInf());
+  ASSERT_FALSE(fp.isFloatingPointNaN());
+  ASSERT_EQ(std::make_tuple(5u, 11u, bvval), fp.getFloatingPointValue());
+
+  ASSERT_TRUE(d_solver.mkPosZero(5, 11).isFloatingPointPosZero());
+  ASSERT_TRUE(d_solver.mkNegZero(5, 11).isFloatingPointNegZero());
+  ASSERT_TRUE(d_solver.mkPosInf(5, 11).isFloatingPointPosInf());
+  ASSERT_TRUE(d_solver.mkNegInf(5, 11).isFloatingPointNegInf());
+  ASSERT_TRUE(d_solver.mkNaN(5, 11).isFloatingPointNaN());
+}
+
+TEST_F(TestApiBlackTerm, getSet)
+{
+  Sort s = d_solver.mkSetSort(d_solver.getIntegerSort());
+
+  Term i1 = d_solver.mkInteger(5);
+  Term i2 = d_solver.mkInteger(7);
+
+  Term s1 = d_solver.mkEmptySet(s);
+  Term s2 = d_solver.mkTerm(Kind::SINGLETON, i1);
+  Term s3 = d_solver.mkTerm(Kind::SINGLETON, i1);
+  Term s4 = d_solver.mkTerm(Kind::SINGLETON, i2);
+  Term s5 =
+      d_solver.mkTerm(Kind::UNION, s2, d_solver.mkTerm(Kind::UNION, s3, s4));
+
+  ASSERT_TRUE(s1.isSetValue());
+  ASSERT_TRUE(s2.isSetValue());
+  ASSERT_TRUE(s3.isSetValue());
+  ASSERT_TRUE(s4.isSetValue());
+  ASSERT_FALSE(s5.isSetValue());
+  s5 = d_solver.simplify(s5);
+  ASSERT_TRUE(s5.isSetValue());
+
+  ASSERT_EQ(std::set<Term>({}), s1.getSetValue());
+  ASSERT_EQ(std::set<Term>({i1}), s2.getSetValue());
+  ASSERT_EQ(std::set<Term>({i1}), s3.getSetValue());
+  ASSERT_EQ(std::set<Term>({i2}), s4.getSetValue());
+  ASSERT_EQ(std::set<Term>({i1, i2}), s5.getSetValue());
+}
+
+TEST_F(TestApiBlackTerm, getSequence)
+{
+  Sort s = d_solver.mkSequenceSort(d_solver.getIntegerSort());
+
+  Term i1 = d_solver.mkInteger(5);
+  Term i2 = d_solver.mkInteger(7);
+
+  Term s1 = d_solver.mkEmptySequence(s);
+  Term s2 = d_solver.mkTerm(Kind::SEQ_UNIT, i1);
+  Term s3 = d_solver.mkTerm(Kind::SEQ_UNIT, i1);
+  Term s4 = d_solver.mkTerm(Kind::SEQ_UNIT, i2);
+  Term s5 = d_solver.mkTerm(
+      Kind::SEQ_CONCAT, s2, d_solver.mkTerm(Kind::SEQ_CONCAT, s3, s4));
+
+  ASSERT_TRUE(s1.isSequenceValue());
+  ASSERT_TRUE(!s2.isSequenceValue());
+  ASSERT_TRUE(!s3.isSequenceValue());
+  ASSERT_TRUE(!s4.isSequenceValue());
+  ASSERT_TRUE(!s5.isSequenceValue());
+
+  s2 = d_solver.simplify(s2);
+  s3 = d_solver.simplify(s3);
+  s4 = d_solver.simplify(s4);
+  s5 = d_solver.simplify(s5);
+
+  ASSERT_EQ(std::vector<Term>({}), s1.getSequenceValue());
+  ASSERT_EQ(std::vector<Term>({i1}), s2.getSequenceValue());
+  ASSERT_EQ(std::vector<Term>({i1}), s3.getSequenceValue());
+  ASSERT_EQ(std::vector<Term>({i2}), s4.getSequenceValue());
+  ASSERT_EQ(std::vector<Term>({i1, i1, i2}), s5.getSequenceValue());
+}
+
+TEST_F(TestApiBlackTerm, getUninterpretedConst)
+{
+  Sort s = d_solver.mkUninterpretedSort("test");
+  Term t1 = d_solver.mkUninterpretedConst(s, 3);
+  Term t2 = d_solver.mkUninterpretedConst(s, 5);
+
+  ASSERT_TRUE(t1.isUninterpretedValue());
+  ASSERT_TRUE(t2.isUninterpretedValue());
+
+  ASSERT_EQ(std::make_pair(s, 3), t1.getUninterpretedValue());
+  ASSERT_EQ(std::make_pair(s, 5), t2.getUninterpretedValue());
 }
 
 TEST_F(TestApiBlackTerm, substitute)
