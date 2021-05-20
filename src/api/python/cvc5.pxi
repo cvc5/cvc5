@@ -1550,9 +1550,9 @@ cdef class Term:
         term.cterm = self.cterm.getConstArrayBase()
         return term
 
-    def getConstSequenceElements(self):
+    def getSequenceValue(self):
         elems = []
-        for e in self.cterm.getConstSequenceElements():
+        for e in self.cterm.getSequenceValue():
             term = Term(self.solver)
             term.cterm = e
             elems.append(term)
