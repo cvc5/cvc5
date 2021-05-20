@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King
+ *   Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -10,18 +10,20 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A class representing a record definition.
+ * Utility methods.
  */
 
-#include "expr/record.h"
+#ifndef CVC5__UTILS_H
+#define CVC5__UTILS_H
 
-#include "base/check.h"
-#include "base/output.h"
+#include <cvc5/cvc5.h>
 
-namespace cvc5 {
+/**
+ * Print solutions for synthesis conjecture to the standard output stream.
+ * @param terms the terms for which the synthesis solutions were retrieved
+ * @param sols the synthesis solutions of the given terms
+ */
+void printSynthSolutions(const std::vector<cvc5::api::Term>& terms,
+                         const std::vector<cvc5::api::Term>& sols);
 
-std::ostream& operator<<(std::ostream& out, const RecordUpdate& t) {
-  return out << "[" << t.getField() << "]";
-}
-
-}  // namespace cvc5
+#endif  // CVC5__UTILS_H

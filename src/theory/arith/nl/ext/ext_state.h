@@ -86,7 +86,7 @@ struct ExtState
   // ( x*y, x*z, y ) for each pair of monomials ( x*y, x*z ) with common factors
   std::map<Node, std::map<Node, Node> > d_mono_diff;
   /** the set of monomials we should apply tangent planes to */
-  std::unordered_set<Node, NodeHashFunction> d_tplane_refine;
+  std::unordered_set<Node> d_tplane_refine;
 };
 
 }  // namespace nl

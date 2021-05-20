@@ -64,10 +64,10 @@ class InferenceManager;
  */
 class SygusExtension
 {
-  typedef context::CDHashMap< Node, int, NodeHashFunction > IntMap;
-  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
-  typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashMap<Node, int> IntMap;
+  typedef context::CDHashMap<Node, Node> NodeMap;
+  typedef context::CDHashMap<Node, bool> BoolMap;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   SygusExtension(TheoryState& s,
@@ -149,7 +149,7 @@ class SygusExtension
    * Map from terms (selector chains) to their anchors. The anchor of a
    * selector chain S1( ... Sn( x ) ... ) is x.
    */
-  std::unordered_map<Node, Node, NodeHashFunction> d_term_to_anchor;
+  std::unordered_map<Node, Node> d_term_to_anchor;
   /**
    * Map from anchors to the conjecture they are associated with.
    */
@@ -161,7 +161,7 @@ class SygusExtension
    * where weight is the selector weight of Si
    * (see SygusTermDatabase::getSelectorWeight).
    */
-  std::unordered_map<Node, unsigned, NodeHashFunction> d_term_to_depth;
+  std::unordered_map<Node, unsigned> d_term_to_depth;
   /**
    * Map from terms (selector chains) to whether they are the topmost term
    * of their type. For example, if:
@@ -172,7 +172,7 @@ class SygusExtension
    * Then, x, S1( x ), and S4( S3( S2( S1( x ) ) ) ) are top-level terms,
    * whereas S2( S1( x ) ) and S3( S2( S1( x ) ) ) are not.
    */
-  std::unordered_map<Node, bool, NodeHashFunction> d_is_top_level;
+  std::unordered_map<Node, bool> d_is_top_level;
   /**
    * Returns true if the selector chain n is top-level based on the above
    * definition, when tn is the type of n.
@@ -198,13 +198,11 @@ private:
      * term. The range of this map can be updated if we later encounter a sygus
      * term that also rewrites to the builtin value but has a smaller term size.
      */
-    std::map<TypeNode, std::unordered_map<Node, Node, NodeHashFunction>>
-        d_search_val;
+    std::map<TypeNode, std::unordered_map<Node, Node>> d_search_val;
     /** the size of terms in the range of d_search val. */
-    std::map<TypeNode, std::unordered_map<Node, unsigned, NodeHashFunction>>
-        d_search_val_sz;
+    std::map<TypeNode, std::unordered_map<Node, unsigned>> d_search_val_sz;
     /** For each term, whether this cache has processed that term */
-    std::unordered_set<Node, NodeHashFunction> d_search_val_proc;
+    std::unordered_set<Node> d_search_val_proc;
   };
   /** An instance of the above cache, for each anchor */
   std::map< Node, SearchCache > d_cache;
@@ -513,7 +511,7 @@ private:
    * This should be user context-dependent if sygus is updated to work in
    * incremental mode.
    */
-  std::unordered_map<Node, unsigned, NodeHashFunction> d_simple_proc;
+  std::unordered_map<Node, unsigned> d_simple_proc;
   //------------------------end static symmetry breaking
 
   /** Get the canonical free variable for type tn */

@@ -90,12 +90,11 @@ class PseudoBooleanProcessor : public PreprocessingPass
   static Node mkGeqOne(Node v);
 
   // x ->  <geqZero, leqOne>
-  typedef context::CDHashMap<Node, std::pair<Node, Node>, NodeHashFunction>
-      CDNode2PairMap;
+  typedef context::CDHashMap<Node, std::pair<Node, Node>> CDNode2PairMap;
   CDNode2PairMap d_pbBounds;
   theory::SubstitutionMap d_subCache;
 
-  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+  typedef std::unordered_set<Node> NodeSet;
   NodeSet d_learningCache;
 
   context::CDO<unsigned> d_pbs;

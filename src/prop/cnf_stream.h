@@ -75,8 +75,7 @@ class CnfStream {
       LiteralToNodeMap;
 
   /** Cache of what literals have been registered to a node. */
-  typedef context::CDInsertHashMap<Node, SatLiteral, NodeHashFunction>
-      NodeToLiteralMap;
+  typedef context::CDInsertHashMap<Node, SatLiteral> NodeToLiteralMap;
 
   /**
    * Constructs a CnfStream that performs equisatisfiable CNF transformations
@@ -223,7 +222,7 @@ class CnfStream {
   context::CDList<TNode> d_booleanVariables;
 
   /** Formulas that we translated that we are notifying */
-  context::CDHashSet<Node, NodeHashFunction> d_notifyFormulas;
+  context::CDHashSet<Node> d_notifyFormulas;
 
   /** Map from nodes to literals */
   NodeToLiteralMap d_nodeToLiteralMap;

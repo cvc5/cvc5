@@ -77,7 +77,6 @@ libcvc5_add_sources(
   statistics_value.h
   string.cpp
   string.h
-  tuple.h
   unsafe_interrupt_exception.h
   utility.cpp
   utility.h

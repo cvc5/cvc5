@@ -84,7 +84,9 @@ class EqualityQuery : public QuantifiersUtil
   /** processInferences : will merge equivalence classes in master equality engine, if possible */
   bool processInferences( Theory::Effort e );
   /** node contains */
-  Node getInstance( Node n, const std::vector< Node >& eqc, std::unordered_map<TNode, Node, TNodeHashFunction>& cache );
+  Node getInstance(Node n,
+                   const std::vector<Node>& eqc,
+                   std::unordered_map<TNode, Node>& cache);
   /** get score */
   int32_t getRepScore(Node n, Node f, size_t index, TypeNode v_tn);
 }; /* EqualityQuery */

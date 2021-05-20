@@ -39,15 +39,13 @@ namespace parser {
 
 Parser::Parser(api::Solver* solver,
                SymbolManager* sm,
-               Input* input,
                bool strictMode,
                bool parseOnly)
-    : d_input(input),
-      d_symman(sm),
+    : d_symman(sm),
       d_symtab(sm->getSymbolTable()),
       d_assertionLevel(0),
       d_anonymousFunctionCount(0),
-      d_done(false),
+      d_done(true),
       d_checksEnabled(true),
       d_strictMode(strictMode),
       d_parseOnly(parseOnly),
@@ -56,7 +54,6 @@ Parser::Parser(api::Solver* solver,
       d_forcedLogic(),
       d_solver(solver)
 {
-  d_input->setParser(*this);
 }
 
 Parser::~Parser() {
@@ -66,7 +63,6 @@ Parser::~Parser() {
     delete command;
   }
   d_commandQueue.clear();
-  delete d_input;
 }
 
 api::Solver* Parser::getSolver() const { return d_solver; }
@@ -153,6 +149,10 @@ api::Kind Parser::getKindForFunction(api::Term fun)
   else if (t.isTester())
   {
     return api::APPLY_TESTER;
+  }
+  else if (t.isUpdater())
+  {
+    return api::APPLY_UPDATER;
   }
   return api::UNDEFINED_KIND;
 }

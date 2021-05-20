@@ -110,3 +110,17 @@ template bool NodeTemplate<true>::isConst() const;
 template bool NodeTemplate<false>::isConst() const;
 
 }  // namespace cvc5
+
+namespace std {
+
+size_t hash<cvc5::Node>::operator()(const cvc5::Node& node) const
+{
+  return node.getId();
+}
+
+size_t hash<cvc5::TNode>::operator()(const cvc5::TNode& node) const
+{
+  return node.getId();
+}
+
+}  // namespace std

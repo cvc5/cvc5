@@ -130,6 +130,25 @@ typedef NodeTemplate<true> Node;
  */
 typedef NodeTemplate<false> TNode;
 
+}  // namespace cvc5
+
+namespace std {
+
+template <>
+struct hash<cvc5::Node>
+{
+  size_t operator()(const cvc5::Node& node) const;
+};
+
+template <>
+struct hash<cvc5::TNode>
+{
+  size_t operator()(const cvc5::TNode& node) const;
+};
+
+}  // namespace std
+
+namespace cvc5 {
 namespace expr {
 
 class NodeValue;
@@ -147,14 +166,6 @@ namespace kind {
     struct NodeValueConstPrinter;
     }  // namespace metakind
     }  // namespace kind
-
-// for hash_maps, hash_sets..
-struct NodeHashFunction {
-  inline size_t operator()(Node node) const;
-};/* struct NodeHashFunction */
-struct TNodeHashFunction {
-  inline size_t operator()(TNode node) const;
-};/* struct TNodeHashFunction */
 
 /**
  * Encapsulation of an NodeValue pointer.  The reference count is
@@ -226,82 +237,85 @@ public:
    * Cache-aware, recursive version of substitute() used by the public
    * member function with a similar signature.
    */
-  Node substitute(TNode node, TNode replacement,
-                  std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
+ Node substitute(TNode node,
+                 TNode replacement,
+                 std::unordered_map<TNode, TNode>& cache) const;
 
-  /**
-   * Cache-aware, recursive version of substitute() used by the public
-   * member function with a similar signature.
-   */
-  template <class Iterator1, class Iterator2>
-  Node substitute(Iterator1 nodesBegin, Iterator1 nodesEnd,
-                  Iterator2 replacementsBegin, Iterator2 replacementsEnd,
-                  std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
+ /**
+  * Cache-aware, recursive version of substitute() used by the public
+  * member function with a similar signature.
+  */
+ template <class Iterator1, class Iterator2>
+ Node substitute(Iterator1 nodesBegin,
+                 Iterator1 nodesEnd,
+                 Iterator2 replacementsBegin,
+                 Iterator2 replacementsEnd,
+                 std::unordered_map<TNode, TNode>& cache) const;
 
-  /**
-   * Cache-aware, recursive version of substitute() used by the public
-   * member function with a similar signature.
-   */
-  template <class Iterator>
-  Node substitute(Iterator substitutionsBegin, Iterator substitutionsEnd,
-                  std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
+ /**
+  * Cache-aware, recursive version of substitute() used by the public
+  * member function with a similar signature.
+  */
+ template <class Iterator>
+ Node substitute(Iterator substitutionsBegin,
+                 Iterator substitutionsEnd,
+                 std::unordered_map<TNode, TNode>& cache) const;
 
-  /** Default constructor, makes a null expression. */
-  NodeTemplate() : d_nv(&expr::NodeValue::null()) { }
+ /** Default constructor, makes a null expression. */
+ NodeTemplate() : d_nv(&expr::NodeValue::null()) {}
 
-  /**
-   * Conversion between nodes that are reference-counted and those that are
-   * not.
-   * @param node the node to make copy of
-   */
-  NodeTemplate(const NodeTemplate<!ref_count>& node);
+ /**
+  * Conversion between nodes that are reference-counted and those that are
+  * not.
+  * @param node the node to make copy of
+  */
+ NodeTemplate(const NodeTemplate<!ref_count>& node);
 
-  /**
-   * Copy constructor.  Note that GCC does NOT recognize an instantiation of
-   * the above template as a copy constructor and problems ensue.  So we
-   * provide an explicit one here.
-   * @param node the node to make copy of
-   */
-  NodeTemplate(const NodeTemplate& node);
+ /**
+  * Copy constructor.  Note that GCC does NOT recognize an instantiation of
+  * the above template as a copy constructor and problems ensue.  So we
+  * provide an explicit one here.
+  * @param node the node to make copy of
+  */
+ NodeTemplate(const NodeTemplate& node);
 
-  /**
-   * Assignment operator for nodes, copies the relevant information from node
-   * to this node.
-   * @param node the node to copy
-   * @return reference to this node
-   */
-  NodeTemplate& operator=(const NodeTemplate& node);
+ /**
+  * Assignment operator for nodes, copies the relevant information from node
+  * to this node.
+  * @param node the node to copy
+  * @return reference to this node
+  */
+ NodeTemplate& operator=(const NodeTemplate& node);
 
-  /**
-   * Assignment operator for nodes, copies the relevant information from node
-   * to this node.
-   * @param node the node to copy
-   * @return reference to this node
-   */
-  NodeTemplate& operator=(const NodeTemplate<!ref_count>& node);
+ /**
+  * Assignment operator for nodes, copies the relevant information from node
+  * to this node.
+  * @param node the node to copy
+  * @return reference to this node
+  */
+ NodeTemplate& operator=(const NodeTemplate<!ref_count>& node);
 
-  /**
-   * Destructor. If ref_count is true it will decrement the reference count
-   * and, if zero, collect the NodeValue.
-   */
-  ~NodeTemplate();
+ /**
+  * Destructor. If ref_count is true it will decrement the reference count
+  * and, if zero, collect the NodeValue.
+  */
+ ~NodeTemplate();
 
-  /**
-   * Return the null node.
-   * @return the null node
-   */
-  static NodeTemplate null() {
-    return s_null;
-  }
+ /**
+  * Return the null node.
+  * @return the null node
+  */
+ static NodeTemplate null() { return s_null; }
 
-  /**
-   * Returns true if this expression is a null expression.
-   * @return true if null
-   */
-  bool isNull() const {
-    assertTNodeNotExpired();
-    return d_nv == &expr::NodeValue::null();
-  }
+ /**
+  * Returns true if this expression is a null expression.
+  * @return true if null
+  */
+ bool isNull() const
+ {
+   assertTNodeNotExpired();
+   return d_nv == &expr::NodeValue::null();
+ }
 
   /**
    * Structural comparison operator for expressions.
@@ -500,8 +514,7 @@ public:
   /**
    * Simultaneous substitution of Nodes in cache.
    */
-  Node substitute(
-      std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
+  Node substitute(std::unordered_map<TNode, TNode>& cache) const;
 
   /**
    * Returns the kind of this node.
@@ -942,15 +955,8 @@ std::ostream& operator<<(
 
 namespace cvc5 {
 
-inline size_t NodeHashFunction::operator()(Node node) const {
-  return node.getId();
-}
-inline size_t TNodeHashFunction::operator()(TNode node) const {
-  return node.getId();
-}
-
 using TNodePairHashFunction =
-    PairHashFunction<TNode, TNode, TNodeHashFunction, TNodeHashFunction>;
+    PairHashFunction<TNode, TNode, std::hash<TNode>, std::hash<TNode>>;
 
 template <bool ref_count>
 inline size_t NodeTemplate<ref_count>::getNumChildren() const {
@@ -1253,14 +1259,16 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement) const {
   if (node == *this) {
     return replacement;
   }
-  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+  std::unordered_map<TNode, TNode> cache;
   return substitute(node, replacement, cache);
 }
 
 template <bool ref_count>
-Node
-NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
-                                    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
+Node NodeTemplate<ref_count>::substitute(
+    TNode node,
+    TNode replacement,
+    std::unordered_map<TNode, TNode>& cache) const
+{
   Assert(node != *this);
 
   if (getNumChildren() == 0 || node == replacement)
@@ -1269,7 +1277,8 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
   }
 
   // in cache?
-  typename std::unordered_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
+  typename std::unordered_map<TNode, TNode>::const_iterator i =
+      cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
@@ -1309,21 +1318,23 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
                                     Iterator1 nodesEnd,
                                     Iterator2 replacementsBegin,
                                     Iterator2 replacementsEnd) const {
-  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+  std::unordered_map<TNode, TNode> cache;
   return substitute(nodesBegin, nodesEnd,
                     replacementsBegin, replacementsEnd, cache);
 }
 
 template <bool ref_count>
 template <class Iterator1, class Iterator2>
-Node
-NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
-                                    Iterator1 nodesEnd,
-                                    Iterator2 replacementsBegin,
-                                    Iterator2 replacementsEnd,
-                                    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
+Node NodeTemplate<ref_count>::substitute(
+    Iterator1 nodesBegin,
+    Iterator1 nodesEnd,
+    Iterator2 replacementsBegin,
+    Iterator2 replacementsEnd,
+    std::unordered_map<TNode, TNode>& cache) const
+{
   // in cache?
-  typename std::unordered_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
+  typename std::unordered_map<TNode, TNode>::const_iterator i =
+      cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
@@ -1366,13 +1377,13 @@ template <class Iterator>
 inline Node
 NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
                                     Iterator substitutionsEnd) const {
-  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+  std::unordered_map<TNode, TNode> cache;
   return substitute(substitutionsBegin, substitutionsEnd, cache);
 }
 
 template <bool ref_count>
 inline Node NodeTemplate<ref_count>::substitute(
-    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const
+    std::unordered_map<TNode, TNode>& cache) const
 {
   // Since no substitution is given (other than what may already be in the
   // cache), we pass dummy iterators to conform to the main substitute method,
@@ -1382,12 +1393,14 @@ inline Node NodeTemplate<ref_count>::substitute(
 
 template <bool ref_count>
 template <class Iterator>
-Node
-NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
-                                    Iterator substitutionsEnd,
-                                    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
+Node NodeTemplate<ref_count>::substitute(
+    Iterator substitutionsBegin,
+    Iterator substitutionsEnd,
+    std::unordered_map<TNode, TNode>& cache) const
+{
   // in cache?
-  typename std::unordered_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
+  typename std::unordered_map<TNode, TNode>::const_iterator i =
+      cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
