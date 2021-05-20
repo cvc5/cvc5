@@ -933,9 +933,9 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     if (pfn == nullptr)
     {
       Warning() << "resort to TRUST_SUBS" << std::endl
-                          << eq << std::endl
-                          << eqq << std::endl
-                          << "from " << children << " applied to " << t << std::endl;
+                << eq << std::endl
+                << eqq << std::endl
+                << "from " << children << " applied to " << t << std::endl;
       cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
     }
     else
