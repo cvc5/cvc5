@@ -1015,7 +1015,7 @@ enum class PfRule : uint32_t
   // Children: none
   // Arguments: (t)
   // ---------------------
-  // Conclusion: (or (and (= (str.len t) 0) (= t "")) (> (str.len t 0)))
+  // Conclusion: (or (and (= (str.len t) 0) (= t "")) (> (str.len t) 0))
   STRING_LENGTH_POS,
   // ======== Length non-empty
   // Children: (P1:(not (= t "")))
