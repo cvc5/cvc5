@@ -432,6 +432,14 @@ set(regress_0_tests
   regress0/bv/unsound1-reduced.smt2
   regress0/chained-equality.smt2
   regress0/constant-rewrite.smtv1.smt2
+  regress0/cores/issue3455.smt2
+  regress0/cores/issue3651.smt2
+  regress0/cores/issue4925.smt2
+  regress0/cores/issue4971-3.smt2
+  regress0/cores/issue5079.smt2
+  regress0/cores/issue5238.smt2
+  regress0/cores/issue5902.smt2
+  regress0/cores/issue5908.smt2
   regress0/cvc-rerror-print.cvc
   regress0/cvc3-bug15.cvc
   regress0/cvc3.userdoc.01.cvc
@@ -534,6 +542,7 @@ set(regress_0_tests
   regress0/define-fun-model.smt2
   regress0/distinct.smtv1.smt2
   regress0/dump-unsat-core-full.smt2
+  regress0/echo.smt2
   regress0/eqrange1.smt2
   regress0/eqrange2.smt2
   regress0/eqrange3.smt2
@@ -1487,6 +1496,7 @@ set(regress_1_tests
   regress1/bvdiv2.smt2
   regress1/constarr3.cvc
   regress1/constarr3.smt2
+  regress1/cores/issue5604.smt2
   regress1/datatypes/acyclicity-sr-ground096.smt2
   regress1/datatypes/dt-color-2.6.smt2
   regress1/datatypes/dt-param-card4-unsat.smt2
@@ -2077,6 +2087,7 @@ set(regress_1_tests
   regress1/strings/issue6270.smt2
   regress1/strings/issue6271-rnf.smt2
   regress1/strings/issue6271-2-rnf.smt2
+  regress1/strings/issue6567-empty-re-range.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2

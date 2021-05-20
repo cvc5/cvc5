@@ -19,7 +19,6 @@
 #include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
-#include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/strings/arith_entail.h"
