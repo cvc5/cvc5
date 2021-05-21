@@ -156,7 +156,7 @@ void TBitblaster<T>::initTermBBStrategies()
   d_termBBStrategies[kind::BITVECTOR_NOR] = DefaultNorBB<T>;
   d_termBBStrategies[kind::BITVECTOR_COMP] = DefaultCompBB<T>;
   d_termBBStrategies[kind::BITVECTOR_MULT] = DefaultMultBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_PLUS] = DefaultPlusBB<T>;
+  d_termBBStrategies[kind::BITVECTOR_ADD] = DefaultAddBB<T>;
   d_termBBStrategies[kind::BITVECTOR_SUB] = DefaultSubBB<T>;
   d_termBBStrategies[kind::BITVECTOR_NEG] = DefaultNegBB<T>;
   d_termBBStrategies[kind::BITVECTOR_UDIV] = DefaultUdivBB<T>;

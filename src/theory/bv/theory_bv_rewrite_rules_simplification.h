@@ -1610,16 +1610,18 @@ inline Node RewriteRule<UgtUrem>::apply(TNode node)
 /* -------------------------------------------------------------------------- */
 
 /**
- * BBPlusNeg
- * 
+ * BBAddNeg
+ *
  * -a1 - a2 - ... - an + ak + ..  ==> - (a1 + a2 + ... + an) + ak
  *
  */
 
-template<> inline
-bool RewriteRule<BBPlusNeg>::applies(TNode node) {
-  if (node.getKind() != kind::BITVECTOR_PLUS) {
-    return false; 
+template <>
+inline bool RewriteRule<BBAddNeg>::applies(TNode node)
+{
+  if (node.getKind() != kind::BITVECTOR_ADD)
+  {
+    return false;
   }
 
   unsigned neg_count = 0; 
@@ -1632,9 +1634,9 @@ bool RewriteRule<BBPlusNeg>::applies(TNode node) {
 }
 
 template <>
-inline Node RewriteRule<BBPlusNeg>::apply(TNode node)
+inline Node RewriteRule<BBAddNeg>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<BBPlusNeg>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<BBAddNeg>(" << node << ")" << std::endl;
   NodeManager *nm = NodeManager::currentNM();
   std::vector<Node> children;
   unsigned neg_count = 0;
@@ -1653,7 +1655,7 @@ inline Node RewriteRule<BBPlusNeg>::apply(TNode node)
   Assert(neg_count != 0);
   children.push_back(utils::mkConst(utils::getSize(node), neg_count));
 
-  return utils::mkNaryNode(kind::BITVECTOR_PLUS, children);
+  return utils::mkNaryNode(kind::BITVECTOR_ADD, children);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2003,7 +2005,7 @@ inline Node RewriteRule<MultSlice>::apply(TNode node)
   Node term3 = nm->mkNode(kind::BITVECTOR_CONCAT,
                           nm->mkNode(kind::BITVECTOR_MULT, top_a, bottom_b),
                           zeros);
-  return nm->mkNode(kind::BITVECTOR_PLUS, term1, term2, term3);
+  return nm->mkNode(kind::BITVECTOR_ADD, term1, term2, term3);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2015,12 +2017,13 @@ inline Node RewriteRule<MultSlice>::apply(TNode node)
  * 
  * @return 
  */
-template<> inline
-bool RewriteRule<UltPlusOne>::applies(TNode node) {
+template <>
+inline bool RewriteRule<UltAddOne>::applies(TNode node)
+{
   if (node.getKind() != kind::BITVECTOR_ULT) return false;
   TNode x = node[0];
   TNode y1 = node[1];
-  if (y1.getKind() != kind::BITVECTOR_PLUS) return false;
+  if (y1.getKind() != kind::BITVECTOR_ADD) return false;
   if (y1[0].getKind() != kind::CONST_BITVECTOR &&
       y1[1].getKind() != kind::CONST_BITVECTOR)
     return false;
@@ -2034,13 +2037,13 @@ bool RewriteRule<UltPlusOne>::applies(TNode node) {
 
   TNode one = y1[0].getKind() == kind::CONST_BITVECTOR ? y1[0] : y1[1];
   if (one != utils::mkConst(utils::getSize(one), 1)) return false;
-  return true; 
+  return true;
 }
 
 template <>
-inline Node RewriteRule<UltPlusOne>::apply(TNode node)
+inline Node RewriteRule<UltAddOne>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<UltPlusOne>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<UltAddOne>(" << node << ")" << std::endl;
   NodeManager *nm = NodeManager::currentNM();
   TNode x = node[0];
   TNode y1 = node[1];
@@ -2188,12 +2191,12 @@ bool RewriteRule<MultSltMult>::applies(TNode node)
     return false;
 
   TNode addxt, x, a;
-  if (ml[0].getKind() == kind::BITVECTOR_PLUS)
+  if (ml[0].getKind() == kind::BITVECTOR_ADD)
   {
     addxt = ml[0];
     a = ml[1];
   }
-  else if (ml[1].getKind() == kind::BITVECTOR_PLUS)
+  else if (ml[1].getKind() == kind::BITVECTOR_ADD)
   {
     addxt = ml[1];
     a = ml[0];
@@ -2228,14 +2231,14 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
   std::tie(mr[0], mr[1], std::ignore) = extract_ext_tuple(node[1]);
 
   TNode addxt, x, t, a;
-  if (ml[0].getKind() == kind::BITVECTOR_PLUS)
+  if (ml[0].getKind() == kind::BITVECTOR_ADD)
   {
     addxt = ml[0];
     a = ml[1];
   }
   else
   {
-    Assert(ml[1].getKind() == kind::BITVECTOR_PLUS);
+    Assert(ml[1].getKind() == kind::BITVECTOR_ADD);
     addxt = ml[1];
     a = ml[0];
   }
