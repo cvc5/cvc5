@@ -26,9 +26,14 @@
  */
 std::string defineFunToString(const cvc5::api::Term& f,
                               const std::vector<cvc5::api::Term> params,
-                              const cvc5::api::Sort& sort,
                               const cvc5::api::Term body)
 {
+
+  cvc5::api::Sort sort = f.getSort();
+  if (sort.isFunction())
+  {
+    sort = sort.getFunctionCodomainSort();
+  }
   std::stringstream ss;
   ss << "(define-fun " << f << " (";
   for (size_t i = 0, n = params.size(); i < n; ++i)
@@ -57,12 +62,7 @@ void printSynthSolutions(const std::vector<cvc5::api::Term>& terms,
       params.insert(params.end(), sols[i][0].begin(), sols[i][0].end());
       body = sols[i][1];
     }
-    cvc5::api::Sort rangeSort = terms[i].getSort();
-    if (rangeSort.isFunction())
-    {
-      rangeSort = rangeSort.getFunctionCodomainSort();
-    }
-    std::cout << "  " << defineFunToString(terms[i], params, rangeSort, body)
+    std::cout << "  " << defineFunToString(terms[i], params, body)
               << std::endl;
   }
   std::cout << ')' << std::endl;
