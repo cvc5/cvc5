@@ -49,7 +49,7 @@ sort STRING_TYPE \
 sort REGEXP_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-    "NodeManager::currentNM()->mkNode(REGEXP_EMPTY, std::vector<Node>() )" \
+    "NodeManager::currentNM()->mkNode(REGEXP_EMPTY)" \
     "util/string.h" \
     "RegExp type"
 
