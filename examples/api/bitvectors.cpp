@@ -96,7 +96,7 @@ int main()
 
   // Encoding code (2)
   // new_x_ = a + b - x
-  Term a_plus_b = slv.mkTerm(BITVECTOR_PLUS, a, b);
+  Term a_plus_b = slv.mkTerm(BITVECTOR_ADD, a, b);
   Term a_plus_b_minus_x = slv.mkTerm(BITVECTOR_SUB, a_plus_b, x);
   Term assignment2 = slv.mkTerm(EQUAL, new_x_, a_plus_b_minus_x);
 

@@ -200,9 +200,6 @@ name   = "SMT Layer"
 [[option.mode.OFF]]
   name = "off"
   help = "Do not produce unsat cores."
-[[option.mode.OLD_PROOF]]
-  name = "old-proof"
-  help = "Produce unsat cores from old proof infrastructure."
 [[option.mode.SAT_PROOF]]
   name = "sat-proof"
   help = "Produce unsat cores from SAT and preprocessing proofs."

@@ -180,6 +180,13 @@ examples). It further provides Java (see `examples/SimpleVC.java` and
 Configure cvc5 with `configure.sh --<lang>-bindings` to build with language
 bindings for `<lang>`.
 
+### Dependencies for Language Bindings
+
+* Python
+  * [Cython](https://cython.org/)
+  * [scikit-build](https://pypi.org/project/scikit-build/)
+  * [pytest](https://docs.pytest.org/en/6.2.x/)
+
 If you're interested in helping to develop, maintain, and test a language
 binding, please contact one of the project leaders.
 
