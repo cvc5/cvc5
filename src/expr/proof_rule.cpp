@@ -140,7 +140,7 @@ const char* toString(PfRule id)
     case PfRule::BV_BITBLAST_NOR: return "BV_BITBLAST_NOR";
     case PfRule::BV_BITBLAST_COMP: return "BV_BITBLAST_COMP";
     case PfRule::BV_BITBLAST_MULT: return "BV_BITBLAST_MULT";
-    case PfRule::BV_BITBLAST_PLUS: return "BV_BITBLAST_PLUS";
+    case PfRule::BV_BITBLAST_ADD: return "BV_BITBLAST_ADD";
     case PfRule::BV_BITBLAST_SUB: return "BV_BITBLAST_SUB";
     case PfRule::BV_BITBLAST_NEG: return "BV_BITBLAST_NEG";
     case PfRule::BV_BITBLAST_UDIV: return "BV_BITBLAST_UDIV";

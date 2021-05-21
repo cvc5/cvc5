@@ -184,7 +184,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
       Assert(slack.isConst());
       // remember the slack value for the asserted literal
       d_alit_to_model_slack[lit] = slack;
-      ret = nm->mkNode(EQUAL, s, nm->mkNode(BITVECTOR_PLUS, t, slack));
+      ret = nm->mkNode(EQUAL, s, nm->mkNode(BITVECTOR_ADD, t, slack));
       Trace("cegqi-bv") << "Slack is " << slack << std::endl;
     }
     else
@@ -218,7 +218,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     else
     {
       Node bv_one = bv::utils::mkOne(bv::utils::getSize(s));
-      ret = nm->mkNode(BITVECTOR_PLUS, s, bv_one).eqNode(t);
+      ret = nm->mkNode(BITVECTOR_ADD, s, bv_one).eqNode(t);
     }
   }
   Trace("cegqi-bv") << "Process " << lit << " as " << ret << std::endl;
@@ -573,7 +573,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
       return result;
     }
   }
-  else if (n.getKind() == BITVECTOR_MULT || n.getKind() == BITVECTOR_PLUS)
+  else if (n.getKind() == BITVECTOR_MULT || n.getKind() == BITVECTOR_ADD)
   {
     if (options::cegqiBvLinearize() && contains_pv[n])
     {
