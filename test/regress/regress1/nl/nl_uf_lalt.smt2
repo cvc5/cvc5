@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-unsat-cores --decision=justification --no-produce-proofs
+; COMMAND-LINE: --decision=justification --no-produce-proofs
 (set-logic QF_UFNIA)
 (set-info :status unsat)
 (declare-fun c (Int) Int)
