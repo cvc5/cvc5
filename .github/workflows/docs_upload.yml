@@ -79,17 +79,17 @@ jobs:
             if diff -r target/docs-master/ target/docs-$NAME-$HASH
             then
               echo "Ignored run, documentation is the same as for current master"
+            else
+              rm -f docs-$NAME
+              ln -s docs-$NAME-$HASH docs-$NAME
+              git add docs-$NAME docs-$NAME-$HASH
+
+              python3 genindex.py
+              git add README.md
+              git commit -m "Update docs for $NAME"
+
+              git push
             fi
-
-            rm -f docs-$NAME
-            ln -s docs-$NAME-$HASH docs-$NAME
-            git add docs-$NAME docs-$NAME-$HASH
-
-            python3 genindex.py
-            git add README.md
-            git commit -m "Update docs for $NAME"
-
-            git push
           else
             echo "Ignored run"
           fi
