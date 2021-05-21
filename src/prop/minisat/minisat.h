@@ -22,6 +22,14 @@
 #include "util/statistics_registry.h"
 
 namespace cvc5 {
+
+template <class Solver>
+prop::SatLiteral toSatLiteral(typename Solver::TLit lit);
+
+template <class Solver>
+void toSatClause(const typename Solver::TClause& minisat_cl,
+                 prop::SatClause& sat_cl);
+
 namespace prop {
 
 class MinisatSatSolver : public CDCLTSatSolverInterface

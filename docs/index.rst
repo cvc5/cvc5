@@ -19,3 +19,4 @@ cvc5 API Documentation
    python/python
    references
    examples/examples
+   options

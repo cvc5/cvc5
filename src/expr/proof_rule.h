@@ -757,7 +757,7 @@ enum class PfRule : uint32_t
   BV_BITBLAST_NOR,
   BV_BITBLAST_COMP,
   BV_BITBLAST_MULT,
-  BV_BITBLAST_PLUS,
+  BV_BITBLAST_ADD,
   BV_BITBLAST_SUB,
   BV_BITBLAST_NEG,
   BV_BITBLAST_UDIV,
@@ -1124,8 +1124,7 @@ enum class PfRule : uint32_t
   //    t1 is the sum of the scaled polynomials (k_1 * poly_1 + ... + k_n *
   //    poly_n) t2 is the sum of the scaled constants (k_1 * const_1 + ... + k_n
   //    * const_n)
-  ARITH_SCALE_SUM_UPPER_BOUNDS,
-
+  MACRO_ARITH_SCALE_SUM_UB,
   // ======== Sum Upper Bounds
   // Children: (P1, ... , Pn)
   //           where each Pi has form (><i, Li, Ri)
