@@ -72,7 +72,7 @@ class SymbolManager::Implementation
   void addModelDeclarationSort(api::Sort s);
   /** Add declared term to the list of model declarations. */
   void addModelDeclarationTerm(api::Term t);
-  /** Add function to the list of functions-to-synthesize. */
+  /** Add function to the list of functions to synthesize. */
   void addFunctionToSynthesize(api::Term t);
   /** reset */
   void reset();

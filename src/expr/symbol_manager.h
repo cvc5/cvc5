@@ -126,7 +126,7 @@ class CVC5_EXPORT SymbolManager
    */
   void addModelDeclarationTerm(api::Term t);
   /**
-   * Add a function-to-synthesize. This ensures the solution for f is printed
+   * Add a function to synthesize. This ensures the solution for f is printed
    * in a successful response to check-synth.
    */
   void addFunctionToSynthesize(api::Term f);
