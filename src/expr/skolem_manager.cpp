@@ -214,20 +214,22 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
 }
 
 Node SkolemManager::mkSkolemFunction(SkolemFunId id,
-                      TypeNode tn,
-                      const std::vector<Node>& cacheVals,
-                      int flags)
+                                     TypeNode tn,
+                                     const std::vector<Node>& cacheVals,
+                                     int flags)
 {
-  Assert (cacheVals.size()>1);
+  Assert(cacheVals.size() > 1);
   Node cacheVal = NodeManager::currentNM()->mkNode(SEXPR, cacheVals);
   return mkSkolemFunction(id, tn, cacheVal, flags);
 }
 
-bool SkolemManager::isSkolemFunction(Node k, SkolemFunId& id,
-Node& cacheVal) const
+bool SkolemManager::isSkolemFunction(Node k,
+                                     SkolemFunId& id,
+                                     Node& cacheVal) const
 {
-  std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>>::const_iterator it = d_skolemFunMap.find(k);
-  if (it==d_skolemFunMap.end())
+  std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>>::const_iterator it =
+      d_skolemFunMap.find(k);
+  if (it == d_skolemFunMap.end())
   {
     return false;
   }

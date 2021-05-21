@@ -139,9 +139,8 @@ Node LfscNodeConverter::postConvert(Node n)
     // Assert(d_symbols.find(n.getOperator()) != d_symbols.end());
     return convert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
-  else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR
-           || k == APPLY_TESTER || k == APPLY_SELECTOR_TOTAL
-           || k == APPLY_UPDATER)
+  else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER
+           || k == APPLY_SELECTOR_TOTAL || k == APPLY_UPDATER)
   {
     // must convert other kinds of apply to functions, since we convert to
     // HO_APPLY
@@ -607,33 +606,37 @@ bool LfscNodeConverter::shouldTraverse(Node n)
 
 Node LfscNodeConverter::maybeMkSkolemFun(Node k, bool macroApply)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   SkolemFunId sfi = SkolemFunId::NONE;
   Node cacheVal;
   TypeNode tn = k.getType();
   if (sm->isSkolemFunction(k, sfi, cacheVal))
   {
-    if (sfi==SkolemFunId::SHARED_SELECTOR)
+    if (sfi == SkolemFunId::SHARED_SELECTOR)
     {
-      TypeNode fselt = nm->mkFunctionType(tn.getSelectorDomainType(), tn.getSelectorRangeType());
+      TypeNode fselt = nm->mkFunctionType(tn.getSelectorDomainType(),
+                                          tn.getSelectorRangeType());
       TypeNode intType = nm->integerType();
       TypeNode selt = nm->mkFunctionType({d_sortType, intType}, fselt);
       Node sel = getSymbolInternal(k.getKind(), selt, "sel");
       Node kn = typeAsNode(convertType(tn.getSelectorRangeType()));
-      Assert (!cacheVal.isNull() && cacheVal.getKind()==CONST_RATIONAL);
+      Assert(!cacheVal.isNull() && cacheVal.getKind() == CONST_RATIONAL);
       return nm->mkNode(APPLY_UF, sel, kn, cacheVal);
     }
-    else if (sfi==SkolemFunId::RE_UNFOLD_POS_COMPONENT)
+    else if (sfi == SkolemFunId::RE_UNFOLD_POS_COMPONENT)
     {
       TypeNode strType = nm->stringType();
       TypeNode reType = nm->regExpType();
       TypeNode intType = nm->integerType();
       TypeNode reut = nm->mkFunctionType({strType, reType, intType}, strType);
       Node sk = getSymbolInternal(k.getKind(), reut, "skolem_re_unfold_pos");
-      Assert (!cacheVal.isNull() && cacheVal.getKind()==SEXPR && cacheVal.getNumChildren()==3);
+      Assert(!cacheVal.isNull() && cacheVal.getKind() == SEXPR
+             && cacheVal.getNumChildren() == 3);
       // third value is mpz, which is not converted
-      return nm->mkNode(APPLY_UF, {sk, convert(cacheVal[0]), convert(cacheVal[1]), cacheVal[2]});
+      return nm->mkNode(
+          APPLY_UF,
+          {sk, convert(cacheVal[0]), convert(cacheVal[1]), cacheVal[2]});
     }
   }
   return Node::null();
@@ -770,7 +773,7 @@ Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
       break;
     case REGEXP_CONCAT:
       // the language containing only the empty string
-      //nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
+      // nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
       nullTerm = getSymbolInternal(k, tn, "re.empty");
       break;
     case BITVECTOR_AND:
@@ -847,8 +850,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       }
       opName << printer::smt2::Smt2Printer::smtKindString(k);
     }
-    else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR
-             || k == APPLY_TESTER
+    else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER
              || k == APPLY_UPDATER)
     {
       // use is-C instead of (_ is C) syntax for testers
@@ -881,10 +883,10 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       opName << op;
     }
     Node ret;
-    if (k==APPLY_SELECTOR_TOTAL)
+    if (k == APPLY_SELECTOR_TOTAL)
     {
       ret = maybeMkSkolemFun(op, macroApply);
-      Assert (!ret.isNull());
+      Assert(!ret.isNull());
     }
     else
     {

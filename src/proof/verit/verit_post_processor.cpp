@@ -1054,7 +1054,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     {
       bool success = true;
       Node vp1 = d_nm->mkNode(
-          kind::SEXPR, {d_cl, children[1].notNode(), children[0].notNode(), res});
+          kind::SEXPR,
+          {d_cl, children[1].notNode(), children[0].notNode(), res});
       Node child1 = children[0];
       Node child2 = children[1];
 
@@ -1822,8 +1823,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     case PfRule::CNF_ITE_POS3:
     {
       Node vp1 = d_nm->mkNode(kind::SEXPR, {d_cl, res[0], args[0][0], res[2]});
-      Node vp2 =
-          d_nm->mkNode(kind::SEXPR, {d_cl, res[0], args[0][0].notNode(), res[1]});
+      Node vp2 = d_nm->mkNode(kind::SEXPR,
+                              {d_cl, res[0], args[0][0].notNode(), res[1]});
       Node vp3 =
           d_nm->mkNode(kind::SEXPR, {d_cl, res[0], res[2], res[0], res[1]});
       Node vp4 =
@@ -1904,8 +1905,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     case PfRule::CNF_ITE_NEG3:
     {
       Node vp1 = d_nm->mkNode(kind::SEXPR, {d_cl, res[0], args[0][0], res[2]});
-      Node vp2 =
-          d_nm->mkNode(kind::SEXPR, {d_cl, res[0], args[0][0].notNode(), res[1]});
+      Node vp2 = d_nm->mkNode(kind::SEXPR,
+                              {d_cl, res[0], args[0][0].notNode(), res[1]});
       Node vp3 =
           d_nm->mkNode(kind::SEXPR, {d_cl, res[0], res[2], res[0], res[1]});
       Node vp4 =
@@ -2413,9 +2414,9 @@ bool VeritProofPostprocessCallback::update(Node res,
         // (cl (= (>= x c) (<= c x)))
         Node vpc1 = d_nm->mkNode(kind::SEXPR,
                                  {d_cl,
-                                 vpc2[1].notNode(),
-                                 d_nm->mkNode(kind::GEQ, x, c).notNode(),
-                                 d_nm->mkNode(kind::LEQ, c, x)});
+                                  vpc2[1].notNode(),
+                                  d_nm->mkNode(kind::GEQ, x, c).notNode(),
+                                  d_nm->mkNode(kind::LEQ, c, x)});
         // (cl (not(= (>= x c) (<= c x))) (not (>= x c)) (<= c x))
         vp_child1 = d_nm->mkNode(
             kind::SEXPR, d_cl, d_nm->mkNode(kind::LEQ, c, x));  // (cl (<= c x))
@@ -2450,9 +2451,9 @@ bool VeritProofPostprocessCallback::update(Node res,
       // (cl (or (= x c) (not (<= x c)) (not (<= c x))))
       Node vp2 = d_nm->mkNode(kind::SEXPR,
                               {d_cl,
-                              d_nm->mkNode(kind::EQUAL, x, c),
-                              d_nm->mkNode(kind::LEQ, x, c).notNode(),
-                              d_nm->mkNode(kind::LEQ, c, x).notNode()});
+                               d_nm->mkNode(kind::EQUAL, x, c),
+                               d_nm->mkNode(kind::LEQ, x, c).notNode(),
+                               d_nm->mkNode(kind::LEQ, c, x).notNode()});
       // (cl (= x c) (not (<= x c)) (not (<= c x)))
       success &= addVeritStep(vp1, VeritRule::LA_DISEQUALITY, {}, {}, *cdp)
                  && addVeritStep(vp2, VeritRule::OR, {vp1}, {}, *cdp);
@@ -2477,15 +2478,15 @@ bool VeritProofPostprocessCallback::update(Node res,
         Node vp4 = d_nm->mkNode(
             kind::SEXPR,
             {d_cl,
-            d_nm->mkNode(kind::EQUAL,
-                         d_nm->mkNode(kind::GT, x, c),
-                         d_nm->mkNode(kind::LEQ, x, c).notNode())
-                .notNode(),
-            d_nm->mkNode(kind::GT, x, c),
-            d_nm->mkNode(kind::LEQ, x, c)
-                .notNode()
-                .notNode()});  // (cl (not(= (> x c) (not (<= x c)))) (> x c)
-                              // (not (not (<= x c))))
+             d_nm->mkNode(kind::EQUAL,
+                          d_nm->mkNode(kind::GT, x, c),
+                          d_nm->mkNode(kind::LEQ, x, c).notNode())
+                 .notNode(),
+             d_nm->mkNode(kind::GT, x, c),
+             d_nm->mkNode(kind::LEQ, x, c)
+                 .notNode()
+                 .notNode()});  // (cl (not(= (> x c) (not (<= x c)))) (> x c)
+                                // (not (not (<= x c))))
         Node vp5 =
             d_nm->mkNode(kind::SEXPR,
                          d_cl,
@@ -2518,15 +2519,15 @@ bool VeritProofPostprocessCallback::update(Node res,
         Node vp4 = d_nm->mkNode(
             kind::SEXPR,
             {d_cl,
-            d_nm->mkNode(kind::EQUAL,
-                         d_nm->mkNode(kind::LT, x, c),
-                         d_nm->mkNode(kind::LEQ, c, x).notNode())
-                .notNode(),
-            d_nm->mkNode(kind::LT, x, c),
-            d_nm->mkNode(kind::LEQ, c, x)
-                .notNode()
-                .notNode()});  // (cl (not(= (< x c) (not (<= c x)))) (< x c)
-                              // (not (not (<= c x))))
+             d_nm->mkNode(kind::EQUAL,
+                          d_nm->mkNode(kind::LT, x, c),
+                          d_nm->mkNode(kind::LEQ, c, x).notNode())
+                 .notNode(),
+             d_nm->mkNode(kind::LT, x, c),
+             d_nm->mkNode(kind::LEQ, c, x)
+                 .notNode()
+                 .notNode()});  // (cl (not(= (< x c) (not (<= c x)))) (< x c)
+                                // (not (not (<= c x))))
         Node vp5 = d_nm->mkNode(
             kind::SEXPR,
             d_cl,

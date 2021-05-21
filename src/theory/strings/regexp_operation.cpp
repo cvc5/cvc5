@@ -1030,7 +1030,9 @@ Node RegExpOpr::reduceRegExpPos(Node mem,
       else
       {
         Node ivalue = nm->mkConst(Rational(i));
-        Node sk = sm->mkSkolemFunction(SkolemFunId::RE_UNFOLD_POS_COMPONENT, s.getType(), {mem[0], mem[1], ivalue});
+        Node sk = sm->mkSkolemFunction(SkolemFunId::RE_UNFOLD_POS_COMPONENT,
+                                       s.getType(),
+                                       {mem[0], mem[1], ivalue});
         newSkolems.push_back(sk);
         nvec.push_back(nm->mkNode(STRING_IN_REGEXP, newSkolems[i], r[i]));
       }
@@ -1038,7 +1040,7 @@ Node RegExpOpr::reduceRegExpPos(Node mem,
     // (str.in_re x (re.++ R1 .... Rn)) =>
     // (and (= x (str.++ k1 ... kn)) (str.in_re k1 R1) ... (str.in_re kn Rn) )
     Node lem = s.eqNode(nm->mkNode(STRING_CONCAT, newSkolems));
-    nvec.insert(nvec.begin(),lem);
+    nvec.insert(nvec.begin(), lem);
     conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
   }
   else if (k == REGEXP_STAR)

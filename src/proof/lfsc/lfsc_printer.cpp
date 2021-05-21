@@ -580,7 +580,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       break;
       break;
     case PfRule::RE_UNFOLD_POS:
-      if (children[0]->getResult()[1].getKind()!=REGEXP_CONCAT)
+      if (children[0]->getResult()[1].getKind() != REGEXP_CONCAT)
       {
         return false;
       }
