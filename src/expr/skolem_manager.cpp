@@ -206,9 +206,23 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
     ss << "SKOLEM_FUN_" << id;
     Node k = nm->mkSkolem(ss.str(), tn, "an internal skolem function", flags);
     d_skolemFuns[key] = k;
+    d_skolemFunMap[k] = key;
     return k;
   }
   return it->second;
+}
+
+bool SkolemManager::isSkolemFunction(Node k, SkolemFunId& id,
+Node& cacheVal) const
+{
+  std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>>::const_iterator it = d_skolemFunMap.find(k);
+  if (it==d_skolemFunMap.end())
+  {
+    return false;
+  }
+  id = std::get<0>(it->second);
+  cacheVal = std::get<2>(it->second);
+  return true;
 }
 
 Node SkolemManager::mkDummySkolem(const std::string& prefix,

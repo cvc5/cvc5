@@ -155,6 +155,7 @@ void LfscPrinter::print(std::ostream& out,
             preamble << "(declare " << sname << " term)" << std::endl;
           }
         }
+        // shared selectors are instance of parametric symbol "sel"
         preamble << "; END DATATYPE " << std::endl;
       }
     }

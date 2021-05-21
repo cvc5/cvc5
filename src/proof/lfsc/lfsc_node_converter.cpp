@@ -101,7 +101,6 @@ Node LfscNodeConverter::postConvert(Node n)
     // v is (skolem W) where W is the original or witness form of v
     Node on = SkolemManager::getOriginalForm(n);
     Node wi = on == n ? SkolemManager::getWitnessForm(n) : on;
-    Assert(!wi.isNull()) << "Missing skolem definition for " << n;
     if (!wi.isNull() && wi != n)
     {
       Trace("lfsc-term-process-debug") << "...witness form " << wi << std::endl;
@@ -112,16 +111,21 @@ Node LfscNodeConverter::postConvert(Node n)
       Node skolemOp = getSymbolInternal(k, ftype, "skolem");
       return nm->mkNode(APPLY_UF, skolemOp, wi);
     }
-    else
+    // might be a skolem function
+    Node ns = maybeMkSkolemFun(n);
+    if (!ns.isNull())
     {
-      // use a fresh variable
-      TypeNode intType = nm->integerType();
-      TypeNode varType = nm->mkFunctionType({intType, d_sortType}, tn);
-      Node var = mkInternalSymbol("var", varType);
-      Node index = nm->mkConst(Rational(getOrAssignIndexForVar(n)));
-      Node tc = typeAsNode(convertType(tn));
-      return nm->mkNode(APPLY_UF, var, index, tc);
+      return ns;
     }
+    // Otherwise, it is an uncategorized skolem, must use a fresh variable.
+    // This case will only apply for terms originating from places with no
+    // proof support.
+    TypeNode intType = nm->integerType();
+    TypeNode varType = nm->mkFunctionType({intType, d_sortType}, tn);
+    Node var = mkInternalSymbol("var", varType);
+    Node index = nm->mkConst(Rational(getOrAssignIndexForVar(n)));
+    Node tc = typeAsNode(convertType(tn));
+    return nm->mkNode(APPLY_UF, var, index, tc);
   }
   else if (n.isVar())
   {
@@ -136,7 +140,7 @@ Node LfscNodeConverter::postConvert(Node n)
     return convert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
   else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR
-           || k == APPLY_TESTER  // || k == APPLY_SELECTOR_TOTAL
+           || k == APPLY_TESTER || k == APPLY_SELECTOR_TOTAL
            || k == APPLY_UPDATER)
   {
     // must convert other kinds of apply to functions, since we convert to
@@ -601,6 +605,31 @@ bool LfscNodeConverter::shouldTraverse(Node n)
   return true;
 }
 
+Node LfscNodeConverter::maybeMkSkolemFun(Node k, bool macroApply)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  SkolemFunId sfi = SkolemFunId::NONE;
+  Node cacheVal;
+  if (sm->isSkolemFunction(k, sfi, cacheVal))
+  {
+    if (sfi==SkolemFunId::SHARED_SELECTOR)
+    {
+      std::stringstream ss;
+      ss << "sel";
+      TypeNode kt = k.getType();
+      TypeNode fselt = nm->mkFunctionType(kt.getSelectorDomainType(), kt.getSelectorRangeType());
+      TypeNode intType = nm->integerType();
+      TypeNode selt = nm->mkFunctionType({d_sortType, intType}, fselt);
+      Node sel = getSymbolInternal(k.getKind(), selt, ss.str());
+      Node kn = typeAsNode(convertType(kt.getSelectorRangeType()));
+      Assert (!cacheVal.isNull() && cacheVal.getKind()==CONST_RATIONAL);
+      return nm->mkNode(APPLY_UF, sel, kn, cacheVal);
+    }
+  }
+  return Node::null();
+}
+
 Node LfscNodeConverter::typeAsNode(TypeNode tni) const
 {
   // should always exist in the cache, as we always run types through
@@ -809,7 +838,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       opName << printer::smt2::Smt2Printer::smtKindString(k);
     }
     else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR
-             || k == APPLY_SELECTOR_TOTAL || k == APPLY_TESTER
+             || k == APPLY_TESTER
              || k == APPLY_UPDATER)
     {
       // use is-C instead of (_ is C) syntax for testers
@@ -836,16 +865,21 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
         sss << dt[cindex][index].getSelector();
         opName << getNameForUserName(sss.str());
       }
-      else if (k == APPLY_SELECTOR_TOTAL)
-      {
-        // FIXME
-      }
     }
     else
     {
       opName << op;
     }
-    Node ret = getSymbolInternal(k, ftype, opName.str());
+    Node ret;
+    if (k==APPLY_SELECTOR_TOTAL)
+    {
+      ret = maybeMkSkolemFun(op, macroApply);
+      Assert (!ret.isNull());
+    }
+    else
+    {
+      ret = getSymbolInternal(k, ftype, opName.str());
+    }
     // TODO: if parametric, instantiate the parameters?
 
     // if indexed, apply to index

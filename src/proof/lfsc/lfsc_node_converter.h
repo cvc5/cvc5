@@ -67,6 +67,8 @@ class LfscNodeConverter : public NodeConverter
  private:
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;
+  /** Make skolem function */
+  Node maybeMkSkolemFun(Node k, bool macroApply = false);
   /** Type as node */
   Node typeAsNode(TypeNode tni) const;
   /** Get symbol for term */
