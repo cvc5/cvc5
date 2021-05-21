@@ -58,7 +58,7 @@ TEST_F(TestTheoryWhiteBv, bitblaster_core)
 
   Node x = d_nodeManager->mkVar("x", d_nodeManager->mkBitVectorType(16));
   Node y = d_nodeManager->mkVar("y", d_nodeManager->mkBitVectorType(16));
-  Node x_plus_y = d_nodeManager->mkNode(kind::BITVECTOR_PLUS, x, y);
+  Node x_plus_y = d_nodeManager->mkNode(kind::BITVECTOR_ADD, x, y);
   Node one = d_nodeManager->mkConst<BitVector>(BitVector(16, 1u));
   Node x_shl_one = d_nodeManager->mkNode(kind::BITVECTOR_SHL, x, one);
   Node eq = d_nodeManager->mkNode(kind::EQUAL, x_plus_y, x_shl_one);
