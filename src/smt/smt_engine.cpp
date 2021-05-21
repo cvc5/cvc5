@@ -1637,12 +1637,6 @@ void SmtEngine::getInstantiationTermVectors(
   }
 }
 
-void SmtEngine::printSynthSolution( std::ostream& out ) {
-  SmtScope smts(this);
-  finishInit();
-  d_sygusSolver->printSynthSolution(out);
-}
-
 bool SmtEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 {
   SmtScope smts(this);

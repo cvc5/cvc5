@@ -477,7 +477,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator+(
     const symbolicBitVector<isSigned> &op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_PLUS, *this, op));
+      NodeManager::currentNM()->mkNode(kind::BITVECTOR_ADD, *this, op));
 }
 
 template <bool isSigned>
@@ -530,7 +530,7 @@ template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::increment() const
 {
   return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_PLUS, *this, one(this->getWidth())));
+      kind::BITVECTOR_ADD, *this, one(this->getWidth())));
 }
 
 template <bool isSigned>

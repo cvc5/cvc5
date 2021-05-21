@@ -398,7 +398,7 @@ Node mkConcat(TNode node, unsigned repeat)
 Node mkInc(TNode t)
 {
   return NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_PLUS, t, mkOne(getSize(t)));
+      kind::BITVECTOR_ADD, t, mkOne(getSize(t)));
 }
 
 Node mkDec(TNode t)

@@ -769,7 +769,7 @@ enum class PfRule : uint32_t
   BV_BITBLAST_NOR,
   BV_BITBLAST_COMP,
   BV_BITBLAST_MULT,
-  BV_BITBLAST_PLUS,
+  BV_BITBLAST_ADD,
   BV_BITBLAST_SUB,
   BV_BITBLAST_NEG,
   BV_BITBLAST_UDIV,
@@ -1032,7 +1032,7 @@ enum class PfRule : uint32_t
   // Children: none
   // Arguments: (t)
   // ---------------------
-  // Conclusion: (or (and (= (str.len t) 0) (= t "")) (> (str.len t 0)))
+  // Conclusion: (or (and (= (str.len t) 0) (= t "")) (> (str.len t) 0))
   STRING_LENGTH_POS,
   // ======== Length non-empty
   // Children: (P1:(not (= t "")))

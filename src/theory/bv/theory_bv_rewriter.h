@@ -76,7 +76,7 @@ class TheoryBVRewriter : public TheoryRewriter
   static RewriteResponse RewriteNor(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteComp(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteMult(TNode node, bool prerewrite = false);
-  static RewriteResponse RewritePlus(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteAdd(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSub(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteNeg(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteUdiv(TNode node, bool prerewrite = false);

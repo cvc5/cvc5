@@ -995,7 +995,7 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
   // we have generated a solution, print it
   // get the current output stream
   Options& sopts = smt::currentSmtEngine()->getOptions();
-  printSynthSolution(*sopts.getOut());
+  printSynthSolutionInternal(*sopts.getOut());
   excludeCurrentSolution(enums, values);
 }
 
@@ -1041,7 +1041,7 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& enums,
   }
 }
 
-void SynthConjecture::printSynthSolution(std::ostream& out)
+void SynthConjecture::printSynthSolutionInternal(std::ostream& out)
 {
   Trace("cegqi-sol-debug") << "Printing synth solution..." << std::endl;
   Assert(d_quant[0].getNumChildren() == d_embed_quant[0].getNumChildren());
