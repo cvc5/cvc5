@@ -34,6 +34,8 @@
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
+#include "util/iand.h"
 
 namespace cvc5 {
 namespace preprocessing {

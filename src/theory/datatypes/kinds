@@ -48,7 +48,8 @@ parameterized APPLY_TESTER TESTER_TYPE 1 "tester application; first parameter is
 parameterized APPLY_UPDATER UPDATER_TYPE 2 "datatype updater application; first parameter is an update, second is a datatype term to update, third is the value to update with"
 
 constant DATATYPE_TYPE \
-    ::cvc5::DatatypeIndexConstant \
+    class \
+    DatatypeIndexConstant \
     "::cvc5::DatatypeIndexConstantHashFunction" \
     "expr/datatype_index.h" \
     "a datatype type index"
@@ -80,7 +81,8 @@ enumerator PARAMETRIC_DATATYPE \
 parameterized APPLY_TYPE_ASCRIPTION ASCRIPTION_TYPE 1 \
     "type ascription, for datatype constructor applications; first parameter is an ASCRIPTION_TYPE, second is the datatype constructor application being ascribed"
 constant ASCRIPTION_TYPE \
-    ::cvc5::AscriptionType \
+    class \
+    AscriptionType \
     ::cvc5::AscriptionTypeHashFunction \
     "expr/ascription_type.h" \
     "a type parameter for type ascription; payload is an instance of the cvc5::AscriptionType class"
@@ -131,7 +133,8 @@ typerule MATCH_BIND_CASE ::cvc5::theory::datatypes::MatchBindCaseTypeRule
 
 
 constant TUPLE_PROJECT_OP \
-	::cvc5::TupleProjectOp \
+  class \
+	TupleProjectOp \
 	::cvc5::TupleProjectOpHashFunction \
 	"theory/datatypes/tuple_project_op.h" \
 	"operator for TUPLE_PROJECT; payload is an instance of the cvc5::TupleProjectOp class"

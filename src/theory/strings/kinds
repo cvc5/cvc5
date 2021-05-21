@@ -58,7 +58,8 @@ enumerator STRING_TYPE \
     "theory/strings/type_enumerator.h"
 
 constant CONST_STRING \
-    ::cvc5::String \
+    class \
+    String \
     ::cvc5::strings::StringHashFunction \
     "util/string.h" \
     "a string of characters"
@@ -77,7 +78,8 @@ enumerator SEQUENCE_TYPE \
     "theory/strings/type_enumerator.h"
 
 constant CONST_SEQUENCE \
-    ::cvc5::Sequence \
+    class \
+    Sequence \
     ::cvc5::SequenceHashFunction \
     "expr/sequence.h" \
     "a sequence of characters"
@@ -102,14 +104,16 @@ operator REGEXP_EMPTY 0 "regexp empty"
 operator REGEXP_SIGMA 0 "regexp all characters"
 
 constant REGEXP_REPEAT_OP \
-	::cvc5::RegExpRepeat \
+  class \
+	RegExpRepeat \
 	::cvc5::RegExpRepeatHashFunction \
 	"util/regexp.h" \
 	"operator for regular expression repeat; payload is an instance of the cvc5::RegExpRepeat class"
 parameterized REGEXP_REPEAT REGEXP_REPEAT_OP 1 "regular expression repeat; first parameter is a REGEXP_REPEAT_OP, second is a regular expression term"
 
 constant REGEXP_LOOP_OP \
-	::cvc5::RegExpLoop \
+  class \
+	RegExpLoop \
 	::cvc5::RegExpLoopHashFunction \
 	"util/regexp.h" \
 	"operator for regular expression loop; payload is an instance of the cvc5::RegExpLoop class"

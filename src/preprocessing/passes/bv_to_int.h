@@ -73,6 +73,7 @@
 #include "context/cdhashset.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "theory/arith/nl/iand_utils.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace preprocessing {

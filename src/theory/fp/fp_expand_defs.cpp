@@ -16,6 +16,7 @@
 #include "theory/fp/fp_expand_defs.h"
 
 #include "expr/skolem_manager.h"
+#include "util/floatingpoint.h"
 
 namespace cvc5 {
 namespace theory {

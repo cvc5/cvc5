@@ -18,10 +18,11 @@
 #ifndef CVC5__THEORY__ARRAYS__TYPE_ENUMERATOR_H
 #define CVC5__THEORY__ARRAYS__TYPE_ENUMERATOR_H
 
-#include "theory/type_enumerator.h"
-#include "expr/type_node.h"
+#include "expr/array_store_all.h"
 #include "expr/kind.h"
+#include "expr/type_node.h"
 #include "theory/rewriter.h"
+#include "theory/type_enumerator.h"
 
 namespace cvc5 {
 namespace theory {
