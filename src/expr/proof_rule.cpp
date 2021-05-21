@@ -52,6 +52,7 @@ const char* toString(PfRule id)
     case PfRule::FACTORING: return "FACTORING";
     case PfRule::REORDERING: return "REORDERING";
     case PfRule::MACRO_RESOLUTION: return "MACRO_RESOLUTION";
+    case PfRule::MACRO_RESOLUTION_TRUST: return "MACRO_RESOLUTION_TRUST";
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::EQ_RESOLVE: return "EQ_RESOLVE";
     case PfRule::MODUS_PONENS: return "MODUS_PONENS";
