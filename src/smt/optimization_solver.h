@@ -247,33 +247,11 @@ class OptimizationSolver
 
   /**
    * Optimize multiple goals in Box order
-   * @return OPTIMAL if all objectives are OPTIMAL or UNBOUNDED;
-   *   UNSAT if one of the objectives is UNSAT and no objective is UNKNOWN;
-   *   UNKNOWN if one the objectives is UNKNOWN.
+   * @return OPTIMAL if all of the objectives are either OPTIMAL or UNBOUNDED;
+   *   UNSAT if at least one objective is UNSAT and no objective is UNKNOWN;
+   *   UNKNOWN if any of the objective is UNKNOWN.
    **/
   OptimizationResult::ResultType optimizeBox();
-
-  /**
-   * Optimize multiple goals in Lexicographic order,
-   * using iterative implementation
-   * @return OPTIMAL if all objectives are OPTIMAL and bounded;
-   *   UNBOUNDED if one of the objectives is UNBOUNDED
-   *     and optimization will stop at that objective;
-   *   UNSAT if one of the objectives is UNSAT
-   *     and optimization will stop at that objective;
-   *   UNKNOWN if one of the objectives is UNKNOWN
-   *     and optimization will stop at that objective
-   **/
-  OptimizationResult::ResultType optimizeLexicographicIterative();
-
-  /**
-   * Optimize multiple goals in Pareto order
-   * Using a variant of linear search called Guided Improvement Algorithm
-   * @return if there's a result it will return OPTIMAL;
-   *   if it exhausts the results in the pareto front it will return UNSAT;
-   *   if it doesn't know whether there's a result it will return UNKNOWN.
-   **/
-  OptimizationResult::ResultType optimizeParetoNaiveGIA();
 
   /** A point to the parent SMT engine **/
   SmtEngine* d_parent;
