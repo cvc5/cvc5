@@ -284,7 +284,7 @@ Node LfscNodeConverter::postConvert(Node n)
   {
     // (ite C A B) is ((ite T) C A B) where T is the return type.
     Node iteOp = getOperatorOfTerm(n, true);
-    return nm->mkNode(APPLY_UF, iteOp, n[0], n[1], n[2]);
+    return nm->mkNode(APPLY_UF, {iteOp, n[0], n[1], n[2]});
   }
   else if (k == GEQ || k == GT || k == LEQ || k == LT || k == MINUS
            || k == DIVISION || k == DIVISION_TOTAL || k == INTS_DIVISION
@@ -633,7 +633,7 @@ Node LfscNodeConverter::maybeMkSkolemFun(Node k, bool macroApply)
       Node sk = getSymbolInternal(k.getKind(), reut, "skolem_re_unfold_pos");
       Assert (!cacheVal.isNull() && cacheVal.getKind()==SEXPR && cacheVal.getNumChildren()==3);
       // third value is mpz, which is not converted
-      return nm->mkNode(APPLY_UF, sk, convert(cacheVal[0]), convert(cacheVal[1]), cacheVal[2]);
+      return nm->mkNode(APPLY_UF, {sk, convert(cacheVal[0]), convert(cacheVal[1]), cacheVal[2]});
     }
   }
   return Node::null();
@@ -777,7 +777,7 @@ Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
       nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
       break;
     case BITVECTOR_OR:
-    case BITVECTOR_PLUS:
+    case BITVECTOR_ADD:
     case BITVECTOR_XOR:
       nullTerm = theory::bv::utils::mkZero(tn.getBitVectorSize());
       break;

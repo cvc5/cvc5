@@ -1568,50 +1568,6 @@ bool RegExpOpr::regExpIncludes(Node r1, Node r2)
   return result;
 }
 
-/**
- * Associating formulas with their "exists form", or an existentially
- * quantified formula that is equivalent to it. This is currently used
- * for regular expression memberships in the method below.
- */
-struct ExistsFormAttributeId
-{
-};
-typedef expr::Attribute<ExistsFormAttributeId, Node> ExistsFormAttribute;
-
-Node RegExpOpr::getExistsForRegExpConcatMem(Node mem)
-{
-  // get or make the exists form of the membership
-  ExistsFormAttribute efa;
-  if (mem.hasAttribute(efa))
-  {
-    // already computed
-    return mem.getAttribute(efa);
-  }
-  Assert(mem.getKind() == STRING_IN_REGEXP);
-  Node x = mem[0];
-  Node r = mem[1];
-  Assert(r.getKind() == REGEXP_CONCAT);
-  NodeManager* nm = NodeManager::currentNM();
-  TypeNode xtn = x.getType();
-  std::vector<Node> vars;
-  std::vector<Node> mems;
-  for (const Node& rc : r)
-  {
-    Node v = nm->mkBoundVar(xtn);
-    vars.push_back(v);
-    mems.push_back(nm->mkNode(STRING_IN_REGEXP, v, rc));
-  }
-  Node sconcat = nm->mkNode(STRING_CONCAT, vars);
-  Node eq = x.eqNode(sconcat);
-  mems.insert(mems.begin(), eq);
-  Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
-  Node ebody = nm->mkNode(AND, mems);
-  Node eform = nm->mkNode(EXISTS, bvl, ebody);
-  mem.setAttribute(efa, eform);
-  Trace("regexp-opr") << "Exists form " << mem << " : " << eform << std::endl;
-  return eform;
-}
-
 }  // namespace strings
 }  // namespace theory
 }  // namespace cvc5
