@@ -20,24 +20,16 @@
 # configured install prefix using the setup.py --prefix option
 ##
 
-from distutils.core import setup
-from distutils.command.clean import clean
-from distutils.command.install import install
+from setuptools import setup
 
-class PyCVC5Install(install):
-
-    # Calls the default run command, then deletes the build area
-    # (equivalent to "setup clean --all").
-    def run(self):
-        install.run(self)
-        c = clean(self.distribution)
-        c.all = True
-        c.finalize_options()
-        c.run()
+CVC5_VERSION='${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}'
 
 setup(name='pycvc5',
-      version='${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}',
+      version=CVC5_VERSION,
+      long_description='Python bindings for cvc5 ' + CVC5_VERSION,
+      url='https://github.com/cvc5/cvc5',
+      zip_safe=False,
       packages=['pycvc5'],
-      package_dir={'pycvc5': '${CMAKE_CURRENT_BINARY_DIR}/pycvc5'},
-      package_data={'pycvc5': ['pycvc5.so']},
-      cmdclass={'install': PyCVC5Install})
+      package_dir={'':'${CMAKE_CURRENT_BINARY_DIR}'},
+      package_data={'': ['pycvc5*.so']},
+      extras_require={'test': ['pytest']})

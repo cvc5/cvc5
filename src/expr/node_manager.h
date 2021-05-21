@@ -428,6 +428,9 @@ class NodeManager
   static Kind getKindForFunction(TNode fun);
 
   // general expression-builders
+  //
+  /** Create a node with no child. */
+  Node mkNode(Kind kind);
 
   /** Create a node with one child. */
   Node mkNode(Kind kind, TNode child1);
@@ -438,17 +441,20 @@ class NodeManager
   /** Create a node with three children. */
   Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3);
 
-  /** Create a node with four children. */
-  Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3,
-              TNode child4);
-
-  /** Create a node with five children. */
-  Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3,
-              TNode child4, TNode child5);
-
   /** Create a node with an arbitrary number of children. */
   template <bool ref_count>
   Node mkNode(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
+
+  /** Create a node using an initializer list.
+   *
+   * This function serves two purposes:
+   * - We can avoid creating a temporary vector in some cases, e.g., when we
+   *   want to create a node with a fixed, large number of children
+   * - It makes sure that calls to `mkNode` that braced-init-lists work as
+   *   expected, e.g., mkNode(REGEXP_EMPTY, {}) will call this overload instead
+   *   of creating a node with a null node as a child.
+   */
+  Node mkNode(Kind kind, std::initializer_list<TNode> children);
 
   /**
    * Create an AND node with arbitrary number of children. This returns the
@@ -484,17 +490,16 @@ class NodeManager
   /** Create a node with three children by operator. */
   Node mkNode(TNode opNode, TNode child1, TNode child2, TNode child3);
 
-  /** Create a node with four children by operator. */
-  Node mkNode(TNode opNode, TNode child1, TNode child2, TNode child3,
-              TNode child4);
-
-  /** Create a node with five children by operator. */
-  Node mkNode(TNode opNode, TNode child1, TNode child2, TNode child3,
-              TNode child4, TNode child5);
-
   /** Create a node by applying an operator to the children. */
   template <bool ref_count>
   Node mkNode(TNode opNode, const std::vector<NodeTemplate<ref_count> >& children);
+
+  /**
+   * Create a node by applying an operator to an arbitrary number of children.
+   *
+   * Analoguous to `mkNode(Kind, std::initializer_list<TNode>)`.
+   */
+  Node mkNode(TNode opNode, std::initializer_list<TNode> children);
 
   Node mkBoundVar(const std::string& name, const TypeNode& type);
 
@@ -1170,6 +1175,12 @@ inline Kind NodeManager::operatorToKind(TNode n) {
   return kind::operatorToKind(n.d_nv);
 }
 
+inline Node NodeManager::mkNode(Kind kind)
+{
+  NodeBuilder nb(this, kind);
+  return nb.constructNode();
+}
+
 inline Node NodeManager::mkNode(Kind kind, TNode child1) {
   NodeBuilder nb(this, kind);
   nb << child1;
@@ -1186,20 +1197,6 @@ inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
                                 TNode child3) {
   NodeBuilder nb(this, kind);
   nb << child1 << child2 << child3;
-  return nb.constructNode();
-}
-
-inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
-                                TNode child3, TNode child4) {
-  NodeBuilder nb(this, kind);
-  nb << child1 << child2 << child3 << child4;
-  return nb.constructNode();
-}
-
-inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
-                                TNode child3, TNode child4, TNode child5) {
-  NodeBuilder nb(this, kind);
-  nb << child1 << child2 << child3 << child4 << child5;
   return nb.constructNode();
 }
 
@@ -1275,26 +1272,6 @@ inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
     nb << opNode;
   }
   nb << child1 << child2 << child3;
-  return nb.constructNode();
-}
-
-inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
-                                TNode child3, TNode child4) {
-  NodeBuilder nb(this, operatorToKind(opNode));
-  if(opNode.getKind() != kind::BUILTIN) {
-    nb << opNode;
-  }
-  nb << child1 << child2 << child3 << child4;
-  return nb.constructNode();
-}
-
-inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
-                                TNode child3, TNode child4, TNode child5) {
-  NodeBuilder nb(this, operatorToKind(opNode));
-  if(opNode.getKind() != kind::BUILTIN) {
-    nb << opNode;
-  }
-  nb << child1 << child2 << child3 << child4 << child5;
   return nb.constructNode();
 }
 
