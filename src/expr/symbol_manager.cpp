@@ -200,8 +200,7 @@ std::vector<api::Term> SymbolManager::Implementation::getModelDeclareTerms()
 std::vector<api::Term> SymbolManager::Implementation::getFunctionsToSynthesize()
     const
 {
-  std::vector<api::Term> sfuns(d_funToSynth.begin(), d_funToSynth.end());
-  return sfuns;
+  return std::vector<api::Term>(d_funToSynth.begin(), d_funToSynth.end());
 }
 
 void SymbolManager::Implementation::addModelDeclarationSort(api::Sort s)
