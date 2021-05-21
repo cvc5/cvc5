@@ -50,8 +50,7 @@ inline Node RewriteRule<NegEliminate>::apply(TNode node)
   unsigned size = utils::getSize(a);
   Node one = utils::mkOne(size);
   Node nota = nm->mkNode(kind::BITVECTOR_NOT, a);
-  Node bvadd =
-      nm->mkNode(kind::BITVECTOR_PLUS, nota, one);
+  Node bvadd = nm->mkNode(kind::BITVECTOR_ADD, nota, one);
   return bvadd;
 }
 
@@ -75,7 +74,7 @@ inline Node RewriteRule<OrEliminate>::apply(TNode node)
   NodeManager* nm = NodeManager::currentNM();
   TNode a = node[0];
   TNode b = node[1];
-  Node bvadd = nm->mkNode(kind::BITVECTOR_PLUS, a, b);
+  Node bvadd = nm->mkNode(kind::BITVECTOR_ADD, a, b);
   Node bvand = nm->mkNode(kind::BITVECTOR_AND, a, b);
   Node result =
       nm->mkNode(kind::BITVECTOR_SUB, bvadd, bvand);
@@ -191,8 +190,8 @@ inline Node RewriteRule<SltEliminate>::apply(TNode node)
   unsigned size = utils::getSize(node[0]);
   Integer val = Integer(1).multiplyByPow2(size - 1);
   Node pow_two = utils::mkConst(size, val);
-  Node a = nm->mkNode(kind::BITVECTOR_PLUS, node[0], pow_two);
-  Node b = nm->mkNode(kind::BITVECTOR_PLUS, node[1], pow_two);
+  Node a = nm->mkNode(kind::BITVECTOR_ADD, node[0], pow_two);
+  Node b = nm->mkNode(kind::BITVECTOR_ADD, node[1], pow_two);
 
   return nm->mkNode(kind::BITVECTOR_ULT, a, b);
 }
@@ -267,7 +266,7 @@ inline Node RewriteRule<SubEliminate>::apply(TNode node)
   Node negb = nm->mkNode(kind::BITVECTOR_NEG, node[1]);
   Node a = node[0];
 
-  return nm->mkNode(kind::BITVECTOR_PLUS, a, negb);
+  return nm->mkNode(kind::BITVECTOR_ADD, a, negb);
 }
 
 template <>
@@ -636,8 +635,8 @@ inline Node RewriteRule<SmodEliminate>::apply(TNode node)
       cond1.iteNode(
           u,
           cond2.iteNode(
-              nm->mkNode(kind::BITVECTOR_PLUS, neg_u, t),
-              cond3.iteNode(nm->mkNode(kind::BITVECTOR_PLUS, u, t), neg_u))));
+              nm->mkNode(kind::BITVECTOR_ADD, neg_u, t),
+              cond3.iteNode(nm->mkNode(kind::BITVECTOR_ADD, u, t), neg_u))));
 
   return result;
 }
@@ -703,8 +702,8 @@ inline Node RewriteRule<SmodEliminateFewerBitwiseOps>::apply(TNode node)
       cond1.iteNode(
           u,
           cond2.iteNode(
-              nm->mkNode(kind::BITVECTOR_PLUS, neg_u, t),
-              cond3.iteNode(nm->mkNode(kind::BITVECTOR_PLUS, u, t), neg_u))));
+              nm->mkNode(kind::BITVECTOR_ADD, neg_u, t),
+              cond3.iteNode(nm->mkNode(kind::BITVECTOR_ADD, u, t), neg_u))));
 
   return result;
 }

@@ -327,7 +327,7 @@ Node getICBvUrem(
          *          (or (= t z) (distinct (bvsub s (_ bv1 w)) t))))
          * where
          * z = 0 with getSize(z) = w  */
-        Node add = nm->mkNode(BITVECTOR_PLUS, t, t);
+        Node add = nm->mkNode(BITVECTOR_ADD, t, t);
         Node sub = nm->mkNode(BITVECTOR_SUB, add, s);
         Node a = nm->mkNode(BITVECTOR_AND, sub, s);
         scl = nm->mkNode(BITVECTOR_UGE, a, t);
@@ -386,7 +386,7 @@ Node getICBvUrem(
          * (or
          *   (bvuge (bvand (bvsub (bvadd t t) s) s) t)  ; eq, synthesized
          *   (bvult t s))                               ; ugt, synthesized  */
-        Node add = nm->mkNode(BITVECTOR_PLUS, t, t);
+        Node add = nm->mkNode(BITVECTOR_ADD, t, t);
         Node sub = nm->mkNode(BITVECTOR_SUB, add, s);
         Node a = nm->mkNode(BITVECTOR_AND, sub, s);
         Node sceq = nm->mkNode(BITVECTOR_UGE, a, t);
@@ -1920,7 +1920,7 @@ Node getICBvShl(
          * min is the signed minimum value with getSize(min) = w  */
         Node min = bv::utils::mkMinSigned(w);
         Node shl = nm->mkNode(BITVECTOR_SHL, min, s);
-        Node add = nm->mkNode(BITVECTOR_PLUS, t, min);
+        Node add = nm->mkNode(BITVECTOR_ADD, t, min);
         scl = nm->mkNode(BITVECTOR_ULT, shl, add);
       }
       else

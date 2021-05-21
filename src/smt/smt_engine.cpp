@@ -33,7 +33,6 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
-#include "proof/proof_manager.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
 #include "smt/abduction_solver.h"
@@ -91,7 +90,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       d_routListener(new ResourceOutListener(*this)),
       d_snmListener(new SmtNodeManagerListener(*getDumpManager(), d_outMgr)),
       d_smtSolver(nullptr),
-      d_proofManager(nullptr),
       d_model(nullptr),
       d_checkModels(nullptr),
       d_pfManager(nullptr),
@@ -140,15 +138,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // make the quantifier elimination solver
   d_quantElimSolver.reset(new QuantElimSolver(*d_smtSolver));
 
-  // The ProofManager is constructed before any other proof objects such as
-  // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
-  // initialized in TheoryEngine and PropEngine respectively.
-  Assert(d_proofManager == nullptr);
-
-  // d_proofManager must be created before Options has been finished
-  // being parsed from the input file. Because of this, we cannot trust
-  // that d_env->getOption(options::unsatCores) is set correctly yet.
-  d_proofManager.reset(new ProofManager(getUserContext()));
 }
 
 bool SmtEngine::isFullyInited() const { return d_state->isFullyInited(); }
@@ -317,15 +306,6 @@ SmtEngine::~SmtEngine()
     //destroy all passes before destroying things that they refer to
     d_pp->cleanup();
 
-    // d_proofManager is always created when proofs are enabled at configure
-    // time.  Because of this, this code should not be wrapped in PROOF() which
-    // additionally checks flags such as
-    // d_env->getOption(options::produceProofs).
-    //
-    // Note: the proof manager must be destroyed before the theory engine.
-    // Because the destruction of the proofs depends on contexts owned be the
-    // theory solvers.
-    d_proofManager.reset(nullptr);
     d_pfManager.reset(nullptr);
     d_ucManager.reset(nullptr);
 
@@ -1403,12 +1383,6 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
         "Cannot get an unsat core unless immediately preceded by "
         "UNSAT/ENTAILED response.");
   }
-  // use old proof infrastructure
-  if (!d_pfManager)
-  {
-    d_proofManager->traceUnsatCore();  // just to trigger core creation
-    return UnsatCore(d_proofManager->extractUnsatCore());
-  }
   // generate with new proofs
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
@@ -1653,12 +1627,6 @@ void SmtEngine::getInstantiationTermVectors(
     // otherwise, just get the list of all instantiations
     qe->getInstantiationTermVectors(insts);
   }
-}
-
-void SmtEngine::printSynthSolution( std::ostream& out ) {
-  SmtScope smts(this);
-  finishInit();
-  d_sygusSolver->printSynthSolution(out);
 }
 
 bool SmtEngine::getSynthSolutions(std::map<Node, Node>& solMap)
