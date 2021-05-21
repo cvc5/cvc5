@@ -129,7 +129,7 @@ bool RePairAssocCommutativeOperators::isAssociateCommutative(Kind k){
   case BITVECTOR_OR:
   case BITVECTOR_XOR:
   case BITVECTOR_MULT:
-  case BITVECTOR_PLUS:
+  case BITVECTOR_ADD:
   case DISTINCT:
   case PLUS:
   case MULT:
