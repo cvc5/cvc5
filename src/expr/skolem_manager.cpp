@@ -51,6 +51,7 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::MOD_BY_ZERO: return "MOD_BY_ZERO";
     case SkolemFunId::SQRT: return "SQRT";
     case SkolemFunId::SELECTOR_WRONG: return "SELECTOR_WRONG";
+    case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
     case SkolemFunId::SEQ_NTH_OOB: return "SEQ_NTH_OOB";
     default: return "?";
   }
@@ -190,7 +191,10 @@ Node SkolemManager::mkPurifySkolem(Node t,
   return k;
 }
 
-Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
+Node SkolemManager::mkSkolemFunction(SkolemFunId id,
+                                     TypeNode tn,
+                                     Node cacheVal,
+                                     int flags)
 {
   std::tuple<SkolemFunId, TypeNode, Node> key(id, tn, cacheVal);
   std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node>::iterator it =
@@ -200,7 +204,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
     NodeManager* nm = NodeManager::currentNM();
     std::stringstream ss;
     ss << "SKOLEM_FUN_" << id;
-    Node k = nm->mkSkolem(ss.str(), tn, "an internal skolem function");
+    Node k = nm->mkSkolem(ss.str(), tn, "an internal skolem function", flags);
     d_skolemFuns[key] = k;
     return k;
   }
