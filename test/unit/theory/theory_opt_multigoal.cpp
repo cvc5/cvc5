@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * White-box testing for optimization module for BitVectors.
+ * White-box testing for multigoal optimization.
  */
 #include <iostream>
 
@@ -33,14 +33,10 @@ class TestTheoryOptMultigoal : public TestSmtNoFinishInit
     d_smtEngine->setOption("produce-assertions", "true");
     d_smtEngine->finishInit();
 
-    d_optslv.reset(new OptimizationSolver(d_smtEngine.get()));
     d_BV32Type.reset(new TypeNode(d_nodeManager->mkBitVectorType(32u)));
-    d_BV16Type.reset(new TypeNode(d_nodeManager->mkBitVectorType(16u)));
   }
 
-  std::unique_ptr<OptimizationSolver> d_optslv;
   std::unique_ptr<TypeNode> d_BV32Type;
-  std::unique_ptr<TypeNode> d_BV16Type;
 };
 
 TEST_F(TestTheoryOptMultigoal, box)
@@ -86,7 +82,6 @@ TEST_F(TestTheoryOptMultigoal, box)
   ASSERT_EQ(results[2].getValue().getConst<BitVector>(),
             BitVector(32u, (unsigned)0xFFFFFFFF));
 }
-
 
 }  // namespace test
 }  // namespace cvc5

@@ -106,7 +106,8 @@ OptimizationResult::ResultType OptimizationSolver::optimizeBox()
   d_optChecker.reset();
   d_optChecker = createOptCheckerWithTimeout(d_parent);
   OptimizationResult partialResult;
-  OptimizationResult::ResultType totalResultType = OptimizationResult::OPTIMAL;
+  OptimizationResult::ResultType aggregatedResultType =
+      OptimizationResult::OPTIMAL;
   std::unique_ptr<OMTOptimizer> optimizer;
   for (size_t i = 0, numObj = d_objectives.size(); i < numObj; ++i)
   {
@@ -131,13 +132,13 @@ OptimizationResult::ResultType OptimizationSolver::optimizeBox()
       case OptimizationResult::OPTIMAL: break;
       case OptimizationResult::UNBOUNDED: break;
       case OptimizationResult::UNSAT:
-        if (totalResultType == OptimizationResult::OPTIMAL)
+        if (aggregatedResultType == OptimizationResult::OPTIMAL)
         {
-          totalResultType = OptimizationResult::UNSAT;
+          aggregatedResultType = OptimizationResult::UNSAT;
         }
         break;
       case OptimizationResult::UNKNOWN:
-        totalResultType = OptimizationResult::UNKNOWN;
+        aggregatedResultType = OptimizationResult::UNKNOWN;
         break;
       default: Unreachable();
     }
@@ -146,7 +147,7 @@ OptimizationResult::ResultType OptimizationSolver::optimizeBox()
   }
   // kill optChecker after optimization ends
   d_optChecker.reset();
-  return totalResultType;
+  return aggregatedResultType;
 }
 
 }  // namespace smt
