@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
     # Encoding code (2)
     # new_x_ = a + b - x
-    a_plus_b = slv.mkTerm(kinds.BVPlus, a, b)
+    a_plus_b = slv.mkTerm(kinds.BVAdd, a, b)
     a_plus_b_minus_x = slv.mkTerm(kinds.BVSub, a_plus_b, x)
     assignment2 = slv.mkTerm(kinds.Equal, new_x_, a_plus_b_minus_x)
 

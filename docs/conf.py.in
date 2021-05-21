@@ -27,8 +27,8 @@ if("${BUILD_BINDINGS_JAVA}" == "ON"):
 # -- Project information -----------------------------------------------------
 
 project = 'cvc5'
-copyright = '2021, The Authors of cvc5'
-author = 'The Authors of cvc5'
+copyright = '2021, the authors of cvc5'
+author = 'The authors of cvc5'
 
 
 # -- General configuration ---------------------------------------------------
