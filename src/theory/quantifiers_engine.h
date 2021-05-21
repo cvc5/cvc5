@@ -54,8 +54,8 @@ class TermRegistry;
 // TODO: organize this more/review this, github issue #1163
 class QuantifiersEngine {
   friend class ::cvc5::TheoryEngine;
-  typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashMap<Node, bool> BoolMap;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   QuantifiersEngine(quantifiers::QuantifiersState& qstate,
@@ -134,8 +134,6 @@ public:
 
 public:
  //----------user interface for instantiations (see quantifiers/instantiate.h)
- /** print solution for synthesis conjectures */
- void printSynthSolution(std::ostream& out);
  /** get list of quantified formulas that were instantiated */
  void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs);
  /** get instantiation term vectors */

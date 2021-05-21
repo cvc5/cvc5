@@ -157,6 +157,22 @@ class PropEngine
   bool isDecision(Node lit) const;
 
   /**
+   * Return the current decision level of `lit`.
+   *
+   * @param lit: The node in question, must have an associated SAT literal.
+   * @return Decision level of the SAT variable of `lit` (phase is disregarded),
+   *         or -1 if `lit` has not been assigned yet.
+   */
+  int32_t getDecisionLevel(Node lit) const;
+
+  /**
+   * Return the user-context level when `lit` was introduced..
+   *
+   * @return User-context level or -1 if not yet introduced.
+   */
+  int32_t getIntroLevel(Node lit) const;
+
+  /**
    * Checks the current context for satisfiability.
    *
    */

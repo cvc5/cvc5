@@ -46,7 +46,7 @@ std::unordered_map<Kind, PfRule, kind::KindHashFunction>
         {kind::BITVECTOR_NOR, PfRule::BV_BITBLAST_NOR},
         {kind::BITVECTOR_COMP, PfRule::BV_BITBLAST_COMP},
         {kind::BITVECTOR_MULT, PfRule::BV_BITBLAST_MULT},
-        {kind::BITVECTOR_PLUS, PfRule::BV_BITBLAST_PLUS},
+        {kind::BITVECTOR_ADD, PfRule::BV_BITBLAST_ADD},
         {kind::BITVECTOR_SUB, PfRule::BV_BITBLAST_SUB},
         {kind::BITVECTOR_NEG, PfRule::BV_BITBLAST_NEG},
         {kind::BITVECTOR_UDIV, PfRule::BV_BITBLAST_UDIV},
@@ -81,7 +81,7 @@ void BBProof::bbAtom(TNode node)
 {
   std::vector<TNode> visit;
   visit.push_back(node);
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
 
   bool fproofs =
       options::proofGranularityMode() != options::ProofGranularityMode::OFF;

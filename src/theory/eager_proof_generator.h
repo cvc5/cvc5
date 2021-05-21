@@ -87,8 +87,7 @@ namespace theory {
  */
 class EagerProofGenerator : public ProofGenerator
 {
-  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
-      NodeProofNodeMap;
+  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofNodeMap;
 
  public:
   EagerProofGenerator(ProofNodeManager* pnm,
@@ -131,7 +130,7 @@ class EagerProofGenerator : public ProofGenerator
    * @param isConflict Whether the returned trust node is a conflict (otherwise
    * it is a lemma),
    * @return The trust node corresponding to the fact that this generator has
-   * a proof of (children => exp), or of exp if children is empty.
+   * a proof of (exp => conc), or of conc if exp is empty.
    */
   TrustNode mkTrustNode(Node conc,
                         PfRule id,

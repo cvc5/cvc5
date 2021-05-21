@@ -61,7 +61,7 @@ class ContainsTermITEVisitor
   size_t cache_size() const { return d_cache.size(); }
 
  private:
-  typedef std::unordered_map<Node, bool, NodeHashFunction> NodeBoolMap;
+  typedef std::unordered_map<Node, bool> NodeBoolMap;
   NodeBoolMap d_cache;
 };
 
@@ -121,7 +121,7 @@ class IncomingArcCounter
   void clear();
 
  private:
-  typedef std::unordered_map<Node, uint32_t, NodeHashFunction> NodeCountMap;
+  typedef std::unordered_map<Node, uint32_t> NodeCountMap;
   NodeCountMap d_reachCount;
 
   bool d_skipVariables;
@@ -154,7 +154,7 @@ class TermITEHeightCounter
   size_t cache_size() const;
 
  private:
-  typedef std::unordered_map<Node, uint32_t, NodeHashFunction> NodeCountMap;
+  typedef std::unordered_map<Node, uint32_t> NodeCountMap;
   NodeCountMap d_termITEHeight;
 }; /* class TermITEHeightCounter */
 
@@ -181,7 +181,7 @@ class ITECompressor
   AssertionPipeline* d_assertions;
   IncomingArcCounter d_incoming;
 
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node> NodeMap;
   NodeMap d_compressed;
 
   void reset();
@@ -232,8 +232,7 @@ class ITESimplifier
   //     constant
   // or  termITE(cnd, ConstantIte, ConstantIte)
   typedef std::vector<Node> NodeVec;
-  typedef std::unordered_map<Node, NodeVec*, NodeHashFunction>
-      ConstantLeavesMap;
+  typedef std::unordered_map<Node, NodeVec*> ConstantLeavesMap;
   ConstantLeavesMap d_constantLeaves;
 
   // d_constantLeaves satisfies the following invariants:
@@ -269,7 +268,7 @@ class ITESimplifier
 
   typedef std::pair<Node, Node> NodePair;
   using NodePairHashFunction =
-      PairHashFunction<Node, Node, NodeHashFunction, NodeHashFunction>;
+      PairHashFunction<Node, Node, std::hash<Node>, std::hash<Node>>;
   typedef std::unordered_map<NodePair, Node, NodePairHashFunction> NodePairMap;
   NodePairMap d_constantIteEqualsConstantCache;
   NodePairMap d_replaceOverCache;
@@ -277,16 +276,16 @@ class ITESimplifier
   Node replaceOver(Node n, Node replaceWith, Node simpVar);
   Node replaceOverTermIte(Node term, Node simpAtom, Node simpVar);
 
-  std::unordered_map<Node, bool, NodeHashFunction> d_leavesConstCache;
+  std::unordered_map<Node, bool> d_leavesConstCache;
   bool leavesAreConst(TNode e, theory::TheoryId tid);
   bool leavesAreConst(TNode e);
 
   NodePairMap d_simpConstCache;
   Node simpConstants(TNode simpContext, TNode iteNode, TNode simpVar);
-  std::unordered_map<TypeNode, Node, TypeNode::HashFunction> d_simpVars;
+  std::unordered_map<TypeNode, Node> d_simpVars;
   Node getSimpVar(TypeNode t);
 
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node> NodeMap;
   NodeMap d_simpContextCache;
   Node createSimpContext(TNode c, Node& iteNode, Node& simpVar);
 
@@ -335,7 +334,7 @@ class ITECareSimplifier
   Node d_true;
   Node d_false;
 
-  typedef std::unordered_map<TNode, Node, TNodeHashFunction> TNodeMap;
+  typedef std::unordered_map<TNode, Node> TNodeMap;
 
   class CareSetPtr;
   class CareSetPtrVal

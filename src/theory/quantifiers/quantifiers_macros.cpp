@@ -18,7 +18,6 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
-#include "proof/proof_manager.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/quantifiers_registry.h"
@@ -107,8 +106,8 @@ Node QuantifiersMacros::solve(Node lit, bool reqGround)
 
 bool QuantifiersMacros::containsBadOp(Node n, Node op, bool reqGround)
 {
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);

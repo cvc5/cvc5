@@ -151,15 +151,16 @@ Node RewriteRule<EvalMult>::apply(TNode node) {
   return utils::mkConst(res);
 }
 
-template<> inline
-bool RewriteRule<EvalPlus>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_PLUS &&
-          utils::isBvConstTerm(node));
+template <>
+inline bool RewriteRule<EvalAdd>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_ADD && utils::isBvConstTerm(node));
 }
 
-template<> inline
-Node RewriteRule<EvalPlus>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<EvalPlus>(" << node << ")" << std::endl;
+template <>
+inline Node RewriteRule<EvalAdd>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<EvalAdd>(" << node << ")" << std::endl;
   TNode::iterator child_it = node.begin();
   BitVector res = (*child_it).getConst<BitVector>();
   for(++child_it; child_it != node.end(); ++child_it) {

@@ -21,7 +21,6 @@
 #include "decision/decision_engine.h"
 #include "options/decision_options.h"
 #include "options/smt_options.h"
-#include "proof/cnf_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/skolem_def_manager.h"
@@ -104,10 +103,6 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
     Assert(options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF
            || tte.getGenerator());
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
-  }
-  else if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
-  {
-    ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
   }
   Debug("prop-explain") << "explainPropagation() => " << theoryExplanation
                         << std::endl;
@@ -217,7 +212,7 @@ void TheoryProxy::getSkolems(TNode node,
                              std::vector<Node>& skAsserts,
                              std::vector<Node>& sks)
 {
-  std::unordered_set<Node, NodeHashFunction> skolems;
+  std::unordered_set<Node> skolems;
   d_skdm->getSkolems(node, skolems);
   for (const Node& k : skolems)
   {

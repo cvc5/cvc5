@@ -1,9 +1,8 @@
 id     = "BV"
-name   = "Bitvector theory"
+name   = "Bitvector Theory"
 
 [[option]]
   name       = "bvSatSolver"
-  smt_name   = "bv-sat-solver"
   category   = "expert"
   long       = "bv-sat-solver=MODE"
   type       = "SatSolverMode"
@@ -22,7 +21,6 @@ name   = "Bitvector theory"
 
 [[option]]
   name       = "bitblastMode"
-  smt_name   = "bitblast"
   category   = "regular"
   long       = "bitblast=MODE"
   type       = "BitblastMode"
@@ -104,7 +102,6 @@ name   = "Bitvector theory"
 
 [[option]]
   name       = "boolToBitvector"
-  smt_name   = "bool-to-bv"
   category   = "regular"
   long       = "bool-to-bv=MODE"
   type       = "BoolToBVMode"
@@ -242,4 +239,12 @@ name   = "Bitvector theory"
 [[option.mode.SIMPLE]]
   name = "simple"
   help = "Enables simple bitblasting solver with proof support."
+
+[[option]]
+  name       = "bvAssertInput"
+  category   = "regular"
+  long       = "bv-assert-input"
+  type       = "bool"
+  default    = "false"
+  help       = "assert input assertions on user-level 0 instead of assuming them in the bit-vector SAT solver"
 

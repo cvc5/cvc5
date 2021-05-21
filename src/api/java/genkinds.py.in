@@ -23,6 +23,7 @@ import sys
 import re
 
 
+
 # get access to cvc5/src/api/parsekinds.py
 sys.path.insert(0, os.path.abspath('${CMAKE_SOURCE_DIR}/src/api'))
 

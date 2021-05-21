@@ -67,36 +67,20 @@ TEST_F(TestNodeBlackNodeManager, mkNode_three_children)
   ASSERT_EQ(n[2], z);
 }
 
-TEST_F(TestNodeBlackNodeManager, mkNode_four_children)
+TEST_F(TestNodeBlackNodeManager, mkNode_init_list)
 {
   Node x1 = d_skolemManager->mkDummySkolem("x1", d_nodeManager->booleanType());
   Node x2 = d_skolemManager->mkDummySkolem("x2", d_nodeManager->booleanType());
   Node x3 = d_skolemManager->mkDummySkolem("x3", d_nodeManager->booleanType());
   Node x4 = d_skolemManager->mkDummySkolem("x4", d_nodeManager->booleanType());
-  Node n = d_nodeManager->mkNode(AND, x1, x2, x3, x4);
+  // Negate second argument to test the use of temporary nodes
+  Node n = d_nodeManager->mkNode(AND, {x1, x2.negate(), x3, x4});
   ASSERT_EQ(n.getNumChildren(), 4u);
   ASSERT_EQ(n.getKind(), AND);
   ASSERT_EQ(n[0], x1);
-  ASSERT_EQ(n[1], x2);
+  ASSERT_EQ(n[1], x2.negate());
   ASSERT_EQ(n[2], x3);
   ASSERT_EQ(n[3], x4);
-}
-
-TEST_F(TestNodeBlackNodeManager, mkNode_five_children)
-{
-  Node x1 = d_skolemManager->mkDummySkolem("x1", d_nodeManager->booleanType());
-  Node x2 = d_skolemManager->mkDummySkolem("x2", d_nodeManager->booleanType());
-  Node x3 = d_skolemManager->mkDummySkolem("x3", d_nodeManager->booleanType());
-  Node x4 = d_skolemManager->mkDummySkolem("x4", d_nodeManager->booleanType());
-  Node x5 = d_skolemManager->mkDummySkolem("x5", d_nodeManager->booleanType());
-  Node n = d_nodeManager->mkNode(AND, x1, x2, x3, x4, x5);
-  ASSERT_EQ(n.getNumChildren(), 5u);
-  ASSERT_EQ(n.getKind(), AND);
-  ASSERT_EQ(n[0], x1);
-  ASSERT_EQ(n[1], x2);
-  ASSERT_EQ(n[2], x3);
-  ASSERT_EQ(n[3], x4);
-  ASSERT_EQ(n[4], x5);
 }
 
 TEST_F(TestNodeBlackNodeManager, mkNode_vector_of_node)

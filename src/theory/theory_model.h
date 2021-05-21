@@ -398,7 +398,7 @@ class TheoryModel
   /** are we using model cores? */
   bool d_using_model_core;
   /** symbols that are in the model core */
-  std::unordered_set<Node, NodeHashFunction> d_model_core;
+  std::unordered_set<Node> d_model_core;
   /** Get model value function.
    *
    * This function is a helper function for getValue.
@@ -414,7 +414,7 @@ class TheoryModel
   virtual void addTermInternal(TNode n);
  private:
   /** cache for getModelValue */
-  mutable std::unordered_map<Node, Node, NodeHashFunction> d_modelCache;
+  mutable std::unordered_map<Node, Node> d_modelCache;
 
   //---------------------------- separation logic
   /** the value of the heap */

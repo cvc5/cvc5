@@ -46,9 +46,9 @@ class InferenceManager;
  */
 class TermRegistry
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashSet<TypeNode, TypeNodeHashFunction> TypeNodeSet;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
   TermRegistry(SolverState& s,
@@ -147,7 +147,7 @@ class TermRegistry
    * Get the "input variables", corresponding to the set of leaf nodes of
    * string-like type that have been preregistered as terms to this object.
    */
-  const context::CDHashSet<Node, NodeHashFunction>& getInputVars() const;
+  const context::CDHashSet<Node>& getInputVars() const;
   /** Returns true if any str.code terms have been preregistered */
   bool hasStringCode() const;
   //---------------------------- end queries

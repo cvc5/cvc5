@@ -112,7 +112,7 @@ void TheoryBV::finishInit()
     //    ee->addFunctionKind(kind::BITVECTOR_XNOR);
     //    ee->addFunctionKind(kind::BITVECTOR_COMP);
     ee->addFunctionKind(kind::BITVECTOR_MULT, true);
-    ee->addFunctionKind(kind::BITVECTOR_PLUS, true);
+    ee->addFunctionKind(kind::BITVECTOR_ADD, true);
     ee->addFunctionKind(kind::BITVECTOR_EXTRACT, true);
     //    ee->addFunctionKind(kind::BITVECTOR_SUB);
     //    ee->addFunctionKind(kind::BITVECTOR_NEG);

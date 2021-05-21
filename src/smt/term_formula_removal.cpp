@@ -23,7 +23,6 @@
 #include "expr/term_context_stack.h"
 #include "expr/term_conversion_proof_generator.h"
 #include "options/smt_options.h"
-#include "proof/proof_manager.h"
 
 using namespace std;
 
@@ -516,7 +515,7 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
 
 Node RemoveTermFormulas::getSkolemForNode(Node k) const
 {
-  context::CDInsertHashMap<Node, Node, NodeHashFunction>::const_iterator itk =
+  context::CDInsertHashMap<Node, Node>::const_iterator itk =
       d_skolem_cache.find(k);
   if (itk != d_skolem_cache.end())
   {

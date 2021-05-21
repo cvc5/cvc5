@@ -33,7 +33,7 @@
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
-#include "options/options_holder.h"
+#include "options/resource_manager_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 
@@ -83,7 +83,7 @@ unsigned long OptionsHandler::limitHandler(std::string option,
 
 void OptionsHandler::setResourceWeight(std::string option, std::string optarg)
 {
-  d_options->d_holder->resourceWeightHolder.emplace_back(optarg);
+  d_options->resman().resourceWeightHolder.emplace_back(optarg);
 }
 
 // theory/quantifiers/options_handlers.h
@@ -256,26 +256,26 @@ void OptionsHandler::setStats(const std::string& option, bool value)
   std::string opt = option.substr(2);
   if (value)
   {
-    if (opt == options::statisticsAll.name)
+    if (option == options::base::statisticsAll__name)
     {
-      d_options->d_holder->statistics = true;
+      d_options->base().statistics = true;
     }
-    else if (opt == options::statisticsEveryQuery.name)
+    else if (option == options::base::statisticsEveryQuery__name)
     {
-      d_options->d_holder->statistics = true;
+      d_options->base().statistics = true;
     }
-    else if (opt == options::statisticsExpert.name)
+    else if (option == options::base::statisticsExpert__name)
     {
-      d_options->d_holder->statistics = true;
+      d_options->base().statistics = true;
     }
   }
   else
   {
-    if (opt == options::statistics.name)
+    if (option == options::base::statistics__name)
     {
-      d_options->d_holder->statisticsAll = false;
-      d_options->d_holder->statisticsEveryQuery = false;
-      d_options->d_holder->statisticsExpert = false;
+      d_options->base().statisticsAll = false;
+      d_options->base().statisticsEveryQuery = false;
+      d_options->base().statisticsExpert = false;
     }
   }
 }

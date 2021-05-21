@@ -1,6 +1,7 @@
 # import dereference and increment operators
 from cython.operator cimport dereference as deref, preincrement as inc
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
+from libc.stddef cimport wchar_t
 from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
@@ -19,6 +20,9 @@ cdef extern from "<functional>" namespace "std" nogil:
         hash()
         size_t operator()(T t)
 
+cdef extern from "<string>" namespace "std":
+    cdef cppclass wstring:
+        wstring(const wchar_t*, size_t) except +
 
 cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass Options:
@@ -176,7 +180,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Term] getSynthSolutions(const vector[Term]& terms) except +
         Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +
         Term synthInv(const string& symbol, const vector[Term]& bound_vars, Grammar grammar) except +
-        void printSynthSolution(ostream& out) except +
         # End of sygus related functions
 
         Term mkTrue() except +
@@ -191,7 +194,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkEmptySet(Sort s) except +
         Term mkSepNil(Sort sort) except +
         Term mkString(const string& s) except +
-        Term mkString(const vector[unsigned]& s) except +
+        Term mkString(const wstring& s) except +
         Term mkEmptySequence(Sort sort) except +
         Term mkUniverseSet(Sort sort) except +
         Term mkBitVector(uint32_t size) except +
@@ -341,6 +344,11 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term()
         bint operator==(const Term&) except +
         bint operator!=(const Term&) except +
+        bint operator<(const Term&) except +
+        bint operator>(const Term&) except +
+        bint operator<=(const Term&) except +
+        bint operator>=(const Term&) except +
+        size_t getNumChildren() except +
         Term operator[](size_t idx) except +
         uint64_t getId() except +
         Kind getKind() except +
@@ -350,7 +358,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Op getOp() except +
         bint isNull() except +
         Term getConstArrayBase() except +
-        vector[Term] getConstSequenceElements() except +
         Term notTerm() except +
         Term andTerm(const Term& t) except +
         Term orTerm(const Term& t) except +
@@ -367,6 +374,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
             Term operator*() except +
         const_iterator begin() except +
         const_iterator end() except +
+        bint isIntegerValue() except +
+        vector[Term] getSequenceValue() except +
 
     cdef cppclass TermHashFunction:
         TermHashFunction() except +

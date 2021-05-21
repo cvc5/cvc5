@@ -251,18 +251,6 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
   return true;
 }
 
-void SygusSolver::printSynthSolution(std::ostream& out)
-{
-  QuantifiersEngine* qe = d_smtSolver.getQuantifiersEngine();
-  if (qe == nullptr)
-  {
-    InternalError()
-        << "SygusSolver::printSynthSolution(): Cannot print synth solution in "
-           "the current logic, which does not include quantifiers";
-  }
-  qe->printSynthSolution(out);
-}
-
 void SygusSolver::checkSynthSolution(Assertions& as)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -285,7 +273,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   }
   Trace("check-synth-sol") << "Got solution map:\n";
   // the set of synthesis conjectures in our assertions
-  std::unordered_set<Node, NodeHashFunction> conjs;
+  std::unordered_set<Node> conjs;
   // For each of the above conjectures, the functions-to-synthesis and their
   // solutions. This is used as a substitution below.
   std::map<Node, std::vector<Node>> fvarMap;
@@ -317,7 +305,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   // auxiliary assertions
   std::vector<Node> auxAssertions;
   // expand definitions cache
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  std::unordered_map<Node, Node> cache;
   for (Node assertion : *alist)
   {
     Notice() << "SygusSolver::checkSynthSolution(): checking assertion "

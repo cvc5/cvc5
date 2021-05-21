@@ -137,14 +137,8 @@ libcvc5_add_sources(
   printer/tptp/tptp_printer.cpp
   printer/tptp/tptp_printer.h
   proof/clause_id.h
-  proof/cnf_proof.cpp
-  proof/cnf_proof.h
   proof/dot/dot_printer.cpp
   proof/dot/dot_printer.h
-  proof/proof_manager.cpp
-  proof/proof_manager.h
-  proof/sat_proof.h
-  proof/sat_proof_implementation.h
   proof/unsat_core.cpp
   proof/unsat_core.h
   prop/bv_sat_solver_notify.h
@@ -815,8 +809,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/example_infer.h
   theory/quantifiers/sygus/example_min_eval.cpp
   theory/quantifiers/sygus/example_min_eval.h
-  theory/quantifiers/sygus/rcons_obligation_info.cpp
-  theory/quantifiers/sygus/rcons_obligation_info.h
+  theory/quantifiers/sygus/rcons_obligation.cpp
+  theory/quantifiers/sygus/rcons_obligation.h
   theory/quantifiers/sygus/rcons_type_info.cpp
   theory/quantifiers/sygus/rcons_type_info.h
   theory/quantifiers/sygus/sygus_abduct.cpp
