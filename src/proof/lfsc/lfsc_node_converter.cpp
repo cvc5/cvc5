@@ -611,20 +611,29 @@ Node LfscNodeConverter::maybeMkSkolemFun(Node k, bool macroApply)
   SkolemManager* sm = nm->getSkolemManager();
   SkolemFunId sfi = SkolemFunId::NONE;
   Node cacheVal;
+  TypeNode tn = k.getType();
   if (sm->isSkolemFunction(k, sfi, cacheVal))
   {
     if (sfi==SkolemFunId::SHARED_SELECTOR)
     {
-      std::stringstream ss;
-      ss << "sel";
-      TypeNode kt = k.getType();
-      TypeNode fselt = nm->mkFunctionType(kt.getSelectorDomainType(), kt.getSelectorRangeType());
+      TypeNode fselt = nm->mkFunctionType(tn.getSelectorDomainType(), tn.getSelectorRangeType());
       TypeNode intType = nm->integerType();
       TypeNode selt = nm->mkFunctionType({d_sortType, intType}, fselt);
-      Node sel = getSymbolInternal(k.getKind(), selt, ss.str());
-      Node kn = typeAsNode(convertType(kt.getSelectorRangeType()));
+      Node sel = getSymbolInternal(k.getKind(), selt, "sel");
+      Node kn = typeAsNode(convertType(tn.getSelectorRangeType()));
       Assert (!cacheVal.isNull() && cacheVal.getKind()==CONST_RATIONAL);
       return nm->mkNode(APPLY_UF, sel, kn, cacheVal);
+    }
+    else if (sfi==SkolemFunId::RE_UNFOLD_POS_COMPONENT)
+    {
+      TypeNode strType = nm->stringType();
+      TypeNode reType = nm->regExpType();
+      TypeNode intType = nm->integerType();
+      TypeNode reut = nm->mkFunctionType({strType, reType, intType}, strType);
+      Node sk = getSymbolInternal(k.getKind(), reut, "skolem_re_unfold_pos");
+      Assert (!cacheVal.isNull() && cacheVal.getKind()==SEXPR && cacheVal.getNumChildren()==3);
+      // third value is mpz, which is not converted
+      return nm->mkNode(APPLY_UF, sk, convert(cacheVal[0]), convert(cacheVal[1]), cacheVal[2]);
     }
   }
   return Node::null();
@@ -761,7 +770,8 @@ Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
       break;
     case REGEXP_CONCAT:
       // the language containing only the empty string
-      nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
+      //nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
+      nullTerm = getSymbolInternal(k, tn, "re.empty");
       break;
     case BITVECTOR_AND:
       nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());

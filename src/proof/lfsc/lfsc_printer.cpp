@@ -579,12 +579,9 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       pf << h << h << h << h << args[0].getConst<bool>() << cs[0] << cs[1];
       break;
       break;
-    /*
     case PfRule::RE_UNFOLD_POS:
-      Trace("ajr-temp") << "; String RE_UNFOLD_POS internal : " <<
-    d_tproc.convert(pn->getResult()) << std::endl; pf << h << h << h << cs[0];
+      pf << h << h << h << cs[0];
       break;
-      */
     case PfRule::STRING_EAGER_REDUCTION:
     {
       Kind k = as[0].getKind();

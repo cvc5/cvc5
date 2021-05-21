@@ -53,6 +53,7 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::SELECTOR_WRONG: return "SELECTOR_WRONG";
     case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
     case SkolemFunId::SEQ_NTH_OOB: return "SEQ_NTH_OOB";
+    case SkolemFunId::RE_UNFOLD_POS_COMPONENT: return "RE_UNFOLD_POS_COMPONENT";
     default: return "?";
   }
 }
@@ -210,6 +211,16 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
     return k;
   }
   return it->second;
+}
+
+Node SkolemManager::mkSkolemFunction(SkolemFunId id,
+                      TypeNode tn,
+                      const std::vector<Node>& cacheVals,
+                      int flags)
+{
+  Assert (cacheVals.size()>1);
+  Node cacheVal = NodeManager::currentNM()->mkNode(SEXPR, cacheVals);
+  return mkSkolemFunction(id, tn, cacheVal, flags);
 }
 
 bool SkolemManager::isSkolemFunction(Node k, SkolemFunId& id,
