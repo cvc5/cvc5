@@ -1003,14 +1003,14 @@ def test_const_sequence_elements(solver):
 
     assert s.getKind() == kinds.ConstSequence
     # empty sequence has zero elements
-    cs = s.getConstSequenceElements()
+    cs = s.getSequenceValue()
     assert len(cs) == 0
 
     # A seq.unit app is not a constant sequence (regardless of whether it is
     # applied to a constant).
     su = solver.mkTerm(kinds.SeqUnit, solver.mkReal(1))
     with pytest.raises(RuntimeError):
-        su.getConstSequenceElements()
+        su.getSequenceValue()
 
 
 def test_term_scoped_to_string(solver):

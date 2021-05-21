@@ -40,6 +40,7 @@ class SymbolManager::Implementation
         d_namedAsserts(&d_context),
         d_declareSorts(&d_context),
         d_declareTerms(&d_context),
+        d_funToSynth(&d_context),
         d_hasPushedScope(&d_context, false)
   {
     // use an outermost push, to be able to clear all definitions
@@ -65,10 +66,14 @@ class SymbolManager::Implementation
   std::vector<api::Sort> getModelDeclareSorts() const;
   /** get model declare terms */
   std::vector<api::Term> getModelDeclareTerms() const;
+  /** get functions to synthesize */
+  std::vector<api::Term> getFunctionsToSynthesize() const;
   /** Add declared sort to the list of model declarations. */
   void addModelDeclarationSort(api::Sort s);
   /** Add declared term to the list of model declarations. */
   void addModelDeclarationTerm(api::Term t);
+  /** Add function to the list of functions to synthesize. */
+  void addFunctionToSynthesize(api::Term t);
   /** reset */
   void reset();
   /** reset assertions */
@@ -91,6 +96,8 @@ class SymbolManager::Implementation
   SortList d_declareSorts;
   /** Declared terms (for model printing) */
   TermList d_declareTerms;
+  /** Functions to synthesize (for response to check-synth) */
+  TermList d_funToSynth;
   /**
    * Have we pushed a scope (e.g. a let or quantifier) in the current context?
    */
@@ -192,6 +199,12 @@ std::vector<api::Term> SymbolManager::Implementation::getModelDeclareTerms()
   return declareTerms;
 }
 
+std::vector<api::Term> SymbolManager::Implementation::getFunctionsToSynthesize()
+    const
+{
+  return std::vector<api::Term>(d_funToSynth.begin(), d_funToSynth.end());
+}
+
 void SymbolManager::Implementation::addModelDeclarationSort(api::Sort s)
 {
   Trace("sym-manager") << "SymbolManager: addModelDeclarationSort " << s
@@ -204,6 +217,13 @@ void SymbolManager::Implementation::addModelDeclarationTerm(api::Term t)
   Trace("sym-manager") << "SymbolManager: addModelDeclarationTerm " << t
                        << std::endl;
   d_declareTerms.push_back(t);
+}
+
+void SymbolManager::Implementation::addFunctionToSynthesize(api::Term f)
+{
+  Trace("sym-manager") << "SymbolManager: addFunctionToSynthesize " << f
+                       << std::endl;
+  d_funToSynth.push_back(f);
 }
 
 void SymbolManager::Implementation::pushScope(bool isUserContext)
@@ -306,6 +326,11 @@ std::vector<api::Term> SymbolManager::getModelDeclareTerms() const
   return d_implementation->getModelDeclareTerms();
 }
 
+std::vector<api::Term> SymbolManager::getFunctionsToSynthesize() const
+{
+  return d_implementation->getFunctionsToSynthesize();
+}
+
 void SymbolManager::addModelDeclarationSort(api::Sort s)
 {
   d_implementation->addModelDeclarationSort(s);
@@ -314,6 +339,11 @@ void SymbolManager::addModelDeclarationSort(api::Sort s)
 void SymbolManager::addModelDeclarationTerm(api::Term t)
 {
   d_implementation->addModelDeclarationTerm(t);
+}
+
+void SymbolManager::addFunctionToSynthesize(api::Term f)
+{
+  d_implementation->addFunctionToSynthesize(f);
 }
 
 size_t SymbolManager::scopeLevel() const
