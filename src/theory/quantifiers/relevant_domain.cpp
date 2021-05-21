@@ -172,14 +172,14 @@ void RelevantDomain::computeRelevantDomain(Node q)
   TCtxStack ctx(&tc);
   ctx.pushInitial(n);
   std::unordered_set<std::pair<Node, uint32_t>,
-                     PairHashFunction<Node, uint32_t, NodeHashFunction> >
+                     PairHashFunction<Node, uint32_t, std::hash<Node> > >
       visited;
   std::pair<Node, uint32_t> curr;
   Node node;
   uint32_t nodeVal;
   std::unordered_set<
       std::pair<Node, uint32_t>,
-      PairHashFunction<Node, uint32_t, NodeHashFunction> >::const_iterator itc;
+      PairHashFunction<Node, uint32_t, std::hash<Node> > >::const_iterator itc;
   bool hasPol, pol;
   while (!ctx.empty())
   {
