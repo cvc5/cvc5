@@ -1159,4 +1159,15 @@ Node NodeManager::mkNode(Kind kind, std::initializer_list<TNode> children)
   return nb.constructNode();
 }
 
+Node NodeManager::mkNode(TNode opNode, std::initializer_list<TNode> children)
+{
+  NodeBuilder nb(this, operatorToKind(opNode));
+  if (opNode.getKind() != kind::BUILTIN)
+  {
+    nb << opNode;
+  }
+  nb.append(children.begin(), children.end());
+  return nb.constructNode();
+}
+
 }  // namespace cvc5
