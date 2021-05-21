@@ -24,7 +24,7 @@ using namespace smt;
 
 namespace test {
 
-class TestTheoryOptMultigoal : public TestSmtNoFinishInit
+class TestTheoryWhiteOptMultigoal : public TestSmtNoFinishInit
 {
  protected:
   void SetUp() override
@@ -39,7 +39,7 @@ class TestTheoryOptMultigoal : public TestSmtNoFinishInit
   std::unique_ptr<TypeNode> d_BV32Type;
 };
 
-TEST_F(TestTheoryOptMultigoal, box)
+TEST_F(TestTheoryWhiteOptMultigoal, box)
 {
   d_smtEngine->resetAssertions();
   Node x = d_nodeManager->mkVar(*d_BV32Type);
