@@ -25,34 +25,38 @@ set(SPHINX_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
 
 configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/conf.py)
 
-add_custom_target(docs ALL
-                  DEPENDS docs-cpp docs-python gen-options
-                  COMMAND
-                    ${SPHINX_EXECUTABLE} -b html
-                    -c ${CMAKE_CURRENT_BINARY_DIR}
-                    # Tell Breathe where to find the Doxygen output
-                    -Dbreathe_projects.cvc5=${CPP_DOXYGEN_XML_FOLDER}
-                    -Dbreathe_projects.std=${CPP_DOXYGEN_XML_FOLDER}
-                    ${SPHINX_INPUT_DIR} ${SPHINX_OUTPUT_DIR}
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-                  COMMENT "Generating Sphinx Api docs")
+add_custom_target(
+  docs ALL
+  DEPENDS docs-cpp docs-python gen-options
+  COMMAND
+    ${SPHINX_EXECUTABLE} -b html -c ${CMAKE_CURRENT_BINARY_DIR}
+    # Tell Breathe where to find the Doxygen output
+    -Dbreathe_projects.cvc5=${CPP_DOXYGEN_XML_FOLDER}
+    -Dbreathe_projects.std=${CPP_DOXYGEN_XML_FOLDER} ${SPHINX_INPUT_DIR}
+    ${SPHINX_OUTPUT_DIR}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMENT "Generating Sphinx Api docs"
+)
 
 set(SPHINX_GH_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx-gh)
-add_custom_target(docs-gh ALL
-                  DEPENDS docs
-                  COMMAND ${CMAKE_COMMAND} -E remove_directory
-                    ${SPHINX_GH_OUTPUT_DIR}
-                  COMMAND ${CMAKE_COMMAND} -E copy_directory
-                    ${SPHINX_OUTPUT_DIR} ${SPHINX_GH_OUTPUT_DIR}
-                  COMMAND ${CMAKE_COMMAND} -E remove_directory
-                    ${SPHINX_GH_OUTPUT_DIR}/_sources
-                  COMMAND ${CMAKE_COMMAND} -E remove
-                    ${SPHINX_GH_OUTPUT_DIR}/objects.inv
-                  COMMAND ${CMAKE_COMMAND} -E rename
-                    ${SPHINX_GH_OUTPUT_DIR}/_static
-                    ${SPHINX_GH_OUTPUT_DIR}/static
-                  COMMAND find ${SPHINX_GH_OUTPUT_DIR} -type f |
-                    xargs sed -i'orig' 's/_static/static/'
-                  COMMAND find ${SPHINX_GH_OUTPUT_DIR} -name '*orig' -delete
-                  COMMENT "Generating GitHub Api docs")
-
+add_custom_target(
+  docs-gh ALL
+  DEPENDS docs
+  # remove existing sphinx-gh/ directory
+  COMMAND ${CMAKE_COMMAND} -E remove_directory ${SPHINX_GH_OUTPUT_DIR}
+  # copy sphinx/ to sphinx-gh/
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${SPHINX_OUTPUT_DIR}
+          ${SPHINX_GH_OUTPUT_DIR}
+  # remove leftovers from the build
+  COMMAND ${CMAKE_COMMAND} -E remove_directory ${SPHINX_GH_OUTPUT_DIR}/.doctrees
+          ${SPHINX_GH_OUTPUT_DIR}/_sources ${SPHINX_GH_OUTPUT_DIR}/_static/fonts
+  COMMAND ${CMAKE_COMMAND} -E remove ${SPHINX_GH_OUTPUT_DIR}/objects.inv
+  # rename _static/ to static/ (as jekyll ignores _*/ dirs)
+  COMMAND ${CMAKE_COMMAND} -E rename ${SPHINX_GH_OUTPUT_DIR}/_static
+          ${SPHINX_GH_OUTPUT_DIR}/static
+  COMMAND find ${SPHINX_GH_OUTPUT_DIR} -type f | xargs sed -i'orig'
+          's/_static/static/'
+  COMMAND find ${SPHINX_GH_OUTPUT_DIR} -name '*orig' -delete
+  # done
+  COMMENT "Generating GitHub Api docs"
+)
