@@ -27,7 +27,6 @@ libcvc5_add_sources(
   open_ostream.h
   option_exception.cpp
   option_exception.h
-  options.h
   options_handler.cpp
   options_handler.h
   options_listener.h
@@ -67,18 +66,29 @@ set(options_toml_files
 string(REPLACE "toml" "cpp;" options_gen_cpp_files ${options_toml_files})
 string(REPLACE "toml" "h;"   options_gen_h_files ${options_toml_files})
 
-libcvc5_add_sources(GENERATED options.cpp ${options_gen_cpp_files})
+libcvc5_add_sources(GENERATED options.h options.cpp ${options_gen_cpp_files})
 
 list_prepend(options_toml_files "${CMAKE_CURRENT_LIST_DIR}/" abs_toml_files)
 
+set(options_gen_doc_files "")
+if (BUILD_DOCS)
+  list(
+    APPEND
+      options_gen_doc_files
+      "${CMAKE_BINARY_DIR}/docs/options_generated.rst"
+  )
+endif()
+
 add_custom_command(
     OUTPUT
-      options.cpp options_holder.h
+      options.h options.cpp
       ${options_gen_cpp_files} ${options_gen_h_files}
+      ${options_gen_doc_files}
     COMMAND
       ${PYTHON_EXECUTABLE}
       ${CMAKE_CURRENT_LIST_DIR}/mkoptions.py
       ${CMAKE_CURRENT_LIST_DIR}
+      ${CMAKE_BINARY_DIR}
       ${CMAKE_CURRENT_BINARY_DIR}
       ${abs_toml_files}
     DEPENDS
@@ -86,14 +96,14 @@ add_custom_command(
       ${options_toml_files}
       module_template.h
       module_template.cpp
-      options_holder_template.h
+      options_template.h
       options_template.cpp
 )
 
 add_custom_target(gen-options
   DEPENDS
+    options.h
     options.cpp
-    options_holder.h
     ${options_gen_cpp_files}
     ${options_gen_h_files}
 )

@@ -3200,7 +3200,7 @@ enum CVC5_EXPORT Kind : int32_t
    *     (seq.++ (seq.unit c1) ... (seq.unit cn))
    *
    * where n>=0 and c1, ..., cn are constants of some sort. The elements
-   * can be extracted by `Term::getConstSequenceElements()`.
+   * can be extracted by `Term::getSequenceValue()`.
    */
   CONST_SEQUENCE,
   /**

@@ -897,6 +897,83 @@ def test_substitute(solver):
         xpx.substitute(es, rs)
 
 
+def test_term_compare(solver):
+  t1 = solver.mkInteger(1)
+  t2 = solver.mkTerm(kinds.Plus, solver.mkInteger(2), solver.mkInteger(2))
+  t3 = solver.mkTerm(kinds.Plus, solver.mkInteger(2), solver.mkInteger(2))
+  assert t2 >= t3
+  assert t2 <= t3
+  assert (t1 > t2) != (t1 < t2)
+  assert (t1 > t2 or t1 == t2) == (t1 >= t2)
+
+def test_term_children(solver):
+  # simple term 2+3
+  two = solver.mkInteger(2)
+  t1 = solver.mkTerm(kinds.Plus, two, solver.mkInteger(3))
+  assert t1[0] == two
+  assert t1.getNumChildren() == 2
+  tnull = Term(solver)
+  with pytest.raises(RuntimeError):
+      tnull.getNumChildren()
+
+  # apply term f(2)
+  intSort = solver.getIntegerSort()
+  fsort = solver.mkFunctionSort(intSort, intSort)
+  f = solver.mkConst(fsort, "f")
+  t2 = solver.mkTerm(kinds.ApplyUf, f, two)
+  # due to our higher-order view of terms, we treat f as a child of kinds.ApplyUf
+  assert t2.getNumChildren() == 2
+  assert t2[0] == f
+  assert t2[1] == two
+  with pytest.raises(RuntimeError):
+      tnull[0]
+
+def test_is_integer(solver):
+  int1 = solver.mkInteger("-18446744073709551616")
+  int2 = solver.mkInteger("-18446744073709551615")
+  int3 = solver.mkInteger("-4294967296")
+  int4 = solver.mkInteger("-4294967295")
+  int5 = solver.mkInteger("-10")
+  int6 = solver.mkInteger("0")
+  int7 = solver.mkInteger("10")
+  int8 = solver.mkInteger("4294967295")
+  int9 = solver.mkInteger("4294967296")
+  int10 = solver.mkInteger("18446744073709551615")
+  int11 = solver.mkInteger("18446744073709551616")
+  int12 = solver.mkInteger("-0")
+
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("")
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("-")
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("-1-")
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("0.0")
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("-0.1")
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("012")
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("0000")
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("-01")
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("-00")
+
+  assert int1.isInteger()
+  assert int2.isInteger()
+  assert int3.isInteger()
+  assert int4.isInteger()
+  assert int5.isInteger()
+  assert int6.isInteger()
+  assert int7.isInteger()
+  assert int8.isInteger()
+  assert int9.isInteger()
+  assert int10.isInteger()
+  assert int11.isInteger()
+
+
 def test_const_array(solver):
     intsort = solver.getIntegerSort()
     arrsort = solver.mkArraySort(intsort, intsort)
@@ -926,14 +1003,14 @@ def test_const_sequence_elements(solver):
 
     assert s.getKind() == kinds.ConstSequence
     # empty sequence has zero elements
-    cs = s.getConstSequenceElements()
+    cs = s.getSequenceValue()
     assert len(cs) == 0
 
     # A seq.unit app is not a constant sequence (regardless of whether it is
     # applied to a constant).
     su = solver.mkTerm(kinds.SeqUnit, solver.mkReal(1))
     with pytest.raises(RuntimeError):
-        su.getConstSequenceElements()
+        su.getSequenceValue()
 
 
 def test_term_scoped_to_string(solver):

@@ -34,7 +34,8 @@ namespace smt {
  */
 class AbstractValues
 {
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
+  typedef std::unordered_map<Node, Node> NodeToNodeHashMap;
+
  public:
   AbstractValues(NodeManager* nm);
   ~AbstractValues();

@@ -83,8 +83,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
                                        bool& rew_print)
 {
   // have we added this term before?
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator itac =
-      d_add_term_cache.find(sol);
+  std::unordered_map<Node, Node>::iterator itac = d_add_term_cache.find(sol);
   if (itac != d_add_term_cache.end())
   {
     return itac->second;

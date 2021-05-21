@@ -30,13 +30,17 @@
  *
  * (check-synth)
  *
- * The printed output to this example should be equivalent to:
- * (define-fun inv-f ((x Int)) Bool (not (>= x 11)))
+ * The printed output for this example should be equivalent to:
+ * (
+ *   (define-fun inv-f ((x Int)) Bool (not (>= x 11)))
+ * )
  */
 
 #include <cvc5/cvc5.h>
 
 #include <iostream>
+
+#include "utils.h"
 
 using namespace cvc5::api;
 
@@ -82,8 +86,11 @@ int main()
   if (slv.checkSynth().isUnsat())
   {
     // Output should be equivalent to:
-    // (define-fun inv-f ((x Int)) Bool (not (>= x 11)))
-    slv.printSynthSolution(std::cout);
+    // (
+    //   (define-fun inv-f ((x Int)) Bool (not (>= x 11)))
+    // )
+    std::vector<Term> terms = {inv_f};
+    printSynthSolutions(terms, slv.getSynthSolutions(terms));
   }
 
   return 0;

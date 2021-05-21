@@ -1,9 +1,9 @@
 id     = "UF"
-name   = "Uninterpreted functions theory"
+name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "ufSymmetryBreaker"
-  smt_name   = "uf-symmetry-breaker"
+  alias      = ["uf-symmetry-breaker"]
   category   = "regular"
   long       = "symmetry-breaker"
   type       = "bool"

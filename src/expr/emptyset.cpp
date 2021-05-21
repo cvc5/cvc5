@@ -29,7 +29,7 @@ std::ostream& operator<<(std::ostream& out, const EmptySet& asa) {
 }
 
 size_t EmptySetHashFunction::operator()(const EmptySet& es) const {
-  return TypeNodeHashFunction()(es.getType());
+  return std::hash<TypeNode>()(es.getType());
 }
 
 /**

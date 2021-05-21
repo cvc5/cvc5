@@ -192,7 +192,7 @@ bool DType::resolve(const std::map<std::string, TypeNode>& resolutions,
   {
     // all datatype constructors should be sygus and have sygus operators whose
     // free variables are subsets of sygus bound var list.
-    std::unordered_set<Node, NodeHashFunction> svs;
+    std::unordered_set<Node> svs;
     for (const Node& sv : d_sygusBvl)
     {
       svs.insert(sv);
@@ -202,7 +202,7 @@ bool DType::resolve(const std::map<std::string, TypeNode>& resolutions,
       Node sop = d_constructors[i]->getSygusOp();
       Assert(!sop.isNull())
           << "Sygus datatype contains a non-sygus constructor";
-      std::unordered_set<Node, NodeHashFunction> fvs;
+      std::unordered_set<Node> fvs;
       expr::getFreeVariables(sop, fvs);
       for (const Node& v : fvs)
       {
@@ -625,10 +625,9 @@ Node DType::mkGroundTermInternal(TypeNode t, bool isValue) const
   return groundTerm;
 }
 
-void DType::getAlienSubfieldTypes(
-    std::unordered_set<TypeNode, TypeNodeHashFunction>& types,
-    std::map<TypeNode, bool>& processed,
-    bool isAlienPos) const
+void DType::getAlienSubfieldTypes(std::unordered_set<TypeNode>& types,
+                                  std::map<TypeNode, bool>& processed,
+                                  bool isAlienPos) const
 {
   std::map<TypeNode, bool>::iterator it = processed.find(d_self);
   if (it != processed.end())
@@ -708,7 +707,7 @@ bool DType::hasNestedRecursion() const
   Trace("datatypes-init") << "Compute simply recursive for " << getName()
                           << std::endl;
   // get the alien subfield types of this datatype
-  std::unordered_set<TypeNode, TypeNodeHashFunction> types;
+  std::unordered_set<TypeNode> types;
   std::map<TypeNode, bool> processed;
   getAlienSubfieldTypes(types, processed, false);
   if (Trace.isOn("datatypes-init"))

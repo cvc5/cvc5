@@ -1330,7 +1330,7 @@ std::vector<Node> SmtEngine::getExpandedAssertions()
   std::vector<Node> easserts = getAssertions();
   // must expand definitions
   std::vector<Node> eassertsProc;
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  std::unordered_map<Node, Node> cache;
   for (const Node& e : easserts)
   {
     Node eae = d_pp->expandDefinitions(e, cache);
@@ -1394,8 +1394,8 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   if (!d_env->getOption(options::unsatCores))
   {
     throw ModalException(
-        "Cannot get an unsat core when produce-unsat-cores[-new] or "
-        "produce-proofs option is off.");
+        "Cannot get an unsat core when produce-unsat-cores or produce-proofs "
+        "option is off.");
   }
   if (d_state->getMode() != SmtMode::UNSAT)
   {

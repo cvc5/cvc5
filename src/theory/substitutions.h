@@ -40,18 +40,16 @@ namespace theory {
  *
  * This map is context-dependent.
  */
-class SubstitutionMap {
-
-public:
-
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
+class SubstitutionMap
+{
+ public:
+  typedef context::CDHashMap<Node, Node> NodeMap;
 
   typedef NodeMap::iterator iterator;
   typedef NodeMap::const_iterator const_iterator;
 
-private:
-
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeCache;
+ private:
+  typedef std::unordered_map<Node, Node> NodeCache;
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
 
@@ -68,18 +66,21 @@ private:
   Node internalSubstitute(TNode t, NodeCache& cache);
 
   /** Helper class to invalidate cache on user pop */
-  class CacheInvalidator : public context::ContextNotifyObj {
+  class CacheInvalidator : public context::ContextNotifyObj
+  {
     bool& d_cacheInvalidated;
-  protected:
-   void contextNotifyPop() override { d_cacheInvalidated = true; }
 
-  public:
-    CacheInvalidator(context::Context* context, bool& cacheInvalidated) :
-      context::ContextNotifyObj(context),
-      d_cacheInvalidated(cacheInvalidated) {
+   protected:
+    void contextNotifyPop() override { d_cacheInvalidated = true; }
+
+   public:
+    CacheInvalidator(context::Context* context, bool& cacheInvalidated)
+        : context::ContextNotifyObj(context),
+          d_cacheInvalidated(cacheInvalidated)
+    {
     }
 
-  };/* class SubstitutionMap::CacheInvalidator */
+  }; /* class SubstitutionMap::CacheInvalidator */
 
   /**
    * This object is notified on user pop and marks the SubstitutionMap's
@@ -103,7 +104,8 @@ private:
   /**
    * Returns true iff x is in the substitution map
    */
-  bool hasSubstitution(TNode x) const {
+  bool hasSubstitution(TNode x) const
+  {
     return d_substitutions.find(x) != d_substitutions.end();
   }
 
@@ -115,8 +117,10 @@ private:
    * is mainly intended for constructing assertions about what has
    * already been put in the map.
    */
-  TNode getSubstitution(TNode x) const {
-    AssertArgument(hasSubstitution(x), x, "element not in this substitution map");
+  TNode getSubstitution(TNode x) const
+  {
+    AssertArgument(
+        hasSubstitution(x), x, "element not in this substitution map");
     return (*d_substitutions.find(x)).second;
   }
 
@@ -128,29 +132,20 @@ private:
   /**
    * Apply the substitutions to the node.
    */
-  Node apply(TNode t, bool doRewrite = false) const {
+  Node apply(TNode t, bool doRewrite = false) const
+  {
     return const_cast<SubstitutionMap*>(this)->apply(t, doRewrite);
   }
 
-  iterator begin() {
-    return d_substitutions.begin();
-  }
+  iterator begin() { return d_substitutions.begin(); }
 
-  iterator end() {
-    return d_substitutions.end();
-  }
+  iterator end() { return d_substitutions.end(); }
 
-  const_iterator begin() const {
-    return d_substitutions.begin();
-  }
+  const_iterator begin() const { return d_substitutions.begin(); }
 
-  const_iterator end() const {
-    return d_substitutions.end();
-  }
+  const_iterator end() const { return d_substitutions.end(); }
 
-  bool empty() const {
-    return d_substitutions.empty();
-  }
+  bool empty() const { return d_substitutions.empty(); }
 
   /**
    * Print to the output stream
@@ -158,7 +153,7 @@ private:
   void print(std::ostream& out) const;
   void debugPrint() const;
 
-};/* class SubstitutionMap */
+}; /* class SubstitutionMap */
 
 inline std::ostream& operator << (std::ostream& out, const SubstitutionMap& subst) {
   subst.print(out);

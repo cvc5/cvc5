@@ -117,7 +117,7 @@ class Evaluator
   Node eval(TNode n,
             const std::vector<Node>& args,
             const std::vector<Node>& vals,
-            const std::unordered_map<Node, Node, NodeHashFunction>& visited,
+            const std::unordered_map<Node, Node>& visited,
             bool useRewriter = true) const;
 
  private:
@@ -137,13 +137,12 @@ class Evaluator
    * `args` to `vals` and rewriting. Notice that this map contains an entry
    * for n in the case that it cannot be evaluated.
    */
-  EvalResult evalInternal(
-      TNode n,
-      const std::vector<Node>& args,
-      const std::vector<Node>& vals,
-      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode,
-      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results,
-      bool useRewriter) const;
+  EvalResult evalInternal(TNode n,
+                          const std::vector<Node>& args,
+                          const std::vector<Node>& vals,
+                          std::unordered_map<TNode, Node>& evalAsNode,
+                          std::unordered_map<TNode, EvalResult>& results,
+                          bool useRewriter) const;
   /** reconstruct
    *
    * This function reconstructs the result of evaluating n using a combination
@@ -153,10 +152,9 @@ class Evaluator
    * above method for some args and vals. This method ensures that the return
    * value is equivalent to the rewritten form of n * { args -> vals }.
    */
-  Node reconstruct(
-      TNode n,
-      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& eresults,
-      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode) const;
+  Node reconstruct(TNode n,
+                   std::unordered_map<TNode, EvalResult>& eresults,
+                   std::unordered_map<TNode, Node>& evalAsNode) const;
 };
 
 }  // namespace theory
