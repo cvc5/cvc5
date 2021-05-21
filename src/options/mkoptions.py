@@ -122,12 +122,13 @@ TPL_HOLDER_MACRO_ATTR += "  bool {name}__setByUser__ = false;"
 TPL_HOLDER_MACRO_ATTR_DEF = "  {type} {name} = {default};\\\n"
 TPL_HOLDER_MACRO_ATTR_DEF += "  bool {name}__setByUser__ = false;"
 
+TPL_NAME_DECL = 'static constexpr const char* {name}__name = "{long_name}";'
+
 TPL_OPTION_STRUCT_RW = \
 """extern struct {name}__option_t
 {{
   typedef {type} type;
   type operator()() const;
-  static constexpr const char* name = "{long_name}";
 }} thread_local {name};"""
 
 TPL_DECL_SET = \
@@ -563,6 +564,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
     # *_options.h
     includes = set()
     holder_specs = []
+    option_names = []
     decls = []
     specs = []
     inls = []
@@ -597,6 +599,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         else:
             long_name = ""
         decls.append(tpl_decl.format(name=option.name, type=option.type, long_name = long_name))
+        option_names.append(TPL_NAME_DECL.format(name=option.name, type=option.type, long_name = long_name))
 
         # Generate module specialization
         specs.append(TPL_DECL_SET.format(name=option.name))
@@ -668,9 +671,10 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         id_cap=module.id_cap,
         id=module.id,
         includes='\n'.join(sorted(list(includes))),
-        holder_spec=' \\\n'.join(holder_specs),
+        holder_spec='\n'.join(holder_specs),
         decls='\n'.join(decls),
         specs='\n'.join(specs),
+        option_names='\n'.join(option_names),
         inls='\n'.join(inls),
         modes=''.join(mode_decl)))
 
