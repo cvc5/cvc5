@@ -490,10 +490,6 @@ class NodeManager
   /** Create a node with three children by operator. */
   Node mkNode(TNode opNode, TNode child1, TNode child2, TNode child3);
 
-  /** Create a node with four children by operator. */
-  Node mkNode(TNode opNode, TNode child1, TNode child2, TNode child3,
-              TNode child4);
-
   /** Create a node by applying an operator to the children. */
   template <bool ref_count>
   Node mkNode(TNode opNode, const std::vector<NodeTemplate<ref_count> >& children);
