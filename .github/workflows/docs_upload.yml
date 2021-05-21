@@ -75,6 +75,12 @@ jobs:
           if [ -n "$NAME" ]; then
             mv docs-new target/docs-$NAME-$HASH
             cd target/
+
+            if diff -r target/docs-master/ target/docs-$NAME-$HASH
+            then
+              echo "Ignored run, documentation is the same as for current master"
+            fi
+
             rm -f docs-$NAME
             ln -s docs-$NAME-$HASH docs-$NAME
             git add docs-$NAME docs-$NAME-$HASH
