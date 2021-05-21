@@ -24,11 +24,18 @@ set(CVC5_EXAMPLES_API
   sets
   sequences
   strings
+)
+
+foreach(example ${CVC5_EXAMPLES_API})
+  cvc5_add_example(${example} "" "api")
+endforeach()
+
+set(SYGUS_EXAMPLES_API
   sygus-fun
   sygus-grammar
   sygus-inv
 )
 
-foreach(example ${CVC5_EXAMPLES_API})
-  cvc5_add_example(${example} "" "api")
+foreach(example ${SYGUS_EXAMPLES_API})
+  cvc5_add_example(${example} "${example}.cpp utils.h utils.cpp" "api")
 endforeach()

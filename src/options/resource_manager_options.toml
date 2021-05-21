@@ -1,9 +1,8 @@
 id     = "RESMAN"
-name   = "Resource Manager options"
+name   = "Resource Manager"
 
 [[option]]
   name       = "cumulativeMillisecondLimit"
-  smt_name   = "tlimit"
   category   = "common"
   long       = "tlimit=MS"
   type       = "uint64_t"
@@ -11,7 +10,6 @@ name   = "Resource Manager options"
 
 [[option]]
   name       = "perCallMillisecondLimit"
-  smt_name   = "tlimit-per"
   category   = "common"
   long       = "tlimit-per=MS"
   type       = "uint64_t"
@@ -19,7 +17,6 @@ name   = "Resource Manager options"
 
 [[option]]
   name       = "cumulativeResourceLimit"
-  smt_name   = "rlimit"
   category   = "common"
   long       = "rlimit=N"
   type       = "uint64_t"
@@ -27,7 +24,7 @@ name   = "Resource Manager options"
 
 [[option]]
   name       = "perCallResourceLimit"
-  smt_name   = "reproducible-resource-limit"
+  alias      = ["reproducible-resource-limit"]
   category   = "common"
   long       = "rlimit-per=N"
   type       = "uint64_t"

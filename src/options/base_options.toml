@@ -29,7 +29,7 @@ name   = "Base"
 
 [[option]]
   name       = "inputLanguage"
-  smt_name   = "input-language"
+  alias      = ["input-language"]
   category   = "common"
   short      = "L"
   long       = "lang=LANG"
@@ -41,7 +41,7 @@ name   = "Base"
 
 [[option]]
   name       = "outputLanguage"
-  smt_name   = "output-language"
+  alias      = ["output-language"]
   category   = "common"
   long       = "output-lang=LANG"
   type       = "OutputLanguage"
@@ -57,7 +57,7 @@ name   = "Base"
 
 [[option]]
   name       = "verbosity"
-  smt_name   = "verbosity"
+  long       = "verbosity=N"
   category   = "regular"
   type       = "int"
   default    = "0"
@@ -82,7 +82,6 @@ name   = "Base"
 
 [[option]]
   name       = "statistics"
-  smt_name   = "stats"
   long       = "stats"
   category   = "common"
   type       = "bool"
@@ -91,7 +90,6 @@ name   = "Base"
 
 [[option]]
   name       = "statisticsAll"
-  smt_name   = "stats-all"
   long       = "stats-all"
   category   = "expert"
   type       = "bool"
@@ -100,7 +98,6 @@ name   = "Base"
 
 [[option]]
   name       = "statisticsExpert"
-  smt_name   = "stats-expert"
   long       = "stats-expert"
   category   = "expert"
   type       = "bool"
@@ -109,7 +106,6 @@ name   = "Base"
 
 [[option]]
   name       = "statisticsEveryQuery"
-  smt_name   = "stats-every-query"
   long       = "stats-every-query"
   category   = "regular"
   type       = "bool"
@@ -132,7 +128,6 @@ name   = "Base"
   help       = "exit after preprocessing input"
 
 [[option]]
-  smt_name   = "trace"
   category   = "regular"
   short      = "t"
   long       = "trace=TAG"
@@ -141,7 +136,6 @@ name   = "Base"
   help       = "trace something (e.g. -t pushpop), can repeat"
 
 [[option]]
-  smt_name   = "debug"
   category   = "regular"
   short      = "d"
   long       = "debug=TAG"

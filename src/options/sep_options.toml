@@ -1,5 +1,5 @@
 id     = "SEP"
-name   = "Sep"
+name   = "Separation Logic Theory"
 
 [[option]]
   name       = "sepCheckNeg"

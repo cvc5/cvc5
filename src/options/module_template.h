@@ -53,6 +53,13 @@ ${holder_spec}$
 ${decls}$
 // clang-format on
 
+namespace ${id}$
+{
+// clang-format off
+${option_names}$
+// clang-format on
+}
+
 }  // namespace options
 
 // clang-format off

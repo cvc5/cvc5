@@ -19,7 +19,6 @@
 #include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
-#include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/strings/arith_entail.h"
@@ -190,12 +189,6 @@ Node StringsPreprocess::reduce(Node t,
         nm->integerType(), t, SkolemCache::SK_PURIFY, "iok");
 
     Node negone = nm->mkConst(Rational(-1));
-    Node krange = nm->mkNode(GEQ, skk, negone);
-    // assert:   indexof( x, y, n ) >= -1
-    asserts.push_back(krange);
-    krange = nm->mkNode(GEQ, nm->mkNode(STRING_LENGTH, x), skk);
-    // assert:   len( x ) >= indexof( x, y, z )
-    asserts.push_back(krange);
 
     // substr( x, n, len( x ) - n )
     Node st = nm->mkNode(STRING_SUBSTR,

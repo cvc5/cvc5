@@ -138,7 +138,7 @@ public:
    ReferenceStat<int64_t> d_statEliminatedVars;
    IntStat d_statCallsToSolve;
    TimerStat d_statSolveTime;
-   bool d_registerStats;
+   bool d_registerStats = true;
    Statistics(StatisticsRegistry& registry, const std::string& prefix);
    void init(BVMinisat::SimpSolver* minisat);
    void deinit();

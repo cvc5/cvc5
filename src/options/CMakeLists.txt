@@ -70,14 +70,25 @@ libcvc5_add_sources(GENERATED options.h options.cpp ${options_gen_cpp_files})
 
 list_prepend(options_toml_files "${CMAKE_CURRENT_LIST_DIR}/" abs_toml_files)
 
+set(options_gen_doc_files "")
+if (BUILD_DOCS)
+  list(
+    APPEND
+      options_gen_doc_files
+      "${CMAKE_BINARY_DIR}/docs/options_generated.rst"
+  )
+endif()
+
 add_custom_command(
     OUTPUT
       options.h options.cpp
       ${options_gen_cpp_files} ${options_gen_h_files}
+      ${options_gen_doc_files}
     COMMAND
       ${PYTHON_EXECUTABLE}
       ${CMAKE_CURRENT_LIST_DIR}/mkoptions.py
       ${CMAKE_CURRENT_LIST_DIR}
+      ${CMAKE_BINARY_DIR}
       ${CMAKE_CURRENT_BINARY_DIR}
       ${abs_toml_files}
     DEPENDS

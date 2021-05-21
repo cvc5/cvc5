@@ -311,7 +311,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
       const auto isZeroPf = d_pnm->mkAssume(isZero);
       const auto nm = NodeManager::currentNM();
       const auto sumPf = d_pnm->mkNode(
-          PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
+          PfRule::MACRO_ARITH_SCALE_SUM_UB,
           {isZeroPf, pf},
           // Trick for getting correct, opposing signs.
           {nm->mkConst(Rational(-1 * cSign)), nm->mkConst(Rational(cSign))});
