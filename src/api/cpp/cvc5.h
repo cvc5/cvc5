@@ -4118,12 +4118,6 @@ class CVC5_EXPORT Solver
    */
   std::vector<Term> getSynthSolutions(const std::vector<Term>& terms) const;
 
-  /**
-   * Print solution for synthesis conjecture to the given output stream.
-   * @param out the output stream
-   */
-  void printSynthSolution(std::ostream& out) const;
-
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
   SmtEngine* getSmtEngine(void) const;
