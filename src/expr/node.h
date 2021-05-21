@@ -261,8 +261,12 @@ public:
                  Iterator substitutionsEnd,
                  std::unordered_map<TNode, TNode>& cache) const;
 
- /** Default constructor, makes a null expression. */
- NodeTemplate() : d_nv(&expr::NodeValue::null()) {}
+ /** Default constructor, makes a null expression.
+  *
+  * This constructor is `explicit` to avoid accidentially creating a null node
+  * from an empty braced-init-list.
+  */
+ explicit NodeTemplate() : d_nv(&expr::NodeValue::null()) {}
 
  /**
   * Conversion between nodes that are reference-counted and those that are
