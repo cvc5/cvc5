@@ -84,11 +84,11 @@ operator GEQ 2 "greater than or equal, x >= y"
 
 # represents an indexed root predicate. See util/indexed_root_predicate.h for more documentation.
 constant INDEXED_ROOT_PREDICATE_OP \
-  class \
-	IndexedRootPredicate \
-	::cvc5::IndexedRootPredicateHashFunction \
-	"util/indexed_root_predicate.h" \
-	"operator for the indexed root predicate; payload is an instance of the cvc5::IndexedRootPredicate class"
+  struct \
+  IndexedRootPredicate \
+  ::cvc5::IndexedRootPredicateHashFunction \
+  "util/indexed_root_predicate.h" \
+  "operator for the indexed root predicate; payload is an instance of the cvc5::IndexedRootPredicate class"
 parameterized INDEXED_ROOT_PREDICATE INDEXED_ROOT_PREDICATE_OP 2 "indexed root predicate; first parameter is a INDEXED_ROOT_PREDICATE_OP, second is a real variable compared to zero, third is a polynomial"
 
 operator IS_INTEGER 1 "term-is-integer predicate (parameter is a real-sorted term)"
