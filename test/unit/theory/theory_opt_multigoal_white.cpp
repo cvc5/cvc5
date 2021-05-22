@@ -60,7 +60,7 @@ TEST_F(TestTheoryWhiteOptMultigoal, box)
 
   // minimize x
   optSolver.pushObjective(x, OptimizationObjective::MINIMIZE, false);
-  // maximize y
+  // maximize y with `signed` comparison over bit-vectors.
   optSolver.pushObjective(y, OptimizationObjective::MAXIMIZE, true);
   // maximize z
   optSolver.pushObjective(z, OptimizationObjective::MAXIMIZE, false);
