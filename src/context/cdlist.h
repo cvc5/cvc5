@@ -132,28 +132,33 @@ protected:
     Debug("cdlist") << "grow " << this << " " << getContext()->getLevel()
                     << ": grow!" << std::endl;
 
+    size_t maxSize = std::allocator_traits<AllocatorT>::max_size(d_allocator);
     if(d_list == NULL) {
       // Allocate an initial list if one does not yet exist
       d_sizeAlloc = INITIAL_SIZE;
       Debug("cdlist") << "initial grow of cdlist " << this
                       << " level " << getContext()->getLevel()
                       << " to " << d_sizeAlloc << std::endl;
-      if(d_sizeAlloc > d_allocator.max_size()) {
-        d_sizeAlloc = d_allocator.max_size();
+      if (d_sizeAlloc > maxSize)
+      {
+        d_sizeAlloc = maxSize;
       }
-      d_list = d_allocator.allocate(d_sizeAlloc);
+      d_list =
+          std::allocator_traits<AllocatorT>::allocate(d_allocator, d_sizeAlloc);
       if(d_list == NULL) {
         throw std::bad_alloc();
       }
     } else {
       // Allocate a new array with double the size
       size_t newSize = GROWTH_FACTOR * d_sizeAlloc;
-      if(newSize > d_allocator.max_size()) {
-        newSize = d_allocator.max_size();
+      if (newSize > maxSize)
+      {
+        newSize = maxSize;
         Assert(newSize > d_sizeAlloc)
             << "cannot request larger list due to allocator limits";
       }
-      T* newList = d_allocator.allocate(newSize);
+      T* newList =
+          std::allocator_traits<AllocatorT>::allocate(d_allocator, newSize);
       Debug("cdlist") << "2x grow of cdlist " << this
                       << " level " << getContext()->getLevel()
                       << " to " << newSize
@@ -163,7 +168,8 @@ protected:
         throw std::bad_alloc();
       }
       std::memcpy(newList, d_list, sizeof(T) * d_sizeAlloc);
-      d_allocator.deallocate(d_list, d_sizeAlloc);
+      std::allocator_traits<AllocatorT>::deallocate(
+          d_allocator, d_list, d_sizeAlloc);
       d_list = newList;
       d_sizeAlloc = newSize;
     }
@@ -222,7 +228,8 @@ protected:
       while(d_size != size) {
         --d_size;
         d_cleanUp(&d_list[d_size]);
-        d_allocator.destroy(&d_list[d_size]);
+        std::allocator_traits<AllocatorT>::destroy(d_allocator,
+                                                   &d_list[d_size]);
       }
     } else {
       d_size = size;
@@ -256,7 +263,8 @@ protected:
       truncateList(0);
     }
 
-    this->d_allocator.deallocate(this->d_list, this->d_sizeAlloc);
+    std::allocator_traits<AllocatorT>::deallocate(
+        d_allocator, this->d_list, this->d_sizeAlloc);
   }
 
   /**
@@ -295,7 +303,8 @@ protected:
                     << ": construct! at " << d_list
                     << "[" << d_size << "] == " << &d_list[d_size]
                     << std::endl;
-    d_allocator.construct(&d_list[d_size], data);
+    std::allocator_traits<AllocatorT>::construct(
+        d_allocator, &d_list[d_size], data);
     Debug("cdlist") << "push_back " << this
                     << " " << getContext()->getLevel()
                     << ": done..." << std::endl;
