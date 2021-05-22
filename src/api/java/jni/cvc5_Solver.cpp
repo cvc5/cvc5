@@ -249,24 +249,11 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_mkDatatypeSorts__J_3J(
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = (Solver*)pointer;
-  // get the size of pointers
-  jsize declsSize = env->GetArrayLength(jDecls);
-  // allocate buffer for the long array
-  jlong* cDecls = new jlong[declsSize];
-  // copy java array to the buffer
-  env->GetLongArrayRegion(jDecls, 0, declsSize, cDecls);
-  // copy into a vector
-  std::vector<DatatypeDecl> decls;
-  for (jsize i = 0; i < declsSize; i++)
-  {
-    DatatypeDecl* decl = (DatatypeDecl*)cDecls[i];
-    decls.push_back(*decl);
-  }
-  // free the buffer memory
-  delete[] cDecls;
-
+  std::vector<DatatypeDecl> decls =
+      getObjectsFromPointers<DatatypeDecl>(env, jDecls);
   std::vector<Sort> sorts = solver->mkDatatypeSorts(decls);
   std::vector<jlong> sortPointers(sorts.size());
+
   for (size_t i = 0; i < sorts.size(); i++)
   {
     sortPointers[i] = (jlong) new Sort(sorts[i]);
@@ -292,41 +279,13 @@ Java_cvc5_Solver_mkDatatypeSorts__J_3J_3J(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = (Solver*)pointer;
-  // get the size of pointers
-  jsize declsSize = env->GetArrayLength(jDecls);
-  jsize unresolvedSize = env->GetArrayLength(jUnresolved);
-  // allocate buffer for the long array
-  jlong* cDecls = new jlong[declsSize];
-  jlong* cUnresolved = new jlong[unresolvedSize];
-  // copy java array to the buffer
-  env->GetLongArrayRegion(jDecls, 0, declsSize, cDecls);
-  env->GetLongArrayRegion(jUnresolved, 0, unresolvedSize, cUnresolved);
-  // copy into a vector
-  std::vector<DatatypeDecl> decls;
-  for (jsize i = 0; i < declsSize; i++)
-  {
-    DatatypeDecl* decl = (DatatypeDecl*)cDecls[i];
-    decls.push_back(*decl);
-  }
-  std::set<Sort> unresolved;
-  for (jsize i = 0; i < unresolvedSize; i++)
-  {
-    Sort* sort = (Sort*)cUnresolved[i];
-    unresolved.insert(*sort);
-  }
-  // free the buffer memory
-  delete[] cDecls;
-  delete[] cUnresolved;
-
+  std::vector<DatatypeDecl> decls =
+      getObjectsFromPointers<DatatypeDecl>(env, jDecls);
+  std::vector<Sort> cUnresolved =
+      getObjectsFromPointers<Sort>(env, jUnresolved);
+  std::set<Sort> unresolved(cUnresolved.begin(), cUnresolved.end());
   std::vector<Sort> sorts = solver->mkDatatypeSorts(decls, unresolved);
-  std::vector<jlong> sortPointers(sorts.size());
-  for (size_t i = 0; i < sorts.size(); i++)
-  {
-    sortPointers[i] = (jlong) new Sort(sorts[i]);
-  }
-
-  jlongArray ret = env->NewLongArray(sorts.size());
-  env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
+  jlongArray ret = getPointersFromObjects<Sort>(env, sorts);
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
@@ -367,22 +326,7 @@ Java_cvc5_Solver_mkFunctionSort__J_3JJ(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = (Solver*)pointer;
   Sort* codomain = (Sort*)codomainPointer;
-  // get the size of pointers
-  jsize sortsSize = env->GetArrayLength(sortPointers);
-  // allocate buffer for the long array
-  jlong* sortsBuffer = new jlong[sortsSize];
-  // copy java array to the buffer
-  env->GetLongArrayRegion(sortPointers, 0, sortsSize, sortsBuffer);
-  // copy into a vector
-  std::vector<Sort> sorts;
-  for (jsize i = 0; i < sortsSize; i++)
-  {
-    Sort* sort = (Sort*)sortsBuffer[i];
-    sorts.push_back(*sort);
-  }
-  // free the buffer memory
-  delete[] sortsBuffer;
-
+  std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, sortPointers);
   Sort* retPointer = new Sort(solver->mkFunctionSort(sorts, *codomain));
   return ((jlong)retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -418,22 +362,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkPredicateSort(
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = (Solver*)pointer;
-  // get the size of pointers
-  jsize sortsSize = env->GetArrayLength(sortPointers);
-  // allocate buffer for the long array
-  jlong* sortsBuffer = new jlong[sortsSize];
-  // copy java array to the buffer
-  env->GetLongArrayRegion(sortPointers, 0, sortsSize, sortsBuffer);
-  // copy into a vector
-  std::vector<Sort> sorts;
-  for (jsize i = 0; i < sortsSize; i++)
-  {
-    Sort* sort = (Sort*)sortsBuffer[i];
-    sorts.push_back(*sort);
-  }
-  // free the buffer memory
-  delete[] sortsBuffer;
-
+  std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, sortPointers);
   Sort* retPointer = new Sort(solver->mkPredicateSort(sorts));
   return ((jlong)retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -597,22 +526,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTupleSort(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = (Solver*)pointer;
-  // get the size of sort pointers
-  jsize size = env->GetArrayLength(sortPointers);
-  // allocate buffer for the long array
-  jlong* buffer = new jlong[size];
-  // copy java array to the buffer
-  env->GetLongArrayRegion(sortPointers, 0, size, buffer);
-  // copy into a vector
-  std::vector<Sort> sorts;
-  for (jsize i = 0; i < size; i++)
-  {
-    Sort* sort = (Sort*)buffer[i];
-    sorts.push_back(*sort);
-  }
-  // free the buffer memory
-  delete[] buffer;
-
+  std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, sortPointers);
   Sort* retPointer = new Sort(solver->mkTupleSort(sorts));
   return ((jlong)retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -714,22 +628,8 @@ Java_cvc5_Solver_mkTerm__JI_3J(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = (Solver*)pointer;
   Kind kind = (Kind)kindValue;
-  // get the size of sort pointers
-  jsize size = env->GetArrayLength(childrenPointers);
-  // allocate buffer for the long array
-  jlong* buffer = new jlong[size];
-  // copy java array to the buffer
-  env->GetLongArrayRegion(childrenPointers, 0, size, buffer);
-  // copy into a vector
-  std::vector<Term> children;
-  for (jsize i = 0; i < size; i++)
-  {
-    Term* term = (Term*)buffer[i];
-    children.push_back(*term);
-  }
-  // free the buffer memory
-  delete[] buffer;
-
+  std::vector<Term> children =
+      getObjectsFromPointers<Term>(env, childrenPointers);
   Term* retPointer = new Term(solver->mkTerm(kind, children));
   return ((jlong)retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -831,23 +731,8 @@ Java_cvc5_Solver_mkTerm__JJ_3J(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = (Solver*)pointer;
   Op* op = (Op*)opPointer;
-
-  // get the size of children pointers
-  jsize size = env->GetArrayLength(childrenPointers);
-  // allocate buffer for the long array
-  jlong* buffer = new jlong[size];
-  // copy java array to the buffer
-  env->GetLongArrayRegion(childrenPointers, 0, size, buffer);
-  // copy into a vector
-  std::vector<Term> children;
-  for (jsize i = 0; i < size; i++)
-  {
-    Term* term = (Term*)buffer[i];
-    children.push_back(*term);
-  }
-  // free the buffer memory
-  delete[] buffer;
-
+  std::vector<Term> children =
+      getObjectsFromPointers<Term>(env, childrenPointers);
   Term* retPointer = new Term(solver->mkTerm(*op, children));
   return ((jlong)retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -866,31 +751,8 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTuple(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = (Solver*)pointer;
-  // get the size of children pointers
-  jsize sortsSize = env->GetArrayLength(sortPointers);
-  jsize termsSize = env->GetArrayLength(termPointers);
-  // allocate buffer for the long array
-  jlong* sortsBuffer = new jlong[termsSize];
-  jlong* termsBuffer = new jlong[termsSize];
-  // copy java array to the buffer
-  env->GetLongArrayRegion(sortPointers, 0, sortsSize, sortsBuffer);
-  env->GetLongArrayRegion(termPointers, 0, termsSize, termsBuffer);
-  // copy into a vector
-  std::vector<Sort> sorts;
-  for (jsize i = 0; i < sortsSize; i++)
-  {
-    Sort* sort = (Sort*)sortsBuffer[i];
-    sorts.push_back(*sort);
-  }
-  std::vector<Term> terms;
-  for (jsize i = 0; i < termsSize; i++)
-  {
-    Term* term = (Term*)termsBuffer[i];
-    terms.push_back(*term);
-  }
-  // free the buffer memory
-  delete[] termsBuffer;
-
+  std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, sortPointers);
+  std::vector<Term> terms = getObjectsFromPointers<Term>(env, termPointers);
   Term* retPointer = new Term(solver->mkTuple(sorts, terms));
   return ((jlong)retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -1721,23 +1583,7 @@ Java_cvc5_Solver_mkDatatypeDecl__JLjava_lang_String_2_3JZ(JNIEnv* env,
   Solver* solver = (Solver*)pointer;
   const char* s = env->GetStringUTFChars(jName, nullptr);
   std::string cName(s);
-  // get the size of pointers
-  jsize size = env->GetArrayLength(jParams);
-  // allocate buffer for the long array
-  jlong* cParams = new jlong[size];
-
-  // copy java array to the buffer
-  env->GetLongArrayRegion(jParams, 0, size, cParams);
-  // copy into a vector
-  std::vector<Sort> params;
-  for (jsize i = 0; i < size; i++)
-  {
-    Sort* sort = (Sort*)cParams[i];
-    params.push_back(*sort);
-  }
-  // free the buffer memory
-  delete[] cParams;
-
+  std::vector<Sort> params = getObjectsFromPointers<Sort>(env, jParams);
   DatatypeDecl* retPointer = new DatatypeDecl(
       solver->mkDatatypeDecl(cName, params, (bool)isCoDatatype));
   env->ReleaseStringUTFChars(jName, s);
@@ -1822,21 +1668,8 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSatAssuming__J_3J(
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = (Solver*)pointer;
-  // get the size of pointers
-  jsize size = env->GetArrayLength(jAssumptions);
-  // allocate buffer for the long array
-  jlong* cAssumptions = new jlong[size];
-  // copy java array to the buffer
-  env->GetLongArrayRegion(jAssumptions, 0, size, cAssumptions);
-  // copy into a vector
-  std::vector<Term> assumptions;
-  for (jsize i = 0; i < size; i++)
-  {
-    Term* t = (Term*)cAssumptions[i];
-    assumptions.push_back(*t);
-  }
-  // free the buffer memory
-  delete[] cAssumptions;
+  std::vector<Term> assumptions =
+      getObjectsFromPointers<Term>(env, jAssumptions);
   Result* retPointer = new Result(solver->checkSatAssuming(assumptions));
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -1872,22 +1705,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkEntailed__J_3J(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = (Solver*)pointer;
-
-  // get the size of pointers
-  jsize termsSize = env->GetArrayLength(jTerms);
-  // allocate buffer for the long array
-  jlong* cTerms = new jlong[termsSize];
-  // copy java array to the buffer
-  env->GetLongArrayRegion(jTerms, 0, termsSize, cTerms);
-  // copy into a vector
-  std::vector<Term> terms;
-  for (jsize i = 0; i < termsSize; i++)
-  {
-    Term* t = (Term*)cTerms[i];
-    terms.push_back(*t);
-  }
-  // free the buffer memory
-  delete[] cTerms;
+  std::vector<Term> terms = getObjectsFromPointers<Term>(env, jTerms);
   Result* retPointer = new Result(solver->checkEntailed(terms));
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -1905,23 +1723,10 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_declareDatatype(
   Solver* solver = (Solver*)pointer;
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
-  // get the size of pointers
-  jsize size = env->GetArrayLength(jCtors);
-  // allocate buffer for the long array
-  jlong* cCtors = new jlong[size];
-  // copy java array to the buffer
-  env->GetLongArrayRegion(jCtors, 0, size, cCtors);
-  // copy into a vector
-  std::vector<DatatypeConstructorDecl> ctors;
-  for (jsize i = 0; i < size; i++)
-  {
-    DatatypeConstructorDecl* decl = (DatatypeConstructorDecl*)cCtors[i];
-    ctors.push_back(*decl);
-  }
+  std::vector<DatatypeConstructorDecl> ctors =
+      getObjectsFromPointers<DatatypeConstructorDecl>(env, jCtors);
   Sort* retPointer = new Sort(solver->declareDatatype(cSymbol, ctors));
   env->ReleaseStringUTFChars(jSymbol, s);
-  // free the buffer memory
-  delete[] cCtors;
   return ((jlong)retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -1941,28 +1746,11 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_declareFun(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = (Solver*)pointer;
   Sort* sort = (Sort*)sortPointer;
-
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
-
-  // get the size of pointers
-  jsize size = env->GetArrayLength(jSorts);
-  // allocate buffer for the long array
-  jlong* cSorts = new jlong[size];
-  // copy java array to the buffer
-  env->GetLongArrayRegion(jSorts, 0, size, cSorts);
-  // copy into a vector
-  std::vector<Sort> sorts;
-  for (jsize i = 0; i < size; i++)
-  {
-    Sort* so = (Sort*)cSorts[i];
-    sorts.push_back(*so);
-  }
-
+  std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, jSorts);
   Term* retPointer = new Term(solver->declareFun(cSymbol, sorts, *sort));
   env->ReleaseStringUTFChars(jSymbol, s);
-  // free the buffer memory
-  delete[] cSorts;
   return ((jlong)retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -2003,27 +1791,12 @@ Java_cvc5_Solver_defineFun__JLjava_lang_String_2_3JJJZ(JNIEnv* env,
   Solver* solver = (Solver*)pointer;
   Sort* sort = (Sort*)sortPointer;
   Term* term = (Term*)termPointer;
-
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
-  // get the size of pointers
-  jsize size = env->GetArrayLength(jVars);
-  // allocate buffer for the long array
-  jlong* cVars = new jlong[size];
-  // copy java array to the buffer
-  env->GetLongArrayRegion(jVars, 0, size, cVars);
-  // copy into a vector
-  std::vector<Term> vars;
-  for (jsize i = 0; i < size; i++)
-  {
-    Term* t = (Term*)cVars[i];
-    vars.push_back(*t);
-  }
+  std::vector<Term> vars = getObjectsFromPointers<Term>(env, jVars);
   Term* retPointer =
       new Term(solver->defineFun(cSymbol, vars, *sort, *term, (bool)global));
   env->ReleaseStringUTFChars(jSymbol, s);
-  // free the buffer memory
-  delete[] cVars;
   return ((jlong)retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -2045,24 +1818,9 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_defineFun__JJ_3JJZ(JNIEnv* env,
   Solver* solver = (Solver*)pointer;
   Term* fun = (Term*)funPointer;
   Term* term = (Term*)termPointer;
-
-  // get the size of pointers
-  jsize size = env->GetArrayLength(jVars);
-  // allocate buffer for the long array
-  jlong* cVars = new jlong[size];
-  // copy java array to the buffer
-  env->GetLongArrayRegion(jVars, 0, size, cVars);
-  // copy into a vector
-  std::vector<Term> vars;
-  for (jsize i = 0; i < size; i++)
-  {
-    Term* t = (Term*)cVars[i];
-    vars.push_back(*t);
-  }
+  std::vector<Term> vars = getObjectsFromPointers<Term>(env, jVars);
   Term* retPointer =
       new Term(solver->defineFun(*fun, vars, *term, (bool)global));
-  // free the buffer memory
-  delete[] cVars;
   return ((jlong)retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -2086,27 +1844,12 @@ Java_cvc5_Solver_defineFunRec__JLjava_lang_String_2_3JJJZ(JNIEnv* env,
   Solver* solver = (Solver*)pointer;
   Sort* sort = (Sort*)sortPointer;
   Term* term = (Term*)termPointer;
-
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
-  // get the size of pointers
-  jsize size = env->GetArrayLength(jVars);
-  // allocate buffer for the long array
-  jlong* cVars = new jlong[size];
-  // copy java array to the buffer
-  env->GetLongArrayRegion(jVars, 0, size, cVars);
-  // copy into a vector
-  std::vector<Term> vars;
-  for (jsize i = 0; i < size; i++)
-  {
-    Term* t = (Term*)cVars[i];
-    vars.push_back(*t);
-  }
+  std::vector<Term> vars = getObjectsFromPointers<Term>(env, jVars);
   Term* retPointer =
       new Term(solver->defineFunRec(cSymbol, vars, *sort, *term, (bool)global));
   env->ReleaseStringUTFChars(jSymbol, s);
-  // free the buffer memory
-  delete[] cVars;
   return ((jlong)retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -2129,24 +1872,9 @@ Java_cvc5_Solver_defineFunRec__JJ_3JJZ(JNIEnv* env,
   Solver* solver = (Solver*)pointer;
   Term* fun = (Term*)funPointer;
   Term* term = (Term*)termPointer;
-
-  // get the size of pointers
-  jsize size = env->GetArrayLength(jVars);
-  // allocate buffer for the long array
-  jlong* cVars = new jlong[size];
-  // copy java array to the buffer
-  env->GetLongArrayRegion(jVars, 0, size, cVars);
-  // copy into a vector
-  std::vector<Term> vars;
-  for (jsize i = 0; i < size; i++)
-  {
-    Term* t = (Term*)cVars[i];
-    vars.push_back(*t);
-  }
+  std::vector<Term> vars = getObjectsFromPointers<Term>(env, jVars);
   Term* retPointer =
       new Term(solver->defineFunRec(*fun, vars, *term, (bool)global));
-  // free the buffer memory
-  delete[] cVars;
   return ((jlong)retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
