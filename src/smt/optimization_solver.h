@@ -265,7 +265,7 @@ class OptimizationSolver
   /** The results of the optimizations from the last checkOpt call **/
   std::vector<OptimizationResult> d_results;
 
-  /** The current objective order **/
+  /** The current objective combination method **/
   ObjectiveCombination d_objectiveCombination;
 };
 
