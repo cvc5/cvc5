@@ -44,11 +44,11 @@ operator ARCCOTANGENT 1 "arc cotangent"
 operator SQRT 1 "square root"
 
 constant DIVISIBLE_OP \
-        class \
-        Divisible \
-        ::cvc5::DivisibleHashFunction \
-        "util/divisible.h" \
-        "operator for the divisibility-by-k predicate; payload is an instance of the cvc5::Divisible class"
+  struct \
+  Divisible \
+  ::cvc5::DivisibleHashFunction \
+  "util/divisible.h" \
+  "operator for the divisibility-by-k predicate; payload is an instance of the cvc5::Divisible class"
 
 sort REAL_TYPE \
     Cardinality::REALS \
@@ -160,11 +160,11 @@ typerule PI ::cvc5::theory::arith::RealNullaryOperatorTypeRule
 # (bv2int (bvand ((_ int2bv k) i1) ((_ int2bv k) i2)))
 # for all integers i1, i2.
 constant IAND_OP \
-  class \
-	IntAnd \
-	"::cvc5::UnsignedHashFunction< ::cvc5::IntAnd >" \
-	"util/iand.h" \
-	"operator for integer AND; payload is an instance of the cvc5::IntAnd class"
+  struct \
+  IntAnd \
+  "::cvc5::UnsignedHashFunction< ::cvc5::IntAnd >" \
+  "util/iand.h" \
+  "operator for integer AND; payload is an instance of the cvc5::IntAnd class"
 parameterized IAND IAND_OP 2 "integer version of AND operator; first parameter is an IAND_OP, second and third are integer terms"
 
 typerule IAND_OP ::cvc5::theory::arith::IAndOpTypeRule

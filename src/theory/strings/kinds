@@ -104,19 +104,19 @@ operator REGEXP_EMPTY 0 "regexp empty"
 operator REGEXP_SIGMA 0 "regexp all characters"
 
 constant REGEXP_REPEAT_OP \
-  class \
-	RegExpRepeat \
-	::cvc5::RegExpRepeatHashFunction \
-	"util/regexp.h" \
-	"operator for regular expression repeat; payload is an instance of the cvc5::RegExpRepeat class"
+  struct \
+  RegExpRepeat \
+  ::cvc5::RegExpRepeatHashFunction \
+  "util/regexp.h" \
+  "operator for regular expression repeat; payload is an instance of the cvc5::RegExpRepeat class"
 parameterized REGEXP_REPEAT REGEXP_REPEAT_OP 1 "regular expression repeat; first parameter is a REGEXP_REPEAT_OP, second is a regular expression term"
 
 constant REGEXP_LOOP_OP \
-  class \
-	RegExpLoop \
-	::cvc5::RegExpLoopHashFunction \
-	"util/regexp.h" \
-	"operator for regular expression loop; payload is an instance of the cvc5::RegExpLoop class"
+  struct \
+  RegExpLoop \
+  ::cvc5::RegExpLoopHashFunction \
+  "util/regexp.h" \
+  "operator for regular expression loop; payload is an instance of the cvc5::RegExpLoop class"
 parameterized REGEXP_LOOP REGEXP_LOOP_OP 1 "regular expression loop; first parameter is a REGEXP_LOOP_OP, second is a regular expression term"
 
 #internal
