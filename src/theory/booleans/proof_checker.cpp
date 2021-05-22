@@ -157,10 +157,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     NodeManager* nm = NodeManager::currentNM();
-    return disjuncts.empty()
-               ? nm->mkConst<bool>(false)
-               : disjuncts.size() == 1 ? disjuncts[0]
-                                       : nm->mkNode(kind::OR, disjuncts);
+    return nm->mkOr(disjuncts);
   }
   if (id == PfRule::REORDERING)
   {
@@ -297,10 +294,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       Trace("bool-pfcheck") << i << ": added lits: " << added << "\n\n";
     }
     Trace("bool-pfcheck") << "clause: " << clauseNodes << "\n" << pop;
-    return clauseNodes.empty()
-               ? nm->mkConst(false)
-               : clauseNodes.size() == 1 ? clauseNodes[0]
-                                         : nm->mkNode(kind::OR, clauseNodes);
+    return nm->mkOr(clauseNodes);
   }
   if (id == PfRule::MACRO_RESOLUTION_TRUST)
   {

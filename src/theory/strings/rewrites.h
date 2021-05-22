@@ -204,6 +204,7 @@ enum class Rewrite : uint32_t
   SUF_PREFIX_ELIM,
   STR_LT_ELIM,
   RE_RANGE_SINGLE,
+  RE_RANGE_EMPTY,
   RE_OPT_ELIM,
   RE_PLUS_ELIM,
   RE_DIFF_ELIM,

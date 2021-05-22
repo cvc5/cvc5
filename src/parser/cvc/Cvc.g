@@ -1904,7 +1904,7 @@ bvTerm[cvc5::api::Term& f]
       for (unsigned i = 0; i < args.size(); ++ i) {
         ENSURE_BV_SIZE(k, args[i]);
       }
-      f = MK_TERM(cvc5::api::BITVECTOR_PLUS, args);
+      f = MK_TERM(cvc5::api::BITVECTOR_ADD, args);
     }
     /* BV subtraction */
   | BVSUB_TOK LPAREN k=numeral COMMA formula[f] COMMA formula[f2] RPAREN

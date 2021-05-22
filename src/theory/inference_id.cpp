@@ -39,6 +39,8 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_BB_LEMMA: return "ARITH_BB_LEMMA";
     case InferenceId::ARITH_DIO_CUT: return "ARITH_DIO_CUT";
     case InferenceId::ARITH_DIO_DECOMPOSITION: return "ARITH_DIO_DECOMPOSITION";
+    case InferenceId::ARITH_UNATE: return "ARITH_UNATE";
+    case InferenceId::ARITH_ROW_IMPL: return "ARITH_ROW_IMPL";
     case InferenceId::ARITH_SPLIT_FOR_NL_MODEL:
       return "ARITH_SPLIT_FOR_NL_MODEL";
     case InferenceId::ARITH_PP_ELIM_OPERATORS: return "ARITH_PP_ELIM_OPERATORS";
@@ -148,6 +150,10 @@ const char* toString(InferenceId i)
     case InferenceId::DATATYPES_SYGUS_MT_BOUND:
       return "DATATYPES_SYGUS_MT_BOUND";
     case InferenceId::DATATYPES_SYGUS_MT_POS: return "DATATYPES_SYGUS_MT_POS";
+
+    case InferenceId::FP_PREPROCESS: return "FP_PREPROCESS";
+    case InferenceId::FP_EQUATE_TERM: return "FP_EQUATE_TERM";
+    case InferenceId::FP_REGISTER_TERM: return "FP_REGISTER_TERM";
 
     case InferenceId::QUANTIFIERS_INST_E_MATCHING:
       return "QUANTIFIERS_INST_E_MATCHING";
@@ -269,6 +275,7 @@ const char* toString(InferenceId i)
       return "SETS_RELS_PRODUCE_COMPOSE";
     case InferenceId::SETS_RELS_PRODUCT_SPLIT: return "SETS_RELS_PRODUCT_SPLIT";
     case InferenceId::SETS_RELS_TCLOSURE_FWD: return "SETS_RELS_TCLOSURE_FWD";
+    case InferenceId::SETS_RELS_TCLOSURE_UP: return "SETS_RELS_TCLOSURE_UP";
     case InferenceId::SETS_RELS_TRANSPOSE_EQ: return "SETS_RELS_TRANSPOSE_EQ";
     case InferenceId::SETS_RELS_TRANSPOSE_REV: return "SETS_RELS_TRANSPOSE_REV";
     case InferenceId::SETS_RELS_TUPLE_REDUCTION:

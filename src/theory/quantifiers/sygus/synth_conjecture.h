@@ -134,11 +134,11 @@ class SynthConjecture
   bool doRefine();
   //-------------------------------end for counterexample-guided check/refine
   /**
-   * Prints the synthesis solution to output stream out. This invokes solution
-   * reconstruction if the conjecture is single invocation. Otherwise, it
-   * returns the solution found by sygus enumeration.
+   * Prints the current synthesis solution to output stream out. This is
+   * currently used for printing solutions for sygusStream only. We do not
+   * enclose solutions in parentheses.
    */
-  void printSynthSolution(std::ostream& out);
+  void printSynthSolutionInternal(std::ostream& out);
   /** get synth solutions
    *
    * This method returns true if this class has a solution available to the

@@ -90,7 +90,7 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
   {
     // (and (>= (str.indexof x y n) (- 1)) (<= (str.indexof x y n) (str.len
     // x)))
-    Node l = utils::mkNLength(t[0]);
+    Node l = nm->mkNode(STRING_LENGTH, t[0]);
     lemma = nm->mkNode(AND,
                        nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
                        nm->mkNode(LEQ, t, l));
@@ -175,6 +175,22 @@ void TermRegistry::preRegisterTerm(TNode n)
   else if (k == STRING_TO_CODE)
   {
     d_hasStrCode = true;
+  }
+  else if (k == REGEXP_RANGE)
+  {
+    for (const Node& nc : n)
+    {
+      if (!nc.isConst())
+      {
+        throw LogicException(
+            "expecting a constant string term in regexp range");
+      }
+      if (nc.getConst<String>().size() != 1)
+      {
+        throw LogicException(
+            "expecting a single constant string term in regexp range");
+      }
+    }
   }
   registerTerm(n, 0);
   TypeNode tn = n.getType();

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --fmf-fun --macros-quant --macros-quant-mode=ground --no-check-models
+; COMMAND-LINE: --incremental --fmf-fun --macros-quant --macros-quant-mode=ground --no-check-models --no-check-unsat-cores
 (set-logic UFLIA)
 
 (define-fun f ((x Int)) Int x)

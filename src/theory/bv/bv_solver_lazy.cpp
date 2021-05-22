@@ -434,15 +434,15 @@ TrustNode BVSolverLazy::ppRewrite(TNode t)
     Node result = RewriteRule<BitwiseEq>::run<false>(t);
     res = Rewriter::rewrite(result);
   }
-  else if (RewriteRule<UltPlusOne>::applies(t))
+  else if (RewriteRule<UltAddOne>::applies(t))
   {
-    Node result = RewriteRule<UltPlusOne>::run<false>(t);
+    Node result = RewriteRule<UltAddOne>::run<false>(t);
     res = Rewriter::rewrite(result);
   }
   else if (res.getKind() == kind::EQUAL
-           && ((res[0].getKind() == kind::BITVECTOR_PLUS
+           && ((res[0].getKind() == kind::BITVECTOR_ADD
                 && RewriteRule<ConcatToMult>::applies(res[1]))
-               || (res[1].getKind() == kind::BITVECTOR_PLUS
+               || (res[1].getKind() == kind::BITVECTOR_ADD
                    && RewriteRule<ConcatToMult>::applies(res[0]))))
   {
     Node mult = RewriteRule<ConcatToMult>::applies(res[0])
@@ -469,20 +469,20 @@ TrustNode BVSolverLazy::ppRewrite(TNode t)
   {
     res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
   }
-  else if (RewriteRule<NormalizeEqPlusNeg>::applies(t))
+  else if (RewriteRule<NormalizeEqAddNeg>::applies(t))
   {
-    res = RewriteRule<NormalizeEqPlusNeg>::run<false>(t);
+    res = RewriteRule<NormalizeEqAddNeg>::run<false>(t);
   }
 
   // if(t.getKind() == kind::EQUAL &&
   //    ((t[0].getKind() == kind::BITVECTOR_MULT && t[1].getKind() ==
-  //    kind::BITVECTOR_PLUS) ||
+  //    kind::BITVECTOR_ADD) ||
   //     (t[1].getKind() == kind::BITVECTOR_MULT && t[0].getKind() ==
-  //     kind::BITVECTOR_PLUS))) {
+  //     kind::BITVECTOR_ADD))) {
   //   // if we have an equality between a multiplication and addition
   //   // try to express multiplication in terms of addition
   //   Node mult = t[0].getKind() == kind::BITVECTOR_MULT? t[0] : t[1];
-  //   Node add = t[0].getKind() == kind::BITVECTOR_PLUS? t[0] : t[1];
+  //   Node add = t[0].getKind() == kind::BITVECTOR_ADD? t[0] : t[1];
   //   if (RewriteRule<MultSlice>::applies(mult)) {
   //     Node new_mult = RewriteRule<MultSlice>::run<false>(mult);
   //     Node new_eq =
@@ -653,13 +653,13 @@ void BVSolverLazy::ppStaticLearn(TNode in, NodeBuilder& learned)
 
   if (in.getKind() == kind::EQUAL)
   {
-    if ((in[0].getKind() == kind::BITVECTOR_PLUS
+    if ((in[0].getKind() == kind::BITVECTOR_ADD
          && in[1].getKind() == kind::BITVECTOR_SHL)
-        || (in[1].getKind() == kind::BITVECTOR_PLUS
+        || (in[1].getKind() == kind::BITVECTOR_ADD
             && in[0].getKind() == kind::BITVECTOR_SHL))
     {
-      TNode p = in[0].getKind() == kind::BITVECTOR_PLUS ? in[0] : in[1];
-      TNode s = in[0].getKind() == kind::BITVECTOR_PLUS ? in[1] : in[0];
+      TNode p = in[0].getKind() == kind::BITVECTOR_ADD ? in[0] : in[1];
+      TNode s = in[0].getKind() == kind::BITVECTOR_ADD ? in[1] : in[0];
 
       if (p.getNumChildren() == 2 && p[0].getKind() == kind::BITVECTOR_SHL
           && p[1].getKind() == kind::BITVECTOR_SHL)
