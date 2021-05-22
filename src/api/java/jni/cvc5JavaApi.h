@@ -65,6 +65,13 @@ std::vector<T> getObjectsFromPointers(JNIEnv* env, jlongArray jPointers)
   return objects;
 }
 
+/**
+ * Convert cvc5 objects into pointers
+ * @tparam T cvc5 class (Term, Sort, Grammar, etc)
+ * @param env jni environment
+ * @param objects cvc5 objects
+ * @return jni array of pointers
+ */
 template <class T>
 jlongArray getPointersFromObjects(JNIEnv* env, std::vector<T> objects)
 {
