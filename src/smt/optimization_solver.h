@@ -253,7 +253,7 @@ class OptimizationSolver
    **/
   OptimizationResult::ResultType optimizeBox();
 
-  /** A point to the parent SMT engine **/
+  /** A pointer to the parent SMT engine **/
   SmtEngine* d_parent;
 
   /** A subsolver for offline optimization **/
