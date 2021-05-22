@@ -163,7 +163,7 @@ class OptimizationSolver
 {
  public:
   /**
-   * An enum specifying how multiple objectives are dealt.
+   * An enum specifying how multiple objectives are dealt with.
    * Definition:
    *   phi(x, y): set of assertions with variables x and y
    *
