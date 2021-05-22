@@ -290,7 +290,8 @@ namespace rewrite {
     Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
 
     if (node[1] > node[2]) {
-      Node normal = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_FMA,node[0],node[2],node[1],node[3]);
+      Node normal = NodeManager::currentNM()->mkNode(
+          kind::FLOATINGPOINT_FMA, {node[0], node[2], node[1], node[3]});
       return RewriteResponse(REWRITE_DONE, normal);
     } else {
       return RewriteResponse(REWRITE_DONE, node);

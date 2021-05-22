@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-unsat-cores
+; COMMAND-LINE:
 ; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)

@@ -113,6 +113,11 @@ class CVC5_EXPORT SymbolManager
    */
   std::vector<api::Term> getModelDeclareTerms() const;
   /**
+   * @return The functions we have declared that should be printed in a response
+   * to check-synth.
+   */
+  std::vector<api::Term> getFunctionsToSynthesize() const;
+  /**
    * Add declared sort to the list of model declarations.
    */
   void addModelDeclarationSort(api::Sort s);
@@ -120,6 +125,11 @@ class CVC5_EXPORT SymbolManager
    * Add declared term to the list of model declarations.
    */
   void addModelDeclarationTerm(api::Term t);
+  /**
+   * Add a function to synthesize. This ensures the solution for f is printed
+   * in a successful response to check-synth.
+   */
+  void addFunctionToSynthesize(api::Term f);
 
   //---------------------------- end named expressions
   /**
