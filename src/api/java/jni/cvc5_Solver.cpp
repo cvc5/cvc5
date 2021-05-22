@@ -2027,10 +2027,17 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_getValue__JJ(JNIEnv* env,
  * Method:    getValue
  * Signature: (J[J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getValue__J_3J(JNIEnv* env,
-                                                             jobject,
-                                                             jlong,
-                                                             jlongArray);
+JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getValue__J_3J(
+    JNIEnv* env, jobject, jlong pointer, jlongArray termPointers)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  std::vector<Term> terms = getObjectsFromPointers<Term>(env, termPointers);
+  std::vector<Term> values = solver->getValue(terms);
+  jlongArray ret = getPointersFromObjects<Term>(env, values);
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
