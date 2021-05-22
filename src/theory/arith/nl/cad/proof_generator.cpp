@@ -19,7 +19,6 @@
 
 #include "proof/lazy_tree_proof_generator.h"
 #include "theory/arith/nl/poly_conversion.h"
-#include "theory/lazy_tree_proof_generator.h"
 #include "util/indexed_root_predicate.h"
 
 namespace cvc5 {
