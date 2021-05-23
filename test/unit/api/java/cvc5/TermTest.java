@@ -706,58 +706,58 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkInteger("-01"));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkInteger("-00"));
 
-    assertTrue(!int1.isInt32() && !int1.isUInt32() && !int1.isInt64() && !int1.isUInt64()
+    assertTrue(!int1.isInt32Value() && !int1.isUInt32Value() && !int1.isInt64Value() && !int1.isUInt64Value()
         && int1.isInteger());
     assertEquals(int1.getInteger(), "-18446744073709551616");
-    assertTrue(!int2.isInt32() && !int2.isUInt32() && !int2.isInt64() && !int2.isUInt64()
+    assertTrue(!int2.isInt32Value() && !int2.isUInt32Value() && !int2.isInt64Value() && !int2.isUInt64Value()
         && int2.isInteger());
     assertEquals(int2.getInteger(), "-18446744073709551615");
-    assertTrue(!int3.isInt32() && !int3.isUInt32() && int3.isInt64() && !int3.isUInt64()
+    assertTrue(!int3.isInt32Value() && !int3.isUInt32Value() && int3.isInt64Value() && !int3.isUInt64Value()
         && int3.isInteger());
-    assertEquals(int3.getInt64(), -4294967296L);
+    assertEquals(int3.getInt64Value(), -4294967296L);
     assertEquals(int3.getInteger(), "-4294967296");
-    assertTrue(!int4.isInt32() && !int4.isUInt32() && int4.isInt64() && !int4.isUInt64()
+    assertTrue(!int4.isInt32Value() && !int4.isUInt32Value() && int4.isInt64Value() && !int4.isUInt64Value()
         && int4.isInteger());
-    assertEquals(int4.getInt64(), -4294967295L);
+    assertEquals(int4.getInt64Value(), -4294967295L);
     assertEquals(int4.getInteger(), "-4294967295");
-    assertTrue(int5.isInt32() && !int5.isUInt32() && int5.isInt64() && !int5.isUInt64()
+    assertTrue(int5.isInt32Value() && !int5.isUInt32Value() && int5.isInt64Value() && !int5.isUInt64Value()
         && int5.isInteger());
-    assertEquals(int5.getInt32(), -10);
-    assertEquals(int5.getInt64(), -10);
+    assertEquals(int5.getInt32Value(), -10);
+    assertEquals(int5.getInt64Value(), -10);
     assertEquals(int5.getInteger(), "-10");
     assertTrue(
-        int6.isInt32() && int6.isUInt32() && int6.isInt64() && int6.isUInt64() && int6.isInteger());
-    assertEquals(int6.getInt32(), 0);
-    assertEquals(int6.getUInt32(), 0);
-    assertEquals(int6.getInt64(), 0);
-    assertEquals(int6.getUInt64(), 0);
+        int6.isInt32Value() && int6.isUInt32Value() && int6.isInt64Value() && int6.isUInt64Value() && int6.isInteger());
+    assertEquals(int6.getInt32Value(), 0);
+    assertEquals(int6.getUInt32Value(), 0);
+    assertEquals(int6.getInt64Value(), 0);
+    assertEquals(int6.getUInt64Value(), 0);
     assertEquals(int6.getInteger(), "0");
     assertTrue(
-        int7.isInt32() && int7.isUInt32() && int7.isInt64() && int7.isUInt64() && int7.isInteger());
-    assertEquals(int7.getInt32(), 10);
-    assertEquals(int7.getUInt32(), 10);
-    assertEquals(int7.getInt64(), 10);
-    assertEquals(int7.getUInt64(), 10);
+        int7.isInt32Value() && int7.isUInt32Value() && int7.isInt64Value() && int7.isUInt64Value() && int7.isInteger());
+    assertEquals(int7.getInt32Value(), 10);
+    assertEquals(int7.getUInt32Value(), 10);
+    assertEquals(int7.getInt64Value(), 10);
+    assertEquals(int7.getUInt64Value(), 10);
     assertEquals(int7.getInteger(), "10");
-    assertTrue(!int8.isInt32() && int8.isUInt32() && int8.isInt64() && int8.isUInt64()
+    assertTrue(!int8.isInt32Value() && int8.isUInt32Value() && int8.isInt64Value() && int8.isUInt64Value()
         && int8.isInteger());
-    assertEquals(Integer.toUnsignedLong(int8.getUInt32()), 4294967295L);
-    assertEquals(int8.getInt64(), 4294967295L);
-    assertEquals(int8.getUInt64(), 4294967295L);
+    assertEquals(Integer.toUnsignedLong(int8.getUInt32Value()), 4294967295L);
+    assertEquals(int8.getInt64Value(), 4294967295L);
+    assertEquals(int8.getUInt64Value(), 4294967295L);
     assertEquals(int8.getInteger(), "4294967295");
-    assertTrue(!int9.isInt32() && !int9.isUInt32() && int9.isInt64() && int9.isUInt64()
+    assertTrue(!int9.isInt32Value() && !int9.isUInt32Value() && int9.isInt64Value() && int9.isUInt64Value()
         && int9.isInteger());
-    assertEquals(int9.getInt64(), 4294967296L);
-    assertEquals(int9.getUInt64(), 4294967296L);
+    assertEquals(int9.getInt64Value(), 4294967296L);
+    assertEquals(int9.getUInt64Value(), 4294967296L);
     assertEquals(int9.getInteger(), "4294967296");
-    assertTrue(!int10.isInt32() && !int10.isUInt32() && !int10.isInt64() && int10.isUInt64()
+    assertTrue(!int10.isInt32Value() && !int10.isUInt32Value() && !int10.isInt64Value() && int10.isUInt64Value()
         && int10.isInteger());
 
     assertEquals(
-        Long.compareUnsigned(int10.getUInt64(), new BigInteger("18446744073709551615").longValue()),
+        Long.compareUnsigned(int10.getUInt64Value(), new BigInteger("18446744073709551615").longValue()),
         0);
     assertEquals(int10.getInteger(), "18446744073709551615");
-    assertTrue(!int11.isInt32() && !int11.isUInt32() && !int11.isInt64() && !int11.isUInt64()
+    assertTrue(!int11.isInt32Value() && !int11.isUInt32Value() && !int11.isInt64Value() && !int11.isUInt64Value()
         && int11.isInteger());
     assertEquals(int11.getInteger(), "18446744073709551616");
   }
