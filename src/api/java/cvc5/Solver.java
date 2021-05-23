@@ -925,9 +925,8 @@ public class Solver implements IPointer
   /**
    * Create a String constant.
    * @param s the string this constant represents
-   * @param useEscSequences determines whether escape sequences in \p s
-   *     should
-   * be converted to the corresponding character
+   * @param useEscSequences determines whether escape sequences in `s`
+   * should be converted to the corresponding unicode character
    * @return the String constant
    */
   public Term mkString(String s, boolean useEscSequences)
@@ -938,19 +937,6 @@ public class Solver implements IPointer
   }
 
   private native long mkString(long pointer, String s, boolean useEscSequences);
-
-  /**
-   * Create a String constant.
-   * @param c the character this constant represents
-   * @return the String constant
-   */
-  public Term mkString(byte c)
-  {
-    long termPointer = mkString(pointer, c);
-    return new Term(this, termPointer);
-  }
-
-  private native long mkString(long pointer, byte c);
 
   /**
    * Create a String constant.
@@ -967,20 +953,6 @@ public class Solver implements IPointer
   }
 
   private native long mkString(long pointer, int[] s);
-
-  /**
-   * Create a character constant from a given string.
-   * @param s the string denoting the code point of the character (in base
-   *     16)
-   * @return the character constant
-   */
-  public Term mkChar(String s)
-  {
-    long termPointer = mkChar(pointer, s);
-    return new Term(this, termPointer);
-  }
-
-  private native long mkChar(long pointer, String s);
 
   /**
    * Create an empty sequence of the given element sort.

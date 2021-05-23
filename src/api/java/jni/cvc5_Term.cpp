@@ -607,16 +607,16 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isStringValue(JNIEnv* env,
 
 /*
  * Class:     cvc5_Term
- * Method:    getString
+ * Method:    getStringValue
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Term_getString(JNIEnv* env,
-                                                   jobject,
-                                                   jlong pointer)
+JNIEXPORT jstring JNICALL Java_cvc5_Term_getStringValue(JNIEnv* env,
+                                                        jobject,
+                                                        jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = (Term*)pointer;
-  std::wstring termString = current->getString();
+  std::wstring termString = current->getStringValue();
 
   size_t length = termString.length();
   jchar* unicode = new jchar[length];

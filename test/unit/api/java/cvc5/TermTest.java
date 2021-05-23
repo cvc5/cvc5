@@ -681,7 +681,7 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> tnull.getChild(0));
   }
 
-  @Test void getInteger() throws CVC5ApiException
+  @Test void getIntegerValue() throws CVC5ApiException
   {
     Term int1 = d_solver.mkInteger("-18446744073709551616");
     Term int2 = d_solver.mkInteger("-18446744073709551615");
@@ -707,66 +707,66 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkInteger("-00"));
 
     assertTrue(!int1.isInt32Value() && !int1.isUInt32Value() && !int1.isInt64Value() && !int1.isUInt64Value()
-        && int1.isInteger());
-    assertEquals(int1.getInteger(), "-18446744073709551616");
+        && int1.isIntegerValue());
+    assertEquals(int1.getIntegerValue(), "-18446744073709551616");
     assertTrue(!int2.isInt32Value() && !int2.isUInt32Value() && !int2.isInt64Value() && !int2.isUInt64Value()
-        && int2.isInteger());
-    assertEquals(int2.getInteger(), "-18446744073709551615");
+        && int2.isIntegerValue());
+    assertEquals(int2.getIntegerValue(), "-18446744073709551615");
     assertTrue(!int3.isInt32Value() && !int3.isUInt32Value() && int3.isInt64Value() && !int3.isUInt64Value()
-        && int3.isInteger());
+        && int3.isIntegerValue());
     assertEquals(int3.getInt64Value(), -4294967296L);
-    assertEquals(int3.getInteger(), "-4294967296");
+    assertEquals(int3.getIntegerValue(), "-4294967296");
     assertTrue(!int4.isInt32Value() && !int4.isUInt32Value() && int4.isInt64Value() && !int4.isUInt64Value()
-        && int4.isInteger());
+        && int4.isIntegerValue());
     assertEquals(int4.getInt64Value(), -4294967295L);
-    assertEquals(int4.getInteger(), "-4294967295");
+    assertEquals(int4.getIntegerValue(), "-4294967295");
     assertTrue(int5.isInt32Value() && !int5.isUInt32Value() && int5.isInt64Value() && !int5.isUInt64Value()
-        && int5.isInteger());
+        && int5.isIntegerValue());
     assertEquals(int5.getInt32Value(), -10);
     assertEquals(int5.getInt64Value(), -10);
-    assertEquals(int5.getInteger(), "-10");
+    assertEquals(int5.getIntegerValue(), "-10");
     assertTrue(
-        int6.isInt32Value() && int6.isUInt32Value() && int6.isInt64Value() && int6.isUInt64Value() && int6.isInteger());
+        int6.isInt32Value() && int6.isUInt32Value() && int6.isInt64Value() && int6.isUInt64Value() && int6.isIntegerValue());
     assertEquals(int6.getInt32Value(), 0);
     assertEquals(int6.getUInt32Value(), 0);
     assertEquals(int6.getInt64Value(), 0);
     assertEquals(int6.getUInt64Value(), 0);
-    assertEquals(int6.getInteger(), "0");
+    assertEquals(int6.getIntegerValue(), "0");
     assertTrue(
-        int7.isInt32Value() && int7.isUInt32Value() && int7.isInt64Value() && int7.isUInt64Value() && int7.isInteger());
+        int7.isInt32Value() && int7.isUInt32Value() && int7.isInt64Value() && int7.isUInt64Value() && int7.isIntegerValue());
     assertEquals(int7.getInt32Value(), 10);
     assertEquals(int7.getUInt32Value(), 10);
     assertEquals(int7.getInt64Value(), 10);
     assertEquals(int7.getUInt64Value(), 10);
-    assertEquals(int7.getInteger(), "10");
+    assertEquals(int7.getIntegerValue(), "10");
     assertTrue(!int8.isInt32Value() && int8.isUInt32Value() && int8.isInt64Value() && int8.isUInt64Value()
-        && int8.isInteger());
+        && int8.isIntegerValue());
     assertEquals(Integer.toUnsignedLong(int8.getUInt32Value()), 4294967295L);
     assertEquals(int8.getInt64Value(), 4294967295L);
     assertEquals(int8.getUInt64Value(), 4294967295L);
-    assertEquals(int8.getInteger(), "4294967295");
+    assertEquals(int8.getIntegerValue(), "4294967295");
     assertTrue(!int9.isInt32Value() && !int9.isUInt32Value() && int9.isInt64Value() && int9.isUInt64Value()
-        && int9.isInteger());
+        && int9.isIntegerValue());
     assertEquals(int9.getInt64Value(), 4294967296L);
     assertEquals(int9.getUInt64Value(), 4294967296L);
-    assertEquals(int9.getInteger(), "4294967296");
+    assertEquals(int9.getIntegerValue(), "4294967296");
     assertTrue(!int10.isInt32Value() && !int10.isUInt32Value() && !int10.isInt64Value() && int10.isUInt64Value()
-        && int10.isInteger());
+        && int10.isIntegerValue());
 
     assertEquals(
         Long.compareUnsigned(int10.getUInt64Value(), new BigInteger("18446744073709551615").longValue()),
         0);
-    assertEquals(int10.getInteger(), "18446744073709551615");
+    assertEquals(int10.getIntegerValue(), "18446744073709551615");
     assertTrue(!int11.isInt32Value() && !int11.isUInt32Value() && !int11.isInt64Value() && !int11.isUInt64Value()
-        && int11.isInteger());
-    assertEquals(int11.getInteger(), "18446744073709551616");
+        && int11.isIntegerValue());
+    assertEquals(int11.getIntegerValue(), "18446744073709551616");
   }
 
-  @Test void getString()
+  @Test void getStringValue()
   {
     Term s1 = d_solver.mkString("abcde");
-    assertTrue(s1.isString());
-    assertEquals(s1.getString(), "abcde");
+    assertTrue(s1.isStringValue());
+    assertEquals(s1.getStringValue(), "abcde");
   }
 
   @Test void substitute()
@@ -839,7 +839,7 @@ class TermTest
     stores = d_solver.mkTerm(STORE, stores, d_solver.mkReal(4), d_solver.mkReal(5));
   }
 
-  @Test void constSequenceElements() throws CVC5ApiException
+  @Test void getSequenceValue() throws CVC5ApiException
   {
     Sort realsort = d_solver.getRealSort();
     Sort seqsort = d_solver.mkSequenceSort(realsort);
@@ -847,13 +847,13 @@ class TermTest
 
     assertEquals(s.getKind(), CONST_SEQUENCE);
     // empty sequence has zero elements
-    List<Term> cs = Arrays.asList(s.getConstSequenceElements());
+    List<Term> cs = Arrays.asList(s.getSequenceValue());
     assertTrue(cs.isEmpty());
 
     // A seq.unit app is not a constant sequence (regardless of whether it is
     // applied to a constant).
     Term su = d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal(1));
-    assertThrows(CVC5ApiException.class, () -> su.getConstSequenceElements());
+    assertThrows(CVC5ApiException.class, () -> su.getSequenceValue());
   }
 
   @Test void termScopedToString()

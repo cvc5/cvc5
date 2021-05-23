@@ -470,12 +470,12 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * term in some string representation, whatever data it may hold.
    * Asserts isStringValue().
    */
-  public String getString()
+  public String getStringValue()
   {
-    return getString(pointer);
+    return getStringValue(pointer);
   }
 
-  private native String getString(long pointer);
+  private native String getStringValue(long pointer);
 
   public class ConstIterator implements Iterator<Term>
   {

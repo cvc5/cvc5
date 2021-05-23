@@ -699,16 +699,6 @@ class SolverTest
     assertEquals(d_solver.mkString("asdf\\u{005c}nasdf", true).toString(), "\"asdf\\u{5c}nasdf\"");
   }
 
-  @Test void mkChar()
-  {
-    assertDoesNotThrow(() -> d_solver.mkChar(("0123")));
-    assertDoesNotThrow(() -> d_solver.mkChar("aA"));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkChar(""));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkChar("0g0"));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkChar("100000"));
-    assertEquals(d_solver.mkChar("abc"), d_solver.mkChar("ABC"));
-  }
-
   @Test void mkTerm() throws CVC5ApiException
   {
     Sort bv32 = d_solver.mkBitVectorSort(32);
