@@ -227,6 +227,18 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native boolean isTester(long pointer);
+
+  /**
+   * Is this a datatype updater sort?
+   * @return true if the sort is a datatype updater sort
+   */
+  public boolean isUpdater()
+  {
+    return isUpdater(pointer);
+  }
+
+  private native boolean isUpdater(long pointer);
+
   /**
    * Is this a function sort?
    * @return true if the sort is a function sort

@@ -286,6 +286,21 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isTester(JNIEnv* env,
 
 /*
  * Class:     cvc5_Sort
+ * Method:    isUpdater
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isUpdater(JNIEnv* env,
+                                                    jobject,
+                                                    jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  return (jboolean)current->isUpdater();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+}
+
+/*
+ * Class:     cvc5_Sort
  * Method:    isFunction
  * Signature: (J)Z
  */

@@ -64,6 +64,22 @@ Java_cvc5_DatatypeSelector_getSelectorTerm(JNIEnv* env, jobject, jlong pointer)
 
 /*
  * Class:     cvc5_DatatypeSelector
+ * Method:    getUpdaterTerm
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_cvc5_DatatypeSelector_getUpdaterTerm(JNIEnv* env,
+                                                                  jobject,
+                                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeSelector* current = (DatatypeSelector*)pointer;
+  Term* retPointer = new Term(current->getUpdaterTerm());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_DatatypeSelector
  * Method:    getRangeSort
  * Signature: (J)J
  */

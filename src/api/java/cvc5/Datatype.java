@@ -80,6 +80,21 @@ public class Datatype extends AbstractPointer
 
   private native long getConstructorTerm(long pointer, String name);
 
+  /**
+   * Get the datatype constructor with the given name.
+   * This is a linear search through the constructors and their selectors, so
+   * in case of multiple, similarly-named selectors, the first is returned.
+   * @param name the name of the datatype selector
+   * @return the datatype selector with the given name
+   */
+  public DatatypeSelector getSelector(String name)
+  {
+    long selectorPointer = getSelector(pointer, name);
+    return new DatatypeSelector(solver, selectorPointer);
+  }
+
+  private native long getSelector(long pointer, String name);
+
   /** @return the name of this Datatype. */
   public String getName()
   {

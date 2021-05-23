@@ -58,6 +58,18 @@ public class DatatypeSelector extends AbstractPointer
 
   private native long getSelectorTerm(long pointer);
 
+  /**
+   * Get the upater operator of this datatype selector.
+   * @return the updater term
+   */
+  public Term getUpdaterTerm()
+  {
+    long termPointer = getUpdaterTerm(pointer);
+    return new Term(solver, termPointer);
+  }
+
+  private native long getUpdaterTerm(long pointer);
+
   /** @return the range sort of this argument. */
   Sort getRangeSort()
   {
