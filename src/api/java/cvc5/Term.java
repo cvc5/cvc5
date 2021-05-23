@@ -232,19 +232,18 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    *
    * @return the elements of the constant sequence.
    */
-  public Term[] getConstSequenceElements()
+  public Term[] getSequenceValue()
   {
-    long[] termPointers = getConstSequenceElements(pointer);
+    long[] termPointers = getSequenceValue(pointer);
     Term[] terms = new Term[termPointers.length];
     for (int i = 0; i < termPointers.length; i++)
     {
       terms[i] = new Term(solver, termPointers[i]);
     }
-
     return terms;
   }
 
-  private native long[] getConstSequenceElements(long pointer);
+  private native long[] getSequenceValue(long pointer);
 
   /**
    * Boolean negation.
@@ -352,124 +351,124 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * @return true if the term is an integer that fits within signed 32 bits.
    */
-  public boolean isInt32()
+  public boolean isInt32Value()
   {
-    return isInt32(pointer);
+    return isInt32Value(pointer);
   }
 
-  private native boolean isInt32(long pointer);
+  private native boolean isInt32Value(long pointer);
 
   /**
    * @return the stored integer as an int.
-   * Note: Asserts isInt32().
+   * Note: Asserts isInt32Value().
    */
-  public int getInt32()
+  public int getInt32Value()
   {
-    return getInt32(pointer);
+    return getInt32Value(pointer);
   }
 
-  private native int getInt32(long pointer);
+  private native int getInt32Value(long pointer);
 
   /**
    * @return true if the term is an integer that fits within unsigned 32 bits.
    */
-  public boolean isUInt32()
+  public boolean isUInt32Value()
   {
-    return isUInt32(pointer);
+    return isUInt32Value(pointer);
   }
 
-  private native boolean isUInt32(long pointer);
+  private native boolean isUInt32Value(long pointer);
 
   /**
    * @return the stored integer as an int.
-   * Note: Asserts isUInt32().
+   * Note: Asserts isUInt32Value().
    */
-  public int getUInt32()
+  public int getUInt32Value()
   {
-    return getUInt32(pointer);
+    return getUInt32Value(pointer);
   }
 
-  private native int getUInt32(long pointer);
+  private native int getUInt32Value(long pointer);
 
   /**
    * @return true if the term is an integer that fits within signed 64 bits.
    */
-  public boolean isInt64()
+  public boolean isInt64Value()
   {
-    return isInt64(pointer);
+    return isInt64Value(pointer);
   }
 
-  private native boolean isInt64(long pointer);
+  private native boolean isInt64Value(long pointer);
 
   /**
    * @return the stored integer as a long.
-   * Note: Asserts isInt64().
+   * Note: Asserts isInt64Value().
    */
-  public long getInt64()
+  public long getInt64Value()
   {
-    return getInt64(pointer);
+    return getInt64Value(pointer);
   }
 
-  private native long getInt64(long pointer);
+  private native long getInt64Value(long pointer);
 
   /**
    * @return true if the term is an integer that fits within unsigned 64 bits.
    */
-  public boolean isUInt64()
+  public boolean isUInt64Value()
   {
-    return isUInt64(pointer);
+    return isUInt64Value(pointer);
   }
 
-  private native boolean isUInt64(long pointer);
+  private native boolean isUInt64Value(long pointer);
 
   /**
    * @return the stored integer as a long.
-   * Note: Asserts isUInt64().
+   * Note: Asserts isUInt64Value().
    */
-  public long getUInt64()
+  public long getUInt64Value()
   {
-    return getUInt64(pointer);
+    return getUInt64Value(pointer);
   }
 
-  private native long getUInt64(long pointer);
+  private native long getUInt64Value(long pointer);
 
   /**
    * @return true if the term is an integer.
    */
-  public boolean isInteger()
+  public boolean isIntegerValue()
   {
-    return isInteger(pointer);
+    return isIntegerValue(pointer);
   }
 
-  private native boolean isInteger(long pointer);
+  private native boolean isIntegerValue(long pointer);
 
   /**
    * @return the stored integer in (decimal) string representation.
-   * Note: Asserts isInteger().
+   * Note: Asserts isIntegerValue().
    */
-  public String getInteger()
+  public String getIntegerValue()
   {
-    return getInteger(pointer);
+    return getIntegerValue(pointer);
   }
 
-  private native String getInteger(long pointer);
+  private native String getIntegerValue(long pointer);
 
   /**
    * @return true if the term is a string constant.
    */
-  public boolean isString()
+  public boolean isStringValue()
   {
-    return isString(pointer);
+    return isStringValue(pointer);
   }
 
-  private native boolean isString(long pointer);
+  private native boolean isStringValue(long pointer);
 
   /**
    * @return the stored string constant.
    * <p>
    * Note: This method is not to be confused with toString() which returns the
    * term in some string representation, whatever data it may hold.
-   * Asserts isString().
+   * Asserts isStringValue().
    */
   public String getString()
   {

@@ -279,15 +279,16 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_getConstArrayBase(JNIEnv* env,
 
 /*
  * Class:     cvc5_Term
- * Method:    getConstSequenceElements
+ * Method:    getSequenceValue
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL
-Java_cvc5_Term_getConstSequenceElements(JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jlongArray JNICALL Java_cvc5_Term_getSequenceValue(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = (Term*)pointer;
-  std::vector<Term> terms = current->getConstSequenceElements();
+  std::vector<Term> terms = current->getSequenceValue();
   std::vector<long> termPointers(terms.size());
   for (size_t i = 0; i < terms.size(); i++)
   {
@@ -441,166 +442,166 @@ JNIEXPORT jstring JNICALL Java_cvc5_Term_toString(JNIEnv* env,
 
 /*
  * Class:     cvc5_Term
- * Method:    isInt32
+ * Method:    isInt32Value
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isInt32(JNIEnv* env,
-                                                  jobject,
-                                                  jlong pointer)
+JNIEXPORT jboolean JNICALL Java_cvc5_Term_isInt32Value(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = (Term*)pointer;
-  return (jboolean)current->isInt32();
+  return (jboolean)current->isInt32Value();
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
 }
 
 /*
  * Class:     cvc5_Term
- * Method:    getInt32
+ * Method:    getInt32Value
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_cvc5_Term_getInt32(JNIEnv* env,
-                                               jobject,
-                                               jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jint)current->getInt32();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     cvc5_Term
- * Method:    isUInt32
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isUInt32(JNIEnv* env,
-                                                   jobject,
-                                                   jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jboolean)current->isUInt32();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
-}
-
-/*
- * Class:     cvc5_Term
- * Method:    getUInt32
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_cvc5_Term_getUInt32(JNIEnv* env,
-                                                jobject,
-                                                jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jint)current->getUInt32();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     cvc5_Term
- * Method:    isInt64
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isInt64(JNIEnv* env,
-                                                  jobject,
-                                                  jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jboolean)current->isInt64();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
-}
-
-/*
- * Class:     cvc5_Term
- * Method:    getInt64
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_getInt64(JNIEnv* env,
-                                                jobject,
-                                                jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jlong)current->getInt64();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     cvc5_Term
- * Method:    isUInt64
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isUInt64(JNIEnv* env,
-                                                   jobject,
-                                                   jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jboolean)current->isUInt64();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
-}
-
-/*
- * Class:     cvc5_Term
- * Method:    getUInt64
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_getUInt64(JNIEnv* env,
-                                                 jobject,
-                                                 jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jlong)current->getUInt64();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     cvc5_Term
- * Method:    isInteger
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isInteger(JNIEnv* env,
+JNIEXPORT jint JNICALL Java_cvc5_Term_getInt32Value(JNIEnv* env,
                                                     jobject,
                                                     jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = (Term*)pointer;
-  return (jboolean)current->isInteger();
+  return (jint)current->getInt32Value();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_Term
+ * Method:    isUInt32Value
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_cvc5_Term_isUInt32Value(JNIEnv* env,
+                                                        jobject,
+                                                        jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = (Term*)pointer;
+  return (jboolean)current->isUInt32Value();
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
 }
 
 /*
  * Class:     cvc5_Term
- * Method:    getInteger
+ * Method:    getUInt32Value
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_cvc5_Term_getUInt32Value(JNIEnv* env,
+                                                     jobject,
+                                                     jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = (Term*)pointer;
+  return (jint)current->getUInt32Value();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_Term
+ * Method:    isInt64Value
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_cvc5_Term_isInt64Value(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = (Term*)pointer;
+  return (jboolean)current->isInt64Value();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+}
+
+/*
+ * Class:     cvc5_Term
+ * Method:    getInt64Value
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_cvc5_Term_getInt64Value(JNIEnv* env,
+                                                     jobject,
+                                                     jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = (Term*)pointer;
+  return (jlong)current->getInt64Value();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_Term
+ * Method:    isUInt64Value
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_cvc5_Term_isUInt64Value(JNIEnv* env,
+                                                        jobject,
+                                                        jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = (Term*)pointer;
+  return (jboolean)current->isUInt64Value();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+}
+
+/*
+ * Class:     cvc5_Term
+ * Method:    getUInt64Value
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_cvc5_Term_getUInt64Value(JNIEnv* env,
+                                                      jobject,
+                                                      jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = (Term*)pointer;
+  return (jlong)current->getUInt64Value();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_Term
+ * Method:    isIntegerValue
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_cvc5_Term_isIntegerValue(JNIEnv* env,
+                                                         jobject,
+                                                         jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = (Term*)pointer;
+  return (jboolean)current->isIntegerValue();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+}
+
+/*
+ * Class:     cvc5_Term
+ * Method:    getIntegerValue
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Term_getInteger(JNIEnv* env,
-                                                    jobject,
-                                                    jlong pointer)
+JNIEXPORT jstring JNICALL Java_cvc5_Term_getIntegerValue(JNIEnv* env,
+                                                         jobject,
+                                                         jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = (Term*)pointer;
-  return env->NewStringUTF(current->getInteger().c_str());
+  return env->NewStringUTF(current->getIntegerValue().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 
 /*
  * Class:     cvc5_Term
- * Method:    isString
+ * Method:    isStringValue
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isString(JNIEnv* env,
-                                                   jobject,
-                                                   jlong pointer)
+JNIEXPORT jboolean JNICALL Java_cvc5_Term_isStringValue(JNIEnv* env,
+                                                        jobject,
+                                                        jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = (Term*)pointer;
-  return (jboolean)current->isString();
+  return (jboolean)current->isStringValue();
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
 }
 
