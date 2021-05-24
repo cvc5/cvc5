@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 
 namespace cvc5 {
 

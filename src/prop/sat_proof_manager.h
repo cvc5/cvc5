@@ -19,9 +19,9 @@
 #define CVC5__SAT_PROOF_MANAGER_H
 
 #include "context/cdhashset.h"
-#include "expr/buffered_proof_generator.h"
-#include "expr/lazy_proof_chain.h"
 #include "expr/node.h"
+#include "proof/buffered_proof_generator.h"
+#include "proof/lazy_proof_chain.h"
 #include "prop/minisat/core/SolverTypes.h"
 #include "prop/sat_solver_types.h"
 
