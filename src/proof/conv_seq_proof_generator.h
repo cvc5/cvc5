@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__EXPR__TCONV_SEQ_PROOF_GENERATOR_H
-#define CVC5__EXPR__TCONV_SEQ_PROOF_GENERATOR_H
+#ifndef CVC5__PROOF__CONV_SEQ_PROOF_GENERATOR_H
+#define CVC5__PROOF__CONV_SEQ_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
@@ -118,4 +118,4 @@ class TConvSeqProofGenerator : public ProofGenerator
 
 }  // namespace cvc5
 
-#endif /* CVC5__EXPR__TCONV_SEQ_PROOF_GENERATOR_H */
+#endif /* CVC5__PROOF__CONV_SEQ_PROOF_GENERATOR_H */

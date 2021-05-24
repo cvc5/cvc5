@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__THEORY_PROOF_STEP_BUFFER_H
-#define CVC5__THEORY__THEORY_PROOF_STEP_BUFFER_H
+#ifndef CVC5__PROOF__THEORY_PROOF_STEP_BUFFER_H
+#define CVC5__PROOF__THEORY_PROOF_STEP_BUFFER_H
 
 #include <vector>
 
@@ -117,4 +117,4 @@ class TheoryProofStepBuffer : public ProofStepBuffer
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC5__THEORY__THEORY_PROOF_STEP_BUFFER_H */
+#endif /* CVC5__PROOF__THEORY_PROOF_STEP_BUFFER_H */

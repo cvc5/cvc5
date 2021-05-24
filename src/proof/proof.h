@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__EXPR__PROOF_H
-#define CVC5__EXPR__PROOF_H
+#ifndef CVC5__PROOF__PROOF_H
+#define CVC5__PROOF__PROOF_H
 
 #include <vector>
 
@@ -275,4 +275,4 @@ class CDProof : public ProofGenerator
 
 }  // namespace cvc5
 
-#endif /* CVC5__EXPR__PROOF_MANAGER_H */
+#endif /* CVC5__PROOF__PROOF_MANAGER_H */

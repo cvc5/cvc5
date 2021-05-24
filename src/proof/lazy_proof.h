@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__EXPR__LAZY_PROOF_H
-#define CVC5__EXPR__LAZY_PROOF_H
+#ifndef CVC5__PROOF__LAZY_PROOF_H
+#define CVC5__PROOF__LAZY_PROOF_H
 
 #include "proof/proof.h"
 
@@ -107,4 +107,4 @@ class LazyCDProof : public CDProof
 
 }  // namespace cvc5
 
-#endif /* CVC5__EXPR__LAZY_PROOF_H */
+#endif /* CVC5__PROOF__LAZY_PROOF_H */

@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__EXPR__BUFFERED_PROOF_GENERATOR_H
-#define CVC5__EXPR__BUFFERED_PROOF_GENERATOR_H
+#ifndef CVC5__PROOF__BUFFERED_PROOF_GENERATOR_H
+#define CVC5__PROOF__BUFFERED_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
 #include "proof/proof_generator.h"
@@ -61,4 +61,4 @@ class BufferedProofGenerator : public ProofGenerator
 
 }  // namespace cvc5
 
-#endif /* CVC5__EXPR__BUFFERED_PROOF_GENERATOR_H */
+#endif /* CVC5__PROOF__BUFFERED_PROOF_GENERATOR_H */

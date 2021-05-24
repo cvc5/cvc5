@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__EXPR__PROOF_STEP_BUFFER_H
-#define CVC5__EXPR__PROOF_STEP_BUFFER_H
+#ifndef CVC5__PROOF__PROOF_STEP_BUFFER_H
+#define CVC5__PROOF__PROOF_STEP_BUFFER_H
 
 #include <vector>
 
@@ -95,4 +95,4 @@ class ProofStepBuffer
 
 }  // namespace cvc5
 
-#endif /* CVC5__EXPR__PROOF_STEP_BUFFER_H */
+#endif /* CVC5__PROOF__PROOF_STEP_BUFFER_H */

@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__EXPR__PROOF_SET_H
-#define CVC5__EXPR__PROOF_SET_H
+#ifndef CVC5__PROOF__PROOF_SET_H
+#define CVC5__PROOF__PROOF_SET_H
 
 #include <memory>
 
@@ -73,4 +73,4 @@ class CDProofSet
 
 }  // namespace cvc5
 
-#endif /* CVC5__EXPR__LAZY_PROOF_SET_H */
+#endif /* CVC5__PROOF__LAZY_PROOF_SET_H */

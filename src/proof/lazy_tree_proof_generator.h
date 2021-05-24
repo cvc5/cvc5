@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__LAZY_TREE_PROOF_GENERATOR_H
-#define CVC5__THEORY__LAZY_TREE_PROOF_GENERATOR_H
+#ifndef CVC5__PROOF__LAZY_TREE_PROOF_GENERATOR_H
+#define CVC5__PROOF__LAZY_TREE_PROOF_GENERATOR_H
 
 #include <iostream>
 

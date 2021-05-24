@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__EXPR__PROOF_NODE_ALGORITHM_H
-#define CVC5__EXPR__PROOF_NODE_ALGORITHM_H
+#ifndef CVC5__PROOF__PROOF_NODE_ALGORITHM_H
+#define CVC5__PROOF__PROOF_NODE_ALGORITHM_H
 
 #include <vector>
 
@@ -73,4 +73,4 @@ bool containsSubproof(ProofNode* pn,
 }  // namespace expr
 }  // namespace cvc5
 
-#endif /* CVC5__EXPR__PROOF_NODE_ALGORITHM_H */
+#endif /* CVC5__PROOF__PROOF_NODE_ALGORITHM_H */
