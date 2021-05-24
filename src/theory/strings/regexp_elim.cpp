@@ -122,7 +122,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
     }
   }
   Node lenSum = childLengths.size() > 1 ? nm->mkNode(PLUS, childLengths)
-                                        : childLengths[0];
+                                        : (childLengths.empty() ? zero : childLengths[0]);
   // if we have at most one pivot index
   if (numPivotIndex <= 1)
   {
