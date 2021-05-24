@@ -105,26 +105,6 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
                                 MethodId ids = MethodId::SB_DEFAULT,
                                 MethodId ida = MethodId::SBA_SEQUENTIAL,
                                 MethodId idr = MethodId::RW_REWRITE);
-  /** get a method identifier from a node, return false if we fail */
-  static bool getMethodId(TNode n, MethodId& i);
-  /**
-   * Get method identifiers from args starting at the given index. Store their
-   * values into ids, ida, and idr. This method returns false if args does not
-   * contain valid method identifiers at position index in args.
-   */
-  bool getMethodIds(const std::vector<Node>& args,
-                    MethodId& ids,
-                    MethodId& ida,
-                    MethodId& idr,
-                    size_t index);
-  /**
-   * Add method identifiers ids, ida and idr as nodes to args. This does not add
-   * ids, ida or idr if their values are the default ones.
-   */
-  static void addMethodIds(std::vector<Node>& args,
-                           MethodId ids,
-                           MethodId ida,
-                           MethodId idr);
 
   /** get a TheoryId from a node, return false if we fail */
   static bool getTheoryId(TNode n, TheoryId& tid);

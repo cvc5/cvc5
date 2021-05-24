@@ -15,6 +15,8 @@
 
 #include "proof/method_id.h"
 
+#include "proof/proof_checker.h"
+
 namespace cvc5 {
 
 const char* toString(MethodId id)
@@ -47,6 +49,70 @@ std::ostream& operator<<(std::ostream& out, MethodId id)
 Node mkMethodId(MethodId id)
 {
   return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(id)));
+}
+
+
+bool getMethodId(TNode n, MethodId& i)
+{
+  uint32_t index;
+  if (!ProofRuleChecker::getUInt32(n, index))
+  {
+    return false;
+  }
+  i = static_cast<MethodId>(index);
+  return true;
+}
+
+bool getMethodIds(const std::vector<Node>& args,
+                                           MethodId& ids,
+                                           MethodId& ida,
+                                           MethodId& idr,
+                                           size_t index)
+{
+  ids = MethodId::SB_DEFAULT;
+  ida = MethodId::SBA_SEQUENTIAL;
+  idr = MethodId::RW_REWRITE;
+  for (size_t offset = 0; offset <= 2; offset++)
+  {
+    if (args.size() > index + offset)
+    {
+      MethodId& id = offset == 0 ? ids : (offset == 1 ? ida : idr);
+      if (!getMethodId(args[index + offset], id))
+      {
+        Trace("builtin-pfcheck")
+            << "Failed to get id from " << args[index + offset] << std::endl;
+        return false;
+      }
+    }
+    else
+    {
+      break;
+    }
+  }
+  Trace("builtin-pfcheck") << "Got MethodIds ids/ida/idr: " << ids << " / "
+                           << ida << " / " << idr << "\n";
+  return true;
+}
+
+void addMethodIds(std::vector<Node>& args,
+                                           MethodId ids,
+                                           MethodId ida,
+                                           MethodId idr)
+{
+  bool ndefRewriter = (idr != MethodId::RW_REWRITE);
+  bool ndefApply = (ida != MethodId::SBA_SEQUENTIAL);
+  if (ids != MethodId::SB_DEFAULT || ndefRewriter || ndefApply)
+  {
+    args.push_back(mkMethodId(ids));
+  }
+  if (ndefApply || ndefRewriter)
+  {
+    args.push_back(mkMethodId(ida));
+  }
+  if (ndefRewriter)
+  {
+    args.push_back(mkMethodId(idr));
+  }
 }
 
 }  // namespace cvc5

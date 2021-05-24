@@ -83,6 +83,27 @@ std::ostream& operator<<(std::ostream& out, MethodId id);
 /** Make a method id node */
 Node mkMethodId(MethodId id);
 
+/** get a method identifier from a node, return false if we fail */
+bool getMethodId(TNode n, MethodId& i);
+/**
+  * Get method identifiers from args starting at the given index. Store their
+  * values into ids, ida, and idr. This method returns false if args does not
+  * contain valid method identifiers at position index in args.
+  */
+bool getMethodIds(const std::vector<Node>& args,
+                  MethodId& ids,
+                  MethodId& ida,
+                  MethodId& idr,
+                  size_t index);
+/**
+  * Add method identifiers ids, ida and idr as nodes to args. This does not add
+  * ids, ida or idr if their values are the default ones.
+  */
+void addMethodIds(std::vector<Node>& args,
+                          MethodId ids,
+                          MethodId ida,
+                          MethodId idr);
+
 }  // namespace cvc5
 
 #endif /* CVC5__PROOF__METHOD_ID_H */

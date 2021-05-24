@@ -217,17 +217,6 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n,
   return ns;
 }
 
-bool BuiltinProofRuleChecker::getMethodId(TNode n, MethodId& i)
-{
-  uint32_t index;
-  if (!getUInt32(n, index))
-  {
-    return false;
-  }
-  i = static_cast<MethodId>(index);
-  return true;
-}
-
 Node BuiltinProofRuleChecker::checkInternal(PfRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args)
@@ -420,58 +409,6 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
 
   // no rule
   return Node::null();
-}
-
-bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args,
-                                           MethodId& ids,
-                                           MethodId& ida,
-                                           MethodId& idr,
-                                           size_t index)
-{
-  ids = MethodId::SB_DEFAULT;
-  ida = MethodId::SBA_SEQUENTIAL;
-  idr = MethodId::RW_REWRITE;
-  for (size_t offset = 0; offset <= 2; offset++)
-  {
-    if (args.size() > index + offset)
-    {
-      MethodId& id = offset == 0 ? ids : (offset == 1 ? ida : idr);
-      if (!getMethodId(args[index + offset], id))
-      {
-        Trace("builtin-pfcheck")
-            << "Failed to get id from " << args[index + offset] << std::endl;
-        return false;
-      }
-    }
-    else
-    {
-      break;
-    }
-  }
-  Trace("builtin-pfcheck") << "Got MethodIds ids/ida/idr: " << ids << " / "
-                           << ida << " / " << idr << "\n";
-  return true;
-}
-
-void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
-                                           MethodId ids,
-                                           MethodId ida,
-                                           MethodId idr)
-{
-  bool ndefRewriter = (idr != MethodId::RW_REWRITE);
-  bool ndefApply = (ida != MethodId::SBA_SEQUENTIAL);
-  if (ids != MethodId::SB_DEFAULT || ndefRewriter || ndefApply)
-  {
-    args.push_back(mkMethodId(ids));
-  }
-  if (ndefApply || ndefRewriter)
-  {
-    args.push_back(mkMethodId(ida));
-  }
-  if (ndefRewriter)
-  {
-    args.push_back(mkMethodId(idr));
-  }
 }
 
 bool BuiltinProofRuleChecker::getTheoryId(TNode n, TheoryId& tid)

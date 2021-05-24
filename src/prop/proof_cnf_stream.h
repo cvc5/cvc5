@@ -162,7 +162,7 @@ class ProofCnfStream : public ProofGenerator
   LazyCDProof d_proof;
   /** An accumulator of steps that may be applied to normalize the clauses
    * generated during clausification. */
-  theory::TheoryProofStepBuffer d_psb;
+  TheoryProofStepBuffer d_psb;
   /** Blocked proofs.
    *
    * These are proof nodes added to this class by external generators. */

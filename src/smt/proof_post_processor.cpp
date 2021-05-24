@@ -430,7 +430,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       MethodId ids = MethodId::SB_DEFAULT;
       if (args.size() >= 2)
       {
-        if (builtin::BuiltinProofRuleChecker::getMethodId(args[1], ids))
+        if (getMethodId(args[1], ids))
         {
           sargs.push_back(args[1]);
         }
@@ -438,7 +438,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       MethodId ida = MethodId::SBA_SEQUENTIAL;
       if (args.size() >= 3)
       {
-        if (builtin::BuiltinProofRuleChecker::getMethodId(args[2], ida))
+        if (getMethodId(args[2], ida))
         {
           sargs.push_back(args[2]);
         }
@@ -470,7 +470,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     MethodId idr = MethodId::RW_REWRITE;
     if (args.size() >= 4)
     {
-      if (builtin::BuiltinProofRuleChecker::getMethodId(args[3], idr))
+      if (getMethodId(args[3], idr))
       {
         rargs.push_back(args[3]);
       }
@@ -803,12 +803,12 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     MethodId ids = MethodId::SB_DEFAULT;
     if (args.size() >= 2)
     {
-      builtin::BuiltinProofRuleChecker::getMethodId(args[1], ids);
+      getMethodId(args[1], ids);
     }
     MethodId ida = MethodId::SBA_SEQUENTIAL;
     if (args.size() >= 3)
     {
-      builtin::BuiltinProofRuleChecker::getMethodId(args[2], ida);
+      getMethodId(args[2], ida);
     }
     std::vector<std::shared_ptr<CDProof>> pfs;
     std::vector<TNode> vsList;
@@ -950,7 +950,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     MethodId idr = MethodId::RW_REWRITE;
     if (args.size() >= 2)
     {
-      builtin::BuiltinProofRuleChecker::getMethodId(args[1], idr);
+      getMethodId(args[1], idr);
     }
     builtin::BuiltinProofRuleChecker* builtinPfC =
         static_cast<builtin::BuiltinProofRuleChecker*>(
