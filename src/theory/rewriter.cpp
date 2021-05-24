@@ -15,8 +15,8 @@
 
 #include "theory/rewriter.h"
 
-#include "expr/term_conversion_proof_generator.h"
 #include "options/theory_options.h"
+#include "proof/conv_proof_generator.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
