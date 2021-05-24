@@ -904,10 +904,11 @@ class CVC5_EXPORT Op
   size_t getNumIndicesHelper() const;
 
   /**
-   * Helper for getIndices<std::vector<Term>()
-   * @return the indices of this operator
+   * Helper for operator[](size_t i).
+   * @param i position of the index. Should be less than getNumIndicesHelper().
+   * @return the index at position i
    */
-  std::vector<Term> getIndicesHelper() const;
+  Term getIndexHelper(size_t index) const;
 
   /**
    * The associated solver object.
