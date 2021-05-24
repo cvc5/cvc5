@@ -23,7 +23,6 @@
 #include "options/expr_options.h"
 #include "options/language.h"
 #include "options/smt_options.h"
-#include "proof/proof_manager.h"
 #include "smt/abstract_values.h"
 #include "smt/env.h"
 #include "smt/smt_engine.h"
@@ -190,25 +189,6 @@ void Assertions::addFormula(TNode n,
         se << " Perhaps you meant `constraint` instead of `assert`?";
       }
       throw ModalException(se.str().c_str());
-    }
-  }
-
-  // Give it to the old proof manager
-  if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
-  {
-    if (inInput)
-    {  // n is an input assertion
-      if (inUnsatCore || options::unsatCores() || options::dumpUnsatCores()
-          || options::checkUnsatCores())
-      {
-        ProofManager::currentPM()->addCoreAssertion(n);
-      }
-    }
-    else
-    {
-      // n is the result of an unknown preprocessing step, add it to dependency
-      // map to null
-      ProofManager::currentPM()->addDependence(n, Node::null());
     }
   }
 

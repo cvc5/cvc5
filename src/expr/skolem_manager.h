@@ -39,6 +39,8 @@ enum class SkolemFunId
   SQRT,
   /** a wrongly applied selector */
   SELECTOR_WRONG,
+  /** a shared selector */
+  SHARED_SELECTOR,
   /** an application of seq.nth that is out of bounds */
   SEQ_NTH_OOB,
 };
@@ -231,7 +233,8 @@ class SkolemManager
    */
   Node mkSkolemFunction(SkolemFunId id,
                         TypeNode tn,
-                        Node cacheVal = Node::null());
+                        Node cacheVal = Node::null(),
+                        int flags = NodeManager::SKOLEM_DEFAULT);
   /**
    * Create a skolem constant with the given name, type, and comment. This
    * should only be used if the definition of the skolem does not matter.

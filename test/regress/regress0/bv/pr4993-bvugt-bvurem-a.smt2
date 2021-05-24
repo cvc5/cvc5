@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-unsat-cores
+; COMMAND-LINE:
 (set-logic QF_BV)
 (set-info :status unsat)
 (declare-const x (_ BitVec 4))

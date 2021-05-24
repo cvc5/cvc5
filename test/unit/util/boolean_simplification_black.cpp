@@ -145,22 +145,16 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyClause)
   out = d_nodeManager->mkNode(kind::OR, d_a, d_d, d_b);
   test_nodes_equal(out, BooleanSimplification::simplifyClause(in));
 
-  in = d_nodeManager->mkNode(kind::OR,
-                             d_fa,
-                             d_ga.orNode(d_c).notNode(),
-                             d_hfc,
-                             d_ac,
-                             d_d.andNode(d_b));
+  in = d_nodeManager->mkNode(
+      kind::OR,
+      {d_fa, d_ga.orNode(d_c).notNode(), d_hfc, d_ac, d_d.andNode(d_b)});
   out = NodeBuilder(kind::OR) << d_fa << d_ga.orNode(d_c).notNode() << d_hfc
                               << d_ac << d_d.andNode(d_b);
   test_nodes_equal(out, BooleanSimplification::simplifyClause(in));
 
-  in = d_nodeManager->mkNode(kind::OR,
-                             d_fa,
-                             d_ga.andNode(d_c).notNode(),
-                             d_hfc,
-                             d_ac,
-                             d_d.andNode(d_b));
+  in = d_nodeManager->mkNode(
+      kind::OR,
+      {d_fa, d_ga.andNode(d_c).notNode(), d_hfc, d_ac, d_d.andNode(d_b)});
   out = NodeBuilder(kind::OR) << d_fa << d_ga.notNode() << d_c.notNode()
                               << d_hfc << d_ac << d_d.andNode(d_b);
   test_nodes_equal(out, BooleanSimplification::simplifyClause(in));
@@ -184,28 +178,28 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyHornClause)
   out = d_nodeManager->mkNode(kind::OR, d_a, d_ac.andNode(d_b));
   test_nodes_equal(out, BooleanSimplification::simplifyHornClause(in));
 
-  in =
-      d_a.andNode(d_b).impNode(d_nodeManager->mkNode(kind::AND,
-                                                     d_fa,
-                                                     d_ga.orNode(d_c).notNode(),
-                                                     d_hfc.orNode(d_ac),
-                                                     d_d.andNode(d_b)));
+  in = d_a.andNode(d_b).impNode(
+      d_nodeManager->mkNode(kind::AND,
+                            {d_fa,
+                             d_ga.orNode(d_c).notNode(),
+                             d_hfc.orNode(d_ac),
+                             d_d.andNode(d_b)}));
   out = d_nodeManager->mkNode(kind::OR,
                               d_a.notNode(),
                               d_b.notNode(),
                               d_nodeManager->mkNode(kind::AND,
-                                                    d_fa,
-                                                    d_ga.orNode(d_c).notNode(),
-                                                    d_hfc.orNode(d_ac),
-                                                    d_d.andNode(d_b)));
+                                                    {d_fa,
+                                                     d_ga.orNode(d_c).notNode(),
+                                                     d_hfc.orNode(d_ac),
+                                                     d_d.andNode(d_b)}));
   test_nodes_equal(out, BooleanSimplification::simplifyHornClause(in));
 
   in = d_a.andNode(d_b).impNode(
       d_nodeManager->mkNode(kind::OR,
-                            d_fa,
-                            d_ga.orNode(d_c).notNode(),
-                            d_hfc.orNode(d_ac),
-                            d_d.andNode(d_b).notNode()));
+                            {d_fa,
+                             d_ga.orNode(d_c).notNode(),
+                             d_hfc.orNode(d_ac),
+                             d_d.andNode(d_b).notNode()}));
   out = NodeBuilder(kind::OR)
         << d_a.notNode() << d_b.notNode() << d_fa << d_ga.orNode(d_c).notNode()
         << d_hfc << d_ac << d_d.notNode();
@@ -231,11 +225,11 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyConflict)
   test_nodes_equal(out, BooleanSimplification::simplifyConflict(in));
 
   in = d_nodeManager->mkNode(kind::AND,
-                             d_fa,
-                             d_ga.orNode(d_c).notNode(),
-                             d_fa,
-                             d_hfc.orNode(d_ac),
-                             d_d.andNode(d_b));
+                             {d_fa,
+                              d_ga.orNode(d_c).notNode(),
+                              d_fa,
+                              d_hfc.orNode(d_ac),
+                              d_d.andNode(d_b)});
   out = NodeBuilder(kind::AND) << d_fa << d_ga.notNode() << d_c.notNode()
                                << d_hfc.orNode(d_ac) << d_d << d_b;
   test_nodes_equal(out, BooleanSimplification::simplifyConflict(in));
