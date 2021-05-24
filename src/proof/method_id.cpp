@@ -51,7 +51,6 @@ Node mkMethodId(MethodId id)
   return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(id)));
 }
 
-
 bool getMethodId(TNode n, MethodId& i)
 {
   uint32_t index;
@@ -64,10 +63,10 @@ bool getMethodId(TNode n, MethodId& i)
 }
 
 bool getMethodIds(const std::vector<Node>& args,
-                                           MethodId& ids,
-                                           MethodId& ida,
-                                           MethodId& idr,
-                                           size_t index)
+                  MethodId& ids,
+                  MethodId& ida,
+                  MethodId& idr,
+                  size_t index)
 {
   ids = MethodId::SB_DEFAULT;
   ida = MethodId::SBA_SEQUENTIAL;
@@ -95,9 +94,9 @@ bool getMethodIds(const std::vector<Node>& args,
 }
 
 void addMethodIds(std::vector<Node>& args,
-                                           MethodId ids,
-                                           MethodId ida,
-                                           MethodId idr)
+                  MethodId ids,
+                  MethodId ida,
+                  MethodId idr)
 {
   bool ndefRewriter = (idr != MethodId::RW_REWRITE);
   bool ndefApply = (ida != MethodId::SBA_SEQUENTIAL);
