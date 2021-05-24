@@ -46,9 +46,9 @@ enum class SkolemFunId
   SEQ_NTH_OOB,
   /**
    * Regular expression unfold component: if (str.in_re t R), where R is
-   * (re.++ r1 ... rn), then the RE_UNFOLD_POS_COMPONENT{t,R,i} is a string
-   * skolem ki such that t = (str.++ k1 ... kn) and (str.in_re ki ri) for
-   * i = 1, ..., n.
+   * (re.++ r0 ... rn), then the RE_UNFOLD_POS_COMPONENT{t,R,i} is a string
+   * skolem ki such that t = (str.++ k0 ... kn) and (str.in_re k0 r0) for
+   * i = 0, ..., n.
    */
   RE_UNFOLD_POS_COMPONENT,
 };
