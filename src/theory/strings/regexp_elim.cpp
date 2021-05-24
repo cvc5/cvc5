@@ -99,7 +99,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
     Node fl = RegExpEntail::getFixedLengthForRegexp(c);
     if (fl.isNull())
     {
-      if (numPivotIndex==0 && c.getKind() == REGEXP_STAR
+      if (numPivotIndex == 0 && c.getKind() == REGEXP_STAR
           && c[0].getKind() == REGEXP_SIGMA)
       {
         numPivotIndex = 1;
@@ -113,17 +113,18 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
     if (!fl.isNull())
     {
       childLengths.push_back(fl);
-      if (numPivotIndex>0)
+      if (numPivotIndex > 0)
       {
         childLengthsPostPivot.push_back(fl);
       }
     }
   }
-  Node lenSum = childLengths.size()>1 ? nm->mkNode(PLUS, childLengths) : childLengths[0];
+  Node lenSum = childLengths.size() > 1 ? nm->mkNode(PLUS, childLengths)
+                                        : childLengths[0];
   // if we have at most one pivot index
-  if (numPivotIndex<=1)
+  if (numPivotIndex <= 1)
   {
-    bool hasPivotIndex = (numPivotIndex==1);
+    bool hasPivotIndex = (numPivotIndex == 1);
     Assert(re.getNumChildren() == children.size());
     std::vector<Node> conc;
     conc.push_back(nm->mkNode(hasPivotIndex ? GEQ : EQUAL, lenx, lenSum));
