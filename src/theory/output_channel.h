@@ -19,7 +19,7 @@
 #define CVC5__THEORY__OUTPUT_CHANNEL_H
 
 #include "theory/incomplete_id.h"
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 #include "util/resource_manager.h"
 
 namespace cvc5 {

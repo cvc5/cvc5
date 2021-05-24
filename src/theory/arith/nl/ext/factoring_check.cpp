@@ -16,7 +16,7 @@
 #include "theory/arith/nl/ext/factoring_check.h"
 
 #include "expr/node.h"
-#include "expr/proof.h"
+#include "proof/proof.h"
 #include "expr/skolem_manager.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/inference_manager.h"

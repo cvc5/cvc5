@@ -21,7 +21,7 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
-#include "expr/proof_node_manager.h"
+#include "proof/proof_node_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"

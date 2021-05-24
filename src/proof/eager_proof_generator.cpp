@@ -13,11 +13,11 @@
  * Implementation of the abstract proof generator class.
  */
 
-#include "theory/eager_proof_generator.h"
+#include "proof/eager_proof_generator.h"
 
-#include "expr/proof.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
+#include "proof/proof.h"
+#include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
 
 namespace cvc5 {
 namespace theory {

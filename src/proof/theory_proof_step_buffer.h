@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/proof_step_buffer.h"
+#include "proof/proof_step_buffer.h"
 #include "theory/builtin/proof_checker.h"
 
 namespace cvc5 {

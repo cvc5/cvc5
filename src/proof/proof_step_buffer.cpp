@@ -13,9 +13,9 @@
  * Implementation of proof step and proof step buffer utilities.
  */
 
-#include "expr/proof_step_buffer.h"
+#include "proof/proof_step_buffer.h"
 
-#include "expr/proof_checker.h"
+#include "proof/proof_checker.h"
 
 using namespace cvc5::kind;
 

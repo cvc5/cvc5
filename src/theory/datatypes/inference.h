@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "theory/inference_id.h"
 #include "theory/theory_inference.h"
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 
 namespace cvc5 {
 namespace theory {

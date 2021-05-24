@@ -28,7 +28,7 @@
 #include "theory/arith/arithvar.h"
 #include "theory/arith/callbacks.h"
 #include "theory/arith/constraint_forward.h"
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 #include "theory/uf/equality_engine_notify.h"
 #include "util/dense_map.h"
 #include "util/statistics_stats.h"

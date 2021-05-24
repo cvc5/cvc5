@@ -15,7 +15,7 @@
 
 #include "theory/strings/regexp_elim.h"
 
-#include "expr/proof_node_manager.h"
+#include "proof/proof_node_manager.h"
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_entail.h"

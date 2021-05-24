@@ -17,11 +17,11 @@
 #include <vector>
 
 #include "expr/attribute.h"
-#include "expr/lazy_proof.h"
+#include "proof/lazy_proof.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/term_context_stack.h"
-#include "expr/term_conversion_proof_generator.h"
+#include "proof/conv_proof_generator.h"
 #include "options/smt_options.h"
 
 using namespace std;

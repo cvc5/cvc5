@@ -13,11 +13,11 @@
  * Term conversion sequence proof generator utility.
  */
 
-#include "expr/tconv_seq_proof_generator.h"
+#include "proof/conv_seq_proof_generator.h"
 
 #include <sstream>
 
-#include "expr/proof_node_manager.h"
+#include "proof/proof_node_manager.h"
 
 namespace cvc5 {
 

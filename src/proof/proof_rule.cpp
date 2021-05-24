@@ -13,7 +13,7 @@
  * Implementation of proof rule.
  */
 
-#include "expr/proof_rule.h"
+#include "proof/proof_rule.h"
 
 #include <iostream>
 

@@ -13,10 +13,10 @@
  * Implementation of a proof generator for buffered proof steps.
  */
 
-#include "expr/buffered_proof_generator.h"
+#include "proof/buffered_proof_generator.h"
 
-#include "expr/proof.h"
-#include "expr/proof_node_manager.h"
+#include "proof/proof.h"
+#include "proof/proof_node_manager.h"
 
 namespace cvc5 {
 

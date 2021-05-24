@@ -13,10 +13,10 @@
  * Implementation of proof node utility.
  */
 
-#include "expr/proof_node.h"
+#include "proof/proof_node.h"
 
-#include "expr/proof_node_algorithm.h"
-#include "expr/proof_node_to_sexpr.h"
+#include "proof/proof_node_algorithm.h"
+#include "proof/proof_node_to_sexpr.h"
 
 namespace cvc5 {
 

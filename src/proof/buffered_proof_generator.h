@@ -19,7 +19,7 @@
 #define CVC5__EXPR__BUFFERED_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
-#include "expr/proof_generator.h"
+#include "proof/proof_generator.h"
 
 namespace cvc5 {
 

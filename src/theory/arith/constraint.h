@@ -91,7 +91,7 @@
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/proof_macros.h"
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {

@@ -13,12 +13,12 @@
  * Implementation of a utility for updating proof nodes.
  */
 
-#include "expr/proof_node_updater.h"
+#include "proof/proof_node_updater.h"
 
-#include "expr/lazy_proof.h"
-#include "expr/proof_ensure_closed.h"
-#include "expr/proof_node_algorithm.h"
-#include "expr/proof_node_manager.h"
+#include "proof/lazy_proof.h"
+#include "proof/proof_ensure_closed.h"
+#include "proof/proof_node_algorithm.h"
+#include "proof/proof_node_manager.h"
 
 namespace cvc5 {
 

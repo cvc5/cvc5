@@ -21,8 +21,8 @@
 #include <iostream>
 
 #include "expr/node.h"
-#include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
+#include "proof/proof_generator.h"
+#include "proof/proof_node_manager.h"
 
 namespace cvc5 {
 namespace theory {

@@ -15,7 +15,7 @@
 
 #include "theory/strings/infer_proof_cons.h"
 
-#include "expr/proof_node_manager.h"
+#include "proof/proof_node_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"

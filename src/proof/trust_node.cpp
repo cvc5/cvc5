@@ -13,10 +13,10 @@
  * Implementation of the trust node utility.
  */
 
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 
-#include "expr/proof_ensure_closed.h"
-#include "expr/proof_generator.h"
+#include "proof/proof_ensure_closed.h"
+#include "proof/proof_generator.h"
 
 namespace cvc5 {
 namespace theory {

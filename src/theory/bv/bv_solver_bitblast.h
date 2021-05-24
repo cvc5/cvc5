@@ -26,7 +26,7 @@
 #include "theory/bv/bitblast/simple_bitblaster.h"
 #include "theory/bv/bv_solver.h"
 #include "theory/bv/proof_checker.h"
-#include "theory/eager_proof_generator.h"
+#include "proof/eager_proof_generator.h"
 
 namespace cvc5 {
 

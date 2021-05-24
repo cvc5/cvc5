@@ -13,9 +13,9 @@
  * Implementation of theory proof step buffer utility.
  */
 
-#include "theory/theory_proof_step_buffer.h"
+#include "proof/theory_proof_step_buffer.h"
 
-#include "expr/proof.h"
+#include "proof/proof.h"
 
 using namespace cvc5::kind;
 

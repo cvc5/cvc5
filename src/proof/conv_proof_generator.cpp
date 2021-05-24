@@ -13,13 +13,13 @@
  * Implementation of term conversion proof generator utility.
  */
 
-#include "expr/term_conversion_proof_generator.h"
+#include "proof/conv_proof_generator.h"
 
 #include <sstream>
 
-#include "expr/proof_checker.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_algorithm.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_node.h"
+#include "proof/proof_node_algorithm.h"
 #include "expr/term_context.h"
 #include "expr/term_context_stack.h"
 

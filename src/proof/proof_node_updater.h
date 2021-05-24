@@ -22,7 +22,7 @@
 #include <memory>
 
 #include "expr/node.h"
-#include "expr/proof_node.h"
+#include "proof/proof_node.h"
 
 namespace cvc5 {
 

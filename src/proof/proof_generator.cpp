@@ -13,13 +13,13 @@
  * Implementation of proof generator utility.
  */
 
-#include "expr/proof_generator.h"
+#include "proof/proof_generator.h"
 
 #include <sstream>
 
-#include "expr/proof.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_algorithm.h"
+#include "proof/proof.h"
+#include "proof/proof_node.h"
+#include "proof/proof_node_algorithm.h"
 #include "options/smt_options.h"
 
 namespace cvc5 {

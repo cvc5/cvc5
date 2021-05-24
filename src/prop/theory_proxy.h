@@ -30,7 +30,7 @@
 #include "prop/sat_solver_types.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 #include "util/resource_manager.h"
 
 namespace cvc5 {

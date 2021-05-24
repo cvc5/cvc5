@@ -15,7 +15,7 @@
 
 #include "theory/theory_preprocessor.h"
 
-#include "expr/lazy_proof.h"
+#include "proof/lazy_proof.h"
 #include "expr/skolem_manager.h"
 #include "smt/logic_exception.h"
 #include "theory/logic_info.h"

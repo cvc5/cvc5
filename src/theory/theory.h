@@ -33,7 +33,7 @@
 #include "theory/logic_info.h"
 #include "theory/skolem_lemma.h"
 #include "theory/theory_id.h"
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 #include "theory/valuation.h"
 #include "util/statistics_stats.h"
 

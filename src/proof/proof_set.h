@@ -22,7 +22,7 @@
 
 #include "context/cdlist.h"
 #include "context/context.h"
-#include "expr/proof_node_manager.h"
+#include "proof/proof_node_manager.h"
 
 namespace cvc5 {
 

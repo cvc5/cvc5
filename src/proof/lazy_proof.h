@@ -18,7 +18,7 @@
 #ifndef CVC5__EXPR__LAZY_PROOF_H
 #define CVC5__EXPR__LAZY_PROOF_H
 
-#include "expr/proof.h"
+#include "proof/proof.h"
 
 namespace cvc5 {
 

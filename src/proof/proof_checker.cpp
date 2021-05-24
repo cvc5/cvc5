@@ -13,9 +13,9 @@
  * Implementation of proof checker.
  */
 
-#include "expr/proof_checker.h"
+#include "proof/proof_checker.h"
 
-#include "expr/proof_node.h"
+#include "proof/proof_node.h"
 #include "expr/skolem_manager.h"
 #include "options/proof_options.h"
 #include "smt/smt_statistics_registry.h"

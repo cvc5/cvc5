@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "context/cdhashmap.h"
-#include "expr/proof_generator.h"
+#include "proof/proof_generator.h"
 
 namespace cvc5 {
 

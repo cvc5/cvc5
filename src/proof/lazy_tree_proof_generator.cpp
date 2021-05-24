@@ -13,14 +13,14 @@
  * Implementation of the lazy tree proof generator class.
  */
 
-#include "theory/lazy_tree_proof_generator.h"
+#include "proof/lazy_tree_proof_generator.h"
 
 #include <iostream>
 
 #include "expr/node.h"
-#include "expr/proof_generator.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
+#include "proof/proof_generator.h"
+#include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
 
 namespace cvc5 {
 namespace theory {

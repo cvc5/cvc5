@@ -13,13 +13,13 @@
  * Implementation of debug checks for ensuring proofs are closed.
  */
 
-#include "expr/proof_ensure_closed.h"
+#include "proof/proof_ensure_closed.h"
 
 #include <sstream>
 
-#include "expr/proof_generator.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_algorithm.h"
+#include "proof/proof_generator.h"
+#include "proof/proof_node.h"
+#include "proof/proof_node_algorithm.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
 

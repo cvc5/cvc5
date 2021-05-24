@@ -21,7 +21,7 @@
 #include <map>
 
 #include "expr/node.h"
-#include "expr/proof_rule.h"
+#include "proof/proof_rule.h"
 
 namespace cvc5 {
 

@@ -20,8 +20,8 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "expr/proof_generator.h"
-#include "theory/trust_node.h"
+#include "proof/proof_generator.h"
+#include "proof/trust_node.h"
 
 namespace cvc5 {
 

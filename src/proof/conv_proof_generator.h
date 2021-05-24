@@ -19,8 +19,8 @@
 #define CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
-#include "expr/lazy_proof.h"
-#include "expr/proof_generator.h"
+#include "proof/lazy_proof.h"
+#include "proof/proof_generator.h"
 
 namespace cvc5 {
 

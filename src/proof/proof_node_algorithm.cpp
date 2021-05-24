@@ -13,9 +13,9 @@
  * Implementation of proof node algorithm utilities.
  */
 
-#include "expr/proof_node_algorithm.h"
+#include "proof/proof_node_algorithm.h"
 
-#include "expr/proof_node.h"
+#include "proof/proof_node.h"
 
 namespace cvc5 {
 namespace expr {

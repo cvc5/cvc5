@@ -16,8 +16,8 @@
 #include "theory/uf/eq_proof.h"
 
 #include "base/configuration.h"
-#include "expr/proof.h"
-#include "expr/proof_checker.h"
+#include "proof/proof.h"
+#include "proof/proof_checker.h"
 #include "options/uf_options.h"
 
 namespace cvc5 {
