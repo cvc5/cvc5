@@ -23,9 +23,9 @@
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "proof/proof_rule.h"
+#include "proof/trust_node.h"
 #include "theory/inference_id.h"
 #include "theory/output_channel.h"
-#include "proof/trust_node.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {

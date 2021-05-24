@@ -15,12 +15,12 @@
 
 #include "proof/lazy_proof_chain.h"
 
+#include "options/proof_options.h"
 #include "proof/proof.h"
 #include "proof/proof_ensure_closed.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
-#include "options/proof_options.h"
 
 namespace cvc5 {
 

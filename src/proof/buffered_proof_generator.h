@@ -28,8 +28,8 @@ class ProofStep;
 
 /**
  * The proof generator for buffered steps. This class is a context-dependent
- * mapping from formulas to proof steps. It does not generate ProofNodes until it
- * is asked to provide a proof for a given fact.
+ * mapping from formulas to proof steps. It does not generate ProofNodes until
+ * it is asked to provide a proof for a given fact.
  */
 class BufferedProofGenerator : public ProofGenerator
 {

@@ -18,8 +18,8 @@
 #include <iostream>
 #include <sstream>
 
-#include "proof/proof_node.h"
 #include "options/proof_options.h"
+#include "proof/proof_node.h"
 
 using namespace cvc5::kind;
 

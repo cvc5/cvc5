@@ -23,10 +23,10 @@
 #include "expr/node.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_rule.h"
+#include "proof/theory_proof_step_buffer.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
-#include "proof/theory_proof_step_buffer.h"
 #include "theory/uf/proof_equality_engine.h"
 
 namespace cvc5 {

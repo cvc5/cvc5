@@ -19,8 +19,8 @@
 #include "proof/proof.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/ext/ext_state.h"
+#include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
 
 namespace cvc5 {

@@ -174,7 +174,7 @@ class TConvProofGenerator : public ProofGenerator
                       uint32_t tctx = 0);
   /** Has rewrite step for term t */
   bool hasRewriteStep(Node t, uint32_t tctx = 0, bool isPre = false) const;
-  /** 
+  /**
    * Get rewrite step for term t, returns the s provided in a call to
    * addRewriteStep if one exists, or null otherwise.
    */

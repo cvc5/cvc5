@@ -26,8 +26,8 @@
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "context/context.h"
-#include "proof/lazy_proof_chain.h"
 #include "expr/node.h"
+#include "proof/lazy_proof_chain.h"
 #include "proof/trust_node.h"
 
 namespace cvc5 {

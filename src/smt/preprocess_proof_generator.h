@@ -21,8 +21,8 @@
 #include "context/cdhashmap.h"
 #include "proof/lazy_proof.h"
 #include "proof/proof.h"
-#include "proof/proof_set.h"
 #include "proof/proof_generator.h"
+#include "proof/proof_set.h"
 #include "proof/trust_node.h"
 
 namespace cvc5 {

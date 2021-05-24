@@ -20,9 +20,9 @@
 
 #include <unordered_set>
 
+#include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
 #include "proof/proof_generator.h"
-#include "proof/conv_proof_generator.h"
 
 namespace cvc5 {
 namespace smt {

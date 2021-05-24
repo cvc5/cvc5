@@ -22,13 +22,13 @@
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
-#include "proof/lazy_proof.h"
 #include "expr/node.h"
-#include "proof/conv_seq_proof_generator.h"
 #include "proof/conv_proof_generator.h"
+#include "proof/conv_seq_proof_generator.h"
+#include "proof/lazy_proof.h"
+#include "proof/trust_node.h"
 #include "smt/term_formula_removal.h"
 #include "theory/skolem_lemma.h"
-#include "proof/trust_node.h"
 
 namespace cvc5 {
 

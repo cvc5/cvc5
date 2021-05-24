@@ -15,13 +15,13 @@
 
 #include "smt/proof_manager.h"
 
-#include "proof/proof_checker.h"
-#include "proof/proof_node_algorithm.h"
-#include "proof/proof_node_manager.h"
 #include "options/base_options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "proof/dot/dot_printer.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
+#include "proof/proof_node_manager.h"
 #include "smt/assertions.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"

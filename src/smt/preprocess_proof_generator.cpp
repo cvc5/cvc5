@@ -18,10 +18,10 @@
 
 #include <sstream>
 
+#include "options/proof_options.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
-#include "options/proof_options.h"
 #include "theory/rewriter.h"
 
 namespace cvc5 {

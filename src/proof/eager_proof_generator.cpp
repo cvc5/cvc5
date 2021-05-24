@@ -122,8 +122,9 @@ TrustNode EagerProofGenerator::mkTrustNode(Node conc,
   return mkTrustNode(pfs->getResult(), pfs, isConflict);
 }
 
-TrustNode EagerProofGenerator::mkTrustedRewrite(
-    Node a, Node b, std::shared_ptr<ProofNode> pf)
+TrustNode EagerProofGenerator::mkTrustedRewrite(Node a,
+                                                Node b,
+                                                std::shared_ptr<ProofNode> pf)
 {
   if (pf == nullptr)
   {

@@ -15,9 +15,9 @@
 
 #include "proof/proof_checker.h"
 
-#include "proof/proof_node.h"
 #include "expr/skolem_manager.h"
 #include "options/proof_options.h"
+#include "proof/proof_node.h"
 #include "smt/smt_statistics_registry.h"
 
 using namespace cvc5::kind;
@@ -78,7 +78,7 @@ Node ProofRuleChecker::mkKindNode(Kind k)
 
 ProofCheckerStatistics::ProofCheckerStatistics()
     : d_ruleChecks(smtStatisticsRegistry().registerHistogram<PfRule>(
-        "ProofCheckerStatistics::ruleChecks")),
+          "ProofCheckerStatistics::ruleChecks")),
       d_totalRuleChecks(smtStatisticsRegistry().registerInt(
           "ProofCheckerStatistics::totalRuleChecks"))
 {

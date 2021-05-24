@@ -17,10 +17,10 @@
 
 #include <sstream>
 
+#include "options/smt_options.h"
 #include "proof/proof.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_algorithm.h"
-#include "options/smt_options.h"
 
 namespace cvc5 {
 

@@ -86,7 +86,7 @@ class TConvSeqProofGenerator : public ProofGenerator
    * generator, or one of the component proof generators, if only one step
    * rewrote. In the former case, all steps are registered to this class.
    * Using a component generator is an optimization that saves having to
-   * save the conversion steps or use this class. For example, if we have 2 
+   * save the conversion steps or use this class. For example, if we have 2
    * term conversion components, and call this method on:
    *   { a, b, c }
    * then this method calls:

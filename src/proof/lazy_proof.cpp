@@ -178,8 +178,7 @@ void LazyCDProof::addLazyStep(Node expected,
   }
 }
 
-ProofGenerator* LazyCDProof::getGeneratorFor(Node fact,
-                                             bool& isSym)
+ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
 {
   isSym = false;
   NodeProofGeneratorMap::const_iterator it = d_gens.find(fact);

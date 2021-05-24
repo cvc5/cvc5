@@ -17,11 +17,11 @@
 
 #include <sstream>
 
+#include "expr/term_context.h"
+#include "expr/term_context_stack.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_algorithm.h"
-#include "expr/term_context.h"
-#include "expr/term_context_stack.h"
 
 using namespace cvc5::kind;
 
@@ -232,7 +232,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   }
   std::shared_ptr<ProofNode> pfn = lpf.getProofFor(f);
   Trace("tconv-pf-gen") << "... success" << std::endl;
-  Assert (pfn!=nullptr);
+  Assert(pfn != nullptr);
   Trace("tconv-pf-gen-debug") << "... proof is " << *pfn << std::endl;
   return pfn;
 }

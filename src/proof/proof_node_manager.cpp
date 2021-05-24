@@ -17,19 +17,18 @@
 
 #include <sstream>
 
+#include "options/proof_options.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_algorithm.h"
-#include "options/proof_options.h"
 #include "theory/rewriter.h"
 
 using namespace cvc5::kind;
 
 namespace cvc5 {
 
-ProofNodeManager::ProofNodeManager(ProofChecker* pc)
-    : d_checker(pc)
+ProofNodeManager::ProofNodeManager(ProofChecker* pc) : d_checker(pc)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }

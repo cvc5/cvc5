@@ -75,8 +75,8 @@ std::ostream& operator<<(std::ostream& out, TrustNodeKind tnk);
  * provided, is capable of proving the given conflict or lemma, or an assertion
  * failure occurs. Otherwise an assertion error is given.
  *
- * While this is not enforced, a `TrustNode` generally encapsulates a **closed** proof
- * of the formula: one without free assumptions.
+ * While this is not enforced, a `TrustNode` generally encapsulates a **closed**
+ * proof of the formula: one without free assumptions.
  */
 class TrustNode
 {
