@@ -194,6 +194,12 @@ class SequencesRewriter : public TheoryRewriter
    * Returns the rewritten form of node.
    */
   Node rewriteIndexof(Node node);
+  /** rewrite indexof regular expression match
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.indexof_re( s, r, n )
+   * Returns the rewritten form of node.
+   */
+  Node rewriteIndexofRe(Node node);
   /** rewrite replace
    * This is the entry point for post-rewriting terms n of the form
    *   str.replace( s, t, r )

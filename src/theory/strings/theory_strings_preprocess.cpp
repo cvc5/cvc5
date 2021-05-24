@@ -251,6 +251,92 @@ Node StringsPreprocess::reduce(Node t,
     // Thus, indexof( x, y, n ) = skk.
     retNode = skk;
   }
+  else if (t.getKind() == kind::STRING_INDEXOF_RE)
+  {
+    // processing term:  indexof_re(s, r, n)
+    Node s = t[0];
+    Node r = t[1];
+    Node n = t[2];
+    Node skk = sc->mkTypedSkolemCached(
+        nm->integerType(), t, SkolemCache::SK_PURIFY, "iork");
+
+    Node negone = nm->mkConst(Rational(-1));
+    Node sLen = nm->mkNode(STRING_LENGTH, s);
+
+    // rem = substr(s, n, len(n) - n)
+    Node rem = nm->mkNode(STRING_SUBSTR, s, n, nm->mkNode(MINUS, sLen, n));
+    Node k1 =
+        sc->mkSkolemCached(rem, r, SkolemCache::SK_FIRST_MATCH_PRE, "iorpre");
+    Node k2 = sc->mkSkolemCached(rem, r, SkolemCache::SK_FIRST_MATCH, "iorm");
+    Node k3 =
+        sc->mkSkolemCached(rem, r, SkolemCache::SK_FIRST_MATCH_POST, "iorpost");
+
+    Node sigma = nm->mkNode(REGEXP_SIGMA);
+    Node sigmaStar = nm->mkNode(REGEXP_STAR, sigma);
+    Node anyMatchRe = nm->mkNode(REGEXP_CONCAT, sigmaStar, r, sigmaStar);
+    // ~in_re(rem, _* ++ r ++ _*)
+    Node noMatch = nm->mkNode(STRING_IN_REGEXP, rem, anyMatchRe).negate();
+    // n > len(x)
+    Node ub = nm->mkNode(GT, n, sLen);
+    // 0 > n
+    Node lb = nm->mkNode(GT, zero, n);
+    // ~in_re(rem, _* ++ r ++ _*) OR n > len(x) OR 0 > n
+    Node condNegOne = nm->mkNode(OR, noMatch, ub, lb);
+    // skk = -1
+    Node retNegOne = skk.eqNode(negone);
+
+    Node emp = Word::mkEmptyWord(s.getType());
+    // in_re("", r)
+    Node matchEmptyStr = nm->mkNode(STRING_IN_REGEXP, emp, r);
+    // skk = n
+    Node retN = skk.eqNode(n);
+
+    // rem = k1 ++ k2 ++ k3
+    Node split = rem.eqNode(nm->mkNode(STRING_CONCAT, k1, k2, k3));
+    Node i = SkolemCache::mkIndexVar(t);
+    Node bvli = nm->mkNode(BOUND_VAR_LIST, i);
+    Node bound = nm->mkNode(AND,
+                            nm->mkNode(GEQ, i, zero),
+                            nm->mkNode(LT, i, nm->mkNode(STRING_LENGTH, k1)));
+    Node startsWithRe = nm->mkNode(REGEXP_CONCAT, r, sigmaStar);
+    Node body = nm->mkNode(
+        OR,
+        bound.negate(),
+        nm->mkNode(STRING_IN_REGEXP,
+                   nm->mkNode(STRING_SUBSTR, s, i, nm->mkNode(MINUS, sLen, i)),
+                   startsWithRe)
+            .negate());
+    // forall i. 0 <= i < len(k1) => ~in_re(substr(s, i, len(s) - i), r ++ _*)
+    Node firstMatch = mkForallInternal(bvli, body);
+    // in_re(k2, r)
+    Node match = nm->mkNode(STRING_IN_REGEXP, k2, r);
+    // skk = n + len(sk1)
+    Node ret = skk.eqNode(nm->mkNode(PLUS, n, nm->mkNode(STRING_LENGTH, k1)));
+    Node retMatch = nm->mkNode(AND, {split, firstMatch, match, ret});
+
+    // assert:
+    // IF:   ~in_re(rem, _* ++ r ++ _*) OR n > len(s) OR 0 > n
+    // THEN: skk = -1
+    // ELIF: in_re("", r)
+    // THEN: skk = n
+    // ELSE: rem = sk1 ++ sk2 ++ sk3 ^
+    //       (forall i. 0 <= i < len(sk1) =>
+    //         ~in_re(substr(s, i, len(s) - i), r ++ _*)) ^
+    //       in_re(sk2, r) ^
+    //       skk = n + len(sk1)
+    //
+    // for fresh sk1, sk2, sk3.
+    //
+    // where rem = substr(s, n, len(s) - n)
+    Node rr = nm->mkNode(ITE,
+                         condNegOne,
+                         retNegOne,
+                         nm->mkNode(ITE, matchEmptyStr, retN, retMatch));
+    asserts.push_back(rr);
+
+    // Thus, indexof_re(s, r, n) = skk.
+    retNode = skk;
+  }
   else if (t.getKind() == STRING_ITOS)
   {
     // processing term:  int.to.str( n )
@@ -594,14 +680,14 @@ Node StringsPreprocess::reduce(Node t,
   }
   else if (t.getKind() == STRING_REPLACE_RE)
   {
+    // processing term: replace_re( x, y, z )
     Node x = t[0];
     Node y = t[1];
     Node z = t[2];
     Node k = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "k");
 
-    std::vector<Node> emptyVec;
-    Node sigmaStar =
-        nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA, emptyVec));
+    Node sigma = nm->mkNode(REGEXP_SIGMA);
+    Node sigmaStar = nm->mkNode(REGEXP_STAR, sigma);
     Node re = nm->mkNode(REGEXP_CONCAT, sigmaStar, y, sigmaStar);
     // in_re(x, re.++(_*, y, _*))
     Node hasMatch = nm->mkNode(STRING_IN_REGEXP, x, re);
@@ -619,41 +705,36 @@ Node StringsPreprocess::reduce(Node t,
     Node k3 =
         sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_MATCH_POST, "rre_post");
     // x = k1 ++ k2 ++ k3
-    Node splitX = x.eqNode(nm->mkNode(STRING_CONCAT, k1, k2, k3));
-    // ~in_re(k1 ++ str.substr(k2, 0, str.len(k2) - 1), re.++(_*, y, _*))
-    Node k2len = nm->mkNode(STRING_LENGTH, k2);
-    Node firstMatch =
-        nm->mkNode(
-              STRING_IN_REGEXP,
-              nm->mkNode(
-                  STRING_CONCAT,
-                  k1,
-                  nm->mkNode(
-                      STRING_SUBSTR, k2, zero, nm->mkNode(MINUS, k2len, one))),
-              re)
-            .negate();
+    Node split = x.eqNode(nm->mkNode(STRING_CONCAT, k1, k2, k3));
+    // len(k1) = indexof_re(x, y, 0)
+    Node k1Len = nm->mkNode(STRING_LENGTH, k1)
+                     .eqNode(nm->mkNode(STRING_INDEXOF_RE, x, y, zero));
+    // ~in_re(k2, r ++ _* ++ _)
+    Node shortestMatch =
+        nm->mkNode(OR,
+                   nm->mkNode(STRING_LENGTH, k2).eqNode(zero),
+                   nm->mkNode(STRING_IN_REGEXP,
+                              k2,
+                              nm->mkNode(REGEXP_CONCAT, y, sigmaStar, sigma))
+                       .negate());
     // in_re(k2, y)
-    Node k2Match = nm->mkNode(STRING_IN_REGEXP, k2, y);
+    Node match = nm->mkNode(STRING_IN_REGEXP, k2, y);
     // k = k1 ++ z ++ k3
-    Node res2 = k.eqNode(nm->mkNode(STRING_CONCAT, k1, z, k3));
+    Node res = k.eqNode(nm->mkNode(STRING_CONCAT, k1, z, k3));
 
     // IF in_re(x, re.++(_*, y, _*))
     // THEN:
-    //   IF in_re("", y)
-    //   THEN: k = z ++ x
-    //   ELSE:
-    //     x = k1 ++ k2 ++ k3 ^
-    //     ~in_re(k1 ++ substr(k2, 0, str.len(k2) - 1), re.++(_*, y, _*)) ^
-    //     in_re(k2, y) ^ k = k1 ++ z ++ k3
+    //   x = k1 ++ k2 ++ k3 ^
+    //   len(k1) = indexof_re(x, y, 0) ^
+    //   ~in_re(k2, r ++ _* ++ _) ^
+    //   in_re(k2, y) ^
+    //   k = k1 ++ z ++ k3
     // ELSE: k = x
-    asserts.push_back(nm->mkNode(
-        ITE,
-        hasMatch,
+    asserts.push_back(
         nm->mkNode(ITE,
-                   matchesEmpty,
-                   res1,
-                   nm->mkNode(AND, {splitX, firstMatch, k2Match, res2})),
-        k.eqNode(x)));
+                   hasMatch,
+                   nm->mkNode(AND, {split, k1Len, shortestMatch, match, res}),
+                   k.eqNode(x)));
     retNode = k;
   }
   else if (t.getKind() == STRING_REPLACE_RE_ALL)
@@ -677,9 +758,8 @@ Node StringsPreprocess::reduce(Node t,
 
     Node emp = Word::mkEmptyWord(t.getType());
 
-    std::vector<Node> emptyVec;
-    Node sigmaStar =
-        nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA, emptyVec));
+    Node sigma = nm->mkNode(REGEXP_SIGMA);
+    Node sigmaStar = nm->mkNode(REGEXP_STAR, sigma);
     Node yp = nm->mkNode(REGEXP_DIFF, y, nm->mkNode(STRING_TO_REGEXP, emp));
     Node re = nm->mkNode(REGEXP_CONCAT, sigmaStar, yp, sigmaStar);
     // in_re(x, _* ++ y' ++ _*)
@@ -696,9 +776,9 @@ Node StringsPreprocess::reduce(Node t,
     lemmas.push_back(k.eqNode(nm->mkNode(APPLY_UF, us, zero)));
     // Us(numOcc) = substr(x, Uf(numOcc))
     lemmas.push_back(usno.eqNode(rem));
-    // Uf(0) = 0
+    // Uf(-1) = 0
     lemmas.push_back(nm->mkNode(APPLY_UF, uf, zero).eqNode(zero));
-    // not(in_re(substr(x, Uf(numOcc)), re.++(_*, y', _*)))
+    // ~in_re(substr(x, Uf(numOcc)), re.++(_*, y', _*))
     lemmas.push_back(nm->mkNode(STRING_IN_REGEXP, rem, re).negate());
 
     Node i = SkolemCache::mkIndexVar(t);
@@ -707,33 +787,32 @@ Node StringsPreprocess::reduce(Node t,
         nm->mkNode(AND, nm->mkNode(GEQ, i, zero), nm->mkNode(LT, i, numOcc));
     Node ip1 = nm->mkNode(PLUS, i, one);
     Node ufi = nm->mkNode(APPLY_UF, uf, i);
-    Node uli = nm->mkNode(APPLY_UF, ul, i);
     Node ufip1 = nm->mkNode(APPLY_UF, uf, ip1);
-    Node ii = nm->mkNode(MINUS, ufip1, uli);
-    Node match = nm->mkNode(STRING_SUBSTR, x, ii, uli);
-    Node pfxMatch =
-        nm->mkNode(STRING_SUBSTR, x, ufi, nm->mkNode(MINUS, ii, ufi));
-    Node nonMatch =
-        nm->mkNode(STRING_SUBSTR,
-                   x,
-                   ufi,
-                   nm->mkNode(MINUS, nm->mkNode(MINUS, ufip1, one), ufi));
+    Node ulip1 = nm->mkNode(APPLY_UF, ul, ip1);
+    // ii = Uf(i + 1) - Ul(i + 1)
+    Node ii = nm->mkNode(MINUS, ufip1, ulip1);
 
     std::vector<Node> flem;
     // Ul(i) > 0
-    flem.push_back(nm->mkNode(GT, uli, zero));
-    // Uf(i + 1) >= Uf(i) + Ul(i)
-    flem.push_back(nm->mkNode(GEQ, ufip1, nm->mkNode(PLUS, ufi, uli)));
-    // in_re(substr(x, ii, Ul(i)), y')
-    flem.push_back(nm->mkNode(STRING_IN_REGEXP, match, yp));
-    // ~in_re(substr(x, Uf(i), Uf(i + 1) - 1 - Uf(i)), re.++(_*, y', _*))
-    flem.push_back(nm->mkNode(STRING_IN_REGEXP, nonMatch, re).negate());
+    flem.push_back(nm->mkNode(GT, ulip1, zero));
+    // Uf(i + 1) = indexof_re(x, yp, Uf(i)) + Ul(i + 1)
+    flem.push_back(ufip1.eqNode(
+        nm->mkNode(PLUS, nm->mkNode(STRING_INDEXOF_RE, x, yp, ufi), ulip1)));
+    // in_re(substr(x, ii, Ul(i + 1)), y')
+    flem.push_back(nm->mkNode(
+        STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, x, ii, ulip1), yp));
+    // in_re(substr(x, Uf(i + 1) - Ul(i + 1), Ul(i + 1)), y' ++ _* ++ _)
+    flem.push_back(nm->mkNode(STRING_IN_REGEXP,
+                              nm->mkNode(STRING_SUBSTR, x, ii, ulip1),
+                              nm->mkNode(REGEXP_CONCAT, yp, sigmaStar, sigma))
+                       .negate());
+    Node pfxMatch =
+        nm->mkNode(STRING_SUBSTR, x, ufi, nm->mkNode(MINUS, ii, ufi));
     // Us(i) = substr(x, Uf(i), ii - Uf(i)) ++ z ++ Us(i + 1)
     flem.push_back(
         nm->mkNode(APPLY_UF, us, i)
             .eqNode(nm->mkNode(
                 STRING_CONCAT, pfxMatch, z, nm->mkNode(APPLY_UF, us, ip1))));
-
     Node body = nm->mkNode(OR, bound.negate(), nm->mkNode(AND, flem));
     Node forall = mkForallInternal(bvli, body);
     lemmas.push_back(forall);
@@ -745,9 +824,9 @@ Node StringsPreprocess::reduce(Node t,
     //   Uf(0) = 0 ^ not(in_re(substr(x, Uf(numOcc)), re.++(_*, y', _*)))
     //   forall i. 0 <= i < nummOcc =>
     //     Ul(i) > 0 ^
-    //     Uf(i + 1) >= Uf(i) + Ul(i) ^
-    //     in_re(substr(x, ii, Ul(i)), y') ^
-    //     ~in_re(substr(x, Uf(i), Uf(i + 1) - 1 - Uf(i)), re.++(_*, y', _*)) ^
+    //     Uf(i + 1) = indexof_re(x, yp, Uf(i)) + Ul(i + 1) ^
+    //     in_re(substr(x, ii, Ul(i + 1)), y') ^
+    //     in_re(substr(x, Uf(i + 1) - Ul(i + 1), Ul(i + 1)), y' ++ _* ++ _) ^
     //     Us(i) = substr(x, Uf(i), ii - Uf(i)) ++ z ++ Us(i + 1)
     //     where ii = Uf(i + 1) - Ul(i)
     // ELSE: k = x
@@ -758,6 +837,15 @@ Node StringsPreprocess::reduce(Node t,
     // matches of y' in x, Uf(i) is the end position of the i-th match, Ul(i)
     // is the length of the i^th match, and Us(i) is the result of processing
     // the remainder after processing the i^th occurrence of y in x.
+    //
+    // Visualization of Uf(i) and Ul(i):
+    //
+    // x = |------------| match 1 |-----------| match 2   |---|
+    //     |                      |                       |
+    //     Uf(0)                  Uf(1)                   Uf(2)
+    //
+    //                  |---------|           |-----------|
+    //                    Ul(1)                 Ul(2)
     asserts.push_back(
         nm->mkNode(ITE, hasMatch, nm->mkNode(AND, lemmas), k.eqNode(x)));
     retNode = k;

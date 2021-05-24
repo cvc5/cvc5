@@ -107,9 +107,14 @@ class SkolemCache
     // in_re(a, re.++(_*, b, _*)) =>
     //    exists k_pre, k_match, k_post.
     //       a = k_pre ++ k_match ++ k_post ^
-    //       ~in_re(k_pre ++ substr(k_match, 0, str.len(k_match) - 1),
-    //              re.++(_*, b, _*)) ^
-    //       in_re(k2, y)
+    //       (forall i. 0 <= i < len(k_pre) =>
+    //         ~in_re(substr(s, i, len(s) - i), r ++ _*)) ^
+    //       ((k_match = "") v ~in_re(k_match, b ++ _* ++ _)) ^
+    //       in_re(k_match, b)
+    //
+    // k_pre is the prefix before the first, shortest match of b in a. k_match
+    // is the substring of a matched by b. It is either empty or there is no
+    // shorter string that matches b.
     SK_FIRST_MATCH_PRE,
     SK_FIRST_MATCH,
     SK_FIRST_MATCH_POST,
