@@ -15,8 +15,6 @@
 
 #include "test_api.h"
 
-#include <variant>
-
 namespace cvc5 {
 
 using namespace api;
@@ -98,7 +96,6 @@ TEST_F(TestApiBlackOp, subscriptOperator)
 {
   Op plus = d_solver.mkOp(PLUS);
   Op divisible = d_solver.mkOp(DIVISIBLE, 4);
-  Op record_update = d_solver.mkOp(RECORD_UPDATE, "test");
   Op bitvector_repeat = d_solver.mkOp(BITVECTOR_REPEAT, 4);
   Op bitvector_zero_extend = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, 4);
   Op bitvector_sign_extend = d_solver.mkOp(BITVECTOR_SIGN_EXTEND, 4);
@@ -108,7 +105,6 @@ TEST_F(TestApiBlackOp, subscriptOperator)
   Op iand = d_solver.mkOp(IAND, 4);
   Op floatingpoint_to_ubv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, 4);
   Op floatingopint_to_sbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 4);
-  Op tuple_update = d_solver.mkOp(TUPLE_UPDATE, 4);
   Op floatingpoint_to_fp_ieee_bitvector =
       d_solver.mkOp(FLOATINGPOINT_TO_FP_IEEE_BITVECTOR, 4, 5);
   Op floatingpoint_to_fp_floatingpoint =
@@ -123,25 +119,23 @@ TEST_F(TestApiBlackOp, subscriptOperator)
   Op regexp_loop = d_solver.mkOp(REGEXP_LOOP, 4, 5);
 
   ASSERT_THROW(plus[0], CVC5ApiException);
-  ASSERT_EQ(4, divisible[0].getUInt32());
-  ASSERT_EQ(L"test", record_update[0].getString());
-  ASSERT_EQ(4, bitvector_repeat[0].getUInt32());
-  ASSERT_EQ(4, bitvector_zero_extend[0].getUInt32());
-  ASSERT_EQ(4, bitvector_sign_extend[0].getUInt32());
-  ASSERT_EQ(4, bitvector_rotate_left[0].getUInt32());
-  ASSERT_EQ(4, bitvector_rotate_right[0].getUInt32());
-  ASSERT_EQ(4, int_to_bitvector[0].getUInt32());
-  ASSERT_EQ(4, iand[0].getUInt32());
-  ASSERT_EQ(4, floatingpoint_to_ubv[0].getUInt32());
-  ASSERT_EQ(4, floatingopint_to_sbv[0].getUInt32());
-  ASSERT_EQ(4, tuple_update[0].getUInt32());
-  ASSERT_EQ(4, floatingpoint_to_fp_ieee_bitvector[0].getUInt32());
-  ASSERT_EQ(4, floatingpoint_to_fp_floatingpoint[0].getUInt32());
-  ASSERT_EQ(4, floatingpoint_to_fp_real[0].getUInt32());
-  ASSERT_EQ(4, floatingpoint_to_fp_signed_bitvector[0].getUInt32());
-  ASSERT_EQ(4, floatingpoint_to_fp_unsigned_bitvector[0].getUInt32());
-  ASSERT_EQ(4, floatingpoint_to_fp_generic[0].getUInt32());
-  ASSERT_EQ(4, regexp_loop[0].getUInt32());
+  ASSERT_EQ(4, divisible[0].getUInt32Value());
+  ASSERT_EQ(4, bitvector_repeat[0].getUInt32Value());
+  ASSERT_EQ(4, bitvector_zero_extend[0].getUInt32Value());
+  ASSERT_EQ(4, bitvector_sign_extend[0].getUInt32Value());
+  ASSERT_EQ(4, bitvector_rotate_left[0].getUInt32Value());
+  ASSERT_EQ(4, bitvector_rotate_right[0].getUInt32Value());
+  ASSERT_EQ(4, int_to_bitvector[0].getUInt32Value());
+  ASSERT_EQ(4, iand[0].getUInt32Value());
+  ASSERT_EQ(4, floatingpoint_to_ubv[0].getUInt32Value());
+  ASSERT_EQ(4, floatingopint_to_sbv[0].getUInt32Value());
+  ASSERT_EQ(4, floatingpoint_to_fp_ieee_bitvector[0].getUInt32Value());
+  ASSERT_EQ(4, floatingpoint_to_fp_floatingpoint[0].getUInt32Value());
+  ASSERT_EQ(4, floatingpoint_to_fp_real[0].getUInt32Value());
+  ASSERT_EQ(4, floatingpoint_to_fp_signed_bitvector[0].getUInt32Value());
+  ASSERT_EQ(4, floatingpoint_to_fp_unsigned_bitvector[0].getUInt32Value());
+  ASSERT_EQ(4, floatingpoint_to_fp_generic[0].getUInt32Value());
+  ASSERT_EQ(4, regexp_loop[0].getUInt32Value());
 }
 
 TEST_F(TestApiBlackOp, getIndicesString)
@@ -270,8 +264,8 @@ TEST_F(TestApiBlackOp, getIndicesVector)
   ASSERT_THROW(tuple_project_op.getIndices<std::string>(), CVC5ApiException);
   for (size_t i = 0; i < indices.size(); i++)
   {
-    ASSERT_EQ(indices[i], tuple_project_extract_indices[i].getUInt32());
-    ASSERT_EQ(indices[i], tuple_project_op[i].getUInt32());
+    ASSERT_EQ(indices[i], tuple_project_extract_indices[i].getUInt32Value());
+    ASSERT_EQ(indices[i], tuple_project_op[i].getUInt32Value());
   }
 }
 
