@@ -20,7 +20,7 @@
 #include <string>
 #include <thread>
 
-#include "expr/proof_rule.h"
+#include "proof/proof_rule.h"
 #include "lib/clock_gettime.h"
 #include "test.h"
 #include "util/statistics_registry.h"

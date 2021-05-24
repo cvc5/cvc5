@@ -19,7 +19,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
-#include "expr/proof_checker.h"
+#include "proof/proof_checker.h"
 #include "expr/skolem_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
