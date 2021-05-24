@@ -360,7 +360,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       //     (exists k. 0 <= k < len( x ) ^
       //               indexof( x, "A", k ) != -1 ^
       //               substr( x, indexof( x, "A", k )+2, 1 ) = "B") ^
-      //  len(x) >= 3
+      //     len(x) >= 3
       return returnElim(atom, res, "concat-with-gaps");
     }
   }
