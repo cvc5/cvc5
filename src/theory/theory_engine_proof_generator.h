@@ -53,7 +53,7 @@ class TheoryEngineProofGenerator : public ProofGenerator
    * explanation already exists, then the previous explanation is taken, which
    * also suffices for proving the implication.
    */
-  theory::TrustNode mkTrustExplain(TNode lit,
+  TrustNode mkTrustExplain(TNode lit,
                                    Node exp,
                                    std::shared_ptr<LazyCDProof> lpf);
   /**

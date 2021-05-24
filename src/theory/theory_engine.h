@@ -191,7 +191,7 @@ class TheoryEngine {
    * generator (if it exists),
    * @param theoryId The theory that sent the conflict
    */
-  void conflict(theory::TrustNode conflict, theory::TheoryId theoryId);
+  void conflict(TrustNode conflict, theory::TheoryId theoryId);
 
   /**
    * Debugging flag to ensure that shutdown() is called before the
@@ -272,7 +272,7 @@ class TheoryEngine {
    * @param atomsTo the theory that atoms of the lemma should be sent to
    * @param from the theory that sent the lemma
    */
-  void lemma(theory::TrustNode node,
+  void lemma(TrustNode node,
              theory::LemmaProperty p,
              theory::TheoryId atomsTo = theory::THEORY_LAST,
              theory::TheoryId from = theory::THEORY_LAST);
@@ -422,7 +422,7 @@ class TheoryEngine {
    * where the node is the one to be explained, and the theory is the
    * theory that sent the literal.
    */
-  theory::TrustNode getExplanation(
+  TrustNode getExplanation(
       std::vector<NodeTheoryPair>& explanationVector);
 
   /** Are proofs enabled? */
@@ -433,7 +433,7 @@ class TheoryEngine {
    * Preprocess rewrite equality, called by the preprocessor to rewrite
    * equalities appearing in the input.
    */
-  theory::TrustNode ppRewriteEquality(TNode eq);
+  TrustNode ppRewriteEquality(TNode eq);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
@@ -477,7 +477,7 @@ class TheoryEngine {
    * take this proof into account (when proofs are enabled).
    */
   theory::Theory::PPAssertStatus solve(
-      theory::TrustNode tliteral,
+      TrustNode tliteral,
       theory::TrustSubstitutionMap& substitutionOut);
 
   /**
@@ -540,7 +540,7 @@ class TheoryEngine {
   /**
    * Returns an explanation of the node propagated to the SAT solver.
    */
-  theory::TrustNode getExplanation(TNode node);
+  TrustNode getExplanation(TNode node);
 
   /**
    * Get the pointer to the model object used by this theory engine.

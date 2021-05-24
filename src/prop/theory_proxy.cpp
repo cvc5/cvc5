@@ -95,7 +95,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   TNode lNode = d_cnfStream->getNode(l);
   Debug("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
 
-  theory::TrustNode tte = d_theoryEngine->getExplanation(lNode);
+  TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
   if (options::produceProofs()
       && options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS)
@@ -183,25 +183,25 @@ SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
 
 CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
 
-theory::TrustNode TheoryProxy::preprocessLemma(
-    theory::TrustNode trn,
-    std::vector<theory::TrustNode>& newLemmas,
+TrustNode TheoryProxy::preprocessLemma(
+    TrustNode trn,
+    std::vector<TrustNode>& newLemmas,
     std::vector<Node>& newSkolems)
 {
   return d_tpp.preprocessLemma(trn, newLemmas, newSkolems);
 }
 
-theory::TrustNode TheoryProxy::preprocess(
+TrustNode TheoryProxy::preprocess(
     TNode node,
-    std::vector<theory::TrustNode>& newLemmas,
+    std::vector<TrustNode>& newLemmas,
     std::vector<Node>& newSkolems)
 {
   return d_tpp.preprocess(node, newLemmas, newSkolems);
 }
 
-theory::TrustNode TheoryProxy::removeItes(
+TrustNode TheoryProxy::removeItes(
     TNode node,
-    std::vector<theory::TrustNode>& newLemmas,
+    std::vector<TrustNode>& newLemmas,
     std::vector<Node>& newSkolems)
 {
   RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();

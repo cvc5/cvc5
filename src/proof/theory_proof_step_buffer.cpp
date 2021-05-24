@@ -20,7 +20,6 @@
 using namespace cvc5::kind;
 
 namespace cvc5 {
-namespace theory {
 
 TheoryProofStepBuffer::TheoryProofStepBuffer(ProofChecker* pc)
     : ProofStepBuffer(pc)
@@ -236,5 +235,4 @@ Node TheoryProofStepBuffer::elimDoubleNegLit(Node n)
   return n;
 }
 
-}  // namespace theory
 }  // namespace cvc5

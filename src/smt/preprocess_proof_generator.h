@@ -55,7 +55,7 @@ namespace smt {
  */
 class PreprocessProofGenerator : public ProofGenerator
 {
-  typedef context::CDHashMap<Node, theory::TrustNode> NodeTrustNodeMap;
+  typedef context::CDHashMap<Node, TrustNode> NodeTrustNodeMap;
 
  public:
   /**
@@ -82,14 +82,14 @@ class PreprocessProofGenerator : public ProofGenerator
    */
   void notifyNewAssert(Node n, ProofGenerator* pg);
   /**  Notify a new assertion, trust node version. */
-  void notifyNewTrustedAssert(theory::TrustNode tn);
+  void notifyNewTrustedAssert(TrustNode tn);
   /**
    * Notify that n was replaced by np due to preprocessing, where pg can
    * provide a proof of the equality n=np.
    */
   void notifyPreprocessed(Node n, Node np, ProofGenerator* pg);
   /** Notify preprocessed, trust node version */
-  void notifyTrustedPreprocessed(theory::TrustNode tnp);
+  void notifyTrustedPreprocessed(TrustNode tnp);
   /**
    * Get proof for f, which returns a proof based on proving an equality based
    * on transitivity of preprocessing steps, and then using the original

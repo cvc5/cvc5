@@ -64,7 +64,7 @@ class ExpandDefs
    * Helper function for above, called to specify if we want proof production
    * based on the optional argument tpg.
    */
-  theory::TrustNode expandDefinitions(TNode n,
+  TrustNode expandDefinitions(TNode n,
                                       std::unordered_map<Node, Node>& cache,
                                       TConvProofGenerator* tpg);
   /** Reference to the environment. */

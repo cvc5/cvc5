@@ -72,7 +72,7 @@ class AssertionPipeline
                  bool isInput = false,
                  ProofGenerator* pg = nullptr);
   /** Same as above, with TrustNode */
-  void pushBackTrusted(theory::TrustNode trn);
+  void pushBackTrusted(TrustNode trn);
 
   /**
    * Get the constant reference to the underlying assertions. It is only
@@ -97,7 +97,7 @@ class AssertionPipeline
    * Same as above, with TrustNode trn, which is of kind REWRITE and proves
    * d_nodes[i] = n for some n.
    */
-  void replaceTrusted(size_t i, theory::TrustNode trn);
+  void replaceTrusted(size_t i, TrustNode trn);
 
   IteSkolemMap& getIteSkolemMap() { return d_iteSkolemMap; }
   const IteSkolemMap& getIteSkolemMap() const { return d_iteSkolemMap; }

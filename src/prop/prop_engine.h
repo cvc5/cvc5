@@ -94,8 +94,8 @@ class PropEngine
    * @return The (REWRITE) trust node corresponding to rewritten node via
    * preprocessing.
    */
-  theory::TrustNode preprocess(TNode node,
-                               std::vector<theory::TrustNode>& ppLemmas,
+  TrustNode preprocess(TNode node,
+                               std::vector<TrustNode>& ppLemmas,
                                std::vector<Node>& ppSkolems);
   /**
    * Remove term ITEs (and more generally, term formulas) from the given node.
@@ -110,8 +110,8 @@ class PropEngine
    * @return The (REWRITE) trust node corresponding to rewritten node via
    * preprocessing.
    */
-  theory::TrustNode removeItes(TNode node,
-                               std::vector<theory::TrustNode>& ppLemmas,
+  TrustNode removeItes(TNode node,
+                               std::vector<TrustNode>& ppLemmas,
                                std::vector<Node>& ppSkolems);
 
   /**
@@ -136,7 +136,7 @@ class PropEngine
    * @param trn the trust node storing the formula to assert
    * @param p the properties of the lemma
    */
-  void assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p);
+  void assertLemma(TrustNode tlemma, theory::LemmaProperty p);
 
   /**
    * If ever n is decided upon, it must be in the given phase.  This
@@ -321,7 +321,7 @@ class PropEngine
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic
    */
-  void assertTrustedLemmaInternal(theory::TrustNode trn, bool removable);
+  void assertTrustedLemmaInternal(TrustNode trn, bool removable);
   /**
    * Assert node as a formula to the CNF stream
    * @param node The formula to assert
@@ -342,8 +342,8 @@ class PropEngine
    * skolem definitions and skolems obtained from preprocessing it, and
    * removable is whether the lemma is removable.
    */
-  void assertLemmasInternal(theory::TrustNode trn,
-                            const std::vector<theory::TrustNode>& ppLemmas,
+  void assertLemmasInternal(TrustNode trn,
+                            const std::vector<TrustNode>& ppLemmas,
                             const std::vector<Node>& ppSkolems,
                             bool removable);
 
