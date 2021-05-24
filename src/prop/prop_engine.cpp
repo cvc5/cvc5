@@ -158,18 +158,16 @@ PropEngine::~PropEngine() {
   delete d_theoryProxy;
 }
 
-TrustNode PropEngine::preprocess(
-    TNode node,
-    std::vector<TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems)
+TrustNode PropEngine::preprocess(TNode node,
+                                 std::vector<TrustNode>& newLemmas,
+                                 std::vector<Node>& newSkolems)
 {
   return d_theoryProxy->preprocess(node, newLemmas, newSkolems);
 }
 
-TrustNode PropEngine::removeItes(
-    TNode node,
-    std::vector<TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems)
+TrustNode PropEngine::removeItes(TNode node,
+                                 std::vector<TrustNode>& newLemmas,
+                                 std::vector<Node>& newSkolems)
 {
   return d_theoryProxy->removeItes(node, newLemmas, newSkolems);
 }
@@ -244,8 +242,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
   assertLemmasInternal(tplemma, ppLemmas, ppSkolems, removable);
 }
 
-void PropEngine::assertTrustedLemmaInternal(TrustNode trn,
-                                            bool removable)
+void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
 {
   Node node = trn.getNode();
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
@@ -296,11 +293,10 @@ void PropEngine::assertInternal(
   }
 }
 
-void PropEngine::assertLemmasInternal(
-    TrustNode trn,
-    const std::vector<TrustNode>& ppLemmas,
-    const std::vector<Node>& ppSkolems,
-    bool removable)
+void PropEngine::assertLemmasInternal(TrustNode trn,
+                                      const std::vector<TrustNode>& ppLemmas,
+                                      const std::vector<Node>& ppSkolems,
+                                      bool removable)
 {
   if (!trn.isNull())
   {

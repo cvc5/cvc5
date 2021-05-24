@@ -95,8 +95,8 @@ class PropEngine
    * preprocessing.
    */
   TrustNode preprocess(TNode node,
-                               std::vector<TrustNode>& ppLemmas,
-                               std::vector<Node>& ppSkolems);
+                       std::vector<TrustNode>& ppLemmas,
+                       std::vector<Node>& ppSkolems);
   /**
    * Remove term ITEs (and more generally, term formulas) from the given node.
    * Return the REWRITE trust node corresponding to rewriting node. New lemmas
@@ -111,8 +111,8 @@ class PropEngine
    * preprocessing.
    */
   TrustNode removeItes(TNode node,
-                               std::vector<TrustNode>& ppLemmas,
-                               std::vector<Node>& ppSkolems);
+                       std::vector<TrustNode>& ppLemmas,
+                       std::vector<Node>& ppSkolems);
 
   /**
    * Converts the given formulas to CNF and assert the CNF to the SAT solver.

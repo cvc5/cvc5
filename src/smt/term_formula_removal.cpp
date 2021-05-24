@@ -53,11 +53,10 @@ RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u,
 
 RemoveTermFormulas::~RemoveTermFormulas() {}
 
-TrustNode RemoveTermFormulas::run(
-    TNode assertion,
-    std::vector<TrustNode>& newAsserts,
-    std::vector<Node>& newSkolems,
-    bool fixedPoint)
+TrustNode RemoveTermFormulas::run(TNode assertion,
+                                  std::vector<TrustNode>& newAsserts,
+                                  std::vector<Node>& newSkolems,
+                                  bool fixedPoint)
 {
   Node itesRemoved = runInternal(assertion, newAsserts, newSkolems);
   Assert(newAsserts.size() == newSkolems.size());
@@ -91,14 +90,12 @@ TrustNode RemoveTermFormulas::run(TNode assertion)
   return run(assertion, newAsserts, newSkolems, false);
 }
 
-TrustNode RemoveTermFormulas::runLemma(
-    TrustNode lem,
-    std::vector<TrustNode>& newAsserts,
-    std::vector<Node>& newSkolems,
-    bool fixedPoint)
+TrustNode RemoveTermFormulas::runLemma(TrustNode lem,
+                                       std::vector<TrustNode>& newAsserts,
+                                       std::vector<Node>& newSkolems,
+                                       bool fixedPoint)
 {
-  TrustNode trn =
-      run(lem.getProven(), newAsserts, newSkolems, fixedPoint);
+  TrustNode trn = run(lem.getProven(), newAsserts, newSkolems, fixedPoint);
   if (trn.isNull())
   {
     // no change

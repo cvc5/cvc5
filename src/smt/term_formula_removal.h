@@ -89,9 +89,9 @@ class RemoveTermFormulas {
    * generator (if provided) that can prove the equivalence.
    */
   TrustNode run(TNode assertion,
-                        std::vector<TrustNode>& newAsserts,
-                        std::vector<Node>& newSkolems,
-                        bool fixedPoint = false);
+                std::vector<TrustNode>& newAsserts,
+                std::vector<Node>& newSkolems,
+                bool fixedPoint = false);
   /**
    * Same as above, but does not track lemmas, and does not run to fixed point.
    * The relevant lemmas can be extracted by the caller later using getSkolems
@@ -103,9 +103,9 @@ class RemoveTermFormulas {
    * proves the same formula as lem with term formulas removed.
    */
   TrustNode runLemma(TrustNode lem,
-                             std::vector<TrustNode>& newAsserts,
-                             std::vector<Node>& newSkolems,
-                             bool fixedPoint = false);
+                     std::vector<TrustNode>& newAsserts,
+                     std::vector<Node>& newSkolems,
+                     bool fixedPoint = false);
 
   /**
    * Get proof generator that is responsible for all proofs for removing term

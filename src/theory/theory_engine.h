@@ -422,8 +422,7 @@ class TheoryEngine {
    * where the node is the one to be explained, and the theory is the
    * theory that sent the literal.
    */
-  TrustNode getExplanation(
-      std::vector<NodeTheoryPair>& explanationVector);
+  TrustNode getExplanation(std::vector<NodeTheoryPair>& explanationVector);
 
   /** Are proofs enabled? */
   bool isProofEnabled() const;
@@ -477,8 +476,7 @@ class TheoryEngine {
    * take this proof into account (when proofs are enabled).
    */
   theory::Theory::PPAssertStatus solve(
-      TrustNode tliteral,
-      theory::TrustSubstitutionMap& substitutionOut);
+      TrustNode tliteral, theory::TrustSubstitutionMap& substitutionOut);
 
   /**
    * Preregister a Theory atom with the responsible theory (or

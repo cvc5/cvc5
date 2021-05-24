@@ -54,8 +54,8 @@ class TheoryEngineProofGenerator : public ProofGenerator
    * also suffices for proving the implication.
    */
   TrustNode mkTrustExplain(TNode lit,
-                                   Node exp,
-                                   std::shared_ptr<LazyCDProof> lpf);
+                           Node exp,
+                           std::shared_ptr<LazyCDProof> lpf);
   /**
    * Get proof for, which expects implications corresponding to explained
    * propagations (=> exp lit) registered by the above method. This currently

@@ -163,8 +163,7 @@ TrustNode TConvSeqProofGenerator::mkTrustRewriteSequence(
     }
   }
   Assert(pg != nullptr);
-  return TrustNode::mkTrustRewrite(
-      cterms[0], cterms[cterms.size() - 1], pg);
+  return TrustNode::mkTrustRewrite(cterms[0], cterms[cterms.size() - 1], pg);
 }
 
 std::string TConvSeqProofGenerator::identify() const { return d_name; }

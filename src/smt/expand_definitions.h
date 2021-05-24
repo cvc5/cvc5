@@ -65,8 +65,8 @@ class ExpandDefs
    * based on the optional argument tpg.
    */
   TrustNode expandDefinitions(TNode n,
-                                      std::unordered_map<Node, Node>& cache,
-                                      TConvProofGenerator* tpg);
+                              std::unordered_map<Node, Node>& cache,
+                              TConvProofGenerator* tpg);
   /** Reference to the environment. */
   Env& d_env;
   /** Reference to the SMT stats */
