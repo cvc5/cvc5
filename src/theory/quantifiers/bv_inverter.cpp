@@ -108,7 +108,7 @@ static bool isInvertible(Kind k, unsigned index)
   return k == NOT || k == EQUAL || k == BITVECTOR_ULT || k == BITVECTOR_SLT
          || k == BITVECTOR_COMP || k == BITVECTOR_NOT || k == BITVECTOR_NEG
          || k == BITVECTOR_CONCAT || k == BITVECTOR_SIGN_EXTEND
-         || k == BITVECTOR_PLUS || k == BITVECTOR_MULT || k == BITVECTOR_UREM
+         || k == BITVECTOR_ADD || k == BITVECTOR_MULT || k == BITVECTOR_UREM
          || k == BITVECTOR_UDIV || k == BITVECTOR_AND || k == BITVECTOR_OR
          || k == BITVECTOR_XOR || k == BITVECTOR_LSHR || k == BITVECTOR_ASHR
          || k == BITVECTOR_SHL;
@@ -284,7 +284,7 @@ Node BvInverter::solveBvLit(Node sv,
     {
       t = nm->mkNode(k, t);
     }
-    else if (litk == EQUAL && k == BITVECTOR_PLUS)
+    else if (litk == EQUAL && k == BITVECTOR_ADD)
     {
       t = nm->mkNode(BITVECTOR_SUB, t, s);
     }

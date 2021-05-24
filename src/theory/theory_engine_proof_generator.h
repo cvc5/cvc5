@@ -22,10 +22,10 @@
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
-#include "expr/lazy_proof.h"
-#include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
-#include "theory/trust_node.h"
+#include "proof/lazy_proof.h"
+#include "proof/proof_generator.h"
+#include "proof/proof_node_manager.h"
+#include "proof/trust_node.h"
 
 namespace cvc5 {
 

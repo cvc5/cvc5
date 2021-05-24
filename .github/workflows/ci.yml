@@ -44,7 +44,7 @@ jobs:
           - name: ubuntu:production-dbg-clang
             os: ubuntu-latest
             env: CC=clang CXX=clang++
-            config: production --auto-download --assertions --tracing --unit-testing --cln --gpl
+            config: production --auto-download --assertions --tracing --cln --gpl
             cache-key: dbgclang
             exclude_regress: 3-4
             run_regression_args: --no-check-proofs
@@ -100,6 +100,7 @@ jobs:
       run: |
         python3 -m pip install pytest
         python3 -m pytest --version
+        python3 -m pip install scikit-build
         python3 -m pip install \
           Cython==0.29.* --install-option="--no-cython-compile"
         echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
@@ -175,7 +176,6 @@ jobs:
       run: |
         ${{ matrix.env }} ./configure.sh ${{ matrix.config }} \
           --prefix=$(pwd)/build/install \
-          --unit-testing \
           --werror
 
     - name: Build

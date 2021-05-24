@@ -19,6 +19,36 @@ if(POLICY CMP0057)
   cmake_policy(SET CMP0057 NEW)
 endif()
 
+# Check that scikit-build is installed
+# Provides CMake files for Python bindings
+check_python_module("skbuild" "scikit-build")
+
+# setuptools for installing the module
+check_python_module("setuptools")
+
+# Find cmake modules distributed with scikit-build
+# They are distributed under <scikit-build directory>/resources/cmake
+execute_process(
+  COMMAND
+    ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; \
+      import os; import skbuild; \
+      cmake_module_path=os.path.join(os.path.dirname(skbuild.__file__), \
+        'resources', 'cmake'); print(cmake_module_path, end='')"
+  OUTPUT_VARIABLE
+    SKBUILD_CMAKE_MODULE_PATH
+  RESULT_VARIABLE
+    RET_SKBUILD_CMAKE_MODULE_PATH
+)
+
+if (NOT EXISTS ${SKBUILD_CMAKE_MODULE_PATH})
+  message(FATAL_ERROR "Expected CMake module path from
+                       scikit-build at ${SKBUILD_CMAKE_MODULE_PATH}")
+endif()
+
+# Add scikit-build cmake files to cmake module path
+# Required for Cython target below
+list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
+
 find_package(PythonExtensions REQUIRED)
 find_package(Cython 0.29 REQUIRED)
 
@@ -98,8 +128,14 @@ print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')")
 set(INSTALL_CMD
     "${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/setup.py install")
 # if we're in a virtualenv, we install it in the virtualenv lib location
+# otherwise install in site-packages
+# option --single-version-externally-managed prevents it from being
+# an .egg distribution and --record records the list of installed files
 if ("${IN_VIRTUALENV}" STREQUAL "NO")
-  set(INSTALL_CMD "${INSTALL_CMD} --prefix=${CMAKE_INSTALL_PREFIX}")
+  set(INSTALL_CMD "${INSTALL_CMD}
+          --prefix=${CMAKE_INSTALL_PREFIX}
+          --single-version-externally-managed
+          --record=pycvc5-installed-files.txt")
 endif()
 
 message("Python bindings install command: ${INSTALL_CMD}")

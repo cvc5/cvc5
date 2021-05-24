@@ -82,18 +82,18 @@ name   = "Decision Heuristics"
   help_mode  = "Policy for when to satisfy skolem definitions in justification heuristic"
 [[option.mode.FIRST]]
   name = "first"
+  help = "satisfy pending relevant skolem definitions before input assertions"
 [[option.mode.LAST]]
   name = "last"
-[[option.mode.FIRST_AGG]]
-  name = "first-agg"
+  help = "satisfy pending relevant skolem definitions after input assertions"
 
 [[option]]
   name       = "jhRlvOrder"
-  category   = "regular"
+  category   = "expert"
   long       = "jh-rlv-order"
   type       = "bool"
   default    = "false"
-  help       = "maintain relevancy ordering for decision justification heuristic"
+  help       = "maintain activity-based ordering for decision justification heuristic"
 
 [[option]]
   name       = "jhSkolemRlvMode"
@@ -105,7 +105,7 @@ name   = "Decision Heuristics"
   help_mode  = "Policy for when to consider skolem definitions relevant in justification heuristic"
 [[option.mode.ASSERT]]
   name = "assert"
-[[option.mode.JUSTIFY]]
-  name = "justify"
+  help = "skolems are relevant when they occur in an asserted literal"
 [[option.mode.ALWAYS]]
   name = "always"
+  help = "skolems are always relevant"

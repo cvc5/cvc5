@@ -620,7 +620,7 @@ TEST_F(TestNodeBlackNode, dagifier)
   Node fgx_eq_gy = d_nodeManager->mkNode(EQUAL, fgx, gy);
 
   Node n = d_nodeManager->mkNode(
-      OR, fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy);
+      OR, {fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy});
 
   std::stringstream sstr;
   sstr << Node::setdepth(-1) << Node::setlanguage(language::output::LANG_CVC);

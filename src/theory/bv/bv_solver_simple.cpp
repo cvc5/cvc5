@@ -15,7 +15,7 @@
 
 #include "theory/bv/bv_solver_simple.h"
 
-#include "expr/term_conversion_proof_generator.h"
+#include "proof/conv_proof_generator.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
