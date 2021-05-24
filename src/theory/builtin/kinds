@@ -119,12 +119,14 @@
 #     For consistency these should start with "APPLY_", but this is
 #     not enforced.
 #
-#   constant K T Hasher header ["comment"]
+#   constant K F T Hasher header ["comment"]
 #
-#     Declares a constant kind K.  T is the C++ type representing the
-#     constant internally (and it should be
-#     ::fully::qualified::like::this), and header is the header needed
-#     to define it.  Hasher is a hash functor type defined like this:
+#     Declares a constant kind K.  F is the type of the forward declaration to
+#     generate (e.g., `class`, `struct`). If F is `skip` then then no forward
+#     declaration is generated.  T is the C++ type representing the constant
+#     internally (the type is expected to be in the cvc5 namespace), and header
+#     is the header needed to define it.  Hasher is a hash functor type defined
+#     like this:
 #
 #       struct MyHashFcn {
 #         size_t operator()(const T& val) const;

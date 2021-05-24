@@ -203,7 +203,7 @@ function parameterized {
 }
 
 function constant {
-  # constant K T Hasher header ["comment"]
+  # constant K F T Hasher header ["comment"]
 
   lineno=${BASH_LINENO[0]}
 
