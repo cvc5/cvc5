@@ -112,5 +112,3 @@ add_jar(cvc5jar
 )
 
 add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5)
-
-get_target_property(CVC5_JAR_PATH cvc5jar JAR_FILE)
