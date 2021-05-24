@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Equality proof checker utility.
+ * Builtin proof checker utility.
  */
 
 #include "cvc5_private.h"
@@ -21,72 +21,11 @@
 #include "expr/node.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
+#include "proof/method_id.h"
 #include "theory/quantifiers/extended_rewrite.h"
 
 namespace cvc5 {
 namespace theory {
-
-/**
- * Identifiers for rewriters and substitutions, which we abstractly
- * classify as "methods".  Methods have a unique identifier in the internal
- * proof calculus implemented by the checker below.
- *
- * A "rewriter" is abstractly a method from Node to Node, where the output
- * is semantically equivalent to the input. The identifiers below list
- * various methods that have this contract. This identifier is used
- * in a number of the builtin rules.
- *
- * A substitution is a method for turning a formula into a substitution.
- */
-enum class MethodId : uint32_t
-{
-  //---------------------------- Rewriters
-  // Rewriter::rewrite(n)
-  RW_REWRITE,
-  // d_ext_rew.extendedRewrite(n);
-  RW_EXT_REWRITE,
-  // Rewriter::rewriteExtEquality(n)
-  RW_REWRITE_EQ_EXT,
-  // Evaluator::evaluate(n)
-  RW_EVALUATE,
-  // identity
-  RW_IDENTITY,
-  // theory preRewrite, note this is only intended to be used as an argument
-  // to THEORY_REWRITE in the final proof. It is not implemented in
-  // applyRewrite below, see documentation in proof_rule.h for THEORY_REWRITE.
-  RW_REWRITE_THEORY_PRE,
-  // same as above, for theory postRewrite
-  RW_REWRITE_THEORY_POST,
-  //---------------------------- Substitutions
-  // (= x y) is interpreted as x -> y, using Node::substitute
-  SB_DEFAULT,
-  // P, (not P) are interpreted as P -> true, P -> false using Node::substitute
-  SB_LITERAL,
-  // P is interpreted as P -> true using Node::substitute
-  SB_FORMULA,
-  //---------------------------- Substitution applications
-  // multiple substitutions are applied sequentially
-  SBA_SEQUENTIAL,
-  // multiple substitutions are applied simultaneously
-  SBA_SIMUL,
-  // multiple substitutions are applied to fix point
-  SBA_FIXPOINT
-  // For example, for x -> u, y -> f(z), z -> g(x), applying this substituion to
-  // y gives:
-  // - f(g(x)) for SBA_SEQUENTIAL
-  // - f(z) for SBA_SIMUL
-  // - f(g(u)) for SBA_FIXPOINT
-  // Notice that SBA_FIXPOINT should provide a terminating rewrite system
-  // as a substitution, or else non-termination will occur during proof
-  // checking.
-};
-/** Converts a rewriter id to a string. */
-const char* toString(MethodId id);
-/** Write a rewriter id to out */
-std::ostream& operator<<(std::ostream& out, MethodId id);
-/** Make a method id node */
-Node mkMethodId(MethodId id);
-
 namespace builtin {
 
 /** A checker for builtin proofs */
