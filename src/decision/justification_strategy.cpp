@@ -64,12 +64,13 @@ void JustificationStrategy::presolve()
   d_stack.clear();
 }
 
-SatLiteral JustificationStrategy::getNext()
+SatLiteral JustificationStrategy::getNext(bool& stopSearch)
 {
   // ensure we have an assertion
   if (!refreshCurrentAssertion())
   {
     Trace("jh-process") << "getNext, already finished" << std::endl;
+    stopSearch = true;
     return undefSatLiteral;
   }
   Assert(d_stack.hasCurrentAssertion());
@@ -210,6 +211,7 @@ SatLiteral JustificationStrategy::getNext()
   } while (d_stack.hasCurrentAssertion());
   // we exhausted all assertions
   Trace("jh-process") << "...exhausted all assertions" << std::endl;
+  stopSearch = true;
   return undefSatLiteral;
 }
 
