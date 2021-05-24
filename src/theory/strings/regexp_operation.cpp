@@ -1037,8 +1037,8 @@ Node RegExpOpr::reduceRegExpPos(Node mem,
         nvec.push_back(nm->mkNode(STRING_IN_REGEXP, newSkolems[i], r[i]));
       }
     }
-    // (str.in_re x (re.++ R1 .... Rn)) =>
-    // (and (= x (str.++ k1 ... kn)) (str.in_re k1 R1) ... (str.in_re kn Rn) )
+    // (str.in_re x (re.++ R0 .... Rn)) =>
+    // (and (= x (str.++ k0 ... kn)) (str.in_re k0 R0) ... (str.in_re kn Rn) )
     Node lem = s.eqNode(nm->mkNode(STRING_CONCAT, newSkolems));
     nvec.insert(nvec.begin(), lem);
     conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
