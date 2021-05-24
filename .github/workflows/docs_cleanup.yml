@@ -61,9 +61,9 @@ jobs:
           git add README.md
           if git diff --cached --exit-code
           then
-            git commit -m "Update README.md"
-          else
             echo "Nothing changed"
+          else
+            git commit -m "Update README.md"
           fi
 
           git push -f
