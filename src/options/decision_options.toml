@@ -1,9 +1,9 @@
 id     = "DECISION"
-name   = "Decision heuristics"
+name   = "Decision Heuristics"
 
 [[option]]
   name       = "decisionMode"
-  smt_name   = "decision-mode"
+  alias      = ["decision-mode"]
   category   = "regular"
   long       = "decision=MODE"
   type       = "DecisionMode"

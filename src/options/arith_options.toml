@@ -1,5 +1,5 @@
 id     = "ARITH"
-name   = "Arithmetic theory"
+name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithUnateLemmaMode"
@@ -137,7 +137,6 @@ name   = "Arithmetic theory"
 
 [[option]]
   name       = "arithMLTrick"
-  smt_name   = "miplib-trick"
   category   = "regular"
   long       = "miplib-trick"
   type       = "bool"
@@ -146,7 +145,6 @@ name   = "Arithmetic theory"
 
 [[option]]
   name       = "arithMLTrickSubstitutions"
-  smt_name   = "miplib-trick-subs"
   category   = "regular"
   long       = "miplib-trick-subs=N"
   type       = "unsigned"

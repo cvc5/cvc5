@@ -76,7 +76,8 @@ class ProofNodeUpdaterCallback
  * (ProofNodeUpdaterCallback::shouldUpdate)
  * and overwrites them based on the update procedure of the callback
  * (ProofNodeUpdaterCallback::update), which uses local CDProof objects that
- * should be filled in the callback for each ProofNode to update.
+ * should be filled in the callback for each ProofNode to update. This update
+ * process is applied in a *pre-order* traversal.
  */
 class ProofNodeUpdater
 {

@@ -314,7 +314,10 @@ command [std::unique_ptr<cvc5::Command>* cmd]
       }
 
       t = PARSER_STATE->mkFlatFunctionType(sorts, t, flattenVars);
-      PARSER_STATE->pushScope();
+      if (sortedVarNames.size() > 0)
+      {
+        PARSER_STATE->pushScope();
+      }
       terms = PARSER_STATE->bindBoundVars(sortedVarNames);
     }
     term[expr, expr2]
@@ -325,7 +328,10 @@ command [std::unique_ptr<cvc5::Command>* cmd]
         expr = PARSER_STATE->mkHoApply(expr, flattenVars);
         terms.insert(terms.end(), flattenVars.begin(), flattenVars.end());
       }
-      PARSER_STATE->popScope();
+      if (sortedVarNames.size() > 0)
+      {
+        PARSER_STATE->popScope();
+      }
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
@@ -1007,14 +1013,8 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
-    { /* add variables to parser state before parsing term */
-      Debug("parser") << "define const: '" << name << "'" << std::endl;
-      PARSER_STATE->pushScope();
-      terms = PARSER_STATE->bindBoundVars(sortedVarNames);
-    }
     term[e, e2]
     {
-      PARSER_STATE->popScope();
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
@@ -1726,7 +1726,7 @@ termAtomic[cvc5::api::Term& atomTerm]
     | CHAR_TOK HEX_LITERAL 
       {
         std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
-        atomTerm = SOLVER->mkChar(hexStr);
+        atomTerm = PARSER_STATE->mkCharConstant(hexStr);
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {

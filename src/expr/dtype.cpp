@@ -100,7 +100,8 @@ const DType& DType::datatypeOf(Node item)
   {
     case CONSTRUCTOR_TYPE: return t[t.getNumChildren() - 1].getDType();
     case SELECTOR_TYPE:
-    case TESTER_TYPE: return t[0].getDType();
+    case TESTER_TYPE:
+    case UPDATER_TYPE: return t[0].getDType();
     default:
       Unhandled() << "arg must be a datatype constructor, selector, or tester";
   }
@@ -864,10 +865,12 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   std::stringstream ss;
   ss << "sel_" << index;
   SkolemManager* sm = nm->getSkolemManager();
-  s = sm->mkDummySkolem(ss.str(),
-                        nm->mkSelectorType(dtt, t),
-                        "is a shared selector",
-                        NodeManager::SKOLEM_NO_NOTIFY);
+  TypeNode stype = nm->mkSelectorType(dtt, t);
+  Node nindex = nm->mkConst(Rational(index));
+  s = sm->mkSkolemFunction(SkolemFunId::SHARED_SELECTOR,
+                           stype,
+                           nindex,
+                           NodeManager::SKOLEM_NO_NOTIFY);
   d_sharedSel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;

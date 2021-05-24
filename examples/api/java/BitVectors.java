@@ -94,7 +94,7 @@ public class BitVectors {
 
     // Encoding code (2)
     // new_x_ = a + b - x
-    Expr a_plus_b = em.mkExpr(Kind.BITVECTOR_PLUS, a, b);
+    Expr a_plus_b = em.mkExpr(Kind.BITVECTOR_ADD, a, b);
     Expr a_plus_b_minus_x = em.mkExpr(Kind.BITVECTOR_SUB, a_plus_b, x);
     Expr assignment2 = em.mkExpr(Kind.EQUAL, new_x_, a_plus_b_minus_x);
 
