@@ -16,12 +16,12 @@
 #include "theory/arith/nl/ext/monomial_check.h"
 
 #include "expr/node.h"
-#include "expr/proof.h"
+#include "proof/proof.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nl_model.h"
-#include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/ext/ext_state.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
+#include "theory/arith/nl/nl_model.h"
 
 namespace cvc5 {
 namespace theory {

@@ -24,8 +24,8 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/eager_proof_generator.h"
-#include "theory/trust_node.h"
+#include "proof/eager_proof_generator.h"
+#include "proof/trust_node.h"
 
 namespace cvc5 {
 

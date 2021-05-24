@@ -18,7 +18,7 @@
 
 #include "expr/node_manager.h"
 #include "options/smt_options.h"
-#include "expr/lazy_proof.h"
+#include "proof/lazy_proof.h"
 #include "smt/preprocess_proof_generator.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
