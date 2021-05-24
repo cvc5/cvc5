@@ -104,6 +104,8 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       {
         numPivotIndex = 1;
         pivotIndex = i;
+        // zero is used in sum below and is used for concat-fixed-len
+        fl = zero;
       }
       else
       {

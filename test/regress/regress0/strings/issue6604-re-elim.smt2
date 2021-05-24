@@ -1,4 +1,4 @@
-; COMMAND-LINE: --re-elim
+; COMMAND-LINE: --re-elim --strings-exp
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-fun a () String)
