@@ -52,6 +52,7 @@ const char* toString(PfRule id)
     case PfRule::FACTORING: return "FACTORING";
     case PfRule::REORDERING: return "REORDERING";
     case PfRule::MACRO_RESOLUTION: return "MACRO_RESOLUTION";
+    case PfRule::MACRO_RESOLUTION_TRUST: return "MACRO_RESOLUTION_TRUST";
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::EQ_RESOLVE: return "EQ_RESOLVE";
     case PfRule::MODUS_PONENS: return "MODUS_PONENS";
@@ -140,7 +141,7 @@ const char* toString(PfRule id)
     case PfRule::BV_BITBLAST_NOR: return "BV_BITBLAST_NOR";
     case PfRule::BV_BITBLAST_COMP: return "BV_BITBLAST_COMP";
     case PfRule::BV_BITBLAST_MULT: return "BV_BITBLAST_MULT";
-    case PfRule::BV_BITBLAST_PLUS: return "BV_BITBLAST_PLUS";
+    case PfRule::BV_BITBLAST_ADD: return "BV_BITBLAST_ADD";
     case PfRule::BV_BITBLAST_SUB: return "BV_BITBLAST_SUB";
     case PfRule::BV_BITBLAST_NEG: return "BV_BITBLAST_NEG";
     case PfRule::BV_BITBLAST_UDIV: return "BV_BITBLAST_UDIV";
@@ -196,7 +197,9 @@ const char* toString(PfRule id)
     case PfRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
     case PfRule::STRING_TRUST: return "STRING_TRUST";
     //================================================= Arith rules
-    case PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS: return "ARITH_SCALE_SUM_UPPER_BOUNDS";
+    case PfRule::MACRO_ARITH_SCALE_SUM_UB:
+      return "ARITH_SCALE_SUM_UPPER_BOUNDS";
+    case PfRule::ARITH_SUM_UB: return "ARITH_SUM_UB";
     case PfRule::ARITH_TRICHOTOMY: return "ARITH_TRICHOTOMY";
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";

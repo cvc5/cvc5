@@ -336,11 +336,11 @@ bool SygusSimpleSymBreak::considerArgKind(
       //  (~ (- y z) x)  ---->  (~ y (+ x z))
       rt.d_req_kind = pk;
       rt.d_children[arg].d_req_type = dt[c].getArgType(0);
-      rt.d_children[oarg].d_req_kind = k == MINUS ? PLUS : BITVECTOR_PLUS;
+      rt.d_children[oarg].d_req_kind = k == MINUS ? PLUS : BITVECTOR_ADD;
       rt.d_children[oarg].d_children[0].d_req_type = pdt[pc].getArgType(oarg);
       rt.d_children[oarg].d_children[1].d_req_type = dt[c].getArgType(1);
     }
-    else if (pk == PLUS || pk == BITVECTOR_PLUS)
+    else if (pk == PLUS || pk == BITVECTOR_ADD)
     {
       //  (+ x (- y z))  -----> (- (+ x y) z)
       //  (+ (- y z) x)  -----> (- (+ x y) z)

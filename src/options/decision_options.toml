@@ -1,5 +1,5 @@
 id     = "DECISION"
-name   = "Decision heuristics"
+name   = "Decision Heuristics"
 
 [[option]]
   name       = "decisionMode"

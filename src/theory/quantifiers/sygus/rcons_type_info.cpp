@@ -17,6 +17,7 @@
 
 #include "expr/skolem_manager.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/sygus/rcons_obligation.h"
 
 namespace cvc5 {
 namespace theory {
@@ -63,12 +64,20 @@ Node RConsTypeInfo::addTerm(Node n)
   return d_crd->addTerm(n, false, out);
 }
 
-void RConsTypeInfo::setBuiltinToOb(Node builtin, Node ob)
+void RConsTypeInfo::setBuiltinToOb(Node t, RConsObligation* ob)
 {
-  d_ob[builtin] = ob;
+  d_ob.emplace(t, ob);
 }
 
-Node RConsTypeInfo::builtinToOb(Node builtin) { return d_ob[builtin]; }
+RConsObligation* RConsTypeInfo::builtinToOb(Node t)
+{
+  auto it = d_ob.find(t);
+  if (it != d_ob.cend())
+  {
+    return it->second;
+  }
+  return nullptr;
+}
 
 }  // namespace quantifiers
 }  // namespace theory

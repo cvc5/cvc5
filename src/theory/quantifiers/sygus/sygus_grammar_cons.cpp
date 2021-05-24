@@ -811,7 +811,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       std::vector<Kind> bin_kinds = {BITVECTOR_AND,
                                      BITVECTOR_OR,
                                      BITVECTOR_XOR,
-                                     BITVECTOR_PLUS,
+                                     BITVECTOR_ADD,
                                      BITVECTOR_SUB,
                                      BITVECTOR_MULT,
                                      BITVECTOR_UDIV,
