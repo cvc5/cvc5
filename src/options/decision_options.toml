@@ -16,10 +16,10 @@ name   = "Decision Heuristics"
   help = "Use the internal decision heuristics of the SAT solver."
 [[option.mode.JUSTIFICATION]]
   name = "justification"
-  help = "Justification heuristic."
+  help = "An ATGP-inspired justification heuristic."
 [[option.mode.JUSTIFICATION_OLD]]
   name = "justification-old"
-  help = "An ATGP-inspired justification heuristic."
+  help = "Older implementation of an ATGP-inspired justification heuristic."
 [[option.mode.RELEVANCY]]
   name = "justification-stoponly"
   help = "Use the justification heuristic only to stop early, not for decisions."

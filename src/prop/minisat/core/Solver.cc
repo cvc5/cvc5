@@ -1606,6 +1606,8 @@ lbool Solver::search(int nof_conflicts)
       // If this was a final check, we are satisfiable
       if (check_type == CHECK_FINAL)
       {
+        // Note that we are done making decisions there are no pending decisions
+        // on assumptions, and the decision engine indicates it is done.
         bool decisionEngineDone = (decisionLevel() >= assumptions.size())
                                   && d_proxy->isDecisionEngineDone();
         // Unless a lemma has added more stuff to the queues
