@@ -88,10 +88,9 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
   // have a fixed length.
   // The intuition why this is a "non-aggressive" rewrite is that membership
   // into fixed length regular expressions are easy to handle.
-  bool hasFixedLength = true;
   // the index of _* in re
   unsigned pivotIndex = 0;
-  bool hasPivotIndex = false;
+  size_t numPivotIndex = 0;
   std::vector<Node> childLengths;
   std::vector<Node> childLengthsPostPivot;
   for (unsigned i = 0, size = children.size(); i < size; i++)
@@ -100,32 +99,37 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
     Node fl = RegExpEntail::getFixedLengthForRegexp(c);
     if (fl.isNull())
     {
-      if (!hasPivotIndex && c.getKind() == REGEXP_STAR
+      if (numPivotIndex == 0 && c.getKind() == REGEXP_STAR
           && c[0].getKind() == REGEXP_SIGMA)
       {
-        hasPivotIndex = true;
+        numPivotIndex = 1;
         pivotIndex = i;
-        // set to zero for the sum below
+        // zero is used in sum below and is used for concat-fixed-len
         fl = zero;
       }
       else
       {
-        hasFixedLength = false;
-        break;
+        numPivotIndex++;
       }
     }
-    childLengths.push_back(fl);
-    if (hasPivotIndex)
+    if (!fl.isNull())
     {
-      childLengthsPostPivot.push_back(fl);
+      childLengths.push_back(fl);
+      if (numPivotIndex > 0)
+      {
+        childLengthsPostPivot.push_back(fl);
+      }
     }
   }
-  if (hasFixedLength)
+  Node lenSum = childLengths.size() > 1 ? nm->mkNode(PLUS, childLengths)
+                                        : childLengths[0];
+  // if we have at most one pivot index
+  if (numPivotIndex <= 1)
   {
+    bool hasPivotIndex = (numPivotIndex == 1);
     Assert(re.getNumChildren() == children.size());
-    Node sum = nm->mkNode(PLUS, childLengths);
     std::vector<Node> conc;
-    conc.push_back(nm->mkNode(hasPivotIndex ? GEQ : EQUAL, lenx, sum));
+    conc.push_back(nm->mkNode(hasPivotIndex ? GEQ : EQUAL, lenx, lenSum));
     Node currEnd = zero;
     for (unsigned i = 0, size = childLengths.size(); i < size; i++)
     {
@@ -326,7 +330,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         Node fit = nm->mkNode(LEQ, nm->mkNode(PLUS, prev_end, cEnd), lenx);
         conj.push_back(fit);
       }
-      Node res = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
+      Node res = nm->mkAnd(conj);
       // process the non-greedy find variables
       if (!non_greedy_find_vars.empty())
       {
@@ -342,19 +346,23 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         Node bvl = nm->mkNode(BOUND_VAR_LIST, non_greedy_find_vars);
         res = nm->mkNode(EXISTS, bvl, body);
       }
+      // must also give a minimum length requirement
+      res = nm->mkNode(AND, res, nm->mkNode(GEQ, lenx, lenSum));
       // Examples of this elimination:
       //   x in (re.++ "A" (re.* _) "B" (re.* _)) --->
       //     substr(x,0,1)="A" ^ indexof(x,"B",1)!=-1
       //   x in (re.++ (re.* _) "A" _ _ _ (re.* _) "B" _ _ (re.* _)) --->
       //     indexof(x,"A",0)!=-1 ^
       //     indexof( x, "B", indexof( x, "A", 0 ) + 1 + 3 ) != -1 ^
-      //     indexof( x, "B", indexof( x, "A", 0 ) + 1 + 3 )+1+2 <= len(x)
+      //     indexof( x, "B", indexof( x, "A", 0 ) + 1 + 3 )+1+2 <= len(x) ^
+      //     len(x) >= 7
 
       // An example of a non-greedy find:
       //   x in re.++( re.*( _ ), "A", _, "B", re.*( _ ) ) --->
-      //     exists k. 0 <= k < len( x ) ^
+      //     (exists k. 0 <= k < len( x ) ^
       //               indexof( x, "A", k ) != -1 ^
-      //               substr( x, indexof( x, "A", k )+2, 1 ) = "B"
+      //               substr( x, indexof( x, "A", k )+2, 1 ) = "B") ^
+      //     len(x) >= 3
       return returnElim(atom, res, "concat-with-gaps");
     }
   }
