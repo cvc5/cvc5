@@ -115,10 +115,7 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
   void safePoint(Resource r) override {}
   void conflict(TNode n) override { push(CONFLICT, n); }
 
-  void trustedConflict(TrustNode n) override
-  {
-    push(CONFLICT, n.getNode());
-  }
+  void trustedConflict(TrustNode n) override { push(CONFLICT, n.getNode()); }
 
   bool propagate(TNode n) override
   {
@@ -250,10 +247,7 @@ class DummyTheory : public theory::Theory
     // do not assert to equality engine, since this theory does not use one
     return true;
   }
-  TrustNode explain(TNode n) override
-  {
-    return TrustNode::null();
-  }
+  TrustNode explain(TNode n) override { return TrustNode::null(); }
   Node getValue(TNode n) { return Node::null(); }
   std::string identify() const override { return "DummyTheory" + d_id; }
 
