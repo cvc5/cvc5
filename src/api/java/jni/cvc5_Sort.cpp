@@ -1,3 +1,18 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The cvc5 Java API.
+ */
+
 #include "cvc5_Sort.h"
 
 #include "api/cpp/cvc5.h"
@@ -266,6 +281,21 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isTester(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = (Sort*)pointer;
   return (jboolean)current->isTester();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+}
+
+/*
+ * Class:     cvc5_Sort
+ * Method:    isUpdater
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isUpdater(JNIEnv* env,
+                                                    jobject,
+                                                    jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  return (jboolean)current->isUpdater();
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
 }
 
@@ -1065,4 +1095,4 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Sort_getTupleSorts(JNIEnv* env,
   env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
-} /**/
+}
