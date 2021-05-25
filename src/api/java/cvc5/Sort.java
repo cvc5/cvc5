@@ -1,4 +1,21 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The cvc5 java API.
+ */
+
 package cvc5;
+
+import java.util.List;
 
 public class Sort extends AbstractPointer implements Comparable<Sort>
 {
@@ -13,6 +30,12 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public long getPointer()
   {
     return pointer;
+  }
+
+  @Override
+  public void finalize()
+  {
+    deletePointer(pointer);
   }
 
   // endregion
@@ -204,6 +227,18 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native boolean isTester(long pointer);
+
+  /**
+   * Is this a datatype updater sort?
+   * @return true if the sort is a datatype updater sort
+   */
+  public boolean isUpdater()
+  {
+    return isUpdater(pointer);
+  }
+
+  private native boolean isUpdater(long pointer);
+
   /**
    * Is this a function sort?
    * @return true if the sort is a function sort
@@ -387,6 +422,16 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native long getDatatype(long pointer);
+
+  /**
+   * Instantiate a parameterized datatype/sort sort.
+   * Create sorts parameter with Solver.mkParamSort().
+   * @param params the list of sort parameters to instantiate with
+   */
+  Sort instantiate(List<Sort> params)
+  {
+    return instantiate(params.toArray(new Sort[0]));
+  }
 
   /**
    * Instantiate a parameterized datatype/sort sort.
