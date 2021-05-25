@@ -17,7 +17,7 @@
 
 #include <sstream>
 
-#include "expr/proof_node.h"
+#include "proof/proof_node.h"
 
 using namespace cvc5::kind;
 

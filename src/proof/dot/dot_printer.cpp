@@ -17,9 +17,9 @@
 
 #include <sstream>
 
-#include "expr/proof_checker.h"
-#include "expr/proof_node_manager.h"
 #include "printer/smt2/smt2_printer.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_node_manager.h"
 #include "theory/builtin/proof_checker.h"
 
 namespace cvc5 {

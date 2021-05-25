@@ -15,9 +15,9 @@
 
 #include "theory/uf/proof_equality_engine.h"
 
-#include "expr/lazy_proof_chain.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
+#include "proof/lazy_proof_chain.h"
+#include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
 #include "theory/rewriter.h"
 #include "theory/uf/eq_proof.h"
 #include "theory/uf/equality_engine.h"
