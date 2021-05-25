@@ -1,3 +1,18 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The cvc5 java API.
+ */
+
 package cvc5;
 
 public class Datatype extends AbstractPointer
@@ -13,6 +28,12 @@ public class Datatype extends AbstractPointer
   public long getPointer()
   {
     return pointer;
+  }
+
+  @Override
+  public void finalize()
+  {
+    deletePointer(pointer);
   }
 
   // endregion
@@ -58,6 +79,21 @@ public class Datatype extends AbstractPointer
   }
 
   private native long getConstructorTerm(long pointer, String name);
+
+  /**
+   * Get the datatype constructor with the given name.
+   * This is a linear search through the constructors and their selectors, so
+   * in case of multiple, similarly-named selectors, the first is returned.
+   * @param name the name of the datatype selector
+   * @return the datatype selector with the given name
+   */
+  public DatatypeSelector getSelector(String name)
+  {
+    long selectorPointer = getSelector(pointer, name);
+    return new DatatypeSelector(solver, selectorPointer);
+  }
+
+  private native long getSelector(long pointer, String name);
 
   /** @return the name of this Datatype. */
   public String getName()
