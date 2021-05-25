@@ -17,8 +17,8 @@
 
 #include <sstream>
 
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
+#include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
 
 namespace cvc5 {
 namespace theory {

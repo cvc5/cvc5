@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-unsat-cores
+; COMMAND-LINE:
 ; EXPECT: unsat
 (set-logic QF_LIRA)
 

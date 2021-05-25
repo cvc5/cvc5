@@ -231,7 +231,7 @@ inline Node getIdentity(Kind k){
   case kind::MULT:
   case kind::NONLINEAR_MULT:
     return mkRationalNode(1);
-  default: Unreachable(); return {};  // silence warning
+  default: Unreachable(); return Node::null();  // silence warning
   }
 }
 
