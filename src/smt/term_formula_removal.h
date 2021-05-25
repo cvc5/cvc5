@@ -24,7 +24,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "expr/term_context.h"
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 #include "util/hash.h"
 
 namespace cvc5 {
@@ -127,7 +127,7 @@ class RemoveTermFormulas {
   typedef context::CDInsertHashMap<
       std::pair<Node, uint32_t>,
       Node,
-      PairHashFunction<Node, uint32_t, NodeHashFunction> >
+      PairHashFunction<Node, uint32_t, std::hash<Node>>>
       TermFormulaCache;
   /** term formula removal cache
    *
@@ -155,7 +155,7 @@ class RemoveTermFormulas {
    *   d_skolem_cache[ite( G, a, b )] = k, and
    *   d_tfCache[<ite( G, a, b ),0>] = d_tfCache[<ite( G, a, b ),1>] = k.
    */
-  context::CDInsertHashMap<Node, Node, NodeHashFunction> d_skolem_cache;
+  context::CDInsertHashMap<Node, Node> d_skolem_cache;
 
   /** gets the skolem for node
    *

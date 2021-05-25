@@ -16,11 +16,12 @@
 ##
 
 import copy
-import pycvc4
-from pycvc4 import kinds
+import pycvc5
+import utils
+from pycvc5 import kinds
 
 if __name__ == "__main__":
-  slv = pycvc4.Solver()
+  slv = pycvc5.Solver()
 
   # required options
   slv.setOption("lang", "sygus2")
@@ -93,5 +94,5 @@ if __name__ == "__main__":
     # Output should be equivalent to:
     # (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
     # (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
-    slv.printSynthSolution()
-
+    terms = [max, min]
+    utils.print_synth_solutions(terms, slv.getSynthSolutions(terms))

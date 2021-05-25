@@ -17,15 +17,15 @@
 #ifndef CVC5PARSER_PRIVATE_H
 #define CVC5PARSER_PRIVATE_H
 
-#if !(defined(__BUILDING_CVC4PARSERLIB) \
-      || defined(__BUILDING_CVC4PARSERLIB_UNIT_TEST))
+#if !(defined(__BUILDING_CVC5PARSERLIB) \
+      || defined(__BUILDING_CVC5PARSERLIB_UNIT_TEST))
 #  error A private cvc5 parser header was included when not building the parser library or private unit test code.
 #endif
 
 #include "cvc5parser_public.h"
-// It would be nice to #include "cvc4autoconfig.h" here, but there are conflicts
-// with antlr3's autoheader stuff, which they export :(
+// It would be nice to #include "base/cvc5config.h" here, but there are
+// conflicts with antlr3's autoheader stuff, which they export :(
 //
-// #include "cvc4autoconfig.h"
+// #include "base/cvc5config.h"
 
 #endif /* CVC5PARSER_PRIVATE_H */

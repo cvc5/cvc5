@@ -28,7 +28,6 @@
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "theory/logic_info.h"
-#include "util/abstract_value.h"
 
 namespace cvc5 {
 
@@ -67,7 +66,6 @@ class Smt2 : public Parser
  protected:
   Smt2(api::Solver* solver,
        SymbolManager* sm,
-       Input* input,
        bool strictMode = false,
        bool parseOnly = false);
 

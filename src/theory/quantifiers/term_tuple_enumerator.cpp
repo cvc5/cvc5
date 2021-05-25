@@ -36,7 +36,7 @@
 namespace cvc5 {
 
 template <typename T>
-static CVC5ostream& operator<<(CVC5ostream& out, const std::vector<T>& v)
+static Cvc5ostream& operator<<(Cvc5ostream& out, const std::vector<T>& v)
 {
   out << "[ ";
   std::copy(v.begin(), v.end(), std::ostream_iterator<T>(out, " "));

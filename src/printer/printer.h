@@ -87,6 +87,11 @@ class Printer
   virtual void toStreamCmdDeclareFunction(std::ostream& out,
                                           const std::string& id,
                                           TypeNode type) const;
+  /** Print declare-pool command */
+  virtual void toStreamCmdDeclarePool(std::ostream& out,
+                                      const std::string& id,
+                                      TypeNode type,
+                                      const std::vector<Node>& initValue) const;
 
   /** Print declare-sort command */
   virtual void toStreamCmdDeclareType(std::ostream& out,
@@ -175,9 +180,6 @@ class Printer
 
   /** Print get-instantiations command */
   void toStreamCmdGetInstantiations(std::ostream& out) const;
-
-  /** Print get-synth-solution command */
-  void toStreamCmdGetSynthSolution(std::ostream& out) const;
 
   /** Print get-interpol command */
   void toStreamCmdGetInterpol(std::ostream& out,

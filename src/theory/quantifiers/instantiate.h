@@ -22,7 +22,7 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
-#include "expr/proof.h"
+#include "proof/proof.h"
 #include "theory/inference_id.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/quant_util.h"
@@ -100,8 +100,8 @@ class InstLemmaList
  */
 class Instantiate : public QuantifiersUtil
 {
-  using NodeInstListMap = context::
-      CDHashMap<Node, std::shared_ptr<InstLemmaList>, NodeHashFunction>;
+  using NodeInstListMap =
+      context::CDHashMap<Node, std::shared_ptr<InstLemmaList>>;
 
  public:
   Instantiate(QuantifiersState& qs,
@@ -352,7 +352,7 @@ class Instantiate : public QuantifiersUtil
    * The list of quantified formulas for which the domain of d_c_inst_match_trie
    * is valid.
    */
-  context::CDHashSet<Node, NodeHashFunction> d_c_inst_match_trie_dom;
+  context::CDHashSet<Node> d_c_inst_match_trie_dom;
   /**
    * A CDProof storing instantiation steps.
    */

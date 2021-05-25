@@ -15,16 +15,16 @@
 
 cmake_minimum_required(VERSION 3.4)
 
-project(cvc4-examples)
+project(cvc5-examples)
 
 set(CMAKE_CXX_STANDARD 11)
 
 enable_testing()
 
-# Find CVC4 package. If CVC4 is not installed into the default system location
+# Find cvc5 package. If cvc5 is not installed into the default system location
 # use `cmake .. -DCMAKE_PREFIX_PATH=path/to/lib/cmake` to specify the location
-# of CVC4Config.cmake.
-find_package(CVC4)
+# of cvc5Config.cmake.
+find_package(cvc5)
 
 # Some of the examples require boost. Enable these examples if boost is
 # installed.
@@ -41,7 +41,7 @@ set(EXAMPLES_BIN_DIR ${CMAKE_BINARY_DIR}/bin)
 #               empty string) for the examples root directory (this)
 # > ARGN: Any additional arguments passed to the macro are interpreted as
 #         as arguments to the test executable.
-macro(cvc4_add_example name src_files output_dir)
+macro(cvc5_add_example name src_files output_dir)
   # The build target is created without the path prefix (not supported),
   # e.g., for '<output_dir>/myexample.cpp'
   #   we create build target 'myexample'
@@ -54,7 +54,7 @@ macro(cvc4_add_example name src_files output_dir)
   endif()
 
   add_executable(${name} ${src_files_list})
-  target_link_libraries(${name} CVC4::cvc4 CVC4::cvc4parser)
+  target_link_libraries(${name} cvc5::cvc5 cvc5::cvc5parser)
 
   # The test target is prefixed with the path,
   # e.g., for '<output_dir>/myexample.cpp'
@@ -71,10 +71,10 @@ macro(cvc4_add_example name src_files output_dir)
   add_test(${example_test} ${example_bin_dir}/${name} ${ARGN})
 endmacro()
 
-cvc4_add_example(simple_vc_cxx "" "")
-cvc4_add_example(simple_vc_quant_cxx "" "")
+cvc5_add_example(simple_vc_cxx "" "")
+cvc5_add_example(simple_vc_quant_cxx "" "")
 # TODO(project issue $206): Port example to new API
-# cvc4_add_example(translator "" ""
+# cvc5_add_example(translator "" ""
 #     # argument to binary (for testing)
 #     ${CMAKE_CURRENT_SOURCE_DIR}/translator-example-input.smt2)
 
@@ -83,12 +83,12 @@ add_subdirectory(api)
 # add_subdirectory(nra-translate)
 # add_subdirectory(sets-translate)
 
-if(TARGET CVC4::cvc4jar)
+if(TARGET cvc5::cvc5jar)
   find_package(Java REQUIRED)
   include(UseJava)
 
   ## disabled until bindings for the new API are in place (issue #2284)
-  # get_target_property(CVC5_JAR CVC4::cvc4jar JAR_FILE)
+  # get_target_property(CVC5_JAR cvc5::cvc5jar JAR_FILE)
   #
   # add_jar(SimpleVC SimpleVC.java INCLUDE_JARS "${CVC5_JAR}")
   #

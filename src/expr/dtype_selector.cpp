@@ -21,8 +21,8 @@ using namespace cvc5::kind;
 
 namespace cvc5 {
 
-DTypeSelector::DTypeSelector(std::string name, Node selector)
-    : d_name(name), d_selector(selector), d_resolved(false)
+DTypeSelector::DTypeSelector(std::string name, Node selector, Node updater)
+    : d_name(name), d_selector(selector), d_updater(updater), d_resolved(false)
 {
   Assert(name != "");
 }
@@ -33,6 +33,11 @@ Node DTypeSelector::getSelector() const
 {
   Assert(d_resolved);
   return d_selector;
+}
+Node DTypeSelector::getUpdater() const
+{
+  Assert(d_resolved);
+  return d_updater;
 }
 
 Node DTypeSelector::getConstructor() const

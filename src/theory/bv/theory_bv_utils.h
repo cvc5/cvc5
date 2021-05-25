@@ -28,13 +28,13 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
-typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
-typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
+typedef std::unordered_set<Node> NodeSet;
+typedef std::unordered_set<TNode> TNodeSet;
 
 namespace utils {
 
-typedef std::unordered_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
-typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+typedef std::unordered_map<TNode, bool> TNodeBoolMap;
+typedef std::unordered_set<Node> NodeSet;
 
 /* Get the bit-width of given node. */
 unsigned getSize(TNode node);
@@ -118,7 +118,7 @@ Node mkNaryNode(Kind k, const std::vector<NodeTemplate<ref_count>>& nodes)
 {
   Assert(k == kind::AND || k == kind::OR || k == kind::XOR
          || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
-         || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_PLUS
+         || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_ADD
          || k == kind::BITVECTOR_SUB || k == kind::BITVECTOR_MULT);
 
   if (nodes.size() == 1) { return nodes[0]; }

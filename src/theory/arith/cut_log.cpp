@@ -16,17 +16,19 @@
  * \todo document this file
  */
 
-#include <cmath>
-#include <iomanip>
+#include "theory/arith/cut_log.h"
+
 #include <limits.h>
-#include <map>
 #include <math.h>
 
+#include <cmath>
+#include <iomanip>
+#include <map>
+
+#include "base/cvc5config.h"
 #include "base/output.h"
-#include "cvc4autoconfig.h"
 #include "theory/arith/approx_simplex.h"
 #include "theory/arith/constraint.h"
-#include "theory/arith/cut_log.h"
 #include "theory/arith/normal_form.h"
 #include "util/ostream_util.h"
 

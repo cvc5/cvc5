@@ -38,7 +38,8 @@ namespace sets {
 TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
                                      SolverState& state,
                                      InferenceManager& im,
-                                     SkolemCache& skc)
+                                     SkolemCache& skc,
+                                     ProofNodeManager* pnm)
     : d_deq(state.getSatContext()),
       d_termProcessed(state.getUserContext()),
       d_fullCheckIncomplete(false),
@@ -47,7 +48,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_state(state),
       d_im(im),
       d_skCache(skc),
-      d_treg(state, im, skc),
+      d_treg(state, im, skc, pnm),
       d_rels(new TheorySetsRels(state, im, skc, d_treg)),
       d_cardSolver(new CardinalityExtension(state, im, d_treg)),
       d_rels_enabled(false),

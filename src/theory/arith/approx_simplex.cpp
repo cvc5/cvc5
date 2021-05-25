@@ -18,18 +18,19 @@
 #include "theory/arith/approx_simplex.h"
 
 #include <math.h>
+
 #include <cfloat>
 #include <cmath>
 #include <unordered_set>
 
+#include "base/cvc5config.h"
 #include "base/output.h"
-#include "cvc4autoconfig.h"
+#include "proof/eager_proof_generator.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
 #include "theory/arith/cut_log.h"
 #include "theory/arith/matrix.h"
 #include "theory/arith/normal_form.h"
-#include "theory/eager_proof_generator.h"
 
 #ifdef CVC5_USE_GLPK
 #include "theory/arith/partial_model.h"

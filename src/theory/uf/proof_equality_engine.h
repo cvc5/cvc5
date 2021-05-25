@@ -22,10 +22,10 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
-#include "expr/buffered_proof_generator.h"
-#include "expr/lazy_proof.h"
 #include "expr/node.h"
-#include "theory/eager_proof_generator.h"
+#include "proof/buffered_proof_generator.h"
+#include "proof/eager_proof_generator.h"
+#include "proof/lazy_proof.h"
 
 namespace cvc5 {
 
@@ -80,9 +80,8 @@ class EqualityEngine;
  */
 class ProofEqEngine : public EagerProofGenerator
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
-      NodeProofMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofMap;
 
  public:
   ProofEqEngine(context::Context* c,

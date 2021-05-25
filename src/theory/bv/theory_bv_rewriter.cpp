@@ -54,6 +54,26 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
   return res; 
 }
 
+TrustNode TheoryBVRewriter::expandDefinition(Node node)
+{
+  Debug("bitvector-expandDefinition")
+      << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
+  Node ret;
+  switch (node.getKind())
+  {
+    case kind::BITVECTOR_SDIV:
+    case kind::BITVECTOR_SREM:
+    case kind::BITVECTOR_SMOD: ret = eliminateBVSDiv(node); break;
+
+    default: break;
+  }
+  if (!ret.isNull() && node != ret)
+  {
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
+  }
+  return TrustNode::null();
+}
+
 RewriteResponse TheoryBVRewriter::RewriteBitOf(TNode node, bool prerewrite)
 {
   Node resultNode = LinearRewriteStrategy<RewriteRule<BitOfConst>>::apply(node);
@@ -362,6 +382,14 @@ RewriteResponse TheoryBVRewriter::RewriteComp(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
+RewriteResponse TheoryBVRewriter::RewriteEagerAtom(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<EvalEagerAtom>>::apply(node);
+
+  return RewriteResponse(REWRITE_DONE, resultNode);
+}
+
 RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
   Node resultNode = node; 
   resultNode = LinearRewriteStrategy
@@ -384,7 +412,8 @@ RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
 }
 
-RewriteResponse TheoryBVRewriter::RewritePlus(TNode node, bool prerewrite) {
+RewriteResponse TheoryBVRewriter::RewriteAdd(TNode node, bool prerewrite)
+{
   Node resultNode = node;
   if (prerewrite) {
     resultNode = LinearRewriteStrategy
@@ -392,17 +421,16 @@ RewriteResponse TheoryBVRewriter::RewritePlus(TNode node, bool prerewrite) {
         >::apply(node);
     return RewriteResponse(REWRITE_DONE, resultNode);
   }
-  
-  resultNode =  LinearRewriteStrategy
-    < RewriteRule<FlattenAssocCommut>,
-      RewriteRule<PlusCombineLikeTerms>
-      >::apply(node);
+
+  resultNode =
+      LinearRewriteStrategy<RewriteRule<FlattenAssocCommut>,
+                            RewriteRule<AddCombineLikeTerms>>::apply(node);
 
   if (node != resultNode) {
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
-  
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+
+  return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteSub(TNode node, bool prerewrite){
@@ -422,12 +450,13 @@ RewriteResponse TheoryBVRewriter::RewriteNeg(TNode node, bool prerewrite) {
       RewriteRule<NegIdemp>,
       RewriteRule<NegSub>
       >::apply(node);
-  
-  if (RewriteRule<NegPlus>::applies(node)) {
-    resultNode = RewriteRule<NegPlus>::run<false>(node);
-    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+
+  if (RewriteRule<NegAdd>::applies(node))
+  {
+    resultNode = RewriteRule<NegAdd>::run<false>(node);
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
-  
+
   if(!prerewrite) {
     if (RewriteRule<NegMult>::applies(node)) {
       resultNode = RewriteRule<NegMult>::run<false>(node);
@@ -690,7 +719,7 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_NOR ] = RewriteNor;
   d_rewriteTable [ kind::BITVECTOR_COMP ] = RewriteComp;
   d_rewriteTable [ kind::BITVECTOR_MULT ] = RewriteMult;
-  d_rewriteTable [ kind::BITVECTOR_PLUS ] = RewritePlus;
+  d_rewriteTable[kind::BITVECTOR_ADD] = RewriteAdd;
   d_rewriteTable [ kind::BITVECTOR_SUB ] = RewriteSub;
   d_rewriteTable [ kind::BITVECTOR_NEG ] = RewriteNeg;
   d_rewriteTable [ kind::BITVECTOR_UDIV ] = RewriteUdiv;
@@ -712,6 +741,7 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_ULTBV ] = RewriteUltBv;
   d_rewriteTable [ kind::BITVECTOR_SLTBV ] = RewriteSltBv;
   d_rewriteTable [ kind::BITVECTOR_ITE ] = RewriteITEBv;
+  d_rewriteTable[kind::BITVECTOR_EAGER_ATOM] = RewriteEagerAtom;
 
   d_rewriteTable [ kind::BITVECTOR_TO_NAT ] = RewriteBVToNat;
   d_rewriteTable [ kind::INT_TO_BITVECTOR ] = RewriteIntToBV;

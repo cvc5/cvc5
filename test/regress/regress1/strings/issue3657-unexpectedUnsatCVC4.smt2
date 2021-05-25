@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --fmf-fun-rlv -i -q
+; COMMAND-LINE: --strings-exp --fmf-fun-rlv -i --no-check-models
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat
@@ -10,6 +10,9 @@
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat
+
+; note that fmf-fun-rlv is incompatible with check-models
+
 (set-info :smt-lib-version 2.6)
 (set-option :produce-models true)
 (set-logic ALL)

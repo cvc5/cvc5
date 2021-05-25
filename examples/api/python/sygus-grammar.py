@@ -17,11 +17,12 @@
 ##
 
 import copy
-import pycvc4
-from pycvc4 import kinds
+import utils 
+import pycvc5
+from pycvc5 import kinds
 
 if __name__ == "__main__":
-  slv = pycvc4.Solver()
+  slv = pycvc5.Solver()
 
   # required options
   slv.setOption("lang", "sygus2")
@@ -87,4 +88,5 @@ if __name__ == "__main__":
     # (define-fun id2 ((x Int)) Int x)
     # (define-fun id3 ((x Int)) Int (+ x 0))
     # (define-fun id4 ((x Int)) Int (+ x (+ x (- x))))
-    slv.printSynthSolution()
+    terms = [id1, id2, id3, id4]
+    utils.print_synth_solutions(terms, slv.getSynthSolutions(terms))

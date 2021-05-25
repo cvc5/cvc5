@@ -68,17 +68,23 @@ IntStat& IntStat::operator+=(int64_t val)
 
 void IntStat::maxAssign(int64_t val)
 {
-  if (d_data->d_value < val)
+  if constexpr (Configuration::isStatisticsBuild())
   {
-    d_data->d_value = val;
+    if (d_data->d_value < val)
+    {
+      d_data->d_value = val;
+    }
   }
 }
 
 void IntStat::minAssign(int64_t val)
 {
-  if (d_data->d_value > val)
+  if constexpr (Configuration::isStatisticsBuild())
   {
-    d_data->d_value = val;
+    if (d_data->d_value > val)
+    {
+      d_data->d_value = val;
+    }
   }
 }
 

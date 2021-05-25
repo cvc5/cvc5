@@ -62,11 +62,10 @@ Input* Input::newFileInput(InputLanguage lang,
 
 Input* Input::newStreamInput(InputLanguage lang,
                              std::istream& input,
-                             const std::string& name,
-                             bool lineBuffered)
+                             const std::string& name)
 {
-  AntlrInputStream *inputStream =
-    AntlrInputStream::newStreamInputStream(input, name, lineBuffered);
+  AntlrInputStream* inputStream =
+      AntlrInputStream::newStreamInputStream(input, name);
   return AntlrInput::newInput(lang, *inputStream);
 }
 

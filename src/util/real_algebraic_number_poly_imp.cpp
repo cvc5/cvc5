@@ -13,10 +13,10 @@
  * Implementation of RealAlgebraicNumber based on libpoly.
  */
 
-#include "cvc4autoconfig.h"
+#include "base/cvc5config.h"
 #include "util/real_algebraic_number.h"
 
-#ifndef CVC5_POLY_IMP  // Make sure this comes after cvc4autoconfig.h
+#ifndef CVC5_POLY_IMP  // Make sure this comes after base/cvc5config.h
 #error "This source should only ever be built if CVC5_POLY_IMP is on!"
 #endif /* CVC5_POLY_IMP */
 

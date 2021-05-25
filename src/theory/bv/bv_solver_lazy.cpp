@@ -30,7 +30,6 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
-#include "theory/trust_substitutions.h"
 
 using namespace cvc5::theory::bv::utils;
 
@@ -126,8 +125,6 @@ void BVSolverLazy::spendResource(Resource r)
 BVSolverLazy::Statistics::Statistics()
     : d_avgConflictSize(smtStatisticsRegistry().registerAverage(
         "theory::bv::lazy::AvgBVConflictSize")),
-      d_solveSubstitutions(smtStatisticsRegistry().registerInt(
-          "theory::bv::lazy::NumSolveSubstitutions")),
       d_solveTimer(smtStatisticsRegistry().registerTimer(
           "theory::bv::lazy::solveTimer")),
       d_numCallsToCheckFullEffort(smtStatisticsRegistry().registerInt(
@@ -428,89 +425,6 @@ void BVSolverLazy::propagate(Theory::Effort e)
   }
 }
 
-Theory::PPAssertStatus BVSolverLazy::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
-{
-  TNode in = tin.getNode();
-  switch (in.getKind())
-  {
-    case kind::EQUAL:
-    {
-      if (in[0].isVar() && d_bv.isLegalElimination(in[0], in[1]))
-      {
-        ++(d_statistics.d_solveSubstitutions);
-        outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
-        return Theory::PP_ASSERT_STATUS_SOLVED;
-      }
-      if (in[1].isVar() && d_bv.isLegalElimination(in[1], in[0]))
-      {
-        ++(d_statistics.d_solveSubstitutions);
-        outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
-        return Theory::PP_ASSERT_STATUS_SOLVED;
-      }
-      Node node = Rewriter::rewrite(in);
-      if ((node[0].getKind() == kind::BITVECTOR_EXTRACT && node[1].isConst())
-          || (node[1].getKind() == kind::BITVECTOR_EXTRACT
-              && node[0].isConst()))
-      {
-        Node extract = node[0].isConst() ? node[1] : node[0];
-        if (extract[0].isVar())
-        {
-          Node c = node[0].isConst() ? node[0] : node[1];
-
-          unsigned high = utils::getExtractHigh(extract);
-          unsigned low = utils::getExtractLow(extract);
-          unsigned var_bitwidth = utils::getSize(extract[0]);
-          std::vector<Node> children;
-
-          if (low == 0)
-          {
-            Assert(high != var_bitwidth - 1);
-            unsigned skolem_size = var_bitwidth - high - 1;
-            Node skolem = utils::mkVar(skolem_size);
-            children.push_back(skolem);
-            children.push_back(c);
-          }
-          else if (high == var_bitwidth - 1)
-          {
-            unsigned skolem_size = low;
-            Node skolem = utils::mkVar(skolem_size);
-            children.push_back(c);
-            children.push_back(skolem);
-          }
-          else
-          {
-            unsigned skolem1_size = low;
-            unsigned skolem2_size = var_bitwidth - high - 1;
-            Node skolem1 = utils::mkVar(skolem1_size);
-            Node skolem2 = utils::mkVar(skolem2_size);
-            children.push_back(skolem2);
-            children.push_back(c);
-            children.push_back(skolem1);
-          }
-          Node concat = utils::mkConcat(children);
-          Assert(utils::getSize(concat) == utils::getSize(extract[0]));
-          if (d_bv.isLegalElimination(extract[0], concat))
-          {
-            outSubstitutions.addSubstitutionSolved(extract[0], concat, tin);
-            return Theory::PP_ASSERT_STATUS_SOLVED;
-          }
-        }
-      }
-    }
-    break;
-    case kind::BITVECTOR_ULT:
-    case kind::BITVECTOR_SLT:
-    case kind::BITVECTOR_ULE:
-    case kind::BITVECTOR_SLE:
-
-    default:
-      // TODO other predicates
-      break;
-  }
-  return Theory::PP_ASSERT_STATUS_UNSOLVED;
-}
-
 TrustNode BVSolverLazy::ppRewrite(TNode t)
 {
   Debug("bv-pp-rewrite") << "BVSolverLazy::ppRewrite " << t << "\n";
@@ -520,15 +434,15 @@ TrustNode BVSolverLazy::ppRewrite(TNode t)
     Node result = RewriteRule<BitwiseEq>::run<false>(t);
     res = Rewriter::rewrite(result);
   }
-  else if (RewriteRule<UltPlusOne>::applies(t))
+  else if (RewriteRule<UltAddOne>::applies(t))
   {
-    Node result = RewriteRule<UltPlusOne>::run<false>(t);
+    Node result = RewriteRule<UltAddOne>::run<false>(t);
     res = Rewriter::rewrite(result);
   }
   else if (res.getKind() == kind::EQUAL
-           && ((res[0].getKind() == kind::BITVECTOR_PLUS
+           && ((res[0].getKind() == kind::BITVECTOR_ADD
                 && RewriteRule<ConcatToMult>::applies(res[1]))
-               || (res[1].getKind() == kind::BITVECTOR_PLUS
+               || (res[1].getKind() == kind::BITVECTOR_ADD
                    && RewriteRule<ConcatToMult>::applies(res[0]))))
   {
     Node mult = RewriteRule<ConcatToMult>::applies(res[0])
@@ -555,20 +469,20 @@ TrustNode BVSolverLazy::ppRewrite(TNode t)
   {
     res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
   }
-  else if (RewriteRule<NormalizeEqPlusNeg>::applies(t))
+  else if (RewriteRule<NormalizeEqAddNeg>::applies(t))
   {
-    res = RewriteRule<NormalizeEqPlusNeg>::run<false>(t);
+    res = RewriteRule<NormalizeEqAddNeg>::run<false>(t);
   }
 
   // if(t.getKind() == kind::EQUAL &&
   //    ((t[0].getKind() == kind::BITVECTOR_MULT && t[1].getKind() ==
-  //    kind::BITVECTOR_PLUS) ||
+  //    kind::BITVECTOR_ADD) ||
   //     (t[1].getKind() == kind::BITVECTOR_MULT && t[0].getKind() ==
-  //     kind::BITVECTOR_PLUS))) {
+  //     kind::BITVECTOR_ADD))) {
   //   // if we have an equality between a multiplication and addition
   //   // try to express multiplication in terms of addition
   //   Node mult = t[0].getKind() == kind::BITVECTOR_MULT? t[0] : t[1];
-  //   Node add = t[0].getKind() == kind::BITVECTOR_PLUS? t[0] : t[1];
+  //   Node add = t[0].getKind() == kind::BITVECTOR_ADD? t[0] : t[1];
   //   if (RewriteRule<MultSlice>::applies(mult)) {
   //     Node new_mult = RewriteRule<MultSlice>::run<false>(mult);
   //     Node new_eq =
@@ -739,13 +653,13 @@ void BVSolverLazy::ppStaticLearn(TNode in, NodeBuilder& learned)
 
   if (in.getKind() == kind::EQUAL)
   {
-    if ((in[0].getKind() == kind::BITVECTOR_PLUS
+    if ((in[0].getKind() == kind::BITVECTOR_ADD
          && in[1].getKind() == kind::BITVECTOR_SHL)
-        || (in[1].getKind() == kind::BITVECTOR_PLUS
+        || (in[1].getKind() == kind::BITVECTOR_ADD
             && in[0].getKind() == kind::BITVECTOR_SHL))
     {
-      TNode p = in[0].getKind() == kind::BITVECTOR_PLUS ? in[0] : in[1];
-      TNode s = in[0].getKind() == kind::BITVECTOR_PLUS ? in[1] : in[0];
+      TNode p = in[0].getKind() == kind::BITVECTOR_ADD ? in[0] : in[1];
+      TNode s = in[0].getKind() == kind::BITVECTOR_ADD ? in[1] : in[0];
 
       if (p.getNumChildren() == 2 && p[0].getKind() == kind::BITVECTOR_SHL
           && p[1].getKind() == kind::BITVECTOR_SHL)

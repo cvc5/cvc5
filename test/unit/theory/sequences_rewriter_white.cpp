@@ -392,8 +392,8 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_concat)
   // (str.substr y 0 3))
   Node z = d_nodeManager->mkNode(kind::STRING_SUBSTR, y, zero, three);
   Node repl_e_x_z = d_nodeManager->mkNode(kind::STRING_STRREPL, empty, x, z);
-  repl_a = d_nodeManager->mkNode(kind::STRING_CONCAT, y, repl_e_x_z, z, a, z);
-  a_repl = d_nodeManager->mkNode(kind::STRING_CONCAT, y, z, repl_e_x_z, a, z);
+  repl_a = d_nodeManager->mkNode(kind::STRING_CONCAT, {y, repl_e_x_z, z, a, z});
+  a_repl = d_nodeManager->mkNode(kind::STRING_CONCAT, {y, z, repl_e_x_z, a, z});
   sameNormalForm(repl_a, a_repl);
 
   // Same normal form for:
@@ -452,10 +452,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, length_preserve_rewrite)
                             d_nodeManager->mkNode(kind::STRING_CONCAT, x, x));
   Node concat2 = d_nodeManager->mkNode(
       kind::STRING_CONCAT,
-      gh,
-      x,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, gh, ij),
-      ij);
+      {gh, x, d_nodeManager->mkNode(kind::STRING_STRREPL, x, gh, ij), ij});
   Node res_concat1 = SequencesRewriter::lengthPreserveRewrite(concat1);
   Node res_concat2 = SequencesRewriter::lengthPreserveRewrite(concat2);
   ASSERT_EQ(res_concat1, res_concat2);
@@ -526,7 +523,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_indexOf)
     // (+ 2 (str.indexof (str.++ "A" x y) "A" 0))
     Node lhs = d_nodeManager->mkNode(
         kind::STRING_STRIDOF,
-        d_nodeManager->mkNode(kind::STRING_CONCAT, b, c, a, x, y),
+        d_nodeManager->mkNode(kind::STRING_CONCAT, {b, c, a, x, y}),
         a,
         zero);
     Node rhs = d_nodeManager->mkNode(
@@ -1296,10 +1293,10 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
     Node cat = d_nodeManager->mkNode(kind::STRING_CHARAT, x, n);
     lhs = d_nodeManager->mkNode(kind::STRING_STRCTN, abc, cat);
     rhs = d_nodeManager->mkNode(kind::OR,
-                                d_nodeManager->mkNode(kind::EQUAL, cat, empty),
-                                d_nodeManager->mkNode(kind::EQUAL, cat, a),
-                                d_nodeManager->mkNode(kind::EQUAL, cat, b),
-                                d_nodeManager->mkNode(kind::EQUAL, cat, c));
+                                {d_nodeManager->mkNode(kind::EQUAL, cat, empty),
+                                 d_nodeManager->mkNode(kind::EQUAL, cat, a),
+                                 d_nodeManager->mkNode(kind::EQUAL, cat, b),
+                                 d_nodeManager->mkNode(kind::EQUAL, cat, c)});
     sameNormalForm(lhs, rhs);
   }
 }
@@ -1325,7 +1322,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, infer_eqs_from_contains)
   sameNormalForm(StringsEntail::inferEqsFromContains(empty, xy), empty_x_y);
 
   // inferEqsFromContains(x, (str.++ x y)) returns false
-  Node bxya = d_nodeManager->mkNode(kind::STRING_CONCAT, b, y, x, a);
+  Node bxya = d_nodeManager->mkNode(kind::STRING_CONCAT, {b, y, x, a});
   sameNormalForm(StringsEntail::inferEqsFromContains(x, bxya), f);
 
   // inferEqsFromContains(x, y) returns null
@@ -1657,8 +1654,8 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_equality_ext)
     //      (= (str.++ y w) (str.++ "A" z)))
     Node lhs = d_nodeManager->mkNode(
         kind::EQUAL,
-        d_nodeManager->mkNode(kind::STRING_CONCAT, b, xrepl, z, y, w),
-        d_nodeManager->mkNode(kind::STRING_CONCAT, z, x, ba, z));
+        d_nodeManager->mkNode(kind::STRING_CONCAT, {b, xrepl, z, y, w}),
+        d_nodeManager->mkNode(kind::STRING_CONCAT, {z, x, ba, z}));
     Node rhs = d_nodeManager->mkNode(
         kind::AND,
         d_nodeManager->mkNode(
@@ -1804,8 +1801,8 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_membership)
     Node lhs = d_nodeManager->mkNode(
         kind::STRING_IN_REGEXP,
         x,
-        d_nodeManager->mkNode(
-            kind::REGEXP_CONCAT, sig_star, sig_star, re_abc, sig_star));
+        d_nodeManager->mkNode(kind::REGEXP_CONCAT,
+                              {sig_star, sig_star, re_abc, sig_star}));
     Node rhs = d_nodeManager->mkNode(kind::STRING_STRCTN, x, abc);
     sameNormalForm(lhs, rhs);
   }

@@ -696,97 +696,97 @@ TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_neg_sgt_false1)
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_plus_ult_true0)
 {
-  Node x = d_nodeManager->mkNode(BITVECTOR_PLUS, d_x, d_s);
+  Node x = d_nodeManager->mkNode(BITVECTOR_ADD, d_x, d_s);
   runTestPred(true, BITVECTOR_ULT, x, getICBvUltUgt);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_plus_ult_true1)
 {
-  Node x = d_nodeManager->mkNode(BITVECTOR_PLUS, d_s, d_x);
+  Node x = d_nodeManager->mkNode(BITVECTOR_ADD, d_s, d_x);
   runTestPred(true, BITVECTOR_ULT, x, getICBvUltUgt);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_plus_ult_false0)
 {
-  Node x = d_nodeManager->mkNode(BITVECTOR_PLUS, d_x, d_s);
+  Node x = d_nodeManager->mkNode(BITVECTOR_ADD, d_x, d_s);
   runTestPred(false, BITVECTOR_ULT, x, getICBvUltUgt);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_plus_ult_false1)
 {
-  Node x = d_nodeManager->mkNode(BITVECTOR_PLUS, d_s, d_x);
+  Node x = d_nodeManager->mkNode(BITVECTOR_ADD, d_s, d_x);
   runTestPred(false, BITVECTOR_ULT, x, getICBvUltUgt);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_plus_ugt_true0)
 {
-  Node x = d_nodeManager->mkNode(BITVECTOR_PLUS, d_x, d_s);
+  Node x = d_nodeManager->mkNode(BITVECTOR_ADD, d_x, d_s);
   runTestPred(true, BITVECTOR_UGT, x, getICBvUltUgt);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_plus_ugt_true1)
 {
-  Node x = d_nodeManager->mkNode(BITVECTOR_PLUS, d_s, d_x);
+  Node x = d_nodeManager->mkNode(BITVECTOR_ADD, d_s, d_x);
   runTestPred(true, BITVECTOR_UGT, x, getICBvUltUgt);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_plus_ugt_false0)
 {
-  Node x = d_nodeManager->mkNode(BITVECTOR_PLUS, d_x, d_s);
+  Node x = d_nodeManager->mkNode(BITVECTOR_ADD, d_x, d_s);
   runTestPred(false, BITVECTOR_UGT, x, getICBvUltUgt);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_plus_ugt_false1)
 {
-  Node x = d_nodeManager->mkNode(BITVECTOR_PLUS, d_s, d_x);
+  Node x = d_nodeManager->mkNode(BITVECTOR_ADD, d_s, d_x);
   runTestPred(false, BITVECTOR_UGT, x, getICBvUltUgt);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_plus_slt_true0)
 {
-  Node x = d_nodeManager->mkNode(BITVECTOR_PLUS, d_x, d_s);
+  Node x = d_nodeManager->mkNode(BITVECTOR_ADD, d_x, d_s);
   runTestPred(true, BITVECTOR_SLT, x, getICBvSltSgt);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_plus_slt_true1)
 {
-  Node x = d_nodeManager->mkNode(BITVECTOR_PLUS, d_s, d_x);
+  Node x = d_nodeManager->mkNode(BITVECTOR_ADD, d_s, d_x);
   runTestPred(true, BITVECTOR_SLT, x, getICBvSltSgt);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_plus_slt_false0)
 {
-  Node x = d_nodeManager->mkNode(BITVECTOR_PLUS, d_x, d_s);
+  Node x = d_nodeManager->mkNode(BITVECTOR_ADD, d_x, d_s);
   runTestPred(false, BITVECTOR_SLT, x, getICBvSltSgt);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_plus_slt_false1)
 {
-  Node x = d_nodeManager->mkNode(BITVECTOR_PLUS, d_s, d_x);
+  Node x = d_nodeManager->mkNode(BITVECTOR_ADD, d_s, d_x);
   runTestPred(false, BITVECTOR_SLT, x, getICBvSltSgt);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_plus_sgt_true0)
 {
-  Node x = d_nodeManager->mkNode(BITVECTOR_PLUS, d_x, d_s);
+  Node x = d_nodeManager->mkNode(BITVECTOR_ADD, d_x, d_s);
   runTestPred(true, BITVECTOR_SGT, x, getICBvSltSgt);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_plus_sgt_true1)
 {
-  Node x = d_nodeManager->mkNode(BITVECTOR_PLUS, d_s, d_x);
+  Node x = d_nodeManager->mkNode(BITVECTOR_ADD, d_s, d_x);
   runTestPred(true, BITVECTOR_SGT, x, getICBvSltSgt);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_plus_sgt_false0)
 {
-  Node x = d_nodeManager->mkNode(BITVECTOR_PLUS, d_x, d_s);
+  Node x = d_nodeManager->mkNode(BITVECTOR_ADD, d_x, d_s);
   runTestPred(false, BITVECTOR_SGT, x, getICBvSltSgt);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_plus_sgt_false1)
 {
-  Node x = d_nodeManager->mkNode(BITVECTOR_PLUS, d_s, d_x);
+  Node x = d_nodeManager->mkNode(BITVECTOR_ADD, d_s, d_x);
   runTestPred(false, BITVECTOR_SGT, x, getICBvSltSgt);
 }
 
