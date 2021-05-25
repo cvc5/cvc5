@@ -53,6 +53,7 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::SELECTOR_WRONG: return "SELECTOR_WRONG";
     case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
     case SkolemFunId::SEQ_NTH_OOB: return "SEQ_NTH_OOB";
+    case SkolemFunId::RE_UNFOLD_POS_COMPONENT: return "RE_UNFOLD_POS_COMPONENT";
     default: return "?";
   }
 }
@@ -206,9 +207,35 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
     ss << "SKOLEM_FUN_" << id;
     Node k = nm->mkSkolem(ss.str(), tn, "an internal skolem function", flags);
     d_skolemFuns[key] = k;
+    d_skolemFunMap[k] = key;
     return k;
   }
   return it->second;
+}
+
+Node SkolemManager::mkSkolemFunction(SkolemFunId id,
+                                     TypeNode tn,
+                                     const std::vector<Node>& cacheVals,
+                                     int flags)
+{
+  Assert(cacheVals.size() > 1);
+  Node cacheVal = NodeManager::currentNM()->mkNode(SEXPR, cacheVals);
+  return mkSkolemFunction(id, tn, cacheVal, flags);
+}
+
+bool SkolemManager::isSkolemFunction(Node k,
+                                     SkolemFunId& id,
+                                     Node& cacheVal) const
+{
+  std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>>::const_iterator it =
+      d_skolemFunMap.find(k);
+  if (it == d_skolemFunMap.end())
+  {
+    return false;
+  }
+  id = std::get<0>(it->second);
+  cacheVal = std::get<2>(it->second);
+  return true;
 }
 
 Node SkolemManager::mkDummySkolem(const std::string& prefix,

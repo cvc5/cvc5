@@ -15,8 +15,8 @@
 
 #include "theory/quantifiers/theory_quantifiers.h"
 
-#include "expr/proof_node_manager.h"
 #include "options/quantifiers_options.h"
+#include "proof/proof_node_manager.h"
 #include "theory/quantifiers/quantifiers_macros.h"
 #include "theory/quantifiers/quantifiers_modules.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
