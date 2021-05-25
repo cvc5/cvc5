@@ -15,9 +15,9 @@
 
 #include "theory/bv/theory_bv.h"
 
-#include "expr/proof_checker.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
+#include "proof/proof_checker.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/bv_solver_bitblast.h"
 #include "theory/bv/bv_solver_lazy.h"

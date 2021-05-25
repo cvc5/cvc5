@@ -25,9 +25,9 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/proof_set.h"
+#include "proof/lazy_tree_proof_generator.h"
+#include "proof/proof_set.h"
 #include "theory/arith/nl/cad/cdcac_utils.h"
-#include "theory/lazy_tree_proof_generator.h"
 
 namespace cvc5 {
 

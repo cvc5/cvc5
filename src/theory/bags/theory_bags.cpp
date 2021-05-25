@@ -15,7 +15,7 @@
 
 #include "theory/bags/theory_bags.h"
 
-#include "expr/proof_checker.h"
+#include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
 #include "theory/bags/normal_form.h"
 #include "theory/rewriter.h"
