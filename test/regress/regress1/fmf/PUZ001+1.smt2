@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find --no-check-unsat-cores
+; COMMAND-LINE: --finite-model-find
 ; EXPECT: unsat
 ;%------------------------------------------------------------------------------
 ;% File     : PUZ001+1 : TPTP v5.4.0. Released v2.0.0.

@@ -68,3 +68,41 @@ name   = "Decision Heuristics"
   name = "sum"
 [[option.mode.USR1]]
   name = "usr1"
+
+[[option]]
+  name       = "jhSkolemMode"
+  category   = "expert"
+  long       = "jh-skolem=MODE"
+  type       = "JutificationSkolemMode"
+  default    = "FIRST"
+  help       = "policy for when to satisfy skolem definitions in justification heuristic"
+  help_mode  = "Policy for when to satisfy skolem definitions in justification heuristic"
+[[option.mode.FIRST]]
+  name = "first"
+  help = "satisfy pending relevant skolem definitions before input assertions"
+[[option.mode.LAST]]
+  name = "last"
+  help = "satisfy pending relevant skolem definitions after input assertions"
+
+[[option]]
+  name       = "jhRlvOrder"
+  category   = "expert"
+  long       = "jh-rlv-order"
+  type       = "bool"
+  default    = "false"
+  help       = "maintain activity-based ordering for decision justification heuristic"
+
+[[option]]
+  name       = "jhSkolemRlvMode"
+  category   = "expert"
+  long       = "jh-skolem-rlv=MODE"
+  type       = "JutificationSkolemRlvMode"
+  default    = "ASSERT"
+  help       = "policy for when to consider skolem definitions relevant in justification heuristic"
+  help_mode  = "Policy for when to consider skolem definitions relevant in justification heuristic"
+[[option.mode.ASSERT]]
+  name = "assert"
+  help = "skolems are relevant when they occur in an asserted literal"
+[[option.mode.ALWAYS]]
+  name = "always"
+  help = "skolems are always relevant"

@@ -15,11 +15,11 @@
 
 #include "prop/sat_proof_manager.h"
 
-#include "expr/proof_node_algorithm.h"
 #include "options/proof_options.h"
+#include "proof/proof_node_algorithm.h"
+#include "proof/theory_proof_step_buffer.h"
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
-#include "theory/theory_proof_step_buffer.h"
 
 namespace cvc5 {
 namespace prop {
