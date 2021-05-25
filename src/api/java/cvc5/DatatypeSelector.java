@@ -1,3 +1,18 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The cvc5 java API.
+ */
+
 package cvc5;
 
 public class DatatypeSelector extends AbstractPointer
@@ -13,6 +28,12 @@ public class DatatypeSelector extends AbstractPointer
   public long getPointer()
   {
     return pointer;
+  }
+
+  @Override
+  public void finalize()
+  {
+    deletePointer(pointer);
   }
 
   // endregion
@@ -36,6 +57,18 @@ public class DatatypeSelector extends AbstractPointer
   }
 
   private native long getSelectorTerm(long pointer);
+
+  /**
+   * Get the upater operator of this datatype selector.
+   * @return the updater term
+   */
+  public Term getUpdaterTerm()
+  {
+    long termPointer = getUpdaterTerm(pointer);
+    return new Term(solver, termPointer);
+  }
+
+  private native long getUpdaterTerm(long pointer);
 
   /** @return the range sort of this argument. */
   Sort getRangeSort()
