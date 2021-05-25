@@ -956,6 +956,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   {
     opName << "_total";
   }
+  /*
   if (k == ITE)
   {
     // ITE is indexed by its type
@@ -966,6 +967,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     Assert(!typeNode.isNull());
     return nm->mkNode(APPLY_UF, iteSym, typeNode);
   }
+  */
   return getSymbolInternal(k, ftype, opName.str());
 }
 
