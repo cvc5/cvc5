@@ -115,7 +115,7 @@ class CandidateRewriteFilter
    * Stores all relevant pairs returned by this sampler (see registerTerm). In
    * detail, if (t,s) is a relevant pair, then t in d_pairs[s].
    */
-  std::map<Node, std::unordered_set<Node, NodeHashFunction> > d_pairs;
+  std::map<Node, std::unordered_set<Node> > d_pairs;
   /**
    * For each (builtin) type, a match trie storing all terms in the domain of
    * d_pairs.

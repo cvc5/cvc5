@@ -25,7 +25,7 @@
 #include <vector>
 
 #include "api/cpp/cvc5.h"
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 #include "options/language.h"
 #include "parser/parser_exception.h"
 
@@ -78,7 +78,7 @@ class Parser;
  * for the given input language and attach it to an input source of the
  * appropriate type.
  */
-class CVC4_EXPORT Input
+class CVC5_EXPORT Input
 {
   friend class Parser; // for parseError, parseCommand, parseExpr
   friend class ParserBuilder;
@@ -115,8 +115,7 @@ class CVC4_EXPORT Input
    */
   static Input* newStreamInput(InputLanguage lang,
                                std::istream& input,
-                               const std::string& name,
-                               bool lineBuffered = false);
+                               const std::string& name);
 
   /** Create an input for the given string
    *

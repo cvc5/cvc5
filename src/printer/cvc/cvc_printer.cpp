@@ -487,18 +487,6 @@ void CvcPrinter::toStreamNode(std::ostream& out,
       out << " -> BOOLEAN";
       return;
       break;
-    case kind::TUPLE_UPDATE:
-      toStreamNode(out, n[0], depth, true, lbind);
-      out << " WITH ." << n.getOperator().getConst<TupleUpdate>().getIndex() << " := ";
-      toStreamNode(out, n[1], depth, true, lbind);
-      return;
-      break;
-    case kind::RECORD_UPDATE:
-      toStreamNode(out, n[0], depth, true, lbind);
-      out << " WITH ." << n.getOperator().getConst<RecordUpdate>().getField() << " := ";
-      toStreamNode(out, n[1], depth, true, lbind);
-      return;
-      break;
 
     // ARRAYS
     case kind::ARRAY_TYPE:
@@ -714,8 +702,9 @@ void CvcPrinter::toStreamNode(std::ostream& out,
       op << "@";
       opType = INFIX;
       break;
-    case kind::BITVECTOR_PLUS: {
-      // This interprets a BITVECTOR_PLUS as a bvadd in SMT-LIB
+    case kind::BITVECTOR_ADD:
+    {
+      // This interprets a BITVECTOR_ADD as a bvadd in SMT-LIB
       Assert(n.getType().isBitVector());
       unsigned numc = n.getNumChildren()-2;
       unsigned child = 0;

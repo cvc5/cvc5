@@ -35,11 +35,6 @@ SmtEngine* currentSmtEngine() {
 
 bool smtEngineInScope() { return s_smtEngine_current != NULL; }
 
-ProofManager* currentProofManager() {
-  Assert(s_smtEngine_current != NULL);
-  return s_smtEngine_current->getProofManager();
-}
-
 ResourceManager* currentResourceManager()
 {
   return s_smtEngine_current->getResourceManager();

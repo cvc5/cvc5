@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of the capabilities of CVC4
+ * A simple demonstration of the capabilities of cvc5
  *
  * A simple demonstration of how to use uninterpreted functions, combining this
  * with arithmetic, and extracting a model at the end of a satisfiable query.
@@ -38,7 +38,7 @@ int main()
 {
   Solver slv;
   slv.setOption("produce-models", "true");  // Produce Models
-  slv.setOption("output-language", "cvc4"); // Set the output-language to CVC's
+  slv.setOption("output-language", "cvc"); // Set the output-language to CVC's
   slv.setOption("dag-thresh", "0"); // Disable dagifying the output
   slv.setOption("output-language", "smt2"); // use smt-lib v2 as output language
   slv.setLogic(string("QF_UFLIRA"));
@@ -84,13 +84,13 @@ int main()
        << assertions << endl << endl;
 
   cout << "Prove x /= y is entailed. " << endl
-       << "CVC4: " << slv.checkEntailed(slv.mkTerm(DISTINCT, x, y)) << "."
+       << "cvc5: " << slv.checkEntailed(slv.mkTerm(DISTINCT, x, y)) << "."
        << endl
        << endl;
 
   cout << "Call checkSat to show that the assertions are satisfiable. "
        << endl
-       << "CVC4: "
+       << "cvc5: "
        << slv.checkSat() << "."<< endl << endl;
 
   cout << "Call slv.getValue(...) on terms of interest."

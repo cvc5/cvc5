@@ -330,7 +330,7 @@ class NodeValue
   /** The ID (0 is reserved for the null value) */
   uint64_t d_id : NBITS_ID;
 
-  /** The expression's reference count.  @see cvc4::Node. */
+  /** The expression's reference count. */
   uint32_t d_rc : NBITS_REFCOUNT;
 
   /** Kind of the expression */

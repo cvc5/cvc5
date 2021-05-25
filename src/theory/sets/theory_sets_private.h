@@ -38,8 +38,8 @@ namespace sets {
 class TheorySets;
 
 class TheorySetsPrivate {
-  typedef context::CDHashMap< Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashMap<Node, bool> NodeBoolMap;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   void eqNotifyNewClass(TNode t);
@@ -136,7 +136,8 @@ class TheorySetsPrivate {
   TheorySetsPrivate(TheorySets& external,
                     SolverState& state,
                     InferenceManager& im,
-                    SkolemCache& skc);
+                    SkolemCache& skc,
+                    ProofNodeManager* pnm);
 
   ~TheorySetsPrivate();
 

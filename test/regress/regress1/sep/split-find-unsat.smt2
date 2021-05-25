@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-models
+; COMMAND-LINE:
 ; EXPECT: unsat
 (set-logic QF_ALL_SUPPORTED)
 (set-info :status unsat)

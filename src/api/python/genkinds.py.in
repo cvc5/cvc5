@@ -56,7 +56,7 @@ KINDS_PXI_TOP = \
 r"""# distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
 
-from cvc4kinds cimport *
+from cvc5kinds cimport *
 import sys
 from types import ModuleType
 

@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "context/cdhashmap_forward.h"
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 #include "options/options.h"
 #include "smt/output_manager.h"
 #include "smt/smt_mode.h"
@@ -37,12 +37,10 @@ template <bool ref_count> class NodeTemplate;
 typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
 class TypeNode;
-struct NodeHashFunction;
 
 class Env;
 class NodeManager;
 class TheoryEngine;
-class ProofManager;
 class UnsatCore;
 class LogicRequest;
 class StatisticsRegistry;
@@ -94,20 +92,12 @@ class SygusSolver;
 class AbductionSolver;
 class InterpolationSolver;
 class QuantElimSolver;
-/**
- * Representation of a defined function.  We keep these around in
- * SmtEngine to permit expanding definitions late (and lazily), to
- * support getValue() over defined functions, to support user output
- * in terms of defined functions, etc.
- */
-class DefinedFunction;
 
 struct SmtEngineStatistics;
 class SmtScope;
 class PfManager;
 class UnsatCoreManager;
 
-ProofManager* currentProofManager();
 }  // namespace smt
 
 /* -------------------------------------------------------------------------- */
@@ -119,7 +109,7 @@ namespace theory {
 
 /* -------------------------------------------------------------------------- */
 
-class CVC4_EXPORT SmtEngine
+class CVC5_EXPORT SmtEngine
 {
   friend class ::cvc5::api::Solver;
   friend class ::cvc5::smt::SmtEngineState;
@@ -243,18 +233,18 @@ class CVC4_EXPORT SmtEngine
    * to a state where its options were prior to parsing but after e.g.
    * reading command line options.
    */
-  void notifyStartParsing(const std::string& filename) CVC4_EXPORT;
+  void notifyStartParsing(const std::string& filename) CVC5_EXPORT;
   /** return the input name (if any) */
   const std::string& getFilename() const;
 
   /**
    * Helper method for the API to put the last check result into the statistics.
    */
-  void setResultStatistic(const std::string& result) CVC4_EXPORT;
+  void setResultStatistic(const std::string& result) CVC5_EXPORT;
   /**
    * Helper method for the API to put the total runtime into the statistics.
    */
-  void setTotalTimeStatistic(double seconds) CVC4_EXPORT;
+  void setTotalTimeStatistic(double seconds) CVC5_EXPORT;
 
   /**
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
@@ -334,9 +324,6 @@ class CVC4_EXPORT SmtEngine
                       const std::vector<Node>& formals,
                       Node formula,
                       bool global = false);
-
-  /** Return true if given expression is a defined function. */
-  bool isDefinedFunction(Node func);
 
   /**
    * Define functions recursive
@@ -522,12 +509,10 @@ class CVC4_EXPORT SmtEngine
    * Expand the definitions in a term or formula.
    *
    * @param n The node to expand
-   * @param expandOnly if true, then the expandDefinitions function of
-   * TheoryEngine is not called on subterms of n.
    *
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
-  Node expandDefinitions(const Node& n, bool expandOnly = true);
+  Node expandDefinitions(const Node& n);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT
@@ -558,11 +543,6 @@ class CVC4_EXPORT SmtEngine
    * in the proper format.
    */
   void printProof();
-  /**
-   * Print solution for synthesis conjectures found by counter-example guided
-   * instantiation module.
-   */
-  void printSynthSolution(std::ostream& out);
 
   /**
    * Get synth solution.
@@ -871,12 +851,6 @@ class CVC4_EXPORT SmtEngine
   /** Get a pointer to the PropEngine owned by this SmtEngine. */
   prop::PropEngine* getPropEngine();
 
-  /**
-   * Get a pointer to the ProofManager owned by this SmtEngine.
-   * TODO (project #37): this is the old proof manager and will be deleted
-   */
-  ProofManager* getProofManager() { return d_proofManager.get(); };
-
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager() const;
 
@@ -891,19 +865,18 @@ class CVC4_EXPORT SmtEngine
 
   /** Get a pointer to the Rewriter owned by this SmtEngine. */
   theory::Rewriter* getRewriter();
-
-  /** The type of our internal map of defined functions */
-  using DefinedFunctionMap =
-      context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>;
-
-  /** Get the defined function map */
-  DefinedFunctionMap* getDefinedFunctionMap() { return d_definedFunctions; }
   /**
    * Get expanded assertions.
    *
    * Return the set of assertions, after expanding definitions.
    */
   std::vector<Node> getExpandedAssertions();
+
+  /**
+   * !!!!! temporary, until the environment is passsed to all classes that
+   * require it.
+   */
+  Env& getEnv();
   /* .......................................................................  */
  private:
   /* .......................................................................  */
@@ -1090,8 +1063,6 @@ class CVC4_EXPORT SmtEngine
   /** The SMT solver */
   std::unique_ptr<smt::SmtSolver> d_smtSolver;
 
-  /** The (old) proof manager TODO (project #37): delete this */
-  std::unique_ptr<ProofManager> d_proofManager;
   /**
    * The SMT-level model object, which contains information about how to
    * print the model, as well as a pointer to the underlying TheoryModel
@@ -1114,9 +1085,6 @@ class CVC4_EXPORT SmtEngine
    * The unsat core manager, which produces unsat cores and related information
    * from refutations. */
   std::unique_ptr<smt::UnsatCoreManager> d_ucManager;
-
-  /** An index of our defined functions */
-  DefinedFunctionMap* d_definedFunctions;
 
   /** The solver for sygus queries */
   std::unique_ptr<smt::SygusSolver> d_sygusSolver;

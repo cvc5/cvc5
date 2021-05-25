@@ -15,7 +15,7 @@
 
 #include "theory/bags/theory_bags.h"
 
-#include "expr/proof_checker.h"
+#include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
 #include "theory/bags/normal_form.h"
 #include "theory/rewriter.h"
@@ -224,12 +224,6 @@ void TheoryBags::preRegisterTerm(TNode n)
     }
     default: break;
   }
-}
-
-TrustNode TheoryBags::expandDefinition(Node n)
-{
-  // TODO(projects#224): add choose and is_singleton here
-  return TrustNode::null();
 }
 
 void TheoryBags::presolve() {}

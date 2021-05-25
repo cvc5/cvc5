@@ -18,8 +18,8 @@
 #include <memory>
 #include <string>
 
+#include "base/cvc5config.h"
 #include "base/exception.h"
-#include "cvc4autoconfig.h"
 #include "options/options.h"
 
 #ifndef CVC5__MAIN__MAIN_H
@@ -62,19 +62,11 @@ extern bool segvSpin;
 /** A pointer to the options in play */
 extern thread_local Options* pOptions;
 
-/** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV.
- * This can throw a cvc5::Exception.
- */
-void cvc4_init();
-
-/** Shutdown the driver. Frees memory for the signal handlers. */
-void cvc4_shutdown() noexcept;
-
 }  // namespace main
 }  // namespace cvc5
 
-/** Actual Cvc4 driver functions **/
-int runCvc4(int argc, char* argv[], cvc5::Options&);
+/** Actual cvc5 driver functions **/
+int runCvc5(int argc, char* argv[], cvc5::Options&);
 void printUsage(cvc5::Options&, bool full = false);
 
 #endif /* CVC5__MAIN__MAIN_H */

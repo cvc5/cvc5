@@ -90,7 +90,6 @@ class Tptp : public Parser {
  protected:
   Tptp(api::Solver* solver,
        SymbolManager* sm,
-       Input* input,
        bool strictMode = false,
        bool parseOnly = false);
 
@@ -193,7 +192,7 @@ class Tptp : public Parser {
   api::Term d_utr_op;
   api::Term d_uts_op;
   // The set of expression that already have a bridge
-  std::unordered_set<api::Term, api::TermHashFunction> d_r_converted;
+  std::unordered_set<api::Term> d_r_converted;
   std::unordered_map<std::string, api::Term> d_distinct_objects;
 
   std::vector< pANTLR3_INPUT_STREAM > d_in_created;

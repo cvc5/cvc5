@@ -1,4 +1,4 @@
-; COMMAND-LINE: -q
+; COMMAND-LINE:
 ; EXPECT: sat
 (set-logic ALL)
 (set-option :solve-bv-as-int sum)

@@ -311,9 +311,7 @@ class SygusUnifIo : public SygusUnif
    *   A -> ite( A, B, C ) | ...
    * where terms of type B and C can both act as solutions.
    */
-  std::map<size_t,
-           std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>>
-      d_psolutions;
+  std::map<size_t, std::map<TypeNode, std::unordered_set<Node>>> d_psolutions;
   /**
    * This flag is set to true if the solution construction was
    * non-deterministic with respect to failure/success.

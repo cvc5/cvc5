@@ -19,9 +19,9 @@ find_package(ANTLR3 3.4 REQUIRED)
 find_package(Java COMPONENTS Runtime REQUIRED)
 
 #-----------------------------------------------------------------------------#
-# libcvc4parser source files
+# libcvc5parser source files
 
-set(libcvc4parser_src_files
+set(libcvc5parser_src_files
   antlr_input.cpp
   antlr_input.h
   antlr_input_imports.cpp
@@ -96,34 +96,28 @@ foreach(lang Cvc Smt2 Tptp)
     ${gen_src_files} PROPERTIES COMPILE_FLAGS "-Wno-all -Wno-error")
 
   # Add generated source files to the parser source files
-  list(APPEND libcvc4parser_src_files ${gen_src_files})
+  list(APPEND libcvc5parser_src_files ${gen_src_files})
 endforeach()
 
 #-----------------------------------------------------------------------------#
-# libcvc4parser configuration
+# libcvc5parser configuration
 
-add_library(cvc4parser ${libcvc4parser_src_files})
-set_target_properties(cvc4parser PROPERTIES SOVERSION ${CVC5_SOVERSION})
-target_compile_definitions(cvc4parser PRIVATE -D__BUILDING_CVC4PARSERLIB)
-target_link_libraries(cvc4parser PUBLIC cvc4)
-target_link_libraries(cvc4parser PRIVATE ANTLR3)
+add_library(cvc5parser ${libcvc5parser_src_files})
+set_target_properties(cvc5parser PROPERTIES SOVERSION ${CVC5_SOVERSION})
+target_compile_definitions(cvc5parser PRIVATE -D__BUILDING_CVC5PARSERLIB)
+target_link_libraries(cvc5parser PUBLIC cvc5)
+target_link_libraries(cvc5parser PRIVATE ANTLR3)
 
-if(USE_CLN)
-  target_link_libraries(cvc4parser PRIVATE ${CLN_LIBRARIES})
-  target_include_directories(cvc4parser PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
-endif()
-target_link_libraries(cvc4parser PRIVATE GMP)
-
-install(TARGETS cvc4parser
-  EXPORT cvc4-targets
+install(TARGETS cvc5parser
+  EXPORT cvc5-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 # The generated lexer/parser files define some functions as
 # __declspec(dllexport) via the ANTLR3_API macro, which leads to lots of
-# unresolved symbols when linking against libcvc4parser.
+# unresolved symbols when linking against libcvc5parser.
 # -Wl,--export-all-symbols makes sure that all symbols are exported when
 # building a DLL.
 if(CVC5_WINDOWS_BUILD)
-  set_target_properties(cvc4parser
+  set_target_properties(cvc5parser
     PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
 endif()

@@ -19,8 +19,9 @@
 #include "expr/kind.h"
 #include "theory/type_enumerator.h"
 
-
+// clang-format off
 ${type_enumerator_includes}
+// clang-format on
 
 using namespace std;
 
@@ -35,11 +36,15 @@ TypeEnumeratorInterface* TypeEnumerator::mkTypeEnumerator(
     case kind::TYPE_CONSTANT:
       switch (type.getConst<TypeConstant>())
       {
+        // clang-format off
         ${mk_type_enumerator_type_constant_cases}
+          // clang-format on
         default: Unhandled() << "No type enumerator for type `" << type << "'";
       }
       Unreachable();
+      // clang-format off
       ${mk_type_enumerator_cases}
+      // clang-format on
     default: Unhandled() << "No type enumerator for type `" << type << "'";
   }
   Unreachable();
