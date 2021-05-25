@@ -19,8 +19,8 @@
 #define CVC5__PROP_PROOF_MANAGER_H
 
 #include "context/cdlist.h"
-#include "expr/proof.h"
-#include "expr/proof_node_manager.h"
+#include "proof/proof.h"
+#include "proof/proof_node_manager.h"
 #include "prop/proof_post_processor.h"
 #include "prop/sat_proof_manager.h"
 

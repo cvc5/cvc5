@@ -20,10 +20,10 @@
 #include <vector>
 
 #include "expr/node_algorithm.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
+#include "proof/eager_proof_generator.h"
+#include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
 #include "theory/booleans/proof_circuit_propagator.h"
-#include "theory/eager_proof_generator.h"
 #include "theory/theory.h"
 #include "util/hash.h"
 #include "util/utility.h"

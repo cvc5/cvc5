@@ -1,6 +1,6 @@
-; COMMAND-LINE: --bitblast=eager  --no-check-unsat-cores
+; COMMAND-LINE: --bitblast=eager 
 ; REQUIRES: cryptominisat
-; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --no-check-unsat-cores
+; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat
 ; EXPECT: unsat
 (set-logic QF_UFBV)
 (set-info :smt-lib-version 2.6)

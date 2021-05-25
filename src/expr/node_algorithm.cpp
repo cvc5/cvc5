@@ -647,6 +647,34 @@ Node substituteCaptureAvoiding(TNode n,
   return visited[n];
 }
 
+void getTypes(TNode n, std::unordered_set<TypeNode>& types)
+{
+  std::unordered_set<TNode> visited;
+  getTypes(n, types, visited);
+}
+
+void getTypes(TNode n,
+              std::unordered_set<TypeNode>& types,
+              std::unordered_set<TNode>& visited)
+{
+  std::unordered_set<TNode>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited.insert(cur);
+      types.insert(cur.getType());
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+}
+
 void getComponentTypes(TypeNode t, std::unordered_set<TypeNode>& types)
 {
   std::vector<TypeNode> toProcess;

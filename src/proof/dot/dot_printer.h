@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-#include "expr/proof_node.h"
+#include "proof/proof_node.h"
 
 namespace cvc5 {
 namespace proof {
