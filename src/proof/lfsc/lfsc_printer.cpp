@@ -617,7 +617,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     // quantifiers
     case PfRule::SKOLEM_INTRO:
     {
-      pf << d_tproc.convert(SkolemManager::getOriginalForm(args[0]));
+      pf << h << d_tproc.convert(SkolemManager::getOriginalForm(args[0]));
     }
     break;
     // ---------- arguments of non-translated rules go here
