@@ -94,7 +94,8 @@ Node LfscNodeConverter::postConvert(Node n)
     if (tn.isConstructor() || tn.isSelector() || tn.isTester()
         || tn.isUpdater())
     {
-      // note these are not converted to their user named (cvc.) symbols here
+      // note these are not converted to their user named (cvc.) symbols here,
+      // to avoid type errors when constructing terms for postConvert
       return n;
     }
     // skolems v print as their witness forms
@@ -282,12 +283,6 @@ Node LfscNodeConverter::postConvert(Node n)
     Node f = nm->mkNode(APPLY_UF, bconstf, t);
     ArrayStoreAll storeAll = n.getConst<ArrayStoreAll>();
     return nm->mkNode(APPLY_UF, f, convert(storeAll.getValue()));
-  }
-  else if (k == ITE)
-  {
-    // (ite C A B) is ((ite T) C A B) where T is the return type.
-    Node iteOp = getOperatorOfTerm(n, true);
-    return nm->mkNode(APPLY_UF, {iteOp, n[0], n[1], n[2]});
   }
   else if (k == GEQ || k == GT || k == LEQ || k == LT || k == MINUS
            || k == DIVISION || k == DIVISION_TOTAL || k == INTS_DIVISION
@@ -988,18 +983,6 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   {
     opName << "_total";
   }
-  /*
-  if (k == ITE)
-  {
-    // ITE is indexed by its type
-    TypeNode boolType = nm->booleanType();
-    TypeNode itype = nm->mkFunctionType(d_sortType, ftype);
-    Node iteSym = getSymbolInternal(k, itype, opName.str());
-    Node typeNode = typeAsNode(convertType(tn));
-    Assert(!typeNode.isNull());
-    return nm->mkNode(APPLY_UF, iteSym, typeNode);
-  }
-  */
   return getSymbolInternal(k, ftype, opName.str());
 }
 
