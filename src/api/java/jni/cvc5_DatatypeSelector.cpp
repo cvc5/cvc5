@@ -1,3 +1,18 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The cvc5 Java API.
+ */
+
 #include "cvc5_DatatypeSelector.h"
 
 #include "api/cpp/cvc5.h"
@@ -43,6 +58,22 @@ Java_cvc5_DatatypeSelector_getSelectorTerm(JNIEnv* env, jobject, jlong pointer)
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeSelector* current = (DatatypeSelector*)pointer;
   Term* retPointer = new Term(current->getSelectorTerm());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_DatatypeSelector
+ * Method:    getUpdaterTerm
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_cvc5_DatatypeSelector_getUpdaterTerm(JNIEnv* env,
+                                                                  jobject,
+                                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeSelector* current = (DatatypeSelector*)pointer;
+  Term* retPointer = new Term(current->getUpdaterTerm());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
