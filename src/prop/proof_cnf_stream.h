@@ -19,14 +19,14 @@
 #define CVC5__PROP__PROOF_CNF_STREAM_H
 
 #include "context/cdhashmap.h"
-#include "expr/lazy_proof.h"
 #include "expr/node.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
+#include "proof/eager_proof_generator.h"
+#include "proof/lazy_proof.h"
+#include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
+#include "proof/theory_proof_step_buffer.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_proof_manager.h"
-#include "theory/eager_proof_generator.h"
-#include "theory/theory_proof_step_buffer.h"
 
 namespace cvc5 {
 namespace prop {

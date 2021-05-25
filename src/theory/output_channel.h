@@ -18,8 +18,8 @@
 #ifndef CVC5__THEORY__OUTPUT_CHANNEL_H
 #define CVC5__THEORY__OUTPUT_CHANNEL_H
 
+#include "proof/trust_node.h"
 #include "theory/incomplete_id.h"
-#include "theory/trust_node.h"
 #include "util/resource_manager.h"
 
 namespace cvc5 {

@@ -22,9 +22,9 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "proof/trust_node.h"
 #include "prop/skolem_def_manager.h"
 #include "theory/output_channel.h"
-#include "theory/trust_node.h"
 #include "util/result.h"
 
 namespace cvc5 {

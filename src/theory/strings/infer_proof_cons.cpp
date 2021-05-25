@@ -15,10 +15,10 @@
 
 #include "theory/strings/infer_proof_cons.h"
 
-#include "expr/proof_node_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
+#include "proof/proof_node_manager.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_operation.h"
@@ -712,11 +712,11 @@ void InferProofCons::convert(InferenceId infer,
           }
           else if (eunf.getKind() == AND)
           {
-            // equality is the last conjunct
+            // equality is the first conjunct
             std::vector<Node> childrenAE;
             childrenAE.push_back(eunf);
             std::vector<Node> argsAE;
-            argsAE.push_back(nm->mkConst(Rational(eunf.getNumChildren() - 1)));
+            argsAE.push_back(nm->mkConst(Rational(0)));
             Node eunfAE = psb.tryStep(PfRule::AND_ELIM, childrenAE, argsAE);
             Trace("strings-ipc-prefix")
                 << "--- and elim to " << eunfAE << std::endl;
