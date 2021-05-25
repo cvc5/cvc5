@@ -49,7 +49,7 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
 
   fail_if_include_missing("sys/resource.h" "CaDiCaL")
 
-  set(CaDiCaL_VERSION "1.2.1")
+  set(CaDiCaL_VERSION "88623ef0866370448c34f6e320c148fc18e6f4cc")
 
   # avoid configure script and instantiate the makefile manually the configure
   # scripts unnecessarily fails for cross compilation thus we do the bare
@@ -73,8 +73,8 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
     CaDiCaL-EP
     ${COMMON_EP_CONFIG}
     BUILD_IN_SOURCE ON
-    URL https://github.com/arminbiere/cadical/archive/refs/tags/rel-${CaDiCaL_VERSION}.tar.gz
-    URL_HASH SHA1=9de1176737b74440921ba86395fe5edbb3b131eb
+    URL https://github.com/arminbiere/cadical/archive/${CaDiCaL_VERSION}.tar.gz
+    URL_HASH SHA1=16ea51f0274d699f3d3c9e3be7083179eed83abf
     CONFIGURE_COMMAND mkdir -p <SOURCE_DIR>/build
     # avoid configure script, prepare the makefile manually
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/makefile.in
@@ -83,6 +83,11 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
       sed -i.orig -e "s,@CXX@,${CMAKE_CXX_COMPILER}," -e
       "s,@CXXFLAGS@,${CXXFLAGS}," -e "s,@MAKEFLAGS@,,"
       <SOURCE_DIR>/build/makefile
+    # This is a temporary patch until fixed upstream
+    PATCH_COMMAND
+      sed -i.orig
+        "s,#include <vector>,#include <vector>\\\\n#include <cstddef>,"
+        <SOURCE_DIR>/src/reap.hpp
     BUILD_COMMAND ${make_cmd} -C <SOURCE_DIR>/build libcadical.a
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libcadical.a
                     <INSTALL_DIR>/lib/libcadical.a

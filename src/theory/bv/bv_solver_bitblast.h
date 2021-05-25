@@ -21,12 +21,12 @@
 #include <unordered_map>
 
 #include "context/cdqueue.h"
+#include "proof/eager_proof_generator.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "theory/bv/bitblast/simple_bitblaster.h"
 #include "theory/bv/bv_solver.h"
 #include "theory/bv/proof_checker.h"
-#include "theory/eager_proof_generator.h"
 
 namespace cvc5 {
 
@@ -84,6 +84,14 @@ class BVSolverBitblast : public BVSolver
   Node getValue(TNode node);
 
   /**
+   * Handle BITVECTOR_EAGER_ATOM atoms and assert/assume to CnfStream.
+   *
+   * @param assertFact: Indicates whether the fact should be asserted (true) or
+   * assumed (false).
+   */
+  void handleEagerAtom(TNode fact, bool assertFact);
+
+  /**
    * Cache for getValue() calls.
    *
    * Is cleared at the beginning of a getValue() call if the
@@ -95,8 +103,7 @@ class BVSolverBitblast : public BVSolver
   std::unique_ptr<BBSimple> d_bitblaster;
 
   /** Used for initializing `d_cnfStream`. */
-  std::unique_ptr<prop::NullRegistrar> d_nullRegistrar;
-
+  std::unique_ptr<BBRegistrar> d_bbRegistrar;
   std::unique_ptr<context::Context> d_nullContext;
 
   /** SAT solver back end (configured via options::bvSatSolver. */

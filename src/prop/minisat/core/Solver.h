@@ -27,8 +27,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "base/output.h"
 #include "context/context.h"
 #include "cvc5_private.h"
-#include "expr/proof_node_manager.h"
 #include "proof/clause_id.h"
+#include "proof/proof_node_manager.h"
 #include "prop/minisat/core/SolverTypes.h"
 #include "prop/minisat/mtl/Alg.h"
 #include "prop/minisat/mtl/Heap.h"
@@ -39,7 +39,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "util/resource_manager.h"
 
 namespace cvc5 {
-template <class Solver> class TSatProof;
 
 namespace prop {
 class PropEngine;
@@ -58,7 +57,6 @@ class Solver {
   friend class cvc5::prop::PropEngine;
   friend class cvc5::prop::TheoryProxy;
   friend class cvc5::prop::SatProofManager;
-  friend class cvc5::TSatProof<Minisat::Solver>;
 
  public:
   static CRef TCRef_Undef;
@@ -102,9 +100,6 @@ class Solver {
 
   /** Is the lemma removable */
   vec<bool> lemmas_removable;
-
-  /** Nodes being converted to CNF */
-  std::vector<cvc5::Node> lemmas_cnf_assertion;
 
   /** Do a another check if FULL_EFFORT was the last one */
   bool recheck;

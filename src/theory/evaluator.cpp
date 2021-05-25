@@ -734,7 +734,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::BITVECTOR_PLUS:
+        case kind::BITVECTOR_ADD:
         {
           BitVector res = results[currNode[0]].d_bv;
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)

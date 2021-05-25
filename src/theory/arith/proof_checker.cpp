@@ -30,7 +30,7 @@ namespace arith {
 
 void ArithProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS, this);
+  pc->registerChecker(PfRule::MACRO_ARITH_SCALE_SUM_UB, this);
   pc->registerChecker(PfRule::ARITH_SUM_UB, this);
   pc->registerChecker(PfRule::ARITH_TRICHOTOMY, this);
   pc->registerChecker(PfRule::INT_TIGHT_UB, this);
@@ -141,21 +141,30 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
                           rightSum.constructNode());
       return r;
     }
-    case PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS:
+    case PfRule::MACRO_ARITH_SCALE_SUM_UB:
     {
+      //================================================= Arithmetic rules
+      // ======== Adding Inequalities
+      // Note: an ArithLiteral is a term of the form (>< poly const)
+      // where
+      //   >< is >=, >, ==, <, <=, or not(== ...).
+      //   poly is a polynomial
+      //   const is a rational constant
+
       // Children: (P1:l1, ..., Pn:ln)
       //           where each li is an ArithLiteral
       //           not(= ...) is dis-allowed!
       //
       // Arguments: (k1, ..., kn), non-zero reals
       // ---------------------
-      // Conclusion: (>< (* k t1) (* k t2))
+      // Conclusion: (>< t1 t2)
       //    where >< is the fusion of the combination of the ><i, (flipping each
       //    it its ki is negative). >< is always one of <, <= NB: this implies
       //    that lower bounds must have negative ki,
       //                      and upper bounds must have positive ki.
-      //    t1 is the sum of the polynomials.
-      //    t2 is the sum of the constants.
+      //    t1 is the sum of the scaled polynomials (k_1 * poly_1 + ... + k_n *
+      //    poly_n) t2 is the sum of the scaled constants (k_1 * const_1 + ... +
+      //    k_n * const_n)
       Assert(children.size() == args.size());
       if (children.size() < 2)
       {
@@ -234,9 +243,9 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
           }
         }
         leftSum << nm->mkNode(
-            Kind::MULT, children[i][0], nm->mkConst<Rational>(scalar));
+            Kind::MULT, nm->mkConst<Rational>(scalar), children[i][0]);
         rightSum << nm->mkNode(
-            Kind::MULT, children[i][1], nm->mkConst<Rational>(scalar));
+            Kind::MULT, nm->mkConst<Rational>(scalar), children[i][1]);
       }
       Node r = nm->mkNode(strict ? Kind::LT : Kind::LEQ,
                           leftSum.constructNode(),

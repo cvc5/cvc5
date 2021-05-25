@@ -18,8 +18,7 @@
 
 #include "expr/node_manager.h"
 #include "options/smt_options.h"
-#include "expr/lazy_proof.h"
-#include "proof/proof_manager.h"
+#include "proof/lazy_proof.h"
 #include "smt/preprocess_proof_generator.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
@@ -102,10 +101,6 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
   if (isProofEnabled())
   {
     d_pppg->notifyPreprocessed(d_nodes[i], n, pgen);
-  }
-  else if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
-  {
-    ProofManager::currentPM()->addDependence(n, d_nodes[i]);
   }
   d_nodes[i] = n;
 }
@@ -203,10 +198,6 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       // above proof.
       d_pppg->notifyNewAssert(newConjr, lcp);
     }
-  }
-  if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
-  {
-    ProofManager::currentPM()->addDependence(newConjr, d_nodes[i]);
   }
   d_nodes[i] = newConjr;
   Assert(theory::Rewriter::rewrite(newConjr) == newConjr);

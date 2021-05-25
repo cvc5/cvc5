@@ -29,6 +29,8 @@ libcvc5_add_sources(
   decision/decision_strategy.h
   decision/justification_heuristic.cpp
   decision/justification_heuristic.h
+  decision/justification_strategy.cpp
+  decision/justification_strategy.h
   decision/justify_info.cpp
   decision/justify_info.h
   decision/justify_stack.cpp
@@ -136,15 +138,50 @@ libcvc5_add_sources(
   printer/smt2/smt2_printer.h
   printer/tptp/tptp_printer.cpp
   printer/tptp/tptp_printer.h
+  proof/buffered_proof_generator.cpp
+  proof/buffered_proof_generator.h
+  proof/conv_proof_generator.cpp
+  proof/conv_proof_generator.h
+  proof/conv_seq_proof_generator.cpp
+  proof/conv_seq_proof_generator.h
   proof/clause_id.h
-  proof/cnf_proof.cpp
-  proof/cnf_proof.h
   proof/dot/dot_printer.cpp
   proof/dot/dot_printer.h
-  proof/proof_manager.cpp
-  proof/proof_manager.h
-  proof/sat_proof.h
-  proof/sat_proof_implementation.h
+  proof/eager_proof_generator.cpp
+  proof/eager_proof_generator.h
+  proof/lazy_proof.cpp
+  proof/lazy_proof.h
+  proof/lazy_proof_chain.cpp
+  proof/lazy_proof_chain.h
+  proof/lazy_tree_proof_generator.cpp
+  proof/lazy_tree_proof_generator.h
+  proof/proof.cpp
+  proof/proof.h
+  proof/proof_checker.cpp
+  proof/proof_checker.h
+  proof/proof_ensure_closed.cpp
+  proof/proof_ensure_closed.h
+  proof/proof_generator.cpp
+  proof/proof_generator.h
+  proof/proof_node.cpp
+  proof/proof_node.h
+  proof/proof_node_algorithm.cpp
+  proof/proof_node_algorithm.h
+  proof/proof_node_to_sexpr.cpp
+  proof/proof_node_to_sexpr.h
+  proof/proof_node_manager.cpp
+  proof/proof_node_manager.h
+  proof/proof_node_updater.cpp
+  proof/proof_node_updater.h
+  proof/proof_rule.cpp
+  proof/proof_rule.h
+  proof/proof_set.h
+  proof/proof_step_buffer.cpp
+  proof/proof_step_buffer.h
+  proof/trust_node.cpp
+  proof/trust_node.h
+  proof/theory_proof_step_buffer.cpp
+  proof/theory_proof_step_buffer.h
   proof/unsat_core.cpp
   proof/unsat_core.h
   prop/bv_sat_solver_notify.h
@@ -606,8 +643,6 @@ libcvc5_add_sources(
   theory/decision_manager.h
   theory/decision_strategy.cpp
   theory/decision_strategy.h
-  theory/eager_proof_generator.cpp
-  theory/eager_proof_generator.h
   theory/ee_manager.cpp
   theory/ee_manager.h
   theory/ee_manager_distributed.cpp
@@ -637,8 +672,6 @@ libcvc5_add_sources(
   theory/inference_id.h
   theory/inference_manager_buffered.cpp
   theory/inference_manager_buffered.h
-  theory/lazy_tree_proof_generator.cpp
-  theory/lazy_tree_proof_generator.h
   theory/logic_info.cpp
   theory/logic_info.h
   theory/model_manager.cpp
@@ -1035,14 +1068,10 @@ libcvc5_add_sources(
   theory/theory_model_builder.h
   theory/theory_preprocessor.cpp
   theory/theory_preprocessor.h
-  theory/theory_proof_step_buffer.cpp
-  theory/theory_proof_step_buffer.h
   theory/theory_rewriter.cpp
   theory/theory_rewriter.h
   theory/theory_state.cpp
   theory/theory_state.h
-  theory/trust_node.cpp
-  theory/trust_node.h
   theory/trust_substitutions.cpp
   theory/trust_substitutions.h
   theory/type_enumerator.h
