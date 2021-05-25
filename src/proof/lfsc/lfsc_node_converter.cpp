@@ -99,8 +99,12 @@ Node LfscNodeConverter::postConvert(Node n)
     }
     // skolems v print as their witness forms
     // v is (skolem W) where W is the original or witness form of v
-    Node on = SkolemManager::getOriginalForm(n);
-    Node wi = on == n ? SkolemManager::getWitnessForm(n) : on;
+    Node wi = SkolemManager::getOriginalForm(n);
+    if (wi==n)
+    {
+      // if it is not a purification skolem, maybe it is a witness skolem
+      wi = SkolemManager::getWitnessForm(n);
+    }
     if (!wi.isNull() && wi != n)
     {
       Trace("lfsc-term-process-debug") << "...witness form " << wi << std::endl;
