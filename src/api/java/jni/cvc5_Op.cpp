@@ -90,6 +90,21 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Op_isIndexed(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Op* current = (Op*)pointer;
   return (jboolean)current->isIndexed();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, false);
+}
+
+/*
+ * Class:     cvc5_Op
+ * Method:    getNumIndices
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_cvc5_Op_getNumIndices(JNIEnv* env,
+                                                  jobject,
+                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Op* current = (Op*)pointer;
+  return (jint)current->getNumIndices();
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 

@@ -96,6 +96,16 @@ public class Op extends AbstractPointer
   private native boolean isIndexed(long pointer);
 
   /**
+   * @return the number of indices of this op
+   */
+  public int getNumIndices()
+  {
+    return getNumIndices(pointer);
+  }
+
+  private native int getNumIndices(long pointer);
+
+  /**
    * Get the indices used to create this Op.
    * Check the Op Kind with getKind() to determine which argument to use.
    *
