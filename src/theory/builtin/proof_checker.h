@@ -19,8 +19,8 @@
 #define CVC5__THEORY__BUILTIN__PROOF_CHECKER_H
 
 #include "expr/node.h"
-#include "expr/proof_checker.h"
-#include "expr/proof_node.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_node.h"
 #include "theory/quantifiers/extended_rewrite.h"
 
 namespace cvc5 {

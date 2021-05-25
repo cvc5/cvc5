@@ -1141,6 +1141,7 @@ set(regress_0_tests
   regress0/strings/issue6510-seq-bool.smt2
   regress0/strings/issue6520.smt2
   regress0/strings/issue6560-indexof-reduction.smt2
+  regress0/strings/issue6604-re-elim.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -2088,6 +2089,7 @@ set(regress_1_tests
   regress1/strings/issue6271-rnf.smt2
   regress1/strings/issue6271-2-rnf.smt2
   regress1/strings/issue6567-empty-re-range.smt2
+  regress1/strings/issue6604-2.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2

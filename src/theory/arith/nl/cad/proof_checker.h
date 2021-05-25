@@ -19,7 +19,7 @@
 #define CVC5__THEORY__ARITH__NL__CAD__PROOF_CHECKER_H
 
 #include "expr/node.h"
-#include "expr/proof_checker.h"
+#include "proof/proof_checker.h"
 
 namespace cvc5 {
 namespace theory {

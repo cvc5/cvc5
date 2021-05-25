@@ -17,11 +17,11 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/proof.h"
-#include "expr/proof_node_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "proof/proof.h"
+#include "proof/proof_node_manager.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_registry.h"
