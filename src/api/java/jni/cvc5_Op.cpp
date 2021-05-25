@@ -1,3 +1,18 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The cvc5 Java API.
+ */
+
 #include "cvc5_Op.h"
 
 #include "api/cpp/cvc5.h"
@@ -75,6 +90,21 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Op_isIndexed(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Op* current = (Op*)pointer;
   return (jboolean)current->isIndexed();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, false);
+}
+
+/*
+ * Class:     cvc5_Op
+ * Method:    getNumIndices
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_cvc5_Op_getNumIndices(JNIEnv* env,
+                                                  jobject,
+                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Op* current = (Op*)pointer;
+  return (jint)current->getNumIndices();
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
