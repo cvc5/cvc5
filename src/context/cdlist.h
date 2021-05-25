@@ -101,18 +101,18 @@ protected:
    * d_sizeAlloc are not copied: only the base class information and
    * d_size are needed in restore.
    */
-  CDList(const CDList& l) :
-    ContextObj(l),
-    d_list(NULL),
-    d_size(l.d_size),
-    d_callDestructor(false),
-    d_sizeAlloc(0),
-    d_cleanUp(l.d_cleanUp),
-    d_allocator(l.d_allocator) {
-    Debug("cdlist") << "copy ctor: " << this
-                    << " from " << &l
-                    << " size " << d_size << std::endl;
-  }
+ CDList(const CDList& l)
+     : ContextObj(l),
+       d_list(nullptr),
+       d_size(l.d_size),
+       d_callDestructor(false),
+       d_sizeAlloc(0),
+       d_cleanUp(l.d_cleanUp),
+       d_allocator(l.d_allocator)
+ {
+   Debug("cdlist") << "copy ctor: " << this << " from " << &l << " size "
+                   << d_size << std::endl;
+ }
   CDList& operator=(const CDList& l) = delete;
 
  private:
@@ -132,8 +132,10 @@ protected:
     Debug("cdlist") << "grow " << this << " " << getContext()->getLevel()
                     << ": grow!" << std::endl;
 
-    size_t maxSize = std::allocator_traits<AllocatorT>::max_size(d_allocator);
-    if(d_list == NULL) {
+    const size_t maxSize =
+        std::allocator_traits<AllocatorT>::max_size(d_allocator);
+    if (d_list == nullptr)
+    {
       // Allocate an initial list if one does not yet exist
       d_sizeAlloc = INITIAL_SIZE;
       Debug("cdlist") << "initial grow of cdlist " << this
@@ -145,10 +147,13 @@ protected:
       }
       d_list =
           std::allocator_traits<AllocatorT>::allocate(d_allocator, d_sizeAlloc);
-      if(d_list == NULL) {
+      if (d_list == nullptr)
+      {
         throw std::bad_alloc();
       }
-    } else {
+    }
+    else
+    {
       // Allocate a new array with double the size
       size_t newSize = GROWTH_FACTOR * d_sizeAlloc;
       if (newSize > maxSize)
@@ -164,7 +169,8 @@ protected:
                       << " to " << newSize
                       << " (from " << d_list
                       << " to " << newList << ")" << std::endl;
-      if(newList == NULL) {
+      if (newList == nullptr)
+      {
         throw std::bad_alloc();
       }
       std::memcpy(newList, d_list, sizeof(T) * d_sizeAlloc);
@@ -238,19 +244,20 @@ protected:
 
  public:
   /**
-   * Main constructor: d_list starts as NULL, size is 0
+   * Main constructor: d_list starts as nullptr, size is 0
    */
   CDList(Context* context,
          bool callDestructor = true,
          const CleanUp& cleanup = CleanUp(),
-         const Allocator& alloc = Allocator()) :
-    ContextObj(context),
-    d_list(NULL),
-    d_size(0),
-    d_callDestructor(callDestructor),
-    d_sizeAlloc(0),
-    d_cleanUp(cleanup),
-    d_allocator(alloc) {
+         const Allocator& alloc = Allocator())
+      : ContextObj(context),
+        d_list(nullptr),
+        d_size(0),
+        d_callDestructor(callDestructor),
+        d_sizeAlloc(0),
+        d_cleanUp(cleanup),
+        d_allocator(alloc)
+  {
   }
 
   /**
@@ -364,7 +371,7 @@ protected:
    * wrapper around a pointer.  Note that for efficiency, we implement
    * only prefix increment and decrement.  Also note that it's OK to
    * create an iterator from an empty, uninitialized list, as begin()
-   * and end() will have the same value (NULL).
+   * and end() will have the same value (nullptr).
    */
   class const_iterator {
     T const* d_it;
@@ -383,7 +390,7 @@ protected:
     typedef const T* pointer;
     typedef const T& reference;
 
-    const_iterator() : d_it(NULL) {}
+    const_iterator() : d_it(nullptr) {}
 
     inline bool operator==(const const_iterator& i) const {
       return d_it == i.d_it;
