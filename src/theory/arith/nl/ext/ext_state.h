@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/proof_set.h"
+#include "proof/proof_set.h"
 #include "theory/arith/nl/ext/monomial.h"
 
 namespace cvc5 {
