@@ -1191,6 +1191,11 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BITVECTOR_ROTATE_RIGHT: return "rotate_right";
   case kind::INT_TO_BITVECTOR: return "int2bv";
 
+  // datatypes theory
+  case kind::APPLY_TESTER: return "is";
+  case kind::APPLY_UPDATER: return "update";
+  
+  // set theory
   case kind::UNION: return "union";
   case kind::INTERSECTION: return "intersection";
   case kind::SETMINUS: return "setminus";

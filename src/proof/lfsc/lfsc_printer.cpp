@@ -142,7 +142,6 @@ void LfscPrinter::print(std::ostream& out,
               LfscNodeConverter::getNameForUserName(sscons.str());
           // print construct/tester
           preamble << "(declare " << cname << " term)" << std::endl;
-          preamble << "(declare is-" << cname << " term)" << std::endl;
           for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
           {
             const DTypeSelector& arg = cons[j];
@@ -155,6 +154,7 @@ void LfscPrinter::print(std::ostream& out,
             preamble << "(declare " << sname << " term)" << std::endl;
           }
         }
+        // testers and updaters are instances of parametric symbols
         // shared selectors are instance of parametric symbol "sel"
         preamble << "; END DATATYPE " << std::endl;
       }

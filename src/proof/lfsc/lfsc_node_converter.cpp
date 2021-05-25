@@ -350,6 +350,13 @@ Node LfscNodeConverter::postConvert(Node n)
     // FIXME
     return n;
   }
+  else if (k==SEP_NIL)
+  {
+    Node tnn = typeAsNode(convertType(tn));
+    TypeNode ftype = nm->mkFunctionType(d_sortType, tn);
+    Node s = getSymbolInternal(k, ftype, "sep.nil");
+    return nm->mkNode(APPLY_UF, s, tnn);
+  }
   else if (NodeManager::isNAryKind(k) && n.getNumChildren() >= 2)
   {
     size_t nchild = n.getNumChildren();
@@ -709,50 +716,64 @@ bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
   return k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
          || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
          || k == BITVECTOR_ROTATE_LEFT || k == BITVECTOR_ROTATE_RIGHT
-         || k == INT_TO_BITVECTOR || k == IAND;
+         || k == INT_TO_BITVECTOR || k == IAND || k == APPLY_UPDATER || k == APPLY_TESTER;
 }
 
-std::vector<Node> LfscNodeConverter::getOperatorIndices(Node n)
+std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
 {
   // TODO: this can be moved to a more central place
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> indices;
-  Kind k = n.getKind();
   switch (k)
   {
-    case BITVECTOR_EXTRACT_OP:
+    case BITVECTOR_EXTRACT:
     {
       BitVectorExtract p = n.getConst<BitVectorExtract>();
       indices.push_back(nm->mkConst(Rational(p.d_high)));
       indices.push_back(nm->mkConst(Rational(p.d_low)));
       break;
     }
-    case BITVECTOR_REPEAT_OP:
+    case BITVECTOR_REPEAT:
       indices.push_back(
           nm->mkConst(Rational(n.getConst<BitVectorRepeat>().d_repeatAmount)));
       break;
-    case BITVECTOR_ZERO_EXTEND_OP:
+    case BITVECTOR_ZERO_EXTEND:
       indices.push_back(nm->mkConst(
           Rational(n.getConst<BitVectorZeroExtend>().d_zeroExtendAmount)));
       break;
-    case BITVECTOR_SIGN_EXTEND_OP:
+    case BITVECTOR_SIGN_EXTEND:
       indices.push_back(nm->mkConst(
           Rational(n.getConst<BitVectorSignExtend>().d_signExtendAmount)));
       break;
-    case BITVECTOR_ROTATE_LEFT_OP:
+    case BITVECTOR_ROTATE_LEFT:
       indices.push_back(nm->mkConst(
           Rational(n.getConst<BitVectorRotateLeft>().d_rotateLeftAmount)));
       break;
-    case BITVECTOR_ROTATE_RIGHT_OP:
+    case BITVECTOR_ROTATE_RIGHT:
       indices.push_back(nm->mkConst(
           Rational(n.getConst<BitVectorRotateRight>().d_rotateRightAmount)));
       break;
-    case INT_TO_BITVECTOR_OP:
+    case INT_TO_BITVECTOR:
       indices.push_back(
           nm->mkConst(Rational(n.getConst<IntToBitVector>().d_size)));
       break;
-    case IAND_OP:
+    case IAND:
       indices.push_back(nm->mkConst(Rational(n.getConst<IntAnd>().d_size)));
+      break;
+    case APPLY_TESTER:
+    {
+      unsigned index = DType::indexOf(n);
+      const DType& dt = DType::datatypeOf(n);
+      indices.push_back(dt[index].getConstructor());
+    }
+      break;
+    case APPLY_UPDATER:
+    {
+      unsigned index = DType::indexOf(n);
+      const DType& dt = DType::datatypeOf(n);
+      unsigned cindex = DType::cindexOf(n);
+      indices.push_back(dt[cindex][index].getSelector());
+    }
       break;
     default: Assert(false); break;
   }
@@ -820,7 +841,17 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     std::vector<Node> indices;
     if (isIndexedOperatorKind(k))
     {
-      indices = getOperatorIndices(n.getOperator());
+      indices = getOperatorIndices(k, n.getOperator());
+      // we must convert the name of indices on updaters and testers
+      if (k==APPLY_UPDATER || k==APPLY_TESTER)
+      {
+        Assert (indices.size()==1);
+        // must convert to user name
+        std::stringstream sss;
+        sss << indices[0];
+        TypeNode intType = nm->integerType();
+        indices[0] = getSymbolInternal(k, intType, getNameForUserName(sss.str()));
+      }
     }
     else if (op.getType().isFunction())
     {
@@ -837,6 +868,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     {
       ftype = nm->mkFunctionType(argTypes, ftype);
     }
+    Node ret;
     if (isIndexedOperatorKind(k))
     {
       std::vector<TypeNode> itypes;
@@ -854,50 +886,37 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       }
       opName << printer::smt2::Smt2Printer::smtKindString(k);
     }
-    else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER
-             || k == APPLY_UPDATER)
+    else if (k == APPLY_CONSTRUCTOR)
     {
-      // use is-C instead of (_ is C) syntax for testers
       unsigned index = DType::indexOf(op);
       const DType& dt = DType::datatypeOf(op);
-      if (k == APPLY_TESTER)
-      {
-        opName << "is-";
-      }
-      else if (k == APPLY_UPDATER)
-      {
-        opName << "update-";
-      }
-      if (k == APPLY_TESTER || k == APPLY_CONSTRUCTOR)
-      {
-        std::stringstream ssc;
-        ssc << dt[index].getConstructor();
-        opName << getNameForUserName(ssc.str());
-      }
-      else if (k == APPLY_SELECTOR || k == APPLY_UPDATER)
-      {
-        unsigned cindex = DType::cindexOf(op);
-        std::stringstream sss;
-        sss << dt[cindex][index].getSelector();
-        opName << getNameForUserName(sss.str());
-      }
+      std::stringstream ssc;
+      ssc << dt[index].getConstructor();
+      opName << getNameForUserName(ssc.str());
     }
-    else
+    else if (k == APPLY_SELECTOR)
     {
-      opName << op;
+      unsigned index = DType::indexOf(op);
+      const DType& dt = DType::datatypeOf(op);
+      unsigned cindex = DType::cindexOf(op);
+      std::stringstream sss;
+      sss << dt[cindex][index].getSelector();
+      opName << getNameForUserName(sss.str());
     }
-    Node ret;
-    if (k == APPLY_SELECTOR_TOTAL)
+    else if (k == APPLY_SELECTOR_TOTAL)
     {
       ret = maybeMkSkolemFun(op, macroApply);
       Assert(!ret.isNull());
     }
     else
     {
+      opName << op;
+    }
+    if (ret.isNull())
+    {
       ret = getSymbolInternal(k, ftype, opName.str());
     }
     // TODO: if parametric, instantiate the parameters?
-
     // if indexed, apply to index
     if (!indices.empty())
     {

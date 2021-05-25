@@ -81,8 +81,8 @@ class LfscNodeConverter : public NodeConverter
   void getCharVectorInternal(Node c, std::vector<Node>& chars);
   /** is indexed operator kind */
   static bool isIndexedOperatorKind(Kind k);
-  /** get indices */
-  static std::vector<Node> getOperatorIndices(Node n);
+  /** get indices, n is the operator */
+  static std::vector<Node> getOperatorIndices(Kind k, Node n);
   /** terms with different syntax than smt2 */
   std::map<std::tuple<Kind, TypeNode, std::string>, Node> d_symbolsMap;
   /** the set of all internally generated symbols */
