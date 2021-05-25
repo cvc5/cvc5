@@ -95,24 +95,24 @@ private:
    */
   Allocator d_allocator;
 
-protected:
+ protected:
   /**
    * Private copy constructor used only by save().  d_list and
    * d_sizeAlloc are not copied: only the base class information and
    * d_size are needed in restore.
    */
- CDList(const CDList& l)
-     : ContextObj(l),
-       d_list(nullptr),
-       d_size(l.d_size),
-       d_callDestructor(false),
-       d_sizeAlloc(0),
-       d_cleanUp(l.d_cleanUp),
-       d_allocator(l.d_allocator)
- {
-   Debug("cdlist") << "copy ctor: " << this << " from " << &l << " size "
-                   << d_size << std::endl;
- }
+  CDList(const CDList& l)
+      : ContextObj(l),
+        d_list(nullptr),
+        d_size(l.d_size),
+        d_callDestructor(false),
+        d_sizeAlloc(0),
+        d_cleanUp(l.d_cleanUp),
+        d_allocator(l.d_allocator)
+  {
+    Debug("cdlist") << "copy ctor: " << this << " from " << &l << " size "
+                    << d_size << std::endl;
+  }
   CDList& operator=(const CDList& l) = delete;
 
  private:
