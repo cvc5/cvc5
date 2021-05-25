@@ -19,7 +19,6 @@
 #include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
-#include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/strings/arith_entail.h"
@@ -97,7 +96,7 @@ Node StringsPreprocess::reduce(Node t,
     // Length of the result is at most m
     Node b14 = nm->mkNode(LEQ, nm->mkNode(STRING_LENGTH, skt), m);
 
-    Node b1 = nm->mkNode(AND, b11, b12, b13, b14);
+    Node b1 = nm->mkNode(AND, {b11, b12, b13, b14});
     Node b2 = skt.eqNode(emp);
     Node lemma = nm->mkNode(ITE, cond, b1, b2);
 
@@ -190,12 +189,6 @@ Node StringsPreprocess::reduce(Node t,
         nm->integerType(), t, SkolemCache::SK_PURIFY, "iok");
 
     Node negone = nm->mkConst(Rational(-1));
-    Node krange = nm->mkNode(GEQ, skk, negone);
-    // assert:   indexof( x, y, n ) >= -1
-    asserts.push_back(krange);
-    krange = nm->mkNode(GEQ, nm->mkNode(STRING_LENGTH, x), skk);
-    // assert:   len( x ) >= indexof( x, y, z )
-    asserts.push_back(krange);
 
     // substr( x, n, len( x ) - n )
     Node st = nm->mkNode(STRING_SUBSTR,
@@ -659,7 +652,7 @@ Node StringsPreprocess::reduce(Node t,
         nm->mkNode(ITE,
                    matchesEmpty,
                    res1,
-                   nm->mkNode(AND, splitX, firstMatch, k2Match, res2)),
+                   nm->mkNode(AND, {splitX, firstMatch, k2Match, res2})),
         k.eqNode(x)));
     retNode = k;
   }

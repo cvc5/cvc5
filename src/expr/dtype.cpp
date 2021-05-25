@@ -100,7 +100,8 @@ const DType& DType::datatypeOf(Node item)
   {
     case CONSTRUCTOR_TYPE: return t[t.getNumChildren() - 1].getDType();
     case SELECTOR_TYPE:
-    case TESTER_TYPE: return t[0].getDType();
+    case TESTER_TYPE:
+    case UPDATER_TYPE: return t[0].getDType();
     default:
       Unhandled() << "arg must be a datatype constructor, selector, or tester";
   }
@@ -109,7 +110,7 @@ const DType& DType::datatypeOf(Node item)
 size_t DType::indexOf(Node item)
 {
   Assert(item.getType().isConstructor() || item.getType().isTester()
-         || item.getType().isSelector());
+         || item.getType().isSelector() || item.getType().isUpdater());
   return indexOfInternal(item);
 }
 
@@ -125,7 +126,7 @@ size_t DType::indexOfInternal(Node item)
 
 size_t DType::cindexOf(Node item)
 {
-  Assert(item.getType().isSelector());
+  Assert(item.getType().isSelector() || item.getType().isUpdater());
   return cindexOfInternal(item);
 }
 size_t DType::cindexOfInternal(Node item)
@@ -192,7 +193,7 @@ bool DType::resolve(const std::map<std::string, TypeNode>& resolutions,
   {
     // all datatype constructors should be sygus and have sygus operators whose
     // free variables are subsets of sygus bound var list.
-    std::unordered_set<Node, NodeHashFunction> svs;
+    std::unordered_set<Node> svs;
     for (const Node& sv : d_sygusBvl)
     {
       svs.insert(sv);
@@ -202,7 +203,7 @@ bool DType::resolve(const std::map<std::string, TypeNode>& resolutions,
       Node sop = d_constructors[i]->getSygusOp();
       Assert(!sop.isNull())
           << "Sygus datatype contains a non-sygus constructor";
-      std::unordered_set<Node, NodeHashFunction> fvs;
+      std::unordered_set<Node> fvs;
       expr::getFreeVariables(sop, fvs);
       for (const Node& v : fvs)
       {
@@ -625,10 +626,9 @@ Node DType::mkGroundTermInternal(TypeNode t, bool isValue) const
   return groundTerm;
 }
 
-void DType::getAlienSubfieldTypes(
-    std::unordered_set<TypeNode, TypeNodeHashFunction>& types,
-    std::map<TypeNode, bool>& processed,
-    bool isAlienPos) const
+void DType::getAlienSubfieldTypes(std::unordered_set<TypeNode>& types,
+                                  std::map<TypeNode, bool>& processed,
+                                  bool isAlienPos) const
 {
   std::map<TypeNode, bool>::iterator it = processed.find(d_self);
   if (it != processed.end())
@@ -708,7 +708,7 @@ bool DType::hasNestedRecursion() const
   Trace("datatypes-init") << "Compute simply recursive for " << getName()
                           << std::endl;
   // get the alien subfield types of this datatype
-  std::unordered_set<TypeNode, TypeNodeHashFunction> types;
+  std::unordered_set<TypeNode> types;
   std::map<TypeNode, bool> processed;
   getAlienSubfieldTypes(types, processed, false);
   if (Trace.isOn("datatypes-init"))
@@ -865,10 +865,12 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   std::stringstream ss;
   ss << "sel_" << index;
   SkolemManager* sm = nm->getSkolemManager();
-  s = sm->mkDummySkolem(ss.str(),
-                        nm->mkSelectorType(dtt, t),
-                        "is a shared selector",
-                        NodeManager::SKOLEM_NO_NOTIFY);
+  TypeNode stype = nm->mkSelectorType(dtt, t);
+  Node nindex = nm->mkConst(Rational(index));
+  s = sm->mkSkolemFunction(SkolemFunId::SHARED_SELECTOR,
+                           stype,
+                           nindex,
+                           NodeManager::SKOLEM_NO_NOTIFY);
   d_sharedSel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;

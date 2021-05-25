@@ -48,6 +48,8 @@ class DatatypesRewriter : public TheoryRewriter
    * on all top-level codatatype subterms of n.
    */
   static Node normalizeConstant(Node n);
+  /** expand defintions */
+  TrustNode expandDefinition(Node n) override;
 
  private:
   /** rewrite constructor term in */
@@ -56,6 +58,8 @@ class DatatypesRewriter : public TheoryRewriter
   static RewriteResponse rewriteSelector(TNode in);
   /** rewrite tester term in */
   static RewriteResponse rewriteTester(TNode in);
+  /** rewrite updater term in */
+  static RewriteResponse rewriteUpdater(TNode in);
 
   /** collect references
    *

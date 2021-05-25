@@ -15,7 +15,7 @@
 #include <sstream>
 #include <string>
 
-#include "cvc4autoconfig.h"
+#include "base/cvc5config.h"
 #include "util/integer.h"
 
 #ifndef CVC5_CLN_IMP

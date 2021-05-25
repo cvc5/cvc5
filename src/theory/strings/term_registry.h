@@ -20,8 +20,8 @@
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
-#include "expr/proof_node_manager.h"
-#include "theory/eager_proof_generator.h"
+#include "proof/eager_proof_generator.h"
+#include "proof/proof_node_manager.h"
 #include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
@@ -46,9 +46,9 @@ class InferenceManager;
  */
 class TermRegistry
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashSet<TypeNode, TypeNodeHashFunction> TypeNodeSet;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
   TermRegistry(SolverState& s,
@@ -147,7 +147,7 @@ class TermRegistry
    * Get the "input variables", corresponding to the set of leaf nodes of
    * string-like type that have been preregistered as terms to this object.
    */
-  const context::CDHashSet<Node, NodeHashFunction>& getInputVars() const;
+  const context::CDHashSet<Node>& getInputVars() const;
   /** Returns true if any str.code terms have been preregistered */
   bool hasStringCode() const;
   //---------------------------- end queries

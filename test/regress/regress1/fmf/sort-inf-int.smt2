@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find --sort-inference --no-check-models
+; COMMAND-LINE: --finite-model-find --sort-inference
 ; EXPECT: sat
 (set-logic UFLIRA)
 (set-info :status sat)

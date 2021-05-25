@@ -161,5 +161,41 @@ TEST_F(TestContextBlackCDList, pop_below_level_created)
   d_context->popto(0);
   list.push_back(42);
 }
+
+TEST_F(TestContextBlackCDList, emplace_back)
+{
+  int32_t n = 10;
+  int32_t start = 42;
+  CDList<std::unique_ptr<int32_t>> list(d_context.get());
+
+  for (int32_t i = 0; i < n; i++)
+  {
+    list.emplace_back(new int32_t(start + i));
+  }
+  for (int32_t i = 0; i < n; i++)
+  {
+    ASSERT_EQ(*list[i], start + i);
+  }
+  ASSERT_EQ(list.size(), n);
+
+  d_context->push();
+  for (int32_t i = 0; i < n; i++)
+  {
+    list.emplace_back(new int32_t(start + n + i));
+  }
+  for (int32_t i = 0; i < n * 2; i++)
+  {
+    ASSERT_EQ(*list[i], start + i);
+  }
+  ASSERT_EQ(list.size(), n * 2);
+  d_context->pop();
+
+  for (int32_t i = 0; i < n; i++)
+  {
+    ASSERT_EQ(*list[i], start + i);
+  }
+  ASSERT_EQ(list.size(), n);
+}
+
 }  // namespace test
 }  // namespace cvc5

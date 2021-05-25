@@ -65,8 +65,8 @@ class InstRewriterCegqi : public InstantiationRewriter
  */
 class InstStrategyCegqi : public QuantifiersModule
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashMap<Node, int> NodeIntMap;
 
  public:
   InstStrategyCegqi(QuantifiersState& qs,
@@ -176,6 +176,8 @@ class InstStrategyCegqi : public QuantifiersModule
    * form inf > (1/c)^1, inf > (1/c)^2, ....
    */
   bool d_check_vts_lemma_lc;
+  /** a multiplier used to make d_small_const even smaller over time */
+  const Node d_small_const_multiplier;
   /** a small constant, used as a coefficient above */
   Node d_small_const;
   //---------------------- end for vts delta minimization

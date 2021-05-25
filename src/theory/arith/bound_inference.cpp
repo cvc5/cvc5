@@ -43,7 +43,7 @@ Bounds BoundInference::get(const Node& lhs) const
   auto it = d_bounds.find(lhs);
   if (it == d_bounds.end())
   {
-    return Bounds{};
+    return Bounds();
   }
   return it->second;
 }

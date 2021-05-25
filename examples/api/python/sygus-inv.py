@@ -16,11 +16,12 @@
 # translation of sygus-inv.cpp .
 ##
 
-import pycvc4
-from pycvc4 import kinds
+import utils
+import pycvc5
+from pycvc5 import kinds
 
 if __name__ == "__main__":
-  slv = pycvc4.Solver()
+  slv = pycvc5.Solver()
 
   # required options
   slv.setOption("lang", "sygus2")
@@ -60,7 +61,7 @@ if __name__ == "__main__":
   if slv.checkSynth().isUnsat():
     # Output should be equivalent to:
     # (define-fun inv-f ((x Int)) Bool (not (>= x 11)))
-    slv.printSynthSolution()
-
+    terms = [inv_f]
+    utils.print_synth_solutions(terms, slv.getSynthSolutions(terms))
 
 

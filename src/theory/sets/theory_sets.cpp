@@ -37,7 +37,7 @@ TheorySets::TheorySets(context::Context* c,
       d_skCache(),
       d_state(c, u, valuation, d_skCache),
       d_im(*this, d_state, nullptr),
-      d_internal(new TheorySetsPrivate(*this, d_state, d_im, d_skCache)),
+      d_internal(new TheorySetsPrivate(*this, d_state, d_im, d_skCache, pnm)),
       d_notify(*d_internal.get(), d_im)
 {
   // use the official theory state and inference manager objects
@@ -129,12 +129,6 @@ Node TheorySets::getModelValue(TNode node) {
 void TheorySets::preRegisterTerm(TNode node)
 {
   d_internal->preRegisterTerm(node);
-}
-
-TrustNode TheorySets::expandDefinition(Node n)
-{
-  // we currently do not expand any set operators
-  return TrustNode::null();
 }
 
 TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)

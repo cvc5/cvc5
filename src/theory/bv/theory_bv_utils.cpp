@@ -140,7 +140,7 @@ static bool isCoreEqTerm(bool iseq, TNode term, TNodeBoolMap& cache)
   TNode t = term.getKind() == kind::NOT ? term[0] : term;
 
   std::vector<TNode> stack;
-  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
+  std::unordered_map<TNode, bool> visited;
   stack.push_back(t);
 
   while (!stack.empty())
@@ -398,7 +398,7 @@ Node mkConcat(TNode node, unsigned repeat)
 Node mkInc(TNode t)
 {
   return NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_PLUS, t, mkOne(getSize(t)));
+      kind::BITVECTOR_ADD, t, mkOne(getSize(t)));
 }
 
 Node mkDec(TNode t)

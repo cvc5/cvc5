@@ -28,23 +28,22 @@ namespace cvc5 {
 
 class DidYouMean {
  public:
-  typedef std::set<std::string> Words;
+  using Words = std::set<std::string>;
 
   DidYouMean() {}
   ~DidYouMean() {}
 
-  DidYouMean(Words words) : d_words(words) {}
+  void addWord(std::string word) { d_words.insert(std::move(word)); }
 
-  void addWord(std::string word) { d_words.insert(word); }
-
-  std::vector<std::string> getMatch(std::string input);
+  std::vector<std::string> getMatch(const std::string& input);
 
   /**
    * This is provided to make it easier to ensure consistency of
    * output. Returned string is empty if there are no matches.
    */
-  std::string getMatchAsString(std::string input, int prefixNewLines = 2,
-                               int suffixNewLines = 0);
+  std::string getMatchAsString(const std::string& input,
+                               uint64_t prefixNewLines = 2,
+                               uint64_t suffixNewLines = 0);
 
  private:
   int editDistance(const std::string& a, const std::string& b);

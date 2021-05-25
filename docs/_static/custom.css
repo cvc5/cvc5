@@ -1,0 +1,65 @@
+.wy-nav-content {
+  background: #fcfffa;
+}
+
+code {
+    border: 0px !important;
+}
+
+code.xref {
+    color: unset !important;
+}
+
+.rst-content code {
+    padding: 1px !important;
+    background: unset !important;
+}
+
+a {
+  color: #0099e6;
+}
+
+a:visited {
+  color: #0099e6;
+}
+
+a:hover, a:focus {
+  color: #739900;
+}
+
+.wy-side-nav-search {
+  background-color: #0099e6;
+}
+
+.wy-side-nav-search > a {
+  color: #fcfffa;
+}
+
+.wy-side-nav-search input[type="text"] {
+  border-color: #0077b3;
+}
+
+.wy-body-for-nav {
+  background: #343131;
+}
+
+.wy-menu-vertical a {
+  color: #4dc3ff;
+}
+
+.wy-menu-vertical a:visited {
+  color: #4dc3ff;
+}
+
+.wy-menu-vertical a:hover, a:focus {
+  color: #ace600;
+}
+
+.wy-nav-top {
+  color: #fcfffa;
+  background-color: #0099e6;
+}
+
+.wy-nav-top a {
+  color: #fcfffa;
+}

@@ -22,19 +22,20 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "decision/decision_engine.h"
+#include "decision/decision_engine_old.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
-#include "proof/proof_manager.h"
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
 #include "prop/prop_proof_manager.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"
+#include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/output_channel.h"
 #include "theory/theory_engine.h"
@@ -65,14 +66,13 @@ public:
 };
 
 PropEngine::PropEngine(TheoryEngine* te,
-                       context::Context* satContext,
-                       context::UserContext* userContext,
-                       ResourceManager* rm,
+                       Env& env,
                        OutputManager& outMgr,
                        ProofNodeManager* pnm)
     : d_inCheckSat(false),
       d_theoryEngine(te),
-      d_context(satContext),
+      d_env(env),
+      d_skdm(new SkolemDefManager(d_env.getContext(), d_env.getUserContext())),
       d_theoryProxy(nullptr),
       d_satSolver(nullptr),
       d_pnm(pnm),
@@ -80,13 +80,16 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_pfCnfStream(nullptr),
       d_ppm(nullptr),
       d_interrupted(false),
-      d_resourceManager(rm),
-      d_outMgr(outMgr)
+      d_outMgr(outMgr),
+      d_assumptions(d_env.getUserContext())
 {
   Debug("prop") << "Constructing the PropEngine" << std::endl;
+  context::Context* satContext = d_env.getContext();
+  context::UserContext* userContext = d_env.getUserContext();
+  ResourceManager* rm = d_env.getResourceManager();
 
-  d_decisionEngine.reset(new DecisionEngine(satContext, userContext, rm));
-  d_decisionEngine->init();  // enable appropriate strategies
+  d_decisionEngine.reset(
+      new decision::DecisionEngine(satContext, userContext, d_skdm.get(), rm));
 
   d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
 
@@ -95,6 +98,7 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_theoryProxy = new TheoryProxy(this,
                                   d_theoryEngine,
                                   d_decisionEngine.get(),
+                                  d_skdm.get(),
                                   satContext,
                                   userContext,
                                   pnm);
@@ -108,11 +112,16 @@ PropEngine::PropEngine(TheoryEngine* te,
   // connect theory proxy
   d_theoryProxy->finishInit(d_cnfStream);
   // connect SAT solver
-  d_satSolver->initialize(d_context, d_theoryProxy, userContext, pnm);
+  d_satSolver->initialize(
+      d_env.getContext(),
+      d_theoryProxy,
+      d_env.getUserContext(),
+      options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS
+          ? pnm
+          : nullptr);
 
-  d_decisionEngine->setSatSolver(d_satSolver);
-  d_decisionEngine->setCnfStream(d_cnfStream);
-  if (pnm)
+  d_decisionEngine->finishInit(d_satSolver, d_cnfStream);
+  if (pnm && options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS)
   {
     d_pfCnfStream.reset(new ProofCnfStream(
         userContext,
@@ -121,10 +130,6 @@ PropEngine::PropEngine(TheoryEngine* te,
         pnm));
     d_ppm.reset(
         new PropPfManager(userContext, pnm, d_satSolver, d_pfCnfStream.get()));
-  }
-  else if (options::unsatCores())
-  {
-    ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
   }
 }
 
@@ -147,7 +152,6 @@ void PropEngine::finishInit()
 
 PropEngine::~PropEngine() {
   Debug("prop") << "Destructing the PropEngine" << std::endl;
-  d_decisionEngine->shutdown();
   d_decisionEngine.reset(nullptr);
   delete d_cnfStream;
   delete d_satSolver;
@@ -246,8 +250,11 @@ void PropEngine::assertTrustedLemmaInternal(theory::TrustNode trn,
   Node node = trn.getNode();
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
   bool negated = trn.getKind() == theory::TrustNodeKind::CONFLICT;
-  Assert(!isProofEnabled() || trn.getGenerator() != nullptr
-         || options::unsatCores() || options::unsatCoresNew());
+  Assert(
+      !isProofEnabled() || trn.getGenerator() != nullptr
+      || options::unsatCores()
+      || (options::unsatCores()
+          && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF));
   assertInternal(trn.getNode(), negated, removable, false, trn.getGenerator());
 }
 
@@ -255,10 +262,29 @@ void PropEngine::assertInternal(
     TNode node, bool negated, bool removable, bool input, ProofGenerator* pg)
 {
   // Assert as (possibly) removable
-  if (isProofEnabled())
+  if (options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS)
+  {
+    if (input)
+    {
+      d_cnfStream->ensureLiteral(node);
+      if (negated)
+      {
+        d_assumptions.push_back(node.notNode());
+      }
+      else
+      {
+        d_assumptions.push_back(node);
+      }
+    }
+    else
+    {
+      d_cnfStream->convertAndAssert(node, removable, negated, input);
+    }
+  }
+  else if (isProofEnabled())
   {
     d_pfCnfStream->convertAndAssert(node, negated, removable, pg);
-    // if input, register the assertion
+    // if input, register the assertion in the proof manager
     if (input)
     {
       d_ppm->registerAssertion(node);
@@ -269,6 +295,7 @@ void PropEngine::assertInternal(
     d_cnfStream->convertAndAssert(node, removable, negated, input);
   }
 }
+
 void PropEngine::assertLemmasInternal(
     theory::TrustNode trn,
     const std::vector<theory::TrustNode>& ppLemmas,
@@ -314,6 +341,20 @@ bool PropEngine::isDecision(Node lit) const {
   return d_satSolver->isDecision(d_cnfStream->getLiteral(lit).getSatVariable());
 }
 
+int32_t PropEngine::getDecisionLevel(Node lit) const
+{
+  Assert(isSatLiteral(lit));
+  return d_satSolver->getDecisionLevel(
+      d_cnfStream->getLiteral(lit).getSatVariable());
+}
+
+int32_t PropEngine::getIntroLevel(Node lit) const
+{
+  Assert(isSatLiteral(lit));
+  return d_satSolver->getIntroLevel(
+      d_cnfStream->getLiteral(lit).getSatVariable());
+}
+
 void PropEngine::printSatisfyingAssignment(){
   const CnfStream::NodeToLiteralMap& transCache =
     d_cnfStream->getTranslationCache();
@@ -343,6 +384,7 @@ Result PropEngine::checkSat() {
   d_inCheckSat = true;
 
   // TODO This currently ignores conflicts (a dangerous practice).
+  d_decisionEngine->presolve();
   d_theoryEngine->presolve();
 
   if(options::preprocessOnly()) {
@@ -353,16 +395,32 @@ Result PropEngine::checkSat() {
   d_interrupted = false;
 
   // Check the problem
-  SatValue result = d_satSolver->solve();
+  SatValue result;
+  if (d_assumptions.size() == 0)
+  {
+    result = d_satSolver->solve();
+  }
+  else
+  {
+    std::vector<SatLiteral> assumptions;
+    for (const Node& node : d_assumptions)
+    {
+      assumptions.push_back(d_cnfStream->getLiteral(node));
+    }
+    result = d_satSolver->solve(assumptions);
+  }
 
   if( result == SAT_VALUE_UNKNOWN ) {
-
+    ResourceManager* rm = d_env.getResourceManager();
     Result::UnknownExplanation why = Result::INTERRUPTED;
-    if (d_resourceManager->outOfTime())
+    if (rm->outOfTime())
+    {
       why = Result::TIMEOUT;
-    if (d_resourceManager->outOfResources())
+    }
+    if (rm->outOfResources())
+    {
       why = Result::RESOURCEOUT;
-
+    }
     return Result(Result::SAT_UNKNOWN, why);
   }
 
@@ -537,7 +595,7 @@ void PropEngine::interrupt()
 
 void PropEngine::spendResource(Resource r)
 {
-  d_resourceManager->spendResource(r);
+  d_env.getResourceManager()->spendResource(r);
 }
 
 bool PropEngine::properExplanation(TNode node, TNode expl) const
@@ -622,6 +680,28 @@ std::shared_ptr<ProofNode> PropEngine::getProof()
 }
 
 bool PropEngine::isProofEnabled() const { return d_pfCnfStream != nullptr; }
+
+void PropEngine::getUnsatCore(std::vector<Node>& core)
+{
+  Assert(options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS);
+  std::vector<SatLiteral> unsat_assumptions;
+  d_satSolver->getUnsatAssumptions(unsat_assumptions);
+  for (const SatLiteral& lit : unsat_assumptions)
+  {
+    core.push_back(d_cnfStream->getNode(lit));
+  }
+}
+
+std::shared_ptr<ProofNode> PropEngine::getRefutation()
+{
+  Assert(options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS);
+  std::vector<Node> core;
+  getUnsatCore(core);
+  CDProof cdp(d_pnm);
+  Node fnode = NodeManager::currentNM()->mkConst(false);
+  cdp.addStep(fnode, PfRule::SAT_REFUTATION, core, {});
+  return cdp.getProofFor(fnode);
+}
 
 }  // namespace prop
 }  // namespace cvc5

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-nl-ext --nl-cad
+; COMMAND-LINE: --nl-ext=none --nl-cad
 ; REQUIRES: poly
 ; EXPECT: sat
 (set-logic QF_NRA)

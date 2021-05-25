@@ -454,7 +454,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         case kind::XOR:
         case kind::BITVECTOR_XOR:
         case kind::BITVECTOR_XNOR:
-        case kind::BITVECTOR_PLUS:
+        case kind::BITVECTOR_ADD:
         case kind::BITVECTOR_SUB: checkParent = true; break;
 
         // Multiplication/division: must be non-integer and other operand must

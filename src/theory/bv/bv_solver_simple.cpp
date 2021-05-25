@@ -15,6 +15,7 @@
 
 #include "theory/bv/bv_solver_simple.h"
 
+#include "proof/conv_proof_generator.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
@@ -37,10 +38,10 @@ bool isBVAtom(TNode n)
 }
 
 /* Traverse Boolean nodes and collect BV atoms. */
-void collectBVAtoms(TNode n, std::unordered_set<Node, NodeHashFunction>& atoms)
+void collectBVAtoms(TNode n, std::unordered_set<Node>& atoms)
 {
   std::vector<TNode> visit;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
 
   visit.push_back(n);
 
@@ -69,9 +70,20 @@ BVSolverSimple::BVSolverSimple(TheoryState* s,
                                TheoryInferenceManager& inferMgr,
                                ProofNodeManager* pnm)
     : BVSolver(*s, inferMgr),
-      d_bitblaster(new BBProof(s)),
-      d_epg(pnm ? new EagerProofGenerator(pnm, s->getUserContext(), "")
-                : nullptr)
+      d_tcpg(pnm ? new TConvProofGenerator(
+                 pnm,
+                 nullptr,
+                 /* ONCE to visit each term only once, post-order.  FIXPOINT
+                  * could lead to infinite loops due to terms being rewritten
+                  * to terms that contain themselves */
+                 TConvPolicy::ONCE,
+                 /* STATIC to get the same ProofNode for a shared subterm. */
+                 TConvCachePolicy::STATIC,
+                 "BVSolverSimple::TConvProofGenerator",
+                 nullptr,
+                 false)
+                 : nullptr),
+      d_bitblaster(new BBProof(s, pnm, d_tcpg.get()))
 {
 }
 
@@ -86,13 +98,13 @@ void BVSolverSimple::addBBLemma(TNode fact)
   Node atom_bb = d_bitblaster->getStoredBBAtom(fact);
   Node lemma = nm->mkNode(kind::EQUAL, fact, atom_bb);
 
-  if (d_epg == nullptr)
+  if (d_tcpg == nullptr)
   {
     d_im.lemma(lemma, InferenceId::BV_SIMPLE_BITBLAST_LEMMA);
   }
   else
   {
-    TrustNode tlem = d_epg->mkTrustNode(lemma, PfRule::BV_BITBLAST, {}, {fact});
+    TrustNode tlem = TrustNode::mkTrustLemma(lemma, d_tcpg.get());
     d_im.trustedLemma(tlem, InferenceId::BV_SIMPLE_BITBLAST_LEMMA);
   }
 }
@@ -116,18 +128,17 @@ bool BVSolverSimple::preNotifyFact(
     NodeManager* nm = NodeManager::currentNM();
     Node lemma = nm->mkNode(kind::EQUAL, fact, n);
 
-    if (d_epg == nullptr)
+    if (d_tcpg == nullptr)
     {
       d_im.lemma(lemma, InferenceId::BV_SIMPLE_LEMMA);
     }
     else
     {
-      TrustNode tlem =
-          d_epg->mkTrustNode(lemma, PfRule::BV_EAGER_ATOM, {}, {fact});
+      TrustNode tlem = TrustNode::mkTrustLemma(lemma, d_tcpg.get());
       d_im.trustedLemma(tlem, InferenceId::BV_SIMPLE_LEMMA);
     }
 
-    std::unordered_set<Node, NodeHashFunction> bv_atoms;
+    std::unordered_set<Node> bv_atoms;
     collectBVAtoms(n, bv_atoms);
     for (const Node& nn : bv_atoms)
     {

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find -q
+; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
 (set-option :incremental false)
 (set-info :status sat)

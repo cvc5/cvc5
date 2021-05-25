@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-fun-rlv --sygus-inference -q
+; COMMAND-LINE: --fmf-fun-rlv --sygus-inference --no-check-models
 ; EXPECT: sat
 (set-logic QF_NRA)
 (declare-fun a () Real)

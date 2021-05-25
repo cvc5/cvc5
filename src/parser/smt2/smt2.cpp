@@ -21,7 +21,6 @@
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2_input.h"
-#include "util/bitvector.h"
 
 // ANTLR defines these, which is really bad!
 #undef true
@@ -32,10 +31,9 @@ namespace parser {
 
 Smt2::Smt2(api::Solver* solver,
            SymbolManager* sm,
-           Input* input,
            bool strictMode,
            bool parseOnly)
-    : Parser(solver, sm, input, strictMode, parseOnly),
+    : Parser(solver, sm, strictMode, parseOnly),
       d_logicSet(false),
       d_seenSetLogic(false)
 {
@@ -89,7 +87,7 @@ void Smt2::addBitvectorOperators() {
   addOperator(api::BITVECTOR_AND, "bvand");
   addOperator(api::BITVECTOR_OR, "bvor");
   addOperator(api::BITVECTOR_NEG, "bvneg");
-  addOperator(api::BITVECTOR_PLUS, "bvadd");
+  addOperator(api::BITVECTOR_ADD, "bvadd");
   addOperator(api::BITVECTOR_MULT, "bvmul");
   addOperator(api::BITVECTOR_UDIV, "bvudiv");
   addOperator(api::BITVECTOR_UREM, "bvurem");
@@ -136,6 +134,7 @@ void Smt2::addDatatypesOperators()
 
   if (!strictModeEnabled())
   {
+    Parser::addOperator(api::APPLY_UPDATER);
     addOperator(api::DT_SIZE, "dt.size");
   }
 }
@@ -1047,11 +1046,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   else if (p.d_kind == api::APPLY_SELECTOR && !p.d_expr.isNull())
   {
     // tuple selector case
-    if (!p.d_expr.isUInt64())
+    if (!p.d_expr.isUInt64Value())
     {
       parseError("index of tupSel is larger than size of uint64_t");
     }
-    uint64_t n = p.d_expr.getUInt64();
+    uint64_t n = p.d_expr.getUInt64Value();
     if (args.size() != 1)
     {
       parseError("tupSel should only be applied to one tuple argument");
@@ -1183,7 +1182,12 @@ void Smt2::notifyNamedExpression(api::Term& expr, std::string name)
 {
   checkUserSymbol(name);
   // remember the expression name in the symbol manager
-  getSymbolManager()->setExpressionName(expr, name, false);
+  if (getSymbolManager()->setExpressionName(expr, name, false)
+      == NamingResult::ERROR_IN_BINDER)
+  {
+    parseError(
+        "Cannot name a term in a binder (e.g., quantifiers, definitions)");
+  }
   // define the variable
   defineVar(name, expr);
   // set the last named term, which ensures that we catch when assertions are

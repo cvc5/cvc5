@@ -38,6 +38,9 @@ well-founded BITVECTOR_TYPE \
 
 ### non-parameterized operator kinds ------------------------------------------
 
+## conversion to bit-vector from vector of Booleans kind
+operator BITVECTOR_BB_TERM 1: "create bit-vector from vector of Booleans"
+
 ## concatentation kind
 operator BITVECTOR_CONCAT 2: "concatenation of two or more bit-vectors"
 
@@ -54,14 +57,13 @@ operator BITVECTOR_XNOR 2 "bitwise xnor of two bit-vectors"
 ## arithmetic kinds
 operator BITVECTOR_MULT 2: "multiplication of two or more bit-vectors"
 operator BITVECTOR_NEG 1 "unary negation of a bit-vector"
-operator BITVECTOR_PLUS 2: "addition of two or more bit-vectors"
+operator BITVECTOR_ADD 2: "addition of two or more bit-vectors"
 operator BITVECTOR_SUB 2 "subtraction of two bit-vectors"
 operator BITVECTOR_UDIV 2 "unsigned division of two bit-vectors, truncating towards 0 (defined to be the all-ones bit pattern, if divisor is 0)"
 operator BITVECTOR_UREM 2 "unsigned remainder from truncating division of two bit-vectors (defined to be equal to the dividend, if divisor is 0)"
 operator BITVECTOR_SDIV 2 "2's complement signed division"
 operator BITVECTOR_SMOD 2 "2's complement signed remainder (sign follows divisor)"
 operator BITVECTOR_SREM 2 "2's complement signed remainder (sign follows dividend)"
-# total division kinds
 
 ## shift kinds
 operator BITVECTOR_ASHR 2 "bit-vector arithmetic shift right (the two bit-vector parameters must have same width)"
@@ -158,6 +160,9 @@ parameterized INT_TO_BITVECTOR INT_TO_BITVECTOR_OP 1 "integer conversion to bit-
 
 typerule CONST_BITVECTOR ::cvc5::theory::bv::BitVectorConstantTypeRule
 
+## conversion to bit-vector from vector of Booleans kind
+typerule BITVECTOR_BB_TERM ::cvc5::theory::bv::BitVectorToBVTypeRule
+
 ## concatentation kind
 typerule BITVECTOR_CONCAT ::cvc5::theory::bv::BitVectorConcatTypeRule
 
@@ -174,7 +179,7 @@ typerule BITVECTOR_XOR ::cvc5::theory::bv::BitVectorFixedWidthTypeRule
 ## arithmetic kinds
 typerule BITVECTOR_MULT ::cvc5::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_NEG ::cvc5::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_PLUS ::cvc5::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_ADD ::cvc5::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_SUB ::cvc5::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_UDIV ::cvc5::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_UREM ::cvc5::theory::bv::BitVectorFixedWidthTypeRule

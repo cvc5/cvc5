@@ -31,6 +31,7 @@ namespace quantifiers {
 
 SygusTypeInfo::SygusTypeInfo()
     : d_hasIte(false),
+      d_hasBoolConnective(false),
       d_min_term_size(0),
       d_sym_cons_any_constant(-1),
       d_has_subterm_sym_cons(false)
@@ -150,11 +151,6 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     {
       d_kinds[builtinKind] = i;
       d_arg_kind[i] = builtinKind;
-      if (builtinKind == ITE)
-      {
-        // mark that this type has an ITE
-        d_hasIte = true;
-      }
     }
     // symbolic constructors
     if (sop.getAttribute(SygusAnyConstAttribute()))
@@ -179,6 +175,21 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
         << "Sygus datatype " << dt.getName()
         << " encodes terms that are not of type " << btn << std::endl;
     Trace("sygus-db") << "...done register Operator #" << i << std::endl;
+    Kind gk = g.getKind();
+    if (gk == ITE)
+    {
+      // mark that this type has an ITE
+      d_hasIte = true;
+      if (g.getType().isBoolean())
+      {
+        d_hasBoolConnective = true;
+      }
+    }
+    else if (gk == AND || gk == OR || gk == IMPLIES || gk == XOR
+             || (gk == EQUAL && g[0].getType().isBoolean()))
+    {
+      d_hasBoolConnective = true;
+    }
   }
   // compute minimum type depth information
   computeMinTypeDepthInternal(tn, 0);
@@ -375,6 +386,7 @@ int SygusTypeInfo::getOpConsNum(Node n) const
 
 bool SygusTypeInfo::hasKind(Kind k) const { return getKindConsNum(k) != -1; }
 bool SygusTypeInfo::hasIte() const { return d_hasIte; }
+bool SygusTypeInfo::hasBoolConnective() const { return d_hasBoolConnective; }
 bool SygusTypeInfo::hasConst(Node n) const { return getConstConsNum(n) != -1; }
 bool SygusTypeInfo::hasOp(Node n) const { return getOpConsNum(n) != -1; }
 
