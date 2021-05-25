@@ -188,7 +188,6 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   Assert(assertionsToPreprocess->getRealAssertionsEnd()
          == assertionsToPreprocess->size());
   Assert(!options::incrementalSolving());
-  Assert(options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF);
 
   context::Context fakeContext;
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
@@ -207,7 +206,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   Node zero = nm->mkConst(Rational(0)), one = nm->mkConst(Rational(1));
   Node trueNode = nm->mkConst(true);
 
-  unordered_map<TNode, Node, TNodeHashFunction> intVars;
+  unordered_map<TNode, Node> intVars;
   for (TNode v0 : d_boolVars)
   {
     if (propagator->isAssigned(v0))
@@ -550,7 +549,6 @@ PreprocessingPassResult MipLibTrick::applyInternal(
                   << "unexpected solution from arith's ppAssert()";
               Assert(nullMap.empty())
                   << "unexpected substitution from arith's ppAssert()";
-              d_preprocContext->addModelSubstitution(*ii, newVar.eqNode(one));
               newVars.push_back(newVar);
               varRef = newVar;
             }

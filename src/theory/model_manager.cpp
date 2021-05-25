@@ -18,23 +18,23 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "prop/prop_engine.h"
-#include "theory/quantifiers_engine.h"
+#include "smt/env.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_builder.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
 namespace cvc5 {
 namespace theory {
 
-ModelManager::ModelManager(TheoryEngine& te, EqEngineManager& eem)
+ModelManager::ModelManager(TheoryEngine& te, Env& env, EqEngineManager& eem)
     : d_te(te),
-      d_logicInfo(te.getLogicInfo()),
+      d_env(env),
       d_eem(eem),
       d_modelEqualityEngine(nullptr),
       d_modelEqualityEngineAlloc(nullptr),
-      d_model(new TheoryModel(te.getUserContext(),
-                              "DefaultModel",
-                              options::assignFunctionValues())),
+      d_model(new TheoryModel(
+          env, "DefaultModel", options::assignFunctionValues())),
       d_modelBuilder(nullptr),
       d_modelBuilt(false),
       d_modelBuiltSuccess(false)
@@ -46,7 +46,7 @@ ModelManager::~ModelManager() {}
 void ModelManager::finishInit(eq::EqualityEngineNotify* notify)
 {
   // construct the model
-  const LogicInfo& logicInfo = d_te.getLogicInfo();
+  const LogicInfo& logicInfo = d_env.getLogicInfo();
   // Initialize the model and model builder.
   if (logicInfo.isQuantified())
   {

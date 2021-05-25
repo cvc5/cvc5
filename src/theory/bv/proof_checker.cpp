@@ -43,7 +43,7 @@ void BVProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::BV_BITBLAST_NOR, this);
   pc->registerChecker(PfRule::BV_BITBLAST_COMP, this);
   pc->registerChecker(PfRule::BV_BITBLAST_MULT, this);
-  pc->registerChecker(PfRule::BV_BITBLAST_PLUS, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_ADD, this);
   pc->registerChecker(PfRule::BV_BITBLAST_SUB, this);
   pc->registerChecker(PfRule::BV_BITBLAST_NEG, this);
   pc->registerChecker(PfRule::BV_BITBLAST_UDIV, this);
@@ -89,7 +89,7 @@ Node BVProofRuleChecker::checkInternal(PfRule id,
            || id == PfRule::BV_BITBLAST_OR || id == PfRule::BV_BITBLAST_XOR
            || id == PfRule::BV_BITBLAST_XNOR || id == PfRule::BV_BITBLAST_NAND
            || id == PfRule::BV_BITBLAST_NOR || id == PfRule::BV_BITBLAST_COMP
-           || id == PfRule::BV_BITBLAST_MULT || id == PfRule::BV_BITBLAST_PLUS
+           || id == PfRule::BV_BITBLAST_MULT || id == PfRule::BV_BITBLAST_ADD
            || id == PfRule::BV_BITBLAST_SUB || id == PfRule::BV_BITBLAST_NEG
            || id == PfRule::BV_BITBLAST_UDIV || id == PfRule::BV_BITBLAST_UREM
            || id == PfRule::BV_BITBLAST_SDIV || id == PfRule::BV_BITBLAST_SREM

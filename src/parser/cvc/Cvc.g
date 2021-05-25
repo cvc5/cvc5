@@ -1636,7 +1636,11 @@ tupleStore[cvc5::api::Term& f]
       | DOT ( tupleStore[f2]
             | recordStore[f2] ) )
     | ASSIGN_TOK term[f2] )
-    { f = SOLVER->mkTerm(SOLVER->mkOp(api::TUPLE_UPDATE,k), f, f2); }
+    {
+      const api::Datatype& dt = f.getSort().getDatatype();
+      f = SOLVER->mkTerm(
+         api::APPLY_UPDATER, dt[0][k].getUpdaterTerm(), f, f2);
+    }
   ;
 
 /**
@@ -1665,7 +1669,11 @@ recordStore[cvc5::api::Term& f]
       | DOT ( tupleStore[f2]
             | recordStore[f2] ) )
     | ASSIGN_TOK term[f2] )
-    { f = SOLVER->mkTerm(SOLVER->mkOp(api::RECORD_UPDATE,id), f, f2); }
+    {
+      const api::Datatype& dt = f.getSort().getDatatype();
+      f = SOLVER->mkTerm(
+         api::APPLY_UPDATER, dt[0][id].getUpdaterTerm(), f, f2);
+    }
   ;
 
 /** Parses a unary minus term. */
@@ -1896,7 +1904,7 @@ bvTerm[cvc5::api::Term& f]
       for (unsigned i = 0; i < args.size(); ++ i) {
         ENSURE_BV_SIZE(k, args[i]);
       }
-      f = MK_TERM(cvc5::api::BITVECTOR_PLUS, args);
+      f = MK_TERM(cvc5::api::BITVECTOR_ADD, args);
     }
     /* BV subtraction */
   | BVSUB_TOK LPAREN k=numeral COMMA formula[f] COMMA formula[f2] RPAREN

@@ -50,12 +50,12 @@ class TestTheoryWhiteyQuantifiersBvInstantiator : public TestSmt
 
   Node mkPlus(TNode a, TNode b)
   {
-    return d_nodeManager->mkNode(kind::BITVECTOR_PLUS, a, b);
+    return d_nodeManager->mkNode(kind::BITVECTOR_ADD, a, b);
   }
 
   Node mkPlus(const std::vector<Node>& children)
   {
-    return d_nodeManager->mkNode(kind::BITVECTOR_PLUS, children);
+    return d_nodeManager->mkNode(kind::BITVECTOR_ADD, children);
   }
 };
 
@@ -113,7 +113,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvMult)
   Node zero = mkZero(32);
   Node one = mkOne(32);
   BvLinearAttribute is_linear;
-  std::unordered_map<Node, bool, NodeHashFunction> contains_x;
+  std::unordered_map<Node, bool> contains_x;
 
   contains_x[x] = true;
   contains_x[neg_x] = true;
@@ -211,7 +211,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   Node c = mkVar(32);
   Node d = mkVar(32);
   BvLinearAttribute is_linear;
-  std::unordered_map<Node, bool, NodeHashFunction> contains_x;
+  std::unordered_map<Node, bool> contains_x;
 
   contains_x[x] = true;
   contains_x[neg_x] = true;
@@ -230,7 +230,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   Node norm_xa = normalizePvPlus(x, {x, a}, contains_x);
   ASSERT_TRUE(contains_x[norm_xa]);
   ASSERT_TRUE(norm_xa.getAttribute(is_linear));
-  ASSERT_EQ(norm_xa.getKind(), kind::BITVECTOR_PLUS);
+  ASSERT_EQ(norm_xa.getKind(), kind::BITVECTOR_ADD);
   ASSERT_EQ(norm_xa.getNumChildren(), 2);
   ASSERT_EQ(norm_xa[0], x);
   ASSERT_EQ(norm_xa[1], a);
@@ -239,7 +239,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   Node norm_ax = normalizePvPlus(x, {a, x}, contains_x);
   ASSERT_TRUE(contains_x[norm_ax]);
   ASSERT_TRUE(norm_ax.getAttribute(is_linear));
-  ASSERT_EQ(norm_ax.getKind(), kind::BITVECTOR_PLUS);
+  ASSERT_EQ(norm_ax.getKind(), kind::BITVECTOR_ADD);
   ASSERT_EQ(norm_ax.getNumChildren(), 2);
   ASSERT_EQ(norm_ax[0], x);
   ASSERT_EQ(norm_ax[1], a);
@@ -248,7 +248,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   Node norm_neg_ax = normalizePvPlus(x, {a, neg_x}, contains_x);
   ASSERT_TRUE(contains_x[norm_neg_ax]);
   ASSERT_TRUE(norm_neg_ax.getAttribute(is_linear));
-  ASSERT_EQ(norm_neg_ax.getKind(), kind::BITVECTOR_PLUS);
+  ASSERT_EQ(norm_neg_ax.getKind(), kind::BITVECTOR_ADD);
   ASSERT_EQ(norm_neg_ax.getNumChildren(), 2);
   ASSERT_EQ(norm_neg_ax[0].getKind(), kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_neg_ax[0].getNumChildren(), 2);
@@ -272,7 +272,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   Node norm_abcxd = normalizePvPlus(x, {a, b, c, x, d}, contains_x);
   ASSERT_TRUE(contains_x[norm_abcxd]);
   ASSERT_TRUE(norm_abcxd.getAttribute(is_linear));
-  ASSERT_EQ(norm_abcxd.getKind(), kind::BITVECTOR_PLUS);
+  ASSERT_EQ(norm_abcxd.getKind(), kind::BITVECTOR_ADD);
   ASSERT_EQ(norm_abcxd.getNumChildren(), 2);
   ASSERT_EQ(norm_abcxd[0], x);
   ASSERT_EQ(norm_abcxd[1], Rewriter::rewrite(mkPlus({a, b, c, d})));
@@ -281,7 +281,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   Node norm_neg_abcxd = normalizePvPlus(x, {a, b, c, neg_x, d}, contains_x);
   ASSERT_TRUE(contains_x[norm_neg_abcxd]);
   ASSERT_TRUE(norm_neg_abcxd.getAttribute(is_linear));
-  ASSERT_EQ(norm_neg_abcxd.getKind(), kind::BITVECTOR_PLUS);
+  ASSERT_EQ(norm_neg_abcxd.getKind(), kind::BITVECTOR_ADD);
   ASSERT_EQ(norm_neg_abcxd.getNumChildren(), 2);
   ASSERT_EQ(norm_neg_abcxd[0].getKind(), kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_neg_abcxd[0].getNumChildren(), 2);
@@ -295,7 +295,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   Node norm_bxa = normalizePvPlus(x, {b, norm_ax}, contains_x);
   ASSERT_TRUE(contains_x[norm_bxa]);
   ASSERT_TRUE(norm_bxa.getAttribute(is_linear));
-  ASSERT_EQ(norm_bxa.getKind(), kind::BITVECTOR_PLUS);
+  ASSERT_EQ(norm_bxa.getKind(), kind::BITVECTOR_ADD);
   ASSERT_EQ(norm_bxa.getNumChildren(), 2);
   ASSERT_EQ(norm_bxa[0], x);
   ASSERT_EQ(norm_bxa[1], Rewriter::rewrite(mkPlus(b, a)));
@@ -306,7 +306,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   Node norm_neg_bxa = normalizePvPlus(x, {b, neg_norm_ax}, contains_x);
   ASSERT_TRUE(contains_x[norm_neg_bxa]);
   ASSERT_TRUE(norm_neg_bxa.getAttribute(is_linear));
-  ASSERT_EQ(norm_neg_bxa.getKind(), kind::BITVECTOR_PLUS);
+  ASSERT_EQ(norm_neg_bxa.getKind(), kind::BITVECTOR_ADD);
   ASSERT_EQ(norm_neg_bxa.getNumChildren(), 2);
   ASSERT_EQ(norm_neg_abcxd[0].getKind(), kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_neg_abcxd[0].getNumChildren(), 2);
@@ -334,7 +334,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
   Node one = mkOne(32);
   Node ntrue = mkTrue();
   BvLinearAttribute is_linear;
-  std::unordered_map<Node, bool, NodeHashFunction> contains_x;
+  std::unordered_map<Node, bool> contains_x;
 
   contains_x[x] = true;
   contains_x[neg_x] = true;

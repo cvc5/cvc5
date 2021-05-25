@@ -18,8 +18,8 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 #define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 
+#include "proof/trust_node.h"
 #include "theory/theory_rewriter.h"
-#include "theory/trust_node.h"
 
 namespace cvc5 {
 namespace theory {
@@ -247,8 +247,8 @@ class QuantifiersRewriter : public TheoryRewriter
    */
   static Node computePrenex(Node q,
                             Node body,
-                            std::unordered_set<Node, NodeHashFunction>& args,
-                            std::unordered_set<Node, NodeHashFunction>& nargs,
+                            std::unordered_set<Node>& args,
+                            std::unordered_set<Node>& nargs,
                             bool pol,
                             bool prenexAgg);
   /**

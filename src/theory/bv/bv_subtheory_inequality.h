@@ -51,11 +51,11 @@ class InequalitySolver : public SubtheorySolver
     Statistics();
   };
 
-  context::CDHashSet<Node, NodeHashFunction> d_assertionSet;
+  context::CDHashSet<Node> d_assertionSet;
   InequalityGraph d_inequalityGraph;
-  context::CDHashMap<Node, TNode, NodeHashFunction> d_explanations;
+  context::CDHashMap<Node, TNode> d_explanations;
   context::CDO<bool> d_isComplete;
-  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+  typedef std::unordered_set<Node> NodeSet;
   NodeSet d_ineqTerms;
   bool isInequalityOnly(TNode node);
   bool addInequality(TNode a, TNode b, bool strict, TNode fact);

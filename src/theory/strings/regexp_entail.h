@@ -92,7 +92,12 @@ class RegExpEntail
   static Node simpleRegexpConsume(std::vector<Node>& mchildren,
                                   std::vector<Node>& children,
                                   int dir = -1);
-  /** Is t a constant regular expression? */
+  /**
+   * Is t a constant regular expression? A constant regular expression
+   * is one with no non-constant (RE or string subterms) and does not contain
+   * any non-standard RE terms like re.range applied to non-character
+   * arguments.
+   */
   static bool isConstRegExp(TNode t);
   /**
    * Does the substring of s starting at index_start occur in constant regular

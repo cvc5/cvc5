@@ -33,7 +33,6 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
-#include "proof/proof_manager.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
 #include "smt/abduction_solver.h"
@@ -91,7 +90,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       d_routListener(new ResourceOutListener(*this)),
       d_snmListener(new SmtNodeManagerListener(*getDumpManager(), d_outMgr)),
       d_smtSolver(nullptr),
-      d_proofManager(nullptr),
       d_model(nullptr),
       d_checkModels(nullptr),
       d_pfManager(nullptr),
@@ -140,15 +138,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // make the quantifier elimination solver
   d_quantElimSolver.reset(new QuantElimSolver(*d_smtSolver));
 
-  // The ProofManager is constructed before any other proof objects such as
-  // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
-  // initialized in TheoryEngine and PropEngine respectively.
-  Assert(d_proofManager == nullptr);
-
-  // d_proofManager must be created before Options has been finished
-  // being parsed from the input file. Because of this, we cannot trust
-  // that d_env->getOption(options::unsatCores) is set correctly yet.
-  d_proofManager.reset(new ProofManager(getUserContext()));
 }
 
 bool SmtEngine::isFullyInited() const { return d_state->isFullyInited(); }
@@ -243,7 +232,7 @@ void SmtEngine::finishInit()
   {
     d_model.reset(new Model(tm));
     // make the check models utility
-    d_checkModels.reset(new CheckModels(*d_smtSolver.get()));
+    d_checkModels.reset(new CheckModels(*d_env.get()));
   }
 
   // global push/pop around everything, to ensure proper destruction
@@ -317,15 +306,6 @@ SmtEngine::~SmtEngine()
     //destroy all passes before destroying things that they refer to
     d_pp->cleanup();
 
-    // d_proofManager is always created when proofs are enabled at configure
-    // time.  Because of this, this code should not be wrapped in PROOF() which
-    // additionally checks flags such as
-    // d_env->getOption(options::produceProofs).
-    //
-    // Note: the proof manager must be destroyed before the theory engine.
-    // Because the destruction of the proofs depends on contexts owned be the
-    // theory solvers.
-    d_proofManager.reset(nullptr);
     d_pfManager.reset(nullptr);
     d_ucManager.reset(nullptr);
 
@@ -1129,15 +1109,13 @@ Node SmtEngine::simplify(const Node& ex)
   return d_pp->simplify(ex);
 }
 
-Node SmtEngine::expandDefinitions(const Node& ex, bool expandOnly)
+Node SmtEngine::expandDefinitions(const Node& ex)
 {
-  getResourceManager()->spendResource(
-      Resource::PreprocessStep);
-
+  getResourceManager()->spendResource(Resource::PreprocessStep);
   SmtScope smts(this);
   finishInit();
   d_state->doPendingPops();
-  return d_pp->expandDefinitions(ex, expandOnly);
+  return d_pp->expandDefinitions(ex);
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
@@ -1332,7 +1310,7 @@ std::vector<Node> SmtEngine::getExpandedAssertions()
   std::vector<Node> easserts = getAssertions();
   // must expand definitions
   std::vector<Node> eassertsProc;
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  std::unordered_map<Node, Node> cache;
   for (const Node& e : easserts)
   {
     Node eae = d_pp->expandDefinitions(e, cache);
@@ -1340,6 +1318,7 @@ std::vector<Node> SmtEngine::getExpandedAssertions()
   }
   return eassertsProc;
 }
+Env& SmtEngine::getEnv() { return *d_env.get(); }
 
 void SmtEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 {
@@ -1395,20 +1374,14 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   if (!d_env->getOption(options::unsatCores))
   {
     throw ModalException(
-        "Cannot get an unsat core when produce-unsat-cores[-new] or "
-        "produce-proofs option is off.");
+        "Cannot get an unsat core when produce-unsat-cores or produce-proofs "
+        "option is off.");
   }
   if (d_state->getMode() != SmtMode::UNSAT)
   {
     throw RecoverableModalException(
         "Cannot get an unsat core unless immediately preceded by "
         "UNSAT/ENTAILED response.");
-  }
-  // use old proof infrastructure
-  if (!d_pfManager)
-  {
-    d_proofManager->traceUnsatCore();  // just to trigger core creation
-    return UnsatCore(d_proofManager->extractUnsatCore());
   }
   // generate with new proofs
   PropEngine* pe = getPropEngine();
@@ -1455,8 +1428,9 @@ void SmtEngine::checkUnsatCore() {
 
   Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions"
            << std::endl;
+  theory::TrustSubstitutionMap& tls = d_env->getTopLevelSubstitutions();
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
-    Node assertionAfterExpansion = expandDefinitions(*i);
+    Node assertionAfterExpansion = tls.apply(*i, false);
     Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i
              << ", expanded to " << assertionAfterExpansion << "\n";
     coreChecker->assertFormula(assertionAfterExpansion);
@@ -1492,6 +1466,14 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
   Model* m = getAvailableModel("check model");
   Assert(m != nullptr);
+
+  // check the model with the theory engine for debugging
+  if (options::debugCheckModels())
+  {
+    TheoryEngine* te = getTheoryEngine();
+    Assert(te != nullptr);
+    te->checkTheoryAssertionsWithModel(hardFailure);
+  }
 
   // check the model with the check models utility
   Assert(d_checkModels != nullptr);
@@ -1645,12 +1627,6 @@ void SmtEngine::getInstantiationTermVectors(
     // otherwise, just get the list of all instantiations
     qe->getInstantiationTermVectors(insts);
   }
-}
-
-void SmtEngine::printSynthSolution( std::ostream& out ) {
-  SmtScope smts(this);
-  finishInit();
-  d_sygusSolver->printSynthSolution(out);
 }
 
 bool SmtEngine::getSynthSolutions(std::map<Node, Node>& solMap)

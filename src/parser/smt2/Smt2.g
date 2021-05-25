@@ -314,7 +314,10 @@ command [std::unique_ptr<cvc5::Command>* cmd]
       }
 
       t = PARSER_STATE->mkFlatFunctionType(sorts, t, flattenVars);
-      PARSER_STATE->pushScope();
+      if (sortedVarNames.size() > 0)
+      {
+        PARSER_STATE->pushScope();
+      }
       terms = PARSER_STATE->bindBoundVars(sortedVarNames);
     }
     term[expr, expr2]
@@ -325,7 +328,10 @@ command [std::unique_ptr<cvc5::Command>* cmd]
         expr = PARSER_STATE->mkHoApply(expr, flattenVars);
         terms.insert(terms.end(), flattenVars.begin(), flattenVars.end());
       }
-      PARSER_STATE->popScope();
+      if (sortedVarNames.size() > 0)
+      {
+        PARSER_STATE->popScope();
+      }
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
@@ -1007,14 +1013,8 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
-    { /* add variables to parser state before parsing term */
-      Debug("parser") << "define const: '" << name << "'" << std::endl;
-      PARSER_STATE->pushScope();
-      terms = PARSER_STATE->bindBoundVars(sortedVarNames);
-    }
     term[e, e2]
     {
-      PARSER_STATE->popScope();
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
@@ -1643,6 +1643,22 @@ identifier[cvc5::ParseOp& p]
         api::DatatypeConstructor dc = d.getConstructor(f.toString());
         p.d_expr = dc.getTesterTerm();
       }
+    | UPDATE_TOK term[f, f2]
+      {
+        if (!f.getSort().isSelector())
+        {
+          PARSER_STATE->parseError(
+              "Bad syntax for test (_ update X), X must be a selector.");
+        }
+        std::string sname = f.toString();
+        // get the datatype that f belongs to
+        api::Sort sf = f.getSort().getSelectorDomainSort();
+        api::Datatype d = sf.getDatatype();
+        // find the selector
+        api::DatatypeSelector ds = d.getSelector(f.toString());
+        // get the updater term
+        p.d_expr = ds.getUpdaterTerm();
+      }
     | TUPLE_SEL_TOK m=INTEGER_LITERAL
       {
         // we adopt a special syntax (_ tupSel n)
@@ -1710,7 +1726,7 @@ termAtomic[cvc5::api::Term& atomTerm]
     | CHAR_TOK HEX_LITERAL 
       {
         std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
-        atomTerm = SOLVER->mkChar(hexStr);
+        atomTerm = PARSER_STATE->mkCharConstant(hexStr);
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
@@ -2226,6 +2242,7 @@ DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'dec
 PAR_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'par';
 COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SETS) }?'comprehension';
 TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'is';
+UPDATE_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'update';
 MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'match';
 GET_MODEL_TOK : 'get-model';
 BLOCK_MODEL_TOK : 'block-model';

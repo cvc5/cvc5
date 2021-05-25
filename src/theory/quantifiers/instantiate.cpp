@@ -15,13 +15,12 @@
 
 #include "theory/quantifiers/instantiate.h"
 
-#include "expr/lazy_proof.h"
 #include "expr/node_algorithm.h"
-#include "expr/proof_node_manager.h"
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
-#include "proof/proof_manager.h"
+#include "proof/lazy_proof.h"
+#include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"

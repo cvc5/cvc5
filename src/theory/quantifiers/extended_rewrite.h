@@ -131,9 +131,9 @@ class ExtendedRewriter
    * be treated as immutable. This is for instance to prevent propagation
    * beneath illegal terms. As an example:
    *   (bvand A (bvor A B)) is equivalent to (bvand A (bvor 1...1 B)), but
-   *   (bvand A (bvplus A B)) is not equivalent to (bvand A (bvplus 1..1 B)),
+   *   (bvand A (bvadd A B)) is not equivalent to (bvand A (bvadd 1..1 B)),
    * hence, when using this function to do BCP for bit-vectors, we have that
-   * BITVECTOR_AND is a bcp_kind, but BITVECTOR_PLUS is not.
+   * BITVECTOR_AND is a bcp_kind, but BITVECTOR_ADD is not.
    *
    * If this function returns a non-null node ret, then n ---> ret.
    */

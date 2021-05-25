@@ -28,6 +28,7 @@
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
+#include "proof/trust_node.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
@@ -47,7 +48,6 @@
 #include "theory/arith/proof_checker.h"
 #include "theory/arith/soi_simplex.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
@@ -193,8 +193,8 @@ private:
    * A superset of all of the assertions that currently are not the literal for
    * their constraint do not match constraint literals. Not just the witnesses.
    */
-  context::CDInsertHashMap<Node, ConstraintP, NodeHashFunction> d_assertionsThatDoNotMatchTheirLiterals;
-
+  context::CDInsertHashMap<Node, ConstraintP>
+      d_assertionsThatDoNotMatchTheirLiterals;
 
   /** Returns true if x is of type Integer. */
   inline bool isInteger(ArithVar x) const {
@@ -267,8 +267,7 @@ private:
   /**
    * Contains all nodes that have been preregistered
    */
-  context::CDHashSet<Node, NodeHashFunction> d_preregisteredNodes;
-
+  context::CDHashSet<Node> d_preregisteredNodes;
 
   /**
    * Manages information about the assignment and upper and lower bounds on

@@ -96,7 +96,7 @@ protected:
   std::map<Node, Node > d_quant_cond;
   /** A set of quantified formulas that cannot be handled by model-based
    * quantifier instantiation */
-  std::unordered_set<Node, NodeHashFunction> d_unhandledQuant;
+  std::unordered_set<Node> d_unhandledQuant;
   std::map< TypeNode, Node > d_array_cond;
   std::map< Node, Node > d_array_term_cond;
   std::map< Node, std::vector< int > > d_star_insts;

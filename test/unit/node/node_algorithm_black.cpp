@@ -40,7 +40,7 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_symbols1)
   // The only symbol in ~x (x is a boolean varible) should be x
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
   Node n = d_nodeManager->mkNode(NOT, x);
-  std::unordered_set<Node, NodeHashFunction> syms;
+  std::unordered_set<Node> syms;
   getSymbols(n, syms);
   ASSERT_EQ(syms.size(), 1);
   ASSERT_NE(syms.find(x), syms.end());
@@ -69,7 +69,7 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_symbols2)
   Node res = d_nodeManager->mkNode(AND, left, right);
 
   // symbols
-  std::unordered_set<Node, NodeHashFunction> syms;
+  std::unordered_set<Node> syms;
   getSymbols(res, syms);
 
   // assertions
@@ -82,8 +82,8 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_symbols2)
 TEST_F(TestNodeBlackNodeAlgorithm, get_operators_map)
 {
   // map to store result
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > result =
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >();
+  std::map<TypeNode, std::unordered_set<Node> > result =
+      std::map<TypeNode, std::unordered_set<Node> >();
 
   // create test formula
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->integerType());
@@ -146,7 +146,7 @@ TEST_F(TestNodeBlackNodeAlgorithm, match)
   Node a = d_skolemManager->mkDummySkolem("a", integer);
 
   Node n1 = d_nodeManager->mkNode(MULT, two, x);
-  std::unordered_map<Node, Node, NodeHashFunction> subs;
+  std::unordered_map<Node, Node> subs;
 
   // check reflexivity
   ASSERT_TRUE(match(n1, n1, subs));

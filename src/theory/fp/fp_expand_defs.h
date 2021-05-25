@@ -20,7 +20,7 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 
 namespace cvc5 {
 namespace theory {
@@ -33,11 +33,10 @@ class FpExpandDefs
 {
   using PairTypeNodeHashFunction = PairHashFunction<TypeNode,
                                                     TypeNode,
-                                                    TypeNodeHashFunction,
-                                                    TypeNodeHashFunction>;
+                                                    std::hash<TypeNode>,
+                                                    std::hash<TypeNode>>;
   /** Uninterpreted functions for undefined cases of non-total operators. */
-  using ComparisonUFMap =
-      context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>;
+  using ComparisonUFMap = context::CDHashMap<TypeNode, Node>;
   /** Uninterpreted functions for lazy handling of conversions. */
   using ConversionUFMap = context::
       CDHashMap<std::pair<TypeNode, TypeNode>, Node, PairTypeNodeHashFunction>;

@@ -43,7 +43,7 @@ class TheoryArith;
  */
 class InferenceManager : public InferenceManagerBuffered
 {
-  using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   InferenceManager(TheoryArith& ta, ArithState& astate, ProofNodeManager* pnm);

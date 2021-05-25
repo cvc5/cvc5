@@ -33,13 +33,13 @@
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
-#include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
-#include "expr/proof_rule.h"
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"  // for incrementalSolving()
 #include "preprocessing/util/ite_utilities.h"
+#include "proof/proof_generator.h"
+#include "proof/proof_node_manager.h"
+#include "proof/proof_rule.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
@@ -1460,7 +1460,7 @@ TrustNode TheoryArithPrivate::dioCutting()
       Pf pfLt =
           d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt});
       Pf pfSum =
-          d_pnm->mkNode(PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
+          d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
                         {pfGt, pfLt},
                         {nm->mkConst<Rational>(-1), nm->mkConst<Rational>(1)});
       Pf pfBot = d_pnm->mkNode(
@@ -3975,7 +3975,7 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
 
   // Delta lasts at least the duration of the function call
   const Rational& delta = d_partialModel.getDelta();
-  std::unordered_set<TNode, TNodeHashFunction> shared = d_containing.currentlySharedTerms();
+  std::unordered_set<TNode> shared = d_containing.currentlySharedTerms();
 
   // TODO:
   // This is not very good for user push/pop....
@@ -4124,7 +4124,7 @@ void TheoryArithPrivate::presolve(){
   for(; i != i_end; ++i){
     TrustNode lem = *i;
     Debug("arith::oldprop") << " lemma lemma duck " <<lem << endl;
-    outputTrustedLemma(lem, InferenceId::UNKNOWN);
+    outputTrustedLemma(lem, InferenceId::ARITH_UNATE);
   }
 }
 
@@ -4446,7 +4446,7 @@ bool TheoryArithPrivate::tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, b
 
 Node flattenImplication(Node imp){
   NodeBuilder nb(kind::OR);
-  std::unordered_set<Node, NodeHashFunction> included;
+  std::unordered_set<Node> included;
   Node left = imp[0];
   Node right = imp[1];
 
@@ -4547,9 +4547,8 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
             [nm](const Rational& r) { return nm->mkConst<Rational>(r); });
 
         // Prove bottom.
-        auto sumPf = d_pnm->mkNode(PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
-                                   conflictPfs,
-                                   farkasCoefficients);
+        auto sumPf = d_pnm->mkNode(
+            PfRule::MACRO_ARITH_SCALE_SUM_UB, conflictPfs, farkasCoefficients);
         auto botPf = d_pnm->mkNode(
             PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
 
@@ -4569,11 +4568,11 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
 
         // Output it
         TrustNode trustedClause = d_pfGen->mkTrustNode(clause, clausePf);
-        outputTrustedLemma(trustedClause, InferenceId::UNKNOWN);
+        outputTrustedLemma(trustedClause, InferenceId::ARITH_ROW_IMPL);
       }
       else
       {
-        outputLemma(clause, InferenceId::UNKNOWN);
+        outputLemma(clause, InferenceId::ARITH_ROW_IMPL);
       }
     }else{
       Assert(!implied->negationHasProof());

@@ -28,6 +28,17 @@
 
 namespace cvc5 {
 
+/** Represents the result of a call to `setExpressionName()`. */
+enum class NamingResult
+{
+  /** The expression name was set successfully. */
+  SUCCESS,
+  /** The expression already has a name. */
+  ERROR_ALREADY_NAMED,
+  /** The expression is in a binder. */
+  ERROR_IN_BINDER
+};
+
 /**
  * Symbol manager, which manages:
  * (1) The symbol table used by the parser,
@@ -54,9 +65,9 @@ class CVC5_EXPORT SymbolManager
    * @return true if the name was set. This method may return false if t
    * already has a name.
    */
-  bool setExpressionName(api::Term t,
-                         const std::string& name,
-                         bool isAssertion = false);
+  NamingResult setExpressionName(api::Term t,
+                                 const std::string& name,
+                                 bool isAssertion = false);
   /** Get name for term t
    *
    * @param t The term
@@ -102,6 +113,11 @@ class CVC5_EXPORT SymbolManager
    */
   std::vector<api::Term> getModelDeclareTerms() const;
   /**
+   * @return The functions we have declared that should be printed in a response
+   * to check-synth.
+   */
+  std::vector<api::Term> getFunctionsToSynthesize() const;
+  /**
    * Add declared sort to the list of model declarations.
    */
   void addModelDeclarationSort(api::Sort s);
@@ -109,6 +125,11 @@ class CVC5_EXPORT SymbolManager
    * Add declared term to the list of model declarations.
    */
   void addModelDeclarationTerm(api::Term t);
+  /**
+   * Add a function to synthesize. This ensures the solution for f is printed
+   * in a successful response to check-synth.
+   */
+  void addFunctionToSynthesize(api::Term f);
 
   //---------------------------- end named expressions
   /**
