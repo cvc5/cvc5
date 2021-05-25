@@ -15,7 +15,7 @@
 
 #include "unsat_core_manager.h"
 
-#include "expr/proof_node_algorithm.h"
+#include "proof/proof_node_algorithm.h"
 #include "smt/assertions.h"
 
 namespace cvc5 {

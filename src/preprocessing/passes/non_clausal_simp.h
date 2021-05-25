@@ -21,7 +21,7 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 
 namespace cvc5 {
 

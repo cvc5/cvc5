@@ -153,10 +153,12 @@ class RelevantDomain : public QuantifiersUtil
   };
   /** Cache of the effect of literals on the relevant domain */
   std::map< bool, std::map< bool, std::map< Node, RDomainLit > > > d_rel_dom_lit;
+  /** Compute the relevant domain for quantified formula q. */
+  void computeRelevantDomain(Node q);
   /** Compute the relevant domain for a subformula n of q,
    * whose polarity is given by hasPol/pol.
    */
-  void computeRelevantDomain(Node q, Node n, bool hasPol, bool pol);
+  void computeRelevantDomainNode(Node q, Node n, bool hasPol, bool pol);
   /** Compute the relevant domain when the term n
    * is in a position to be included in relevant domain rf.
    */

@@ -651,15 +651,6 @@ void QuantifiersEngine::getInstantiations(Node q, std::vector<Node>& insts)
   d_qim.getInstantiate()->getInstantiations(q, insts);
 }
 
-void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
-  if (d_qmodules->d_synth_e)
-  {
-    d_qmodules->d_synth_e->printSynthSolution(out);
-  }else{
-    out << "Internal error : module for synth solution not found." << std::endl;
-  }
-}
-
 void QuantifiersEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 {
   d_qim.getInstantiate()->getInstantiatedQuantifiedFormulas(qs);

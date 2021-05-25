@@ -19,8 +19,8 @@
 #define CVC5__THEORY__BV__PROOF_CHECKER_H
 
 #include "expr/node.h"
-#include "expr/proof_checker.h"
-#include "expr/proof_node.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_node.h"
 #include "theory/bv/bitblast/simple_bitblaster.h"
 
 namespace cvc5 {
