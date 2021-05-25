@@ -1,3 +1,18 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Mathias Preiner, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of the guards of the Java API functions.
+ */
+
 package cvc5;
 
 import static cvc5.Kind.*;
@@ -19,11 +34,6 @@ class SortTest
   @BeforeEach void setUp()
   {
     d_solver = new Solver();
-  }
-
-  @AfterEach void tearDown()
-  {
-    // d_solver.deletePointer();
   }
 
   Sort create_datatype_sort() throws CVC5ApiException
