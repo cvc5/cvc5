@@ -29,6 +29,7 @@ set(EXAMPLES_API_PYTHON
   sygus-fun
   sygus-grammar
   sygus-inv
+  id
 )
 
 find_package(PythonInterp ${CVC5_BINDINGS_PYTHON_VERSION} REQUIRED)
@@ -52,5 +53,5 @@ foreach(example ${EXAMPLES_API_PYTHON})
   )
   set_tests_properties(${example_test} PROPERTIES
     LABELS "example"
-    ENVIRONMENT PYTHONPATH=${PYTHON_MODULE_PATH})
+    ENVIRONMENT PYTHONPATH=${PYTHON_MODULE_PATH}:${CMAKE_SOURCE_DIR}/api/python)
 endforeach()

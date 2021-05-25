@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find -q
+; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (declare-sort b__ 0)

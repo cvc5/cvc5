@@ -22,8 +22,10 @@
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
 #include "smt/dump.h"
+#include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/smt_engine.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace cvc5::theory;
@@ -33,16 +35,16 @@ namespace cvc5 {
 namespace smt {
 
 Preprocessor::Preprocessor(SmtEngine& smt,
-                           context::UserContext* u,
+                           Env& env,
                            AbstractValues& abs,
                            SmtEngineStatistics& stats)
-    : d_context(u),
-      d_smt(smt),
+    : d_smt(smt),
+      d_env(env),
       d_absValues(abs),
       d_propagator(true, true),
-      d_assertionsProcessed(u, false),
-      d_exDefs(smt, *smt.getResourceManager(), stats),
-      d_processor(smt, d_exDefs, *smt.getResourceManager(), stats),
+      d_assertionsProcessed(env.getUserContext(), false),
+      d_exDefs(env, stats),
+      d_processor(smt, *env.getResourceManager(), stats),
       d_pnm(nullptr)
 {
 }
@@ -59,7 +61,7 @@ Preprocessor::~Preprocessor()
 void Preprocessor::finishInit()
 {
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
-      &d_smt, &d_propagator, d_pnm));
+      &d_smt, d_env, &d_propagator));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());
@@ -108,16 +110,14 @@ void Preprocessor::clearLearnedLiterals()
 
 void Preprocessor::cleanup() { d_processor.cleanup(); }
 
-Node Preprocessor::expandDefinitions(const Node& n, bool expandOnly)
+Node Preprocessor::expandDefinitions(const Node& n)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
-  return d_exDefs.expandDefinitions(n, cache, expandOnly);
+  std::unordered_map<Node, Node> cache;
+  return expandDefinitions(n, cache);
 }
 
-Node Preprocessor::expandDefinitions(
-    const Node& node,
-    std::unordered_map<Node, Node, NodeHashFunction>& cache,
-    bool expandOnly)
+Node Preprocessor::expandDefinitions(const Node& node,
+                                     std::unordered_map<Node, Node>& cache)
 {
   Trace("smt") << "SMT expandDefinitions(" << node << ")" << endl;
   // Substitute out any abstract values in node.
@@ -127,8 +127,11 @@ Node Preprocessor::expandDefinitions(
     // Ensure node is type-checked at this point.
     n.getType(true);
   }
-  // expand only = true
-  return d_exDefs.expandDefinitions(n, cache, expandOnly);
+  // we apply substitutions here, before expanding definitions
+  n = d_env.getTopLevelSubstitutions().apply(n, false);
+  // now call expand definitions
+  n = d_exDefs.expandDefinitions(n, cache);
+  return n;
 }
 
 Node Preprocessor::simplify(const Node& node)
@@ -139,17 +142,9 @@ Node Preprocessor::simplify(const Node& node)
     d_smt.getOutputManager().getPrinter().toStreamCmdSimplify(
         d_smt.getOutputManager().getDumpOut(), node);
   }
-  Node nas = d_absValues.substituteAbstractValues(node);
-  if (options::typeChecking())
-  {
-    // ensure node is type-checked at this point
-    nas.getType(true);
-  }
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
-  Node n = d_exDefs.expandDefinitions(nas, cache);
-  TrustNode ts = d_ppContext->getTopLevelSubstitutions().apply(n);
-  Node ns = ts.isNull() ? n : ts.getNode();
-  return ns;
+  Node ret = expandDefinitions(node);
+  ret = theory::Rewriter::rewrite(ret);
+  return ret;
 }
 
 void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
@@ -157,7 +152,7 @@ void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
   Assert(pppg != nullptr);
   d_pnm = pppg->getManager();
   d_exDefs.setProofNodeManager(d_pnm);
-  d_propagator.setProof(d_pnm, d_context, pppg);
+  d_propagator.setProof(d_pnm, d_env.getUserContext(), pppg);
 }
 
 }  // namespace smt

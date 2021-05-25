@@ -193,8 +193,9 @@ class QuantConflictFind : public QuantifiersModule
 {
   friend class MatchGen;
   friend class QuantInfo;
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
-private:
+  typedef context::CDHashMap<Node, bool> NodeBoolMap;
+
+ private:
   context::CDO< bool > d_conflict;
   std::map< Kind, Node > d_zero;
   //for storing nodes created during t-constraint solving (prevents memory leaks)

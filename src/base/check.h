@@ -37,18 +37,7 @@
 #include <ostream>
 
 #include "base/exception.h"
-#include "cvc4_export.h"
-
-// Define CVC5_NO_RETURN macro replacement for [[noreturn]].
-#if defined(SWIG)
-#define CVC5_NO_RETURN
-// SWIG does not yet support [[noreturn]] so emit nothing instead.
-#else
-#define CVC5_NO_RETURN [[noreturn]]
-// Not checking for whether the compiler supports [[noreturn]] using
-// __has_cpp_attribute as GCC 4.8 is too widespread and does not support this.
-// We instead assume this is C++11 (or later) and [[noreturn]] is available.
-#endif  // defined(SWIG)
+#include "cvc5_export.h"
 
 // Define CVC5_PREDICT_FALSE(x) that helps the compiler predict that x will be
 // false (if there is compiler support).
@@ -91,11 +80,11 @@ namespace cvc5 {
 
 // Class that provides an ostream and whose destructor aborts! Direct usage of
 // this class is discouraged.
-class CVC4_EXPORT FatalStream
+class CVC5_EXPORT FatalStream
 {
  public:
   FatalStream(const char* function, const char* file, int line);
-  CVC5_NO_RETURN ~FatalStream();
+  [[noreturn]] ~FatalStream();
 
   std::ostream& stream();
 

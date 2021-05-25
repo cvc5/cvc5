@@ -205,7 +205,7 @@ size_t getBVSkolemSize(size_t capacity)
  * a sufficient bit-vector size.
  * Populate usVarsToBVVars so that it maps variables with uninterpreted sort to
  * the fresh skolem BV variables. variables */
-void collectUSortsToBV(const std::unordered_set<TNode, TNodeHashFunction>& vars,
+void collectUSortsToBV(const std::unordered_set<TNode>& vars,
                        const USortToBVSizeMap& usortCardinality,
                        SubstitutionMap& usVarsToBVVars)
 {
@@ -228,14 +228,13 @@ void collectUSortsToBV(const std::unordered_set<TNode, TNodeHashFunction>& vars,
 
 /* This function returns the list of terms with uninterpreted sort in the
  * formula represented by assertions. */
-std::unordered_set<TNode, TNodeHashFunction> getVarsWithUSorts(
-    AssertionPipeline* assertions)
+std::unordered_set<TNode> getVarsWithUSorts(AssertionPipeline* assertions)
 {
-  std::unordered_set<TNode, TNodeHashFunction> res;
+  std::unordered_set<TNode> res;
 
   for (const Node& assertion : assertions->ref())
   {
-    std::unordered_set<TNode, TNodeHashFunction> vars;
+    std::unordered_set<TNode> vars;
     expr::getVariables(assertion, vars);
 
     for (const TNode& var : vars)
@@ -261,8 +260,7 @@ void usortsToBitVectors(const LogicInfo& d_logic,
                         USortToBVSizeMap& usortCardinality,
                         SubstitutionMap& usVarsToBVVars)
 {
-  std::unordered_set<TNode, TNodeHashFunction> toProcess =
-      getVarsWithUSorts(assertions);
+  std::unordered_set<TNode> toProcess = getVarsWithUSorts(assertions);
 
   if (toProcess.size() > 0)
   {

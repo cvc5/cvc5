@@ -105,7 +105,7 @@ private:
   /** We index the requests in this vector, it's a list */
   context::CDList<Element> d_requests;
 
-  typedef context::CDHashMap<Node, element_index, NodeHashFunction> trigger_to_list_map;
+  typedef context::CDHashMap<Node, element_index> trigger_to_list_map;
 
   /** Map from triggers, to the list of elements they trigger */
   trigger_to_list_map d_triggerToRequestMap;

@@ -20,7 +20,7 @@
 #ifndef CVC5__API__CHECKS_H
 #define CVC5__API__CHECKS_H
 
-namespace cvc4 {
+namespace cvc5 {
 namespace api {
 
 /* -------------------------------------------------------------------------- */
@@ -653,5 +653,5 @@ namespace api {
     }                                                                          \
   } while (0)
 }  // namespace api
-}  // namespace cvc4
+}  // namespace cvc5
 #endif

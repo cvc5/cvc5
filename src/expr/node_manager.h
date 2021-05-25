@@ -34,6 +34,8 @@
 
 namespace cvc5 {
 
+using Record = std::vector<std::pair<std::string, TypeNode>>;
+
 namespace api {
 class Solver;
 }
@@ -338,20 +340,6 @@ class NodeManager
     expr::NodeValue* child[N];
   };/* struct NodeManager::NVStorage<N> */
 
-  /* A note on isAtomic() and isAtomicFormula() (in CVC3 parlance)..
-   *
-   * It has been decided for now to hold off on implementations of
-   * these functions, as they may only be needed in CNF conversion,
-   * where it's pointless to do a lazy isAtomic determination by
-   * searching through the DAG, and storing it, since the result will
-   * only be used once.  For more details see the 4/27/2010 cvc5
-   * developer's meeting notes at:
-   *
-   * http://cvc4.cs.stanford.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
-   */
-  // bool containsDecision(TNode); // is "atomic"
-  // bool properlyContainsDecision(TNode); // all children are atomic
-
   // undefined private copy constructor (disallow copy)
   NodeManager(const NodeManager&) = delete;
 
@@ -367,11 +355,9 @@ class NodeManager
    * within cvc5.  Such uses should employ SkolemManager::mkSkolem() instead.
    */
   Node mkVar(const std::string& name, const TypeNode& type);
-  Node* mkVarPtr(const std::string& name, const TypeNode& type);
 
   /** Create a variable with the given type. */
   Node mkVar(const TypeNode& type);
-  Node* mkVarPtr(const TypeNode& type);
 
   /**
    * Create a skolem constant with the given name, type, and comment. For
@@ -442,36 +428,33 @@ class NodeManager
   static Kind getKindForFunction(TNode fun);
 
   // general expression-builders
+  //
+  /** Create a node with no child. */
+  Node mkNode(Kind kind);
 
   /** Create a node with one child. */
   Node mkNode(Kind kind, TNode child1);
-  Node* mkNodePtr(Kind kind, TNode child1);
 
   /** Create a node with two children. */
   Node mkNode(Kind kind, TNode child1, TNode child2);
-  Node* mkNodePtr(Kind kind, TNode child1, TNode child2);
 
   /** Create a node with three children. */
   Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3);
-  Node* mkNodePtr(Kind kind, TNode child1, TNode child2, TNode child3);
-
-  /** Create a node with four children. */
-  Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3,
-              TNode child4);
-  Node* mkNodePtr(Kind kind, TNode child1, TNode child2, TNode child3,
-              TNode child4);
-
-  /** Create a node with five children. */
-  Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3,
-              TNode child4, TNode child5);
-  Node* mkNodePtr(Kind kind, TNode child1, TNode child2, TNode child3,
-              TNode child4, TNode child5);
 
   /** Create a node with an arbitrary number of children. */
   template <bool ref_count>
   Node mkNode(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
-  template <bool ref_count>
-  Node* mkNodePtr(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
+
+  /** Create a node using an initializer list.
+   *
+   * This function serves two purposes:
+   * - We can avoid creating a temporary vector in some cases, e.g., when we
+   *   want to create a node with a fixed, large number of children
+   * - It makes sure that calls to `mkNode` that braced-init-lists work as
+   *   expected, e.g., mkNode(REGEXP_EMPTY, {}) will call this overload instead
+   *   of creating a node with a null node as a child.
+   */
+  Node mkNode(Kind kind, std::initializer_list<TNode> children);
 
   /**
    * Create an AND node with arbitrary number of children. This returns the
@@ -497,43 +480,30 @@ class NodeManager
 
   /** Create a node (with no children) by operator. */
   Node mkNode(TNode opNode);
-  Node* mkNodePtr(TNode opNode);
 
   /** Create a node with one child by operator. */
   Node mkNode(TNode opNode, TNode child1);
-  Node* mkNodePtr(TNode opNode, TNode child1);
 
   /** Create a node with two children by operator. */
   Node mkNode(TNode opNode, TNode child1, TNode child2);
-  Node* mkNodePtr(TNode opNode, TNode child1, TNode child2);
 
   /** Create a node with three children by operator. */
   Node mkNode(TNode opNode, TNode child1, TNode child2, TNode child3);
-  Node* mkNodePtr(TNode opNode, TNode child1, TNode child2, TNode child3);
-
-  /** Create a node with four children by operator. */
-  Node mkNode(TNode opNode, TNode child1, TNode child2, TNode child3,
-              TNode child4);
-  Node* mkNodePtr(TNode opNode, TNode child1, TNode child2, TNode child3,
-              TNode child4);
-
-  /** Create a node with five children by operator. */
-  Node mkNode(TNode opNode, TNode child1, TNode child2, TNode child3,
-              TNode child4, TNode child5);
-  Node* mkNodePtr(TNode opNode, TNode child1, TNode child2, TNode child3,
-              TNode child4, TNode child5);
 
   /** Create a node by applying an operator to the children. */
   template <bool ref_count>
   Node mkNode(TNode opNode, const std::vector<NodeTemplate<ref_count> >& children);
-  template <bool ref_count>
-  Node* mkNodePtr(TNode opNode, const std::vector<NodeTemplate<ref_count> >& children);
+
+  /**
+   * Create a node by applying an operator to an arbitrary number of children.
+   *
+   * Analoguous to `mkNode(Kind, std::initializer_list<TNode>)`.
+   */
+  Node mkNode(TNode opNode, std::initializer_list<TNode> children);
 
   Node mkBoundVar(const std::string& name, const TypeNode& type);
-  Node* mkBoundVarPtr(const std::string& name, const TypeNode& type);
 
   Node mkBoundVar(const TypeNode& type);
-  Node* mkBoundVarPtr(const TypeNode& type);
 
   /** get the canonical bound variable list for function type tn */
   Node getBoundVarListForFunctionType( TypeNode tn );
@@ -860,15 +830,10 @@ class NodeManager
    *
    * @param domain the domain type
    * @param range the range type
-   * @param reqFlat If true, we require flat function types, e.g. the
-   * range type cannot be a function. User-generated function types and those
-   * used in solving must be flat, although some use cases (e.g. LFSC proof
-   * conversion) require non-flat function types.
    * @returns the functional type domain -> range
    */
   TypeNode mkFunctionType(const TypeNode& domain,
-                          const TypeNode& range,
-                          bool reqFlat = true);
+                          const TypeNode& range);
 
   /**
    * Make a function type with input types from
@@ -876,12 +841,10 @@ class NodeManager
    *
    * @param argTypes the domain is a tuple (argTypes[0], ..., argTypes[n])
    * @param range the range type
-   * @param reqFlat Same as above
    * @returns the functional type (argTypes[0], ..., argTypes[n]) -> range
    */
   TypeNode mkFunctionType(const std::vector<TypeNode>& argTypes,
-                          const TypeNode& range,
-                          bool reqFlat = true);
+                          const TypeNode& range);
 
   /**
    * Make a function type with input types from
@@ -891,10 +854,9 @@ class NodeManager
    *
    * @param sorts The argument and range sort of the function type, where the
    * range type is the last in this vector.
-   * @param reqFlat Same as above
+   * @return the function type
    */
-  TypeNode mkFunctionType(const std::vector<TypeNode>& sorts,
-                          bool reqFlat = true);
+  TypeNode mkFunctionType(const std::vector<TypeNode>& sorts);
 
   /**
    * Make a predicate type with input types from
@@ -902,8 +864,7 @@ class NodeManager
    * <code>BOOLEAN</code>. <code>sorts</code> must have at least one
    * element.
    */
-  TypeNode mkPredicateType(const std::vector<TypeNode>& sorts,
-                           bool reqFlat = true);
+  TypeNode mkPredicateType(const std::vector<TypeNode>& sorts);
 
   /**
    * Make a tuple type with types from
@@ -1010,10 +971,13 @@ class NodeManager
   TypeNode mkConstructorType(const std::vector<TypeNode>& args, TypeNode range);
 
   /** Make a type representing a selector with the given parameterization */
-  inline TypeNode mkSelectorType(TypeNode domain, TypeNode range);
+  TypeNode mkSelectorType(TypeNode domain, TypeNode range);
 
   /** Make a type representing a tester with given parameterization */
-  inline TypeNode mkTesterType(TypeNode domain);
+  TypeNode mkTesterType(TypeNode domain);
+
+  /** Make a type representing an updater with the given parameterization */
+  TypeNode mkDatatypeUpdateType(TypeNode domain, TypeNode range);
 
   /** Bits for use in mkSort() flags. */
   enum
@@ -1079,7 +1043,7 @@ class NodeManager
 
   /**
    * This function gives developers a hook into the NodeManager.
-   * This can be changed in node_manager.cpp without recompiling most of cvc4.
+   * This can be changed in node_manager.cpp without recompiling most of cvc5.
    *
    * debugHook is a debugging only function, and should not be present in
    * any published code!
@@ -1154,22 +1118,6 @@ inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
   return mkTypeNode(kind::SET_TYPE, elementType);
 }
 
-inline TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range) {
-  CheckArgument(domain.isDatatype(), domain,
-                "cannot create non-datatype selector type");
-  CheckArgument(range.isFirstClass(),
-                range,
-                "cannot have selector fields that are not first-class types. "
-                "Try option --uf-ho.");
-  return mkTypeNode(kind::SELECTOR_TYPE, domain, range);
-}
-
-inline TypeNode NodeManager::mkTesterType(TypeNode domain) {
-  CheckArgument(domain.isDatatype(), domain,
-                "cannot create non-datatype tester");
-  return mkTypeNode(kind::TESTER_TYPE, domain );
-}
-
 inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {
   NodeValuePool::const_iterator find = d_nodeValuePool.find(nv);
   if(find == d_nodeValuePool.end()) {
@@ -1227,16 +1175,16 @@ inline Kind NodeManager::operatorToKind(TNode n) {
   return kind::operatorToKind(n.d_nv);
 }
 
+inline Node NodeManager::mkNode(Kind kind)
+{
+  NodeBuilder nb(this, kind);
+  return nb.constructNode();
+}
+
 inline Node NodeManager::mkNode(Kind kind, TNode child1) {
   NodeBuilder nb(this, kind);
   nb << child1;
   return nb.constructNode();
-}
-
-inline Node* NodeManager::mkNodePtr(Kind kind, TNode child1) {
-  NodeBuilder nb(this, kind);
-  nb << child1;
-  return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2) {
@@ -1245,52 +1193,11 @@ inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2) {
   return nb.constructNode();
 }
 
-inline Node* NodeManager::mkNodePtr(Kind kind, TNode child1, TNode child2) {
-  NodeBuilder nb(this, kind);
-  nb << child1 << child2;
-  return nb.constructNodePtr();
-}
-
 inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
                                 TNode child3) {
   NodeBuilder nb(this, kind);
   nb << child1 << child2 << child3;
   return nb.constructNode();
-}
-
-inline Node* NodeManager::mkNodePtr(Kind kind, TNode child1, TNode child2,
-                                TNode child3) {
-  NodeBuilder nb(this, kind);
-  nb << child1 << child2 << child3;
-  return nb.constructNodePtr();
-}
-
-inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
-                                TNode child3, TNode child4) {
-  NodeBuilder nb(this, kind);
-  nb << child1 << child2 << child3 << child4;
-  return nb.constructNode();
-}
-
-inline Node* NodeManager::mkNodePtr(Kind kind, TNode child1, TNode child2,
-                                TNode child3, TNode child4) {
-  NodeBuilder nb(this, kind);
-  nb << child1 << child2 << child3 << child4;
-  return nb.constructNodePtr();
-}
-
-inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
-                                TNode child3, TNode child4, TNode child5) {
-  NodeBuilder nb(this, kind);
-  nb << child1 << child2 << child3 << child4 << child5;
-  return nb.constructNode();
-}
-
-inline Node* NodeManager::mkNodePtr(Kind kind, TNode child1, TNode child2,
-                                    TNode child3, TNode child4, TNode child5) {
-  NodeBuilder nb(this, kind);
-  nb << child1 << child2 << child3 << child4 << child5;
-  return nb.constructNodePtr();
 }
 
 // N-ary version
@@ -1331,15 +1238,6 @@ Node NodeManager::mkOr(const std::vector<NodeTemplate<ref_count> >& children)
   return mkNode(kind::OR, children);
 }
 
-template <bool ref_count>
-inline Node* NodeManager::mkNodePtr(Kind kind,
-                                const std::vector<NodeTemplate<ref_count> >&
-                                children) {
-  NodeBuilder nb(this, kind);
-  nb.append(children);
-  return nb.constructNodePtr();
-}
-
 // for operators
 inline Node NodeManager::mkNode(TNode opNode) {
   NodeBuilder nb(this, operatorToKind(opNode));
@@ -1347,14 +1245,6 @@ inline Node NodeManager::mkNode(TNode opNode) {
     nb << opNode;
   }
   return nb.constructNode();
-}
-
-inline Node* NodeManager::mkNodePtr(TNode opNode) {
-  NodeBuilder nb(this, operatorToKind(opNode));
-  if(opNode.getKind() != kind::BUILTIN) {
-    nb << opNode;
-  }
-  return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(TNode opNode, TNode child1) {
@@ -1366,15 +1256,6 @@ inline Node NodeManager::mkNode(TNode opNode, TNode child1) {
   return nb.constructNode();
 }
 
-inline Node* NodeManager::mkNodePtr(TNode opNode, TNode child1) {
-  NodeBuilder nb(this, operatorToKind(opNode));
-  if(opNode.getKind() != kind::BUILTIN) {
-    nb << opNode;
-  }
-  nb << child1;
-  return nb.constructNodePtr();
-}
-
 inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2) {
   NodeBuilder nb(this, operatorToKind(opNode));
   if(opNode.getKind() != kind::BUILTIN) {
@@ -1384,15 +1265,6 @@ inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2) {
   return nb.constructNode();
 }
 
-inline Node* NodeManager::mkNodePtr(TNode opNode, TNode child1, TNode child2) {
-  NodeBuilder nb(this, operatorToKind(opNode));
-  if(opNode.getKind() != kind::BUILTIN) {
-    nb << opNode;
-  }
-  nb << child1 << child2;
-  return nb.constructNodePtr();
-}
-
 inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
                                 TNode child3) {
   NodeBuilder nb(this, operatorToKind(opNode));
@@ -1401,56 +1273,6 @@ inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
   }
   nb << child1 << child2 << child3;
   return nb.constructNode();
-}
-
-inline Node* NodeManager::mkNodePtr(TNode opNode, TNode child1, TNode child2,
-                                TNode child3) {
-  NodeBuilder nb(this, operatorToKind(opNode));
-  if(opNode.getKind() != kind::BUILTIN) {
-    nb << opNode;
-  }
-  nb << child1 << child2 << child3;
-  return nb.constructNodePtr();
-}
-
-inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
-                                TNode child3, TNode child4) {
-  NodeBuilder nb(this, operatorToKind(opNode));
-  if(opNode.getKind() != kind::BUILTIN) {
-    nb << opNode;
-  }
-  nb << child1 << child2 << child3 << child4;
-  return nb.constructNode();
-}
-
-inline Node* NodeManager::mkNodePtr(TNode opNode, TNode child1, TNode child2,
-                                TNode child3, TNode child4) {
-  NodeBuilder nb(this, operatorToKind(opNode));
-  if(opNode.getKind() != kind::BUILTIN) {
-    nb << opNode;
-  }
-  nb << child1 << child2 << child3 << child4;
-  return nb.constructNodePtr();
-}
-
-inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
-                                TNode child3, TNode child4, TNode child5) {
-  NodeBuilder nb(this, operatorToKind(opNode));
-  if(opNode.getKind() != kind::BUILTIN) {
-    nb << opNode;
-  }
-  nb << child1 << child2 << child3 << child4 << child5;
-  return nb.constructNode();
-}
-
-inline Node* NodeManager::mkNodePtr(TNode opNode, TNode child1, TNode child2,
-                                    TNode child3, TNode child4, TNode child5) {
-  NodeBuilder nb(this, operatorToKind(opNode));
-  if(opNode.getKind() != kind::BUILTIN) {
-    nb << opNode;
-  }
-  nb << child1 << child2 << child3 << child4 << child5;
-  return nb.constructNodePtr();
 }
 
 // N-ary version for operators
@@ -1465,19 +1287,6 @@ inline Node NodeManager::mkNode(TNode opNode,
   nb.append(children);
   return nb.constructNode();
 }
-
-template <bool ref_count>
-inline Node* NodeManager::mkNodePtr(TNode opNode,
-                                    const std::vector<NodeTemplate<ref_count> >&
-                                    children) {
-  NodeBuilder nb(this, operatorToKind(opNode));
-  if(opNode.getKind() != kind::BUILTIN) {
-    nb << opNode;
-  }
-  nb.append(children);
-  return nb.constructNodePtr();
-}
-
 
 inline TypeNode NodeManager::mkTypeNode(Kind kind, TypeNode child1) {
   return (NodeBuilder(this, kind) << child1).constructTypeNode();

@@ -16,12 +16,12 @@
 #include "theory/arith/nl/ext/monomial_check.h"
 
 #include "expr/node.h"
-#include "expr/proof.h"
+#include "proof/proof.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nl_model.h"
-#include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/ext/ext_state.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
+#include "theory/arith/nl/nl_model.h"
 
 namespace cvc5 {
 namespace theory {
@@ -238,7 +238,7 @@ void MonomialCheck::checkMagnitude(unsigned c)
   Trace("nl-ext-comp") << "Compute redundancies for " << lemmas.size()
                        << " lemmas." << std::endl;
   // naive
-  std::unordered_set<Node, NodeHashFunction> r_lemmas;
+  std::unordered_set<Node> r_lemmas;
   for (std::map<int, std::map<Node, std::map<Node, Node> > >::iterator itb =
            cmp_infers.begin();
        itb != cmp_infers.end();

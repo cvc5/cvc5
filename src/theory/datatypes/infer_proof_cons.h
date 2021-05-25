@@ -20,7 +20,7 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "expr/proof_generator.h"
+#include "proof/proof_generator.h"
 #include "theory/datatypes/inference.h"
 
 namespace cvc5 {
@@ -42,9 +42,8 @@ namespace datatypes {
  */
 class InferProofCons : public ProofGenerator
 {
-  typedef context::
-      CDHashMap<Node, std::shared_ptr<DatatypesInference>, NodeHashFunction>
-          NodeDatatypesInferenceMap;
+  typedef context::CDHashMap<Node, std::shared_ptr<DatatypesInference>>
+      NodeDatatypesInferenceMap;
 
  public:
   InferProofCons(context::Context* c, ProofNodeManager* pnm);

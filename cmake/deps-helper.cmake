@@ -47,17 +47,27 @@ macro(check_auto_download name disable_option)
             set(depname "${name}")
         endif()
         if("${disable_option}" STREQUAL "")
-            message(FATAL_ERROR "Could not find the required dependency
+            message(FATAL_ERROR "Could not find the required dependency \
 ${depname} in the system. Please install it yourself or use --auto-download to \
 let us download and build it for you.")
         else()
-            message(FATAL_ERROR "Could not find the optional dependency
+            message(FATAL_ERROR "Could not find the optional dependency \
 ${depname} in the system. You can disable this dependency with \
 ${disable_option}, install it yourself or use --auto-download to let us \
 download and build it for you.")
         endif()
     endif()
 endmacro(check_auto_download)
+
+# Check if the given external project was already set up in a previous
+# configure call.
+macro(check_ep_downloaded name)
+  if(EXISTS "${DEPS_PREFIX}/src/${name}")
+    set(${name}_DOWNLOADED TRUE)
+  else()
+    set(${name}_DOWNLOADED FALSE)
+  endif()
+endmacro()
 
 macro(check_system_version name)
     # find_package sets this variable when called with a version

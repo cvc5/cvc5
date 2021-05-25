@@ -323,11 +323,11 @@ class FpConverter
   typedef symfpuSymbolic::traits::ubv ubv;
   typedef symfpuSymbolic::traits::sbv sbv;
 
-  typedef context::CDHashMap<Node, uf, NodeHashFunction> fpMap;
-  typedef context::CDHashMap<Node, rm, NodeHashFunction> rmMap;
-  typedef context::CDHashMap<Node, prop, NodeHashFunction> boolMap;
-  typedef context::CDHashMap<Node, ubv, NodeHashFunction> ubvMap;
-  typedef context::CDHashMap<Node, sbv, NodeHashFunction> sbvMap;
+  typedef context::CDHashMap<Node, uf> fpMap;
+  typedef context::CDHashMap<Node, rm> rmMap;
+  typedef context::CDHashMap<Node, prop> boolMap;
+  typedef context::CDHashMap<Node, ubv> ubvMap;
+  typedef context::CDHashMap<Node, sbv> sbvMap;
 
   fpMap d_fpMap;
   rmMap d_rmMap;

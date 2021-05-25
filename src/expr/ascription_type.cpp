@@ -47,7 +47,7 @@ bool AscriptionType::operator!=(const AscriptionType& other) const
 
 size_t AscriptionTypeHashFunction::operator()(const AscriptionType& at) const
 {
-  return TypeNodeHashFunction()(at.getType());
+  return std::hash<TypeNode>()(at.getType());
 }
 
 std::ostream& operator<<(std::ostream& out, AscriptionType at)

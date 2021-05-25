@@ -28,7 +28,7 @@ class TestUtilWhiteCheck : public TestInternal
   static constexpr uint32_t K_ONE = 1;
 
   // This test just checks that this statement compiles.
-  std::string terminalCvc4Fatal() const
+  std::string terminalCvc5Fatal() const
   {
     CVC5_FATAL() << "This is a test that confirms that CVC5_FATAL can be a "
                     "terminal statement in a function that has a non-void "

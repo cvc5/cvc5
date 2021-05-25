@@ -70,8 +70,8 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj)
     return;
   }
   // otherwise, traverse
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -243,16 +243,19 @@ std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x)
   {
     for (const Node& c : x)
     {
-      if (c.getKind() == EQUAL)
+      if (c.getKind() != EQUAL)
       {
-        if (Word::isEmpty(c[0]))
-        {
-          emptyNodes.insert(c[1]);
-        }
-        else if (Word::isEmpty(c[1]))
-        {
-          emptyNodes.insert(c[0]);
-        }
+        allEmptyEqs = false;
+        continue;
+      }
+
+      if (Word::isEmpty(c[0]))
+      {
+        emptyNodes.insert(c[1]);
+      }
+      else if (Word::isEmpty(c[1]))
+      {
+        emptyNodes.insert(c[0]);
       }
       else
       {

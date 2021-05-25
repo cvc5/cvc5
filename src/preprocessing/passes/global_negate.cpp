@@ -37,7 +37,7 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
   // collect free variables in all assertions
   std::vector<Node> free_vars;
   std::vector<TNode> visit;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
   for (const Node& as : assertions)
   {
     Trace("cegqi-gn") << "  " << as << std::endl;

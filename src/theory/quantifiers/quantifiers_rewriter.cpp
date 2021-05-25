@@ -1061,7 +1061,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
         {
           // compute variables in itm->first, these are not eligible for
           // elimination
-          std::unordered_set<Node, NodeHashFunction> fvs;
+          std::unordered_set<Node> fvs;
           expr::getFreeVariables(m.first, fvs);
           for (const Node& v : fvs)
           {
@@ -1113,8 +1113,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
   }
   // traverse the body, invalidate variables if they occur in places other than
   // the bounds they occur in
-  std::unordered_map<TNode, std::unordered_set<int>, TNodeHashFunction>
-      evisited;
+  std::unordered_map<TNode, std::unordered_set<int>> evisited;
   std::vector<TNode> evisit;
   std::vector<int> evisit_pol;
   TNode ecur;
@@ -1242,13 +1241,12 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
   return body;
 }
 
-Node QuantifiersRewriter::computePrenex(
-    Node q,
-    Node body,
-    std::unordered_set<Node, NodeHashFunction>& args,
-    std::unordered_set<Node, NodeHashFunction>& nargs,
-    bool pol,
-    bool prenexAgg)
+Node QuantifiersRewriter::computePrenex(Node q,
+                                        Node body,
+                                        std::unordered_set<Node>& args,
+                                        std::unordered_set<Node>& nargs,
+                                        bool pol,
+                                        bool prenexAgg)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = body.getKind();
@@ -1267,7 +1265,12 @@ Node QuantifiersRewriter::computePrenex(
         Node vv;
         if (!q.isNull())
         {
-          Node cacheVal = BoundVarManager::getCacheValue(q, v);
+          // We cache based on the original quantified formula, the subformula
+          // that we are pulling variables from (body), and the variable v.
+          // The argument body is required since in rare cases, two subformulas
+          // may share the same variables. This is the case for define-fun
+          // or inferred substitutions that contain quantified formulas.
+          Node cacheVal = BoundVarManager::getCacheValue(q, body, v);
           vv = bvm->mkBoundVar<QRewPrenexAttribute>(cacheVal, vt);
         }
         else
@@ -1377,8 +1380,8 @@ Node QuantifiersRewriter::computePrenexAgg(Node n,
   }
   else
   {
-    std::unordered_set<Node, NodeHashFunction> argsSet;
-    std::unordered_set<Node, NodeHashFunction> nargsSet;
+    std::unordered_set<Node> argsSet;
+    std::unordered_set<Node> nargsSet;
     Node q;
     Node nn = computePrenex(q, n, argsSet, nargsSet, true, true);
     Assert(n != nn || argsSet.empty());
@@ -1888,7 +1891,7 @@ Node QuantifiersRewriter::computeOperation(Node f,
     }
     else
     {
-      std::unordered_set<Node, NodeHashFunction> argsSet, nargsSet;
+      std::unordered_set<Node> argsSet, nargsSet;
       n = computePrenex(f, n, argsSet, nargsSet, true, false);
       Assert(nargsSet.empty());
       args.insert(args.end(), argsSet.begin(), argsSet.end());

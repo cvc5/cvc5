@@ -49,8 +49,8 @@ class BVSolverLazy : public BVSolver
   context::Context* d_context;
 
   /** Context dependent set of atoms we already propagated */
-  context::CDHashSet<Node, NodeHashFunction> d_alreadyPropagatedSet;
-  context::CDHashSet<Node, NodeHashFunction> d_sharedTermsSet;
+  context::CDHashSet<Node> d_alreadyPropagatedSet;
+  context::CDHashSet<Node> d_sharedTermsSet;
 
   std::vector<std::unique_ptr<SubtheorySolver>> d_subtheories;
   std::unordered_map<SubTheory, SubtheorySolver*, std::hash<int>>
@@ -93,9 +93,6 @@ class BVSolverLazy : public BVSolver
 
   std::string identify() const override { return std::string("BVSolverLazy"); }
 
-  Theory::PPAssertStatus ppAssert(
-      TrustNode tin, TrustSubstitutionMap& outSubstitutions) override;
-
   TrustNode ppRewrite(TNode t) override;
 
   void ppStaticLearn(TNode in, NodeBuilder& learned) override;
@@ -112,7 +109,6 @@ class BVSolverLazy : public BVSolver
   {
    public:
     AverageStat d_avgConflictSize;
-    IntStat d_solveSubstitutions;
     TimerStat d_solveTimer;
     IntStat d_numCallsToCheckFullEffort;
     IntStat d_numCallsToCheckStandardEffort;
@@ -126,11 +122,11 @@ class BVSolverLazy : public BVSolver
   void check(Theory::Effort e);
   void spendResource(Resource r);
 
-  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+  typedef std::unordered_set<TNode> TNodeSet;
+  typedef std::unordered_set<Node> NodeSet;
   NodeSet d_staticLearnCache;
 
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeToNode;
+  typedef std::unordered_map<Node, Node> NodeToNode;
 
   context::CDO<bool> d_lemmasAdded;
 
@@ -153,7 +149,7 @@ class BVSolverLazy : public BVSolver
    * Keeps a map from nodes to the subtheory that propagated it so that we can
    * explain it properly.
    */
-  typedef context::CDHashMap<Node, SubTheory, NodeHashFunction> PropagatedMap;
+  typedef context::CDHashMap<Node, SubTheory> PropagatedMap;
   PropagatedMap d_propagatedBy;
 
   std::unique_ptr<EagerBitblastSolver> d_eagerSolver;

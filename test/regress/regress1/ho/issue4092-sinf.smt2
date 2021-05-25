@@ -1,4 +1,4 @@
-; COMMAND-LINE: --uf-ho --sort-inference --no-check-models
+; COMMAND-LINE: --uf-ho --sort-inference
 ; EXPECT: sat
 (set-logic ALL)
 (set-option :sort-inference true)

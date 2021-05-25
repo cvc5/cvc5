@@ -15,15 +15,17 @@
  * For each <module>_options.toml configuration file, mkoptions.py
  * expands this template and generates a <module>_options.cpp file.
  */
+#include "${header}$"
 
-#include "options/options_holder.h"
+#include <iostream>
+
 #include "base/check.h"
+#include "options/option_exception.h"
 
 // clang-format off
 namespace cvc5 {
 
 ${accs}$
-
 
 namespace options {
 

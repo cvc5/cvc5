@@ -100,7 +100,7 @@ Node BVToInt::makeBinary(Node n)
      */
     kind::Kind_t k = current.getKind();
     if ((numChildren > 2)
-        && (k == kind::BITVECTOR_PLUS || k == kind::BITVECTOR_MULT
+        && (k == kind::BITVECTOR_ADD || k == kind::BITVECTOR_MULT
             || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
             || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
     {
@@ -159,7 +159,7 @@ Node BVToInt::eliminationPass(Node n)
     CVC5_UNUSED kind::Kind_t k = current.getKind();
     uint64_t numChildren = current.getNumChildren();
     Assert((numChildren == 2)
-           || !(k == kind::BITVECTOR_PLUS || k == kind::BITVECTOR_MULT
+           || !(k == kind::BITVECTOR_ADD || k == kind::BITVECTOR_MULT
                 || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
                 || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT));
     toVisit.pop_back();
@@ -347,7 +347,7 @@ Node BVToInt::translateWithChildren(Node original,
   Node returnNode;
   switch (oldKind)
   {
-    case kind::BITVECTOR_PLUS:
+    case kind::BITVECTOR_ADD:
     {
       Assert(originalNumChildren == 2);
       uint64_t bvsize = original[0].getType().getBitVectorSize();
@@ -840,8 +840,15 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
   }
   // If the result is BV, it needs to be casted back.
   result = castToType(result, resultType);
-  // add the function definition to the smt engine.
-  d_preprocContext->getSmt()->defineFunction(bvUF, args, result, true);
+  // add the substitution to the preprocessing context, which ensures the
+  // model for bvUF is correct, as well as substituting it in the input
+  // assertions when necessary.
+  if (!args.empty())
+  {
+    result = d_nm->mkNode(
+        kind::LAMBDA, d_nm->mkNode(kind::BOUND_VAR_LIST, args), result);
+  }
+  d_preprocContext->addSubstitution(bvUF, result);
 }
 
 bool BVToInt::childrenTypesChanged(Node n)

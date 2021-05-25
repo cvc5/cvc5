@@ -27,11 +27,15 @@ namespace sets {
 
 TermRegistry::TermRegistry(SolverState& state,
                            InferenceManager& im,
-                           SkolemCache& skc)
+                           SkolemCache& skc,
+                           ProofNodeManager* pnm)
     : d_im(im),
       d_skCache(skc),
       d_proxy(state.getUserContext()),
-      d_proxy_to_term(state.getUserContext())
+      d_proxy_to_term(state.getUserContext()),
+      d_epg(
+          pnm ? new EagerProofGenerator(pnm, nullptr, "sets::TermRegistry::epg")
+              : nullptr)
 {
 }
 
@@ -51,17 +55,15 @@ Node TermRegistry::getProxy(Node n)
   NodeManager* nm = NodeManager::currentNM();
   Node k = d_skCache.mkTypedSkolemCached(
       n.getType(), n, SkolemCache::SK_PURIFY, "sp");
+
   d_proxy[n] = k;
   d_proxy_to_term[k] = n;
   Node eq = k.eqNode(n);
-  Trace("sets-lemma") << "Sets::Lemma : " << eq << " by proxy" << std::endl;
-  d_im.lemma(eq, InferenceId::SETS_PROXY);
+  sendSimpleLemmaInternal(eq, InferenceId::SETS_PROXY);
   if (nk == SINGLETON)
   {
     Node slem = nm->mkNode(MEMBER, n[0], k);
-    Trace("sets-lemma") << "Sets::Lemma : " << slem << " by singleton"
-                        << std::endl;
-    d_im.lemma(slem, InferenceId::SETS_PROXY_SINGLETON);
+    sendSimpleLemmaInternal(slem, InferenceId::SETS_PROXY_SINGLETON);
   }
   return k;
 }
@@ -149,6 +151,21 @@ void TermRegistry::debugPrintSet(Node s, const char* c) const
       debugPrintSet(sc, c);
     }
     Trace(c) << ")";
+  }
+}
+
+void TermRegistry::sendSimpleLemmaInternal(Node n, InferenceId id)
+{
+  Trace("sets-lemma") << "Sets::Lemma : " << n << " by " << id << std::endl;
+  if (d_epg.get() != nullptr)
+  {
+    TrustNode teq =
+        d_epg->mkTrustNode(n, PfRule::MACRO_SR_PRED_INTRO, {}, {n});
+    d_im.trustedLemma(teq, id);
+  }
+  else
+  {
+    d_im.lemma(n, id);
   }
 }
 

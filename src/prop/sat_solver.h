@@ -23,8 +23,8 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "expr/proof_node_manager.h"
 #include "proof/clause_id.h"
+#include "proof/proof_node_manager.h"
 #include "prop/bv_sat_solver_notify.h"
 #include "prop/sat_solver_types.h"
 #include "util/statistics_stats.h"
@@ -167,6 +167,16 @@ class CDCLTSatSolverInterface : public SatSolver
   virtual void requirePhase(SatLiteral lit) = 0;
 
   virtual bool isDecision(SatVariable decn) const = 0;
+
+  /**
+   * Return the current decision level of `lit`.
+   */
+  virtual int32_t getDecisionLevel(SatVariable v) const { return -1; }
+
+  /**
+   * Return the user-context level when `lit` was introduced..
+   */
+  virtual int32_t getIntroLevel(SatVariable v) const { return -1; }
 
   virtual std::shared_ptr<ProofNode> getProof() = 0;
 

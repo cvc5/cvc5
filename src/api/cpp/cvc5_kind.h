@@ -13,7 +13,7 @@
  * The term kinds of the cvc5 C++ API.
  */
 
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 
 #ifndef CVC5__API__CVC5_KIND_H
 #define CVC5__API__CVC5_KIND_H
@@ -27,7 +27,9 @@ namespace api {
 /* Kind                                                                       */
 /* -------------------------------------------------------------------------- */
 
-// TODO(Gereon): Fix links that involve std::vector. See https://github.com/doxygen/doxygen/issues/8503
+// TODO(Gereon): Fix links that involve std::vector. See
+// https://github.com/doxygen/doxygen/issues/8503
+// clang-format off
 /**
  * The kind of a cvc5 term.
  *
@@ -35,7 +37,7 @@ namespace api {
  * checks for validity). The size of this type depends on the size of
  * cvc5::Kind (NodeValue::NBITS_KIND, currently 10 bits, see expr/node_value.h).
  */
-enum CVC4_EXPORT Kind : int32_t
+enum CVC5_EXPORT Kind : int32_t
 {
   /**
    * Internal kind.
@@ -185,9 +187,9 @@ enum CVC4_EXPORT Kind : int32_t
    * (e.g. for arithmetic terms in non-linear queries). However, it is not
    * supported by the parser. Moreover, the user of the API should be cautious
    * when using this operator. In general, all witness terms
-   * `(witness ((x Int)) F)` should be such that `(exists ((x Int)) F)` is a valid
-   * formula. If this is not the case, then the semantics in formulas that use
-   * witness terms may be unintuitive. For example, the following formula is
+   * `(witness ((x Int)) F)` should be such that `(exists ((x Int)) F)` is a
+   * valid formula. If this is not the case, then the semantics in formulas that
+   * use witness terms may be unintuitive. For example, the following formula is
    * unsatisfiable:
    * `(or (= (witness ((x Int)) false) 0) (not (= (witness ((x Int)) false) 0))`
    * whereas notice that `(or (= z 0) (not (= z 0)))` is true for any `z`.
@@ -393,7 +395,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - `Solver::mkOp(Kind kind, uint32_t param) const`
    *
    * Apply integer conversion to bit-vector.
-   
+
    * Parameters:
    *   - 1: Op of kind IAND
    *   - 2: Integer term
@@ -888,7 +890,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  BITVECTOR_PLUS,
+  BITVECTOR_ADD,
   /**
    * Subtraction of two bit-vectors.
    *
@@ -1918,11 +1920,11 @@ enum CVC4_EXPORT Kind : int32_t
    */
   APPLY_CONSTRUCTOR,
   /**
-   * Datatype selector application.
+   * Datatype selector application, which is undefined if misapplied.
    *
    * Parameters:
    *   - 1: Selector (operator)
-   *   - 2: Datatype term (undefined if mis-applied)
+   *   - 2: Datatype term
    *
    * Create with:
    *   - `Solver::mkTerm(const Op& op, const Term& child) const`
@@ -1940,56 +1942,20 @@ enum CVC4_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   APPLY_TESTER,
-#if 0
-  /* Parametric datatype term.  */
-  PARAMETRIC_DATATYPE,
-  /* type ascription, for datatype constructor applications;
-   * first parameter is an ASCRIPTION_TYPE, second is the datatype constructor
-   * application being ascribed */
-  APPLY_TYPE_ASCRIPTION,
-#endif
   /**
-   * Operator for a tuple update.
+   * Datatype update application, which does not change the argument if
+   * misapplied.
    *
    * Parameters:
-   *   - 1: Index of the tuple to be updated
+   *   - 1: Updater (operator)
+   *   - 2: Datatype term
+   *   - 3: Value to update a field of the datatype term with
    *
    * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param) const`
-   *
-   * Apply tuple update.
-   *
-   * Parameters:
-   *   - 1: Op of kind TUPLE_UPDATE (which references an index)
-   *   - 2: Tuple
-   *   - 3: Element to store in the tuple at the given index
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  TUPLE_UPDATE,
-  /**
-   * Operator for a record update.
-   *
-   * Parameters:
-   *   - 1: Name of the field to be updated
-   *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, const std::string& param) const`
-   *
-   * Record update.
-   *
-   * Parameters:
-   *   - 1: Op of kind RECORD_UPDATE (which references a field)
-   *   - 2: Record term to update
-   *   - 3: Element to store in the record in the given field
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(const Op& op,, const std::vector<Term>& children) const`
-   */
-  RECORD_UPDATE,
+  APPLY_UPDATER,
   /**
    * Match expressions.
    * For example, the smt2 syntax match term
@@ -2341,11 +2307,12 @@ enum CVC4_EXPORT Kind : int32_t
    * a predicate P[x1...xn], and a term t[x1...xn]. A comprehension C with the
    * above form has members given by the following semantics:
    * @f[
-   *  \forall y. ( \exists x_1...x_n. P[x_1...x_n] \hat{} t[x_1...x_n] = y ) \Leftrightarrow (member y C)
+   *  \forall y. ( \exists x_1...x_n. P[x_1...x_n] \hat{} t[x_1...x_n] = y )
+   * \Leftrightarrow (member y C)
    * @f]
    * where y ranges over the element type of the (set) type of the
-   * comprehension. If @f$ t[x_1..x_n] @f$ is not provided, it is equivalent to y in the
-   * above formula.
+   * comprehension. If @f$ t[x_1..x_n] @f$ is not provided, it is equivalent to
+   * y in the above formula.
    *
    * Parameters:
    *   - 1: Term BOUND_VAR_LIST
@@ -3235,7 +3202,7 @@ enum CVC4_EXPORT Kind : int32_t
    *     (seq.++ (seq.unit c1) ... (seq.unit cn))
    *
    * where n>=0 and c1, ..., cn are constants of some sort. The elements
-   * can be extracted by `Term::getConstSequenceElements()`.
+   * can be extracted by `Term::getSequenceValue()`.
    */
   CONST_SEQUENCE,
   /**
@@ -3331,6 +3298,34 @@ enum CVC4_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   INST_NO_PATTERN,
+  /*
+   * An instantiation pool.
+   * Specifies an annotation for pool based instantiation.
+   * Parameters: n > 1
+   *   - 1..n: Terms that comprise the pools, which are one-to-one with
+   * the variables of the quantified formula to be instantiated.
+   * Create with:
+   *   - `mkTerm(Kind kind, Term child1, Term child2)
+   *   - `mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   - `mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  INST_POOL,
+  /*
+   * A instantantiation-add-to-pool annotation.
+   * Parameters: n = 1
+   *   - 1: The pool to add to.
+   * Create with:
+   *   - `mkTerm(Kind kind, Term child)
+   */
+  INST_ADD_TO_POOL,
+  /*
+   * A skolemization-add-to-pool annotation.
+   * Parameters: n = 1
+   *   - 1: The pool to add to.
+   * Create with:
+   *   - `mkTerm(Kind kind, Term child)
+   */
+  SKOLEM_ADD_TO_POOL,
   /**
    * An instantiation attribute
    * Specifies a custom property for a quantified formula given by a
@@ -3396,13 +3391,14 @@ enum CVC4_EXPORT Kind : int32_t
   /** Marks the upper-bound of this enumeration. */
   LAST_KIND
 };
+// clang-format on
 
 /**
  * Get the string representation of a given kind.
  * @param k the kind
  * @return the string representation of kind k
  */
-std::string kindToString(Kind k) CVC4_EXPORT;
+std::string kindToString(Kind k) CVC5_EXPORT;
 
 /**
  * Serialize a kind to given stream.
@@ -3410,20 +3406,25 @@ std::string kindToString(Kind k) CVC4_EXPORT;
  * @param k the kind to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, Kind k) CVC4_EXPORT;
+std::ostream& operator<<(std::ostream& out, Kind k) CVC5_EXPORT;
+
+}  // namespace api
+}  // namespace cvc5
+
+namespace std {
 
 /**
  * Hash function for Kinds.
  */
-struct CVC4_EXPORT KindHashFunction
+template<>
+struct CVC5_EXPORT hash<cvc5::api::Kind>
 {
   /**
    * Hashes a Kind to a size_t.
    */
-  size_t operator()(Kind k) const;
+  size_t operator()(cvc5::api::Kind k) const;
 };
 
-}  // namespace api
-}  // namespace cvc5
+}
 
 #endif

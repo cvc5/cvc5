@@ -19,11 +19,11 @@
 #define CVC5__SMT__PREPROCESS_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
-#include "expr/lazy_proof.h"
-#include "expr/proof.h"
-#include "expr/proof_set.h"
-#include "expr/proof_generator.h"
-#include "theory/trust_node.h"
+#include "proof/lazy_proof.h"
+#include "proof/proof.h"
+#include "proof/proof_generator.h"
+#include "proof/proof_set.h"
+#include "proof/trust_node.h"
 
 namespace cvc5 {
 
@@ -55,8 +55,7 @@ namespace smt {
  */
 class PreprocessProofGenerator : public ProofGenerator
 {
-  typedef context::CDHashMap<Node, theory::TrustNode, NodeHashFunction>
-      NodeTrustNodeMap;
+  typedef context::CDHashMap<Node, theory::TrustNode> NodeTrustNodeMap;
 
  public:
   /**

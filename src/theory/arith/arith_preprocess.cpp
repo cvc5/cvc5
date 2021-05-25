@@ -26,8 +26,8 @@ namespace arith {
 ArithPreprocess::ArithPreprocess(ArithState& state,
                                  InferenceManager& im,
                                  ProofNodeManager* pnm,
-                                 const LogicInfo& info)
-    : d_im(im), d_opElim(pnm, info), d_reduced(state.getUserContext())
+                                 OperatorElim& oe)
+    : d_im(im), d_opElim(oe), d_reduced(state.getUserContext())
 {
 }
 TrustNode ArithPreprocess::eliminate(TNode n,
@@ -39,8 +39,7 @@ TrustNode ArithPreprocess::eliminate(TNode n,
 
 bool ArithPreprocess::reduceAssertion(TNode atom)
 {
-  context::CDHashMap<Node, bool, NodeHashFunction>::const_iterator it =
-      d_reduced.find(atom);
+  context::CDHashMap<Node, bool>::const_iterator it = d_reduced.find(atom);
   if (it != d_reduced.end())
   {
     // already computed
@@ -70,8 +69,7 @@ bool ArithPreprocess::reduceAssertion(TNode atom)
 
 bool ArithPreprocess::isReduced(TNode atom) const
 {
-  context::CDHashMap<Node, bool, NodeHashFunction>::const_iterator it =
-      d_reduced.find(atom);
+  context::CDHashMap<Node, bool>::const_iterator it = d_reduced.find(atom);
   if (it == d_reduced.end())
   {
     return false;

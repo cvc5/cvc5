@@ -34,8 +34,8 @@ set(LIBCONTEXT_SOURCES
   context_mm.h
 )
 
-add_library(cvc4context OBJECT ${LIBCONTEXT_SOURCES})
+add_library(cvc5context OBJECT ${LIBCONTEXT_SOURCES})
 if(ENABLE_SHARED)
-  set_target_properties(cvc4context PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(cvc5context PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
-target_compile_definitions(cvc4context PRIVATE -D__BUILDING_CVC4LIB)
+target_compile_definitions(cvc5context PRIVATE -D__BUILDING_CVC5LIB)

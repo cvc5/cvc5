@@ -26,15 +26,15 @@ namespace kind {
 /**
  * Get the metakind for a particular kind.
  */
-MetaKind metaKindOf(Kind k) {
+MetaKind metaKindOf(Kind k)
+{
   static const MetaKind metaKinds[] = {
-    metakind::INVALID, /* UNDEFINED_KIND */
-    metakind::INVALID, /* NULL_EXPR */
-// clang-format off
-${metakind_kinds}
-// clang-format on
-    metakind::INVALID /* LAST_KIND */
-  };/* metaKinds[] */
+      metakind::INVALID, /* UNDEFINED_KIND */
+      metakind::INVALID, /* NULL_EXPR */
+      // clang-format off
+${metakind_kinds}  // clang-format on
+      metakind::INVALID  /* LAST_KIND */
+  };                     /* metaKinds[] */
 
   Assert(k >= kind::NULL_EXPR && k < kind::LAST_KIND);
 
@@ -42,7 +42,7 @@ ${metakind_kinds}
   // handle the UNDEFINED_KIND (-1) case.  If we don't, the compiler
   // emits warnings for non-assertion builds, since the check isn't done.
   return metaKinds[k + 1];
-}/* metaKindOf(k) */
+} /* metaKindOf(k) */
 
 }  // namespace kind
 
@@ -64,7 +64,7 @@ size_t NodeValueCompare::constHash(const ::cvc5::expr::NodeValue* nv)
   switch (nv->d_kind)
   {
 // clang-format off
-${metakind_constHashes}
+    ${metakind_constHashes}
 // clang-format on
 default: Unhandled() << ::cvc5::expr::NodeValue::dKindToKind(nv->d_kind);
   }

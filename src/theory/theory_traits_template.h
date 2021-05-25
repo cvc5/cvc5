@@ -25,7 +25,9 @@
 #include "options/theory_options.h"
 #include "theory/theory.h"
 
+// clang-format off
 ${theory_includes}
+// clang-format on
 
 namespace cvc5 {
 namespace theory {
@@ -33,15 +35,21 @@ namespace theory {
 template <TheoryId theoryId>
 struct TheoryTraits;
 
+// clang-format off
 ${theory_traits}
+// clang-format on
 
-struct TheoryConstructor {
-  static void addTheory(TheoryEngine* engine, TheoryId id) {
-    switch(id) {
-
+struct TheoryConstructor
+{
+  static void addTheory(TheoryEngine* engine, TheoryId id)
+  {
+    switch (id)
+    {
+      // clang-format off
 ${theory_constructors}
+        // clang-format on
 
-default: Unhandled() << id;
+      default: Unhandled() << id;
     }
   }
 }; /* struct cvc5::theory::TheoryConstructor */
