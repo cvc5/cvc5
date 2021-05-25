@@ -102,7 +102,7 @@ class KindsParser:
            so that the word after "Is" is capitalized
 
         Examples:
-           BITVECTOR_PLUS      -->  BVPlus
+           BITVECTOR_ADD       -->  BVAdd
            APPLY_SELECTOR      -->  ApplySelector
            FLOATINGPOINT_ISNAN -->  FPIsNan
            SETMINUS            -->  Setminus

@@ -198,6 +198,24 @@ Node substituteCaptureAvoiding(TNode n, Node src, Node dest);
 Node substituteCaptureAvoiding(TNode n,
                                std::vector<Node>& src,
                                std::vector<Node>& dest);
+/**
+ * Collect all types in n, which adds to types all types for which a subterm
+ * of n has that type. Operators are not considered in the traversal.
+ * @param n The node under investigation
+ * @param types The set of types
+ */
+void getTypes(TNode n, std::unordered_set<TypeNode>& types);
+
+/**
+ * Collect all types in n, which adds to types all types for which a subterm
+ * of n has that type. Operators are not considered in the traversal.
+ * @param n The node under investigation
+ * @param types The set of types
+ * @param visited A cache of nodes we have already visited
+ */
+void getTypes(TNode n,
+              std::unordered_set<TypeNode>& types,
+              std::unordered_set<TNode>& visited);
 
 /**
  * Get component types in type t. This adds all types that are subterms of t

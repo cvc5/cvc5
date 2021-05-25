@@ -503,7 +503,6 @@ endif()
 # Add subdirectories
 
 add_subdirectory(src)
-add_subdirectory(test)
 
 if(BUILD_BINDINGS_PYTHON)
   set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
@@ -518,6 +517,8 @@ endif()
 if(BUILD_DOCS)
   add_subdirectory(docs)
 endif()
+
+add_subdirectory(test)
 
 #-----------------------------------------------------------------------------#
 # Package configuration
