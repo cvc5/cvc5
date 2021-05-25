@@ -22,10 +22,10 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
-#include "expr/proof_rule.h"
+#include "proof/proof_rule.h"
+#include "proof/trust_node.h"
 #include "theory/inference_id.h"
 #include "theory/output_channel.h"
-#include "theory/trust_node.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {

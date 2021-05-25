@@ -134,8 +134,6 @@ public:
 
 public:
  //----------user interface for instantiations (see quantifiers/instantiate.h)
- /** print solution for synthesis conjectures */
- void printSynthSolution(std::ostream& out);
  /** get list of quantified formulas that were instantiated */
  void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs);
  /** get instantiation term vectors */

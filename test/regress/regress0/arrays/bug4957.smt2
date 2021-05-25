@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ackermann --no-check-unsat-cores
+; COMMAND-LINE: --ackermann
 ; EXPECT: unsat
 (set-logic QF_ALIA)
 (declare-fun a () (Array Int Int))

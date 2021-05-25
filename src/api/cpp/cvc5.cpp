@@ -7437,15 +7437,6 @@ std::vector<Term> Solver::getSynthSolutions(
   CVC5_API_TRY_CATCH_END;
 }
 
-void Solver::printSynthSolution(std::ostream& out) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  d_smtEngine->printSynthSolution(out);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 /*
  * !!! This is only temporarily available until the parser is fully migrated to
  * the new API. !!!

@@ -543,11 +543,6 @@ class CVC5_EXPORT SmtEngine
    * in the proper format.
    */
   void printProof();
-  /**
-   * Print solution for synthesis conjectures found by counter-example guided
-   * instantiation module.
-   */
-  void printSynthSolution(std::ostream& out);
 
   /**
    * Get synth solution.

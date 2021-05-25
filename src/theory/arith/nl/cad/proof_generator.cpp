@@ -17,7 +17,7 @@
 
 #ifdef CVC5_POLY_IMP
 
-#include "theory/lazy_tree_proof_generator.h"
+#include "proof/lazy_tree_proof_generator.h"
 #include "theory/arith/nl/poly_conversion.h"
 
 namespace cvc5 {
