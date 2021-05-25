@@ -835,6 +835,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
   std::stringstream opName;
+  Trace("lfsc-term-process-debug2") << "getOperatorOfTerm " << n << " " << k << " " << (n.getMetaKind()== metakind::PARAMETERIZED) << " " << isIndexedOperatorKind(k) << std::endl;
   if (n.getMetaKind() == metakind::PARAMETERIZED)
   {
     Node op = n.getOperator();
@@ -882,7 +883,10 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       }
       if (!macroApply)
       {
-        opName << "f_";
+        if (k!=APPLY_UPDATER && k!=APPLY_TESTER)
+        {
+          opName << "f_";
+        }
       }
       opName << printer::smt2::Smt2Printer::smtKindString(k);
     }
@@ -908,6 +912,14 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       ret = maybeMkSkolemFun(op, macroApply);
       Assert(!ret.isNull());
     }
+    else if (k==SINGLETON || k == MK_BAG)
+    {
+      if (!macroApply)
+      {
+        opName << "f_";
+      }
+      opName << printer::smt2::Smt2Printer::smtKindString(k);
+    }
     else
     {
       opName << op;
@@ -925,6 +937,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       ichildren.insert(ichildren.end(), indices.begin(), indices.end());
       ret = nm->mkNode(APPLY_UF, ichildren);
     }
+    Trace("lfsc-term-process-debug2") << "...return " << ret << std::endl;
     return ret;
   }
   std::vector<TypeNode> argTypes;

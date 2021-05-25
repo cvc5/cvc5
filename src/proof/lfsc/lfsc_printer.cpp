@@ -28,7 +28,7 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace proof {
 
-LfscPrinter::LfscPrinter(LfscNodeConverter& ltp) : d_tproc(ltp)
+LfscPrinter::LfscPrinter(LfscNodeConverter& ltp) : d_tproc(ltp), d_assumpCounter(0)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_boolType = nm->booleanType();
@@ -66,6 +66,7 @@ void LfscPrinter::print(std::ostream& out,
     // remember the assumption name
     passumeMap[a] = i;
   }
+  d_assumpCounter = assertions.size();
   Trace("lfsc-print-debug") << "; print sorts" << std::endl;
   // [1a] user declared sorts
   std::stringstream preamble;
@@ -370,16 +371,14 @@ void LfscPrinter::printProofInternal(
           Assert(cur->getArguments().size() == 3);
           // lambdas are handled specially. We print in a self contained way
           // here.
-          bool didBind = false;
           // allocate an assumption, if necessary
           size_t pid;
           Node assumption = cur->getArguments()[2];
           passumeIt = passumeMap.find(assumption);
           if (passumeIt == passumeMap.end())
           {
-            // mark that we bound the assumption
-            didBind = true;
-            pid = passumeMap.size();
+            pid = d_assumpCounter;
+            d_assumpCounter++;
             passumeMap[assumption] = pid;
           }
           else
@@ -405,12 +404,6 @@ void LfscPrinter::printProofInternal(
           computeProofLetification(curBody, pletListNested, pletMapNested);
           printProofLetify(
               out, curBody, lbind, pletListNested, pletMapNested, passumeMap);
-          // unbind the assumption if necessary
-          if (didBind)
-          {
-            Assert(passumeMap.find(assumption) != passumeMap.end());
-            passumeMap.erase(assumption);
-          }
           // print ")"
           out->printCloseRule();
         }
@@ -509,6 +502,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::EQ_RESOLVE: pf << h << h << cs[0] << cs[1]; break;
     case PfRule::NOT_AND: pf << h << h << cs[0]; break;
     // case PfRule::NOT_OR_ELIM: pf << h << h <<
+    case PfRule::AND_ELIM:
+      pf << h << h << args[0] << cs[0]; break;
     case PfRule::IMPLIES_ELIM:
     case PfRule::NOT_IMPLIES_ELIM1:
     case PfRule::NOT_IMPLIES_ELIM2:
@@ -634,8 +629,6 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         case LfscRule::NEG_SYMM: pf << h << h << cs[0]; break;
         case LfscRule::CONG: pf << h << h << h << h << cs[0] << cs[1]; break;
         case LfscRule::AND_INTRO1: pf << h << cs[0]; break;
-        case LfscRule::AND_ELIM1:
-        case LfscRule::AND_ELIM2:
         case LfscRule::NOT_AND_REV: pf << h << h << cs[0]; break;
         case LfscRule::PROCESS_SCOPE: pf << h << h << as[2] << cs[0]; break;
         case LfscRule::AND_INTRO2: pf << h << h << cs[0] << cs[1]; break;

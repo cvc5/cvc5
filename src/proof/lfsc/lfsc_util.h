@@ -51,9 +51,7 @@ enum class LfscRule : uint32_t
   NEG_SYMM,
   // congruence is done via a higher-order variant of congruence
   CONG,
-  // we use unrolled binary versions of and elim / intro
-  AND_ELIM1,
-  AND_ELIM2,
+  // we use unrolled binary versions of and intro
   AND_INTRO1,
   AND_INTRO2,
   // needed as a helper for SCOPE

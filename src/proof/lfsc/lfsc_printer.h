@@ -112,6 +112,8 @@ class LfscPrinter
   Node d_ff;
   /** Boolean type */
   TypeNode d_boolType;
+  /** assumption counter */
+  size_t d_assumpCounter;
   /** for debugging the open rules, the set of PfRule we have warned about */
   std::unordered_set<PfRule, PfRuleHashFunction> d_trustWarned;
 };
