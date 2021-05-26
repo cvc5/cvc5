@@ -28,6 +28,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "util/rational.h"
 
 using namespace std;
 namespace cvc5 {

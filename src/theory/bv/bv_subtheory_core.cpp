@@ -23,6 +23,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ext_theory.h"
 #include "theory/theory_model.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5;

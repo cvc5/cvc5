@@ -25,6 +25,7 @@
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::theory;

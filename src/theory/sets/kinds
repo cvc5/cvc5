@@ -16,10 +16,11 @@ properties check presolve
 
 # constants
 constant EMPTYSET \
-    ::cvc5::EmptySet \
-    ::cvc5::EmptySetHashFunction \
-    "expr/emptyset.h" \
-    "the empty set constant; payload is an instance of the cvc5::EmptySet class"
+  class \
+  EmptySet \
+  ::cvc5::EmptySetHashFunction \
+  "expr/emptyset.h" \
+  "the empty set constant; payload is an instance of the cvc5::EmptySet class"
 
 # the type
 operator SET_TYPE 1 "set type, takes as parameter the type of the elements"
@@ -42,10 +43,11 @@ operator SUBSET         2  "subset predicate; first parameter a subset of second
 operator MEMBER         2  "set membership predicate; first parameter a member of second"
 
 constant SINGLETON_OP \
-	::cvc5::SingletonOp \
-	::cvc5::SingletonOpHashFunction \
-	"theory/sets/singleton_op.h" \
-	"operator for singletons; payload is an instance of the cvc5::SingletonOp class"
+  class \
+  SingletonOp \
+  ::cvc5::SingletonOpHashFunction \
+  "theory/sets/singleton_op.h" \
+  "operator for singletons; payload is an instance of the cvc5::SingletonOp class"
 parameterized SINGLETON SINGLETON_OP 1  \
 "constructs a set of a single element. First parameter is a SingletonOp. Second is a term"
 

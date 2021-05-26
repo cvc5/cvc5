@@ -23,14 +23,15 @@
 #ifndef CVC5__NODE_MANAGER_H
 #define CVC5__NODE_MANAGER_H
 
-#include <vector>
 #include <string>
 #include <unordered_set>
+#include <vector>
 
 #include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
+#include "util/floatingpoint_size.h"
 
 namespace cvc5 {
 
