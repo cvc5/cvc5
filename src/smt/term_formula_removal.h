@@ -24,7 +24,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "expr/term_context.h"
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 #include "util/hash.h"
 
 namespace cvc5 {

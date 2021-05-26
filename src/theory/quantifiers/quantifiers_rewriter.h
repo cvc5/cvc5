@@ -18,8 +18,8 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 #define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 
+#include "proof/trust_node.h"
 #include "theory/theory_rewriter.h"
-#include "theory/trust_node.h"
 
 namespace cvc5 {
 namespace theory {

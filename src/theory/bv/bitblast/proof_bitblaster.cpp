@@ -16,8 +16,8 @@
 
 #include <unordered_set>
 
-#include "expr/term_conversion_proof_generator.h"
 #include "options/proof_options.h"
+#include "proof/conv_proof_generator.h"
 #include "theory/theory_model.h"
 
 namespace cvc5 {
