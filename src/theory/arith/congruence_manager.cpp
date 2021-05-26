@@ -19,8 +19,9 @@
 #include "theory/arith/congruence_manager.h"
 
 #include "base/output.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
+#include "options/arith_options.h"
+#include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/constraint.h"
@@ -29,7 +30,6 @@
 #include "theory/rewriter.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
-#include "options/arith_options.h"
 
 namespace cvc5 {
 namespace theory {

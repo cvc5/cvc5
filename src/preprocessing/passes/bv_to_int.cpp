@@ -100,7 +100,7 @@ Node BVToInt::makeBinary(Node n)
      */
     kind::Kind_t k = current.getKind();
     if ((numChildren > 2)
-        && (k == kind::BITVECTOR_PLUS || k == kind::BITVECTOR_MULT
+        && (k == kind::BITVECTOR_ADD || k == kind::BITVECTOR_MULT
             || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
             || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
     {
@@ -159,7 +159,7 @@ Node BVToInt::eliminationPass(Node n)
     CVC5_UNUSED kind::Kind_t k = current.getKind();
     uint64_t numChildren = current.getNumChildren();
     Assert((numChildren == 2)
-           || !(k == kind::BITVECTOR_PLUS || k == kind::BITVECTOR_MULT
+           || !(k == kind::BITVECTOR_ADD || k == kind::BITVECTOR_MULT
                 || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
                 || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT));
     toVisit.pop_back();
@@ -347,7 +347,7 @@ Node BVToInt::translateWithChildren(Node original,
   Node returnNode;
   switch (oldKind)
   {
-    case kind::BITVECTOR_PLUS:
+    case kind::BITVECTOR_ADD:
     {
       Assert(originalNumChildren == 2);
       uint64_t bvsize = original[0].getType().getBitVectorSize();

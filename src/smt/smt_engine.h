@@ -41,7 +41,6 @@ class TypeNode;
 class Env;
 class NodeManager;
 class TheoryEngine;
-class ProofManager;
 class UnsatCore;
 class LogicRequest;
 class StatisticsRegistry;
@@ -99,7 +98,6 @@ class SmtScope;
 class PfManager;
 class UnsatCoreManager;
 
-ProofManager* currentProofManager();
 }  // namespace smt
 
 /* -------------------------------------------------------------------------- */
@@ -545,11 +543,6 @@ class CVC5_EXPORT SmtEngine
    * in the proper format.
    */
   void printProof();
-  /**
-   * Print solution for synthesis conjectures found by counter-example guided
-   * instantiation module.
-   */
-  void printSynthSolution(std::ostream& out);
 
   /**
    * Get synth solution.
@@ -858,12 +851,6 @@ class CVC5_EXPORT SmtEngine
   /** Get a pointer to the PropEngine owned by this SmtEngine. */
   prop::PropEngine* getPropEngine();
 
-  /**
-   * Get a pointer to the ProofManager owned by this SmtEngine.
-   * TODO (project #37): this is the old proof manager and will be deleted
-   */
-  ProofManager* getProofManager() { return d_proofManager.get(); };
-
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager() const;
 
@@ -1076,8 +1063,6 @@ class CVC5_EXPORT SmtEngine
   /** The SMT solver */
   std::unique_ptr<smt::SmtSolver> d_smtSolver;
 
-  /** The (old) proof manager TODO (project #37): delete this */
-  std::unique_ptr<ProofManager> d_proofManager;
   /**
    * The SMT-level model object, which contains information about how to
    * print the model, as well as a pointer to the underlying TheoryModel

@@ -508,13 +508,13 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
       // must use partial substitute here, to avoid substitution into witness
       std::map<Kind, bool> rkinds;
       nn = partialSubstitute(t1, vars, subs, rkinds);
+      nn = Rewriter::rewrite(nn);
       if (nn != t1)
       {
         // If full=false, then we've duplicated a term u in the children of n.
         // For example, when ITE pulling, we have n is of the form:
         //   ite( C, f( u, t1 ), f( u, t2 ) )
         // We must show that at least one copy of u dissappears in this case.
-        nn = Rewriter::rewrite(nn);
         if (nn == t2)
         {
           new_ret = nn;

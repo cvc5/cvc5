@@ -104,8 +104,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // set proofs on if not yet set
-  if (options::unsatCores() && !options::produceProofs()
-      && options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF)
+  if (options::unsatCores() && !options::produceProofs())
   {
     if (opts.wasSetByUser(options::produceProofs))
     {
@@ -318,7 +317,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   // new unsat core specific restrictions for proofs
   if (options::unsatCores()
-      && options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF
       && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF)
   {
     // no fine-graininess
@@ -352,6 +350,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         || options::sygusInference() || options::sygusRewSynthInput())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
+      isSygus = true;
       usesSygus = true;
     }
     else if (options::sygusInst())
@@ -413,12 +412,10 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     opts.set(options::produceAssertions, true);
   }
 
-  // whether we want to force safe unsat cores, i.e., if we are in the OLD_PROOF
-  // unsat core mode or ASSUMPTIONS, the new default, since other ones are
-  // experimental
+  // whether we want to force safe unsat cores, i.e., if we are in the default
+  // ASSUMPTIONS mode, since other ones are experimental
   bool safeUnsatCores =
-      options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF
-      || options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS;
+      options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS;
 
   // Disable options incompatible with incremental solving, unsat cores or
   // output an error if enabled explicitly. It is also currently incompatible

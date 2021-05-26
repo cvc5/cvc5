@@ -66,7 +66,7 @@ Node normalizePvMult(TNode pv,
                      std::unordered_map<Node, bool>& contains_pv);
 
 /**
- * Normalizes the children of a BITVECTOR_PLUS w.r.t. pv. contains_pv marks
+ * Normalizes the children of a BITVECTOR_ADD w.r.t. pv. contains_pv marks
  * terms in which pv occurs.
  * For example,
  *

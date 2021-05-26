@@ -87,7 +87,7 @@ void Smt2::addBitvectorOperators() {
   addOperator(api::BITVECTOR_AND, "bvand");
   addOperator(api::BITVECTOR_OR, "bvor");
   addOperator(api::BITVECTOR_NEG, "bvneg");
-  addOperator(api::BITVECTOR_PLUS, "bvadd");
+  addOperator(api::BITVECTOR_ADD, "bvadd");
   addOperator(api::BITVECTOR_MULT, "bvmul");
   addOperator(api::BITVECTOR_UDIV, "bvudiv");
   addOperator(api::BITVECTOR_UREM, "bvurem");

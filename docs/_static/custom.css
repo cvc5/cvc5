@@ -1,13 +1,5 @@
 .wy-nav-content {
-  background: #f9fffa;
-}
-
-.wy-menu-vertical a {
-  color: #f9fffa;
-}
-
-.wy-menu-vertical a:hover, a:focus {
-  color: #0099e6;
+  background: #fcfffa;
 }
 
 code {
@@ -40,7 +32,19 @@ a:hover, a:focus {
 }
 
 .wy-side-nav-search > a {
-  color: #f9fffa;
+  color: #ace600;
+}
+
+.wy-side-nav-search > a:hover, > a:focus, > a:visited {
+  color: #ace600;
+}
+
+.wy-breadcrumbs a {
+  color: #739900;
+}
+
+.wy-breadcrumbs a:hover, a:focus {
+  color: #0099e6;
 }
 
 .wy-side-nav-search input[type="text"] {
@@ -49,4 +53,25 @@ a:hover, a:focus {
 
 .wy-body-for-nav {
   background: #343131;
+}
+
+.wy-menu-vertical a {
+  color: #4dc3ff;
+}
+
+.wy-menu-vertical a:visited {
+  color: #4dc3ff;
+}
+
+.wy-menu-vertical a:hover, a:focus {
+  color: #ace600;
+}
+
+.wy-nav-top {
+  color: #ace600;
+  background-color: #0099e6;
+}
+
+.wy-nav-top a {
+  color: #ace600;
 }

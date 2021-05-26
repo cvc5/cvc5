@@ -27,7 +27,9 @@ namespace api {
 /* Kind                                                                       */
 /* -------------------------------------------------------------------------- */
 
-// TODO(Gereon): Fix links that involve std::vector. See https://github.com/doxygen/doxygen/issues/8503
+// TODO(Gereon): Fix links that involve std::vector. See
+// https://github.com/doxygen/doxygen/issues/8503
+// clang-format off
 /**
  * The kind of a cvc5 term.
  *
@@ -888,7 +890,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  BITVECTOR_PLUS,
+  BITVECTOR_ADD,
   /**
    * Subtraction of two bit-vectors.
    *
@@ -3389,6 +3391,7 @@ enum CVC5_EXPORT Kind : int32_t
   /** Marks the upper-bound of this enumeration. */
   LAST_KIND
 };
+// clang-format on
 
 /**
  * Get the string representation of a given kind.

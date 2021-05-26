@@ -15,7 +15,7 @@
 
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 
-#include "expr/proof.h"
+#include "proof/proof.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"

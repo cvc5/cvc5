@@ -343,7 +343,7 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
                '--no-produce-unsat-cores' not in all_args and \
                '--no-check-unsat-cores' not in all_args and \
                '--check-unsat-cores' not in all_args and \
-               '--incremental' not in all_args and \
+               'sygus-inference' not in benchmark_content and \
                '--unconstrained-simp' not in all_args:
                 extra_command_line_args += ['--check-unsat-cores']
             if check_proofs and \
