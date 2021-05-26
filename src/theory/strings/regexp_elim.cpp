@@ -92,7 +92,8 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
   // into fixed length regular expressions are easy to handle.
   // the index of _* in re
   unsigned pivotIndex = 0;
-  size_t numPivotIndex = 0;
+  bool hasPivotIndex = false;
+  bool hasFixedLength = true;
   std::vector<Node> childLengths;
   std::vector<Node> childLengthsPostPivot;
   for (unsigned i = 0, size = children.size(); i < size; i++)
@@ -101,34 +102,34 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
     Node fl = RegExpEntail::getFixedLengthForRegexp(c);
     if (fl.isNull())
     {
-      if (numPivotIndex == 0 && c.getKind() == REGEXP_STAR
+      if (!hasPivotIndex && c.getKind() == REGEXP_STAR
           && c[0].getKind() == REGEXP_SIGMA)
       {
-        numPivotIndex = 1;
+        hasPivotIndex = true;
         pivotIndex = i;
         // zero is used in sum below and is used for concat-fixed-len
         fl = zero;
       }
       else
       {
-        numPivotIndex++;
+        hasFixedLength = false;
       }
     }
     if (!fl.isNull())
     {
       childLengths.push_back(fl);
-      if (numPivotIndex > 0)
+      if (hasPivotIndex)
       {
         childLengthsPostPivot.push_back(fl);
       }
     }
   }
-  Node lenSum = childLengths.size() > 1 ? nm->mkNode(PLUS, childLengths)
-                                        : childLengths[0];
-  // if we have at most one pivot index
-  if (numPivotIndex <= 1)
+  Node lenSum = childLengths.size() > 1
+                    ? nm->mkNode(PLUS, childLengths)
+                    : (childLengths.empty() ? zero : childLengths[0]);
+  // if we have a fixed length
+  if (hasFixedLength)
   {
-    bool hasPivotIndex = (numPivotIndex == 1);
     Assert(re.getNumChildren() == children.size());
     std::vector<Node> conc;
     conc.push_back(nm->mkNode(hasPivotIndex ? GEQ : EQUAL, lenx, lenSum));
