@@ -23,6 +23,7 @@
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
+#include "util/integer.h"
 
 namespace cvc5 {
 namespace preprocessing {

@@ -18,6 +18,7 @@
 #include <sstream>
 #include <stack>
 
+#include "expr/ascription_type.h"
 #include "expr/dtype_cons.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -30,6 +31,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/strings/word.h"
+#include "util/floatingpoint.h"
 
 using namespace cvc5::kind;
 

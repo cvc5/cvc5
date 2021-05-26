@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "expr/node_manager.h"
+#include "util/integer.h"
 
 namespace cvc5 {
 namespace theory {
