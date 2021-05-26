@@ -22,8 +22,8 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "smt/theory_rewrite_rcons.h"
 #include "proof/proof_node_updater.h"
+#include "smt/theory_rewrite_rcons.h"
 #include "smt/witness_form.h"
 #include "util/statistics_stats.h"
 

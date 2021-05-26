@@ -28,7 +28,8 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace proof {
 
-LfscPrinter::LfscPrinter(LfscNodeConverter& ltp) : d_tproc(ltp), d_assumpCounter(0)
+LfscPrinter::LfscPrinter(LfscNodeConverter& ltp)
+    : d_tproc(ltp), d_assumpCounter(0)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_boolType = nm->booleanType();
@@ -502,8 +503,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::EQ_RESOLVE: pf << h << h << cs[0] << cs[1]; break;
     case PfRule::NOT_AND: pf << h << h << cs[0]; break;
     // case PfRule::NOT_OR_ELIM: pf << h << h <<
-    case PfRule::AND_ELIM:
-      pf << h << h << args[0] << cs[0]; break;
+    case PfRule::AND_ELIM: pf << h << h << args[0] << cs[0]; break;
     case PfRule::IMPLIES_ELIM:
     case PfRule::NOT_IMPLIES_ELIM1:
     case PfRule::NOT_IMPLIES_ELIM2:

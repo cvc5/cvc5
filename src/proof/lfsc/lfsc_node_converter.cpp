@@ -101,7 +101,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // skolems v print as their witness forms
     // v is (skolem W) where W is the original or witness form of v
     Node wi = SkolemManager::getOriginalForm(n);
-    if (wi==n)
+    if (wi == n)
     {
       // if it is not a purification skolem, maybe it is a witness skolem
       wi = SkolemManager::getWitnessForm(n);
@@ -345,7 +345,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // FIXME
     return n;
   }
-  else if (k==SEP_NIL)
+  else if (k == SEP_NIL)
   {
     Node tnn = typeAsNode(convertType(tn));
     TypeNode ftype = nm->mkFunctionType(d_sortType, tn);
@@ -711,7 +711,8 @@ bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
   return k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
          || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
          || k == BITVECTOR_ROTATE_LEFT || k == BITVECTOR_ROTATE_RIGHT
-         || k == INT_TO_BITVECTOR || k == IAND || k == APPLY_UPDATER || k == APPLY_TESTER;
+         || k == INT_TO_BITVECTOR || k == IAND || k == APPLY_UPDATER
+         || k == APPLY_TESTER;
 }
 
 std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
@@ -761,7 +762,7 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
       const DType& dt = DType::datatypeOf(n);
       indices.push_back(dt[index].getConstructor());
     }
-      break;
+    break;
     case APPLY_UPDATER:
     {
       unsigned index = DType::indexOf(n);
@@ -769,7 +770,7 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
       unsigned cindex = DType::cindexOf(n);
       indices.push_back(dt[cindex][index].getSelector());
     }
-      break;
+    break;
     default: Assert(false); break;
   }
   return indices;
@@ -830,7 +831,10 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
   std::stringstream opName;
-  Trace("lfsc-term-process-debug2") << "getOperatorOfTerm " << n << " " << k << " " << (n.getMetaKind()== metakind::PARAMETERIZED) << " " << isIndexedOperatorKind(k) << std::endl;
+  Trace("lfsc-term-process-debug2")
+      << "getOperatorOfTerm " << n << " " << k << " "
+      << (n.getMetaKind() == metakind::PARAMETERIZED) << " "
+      << isIndexedOperatorKind(k) << std::endl;
   if (n.getMetaKind() == metakind::PARAMETERIZED)
   {
     Node op = n.getOperator();
@@ -839,14 +843,15 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     {
       indices = getOperatorIndices(k, n.getOperator());
       // we must convert the name of indices on updaters and testers
-      if (k==APPLY_UPDATER || k==APPLY_TESTER)
+      if (k == APPLY_UPDATER || k == APPLY_TESTER)
       {
-        Assert (indices.size()==1);
+        Assert(indices.size() == 1);
         // must convert to user name
         std::stringstream sss;
         sss << indices[0];
         TypeNode intType = nm->integerType();
-        indices[0] = getSymbolInternal(k, intType, getNameForUserName(sss.str()));
+        indices[0] =
+            getSymbolInternal(k, intType, getNameForUserName(sss.str()));
       }
     }
     else if (op.getType().isFunction())
@@ -878,7 +883,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       }
       if (!macroApply)
       {
-        if (k!=APPLY_UPDATER && k!=APPLY_TESTER)
+        if (k != APPLY_UPDATER && k != APPLY_TESTER)
         {
           opName << "f_";
         }
@@ -907,7 +912,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       ret = maybeMkSkolemFun(op, macroApply);
       Assert(!ret.isNull());
     }
-    else if (k==SINGLETON || k == MK_BAG)
+    else if (k == SINGLETON || k == MK_BAG)
     {
       if (!macroApply)
       {
