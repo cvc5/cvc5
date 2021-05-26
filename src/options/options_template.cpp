@@ -225,6 +225,7 @@ Options::Options(OptionsListener* ol)
     : d_handler(new options::OptionsHandler(this)),
 // clang-format off
 ${holder_mem_inits}$
+${holder_ref_inits}$
 // clang-format on
       d_olisten(ol)
 {}
@@ -240,8 +241,6 @@ ${holder_mem_copy}$
 // clang-format on
   }
 }
-
-${holder_getter_impl}$
 
 std::string Options::formatThreadOptionException(const std::string& option) {
   std::stringstream ss;
@@ -395,7 +394,7 @@ std::vector<std::string> Options::parseOptions(Options* options,
   if(x != NULL) {
     progName = x + 1;
   }
-  options->base().binary_name = std::string(progName);
+  options->base.binary_name = std::string(progName);
 
   std::vector<std::string> nonoptions;
   options->parseOptionsRecursive(argc, argv, &nonoptions);
