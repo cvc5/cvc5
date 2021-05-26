@@ -16,6 +16,7 @@
 
 #include "smt/optimization_solver.h"
 #include "test_smt.h"
+#include "util/bitvector.h"
 
 namespace cvc5 {
 
