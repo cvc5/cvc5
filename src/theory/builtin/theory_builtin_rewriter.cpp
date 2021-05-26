@@ -18,6 +18,7 @@
 
 #include "theory/builtin/theory_builtin_rewriter.h"
 
+#include "expr/array_store_all.h"
 #include "expr/attribute.h"
 #include "expr/node_algorithm.h"
 #include "theory/rewriter.h"

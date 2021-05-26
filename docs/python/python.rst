@@ -1,3 +1,5 @@
+.. _python-api:
+
 Python API Documentation
 ========================
 

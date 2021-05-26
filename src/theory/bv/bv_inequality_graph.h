@@ -27,6 +27,7 @@
 #include "context/cdo.h"
 #include "context/cdqueue.h"
 #include "context/context.h"
+#include "util/bitvector.h"
 
 namespace cvc5 {
 namespace theory {

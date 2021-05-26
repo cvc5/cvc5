@@ -21,6 +21,7 @@
 #include "theory/bags/solver_state.h"
 #include "theory/bags/term_registry.h"
 #include "theory/uf/equality_engine_iterator.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::context;
