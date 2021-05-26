@@ -15,7 +15,7 @@
 
 #include "theory/quantifiers/alpha_equivalence.h"
 
-#include "expr/proof.h"
+#include "proof/proof.h"
 
 using namespace cvc5::kind;
 

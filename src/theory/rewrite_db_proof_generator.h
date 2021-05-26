@@ -21,8 +21,8 @@
 
 #include "expr/match_trie.h"
 #include "expr/node.h"
-#include "expr/proof.h"
-#include "expr/proof_generator.h"
+#include "proof/proof.h"
+#include "proof/proof_generator.h"
 #include "theory/evaluator.h"
 #include "theory/rewrite_db.h"
 

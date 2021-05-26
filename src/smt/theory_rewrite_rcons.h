@@ -20,8 +20,8 @@
 #include <unordered_set>
 
 #include "expr/node.h"
-#include "expr/proof.h"
-#include "expr/proof_node_manager.h"
+#include "proof/proof.h"
+#include "proof/proof_node_manager.h"
 #include "theory/builtin/proof_checker.h"
 
 namespace cvc5 {

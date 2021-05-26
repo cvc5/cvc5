@@ -16,8 +16,9 @@
 #include "proof/verit/verit_post_processor.h"
 
 #include "expr/node_algorithm.h"
-#include "expr/proof.h"
-#include "expr/proof_checker.h"
+#include "proof/proof.h"
+#include "proof/proof_checker.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 

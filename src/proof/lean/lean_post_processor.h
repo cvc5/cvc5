@@ -20,8 +20,8 @@
 #include <map>
 #include <unordered_set>
 
-#include "expr/proof_checker.h"
-#include "expr/proof_node_updater.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_node_updater.h"
 #include "proof/lean/lean_rules.h"
 
 namespace cvc5 {

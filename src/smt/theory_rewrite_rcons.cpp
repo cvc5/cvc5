@@ -14,7 +14,7 @@
 
 #include "smt/theory_rewrite_rcons.h"
 
-#include "expr/proof_checker.h"
+#include "proof/proof_checker.h"
 
 using namespace cvc5::kind;
 

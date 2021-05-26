@@ -14,7 +14,8 @@
 
 #include "proof/lfsc/lfsc_util.h"
 
-#include "expr/proof_checker.h"
+#include "proof/proof_checker.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace proof {

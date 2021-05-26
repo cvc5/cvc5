@@ -15,6 +15,8 @@
 #include "theory/rewrite_db_term_process.h"
 
 #include "expr/attribute.h"
+#include "util/string.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 

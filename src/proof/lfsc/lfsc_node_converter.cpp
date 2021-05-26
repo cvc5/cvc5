@@ -19,12 +19,19 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/sequence.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
+#include "util/regexp.h"
+#include "util/string.h"
+#include "util/iand.h"
+#include "expr/array_store_all.h"
 
 using namespace cvc5::kind;
 

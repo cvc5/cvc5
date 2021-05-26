@@ -20,7 +20,7 @@
 #include <map>
 #include <unordered_set>
 
-#include "expr/proof_node_updater.h"
+#include "proof/proof_node_updater.h"
 #include "proof/lfsc/lfsc_node_converter.h"
 #include "proof/lfsc/lfsc_util.h"
 
