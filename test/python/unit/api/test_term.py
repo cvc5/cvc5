@@ -1004,21 +1004,13 @@ def test_get_real(solver):
     assert real9.isRealValue()
 
     assert "0" == real1.getRealValue()
-
     assert "0" == real2.getRealValue()
-
     assert "-17" == real3.getRealValue()
-
     assert "-3/5" == real4.getRealValue()
-
     assert "127/10" == real5.getRealValue()
-
     assert "1/4294967297" == real6.getRealValue()
-
     assert "4294967297" == real7.getRealValue()
-
     assert "1/18446744073709551617" == real8.getRealValue()
-
     assert "18446744073709551617" == real9.getRealValue()
 
 
