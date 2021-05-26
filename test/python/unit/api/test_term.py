@@ -841,7 +841,7 @@ def test_term_assignment(solver):
 def test_substitute(solver):
     x = solver.mkConst(solver.getIntegerSort(), "x")
     one = solver.mkInteger(1)
-    ttrue = solver.mkTrue()
+    tTrue = solver.mkTrue()
     xpx = solver.mkTerm(kinds.Plus, x, x)
     onepone = solver.mkTerm(kinds.Plus, one, one)
 
@@ -849,7 +849,7 @@ def test_substitute(solver):
     assert onepone.substitute(one, x) == xpx
     # incorrect due to type
     with pytest.raises(RuntimeError):
-        xpx.substitute(one, ttrue)
+        xpx.substitute(one, tTrue)
 
     # simultaneous substitution
     y = solver.mkConst(solver.getIntegerSort(), "y")
@@ -869,7 +869,7 @@ def test_substitute(solver):
         xpy.substitute(es, rs)
 
     # incorrect substitution due to types
-    rs.append(ttrue)
+    rs.append(tTrue)
     with pytest.raises(RuntimeError):
         xpy.substitute(es, rs)
 
@@ -961,19 +961,109 @@ def test_is_integer(solver):
   with pytest.raises(RuntimeError):
       solver.mkInteger("-00")
 
-  assert int1.isInteger()
-  assert int2.isInteger()
-  assert int3.isInteger()
-  assert int4.isInteger()
-  assert int5.isInteger()
-  assert int6.isInteger()
-  assert int7.isInteger()
-  assert int8.isInteger()
-  assert int9.isInteger()
-  assert int10.isInteger()
-  assert int11.isInteger()
+  assert int1.isIntegerValue()
+  assert int2.isIntegerValue()
+  assert int3.isIntegerValue()
+  assert int4.isIntegerValue()
+  assert int5.isIntegerValue()
+  assert int6.isIntegerValue()
+  assert int7.isIntegerValue()
+  assert int8.isIntegerValue()
+  assert int9.isIntegerValue()
+  assert int10.isIntegerValue()
+  assert int11.isIntegerValue()
 
 
+def test_get_string(solver):
+  s1 = solver.mkString("abcde")
+  assert s1.isStringValue()
+  assert s1.getStringValue() == str("abcde")
+
+def test_get_real(solver):
+  real1 = solver.mkReal("0");
+  real2 = solver.mkReal(".0");
+  real3 = solver.mkReal("-17");
+  real4 = solver.mkReal("-3/5");
+  real5 = solver.mkReal("12.7");
+  real6 = solver.mkReal("1/4294967297");
+  real7 = solver.mkReal("4294967297");
+  real8 = solver.mkReal("1/18446744073709551617");
+  real9 = solver.mkReal("18446744073709551617");
+
+  assert real1.isRealValue()
+  assert real2.isRealValue()
+  assert real3.isRealValue()
+  assert real4.isRealValue()
+  assert real5.isRealValue()
+  assert real6.isRealValue()
+  assert real7.isRealValue()
+  assert real8.isRealValue()
+  assert real9.isRealValue()
+
+  assert "0" == real1.getRealValue()
+
+  assert "0" == real2.getRealValue()
+
+  assert "-17" == real3.getRealValue()
+
+  assert "-3/5" == real4.getRealValue()
+
+  assert "127/10" == real5.getRealValue()
+
+  assert "1/4294967297" == real6.getRealValue()
+
+  assert "4294967297" == real7.getRealValue()
+
+  assert "1/18446744073709551617" == real8.getRealValue()
+
+  assert "18446744073709551617" == real9.getRealValue()
+def test_get_boolean(solver):
+  b1 = solver.mkBoolean(True);
+  b2 = solver.mkBoolean(False);
+
+  assert b1.isBooleanValue()
+  assert b2.isBooleanValue()
+  assert b1.getBooleanValue()
+  assert not b2.getBooleanValue()
+
+def test_get_bit_vector(solver):
+  b1 = solver.mkBitVector(8, 15);
+  b2 = solver.mkBitVector("00001111", 2);
+  b3 = solver.mkBitVector("15", 10);
+  b4 = solver.mkBitVector("0f", 16);
+  b5 = solver.mkBitVector(8, "00001111", 2);
+  b6 = solver.mkBitVector(8, "15", 10);
+  b7 = solver.mkBitVector(8, "0f", 16);
+
+  assert b1.isBitVectorValue()
+  assert b2.isBitVectorValue()
+  assert b3.isBitVectorValue()
+  assert b4.isBitVectorValue()
+  assert b5.isBitVectorValue()
+  assert b6.isBitVectorValue()
+  assert b7.isBitVectorValue()
+
+  assert "00001111" == b1.getBitVectorValue(2)
+  assert "15" == b1.getBitVectorValue(10)
+  assert "f" == b1.getBitVectorValue(16)
+  assert "00001111" == b2.getBitVectorValue(2)
+  assert "15" == b2.getBitVectorValue(10)
+  assert "f" == b2.getBitVectorValue(16)
+  assert "1111" == b3.getBitVectorValue(2)
+  assert "15" == b3.getBitVectorValue(10)
+  assert "f" == b3.getBitVectorValue(16)
+  assert "00001111" == b4.getBitVectorValue(2)
+  assert "15" == b4.getBitVectorValue(10)
+  assert "f" == b4.getBitVectorValue(16)
+  assert "00001111" == b5.getBitVectorValue(2)
+  assert "15" == b5.getBitVectorValue(10)
+  assert "f" == b5.getBitVectorValue(16)
+  assert "00001111" == b6.getBitVectorValue(2)
+  assert "15" == b6.getBitVectorValue(10)
+  assert "f" == b6.getBitVectorValue(16)
+  assert "00001111" == b7.getBitVectorValue(2)
+  assert "15" == b7.getBitVectorValue(10)
+  assert "f" == b7.getBitVectorValue(16)
 def test_const_array(solver):
     intsort = solver.getIntegerSort()
     arrsort = solver.mkArraySort(intsort, intsort)
