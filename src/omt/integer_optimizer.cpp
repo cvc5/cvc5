@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yancheng Ou, Michael Chang
+ *   Michael Chang, Yancheng Ou
  *
  * This file is part of the cvc5 project.
  *
