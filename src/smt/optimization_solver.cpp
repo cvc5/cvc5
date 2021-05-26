@@ -40,24 +40,24 @@ OptimizationResult::ResultType OptimizationSolver::checkOpt()
   switch (d_objectiveCombination)
   {
     case BOX: return optimizeBox(); break;
-    default: Unimplemented() << "Objective combination not-yet implemented";
+    default:
+      Unimplemented()
+          << "Only BOX objective combination is supported in current version";
   }
   Unreachable();
 }
 
-bool OptimizationSolver::pushObjective(
+void OptimizationSolver::pushObjective(
     TNode target, OptimizationObjective::ObjectiveType type, bool bvSigned)
 {
   if (!OMTOptimizer::nodeSupportsOptimization(target))
   {
-    Warning()
+    CVC5_FATAL()
         << "Objective not pushed: Target node does not support optimization";
-    return false;
   }
   d_optChecker.reset();
   d_objectives.emplace_back(target, type, bvSigned);
   d_results.emplace_back(OptimizationResult::UNKNOWN, Node());
-  return true;
 }
 
 void OptimizationSolver::popObjective()
@@ -77,7 +77,6 @@ void OptimizationSolver::setObjectiveCombination(
     ObjectiveCombination combination)
 {
   d_objectiveCombination = combination;
-  d_optChecker.reset();
 }
 
 std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
@@ -102,8 +101,7 @@ std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
 
 OptimizationResult::ResultType OptimizationSolver::optimizeBox()
 {
-  // clears the optChecker
-  d_optChecker.reset();
+  // resets the optChecker
   d_optChecker = createOptCheckerWithTimeout(d_parent);
   OptimizationResult partialResult;
   OptimizationResult::ResultType aggregatedResultType =
@@ -112,6 +110,7 @@ OptimizationResult::ResultType OptimizationSolver::optimizeBox()
   for (size_t i = 0, numObj = d_objectives.size(); i < numObj; ++i)
   {
     optimizer = OMTOptimizer::getOptimizerForObjective(d_objectives[i]);
+    // checks whether the objective type is maximize or minimize
     switch (d_objectives[i].getType())
     {
       case OptimizationObjective::MAXIMIZE:
@@ -126,7 +125,8 @@ OptimizationResult::ResultType OptimizationSolver::optimizeBox()
         CVC5_FATAL()
             << "Optimization objective is neither MAXIMIZE nor MINIMIZE";
     }
-
+    // match the optimization result type, and aggregate the results of
+    // subproblems
     switch (partialResult.getType())
     {
       case OptimizationResult::OPTIMAL: break;

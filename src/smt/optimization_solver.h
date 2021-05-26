@@ -206,11 +206,8 @@ class OptimizationSolver
    * @param bvSigned specifies whether we should use signed/unsigned
    *   comparison for BitVectors (only effective for BitVectors)
    *   and its default is false
-   * @return whether target has a supported type,
-   *   if the type is not supported,
-   *   it will return false and target won't be pushed
    **/
-  bool pushObjective(TNode target,
+  void pushObjective(TNode target,
                      OptimizationObjective::ObjectiveType type,
                      bool bvSigned = false);
 
