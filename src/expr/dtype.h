@@ -21,9 +21,11 @@
 #include <map>
 #include <string>
 #include <vector>
+
 #include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "util/cardinality.h"
 
 namespace cvc5 {
 

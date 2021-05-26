@@ -15,10 +15,12 @@
  * \todo document this file
  */
 
-#include "expr/attribute.h"
 #include "theory/sep/theory_sep_rewriter.h"
-#include "theory/quantifiers/quant_util.h"
+
+#include "expr/attribute.h"
+#include "expr/emptyset.h"
 #include "options/sep_options.h"
+#include "theory/quantifiers/quant_util.h"
 
 namespace cvc5 {
 namespace theory {

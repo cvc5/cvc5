@@ -29,6 +29,7 @@
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "util/floatingpoint.h"
 
 using namespace std;
 
@@ -362,7 +363,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
           nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
                      nm->mkConst(FloatingPointToFPReal(
                          concrete[0].getType().getConst<FloatingPointSize>())),
-                     nm->mkConst(ROUND_TOWARD_POSITIVE),
+                     nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE),
                      abstractValue));
 
       Node bg = nm->mkNode(
@@ -379,7 +380,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
           nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
                      nm->mkConst(FloatingPointToFPReal(
                          concrete[0].getType().getConst<FloatingPointSize>())),
-                     nm->mkConst(ROUND_TOWARD_NEGATIVE),
+                     nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE),
                      abstractValue));
 
       Node bl = nm->mkNode(

@@ -125,10 +125,7 @@ struct ToSetTypeRule
 
 struct BagsProperties
 {
-  static Cardinality computeCardinality(TypeNode type)
-  {
-    return Cardinality::INTEGERS;
-  }
+  static Cardinality computeCardinality(TypeNode type);
 
   static bool isWellFounded(TypeNode type);
 

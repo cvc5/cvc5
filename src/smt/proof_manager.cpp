@@ -15,9 +15,6 @@
 
 #include "smt/proof_manager.h"
 
-#include "expr/proof_checker.h"
-#include "expr/proof_node_algorithm.h"
-#include "expr/proof_node_manager.h"
 #include "options/base_options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
@@ -28,6 +25,9 @@
 #include "proof/lfsc/lfsc_printer.h"
 #include "proof/verit/verit_post_processor.h"
 #include "proof/verit/verit_printer.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
+#include "proof/proof_node_manager.h"
 #include "smt/assertions.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"

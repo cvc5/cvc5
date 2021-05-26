@@ -20,6 +20,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_matcher.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 

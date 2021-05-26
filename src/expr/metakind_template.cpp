@@ -20,6 +20,10 @@
 
 #include <iostream>
 
+// clang-format off
+${metakind_includes}
+// clang-format off
+
 namespace cvc5 {
 namespace kind {
 

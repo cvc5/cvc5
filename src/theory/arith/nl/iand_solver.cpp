@@ -24,6 +24,7 @@
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
 #include "util/iand.h"
 
 using namespace cvc5::kind;
