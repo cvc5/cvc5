@@ -17,6 +17,7 @@
 #include "preprocessing/passes/foreign_theory_rewrite.h"
 #include "smt/smt_engine.h"
 #include "test_smt.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 

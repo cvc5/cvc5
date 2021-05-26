@@ -15,6 +15,8 @@
 
 #include "theory/arith/theory_arith_type_rules.h"
 
+#include "util/rational.h"
+
 namespace cvc5 {
 namespace theory {
 namespace arith {

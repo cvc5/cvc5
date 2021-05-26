@@ -58,10 +58,11 @@ enumerator STRING_TYPE \
     "theory/strings/type_enumerator.h"
 
 constant CONST_STRING \
-    ::cvc5::String \
-    ::cvc5::strings::StringHashFunction \
-    "util/string.h" \
-    "a string of characters"
+  class \
+  String \
+  ::cvc5::strings::StringHashFunction \
+  "util/string.h" \
+  "a string of characters"
 
 # the type
 operator SEQUENCE_TYPE 1 "seuence type, takes as parameter the type of the elements"
@@ -77,10 +78,11 @@ enumerator SEQUENCE_TYPE \
     "theory/strings/type_enumerator.h"
 
 constant CONST_SEQUENCE \
-    ::cvc5::Sequence \
-    ::cvc5::SequenceHashFunction \
-    "expr/sequence.h" \
-    "a sequence of characters"
+  class \
+  Sequence \
+  ::cvc5::SequenceHashFunction \
+  "expr/sequence.h" \
+  "a sequence of characters"
 
 operator SEQ_UNIT 1 "a sequence of length one"
 operator SEQ_NTH 2 "The nth element of a sequence"
@@ -102,17 +104,19 @@ operator REGEXP_EMPTY 0 "regexp empty"
 operator REGEXP_SIGMA 0 "regexp all characters"
 
 constant REGEXP_REPEAT_OP \
-	::cvc5::RegExpRepeat \
-	::cvc5::RegExpRepeatHashFunction \
-	"util/regexp.h" \
-	"operator for regular expression repeat; payload is an instance of the cvc5::RegExpRepeat class"
+  struct \
+  RegExpRepeat \
+  ::cvc5::RegExpRepeatHashFunction \
+  "util/regexp.h" \
+  "operator for regular expression repeat; payload is an instance of the cvc5::RegExpRepeat class"
 parameterized REGEXP_REPEAT REGEXP_REPEAT_OP 1 "regular expression repeat; first parameter is a REGEXP_REPEAT_OP, second is a regular expression term"
 
 constant REGEXP_LOOP_OP \
-	::cvc5::RegExpLoop \
-	::cvc5::RegExpLoopHashFunction \
-	"util/regexp.h" \
-	"operator for regular expression loop; payload is an instance of the cvc5::RegExpLoop class"
+  struct \
+  RegExpLoop \
+  ::cvc5::RegExpLoopHashFunction \
+  "util/regexp.h" \
+  "operator for regular expression loop; payload is an instance of the cvc5::RegExpLoop class"
 parameterized REGEXP_LOOP REGEXP_LOOP_OP 1 "regular expression loop; first parameter is a REGEXP_LOOP_OP, second is a regular expression term"
 
 #internal

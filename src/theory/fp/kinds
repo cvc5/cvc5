@@ -14,7 +14,8 @@ properties check
 
 # constants...
 constant CONST_FLOATINGPOINT \
-    ::cvc5::FloatingPoint \
+    class \
+    FloatingPoint \
     ::cvc5::FloatingPointHashFunction \
     "util/floatingpoint.h" \
     "a floating-point literal"
@@ -22,9 +23,10 @@ typerule CONST_FLOATINGPOINT    ::cvc5::theory::fp::FloatingPointConstantTypeRul
 
 
 constant CONST_ROUNDINGMODE \
-    ::cvc5::RoundingMode \
+    "enum class" \
+    RoundingMode \
     ::cvc5::RoundingModeHashFunction \
-    "util/floatingpoint.h" \
+    "util/roundingmode.h" \
     "a floating-point rounding mode"    
 typerule CONST_ROUNDINGMODE    ::cvc5::theory::fp::RoundingModeConstantTypeRule
 
@@ -45,7 +47,8 @@ enumerator ROUNDINGMODE_TYPE \
 
 
 constant FLOATINGPOINT_TYPE \
-    ::cvc5::FloatingPointSize \
+    class \
+    FloatingPointSize \
     ::cvc5::FloatingPointSizeHashFunction \
     "util/floatingpoint.h" \
     "floating-point type"
@@ -155,7 +158,8 @@ typerule FLOATINGPOINT_ISPOS   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
 
 constant FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP \
-    ::cvc5::FloatingPointToFPIEEEBitVector \
+    class \
+    FloatingPointToFPIEEEBitVector \
     "::cvc5::FloatingPointConvertSortHashFunction<0x1>" \
     "util/floatingpoint.h" \
     "operator for to_fp from bit vector"
@@ -167,7 +171,8 @@ typerule FLOATINGPOINT_TO_FP_IEEE_BITVECTOR   ::cvc5::theory::fp::FloatingPointT
 
 
 constant FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP \
-    ::cvc5::FloatingPointToFPFloatingPoint \
+    class \
+    FloatingPointToFPFloatingPoint \
     "::cvc5::FloatingPointConvertSortHashFunction<0x2>" \
     "util/floatingpoint.h" \
     "operator for to_fp from floating point"
@@ -180,7 +185,8 @@ typerule FLOATINGPOINT_TO_FP_FLOATINGPOINT   ::cvc5::theory::fp::FloatingPointTo
 
 
 constant FLOATINGPOINT_TO_FP_REAL_OP \
-    ::cvc5::FloatingPointToFPReal \
+    class \
+    FloatingPointToFPReal \
     "::cvc5::FloatingPointConvertSortHashFunction<0x4>" \
     "util/floatingpoint.h" \
     "operator for to_fp from real"
@@ -192,7 +198,8 @@ typerule FLOATINGPOINT_TO_FP_REAL   ::cvc5::theory::fp::FloatingPointToFPRealTyp
 
 
 constant FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP \
-    ::cvc5::FloatingPointToFPSignedBitVector \
+    class \
+    FloatingPointToFPSignedBitVector \
     "::cvc5::FloatingPointConvertSortHashFunction<0x8>" \
     "util/floatingpoint.h" \
     "operator for to_fp from signed bit vector"
@@ -204,7 +211,8 @@ typerule FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR   ::cvc5::theory::fp::FloatingPoin
 
 
 constant FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP \
-    ::cvc5::FloatingPointToFPUnsignedBitVector \
+    class \
+    FloatingPointToFPUnsignedBitVector \
     "::cvc5::FloatingPointConvertSortHashFunction<0x10>" \
     "util/floatingpoint.h" \
     "operator for to_fp from unsigned bit vector"
@@ -217,7 +225,8 @@ typerule FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR   ::cvc5::theory::fp::FloatingPo
 
 
 constant FLOATINGPOINT_TO_FP_GENERIC_OP \
-    ::cvc5::FloatingPointToFPGeneric \
+    class \
+    FloatingPointToFPGeneric \
     "::cvc5::FloatingPointConvertSortHashFunction<0x11>" \
     "util/floatingpoint.h" \
     "operator for a generic to_fp"
@@ -232,7 +241,8 @@ typerule FLOATINGPOINT_TO_FP_GENERIC   ::cvc5::theory::fp::FloatingPointToFPGene
 
 
 constant FLOATINGPOINT_TO_UBV_OP \
-    ::cvc5::FloatingPointToUBV \
+    class \
+    FloatingPointToUBV \
     "::cvc5::FloatingPointToBVHashFunction<0x1>" \
     "util/floatingpoint.h" \
     "operator for to_ubv"
@@ -243,7 +253,8 @@ typerule FLOATINGPOINT_TO_UBV   ::cvc5::theory::fp::FloatingPointToUBVTypeRule
 
 
 constant FLOATINGPOINT_TO_UBV_TOTAL_OP \
-    ::cvc5::FloatingPointToUBVTotal \
+    class \
+    FloatingPointToUBVTotal \
     "::cvc5::FloatingPointToBVHashFunction<0x4>" \
     "util/floatingpoint.h" \
     "operator for to_ubv_total"
@@ -255,7 +266,8 @@ typerule FLOATINGPOINT_TO_UBV_TOTAL   ::cvc5::theory::fp::FloatingPointToUBVTota
 
 
 constant FLOATINGPOINT_TO_SBV_OP \
-    ::cvc5::FloatingPointToSBV \
+    class \
+    FloatingPointToSBV \
     "::cvc5::FloatingPointToBVHashFunction<0x2>" \
     "util/floatingpoint.h" \
     "operator for to_sbv"
@@ -266,7 +278,8 @@ typerule FLOATINGPOINT_TO_SBV   ::cvc5::theory::fp::FloatingPointToSBVTypeRule
 
 
 constant FLOATINGPOINT_TO_SBV_TOTAL_OP \
-    ::cvc5::FloatingPointToSBVTotal \
+    class \
+    FloatingPointToSBVTotal \
     "::cvc5::FloatingPointToBVHashFunction<0x8>" \
     "util/floatingpoint.h" \
     "operator for to_sbv_total"

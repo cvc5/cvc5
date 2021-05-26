@@ -19,6 +19,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/type_node.h"
 #include "test_smt.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace test {
