@@ -64,7 +64,7 @@ Cardinality FunctionProperties::computeCardinality(TypeNode type)
 
   Cardinality argsCard(1);
   // get the largest cardinality of function arguments/return type
-  for (unsigned i = 0, i_end = type.getNumChildren() - 1; i < i_end; ++i)
+  for (size_t i = 0, i_end = type.getNumChildren() - 1; i < i_end; ++i)
   {
     argsCard *= type[i].getCardinality();
   }

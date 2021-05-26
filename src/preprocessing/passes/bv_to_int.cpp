@@ -36,6 +36,7 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/iand.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace preprocessing {

@@ -693,7 +693,7 @@ bool TypeNode::isBitVector(unsigned size) const
           && getConst<BitVectorSize>() == size);
 }
 
-unsigned TypeNode::getBitVectorSize() const
+uint32_t TypeNode::getBitVectorSize() const
 {
   Assert(isBitVector());
   return getConst<BitVectorSize>();

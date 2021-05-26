@@ -657,7 +657,7 @@ private:
   unsigned getFloatingPointSignificandSize() const;
 
   /** Get the size of this bit-vector type */
-  unsigned getBitVectorSize() const;
+  uint32_t getBitVectorSize() const;
 
   /** Is this a sort kind */
   bool isSort() const;
