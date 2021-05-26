@@ -92,7 +92,7 @@ name   = "Decision Heuristics"
   category   = "expert"
   long       = "jh-rlv-order"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "maintain activity-based ordering for decision justification heuristic"
 
 [[option]]
