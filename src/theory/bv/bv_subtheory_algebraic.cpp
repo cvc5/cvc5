@@ -29,6 +29,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "util/bitvector.h"
 
 using namespace cvc5::context;
 using namespace cvc5::prop;

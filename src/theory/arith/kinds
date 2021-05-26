@@ -44,10 +44,11 @@ operator ARCCOTANGENT 1 "arc cotangent"
 operator SQRT 1 "square root"
 
 constant DIVISIBLE_OP \
-        ::cvc5::Divisible \
-        ::cvc5::DivisibleHashFunction \
-        "util/divisible.h" \
-        "operator for the divisibility-by-k predicate; payload is an instance of the cvc5::Divisible class"
+  struct \
+  Divisible \
+  ::cvc5::DivisibleHashFunction \
+  "util/divisible.h" \
+  "operator for the divisibility-by-k predicate; payload is an instance of the cvc5::Divisible class"
 
 sort REAL_TYPE \
     Cardinality::REALS \
@@ -63,7 +64,8 @@ sort INTEGER_TYPE \
     "integer type"
 
 constant CONST_RATIONAL \
-    ::cvc5::Rational \
+    class \
+    Rational \
     ::cvc5::RationalHashFunction \
     "util/rational.h" \
     "a multiple-precision rational constant; payload is an instance of the cvc5::Rational class"
@@ -82,10 +84,11 @@ operator GEQ 2 "greater than or equal, x >= y"
 
 # represents an indexed root predicate. See util/indexed_root_predicate.h for more documentation.
 constant INDEXED_ROOT_PREDICATE_OP \
-	::cvc5::IndexedRootPredicate \
-	::cvc5::IndexedRootPredicateHashFunction \
-	"util/indexed_root_predicate.h" \
-	"operator for the indexed root predicate; payload is an instance of the cvc5::IndexedRootPredicate class"
+  struct \
+  IndexedRootPredicate \
+  ::cvc5::IndexedRootPredicateHashFunction \
+  "util/indexed_root_predicate.h" \
+  "operator for the indexed root predicate; payload is an instance of the cvc5::IndexedRootPredicate class"
 parameterized INDEXED_ROOT_PREDICATE INDEXED_ROOT_PREDICATE_OP 2 "indexed root predicate; first parameter is a INDEXED_ROOT_PREDICATE_OP, second is a real variable compared to zero, third is a polynomial"
 
 operator IS_INTEGER 1 "term-is-integer predicate (parameter is a real-sorted term)"
@@ -157,10 +160,11 @@ typerule PI ::cvc5::theory::arith::RealNullaryOperatorTypeRule
 # (bv2int (bvand ((_ int2bv k) i1) ((_ int2bv k) i2)))
 # for all integers i1, i2.
 constant IAND_OP \
-	::cvc5::IntAnd \
-	"::cvc5::UnsignedHashFunction< ::cvc5::IntAnd >" \
-	"util/iand.h" \
-	"operator for integer AND; payload is an instance of the cvc5::IntAnd class"
+  struct \
+  IntAnd \
+  "::cvc5::UnsignedHashFunction< ::cvc5::IntAnd >" \
+  "util/iand.h" \
+  "operator for integer AND; payload is an instance of the cvc5::IntAnd class"
 parameterized IAND IAND_OP 2 "integer version of AND operator; first parameter is an IAND_OP, second and third are integer terms"
 
 typerule IAND_OP ::cvc5::theory::arith::IAndOpTypeRule

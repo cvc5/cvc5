@@ -32,7 +32,19 @@ a:hover, a:focus {
 }
 
 .wy-side-nav-search > a {
-  color: #fcfffa;
+  color: #ace600;
+}
+
+.wy-side-nav-search > a:hover, > a:focus, > a:visited {
+  color: #ace600;
+}
+
+.wy-breadcrumbs a {
+  color: #739900;
+}
+
+.wy-breadcrumbs a:hover, a:focus {
+  color: #0099e6;
 }
 
 .wy-side-nav-search input[type="text"] {
@@ -56,10 +68,10 @@ a:hover, a:focus {
 }
 
 .wy-nav-top {
-  color: #fcfffa;
+  color: #ace600;
   background-color: #0099e6;
 }
 
 .wy-nav-top a {
-  color: #fcfffa;
+  color: #ace600;
 }

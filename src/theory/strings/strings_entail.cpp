@@ -21,6 +21,8 @@
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/rational.h"
+#include "util/string.h"
 
 using namespace cvc5::kind;
 

@@ -382,11 +382,17 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extract(
 template class wrappedBitVector<true>;
 template class wrappedBitVector<false>;
 
-traits::rm traits::RNE(void) { return ::cvc5::ROUND_NEAREST_TIES_TO_EVEN; };
-traits::rm traits::RNA(void) { return ::cvc5::ROUND_NEAREST_TIES_TO_AWAY; };
-traits::rm traits::RTP(void) { return ::cvc5::ROUND_TOWARD_POSITIVE; };
-traits::rm traits::RTN(void) { return ::cvc5::ROUND_TOWARD_NEGATIVE; };
-traits::rm traits::RTZ(void) { return ::cvc5::ROUND_TOWARD_ZERO; };
+traits::rm traits::RNE(void)
+{
+  return RoundingMode::ROUND_NEAREST_TIES_TO_EVEN;
+};
+traits::rm traits::RNA(void)
+{
+  return RoundingMode::ROUND_NEAREST_TIES_TO_AWAY;
+};
+traits::rm traits::RTP(void) { return RoundingMode::ROUND_TOWARD_POSITIVE; };
+traits::rm traits::RTN(void) { return RoundingMode::ROUND_TOWARD_NEGATIVE; };
+traits::rm traits::RTZ(void) { return RoundingMode::ROUND_TOWARD_ZERO; };
 // This is a literal back-end so props are actually bools
 // so these can be handled in the same way as the internal assertions above
 

@@ -18,6 +18,8 @@
 #include <algorithm>
 
 #include "expr/type_node.h"
+#include "util/bitvector.h"
+#include "util/cardinality.h"
 #include "util/integer.h"
 
 namespace cvc5 {
