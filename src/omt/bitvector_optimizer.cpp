@@ -17,6 +17,7 @@
 
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"
+#include "util/bitvector.h"
 
 using namespace cvc5::smt;
 namespace cvc5::omt {

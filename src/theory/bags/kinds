@@ -16,7 +16,8 @@ properties check presolve
 
 # constants
 constant EMPTYBAG \
-    ::cvc5::EmptyBag \
+    class \
+    EmptyBag \
     ::cvc5::EmptyBagHashFunction \
     "expr/emptybag.h" \
     "the empty bag constant; payload is an instance of the cvc5::EmptyBag class"
@@ -50,7 +51,8 @@ operator BAG_COUNT         2  "multiplicity of an element in a bag"
 operator DUPLICATE_REMOVAL 1  "eliminate duplicates in a bag (also known as the delta operator,or the squash operator)"
 
 constant MK_BAG_OP \
-	::cvc5::MakeBagOp \
+  class \
+	MakeBagOp \
 	::cvc5::MakeBagOpHashFunction \
 	"theory/bags/make_bag_op.h" \
 	"operator for MK_BAG; payload is an instance of the cvc5::MakeBagOp class"

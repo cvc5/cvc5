@@ -42,6 +42,7 @@ me=$(basename "$0")
 
 template=$1; shift
 
+metakind_fwd_decls=
 metakind_includes=
 metakind_kinds=
 metakind_constantMaps=
@@ -202,65 +203,60 @@ function parameterized {
 }
 
 function constant {
-  # constant K T Hasher header ["comment"]
+  # constant K F T Hasher header ["comment"]
 
   lineno=${BASH_LINENO[0]}
 
   check_theory_seen
 
-  if ! expr "$2" : '\(::*\)' >/dev/null; then
-    if ! primitive_type "$2"; then
-      # if there's an embedded space, we're probably doing something
-      # tricky to specify the CONST payload, like "int const*"; in any
-      # case, this warning gives too many false positives, so disable it
-      if ! expr "$2" : '..* ..*' >/dev/null; then
-        echo "$kf:$lineno: warning: constant $1 class \`$2' isn't fully-qualified (e.g., ::cvc5::Rational)" >&2
-      fi
-    fi
+  if ! expr "$4" : '\(::*\)' >/dev/null; then
+    echo "$kf:$lineno: warning: constant $1 hasher \`$4' isn't fully-qualified (e.g., ::cvc5::RationalHashFunction)" >&2
   fi
-  if ! expr "$3" : '\(::*\)' >/dev/null; then
-    echo "$kf:$lineno: warning: constant $1 hasher \`$3' isn't fully-qualified (e.g., ::cvc5::RationalHashFunction)" >&2
+
+  if [[ "$2" != "skip" ]]; then
+    metakind_fwd_decls="${metakind_fwd_decls}
+$2 $3;"
   fi
 
   # Avoid including the same header multiple times
-  if [ -n "$4" ] && [[ "${metakind_includes}" != *"#include \"$4\""* ]]; then
+  if [ -n "$5" ] && [[ "${metakind_includes}" != *"#include \"$5\""* ]]; then
     metakind_includes="${metakind_includes}
-#include \"$4\""
+#include \"$5\""
   fi
   register_metakind CONSTANT "$1" 0
   metakind_getConst_decls="${metakind_getConst_decls}
 template <>
-$2 const& NodeValue::getConst< $2 >() const;
+$3 const& NodeValue::getConst< $3 >() const;
 "
   metakind_constantMaps_decls="${metakind_constantMaps_decls}
 template <>
-struct ConstantMap< $2 > {
+struct ConstantMap< $3 > {
   // typedef $theory_class OwningTheory;
   enum { kind = ::cvc5::kind::$1 };
-};/* ConstantMap< $2 > */
+};/* ConstantMap< $3 > */
 
 template <>
 struct ConstantMapReverse< ::cvc5::kind::$1 > {
-  typedef $2 T;
+  typedef $3 T;
 };/* ConstantMapReverse< ::cvc5::kind::$1 > */
   "
   metakind_constantMaps="${metakind_constantMaps}
-// The reinterpret_cast of d_children to \"$2 const*\"
+// The reinterpret_cast of d_children to \"$3 const*\"
 // flags a \"strict aliasing\" warning; it's okay, because we never access
 // the embedded constant as a NodeValue* child, and never access an embedded
 // NodeValue* child as a constant.
 #pragma GCC diagnostic ignored \"-Wstrict-aliasing\"
 
 template <>
-$2 const& NodeValue::getConst< $2 >() const {
+$3 const& NodeValue::getConst< $3 >() const {
   AssertArgument(getKind() == ::cvc5::kind::$1, *this,
-                 \"Improper kind for getConst<$2>()\");
+                 \"Improper kind for getConst<$3>()\");
   // To support non-inlined CONSTANT-kinded NodeValues (those that are
   // \"constructed\" when initially checking them against the NodeManager
   // pool), we must check d_nchildren here.
   return d_nchildren == 0
-    ? *reinterpret_cast< $2 const* >(d_children)
-    : *reinterpret_cast< $2 const* >(d_children[0]);
+    ? *reinterpret_cast< $3 const* >(d_children)
+    : *reinterpret_cast< $3 const* >(d_children[0]);
 }
 
 // re-enable the warning
@@ -273,17 +269,17 @@ $2 const& NodeValue::getConst< $2 >() const {
 "
   metakind_constHashes="${metakind_constHashes}
   case kind::$1:
-    return $3()(nv->getConst< $2 >());
+    return $4()(nv->getConst< $3 >());
 "
   metakind_constPrinters="${metakind_constPrinters}
   case kind::$1:
-    out << nv->getConst< $2 >();
+    out << nv->getConst< $3 >();
     break;
 "
-  cname=`echo "$2" | awk 'BEGIN {FS="::"} {print$NF}'`
+  cname=`echo "$3" | awk 'BEGIN {FS="::"} {print$NF}'`
   metakind_constDeleters="${metakind_constDeleters}
   case kind::$1:
-    std::allocator< $2 >().destroy(reinterpret_cast< $2* >(nv->d_children));
+    std::allocator< $3 >().destroy(reinterpret_cast< $3* >(nv->d_children));
     break;
 "
 }
@@ -397,6 +393,7 @@ check_builtin_theory_seen
 
 text=$(cat "$template")
 for var in \
+    metakind_fwd_decls \
     metakind_includes \
     metakind_kinds \
     metakind_constantMaps \

@@ -18,6 +18,7 @@
 #include "expr/emptybag.h"
 #include "theory/rewriter.h"
 #include "theory_bags_type_enumerator.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace theory {

@@ -22,11 +22,17 @@
 #include <vector>
 
 #include "api/cpp/cvc5.h"
+#include "expr/array_store_all.h"
+#include "expr/ascription_type.h"
+#include "expr/datatype_index.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/emptybag.h"
+#include "expr/emptyset.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
+#include "expr/uninterpreted_constant.h"
 #include "options/bv_options.h"
 #include "options/language.h"
 #include "options/printer_options.h"
@@ -39,9 +45,17 @@
 #include "smt_util/boolean_simplification.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/datatypes/tuple_project_op.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/theory_model.h"
+#include "util/bitvector.h"
+#include "util/divisible.h"
+#include "util/floatingpoint.h"
+#include "util/iand.h"
+#include "util/indexed_root_predicate.h"
+#include "util/regexp.h"
 #include "util/smt2_quote_string.h"
+#include "util/string.h"
 
 using namespace std;
 
@@ -201,11 +215,19 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     case kind::CONST_ROUNDINGMODE:
       switch (n.getConst<RoundingMode>()) {
-        case ROUND_NEAREST_TIES_TO_EVEN: out << "roundNearestTiesToEven"; break;
-        case ROUND_NEAREST_TIES_TO_AWAY: out << "roundNearestTiesToAway"; break;
-        case ROUND_TOWARD_POSITIVE: out << "roundTowardPositive"; break;
-        case ROUND_TOWARD_NEGATIVE: out << "roundTowardNegative"; break;
-        case ROUND_TOWARD_ZERO: out << "roundTowardZero"; break;
+        case RoundingMode::ROUND_NEAREST_TIES_TO_EVEN:
+          out << "roundNearestTiesToEven";
+          break;
+        case RoundingMode::ROUND_NEAREST_TIES_TO_AWAY:
+          out << "roundNearestTiesToAway";
+          break;
+        case RoundingMode::ROUND_TOWARD_POSITIVE:
+          out << "roundTowardPositive";
+          break;
+        case RoundingMode::ROUND_TOWARD_NEGATIVE:
+          out << "roundTowardNegative";
+          break;
+        case RoundingMode::ROUND_TOWARD_ZERO: out << "roundTowardZero"; break;
         default:
           Unreachable() << "Invalid value of rounding mode constant ("
                         << n.getConst<RoundingMode>() << ")";

@@ -16,6 +16,8 @@
  * \todo document this file
  */
 
+#include "theory/arith/arith_rewriter.h"
+
 #include <set>
 #include <sstream>
 #include <stack>
@@ -23,11 +25,12 @@
 
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/theory.h"
+#include "util/bitvector.h"
+#include "util/divisible.h"
 #include "util/iand.h"
 
 namespace cvc5 {

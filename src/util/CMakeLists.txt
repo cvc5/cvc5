@@ -58,6 +58,7 @@ libcvc5_add_sources(
   result.h
   regexp.cpp
   regexp.h
+  roundingmode.cpp
   roundingmode.h
   safe_print.cpp
   safe_print.h

@@ -19,6 +19,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/strings/word.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;
