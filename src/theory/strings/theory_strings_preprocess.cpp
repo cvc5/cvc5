@@ -826,7 +826,7 @@ Node StringsPreprocess::reduce(Node t,
     // ELSE:
     //   numOcc > 0 ^
     //   k = Us(0) ^ Us(numOcc) = substr(x, Uf(numOcc)) ^
-    //   Uf(0) = 0 ^ indexof(substr(x, Uf(numOcc)), y', 0) = -1 ^
+    //   Uf(0) = 0 ^ indexof_re(substr(x, Uf(numOcc)), y', 0) = -1 ^
     //   forall i. 0 <= i < nummOcc =>
     //     Ul(i) > 0 ^
     //     Uf(i + 1) = indexof_re(x, yp, Uf(i)) + Ul(i + 1) ^
