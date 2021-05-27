@@ -17,6 +17,8 @@ find_package(Java REQUIRED)
 include(UseJava)
 find_package(JUnit REQUIRED)
 
+get_target_property(CVC5_JAR_PATH cvc5jar JAR_FILE)
+
 # specify source files for junit tests
 set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/SolverTest.java

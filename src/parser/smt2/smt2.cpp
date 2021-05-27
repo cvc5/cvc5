@@ -206,7 +206,7 @@ void Smt2::addFloatingPointOperators() {
   addOperator(api::FLOATINGPOINT_EQ, "fp.eq");
   addOperator(api::FLOATINGPOINT_ABS, "fp.abs");
   addOperator(api::FLOATINGPOINT_NEG, "fp.neg");
-  addOperator(api::FLOATINGPOINT_PLUS, "fp.add");
+  addOperator(api::FLOATINGPOINT_ADD, "fp.add");
   addOperator(api::FLOATINGPOINT_SUB, "fp.sub");
   addOperator(api::FLOATINGPOINT_MULT, "fp.mul");
   addOperator(api::FLOATINGPOINT_DIV, "fp.div");

@@ -14,7 +14,9 @@
  */
 
 #include "expr/array_store_all.h"
+#include "expr/uninterpreted_constant.h"
 #include "test_smt.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace test {

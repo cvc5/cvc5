@@ -25,9 +25,10 @@
 
 #include <unordered_map>
 
-#include "expr/node.h"
-#include "context/cdo.h"
 #include "context/cdinsert_hashmap.h"
+#include "context/cdo.h"
+#include "expr/node.h"
+#include "util/integer.h"
 
 namespace cvc5 {
 namespace preprocessing {

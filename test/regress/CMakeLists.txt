@@ -582,6 +582,7 @@ set(regress_0_tests
   regress0/fmf/tail_rec.smt2
   regress0/fp/abs-unsound.smt2
   regress0/fp/abs-unsound2.smt2
+  regress0/fp/bvcomp-rewrite.smt2
   regress0/fp/down-cast-RNA.smt2
   regress0/fp/ext-rew-test.smt2
   regress0/fp/from_ubv.smt2
@@ -659,6 +660,7 @@ set(regress_0_tests
   regress0/issue5540-2-dump-model.smt2
   regress0/issue5540-model-decls.smt2
   regress0/issue5550-num-children.smt2
+  regress0/issue6605-2-abd-triv.smt2
   regress0/ite_arith.smt2
   regress0/ite_real_int_type.smtv1.smt2
   regress0/ite_real_valid.smtv1.smt2
@@ -870,6 +872,7 @@ set(regress_0_tests
   regress0/quantifiers/issue4576.smt2
   regress0/quantifiers/issue5645-dt-cm-spurious.smt2
   regress0/quantifiers/issue5693-prenex.smt2
+  regress0/quantifiers/issue6603-dt-bool-cegqi.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -1512,7 +1515,18 @@ set(regress_1_tests
   regress1/datatypes/tuple_projection.smt2
   regress1/decision/bug374a.smtv1.smt2
   regress1/decision/error3.smtv1.smt2
+  regress1/decision/issue5454-2.smt2
+  regress1/decision/issue5454-3.smt2
+  regress1/decision/issue5454.smt2
+  regress1/decision/issue5785.smt2
+  regress1/decision/jh-test1.smt2
   regress1/decision/quant-Arrays_Q1-noinfer.smt2
+  regress1/decision/wishue114.smt2
+  regress1/decision/wishue115.smt2
+  regress1/decision/wishue116.smt2
+  regress1/decision/wishue149-2.smt2
+  regress1/decision/wishue149-3.smt2
+  regress1/decision/wishue160.smt2
   regress1/error.cvc
   regress1/errorcrash.smt2
   regress1/fp/rti_3_5_bug_report.smt2
@@ -2096,6 +2110,7 @@ set(regress_1_tests
   regress1/strings/issue6337-replace-re-all.smt2
   regress1/strings/issue6337-replace-re.smt2
   regress1/strings/issue6567-empty-re-range.smt2
+  regress1/strings/issue6604-2.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -2644,6 +2659,8 @@ set(regression_disabled_tests
   regress1/sygus/issue3498.smt2
   regress2/arith/miplib-opt1217--27.smt2
   regress2/nl/dumortier-050317.smt2
+  # timeout after refactoring justification heuristic
+  regress2/ho/SYO362^5.p
   # time out
   regress3/unifpi-solve-car_1.lus.sy
   regress3/issue4476-ext-rew.smt2

@@ -36,6 +36,7 @@
 namespace cvc5 {
 
 class ProofNodeManager;
+class EagerProofGenerator;
 
 namespace context {
 class Context;
@@ -43,8 +44,6 @@ class UserContext;
 }
 
 namespace theory {
-
-class EagerProofGenerator;
 struct EeSetupInfo;
 
 namespace eq {

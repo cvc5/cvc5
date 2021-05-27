@@ -59,7 +59,7 @@ void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
     {
       checkEagerPedantic(d_ra);
     }
-    d_src[n] = theory::TrustNode::mkTrustLemma(n, pg);
+    d_src[n] = TrustNode::mkTrustLemma(n, pg);
   }
   else
   {
@@ -67,7 +67,7 @@ void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
   }
 }
 
-void PreprocessProofGenerator::notifyNewTrustedAssert(theory::TrustNode tn)
+void PreprocessProofGenerator::notifyNewTrustedAssert(TrustNode tn)
 {
   notifyNewAssert(tn.getProven(), tn.getGenerator());
 }
@@ -82,17 +82,17 @@ void PreprocessProofGenerator::notifyPreprocessed(Node n,
     return;
   }
   // call the trusted version
-  notifyTrustedPreprocessed(theory::TrustNode::mkTrustRewrite(n, np, pg));
+  notifyTrustedPreprocessed(TrustNode::mkTrustRewrite(n, np, pg));
 }
 
-void PreprocessProofGenerator::notifyTrustedPreprocessed(theory::TrustNode tnp)
+void PreprocessProofGenerator::notifyTrustedPreprocessed(TrustNode tnp)
 {
   if (tnp.isNull())
   {
     // no rewrite, nothing to do
     return;
   }
-  Assert(tnp.getKind() == theory::TrustNodeKind::REWRITE);
+  Assert(tnp.getKind() == TrustNodeKind::REWRITE);
   Node np = tnp.getNode();
   Trace("smt-proof-pp-debug")
       << "PreprocessProofGenerator::notifyPreprocessed: " << tnp.getProven()
@@ -161,8 +161,8 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       }
 
       Trace("smt-pppg") << "...update" << std::endl;
-      theory::TrustNodeKind tnk = (*it).second.getKind();
-      if (tnk == theory::TrustNodeKind::REWRITE)
+      TrustNodeKind tnk = (*it).second.getKind();
+      if (tnk == TrustNodeKind::REWRITE)
       {
         Trace("smt-pppg") << "...rewritten from " << proven[0] << std::endl;
         Assert(proven.getKind() == kind::EQUAL);
@@ -185,17 +185,15 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       else
       {
         Trace("smt-pppg") << "...lemma" << std::endl;
-        Assert(tnk == theory::TrustNodeKind::LEMMA);
+        Assert(tnk == TrustNodeKind::LEMMA);
       }
 
       if (!proofStepProcessed)
       {
         Trace("smt-pppg") << "...add missing step" << std::endl;
         // add trusted step, the rule depends on the kind of trust node
-        cdp.addStep(proven,
-                    tnk == theory::TrustNodeKind::LEMMA ? d_ra : d_rpp,
-                    {},
-                    {proven});
+        cdp.addStep(
+            proven, tnk == TrustNodeKind::LEMMA ? d_ra : d_rpp, {}, {proven});
       }
     }
   } while (success);

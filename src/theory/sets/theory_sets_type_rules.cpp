@@ -19,6 +19,8 @@
 #include <sstream>
 
 #include "theory/sets/normal_form.h"
+#include "theory/sets/singleton_op.h"
+#include "util/cardinality.h"
 
 namespace cvc5 {
 namespace theory {

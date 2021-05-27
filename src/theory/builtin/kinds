@@ -119,12 +119,14 @@
 #     For consistency these should start with "APPLY_", but this is
 #     not enforced.
 #
-#   constant K T Hasher header ["comment"]
+#   constant K F T Hasher header ["comment"]
 #
-#     Declares a constant kind K.  T is the C++ type representing the
-#     constant internally (and it should be
-#     ::fully::qualified::like::this), and header is the header needed
-#     to define it.  Hasher is a hash functor type defined like this:
+#     Declares a constant kind K.  F is the type of the forward declaration to
+#     generate (e.g., `class`, `struct`). If F is `skip` then then no forward
+#     declaration is generated.  T is the C++ type representing the constant
+#     internally (the type is expected to be in the cvc5 namespace), and header
+#     is the header needed to define it.  Hasher is a hash functor type defined
+#     like this:
 #
 #       struct MyHashFcn {
 #         size_t operator()(const T& val) const;
@@ -263,7 +265,8 @@ well-founded SORT_TYPE \
     "::cvc5::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)"
 
 constant UNINTERPRETED_CONSTANT \
-    ::cvc5::UninterpretedConstant \
+    class \
+    UninterpretedConstant \
     ::cvc5::UninterpretedConstantHashFunction \
     "expr/uninterpreted_constant.h" \
     "the kind of expressions representing uninterpreted constants; payload is an instance of the cvc5::UninterpretedConstant class (used in models)"
@@ -273,7 +276,8 @@ enumerator SORT_TYPE \
     "theory/builtin/type_enumerator.h"
 
 constant ABSTRACT_VALUE \
-    ::cvc5::AbstractValue \
+    class \
+    AbstractValue \
     ::cvc5::AbstractValueHashFunction \
     "util/abstract_value.h" \
     "the kind of expressions representing abstract values (other than uninterpreted sort constants); payload is an instance of the cvc5::AbstractValue class (used in models)"
@@ -284,7 +288,8 @@ typerule ABSTRACT_VALUE ::cvc5::theory::builtin::AbstractValueTypeRule
 # not stored that way.  If you ask for the operator of (EQUAL a b),
 # you'll get a special, singleton (BUILTIN EQUAL) Node.
 constant BUILTIN \
-    ::cvc5::Kind \
+    skip \
+    Kind \
     ::cvc5::kind::KindHashFunction \
     "expr/kind.h" \
     "the kind of expressions representing built-in operators"
@@ -301,7 +306,8 @@ operator LAMBDA 2 "a lambda expression; first parameter is a BOUND_VAR_LIST, sec
 operator WITNESS 2 "a witness expression; first parameter is a BOUND_VAR_LIST, second is the witness body"
 
 constant TYPE_CONSTANT \
-    ::cvc5::TypeConstant \
+    skip \
+    TypeConstant \
     ::cvc5::TypeConstantHashFunction \
     "expr/kind.h" \
     "a representation for basic types"

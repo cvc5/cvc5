@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yancheng Ou, Michael Chang
+ *   Yancheng Ou
  *
  * This file is part of the cvc5 project.
  *
@@ -16,6 +16,7 @@
 
 #include "smt/optimization_solver.h"
 #include "test_smt.h"
+#include "util/bitvector.h"
 
 namespace cvc5 {
 
@@ -162,6 +163,7 @@ TEST_F(TestTheoryWhiteBVOpt, min_boundary)
             BitVector(32u, 18u));
   d_optslv->popObjective();
 }
+
 
 }  // namespace test
 }  // namespace cvc5

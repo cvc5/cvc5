@@ -77,6 +77,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     TNode assertion = d_queue.front();
     d_queue.pop();
     d_theoryEngine->assertFact(assertion);
+    d_decisionEngine->notifyAsserted(assertion);
   }
   d_theoryEngine->check(effort);
 }
@@ -95,7 +96,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   TNode lNode = d_cnfStream->getNode(l);
   Debug("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
 
-  theory::TrustNode tte = d_theoryEngine->getExplanation(lNode);
+  TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
   if (options::produceProofs()
       && options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS)
@@ -183,26 +184,23 @@ SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
 
 CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
 
-theory::TrustNode TheoryProxy::preprocessLemma(
-    theory::TrustNode trn,
-    std::vector<theory::TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems)
+TrustNode TheoryProxy::preprocessLemma(TrustNode trn,
+                                       std::vector<TrustNode>& newLemmas,
+                                       std::vector<Node>& newSkolems)
 {
   return d_tpp.preprocessLemma(trn, newLemmas, newSkolems);
 }
 
-theory::TrustNode TheoryProxy::preprocess(
-    TNode node,
-    std::vector<theory::TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems)
+TrustNode TheoryProxy::preprocess(TNode node,
+                                  std::vector<TrustNode>& newLemmas,
+                                  std::vector<Node>& newSkolems)
 {
   return d_tpp.preprocess(node, newLemmas, newSkolems);
 }
 
-theory::TrustNode TheoryProxy::removeItes(
-    TNode node,
-    std::vector<theory::TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems)
+TrustNode TheoryProxy::removeItes(TNode node,
+                                  std::vector<TrustNode>& newLemmas,
+                                  std::vector<Node>& newSkolems)
 {
   RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
   return rtf.run(node, newLemmas, newSkolems, true);

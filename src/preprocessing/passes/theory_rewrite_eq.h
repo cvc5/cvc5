@@ -47,7 +47,7 @@ class TheoryRewriteEq : public PreprocessingPass
    *   (= x y) ---> (and (>= x y) (<= x y))
    * Returns the trust node corresponding to the rewrite.
    */
-  theory::TrustNode rewriteAssertion(TNode assertion);
+  TrustNode rewriteAssertion(TNode assertion);
 };
 
 }  // namespace passes

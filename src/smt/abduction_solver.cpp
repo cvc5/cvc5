@@ -105,20 +105,22 @@ bool AbductionSolver::getAbductInternal(Node& abd)
       }
       // get the grammar type for the abduct
       Node agdtbv = d_sssf.getAttribute(SygusSynthFunVarListAttribute());
-      Assert(!agdtbv.isNull());
-      Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
-      // convert back to original
-      // must replace formal arguments of abd with the free variables in the
-      // input problem that they correspond to.
-      std::vector<Node> vars;
-      std::vector<Node> syms;
-      SygusVarToTermAttribute sta;
-      for (const Node& bv : agdtbv)
+      if(!agdtbv.isNull())
       {
-        vars.push_back(bv);
-        syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
+        Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
+        // convert back to original
+        // must replace formal arguments of abd with the free variables in the
+        // input problem that they correspond to.
+        std::vector<Node> vars;
+        std::vector<Node> syms;
+        SygusVarToTermAttribute sta;
+        for (const Node& bv : agdtbv)
+        {
+          vars.push_back(bv);
+          syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
+        }
+        abd = abd.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
       }
-      abd = abd.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
 
       // if check abducts option is set, we check the correctness
       if (options::checkAbducts())

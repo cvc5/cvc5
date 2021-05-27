@@ -800,17 +800,19 @@ Node FpConverter::rmToNode(const rm &r) const
   Node value = nm->mkNode(
       kind::ITE,
       nm->mkNode(kind::EQUAL, transVar, RNE),
-      nm->mkConst(ROUND_NEAREST_TIES_TO_EVEN),
-      nm->mkNode(kind::ITE,
-                 nm->mkNode(kind::EQUAL, transVar, RNA),
-                 nm->mkConst(ROUND_NEAREST_TIES_TO_AWAY),
-                 nm->mkNode(kind::ITE,
-                            nm->mkNode(kind::EQUAL, transVar, RTP),
-                            nm->mkConst(ROUND_TOWARD_POSITIVE),
-                            nm->mkNode(kind::ITE,
-                                       nm->mkNode(kind::EQUAL, transVar, RTN),
-                                       nm->mkConst(ROUND_TOWARD_NEGATIVE),
-                                       nm->mkConst(ROUND_TOWARD_ZERO)))));
+      nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN),
+      nm->mkNode(
+          kind::ITE,
+          nm->mkNode(kind::EQUAL, transVar, RNA),
+          nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY),
+          nm->mkNode(
+              kind::ITE,
+              nm->mkNode(kind::EQUAL, transVar, RTP),
+              nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE),
+              nm->mkNode(kind::ITE,
+                         nm->mkNode(kind::EQUAL, transVar, RTN),
+                         nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE),
+                         nm->mkConst(RoundingMode::ROUND_TOWARD_ZERO)))));
   return value;
 }
 
@@ -878,19 +880,19 @@ Node FpConverter::convert(TNode node)
             /******** Constants ********/
             switch (current.getConst<RoundingMode>())
             {
-              case ROUND_NEAREST_TIES_TO_EVEN:
+              case RoundingMode::ROUND_NEAREST_TIES_TO_EVEN:
                 d_rmMap.insert(current, traits::RNE());
                 break;
-              case ROUND_NEAREST_TIES_TO_AWAY:
+              case RoundingMode::ROUND_NEAREST_TIES_TO_AWAY:
                 d_rmMap.insert(current, traits::RNA());
                 break;
-              case ROUND_TOWARD_POSITIVE:
+              case RoundingMode::ROUND_TOWARD_POSITIVE:
                 d_rmMap.insert(current, traits::RTP());
                 break;
-              case ROUND_TOWARD_NEGATIVE:
+              case RoundingMode::ROUND_TOWARD_NEGATIVE:
                 d_rmMap.insert(current, traits::RTN());
                 break;
-              case ROUND_TOWARD_ZERO:
+              case RoundingMode::ROUND_TOWARD_ZERO:
                 d_rmMap.insert(current, traits::RTZ());
                 break;
               default: Unreachable() << "Unknown rounding mode"; break;
@@ -1100,7 +1102,7 @@ Node FpConverter::convert(TNode node)
             }
             break;
 
-            case kind::FLOATINGPOINT_PLUS:
+            case kind::FLOATINGPOINT_ADD:
             case kind::FLOATINGPOINT_SUB:
             case kind::FLOATINGPOINT_MULT:
             case kind::FLOATINGPOINT_DIV:
@@ -1132,7 +1134,7 @@ Node FpConverter::convert(TNode node)
 
               switch (current.getKind())
               {
-                case kind::FLOATINGPOINT_PLUS:
+                case kind::FLOATINGPOINT_ADD:
                   d_fpMap.insert(current,
                                  symfpu::add<traits>(fpt(current.getType()),
                                                      (*mode).second,
