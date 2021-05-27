@@ -125,8 +125,8 @@ TPL_HOLDER_MACRO_ATTR_DEF = '''  {type} {name} = {default};
 TPL_DECL_SET_DEFAULT = 'void setDefault{funcname}(Options& opts, {type} value);'
 TPL_IMPL_SET_DEFAULT = TPL_DECL_SET_DEFAULT[:-1] + '''
 {{
-    if (!opts.{module}().{name}__setByUser) {{
-        opts.{module}().{name} = value;
+    if (!opts.{module}.{name}__setByUser) {{
+        opts.{module}.{name} = value;
     }}
 }}'''
 
