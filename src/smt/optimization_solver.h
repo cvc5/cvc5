@@ -195,6 +195,9 @@ class OptimizationSolver
 
   /**
    * Run the optimization loop for the pushed objective
+   * For multiple objective combination, it defaults to lexicographic,
+   * and combination could be set by calling
+   *   setObjectiveCombination(BOX/LEXICOGRAPHIC/PARETO)
    */
   OptimizationResult::ResultType checkOpt();
 
@@ -249,6 +252,39 @@ class OptimizationSolver
    *   UNKNOWN if any of the objective is UNKNOWN.
    **/
   OptimizationResult::ResultType optimizeBox();
+
+  /**
+   * Optimize multiple goals in Lexicographic order,
+   * using iterative implementation
+   * @return OPTIMAL if all objectives are OPTIMAL and bounded;
+   *   UNBOUNDED if one of the objectives is UNBOUNDED
+   *     and optimization will stop at that objective;
+   *   UNSAT if one of the objectives is UNSAT
+   *     and optimization will stop at that objective;
+   *   UNKNOWN if one of the objectives is UNKNOWN
+   *     and optimization will stop at that objective;
+   *   If the optimization is stopped at an objective,
+   *     all objectives following that objective will be UNKNOWN.
+   **/
+  OptimizationResult::ResultType optimizeLexicographicIterative();
+
+  /**
+   * Optimize multiple goals in Pareto order
+   * Using a variant of linear search called Guided Improvement Algorithm
+   * Could be called multiple times to iterate through the Pareto front
+   *
+   * Definition:
+   * Pareto front: Set of all possible Pareto optimal solutions
+   *
+   * Reference:
+   * D. Rayside, H.-C. Estler, and D. Jackson. The Guided Improvement Algorithm.
+   *  Technical Report MIT-CSAIL-TR-2009-033, MIT, 2009.
+   *
+   * @return if it finds a new Pareto optimal result it will return OPTIMAL;
+   *   if it exhausts the results in the Pareto front it will return UNSAT;
+   *   if the underlying SMT solver returns UNKNOWN, it will return UNKNOWN.
+   **/
+  OptimizationResult::ResultType optimizeParetoNaiveGIA();
 
   /** A pointer to the parent SMT engine **/
   SmtEngine* d_parent;
