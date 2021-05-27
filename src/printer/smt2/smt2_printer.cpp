@@ -723,6 +723,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STRING_CHARAT:
   case kind::STRING_STRCTN:
   case kind::STRING_STRIDOF:
+  case kind::STRING_INDEXOF_RE:
   case kind::STRING_STRREPL:
   case kind::STRING_STRREPLALL:
   case kind::STRING_REPLACE_RE:
@@ -1309,6 +1310,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_STRCTN: return "str.contains" ;
   case kind::STRING_CHARAT: return "str.at" ;
   case kind::STRING_STRIDOF: return "str.indexof" ;
+  case kind::STRING_INDEXOF_RE: return "str.indexof_re";
   case kind::STRING_STRREPL: return "str.replace" ;
   case kind::STRING_STRREPLALL: return "str.replace_all";
   case kind::STRING_REPLACE_RE: return "str.replace_re";
