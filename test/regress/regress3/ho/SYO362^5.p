@@ -1,4 +1,4 @@
-% COMMAND-LINE: --uf-ho --full-saturate-quant --ho-elim
+% COMMAND-LINE: --uf-ho --full-saturate-quant --ho-elim --decision=justification-old
 % EXPECT: % SZS status Theorem for SYO362^5
 
 thf(cK,type,(
