@@ -21,14 +21,14 @@
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "context/context.h"
-#include "expr/lazy_proof.h"
-#include "expr/proof_node_manager.h"
-#include "expr/proof_set.h"
-#include "expr/term_conversion_proof_generator.h"
-#include "theory/eager_proof_generator.h"
+#include "proof/conv_proof_generator.h"
+#include "proof/eager_proof_generator.h"
+#include "proof/lazy_proof.h"
+#include "proof/proof_node_manager.h"
+#include "proof/proof_set.h"
+#include "proof/theory_proof_step_buffer.h"
+#include "proof/trust_node.h"
 #include "theory/substitutions.h"
-#include "theory/theory_proof_step_buffer.h"
-#include "theory/trust_node.h"
 
 namespace cvc5 {
 namespace theory {

@@ -88,8 +88,8 @@ TPL_IMPL_ASSIGN = \
 {{
   auto parsedval = {handler};
   {predicates}
-  {module}().{name} = parsedval;
-  {module}().{name}__setByUser__ = true;
+  {module}.{name} = parsedval;
+  {module}.{name}__setByUser__ = true;
   Trace("options") << "user assigned option {name}" << std::endl;
 }}"""
 
@@ -100,8 +100,8 @@ TPL_IMPL_ASSIGN_BOOL = \
     bool value)
 {{
   {predicates}
-  {module}().{name} = value;
-  {module}().{name}__setByUser__ = true;
+  {module}.{name} = value;
+  {module}.{name}__setByUser__ = true;
   Trace("options") << "user assigned option {name}" << std::endl;
 }}"""
 
@@ -138,7 +138,7 @@ TPL_DECL_SET = \
 TPL_IMPL_SET = TPL_DECL_SET[:-1] + \
 """
 {{
-    return {module}().{name};
+    return {module}.{name};
 }}"""
 
 
@@ -149,7 +149,7 @@ TPL_DECL_OP_BRACKET = \
 TPL_IMPL_OP_BRACKET = TPL_DECL_OP_BRACKET[:-1] + \
 """
 {{
-  return {module}().{name};
+  return {module}.{name};
 }}"""
 
 
@@ -159,7 +159,7 @@ TPL_DECL_WAS_SET_BY_USER = \
 TPL_IMPL_WAS_SET_BY_USER = TPL_DECL_WAS_SET_BY_USER[:-1] + \
 """
 {{
-  return {module}().{name}__setByUser__;
+  return {module}.{name}__setByUser__;
 }}"""
 
 # Option specific methods
@@ -242,21 +242,19 @@ def get_holder_mem_inits(modules):
     return concat_format('        d_{id}(std::make_unique<options::Holder{id_cap}>()),', modules)
 
 
+def get_holder_ref_inits(modules):
+    """Render initializations of holder references of the Option class"""
+    return concat_format('        {id}(*d_{id}),', modules)
+
+
 def get_holder_mem_copy(modules):
     """Render copy operation of holder members of the Option class"""
     return concat_format('      *d_{id} = *options.d_{id};', modules)
 
 
-def get_holder_getter_decls(modules):
-    """Render getter declarations for holder members of the Option class"""
-    return concat_format('''  const options::Holder{id_cap}& {id}() const;
-  options::Holder{id_cap}& {id}();''', modules)
-
-
-def get_holder_getter_impl(modules):
-    """Render getter implementations for holder members of the Option class"""
-    return concat_format('''const options::Holder{id_cap}& Options::{id}() const {{ return *d_{id}; }}
-options::Holder{id_cap}& Options::{id}() {{ return *d_{id}; }}''', modules)
+def get_holder_ref_decls(modules):
+    """Render reference declarations for holder members of the Option class"""
+    return concat_format('  options::Holder{id_cap}& {id};', modules)
 
 
 class Module(object):
@@ -930,13 +928,13 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
                     options_smt.append('"{}",'.format(optname))
 
                     if option.type == 'bool':
-                        s = 'opts.push_back({{"{}", {}().{} ? "true" : "false"}});'.format(
+                        s = 'opts.push_back({{"{}", {}.{} ? "true" : "false"}});'.format(
                             optname, module.id, option.name)
                     elif is_numeric_cpp_type(option.type):
-                        s = 'opts.push_back({{"{}", std::to_string({}().{})}});'.format(
+                        s = 'opts.push_back({{"{}", std::to_string({}.{})}});'.format(
                             optname, module.id, option.name)
                     else:
-                        s = '{{ std::stringstream ss; ss << {}().{}; opts.push_back({{"{}", ss.str()}}); }}'.format(
+                        s = '{{ std::stringstream ss; ss << {}.{}; opts.push_back({{"{}", ss.str()}}); }}'.format(
                             module.id, option.name, optname)
                     options_getoptions.append(s)
 
@@ -965,16 +963,16 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
 
     write_file(dst_dir, 'options.h', tpl_options_h.format(
         holder_fwd_decls=get_holder_fwd_decls(modules),
-        holder_getter_decls=get_holder_getter_decls(modules),
         holder_mem_decls=get_holder_mem_decls(modules),
+        holder_ref_decls=get_holder_ref_decls(modules),
     ))
 
     write_file(dst_dir, 'options.cpp', tpl_options_cpp.format(
         headers_module='\n'.join(headers_module),
         headers_handler='\n'.join(sorted(list(headers_handler))),
-        holder_getter_impl=get_holder_getter_impl(modules),
         holder_mem_copy=get_holder_mem_copy(modules),
         holder_mem_inits=get_holder_mem_inits(modules),
+        holder_ref_inits=get_holder_ref_inits(modules),
         custom_handlers='\n'.join(custom_handlers),
         module_defaults=',\n  '.join(defaults),
         help_common='\n'.join(help_common),

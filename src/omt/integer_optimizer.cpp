@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yancheng Ou, Michael Chang
+ *   Michael Chang, Yancheng Ou
  *
  * This file is part of the cvc5 project.
  *
@@ -29,7 +29,7 @@ OptimizationResult OMTOptimizerInteger::optimize(SmtEngine* optChecker,
   // the smt engine to which we send intermediate queries
   // for the linear search.
   NodeManager* nm = optChecker->getNodeManager();
-
+  optChecker->push();
   Result intermediateSatResult = optChecker->checkSat();
   // Model-value of objective (used in optimization loop)
   Node value;
@@ -41,7 +41,7 @@ OptimizationResult OMTOptimizerInteger::optimize(SmtEngine* optChecker,
   {
     return OptimizationResult(OptimizationResult::UNSAT, value);
   }
-  // asserts objective > old_value (used in optimization loop)
+  // node storing target > old_value (used in optimization loop)
   Node increment;
   Kind incrementalOperator = kind::NULL_EXPR;
   if (isMinimize)
@@ -68,6 +68,7 @@ OptimizationResult OMTOptimizerInteger::optimize(SmtEngine* optChecker,
     optChecker->assertFormula(increment);
     intermediateSatResult = optChecker->checkSat();
   }
+  optChecker->pop();
   return OptimizationResult(OptimizationResult::OPTIMAL, value);
 }
 

@@ -43,7 +43,7 @@ if __name__ == "__main__":
     z = slv.mkConst(fp32, 'z')
 
     # check floating-point arithmetic is commutative, i.e. x + y == y + x
-    commutative = slv.mkTerm(kinds.FPEq, slv.mkTerm(kinds.FPPlus, rm, x, y), slv.mkTerm(kinds.FPPlus, rm, y, x))
+    commutative = slv.mkTerm(kinds.FPEq, slv.mkTerm(kinds.FPAdd, rm, x, y), slv.mkTerm(kinds.FPAdd, rm, y, x))
 
     slv.push()
     slv.assertFormula(slv.mkTerm(kinds.Not, commutative))
@@ -76,8 +76,8 @@ if __name__ == "__main__":
     slv.assertFormula(slv.mkTerm(kinds.And, slv.mkTerm(kinds.And, bounds_x, bounds_y), bounds_z))
 
     # (x + y) + z == x + (y + z)
-    lhs = slv.mkTerm(kinds.FPPlus, rm, slv.mkTerm(kinds.FPPlus, rm, x, y), z)
-    rhs = slv.mkTerm(kinds.FPPlus, rm, x, slv.mkTerm(kinds.FPPlus, rm, y, z))
+    lhs = slv.mkTerm(kinds.FPAdd, rm, slv.mkTerm(kinds.FPAdd, rm, x, y), z)
+    rhs = slv.mkTerm(kinds.FPAdd, rm, x, slv.mkTerm(kinds.FPAdd, rm, y, z))
     associative = slv.mkTerm(kinds.Not, slv.mkTerm(kinds.FPEq, lhs, rhs))
 
     slv.assertFormula(associative)

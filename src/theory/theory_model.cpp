@@ -23,6 +23,7 @@
 #include "smt/smt_engine.h"
 #include "theory/rewriter.h"
 #include "theory/trust_substitutions.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;

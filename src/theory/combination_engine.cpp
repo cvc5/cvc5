@@ -16,8 +16,8 @@
 #include "theory/combination_engine.h"
 
 #include "expr/node_visitor.h"
+#include "proof/eager_proof_generator.h"
 #include "theory/care_graph.h"
-#include "theory/eager_proof_generator.h"
 #include "theory/ee_manager_distributed.h"
 #include "theory/model_manager.h"
 #include "theory/model_manager_distributed.h"

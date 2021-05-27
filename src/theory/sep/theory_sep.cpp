@@ -18,6 +18,7 @@
 #include <map>
 
 #include "base/map_util.h"
+#include "expr/emptyset.h"
 #include "expr/kind.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
@@ -32,6 +33,7 @@
 #include "theory/sep/theory_sep_rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
+#include "util/cardinality.h"
 
 using namespace std;
 using namespace cvc5::kind;

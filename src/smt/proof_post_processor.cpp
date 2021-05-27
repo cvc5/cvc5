@@ -15,16 +15,17 @@
 
 #include "smt/proof_post_processor.h"
 
-#include "expr/proof_node_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "proof/proof_node_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::theory;
@@ -929,13 +930,12 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     }
     // should give a proof, if not, then tcpg does not agree with the
     // substitution.
-    Assert(pfn != nullptr);
     if (pfn == nullptr)
     {
-      AlwaysAssert(false) << "resort to TRUST_SUBS" << std::endl
-                          << eq << std::endl
-                          << eqq << std::endl
-                          << "from " << children << " applied to " << t;
+      Warning() << "resort to TRUST_SUBS" << std::endl
+                << eq << std::endl
+                << eqq << std::endl
+                << "from " << children << " applied to " << t << std::endl;
       cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
     }
     else

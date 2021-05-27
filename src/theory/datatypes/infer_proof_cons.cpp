@@ -15,11 +15,12 @@
 
 #include "theory/datatypes/infer_proof_cons.h"
 
-#include "expr/proof.h"
-#include "expr/proof_checker.h"
+#include "proof/proof.h"
+#include "proof/proof_checker.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/model_manager.h"
 #include "theory/rewriter.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
