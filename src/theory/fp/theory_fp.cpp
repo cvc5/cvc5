@@ -101,7 +101,7 @@ void TheoryFp::finishInit()
 
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ABS);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_NEG);
-  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_PLUS);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ADD);
   // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_SUB); // Removed
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MULT);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_DIV);
