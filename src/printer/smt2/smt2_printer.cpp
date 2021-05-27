@@ -875,7 +875,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::FLOATINGPOINT_EQ:
   case kind::FLOATINGPOINT_ABS:
   case kind::FLOATINGPOINT_NEG:
-  case kind::FLOATINGPOINT_PLUS:
+  case kind::FLOATINGPOINT_ADD:
   case kind::FLOATINGPOINT_SUB:
   case kind::FLOATINGPOINT_MULT:
   case kind::FLOATINGPOINT_DIV:
@@ -1253,7 +1253,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::FLOATINGPOINT_EQ: return "fp.eq";
   case kind::FLOATINGPOINT_ABS: return "fp.abs";
   case kind::FLOATINGPOINT_NEG: return "fp.neg";
-  case kind::FLOATINGPOINT_PLUS: return "fp.add";
+  case kind::FLOATINGPOINT_ADD: return "fp.add";
   case kind::FLOATINGPOINT_SUB: return "fp.sub";
   case kind::FLOATINGPOINT_MULT: return "fp.mul";
   case kind::FLOATINGPOINT_DIV: return "fp.div";
