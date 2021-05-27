@@ -16,8 +16,10 @@
 #include "theory/arrays/theory_arrays_type_rules.h"
 
 // for array-constant attributes
+#include "expr/array_store_all.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/type_enumerator.h"
+#include "util/cardinality.h"
 
 namespace cvc5 {
 namespace theory {

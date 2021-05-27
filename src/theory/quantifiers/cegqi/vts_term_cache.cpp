@@ -20,6 +20,7 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/rewriter.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 

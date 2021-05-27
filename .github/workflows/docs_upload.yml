@@ -75,15 +75,21 @@ jobs:
           if [ -n "$NAME" ]; then
             mv docs-new target/docs-$NAME-$HASH
             cd target/
-            rm -f docs-$NAME
-            ln -s docs-$NAME-$HASH docs-$NAME
-            git add docs-$NAME docs-$NAME-$HASH
 
-            python3 genindex.py
-            git add README.md
-            git commit -m "Update docs for $NAME"
+            if diff -r target/docs-master/ target/docs-$NAME-$HASH
+            then
+              echo "Ignored run, documentation is the same as for current master"
+            else
+              rm -f docs-$NAME
+              ln -s docs-$NAME-$HASH docs-$NAME
+              git add docs-$NAME docs-$NAME-$HASH
 
-            git push
+              python3 genindex.py
+              git add README.md
+              git commit -m "Update docs for $NAME"
+
+              git push
+            fi
           else
             echo "Ignored run"
           fi

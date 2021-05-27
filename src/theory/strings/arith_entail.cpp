@@ -22,6 +22,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "theory/theory.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 

@@ -13,19 +13,21 @@ properties check propagate presolve ppStaticLearn
 rewriter ::cvc5::theory::bv::TheoryBVRewriter "theory/bv/theory_bv_rewriter.h"
 
 constant BITVECTOR_TYPE \
-	::cvc5::BitVectorSize \
-	"::cvc5::UnsignedHashFunction< ::cvc5::BitVectorSize >" \
-	"util/bitvector.h" \
-	"bit-vector type"
+  struct \
+  BitVectorSize \
+  "::cvc5::UnsignedHashFunction< ::cvc5::BitVectorSize >" \
+  "util/bitvector.h" \
+  "bit-vector type"
 cardinality BITVECTOR_TYPE \
 	"::cvc5::theory::bv::CardinalityComputer::computeCardinality(%TYPE%)" \
 	"theory/bv/theory_bv_type_rules.h"
 
 constant CONST_BITVECTOR \
-    ::cvc5::BitVector \
-    ::cvc5::BitVectorHashFunction \
-    "util/bitvector.h" \
-    "a fixed-width bit-vector constant; payload is an instance of the cvc5::BitVector class"
+  class \
+  BitVector \
+  ::cvc5::BitVectorHashFunction \
+  "util/bitvector.h" \
+  "a fixed-width bit-vector constant; payload is an instance of the cvc5::BitVector class"
 
 enumerator BITVECTOR_TYPE \
     "::cvc5::theory::bv::BitVectorEnumerator" \
@@ -101,59 +103,67 @@ operator BITVECTOR_EAGER_ATOM 1 "formula to be treated as a bv atom via eager bi
 ### parameterized operator kinds ----------------------------------------------
 
 constant BITVECTOR_BITOF_OP \
-	::cvc5::BitVectorBitOf \
-	::cvc5::BitVectorBitOfHashFunction \
-	"util/bitvector.h" \
-	"operator for the bit-vector boolean bit extract; payload is an instance of the cvc5::BitVectorBitOf class"
+  struct \
+  BitVectorBitOf \
+  ::cvc5::BitVectorBitOfHashFunction \
+  "util/bitvector.h" \
+  "operator for the bit-vector boolean bit extract; payload is an instance of the cvc5::BitVectorBitOf class"
 parameterized BITVECTOR_BITOF BITVECTOR_BITOF_OP 1 "bit-vector boolean bit extract; first parameter is a BITVECTOR_BITOF_OP, second is a bit-vector term"
 
 constant BITVECTOR_EXTRACT_OP \
-	::cvc5::BitVectorExtract \
-	::cvc5::BitVectorExtractHashFunction \
-	"util/bitvector.h" \
-	"operator for the bit-vector extract; payload is an instance of the cvc5::BitVectorExtract class"
+  struct \
+  BitVectorExtract \
+  ::cvc5::BitVectorExtractHashFunction \
+  "util/bitvector.h" \
+  "operator for the bit-vector extract; payload is an instance of the cvc5::BitVectorExtract class"
 parameterized BITVECTOR_EXTRACT BITVECTOR_EXTRACT_OP 1 "bit-vector extract; first parameter is a BITVECTOR_EXTRACT_OP, second is a bit-vector term"
 
 constant BITVECTOR_REPEAT_OP \
-	::cvc5::BitVectorRepeat \
-	"::cvc5::UnsignedHashFunction< ::cvc5::BitVectorRepeat >" \
-	"util/bitvector.h" \
-	"operator for the bit-vector repeat; payload is an instance of the cvc5::BitVectorRepeat class"
+  struct \
+  BitVectorRepeat \
+  "::cvc5::UnsignedHashFunction< ::cvc5::BitVectorRepeat >" \
+  "util/bitvector.h" \
+  "operator for the bit-vector repeat; payload is an instance of the cvc5::BitVectorRepeat class"
 parameterized BITVECTOR_REPEAT BITVECTOR_REPEAT_OP 1 "bit-vector repeat; first parameter is a BITVECTOR_REPEAT_OP, second is a bit-vector term"
 
 constant BITVECTOR_ROTATE_LEFT_OP \
-	::cvc5::BitVectorRotateLeft \
-	"::cvc5::UnsignedHashFunction< ::cvc5::BitVectorRotateLeft >" \
-	"util/bitvector.h" \
-	"operator for the bit-vector rotate left; payload is an instance of the cvc5::BitVectorRotateLeft class"
+  struct \
+  BitVectorRotateLeft \
+  "::cvc5::UnsignedHashFunction< ::cvc5::BitVectorRotateLeft >" \
+  "util/bitvector.h" \
+  "operator for the bit-vector rotate left; payload is an instance of the cvc5::BitVectorRotateLeft class"
 parameterized BITVECTOR_ROTATE_LEFT BITVECTOR_ROTATE_LEFT_OP 1 "bit-vector rotate left; first parameter is a BITVECTOR_ROTATE_LEFT_OP, second is a bit-vector term"
 
 constant BITVECTOR_ROTATE_RIGHT_OP \
-	::cvc5::BitVectorRotateRight \
-	"::cvc5::UnsignedHashFunction< ::cvc5::BitVectorRotateRight >" \
-	"util/bitvector.h" \
-	"operator for the bit-vector rotate right; payload is an instance of the cvc5::BitVectorRotateRight class"
+  struct \
+  BitVectorRotateRight \
+  "::cvc5::UnsignedHashFunction< ::cvc5::BitVectorRotateRight >" \
+  "util/bitvector.h" \
+  "operator for the bit-vector rotate right; payload is an instance of the cvc5::BitVectorRotateRight class"
 parameterized BITVECTOR_ROTATE_RIGHT BITVECTOR_ROTATE_RIGHT_OP 1 "bit-vector rotate right; first parameter is a BITVECTOR_ROTATE_RIGHT_OP, second is a bit-vector term"
 
 constant BITVECTOR_SIGN_EXTEND_OP \
-	::cvc5::BitVectorSignExtend \
-	"::cvc5::UnsignedHashFunction< ::cvc5::BitVectorSignExtend >" \
-	"util/bitvector.h" \
-	"operator for the bit-vector sign-extend; payload is an instance of the cvc5::BitVectorSignExtend class"
+  struct \
+  BitVectorSignExtend \
+  "::cvc5::UnsignedHashFunction< ::cvc5::BitVectorSignExtend >" \
+  "util/bitvector.h" \
+  "operator for the bit-vector sign-extend; payload is an instance of the cvc5::BitVectorSignExtend class"
 parameterized BITVECTOR_SIGN_EXTEND BITVECTOR_SIGN_EXTEND_OP 1 "bit-vector sign-extend; first parameter is a BITVECTOR_SIGN_EXTEND_OP, second is a bit-vector term"
 
 constant BITVECTOR_ZERO_EXTEND_OP \
-	::cvc5::BitVectorZeroExtend \
-	"::cvc5::UnsignedHashFunction< ::cvc5::BitVectorZeroExtend >" \
-	"util/bitvector.h" \
-	"operator for the bit-vector zero-extend; payload is an instance of the cvc5::BitVectorZeroExtend class"
+  struct \
+  BitVectorZeroExtend \
+  "::cvc5::UnsignedHashFunction< ::cvc5::BitVectorZeroExtend >" \
+  "util/bitvector.h" \
+  "operator for the bit-vector zero-extend; payload is an instance of the cvc5::BitVectorZeroExtend class"
 parameterized BITVECTOR_ZERO_EXTEND BITVECTOR_ZERO_EXTEND_OP 1 "bit-vector zero-extend; first parameter is a BITVECTOR_ZERO_EXTEND_OP, second is a bit-vector term"
 
 constant INT_TO_BITVECTOR_OP \
-	::cvc5::IntToBitVector \
-	"::cvc5::UnsignedHashFunction< ::cvc5::IntToBitVector >" \
-	"util/bitvector.h" \
-	"operator for the integer conversion to bit-vector; payload is an instance of the cvc5::IntToBitVector class"
+  struct \
+  IntToBitVector \
+  "::cvc5::UnsignedHashFunction< ::cvc5::IntToBitVector >" \
+  "util/bitvector.h" \
+  "operator for the integer conversion to bit-vector; payload is an instance of the cvc5::IntToBitVector class"
 parameterized INT_TO_BITVECTOR INT_TO_BITVECTOR_OP 1 "integer conversion to bit-vector; first parameter is an INT_TO_BITVECTOR_OP, second is an integer term"
 
 ### type rules for non-parameterized operator kinds ---------------------------

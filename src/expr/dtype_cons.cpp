@@ -14,6 +14,7 @@
  */
 #include "expr/dtype_cons.h"
 
+#include "expr/ascription_type.h"
 #include "expr/dtype.h"
 #include "expr/node_manager.h"
 #include "expr/skolem_manager.h"

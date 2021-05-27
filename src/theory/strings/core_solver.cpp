@@ -16,6 +16,7 @@
 #include "theory/strings/core_solver.h"
 
 #include "base/configuration.h"
+#include "expr/sequence.h"
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
 #include "theory/rewriter.h"
@@ -23,6 +24,8 @@
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/rational.h"
+#include "util/string.h"
 
 using namespace std;
 using namespace cvc5::context;
