@@ -1691,7 +1691,6 @@ cdef class Term:
                   -- the constant base is returned as the default value
         '''
 
-        sort = self.getSort()
         if self.isBooleanValue():
             return self.getBooleanValue()
         elif self.isIntegerValue():
