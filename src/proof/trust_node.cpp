@@ -19,7 +19,6 @@
 #include "proof/proof_generator.h"
 
 namespace cvc5 {
-namespace theory {
 
 const char* toString(TrustNodeKind tnk)
 {
@@ -146,5 +145,4 @@ std::ostream& operator<<(std::ostream& out, TrustNode n)
   return out;
 }
 
-}  // namespace theory
 }  // namespace cvc5

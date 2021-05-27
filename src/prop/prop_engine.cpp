@@ -158,18 +158,16 @@ PropEngine::~PropEngine() {
   delete d_theoryProxy;
 }
 
-theory::TrustNode PropEngine::preprocess(
-    TNode node,
-    std::vector<theory::TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems)
+TrustNode PropEngine::preprocess(TNode node,
+                                 std::vector<TrustNode>& newLemmas,
+                                 std::vector<Node>& newSkolems)
 {
   return d_theoryProxy->preprocess(node, newLemmas, newSkolems);
 }
 
-theory::TrustNode PropEngine::removeItes(
-    TNode node,
-    std::vector<theory::TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems)
+TrustNode PropEngine::removeItes(TNode node,
+                                 std::vector<TrustNode>& newLemmas,
+                                 std::vector<Node>& newSkolems)
 {
   return d_theoryProxy->removeItes(node, newLemmas, newSkolems);
 }
@@ -205,14 +203,14 @@ void PropEngine::assertInputFormulas(
   }
 }
 
-void PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
+void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
 {
   bool removable = isLemmaPropertyRemovable(p);
 
   // call preprocessor
-  std::vector<theory::TrustNode> ppLemmas;
+  std::vector<TrustNode> ppLemmas;
   std::vector<Node> ppSkolems;
-  theory::TrustNode tplemma =
+  TrustNode tplemma =
       d_theoryProxy->preprocessLemma(tlemma, ppLemmas, ppSkolems);
 
   Assert(ppSkolems.size() == ppLemmas.size());
@@ -244,12 +242,11 @@ void PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
   assertLemmasInternal(tplemma, ppLemmas, ppSkolems, removable);
 }
 
-void PropEngine::assertTrustedLemmaInternal(theory::TrustNode trn,
-                                            bool removable)
+void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
 {
   Node node = trn.getNode();
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
-  bool negated = trn.getKind() == theory::TrustNodeKind::CONFLICT;
+  bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
   Assert(
       !isProofEnabled() || trn.getGenerator() != nullptr
       || options::unsatCores()
@@ -296,17 +293,16 @@ void PropEngine::assertInternal(
   }
 }
 
-void PropEngine::assertLemmasInternal(
-    theory::TrustNode trn,
-    const std::vector<theory::TrustNode>& ppLemmas,
-    const std::vector<Node>& ppSkolems,
-    bool removable)
+void PropEngine::assertLemmasInternal(TrustNode trn,
+                                      const std::vector<TrustNode>& ppLemmas,
+                                      const std::vector<Node>& ppSkolems,
+                                      bool removable)
 {
   if (!trn.isNull())
   {
     assertTrustedLemmaInternal(trn, removable);
   }
-  for (const theory::TrustNode& tnl : ppLemmas)
+  for (const TrustNode& tnl : ppLemmas)
   {
     assertTrustedLemmaInternal(tnl, removable);
   }
@@ -513,11 +509,11 @@ Node PropEngine::ensureLiteral(TNode n)
 Node PropEngine::getPreprocessedTerm(TNode n)
 {
   // must preprocess
-  std::vector<theory::TrustNode> newLemmas;
+  std::vector<TrustNode> newLemmas;
   std::vector<Node> newSkolems;
-  theory::TrustNode tpn = d_theoryProxy->preprocess(n, newLemmas, newSkolems);
+  TrustNode tpn = d_theoryProxy->preprocess(n, newLemmas, newSkolems);
   // send lemmas corresponding to the skolems introduced by preprocessing n
-  theory::TrustNode trnNull;
+  TrustNode trnNull;
   assertLemmasInternal(trnNull, newLemmas, newSkolems, false);
   return tpn.isNull() ? Node(n) : tpn.getNode();
 }

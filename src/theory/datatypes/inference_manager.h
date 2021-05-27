@@ -23,10 +23,10 @@
 #include "theory/inference_manager_buffered.h"
 
 namespace cvc5 {
-namespace theory {
 
 class EagerProofGenerator;
 
+namespace theory {
 namespace datatypes {
 
 /**
