@@ -29,8 +29,6 @@ namespace cvc5 {
 class ProofNode;
 class ProofNodeManager;
 
-namespace theory {
-
 /**
  * An eager proof generator, with explicit proof caching.
  *
@@ -191,7 +189,6 @@ class EagerProofGenerator : public ProofGenerator
   NodeProofNodeMap d_proofs;
 };
 
-}  // namespace theory
 }  // namespace cvc5
 
 #endif /* CVC5__PROOF__PROOF_GENERATOR_H */

@@ -97,13 +97,12 @@
 namespace cvc5 {
 
 class ProofNodeManager;
+class EagerProofGenerator;
 
 namespace context {
 class Context;
 }
 namespace theory {
-
-class EagerProofGenerator;
 
 namespace arith {
 
