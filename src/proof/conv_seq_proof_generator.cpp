@@ -122,13 +122,13 @@ std::shared_ptr<ProofNode> TConvSeqProofGenerator::getSubsequenceProofFor(
   return d_pnm->mkTrans(transChildren, f);
 }
 
-theory::TrustNode TConvSeqProofGenerator::mkTrustRewriteSequence(
+TrustNode TConvSeqProofGenerator::mkTrustRewriteSequence(
     const std::vector<Node>& cterms)
 {
   Assert(cterms.size() == d_tconvs.size() + 1);
   if (cterms[0] == cterms[cterms.size() - 1])
   {
-    return theory::TrustNode::null();
+    return TrustNode::null();
   }
   bool useThis = false;
   ProofGenerator* pg = nullptr;
@@ -163,8 +163,7 @@ theory::TrustNode TConvSeqProofGenerator::mkTrustRewriteSequence(
     }
   }
   Assert(pg != nullptr);
-  return theory::TrustNode::mkTrustRewrite(
-      cterms[0], cterms[cterms.size() - 1], pg);
+  return TrustNode::mkTrustRewrite(cterms[0], cterms[cterms.size() - 1], pg);
 }
 
 std::string TConvSeqProofGenerator::identify() const { return d_name; }
