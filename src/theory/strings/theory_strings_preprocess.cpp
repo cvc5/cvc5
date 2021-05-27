@@ -703,18 +703,18 @@ Node StringsPreprocess::reduce(Node t,
     Node split = x.eqNode(nm->mkNode(STRING_CONCAT, k1, k2, k3));
     // len(k1) = indexof_re(x, y, 0)
     Node k1Len = nm->mkNode(STRING_LENGTH, k1).eqNode(idx);
-    Node i = SkolemCache::mkIndexVar(t);
-    Node bvi = nm->mkNode(BOUND_VAR_LIST, i);
+    Node l = SkolemCache::mkLengthVar(t);
+    Node bvll = nm->mkNode(BOUND_VAR_LIST, l);
     Node bound =
-        nm->mkNode(AND, nm->mkNode(LT, zero, i), nm->mkNode(LT, i, k2Len));
+        nm->mkNode(AND, nm->mkNode(LT, zero, l), nm->mkNode(LT, l, k2Len));
     Node body = nm->mkNode(
         OR,
         bound.negate(),
-        nm->mkNode(STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, k2, zero, i), y)
+        nm->mkNode(STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, k2, zero, l), y)
             .negate());
-    // forall i. 0 < i < len(k2) => ~in_re(substr(k2, 0, i), r)
+    // forall l. 0 < l < len(k2) => ~in_re(substr(k2, 0, l), r)
     Node shortestMatch =
-        nm->mkNode(OR, k2Len.eqNode(zero), mkForallInternal(bvi, body));
+        nm->mkNode(OR, k2Len.eqNode(zero), mkForallInternal(bvll, body));
     // in_re(k2, y)
     Node match = nm->mkNode(STRING_IN_REGEXP, k2, y);
     // k = k1 ++ z ++ k3
@@ -725,7 +725,7 @@ Node StringsPreprocess::reduce(Node t,
     // ELSE:
     //   x = k1 ++ k2 ++ k3 ^
     //   len(k1) = indexof_re(x, y, 0) ^
-    //   (forall i. 0 < i < len(k2) => ~in_re(substr(k2, 0, i), r)) ^
+    //   (forall l. 0 < l < len(k2) => ~in_re(substr(k2, 0, l), r)) ^
     //   in_re(k2, y) ^
     //   k = k1 ++ z ++ k3
     asserts.push_back(
