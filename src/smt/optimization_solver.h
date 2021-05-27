@@ -215,11 +215,6 @@ class OptimizationSolver
                      bool bvSigned = false);
 
   /**
-   * Pop the most recently successfully-pushed objective.
-   **/
-  void popObjective();
-
-  /**
    * Returns the values of the optimized objective after checkOpt is called
    * @return a vector of Optimization Result,
    *   each containing the outcome and the value.
