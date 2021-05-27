@@ -68,6 +68,12 @@ void OptimizationSolver::pushObjective(
   d_results.emplace_back(OptimizationResult::UNKNOWN, Node());
 }
 
+void OptimizationSolver::popObjective()
+{
+  d_optChecker.reset();
+  d_objectives.pop_back();
+  d_results.pop_back();
+}
 
 std::vector<OptimizationResult> OptimizationSolver::getValues()
 {
