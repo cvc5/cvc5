@@ -1663,13 +1663,13 @@ cdef class Term:
         return self.cterm.isIntegerValue()
     
     def getIntegerValue(self):
-        return self.cterm.getIntegerValue().decode() 
+        return int(self.cterm.getIntegerValue().decode())
 
     def isRealValue(self):
         return self.cterm.isRealValue()
 
     def getRealValue(self):
-        return self.cterm.getRealValue().decode() 
+        return float(fractions.Fraction(self.cterm.getRealValue().decode()))
 
     def isBitVectorValue(self):
         return self.cterm.isBitVectorValue()
