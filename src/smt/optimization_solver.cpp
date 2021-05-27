@@ -297,9 +297,10 @@ OptimizationResult::ResultType OptimizationSolver::optimizeParetoNaiveGIA()
 
   d_optChecker->pop();
 
-  // before we return!
-  // please do assert that some objective could be better
-  // in order to break the ties for the next run!!!
+  // before we return:
+  // assert that some objective could be better
+  // in order not to get the same optimal solution
+  // for the next run.
   d_optChecker->assertFormula(nm->mkOr(someObjBetter));
 
   return OptimizationResult::OPTIMAL;

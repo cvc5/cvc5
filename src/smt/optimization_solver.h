@@ -195,6 +195,9 @@ class OptimizationSolver
 
   /**
    * Run the optimization loop for the pushed objective
+   * For multiple objective combination, it defaults to lexicographic,
+   * and combination could be set by calling
+   *   setObjectiveCombination(BOX/LEXICOGRAPHIC/PARETO)
    */
   OptimizationResult::ResultType checkOpt();
 
@@ -268,11 +271,18 @@ class OptimizationSolver
   /**
    * Optimize multiple goals in Pareto order
    * Using a variant of linear search called Guided Improvement Algorithm
-   * Could be called multiple times to iterate through all possible solutions
-   * (Pareto front)
-   * @return if there's a result it will return OPTIMAL;
+   * Could be called multiple times to iterate through the Pareto front
+   *
+   * Definition:
+   * Pareto front: Set of all possible Pareto optimal solutions
+   *
+   * Reference:
+   * D. Rayside, H.-C. Estler, and D. Jackson. The Guided Improvement Algorithm.
+   *  Technical Report MIT-CSAIL-TR-2009-033, MIT, 2009.
+   *
+   * @return if it finds a new Pareto optimal result it will return OPTIMAL;
    *   if it exhausts the results in the Pareto front it will return UNSAT;
-   *   if it doesn't know whether there's a result it will return UNKNOWN.
+   *   if the underlying SMT solver returns UNKNOWN, it will return UNKNOWN.
    **/
   OptimizationResult::ResultType optimizeParetoNaiveGIA();
 
