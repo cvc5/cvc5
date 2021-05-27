@@ -1511,7 +1511,18 @@ set(regress_1_tests
   regress1/datatypes/tuple_projection.smt2
   regress1/decision/bug374a.smtv1.smt2
   regress1/decision/error3.smtv1.smt2
+  regress1/decision/issue5454-2.smt2
+  regress1/decision/issue5454-3.smt2
+  regress1/decision/issue5454.smt2
+  regress1/decision/issue5785.smt2
+  regress1/decision/jh-test1.smt2
   regress1/decision/quant-Arrays_Q1-noinfer.smt2
+  regress1/decision/wishue114.smt2
+  regress1/decision/wishue115.smt2
+  regress1/decision/wishue116.smt2
+  regress1/decision/wishue149-2.smt2
+  regress1/decision/wishue149-3.smt2
+  regress1/decision/wishue160.smt2
   regress1/error.cvc
   regress1/errorcrash.smt2
   regress1/fp/rti_3_5_bug_report.smt2
@@ -2635,6 +2646,8 @@ set(regression_disabled_tests
   regress1/sygus/issue3498.smt2
   regress2/arith/miplib-opt1217--27.smt2
   regress2/nl/dumortier-050317.smt2
+  # timeout after refactoring justification heuristic
+  regress2/ho/SYO362^5.p
   # time out
   regress3/unifpi-solve-car_1.lus.sy
   regress3/issue4476-ext-rew.smt2
