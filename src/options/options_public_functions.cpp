@@ -187,19 +187,19 @@ std::ostream* Options::currentGetOut() {
 // TODO: Document these.
 
 void Options::setInputLanguage(InputLanguage value) {
-  base().inputLanguage = value;
+  base.inputLanguage = value;
 }
 
 void Options::setInteractive(bool value) {
-  driver().interactive = value;
+  driver.interactive = value;
 }
 
 void Options::setOut(std::ostream* value) {
-  base().out = value;
+  base.out = value;
 }
 
 void Options::setOutputLanguage(OutputLanguage value) {
-  base().outputLanguage = value;
+  base.outputLanguage = value;
 }
 
 bool Options::wasSetByUserEarlyExit() const {

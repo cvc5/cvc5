@@ -332,8 +332,8 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     // Start new SMT engine to check solutions
     std::unique_ptr<SmtEngine> solChecker;
     initializeSubsolver(solChecker);
-    solChecker->getOptions().smt().checkSynthSol = false;
-    solChecker->getOptions().quantifiers().sygusRecFun = false;
+    solChecker->getOptions().smt.checkSynthSol = false;
+    solChecker->getOptions().quantifiers.sygusRecFun = false;
     // get the solution for this conjecture
     std::vector<Node>& fvars = fvarMap[conj];
     std::vector<Node>& fsols = fsolMap[conj];

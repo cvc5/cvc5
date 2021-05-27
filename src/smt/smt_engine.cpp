@@ -454,14 +454,14 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
                 << " unsupported, defaulting to language (and semantics of) "
                    "SMT-LIB 2.6\n";
     }
-    getOptions().base().inputLanguage = ilang;
+    getOptions().base.inputLanguage = ilang;
     // also update the output language
     if (!Options::current().wasSetByUser(options::outputLanguage))
     {
       language::output::Language olang = language::toOutputLanguage(ilang);
       if (d_env->getOption(options::outputLanguage) != olang)
       {
-        getOptions().base().outputLanguage = olang;
+        getOptions().base.outputLanguage = olang;
         *d_env->getOption(options::out) << language::SetLanguage(olang);
       }
     }
@@ -1414,11 +1414,11 @@ void SmtEngine::checkUnsatCore() {
   // initialize the core checker
   std::unique_ptr<SmtEngine> coreChecker;
   initializeSubsolver(coreChecker);
-  coreChecker->getOptions().smt().checkUnsatCores = false;
+  coreChecker->getOptions().smt.checkUnsatCores = false;
   // disable all proof options
-  coreChecker->getOptions().smt().produceProofs = false;
-  coreChecker->getOptions().smt().checkProofs = false;
-  coreChecker->getOptions().proof().proofEagerChecking = false;
+  coreChecker->getOptions().smt.produceProofs = false;
+  coreChecker->getOptions().smt.checkProofs = false;
+  coreChecker->getOptions().proof.proofEagerChecking = false;
 
   // set up separation logic heap if necessary
   TypeNode sepLocType, sepDataType;
@@ -1811,16 +1811,16 @@ void SmtEngine::setResourceLimit(uint64_t units, bool cumulative)
 {
   if (cumulative)
   {
-    d_env->d_options.resman().cumulativeResourceLimit = units;
+    d_env->d_options.resman.cumulativeResourceLimit = units;
   }
   else
   {
-    d_env->d_options.resman().perCallResourceLimit = units;
+    d_env->d_options.resman.perCallResourceLimit = units;
   }
 }
 void SmtEngine::setTimeLimit(uint64_t millis)
 {
-  d_env->d_options.resman().perCallMillisecondLimit = millis;
+  d_env->d_options.resman.perCallMillisecondLimit = millis;
 }
 
 unsigned long SmtEngine::getResourceUsage() const
