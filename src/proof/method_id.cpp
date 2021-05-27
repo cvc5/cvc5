@@ -16,6 +16,7 @@
 #include "proof/method_id.h"
 
 #include "proof/proof_checker.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 
