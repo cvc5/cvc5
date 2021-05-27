@@ -1691,20 +1691,18 @@ cdef class Term:
                   -- the constant base is returned as the default value
         '''
 
-        string_repr = self.cterm.toString().decode()
-        assert string_repr
         sort = self.getSort()
         if self.isBooleanValue():
             return self.getBooleanValue()
         elif self.isIntegerValue():
             return self.getIntegerValue()
         elif self.isRealValue():
-            return self.isRealValue()
+            return self.getRealValue()
         elif self.isBitVectorValue():
             return int(self.getBitVectorValue(), 2)
         elif self.isStringValue():
             return self.getStringValue()
-        elif self.getSort.isArray():
+        elif self.getSort().isArray():
             res = None
             keys = []
             values = []
