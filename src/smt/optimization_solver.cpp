@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Michael Chang, Yancheng Ou, Aina Niemetz
+ *   Yancheng Ou, Michael Chang, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -26,41 +26,43 @@ using namespace cvc5::omt;
 namespace cvc5 {
 namespace smt {
 
+OptimizationSolver::OptimizationSolver(SmtEngine* parent)
+    : d_parent(parent),
+      d_optChecker(),
+      d_objectives(),
+      d_results(),
+      d_objectiveCombination(BOX)
+{
+}
+
 OptimizationResult::ResultType OptimizationSolver::checkOpt()
 {
-  Assert(d_objectives.size() == 1);
-  // NOTE: currently we are only dealing with single obj
-  std::unique_ptr<OMTOptimizer> optimizer =
-      OMTOptimizer::getOptimizerForObjective(d_objectives[0]);
-
-  if (!optimizer) return OptimizationResult::UNSUPPORTED;
-
-  OptimizationResult optResult;
-  std::unique_ptr<SmtEngine> optChecker = createOptCheckerWithTimeout(d_parent);
-  if (d_objectives[0].getType() == OptimizationObjective::MAXIMIZE)
+  switch (d_objectiveCombination)
   {
-    optResult =
-        optimizer->maximize(optChecker.get(), d_objectives[0].getTarget());
+    case BOX: return optimizeBox(); break;
+    default:
+      Unimplemented()
+          << "Only BOX objective combination is supported in current version";
   }
-  else if (d_objectives[0].getType() == OptimizationObjective::MINIMIZE)
-  {
-    optResult =
-        optimizer->minimize(optChecker.get(), d_objectives[0].getTarget());
-  }
-
-  d_results[0] = optResult;
-  return optResult.getType();
+  Unreachable();
 }
 
 void OptimizationSolver::pushObjective(
     TNode target, OptimizationObjective::ObjectiveType type, bool bvSigned)
 {
+  if (!OMTOptimizer::nodeSupportsOptimization(target))
+  {
+    CVC5_FATAL()
+        << "Objective not pushed: Target node does not support optimization";
+  }
+  d_optChecker.reset();
   d_objectives.emplace_back(target, type, bvSigned);
-  d_results.emplace_back(OptimizationResult::UNSUPPORTED, Node());
+  d_results.emplace_back(OptimizationResult::UNKNOWN, Node());
 }
 
 void OptimizationSolver::popObjective()
 {
+  d_optChecker.reset();
   d_objectives.pop_back();
   d_results.pop_back();
 }
@@ -69,6 +71,12 @@ std::vector<OptimizationResult> OptimizationSolver::getValues()
 {
   Assert(d_objectives.size() == d_results.size());
   return d_results;
+}
+
+void OptimizationSolver::setObjectiveCombination(
+    ObjectiveCombination combination)
+{
+  d_objectiveCombination = combination;
 }
 
 std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
@@ -89,6 +97,57 @@ std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
     optChecker->assertFormula(e);
   }
   return optChecker;
+}
+
+OptimizationResult::ResultType OptimizationSolver::optimizeBox()
+{
+  // resets the optChecker
+  d_optChecker = createOptCheckerWithTimeout(d_parent);
+  OptimizationResult partialResult;
+  OptimizationResult::ResultType aggregatedResultType =
+      OptimizationResult::OPTIMAL;
+  std::unique_ptr<OMTOptimizer> optimizer;
+  for (size_t i = 0, numObj = d_objectives.size(); i < numObj; ++i)
+  {
+    optimizer = OMTOptimizer::getOptimizerForObjective(d_objectives[i]);
+    // checks whether the objective type is maximize or minimize
+    switch (d_objectives[i].getType())
+    {
+      case OptimizationObjective::MAXIMIZE:
+        partialResult = optimizer->maximize(d_optChecker.get(),
+                                            d_objectives[i].getTarget());
+        break;
+      case OptimizationObjective::MINIMIZE:
+        partialResult = optimizer->minimize(d_optChecker.get(),
+                                            d_objectives[i].getTarget());
+        break;
+      default:
+        CVC5_FATAL()
+            << "Optimization objective is neither MAXIMIZE nor MINIMIZE";
+    }
+    // match the optimization result type, and aggregate the results of
+    // subproblems
+    switch (partialResult.getType())
+    {
+      case OptimizationResult::OPTIMAL: break;
+      case OptimizationResult::UNBOUNDED: break;
+      case OptimizationResult::UNSAT:
+        if (aggregatedResultType == OptimizationResult::OPTIMAL)
+        {
+          aggregatedResultType = OptimizationResult::UNSAT;
+        }
+        break;
+      case OptimizationResult::UNKNOWN:
+        aggregatedResultType = OptimizationResult::UNKNOWN;
+        break;
+      default: Unreachable();
+    }
+
+    d_results[i] = partialResult;
+  }
+  // kill optChecker after optimization ends
+  d_optChecker.reset();
+  return aggregatedResultType;
 }
 
 }  // namespace smt
