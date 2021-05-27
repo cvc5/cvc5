@@ -51,13 +51,13 @@ public class FloatingPointArith {
     // Assert that floating-point addition is not associative:
     // (a + (b + c)) != ((a + b) + c)
     Expr rm = em.mkConst(RoundingMode.roundNearestTiesToEven);
-    Expr lhs = em.mkExpr(Kind.FLOATINGPOINT_PLUS,
+    Expr lhs = em.mkExpr(Kind.FLOATINGPOINT_ADD,
         rm,
         a,
-        em.mkExpr(Kind.FLOATINGPOINT_PLUS, rm, b, c));
-    Expr rhs = em.mkExpr(Kind.FLOATINGPOINT_PLUS,
+        em.mkExpr(Kind.FLOATINGPOINT_ADD, rm, b, c));
+    Expr rhs = em.mkExpr(Kind.FLOATINGPOINT_ADD,
         rm,
-        em.mkExpr(Kind.FLOATINGPOINT_PLUS, rm, a, b),
+        em.mkExpr(Kind.FLOATINGPOINT_ADD, rm, a, b),
         c);
     smt.assertFormula(em.mkExpr(Kind.NOT, em.mkExpr(Kind.EQUAL, a, b)));
 
