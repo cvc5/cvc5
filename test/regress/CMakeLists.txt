@@ -870,6 +870,7 @@ set(regress_0_tests
   regress0/quantifiers/issue4576.smt2
   regress0/quantifiers/issue5645-dt-cm-spurious.smt2
   regress0/quantifiers/issue5693-prenex.smt2
+  regress0/quantifiers/issue6603-dt-bool-cegqi.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
