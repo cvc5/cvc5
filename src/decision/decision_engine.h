@@ -18,6 +18,7 @@
 #ifndef CVC5__DECISION__DECISION_ENGINE_H
 #define CVC5__DECISION__DECISION_ENGINE_H
 
+#include "decision/justification_strategy.h"
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
@@ -60,7 +61,7 @@ class DecisionEngine
    */
   void addAssertion(TNode assertion);
   /**
-   * TODO: remove this interface
+   * !!!! temporary until the old justification implementation is deleted.
    * Notify this class  that lem is the skolem definition for skolem, which is
    * a part of the current assertions.
    */
@@ -74,6 +75,8 @@ class DecisionEngine
  private:
   /** The old implementation */
   std::unique_ptr<DecisionEngineOld> d_decEngineOld;
+  /** The new implementation */
+  std::unique_ptr<JustificationStrategy> d_jstrat;
   /** Pointer to resource manager for associated SmtEngine */
   ResourceManager* d_resourceManager;
   /** using old implementation? */
