@@ -15,6 +15,10 @@ New Features:
   if arrays `a` and `b` are equal on all indices within indices `i` and `j`.
 * Support for an integer operator `(_ iand n)` that returns the bitwise `and`
   of two integers, seen as integers modulo n.
+* Strings:
+  * Support for `str.indexof_re(s, r, n)`, which returns the index of the first
+    occurrence of a regular expression `r` in a string `s` after index `n` or
+    -1 if `r` does not match a substring after `n`.
 
 Improvements:
 * New API: Added functions to retrieve the heap/nil term when using separation
