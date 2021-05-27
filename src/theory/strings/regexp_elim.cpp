@@ -400,7 +400,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       {
         sStartIndex = lens;
       }
-      else if (r==1 && sConstraints.size()==2)
+      else if (r == 1 && sConstraints.size() == 2)
       {
         // first and last children cannot overlap
         Node bound = nm->mkNode(GEQ, sss, sStartIndex);
