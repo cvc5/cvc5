@@ -706,15 +706,14 @@ Node StringsPreprocess::reduce(Node t,
     Node l = SkolemCache::mkLengthVar(t);
     Node bvll = nm->mkNode(BOUND_VAR_LIST, l);
     Node bound =
-        nm->mkNode(AND, nm->mkNode(LT, zero, l), nm->mkNode(LT, l, k2Len));
+        nm->mkNode(AND, nm->mkNode(LEQ, zero, l), nm->mkNode(LT, l, k2Len));
     Node body = nm->mkNode(
         OR,
         bound.negate(),
         nm->mkNode(STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, k2, zero, l), y)
             .negate());
-    // forall l. 0 < l < len(k2) => ~in_re(substr(k2, 0, l), r)
-    Node shortestMatch =
-        nm->mkNode(OR, k2Len.eqNode(zero), mkForallInternal(bvll, body));
+    // forall l. 0 <= l < len(k2) => ~in_re(substr(k2, 0, l), r)
+    Node shortestMatch = mkForallInternal(bvll, body);
     // in_re(k2, y)
     Node match = nm->mkNode(STRING_IN_REGEXP, k2, y);
     // k = k1 ++ z ++ k3
@@ -725,7 +724,7 @@ Node StringsPreprocess::reduce(Node t,
     // ELSE:
     //   x = k1 ++ k2 ++ k3 ^
     //   len(k1) = indexof_re(x, y, 0) ^
-    //   (forall l. 0 < l < len(k2) => ~in_re(substr(k2, 0, l), r)) ^
+    //   (forall l. 0 <= l < len(k2) => ~in_re(substr(k2, 0, l), r)) ^
     //   in_re(k2, y) ^
     //   k = k1 ++ z ++ k3
     asserts.push_back(
@@ -772,7 +771,7 @@ Node StringsPreprocess::reduce(Node t,
     lemmas.push_back(k.eqNode(nm->mkNode(APPLY_UF, us, zero)));
     // Us(numOcc) = substr(x, Uf(numOcc))
     lemmas.push_back(usno.eqNode(rem));
-    // Uf(-1) = 0
+    // Uf(0) = 0
     lemmas.push_back(nm->mkNode(APPLY_UF, uf, zero).eqNode(zero));
     // indexof_re(substr(x, Uf(numOcc)), y', 0) = -1
     lemmas.push_back(
