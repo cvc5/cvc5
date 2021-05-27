@@ -1669,7 +1669,7 @@ cdef class Term:
         return self.cterm.isRealValue()
 
     def getRealValue(self):
-        return float(fractions.Fraction(self.cterm.getRealValue().decode()))
+        return float(Fraction(self.cterm.getRealValue().decode()))
 
     def isBitVectorValue(self):
         return self.cterm.isBitVectorValue()
