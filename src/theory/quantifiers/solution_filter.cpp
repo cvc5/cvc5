@@ -92,7 +92,7 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
       else
       {
         Options& opts = smt::currentSmtEngine()->getOptions();
-        std::ostream* smtOut = opts.base().out;
+        std::ostream* smtOut = opts.base.out;
         (*smtOut) << "; (filtered " << (d_isStrong ? s : s.negate()) << ")"
                   << std::endl;
       }

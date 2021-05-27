@@ -26,7 +26,7 @@ const Printer& OutputManager::getPrinter() const { return d_smt->getPrinter(); }
 
 std::ostream& OutputManager::getDumpOut() const
 {
-  return *d_smt->getOptions().base().out;
+  return *d_smt->getOptions().base.out;
 }
 
 }  // namespace cvc5

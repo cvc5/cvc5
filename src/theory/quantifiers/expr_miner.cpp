@@ -76,7 +76,7 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
                                   Node query)
 {
   Assert (!query.isNull());
-  if (Options::current().quantifiers().sygusExprMinerCheckTimeout__setByUser__)
+  if (Options::current().quantifiers.sygusExprMinerCheckTimeout__setByUser__)
   {
     initializeSubsolver(checker, true, options::sygusExprMinerCheckTimeout());
   }
