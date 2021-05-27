@@ -18,6 +18,7 @@
 #include <map>
 #include <memory>
 
+#include "expr/array_store_all.h"
 #include "expr/kind.h"
 #include "expr/node_algorithm.h"
 #include "options/arrays_options.h"

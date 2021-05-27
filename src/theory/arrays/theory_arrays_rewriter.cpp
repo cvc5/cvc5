@@ -16,8 +16,11 @@
  * \todo document this file
  */
 
-#include "expr/attribute.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+
+#include "expr/array_store_all.h"
+#include "expr/attribute.h"
+#include "util/cardinality.h"
 
 namespace cvc5 {
 namespace theory {

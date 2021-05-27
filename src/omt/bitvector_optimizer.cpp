@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yancheng Ou, Michael Chang
+ *   Yancheng Ou
  *
  * This file is part of the cvc5 project.
  *
@@ -17,6 +17,7 @@
 
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"
+#include "util/bitvector.h"
 
 using namespace cvc5::smt;
 namespace cvc5::omt {
@@ -105,6 +106,7 @@ OptimizationResult OMTOptimizerBitVector::minimize(SmtEngine* optChecker,
     intermediateSatResult = optChecker->checkSat();
     if (intermediateSatResult.isUnknown() || intermediateSatResult.isNull())
     {
+      optChecker->pop();
       return OptimizationResult(OptimizationResult::UNKNOWN, value);
     }
     if (intermediateSatResult.isSat() == Result::SAT)
@@ -119,6 +121,7 @@ OptimizationResult OMTOptimizerBitVector::minimize(SmtEngine* optChecker,
         // lowerBound == pivot ==> upperbound = lowerbound + 1
         // and lowerbound <= target < upperbound is UNSAT
         // return the upperbound
+        optChecker->pop();
         return OptimizationResult(OptimizationResult::OPTIMAL, value);
       }
       else
@@ -128,6 +131,7 @@ OptimizationResult OMTOptimizerBitVector::minimize(SmtEngine* optChecker,
     }
     else
     {
+      optChecker->pop();
       return OptimizationResult(OptimizationResult::UNKNOWN, value);
     }
     optChecker->pop();
@@ -194,6 +198,7 @@ OptimizationResult OMTOptimizerBitVector::maximize(SmtEngine* optChecker,
     intermediateSatResult = optChecker->checkSat();
     if (intermediateSatResult.isUnknown() || intermediateSatResult.isNull())
     {
+      optChecker->pop();
       return OptimizationResult(OptimizationResult::UNKNOWN, value);
     }
     if (intermediateSatResult.isSat() == Result::SAT)
@@ -208,6 +213,7 @@ OptimizationResult OMTOptimizerBitVector::maximize(SmtEngine* optChecker,
         // upperbound = lowerbound + 1
         // and lowerbound < target <= upperbound is UNSAT
         // return the lowerbound
+        optChecker->pop();
         return OptimizationResult(OptimizationResult::OPTIMAL, value);
       }
       else
@@ -217,6 +223,7 @@ OptimizationResult OMTOptimizerBitVector::maximize(SmtEngine* optChecker,
     }
     else
     {
+      optChecker->pop();
       return OptimizationResult(OptimizationResult::UNKNOWN, value);
     }
     optChecker->pop();

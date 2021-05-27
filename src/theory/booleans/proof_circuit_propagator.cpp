@@ -19,6 +19,7 @@
 
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace theory {

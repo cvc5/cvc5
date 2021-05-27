@@ -18,6 +18,7 @@
 #include "expr/skolem_manager.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/sets/theory_sets_private.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;

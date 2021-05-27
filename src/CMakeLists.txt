@@ -29,6 +29,8 @@ libcvc5_add_sources(
   decision/decision_strategy.h
   decision/justification_heuristic.cpp
   decision/justification_heuristic.h
+  decision/justification_strategy.cpp
+  decision/justification_strategy.h
   decision/justify_info.cpp
   decision/justify_info.h
   decision/justify_stack.cpp

@@ -78,7 +78,7 @@ cvc5_add_example(simple_vc_quant_cxx "" "")
 #     # argument to binary (for testing)
 #     ${CMAKE_CURRENT_SOURCE_DIR}/translator-example-input.smt2)
 
-add_subdirectory(api)
+add_subdirectory(api/cpp)
 # TODO(project issue $206): Port example to new API
 # add_subdirectory(nra-translate)
 # add_subdirectory(sets-translate)

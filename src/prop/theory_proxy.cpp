@@ -77,6 +77,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     TNode assertion = d_queue.front();
     d_queue.pop();
     d_theoryEngine->assertFact(assertion);
+    d_decisionEngine->notifyAsserted(assertion);
   }
   d_theoryEngine->check(effort);
 }

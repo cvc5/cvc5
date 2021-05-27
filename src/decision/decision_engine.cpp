@@ -27,8 +27,9 @@ DecisionEngine::DecisionEngine(context::Context* c,
                                prop::SkolemDefManager* skdm,
                                ResourceManager* rm)
     : d_decEngineOld(new DecisionEngineOld(c, u)),
+      d_jstrat(new JustificationStrategy(c, u, skdm)),
       d_resourceManager(rm),
-      d_useOld(true)
+      d_useOld(options::decisionMode() != options::DecisionMode::JUSTIFICATION)
 {
 }
 
@@ -41,9 +42,16 @@ void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss,
     d_decEngineOld->setCnfStream(cs);
     return;
   }
+  d_jstrat->finishInit(ss, cs);
 }
 
-void DecisionEngine::presolve() {}
+void DecisionEngine::presolve()
+{
+  if (!d_useOld)
+  {
+    d_jstrat->presolve();
+  }
+}
 
 prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
@@ -52,7 +60,7 @@ prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
   {
     return d_decEngineOld->getNext(stopSearch);
   }
-  return undefSatLiteral;
+  return d_jstrat->getNext(stopSearch);
 }
 
 bool DecisionEngine::isDone()
@@ -61,7 +69,7 @@ bool DecisionEngine::isDone()
   {
     return d_decEngineOld->isDone();
   }
-  return false;
+  return d_jstrat->isDone();
 }
 
 void DecisionEngine::addAssertion(TNode assertion)
@@ -71,6 +79,7 @@ void DecisionEngine::addAssertion(TNode assertion)
     d_decEngineOld->addAssertion(assertion);
     return;
   }
+  d_jstrat->addAssertion(assertion);
 }
 
 void DecisionEngine::addSkolemDefinition(TNode lem, TNode skolem)
@@ -78,6 +87,10 @@ void DecisionEngine::addSkolemDefinition(TNode lem, TNode skolem)
   if (d_useOld)
   {
     d_decEngineOld->addSkolemDefinition(lem, skolem);
+  }
+  else
+  {
+    d_jstrat->addSkolemDefinition(lem, skolem);
   }
 }
 
@@ -87,6 +100,8 @@ void DecisionEngine::notifyAsserted(TNode n)
   {
     return;
   }
+  // old implementation does not use this
+  d_jstrat->notifyAsserted(n);
 }
 
 }  // namespace decision

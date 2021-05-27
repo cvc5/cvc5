@@ -36,7 +36,8 @@ operator EQ_RANGE 4 "equality of two arrays over an index range lower/upper"
 
 # storeall t e  is  \all i in indexType(t) <= e
 constant STORE_ALL \
-    ::cvc5::ArrayStoreAll \
+    class \
+    ArrayStoreAll \
     ::cvc5::ArrayStoreAllHashFunction \
     "expr/array_store_all.h" \
     "array store-all; payload is an instance of the cvc5::ArrayStoreAll class (this is not supported by arrays decision procedure yet, but it is used for returned array models)"
