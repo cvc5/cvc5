@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Michael Chang, Yancheng Ou, Aina Niemetz
+ *   Yancheng Ou, Michael Chang, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -44,8 +44,6 @@ class OptimizationResult
    **/
   enum ResultType
   {
-    // the type of the target is not supported
-    UNSUPPORTED,
     // whether the value is optimal is UNKNOWN
     UNKNOWN,
     // the original set of assertions has result UNSAT
@@ -67,14 +65,14 @@ class OptimizationResult
       : d_type(type), d_value(value)
   {
   }
-  OptimizationResult() : d_type(UNSUPPORTED), d_value() {}
+  OptimizationResult() : d_type(UNKNOWN), d_value() {}
   ~OptimizationResult() = default;
 
   /**
    * Returns an enum indicating whether
    * the result is optimal or not.
    * @return an enum showing whether the result is optimal, unbounded,
-   *   unsat, unknown or unsupported.
+   *   unsat or unknown.
    **/
   ResultType getType() { return d_type; }
   /**
@@ -165,20 +163,38 @@ class OptimizationSolver
 {
  public:
   /**
+   * An enum specifying how multiple objectives are dealt with.
+   * Definition:
+   *   phi(x, y): set of assertions with variables x and y
+   *
+   * Box: treat the objectives as independent objectives
+   *   v_x = max(x) s.t. phi(x, y) = sat
+   *   v_y = max(y) s.t. phi(x, y) = sat
+   *
+   * Lexicographic: optimize the objectives one-by-one, in the order they push
+   *   v_x = max(x) s.t. phi(x, y) = sat
+   *   v_y = max(y) s.t. phi(v_x, y) = sat
+   *
+   * Pareto: optimize multiple goals to a state such that
+   *   further optimization of one goal will worsen the other goal(s)
+   *   (v_x, v_y) s.t. phi(v_x, v_y) = sat, and
+   *     forall (x, y), (phi(x, y) = sat) -> (x <= v_x or y <= v_y)
+   **/
+  enum ObjectiveCombination
+  {
+    BOX,
+    LEXICOGRAPHIC,
+    PARETO,
+  };
+  /**
    * Constructor
    * @param parent the smt_solver that the user added their assertions to
    **/
-  OptimizationSolver(SmtEngine* parent)
-      : d_parent(parent), d_objectives(), d_results()
-  {
-  }
+  OptimizationSolver(SmtEngine* parent);
   ~OptimizationSolver() = default;
 
   /**
    * Run the optimization loop for the pushed objective
-   * NOTE: this function currently supports only single objective
-   * for multiple pushed objectives it always optimizes the first one.
-   * Add support for multi-obj later
    */
   OptimizationResult::ResultType checkOpt();
 
@@ -196,7 +212,7 @@ class OptimizationSolver
                      bool bvSigned = false);
 
   /**
-   * Pop the most recent objective.
+   * Pop the most recently successfully-pushed objective.
    **/
   void popObjective();
 
@@ -206,6 +222,11 @@ class OptimizationSolver
    *   each containing the outcome and the value.
    **/
   std::vector<OptimizationResult> getValues();
+
+  /**
+   * Sets the objective combination
+   **/
+  void setObjectiveCombination(ObjectiveCombination combination);
 
  private:
   /**
@@ -221,14 +242,28 @@ class OptimizationSolver
       bool needsTimeout = false,
       unsigned long timeout = 0);
 
-  /** The parent SMT engine **/
+  /**
+   * Optimize multiple goals in Box order
+   * @return OPTIMAL if all of the objectives are either OPTIMAL or UNBOUNDED;
+   *   UNSAT if at least one objective is UNSAT and no objective is UNKNOWN;
+   *   UNKNOWN if any of the objective is UNKNOWN.
+   **/
+  OptimizationResult::ResultType optimizeBox();
+
+  /** A pointer to the parent SMT engine **/
   SmtEngine* d_parent;
+
+  /** A subsolver for offline optimization **/
+  std::unique_ptr<SmtEngine> d_optChecker;
 
   /** The objectives to optimize for **/
   std::vector<OptimizationObjective> d_objectives;
 
   /** The results of the optimizations from the last checkOpt call **/
   std::vector<OptimizationResult> d_results;
+
+  /** The current objective combination method **/
+  ObjectiveCombination d_objectiveCombination;
 };
 
 }  // namespace smt

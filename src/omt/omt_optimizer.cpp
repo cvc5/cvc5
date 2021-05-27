@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yancheng Ou, Michael Chang, Aina Niemetz
+ *   Yancheng Ou, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -47,7 +47,8 @@ std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(
   }
   else
   {
-    return nullptr;
+    Unimplemented() << "Target type " << objectiveType
+                    << " does not support optimization";
   }
 }
 
@@ -81,7 +82,8 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
       }
       else
       {
-        Unimplemented() << "Target type does not support optimization";
+        Unimplemented() << "Target type " << targetType
+                        << " does not support optimization";
       }
     }
     case OptimizationObjective::MAXIMIZE:
@@ -102,7 +104,8 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
       }
       else
       {
-        Unimplemented() << "Target type does not support optimization";
+        Unimplemented() << "Target type " << targetType
+                        << " does not support optimization";
       }
     }
     default:
@@ -143,7 +146,8 @@ Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
       }
       else
       {
-        Unimplemented() << "Target type does not support optimization";
+        Unimplemented() << "Target type " << targetType
+                        << " does not support optimization";
       }
     }
     case OptimizationObjective::MAXIMIZE:
@@ -164,7 +168,8 @@ Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
       }
       else
       {
-        Unimplemented() << "Target type does not support optimization";
+        Unimplemented() << "Target type " << targetType
+                        << " does not support optimization";
       }
     }
     default:
