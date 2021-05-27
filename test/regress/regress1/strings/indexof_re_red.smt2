@@ -32,13 +32,6 @@
 (pop)
 
 (push)
-(assert (= i (str.indexof_re x (re.++ re.all (str.to_re "a") re.all) 0)))
-(assert (not (or (= i 0) (= i (- 1)))))
-(set-info :status unsat)
-(check-sat)
-(pop)
-
-(push)
 (assert (= 2 (str.indexof_re x (str.to_re "a") 1)))
 (set-info :status sat)
 (check-sat)

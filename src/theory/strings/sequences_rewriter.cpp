@@ -2564,16 +2564,11 @@ Node SequencesRewriter::rewriteIndexofRe(Node node)
       uint32_t start = nrat.getNumerator().toUnsignedInt();
       Node rem = nm->mkConst(s.getConst<String>().substr(start));
       std::pair<size_t, size_t> match = firstMatch(rem, r);
-      if (match.first != string::npos)
-      {
-        Node ret = nm->mkConst(Rational(start + match.first));
-        return returnRewrite(node, ret, Rewrite::INDEXOF_RE_EVAL);
-      }
-      else
-      {
-        Node ret = nm->mkConst(Rational(-1));
-        return returnRewrite(node, ret, Rewrite::INDEXOF_RE_EVAL);
-      }
+      Node ret = nm->mkConst(
+          Rational(match.first == string::npos
+                       ? -1
+                       : static_cast<int64_t>(start + match.first)));
+      return returnRewrite(node, ret, Rewrite::INDEXOF_RE_EVAL);
     }
 
     if (ArithEntail::check(n, zero) && ArithEntail::check(slen, n))
@@ -3209,7 +3204,7 @@ Node SequencesRewriter::rewriteReplaceReAll(Node node)
       std::vector<Node> res;
       String rem = x.getConst<String>();
       std::pair<size_t, size_t> match(0, 0);
-      while (rem.size() >= 0)
+      while (rem.size() != 0)
       {
         match = firstMatch(nm->mkConst(rem), yp);
         if (match.first == string::npos)

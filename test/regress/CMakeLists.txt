@@ -2526,6 +2526,7 @@ set(regress_3_tests
   regress3/specsharp-WindowsCard.15.RTE.Terminate_System.Int32.smt2
   regress3/strings-any-term.sy
   regress3/strings/extf_d_perf.smt2
+  regress3/strings/indexof_re_red.smt2
   regress3/strings/norn-dis-0707-3.smt2
   regress3/strings/replace_re_all.smt2
   regress3/unbdd_inv_gen_ex7.sy

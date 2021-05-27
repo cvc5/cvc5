@@ -185,6 +185,16 @@ class SkolemCache
    */
   static Node mkIndexVar(Node t);
 
+  /** Make length variable
+   *
+   * This returns an integer variable of kind BOUND_VARIABLE that is used for
+   * axiomatizing the behavior of a term or predicate t. It refers to lengths
+   * of strings in the reduction of t. For example, the length variable for the
+   * term str.indexof(s, r, n) is used to quantify over the lengths of strings
+   * that could be matched by r.
+   */
+  static Node mkLengthVar(Node t);
+
  private:
   /**
    * Simplifies the arguments for a string skolem used for indexing into the
