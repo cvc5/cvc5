@@ -4,8 +4,9 @@ on:
     - cron: '0 1 * * SUN'
 
 jobs:
-  build:
+  docs-cleanup:
     runs-on: ubuntu-latest
+    if: github.repository == 'cvc5/cvc5'
     steps:
       - name: Install Packages
         run: |
@@ -58,6 +59,11 @@ jobs:
 
           python3 genindex.py
           git add README.md
-          git commit -m "Update README.md"
+          if git diff --cached --exit-code
+          then
+            echo "Nothing changed"
+          else
+            git commit -m "Update README.md"
+          fi
 
           git push -f

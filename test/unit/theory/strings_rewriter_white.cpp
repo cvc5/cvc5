@@ -22,6 +22,7 @@
 #include "test_smt.h"
 #include "theory/rewriter.h"
 #include "theory/strings/strings_rewriter.h"
+#include "util/string.h"
 
 namespace cvc5 {
 

@@ -16,6 +16,7 @@
 
 #include "smt/optimization_solver.h"
 #include "test_smt.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 
@@ -58,7 +59,6 @@ TEST_F(TestTheoryWhiteIntOpt, max)
   d_smtEngine->assertFormula(upb);
   d_smtEngine->assertFormula(lowb);
 
-
   // We activate our objective so the subsolver knows to optimize it
   d_optslv->pushObjective(max_cost, OptimizationObjective::MAXIMIZE);
 
@@ -89,7 +89,6 @@ TEST_F(TestTheoryWhiteIntOpt, min)
   */
   d_smtEngine->assertFormula(upb);
   d_smtEngine->assertFormula(lowb);
-
 
   // We activate our objective so the subsolver knows to optimize it
   d_optslv->pushObjective(max_cost, OptimizationObjective::MINIMIZE);
@@ -122,13 +121,12 @@ TEST_F(TestTheoryWhiteIntOpt, result)
   d_smtEngine->assertFormula(upb);
   d_smtEngine->assertFormula(lowb);
 
-
   // We activate our objective so the subsolver knows to optimize it
   d_optslv->pushObjective(max_cost, OptimizationObjective::MAXIMIZE);
 
   // This should return OPT_UNSAT since 0 > x > 100 is impossible.
   OptimizationResult::ResultType r = d_optslv->checkOpt();
-  
+
   // We expect our check to have returned UNSAT
   ASSERT_EQ(r, OptimizationResult::UNSAT);
   d_optslv->popObjective();

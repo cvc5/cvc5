@@ -18,6 +18,7 @@
 #include "smt_util/nary_builder.h"
 
 #include "expr/metakind.h"
+#include "util/rational.h"
 
 using namespace std;
 

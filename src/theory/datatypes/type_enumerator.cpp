@@ -13,8 +13,10 @@
  * Enumerators for datatypes.
  */
 
-#include "expr/dtype_cons.h"
 #include "theory/datatypes/type_enumerator.h"
+
+#include "expr/ascription_type.h"
+#include "expr/dtype_cons.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
