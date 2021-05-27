@@ -137,9 +137,10 @@ class JustificationStrategy
    * all relevant input assertions are already propositionally satisfied by
    * the current assignment.
    *
+   * @param stopSearch Set to true if we can stop the search
    * @return The next SAT literal to decide on.
    */
-  prop::SatLiteral getNext();
+  prop::SatLiteral getNext(bool& stopSearch);
 
   /**
    * Are we finished assigning values to literals?

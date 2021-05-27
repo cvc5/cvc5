@@ -930,13 +930,12 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     }
     // should give a proof, if not, then tcpg does not agree with the
     // substitution.
-    Assert(pfn != nullptr);
     if (pfn == nullptr)
     {
-      AlwaysAssert(false) << "resort to TRUST_SUBS" << std::endl
-                          << eq << std::endl
-                          << eqq << std::endl
-                          << "from " << children << " applied to " << t;
+      Warning() << "resort to TRUST_SUBS" << std::endl
+                << eq << std::endl
+                << eqq << std::endl
+                << "from " << children << " applied to " << t << std::endl;
       cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
     }
     else
