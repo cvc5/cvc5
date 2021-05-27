@@ -26,6 +26,7 @@
 #include "theory/sets/normal_form.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/theory_model.h"
+#include "util/rational.h"
 #include "util/result.h"
 
 using namespace std;

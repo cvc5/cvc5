@@ -16,11 +16,13 @@
  * \todo document this file
  */
 
+#include "theory/booleans/theory_bool_rewriter.h"
+
 #include <algorithm>
 #include <unordered_set>
 
 #include "expr/node_value.h"
-#include "theory/booleans/theory_bool_rewriter.h"
+#include "util/cardinality.h"
 
 namespace cvc5 {
 namespace theory {

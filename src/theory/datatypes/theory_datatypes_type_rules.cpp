@@ -17,10 +17,13 @@
 
 #include <sstream>
 
+#include "expr/ascription_type.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/type_matcher.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/datatypes/tuple_project_op.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace theory {

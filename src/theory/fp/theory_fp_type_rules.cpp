@@ -17,6 +17,8 @@
 
 // This is only needed for checking that components are only applied to leaves.
 #include "theory/theory.h"
+#include "util/cardinality.h"
+#include "util/floatingpoint.h"
 #include "util/roundingmode.h"
 
 namespace cvc5 {

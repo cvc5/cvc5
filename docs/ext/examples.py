@@ -22,6 +22,7 @@ class APIExamples(Directive):
         '.cpp': {'title': 'C++', 'lang': 'c++'},
         '.java': {'title': 'Java', 'lang': 'java'},
         '.py': {'title': 'Python', 'lang': 'python'},
+        '.smt2': {'title': 'SMT-LIBv2', 'lang': 'lisp'},
     }
 
     # The "arguments" are actually the content of the directive
