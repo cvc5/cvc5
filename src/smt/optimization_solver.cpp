@@ -31,18 +31,26 @@ OptimizationSolver::OptimizationSolver(SmtEngine* parent)
       d_optChecker(),
       d_objectives(),
       d_results(),
-      d_objectiveCombination(BOX)
+      d_objectiveCombination(LEXICOGRAPHIC)
 {
 }
 
 OptimizationResult::ResultType OptimizationSolver::checkOpt()
 {
+  for (size_t i = 0, numObj = d_objectives.size(); i < numObj; ++i)
+  {
+    // reset the optimization results
+    d_results[i] = OptimizationResult();
+  }
   switch (d_objectiveCombination)
   {
     case BOX: return optimizeBox(); break;
+    case LEXICOGRAPHIC: return optimizeLexicographicIterative(); break;
+    case PARETO: return optimizeParetoNaiveGIA(); break;
     default:
-      Unimplemented()
-          << "Only BOX objective combination is supported in current version";
+      CVC5_FATAL()
+          << "Unknown objective combination, "
+          << "valid objective combinations are BOX, LEXICOGRAPHIC and PARETO";
   }
   Unreachable();
 }
@@ -148,6 +156,153 @@ OptimizationResult::ResultType OptimizationSolver::optimizeBox()
   // kill optChecker after optimization ends
   d_optChecker.reset();
   return aggregatedResultType;
+}
+
+OptimizationResult::ResultType
+OptimizationSolver::optimizeLexicographicIterative()
+{
+  // resets the optChecker
+  d_optChecker = createOptCheckerWithTimeout(d_parent);
+  OptimizationResult partialResult;
+  std::unique_ptr<OMTOptimizer> optimizer;
+  for (size_t i = 0, numObj = d_objectives.size(); i < numObj; ++i)
+  {
+    optimizer = OMTOptimizer::getOptimizerForObjective(d_objectives[i]);
+    // checks if the objective is maximize or minimize
+    switch (d_objectives[i].getType())
+    {
+      case OptimizationObjective::MAXIMIZE:
+        partialResult = optimizer->maximize(d_optChecker.get(),
+                                            d_objectives[i].getTarget());
+        break;
+      case OptimizationObjective::MINIMIZE:
+        partialResult = optimizer->minimize(d_optChecker.get(),
+                                            d_objectives[i].getTarget());
+        break;
+      default:
+        CVC5_FATAL()
+            << "Optimization objective is neither MAXIMIZE nor MINIMIZE";
+    }
+
+    d_results[i] = partialResult;
+
+    // checks the optimization result of the current objective
+    switch (partialResult.getType())
+    {
+      case OptimizationResult::OPTIMAL:
+        // assert target[i] == value[i] and proceed
+        d_optChecker->assertFormula(d_optChecker->getNodeManager()->mkNode(
+            kind::EQUAL, d_objectives[i].getTarget(), d_results[i].getValue()));
+        break;
+      case OptimizationResult::UNBOUNDED: return OptimizationResult::UNBOUNDED;
+      case OptimizationResult::UNSAT: return OptimizationResult::UNSAT;
+      case OptimizationResult::UNKNOWN: return OptimizationResult::UNKNOWN;
+      default: Unreachable();
+    }
+  }
+  // kill optChecker in case pareto misuses it
+  d_optChecker.reset();
+  // now all objectives are OPTIMAL, just return OPTIMAL as overall result
+  return OptimizationResult::OPTIMAL;
+}
+
+OptimizationResult::ResultType OptimizationSolver::optimizeParetoNaiveGIA()
+{
+  // initial call to Pareto optimizer, create the checker
+  if (!d_optChecker) d_optChecker = createOptCheckerWithTimeout(d_parent);
+  NodeManager* nm = d_optChecker->getNodeManager();
+
+  // checks whether the current set of assertions are satisfied or not
+  Result satResult = d_optChecker->checkSat();
+
+  switch (satResult.isSat())
+  {
+    case Result::Sat::UNSAT: return OptimizationResult::UNSAT;
+    case Result::Sat::SAT_UNKNOWN: return OptimizationResult::UNKNOWN;
+    case Result::Sat::SAT:
+    {
+      // if satisfied, use d_results to store the initial results
+      // they will be gradually updated and optimized
+      // until no more optimal value could be found
+      for (size_t i = 0, numObj = d_objectives.size(); i < numObj; ++i)
+      {
+        d_results[i] = OptimizationResult(
+            OptimizationResult::OPTIMAL,
+            d_optChecker->getValue(d_objectives[i].getTarget()));
+      }
+      break;
+    }
+    default: Unreachable();
+  }
+
+  // a vector storing assertions saying that no objective is worse
+  std::vector<Node> noWorseObj;
+  // a vector storing assertions saying that there is at least one objective
+  // that could be improved
+  std::vector<Node> someObjBetter;
+  d_optChecker->push();
+
+  while (satResult.isSat() == Result::Sat::SAT)
+  {
+    noWorseObj.clear();
+    someObjBetter.clear();
+
+    for (size_t i = 0, numObj = d_objectives.size(); i < numObj; ++i)
+    {
+      // for maximize value[i] <= obj[i],
+      // for minimize obj[i] <= value[i]
+      noWorseObj.push_back(
+          OMTOptimizer::mkWeakIncrementalExpression(nm,
+                                                    d_objectives[i].getTarget(),
+                                                    d_results[i].getValue(),
+                                                    d_objectives[i]));
+      // for maximize value[i] < obj[i],
+      // for minimize obj[i] < value[i]
+      someObjBetter.push_back(OMTOptimizer::mkStrongIncrementalExpression(
+          nm,
+          d_objectives[i].getTarget(),
+          d_results[i].getValue(),
+          d_objectives[i]));
+    }
+    d_optChecker->assertFormula(nm->mkAnd(noWorseObj));
+    d_optChecker->assertFormula(nm->mkOr(someObjBetter));
+    // checks if previous assertions + noWorseObj + someObjBetter are satisfied
+    satResult = d_optChecker->checkSat();
+
+    switch (satResult.isSat())
+    {
+      case Result::Sat::UNSAT:
+        // if result is UNSAT, it means no more improvement could be made,
+        // then the results stored in d_results are one of the Pareto optimal
+        // results
+        break;
+      case Result::Sat::SAT_UNKNOWN:
+        // if result is UNKNOWN, abort the current session and return UNKNOWN
+        d_optChecker.reset();
+        return OptimizationResult::UNKNOWN;
+      case Result::Sat::SAT:
+      {
+        // if result is SAT, update d_results to the more optimal values
+        for (size_t i = 0, numObj = d_objectives.size(); i < numObj; ++i)
+        {
+          d_results[i] = OptimizationResult(
+              OptimizationResult::OPTIMAL,
+              d_optChecker->getValue(d_objectives[i].getTarget()));
+        }
+        break;
+      }
+      default: Unreachable();
+    }
+  }
+
+  d_optChecker->pop();
+
+  // before we return!
+  // please do assert that some objective could be better
+  // in order to break the ties for the next run!!!
+  d_optChecker->assertFormula(nm->mkOr(someObjBetter));
+
+  return OptimizationResult::OPTIMAL;
 }
 
 }  // namespace smt
