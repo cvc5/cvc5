@@ -219,7 +219,7 @@ struct TypeClass
 
 /**
  * Returns true if c1 is less nested than c2. If their nesting is the same, it
- * compares the type nodes by id.
+ * compares the underlying type nodes by id.
  */
 bool operator<(const TypeClass& c1, const TypeClass c2)
 {
