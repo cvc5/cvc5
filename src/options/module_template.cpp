@@ -33,6 +33,14 @@ ${defs}$
 
 ${modes}$
 
+
+namespace ${id}$
+{
+// clang-format off
+${defaults}$
+// clang-format on
+}
+
 }  // namespace options
 }  // namespace cvc5
 // clang-format on
