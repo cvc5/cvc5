@@ -997,6 +997,7 @@ set(regress_0_tests
   regress0/seq/issue5543-unit-cmv.smt2
   regress0/seq/issue5547-seq-len-unit.smt2
   regress0/seq/issue5547-small-seq-len-unit.smt2
+  regress0/seq/issue6337-seq.smt2
   regress0/seq/len_simplify.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2

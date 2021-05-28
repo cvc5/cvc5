@@ -198,6 +198,34 @@ void TheoryStrings::presolve() {
 // MODEL GENERATION
 /////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Helper that allows ordering sequence types by how nested they are.
+ */
+struct TypeClass
+{
+  TypeNode d_tn;
+  size_t d_nesting;
+
+  TypeClass(TypeNode tn) : d_tn(tn)
+  {
+    d_nesting = 0;
+    while (tn.isSequence())
+    {
+      tn = tn[0];
+      d_nesting++;
+    }
+  }
+};
+
+/**
+ * Returns true if c1 is less nested than c2. If their nesting is the same, it
+ * compares the type nodes by id.
+ */
+bool operator<(const TypeClass& c1, const TypeClass c2)
+{
+  return c1.d_nesting < c2.d_nesting || c1.d_tn < c2.d_tn;
+}
+
 bool TheoryStrings::collectModelValues(TheoryModel* m,
                                        const std::set<Node>& termSet)
 {
@@ -211,7 +239,9 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
     Trace("strings-debug-model") << d_esolver.debugPrintModel() << std::endl;
   }
   Trace("strings-model") << "TheoryStrings::collectModelValues" << std::endl;
-  std::map<TypeNode, std::unordered_set<Node> > repSet;
+  // Collects representatives by types and orders sequence types by how nested
+  // they are
+  std::map<TypeClass, std::unordered_set<Node> > repSet;
   // Generate model
   // get the relevant string equivalence classes
   for (const Node& s : termSet)
@@ -220,10 +250,16 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
     if (tn.isStringLike())
     {
       Node r = d_state.getRepresentative(s);
-      repSet[tn].insert(r);
+      repSet[TypeClass(tn)].insert(r);
     }
   }
-  for (const std::pair<const TypeNode, std::unordered_set<Node> >& rst : repSet)
+
+  // Assign model values to the equivalence classes of each type, processing
+  // types in ascending nesting levels. The order is important because the
+  // computation of model values of nested sequences relies on the model values
+  // of the elements.
+  for (const std::pair<const TypeClass, std::unordered_set<Node> >& rst :
+       repSet)
   {
     // get partition of strings of equal lengths, per type
     std::map<TypeNode, std::vector<std::vector<Node> > > colT;
@@ -231,7 +267,7 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
     std::vector<Node> repVec(rst.second.begin(), rst.second.end());
     d_state.separateByLength(repVec, colT, ltsT);
     // now collect model info for the type
-    TypeNode st = rst.first;
+    TypeNode st = rst.first.d_tn;
     if (!collectModelInfoType(st, rst.second, colT[st], ltsT[st], m))
     {
       return false;
@@ -322,7 +358,10 @@ bool TheoryStrings::collectModelInfoType(TypeNode tn,
             Node argVal;
             if (nfe.d_nf[0][0].getType().isStringLike())
             {
-              argVal = d_state.getRepresentative(nfe.d_nf[0][0]);
+              // By this point, we should have assigned model values for the
+              // elements of this sequence type because of the order in which
+              // the types are processed
+              argVal = m->getRepresentative(nfe.d_nf[0][0]);
             }
             else
             {
