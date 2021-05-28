@@ -20,7 +20,6 @@
 using namespace cvc5::kind;
 
 namespace cvc5 {
-namespace theory {
 
 TheoryProofStepBuffer::TheoryProofStepBuffer(ProofChecker* pc)
     : ProofStepBuffer(pc)
@@ -36,7 +35,7 @@ bool TheoryProofStepBuffer::applyEqIntro(Node src,
 {
   std::vector<Node> args;
   args.push_back(src);
-  builtin::BuiltinProofRuleChecker::addMethodIds(args, ids, ida, idr);
+  addMethodIds(args, ids, ida, idr);
   Node res = tryStep(PfRule::MACRO_SR_EQ_INTRO, exp, args);
   if (res.isNull())
   {
@@ -73,7 +72,7 @@ bool TheoryProofStepBuffer::applyPredTransform(Node src,
   // try to prove that tgt rewrites to src
   children.insert(children.end(), exp.begin(), exp.end());
   args.push_back(tgt);
-  builtin::BuiltinProofRuleChecker::addMethodIds(args, ids, ida, idr);
+  addMethodIds(args, ids, ida, idr);
   Node res = tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
   if (res.isNull())
   {
@@ -93,7 +92,7 @@ bool TheoryProofStepBuffer::applyPredIntro(Node tgt,
 {
   std::vector<Node> args;
   args.push_back(tgt);
-  builtin::BuiltinProofRuleChecker::addMethodIds(args, ids, ida, idr);
+  addMethodIds(args, ids, ida, idr);
   Node res = tryStep(PfRule::MACRO_SR_PRED_INTRO, exp, args);
   if (res.isNull())
   {
@@ -113,7 +112,7 @@ Node TheoryProofStepBuffer::applyPredElim(Node src,
   children.push_back(src);
   children.insert(children.end(), exp.begin(), exp.end());
   std::vector<Node> args;
-  builtin::BuiltinProofRuleChecker::addMethodIds(args, ids, ida, idr);
+  addMethodIds(args, ids, ida, idr);
   Node srcRew = tryStep(PfRule::MACRO_SR_PRED_ELIM, children, args);
   if (CDProof::isSame(src, srcRew))
   {
@@ -236,5 +235,4 @@ Node TheoryProofStepBuffer::elimDoubleNegLit(Node n)
   return n;
 }
 
-}  // namespace theory
 }  // namespace cvc5

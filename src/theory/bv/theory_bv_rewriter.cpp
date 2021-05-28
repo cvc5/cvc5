@@ -375,9 +375,13 @@ RewriteResponse TheoryBVRewriter::RewriteNor(TNode node, bool prerewrite) {
 
 RewriteResponse TheoryBVRewriter::RewriteComp(TNode node, bool prerewrite)
 {
-  Node resultNode =
-      LinearRewriteStrategy<RewriteRule<EvalComp>, RewriteRule<BvComp> >::apply(
-          node);
+  Node resultNode = LinearRewriteStrategy<RewriteRule<EvalComp>>::apply(node);
+
+  if (node == resultNode && RewriteRule<BvComp>::applies(node))
+  {
+    resultNode = RewriteRule<BvComp>::run<false>(node);
+    return RewriteResponse(REWRITE_AGAIN, resultNode);
+  }
 
   return RewriteResponse(REWRITE_DONE, resultNode);
 }

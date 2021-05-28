@@ -582,6 +582,7 @@ set(regress_0_tests
   regress0/fmf/tail_rec.smt2
   regress0/fp/abs-unsound.smt2
   regress0/fp/abs-unsound2.smt2
+  regress0/fp/bvcomp-rewrite.smt2
   regress0/fp/down-cast-RNA.smt2
   regress0/fp/ext-rew-test.smt2
   regress0/fp/from_ubv.smt2
@@ -659,6 +660,7 @@ set(regress_0_tests
   regress0/issue5540-2-dump-model.smt2
   regress0/issue5540-model-decls.smt2
   regress0/issue5550-num-children.smt2
+  regress0/issue6605-2-abd-triv.smt2
   regress0/ite_arith.smt2
   regress0/ite_real_int_type.smtv1.smt2
   regress0/ite_real_valid.smtv1.smt2
@@ -870,6 +872,7 @@ set(regress_0_tests
   regress0/quantifiers/issue4576.smt2
   regress0/quantifiers/issue5645-dt-cm-spurious.smt2
   regress0/quantifiers/issue5693-prenex.smt2
+  regress0/quantifiers/issue6603-dt-bool-cegqi.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -1113,6 +1116,7 @@ set(regress_0_tests
   regress0/strings/idof-sem.smt2
   regress0/strings/ilc-like.smt2
   regress0/strings/indexof-sym-simp.smt2
+  regress0/strings/indexof_re.smt2
   regress0/strings/is_digit_simple.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
@@ -1128,6 +1132,7 @@ set(regress_0_tests
   regress0/strings/issue5090.smt2
   regress0/strings/issue5384-double-conflict.smt2
   regress0/strings/issue5428-re-diff-assoc.smt2
+  regress0/strings/issue5508-multiple-conflicts.smt2
   regress0/strings/issue5542-strings-seq-mix.smt2
   regress0/strings/issue5608-eager-pp.smt2
   regress0/strings/issue5666-orig-unit-deq.smt2
@@ -2044,6 +2049,7 @@ set(regress_1_tests
   regress1/strings/cmu-substr-rw.smt2
   regress1/strings/code-sequence.smt2
   regress1/strings/complement-test.smt2
+  regress1/strings/indexof_re_red.smt2
   regress1/strings/crash-1019.smt2
   regress1/strings/csp-prefix-exp-bug.smt2
   regress1/strings/double-replace.smt2
@@ -2086,6 +2092,8 @@ set(regress_1_tests
   regress1/strings/issue5692-infer-proxy.smt2
   regress1/strings/issue5940-skc-len-conc.smt2
   regress1/strings/issue5940-2-skc-len-conc.smt2
+  regress1/strings/issue6057-replace-re.smt2
+  regress1/strings/issue6057-replace-re-all-jiwonparc.smt2
   regress1/strings/issue6072-inc-no-const-reg.smt2
   regress1/strings/issue6075-repl-len-one-rr.smt2
   regress1/strings/issue6132-non-unique-skolem.smt2
@@ -2093,12 +2101,15 @@ set(regress_1_tests
   regress1/strings/issue6191-replace-all.smt2
   regress1/strings/issue6203-1-substr-ctn-strip.smt2
   regress1/strings/issue6203-2-re-ccache.smt2
+  regress1/strings/issue6203-6-replace-re.smt2
   regress1/strings/issue6214-2-sym-re-inc.smt2
   regress1/strings/issue6214-3-sym-re-inc.smt2
   regress1/strings/issue6214-4-sym-re-inc.smt2
   regress1/strings/issue6270.smt2
   regress1/strings/issue6271-rnf.smt2
   regress1/strings/issue6271-2-rnf.smt2
+  regress1/strings/issue6337-replace-re-all.smt2
+  regress1/strings/issue6337-replace-re.smt2
   regress1/strings/issue6567-empty-re-range.smt2
   regress1/strings/issue6604-2.smt2
   regress1/strings/kaluza-fl.smt2
@@ -2123,6 +2134,7 @@ set(regress_1_tests
   regress1/strings/pierre150331.smt2
   regress1/strings/policy_variable.smt2
   regress1/strings/pre_ctn_no_skolem_share.smt2
+  regress1/strings/proj254-re-elim-agg.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2
   regress1/strings/re-all-char-hard.smt2
@@ -2438,6 +2450,8 @@ set(regress_2_tests
   regress2/strings/issue3203.smt2
   regress2/strings/issue5381.smt2
   regress2/strings/issue6483.smt2
+  regress2/strings/issue6057-replace-re-all.smt2
+  regress2/strings/issue6057-replace-re-all-simplified.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/range-perf.smt2
@@ -2529,6 +2543,7 @@ set(regress_3_tests
   regress3/specsharp-WindowsCard.15.RTE.Terminate_System.Int32.smt2
   regress3/strings-any-term.sy
   regress3/strings/extf_d_perf.smt2
+  regress3/strings/indexof_re_red.smt2
   regress3/strings/norn-dis-0707-3.smt2
   regress3/strings/replace_re_all.smt2
   regress3/unbdd_inv_gen_ex7.sy

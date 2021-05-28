@@ -474,7 +474,7 @@ Node NonClausalSimp::processLearnedLit(Node lit,
   return lit;
 }
 
-Node NonClausalSimp::processRewrittenLearnedLit(theory::TrustNode trn)
+Node NonClausalSimp::processRewrittenLearnedLit(TrustNode trn)
 {
   if (isProofEnabled())
   {

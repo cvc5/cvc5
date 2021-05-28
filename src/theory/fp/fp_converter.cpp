@@ -1102,7 +1102,7 @@ Node FpConverter::convert(TNode node)
             }
             break;
 
-            case kind::FLOATINGPOINT_PLUS:
+            case kind::FLOATINGPOINT_ADD:
             case kind::FLOATINGPOINT_SUB:
             case kind::FLOATINGPOINT_MULT:
             case kind::FLOATINGPOINT_DIV:
@@ -1134,7 +1134,7 @@ Node FpConverter::convert(TNode node)
 
               switch (current.getKind())
               {
-                case kind::FLOATINGPOINT_PLUS:
+                case kind::FLOATINGPOINT_ADD:
                   d_fpMap.insert(current,
                                  symfpu::add<traits>(fpt(current.getType()),
                                                      (*mode).second,

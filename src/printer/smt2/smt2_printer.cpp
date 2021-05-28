@@ -723,6 +723,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STRING_CHARAT:
   case kind::STRING_STRCTN:
   case kind::STRING_STRIDOF:
+  case kind::STRING_INDEXOF_RE:
   case kind::STRING_STRREPL:
   case kind::STRING_STRREPLALL:
   case kind::STRING_REPLACE_RE:
@@ -875,7 +876,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::FLOATINGPOINT_EQ:
   case kind::FLOATINGPOINT_ABS:
   case kind::FLOATINGPOINT_NEG:
-  case kind::FLOATINGPOINT_PLUS:
+  case kind::FLOATINGPOINT_ADD:
   case kind::FLOATINGPOINT_SUB:
   case kind::FLOATINGPOINT_MULT:
   case kind::FLOATINGPOINT_DIV:
@@ -1253,7 +1254,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::FLOATINGPOINT_EQ: return "fp.eq";
   case kind::FLOATINGPOINT_ABS: return "fp.abs";
   case kind::FLOATINGPOINT_NEG: return "fp.neg";
-  case kind::FLOATINGPOINT_PLUS: return "fp.add";
+  case kind::FLOATINGPOINT_ADD: return "fp.add";
   case kind::FLOATINGPOINT_SUB: return "fp.sub";
   case kind::FLOATINGPOINT_MULT: return "fp.mul";
   case kind::FLOATINGPOINT_DIV: return "fp.div";
@@ -1309,6 +1310,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_STRCTN: return "str.contains" ;
   case kind::STRING_CHARAT: return "str.at" ;
   case kind::STRING_STRIDOF: return "str.indexof" ;
+  case kind::STRING_INDEXOF_RE: return "str.indexof_re";
   case kind::STRING_STRREPL: return "str.replace" ;
   case kind::STRING_STRREPLALL: return "str.replace_all";
   case kind::STRING_REPLACE_RE: return "str.replace_re";

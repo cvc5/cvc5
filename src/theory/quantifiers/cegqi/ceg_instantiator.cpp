@@ -1088,7 +1088,8 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
 
 bool CegInstantiator::isEligibleForInstantiation(Node n) const
 {
-  if (n.getKind() != INST_CONSTANT && n.getKind() != SKOLEM)
+  Kind nk = n.getKind();
+  if (nk != INST_CONSTANT && nk != SKOLEM && nk != BOOLEAN_TERM_VARIABLE)
   {
     return true;
   }
