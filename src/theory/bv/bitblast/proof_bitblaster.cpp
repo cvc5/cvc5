@@ -16,8 +16,8 @@
 
 #include <unordered_set>
 
-#include "expr/term_conversion_proof_generator.h"
 #include "options/proof_options.h"
+#include "proof/conv_proof_generator.h"
 #include "theory/theory_model.h"
 
 namespace cvc5 {
@@ -46,7 +46,7 @@ std::unordered_map<Kind, PfRule, kind::KindHashFunction>
         {kind::BITVECTOR_NOR, PfRule::BV_BITBLAST_NOR},
         {kind::BITVECTOR_COMP, PfRule::BV_BITBLAST_COMP},
         {kind::BITVECTOR_MULT, PfRule::BV_BITBLAST_MULT},
-        {kind::BITVECTOR_PLUS, PfRule::BV_BITBLAST_PLUS},
+        {kind::BITVECTOR_ADD, PfRule::BV_BITBLAST_ADD},
         {kind::BITVECTOR_SUB, PfRule::BV_BITBLAST_SUB},
         {kind::BITVECTOR_NEG, PfRule::BV_BITBLAST_NEG},
         {kind::BITVECTOR_UDIV, PfRule::BV_BITBLAST_UDIV},

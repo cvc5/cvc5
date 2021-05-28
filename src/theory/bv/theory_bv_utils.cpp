@@ -20,6 +20,8 @@
 #include "expr/skolem_manager.h"
 #include "options/theory_options.h"
 #include "theory/theory.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace theory {
@@ -398,7 +400,7 @@ Node mkConcat(TNode node, unsigned repeat)
 Node mkInc(TNode t)
 {
   return NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_PLUS, t, mkOne(getSize(t)));
+      kind::BITVECTOR_ADD, t, mkOne(getSize(t)));
 }
 
 Node mkDec(TNode t)

@@ -23,6 +23,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ext_theory.h"
 #include "theory/theory_model.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5;
@@ -136,7 +137,7 @@ void CoreSolver::finishInit()
   //    d_equalityEngine->addFunctionKind(kind::BITVECTOR_XNOR);
   //    d_equalityEngine->addFunctionKind(kind::BITVECTOR_COMP);
   d_equalityEngine->addFunctionKind(kind::BITVECTOR_MULT, true);
-  d_equalityEngine->addFunctionKind(kind::BITVECTOR_PLUS, true);
+  d_equalityEngine->addFunctionKind(kind::BITVECTOR_ADD, true);
   d_equalityEngine->addFunctionKind(kind::BITVECTOR_EXTRACT, true);
   //    d_equalityEngine->addFunctionKind(kind::BITVECTOR_SUB);
   //    d_equalityEngine->addFunctionKind(kind::BITVECTOR_NEG);

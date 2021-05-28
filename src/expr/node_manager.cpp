@@ -23,12 +23,17 @@
 #include "base/listener.h"
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
+#include "expr/datatype_index.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/metakind.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
+#include "theory/bags/make_bag_op.h"
+#include "theory/sets/singleton_op.h"
+#include "util/abstract_value.h"
+#include "util/bitvector.h"
 #include "util/resource_manager.h"
 
 using namespace std;
@@ -930,28 +935,9 @@ Node NodeManager::mkVar(const std::string& name, const TypeNode& type)
   return n;
 }
 
-Node* NodeManager::mkVarPtr(const std::string& name, const TypeNode& type)
-{
-  Node* n = NodeBuilder(this, kind::VARIABLE).constructNodePtr();
-  setAttribute(*n, TypeAttr(), type);
-  setAttribute(*n, TypeCheckedAttr(), true);
-  setAttribute(*n, expr::VarNameAttr(), name);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(*n);
-  }
-  return n;
-}
-
 Node NodeManager::mkBoundVar(const std::string& name, const TypeNode& type) {
   Node n = mkBoundVar(type);
   setAttribute(n, expr::VarNameAttr(), name);
-  return n;
-}
-
-Node* NodeManager::mkBoundVarPtr(const std::string& name,
-                                 const TypeNode& type) {
-  Node* n = mkBoundVarPtr(type);
-  setAttribute(*n, expr::VarNameAttr(), name);
   return n;
 }
 
@@ -1072,28 +1058,10 @@ Node NodeManager::mkVar(const TypeNode& type)
   return n;
 }
 
-Node* NodeManager::mkVarPtr(const TypeNode& type)
-{
-  Node* n = NodeBuilder(this, kind::VARIABLE).constructNodePtr();
-  setAttribute(*n, TypeAttr(), type);
-  setAttribute(*n, TypeCheckedAttr(), true);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(*n);
-  }
-  return n;
-}
-
 Node NodeManager::mkBoundVar(const TypeNode& type) {
   Node n = NodeBuilder(this, kind::BOUND_VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
-  return n;
-}
-
-Node* NodeManager::mkBoundVarPtr(const TypeNode& type) {
-  Node* n = NodeBuilder(this, kind::BOUND_VARIABLE).constructNodePtr();
-  setAttribute(*n, TypeAttr(), type);
-  setAttribute(*n, TypeCheckedAttr(), true);
   return n;
 }
 
@@ -1187,6 +1155,24 @@ Kind NodeManager::getKindForFunction(TNode fun)
     return kind::APPLY_TESTER;
   }
   return kind::UNDEFINED_KIND;
+}
+
+Node NodeManager::mkNode(Kind kind, std::initializer_list<TNode> children)
+{
+  NodeBuilder nb(this, kind);
+  nb.append(children.begin(), children.end());
+  return nb.constructNode();
+}
+
+Node NodeManager::mkNode(TNode opNode, std::initializer_list<TNode> children)
+{
+  NodeBuilder nb(this, operatorToKind(opNode));
+  if (opNode.getKind() != kind::BUILTIN)
+  {
+    nb << opNode;
+  }
+  nb.append(children.begin(), children.end());
+  return nb.constructNode();
 }
 
 }  // namespace cvc5

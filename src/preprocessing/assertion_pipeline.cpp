@@ -18,8 +18,7 @@
 
 #include "expr/node_manager.h"
 #include "options/smt_options.h"
-#include "expr/lazy_proof.h"
-#include "proof/proof_manager.h"
+#include "proof/lazy_proof.h"
 #include "smt/preprocess_proof_generator.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
@@ -83,9 +82,9 @@ void AssertionPipeline::push_back(Node n,
   }
 }
 
-void AssertionPipeline::pushBackTrusted(theory::TrustNode trn)
+void AssertionPipeline::pushBackTrusted(TrustNode trn)
 {
-  Assert(trn.getKind() == theory::TrustNodeKind::LEMMA);
+  Assert(trn.getKind() == TrustNodeKind::LEMMA);
   // push back what was proven
   push_back(trn.getProven(), false, false, trn.getGenerator());
 }
@@ -103,21 +102,17 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
   {
     d_pppg->notifyPreprocessed(d_nodes[i], n, pgen);
   }
-  else if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
-  {
-    ProofManager::currentPM()->addDependence(n, d_nodes[i]);
-  }
   d_nodes[i] = n;
 }
 
-void AssertionPipeline::replaceTrusted(size_t i, theory::TrustNode trn)
+void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn)
 {
   if (trn.isNull())
   {
     // null trust node denotes no change, nothing to do
     return;
   }
-  Assert(trn.getKind() == theory::TrustNodeKind::REWRITE);
+  Assert(trn.getKind() == TrustNodeKind::REWRITE);
   Assert(trn.getProven()[0] == d_nodes[i]);
   replace(i, trn.getNode(), trn.getGenerator());
 }
@@ -203,10 +198,6 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       // above proof.
       d_pppg->notifyNewAssert(newConjr, lcp);
     }
-  }
-  if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
-  {
-    ProofManager::currentPM()->addDependence(newConjr, d_nodes[i]);
   }
   d_nodes[i] = newConjr;
   Assert(theory::Rewriter::rewrite(newConjr) == newConjr);

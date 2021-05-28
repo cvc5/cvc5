@@ -53,6 +53,12 @@ class CVC5_EXPORT Options
 // clang-format off
 ${holder_mem_decls}$
 // clang-format on
+ public:
+// clang-format off
+${holder_ref_decls}$
+// clang-format on
+  
+ private:
 
   /** The current Options in effect */
   static thread_local Options* s_current;
@@ -109,9 +115,6 @@ public:
   Options(OptionsListener* ol = nullptr);
   ~Options();
 
-// clang-format off
-${holder_getter_decls}$
-// clang-format on
 
   /**
    * Copies the value of the options stored in OptionsHolder into the current
@@ -127,20 +130,6 @@ ${holder_getter_decls}$
   template <class T>
   void set(T t, const typename T::type& val) {
     ref(t) = val;
-  }
-
-  /**
-   * Set the default value of the given option. Is equivalent to calling `set()`
-   * if `wasSetByUser()` returns false. Uses `ref()`, which causes a compile-time
-   * error if the given option is read-only.
-   */
-  template <class T>
-  void setDefault(T t, const typename T::type& val)
-  {
-    if (!wasSetByUser(t))
-    {
-      ref(t) = val;
-    }
   }
 
   /**

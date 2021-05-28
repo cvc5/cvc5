@@ -30,6 +30,8 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -140,7 +142,7 @@ Node intToBV(TNode n, NodeMap& cache)
         {
           case kind::PLUS:
             Assert(children.size() == 2);
-            newKind = kind::BITVECTOR_PLUS;
+            newKind = kind::BITVECTOR_ADD;
             max = max + 1;
             break;
           case kind::MULT:

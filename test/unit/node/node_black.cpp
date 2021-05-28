@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "api/cpp/cvc5.h"
+#include "expr/array_store_all.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
@@ -29,6 +30,8 @@
 #include "smt/smt_engine.h"
 #include "test_node.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 
@@ -620,7 +623,7 @@ TEST_F(TestNodeBlackNode, dagifier)
   Node fgx_eq_gy = d_nodeManager->mkNode(EQUAL, fgx, gy);
 
   Node n = d_nodeManager->mkNode(
-      OR, fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy);
+      OR, {fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy});
 
   std::stringstream sstr;
   sstr << Node::setdepth(-1) << Node::setlanguage(language::output::LANG_CVC);

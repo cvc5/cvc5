@@ -15,16 +15,17 @@
 
 #include "smt/proof_post_processor.h"
 
-#include "expr/proof_node_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "proof/proof_node_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::theory;
@@ -430,7 +431,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       MethodId ids = MethodId::SB_DEFAULT;
       if (args.size() >= 2)
       {
-        if (builtin::BuiltinProofRuleChecker::getMethodId(args[1], ids))
+        if (getMethodId(args[1], ids))
         {
           sargs.push_back(args[1]);
         }
@@ -438,7 +439,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       MethodId ida = MethodId::SBA_SEQUENTIAL;
       if (args.size() >= 3)
       {
-        if (builtin::BuiltinProofRuleChecker::getMethodId(args[2], ida))
+        if (getMethodId(args[2], ida))
         {
           sargs.push_back(args[2]);
         }
@@ -470,7 +471,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     MethodId idr = MethodId::RW_REWRITE;
     if (args.size() >= 4)
     {
-      if (builtin::BuiltinProofRuleChecker::getMethodId(args[3], idr))
+      if (getMethodId(args[3], idr))
       {
         rargs.push_back(args[3]);
       }
@@ -803,12 +804,12 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     MethodId ids = MethodId::SB_DEFAULT;
     if (args.size() >= 2)
     {
-      builtin::BuiltinProofRuleChecker::getMethodId(args[1], ids);
+      getMethodId(args[1], ids);
     }
     MethodId ida = MethodId::SBA_SEQUENTIAL;
     if (args.size() >= 3)
     {
-      builtin::BuiltinProofRuleChecker::getMethodId(args[2], ida);
+      getMethodId(args[2], ida);
     }
     std::vector<std::shared_ptr<CDProof>> pfs;
     std::vector<TNode> vsList;
@@ -929,13 +930,12 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     }
     // should give a proof, if not, then tcpg does not agree with the
     // substitution.
-    Assert(pfn != nullptr);
     if (pfn == nullptr)
     {
-      AlwaysAssert(false) << "resort to TRUST_SUBS" << std::endl
-                          << eq << std::endl
-                          << eqq << std::endl
-                          << "from " << children << " applied to " << t;
+      Warning() << "resort to TRUST_SUBS" << std::endl
+                << eq << std::endl
+                << eqq << std::endl
+                << "from " << children << " applied to " << t << std::endl;
       cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
     }
     else
@@ -950,7 +950,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     MethodId idr = MethodId::RW_REWRITE;
     if (args.size() >= 2)
     {
-      builtin::BuiltinProofRuleChecker::getMethodId(args[1], idr);
+      getMethodId(args[1], idr);
     }
     builtin::BuiltinProofRuleChecker* builtinPfC =
         static_cast<builtin::BuiltinProofRuleChecker*>(
@@ -1027,6 +1027,58 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     }
     // otherwise no update
     Trace("final-pf-hole") << "hole: " << id << " : " << eq << std::endl;
+  }
+  else if (id == PfRule::MACRO_ARITH_SCALE_SUM_UB)
+  {
+    Debug("macro::arith") << "Expand MACRO_ARITH_SCALE_SUM_UB" << std::endl;
+    if (Debug.isOn("macro::arith"))
+    {
+      for (const auto& child : children)
+      {
+        Debug("macro::arith") << "  child: " << child << std::endl;
+      }
+      Debug("macro::arith") << "   args: " << args << std::endl;
+    }
+    Assert(args.size() == children.size());
+    NodeManager* nm = NodeManager::currentNM();
+    ProofStepBuffer steps{d_pnm->getChecker()};
+
+    // Scale all children, accumulating
+    std::vector<Node> scaledRels;
+    for (size_t i = 0; i < children.size(); ++i)
+    {
+      TNode child = children[i];
+      TNode scalar = args[i];
+      bool isPos = scalar.getConst<Rational>() > 0;
+      Node scalarCmp =
+          nm->mkNode(isPos ? GT : LT, scalar, nm->mkConst(Rational(0)));
+      // (= scalarCmp true)
+      Node scalarCmpOrTrue = steps.tryStep(PfRule::EVALUATE, {}, {scalarCmp});
+      Assert(!scalarCmpOrTrue.isNull());
+      // scalarCmp
+      steps.addStep(PfRule::TRUE_ELIM, {scalarCmpOrTrue}, {}, scalarCmp);
+      // (and scalarCmp relation)
+      Node scalarCmpAndRel =
+          steps.tryStep(PfRule::AND_INTRO, {scalarCmp, child}, {});
+      Assert(!scalarCmpAndRel.isNull());
+      // (=> (and scalarCmp relation) scaled)
+      Node impl =
+          steps.tryStep(isPos ? PfRule::ARITH_MULT_POS : PfRule::ARITH_MULT_NEG,
+                        {},
+                        {scalar, child});
+      Assert(!impl.isNull());
+      // scaled
+      Node scaled =
+          steps.tryStep(PfRule::MODUS_PONENS, {scalarCmpAndRel, impl}, {});
+      Assert(!scaled.isNull());
+      scaledRels.emplace_back(scaled);
+    }
+
+    Node sumBounds = steps.tryStep(PfRule::ARITH_SUM_UB, scaledRels, {});
+    cdp->addSteps(steps);
+    Debug("macro::arith") << "Expansion done. Proved: " << sumBounds
+                          << std::endl;
+    return sumBounds;
   }
 
   // TRUST, PREPROCESS, THEORY_LEMMA, THEORY_PREPROCESS?

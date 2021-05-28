@@ -69,12 +69,6 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult NonClausalSimp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Assert(options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF
-         || isProofEnabled())
-      << "Unsat cores with non-clausal simp only supported with new proofs. "
-         "Cores mode is "
-      << options::unsatCoresMode() << "\n";
-
   d_preprocContext->spendResource(Resource::PreprocessStep);
 
   theory::booleans::CircuitPropagator* propagator =
@@ -480,7 +474,7 @@ Node NonClausalSimp::processLearnedLit(Node lit,
   return lit;
 }
 
-Node NonClausalSimp::processRewrittenLearnedLit(theory::TrustNode trn)
+Node NonClausalSimp::processRewrittenLearnedLit(TrustNode trn)
 {
   if (isProofEnabled())
   {

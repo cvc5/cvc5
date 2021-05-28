@@ -18,6 +18,7 @@
 #include <sstream>
 #include <stack>
 
+#include "expr/ascription_type.h"
 #include "expr/dtype_cons.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -30,6 +31,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/strings/word.h"
+#include "util/floatingpoint.h"
 
 using namespace cvc5::kind;
 
@@ -811,7 +813,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       std::vector<Kind> bin_kinds = {BITVECTOR_AND,
                                      BITVECTOR_OR,
                                      BITVECTOR_XOR,
-                                     BITVECTOR_PLUS,
+                                     BITVECTOR_ADD,
                                      BITVECTOR_SUB,
                                      BITVECTOR_MULT,
                                      BITVECTOR_UDIV,
@@ -866,7 +868,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       }
       // ternary ops with RM
       std::vector<Kind> ternary_rm_kinds = {
-          FLOATINGPOINT_PLUS,
+          FLOATINGPOINT_ADD,
           FLOATINGPOINT_SUB,
           FLOATINGPOINT_MULT,
           FLOATINGPOINT_DIV,

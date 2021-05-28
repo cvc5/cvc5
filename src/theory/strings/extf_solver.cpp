@@ -53,6 +53,7 @@ ExtfSolver::ExtfSolver(SolverState& s,
   d_extt.addFunctionKind(kind::STRING_SUBSTR);
   d_extt.addFunctionKind(kind::STRING_UPDATE);
   d_extt.addFunctionKind(kind::STRING_STRIDOF);
+  d_extt.addFunctionKind(kind::STRING_INDEXOF_RE);
   d_extt.addFunctionKind(kind::STRING_ITOS);
   d_extt.addFunctionKind(kind::STRING_STOI);
   d_extt.addFunctionKind(kind::STRING_STRREPL);
@@ -191,11 +192,11 @@ bool ExtfSolver::doReduction(int effort, Node n)
   {
     NodeManager* nm = NodeManager::currentNM();
     Assert(k == STRING_SUBSTR || k == STRING_UPDATE || k == STRING_STRCTN
-           || k == STRING_STRIDOF || k == STRING_ITOS || k == STRING_STOI
-           || k == STRING_STRREPL || k == STRING_STRREPLALL || k == SEQ_NTH
-           || k == STRING_REPLACE_RE || k == STRING_REPLACE_RE_ALL
-           || k == STRING_LEQ || k == STRING_TOLOWER || k == STRING_TOUPPER
-           || k == STRING_REV);
+           || k == STRING_STRIDOF || k == STRING_INDEXOF_RE || k == STRING_ITOS
+           || k == STRING_STOI || k == STRING_STRREPL || k == STRING_STRREPLALL
+           || k == SEQ_NTH || k == STRING_REPLACE_RE
+           || k == STRING_REPLACE_RE_ALL || k == STRING_LEQ
+           || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV);
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);
     Assert(res != n);
@@ -547,6 +548,8 @@ void ExtfSolver::checkExtfInference(Node n,
             {
               // we are in conflict
               d_im.sendInference(in.d_exp, conc, InferenceId::STRINGS_CTN_DECOMPOSE);
+              Assert(d_state.isInConflict());
+              return;
             }
             else if (d_extt.hasFunctionKind(conc.getKind()))
             {

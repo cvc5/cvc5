@@ -20,15 +20,15 @@
 #include "base/map_util.h"
 #include "decision/decision_engine.h"
 #include "expr/attribute.h"
-#include "expr/lazy_proof.h"
 #include "expr/node_builder.h"
 #include "expr/node_visitor.h"
-#include "expr/proof_checker.h"
-#include "expr/proof_ensure_closed.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
+#include "proof/lazy_proof.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_ensure_closed.h"
 #include "prop/prop_engine.h"
 #include "smt/dump.h"
 #include "smt/env.h"
@@ -810,7 +810,7 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   return solveStatus;
 }
 
-theory::TrustNode TheoryEngine::ppRewriteEquality(TNode eq)
+TrustNode TheoryEngine::ppRewriteEquality(TNode eq)
 {
   Assert(eq.getKind() == kind::EQUAL);
   std::vector<SkolemLemma> lems;
@@ -1297,7 +1297,7 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
   }
 }
 
-void TheoryEngine::lemma(theory::TrustNode tlemma,
+void TheoryEngine::lemma(TrustNode tlemma,
                          theory::LemmaProperty p,
                          theory::TheoryId atomsTo,
                          theory::TheoryId from)
@@ -1368,7 +1368,7 @@ void TheoryEngine::lemma(theory::TrustNode tlemma,
   d_lemmasAdded = true;
 }
 
-void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
+void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
 {
   Assert(tconflict.getKind() == TrustNodeKind::CONFLICT);
   TNode conflict = tconflict.getNode();
@@ -1486,7 +1486,7 @@ void TheoryEngine::setIncomplete(theory::TheoryId theory,
   d_incompleteId = id;
 }
 
-theory::TrustNode TheoryEngine::getExplanation(
+TrustNode TheoryEngine::getExplanation(
     std::vector<NodeTheoryPair>& explanationVector)
 {
   Assert(explanationVector.size() == 1);
@@ -1788,7 +1788,7 @@ theory::TrustNode TheoryEngine::getExplanation(
     return trn;
   }
 
-  return theory::TrustNode::mkTrustPropExp(conclusion, expNode, nullptr);
+  return TrustNode::mkTrustPropExp(conclusion, expNode, nullptr);
 }
 
 bool TheoryEngine::isProofEnabled() const { return d_pnm != nullptr; }

@@ -1,5 +1,5 @@
 id     = "DECISION"
-name   = "Decision heuristics"
+name   = "Decision Heuristics"
 
 [[option]]
   name       = "decisionMode"
@@ -17,6 +17,9 @@ name   = "Decision heuristics"
 [[option.mode.JUSTIFICATION]]
   name = "justification"
   help = "An ATGP-inspired justification heuristic."
+[[option.mode.JUSTIFICATION_OLD]]
+  name = "justification-old"
+  help = "Older implementation of an ATGP-inspired justification heuristic."
 [[option.mode.RELEVANCY]]
   name = "justification-stoponly"
   help = "Use the justification heuristic only to stop early, not for decisions."
@@ -30,7 +33,7 @@ name   = "Decision heuristics"
   name       = "decisionThreshold"
   category   = "expert"
   long       = "decision-threshold=N"
-  type       = "decision::DecisionWeight"
+  type       = "cvc5::decision::DecisionWeight"
   default    = "0"
   includes   = ["options/decision_weight.h"]
   help       = "ignore all nodes greater than threshold in first attempt to pick decision"
@@ -68,3 +71,41 @@ name   = "Decision heuristics"
   name = "sum"
 [[option.mode.USR1]]
   name = "usr1"
+
+[[option]]
+  name       = "jhSkolemMode"
+  category   = "expert"
+  long       = "jh-skolem=MODE"
+  type       = "JutificationSkolemMode"
+  default    = "FIRST"
+  help       = "policy for when to satisfy skolem definitions in justification heuristic"
+  help_mode  = "Policy for when to satisfy skolem definitions in justification heuristic"
+[[option.mode.FIRST]]
+  name = "first"
+  help = "satisfy pending relevant skolem definitions before input assertions"
+[[option.mode.LAST]]
+  name = "last"
+  help = "satisfy pending relevant skolem definitions after input assertions"
+
+[[option]]
+  name       = "jhRlvOrder"
+  category   = "expert"
+  long       = "jh-rlv-order"
+  type       = "bool"
+  default    = "true"
+  help       = "maintain activity-based ordering for decision justification heuristic"
+
+[[option]]
+  name       = "jhSkolemRlvMode"
+  category   = "expert"
+  long       = "jh-skolem-rlv=MODE"
+  type       = "JutificationSkolemRlvMode"
+  default    = "ASSERT"
+  help       = "policy for when to consider skolem definitions relevant in justification heuristic"
+  help_mode  = "Policy for when to consider skolem definitions relevant in justification heuristic"
+[[option.mode.ASSERT]]
+  name = "assert"
+  help = "skolems are relevant when they occur in an asserted literal"
+[[option.mode.ALWAYS]]
+  name = "always"
+  help = "skolems are always relevant"

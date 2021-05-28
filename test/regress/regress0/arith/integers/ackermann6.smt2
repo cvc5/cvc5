@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ackermann --no-check-unsat-cores
+; COMMAND-LINE: --ackermann
 ; EXPECT: unsat
 (set-logic QF_UFLIA)
 (set-info :smt-lib-version 2.6)

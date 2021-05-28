@@ -15,13 +15,13 @@
 
 #include "smt/proof_manager.h"
 
-#include "expr/proof_checker.h"
-#include "expr/proof_node_algorithm.h"
-#include "expr/proof_node_manager.h"
 #include "options/base_options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "proof/dot/dot_printer.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
+#include "proof/proof_node_manager.h"
 #include "smt/assertions.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
@@ -66,6 +66,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
     d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION_TRUST);
     d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION);
+    d_pfpp->setEliminateRule(PfRule::MACRO_ARITH_SCALE_SUM_UB);
     if (options::proofGranularityMode()
         != options::ProofGranularityMode::REWRITE)
     {

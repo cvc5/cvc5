@@ -22,10 +22,10 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
-#include "expr/proof_node_manager.h"
+#include "proof/proof_node_manager.h"
+#include "proof/trust_node.h"
 #include "theory/ee_setup_info.h"
 #include "theory/theory_id.h"
-#include "theory/trust_node.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
 #include "util/statistics_stats.h"
@@ -186,7 +186,7 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   /**
    * Returns an explanation of the propagation that came from the database.
    */
-  theory::TrustNode explain(TNode literal) const;
+  TrustNode explain(TNode literal) const;
 
   /**
    * Add an equality to propagate.

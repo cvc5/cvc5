@@ -87,7 +87,7 @@ void Smt2::addBitvectorOperators() {
   addOperator(api::BITVECTOR_AND, "bvand");
   addOperator(api::BITVECTOR_OR, "bvor");
   addOperator(api::BITVECTOR_NEG, "bvneg");
-  addOperator(api::BITVECTOR_PLUS, "bvadd");
+  addOperator(api::BITVECTOR_ADD, "bvadd");
   addOperator(api::BITVECTOR_MULT, "bvmul");
   addOperator(api::BITVECTOR_UDIV, "bvudiv");
   addOperator(api::BITVECTOR_UREM, "bvurem");
@@ -158,6 +158,7 @@ void Smt2::addStringOperators() {
   addOperator(api::STRING_REPLACE_RE_ALL, "str.replace_re_all");
   if (!strictModeEnabled())
   {
+    addOperator(api::STRING_INDEXOF_RE, "str.indexof_re");
     addOperator(api::STRING_UPDATE, "str.update");
     addOperator(api::STRING_TOLOWER, "str.tolower");
     addOperator(api::STRING_TOUPPER, "str.toupper");
@@ -205,7 +206,7 @@ void Smt2::addFloatingPointOperators() {
   addOperator(api::FLOATINGPOINT_EQ, "fp.eq");
   addOperator(api::FLOATINGPOINT_ABS, "fp.abs");
   addOperator(api::FLOATINGPOINT_NEG, "fp.neg");
-  addOperator(api::FLOATINGPOINT_PLUS, "fp.add");
+  addOperator(api::FLOATINGPOINT_ADD, "fp.add");
   addOperator(api::FLOATINGPOINT_SUB, "fp.sub");
   addOperator(api::FLOATINGPOINT_MULT, "fp.mul");
   addOperator(api::FLOATINGPOINT_DIV, "fp.div");
@@ -1046,11 +1047,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   else if (p.d_kind == api::APPLY_SELECTOR && !p.d_expr.isNull())
   {
     // tuple selector case
-    if (!p.d_expr.isUInt64())
+    if (!p.d_expr.isUInt64Value())
     {
       parseError("index of tupSel is larger than size of uint64_t");
     }
-    uint64_t n = p.d_expr.getUInt64();
+    uint64_t n = p.d_expr.getUInt64Value();
     if (args.size() != 1)
     {
       parseError("tupSel should only be applied to one tuple argument");
@@ -1182,7 +1183,12 @@ void Smt2::notifyNamedExpression(api::Term& expr, std::string name)
 {
   checkUserSymbol(name);
   // remember the expression name in the symbol manager
-  getSymbolManager()->setExpressionName(expr, name, false);
+  if (getSymbolManager()->setExpressionName(expr, name, false)
+      == NamingResult::ERROR_IN_BINDER)
+  {
+    parseError(
+        "Cannot name a term in a binder (e.g., quantifiers, definitions)");
+  }
   // define the variable
   defineVar(name, expr);
   // set the last named term, which ensures that we catch when assertions are

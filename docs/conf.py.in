@@ -27,8 +27,8 @@ if("${BUILD_BINDINGS_JAVA}" == "ON"):
 # -- Project information -----------------------------------------------------
 
 project = 'cvc5'
-copyright = '2021, The Authors of cvc5'
-author = 'The Authors of cvc5'
+copyright = '2021, the authors of cvc5'
+author = 'The authors of cvc5'
 
 
 # -- General configuration ---------------------------------------------------
@@ -43,6 +43,7 @@ extensions = [
         'sphinxcontrib.bibtex',
         'sphinx_tabs.tabs',
         'examples',
+        'include_build_file',
 ]
 
 bibtex_bibfiles = ['references.bib']
@@ -69,3 +70,7 @@ html_css_files = ['custom.css']
 # -- Breathe configuration ---------------------------------------------------
 breathe_default_project = "cvc5"
 breathe_domain_by_extension = {"h" : "cpp"}
+cpp_index_common_prefix = ["cvc5::api::"]
+
+# where to look for include-build-file
+ibf_folders = ['${CMAKE_CURRENT_BINARY_DIR}']
