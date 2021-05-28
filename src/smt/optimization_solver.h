@@ -171,9 +171,9 @@ class OptimizationSolver
    *   v_x = max(x) s.t. phi(x, y) = sat
    *   v_y = max(y) s.t. phi(x, y) = sat
    *
-   * Lexicographic: optimize the objectives one-by-one, in the order they push
-   *   v_x = max(x) s.t. phi(x, y) = sat
-   *   v_y = max(y) s.t. phi(v_x, y) = sat
+   * Lexicographic: optimize the objectives one-by-one, in the order they are
+   * added:
+   *   v_x = max(x) s.t. phi(x, y) = sat v_y = max(y) s.t. phi(v_x, y) = sat
    *
    * Pareto: optimize multiple goals to a state such that
    *   further optimization of one goal will worsen the other goal(s)
@@ -194,7 +194,7 @@ class OptimizationSolver
   ~OptimizationSolver() = default;
 
   /**
-   * Run the optimization loop for the pushed objective
+   * Run the optimization loop for the added objective
    * For multiple objective combination, it defaults to lexicographic,
    * and combination could be set by calling
    *   setObjectiveCombination(BOX/LEXICOGRAPHIC/PARETO)

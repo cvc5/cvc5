@@ -62,7 +62,7 @@ void OptimizationSolver::addObjective(TNode target,
   if (!OMTOptimizer::nodeSupportsOptimization(target))
   {
     CVC5_FATAL()
-        << "Objective not pushed: Target node does not support optimization";
+        << "Objective failed to add: Target node does not support optimization";
   }
   d_optChecker.reset();
   d_objectives.emplace_back(target, type, bvSigned);
