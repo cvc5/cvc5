@@ -202,22 +202,21 @@ class OptimizationSolver
   OptimizationResult::ResultType checkOpt();
 
   /**
-   * Push an objective.
-   * @param target the Node representing the expression that will be optimized
-   *for
+   * Add an optimization objective.
+   * @param target Node representing the expression that will be optimized for
    * @param type specifies whether it's maximize or minimize
    * @param bvSigned specifies whether we should use signed/unsigned
    *   comparison for BitVectors (only effective for BitVectors)
    *   and its default is false
    **/
-  void pushObjective(TNode target,
-                     OptimizationObjective::ObjectiveType type,
-                     bool bvSigned = false);
+  void addObjective(TNode target,
+                    OptimizationObjective::ObjectiveType type,
+                    bool bvSigned = false);
 
   /**
-   * Pop the most recently successfully-pushed objective.
+   * Clear all the added optimization objectives
    **/
-  void popObjective();
+  void resetObjectives();
 
   /**
    * Returns the values of the optimized objective after checkOpt is called
