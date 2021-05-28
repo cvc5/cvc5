@@ -173,7 +173,8 @@ class OptimizationSolver
    *
    * Lexicographic: optimize the objectives one-by-one, in the order they are
    * added:
-   *   v_x = max(x) s.t. phi(x, y) = sat v_y = max(y) s.t. phi(v_x, y) = sat
+   *   v_x = max(x) s.t. phi(x, y) = sat 
+   *   v_y = max(y) s.t. phi(v_x, y) = sat
    *
    * Pareto: optimize multiple goals to a state such that
    *   further optimization of one goal will worsen the other goal(s)
