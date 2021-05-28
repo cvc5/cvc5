@@ -203,9 +203,6 @@ void TheoryStrings::presolve() {
  */
 struct TypeClass
 {
-  TypeNode d_tn;
-  size_t d_nesting;
-
   TypeClass(TypeNode tn) : d_tn(tn)
   {
     d_nesting = 0;
@@ -215,6 +212,9 @@ struct TypeClass
       d_nesting++;
     }
   }
+
+  TypeNode d_tn;
+  size_t d_nesting;
 };
 
 /**
