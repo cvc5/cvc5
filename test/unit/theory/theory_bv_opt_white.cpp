@@ -164,6 +164,5 @@ TEST_F(TestTheoryWhiteBVOpt, min_boundary)
   d_optslv->resetObjectives();
 }
 
-
 }  // namespace test
 }  // namespace cvc5
