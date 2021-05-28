@@ -383,8 +383,9 @@ TypeNode getOwnerStringType(Node n)
 {
   TypeNode tn;
   Kind k = n.getKind();
-  if (k == STRING_STRIDOF || k == STRING_LENGTH || k == STRING_STRCTN
-      || k == SEQ_NTH || k == STRING_PREFIX || k == STRING_SUFFIX)
+  if (k == STRING_STRIDOF || k == STRING_INDEXOF_RE || k == STRING_LENGTH
+      || k == STRING_STRCTN || k == SEQ_NTH || k == STRING_PREFIX
+      || k == STRING_SUFFIX)
   {
     // owning string type is the type of first argument
     tn = n[0].getType();
