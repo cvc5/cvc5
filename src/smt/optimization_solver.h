@@ -177,7 +177,7 @@ class OptimizationSolver
    *   v_y = max(y) s.t. phi(v_x, y) = sat
    *
    * Pareto: optimize multiple goals to a state such that
-   *   further optimization of one goal will worsen the other goal(s)
+   * further optimization of one goal will worsen the other goal(s)
    *   (v_x, v_y) s.t. phi(v_x, v_y) = sat, and
    *     forall (x, y), (phi(x, y) = sat) -> (x <= v_x or y <= v_y)
    **/
