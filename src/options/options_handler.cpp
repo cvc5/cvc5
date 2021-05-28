@@ -163,7 +163,7 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
     {
       throwLazyBBUnsupported(m);
     }
-    Options::current().setDefault(options::bitvectorToBool, true);
+    options::bv::setDefaultBitvectorToBool(*d_options, true);
   }
 }
 
@@ -171,10 +171,10 @@ void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
 {
   if (m == options::BitblastMode::LAZY)
   {
-    Options::current().setDefault(options::bitvectorPropagate, true);
-    Options::current().setDefault(options::bitvectorEqualitySolver, true);
-    Options::current().setDefault(options::bitvectorInequalitySolver, true);
-    Options::current().setDefault(options::bitvectorAlgebraicSolver, true);
+    options::bv::setDefaultBitvectorPropagate(*d_options, true);
+    options::bv::setDefaultBitvectorEqualitySolver(*d_options, true);
+    options::bv::setDefaultBitvectorInequalitySolver(*d_options, true);
+    options::bv::setDefaultBitvectorAlgebraicSolver(*d_options, true);
     if (options::bvSatSolver() != options::SatSolverMode::MINISAT)
     {
       throwLazyBBUnsupported(options::bvSatSolver());
@@ -182,7 +182,7 @@ void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
   }
   else if (m == BitblastMode::EAGER)
   {
-    Options::current().setDefault(options::bitvectorToBool, true);
+    options::bv::setDefaultBitvectorToBool(*d_options, true);
   }
 }
 
