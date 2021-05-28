@@ -39,9 +39,13 @@
 #include "base/check.h"
 #include "base/configuration.h"
 #include "base/modal_exception.h"
+#include "expr/array_store_all.h"
+#include "expr/ascription_type.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/dtype_selector.h"
+#include "expr/emptybag.h"
+#include "expr/emptyset.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node.h"
@@ -50,6 +54,7 @@
 #include "expr/node_manager.h"
 #include "expr/sequence.h"
 #include "expr/type_node.h"
+#include "expr/uninterpreted_constant.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
@@ -58,13 +63,22 @@
 #include "smt/model.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_mode.h"
+#include "theory/datatypes/tuple_project_op.h"
 #include "theory/logic_info.h"
 #include "theory/theory_model.h"
+#include "util/abstract_value.h"
+#include "util/bitvector.h"
+#include "util/divisible.h"
+#include "util/floatingpoint.h"
+#include "util/iand.h"
 #include "util/random.h"
+#include "util/regexp.h"
 #include "util/result.h"
+#include "util/roundingmode.h"
 #include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
 #include "util/statistics_value.h"
+#include "util/string.h"
 #include "util/utility.h"
 
 namespace cvc5 {
@@ -202,7 +216,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {FLOATINGPOINT_EQ, cvc5::Kind::FLOATINGPOINT_EQ},
     {FLOATINGPOINT_ABS, cvc5::Kind::FLOATINGPOINT_ABS},
     {FLOATINGPOINT_NEG, cvc5::Kind::FLOATINGPOINT_NEG},
-    {FLOATINGPOINT_PLUS, cvc5::Kind::FLOATINGPOINT_PLUS},
+    {FLOATINGPOINT_ADD, cvc5::Kind::FLOATINGPOINT_ADD},
     {FLOATINGPOINT_SUB, cvc5::Kind::FLOATINGPOINT_SUB},
     {FLOATINGPOINT_MULT, cvc5::Kind::FLOATINGPOINT_MULT},
     {FLOATINGPOINT_DIV, cvc5::Kind::FLOATINGPOINT_DIV},
@@ -298,6 +312,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {STRING_CHARAT, cvc5::Kind::STRING_CHARAT},
     {STRING_CONTAINS, cvc5::Kind::STRING_STRCTN},
     {STRING_INDEXOF, cvc5::Kind::STRING_STRIDOF},
+    {STRING_INDEXOF_RE, cvc5::Kind::STRING_INDEXOF_RE},
     {STRING_REPLACE, cvc5::Kind::STRING_STRREPL},
     {STRING_REPLACE_ALL, cvc5::Kind::STRING_STRREPLALL},
     {STRING_REPLACE_RE, cvc5::Kind::STRING_REPLACE_RE},
@@ -488,7 +503,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::FLOATINGPOINT_EQ, FLOATINGPOINT_EQ},
         {cvc5::Kind::FLOATINGPOINT_ABS, FLOATINGPOINT_ABS},
         {cvc5::Kind::FLOATINGPOINT_NEG, FLOATINGPOINT_NEG},
-        {cvc5::Kind::FLOATINGPOINT_PLUS, FLOATINGPOINT_PLUS},
+        {cvc5::Kind::FLOATINGPOINT_ADD, FLOATINGPOINT_ADD},
         {cvc5::Kind::FLOATINGPOINT_SUB, FLOATINGPOINT_SUB},
         {cvc5::Kind::FLOATINGPOINT_MULT, FLOATINGPOINT_MULT},
         {cvc5::Kind::FLOATINGPOINT_DIV, FLOATINGPOINT_DIV},
@@ -604,6 +619,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::STRING_CHARAT, STRING_CHARAT},
         {cvc5::Kind::STRING_STRCTN, STRING_CONTAINS},
         {cvc5::Kind::STRING_STRIDOF, STRING_INDEXOF},
+        {cvc5::Kind::STRING_INDEXOF_RE, STRING_INDEXOF_RE},
         {cvc5::Kind::STRING_STRREPL, STRING_REPLACE},
         {cvc5::Kind::STRING_STRREPLALL, STRING_REPLACE_ALL},
         {cvc5::Kind::STRING_REPLACE_RE, STRING_REPLACE_RE},

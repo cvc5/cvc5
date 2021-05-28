@@ -24,10 +24,9 @@ namespace cvc5 {
 
 class TConvProofGenerator;
 class ProofNodeManager;
+class TrustNode;
 
 namespace theory {
-
-class TrustNode;
 
 namespace builtin {
 class BuiltinProofRuleChecker;

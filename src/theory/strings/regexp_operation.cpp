@@ -23,6 +23,7 @@
 #include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/regexp.h"
 
 using namespace cvc5::kind;
 

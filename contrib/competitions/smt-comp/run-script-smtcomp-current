@@ -162,8 +162,8 @@ QF_ALIA)
   finishwith --decision=justification-stoponly --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 QF_S|QF_SLIA)
-  trywith 300 --strings-exp --rewrite-divk --strings-fmf
-  finishwith --strings-exp --rewrite-divk
+  trywith 300 --strings-exp --rewrite-divk --strings-fmf --no-jh-rlv-order
+  finishwith --strings-exp --rewrite-divk --no-jh-rlv-order
   ;;
 QF_ABVFP|QF_ABVFPLRA)
   finishwith --fp-exp

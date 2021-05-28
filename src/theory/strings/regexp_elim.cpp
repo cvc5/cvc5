@@ -20,6 +20,8 @@
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "util/rational.h"
+#include "util/string.h"
 
 using namespace cvc5::kind;
 
@@ -398,6 +400,12 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       {
         sStartIndex = lens;
       }
+      else if (r == 1 && sConstraints.size() == 2)
+      {
+        // first and last children cannot overlap
+        Node bound = nm->mkNode(GEQ, sss, sStartIndex);
+        sConstraints.push_back(bound);
+      }
       sLength = nm->mkNode(MINUS, sLength, lens);
     }
     if (r == 1 && !sConstraints.empty())
@@ -415,7 +423,6 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
   }
   if (!sConstraints.empty())
   {
-    Assert(rexpElimChildren.size() + sConstraints.size() == nchildren);
     Node ss = nm->mkNode(STRING_SUBSTR, x, sStartIndex, sLength);
     Assert(!rexpElimChildren.empty());
     Node regElim = utils::mkConcat(rexpElimChildren, nm->regExpType());

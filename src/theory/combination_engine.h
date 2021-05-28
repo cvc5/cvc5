@@ -28,10 +28,10 @@ namespace cvc5 {
 
 class TheoryEngine;
 class Env;
+class EagerProofGenerator;
 
 namespace theory {
 
-class EagerProofGenerator;
 class ModelManager;
 class SharedSolver;
 

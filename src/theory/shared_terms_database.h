@@ -186,7 +186,7 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   /**
    * Returns an explanation of the propagation that came from the database.
    */
-  theory::TrustNode explain(TNode literal) const;
+  TrustNode explain(TNode literal) const;
 
   /**
    * Add an equality to propagate.

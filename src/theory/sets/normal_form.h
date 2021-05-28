@@ -18,6 +18,8 @@
 #ifndef CVC5__THEORY__SETS__NORMAL_FORM_H
 #define CVC5__THEORY__SETS__NORMAL_FORM_H
 
+#include "expr/emptyset.h"
+
 namespace cvc5 {
 namespace theory {
 namespace sets {

@@ -155,7 +155,7 @@ class FloatingPoint
   /** Floating-point negation. */
   FloatingPoint negate(void) const;
   /** Floating-point addition. */
-  FloatingPoint plus(const RoundingMode& rm, const FloatingPoint& arg) const;
+  FloatingPoint add(const RoundingMode& rm, const FloatingPoint& arg) const;
   /** Floating-point subtraction. */
   FloatingPoint sub(const RoundingMode& rm, const FloatingPoint& arg) const;
   /** Floating-point multiplication. */

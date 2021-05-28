@@ -300,7 +300,7 @@ bool SharedTermsDatabase::isKnown(TNode literal) const {
   }
 }
 
-theory::TrustNode SharedTermsDatabase::explain(TNode literal) const
+TrustNode SharedTermsDatabase::explain(TNode literal) const
 {
   if (d_pfee != nullptr)
   {

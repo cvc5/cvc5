@@ -34,11 +34,9 @@ namespace cvc5 {
 
 class ProofGenerator;
 class ProofNode;
-
-namespace theory {
-
 class EagerProofGenerator;
 
+namespace theory {
 namespace booleans {
 
 /**

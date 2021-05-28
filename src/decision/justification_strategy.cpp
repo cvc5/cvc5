@@ -64,12 +64,13 @@ void JustificationStrategy::presolve()
   d_stack.clear();
 }
 
-SatLiteral JustificationStrategy::getNext()
+SatLiteral JustificationStrategy::getNext(bool& stopSearch)
 {
   // ensure we have an assertion
   if (!refreshCurrentAssertion())
   {
     Trace("jh-process") << "getNext, already finished" << std::endl;
+    stopSearch = true;
     return undefSatLiteral;
   }
   Assert(d_stack.hasCurrentAssertion());
@@ -210,6 +211,7 @@ SatLiteral JustificationStrategy::getNext()
   } while (d_stack.hasCurrentAssertion());
   // we exhausted all assertions
   Trace("jh-process") << "...exhausted all assertions" << std::endl;
+  stopSearch = true;
   return undefSatLiteral;
 }
 
@@ -482,6 +484,7 @@ bool JustificationStrategy::isDone() { return !refreshCurrentAssertion(); }
 
 void JustificationStrategy::addAssertion(TNode assertion)
 {
+  Trace("jh-assert") << "addAssertion " << assertion << std::endl;
   std::vector<TNode> toProcess;
   toProcess.push_back(assertion);
   insertToAssertionList(toProcess, false);
@@ -489,6 +492,8 @@ void JustificationStrategy::addAssertion(TNode assertion)
 
 void JustificationStrategy::addSkolemDefinition(TNode lem, TNode skolem)
 {
+  Trace("jh-assert") << "addSkolemDefinition " << lem << " / " << skolem
+                     << std::endl;
   if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ALWAYS)
   {
     // just add to main assertions list
@@ -565,6 +570,7 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
 
 bool JustificationStrategy::refreshCurrentAssertion()
 {
+  Trace("jh-process") << "refreshCurrentAssertion" << std::endl;
   // if we already have a current assertion, nothing to be done
   TNode curr = d_stack.getCurrentAssertion();
   if (!curr.isNull())
@@ -601,6 +607,7 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(bool useSkolemList)
   SatValue currValue;
   while (!curr.isNull())
   {
+    Trace("jh-process") << "Check assertion " << curr << std::endl;
     // we never add theory literals to our assertions lists
     Assert(!isTheoryLiteral(curr));
     currValue = lookupValue(curr);

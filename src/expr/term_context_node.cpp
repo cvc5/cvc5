@@ -16,6 +16,7 @@
 #include "expr/term_context_node.h"
 
 #include "expr/term_context.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 

@@ -130,6 +130,7 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_ITOS, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_STOI, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_STRIDOF, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_INDEXOF_RE, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_STRREPL, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_STRREPLALL, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_RE, eagerEval);
