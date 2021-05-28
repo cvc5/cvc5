@@ -21,13 +21,12 @@ operator STRING_CHARAT 2 "string charat"
 operator STRING_STRCTN 2 "string contains"
 operator STRING_LT 2 "string less than"
 operator STRING_LEQ 2 "string less than or equal"
-operator STRING_STRIDOF 3 "string indexof"
+operator STRING_STRIDOF 3 "string index of substring"
+operator STRING_INDEXOF_RE 3 "string index of regular expression match"
 operator STRING_STRREPL 3 "string replace"
 operator STRING_STRREPLALL 3 "string replace all"
 operator STRING_REPLACE_RE 3 "string replace regular expression match"
 operator STRING_REPLACE_RE_ALL 3 "string replace all regular expression matches"
-typerule STRING_REPLACE_RE "SimpleTypeRule<RString, AString, ARegExp, AString>"
-typerule STRING_REPLACE_RE_ALL "SimpleTypeRule<RString, AString, ARegExp, AString>"
 operator STRING_PREFIX 2 "string prefixof"
 operator STRING_SUFFIX 2 "string suffixof"
 operator STRING_IS_DIGIT 1 "string isdigit, returns true if argument is a string of length one that represents a digit"
@@ -152,8 +151,11 @@ typerule STRING_UPDATE ::cvc5::theory::strings::StringUpdateTypeRule
 typerule STRING_CHARAT ::cvc5::theory::strings::StringAtTypeRule
 typerule STRING_STRCTN ::cvc5::theory::strings::StringRelationTypeRule
 typerule STRING_STRIDOF ::cvc5::theory::strings::StringIndexOfTypeRule
+typerule STRING_INDEXOF_RE "SimpleTypeRule<RInteger, AString, ARegExp, AInteger>"
 typerule STRING_STRREPL ::cvc5::theory::strings::StringReplaceTypeRule
 typerule STRING_STRREPLALL ::cvc5::theory::strings::StringReplaceTypeRule
+typerule STRING_REPLACE_RE "SimpleTypeRule<RString, AString, ARegExp, AString>"
+typerule STRING_REPLACE_RE_ALL "SimpleTypeRule<RString, AString, ARegExp, AString>"
 typerule STRING_PREFIX ::cvc5::theory::strings::StringStrToBoolTypeRule
 typerule STRING_SUFFIX ::cvc5::theory::strings::StringStrToBoolTypeRule
 typerule STRING_REV ::cvc5::theory::strings::StringStrToStrTypeRule

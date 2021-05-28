@@ -158,6 +158,7 @@ void Smt2::addStringOperators() {
   addOperator(api::STRING_REPLACE_RE_ALL, "str.replace_re_all");
   if (!strictModeEnabled())
   {
+    addOperator(api::STRING_INDEXOF_RE, "str.indexof_re");
     addOperator(api::STRING_UPDATE, "str.update");
     addOperator(api::STRING_TOLOWER, "str.tolower");
     addOperator(api::STRING_TOUPPER, "str.toupper");

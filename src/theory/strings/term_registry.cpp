@@ -88,10 +88,11 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
             LT, t, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
     lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
   }
-  else if (tk == STRING_STRIDOF)
+  else if (tk == STRING_STRIDOF || tk == STRING_INDEXOF_RE)
   {
-    // (and (>= (str.indexof x y n) (- 1)) (<= (str.indexof x y n) (str.len
-    // x)))
+    // (and (>= (f x y n) (- 1)) (<= (f x y n) (str.len x)))
+    //
+    // where f in { str.indexof, str.indexof_re }
     Node l = nm->mkNode(STRING_LENGTH, t[0]);
     lemma = nm->mkNode(AND,
                        nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
@@ -143,11 +144,12 @@ void TermRegistry::preRegisterTerm(TNode n)
   Kind k = n.getKind();
   if (!options::stringExp())
   {
-    if (k == STRING_STRIDOF || k == STRING_ITOS || k == STRING_STOI
-        || k == STRING_STRREPL || k == STRING_SUBSTR || k == STRING_STRREPLALL
-        || k == SEQ_NTH || k == STRING_REPLACE_RE || k == STRING_REPLACE_RE_ALL
-        || k == STRING_STRCTN || k == STRING_LEQ || k == STRING_TOLOWER
-        || k == STRING_TOUPPER || k == STRING_REV || k == STRING_UPDATE)
+    if (k == STRING_STRIDOF || k == STRING_INDEXOF_RE || k == STRING_ITOS
+        || k == STRING_STOI || k == STRING_STRREPL || k == STRING_SUBSTR
+        || k == STRING_STRREPLALL || k == SEQ_NTH || k == STRING_REPLACE_RE
+        || k == STRING_REPLACE_RE_ALL || k == STRING_STRCTN || k == STRING_LEQ
+        || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV
+        || k == STRING_UPDATE)
     {
       std::stringstream ss;
       ss << "Term of kind " << k
