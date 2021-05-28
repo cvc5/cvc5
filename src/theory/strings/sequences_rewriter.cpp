@@ -1461,6 +1461,10 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewriteIndexof(node);
   }
+  else if (nk == kind::STRING_INDEXOF_RE)
+  {
+    retNode = rewriteIndexofRe(node);
+  }
   else if (nk == kind::STRING_STRREPL)
   {
     retNode = rewriteReplace(node);
@@ -2529,6 +2533,59 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   return node;
 }
 
+Node SequencesRewriter::rewriteIndexofRe(Node node)
+{
+  Assert(node.getKind() == STRING_INDEXOF_RE);
+  NodeManager* nm = NodeManager::currentNM();
+  Node s = node[0];
+  Node r = node[1];
+  Node n = node[2];
+  Node zero = nm->mkConst(Rational(0));
+  Node slen = nm->mkNode(STRING_LENGTH, s);
+
+  if (ArithEntail::check(zero, n, true) || ArithEntail::check(n, slen, true))
+  {
+    Node ret = nm->mkConst(Rational(-1));
+    return returnRewrite(node, ret, Rewrite::INDEXOF_RE_INVALID_INDEX);
+  }
+
+  if (RegExpEntail::isConstRegExp(r))
+  {
+    if (s.isConst() && n.isConst())
+    {
+      Rational nrat = n.getConst<Rational>();
+      cvc5::Rational rMaxInt(cvc5::String::maxSize());
+      if (nrat > rMaxInt)
+      {
+        // We know that, due to limitations on the size of string constants
+        // in our implementation, that accessing a position greater than
+        // rMaxInt is guaranteed to be out of bounds.
+        Node negone = nm->mkConst(Rational(-1));
+        return returnRewrite(node, negone, Rewrite::INDEXOF_RE_MAX_INDEX);
+      }
+
+      uint32_t start = nrat.getNumerator().toUnsignedInt();
+      Node rem = nm->mkConst(s.getConst<String>().substr(start));
+      std::pair<size_t, size_t> match = firstMatch(rem, r);
+      Node ret = nm->mkConst(
+          Rational(match.first == string::npos
+                       ? -1
+                       : static_cast<int64_t>(start + match.first)));
+      return returnRewrite(node, ret, Rewrite::INDEXOF_RE_EVAL);
+    }
+
+    if (ArithEntail::check(n, zero) && ArithEntail::check(slen, n))
+    {
+      String emptyStr("");
+      if (RegExpEntail::testConstStringInRegExp(emptyStr, 0, r))
+      {
+        return returnRewrite(node, n, Rewrite::INDEXOF_RE_EMP_RE);
+      }
+    }
+  }
+  return node;
+}
+
 Node SequencesRewriter::rewriteReplace(Node node)
 {
   Assert(node.getKind() == kind::STRING_STRREPL);
@@ -3150,7 +3207,7 @@ Node SequencesRewriter::rewriteReplaceReAll(Node node)
       std::vector<Node> res;
       String rem = x.getConst<String>();
       std::pair<size_t, size_t> match(0, 0);
-      while (rem.size() >= 0)
+      while (rem.size() != 0)
       {
         match = firstMatch(nm->mkConst(rem), yp);
         if (match.first == string::npos)
