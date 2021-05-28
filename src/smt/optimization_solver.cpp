@@ -55,8 +55,9 @@ OptimizationResult::ResultType OptimizationSolver::checkOpt()
   Unreachable();
 }
 
-void OptimizationSolver::addObjective(
-    TNode target, OptimizationObjective::ObjectiveType type, bool bvSigned)
+void OptimizationSolver::addObjective(TNode target,
+                                      OptimizationObjective::ObjectiveType type,
+                                      bool bvSigned)
 {
   if (!OMTOptimizer::nodeSupportsOptimization(target))
   {
