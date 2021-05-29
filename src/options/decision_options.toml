@@ -33,7 +33,7 @@ name   = "Decision Heuristics"
   name       = "decisionThreshold"
   category   = "expert"
   long       = "decision-threshold=N"
-  type       = "decision::DecisionWeight"
+  type       = "cvc5::decision::DecisionWeight"
   default    = "0"
   includes   = ["options/decision_weight.h"]
   help       = "ignore all nodes greater than threshold in first attempt to pick decision"

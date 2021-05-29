@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yancheng Ou, Michael Chang
+ *   Yancheng Ou
  *
  * This file is part of the cvc5 project.
  *
@@ -55,7 +55,7 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_min)
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, a, x));
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, x, b));
 
-  d_optslv->pushObjective(x, OptimizationObjective::MINIMIZE, false);
+  d_optslv->addObjective(x, OptimizationObjective::MINIMIZE, false);
 
   OptimizationResult::ResultType r = d_optslv->checkOpt();
 
@@ -63,7 +63,7 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_min)
 
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
             BitVector(32u, (uint32_t)0x3FFFFFA1));
-  d_optslv->popObjective();
+  d_optslv->resetObjectives();
 }
 
 TEST_F(TestTheoryWhiteBVOpt, signed_min)
@@ -76,7 +76,7 @@ TEST_F(TestTheoryWhiteBVOpt, signed_min)
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, a, x));
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, x, b));
 
-  d_optslv->pushObjective(x, OptimizationObjective::MINIMIZE, true);
+  d_optslv->addObjective(x, OptimizationObjective::MINIMIZE, true);
 
   OptimizationResult::ResultType r = d_optslv->checkOpt();
 
@@ -87,7 +87,7 @@ TEST_F(TestTheoryWhiteBVOpt, signed_min)
 
   // expect the minimum x = -1
   ASSERT_EQ(val, BitVector(32u, (uint32_t)0x80000000));
-  d_optslv->popObjective();
+  d_optslv->resetObjectives();
 }
 
 TEST_F(TestTheoryWhiteBVOpt, unsigned_max)
@@ -103,7 +103,7 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_max)
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, a, x));
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, x, b));
 
-  d_optslv->pushObjective(x, OptimizationObjective::MAXIMIZE, false);
+  d_optslv->addObjective(x, OptimizationObjective::MAXIMIZE, false);
 
   OptimizationResult::ResultType r = d_optslv->checkOpt();
 
@@ -114,7 +114,7 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_max)
 
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
             BitVector(32u, 2u));
-  d_optslv->popObjective();
+  d_optslv->resetObjectives();
 }
 
 TEST_F(TestTheoryWhiteBVOpt, signed_max)
@@ -128,7 +128,7 @@ TEST_F(TestTheoryWhiteBVOpt, signed_max)
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, a, x));
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, x, b));
 
-  d_optslv->pushObjective(x, OptimizationObjective::MAXIMIZE, true);
+  d_optslv->addObjective(x, OptimizationObjective::MAXIMIZE, true);
 
   OptimizationResult::ResultType r = d_optslv->checkOpt();
 
@@ -137,7 +137,7 @@ TEST_F(TestTheoryWhiteBVOpt, signed_max)
   // expect the maxmum x =
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
             BitVector(32u, 10u));
-  d_optslv->popObjective();
+  d_optslv->resetObjectives();
 }
 
 TEST_F(TestTheoryWhiteBVOpt, min_boundary)
@@ -152,7 +152,7 @@ TEST_F(TestTheoryWhiteBVOpt, min_boundary)
   // that existed previously
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, y, x));
 
-  d_optslv->pushObjective(x, OptimizationObjective::MINIMIZE, false);
+  d_optslv->addObjective(x, OptimizationObjective::MINIMIZE, false);
 
   OptimizationResult::ResultType r = d_optslv->checkOpt();
 
@@ -161,7 +161,7 @@ TEST_F(TestTheoryWhiteBVOpt, min_boundary)
   // expect the maximum x = 18
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
             BitVector(32u, 18u));
-  d_optslv->popObjective();
+  d_optslv->resetObjectives();
 }
 
 }  // namespace test

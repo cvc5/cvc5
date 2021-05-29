@@ -76,7 +76,7 @@ jobs:
             mv docs-new target/docs-$NAME-$HASH
             cd target/
 
-            if diff -r target/docs-master/ target/docs-$NAME-$HASH
+            if diff -r docs-master/ docs-$NAME-$HASH
             then
               echo "Ignored run, documentation is the same as for current master"
             else

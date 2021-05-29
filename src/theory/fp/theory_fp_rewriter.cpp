@@ -146,7 +146,8 @@ namespace rewrite {
   {
     Assert(node.getKind() == kind::FLOATINGPOINT_SUB);
     Node negation = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_NEG,node[2]);
-    Node addition = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_PLUS,node[0],node[1],negation);
+    Node addition = NodeManager::currentNM()->mkNode(
+        kind::FLOATINGPOINT_ADD, node[0], node[1], negation);
     return RewriteResponse(REWRITE_DONE, addition);
   }
 
@@ -275,7 +276,7 @@ namespace rewrite {
 
   RewriteResponse reorderBinaryOperation (TNode node, bool isPreRewrite) {
     Kind k = node.getKind();
-    Assert((k == kind::FLOATINGPOINT_PLUS) || (k == kind::FLOATINGPOINT_MULT));
+    Assert((k == kind::FLOATINGPOINT_ADD) || (k == kind::FLOATINGPOINT_MULT));
     Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
 
     if (node[1] > node[2]) {
@@ -440,9 +441,9 @@ RewriteResponse neg(TNode node, bool isPreRewrite)
                              node[0].getConst<FloatingPoint>().negate()));
 }
 
-RewriteResponse plus(TNode node, bool isPreRewrite)
+RewriteResponse add(TNode node, bool isPreRewrite)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_PLUS);
+  Assert(node.getKind() == kind::FLOATINGPOINT_ADD);
   Assert(node.getNumChildren() == 3);
 
   RoundingMode rm(node[0].getConst<RoundingMode>());
@@ -451,8 +452,8 @@ RewriteResponse plus(TNode node, bool isPreRewrite)
 
   Assert(arg1.getSize() == arg2.getSize());
 
-  return RewriteResponse(
-      REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.plus(rm, arg2)));
+  return RewriteResponse(REWRITE_DONE,
+                         NodeManager::currentNM()->mkConst(arg1.add(rm, arg2)));
 }
 
 RewriteResponse mult(TNode node, bool isPreRewrite)
@@ -1143,7 +1144,7 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
   d_preRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::compactAbs;
   d_preRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
-  d_preRewriteTable[kind::FLOATINGPOINT_PLUS] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_ADD] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_SUB] =
       rewrite::convertSubtractionToAddition;
   d_preRewriteTable[kind::FLOATINGPOINT_MULT] = rewrite::identity;
@@ -1234,8 +1235,7 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
   d_postRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::compactAbs;
   d_postRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
-  d_postRewriteTable[kind::FLOATINGPOINT_PLUS] =
-      rewrite::reorderBinaryOperation;
+  d_postRewriteTable[kind::FLOATINGPOINT_ADD] = rewrite::reorderBinaryOperation;
   d_postRewriteTable[kind::FLOATINGPOINT_SUB] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_MULT] =
       rewrite::reorderBinaryOperation;
@@ -1326,7 +1326,7 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
   d_constantFoldTable[kind::FLOATINGPOINT_FP] = constantFold::fpLiteral;
   d_constantFoldTable[kind::FLOATINGPOINT_ABS] = constantFold::abs;
   d_constantFoldTable[kind::FLOATINGPOINT_NEG] = constantFold::neg;
-  d_constantFoldTable[kind::FLOATINGPOINT_PLUS] = constantFold::plus;
+  d_constantFoldTable[kind::FLOATINGPOINT_ADD] = constantFold::add;
   d_constantFoldTable[kind::FLOATINGPOINT_MULT] = constantFold::mult;
   d_constantFoldTable[kind::FLOATINGPOINT_DIV] = constantFold::div;
   d_constantFoldTable[kind::FLOATINGPOINT_FMA] = constantFold::fma;

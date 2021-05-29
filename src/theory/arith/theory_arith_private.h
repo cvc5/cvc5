@@ -56,9 +56,11 @@
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
-namespace theory {
 
 class EagerProofGenerator;
+
+namespace theory {
+
 class TheoryModel;
 
 namespace arith {

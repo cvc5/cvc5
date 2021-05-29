@@ -79,5 +79,19 @@ TEST_F(TestTheoryWhiteBvRewriter, rewrite_bv_ite)
   Node nr = Rewriter::rewrite(n);
   ASSERT_EQ(nr, Rewriter::rewrite(nr));
 }
+
+TEST_F(TestTheoryWhiteBvRewriter, rewrite_bv_comp)
+{
+  TypeNode bvType = d_nodeManager->mkBitVectorType(1);
+  Node zero = d_nodeManager->mkConst(BitVector(1, 0u));
+  Node x = d_nodeManager->mkVar("x", bvType);
+  Node lhs = d_nodeManager->mkNode(BITVECTOR_NOT, x);
+  Node rhs = d_nodeManager->mkNode(BITVECTOR_AND, zero, zero);
+  Node n = d_nodeManager->mkNode(BITVECTOR_COMP, lhs, rhs);
+  Node nr = Rewriter::rewrite(n);
+  // bvcomp(bvnot(x), bvand(0, 0)) ---> x
+  ASSERT_EQ(nr, x);
+}
+
 }  // namespace test
 }  // namespace cvc5

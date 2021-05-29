@@ -44,7 +44,7 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)
   {
     Node assertion = (*assertions)[i];
-    std::vector<theory::TrustNode> newAsserts;
+    std::vector<TrustNode> newAsserts;
     std::vector<Node> newSkolems;
     TrustNode trn = propEngine->preprocess(assertion, newAsserts, newSkolems);
     if (!trn.isNull())

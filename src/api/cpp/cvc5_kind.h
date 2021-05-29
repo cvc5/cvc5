@@ -1428,7 +1428,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  FLOATINGPOINT_PLUS,
+  FLOATINGPOINT_ADD,
   /**
    * Floating-point sutraction.
    *
@@ -2630,6 +2630,22 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   STRING_INDEXOF,
+  /**
+   * String index-of regular expression match.
+   * Returns the first match of a regular expression r in a string s. If the
+   * index is negative or greater than the length of string s1, or r does not
+   * match a substring in s after index i, the result is -1.
+   *
+   * Parameters:
+   *   - 1: Term of sort String (string s)
+   *   - 2: Term of sort RegLan (regular expression r)
+   *   - 3: Term of sort Integer (index i)
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  STRING_INDEXOF_RE,
   /**
    * String replace.
    * Replaces a string s2 in a string s1 with string s3. If s2 does not appear
