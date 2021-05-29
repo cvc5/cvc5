@@ -13,9 +13,9 @@
  * Public facing functions for options that need to be accessed from the
  * outside.
  *
- * These are all 1 line wrappers for `Options::operator[]`, `Options::set()` and
- * `Options::wasSetByUser()` so that external code (including parser/ and main/)
- * does not need to include the option modules (*_options.h).
+ * These are all one line wrappers for accessing the internal option data so
+ * that external code (including parser/ and main/) does not need to include
+ * the option modules (*_options.h).
  */
 
 #include "cvc5_public.h"

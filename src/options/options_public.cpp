@@ -12,8 +12,7 @@
  *
  * Definitions of public facing interface functions for Options.
  *
- * These are all 1 line wrappers for Options::get<T>, Options::set<T>, and
- * Options::wasSetByUser<T> for different option types T.
+ * These are all one line wrappers for accessing the internal option data.
  */
 
 #include "options_public.h"
