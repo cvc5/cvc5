@@ -99,11 +99,11 @@ bool getStrictParsing(const Options& opts)
 {
   return opts.parser.strictParsing;
 }
-int getTearDownIncremental(const Options& opts)
+int32_t getTearDownIncremental(const Options& opts)
 {
   return opts.driver.tearDownIncremental;
 }
-unsigned long getCumulativeTimeLimit(const Options& opts)
+uint64_t getCumulativeTimeLimit(const Options& opts)
 {
   return opts.resman.cumulativeMillisecondLimit;
 }
@@ -112,7 +112,7 @@ const std::string& getForceLogicString(const Options& opts)
 {
   return opts.parser.forceLogicString;
 }
-int getVerbosity(const Options& opts) { return opts.base.verbosity; }
+int32_t getVerbosity(const Options& opts) { return opts.base.verbosity; }
 
 std::istream* getIn(const Options& opts) { return opts.base.in; }
 std::ostream* getErr(const Options& opts) { return opts.base.err; }

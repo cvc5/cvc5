@@ -53,11 +53,11 @@ bool getSemanticChecks(const Options& opts) CVC5_EXPORT;
 bool getStatistics(const Options& opts) CVC5_EXPORT;
 bool getStatsEveryQuery(const Options& opts) CVC5_EXPORT;
 bool getStrictParsing(const Options& opts) CVC5_EXPORT;
-int getTearDownIncremental(const Options& opts) CVC5_EXPORT;
-unsigned long getCumulativeTimeLimit(const Options& opts) CVC5_EXPORT;
+int32_t getTearDownIncremental(const Options& opts) CVC5_EXPORT;
+uint64_t getCumulativeTimeLimit(const Options& opts) CVC5_EXPORT;
 bool getVersion(const Options& opts) CVC5_EXPORT;
 const std::string& getForceLogicString(const Options& opts) CVC5_EXPORT;
-int getVerbosity(const Options& opts) CVC5_EXPORT;
+int32_t getVerbosity(const Options& opts) CVC5_EXPORT;
 
 std::istream* getIn(const Options& opts) CVC5_EXPORT;
 std::ostream* getErr(const Options& opts) CVC5_EXPORT;
