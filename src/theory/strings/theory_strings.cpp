@@ -346,8 +346,8 @@ bool TheoryStrings::collectModelInfoType(
             if (nfe.d_nf[0][0].getType().isStringLike())
             {
               // By this point, we should have assigned model values for the
-              // elements of this sequence type because of the order in which
-              // the types are processed
+              // elements of this sequence type because of the check in the
+              // beginning of this method
               argVal = m->getRepresentative(nfe.d_nf[0][0]);
             }
             else
