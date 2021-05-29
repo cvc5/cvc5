@@ -25,8 +25,6 @@ namespace cvc5 {
 class ProofGenerator;
 class ProofNode;
 
-namespace theory {
-
 /** A kind for trust nodes */
 enum class TrustNodeKind : uint32_t
 {
@@ -172,7 +170,6 @@ class TrustNode
  */
 std::ostream& operator<<(std::ostream& out, TrustNode n);
 
-}  // namespace theory
 }  // namespace cvc5
 
 #endif /* CVC5__PROOF__TRUST_NODE_H */

@@ -71,6 +71,13 @@ namespace options {
 ${inls}$
 // clang-format on
 
+namespace ${id}$
+{
+// clang-format off
+${defaults}$
+// clang-format on
+}
+
 }  // namespace options
 }  // namespace cvc5
 

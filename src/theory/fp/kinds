@@ -83,8 +83,8 @@ typerule FLOATINGPOINT_ABS   ::cvc5::theory::fp::FloatingPointOperationTypeRule
 operator FLOATINGPOINT_NEG 1 "floating-point negation"
 typerule FLOATINGPOINT_NEG   ::cvc5::theory::fp::FloatingPointOperationTypeRule
 
-operator FLOATINGPOINT_PLUS 3 "floating-point addition"
-typerule FLOATINGPOINT_PLUS   ::cvc5::theory::fp::FloatingPointRoundingOperationTypeRule
+operator FLOATINGPOINT_ADD 3 "floating-point addition"
+typerule FLOATINGPOINT_ADD   ::cvc5::theory::fp::FloatingPointRoundingOperationTypeRule
 
 operator FLOATINGPOINT_SUB 3 "floating-point sutraction"
 typerule FLOATINGPOINT_SUB   ::cvc5::theory::fp::FloatingPointRoundingOperationTypeRule
