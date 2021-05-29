@@ -60,11 +60,11 @@ TEST_F(TestTheoryWhiteOptMultigoal, box)
   optSolver.setObjectiveCombination(OptimizationSolver::BOX);
 
   // minimize x
-  optSolver.pushObjective(x, OptimizationObjective::MINIMIZE, false);
+  optSolver.addObjective(x, OptimizationObjective::MINIMIZE, false);
   // maximize y with `signed` comparison over bit-vectors.
-  optSolver.pushObjective(y, OptimizationObjective::MAXIMIZE, true);
+  optSolver.addObjective(y, OptimizationObjective::MAXIMIZE, true);
   // maximize z
-  optSolver.pushObjective(z, OptimizationObjective::MAXIMIZE, false);
+  optSolver.addObjective(z, OptimizationObjective::MAXIMIZE, false);
 
   OptimizationResult::ResultType r = optSolver.checkOpt();
 
@@ -103,11 +103,11 @@ TEST_F(TestTheoryWhiteOptMultigoal, lex)
   optSolver.setObjectiveCombination(OptimizationSolver::LEXICOGRAPHIC);
 
   // minimize x
-  optSolver.pushObjective(x, OptimizationObjective::MINIMIZE, false);
+  optSolver.addObjective(x, OptimizationObjective::MINIMIZE, false);
   // maximize y with `signed` comparison over bit-vectors.
-  optSolver.pushObjective(y, OptimizationObjective::MAXIMIZE, true);
+  optSolver.addObjective(y, OptimizationObjective::MAXIMIZE, true);
   // maximize z
-  optSolver.pushObjective(z, OptimizationObjective::MAXIMIZE, false);
+  optSolver.addObjective(z, OptimizationObjective::MAXIMIZE, false);
 
   OptimizationResult::ResultType r = optSolver.checkOpt();
 
@@ -181,8 +181,8 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
    */
   OptimizationSolver optSolver(d_smtEngine.get());
   optSolver.setObjectiveCombination(OptimizationSolver::PARETO);
-  optSolver.pushObjective(a, OptimizationObjective::MAXIMIZE);
-  optSolver.pushObjective(b, OptimizationObjective::MAXIMIZE);
+  optSolver.addObjective(a, OptimizationObjective::MAXIMIZE);
+  optSolver.addObjective(b, OptimizationObjective::MAXIMIZE);
 
   OptimizationResult::ResultType r;
 
