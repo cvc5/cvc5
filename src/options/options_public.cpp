@@ -137,19 +137,19 @@ void setOutputLanguage(OutputLanguage val, Options& opts)
 
 bool wasSetByUserEarlyExit(const Options& opts)
 {
-  return opts.driver.earlyExit__setByUser__;
+  return opts.driver.earlyExit__setByUser;
 }
 bool wasSetByUserForceLogicString(const Options& opts)
 {
-  return opts.parser.forceLogicString__setByUser__;
+  return opts.parser.forceLogicString__setByUser;
 }
 bool wasSetByUserIncrementalSolving(const Options& opts)
 {
-  return opts.smt.incrementalSolving__setByUser__;
+  return opts.smt.incrementalSolving__setByUser;
 }
 bool wasSetByUserInteractive(const Options& opts)
 {
-  return opts.driver.interactive__setByUser__;
+  return opts.driver.interactive__setByUser;
 }
 
 }  // namespace cvc5::options
