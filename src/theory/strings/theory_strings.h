@@ -190,17 +190,19 @@ class TheoryStrings : public Theory {
   /** Collect model info for type tn
    *
    * Assigns model values (in m) to all relevant terms of the string-like type
-   * tn in the current context, which are stored in repSet. Furthermore,
-   * col is a partition of repSet where equivalence classes are grouped into
-   * sets having equal length, where these lengths are stored in lts.
+   * tn in the current context, which are stored in repSet[tn].
    *
-   * Returns false if a conflict is discovered while doing this assignment.
+   * @param tn The type to compute model values for
+   * @param toProcess Remaining types to compute model values for
+   * @param repSet A map of types to the representatives of the equivalence
+   *               classes of the given type
+   * @return false if a conflict is discovered while doing this assignment.
    */
-  bool collectModelInfoType(TypeNode tn,
-                            const std::unordered_set<Node>& repSet,
-                            std::vector<std::vector<Node>>& col,
-                            std::vector<Node>& lts,
-                            TheoryModel* m);
+  bool collectModelInfoType(
+      TypeNode tn,
+      std::unordered_set<TypeNode>& toProcess,
+      const std::map<TypeNode, std::unordered_set<Node>>& repSet,
+      TheoryModel* m);
 
   /** assert pending fact
    *
