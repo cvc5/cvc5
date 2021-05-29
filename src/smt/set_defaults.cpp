@@ -53,26 +53,26 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // implied options
   if (options::debugCheckModels())
   {
-    opts.set(options::checkModels, true);
+    opts.smt.checkModels = true;
   }
   if (options::checkModels() || options::dumpModels())
   {
-    opts.set(options::produceModels, true);
+    opts.smt.produceModels = true;
   }
   if (options::checkModels())
   {
-    opts.set(options::produceAssignments, true);
+    opts.smt.produceAssignments = true;
   }
   // unsat cores and proofs shenanigans
   if (options::dumpUnsatCoresFull())
   {
-    opts.set(options::dumpUnsatCores, true);
+    opts.smt.dumpUnsatCores = true;
   }
   if (options::checkUnsatCores() || options::dumpUnsatCores()
       || options::unsatAssumptions()
       || options::unsatCoresMode() != options::UnsatCoresMode::OFF)
   {
-    opts.set(options::unsatCores, true);
+    opts.smt.unsatCores = true;
   }
   if (options::unsatCores()
       && options::unsatCoresMode() == options::UnsatCoresMode::OFF)
@@ -82,12 +82,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       Notice()
           << "Overriding OFF unsat-core mode since cores were requested.\n";
     }
-    opts.set(options::unsatCoresMode, options::UnsatCoresMode::ASSUMPTIONS);
+    opts.smt.unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
   }
 
   if (options::checkProofs() || options::dumpProofs())
   {
-    opts.set(options::produceProofs, true);
+    opts.smt.produceProofs = true;
   }
 
   if (options::produceProofs()
@@ -99,8 +99,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                   "were requested.\n";
     }
     // enable unsat cores, because they are available as a consequence of proofs
-    opts.set(options::unsatCores, true);
-    opts.set(options::unsatCoresMode, options::UnsatCoresMode::FULL_PROOF);
+    opts.smt.unsatCores = true;
+    opts.smt.unsatCoresMode = options::UnsatCoresMode::FULL_PROOF;
   }
 
   // set proofs on if not yet set
@@ -111,7 +111,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       Notice()
           << "Forcing proof production since new unsat cores were requested.\n";
     }
-    opts.set(options::produceProofs, true);
+    opts.smt.produceProofs = true;
   }
 
   // if unsat cores are disabled, then unsat cores mode should be OFF
@@ -121,12 +121,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (opts.wasSetByUser(options::bitvectorAigSimplifications))
   {
     Notice() << "SmtEngine: setting bitvectorAig" << std::endl;
-    opts.set(options::bitvectorAig, true);
+    opts.bv.bitvectorAig = true;
   }
   if (opts.wasSetByUser(options::bitvectorAlgebraicBudget))
   {
     Notice() << "SmtEngine: setting bitvectorAlgebraicSolver" << std::endl;
-    opts.set(options::bitvectorAlgebraicSolver, true);
+    opts.bv.bitvectorAlgebraicSolver = true;
   }
 
   bool isSygus = language::isInputLangSygus(options::inputLanguage());
@@ -148,11 +148,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice() << "SmtEngine: setting bit-blast mode to lazy to support model"
                << "generation" << std::endl;
-      opts.set(options::bitblastMode, options::BitblastMode::LAZY);
+      opts.bv.bitblastMode = options::BitblastMode::LAZY;
     }
     else if (!options::incrementalSolving())
     {
-      opts.set(options::ackermann, true);
+      opts.smt.ackermann = true;
     }
 
     if (options::incrementalSolving() && !logic.isPure(THEORY_BV))
@@ -168,14 +168,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::bvSolver() == options::BVSolver::SIMPLE
       || options::bvSolver() == options::BVSolver::BITBLAST)
   {
-    opts.set(options::bvLazyReduceExtf, false);
-    opts.set(options::bvLazyRewriteExtf, false);
+    opts.bv.bvLazyReduceExtf = false;
+    opts.bv.bvLazyRewriteExtf = false;
   }
 
   /* Disable bit-level propagation by default for the BITBLAST solver. */
   if (options::bvSolver() == options::BVSolver::BITBLAST)
   {
-    opts.set(options::bitvectorPropagate, false);
+    opts.bv.bitvectorPropagate = false;
   }
 
   if (options::solveIntAsBV() > 0)
@@ -235,7 +235,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
     Notice() << "SmtEngine: turn off ackermannization to support model"
              << "generation" << std::endl;
-    opts.set(options::ackermann, false);
+    opts.smt.ackermann = false;
   }
 
   if (options::ackermann())
@@ -273,7 +273,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (!opts.wasSetByUser(options::earlyIteRemoval))
     {
-      opts.set(options::earlyIteRemoval, true);
+      opts.smt.earlyIteRemoval = true;
     }
   }
 
@@ -284,7 +284,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     // If the user explicitly set a logic that includes strings, but is not
     // the generic "ALL" logic, then enable stringsExp.
-    opts.set(options::stringExp, true);
+    opts.strings.stringExp = true;
   }
   if (options::stringExp() || !options::stringLazyPreproc())
   {
@@ -300,7 +300,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // We require bounded quantifier handling.
     if (!opts.wasSetByUser(options::fmfBound))
     {
-      opts.set(options::fmfBound, true);
+      opts.quantifiers.fmfBound = true;
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
     // Note we allow E-matching by default to support combinations of sequences
@@ -322,7 +322,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // no fine-graininess
     if (!opts.wasSetByUser(options::proofGranularityMode))
     {
-      opts.set(options::proofGranularityMode, options::ProofGranularityMode::OFF);
+      opts.proof.proofGranularityMode = options::ProofGranularityMode::OFF;
     }
   }
 
@@ -337,7 +337,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // Allows to answer sat more often by default.
     if (!opts.wasSetByUser(options::fmfBound))
     {
-      opts.set(options::fmfBound, true);
+      opts.quantifiers.fmfBound = true;
       Trace("smt") << "turning on fmf-bound, for arrays-exp" << std::endl;
     }
   }
@@ -378,24 +378,24 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // if we requiring disabling proofs, disable them now
   if (disableProofs && options::produceProofs())
   {
-    opts.set(options::unsatCores, false);
-    opts.set(options::unsatCoresMode, options::UnsatCoresMode::OFF);
+    opts.smt.unsatCores = false;
+    opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
     if (options::produceProofs())
     {
       Notice() << "SmtEngine: turning off produce-proofs." << std::endl;
     }
-    opts.set(options::produceProofs, false);
-    opts.set(options::checkProofs, false);
-    opts.set(options::proofEagerChecking, false);
+    opts.smt.produceProofs = false;
+    opts.smt.checkProofs = false;
+    opts.proof.proofEagerChecking = false;
   }
 
   // sygus core connective requires unsat cores
   if (options::sygusCoreConnective())
   {
-    opts.set(options::unsatCores, true);
+    opts.smt.unsatCores = true;
     if (options::unsatCoresMode() == options::UnsatCoresMode::OFF)
     {
-      opts.set(options::unsatCoresMode, options::UnsatCoresMode::ASSUMPTIONS);
+      opts.smt.unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
     }
   }
 
@@ -409,7 +409,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
              << "option requiring assertions." << std::endl;
-    opts.set(options::produceAssertions, true);
+    opts.smt.produceAssertions = true;
   }
 
   // whether we want to force safe unsat cores, i.e., if we are in the default
@@ -433,7 +433,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       Notice() << "SmtEngine: turning off unconstrained simplification to "
                   "support old unsat cores/incremental solving"
                << std::endl;
-      opts.set(options::unconstrainedSimp, false);
+      opts.smt.unconstrainedSimp = false;
     }
   }
   else
@@ -449,7 +449,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                      && !logic.isTheoryEnabled(THEORY_ARITH);
       Trace("smt") << "setting unconstrained simplification to " << uncSimp
                    << std::endl;
-      opts.set(options::unconstrainedSimp, uncSimp);
+      opts.smt.unconstrainedSimp = uncSimp;
     }
   }
 
@@ -465,7 +465,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       Notice() << "SmtEngine: turning off sygus inference to support "
                   "incremental solving"
                << std::endl;
-      opts.set(options::sygusInference, false);
+      opts.quantifiers.sygusInference = false;
     }
   }
 
@@ -477,7 +477,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
      * Therefore, we enable bv-to-bool, which runs before
      * the translation to integers.
      */
-    opts.set(options::bitvectorToBool, true);
+    opts.bv.bitvectorToBool = true;
   }
 
   // Disable options incompatible with unsat cores or output an error if enabled
@@ -494,7 +494,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       Notice() << "SmtEngine: turning off simplification to support unsat "
                   "cores"
                << std::endl;
-      opts.set(options::simplificationMode, options::SimplificationMode::NONE);
+      opts.smt.simplificationMode = options::SimplificationMode::NONE;
     }
 
     if (options::pbRewrites())
@@ -506,7 +506,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice() << "SmtEngine: turning off pseudoboolean rewrites to support "
                   "old unsat cores\n";
-      opts.set(options::pbRewrites, false);
+      opts.arith.pbRewrites = false;
     }
 
     if (options::sortInference())
@@ -518,7 +518,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice() << "SmtEngine: turning off sort inference to support old unsat "
                   "cores\n";
-      opts.set(options::sortInference, false);
+      opts.smt.sortInference = false;
     }
 
     if (options::preSkolemQuant())
@@ -530,7 +530,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice() << "SmtEngine: turning off pre-skolemization to support old "
                   "unsat cores\n";
-      opts.set(options::preSkolemQuant, false);
+      opts.quantifiers.preSkolemQuant = false;
     }
 
     if (options::bitvectorToBool())
@@ -541,7 +541,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice() << "SmtEngine: turning off bitvector-to-bool to support old "
                   "unsat cores\n";
-      opts.set(options::bitvectorToBool, false);
+      opts.bv.bitvectorToBool = false;
     }
 
     if (options::boolToBitvector() != options::BoolToBVMode::OFF)
@@ -553,7 +553,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice()
           << "SmtEngine: turning off bool-to-bv to support old unsat cores\n";
-      opts.set(options::boolToBitvector, options::BoolToBVMode::OFF);
+      opts.bv.boolToBitvector = options::BoolToBVMode::OFF;
     }
 
     if (options::bvIntroducePow2())
@@ -565,7 +565,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice()
           << "SmtEngine: turning off bv-intro-pow2 to support old unsat cores";
-      opts.set(options::bvIntroducePow2, false);
+      opts.bv.bvIntroducePow2 = false;
     }
 
     if (options::repeatSimp())
@@ -576,7 +576,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice()
           << "SmtEngine: turning off repeat-simp to support old unsat cores\n";
-      opts.set(options::repeatSimp, false);
+      opts.smt.repeatSimp = false;
     }
 
     if (options::globalNegate())
@@ -588,7 +588,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice() << "SmtEngine: turning off global-negate to support old unsat "
                   "cores\n";
-      opts.set(options::globalNegate, false);
+      opts.quantifiers.globalNegate = false;
     }
 
     if (options::bitvectorAig())
@@ -613,9 +613,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       // quantifiers, not others opts.set(options::simplificationMode, qf_sat ||
       // quantifiers ? options::SimplificationMode::NONE :
       // options::SimplificationMode::BATCH);
-      opts.set(options::simplificationMode, qf_sat
+      opts.smt.simplificationMode = qf_sat
                                           ? options::SimplificationMode::NONE
-                                          : options::SimplificationMode::BATCH);
+                                          : options::SimplificationMode::BATCH;
     }
   }
 
@@ -631,7 +631,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice() << "SmtEngine: turning off bool-to-bitvector to support CBQI BV"
                << std::endl;
-      opts.set(options::boolToBitvector, options::BoolToBVMode::OFF);
+      opts.bv.boolToBitvector = options::BoolToBVMode::OFF;
     }
   }
 
@@ -641,7 +641,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
           || usesSygus))
   {
     Notice() << "SmtEngine: turning on produce-models" << std::endl;
-    opts.set(options::produceModels, true);
+    opts.smt.produceModels = true;
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -747,7 +747,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
              && !logic.isQuantified()))
     {
       Trace("smt") << "setting theoryof-mode to term-based" << std::endl;
-      opts.set(options::theoryOfMode, options::TheoryOfMode::THEORY_OF_TERM_BASED);
+      opts.theory.theoryOfMode = options::TheoryOfMode::THEORY_OF_TERM_BASED;
     }
   }
 
@@ -758,7 +758,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                        && !options::incrementalSolving() && !safeUnsatCores;
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc
                  << std::endl;
-    opts.set(options::ufSymmetryBreaker, qf_uf_noinc);
+    opts.uf.ufSymmetryBreaker = qf_uf_noinc;
   }
 
   // If in arrays, set the UF handler to arrays
@@ -783,7 +783,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     bool withCare = qf_aufbv;
     Trace("smt") << "setting ite simplify with care to " << withCare
                  << std::endl;
-    opts.set(options::simplifyWithCareEnabled, withCare);
+    opts.smt.simplifyWithCareEnabled = withCare;
   }
   // Turn off array eager index splitting for QF_AUFLIA
   if (!opts.wasSetByUser(options::arraysEagerIndexSplitting))
@@ -794,7 +794,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       Trace("smt") << "setting array eager index splitting to false"
                    << std::endl;
-      opts.set(options::arraysEagerIndexSplitting, false);
+      opts.arrays.arraysEagerIndexSplitting = false;
     }
   }
   // Turn on multiple-pass non-clausal simplification for QF_AUFBV
@@ -807,7 +807,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                       && !safeUnsatCores;
     Trace("smt") << "setting repeat simplification to " << repeatSimp
                  << std::endl;
-    opts.set(options::repeatSimp, repeatSimp);
+    opts.smt.repeatSimp = repeatSimp;
   }
 
   if (options::boolToBitvector() == options::BoolToBVMode::ALL
@@ -820,7 +820,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
     Notice() << "SmtEngine: turning off bool-to-bv for non-bv logic: "
              << logic.getLogicString() << std::endl;
-    opts.set(options::boolToBitvector, options::BoolToBVMode::OFF);
+    opts.bv.boolToBitvector = options::BoolToBVMode::OFF;
   }
 
   if (!opts.wasSetByUser(options::bvEagerExplanations)
@@ -828,7 +828,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       && logic.isTheoryEnabled(THEORY_BV))
   {
     Trace("smt") << "enabling eager bit-vector explanations " << std::endl;
-    opts.set(options::bvEagerExplanations, true);
+    opts.bv.bvEagerExplanations = true;
   }
 
   // Turn on arith rewrite equalities only for pure arithmetic
@@ -838,7 +838,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         logic.isPure(THEORY_ARITH) && logic.isLinear() && !logic.isQuantified();
     Trace("smt") << "setting arith rewrite equalities " << arithRewriteEq
                  << std::endl;
-    opts.set(options::arithRewriteEq, arithRewriteEq);
+    opts.arith.arithRewriteEq = arithRewriteEq;
   }
   if (!opts.wasSetByUser(options::arithHeuristicPivots))
   {
@@ -856,7 +856,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
     Trace("smt") << "setting arithHeuristicPivots  " << heuristicPivots
                  << std::endl;
-    opts.set(options::arithHeuristicPivots, heuristicPivots);
+    opts.arith.arithHeuristicPivots = heuristicPivots;
   }
   if (!opts.wasSetByUser(options::arithPivotThreshold))
   {
@@ -870,7 +870,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
     Trace("smt") << "setting arith arithPivotThreshold  " << pivotThreshold
                  << std::endl;
-    opts.set(options::arithPivotThreshold, pivotThreshold);
+    opts.arith.arithPivotThreshold = pivotThreshold;
   }
   if (!opts.wasSetByUser(options::arithStandardCheckVarOrderPivots))
   {
@@ -881,7 +881,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
     Trace("smt") << "setting arithStandardCheckVarOrderPivots  "
                  << varOrderPivots << std::endl;
-    opts.set(options::arithStandardCheckVarOrderPivots, varOrderPivots);
+    opts.arith.arithStandardCheckVarOrderPivots = varOrderPivots;
   }
   if (logic.isPure(THEORY_ARITH) && !logic.areRealsUsed())
   {
@@ -889,7 +889,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       Trace("smt") << "setting nlExtTangentPlanesInterleave to true"
                    << std::endl;
-      opts.set(options::nlExtTangentPlanesInterleave, true);
+      opts.arith.nlExtTangentPlanesInterleave = true;
     }
   }
 
@@ -949,35 +949,35 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                       : false);
 
     Trace("smt") << "setting decision mode to " << decMode << std::endl;
-    opts.set(options::decisionMode, decMode);
-    opts.set(options::decisionStopOnly, stoponly);
+    opts.decision.decisionMode = decMode;
+    opts.decision.decisionStopOnly = stoponly;
   }
   if (options::incrementalSolving())
   {
     // disable modes not supported by incremental
-    opts.set(options::sortInference, false);
-    opts.set(options::ufssFairnessMonotone, false);
-    opts.set(options::globalNegate, false);
-    opts.set(options::bvAbstraction, false);
-    opts.set(options::arithMLTrick, false);
+    opts.smt.sortInference = false;
+    opts.uf.ufssFairnessMonotone = false;
+    opts.quantifiers.globalNegate = false;
+    opts.bv.bvAbstraction = false;
+    opts.arith.arithMLTrick = false;
   }
   if (logic.hasCardinalityConstraints())
   {
     // must have finite model finding on
-    opts.set(options::finiteModelFind, true);
+    opts.quantifiers.finiteModelFind = true;
   }
 
   if (options::instMaxLevel() != -1)
   {
     Notice() << "SmtEngine: turning off cbqi to support instMaxLevel"
              << std::endl;
-    opts.set(options::cegqi, false);
+    opts.quantifiers.cegqi = false;
   }
 
   if ((opts.wasSetByUser(options::fmfBoundLazy) && options::fmfBoundLazy())
       || (opts.wasSetByUser(options::fmfBoundInt) && options::fmfBoundInt()))
   {
-    opts.set(options::fmfBound, true);
+    opts.quantifiers.fmfBound = true;
   }
   // now have determined whether fmfBoundInt is on/off
   // apply fmfBoundInt options
@@ -988,11 +988,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
             && options::mbqiMode() != options::MbqiMode::FMC))
     {
       // if bounded integers are set, use no MBQI by default
-      opts.set(options::mbqiMode, options::MbqiMode::NONE);
+      opts.quantifiers.mbqiMode = options::MbqiMode::NONE;
     }
     if (!opts.wasSetByUser(options::prenexQuant))
     {
-      opts.set(options::prenexQuant, options::PrenexQuantMode::NONE);
+      opts.quantifiers.prenexQuant = options::PrenexQuantMode::NONE;
     }
   }
   if (options::ufHo())
@@ -1001,37 +1001,37 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // cannot be used
     if (options::mbqiMode() != options::MbqiMode::NONE)
     {
-      opts.set(options::mbqiMode, options::MbqiMode::NONE);
+      opts.quantifiers.mbqiMode = options::MbqiMode::NONE;
     }
     if (!opts.wasSetByUser(options::hoElimStoreAx))
     {
       // by default, use store axioms only if --ho-elim is set
-      opts.set(options::hoElimStoreAx, options::hoElim());
+      opts.quantifiers.hoElimStoreAx = options::hoElim();
     }
     if (!options::assignFunctionValues())
     {
       // must assign function values
-      opts.set(options::assignFunctionValues, true);
+      opts.theory.assignFunctionValues = true;
     }
     // Cannot use macros, since lambda lifting and macro elimination are inverse
     // operations.
     if (options::macrosQuant())
     {
-      opts.set(options::macrosQuant, false);
+      opts.quantifiers.macrosQuant = false;
     }
   }
   if (options::fmfFunWellDefinedRelevant())
   {
     if (!opts.wasSetByUser(options::fmfFunWellDefined))
     {
-      opts.set(options::fmfFunWellDefined, true);
+      opts.quantifiers.fmfFunWellDefined = true;
     }
   }
   if (options::fmfFunWellDefined())
   {
     if (!opts.wasSetByUser(options::finiteModelFind))
     {
-      opts.set(options::finiteModelFind, true);
+      opts.quantifiers.finiteModelFind = true;
     }
   }
 
@@ -1042,18 +1042,18 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // apply conservative quantifiers splitting
     if (!opts.wasSetByUser(options::quantDynamicSplit))
     {
-      opts.set(options::quantDynamicSplit, options::QuantDSplitMode::DEFAULT);
+      opts.quantifiers.quantDynamicSplit = options::QuantDSplitMode::DEFAULT;
     }
     if (!opts.wasSetByUser(options::eMatching))
     {
-      opts.set(options::eMatching, options::fmfInstEngine());
+      opts.quantifiers.eMatching = options::fmfInstEngine();
     }
     if (!opts.wasSetByUser(options::instWhenMode))
     {
       // instantiate only on last call
       if (options::eMatching())
       {
-        opts.set(options::instWhenMode, options::InstWhenMode::LAST_CALL);
+        opts.quantifiers.instWhenMode = options::InstWhenMode::LAST_CALL;
       }
     }
   }
@@ -1066,23 +1066,23 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       Trace("smt") << "turning on sygus" << std::endl;
     }
-    opts.set(options::sygus, true);
+    opts.quantifiers.sygus = true;
     // must use Ferrante/Rackoff for real arithmetic
     if (!opts.wasSetByUser(options::cegqiMidpoint))
     {
-      opts.set(options::cegqiMidpoint, true);
+      opts.quantifiers.cegqiMidpoint = true;
     }
     // must disable cegqi-bv since it may introduce witness terms, which
     // cannot appear in synthesis solutions
     if (!opts.wasSetByUser(options::cegqiBv))
     {
-      opts.set(options::cegqiBv, false);
+      opts.quantifiers.cegqiBv = false;
     }
     if (options::sygusRepairConst())
     {
       if (!opts.wasSetByUser(options::cegqi))
       {
-        opts.set(options::cegqi, true);
+        opts.quantifiers.cegqi = true;
       }
     }
     if (options::sygusInference())
@@ -1090,47 +1090,47 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       // optimization: apply preskolemization, makes it succeed more often
       if (!opts.wasSetByUser(options::preSkolemQuant))
       {
-        opts.set(options::preSkolemQuant, true);
+        opts.quantifiers.preSkolemQuant = true;
       }
       if (!opts.wasSetByUser(options::preSkolemQuantNested))
       {
-        opts.set(options::preSkolemQuantNested, true);
+        opts.quantifiers.preSkolemQuantNested = true;
       }
     }
     // counterexample-guided instantiation for sygus
     if (!opts.wasSetByUser(options::cegqiSingleInvMode))
     {
-      opts.set(options::cegqiSingleInvMode, options::CegqiSingleInvMode::USE);
+      opts.quantifiers.cegqiSingleInvMode = options::CegqiSingleInvMode::USE;
     }
     if (!opts.wasSetByUser(options::quantConflictFind))
     {
-      opts.set(options::quantConflictFind, false);
+      opts.quantifiers.quantConflictFind = false;
     }
     if (!opts.wasSetByUser(options::instNoEntail))
     {
-      opts.set(options::instNoEntail, false);
+      opts.quantifiers.instNoEntail = false;
     }
     if (!opts.wasSetByUser(options::cegqiFullEffort))
     {
       // should use full effort cbqi for single invocation and repair const
-      opts.set(options::cegqiFullEffort, true);
+      opts.quantifiers.cegqiFullEffort = true;
     }
     if (options::sygusRew())
     {
-      opts.set(options::sygusRewSynth, true);
-      opts.set(options::sygusRewVerify, true);
+      opts.quantifiers.sygusRewSynth = true;
+      opts.quantifiers.sygusRewVerify = true;
     }
     if (options::sygusRewSynthInput())
     {
       // If we are using synthesis rewrite rules from input, we use
       // sygusRewSynth after preprocessing. See passes/synth_rew_rules.h for
       // details on this technique.
-      opts.set(options::sygusRewSynth, true);
+      opts.quantifiers.sygusRewSynth = true;
       // we should not use the extended rewriter, since we are interested
       // in rewrites that are not in the main rewriter
       if (!opts.wasSetByUser(options::sygusExtRew))
       {
-        opts.set(options::sygusExtRew, false);
+        opts.quantifiers.sygusExtRew = false;
       }
     }
     // Whether we must use "basic" sygus algorithms. A non-basic sygus algorithm
@@ -1144,7 +1144,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       // if doing abduction, we should filter strong solutions
       if (!opts.wasSetByUser(options::sygusFilterSolMode))
       {
-        opts.set(options::sygusFilterSolMode, options::SygusFilterSolMode::STRONG);
+        opts.quantifiers.sygusFilterSolMode = options::SygusFilterSolMode::STRONG;
       }
       // we must use basic sygus algorithms, since e.g. we require checking
       // a sygus side condition for consistency with axioms.
@@ -1154,7 +1154,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         || options::sygusQueryGen())
     {
       // rewrite rule synthesis implies that sygus stream must be true
-      opts.set(options::sygusStream, true);
+      opts.quantifiers.sygusStream = true;
     }
     if (options::sygusStream() || options::incrementalSolving())
     {
@@ -1167,48 +1167,48 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (!opts.wasSetByUser(options::sygusUnifPbe))
       {
-        opts.set(options::sygusUnifPbe, false);
+        opts.quantifiers.sygusUnifPbe = false;
       }
       if (opts.wasSetByUser(options::sygusUnifPi))
       {
-        opts.set(options::sygusUnifPi, options::SygusUnifPiMode::NONE);
+        opts.quantifiers.sygusUnifPi = options::SygusUnifPiMode::NONE;
       }
       if (!opts.wasSetByUser(options::sygusInvTemplMode))
       {
-        opts.set(options::sygusInvTemplMode, options::SygusInvTemplMode::NONE);
+        opts.quantifiers.sygusInvTemplMode = options::SygusInvTemplMode::NONE;
       }
       if (!opts.wasSetByUser(options::cegqiSingleInvMode))
       {
-        opts.set(options::cegqiSingleInvMode, options::CegqiSingleInvMode::NONE);
+        opts.quantifiers.cegqiSingleInvMode = options::CegqiSingleInvMode::NONE;
       }
     }
     if (!opts.wasSetByUser(options::dtRewriteErrorSel))
     {
-      opts.set(options::dtRewriteErrorSel, true);
+      opts.datatypes.dtRewriteErrorSel = true;
     }
     // do not miniscope
     if (!opts.wasSetByUser(options::miniscopeQuant))
     {
-      opts.set(options::miniscopeQuant, false);
+      opts.quantifiers.miniscopeQuant = false;
     }
     if (!opts.wasSetByUser(options::miniscopeQuantFreeVar))
     {
-      opts.set(options::miniscopeQuantFreeVar, false);
+      opts.quantifiers.miniscopeQuantFreeVar = false;
     }
     if (!opts.wasSetByUser(options::quantSplit))
     {
-      opts.set(options::quantSplit, false);
+      opts.quantifiers.quantSplit = false;
     }
     // do not do macros
     if (!opts.wasSetByUser(options::macrosQuant))
     {
-      opts.set(options::macrosQuant, false);
+      opts.quantifiers.macrosQuant = false;
     }
     // use tangent planes by default, since we want to put effort into
     // the verification step for sygus queries with non-linear arithmetic
     if (!opts.wasSetByUser(options::nlExtTangentPlanes))
     {
-      opts.set(options::nlExtTangentPlanes, true);
+      opts.arith.nlExtTangentPlanes = true;
     }
   }
   // counterexample-guided instantiation for non-sygus
@@ -1222,14 +1222,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (!opts.wasSetByUser(options::cegqi))
     {
-      opts.set(options::cegqi, true);
+      opts.quantifiers.cegqi = true;
     }
     // check whether we should apply full cbqi
     if (logic.isPure(THEORY_BV))
     {
       if (!opts.wasSetByUser(options::cegqiFullEffort))
       {
-        opts.set(options::cegqiFullEffort, true);
+        opts.quantifiers.cegqiFullEffort = true;
       }
     }
   }
@@ -1238,34 +1238,34 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (options::incrementalSolving())
     {
       // cannot do nested quantifier elimination in incremental mode
-      opts.set(options::cegqiNestedQE, false);
+      opts.quantifiers.cegqiNestedQE = false;
     }
     if (logic.isPure(THEORY_ARITH) || logic.isPure(THEORY_BV))
     {
       if (!opts.wasSetByUser(options::quantConflictFind))
       {
-        opts.set(options::quantConflictFind, false);
+        opts.quantifiers.quantConflictFind = false;
       }
       if (!opts.wasSetByUser(options::instNoEntail))
       {
-        opts.set(options::instNoEntail, false);
+        opts.quantifiers.instNoEntail = false;
       }
       if (!opts.wasSetByUser(options::instWhenMode) && options::cegqiModel())
       {
         // only instantiation should happen at last call when model is avaiable
-        opts.set(options::instWhenMode, options::InstWhenMode::LAST_CALL);
+        opts.quantifiers.instWhenMode = options::InstWhenMode::LAST_CALL;
       }
     }
     else
     {
       // only supported in pure arithmetic or pure BV
-      opts.set(options::cegqiNestedQE, false);
+      opts.quantifiers.cegqiNestedQE = false;
     }
     if (options::globalNegate())
     {
       if (!opts.wasSetByUser(options::prenexQuant))
       {
-        opts.set(options::prenexQuant, options::PrenexQuantMode::NONE);
+        opts.quantifiers.prenexQuant = options::PrenexQuantMode::NONE;
       }
     }
   }
@@ -1274,19 +1274,19 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (!opts.wasSetByUser(options::userPatternsQuant))
     {
-      opts.set(options::userPatternsQuant, options::UserPatMode::TRUST);
+      opts.quantifiers.userPatternsQuant = options::UserPatMode::TRUST;
     }
   }
   if (opts.wasSetByUser(options::qcfMode) || options::qcfTConstraint())
   {
-    opts.set(options::quantConflictFind, true);
+    opts.quantifiers.quantConflictFind = true;
   }
   if (options::cegqiNestedQE())
   {
-    opts.set(options::prenexQuantUser, true);
+    opts.quantifiers.prenexQuantUser = true;
     if (!opts.wasSetByUser(options::preSkolemQuant))
     {
-      opts.set(options::preSkolemQuant, true);
+      opts.quantifiers.preSkolemQuant = true;
     }
   }
   // for induction techniques
@@ -1294,11 +1294,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (!opts.wasSetByUser(options::dtStcInduction))
     {
-      opts.set(options::dtStcInduction, true);
+      opts.quantifiers.dtStcInduction = true;
     }
     if (!opts.wasSetByUser(options::intWfInduction))
     {
-      opts.set(options::intWfInduction, true);
+      opts.quantifiers.intWfInduction = true;
     }
   }
   if (options::dtStcInduction())
@@ -1306,44 +1306,44 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // try to remove ITEs from quantified formulas
     if (!opts.wasSetByUser(options::iteDtTesterSplitQuant))
     {
-      opts.set(options::iteDtTesterSplitQuant, true);
+      opts.quantifiers.iteDtTesterSplitQuant = true;
     }
     if (!opts.wasSetByUser(options::iteLiftQuant))
     {
-      opts.set(options::iteLiftQuant, options::IteLiftQuantMode::ALL);
+      opts.quantifiers.iteLiftQuant = options::IteLiftQuantMode::ALL;
     }
   }
   if (options::intWfInduction())
   {
     if (!opts.wasSetByUser(options::purifyTriggers))
     {
-      opts.set(options::purifyTriggers, true);
+      opts.quantifiers.purifyTriggers = true;
     }
   }
   if (options::conjectureNoFilter())
   {
     if (!opts.wasSetByUser(options::conjectureFilterActiveTerms))
     {
-      opts.set(options::conjectureFilterActiveTerms, false);
+      opts.quantifiers.conjectureFilterActiveTerms = false;
     }
     if (!opts.wasSetByUser(options::conjectureFilterCanonical))
     {
-      opts.set(options::conjectureFilterCanonical, false);
+      opts.quantifiers.conjectureFilterCanonical = false;
     }
     if (!opts.wasSetByUser(options::conjectureFilterModel))
     {
-      opts.set(options::conjectureFilterModel, false);
+      opts.quantifiers.conjectureFilterModel = false;
     }
   }
   if (opts.wasSetByUser(options::conjectureGenPerRound))
   {
     if (options::conjectureGenPerRound() > 0)
     {
-      opts.set(options::conjectureGen, true);
+      opts.quantifiers.conjectureGen = true;
     }
     else
     {
-      opts.set(options::conjectureGen, false);
+      opts.quantifiers.conjectureGen = false;
     }
   }
   // can't pre-skolemize nested quantifiers without UF theory
@@ -1351,12 +1351,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (!opts.wasSetByUser(options::preSkolemQuantNested))
     {
-      opts.set(options::preSkolemQuantNested, false);
+      opts.quantifiers.preSkolemQuantNested = false;
     }
   }
   if (!logic.isTheoryEnabled(THEORY_DATATYPES))
   {
-    opts.set(options::quantDynamicSplit, options::QuantDSplitMode::NONE);
+    opts.quantifiers.quantDynamicSplit = options::QuantDSplitMode::NONE;
   }
 
   // until bugs 371,431 are fixed
@@ -1373,7 +1373,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         || options::checkModels()
         || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
     {
-      opts.set(options::minisatUseElim, false);
+      opts.prop.minisatUseElim = false;
     }
   }
 
@@ -1389,7 +1389,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                   << options::nlRlvMode() << std::endl;
       }
       // must use relevance filtering techniques
-      opts.set(options::relevanceFilter, true);
+      opts.theory.relevanceFilter = true;
     }
   }
 
@@ -1397,7 +1397,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::produceModels() || options::produceAssignments()
       || options::checkModels())
   {
-    opts.set(options::arraysOptimizeLinear, false);
+    opts.arrays.arraysOptimizeLinear = false;
   }
 
   if (!options::bitvectorEqualitySolver())
@@ -1413,7 +1413,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Trace("smt")
         << "disabling bvLazyRewriteExtf since equality solver is disabled"
         << std::endl;
-    opts.set(options::bvLazyRewriteExtf, false);
+    opts.bv.bvLazyRewriteExtf = false;
   }
 
   if (options::stringFMF() && !opts.wasSetByUser(options::stringProcessLoopMode))
@@ -1421,7 +1421,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Trace("smt") << "settting stringProcessLoopMode to 'simple' since "
                     "--strings-fmf enabled"
                  << std::endl;
-    opts.set(options::stringProcessLoopMode, options::ProcessLoopMode::SIMPLE);
+    opts.strings.stringProcessLoopMode = options::ProcessLoopMode::SIMPLE;
   }
 
   // !!! All options that require disabling models go here
@@ -1459,7 +1459,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice() << "SmtEngine: turning off produce-models to support "
                << sOptNoModel << std::endl;
-      opts.set(options::produceModels, false);
+      opts.smt.produceModels = false;
     }
     if (options::produceAssignments())
     {
@@ -1472,7 +1472,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice() << "SmtEngine: turning off produce-assignments to support "
                << sOptNoModel << std::endl;
-      opts.set(options::produceAssignments, false);
+      opts.smt.produceAssignments = false;
     }
     if (options::checkModels())
     {
@@ -1485,7 +1485,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice() << "SmtEngine: turning off check-models to support "
                << sOptNoModel << std::endl;
-      opts.set(options::checkModels, false);
+      opts.smt.checkModels = false;
     }
   }
 
@@ -1505,14 +1505,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 #ifdef CVC5_USE_POLY
     if (!options::nlCad() && !opts.wasSetByUser(options::nlCad))
     {
-      opts.set(options::nlCad, true);
+      opts.arith.nlCad = true;
       if (!opts.wasSetByUser(options::nlExt))
       {
-        opts.set(options::nlExt, options::NlExtMode::LIGHT);
+        opts.arith.nlExt = options::NlExtMode::LIGHT;
       }
       if (!opts.wasSetByUser(options::nlRlvMode))
       {
-        opts.set(options::nlRlvMode, options::NlRlvMode::INTERLEAVE);
+        opts.arith.nlRlvMode = options::NlRlvMode::INTERLEAVE;
       }
     }
 #endif
@@ -1530,8 +1530,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       Notice() << "Cannot use --" << options::nlCad.name
                << " without configuring with --poly." << std::endl;
-      opts.set(options::nlCad, false);
-      opts.set(options::nlExt, options::NlExtMode::FULL);
+      opts.arith.nlCad = false;
+      opts.arith.nlExt = options::NlExtMode::FULL;
     }
   }
 #endif
