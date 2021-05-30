@@ -517,7 +517,6 @@ cdef class Solver:
         dtypedecls = args[0]
         unresolvedSorts = []
         if len(args) == 2:
-            print("panda", type(args[1]))
             assert isinstance(args[1], Set)
             unresolvedSorts = args[1]
         sorts = []
