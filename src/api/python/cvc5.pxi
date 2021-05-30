@@ -121,6 +121,10 @@ cdef class Datatype:
         ds.cds = self.cd.getSelector(name.encode())
         return ds
 
+    def getName(self):
+        return self.cd.getName().decode()
+
+
     def getNumConstructors(self):
         """:return: number of constructors."""
         return self.cd.getNumConstructors()
@@ -256,6 +260,9 @@ cdef class DatatypeDecl:
 
     def isParametric(self):
         return self.cdd.isParametric()
+
+    def getName(self):
+        return self.cdd.getName().decode()
 
     def __str__(self):
         return self.cdd.toString().decode()
@@ -500,9 +507,20 @@ cdef class Solver:
         sort.csort = self.csolver.mkDatatypeSort(dtypedecl.cdd)
         return sort
 
-    def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts):
+    def mkDatatypeSorts(self, *args): 
+        '''
+        Supports the following arguments:
+        std::vector<Sort> mkDatatypeSorts(const std::vector<DatatypeDecl>& dtypedecls)
+        std::vector<Sort> mkDatatypeSorts(const std::vector<DatatypeDecl>& dtypedecls, const std::set<Sort>& unresolvedSorts)
+        '''
+        assert len(args) == 1 or len(args) == 2
+        dtypedecls = args[0]
+        unresolvedSorts = []
+        if len(args) == 2:
+            print("panda", type(args[1]))
+            assert isinstance(args[1], Set)
+            unresolvedSorts = args[1]
         sorts = []
-
         cdef vector[c_DatatypeDecl] decls
         for decl in dtypedecls:
             decls.push_back((<DatatypeDecl?> decl).cdd)

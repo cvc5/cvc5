@@ -84,6 +84,7 @@ def test_mk_datatype_sorts(solver):
     for i in range(0, len(dtdecls)):
         assert dtsorts[i].isDatatype()
         assert not dtsorts[i].getDatatype().isFinite()
+        assert dtsorts[i].getDatatype().getName() == dtdecls[i].getName()
     # verify the resolution was correct
     dtTree = dtsorts[0].getDatatype()
     dtcTreeNode = dtTree[0]
@@ -98,6 +99,8 @@ def test_mk_datatype_sorts(solver):
     dtdeclsBad = []
     emptyD = solver.mkDatatypeDecl("emptyD")
     dtdeclsBad.append(emptyD)
+    with pytest.raises(RuntimeError):
+        solver.mkDatatypeSorts(dtdeclsBad)
 
 
 def test_datatype_structs(solver):
@@ -177,6 +180,8 @@ def test_datatype_names(solver):
 
     # create datatype sort to test
     dtypeSpec = solver.mkDatatypeDecl("list")
+    dtypeSpec.getName()
+    assert dtypeSpec.getName() == "list"
     cons = solver.mkDatatypeConstructorDecl("cons")
     cons.addSelector("head", intSort)
     cons.addSelectorSelf("tail")
@@ -185,6 +190,7 @@ def test_datatype_names(solver):
     dtypeSpec.addConstructor(nil)
     dtypeSort = solver.mkDatatypeSort(dtypeSpec)
     dt = dtypeSort.getDatatype()
+    assert dt.getName() == "list"
     dt.getConstructor("nil")
     dt["cons"]
     with pytest.raises(RuntimeError):
@@ -208,6 +214,10 @@ def test_datatype_names(solver):
     dt.getSelector("head")
     with pytest.raises(RuntimeError):
         dt.getSelector("cons")
+
+    # possible to construct null datatype declarations if not using solver
+    with pytest.raises(RuntimeError):
+        DatatypeDecl(solver).getName()
 
 
 def test_parametric_datatype(solver):
