@@ -242,14 +242,6 @@ ${holder_mem_copy}$
   }
 }
 
-std::string Options::formatThreadOptionException(const std::string& option) {
-  std::stringstream ss;
-  ss << "can't understand option `" << option
-     << "': expected something like --threadN=\"--option1 --option2\","
-     << " where N is a nonnegative integer";
-  return ss.str();
-}
-
 void Options::setListener(OptionsListener* ol) { d_olisten = ol; }
 
 // clang-format off
