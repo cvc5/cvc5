@@ -1662,6 +1662,7 @@ cdef class Term:
 
     def isIntegerValue(self):
         return self.cterm.isIntegerValue()
+    
     def isFloatingPointPosZero(self):
         return self.cterm.isFloatingPointPosZero()
     
