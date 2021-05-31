@@ -930,6 +930,23 @@ def test_term_children(solver):
         tnull[0]
 
 
+def test_get_floating_point(solver):
+  bvval = solver.mkBitVector("0000110000000011");
+  fp = solver.mkFloatingPoint(5, 11, bvval);
+
+  assert fp.isFloatingPointValue()
+  assert not fp.isFloatingPointPosZero()
+  assert not fp.isFloatingPointNegZero()
+  assert not fp.isFloatingPointPosInf()
+  assert not fp.isFloatingPointNegInf()
+  assert not fp.isFloatingPointNaN()
+  assert (5, 11, bvval) == fp.getFloatingPointValue()
+
+  assert solver.mkPosZero(5, 11).isFloatingPointPosZero()
+  assert solver.mkNegZero(5, 11).isFloatingPointNegZero()
+  assert solver.mkPosInf(5, 11).isFloatingPointPosInf()
+  assert solver.mkNegInf(5, 11).isFloatingPointNegInf()
+  assert solver.mkNaN(5, 11).isFloatingPointNaN()
 def test_is_integer(solver):
     int1 = solver.mkInteger("-18446744073709551616")
     int2 = solver.mkInteger("-18446744073709551615")
