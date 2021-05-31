@@ -4,7 +4,6 @@ Changes since 1.8
 =================
 
 New Features:
-
 * New unsat-core production modes based on the new proof infrastructure
   (`--unsat-cores-mode=sat-proof`) and on the solving-under-assumption feature
   of Minisat (`--unsat-cores-mode=assumptions`). The mode based on SAT
@@ -33,9 +32,10 @@ Changes:
   builds will be BSD licensed.
 * The semantics for division and remainder operators in the CVC language now
   correspond to SMT-LIB 2.6 semantics (i.e. a division by zero or a zero
-  modulus results in a constant value, instead of an uninterpreted one).
-  Similarly, when no language is set, the API semantics now correspond to the
-  SMT-LIB 2.6 semantics.
+  modulus results in a constant value, instead of an uninterpreted one). As a
+  result the option `--bv-div-zero-const` has been removed. Similarly, when no
+  language is set, the API semantics now correspond to the SMT-LIB 2.6
+  semantics.
 * The `competition` build type includes the dependencies used for SMT-COMP by
   default. Note that this makes this build type produce GPL-licensed binaries.
 * Bit-vector operator bvxnor was previously mistakenly marked as
@@ -47,6 +47,7 @@ Changes:
   and does *not* begin with the keyword `model`. The output
   is the same as before, only with this word removed from the beginning.
 * Building with Python 2 is now deprecated.
+* Removed the option `--rewrite-divk` (now effectively enabled by default).
 
 
 Changes since 1.7
