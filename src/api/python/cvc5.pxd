@@ -22,7 +22,10 @@ cdef extern from "<functional>" namespace "std" nogil:
 
 cdef extern from "<string>" namespace "std":
     cdef cppclass wstring:
+        wstring() except +
         wstring(const wchar_t*, size_t) except +
+        const wchar_t* data() except +
+        size_t size() except +
 
 cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass Options:
@@ -376,7 +379,16 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
             Term operator*() except +
         const_iterator begin() except +
         const_iterator end() except +
+        bint isBooleanValue() except +
+        bint getBooleanValue() except +
+        bint isStringValue() except +
+        wstring getStringValue() except +
         bint isIntegerValue() except +
+        string getIntegerValue() except +
+        bint isRealValue() except +
+        string getRealValue() except +
+        bint isBitVectorValue() except +
+        string getBitVectorValue(uint32_t base) except +
         vector[Term] getSequenceValue() except +
 
     cdef cppclass TermHashFunction:

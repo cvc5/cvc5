@@ -898,80 +898,182 @@ def test_substitute(solver):
 
 
 def test_term_compare(solver):
-  t1 = solver.mkInteger(1)
-  t2 = solver.mkTerm(kinds.Plus, solver.mkInteger(2), solver.mkInteger(2))
-  t3 = solver.mkTerm(kinds.Plus, solver.mkInteger(2), solver.mkInteger(2))
-  assert t2 >= t3
-  assert t2 <= t3
-  assert (t1 > t2) != (t1 < t2)
-  assert (t1 > t2 or t1 == t2) == (t1 >= t2)
+    t1 = solver.mkInteger(1)
+    t2 = solver.mkTerm(kinds.Plus, solver.mkInteger(2), solver.mkInteger(2))
+    t3 = solver.mkTerm(kinds.Plus, solver.mkInteger(2), solver.mkInteger(2))
+    assert t2 >= t3
+    assert t2 <= t3
+    assert (t1 > t2) != (t1 < t2)
+    assert (t1 > t2 or t1 == t2) == (t1 >= t2)
+
 
 def test_term_children(solver):
-  # simple term 2+3
-  two = solver.mkInteger(2)
-  t1 = solver.mkTerm(kinds.Plus, two, solver.mkInteger(3))
-  assert t1[0] == two
-  assert t1.getNumChildren() == 2
-  tnull = Term(solver)
-  with pytest.raises(RuntimeError):
-      tnull.getNumChildren()
+    # simple term 2+3
+    two = solver.mkInteger(2)
+    t1 = solver.mkTerm(kinds.Plus, two, solver.mkInteger(3))
+    assert t1[0] == two
+    assert t1.getNumChildren() == 2
+    tnull = Term(solver)
+    with pytest.raises(RuntimeError):
+        tnull.getNumChildren()
 
-  # apply term f(2)
-  intSort = solver.getIntegerSort()
-  fsort = solver.mkFunctionSort(intSort, intSort)
-  f = solver.mkConst(fsort, "f")
-  t2 = solver.mkTerm(kinds.ApplyUf, f, two)
-  # due to our higher-order view of terms, we treat f as a child of kinds.ApplyUf
-  assert t2.getNumChildren() == 2
-  assert t2[0] == f
-  assert t2[1] == two
-  with pytest.raises(RuntimeError):
-      tnull[0]
+    # apply term f(2)
+    intSort = solver.getIntegerSort()
+    fsort = solver.mkFunctionSort(intSort, intSort)
+    f = solver.mkConst(fsort, "f")
+    t2 = solver.mkTerm(kinds.ApplyUf, f, two)
+    # due to our higher-order view of terms, we treat f as a child of kinds.ApplyUf
+    assert t2.getNumChildren() == 2
+    assert t2[0] == f
+    assert t2[1] == two
+    with pytest.raises(RuntimeError):
+        tnull[0]
+
 
 def test_is_integer(solver):
-  int1 = solver.mkInteger("-18446744073709551616")
-  int2 = solver.mkInteger("-18446744073709551615")
-  int3 = solver.mkInteger("-4294967296")
-  int4 = solver.mkInteger("-4294967295")
-  int5 = solver.mkInteger("-10")
-  int6 = solver.mkInteger("0")
-  int7 = solver.mkInteger("10")
-  int8 = solver.mkInteger("4294967295")
-  int9 = solver.mkInteger("4294967296")
-  int10 = solver.mkInteger("18446744073709551615")
-  int11 = solver.mkInteger("18446744073709551616")
-  int12 = solver.mkInteger("-0")
+    int1 = solver.mkInteger("-18446744073709551616")
+    int2 = solver.mkInteger("-18446744073709551615")
+    int3 = solver.mkInteger("-4294967296")
+    int4 = solver.mkInteger("-4294967295")
+    int5 = solver.mkInteger("-10")
+    int6 = solver.mkInteger("0")
+    int7 = solver.mkInteger("10")
+    int8 = solver.mkInteger("4294967295")
+    int9 = solver.mkInteger("4294967296")
+    int10 = solver.mkInteger("18446744073709551615")
+    int11 = solver.mkInteger("18446744073709551616")
+    int12 = solver.mkInteger("-0")
 
-  with pytest.raises(RuntimeError):
-      solver.mkInteger("")
-  with pytest.raises(RuntimeError):
-      solver.mkInteger("-")
-  with pytest.raises(RuntimeError):
-      solver.mkInteger("-1-")
-  with pytest.raises(RuntimeError):
-      solver.mkInteger("0.0")
-  with pytest.raises(RuntimeError):
-      solver.mkInteger("-0.1")
-  with pytest.raises(RuntimeError):
-      solver.mkInteger("012")
-  with pytest.raises(RuntimeError):
-      solver.mkInteger("0000")
-  with pytest.raises(RuntimeError):
-      solver.mkInteger("-01")
-  with pytest.raises(RuntimeError):
-      solver.mkInteger("-00")
+    with pytest.raises(RuntimeError):
+        solver.mkInteger("")
+    with pytest.raises(RuntimeError):
+        solver.mkInteger("-")
+    with pytest.raises(RuntimeError):
+        solver.mkInteger("-1-")
+    with pytest.raises(RuntimeError):
+        solver.mkInteger("0.0")
+    with pytest.raises(RuntimeError):
+        solver.mkInteger("-0.1")
+    with pytest.raises(RuntimeError):
+        solver.mkInteger("012")
+    with pytest.raises(RuntimeError):
+        solver.mkInteger("0000")
+    with pytest.raises(RuntimeError):
+        solver.mkInteger("-01")
+    with pytest.raises(RuntimeError):
+        solver.mkInteger("-00")
 
-  assert int1.isInteger()
-  assert int2.isInteger()
-  assert int3.isInteger()
-  assert int4.isInteger()
-  assert int5.isInteger()
-  assert int6.isInteger()
-  assert int7.isInteger()
-  assert int8.isInteger()
-  assert int9.isInteger()
-  assert int10.isInteger()
-  assert int11.isInteger()
+    assert int1.isIntegerValue()
+    assert int2.isIntegerValue()
+    assert int3.isIntegerValue()
+    assert int4.isIntegerValue()
+    assert int5.isIntegerValue()
+    assert int6.isIntegerValue()
+    assert int7.isIntegerValue()
+    assert int8.isIntegerValue()
+    assert int9.isIntegerValue()
+    assert int10.isIntegerValue()
+    assert int11.isIntegerValue()
+
+    assert int1.getIntegerValue() == -18446744073709551616
+    assert int2.getIntegerValue() == -18446744073709551615
+    assert int3.getIntegerValue() == -4294967296
+    assert int4.getIntegerValue() == -4294967295
+    assert int5.getIntegerValue() == -10
+    assert int6.getIntegerValue() == 0
+    assert int7.getIntegerValue() == 10
+    assert int8.getIntegerValue() == 4294967295
+    assert int9.getIntegerValue() == 4294967296
+    assert int10.getIntegerValue() == 18446744073709551615
+    assert int11.getIntegerValue() == 18446744073709551616
+
+
+def test_get_string(solver):
+    s1 = solver.mkString("abcde")
+    assert s1.isStringValue()
+    assert s1.getStringValue() == str("abcde")
+
+
+def test_get_real(solver):
+    real1 = solver.mkReal("0")
+    real2 = solver.mkReal(".0")
+    real3 = solver.mkReal("-17")
+    real4 = solver.mkReal("-3/5")
+    real5 = solver.mkReal("12.7")
+    real6 = solver.mkReal("1/4294967297")
+    real7 = solver.mkReal("4294967297")
+    real8 = solver.mkReal("1/18446744073709551617")
+    real9 = solver.mkReal("18446744073709551617")
+
+    assert real1.isRealValue()
+    assert real2.isRealValue()
+    assert real3.isRealValue()
+    assert real4.isRealValue()
+    assert real5.isRealValue()
+    assert real6.isRealValue()
+    assert real7.isRealValue()
+    assert real8.isRealValue()
+    assert real9.isRealValue()
+
+    assert 0 == real1.getRealValue()
+    assert 0 == real2.getRealValue()
+    assert -17 == real3.getRealValue()
+    assert -3/5 == real4.getRealValue()
+    assert 127/10 == real5.getRealValue()
+    assert 1/4294967297 == real6.getRealValue()
+    assert 4294967297 == real7.getRealValue()
+    assert 1/18446744073709551617 == real8.getRealValue()
+    assert float(18446744073709551617) == real9.getRealValue()
+
+
+def test_get_boolean(solver):
+    b1 = solver.mkBoolean(True)
+    b2 = solver.mkBoolean(False)
+
+    assert b1.isBooleanValue()
+    assert b2.isBooleanValue()
+    assert b1.getBooleanValue()
+    assert not b2.getBooleanValue()
+
+
+def test_get_bit_vector(solver):
+    b1 = solver.mkBitVector(8, 15)
+    b2 = solver.mkBitVector("00001111", 2)
+    b3 = solver.mkBitVector("15", 10)
+    b4 = solver.mkBitVector("0f", 16)
+    b5 = solver.mkBitVector(8, "00001111", 2)
+    b6 = solver.mkBitVector(8, "15", 10)
+    b7 = solver.mkBitVector(8, "0f", 16)
+
+    assert b1.isBitVectorValue()
+    assert b2.isBitVectorValue()
+    assert b3.isBitVectorValue()
+    assert b4.isBitVectorValue()
+    assert b5.isBitVectorValue()
+    assert b6.isBitVectorValue()
+    assert b7.isBitVectorValue()
+
+    assert "00001111" == b1.getBitVectorValue(2)
+    assert "15" == b1.getBitVectorValue(10)
+    assert "f" == b1.getBitVectorValue(16)
+    assert "00001111" == b2.getBitVectorValue(2)
+    assert "15" == b2.getBitVectorValue(10)
+    assert "f" == b2.getBitVectorValue(16)
+    assert "1111" == b3.getBitVectorValue(2)
+    assert "15" == b3.getBitVectorValue(10)
+    assert "f" == b3.getBitVectorValue(16)
+    assert "00001111" == b4.getBitVectorValue(2)
+    assert "15" == b4.getBitVectorValue(10)
+    assert "f" == b4.getBitVectorValue(16)
+    assert "00001111" == b5.getBitVectorValue(2)
+    assert "15" == b5.getBitVectorValue(10)
+    assert "f" == b5.getBitVectorValue(16)
+    assert "00001111" == b6.getBitVectorValue(2)
+    assert "15" == b6.getBitVectorValue(10)
+    assert "f" == b6.getBitVectorValue(16)
+    assert "00001111" == b7.getBitVectorValue(2)
+    assert "15" == b7.getBitVectorValue(10)
+    assert "f" == b7.getBitVectorValue(16)
 
 
 def test_const_array(solver):
