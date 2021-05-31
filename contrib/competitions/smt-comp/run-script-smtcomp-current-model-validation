@@ -20,7 +20,7 @@ QF_LIA)
   finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --use-soi --pb-rewrites --ite-simp --simp-ite-compress
   ;;
 QF_BV)
-  finishwith --bv-div-zero-const --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
+  finishwith --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
   ;;
 *)
   # just run the default
