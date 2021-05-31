@@ -124,29 +124,6 @@ public:
   void copyValues(const Options& options);
 
   /**
-   * Set the value of the given option.  Uses `ref()`, which causes a
-   * compile-time error if the given option is read-only.
-   */
-  template <class T>
-  void set(T t, const typename T::type& val) {
-    ref(t) = val;
-  }
-
-  /**
-   * Set the default value of the given option. Is equivalent to calling `set()`
-   * if `wasSetByUser()` returns false. Uses `ref()`, which causes a compile-time
-   * error if the given option is read-only.
-   */
-  template <class T>
-  void setDefault(T t, const typename T::type& val)
-  {
-    if (!wasSetByUser(t))
-    {
-      ref(t) = val;
-    }
-  }
-
-  /**
    * Get a non-const reference to the value of the given option. Causes a
    * compile-time error if the given option is read-only. Writeable options
    * specialize this template with a real implementation.

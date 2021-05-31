@@ -44,7 +44,7 @@ class TestParserBlackParser : public TestInternal
   void SetUp() override
   {
     TestInternal::SetUp();
-    d_options.set(options::parseOnly, true);
+    d_options.base.parseOnly = true;
     d_symman.reset(nullptr);
     d_solver.reset(new cvc5::api::Solver(&d_options));
   }
