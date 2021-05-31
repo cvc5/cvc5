@@ -507,18 +507,17 @@ cdef class Solver:
         sort.csort = self.csolver.mkDatatypeSort(dtypedecl.cdd)
         return sort
 
-    def mkDatatypeSorts(self, *args): 
+    def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts = None):
         '''
         Supports the following arguments:
         std::vector<Sort> mkDatatypeSorts(const std::vector<DatatypeDecl>& dtypedecls)
         std::vector<Sort> mkDatatypeSorts(const std::vector<DatatypeDecl>& dtypedecls, const std::set<Sort>& unresolvedSorts)
         '''
-        assert len(args) == 1 or len(args) == 2
-        dtypedecls = args[0]
-        unresolvedSorts = []
-        if len(args) == 2:
-            assert isinstance(args[1], Set)
-            unresolvedSorts = args[1]
+        if unresolvedSorts == None:
+            unresolvedSorts = []
+        else:
+            assert isinstance(unresolvedSorts, Set)
+
         sorts = []
         cdef vector[c_DatatypeDecl] decls
         for decl in dtypedecls:
