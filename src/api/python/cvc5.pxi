@@ -6,7 +6,7 @@ from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 from libc.stddef cimport wchar_t
 
 from libcpp.pair cimport pair
-from libcpp.set cimport set
+from libcpp.set cimport set as c_set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 
@@ -511,10 +511,10 @@ cdef class Solver:
         '''
         Supports the following arguments:
         std::vector<Sort> mkDatatypeSorts(const std::vector<DatatypeDecl>& dtypedecls)
-        std::vector<Sort> mkDatatypeSorts(const std::vector<DatatypeDecl>& dtypedecls, const std::set<Sort>& unresolvedSorts)
+        std::vector<Sort> mkDatatypeSorts(const std::vector<DatatypeDecl>& dtypedecls, const std::c_set<Sort>& unresolvedSorts)
         '''
         if unresolvedSorts == None:
-            unresolvedSorts = []
+            unresolvedSorts = set([])
         else:
             assert isinstance(unresolvedSorts, Set)
 
@@ -523,12 +523,12 @@ cdef class Solver:
         for decl in dtypedecls:
             decls.push_back((<DatatypeDecl?> decl).cdd)
 
-        cdef set[c_Sort] usorts
+        cdef c_set[c_Sort] usorts
         for usort in unresolvedSorts:
             usorts.insert((<Sort?> usort).csort)
 
         csorts = self.csolver.mkDatatypeSorts(
-            <const vector[c_DatatypeDecl]&> decls, <const set[c_Sort]&> usorts)
+            <const vector[c_DatatypeDecl]&> decls, <const c_set[c_Sort]&> usorts)
         for csort in csorts:
           sort = Sort(self)
           sort.csort = csort
