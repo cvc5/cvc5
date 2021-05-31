@@ -33,6 +33,7 @@ from cvc5kinds cimport Kind as c_Kind
 
 cdef extern from "Python.h":
     wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *)
+    object PyUnicode_FromWideChar(const wchar_t*, Py_ssize_t)
     void PyMem_Free(void*)
 
 ################################## DECORATORS #################################
@@ -758,6 +759,47 @@ cdef class Solver:
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkUniverseSet(sort.csort)
         return term
+
+    @expand_list_arg(num_req_args=0)
+    def mkBitVector(self, *args):
+        '''
+            Supports the following arguments:
+            Term mkBitVector(int size, int val=0)
+            Term mkBitVector(string val, int base = 2)
+            Term mkBitVector(int size, string val, int base)
+         '''
+        cdef Term term = Term(self)
+        if len(args) == 1:
+            size_or_val = args[0]
+            if isinstance(args[0], int):
+                size = args[0]
+                term.cterm = self.csolver.mkBitVector(<uint32_t> size)
+            else:
+                assert isinstance(args[0], str)
+                val = args[0]
+                term.cterm = self.csolver.mkBitVector(<const string&> str(val).encode())
+        elif len(args) == 2:
+            if isinstance(args[0], int):
+                size = args[0]
+                assert isinstance(args[1], int)
+                val = args[1]
+                term.cterm = self.csolver.mkBitVector(<uint32_t> size, <uint32_t> val)
+            else:
+                assert isinstance(args[0], str)
+                assert isinstance(args[1], int)
+                val = args[0]
+                base = args[1]
+                term.cterm = self.csolver.mkBitVector(<const string&> str(val).encode(), <uint32_t> base)
+        elif len(args) == 3:
+                assert isinstance(args[0], int)
+                assert isinstance(args[1], str)
+                assert isinstance(args[2], int)
+                size = args[0]
+                val = args[1]
+                base = args[2]
+                term.cterm = self.csolver.mkBitVector(<uint32_t> size, <const string&> str(val).encode(), <uint32_t> base)
+        return term
+
 
     def mkBitVector(self, size_or_str, val = None):
         cdef Term term = Term(self)
@@ -1603,9 +1645,38 @@ cdef class Term:
         term.cterm = self.cterm.iteTerm(then_t.cterm, else_t.cterm)
         return term
 
-    def isInteger(self):
+    def isBooleanValue(self):
+        return self.cterm.isBooleanValue()
+
+    def getBooleanValue(self):
+        return self.cterm.getBooleanValue()
+
+    def isStringValue(self):
+        return self.cterm.isStringValue()
+
+    def getStringValue(self):
+        cdef Py_ssize_t size
+        cdef c_wstring s = self.cterm.getStringValue()
+        return PyUnicode_FromWideChar(s.data(), s.size())
+
+    def isIntegerValue(self):
         return self.cterm.isIntegerValue()
-    
+
+    def getIntegerValue(self):
+        return int(self.cterm.getIntegerValue().decode())
+
+    def isRealValue(self):
+        return self.cterm.isRealValue()
+
+    def getRealValue(self):
+        return float(Fraction(self.cterm.getRealValue().decode()))
+
+    def isBitVectorValue(self):
+        return self.cterm.isBitVectorValue()
+
+    def getBitVectorValue(self, base = 2):
+        return self.cterm.getBitVectorValue(base).decode()
+
     def toPythonObj(self):
         '''
         Converts a constant value Term to a Python object.
@@ -1615,61 +1686,23 @@ cdef class Term:
           Int     -- returns a Python int
           Real    -- returns a Python Fraction
           BV      -- returns a Python int (treats BV as unsigned)
+          String  -- returns a Python Unicode string
           Array   -- returns a Python dict mapping indices to values
                   -- the constant base is returned as the default value
-          String  -- returns a Python Unicode string
         '''
 
-        string_repr = self.cterm.toString().decode()
-        assert string_repr
-        sort = self.getSort()
-        res = None
-        if sort.isBoolean():
-            if string_repr == "true":
-                res = True
-            else:
-                assert string_repr == "false"
-                res = False
-
-        elif sort.isInteger():
-            updated_string_repr = string_repr.strip('()').replace(' ', '')
-            try:
-                res = int(updated_string_repr)
-            except:
-                raise ValueError("Failed to convert"
-                                 " {} to an int".format(string_repr))
-
-        elif sort.isReal():
-            updated_string_repr = string_repr
-            try:
-                # rational format (/ a b) most likely
-                # note: a or b could be negated: (- a)
-                splits = [s.strip('()/')
-                          for s in updated_string_repr.strip('()/') \
-                          .replace('(- ', '(-').split()]
-                assert len(splits) == 2
-                num = int(splits[0])
-                den = int(splits[1])
-                res = Fraction(num, den)
-            except:
-                try:
-                    # could be exact: e.g., 1.0
-                    res = Fraction(updated_string_repr)
-                except:
-                    raise ValueError("Failed to convert "
-                                     "{} to a Fraction".format(string_repr))
-
-        elif sort.isBitVector():
-            # expecting format #b<bits>
-            assert string_repr[:2] == "#b"
-            python_bin_repr = "0" + string_repr[1:]
-            try:
-                res = int(python_bin_repr, 2)
-            except:
-                raise ValueError("Failed to convert bitvector "
-                                 "{} to an int".format(string_repr))
-
-        elif sort.isArray():
+        if self.isBooleanValue():
+            return self.getBooleanValue()
+        elif self.isIntegerValue():
+            return self.getIntegerValue()
+        elif self.isRealValue():
+            return self.getRealValue()
+        elif self.isBitVectorValue():
+            return int(self.getBitVectorValue(), 2)
+        elif self.isStringValue():
+            return self.getStringValue()
+        elif self.getSort().isArray():
+            res = None
             keys = []
             values = []
             base_value = None
@@ -1696,33 +1729,7 @@ cdef class Term:
             for k, v in zip(keys, values):
                 res[k] = v
 
-        elif sort.isString():
-            # Strip leading and trailing double quotes and replace double
-            # double quotes by single quotes
-            string_repr = string_repr[1:-1].replace('""', '"')
-
-            # Convert escape sequences
-            res = ''
-            escape_prefix = '\\u{'
-            i = 0
-            while True:
-              prev_i = i
-              i = string_repr.find(escape_prefix, i)
-              if i == -1:
-                res += string_repr[prev_i:]
-                break
-
-              res += string_repr[prev_i:i]
-              val = string_repr[i + len(escape_prefix):string_repr.find('}', i)]
-              res += chr(int(val, 16))
-              i += len(escape_prefix) + len(val) + 1
-        else:
-            raise ValueError("Cannot convert term {}"
-                             " of sort {} to Python object".format(string_repr,
-                                                                   sort))
-
-        assert res is not None
-        return res
+            return res
 
 
 # Generate rounding modes
