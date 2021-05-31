@@ -113,6 +113,9 @@ public:
   Options(OptionsListener* ol = nullptr);
   ~Options();
 
+  options::OptionsHandler& handler() const {
+    return *d_handler;
+  }
 
   /**
    * Copies the value of the options stored in OptionsHolder into the current
