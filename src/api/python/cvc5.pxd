@@ -29,21 +29,7 @@ cdef extern from "<string>" namespace "std":
 
 cdef extern from "<tuple>" namespace "std" nogil:
     cdef cppclass tuple[T, U, S]:
-        ctypedef T first_type
-        ctypedef U second_type
-        ctypedef S third_type
-        T first
-        U second
-        S third
-        tuple() except +
-        tuple(tuple&) except +
-        tuple(T&, U&, S&) except +
-        bint operator==(tuple&, tuple&)
-        bint operator!=(tuple&, tuple&)
-        bint operator<(tuple&, tuple&)
-        bint operator>(tuple&, tuple&)
-        bint operator<=(tuple&, tuple&)
-        bint operator>=(tuple&, tuple&)
+        pass
 
 cdef extern from "<tuple>" namespace "std":
     uint32_t get0 "std::get<0>"(tuple[uint32_t,uint32_t,Term]) except +
