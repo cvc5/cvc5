@@ -84,8 +84,6 @@ ${holder_ref_decls}$
    */
   Options& operator=(const Options& options) = delete;
 
-  static std::string formatThreadOptionException(const std::string& option);
-
 public:
  class OptionsScope
  {
@@ -122,19 +120,6 @@ public:
    * This does not copy the listeners in the Options object.
    */
   void copyValues(const Options& options);
-
-  /**
-   * Get a non-const reference to the value of the given option. Causes a
-   * compile-time error if the given option is read-only. Writeable options
-   * specialize this template with a real implementation.
-   */
-  template <class T>
-  typename T::type& ref(T) {
-    // Flag a compile-time error.
-    T::you_are_trying_to_get_nonconst_access_to_a_read_only_option;
-    // Ensure the compiler does not complain about the return value.
-    return *static_cast<typename T::type*>(nullptr);
-  }
 
   /**
    * Set the value of the given option by key.
