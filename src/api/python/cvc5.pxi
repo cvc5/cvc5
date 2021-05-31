@@ -125,7 +125,6 @@ cdef class Datatype:
     def getName(self):
         return self.cd.getName().decode()
 
-
     def getNumConstructors(self):
         """:return: number of constructors."""
         return self.cd.getNumConstructors()
