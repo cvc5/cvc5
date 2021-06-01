@@ -841,7 +841,7 @@ def test_term_assignment(solver):
 def test_substitute(solver):
     x = solver.mkConst(solver.getIntegerSort(), "x")
     one = solver.mkInteger(1)
-    ttrue = solver.mkTrue()
+    tTrue = solver.mkTrue()
     xpx = solver.mkTerm(kinds.Plus, x, x)
     onepone = solver.mkTerm(kinds.Plus, one, one)
 
@@ -849,7 +849,7 @@ def test_substitute(solver):
     assert onepone.substitute(one, x) == xpx
     # incorrect due to type
     with pytest.raises(RuntimeError):
-        xpx.substitute(one, ttrue)
+        xpx.substitute(one, tTrue)
 
     # simultaneous substitution
     y = solver.mkConst(solver.getIntegerSort(), "y")
@@ -869,7 +869,7 @@ def test_substitute(solver):
         xpy.substitute(es, rs)
 
     # incorrect substitution due to types
-    rs.append(ttrue)
+    rs.append(tTrue)
     with pytest.raises(RuntimeError):
         xpy.substitute(es, rs)
 
@@ -930,6 +930,108 @@ def test_term_children(solver):
         tnull[0]
 
 
+def test_get_const_array_base(solver):
+  intsort = solver.getIntegerSort();
+  arrsort = solver.mkArraySort(intsort, intsort);
+  one = solver.mkInteger(1);
+  constarr = solver.mkConstArray(arrsort, one);
+
+  assert constarr.isConstArray()
+  assert one ==  constarr.getConstArrayBase()
+
+def test_get_abstract_value(solver):
+  v1 = solver.mkAbstractValue(1);
+  v2 = solver.mkAbstractValue("15");
+  v3 = solver.mkAbstractValue("18446744073709551617");
+
+  assert v1.isAbstractValue()
+  assert v2.isAbstractValue()
+  assert v3.isAbstractValue()
+  assert "1" == v1.getAbstractValue()
+  assert "15" == v2.getAbstractValue()
+  assert "18446744073709551617" == v3.getAbstractValue()
+
+def test_get_tuple(solver):
+  s1 = solver.getIntegerSort();
+  s2 = solver.getRealSort();
+  s3 = solver.getStringSort();
+
+  t1 = solver.mkInteger(15);
+  t2 = solver.mkReal(17, 25);
+  t3 = solver.mkString("abc");
+
+  tup = solver.mkTuple([s1, s2, s3], [t1, t2, t3]);
+
+  assert tup.isTupleValue()
+  assert [t1, t2, t3] == tup.getTupleValue()
+
+def test_get_set(solver):
+  s = solver.mkSetSort(solver.getIntegerSort());
+
+  i1 = solver.mkInteger(5);
+  i2 = solver.mkInteger(7);
+
+  s1 = solver.mkEmptySet(s);
+  s2 = solver.mkTerm(kinds.Singleton, i1);
+  s3 = solver.mkTerm(kinds.Singleton, i1);
+  s4 = solver.mkTerm(kinds.Singleton, i2);
+  s5 = solver.mkTerm(kinds.Union, s2, solver.mkTerm(kinds.Union, s3, s4));
+
+  assert s1.isSetValue()
+  assert s2.isSetValue()
+  assert s3.isSetValue()
+  assert s4.isSetValue()
+  assert not s5.isSetValue()
+  s5 = solver.simplify(s5);
+  assert s5.isSetValue()
+
+  assert set([]) == s1.getSetValue()
+  assert set([i1]) == s2.getSetValue()
+  assert set([i1]) == s3.getSetValue()
+  assert set([i2]) == s4.getSetValue()
+  assert set([i1, i2]) == s5.getSetValue()
+
+def test_get_sequence(solver):
+  s = solver.mkSequenceSort(solver.getIntegerSort());
+
+  i1 = solver.mkInteger(5);
+  i2 = solver.mkInteger(7);
+
+  s1 = solver.mkEmptySequence(s);
+  s2 = solver.mkTerm(kinds.SeqUnit, i1);
+  s3 = solver.mkTerm(kinds.SeqUnit, i1);
+  s4 = solver.mkTerm(kinds.SeqUnit, i2);
+  s5 = solver.mkTerm(
+      kinds.SeqConcat, s2, solver.mkTerm(kinds.SeqConcat, s3, s4));
+
+  assert s1.isSequenceValue()
+  assert not s2.isSequenceValue()
+  assert not s3.isSequenceValue()
+  assert not s4.isSequenceValue()
+  assert not s5.isSequenceValue()
+
+  s2 = solver.simplify(s2);
+  s3 = solver.simplify(s3);
+  s4 = solver.simplify(s4);
+  s5 = solver.simplify(s5);
+
+  assert [] == s1.getSequenceValue()
+  assert [i1] == s2.getSequenceValue()
+  assert [i1] == s3.getSequenceValue()
+  assert [i2] == s4.getSequenceValue()
+  assert [i1, i1, i2] == s5.getSequenceValue()
+
+def test_get_uninterpreted_const(solver):
+  s = solver.mkUninterpretedSort("test");
+  t1 = solver.mkUninterpretedConst(s, 3);
+  t2 = solver.mkUninterpretedConst(s, 5);
+
+  assert t1.isUninterpretedValue()
+  assert t2.isUninterpretedValue()
+
+  assert (s, 3) == t1.getUninterpretedValue()
+  assert (s, 5) == t2.getUninterpretedValue()
+
 def test_get_floating_point(solver):
     bvval = solver.mkBitVector("0000110000000011")
     fp = solver.mkFloatingPoint(5, 11, bvval)
@@ -947,7 +1049,6 @@ def test_get_floating_point(solver):
     assert solver.mkPosInf(5, 11).isFloatingPointPosInf()
     assert solver.mkNegInf(5, 11).isFloatingPointNegInf()
     assert solver.mkNaN(5, 11).isFloatingPointNaN()
-
 
 def test_is_integer(solver):
     int1 = solver.mkInteger("-18446744073709551616")
