@@ -49,6 +49,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         DatatypeConstructor getConstructor(const string& name) except +
         Term getConstructorTerm(const string& name) except +
         DatatypeSelector getSelector(const string& name) except +
+        string getName() except +
         size_t getNumConstructors() except +
         bint isParametric() except +
         bint isCodatatype() except +
@@ -100,6 +101,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         size_t getNumConstructors() except +
         bint isParametric() except +
         string toString() except +
+        string getName() except +
 
 
     cdef cppclass DatatypeSelector:

@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, Set
 from fractions import Fraction
 import sys
 
@@ -122,6 +122,9 @@ cdef class Datatype:
         cdef DatatypeSelector ds = DatatypeSelector(self.solver)
         ds.cds = self.cd.getSelector(name.encode())
         return ds
+
+    def getName(self):
+        return self.cd.getName().decode()
 
     def getNumConstructors(self):
         """:return: number of constructors."""
@@ -258,6 +261,9 @@ cdef class DatatypeDecl:
 
     def isParametric(self):
         return self.cdd.isParametric()
+
+    def getName(self):
+        return self.cdd.getName().decode()
 
     def __str__(self):
         return self.cdd.toString().decode()
@@ -502,9 +508,14 @@ cdef class Solver:
         sort.csort = self.csolver.mkDatatypeSort(dtypedecl.cdd)
         return sort
 
-    def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts):
-        sorts = []
+    def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts = None):
+        """:return: A list of datatype sorts that correspond to dtypedecls and unresolvedSorts"""
+        if unresolvedSorts == None:
+            unresolvedSorts = set([])
+        else:
+            assert isinstance(unresolvedSorts, Set)
 
+        sorts = []
         cdef vector[c_DatatypeDecl] decls
         for decl in dtypedecls:
             decls.push_back((<DatatypeDecl?> decl).cdd)
