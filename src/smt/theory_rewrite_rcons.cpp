@@ -26,7 +26,7 @@ TheoryRewriteRCons::TheoryRewriteRCons(ProofNodeManager* pnm) : d_pnm(pnm) {}
 bool TheoryRewriteRCons::reconstruct(CDProof* cdp,
                                      Node eq,
                                      theory::TheoryId tid,
-                                     theory::MethodId mid)
+                                     MethodId mid)
 {
   Assert(eq.getKind() == EQUAL);
   Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid << ", "

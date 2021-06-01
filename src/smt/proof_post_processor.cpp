@@ -1018,8 +1018,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Assert(eq.getKind() == EQUAL);
     TheoryId tid = THEORY_BUILTIN;
     builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
-    theory::MethodId mid = MethodId::RW_REWRITE;
-    builtin::BuiltinProofRuleChecker::getMethodId(args[2], mid);
+    MethodId mid = MethodId::RW_REWRITE;
+    getMethodId(args[2], mid);
     // first, try to replay the rewrite using the standard reconstruction module
     if (d_trrc.reconstruct(cdp, eq, tid, mid))
     {

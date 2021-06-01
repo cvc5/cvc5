@@ -40,7 +40,7 @@ class TheoryRewriteRCons
   bool reconstruct(CDProof* cdp,
                    Node eq,
                    theory::TheoryId tid,
-                   theory::MethodId mid);
+                   MethodId mid);
 
  private:
   /** Try rule */
