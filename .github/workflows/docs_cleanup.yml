@@ -36,6 +36,7 @@ jobs:
             touch -d "$mod" $file
           done
           find ./ -maxdepth 1 -name "docs-*" -mtime +7 -exec git rm -r {} +
+          find ./ -maxdepth 1 -name "docs-*" -xtype l -exec git rm {} +
           git commit -m "Prune docs" || echo "Nothing to prune"
 
       - name: Squash old commits
