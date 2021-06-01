@@ -15,18 +15,6 @@ code.xref {
     background: unset !important;
 }
 
-a {
-  color: #0099e6;
-}
-
-a:visited {
-  color: #0099e6;
-}
-
-a:hover, a:focus {
-  color: #739900;
-}
-
 .wy-side-nav-search {
   background-color: #0099e6;
 }
@@ -75,3 +63,16 @@ a:hover, a:focus {
 .wy-nav-top a {
   color: #ace600;
 }
+
+a {
+  color: #0099e6;
+}
+
+a:visited {
+  color: #0099e6;
+}
+
+a:hover, a:focus {
+  color: #739900;
+}
+
