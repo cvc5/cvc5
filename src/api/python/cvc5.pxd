@@ -27,6 +27,15 @@ cdef extern from "<string>" namespace "std":
         const wchar_t* data() except +
         size_t size() except +
 
+cdef extern from "<tuple>" namespace "std" nogil:
+    cdef cppclass tuple[T, U, S]:
+        pass
+
+cdef extern from "<tuple>" namespace "std":
+    uint32_t get0 "std::get<0>"(tuple[uint32_t,uint32_t,Term]) except +
+    uint32_t get1 "std::get<1>"(tuple[uint32_t,uint32_t,Term]) except +
+    Term get2 "std::get<2>"(tuple[uint32_t,uint32_t,Term]) except +
+
 cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass Options:
         pass
@@ -387,6 +396,14 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         string getRealValue() except +
         bint isBitVectorValue() except +
         string getBitVectorValue(uint32_t base) except +
+        bint isFloatingPointPosZero() except +
+        bint isFloatingPointNegZero() except +
+        bint isFloatingPointPosInf() except +
+        bint isFloatingPointNegInf() except +
+        bint isFloatingPointNaN() except +
+        bint isFloatingPointValue() except +
+
+        tuple[uint32_t, uint32_t, Term] getFloatingPointValue() except +
         vector[Term] getSequenceValue() except +
 
     cdef cppclass TermHashFunction:
