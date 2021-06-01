@@ -215,7 +215,7 @@ def test_datatype_names(solver):
     with pytest.raises(RuntimeError):
         dt.getSelector("cons")
 
-    # possible to construct null datatype declarations if not using solver
+    # possible to construct null datatype declarations if not using mkDatatypeDecl
     with pytest.raises(RuntimeError):
         DatatypeDecl(solver).getName()
 
