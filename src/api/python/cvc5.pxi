@@ -650,7 +650,7 @@ cdef class Solver:
     def mkTuple(self, sorts, terms):
         cdef vector[c_Sort] csorts
         cdef vector[c_Term] cterms
-    
+
         for s in sorts:
             csorts.push_back((<Sort?> s).csort)
         for s in terms:
@@ -658,7 +658,7 @@ cdef class Solver:
         cdef Term result = Term(self)
         result.cterm = self.csolver.mkTuple(csorts, cterms)
         return result
-            
+
 
     def mkOp(self, kind k, arg0=None, arg1 = None):
         '''
@@ -1704,9 +1704,6 @@ cdef class Term:
     def isSetValue(self):
         return self.cterm.isSetValue()
 
-    def isSequenceValue(self):
-        return self.cterm.isSequenceValue()
-
     def getSetValue(self):
         elems = []
         for e in self.cterm.getSetValue():
@@ -1714,6 +1711,9 @@ cdef class Term:
             term.cterm = e
             elems.append(term)
         return set(elems)
+
+    def isSequenceValue(self):
+        return self.cterm.isSequenceValue()
 
     def getSequenceValue(self):
         elems = []
@@ -1725,7 +1725,7 @@ cdef class Term:
 
     def isUninterpretedValue(self):
         return self.cterm.isUninterpretedValue()
-     
+ 
     def getUninterpretedValue(self):
         cdef pair[c_Sort, int32_t] p = self.cterm.getUninterpretedValue()
         cdef Sort sort = Sort(self.solver)

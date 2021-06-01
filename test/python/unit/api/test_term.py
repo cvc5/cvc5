@@ -841,7 +841,7 @@ def test_term_assignment(solver):
 def test_substitute(solver):
     x = solver.mkConst(solver.getIntegerSort(), "x")
     one = solver.mkInteger(1)
-    tTrue = solver.mkTrue()
+    ttrue = solver.mkTrue()
     xpx = solver.mkTerm(kinds.Plus, x, x)
     onepone = solver.mkTerm(kinds.Plus, one, one)
 
@@ -849,7 +849,7 @@ def test_substitute(solver):
     assert onepone.substitute(one, x) == xpx
     # incorrect due to type
     with pytest.raises(RuntimeError):
-        xpx.substitute(one, tTrue)
+        xpx.substitute(one, ttrue)
 
     # simultaneous substitution
     y = solver.mkConst(solver.getIntegerSort(), "y")
@@ -869,7 +869,7 @@ def test_substitute(solver):
         xpy.substitute(es, rs)
 
     # incorrect substitution due to types
-    rs.append(tTrue)
+    rs.append(ttrue)
     with pytest.raises(RuntimeError):
         xpy.substitute(es, rs)
 
