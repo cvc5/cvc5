@@ -19,14 +19,6 @@ code.xref {
   background-color: #0099e6;
 }
 
-.wy-side-nav-search > a {
-  color: #ace600;
-}
-
-.wy-side-nav-search > a:hover, > a:focus, > a:visited {
-  color: #ace600;
-}
-
 .wy-breadcrumbs a {
   color: #739900;
 }
@@ -55,15 +47,6 @@ code.xref {
   color: #ace600;
 }
 
-.wy-nav-top {
-  color: #ace600;
-  background-color: #0099e6;
-}
-
-.wy-nav-top a {
-  color: #ace600;
-}
-
 a {
   color: #0099e6;
 }
@@ -74,5 +57,22 @@ a:visited {
 
 a:hover, a:focus {
   color: #739900;
+}
+
+.wy-nav-top {
+  color: #ace600;
+  background-color: #0099e6;
+}
+
+.wy-nav-top a {
+  color: #ace600;
+}
+
+.wy-side-nav-search > a {
+  color: #ace600;
+}
+
+.wy-side-nav-search > a:hover, > a:focus, > a:visited {
+  color: #ace600;
 }
 
