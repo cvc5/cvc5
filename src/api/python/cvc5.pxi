@@ -508,11 +508,7 @@ cdef class Solver:
         return sort
 
     def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts = None):
-        '''
-        Supports the following arguments:
-        std::vector<Sort> mkDatatypeSorts(const std::vector<DatatypeDecl>& dtypedecls)
-        std::vector<Sort> mkDatatypeSorts(const std::vector<DatatypeDecl>& dtypedecls, const std::c_set<Sort>& unresolvedSorts)
-        '''
+        """:return: A list of datatype sorts that correspond to dtypedecls and unresolvedSorts"""
         if unresolvedSorts == None:
             unresolvedSorts = set([])
         else:
