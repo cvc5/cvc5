@@ -128,10 +128,6 @@ public:
    */
   void setOption(const std::string& key, const std::string& optionarg);
 
-  /** Get the value of the given option.  Const access only. */
-  template <class T>
-  const typename T::type& operator[](T) const;
-
   /**
    * Gets the value of the given option by key and returns value as a string.
    *

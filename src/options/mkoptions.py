@@ -139,16 +139,6 @@ TPL_OPTION_STRUCT_RW = \
   type operator()() const;
 }} thread_local {name};"""
 
-TPL_DECL_OP_BRACKET = \
-"""template <> const options::{name}__option_t::type& Options::operator[](
-    options::{name}__option_t) const;"""
-
-TPL_IMPL_OP_BRACKET = TPL_DECL_OP_BRACKET[:-1] + \
-"""
-{{
-  return {module}.{name};
-}}"""
-
 TPL_DECL_WAS_SET_BY_USER = \
 """template <> bool Options::wasSetByUser(options::{name}__option_t) const;"""
 
@@ -161,10 +151,8 @@ TPL_IMPL_WAS_SET_BY_USER = TPL_DECL_WAS_SET_BY_USER[:-1] + \
 # Option specific methods
 
 TPL_IMPL_OP_PAR = \
-"""inline {name}__option_t::type {name}__option_t::operator()() const
-{{
-  return Options::current()[*this];
-}}"""
+"""inline {type} {name}__option_t::operator()() const
+{{ return Options::current().{module}.{name}; }}"""
 
 # Mode templates
 TPL_DECL_MODE_ENUM = \
@@ -601,7 +589,6 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
 
         # Generate module specialization
         default_decl.append(TPL_DECL_SET_DEFAULT.format(module=module.id, name=option.name, funcname=capoptionname, type=option.type))
-        specs.append(TPL_DECL_OP_BRACKET.format(name=option.name))
         specs.append(TPL_DECL_WAS_SET_BY_USER.format(name=option.name))
 
         if option.long and option.type not in ['bool', 'void'] and \
@@ -616,14 +603,13 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
                     module.id, option.long, option.type))
 
         # Generate module inlines
-        inls.append(TPL_IMPL_OP_PAR.format(name=option.name))
+        inls.append(TPL_IMPL_OP_PAR.format(module=module.id, name=option.name, type=option.type))
 
 
         ### Generate code for {module.name}_options.cpp
 
         # Accessors
         default_impl.append(TPL_IMPL_SET_DEFAULT.format(module=module.id, name=option.name, funcname=capoptionname, type=option.type))
-        accs.append(TPL_IMPL_OP_BRACKET.format(module=module.id, name=option.name))
         accs.append(TPL_IMPL_WAS_SET_BY_USER.format(module=module.id, name=option.name))
 
         # Global definitions
