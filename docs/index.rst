@@ -16,8 +16,7 @@ Table of Contents
 
    installation/installation
    binary/binary
-   cpp/cpp
-   python/python
+   api/api
    examples/examples
    references
    genindex
