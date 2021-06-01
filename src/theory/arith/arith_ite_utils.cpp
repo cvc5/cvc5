@@ -145,22 +145,18 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
 ArithIteUtils::ArithIteUtils(
     preprocessing::util::ContainsTermITEVisitor& contains,
     context::Context* uc,
-    TheoryModel* model)
+    SubstitutionMap& subs)
     : d_contains(contains),
-      d_subs(NULL),
-      d_model(model),
+      d_subs(subs),
       d_one(1),
       d_subcount(uc, 0),
       d_skolems(uc),
       d_implies(),
       d_orBinEqs()
 {
-  d_subs = new SubstitutionMap(uc);
 }
 
 ArithIteUtils::~ArithIteUtils(){
-  delete d_subs;
-  d_subs = NULL;
 }
 
 void ArithIteUtils::clear(){
@@ -272,12 +268,12 @@ unsigned ArithIteUtils::getSubCount() const{
 void ArithIteUtils::addSubstitution(TNode f, TNode t){
   Debug("arith::ite") << "adding " << f << " -> " << t << endl;
   d_subcount = d_subcount + 1;
-  d_subs->addSubstitution(f, t);
+  d_subs.addSubstitution(f, t);
 }
 
 Node ArithIteUtils::applySubstitutions(TNode f){
   AlwaysAssert(!options::incrementalSolving());
-  return d_subs->apply(f);
+  return d_subs.apply(f);
 }
 
 Node ArithIteUtils::selectForCmp(Node n) const{
