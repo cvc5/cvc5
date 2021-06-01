@@ -70,4 +70,4 @@ jobs:
             git commit -m "Update README.md"
           fi
 
-          git push -f origin main
+          git push -f origin HEAD:main
