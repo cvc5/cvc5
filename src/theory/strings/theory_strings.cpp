@@ -130,6 +130,7 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_ITOS, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_STOI, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_STRIDOF, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_INDEXOF_RE, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_STRREPL, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_STRREPLALL, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_RE, eagerEval);
@@ -210,7 +211,10 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
     Trace("strings-debug-model") << d_esolver.debugPrintModel() << std::endl;
   }
   Trace("strings-model") << "TheoryStrings::collectModelValues" << std::endl;
+  // Collects representatives by types and orders sequence types by how nested
+  // they are
   std::map<TypeNode, std::unordered_set<Node> > repSet;
+  std::unordered_set<TypeNode> toProcess;
   // Generate model
   // get the relevant string equivalence classes
   for (const Node& s : termSet)
@@ -220,31 +224,51 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
     {
       Node r = d_state.getRepresentative(s);
       repSet[tn].insert(r);
+      toProcess.insert(tn);
     }
   }
-  for (const std::pair<const TypeNode, std::unordered_set<Node> >& rst : repSet)
+
+  while (!toProcess.empty())
   {
-    // get partition of strings of equal lengths, per type
-    std::map<TypeNode, std::vector<std::vector<Node> > > colT;
-    std::map<TypeNode, std::vector<Node> > ltsT;
-    std::vector<Node> repVec(rst.second.begin(), rst.second.end());
-    d_state.separateByLength(repVec, colT, ltsT);
-    // now collect model info for the type
-    TypeNode st = rst.first;
-    if (!collectModelInfoType(st, rst.second, colT[st], ltsT[st], m))
+    // Pick one of the remaining types to collect model values for
+    TypeNode tn = *toProcess.begin();
+    if (!collectModelInfoType(tn, toProcess, repSet, m))
     {
       return false;
     }
   }
+
   return true;
 }
 
-bool TheoryStrings::collectModelInfoType(TypeNode tn,
-                                         const std::unordered_set<Node>& repSet,
-                                         std::vector<std::vector<Node> >& col,
-                                         std::vector<Node>& lts,
-                                         TheoryModel* m)
+bool TheoryStrings::collectModelInfoType(
+    TypeNode tn,
+    std::unordered_set<TypeNode>& toProcess,
+    const std::map<TypeNode, std::unordered_set<Node> >& repSet,
+    TheoryModel* m)
 {
+  // Make sure that the model values for the element type of sequences are
+  // computed first
+  if (tn.isSequence() && tn.getSequenceElementType().isSequence())
+  {
+    TypeNode tnElem = tn.getSequenceElementType();
+    if (toProcess.find(tnElem) != toProcess.end()
+        && !collectModelInfoType(tnElem, toProcess, repSet, m))
+    {
+      return false;
+    }
+  }
+  toProcess.erase(tn);
+
+  // get partition of strings of equal lengths for the representatives of the
+  // current type
+  std::map<TypeNode, std::vector<std::vector<Node> > > colT;
+  std::map<TypeNode, std::vector<Node> > ltsT;
+  const std::vector<Node> repVec(repSet.at(tn).begin(), repSet.at(tn).end());
+  d_state.separateByLength(repVec, colT, ltsT);
+  const std::vector<std::vector<Node> >& col = colT[tn];
+  const std::vector<Node>& lts = ltsT[tn];
+
   NodeManager* nm = NodeManager::currentNM();
   std::map< Node, Node > processed;
   //step 1 : get all values for known lengths
@@ -321,7 +345,10 @@ bool TheoryStrings::collectModelInfoType(TypeNode tn,
             Node argVal;
             if (nfe.d_nf[0][0].getType().isStringLike())
             {
-              argVal = d_state.getRepresentative(nfe.d_nf[0][0]);
+              // By this point, we should have assigned model values for the
+              // elements of this sequence type because of the check in the
+              // beginning of this method
+              argVal = m->getRepresentative(nfe.d_nf[0][0]);
             }
             else
             {
@@ -478,7 +505,7 @@ bool TheoryStrings::collectModelInfoType(TypeNode tn,
   }
   Trace("strings-model") << "String Model : Pure Assigned." << std::endl;
   //step 4 : assign constants to all other equivalence classes
-  for (const Node& rn : repSet)
+  for (const Node& rn : repVec)
   {
     if (processed.find(rn) == processed.end())
     {

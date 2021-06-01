@@ -163,7 +163,7 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
     {
       throwLazyBBUnsupported(m);
     }
-    Options::current().setDefault(options::bitvectorToBool, true);
+    options::bv::setDefaultBitvectorToBool(*d_options, true);
   }
 }
 
@@ -171,10 +171,10 @@ void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
 {
   if (m == options::BitblastMode::LAZY)
   {
-    Options::current().setDefault(options::bitvectorPropagate, true);
-    Options::current().setDefault(options::bitvectorEqualitySolver, true);
-    Options::current().setDefault(options::bitvectorInequalitySolver, true);
-    Options::current().setDefault(options::bitvectorAlgebraicSolver, true);
+    options::bv::setDefaultBitvectorPropagate(*d_options, true);
+    options::bv::setDefaultBitvectorEqualitySolver(*d_options, true);
+    options::bv::setDefaultBitvectorInequalitySolver(*d_options, true);
+    options::bv::setDefaultBitvectorAlgebraicSolver(*d_options, true);
     if (options::bvSatSolver() != options::SatSolverMode::MINISAT)
     {
       throwLazyBBUnsupported(options::bvSatSolver());
@@ -182,7 +182,7 @@ void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
   }
   else if (m == BitblastMode::EAGER)
   {
-    Options::current().setDefault(options::bitvectorToBool, true);
+    options::bv::setDefaultBitvectorToBool(*d_options, true);
   }
 }
 
@@ -196,7 +196,7 @@ void OptionsHandler::setBitblastAig(std::string option, bool arg)
       }
     } else {
       options::BitblastMode mode = stringToBitblastMode("eager");
-      Options::current().set(options::bitblastMode, mode);
+      d_options->bv.bitblastMode = mode;
     }
   }
 }
@@ -231,13 +231,13 @@ InstFormatMode OptionsHandler::stringToInstFormatMode(std::string option,
 // decision/options_handlers.h
 void OptionsHandler::setDecisionModeStopOnly(std::string option, DecisionMode m)
 {
-  Options::current().set(options::decisionStopOnly, m == DecisionMode::RELEVANCY);
+  d_options->decision.decisionStopOnly = (m == DecisionMode::RELEVANCY);
 }
 
 void OptionsHandler::setProduceAssertions(std::string option, bool value)
 {
-  Options::current().set(options::produceAssertions, value);
-  Options::current().set(options::interactiveMode, value);
+  d_options->smt.produceAssertions = value;
+  d_options->smt.interactiveMode = value;
 }
 
 void OptionsHandler::setStats(const std::string& option, bool value)
@@ -486,7 +486,7 @@ OutputLanguage OptionsHandler::stringToOutputLanguage(std::string option,
                                                       std::string optarg)
 {
   if(optarg == "help") {
-    Options::current().set(options::languageHelp, true);
+    d_options->base.languageHelp = true;
     return language::output::LANG_AUTO;
   }
 
@@ -504,7 +504,7 @@ InputLanguage OptionsHandler::stringToInputLanguage(std::string option,
                                                     std::string optarg)
 {
   if(optarg == "help") {
-    Options::current().set(options::languageHelp, true);
+    d_options->base.languageHelp = true;
     return language::input::LANG_AUTO;
   }
 
@@ -549,12 +549,12 @@ void OptionsHandler::setVerbosity(std::string option, int value)
 }
 
 void OptionsHandler::increaseVerbosity(std::string option) {
-  Options::current().set(options::verbosity, options::verbosity() + 1);
+  d_options->base.verbosity += 1;
   setVerbosity(option, options::verbosity());
 }
 
 void OptionsHandler::decreaseVerbosity(std::string option) {
-  Options::current().set(options::verbosity, options::verbosity() - 1);
+  d_options->base.verbosity -= 1;
   setVerbosity(option, options::verbosity());
 }
 

@@ -83,7 +83,7 @@ class ProofCnfStream : public ProofGenerator
    * clause in the SAT solver, as this is handled internally by the SAT
    * solver. The clausification steps and the generator within the trust node
    * are saved in d_proof if we are producing proofs in the theory engine. */
-  void convertPropagation(theory::TrustNode ttn);
+  void convertPropagation(TrustNode ttn);
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node
@@ -162,7 +162,7 @@ class ProofCnfStream : public ProofGenerator
   LazyCDProof d_proof;
   /** An accumulator of steps that may be applied to normalize the clauses
    * generated during clausification. */
-  theory::TheoryProofStepBuffer d_psb;
+  TheoryProofStepBuffer d_psb;
   /** Blocked proofs.
    *
    * These are proof nodes added to this class by external generators. */

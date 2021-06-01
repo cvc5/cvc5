@@ -115,4 +115,4 @@ def testGetValueReal():
     xval = solver.getValue(x)
     yval = solver.getValue(y)
     assert xval.toPythonObj() == Fraction("6")
-    assert yval.toPythonObj() == Fraction("8.33")
+    assert yval.toPythonObj() == float(Fraction("8.33"))

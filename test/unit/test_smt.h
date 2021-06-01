@@ -115,10 +115,7 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
   void safePoint(Resource r) override {}
   void conflict(TNode n) override { push(CONFLICT, n); }
 
-  void trustedConflict(theory::TrustNode n) override
-  {
-    push(CONFLICT, n.getNode());
-  }
+  void trustedConflict(TrustNode n) override { push(CONFLICT, n.getNode()); }
 
   bool propagate(TNode n) override
   {
@@ -132,7 +129,7 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
     push(LEMMA, n);
   }
 
-  void trustedLemma(theory::TrustNode n, theory::LemmaProperty p) override
+  void trustedLemma(TrustNode n, theory::LemmaProperty p) override
   {
     push(LEMMA, n.getNode());
   }
@@ -250,10 +247,7 @@ class DummyTheory : public theory::Theory
     // do not assert to equality engine, since this theory does not use one
     return true;
   }
-  theory::TrustNode explain(TNode n) override
-  {
-    return theory::TrustNode::null();
-  }
+  TrustNode explain(TNode n) override { return TrustNode::null(); }
   Node getValue(TNode n) { return Node::null(); }
   std::string identify() const override { return "DummyTheory" + d_id; }
 

@@ -40,6 +40,16 @@ struct IndexVarAttributeId
 };
 typedef expr::Attribute<IndexVarAttributeId, Node> IndexVarAttribute;
 
+/**
+ * A bound variable corresponding to the universally quantified integer
+ * variable used to range over the valid lengths of a string, used for
+ * axiomatizing the behavior of some term.
+ */
+struct LengthVarAttributeId
+{
+};
+typedef expr::Attribute<LengthVarAttributeId, Node> LengthVarAttribute;
+
 SkolemCache::SkolemCache(bool useOpts) : d_useOpts(useOpts)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -298,6 +308,14 @@ Node SkolemCache::mkIndexVar(Node t)
   TypeNode intType = nm->integerType();
   BoundVarManager* bvm = nm->getBoundVarManager();
   return bvm->mkBoundVar<IndexVarAttribute>(t, intType);
+}
+
+Node SkolemCache::mkLengthVar(Node t)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode intType = nm->integerType();
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  return bvm->mkBoundVar<LengthVarAttribute>(t, intType);
 }
 
 }  // namespace strings

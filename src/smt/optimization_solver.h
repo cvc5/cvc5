@@ -171,12 +171,13 @@ class OptimizationSolver
    *   v_x = max(x) s.t. phi(x, y) = sat
    *   v_y = max(y) s.t. phi(x, y) = sat
    *
-   * Lexicographic: optimize the objectives one-by-one, in the order they push
-   *   v_x = max(x) s.t. phi(x, y) = sat
+   * Lexicographic: optimize the objectives one-by-one, in the order they are
+   * added:
+   *   v_x = max(x) s.t. phi(x, y) = sat 
    *   v_y = max(y) s.t. phi(v_x, y) = sat
    *
    * Pareto: optimize multiple goals to a state such that
-   *   further optimization of one goal will worsen the other goal(s)
+   * further optimization of one goal will worsen the other goal(s)
    *   (v_x, v_y) s.t. phi(v_x, v_y) = sat, and
    *     forall (x, y), (phi(x, y) = sat) -> (x <= v_x or y <= v_y)
    **/
@@ -194,27 +195,29 @@ class OptimizationSolver
   ~OptimizationSolver() = default;
 
   /**
-   * Run the optimization loop for the pushed objective
+   * Run the optimization loop for the added objective
+   * For multiple objective combination, it defaults to lexicographic,
+   * and combination could be set by calling
+   *   setObjectiveCombination(BOX/LEXICOGRAPHIC/PARETO)
    */
   OptimizationResult::ResultType checkOpt();
 
   /**
-   * Push an objective.
-   * @param target the Node representing the expression that will be optimized
-   *for
+   * Add an optimization objective.
+   * @param target Node representing the expression that will be optimized for
    * @param type specifies whether it's maximize or minimize
    * @param bvSigned specifies whether we should use signed/unsigned
    *   comparison for BitVectors (only effective for BitVectors)
    *   and its default is false
    **/
-  void pushObjective(TNode target,
-                     OptimizationObjective::ObjectiveType type,
-                     bool bvSigned = false);
+  void addObjective(TNode target,
+                    OptimizationObjective::ObjectiveType type,
+                    bool bvSigned = false);
 
   /**
-   * Pop the most recently successfully-pushed objective.
+   * Clear all the added optimization objectives
    **/
-  void popObjective();
+  void resetObjectives();
 
   /**
    * Returns the values of the optimized objective after checkOpt is called
@@ -249,6 +252,39 @@ class OptimizationSolver
    *   UNKNOWN if any of the objective is UNKNOWN.
    **/
   OptimizationResult::ResultType optimizeBox();
+
+  /**
+   * Optimize multiple goals in Lexicographic order,
+   * using iterative implementation
+   * @return OPTIMAL if all objectives are OPTIMAL and bounded;
+   *   UNBOUNDED if one of the objectives is UNBOUNDED
+   *     and optimization will stop at that objective;
+   *   UNSAT if one of the objectives is UNSAT
+   *     and optimization will stop at that objective;
+   *   UNKNOWN if one of the objectives is UNKNOWN
+   *     and optimization will stop at that objective;
+   *   If the optimization is stopped at an objective,
+   *     all objectives following that objective will be UNKNOWN.
+   **/
+  OptimizationResult::ResultType optimizeLexicographicIterative();
+
+  /**
+   * Optimize multiple goals in Pareto order
+   * Using a variant of linear search called Guided Improvement Algorithm
+   * Could be called multiple times to iterate through the Pareto front
+   *
+   * Definition:
+   * Pareto front: Set of all possible Pareto optimal solutions
+   *
+   * Reference:
+   * D. Rayside, H.-C. Estler, and D. Jackson. The Guided Improvement Algorithm.
+   *  Technical Report MIT-CSAIL-TR-2009-033, MIT, 2009.
+   *
+   * @return if it finds a new Pareto optimal result it will return OPTIMAL;
+   *   if it exhausts the results in the Pareto front it will return UNSAT;
+   *   if the underlying SMT solver returns UNKNOWN, it will return UNKNOWN.
+   **/
+  OptimizationResult::ResultType optimizeParetoNaiveGIA();
 
   /** A pointer to the parent SMT engine **/
   SmtEngine* d_parent;
