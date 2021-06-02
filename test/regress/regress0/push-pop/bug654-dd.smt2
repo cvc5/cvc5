@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --incremental --fmf-fun --strings-exp
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (declare-datatypes ((List_T_C 0) (T_CustomerType 0)) (
 ((List_T_C$CNil_T_CustomerType) (ListTC (ListTC$head T_CustomerType) (ListTC$tail List_T_C)))
 ((T_CustomerType$C_T_CustomerType (T_CustomerType$C_T_CustomerType$a_CompanyName Int) (T_CustomerType$C_T_CustomerType$a_ContactName Int) (ID Int)))

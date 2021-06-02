@@ -19,7 +19,7 @@
 ;   adding terms to d_pendingEverInserted was moved from addToPending()
 ; to getLemma().
 
-(set-logic QF_ALL_SUPPORTED)
+(set-logic QF_ALL)
 (set-info :status sat)
 (define-sort Elt () Int)
 (define-sort mySet () (Set Elt ))
