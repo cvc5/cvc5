@@ -800,6 +800,7 @@ set(regress_0_tests
   regress0/printer/let_shadowing.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc
+  regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/scope.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
@@ -1149,6 +1150,7 @@ set(regress_0_tests
   regress0/strings/issue6520.smt2
   regress0/strings/issue6560-indexof-reduction.smt2
   regress0/strings/issue6604-re-elim.smt2
+  regress0/strings/issue6643-ctn-decompose-conflict.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
