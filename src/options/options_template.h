@@ -124,10 +124,6 @@ public:
    */
   void setOption(const std::string& key, const std::string& optionarg);
 
-  /** Get the value of the given option.  Const access only. */
-  template <class T>
-  const typename T::type& operator[](T) const;
-
   /**
    * Gets the value of the given option by key and returns value as a string.
    *
@@ -135,53 +131,6 @@ public:
    * option.
    */
   std::string getOption(const std::string& key) const;
-
-  // Get accessor functions.
-  InputLanguage getInputLanguage() const;
-  options::InstFormatMode getInstFormatMode() const;
-  OutputLanguage getOutputLanguage() const;
-  bool getUfHo() const;
-  bool getDumpInstantiations() const;
-  bool getDumpModels() const;
-  bool getDumpProofs() const;
-  bool getDumpUnsatCores() const;
-  bool getEarlyExit() const;
-  bool getFilesystemAccess() const;
-  bool getForceNoLimitCpuWhileDump() const;
-  bool getHelp() const;
-  bool getIncrementalSolving() const;
-  bool getInteractive() const;
-  bool getInteractivePrompt() const;
-  bool getLanguageHelp() const;
-  bool getMemoryMap() const;
-  bool getParseOnly() const;
-  bool getProduceModels() const;
-  bool getSegvSpin() const;
-  bool getSemanticChecks() const;
-  bool getStatistics() const;
-  bool getStatsEveryQuery() const;
-  bool getStrictParsing() const;
-  int getTearDownIncremental() const;
-  uint64_t getCumulativeTimeLimit() const;
-  bool getVersion() const;
-  const std::string& getForceLogicString() const;
-  int getVerbosity() const;
-  std::istream* getIn() const;
-  std::ostream* getErr();
-  std::ostream* getOut();
-  std::ostream* getOutConst() const; // TODO: Remove this.
-  std::string getBinaryName() const;
-
-  // TODO: Document these.
-  void setInputLanguage(InputLanguage);
-  void setInteractive(bool);
-  void setOut(std::ostream*);
-  void setOutputLanguage(OutputLanguage);
-
-  bool wasSetByUserEarlyExit() const;
-  bool wasSetByUserForceLogicString() const;
-  bool wasSetByUserIncrementalSolving() const;
-  bool wasSetByUserInteractive() const;
 
   // Static accessor functions.
   // TODO: Document these.
