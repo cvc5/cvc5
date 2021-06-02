@@ -6918,7 +6918,7 @@ std::string Solver::getProof(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
-  CVC5_API_CHECK(d_smtEngine->getOptions()[options::produceProofs])
+  CVC5_API_CHECK(d_smtEngine->getOptions().smt.produceProofs)
       << "Cannot get proof explicitly enabled (try --prooduce-proofs)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
       << "Cannot get proof unless in unsat mode.";

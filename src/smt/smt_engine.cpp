@@ -1361,7 +1361,7 @@ void SmtEngine::checkProof()
   std::shared_ptr<ProofNode> pePfn = pe->getProof();
   // TEMPORARY for testing, this can be used to count how often checkProofs is
   // called
-  if (d_env->getOptions().smt.checkProofsFail))
+  if (d_env->getOptions().proof.checkProofsFail)
   {
     AlwaysAssert(false) << "Fail due to --check-proofs-fail";
   }
