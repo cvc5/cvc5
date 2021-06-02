@@ -1554,7 +1554,7 @@ TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
 
 TEST_F(TestApiBlackSolver, declareSeparationHeap)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   Sort integer = d_solver.getIntegerSort();
   ASSERT_NO_THROW(d_solver.declareSeparationHeap(integer, integer));
   // cannot declare separation logic heap more than once
@@ -1594,7 +1594,7 @@ TEST_F(TestApiBlackSolver, getSeparationHeapTerm1)
 
 TEST_F(TestApiBlackSolver, getSeparationHeapTerm2)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "false");
   checkSimpleSeparationConstraints(&d_solver);
@@ -1603,7 +1603,7 @@ TEST_F(TestApiBlackSolver, getSeparationHeapTerm2)
 
 TEST_F(TestApiBlackSolver, getSeparationHeapTerm3)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   Term t = d_solver.mkFalse();
@@ -1614,7 +1614,7 @@ TEST_F(TestApiBlackSolver, getSeparationHeapTerm3)
 
 TEST_F(TestApiBlackSolver, getSeparationHeapTerm4)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   Term t = d_solver.mkTrue();
@@ -1625,7 +1625,7 @@ TEST_F(TestApiBlackSolver, getSeparationHeapTerm4)
 
 TEST_F(TestApiBlackSolver, getSeparationHeapTerm5)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   checkSimpleSeparationConstraints(&d_solver);
@@ -1644,7 +1644,7 @@ TEST_F(TestApiBlackSolver, getSeparationNilTerm1)
 
 TEST_F(TestApiBlackSolver, getSeparationNilTerm2)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "false");
   checkSimpleSeparationConstraints(&d_solver);
@@ -1653,7 +1653,7 @@ TEST_F(TestApiBlackSolver, getSeparationNilTerm2)
 
 TEST_F(TestApiBlackSolver, getSeparationNilTerm3)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   Term t = d_solver.mkFalse();
@@ -1664,7 +1664,7 @@ TEST_F(TestApiBlackSolver, getSeparationNilTerm3)
 
 TEST_F(TestApiBlackSolver, getSeparationNilTerm4)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   Term t = d_solver.mkTrue();
@@ -1675,7 +1675,7 @@ TEST_F(TestApiBlackSolver, getSeparationNilTerm4)
 
 TEST_F(TestApiBlackSolver, getSeparationNilTerm5)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   checkSimpleSeparationConstraints(&d_solver);

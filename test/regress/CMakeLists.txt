@@ -802,6 +802,7 @@ set(regress_0_tests
   regress0/printer/tuples_and_records.cvc
   regress0/proofs/andy1.smt2
   regress0/proofs/alpha-equivalence.smt2
+  regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/scope.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
@@ -1151,6 +1152,7 @@ set(regress_0_tests
   regress0/strings/issue6520.smt2
   regress0/strings/issue6560-indexof-reduction.smt2
   regress0/strings/issue6604-re-elim.smt2
+  regress0/strings/issue6643-ctn-decompose-conflict.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -1687,9 +1689,11 @@ set(regress_1_tests
   regress1/non-fatal-errors.smt2
   regress1/parsing_ringer.cvc
   regress1/proof00.smt2
+  regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
   regress1/proofs/macro-res-exp-singleton-after-elimCrowd.smt2
   regress1/proofs/sat-trivial-cycle.smt2
+  regress1/proofs/unsat-cores-proofs.smt2
   regress1/push-pop/arith_lra_01.smt2
   regress1/push-pop/arith_lra_02.smt2
   regress1/push-pop/bug-fmf-fun-skolem.smt2
