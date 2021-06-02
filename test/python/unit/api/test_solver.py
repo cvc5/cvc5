@@ -980,7 +980,7 @@ def test_get_value3(solver):
 
 
 def test_declare_separation_heap(solver):
-    solver.setLogic("ALL_SUPPORTED")
+    solver.setLogic("ALL")
     integer = solver.getIntegerSort()
     solver.declareSeparationHeap(integer, integer)
     # cannot declare separation logic heap more than once
@@ -1014,7 +1014,7 @@ def test_get_separation_heap_term1(solver):
 
 
 def test_get_separation_heap_term2(solver):
-    solver.setLogic("ALL_SUPPORTED")
+    solver.setLogic("ALL")
     solver.setOption("incremental", "false")
     solver.setOption("produce-models", "false")
     checkSimpleSeparationConstraints(solver)
@@ -1023,7 +1023,7 @@ def test_get_separation_heap_term2(solver):
 
 
 def test_get_separation_heap_term3(solver):
-    solver.setLogic("ALL_SUPPORTED")
+    solver.setLogic("ALL")
     solver.setOption("incremental", "false")
     solver.setOption("produce-models", "true")
     t = solver.mkFalse()
@@ -1034,7 +1034,7 @@ def test_get_separation_heap_term3(solver):
 
 
 def test_get_separation_heap_term4(solver):
-    solver.setLogic("ALL_SUPPORTED")
+    solver.setLogic("ALL")
     solver.setOption("incremental", "false")
     solver.setOption("produce-models", "true")
     t = solver.mkTrue()
@@ -1045,7 +1045,7 @@ def test_get_separation_heap_term4(solver):
 
 
 def test_get_separation_heap_term5(solver):
-    solver.setLogic("ALL_SUPPORTED")
+    solver.setLogic("ALL")
     solver.setOption("incremental", "false")
     solver.setOption("produce-models", "true")
     checkSimpleSeparationConstraints(solver)
@@ -1063,7 +1063,7 @@ def test_get_separation_nil_term1(solver):
 
 
 def test_get_separation_nil_term2(solver):
-    solver.setLogic("ALL_SUPPORTED")
+    solver.setLogic("ALL")
     solver.setOption("incremental", "false")
     solver.setOption("produce-models", "false")
     checkSimpleSeparationConstraints(solver)
@@ -1072,7 +1072,7 @@ def test_get_separation_nil_term2(solver):
 
 
 def test_get_separation_nil_term3(solver):
-    solver.setLogic("ALL_SUPPORTED")
+    solver.setLogic("ALL")
     solver.setOption("incremental", "false")
     solver.setOption("produce-models", "true")
     t = solver.mkFalse()
@@ -1083,7 +1083,7 @@ def test_get_separation_nil_term3(solver):
 
 
 def test_get_separation_nil_term4(solver):
-    solver.setLogic("ALL_SUPPORTED")
+    solver.setLogic("ALL")
     solver.setOption("incremental", "false")
     solver.setOption("produce-models", "true")
     t = solver.mkTrue()
@@ -1094,7 +1094,7 @@ def test_get_separation_nil_term4(solver):
 
 
 def test_get_separation_nil_term5(solver):
-    solver.setLogic("ALL_SUPPORTED")
+    solver.setLogic("ALL")
     solver.setOption("incremental", "false")
     solver.setOption("produce-models", "true")
     checkSimpleSeparationConstraints(solver)

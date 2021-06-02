@@ -1,5 +1,5 @@
 % EXPECT: sat
-OPTION "logic" "ALL_SUPPORTED";
+OPTION "logic" "ALL";
 IntPair: TYPE = [ INT, INT];
 IntIntPair: TYPE = [ IntPair, IntPair];
 x : SET OF IntIntPair;

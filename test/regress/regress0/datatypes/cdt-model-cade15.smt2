@@ -1,4 +1,4 @@
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 (declare-codatatypes ((Stream 0)) (((C (c Stream)) (D (d Stream)) (E (e Stream)))))
 
