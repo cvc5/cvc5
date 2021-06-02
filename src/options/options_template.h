@@ -63,13 +63,6 @@ ${holder_ref_decls}$
   /** The current Options in effect */
   static thread_local Options* s_current;
 
-  /** Low-level assignment function for options */
-  template <class T>
-  void assign(T, std::string option, std::string value);
-  /** Low-level assignment function for bool-valued options */
-  template <class T>
-  void assignBool(T, std::string option, bool value);
-
   friend class options::OptionsHandler;
 
   /**
@@ -113,6 +106,9 @@ public:
   Options(OptionsListener* ol = nullptr);
   ~Options();
 
+  options::OptionsHandler& handler() const {
+    return *d_handler;
+  }
 
   /**
    * Copies the value of the options stored in OptionsHolder into the current

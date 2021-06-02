@@ -36,9 +36,9 @@ enum class InstFormatMode
   SZS,
 };
 
-}  // namespace options
+std::ostream& operator<<(std::ostream& out, InstFormatMode mode);
 
-std::ostream& operator<<(std::ostream& out, options::InstFormatMode mode);
+}  // namespace options
 
 }  // namespace cvc5
 

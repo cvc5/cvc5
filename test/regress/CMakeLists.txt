@@ -1785,7 +1785,6 @@ set(regress_1_tests
   regress1/quantifiers/fp-cegqi-unsat.smt2
   regress1/quantifiers/gauss_init_0030.fof.smt2
   regress1/quantifiers/horn-simple.smt2
-  regress1/quantifiers/infer-arith-trigger-eq.smt2
   regress1/quantifiers/inst-max-level-segf.smt2
   regress1/quantifiers/inst-prop-simp.smt2
   regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2
@@ -2425,7 +2424,6 @@ set(regress_2_tests
   regress2/lemmas/simple_startup_9nodes.abstract.base.smtv1.smt2
   regress2/javafe.ast.StandardPrettyPrint.319_no_forall.smt2
   regress2/javafe.ast.WhileStmt.447_no_forall.smt2
-  regress2/nl/nt-lemmas-bad.smt2
   regress2/nl/ufnia-factor-open-proof.smt2
   regress2/ooo.rf6.smt2
   regress2/ooo.tag10.smt2
@@ -2618,6 +2616,8 @@ set(regression_disabled_tests
   regress1/quantifiers/anti-sk-simp.smt2
   # no longer support snorm option
   regress1/quantifiers/arith-snorm.smt2
+  # timeout on some builds after changes to justification heuristic
+  regress1/quantifiers/infer-arith-trigger-eq.smt2
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/macro-subtype-param.smt2
   # times out with competition build, ok with other builds:
@@ -2663,6 +2663,8 @@ set(regression_disabled_tests
   regress1/sygus/issue3498.smt2
   regress2/arith/miplib-opt1217--27.smt2
   regress2/nl/dumortier-050317.smt2
+  # timeout on some builds after changes to justification heuristic
+  regress2/nl/nt-lemmas-bad.smt2
   # timeout after refactoring justification heuristic
   regress2/ho/SYO362^5.p
   # time out

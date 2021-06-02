@@ -80,35 +80,25 @@ g_getopt_long_start = 256
 
 ### Source code templates
 
-TPL_IMPL_ASSIGN = \
-"""template <> void Options::assign(
-    options::{name}__option_t,
-    std::string option,
-    std::string optionarg)
-{{
-  auto parsedval = {handler};
+TPL_ASSIGN = '''
+void assign_{module}_{name}(Options& opts, const std::string& option, const std::string& optionarg) {{
+  auto value = {handler};
   {predicates}
-  {module}.{name} = parsedval;
-  {module}.{name}__setByUser = true;
-  Trace("options") << "user assigned option {name}" << std::endl;
-}}"""
+  opts.{module}.{name} = value;
+  opts.{module}.{name}__setByUser = true;
+  Trace("options") << "user assigned option {name} = " << value << std::endl;
+}}'''
 
-TPL_IMPL_ASSIGN_BOOL = \
-"""template <> void Options::assignBool(
-    options::{name}__option_t,
-    std::string option,
-    bool value)
-{{
+TPL_ASSIGN_BOOL = '''
+void assign_{module}_{name}(Options& opts, const std::string& option, bool value) {{
   {predicates}
-  {module}.{name} = value;
-  {module}.{name}__setByUser = true;
-  Trace("options") << "user assigned option {name}" << std::endl;
-}}"""
+  opts.{module}.{name} = value;
+  opts.{module}.{name}__setByUser = true;
+  Trace("options") << "user assigned option {name} = " << value << std::endl;
+}}'''
 
-TPL_CALL_ASSIGN_BOOL = \
-    '  assignBool(options::{name}, {option}, {value});'
-
-TPL_CALL_ASSIGN = '  assign(options::{name}, {option}, optionarg);'
+TPL_CALL_ASSIGN_BOOL = '    assign_{module}_{name}(opts, {option}, {value});'
+TPL_CALL_ASSIGN = '    assign_{module}_{name}(opts, {option}, optionarg);'
 
 TPL_CALL_SET_OPTION = 'setOption(std::string("{smtname}"), ("{value}"));'
 
@@ -756,10 +746,10 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
             handler = None
             if option.handler:
                 if option.type == 'void':
-                    handler = 'd_handler->{}(option)'.format(option.handler)
+                    handler = 'opts.handler().{}(option)'.format(option.handler)
                 else:
                     handler = \
-                        'd_handler->{}(option, optionarg)'.format(option.handler)
+                        'opts.handler().{}(option, optionarg)'.format(option.handler)
             elif option.mode:
                 handler = 'stringTo{}(optionarg)'.format(option.type)
             elif option.type != 'bool':
@@ -771,12 +761,12 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
             if option.predicates:
                 if option.type == 'bool':
                     predicates = \
-                        ['d_handler->{}(option, value);'.format(x) \
+                        ['opts.handler().{}(option, value);'.format(x) \
                             for x in option.predicates]
                 else:
                     assert option.type != 'void'
                     predicates = \
-                        ['d_handler->{}(option, parsedval);'.format(x) \
+                        ['opts.handler().{}(option, value);'.format(x) \
                             for x in option.predicates]
 
             # Generate options_handler and getopt_long
@@ -806,12 +796,14 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
                 if option.type == 'bool' and option.name:
                     cases.append(
                         TPL_CALL_ASSIGN_BOOL.format(
+                            module=module.id,
                             name=option.name,
                             option='option',
                             value='true'))
                 elif option.type != 'void' and option.name:
                     cases.append(
                         TPL_CALL_ASSIGN.format(
+                            module=module.id,
                             name=option.name,
                             option='option',
                             value='optionarg'))
@@ -840,12 +832,14 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
                 if option.type == 'bool':
                     setoption_handlers.append(
                         TPL_CALL_ASSIGN_BOOL.format(
+                            module=module.id,
                             name=option.name,
                             option='key',
                             value='optionarg == "true"'))
                 elif argument_req and option.name:
                     setoption_handlers.append(
                         TPL_CALL_ASSIGN.format(
+                            module=module.id,
                             name=option.name,
                             option='key'))
                 elif option.handler:
@@ -900,9 +894,9 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
 
                 cases.append(
                     TPL_CALL_ASSIGN_BOOL.format(
+                        module=module.id,
                         name=option.name, option='option', value='false'))
                 cases.append('  break;')
-
                 options_handler.extend(cases)
 
             optname = option.long
@@ -929,13 +923,15 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
 
 
                 # Define handler assign/assignBool
-                tpl = None
                 if option.type == 'bool':
-                    tpl = TPL_IMPL_ASSIGN_BOOL
+                    custom_handlers.append(TPL_ASSIGN_BOOL.format(
+                        module=module.id,
+                        name=option.name,
+                        handler=handler,
+                        predicates='\n'.join(predicates)
+                    ))
                 elif option.short or option.long:
-                    tpl = TPL_IMPL_ASSIGN
-                if tpl:
-                    custom_handlers.append(tpl.format(
+                    custom_handlers.append(TPL_ASSIGN.format(
                         module=module.id,
                         name=option.name,
                         handler=handler,
