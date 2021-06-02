@@ -1,4 +1,4 @@
-; COMMAND-LINE: --check-unsat-cores
+; COMMAND-LINE: -i
 ; EXPECT: unsat
 ; EXPECT: unsat
 (set-logic ALL)
