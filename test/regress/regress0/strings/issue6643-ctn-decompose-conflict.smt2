@@ -1,3 +1,4 @@
+; COMMAND-LINE: --strings-exp
 (set-logic QF_SLIA)
 (declare-fun y () String)
 (declare-fun z () String)
