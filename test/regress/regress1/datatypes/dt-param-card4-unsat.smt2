@@ -1,5 +1,6 @@
+; COMMAND-LINE: --no-check-proofs
 ; EXPECT: unsat
-(set-logic QF_ALL_SUPPORTED)
+(set-logic QF_ALL)
 (set-info :status unsat)
 (declare-datatypes ((Pair 2)) ((par (T S) ((pair (first T) (second S))))))
 

@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 (declare-datatypes ((UNIT 0)) (((Unit))))
 (declare-datatypes ((BOOL 0)) (((Truth) (Falsity))))

@@ -6,7 +6,7 @@
 ; EXIT: 1
 
 ; this will fail if type rule for APPLY_UF requires arguments to be subtypes
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 
 (declare-datatypes ((List 1)) ((par (T) ((cons (hd T) (tl (List T))) (nil)))))
 
