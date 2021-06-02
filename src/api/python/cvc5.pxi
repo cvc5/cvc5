@@ -1715,12 +1715,12 @@ cdef class Term:
         return self.cterm.isSetValue()
 
     def getSetValue(self):
-        elems = []
+        elems = set()
         for e in self.cterm.getSetValue():
             term = Term(self.solver)
             term.cterm = e
-            elems.append(term)
-        return set(elems)
+            elems.add(term)
+        return elems
 
     def isSequenceValue(self):
         return self.cterm.isSequenceValue()
