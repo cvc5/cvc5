@@ -15,6 +15,7 @@
 
 #include "smt/output_manager.h"
 
+#include "options/base_options.h"
 #include "smt/smt_engine.h"
 
 namespace cvc5 {
@@ -25,7 +26,7 @@ const Printer& OutputManager::getPrinter() const { return d_smt->getPrinter(); }
 
 std::ostream& OutputManager::getDumpOut() const
 {
-  return *d_smt->getOptions().getOut();
+  return *d_smt->getOptions().base.out;
 }
 
 }  // namespace cvc5
