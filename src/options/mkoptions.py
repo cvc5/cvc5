@@ -858,17 +858,17 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
                         'if ({}) {{'.format(cond))
                     if option.type == 'bool':
                         getoption_handlers.append(
-                            'return (*this)[options::{}] ? "true" : "false";'.format(option.name))
+                            'return options.{}.{} ? "true" : "false";'.format(module.id, option.name))
                     elif option.type == 'std::string':
                         getoption_handlers.append(
-                            'return (*this)[options::{}];'.format(option.name))
+                            'return options.{}.{};'.format(module.id, option.name))
                     elif is_numeric_cpp_type(option.type):
                         getoption_handlers.append(
-                            'return std::to_string((*this)[options::{}]);'.format(option.name))
+                            'return std::to_string(options.{}.{});'.format(module.id, option.name))
                     else:
                         getoption_handlers.append('std::stringstream ss;')
                         getoption_handlers.append(
-                            'ss << (*this)[options::{}];'.format(option.name))
+                            'ss << options.{}.{};'.format(module.id, option.name))
                         getoption_handlers.append('return ss.str();')
                     getoption_handlers.append('}')
 
