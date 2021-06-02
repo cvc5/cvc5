@@ -1,4 +1,4 @@
-; COMMAND-LINE:
+; COMMAND-LINE: --bv-solver=lazy
 ; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)
