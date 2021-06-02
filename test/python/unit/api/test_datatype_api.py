@@ -375,7 +375,8 @@ def test_datatype_simply_rec(solver):
     dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
     assert len(dtsorts) == 1
     assert dtsorts[0].getDatatype()[0][0].getRangeSort().isArray()
-    assert dtsorts[0].getDatatype()[0][0].getRangeSort().getArrayElementSort() == dtsorts[0]
+    assert dtsorts[0].getDatatype()[0][0].getRangeSort().getArrayElementSort() \
+        == dtsorts[0]
     assert dtsorts[0].getDatatype().isWellFounded()
     assert dtsorts[0].getDatatype().hasNestedRecursion()
 
