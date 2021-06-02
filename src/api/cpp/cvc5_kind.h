@@ -1855,7 +1855,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
   STORE,
-  /**
+  /*!
    * Constant array.
    *
    * Parameters:
@@ -1866,9 +1866,14 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    *
-   * Note: We currently support the creation of constant arrays, but under some
-   * conditions when there is a chain of equalities connecting two constant
-   * arrays, the solver doesn't know what to do and aborts (Issue `#1667 <https://github.com/cvc5/cvc5/issues/1667>`_).
+   * \verbatim embed:rst:leading-asterisk
+   * .. note::
+   *
+   *   We currently support the creation of constant arrays, but under some
+   *   conditions when there is a chain of equalities connecting two constant
+   *   arrays, the solver doesn't know what to do and aborts (Issue `#1667
+   *   <https://github.com/cvc5/cvc5/issues/1667>`_).
+   * \endverbatim
    */
   CONST_ARRAY,
   /**
