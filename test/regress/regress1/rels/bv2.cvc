@@ -1,5 +1,5 @@
 % EXPECT: sat
-OPTION "logic" "ALL_SUPPORTED";
+OPTION "logic" "ALL";
 BvPair: TYPE = [BITVECTOR(2), BITVECTOR(2)];
 x : SET OF BvPair;
 y : SET OF BvPair;

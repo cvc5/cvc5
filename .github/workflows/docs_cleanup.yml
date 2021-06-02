@@ -36,6 +36,7 @@ jobs:
             touch -d "$mod" $file
           done
           find ./ -maxdepth 1 -name "docs-*" -mtime +7 -exec git rm -r {} +
+          find ./ -maxdepth 1 -name "docs-*" -xtype l -exec git rm {} +
           git commit -m "Prune docs" || echo "Nothing to prune"
 
       - name: Squash old commits
@@ -47,7 +48,10 @@ jobs:
           first=`git rev-list --max-parents=0 HEAD`
           last=`git rev-list --until=1.month.ago -n1 HEAD`
           if [ -n "$last" ]; then
-            git rebase -Xtheirs --onto $first $last
+            git checkout $last
+            git reset --soft $first
+            git commit -m "Squash old history"
+            git cherry-pick $last..main
             git log
           fi
       
@@ -66,4 +70,4 @@ jobs:
             git commit -m "Update README.md"
           fi
 
-          git push -f
+          git push -f origin HEAD:main
