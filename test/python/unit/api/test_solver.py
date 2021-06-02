@@ -143,19 +143,19 @@ def test_mk_datatype_sorts(solver):
     dtypeSpec2.addConstructor(nil2)
 
     decls = [dtypeSpec1, dtypeSpec2]
-    solver.mkDatatypeSorts(decls, [])
+    solver.mkDatatypeSorts(decls, set([]))
 
     with pytest.raises(RuntimeError):
-        slv.mkDatatypeSorts(decls, [])
+        slv.mkDatatypeSorts(decls, set([]))
 
     throwsDtypeSpec = solver.mkDatatypeDecl("list")
     throwsDecls = [throwsDtypeSpec]
     with pytest.raises(RuntimeError):
-        solver.mkDatatypeSorts(throwsDecls, [])
+        solver.mkDatatypeSorts(throwsDecls, set([]))
 
     # with unresolved sorts
     unresList = solver.mkUninterpretedSort("ulist")
-    unresSorts = [unresList]
+    unresSorts = set([unresList])
     ulist = solver.mkDatatypeDecl("ulist")
     ucons = solver.mkDatatypeConstructorDecl("ucons")
     ucons.addSelector("car", unresList)
