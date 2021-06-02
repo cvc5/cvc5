@@ -1,5 +1,5 @@
 (set-option :global-declarations true)
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 
 ; Tree type

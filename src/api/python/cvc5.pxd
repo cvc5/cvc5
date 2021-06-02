@@ -177,6 +177,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort mkTupleSort(const vector[Sort]& sorts) except +
         Term mkTerm(Op op) except +
         Term mkTerm(Op op, const vector[Term]& children) except +
+        Term mkTuple(const vector[Sort]& sorts, const vector[Term]& terms) except +
         Op mkOp(Kind kind) except +
         Op mkOp(Kind kind, Kind k) except +
         Op mkOp(Kind kind, const string& arg) except +
@@ -389,6 +390,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
             Term operator*() except +
         const_iterator begin() except +
         const_iterator end() except +
+
+        bint isConstArray() except +
         bint isBooleanValue() except +
         bint getBooleanValue() except +
         bint isStringValue() except +
@@ -399,6 +402,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         string getRealValue() except +
         bint isBitVectorValue() except +
         string getBitVectorValue(uint32_t base) except +
+        bint isAbstractValue() except +
+        string getAbstractValue() except +
         bint isFloatingPointPosZero() except +
         bint isFloatingPointNegZero() except +
         bint isFloatingPointPosInf() except +
@@ -407,7 +412,15 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isFloatingPointValue() except +
 
         tuple[uint32_t, uint32_t, Term] getFloatingPointValue() except +
+        bint isSetValue() except +
+        set[Term] getSetValue() except +
+        bint isSequenceValue() except +
         vector[Term] getSequenceValue() except +
+        bint isUninterpretedValue() except +
+        pair[Sort, int32_t] getUninterpretedValue() except +
+        bint isTupleValue() except +
+        vector[Term] getTupleValue() except +
+
 
     cdef cppclass TermHashFunction:
         TermHashFunction() except +

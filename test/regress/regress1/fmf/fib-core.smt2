@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --finite-model-find --fmf-inst-engine
 ; EXPECT: unsat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status unsat)
 (declare-sort I_fb 0)
 (declare-fun fb_arg_0_1 (I_fb) Int)

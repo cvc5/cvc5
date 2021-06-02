@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 (declare-sort $$unsorted 0)
 (declare-fun $$rtu (Real) $$unsorted)
