@@ -1622,11 +1622,6 @@ cdef class Term:
     def isNull(self):
         return self.cterm.isNull()
 
-    def getConstArrayBase(self):
-        cdef Term term = Term(self.solver)
-        term.cterm = self.cterm.getConstArrayBase()
-        return term
-
     def notTerm(self):
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.notTerm()
@@ -1665,6 +1660,10 @@ cdef class Term:
     def isConstArray(self):
         return self.cterm.isConstArray()
 
+    def getConstArrayBase(self):
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cterm.getConstArrayBase()
+        return term
 
     def isBooleanValue(self):
         return self.cterm.isBooleanValue()
