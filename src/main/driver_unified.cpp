@@ -497,9 +497,9 @@ int runCvc5(int argc, char* argv[], Options& opts)
     }
 
 #ifdef CVC5_COMPETITION_MODE
-    if (cvc5::options::getOut(options) != nullptr)
+    if (cvc5::options::getOut(opts) != nullptr)
     {
-      cvc5::options::getOut(options) << std::flush;
+      cvc5::options::getOut(opts) << std::flush;
     }
     // exit, don't return (don't want destructors to run)
     // _exit() from unistd.h doesn't run global destructors
