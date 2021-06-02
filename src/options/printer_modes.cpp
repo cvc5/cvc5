@@ -18,9 +18,9 @@
 
 #include "options/printer_modes.h"
 
-namespace cvc5 {
+namespace cvc5::options {
 
-std::ostream& operator<<(std::ostream& out, options::InstFormatMode mode)
+std::ostream& operator<<(std::ostream& out, InstFormatMode mode)
 {
   out << "InstFormatMode::";
   switch (mode)
