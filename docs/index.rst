@@ -1,22 +1,18 @@
-cvc5 Documentation
-==================
+.. cvc5 documentation master file, created by
+   sphinx-quickstart on Mon Apr  5 17:02:33 2021.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
 
-**cvc5** is an open-source automatic theorem prover for Satisfiability Modulo
-Theories (SMT) problems in a large number of theories and their combination.
-**cvc5** is the successor of `CVC4 <https://cvc4.cs.stanford.edu>`_ and is
-intended to be an open and extensible SMT engine.
+cvc5 API Documentation
+======================
 
-This space provides all documentation related to using cvc5.
-
-
-Table of Contents
-^^^^^^^^^^^^^^^^^
 .. toctree::
    :maxdepth: 1
 
    installation/installation
    binary/binary
-   api/api
+   cpp/cpp
+   python/python
    examples/examples
    languages
    references

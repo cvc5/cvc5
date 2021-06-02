@@ -42,7 +42,7 @@ add_custom_command(
 add_custom_target(docs-cpp ALL DEPENDS ${DOXYGEN_INDEX_FILE})
 
 # tell parent scope where to find the output xml
-set(CPP_DOXYGEN_XML_DIR
+set(CPP_DOXYGEN_XML_FOLDER
     "${DOXYGEN_OUTPUT_DIR}/xml"
     PARENT_SCOPE
 )
