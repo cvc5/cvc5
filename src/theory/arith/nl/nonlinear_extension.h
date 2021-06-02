@@ -277,6 +277,13 @@ class NonlinearExtension
    */
   IAndSolver d_iandSlv;
 
+  /** The pow2 solver
+   *
+   * This is the subsolver responsible for running the procedure for
+   * constraints involving powers of 2.
+   */
+  IAndSolver d_pow2Slv;
+  
   /** The strategy for the nonlinear extension. */
   Strategy d_strategy;
 
