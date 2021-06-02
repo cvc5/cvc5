@@ -335,12 +335,8 @@ def test_datatype_simply_rec(solver):
     elemArray.addSelector("ndata", solver.mkArraySort(unresList, unresList))
     ns.addConstructor(elemArray)
 
-    dtdecls = []
-    dtdecls.append(wlist)
-    dtdecls.append(llist)
-    dtdecls.append(ns)
+    dtdecls = [wlist, llist, ns]
     # this is well-founded and has no nested recursion
-    dtsorts = []
     dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
     assert len(dtsorts) == 3
     assert dtsorts[0].getDatatype().isWellFounded()
@@ -370,7 +366,6 @@ def test_datatype_simply_rec(solver):
     dtdecls.clear()
     dtdecls.append(ns2)
 
-    dtsorts.clear()
     # this is not well-founded due to non-simple recursion
     dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
     assert len(dtsorts) == 1
@@ -409,7 +404,6 @@ def test_datatype_simply_rec(solver):
     dtdecls.append(list3)
     dtdecls.append(ns3)
 
-    dtsorts.clear()
     # both are well-founded and have nested recursion
     dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
     assert len(dtsorts) == 2
@@ -446,7 +440,6 @@ def test_datatype_simply_rec(solver):
     dtdecls.append(list4)
     dtdecls.append(ns4)
 
-    dtsorts.clear()
     # both are well-founded and have nested recursion
     dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
     assert len(dtsorts) == 2
@@ -468,8 +461,7 @@ def test_datatype_simply_rec(solver):
     v.append(x)
     list5 = solver.mkDatatypeDecl("list5", v)
 
-    args = []
-    args.append(x)
+    args = [x]
     urListX = unresList5.instantiate(args)
     args[0] = urListX
     urListListX = unresList5.instantiate(args)
@@ -507,8 +499,7 @@ def test_datatype_specialized_cons(solver):
     v.append(x)
     plist = solver.mkDatatypeDecl("plist", v)
 
-    args = []
-    args.append(x)
+    args = [x]
     urListX = unresList.instantiate(args)
 
     pcons = solver.mkDatatypeConstructorDecl("pcons")
@@ -518,10 +509,8 @@ def test_datatype_specialized_cons(solver):
     nil5 = solver.mkDatatypeConstructorDecl("pnil")
     plist.addConstructor(nil5)
 
-    dtdecls = []
-    dtdecls.append(plist)
+    dtdecls = [plist]
 
-    dtsorts = []
     # make the datatype sorts
     dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
     assert len(dtsorts) == 1
@@ -529,8 +518,7 @@ def test_datatype_specialized_cons(solver):
     nilc = d[0]
 
     isort = solver.getIntegerSort()
-    iargs = []
-    iargs.append(isort)
+    iargs = [isort]
     listInt = dtsorts[0].instantiate(iargs)
 
     testConsTerm = Term(solver)
