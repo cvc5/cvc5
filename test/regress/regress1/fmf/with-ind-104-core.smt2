@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((Nat!2409 0)) (((succ!2410 (pred!2411 Nat!2409)) (zero!2412))
 ))

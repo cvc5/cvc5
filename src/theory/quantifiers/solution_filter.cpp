@@ -16,6 +16,8 @@
 #include "theory/quantifiers/solution_filter.h"
 
 #include <fstream>
+
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -90,7 +92,7 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
       else
       {
         Options& opts = smt::currentSmtEngine()->getOptions();
-        std::ostream* smtOut = opts.getOut();
+        std::ostream* smtOut = opts.base.out;
         (*smtOut) << "; (filtered " << (d_isStrong ? s : s.negate()) << ")"
                   << std::endl;
       }
