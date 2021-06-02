@@ -1,4 +1,4 @@
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 (declare-datatypes ((PairIntInt 0)) ( ( (pair (firstPairIntInt Int)
 (secondPairIntInt Int)) ) ))

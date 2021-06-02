@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
 ; this problem produced a model where incorrectly card(a)=1 due to --mbqi=fmc
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 
 (declare-sort a 0)
 (declare-datatypes ((tree 0)) (((Leaf (lab a)))))

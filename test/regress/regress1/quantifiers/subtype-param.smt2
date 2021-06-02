@@ -5,7 +5,7 @@
 ; EXPECT: in term : (Q (as x (Array Int Real)))")
 ; EXIT: 1
 
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status unsat)
 
 (declare-datatypes ((List 1)) ((par (T) ((cons (hd T) (tl (List T))) (nil)))))
