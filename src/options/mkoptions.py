@@ -429,15 +429,6 @@ def long_get_option(name):
     return name.split('=')[0]
 
 
-def get_long_name(option):
-    """
-    Determine the name of the option used as option name.
-    """
-    if option.long:
-        return long_get_option(option.long)
-    return None
-
-
 def is_numeric_cpp_type(ctype):
     """
     Check if given type is a numeric C++ type (this should cover the most
