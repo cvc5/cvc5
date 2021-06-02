@@ -1685,6 +1685,7 @@ set(regress_1_tests
   regress1/non-fatal-errors.smt2
   regress1/parsing_ringer.cvc
   regress1/proof00.smt2
+  regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
   regress1/proofs/macro-res-exp-singleton-after-elimCrowd.smt2
   regress1/proofs/sat-trivial-cycle.smt2
