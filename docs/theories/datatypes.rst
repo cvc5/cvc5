@@ -58,14 +58,14 @@ An enumeration:
   (declare-datatypes ((Color 0))
    (((Red) (Black))))
 
-A List of Int with ``cons`` and ``nil`` as constructors:::
+A List of ``Int`` with ``cons`` and ``nil`` as constructors:
 
 .. code:: smtlib
 
   (declare-datatypes ((list 0))
    (((cons (head Int) (tail list)) (nil))))
 
-A parametric List of T's:::
+A parametric List of T's:
 
 .. code:: smtlib
 
@@ -95,8 +95,8 @@ Examples
 
   (declare-datatypes ((list 0))
      (((cons (head Int) (tail list)) (nil))))
-   (declare-fun a () list)
-   (declare-fun b () list)
+   (declare-const a list)
+   (declare-const b list)
    (assert (and (= (tail a) b) (not ((_ is nil) b)) (> (head b) 0)))
    (check-sat)
 
@@ -119,11 +119,11 @@ concrete types. For instance, in the example:
 
   (declare-datatypes ((list 1)) ((par (T) (cons (head T) (tail (list T))) (nil))))
 
-To declare a list of Int, use the command:
+To declare a list of ``Int``, use the command:
 
 .. code:: smtlib
 
-  (declare-fun f () (list Int))
+  (declare-const f (list Int))
 
 Use of constructors that are ambiguously typed must be cast to a concrete type,
 for instance all occurrences of ``nil`` for the above datatype must be cast with
@@ -142,7 +142,7 @@ For example:
 
 .. code:: smtlib
 
-  (declare-fun t () (Tuple Int Int))
+  (declare-const t (Tuple Int Int))
   (assert (= ((_ tupSel 0) t) 3))
   (assert (not (= t (mkTuple 3 4))))
 

@@ -12,6 +12,7 @@
 #
 
 import sys
+
 # add path to enable extensions
 sys.path.insert(0, '${CMAKE_CURRENT_SOURCE_DIR}/ext/')
 
@@ -81,6 +82,7 @@ from pygments import token
 from sphinx.highlighting import lexers
 
 class SmtLibLexer(RegexLexer):
+
     name = 'smtlib'
 
     tokens = {
@@ -90,6 +92,7 @@ class SmtLibLexer(RegexLexer):
             (r'ALL_SUPPORTED', token.Text),
             (r'set-logic', token.Keyword),
             (r'set-option', token.Keyword),
+            (r'declare-codatatypes', token.Keyword),
             (r'declare-const', token.Keyword),
             (r'declare-datatypes', token.Keyword),
             (r'declare-fun', token.Keyword),
@@ -112,6 +115,7 @@ class SmtLibLexer(RegexLexer):
             (r'!', token.Name.Attribute),
             (r'BitVec', token.Name.Attribute),
             (r'RNE', token.Name.Attribute),
+            (r'Tuple', token.Name.Attribute),
             (r'true', token.String),
             (r'distinct', token.Operator),
             (r'=', token.Operator),
@@ -127,6 +131,7 @@ class SmtLibLexer(RegexLexer):
             (r'extract', token.Operator),
             (r'fp.gt', token.Operator),
             (r'ite', token.Operator),
+            (r'mkTuple', token.Operator),
             (r'to_fp_unsigned', token.Operator),
             (r'\+zero', token.Operator),
             (r'#b[0-1]+', token.Text),
