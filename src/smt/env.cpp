@@ -104,9 +104,9 @@ ResourceManager* Env::getResourceManager() const
 
 const Printer& Env::getPrinter()
 {
-  return *Printer::getPrinter(d_options[options::outputLanguage]);
+  return *Printer::getPrinter(d_options.base.outputLanguage);
 }
 
-std::ostream& Env::getDumpOut() { return *d_options.getOut(); }
+std::ostream& Env::getDumpOut() { return *d_options.base.out; }
 
 }  // namespace cvc5
