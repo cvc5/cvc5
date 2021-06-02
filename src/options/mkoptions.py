@@ -28,7 +28,6 @@
     Directory <tpl-src> must contain:
         - options_template.cpp
         - module_template.cpp
-        - options_holder_template.h
         - module_template.h
 
     <toml>+ must be the list of all *.toml option configuration files from
@@ -38,7 +37,6 @@
     The script generates the following files:
         - <dst>/MODULE_options.h
         - <dst>/MODULE_options.cpp
-        - <dst>/options_holder.h
         - <dst>/options.cpp
 """
 
@@ -56,25 +54,17 @@ MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option']
 OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
     'name', 'short', 'long', 'alias',
-    'help', 'help_mode', 'default',
-    'includes', 'handler', 'predicates',
-    'alternate', 'mode'
+    'default', 'alternate', 'mode',
+    'handler', 'predicates', 'includes',
+    'help', 'help_mode'
 ]
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
-
-SUPPORTED_CTYPES = ['int', 'unsigned', 'unsigned long', 'long', 'float',
-                    'double']
+SUPPORTED_CTYPES = ['int', 'unsigned', 'unsigned long', 'double']
 
 ### Other globals
 
-g_long_to_opt = dict()     # maps long options to option objects
-g_module_id_cache = dict() # maps ids to filename/lineno
 g_long_cache = dict()      # maps long options to filename/fileno
-g_short_cache = dict()     # maps short options to filename/fileno
-g_smt_cache = dict()       # maps smt options to filename/fileno
-g_name_cache = dict()      # maps option names to filename/fileno
-g_long_arguments = set()   # set of long options that require an argument
 
 g_getopt_long_start = 256
 
@@ -103,8 +93,6 @@ TPL_CALL_ASSIGN = '    assign_{module}_{name}(opts, {option}, optionarg);'
 TPL_CALL_SET_OPTION = 'setOption(std::string("{smtname}"), ("{value}"));'
 
 TPL_GETOPT_LONG = '{{ "{}", {}_argument, nullptr, {} }},'
-
-TPL_PUSHBACK_PREEMPT = 'extender->pushBackPreemption({});'
 
 TPL_HOLDER_MACRO_ATTR = '''  {type} {name};
   bool {name}__setByUser = false;'''
@@ -384,7 +372,7 @@ def die(msg):
     sys.exit('[error] {}'.format(msg))
 
 
-def perr(filename, msg, option = None):
+def perr(filename, msg, option=None):
     msg_suffix = ''
     if option:
         if option.name:
@@ -543,9 +531,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
     """
     Generate code for each option module (*_options.{h,cpp})
     """
-    global g_long_to_opt
-
-    # *_options.h
+    # *_options.h / *.options.cpp
     includes = set()
     holder_specs = []
     option_names = []
@@ -990,12 +976,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
     if os.path.isdir('{}/docs/'.format(build_dir)):
         sphinxgen.render('{}/docs/'.format(build_dir), 'options_generated.rst')
 
-def lstrip(prefix, s):
-    """
-    Remove prefix from the beginning of string s.
-    """
-    return s[len(prefix):] if s.startswith(prefix) else s
-
 
 def check_attribs(filename, req_attribs, valid_attribs, attribs, ctype):
     """
@@ -1103,6 +1083,7 @@ def usage():
     print('mkoptions.py <tpl-src> <dst> <toml>+')
     print('')
     print('  <tpl-src> location of all *_template.{cpp,h} files')
+    print('  <build>   build directory')
     print('  <dst>     destination directory for the generated files')
     print('  <toml>+   one or more *_optios.toml files')
     print('')
@@ -1145,18 +1126,13 @@ def mkoptions_main():
         # applicable.
         for option in module.options:
             check_long(filename, option, option.long, option.type)
-            if option.long:
-                g_long_to_opt[long_get_option(option.long)] = option
-                # Add long option that requires an argument
-                if option.type not in ['bool', 'void']:
-                    g_long_arguments.add(long_get_option(option.long))
         modules.append(module)
 
     # Create *_options.{h,cpp} in destination directory
     for module in modules:
         codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp)
 
-    # Create options.cpp and options_holder.h in destination directory
+    # Create options.cpp in destination directory
     codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_cpp)
 
 
