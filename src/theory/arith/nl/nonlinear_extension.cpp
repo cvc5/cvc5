@@ -59,7 +59,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_tangentPlaneSlv(&d_extState),
       d_cadSlv(d_im, d_model, state.getUserContext(), pnm),
       d_icpSlv(d_im),
-      d_iandSlv(d_im, state, d_model)
+      d_iandSlv(d_im, state, d_model),
       d_pow2Slv(d_im, state, d_model)
 {
   d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);

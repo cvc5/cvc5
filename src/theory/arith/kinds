@@ -149,7 +149,7 @@ typerule ARCTANGENT "SimpleTypeRule<RReal, AReal>"
 typerule ARCCOSECANT "SimpleTypeRule<RReal, AReal>"
 typerule ARCSECANT "SimpleTypeRule<RReal, AReal>"
 typerule ARCCOTANGENT "SimpleTypeRule<RReal, AReal>"
-typerule POW2 "SimpleTypeRule<RInt, AInt>"
+typerule POW2 "SimpleTypeRule<RInteger, AInteger>"
 
 typerule SQRT "SimpleTypeRule<RReal, AReal>"
 

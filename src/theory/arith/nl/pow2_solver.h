@@ -21,7 +21,6 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
-#include "theory/arith/nl/pow2_utils.h"
 
 namespace cvc5 {
 namespace theory {

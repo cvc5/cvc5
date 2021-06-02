@@ -63,8 +63,7 @@ void Pow2Solver::initLastCall(const std::vector<Node>& assertions,
       // don't care about other terms
       continue;
     }
-    size_t bsize = a.getOperator().getConst<IntAnd>().d_size;
-    d_pow2s[bsize].push_back(a);
+    d_pow2s.push_back(a);
   }
 
   Trace("pow2") << "We have " << d_pow2s.size() << " pow2 terms." << std::endl;
@@ -74,12 +73,9 @@ void Pow2Solver::checkInitialRefine()
 {
   Trace("pow2-check") << "Pow2Solver::checkInitialRefine" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  for (const std::pair<const unsigned, std::vector<Node> >& is : d_pow2s)
+  for (const Node& i :  d_pow2s)
   {
     // the reference bitwidth
-    unsigned k = is.first;
-    for (const Node& i : is.second)
-    {
       if (d_initRefine.find(i) != d_initRefine.end())
       {
         // already sent initial axioms for i in this user context
@@ -97,7 +93,6 @@ void Pow2Solver::checkInitialRefine()
       Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; INIT_REFINE"
                           << std::endl;
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_POW2_INIT_REFINE);
-    }
   }
 }
 
@@ -105,7 +100,7 @@ void Pow2Solver::checkFullRefine()
 {
   Trace("pow2-check") << "Pow2Solver::checkFullRefine";
   Trace("pow2-check") << "pow2 terms: " << std::endl;
-  for (const Node& p2 : d_pow2s)
+  for (const Node& i : d_pow2s)
   {
     // the reference bitwidth
       Node valPow2x = d_model.computeAbstractModelValue(i);
@@ -116,8 +111,8 @@ void Pow2Solver::checkFullRefine()
         Node valX = d_model.computeConcreteModelValue(x);
 
         Trace("pow2-check")
-            << "* " << i << ", value = " << valPow2X << std::endl;
-        Trace("pow2-check") << "  actual (" << valX << ", " << valY
+            << "* " << i << ", value = " << valPow2x << std::endl;
+        Trace("pow2-check") << "  actual (" << valX << ", "
                             << ") = " << valPow2xC << std::endl;
       if (valPow2x == valPow2xC)
       {
