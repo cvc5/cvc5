@@ -548,8 +548,8 @@ void ExtfSolver::checkExtfInference(Node n,
             {
               // we are in conflict
               d_im.addToExplanation(conc, d_false, in.d_exp);
-              conc = d_false;
-              d_im.sendInference(in.d_exp, conc, InferenceId::STRINGS_CTN_DECOMPOSE);
+              d_im.sendInference(
+                  in.d_exp, d_false, InferenceId::STRINGS_CTN_DECOMPOSE);
               Assert(d_state.isInConflict());
               return;
             }
