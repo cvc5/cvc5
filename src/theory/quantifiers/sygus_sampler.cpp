@@ -828,7 +828,7 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
     }
     // we have detected unsoundness in the rewriter
     Options& sopts = smt::currentSmtEngine()->getOptions();
-    std::ostream* out = sopts.getOut();
+    std::ostream* out = sopts.base.out;
     (*out) << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
     // debugging information
     (*out) << "Terms are not equivalent for : " << std::endl;

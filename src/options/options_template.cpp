@@ -416,7 +416,7 @@ void Options::parseOptionsRecursive(int argc,
                                     char* argv[],
                                     std::vector<std::string>* nonoptions)
 {
-
+  Options& opts = *this;
   if(Debug.isOn("options")) {
     Debug("options") << "starting a new parseOptionsRecursive with "
                      << argc << " arguments" << std::endl;
@@ -553,6 +553,7 @@ void Options::setOptionInternal(const std::string& key,
                                 const std::string& optionarg)
 {
   options::OptionsHandler* handler = d_handler;
+  Options& opts = *this;
   ${setoption_handlers}$
   throw UnrecognizedOptionException(key);
 }
@@ -562,6 +563,7 @@ void Options::setOptionInternal(const std::string& key,
 std::string Options::getOption(const std::string& key) const
 {
   Trace("options") << "Options::getOption(" << key << ")" << std::endl;
+  const Options& options = *this;
   ${getoption_handlers}$
 
   throw UnrecognizedOptionException(key);
