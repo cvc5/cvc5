@@ -78,6 +78,10 @@ jobs:
         sudo cmake .
         sudo cmake --build . --target install
         cd -
+        # Make ImageVersion accessible as env.image_version. Environment
+        # variables of the runner are not automatically imported:
+        #
+        # https://github.com/actions/runner/blob/master/docs/adrs/0278-env-context.md#dont-populate-the-env-context-with-environment-variables-from-runner-machine
         echo "image_version=$ImageVersion" >> $GITHUB_ENV
         echo "/usr/lib/ccache" >> $GITHUB_PATH
 
@@ -95,6 +99,10 @@ jobs:
         python3 -m pip install toml
         python3 -m pip install setuptools
         python3 -m pip install pexpect
+        # Make ImageVersion accessible as env.image_version. Environment
+        # variables of the runner are not automatically imported:
+        #
+        # https://github.com/actions/runner/blob/master/docs/adrs/0278-env-context.md#dont-populate-the-env-context-with-environment-variables-from-runner-machine
         echo "image_version=$ImageVersion" >> $GITHUB_ENV
         echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
 
@@ -173,6 +181,8 @@ jobs:
       uses: actions/cache@v2
       with:
         path: build/deps
+        # The cache depends on the image version to make sure that we do not
+        # restore the dependencies if the build environment has changed.
         key: cvc5-deps-${{ runner.os }}-${{ env.image_version }}-${{ matrix.cache-key }}-${{ hashFiles('cmake/Find**', 'cmake/deps-helper.cmake') }}-${{ hashFiles('.github/workflows/ci.yml') }}
 
     - name: Configure
