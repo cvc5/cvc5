@@ -117,7 +117,7 @@ ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
   {
     // failed to rewrite, it is critical for unsat cores that proven is a
     // premise here, since the conclusion depends on it
-    addSubstitution(x, t, PfRule::TRUST_SUBS_MAP, {proven}, {eq});
+    addSubstitution(x, t, PfRule::TRUST_SUBS_EQ, {proven}, {eq});
     Trace("trust-subs") << "...failed to rewrite" << std::endl;
     return nullptr;
   }

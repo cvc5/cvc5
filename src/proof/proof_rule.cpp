@@ -47,6 +47,7 @@ const char* toString(PfRule id)
     case PfRule::TRUST_REWRITE: return "TRUST_REWRITE";
     case PfRule::TRUST_SUBS: return "TRUST_SUBS";
     case PfRule::TRUST_SUBS_MAP: return "TRUST_SUBS_MAP";
+    case PfRule::TRUST_SUBS_EQ: return "TRUST_SUBS_EQ";
     //================================================= Boolean rules
     case PfRule::RESOLUTION: return "RESOLUTION";
     case PfRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";

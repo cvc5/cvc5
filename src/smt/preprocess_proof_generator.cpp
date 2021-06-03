@@ -51,7 +51,7 @@ void PreprocessProofGenerator::notifyInput(Node n)
 void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
 {
   Trace("smt-proof-pp-debug")
-      << "PreprocessProofGenerator::notifyNewAssert: " << n << std::endl;
+      << "PreprocessProofGenerator::notifyNewAssert: " << n << " from " << (pg==nullptr ? "null" : pg->identify()) << std::endl;
   if (d_src.find(n) == d_src.end())
   {
     // if no proof generator provided for (non-true) assertion
