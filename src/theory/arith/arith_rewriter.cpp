@@ -176,6 +176,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
     case kind::MULT:
     case kind::NONLINEAR_MULT: return postRewriteMult(t);
     case kind::IAND: return postRewriteIAnd(t);
+    case kind::POW2: return postRewritePow2(t);
     case kind::EXPONENTIAL:
     case kind::SINE:
     case kind::COSINE:
@@ -380,6 +381,22 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   }
 
   return RewriteResponse(REWRITE_DONE, res.getNode());
+}
+
+
+RewriteResponse ArithRewriter::postRewritePow2(TNode t)
+{
+  Assert(t.getKind() == kind::POW2);
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, we eliminate
+  if (t[0].isConst())
+  {
+    Integer i = t[0].getConst<Rational>().getNumerator();
+    unsigned long k = i.getUnsignedLong();
+    Node ret = nm->mkConst<Rational>(Rational(Integer(2).pow(k), Integer(1)));
+    return RewriteResponse(REWRITE_DONE, ret);
+  }
+  return RewriteResponse(REWRITE_DONE, t);
 }
 
 RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
