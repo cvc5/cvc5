@@ -59,7 +59,7 @@ jobs:
     - name: Install Packages
       if: runner.os == 'Linux'
       run: |
-        echo $ImageVersion
+        echo ${{ env.ImageVersion }}
         sudo apt-get update
         sudo apt-get install -y \
           build-essential \
@@ -78,6 +78,7 @@ jobs:
         sudo cmake .
         sudo cmake --build . --target install
         cd -
+        echo "image_version=$ImageVersion" >> $GITHUB_ENV
         echo "/usr/lib/ccache" >> $GITHUB_PATH
 
     # Note: macOS comes with a libedit; it does not need to brew-installed
@@ -94,6 +95,7 @@ jobs:
         python3 -m pip install toml
         python3 -m pip install setuptools
         python3 -m pip install pexpect
+        echo "image_version=$ImageVersion" >> $GITHUB_ENV
         echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
 
     - name: Install Python Dependencies
@@ -171,7 +173,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: build/deps
-        key: cvc5-deps-${{ runner.os }}-${{ matrix.env.ImageVersion }}-${{ matrix.cache-key }}-${{ hashFiles('cmake/Find**', 'cmake/deps-helper.cmake') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+        key: cvc5-deps-${{ runner.os }}-${{ env.image_version }}-${{ matrix.cache-key }}-${{ hashFiles('cmake/Find**', 'cmake/deps-helper.cmake') }}-${{ hashFiles('.github/workflows/ci.yml') }}
 
     - name: Configure
       run: |
