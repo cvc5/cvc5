@@ -59,7 +59,7 @@ jobs:
     - name: Install Packages
       if: runner.os == 'Linux'
       run: |
-        echo ${{ job.container.id }}
+        cat /etc/environment
         sudo apt-get update
         sudo apt-get install -y \
           build-essential \
