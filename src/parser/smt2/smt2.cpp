@@ -700,8 +700,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     d_solver->setLogic(logic);
     return nullptr;
   }
-  Command* cmd =
-      new SetBenchmarkLogicCommand(logic);
+  Command* cmd = new SetBenchmarkLogicCommand(logic);
   return cmd;
 } /* Smt2::setLogic() */
 
