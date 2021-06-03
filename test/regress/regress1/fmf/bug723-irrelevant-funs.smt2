@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --fmf-fun-rlv --no-check-models
 ; EXPECT: sat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (define-fun $$isTrue$$ ((b Bool)) Bool b)
 (define-fun $$isFalse$$ ((b Bool)) Bool (not b))
 (define-fun $$toString$$ ((b Bool)) String (ite b "true" "false"))

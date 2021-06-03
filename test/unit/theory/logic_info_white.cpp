@@ -500,7 +500,7 @@ TEST_F(TestTheoryWhiteLogicInfo, smtlib_logics)
   ASSERT_FALSE(info.hasEverything());
   ASSERT_FALSE(info.hasNothing());
 
-  info = LogicInfo("QF_ALL_SUPPORTED");
+  info = LogicInfo("QF_ALL");
   ASSERT_TRUE(info.isLocked());
   ASSERT_FALSE(info.isPure(THEORY_BOOL));
   ASSERT_TRUE(info.isSharingEnabled());
@@ -519,7 +519,7 @@ TEST_F(TestTheoryWhiteLogicInfo, smtlib_logics)
   ASSERT_FALSE(info.hasEverything());
   ASSERT_FALSE(info.hasNothing());
 
-  info = LogicInfo("ALL_SUPPORTED");
+  info = LogicInfo("ALL");
   ASSERT_TRUE(info.isLocked());
   ASSERT_FALSE(info.isPure(THEORY_BOOL));
   ASSERT_TRUE(info.isSharingEnabled());

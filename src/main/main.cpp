@@ -14,12 +14,13 @@
  */
 #include "main/main.h"
 
+#include <stdio.h>
+#include <unistd.h>
+
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <stdio.h>
-#include <unistd.h>
 
 #include "base/configuration.h"
 #include "base/output.h"
@@ -28,6 +29,7 @@
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/parser_exception.h"
@@ -51,25 +53,25 @@ int main(int argc, char* argv[]) {
     return runCvc5(argc, argv, opts);
   } catch(OptionException& e) {
 #ifdef CVC5_COMPETITION_MODE
-    *opts.getOut() << "unknown" << endl;
+    *options::getOut(opts) << "unknown" << endl;
 #endif
     cerr << "(error \"" << e << "\")" << endl
          << endl
          << "Please use --help to get help on command-line options." << endl;
   } catch(Exception& e) {
 #ifdef CVC5_COMPETITION_MODE
-    *opts.getOut() << "unknown" << endl;
+    *options::getOut(opts) << "unknown" << endl;
 #endif
-    if (language::isOutputLang_smt2(opts.getOutputLanguage()))
+    if (language::isOutputLang_smt2(options::getOutputLanguage(opts)))
     {
-      *opts.getOut() << "(error \"" << e << "\")" << endl;
+      *options::getOut(opts) << "(error \"" << e << "\")" << endl;
     } else {
-      *opts.getErr() << "(error \"" << e << "\")" << endl;
+      *options::getErr(opts) << "(error \"" << e << "\")" << endl;
     }
-    if (opts.getStatistics() && pExecutor != nullptr)
+    if (options::getStatistics(opts) && pExecutor != nullptr)
     {
       totalTime.reset();
-      pExecutor->printStatistics(*opts.getErr());
+      pExecutor->printStatistics(*options::getErr(opts));
     }
   }
   exit(1);

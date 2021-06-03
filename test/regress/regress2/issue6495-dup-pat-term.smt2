@@ -1,6 +1,6 @@
 ; COMMAND-LINE: -i -q
 ; EXPECT: unsat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status unsat)
 (declare-sort |T@[Int]Int| 0)
 (declare-datatypes ((T@Vec_2846 0)) (((Vec_2846 (|v#Vec_2846| |T@[Int]Int|) (|l#Vec_2846| Int) ) ) ))

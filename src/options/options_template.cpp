@@ -563,6 +563,7 @@ void Options::setOptionInternal(const std::string& key,
 std::string Options::getOption(const std::string& key) const
 {
   Trace("options") << "Options::getOption(" << key << ")" << std::endl;
+  const Options& options = *this;
   ${getoption_handlers}$
 
   throw UnrecognizedOptionException(key);
