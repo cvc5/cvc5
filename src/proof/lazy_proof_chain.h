@@ -53,7 +53,8 @@ class LazyCDProofChain : public ProofGenerator
                    bool cyclic = true,
                    context::Context* c = nullptr,
                    ProofGenerator* defGen = nullptr,
-                   bool defRec = true);
+                   bool defRec = true,
+                   const std::string& name = "LazyCDProofChain");
   ~LazyCDProofChain();
   /**
    * Get lazy proof for fact, or nullptr if it does not exist, by connecting the
@@ -147,6 +148,8 @@ class LazyCDProofChain : public ProofGenerator
   context::CDHashMap<Node, ProofGenerator*> d_gens;
   /** The default proof generator (if one exists) */
   ProofGenerator* d_defGen;
+  /** Name (for debugging) */
+  std::string d_name;
 };
 
 }  // namespace cvc5
