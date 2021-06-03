@@ -59,7 +59,7 @@ jobs:
     - name: Install Packages
       if: runner.os == 'Linux'
       run: |
-        echo ${{ user `image_version` }}
+        echo ${{ env.IMAGE_VERSION }}
         sudo apt-get update
         sudo apt-get install -y \
           build-essential \
