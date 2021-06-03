@@ -25,6 +25,13 @@ int main()
 {
   // Create a solver
   Solver solver;
+  
+  // In this example we will ask the solver to produce
+  // models and unsat cores, hence these options
+  // should be turned on.
+  solver.setOption("produce-models", "true");
+  solver.setOption("produce-unsat-cores", "true");
+
   // The simplest way to set a logic for the solver is to choose "ALL".
   // This enables all logics in the solver.
   // To optimize the solver's behavior for a more specific logic,
@@ -37,105 +44,100 @@ int main()
   Sort realSort = solver.getRealSort();
   Sort intSort = solver.getIntegerSort();
 
-  // x,y,z will be real variables, while
-  // a,b,c will be integer variables.
+  // x,y will be real variables, while
+  // a,b will be integer variables.
   // Formally, their cpp type is Term, and 
   // they are called "constants" in SMT jargon,
   Term x = solver.mkConst(realSort, "x");
   Term y = solver.mkConst(realSort, "y");
-  Term z = solver.mkConst(realSort, "z");
   Term a = solver.mkConst(intSort, "a");
-  Term b = solver.mkConst(intSort, "");
-  Term c = solver.mkConst(intSort, "a");
+  Term b = solver.mkConst(intSort, "b");
   
   // Our constraints regarding x,y,z will be:
   // '''
-  //    0 <= (x+y)/2
-  //    z < 2
-  //    x+y < 2*z
+  //    0 < x
+  //    0 < y
+  //    x+y < 1
+  //    x<=y 
   // '''
+
   // Formally, constraints are also terms. Their sort is Boolean.
   // We will construct these constraints gradually,
   // by defining each of their components.
   // We start with the constant numerals 0 and 2:
   Term zero = solver.mkReal(0);
-  Term two = solver.mkReal(2);
+  Term one = solver.mkReal(1);
 
   // Next, we continue with the compound terms, that 
-  // employ +, <=, < and *.
+  // employ +, <=, and <.
   // In the API, these are denoted by
-  // PLUS, LEQ, LT, and MULT, respectively.
+  // PLUS, LEQ, and LT.
   // A list of operators is available in... 
-  // TODO where?
+  // src/api/cpp/cvc5_kind.h
   Term xPlusY = solver.mkTerm(PLUS, x, y);
-  // We continue with the remaining sub-terms:
-  Term xPlusYDivTwo = solver.mkTerm(DIV, xPlusY, two);
   // Now we can define the first and second constraints:
-  Term constraint1 = solver.mkTerm(LEQ, zero, xPlusYDivTwo);
-  Term constraint2 = solver.mkTerm(LT, z, two);
-
-  // For the third constraint, we need 2*z:
-  Term twoZ = solver.mkTerm(MULT, twom z);
-  Term constraint3 = solver.mkTerm(LT, xPluxY, twoZ);
+  Term constraint1 = solver.mkTerm(LT, zero, x);
+  Term constraint2 = solver.mkTerm(LT, zero, y);
+  Term constraint3 = solver.mkTerm(LT, xPlusY, one);
+  Term constraint4 = solver.mkTerm(LEQ, x, y);
 
   // Now we assert the constraints to the solver.
   solver.assertFormula(constraint1);
   solver.assertFormula(constraint2);
   solver.assertFormula(constraint3);
+  solver.assertFormula(constraint4);
 
   // Check if the formula is satisfiable, that is,
   // are there real x,y,z that satisfy all three
   // constraints.
-  Result r = solver.checkSat();
+  Result r1 = solver.checkSat();
 
   // The result is either SAT, UNSAT, or UNKNOWN.
   // In this case, it is SAT.
-  std::cout << r << std::endl;
+  std::cout << "result:" << r1 << std::endl;
 
   // We can get actual values for x,y,z that 
   // satisfy the constraints.
   Term xVal = solver.getValue(x);
   Term yVal = solver.getValue(y);
-  Term zVal = solver.getValue(z);
 
   // To cast these values to cpp types,
   // we first obtain their string representations
   // from the solver.
   std::string xStr = xVal.getRealValue();
   std::string yStr = yVal.getRealValue();
-  std::string zStr = zVal.getRealValue();
 
   // now we can convert the values to cpp types
   // using standard cpp conversion functions.
   double xDouble = std::stod(xStr);
   double yDouble = std::stod(yStr);
-  double zDouble = std::stod(zStr);
   
   std::cout << "solution for x: " << xDouble << std::endl;
   std::cout << "solution for y: " << yDouble << std::endl;
-  std::cout << "solution for z: " << zDouble << std::endl;
 
   // Next, we will check satisfiability of the same formula,
   // only this time over integer variables a,b,c
   
-  // We staart by reseting the solver to flush
+  // We start by reseting the solver to flush
   // previous assertions.
-  solver.reset();
+  solver.resetAssertions();
 
   // Next, we assert the same assertions above with integers,
   // in an abbreviated manner.
+  // Notice that a different division operator is used,
+  // namely INTS_DIVISION.
+  solver.assertFormula(solver.mkTerm(LT, solver.mkInteger(0), a));
+  solver.assertFormula(solver.mkTerm(LT, solver.mkInteger(0), b));
   solver.assertFormula(
-        solver.mkTerm(LEQ, solver.mkInteger(0), solver.mkTerm(DIV, solver.mkTerm(PLUS, a, b), solver.mkInteger(2))));
+        solver.mkTerm(LT, solver.mkTerm(PLUS, a, b), solver.mkInteger(1)));
   solver.assertFormula(
-        solver.mkTerm(LEQ, c, solver.mkInteger(2)));
-  solver.assertFormula(
-        solver.mkTerm(LT, solver.mkTerm(PLUS, a, b), solver.mkTerm(MULT, solver.mkInteger(2), c))
+        solver.mkTerm(LEQ, a, b)
       );
   // We check whether the revised assertion is satisfiable.
-  Result r = solver.checkSat();
+  Result r2 = solver.checkSat();
 
   // This time the formula is unsatisfiable
-  std::cout << "result: " << r << std::endl;
+  std::cout << "result: " << r2 << std::endl;
 
   // Obviously, we cannot get values for a,b,c, as
   // no values exist that make the formula true.
@@ -143,7 +145,7 @@ int main()
   // for an unsatisfiable core, i.e., a subset
   // of the assertions that is already unsatisfiable.
   std::vector<Term> unsatCore = solver.getUnsatCore();
-  std::cout << "unsat core size: " << unsatCore.size();
+  std::cout << "unsat core size: " << unsatCore.size() << std::endl;
   std::cout << "unsat core: " << std::endl;
   for (const Term & t : unsatCore) {
     std::cout << t << std::endl;
