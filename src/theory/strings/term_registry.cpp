@@ -90,7 +90,9 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
   }
   else if (tk == STRING_STRIDOF || tk == STRING_INDEXOF_RE)
   {
-    // (and (>= (f x y n) (- 1)) (<= (f x y n) (str.len x)))
+    // (and
+    //   (or (= (f x y n) (- 1)) (>= (f x y n) n))
+    //   (<= (f x y n) (str.len x)))
     //
     // where f in { str.indexof, str.indexof_re }
     Node l = nm->mkNode(STRING_LENGTH, t[0]);
