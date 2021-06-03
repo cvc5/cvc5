@@ -89,8 +89,7 @@ void BVToInt::addSkolemDefinitions(const std::map<Node, Node>& skolems)
     {
       body = definition;
     }
-    d_preprocContext->getSmt()->defineFunction(
-        originalSkolem, args, body, true);
+    d_preprocContext->addSubstitution(originalSkolem, definition);
   }
 }
 
