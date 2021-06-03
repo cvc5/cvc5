@@ -59,8 +59,6 @@ jobs:
     - name: Install Packages
       if: runner.os == 'Linux'
       run: |
-        source <(grep /etc/environment ImageVersion)
-        echo $ImageVersion
         echo $ImageVersion
         sudo apt-get update
         sudo apt-get install -y \
