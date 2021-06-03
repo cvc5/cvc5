@@ -59,7 +59,7 @@ jobs:
     - name: Install Packages
       if: runner.os == 'Linux'
       run: |
-        cat /etc/environment
+        source <(grep /etc/environment ImageVersion)
         echo ${{ env.ImageVersion }}
         echo $ImageVersion
         sudo apt-get update
