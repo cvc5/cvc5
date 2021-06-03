@@ -15,9 +15,9 @@
 #include "proof/lean/lean_post_processor.h"
 
 #include "proof/lazy_proof.h"
+#include "proof/lean/lean_rules.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
-#include "proof/lean/lean_rules.h"
 #include "util/rational.h"
 
 namespace cvc5 {

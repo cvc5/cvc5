@@ -106,7 +106,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         Notice() << "Forcing full-proof mode for unsat cores mode since proofs "
                     "were requested.\n";
       }
-      // enable unsat cores, because they are available as a consequence of proofs
+      // enable unsat cores, because they are available as a consequence of
+      // proofs
       opts.smt.unsatCores = true;
       opts.smt.unsatCoresMode = options::UnsatCoresMode::FULL_PROOF;
     }

@@ -20,9 +20,9 @@
 #include <iostream>
 
 #include "expr/node_algorithm.h"
+#include "proof/lean/lean_rules.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
-#include "proof/lean/lean_rules.h"
 
 namespace cvc5 {
 

@@ -21,9 +21,9 @@
 #include <map>
 
 #include "expr/node.h"
-#include "proof/proof_node.h"
 #include "printer/let_binding.h"
 #include "proof/lfsc/lfsc_util.h"
+#include "proof/proof_node.h"
 
 namespace cvc5 {
 namespace proof {

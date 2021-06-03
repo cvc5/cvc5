@@ -20,9 +20,9 @@
 #include <map>
 #include <unordered_set>
 
+#include "proof/lean/lean_rules.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_updater.h"
-#include "proof/lean/lean_rules.h"
 
 namespace cvc5 {
 

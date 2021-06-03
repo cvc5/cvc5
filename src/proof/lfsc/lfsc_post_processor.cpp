@@ -15,12 +15,12 @@
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
 
+#include "options/proof_options.h"
 #include "proof/lazy_proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/proof_node_updater.h"
-#include "options/proof_options.h"
 
 using namespace cvc5::kind;
 
