@@ -2,7 +2,7 @@
 ; EXPECT: sat
 (set-option :produce-models true)
 (set-option :interactive-mode true)
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (declare-sort a 0)
 (declare-datatypes ((w 0)) (((Wrap (unw a)))))
 (declare-fun x () w)

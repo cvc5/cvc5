@@ -22,6 +22,7 @@
 #include "base/check.h"
 #include "cvc/cvc.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "parser/antlr_input.h"
 #include "parser/input.h"
 #include "parser/parser.h"
@@ -116,16 +117,17 @@ ParserBuilder& ParserBuilder::withParseOnly(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withOptions(const Options& options) {
+ParserBuilder& ParserBuilder::withOptions(const Options& opts)
+{
   ParserBuilder& retval = *this;
-  retval =
-      retval.withInputLanguage(options.getInputLanguage())
-      .withChecks(options.getSemanticChecks())
-      .withStrictMode(options.getStrictParsing())
-      .withParseOnly(options.getParseOnly())
-      .withIncludeFile(options.getFilesystemAccess());
-  if(options.wasSetByUserForceLogicString()) {
-    LogicInfo tmp(options.getForceLogicString());
+  retval = retval.withInputLanguage(options::getInputLanguage(opts))
+               .withChecks(options::getSemanticChecks(opts))
+               .withStrictMode(options::getStrictParsing(opts))
+               .withParseOnly(options::getParseOnly(opts))
+               .withIncludeFile(options::getFilesystemAccess(opts));
+  if (options::wasSetByUserForceLogicString(opts))
+  {
+    LogicInfo tmp(options::getForceLogicString(opts));
     retval = retval.withForcedLogic(tmp.getLogicString());
   }
   return retval;

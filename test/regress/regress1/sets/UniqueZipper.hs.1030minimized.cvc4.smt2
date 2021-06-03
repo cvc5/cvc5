@@ -1,5 +1,5 @@
 ; EXPECT: sat
-(set-logic QF_ALL_SUPPORTED)
+(set-logic QF_ALL)
 (define-sort Elt () Int)
 (define-sort mySet () (Set Elt ))
 (define-fun smt_set_emp () mySet (as emptyset mySet))
