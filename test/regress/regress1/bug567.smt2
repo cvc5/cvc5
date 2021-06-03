@@ -2,7 +2,7 @@
 ; EXPECT: unknown
 ; EXPECT: unsat
 ; EXPECT: unknown
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (declare-datatypes ((OptInt0 0)) (((Some (value0 Int)) (None))))
 (declare-datatypes ((List0 0)) (((Cons (head0 Int) (tail0 List0)) (Nil))))
 

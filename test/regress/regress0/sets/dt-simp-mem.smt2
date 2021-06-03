@@ -1,4 +1,4 @@
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 (declare-datatypes ((D 0)) (((A (a Int)))))
 (declare-fun x1 () D)
