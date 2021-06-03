@@ -60,7 +60,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         source <(grep /etc/environment ImageVersion)
-        echo ${{ env.ImageVersion }}
+        echo $ImageVersion
         echo $ImageVersion
         sudo apt-get update
         sudo apt-get install -y \
