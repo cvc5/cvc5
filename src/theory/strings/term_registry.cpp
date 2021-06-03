@@ -94,9 +94,11 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
     //
     // where f in { str.indexof, str.indexof_re }
     Node l = nm->mkNode(STRING_LENGTH, t[0]);
-    lemma = nm->mkNode(AND,
-                       nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
-                       nm->mkNode(LEQ, t, l));
+    lemma = nm->mkNode(
+        AND,
+        nm->mkNode(
+            OR, nm->mkConst(Rational(-1)).eqNode(t), nm->mkNode(GEQ, t, t[2])),
+        nm->mkNode(LEQ, t, l));
   }
   else if (tk == STRING_STOI)
   {
