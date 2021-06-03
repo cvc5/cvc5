@@ -61,7 +61,7 @@ class Pow2Solver
    *
    * Examples
    *
-   * x>=0 --> x < pow2(x) 
+   * x>=0 --> x < pow2(x)
    *
    * This should be a heuristic incomplete check that only introduces a
    * small number of new terms in the lemmas it returns.
