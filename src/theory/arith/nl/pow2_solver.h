@@ -37,7 +37,7 @@ class NlModel;
  */
 class Pow2Solver
 {
-  typedef context::CDHashSet<Node> NodeSet;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   Pow2Solver(InferenceManager& im, ArithState& state, NlModel& model);
