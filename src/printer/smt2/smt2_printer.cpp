@@ -1705,21 +1705,20 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
     out << funcs[i] << " (";
     // print its type signature
     vector<Node>::const_iterator itf = formals[i].cbegin();
-    for (;;)
+    while (itf != formals[i].cend())
     {
       out << "(" << (*itf) << " " << (*itf).getType() << ")";
       ++itf;
-      if (itf != formals[i].end())
+      if (itf != formals[i].cend())
       {
         out << " ";
       }
-      else
-      {
-        break;
-      }
     }
     TypeNode type = funcs[i].getType();
-    type = type.getRangeType();
+    if (type.isFunction())
+    {
+      type = type.getRangeType();
+    }
     out << ") " << type;
     if (funcs.size() > 1)
     {
@@ -1729,6 +1728,10 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
   if (funcs.size() > 1)
   {
     out << ") (";
+  }
+  else
+  {
+    out << " ";
   }
   for (unsigned i = 0, size = formulas.size(); i < size; i++)
   {
