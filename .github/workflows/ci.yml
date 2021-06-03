@@ -29,7 +29,7 @@ jobs:
             os: ubuntu-latest
             env: CC=clang CXX=clang++
             config: production --auto-download
-            cache-key: productionclang
+            cache-key: clangproduction
             check-examples: true
             exclude_regress: 3-4
             run_regression_args: --no-check-unsat-cores --no-check-proofs
@@ -45,7 +45,7 @@ jobs:
             os: ubuntu-latest
             env: CC=clang CXX=clang++
             config: production --auto-download --assertions --tracing --cln --gpl
-            cache-key: dbgclang
+            cache-key: clangdbg
             exclude_regress: 3-4
             run_regression_args: --no-check-proofs
 
