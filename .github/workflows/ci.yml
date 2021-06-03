@@ -29,7 +29,7 @@ jobs:
             os: ubuntu-latest
             env: CC=clang CXX=clang++
             config: production --auto-download
-            cache-key: clangproduction
+            cache-key: productionclang
             check-examples: true
             exclude_regress: 3-4
             run_regression_args: --no-check-unsat-cores --no-check-proofs
@@ -45,7 +45,7 @@ jobs:
             os: ubuntu-latest
             env: CC=clang CXX=clang++
             config: production --auto-download --assertions --tracing --cln --gpl
-            cache-key: clangdbg
+            cache-key: dbgclang
             exclude_regress: 3-4
             run_regression_args: --no-check-proofs
 
@@ -59,6 +59,7 @@ jobs:
     - name: Install Packages
       if: runner.os == 'Linux'
       run: |
+        echo {{ matrix.env.ImageVersion }}
         sudo apt-get update
         sudo apt-get install -y \
           build-essential \
@@ -170,7 +171,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: build/deps
-        key: cvc5-deps-${{ runner.os }}-${{ matrix.cache-key }}-${{ hashFiles('cmake/Find**', 'cmake/deps-helper.cmake') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+        key: cvc5-deps-${{ runner.os }}-${{ matrix.env.ImageVersion }}-${{ matrix.cache-key }}-${{ hashFiles('cmake/Find**', 'cmake/deps-helper.cmake') }}-${{ hashFiles('.github/workflows/ci.yml') }}
 
     - name: Configure
       run: |
