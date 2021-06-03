@@ -1855,7 +1855,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
   STORE,
-  /*!
+  /**
    * Constant array.
    *
    * Parameters:
