@@ -18,8 +18,8 @@
 #include <vector>
 
 #include "test_smt.h"
-#include "util/rational.h"
 #include "theory/arith/nl/pow2_solver.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 
