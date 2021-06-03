@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 (declare-sort a 0)
 (declare-fun __nun_card_witness_0 () a)

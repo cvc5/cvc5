@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((List 1)) ((par (T) ((cons (head T) (tail (List T))) (nil)))))
 (declare-datatypes ((KV 0)) (((kv (key Int) (value Int)) (nilKV))))

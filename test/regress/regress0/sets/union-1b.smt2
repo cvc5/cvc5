@@ -3,7 +3,7 @@
 ; EXPECT: sat
 
 ; x not in A U B => x not in A
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (define-sort SetInt () (Set Int))
 (declare-fun A () (Set Int))
 (declare-fun B () (Set Int))

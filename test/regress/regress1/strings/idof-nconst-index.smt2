@@ -1,4 +1,4 @@
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-option :strings-exp true)
 (set-info :status sat)
 (declare-fun s () String)

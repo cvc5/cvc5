@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --incremental
 ; EXPECT: sat
 (set-option :produce-models true)
-(set-logic QF_ALL_SUPPORTED)
+(set-logic QF_ALL)
 (declare-fun _substvar_1807_ () Bool)
 (declare-fun local_id_x$1 () (_ BitVec 32))
 (declare-fun local_id_x$2 () (_ BitVec 32))

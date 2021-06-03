@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :smt-lib-version 2.6)
 (set-info :category "unknown")
 (set-info :status sat)
