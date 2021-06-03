@@ -75,7 +75,6 @@ void Pow2Solver::checkInitialRefine()
   NodeManager* nm = NodeManager::currentNM();
   for (const Node& i :  d_pow2s)
   {
-    // the reference bitwidth
       if (d_initRefine.find(i) != d_initRefine.end())
       {
         // already sent initial axioms for i in this user context
@@ -138,7 +137,7 @@ void Pow2Solver::checkFullRefine()
 }
 Node Pow2Solver::valueBasedLemma(Node i)
 {
-  Assert(i.getKind() == IAND);
+  Assert(i.getKind() == POW2);
   Node x = i[0];
 
   Node valX = d_model.computeConcreteModelValue(x);
