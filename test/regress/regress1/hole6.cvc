@@ -1,3 +1,4 @@
+% COMMAND-LINE: --no-check-proofs
 % EXPECT: entailed
 x_1 : BOOLEAN;
 x_2 : BOOLEAN;

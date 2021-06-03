@@ -1,5 +1,5 @@
 % EXPECT: unsat
-OPTION "logic" "ALL_SUPPORTED";
+OPTION "logic" "ALL";
 IntTup: TYPE = [INT];
 IntPair: TYPE = [INT, INT];
 x : SET OF IntPair;
