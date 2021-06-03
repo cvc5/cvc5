@@ -26,14 +26,6 @@ name   = "Strings Theory"
   help       = "strings eager check"
 
 [[option]]
-  name       = "stringIgnNegMembership"
-  category   = "regular"
-  long       = "strings-inm"
-  type       = "bool"
-  default    = "false"
-  help       = "internal for strings: ignore negative membership constraints (fragment checking is needed, left to users for now)"
-
-[[option]]
   name       = "stringLazyPreproc"
   category   = "regular"
   long       = "strings-lazy-pp"

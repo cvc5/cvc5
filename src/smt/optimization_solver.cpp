@@ -55,24 +55,25 @@ OptimizationResult::ResultType OptimizationSolver::checkOpt()
   Unreachable();
 }
 
-void OptimizationSolver::pushObjective(
-    TNode target, OptimizationObjective::ObjectiveType type, bool bvSigned)
+void OptimizationSolver::addObjective(TNode target,
+                                      OptimizationObjective::ObjectiveType type,
+                                      bool bvSigned)
 {
   if (!OMTOptimizer::nodeSupportsOptimization(target))
   {
     CVC5_FATAL()
-        << "Objective not pushed: Target node does not support optimization";
+        << "Objective failed to add: Target node does not support optimization";
   }
   d_optChecker.reset();
   d_objectives.emplace_back(target, type, bvSigned);
   d_results.emplace_back(OptimizationResult::UNKNOWN, Node());
 }
 
-void OptimizationSolver::popObjective()
+void OptimizationSolver::resetObjectives()
 {
   d_optChecker.reset();
-  d_objectives.pop_back();
-  d_results.pop_back();
+  d_objectives.clear();
+  d_results.clear();
 }
 
 std::vector<OptimizationResult> OptimizationSolver::getValues()
