@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file theory_sep.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Theory of sep
- **
- ** Theory of sep.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of separation logic.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__SEP__THEORY_SEP_H
-#define CVC4__THEORY__SEP__THEORY_SEP_H
+#ifndef CVC5__THEORY__SEP__THEORY_SEP_H
+#define CVC5__THEORY__SEP__THEORY_SEP_H
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -29,9 +28,9 @@
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class TheoryModel;
@@ -40,8 +39,8 @@ namespace sep {
 
 class TheorySep : public Theory {
   typedef context::CDList<Node> NodeList;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
   /////////////////////////////////////////////////////////////////////////////
   // MISC
@@ -56,7 +55,7 @@ class TheorySep : public Theory {
 
   /** True node for predicates = false */
   Node d_false;
-  
+
   //whether bounds have been initialized
   bool d_bounds_init;
 
@@ -68,9 +67,14 @@ class TheorySep : public Theory {
 
   Node mkAnd( std::vector< TNode >& assumptions );
 
-  int processAssertion( Node n, std::map< int, std::map< Node, int > >& visited, 
-                        std::map< int, std::map< Node, std::vector< Node > > >& references, std::map< int, std::map< Node, bool > >& references_strict,
-                        bool pol, bool hasPol, bool underSpatial );
+  int processAssertion(
+      Node n,
+      std::map<int, std::map<Node, int> >& visited,
+      std::map<int, std::map<Node, std::vector<Node> > >& references,
+      std::map<int, std::map<Node, bool> >& references_strict,
+      bool pol,
+      bool hasPol,
+      bool underSpatial);
 
  public:
   TheorySep(context::Context* c,
@@ -93,6 +97,8 @@ class TheorySep : public Theory {
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -258,7 +264,7 @@ class TheorySep : public Theory {
     bound_invalid,
   };
   std::map< TypeNode, unsigned > d_bound_kind;
-  
+
   std::map< TypeNode, std::vector< Node > > d_type_references_card;
   std::map< Node, unsigned > d_type_ref_card_id;
   std::map< TypeNode, std::vector< Node > > d_type_references_all;
@@ -328,8 +334,15 @@ class TheorySep : public Theory {
   void addPto( HeapAssertInfo * ei, Node ei_n, Node p, bool polarity );
   void mergePto( Node p1, Node p2 );
   void computeLabelModel( Node lbl );
-  Node instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std::map< Node, Node >& visited, std::map< Node, Node >& pto_model, 
-                         TypeNode rtn, std::map< Node, bool >& active_lbl, unsigned ind = 0 );
+  Node instantiateLabel(Node n,
+                        Node o_lbl,
+                        Node lbl,
+                        Node lbl_v,
+                        std::map<Node, Node>& visited,
+                        std::map<Node, Node>& pto_model,
+                        TypeNode rtn,
+                        std::map<Node, bool>& active_lbl,
+                        unsigned ind = 0);
   void setInactiveAssertionRec( Node fact, std::map< Node, std::vector< Node > >& lbl_to_assertions, std::map< Node, bool >& assert_active );
 
   Node mkUnion( TypeNode tn, std::vector< Node >& locs );
@@ -349,8 +362,8 @@ class TheorySep : public Theory {
   void initializeBounds();
 };/* class TheorySep */
 
-}/* CVC4::theory::sep namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sep
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__SEP__THEORY_SEP_H */
+#endif /* CVC5__THEORY__SEP__THEORY_SEP_H */

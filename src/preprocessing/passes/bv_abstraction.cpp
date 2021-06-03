@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file bv_abstraction.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The BvAbstraction preprocessing pass
- **
- ** Abstract common structures over small domains to UF. This preprocessing
- ** is particularly useful on QF_BV/mcm benchmarks and can be enabled via
- ** option `--bv-abstraction`.
- ** For more information see 3.4 Refactoring Isomorphic Circuits in [1].
- **
- ** [1] Liana Hadarean, An Efficient and Trustworthy Theory Solver for
- **     Bit-vectors in Satisfiability Modulo Theories
- **     https://cs.nyu.edu/media/publications/hadarean_liana.pdf
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The BvAbstraction preprocessing pass.
+ *
+ * Abstract common structures over small domains to UF. This preprocessing
+ * is particularly useful on QF_BV/mcm benchmarks and can be enabled via
+ * option `--bv-abstraction`.
+ * For more information see 3.4 Refactoring Isomorphic Circuits in [1].
+ *
+ * [1] Liana Hadarean, An Efficient and Trustworthy Theory Solver for
+ *     Bit-vectors in Satisfiability Modulo Theories
+ *     https://cs.nyu.edu/media/publications/hadarean_liana.pdf
+ */
 
 #include "preprocessing/passes/bv_abstraction.h"
 
@@ -32,11 +33,11 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
 BvAbstraction::BvAbstraction(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-abstraction"){};
@@ -60,4 +61,4 @@ PreprocessingPassResult BvAbstraction::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

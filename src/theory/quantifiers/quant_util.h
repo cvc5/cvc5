@@ -1,30 +1,32 @@
-/*********************                                                        */
-/*! \file quant_util.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief quantifier util
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * quantifier util
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANT_UTIL_H
-#define CVC4__THEORY__QUANT_UTIL_H
+#ifndef CVC5__THEORY__QUANT_UTIL_H
+#define CVC5__THEORY__QUANT_UTIL_H
 
 #include <iostream>
 #include <map>
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/incomplete_id.h"
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Quantifiers utility
@@ -41,17 +43,18 @@ public:
    * Returns false if the reset failed. When reset fails, the utility should
    * have added a lemma via a call to d_qim.addPendingLemma.
    */
-  virtual bool reset( Theory::Effort e ) = 0;
+  virtual bool reset(Theory::Effort e) { return true; }
   /* Called for new quantifiers */
-  virtual void registerQuantifier(Node q) = 0;
+  virtual void registerQuantifier(Node q) {}
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
   /** Check complete?
    *
    * Returns false if the utility's reasoning was globally incomplete
-   * (e.g. "sat" must be replaced with "incomplete").
+   * (e.g. "sat" must be replaced with "incomplete"). If this method returns
+   * false, it should update incId to the reason for incompleteness.
    */
-  virtual bool checkComplete() { return true; }
+  virtual bool checkComplete(IncompleteId& incId) { return true; }
 };
 
 class QuantPhaseReq
@@ -78,6 +81,6 @@ public:
 };
 
 }
-}
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANT_UTIL_H */
+#endif /* CVC5__THEORY__QUANT_UTIL_H */

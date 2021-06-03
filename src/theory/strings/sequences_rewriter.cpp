@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file sequences_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the theory of strings.
- **
- ** Implementation of the theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the theory of strings.
+ */
 
 #include "theory/strings/sequences_rewriter.h"
 
@@ -22,18 +21,23 @@
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/regexp_entail.h"
+#include "theory/strings/skolem_cache.h"
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/rational.h"
+#include "util/regexp.h"
+#include "util/statistics_registry.h"
+#include "util/string.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
-SequencesRewriter::SequencesRewriter(IntegralHistogramStat<Rewrite>* statistics)
+SequencesRewriter::SequencesRewriter(HistogramStat<Rewrite>* statistics)
     : d_statistics(statistics), d_stringsEntail(*this)
 {
 }
@@ -467,13 +471,20 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
             if (StringsEntail::stripSymbolicLength(
                     pfxv1, rpfxv1, 1, lenPfx0, true))
             {
-              std::vector<Node> sfxv0(v0.begin() + i, v0.end());
-              pfxv1.insert(pfxv1.end(), v1.begin() + j, v1.end());
-              Node ret = nm->mkNode(kind::AND,
-                                    pfx0.eqNode(utils::mkConcat(rpfxv1, stype)),
-                                    utils::mkConcat(sfxv0, stype)
-                                        .eqNode(utils::mkConcat(pfxv1, stype)));
-              return returnRewrite(node, ret, Rewrite::SPLIT_EQ_STRIP_R);
+              // The rewrite requires the full left-hand prefix length to be
+              // stripped (otherwise we would have to keep parts of the
+              // left-hand prefix).
+              if (lenPfx0.isConst() && lenPfx0.getConst<Rational>().isZero())
+              {
+                std::vector<Node> sfxv0(v0.begin() + i, v0.end());
+                pfxv1.insert(pfxv1.end(), v1.begin() + j, v1.end());
+                Node ret =
+                    nm->mkNode(kind::AND,
+                               pfx0.eqNode(utils::mkConcat(rpfxv1, stype)),
+                               utils::mkConcat(sfxv0, stype)
+                                   .eqNode(utils::mkConcat(pfxv1, stype)));
+                return returnRewrite(node, ret, Rewrite::SPLIT_EQ_STRIP_R);
+              }
             }
 
             // If the prefix of the right-hand side is (strictly) longer than
@@ -495,13 +506,20 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
             if (StringsEntail::stripSymbolicLength(
                     pfxv0, rpfxv0, 1, lenPfx1, true))
             {
-              pfxv0.insert(pfxv0.end(), v0.begin() + i, v0.end());
-              std::vector<Node> sfxv1(v1.begin() + j, v1.end());
-              Node ret = nm->mkNode(kind::AND,
-                                    utils::mkConcat(rpfxv0, stype).eqNode(pfx1),
-                                    utils::mkConcat(pfxv0, stype)
-                                        .eqNode(utils::mkConcat(sfxv1, stype)));
-              return returnRewrite(node, ret, Rewrite::SPLIT_EQ_STRIP_L);
+              // The rewrite requires the full right-hand prefix length to be
+              // stripped (otherwise we would have to keep parts of the
+              // right-hand prefix).
+              if (lenPfx1.isConst() && lenPfx1.getConst<Rational>().isZero())
+              {
+                pfxv0.insert(pfxv0.end(), v0.begin() + i, v0.end());
+                std::vector<Node> sfxv1(v1.begin() + j, v1.end());
+                Node ret =
+                    nm->mkNode(kind::AND,
+                               utils::mkConcat(rpfxv0, stype).eqNode(pfx1),
+                               utils::mkConcat(pfxv0, stype)
+                                   .eqNode(utils::mkConcat(sfxv1, stype)));
+                return returnRewrite(node, ret, Rewrite::SPLIT_EQ_STRIP_L);
+              }
             }
 
             // If the prefix of the left-hand side is (strictly) longer than
@@ -742,8 +760,7 @@ Node SequencesRewriter::rewriteConcatRegExp(TNode node)
     else if (c.getKind() == REGEXP_EMPTY)
     {
       // re.++( ..., empty, ... ) ---> empty
-      std::vector<Node> nvec;
-      Node ret = nm->mkNode(REGEXP_EMPTY, nvec);
+      Node ret = nm->mkNode(REGEXP_EMPTY);
       return returnRewrite(node, ret, Rewrite::RE_CONCAT_EMPTY);
     }
     else
@@ -968,7 +985,6 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
     }
   }
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> emptyVec;
   // use inclusion tests
   for (const Node& negMem : polRegExp[1])
   {
@@ -984,11 +1000,11 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         Node retNode;
         if (nk == REGEXP_INTER)
         {
-          retNode = nm->mkNode(kind::REGEXP_EMPTY, emptyVec);
+          retNode = nm->mkNode(kind::REGEXP_EMPTY);
         }
         else
         {
-          retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA, emptyVec));
+          retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA));
         }
         return returnRewrite(node, retNode, Rewrite::RE_ANDOR_INC_CONFLICT);
       }
@@ -999,11 +1015,11 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
   {
     if (nk == REGEXP_INTER)
     {
-      retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA, emptyVec));
+      retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA));
     }
     else
     {
-      retNode = nm->mkNode(kind::REGEXP_EMPTY, emptyVec);
+      retNode = nm->mkNode(kind::REGEXP_EMPTY);
     }
   }
   else
@@ -1028,7 +1044,7 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
     return returnRewrite(node, r, Rewrite::RE_LOOP_STAR);
   }
   NodeManager* nm = NodeManager::currentNM();
-  CVC4::Rational rMaxInt(String::maxSize());
+  cvc5::Rational rMaxInt(String::maxSize());
   uint32_t l = utils::getLoopMinOccurrences(node);
   std::vector<Node> vec_nodes;
   for (unsigned i = 0; i < l; i++)
@@ -1114,12 +1130,30 @@ Node SequencesRewriter::rewriteDifferenceRegExp(TNode node)
 Node SequencesRewriter::rewriteRangeRegExp(TNode node)
 {
   Assert(node.getKind() == REGEXP_RANGE);
+  unsigned ch[2];
+  for (size_t i = 0; i < 2; ++i)
+  {
+    if (!node[i].isConst() || node[i].getConst<String>().size() != 1)
+    {
+      // not applied to characters, it is not handled
+      return node;
+    }
+    ch[i] = node[i].getConst<String>().front();
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
   if (node[0] == node[1])
   {
-    NodeManager* nm = NodeManager::currentNM();
     Node retNode = nm->mkNode(STRING_TO_REGEXP, node[0]);
     // re.range( "A", "A" ) ---> str.to_re( "A" )
     return returnRewrite(node, retNode, Rewrite::RE_RANGE_SINGLE);
+  }
+
+  if (ch[0] > ch[1])
+  {
+    // re.range( "B", "A" ) ---> re.none
+    Node retNode = nm->mkNode(REGEXP_EMPTY);
+    return returnRewrite(node, retNode, Rewrite::RE_RANGE_EMPTY);
   }
   return node;
 }
@@ -1141,7 +1175,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   else if (x.isConst() && RegExpEntail::isConstRegExp(r))
   {
     // test whether x in node[1]
-    CVC4::String s = x.getConst<String>();
+    cvc5::String s = x.getConst<String>();
     bool test = RegExpEntail::testConstStringInRegExp(s, 0, r);
     Node retNode = NodeManager::currentNM()->mkConst(test);
     return returnRewrite(node, retNode, Rewrite::RE_IN_EVAL);
@@ -1184,7 +1218,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
         Node one = nm->mkConst(Rational(1));
         if (flr == one)
         {
-          NodeBuilder<> nb(AND);
+          NodeBuilder nb(AND);
           for (const Node& xc : x)
           {
             nb << nm->mkNode(STRING_IN_REGEXP, xc, r);
@@ -1279,12 +1313,16 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   else if (r.getKind() == REGEXP_RANGE)
   {
     // x in re.range( char_i, char_j ) ---> i <= str.code(x) <= j
-    Node xcode = nm->mkNode(STRING_TO_CODE, x);
-    Node retNode =
-        nm->mkNode(AND,
-                   nm->mkNode(LEQ, nm->mkNode(STRING_TO_CODE, r[0]), xcode),
-                   nm->mkNode(LEQ, xcode, nm->mkNode(STRING_TO_CODE, r[1])));
-    return returnRewrite(node, retNode, Rewrite::RE_IN_RANGE);
+    // we do not do this if the arguments are not constant
+    if (RegExpEntail::isConstRegExp(r))
+    {
+      Node xcode = nm->mkNode(STRING_TO_CODE, x);
+      Node retNode =
+          nm->mkNode(AND,
+                     nm->mkNode(LEQ, nm->mkNode(STRING_TO_CODE, r[0]), xcode),
+                     nm->mkNode(LEQ, xcode, nm->mkNode(STRING_TO_CODE, r[1])));
+      return returnRewrite(node, retNode, Rewrite::RE_IN_RANGE);
+    }
   }
   else if (r.getKind() == REGEXP_COMPLEMENT)
   {
@@ -1423,6 +1461,10 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewriteIndexof(node);
   }
+  else if (nk == kind::STRING_INDEXOF_RE)
+  {
+    retNode = rewriteIndexofRe(node);
+  }
   else if (nk == kind::STRING_STRREPL)
   {
     retNode = rewriteReplace(node);
@@ -1514,6 +1556,30 @@ RewriteResponse SequencesRewriter::preRewrite(TNode node)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
+TrustNode SequencesRewriter::expandDefinition(Node node)
+{
+  Trace("strings-exp-def") << "SequencesRewriter::expandDefinition : " << node
+                           << std::endl;
+
+  if (node.getKind() == kind::SEQ_NTH)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node s = node[0];
+    Node n = node[1];
+    // seq.nth(s, n) --> ite(0 <= n < len(s), seq.nth_total(s,n), Uf(s, n))
+    Node cond = nm->mkNode(AND,
+                           nm->mkNode(LEQ, nm->mkConst(Rational(0)), n),
+                           nm->mkNode(LT, n, nm->mkNode(STRING_LENGTH, s)));
+    Node ss = nm->mkNode(SEQ_NTH_TOTAL, s, n);
+    Node uf = SkolemCache::mkSkolemSeqNth(s.getType(), "Uf");
+    Node u = nm->mkNode(APPLY_UF, uf, s, n);
+    Node ret = nm->mkNode(ITE, cond, ss, u);
+    Trace("strings-exp-def") << "...return " << ret << std::endl;
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
+  }
+  return TrustNode::null();
+}
+
 Node SequencesRewriter::rewriteSeqNth(Node node)
 {
   Assert(node.getKind() == SEQ_NTH || node.getKind() == SEQ_NTH_TOTAL);
@@ -1571,7 +1637,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
     if (node[1].isConst() && node[2].isConst())
     {
       Node s = node[0];
-      CVC4::Rational rMaxInt(String::maxSize());
+      cvc5::Rational rMaxInt(String::maxSize());
       uint32_t start;
       if (node[1].getConst<Rational>() > rMaxInt)
       {
@@ -1628,7 +1694,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       }
     }
   }
-  Node zero = nm->mkConst(CVC4::Rational(0));
+  Node zero = nm->mkConst(cvc5::Rational(0));
 
   // if entailed non-positive length or negative start point
   if (ArithEntail::check(zero, node[1], true))
@@ -1858,7 +1924,7 @@ Node SequencesRewriter::rewriteUpdate(Node node)
     // rewriting for constant arguments
     if (node[1].isConst())
     {
-      CVC4::Rational rMaxInt(String::maxSize());
+      cvc5::Rational rMaxInt(String::maxSize());
       if (node[1].getConst<Rational>() > rMaxInt)
       {
         // start beyond the maximum size of strings
@@ -1926,7 +1992,7 @@ Node SequencesRewriter::rewriteContains(Node node)
       {
         std::vector<Node> vec = Word::getChars(node[0]);
         Node emp = Word::mkEmptyWord(t.getType());
-        NodeBuilder<> nb(OR);
+        NodeBuilder nb(OR);
         nb << emp.eqNode(t);
         for (const Node& c : vec)
         {
@@ -1970,7 +2036,7 @@ Node SequencesRewriter::rewriteContains(Node node)
       {
         std::vector<Node> nc1;
         utils::getConcat(node[0], nc1);
-        NodeBuilder<> nb(OR);
+        NodeBuilder nb(OR);
         for (const Node& ncc : nc1)
         {
           nb << nm->mkNode(STRING_STRCTN, ncc, node[1]);
@@ -2057,7 +2123,7 @@ Node SequencesRewriter::rewriteContains(Node node)
         if (nc2.size() > 1)
         {
           Node emp = Word::mkEmptyWord(stype);
-          NodeBuilder<> nb2(kind::AND);
+          NodeBuilder nb2(kind::AND);
           for (const Node& n2 : nc2)
           {
             if (n2 == n)
@@ -2266,7 +2332,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   utils::getConcat(node[0], children0);
   if (children0[0].isConst() && node[1].isConst() && node[2].isConst())
   {
-    CVC4::Rational rMaxInt(CVC4::String::maxSize());
+    cvc5::Rational rMaxInt(cvc5::String::maxSize());
     if (node[2].getConst<Rational>() > rMaxInt)
     {
       // We know that, due to limitations on the size of string constants
@@ -2391,23 +2457,30 @@ Node SequencesRewriter::rewriteIndexof(Node node)
           return returnRewrite(node, ret, Rewrite::IDOF_STRIP_CNST_ENDPTS);
         }
       }
-
-      // strip symbolic length
-      Node new_len = node[2];
-      std::vector<Node> nr;
-      if (StringsEntail::stripSymbolicLength(children0, nr, 1, new_len))
+      // To show that the first argument definitely contains the second, the
+      // index must be a valid index in the first argument. This ensures that
+      // (str.indexof t "" n) is not rewritten to something other than -1 when n
+      // is beyond the length of t. This is not required for the above rewrites,
+      // which only apply when n=0.
+      if (ArithEntail::check(node[2]) && ArithEntail::check(len0, node[2]))
       {
-        // For example:
-        // z>str.len( x1 ) and str.contains( x2, y )-->true
-        // implies
-        // str.indexof( str.++( x1, x2 ), y, z ) --->
-        // str.len( x1 ) + str.indexof( x2, y, z-str.len(x1) )
-        Node nn = utils::mkConcat(children0, stype);
-        Node ret =
-            nm->mkNode(kind::PLUS,
-                       nm->mkNode(kind::MINUS, node[2], new_len),
-                       nm->mkNode(kind::STRING_STRIDOF, nn, node[1], new_len));
-        return returnRewrite(node, ret, Rewrite::IDOF_STRIP_SYM_LEN);
+        // strip symbolic length
+        Node new_len = node[2];
+        std::vector<Node> nr;
+        if (StringsEntail::stripSymbolicLength(children0, nr, 1, new_len))
+        {
+          // For example:
+          // z>=0 and z>str.len( x1 ) and str.contains( x2, y )-->true
+          // implies
+          // str.indexof( str.++( x1, x2 ), y, z ) --->
+          // str.len( x1 ) + str.indexof( x2, y, z-str.len(x1) )
+          Node nn = utils::mkConcat(children0, stype);
+          Node ret =
+              nm->mkNode(PLUS,
+                         nm->mkNode(MINUS, node[2], new_len),
+                         nm->mkNode(STRING_STRIDOF, nn, node[1], new_len));
+          return returnRewrite(node, ret, Rewrite::IDOF_STRIP_SYM_LEN);
+        }
       }
     }
     else
@@ -2457,6 +2530,59 @@ Node SequencesRewriter::rewriteIndexof(Node node)
     }
   }
 
+  return node;
+}
+
+Node SequencesRewriter::rewriteIndexofRe(Node node)
+{
+  Assert(node.getKind() == STRING_INDEXOF_RE);
+  NodeManager* nm = NodeManager::currentNM();
+  Node s = node[0];
+  Node r = node[1];
+  Node n = node[2];
+  Node zero = nm->mkConst(Rational(0));
+  Node slen = nm->mkNode(STRING_LENGTH, s);
+
+  if (ArithEntail::check(zero, n, true) || ArithEntail::check(n, slen, true))
+  {
+    Node ret = nm->mkConst(Rational(-1));
+    return returnRewrite(node, ret, Rewrite::INDEXOF_RE_INVALID_INDEX);
+  }
+
+  if (RegExpEntail::isConstRegExp(r))
+  {
+    if (s.isConst() && n.isConst())
+    {
+      Rational nrat = n.getConst<Rational>();
+      cvc5::Rational rMaxInt(cvc5::String::maxSize());
+      if (nrat > rMaxInt)
+      {
+        // We know that, due to limitations on the size of string constants
+        // in our implementation, that accessing a position greater than
+        // rMaxInt is guaranteed to be out of bounds.
+        Node negone = nm->mkConst(Rational(-1));
+        return returnRewrite(node, negone, Rewrite::INDEXOF_RE_MAX_INDEX);
+      }
+
+      uint32_t start = nrat.getNumerator().toUnsignedInt();
+      Node rem = nm->mkConst(s.getConst<String>().substr(start));
+      std::pair<size_t, size_t> match = firstMatch(rem, r);
+      Node ret = nm->mkConst(
+          Rational(match.first == string::npos
+                       ? -1
+                       : static_cast<int64_t>(start + match.first)));
+      return returnRewrite(node, ret, Rewrite::INDEXOF_RE_EVAL);
+    }
+
+    if (ArithEntail::check(n, zero) && ArithEntail::check(slen, n))
+    {
+      String emptyStr("");
+      if (RegExpEntail::testConstStringInRegExp(emptyStr, 0, r))
+      {
+        return returnRewrite(node, n, Rewrite::INDEXOF_RE_EMP_RE);
+      }
+    }
+  }
   return node;
 }
 
@@ -3081,7 +3207,7 @@ Node SequencesRewriter::rewriteReplaceReAll(Node node)
       std::vector<Node> res;
       String rem = x.getConst<String>();
       std::pair<size_t, size_t> match(0, 0);
-      while (rem.size() >= 0)
+      while (rem.size() != 0)
       {
         match = firstMatch(nm->mkConst(rem), yp);
         if (match.first == string::npos)
@@ -3107,8 +3233,7 @@ std::pair<size_t, size_t> SequencesRewriter::firstMatch(Node n, Node r)
   Assert(r.getType().isRegExp());
   NodeManager* nm = NodeManager::currentNM();
 
-  std::vector<Node> emptyVec;
-  Node sigmaStar = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA, emptyVec));
+  Node sigmaStar = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA));
   Node re = nm->mkNode(REGEXP_CONCAT, r, sigmaStar);
   String s = n.getConst<String>();
 
@@ -3230,7 +3355,7 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
   Node val;
   if (isPrefix)
   {
-    val = NodeManager::currentNM()->mkConst(::CVC4::Rational(0));
+    val = NodeManager::currentNM()->mkConst(::cvc5::Rational(0));
   }
   else
   {
@@ -3283,7 +3408,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
   else if (len.getKind() == PLUS)
   {
     // x + y -> norm(x) + norm(y)
-    NodeBuilder<> concatBuilder(STRING_CONCAT);
+    NodeBuilder concatBuilder(STRING_CONCAT);
     for (const auto& n : len)
     {
       Node sn = canonicalStrForSymbolicLength(n, stype);
@@ -3312,7 +3437,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
     }
     std::vector<Node> nRepChildren;
     utils::getConcat(nRep, nRepChildren);
-    NodeBuilder<> concatBuilder(STRING_CONCAT);
+    NodeBuilder concatBuilder(STRING_CONCAT);
     for (size_t i = 0, reps = intReps.getUnsignedInt(); i < reps; i++)
     {
       concatBuilder.append(nRepChildren);
@@ -3396,4 +3521,4 @@ Node SequencesRewriter::returnRewrite(Node node, Node ret, Rewrite r)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

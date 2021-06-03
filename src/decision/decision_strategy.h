@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file decision_strategy.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Decision strategy
- **
- ** Decision strategy
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Kshitij Bansal, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Decision strategy.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__DECISION__DECISION_STRATEGY_H
-#define CVC4__DECISION__DECISION_STRATEGY_H
+#ifndef CVC5__DECISION__DECISION_STRATEGY_H
+#define CVC5__DECISION__DECISION_STRATEGY_H
 
 #include <vector>
 
@@ -25,22 +24,26 @@
 #include "prop/sat_solver_types.h"
 #include "smt/term_formula_removal.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
-class DecisionEngine;
+class DecisionEngineOld;
 
 namespace context {
   class Context;
-}/* CVC4::context namespace */
+  }  // namespace context
 
 namespace decision {
+  
+class DecisionEngine;
 
 class DecisionStrategy {
 protected:
-  DecisionEngine* d_decisionEngine;
+ DecisionEngineOld* d_decisionEngine;
+
 public:
-  DecisionStrategy(DecisionEngine* de, context::Context *c) :
-    d_decisionEngine(de) {
+ DecisionStrategy(DecisionEngineOld* de, context::Context* c)
+     : d_decisionEngine(de)
+ {
   }
 
   virtual ~DecisionStrategy() { }
@@ -50,8 +53,9 @@ public:
 
 class ITEDecisionStrategy : public DecisionStrategy {
 public:
-  ITEDecisionStrategy(DecisionEngine* de, context::Context *c) :
-    DecisionStrategy(de, c) {
+ ITEDecisionStrategy(DecisionEngineOld* de, context::Context* c)
+     : DecisionStrategy(de, c)
+ {
   }
   /**
    * Add that assertion is an (input) assertion, not corresponding to a
@@ -65,7 +69,7 @@ public:
   virtual void addSkolemDefinition(TNode lem, TNode skolem) = 0;
 };/* class ITEDecisionStrategy */
 
-}/* CVC4::decision namespace */
-}/* CVC4 namespace */
+}  // namespace decision
+}  // namespace cvc5
 
-#endif /* CVC4__DECISION__DECISION_STRATEGY_H */
+#endif /* CVC5__DECISION__DECISION_STRATEGY_H */

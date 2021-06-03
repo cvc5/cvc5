@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # get-authors
-# Copyright (c) 2009-2020  The CVC4 Project
+# Copyright (c) 2009-2021  The cvc5 Project
 #
 # usage: get-authors [ files... ]
 #
@@ -17,7 +17,7 @@ while [ $# -gt 0 ]; do
   then
     header_lines=0
   else
-    header_lines=$(grep "\*\*\/" "$f" -m 1 -n | cut -d ':' -f 1)
+    header_lines=$(grep "^ \*\/" "$f" -m 1 -n | cut -d ':' -f 1)
     if [ -z $header_lines ]; then
       header_lines=$(grep "^##$" "$f" -m 3 -n | tail -n 1 | cut -d ':' -f 1)
       [ -z "$header_lines" ] && header_lines=0;

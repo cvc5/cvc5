@@ -1,19 +1,21 @@
-/*********************                                                        */
-/*! \file sequence.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the sequence data type.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the sequence data type.
+ */
 
 #include "expr/sequence.h"
 
+#include <limits>
 #include <sstream>
 #include <vector>
 
@@ -22,7 +24,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 Sequence::Sequence(const TypeNode& t, const std::vector<Node>& s)
     : d_type(new TypeNode(t)), d_seq(s)
@@ -373,9 +375,9 @@ size_t SequenceHashFunction::operator()(const Sequence& s) const
   const std::vector<Node>& vec = s.getVec();
   for (const Node& n : vec)
   {
-    ret = fnv1a::fnv1a_64(ret, NodeHashFunction()(n));
+    ret = fnv1a::fnv1a_64(ret, std::hash<Node>()(n));
   }
   return ret;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

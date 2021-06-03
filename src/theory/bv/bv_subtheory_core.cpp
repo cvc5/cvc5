@@ -1,21 +1,21 @@
-/*********************                                                        */
-/*! \file bv_subtheory_core.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Liana Hadarean, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Algebraic solver.
- **
- ** Algebraic solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Liana Hadarean, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Algebraic solver.
+ */
 
 #include "theory/bv/bv_subtheory_core.h"
 
+#include "expr/skolem_manager.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
@@ -23,13 +23,14 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ext_theory.h"
 #include "theory/theory_model.h"
+#include "util/rational.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
-using namespace CVC4::theory::bv::utils;
+using namespace cvc5;
+using namespace cvc5::context;
+using namespace cvc5::theory;
+using namespace cvc5::theory::bv;
+using namespace cvc5::theory::bv::utils;
 
 bool CoreSolverExtTheoryCallback::getCurrentSubstitution(
     int effort,
@@ -136,7 +137,7 @@ void CoreSolver::finishInit()
   //    d_equalityEngine->addFunctionKind(kind::BITVECTOR_XNOR);
   //    d_equalityEngine->addFunctionKind(kind::BITVECTOR_COMP);
   d_equalityEngine->addFunctionKind(kind::BITVECTOR_MULT, true);
-  d_equalityEngine->addFunctionKind(kind::BITVECTOR_PLUS, true);
+  d_equalityEngine->addFunctionKind(kind::BITVECTOR_ADD, true);
   d_equalityEngine->addFunctionKind(kind::BITVECTOR_EXTRACT, true);
   //    d_equalityEngine->addFunctionKind(kind::BITVECTOR_SUB);
   //    d_equalityEngine->addFunctionKind(kind::BITVECTOR_NEG);
@@ -188,7 +189,7 @@ void CoreSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
 bool CoreSolver::check(Theory::Effort e) {
   Trace("bitvector::core") << "CoreSolver::check \n";
 
-  d_bv->d_im.spendResource(ResourceManager::Resource::TheoryCheckStep);
+  d_bv->d_im.spendResource(Resource::TheoryCheckStep);
 
   d_checkCalled = true;
   Assert(!d_bv->inConflict());
@@ -484,12 +485,9 @@ void CoreSolver::addTermToEqualityEngine(TNode node)
 }
 
 CoreSolver::Statistics::Statistics()
-  : d_numCallstoCheck("theory::bv::CoreSolver::NumCallsToCheck", 0)
+    : d_numCallstoCheck(smtStatisticsRegistry().registerInt(
+        "theory::bv::CoreSolver::NumCallsToCheck"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
-}
-CoreSolver::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
 }
 
 void CoreSolver::checkExtf(Theory::Effort e)
@@ -537,6 +535,7 @@ bool CoreSolver::needsCheckLastEffort() const { return d_needsLastCallCheck; }
 bool CoreSolver::doExtfInferences(std::vector<Node>& terms)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   bool sentLemma = false;
   eq::EqualityEngine* ee = d_equalityEngine;
   std::map<Node, Node> op_map;
@@ -592,7 +591,7 @@ bool CoreSolver::doExtfInferences(std::vector<Node>& terms)
             // congruent modulo 2^( bv width )
             unsigned bvs = n.getType().getBitVectorSize();
             Node coeff = nm->mkConst(Rational(Integer(1).multiplyByPow2(bvs)));
-            Node k = nm->mkSkolem(
+            Node k = sm->mkDummySkolem(
                 "int_bv_cong", t.getType(), "for int2bv/bv2nat congruence");
             t = nm->mkNode(kind::PLUS, t, nm->mkNode(kind::MULT, coeff, k));
           }

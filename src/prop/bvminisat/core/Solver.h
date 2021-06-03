@@ -33,7 +33,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/bvminisat/utils/Options.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace BVMinisat {
 class Solver;
@@ -59,8 +59,8 @@ public:
    */
   virtual void notify(vec<Lit>& learnt) = 0;
 
-  virtual void spendResource(ResourceManager::Resource r) = 0;
-  virtual void safePoint(ResourceManager::Resource r) = 0;
+  virtual void spendResource(Resource r) = 0;
+  virtual void safePoint(Resource r) = 0;
 };
 
 //=================================================================================================
@@ -79,8 +79,8 @@ private:
     /** To notify */
     Notify* d_notify;
 
-    /** Cvc4 context */
-    CVC4::context::Context* c;
+    /** cvc5 context */
+    cvc5::context::Context* c;
 
     /** True constant */
     Var varTrue;
@@ -92,138 +92,175 @@ public:
 
     // Constructor/Destructor:
     //
-    Solver(CVC4::context::Context* c);
-    virtual ~Solver();
+ Solver(cvc5::context::Context* c);
+ virtual ~Solver();
 
-    void setNotify(Notify* toNotify);
+ void setNotify(Notify* toNotify);
 
-    // Problem specification:
-    //
-    Var     newVar    (bool polarity = true, bool dvar = true); // Add a new variable with parameters specifying variable mode.
-    Var     trueVar() const { return varTrue; }
-    Var     falseVar() const { return varFalse; }
+ // Problem specification:
+ //
+ Var newVar(bool polarity = true,
+            bool dvar = true);  // Add a new variable with parameters specifying
+                                // variable mode.
+ Var trueVar() const { return varTrue; }
+ Var falseVar() const { return varFalse; }
 
-    bool addClause(const vec<Lit>& ps,
-                   ClauseId& id);  // Add a clause to the solver.
-    bool    addEmptyClause();                                   // Add the empty clause, making the solver contradictory.
-    bool addClause(Lit p, ClauseId& id);  // Add a unit clause to the solver.
-    bool addClause(Lit p,
-                   Lit q,
-                   ClauseId& id);  // Add a binary clause to the solver.
-    bool addClause(Lit p,
-                   Lit q,
-                   Lit r,
-                   ClauseId& id);  // Add a ternary clause to the solver.
-    bool    addClause_(      vec<Lit>& ps, ClauseId& id);                     // Add a clause to the solver without making superflous internal copy. Will
-                                                                // change the passed vector 'ps'.
+ bool addClause(const vec<Lit>& ps,
+                ClauseId& id);  // Add a clause to the solver.
+ bool addEmptyClause();         // Add the empty clause, making the solver
+                                // contradictory.
+ bool addClause(Lit p, ClauseId& id);  // Add a unit clause to the solver.
+ bool addClause(Lit p,
+                Lit q,
+                ClauseId& id);  // Add a binary clause to the solver.
+ bool addClause(Lit p,
+                Lit q,
+                Lit r,
+                ClauseId& id);  // Add a ternary clause to the solver.
+ bool addClause_(
+     vec<Lit>& ps,
+     ClauseId& id);  // Add a clause to the solver without making superflous
+                     // internal copy. Will change the passed vector 'ps'.
 
-    // Solving:
-    //
-    bool    simplify     ();                        // Removes already satisfied clauses.
-    lbool    solve        (const vec<Lit>& assumps); // Search for a model that respects a given set of assumptions.
-    lbool   solveLimited (const vec<Lit>& assumps); // Search for a model that respects a given set of assumptions (With resource constraints).
-    lbool    solve        ();                        // Search without assumptions.
-    lbool    solve        (Lit p);                   // Search for a model that respects a single assumption.
-    lbool    solve        (Lit p, Lit q);            // Search for a model that respects two assumptions.
-    lbool    solve        (Lit p, Lit q, Lit r);     // Search for a model that respects three assumptions.
-    bool    okay         () const;                  // FALSE means solver is in a conflicting state
-    lbool   assertAssumption(Lit p, bool propagate);  // Assert a new assumption, start BCP if propagate = true
-    lbool   propagateAssumptions();                   // Do BCP over asserted assumptions
-    void    popAssumption();                          // Pop an assumption
+ // Solving:
+ //
+ bool simplify();                       // Removes already satisfied clauses.
+ lbool solve(const vec<Lit>& assumps);  // Search for a model that respects a
+                                        // given set of assumptions.
+ lbool solveLimited(
+     const vec<Lit>& assumps);  // Search for a model that respects a given set
+                                // of assumptions (With resource constraints).
+ lbool solve();                 // Search without assumptions.
+ lbool solve(Lit p);  // Search for a model that respects a single assumption.
+ lbool solve(Lit p,
+             Lit q);  // Search for a model that respects two assumptions.
+ lbool solve(Lit p,
+             Lit q,
+             Lit r);  // Search for a model that respects three assumptions.
+ bool okay() const;   // FALSE means solver is in a conflicting state
+ lbool assertAssumption(
+     Lit p,
+     bool propagate);  // Assert a new assumption, start BCP if propagate = true
+ lbool propagateAssumptions();  // Do BCP over asserted assumptions
+ void popAssumption();          // Pop an assumption
 
-    void    toDimacs     (FILE* f, const vec<Lit>& assumps);            // Write CNF to file in DIMACS-format.
-    void    toDimacs     (const char *file, const vec<Lit>& assumps);
-    void    toDimacs     (FILE* f, Clause& c, vec<Var>& map, Var& max);
+ void toDimacs(FILE* f,
+               const vec<Lit>& assumps);  // Write CNF to file in DIMACS-format.
+ void toDimacs(const char* file, const vec<Lit>& assumps);
+ void toDimacs(FILE* f, Clause& c, vec<Var>& map, Var& max);
 
-    // Convenience versions of 'toDimacs()':
-    void    toDimacs     (const char* file);
-    void    toDimacs     (const char* file, Lit p);
-    void    toDimacs     (const char* file, Lit p, Lit q);
-    void    toDimacs     (const char* file, Lit p, Lit q, Lit r);
+ // Convenience versions of 'toDimacs()':
+ void toDimacs(const char* file);
+ void toDimacs(const char* file, Lit p);
+ void toDimacs(const char* file, Lit p, Lit q);
+ void toDimacs(const char* file, Lit p, Lit q, Lit r);
 
-    // Variable mode:
-    //
-    void    setPolarity    (Var v, bool b); // Declare which polarity the decision heuristic should use for a variable. Requires mode 'polarity_user'.
-    void    setDecisionVar (Var v, bool b); // Declare if a variable should be eligible for selection in the decision heuristic.
+ // Variable mode:
+ //
+ void setPolarity(
+     Var v, bool b);  // Declare which polarity the decision heuristic should
+                      // use for a variable. Requires mode 'polarity_user'.
+ void setDecisionVar(Var v,
+                     bool b);  // Declare if a variable should be eligible for
+                               // selection in the decision heuristic.
 
-    // Read state:
-    //
-    lbool   value      (Var x) const;       // The current value of a variable.
-    lbool   value      (Lit p) const;       // The current value of a literal.
-    lbool   modelValue (Var x) const;       // The value of a variable in the last model. The last call to solve must have been satisfiable.
-    lbool   modelValue (Lit p) const;       // The value of a literal in the last model. The last call to solve must have been satisfiable.
-    int     nAssigns   ()      const;       // The current number of assigned literals.
-    int     nClauses   ()      const;       // The current number of original clauses.
-    int     nLearnts   ()      const;       // The current number of learnt clauses.
-    int     nVars      ()      const;       // The current number of variables.
-    int     nFreeVars  ()      const;
+ // Read state:
+ //
+ lbool value(Var x) const;  // The current value of a variable.
+ lbool value(Lit p) const;  // The current value of a literal.
+ lbool modelValue(
+     Var x) const;  // The value of a variable in the last model. The last call
+                    // to solve must have been satisfiable.
+ lbool modelValue(
+     Lit p) const;  // The value of a literal in the last model. The last call
+                    // to solve must have been satisfiable.
+ int nAssigns() const;  // The current number of assigned literals.
+ int nClauses() const;  // The current number of original clauses.
+ int nLearnts() const;  // The current number of learnt clauses.
+ int nVars() const;     // The current number of variables.
+ int nFreeVars() const;
 
-    // Resource contraints:
-    //
-    void    setConfBudget(int64_t x);
-    void    setPropBudget(int64_t x);
-    void    budgetOff();
-    void    interrupt();          // Trigger a (potentially asynchronous) interruption of the solver.
-    void    clearInterrupt();     // Clear interrupt indicator flag.
+ // Resource contraints:
+ //
+ void setConfBudget(int64_t x);
+ void setPropBudget(int64_t x);
+ void budgetOff();
+ void interrupt();  // Trigger a (potentially asynchronous) interruption of the
+                    // solver.
+ void clearInterrupt();  // Clear interrupt indicator flag.
 
-    // Memory managment:
-    //
-    virtual void garbageCollect();
-    void    checkGarbage(double gf);
-    void    checkGarbage();
+ // Memory managment:
+ //
+ virtual void garbageCollect();
+ void checkGarbage(double gf);
+ void checkGarbage();
 
-    // Extra results: (read-only member variable)
-    //
-    vec<lbool> model;             // If problem is satisfiable, this vector contains the model (if any).
-    vec<Lit>   conflict;          // If problem is unsatisfiable (possibly under assumptions),
-                                  // this vector represent the final conflict clause expressed in the assumptions.
+ // Extra results: (read-only member variable)
+ //
+ vec<lbool> model;  // If problem is satisfiable, this vector contains the model
+                    // (if any).
+ vec<Lit> conflict;  // If problem is unsatisfiable (possibly under
+                     // assumptions), this vector represent the final conflict
+                     // clause expressed in the assumptions.
 
-    // Mode of operation:
-    //
-    int       verbosity;
-    double    var_decay;
-    double    clause_decay;
-    double    random_var_freq;
-    double    random_seed;
-    bool      luby_restart;
-    int       ccmin_mode;         // Controls conflict clause minimization (0=none, 1=basic, 2=deep).
-    int       phase_saving;       // Controls the level of phase saving (0=none, 1=limited, 2=full).
-    bool      rnd_pol;            // Use random polarities for branching heuristics.
-    bool      rnd_init_act;       // Initialize variable activities with a small random value.
-    double    garbage_frac;       // The fraction of wasted memory allowed before a garbage collection is triggered.
+ // Mode of operation:
+ //
+ int verbosity;
+ double var_decay;
+ double clause_decay;
+ double random_var_freq;
+ double random_seed;
+ bool luby_restart;
+ int ccmin_mode;    // Controls conflict clause minimization (0=none, 1=basic,
+                    // 2=deep).
+ int phase_saving;  // Controls the level of phase saving (0=none, 1=limited,
+                    // 2=full).
+ bool rnd_pol;      // Use random polarities for branching heuristics.
+ bool
+     rnd_init_act;  // Initialize variable activities with a small random value.
+ double garbage_frac;  // The fraction of wasted memory allowed before a garbage
+                       // collection is triggered.
 
-    int       restart_first;      // The initial restart limit.                                                                (default 100)
-    double    restart_inc;        // The factor with which the restart limit is multiplied in each restart.                    (default 1.5)
-    double    learntsize_factor;  // The intitial limit for learnt clauses is a factor of the original clauses.                (default 1 / 3)
-    double    learntsize_inc;     // The limit for learnt clauses is multiplied with this factor each restart.                 (default 1.1)
+ int restart_first;   // The initial restart limit. (default 100)
+ double restart_inc;  // The factor with which the restart limit is multiplied
+                      // in each restart.                    (default 1.5)
+ double
+     learntsize_factor;  // The intitial limit for learnt clauses is a factor of
+                         // the original clauses.                (default 1 / 3)
+ double learntsize_inc;  // The limit for learnt clauses is multiplied with this
+                         // factor each restart.                 (default 1.1)
 
-    int       learntsize_adjust_start_confl;
-    double    learntsize_adjust_inc;
+ int learntsize_adjust_start_confl;
+ double learntsize_adjust_inc;
 
-    // Statistics: (read-only member variable)
-    //
-    uint64_t solves, starts, decisions, rnd_decisions, propagations, conflicts;
-    uint64_t dec_vars, clauses_literals, learnts_literals, max_literals, tot_literals;
+ // Statistics: (read-only member variable)
+ //
+ int64_t solves, starts, decisions, rnd_decisions, propagations, conflicts;
+ int64_t dec_vars, clauses_literals, learnts_literals, max_literals,
+     tot_literals;
 
-    // Bitvector Propagations
-    //
+ // Bitvector Propagations
+ //
 
-    void addMarkerLiteral(Var var);
+ void addMarkerLiteral(Var var);
 
-    bool need_to_propagate;  // true if we added new clauses, set to true in
-                             // propagation
-    bool only_bcp;                      // solving mode in which only boolean constraint propagation is done
-    void setOnlyBCP (bool val) { only_bcp = val;}
-    void explain(Lit l, std::vector<Lit>& explanation);
+ bool need_to_propagate;  // true if we added new clauses, set to true in
+                          // propagation
+ bool only_bcp;  // solving mode in which only boolean constraint propagation is
+                 // done
+ void setOnlyBCP(bool val) { only_bcp = val; }
+ void explain(Lit l, std::vector<Lit>& explanation);
 
-   protected:
+protected:
+ // has a clause been added
+ bool clause_added;
 
-    // has a clause been added
-    bool                clause_added;
-
-    // Helper structures:
-    //
-    struct VarData { CRef reason; int level; };
+ // Helper structures:
+ //
+ struct VarData
+ {
+   CRef reason;
+   int level; };
     static inline VarData mkVarData(CRef cr, int l){ VarData d = {cr, l}; return d; }
 
     struct Watcher {
@@ -342,7 +379,7 @@ public:
     CRef     reason           (Var x) const;
     int      level            (Var x) const;
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
-    bool withinBudget(ResourceManager::Resource r) const;
+    bool withinBudget(Resource r) const;
 
     // Static helpers:
     //
@@ -496,8 +533,7 @@ inline void     Solver::toDimacs     (const char* file, Lit p, Lit q, Lit r){ ve
 
 
 //=================================================================================================
-} /* CVC4::BVMinisat namespace */
-} /* CVC4 namespace */
-
+}  // namespace BVMinisat
+}  // namespace cvc5
 
 #endif

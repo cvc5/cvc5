@@ -1,25 +1,24 @@
-/*********************                                                        */
-/*! \file smt2_quote_string.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Andres Noetzli, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Quotes a string if necessary for smt2.
- **
- ** Quotes a string if necessary for smt2.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Andres Noetzli, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Quotes a string if necessary for smt2.
+ */
 
 #include "util/smt2_quote_string.h"
 
 #include <sstream>
 #include <string>
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * SMT-LIB 2 quoting for symbols
@@ -43,4 +42,4 @@ std::string quoteSymbol(const std::string& s){
   return s;
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

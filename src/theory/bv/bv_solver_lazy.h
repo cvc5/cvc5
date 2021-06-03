@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file bv_solver_lazy.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Lazy bit-vector solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Liana Hadarean, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Lazy bit-vector solver.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BV__BV_SOLVER_LAZY_H
-#define CVC4__THEORY__BV__BV_SOLVER_LAZY_H
+#ifndef CVC5__THEORY__BV__BV_SOLVER_LAZY_H
+#define CVC5__THEORY__BV__BV_SOLVER_LAZY_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -28,7 +29,7 @@
 #include "theory/bv/theory_bv.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -48,8 +49,8 @@ class BVSolverLazy : public BVSolver
   context::Context* d_context;
 
   /** Context dependent set of atoms we already propagated */
-  context::CDHashSet<Node, NodeHashFunction> d_alreadyPropagatedSet;
-  context::CDHashSet<Node, NodeHashFunction> d_sharedTermsSet;
+  context::CDHashSet<Node> d_alreadyPropagatedSet;
+  context::CDHashSet<Node> d_sharedTermsSet;
 
   std::vector<std::unique_ptr<SubtheorySolver>> d_subtheories;
   std::unordered_map<SubTheory, SubtheorySolver*, std::hash<int>>
@@ -92,12 +93,9 @@ class BVSolverLazy : public BVSolver
 
   std::string identify() const override { return std::string("BVSolverLazy"); }
 
-  Theory::PPAssertStatus ppAssert(
-      TrustNode tin, TrustSubstitutionMap& outSubstitutions) override;
-
   TrustNode ppRewrite(TNode t) override;
 
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
+  void ppStaticLearn(TNode in, NodeBuilder& learned) override;
 
   void presolve() override;
 
@@ -111,26 +109,24 @@ class BVSolverLazy : public BVSolver
   {
    public:
     AverageStat d_avgConflictSize;
-    IntStat d_solveSubstitutions;
     TimerStat d_solveTimer;
     IntStat d_numCallsToCheckFullEffort;
     IntStat d_numCallsToCheckStandardEffort;
     TimerStat d_weightComputationTimer;
     IntStat d_numMultSlice;
     Statistics();
-    ~Statistics();
   };
 
   Statistics d_statistics;
 
   void check(Theory::Effort e);
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
-  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+  typedef std::unordered_set<TNode> TNodeSet;
+  typedef std::unordered_set<Node> NodeSet;
   NodeSet d_staticLearnCache;
 
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeToNode;
+  typedef std::unordered_map<Node, Node> NodeToNode;
 
   context::CDO<bool> d_lemmasAdded;
 
@@ -153,7 +149,7 @@ class BVSolverLazy : public BVSolver
    * Keeps a map from nodes to the subtheory that propagated it so that we can
    * explain it properly.
    */
-  typedef context::CDHashMap<Node, SubTheory, NodeHashFunction> PropagatedMap;
+  typedef context::CDHashMap<Node, SubTheory> PropagatedMap;
   PropagatedMap d_propagatedBy;
 
   std::unique_ptr<EagerBitblastSolver> d_eagerSolver;
@@ -229,6 +225,6 @@ class BVSolverLazy : public BVSolver
 }  // namespace bv
 }  // namespace theory
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__BV_SOLVER_LAZY_H */
+#endif /* CVC5__THEORY__BV__BV_SOLVER_LAZY_H */

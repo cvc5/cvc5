@@ -1,27 +1,30 @@
-/*********************                                                        */
-/*! \file  term_tuple_enumerator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mikolas Janota
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of an enumeration of tuples of terms for the purpose
- *of quantifier instantiation.
- **/
-#ifndef CVC4__THEORY__QUANTIFIERS__TERM_TUPLE_ENUMERATOR_H
-#define CVC4__THEORY__QUANTIFIERS__TERM_TUPLE_ENUMERATOR_H
+/******************************************************************************
+ * Top contributors (to current version):
+ *   MikolasJanota, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of an enumeration of tuples of terms for the purpose
+ * of quantifier instantiation.
+ */
+#ifndef CVC5__THEORY__QUANTIFIERS__TERM_TUPLE_ENUMERATOR_H
+#define CVC5__THEORY__QUANTIFIERS__TERM_TUPLE_ENUMERATOR_H
+
 #include <vector>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
+class TermPools;
 class QuantifiersState;
 class TermDb;
 class RelevantDomain;
@@ -92,7 +95,11 @@ TermTupleEnumeratorInterface* mkTermTupleEnumerator(
 TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(
     Node q, const TermTupleEnumeratorEnv* env, RelevantDomain* rd);
 
+/** Make term pool enumerator */
+TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
+    Node q, const TermTupleEnumeratorEnv* env, TermPools* tp, Node p);
+
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 #endif /* TERM_TUPLE_ENUMERATOR_H_7640 */

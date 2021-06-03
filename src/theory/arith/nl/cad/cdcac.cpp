@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file cdcac.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements the CDCAC approach.
- **
- ** Implements the CDCAC approach as described in
- ** https://arxiv.org/pdf/2003.05633.pdf.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements the CDCAC approach as described in
+ * https://arxiv.org/pdf/2003.05633.pdf.
+ */
 
 #include "theory/arith/nl/cad/cdcac.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include "options/arith_options.h"
 #include "theory/arith/nl/cad/projections.h"
@@ -29,12 +28,12 @@ namespace std {
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
 {
-  CVC4::container_to_stream(os, v);
+  cvc5::container_to_stream(os, v);
   return os;
 }
 }  // namespace std
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -545,6 +544,6 @@ void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

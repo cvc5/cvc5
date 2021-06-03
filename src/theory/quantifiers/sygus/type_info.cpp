@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file type_info.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of sygus type info class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of sygus type info class.
+ */
 
 #include "theory/quantifiers/sygus/type_info.h"
 
@@ -22,14 +23,15 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/sygus/type_node_id_trie.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
 SygusTypeInfo::SygusTypeInfo()
     : d_hasIte(false),
+      d_hasBoolConnective(false),
       d_min_term_size(0),
       d_sym_cons_any_constant(-1),
       d_has_subterm_sym_cons(false)
@@ -149,11 +151,6 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     {
       d_kinds[builtinKind] = i;
       d_arg_kind[i] = builtinKind;
-      if (builtinKind == ITE)
-      {
-        // mark that this type has an ITE
-        d_hasIte = true;
-      }
     }
     // symbolic constructors
     if (sop.getAttribute(SygusAnyConstAttribute()))
@@ -178,6 +175,21 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
         << "Sygus datatype " << dt.getName()
         << " encodes terms that are not of type " << btn << std::endl;
     Trace("sygus-db") << "...done register Operator #" << i << std::endl;
+    Kind gk = g.getKind();
+    if (gk == ITE)
+    {
+      // mark that this type has an ITE
+      d_hasIte = true;
+      if (g.getType().isBoolean())
+      {
+        d_hasBoolConnective = true;
+      }
+    }
+    else if (gk == AND || gk == OR || gk == IMPLIES || gk == XOR
+             || (gk == EQUAL && g[0].getType().isBoolean()))
+    {
+      d_hasBoolConnective = true;
+    }
   }
   // compute minimum type depth information
   computeMinTypeDepthInternal(tn, 0);
@@ -374,6 +386,7 @@ int SygusTypeInfo::getOpConsNum(Node n) const
 
 bool SygusTypeInfo::hasKind(Kind k) const { return getKindConsNum(k) != -1; }
 bool SygusTypeInfo::hasIte() const { return d_hasIte; }
+bool SygusTypeInfo::hasBoolConnective() const { return d_hasBoolConnective; }
 bool SygusTypeInfo::hasConst(Node n) const { return getConstConsNum(n) != -1; }
 bool SygusTypeInfo::hasOp(Node n) const { return getOpConsNum(n) != -1; }
 
@@ -488,4 +501,4 @@ bool SygusTypeInfo::isSubclassVarTrivial() const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

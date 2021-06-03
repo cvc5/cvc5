@@ -1,34 +1,33 @@
-/*********************                                                        */
-/*! \file poly_conversion.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities for converting to and from LibPoly objects.
- **
- ** Utilities for converting to and from LibPoly objects.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for converting to and from LibPoly objects.
+ */
 
 #include "poly_conversion.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include "expr/node.h"
 #include "expr/node_manager_attributes.h"
 #include "theory/arith/bound_inference.h"
 #include "util/poly_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
 
-poly::Variable VariableMapper::operator()(const CVC4::Node& n)
+poly::Variable VariableMapper::operator()(const cvc5::Node& n)
 {
   auto it = mVarCVCpoly.find(n);
   if (it == mVarCVCpoly.end())
@@ -54,7 +53,7 @@ poly::Variable VariableMapper::operator()(const CVC4::Node& n)
   return it->second;
 }
 
-CVC4::Node VariableMapper::operator()(const poly::Variable& n)
+cvc5::Node VariableMapper::operator()(const poly::Variable& n)
 {
   auto it = mVarpolyCVC.find(n);
   Assert(it != mVarpolyCVC.end())
@@ -62,7 +61,7 @@ CVC4::Node VariableMapper::operator()(const poly::Variable& n)
   return it->second;
 }
 
-CVC4::Node as_cvc_upolynomial(const poly::UPolynomial& p, const CVC4::Node& var)
+cvc5::Node as_cvc_upolynomial(const poly::UPolynomial& p, const cvc5::Node& var)
 {
   Trace("poly::conversion")
       << "Converting " << p << " over " << var << std::endl;
@@ -87,9 +86,9 @@ CVC4::Node as_cvc_upolynomial(const poly::UPolynomial& p, const CVC4::Node& var)
   return res;
 }
 
-poly::UPolynomial as_poly_upolynomial_impl(const CVC4::Node& n,
+poly::UPolynomial as_poly_upolynomial_impl(const cvc5::Node& n,
                                            poly::Integer& denominator,
-                                           const CVC4::Node& var)
+                                           const cvc5::Node& var)
 {
   denominator = poly::Integer(1);
   if (n.isVar())
@@ -140,14 +139,14 @@ poly::UPolynomial as_poly_upolynomial_impl(const CVC4::Node& n,
   return poly::UPolynomial();
 }
 
-poly::UPolynomial as_poly_upolynomial(const CVC4::Node& n,
-                                      const CVC4::Node& var)
+poly::UPolynomial as_poly_upolynomial(const cvc5::Node& n,
+                                      const cvc5::Node& var)
 {
   poly::Integer denom;
   return as_poly_upolynomial_impl(n, denom, var);
 }
 
-poly::Polynomial as_poly_polynomial_impl(const CVC4::Node& n,
+poly::Polynomial as_poly_polynomial_impl(const cvc5::Node& n,
                                          poly::Integer& denominator,
                                          VariableMapper& vm)
 {
@@ -195,12 +194,12 @@ poly::Polynomial as_poly_polynomial_impl(const CVC4::Node& n,
   }
   return poly::Polynomial();
 }
-poly::Polynomial as_poly_polynomial(const CVC4::Node& n, VariableMapper& vm)
+poly::Polynomial as_poly_polynomial(const cvc5::Node& n, VariableMapper& vm)
 {
   poly::Integer denom;
   return as_poly_polynomial_impl(n, denom, vm);
 }
-poly::Polynomial as_poly_polynomial(const CVC4::Node& n,
+poly::Polynomial as_poly_polynomial(const cvc5::Node& n,
                                     VariableMapper& vm,
                                     poly::Rational& denominator)
 {
@@ -219,7 +218,7 @@ struct CollectMonomialData
 {
   CollectMonomialData(VariableMapper& v) : d_vm(v) {}
 
-  /** Mapper from poly variables to CVC4 variables */
+  /** Mapper from poly variables to cvc5 variables */
   VariableMapper& d_vm;
   /** Collections of the monomial terms */
   std::vector<Node> d_terms;
@@ -257,7 +256,7 @@ void collect_monomials(const lp_polynomial_context_t* ctx,
 }
 }  // namespace
 
-CVC4::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm)
+cvc5::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm)
 {
   CollectMonomialData cmd(vm);
   // Do the actual conversion
@@ -274,7 +273,7 @@ CVC4::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm)
   return cmd.d_nm->mkNode(Kind::PLUS, cmd.d_terms);
 }
 
-poly::SignCondition normalize_kind(CVC4::Kind kind,
+poly::SignCondition normalize_kind(cvc5::Kind kind,
                                    bool negated,
                                    poly::Polynomial& lhs)
 {
@@ -451,7 +450,7 @@ Node lower_bound_as_node(const Node& var,
       poly::get_upper(poly::get_isolating_interval(alg)));
   int sl = poly::sign_at(get_defining_polynomial(alg),
                          poly::get_lower(poly::get_isolating_interval(alg)));
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   int su = poly::sign_at(get_defining_polynomial(alg),
                          poly::get_upper(poly::get_isolating_interval(alg)));
   Assert(sl != 0 && su != 0 && sl != su);
@@ -507,7 +506,7 @@ Node upper_bound_as_node(const Node& var,
       poly::get_lower(poly::get_isolating_interval(alg)));
   Rational u = poly_utils::toRational(
       poly::get_upper(poly::get_isolating_interval(alg)));
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   int sl = poly::sign_at(get_defining_polynomial(alg),
                          poly::get_lower(poly::get_isolating_interval(alg)));
 #endif
@@ -803,6 +802,6 @@ poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

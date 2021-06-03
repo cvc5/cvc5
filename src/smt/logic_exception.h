@@ -1,32 +1,30 @@
-/*********************                                                        */
-/*! \file logic_exception.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An exception that is thrown when a feature is used outside
- ** the logic that CVC4 is currently using
- **
- ** \brief An exception that is thrown when a feature is used outside
- ** the logic that CVC4 is currently using (for example, a quantifier
- ** is used while running in a quantifier-free logic).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An exception that is thrown when a feature is used outside
+ * the logic that cvc5 is currently using (for example, a quantifier
+ * is used while running in a quantifier-free logic).
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__SMT__LOGIC_EXCEPTION_H
-#define CVC4__SMT__LOGIC_EXCEPTION_H
+#ifndef CVC5__SMT__LOGIC_EXCEPTION_H
+#define CVC5__SMT__LOGIC_EXCEPTION_H
 
 #include "base/exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
-class LogicException : public CVC4::Exception
+class LogicException : public cvc5::Exception
 {
  public:
   LogicException() :
@@ -43,6 +41,6 @@ class LogicException : public CVC4::Exception
   }
 }; /* class LogicException */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__SMT__LOGIC_EXCEPTION_H */
+#endif /* CVC5__SMT__LOGIC_EXCEPTION_H */

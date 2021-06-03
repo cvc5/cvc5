@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file inst_strategy_enumerative.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of an enumerative instantiation strategy.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, MikolasJanota, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of an enumerative instantiation strategy.
+ */
 
 #include "theory/quantifiers/inst_strategy_enumerative.h"
 
@@ -21,20 +22,19 @@
 #include "theory/quantifiers/term_tuple_enumerator.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe,
-                                   QuantifiersState& qs,
+InstStrategyEnum::InstStrategyEnum(QuantifiersState& qs,
                                    QuantifiersInferenceManager& qim,
                                    QuantifiersRegistry& qr,
                                    TermRegistry& tr,
                                    RelevantDomain* rd)
-    : QuantifiersModule(qs, qim, qr, tr, qe), d_rd(rd), d_fullSaturateLimit(-1)
+    : QuantifiersModule(qs, qim, qr, tr), d_rd(rd), d_fullSaturateLimit(-1)
 {
 }
 void InstStrategyEnum::presolve()
@@ -221,4 +221,4 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

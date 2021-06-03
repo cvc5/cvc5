@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file arith_static_learner.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Dejan Jovanovic, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include <vector>
 
@@ -27,9 +28,9 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -44,21 +45,16 @@ ArithStaticLearner::ArithStaticLearner(context::Context* userContext) :
 ArithStaticLearner::~ArithStaticLearner(){
 }
 
-ArithStaticLearner::Statistics::Statistics():
-  d_iteMinMaxApplications("theory::arith::iteMinMaxApplications", 0),
-  d_iteConstantApplications("theory::arith::iteConstantApplications", 0)
+ArithStaticLearner::Statistics::Statistics()
+    : d_iteMinMaxApplications(smtStatisticsRegistry().registerInt(
+        "theory::arith::iteMinMaxApplications")),
+      d_iteConstantApplications(smtStatisticsRegistry().registerInt(
+          "theory::arith::iteConstantApplications"))
 {
-  smtStatisticsRegistry()->registerStat(&d_iteMinMaxApplications);
-  smtStatisticsRegistry()->registerStat(&d_iteConstantApplications);
 }
 
-ArithStaticLearner::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_iteMinMaxApplications);
-  smtStatisticsRegistry()->unregisterStat(&d_iteConstantApplications);
-}
-
-void ArithStaticLearner::staticLearning(TNode n, NodeBuilder<>& learned){
-
+void ArithStaticLearner::staticLearning(TNode n, NodeBuilder& learned)
+{
   vector<TNode> workList;
   workList.push_back(n);
   TNodeSet processed;
@@ -101,8 +97,10 @@ void ArithStaticLearner::staticLearning(TNode n, NodeBuilder<>& learned){
   }
 }
 
-
-void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet& defTrue){
+void ArithStaticLearner::process(TNode n,
+                                 NodeBuilder& learned,
+                                 const TNodeSet& defTrue)
+{
   Debug("arith::static") << "===================== looking at " << n << endl;
 
   switch(n.getKind()){
@@ -136,7 +134,8 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
   }
 }
 
-void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder<>& learned){
+void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder& learned)
+{
   Assert(n.getKind() == kind::ITE);
   Assert(n[0].getKind() != EQUAL);
   Assert(isRelationOperator(n[0].getKind()));
@@ -167,8 +166,8 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder<>& learned){
     switch(k){
     case LT:   // (ite (< x y) x y)
     case LEQ: { // (ite (<= x y) x y)
-      Node nLeqX = NodeBuilder<2>(LEQ) << n << t;
-      Node nLeqY = NodeBuilder<2>(LEQ) << n << e;
+      Node nLeqX = NodeBuilder(LEQ) << n << t;
+      Node nLeqY = NodeBuilder(LEQ) << n << e;
       Debug("arith::static") << n << "is a min =>"  << nLeqX << nLeqY << endl;
       learned << nLeqX << nLeqY;
       ++(d_statistics.d_iteMinMaxApplications);
@@ -176,8 +175,8 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder<>& learned){
     }
     case GT: // (ite (> x y) x y)
     case GEQ: { // (ite (>= x y) x y)
-      Node nGeqX = NodeBuilder<2>(GEQ) << n << t;
-      Node nGeqY = NodeBuilder<2>(GEQ) << n << e;
+      Node nGeqX = NodeBuilder(GEQ) << n << t;
+      Node nGeqY = NodeBuilder(GEQ) << n << e;
       Debug("arith::static") << n << "is a max =>"  << nGeqX << nGeqY << endl;
       learned << nGeqX << nGeqY;
       ++(d_statistics.d_iteMinMaxApplications);
@@ -188,7 +187,8 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder<>& learned){
   }
 }
 
-void ArithStaticLearner::iteConstant(TNode n, NodeBuilder<>& learned){
+void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
+{
   Assert(n.getKind() == ITE);
 
   Debug("arith::static") << "iteConstant(" << n << ")" << endl;
@@ -202,9 +202,11 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder<>& learned){
       d_minMap.insert(n, min);
       Node nGeqMin;
       if (min.getInfinitesimalPart() == 0) {
-        nGeqMin = NodeBuilder<2>(kind::GEQ) << n << mkRationalNode(min.getNoninfinitesimalPart());
+        nGeqMin = NodeBuilder(kind::GEQ)
+                  << n << mkRationalNode(min.getNoninfinitesimalPart());
       } else {
-        nGeqMin = NodeBuilder<2>(kind::GT) << n << mkRationalNode(min.getNoninfinitesimalPart());
+        nGeqMin = NodeBuilder(kind::GT)
+                  << n << mkRationalNode(min.getNoninfinitesimalPart());
       }
       learned << nGeqMin;
       Debug("arith::static") << n << " iteConstant"  << nGeqMin << endl;
@@ -221,9 +223,11 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder<>& learned){
       d_maxMap.insert(n, max);
       Node nLeqMax;
       if (max.getInfinitesimalPart() == 0) {
-        nLeqMax = NodeBuilder<2>(kind::LEQ) << n << mkRationalNode(max.getNoninfinitesimalPart());
+        nLeqMax = NodeBuilder(kind::LEQ)
+                  << n << mkRationalNode(max.getNoninfinitesimalPart());
       } else {
-        nLeqMax = NodeBuilder<2>(kind::LT) << n << mkRationalNode(max.getNoninfinitesimalPart());
+        nLeqMax = NodeBuilder(kind::LT)
+                  << n << mkRationalNode(max.getNoninfinitesimalPart());
       }
       learned << nLeqMax;
       Debug("arith::static") << n << " iteConstant"  << nLeqMax << endl;
@@ -251,7 +255,7 @@ void ArithStaticLearner::addBound(TNode n) {
   DeltaRational bound = constant;
 
   switch(Kind k = n.getKind()) {
-    case kind::LT: bound = DeltaRational(constant, -1); CVC4_FALLTHROUGH;
+    case kind::LT: bound = DeltaRational(constant, -1); CVC5_FALLTHROUGH;
     case kind::LEQ:
       if (maxFind == d_maxMap.end() || (*maxFind).second > bound)
       {
@@ -259,7 +263,7 @@ void ArithStaticLearner::addBound(TNode n) {
         Debug("arith::static") << "adding bound " << n << endl;
       }
       break;
-    case kind::GT: bound = DeltaRational(constant, 1); CVC4_FALLTHROUGH;
+    case kind::GT: bound = DeltaRational(constant, 1); CVC5_FALLTHROUGH;
     case kind::GEQ:
       if (minFind == d_minMap.end() || (*minFind).second < bound)
       {
@@ -271,6 +275,6 @@ void ArithStaticLearner::addBound(TNode n) {
   }
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

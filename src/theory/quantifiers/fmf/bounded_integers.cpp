@@ -1,23 +1,25 @@
-/*********************                                                        */
-/*! \file bounded_integers.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bounded integers module
- **
- ** This class manages integer bounds for quantifiers
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bounded integers module
+ *
+ * This class manages integer bounds for quantifiers.
+ */
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
 
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -26,13 +28,13 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/theory_engine.h"
+#include "theory/rewriter.h"
 
-using namespace CVC4;
+using namespace cvc5;
 using namespace std;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
-using namespace CVC4::kind;
+using namespace cvc5::theory;
+using namespace cvc5::theory::quantifiers;
+using namespace cvc5::kind;
 
 BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
     Node r,
@@ -43,7 +45,8 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
     : DecisionStrategyFmf(c, valuation), d_range(r), d_ranges_proxied(u)
 {
   if( options::fmfBoundLazy() ){
-    d_proxy_range = isProxy ? r : NodeManager::currentNM()->mkSkolem( "pbir", r.getType() );
+    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+    d_proxy_range = isProxy ? r : sm->mkDummySkolem("pbir", r.getType());
   }else{
     d_proxy_range = r;
   }
@@ -85,12 +88,11 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
   return lem;
 }
 
-BoundedIntegers::BoundedIntegers(QuantifiersEngine* qe,
-                                 QuantifiersState& qs,
+BoundedIntegers::BoundedIntegers(QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
                                  QuantifiersRegistry& qr,
                                  TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr, qe)
+    : QuantifiersModule(qs, qim, qr, tr)
 {
 }
 
@@ -296,7 +298,7 @@ void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
     {
       Trace("bound-int-lemma")
           << "*** bound int : proxy lemma : " << prangeLem << std::endl;
-      d_qim.addPendingLemma(prangeLem, InferenceId::UNKNOWN);
+      d_qim.addPendingLemma(prangeLem, InferenceId::QUANTIFIERS_BINT_PROXY);
       addedLemma = true;
     }
   }
@@ -316,6 +318,7 @@ void BoundedIntegers::checkOwnership(Node f)
   //this needs to be done at preregister since it affects e.g. QuantDSplit's preregister
   Trace("bound-int") << "check ownership quantifier " << f << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   bool success;
   do{
@@ -354,7 +357,7 @@ void BoundedIntegers::checkOwnership(Node f)
           // supported for finite element types #1123). Regardless, this is
           // typically not a limitation since this variable can be bound in a
           // standard way below since its type is finite.
-          if (!v.getType().isInterpretedFinite())
+          if (!d_qstate.isFiniteType(v.getType()))
           {
             setBoundedVar(f, v, BOUND_SET_MEMBER);
             setBoundVar = true;
@@ -414,7 +417,7 @@ void BoundedIntegers::checkOwnership(Node f)
       for( unsigned i=0; i<f[0].getNumChildren(); i++) {
         if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
           TypeNode tn = f[0][i].getType();
-          if ((tn.isSort() && tn.isInterpretedFinite())
+          if ((tn.isSort() && d_qstate.isFiniteType(tn))
               || d_qreg.getQuantifiersBoundInference().mayComplete(tn))
           {
             success = true;
@@ -485,8 +488,8 @@ void BoundedIntegers::checkOwnership(Node f)
         if (expr::hasBoundVar(r))
         {
           // introduce a new bound
-          Node new_range = NodeManager::currentNM()->mkSkolem(
-              "bir", r.getType(), "bound for term");
+          Node new_range =
+              sm->mkDummySkolem("bir", r.getType(), "bound for term");
           d_nground_range[f][v] = r;
           d_range[f][v] = new_range;
           r = new_range;
@@ -727,7 +730,7 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
       nn = nn.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
       Node lem = NodeManager::currentNM()->mkNode( LEQ, nn, d_range[q][v] );
       Trace("bound-int-lemma") << "*** Add lemma to minimize instantiated non-ground term " << lem << std::endl;
-      d_qim.lemma(lem, InferenceId::UNKNOWN);
+      d_qim.lemma(lem, InferenceId::QUANTIFIERS_BINT_MIN_NG);
     }
     return false;
   }else{

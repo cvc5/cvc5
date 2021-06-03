@@ -1,27 +1,26 @@
-/*********************                                                        */
-/*! \file smt2_printer.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Abdalrhman Mohamed, Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The pretty-printer interface for the SMT2 output language
- **
- ** The pretty-printer interface for the SMT2 output language.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Abdalrhman Mohamed, Andrew Reynolds, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The pretty-printer interface for the SMT2 output language.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PRINTER__SMT2_PRINTER_H
-#define CVC4__PRINTER__SMT2_PRINTER_H
+#ifndef CVC5__PRINTER__SMT2_PRINTER_H
+#define CVC5__PRINTER__SMT2_PRINTER_H
 
 #include "printer/printer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class LetBinding;
 
@@ -35,11 +34,11 @@ enum Variant
                    // support for the string standard
 };                 /* enum Variant */
 
-class Smt2Printer : public CVC4::Printer
+class Smt2Printer : public cvc5::Printer
 {
  public:
   Smt2Printer(Variant variant = no_variant) : d_variant(variant) {}
-  using CVC4::Printer::toStream;
+  using cvc5::Printer::toStream;
   void toStream(std::ostream& out,
                 TNode n,
                 int toDepth,
@@ -236,6 +235,8 @@ class Smt2Printer : public CVC4::Printer
                 TNode n,
                 int toDepth,
                 LetBinding* lbind = nullptr) const;
+  /** To stream type node, which ensures tn is printed in smt2 format */
+  void toStreamType(std::ostream& out, TypeNode tn) const;
   /**
    * To stream, with a forced type. This method is used in some corner cases
    * to force a node n to be printed as if it had type tn. This is used e.g.
@@ -275,6 +276,6 @@ class Smt2Printer : public CVC4::Printer
 
 }  // namespace smt2
 }  // namespace printer
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PRINTER__SMT2_PRINTER_H */
+#endif /* CVC5__PRINTER__SMT2_PRINTER_H */

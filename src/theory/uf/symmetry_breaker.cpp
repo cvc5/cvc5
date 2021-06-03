@@ -1,43 +1,41 @@
-/*********************                                                        */
-/*! \file symmetry_breaker.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Mathias Preiner, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of algorithm suggested by Deharbe, Fontaine,
- ** Merz, and Paleo, "Exploiting symmetry in SMT problems," CADE 2011
- **
- ** Implementation of algorithm suggested by Deharbe, Fontaine, Merz,
- ** and Paleo, "Exploiting symmetry in SMT problems," CADE 2011.
- **
- ** From the paper:
- **
- ** <pre>
- **   \f$ P := guess\_permutations(\phi) \f$
- **   foreach \f$ {c_0, ..., c_n} \in P \f$ do
- **     if \f$ invariant\_by\_permutations(\phi, {c_0, ..., c_n}) \f$ then
- **       T := \f$ select\_terms(\phi, {c_0, ..., c_n}) \f$
- **       cts := \f$ \emptyset \f$
- **       while T != \f$ \empty \wedge |cts| <= n \f$ do
- **         \f$ t := select\_most\_promising\_term(T, \phi) \f$
- **         \f$ T := T \setminus {t} \f$
- **         cts := cts \f$ \cup used\_in(t, {c_0, ..., c_n}) \f$
- **         let \f$ c \in {c_0, ..., c_n} \setminus cts \f$
- **         cts := cts \f$ \cup {c} \f$
- **         if cts != \f$ {c_0, ..., c_n} \f$ then
- **           \f$ \phi := \phi \wedge ( \vee_{c_i \in cts} t = c_i ) \f$
- **         end
- **       end
- **     end
- **   end
- **   return \f$ \phi \f$
- ** </pre>
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Mathias Preiner, Liana Hadarean
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of algorithm suggested by Deharbe, Fontaine, Merz,
+ * and Paleo, "Exploiting symmetry in SMT problems," CADE 2011.
+ *
+ * From the paper:
+ *
+ * <pre>
+ *   \f$ P := guess\_permutations(\phi) \f$
+ *   foreach \f$ {c_0, ..., c_n} \in P \f$ do
+ *     if \f$ invariant\_by\_permutations(\phi, {c_0, ..., c_n}) \f$ then
+ *       T := \f$ select\_terms(\phi, {c_0, ..., c_n}) \f$
+ *       cts := \f$ \emptyset \f$
+ *       while T != \f$ \empty \wedge |cts| <= n \f$ do
+ *         \f$ t := select\_most\_promising\_term(T, \phi) \f$
+ *         \f$ T := T \setminus {t} \f$
+ *         cts := cts \f$ \cup used\_in(t, {c_0, ..., c_n}) \f$
+ *         let \f$ c \in {c_0, ..., c_n} \setminus cts \f$
+ *         cts := cts \f$ \cup {c} \f$
+ *         if cts != \f$ {c_0, ..., c_n} \f$ then
+ *           \f$ \phi := \phi \wedge ( \vee_{c_i \in cts} t = c_i ) \f$
+ *         end
+ *       end
+ *     end
+ *   end
+ *   return \f$ \phi \f$
+ * </pre>
+ */
 
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/rewriter.h"
@@ -48,11 +46,11 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
-using namespace ::CVC4::context;
+using namespace ::cvc5::context;
 
 SymmetryBreaker::Template::Template() :
   d_template(),
@@ -61,7 +59,7 @@ SymmetryBreaker::Template::Template() :
 }
 
 TNode SymmetryBreaker::Template::find(TNode n) {
-  unordered_map<TNode, TNode, TNodeHashFunction>::iterator i = d_reps.find(n);
+  unordered_map<TNode, TNode>::iterator i = d_reps.find(n);
   if(i == d_reps.end()) {
     return n;
   } else {
@@ -166,21 +164,20 @@ void SymmetryBreaker::Template::reset() {
   d_reps.clear();
 }
 
-SymmetryBreaker::SymmetryBreaker(context::Context* context,
-                                 std::string name) :
-  ContextNotifyObj(context),
-  d_assertionsToRerun(context),
-  d_rerunningAssertions(false),
-  d_phi(),
-  d_phiSet(),
-  d_permutations(),
-  d_terms(),
-  d_template(),
-  d_normalizationCache(),
-  d_termEqs(),
-  d_termEqsOnly(),
-  d_name(name),
-  d_stats(d_name)
+SymmetryBreaker::SymmetryBreaker(context::Context* context, std::string name)
+    : ContextNotifyObj(context),
+      d_assertionsToRerun(context),
+      d_rerunningAssertions(false),
+      d_phi(),
+      d_phiSet(),
+      d_permutations(),
+      d_terms(),
+      d_template(),
+      d_normalizationCache(),
+      d_termEqs(),
+      d_termEqsOnly(),
+      d_name(name),
+      d_stats(d_name + "theory::uf::symmetry_breaker::")
 {
 }
 
@@ -370,7 +367,7 @@ Node SymmetryBreaker::normInternal(TNode n, size_t level) {
         Debug("ufsymm:eq") << "UFSYMM " << n[0] << " <==> " << n[1] << endl;
       }
     }
-    CVC4_FALLTHROUGH;
+    CVC5_FALLTHROUGH;
   case kind::XOR:
     // commutative binary operator handling
     return n[1] < n[0] ? NodeManager::currentNM()->mkNode(k, n[1], n[0]) : Node(n);
@@ -399,7 +396,7 @@ void SymmetryBreaker::assertFormula(TNode phi) {
         break;
       }
     }
-    unordered_map<TNode, set<TNode>, TNodeHashFunction>& ps = t.partitions();
+    unordered_map<TNode, set<TNode>>& ps = t.partitions();
     for (auto& kv : ps)
     {
       Debug("ufsymm") << "UFSYMM partition*: " << kv.first;
@@ -419,11 +416,12 @@ void SymmetryBreaker::assertFormula(TNode phi) {
   }
   if(!d_template.match(phi)) {
     // we hit a bad match, extract the partitions and reset the template
-    unordered_map<TNode, set<TNode>, TNodeHashFunction>& ps = d_template.partitions();
+    unordered_map<TNode, set<TNode>>& ps = d_template.partitions();
     Debug("ufsymm") << "UFSYMM hit a bad match---have " << ps.size() << " partitions:" << endl;
-    for(unordered_map<TNode, set<TNode>, TNodeHashFunction>::iterator i = ps.begin();
-        i != ps.end();
-        ++i) {
+    for (unordered_map<TNode, set<TNode>>::iterator i = ps.begin();
+         i != ps.end();
+         ++i)
+    {
       Debug("ufsymm") << "UFSYMM partition: " << (*i).first;
       set<TNode>& p = (*i).second;
       if(Debug.isOn("ufsymm")) {
@@ -438,7 +436,7 @@ void SymmetryBreaker::assertFormula(TNode phi) {
       d_permutations.insert(p);
     }
     d_template.reset();
-    bool good CVC4_UNUSED = d_template.match(phi);
+    bool good CVC5_UNUSED = d_template.match(phi);
     Assert(good);
   }
 }
@@ -525,7 +523,7 @@ void SymmetryBreaker::apply(std::vector<Node>& newClauses) {
           Debug("ufsymm") << "UFSYMM p == " << p << endl;
           if(i != p.end() || p.size() != cts.size()) {
             Debug("ufsymm") << "UFSYMM cts != p" << endl;
-            NodeBuilder<> disj(kind::OR);
+            NodeBuilder disj(kind::OR);
             NodeManager* nm = NodeManager::currentNM();
             for (const Node& nn : cts)
             {
@@ -752,33 +750,20 @@ void SymmetryBreaker::selectTerms(const Permutation& p) {
   }
 }
 
-SymmetryBreaker::Statistics::Statistics(std::string name)
-  : d_clauses(name + "theory::uf::symmetry_breaker::clauses", 0)
-  , d_units(name + "theory::uf::symmetry_breaker::units", 0)
-  , d_permutationSetsConsidered(name + "theory::uf::symmetry_breaker::permutationSetsConsidered", 0)
-  , d_permutationSetsInvariant(name + "theory::uf::symmetry_breaker::permutationSetsInvariant", 0)
-  , d_invariantByPermutationsTimer(name + "theory::uf::symmetry_breaker::timers::invariantByPermutations")
-  , d_selectTermsTimer(name + "theory::uf::symmetry_breaker::timers::selectTerms")
-  , d_initNormalizationTimer(name + "theory::uf::symmetry_breaker::timers::initNormalization")
+SymmetryBreaker::Statistics::Statistics(const std::string& name)
+    : d_clauses(smtStatisticsRegistry().registerInt(name + "clauses")),
+      d_units(smtStatisticsRegistry().registerInt(name + "units")),
+      d_permutationSetsConsidered(smtStatisticsRegistry().registerInt(
+          name + "permutationSetsConsidered")),
+      d_permutationSetsInvariant(smtStatisticsRegistry().registerInt(
+          name + "permutationSetsInvariant")),
+      d_invariantByPermutationsTimer(smtStatisticsRegistry().registerTimer(
+          name + "timers::invariantByPermutations")),
+      d_selectTermsTimer(
+          smtStatisticsRegistry().registerTimer(name + "timers::selectTerms")),
+      d_initNormalizationTimer(smtStatisticsRegistry().registerTimer(
+          name + "timers::initNormalization"))
 {
-  smtStatisticsRegistry()->registerStat(&d_clauses);
-  smtStatisticsRegistry()->registerStat(&d_units);
-  smtStatisticsRegistry()->registerStat(&d_permutationSetsConsidered);
-  smtStatisticsRegistry()->registerStat(&d_permutationSetsInvariant);
-  smtStatisticsRegistry()->registerStat(&d_invariantByPermutationsTimer);
-  smtStatisticsRegistry()->registerStat(&d_selectTermsTimer);
-  smtStatisticsRegistry()->registerStat(&d_initNormalizationTimer);
-}
-
-SymmetryBreaker::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_clauses);
-  smtStatisticsRegistry()->unregisterStat(&d_units);
-  smtStatisticsRegistry()->unregisterStat(&d_permutationSetsConsidered);
-  smtStatisticsRegistry()->unregisterStat(&d_permutationSetsInvariant);
-  smtStatisticsRegistry()->unregisterStat(&d_invariantByPermutationsTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_selectTermsTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_initNormalizationTimer);
 }
 
 SymmetryBreaker::Terms::iterator
@@ -800,8 +785,8 @@ void SymmetryBreaker::insertUsedIn(Term term, const Permutation& p, set<Node>& c
   }
 }
 
-}/* CVC4::theory::uf namespace */
-}/* CVC4::theory namespace */
+}  // namespace uf
+}  // namespace theory
 
 std::ostream& operator<<(std::ostream& out, const theory::uf::SymmetryBreaker::Permutation& p) {
   out << "{";
@@ -816,4 +801,4 @@ std::ostream& operator<<(std::ostream& out, const theory::uf::SymmetryBreaker::P
   return out;
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

@@ -1,36 +1,36 @@
-/*********************                                                        */
-/*! \file bounded_token_buffer.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An ANTLR3 bounded token stream.
- **
- ** An ANTLR3 bounded token stream. The stream has a bounded
- ** lookahead/behind k. Calling LT(i) with i > k or i < -k will raise
- ** an exception. Only use this factory if you *know* that the grammar
- ** has bounded lookahead (e.g., if you've set the k parameter in the
- ** parser.
- **
- ** NOTE: ANTLR3 puts "hidden" tokens into this buffer too, so
- ** pathological inputs can exceed the k token lookahead, even if
- ** your grammar really is LL(k). Be sure that irrelevant tokens
- ** are SKIP()'d and not "hidden".
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Christopher L. Conway, Mathias Preiner, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An ANTLR3 bounded token stream.
+ *
+ * The stream has a bounded lookahead/behind k. Calling LT(i) with i > k or
+ * i < k will raise an exception. Only use this factory if you *know* that the
+ * grammar has bounded lookahead (e.g., if you've set the k parameter in the
+ * parser.
+ *
+ * NOTE: ANTLR3 puts "hidden" tokens into this buffer too, so pathological
+ *       inputs can exceed the k token lookahead, even if your grammar really
+ *       is LL(k). Be sure that irrelevant tokens are SKIP()'d and not
+ *       "hidden".
+ */
 
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 
-#ifndef	CVC4__PARSER__BOUNDED_TOKEN_BUFFER_H
-#define	CVC4__PARSER__BOUNDED_TOKEN_BUFFER_H
+#ifndef CVC5__PARSER__BOUNDED_TOKEN_BUFFER_H
+#define CVC5__PARSER__BOUNDED_TOKEN_BUFFER_H
 
 #include <antlr3defs.h>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 #ifdef __cplusplus
@@ -58,7 +58,7 @@ BoundedTokenBufferFree(pBOUNDED_TOKEN_BUFFER buffer);
 }/* extern "C" */
 #endif
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
-#endif /* CVC4__PARSER__BOUNDED_TOKEN_BUFFER_H */
+#endif /* CVC5__PARSER__BOUNDED_TOKEN_BUFFER_H */

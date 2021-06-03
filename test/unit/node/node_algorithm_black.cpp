@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file node_algorithm_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Yoni Zohar, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of utility functions in node_algorithm.{h,cpp}
- **
- ** Black box testing of node_algorithm.{h,cpp}
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Yoni Zohar, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of node_algorithm.{h,cpp}
+ */
 
 #include <string>
 #include <vector>
@@ -22,10 +21,11 @@
 #include "expr/node_manager.h"
 #include "test_node.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "util/bitvector.h"
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace expr;
 using namespace kind;
@@ -39,9 +39,9 @@ class TestNodeBlackNodeAlgorithm : public TestNode
 TEST_F(TestNodeBlackNodeAlgorithm, get_symbols1)
 {
   // The only symbol in ~x (x is a boolean varible) should be x
-  Node x = d_nodeManager->mkSkolem("x", d_nodeManager->booleanType());
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
   Node n = d_nodeManager->mkNode(NOT, x);
-  std::unordered_set<Node, NodeHashFunction> syms;
+  std::unordered_set<Node> syms;
   getSymbols(n, syms);
   ASSERT_EQ(syms.size(), 1);
   ASSERT_NE(syms.find(x), syms.end());
@@ -53,8 +53,8 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_symbols2)
   // "var" is bound.
 
   // left conjunct
-  Node x = d_nodeManager->mkSkolem("x", d_nodeManager->integerType());
-  Node y = d_nodeManager->mkSkolem("y", d_nodeManager->integerType());
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->integerType());
+  Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->integerType());
   Node left = d_nodeManager->mkNode(EQUAL, x, y);
 
   // right conjunct
@@ -70,7 +70,7 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_symbols2)
   Node res = d_nodeManager->mkNode(AND, left, right);
 
   // symbols
-  std::unordered_set<Node, NodeHashFunction> syms;
+  std::unordered_set<Node> syms;
   getSymbols(res, syms);
 
   // assertions
@@ -83,16 +83,17 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_symbols2)
 TEST_F(TestNodeBlackNodeAlgorithm, get_operators_map)
 {
   // map to store result
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > result =
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >();
+  std::map<TypeNode, std::unordered_set<Node> > result =
+      std::map<TypeNode, std::unordered_set<Node> >();
 
   // create test formula
-  Node x = d_nodeManager->mkSkolem("x", d_nodeManager->integerType());
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->integerType());
   Node plus = d_nodeManager->mkNode(PLUS, x, x);
   Node mul = d_nodeManager->mkNode(MULT, x, x);
   Node eq1 = d_nodeManager->mkNode(EQUAL, plus, mul);
 
-  Node y = d_nodeManager->mkSkolem("y", d_nodeManager->mkBitVectorType(4));
+  Node y =
+      d_skolemManager->mkDummySkolem("y", d_nodeManager->mkBitVectorType(4));
   Node ext1 = theory::bv::utils::mkExtract(y, 1, 0);
   Node ext2 = theory::bv::utils::mkExtract(y, 3, 2);
   Node eq2 = d_nodeManager->mkNode(EQUAL, ext1, ext2);
@@ -143,10 +144,10 @@ TEST_F(TestNodeBlackNodeAlgorithm, match)
   Node two = d_nodeManager->mkConst(Rational(2));
 
   Node x = d_nodeManager->mkBoundVar(integer);
-  Node a = d_nodeManager->mkSkolem("a", integer);
+  Node a = d_skolemManager->mkDummySkolem("a", integer);
 
   Node n1 = d_nodeManager->mkNode(MULT, two, x);
-  std::unordered_map<Node, Node, NodeHashFunction> subs;
+  std::unordered_map<Node, Node> subs;
 
   // check reflexivity
   ASSERT_TRUE(match(n1, n1, subs));
@@ -199,4 +200,4 @@ TEST_F(TestNodeBlackNodeAlgorithm, match)
   ASSERT_EQ(subs[x], a);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

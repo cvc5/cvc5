@@ -1,39 +1,43 @@
-/*********************                                                        */
-/*! \file prop_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The PropEngine (propositional engine); main interface point
- ** between CVC4's SMT infrastructure and the SAT solver
- **
- ** The PropEngine (propositional engine); main interface point
- ** between CVC4's SMT infrastructure and the SAT solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The PropEngine (propositional engine).
+ *
+ * Main interface point between cvc5's SMT infrastructure and the SAT solver.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PROP_ENGINE_H
-#define CVC4__PROP_ENGINE_H
+#ifndef CVC5__PROP_ENGINE_H
+#define CVC5__PROP_ENGINE_H
 
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "proof/trust_node.h"
+#include "prop/skolem_def_manager.h"
 #include "theory/output_channel.h"
-#include "theory/trust_node.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
+class Env;
 class ResourceManager;
-class DecisionEngine;
 class OutputManager;
 class ProofNodeManager;
 class TheoryEngine;
+
+namespace decision {
+class DecisionEngine;
+}
 
 namespace prop {
 
@@ -53,10 +57,8 @@ class PropEngine
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(TheoryEngine*,
-             context::Context* satContext,
-             context::UserContext* userContext,
-             ResourceManager* rm,
+  PropEngine(TheoryEngine* te,
+             Env& env,
              OutputManager& outMgr,
              ProofNodeManager* pnm);
 
@@ -92,9 +94,9 @@ class PropEngine
    * @return The (REWRITE) trust node corresponding to rewritten node via
    * preprocessing.
    */
-  theory::TrustNode preprocess(TNode node,
-                               std::vector<theory::TrustNode>& ppLemmas,
-                               std::vector<Node>& ppSkolems);
+  TrustNode preprocess(TNode node,
+                       std::vector<TrustNode>& ppLemmas,
+                       std::vector<Node>& ppSkolems);
   /**
    * Remove term ITEs (and more generally, term formulas) from the given node.
    * Return the REWRITE trust node corresponding to rewriting node. New lemmas
@@ -108,37 +110,23 @@ class PropEngine
    * @return The (REWRITE) trust node corresponding to rewritten node via
    * preprocessing.
    */
-  theory::TrustNode removeItes(TNode node,
-                               std::vector<theory::TrustNode>& ppLemmas,
-                               std::vector<Node>& ppSkolems);
-  /**
-   * Notify preprocessed assertions. This method is called just before the
-   * assertions are asserted to this prop engine. This method notifies the
-   * theory engine of the given assertions. Notice this vector includes
-   * both the input formulas and the skolem definitions.
-   */
-  void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
+  TrustNode removeItes(TNode node,
+                       std::vector<TrustNode>& ppLemmas,
+                       std::vector<Node>& ppSkolems);
 
   /**
-   * Converts the given formula to CNF and assert the CNF to the SAT solver.
-   * The formula is asserted permanently for the current context. Note the
-   * formula should correspond to an input formula and not a lemma introduced
-   * by term formula removal (which instead should use the interface below).
-   * @param node the formula to assert
-   */
-  void assertFormula(TNode node);
-  /**
-   * Same as above, but node corresponds to the skolem definition of the given
-   * skolem.
-   * @param node the formula to assert
-   * @param skolem the skolem that this lemma defines.
+   * Converts the given formulas to CNF and assert the CNF to the SAT solver.
+   * These formulas are asserted permanently for the current context.
+   * Information about which assertions correspond to skolem definitions is
+   * contained in skolemMap.
    *
-   * For example, if k is introduced by ITE removal of (ite C x y), then node
-   * is the formula (ite C (= k x) (= k y)).  It is important to distinguish
-   * these kinds of lemmas from input assertions, as the justification decision
-   * heuristic treates them specially.
+   * @param assertions the formulas to assert
+   * @param skolemMap a map which says which skolem (if any) each assertion
+   * corresponds to. For example, if (ite C (= k a) (= k b)) is the i^th
+   * assertion, then skolemMap may contain the entry { i -> k }.
    */
-  void assertSkolemDefinition(TNode node, TNode skolem);
+  void assertInputFormulas(const std::vector<Node>& assertions,
+                           std::unordered_map<size_t, Node>& skolemMap);
 
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
@@ -148,7 +136,7 @@ class PropEngine
    * @param trn the trust node storing the formula to assert
    * @param p the properties of the lemma
    */
-  void assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p);
+  void assertLemma(TrustNode tlemma, theory::LemmaProperty p);
 
   /**
    * If ever n is decided upon, it must be in the given phase.  This
@@ -167,6 +155,22 @@ class PropEngine
    * returns true for both lit and the negation of lit.
    */
   bool isDecision(Node lit) const;
+
+  /**
+   * Return the current decision level of `lit`.
+   *
+   * @param lit: The node in question, must have an associated SAT literal.
+   * @return Decision level of the SAT variable of `lit` (phase is disregarded),
+   *         or -1 if `lit` has not been assigned yet.
+   */
+  int32_t getDecisionLevel(Node lit) const;
+
+  /**
+   * Return the user-context level when `lit` was introduced..
+   *
+   * @return User-context level or -1 if not yet introduced.
+   */
+  int32_t getIntroLevel(Node lit) const;
 
   /**
    * Checks the current context for satisfiability.
@@ -267,7 +271,7 @@ class PropEngine
    * Informs the ResourceManager that a resource has been spent.  If out of
    * resources, can throw an UnsafeInterruptException exception.
    */
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   /**
    * For debugging.  Return true if "expl" is a well-formed
@@ -297,6 +301,13 @@ class PropEngine
 
   /** Is proof enabled? */
   bool isProofEnabled() const;
+
+  /** Retrieve unsat core from SAT solver for assumption-based unsat cores. */
+  void getUnsatCore(std::vector<Node>& core);
+
+  /** Return the prop engine proof for assumption-based unsat cores. */
+  std::shared_ptr<ProofNode> getRefutation();
+
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();
@@ -310,7 +321,7 @@ class PropEngine
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic
    */
-  void assertTrustedLemmaInternal(theory::TrustNode trn, bool removable);
+  void assertTrustedLemmaInternal(TrustNode trn, bool removable);
   /**
    * Assert node as a formula to the CNF stream
    * @param node The formula to assert
@@ -331,8 +342,8 @@ class PropEngine
    * skolem definitions and skolems obtained from preprocessing it, and
    * removable is whether the lemma is removable.
    */
-  void assertLemmasInternal(theory::TrustNode trn,
-                            const std::vector<theory::TrustNode>& ppLemmas,
+  void assertLemmasInternal(TrustNode trn,
+                            const std::vector<TrustNode>& ppLemmas,
                             const std::vector<Node>& ppSkolems,
                             bool removable);
 
@@ -345,11 +356,14 @@ class PropEngine
   /** The theory engine we will be using */
   TheoryEngine* d_theoryEngine;
 
-  /** The decision engine we will be using */
-  std::unique_ptr<DecisionEngine> d_decisionEngine;
+  /** Reference to the environment */
+  Env& d_env;
 
-  /** The context */
-  context::Context* d_context;
+  /** The decision engine we will be using */
+  std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
+
+  /** The skolem definition manager */
+  std::unique_ptr<SkolemDefManager> d_skdm;
 
   /** SAT solver's proxy back to theories; kept around for dtor cleanup */
   TheoryProxy* d_theoryProxy;
@@ -373,14 +387,18 @@ class PropEngine
 
   /** Whether we were just interrupted (or not) */
   bool d_interrupted;
-  /** Pointer to resource manager for associated SmtEngine */
-  ResourceManager* d_resourceManager;
 
   /** Reference to the output manager of the smt engine */
   OutputManager& d_outMgr;
+
+  /**
+   * Stores assumptions added via assertInternal() if assumption-based unsat
+   * cores are enabled.
+   */
+  context::CDList<Node> d_assumptions;
 };
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PROP_ENGINE_H */
+#endif /* CVC5__PROP_ENGINE_H */

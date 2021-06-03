@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file term_database_sygus.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief term database sygus class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Term database sygus class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
-#define CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
+#define CVC5__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
 
 #include <unordered_set>
 
@@ -28,7 +29,7 @@
 #include "theory/quantifiers/sygus/type_info.h"
 #include "theory/quantifiers/term_database.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -284,8 +285,7 @@ class TermDbSygus {
    */
   Node evaluateWithUnfolding(Node n);
   /** same as above, but with a cache of visited nodes */
-  Node evaluateWithUnfolding(
-      Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited);
+  Node evaluateWithUnfolding(Node n, std::unordered_map<Node, Node>& visited);
   /** is evaluation point?
    *
    * Returns true if n is of the form eval( x, c1...cn ) for some variable x
@@ -465,8 +465,8 @@ class TermDbSygus {
 
 };
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__TERM_DATABASE_H */

@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file theory_model_builder.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Model class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__THEORY_MODEL_BUILDER_H
-#define CVC4__THEORY__THEORY_MODEL_BUILDER_H
+#ifndef CVC5__THEORY__THEORY_MODEL_BUILDER_H
+#define CVC5__THEORY__THEORY_MODEL_BUILDER_H
 
 #include <unordered_map>
 #include <unordered_set>
 
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -43,8 +44,8 @@ namespace theory {
  */
 class TheoryEngineModelBuilder
 {
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
-  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+  typedef std::unordered_map<Node, Node> NodeMap;
+  typedef std::unordered_set<Node> NodeSet;
 
  public:
   TheoryEngineModelBuilder();
@@ -163,10 +164,9 @@ class TheoryEngineModelBuilder
    * For example, if tn is (Array Int Bool) and type_list is empty,
    * then we append ( Int, Bool, (Array Int Bool) ) to type_list.
    */
-  void addToTypeList(
-      TypeNode tn,
-      std::vector<TypeNode>& type_list,
-      std::unordered_set<TypeNode, TypeNodeHashFunction>& visiting);
+  void addToTypeList(TypeNode tn,
+                     std::vector<TypeNode>& type_list,
+                     std::unordered_set<TypeNode>& visiting);
   /** assign function f based on the model m.
   * This construction is based on "table form". For example:
   * (f 0 1) = 1
@@ -298,9 +298,14 @@ class TheoryEngineModelBuilder
   bool isCdtValueMatch(Node v, Node r, Node eqc, Node& eqc_m);
   //------------------------------------end for codatatypes
 
+  /**
+   * Is the given type constrained to be finite? This depends on whether
+   * finite model finding is enabled.
+   */
+  bool isFiniteType(TypeNode tn) const;
   //---------------------------------for debugging finite model finding
   /** does type tn involve an uninterpreted sort? */
-  bool involvesUSort(TypeNode tn);
+  bool involvesUSort(TypeNode tn) const;
   /** is v an excluded value based on uninterpreted sorts?
    * This gives an assertion failure in the case that v contains
    * an uninterpreted constant whose index is out of the bounds
@@ -313,7 +318,7 @@ class TheoryEngineModelBuilder
 
 }; /* class TheoryEngineModelBuilder */
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__THEORY_MODEL_BUILDER_H */
+#endif /* CVC5__THEORY__THEORY_MODEL_BUILDER_H */

@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file abduction_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Aina Niemetz, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The solver for abduction queries
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The solver for abduction queries.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__SMT__ABDUCTION_SOLVER_H
-#define CVC4__SMT__ABDUCTION_SOLVER_H
+#ifndef CVC5__SMT__ABDUCTION_SOLVER_H
+#define CVC5__SMT__ABDUCTION_SOLVER_H
 
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SmtEngine;
 
@@ -115,6 +116,6 @@ class AbductionSolver
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__SMT__ABDUCTION_SOLVER_H */
+#endif /* CVC5__SMT__ABDUCTION_SOLVER_H */

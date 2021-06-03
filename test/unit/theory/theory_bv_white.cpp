@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file theory_bv_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Abdalrhman Mohamed, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Abdalrhman Mohamed, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include <vector>
 
@@ -25,7 +26,7 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace theory::bv;
@@ -57,7 +58,7 @@ TEST_F(TestTheoryWhiteBv, bitblaster_core)
 
   Node x = d_nodeManager->mkVar("x", d_nodeManager->mkBitVectorType(16));
   Node y = d_nodeManager->mkVar("y", d_nodeManager->mkBitVectorType(16));
-  Node x_plus_y = d_nodeManager->mkNode(kind::BITVECTOR_PLUS, x, y);
+  Node x_plus_y = d_nodeManager->mkNode(kind::BITVECTOR_ADD, x, y);
   Node one = d_nodeManager->mkConst<BitVector>(BitVector(16, 1u));
   Node x_shl_one = d_nodeManager->mkNode(kind::BITVECTOR_SHL, x, one);
   Node eq = d_nodeManager->mkNode(kind::EQUAL, x_plus_y, x_shl_one);
@@ -93,4 +94,4 @@ TEST_F(TestTheoryWhiteBv, mkUmulo)
   }
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

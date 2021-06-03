@@ -1,26 +1,23 @@
-/*********************                                                        */
-/*! \file bitvector.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Liana Hadarean, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A fixed-size bit-vector.
- **
- ** A fixed-size bit-vector, implemented as a wrapper around Integer.
- **
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Liana Hadarean, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A fixed-size bit-vector, implemented as a wrapper around Integer.
+ */
 
 #include "util/bitvector.h"
 
 #include "base/exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 unsigned BitVector::getSize() const { return d_size; }
 
@@ -79,7 +76,7 @@ unsigned BitVector::isPow2() const
 }
 
 /* -----------------------------------------------------------------------
- ** Operators
+ * Operators
  * ----------------------------------------------------------------------- */
 
 /* String Operations ----------------------------------------------------- */
@@ -340,7 +337,7 @@ BitVector BitVector::arithRightShift(const BitVector& y) const
 }
 
 /* -----------------------------------------------------------------------
- ** Static helpers.
+ * Static helpers.
  * ----------------------------------------------------------------------- */
 
 BitVector BitVector::mkZero(unsigned size)
@@ -375,4 +372,4 @@ BitVector BitVector::mkMaxSigned(unsigned size)
   return ~BitVector::mkMinSigned(size);
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

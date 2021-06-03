@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file bv_gauss.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Gaussian Elimination preprocessing pass.
- **
- ** Simplify a given equation system modulo a (prime) number via Gaussian
- ** Elimination if possible.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Gaussian Elimination preprocessing pass.
+ *
+ * Simplify a given equation system modulo a (prime) number via Gaussian
+ * Elimination if possible.
+ */
 
 #include "preprocessing/passes/bv_gauss.h"
 
@@ -28,11 +29,11 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
+using namespace cvc5;
+using namespace cvc5::theory;
+using namespace cvc5::theory::bv;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -78,8 +79,8 @@ unsigned BVGauss::getMinBwExpr(Node expr)
 {
   std::vector<Node> visit;
   /* Maps visited nodes to the determined minimum bit-width required. */
-  std::unordered_map<Node, unsigned, NodeHashFunction> visited;
-  std::unordered_map<Node, unsigned, NodeHashFunction>::iterator it;
+  std::unordered_map<Node, unsigned> visited;
+  std::unordered_map<Node, unsigned>::iterator it;
 
   visit.push_back(expr);
   while (!visit.empty())
@@ -191,7 +192,7 @@ unsigned BVGauss::getMinBwExpr(Node expr)
           break;
         }
 
-        case kind::BITVECTOR_PLUS:
+        case kind::BITVECTOR_ADD:
         {
           Integer maxval = Integer(0);
           for (const Node& nn : n)
@@ -263,7 +264,7 @@ BVGauss::Result BVGauss::gaussElim(Integer prime,
   size_t nrows = lhs.size();
   size_t ncols = lhs[0].size();
 
-  #ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (size_t i = 1; i < nrows; ++i) Assert(lhs[i].size() == ncols);
 #endif
   /* (1) if element in pivot column is non-zero and != 1, divide row elements
@@ -284,7 +285,7 @@ BVGauss::Result BVGauss::gaussElim(Integer prime,
     /* lhs[j][pcol]: element in pivot column */
     for (size_t j = prow; j < nrows; ++j)
     {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
       for (size_t k = 0; k < pcol; ++k)
       {
         Assert(lhs[j][k] == 0);
@@ -420,20 +421,19 @@ BVGauss::Result BVGauss::gaussElim(Integer prime,
  * of the form 'unknown = mapped result' in applyInternal.
  */
 BVGauss::Result BVGauss::gaussElimRewriteForUrem(
-    const std::vector<Node>& equations,
-    std::unordered_map<Node, Node, NodeHashFunction>& res)
+    const std::vector<Node>& equations, std::unordered_map<Node, Node>& res)
 {
   Assert(res.empty());
 
   Node prime;
   Integer iprime;
-  std::unordered_map<Node, std::vector<Integer>, NodeHashFunction> vars;
+  std::unordered_map<Node, std::vector<Integer>> vars;
   size_t neqs = equations.size();
   std::vector<Integer> rhs;
   std::vector<std::vector<Integer>> lhs =
       std::vector<std::vector<Integer>>(neqs, std::vector<Integer>());
 
-  res = std::unordered_map<Node, Node, NodeHashFunction>();
+  res = std::unordered_map<Node, Node>();
 
   for (size_t i = 0; i < neqs; ++i)
   {
@@ -472,7 +472,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
       iprime = get_bv_const_value(prime);
     }
 
-    std::unordered_map<Node, Integer, NodeHashFunction> tmp;
+    std::unordered_map<Node, Integer> tmp;
     std::vector<Node> stack;
     stack.push_back(urem[0]);
     while (!stack.empty())
@@ -490,7 +490,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
 
       /* Split into matrix columns */
       Kind k = n.getKind();
-      if (k == kind::BITVECTOR_PLUS)
+      if (k == kind::BITVECTOR_ADD)
       {
         for (const Node& nn : n) { stack.push_back(nn); }
       }
@@ -500,8 +500,8 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
         /* Flatten mult expression. */
         n = RewriteRule<FlattenAssocCommut>::run<true>(n);
         /* Split operands into consts and non-consts */
-        NodeBuilder<> nb_consts(NodeManager::currentNM(), k);
-        NodeBuilder<> nb_nonconsts(NodeManager::currentNM(), k);
+        NodeBuilder nb_consts(NodeManager::currentNM(), k);
+        NodeBuilder nb_nonconsts(NodeManager::currentNM(), k);
         for (const Node& nn : n)
         {
           Node nnrw = Rewriter::rewrite(nn);
@@ -577,7 +577,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
     return BVGauss::Result::INVALID;
   }
   size_t nrows = vars.begin()->second.size();
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (const auto& p : vars)
   {
     Assert(p.second.size() == nrows);
@@ -597,7 +597,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
     }
   }
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (const auto& row : lhs)
   {
     Assert(row.size() == nvars);
@@ -668,16 +668,15 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
         }
         else
         {
-          Node tmp = stack.size() == 1
-                         ? stack[0]
-                         : nm->mkNode(kind::BITVECTOR_PLUS, stack);
+          Node tmp = stack.size() == 1 ? stack[0]
+                                       : nm->mkNode(kind::BITVECTOR_ADD, stack);
 
           if (rhs[prow] != 0)
           {
-            tmp = nm->mkNode(kind::BITVECTOR_PLUS,
-                             bv::utils::mkConst(
-                                 bv::utils::getSize(vvars[pcol]), rhs[prow]),
-                             tmp);
+            tmp = nm->mkNode(
+                kind::BITVECTOR_ADD,
+                bv::utils::mkConst(bv::utils::getSize(vvars[pcol]), rhs[prow]),
+                tmp);
           }
           Assert(!is_bv_const(tmp));
           res[vvars[pcol]] = nm->mkNode(kind::BITVECTOR_UREM, tmp, prime);
@@ -698,13 +697,13 @@ PreprocessingPassResult BVGauss::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   std::vector<Node> assertions(assertionsToPreprocess->ref());
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction> equations;
+  std::unordered_map<Node, std::vector<Node>> equations;
 
   while (!assertions.empty())
   {
     Node a = assertions.back();
     assertions.pop_back();
-    CVC4::Kind k = a.getKind();
+    cvc5::Kind k = a.getKind();
 
     if (k == kind::AND)
     {
@@ -730,21 +729,21 @@ PreprocessingPassResult BVGauss::applyInternal(
         continue;
       }
 
-      if (urem[0].getKind() == kind::BITVECTOR_PLUS && is_bv_const(urem[1]))
+      if (urem[0].getKind() == kind::BITVECTOR_ADD && is_bv_const(urem[1]))
       {
         equations[urem[1]].push_back(a);
       }
     }
   }
 
-  std::unordered_map<Node, Node, NodeHashFunction> subst;
+  std::unordered_map<Node, Node> subst;
 
   NodeManager* nm = NodeManager::currentNM();
   for (const auto& eq : equations)
   {
     if (eq.second.size() <= 1) { continue; }
 
-    std::unordered_map<Node, Node, NodeHashFunction> res;
+    std::unordered_map<Node, Node> res;
     BVGauss::Result ret = gaussElimRewriteForUrem(eq.second, res);
     Trace("bv-gauss-elim") << "result: "
                            << (ret == BVGauss::Result::INVALID
@@ -800,4 +799,4 @@ PreprocessingPassResult BVGauss::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

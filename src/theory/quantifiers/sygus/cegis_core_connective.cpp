@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file cegis_core_connective.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of cegis core connective module.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of cegis core connective module.
+ */
 
 #include "theory/quantifiers/sygus/cegis_core_connective.h"
 
@@ -24,14 +25,13 @@
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/transition_inference.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 #include "util/random.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -70,10 +70,10 @@ bool VariadicTrie::hasSubset(const std::vector<Node>& is) const
   return false;
 }
 
-CegisCoreConnective::CegisCoreConnective(QuantifiersEngine* qe,
-                                         QuantifiersInferenceManager& qim,
+CegisCoreConnective::CegisCoreConnective(QuantifiersInferenceManager& qim,
+                                         TermDbSygus* tds,
                                          SynthConjecture* p)
-    : Cegis(qe, qim, p)
+    : Cegis(qim, tds, p)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -330,7 +330,7 @@ bool CegisCoreConnective::constructSolution(
     {
       // check refinement points
       Node etsrn = d == 0 ? etsr : etsr.negate();
-      std::unordered_set<Node, NodeHashFunction> visited;
+      std::unordered_set<Node> visited;
       std::vector<Node> pt;
       Node rid = cfilter.getRefinementPt(this, etsrn, visited, pt);
       if (!rid.isNull())
@@ -447,7 +447,7 @@ void CegisCoreConnective::Component::addFalseCore(Node id,
 Node CegisCoreConnective::Component::getRefinementPt(
     CegisCoreConnective* p,
     Node n,
-    std::unordered_set<Node, NodeHashFunction>& visited,
+    std::unordered_set<Node>& visited,
     std::vector<Node>& ss)
 {
   std::vector<Node> ctx;
@@ -608,7 +608,7 @@ void CegisCoreConnective::getModel(SmtEngine& smt,
 
 bool CegisCoreConnective::getUnsatCore(
     SmtEngine& smt,
-    const std::unordered_set<Node, NodeHashFunction>& queryAsserts,
+    const std::unordered_set<Node>& queryAsserts,
     std::vector<Node>& uasserts) const
 {
   UnsatCore uc = smt.getUnsatCore();
@@ -656,10 +656,10 @@ Node CegisCoreConnective::evaluate(Node n,
     }
     return nm->mkConst(!expRes);
   }
-  std::unordered_map<Node, Node, NodeHashFunction>& ec = d_eval_cache[n];
+  std::unordered_map<Node, Node>& ec = d_eval_cache[n];
   if (!id.isNull())
   {
-    std::unordered_map<Node, Node, NodeHashFunction>::iterator it = ec.find(id);
+    std::unordered_map<Node, Node>::iterator it = ec.find(id);
     if (it != ec.end())
     {
       return it->second;
@@ -691,7 +691,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
                 ? d_true
                 : (asserts.size() == 1 ? asserts[0] : nm->mkNode(AND, asserts));
   std::vector<Node> mvs;
-  std::unordered_set<Node, NodeHashFunction> visited;
+  std::unordered_set<Node> visited;
   bool addSuccess = true;
   // Ensure that the current conjunction evaluates to false on all refinement
   // points. We get refinement points until we have exhausted.
@@ -759,7 +759,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       //   "Let U be a subset of D such that S ^ U ^ ~B is unsat."
       // and uasserts is set to U.
       std::vector<Node> uasserts;
-      std::unordered_set<Node, NodeHashFunction> queryAsserts;
+      std::unordered_set<Node> queryAsserts;
       queryAsserts.insert(ccheck.getFormula());
       queryAsserts.insert(d_sc);
       bool hasQuery = getUnsatCore(*checkSol, queryAsserts, uasserts);
@@ -796,7 +796,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
             //   "Let W be a subset of D such that S ^ W is unsat."
             // and uasserts is set to W.
             uasserts.clear();
-            std::unordered_set<Node, NodeHashFunction> queryAsserts2;
+            std::unordered_set<Node> queryAsserts2;
             queryAsserts2.insert(d_sc);
             getUnsatCore(*checkSc, queryAsserts2, uasserts);
             falseCore = true;
@@ -862,4 +862,4 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

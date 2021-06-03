@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file arith_preprocess.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Arithmetic preprocess
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Arithmetic preprocess.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__ARITH__ARITH_PREPROCESS_H
-#define CVC4__THEORY__ARITH__ARITH_PREPROCESS_H
+#ifndef CVC5__THEORY__ARITH__ARITH_PREPROCESS_H
+#define CVC5__THEORY__ARITH__ARITH_PREPROCESS_H
 
 #include "context/cdhashmap.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/logic_info.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class SkolemLemma;
@@ -30,6 +31,7 @@ namespace arith {
 
 class ArithState;
 class InferenceManager;
+class OperatorElim;
 
 /**
  * This module can be used for (on demand) elimination of extended arithmetic
@@ -44,7 +46,7 @@ class ArithPreprocess
   ArithPreprocess(ArithState& state,
                   InferenceManager& im,
                   ProofNodeManager* pnm,
-                  const LogicInfo& info);
+                  OperatorElim& oe);
   ~ArithPreprocess() {}
   /**
    * Call eliminate operators on formula n, return the resulting trust node,
@@ -79,13 +81,13 @@ class ArithPreprocess
   /** Reference to the inference manager */
   InferenceManager& d_im;
   /** The operator elimination utility */
-  OperatorElim d_opElim;
+  OperatorElim& d_opElim;
   /** The set of assertions that were reduced */
-  context::CDHashMap<Node, bool, NodeHashFunction> d_reduced;
+  context::CDHashMap<Node, bool> d_reduced;
 };
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

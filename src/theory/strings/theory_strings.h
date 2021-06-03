@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file theory_strings.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Theory of strings
- **
- ** Theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tianyi Liang, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of strings.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_H
-#define CVC4__THEORY__STRINGS__THEORY_STRINGS_H
+#ifndef CVC5__THEORY__STRINGS__THEORY_STRINGS_H
+#define CVC5__THEORY__STRINGS__THEORY_STRINGS_H
 
 #include <climits>
 #include <deque>
@@ -46,7 +45,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -61,8 +60,9 @@ namespace strings {
  */
 class TheoryStrings : public Theory {
   friend class InferenceManager;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashSet<TypeNode, TypeNodeHashFunction> TypeNodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
+
  public:
   TheoryStrings(context::Context* c,
                 context::UserContext* u,
@@ -74,6 +74,8 @@ class TheoryStrings : public Theory {
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -93,8 +95,6 @@ class TheoryStrings : public Theory {
   void shutdown() override {}
   /** preregister term */
   void preRegisterTerm(TNode n) override;
-  /** Expand definition */
-  TrustNode expandDefinition(Node n) override;
   //--------------------------------- standard check
   /** Do we need a check call at last call effort? */
   bool needsCheckLastEffort() override;
@@ -190,17 +190,18 @@ class TheoryStrings : public Theory {
   /** Collect model info for type tn
    *
    * Assigns model values (in m) to all relevant terms of the string-like type
-   * tn in the current context, which are stored in repSet. Furthermore,
-   * col is a partition of repSet where equivalence classes are grouped into
-   * sets having equal length, where these lengths are stored in lts.
+   * tn in the current context, which are stored in repSet[tn].
    *
-   * Returns false if a conflict is discovered while doing this assignment.
+   * @param tn The type to compute model values for
+   * @param toProcess Remaining types to compute model values for
+   * @param repSet A map of types to the representatives of the equivalence
+   *               classes of the given type
+   * @return false if a conflict is discovered while doing this assignment.
    */
   bool collectModelInfoType(
       TypeNode tn,
-      const std::unordered_set<Node, NodeHashFunction>& repSet,
-      std::vector<std::vector<Node> >& col,
-      std::vector<Node>& lts,
+      std::unordered_set<TypeNode>& toProcess,
+      const std::map<TypeNode, std::unordered_set<Node>>& repSet,
       TheoryModel* m);
 
   /** assert pending fact
@@ -273,7 +274,7 @@ class TheoryStrings : public Theory {
   /** The theory rewriter for this theory. */
   StringsRewriter d_rewriter;
   /** The proof rule checker */
-  StringProofRuleChecker d_sProofChecker;
+  StringProofRuleChecker d_checker;
   /**
    * The base solver, responsible for reasoning about congruent terms and
    * inferring constants for equivalence classes.
@@ -299,8 +300,8 @@ class TheoryStrings : public Theory {
   Strategy d_strat;
 };/* class TheoryStrings */
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_H */
+#endif /* CVC5__THEORY__STRINGS__THEORY_STRINGS_H */

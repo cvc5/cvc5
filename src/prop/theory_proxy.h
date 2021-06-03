@@ -1,49 +1,50 @@
-/*********************                                                        */
-/*! \file theory_proxy.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SAT Solver.
- **
- ** SAT Solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Dejan Jovanovic, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SAT Solver.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PROP__SAT_H
-#define CVC4__PROP__SAT_H
+#ifndef CVC5__PROP__SAT_H
+#define CVC5__PROP__SAT_H
 
 // Just defining this for now, since there's no other SAT solver bindings.
 // Optional blocks below will be unconditionally included
-#define CVC4_USE_MINISAT
+#define CVC5_USE_MINISAT
 
 #include <unordered_set>
 
 #include "context/cdqueue.h"
 #include "expr/node.h"
+#include "proof/trust_node.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
-#include "prop/skolem_def_manager.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
-#include "theory/trust_node.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
+namespace decision {
 class DecisionEngine;
+}
 class TheoryEngine;
 
 namespace prop {
 
 class PropEngine;
 class CnfStream;
+class SkolemDefManager;
 
 /**
  * The proxy class that allows the SatSolver to communicate with the theories
@@ -53,7 +54,8 @@ class TheoryProxy : public Registrar
  public:
   TheoryProxy(PropEngine* propEngine,
               TheoryEngine* theoryEngine,
-              DecisionEngine* decisionEngine,
+              decision::DecisionEngine* decisionEngine,
+              SkolemDefManager* skdm,
               context::Context* context,
               context::UserContext* userContext,
               ProofNodeManager* pnm);
@@ -62,9 +64,6 @@ class TheoryProxy : public Registrar
 
   /** Finish initialize */
   void finishInit(CnfStream* cnfStream);
-
-  /** Notify (preprocessed) assertions. */
-  void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
   /** Notify a lemma, possibly corresponding to a skolem definition */
   void notifyAssertion(Node lem, TNode skolem = TNode::null());
@@ -92,7 +91,7 @@ class TheoryProxy : public Registrar
 
   void notifyRestart();
 
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   bool isDecisionEngineDone();
 
@@ -106,22 +105,22 @@ class TheoryProxy : public Registrar
    * Call the preprocessor on node, return trust node corresponding to the
    * rewrite.
    */
-  theory::TrustNode preprocessLemma(theory::TrustNode trn,
-                                    std::vector<theory::TrustNode>& newLemmas,
-                                    std::vector<Node>& newSkolems);
+  TrustNode preprocessLemma(TrustNode trn,
+                            std::vector<TrustNode>& newLemmas,
+                            std::vector<Node>& newSkolems);
   /**
    * Call the preprocessor on node, return trust node corresponding to the
    * rewrite.
    */
-  theory::TrustNode preprocess(TNode node,
-                               std::vector<theory::TrustNode>& newLemmas,
-                               std::vector<Node>& newSkolems);
+  TrustNode preprocess(TNode node,
+                       std::vector<TrustNode>& newLemmas,
+                       std::vector<Node>& newSkolems);
   /**
    * Remove ITEs from the node.
    */
-  theory::TrustNode removeItes(TNode node,
-                               std::vector<theory::TrustNode>& newLemmas,
-                               std::vector<Node>& newSkolems);
+  TrustNode removeItes(TNode node,
+                       std::vector<TrustNode>& newLemmas,
+                       std::vector<Node>& newSkolems);
   /**
    * Get the skolems within node and their corresponding definitions, store
    * them in sks and skAsserts respectively. Note that this method does not
@@ -144,7 +143,7 @@ class TheoryProxy : public Registrar
   CnfStream* d_cnfStream;
 
   /** The decision engine we are using. */
-  DecisionEngine* d_decisionEngine;
+  decision::DecisionEngine* d_decisionEngine;
 
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;
@@ -156,17 +155,17 @@ class TheoryProxy : public Registrar
    * Set of all lemmas that have been "shared" in the portfolio---i.e.,
    * all imported and exported lemmas.
    */
-  std::unordered_set<Node, NodeHashFunction> d_shared;
+  std::unordered_set<Node> d_shared;
 
   /** The theory preprocessor */
   theory::TheoryPreprocessor d_tpp;
 
   /** The skolem definition manager */
-  std::unique_ptr<SkolemDefManager> d_skdm;
+  SkolemDefManager* d_skdm;
 }; /* class TheoryProxy */
 
-}/* CVC4::prop namespace */
+}  // namespace prop
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__PROP__SAT_H */
+#endif /* CVC5__PROP__SAT_H */

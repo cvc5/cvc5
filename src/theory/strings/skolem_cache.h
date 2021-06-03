@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file skolem_cache.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A cache of skolems for theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A cache of skolems for theory of strings.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__SKOLEM_CACHE_H
-#define CVC4__THEORY__STRINGS__SKOLEM_CACHE_H
+#ifndef CVC5__THEORY__STRINGS__SKOLEM_CACHE_H
+#define CVC5__THEORY__STRINGS__SKOLEM_CACHE_H
 
 #include <map>
 #include <tuple>
@@ -24,7 +25,7 @@
 #include "expr/node.h"
 #include "expr/skolem_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -106,9 +107,14 @@ class SkolemCache
     // in_re(a, re.++(_*, b, _*)) =>
     //    exists k_pre, k_match, k_post.
     //       a = k_pre ++ k_match ++ k_post ^
-    //       ~in_re(k_pre ++ substr(k_match, 0, str.len(k_match) - 1),
-    //              re.++(_*, b, _*)) ^
-    //       in_re(k2, y)
+    //       len(k_pre) = indexof_re(x, y, 0) ^
+    //       (forall l. 0 < l < len(k_match) =>
+    //         ~in_re(substr(k_match, 0, l), r)) ^
+    //       in_re(k_match, b)
+    //
+    // k_pre is the prefix before the first, shortest match of b in a. k_match
+    // is the substring of a matched by b. It is either empty or there is no
+    // shorter string that matches b.
     SK_FIRST_MATCH_PRE,
     SK_FIRST_MATCH,
     SK_FIRST_MATCH_POST,
@@ -163,7 +169,7 @@ class SkolemCache
    * Specific version for seq.nth, used for cases where the index is out of
    * range for sequence type seqType.
    */
-  Node mkSkolemSeqNth(TypeNode seqType, const char* c);
+  static Node mkSkolemSeqNth(TypeNode seqType, const char* c);
   /** Returns a (uncached) skolem of type string with name c */
   Node mkSkolem(const char* c);
   /** Returns true if n is a skolem allocated by this class */
@@ -178,6 +184,16 @@ class SkolemCache
    * is used to quantify over the positions in string term s.
    */
   static Node mkIndexVar(Node t);
+
+  /** Make length variable
+   *
+   * This returns an integer variable of kind BOUND_VARIABLE that is used for
+   * axiomatizing the behavior of a term or predicate t. It refers to lengths
+   * of strings in the reduction of t. For example, the length variable for the
+   * term str.indexof(s, r, n) is used to quantify over the lengths of strings
+   * that could be matched by r.
+   */
+  static Node mkLengthVar(Node t);
 
  private:
   /**
@@ -206,11 +222,11 @@ class SkolemCache
   /** map from node pairs and identifiers to skolems */
   std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolemCache;
   /** the set of all skolems we have generated */
-  std::unordered_set<Node, NodeHashFunction> d_allSkolems;
+  std::unordered_set<Node> d_allSkolems;
 };
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__SKOLEM_CACHE_H */
+#endif /* CVC5__THEORY__STRINGS__SKOLEM_CACHE_H */

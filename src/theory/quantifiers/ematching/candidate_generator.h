@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file candidate_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Theory uf candidate generator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory uf candidate generator.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
-#define CVC4__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
+#define CVC5__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -240,9 +241,9 @@ class CandidateGeneratorSelector : public CandidateGeneratorQE
   Node d_ufOp;
 };
 
-}/* CVC4::theory::inst namespace */
+}  // namespace inst
 }  // namespace quantifiers
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H */

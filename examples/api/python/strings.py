@@ -1,24 +1,25 @@
 #!/usr/bin/env python
-#####################
-## strings.py
-## Top contributors (to current version):
-##   Makai Mann, Mudathir Mohamed, Andres Noetzli
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
-## A simple demonstration of the solving capabilities of the CVC4
-## strings solver through the Python API. This is a direct translation
-## of strings-new.cpp.
+###############################################################################
+# Top contributors (to current version):
+#   Makai Mann, Mudathir Mohamed, Andres Noetzli
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# A simple demonstration of the solving capabilities of the cvc5 strings solver
+# through the Python API. This is a direct translation of strings-new.cpp.
 ##
 
-import pycvc4
-from pycvc4 import kinds
+import pycvc5
+from pycvc5 import kinds
 
 if __name__ == "__main__":
-    slv = pycvc4.Solver()
+    slv = pycvc5.Solver()
     # Set the logic
     slv.setLogic("QF_SLIA")
     # Produce models
@@ -80,7 +81,7 @@ if __name__ == "__main__":
 
     # check sat
     result = slv.checkSatAssuming(q)
-    print("CVC4 reports:", q, "is", result)
+    print("cvc5 reports:", q, "is", result)
 
     if result:
         print("x = ", slv.getValue(x))

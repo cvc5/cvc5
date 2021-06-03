@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file sampler.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sampler class that generates random values of different sorts
- **
- ** The Sampler class can be used to generate random values of different sorts
- ** with biased and unbiased distributions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sampler class that generates random values of different sorts
+ *
+ * The Sampler class can be used to generate random values of different sorts
+ * with biased and unbiased distributions.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__UTIL_FLOATINGPOINT_SAMPLER_H
-#define CVC4__UTIL_FLOATINGPOINT_SAMPLER_H
+#ifndef CVC5__UTIL_FLOATINGPOINT_SAMPLER_H
+#define CVC5__UTIL_FLOATINGPOINT_SAMPLER_H
 
 #include "util/floatingpoint.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Sampler
 {
@@ -52,6 +53,6 @@ class Sampler
   static constexpr double probSpecial = 0.2;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__UTIL_FLOATINGPOINT_SAMPLER_H */
+#endif /* CVC5__UTIL_FLOATINGPOINT_SAMPLER_H */

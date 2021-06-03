@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 #
 # update-copyright.pl
-# Copyright (c) 2009-2021  The CVC4 Project
+# Copyright (c) 2009-2021  The cvc5 Project
 #
 # usage: update-copyright [-m] [files/directories...]
 #        update-copyright [-h | --help]
@@ -12,7 +12,7 @@
 #
 # if no files/directories are unspecified, the script scans its own
 # parent directory's "src" directory.  Since it lives in contrib/ in
-# the CVC4 source tree, that means src/ in the CVC4 source tree.
+# the cvc5 source tree, that means src/ in the cvc5 source tree.
 #
 # If -m is specified as the first argument, all files and directories
 # are scanned, but only ones modified in the index or working tree
@@ -54,26 +54,32 @@ $excluded_paths .= ')$';
 my $years = '2009-2021';
 
 my $standard_template = <<EOF;
- ** This file is part of the CVC4 project.
- ** Copyright (c) $years by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\\endverbatim
- **
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) $years by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
 EOF
 
 my $doc_template = <<EOF;
- ** \\brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \\todo document this file
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \\todo document this file
+ */
 EOF
 
-my $standard_template_end = " **/\n";
-
 my $standard_template_hash = $standard_template;
-$standard_template_hash =~ s/ \*\*/\#\#/g;
-$standard_template_hash =~ s/\\endverbatim//;
+$standard_template_hash =~ s/ \* \*/\# \#\#/g;
+$standard_template_hash =~ s/ \*/\#/g;
+$standard_template_hash =~ s/\*/\#/g;
+my $doc_template_hash = $doc_template;
+$doc_template_hash =~ s/ \*/\#/g;
+$doc_template_hash =~ s/\#\//\#\#/g;
 
 
 ## end config ##
@@ -104,7 +110,7 @@ if($#ARGV >= 0 && $ARGV[0] eq '-m') {
 
 my @searchdirs = ();
 if($#ARGV == -1) {
-  (chdir($dir."/..") && -f "src/include/cvc4_public.h") || die "can't find top-level source directory for CVC4";
+  (chdir($dir."/..") && -f "src/include/cvc5_public.h") || die "can't find top-level source directory for cvc5";
   my $pwd = `pwd`; chomp $pwd;
 
   print <<EOF;
@@ -119,6 +125,8 @@ The directories in which to search for and change sources is:
   $pwd/src
   $pwd/examples
   $pwd/test
+  $pwd/doc
+  $pwd/docs
 
 Continue? y or n:
 EOF
@@ -165,25 +173,20 @@ sub reqHashPrefix {
 sub printHeader {
   my ($OUT, $file) = @_;
   if (reqHashPrefix($file)) {
-    print $OUT "#####################\n";
-    print $OUT "## $file\n";
+    print $OUT "###############################################################################\n";
   } elsif ($file =~ /\.g$/) {
     # avoid javadoc-style comment here; antlr complains
-    print $OUT "/* *******************                                                        */\n";
-    print $OUT "/*! \\file $file\n";
+    print $OUT "/* ****************************************************************************\n"
   } else {
-    print $OUT "/*********************                                                        */\n";
-    print $OUT "/*! \\file $file\n";
+    print $OUT "/******************************************************************************\n"
   }
 }
 
 sub printTopContrib {
   my ($OUT, $file, $authors) = @_;
-  my $comment_style = " **";
+  my $comment_style = " *";
   if (reqHashPrefix($file)) {
-    $comment_style = "##";
-  } else {
-    print $OUT "$comment_style \\verbatim\n";
+    $comment_style = "#";
   }
   print $OUT "$comment_style Top contributors (to current version):\n";
   print $OUT "$comment_style   $authors\n";
@@ -218,10 +221,12 @@ sub handleFile {
 
   my $adding = 0;
   # Copyright header already exists
-  if ($lines[0] =~ /^(%\{)?\/\*(\*| )\*{19}/ or $lines[0] =~ /^\#{21}$/) {
+  if ($lines[0] =~ /^(%\{)?\/\*{78}/
+      or $lines[0] =~ /^(%\{)?\/\* \*{76}/
+      or $lines[0] =~ /^\#{79}$/) {
     print "updating\n";
 
-    # Skip lines until copyright header end and preserve copyright of non CVC4
+    # Skip lines until copyright header end and preserve copyright of non cvc5
     # authors.
     my $found_header_end = 0;
     while (my $line = shift @lines) {
@@ -230,13 +235,13 @@ sub handleFile {
         print $OUT $line;
       }
       # Reached end of copyright header section
-      if ($line =~ /^ \*\*\s*$/ or $line =~ /^\#\#$/) {
+      if ($line =~ /^ \* \*{76}\s*$/ or $line =~ /^\# \#{77}$/) {
         $found_header_end = 1;
         last;
       }
     }
     if (!$found_header_end) {
-      die "error: did not find end of copyright header secion (** or #) for file '$file'";
+      die "error: did not find end of copyright header secion for file '$file'";
     }
   # No header found
   } else {
@@ -245,11 +250,13 @@ sub handleFile {
   }
   if (reqHashPrefix($file)) {
     print $OUT $standard_template_hash;
+    if ($adding) {
+      print $OUT $doc_template_hash;
+    }
   } else {
     print $OUT $standard_template;
     if ($adding) {
       print $OUT $doc_template;
-      print $OUT $standard_template_end;
     }
   }
   # Print remaining file

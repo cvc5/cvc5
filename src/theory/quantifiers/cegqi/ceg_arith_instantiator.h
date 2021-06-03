@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file ceg_arith_instantiator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief ceg_arith_instantiator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Arithmetic instantiator.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H
-#define CVC4__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H
+#define CVC5__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H
 
 #include <vector>
 #include "expr/node.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -125,8 +126,7 @@ class ArithInstantiator : public Instantiator
   bool postProcessInstantiationForVariable(CegInstantiator* ci,
                                            SolvedForm& sf,
                                            Node pv,
-                                           CegInstEffort effort,
-                                           std::vector<Node>& lemmas) override;
+                                           CegInstEffort effort) override;
   std::string identify() const override { return "Arith"; }
 
  private:
@@ -210,6 +210,6 @@ class ArithInstantiator : public Instantiator
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H */

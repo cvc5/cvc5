@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file witness_form.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for managing witness form conversion in proofs
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for managing witness form conversion in proofs.
+ */
 
 #include "smt/witness_form.h"
 
 #include "expr/skolem_manager.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 WitnessFormGenerator::WitnessFormGenerator(ProofNodeManager* pnm)
@@ -65,7 +66,7 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
     // trivial case
     return tw;
   }
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   TNode curw;
@@ -122,8 +123,7 @@ bool WitnessFormGenerator::requiresWitnessFormIntro(Node t) const
   return !tr.isConst() || !tr.getConst<bool>();
 }
 
-const std::unordered_set<Node, NodeHashFunction>&
-WitnessFormGenerator::getWitnessFormEqs() const
+const std::unordered_set<Node>& WitnessFormGenerator::getWitnessFormEqs() const
 {
   return d_eqs;
 }
@@ -152,4 +152,4 @@ ProofGenerator* WitnessFormGenerator::convertExistsInternal(Node exists)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

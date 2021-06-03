@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file open_ostream.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "options/open_ostream.h"
 
-
 #include <cerrno>
+#include <fstream>
 #include <iostream>
 #include <ostream>
 #include <sstream>
@@ -26,9 +27,10 @@
 #include <utility>
 
 #include "lib/strtok_r.h"
+#include "options/option_exception.h"
 #include "options/parser_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 OstreamOpener::OstreamOpener(const char* channelName)
     : d_channelName(channelName)
@@ -59,15 +61,16 @@ std::pair< bool, std::ostream* > OstreamOpener::open(const std::string& optarg) 
                                     std::ofstream::out | std::ofstream::trunc);
     if(outStream == NULL || !*outStream) {
       std::stringstream ss;
-      ss << "Cannot open " << d_channelName << " file: `"
-         << optarg << "': " << cvc4_errno_failreason();
+      ss << "Cannot open " << d_channelName << " file: `" << optarg
+         << "': " << cvc5_errno_failreason();
       throw OptionException(ss.str());
     }
     return make_pair(true, outStream);
   }
 }
 
-std::string cvc4_errno_failreason() {
+std::string cvc5_errno_failreason()
+{
 #if HAVE_STRERROR_R
 #if STRERROR_R_CHAR_P
   if(errno != 0) {
@@ -98,4 +101,4 @@ std::string cvc4_errno_failreason() {
 #endif /* HAVE_STRERROR_R */
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

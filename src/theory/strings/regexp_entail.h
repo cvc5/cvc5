@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file regexp_entail.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Entailment tests involving regular expressions
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Entailment tests involving regular expressions.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__REGEXP_ENTAIL_H
-#define CVC4__THEORY__STRINGS__REGEXP_ENTAIL_H
+#ifndef CVC5__THEORY__STRINGS__REGEXP_ENTAIL_H
+#define CVC5__THEORY__STRINGS__REGEXP_ENTAIL_H
 
 #include <climits>
 #include <utility>
@@ -26,7 +27,7 @@
 #include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -91,13 +92,18 @@ class RegExpEntail
   static Node simpleRegexpConsume(std::vector<Node>& mchildren,
                                   std::vector<Node>& children,
                                   int dir = -1);
-  /** Is t a constant regular expression? */
+  /**
+   * Is t a constant regular expression? A constant regular expression
+   * is one with no non-constant (RE or string subterms) and does not contain
+   * any non-standard RE terms like re.range applied to non-character
+   * arguments.
+   */
   static bool isConstRegExp(TNode t);
   /**
    * Does the substring of s starting at index_start occur in constant regular
    * expression r?
    */
-  static bool testConstStringInRegExp(CVC4::String& s,
+  static bool testConstStringInRegExp(cvc5::String& s,
                                       unsigned index_start,
                                       TNode r);
   /** Does regular expression node have (str.to.re "") as a child? */
@@ -127,6 +133,6 @@ class RegExpEntail
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__REGEXP_ENTAIL_H */
+#endif /* CVC5__THEORY__STRINGS__REGEXP_ENTAIL_H */

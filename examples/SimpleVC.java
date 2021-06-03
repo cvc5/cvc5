@@ -1,27 +1,26 @@
-/*********************                                                        */
-/*! \file SimpleVC.java
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Aina Niemetz, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A simple demonstration of the Java interface
- **
- ** A simple demonstration of the Java interface.
- **
- ** To run the resulting class file, you need to do something like the
- ** following:
- **
- **   java \
- **     -cp path/to/CVC4.jar:SimpleVC.jar \
- **     -Djava.library.path=/dir/containing/libcvc4jni.so \
- **     SimpleVC
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A simple demonstration of the Java interface.
+ *
+ * To run the resulting class file, you need to do something like the
+ * following:
+ *
+ *   java \
+ *     -cp path/to/CVC4.jar:SimpleVC.jar \
+ *     -Djava.library.path=/dir/containing/libcvc4jni.so \
+ *     SimpleVC
+ *
+ */
 
 import edu.stanford.CVC4.*;
 

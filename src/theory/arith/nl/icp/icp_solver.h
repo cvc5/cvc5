@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file icp_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements a ICP-based solver for nonlinear arithmetic.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements a ICP-based solver for nonlinear arithmetic.
+ */
 
-#ifndef CVC4__THEORY__ARITH__ICP__ICP_SOLVER_H
-#define CVC4__THEORY__ARITH__ICP__ICP_SOLVER_H
+#ifndef CVC5__THEORY__ARITH__ICP__ICP_SOLVER_H
+#define CVC5__THEORY__ARITH__ICP__ICP_SOLVER_H
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 #include <poly/polyxx.h>
-#endif /* CVC4_POLY_IMP */
+#endif /* CVC5_POLY_IMP */
 
 #include "expr/node.h"
 #include "theory/arith/bound_inference.h"
@@ -28,7 +29,7 @@
 #include "theory/arith/nl/icp/intersection.h"
 #include "theory/arith/nl/poly_conversion.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -37,7 +38,7 @@ class InferenceManager;
 namespace nl {
 namespace icp {
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 /**
  * This class implements an ICP-based solver. As it is intended to be used in
@@ -137,7 +138,7 @@ class ICPSolver
   void check();
 };
 
-#else /* CVC4_POLY_IMP */
+#else /* CVC5_POLY_IMP */
 
 class ICPSolver
 {
@@ -147,12 +148,12 @@ class ICPSolver
   void check();
 };
 
-#endif /* CVC4_POLY_IMP */
+#endif /* CVC5_POLY_IMP */
 
 }  // namespace icp
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

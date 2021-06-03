@@ -1,27 +1,26 @@
-/*********************                                                        */
-/*! \file real_algebraic_number_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of CVC4::RealAlgebraicNumber.
- **
- ** Black box testing of CVC4::RealAlgebraicNumber.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::RealAlgebraicNumber.
+ */
 
 #include "test.h"
 #include "util/real_algebraic_number.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
-#ifndef CVC4_POLY_IMP
-#error "This unit test should only be enabled for CVC4_POLY_IMP"
+#ifndef CVC5_POLY_IMP
+#error "This unit test should only be enabled for CVC5_POLY_IMP"
 #endif
 
 class TestUtilBlackRealAlgebraicNumber : public TestInternal
@@ -81,4 +80,4 @@ TEST_F(TestUtilBlackRealAlgebraicNumber, arithmetic)
   ASSERT_EQ(msqrt2 * sqrt2, RealAlgebraicNumber(Integer(-2)));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

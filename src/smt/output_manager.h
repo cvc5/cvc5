@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file output_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The output manager for the SmtEngine.
- **
- ** The output manager provides helper functions for printing commands
- ** internally.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The output manager for the SmtEngine.
+ *
+ * The output manager provides helper functions for printing commands
+ * internally.
+ */
 
-#ifndef CVC4__SMT__OUTPUT_MANAGER_H
-#define CVC4__SMT__OUTPUT_MANAGER_H
+#ifndef CVC5__SMT__OUTPUT_MANAGER_H
+#define CVC5__SMT__OUTPUT_MANAGER_H
 
 #include <ostream>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Printer;
 class SmtEngine;
@@ -52,6 +53,6 @@ class OutputManager
   SmtEngine* d_smt;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif  // CVC4__SMT__OUTPUT_MANAGER_H
+#endif  // CVC5__SMT__OUTPUT_MANAGER_H

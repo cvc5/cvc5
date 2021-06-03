@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file normal_form.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Normal form for set constants.
- **
- ** Normal form for set constants.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Normal form for set constants.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__SETS__NORMAL_FORM_H
-#define CVC4__THEORY__SETS__NORMAL_FORM_H
+#ifndef CVC5__THEORY__SETS__NORMAL_FORM_H
+#define CVC5__THEORY__SETS__NORMAL_FORM_H
 
-namespace CVC4 {
+#include "expr/emptyset.h"
+
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -158,6 +159,6 @@ class NormalForm {
 };
 }
 }
-}
+}  // namespace cvc5
 
 #endif

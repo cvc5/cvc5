@@ -1,36 +1,34 @@
-/*********************                                                        */
-/*! \file configuration.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Francois Bobot, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Interface to a public class that provides compile-time information
- ** about the CVC4 library.
- **
- ** Interface to a public class that provides compile-time information
- ** about the CVC4 library.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Interface to a public class that provides compile-time information
+ * about the cvc5 library.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__CONFIGURATION_H
-#define CVC4__CONFIGURATION_H
+#ifndef CVC5__CONFIGURATION_H
+#define CVC5__CONFIGURATION_H
 
 #include <string>
 
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
- * Represents the (static) configuration of CVC4.
+ * Represents the (static) configuration of cvc5.
  */
-class CVC4_EXPORT Configuration
+class CVC5_EXPORT Configuration
 {
  private:
   /** Private default ctor: Disallow construction of this class */
@@ -48,7 +46,14 @@ public:
 
   static bool isDebugBuild();
 
-  static bool isStatisticsBuild();
+  static constexpr bool isStatisticsBuild()
+  {
+#ifdef CVC5_STATISTICS_ON
+    return true;
+#else
+    return false;
+#endif
+  }
 
   static bool isTracingBuild();
 
@@ -135,6 +140,6 @@ public:
 
 }; /* class Configuration */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__CONFIGURATION_H */
+#endif /* CVC5__CONFIGURATION_H */

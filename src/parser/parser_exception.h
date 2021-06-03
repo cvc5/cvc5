@@ -1,35 +1,34 @@
-/*********************                                                        */
-/*! \file parser_exception.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Exception class for parse errors.
- **
- ** Exception class for parse errors.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters, Christopher L. Conway
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Exception class for parse errors.
+ */
 
-#include "cvc4parser_public.h"
+#include "cvc5parser_public.h"
 
-#ifndef CVC4__PARSER__PARSER_EXCEPTION_H
-#define CVC4__PARSER__PARSER_EXCEPTION_H
+#ifndef CVC5__PARSER__PARSER_EXCEPTION_H
+#define CVC5__PARSER__PARSER_EXCEPTION_H
 
 #include <iostream>
-#include <string>
 #include <sstream>
+#include <string>
 
 #include "base/exception.h"
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
-class CVC4_EXPORT ParserException : public Exception
+class CVC5_EXPORT ParserException : public Exception
 {
  public:
   // Constructors
@@ -99,7 +98,7 @@ class ParserEndOfFileException : public ParserException
 
 }; /* class ParserEndOfFileException */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
-#endif /* CVC4__PARSER__PARSER_EXCEPTION_H */
+#endif /* CVC5__PARSER__PARSER_EXCEPTION_H */

@@ -1,21 +1,20 @@
-/*********************                                                        */
-/*! \file antlr_input.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Base for ANTLR parser classes.
- **
- ** Base for ANTLR parser classes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Christopher L. Conway, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Base for ANTLR parser classes.
+ */
 
-#ifndef CVC4__PARSER__ANTLR_INPUT_H
-#define CVC4__PARSER__ANTLR_INPUT_H
+#ifndef CVC5__PARSER__ANTLR_INPUT_H
+#define CVC5__PARSER__ANTLR_INPUT_H
 
 #include <antlr3.h>
 
@@ -27,16 +26,13 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 #include "parser/bounded_token_buffer.h"
 #include "parser/input.h"
 #include "parser/line_buffer.h"
 #include "parser/parser_exception.h"
-#include "util/bitvector.h"
-#include "util/integer.h"
-#include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 /** Wrapper around an ANTLR3 input stream. */
@@ -81,8 +77,7 @@ public:
 
   /** Create an input from an istream. */
   static AntlrInputStream* newStreamInputStream(std::istream& input,
-                                                const std::string& name,
-                                                bool lineBuffered = false);
+                                                const std::string& name);
 
   /** Create a string input.
    * NOTE: the new AntlrInputStream will take ownership of input over
@@ -179,15 +174,6 @@ public:
   /** Retrieve an unsigned from the text of a token */
   static unsigned tokenToUnsigned( pANTLR3_COMMON_TOKEN token );
 
-  /** Retrieve an Integer from the text of a token */
-  static Rational tokenToInteger( pANTLR3_COMMON_TOKEN token );
-
-  /** Retrieve a Rational from the text of a token */
-  static Rational tokenToRational(pANTLR3_COMMON_TOKEN token);
-
-  /** Get a bitvector constant from the text of the number and the size token */
-  static BitVector tokenToBitvector(pANTLR3_COMMON_TOKEN number, pANTLR3_COMMON_TOKEN size);
-
   /** Get the ANTLR3 lexer for this input. */
   pANTLR3_LEXER getAntlr3Lexer() { return d_lexer; }
 
@@ -271,27 +257,7 @@ inline unsigned AntlrInput::tokenToUnsigned(pANTLR3_COMMON_TOKEN token) {
   return result;
 }
 
-inline Rational AntlrInput::tokenToInteger(pANTLR3_COMMON_TOKEN token) {
-  return Rational( tokenText(token) );
-}
+}  // namespace parser
+}  // namespace cvc5
 
-inline Rational AntlrInput::tokenToRational(pANTLR3_COMMON_TOKEN token) {
-  return Rational::fromDecimal( tokenText(token) );
-}
-
-inline BitVector AntlrInput::tokenToBitvector(pANTLR3_COMMON_TOKEN number, pANTLR3_COMMON_TOKEN size) {
-  std::string number_str = tokenTextSubstr(number, 2);
-  unsigned sz = tokenToUnsigned(size);
-  Integer val(number_str);
-  if(val.modByPow2(sz) != val) {
-    std::stringstream ss;
-    ss << "Overflow in bitvector construction (specified bitvector size " << sz << " too small to hold value " << tokenText(number) << ")";
-    throw std::invalid_argument(ss.str());
-  }
-  return BitVector(sz, val);
-}
-
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
-
-#endif /* CVC4__PARSER__ANTLR_INPUT_H */
+#endif /* CVC5__PARSER__ANTLR_INPUT_H */

@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file parser.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Parser state implementation.
- **
- ** Parser state implementation.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Christopher L. Conway
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Parser state implementation.
+ */
 
 #include "parser/parser.h"
 
@@ -23,32 +22,31 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "parser/input.h"
 #include "parser/parser_exception.h"
 #include "smt/command.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 Parser::Parser(api::Solver* solver,
                SymbolManager* sm,
-               Input* input,
                bool strictMode,
                bool parseOnly)
-    : d_input(input),
-      d_symman(sm),
+    : d_symman(sm),
       d_symtab(sm->getSymbolTable()),
       d_assertionLevel(0),
       d_anonymousFunctionCount(0),
-      d_done(false),
+      d_done(true),
       d_checksEnabled(true),
       d_strictMode(strictMode),
       d_parseOnly(parseOnly),
@@ -57,7 +55,6 @@ Parser::Parser(api::Solver* solver,
       d_forcedLogic(),
       d_solver(solver)
 {
-  d_input->setParser(*this);
 }
 
 Parser::~Parser() {
@@ -67,7 +64,6 @@ Parser::~Parser() {
     delete command;
   }
   d_commandQueue.clear();
-  delete d_input;
 }
 
 api::Solver* Parser::getSolver() const { return d_solver; }
@@ -154,6 +150,10 @@ api::Kind Parser::getKindForFunction(api::Term fun)
   else if (t.isTester())
   {
     return api::APPLY_TESTER;
+  }
+  else if (t.isUpdater())
+  {
+    return api::APPLY_UPDATER;
   }
   return api::UNDEFINED_KIND;
 }
@@ -549,7 +549,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
       ss << "Type ascription on empty sequence must be a sequence, got " << s;
       parseError(ss.str());
     }
-    if (!t.getConstSequenceElements().empty())
+    if (!t.getSequenceValue().empty())
     {
       std::stringstream ss;
       ss << "Cannot apply a type ascription to a non-empty sequence";
@@ -742,7 +742,7 @@ void Parser::reset() {}
 
 SymbolManager* Parser::getSymbolManager() { return d_symman; }
 
-std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
+std::wstring Parser::processAdHocStringEsc(const std::string& s)
 {
   std::wstring ws;
   {
@@ -764,7 +764,7 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
     }
   }
 
-  std::vector<unsigned> str;
+  std::wstring res;
   unsigned i = 0;
   while (i < ws.size())
   {
@@ -772,7 +772,7 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
     if (ws[i] != '\\')
     {
       // don't worry about printable here
-      str.push_back(static_cast<unsigned>(ws[i]));
+      res.push_back(ws[i]);
       ++i;
       continue;
     }
@@ -790,49 +790,49 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
     {
       case 'n':
       {
-        str.push_back(static_cast<unsigned>('\n'));
+        res.push_back('\n');
         i++;
       }
       break;
       case 't':
       {
-        str.push_back(static_cast<unsigned>('\t'));
+        res.push_back('\t');
         i++;
       }
       break;
       case 'v':
       {
-        str.push_back(static_cast<unsigned>('\v'));
+        res.push_back('\v');
         i++;
       }
       break;
       case 'b':
       {
-        str.push_back(static_cast<unsigned>('\b'));
+        res.push_back('\b');
         i++;
       }
       break;
       case 'r':
       {
-        str.push_back(static_cast<unsigned>('\r'));
+        res.push_back('\r');
         i++;
       }
       break;
       case 'f':
       {
-        str.push_back(static_cast<unsigned>('\f'));
+        res.push_back('\f');
         i++;
       }
       break;
       case 'a':
       {
-        str.push_back(static_cast<unsigned>('\a'));
+        res.push_back('\a');
         i++;
       }
       break;
       case '\\':
       {
-        str.push_back(static_cast<unsigned>('\\'));
+        res.push_back('\\');
         i++;
       }
       break;
@@ -847,7 +847,7 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
             shex << ws[i + 1] << ws[i + 2];
             unsigned val;
             shex >> std::hex >> val;
-            str.push_back(val);
+            res.push_back(val);
             i += 3;
             isValid = true;
           }
@@ -876,37 +876,47 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
                 && ws[i + 2] < '8')
             {
               num = num * 8 + static_cast<unsigned>(ws[i + 2]) - 48;
-              str.push_back(num);
+              res.push_back(num);
               i += 3;
             }
             else
             {
-              str.push_back(num);
+              res.push_back(num);
               i += 2;
             }
           }
           else
           {
-            str.push_back(num);
+            res.push_back(num);
             i++;
           }
         }
       }
     }
   }
-  return str;
+  return res;
 }
 
 api::Term Parser::mkStringConstant(const std::string& s)
 {
-  if (language::isInputLang_smt2_6(d_solver->getOptions().getInputLanguage()))
+  if (language::isInputLang_smt2_6(
+          options::getInputLanguage(d_solver->getOptions())))
   {
     return d_solver->mkString(s, true);
   }
   // otherwise, we must process ad-hoc escape sequences
-  std::vector<unsigned> str = processAdHocStringEsc(s);
+  std::wstring str = processAdHocStringEsc(s);
   return d_solver->mkString(str);
 }
 
-} /* CVC4::parser namespace */
-} /* CVC4 namespace */
+api::Term Parser::mkCharConstant(const std::string& s)
+{
+  Assert(s.find_first_not_of("0123456789abcdefABCDEF", 0) == std::string::npos
+         && s.size() <= 5 && s.size() > 0)
+      << "Unexpected string for hexadecimal character " << s;
+  wchar_t val = static_cast<wchar_t>(std::stoul(s, 0, 16));
+  return d_solver->mkString(std::wstring(1, val));
+}
+
+}  // namespace parser
+}  // namespace cvc5

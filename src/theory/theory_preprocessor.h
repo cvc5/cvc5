@@ -1,35 +1,36 @@
-/*********************                                                        */
-/*! \file theory_preprocessor.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The theory preprocessor.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The theory preprocessor.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__THEORY_PREPROCESSOR_H
-#define CVC4__THEORY__THEORY_PREPROCESSOR_H
+#ifndef CVC5__THEORY__THEORY_PREPROCESSOR_H
+#define CVC5__THEORY__THEORY_PREPROCESSOR_H
 
 #include <unordered_map>
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
-#include "expr/lazy_proof.h"
 #include "expr/node.h"
-#include "expr/tconv_seq_proof_generator.h"
-#include "expr/term_conversion_proof_generator.h"
+#include "proof/conv_proof_generator.h"
+#include "proof/conv_seq_proof_generator.h"
+#include "proof/lazy_proof.h"
+#include "proof/trust_node.h"
 #include "smt/term_formula_removal.h"
 #include "theory/skolem_lemma.h"
-#include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class LogicInfo;
 class TheoryEngine;
@@ -71,7 +72,7 @@ namespace theory {
  */
 class TheoryPreprocessor
 {
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
+  typedef context::CDHashMap<Node, Node> NodeMap;
 
  public:
   /** Constructs a theory preprocessor */
@@ -223,6 +224,6 @@ class TheoryPreprocessor
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__THEORY_PREPROCESSOR_H */
+#endif /* CVC5__THEORY__THEORY_PREPROCESSOR_H */

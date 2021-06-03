@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file term_registry.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief term registry class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Term registry class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__TERM_REGISTRY_H
-#define CVC4__THEORY__QUANTIFIERS__TERM_REGISTRY_H
+#ifndef CVC5__THEORY__QUANTIFIERS__TERM_REGISTRY_H
+#define CVC5__THEORY__QUANTIFIERS__TERM_REGISTRY_H
 
 #include <map>
 #include <unordered_set>
@@ -24,8 +25,9 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_pools.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -37,13 +39,13 @@ class FirstOrderModel;
  */
 class TermRegistry
 {
-  using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   TermRegistry(QuantifiersState& qs,
                QuantifiersRegistry& qr);
   /** Finish init, which sets the inference manager on modules of this class */
-  void finishInit(QuantifiersInferenceManager* qim);
+  void finishInit(FirstOrderModel* fm, QuantifiersInferenceManager* qim);
   /** Presolve */
   void presolve();
 
@@ -67,9 +69,15 @@ class TermRegistry
    * one exists, or otherwise a fresh variable.
    */
   Node getTermForType(TypeNode tn);
-
-  /** Whether we use the full model check builder and corresponding model */
-  bool useFmcModel() const;
+  /**
+   * Declare pool p with initial value initValue.
+   */
+  void declarePool(Node p, const std::vector<Node>& initValue);
+  /**
+   * Process instantiation
+   */
+  void processInstantiation(Node q, const std::vector<Node>& terms);
+  void processSkolemization(Node q, const std::vector<Node>& skolems);
 
   /** get term database */
   TermDb* getTermDatabase() const;
@@ -77,6 +85,8 @@ class TermRegistry
   TermDbSygus* getTermDatabaseSygus() const;
   /** get term enumeration utility */
   TermEnumeration* getTermEnumeration() const;
+  /** get the term pools utility */
+  TermPools* getTermPools() const;
   /** get the model utility */
   FirstOrderModel* getModel() const;
 
@@ -89,16 +99,18 @@ class TermRegistry
   NodeSet d_presolveCache;
   /** term enumeration utility */
   std::unique_ptr<TermEnumeration> d_termEnum;
+  /** term enumeration utility */
+  std::unique_ptr<TermPools> d_termPools;
   /** term database */
   std::unique_ptr<TermDb> d_termDb;
   /** sygus term database */
   std::unique_ptr<TermDbSygus> d_sygusTdb;
   /** extended model object */
-  std::unique_ptr<FirstOrderModel> d_qmodel;
+  FirstOrderModel* d_qmodel;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__TERM_REGISTRY_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__TERM_REGISTRY_H */

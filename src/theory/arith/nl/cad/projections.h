@@ -1,31 +1,30 @@
-/*********************                                                        */
-/*! \file projections.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements utilities for CAD projection operators.
- **
- ** Implements utilities for CAD projection operators.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements utilities for CAD projection operators.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__ARITH__NL__CAD_PROJECTIONS_H
-#define CVC4__THEORY__ARITH__NL__CAD_PROJECTIONS_H
+#ifndef CVC5__THEORY__ARITH__NL__CAD_PROJECTIONS_H
+#define CVC5__THEORY__ARITH__NL__CAD_PROJECTIONS_H
 
-#ifdef CVC4_USE_POLY
+#ifdef CVC5_USE_POLY
 
 #include <poly/polyxx.h>
 
 #include <vector>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -76,7 +75,7 @@ PolyVector projectionMcCallum(const std::vector<poly::Polynomial>& polys);
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif
 

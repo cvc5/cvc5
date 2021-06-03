@@ -1,18 +1,20 @@
 #!/usr/bin/env python
-#####################
-## genkinds.py
-## Top contributors (to current version):
-##   Makai Mann
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Makai Mann, Mudathir Mohamed, Aina Niemetz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
 ##
 
 """
 This script implements KindsParser which
-parses the header file CVC4/src/api/cvc4cppkind.h
+parses the header file cvc5/src/api/cpp/cvc5_kind.h
 
 The script is aware of the '#if 0' pattern and will ignore
 kinds declared between '#if 0' and '#endif'. It can also
@@ -21,8 +23,6 @@ handle nested '#if 0' pairs.
 
 from collections import OrderedDict
 
-#################### Default Filenames ################
-DEFAULT_HEADER = 'cvc4cppkind.h'
 
 ##################### Useful Constants ################
 OCB = '{'
@@ -33,8 +33,8 @@ C = ','
 US = '_'
 NL = '\n'
 
-# Enum Declarations
-ENUM_START = 'enum CVC4_EXPORT Kind'
+# Expected C++ Enum Declarations
+ENUM_START = 'enum CVC5_EXPORT Kind'
 ENUM_END = CCB + SC
 
 # Comments and Macro Tokens
@@ -61,10 +61,29 @@ class KindsParser:
     }
 
     def __init__(self):
+        # dictionary from C++ Kind name to shortened name
         self.kinds = OrderedDict()
+        # dictionary from shortened name to documentation comment
+        self.kinds_doc = OrderedDict()
+        # the end token for the current type of block
+        # none if not in a block comment or macro
         self.endtoken = None
+        # stack of end tokens
         self.endtoken_stack = []
+        # boolean that is true when in the kinds enum
         self.in_kinds = False
+        # latest block comment - used for kinds documentation
+        self.latest_block_comment = ""
+
+    def get_comment(self, kind_name):
+        '''
+        Look up a documentation comment for a Kind by name
+        Accepts both full C++ name and shortened name
+        '''
+        try:
+            return self.kinds_doc[kind_name]
+        except KeyError:
+            return self.kinds_doc[self.kinds[kind_name]]
 
     def format_name(self, name):
         '''
@@ -83,7 +102,7 @@ class KindsParser:
            so that the word after "Is" is capitalized
 
         Examples:
-           BITVECTOR_PLUS      -->  BVPlus
+           BITVECTOR_ADD       -->  BVAdd
            APPLY_SELECTOR      -->  ApplySelector
            FLOATINGPOINT_ISNAN -->  FPIsNan
            SETMINUS            -->  Setminus
@@ -99,6 +118,22 @@ class KindsParser:
 
         return name
 
+    def format_comment(self, comment):
+        '''
+        Removes the C++ syntax for block comments and returns just the text
+        '''
+        assert comment[0]  == '/', \
+            "Expecting to start with / but got %s" % comment[0]
+        assert comment[-1] == '/', \
+            "Expecting to end with / but got %s" % comment[-1]
+        res = ""
+        for line in comment.strip("/* \t").split("\n"):
+            line = line.strip("*")
+            if line:
+                res += line
+                res += "\n"
+        return res
+
     def ignore_block(self, line):
         '''
         Returns a boolean telling self.parse whether to ignore a line or not.
@@ -109,6 +144,9 @@ class KindsParser:
         # check if entering block comment or macro block
         for token in self.tokenmap:
             if token in line:
+                # if entering block comment, override previous block comment
+                if token == BLOCK_COMMENT_BEGIN:
+                    self.latest_block_comment = line
                 if self.tokenmap[token] not in line:
                     if self.endtoken is not None:
                         self.endtoken_stack.append(self.endtoken)
@@ -117,6 +155,9 @@ class KindsParser:
 
         # check if currently in block comment or macro block
         if self.endtoken is not None:
+            # if in block comment, record the line
+            if self.endtoken == BLOCK_COMMENT_END:
+                self.latest_block_comment += "\n" + line
             # check if reached the end of block comment or macro block
             if self.endtoken in line:
                 if self.endtoken_stack:
@@ -150,7 +191,10 @@ class KindsParser:
                     line = line[:line.find(EQ)].strip()
                 elif C in line:
                     line = line[:line.find(C)].strip()
-                self.kinds[line] = self.format_name(line)
+                fmt_name = self.format_name(line)
+                self.kinds[line] = fmt_name
+                fmt_comment = self.format_comment(self.latest_block_comment)
+                self.kinds_doc[fmt_name] = fmt_comment
             elif ENUM_START in line:
                 self.in_kinds = True
                 continue

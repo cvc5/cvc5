@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file substitutions.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Clark Barrett, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A substitution mapping for theory simplification
- **
- ** A substitution mapping for theory simplification.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Clark Barrett, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A substitution mapping for theory simplification.
+ */
 
 #include "theory/substitutions.h"
 #include "expr/node_algorithm.h"
@@ -20,8 +19,17 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+
+SubstitutionMap::SubstitutionMap(context::Context* context)
+    : d_context(),
+      d_substitutions(context ? context : &d_context),
+      d_substitutionCache(),
+      d_cacheInvalidated(false),
+      d_cacheInvalidator(context ? context : &d_context, d_cacheInvalidated)
+{
+}
 
 struct substitution_stack_element {
   TNode d_node;
@@ -58,14 +66,6 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
       continue;
     }
 
-    if (!d_substituteUnderQuantifiers && current.isClosure())
-    {
-      Debug("substitution::internal") << "--not substituting under quantifier" << endl;
-      cache[current] = current;
-      toVisit.pop_back();
-      continue;
-    }
-
     NodeMap::iterator find2 = d_substitutions.find(current);
     if (find2 != d_substitutions.end()) {
       Node rhs = (*find2).second;
@@ -81,7 +81,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
     if (stackHead.d_children_added)
     {
       // Children have been processed, so substitute
-      NodeBuilder<> builder(current.getKind());
+      NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << Node(cache[current.getOperator()]);
       }
@@ -215,12 +215,12 @@ void SubstitutionMap::print(ostream& out) const {
   }
 }
 
-void SubstitutionMap::debugPrint() const { print(CVC4Message.getStream()); }
+void SubstitutionMap::debugPrint() const { print(CVC5Message.getStream()); }
 
-}/* CVC4::theory namespace */
+}  // namespace theory
 
 std::ostream& operator<<(std::ostream& out, const theory::SubstitutionMap::iterator& i) {
   return out << "[CDMap-iterator]";
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

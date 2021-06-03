@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file bv_eager_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Eager bit-blasting solver.
- **
- ** Eager bit-blasting solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Liana Hadarean, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Eager bit-blasting solver.
+ */
 
 #include "theory/bv/bv_eager_solver.h"
 
@@ -23,7 +22,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -48,7 +47,7 @@ void EagerBitblastSolver::turnOffAig() {
 void EagerBitblastSolver::initialize() {
   Assert(!isInitialized());
   if (d_useAig) {
-#ifdef CVC4_USE_ABC
+#ifdef CVC5_USE_ABC
     d_aigBitblaster.reset(new AigBitblaster());
 #else
     Unreachable();
@@ -66,7 +65,7 @@ bool EagerBitblastSolver::isInitialized() {
 }
 
 void EagerBitblastSolver::assertFormula(TNode formula) {
-  d_bv->spendResource(ResourceManager::Resource::BvEagerAssertStep);
+  d_bv->spendResource(Resource::BvEagerAssertStep);
   Assert(isInitialized());
   Debug("bitvector-eager") << "EagerBitblastSolver::assertFormula " << formula
                            << "\n";
@@ -77,7 +76,7 @@ void EagerBitblastSolver::assertFormula(TNode formula) {
   d_assertionSet.insert(formula);
   // ensures all atoms are bit-blasted and converted to AIG
   if (d_useAig) {
-#ifdef CVC4_USE_ABC
+#ifdef CVC5_USE_ABC
     d_aigBitblaster->bbFormula(formula);
 #else
     Unreachable();
@@ -96,7 +95,7 @@ bool EagerBitblastSolver::checkSat() {
   }
 
   if (d_useAig) {
-#ifdef CVC4_USE_ABC
+#ifdef CVC5_USE_ABC
     const std::vector<Node> assertions = {d_assertionSet.key_begin(),
                                           d_assertionSet.key_end()};
     Assert(!assertions.empty());
@@ -125,4 +124,4 @@ bool EagerBitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel)
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

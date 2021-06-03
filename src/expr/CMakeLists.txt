@@ -1,14 +1,19 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Mathias Preiner, Andrew Reynolds, Aina Niemetz
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Mathias Preiner, Andrew Reynolds, Aina Niemetz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
-libcvc4_add_sources(
+
+libcvc5_add_sources(
   array_store_all.cpp
   array_store_all.h
   ascription_type.cpp
@@ -19,8 +24,6 @@ libcvc4_add_sources(
   attribute_unique_id.h
   bound_var_manager.cpp
   bound_var_manager.h
-  buffered_proof_generator.cpp
-  buffered_proof_generator.h
   emptyset.cpp
   emptyset.h
   emptybag.cpp
@@ -28,16 +31,13 @@ libcvc4_add_sources(
   expr_iomanip.cpp
   expr_iomanip.h
   kind_map.h
-  lazy_proof.cpp
-  lazy_proof.h
-  lazy_proof_chain.cpp
-  lazy_proof_chain.h
   match_trie.cpp
   match_trie.h
   node.cpp
   node.h
   node_algorithm.cpp
   node_algorithm.h
+  node_builder.cpp
   node_builder.h
   node_manager.cpp
   node_manager.h
@@ -52,37 +52,12 @@ libcvc4_add_sources(
   sequence.cpp
   sequence.h
   node_visitor.h
-  proof.cpp
-  proof.h
-  proof_checker.cpp
-  proof_checker.h
-  proof_ensure_closed.cpp
-  proof_ensure_closed.h
-  proof_generator.cpp
-  proof_generator.h
-  proof_node.cpp
-  proof_node.h
-  proof_node_algorithm.cpp
-  proof_node_algorithm.h
-  proof_node_to_sexpr.cpp
-  proof_node_to_sexpr.h
-  proof_node_manager.cpp
-  proof_node_manager.h
-  proof_node_updater.cpp
-  proof_node_updater.h
-  proof_rule.cpp
-  proof_rule.h
-  proof_set.h
-  proof_step_buffer.cpp
-  proof_step_buffer.h
   skolem_manager.cpp
   skolem_manager.h
   symbol_manager.cpp
   symbol_manager.h
   symbol_table.cpp
   symbol_table.h
-  tconv_seq_proof_generator.cpp
-  tconv_seq_proof_generator.h
   term_canonize.cpp
   term_canonize.h
   term_context.cpp
@@ -91,8 +66,6 @@ libcvc4_add_sources(
   term_context_node.h
   term_context_stack.cpp
   term_context_stack.h
-  term_conversion_proof_generator.cpp
-  term_conversion_proof_generator.h
   type_checker.h
   type_matcher.cpp
   type_matcher.h
@@ -106,8 +79,6 @@ libcvc4_add_sources(
   dtype_cons.cpp
   dtype_selector.h
   dtype_selector.cpp
-  record.cpp
-  record.h
   sequence.cpp
   sequence.h
   subs.cpp
@@ -118,7 +89,7 @@ libcvc4_add_sources(
   uninterpreted_constant.h
 )
 
-libcvc4_add_sources(GENERATED
+libcvc5_add_sources(GENERATED
   kind.cpp
   kind.h
   metakind.cpp

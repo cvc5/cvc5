@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file process_assertions.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of module for processing assertions for an SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of module for processing assertions for an SMT engine.
+ */
 
 #include "smt/process_assertions.h"
 
@@ -30,7 +31,6 @@
 #include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
 #include "smt/assertions.h"
-#include "smt/defined_function.h"
 #include "smt/dump.h"
 #include "smt/expand_definitions.h"
 #include "smt/smt_engine.h"
@@ -39,11 +39,11 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace CVC4::preprocessing;
-using namespace CVC4::theory;
-using namespace CVC4::kind;
+using namespace cvc5::preprocessing;
+using namespace cvc5::theory;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 /** Useful for counting the number of recursive calls. */
@@ -58,11 +58,9 @@ class ScopeCounter
 };
 
 ProcessAssertions::ProcessAssertions(SmtEngine& smt,
-                                     ExpandDefs& exDefs,
                                      ResourceManager& rm,
                                      SmtEngineStatistics& stats)
     : d_smt(smt),
-      d_exDefs(exDefs),
       d_resourceManager(rm),
       d_smtStats(stats),
       d_preprocessingPassContext(nullptr)
@@ -93,7 +91,7 @@ void ProcessAssertions::finishInit(PreprocessingPassContext* pc)
 
 void ProcessAssertions::cleanup() { d_passes.clear(); }
 
-void ProcessAssertions::spendResource(ResourceManager::Resource r)
+void ProcessAssertions::spendResource(Resource r)
 {
   d_resourceManager.spendResource(r);
 }
@@ -135,11 +133,11 @@ bool ProcessAssertions::apply(Assertions& as)
       << "ProcessAssertions::processAssertions() : pre-definition-expansion"
       << endl;
   dumpAssertions("pre-definition-expansion", assertions);
-  // Expand definitions, which replaces defined functions with their definition
-  // and does beta reduction. Notice we pass true as the second argument since
-  // we do not want to call theories to expand definitions here, since we want
+  // Apply substitutions first. If we are non-incremental, this has only the
+  // effect of replacing defined functions with their definitions.
+  // We do not call theory-specific expand definitions here, since we want
   // to give the opportunity to rewrite/preprocess terms before expansion.
-  d_exDefs.expandAssertions(assertions, true);
+  d_passes["apply-substs"]->apply(&assertions);
   Trace("smt-proc")
       << "ProcessAssertions::processAssertions() : post-definition-expansion"
       << endl;
@@ -235,11 +233,6 @@ bool ProcessAssertions::apply(Assertions& as)
   {
     // remove rewrite rules, apply pre-skolemization to existential quantifiers
     d_passes["quantifiers-preprocess"]->apply(&assertions);
-    if (options::macrosQuant())
-    {
-      // quantifiers macro expansion
-      d_passes["quantifier-macros"]->apply(&assertions);
-    }
 
     // fmf-fun : assume admissible functions, applying preprocessing reduction
     // to FMF
@@ -358,7 +351,7 @@ bool ProcessAssertions::apply(Assertions& as)
 // returns false if simplification led to "false"
 bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
 {
-  spendResource(ResourceManager::Resource::PreprocessStep);
+  spendResource(Resource::PreprocessStep);
   try
   {
     ScopeCounter depth(d_simplifyAssertionsDepth);
@@ -462,4 +455,4 @@ void ProcessAssertions::dumpAssertions(const char* key,
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

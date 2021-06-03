@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file sygus_enumerator_basic.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Basic sygus enumerator class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Basic sygus enumerator class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_BASIC_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_BASIC_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_BASIC_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_BASIC_H
 
 #include <map>
 #include <unordered_set>
@@ -25,7 +26,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -60,11 +61,11 @@ class EnumValGeneratorBasic : public EnumValGenerator
   /** the current term */
   Node d_currTerm;
   /** cache of (enumerated) builtin values we have enumerated so far */
-  std::unordered_set<Node, NodeHashFunction> d_cache;
+  std::unordered_set<Node> d_cache;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_BASIC_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_BASIC_H */

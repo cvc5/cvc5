@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file eqc_info.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Equivalence class info for the theory of strings
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Equivalence class info for the theory of strings.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__EQC_INFO_H
-#define CVC4__THEORY__STRINGS__EQC_INFO_H
+#ifndef CVC5__THEORY__STRINGS__EQC_INFO_H
+#define CVC5__THEORY__STRINGS__EQC_INFO_H
 
 #include <map>
 
@@ -23,7 +24,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -76,6 +77,6 @@ class EqcInfo
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__EQC_INFO_H */
+#endif /* CVC5__THEORY__STRINGS__EQC_INFO_H */

@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file sygus_input.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add file-specific comments here ]].
- **
- ** [[ Add file-specific comments here ]]
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add file-specific comments here ]]
+ */
 
 #include "parser/smt2/sygus_input.h"
 
@@ -26,7 +27,7 @@
 #include "parser/smt2/Smt2Parser.h"
 #include "parser/smt2/sygus_input.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 /* Use lookahead=2 */
@@ -68,5 +69,5 @@ api::Term SygusInput::parseExpr()
   return d_pSmt2Parser->parseExpr(d_pSmt2Parser);
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

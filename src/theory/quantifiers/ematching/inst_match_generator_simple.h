@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file inst_match_generator_simple.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief simple inst match generator class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Simple inst match generator class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_SIMPLE_H
-#define CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_SIMPLE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_SIMPLE_H
+#define CVC5__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_SIMPLE_H
 
 #include <map>
 #include <vector>
@@ -23,7 +24,7 @@
 #include "expr/node_trie.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -100,6 +101,6 @@ class InstMatchGeneratorSimple : public IMGenerator
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

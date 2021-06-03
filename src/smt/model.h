@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file model.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Model class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__MODEL_H
-#define CVC4__MODEL_H
+#ifndef CVC5__MODEL_H
+#define CVC5__MODEL_H
 
 #include <iosfwd>
 #include <vector>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SmtEngine;
 
@@ -46,7 +47,7 @@ std::ostream& operator<<(std::ostream&, const Model&);
  */
 class Model {
   friend std::ostream& operator<<(std::ostream&, const Model&);
-  friend class ::CVC4::SmtEngine;
+  friend class ::cvc5::SmtEngine;
 
  public:
   /** construct */
@@ -57,7 +58,7 @@ class Model {
   std::string getInputName() const { return d_inputName; }
   /**
    * Returns true if this model is guaranteed to be a model of the input
-   * formula. Notice that when CVC4 answers "unknown", it may have a model
+   * formula. Notice that when cvc5 answers "unknown", it may have a model
    * available for which this method returns false. In this case, this model is
    * only a candidate solution.
    */
@@ -118,6 +119,6 @@ class Model {
 };
 
 }  // namespace smt
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif  /* CVC4__MODEL_H */
+#endif /* CVC5__MODEL_H */

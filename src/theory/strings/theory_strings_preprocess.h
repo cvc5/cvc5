@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file theory_strings_preprocess.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Strings Preprocess
- **
- ** Strings Preprocess.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tianyi Liang, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Strings Preprocess.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__PREPROCESS_H
-#define CVC4__THEORY__STRINGS__PREPROCESS_H
+#ifndef CVC5__THEORY__STRINGS__PREPROCESS_H
+#define CVC5__THEORY__STRINGS__PREPROCESS_H
 
 #include <vector>
 #include "context/cdhashmap.h"
@@ -27,7 +26,7 @@
 #include "theory/theory.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -41,7 +40,7 @@ namespace strings {
 class StringsPreprocess {
  public:
   StringsPreprocess(SkolemCache* sc,
-                    IntegralHistogramStat<Kind>* statReductions = nullptr);
+                    HistogramStat<Kind>* statReductions = nullptr);
   ~StringsPreprocess();
   /** The reduce routine
    *
@@ -83,7 +82,7 @@ class StringsPreprocess {
   /** pointer to the skolem cache used by this class */
   SkolemCache* d_sc;
   /** Reference to the statistics for the theory of strings/sequences. */
-  IntegralHistogramStat<Kind>* d_statReductions;
+  HistogramStat<Kind>* d_statReductions;
   /** visited cache */
   std::map<Node, Node> d_visited;
   /**
@@ -102,8 +101,8 @@ class StringsPreprocess {
   static Node mkForallInternal(Node bvl, Node body);
 };
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__PREPROCESS_H */
+#endif /* CVC5__THEORY__STRINGS__PREPROCESS_H */

@@ -1,17 +1,17 @@
-/*********************                                                        */
-/*! \file model_blocker.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of utility for blocking models.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of utility for blocking models.
+ */
 
 #include "smt/model_blocker.h"
 
@@ -21,9 +21,9 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
                                    theory::TheoryModel* m,
@@ -72,9 +72,9 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
     }
 
     Node formula = asserts.size() > 1 ? nm->mkNode(AND, asserts) : asserts[0];
-    std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-    std::unordered_map<TNode, Node, TNodeHashFunction> implicant;
-    std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+    std::unordered_map<TNode, Node> visited;
+    std::unordered_map<TNode, Node> implicant;
+    std::unordered_map<TNode, Node>::iterator it;
     std::vector<TNode> visit;
     TNode cur;
     visit.push_back(formula);
@@ -235,7 +235,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
     {
       Trace("model-blocker")
           << "no specific terms to block recognized" << std::endl;
-      std::unordered_set<Node, NodeHashFunction> symbols;
+      std::unordered_set<Node> symbols;
       for (Node n : tlAsserts)
       {
         expr::getSymbols(n, symbols);
@@ -253,7 +253,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
     // otherwise, block all terms that were specified in get-value
     else
     {
-      std::unordered_set<Node, NodeHashFunction> terms;
+      std::unordered_set<Node> terms;
       for (Node n : nodesToBlock)
       {
         Node v = m->getValue(n);
@@ -278,4 +278,4 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
   return blocker;
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5

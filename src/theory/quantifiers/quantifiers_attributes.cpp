@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file quantifiers_attributes.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of QuantifiersAttributes class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Paul Meng, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of QuantifiersAttributes class.
+ */
 
 #include "theory/quantifiers/quantifiers_attributes.h"
 
@@ -20,10 +21,10 @@
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -172,7 +173,7 @@ void QuantAttributes::computeAttributes( Node q ) {
   {
     Node f = qa.d_fundef_f;
     if( d_fun_defs.find( f )!=d_fun_defs.end() ){
-      CVC4Message() << "Cannot define function " << f << " more than once."
+      CVC5Message() << "Cannot define function " << f << " more than once."
                     << std::endl;
       AlwaysAssert(false);
     }
@@ -185,10 +186,20 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
   if( q.getNumChildren()==3 ){
     qa.d_ipl = q[2];
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
-      Trace("quant-attr-debug") << "Check : " << q[2][i] << " " << q[2][i].getKind() << std::endl;
-      if( q[2][i].getKind()==INST_PATTERN || q[2][i].getKind()==INST_NO_PATTERN ){
+      Kind k = q[2][i].getKind();
+      Trace("quant-attr-debug")
+          << "Check : " << q[2][i] << " " << k << std::endl;
+      if (k == INST_PATTERN || k == INST_NO_PATTERN)
+      {
         qa.d_hasPattern = true;
-      }else if( q[2][i].getKind()==INST_ATTRIBUTE ){
+      }
+      else if (k == INST_POOL || k == INST_ADD_TO_POOL
+               || k == SKOLEM_ADD_TO_POOL)
+      {
+        qa.d_hasPool = true;
+      }
+      else if (k == INST_ATTRIBUTE)
+      {
         Node avar = q[2][i][0];
         if( avar.getAttribute(FunDefAttribute()) ){
           Trace("quant-attr") << "Attribute : function definition : " << q << std::endl;
@@ -376,6 +387,6 @@ void QuantAttributes::setInstantiationLevelAttr(Node n, uint64_t level)
   }
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

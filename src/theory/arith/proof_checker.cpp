@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file proof_checker.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of arithmetic proof checker
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Alex Ozdemir, Gereon Kremer, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of arithmetic proof checker.
+ */
 
 #include "theory/arith/proof_checker.h"
 
@@ -23,13 +24,13 @@
 #include "theory/arith/normal_form.h"
 #include "theory/arith/operator_elim.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
 void ArithProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS, this);
+  pc->registerChecker(PfRule::MACRO_ARITH_SCALE_SUM_UB, this);
   pc->registerChecker(PfRule::ARITH_SUM_UB, this);
   pc->registerChecker(PfRule::ARITH_TRICHOTOMY, this);
   pc->registerChecker(PfRule::INT_TIGHT_UB, this);
@@ -108,8 +109,8 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
 
       // Whether a strict inequality is in the sum.
       bool strict = false;
-      NodeBuilder<> leftSum(Kind::PLUS);
-      NodeBuilder<> rightSum(Kind::PLUS);
+      NodeBuilder leftSum(Kind::PLUS);
+      NodeBuilder rightSum(Kind::PLUS);
       for (size_t i = 0; i < children.size(); ++i)
       {
         // Adjust strictness
@@ -140,21 +141,30 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
                           rightSum.constructNode());
       return r;
     }
-    case PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS:
+    case PfRule::MACRO_ARITH_SCALE_SUM_UB:
     {
+      //================================================= Arithmetic rules
+      // ======== Adding Inequalities
+      // Note: an ArithLiteral is a term of the form (>< poly const)
+      // where
+      //   >< is >=, >, ==, <, <=, or not(== ...).
+      //   poly is a polynomial
+      //   const is a rational constant
+
       // Children: (P1:l1, ..., Pn:ln)
       //           where each li is an ArithLiteral
       //           not(= ...) is dis-allowed!
       //
       // Arguments: (k1, ..., kn), non-zero reals
       // ---------------------
-      // Conclusion: (>< (* k t1) (* k t2))
+      // Conclusion: (>< t1 t2)
       //    where >< is the fusion of the combination of the ><i, (flipping each
       //    it its ki is negative). >< is always one of <, <= NB: this implies
       //    that lower bounds must have negative ki,
       //                      and upper bounds must have positive ki.
-      //    t1 is the sum of the polynomials.
-      //    t2 is the sum of the constants.
+      //    t1 is the sum of the scaled polynomials (k_1 * poly_1 + ... + k_n *
+      //    poly_n) t2 is the sum of the scaled constants (k_1 * const_1 + ... +
+      //    k_n * const_n)
       Assert(children.size() == args.size());
       if (children.size() < 2)
       {
@@ -163,8 +173,8 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
 
       // Whether a strict inequality is in the sum.
       bool strict = false;
-      NodeBuilder<> leftSum(Kind::PLUS);
-      NodeBuilder<> rightSum(Kind::PLUS);
+      NodeBuilder leftSum(Kind::PLUS);
+      NodeBuilder rightSum(Kind::PLUS);
       for (size_t i = 0; i < children.size(); ++i)
       {
         Rational scalar = args[i].getConst<Rational>();
@@ -233,9 +243,9 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
           }
         }
         leftSum << nm->mkNode(
-            Kind::MULT, children[i][0], nm->mkConst<Rational>(scalar));
+            Kind::MULT, nm->mkConst<Rational>(scalar), children[i][0]);
         rightSum << nm->mkNode(
-            Kind::MULT, children[i][1], nm->mkConst<Rational>(scalar));
+            Kind::MULT, nm->mkConst<Rational>(scalar), children[i][1]);
       }
       Node r = nm->mkNode(strict ? Kind::LT : Kind::LEQ,
                           leftSum.constructNode(),
@@ -360,4 +370,4 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
 }
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

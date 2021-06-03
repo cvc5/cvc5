@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --incremental --fmf-fun
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (declare-datatypes ((Lst 0)) (((cons (head Int) (tail Lst)) (nil))))
 (define-fun-rec sum ((l Lst)) Int (ite ((_ is nil) l) 0 (+ (head l) (sum (tail l)))))
 

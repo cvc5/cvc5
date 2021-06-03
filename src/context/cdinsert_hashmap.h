@@ -1,36 +1,35 @@
-/*********************                                                        */
-/*! \file cdinsert_hashmap.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Context-dependent insert only hashmap built using trail of edits
- **
- ** Context-dependent hashmap that only allows for one insertion per element.
- ** This can be viewed as a highly restricted version of CDHashMap.
- ** It is significantly lighter in memory usage than CDHashMap.
- **
- ** See also:
- **  CDTrailHashMap : A lightweight CD hash map with poor iteration
- **    characteristics and some quirks in usage.
- **  CDHashMap : A fully featured CD hash map. (The closest to <ext/hash_map>)
- **
- ** Notes:
- ** - To iterate efficiently over the elements use the key_iterators.
- ** - operator[] is only supported as a const derefence (must succeed).
- ** - insert(k) must always work.
- ** - Use insert_safe if you want to check if the element has been inserted
- **   and only insert if it has not yet been.
- ** - Does not accept TNodes as keys.
- ** - Supports insertAtContextLevelZero() if the element is not in the map.
- **/
-
-#include "cvc4_private.h"
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Mathias Preiner, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Context-dependent insert only hashmap built using trail of edits
+ *
+ * Context-dependent hashmap that only allows for one insertion per element.
+ * This can be viewed as a highly restricted version of CDHashMap.
+ * It is significantly lighter in memory usage than CDHashMap.
+ *
+ * See also:
+ *  CDTrailHashMap : A lightweight CD hash map with poor iteration
+ *    characteristics and some quirks in usage.
+ *  CDHashMap : A fully featured CD hash map. (The closest to <ext/hash_map>)
+ *
+ * Notes:
+ * - To iterate efficiently over the elements use the key_iterators.
+ * - operator[] is only supported as a const derefence (must succeed).
+ * - insert(k) must always work.
+ * - Use insert_safe if you want to check if the element has been inserted
+ *   and only insert if it has not yet been.
+ * - Does not accept TNodes as keys.
+ * - Supports insertAtContextLevelZero() if the element is not in the map.
+ */
 
 #include <deque>
 #include <functional>
@@ -41,11 +40,12 @@
 #include "base/output.h"
 #include "context/cdinsert_hashmap_forward.h"
 #include "context/context.h"
+#include "cvc5_private.h"
 #include "expr/node.h"
 
 #pragma once
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 
 
@@ -406,5 +406,5 @@ class CDInsertHashMap<TNode, Data, HashFcn> : public ContextObj {
                 "Cannot create a CDInsertHashMap with TNode keys");
 };
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5

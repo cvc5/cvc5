@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file term_registration_visitor.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -22,7 +23,7 @@
 
 #include <unordered_map>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -42,8 +43,7 @@ class PreRegisterVisitor {
   /** The engine */
   TheoryEngine* d_engine;
 
-  typedef context::CDHashMap<TNode, theory::TheoryIdSet, TNodeHashFunction>
-      TNodeToTheorySetMap;
+  typedef context::CDHashMap<TNode, theory::TheoryIdSet> TNodeToTheorySetMap;
 
   /**
    * Map from terms to the theories that have already had this term pre-registered.
@@ -128,10 +128,8 @@ class PreRegisterVisitor {
  * been visited already, we need to visit it again, since we need to associate it with both atoms.
  */
 class SharedTermsVisitor {
-  using TNodeVisitedMap =
-      std::unordered_map<TNode, theory::TheoryIdSet, TNodeHashFunction>;
-  using TNodeToTheorySetMap =
-      context::CDHashMap<TNode, theory::TheoryIdSet, TNodeHashFunction>;
+  using TNodeVisitedMap = std::unordered_map<TNode, theory::TheoryIdSet>;
+  using TNodeToTheorySetMap = context::CDHashMap<TNode, theory::TheoryIdSet>;
   /**
    * String representation of the visited map, for debugging purposes.
    */
@@ -189,5 +187,4 @@ class SharedTermsVisitor {
   TNodeToTheorySetMap d_preregistered;
 };
 
-
-}
+}  // namespace cvc5

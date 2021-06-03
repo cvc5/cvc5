@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file theory_bv_rewriter_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Unit tests for the bit-vector rewriter
- **
- ** Unit tests for the bit-vector rewriter.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Unit tests for the bit-vector rewriter.
+ */
 
 #include <iostream>
 #include <memory>
@@ -23,7 +22,7 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace theory;
@@ -80,5 +79,19 @@ TEST_F(TestTheoryWhiteBvRewriter, rewrite_bv_ite)
   Node nr = Rewriter::rewrite(n);
   ASSERT_EQ(nr, Rewriter::rewrite(nr));
 }
+
+TEST_F(TestTheoryWhiteBvRewriter, rewrite_bv_comp)
+{
+  TypeNode bvType = d_nodeManager->mkBitVectorType(1);
+  Node zero = d_nodeManager->mkConst(BitVector(1, 0u));
+  Node x = d_nodeManager->mkVar("x", bvType);
+  Node lhs = d_nodeManager->mkNode(BITVECTOR_NOT, x);
+  Node rhs = d_nodeManager->mkNode(BITVECTOR_AND, zero, zero);
+  Node n = d_nodeManager->mkNode(BITVECTOR_COMP, lhs, rhs);
+  Node nr = Rewriter::rewrite(n);
+  // bvcomp(bvnot(x), bvand(0, 0)) ---> x
+  ASSERT_EQ(nr, x);
+}
+
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file let_binding.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A let binding
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A let binding.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PRINTER__LET_BINDING_H
-#define CVC4__PRINTER__LET_BINDING_H
+#ifndef CVC5__PRINTER__LET_BINDING_H
+#define CVC5__PRINTER__LET_BINDING_H
 
 #include <vector>
 
@@ -23,7 +24,7 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * A flexible let binding class. This class provides functionalities for
@@ -86,7 +87,7 @@ namespace CVC4 {
 class LetBinding
 {
   using NodeList = context::CDList<Node>;
-  using NodeIdMap = context::CDHashMap<Node, uint32_t, NodeHashFunction>;
+  using NodeIdMap = context::CDHashMap<Node, uint32_t>;
 
  public:
   LetBinding(uint32_t thresh = 2);
@@ -157,6 +158,6 @@ class LetBinding
   NodeIdMap d_letMap;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

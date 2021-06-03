@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file utility.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Some standard STL-related utility functions for CVC4
- **
- ** Some standard STL-related utility functions for CVC4.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Some standard STL-related utility functions for cvc5.
+ */
 
 #include "util/utility.h"
 
@@ -22,7 +21,7 @@
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::unique_ptr<std::fstream> openTmpFile(std::string* pattern)
 {
@@ -43,7 +42,7 @@ std::unique_ptr<std::fstream> openTmpFile(std::string* pattern)
   int r = mkstemp(tmpName);
   if (r == -1)
   {
-    CVC4_FATAL() << "Could not create temporary file " << *pattern;
+    CVC5_FATAL() << "Could not create temporary file " << *pattern;
   }
   std::unique_ptr<std::fstream> tmpStream(new std::fstream(tmpName));
   close(r);
@@ -52,4 +51,4 @@ std::unique_ptr<std::fstream> openTmpFile(std::string* pattern)
   return tmpStream;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

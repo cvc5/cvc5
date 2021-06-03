@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file regexp.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Data structures for regular expression operators.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Data structures for regular expression operators.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__UTIL__REGEXP_H
-#define CVC4__UTIL__REGEXP_H
+#ifndef CVC5__UTIL__REGEXP_H
+#define CVC5__UTIL__REGEXP_H
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5 {
 
 struct RegExpRepeat
 {
@@ -42,7 +43,7 @@ struct RegExpLoop
 };
 
 /* -----------------------------------------------------------------------
- ** Hash Function structs
+ * Hash Function structs
  * ----------------------------------------------------------------------- */
 
 /*
@@ -62,13 +63,13 @@ struct RegExpLoopHashFunction
 };
 
 /* -----------------------------------------------------------------------
- ** Output stream
+ * Output stream
  * ----------------------------------------------------------------------- */
 
 std::ostream& operator<<(std::ostream& os, const RegExpRepeat& bv);
 
 std::ostream& operator<<(std::ostream& os, const RegExpLoop& bv);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__UTIL__REGEXP_H */
+#endif /* CVC5__UTIL__REGEXP_H */

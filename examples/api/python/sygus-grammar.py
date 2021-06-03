@@ -1,25 +1,28 @@
 #!/usr/bin/env python
-#####################
-## sygus-grammar.py
-## Top contributors (to current version):
-##   Yoni Zohar, Mudathir Mohamed
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
-## A simple demonstration of the solving capabilities of the CVC4
-## sygus solver through the Python API. This is a direct
-## translation of sygus-grammar.cpp.
+###############################################################################
+# Top contributors (to current version):
+#   Yoni Zohar, Mudathir Mohamed
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# A simple demonstration of the solving capabilities of the cvc5
+# sygus solver through the Python API. This is a direct
+# translation of sygus-grammar.cpp.
 ##
 
 import copy
-import pycvc4
-from pycvc4 import kinds
+import utils 
+import pycvc5
+from pycvc5 import kinds
 
 if __name__ == "__main__":
-  slv = pycvc4.Solver()
+  slv = pycvc5.Solver()
 
   # required options
   slv.setOption("lang", "sygus2")
@@ -85,4 +88,5 @@ if __name__ == "__main__":
     # (define-fun id2 ((x Int)) Int x)
     # (define-fun id3 ((x Int)) Int (+ x 0))
     # (define-fun id4 ((x Int)) Int (+ x (+ x (- x))))
-    slv.printSynthSolution()
+    terms = [id1, id2, id3, id4]
+    utils.print_synth_solutions(terms, slv.getSynthSolutions(terms))

@@ -1,25 +1,24 @@
-/*********************                                                        */
-/*! \file real_algebraic_number_poly_imp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of RealAlgebraicNumber based on libpoly.
- **
- ** Implementation of RealAlgebraicNumber based on libpoly.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of RealAlgebraicNumber based on libpoly.
+ */
 
-#include "cvc4autoconfig.h"
+#include "base/cvc5config.h"
 #include "util/real_algebraic_number.h"
 
-#ifndef CVC4_POLY_IMP  // Make sure this comes after cvc4autoconfig.h
-#error "This source should only ever be built if CVC4_POLY_IMP is on!"
-#endif /* CVC4_POLY_IMP */
+#ifndef CVC5_POLY_IMP  // Make sure this comes after base/cvc5config.h
+#error "This source should only ever be built if CVC5_POLY_IMP is on!"
+#endif /* CVC5_POLY_IMP */
 
 #include <poly/polyxx.h>
 
@@ -28,7 +27,7 @@
 #include "base/check.h"
 #include "util/poly_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 RealAlgebraicNumber::RealAlgebraicNumber(poly::AlgebraicNumber&& an)
     : d_value(std::move(an))
@@ -60,7 +59,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<long>& coefficients,
                                          long lower,
                                          long upper)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (long c : coefficients)
   {
     Assert(std::numeric_limits<std::int32_t>::min() <= c
@@ -174,4 +173,4 @@ int sgn(const RealAlgebraicNumber& ran) { return sgn(ran.getValue()); }
 bool isZero(const RealAlgebraicNumber& ran) { return is_zero(ran.getValue()); }
 bool isOne(const RealAlgebraicNumber& ran) { return is_one(ran.getValue()); }
 
-}  // namespace CVC4
+}  // namespace cvc5

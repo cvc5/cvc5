@@ -1,22 +1,20 @@
-/*********************                                                        */
-/*! \file git_versioninfo.cpp.in
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Compile version info from git.
+ */
 
 #include "base/configuration.h"
-const bool ::CVC4::Configuration::IS_GIT_BUILD = @GIT_BUILD@;
-const char* const ::CVC4::Configuration::GIT_BRANCH_NAME = "@GIT_BRANCH@";
-const char* const ::CVC4::Configuration::GIT_COMMIT = "@GIT_SHA1@";
-const bool ::CVC4::Configuration::GIT_HAS_MODIFICATIONS = @GIT_IS_DIRTY@;
+const bool ::cvc5::Configuration::IS_GIT_BUILD = @GIT_BUILD@;
+const char* const ::cvc5::Configuration::GIT_BRANCH_NAME = "@GIT_BRANCH@";
+const char* const ::cvc5::Configuration::GIT_COMMIT = "@GIT_SHA1@";
+const bool ::cvc5::Configuration::GIT_HAS_MODIFICATIONS = @GIT_IS_DIRTY@;

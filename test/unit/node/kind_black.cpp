@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file kind_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of CVC4::Kind.
- **
- ** Black box testing of CVC4::Kind.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::Kind.
+ */
 
 #include <iostream>
 #include <sstream>
@@ -21,7 +20,7 @@
 #include "expr/kind.h"
 #include "test.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 
@@ -87,4 +86,4 @@ TEST_F(TestNodeBlackKind, output_concat)
   ASSERT_EQ(act.str(), exp.str());
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

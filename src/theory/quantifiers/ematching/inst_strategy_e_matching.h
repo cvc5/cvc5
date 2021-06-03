@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file inst_strategy_e_matching.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief E matching instantiation strategies
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * E-matching instantiation strategies.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__INST_STRATEGY_E_MATCHING_H
-#define CVC4__INST_STRATEGY_E_MATCHING_H
+#ifndef CVC5__INST_STRATEGY_E_MATCHING_H
+#define CVC5__INST_STRATEGY_E_MATCHING_H
 
 #include "theory/quantifiers/ematching/inst_strategy.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quant_relevance.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -111,7 +112,7 @@ class InstStrategyAutoGenTriggers : public InstStrategy
   QuantRelevance* d_quant_rel;
 }; /* class InstStrategyAutoGenTriggers */
 }
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

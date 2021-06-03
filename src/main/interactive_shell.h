@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file interactive_shell.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Interactive shell for CVC4
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Christopher L. Conway, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Interactive shell for cvc5.
+ */
 
-#ifndef CVC4__INTERACTIVE_SHELL_H
-#define CVC4__INTERACTIVE_SHELL_H
+#ifndef CVC5__INTERACTIVE_SHELL_H
+#define CVC5__INTERACTIVE_SHELL_H
 
 #include <iosfwd>
 #include <string>
@@ -22,7 +23,7 @@
 #include "options/options.h"
 #include "util/unsafe_interrupt_exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 class Options;
@@ -33,7 +34,7 @@ class Solver;
 
 namespace parser {
   class Parser;
-}/* CVC4::parser namespace */
+  }  // namespace parser
 
 class SymbolManager;
 
@@ -72,6 +73,6 @@ public:
 
 };/* class InteractiveShell */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__INTERACTIVE_SHELL_H */
+#endif /* CVC5__INTERACTIVE_SHELL_H */

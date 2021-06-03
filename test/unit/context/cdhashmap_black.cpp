@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file cdmap_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of CVC4::context::CDMap<>.
- **
- ** Black box testing of CVC4::context::CDMap<>.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::context::CDMap<>.
+ */
 
 #include <map>
 
@@ -21,11 +20,11 @@
 #include "context/cdlist.h"
 #include "test_context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
-using CVC4::context::CDHashMap;
-using CVC4::context::Context;
+using cvc5::context::CDHashMap;
+using cvc5::context::Context;
 
 class TestContextBlackCDHashMap : public TestContext
 {
@@ -203,4 +202,4 @@ TEST_F(TestContextBlackCDHashMap, insert_at_context_level_zero)
   ASSERT_TRUE(elements_are(map, {{3, 4}, {23, 317}}));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

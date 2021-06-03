@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file theory_id.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/theory_id.h"
 
@@ -22,7 +23,7 @@
 #include "base/check.h"
 #include "lib/ffs.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 TheoryId& operator++(TheoryId& id)
@@ -58,23 +59,23 @@ std::string getStatsPrefix(TheoryId theoryId)
 {
   switch (theoryId)
   {
-    case THEORY_BUILTIN: return "theory::builtin"; break;
-    case THEORY_BOOL: return "theory::bool"; break;
-    case THEORY_UF: return "theory::uf"; break;
-    case THEORY_ARITH: return "theory::arith"; break;
-    case THEORY_BV: return "theory::bv"; break;
-    case THEORY_FP: return "theory::fp"; break;
-    case THEORY_ARRAYS: return "theory::arrays"; break;
-    case THEORY_DATATYPES: return "theory::datatypes"; break;
-    case THEORY_SEP: return "theory::sep"; break;
-    case THEORY_SETS: return "theory::sets"; break;
-    case THEORY_BAGS: return "theory::bags"; break;
-    case THEORY_STRINGS: return "theory::strings"; break;
-    case THEORY_QUANTIFIERS: return "theory::quantifiers"; break;
+    case THEORY_BUILTIN: return "theory::builtin::"; break;
+    case THEORY_BOOL: return "theory::bool::"; break;
+    case THEORY_UF: return "theory::uf::"; break;
+    case THEORY_ARITH: return "theory::arith::"; break;
+    case THEORY_BV: return "theory::bv::"; break;
+    case THEORY_FP: return "theory::fp::"; break;
+    case THEORY_ARRAYS: return "theory::arrays::"; break;
+    case THEORY_DATATYPES: return "theory::datatypes::"; break;
+    case THEORY_SEP: return "theory::sep::"; break;
+    case THEORY_SETS: return "theory::sets::"; break;
+    case THEORY_BAGS: return "theory::bags::"; break;
+    case THEORY_STRINGS: return "theory::strings::"; break;
+    case THEORY_QUANTIFIERS: return "theory::quantifiers::"; break;
 
     default: break;
   }
-  return "unknown";
+  return "unknown::";
 }
 
 TheoryId TheoryIdSetUtil::setPop(TheoryIdSet& set)
@@ -162,4 +163,4 @@ std::string TheoryIdSetUtil::setToString(TheoryIdSet theorySet)
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

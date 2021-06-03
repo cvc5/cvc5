@@ -1,24 +1,23 @@
-/*********************                                                        */
-/*! \file theory_arith.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Alex Ozdemir
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Arithmetic theory.
+ */
 
 #include "theory/arith/theory_arith.h"
 
-#include "expr/proof_rule.h"
 #include "options/smt_options.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_rule.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/infer_bounds.h"
@@ -29,9 +28,9 @@
 #include "theory/theory_model.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -44,26 +43,31 @@ TheoryArith::TheoryArith(context::Context* c,
     : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
       d_internal(
           new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pnm)),
-      d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
+      d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
+          "theory::arith::ppRewriteTimer")),
       d_ppPfGen(pnm, c, "Arith::ppRewrite"),
       d_astate(*d_internal, c, u, valuation),
       d_im(*this, d_astate, pnm),
       d_nonlinearExtension(nullptr),
-      d_arithPreproc(d_astate, d_im, pnm, logicInfo)
+      d_opElim(pnm, logicInfo),
+      d_arithPreproc(d_astate, d_im, pnm, d_opElim),
+      d_rewriter(d_opElim)
 {
-  smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
-
   // indicate we are using the theory state object and inference manager
   d_theoryState = &d_astate;
   d_inferManager = &d_im;
 }
 
 TheoryArith::~TheoryArith(){
-  smtStatisticsRegistry()->unregisterStat(&d_ppRewriteTimer);
   delete d_internal;
 }
 
 TheoryRewriter* TheoryArith::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryArith::getProofChecker()
+{
+  return d_internal->getProofChecker();
+}
 
 bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -101,15 +105,6 @@ void TheoryArith::preRegisterTerm(TNode n)
   d_internal->preRegisterTerm(n);
 }
 
-TrustNode TheoryArith::expandDefinition(Node node)
-{
-  // call eliminate operators, to eliminate partial operators only
-  std::vector<SkolemLemma> lems;
-  TrustNode ret = d_arithPreproc.eliminate(node, lems, true);
-  Assert(lems.empty());
-  return ret;
-}
-
 void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 
 TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
@@ -139,8 +134,8 @@ TrustNode TheoryArith::ppRewriteEq(TNode atom)
     return TrustNode::null();
   }
   Assert(atom[0].getType().isReal());
-  Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
-  Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
+  Node leq = NodeBuilder(kind::LEQ) << atom[0] << atom[1];
+  Node geq = NodeBuilder(kind::GEQ) << atom[0] << atom[1];
   Node rewritten = Rewriter::rewrite(leq.andNode(geq));
   Debug("arith::preprocess")
       << "arith::preprocess() : returning " << rewritten << endl;
@@ -161,7 +156,8 @@ Theory::PPAssertStatus TheoryArith::ppAssert(
   return d_internal->ppAssert(tin, outSubstitutions);
 }
 
-void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
+void TheoryArith::ppStaticLearn(TNode n, NodeBuilder& learned)
+{
   d_internal->ppStaticLearn(n, learned);
 }
 
@@ -199,7 +195,7 @@ void TheoryArith::postCheck(Effort level)
     else if (d_internal->foundNonlinear())
     {
       // set incomplete
-      d_im.setIncomplete();
+      d_im.setIncomplete(IncompleteId::ARITH_NL_DISABLED);
     }
   }
 }
@@ -311,6 +307,6 @@ eq::ProofEqEngine* TheoryArith::getProofEqEngine()
   return d_im.getProofEqEngine();
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

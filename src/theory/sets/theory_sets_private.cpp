@@ -1,22 +1,22 @@
-/*********************                                                        */
-/*! \file theory_sets_private.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mudathir Mohamed, Kshitij Bansal
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sets theory implementation.
- **
- ** Sets theory implementation.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mudathir Mohamed, Kshitij Bansal
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sets theory implementation.
+ */
 
 #include "theory/sets/theory_sets_private.h"
 
 #include <algorithm>
+#include <climits>
 
 #include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
@@ -26,27 +26,30 @@
 #include "theory/sets/normal_form.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/theory_model.h"
+#include "util/rational.h"
 #include "util/result.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
 TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
                                      SolverState& state,
                                      InferenceManager& im,
-                                     SkolemCache& skc)
+                                     SkolemCache& skc,
+                                     ProofNodeManager* pnm)
     : d_deq(state.getSatContext()),
       d_termProcessed(state.getUserContext()),
-      d_full_check_incomplete(false),
+      d_fullCheckIncomplete(false),
+      d_fullCheckIncompleteId(IncompleteId::UNKNOWN),
       d_external(external),
       d_state(state),
       d_im(im),
       d_skCache(skc),
-      d_treg(state, im, skc),
+      d_treg(state, im, skc, pnm),
       d_rels(new TheorySetsRels(state, im, skc, d_treg)),
       d_cardSolver(new CardinalityExtension(state, im, d_treg)),
       d_rels_enabled(false),
@@ -208,7 +211,8 @@ bool TheorySetsPrivate::areCareDisequal(Node a, Node b)
 void TheorySetsPrivate::fullEffortReset()
 {
   Assert(d_equalityEngine->consistent());
-  d_full_check_incomplete = false;
+  d_fullCheckIncomplete = false;
+  d_fullCheckIncompleteId = IncompleteId::UNKNOWN;
   d_most_common_type.clear();
   d_most_common_type_term.clear();
   d_card_enabled = false;
@@ -286,12 +290,17 @@ void TheorySetsPrivate::fullEffortCheck()
           d_card_enabled = true;
           // register it with the cardinality solver
           d_cardSolver->registerTerm(n);
+          if (d_im.hasSent())
+          {
+            break;
+          }
           // if we do not handle the kind, set incomplete
           Kind nk0 = n[0].getKind();
           // some kinds of cardinality we cannot handle
           if (d_rels->isRelationKind(nk0))
           {
-            d_full_check_incomplete = true;
+            d_fullCheckIncomplete = true;
+            d_fullCheckIncompleteId = IncompleteId::SETS_RELS_CARD;
             Trace("sets-incomplete")
                 << "Sets : incomplete because of " << n << "." << std::endl;
             // TODO (#1124):  The issue can be divided into 4 parts
@@ -785,9 +794,9 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
       {
         fullEffortCheck();
         if (!d_state.isInConflict() && !d_im.hasSentLemma()
-            && d_full_check_incomplete)
+            && d_fullCheckIncomplete)
         {
-          d_im.setIncomplete();
+          d_im.setIncomplete(d_fullCheckIncompleteId);
         }
       }
     }
@@ -985,9 +994,20 @@ void TheorySetsPrivate::computeCareGraph()
       {
         Trace("sets-cg-debug") << "...build for " << f1 << std::endl;
         Assert(d_equalityEngine->hasTerm(f1));
-        // break into index based on operator, and type of first argument (since
-        // some operators are parametric)
-        TypeNode tn = f1[0].getType();
+        // break into index based on operator, and the type of the element
+        // type of the proper set, which notice must be safe wrt subtyping.
+        TypeNode tn;
+        if (k == kind::SINGLETON)
+        {
+          // get the type of the singleton set (not the type of its element)
+          tn = f1.getType().getSetElementType();
+        }
+        else
+        {
+          Assert (k == kind::MEMBER);
+          // get the element type of the set (not the type of the element)
+          tn = f1[1].getType().getSetElementType();
+        }
         std::vector<TNode> reps;
         bool hasCareArg = false;
         for (unsigned j = 0; j < f1.getNumChildren(); j++)
@@ -1210,7 +1230,7 @@ Node mkAnd(const std::vector<TNode>& conjunctions)
     return conjunctions[0];
   }
 
-  NodeBuilder<> conjunction(kind::AND);
+  NodeBuilder conjunction(kind::AND);
   std::set<TNode>::const_iterator it = all.begin();
   std::set<TNode>::const_iterator it_end = all.end();
   while (it != it_end)
@@ -1260,6 +1280,27 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
     {
       // add trigger predicate for equality and membership
       d_equalityEngine->addTriggerPredicate(node);
+    }
+    break;
+    case kind::JOIN_IMAGE:
+    {
+      // these are logic exceptions, not type checking exceptions
+      if (node[1].getKind() != kind::CONST_RATIONAL)
+      {
+        throw LogicException(
+            "JoinImage cardinality constraint must be a constant");
+      }
+      cvc5::Rational r(INT_MAX);
+      if (node[1].getConst<Rational>() > r)
+      {
+        throw LogicException(
+            "JoinImage Exceeded INT_MAX in cardinality constraint");
+      }
+      if (node[1].getConst<Rational>().getNumerator().getSignedInt() < 0)
+      {
+        throw LogicException(
+            "JoinImage cardinality constraint must be non-negative");
+      }
     }
     break;
     default: d_equalityEngine->addTerm(node); break;
@@ -1358,11 +1399,12 @@ Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
   }
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   TypeNode chooseUf = nm->mkFunctionType(setType, setType.getSetElementType());
   stringstream stream;
   stream << "chooseUf" << setType.getId();
   string name = stream.str();
-  Node chooseSkolem = nm->mkSkolem(
+  Node chooseSkolem = sm->mkDummySkolem(
       name, chooseUf, "choose function", NodeManager::SKOLEM_EXACT_NAME);
   d_chooseFunctions[setType] = chooseSkolem;
   return chooseSkolem;
@@ -1372,4 +1414,4 @@ void TheorySetsPrivate::presolve() { d_state.reset(); }
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

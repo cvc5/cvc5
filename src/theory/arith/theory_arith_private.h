@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file theory_arith_private.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Andrew Reynolds, Alex Ozdemir
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #pragma once
 
@@ -27,6 +28,7 @@
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
+#include "proof/trust_node.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
@@ -46,18 +48,19 @@
 #include "theory/arith/proof_checker.h"
 #include "theory/arith/soi_simplex.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
 #include "util/rational.h"
 #include "util/result.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
-namespace theory {
+namespace cvc5 {
 
 class EagerProofGenerator;
+
+namespace theory {
+
 class TheoryModel;
 
 namespace arith {
@@ -137,12 +140,6 @@ private:
   void entailmentCheckBoundLookup(std::pair<Node, DeltaRational>& tmp, int sgn, TNode tp) const;
   void entailmentCheckRowSum(std::pair<Node, DeltaRational>& tmp, int sgn, TNode tp) const;
 
-  std::pair<Node, DeltaRational> entailmentCheckSimplex(int sgn, TNode tp, const inferbounds::InferBoundAlgorithm& p, InferBoundsResult& out);
-
-  //InferBoundsResult inferBound(TNode term, const InferBoundsParameters& p);
-  //InferBoundsResult inferUpperBoundLookup(TNode t, const InferBoundsParameters& p);
-  //InferBoundsResult inferUpperBoundSimplex(TNode t, const SimplexInferBoundsParameters& p);
-
   /**
    * Infers either a new upper/lower bound on term in the real relaxation.
    * Either:
@@ -198,8 +195,8 @@ private:
    * A superset of all of the assertions that currently are not the literal for
    * their constraint do not match constraint literals. Not just the witnesses.
    */
-  context::CDInsertHashMap<Node, ConstraintP, NodeHashFunction> d_assertionsThatDoNotMatchTheirLiterals;
-
+  context::CDInsertHashMap<Node, ConstraintP>
+      d_assertionsThatDoNotMatchTheirLiterals;
 
   /** Returns true if x is of type Integer. */
   inline bool isInteger(ArithVar x) const {
@@ -272,8 +269,7 @@ private:
   /**
    * Contains all nodes that have been preregistered
    */
-  context::CDHashSet<Node, NodeHashFunction> d_preregisteredNodes;
-
+  context::CDHashSet<Node> d_preregisteredNodes;
 
   /**
    * Manages information about the assignment and upper and lower bounds on
@@ -335,7 +331,7 @@ private:
   // inline void raiseConflict(const ConstraintCPVec& cv){
   //   d_conflicts.push_back(cv);
   // }
-  
+
   // void raiseConflict(ConstraintCP a, ConstraintCP b);
   // void raiseConflict(ConstraintCP a, ConstraintCP b, ConstraintCP c);
 
@@ -474,7 +470,7 @@ private:
   void notifyRestart();
   Theory::PPAssertStatus ppAssert(TrustNode tin,
                                   TrustSubstitutionMap& outSubstitutions);
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned);
+  void ppStaticLearn(TNode in, NodeBuilder& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }
 
@@ -507,6 +503,9 @@ private:
    * setIncomplete should be called on the output channel of TheoryArith.
    */
   bool foundNonlinear() const;
+
+  /** get the proof checker of this theory */
+  ArithProofRuleChecker* getProofChecker();
 
  private:
   /** The constant zero. */
@@ -678,8 +677,7 @@ private:
   bool isImpliedUpperBound(ArithVar var, Node exp);
   bool isImpliedLowerBound(ArithVar var, Node exp);
 
-  void internalExplain(TNode n, NodeBuilder<>& explainBuilder);
-
+  void internalExplain(TNode n, NodeBuilder& explainBuilder);
 
   void asVectors(const Polynomial& p,
                  std::vector<Rational>& coeffs,
@@ -759,7 +757,7 @@ private:
 
   static ConstraintCP vectorToIntHoleConflict(const ConstraintCPVec& conflict);
   static void intHoleConflictToVector(ConstraintCP conflicting, ConstraintCPVec& conflict);
-  
+
   // Returns true if the node contains a literal
   // that is an arithmetic literal and is not a sat literal
   // No caching is done so this should likely only
@@ -859,10 +857,9 @@ private:
     IntStat d_cutsRejectedDuringReplay;
     IntStat d_cutsRejectedDuringLemmas;
 
-    IntegralHistogramStat<uint32_t> d_satPivots;
-    IntegralHistogramStat<uint32_t> d_unsatPivots;
-    IntegralHistogramStat<uint32_t> d_unknownPivots;
-
+    HistogramStat<uint32_t> d_satPivots;
+    HistogramStat<uint32_t> d_unsatPivots;
+    HistogramStat<uint32_t> d_unknownPivots;
 
     IntStat d_solveIntModelsAttempts;
     IntStat d_solveIntModelsSuccessful;
@@ -874,16 +871,13 @@ private:
 
     IntStat d_numBranchesFailed;
 
-
-
-    Statistics();
-    ~Statistics();
+    Statistics(const std::string& name);
   };
 
 
   Statistics d_statistics;
 };/* class TheoryArithPrivate */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file bv_subtheory_bitblast.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Algebraic solver.
- **
- ** Algebraic solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Aina Niemetz, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Algebraic solver.
+ */
 
 #include "theory/bv/bv_subtheory_bitblast.h"
 
@@ -27,9 +26,9 @@
 #include "theory/bv/theory_bv_utils.h"
 
 using namespace std;
-using namespace CVC4::context;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -55,15 +54,11 @@ BitblastSolver::BitblastSolver(context::Context* c, BVSolverLazy* bv)
 BitblastSolver::~BitblastSolver() {}
 
 BitblastSolver::Statistics::Statistics()
-  : d_numCallstoCheck("theory::bv::BitblastSolver::NumCallsToCheck", 0)
-  , d_numBBLemmas("theory::bv::BitblastSolver::NumTimesLemmasBB", 0)
+    : d_numCallstoCheck(smtStatisticsRegistry().registerInt(
+        "theory::bv::BitblastSolver::NumCallsToCheck")),
+      d_numBBLemmas(smtStatisticsRegistry().registerInt(
+          "theory::bv::BitblastSolver::NumTimesLemmasBB"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
-  smtStatisticsRegistry()->registerStat(&d_numBBLemmas);
-}
-BitblastSolver::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
-  smtStatisticsRegistry()->unregisterStat(&d_numBBLemmas);
 }
 
 void BitblastSolver::setAbstraction(AbstractionModule* abs) {
@@ -173,7 +168,7 @@ bool BitblastSolver::check(Theory::Effort e)
   // We need to ensure we are fully propagated, so propagate now
   if (d_useSatPropagation)
   {
-    d_bv->spendResource(ResourceManager::Resource::BvPropagationStep);
+    d_bv->spendResource(Resource::BvPropagationStep);
     bool ok = d_bitblaster->propagate();
     if (!ok)
     {
@@ -276,6 +271,6 @@ void BitblastSolver::setConflict(TNode conflict)
   d_bv->setConflict(final_conflict);
 }
 
-}/* namespace CVC4::theory::bv */
-}/* namespace CVC4::theory */
-}/* namespace CVC4 */
+}  // namespace bv
+}  // namespace theory
+}  // namespace cvc5

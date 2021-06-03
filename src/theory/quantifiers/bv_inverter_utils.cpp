@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file bv_inverter_utils.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief inverse rules for bit-vector operators
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mathias Preiner, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Inverse rules for bit-vector operators.
+ */
 
 #include "theory/quantifiers/bv_inverter_utils.h"
 #include "theory/bv/theory_bv_utils.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 namespace utils {
@@ -326,7 +327,7 @@ Node getICBvUrem(
          *          (or (= t z) (distinct (bvsub s (_ bv1 w)) t))))
          * where
          * z = 0 with getSize(z) = w  */
-        Node add = nm->mkNode(BITVECTOR_PLUS, t, t);
+        Node add = nm->mkNode(BITVECTOR_ADD, t, t);
         Node sub = nm->mkNode(BITVECTOR_SUB, add, s);
         Node a = nm->mkNode(BITVECTOR_AND, sub, s);
         scl = nm->mkNode(BITVECTOR_UGE, a, t);
@@ -385,7 +386,7 @@ Node getICBvUrem(
          * (or
          *   (bvuge (bvand (bvsub (bvadd t t) s) s) t)  ; eq, synthesized
          *   (bvult t s))                               ; ugt, synthesized  */
-        Node add = nm->mkNode(BITVECTOR_PLUS, t, t);
+        Node add = nm->mkNode(BITVECTOR_ADD, t, t);
         Node sub = nm->mkNode(BITVECTOR_SUB, add, s);
         Node a = nm->mkNode(BITVECTOR_AND, sub, s);
         Node sceq = nm->mkNode(BITVECTOR_UGE, a, t);
@@ -1180,7 +1181,7 @@ namespace {
 Node defaultShiftIC(Kind litk, Kind shk, Node s, Node t)
 {
   unsigned w;
-  NodeBuilder<> nb(OR);
+  NodeBuilder nb(OR);
   NodeManager* nm;
 
   nm = NodeManager::currentNM();
@@ -1919,7 +1920,7 @@ Node getICBvShl(
          * min is the signed minimum value with getSize(min) = w  */
         Node min = bv::utils::mkMinSigned(w);
         Node shl = nm->mkNode(BITVECTOR_SHL, min, s);
-        Node add = nm->mkNode(BITVECTOR_PLUS, t, min);
+        Node add = nm->mkNode(BITVECTOR_ADD, t, min);
         scl = nm->mkNode(BITVECTOR_ULT, shl, add);
       }
       else
@@ -2000,7 +2001,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
   unsigned nchildren = sv_t.getNumChildren();
   unsigned w1 = 0, w2 = 0;
   unsigned w = bv::utils::getSize(t), wx = bv::utils::getSize(x);
-  NodeBuilder<> nbs1(BITVECTOR_CONCAT), nbs2(BITVECTOR_CONCAT);
+  NodeBuilder nbs1(BITVECTOR_CONCAT), nbs2(BITVECTOR_CONCAT);
   Node s1, s2;
   Node t1, t2, tx;
   Node scl, scr;
@@ -2589,4 +2590,4 @@ Node getICBvSext(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
 }  // namespace utils
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

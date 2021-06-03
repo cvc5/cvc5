@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-inference --strings-exp
+; COMMAND-LINE: --sygus-inference --strings-exp -q
 (set-logic ALL)
 (declare-fun a () String) 
 (declare-fun b () String) 

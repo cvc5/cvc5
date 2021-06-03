@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file quant_rep_bound_ext.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Quantifiers representative bound utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Quantifiers representative bound utility.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUANT_REP_BOUND_EXT_H
-#define CVC4__THEORY__QUANTIFIERS__QUANT_REP_BOUND_EXT_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANT_REP_BOUND_EXT_H
+#define CVC5__THEORY__QUANTIFIERS__QUANT_REP_BOUND_EXT_H
 
 #include <map>
 
@@ -23,7 +24,7 @@
 #include "theory/rep_set.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -67,6 +68,6 @@ class QRepBoundExt : public RepBoundExt
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__FIRST_ORDER_MODEL_H */
+#endif /* CVC5__FIRST_ORDER_MODEL_H */

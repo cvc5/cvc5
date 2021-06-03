@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file term_context_stack.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Term context stack
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Term context stack.
+ */
 
 #include "expr/term_context_stack.h"
 
 #include "expr/term_context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 TCtxStack::TCtxStack(const TermContext* tctx) : d_tctx(tctx) {}
 
@@ -75,4 +76,4 @@ TCtxNode TCtxStack::getCurrentNode() const
   return TCtxNode(curr.first, curr.second, d_tctx);
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

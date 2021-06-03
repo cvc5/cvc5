@@ -1,31 +1,33 @@
-/*********************                                                        */
-/*! \file first_order_model.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Model extended classes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Paul Meng, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model extended classes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__FIRST_ORDER_MODEL_H
-#define CVC4__FIRST_ORDER_MODEL_H
+#ifndef CVC5__FIRST_ORDER_MODEL_H
+#define CVC5__FIRST_ORDER_MODEL_H
 
 #include "context/cdlist.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
-class QuantifiersEngine;
+class TheoryModel;
+class RepSet;
 
 namespace quantifiers {
 
@@ -34,17 +36,36 @@ class TermRegistry;
 class QuantifiersRegistry;
 
 // TODO (#1301) : document and refactor this class
-class FirstOrderModel : public TheoryModel
+class FirstOrderModel
 {
  public:
   FirstOrderModel(QuantifiersState& qs,
                   QuantifiersRegistry& qr,
-                  TermRegistry& tr,
-                  std::string name);
+                  TermRegistry& tr);
+  virtual ~FirstOrderModel() {}
 
-  //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
-  /** finish initialize */
-  void finishInit(QuantifiersEngine* qe);
+  /** finish init */
+  void finishInit(TheoryModel* m);
+  //---------------------------------- access functions for underlying model
+  /** Get value in the underlying theory model */
+  Node getValue(TNode n) const;
+  /** does the equality engine of this model have term a? */
+  bool hasTerm(TNode a);
+  /** get the representative of a in the equality engine of this model */
+  Node getRepresentative(TNode a);
+  /** are a and b equal in the equality engine of this model? */
+  bool areEqual(TNode a, TNode b);
+  /** are a and b disequal in the equality engine of this model? */
+  bool areDisequal(TNode a, TNode b);
+  /** get the equality engine for this model */
+  eq::EqualityEngine* getEqualityEngine();
+  /** get the representative set object */
+  const RepSet* getRepSet() const;
+  /** get the representative set object */
+  RepSet* getRepSetPtr();
+  /** get the entire theory model */
+  TheoryModel* getTheoryModel();
+  //---------------------------------- end access functions for underlying model
   /** get internal representative
    *
    * Choose a term that is equivalent to a in the current context that is the
@@ -135,8 +156,8 @@ class FirstOrderModel : public TheoryModel
   EqualityQuery* getEqualityQuery();
 
  protected:
-  //!!!!!!!!!!!!!!!!!!!!!!! TODO (project #15): temporarily available
-  QuantifiersEngine* d_qe;
+  /** Pointer to the underyling theory model */
+  TheoryModel* d_model;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */
@@ -194,8 +215,8 @@ class FirstOrderModel : public TheoryModel
   void computeModelBasisArgAttribute(Node n);
 };/* class FirstOrderModel */
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__FIRST_ORDER_MODEL_H */
+#endif /* CVC5__FIRST_ORDER_MODEL_H */

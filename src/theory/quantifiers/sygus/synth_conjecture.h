@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file synth_conjecture.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Class that encapsulates techniques for a single (SyGuS) synthesis
- ** conjecture.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Class that encapsulates techniques for a single (SyGuS) synthesis
+ * conjecture.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYNTH_CONJECTURE_H
-#define CVC4__THEORY__QUANTIFIERS__SYNTH_CONJECTURE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYNTH_CONJECTURE_H
+#define CVC5__THEORY__QUANTIFIERS__SYNTH_CONJECTURE_H
 
 #include <memory>
 
@@ -32,7 +33,7 @@
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus/template_infer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -81,10 +82,10 @@ class EnumValGenerator
 class SynthConjecture
 {
  public:
-  SynthConjecture(QuantifiersEngine* qe,
-                  QuantifiersState& qs,
+  SynthConjecture(QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
+                  TermRegistry& tr,
                   SygusStatistics& s);
   ~SynthConjecture();
   /** presolve */
@@ -133,11 +134,11 @@ class SynthConjecture
   bool doRefine();
   //-------------------------------end for counterexample-guided check/refine
   /**
-   * Prints the synthesis solution to output stream out. This invokes solution
-   * reconstruction if the conjecture is single invocation. Otherwise, it
-   * returns the solution found by sygus enumeration.
+   * Prints the current synthesis solution to output stream out. This is
+   * currently used for printing solutions for sygusStream only. We do not
+   * enclose solutions in parentheses.
    */
-  void printSynthSolution(std::ostream& out);
+  void printSynthSolutionInternal(std::ostream& out);
   /** get synth solutions
    *
    * This method returns true if this class has a solution available to the
@@ -203,14 +204,14 @@ class SynthConjecture
   SygusStatistics& getSygusStatistics() { return d_stats; };
 
  private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** reference to the statistics of parent */
   SygusStatistics& d_stats;
   /** term database sygus of d_qe */
@@ -426,6 +427,6 @@ class SynthConjecture
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5
 
 #endif

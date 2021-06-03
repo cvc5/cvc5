@@ -1,35 +1,34 @@
-/*********************                                                        */
-/*! \file language.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Francois Bobot
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definition of input and output languages
- **
- ** Definition of input and output languages.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definition of input and output languages.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__LANGUAGE_H
-#define CVC4__LANGUAGE_H
+#ifndef CVC5__LANGUAGE_H
+#define CVC5__LANGUAGE_H
 
 #include <ostream>
 #include <string>
 
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace language {
 
 namespace input {
 
-enum CVC4_EXPORT Language
+enum CVC5_EXPORT Language
 {
   // SPECIAL "NON-LANGUAGE" LANGUAGES HAVE ENUM VALUE < 0
 
@@ -49,8 +48,8 @@ enum CVC4_EXPORT Language
   LANG_SMTLIB_V2 = LANG_SMTLIB_V2_6,
   /** The TPTP input language */
   LANG_TPTP,
-  /** The CVC4 input language */
-  LANG_CVC4,
+  /** The cvc5 input language */
+  LANG_CVC,
   /** The SyGuS input language version 2.0 */
   LANG_SYGUS_V2,
 
@@ -61,7 +60,7 @@ enum CVC4_EXPORT Language
   LANG_MAX
 }; /* enum Language */
 
-inline std::ostream& operator<<(std::ostream& out, Language lang) CVC4_EXPORT;
+inline std::ostream& operator<<(std::ostream& out, Language lang) CVC5_EXPORT;
 inline std::ostream& operator<<(std::ostream& out, Language lang) {
   switch(lang) {
   case LANG_AUTO:
@@ -73,9 +72,7 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_TPTP:
     out << "LANG_TPTP";
     break;
-  case LANG_CVC4:
-    out << "LANG_CVC4";
-    break;
+  case LANG_CVC: out << "LANG_CVC"; break;
   case LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
   default:
     out << "undefined_input_language";
@@ -83,11 +80,11 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   return out;
 }
 
-}/* CVC4::language::input namespace */
+}  // namespace input
 
 namespace output {
 
-enum CVC4_EXPORT Language
+enum CVC5_EXPORT Language
 {
   // SPECIAL "NON-LANGUAGE" LANGUAGES HAVE ENUM VALUE < 0
 
@@ -107,8 +104,8 @@ enum CVC4_EXPORT Language
   LANG_SMTLIB_V2 = input::LANG_SMTLIB_V2,
   /** The TPTP output language */
   LANG_TPTP = input::LANG_TPTP,
-  /** The CVC4 output language */
-  LANG_CVC4 = input::LANG_CVC4,
+  /** The cvc5 output language */
+  LANG_CVC = input::LANG_CVC,
   /** The sygus output language version 2.0 */
   LANG_SYGUS_V2 = input::LANG_SYGUS_V2,
 
@@ -117,29 +114,22 @@ enum CVC4_EXPORT Language
 
   /** The AST output language */
   LANG_AST = 10,
-  /** The CVC3-compatibility output language */
-  LANG_CVC3,
 
   /** LANG_MAX is > any valid OutputLanguage id */
   LANG_MAX
 }; /* enum Language */
 
-inline std::ostream& operator<<(std::ostream& out, Language lang) CVC4_EXPORT;
+inline std::ostream& operator<<(std::ostream& out, Language lang) CVC5_EXPORT;
 inline std::ostream& operator<<(std::ostream& out, Language lang) {
   switch(lang) {
   case LANG_SMTLIB_V2_6: out << "LANG_SMTLIB_V2_6"; break;
   case LANG_TPTP:
     out << "LANG_TPTP";
     break;
-  case LANG_CVC4:
-    out << "LANG_CVC4";
-    break;
+  case LANG_CVC: out << "LANG_CVC"; break;
   case LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
   case LANG_AST:
     out << "LANG_AST";
-    break;
-  case LANG_CVC3:
-    out << "LANG_CVC3";
     break;
   default:
     out << "undefined_output_language";
@@ -147,9 +137,9 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   return out;
 }
 
-}/* CVC4::language::output namespace */
+}  // namespace output
 
-}/* CVC4::language namespace */
+}  // namespace language
 
 typedef language::input::Language InputLanguage;
 typedef language::output::Language OutputLanguage;
@@ -157,26 +147,26 @@ typedef language::output::Language OutputLanguage;
 namespace language {
 
 /** Is the language a variant of the smtlib version 2 language? */
-bool isInputLang_smt2(InputLanguage lang) CVC4_EXPORT;
-bool isOutputLang_smt2(OutputLanguage lang) CVC4_EXPORT;
+bool isInputLang_smt2(InputLanguage lang) CVC5_EXPORT;
+bool isOutputLang_smt2(OutputLanguage lang) CVC5_EXPORT;
 
 /**
   * Is the language smtlib 2.6 or above? If exact=true, then this method returns
   * false if the input language is not exactly SMT-LIB 2.6.
   */
-bool isInputLang_smt2_6(InputLanguage lang, bool exact = false) CVC4_EXPORT;
-bool isOutputLang_smt2_6(OutputLanguage lang, bool exact = false) CVC4_EXPORT;
+bool isInputLang_smt2_6(InputLanguage lang, bool exact = false) CVC5_EXPORT;
+bool isOutputLang_smt2_6(OutputLanguage lang, bool exact = false) CVC5_EXPORT;
 
 /** Is the language a variant of the SyGuS input language? */
-bool isInputLangSygus(InputLanguage lang) CVC4_EXPORT;
-bool isOutputLangSygus(OutputLanguage lang) CVC4_EXPORT;
+bool isInputLangSygus(InputLanguage lang) CVC5_EXPORT;
+bool isOutputLangSygus(OutputLanguage lang) CVC5_EXPORT;
 
-InputLanguage toInputLanguage(OutputLanguage language) CVC4_EXPORT;
-OutputLanguage toOutputLanguage(InputLanguage language) CVC4_EXPORT;
-InputLanguage toInputLanguage(std::string language) CVC4_EXPORT;
-OutputLanguage toOutputLanguage(std::string language) CVC4_EXPORT;
+InputLanguage toInputLanguage(OutputLanguage language) CVC5_EXPORT;
+OutputLanguage toOutputLanguage(InputLanguage language) CVC5_EXPORT;
+InputLanguage toInputLanguage(std::string language) CVC5_EXPORT;
+OutputLanguage toOutputLanguage(std::string language) CVC5_EXPORT;
 
-}/* CVC4::language namespace */
-}/* CVC4 namespace */
+}  // namespace language
+}  // namespace cvc5
 
-#endif /* CVC4__LANGUAGE_H */
+#endif /* CVC5__LANGUAGE_H */

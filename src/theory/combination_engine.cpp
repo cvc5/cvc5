@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file combination_engine.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Management of a care graph based approach for theory combination.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Management of a care graph based approach for theory combination.
+ */
 
 #include "theory/combination_engine.h"
 
 #include "expr/node_visitor.h"
+#include "proof/eager_proof_generator.h"
 #include "theory/care_graph.h"
-#include "theory/eager_proof_generator.h"
 #include "theory/ee_manager_distributed.h"
 #include "theory/model_manager.h"
 #include "theory/model_manager_distributed.h"
@@ -24,13 +25,15 @@
 #include "theory/shared_solver_distributed.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 CombinationEngine::CombinationEngine(TheoryEngine& te,
+                                     Env& env,
                                      const std::vector<Theory*>& paraTheories,
                                      ProofNodeManager* pnm)
     : d_te(te),
+      d_env(env),
       d_valuation(&te),
       d_pnm(pnm),
       d_logicInfo(te.getLogicInfo()),
@@ -41,12 +44,6 @@ CombinationEngine::CombinationEngine(TheoryEngine& te,
       d_cmbsPg(pnm ? new EagerProofGenerator(pnm, te.getUserContext())
                    : nullptr)
 {
-}
-
-CombinationEngine::~CombinationEngine() {}
-
-void CombinationEngine::finishInit()
-{
   // create the equality engine, model manager, and shared solver
   if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
   {
@@ -56,14 +53,20 @@ void CombinationEngine::finishInit()
     d_eemanager.reset(
         new EqEngineManagerDistributed(d_te, *d_sharedSolver.get()));
     // make the distributed model manager
-    d_mmanager.reset(new ModelManagerDistributed(d_te, *d_eemanager.get()));
+    d_mmanager.reset(
+        new ModelManagerDistributed(d_te, d_env, *d_eemanager.get()));
   }
   else
   {
     Unhandled() << "CombinationEngine::finishInit: equality engine mode "
                 << options::eeMode() << " not supported";
   }
+}
 
+CombinationEngine::~CombinationEngine() {}
+
+void CombinationEngine::finishInit()
+{
   Assert(d_eemanager != nullptr);
 
   // initialize equality engines in all theories, including quantifiers engine
@@ -118,4 +121,4 @@ void CombinationEngine::resetRound()
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

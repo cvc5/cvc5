@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file theory.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Base for theory interface.
- **
- ** Base for theory interface.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Base for theory interface.
+ */
 
 #include "theory/theory.h"
 
@@ -39,7 +38,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Default value for the uninterpreted sorts is the UF theory */
@@ -76,9 +75,10 @@ Theory::Theory(TheoryId id,
       d_sharedTermsIndex(satContext, 0),
       d_careGraph(nullptr),
       d_instanceName(name),
-      d_checkTime(getStatsPrefix(id) + name + "::checkTime"),
-      d_computeCareGraphTime(getStatsPrefix(id) + name
-                             + "::computeCareGraphTime"),
+      d_checkTime(smtStatisticsRegistry().registerTimer(getStatsPrefix(id)
+                                                        + name + "checkTime")),
+      d_computeCareGraphTime(smtStatisticsRegistry().registerTimer(
+          getStatsPrefix(id) + name + "computeCareGraphTime")),
       d_sharedTerms(satContext),
       d_out(&out),
       d_valuation(valuation),
@@ -89,13 +89,9 @@ Theory::Theory(TheoryId id,
       d_quantEngine(nullptr),
       d_pnm(pnm)
 {
-  smtStatisticsRegistry()->registerStat(&d_checkTime);
-  smtStatisticsRegistry()->registerStat(&d_computeCareGraphTime);
 }
 
 Theory::~Theory() {
-  smtStatisticsRegistry()->unregisterStat(&d_checkTime);
-  smtStatisticsRegistry()->unregisterStat(&d_computeCareGraphTime);
 }
 
 bool Theory::needsEqualityEngine(EeSetupInfo& esi)
@@ -218,9 +214,12 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
           TNode r = node[1];
           TypeNode ltype = l.getType();
           TypeNode rtype = r.getType();
-          if (ltype != rtype)
+          // If the types are different, we must assign based on type due
+          // to handling subtypes (limited to arithmetic). Also, if we are
+          // a Boolean equality, we must assign THEORY_BOOL.
+          if (ltype != rtype || ltype.isBoolean())
           {
-            tid = Theory::theoryOf(l.getType());
+            tid = Theory::theoryOf(ltype);
           }
           else
           {
@@ -342,8 +341,9 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   return tm->isLegalElimination(x, val);
 }
 
-std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{
-  std::unordered_set<TNode, TNodeHashFunction> currentlyShared;
+std::unordered_set<TNode> Theory::currentlySharedTerms() const
+{
+  std::unordered_set<TNode> currentlyShared;
   for (shared_terms_iterator i = shared_terms_begin(),
            i_end = shared_terms_end(); i != i_end; ++i) {
     currentlyShared.insert (*i);
@@ -403,6 +403,23 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
       {
         return PP_ASSERT_STATUS_CONFLICT;
       }
+    }
+  }
+  else if (in.getKind() == kind::NOT && in[0].getKind() == kind::EQUAL
+           && in[0][0].getType().isBoolean())
+  {
+    TNode eq = in[0];
+    if (eq[0].isVar())
+    {
+      Node res = eq[0].eqNode(eq[1].notNode());
+      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
+      return ppAssert(tn, outSubstitutions);
+    }
+    else if (eq[1].isVar())
+    {
+      Node res = eq[1].eqNode(eq[0].notNode());
+      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
+      return ppAssert(tn, outSubstitutions);
     }
   }
 
@@ -473,7 +490,7 @@ void Theory::check(Effort level)
   }
   Assert(d_theoryState!=nullptr);
   // standard calls for resource, stats
-  d_out->spendResource(ResourceManager::Resource::TheoryCheckStep);
+  d_out->spendResource(Resource::TheoryCheckStep);
   TimerStat::CodeTimer checkTimer(d_checkTime);
   Trace("theory-check") << "Theory::preCheck " << level << " " << d_id
                         << std::endl;
@@ -564,5 +581,5 @@ eq::EqualityEngine* Theory::getEqualityEngine()
   return d_equalityEngine;
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

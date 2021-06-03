@@ -1,31 +1,33 @@
-/*********************                                                        */
-/*! \file cvc_input.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Mathias Preiner, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add file-specific comments here ]].
- **
- ** [[ Add file-specific comments here ]]
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Christopher L. Conway, Mathias Preiner, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ */
 
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 
-#ifndef CVC4__PARSER__CVC_INPUT_H
-#define CVC4__PARSER__CVC_INPUT_H
+#ifndef CVC5__PARSER__CVC_INPUT_H
+#define CVC5__PARSER__CVC_INPUT_H
 
 #include "parser/antlr_input.h"
 #include "parser/cvc/CvcLexer.h"
 #include "parser/cvc/CvcParser.h"
 
-// extern void CvcParserSetAntlrParser(CVC4::parser::AntlrParser* newAntlrParser);
+// extern void CvcParserSetAntlrParser(cvc5::parser::AntlrParser*
+// newAntlrParser);
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 class Expr;
@@ -71,7 +73,7 @@ class CvcInput : public AntlrInput {
 
 }; // class CvcInput
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
-#endif /* CVC4__PARSER__CVC_INPUT_H */
+#endif /* CVC5__PARSER__CVC_INPUT_H */

@@ -1,3 +1,5 @@
+; COMMAND-LINE: -q
+; EXPECT: unsat
 (set-logic QF_UFNRA)
 (set-option :nl-ext-purify true)
 (set-option :sygus-inference true)

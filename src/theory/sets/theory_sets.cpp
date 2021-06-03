@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file theory_sets.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sets theory.
- **
- ** Sets theory.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Kshitij Bansal, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sets theory.
+ */
 
 #include "theory/sets/theory_sets.h"
 
@@ -22,9 +21,9 @@
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -38,7 +37,7 @@ TheorySets::TheorySets(context::Context* c,
       d_skCache(),
       d_state(c, u, valuation, d_skCache),
       d_im(*this, d_state, nullptr),
-      d_internal(new TheorySetsPrivate(*this, d_state, d_im, d_skCache)),
+      d_internal(new TheorySetsPrivate(*this, d_state, d_im, d_skCache, pnm)),
       d_notify(*d_internal.get(), d_im)
 {
   // use the official theory state and inference manager objects
@@ -54,6 +53,8 @@ TheoryRewriter* TheorySets::getTheoryRewriter()
 {
   return d_internal->getTheoryRewriter();
 }
+
+ProofRuleChecker* TheorySets::getProofChecker() { return nullptr; }
 
 bool TheorySets::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -128,12 +129,6 @@ Node TheorySets::getModelValue(TNode node) {
 void TheorySets::preRegisterTerm(TNode node)
 {
   d_internal->preRegisterTerm(node);
-}
-
-TrustNode TheorySets::expandDefinition(Node n)
-{
-  // we currently do not expand any set operators
-  return TrustNode::null();
 }
 
 TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
@@ -236,6 +231,6 @@ void TheorySets::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
   d_theory.eqNotifyDisequal(t1, t2, reason);
 }
 
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sets
+}  // namespace theory
+}  // namespace cvc5

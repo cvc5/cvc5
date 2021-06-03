@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file Relations.java
- ** \verbatim
- ** Top contributors (to current version):
- **   Mudathir Mohamed, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Reasoning about relations with CVC4 via Java API.
- **
- ** A simple demonstration of reasoning about strings with CVC4 via Jave API.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A simple demonstration of reasoning about relations with CVC4 via Java API.
+ */
 
 import edu.stanford.CVC4.*;
 

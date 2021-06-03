@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file quantifiers_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of QuantifiersRewriter class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of QuantifiersRewriter class.
+ */
 
 #include "theory/quantifiers/quantifiers_rewriter.h"
 
@@ -18,6 +19,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -32,10 +34,10 @@
 #include "theory/strings/theory_strings_utils.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -104,7 +106,8 @@ bool QuantifiersRewriter::isLiteral( Node n ){
   return true;
 }
 
-void QuantifiersRewriter::addNodeToOrBuilder( Node n, NodeBuilder<>& t ){
+void QuantifiersRewriter::addNodeToOrBuilder(Node n, NodeBuilder& t)
+{
   if( n.getKind()==OR ){
     for( int i=0; i<(int)n.getNumChildren(); i++ ){
       t << n[i];
@@ -1058,7 +1061,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
         {
           // compute variables in itm->first, these are not eligible for
           // elimination
-          std::unordered_set<Node, NodeHashFunction> fvs;
+          std::unordered_set<Node> fvs;
           expr::getFreeVariables(m.first, fvs);
           for (const Node& v : fvs)
           {
@@ -1110,8 +1113,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
   }
   // traverse the body, invalidate variables if they occur in places other than
   // the bounds they occur in
-  std::unordered_map<TNode, std::unordered_set<int>, TNodeHashFunction>
-      evisited;
+  std::unordered_map<TNode, std::unordered_set<int>> evisited;
   std::vector<TNode> evisit;
   std::vector<int> evisit_pol;
   TNode ecur;
@@ -1239,13 +1241,12 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
   return body;
 }
 
-Node QuantifiersRewriter::computePrenex(
-    Node q,
-    Node body,
-    std::unordered_set<Node, NodeHashFunction>& args,
-    std::unordered_set<Node, NodeHashFunction>& nargs,
-    bool pol,
-    bool prenexAgg)
+Node QuantifiersRewriter::computePrenex(Node q,
+                                        Node body,
+                                        std::unordered_set<Node>& args,
+                                        std::unordered_set<Node>& nargs,
+                                        bool pol,
+                                        bool prenexAgg)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = body.getKind();
@@ -1264,7 +1265,12 @@ Node QuantifiersRewriter::computePrenex(
         Node vv;
         if (!q.isNull())
         {
-          Node cacheVal = BoundVarManager::getCacheValue(q, v);
+          // We cache based on the original quantified formula, the subformula
+          // that we are pulling variables from (body), and the variable v.
+          // The argument body is required since in rare cases, two subformulas
+          // may share the same variables. This is the case for define-fun
+          // or inferred substitutions that contain quantified formulas.
+          Node cacheVal = BoundVarManager::getCacheValue(q, body, v);
           vv = bvm->mkBoundVar<QRewPrenexAttribute>(cacheVal, vt);
         }
         else
@@ -1374,8 +1380,8 @@ Node QuantifiersRewriter::computePrenexAgg(Node n,
   }
   else
   {
-    std::unordered_set<Node, NodeHashFunction> argsSet;
-    std::unordered_set<Node, NodeHashFunction> nargsSet;
+    std::unordered_set<Node> argsSet;
+    std::unordered_set<Node> nargsSet;
     Node q;
     Node nn = computePrenex(q, n, argsSet, nargsSet, true, true);
     Assert(n != nn || argsSet.empty());
@@ -1562,7 +1568,8 @@ Node QuantifiersRewriter::mkForall(const std::vector<Node>& args,
   children.push_back(body);
   if (marked)
   {
-    Node avar = nm->mkSkolem("id", nm->booleanType());
+    SkolemManager* sm = nm->getSkolemManager();
+    Node avar = sm->mkDummySkolem("id", nm->booleanType());
     QuantIdNumAttribute ida;
     avar.setAttribute(ida, 0);
     iplc.push_back(nm->mkNode(kind::INST_ATTRIBUTE, avar));
@@ -1596,7 +1603,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa)
       BoundVarManager* bvm = nm->getBoundVarManager();
       // Break apart the quantifed formula
       // forall x. P1 ^ ... ^ Pn ---> forall x. P1 ^ ... ^ forall x. Pn
-      NodeBuilder<> t(kind::AND);
+      NodeBuilder t(kind::AND);
       std::vector<Node> argsc;
       for (size_t i = 0, nchild = body.getNumChildren(); i < nchild; i++)
       {
@@ -1645,8 +1652,8 @@ Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa)
       // aggressive miniscoping implies that free variable miniscoping should
       // be applied first
       Node newBody = body;
-      NodeBuilder<> body_split(kind::OR);
-      NodeBuilder<> tb(kind::OR);
+      NodeBuilder body_split(kind::OR);
+      NodeBuilder tb(kind::OR);
       for (const Node& trm : body)
       {
         if (expr::hasSubterm(trm, args))
@@ -1884,7 +1891,7 @@ Node QuantifiersRewriter::computeOperation(Node f,
     }
     else
     {
-      std::unordered_set<Node, NodeHashFunction> argsSet, nargsSet;
+      std::unordered_set<Node> argsSet, nargsSet;
       n = computePrenex(f, n, argsSet, nargsSet, true, false);
       Assert(nargsSet.empty());
       args.insert(args.end(), argsSet.begin(), argsSet.end());
@@ -2028,6 +2035,6 @@ TrustNode QuantifiersRewriter::preprocess(Node n, bool isInst)
   return TrustNode::null();
 }
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

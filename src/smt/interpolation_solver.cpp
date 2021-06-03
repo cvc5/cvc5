@@ -1,31 +1,35 @@
-/*********************                                                        */
-/*! \file interpolation_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Ying Sheng, Andrew Reynolds, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The solver for interpolation queries
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Ying Sheng, Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The solver for interpolation queries.
+ */
 
 #include "smt/interpolation_solver.h"
 
 #include <sstream>
 
+#include "base/modal_exception.h"
 #include "options/smt_options.h"
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_interpol.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/trust_substitutions.h"
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 InterpolationSolver::InterpolationSolver(SmtEngine* parent) : d_parent(parent)
@@ -48,7 +52,7 @@ bool InterpolationSolver::getInterpol(const Node& conj,
                           << std::endl;
   std::vector<Node> axioms = d_parent->getExpandedAssertions();
   // must expand definitions
-  Node conjn = d_parent->expandDefinitions(conj);
+  Node conjn = d_parent->getEnv().getTopLevelSubstitutions().apply(conj);
   std::string name("A");
 
   quantifiers::SygusInterpol interpolSolver;
@@ -136,4 +140,4 @@ void InterpolationSolver::checkInterpol(Node interpol,
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

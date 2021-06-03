@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file engine_output_channel.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The theory engine output channel.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The theory engine output channel.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__ENGINE_OUTPUT_CHANNEL_H
-#define CVC4__THEORY__ENGINE_OUTPUT_CHANNEL_H
+#ifndef CVC5__THEORY__ENGINE_OUTPUT_CHANNEL_H
+#define CVC5__THEORY__ENGINE_OUTPUT_CHANNEL_H
 
 #include "expr/node.h"
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -45,7 +46,7 @@ class EngineOutputChannel : public theory::OutputChannel
  public:
   EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory);
 
-  void safePoint(ResourceManager::Resource r) override;
+  void safePoint(Resource r) override;
 
   void conflict(TNode conflictNode) override;
   bool propagate(TNode literal) override;
@@ -58,9 +59,9 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void requirePhase(TNode n, bool phase) override;
 
-  void setIncomplete() override;
+  void setIncomplete(IncompleteId id) override;
 
-  void spendResource(ResourceManager::Resource r) override;
+  void spendResource(Resource r) override;
 
   void handleUserAttribute(const char* attr, theory::Theory* t) override;
 
@@ -88,7 +89,6 @@ class EngineOutputChannel : public theory::OutputChannel
   {
    public:
     Statistics(theory::TheoryId theory);
-    ~Statistics();
     /** Number of calls to conflict, propagate, lemma, requirePhase,
      * restartDemands */
     IntStat conflicts, propagations, lemmas, requirePhase, restartDemands,
@@ -108,6 +108,6 @@ class EngineOutputChannel : public theory::OutputChannel
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ENGINE_OUTPUT_CHANNEL_H */
+#endif /* CVC5__THEORY__ENGINE_OUTPUT_CHANNEL_H */

@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file theory_bags.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bags theory.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bags theory.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BAGS__THEORY_BAGS_H
-#define CVC4__THEORY__BAGS__THEORY_BAGS_H
+#ifndef CVC5__THEORY__BAGS__THEORY_BAGS_H
+#define CVC5__THEORY__BAGS__THEORY_BAGS_H
 
 #include "theory/bags/bag_solver.h"
 #include "theory/bags/bags_rewriter.h"
@@ -27,7 +28,7 @@
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -46,6 +47,8 @@ class TheoryBags : public Theory
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -69,7 +72,6 @@ class TheoryBags : public Theory
   Node getModelValue(TNode) override;
   std::string identify() const override { return "THEORY_BAGS"; }
   void preRegisterTerm(TNode n) override;
-  TrustNode expandDefinition(Node n) override;
   void presolve() override;
 
  private:
@@ -114,6 +116,6 @@ class TheoryBags : public Theory
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BAGS__THEORY_BAGS_H */
+#endif /* CVC5__THEORY__BAGS__THEORY_BAGS_H */

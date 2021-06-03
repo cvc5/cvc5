@@ -1,28 +1,27 @@
-/*********************                                                        */
-/*! \file bounded_token_factory.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An ANTLR3 bounded token factory.
- **
- ** An ANTLR3 bounded token factory. The factory has a fixed number of
- ** tokens that are re-used as parsing proceeds. Only use this factory
- ** if you *know* that the number of active tokens will be bounded
- ** (e.g., if you're using a bounded token stream).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Christopher L. Conway, Mathias Preiner, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ * An ANTLR3 bounded token factory.
+ *
+ * The factory has a fixed number of tokens that are re-used as parsing
+ * proceeds. Only use this factory if you *know* that the number of active
+ * tokens will be bounded (e.g., if you're using a bounded token stream).
+ */
 
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 
-#ifndef CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H
-#define CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H
+#ifndef CVC5__PARSER__BOUNDED_TOKEN_FACTORY_H
+#define CVC5__PARSER__BOUNDED_TOKEN_FACTORY_H
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 #ifdef __cplusplus
@@ -45,7 +44,7 @@ BoundedTokenFactoryNew(pANTLR3_INPUT_STREAM input,ANTLR3_UINT32 size);
 }/* extern "C" */
 #endif
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
-#endif /* CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H */
+#endif /* CVC5__PARSER__BOUNDED_TOKEN_FACTORY_H */

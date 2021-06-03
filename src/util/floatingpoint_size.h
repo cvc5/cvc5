@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file floatingpoint_size.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Martin Brain, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The class representing a floating-point format.
- **/
-#include "cvc4_public.h"
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Martin Brain, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The class representing a floating-point format.
+ */
+#include "cvc5_public.h"
 
-#ifndef CVC4__FLOATINGPOINT_SIZE_H
-#define CVC4__FLOATINGPOINT_SIZE_H
+#ifndef CVC5__FLOATINGPOINT_SIZE_H
+#define CVC5__FLOATINGPOINT_SIZE_H
 
-namespace CVC4 {
+namespace cvc5 {
 
 // Inline these!
 inline bool validExponentSize(uint32_t e) { return e >= 2; }
@@ -92,6 +93,6 @@ struct FloatingPointSizeHashFunction
                   | t.significandWidth());
   }
 }; /* struct FloatingPointSizeHashFunction */
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

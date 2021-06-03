@@ -1,87 +1,87 @@
-/*********************                                                        */
-/*! \file cdhashmap.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Context-dependent map class.
- **
- ** Context-dependent map class.  Generic templated class for a map
- ** which must be saved and restored as contexts are pushed and
- ** popped.  Requires that operator= be defined for the data class,
- ** and operator== for the key class.  For key types that don't have a
- ** std::hash<>, you should provide an explicit HashFcn.
- **
- ** See also:
- **  CDInsertHashMap : An "insert-once" CD hash map.
- **  CDTrailHashMap : A lightweight CD hash map with poor iteration
- **    characteristics and some quirks in usage.
- **
- ** Internal documentation:
- **
- ** CDHashMap<> is something of a work in progress at present (26 May
- ** 2010), due to some recent discoveries of problems with its
- ** internal state.  Here are some notes on the internal use of
- ** CDOhash_maps that may be useful in figuring out this mess:
- **
- **     So you have a CDHashMap<>.
- **
- **     You insert some (key,value) pairs.  Each allocates a CDOhash_map<>
- **     and goes on a doubly-linked list headed by map.d_first and
- **     threaded via CDOhash_map.{d_prev,d_next}.  CDOhash_maps are constructed
- **     with a NULL d_map pointer, but then immediately call
- **     makeCurrent() and set the d_map pointer back to the map.  At
- **     context level 0, this doesn't lead to anything special.  In
- **     higher context levels, this stores away a CDOhash_map with a NULL
- **     map pointer at level 0, and a non-NULL map pointer in the
- **     current context level.  (Remember that for later.)
- **
- **     When a key is associated to a new value in a CDHashMap, its
- **     associated CDOhash_map calls makeCurrent(), then sets the new
- **     value.  The save object is also a CDOhash_map (allocated in context
- **     memory).
- **
- **     Now, CDOhash_maps disappear in a variety of ways.
- **
- **     First, you might pop beyond a "modification of the value"
- **     scope level, requiring a re-association of the key to an old
- **     value.  This is easy.  CDOhash_map::restore() does the work, and
- **     the context memory of the save object is reclaimed as usual.
- **
- **     Second, you might pop beyond a "insert the key" scope level,
- **     requiring that the key be completely removed from the map and
- **     its CDOhash_map object memory freed.  Here, the CDOhash_map is restored
- **     to a "NULL-map" state (see above), signaling it to remove
- **     itself from the map completely and put itself on a "trash
- **     list" for its scope.
- **
- **     Third, you might delete the cdhashmap(calling CDHashMap::~CDHashMap()).
- **     This first calls destroy(), as per ContextObj contract, but
- **     cdhashmapdoesn't save/restore itself, so that does nothing at the
- **     CDHashMap-level. Then, for each element in the map, it marks it as being
- **     "part of a complete map destruction", which essentially short-circuits
- **     CDOhash_map::restore() (see CDOhash_map::restore()), then deallocates
- **     it.
- **
- **     Fourth, you might clear() the CDHashMap.  This does exactly the
- **     same as CDHashMap::~CDHashMap(), except that it doesn't call destroy()
- **     on itself.
- **
- **     ContextObj::deleteSelf() calls the CDOhash_map destructor, then
- **     frees the memory associated to the CDOhash_map.
- **     CDOhash_map::~CDOhash_map() calls destroy(), which restores as much as
- **     possible.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Context-dependent map class.
+ *
+ * Generic templated class for a map which must be saved and restored as
+ * contexts are pushed and popped.  Requires that operator= be defined for the
+ * data class, and operator== for the key class.  For key types that don't have
+ * a std::hash<>, you should provide an explicit HashFcn.
+ *
+ * See also:
+ *  CDInsertHashMap : An "insert-once" CD hash map.
+ *  CDTrailHashMap : A lightweight CD hash map with poor iteration
+ *    characteristics and some quirks in usage.
+ *
+ * Internal documentation:
+ *
+ * CDHashMap<> is something of a work in progress at present (26 May
+ * 2010), due to some recent discoveries of problems with its
+ * internal state.  Here are some notes on the internal use of
+ * CDOhash_maps that may be useful in figuring out this mess:
+ *
+ *     So you have a CDHashMap<>.
+ *
+ *     You insert some (key,value) pairs.  Each allocates a CDOhash_map<>
+ *     and goes on a doubly-linked list headed by map.d_first and
+ *     threaded via CDOhash_map.{d_prev,d_next}.  CDOhash_maps are constructed
+ *     with a NULL d_map pointer, but then immediately call
+ *     makeCurrent() and set the d_map pointer back to the map.  At
+ *     context level 0, this doesn't lead to anything special.  In
+ *     higher context levels, this stores away a CDOhash_map with a NULL
+ *     map pointer at level 0, and a non-NULL map pointer in the
+ *     current context level.  (Remember that for later.)
+ *
+ *     When a key is associated to a new value in a CDHashMap, its
+ *     associated CDOhash_map calls makeCurrent(), then sets the new
+ *     value.  The save object is also a CDOhash_map (allocated in context
+ *     memory).
+ *
+ *     Now, CDOhash_maps disappear in a variety of ways.
+ *
+ *     First, you might pop beyond a "modification of the value"
+ *     scope level, requiring a re-association of the key to an old
+ *     value.  This is easy.  CDOhash_map::restore() does the work, and
+ *     the context memory of the save object is reclaimed as usual.
+ *
+ *     Second, you might pop beyond a "insert the key" scope level,
+ *     requiring that the key be completely removed from the map and
+ *     its CDOhash_map object memory freed.  Here, the CDOhash_map is restored
+ *     to a "NULL-map" state (see above), signaling it to remove
+ *     itself from the map completely and put itself on a "trash
+ *     list" for its scope.
+ *
+ *     Third, you might delete the cdhashmap(calling CDHashMap::~CDHashMap()).
+ *     This first calls destroy(), as per ContextObj contract, but
+ *     cdhashmapdoesn't save/restore itself, so that does nothing at the
+ *     CDHashMap-level. Then, for each element in the map, it marks it as being
+ *     "part of a complete map destruction", which essentially short-circuits
+ *     CDOhash_map::restore() (see CDOhash_map::restore()), then deallocates
+ *     it.
+ *
+ *     Fourth, you might clear() the CDHashMap.  This does exactly the
+ *     same as CDHashMap::~CDHashMap(), except that it doesn't call destroy()
+ *     on itself.
+ *
+ *     ContextObj::deleteSelf() calls the CDOhash_map destructor, then
+ *     frees the memory associated to the CDOhash_map.
+ *     CDOhash_map::~CDOhash_map() calls destroy(), which restores as much as
+ *     possible.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__CONTEXT__CDHASHMAP_H
-#define CVC4__CONTEXT__CDHASHMAP_H
+#ifndef CVC5__CONTEXT__CDHASHMAP_H
+#define CVC5__CONTEXT__CDHASHMAP_H
 
 #include <functional>
 #include <iterator>
@@ -91,7 +91,7 @@
 #include "context/cdhashmap_forward.h"
 #include "context/context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 
 // Auxiliary class: almost the same as CDO (see cdo.h)
@@ -452,7 +452,7 @@ public:
 
 };/* class CDHashMap<> */
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5
 
-#endif /* CVC4__CONTEXT__CDHASHMAP_H */
+#endif /* CVC5__CONTEXT__CDHASHMAP_H */

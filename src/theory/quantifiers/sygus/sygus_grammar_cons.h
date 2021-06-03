@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file sygus_grammar_cons.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Yoni Zohar, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief class for constructing inductive datatypes that correspond to
- ** grammars that encode syntactic restrictions for SyGuS.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Yoni Zohar, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Class for constructing inductive datatypes that correspond to
+ * grammars that encode syntactic restrictions for SyGuS.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_H
 
 #include <map>
 #include <vector>
@@ -25,7 +26,7 @@
 #include "expr/node.h"
 #include "expr/sygus_datatype.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -110,12 +111,10 @@ public:
      TypeNode range,
      Node bvl,
      const std::string& fun,
-     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& extra_cons,
-     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
-         exclude_cons,
-     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
-         include_cons,
-     std::unordered_set<Node, NodeHashFunction>& term_irrelevant);
+     std::map<TypeNode, std::unordered_set<Node>>& extra_cons,
+     std::map<TypeNode, std::unordered_set<Node>>& exclude_cons,
+     std::map<TypeNode, std::unordered_set<Node>>& include_cons,
+     std::unordered_set<Node>& term_irrelevant);
 
  /**
   * Make the default sygus datatype type corresponding to builtin type range.
@@ -124,10 +123,10 @@ public:
                                     Node bvl,
                                     const std::string& fun)
  {
-   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> extra_cons;
-   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> exclude_cons;
-   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> include_cons;
-   std::unordered_set<Node, NodeHashFunction> term_irrelevant;
+   std::map<TypeNode, std::unordered_set<Node>> extra_cons;
+   std::map<TypeNode, std::unordered_set<Node>> exclude_cons;
+   std::map<TypeNode, std::unordered_set<Node>> include_cons;
+   std::unordered_set<Node> term_irrelevant;
    return mkSygusDefaultType(range,
                              bvl,
                              fun,
@@ -182,9 +181,8 @@ public:
   /** is the syntax restricted? */
   bool d_is_syntax_restricted;
   /** collect terms */
-  void collectTerms(
-      Node n,
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& consts);
+  void collectTerms(Node n,
+                    std::map<TypeNode, std::unordered_set<Node>>& consts);
   //---------------- grammar construction
   /** A class for generating sygus datatypes */
   class SygusDatatypeGenerator
@@ -210,12 +208,12 @@ public:
     /** Should we include constructor with operator op? */
     bool shouldInclude(Node op) const;
     /** The constructors that should be excluded. */
-    std::unordered_set<Node, NodeHashFunction> d_exclude_cons;
+    std::unordered_set<Node> d_exclude_cons;
     /**
      * If this set is non-empty, then only include variables and constructors
      * from it.
      */
-    std::unordered_set<Node, NodeHashFunction> d_include_cons;
+    std::unordered_set<Node> d_include_cons;
     /** The sygus datatype we are generating. */
     SygusDatatype d_sdt;
   };
@@ -235,13 +233,10 @@ public:
       TypeNode range,
       Node bvl,
       const std::string& fun,
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
-          extra_cons,
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
-          exclude_cons,
-      const std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
-          include_cons,
-      std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
+      std::map<TypeNode, std::unordered_set<Node>>& extra_cons,
+      std::map<TypeNode, std::unordered_set<Node>>& exclude_cons,
+      const std::map<TypeNode, std::unordered_set<Node>>& include_cons,
+      std::unordered_set<Node>& term_irrelevant,
       std::vector<SygusDatatypeGenerator>& sdts,
       std::set<TypeNode>& unres);
 
@@ -264,8 +259,8 @@ public:
   //---------------- end grammar construction
 };
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

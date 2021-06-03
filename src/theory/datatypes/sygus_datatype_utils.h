@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file sygus_datatype_utils.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Util functions for sygus datatypes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Util functions for sygus datatypes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__SYGUS_DATATYPE_UTILS_H
-#define CVC4__THEORY__STRINGS__SYGUS_DATATYPE_UTILS_H
+#ifndef CVC5__THEORY__STRINGS__SYGUS_DATATYPE_UTILS_H
+#define CVC5__THEORY__STRINGS__SYGUS_DATATYPE_UTILS_H
 
 #include <vector>
 
@@ -24,7 +25,7 @@
 #include "expr/node_manager_attributes.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 // ----------------------- sygus datatype attributes
@@ -85,11 +86,6 @@ Kind getOperatorKindForSygusBuiltin(Node op);
  * otherwise k itself.
  */
 Kind getEliminateKind(Kind k);
-/**
- * Returns a version of n where all partial functions such as bvudiv
- * have been replaced by their total versions like bvudiv_total.
- */
-Node eliminatePartialOperators(Node n);
 /** make sygus term
  *
  * This function returns a builtin term f( children[0], ..., children[n] )
@@ -201,8 +197,7 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args);
  * We have that { a, b, c, e } are added to syms. Notice that expr::getSymbols
  * excludes variables whose kind is BOUND_VARIABLE.
  */
-void getFreeSymbolsSygusType(TypeNode sdt,
-                             std::unordered_set<Node, NodeHashFunction>& syms);
+void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms);
 
 /** Substitute and generalize a sygus datatype type
  *
@@ -237,6 +232,6 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
 }  // namespace utils
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

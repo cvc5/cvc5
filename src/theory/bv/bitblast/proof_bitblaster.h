@@ -1,24 +1,28 @@
-/*********************                                                        */
-/*! \file proof_bitblaster.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A bit-blaster wrapper around BBSimple for proof logging.
- **/
-#include "cvc4_private.h"
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A bit-blaster wrapper around BBSimple for proof logging.
+ */
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BV__BITBLAST__PROOF_BITBLASTER_H
-#define CVC4__THEORY__BV__BITBLAST__PROOF_BITBLASTER_H
+#ifndef CVC5__THEORY__BV__BITBLAST__PROOF_BITBLASTER_H
+#define CVC5__THEORY__BV__BITBLAST__PROOF_BITBLASTER_H
 
 #include "theory/bv/bitblast/simple_bitblaster.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class TConvProofGenerator;
+
 namespace theory {
 namespace bv {
 
@@ -27,8 +31,8 @@ class BBProof
   using Bits = std::vector<Node>;
 
  public:
-  BBProof(TheoryState* state);
-  ~BBProof() = default;
+  BBProof(TheoryState* state, ProofNodeManager* pnm, TConvProofGenerator* tcpg);
+  ~BBProof();
 
   /** Bit-blast atom 'node'. */
   void bbAtom(TNode node);
@@ -42,10 +46,24 @@ class BBProof
   bool collectModelValues(TheoryModel* m, const std::set<Node>& relevantTerms);
 
  private:
+  /** Map node kinds to proof rules. */
+  static std::unordered_map<Kind, PfRule, kind::KindHashFunction>
+      s_kindToPfRule;
+
+  /** Return true if proofs are enabled. */
+  bool isProofsEnabled() const;
+
+  /** The associated simple bit-blaster. */
   std::unique_ptr<BBSimple> d_bb;
+  /** The associated proof node manager. */
+  ProofNodeManager* d_pnm;
+  /** The associated term conversion proof generator. */
+  TConvProofGenerator* d_tcpg;
+  /** Map bit-vector nodes to bit-blasted nodes. */
+  std::unordered_map<Node, Node> d_bbMap;
 };
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 #endif

@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file strategy.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of non-linear solver
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of non-linear solver.
+ */
 
 #include "theory/arith/nl/strategy.h"
 
@@ -19,7 +20,7 @@
 #include "base/check.h"
 #include "options/arith_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -108,9 +109,14 @@ void Strategy::initializeStrategy()
   {
     one << InferStep::ICP << InferStep::BREAK;
   }
-  if (options::nlExt())
+  if (options::nlExt() == options::NlExtMode::FULL
+      || options::nlExt() == options::NlExtMode::LIGHT)
   {
-    one << InferStep::NL_INIT << InferStep::TRANS_INIT << InferStep::BREAK;
+    one << InferStep::NL_INIT << InferStep::BREAK;
+  }
+  if (options::nlExt() == options::NlExtMode::FULL)
+  {
+    one << InferStep::TRANS_INIT << InferStep::BREAK;
     if (options::nlExtSplitZero())
     {
       one << InferStep::NL_SPLIT_ZERO << InferStep::BREAK;
@@ -119,11 +125,15 @@ void Strategy::initializeStrategy()
   }
   one << InferStep::IAND_INIT;
   one << InferStep::IAND_INITIAL << InferStep::BREAK;
-  if (options::nlExt())
+  if (options::nlExt() == options::NlExtMode::FULL
+      || options::nlExt() == options::NlExtMode::LIGHT)
   {
     one << InferStep::NL_MONOMIAL_SIGN << InferStep::BREAK;
-    one << InferStep::TRANS_MONOTONIC << InferStep::BREAK;
     one << InferStep::NL_MONOMIAL_MAGNITUDE0 << InferStep::BREAK;
+  }
+  if (options::nlExt() == options::NlExtMode::FULL)
+  {
+    one << InferStep::TRANS_MONOTONIC << InferStep::BREAK;
     one << InferStep::NL_MONOMIAL_MAGNITUDE1 << InferStep::BREAK;
     one << InferStep::NL_MONOMIAL_MAGNITUDE2 << InferStep::BREAK;
     one << InferStep::NL_MONOMIAL_INFER_BOUNDS;
@@ -173,4 +183,4 @@ StepGenerator Strategy::getStrategy()
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

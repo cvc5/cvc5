@@ -1,39 +1,37 @@
-/*********************                                                        */
-/*! \file integer_gmp_imp.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Tim King, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A multiprecision integer constant; wraps a GMP multiprecision
- ** integer.
- **
- ** A multiprecision integer constant; wraps a GMP multiprecision integer.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Tim King, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A multiprecision integer constant; wraps a GMP multiprecision integer.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__INTEGER_H
-#define CVC4__INTEGER_H
+#ifndef CVC5__INTEGER_H
+#define CVC5__INTEGER_H
 
 #include <gmpxx.h>
 
 #include <iosfwd>
 #include <string>
 
-#include "cvc4_export.h"  // remove when Cvc language support is removed
+#include "cvc5_export.h"  // remove when Cvc language support is removed
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Rational;
 
-class CVC4_EXPORT Integer
+class CVC5_EXPORT Integer
 {
-  friend class CVC4::Rational;
+  friend class cvc5::Rational;
 
  public:
   /**
@@ -60,10 +58,10 @@ class CVC4_EXPORT Integer
   Integer(signed long int z) : d_value(z) {}
   Integer(unsigned long int z) : d_value(z) {}
 
-#ifdef CVC4_NEED_INT64_T_OVERLOADS
+#ifdef CVC5_NEED_INT64_T_OVERLOADS
   Integer(int64_t z) : d_value(static_cast<long>(z)) {}
   Integer(uint64_t z) : d_value(static_cast<unsigned long>(z)) {}
-#endif /* CVC4_NEED_INT64_T_OVERLOADS */
+#endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
   /** Destructor. */
   ~Integer() {}
@@ -330,7 +328,7 @@ class CVC4_EXPORT Integer
 
 struct IntegerHashFunction
 {
-  inline size_t operator()(const CVC4::Integer& i) const { return i.hash(); }
+  inline size_t operator()(const cvc5::Integer& i) const { return i.hash(); }
 }; /* struct IntegerHashFunction */
 
 inline std::ostream& operator<<(std::ostream& os, const Integer& n)
@@ -338,6 +336,6 @@ inline std::ostream& operator<<(std::ostream& os, const Integer& n)
   return os << n.toString();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__INTEGER_H */
+#endif /* CVC5__INTEGER_H */

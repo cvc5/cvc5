@@ -1,31 +1,29 @@
-/*********************                                                        */
-/*! \file sygus_unif.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief sygus_unif
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * sygus_unif
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_H
 
 #include <map>
 #include "expr/node.h"
 #include "theory/quantifiers/sygus/sygus_unif_strat.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 class TermDbSygus;
@@ -67,7 +65,7 @@ class SygusUnif
    * the respective function-to-synthesize.
    */
   virtual void initializeCandidate(
-      QuantifiersEngine* qe,
+      TermDbSygus* tds,
       Node f,
       std::vector<Node>& enums,
       std::map<Node, std::vector<Node>>& strategy_lemmas);
@@ -92,10 +90,8 @@ class SygusUnif
                                  std::vector<Node>& lemmas) = 0;
 
  protected:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
-  /** sygus term database of d_qe */
-  quantifiers::TermDbSygus* d_tds;
+  /** Pointer to the term database sygus */
+  TermDbSygus* d_tds;
 
   //-----------------------debug printing
   /** print ind indentations on trace c */
@@ -196,8 +192,8 @@ class SygusUnif
   Node getMinimalTerm(const std::vector<Node>& terms);
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_H */

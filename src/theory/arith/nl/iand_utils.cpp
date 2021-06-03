@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file iand_utils.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar, Makai Mann, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities to maintain finite tables that represent
- ** the value of iand.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar, Makai Mann, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities to maintain finite tables that represent the value of iand.
+ */
 
 #include "theory/arith/nl/iand_utils.h"
 
 #include <cmath>
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
+#include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -276,4 +277,4 @@ Node IAndUtils::twoToKMinusOne(unsigned k) const
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

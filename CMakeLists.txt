@@ -1,38 +1,43 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Mathias Preiner, Aina Niemetz, Gereon Kremer
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Aina Niemetz, Mathias Preiner, Gereon Kremer
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
+
 cmake_minimum_required(VERSION 3.9)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
 
-project(cvc4)
+project(cvc5)
 
 include(GNUInstallDirs)
 
-set(CVC4_MAJOR   1) # Major component of the version of CVC4.
-set(CVC4_MINOR   9) # Minor component of the version of CVC4.
-set(CVC4_RELEASE 0) # Release component of the version of CVC4.
+set(CVC5_MAJOR   1) # Major component of the version of cvc5.
+set(CVC5_MINOR   0) # Minor component of the version of cvc5.
+set(CVC5_RELEASE 0) # Release component of the version of cvc5.
 
-# Extraversion component of the version of CVC4.
-set(CVC4_EXTRAVERSION "-prerelease")
+# Extraversion component of the version of cvc5.
+set(CVC5_EXTRAVERSION "-prerelease")
 
-# Shared library versioning. Increment SOVERSION for every new CVC4 release.
-set(CVC4_SOVERSION 7)
+# Shared library versioning. Increment SOVERSION for every new cvc5 release.
+set(CVC5_SOVERSION 1)
 
-# Full release string for CVC4.
-if(CVC4_RELEASE)
-  set(CVC4_RELEASE_STRING
-      "${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}${CVC4_EXTRAVERSION}")
+# Full release string for cvc5.
+if(CVC5_RELEASE)
+  set(CVC5_RELEASE_STRING
+      "${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}${CVC5_EXTRAVERSION}")
 else()
-  set(CVC4_RELEASE_STRING "${CVC4_MAJOR}.${CVC4_MINOR}${CVC4_EXTRAVERSION}")
+  set(CVC5_RELEASE_STRING "${CVC5_MAJOR}.${CVC5_MINOR}${CVC5_EXTRAVERSION}")
 endif()
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -61,26 +66,8 @@ endif()
 if(ABC_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${ABC_DIR}")
 endif()
-if(CADICAL_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${CADICAL_DIR}")
-endif()
-if(CRYPTOMINISAT_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${CRYPTOMINISAT_DIR}")
-endif()
 if(GLPK_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${GLPK_DIR}")
-endif()
-if(GMP_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${GMP_DIR}")
-endif()
-if(KISSAT_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${KISSAT_DIR}")
-endif()
-if(POLY_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${POLY_DIR}")
-endif()
-if(SYMFPU_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${SYMFPU_DIR}")
 endif()
 
 # By default the contrib/get-* scripts install dependencies to deps/install.
@@ -101,22 +88,23 @@ option(ENABLE_GPL "Enable GPL dependencies")
 # >> 3-valued: IGNORE ON OFF
 #    > allows to detect if set by user (default: IGNORE)
 #    > only necessary for options set for build types
-cvc4_option(ENABLE_ASAN           "Enable ASAN build")
-cvc4_option(ENABLE_UBSAN          "Enable UBSan build")
-cvc4_option(ENABLE_TSAN           "Enable TSan build")
-cvc4_option(ENABLE_ASSERTIONS     "Enable assertions")
-cvc4_option(ENABLE_COMP_INC_TRACK
+cvc5_option(ENABLE_ASAN           "Enable ASAN build")
+cvc5_option(ENABLE_UBSAN          "Enable UBSan build")
+cvc5_option(ENABLE_TSAN           "Enable TSan build")
+cvc5_option(ENABLE_ASSERTIONS     "Enable assertions")
+cvc5_option(ENABLE_COMP_INC_TRACK
             "Enable optimizations for incremental SMT-COMP tracks")
-cvc4_option(ENABLE_DEBUG_SYMBOLS  "Enable debug symbols")
-cvc4_option(ENABLE_DUMPING        "Enable dumping")
-cvc4_option(ENABLE_MUZZLE         "Suppress ALL non-result output")
-cvc4_option(ENABLE_STATISTICS     "Enable statistics")
-cvc4_option(ENABLE_TRACING        "Enable tracing")
-cvc4_option(ENABLE_UNIT_TESTING   "Enable unit testing")
-cvc4_option(ENABLE_VALGRIND       "Enable valgrind instrumentation")
-cvc4_option(ENABLE_SHARED         "Build as shared library")
-cvc4_option(ENABLE_STATIC_BINARY
+cvc5_option(ENABLE_DEBUG_SYMBOLS  "Enable debug symbols")
+cvc5_option(ENABLE_DUMPING        "Enable dumping")
+cvc5_option(ENABLE_MUZZLE         "Suppress ALL non-result output")
+cvc5_option(ENABLE_STATISTICS     "Enable statistics")
+cvc5_option(ENABLE_TRACING        "Enable tracing")
+cvc5_option(ENABLE_UNIT_TESTING   "Enable unit testing")
+cvc5_option(ENABLE_VALGRIND       "Enable valgrind instrumentation")
+cvc5_option(ENABLE_SHARED         "Build as shared library")
+cvc5_option(ENABLE_STATIC_BINARY
             "Build static binaries with statically linked system libraries")
+cvc5_option(ENABLE_AUTO_DOWNLOAD  "Enable automatic download of dependencies")
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(ENABLE_BEST             "Enable dependencies known to give best performance")
@@ -129,13 +117,13 @@ option(ENABLE_PROFILING        "Enable support for gprof profiling")
 # >> 3-valued: IGNORE ON OFF
 #    > allows to detect if set by user (default: IGNORE)
 #    > only necessary for options set for ENABLE_BEST
-cvc4_option(USE_ABC           "Use ABC for AIG bit-blasting")
-cvc4_option(USE_CADICAL       "Use CaDiCaL SAT solver")
-cvc4_option(USE_CLN           "Use CLN instead of GMP")
-cvc4_option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
-cvc4_option(USE_GLPK          "Use GLPK simplex solver")
-cvc4_option(USE_KISSAT        "Use Kissat SAT solver")
-cvc4_option(USE_EDITLINE      "Use Editline for better interactive support")
+cvc5_option(USE_ABC           "Use ABC for AIG bit-blasting")
+cvc5_option(USE_CADICAL       "Use CaDiCaL SAT solver")
+cvc5_option(USE_CLN           "Use CLN instead of GMP")
+cvc5_option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
+cvc5_option(USE_GLPK          "Use GLPK simplex solver")
+cvc5_option(USE_KISSAT        "Use Kissat SAT solver")
+cvc5_option(USE_EDITLINE      "Use Editline for better interactive support")
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(USE_POLY               "Use LibPoly for polynomial arithmetic")
@@ -148,23 +136,20 @@ option(USE_PYTHON2            "Force Python 2 (deprecated)")
 # check the intalled system version. If the user provides a directory we
 # immediately fail if the dependency was not found at the specified location.
 set(ABC_DIR           "" CACHE STRING "Set ABC install directory")
-set(CADICAL_DIR       "" CACHE STRING "Set CaDiCaL install directory")
-set(CRYPTOMINISAT_DIR "" CACHE STRING "Set CryptoMiniSat install directory")
 set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
-set(GMP_DIR           "" CACHE STRING "Set GMP install directory")
-set(KISSAT_DIR        "" CACHE STRING "Set Kissat install directory")
-set(POLY_DIR          "" CACHE STRING "Set LibPoly install directory")
-set(SYMFPU_DIR        "" CACHE STRING "Set SymFPU install directory")
 
 # Prepend binaries with prefix on make install
 set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 
-# Supprted language bindings based on new C++ API
+# Supported language bindings based on new C++ API
 option(BUILD_BINDINGS_PYTHON "Build Python bindings based on new C++ API ")
 option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
 
 # Build limitations
 option(BUILD_LIB_ONLY         "Only build the library")
+
+# Api documentation
+cvc5_option(BUILD_DOCS "Build Api documentation")
 
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
@@ -246,15 +231,15 @@ if ("${LD_VERSION}" MATCHES "GNU gold")
 endif ()
 
 #-----------------------------------------------------------------------------#
-# Option defaults (three-valued options (cvc4_option(...)))
+# Option defaults (three-valued options (cvc5_option(...)))
 #
 # These options are only set if their value is IGNORE. Otherwise, the user
 # already set the option, which we don't want to overwrite.
 
 if(ENABLE_STATIC_BINARY)
-  cvc4_set_option(ENABLE_SHARED OFF)
+  cvc5_set_option(ENABLE_SHARED OFF)
 else()
-  cvc4_set_option(ENABLE_SHARED ON)
+  cvc5_set_option(ENABLE_SHARED ON)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -262,7 +247,7 @@ endif()
 # Only enable unit testing if assertions are enabled. Otherwise, unit tests
 # that expect AssertionException to be thrown will fail.
 if(NOT ENABLE_ASSERTIONS)
-  message(WARNING "Disabling unit tests since assertions are disabled.")
+  message(STATUS "Disabling unit tests since assertions are disabled.")
   set(ENABLE_UNIT_TESTING OFF)
 endif()
 
@@ -276,7 +261,7 @@ if(ENABLE_SHARED)
   set(BUILD_SHARED_LIBS ON)
   if(ENABLE_STATIC_BINARY)
     set(ENABLE_STATIC_BINARY OFF)
-    message(WARNING "Disabling static binary since shared build is enabled.")
+    message(STATUS "Disabling static binary since shared build is enabled.")
   endif()
 
   # Set visibility to default if unit tests are enabled
@@ -286,11 +271,11 @@ if(ENABLE_SHARED)
   endif()
 
   # Embed the installation prefix as an RPATH in the executable such that the
-  # linker can find our libraries (such as libcvc4parser) when executing the
-  # cvc4 binary. This is for example useful when installing CVC4 with a custom
+  # linker can find our libraries (such as libcvc5parser) when executing the
+  # cvc5 binary. This is for example useful when installing cvc5 with a custom
   # prefix on macOS (e.g. when using homebrew in a non-standard directory). If
   # we do not set this option, then the linker will not be able to find the
-  # required libraries when trying to run CVC4.
+  # required libraries when trying to run cvc5.
   #
   # Also embed the installation prefix of the installed contrib libraries as an
   # RPATH. This allows to install a dynamically linked binary that depends on
@@ -310,12 +295,12 @@ else()
       set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
   endif()
   set(BUILD_SHARED_LIBS OFF)
-  cvc4_set_option(ENABLE_STATIC_BINARY ON)
+  cvc5_set_option(ENABLE_STATIC_BINARY ON)
 
   # Never build unit tests as static binaries, otherwise we'll end up with
   # ~300MB per unit test.
   if(ENABLE_UNIT_TESTING)
-    message(WARNING "Disabling unit tests since static build is enabled.")
+    message(STATUS "Disabling unit tests since static build is enabled.")
     set(ENABLE_UNIT_TESTING OFF)
   endif()
 
@@ -341,7 +326,7 @@ else()
   find_package(PythonInterp 3 REQUIRED)
 endif()
 
-find_package(GMP REQUIRED)
+find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)
   # -fsanitize=address requires CMAKE_REQUIRED_FLAGS to be explicitely set,
@@ -355,7 +340,7 @@ endif()
 
 if(ENABLE_UBSAN)
   add_required_c_cxx_flag("-fsanitize=undefined")
-  add_definitions(-DCVC4_USE_UBSAN)
+  add_definitions(-DCVC5_USE_UBSAN)
 endif()
 
 if(ENABLE_TSAN)
@@ -367,7 +352,7 @@ if(ENABLE_TSAN)
 endif()
 
 if(ENABLE_ASSERTIONS)
-  add_definitions(-DCVC4_ASSERTIONS)
+  add_definitions(-DCVC5_ASSERTIONS)
 else()
   add_definitions(-DNDEBUG)
 endif()
@@ -375,7 +360,7 @@ endif()
 if(ENABLE_COVERAGE)
   include(CodeCoverage)
   APPEND_COVERAGE_COMPILER_FLAGS()
-  add_definitions(-DCVC4_COVERAGE)
+  add_definitions(-DCVC5_COVERAGE)
   # Note: The ctest command returns a non-zero exit code if tests fail or run
   # into a timeout. As a consequence, the coverage report is not generated. To
   # prevent this we always return with exit code 0 after the ctest command has
@@ -390,7 +375,7 @@ if(ENABLE_COVERAGE)
 endif()
 
 if(ENABLE_DEBUG_CONTEXT_MM)
-  add_definitions(-DCVC4_DEBUG_CONTEXT_MEMORY_MANAGER)
+  add_definitions(-DCVC5_DEBUG_CONTEXT_MEMORY_MANAGER)
 endif()
 
 if(ENABLE_DEBUG_SYMBOLS)
@@ -398,53 +383,53 @@ if(ENABLE_DEBUG_SYMBOLS)
 endif()
 
 if(ENABLE_COMP_INC_TRACK)
-  add_definitions(-DCVC4_SMTCOMP_APPLICATION_TRACK)
+  add_definitions(-DCVC5_SMTCOMP_APPLICATION_TRACK)
 endif()
 
 if(ENABLE_MUZZLE)
-  add_definitions(-DCVC4_MUZZLE)
+  add_definitions(-DCVC5_MUZZLE)
 endif()
 
 if(ENABLE_DUMPING)
-  add_definitions(-DCVC4_DUMPING)
+  add_definitions(-DCVC5_DUMPING)
 endif()
 
 if(ENABLE_PROFILING)
-  add_definitions(-DCVC4_PROFILING)
+  add_definitions(-DCVC5_PROFILING)
   add_check_c_cxx_flag("-pg")
 endif()
 
 if(ENABLE_TRACING)
-  add_definitions(-DCVC4_TRACING)
+  add_definitions(-DCVC5_TRACING)
 endif()
 
 if(ENABLE_STATISTICS)
-  add_definitions(-DCVC4_STATISTICS_ON)
+  add_definitions(-DCVC5_STATISTICS_ON)
 endif()
 
 if(ENABLE_VALGRIND)
   find_package(Valgrind REQUIRED)
-  add_definitions(-DCVC4_VALGRIND)
+  add_definitions(-DCVC5_VALGRIND)
 endif()
 
 if(USE_ABC)
   find_package(ABC REQUIRED)
-  add_definitions(-DCVC4_USE_ABC ${ABC_ARCH_FLAGS})
+  add_definitions(-DCVC5_USE_ABC ${ABC_ARCH_FLAGS})
 endif()
 
 if(USE_CADICAL)
   find_package(CaDiCaL REQUIRED)
-  add_definitions(-DCVC4_USE_CADICAL)
+  add_definitions(-DCVC5_USE_CADICAL)
 endif()
 
 if(USE_CLN)
   set(GPL_LIBS "${GPL_LIBS} cln")
   find_package(CLN 1.2.2 REQUIRED)
-  set(CVC4_USE_CLN_IMP 1)
-  set(CVC4_USE_GMP_IMP 0)
+  set(CVC5_USE_CLN_IMP 1)
+  set(CVC5_USE_GMP_IMP 0)
 else()
-  set(CVC4_USE_CLN_IMP 0)
-  set(CVC4_USE_GMP_IMP 1)
+  set(CVC5_USE_CLN_IMP 0)
+  set(CVC5_USE_GMP_IMP 1)
 endif()
 
 if(USE_CRYPTOMINISAT)
@@ -454,27 +439,27 @@ if(USE_CRYPTOMINISAT)
   if(THREADS_HAVE_PTHREAD_ARG)
     add_c_cxx_flag(-pthread)
   endif()
-  find_package(CryptoMiniSat REQUIRED)
-  add_definitions(-DCVC4_USE_CRYPTOMINISAT)
+  find_package(CryptoMiniSat 5.8 REQUIRED)
+  add_definitions(-DCVC5_USE_CRYPTOMINISAT)
 endif()
 
 if(USE_GLPK)
   set(GPL_LIBS "${GPL_LIBS} glpk")
   find_package(GLPK REQUIRED)
-  add_definitions(-DCVC4_USE_GLPK)
+  add_definitions(-DCVC5_USE_GLPK)
 endif()
 
 if(USE_KISSAT)
   find_package(Kissat REQUIRED)
-  add_definitions(-DCVC4_USE_KISSAT)
+  add_definitions(-DCVC5_USE_KISSAT)
 endif()
 
 if(USE_POLY)
   find_package(Poly REQUIRED)
-  add_definitions(-DCVC4_USE_POLY)
-  set(CVC4_USE_POLY_IMP 1)
+  add_definitions(-DCVC5_USE_POLY)
+  set(CVC5_USE_POLY_IMP 1)
 else()
-  set(CVC4_USE_POLY_IMP 0)
+  set(CVC5_USE_POLY_IMP 0)
 endif()
 
 if(USE_EDITLINE)
@@ -487,10 +472,10 @@ endif()
 
 if(USE_SYMFPU)
   find_package(SymFPU REQUIRED)
-  add_definitions(-DCVC4_USE_SYMFPU)
-  set(CVC4_USE_SYMFPU 1)
+  add_definitions(-DCVC5_USE_SYMFPU)
+  set(CVC5_USE_SYMFPU 1)
 else()
-  set(CVC4_USE_SYMFPU 0)
+  set(CVC5_USE_SYMFPU 0)
 endif()
 
 if(GPL_LIBS)
@@ -499,7 +484,7 @@ if(GPL_LIBS)
       "Bad configuration detected: BSD-licensed code only, but also requested "
       "GPLed libraries: ${GPL_LIBS}")
   endif()
-  set(CVC4_GPL_DEPS 1)
+  set(CVC5_GPL_DEPS 1)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -508,22 +493,16 @@ endif()
 include(IWYU)
 
 #-----------------------------------------------------------------------------#
-# Generate CVC4's cvc4autoconfig.h header
 
-include(ConfigureCVC4)
+include(ConfigureCvc5)
 if(NOT ENABLE_SHARED)
-  set(CVC4_STATIC_BUILD ON)
+  set(CVC5_STATIC_BUILD ON)
 endif()
-configure_file(cvc4autoconfig.h.in cvc4autoconfig.h)
-unset(CVC4_STATIC_BUILD)
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
 # Add subdirectories
 
-add_subdirectory(doc)
 add_subdirectory(src)
-add_subdirectory(test)
 
 if(BUILD_BINDINGS_PYTHON)
   set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
@@ -535,10 +514,16 @@ if(BUILD_BINDINGS_JAVA)
   message(WARNING "Java API is currently under development.")
 endif()
 
+if(BUILD_DOCS)
+  add_subdirectory(docs)
+endif()
+
+add_subdirectory(test)
+
 #-----------------------------------------------------------------------------#
 # Package configuration
 #
-# Export CVC4 targets to support find_package(CVC4) in other cmake projects.
+# Export cvc5 targets to support find_package(cvc5) in other cmake projects.
 
 include(CMakePackageConfigHelpers)
 
@@ -550,8 +535,8 @@ include(CMakePackageConfigHelpers)
 # also that custom installation prefixes are not used for longer periods of
 # time anyway). Also, we print a big warning with further instructions.
 if(NOT ENABLE_STATIC_BINARY)
-  # Get the libraries that cvc4 links against
-  get_target_property(libs cvc4 INTERFACE_LINK_LIBRARIES)
+  # Get the libraries that cvc5 links against
+  get_target_property(libs cvc5 INTERFACE_LINK_LIBRARIES)
   set(LIBS_SHARED_FROM_DEPS "")
   foreach(lib ${libs})
     # Filter out those that are linked dynamically and come from deps/install
@@ -564,16 +549,16 @@ if(NOT ENABLE_STATIC_BINARY)
   if(list_len GREATER 0)
     # Print a generic warning
     install(CODE "message(WARNING \"You are installing a dynamically linked \
-    binary of CVC4 which may be a problem if you are using any dynamically \
+    binary of cvc5 which may be a problem if you are using any dynamically \
     linked third-party library that you obtained through one of the \
     contrib/get-xxx scripts. The binary uses the rpath mechanism to find these \
     locally, hence executing such a contrib script removing the \
     \\\"deps/install\\\" folder most probably breaks the installed binary! \
     Consider installing the dynamically linked dependencies on your system \
-    manually or link cvc4 statically.\")")
+    manually or link cvc5 statically.\")")
     # Print the libraries in question
     foreach(lib ${LIBS_SHARED_FROM_DEPS})
-      install(CODE "message(WARNING \"The following library is used by the cvc4 binary: ${lib}\")")
+      install(CODE "message(WARNING \"The following library is used by the cvc5 binary: ${lib}\")")
     endforeach()
     # Check if we use a custom installation prefix
     if(CMAKE_INSTALL_PREFIX STREQUAL "/usr/local")
@@ -588,28 +573,28 @@ if(NOT ENABLE_STATIC_BINARY)
   endif()
 endif()
 
-install(EXPORT cvc4-targets
-  FILE CVC4Targets.cmake
-  NAMESPACE CVC4::
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CVC4)
+install(EXPORT cvc5-targets
+  FILE cvc5Targets.cmake
+  NAMESPACE cvc5::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5)
 
 configure_package_config_file(
-  ${CMAKE_SOURCE_DIR}/cmake/CVC4Config.cmake.in
-  ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CVC4
+  ${CMAKE_SOURCE_DIR}/cmake/cvc5Config.cmake.in
+  ${CMAKE_BINARY_DIR}/cmake/cvc5Config.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5
   PATH_VARS CMAKE_INSTALL_LIBDIR
 )
 
 write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/CVC4ConfigVersion.cmake
-  VERSION ${CVC4_RELEASE_STRING}
+  ${CMAKE_CURRENT_BINARY_DIR}/cvc5ConfigVersion.cmake
+  VERSION ${CVC5_RELEASE_STRING}
   COMPATIBILITY ExactVersion
 )
 
 install(FILES
-  ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
-  ${CMAKE_BINARY_DIR}/CVC4ConfigVersion.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CVC4
+  ${CMAKE_BINARY_DIR}/cmake/cvc5Config.cmake
+  ${CMAKE_BINARY_DIR}/cvc5ConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5
 )
 
 
@@ -625,58 +610,57 @@ if(NOT WIN32)
 endif()
 
 # Convert build type to lower case.
-string(TOLOWER ${CMAKE_BUILD_TYPE} CVC4_BUILD_PROFILE_STRING)
+string(TOLOWER ${CMAKE_BUILD_TYPE} CVC5_BUILD_PROFILE_STRING)
 
 # Get all definitions added via add_definitions.
-get_directory_property(CVC4_DEFINITIONS COMPILE_DEFINITIONS)
-string(REPLACE ";" " " CVC4_DEFINITIONS "${CVC4_DEFINITIONS}")
+get_directory_property(CVC5_DEFINITIONS COMPILE_DEFINITIONS)
+string(REPLACE ";" " " CVC5_DEFINITIONS "${CVC5_DEFINITIONS}")
 
 message("")
-print_info("CVC4 ${CVC4_RELEASE_STRING}")
+print_info("cvc5 ${CVC5_RELEASE_STRING}")
 message("")
 if(ENABLE_COMP_INC_TRACK)
-  print_config("Build profile             " "${CVC4_BUILD_PROFILE_STRING} (incremental)")
+  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (incremental)")
 else()
-  print_config("Build profile             " "${CVC4_BUILD_PROFILE_STRING}")
+  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING}")
 endif()
 message("")
-print_config("GPL                       " ENABLE_GPL)
-print_config("Best configuration        " ENABLE_BEST)
+print_config("GPL                       " ${ENABLE_GPL})
+print_config("Best configuration        " ${ENABLE_BEST})
 message("")
-print_config("Assertions                " ENABLE_ASSERTIONS)
-print_config("Debug symbols             " ENABLE_DEBUG_SYMBOLS)
-print_config("Debug context mem mgr     " ENABLE_DEBUG_CONTEXT_MM)
+print_config("Assertions                " ${ENABLE_ASSERTIONS})
+print_config("Debug symbols             " ${ENABLE_DEBUG_SYMBOLS})
+print_config("Debug context mem mgr     " ${ENABLE_DEBUG_CONTEXT_MM})
 message("")
-print_config("Dumping                   " ENABLE_DUMPING)
-print_config("Muzzle                    " ENABLE_MUZZLE)
-print_config("Proofs                    " ENABLE_PROOFS)
-print_config("Statistics                " ENABLE_STATISTICS)
-print_config("Tracing                   " ENABLE_TRACING)
+print_config("Dumping                   " ${ENABLE_DUMPING})
+print_config("Muzzle                    " ${ENABLE_MUZZLE})
+print_config("Statistics                " ${ENABLE_STATISTICS})
+print_config("Tracing                   " ${ENABLE_TRACING})
 message("")
-print_config("ASan                      " ENABLE_ASAN)
-print_config("UBSan                     " ENABLE_UBSAN)
-print_config("TSan                      " ENABLE_TSAN)
-print_config("Coverage (gcov)           " ENABLE_COVERAGE)
-print_config("Profiling (gprof)         " ENABLE_PROFILING)
-print_config("Unit tests                " ENABLE_UNIT_TESTING)
-print_config("Valgrind                  " ENABLE_VALGRIND)
+print_config("ASan                      " ${ENABLE_ASAN})
+print_config("UBSan                     " ${ENABLE_UBSAN})
+print_config("TSan                      " ${ENABLE_TSAN})
+print_config("Coverage (gcov)           " ${ENABLE_COVERAGE})
+print_config("Profiling (gprof)         " ${ENABLE_PROFILING})
+print_config("Unit tests                " ${ENABLE_UNIT_TESTING})
+print_config("Valgrind                  " ${ENABLE_VALGRIND})
 message("")
-print_config("Shared libs               " ENABLE_SHARED)
-print_config("Static binary             " ENABLE_STATIC_BINARY)
-print_config("Python bindings           " BUILD_BINDINGS_PYTHON)
-print_config("Java bindings             " BUILD_BINDINGS_JAVA)
-print_config("Python2                   " USE_PYTHON2)
+print_config("Shared libs               " ${ENABLE_SHARED})
+print_config("Static binary             " ${ENABLE_STATIC_BINARY})
+print_config("Python bindings           " ${BUILD_BINDINGS_PYTHON})
+print_config("Java bindings             " ${BUILD_BINDINGS_JAVA})
+print_config("Python2                   " ${USE_PYTHON2})
 message("")
-print_config("ABC                       " USE_ABC)
-print_config("CaDiCaL                   " USE_CADICAL)
-print_config("CryptoMiniSat             " USE_CRYPTOMINISAT)
-print_config("GLPK                      " USE_GLPK)
-print_config("Kissat                    " USE_KISSAT)
-print_config("LibPoly                   " USE_POLY)
+print_config("ABC                       " ${USE_ABC})
+print_config("CaDiCaL                   " ${USE_CADICAL})
+print_config("CryptoMiniSat             " ${USE_CRYPTOMINISAT})
+print_config("GLPK                      " ${USE_GLPK})
+print_config("Kissat                    " ${USE_KISSAT})
+print_config("LibPoly                   " ${USE_POLY})
 message("")
-print_config("Build libcvc4 only        " BUILD_LIB_ONLY)
+print_config("Build libcvc5 only        " ${BUILD_LIB_ONLY})
 
-if(CVC4_USE_CLN_IMP)
+if(CVC5_USE_CLN_IMP)
   print_config("MP library                " "cln")
 else()
   print_config("MP library                " "gmp")
@@ -684,32 +668,16 @@ endif()
 print_config("Editline                  " ${USE_EDITLINE})
 print_config("SymFPU                    " ${USE_SYMFPU})
 message("")
+print_config("Api docs                  " ${BUILD_DOCS})
+message("")
 if(ABC_DIR)
   print_config("ABC dir                   " ${ABC_DIR})
-endif()
-if(CADICAL_DIR)
-  print_config("CADICAL dir               " ${CADICAL_DIR})
-endif()
-if(CRYPTOMINISAT_DIR)
-  print_config("CRYPTOMINISAT dir         " ${CRYPTOMINISAT_DIR})
 endif()
 if(GLPK_DIR)
   print_config("GLPK dir                  " ${GLPK_DIR})
 endif()
-if(GMP_DIR)
-  print_config("GMP dir                   " ${GMP_DIR})
-endif()
-if(KISSAT_DIR)
-  print_config("KISSAT dir                " ${KISSAT_DIR})
-endif()
-if(POLY_DIR)
-  print_config("LibPoly dir               " ${POLY_DIR})
-endif()
-if(SYMFPU_DIR)
-  print_config("SYMFPU dir                " ${SYMFPU_DIR})
-endif()
 message("")
-print_config("CPPLAGS (-D...)" "${CVC4_DEFINITIONS}")
+print_config("CPPLAGS (-D...)" "${CVC5_DEFINITIONS}")
 print_config("CXXFLAGS       " "${CMAKE_CXX_FLAGS}")
 print_config("CFLAGS         " "${CMAKE_C_FLAGS}")
 print_config("Linker flags   " "${CMAKE_EXE_LINKER_FLAGS}")
@@ -719,34 +687,34 @@ message("")
 
 if(GPL_LIBS)
   message(
-  "${Blue}CVC4 license: "
+  "${Blue}cvc5 license: "
   "${Yellow}GPLv3 (due to optional libraries; see below)${ResetColor}"
   "\n"
   "\n"
-  "Please note that CVC4 will be built against the following GPLed libraries:"
+  "Please note that cvc5 will be built against the following GPLed libraries:"
   "\n"
   "${GPL_LIBS}"
   "\n"
-  "As these libraries are covered under the GPLv3, so is this build of CVC4."
+  "As these libraries are covered under the GPLv3, so is this build of cvc5."
   "\n"
-  "CVC4 is also available to you under the terms of the (modified) BSD license."
+  "cvc5 is also available to you under the terms of the (modified) BSD license."
   "\n"
-  "If you prefer to license CVC4 under those terms, please configure CVC4 to"
+  "If you prefer to license cvc5 under those terms, please configure cvc5 to"
   "\n"
   "disable all optional GPLed library dependencies (-DENABLE_BSD_ONLY=ON)."
   )
 else()
   message(
-  "${Blue}CVC4 license:${ResetColor} modified BSD"
+  "${Blue}cvc5 license:${ResetColor} modified BSD"
   "\n"
   "\n"
   "Note that this configuration is NOT built against any GPL'ed libraries, so"
   "\n"
   "it is covered by the (modified) BSD license.  This is, however, not the best"
   "\n"
-  "performing configuration of CVC4.  To build against GPL'ed libraries which"
+  "performing configuration of cvc5.  To build against GPL'ed libraries which"
   "\n"
-  "improve CVC4's performance, re-configure with '-DENABLE_GPL -DENABLE_BEST'."
+  "improve cvc5's performance, re-configure with '-DENABLE_GPL -DENABLE_BEST'."
   )
 endif()
 

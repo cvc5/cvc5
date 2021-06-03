@@ -1,22 +1,21 @@
-/*********************                                                        */
-/*! \file eager_bitblaster.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief
- **
- ** Bitblaster for the eager bv solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Mathias Preiner, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bitblaster for the eager bv solver.
+ */
 
 #include "theory/bv/bitblast/eager_bitblaster.h"
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "prop/cnf_stream.h"
@@ -27,7 +26,7 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -48,23 +47,25 @@ EagerBitblaster::EagerBitblaster(BVSolverLazy* theory_bv, context::Context* c)
     {
       prop::BVSatSolverInterface* minisat =
           prop::SatSolverFactory::createMinisat(
-              d_nullContext.get(), smtStatisticsRegistry(), "EagerBitblaster");
+              d_nullContext.get(),
+              smtStatisticsRegistry(),
+              "theory::bv::EagerBitblaster::");
       d_notify.reset(new MinisatEmptyNotify());
       minisat->setNotify(d_notify.get());
       solver = minisat;
       break;
     }
     case options::SatSolverMode::CADICAL:
-      solver = prop::SatSolverFactory::createCadical(smtStatisticsRegistry(),
-                                                     "EagerBitblaster");
+      solver = prop::SatSolverFactory::createCadical(
+          smtStatisticsRegistry(), "theory::bv::EagerBitblaster::");
       break;
     case options::SatSolverMode::CRYPTOMINISAT:
       solver = prop::SatSolverFactory::createCryptoMinisat(
-          smtStatisticsRegistry(), "EagerBitblaster");
+          smtStatisticsRegistry(), "theory::bv::EagerBitblaster::");
       break;
     case options::SatSolverMode::KISSAT:
-      solver = prop::SatSolverFactory::createKissat(smtStatisticsRegistry(),
-                                                    "EagerBitblaster");
+      solver = prop::SatSolverFactory::createKissat(
+          smtStatisticsRegistry(), "theory::bv::EagerBitblaster::");
       break;
     default: Unreachable() << "Unknown SAT solver type";
   }
@@ -149,7 +150,7 @@ void EagerBitblaster::bbTerm(TNode node, Bits& bits) {
     return;
   }
 
-  d_bv->spendResource(ResourceManager::Resource::BitblastStep);
+  d_bv->spendResource(Resource::BitblastStep);
   Debug("bitvector-bitblast") << "Bitblasting node " << node << "\n";
 
   d_termBBStrategies[node.getKind()](node, bits, this);
@@ -288,4 +289,4 @@ bool EagerBitblaster::isSharedTerm(TNode node) {
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

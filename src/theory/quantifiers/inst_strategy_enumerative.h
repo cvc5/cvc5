@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file inst_strategy_enumerative.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Enumerative instantiation
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Enumerative instantiation.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__INST_STRATEGY_ENUMERATIVE_H
-#define CVC4__INST_STRATEGY_ENUMERATIVE_H
+#ifndef CVC5__INST_STRATEGY_ENUMERATIVE_H
+#define CVC5__INST_STRATEGY_ENUMERATIVE_H
 
 #include "theory/quantifiers/quant_module.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -61,8 +62,7 @@ class RelevantDomain;
 class InstStrategyEnum : public QuantifiersModule
 {
  public:
-  InstStrategyEnum(QuantifiersEngine* qe,
-                   QuantifiersState& qs,
+  InstStrategyEnum(QuantifiersState& qs,
                    QuantifiersInferenceManager& qim,
                    QuantifiersRegistry& qr,
                    TermRegistry& tr,
@@ -115,8 +115,8 @@ class InstStrategyEnum : public QuantifiersModule
   int32_t d_fullSaturateLimit;
 }; /* class InstStrategyEnum */
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file inst_strategy_e_matching_user.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of e matching instantiation strategies
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of e-matching instantiation strategies.
+ */
 
 #include "theory/quantifiers/ematching/inst_strategy_e_matching_user.h"
 
@@ -18,10 +19,10 @@
 #include "theory/quantifiers/ematching/trigger_database.h"
 #include "theory/quantifiers/quantifiers_state.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::theory::quantifiers::inst;
+using namespace cvc5::kind;
+using namespace cvc5::theory::quantifiers::inst;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -145,6 +146,11 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
   std::vector<Node> nodes;
   for (const Node& p : pat)
   {
+    if (std::find(nodes.begin(), nodes.end(), p) != nodes.end())
+    {
+      // skip duplicate pattern term
+      continue;
+    }
     Node pat_use = PatternTermSelector::getIsUsableTrigger(p, q);
     if (pat_use.isNull())
     {
@@ -175,4 +181,4 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

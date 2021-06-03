@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file datatype_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of CVC4::DType
- **
- ** Black box testing of CVC4::DType.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::DType.
+ */
 
 #include <sstream>
 
@@ -20,8 +19,9 @@
 #include "expr/dtype_cons.h"
 #include "expr/type_node.h"
 #include "test_smt.h"
+#include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackDatatype : public TestSmt
@@ -226,6 +226,35 @@ TEST_F(TestUtilBlackDatatype, list_boolean)
                        << std::endl
                        << "  is " << listType.mkGroundTerm() << std::endl;
   ASSERT_TRUE(listType.mkGroundTerm().getType() == listType);
+}
+
+TEST_F(TestUtilBlackDatatype, listIntUpdate)
+{
+  DType list("list");
+  TypeNode integerType = d_nodeManager->integerType();
+
+  std::shared_ptr<DTypeConstructor> cons =
+      std::make_shared<DTypeConstructor>("cons");
+  cons->addArg("car", integerType);
+  cons->addArgSelf("cdr");
+  list.addConstructor(cons);
+
+  std::shared_ptr<DTypeConstructor> nil =
+      std::make_shared<DTypeConstructor>("nil");
+  list.addConstructor(nil);
+
+  TypeNode listType = d_nodeManager->mkDatatypeType(list);
+  const DType& ldt = listType.getDType();
+  Node updater = ldt[0][0].getUpdater();
+  Node gt = listType.mkGroundTerm();
+  Node zero = d_nodeManager->mkConst(Rational(0));
+  Node truen = d_nodeManager->mkConst(true);
+  // construct an update term
+  Node uterm = d_nodeManager->mkNode(kind::APPLY_UPDATER, updater, gt, zero);
+  // construct a non well-formed update term
+  ASSERT_THROW(d_nodeManager->mkNode(kind::APPLY_UPDATER, updater, gt, truen)
+                   .getType(true),
+               TypeCheckingExceptionPrivate);
 }
 
 TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
@@ -495,4 +524,4 @@ TEST_F(TestUtilBlackDatatype, parametric_DType)
   ASSERT_EQ(TypeNode::leastCommonTypeNode(pairIntInt, pairIntInt), pairIntInt);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

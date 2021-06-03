@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file ho_elim.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The HoElim preprocessing pass
- **
- ** Eliminates higher-order constraints.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The HoElim preprocessing pass.
+ *
+ * Eliminates higher-order constraints.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__HO_ELIM_PASS_H
-#define __CVC4__PREPROCESSING__PASSES__HO_ELIM_PASS_H
+#ifndef __CVC5__PREPROCESSING__PASSES__HO_ELIM_PASS_H
+#define __CVC5__PREPROCESSING__PASSES__HO_ELIM_PASS_H
 
 #include <map>
 #include <unordered_map>
@@ -26,7 +27,7 @@
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -116,14 +117,14 @@ class HoElim : public PreprocessingPass
    * Stores the set of nodes we have current visited and their results
    * in steps [1] and [2] of this pass.
    */
-  std::unordered_map<Node, Node, NodeHashFunction> d_visited;
+  std::unordered_map<Node, Node> d_visited;
   /**
    * Stores the mapping from functions f to their corresponding function H(f)
    * in the encoding for step [2] of this pass.
    */
-  std::unordered_map<TNode, Node, TNodeHashFunction> d_visited_op;
+  std::unordered_map<TNode, Node> d_visited_op;
   /** The set of all function types encountered in assertions. */
-  std::unordered_set<TypeNode, TypeNodeHashFunction> d_funTypes;
+  std::unordered_set<TypeNode> d_funTypes;
 
   /**
    * Get ho apply uf, this returns App_{@_{T1 x T2 ... x Tn -> T}}
@@ -150,6 +151,6 @@ class HoElim : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* __CVC4__PREPROCESSING__PASSES__HO_ELIM_PASS_H */
+#endif /* __CVC5__PREPROCESSING__PASSES__HO_ELIM_PASS_H */

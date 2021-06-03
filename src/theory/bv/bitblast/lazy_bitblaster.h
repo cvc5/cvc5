@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file lazy_bitblaster.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bitblaster for the lazy bv solver.
- **
- ** Bitblaster for the lazy bv solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Liana Hadarean, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bitblaster for the lazy bv solver.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
-#define CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
+#ifndef CVC5__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
+#define CVC5__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
 
 #include "theory/bv/bitblast/bitblaster.h"
 
@@ -26,7 +25,7 @@
 #include "prop/bv_sat_solver_notify.h"
 #include "theory/bv/abstraction.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 class CnfStream;
 class NullRegistrat;
@@ -121,8 +120,8 @@ class TLazyBitblaster : public TBitblaster<Node>
 
     bool notify(prop::SatLiteral lit) override;
     void notify(prop::SatClause& clause) override;
-    void spendResource(ResourceManager::Resource r) override;
-    void safePoint(ResourceManager::Resource r) override;
+    void spendResource(Resource r) override;
+    void safePoint(Resource r) override;
   };
 
   BVSolverLazy* d_bv;
@@ -162,7 +161,6 @@ class TLazyBitblaster : public TBitblaster<Node>
     IntStat d_numBitblastingPropagations;
     TimerStat d_bitblastTimer;
     Statistics(const std::string& name);
-    ~Statistics();
   };
   std::string d_name;
 
@@ -176,5 +174,5 @@ class TLazyBitblaster : public TBitblaster<Node>
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
-#endif  //  CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
+}  // namespace cvc5
+#endif  //  CVC5__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H

@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file conjecture_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief conjecture generator class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * conjecture generator class
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CONJECTURE_GENERATOR_H
 #define CONJECTURE_GENERATOR_H
@@ -23,7 +24,7 @@
 #include "theory/quantifiers/quant_module.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -238,10 +239,10 @@ class ConjectureGenerator : public QuantifiersModule
   friend class SubsEqcIndex;
   friend class TermGenerator;
   friend class TermGenEnv;
-  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
-  typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-//this class maintains a congruence closure for *universal* facts
-private:
+  typedef context::CDHashMap<Node, Node> NodeMap;
+  typedef context::CDHashMap<Node, bool> BoolMap;
+  // this class maintains a congruence closure for *universal* facts
+ private:
   //notification class for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
     ConjectureGenerator& d_sg;
@@ -436,8 +437,7 @@ private:  //information about ground equivalence classes
   unsigned flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth );
 
  public:
-  ConjectureGenerator(QuantifiersEngine* qe,
-                      QuantifiersState& qs,
+  ConjectureGenerator(QuantifiersState& qs,
                       QuantifiersInferenceManager& qim,
                       QuantifiersRegistry& qr,
                       TermRegistry& tr);
@@ -467,6 +467,6 @@ private:  //information about ground equivalence classes
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

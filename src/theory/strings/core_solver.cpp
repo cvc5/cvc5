@@ -1,22 +1,22 @@
-/*********************                                                        */
-/*! \file core_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the theory of strings.
- **
- ** Implementation of the theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the theory of strings.
+ */
 
 #include "theory/strings/core_solver.h"
 
 #include "base/configuration.h"
+#include "expr/sequence.h"
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
 #include "theory/rewriter.h"
@@ -24,12 +24,14 @@
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/rational.h"
+#include "util/string.h"
 
 using namespace std;
-using namespace CVC4::context;
-using namespace CVC4::kind;
+using namespace cvc5::context;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -608,7 +610,7 @@ void CoreSolver::normalizeEquivalenceClass(Node eqc, TypeNode stype)
   Node emp = Word::mkEmptyWord(stype);
   if (d_state.areEqual(eqc, emp))
   {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     for( unsigned j=0; j<d_eqc[eqc].size(); j++ ){
       Node n = d_eqc[eqc][j];
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -1079,7 +1081,7 @@ void CoreSolver::processNEqc(Node eqc,
   // the possible inferences
   std::vector<CoreInferInfo> pinfer;
   // compute normal forms that are effectively unique
-  std::unordered_map<Node, size_t, NodeHashFunction> nfCache;
+  std::unordered_map<Node, size_t> nfCache;
   std::vector<size_t> nfIndices;
   bool hasConstIndex = false;
   for (size_t i = 0, nnforms = normal_forms.size(); i < nnforms; i++)
@@ -1772,22 +1774,26 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
                                                       int index,
                                                       CoreInferInfo& info)
 {
-  if (options::stringProcessLoopMode() == options::ProcessLoopMode::ABORT)
-  {
-    throw LogicException("Looping word equation encountered.");
-  }
-  else if (options::stringProcessLoopMode() == options::ProcessLoopMode::NONE)
-  {
-    d_im.setIncomplete();
-    return ProcessLoopResult::SKIPPED;
-  }
-
   NodeManager* nm = NodeManager::currentNM();
   Node conc;
   const std::vector<Node>& veci = nfi.d_nf;
   const std::vector<Node>& vecoi = nfj.d_nf;
 
   TypeNode stype = veci[loop_index].getType();
+
+  if (options::stringProcessLoopMode() == options::ProcessLoopMode::ABORT)
+  {
+    throw LogicException("Looping word equation encountered.");
+  }
+  else if (options::stringProcessLoopMode() == options::ProcessLoopMode::NONE
+           || stype.isSequence())
+  {
+    // note we cannot convert looping word equations into regular expressions if
+    // we are handling sequences, since there is no analog for regular
+    // expressions over sequences currently
+    d_im.setIncomplete(IncompleteId::STRINGS_LOOP_SKIP);
+    return ProcessLoopResult::SKIPPED;
+  }
 
   Trace("strings-loop") << "Detected possible loop for " << veci[loop_index]
                         << std::endl;
@@ -1931,7 +1937,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     else if (options::stringProcessLoopMode()
              == options::ProcessLoopMode::SIMPLE)
     {
-      d_im.setIncomplete();
+      d_im.setIncomplete(IncompleteId::STRINGS_LOOP_SKIP);
       return ProcessLoopResult::SKIPPED;
     }
 
@@ -2649,6 +2655,6 @@ bool CoreSolver::processInferInfo(CoreInferInfo& cii)
   return true;
 }
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5

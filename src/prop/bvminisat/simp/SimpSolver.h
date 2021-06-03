@@ -26,7 +26,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/bvminisat/core/Solver.h"
 #include "prop/bvminisat/mtl/Queue.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace context {
 class Context;
@@ -41,7 +41,7 @@ class SimpSolver : public Solver {
  public:
     // Constructor/Destructor:
     //
-  SimpSolver(CVC4::context::Context* context);
+  SimpSolver(cvc5::context::Context* context);
   ~SimpSolver();
 
   // Problem specification:
@@ -114,10 +114,10 @@ class SimpSolver : public Solver {
     //
     int     merges;
     int     asymm_lits;
-    int     eliminated_vars;
-  //    CVC4::TimerStat total_eliminate_time;
+    int64_t eliminated_vars;
+    //    cvc5::TimerStat total_eliminate_time;
 
- protected:
+   protected:
 
     // Helper structures:
     //
@@ -237,8 +237,7 @@ inline lbool SimpSolver::solveLimited (bool do_simp, bool turn_off_simp){
     return solve_(do_simp, turn_off_simp); }
 
 //=================================================================================================
-} /* CVC4::BVMinisat namespace */
-} /* CVC4 namespace */
-
+}  // namespace BVMinisat
+}  // namespace cvc5
 
 #endif

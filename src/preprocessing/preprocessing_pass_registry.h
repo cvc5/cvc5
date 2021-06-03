@@ -1,29 +1,30 @@
-/*********************                                                        */
-/*! \file preprocessing_pass_registry.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Justin Xu, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The preprocessing pass registry
- **
- ** This file defines the classes PreprocessingPassRegistry, which keeps track
- ** of the available preprocessing passes.
- **/
-#include "cvc4_private.h"
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Justin Xu, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The preprocessing pass registry
+ *
+ * This file defines the classes PreprocessingPassRegistry, which keeps track
+ * of the available preprocessing passes.
+ */
+#include "cvc5_private.h"
 
-#ifndef CVC4__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H
-#define CVC4__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H
+#ifndef CVC5__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H
+#define CVC5__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H
 
 #include <functional>
 #include <string>
 #include <unordered_map>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 
 class PreprocessingPass;
@@ -94,6 +95,6 @@ class PreprocessingPassRegistry {
 };  // class PreprocessingPassRegistry
 
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H */
+#endif /* CVC5__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H */

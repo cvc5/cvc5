@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file strings_fmf.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A finite model finding decision strategy for strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A finite model finding decision strategy for strings.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__STRINGS_FMF_H
-#define CVC4__THEORY__STRINGS__STRINGS_FMF_H
+#ifndef CVC5__THEORY__STRINGS__STRINGS_FMF_H
+#define CVC5__THEORY__STRINGS__STRINGS_FMF_H
 
 #include "context/cdhashset.h"
 #include "context/cdo.h"
@@ -25,7 +26,7 @@
 #include "theory/strings/term_registry.h"
 #include "theory/valuation.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -36,7 +37,7 @@ namespace strings {
  */
 class StringsFmf
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   StringsFmf(context::Context* c,
@@ -106,6 +107,6 @@ class StringsFmf
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__STRINGS_FMF_H */
+#endif /* CVC5__THEORY__STRINGS__STRINGS_FMF_H */

@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file quant_module.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief quantifier module
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * quantifier module
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANT_MODULE_H
-#define CVC4__THEORY__QUANT_MODULE_H
+#ifndef CVC5__THEORY__QUANT_MODULE_H
+#define CVC5__THEORY__QUANT_MODULE_H
 
 #include <iostream>
 #include <map>
@@ -28,11 +29,8 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 class TermDb;
 }  // namespace quantifiers
@@ -64,8 +62,7 @@ class QuantifiersModule
   QuantifiersModule(quantifiers::QuantifiersState& qs,
                     quantifiers::QuantifiersInferenceManager& qim,
                     quantifiers::QuantifiersRegistry& qr,
-                    quantifiers::TermRegistry& tr,
-                    QuantifiersEngine* qe);
+                    quantifiers::TermRegistry& tr);
   virtual ~QuantifiersModule() {}
   /** Presolve.
    *
@@ -85,7 +82,7 @@ class QuantifiersModule
    *
    * Whether this module needs a model built during a
    * call to QuantifiersEngine::check(e)
-   * It returns one of QEFFORT_* from quantifiers_engine.h,
+   * It returns one of QEFFORT_* from the enumeration above.
    * which specifies the quantifiers effort in which it requires the model to
    * be built.
    */
@@ -108,8 +105,11 @@ class QuantifiersModule
    *
    * This is called just before the quantifiers engine will return
    * with no lemmas added during a LAST_CALL effort check.
+   *
+   * If this method returns false, it should update incId to the reason for
+   * why the module was incomplete.
    */
-  virtual bool checkComplete() { return true; }
+  virtual bool checkComplete(IncompleteId& incId) { return true; }
   /** Check was complete for quantified formula q
    *
    * If for each quantified formula q, some module returns true for
@@ -157,8 +157,6 @@ class QuantifiersModule
   bool areDisequal(TNode n1, TNode n2) const;
   /** get the representative of n in the current used equality engine */
   TNode getRepresentative(TNode n) const;
-  /** get quantifiers engine that owns this module */
-  QuantifiersEngine* getQuantifiersEngine() const;
   /** get currently used term database */
   quantifiers::TermDb* getTermDatabase() const;
   /** get the quantifiers state */
@@ -169,8 +167,6 @@ class QuantifiersModule
   quantifiers::QuantifiersRegistry& getQuantifiersRegistry();
   //----------------------------end general queries
  protected:
-  /** pointer to the quantifiers engine that owns this module */
-  QuantifiersEngine* d_quantEngine;
   /** Reference to the state of the quantifiers engine */
   quantifiers::QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
@@ -182,6 +178,6 @@ class QuantifiersModule
 }; /* class QuantifiersModule */
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANT_UTIL_H */
+#endif /* CVC5__THEORY__QUANT_UTIL_H */

@@ -1,30 +1,28 @@
-/*********************                                                        */
-/*! \file options_handler.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Interface for custom handlers and predicates options.
- **
- ** Interface for custom handlers and predicates options.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Interface for custom handlers and predicates options.
+ */
 
 #include "options/options_handler.h"
 
+#include <cerrno>
 #include <ostream>
 #include <string>
-#include <cerrno>
-
-#include "cvc4autoconfig.h"
 
 #include "base/check.h"
 #include "base/configuration.h"
 #include "base/configuration_private.h"
+#include "base/cvc5config.h"
 #include "base/exception.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
@@ -35,10 +33,11 @@
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
+#include "options/resource_manager_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace options {
 
 // helper functions
@@ -81,6 +80,12 @@ unsigned long OptionsHandler::limitHandler(std::string option,
   }
   return ms;
 }
+
+void OptionsHandler::setResourceWeight(std::string option, std::string optarg)
+{
+  d_options->resman.resourceWeightHolder.emplace_back(optarg);
+}
+
 // theory/quantifiers/options_handlers.h
 
 void OptionsHandler::checkInstWhenMode(std::string option, InstWhenMode mode)
@@ -95,24 +100,28 @@ void OptionsHandler::checkInstWhenMode(std::string option, InstWhenMode mode)
 // theory/bv/options_handlers.h
 void OptionsHandler::abcEnabledBuild(std::string option, bool value)
 {
-#ifndef CVC4_USE_ABC
+#ifndef CVC5_USE_ABC
   if(value) {
     std::stringstream ss;
-    ss << "option `" << option << "' requires an abc-enabled build of CVC4; this binary was not built with abc support";
+    ss << "option `" << option
+       << "' requires an abc-enabled build of cvc5; this binary was not built "
+          "with abc support";
     throw OptionException(ss.str());
   }
-#endif /* CVC4_USE_ABC */
+#endif /* CVC5_USE_ABC */
 }
 
 void OptionsHandler::abcEnabledBuild(std::string option, std::string value)
 {
-#ifndef CVC4_USE_ABC
+#ifndef CVC5_USE_ABC
   if(!value.empty()) {
     std::stringstream ss;
-    ss << "option `" << option << "' requires an abc-enabled build of CVC4; this binary was not built with abc support";
+    ss << "option `" << option
+       << "' requires an abc-enabled build of cvc5; this binary was not built "
+          "with abc support";
     throw OptionException(ss.str());
   }
-#endif /* CVC4_USE_ABC */
+#endif /* CVC5_USE_ABC */
 }
 
 void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
@@ -122,7 +131,7 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
   {
     std::stringstream ss;
     ss << "option `" << option
-       << "' requires a CryptoMiniSat build of CVC4; this binary was not built "
+       << "' requires a CryptoMiniSat build of cvc5; this binary was not built "
           "with CryptoMiniSat support";
     throw OptionException(ss.str());
   }
@@ -131,7 +140,7 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
   {
     std::stringstream ss;
     ss << "option `" << option
-       << "' requires a CaDiCaL build of CVC4; this binary was not built with "
+       << "' requires a CaDiCaL build of cvc5; this binary was not built with "
           "CaDiCaL support";
     throw OptionException(ss.str());
   }
@@ -140,7 +149,7 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
   {
     std::stringstream ss;
     ss << "option `" << option
-       << "' requires a Kissat build of CVC4; this binary was not built with "
+       << "' requires a Kissat build of cvc5; this binary was not built with "
           "Kissat support";
     throw OptionException(ss.str());
   }
@@ -150,14 +159,11 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
           || m == SatSolverMode::KISSAT))
   {
     if (options::bitblastMode() == options::BitblastMode::LAZY
-        && options::bitblastMode.wasSetByUser())
+        && Options::current().wasSetByUser(options::bitblastMode))
     {
       throwLazyBBUnsupported(m);
     }
-    if (!options::bitvectorToBool.wasSetByUser())
-    {
-      options::bitvectorToBool.set(true);
-    }
+    options::bv::setDefaultBitvectorToBool(*d_options, true);
   }
 }
 
@@ -165,23 +171,10 @@ void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
 {
   if (m == options::BitblastMode::LAZY)
   {
-    if (!options::bitvectorPropagate.wasSetByUser())
-    {
-      options::bitvectorPropagate.set(true);
-    }
-    if (!options::bitvectorEqualitySolver.wasSetByUser())
-    {
-      options::bitvectorEqualitySolver.set(true);
-    }
-
-    if (!options::bitvectorInequalitySolver.wasSetByUser())
-    {
-      options::bitvectorInequalitySolver.set(true);
-    }
-    if (!options::bitvectorAlgebraicSolver.wasSetByUser())
-    {
-      options::bitvectorAlgebraicSolver.set(true);
-    }
+    options::bv::setDefaultBitvectorPropagate(*d_options, true);
+    options::bv::setDefaultBitvectorEqualitySolver(*d_options, true);
+    options::bv::setDefaultBitvectorInequalitySolver(*d_options, true);
+    options::bv::setDefaultBitvectorAlgebraicSolver(*d_options, true);
     if (options::bvSatSolver() != options::SatSolverMode::MINISAT)
     {
       throwLazyBBUnsupported(options::bvSatSolver());
@@ -189,27 +182,21 @@ void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
   }
   else if (m == BitblastMode::EAGER)
   {
-    if (!options::bitvectorToBool.wasSetByUser())
-    {
-      options::bitvectorToBool.set(true);
-    }
+    options::bv::setDefaultBitvectorToBool(*d_options, true);
   }
 }
 
 void OptionsHandler::setBitblastAig(std::string option, bool arg)
 {
   if(arg) {
-    if(options::bitblastMode.wasSetByUser()) {
+    if(Options::current().wasSetByUser(options::bitblastMode)) {
       if (options::bitblastMode() != options::BitblastMode::EAGER)
       {
         throw OptionException("bitblast-aig must be used with eager bitblaster");
       }
     } else {
-      options::BitblastMode mode = stringToBitblastMode("", "eager");
-      options::bitblastMode.set(mode);
-    }
-    if(!options::bitvectorAigSimplifications.wasSetByUser()) {
-      options::bitvectorAigSimplifications.set("balance;drw");
+      options::BitblastMode mode = stringToBitblastMode("eager");
+      d_options->bv.bitblastMode = mode;
     }
   }
 }
@@ -244,24 +231,53 @@ InstFormatMode OptionsHandler::stringToInstFormatMode(std::string option,
 // decision/options_handlers.h
 void OptionsHandler::setDecisionModeStopOnly(std::string option, DecisionMode m)
 {
-  options::decisionStopOnly.set(m == DecisionMode::RELEVANCY);
+  d_options->decision.decisionStopOnly = (m == DecisionMode::RELEVANCY);
 }
 
 void OptionsHandler::setProduceAssertions(std::string option, bool value)
 {
-  options::produceAssertions.set(value);
-  options::interactiveMode.set(value);
+  d_options->smt.produceAssertions = value;
+  d_options->smt.interactiveMode = value;
 }
 
-void OptionsHandler::statsEnabledBuild(std::string option, bool value)
+void OptionsHandler::setStats(const std::string& option, bool value)
 {
-#ifndef CVC4_STATISTICS_ON
-  if(value) {
+#ifndef CVC5_STATISTICS_ON
+  if (value)
+  {
     std::stringstream ss;
-    ss << "option `" << option << "' requires a statistics-enabled build of CVC4; this binary was not built with statistics support";
+    ss << "option `" << option
+       << "' requires a statistics-enabled build of cvc5; this binary was not "
+          "built with statistics support";
     throw OptionException(ss.str());
   }
-#endif /* CVC4_STATISTICS_ON */
+#endif /* CVC5_STATISTICS_ON */
+  Assert(option.substr(0, 2) == "--");
+  std::string opt = option.substr(2);
+  if (value)
+  {
+    if (option == options::base::statisticsAll__name)
+    {
+      d_options->base.statistics = true;
+    }
+    else if (option == options::base::statisticsEveryQuery__name)
+    {
+      d_options->base.statistics = true;
+    }
+    else if (option == options::base::statisticsExpert__name)
+    {
+      d_options->base.statistics = true;
+    }
+  }
+  else
+  {
+    if (option == options::base::statistics__name)
+    {
+      d_options->base.statisticsAll = false;
+      d_options->base.statisticsEveryQuery = false;
+      d_options->base.statisticsExpert = false;
+    }
+  }
 }
 
 void OptionsHandler::threadN(std::string option) {
@@ -470,7 +486,7 @@ OutputLanguage OptionsHandler::stringToOutputLanguage(std::string option,
                                                       std::string optarg)
 {
   if(optarg == "help") {
-    options::languageHelp.set(true);
+    d_options->base.languageHelp = true;
     return language::output::LANG_AUTO;
   }
 
@@ -488,7 +504,7 @@ InputLanguage OptionsHandler::stringToInputLanguage(std::string option,
                                                     std::string optarg)
 {
   if(optarg == "help") {
-    options::languageHelp.set(true);
+    d_options->base.languageHelp = true;
     return language::input::LANG_AUTO;
   }
 
@@ -505,26 +521,26 @@ InputLanguage OptionsHandler::stringToInputLanguage(std::string option,
 void OptionsHandler::setVerbosity(std::string option, int value)
 {
   if(Configuration::isMuzzledBuild()) {
-    DebugChannel.setStream(&CVC4::null_os);
-    TraceChannel.setStream(&CVC4::null_os);
-    NoticeChannel.setStream(&CVC4::null_os);
-    ChatChannel.setStream(&CVC4::null_os);
-    MessageChannel.setStream(&CVC4::null_os);
-    WarningChannel.setStream(&CVC4::null_os);
+    DebugChannel.setStream(&cvc5::null_os);
+    TraceChannel.setStream(&cvc5::null_os);
+    NoticeChannel.setStream(&cvc5::null_os);
+    ChatChannel.setStream(&cvc5::null_os);
+    MessageChannel.setStream(&cvc5::null_os);
+    WarningChannel.setStream(&cvc5::null_os);
   } else {
     if(value < 2) {
-      ChatChannel.setStream(&CVC4::null_os);
+      ChatChannel.setStream(&cvc5::null_os);
     } else {
       ChatChannel.setStream(&std::cout);
     }
     if(value < 1) {
-      NoticeChannel.setStream(&CVC4::null_os);
+      NoticeChannel.setStream(&cvc5::null_os);
     } else {
       NoticeChannel.setStream(&std::cout);
     }
     if(value < 0) {
-      MessageChannel.setStream(&CVC4::null_os);
-      WarningChannel.setStream(&CVC4::null_os);
+      MessageChannel.setStream(&cvc5::null_os);
+      WarningChannel.setStream(&cvc5::null_os);
     } else {
       MessageChannel.setStream(&std::cout);
       WarningChannel.setStream(&std::cerr);
@@ -533,15 +549,14 @@ void OptionsHandler::setVerbosity(std::string option, int value)
 }
 
 void OptionsHandler::increaseVerbosity(std::string option) {
-  options::verbosity.set(options::verbosity() + 1);
+  d_options->base.verbosity += 1;
   setVerbosity(option, options::verbosity());
 }
 
 void OptionsHandler::decreaseVerbosity(std::string option) {
-  options::verbosity.set(options::verbosity() - 1);
+  d_options->base.verbosity -= 1;
   setVerbosity(option, options::verbosity());
 }
 
-
-}/* CVC4::options namespace */
-}/* CVC4 namespace */
+}  // namespace options
+}  // namespace cvc5

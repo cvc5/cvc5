@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file bv_inequality_graph.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Algebraic solver.
- **
- ** Algebraic solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Mathias Preiner, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Algebraic solver.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H
-#define CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H
+#ifndef CVC5__THEORY__BV__BV_INEQUALITY__GRAPH_H
+#define CVC5__THEORY__BV__BV_INEQUALITY__GRAPH_H
 
 #include <queue>
 #include <unordered_map>
@@ -28,8 +27,9 @@
 #include "context/cdo.h"
 #include "context/cdqueue.h"
 #include "context/context.h"
+#include "util/bitvector.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -100,17 +100,18 @@ class InequalityGraph : public context::ContextNotifyObj{
 
       return (*(d_model->find(left))).second.value < (*(d_model->find(right))).second.value; 
     }
-  }; 
+  };
 
-  typedef std::unordered_map<TNode, ReasonId, TNodeHashFunction> ReasonToIdMap;
-  typedef std::unordered_map<TNode, TermId, TNodeHashFunction> TermNodeToIdMap;
+  typedef std::unordered_map<TNode, ReasonId> ReasonToIdMap;
+  typedef std::unordered_map<TNode, TermId> TermNodeToIdMap;
 
   typedef std::vector<InequalityEdge> Edges; 
   typedef std::unordered_set<TermId> TermIdSet;
 
-  typedef std::priority_queue<TermId, std::vector<TermId>, QueueComparator> BFSQueue; 
-  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+  typedef std::priority_queue<TermId, std::vector<TermId>, QueueComparator>
+      BFSQueue;
+  typedef std::unordered_set<TNode> TNodeSet;
+  typedef std::unordered_set<Node> NodeSet;
 
   std::vector<InequalityNode> d_ineqNodes;
   std::vector< Edges > d_ineqEdges;
@@ -207,7 +208,7 @@ class InequalityGraph : public context::ContextNotifyObj{
   
   /*** The currently asserted disequalities */
   context::CDQueue<TNode> d_disequalities;
-  typedef context::CDHashSet<Node, NodeHashFunction> CDNodeSet;
+  typedef context::CDHashSet<Node> CDNodeSet;
   CDNodeSet d_disequalitiesAlreadySplit; 
   Node makeDiseqSplitLemma(TNode diseq); 
   /** Backtracking mechanisms **/
@@ -291,6 +292,6 @@ public:
 
 }
 }
-}
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H */
+#endif /* CVC5__THEORY__BV__BV_INEQUALITY__GRAPH_H */

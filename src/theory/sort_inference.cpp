@@ -1,40 +1,42 @@
-/*********************                                                        */
-/*! \file sort_inference.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sort inference module
- **
- ** This class implements sort inference, based on a simple algorithm:
- ** First, we assume all functions and predicates have distinct uninterpreted
- ** types.
- ** One pass is made through the input assertions, while a union-find data
- ** structure maintains necessary information regarding constraints on these
- ** types.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Paul Meng, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sort inference module.
+ *
+ * This class implements sort inference, based on a simple algorithm:
+ * First, we assume all functions and predicates have distinct uninterpreted
+ * types.
+ * One pass is made through the input assertions, while a union-find data
+ * structure maintains necessary information regarding constraints on these
+ * types.
+ */
 
 #include "theory/sort_inference.h"
 
 #include <sstream>
 #include <vector>
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
-#include "theory/rewriter.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/rewriter.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
+using namespace cvc5;
+using namespace cvc5::kind;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 void SortInference::UnionFind::print(const char * c){
@@ -578,7 +580,7 @@ TypeNode SortInference::getOrCreateTypeForId( int t, TypeNode pref ){
       //must create new type
       std::stringstream ss;
       ss << "it_" << t << "_" << pref;
-      retType = NodeManager::currentNM()->mkSort( ss.str() );
+      retType = NodeManager::currentNM()->mkSort(ss.str());
     }
     Trace("sort-inference") << "-> Make type " << retType << " to correspond to ";
     printSort("sort-inference", t );
@@ -599,6 +601,8 @@ TypeNode SortInference::getTypeForId( int t ){
 }
 
 Node SortInference::getNewSymbol( Node old, TypeNode tn ){
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   // if no sort was inferred for this node, return original
   if( tn.isNull() || tn.isComparableTo( old.getType() ) ){
     return old;
@@ -607,18 +611,20 @@ Node SortInference::getNewSymbol( Node old, TypeNode tn ){
     if( d_const_map[tn].find( old )==d_const_map[tn].end() ){
       std::stringstream ss;
       ss << "ic_" << tn << "_" << old;
-      d_const_map[tn][ old ] = NodeManager::currentNM()->mkSkolem( ss.str(), tn, "constant created during sort inference" );  //use mkConst???
+      d_const_map[tn][old] = sm->mkDummySkolem(
+          ss.str(),
+          tn,
+          "constant created during sort inference");  // use mkConst???
     }
     return d_const_map[tn][ old ];
   }else if( old.getKind()==kind::BOUND_VARIABLE ){
     std::stringstream ss;
     ss << "b_" << old;
-    return NodeManager::currentNM()->mkBoundVar( ss.str(), tn );
-  }else{
-    std::stringstream ss;
-    ss << "i_" << old;
-    return NodeManager::currentNM()->mkSkolem( ss.str(), tn, "created during sort inference" );
+    return nm->mkBoundVar(ss.str(), tn);
   }
+  std::stringstream ss;
+  ss << "i_" << old;
+  return sm->mkDummySkolem(ss.str(), tn, "created during sort inference");
 }
 
 Node SortInference::simplifyNode(
@@ -632,6 +638,8 @@ Node SortInference::simplifyNode(
   if( itv!=visited[n].end() ){
     return itv->second;
   }else{
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     Trace("sort-inference-debug2") << "Simplify " << n << ", type context=" << tnn << std::endl;
     std::vector< Node > children;
     std::map< Node, std::map< TypeNode, Node > > new_visited;
@@ -646,7 +654,7 @@ Node SortInference::simplifyNode(
         new_children.push_back( v );
         var_bound[ n[0][i] ] = v;
       }
-      children.push_back( NodeManager::currentNM()->mkNode( n[0].getKind(), new_children ) );
+      children.push_back(nm->mkNode(n[0].getKind(), new_children));
       use_new_visited = true;
     }
 
@@ -701,7 +709,7 @@ Node SortInference::simplifyNode(
         Trace("sort-inference-debug2") << "Remove bound for " << n[0][i] << std::endl;
         var_bound.erase( n[0][i] );
       }
-      ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
+      ret = nm->mkNode(n.getKind(), children);
     }else if( n.getKind()==kind::EQUAL ){
       TypeNode tn1 = children[0].getType();
       TypeNode tn2 = children[1].getType();
@@ -710,7 +718,7 @@ Node SortInference::simplifyNode(
         Trace("sort-inference-warn") << "  Types : " << children[0].getType() << " " << children[1].getType() << std::endl;
         Assert(false);
       }
-      ret = NodeManager::currentNM()->mkNode( kind::EQUAL, children );
+      ret = nm->mkNode(kind::EQUAL, children);
     }
     else if (isHandledApplyUf(n.getKind()))
     {
@@ -732,8 +740,9 @@ Node SortInference::simplifyNode(
         if( opChanged ){
           std::stringstream ss;
           ss << "io_" << op;
-          TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, retType );
-          d_symbol_map[op] = NodeManager::currentNM()->mkSkolem( ss.str(), typ, "op created during sort inference" );
+          TypeNode typ = nm->mkFunctionType(argTypes, retType);
+          d_symbol_map[op] = sm->mkDummySkolem(
+              ss.str(), typ, "op created during sort inference");
           Trace("setp-model") << "Function " << op << " is replaced with " << d_symbol_map[op] << std::endl;
           model_replace_f[op] = d_symbol_map[op];
         }else{
@@ -752,7 +761,7 @@ Node SortInference::simplifyNode(
           Assert(false);
         }
       }
-      ret = NodeManager::currentNM()->mkNode( kind::APPLY_UF, children );
+      ret = nm->mkNode(kind::APPLY_UF, children);
     }else{
       std::map< Node, Node >::iterator it = var_bound.find( n );
       if( it!=var_bound.end() ){
@@ -767,7 +776,7 @@ Node SortInference::simplifyNode(
         //type is determined by context
         ret = getNewSymbol( n, tnn );
       }else if( childChanged ){
-        ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
+        ret = nm->mkNode(n.getKind(), children);
       }else{
         ret = n;
       }
@@ -778,18 +787,24 @@ Node SortInference::simplifyNode(
 }
 
 Node SortInference::mkInjection( TypeNode tn1, TypeNode tn2 ) {
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::vector< TypeNode > tns;
   tns.push_back( tn1 );
-  TypeNode typ = NodeManager::currentNM()->mkFunctionType( tns, tn2 );
-  Node f = NodeManager::currentNM()->mkSkolem( "inj", typ, "injection for monotonicity constraint" );
+  TypeNode typ = nm->mkFunctionType(tns, tn2);
+  Node f =
+      sm->mkDummySkolem("inj", typ, "injection for monotonicity constraint");
   Trace("sort-inference") << "-> Make injection " << f << " from " << tn1 << " to " << tn2 << std::endl;
-  Node v1 = NodeManager::currentNM()->mkBoundVar( "?x", tn1 );
-  Node v2 = NodeManager::currentNM()->mkBoundVar( "?y", tn1 );
-  Node ret = NodeManager::currentNM()->mkNode( kind::FORALL,
-               NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, v1, v2 ),
-               NodeManager::currentNM()->mkNode( kind::OR,
-                 NodeManager::currentNM()->mkNode( kind::APPLY_UF, f, v1 ).eqNode( NodeManager::currentNM()->mkNode( kind::APPLY_UF, f, v2 ) ).negate(),
-                 v1.eqNode( v2 ) ) );
+  Node v1 = nm->mkBoundVar("?x", tn1);
+  Node v2 = nm->mkBoundVar("?y", tn1);
+  Node ret =
+      nm->mkNode(kind::FORALL,
+                 nm->mkNode(kind::BOUND_VAR_LIST, v1, v2),
+                 nm->mkNode(kind::OR,
+                            nm->mkNode(kind::APPLY_UF, f, v1)
+                                .eqNode(nm->mkNode(kind::APPLY_UF, f, v2))
+                                .negate(),
+                            v1.eqNode(v2)));
   ret = theory::Rewriter::rewrite( ret );
   return ret;
 }
@@ -869,4 +884,4 @@ bool SortInference::isHandledApplyUf(Kind k) const
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

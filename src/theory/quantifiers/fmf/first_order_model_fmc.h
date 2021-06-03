@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file first_order_model_fmc.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief First order model for full model check
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * First order model for full model check.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__FMF__FIRST_ORDER_MODEL_FMC_H
-#define CVC4__THEORY__QUANTIFIERS__FMF__FIRST_ORDER_MODEL_FMC_H
+#ifndef CVC5__THEORY__QUANTIFIERS__FMF__FIRST_ORDER_MODEL_FMC_H
+#define CVC5__THEORY__QUANTIFIERS__FMF__FIRST_ORDER_MODEL_FMC_H
 
 #include "theory/quantifiers/first_order_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 namespace fmcheck {
@@ -40,8 +41,7 @@ class FirstOrderModelFmc : public FirstOrderModel
  public:
   FirstOrderModelFmc(QuantifiersState& qs,
                      QuantifiersRegistry& qr,
-                     TermRegistry& tr,
-                     std::string name);
+                     TermRegistry& tr);
   ~FirstOrderModelFmc() override;
   // initialize the model
   void processInitialize(bool ispre) override;
@@ -54,6 +54,6 @@ class FirstOrderModelFmc : public FirstOrderModel
 }  // namespace fmcheck
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__FIRST_ORDER_MODEL_H */
+#endif /* CVC5__FIRST_ORDER_MODEL_H */

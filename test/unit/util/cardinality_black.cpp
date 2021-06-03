@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file cardinality_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Public-box testing of CVC4::Cardinality
- **
- ** Public-box testing of CVC4::Cardinality.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Public-box testing of cvc5::Cardinality.
+ */
 
 #include <sstream>
 #include <string>
@@ -22,7 +21,7 @@
 #include "util/cardinality.h"
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackCardinality : public TestInternal
@@ -270,4 +269,4 @@ TEST_F(TestUtilBlackCardinality, cardinalities)
   ASSERT_EQ((z ^ z).getBethNumber(), 3);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

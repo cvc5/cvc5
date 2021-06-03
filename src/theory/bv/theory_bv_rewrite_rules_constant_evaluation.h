@@ -1,28 +1,30 @@
-/*********************                                                        */
-/*! \file theory_bv_rewrite_rules_constant_evaluation.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Clark Barrett, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Clark Barrett, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "util/bitvector.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -150,15 +152,16 @@ Node RewriteRule<EvalMult>::apply(TNode node) {
   return utils::mkConst(res);
 }
 
-template<> inline
-bool RewriteRule<EvalPlus>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_PLUS &&
-          utils::isBvConstTerm(node));
+template <>
+inline bool RewriteRule<EvalAdd>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_ADD && utils::isBvConstTerm(node));
 }
 
-template<> inline
-Node RewriteRule<EvalPlus>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<EvalPlus>(" << node << ")" << std::endl;
+template <>
+inline Node RewriteRule<EvalAdd>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<EvalAdd>(" << node << ")" << std::endl;
   TNode::iterator child_it = node.begin();
   BitVector res = (*child_it).getConst<BitVector>();
   for(++child_it; child_it != node.end(); ++child_it) {
@@ -490,6 +493,18 @@ Node RewriteRule<EvalComp>::apply(TNode node) {
   return utils::mkConst(1, 0);
 }
 
+template <>
+inline bool RewriteRule<EvalEagerAtom>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_EAGER_ATOM && node[0].isConst());
+}
+
+template <>
+inline Node RewriteRule<EvalEagerAtom>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<EvalComp>(" << node << ")" << std::endl;
+  return node[0];
 }
 }
 }
+}  // namespace cvc5

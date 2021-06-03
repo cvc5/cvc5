@@ -1,37 +1,33 @@
-/*********************                                                        */
-/*! \file expand_definitions.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for processing assertions for an SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for processing assertions for an SMT engine.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__SMT__EXPAND_DEFINITIONS_H
-#define CVC4__SMT__EXPAND_DEFINITIONS_H
+#ifndef CVC5__SMT__EXPAND_DEFINITIONS_H
+#define CVC5__SMT__EXPAND_DEFINITIONS_H
 
 #include <unordered_map>
 
 #include "expr/node.h"
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
+class Env;
 class ProofNodeManager;
-class ResourceManager;
-class SmtEngine;
 class TConvProofGenerator;
-
-namespace preprocessing {
-class AssertionPipeline;
-}
 
 namespace smt {
 
@@ -46,27 +42,16 @@ struct SmtEngineStatistics;
 class ExpandDefs
 {
  public:
-  ExpandDefs(SmtEngine& smt, ResourceManager& rm, SmtEngineStatistics& stats);
+  ExpandDefs(Env& env, SmtEngineStatistics& stats);
   ~ExpandDefs();
   /**
    * Expand definitions in term n. Return the expanded form of n.
    *
    * @param n The node to expand
    * @param cache Cache of previous results
-   * @param expandOnly if true, then the expandDefinitions function of
-   * TheoryEngine is not called on subterms of n.
    * @return The expanded term.
    */
-  Node expandDefinitions(
-      TNode n,
-      std::unordered_map<Node, Node, NodeHashFunction>& cache,
-      bool expandOnly = false);
-  /**
-   * Expand defintitions in assertions. This applies this above method to each
-   * assertion in the given pipeline.
-   */
-  void expandAssertions(preprocessing::AssertionPipeline& assertions,
-                        bool expandOnly = false);
+  Node expandDefinitions(TNode n, std::unordered_map<Node, Node>& cache);
 
   /**
    * Set proof node manager, which signals this class to enable proofs using the
@@ -79,15 +64,11 @@ class ExpandDefs
    * Helper function for above, called to specify if we want proof production
    * based on the optional argument tpg.
    */
-  theory::TrustNode expandDefinitions(
-      TNode n,
-      std::unordered_map<Node, Node, NodeHashFunction>& cache,
-      bool expandOnly,
-      TConvProofGenerator* tpg);
-  /** Reference to the SMT engine */
-  SmtEngine& d_smt;
-  /** Reference to resource manager */
-  ResourceManager& d_resourceManager;
+  TrustNode expandDefinitions(TNode n,
+                              std::unordered_map<Node, Node>& cache,
+                              TConvProofGenerator* tpg);
+  /** Reference to the environment. */
+  Env& d_env;
   /** Reference to the SMT stats */
   SmtEngineStatistics& d_smtStats;
   /** A proof generator for the term conversion. */
@@ -95,6 +76,6 @@ class ExpandDefs
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

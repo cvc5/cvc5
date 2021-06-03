@@ -1,26 +1,26 @@
-/*********************                                                        */
-/*! \file eq_proof.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of a proof as produced by the equality engine.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of a proof as produced by the equality engine.
+ */
 
 #include "theory/uf/eq_proof.h"
 
 #include "base/configuration.h"
-#include "expr/proof.h"
-#include "expr/proof_checker.h"
 #include "options/uf_options.h"
+#include "proof/proof.h"
+#include "proof/proof_checker.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 
@@ -106,7 +106,7 @@ bool EqProof::expandTransitivityForDisequalities(
     Node conclusion,
     std::vector<Node>& premises,
     CDProof* p,
-    std::unordered_set<Node, NodeHashFunction>& assumptions) const
+    std::unordered_set<Node>& assumptions) const
 {
   Trace("eqproof-conv")
       << "EqProof::expandTransitivityForDisequalities: check if need "
@@ -684,8 +684,8 @@ void EqProof::reduceNestedCongruence(
     Node conclusion,
     std::vector<std::vector<Node>>& transitivityMatrix,
     CDProof* p,
-    std::unordered_map<Node, Node, NodeHashFunction>& visited,
-    std::unordered_set<Node, NodeHashFunction>& assumptions,
+    std::unordered_map<Node, Node>& visited,
+    std::unordered_set<Node>& assumptions,
     bool isNary) const
 {
   Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: building for " << i
@@ -785,8 +785,8 @@ void EqProof::reduceNestedCongruence(
 
 Node EqProof::addToProof(CDProof* p) const
 {
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
-  std::unordered_set<Node, NodeHashFunction> assumptions;
+  std::unordered_map<Node, Node> cache;
+  std::unordered_set<Node> assumptions;
   Node conclusion = addToProof(p, cache, assumptions);
   Trace("eqproof-conv") << "EqProof::addToProof: root of proof: " << conclusion
                         << "\n";
@@ -840,13 +840,11 @@ Node EqProof::addToProof(CDProof* p) const
   return newConclusion;
 }
 
-Node EqProof::addToProof(
-    CDProof* p,
-    std::unordered_map<Node, Node, NodeHashFunction>& visited,
-    std::unordered_set<Node, NodeHashFunction>& assumptions) const
+Node EqProof::addToProof(CDProof* p,
+                         std::unordered_map<Node, Node>& visited,
+                         std::unordered_set<Node>& assumptions) const
 {
-  std::unordered_map<Node, Node, NodeHashFunction>::const_iterator it =
-      visited.find(d_node);
+  std::unordered_map<Node, Node>::const_iterator it = visited.find(d_node);
   if (it != visited.end())
   {
     Trace("eqproof-conv") << "EqProof::addToProof: already processed " << d_node
@@ -1438,4 +1436,4 @@ Node EqProof::addToProof(
 
 }  // namespace eq
 }  // Namespace theory
-}  // Namespace CVC4
+}  // namespace cvc5

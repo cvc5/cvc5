@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file constraint.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities for non-linear constraints
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for non-linear constraints.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__CONSTRAINT_H
-#define CVC4__THEORY__ARITH__NL__EXT__CONSTRAINT_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT__CONSTRAINT_H
+#define CVC5__THEORY__ARITH__NL__EXT__CONSTRAINT_H
 
 #include <map>
 #include <vector>
@@ -21,7 +22,7 @@
 #include "expr/kind.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -84,6 +85,6 @@ class ConstraintDb
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NL_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__NL_SOLVER_H */

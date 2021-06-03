@@ -1,34 +1,34 @@
-/*********************                                                        */
-/*! \file kissat.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Wrapper for Kissat SAT Solver.
- **
- ** Wrapper for the Kissat SAT solver (for theory of bit-vectors).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Wrapper for Kissat SAT Solver.
+ *
+ * Wrapper for the Kissat SAT solver (for theory of bit-vectors).
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PROP__KISSAT_H
-#define CVC4__PROP__KISSAT_H
+#ifndef CVC5__PROP__KISSAT_H
+#define CVC5__PROP__KISSAT_H
 
-#ifdef CVC4_USE_KISSAT
+#ifdef CVC5_USE_KISSAT
 
 #include "prop/sat_solver.h"
-#include "util/stats_timer.h"
 
 extern "C" {
 #include <kissat/kissat.h>
 }
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 class KissatSolver : public SatSolver
@@ -66,20 +66,18 @@ class KissatSolver : public SatSolver
  private:
   struct Statistics
   {
-    StatisticsRegistry* d_registry;
     IntStat d_numSatCalls;
     IntStat d_numVariables;
     IntStat d_numClauses;
     TimerStat d_solveTime;
-    Statistics(StatisticsRegistry* registry, const std::string& prefix);
-    ~Statistics();
+    Statistics(StatisticsRegistry& registry, const std::string& prefix);
   };
 
   /**
    * Private to disallow creation outside of SatSolverFactory.
    * Function init() must be called after creation.
    */
-  KissatSolver(StatisticsRegistry* registry, const std::string& name = "");
+  KissatSolver(StatisticsRegistry& registry, const std::string& name = "");
   /**
    * Initialize SAT solver instance.
    * Note: Split out to not call virtual functions in constructor.
@@ -97,7 +95,7 @@ class KissatSolver : public SatSolver
 };
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif  // CVC4_USE_KISSAT
-#endif  // CVC4__PROP__KISSAT_H
+#endif  // CVC5_USE_KISSAT
+#endif  // CVC5__PROP__KISSAT_H

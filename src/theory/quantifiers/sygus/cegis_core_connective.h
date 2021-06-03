@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file cegis_core_connective.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Cegis core connective module.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Cegis core connective module.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
-#define CVC4__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
+#define CVC5__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
 
 #include <unordered_set>
 
@@ -25,7 +26,7 @@
 #include "theory/quantifiers/sygus/cegis.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SmtEngine;
 
@@ -159,8 +160,8 @@ class VariadicTrie
 class CegisCoreConnective : public Cegis
 {
  public:
-  CegisCoreConnective(QuantifiersEngine* qe,
-                      QuantifiersInferenceManager& qim,
+  CegisCoreConnective(QuantifiersInferenceManager& qim,
+                      TermDbSygus* tds,
                       SynthConjecture* p);
   ~CegisCoreConnective() {}
   /**
@@ -259,7 +260,7 @@ class CegisCoreConnective : public Cegis
      */
     Node getRefinementPt(CegisCoreConnective* p,
                          Node n,
-                         std::unordered_set<Node, NodeHashFunction>& visited,
+                         std::unordered_set<Node>& visited,
                          std::vector<Node>& ss);
     /** Get term pool, i.e. pool(A)/pool(B) in the algorithms above */
     void getTermPool(std::vector<Node>& passerts) const;
@@ -348,10 +349,9 @@ class CegisCoreConnective : public Cegis
    * If one of the formulas in queryAsserts was in the unsat core, then this
    * method returns true. Otherwise, this method returns false.
    */
-  bool getUnsatCore(
-      SmtEngine& smt,
-      const std::unordered_set<Node, NodeHashFunction>& queryAsserts,
-      std::vector<Node>& uasserts) const;
+  bool getUnsatCore(SmtEngine& smt,
+                    const std::unordered_set<Node>& queryAsserts,
+                    std::vector<Node>& uasserts) const;
   /**
    * Return the result of checking satisfiability of formula n.
    * If n was satisfiable, then we store the model for d_vars in mvs.
@@ -366,10 +366,7 @@ class CegisCoreConnective : public Cegis
    */
   Node evaluate(Node n, Node id, const std::vector<Node>& mvs);
   /** A cache of the above function */
-  std::unordered_map<Node,
-                     std::unordered_map<Node, Node, NodeHashFunction>,
-                     NodeHashFunction>
-      d_eval_cache;
+  std::unordered_map<Node, std::unordered_map<Node, Node>> d_eval_cache;
   /** The evaluator utility used for the above function */
   Evaluator d_eval;
   //-----------------------------------end for evaluation
@@ -399,6 +396,6 @@ class CegisCoreConnective : public Cegis
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */

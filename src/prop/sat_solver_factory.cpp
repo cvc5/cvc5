@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file sat_solver_factory.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Aina Niemetz, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SAT Solver creation facility.
- **
- ** SAT Solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Aina Niemetz, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SAT Solver creation facility.
+ */
 
 #include "prop/sat_solver_factory.h"
 
@@ -22,58 +21,58 @@
 #include "prop/kissat.h"
 #include "prop/minisat/minisat.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 BVSatSolverInterface* SatSolverFactory::createMinisat(
     context::Context* mainSatContext,
-    StatisticsRegistry* registry,
+    StatisticsRegistry& registry,
     const std::string& name)
 {
   return new BVMinisatSatSolver(registry, mainSatContext, name);
 }
 
 MinisatSatSolver* SatSolverFactory::createCDCLTMinisat(
-    StatisticsRegistry* registry)
+    StatisticsRegistry& registry)
 {
   return new MinisatSatSolver(registry);
 }
 
-SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry* registry,
+SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry& registry,
                                                  const std::string& name)
 {
-#ifdef CVC4_USE_CRYPTOMINISAT
+#ifdef CVC5_USE_CRYPTOMINISAT
   CryptoMinisatSolver* res = new CryptoMinisatSolver(registry, name);
   res->init();
   return res;
 #else
-  Unreachable() << "CVC4 was not compiled with Cryptominisat support.";
+  Unreachable() << "cvc5 was not compiled with Cryptominisat support.";
 #endif
 }
 
-SatSolver* SatSolverFactory::createCadical(StatisticsRegistry* registry,
+SatSolver* SatSolverFactory::createCadical(StatisticsRegistry& registry,
                                            const std::string& name)
 {
-#ifdef CVC4_USE_CADICAL
+#ifdef CVC5_USE_CADICAL
   CadicalSolver* res = new CadicalSolver(registry, name);
   res->init();
   return res;
 #else
-  Unreachable() << "CVC4 was not compiled with CaDiCaL support.";
+  Unreachable() << "cvc5 was not compiled with CaDiCaL support.";
 #endif
 }
 
-SatSolver* SatSolverFactory::createKissat(StatisticsRegistry* registry,
+SatSolver* SatSolverFactory::createKissat(StatisticsRegistry& registry,
                                           const std::string& name)
 {
-#ifdef CVC4_USE_KISSAT
+#ifdef CVC5_USE_KISSAT
   KissatSolver* res = new KissatSolver(registry, name);
   res->init();
   return res;
 #else
-  Unreachable() << "CVC4 was not compiled with Kissat support.";
+  Unreachable() << "cvc5 was not compiled with Kissat support.";
 #endif
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file quantifiers_state.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utility for quantifiers state
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utility for quantifiers state.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H
-#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H
+#define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H
 
 #include "theory/quantifiers/quantifiers_statistics.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -86,6 +87,6 @@ class QuantifiersState : public TheoryState
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H */

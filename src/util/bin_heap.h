@@ -1,27 +1,27 @@
-/*********************                                                        */
-/*! \file bin_heap.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An implementation of a binary heap
- **
- ** An implementation of a binary heap.
- ** Attempts to roughly follow the contract of Boost's d_ary_heap.
- ** (http://www.boost.org/doc/libs/1_49_0/doc/html/boost/heap/d_ary_heap.html)
- ** Also attempts to generalize ext/pd_bs/priority_queue.
- ** (http://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/priority_queue.html)
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An implementation of a binary heap
+ *
+ * Attempts to roughly follow the contract of Boost's d_ary_heap.
+ * (http://www.boost.org/doc/libs/1_49_0/doc/html/boost/heap/d_ary_heap.html)
+ * Also attempts to generalize ext/pd_bs/priority_queue.
+ * (http://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/priority_queue.html)
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__BIN_HEAP_H
-#define CVC4__BIN_HEAP_H
+#ifndef CVC5__BIN_HEAP_H
+#define CVC5__BIN_HEAP_H
 
 #include <limits>
 #include <functional>
@@ -29,7 +29,7 @@
 #include "base/check.h"
 #include "base/exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * BinaryHeap that orders its elements greatest-first (i.e., in the opposite
@@ -363,6 +363,6 @@ private:
 template <class Elem, class CmpFcn>
 const size_t BinaryHeap<Elem,CmpFcn>::MAX_SIZE = (std::numeric_limits<size_t>::max()-2)/2;
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__BIN_HEAP_H */
+#endif /* CVC5__BIN_HEAP_H */

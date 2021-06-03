@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file attempt_solution_simplex.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Aina Niemetz, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 #include "theory/arith/attempt_solution_simplex.h"
 
 #include "base/output.h"
@@ -26,7 +27,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -35,20 +36,14 @@ AttemptSolutionSDP::AttemptSolutionSDP(LinearEqualityModule& linEq, ErrorSet& er
   , d_statistics()
 { }
 
-AttemptSolutionSDP::Statistics::Statistics():
-  d_searchTime("theory::arith::attempt::searchTime"),
-  d_queueTime("theory::arith::attempt::queueTime"),
-  d_conflicts("theory::arith::attempt::conflicts", 0)
+AttemptSolutionSDP::Statistics::Statistics()
+    : d_searchTime(smtStatisticsRegistry().registerTimer(
+        "theory::arith::attempt::searchTime")),
+      d_queueTime(smtStatisticsRegistry().registerTimer(
+          "theory::arith::attempt::queueTime")),
+      d_conflicts(smtStatisticsRegistry().registerInt(
+          "theory::arith::attempt::conflicts"))
 {
-  smtStatisticsRegistry()->registerStat(&d_searchTime);
-  smtStatisticsRegistry()->registerStat(&d_queueTime);
-  smtStatisticsRegistry()->registerStat(&d_conflicts);
-}
-
-AttemptSolutionSDP::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_searchTime);
-  smtStatisticsRegistry()->unregisterStat(&d_queueTime);
-  smtStatisticsRegistry()->unregisterStat(&d_conflicts);
 }
 
 bool AttemptSolutionSDP::matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const{
@@ -125,12 +120,12 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
     Assert(toAdd != ARITHVAR_SENTINEL);
 
     Trace("arith::forceNewBasis") << toRemove << " " << toAdd << endl;
-    // CVC4Message() << toRemove << " " << toAdd << endl;
+    // CVC5Message() << toRemove << " " << toAdd << endl;
 
     d_linEq.pivotAndUpdate(toRemove, toAdd, newValues[toRemove]);
 
     Trace("arith::forceNewBasis") << needsToBeAdded.size() << "to go" << endl;
-    // CVC4Message() << needsToBeAdded.size() << "to go" << endl;
+    // CVC5Message() << needsToBeAdded.size() << "to go" << endl;
     needsToBeAdded.remove(toAdd);
 
     bool conflict = processSignals();
@@ -151,6 +146,6 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
   }
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

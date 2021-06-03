@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file ee_manager_distributed.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Management of a distributed approach for equality engines over
- ** all theories.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Management of a distributed approach for equality engines over
+ * all theories.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__EE_MANAGER_DISTRIBUTED__H
-#define CVC4__THEORY__EE_MANAGER_DISTRIBUTED__H
+#ifndef CVC5__THEORY__EE_MANAGER_DISTRIBUTED__H
+#define CVC5__THEORY__EE_MANAGER_DISTRIBUTED__H
 
 #include <memory>
 
 #include "theory/ee_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 namespace eq {
@@ -97,6 +98,6 @@ class EqEngineManagerDistributed : public EqEngineManager
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__EE_MANAGER_DISTRIBUTED__H */
+#endif /* CVC5__THEORY__EE_MANAGER_DISTRIBUTED__H */

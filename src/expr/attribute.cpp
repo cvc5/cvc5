@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file attribute.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief AttributeManager implementation.
- **
- ** AttributeManager implementation.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Dejan Jovanovic, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * AttributeManager implementation.
+ */
 #include "expr/attribute.h"
 
 #include <utility>
@@ -22,7 +21,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 namespace attr {
 
@@ -37,7 +36,7 @@ bool AttributeManager::inGarbageCollection() const {
 void AttributeManager::debugHook(int debugFlag) {
   /* DO NOT CHECK IN ANY CODE INTO THE DEBUG HOOKS!
    * debugHook() is an empty function for the purpose of debugging
-   * the AttributeManager without recompiling all of CVC4.
+   * the AttributeManager without recompiling all of cvc5.
    * Formally this is a nop.
    */
 }
@@ -114,6 +113,6 @@ void AttributeManager::deleteAttributes(const AttrIdVec& atids) {
   }
 }
 
-}/* CVC4::expr::attr namespace */
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+}  // namespace attr
+}  // namespace expr
+}  // namespace cvc5

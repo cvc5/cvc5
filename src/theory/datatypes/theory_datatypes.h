@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file theory_datatypes.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Theory of datatypes.
- **
- ** Theory of datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of datatypes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
-#define CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
+#ifndef CVC5__THEORY__DATATYPES__THEORY_DATATYPES_H
+#define CVC5__THEORY__DATATYPES__THEORY_DATATYPES_H
 
 #include <iostream>
 #include <map>
@@ -35,7 +34,7 @@
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -43,9 +42,9 @@ class TheoryDatatypes : public Theory {
  private:
   typedef context::CDList<Node> NodeList;
   /** maps nodes to an index in a vector */
-  typedef context::CDHashMap<Node, size_t, NodeHashFunction> NodeUIntMap;
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
+  typedef context::CDHashMap<Node, size_t> NodeUIntMap;
+  typedef context::CDHashMap<Node, bool> BoolMap;
+  typedef context::CDHashMap<Node, Node> NodeMap;
 
  private:
   //notification class for equality engine
@@ -97,8 +96,6 @@ private:
   bool hasTester( Node n );
   /** get the possible constructors for n */
   void getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >& cons );
-  /** mkExpDefSkolem */
-  void mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt );
   /** skolems for terms */
   NodeMap d_term_sk;
   Node getTermSkolemFor( Node n );
@@ -154,8 +151,6 @@ private:
   context::CDList<TNode> d_functionTerms;
   /** counter for forcing assignments (ensures fairness) */
   unsigned d_dtfCounter;
-  /** expand definition skolem functions */
-  std::map< TypeNode, std::map< Node, Node > > d_exp_def_skolem;
   /** uninterpreted constant to variable map */
   std::map< Node, Node > d_uc_to_fresh_var;
 private:
@@ -199,6 +194,8 @@ private:
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -230,7 +227,6 @@ private:
   void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
   //--------------------------------- end standard check
   void preRegisterTerm(TNode n) override;
-  TrustNode expandDefinition(Node n) override;
   TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   std::string identify() const override
@@ -309,11 +305,11 @@ private:
   /** The notify class */
   NotifyClass d_notify;
   /** Proof checker for datatypes */
-  DatatypesProofRuleChecker d_pchecker;
+  DatatypesProofRuleChecker d_checker;
 };/* class TheoryDatatypes */
 
-}/* CVC4::theory::datatypes namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace datatypes
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H */
+#endif /* CVC5__THEORY__DATATYPES__THEORY_DATATYPES_H */

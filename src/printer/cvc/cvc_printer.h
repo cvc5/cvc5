@@ -1,39 +1,38 @@
-/*********************                                                        */
-/*! \file cvc_printer.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Abdalrhman Mohamed, Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The pretty-printer interface for the CVC output language
- **
- ** The pretty-printer interface for the CVC output language.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Abdalrhman Mohamed, Andrew Reynolds, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The pretty-printer interface for the CVC output language.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PRINTER__CVC_PRINTER_H
-#define CVC4__PRINTER__CVC_PRINTER_H
+#ifndef CVC5__PRINTER__CVC_PRINTER_H
+#define CVC5__PRINTER__CVC_PRINTER_H
 
 #include <iostream>
 
 #include "printer/printer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class LetBinding;
 
 namespace printer {
 namespace cvc {
 
-class CvcPrinter : public CVC4::Printer
+class CvcPrinter : public cvc5::Printer
 {
  public:
-  using CVC4::Printer::toStream;
+  using cvc5::Printer::toStream;
   CvcPrinter(bool cvc3Mode = false) : d_cvc3Mode(cvc3Mode) {}
   void toStream(std::ostream& out,
                 TNode n,
@@ -204,6 +203,6 @@ class CvcPrinter : public CVC4::Printer
 
 }  // namespace cvc
 }  // namespace printer
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PRINTER__CVC_PRINTER_H */
+#endif /* CVC5__PRINTER__CVC_PRINTER_H */

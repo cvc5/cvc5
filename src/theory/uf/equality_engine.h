@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file equality_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__UF__EQUALITY_ENGINE_H
-#define CVC4__THEORY__UF__EQUALITY_ENGINE_H
+#ifndef CVC5__THEORY__UF__EQUALITY_ENGINE_H
+#define CVC5__THEORY__UF__EQUALITY_ENGINE_H
 
 #include <deque>
 #include <queue>
@@ -33,9 +34,9 @@
 #include "theory/uf/equality_engine_iterator.h"
 #include "theory/uf/equality_engine_notify.h"
 #include "theory/uf/equality_engine_types.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 
@@ -108,9 +109,7 @@ class EqualityEngine : public context::ContextNotifyObj {
     /** Number of constant terms managed by the system */
     IntStat d_constantTermsCount;
 
-    Statistics(std::string name);
-
-    ~Statistics();
+    Statistics(const std::string& name);
   };/* struct EqualityEngine::statistics */
 
 private:
@@ -137,7 +136,7 @@ private:
   KindMap d_congruenceKindsExtOperators;
 
   /** Map from nodes to their ids */
-  std::unordered_map<TNode, EqualityNodeId, TNodeHashFunction> d_nodeIds;
+  std::unordered_map<TNode, EqualityNodeId> d_nodeIds;
 
   /** Map from function applications to their ids */
   typedef std::unordered_map<FunctionApplication, EqualityNodeId, FunctionApplicationHashFunction> ApplicationIdsMap;
@@ -845,6 +844,6 @@ private:
 
 } // Namespace eq
 } // Namespace theory
-} // Namespace CVC4
+}  // namespace cvc5
 
 #endif

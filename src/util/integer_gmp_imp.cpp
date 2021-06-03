@@ -1,37 +1,34 @@
-/*********************                                                        */
-/*! \file integer_gmp_imp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Tim King, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A multi-precision rational constant.
- **
- ** A multi-precision rational constant.
- **/
-
-#include "util/integer.h"
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Tim King, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A multi-precision rational constant.
+ */
 
 #include <cmath>
 #include <sstream>
 #include <string>
 
-#include "cvc4autoconfig.h"
-
 #include "base/check.h"
+#include "base/cvc5config.h"
+#include "util/integer.h"
 #include "util/rational.h"
 
-#ifndef CVC4_GMP_IMP
-#  error "This source should only ever be built if CVC4_GMP_IMP is on !"
+#ifndef CVC5_GMP_IMP
+#error "This source should only ever be built if CVC5_GMP_IMP is on !"
 #endif
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 Integer::Integer(const char* s, unsigned base)
   : d_value(s, base)
@@ -483,4 +480,4 @@ const Integer& Integer::max(const Integer& a, const Integer& b)
   return (a >= b) ? a : b;
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5

@@ -34,7 +34,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "theory/interrupted.h"
 #include "util/utility.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace BVMinisat {
 
 #define OUTPUT_TAG "bvminisat: [a=" << assumptions.size() << ",l=" << decisionLevel() << "] "
@@ -82,7 +82,7 @@ CRef Solver::TCRef_Lazy = CRef_Undef - 1; // no real lazy ref here
 //=================================================================================================
 // Constructor/Destructor:
 
-Solver::Solver(CVC4::context::Context* context)
+Solver::Solver(cvc5::context::Context* context)
     :
 
       // Parameters (user settable):
@@ -886,7 +886,7 @@ bool Solver::simplify()
 
   if (nAssigns() == simpDB_assigns || (simpDB_props > 0)) return true;
 
-  d_notify->spendResource(ResourceManager::Resource::BvSatSimplifyStep);
+  d_notify->spendResource(Resource::BvSatSimplifyStep);
 
   // Remove satisfied clauses:
   removeSatisfied(learnts);
@@ -927,7 +927,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
 
   for (;;)
   {
-    d_notify->safePoint(ResourceManager::Resource::BvSatPropagateStep);
+    d_notify->safePoint(Resource::BvSatPropagateStep);
     CRef confl = propagate();
     if (confl != CRef_Undef)
     {
@@ -976,7 +976,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
         return l_False;
       }
 
-      if (!CVC4::options::bvEagerExplanations())
+      if (!cvc5::options::bvEagerExplanations())
       {
         // check if uip leads to a conflict
         if (backtrack_level < assumptions.size())
@@ -1026,9 +1026,9 @@ lbool Solver::search(int nof_conflicts, UIP uip)
       try
       {
         isWithinBudget =
-            withinBudget(ResourceManager::Resource::BvSatConflictsStep);
+            withinBudget(Resource::BvSatConflictsStep);
       }
-      catch (const CVC4::theory::Interrupted& e)
+      catch (const cvc5::theory::Interrupted& e)
       {
         // do some clean-up and rethrow
         cancelUntil(assumptions.size());
@@ -1197,7 +1197,7 @@ lbool Solver::solve_()
     while (status == l_Undef){
         double rest_base = luby_restart ? luby(restart_inc, curr_restarts) : pow(restart_inc, curr_restarts);
         status = search(rest_base * restart_first);
-        if (!withinBudget(ResourceManager::Resource::BvSatConflictsStep)) break;
+        if (!withinBudget(Resource::BvSatConflictsStep)) break;
         curr_restarts++;
     }
 
@@ -1406,16 +1406,16 @@ void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to)
 }
 
 void Solver::setNotify(Notify* toNotify) { d_notify = toNotify; }
-bool Solver::withinBudget(ResourceManager::Resource r) const
+bool Solver::withinBudget(Resource r) const
 {
   AlwaysAssert(d_notify);
   d_notify->safePoint(r);
 
   return !asynch_interrupt &&
-         (conflict_budget < 0 || conflicts < (uint64_t)conflict_budget) &&
+         (conflict_budget < 0 || conflicts < conflict_budget) &&
          (propagation_budget < 0 ||
-          propagations < (uint64_t)propagation_budget);
+          propagations < propagation_budget);
 }
 
-} /* CVC4::BVMinisat namespace */
-} /* CVC4 namespace */
+}  // namespace BVMinisat
+}  // namespace cvc5

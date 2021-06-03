@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file listeners.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements listener classes for SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements listener classes for SMT engine.
+ */
 
 #include "smt/listeners.h"
 
@@ -25,7 +26,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 ResourceOutListener::ResourceOutListener(SmtEngine& smt) : d_smt(smt) {}
@@ -71,7 +72,7 @@ void SmtNodeManagerListener::nmNotifyNewDatatypes(
   {
     if (Configuration::isAssertionBuild())
     {
-      for (CVC4_UNUSED const TypeNode& dt : dtts)
+      for (CVC5_UNUSED const TypeNode& dt : dtts)
       {
         Assert(dt.isDatatype());
       }
@@ -103,4 +104,4 @@ void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

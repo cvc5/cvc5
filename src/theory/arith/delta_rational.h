@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file delta_rational.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -26,7 +27,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class DeltaRational;
 
@@ -46,22 +47,20 @@ class DeltaRationalException : public Exception {
  */
 class DeltaRational {
 private:
-  CVC4::Rational c;
-  CVC4::Rational k;
+ cvc5::Rational c;
+ cvc5::Rational k;
 
 public:
   DeltaRational() : c(0,1), k(0,1) {}
-  DeltaRational(const CVC4::Rational& base) : c(base), k(0,1) {}
-  DeltaRational(const CVC4::Rational& base, const CVC4::Rational& coeff) :
-    c(base), k(coeff) {}
-
-  const CVC4::Rational& getInfinitesimalPart() const {
-    return k;
+  DeltaRational(const cvc5::Rational& base) : c(base), k(0, 1) {}
+  DeltaRational(const cvc5::Rational& base, const cvc5::Rational& coeff)
+      : c(base), k(coeff)
+  {
   }
 
-  const CVC4::Rational& getNoninfinitesimalPart() const {
-    return c;
-  }
+  const cvc5::Rational& getInfinitesimalPart() const { return k; }
+
+  const cvc5::Rational& getNoninfinitesimalPart() const { return c; }
 
   int sgn() const {
     int s = getNoninfinitesimalPart().sgn();
@@ -99,14 +98,14 @@ public:
   }
 
   DeltaRational operator+(const DeltaRational& other) const{
-    CVC4::Rational tmpC = c+other.c;
-    CVC4::Rational tmpK = k+other.k;
+    cvc5::Rational tmpC = c + other.c;
+    cvc5::Rational tmpK = k + other.k;
     return DeltaRational(tmpC, tmpK);
   }
 
   DeltaRational operator*(const Rational& a) const{
-    CVC4::Rational tmpC = a*c;
-    CVC4::Rational tmpK = a*k;
+    cvc5::Rational tmpC = a * c;
+    cvc5::Rational tmpK = a * k;
     return DeltaRational(tmpC, tmpK);
   }
 
@@ -129,7 +128,7 @@ public:
 
 
   DeltaRational operator-(const DeltaRational& a) const{
-    CVC4::Rational negOne(CVC4::Integer(-1));
+    cvc5::Rational negOne(cvc5::Integer(-1));
     return *(this) + (a * negOne);
   }
 
@@ -138,14 +137,14 @@ public:
   }
 
   DeltaRational operator/(const Rational& a) const{
-    CVC4::Rational tmpC = c/a;
-    CVC4::Rational tmpK = k/a;
+    cvc5::Rational tmpC = c / a;
+    cvc5::Rational tmpK = k / a;
     return DeltaRational(tmpC, tmpK);
   }
 
   DeltaRational operator/(const Integer& a) const{
-    CVC4::Rational tmpC = c/a;
-    CVC4::Rational tmpK = k/a;
+    cvc5::Rational tmpC = c / a;
+    cvc5::Rational tmpK = k / a;
     return DeltaRational(tmpC, tmpK);
   }
 
@@ -206,7 +205,8 @@ public:
     return *(this);
   }
 
-  DeltaRational& operator*=(const CVC4::Rational& a){
+  DeltaRational& operator*=(const cvc5::Rational& a)
+  {
     c *=  a;
     k *=  a;
 
@@ -300,4 +300,4 @@ public:
 
 std::ostream& operator<<(std::ostream& os, const DeltaRational& n);
 
-}/* CVC4 namespace */
+}  // namespace cvc5

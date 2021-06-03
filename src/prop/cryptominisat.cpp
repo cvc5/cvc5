@@ -1,28 +1,30 @@
-/*********************                                                        */
-/*! \file cryptominisat.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SAT Solver.
- **
- ** Implementation of the cryptominisat for cvc4 (bitvectors).
- **/
-
-#ifdef CVC4_USE_CRYPTOMINISAT
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Mathias Preiner, Alex Ozdemir
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SAT Solver.
+ *
+ * Implementation of the cryptominisat for cvc5 (bit-vectors).
+ */
 
 #include "prop/cryptominisat.h"
 
+#ifdef CVC5_USE_CRYPTOMINISAT
+
 #include "base/check.h"
+#include "util/statistics_registry.h"
 
 #include <cryptominisat5/cryptominisat.h>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 using CMSatVar = unsigned;
@@ -68,7 +70,7 @@ void toInternalClause(SatClause& clause,
 
 }  // helper functions
 
-CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry* registry,
+CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry& registry,
                                          const std::string& name)
     : d_solver(new CMSat::SATSolver()),
       d_numVariables(0),
@@ -216,33 +218,15 @@ unsigned CryptoMinisatSolver::getAssertionLevel() const {
 
 // Satistics for CryptoMinisatSolver
 
-CryptoMinisatSolver::Statistics::Statistics(StatisticsRegistry* registry,
-                                            const std::string& prefix) :
-  d_registry(registry),
-  d_statCallsToSolve("theory::bv::"+prefix+"::cryptominisat::calls_to_solve", 0),
-  d_xorClausesAdded("theory::bv::"+prefix+"::cryptominisat::xor_clauses", 0),
-  d_clausesAdded("theory::bv::"+prefix+"::cryptominisat::clauses", 0),
-  d_solveTime("theory::bv::"+prefix+"::cryptominisat::solve_time"),
-  d_registerStats(!prefix.empty())
+CryptoMinisatSolver::Statistics::Statistics(StatisticsRegistry& registry,
+                                            const std::string& prefix)
+    : d_statCallsToSolve(registry.registerInt(prefix + "cryptominisat::calls_to_solve")),
+      d_xorClausesAdded(registry.registerInt(prefix + "cryptominisat::xor_clauses")),
+      d_clausesAdded(registry.registerInt(prefix + "cryptominisat::clauses")),
+      d_solveTime(registry.registerTimer(prefix + "cryptominisat::solve_time"))
 {
-  if (!d_registerStats)
-    return;
-
-  d_registry->registerStat(&d_statCallsToSolve);
-  d_registry->registerStat(&d_xorClausesAdded);
-  d_registry->registerStat(&d_clausesAdded);
-  d_registry->registerStat(&d_solveTime);
-}
-
-CryptoMinisatSolver::Statistics::~Statistics() {
-  if (!d_registerStats)
-    return;
-  d_registry->unregisterStat(&d_statCallsToSolve);
-  d_registry->unregisterStat(&d_xorClausesAdded);
-  d_registry->unregisterStat(&d_clausesAdded);
-  d_registry->unregisterStat(&d_solveTime);
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 #endif

@@ -1,34 +1,34 @@
-/*********************                                                        */
-/*! \file context_mm.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Clark Barrett, Andres Noetzli, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Region-based memory manager with stack-based push and pop.
- **
- ** Region-based memory manager with stack-based push and pop.  Designed
- ** for use by ContextManager.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Clark Barrett, Morgan Deters, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Region-based memory manager with stack-based push and pop.
+ *
+ * Designed for use by ContextManager.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__CONTEXT__CONTEXT_MM_H
-#define CVC4__CONTEXT__CONTEXT_MM_H
+#ifndef CVC5__CONTEXT__CONTEXT_MM_H
+#define CVC5__CONTEXT__CONTEXT_MM_H
 
-#ifndef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
+#ifndef CVC5_DEBUG_CONTEXT_MEMORY_MANAGER
 #include <deque>
 #endif
 #include <vector>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 
-#ifndef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
+#ifndef CVC5_DEBUG_CONTEXT_MEMORY_MANAGER
 
 /**
  * Region-based memory manager for contexts.  Calls to newData provide memory
@@ -105,7 +105,7 @@ class ContextMemoryManager {
    */
   void newChunk();
 
-#ifdef CVC4_VALGRIND
+#ifdef CVC5_VALGRIND
   /**
    * Vector of allocations for each level. Used for accurately marking
    * allocations as free'd in Valgrind.
@@ -149,7 +149,7 @@ class ContextMemoryManager {
 
 };/* class ContextMemoryManager */
 
-#else /* CVC4_DEBUG_CONTEXT_MEMORY_MANAGER */
+#else /* CVC5_DEBUG_CONTEXT_MEMORY_MANAGER */
 
 #warning \
     "Using the debug version of ContextMemoryManager, expect performance degradation"
@@ -198,7 +198,7 @@ class ContextMemoryManager
   std::vector<std::vector<char*>> d_allocations;
 }; /* ContextMemoryManager */
 
-#endif /* CVC4_DEBUG_CONTEXT_MEMORY_MANAGER */
+#endif /* CVC5_DEBUG_CONTEXT_MEMORY_MANAGER */
 
 /**
  * An STL-like allocator class for allocating from context memory.
@@ -261,7 +261,7 @@ inline bool operator!=(const ContextMemoryAllocator<T>& a1,
   return a1.d_mm != a2.d_mm;
 }
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5
 
-#endif /* CVC4__CONTEXT__CONTEXT_MM_H */
+#endif /* CVC5__CONTEXT__CONTEXT_MM_H */

@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file inference_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Arrays inference manager
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Arrays inference manager.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__ARRAYS__INFERENCE_MANAGER_H
-#define CVC4__THEORY__ARRAYS__INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__ARRAYS__INFERENCE_MANAGER_H
+#define CVC5__THEORY__ARRAYS__INFERENCE_MANAGER_H
 
 #include "expr/node.h"
-#include "expr/proof_rule.h"
-#include "theory/eager_proof_generator.h"
+#include "proof/eager_proof_generator.h"
+#include "proof/proof_rule.h"
 #include "theory/theory_inference_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -71,6 +72,6 @@ class InferenceManager : public TheoryInferenceManager
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

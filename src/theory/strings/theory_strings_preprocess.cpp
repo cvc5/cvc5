@@ -1,35 +1,37 @@
-/*********************                                                        */
-/*! \file theory_strings_preprocess.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Strings Preprocess
- **
- ** Strings Preprocess.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Strings Preprocess.
+ */
 
 #include "theory/strings/theory_strings_preprocess.h"
 
 #include "expr/kind.h"
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
-#include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/word.h"
+#include "util/rational.h"
+#include "util/statistics_registry.h"
+#include "util/string.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
+using namespace cvc5;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -41,7 +43,7 @@ struct QInternalVarAttributeId
 typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
 
 StringsPreprocess::StringsPreprocess(SkolemCache* sc,
-                                     IntegralHistogramStat<Kind>* statReductions)
+                                     HistogramStat<Kind>* statReductions)
     : d_sc(sc), d_statReductions(statReductions)
 {
 }
@@ -58,6 +60,7 @@ Node StringsPreprocess::reduce(Node t,
       << "StringsPreprocess::reduce: " << t << std::endl;
   Node retNode = t;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Node zero = nm->mkConst(Rational(0));
   Node one = nm->mkConst(Rational(1));
   Node negOne = nm->mkConst(Rational(-1));
@@ -95,7 +98,7 @@ Node StringsPreprocess::reduce(Node t,
     // Length of the result is at most m
     Node b14 = nm->mkNode(LEQ, nm->mkNode(STRING_LENGTH, skt), m);
 
-    Node b1 = nm->mkNode(AND, b11, b12, b13, b14);
+    Node b1 = nm->mkNode(AND, {b11, b12, b13, b14});
     Node b2 = skt.eqNode(emp);
     Node lemma = nm->mkNode(ITE, cond, b1, b2);
 
@@ -188,12 +191,6 @@ Node StringsPreprocess::reduce(Node t,
         nm->integerType(), t, SkolemCache::SK_PURIFY, "iok");
 
     Node negone = nm->mkConst(Rational(-1));
-    Node krange = nm->mkNode(GEQ, skk, negone);
-    // assert:   indexof( x, y, n ) >= -1
-    asserts.push_back(krange);
-    krange = nm->mkNode(GEQ, nm->mkNode(STRING_LENGTH, x), skk);
-    // assert:   len( x ) >= indexof( x, y, z )
-    asserts.push_back(krange);
 
     // substr( x, n, len( x ) - n )
     Node st = nm->mkNode(STRING_SUBSTR,
@@ -256,6 +253,89 @@ Node StringsPreprocess::reduce(Node t,
     // Thus, indexof( x, y, n ) = skk.
     retNode = skk;
   }
+  else if (t.getKind() == kind::STRING_INDEXOF_RE)
+  {
+    // processing term:  indexof_re(s, r, n)
+    Node s = t[0];
+    Node r = t[1];
+    Node n = t[2];
+    Node skk = sc->mkTypedSkolemCached(
+        nm->integerType(), t, SkolemCache::SK_PURIFY, "iork");
+    Node sLen = nm->mkNode(STRING_LENGTH, s);
+
+    // n > len(x)
+    Node ub = nm->mkNode(GT, n, sLen);
+    // 0 > n
+    Node lb = nm->mkNode(GT, zero, n);
+    // n > len(x) OR 0 > n
+    Node condNegOne = nm->mkNode(OR, ub, lb);
+    // skk = -1
+    Node retNegOne = skk.eqNode(negOne);
+
+    Node emp = Word::mkEmptyWord(s.getType());
+    // in_re("", r)
+    Node matchEmptyStr = nm->mkNode(STRING_IN_REGEXP, emp, r);
+    // skk = n
+    Node retN = skk.eqNode(n);
+
+    Node i = SkolemCache::mkIndexVar(t);
+    Node l = SkolemCache::mkLengthVar(t);
+    Node bvl = nm->mkNode(BOUND_VAR_LIST, i, l);
+    Node bound =
+        nm->mkNode(AND,
+                   {
+                       nm->mkNode(GEQ, i, n),
+                       nm->mkNode(LT, i, nm->mkNode(ITE, retNegOne, sLen, skk)),
+                       nm->mkNode(GT, l, zero),
+                       nm->mkNode(LEQ, l, nm->mkNode(MINUS, sLen, i)),
+                   });
+    Node body = nm->mkNode(
+        OR,
+        bound.negate(),
+        nm->mkNode(STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, s, i, l), r)
+            .negate());
+    // forall il.
+    //   n <= i < ite(skk = -1, len(s), skk) ^ 0 < l <= len(s) - i =>
+    //     ~in_re(substr(s, i, l), r)
+    Node firstMatch = mkForallInternal(bvl, body);
+    Node bvll = nm->mkNode(BOUND_VAR_LIST, l);
+    Node validLen =
+        nm->mkNode(AND,
+                   nm->mkNode(GEQ, l, n),
+                   nm->mkNode(LEQ, l, nm->mkNode(MINUS, sLen, skk)));
+    Node matchBody = nm->mkNode(
+        AND,
+        validLen,
+        nm->mkNode(STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, s, skk, l), r));
+    // skk != -1 =>
+    //   exists l. n <= l < len(s) - skk ^ in_re(substr(s, skk, l), r))
+    Node match = nm->mkNode(
+        OR, retNegOne, mkForallInternal(bvll, matchBody.negate()).negate());
+
+    // assert:
+    // IF:   n > len(s) OR 0 > n
+    // THEN: skk = -1
+    // ELIF: in_re("", r)
+    // THEN: skk = n
+    // ELSE: (forall il.
+    //         n <= i < ite(skk = -1, len(s), skk) ^ 0 < l <= len(s) - i =>
+    //           ~in_re(substr(s, i, l), r)) ^
+    //       (skk != -1 =>
+    //          exists l. n <= l < len(s) - skk ^ in_re(substr(s, skk, l), r))
+    //
+    // Note that this reduction relies on eager reduction lemmas being sent to
+    // properly limit the range of skk.
+    Node rr = nm->mkNode(
+        ITE,
+        condNegOne,
+        retNegOne,
+        nm->mkNode(
+            ITE, matchEmptyStr, retN, nm->mkNode(AND, firstMatch, match)));
+    asserts.push_back(rr);
+
+    // Thus, indexof_re(s, r, n) = skk.
+    retNode = skk;
+  }
   else if (t.getKind() == STRING_ITOS)
   {
     // processing term:  int.to.str( n )
@@ -266,7 +346,8 @@ Node StringsPreprocess::reduce(Node t,
     std::vector<Node> conc;
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
-    Node u = nm->mkSkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
+    Node u =
+        sm->mkDummySkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
 
     Node lem = nm->mkNode(GEQ, leni, one);
     conc.push_back(lem);
@@ -345,7 +426,7 @@ Node StringsPreprocess::reduce(Node t,
 
     Node emp = Word::mkEmptyWord(s.getType());
     Node sEmpty = s.eqNode(emp);
-    Node k = nm->mkSkolem("k", nm->integerType());
+    Node k = sm->mkDummySkolem("k", nm->integerType());
     Node kc1 = nm->mkNode(GEQ, k, zero);
     Node kc2 = nm->mkNode(LT, k, lens);
     Node c0 = nm->mkNode(STRING_TO_CODE, nm->mkConst(String("0")));
@@ -361,7 +442,8 @@ Node StringsPreprocess::reduce(Node t,
     std::vector<Node> conc2;
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
-    Node u = nm->mkSkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
+    Node u =
+        sm->mkDummySkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
 
     lem = stoit.eqNode(nm->mkNode(APPLY_UF, u, lens));
     conc2.push_back(lem);
@@ -442,7 +524,7 @@ Node StringsPreprocess::reduce(Node t,
     Node b1 = nm->mkNode(AND, b11, b12, b13);
 
     // nodes for the case where `seq.nth` is undefined.
-    Node uf = sc->mkSkolemSeqNth(s.getType(), "Uf");
+    Node uf = SkolemCache::mkSkolemSeqNth(s.getType(), "Uf");
     Node b2 = nm->mkNode(EQUAL, skt, nm->mkNode(APPLY_UF, uf, s, n));
 
     // the full ite, split on definedness of `seq.nth`
@@ -531,7 +613,7 @@ Node StringsPreprocess::reduce(Node t,
     std::vector<TypeNode> argTypes;
     argTypes.push_back(nm->integerType());
     Node us =
-        nm->mkSkolem("Us", nm->mkFunctionType(argTypes, nm->stringType()));
+        sm->mkDummySkolem("Us", nm->mkFunctionType(argTypes, nm->stringType()));
     TypeNode ufType = nm->mkFunctionType(argTypes, nm->integerType());
     Node uf = sc->mkTypedSkolemCached(
         ufType, x, y, SkolemCache::SK_OCCUR_INDEX, "Uf");
@@ -597,17 +679,14 @@ Node StringsPreprocess::reduce(Node t,
   }
   else if (t.getKind() == STRING_REPLACE_RE)
   {
+    // processing term: replace_re( x, y, z )
     Node x = t[0];
     Node y = t[1];
     Node z = t[2];
     Node k = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "k");
 
-    std::vector<Node> emptyVec;
-    Node sigmaStar =
-        nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA, emptyVec));
-    Node re = nm->mkNode(REGEXP_CONCAT, sigmaStar, y, sigmaStar);
-    // in_re(x, re.++(_*, y, _*))
-    Node hasMatch = nm->mkNode(STRING_IN_REGEXP, x, re);
+    // indexof_re(x, y, 0)
+    Node idx = nm->mkNode(STRING_INDEXOF_RE, x, y, zero);
 
     // in_re("", y)
     Node matchesEmpty =
@@ -621,42 +700,40 @@ Node StringsPreprocess::reduce(Node t,
         sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_MATCH, "rre_match");
     Node k3 =
         sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_MATCH_POST, "rre_post");
+    Node k2Len = nm->mkNode(STRING_LENGTH, k2);
     // x = k1 ++ k2 ++ k3
-    Node splitX = x.eqNode(nm->mkNode(STRING_CONCAT, k1, k2, k3));
-    // ~in_re(k1 ++ str.substr(k2, 0, str.len(k2) - 1), re.++(_*, y, _*))
-    Node k2len = nm->mkNode(STRING_LENGTH, k2);
-    Node firstMatch =
-        nm->mkNode(
-              STRING_IN_REGEXP,
-              nm->mkNode(
-                  STRING_CONCAT,
-                  k1,
-                  nm->mkNode(
-                      STRING_SUBSTR, k2, zero, nm->mkNode(MINUS, k2len, one))),
-              re)
-            .negate();
+    Node split = x.eqNode(nm->mkNode(STRING_CONCAT, k1, k2, k3));
+    // len(k1) = indexof_re(x, y, 0)
+    Node k1Len = nm->mkNode(STRING_LENGTH, k1).eqNode(idx);
+    Node l = SkolemCache::mkLengthVar(t);
+    Node bvll = nm->mkNode(BOUND_VAR_LIST, l);
+    Node bound =
+        nm->mkNode(AND, nm->mkNode(LEQ, zero, l), nm->mkNode(LT, l, k2Len));
+    Node body = nm->mkNode(
+        OR,
+        bound.negate(),
+        nm->mkNode(STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, k2, zero, l), y)
+            .negate());
+    // forall l. 0 <= l < len(k2) => ~in_re(substr(k2, 0, l), r)
+    Node shortestMatch = mkForallInternal(bvll, body);
     // in_re(k2, y)
-    Node k2Match = nm->mkNode(STRING_IN_REGEXP, k2, y);
+    Node match = nm->mkNode(STRING_IN_REGEXP, k2, y);
     // k = k1 ++ z ++ k3
-    Node res2 = k.eqNode(nm->mkNode(STRING_CONCAT, k1, z, k3));
+    Node res = k.eqNode(nm->mkNode(STRING_CONCAT, k1, z, k3));
 
-    // IF in_re(x, re.++(_*, y, _*))
-    // THEN:
-    //   IF in_re("", y)
-    //   THEN: k = z ++ x
-    //   ELSE:
-    //     x = k1 ++ k2 ++ k3 ^
-    //     ~in_re(k1 ++ substr(k2, 0, str.len(k2) - 1), re.++(_*, y, _*)) ^
-    //     in_re(k2, y) ^ k = k1 ++ z ++ k3
-    // ELSE: k = x
-    asserts.push_back(nm->mkNode(
-        ITE,
-        hasMatch,
+    // IF: indexof_re(x, y, 0) = -1
+    // THEN: k = x
+    // ELSE:
+    //   x = k1 ++ k2 ++ k3 ^
+    //   len(k1) = indexof_re(x, y, 0) ^
+    //   (forall l. 0 <= l < len(k2) => ~in_re(substr(k2, 0, l), r)) ^
+    //   in_re(k2, y) ^
+    //   k = k1 ++ z ++ k3
+    asserts.push_back(
         nm->mkNode(ITE,
-                   matchesEmpty,
-                   res1,
-                   nm->mkNode(AND, splitX, firstMatch, k2Match, res2)),
-        k.eqNode(x)));
+                   idx.eqNode(negOne),
+                   k.eqNode(x),
+                   nm->mkNode(AND, {split, k1Len, shortestMatch, match, res})));
     retNode = k;
   }
   else if (t.getKind() == STRING_REPLACE_RE_ALL)
@@ -670,7 +747,8 @@ Node StringsPreprocess::reduce(Node t,
         nm->integerType(), x, y, SkolemCache::SK_NUM_OCCUR, "numOcc");
     std::vector<TypeNode> argTypes;
     argTypes.push_back(nm->integerType());
-    Node us = nm->mkSkolem("Us", nm->mkFunctionType(argTypes, t.getType()));
+    Node us =
+        sm->mkDummySkolem("Us", nm->mkFunctionType(argTypes, t.getType()));
     TypeNode ufType = nm->mkFunctionType(argTypes, nm->integerType());
     Node uf = sc->mkTypedSkolemCached(
         ufType, x, y, SkolemCache::SK_OCCUR_INDEX, "Uf");
@@ -679,13 +757,10 @@ Node StringsPreprocess::reduce(Node t,
 
     Node emp = Word::mkEmptyWord(t.getType());
 
-    std::vector<Node> emptyVec;
-    Node sigmaStar =
-        nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA, emptyVec));
     Node yp = nm->mkNode(REGEXP_DIFF, y, nm->mkNode(STRING_TO_REGEXP, emp));
-    Node re = nm->mkNode(REGEXP_CONCAT, sigmaStar, yp, sigmaStar);
-    // in_re(x, _* ++ y' ++ _*)
-    Node hasMatch = nm->mkNode(STRING_IN_REGEXP, x, re);
+    Node idx = nm->mkNode(STRING_INDEXOF_RE, x, yp, zero);
+    // indexof_re(x, y', 0) = -1
+    Node noMatch = idx.eqNode(negOne);
 
     Node ufno = nm->mkNode(APPLY_UF, uf, numOcc);
     Node usno = nm->mkNode(APPLY_UF, us, numOcc);
@@ -700,8 +775,9 @@ Node StringsPreprocess::reduce(Node t,
     lemmas.push_back(usno.eqNode(rem));
     // Uf(0) = 0
     lemmas.push_back(nm->mkNode(APPLY_UF, uf, zero).eqNode(zero));
-    // not(in_re(substr(x, Uf(numOcc)), re.++(_*, y', _*)))
-    lemmas.push_back(nm->mkNode(STRING_IN_REGEXP, rem, re).negate());
+    // indexof_re(substr(x, Uf(numOcc)), y', 0) = -1
+    lemmas.push_back(
+        nm->mkNode(STRING_INDEXOF_RE, rem, yp, zero).eqNode(negOne));
 
     Node i = SkolemCache::mkIndexVar(t);
     Node bvli = nm->mkNode(BOUND_VAR_LIST, i);
@@ -709,50 +785,57 @@ Node StringsPreprocess::reduce(Node t,
         nm->mkNode(AND, nm->mkNode(GEQ, i, zero), nm->mkNode(LT, i, numOcc));
     Node ip1 = nm->mkNode(PLUS, i, one);
     Node ufi = nm->mkNode(APPLY_UF, uf, i);
-    Node uli = nm->mkNode(APPLY_UF, ul, i);
     Node ufip1 = nm->mkNode(APPLY_UF, uf, ip1);
-    Node ii = nm->mkNode(MINUS, ufip1, uli);
-    Node match = nm->mkNode(STRING_SUBSTR, x, ii, uli);
-    Node pfxMatch =
-        nm->mkNode(STRING_SUBSTR, x, ufi, nm->mkNode(MINUS, ii, ufi));
-    Node nonMatch =
-        nm->mkNode(STRING_SUBSTR,
-                   x,
-                   ufi,
-                   nm->mkNode(MINUS, nm->mkNode(MINUS, ufip1, one), ufi));
+    Node ulip1 = nm->mkNode(APPLY_UF, ul, ip1);
+    // ii = Uf(i + 1) - Ul(i + 1)
+    Node ii = nm->mkNode(MINUS, ufip1, ulip1);
 
     std::vector<Node> flem;
     // Ul(i) > 0
-    flem.push_back(nm->mkNode(GT, uli, zero));
-    // Uf(i + 1) >= Uf(i) + Ul(i)
-    flem.push_back(nm->mkNode(GEQ, ufip1, nm->mkNode(PLUS, ufi, uli)));
-    // in_re(substr(x, ii, Ul(i)), y')
-    flem.push_back(nm->mkNode(STRING_IN_REGEXP, match, yp));
-    // ~in_re(substr(x, Uf(i), Uf(i + 1) - 1 - Uf(i)), re.++(_*, y', _*))
-    flem.push_back(nm->mkNode(STRING_IN_REGEXP, nonMatch, re).negate());
+    flem.push_back(nm->mkNode(GT, ulip1, zero));
+    // Uf(i + 1) = indexof_re(x, yp, Uf(i)) + Ul(i + 1)
+    flem.push_back(ufip1.eqNode(
+        nm->mkNode(PLUS, nm->mkNode(STRING_INDEXOF_RE, x, yp, ufi), ulip1)));
+    // in_re(substr(x, ii, Ul(i + 1)), y')
+    flem.push_back(nm->mkNode(
+        STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, x, ii, ulip1), yp));
+    Node l = SkolemCache::mkLengthVar(t);
+    Node bvll = nm->mkNode(BOUND_VAR_LIST, l);
+    Node lenBound =
+        nm->mkNode(AND, nm->mkNode(LT, zero, l), nm->mkNode(LT, l, ulip1));
+    Node shortestMatchBody = nm->mkNode(
+        OR,
+        lenBound.negate(),
+        nm->mkNode(STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, x, ii, l), y)
+            .negate());
+    // forall l. 0 < l < Ul(i + 1) =>
+    //   ~in_re(substr(x, Uf(i + 1) - Ul(i + 1), l), y')
+    flem.push_back(mkForallInternal(bvll, shortestMatchBody));
+    Node pfxMatch =
+        nm->mkNode(STRING_SUBSTR, x, ufi, nm->mkNode(MINUS, ii, ufi));
     // Us(i) = substr(x, Uf(i), ii - Uf(i)) ++ z ++ Us(i + 1)
     flem.push_back(
         nm->mkNode(APPLY_UF, us, i)
             .eqNode(nm->mkNode(
                 STRING_CONCAT, pfxMatch, z, nm->mkNode(APPLY_UF, us, ip1))));
-
     Node body = nm->mkNode(OR, bound.negate(), nm->mkNode(AND, flem));
     Node forall = mkForallInternal(bvli, body);
     lemmas.push_back(forall);
 
-    // IF in_re(x, re.++(_*, y', _*))
-    // THEN:
+    // IF indexof(x, y', 0) = -1
+    // THEN: k = x
+    // ELSE:
     //   numOcc > 0 ^
     //   k = Us(0) ^ Us(numOcc) = substr(x, Uf(numOcc)) ^
-    //   Uf(0) = 0 ^ not(in_re(substr(x, Uf(numOcc)), re.++(_*, y', _*)))
+    //   Uf(0) = 0 ^ indexof_re(substr(x, Uf(numOcc)), y', 0) = -1 ^
     //   forall i. 0 <= i < nummOcc =>
     //     Ul(i) > 0 ^
-    //     Uf(i + 1) >= Uf(i) + Ul(i) ^
-    //     in_re(substr(x, ii, Ul(i)), y') ^
-    //     ~in_re(substr(x, Uf(i), Uf(i + 1) - 1 - Uf(i)), re.++(_*, y', _*)) ^
+    //     Uf(i + 1) = indexof_re(x, yp, Uf(i)) + Ul(i + 1) ^
+    //     in_re(substr(x, ii, Ul(i + 1)), y') ^
+    //     forall l. 0 < l < Ul(i + 1) =>
+    //       ~in_re(substr(x, Uf(i + 1) - Ul(i + 1), l), y')
     //     Us(i) = substr(x, Uf(i), ii - Uf(i)) ++ z ++ Us(i + 1)
     //     where ii = Uf(i + 1) - Ul(i)
-    // ELSE: k = x
     // where y' = re.diff(y, "")
     //
     // Conceptually, y' is the regex y but excluding the empty string (because
@@ -760,8 +843,17 @@ Node StringsPreprocess::reduce(Node t,
     // matches of y' in x, Uf(i) is the end position of the i-th match, Ul(i)
     // is the length of the i^th match, and Us(i) is the result of processing
     // the remainder after processing the i^th occurrence of y in x.
+    //
+    // Visualization of Uf(i) and Ul(i):
+    //
+    // x = |------------| match 1 |-----------| match 2   |---|
+    //     |                      |                       |
+    //     Uf(0)                  Uf(1)                   Uf(2)
+    //
+    //                  |---------|           |-----------|
+    //                    Ul(1)                 Ul(2)
     asserts.push_back(
-        nm->mkNode(ITE, hasMatch, nm->mkNode(AND, lemmas), k.eqNode(x)));
+        nm->mkNode(ITE, noMatch, k.eqNode(x), nm->mkNode(AND, lemmas)));
     retNode = k;
   }
   else if (t.getKind() == STRING_TOLOWER || t.getKind() == STRING_TOUPPER)
@@ -1013,7 +1105,8 @@ Node StringsPreprocess::mkForallInternal(Node bvl, Node body)
   }
   else
   {
-    qvar = nm->mkSkolem("qinternal", nm->booleanType());
+    SkolemManager* sm = nm->getSkolemManager();
+    qvar = sm->mkDummySkolem("qinternal", nm->booleanType());
     // this dummy variable marks that the quantified formula is internal
     qvar.setAttribute(InternalQuantAttribute(), true);
     // remember the dummy variable
@@ -1026,6 +1119,6 @@ Node StringsPreprocess::mkForallInternal(Node bvl, Node body)
   return nm->mkNode(FORALL, bvl, body, ipl);
 }
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5

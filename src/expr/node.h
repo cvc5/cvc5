@@ -1,26 +1,25 @@
-/*********************                                                        */
-/*! \file node.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Reference-counted encapsulation of a pointer to node information
- **
- ** Reference-counted encapsulation of a pointer to node information.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Dejan Jovanovic, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Reference-counted encapsulation of a pointer to node information.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 // circular dependency
 #include "expr/node_value.h"
 
-#ifndef CVC4__NODE_H
-#define CVC4__NODE_H
+#ifndef CVC5__NODE_H
+#define CVC5__NODE_H
 
 #include <iostream>
 #include <map>
@@ -41,7 +40,7 @@
 #include "util/hash.h"
 #include "util/utility.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 class NodeManager;
@@ -125,12 +124,31 @@ typedef NodeTemplate<true> Node;
  * creation.  If this is returned as a TNode rather than a Node, the
  * count drops to zero, marking the expression as eligible for reclamation.)
  *
- * More guidelines on when to use TNodes is available in the CVC4
+ * More guidelines on when to use TNodes is available in the cvc5
  * Developer's Guide:
- * http://cvc4.cs.stanford.edu/wiki/Developer%27s_Guide#Dealing_with_expressions_.28Nodes_and_TNodes.29
+ * https://github.com/CVC4/CVC4/wiki/Developer-Guide#dealing-with-expressions-nodes-and-tnodes
  */
 typedef NodeTemplate<false> TNode;
 
+}  // namespace cvc5
+
+namespace std {
+
+template <>
+struct hash<cvc5::Node>
+{
+  size_t operator()(const cvc5::Node& node) const;
+};
+
+template <>
+struct hash<cvc5::TNode>
+{
+  size_t operator()(const cvc5::TNode& node) const;
+};
+
+}  // namespace std
+
+namespace cvc5 {
 namespace expr {
 
 class NodeValue;
@@ -138,24 +156,16 @@ class NodeValue;
   namespace attr {
     class AttributeManager;
     struct SmtAttributes;
-  }/* CVC4::expr::attr namespace */
+    }  // namespace attr
 
   class ExprSetDepth;
-}/* CVC4::expr namespace */
+  }  // namespace expr
 
 namespace kind {
   namespace metakind {
     struct NodeValueConstPrinter;
-  }/* CVC4::kind::metakind namespace */
-}/* CVC4::kind namespace */
-
-// for hash_maps, hash_sets..
-struct NodeHashFunction {
-  inline size_t operator()(Node node) const;
-};/* struct NodeHashFunction */
-struct TNodeHashFunction {
-  inline size_t operator()(TNode node) const;
-};/* struct TNodeHashFunction */
+    }  // namespace metakind
+    }  // namespace kind
 
 /**
  * Encapsulation of an NodeValue pointer.  The reference count is
@@ -196,13 +206,12 @@ class NodeTemplate {
   friend class TypeNode;
   friend class NodeManager;
 
-  template <unsigned nchild_thresh>
   friend class NodeBuilder;
 
-  friend class ::CVC4::expr::attr::AttributeManager;
-  friend struct ::CVC4::expr::attr::SmtAttributes;
+  friend class ::cvc5::expr::attr::AttributeManager;
+  friend struct ::cvc5::expr::attr::SmtAttributes;
 
-  friend struct ::CVC4::kind::metakind::NodeValueConstPrinter;
+  friend struct ::cvc5::kind::metakind::NodeValueConstPrinter;
 
   /**
    * Assigns the expression value and does reference counting. No assumptions
@@ -228,82 +237,89 @@ public:
    * Cache-aware, recursive version of substitute() used by the public
    * member function with a similar signature.
    */
-  Node substitute(TNode node, TNode replacement,
-                  std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
+ Node substitute(TNode node,
+                 TNode replacement,
+                 std::unordered_map<TNode, TNode>& cache) const;
 
-  /**
-   * Cache-aware, recursive version of substitute() used by the public
-   * member function with a similar signature.
-   */
-  template <class Iterator1, class Iterator2>
-  Node substitute(Iterator1 nodesBegin, Iterator1 nodesEnd,
-                  Iterator2 replacementsBegin, Iterator2 replacementsEnd,
-                  std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
+ /**
+  * Cache-aware, recursive version of substitute() used by the public
+  * member function with a similar signature.
+  */
+ template <class Iterator1, class Iterator2>
+ Node substitute(Iterator1 nodesBegin,
+                 Iterator1 nodesEnd,
+                 Iterator2 replacementsBegin,
+                 Iterator2 replacementsEnd,
+                 std::unordered_map<TNode, TNode>& cache) const;
 
-  /**
-   * Cache-aware, recursive version of substitute() used by the public
-   * member function with a similar signature.
-   */
-  template <class Iterator>
-  Node substitute(Iterator substitutionsBegin, Iterator substitutionsEnd,
-                  std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
+ /**
+  * Cache-aware, recursive version of substitute() used by the public
+  * member function with a similar signature.
+  */
+ template <class Iterator>
+ Node substitute(Iterator substitutionsBegin,
+                 Iterator substitutionsEnd,
+                 std::unordered_map<TNode, TNode>& cache) const;
 
-  /** Default constructor, makes a null expression. */
-  NodeTemplate() : d_nv(&expr::NodeValue::null()) { }
+ /** Default constructor, makes a null expression.
+  *
+  * This constructor is `explicit` to avoid accidentially creating a null node
+  * from an empty braced-init-list.
+  */
+ explicit NodeTemplate() : d_nv(&expr::NodeValue::null()) {}
 
-  /**
-   * Conversion between nodes that are reference-counted and those that are
-   * not.
-   * @param node the node to make copy of
-   */
-  NodeTemplate(const NodeTemplate<!ref_count>& node);
+ /**
+  * Conversion between nodes that are reference-counted and those that are
+  * not.
+  * @param node the node to make copy of
+  */
+ NodeTemplate(const NodeTemplate<!ref_count>& node);
 
-  /**
-   * Copy constructor.  Note that GCC does NOT recognize an instantiation of
-   * the above template as a copy constructor and problems ensue.  So we
-   * provide an explicit one here.
-   * @param node the node to make copy of
-   */
-  NodeTemplate(const NodeTemplate& node);
+ /**
+  * Copy constructor.  Note that GCC does NOT recognize an instantiation of
+  * the above template as a copy constructor and problems ensue.  So we
+  * provide an explicit one here.
+  * @param node the node to make copy of
+  */
+ NodeTemplate(const NodeTemplate& node);
 
-  /**
-   * Assignment operator for nodes, copies the relevant information from node
-   * to this node.
-   * @param node the node to copy
-   * @return reference to this node
-   */
-  NodeTemplate& operator=(const NodeTemplate& node);
+ /**
+  * Assignment operator for nodes, copies the relevant information from node
+  * to this node.
+  * @param node the node to copy
+  * @return reference to this node
+  */
+ NodeTemplate& operator=(const NodeTemplate& node);
 
-  /**
-   * Assignment operator for nodes, copies the relevant information from node
-   * to this node.
-   * @param node the node to copy
-   * @return reference to this node
-   */
-  NodeTemplate& operator=(const NodeTemplate<!ref_count>& node);
+ /**
+  * Assignment operator for nodes, copies the relevant information from node
+  * to this node.
+  * @param node the node to copy
+  * @return reference to this node
+  */
+ NodeTemplate& operator=(const NodeTemplate<!ref_count>& node);
 
-  /**
-   * Destructor. If ref_count is true it will decrement the reference count
-   * and, if zero, collect the NodeValue.
-   */
-  ~NodeTemplate();
+ /**
+  * Destructor. If ref_count is true it will decrement the reference count
+  * and, if zero, collect the NodeValue.
+  */
+ ~NodeTemplate();
 
-  /**
-   * Return the null node.
-   * @return the null node
-   */
-  static NodeTemplate null() {
-    return s_null;
-  }
+ /**
+  * Return the null node.
+  * @return the null node
+  */
+ static NodeTemplate null() { return s_null; }
 
-  /**
-   * Returns true if this expression is a null expression.
-   * @return true if null
-   */
-  bool isNull() const {
-    assertTNodeNotExpired();
-    return d_nv == &expr::NodeValue::null();
-  }
+ /**
+  * Returns true if this expression is a null expression.
+  * @return true if null
+  */
+ bool isNull() const
+ {
+   assertTNodeNotExpired();
+   return d_nv == &expr::NodeValue::null();
+ }
 
   /**
    * Structural comparison operator for expressions.
@@ -390,20 +406,6 @@ public:
     assertTNodeNotExpired();
     return NodeTemplate(d_nv->getChild(i));
   }
-
-  /* A note on isAtomic() and isAtomicFormula() (in CVC3 parlance)..
-   *
-   * It has been decided for now to hold off on implementations of
-   * these functions, as they may only be needed in CNF conversion,
-   * where it's pointless to do a lazy isAtomic determination by
-   * searching through the DAG, and storing it, since the result will
-   * only be used once.  For more details see the 4/27/2010 CVC4
-   * developer's meeting notes at:
-   *
-   * http://cvc4.cs.stanford.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
-   */
-  // bool containsDecision(); // is "atomic"
-  // bool properlyContainsDecision(); // maybe not atomic but all children are
 
   /**
    * Returns true if this node represents a constant
@@ -516,8 +518,7 @@ public:
   /**
    * Simultaneous substitution of Nodes in cache.
    */
-  Node substitute(
-      std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
+  Node substitute(std::unordered_map<TNode, TNode>& cache) const;
 
   /**
    * Returns the kind of this node.
@@ -951,22 +952,15 @@ std::ostream& operator<<(
   return out;
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 //#include "expr/attribute.h"
 #include "expr/node_manager.h"
 
-namespace CVC4 {
-
-inline size_t NodeHashFunction::operator()(Node node) const {
-  return node.getId();
-}
-inline size_t TNodeHashFunction::operator()(TNode node) const {
-  return node.getId();
-}
+namespace cvc5 {
 
 using TNodePairHashFunction =
-    PairHashFunction<TNode, TNode, TNodeHashFunction, TNodeHashFunction>;
+    PairHashFunction<TNode, TNode, std::hash<TNode>, std::hash<TNode>>;
 
 template <bool ref_count>
 inline size_t NodeTemplate<ref_count>::getNumChildren() const {
@@ -986,7 +980,7 @@ template <class AttrKind>
 inline typename AttrKind::value_type NodeTemplate<ref_count>::
 getAttribute(const AttrKind&) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -999,7 +993,7 @@ template <class AttrKind>
 inline bool NodeTemplate<ref_count>::
 hasAttribute(const AttrKind&) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1012,7 +1006,7 @@ template <class AttrKind>
 inline bool NodeTemplate<ref_count>::getAttribute(const AttrKind&,
                                                   typename AttrKind::value_type& ret) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1025,7 +1019,7 @@ template <class AttrKind>
 inline void NodeTemplate<ref_count>::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1225,7 +1219,7 @@ template <bool ref_count>
 NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const
 {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1255,7 +1249,7 @@ template <bool ref_count>
 TypeNode NodeTemplate<ref_count>::getType(bool check) const
 {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1269,14 +1263,16 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement) const {
   if (node == *this) {
     return replacement;
   }
-  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+  std::unordered_map<TNode, TNode> cache;
   return substitute(node, replacement, cache);
 }
 
 template <bool ref_count>
-Node
-NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
-                                    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
+Node NodeTemplate<ref_count>::substitute(
+    TNode node,
+    TNode replacement,
+    std::unordered_map<TNode, TNode>& cache) const
+{
   Assert(node != *this);
 
   if (getNumChildren() == 0 || node == replacement)
@@ -1285,13 +1281,14 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
   }
 
   // in cache?
-  typename std::unordered_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
+  typename std::unordered_map<TNode, TNode>::const_iterator i =
+      cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
 
   // otherwise compute
-  NodeBuilder<> nb(getKind());
+  NodeBuilder nb(getKind());
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     // push the operator
     if(getOperator() == node) {
@@ -1325,21 +1322,23 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
                                     Iterator1 nodesEnd,
                                     Iterator2 replacementsBegin,
                                     Iterator2 replacementsEnd) const {
-  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+  std::unordered_map<TNode, TNode> cache;
   return substitute(nodesBegin, nodesEnd,
                     replacementsBegin, replacementsEnd, cache);
 }
 
 template <bool ref_count>
 template <class Iterator1, class Iterator2>
-Node
-NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
-                                    Iterator1 nodesEnd,
-                                    Iterator2 replacementsBegin,
-                                    Iterator2 replacementsEnd,
-                                    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
+Node NodeTemplate<ref_count>::substitute(
+    Iterator1 nodesBegin,
+    Iterator1 nodesEnd,
+    Iterator2 replacementsBegin,
+    Iterator2 replacementsEnd,
+    std::unordered_map<TNode, TNode>& cache) const
+{
   // in cache?
-  typename std::unordered_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
+  typename std::unordered_map<TNode, TNode>::const_iterator i =
+      cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
@@ -1359,7 +1358,7 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder<> nb(getKind());
+    NodeBuilder nb(getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << getOperator().substitute(nodesBegin, nodesEnd,
@@ -1382,13 +1381,13 @@ template <class Iterator>
 inline Node
 NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
                                     Iterator substitutionsEnd) const {
-  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+  std::unordered_map<TNode, TNode> cache;
   return substitute(substitutionsBegin, substitutionsEnd, cache);
 }
 
 template <bool ref_count>
 inline Node NodeTemplate<ref_count>::substitute(
-    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const
+    std::unordered_map<TNode, TNode>& cache) const
 {
   // Since no substitution is given (other than what may already be in the
   // cache), we pass dummy iterators to conform to the main substitute method,
@@ -1398,12 +1397,14 @@ inline Node NodeTemplate<ref_count>::substitute(
 
 template <bool ref_count>
 template <class Iterator>
-Node
-NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
-                                    Iterator substitutionsEnd,
-                                    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
+Node NodeTemplate<ref_count>::substitute(
+    Iterator substitutionsBegin,
+    Iterator substitutionsEnd,
+    std::unordered_map<TNode, TNode>& cache) const
+{
   // in cache?
-  typename std::unordered_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
+  typename std::unordered_map<TNode, TNode>::const_iterator i =
+      cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
@@ -1421,7 +1422,7 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder<> nb(getKind());
+    NodeBuilder nb(getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << getOperator().substitute(substitutionsBegin, substitutionsEnd, cache);
@@ -1436,7 +1437,7 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
   }
 }
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
 /**
  * Pretty printer for use within gdb.  This is not intended to be used
  * outside of gdb.  This writes to the Warning() stream and immediately
@@ -1489,8 +1490,8 @@ static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& 
   n.printAst(Warning(), 0);
   Warning().flush();
 }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__NODE_H */
+#endif /* CVC5__NODE_H */

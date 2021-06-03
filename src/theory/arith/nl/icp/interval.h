@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file interval.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An interval with poly::Value bounds and origins for these bounds.
+ */
 
-#ifndef CVC4__THEORY__ARITH__ICP__INTERVAL_H
-#define CVC4__THEORY__ARITH__ICP__INTERVAL_H
+#ifndef CVC5__THEORY__ARITH__ICP__INTERVAL_H
+#define CVC5__THEORY__ARITH__ICP__INTERVAL_H
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 #include <poly/polyxx.h>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -58,7 +59,7 @@ inline std::ostream& operator<<(std::ostream& os, const Interval& i)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif
 

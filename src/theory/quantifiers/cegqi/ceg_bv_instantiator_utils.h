@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file ceg_bv_instantiator_utils.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Aina Niemetz, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of ceg_bv_instantiator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Aina Niemetz, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of ceg_bv_instantiator.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__BV_INSTANTIATOR_UTILS_H
-#define CVC4__BV_INSTANTIATOR_UTILS_H
+#ifndef CVC5__BV_INSTANTIATOR_UTILS_H
+#define CVC5__BV_INSTANTIATOR_UTILS_H
 
 #include "expr/attribute.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -60,13 +61,12 @@ Node getPvCoeff(TNode pv, TNode n);
  * a null node otherwise. If pv does not occur in children it returns a
  * multiplication over children.
  */
-Node normalizePvMult(
-    TNode pv,
-    const std::vector<Node>& children,
-    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv);
+Node normalizePvMult(TNode pv,
+                     const std::vector<Node>& children,
+                     std::unordered_map<Node, bool>& contains_pv);
 
 /**
- * Normalizes the children of a BITVECTOR_PLUS w.r.t. pv. contains_pv marks
+ * Normalizes the children of a BITVECTOR_ADD w.r.t. pv. contains_pv marks
  * terms in which pv occurs.
  * For example,
  *
@@ -80,10 +80,9 @@ Node normalizePvMult(
  * a null node otherwise. If pv does not occur in children it returns an
  * addition over children.
  */
-Node normalizePvPlus(
-    Node pv,
-    const std::vector<Node>& children,
-    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv);
+Node normalizePvPlus(Node pv,
+                     const std::vector<Node>& children,
+                     std::unordered_map<Node, bool>& contains_pv);
 
 /**
  * Linearize an equality w.r.t. pv such that pv only occurs once. contains_pv
@@ -96,13 +95,12 @@ Node normalizePvPlus(
  *
  *   pv * (-a - 1) = c - b.
  */
-Node normalizePvEqual(
-    Node pv,
-    const std::vector<Node>& children,
-    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv);
+Node normalizePvEqual(Node pv,
+                      const std::vector<Node>& children,
+                      std::unordered_map<Node, bool>& contains_pv);
 
 }  // namespace utils
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 #endif

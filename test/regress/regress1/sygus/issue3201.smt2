@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-inference
+; COMMAND-LINE: --sygus-inference -q
 (set-logic ALL)
 (declare-fun v () Bool)
 (assert false)

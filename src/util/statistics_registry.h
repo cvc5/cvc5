@@ -1,77 +1,61 @@
-/*********************                                                        */
-/*! \file statistics_registry.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Statistics utility classes
- **
- ** Statistics utility classes, including classes for holding (and referring
- ** to) statistics, the statistics registry, and some other associated
- ** classes.
- **
- ** This file is somewhat unique in that it is a "cvc4_private_library.h"
- ** header. Because of this, most classes need to be marked as CVC4_EXPORT.
- ** This is because CVC4_EXPORT is connected to the visibility of the linkage
- ** in the object files for the class. It does not dictate what headers are
- ** installed.
- ** Because the StatisticsRegistry and associated classes are built into
- ** libutil, which is used by libcvc4, and then later used by the libmain
- ** without referring to libutil as well. Thus the without marking these as
- ** CVC4_EXPORT the symbols would be external in libutil, internal in libcvc4,
- ** and not be visible to libmain and linking would fail.
- ** You can debug this using "nm" on the .so and .o files in the builds/
- ** directory. See
- ** http://eli.thegreenplace.net/2013/07/09/library-order-in-static-linking
- ** for a longer discussion on symbol visibility.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Central statistics registry.
+ *
+ * The StatisticsRegistry that issues statistic proxy objects.
+ */
 
 /**
  * On the design of the statistics:
- * 
+ *
  * Stat is the abstract base class for all statistic values.
  * It stores the name and provides (fully virtual) methods
  * flushInformation() and safeFlushInformation().
- * 
+ *
  * BackedStat is an abstract templated base class for statistic values
  * that store the data themselves. It takes care of printing them already
  * and derived classes usually only need to provide methods to set the
  * value.
- * 
- * ReferenceStat holds a reference (conceptually, it is implemented as a 
+ *
+ * ReferenceStat holds a reference (conceptually, it is implemented as a
  * const pointer) to some data that is stored outside of the statistic.
- * 
+ *
  * IntStat is a BackedStat<std::int64_t>.
- * 
+ *
  * SizeStat holds a const reference to some container and provides the
  * size of this container.
- * 
+ *
  * AverageStat is a BackedStat<double>.
- * 
+ *
  * HistogramStat counts instances of some type T. It is implemented as a
  * std::map<T, std::uint64_t>.
- * 
+ *
  * IntegralHistogramStat is a (conceptual) specialization of HistogramStat
- * for types that are (convertible to) integral. This allows to use a 
+ * for types that are (convertible to) integral. This allows to use a
  * std::vector<std::uint64_t> instead of a std::map.
- * 
+ *
  * TimerStat uses std::chrono to collect timing information. It is
  * implemented as BackedStat<std::chrono::duration> and provides methods
  * start() and stop(), accumulating times it was activated. It provides
  * the convenience class CodeTimer to allow for RAII-style usage.
- * 
- * 
+ *
+ *
  * All statistic classes should protect their custom methods using
- *   if (CVC4_USE_STATISTICS) { ... }
+ *   if (CVC5_USE_STATISTICS) { ... }
  * Output methods (flushInformation() and safeFlushInformation()) are only
  * called when statistics are enabled and need no protection.
- * 
- * 
+ *
+ *
  * The statistic classes try to implement a consistent interface:
  * - if we store some generic data, we implement set()
  * - if we (conceptually) store a set of values, we implement operator<<()
@@ -79,123 +63,209 @@
  *   (like operator++() or operator+=())
  */
 
-#include "cvc4_private_library.h"
+#include "cvc5_private_library.h"
 
-#ifndef CVC4__STATISTICS_REGISTRY_H
-#define CVC4__STATISTICS_REGISTRY_H
+#ifndef CVC5__STATISTICS_REGISTRY_H
+#define CVC5__STATISTICS_REGISTRY_H
 
-#include <ctime>
-#include <iomanip>
+#include <iostream>
 #include <map>
-#include <sstream>
-#include <vector>
+#include <memory>
+#include <typeinfo>
 
-#ifdef CVC4_STATISTICS_ON
-#  define CVC4_USE_STATISTICS true
-#else
-#  define CVC4_USE_STATISTICS false
-#endif
+#include "base/check.h"
+#include "util/statistics_stats.h"
+#include "util/statistics_value.h"
 
-#include "base/exception.h"
-#include "cvc4_export.h"
-#include "util/safe_print.h"
-#include "util/statistics.h"
-#include "util/stats_base.h"
+namespace cvc5 {
 
-namespace CVC4 {
-
-/** A statistic that contains a SExpr. */
-class SExprStat : public Stat {
-private:
-  SExpr d_data;
-
-public:
-
-  /**
-   * Construct a SExpr-valued statistic with the given name and
-   * initial value.
-   */
-  SExprStat(const std::string& name, const SExpr& init) :
-    Stat(name), d_data(init){}
-
-  void flushInformation(std::ostream& out) const override
-  {
-    out << d_data;
-  }
-
-  void safeFlushInformation(int fd) const override
-  {
-    // SExprStat is only used in statistics.cpp in copyFrom, which we cannot
-    // do in a signal handler anyway.
-    safe_print(fd, "<unsupported>");
-  }
-
-  SExpr getValue() const override { return d_data; }
-
-};/* class SExprStat */
-
-/****************************************************************************/
-/* Statistics Registry                                                      */
-/****************************************************************************/
+struct StatisticBaseValue;
 
 /**
- * The main statistics registry.  This registry maintains the list of
- * currently active statistics and is able to "flush" them all.
+ * The central registry for statistics.
+ * Internally stores statistic data objects and issues corresponding proxy
+ * objects to modules that want to expose statistics.
+ * Provides registration methods (e.g. `registerAverage` or
+ * `registerHistogram<T>`) that return the proxy object.
+ * The different statistics are explained in more detail in statistics_stats.h
+ *
+ * Every statistic is identified by a name. If a statistic with the given
+ * name is already registered, the registry issues another proxy object
+ * for that name using the same data it already holds for this name.
+ * While this makes perfect sense for most statistic types, it may lead to
+ * unexpected (though not undefined) behaviour for others. For a reference
+ * statistic, for example, the internal data will simply point to the object
+ * registered last.
+ * Note that the type of the re-registered statistic must always match
+ * the type of the previously registered statistic with the same name.
+ *
+ * We generally distinguish between public (non-expert) and private (expert)
+ * statistics. By default, `--stats` only shows public statistics. Private
+ * ones are printed as well if `--all-statistics` is set.
+ * All registration methods have a trailing argument `expert`, defaulting to
+ * true.
+ *
+ * If statistics are disabled entirely (i.e. the cmake option
+ * `ENABLE_STATISTICS` is not set), the registry still issues proxy objects
+ * that can be used normally.
+ * However, no data is stored in the registry and the modification functions
+ * of the proxy objects do nothing.
  */
-class CVC4_EXPORT StatisticsRegistry : public StatisticsBase
-{
- private:
-  /** Private copy constructor undefined (no copy permitted). */
-  StatisticsRegistry(const StatisticsRegistry&) = delete;
-
-public:
-
-  /** Construct an nameless statistics registry */
-  StatisticsRegistry() {}
-
-  void flushStat(std::ostream& out) const;
-
-  void flushInformation(std::ostream& out) const;
-
-  void safeFlushInformation(int fd) const;
-
-  SExpr getValue() const
-  {
-    std::vector<SExpr> v;
-    for(StatSet::iterator i = d_stats.begin(); i != d_stats.end(); ++i) {
-      std::vector<SExpr> w;
-      w.push_back(SExpr((*i)->getName()));
-      w.push_back((*i)->getValue());
-      v.push_back(SExpr(w));
-    }
-    return SExpr(v);
-  }
-
-  /** Register a new statistic */
-  void registerStat(Stat* s);
-
-  /** Unregister a new statistic */
-  void unregisterStat(Stat* s);
-
-}; /* class StatisticsRegistry */
-
-/**
- * Resource-acquisition-is-initialization idiom for statistics
- * registry.  Useful for stack-based statistics (like in the driver).
- * This RAII class only does registration and unregistration.
- */
-class CVC4_EXPORT RegisterStatistic
+class StatisticsRegistry
 {
  public:
-  RegisterStatistic(StatisticsRegistry* reg, Stat* stat);
-  ~RegisterStatistic();
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const StatisticsRegistry& sr);
 
-private:
-  StatisticsRegistry* d_reg;
-  Stat* d_stat;
+  using Snapshot = std::map<std::string, StatExportData>;
 
-}; /* class RegisterStatistic */
+  /**
+   * If `registerPublic` is true, all statistics that are public are
+   * pre-registered as such. This argument mostly exists so that unit tests
+   * can disable this pre-registration.
+   */
+  StatisticsRegistry(bool registerPublic = true);
 
-}/* CVC4 namespace */
+  /** Register a new running average statistic for `name` */
 
-#endif /* CVC4__STATISTICS_REGISTRY_H */
+  AverageStat registerAverage(const std::string& name, bool expert = true);
+  /** Register a new histogram statistic for `name` */
+  template <typename T>
+  HistogramStat<T> registerHistogram(const std::string& name,
+                                     bool expert = true)
+  {
+    return registerStat<HistogramStat<T>>(name, expert);
+  }
+
+  /** Register a new integer statistic for `name` */
+  IntStat registerInt(const std::string& name, bool expert = true);
+
+  /** Register a new reference statistic for `name` */
+  template <typename T>
+  ReferenceStat<T> registerReference(const std::string& name,
+                                     bool expert = true)
+  {
+    return registerStat<ReferenceStat<T>>(name, expert);
+  }
+  /**
+   * Register a new reference statistic for `name` and initialize it to
+   * refer to `t`.
+   */
+  template <typename T>
+  ReferenceStat<T> registerReference(const std::string& name,
+                                     const T& t,
+                                     bool expert = true)
+  {
+    ReferenceStat<T> res = registerStat<ReferenceStat<T>>(name, expert);
+    res.set(t);
+    return res;
+  }
+
+  /**
+   * Register a new container size statistic for `name` and initialize it
+   * to refer to `t`.
+   */
+  template <typename T>
+  SizeStat<T> registerSize(const std::string& name,
+                           const T& t,
+                           bool expert = true)
+  {
+    SizeStat<T> res = registerStat<SizeStat<T>>(name, expert);
+    res.set(t);
+    return res;
+  }
+
+  /** Register a new timer statistic for `name` */
+  TimerStat registerTimer(const std::string& name, bool expert = true);
+
+  /** Register a new value statistic for `name`. */
+  template <typename T>
+  ValueStat<T> registerValue(const std::string& name, bool expert = true)
+  {
+    return registerStat<ValueStat<T>>(name, expert);
+  }
+
+  /** Register a new value statistic for `name` and set it to `init`. */
+  template <typename T>
+  ValueStat<T> registerValue(const std::string& name,
+                             const T& init,
+                             bool expert = true)
+  {
+    ValueStat<T> res = registerStat<ValueStat<T>>(name, expert);
+    res.set(init);
+    return res;
+  }
+
+  /** begin iteration */
+  auto begin() const { return d_stats.begin(); }
+  /** end iteration */
+  auto end() const { return d_stats.end(); }
+
+  /**
+   * Obtain the current state of all statistics.
+   */
+  void storeSnapshot();
+
+  /**
+   * Obtain a single statistic by name. Returns nullptr if no statistic has
+   * been registered for this name.
+   */
+  StatisticBaseValue* get(const std::string& name) const;
+
+  /**
+   * Print all statistics to the given output stream.
+   */
+  void print(std::ostream& os) const;
+  /**
+   * Print all statistics in a safe manner to the given file descriptor.
+   */
+  void printSafe(int fd) const;
+  /**
+   * Print all statistics as a diff to the last stored snapshot.
+   */
+  void printDiff(std::ostream& os) const;
+
+ private:
+  /**
+   * Helper method to register a new statistic.
+   * If the name was already used, a new proxy object is created.
+   * We check whether the type matches the type of the originally registered
+   * statistic using `typeid`.
+   */
+  template <typename Stat>
+  Stat registerStat(const std::string& name, bool expert)
+  {
+    if constexpr (Configuration::isStatisticsBuild())
+    {
+      auto it = d_stats.find(name);
+      if (it == d_stats.end())
+      {
+        it = d_stats.emplace(name, std::make_unique<typename Stat::stat_type>())
+                 .first;
+        it->second->d_expert = expert;
+      }
+      auto* ptr = it->second.get();
+      Assert(typeid(*ptr) == typeid(typename Stat::stat_type))
+          << "Statistic value " << name
+          << " was registered again with a different type.";
+      it->second->d_expert = it->second->d_expert && expert;
+      return Stat(static_cast<typename Stat::stat_type*>(ptr));
+    }
+    return Stat(nullptr);
+  }
+
+  /**
+   * Holds (and owns) all statistic values, indexed by the name they were
+   * registered for.
+   */
+  std::map<std::string, std::unique_ptr<StatisticBaseValue>> d_stats;
+
+  std::unique_ptr<Snapshot> d_lastSnapshot;
+};
+
+/** Calls `sr.print(os)`. */
+std::ostream& operator<<(std::ostream& os, const StatisticsRegistry& sr);
+
+}  // namespace cvc5
+
+#endif /* CVC5__STATISTICS_REGISTRY_H */

@@ -1,33 +1,34 @@
-/*********************                                                        */
-/*! \file sequence.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The sequence data type.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The sequence data type.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__EXPR__SEQUENCE_H
-#define CVC4__EXPR__SEQUENCE_H
+#ifndef CVC5__EXPR__SEQUENCE_H
+#define CVC5__EXPR__SEQUENCE_H
 
 #include <memory>
 #include <vector>
 
-namespace CVC4 {
+namespace cvc5 {
 
 template <bool ref_count>
 class NodeTemplate;
 typedef NodeTemplate<true> Node;
 class TypeNode;
 
-/** The CVC4 sequence class
+/** The cvc5 sequence class
  *
  * This data structure is the domain of values for the sequence type.
  */
@@ -36,7 +37,7 @@ class Sequence
  public:
   /** constructors for Sequence
    *
-   * Internally, a CVC4::Sequence is represented by a vector of Nodes (d_seq),
+   * Internally, a cvc5::Sequence is represented by a vector of Nodes (d_seq),
    * where each Node in this vector must be a constant.
    */
   Sequence() = default;
@@ -173,6 +174,6 @@ struct SequenceHashFunction
 
 std::ostream& operator<<(std::ostream& os, const Sequence& s);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__SEQUENCE_H */
+#endif /* CVC5__EXPR__SEQUENCE_H */

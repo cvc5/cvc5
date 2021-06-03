@@ -1,20 +1,19 @@
-/*********************                                                        */
-/*! \file bv_subtheory_algebraic.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Algebraic solver.
- **
- ** Algebraic solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Mathias Preiner, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Algebraic solver.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -25,7 +24,7 @@
 #include "theory/bv/slicer.h"
 #include "theory/substitutions.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -59,10 +58,8 @@ class SubstitutionEx
     }
   };
 
-  typedef std::unordered_map<Node, SubstitutionElement, NodeHashFunction>
-      Substitutions;
-  typedef std::unordered_map<Node, SubstitutionElement, NodeHashFunction>
-      SubstitutionsCache;
+  typedef std::unordered_map<Node, SubstitutionElement> Substitutions;
+  typedef std::unordered_map<Node, SubstitutionElement> SubstitutionsCache;
 
   Substitutions d_substitutions;
   SubstitutionsCache d_cache;
@@ -104,9 +101,9 @@ struct WorklistElement
   WorklistElement() : node(), id(-1) {}
 };
 
-typedef std::unordered_map<Node, Node, NodeHashFunction> NodeNodeMap;
-typedef std::unordered_map<Node, unsigned, NodeHashFunction> NodeIdMap;
-typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
+typedef std::unordered_map<Node, Node> NodeNodeMap;
+typedef std::unordered_map<Node, unsigned> NodeIdMap;
+typedef std::unordered_set<TNode> TNodeSet;
 
 class ExtractSkolemizer
 {
@@ -125,7 +122,7 @@ class ExtractSkolemizer
     ExtractList() : base(1), extracts() {}
     void addExtract(Extract& e);
   };
-  typedef std::unordered_map<Node, ExtractList, NodeHashFunction> VarExtractMap;
+  typedef std::unordered_map<Node, ExtractList> VarExtractMap;
   context::Context d_emptyContext;
   VarExtractMap d_varToExtract;
   theory::SubstitutionMap* d_modelMap;
@@ -164,9 +161,8 @@ class AlgebraicSolver : public SubtheorySolver
     IntStat d_numSat;
     IntStat d_numUnknown;
     TimerStat d_solveTime;
-    BackedStat<double> d_useHeuristic;
+    ValueStat<double> d_useHeuristic;
     Statistics();
-    ~Statistics();
   };
 
   std::unique_ptr<SubstitutionMap> d_modelMap;
@@ -245,4 +241,4 @@ class AlgebraicSolver : public SubtheorySolver
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

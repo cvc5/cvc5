@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file synth_rew_rules.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A technique for synthesizing candidate rewrites of the form t1 = t2,
- ** where t1 and t2 are subterms of the input.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A technique for synthesizing candidate rewrites of the form t1 = t2,
+ * where t1 and t2 are subterms of the input.
+ */
 
-#ifndef CVC4__PREPROCESSING__PASSES__SYNTH_REW_RULES_H
-#define CVC4__PREPROCESSING__PASSES__SYNTH_REW_RULES_H
+#ifndef CVC5__PREPROCESSING__PASSES__SYNTH_REW_RULES_H
+#define CVC5__PREPROCESSING__PASSES__SYNTH_REW_RULES_H
 
 #include "preprocessing/preprocessing_pass.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -71,6 +72,6 @@ class SynthRewRulesPass : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PASSES__SYNTH_REW_RULES_H */
+#endif /* CVC5__PREPROCESSING__PASSES__SYNTH_REW_RULES_H */

@@ -1,22 +1,25 @@
-/*********************                                                        */
-/*! \file rcons_type_info.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Reconstruct Type Info class implementation
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Abdalrhman Mohamed, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Reconstruct Type Info class implementation.
+ */
 
 #include "theory/quantifiers/sygus/rcons_type_info.h"
 
+#include "expr/skolem_manager.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/sygus/rcons_obligation.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -26,9 +29,10 @@ void RConsTypeInfo::initialize(TermDbSygus* tds,
                                const std::vector<Node>& builtinVars)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   d_enumerator.reset(new SygusEnumerator(tds, nullptr, s, true));
-  d_enumerator->initialize(nm->mkSkolem("sygus_rcons", stn));
+  d_enumerator->initialize(sm->mkDummySkolem("sygus_rcons", stn));
   d_crd.reset(new CandidateRewriteDatabase(true, false, true, false));
   // since initial samples are not always useful for equivalence checks, set
   // their number to 0
@@ -60,13 +64,21 @@ Node RConsTypeInfo::addTerm(Node n)
   return d_crd->addTerm(n, false, out);
 }
 
-void RConsTypeInfo::setBuiltinToOb(Node builtin, Node ob)
+void RConsTypeInfo::setBuiltinToOb(Node t, RConsObligation* ob)
 {
-  d_ob[builtin] = ob;
+  d_ob.emplace(t, ob);
 }
 
-Node RConsTypeInfo::builtinToOb(Node builtin) { return d_ob[builtin]; }
+RConsObligation* RConsTypeInfo::builtinToOb(Node t)
+{
+  auto it = d_ob.find(t);
+  if (it != d_ob.cend())
+  {
+    return it->second;
+  }
+  return nullptr;
+}
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

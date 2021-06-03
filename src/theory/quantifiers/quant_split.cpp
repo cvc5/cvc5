@@ -1,39 +1,37 @@
-/*********************                                                        */
-/*! \file quant_split.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of dynamic quantifiers splitting
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of dynamic quantifiers splitting.
+ */
 
 #include "theory/quantifiers/quant_split.h"
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "options/quantifiers_options.h"
 
-using namespace std;
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+using namespace cvc5::kind;
 
-QuantDSplit::QuantDSplit(QuantifiersEngine* qe,
-                         QuantifiersState& qs,
+namespace cvc5 {
+namespace theory {
+namespace quantifiers {
+
+QuantDSplit::QuantDSplit(QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr, qe), d_added_split(qs.getUserContext())
+    : QuantifiersModule(qs, qim, qr, tr), d_added_split(qs.getUserContext())
 {
 }
 
@@ -54,6 +52,7 @@ void QuantDSplit::checkOwnership(Node q)
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     TypeNode tn = q[0][i].getType();
     if( tn.isDatatype() ){
+      bool isFinite = d_qstate.isFiniteType(tn);
       const DType& dt = tn.getDType();
       if (dt.isRecursiveSingleton(tn))
       {
@@ -64,14 +63,14 @@ void QuantDSplit::checkOwnership(Node q)
         if (options::quantDynamicSplit() == options::QuantDSplitMode::AGG)
         {
           // split if it is a finite datatype
-          doSplit = dt.isInterpretedFinite(tn);
+          doSplit = isFinite;
         }
         else if (options::quantDynamicSplit()
                  == options::QuantDSplitMode::DEFAULT)
         {
           if (!qbi.isFiniteBound(q, q[0][i]))
           {
-            if (dt.isInterpretedFinite(tn))
+            if (isFinite)
             {
               // split if goes from being unhandled -> handled by finite
               // instantiation. An example is datatypes with uninterpreted sort
@@ -135,7 +134,7 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
   }
   Trace("quant-dsplit") << "QuantDSplit::check" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  FirstOrderModel* m = d_quantEngine->getModel();
+  FirstOrderModel* m = d_treg.getModel();
   std::vector<Node> lemmas;
   for (std::map<Node, int>::iterator it = d_quant_to_reduce.begin();
        it != d_quant_to_reduce.end();
@@ -203,8 +202,11 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
   for (const Node& lem : lemmas)
   {
     Trace("quant-dsplit") << "QuantDSplit lemma : " << lem << std::endl;
-    d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
+    d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_DSPLIT);
   }
   Trace("quant-dsplit") << "QuantDSplit::check finished" << std::endl;
 }
 
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

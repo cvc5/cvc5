@@ -1,29 +1,61 @@
-/*********************                                                        */
-/*! \file skolem_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Skolem manager utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Skolem manager utility.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__SKOLEM_MANAGER_H
-#define CVC4__EXPR__SKOLEM_MANAGER_H
+#ifndef CVC5__EXPR__SKOLEM_MANAGER_H
+#define CVC5__EXPR__SKOLEM_MANAGER_H
 
 #include <string>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofGenerator;
+
+/** Skolem function identifier */
+enum class SkolemFunId
+{
+  NONE,
+  /** an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
+  DIV_BY_ZERO,
+  /** an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
+  INT_DIV_BY_ZERO,
+  /** an uninterpreted function f s.t. f(x) = x mod 0 */
+  MOD_BY_ZERO,
+  /** an uninterpreted function f s.t. f(x) = sqrt(x) */
+  SQRT,
+  /** a wrongly applied selector */
+  SELECTOR_WRONG,
+  /** a shared selector */
+  SHARED_SELECTOR,
+  /** an application of seq.nth that is out of bounds */
+  SEQ_NTH_OOB,
+  /**
+   * Regular expression unfold component: if (str.in_re t R), where R is
+   * (re.++ r0 ... rn), then the RE_UNFOLD_POS_COMPONENT{t,R,i} is a string
+   * skolem ki such that t = (str.++ k0 ... kn) and (str.in_re k0 r0) for
+   * i = 0, ..., n.
+   */
+  RE_UNFOLD_POS_COMPONENT,
+};
+/** Converts a skolem function name to a string. */
+const char* toString(SkolemFunId id);
+/** Writes a skolem function name to a stream. */
+std::ostream& operator<<(std::ostream& out, SkolemFunId id);
 
 /**
  * A manager for skolems that can be used in proofs. This is designed to be
@@ -56,6 +88,9 @@ class ProofGenerator;
  * Furthermore, note that original form and witness form may share skolems
  * in the rare case that a witness term is purified. This is currently only the
  * case for algorithms that introduce witness, e.g. BV/set instantiation.
+ *
+ * Additionally, we consider a third class of skolems (mkSkolemFunction) which
+ * are for convenience associated with an identifier, and not a witness term.
  */
 class SkolemManager
 {
@@ -176,11 +211,70 @@ class SkolemManager
                       const std::string& comment = "",
                       int flags = NodeManager::SKOLEM_DEFAULT);
   /**
-   * Make Boolean term variable for term t. This is a special case of
-   * mkPurifySkolem above, where the returned term has kind
-   * BOOLEAN_TERM_VARIABLE.
+   * Make skolem function. This method should be used for creating fixed
+   * skolem functions of the forms described in SkolemFunId. The user of this
+   * method is responsible for providing a proper type for the identifier that
+   * matches the description of id. Skolem functions are useful for modelling
+   * the behavior of partial functions, or for theory-specific inferences that
+   * introduce fresh variables.
+   *
+   * A skolem function is not given a formal semantics in terms of a witness
+   * term, nor is it a purification skolem, thus it does not fall into the two
+   * categories of skolems above. This method is motivated by convenience, as
+   * the user of this method does not require constructing canonical variables
+   * for witness terms.
+   *
+   * The returned skolem is an ordinary skolem variable that can be used
+   * e.g. in APPLY_UF terms when tn is a function type.
+   *
+   * Notice that we do not insist that tn is a function type. A user of this
+   * method may construct a canonical (first-order) skolem using this method
+   * as well.
+   *
+   * @param id The identifier of the skolem function
+   * @param tn The type of the returned skolem function
+   * @param cacheVal A cache value. The returned skolem function will be
+   * unique to the pair (id, cacheVal). This value is required, for instance,
+   * for skolem functions that are in fact families of skolem functions,
+   * e.g. the wrongly applied case of selectors.
+   * @return The skolem function.
    */
-  Node mkBooleanTermVariable(Node t);
+  Node mkSkolemFunction(SkolemFunId id,
+                        TypeNode tn,
+                        Node cacheVal = Node::null(),
+                        int flags = NodeManager::SKOLEM_DEFAULT);
+  /** Same as above, with multiple cache values */
+  Node mkSkolemFunction(SkolemFunId id,
+                        TypeNode tn,
+                        const std::vector<Node>& cacheVals,
+                        int flags = NodeManager::SKOLEM_DEFAULT);
+  /**
+   * Is k a skolem function? Returns true if k was generated by the above call.
+   * Updates the arguments to the values used when constructing it.
+   */
+  bool isSkolemFunction(Node k, SkolemFunId& id, Node& cacheVal) const;
+  /**
+   * Create a skolem constant with the given name, type, and comment. This
+   * should only be used if the definition of the skolem does not matter.
+   * The definition of a skolem matters e.g. when the skolem is used in a
+   * proof.
+   *
+   * @param prefix the name of the new skolem variable is the prefix
+   * appended with a unique ID.  This way a family of skolem variables
+   * can be made with unique identifiers, used in dump, tracing, and
+   * debugging output.  Use SKOLEM_EXACT_NAME flag if you don't want
+   * a unique ID appended and use prefix as the name.
+   * @param type the type of the skolem variable to create
+   * @param comment a comment for dumping output; if declarations are
+   * being dumped, this is included in a comment before the declaration
+   * and can be quite useful for debugging
+   * @param flags an optional mask of bits from SkolemFlags to control
+   * mkSkolem() behavior
+   */
+  Node mkDummySkolem(const std::string& prefix,
+                     const TypeNode& type,
+                     const std::string& comment = "",
+                     int flags = NodeManager::SKOLEM_DEFAULT);
   /**
    * Get proof generator for existentially quantified formula q. This returns
    * the proof generator that was provided in a call to mkSkolem above.
@@ -205,6 +299,10 @@ class SkolemManager
   static Node getOriginalForm(Node n);
 
  private:
+  /** Cache of skolem functions for mkSkolemFunction above. */
+  std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node> d_skolemFuns;
+  /** Backwards mapping of above */
+  std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>> d_skolemFunMap;
   /**
    * Mapping from witness terms to proof generators.
    */
@@ -234,6 +332,6 @@ class SkolemManager
                  int flags = NodeManager::SKOLEM_DEFAULT);
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__PROOF_SKOLEM_CACHE_H */
+#endif /* CVC5__EXPR__PROOF_SKOLEM_CACHE_H */

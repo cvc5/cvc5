@@ -1,24 +1,25 @@
 #!/usr/bin/env python
-#####################
-## sets.py
-## Top contributors (to current version):
-##   Makai Mann, Mudathir Mohamed, Aina Niemetz
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
-## \brief A simple demonstration of the solving capabilities of the CVC4
-## sets solver through the Python API. This is a direct translation
-## of sets-new.cpp.
+###############################################################################
+# Top contributors (to current version):
+#   Makai Mann, Mudathir Mohamed, Aina Niemetz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# A simple demonstration of the solving capabilities of the cvc5 sets solver
+# through the Python API. This is a direct translation of sets-new.cpp.
 ##
 
-import pycvc4
-from pycvc4 import kinds
+import pycvc5
+from pycvc5 import kinds
 
 if __name__ == "__main__":
-    slv = pycvc4.Solver()
+    slv = pycvc5.Solver()
 
     # Optionally, set the logic. We need at least UF for equality predicate,
     # integers (LIA) and sets (FS).
@@ -47,7 +48,7 @@ if __name__ == "__main__":
 
     theorem = slv.mkTerm(kinds.Equal, lhs, rhs)
 
-    print("CVC4 reports: {} is {}".format(theorem,
+    print("cvc5 reports: {} is {}".format(theorem,
                                           slv.checkEntailed(theorem)))
 
     # Verify emptset is a subset of any set
@@ -57,7 +58,7 @@ if __name__ == "__main__":
 
     theorem = slv.mkTerm(kinds.Subset, emptyset, A)
 
-    print("CVC4 reports: {} is {}".format(theorem,
+    print("cvc5 reports: {} is {}".format(theorem,
                                           slv.checkEntailed(theorem)))
 
     # Find me an element in 1, 2 intersection 2, 3, if there is one.
@@ -79,7 +80,7 @@ if __name__ == "__main__":
 
     result = slv.checkSatAssuming(e)
 
-    print("CVC4 reports: {} is {}".format(e, result))
+    print("cvc5 reports: {} is {}".format(e, result))
 
     if result:
         print("For instance, {} is a member".format(slv.getValue(x)))

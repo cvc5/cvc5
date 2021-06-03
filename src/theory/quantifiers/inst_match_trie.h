@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file inst_match_trie.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief inst match trie class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Inst match trie class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__INST_MATCH_TRIE_H
-#define CVC4__THEORY__QUANTIFIERS__INST_MATCH_TRIE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__INST_MATCH_TRIE_H
+#define CVC5__THEORY__QUANTIFIERS__INST_MATCH_TRIE_H
 
 #include <map>
 
@@ -23,7 +24,7 @@
 #include "context/cdo.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -223,7 +224,7 @@ class InstMatchTrieOrdered
 };
 
 }  // namespace quantifiers
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__INST_MATCH_TRIE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__INST_MATCH_TRIE_H */

@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file congruence_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Alex Ozdemir, Tim King, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Alex Ozdemir, Tim King, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -23,18 +24,19 @@
 #include "context/cdlist.h"
 #include "context/cdmaybe.h"
 #include "context/cdtrail_queue.h"
-#include "theory/arith/arithvar.h"
+#include "proof/trust_node.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/arithvar.h"
 #include "theory/arith/callbacks.h"
 #include "theory/arith/constraint_forward.h"
-#include "theory/trust_node.h"
 #include "theory/uf/equality_engine_notify.h"
 #include "util/dense_map.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
+class EagerProofGenerator;
 
 namespace context {
 class Context;
@@ -42,8 +44,6 @@ class UserContext;
 }
 
 namespace theory {
-
-class EagerProofGenerator;
 struct EeSetupInfo;
 
 namespace eq {
@@ -100,7 +100,7 @@ private:
    * This is node is potentially both the propagation or
    * Rewriter::rewrite(propagation).
    */
-  typedef context::CDHashMap<Node, size_t, NodeHashFunction> ExplainMap;
+  typedef context::CDHashMap<Node, size_t> ExplainMap;
   ExplainMap d_explanationMap;
 
   ConstraintDatabase& d_constraintDatabase;
@@ -212,7 +212,7 @@ private:
   void enableSharedTerms();
   void dequeueLiterals();
 
-  void enqueueIntoNB(const std::set<TNode> all, NodeBuilder<>& nb);
+  void enqueueIntoNB(const std::set<TNode> all, NodeBuilder& nb);
 
   /**
    * Determine an explaination for `internal`. That is a conjunction of theory
@@ -251,7 +251,7 @@ private:
    */
   TrustNode explain(TNode literal);
 
-  void explain(TNode lit, NodeBuilder<>& out);
+  void explain(TNode lit, NodeBuilder& out);
 
   void addWatchedPair(ArithVar s, TNode x, TNode y);
 
@@ -290,13 +290,12 @@ private:
     IntStat d_conflicts;
 
     Statistics();
-    ~Statistics();
   } d_statistics;
 
 };/* class ArithCongruenceManager */
 
 std::vector<Node> andComponents(TNode an);
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

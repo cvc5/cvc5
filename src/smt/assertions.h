@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file assertions.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for storing assertions for an SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for storing assertions for an SMT engine.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__SMT__ASSERTIONS_H
-#define CVC4__SMT__ASSERTIONS_H
+#ifndef CVC5__SMT__ASSERTIONS_H
+#define CVC5__SMT__ASSERTIONS_H
 
 #include <vector>
 
@@ -23,7 +24,10 @@
 #include "expr/node.h"
 #include "preprocessing/assertion_pipeline.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class Env;
+
 namespace smt {
 
 class AbstractValues;
@@ -41,7 +45,7 @@ class Assertions
   typedef context::CDList<Node> AssertionList;
 
  public:
-  Assertions(context::UserContext* u, AbstractValues& absv);
+  Assertions(Env& env, AbstractValues& absv);
   ~Assertions();
   /**
    * Finish initialization, called once after options are finalized. Sets up
@@ -80,12 +84,13 @@ class Assertions
    */
   void assertFormula(const Node& n, bool inUnsatCore = true);
   /**
-   * Assert that n corresponds to an assertion from a define-fun-rec command.
+   * Assert that n corresponds to an assertion from a define-fun or
+   * define-fun-rec command.
    * This assertion is added to the set of assertions maintained by this class.
    * If this has a global definition, this assertion is persistent for any
    * subsequent check-sat calls.
    */
-  void addDefineFunRecDefinition(Node n, bool global);
+  void addDefineFunDefinition(Node n, bool global);
   /**
    * Get the assertions pipeline, which contains the set of assertions we are
    * currently processing.
@@ -143,21 +148,24 @@ class Assertions
                   bool inUnsatCore,
                   bool inInput,
                   bool isAssumption,
+                  bool isFunDef,
                   bool maybeHasFv);
-  /** pointer to the user context */
-  context::UserContext* d_userContext;
+  /** Reference to the environment. */
+  Env& d_env;
   /** Reference to the abstract values utility */
   AbstractValues& d_absValues;
+  /** Whether we are producing assertions */
+  bool d_produceAssertions;
   /**
    * The assertion list (before any conversion) for supporting
    * getAssertions().  Only maintained if in incremental mode.
    */
-  AssertionList* d_assertionList;
+  AssertionList d_assertionList;
   /**
-   * List of lemmas generated for global recursive function definitions. We
+   * List of lemmas generated for global (recursive) function definitions. We
    * assert this list of definitions in each check-sat call.
    */
-  std::unique_ptr<std::vector<Node>> d_globalDefineFunRecLemmas;
+  std::unique_ptr<std::vector<Node>> d_globalDefineFunLemmas;
   /**
    * The list of assumptions from the previous call to checkSatisfiability.
    * Note that if the last call to checkSatisfiability was an entailment check,
@@ -172,6 +180,6 @@ class Assertions
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

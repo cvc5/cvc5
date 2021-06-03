@@ -1,31 +1,33 @@
-/*********************                                                        */
-/*! \file infer_proof_cons.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of inference to proof conversion
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of inference to proof conversion.
+ */
 
 #include "theory/strings/infer_proof_cons.h"
 
-#include "expr/proof_node_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
+#include "proof/proof_node_manager.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "util/statistics_registry.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -134,7 +136,6 @@ void InferProofCons::convert(InferenceId infer,
     break;
     // ========================== rewrite pred
     case InferenceId::STRINGS_EXTF_EQ_REW:
-    case InferenceId::STRINGS_INFER_EMP:
     {
       // the last child is the predicate we are operating on, move to front
       Node src = ps.d_children[ps.d_children.size() - 1];
@@ -147,8 +148,11 @@ void InferProofCons::convert(InferenceId infer,
         break;
       }
       // may need the "extended equality rewrite"
-      Node mainEqSRew2 = psb.applyPredElim(
-          mainEqSRew, {}, MethodId::SB_DEFAULT, MethodId::RW_REWRITE_EQ_EXT);
+      Node mainEqSRew2 = psb.applyPredElim(mainEqSRew,
+                                           {},
+                                           MethodId::SB_DEFAULT,
+                                           MethodId::SBA_SEQUENTIAL,
+                                           MethodId::RW_REWRITE_EQ_EXT);
       if (mainEqSRew2 == conc)
       {
         useBuffer = true;
@@ -284,6 +288,7 @@ void InferProofCons::convert(InferenceId infer,
                                    conc,
                                    cexp,
                                    MethodId::SB_DEFAULT,
+                                   MethodId::SBA_SEQUENTIAL,
                                    MethodId::RW_REWRITE_EQ_EXT))
         {
           Trace("strings-ipc-core") << "Transformed to " << conc
@@ -674,7 +679,9 @@ void InferProofCons::convert(InferenceId infer,
     }
     break;
     // ========================== unit injectivity
-    case InferenceId::STRINGS_UNIT_INJ: { ps.d_rule = PfRule::STRING_SEQ_UNIT_INJ;
+    case InferenceId::STRINGS_UNIT_INJ:
+    {
+      ps.d_rule = PfRule::STRING_SEQ_UNIT_INJ;
     }
     break;
     // ========================== prefix conflict
@@ -705,11 +712,11 @@ void InferProofCons::convert(InferenceId infer,
           }
           else if (eunf.getKind() == AND)
           {
-            // equality is the last conjunct
+            // equality is the first conjunct
             std::vector<Node> childrenAE;
             childrenAE.push_back(eunf);
             std::vector<Node> argsAE;
-            argsAE.push_back(nm->mkConst(Rational(eunf.getNumChildren() - 1)));
+            argsAE.push_back(nm->mkConst(Rational(0)));
             Node eunfAE = psb.tryStep(PfRule::AND_ELIM, childrenAE, argsAE);
             Trace("strings-ipc-prefix")
                 << "--- and elim to " << eunfAE << std::endl;
@@ -842,6 +849,7 @@ void InferProofCons::convert(InferenceId infer,
     case InferenceId::STRINGS_CARDINALITY:
     case InferenceId::STRINGS_I_CYCLE_E:
     case InferenceId::STRINGS_I_CYCLE:
+    case InferenceId::STRINGS_INFER_EMP:
     case InferenceId::STRINGS_RE_DELTA:
     case InferenceId::STRINGS_RE_DELTA_CONF:
     case InferenceId::STRINGS_RE_DERIVE:
@@ -1042,4 +1050,4 @@ std::string InferProofCons::identify() const
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

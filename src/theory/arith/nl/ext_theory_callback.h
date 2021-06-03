@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file ext_theory_callback.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The extended theory callback for non-linear arithmetic
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The extended theory callback for non-linear arithmetic.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H
-#define CVC4__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H
+#define CVC5__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H
 
 #include "expr/node.h"
 #include "theory/ext_theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 class EqualityEngine;
@@ -72,7 +73,8 @@ class NlExtTheoryCallback : public ExtTheoryCallback
   bool isExtfReduced(int effort,
                      Node n,
                      Node on,
-                     std::vector<Node>& exp) override;
+                     std::vector<Node>& exp,
+                     ExtReducedId& id) override;
 
  private:
   /** The underlying equality engine. */
@@ -84,6 +86,6 @@ class NlExtTheoryCallback : public ExtTheoryCallback
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H */
+#endif /* CVC5__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H */

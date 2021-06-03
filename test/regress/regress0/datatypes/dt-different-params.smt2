@@ -1,4 +1,4 @@
-(set-logic QF_ALL_SUPPORTED)
+(set-logic QF_ALL)
 (set-info :status unsat)
 (declare-datatypes ((Data 1)) ((par (T) ((data (first T))))))
 

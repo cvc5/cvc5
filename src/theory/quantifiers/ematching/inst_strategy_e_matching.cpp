@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file inst_strategy_e_matching.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of e matching instantiation strategies
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of e matching instantiation strategies.
+ */
 
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
 
@@ -22,10 +23,10 @@
 #include "theory/quantifiers/quantifiers_state.h"
 #include "util/random.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::theory::quantifiers::inst;
+using namespace cvc5::kind;
+using namespace cvc5::theory::quantifiers::inst;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -624,7 +625,7 @@ void InstStrategyAutoGenTriggers::addTrigger( inst::Trigger * tr, Node q ) {
         << "Make partially specified user pattern: " << std::endl;
     Trace("auto-gen-trigger-partial") << "  " << qq << std::endl;
     Node lem = nm->mkNode(OR, q.negate(), qq);
-    d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
+    d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_PARTIAL_TRIGGER_REDUCE);
     return;
   }
   unsigned tindex;
@@ -686,6 +687,6 @@ void InstStrategyAutoGenTriggers::addUserNoPattern( Node q, Node pat ) {
   }
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

@@ -1,25 +1,24 @@
-/*********************                                                        */
-/*! \file rational_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief White box testing of CVC4::Rational.
- **
- ** White box testing of CVC4::Rational.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * White box testing of cvc5::Rational.
+ */
 
 #include <sstream>
 
 #include "test.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilWhiteRational : public TestInternal
@@ -93,7 +92,7 @@ TEST_F(TestUtilWhiteRational, constructors)
   ASSERT_EQ(dz, qz.getDenominator());
 
   // Not sure how to catch this...
-  // TS_ASSERT_THROWS(Rational div_0(0,0),__gmp_exception );
+  // ASSERT_THROW(Rational div_0(0,0),__gmp_exception );
 }
 
 TEST_F(TestUtilWhiteRational, destructor)
@@ -416,4 +415,4 @@ TEST_F(TestUtilWhiteRational, constructrion)
   ASSERT_EQ(Rational(u), Rational(u));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

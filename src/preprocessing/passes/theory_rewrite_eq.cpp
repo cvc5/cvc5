@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_rewrite_eq.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The TheoryRewriteEq preprocessing pass
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The TheoryRewriteEq preprocessing pass.
+ */
 
 #include "preprocessing/passes/theory_rewrite_eq.h"
 
@@ -18,9 +19,9 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/theory_engine.h"
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -44,12 +45,12 @@ PreprocessingPassResult TheoryRewriteEq::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-theory::TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
+TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
 {
   NodeManager* nm = NodeManager::currentNM();
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -96,7 +97,7 @@ theory::TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
       if (ret.getKind() == kind::EQUAL && !ret[0].getType().isBoolean())
       {
         // For example, (= x y) ---> (and (>= x y) (<= x y))
-        theory::TrustNode trn = te->ppRewriteEquality(ret);
+        TrustNode trn = te->ppRewriteEquality(ret);
         // can make proof producing by using proof generator from trn
         ret = trn.isNull() ? Node(ret) : trn.getNode();
       }
@@ -116,4 +117,4 @@ theory::TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

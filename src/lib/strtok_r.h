@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file strtok_r.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Replacement for strtok_r() for systems without it (like Win32)
- **
- ** Replacement for strtok_r() for systems without it (like Win32).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Replacement for strtok_r() for systems without it (like Win32).
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__LIB__STRTOK_R_H
-#define CVC4__LIB__STRTOK_R_H
+#ifndef CVC5__LIB__STRTOK_R_H
+#define CVC5__LIB__STRTOK_R_H
 
 #ifdef HAVE_STRTOK_R
 
@@ -39,4 +38,4 @@ char* strtok_r(char *str, const char *delim, char **saveptr);
 #endif /* __cplusplus */
 
 #endif /* HAVE_STRTOK_R */
-#endif /* CVC4__LIB__STRTOK_R_H */
+#endif /* CVC5__LIB__STRTOK_R_H */

@@ -1,36 +1,39 @@
-/*********************                                                        */
-/*! \file node_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of CVC4::Node.
- **
- ** Black box testing of CVC4::Node.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::Node.
+ */
 
 #include <algorithm>
 #include <sstream>
 #include <string>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
+#include "expr/array_store_all.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "expr/node_value.h"
+#include "expr/skolem_manager.h"
 #include "smt/smt_engine.h"
 #include "test_node.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 
@@ -43,10 +46,11 @@ std::vector<Node> makeNSkolemNodes(NodeManager* nodeManager,
                                    TypeNode type)
 {
   std::vector<Node> skolems;
+  SkolemManager* sm = nodeManager->getSkolemManager();
   for (uint32_t i = 0; i < n; i++)
   {
-    skolems.push_back(nodeManager->mkSkolem(
-        "skolem_", type, "Created by makeNSkolemNodes()"));
+    skolems.push_back(
+        sm->mkDummySkolem("skolem_", type, "Created by makeNSkolemNodes()"));
   }
   return skolems;
 }
@@ -76,7 +80,7 @@ class TestNodeBlackNode : public TestNode
 
   void testNaryExpForSize(Kind k, uint32_t n)
   {
-    NodeBuilder<> nbz(k);
+    NodeBuilder nbz(k);
     Node trueNode = d_nodeManager->mkConst(true);
     for (uint32_t i = 0; i < n; ++i)
     {
@@ -119,12 +123,12 @@ TEST_F(TestNodeBlackNode, operator_equals)
 {
   Node a, b, c;
 
-  b = d_nodeManager->mkSkolem("b", d_nodeManager->booleanType());
+  b = d_skolemManager->mkDummySkolem("b", d_nodeManager->booleanType());
 
   a = b;
   c = a;
 
-  Node d = d_nodeManager->mkSkolem("d", d_nodeManager->booleanType());
+  Node d = d_skolemManager->mkDummySkolem("d", d_nodeManager->booleanType());
 
   ASSERT_TRUE(a == a);
   ASSERT_TRUE(a == b);
@@ -154,12 +158,12 @@ TEST_F(TestNodeBlackNode, operator_not_equals)
 {
   Node a, b, c;
 
-  b = d_nodeManager->mkSkolem("b", d_nodeManager->booleanType());
+  b = d_skolemManager->mkDummySkolem("b", d_nodeManager->booleanType());
 
   a = b;
   c = a;
 
-  Node d = d_nodeManager->mkSkolem("d", d_nodeManager->booleanType());
+  Node d = d_skolemManager->mkDummySkolem("d", d_nodeManager->booleanType());
 
   /*structed assuming operator == works */
   ASSERT_TRUE(iff(a != a, !(a == a)));
@@ -184,7 +188,7 @@ TEST_F(TestNodeBlackNode, operator_not_equals)
 /* operator[] */
 TEST_F(TestNodeBlackNode, operator_square)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   // Basic bounds check on a node w/out children
   ASSERT_DEATH(Node::null()[-1], "i >= 0 && unsigned\\(i\\) < d_nchildren");
   ASSERT_DEATH(Node::null()[0], "i >= 0 && unsigned\\(i\\) < d_nchildren");
@@ -203,7 +207,7 @@ TEST_F(TestNodeBlackNode, operator_square)
   ASSERT_EQ(tb, ite[1]);
   ASSERT_EQ(eb, ite[2]);
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   // Bounds check on a node with children
   ASSERT_DEATH(ite == ite[-1], "i >= 0 && unsigned\\(i\\) < d_nchildren");
   ASSERT_DEATH(ite == ite[4], "i >= 0 && unsigned\\(i\\) < d_nchildren");
@@ -215,7 +219,7 @@ TEST_F(TestNodeBlackNode, operator_assign)
 {
   Node a, b;
   Node c = d_nodeManager->mkNode(
-      NOT, d_nodeManager->mkSkolem("c", d_nodeManager->booleanType()));
+      NOT, d_skolemManager->mkDummySkolem("c", d_nodeManager->booleanType()));
 
   b = c;
   ASSERT_EQ(b, c);
@@ -232,8 +236,8 @@ TEST_F(TestNodeBlackNode, operator_less_than)
   // We don't have access to the ids so we can't test the implementation
   // in the black box tests.
 
-  Node a = d_nodeManager->mkSkolem("a", d_nodeManager->booleanType());
-  Node b = d_nodeManager->mkSkolem("b", d_nodeManager->booleanType());
+  Node a = d_skolemManager->mkDummySkolem("a", d_nodeManager->booleanType());
+  Node b = d_skolemManager->mkDummySkolem("b", d_nodeManager->booleanType());
 
   ASSERT_TRUE(a < b || b < a);
   ASSERT_TRUE(!(a < b && b < a));
@@ -275,8 +279,8 @@ TEST_F(TestNodeBlackNode, operator_less_than)
 TEST_F(TestNodeBlackNode, eqNode)
 {
   TypeNode t = d_nodeManager->mkSort();
-  Node left = d_nodeManager->mkSkolem("left", t);
-  Node right = d_nodeManager->mkSkolem("right", t);
+  Node left = d_skolemManager->mkDummySkolem("left", t);
+  Node right = d_skolemManager->mkDummySkolem("right", t);
   Node eq = left.eqNode(right);
 
   ASSERT_EQ(EQUAL, eq.getKind());
@@ -325,8 +329,8 @@ TEST_F(TestNodeBlackNode, orNode)
 
 TEST_F(TestNodeBlackNode, iteNode)
 {
-  Node a = d_nodeManager->mkSkolem("a", d_nodeManager->booleanType());
-  Node b = d_nodeManager->mkSkolem("b", d_nodeManager->booleanType());
+  Node a = d_skolemManager->mkDummySkolem("a", d_nodeManager->booleanType());
+  Node b = d_skolemManager->mkDummySkolem("b", d_nodeManager->booleanType());
 
   Node cnd = d_nodeManager->mkNode(OR, a, b);
   Node thenBranch = d_nodeManager->mkConst(true);
@@ -382,8 +386,8 @@ TEST_F(TestNodeBlackNode, xorNode)
 
 TEST_F(TestNodeBlackNode, getKind)
 {
-  Node a = d_nodeManager->mkSkolem("a", d_nodeManager->booleanType());
-  Node b = d_nodeManager->mkSkolem("b", d_nodeManager->booleanType());
+  Node a = d_skolemManager->mkDummySkolem("a", d_nodeManager->booleanType());
+  Node b = d_skolemManager->mkDummySkolem("b", d_nodeManager->booleanType());
 
   Node n = d_nodeManager->mkNode(NOT, a);
   ASSERT_EQ(NOT, n.getKind());
@@ -391,8 +395,8 @@ TEST_F(TestNodeBlackNode, getKind)
   n = d_nodeManager->mkNode(EQUAL, a, b);
   ASSERT_EQ(EQUAL, n.getKind());
 
-  Node x = d_nodeManager->mkSkolem("x", d_nodeManager->realType());
-  Node y = d_nodeManager->mkSkolem("y", d_nodeManager->realType());
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->realType());
+  Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->realType());
 
   n = d_nodeManager->mkNode(PLUS, x, y);
   ASSERT_EQ(PLUS, n.getKind());
@@ -407,8 +411,8 @@ TEST_F(TestNodeBlackNode, getOperator)
   TypeNode booleanType = d_nodeManager->booleanType();
   TypeNode predType = d_nodeManager->mkFunctionType(sort, booleanType);
 
-  Node f = d_nodeManager->mkSkolem("f", predType);
-  Node a = d_nodeManager->mkSkolem("a", sort);
+  Node f = d_skolemManager->mkDummySkolem("f", predType);
+  Node a = d_skolemManager->mkDummySkolem("a", sort);
   Node fa = d_nodeManager->mkNode(kind::APPLY_UF, f, a);
 
   ASSERT_TRUE(fa.hasOperator());
@@ -420,7 +424,7 @@ TEST_F(TestNodeBlackNode, getOperator)
   ASSERT_EQ(a.getNumChildren(), 0);
 
   ASSERT_EQ(f, fa.getOperator());
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(f.getOperator(), "mk == kind::metakind::PARAMETERIZED");
   ASSERT_DEATH(a.getOperator(), "mk == kind::metakind::PARAMETERIZED");
 #endif
@@ -441,7 +445,7 @@ TEST_F(TestNodeBlackNode, getNumChildren)
     testNaryExpForSize(AND, n);
   }
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(testNaryExpForSize(AND, 0),
                "getNumChildren\\(\\) >= "
                "kind::metakind::getMinArityForKind\\(getKind\\(\\)\\)");
@@ -454,15 +458,15 @@ TEST_F(TestNodeBlackNode, getNumChildren)
   ASSERT_DEATH(testNaryExpForSize(NOT, 2),
                "getNumChildren\\(\\) <= "
                "kind::metakind::getMaxArityForKind\\(getKind\\(\\)\\)");
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 }
 
 TEST_F(TestNodeBlackNode, iterator)
 {
-  NodeBuilder<> b;
-  Node x = d_nodeManager->mkSkolem("x", d_nodeManager->booleanType());
-  Node y = d_nodeManager->mkSkolem("y", d_nodeManager->booleanType());
-  Node z = d_nodeManager->mkSkolem("z", d_nodeManager->booleanType());
+  NodeBuilder b;
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
+  Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->booleanType());
+  Node z = d_skolemManager->mkDummySkolem("z", d_nodeManager->booleanType());
   Node n = b << x << y << z << kind::AND;
 
   {  // iterator
@@ -487,9 +491,9 @@ TEST_F(TestNodeBlackNode, kinded_iterator)
 {
   TypeNode integerType = d_nodeManager->integerType();
 
-  Node x = d_nodeManager->mkSkolem("x", integerType);
-  Node y = d_nodeManager->mkSkolem("y", integerType);
-  Node z = d_nodeManager->mkSkolem("z", integerType);
+  Node x = d_skolemManager->mkDummySkolem("x", integerType);
+  Node y = d_skolemManager->mkDummySkolem("y", integerType);
+  Node z = d_skolemManager->mkDummySkolem("z", integerType);
   Node plus_x_y_z = d_nodeManager->mkNode(kind::PLUS, x, y, z);
   Node x_minus_y = d_nodeManager->mkNode(kind::MINUS, x, y);
 
@@ -510,16 +514,16 @@ TEST_F(TestNodeBlackNode, toString)
 {
   TypeNode booleanType = d_nodeManager->booleanType();
 
-  Node w = d_nodeManager->mkSkolem(
+  Node w = d_skolemManager->mkDummySkolem(
       "w", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node x = d_nodeManager->mkSkolem(
+  Node x = d_skolemManager->mkDummySkolem(
       "x", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node y = d_nodeManager->mkSkolem(
+  Node y = d_skolemManager->mkDummySkolem(
       "y", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node z = d_nodeManager->mkSkolem(
+  Node z = d_skolemManager->mkDummySkolem(
       "z", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node m = NodeBuilder<>() << w << x << kind::OR;
-  Node n = NodeBuilder<>() << m << y << z << kind::AND;
+  Node m = NodeBuilder() << w << x << kind::OR;
+  Node n = NodeBuilder() << m << y << z << kind::AND;
 
   ASSERT_EQ(n.toString(), "(AND (OR w x) y z)");
 }
@@ -528,17 +532,17 @@ TEST_F(TestNodeBlackNode, toStream)
 {
   TypeNode booleanType = d_nodeManager->booleanType();
 
-  Node w = d_nodeManager->mkSkolem(
+  Node w = d_skolemManager->mkDummySkolem(
       "w", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node x = d_nodeManager->mkSkolem(
+  Node x = d_skolemManager->mkDummySkolem(
       "x", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node y = d_nodeManager->mkSkolem(
+  Node y = d_skolemManager->mkDummySkolem(
       "y", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node z = d_nodeManager->mkSkolem(
+  Node z = d_skolemManager->mkDummySkolem(
       "z", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node m = NodeBuilder<>() << x << y << kind::OR;
-  Node n = NodeBuilder<>() << w << m << z << kind::AND;
-  Node o = NodeBuilder<>() << n << n << kind::XOR;
+  Node m = NodeBuilder() << x << y << kind::OR;
+  Node n = NodeBuilder() << w << m << z << kind::AND;
+  Node o = NodeBuilder() << n << n << kind::XOR;
 
   std::stringstream sstr;
   sstr << Node::dag(false);
@@ -597,14 +601,14 @@ TEST_F(TestNodeBlackNode, dagifier)
   TypeNode intType = d_nodeManager->integerType();
   TypeNode fnType = d_nodeManager->mkFunctionType(intType, intType);
 
-  Node x =
-      d_nodeManager->mkSkolem("x", intType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node y =
-      d_nodeManager->mkSkolem("y", intType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node f =
-      d_nodeManager->mkSkolem("f", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node g =
-      d_nodeManager->mkSkolem("g", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
+  Node x = d_skolemManager->mkDummySkolem(
+      "x", intType, "", NodeManager::SKOLEM_EXACT_NAME);
+  Node y = d_skolemManager->mkDummySkolem(
+      "y", intType, "", NodeManager::SKOLEM_EXACT_NAME);
+  Node f = d_skolemManager->mkDummySkolem(
+      "f", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
+  Node g = d_skolemManager->mkDummySkolem(
+      "g", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
   Node fx = d_nodeManager->mkNode(APPLY_UF, f, x);
   Node fy = d_nodeManager->mkNode(APPLY_UF, f, y);
   Node gx = d_nodeManager->mkNode(APPLY_UF, g, x);
@@ -619,10 +623,10 @@ TEST_F(TestNodeBlackNode, dagifier)
   Node fgx_eq_gy = d_nodeManager->mkNode(EQUAL, fgx, gy);
 
   Node n = d_nodeManager->mkNode(
-      OR, fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy);
+      OR, {fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy});
 
   std::stringstream sstr;
-  sstr << Node::setdepth(-1) << Node::setlanguage(language::output::LANG_CVC4);
+  sstr << Node::setdepth(-1) << Node::setlanguage(language::output::LANG_CVC);
   sstr << Node::dag(false) << n;  // never dagify
   ASSERT_EQ(sstr.str(),
             "(f(f(f(x))) = x) OR (f(f(f(x))) = y) OR (f(x) = g(x)) OR (x = "
@@ -702,7 +706,7 @@ TEST_F(TestNodeBlackNode, isConst)
       listType.getDType().getConstructors();
   Node cons = lcons[0]->getConstructor();
   Node nil = lcons[1]->getConstructor();
-  Node x = d_nodeManager->mkSkolem("x", d_nodeManager->integerType());
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->integerType());
   Node cons_x_nil =
       d_nodeManager->mkNode(APPLY_CONSTRUCTOR,
                             cons,
@@ -764,8 +768,9 @@ TEST_F(TestNodeBlackNode, isConst)
 namespace {
 Node level0(NodeManager* nm)
 {
-  NodeBuilder<> nb(kind::AND);
-  Node x = nm->mkSkolem("x", nm->booleanType());
+  SkolemManager* sm = nm->getSkolemManager();
+  NodeBuilder nb(kind::AND);
+  Node x = sm->mkDummySkolem("x", nm->booleanType());
   nb << x;
   nb << x;
   return Node(nb.constructNode());
@@ -784,4 +789,4 @@ TEST_F(TestNodeBlackNode, node_tnode_usage)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

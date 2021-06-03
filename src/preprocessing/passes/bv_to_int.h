@@ -3,7 +3,7 @@
  ** \verbatim
  ** Top contributors (to current version):
  **   Yoni Zohar
- ** This file is part of the CVC4 project.
+ ** This file is part of the cvc5 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
@@ -12,10 +12,9 @@
  ** \brief The BVToInt preprocessing pass
  **/
 
-#include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__BV_TO_INT_H
-#define __CVC4__PREPROCESSING__PASSES__BV_TO_INT_H
+#ifndef __cvc5__PREPROCESSING__PASSES__BV_TO_INT_H
+#define __cvc5__PREPROCESSING__PASSES__BV_TO_INT_H
 
 #include "context/cdhashmap.h"
 #include "context/cdo.h"
@@ -24,11 +23,11 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/bv/int_blaster.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using CDNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
+using CDNodeMap = context::CDHashMap<Node, Node>;
 
 class BVToInt : public PreprocessingPass
 {
@@ -49,6 +48,6 @@ class BVToInt : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* __CVC4__PREPROCESSING__PASSES__BV_TO_INT_H */
+#endif /* __cvc5__PREPROCESSING__PASSES__BV_TO_INT_H */

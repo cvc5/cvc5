@@ -1,35 +1,36 @@
-/*********************                                                        */
-/*! \file sat_solver_types.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Alex Ozdemir, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief This class transforms a sequence of formulas into clauses.
- **
- ** This class takes a sequence of formulas.
- ** It outputs a stream of clauses that is propositionally
- ** equi-satisfiable with the conjunction of the formulas.
- ** This stream is maintained in an online fashion.
- **
- ** Unlike other parts of the system it is aware of the PropEngine's
- ** internals such as the representation and translation of [??? -Chris]
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Alex Ozdemir, Liana Hadarean
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This class transforms a sequence of formulas into clauses.
+ *
+ * This class takes a sequence of formulas.
+ * It outputs a stream of clauses that is propositionally
+ * equi-satisfiable with the conjunction of the formulas.
+ * This stream is maintained in an online fashion.
+ *
+ * Unlike other parts of the system it is aware of the PropEngine's
+ * internals such as the representation and translation of [??? -Chris]
+ */
 
 #pragma once
-
-#include "cvc4_private.h"
 
 #include <sstream>
 #include <string>
 #include <unordered_set>
 #include <vector>
 
-namespace CVC4 {
+#include "cvc5_private.h"
+
+namespace cvc5 {
 namespace prop {
 
 /**
@@ -235,4 +236,4 @@ enum SatSolverLifespan
 };
 
 }
-}
+}  // namespace cvc5

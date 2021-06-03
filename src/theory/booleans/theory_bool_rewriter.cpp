@@ -1,27 +1,30 @@
-/*********************                                                        */
-/*! \file theory_bool_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Dejan Jovanovic, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
+
+#include "theory/booleans/theory_bool_rewriter.h"
 
 #include <algorithm>
 #include <unordered_set>
 
 #include "expr/node_value.h"
-#include "theory/booleans/theory_bool_rewriter.h"
+#include "util/cardinality.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace booleans {
 
@@ -44,7 +47,7 @@ RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
  */
 RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
 {
-  typedef std::unordered_set<TNode, TNodeHashFunction> node_set;
+  typedef std::unordered_set<TNode> node_set;
 
   node_set visited;
   visited.insert(skipNode);
@@ -88,7 +91,7 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
     Assert(childList.size()
            < static_cast<size_t>(expr::NodeValue::MAX_CHILDREN)
                  * static_cast<size_t>(expr::NodeValue::MAX_CHILDREN));
-    NodeBuilder<> nb(k);
+    NodeBuilder nb(k);
     ChildList::iterator cur = childList.begin(), next, en = childList.end();
     while (cur != en)
     {
@@ -429,6 +432,6 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
   return RewriteResponse(REWRITE_DONE, n);
 }
 
-}/* CVC4::theory::booleans namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace booleans
+}  // namespace theory
+}  // namespace cvc5

@@ -27,8 +27,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/mtl/Sort.h"
 #include "prop/minisat/utils/System.h"
 
-using namespace CVC4;
-using namespace CVC4::Minisat;
+using namespace cvc5;
+using namespace cvc5::Minisat;
 
 //=================================================================================================
 // Options:
@@ -48,9 +48,9 @@ static DoubleOption opt_simp_garbage_frac(_cat, "simp-gc-frac", "The fraction of
 //=================================================================================================
 // Constructor/Destructor:
 
-SimpSolver::SimpSolver(CVC4::prop::TheoryProxy* proxy,
-                       CVC4::context::Context* context,
-                       CVC4::context::UserContext* userContext,
+SimpSolver::SimpSolver(cvc5::prop::TheoryProxy* proxy,
+                       cvc5::context::Context* context,
+                       cvc5::context::UserContext* userContext,
                        ProofNodeManager* pnm,
                        bool enableIncremental)
     : Solver(proxy, context, userContext, pnm, enableIncremental),
@@ -76,7 +76,7 @@ SimpSolver::SimpSolver(CVC4::prop::TheoryProxy* proxy,
       n_touched(0)
 {
     if(options::minisatUseElim() &&
-       options::minisatUseElim.wasSetByUser() &&
+       Options::current().wasSetByUser(options::minisatUseElim) &&
        enableIncremental) {
         WarningOnce() << "Incremental mode incompatible with --minisat-elim" << std::endl;
     }
@@ -172,10 +172,11 @@ lbool SimpSolver::solve_(bool do_simp, bool turn_off_simp)
 
 bool SimpSolver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 {
-#ifdef CVC4_ASSERTIONS
-    if (use_simplification) {
-      for (int i = 0; i < ps.size(); i++) Assert(!isEliminated(var(ps[i])));
-    }
+#ifdef CVC5_ASSERTIONS
+  if (use_simplification)
+  {
+    for (int i = 0; i < ps.size(); i++) Assert(!isEliminated(var(ps[i])));
+  }
 #endif
 
     int nclauses = clauses_persistent.size();

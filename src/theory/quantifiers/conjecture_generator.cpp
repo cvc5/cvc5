@@ -1,19 +1,21 @@
-/*********************                                                        */
-/*! \file conjecture_generator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief conjecture generator class
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * conjecture generator class
+ */
 
 #include "theory/quantifiers/conjecture_generator.h"
+
+#include "expr/skolem_manager.h"
 #include "expr/term_canonize.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/trigger_term_info.h"
@@ -22,17 +24,16 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "util/random.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+using namespace cvc5;
+using namespace cvc5::kind;
+using namespace cvc5::theory;
+using namespace cvc5::theory::quantifiers;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 struct sortConjectureScore {
   std::vector< int > d_scores;
@@ -85,12 +86,11 @@ void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& 
   }
 }
 
-ConjectureGenerator::ConjectureGenerator(QuantifiersEngine* qe,
-                                         QuantifiersState& qs,
+ConjectureGenerator::ConjectureGenerator(QuantifiersState& qs,
                                          QuantifiersInferenceManager& qim,
                                          QuantifiersRegistry& qr,
                                          TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr, qe),
+    : QuantifiersModule(qs, qim, qr, tr),
       d_notify(*this),
       d_uequalityEngine(
           d_notify, qs.getSatContext(), "ConjectureGenerator::ee", false),
@@ -1090,8 +1090,11 @@ int ConjectureGenerator::calculateGeneralizationDepth( TNode n, std::vector< TNo
 Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator it = d_typ_pred.find( tn );
   if( it==d_typ_pred.end() ){
-    TypeNode op_tn = NodeManager::currentNM()->mkFunctionType( tn, NodeManager::currentNM()->booleanType() );
-    Node op = NodeManager::currentNM()->mkSkolem( "PE", op_tn, "was created by conjecture ground term enumerator." );
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    TypeNode op_tn = nm->mkFunctionType(tn, nm->booleanType());
+    Node op = sm->mkDummySkolem(
+        "PE", op_tn, "was created by conjecture ground term enumerator.");
     d_typ_pred[tn] = op;
     return op;
   }else{
@@ -2261,4 +2264,4 @@ unsigned ConjectureGenerator::optFullCheckFrequency() { return 1; }
 
 bool ConjectureGenerator::optStatsOnly() { return false; }
 
-}
+}  // namespace cvc5

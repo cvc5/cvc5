@@ -1,20 +1,19 @@
-/*********************                                                        */
-/*! \file term_formula_removal.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Removal of term formulas
- **
- ** Removal of term formulas.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Removal of term formulas.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -25,10 +24,10 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "expr/term_context.h"
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class LazyCDProof;
 class ProofNodeManager;
@@ -89,24 +88,24 @@ class RemoveTermFormulas {
    * right hand side is assertion after removing term formulas, and the proof
    * generator (if provided) that can prove the equivalence.
    */
-  theory::TrustNode run(TNode assertion,
-                        std::vector<theory::TrustNode>& newAsserts,
-                        std::vector<Node>& newSkolems,
-                        bool fixedPoint = false);
+  TrustNode run(TNode assertion,
+                std::vector<TrustNode>& newAsserts,
+                std::vector<Node>& newSkolems,
+                bool fixedPoint = false);
   /**
    * Same as above, but does not track lemmas, and does not run to fixed point.
    * The relevant lemmas can be extracted by the caller later using getSkolems
    * and getLemmaForSkolem.
    */
-  theory::TrustNode run(TNode assertion);
+  TrustNode run(TNode assertion);
   /**
    * Same as above, but transforms a lemma, returning a LEMMA trust node that
    * proves the same formula as lem with term formulas removed.
    */
-  theory::TrustNode runLemma(theory::TrustNode lem,
-                             std::vector<theory::TrustNode>& newAsserts,
-                             std::vector<Node>& newSkolems,
-                             bool fixedPoint = false);
+  TrustNode runLemma(TrustNode lem,
+                     std::vector<TrustNode>& newAsserts,
+                     std::vector<Node>& newSkolems,
+                     bool fixedPoint = false);
 
   /**
    * Get proof generator that is responsible for all proofs for removing term
@@ -128,7 +127,7 @@ class RemoveTermFormulas {
   typedef context::CDInsertHashMap<
       std::pair<Node, uint32_t>,
       Node,
-      PairHashFunction<Node, uint32_t, NodeHashFunction> >
+      PairHashFunction<Node, uint32_t, std::hash<Node>>>
       TermFormulaCache;
   /** term formula removal cache
    *
@@ -156,7 +155,7 @@ class RemoveTermFormulas {
    *   d_skolem_cache[ite( G, a, b )] = k, and
    *   d_tfCache[<ite( G, a, b ),0>] = d_tfCache[<ite( G, a, b ),1>] = k.
    */
-  context::CDInsertHashMap<Node, Node, NodeHashFunction> d_skolem_cache;
+  context::CDInsertHashMap<Node, Node> d_skolem_cache;
 
   /** gets the skolem for node
    *
@@ -191,7 +190,7 @@ class RemoveTermFormulas {
    * the version of assertion with all term formulas removed.
    */
   Node runInternal(TNode assertion,
-                   std::vector<theory::TrustNode>& newAsserts,
+                   std::vector<TrustNode>& newAsserts,
                    std::vector<Node>& newSkolems);
   /**
    * This is called on curr of the form (t, val) where t is a term and val is
@@ -203,10 +202,10 @@ class RemoveTermFormulas {
    * Otherwise, if t should not be replaced in the term context, this method
    * returns the null node.
    */
-  Node runCurrent(std::pair<Node, uint32_t>& curr, theory::TrustNode& newLem);
+  Node runCurrent(std::pair<Node, uint32_t>& curr, TrustNode& newLem);
 
   /** Whether proofs are enabled */
   bool isProofEnabled() const;
 };/* class RemoveTTE */
 
-}/* CVC4 namespace */
+}  // namespace cvc5

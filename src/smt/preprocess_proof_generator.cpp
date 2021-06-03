@@ -1,29 +1,30 @@
-/*********************                                                        */
-/*! \file preprocess_proof_generator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The implementation of the module for proofs for preprocessing in an
- ** SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The implementation of the module for proofs for preprocessing in an
+ * SMT engine.
+ */
 
 #include "smt/preprocess_proof_generator.h"
 
 #include <sstream>
 
-#include "expr/proof.h"
-#include "expr/proof_checker.h"
-#include "expr/proof_node.h"
 #include "options/proof_options.h"
+#include "proof/proof.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_node.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm,
@@ -58,7 +59,7 @@ void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
     {
       checkEagerPedantic(d_ra);
     }
-    d_src[n] = theory::TrustNode::mkTrustLemma(n, pg);
+    d_src[n] = TrustNode::mkTrustLemma(n, pg);
   }
   else
   {
@@ -66,7 +67,7 @@ void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
   }
 }
 
-void PreprocessProofGenerator::notifyNewTrustedAssert(theory::TrustNode tn)
+void PreprocessProofGenerator::notifyNewTrustedAssert(TrustNode tn)
 {
   notifyNewAssert(tn.getProven(), tn.getGenerator());
 }
@@ -81,17 +82,17 @@ void PreprocessProofGenerator::notifyPreprocessed(Node n,
     return;
   }
   // call the trusted version
-  notifyTrustedPreprocessed(theory::TrustNode::mkTrustRewrite(n, np, pg));
+  notifyTrustedPreprocessed(TrustNode::mkTrustRewrite(n, np, pg));
 }
 
-void PreprocessProofGenerator::notifyTrustedPreprocessed(theory::TrustNode tnp)
+void PreprocessProofGenerator::notifyTrustedPreprocessed(TrustNode tnp)
 {
   if (tnp.isNull())
   {
     // no rewrite, nothing to do
     return;
   }
-  Assert(tnp.getKind() == theory::TrustNodeKind::REWRITE);
+  Assert(tnp.getKind() == TrustNodeKind::REWRITE);
   Node np = tnp.getNode();
   Trace("smt-proof-pp-debug")
       << "PreprocessProofGenerator::notifyPreprocessed: " << tnp.getProven()
@@ -125,7 +126,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
                     << ") input " << f << std::endl;
   Node curr = f;
   std::vector<Node> transChildren;
-  std::unordered_set<Node, NodeHashFunction> processed;
+  std::unordered_set<Node> processed;
   bool success;
   // we connect the proof of f to its source via the map d_src until we
   // discover that its source is a preprocessing lemma (a lemma stored in d_src)
@@ -160,8 +161,8 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       }
 
       Trace("smt-pppg") << "...update" << std::endl;
-      theory::TrustNodeKind tnk = (*it).second.getKind();
-      if (tnk == theory::TrustNodeKind::REWRITE)
+      TrustNodeKind tnk = (*it).second.getKind();
+      if (tnk == TrustNodeKind::REWRITE)
       {
         Trace("smt-pppg") << "...rewritten from " << proven[0] << std::endl;
         Assert(proven.getKind() == kind::EQUAL);
@@ -184,17 +185,15 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       else
       {
         Trace("smt-pppg") << "...lemma" << std::endl;
-        Assert(tnk == theory::TrustNodeKind::LEMMA);
+        Assert(tnk == TrustNodeKind::LEMMA);
       }
 
       if (!proofStepProcessed)
       {
         Trace("smt-pppg") << "...add missing step" << std::endl;
         // add trusted step, the rule depends on the kind of trust node
-        cdp.addStep(proven,
-                    tnk == theory::TrustNodeKind::LEMMA ? d_ra : d_rpp,
-                    {},
-                    {proven});
+        cdp.addStep(
+            proven, tnk == TrustNodeKind::LEMMA ? d_ra : d_rpp, {}, {proven});
       }
     }
   } while (success);
@@ -254,4 +253,4 @@ void PreprocessProofGenerator::checkEagerPedantic(PfRule r)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

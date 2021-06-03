@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file combination_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Abstract interface for theory combination.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Abstract interface for theory combination.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__COMBINATION_ENGINE__H
-#define CVC4__THEORY__COMBINATION_ENGINE__H
+#ifndef CVC5__THEORY__COMBINATION_ENGINE__H
+#define CVC5__THEORY__COMBINATION_ENGINE__H
 
 #include <vector>
 #include <memory>
@@ -23,13 +24,14 @@
 #include "theory/ee_manager.h"
 #include "theory/valuation.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
+class Env;
+class EagerProofGenerator;
 
 namespace theory {
 
-class EagerProofGenerator;
 class ModelManager;
 class SharedSolver;
 
@@ -44,6 +46,7 @@ class CombinationEngine
 {
  public:
   CombinationEngine(TheoryEngine& te,
+                    Env& env,
                     const std::vector<Theory*>& paraTheories,
                     ProofNodeManager* pnm);
   virtual ~CombinationEngine();
@@ -106,6 +109,8 @@ class CombinationEngine
   void sendLemma(TrustNode trn, TheoryId atomsTo);
   /** Reference to the theory engine */
   TheoryEngine& d_te;
+  /** Reference to the environment */
+  Env& d_env;
   /** Valuation for the engine */
   Valuation d_valuation;
   /** The proof node manager */
@@ -137,6 +142,6 @@ class CombinationEngine
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__COMBINATION_DISTRIBUTED__H */
+#endif /* CVC5__THEORY__COMBINATION_DISTRIBUTED__H */

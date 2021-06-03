@@ -1,45 +1,50 @@
-/*********************                                                        */
-/*! \file type_node.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Reference-counted encapsulation of a pointer to node information.
- **
- ** Reference-counted encapsulation of a pointer to node information.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Reference-counted encapsulation of a pointer to node information.
+ */
 #include "expr/type_node.h"
 
 #include <vector>
 
+#include "expr/datatype_index.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/type_properties.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/type_enumerator.h"
+#include "util/bitvector.h"
+#include "util/cardinality.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 TypeNode TypeNode::s_null( &expr::NodeValue::null() );
 
-TypeNode TypeNode::substitute(const TypeNode& type,
-                              const TypeNode& replacement,
-                              std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const {
+TypeNode TypeNode::substitute(
+    const TypeNode& type,
+    const TypeNode& replacement,
+    std::unordered_map<TypeNode, TypeNode>& cache) const
+{
   // in cache?
-  std::unordered_map<TypeNode, TypeNode, HashFunction>::const_iterator i = cache.find(*this);
+  std::unordered_map<TypeNode, TypeNode>::const_iterator i = cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
 
   // otherwise compute
-  NodeBuilder<> nb(getKind());
+  NodeBuilder nb(getKind());
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     // push the operator
     nb << TypeNode(d_nv->d_children[0]);
@@ -66,160 +71,123 @@ Cardinality TypeNode::getCardinality() const {
   return kind::getCardinality(*this);
 }
 
-/** Attribute true for types that are finite */
-struct IsFiniteTag
+/** Attribute true for types that have cardinality one */
+struct TypeCardinalityClassTag
 {
 };
-typedef expr::Attribute<IsFiniteTag, bool> IsFiniteAttr;
-/** Attribute true for types which we have computed the above attribute */
-struct IsFiniteComputedTag
-{
-};
-typedef expr::Attribute<IsFiniteComputedTag, bool> IsFiniteComputedAttr;
+typedef expr::Attribute<TypeCardinalityClassTag, uint64_t>
+    TypeCardinalityClassAttr;
 
-/** Attribute true for types that are interpreted as finite */
-struct IsInterpretedFiniteTag
-{
-};
-typedef expr::Attribute<IsInterpretedFiniteTag, bool> IsInterpretedFiniteAttr;
-/** Attribute true for types which we have computed the above attribute */
-struct IsInterpretedFiniteComputedTag
-{
-};
-typedef expr::Attribute<IsInterpretedFiniteComputedTag, bool>
-    IsInterpretedFiniteComputedAttr;
-
-bool TypeNode::isFinite() { return isFiniteInternal(false); }
-
-bool TypeNode::isInterpretedFinite()
-{
-  return isFiniteInternal(options::finiteModelFind());
-}
-
-bool TypeNode::isFiniteInternal(bool usortFinite)
+CardinalityClass TypeNode::getCardinalityClass()
 {
   // check it is already cached
-  if (usortFinite)
+  if (hasAttribute(TypeCardinalityClassAttr()))
   {
-    if (getAttribute(IsInterpretedFiniteComputedAttr()))
-    {
-      return getAttribute(IsInterpretedFiniteAttr());
-    }
+    return static_cast<CardinalityClass>(
+        getAttribute(TypeCardinalityClassAttr()));
   }
-  else if (getAttribute(IsFiniteComputedAttr()))
-  {
-    return getAttribute(IsFiniteAttr());
-  }
-  bool ret = false;
+  CardinalityClass ret = CardinalityClass::INFINITE;
   if (isSort())
   {
-    ret = usortFinite;
+    ret = CardinalityClass::INTERPRETED_ONE;
   }
   else if (isBoolean() || isBitVector() || isFloatingPoint()
            || isRoundingMode())
   {
-    ret = true;
+    ret = CardinalityClass::FINITE;
   }
-  else if (isString() || isRegExp() || isSequence() || isReal())
+  else if (isString() || isRegExp() || isSequence() || isReal() || isBag())
   {
-    ret = false;
+    ret = CardinalityClass::INFINITE;
   }
   else
   {
     // recursive case (this may be a parametric sort), we assume infinite for
-    // the moment here to prevent infinite loops
-    if (usortFinite)
-    {
-      setAttribute(IsInterpretedFiniteAttr(), false);
-      setAttribute(IsInterpretedFiniteComputedAttr(), true);
-    }
-    else
-    {
-      setAttribute(IsFiniteAttr(), false);
-      setAttribute(IsFiniteComputedAttr(), true);
-    }
+    // the moment here to prevent infinite loops, which may occur when
+    // computing the cardinality of datatype types with foreign types
+    setAttribute(TypeCardinalityClassAttr(), static_cast<uint64_t>(ret));
+
     if (isDatatype())
     {
       TypeNode tn = *this;
       const DType& dt = getDType();
-      ret = usortFinite ? dt.isInterpretedFinite(tn) : dt.isFinite(tn);
+      ret = dt.getCardinalityClass(tn);
     }
     else if (isArray())
     {
-      TypeNode tnc = getArrayConstituentType();
-      if (!tnc.isFiniteInternal(usortFinite))
+      ret = getArrayConstituentType().getCardinalityClass();
+      if (ret == CardinalityClass::FINITE
+          || ret == CardinalityClass::INTERPRETED_FINITE)
       {
-        // arrays with constituent type that is infinite are infinite
-        ret = false;
+        CardinalityClass cci = getArrayIndexType().getCardinalityClass();
+        // arrays with both finite element types, we take the max with its
+        // index type.
+        ret = maxCardinalityClass(ret, cci);
       }
-      else if (getArrayIndexType().isFiniteInternal(usortFinite))
-      {
-        // arrays with both finite constituent and index types are finite
-        ret = true;
-      }
-      else
-      {
-        // If the consistuent type of the array has cardinality one, then the
-        // array type has cardinality one, independent of the index type.
-        ret = tnc.getCardinality().isOne();
-      }
+      // else, array types whose element type is INFINITE, ONE, or
+      // INTERPRETED_ONE have the same cardinality class as their range.
     }
     else if (isSet())
     {
-      ret = getSetElementType().isFiniteInternal(usortFinite);
-    }
-    else if (isBag())
-    {
-      // there are infinite bags for all element types
-      ret = false;
-    }
-    else if (isFunction())
-    {
-      ret = true;
-      TypeNode tnr = getRangeType();
-      if (!tnr.isFiniteInternal(usortFinite))
+      CardinalityClass cc = getSetElementType().getCardinalityClass();
+      if (cc == CardinalityClass::ONE)
       {
-        ret = false;
+        // 1 -> 2
+        ret = CardinalityClass::FINITE;
+      }
+      else if (ret == CardinalityClass::INTERPRETED_ONE)
+      {
+        // maybe 1 -> maybe finite
+        ret = CardinalityClass::INTERPRETED_FINITE;
       }
       else
       {
+        // finite or infinite is unchanged
+        ret = cc;
+      }
+    }
+    else if (isFunction())
+    {
+      ret = getRangeType().getCardinalityClass();
+      if (ret == CardinalityClass::FINITE
+          || ret == CardinalityClass::INTERPRETED_FINITE)
+      {
+        // we may have a larger cardinality class based on the
+        // arguments of the function
         std::vector<TypeNode> argTypes = getArgTypes();
-        for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
+        for (size_t i = 0, nargs = argTypes.size(); i < nargs; i++)
         {
-          if (!argTypes[i].isFiniteInternal(usortFinite))
-          {
-            ret = false;
-            break;
-          }
+          CardinalityClass cca = argTypes[i].getCardinalityClass();
+          ret = maxCardinalityClass(ret, cca);
         }
-        if (!ret)
-        {
-          // similar to arrays, functions are finite if their range type
-          // has cardinality one, regardless of the arguments.
-          ret = tnr.getCardinality().isOne();
-        }
+      }
+      // else, function types whose range type is INFINITE, ONE, or
+      // INTERPRETED_ONE have the same cardinality class as their range.
+    }
+    else if (isConstructor())
+    {
+      // notice that we require computing the cardinality class of the
+      // constructor type, which is equivalent to asking how many
+      // constructor applications of the given constructor exist. This
+      // is used in several places in the decision procedure for datatypes.
+      // The cardinality starts with one.
+      ret = CardinalityClass::ONE;
+      // we may have a larger cardinality class based on the
+      // arguments of the constructor
+      std::vector<TypeNode> argTypes = getArgTypes();
+      for (size_t i = 0, nargs = argTypes.size(); i < nargs; i++)
+      {
+        CardinalityClass cca = argTypes[i].getCardinalityClass();
+        ret = maxCardinalityClass(ret, cca);
       }
     }
     else
     {
-      // all types should be handled above
+      // all types we care about should be handled above
       Assert(false);
-      // by default, compute the exact cardinality for the type and check
-      // whether it is finite. This should be avoided in general, since
-      // computing cardinalities for types can be highly expensive.
-      ret = getCardinality().isFinite();
     }
   }
-  if (usortFinite)
-  {
-    setAttribute(IsInterpretedFiniteAttr(), ret);
-    setAttribute(IsInterpretedFiniteComputedAttr(), true);
-  }
-  else
-  {
-    setAttribute(IsFiniteAttr(), ret);
-    setAttribute(IsFiniteComputedAttr(), true);
-  }
+  setAttribute(TypeCardinalityClassAttr(), static_cast<uint64_t>(ret));
   return ret;
 }
 
@@ -259,9 +227,9 @@ bool TypeNode::isClosedEnumerable()
       setAttribute(IsClosedEnumerableComputedAttr(), true);
       TypeNode tn = *this;
       const DType& dt = getDType();
-      for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+      for (uint32_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
       {
-        for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+        for (uint32_t j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
         {
           TypeNode ctn = dt[i][j].getRangeType();
           if (tn != ctn && !ctn.isClosedEnumerable())
@@ -283,11 +251,13 @@ bool TypeNode::isClosedEnumerable()
   return getAttribute(IsClosedEnumerableAttr());
 }
 
-bool TypeNode::isFirstClass() const {
+bool TypeNode::isFirstClass() const
+{
   return getKind() != kind::CONSTRUCTOR_TYPE && getKind() != kind::SELECTOR_TYPE
-         && getKind() != kind::TESTER_TYPE && getKind() != kind::SEXPR_TYPE
+         && getKind() != kind::TESTER_TYPE && getKind() != kind::UPDATER_TYPE
          && (getKind() != kind::TYPE_CONSTANT
-             || getConst<TypeConstant>() != REGEXP_TYPE);
+             || (getConst<TypeConstant>() != REGEXP_TYPE
+                 && getConst<TypeConstant>() != SEXPR_TYPE));
 }
 
 bool TypeNode::isWellFounded() const {
@@ -424,15 +394,6 @@ vector<TypeNode> TypeNode::getTupleTypes() const {
   return types;
 }
 
-vector<TypeNode> TypeNode::getSExprTypes() const {
-  Assert(isSExpr());
-  vector<TypeNode> types;
-  for(unsigned i = 0, i_end = getNumChildren(); i < i_end; ++i) {
-    types.push_back((*this)[i]);
-  }
-  return types;
-}
-
 /** Is this an instantiated datatype type */
 bool TypeNode::isInstantiatedDatatype() const {
   if(getKind() == kind::DATATYPE_TYPE) {
@@ -506,7 +467,7 @@ TypeNode TypeNode::mostCommonTypeNode(TypeNode t0, TypeNode t1){
 
 TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   Assert(!t0.isNull());
@@ -589,7 +550,6 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     case kind::SEQUENCE_TYPE:
     case kind::SET_TYPE:
     case kind::BAG_TYPE:
-    case kind::SEXPR_TYPE:
     {
       // we don't support subtyping except for built in types Int and Real.
       return TypeNode();  // return null type
@@ -651,7 +611,35 @@ bool TypeNode::isSortConstructor() const {
   return getKind() == kind::SORT_TYPE && hasAttribute(expr::SortArityAttr());
 }
 
-/** Is this a codatatype type */
+bool TypeNode::isFloatingPoint() const
+{
+  return getKind() == kind::FLOATINGPOINT_TYPE;
+}
+
+bool TypeNode::isBitVector() const { return getKind() == kind::BITVECTOR_TYPE; }
+
+bool TypeNode::isDatatype() const
+{
+  return getKind() == kind::DATATYPE_TYPE
+         || getKind() == kind::PARAMETRIC_DATATYPE;
+}
+
+bool TypeNode::isParametricDatatype() const
+{
+  return getKind() == kind::PARAMETRIC_DATATYPE;
+}
+
+bool TypeNode::isConstructor() const
+{
+  return getKind() == kind::CONSTRUCTOR_TYPE;
+}
+
+bool TypeNode::isSelector() const { return getKind() == kind::SELECTOR_TYPE; }
+
+bool TypeNode::isTester() const { return getKind() == kind::TESTER_TYPE; }
+
+bool TypeNode::isUpdater() const { return getKind() == kind::UPDATER_TYPE; }
+
 bool TypeNode::isCodatatype() const
 {
   if (isDatatype())
@@ -699,4 +687,25 @@ TypeNode TypeNode::getBagElementType() const
   return (*this)[0];
 }
 
-}/* CVC4 namespace */
+bool TypeNode::isBitVector(unsigned size) const
+{
+  return (getKind() == kind::BITVECTOR_TYPE
+          && getConst<BitVectorSize>() == size);
+}
+
+uint32_t TypeNode::getBitVectorSize() const
+{
+  Assert(isBitVector());
+  return getConst<BitVectorSize>();
+}
+
+}  // namespace cvc5
+
+namespace std {
+
+size_t hash<cvc5::TypeNode>::operator()(const cvc5::TypeNode& tn) const
+{
+  return tn.getId();
+}
+
+}  // namespace std

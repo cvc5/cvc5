@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file smt_engine_state.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Ying Sheng, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utility for maintaining the state of the SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Ying Sheng, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utility for maintaining the state of the SMT engine.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__SMT__SMT_ENGINE_STATE_H
-#define CVC4__SMT__SMT_ENGINE_STATE_H
+#ifndef CVC5__SMT__SMT_ENGINE_STATE_H
+#define CVC5__SMT__SMT_ENGINE_STATE_H
 
 #include <string>
 
@@ -23,7 +24,7 @@
 #include "smt/smt_mode.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SmtEngine;
 
@@ -261,6 +262,6 @@ class SmtEngineState
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

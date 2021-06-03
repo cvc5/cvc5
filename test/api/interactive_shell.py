@@ -1,43 +1,33 @@
 #!/usr/bin/env python3
-#####################
-## interactive_shell.py
-## Top contributors (to current version):
-##   Andrew V. Jones
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Andrew V. Jones
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# A simple test file to interact with cvc5 with line editing
 ##
-
-#####################
-#! \file interactive_shell.py
-## \verbatim
-## Top contributors (to current version):
-##   Andrew V. Jones
-## This file is part of the CVC4 project.
-## Copyright (c) 2020 by the authors listed in the file AUTHORS
-## in the top-level source directory) and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.\endverbatim
-##
-## \brief A simple test file to interact with CVC4 with line editing
-#####################
 
 import sys
 import pexpect
 
 def check_iteractive_shell():
     """
-    Interacts with CVC4's interactive shell and checks that things such a tab
+    Interacts with cvc5's interactive shell and checks that things such a tab
     completion and "pressing up" works.
     """
 
-    # Open CVC4
-    child = pexpect.spawnu("bin/cvc4", timeout=1)
+    # Open cvc5
+    child = pexpect.spawnu("bin/cvc5", timeout=1)
 
-    # We expect to see the CVC4 prompt
-    child.expect("CVC4>")
+    # We expect to see the cvc5 prompt
+    child.expect("cvc5>")
 
     # If we send a line with just 'BOOLE' ...
     child.sendline("BOOLE")
@@ -66,8 +56,8 @@ def check_iteractive_shell():
     # Send enter
     child.sendcontrol("m")
 
-    # We expect to see the CVC4 prompt
-    child.expect("CVC4>")
+    # We expect to see the cvc5 prompt
+    child.expect("cvc5>")
 
     # Now send an up key
     child.send("\033[A")

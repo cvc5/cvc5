@@ -18,7 +18,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef Minisat_SolverTypes_h
 #define Minisat_SolverTypes_h
@@ -31,16 +31,10 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/mtl/Map.h"
 #include "prop/minisat/mtl/Vec.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace Minisat {
-class Solver;
-}
-template <class Solver>
-class TSatProof;
-}  // namespace CVC4
 
-namespace CVC4 {
-namespace Minisat {
+class Solver;
 
 //=================================================================================================
 // Variables, literals, lifted booleans, clauses:
@@ -182,11 +176,10 @@ inline std::ostream& operator <<(std::ostream& out, Minisat::lbool val) {
   return out;
 }
 
-} /* namespace CVC4::Minisat */
-} /* namespace CVC4 */
+}  // namespace Minisat
+}  // namespace cvc5
 
-
-namespace CVC4 {
+namespace cvc5 {
 namespace Minisat{
 
 //=================================================================================================
@@ -321,9 +314,7 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
         RegionAllocator<uint32_t>::free(clauseWord32Size(c.size(), c.has_extra()));
     }
 
-    void reloc(CRef& cr,
-               ClauseAllocator& to,
-               CVC4::TSatProof<Solver>* proof = NULL);
+    void reloc(CRef& cr, ClauseAllocator& to);
     // Implementation moved to Solver.cc.
 };
 
@@ -501,6 +492,6 @@ inline void Clause::strengthen(Lit p)
 
 //=================================================================================================
 }
-}
+}  // namespace cvc5
 
 #endif

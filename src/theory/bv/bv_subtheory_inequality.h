@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file bv_subtheory_inequality.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Algebraic solver.
- **
- ** Algebraic solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Liana Hadarean, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Algebraic solver.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
-#define CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
+#ifndef CVC5__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
+#define CVC5__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
 
 #include <unordered_set>
 
@@ -26,7 +25,7 @@
 #include "theory/bv/bv_inequality_graph.h"
 #include "theory/bv/bv_subtheory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -50,14 +49,13 @@ class InequalitySolver : public SubtheorySolver
     IntStat d_numCallstoCheck;
     TimerStat d_solveTime;
     Statistics();
-    ~Statistics();
   };
 
-  context::CDHashSet<Node, NodeHashFunction> d_assertionSet;
+  context::CDHashSet<Node> d_assertionSet;
   InequalityGraph d_inequalityGraph;
-  context::CDHashMap<Node, TNode, NodeHashFunction> d_explanations;
+  context::CDHashMap<Node, TNode> d_explanations;
   context::CDO<bool> d_isComplete;
-  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+  typedef std::unordered_set<Node> NodeSet;
   NodeSet d_ineqTerms;
   bool isInequalityOnly(TNode node);
   bool addInequality(TNode a, TNode b, bool strict, TNode fact);
@@ -89,6 +87,6 @@ class InequalitySolver : public SubtheorySolver
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H */
+#endif /* CVC5__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H */

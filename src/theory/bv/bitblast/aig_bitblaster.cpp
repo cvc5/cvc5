@@ -1,30 +1,29 @@
-/*********************                                                        */
-/*! \file aig_bitblaster.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief AIG bitblaster.
- **
- ** AIG bitblaster.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Mathias Preiner, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * AIG bitblaster.
+ */
 
 #include "theory/bv/bitblast/aig_bitblaster.h"
 
 #include "base/check.h"
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 #include "options/bv_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
 
-#ifdef CVC4_USE_ABC
+#ifdef CVC5_USE_ABC
 
 extern "C" {
 #include "base/abc/abc.h"
@@ -40,7 +39,7 @@ static inline int Cnf_Lit2Var(int Lit)
   return (Lit & 1) ? -(Lit >> 1) - 1 : (Lit >> 1) + 1;
 }
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -123,7 +122,7 @@ Abc_Ntk_t* AigBitblaster::currentAigNtk() {
   if (!AigBitblaster::s_abcAigNetwork) {
     Abc_Start();
     s_abcAigNetwork = Abc_NtkAlloc( ABC_NTK_STRASH, ABC_FUNC_AIG, 1);
-    char pName[] = "CVC4::theory::bv::AigNetwork";
+    char pName[] = "cvc5::theory::bv::AigNetwork";
     s_abcAigNetwork->pName = Extra_UtilStrsav(pName);
   }
   
@@ -149,26 +148,27 @@ AigBitblaster::AigBitblaster()
     case options::SatSolverMode::MINISAT:
     {
       prop::BVSatSolverInterface* minisat =
-          prop::SatSolverFactory::createMinisat(
-              d_nullContext.get(), smtStatisticsRegistry(), "AigBitblaster");
+          prop::SatSolverFactory::createMinisat(d_nullContext.get(),
+                                                smtStatisticsRegistry(),
+                                                "theory::bv::AigBitblaster::");
       d_notify.reset(new MinisatEmptyNotify());
       minisat->setNotify(d_notify.get());
       solver = minisat;
       break;
     }
     case options::SatSolverMode::CADICAL:
-      solver = prop::SatSolverFactory::createCadical(smtStatisticsRegistry(),
-                                                     "AigBitblaster");
+      solver = prop::SatSolverFactory::createCadical(
+          smtStatisticsRegistry(), "theory::bv::AigBitblaster::");
       break;
     case options::SatSolverMode::CRYPTOMINISAT:
       solver = prop::SatSolverFactory::createCryptoMinisat(
-          smtStatisticsRegistry(), "AigBitblaster");
+          smtStatisticsRegistry(), "theory::bv::AigBitblaster::");
       break;
     case options::SatSolverMode::KISSAT:
-      solver = prop::SatSolverFactory::createKissat(smtStatisticsRegistry(),
-                                                    "AigBitblaster");
+      solver = prop::SatSolverFactory::createKissat(
+          smtStatisticsRegistry(), "theory::bv::AigBitblaster::");
       break;
-    default: CVC4_FATAL() << "Unknown SAT solver type";
+    default: CVC5_FATAL() << "Unknown SAT solver type";
   }
   d_satSolver.reset(solver);
 }
@@ -496,5 +496,5 @@ AigBitblaster::Statistics::~Statistics() {
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
-#endif // CVC4_USE_ABC
+}  // namespace cvc5
+#endif  // CVC5_USE_ABC

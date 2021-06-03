@@ -1,22 +1,24 @@
-/*********************                                                        */
-/*! \file smt_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Aina Niemetz, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The solver for SMT queries in an SmtEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The solver for SMT queries in an SmtEngine.
+ */
 
 #include "smt/smt_solver.h"
 
 #include "options/smt_options.h"
 #include "prop/prop_engine.h"
 #include "smt/assertions.h"
+#include "smt/env.h"
 #include "smt/preprocessor.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_state.h"
@@ -27,17 +29,17 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 SmtSolver::SmtSolver(SmtEngine& smt,
+                     Env& env,
                      SmtEngineState& state,
-                     ResourceManager* rm,
                      Preprocessor& pp,
                      SmtEngineStatistics& stats)
     : d_smt(smt),
+      d_env(env),
       d_state(state),
-      d_rm(rm),
       d_pp(pp),
       d_stats(stats),
       d_pnm(nullptr),
@@ -52,12 +54,16 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
 {
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
-  d_theoryEngine.reset(new TheoryEngine(d_smt.getContext(),
-                                        d_smt.getUserContext(),
-                                        d_rm,
-                                        logicInfo,
-                                        d_smt.getOutputManager(),
-                                        d_pnm));
+  d_theoryEngine.reset(new TheoryEngine(
+      d_env,
+      d_smt.getOutputManager(),
+      // Other than whether d_pm is set, theory engine proofs are conditioned on
+      // the relationshup between proofs and unsat cores: the unsat cores are in
+      // FULL_PROOF mode, no proofs are generated on theory engine.
+      (options::unsatCores()
+       && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF)
+          ? nullptr
+          : d_pnm));
 
   // Add the theories
   for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;
@@ -65,18 +71,18 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
   {
     theory::TheoryConstructor::addTheory(d_theoryEngine.get(), id);
   }
-
+  // Add the proof checkers for each theory
+  if (d_pnm)
+  {
+    d_theoryEngine->initializeProofChecker(d_pnm->getChecker());
+  }
   Trace("smt-debug") << "Making prop engine..." << std::endl;
   /* force destruction of referenced PropEngine to enforce that statistics
    * are unregistered by the obsolete PropEngine object before registered
    * again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new prop::PropEngine(d_theoryEngine.get(),
-                                          d_smt.getContext(),
-                                          d_smt.getUserContext(),
-                                          d_rm,
-                                          d_smt.getOutputManager(),
-                                          d_pnm));
+  d_propEngine.reset(new prop::PropEngine(
+      d_theoryEngine.get(), d_env, d_smt.getOutputManager(), d_pnm));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(getPropEngine());
@@ -92,12 +98,8 @@ void SmtSolver::resetAssertions()
    * statistics are unregistered by the obsolete PropEngine object before
    * registered again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new prop::PropEngine(d_theoryEngine.get(),
-                                          d_smt.getContext(),
-                                          d_smt.getUserContext(),
-                                          d_rm,
-                                          d_smt.getOutputManager(),
-                                          d_pnm));
+  d_propEngine.reset(new prop::PropEngine(
+      d_theoryEngine.get(), d_env, d_smt.getOutputManager(), d_pnm));
   d_theoryEngine->setPropEngine(getPropEngine());
   // Notice that we do not reset TheoryEngine, nor does it require calling
   // finishInit again. In particular, TheoryEngine::finishInit does not
@@ -147,13 +149,14 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   Trace("smt") << "SmtSolver::check()" << endl;
 
   const std::string& filename = d_state.getFilename();
-  if (d_rm->out())
+  ResourceManager* rm = d_env.getResourceManager();
+  if (rm->out())
   {
     Result::UnknownExplanation why =
-        d_rm->outOfResources() ? Result::RESOURCEOUT : Result::TIMEOUT;
+        rm->outOfResources() ? Result::RESOURCEOUT : Result::TIMEOUT;
     return Result(Result::ENTAILMENT_UNKNOWN, why, filename);
   }
-  d_rm->beginCall();
+  rm->beginCall();
 
   // Make sure the prop layer has all of the assertions
   Trace("smt") << "SmtSolver::check(): processing assertions" << endl;
@@ -166,10 +169,10 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   Trace("smt") << "SmtSolver::check(): running check" << endl;
   Result result = d_propEngine->checkSat();
 
-  d_rm->endCall();
+  rm->endCall();
   Trace("limit") << "SmtSolver::check(): cumulative millis "
-                 << d_rm->getTimeUsage() << ", resources "
-                 << d_rm->getResourceUsage() << endl;
+                 << rm->getTimeUsage() << ", resources "
+                 << rm->getResourceUsage() << endl;
 
   if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
       && result.asSatisfiabilityResult().isSat() == Result::UNSAT)
@@ -190,7 +193,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
       // includes linear arithmetic and bitvectors, which are the primary
       // targets for the global negate option. Other logics are possible here
       // but not considered.
-      LogicInfo logic = d_smt.getLogicInfo();
+      LogicInfo logic = d_env.getLogicInfo();
       if ((logic.isPure(theory::THEORY_ARITH) && logic.isLinear()) ||
           logic.isPure(theory::THEORY_BV))
       {
@@ -216,7 +219,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
 void SmtSolver::processAssertions(Assertions& as)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
-  d_rm->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_env.getResourceManager()->spendResource(Resource::PreprocessStep);
   Assert(d_state.isFullyReady());
 
   preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
@@ -228,14 +231,7 @@ void SmtSolver::processAssertions(Assertions& as)
   }
 
   // process the assertions with the preprocessor
-  bool noConflict = d_pp.process(as);
-
-  // Notify the input formulas to theory engine
-  if (noConflict)
-  {
-    Chat() << "notifying theory engine..." << std::endl;
-    d_propEngine->notifyPreprocessedAssertions(ap.ref());
-  }
+  d_pp.process(as);
 
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
@@ -249,23 +245,7 @@ void SmtSolver::processAssertions(Assertions& as)
     // definitions, as the decision justification heuristic treates the latter
     // specially.
     preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
-    preprocessing::IteSkolemMap::iterator it;
-    for (size_t i = 0, asize = assertions.size(); i < asize; i++)
-    {
-      // is the assertion a skolem definition?
-      it = ism.find(i);
-      if (it == ism.end())
-      {
-        Chat() << "+ input " << assertions[i] << std::endl;
-        d_propEngine->assertFormula(assertions[i]);
-      }
-      else
-      {
-        Chat() << "+ skolem definition " << assertions[i] << " (from "
-               << it->second << ")" << std::endl;
-        d_propEngine->assertSkolemDefinition(assertions[i], it->second);
-      }
-    }
+    d_propEngine->assertInputFormulas(assertions, ism);
   }
 
   // clear the current assertions
@@ -287,4 +267,4 @@ theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

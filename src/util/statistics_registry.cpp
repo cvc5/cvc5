@@ -1,92 +1,155 @@
-/*********************                                                        */
-/*! \file statistics_registry.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Central statistics registry.
+ *
+ * The StatisticsRegistry that issues statistic proxy objects.
+ */
 
 #include "util/statistics_registry.h"
 
-#include <cstdlib>
-#include <iostream>
+#include "options/base_options.h"
+#include "util/statistics_public.h"
 
-#include "base/check.h"
-#include "lib/clock_gettime.h"
-#include "util/ostream_util.h"
+namespace cvc5 {
 
-#ifdef CVC4_STATISTICS_ON
-#  define CVC4_USE_STATISTICS true
-#else
-#  define CVC4_USE_STATISTICS false
-#endif
-
-
-/****************************************************************************/
-/* Some utility functions for timespec                                    */
-/****************************************************************************/
-namespace CVC4 {
-
-void StatisticsRegistry::registerStat(Stat* s)
+StatisticsRegistry::StatisticsRegistry(bool registerPublic)
 {
-#ifdef CVC4_STATISTICS_ON
-  PrettyCheckArgument(
-      d_stats.find(s) == d_stats.end(),
-      s,
-      "Statistic `%s' is already registered with this registry.",
-      s->getName().c_str());
-  d_stats.insert(s);
-#endif /* CVC4_STATISTICS_ON */
-}/* StatisticsRegistry::registerStat_() */
+  if (registerPublic)
+  {
+    registerPublicStatistics(*this);
+  }
+}
 
-void StatisticsRegistry::unregisterStat(Stat* s)
+AverageStat StatisticsRegistry::registerAverage(const std::string& name,
+                                                bool expert)
 {
-#ifdef CVC4_STATISTICS_ON
-  AlwaysAssert(s != nullptr);
-  AlwaysAssert(d_stats.erase(s) > 0)
-      << "Statistic `" << s->getName()
-      << "' was not registered with this registry.";
-#endif /* CVC4_STATISTICS_ON */
-} /* StatisticsRegistry::unregisterStat() */
-
-void StatisticsRegistry::flushStat(std::ostream &out) const {
-#ifdef CVC4_STATISTICS_ON
-  flushInformation(out);
-#endif /* CVC4_STATISTICS_ON */
+  return registerStat<AverageStat>(name, expert);
+}
+IntStat StatisticsRegistry::registerInt(const std::string& name, bool expert)
+{
+  return registerStat<IntStat>(name, expert);
+}
+TimerStat StatisticsRegistry::registerTimer(const std::string& name,
+                                            bool expert)
+{
+  return registerStat<TimerStat>(name, expert);
 }
 
-void StatisticsRegistry::flushInformation(std::ostream &out) const {
-#ifdef CVC4_STATISTICS_ON
-  this->StatisticsBase::flushInformation(out);
-#endif /* CVC4_STATISTICS_ON */
+void StatisticsRegistry::storeSnapshot()
+{
+  if constexpr (Configuration::isStatisticsBuild())
+  {
+    d_lastSnapshot = std::make_unique<Snapshot>();
+    for (const auto& s : d_stats)
+    {
+      if (!options::statisticsExpert() && s.second->d_expert) continue;
+      if (!options::statisticsAll() && s.second->isDefault()) continue;
+      d_lastSnapshot->emplace(
+          s.first,
+          s.second->getViewer());
+    }
+  }
 }
 
-void StatisticsRegistry::safeFlushInformation(int fd) const {
-#ifdef CVC4_STATISTICS_ON
-  this->StatisticsBase::safeFlushInformation(fd);
-#endif /* CVC4_STATISTICS_ON */
+StatisticBaseValue* StatisticsRegistry::get(const std::string& name) const
+{
+  if constexpr (Configuration::isStatisticsBuild())
+  {
+    auto it = d_stats.find(name);
+    if (it == d_stats.end()) return nullptr;
+    return it->second.get();
+  }
+  return nullptr;
 }
 
-RegisterStatistic::RegisterStatistic(StatisticsRegistry* reg, Stat* stat)
-    : d_reg(reg),
-      d_stat(stat) {
-  CheckArgument(reg != NULL, reg,
-                "You need to specify a statistics registry"
-                "on which to set the statistic");
-  d_reg->registerStat(d_stat);
+void StatisticsRegistry::print(std::ostream& os) const
+{
+  if constexpr (Configuration::isStatisticsBuild())
+  {
+    for (const auto& s : d_stats)
+    {
+      if (!options::statisticsExpert() && s.second->d_expert) continue;
+      if (!options::statisticsAll() && s.second->isDefault()) continue;
+      os << s.first << " = " << *s.second << std::endl;
+    }
+  }
 }
 
-RegisterStatistic::~RegisterStatistic() {
-  d_reg->unregisterStat(d_stat);
+void StatisticsRegistry::printSafe(int fd) const
+{
+  if constexpr (Configuration::isStatisticsBuild())
+  {
+    for (const auto& s : d_stats)
+    {
+      if (!options::statisticsExpert() && s.second->d_expert) continue;
+      if (!options::statisticsAll() && s.second->isDefault()) continue;
+
+      safe_print(fd, s.first);
+      safe_print(fd, " = ");
+      s.second->printSafe(fd);
+      safe_print(fd, "\n");
+    }
+  }
+}
+void StatisticsRegistry::printDiff(std::ostream& os) const
+{
+  if constexpr (Configuration::isStatisticsBuild())
+  {
+    if (!d_lastSnapshot)
+    {
+      // we have no snapshot, print as usual
+      print(os);
+      return;
+    }
+    for (const auto& s : d_stats)
+    {
+      if (!options::statisticsExpert() && s.second->d_expert) continue;
+      if (!options::statisticsAll() && s.second->isDefault())
+      {
+        auto oldit = d_lastSnapshot->find(s.first);
+        if (oldit != d_lastSnapshot->end() && oldit->second != s.second->getViewer())
+        {
+          // present in the snapshot, now defaulted
+          os << s.first << " = " << *s.second << " (was ";
+          detail::print(os, oldit->second);
+          os << ")" << std::endl;
+        }
+      }
+      else
+      {
+        auto oldit = d_lastSnapshot->find(s.first);
+        if (oldit == d_lastSnapshot->end())
+        {
+          // not present in the snapshot
+          os << s.first << " = " << *s.second << " (was <default>)"
+             << std::endl;
+        }
+        else if (oldit->second != s.second->getViewer())
+        {
+          // present in the snapshot, print old value
+          os << s.first << " = " << *s.second << " (was ";
+          detail::print(os, oldit->second);
+          os << ")" << std::endl;
+        }
+      }
+    }
+  }
 }
 
-}/* CVC4 namespace */
+std::ostream& operator<<(std::ostream& os, const StatisticsRegistry& sr)
+{
+  sr.print(os);
+  return os;
+}
+
+}  // namespace cvc5

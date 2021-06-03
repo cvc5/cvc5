@@ -1,32 +1,30 @@
-/*********************                                                        */
-/*! \file modal_exception.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An exception that is thrown when an interactive-only
- ** feature while CVC4 is being used in a non-interactive setting
- **
- ** An exception that is thrown when an interactive-only feature while
- ** CVC4 is being used in a non-interactive setting (for example, the
- ** "(get-assertions)" command in an SMT-LIBv2 script).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An exception that is thrown when an interactive-only feature while
+ * cvc5 is being used in a non-interactive setting (for example, the
+ * "(get-assertions)" command in an SMT-LIBv2 script).
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__SMT__MODAL_EXCEPTION_H
-#define CVC4__SMT__MODAL_EXCEPTION_H
+#ifndef CVC5__SMT__MODAL_EXCEPTION_H
+#define CVC5__SMT__MODAL_EXCEPTION_H
 
 #include "base/exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
-class ModalException : public CVC4::Exception
+class ModalException : public cvc5::Exception
 {
  public:
   ModalException() :
@@ -50,7 +48,7 @@ class ModalException : public CVC4::Exception
  * TODO(#1108): This exception should not be needed anymore in future versions
  * of the public API.
  */
-class RecoverableModalException : public CVC4::ModalException
+class RecoverableModalException : public cvc5::ModalException
 {
  public:
   RecoverableModalException(const std::string& msg) : ModalException(msg) {}
@@ -58,6 +56,6 @@ class RecoverableModalException : public CVC4::ModalException
   RecoverableModalException(const char* msg) : ModalException(msg) {}
 }; /* class RecoverableModalException */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__SMT__MODAL_EXCEPTION_H */
+#endif /* CVC5__SMT__MODAL_EXCEPTION_H */

@@ -1,34 +1,32 @@
-/*********************                                                        */
-/*! \file rewriter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Andrew Reynolds, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The Rewriter class
- **
- ** The Rewriter class.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Andrew Reynolds, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The Rewriter class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
 #include "expr/node.h"
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TConvProofGenerator;
 class ProofNodeManager;
+class TrustNode;
 
 namespace theory {
-
-class TrustNode;
 
 namespace builtin {
 class BuiltinProofRuleChecker;
@@ -148,6 +146,9 @@ class Rewriter {
       theory::TheoryId tid,
       std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn);
 
+  /** Get the theory rewriter for the given id */
+  TheoryRewriter* getTheoryRewriter(theory::TheoryId theoryId);
+
  private:
   /**
    * Get the rewriter associated with the SmtEngine in scope.
@@ -225,11 +226,10 @@ class Rewriter {
 
   /** The proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;
-#ifdef CVC4_ASSERTIONS
-  std::unique_ptr<std::unordered_set<Node, NodeHashFunction>> d_rewriteStack =
-      nullptr;
-#endif /* CVC4_ASSERTIONS */
+#ifdef CVC5_ASSERTIONS
+  std::unique_ptr<std::unordered_set<Node>> d_rewriteStack = nullptr;
+#endif /* CVC5_ASSERTIONS */
 };/* class Rewriter */
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

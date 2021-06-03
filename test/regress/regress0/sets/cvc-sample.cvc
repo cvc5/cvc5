@@ -6,7 +6,7 @@
 % EXPECT: unsat
 % EXPECT: not_entailed
 OPTION "incremental" true;
-OPTION "logic" "ALL_SUPPORTED";
+OPTION "logic" "ALL";
 SetInt : TYPE = SET OF INT;
 x : SET OF INT;
 y : SET OF INT;

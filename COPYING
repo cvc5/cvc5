@@ -1,15 +1,14 @@
-CVC4 is copyright (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017 by
-its authors and contributors (see the file AUTHORS) and their institutional
-affiliations.  All rights reserved.
+cvc5 is copyright (C) 2009-2021 by its authors and contributors (see the file
+AUTHORS) and their institutional affiliations.  All rights reserved.
 
-The source code of CVC4 is open and available to students, researchers,
+The source code of cvc5 is open and available to students, researchers,
 software companies, and everyone else to study, to modify, and to redistribute
 original or modified versions; distribution is under the terms of the modified
-BSD license (reproduced below).  Please note that CVC4 can be configured
+BSD license (reproduced below).  Please note that cvc5 can be configured
 (however, by default it is not) to link against some GPLed libraries, and
 therefore the use of these builds may be restricted in non-GPL-compatible
 projects.  See below for a discussion of CLN and GLPK (the two GPLed optional
-library dependences for CVC4), and how to ensure you have a build that doesn't
+library dependences for cvc5), and how to ensure you have a build that doesn't
 link against GPLed libraries.
 
 Redistribution and use in source and binary forms, with or without
@@ -44,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  Third-Party Software
 -------------------------------------------------------------------------------
 
-The CVC4 source code includes third-party software which has its own copyright
+The cvc5 source code includes third-party software which has its own copyright
 and licensing terms, as described below.
 
 The following file contains third-party software.
@@ -53,27 +52,27 @@ The following file contains third-party software.
 
 The copyright and licensing information of this file is in its header.
 
-CVC4 incorporates MiniSat code (see src/prop/minisat and src/prop/bvminisat),
+cvc5 incorporates MiniSat code (see src/prop/minisat and src/prop/bvminisat),
 excluded from the above copyright.  See src/prop/minisat/LICENSE and
 src/prop/bvminisat/LICENSE for copyright and licensing information.
 
-CVC4 incorporates code from ANTLR3 (http://www.antlr3.org/), the files
+cvc5 incorporates code from ANTLR3 (http://www.antlr3.org/), the files
 src/parser/bounded_token_buffer.h, src/parser/bounded_token_buffer.cpp, and
 src/parser/antlr_input_imports.cpp are excluded from the above copyright.
 See licenses/antlr3-LICENSE for copyright and licensing information.
 
-CVC4 by default links against The GNU Multiple Precision (GMP) Arithmetic
+cvc5 by default links against The GNU Multiple Precision (GMP) Arithmetic
 Library, which is licensed under GNU LGPL v3. See the file
 licenses/lgpl-3.0.txt for a copy of that license.  Note that according to the
-terms of the LGPL, both CVC4's source, and the combined work (CVC4 linked with
+terms of the LGPL, both cvc5's source, and the combined work (cvc5 linked with
 GMP) may (and do) remain under the more permissive modified BSD license.
 
-The implementation of the floating point solver in CVC4 depends on symfpu
+The implementation of the floating point solver in cvc5 depends on symfpu
 (https://github.com/martin-cs/symfpu) written by Martin Brain.
-See https://raw.githubusercontent.com/martin-cs/symfpu/CVC4/LICENSE for
+See https://raw.githubusercontent.com/martin-cs/symfpu/cvc5/LICENSE for
 copyright and licensing information.
 
-CVC4 optionally links against the following libraries:
+cvc5 optionally links against the following libraries:
 
   ABC                (https://bitbucket.org/alanmi/abc)
   CaDiCaL            (https://github.com/arminbiere/cadical)
@@ -81,8 +80,8 @@ CVC4 optionally links against the following libraries:
   LibPoly            (https://github.com/SRI-CSL/libpoly)
   libedit            (https://thrysoee.dk/editline)
 
-Linking CVC4 against these libraries does not affect the license terms of the
-CVC4 code.  See the respective projects for copyright and licensing
+Linking cvc5 against these libraries does not affect the license terms of the
+cvc5 code.  See the respective projects for copyright and licensing
 information.
 
 
@@ -91,19 +90,19 @@ information.
 -------------------------------------------------------------------------------
 
 Please be advised that the following libraries are covered under the GPLv3
-license.  If you choose to link CVC4 against one of these libraries, the
+license.  If you choose to link cvc5 against one of these libraries, the
 resulting combined work is also covered under the GPLv3. If you want to make
-sure you build a version of CVC4 that uses no GPLed libraries, configure CVC4
-with the "--no-gpl" option before building (which is the default).  CVC4 can
-then be used in contexts where you want to use CVC4 under the terms of the
+sure you build a version of cvc5 that uses no GPLed libraries, configure cvc5
+with the "--no-gpl" option before building (which is the default).  cvc5 can
+then be used in contexts where you want to use cvc5 under the terms of the
 (modified) BSD license.  See licenses/gpl-3.0.txt for more information.
 
-CVC4 can be optionally configured to link against CLN, the Class Library for
+cvc5 can be optionally configured to link against CLN, the Class Library for
 Numbers, available here:
 
   http://www.ginac.de/CLN/
 
-CVC4 can be optionally configured to link against glpk-cut-log, a modified
+cvc5 can be optionally configured to link against glpk-cut-log, a modified
 version of GLPK, the GNU Linear Programming Kit, available here:
 
   https://github.com/timothy-king/glpk-cut-log

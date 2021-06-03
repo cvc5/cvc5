@@ -1,32 +1,35 @@
-/*********************                                                        */
-/*! \file resource_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer, Mathias Preiner, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Provides mechanisms to limit resources.
- **
- ** This file provides the ResourceManager class. It can be used to impose
- ** (cumulative and per-call) resource limits on the solver, as well as per-call
- ** time limits.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Mathias Preiner, Liana Hadarean
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This file provides the ResourceManager class. It can be used to impose
+ * (cumulative and per-call) resource limits on the solver, as well as per-call
+ * time limits.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__RESOURCE_MANAGER_H
-#define CVC4__RESOURCE_MANAGER_H
+#ifndef CVC5__RESOURCE_MANAGER_H
+#define CVC5__RESOURCE_MANAGER_H
 
 #include <stdint.h>
+
+#include <array>
 #include <chrono>
 #include <memory>
 #include <vector>
 
-namespace CVC4 {
+#include "theory/inference_id.h"
+
+namespace cvc5 {
 
 class Listener;
 class Options;
@@ -66,40 +69,53 @@ class WallClockTimer
   time_point d_limit;
 };
 
+/** Types of resources. */
+enum class Resource
+{
+  ArithPivotStep,
+  ArithNlLemmaStep,
+  BitblastStep,
+  BvEagerAssertStep,
+  BvPropagationStep,
+  BvSatConflictsStep,
+  BvSatPropagateStep,
+  BvSatSimplifyStep,
+  CnfStep,
+  DecisionStep,
+  LemmaStep,
+  NewSkolemStep,
+  ParseStep,
+  PreprocessStep,
+  QuantifierStep,
+  RestartStep,
+  RewriteStep,
+  SatConflictStep,
+  TheoryCheckStep,
+  Unknown
+};
+
+const char* toString(Resource r);
+std::ostream& operator<<(std::ostream& os, Resource r);
+
+namespace resman_detail {
+/** The upper bound of values from the theory::InferenceId enum */
+constexpr std::size_t InferenceIdMax =
+    static_cast<std::size_t>(theory::InferenceId::UNKNOWN);
+/** The upper bound of values from the Resource enum */
+constexpr std::size_t ResourceMax = static_cast<std::size_t>(Resource::Unknown);
+};  // namespace resman_detail
+
 /**
  * This class manages resource limits (cumulative or per call) and (per call)
- * time limits. The available resources are listed in ResourceManager::Resource
- * and their individual costs are configured via command line options.
+ * time limits. The available resources are listed in Resource and their individual
+ * costs are configured via command line options.
  */
 class ResourceManager
 {
  public:
-  /** Types of resources. */
-  enum class Resource
-  {
-    ArithPivotStep,
-    ArithNlLemmaStep,
-    BitblastStep,
-    BvEagerAssertStep,
-    BvPropagationStep,
-    BvSatConflictsStep,
-    BvSatPropagateStep,
-    BvSatSimplifyStep,
-    CnfStep,
-    DecisionStep,
-    LemmaStep,
-    NewSkolemStep,
-    ParseStep,
-    PreprocessStep,
-    QuantifierStep,
-    RestartStep,
-    RewriteStep,
-    SatConflictStep,
-    TheoryCheckStep,
-  };
-
-  /** Construst a resource manager. */
-  ResourceManager(StatisticsRegistry& statistics_registry, Options& options);
+  /** Construct a resource manager. */
+  ResourceManager(StatisticsRegistry& statistics_registry,
+                  const Options& options);
   /** Default destructor. */
   ~ResourceManager();
   /** Can not be copied. */
@@ -112,18 +128,14 @@ class ResourceManager
   ResourceManager& operator=(ResourceManager&&) = delete;
 
   /** Checks whether any limit is active. */
-  bool limitOn() const { return cumulativeLimitOn() || perCallLimitOn(); }
-  /** Checks whether any cumulative limit is active. */
-  bool cumulativeLimitOn() const;
-  /** Checks whether any per-call limit is active. */
-  bool perCallLimitOn() const;
+  bool limitOn() const;
 
   /** Checks whether resources have been exhausted. */
   bool outOfResources() const;
   /** Checks whether time has been exhausted. */
   bool outOfTime() const;
   /** Checks whether any limit has been exhausted. */
-  bool out() const { return d_on && (outOfResources() || outOfTime()); }
+  bool out() const { return outOfResources() || outOfTime(); }
 
   /** Retrieves amount of resources used overall. */
   uint64_t getResourceUsage() const;
@@ -132,21 +144,16 @@ class ResourceManager
   /** Retrieves the remaining number of cumulative resources. */
   uint64_t getResourceRemaining() const;
 
-  /** Retrieves resource budget for this call. */
-  uint64_t getResourceBudgetForThisCall() { return d_thisCallResourceBudget; }
-
   /**
-   * Spends a given resources. Throws an UnsafeInterruptException if there are
+   * Spends a given resource. Throws an UnsafeInterruptException if there are
    * no remaining resources.
    */
   void spendResource(Resource r);
-
-  /** Sets the resource limit. */
-  void setResourceLimit(uint64_t units, bool cumulative = false);
-  /** Sets the time limit. */
-  void setTimeLimit(uint64_t millis);
-  /** Sets whether resource limitation is enabled. */
-  void enable(bool on);
+  /**
+   * Spends a given resource. Throws an UnsafeInterruptException if there are
+   * no remaining resources.
+   */
+  void spendResource(theory::InferenceId iid);
 
   /**
    * Resets perCall limits to mark the start of a new call,
@@ -167,15 +174,9 @@ class ResourceManager
   void registerListener(Listener* listener);
 
  private:
+  const Options& d_options;
   /** The per-call wall clock timer. */
   WallClockTimer d_perCallTimer;
-
-  /** A user-imposed per-call time budget, in milliseconds. 0 = no limit. */
-  uint64_t d_timeBudgetPerCall;
-  /** A user-imposed cumulative resource budget. 0 = no limit. */
-  uint64_t d_resourceBudgetCumulative;
-  /** A user-imposed per-call resource budget. 0 = no limit. */
-  uint64_t d_resourceBudgetPerCall;
 
   /** The total number of milliseconds used. */
   uint64_t d_cumulativeTimeUsed;
@@ -191,21 +192,21 @@ class ResourceManager
    */
   uint64_t d_thisCallResourceBudget;
 
-  /** A flag indicating whether resource limitation is active. */
-  bool d_on;
-
   /** Receives a notification on reaching a limit. */
   std::vector<Listener*> d_listeners;
 
-  void spendResource(unsigned amount);
+  void spendResource(uint64_t amount);
+
+  /** Weights for InferenceId resources */
+  std::array<uint64_t, resman_detail::InferenceIdMax + 1> d_infidWeights;
+  /** Weights for Resource resources */
+  std::array<uint64_t, resman_detail::ResourceMax + 1> d_resourceWeights;
 
   struct Statistics;
+  /** The statistics object */
   std::unique_ptr<Statistics> d_statistics;
-
-  Options& d_options;
-
 }; /* class ResourceManager */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__RESOURCE_MANAGER_H */
+#endif /* CVC5__RESOURCE_MANAGER_H */

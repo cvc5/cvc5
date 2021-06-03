@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file node_builder_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of CVC4::NodeBuilder.
- **
- ** Black box testing of CVC4::NodeBuilder.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andres Noetzli, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::NodeBuilder.
+ */
 
 #include <limits.h>
 
@@ -30,7 +29,7 @@
 #define K 30u
 #define LARGE_K UINT_MAX / 40
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 
@@ -39,8 +38,7 @@ namespace test {
 class TestNodeBlackNodeBuilder : public TestNode
 {
  protected:
-  template <unsigned N>
-  void push_back(NodeBuilder<N>& nb, uint32_t n)
+  void push_back(NodeBuilder& nb, uint32_t n)
   {
     for (uint32_t i = 0; i < n; ++i)
     {
@@ -54,206 +52,58 @@ class TestNodeBlackNodeBuilder : public TestNode
 TEST_F(TestNodeBlackNodeBuilder, ctors)
 {
   /* Default size tests. */
-  NodeBuilder<> def;
+  NodeBuilder def;
   ASSERT_EQ(def.getKind(), UNDEFINED_KIND);
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(def.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(def.begin(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(def.end(), "getKind\\(\\) != kind::UNDEFINED_KIND");
 #endif
 
-  NodeBuilder<> spec(d_specKind);
+  NodeBuilder spec(d_specKind);
   ASSERT_EQ(spec.getKind(), d_specKind);
   ASSERT_EQ(spec.getNumChildren(), 0u);
-  ASSERT_EQ(spec.begin(), spec.end());
 
-  NodeBuilder<> from_nm(d_nodeManager.get());
+  NodeBuilder from_nm(d_nodeManager.get());
   ASSERT_EQ(from_nm.getKind(), UNDEFINED_KIND);
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(from_nm.getNumChildren(),
                "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(from_nm.begin(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(from_nm.end(), "getKind\\(\\) != kind::UNDEFINED_KIND");
 #endif
 
-  NodeBuilder<> from_nm_kind(d_nodeManager.get(), d_specKind);
+  NodeBuilder from_nm_kind(d_nodeManager.get(), d_specKind);
   ASSERT_EQ(from_nm_kind.getKind(), d_specKind);
   ASSERT_EQ(from_nm_kind.getNumChildren(), 0u);
-  ASSERT_EQ(from_nm_kind.begin(), from_nm_kind.end());
-
-  /* Non-default size tests */
-  NodeBuilder<K> ws;
-  ASSERT_EQ(ws.getKind(), UNDEFINED_KIND);
-#ifdef CVC4_ASSERTIONS
-  ASSERT_DEATH(ws.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(ws.begin(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(ws.end(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-#endif
-
-  NodeBuilder<K> ws_kind(d_specKind);
-  ASSERT_EQ(ws_kind.getKind(), d_specKind);
-  ASSERT_EQ(ws_kind.getNumChildren(), 0u);
-  ASSERT_EQ(ws_kind.begin(), ws_kind.end());
-
-  NodeBuilder<K> ws_from_nm(d_nodeManager.get());
-  ASSERT_EQ(ws_from_nm.getKind(), UNDEFINED_KIND);
-#ifdef CVC4_ASSERTIONS
-  ASSERT_DEATH(ws_from_nm.getNumChildren(),
-               "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(ws_from_nm.begin(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(ws_from_nm.end(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-#endif
-
-  NodeBuilder<K> ws_from_nm_kind(d_nodeManager.get(), d_specKind);
-  ASSERT_EQ(ws_from_nm_kind.getKind(), d_specKind);
-  ASSERT_EQ(ws_from_nm_kind.getNumChildren(), 0u);
-  ASSERT_EQ(ws_from_nm_kind.begin(), ws_from_nm_kind.end());
-
-  /* Extreme size tests */
-  NodeBuilder<0> ws_size_0;
-
-  /* Allocating on the heap instead of the stack. */
-  NodeBuilder<LARGE_K>* ws_size_large = new NodeBuilder<LARGE_K>;
-  delete ws_size_large;
 
   /* Copy constructors */
-  NodeBuilder<> copy(def);
+  NodeBuilder copy(def);
   ASSERT_EQ(copy.getKind(), UNDEFINED_KIND);
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(copy.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(copy.begin(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(copy.end(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-#endif
-
-  NodeBuilder<K> cp_ws(ws);
-  ASSERT_EQ(cp_ws.getKind(), UNDEFINED_KIND);
-#ifdef CVC4_ASSERTIONS
-  ASSERT_DEATH(cp_ws.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(cp_ws.begin(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(cp_ws.end(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-#endif
-
-  NodeBuilder<K - 10> cp_from_larger(ws);
-  ASSERT_EQ(cp_from_larger.getKind(), UNDEFINED_KIND);
-#ifdef CVC4_ASSERTIONS
-  ASSERT_DEATH(cp_from_larger.getNumChildren(),
-               "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(cp_from_larger.begin(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(cp_from_larger.end(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-#endif
-
-  NodeBuilder<K + 10> cp_from_smaller(ws);
-  ASSERT_EQ(cp_from_smaller.getKind(), UNDEFINED_KIND);
-#ifdef CVC4_ASSERTIONS
-  ASSERT_DEATH(cp_from_smaller.getNumChildren(),
-               "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(cp_from_smaller.begin(),
-               "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(cp_from_smaller.end(), "getKind\\(\\) != kind::UNDEFINED_KIND");
 #endif
 }
 
 TEST_F(TestNodeBlackNodeBuilder, dtor)
 {
-  NodeBuilder<K>* nb = new NodeBuilder<K>();
-  delete nb;
-}
-
-TEST_F(TestNodeBlackNodeBuilder, begin_end)
-{
-  /* Test begin() and end() without resizing. */
-  NodeBuilder<K> ws(d_specKind);
-  ASSERT_EQ(ws.begin(), ws.end());
-
-  push_back(ws, K);
-  ASSERT_NE(ws.begin(), ws.end());
-
-  NodeBuilder<K>::iterator iter = ws.begin();
-  for (uint32_t i = 0; i < K; ++i)
-  {
-    ASSERT_NE(iter, ws.end());
-    ++iter;
-  }
-  ASSERT_EQ(iter, ws.end());
-
-  NodeBuilder<K>::const_iterator citer = ws.begin();
-  for (uint32_t i = 0; i < K; ++i)
-  {
-    ASSERT_NE(citer, ws.end());
-    ++citer;
-  }
-  ASSERT_EQ(citer, ws.end());
-
-  /* Repeat same tests and make sure that resizing occurs. */
-  NodeBuilder<> smaller(d_specKind);
-  ASSERT_EQ(smaller.begin(), smaller.end());
-
-  push_back(smaller, K);
-  ASSERT_NE(smaller.begin(), smaller.end());
-
-  NodeBuilder<>::iterator smaller_iter = smaller.begin();
-  for (uint32_t i = 0; i < K; ++i)
-  {
-    ASSERT_NE(smaller_iter, smaller.end());
-    ++smaller_iter;
-  }
-  ASSERT_EQ(iter, ws.end());
-
-  NodeBuilder<>::const_iterator smaller_citer = smaller.begin();
-  for (uint32_t i = 0; i < K; ++i)
-  {
-    ASSERT_NE(smaller_citer, smaller.end());
-    ++smaller_citer;
-  }
-  ASSERT_EQ(smaller_citer, smaller.end());
-}
-
-TEST_F(TestNodeBlackNodeBuilder, iterator)
-{
-  NodeBuilder<> b;
-  Node x = d_nodeManager->mkSkolem("x", *d_boolTypeNode);
-  Node y = d_nodeManager->mkSkolem("z", *d_boolTypeNode);
-  Node z = d_nodeManager->mkSkolem("y", *d_boolTypeNode);
-  b << x << y << z << AND;
-
-  {
-    NodeBuilder<>::iterator i = b.begin();
-    ASSERT_EQ(*i++, x);
-    ASSERT_EQ(*i++, y);
-    ASSERT_EQ(*i++, z);
-    ASSERT_EQ(i, b.end());
-  }
-
-  {
-    const NodeBuilder<>& c = b;
-    NodeBuilder<>::const_iterator i = c.begin();
-    ASSERT_EQ(*i++, x);
-    ASSERT_EQ(*i++, y);
-    ASSERT_EQ(*i++, z);
-    ASSERT_EQ(i, b.end());
-  }
+  std::unique_ptr<NodeBuilder> nb(new NodeBuilder());
 }
 
 TEST_F(TestNodeBlackNodeBuilder, getKind)
 {
-  NodeBuilder<> noKind;
+  NodeBuilder noKind;
   ASSERT_EQ(noKind.getKind(), UNDEFINED_KIND);
 
-  Node x(d_nodeManager->mkSkolem("x", *d_intTypeNode));
+  Node x(d_skolemManager->mkDummySkolem("x", *d_intTypeNode));
   noKind << x << x;
   ASSERT_EQ(noKind.getKind(), UNDEFINED_KIND);
 
   noKind << PLUS;
-
   ASSERT_EQ(noKind.getKind(), PLUS);
 
   Node n = noKind;
-
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(noKind.getKind(), "!isUsed\\(\\)");
 #endif
 
-  NodeBuilder<> spec(PLUS);
+  NodeBuilder spec(PLUS);
   ASSERT_EQ(spec.getKind(), PLUS);
   spec << x << x;
   ASSERT_EQ(spec.getKind(), PLUS);
@@ -261,33 +111,34 @@ TEST_F(TestNodeBlackNodeBuilder, getKind)
 
 TEST_F(TestNodeBlackNodeBuilder, getNumChildren)
 {
-  Node x(d_nodeManager->mkSkolem("x", *d_intTypeNode));
+  Node x(d_skolemManager->mkDummySkolem("x", *d_intTypeNode));
 
-  NodeBuilder<> nb;
-#ifdef CVC4_ASSERTIONS
+  NodeBuilder nb;
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
 #endif
-  nb << PLUS << x << x;
 
+  nb << PLUS << x << x;
   ASSERT_EQ(nb.getNumChildren(), 2u);
 
   nb << x << x;
   ASSERT_EQ(nb.getNumChildren(), 4u);
 
   nb.clear();
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
 #endif
+
   nb.clear(PLUS);
   ASSERT_EQ(nb.getNumChildren(), 0u);
-  nb << x << x << x;
 
+  nb << x << x << x;
   ASSERT_EQ(nb.getNumChildren(), 3u);
 
   nb << x << x << x;
   ASSERT_EQ(nb.getNumChildren(), 6u);
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(nb << PLUS, "getKind\\(\\) == kind::UNDEFINED_KIND");
   Node n = nb;
   ASSERT_DEATH(nb.getNumChildren(), "!isUsed\\(\\)");
@@ -296,30 +147,26 @@ TEST_F(TestNodeBlackNodeBuilder, getNumChildren)
 
 TEST_F(TestNodeBlackNodeBuilder, operator_square)
 {
-  NodeBuilder<> arr(d_specKind);
+  NodeBuilder arr(d_specKind);
 
   Node i_0 = d_nodeManager->mkConst(false);
   Node i_2 = d_nodeManager->mkConst(true);
   Node i_K = d_nodeManager->mkNode(NOT, i_0);
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(arr[-1], "index out of range");
   ASSERT_DEATH(arr[0], "index out of range");
 #endif
 
   arr << i_0;
-
   ASSERT_EQ(arr[0], i_0);
 
   push_back(arr, 1);
-
   arr << i_2;
-
   ASSERT_EQ(arr[0], i_0);
   ASSERT_EQ(arr[2], i_2);
 
   push_back(arr, K - 3);
-
   ASSERT_EQ(arr[0], i_0);
   ASSERT_EQ(arr[2], i_2);
   for (unsigned i = 3; i < K; ++i)
@@ -328,7 +175,6 @@ TEST_F(TestNodeBlackNodeBuilder, operator_square)
   }
 
   arr << i_K;
-
   ASSERT_EQ(arr[0], i_0);
   ASSERT_EQ(arr[2], i_2);
   for (unsigned i = 3; i < K; ++i)
@@ -337,7 +183,7 @@ TEST_F(TestNodeBlackNodeBuilder, operator_square)
   }
   ASSERT_EQ(arr[K], i_K);
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   Node n = arr;
   ASSERT_DEATH(arr[0], "!isUsed\\(\\)");
 #endif
@@ -345,99 +191,84 @@ TEST_F(TestNodeBlackNodeBuilder, operator_square)
 
 TEST_F(TestNodeBlackNodeBuilder, clear)
 {
-  NodeBuilder<> nb;
-
+  NodeBuilder nb;
   ASSERT_EQ(nb.getKind(), UNDEFINED_KIND);
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(nb.begin(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(nb.end(), "getKind\\(\\) != kind::UNDEFINED_KIND");
 #endif
 
   nb << d_specKind;
   push_back(nb, K);
-
   ASSERT_EQ(nb.getKind(), d_specKind);
   ASSERT_EQ(nb.getNumChildren(), K);
-  ASSERT_NE(nb.begin(), nb.end());
 
   nb.clear();
-
   ASSERT_EQ(nb.getKind(), UNDEFINED_KIND);
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(nb.begin(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(nb.end(), "getKind\\(\\) != kind::UNDEFINED_KIND");
 #endif
 
   nb << d_specKind;
   push_back(nb, K);
-
   ASSERT_EQ(nb.getKind(), d_specKind);
   ASSERT_EQ(nb.getNumChildren(), K);
-  ASSERT_NE(nb.begin(), nb.end());
 
   nb.clear(d_specKind);
-
   ASSERT_EQ(nb.getKind(), d_specKind);
   ASSERT_EQ(nb.getNumChildren(), 0u);
-  ASSERT_EQ(nb.begin(), nb.end());
 
   push_back(nb, K);
   nb.clear();
-
   ASSERT_EQ(nb.getKind(), UNDEFINED_KIND);
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(nb.begin(), "getKind\\(\\) != kind::UNDEFINED_KIND");
-  ASSERT_DEATH(nb.end(), "getKind\\(\\) != kind::UNDEFINED_KIND");
 #endif
 }
 
 TEST_F(TestNodeBlackNodeBuilder, operator_stream_insertion_kind)
 {
-#ifdef CVC4_ASSERTIONS
-  NodeBuilder<> spec(d_specKind);
+#ifdef CVC5_ASSERTIONS
+  NodeBuilder spec(d_specKind);
   ASSERT_DEATH(spec << PLUS, "can't redefine the Kind of a NodeBuilder");
 #endif
 
-  NodeBuilder<> noSpec;
+  NodeBuilder noSpec;
   noSpec << d_specKind;
   ASSERT_EQ(noSpec.getKind(), d_specKind);
 
-  NodeBuilder<> modified;
+  NodeBuilder modified;
   push_back(modified, K);
   modified << d_specKind;
   ASSERT_EQ(modified.getKind(), d_specKind);
 
-  NodeBuilder<> nb(d_specKind);
+  NodeBuilder nb(d_specKind);
   nb << d_nodeManager->mkConst(true) << d_nodeManager->mkConst(false);
   nb.clear(PLUS);
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   Node n;
   ASSERT_DEATH(n = nb, "Nodes with kind PLUS must have at least 2 children");
   nb.clear(PLUS);
 #endif
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(nb << PLUS, "can't redefine the Kind of a NodeBuilder");
 #endif
 
-  NodeBuilder<> testRef;
+  NodeBuilder testRef;
   ASSERT_EQ((testRef << d_specKind).getKind(), d_specKind);
 
-#ifdef CVC4_ASSERTIONS
-  NodeBuilder<> testTwo;
+#ifdef CVC5_ASSERTIONS
+  NodeBuilder testTwo;
   ASSERT_DEATH(testTwo << d_specKind << PLUS,
                "can't redefine the Kind of a NodeBuilder");
 #endif
 
-  NodeBuilder<> testMixOrder1;
+  NodeBuilder testMixOrder1;
   ASSERT_EQ(
       (testMixOrder1 << d_specKind << d_nodeManager->mkConst(true)).getKind(),
       d_specKind);
-  NodeBuilder<> testMixOrder2;
+  NodeBuilder testMixOrder2;
   ASSERT_EQ(
       (testMixOrder2 << d_nodeManager->mkConst(true) << d_specKind).getKind(),
       d_specKind);
@@ -445,44 +276,39 @@ TEST_F(TestNodeBlackNodeBuilder, operator_stream_insertion_kind)
 
 TEST_F(TestNodeBlackNodeBuilder, operator_stream_insertion_node)
 {
-  NodeBuilder<K> nb(d_specKind);
+  NodeBuilder nb(d_specKind);
   ASSERT_EQ(nb.getKind(), d_specKind);
   ASSERT_EQ(nb.getNumChildren(), 0u);
-  ASSERT_EQ(nb.begin(), nb.end());
   push_back(nb, K);
   ASSERT_EQ(nb.getKind(), d_specKind);
   ASSERT_EQ(nb.getNumChildren(), K);
-  ASSERT_NE(nb.begin(), nb.end());
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   Node n = nb;
   ASSERT_DEATH(nb << n, "!isUsed\\(\\)");
 #endif
 
-  NodeBuilder<> overflow(d_specKind);
+  NodeBuilder overflow(d_specKind);
   ASSERT_EQ(overflow.getKind(), d_specKind);
   ASSERT_EQ(overflow.getNumChildren(), 0u);
-  ASSERT_EQ(overflow.begin(), overflow.end());
 
   push_back(overflow, 5 * K + 1);
-
   ASSERT_EQ(overflow.getKind(), d_specKind);
   ASSERT_EQ(overflow.getNumChildren(), 5 * K + 1);
-  ASSERT_NE(overflow.begin(), overflow.end());
 }
 
 TEST_F(TestNodeBlackNodeBuilder, append)
 {
-  Node x = d_nodeManager->mkSkolem("x", *d_boolTypeNode);
-  Node y = d_nodeManager->mkSkolem("y", *d_boolTypeNode);
-  Node z = d_nodeManager->mkSkolem("z", *d_boolTypeNode);
+  Node x = d_skolemManager->mkDummySkolem("x", *d_boolTypeNode);
+  Node y = d_skolemManager->mkDummySkolem("y", *d_boolTypeNode);
+  Node z = d_skolemManager->mkDummySkolem("z", *d_boolTypeNode);
   Node m = d_nodeManager->mkNode(AND, y, z, x);
   Node n = d_nodeManager->mkNode(OR, d_nodeManager->mkNode(NOT, x), y, z);
   Node o = d_nodeManager->mkNode(XOR, y, x);
 
-  Node r = d_nodeManager->mkSkolem("r", *d_realTypeNode);
-  Node s = d_nodeManager->mkSkolem("s", *d_realTypeNode);
-  Node t = d_nodeManager->mkSkolem("t", *d_realTypeNode);
+  Node r = d_skolemManager->mkDummySkolem("r", *d_realTypeNode);
+  Node s = d_skolemManager->mkDummySkolem("s", *d_realTypeNode);
+  Node t = d_skolemManager->mkDummySkolem("t", *d_realTypeNode);
 
   Node p = d_nodeManager->mkNode(
       EQUAL,
@@ -490,12 +316,12 @@ TEST_F(TestNodeBlackNodeBuilder, append)
       d_nodeManager->mkNode(PLUS, r, d_nodeManager->mkNode(UMINUS, s), t));
   Node q = d_nodeManager->mkNode(AND, x, z, d_nodeManager->mkNode(NOT, y));
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(d_nodeManager->mkNode(XOR, y, x, x),
                "Nodes with kind XOR must have at most 2 children");
 #endif
 
-  NodeBuilder<> b(d_specKind);
+  NodeBuilder b(d_specKind);
 
   /* test append(TNode) */
   b.append(n).append(o).append(q);
@@ -538,8 +364,8 @@ TEST_F(TestNodeBlackNodeBuilder, append)
 
 TEST_F(TestNodeBlackNodeBuilder, operator_node_cast)
 {
-  NodeBuilder<K> implicit(d_specKind);
-  NodeBuilder<K> explic(d_specKind);
+  NodeBuilder implicit(d_specKind);
+  NodeBuilder explic(d_specKind);
 
   push_back(implicit, K);
   push_back(explic, K);
@@ -553,22 +379,22 @@ TEST_F(TestNodeBlackNodeBuilder, operator_node_cast)
   ASSERT_EQ(nexplicit.getKind(), d_specKind);
   ASSERT_EQ(nexplicit.getNumChildren(), K);
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(Node blah = implicit, "!isUsed\\(\\)");
 #endif
 }
 
 TEST_F(TestNodeBlackNodeBuilder, leftist_building)
 {
-  NodeBuilder<> nb;
+  NodeBuilder nb;
 
-  Node a = d_nodeManager->mkSkolem("a", *d_boolTypeNode);
+  Node a = d_skolemManager->mkDummySkolem("a", *d_boolTypeNode);
 
-  Node b = d_nodeManager->mkSkolem("b", *d_boolTypeNode);
-  Node c = d_nodeManager->mkSkolem("c", *d_boolTypeNode);
+  Node b = d_skolemManager->mkDummySkolem("b", *d_boolTypeNode);
+  Node c = d_skolemManager->mkDummySkolem("c", *d_boolTypeNode);
 
-  Node d = d_nodeManager->mkSkolem("d", *d_realTypeNode);
-  Node e = d_nodeManager->mkSkolem("e", *d_realTypeNode);
+  Node d = d_skolemManager->mkDummySkolem("d", *d_realTypeNode);
+  Node e = d_skolemManager->mkDummySkolem("e", *d_realTypeNode);
 
   nb << a << NOT << b << c << OR << c << a << AND << d << e << ITE;
 
@@ -587,4 +413,4 @@ TEST_F(TestNodeBlackNodeBuilder, leftist_building)
   ASSERT_EQ(nexpected, n);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

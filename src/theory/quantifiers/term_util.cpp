@@ -1,35 +1,33 @@
-/*********************                                                        */
-/*! \file term_util.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of term utilities class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of term utilities class.
+ */
 
 #include "theory/quantifiers/term_util.h"
 
 #include "expr/node_algorithm.h"
-#include "options/base_options.h"
-#include "options/datatypes_options.h"
-#include "options/quantifiers_options.h"
-#include "options/uf_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/strings/word.h"
 #include "theory/rewriter.h"
+#include "theory/strings/word.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -127,7 +125,7 @@ Node TermUtil::getRemoveQuantifiers( Node n ) {
 
 //quantified simplify
 Node TermUtil::getQuantSimplify( Node n ) {
-  std::unordered_set<Node, NodeHashFunction> fvs;
+  std::unordered_set<Node> fvs;
   expr::getFreeVariables(n, fvs);
   if (fvs.empty())
   {
@@ -160,8 +158,8 @@ void TermUtil::computeVarContainsInternal(Node n,
                                           Kind k,
                                           std::vector<Node>& vars)
 {
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -291,7 +289,7 @@ bool TermUtil::isAssoc(Kind k, bool reqNAry)
     }
   }
   return k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND || k == OR
-         || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
+         || k == XOR || k == BITVECTOR_ADD || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
          || k == BITVECTOR_XNOR || k == BITVECTOR_CONCAT || k == STRING_CONCAT
          || k == UNION || k == INTERSECTION || k == JOIN || k == PRODUCT
@@ -308,7 +306,7 @@ bool TermUtil::isComm(Kind k, bool reqNAry)
     }
   }
   return k == EQUAL || k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND
-         || k == OR || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
+         || k == OR || k == XOR || k == BITVECTOR_ADD || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
          || k == BITVECTOR_XNOR || k == UNION || k == INTERSECTION
          || k == SEP_STAR;
@@ -393,7 +391,7 @@ Node TermUtil::mkTypeValueOffset(TypeNode tn,
     else if (tn.isBitVector())
     {
       val_o = Rewriter::rewrite(
-          NodeManager::currentNM()->mkNode(BITVECTOR_PLUS, val, offset_val));
+          NodeManager::currentNM()->mkNode(BITVECTOR_ADD, val, offset_val));
     }
   }
   return val_o;
@@ -447,10 +445,8 @@ bool TermUtil::isIdempotentArg(Node n, Kind ik, int arg)
   TypeNode tn = n.getType();
   if (n == mkTypeValue(tn, 0))
   {
-    if (ik == PLUS || ik == OR || ik == XOR || ik == BITVECTOR_PLUS
-        || ik == BITVECTOR_OR
-        || ik == BITVECTOR_XOR
-        || ik == STRING_CONCAT)
+    if (ik == PLUS || ik == OR || ik == XOR || ik == BITVECTOR_ADD
+        || ik == BITVECTOR_OR || ik == BITVECTOR_XOR || ik == STRING_CONCAT)
     {
       return true;
     }
@@ -604,6 +600,6 @@ bool TermUtil::hasOffsetArg(Kind ik, int arg, int& offset, Kind& ok)
   return false;
 }
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

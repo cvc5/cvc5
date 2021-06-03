@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file sygus_simple_sym.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of simple symmetry breaking for sygus
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of simple symmetry breaking for sygus.
+ */
 
 #include "theory/datatypes/sygus_simple_sym.h"
 
@@ -18,9 +19,9 @@
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -335,11 +336,11 @@ bool SygusSimpleSymBreak::considerArgKind(
       //  (~ (- y z) x)  ---->  (~ y (+ x z))
       rt.d_req_kind = pk;
       rt.d_children[arg].d_req_type = dt[c].getArgType(0);
-      rt.d_children[oarg].d_req_kind = k == MINUS ? PLUS : BITVECTOR_PLUS;
+      rt.d_children[oarg].d_req_kind = k == MINUS ? PLUS : BITVECTOR_ADD;
       rt.d_children[oarg].d_children[0].d_req_type = pdt[pc].getArgType(oarg);
       rt.d_children[oarg].d_children[1].d_req_type = dt[c].getArgType(1);
     }
-    else if (pk == PLUS || pk == BITVECTOR_PLUS)
+    else if (pk == PLUS || pk == BITVECTOR_ADD)
     {
       //  (+ x (- y z))  -----> (- (+ x y) z)
       //  (+ (- y z) x)  -----> (- (+ x y) z)
@@ -584,4 +585,4 @@ int SygusSimpleSymBreak::getFirstArgOccurrence(const DTypeConstructor& c,
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

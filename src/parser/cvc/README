@@ -1,4 +1,4 @@
-Notes on CVC4's CVC language parser.
+Notes on cvc5's CVC language parser.
 
 This language parser attempts to maintain some backward compatibility
 with previous versions of the language.  However, as the language
@@ -9,21 +9,21 @@ need to be removed.
 In order to support our users, we have tried to parse what CVC3 could
 and (at least) offer an error when a feature is unavailable or
 unimplemented.  But this is not always possible.  Please report a
-bug if a particular discrepancy between CVC3 and CVC4 handling of
+bug if a particular discrepancy between CVC3 and cvc5 handling of
 the CVC language is a concern to you; we may be able to add a
 compatibility mode, or at least offer better warnings or errors.
 
-Below is a list of the known differences between CVC3's and CVC4's
+Below is a list of the known differences between CVC3's and cvc5's
 version of the CVC language.  This is the list of differences in
-language design and parsing ONLY.  The featureset of CVC4 is
+language design and parsing ONLY.  The featureset of cvc5 is
 rapidly expanding, but does not match CVC3's breadth yet.  However,
-CVC4 should tell you of an unimplemented feature if you try to use
+cvc5 should tell you of an unimplemented feature if you try to use
 it (rather than giving a cryptic parse or assertion error).
 
-* CVC4 does not add the current assumptions to the scope after
+* cvc5 does not add the current assumptions to the scope after
   SAT/INVALID responses like CVC3 did.
 
-* CVC4 no longer supports the "old" function syntax:
+* cvc5 no longer supports the "old" function syntax:
 
     f : [INT -> INT];
 
@@ -37,21 +37,21 @@ it (rather than giving a cryptic parse or assertion error).
 * QUERY and CHECKSAT do not add their argument to the current
   list of assertions like CVC3 did.
 
-* CVC4 allows datatypes to hold complex types that contain self-
+* cvc5 allows datatypes to hold complex types that contain self-
   or mutual references.  For example,
 
     DATATYPE tree = node(children:ARRAY INT OF tree) | leaf(data:INT) END;
 
-  is permissible in CVC4 but not in CVC3.
+  is permissible in cvc5 but not in CVC3.
 
-* CVC4 supports parameterized types in datatype definitions, e.g.
+* cvc5 supports parameterized types in datatype definitions, e.g.
 
     DATATYPE list[T] = cons(car:T) | nil END;
 
   You can then declare "x : list[INT];" or "x : list[list[INT]];",
   for example.
 
-* CVC4 supports type ascriptions, e.g.
+* cvc5 supports type ascriptions, e.g.
 
     U : TYPE;
     f : INT -> U;
@@ -70,16 +70,16 @@ it (rather than giving a cryptic parse or assertion error).
     DATATYPE Item = Carrots | Butter | Milk | Bread END;
     groceries : list[Item] = cons(Butter, cons(Bread, nil:list[INT]));
 
-* CVC4 supports stronger distinction between type and variable names.
-  This means that CVC4 may allow you to declare things that CVC3 does
+* cvc5 supports stronger distinction between type and variable names.
+  This means that cvc5 may allow you to declare things that CVC3 does
   not:
 
     a : TYPE;
     a : INT; % CVC3 complains
-    a : a; % CVC4 complains, `a' cannot both be INT and `a'
+    a : a; % cvc5 complains, `a' cannot both be INT and `a'
     b : a; % No problem, `a' is both the type of `b', and an INT
 
-* CVC4 supports a command-level LET syntax, e.g.:
+* cvc5 supports a command-level LET syntax, e.g.:
 
     LET double = LAMBDA(x:INT) : 2*x IN
       QUERY double(5) = 10;

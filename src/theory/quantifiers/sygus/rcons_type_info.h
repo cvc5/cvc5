@@ -1,27 +1,30 @@
-/*********************                                                        */
-/*! \file rcons_type_info.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief utility class for Sygus Reconstruct module
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utility class for Sygus Reconstruct module.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__RCONS_TYPE_INFO_H
-#define CVC4__THEORY__QUANTIFIERS__RCONS_TYPE_INFO_H
+#ifndef CVC5__THEORY__QUANTIFIERS__RCONS_TYPE_INFO_H
+#define CVC5__THEORY__QUANTIFIERS__RCONS_TYPE_INFO_H
 
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
+
+class RConsObligation;
 
 /**
  * A utility class for Sygus Reconstruct datatype types (grammar non-terminals).
@@ -66,18 +69,18 @@ class RConsTypeInfo
   /**
    * Set the obligation responsible for solving the given builtin term.
    *
-   * @param builtin The builtin term
+   * @param t The builtin term
    * @param ob The corresponding obligation
    */
-  void setBuiltinToOb(Node builtin, Node ob);
+  void setBuiltinToOb(Node t, RConsObligation* ob);
 
   /**
    * Return the obligation responsible for solving the given builtin term.
    *
-   * @param builtin The builtin term
+   * @param t The builtin term
    * @return The corresponding obligation
    */
-  Node builtinToOb(Node builtin);
+  RConsObligation* builtinToOb(Node t);
 
  private:
   /** Sygus terms enumerator for this class' Sygus datatype type */
@@ -92,11 +95,11 @@ class RConsTypeInfo
    * possible to have multiple obligations to reconstruct the same builtin term
    * from different sygus datatype types.
    */
-  std::unordered_map<Node, Node, NodeHashFunction> d_ob;
+  std::unordered_map<Node, RConsObligation*> d_ob;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif  // CVC4__THEORY__QUANTIFIERS__RCONS_TYPE_INFO_H
+#endif  // CVC5__THEORY__QUANTIFIERS__RCONS_TYPE_INFO_H

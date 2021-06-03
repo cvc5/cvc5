@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file shared_terms_database.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -21,15 +22,15 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
-#include "expr/proof_node_manager.h"
+#include "proof/proof_node_manager.h"
+#include "proof/trust_node.h"
 #include "theory/ee_setup_info.h"
 #include "theory/theory_id.h"
-#include "theory/trust_node.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -46,7 +47,7 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   IntStat d_statSharedTerms;
 
   // Needs to be a map from Nodes as after a backtrack they might not exist
-  typedef std::unordered_map<Node, shared_terms_list, TNodeHashFunction> SharedTermsMap;
+  typedef std::unordered_map<Node, shared_terms_list> SharedTermsMap;
 
   /** A map from atoms to a list of shared terms */
   SharedTermsMap d_atomsToTerms;
@@ -65,12 +66,11 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   SharedTermsTheoriesMap d_termsToTheories;
 
   /** Map from term to theories that have already been notified about the shared term */
-  typedef context::CDHashMap<TNode, theory::TheoryIdSet, TNodeHashFunction>
-      AlreadyNotifiedMap;
+  typedef context::CDHashMap<TNode, theory::TheoryIdSet> AlreadyNotifiedMap;
   AlreadyNotifiedMap d_alreadyNotifiedMap;
 
   /** The registered equalities for propagation */
-  typedef context::CDHashSet<Node, NodeHashFunction> RegisteredEqualitiesSet;
+  typedef context::CDHashSet<Node> RegisteredEqualitiesSet;
   RegisteredEqualitiesSet d_registeredEqualities;
 
  private:
@@ -162,7 +162,6 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
                       context::Context* context,
                       context::UserContext* userContext,
                       ProofNodeManager* pnm);
-  ~SharedTermsDatabase();
 
   //-------------------------------------------- initialization
   /** Called to set the equality engine. */
@@ -187,7 +186,7 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   /**
    * Returns an explanation of the propagation that came from the database.
    */
-  theory::TrustNode explain(TNode literal) const;
+  TrustNode explain(TNode literal) const;
 
   /**
    * Add an equality to propagate.
@@ -278,4 +277,4 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   ProofNodeManager* d_pnm;
 };
 
-}
+}  // namespace cvc5

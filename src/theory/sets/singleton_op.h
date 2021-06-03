@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file singleton_op.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief a class for singleton operator for sets
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A class for singleton operator for sets.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__SINGLETON_OP_H
-#define CVC4__SINGLETON_OP_H
+#ifndef CVC5__SINGLETON_OP_H
+#define CVC5__SINGLETON_OP_H
 
 #include <memory>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 
@@ -58,6 +59,6 @@ struct SingletonOpHashFunction
   size_t operator()(const SingletonOp& op) const;
 }; /* struct SingletonOpHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__SINGLETON_OP_H */
+#endif /* CVC5__SINGLETON_OP_H */

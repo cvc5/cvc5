@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file exception_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of CVC4::Exception.
- **
- ** Black box testing of CVC4::Exception.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::Exception.
+ */
 
 #include <iostream>
 #include <sstream>
@@ -20,14 +19,14 @@
 #include "base/exception.h"
 #include "test.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackException : public TestInternal
 {
 };
 
-// CVC4::Exception is a simple class, just test it all at once.
+// cvc5::Exception is a simple class, just test it all at once.
 TEST_F(TestUtilBlackException, exceptions)
 {
   Exception e1;
@@ -52,4 +51,4 @@ TEST_F(TestUtilBlackException, exceptions)
   ASSERT_EQ(s3.str(), std::string("three of 'em!"));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file transcendental_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Solving for handling transcendental functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Solving for handling transcendental functions.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_SOLVER_H
-#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_SOLVER_H
+#ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_SOLVER_H
+#define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_SOLVER_H
 
 #include <vector>
 
@@ -22,7 +23,7 @@
 #include "theory/arith/nl/transcendental/sine_solver.h"
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -200,6 +201,6 @@ class TranscendentalSolver
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */

@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_strings.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tianyi Liang, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the theory of strings.
+ */
 
 #include "theory/strings/theory_strings.h"
 
@@ -29,10 +30,10 @@
 #include "theory/valuation.h"
 
 using namespace std;
-using namespace CVC4::context;
-using namespace CVC4::kind;
+using namespace cvc5::context;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -84,12 +85,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
   // set up the extended function callback
   d_extTheoryCb.d_esolver = &d_esolver;
 
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
-  {
-    // add checkers
-    d_sProofChecker.registerTo(pc);
-  }
   // use the state object as the official theory state
   d_theoryState = &d_state;
   // use the inference manager as the official inference manager
@@ -101,6 +96,8 @@ TheoryStrings::~TheoryStrings() {
 }
 
 TheoryRewriter* TheoryStrings::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryStrings::getProofChecker() { return &d_checker; }
 
 bool TheoryStrings::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -133,6 +130,7 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_ITOS, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_STOI, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_STRIDOF, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_INDEXOF_RE, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_STRREPL, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_STRREPLALL, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_RE, eagerEval);
@@ -203,14 +201,20 @@ void TheoryStrings::presolve() {
 bool TheoryStrings::collectModelValues(TheoryModel* m,
                                        const std::set<Node>& termSet)
 {
-  if (Trace.isOn("strings-model"))
+  if (Trace.isOn("strings-debug-model"))
   {
-    Trace("strings-model") << "TheoryStrings : Collect model values"
-                           << std::endl;
-    Trace("strings-model") << "Equivalence classes are:" << std::endl;
-    Trace("strings-model") << debugPrintStringsEqc() << std::endl;
+    Trace("strings-debug-model")
+        << "TheoryStrings::collectModelValues" << std::endl;
+    Trace("strings-debug-model") << "Equivalence classes are:" << std::endl;
+    Trace("strings-debug-model") << debugPrintStringsEqc() << std::endl;
+    Trace("strings-debug-model") << "Extended functions are:" << std::endl;
+    Trace("strings-debug-model") << d_esolver.debugPrintModel() << std::endl;
   }
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > repSet;
+  Trace("strings-model") << "TheoryStrings::collectModelValues" << std::endl;
+  // Collects representatives by types and orders sequence types by how nested
+  // they are
+  std::map<TypeNode, std::unordered_set<Node> > repSet;
+  std::unordered_set<TypeNode> toProcess;
   // Generate model
   // get the relevant string equivalence classes
   for (const Node& s : termSet)
@@ -220,34 +224,51 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
     {
       Node r = d_state.getRepresentative(s);
       repSet[tn].insert(r);
+      toProcess.insert(tn);
     }
   }
-  for (const std::pair<const TypeNode,
-                       std::unordered_set<Node, NodeHashFunction> >& rst :
-       repSet)
+
+  while (!toProcess.empty())
   {
-    // get partition of strings of equal lengths, per type
-    std::map<TypeNode, std::vector<std::vector<Node> > > colT;
-    std::map<TypeNode, std::vector<Node> > ltsT;
-    std::vector<Node> repVec(rst.second.begin(), rst.second.end());
-    d_state.separateByLength(repVec, colT, ltsT);
-    // now collect model info for the type
-    TypeNode st = rst.first;
-    if (!collectModelInfoType(st, rst.second, colT[st], ltsT[st], m))
+    // Pick one of the remaining types to collect model values for
+    TypeNode tn = *toProcess.begin();
+    if (!collectModelInfoType(tn, toProcess, repSet, m))
     {
       return false;
     }
   }
+
   return true;
 }
 
 bool TheoryStrings::collectModelInfoType(
     TypeNode tn,
-    const std::unordered_set<Node, NodeHashFunction>& repSet,
-    std::vector<std::vector<Node> >& col,
-    std::vector<Node>& lts,
+    std::unordered_set<TypeNode>& toProcess,
+    const std::map<TypeNode, std::unordered_set<Node> >& repSet,
     TheoryModel* m)
 {
+  // Make sure that the model values for the element type of sequences are
+  // computed first
+  if (tn.isSequence() && tn.getSequenceElementType().isSequence())
+  {
+    TypeNode tnElem = tn.getSequenceElementType();
+    if (toProcess.find(tnElem) != toProcess.end()
+        && !collectModelInfoType(tnElem, toProcess, repSet, m))
+    {
+      return false;
+    }
+  }
+  toProcess.erase(tn);
+
+  // get partition of strings of equal lengths for the representatives of the
+  // current type
+  std::map<TypeNode, std::vector<std::vector<Node> > > colT;
+  std::map<TypeNode, std::vector<Node> > ltsT;
+  const std::vector<Node> repVec(repSet.at(tn).begin(), repSet.at(tn).end());
+  d_state.separateByLength(repVec, colT, ltsT);
+  const std::vector<std::vector<Node> >& col = colT[tn];
+  const std::vector<Node>& lts = ltsT[tn];
+
   NodeManager* nm = NodeManager::currentNM();
   std::map< Node, Node > processed;
   //step 1 : get all values for known lengths
@@ -324,13 +345,17 @@ bool TheoryStrings::collectModelInfoType(
             Node argVal;
             if (nfe.d_nf[0][0].getType().isStringLike())
             {
-              argVal = d_state.getRepresentative(nfe.d_nf[0][0]);
+              // By this point, we should have assigned model values for the
+              // elements of this sequence type because of the check in the
+              // beginning of this method
+              argVal = m->getRepresentative(nfe.d_nf[0][0]);
             }
             else
             {
               // otherwise, it is a shared term
               argVal = d_valuation.getModelValue(nfe.d_nf[0][0]);
             }
+            Assert(!argVal.isNull());
             Node c = Rewriter::rewrite(nm->mkNode(SEQ_UNIT, argVal));
             pure_eq_assign[eqc] = c;
             Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
@@ -480,7 +505,7 @@ bool TheoryStrings::collectModelInfoType(
   }
   Trace("strings-model") << "String Model : Pure Assigned." << std::endl;
   //step 4 : assign constants to all other equivalence classes
-  for (const Node& rn : repSet)
+  for (const Node& rn : repVec)
   {
     if (processed.find(rn) == processed.end())
     {
@@ -551,30 +576,6 @@ void TheoryStrings::preRegisterTerm(TNode n)
   // this term here since preRegisterTerm is already called recursively on all
   // subterms in preregistered literals.
   d_extTheory.registerTerm(n);
-}
-
-TrustNode TheoryStrings::expandDefinition(Node node)
-{
-  Trace("strings-exp-def") << "TheoryStrings::expandDefinition : " << node << std::endl;
-
-  if (node.getKind() == kind::SEQ_NTH)
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    SkolemCache* sc = d_termReg.getSkolemCache();
-    Node s = node[0];
-    Node n = node[1];
-    // seq.nth(s, n) --> ite(0 <= n < len(s), seq.nth_total(s,n), Uf(s, n))
-    Node cond = nm->mkNode(AND,
-                           nm->mkNode(LEQ, d_zero, n),
-                           nm->mkNode(LT, n, nm->mkNode(STRING_LENGTH, s)));
-    Node ss = nm->mkNode(SEQ_NTH_TOTAL, s, n);
-    Node uf = sc->mkSkolemSeqNth(s.getType(), "Uf");
-    Node u = nm->mkNode(APPLY_UF, uf, s, n);
-    Node ret = nm->mkNode(ITE, cond, ss, u);
-    Trace("strings-exp-def") << "...return " << ret << std::endl;
-    return TrustNode::mkTrustRewrite(node, ret, nullptr);
-  }
-  return TrustNode::null();
 }
 
 bool TheoryStrings::preNotifyFact(
@@ -1086,6 +1087,6 @@ std::string TheoryStrings::debugPrintStringsEqc()
   return ss.str();
 }
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5

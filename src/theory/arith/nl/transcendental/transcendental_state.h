@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file transcendental_state.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities for transcendental lemmas.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for transcendental lemmas.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
-#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
+#ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
+#define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
 
 #include "expr/node.h"
-#include "expr/proof_set.h"
+#include "proof/proof_set.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/transcendental/proof_checker.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 class CDProof;
 namespace theory {
 namespace arith {
@@ -200,7 +201,7 @@ struct TranscendentalState
    * arguments that contain transcendental functions.
    */
   std::map<Node, Node> d_trMaster;
-  std::map<Node, std::unordered_set<Node, NodeHashFunction>> d_trSlaves;
+  std::map<Node, std::unordered_set<Node>> d_trSlaves;
 
   /** concavity region for transcendental functions
    *
@@ -222,7 +223,7 @@ struct TranscendentalState
    * of transcendental functions whose arguments have model
    * values that reside in valid regions.
    */
-  std::unordered_map<Node, int, NodeHashFunction> d_tf_region;
+  std::unordered_map<Node, int> d_tf_region;
   /**
    * Maps representives of a congruence class to the members of that class.
    *
@@ -252,9 +253,7 @@ struct TranscendentalState
    * each transcendental function application. We store this set for each
    * Taylor degree.
    */
-  std::unordered_map<Node,
-                     std::map<unsigned, std::vector<Node>>,
-                     NodeHashFunction>
+  std::unordered_map<Node, std::map<unsigned, std::vector<Node>>>
       d_secant_points;
 
   /** PI
@@ -278,6 +277,6 @@ struct TranscendentalState
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H */
+#endif /* CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H */

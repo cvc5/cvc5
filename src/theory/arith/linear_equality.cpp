@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file linear_equality.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief This implements the LinearEqualityModule.
- **
- ** This implements the LinearEqualityModule.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Mathias Preiner, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This implements the LinearEqualityModule.
+ */
 #include "theory/arith/linear_equality.h"
 
 #include "base/output.h"
@@ -22,7 +21,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -66,42 +65,26 @@ LinearEqualityModule::LinearEqualityModule(ArithVariables& vars, Tableau& t, Bou
   d_trackCallback(this)
 {}
 
-LinearEqualityModule::Statistics::Statistics():
-  d_statPivots("theory::arith::pivots",0),
-  d_statUpdates("theory::arith::updates",0),
-  d_pivotTime("theory::arith::pivotTime"),
-  d_adjTime("theory::arith::adjTime"),
-  d_weakeningAttempts("theory::arith::weakening::attempts",0),
-  d_weakeningSuccesses("theory::arith::weakening::success",0),
-  d_weakenings("theory::arith::weakening::total",0),
-  d_weakenTime("theory::arith::weakening::time"),
-  d_forceTime("theory::arith::forcing::time")
+LinearEqualityModule::Statistics::Statistics()
+    : d_statPivots(
+        smtStatisticsRegistry().registerInt("theory::arith::pivots")),
+      d_statUpdates(
+          smtStatisticsRegistry().registerInt("theory::arith::updates")),
+      d_pivotTime(
+          smtStatisticsRegistry().registerTimer("theory::arith::pivotTime")),
+      d_adjTime(
+          smtStatisticsRegistry().registerTimer("theory::arith::adjTime")),
+      d_weakeningAttempts(smtStatisticsRegistry().registerInt(
+          "theory::arith::weakening::attempts")),
+      d_weakeningSuccesses(smtStatisticsRegistry().registerInt(
+          "theory::arith::weakening::success")),
+      d_weakenings(smtStatisticsRegistry().registerInt(
+          "theory::arith::weakening::total")),
+      d_weakenTime(smtStatisticsRegistry().registerTimer(
+          "theory::arith::weakening::time")),
+      d_forceTime(
+          smtStatisticsRegistry().registerTimer("theory::arith::forcing::time"))
 {
-  smtStatisticsRegistry()->registerStat(&d_statPivots);
-  smtStatisticsRegistry()->registerStat(&d_statUpdates);
-
-  smtStatisticsRegistry()->registerStat(&d_pivotTime);
-  smtStatisticsRegistry()->registerStat(&d_adjTime);
-
-  smtStatisticsRegistry()->registerStat(&d_weakeningAttempts);
-  smtStatisticsRegistry()->registerStat(&d_weakeningSuccesses);
-  smtStatisticsRegistry()->registerStat(&d_weakenings);
-  smtStatisticsRegistry()->registerStat(&d_weakenTime);
-  smtStatisticsRegistry()->registerStat(&d_forceTime);
-}
-
-LinearEqualityModule::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_statPivots);
-  smtStatisticsRegistry()->unregisterStat(&d_statUpdates);
-  smtStatisticsRegistry()->unregisterStat(&d_pivotTime);
-  smtStatisticsRegistry()->unregisterStat(&d_adjTime);
-
-
-  smtStatisticsRegistry()->unregisterStat(&d_weakeningAttempts);
-  smtStatisticsRegistry()->unregisterStat(&d_weakeningSuccesses);
-  smtStatisticsRegistry()->unregisterStat(&d_weakenings);
-  smtStatisticsRegistry()->unregisterStat(&d_weakenTime);
-  smtStatisticsRegistry()->unregisterStat(&d_forceTime);
 }
 
 void LinearEqualityModule::includeBoundUpdate(ArithVar v, const BoundsInfo& prev){
@@ -184,12 +167,12 @@ void LinearEqualityModule::forceNewBasis(const DenseSet& newBasis){
     Assert(toAdd != ARITHVAR_SENTINEL);
 
     Trace("arith::forceNewBasis") << toRemove << " " << toAdd << endl;
-    CVC4Message() << toRemove << " " << toAdd << endl;
+    CVC5Message() << toRemove << " " << toAdd << endl;
     d_tableau.pivot(toRemove, toAdd, d_trackCallback);
     d_basicVariableUpdates(toAdd);
 
     Trace("arith::forceNewBasis") << needsToBeAdded.size() << "to go" << endl;
-    CVC4Message() << needsToBeAdded.size() << "to go" << endl;
+    CVC5Message() << needsToBeAdded.size() << "to go" << endl;
     needsToBeAdded.remove(toAdd);
   }
 }
@@ -1411,6 +1394,6 @@ void LinearEqualityModule::directlyAddToCoefficient(ArithVar row, ArithVar col, 
   d_tableau.directlyAddToCoefficient(row, col, mult, d_trackCallback);
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

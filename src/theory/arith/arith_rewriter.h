@@ -1,37 +1,46 @@
-/*********************                                                        */
-/*! \file arith_rewriter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Rewriter for arithmetic.
- **
- ** Rewriter for the theory of arithmetic.  This rewrites to the normal form for
- ** arithmetic. See theory/arith/normal_form.h for more information.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Andrew Reynolds, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Rewriter for the theory of arithmetic.
+ *
+ * This rewrites to the normal form for arithmetic.
+ * See theory/arith/normal_form.h for more information.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__ARITH__ARITH_REWRITER_H
-#define CVC4__THEORY__ARITH__ARITH_REWRITER_H
+#ifndef CVC5__THEORY__ARITH__ARITH_REWRITER_H
+#define CVC5__THEORY__ARITH__ARITH_REWRITER_H
 
 #include "theory/arith/rewrites.h"
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
+
+class OperatorElim;
 
 class ArithRewriter : public TheoryRewriter
 {
  public:
+  ArithRewriter(OperatorElim& oe);
   RewriteResponse preRewrite(TNode n) override;
   RewriteResponse postRewrite(TNode n) override;
+  /**
+   * Expand definition, which eliminates extended operators like div/mod in
+   * the given node.
+   */
+  TrustNode expandDefinition(Node node) override;
 
  private:
   static Node makeSubtractionNode(TNode l, TNode r);
@@ -69,10 +78,12 @@ class ArithRewriter : public TheoryRewriter
   }
   /** return rewrite */
   static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
+  /** The operator elimination utility */
+  OperatorElim& d_opElim;
 }; /* class ArithRewriter */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__ARITH_REWRITER_H */
+#endif /* CVC5__THEORY__ARITH__ARITH_REWRITER_H */

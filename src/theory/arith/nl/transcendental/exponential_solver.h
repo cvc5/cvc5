@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file exponential_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Solving for handling exponential function.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Solving for handling exponential function.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__EXPONENTIAL_SOLVER_H
-#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__EXPONENTIAL_SOLVER_H
+#ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__EXPONENTIAL_SOLVER_H
+#define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__EXPONENTIAL_SOLVER_H
 
 #include <map>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -108,6 +109,6 @@ class ExponentialSolver
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */

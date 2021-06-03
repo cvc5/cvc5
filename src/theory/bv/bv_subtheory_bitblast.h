@@ -1,20 +1,19 @@
-/*********************                                                        */
-/*! \file bv_subtheory_bitblast.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Algebraic solver.
- **
- ** Algebraic solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Mathias Preiner, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Algebraic solver.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -22,7 +21,7 @@
 
 #include "theory/bv/bv_subtheory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace theory {
 namespace bv {
@@ -42,7 +41,6 @@ class BitblastSolver : public SubtheorySolver
     IntStat d_numCallstoCheck;
     IntStat d_numBBLemmas;
     Statistics();
-    ~Statistics();
   };
   /** Bitblaster */
   std::unique_ptr<TLazyBitblaster> d_bitblaster;
@@ -51,7 +49,7 @@ class BitblastSolver : public SubtheorySolver
   context::CDQueue<TNode> d_bitblastQueue;
   Statistics d_statistics;
 
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node> NodeMap;
   NodeMap d_modelCache;
   context::CDO<bool> d_validModelCache;
 
@@ -83,4 +81,4 @@ class BitblastSolver : public SubtheorySolver
 
 }  // namespace bv
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5

@@ -1,40 +1,40 @@
-/*********************                                                        */
-/*! \file command_executor.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An additional layer between commands and invoking them.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Kshitij Bansal, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An additional layer between commands and invoking them.
+ */
 
-#ifndef CVC4__MAIN__COMMAND_EXECUTOR_H
-#define CVC4__MAIN__COMMAND_EXECUTOR_H
+#ifndef CVC5__MAIN__COMMAND_EXECUTOR_H
+#define CVC5__MAIN__COMMAND_EXECUTOR_H
 
 #include <iosfwd>
 #include <string>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "expr/symbol_manager.h"
 #include "options/options.h"
-#include "smt/smt_engine.h"
-#include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
+
+namespace smt {
+class SmtEngine;
+}
 
 namespace main {
 
 class CommandExecutor
 {
- private:
-  std::string d_lastStatistics;
-
  protected:
   /**
    * The solver object, which is allocated by this class and is used for
@@ -65,9 +65,10 @@ class CommandExecutor
    * sequence.  Eventually uses doCommandSingleton (which can be
    * overridden by a derived class).
    */
-  bool doCommand(CVC4::Command* cmd);
+  bool doCommand(cvc5::Command* cmd);
 
-  bool doCommand(std::unique_ptr<CVC4::Command>& cmd) {
+  bool doCommand(std::unique_ptr<cvc5::Command>& cmd)
+  {
     return doCommand(cmd.get());
   }
 
@@ -83,24 +84,25 @@ class CommandExecutor
   SmtEngine* getSmtEngine() const { return d_solver->getSmtEngine(); }
 
   /**
-   * Flushes statistics to a file descriptor.
+   * Prints statistics to an output stream.
+   * Checks whether statistics should be printed according to the options.
+   * Thus, this method can always be called without checking the options.
    */
-  virtual void flushStatistics(std::ostream& out) const;
+  virtual void printStatistics(std::ostream& out) const;
 
   /**
-   * Flushes statistics to a file descriptor.
-   * Safe to use in a signal handler.
+   * Safely prints statistics to a file descriptor.
+   * This method is safe to be used within a signal handler.
+   * Checks whether statistics should be printed according to the options.
+   * Thus, this method can always be called without checking the options.
    */
-  void safeFlushStatistics(int fd) const;
-
-  static void printStatsFilterZeros(std::ostream& out,
-                                    const std::string& statsString);
+  void printStatisticsSafe(int fd) const;
 
   void flushOutputStreams();
 
 protected:
   /** Executes treating cmd as a singleton */
-  virtual bool doCommandSingleton(CVC4::Command* cmd);
+ virtual bool doCommandSingleton(cvc5::Command* cmd);
 
 private:
   CommandExecutor();
@@ -112,7 +114,7 @@ bool solverInvoke(api::Solver* solver,
                   Command* cmd,
                   std::ostream* out);
 
-}/* CVC4::main namespace */
-}/* CVC4 namespace */
+}  // namespace main
+}  // namespace cvc5
 
-#endif  /* CVC4__MAIN__COMMAND_EXECUTOR_H */
+#endif /* CVC5__MAIN__COMMAND_EXECUTOR_H */

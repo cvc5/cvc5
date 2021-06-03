@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file model_builder.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Model Builder class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model Builder class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H
-#define CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__MODEL_BUILDER_H
+#define CVC5__THEORY__QUANTIFIERS__MODEL_BUILDER_H
 
 #include "expr/node.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/theory_model_builder.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -29,6 +30,7 @@ class FirstOrderModel;
 class QuantifiersState;
 class QuantifiersRegistry;
 class QuantifiersInferenceManager;
+class TermRegistry;
 
 class QModelBuilder : public TheoryEngineModelBuilder
 {
@@ -42,9 +44,11 @@ class QModelBuilder : public TheoryEngineModelBuilder
 
  public:
   QModelBuilder(QuantifiersState& qs,
+                QuantifiersInferenceManager& qim,
                 QuantifiersRegistry& qr,
-                QuantifiersInferenceManager& qim);
-
+                TermRegistry& tr);
+  /** finish init, which sets the model object */
+  virtual void finishInit();
   //do exhaustive instantiation  
   // 0 :  failed, but resorting to true exhaustive instantiation may work
   // >0 : success
@@ -59,20 +63,26 @@ class QModelBuilder : public TheoryEngineModelBuilder
   //statistics 
   unsigned getNumAddedLemmas() { return d_addedLemmas; }
   unsigned getNumTriedLemmas() { return d_triedLemmas; }
+  /** get the model we are using */
+  FirstOrderModel* getModel();
 
  protected:
-  /** Pointer to quantifiers engine */
-  QuantifiersEngine* d_qe;
   /** The quantifiers state object */
   QuantifiersState& d_qstate;
+  /** The quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
   /** Reference to the quantifiers registry */
   QuantifiersRegistry& d_qreg;
-  /** The quantifiers inference manager */
-  quantifiers::QuantifiersInferenceManager& d_qim;
+  /** Term registry */
+  TermRegistry& d_treg;
+  /** Pointer to the model object we are using */
+  FirstOrderModel* d_model;
+  /** The model object we have allocated */
+  std::unique_ptr<FirstOrderModel> d_modelAloc;
 };
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__MODEL_BUILDER_H */

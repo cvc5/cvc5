@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file partial_model.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "base/output.h"
 #include "theory/arith/constraint.h"
@@ -22,7 +23,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -193,7 +194,7 @@ bool ArithVariables::VarInfo::setAssignment(const DeltaRational& a, BoundsInfo& 
 void ArithVariables::releaseArithVar(ArithVar v){
   VarInfo& vi = d_vars.get(v);
 
-  size_t removed CVC4_UNUSED = d_nodeToArithVarMap.erase(vi.d_node);
+  size_t removed CVC5_UNUSED = d_nodeToArithVarMap.erase(vi.d_node);
   Assert(removed == 1);
 
   vi.uninitialize();
@@ -684,6 +685,6 @@ void ArithVariables::UpperBoundCleanUp::operator()(AVCPair* p){
   d_pm->popUpperBound(p);
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

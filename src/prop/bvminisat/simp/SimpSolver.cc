@@ -27,7 +27,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/bvminisat/mtl/Sort.h"
 #include "prop/bvminisat/utils/System.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace BVMinisat {
 
 //=================================================================================================
@@ -48,7 +48,7 @@ static DoubleOption opt_simp_garbage_frac(_cat, "simp-gc-frac", "The fraction of
 //=================================================================================================
 // Constructor/Destructor:
 
-SimpSolver::SimpSolver(CVC4::context::Context* context)
+SimpSolver::SimpSolver(cvc5::context::Context* context)
     : Solver(context),
       grow(opt_grow),
       clause_lim(opt_clause_lim),
@@ -57,9 +57,9 @@ SimpSolver::SimpSolver(CVC4::context::Context* context)
       use_asymm(opt_use_asymm),
       use_rcheck(opt_use_rcheck),
       use_elim(opt_use_elim
-               && CVC4::options::bitblastMode()
-                      == CVC4::options::BitblastMode::EAGER
-               && !CVC4::options::produceModels()),
+               && cvc5::options::bitblastMode()
+                      == cvc5::options::BitblastMode::EAGER
+               && !cvc5::options::produceModels()),
       merges(0),
       asymm_lits(0),
       eliminated_vars(0),
@@ -94,7 +94,7 @@ SimpSolver::SimpSolver(CVC4::context::Context* context)
 
 SimpSolver::~SimpSolver()
 {
-  //  CVC4::StatisticsRegistry::unregisterStat(&total_eliminate_time);
+  //  cvc5::StatisticsRegistry::unregisterStat(&total_eliminate_time);
 }
 
 
@@ -166,7 +166,7 @@ lbool SimpSolver::solve_(bool do_simp, bool turn_off_simp)
 
 bool SimpSolver::addClause_(vec<Lit>& ps, ClauseId& id)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (int i = 0; i < ps.size(); i++) Assert(!isEliminated(var(ps[i])));
 #endif
 
@@ -644,64 +644,77 @@ void SimpSolver::extendModel()
 
 bool SimpSolver::eliminate(bool turn_off_elim)
 {
+  //  cvc5::TimerStat::CodeTimer codeTimer(total_eliminate_time);
 
-  //  CVC4::TimerStat::CodeTimer codeTimer(total_eliminate_time);
+  if (!simplify())
+    return false;
+  else if (!use_simplification)
+    return true;
 
-    if (!simplify())
-        return false;
-    else if (!use_simplification)
-        return true;
+  // Main simplification loop:
+  //
+  while (n_touched > 0 || bwdsub_assigns < trail.size() || elim_heap.size() > 0)
+  {
+    gatherTouchedClauses();
+    // printf("  ## (time = %6.2f s) BWD-SUB: queue = %d, trail = %d\n",
+    // cpuTime(), subsumption_queue.size(), trail.size() - bwdsub_assigns);
+    if ((subsumption_queue.size() > 0 || bwdsub_assigns < trail.size())
+        && !backwardSubsumptionCheck(true))
+    {
+      ok = false;
+      goto cleanup;
+    }
 
-    // Main simplification loop:
-    //
-    while (n_touched > 0 || bwdsub_assigns < trail.size() || elim_heap.size() > 0){
+    // Empty elim_heap and return immediately on user-interrupt:
+    if (asynch_interrupt)
+    {
+      Assert(bwdsub_assigns == trail.size());
+      Assert(subsumption_queue.size() == 0);
+      Assert(n_touched == 0);
+      elim_heap.clear();
+      goto cleanup;
+    }
 
-        gatherTouchedClauses();
-        // printf("  ## (time = %6.2f s) BWD-SUB: queue = %d, trail = %d\n", cpuTime(), subsumption_queue.size(), trail.size() - bwdsub_assigns);
-        if ((subsumption_queue.size() > 0 || bwdsub_assigns < trail.size())
-            && !backwardSubsumptionCheck(true))
+    // printf("  ## (time = %6.2f s) ELIM: vars = %d\n", cpuTime(),
+    // elim_heap.size());
+    for (int cnt = 0; !elim_heap.empty(); cnt++)
+    {
+      Var elim = elim_heap.removeMin();
+
+      if (asynch_interrupt) break;
+
+      if (isEliminated(elim) || value(elim) != l_Undef) continue;
+
+      if (verbosity >= 2 && cnt % 100 == 0)
+        printf("elimination left: %10d\r", elim_heap.size());
+
+      if (use_asymm)
+      {
+        // Temporarily freeze variable. Otherwise, it would immediately end up
+        // on the queue again:
+        bool was_frozen = frozen[elim];
+        frozen[elim] = true;
+        if (!asymmVar(elim))
         {
           ok = false;
           goto cleanup;
         }
+        frozen[elim] = was_frozen;
+      }
 
-        // Empty elim_heap and return immediately on user-interrupt:
-        if (asynch_interrupt){
-          Assert(bwdsub_assigns == trail.size());
-          Assert(subsumption_queue.size() == 0);
-          Assert(n_touched == 0);
-          elim_heap.clear();
-          goto cleanup;
-        }
+      // At this point, the variable may have been set by assymetric branching,
+      // so check it again. Also, don't eliminate frozen variables:
+      if (use_elim && value(elim) == l_Undef && !frozen[elim]
+          && !eliminateVar(elim))
+      {
+        ok = false;
+        goto cleanup;
+      }
 
-        // printf("  ## (time = %6.2f s) ELIM: vars = %d\n", cpuTime(), elim_heap.size());
-        for (int cnt = 0; !elim_heap.empty(); cnt++){
-            Var elim = elim_heap.removeMin();
+      checkGarbage(simp_garbage_frac);
+    }
 
-            if (asynch_interrupt) break;
-
-            if (isEliminated(elim) || value(elim) != l_Undef) continue;
-
-            if (verbosity >= 2 && cnt % 100 == 0)
-                printf("elimination left: %10d\r", elim_heap.size());
-
-            if (use_asymm){
-                // Temporarily freeze variable. Otherwise, it would immediately end up on the queue again:
-                bool was_frozen = frozen[elim];
-                frozen[elim] = true;
-                if (!asymmVar(elim)){
-                    ok = false; goto cleanup; }
-                frozen[elim] = was_frozen; }
-
-            // At this point, the variable may have been set by assymetric branching, so check it
-            // again. Also, don't eliminate frozen variables:
-            if (use_elim && value(elim) == l_Undef && !frozen[elim] && !eliminateVar(elim)){
-                ok = false; goto cleanup; }
-
-            checkGarbage(simp_garbage_frac);
-        }
-
-        Assert(subsumption_queue.size() == 0);
+    Assert(subsumption_queue.size() == 0);
     }
  cleanup:
 
@@ -795,5 +808,5 @@ void SimpSolver::garbageCollect()
     to.moveTo(ca);
 }
 
-} /* CVC4::BVMinisat namespace */
-} /* CVC4 namespace */
+}  // namespace BVMinisat
+}  // namespace cvc5

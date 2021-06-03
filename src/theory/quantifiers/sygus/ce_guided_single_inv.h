@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file ce_guided_single_inv.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief utility for processing single invocation synthesis conjectures
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utility for processing single invocation synthesis conjectures.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
-#define CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
+#define CVC5__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
 
 #include "context/cdlist.h"
 #include "expr/subs.h"
@@ -24,7 +25,7 @@
 #include "theory/quantifiers/single_inv_partition.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -50,8 +51,6 @@ class CegSingleInv
                                std::map< Node, std::vector< Node > >& teq,
                                Node n, std::vector< Node >& conj );
  private:
-  /** pointer to the quantifiers engine */
-  QuantifiersEngine* d_qe;
   // single invocation inference utility
   SingleInvocationPartition* d_sip;
   /** solution reconstruction */
@@ -92,7 +91,7 @@ class CegSingleInv
   Node d_single_inv;
   
  public:
-  CegSingleInv(QuantifiersEngine* qe, SygusStatistics& s);
+  CegSingleInv(TermRegistry& tr, SygusStatistics& s);
   ~CegSingleInv();
 
   // get simplified conjecture
@@ -164,6 +163,8 @@ class CegSingleInv
    * calls to the above method getSolutionFromInst.
    */
   void setSolution();
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** The conjecture */
   Node d_quant;
   //-------------- decomposed conjecture
@@ -176,8 +177,8 @@ class CegSingleInv
   //-------------- end decomposed conjecture
 };
 
-}/* namespace CVC4::theory::quantifiers */
-}/* namespace CVC4::theory */
-}/* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

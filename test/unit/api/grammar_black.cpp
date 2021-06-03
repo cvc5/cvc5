@@ -1,22 +1,21 @@
-/*********************                                                        */
-/*! \file grammar_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of the guards of the C++ API functions.
- **
- ** Black box testing of the guards of the C++ API functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of the guards of the C++ API functions.
+ */
 
 #include "test_api.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace api;
 
@@ -40,14 +39,15 @@ TEST_F(TestApiBlackGrammar, addRule)
   ASSERT_NO_THROW(g.addRule(start, d_solver.mkBoolean(false)));
 
   ASSERT_THROW(g.addRule(nullTerm, d_solver.mkBoolean(false)),
-               CVC4ApiException);
-  ASSERT_THROW(g.addRule(start, nullTerm), CVC4ApiException);
-  ASSERT_THROW(g.addRule(nts, d_solver.mkBoolean(false)), CVC4ApiException);
-  ASSERT_THROW(g.addRule(start, d_solver.mkInteger(0)), CVC4ApiException);
+               CVC5ApiException);
+  ASSERT_THROW(g.addRule(start, nullTerm), CVC5ApiException);
+  ASSERT_THROW(g.addRule(nts, d_solver.mkBoolean(false)), CVC5ApiException);
+  ASSERT_THROW(g.addRule(start, d_solver.mkInteger(0)), CVC5ApiException);
+  ASSERT_THROW(g.addRule(start, nts), CVC5ApiException);
 
   d_solver.synthFun("f", {}, boolean, g);
 
-  ASSERT_THROW(g.addRule(start, d_solver.mkBoolean(false)), CVC4ApiException);
+  ASSERT_THROW(g.addRule(start, d_solver.mkBoolean(false)), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackGrammar, addRules)
@@ -64,15 +64,16 @@ TEST_F(TestApiBlackGrammar, addRules)
   ASSERT_NO_THROW(g.addRules(start, {d_solver.mkBoolean(false)}));
 
   ASSERT_THROW(g.addRules(nullTerm, {d_solver.mkBoolean(false)}),
-               CVC4ApiException);
-  ASSERT_THROW(g.addRules(start, {nullTerm}), CVC4ApiException);
-  ASSERT_THROW(g.addRules(nts, {d_solver.mkBoolean(false)}), CVC4ApiException);
-  ASSERT_THROW(g.addRules(start, {d_solver.mkInteger(0)}), CVC4ApiException);
+               CVC5ApiException);
+  ASSERT_THROW(g.addRules(start, {nullTerm}), CVC5ApiException);
+  ASSERT_THROW(g.addRules(nts, {d_solver.mkBoolean(false)}), CVC5ApiException);
+  ASSERT_THROW(g.addRules(start, {d_solver.mkInteger(0)}), CVC5ApiException);
+  ASSERT_THROW(g.addRules(start, {nts}), CVC5ApiException);
 
   d_solver.synthFun("f", {}, boolean, g);
 
   ASSERT_THROW(g.addRules(start, {d_solver.mkBoolean(false)}),
-               CVC4ApiException);
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackGrammar, addAnyConstant)
@@ -88,12 +89,12 @@ TEST_F(TestApiBlackGrammar, addAnyConstant)
   ASSERT_NO_THROW(g.addAnyConstant(start));
   ASSERT_NO_THROW(g.addAnyConstant(start));
 
-  ASSERT_THROW(g.addAnyConstant(nullTerm), CVC4ApiException);
-  ASSERT_THROW(g.addAnyConstant(nts), CVC4ApiException);
+  ASSERT_THROW(g.addAnyConstant(nullTerm), CVC5ApiException);
+  ASSERT_THROW(g.addAnyConstant(nts), CVC5ApiException);
 
   d_solver.synthFun("f", {}, boolean, g);
 
-  ASSERT_THROW(g.addAnyConstant(start), CVC4ApiException);
+  ASSERT_THROW(g.addAnyConstant(start), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackGrammar, addAnyVariable)
@@ -112,12 +113,12 @@ TEST_F(TestApiBlackGrammar, addAnyVariable)
   ASSERT_NO_THROW(g1.addAnyVariable(start));
   ASSERT_NO_THROW(g2.addAnyVariable(start));
 
-  ASSERT_THROW(g1.addAnyVariable(nullTerm), CVC4ApiException);
-  ASSERT_THROW(g1.addAnyVariable(nts), CVC4ApiException);
+  ASSERT_THROW(g1.addAnyVariable(nullTerm), CVC5ApiException);
+  ASSERT_THROW(g1.addAnyVariable(nts), CVC5ApiException);
 
   d_solver.synthFun("f", {}, boolean, g1);
 
-  ASSERT_THROW(g1.addAnyVariable(start), CVC4ApiException);
+  ASSERT_THROW(g1.addAnyVariable(start), CVC5ApiException);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

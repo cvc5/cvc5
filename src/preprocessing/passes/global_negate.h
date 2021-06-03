@@ -1,35 +1,36 @@
-/*********************                                                        */
-/*! \file global_negate.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar, Mathias Preiner, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief the global_negate preprocessing pass
- **
- ** Updates a set of assertions to the negation of these assertions.
- ** In detail, if assertions is:
- **    F1, ..., Fn
- ** then we update this vector to:
- **    forall x1...xm. ~( F1 ^ ... ^ Fn ), true, ..., true
- ** where x1...xm are the free variables of F1...Fn.
- ** When this is done, d_globalNegation flag is marked, so that the solver
- ** checks for unsat instead of sat.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar, Mathias Preiner, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The global_negate preprocessing pass.
+ *
+ * Updates a set of assertions to the negation of these assertions.
+ * In detail, if assertions is:
+ *    F1, ..., Fn
+ * then we update this vector to:
+ *    forall x1...xm. ~( F1 ^ ... ^ Fn ), true, ..., true
+ * where x1...xm are the free variables of F1...Fn.
+ * When this is done, d_globalNegation flag is marked, so that the solver
+ * checks for unsat instead of sat.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__GLOBAL_NEGATE_H
-#define CVC4__PREPROCESSING__PASSES__GLOBAL_NEGATE_H
+#ifndef CVC5__PREPROCESSING__PASSES__GLOBAL_NEGATE_H
+#define CVC5__PREPROCESSING__PASSES__GLOBAL_NEGATE_H
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -48,6 +49,6 @@ class GlobalNegate : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING_PASSES__GLOBAL_NEGATE_H */
+#endif /* CVC5__PREPROCESSING_PASSES__GLOBAL_NEGATE_H */

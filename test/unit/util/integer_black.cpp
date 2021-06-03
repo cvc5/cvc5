@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file integer_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of CVC4::Integer.
- **
- ** Black box testing of CVC4::Integer.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::Integer.
+ */
 
 #include <limits>
 #include <sstream>
@@ -21,7 +20,7 @@
 #include "test.h"
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackInteger : public TestInternal
@@ -564,4 +563,4 @@ TEST_F(TestUtilBlackInteger, modInverse)
   }
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,33 +1,33 @@
-/*********************                                                        */
-/*! \file dump.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Dump utility classes and functions
- **
- ** Dump utility classes and functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Dump utility classes and functions.
+ */
 
 #include "smt/dump.h"
 
 #include "base/configuration.h"
 #include "base/output.h"
 #include "lib/strtok_r.h"
+#include "options/option_exception.h"
 #include "preprocessing/preprocessing_pass_registry.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
-#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
+#if defined(CVC5_DUMPING) && !defined(CVC5_MUZZLE)
 
-CVC4dumpstream& CVC4dumpstream::operator<<(const Command& c)
+CVC5dumpstream& CVC5dumpstream::operator<<(const Command& c)
 {
   if (d_os != nullptr)
   {
@@ -36,7 +36,7 @@ CVC4dumpstream& CVC4dumpstream::operator<<(const Command& c)
   return *this;
 }
 
-CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
+CVC5dumpstream& CVC5dumpstream::operator<<(const NodeCommand& nc)
 {
   if (d_os != nullptr)
   {
@@ -47,23 +47,25 @@ CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
 
 #else
 
-CVC4dumpstream& CVC4dumpstream::operator<<(const Command& c) { return *this; }
-CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
+CVC5dumpstream& CVC5dumpstream::operator<<(const Command& c) { return *this; }
+CVC5dumpstream& CVC5dumpstream::operator<<(const NodeCommand& nc)
 {
   return *this;
 }
 
-#endif /* CVC4_DUMPING && !CVC4_MUZZLE */
+#endif /* CVC5_DUMPING && !CVC5_MUZZLE */
 
 DumpC DumpChannel;
 
 std::ostream& DumpC::setStream(std::ostream* os) {
-  ::CVC4::DumpOutChannel.setStream(os);
+  ::cvc5::DumpOutChannel.setStream(os);
   return *os;
 }
-std::ostream& DumpC::getStream() { return ::CVC4::DumpOutChannel.getStream(); }
-std::ostream* DumpC::getStreamPointer() { return ::CVC4::DumpOutChannel.getStreamPointer(); }
-
+std::ostream& DumpC::getStream() { return ::cvc5::DumpOutChannel.getStream(); }
+std::ostream* DumpC::getStreamPointer()
+{
+  return ::cvc5::DumpOutChannel.getStreamPointer();
+}
 
 void DumpC::setDumpFromString(const std::string& optarg) {
   if (Configuration::isDumpingBuild())
@@ -173,7 +175,7 @@ void DumpC::setDumpFromString(const std::string& optarg) {
   else
   {
     throw OptionException(
-        "The dumping feature was disabled in this build of CVC4.");
+        "The dumping feature was disabled in this build of cvc5.");
   }
 }
 
@@ -236,9 +238,9 @@ other modes for checking correctness and completeness of decision procedure\n\
 implementations.\n\
 \n\
 The --output-language option controls the language used for dumping, and\n\
-this allows you to connect CVC4 to another solver implementation via a UNIX\n\
+this allows you to connect cvc5 to another solver implementation via a UNIX\n\
 pipe to perform on-line checking.  The --dump-to option can be used to dump\n\
 to a file.\n\
 ";
 
-}/* CVC4 namespace */
+}  // namespace cvc5

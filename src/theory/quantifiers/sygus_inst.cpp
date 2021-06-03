@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file sygus_inst.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Aina Niemetz, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SyGuS instantiator class.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SyGuS instantiator class.
+ */
 
 #include "theory/quantifiers/sygus_inst.h"
 
@@ -18,6 +19,7 @@
 #include <unordered_set>
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -26,10 +28,9 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -46,8 +47,8 @@ namespace {
  */
 void getMaxGroundTerms(TNode n,
                        TypeNode tn,
-                       std::unordered_set<Node, NodeHashFunction>& terms,
-                       std::unordered_set<TNode, TNodeHashFunction>& cache,
+                       std::unordered_set<Node>& terms,
+                       std::unordered_set<TNode>& cache,
                        bool skip_quant = false)
 {
   if (options::sygusInstTermSel() != options::SygusInstTermSelMode::MAX
@@ -99,12 +100,11 @@ void getMaxGroundTerms(TNode n,
  *               term was already found in a subterm.
  * @param skip_quant: Do not traverse quantified formulas (skip quantifiers).
  */
-void getMinGroundTerms(
-    TNode n,
-    TypeNode tn,
-    std::unordered_set<Node, NodeHashFunction>& terms,
-    std::unordered_map<TNode, std::pair<bool, bool>, TNodeHashFunction>& cache,
-    bool skip_quant = false)
+void getMinGroundTerms(TNode n,
+                       TypeNode tn,
+                       std::unordered_set<Node>& terms,
+                       std::unordered_map<TNode, std::pair<bool, bool>>& cache,
+                       bool skip_quant = false)
 {
   if (options::sygusInstTermSel() != options::SygusInstTermSelMode::MIN
       && options::sygusInstTermSel() != options::SygusInstTermSelMode::BOTH)
@@ -168,9 +168,8 @@ void getMinGroundTerms(
  * @param extra_cons: A map of TypeNode to constants, which are added in
  *                    addition to the default grammar.
  */
-void addSpecialValues(
-    const TypeNode& tn,
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& extra_cons)
+void addSpecialValues(const TypeNode& tn,
+                      std::map<TypeNode, std::unordered_set<Node>>& extra_cons)
 {
   if (tn.isBitVector())
   {
@@ -183,12 +182,11 @@ void addSpecialValues(
 
 }  // namespace
 
-SygusInst::SygusInst(QuantifiersEngine* qe,
-                     QuantifiersState& qs,
+SygusInst::SygusInst(QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
                      QuantifiersRegistry& qr,
                      TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr, qe),
+    : QuantifiersModule(qs, qim, qr, tr),
       d_ce_lemma_added(qs.getUserContext()),
       d_global_terms(qs.getUserContext()),
       d_notified_assertions(qs.getUserContext())
@@ -331,19 +329,16 @@ void SygusInst::registerQuantifier(Node q)
 
   Trace("sygus-inst") << "Register " << q << std::endl;
 
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> extra_cons;
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> exclude_cons;
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> include_cons;
-  std::unordered_set<Node, NodeHashFunction> term_irrelevant;
+  std::map<TypeNode, std::unordered_set<Node>> extra_cons;
+  std::map<TypeNode, std::unordered_set<Node>> exclude_cons;
+  std::map<TypeNode, std::unordered_set<Node>> include_cons;
+  std::unordered_set<Node> term_irrelevant;
 
   /* Collect relevant local ground terms for each variable type. */
   if (options::sygusInstScope() == options::SygusInstScope::IN
       || options::sygusInstScope() == options::SygusInstScope::BOTH)
   {
-    std::unordered_map<TypeNode,
-                       std::unordered_set<Node, NodeHashFunction>,
-                       TypeNodeHashFunction>
-        relevant_terms;
+    std::unordered_map<TypeNode, std::unordered_set<Node>> relevant_terms;
     for (const Node& var : q[0])
     {
       TypeNode tn = var.getType();
@@ -351,10 +346,9 @@ void SygusInst::registerQuantifier(Node q)
       /* Collect relevant ground terms for type tn. */
       if (relevant_terms.find(tn) == relevant_terms.end())
       {
-        std::unordered_set<Node, NodeHashFunction> terms;
-        std::unordered_set<TNode, TNodeHashFunction> cache_max;
-        std::unordered_map<TNode, std::pair<bool, bool>, TNodeHashFunction>
-            cache_min;
+        std::unordered_set<Node> terms;
+        std::unordered_set<TNode> cache_max;
+        std::unordered_map<TNode, std::pair<bool, bool>> cache_min;
 
         getMinGroundTerms(q, tn, terms, cache_min);
         getMaxGroundTerms(q, tn, terms, cache_max);
@@ -383,10 +377,9 @@ void SygusInst::registerQuantifier(Node q)
       /* Collect relevant ground terms for type tn. */
       if (d_global_terms.find(tn) == d_global_terms.end())
       {
-        std::unordered_set<Node, NodeHashFunction> terms;
-        std::unordered_set<TNode, TNodeHashFunction> cache_max;
-        std::unordered_map<TNode, std::pair<bool, bool>, TNodeHashFunction>
-            cache_min;
+        std::unordered_set<Node> terms;
+        std::unordered_set<TNode> cache_max;
+        std::unordered_map<TNode, std::pair<bool, bool>> cache_min;
 
         for (const Node& a : d_notified_assertions)
         {
@@ -464,7 +457,8 @@ Node SygusInst::getCeLiteral(Node q)
   }
 
   NodeManager* nm = NodeManager::currentNM();
-  Node sk = nm->mkSkolem("CeLiteral", nm->booleanType());
+  SkolemManager* sm = nm->getSkolemManager();
+  Node sk = sm->mkDummySkolem("CeLiteral", nm->booleanType());
   Node lit = d_qstate.getValuation().ensureLiteral(sk);
   d_ce_lits[q] = lit;
   return lit;
@@ -548,11 +542,11 @@ void SygusInst::addCeLemma(Node q)
   if (d_ce_lemma_added.find(q) != d_ce_lemma_added.end()) return;
 
   Node lem = d_ce_lemmas[q];
-  d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
+  d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYQI_CEX);
   d_ce_lemma_added.insert(q);
   Trace("sygus-inst") << "Add CE Lemma: " << lem << std::endl;
 }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,37 +1,40 @@
-/*********************                                                        */
-/*! \file cut_log.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
+
+#include "theory/arith/cut_log.h"
+
+#include <limits.h>
+#include <math.h>
 
 #include <cmath>
 #include <iomanip>
-#include <limits.h>
 #include <map>
-#include <math.h>
 
+#include "base/cvc5config.h"
 #include "base/output.h"
-#include "cvc4autoconfig.h"
 #include "theory/arith/approx_simplex.h"
 #include "theory/arith/constraint.h"
-#include "theory/arith/cut_log.h"
 #include "theory/arith/normal_form.h"
 #include "util/ostream_util.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -702,6 +705,6 @@ void DenseVector::print(ostream& out, const DenseMap<Rational>& v){
   out << "]";
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

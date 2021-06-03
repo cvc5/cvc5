@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_model.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Clark Barrett, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of model class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Clark Barrett, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of model class.
+ */
 #include "theory/theory_model.h"
 
 #include "expr/node_algorithm.h"
@@ -18,21 +19,22 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "theory/rewriter.h"
+#include "theory/trust_substitutions.h"
+#include "util/rational.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
-TheoryModel::TheoryModel(context::Context* c,
-                         std::string name,
-                         bool enableFuncModels)
-    : d_name(name),
-      d_substitutions(c, false),
+TheoryModel::TheoryModel(Env& env, std::string name, bool enableFuncModels)
+    : d_env(env),
+      d_name(name),
       d_equalityEngine(nullptr),
       d_using_model_core(false),
       d_enableFuncModels(enableFuncModels)
@@ -136,7 +138,7 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
 Node TheoryModel::getValue(TNode n) const
 {
   //apply substitutions
-  Node nn = d_substitutions.apply(n);
+  Node nn = d_env.getTopLevelSubstitutions().apply(n);
   Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
   nn = getModelValue(nn);
@@ -183,7 +185,7 @@ Cardinality TheoryModel::getCardinality(TypeNode tn) const
 
 Node TheoryModel::getModelValue(TNode n) const
 {
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_modelCache.find(n);
+  std::unordered_map<Node, Node>::iterator it = d_modelCache.find(n);
   if (it != d_modelCache.end()) {
     return (*it).second;
   }
@@ -199,10 +201,13 @@ Node TheoryModel::getModelValue(TNode n) const
   Node ret = n;
   NodeManager* nm = NodeManager::currentNM();
 
-  // if it is an evaluated kind, compute model values for children and evaluate
-  if (n.getNumChildren() > 0
-      && d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
-      && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end())
+  // If it has children, evaluate them. We do this even if n is an unevaluatable
+  // or semi-unevaluatable operator. Notice this includes quantified
+  // formulas. It may not be possible in general to evaluate bodies of
+  // quantified formulas, because they have free variables. Regardless, we
+  // may often be able to evaluate the body of a quantified formula to true,
+  // e.g. forall x. P(x) where P = lambda x. true.
+  if (n.getNumChildren() > 0)
   {
     Debug("model-getvalue-debug")
         << "Get model value children " << n << std::endl;
@@ -218,9 +223,17 @@ Node TheoryModel::getModelValue(TNode n) const
       children.push_back(n.getOperator());
     }
     // evaluate the children
-    for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
+    for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
     {
-      ret = getModelValue(n[i]);
+      if (n.isClosure() && i==0)
+      {
+        // do not evaluate bound variable lists
+        ret = n[0];
+      }
+      else
+      {
+        ret = getModelValue(n[i]);
+      }
       Debug("model-getvalue-debug")
           << "  " << n << "[" << i << "] is " << ret << std::endl;
       children.push_back(ret);
@@ -244,8 +257,16 @@ Node TheoryModel::getModelValue(TNode n) const
       ret = nm->mkConst(
           Rational(getCardinality(ret[0].getType()).getFiniteCardinality()));
     }
-    d_modelCache[n] = ret;
-    return ret;
+    // if the value was constant, we return it. If it was non-constant,
+    // we only return it if we an evaluated kind. This can occur if the
+    // children of n failed to evaluate.
+    if (ret.isConst() || (
+     d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
+      && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end()))
+    {
+      d_modelCache[n] = ret;
+      return ret;
+    }
   }
   // it might be approximate
   std::map<Node, Node>::const_iterator ita = d_approximations.find(n);
@@ -345,26 +366,6 @@ Node TheoryModel::getModelValue(TNode n) const
 
   d_modelCache[n] = n;
   return n;
-}
-
-/** add substitution */
-void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
-  if( !d_substitutions.hasSubstitution( x ) ){
-    Debug("model") << "Add substitution in model " << x << " -> " << t << std::endl;
-    d_substitutions.addSubstitution( x, t, invalidateCache );
-  } else {
-#ifdef CVC4_ASSERTIONS
-    Node oldX = d_substitutions.getSubstitution(x);
-    // check that either the old substitution is the same, or it now maps to the new substitution
-    if(oldX != t && d_substitutions.apply(oldX) != d_substitutions.apply(t)) {
-      InternalError()
-          << "Two incompatible substitutions added to TheoryModel:\n"
-          << "the term:    " << x << "\n"
-          << "old mapping: " << d_substitutions.apply(oldX) << "\n"
-          << "new mapping: " << d_substitutions.apply(t);
-    }
-#endif /* CVC4_ASSERTIONS */
-  }
 }
 
 /** add term */
@@ -661,6 +662,18 @@ bool TheoryModel::areDisequal(TNode a, TNode b)
   }
 }
 
+bool TheoryModel::hasUfTerms(Node f) const
+{
+  return d_uf_terms.find(f) != d_uf_terms.end();
+}
+
+const std::vector<Node>& TheoryModel::getUfTerms(Node f) const
+{
+  const auto it = d_uf_terms.find(f);
+  Assert(it != d_uf_terms.end());
+  return it->second;
+}
+
 bool TheoryModel::areFunctionValuesEnabled() const
 {
   return d_enableFuncModels;
@@ -714,6 +727,8 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
   for( std::map< Node, std::vector< Node > >::iterator it = d_uf_terms.begin(); it != d_uf_terms.end(); ++it ){
     Node n = it->first;
     Assert(!n.isNull());
+    // should not have been solved for in a substitution
+    Assert(d_env.getTopLevelSubstitutions().apply(n) == n);
     if( !hasAssignedFunctionDefinition( n ) ){
       Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
       if( options::ufHo() ){
@@ -764,5 +779,5 @@ std::string TheoryModel::debugPrintModelEqc() const
   return ss.str();
 }
 
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace theory
+}  // namespace cvc5

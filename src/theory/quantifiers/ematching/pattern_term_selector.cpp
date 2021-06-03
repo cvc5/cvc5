@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file pattern_term_selector.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of pattern term selector class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of pattern term selector class.
+ */
 
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
 
@@ -19,10 +20,11 @@
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include "util/rational.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -471,10 +473,10 @@ int PatternTermSelector::isInstanceOf(Node n1,
 {
   Assert(n1 != n2);
   int status = 0;
-  std::unordered_set<TNode, TNodeHashFunction> subs_vars;
+  std::unordered_set<TNode> subs_vars;
   std::unordered_set<
       std::pair<TNode, TNode>,
-      PairHashFunction<TNode, TNode, TNodeHashFunction, TNodeHashFunction> >
+      PairHashFunction<TNode, TNode, std::hash<TNode>, std::hash<TNode>>>
       visited;
   std::vector<std::pair<TNode, TNode> > visit;
   std::pair<TNode, TNode> cur;
@@ -729,4 +731,4 @@ void PatternTermSelector::getTriggerVariables(Node n,
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

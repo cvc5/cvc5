@@ -1,20 +1,18 @@
-/*********************                                                        */
-/*! \file logic_info.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A class giving information about a logic (group a theory modules
- ** and configuration information)
- **
- ** A class giving information about a logic (group of theory modules and
- ** configuration information).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A class giving information about a logic (group a theory modules
+ * and configuration information)
+ */
 #include "theory/logic_info.h"
 
 #include <cstring>
@@ -27,9 +25,9 @@
 #include "expr/kind.h"
 
 using namespace std;
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 
 LogicInfo::LogicInfo()
     : d_logicString(""),
@@ -385,24 +383,12 @@ void LogicInfo::setLogicString(std::string logicString)
     // quantified Boolean formulas only; we're done.
     enableQuantifiers();
     p += 3;
-  } else if(!strcmp(p, "QF_ALL_SUPPORTED")) {
-    // the "all theories included" logic, no quantifiers
-    enableEverything();
-    disableQuantifiers();
-    arithNonLinear();
-    p += 16;
   } else if(!strcmp(p, "QF_ALL")) {
     // the "all theories included" logic, no quantifiers
     enableEverything();
     disableQuantifiers();
     arithNonLinear();
     p += 6;
-  } else if(!strcmp(p, "ALL_SUPPORTED")) {
-    // the "all theories included" logic, with quantifiers
-    enableEverything();
-    enableQuantifiers();
-    arithNonLinear();
-    p += 13;
   } else if(!strcmp(p, "ALL")) {
     // the "all theories included" logic, with quantifiers
     enableEverything();
@@ -725,4 +711,4 @@ std::ostream& operator<<(std::ostream& out, const LogicInfo& logic) {
   return out << logic.getLogicString();
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

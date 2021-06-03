@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file arith_preprocess.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Arithmetic preprocess
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Arithmetic preprocess.
+ */
 
 #include "theory/arith/arith_preprocess.h"
 
@@ -18,15 +19,15 @@
 #include "theory/arith/inference_manager.h"
 #include "theory/skolem_lemma.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
 ArithPreprocess::ArithPreprocess(ArithState& state,
                                  InferenceManager& im,
                                  ProofNodeManager* pnm,
-                                 const LogicInfo& info)
-    : d_im(im), d_opElim(pnm, info), d_reduced(state.getUserContext())
+                                 OperatorElim& oe)
+    : d_im(im), d_opElim(oe), d_reduced(state.getUserContext())
 {
 }
 TrustNode ArithPreprocess::eliminate(TNode n,
@@ -38,8 +39,7 @@ TrustNode ArithPreprocess::eliminate(TNode n,
 
 bool ArithPreprocess::reduceAssertion(TNode atom)
 {
-  context::CDHashMap<Node, bool, NodeHashFunction>::const_iterator it =
-      d_reduced.find(atom);
+  context::CDHashMap<Node, bool>::const_iterator it = d_reduced.find(atom);
   if (it != d_reduced.end())
   {
     // already computed
@@ -69,8 +69,7 @@ bool ArithPreprocess::reduceAssertion(TNode atom)
 
 bool ArithPreprocess::isReduced(TNode atom) const
 {
-  context::CDHashMap<Node, bool, NodeHashFunction>::const_iterator it =
-      d_reduced.find(atom);
+  context::CDHashMap<Node, bool>::const_iterator it = d_reduced.find(atom);
   if (it == d_reduced.end())
   {
     return false;
@@ -80,4 +79,4 @@ bool ArithPreprocess::isReduced(TNode atom) const
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

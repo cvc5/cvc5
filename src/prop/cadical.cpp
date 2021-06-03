@@ -1,26 +1,28 @@
-/*********************                                                        */
-/*! \file cadical.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Andres Noetzli, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Wrapper for CaDiCaL SAT Solver.
- **
- ** Implementation of the CaDiCaL SAT solver for CVC4 (bitvectors).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Andres Noetzli, Liana Hadarean
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Wrapper for CaDiCaL SAT Solver.
+ *
+ * Implementation of the CaDiCaL SAT solver for cvc5 (bit-vectors).
+ */
 
 #include "prop/cadical.h"
 
-#ifdef CVC4_USE_CADICAL
+#ifdef CVC5_USE_CADICAL
 
 #include "base/check.h"
+#include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 using CadicalLit = int;
@@ -55,7 +57,7 @@ CadicalVar toCadicalVar(SatVariable var) { return var; }
 
 }  // namespace helper functions
 
-CadicalSolver::CadicalSolver(StatisticsRegistry* registry,
+CadicalSolver::CadicalSolver(StatisticsRegistry& registry,
                              const std::string& name)
     : d_solver(new CaDiCaL::Solver()),
       // Note: CaDiCaL variables start with index 1 rather than 0 since negated
@@ -178,28 +180,16 @@ unsigned CadicalSolver::getAssertionLevel() const
 
 bool CadicalSolver::ok() const { return d_inSatMode; }
 
-CadicalSolver::Statistics::Statistics(StatisticsRegistry* registry,
+CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
                                       const std::string& prefix)
-    : d_registry(registry),
-      d_numSatCalls("theory::bv::" + prefix + "::cadical::calls_to_solve", 0),
-      d_numVariables("theory::bv::" + prefix + "::cadical::variables", 0),
-      d_numClauses("theory::bv::" + prefix + "::cadical::clauses", 0),
-      d_solveTime("theory::bv::" + prefix + "::cadical::solve_time")
-{
-  d_registry->registerStat(&d_numSatCalls);
-  d_registry->registerStat(&d_numVariables);
-  d_registry->registerStat(&d_numClauses);
-  d_registry->registerStat(&d_solveTime);
-}
-
-CadicalSolver::Statistics::~Statistics() {
-  d_registry->unregisterStat(&d_numSatCalls);
-  d_registry->unregisterStat(&d_numVariables);
-  d_registry->unregisterStat(&d_numClauses);
-  d_registry->unregisterStat(&d_solveTime);
+    : d_numSatCalls(registry.registerInt(prefix + "cadical::calls_to_solve", 0)),
+      d_numVariables(registry.registerInt(prefix + "cadical::variables", 0)),
+      d_numClauses(registry.registerInt(prefix + "cadical::clauses", 0)),
+      d_solveTime(registry.registerTimer(prefix + "cadical::solve_time"))
+  {
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif  // CVC4_USE_CADICAL
+#endif  // CVC5_USE_CADICAL

@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file managed_ostreams.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Wrappers to handle memory management of ostreams.
- **
- ** This file contains wrappers to handle special cases of managing memory
- ** related to ostreams.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Wrappers to handle memory management of ostreams.
+ *
+ * This file contains wrappers to handle special cases of managing memory
+ * related to ostreams.
+ */
 
 #include "smt/managed_ostreams.h"
 
@@ -21,10 +22,11 @@
 
 #include "base/check.h"
 #include "options/open_ostream.h"
+#include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "smt/update_ostream.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 ManagedOstream::ManagedOstream() : d_managed(NULL) {}
 
@@ -71,13 +73,13 @@ std::string ManagedDumpOStream::defaultSource() const{
 
 
 void ManagedDumpOStream::initialize(std::ostream* outStream) {
-#ifdef CVC4_DUMPING
+#ifdef CVC5_DUMPING
   DumpOstreamUpdate dumpGetStream;
   dumpGetStream.apply(outStream);
-#else /* CVC4_DUMPING */
+#else  /* CVC5_DUMPING */
   throw OptionException(
-      "The dumping feature was disabled in this build of CVC4.");
-#endif /* CVC4_DUMPING */
+      "The dumping feature was disabled in this build of cvc5.");
+#endif /* CVC5_DUMPING */
 }
 
 void ManagedDumpOStream::addSpecialCases(OstreamOpener* opener) const {
@@ -89,7 +91,7 @@ ManagedRegularOutputChannel::~ManagedRegularOutputChannel() {
   // to null_os. Consult RegularOutputChannelListener for the list of
   // channels.
   if(options::err() == getManagedOstream()){
-    options::err.set(&null_os);
+    Options::current().base.err = &null_os;
   }
 }
 
@@ -113,7 +115,7 @@ ManagedDiagnosticOutputChannel::~ManagedDiagnosticOutputChannel() {
   // to null_os. Consult DiagnosticOutputChannelListener for the list of
   // channels.
   if(options::err() == getManagedOstream()){
-    options::err.set(&null_os);
+    Options::current().base.err = &null_os;
   }
 
   if(Debug.getStreamPointer() == getManagedOstream()) {
@@ -122,9 +124,9 @@ ManagedDiagnosticOutputChannel::~ManagedDiagnosticOutputChannel() {
   if(Warning.getStreamPointer() == getManagedOstream()){
     Warning.setStream(&null_os);
   }
-  if (CVC4Message.getStreamPointer() == getManagedOstream())
+  if (CVC5Message.getStreamPointer() == getManagedOstream())
   {
-    CVC4Message.setStream(&null_os);
+    CVC5Message.setStream(&null_os);
   }
   if(Notice.getStreamPointer() == getManagedOstream()){
     Notice.setStream(&null_os);
@@ -164,4 +166,4 @@ void ManagedDiagnosticOutputChannel::addSpecialCases(OstreamOpener* opener)
   opener->addSpecialCase("stderr", &std::cerr);
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

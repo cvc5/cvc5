@@ -1,21 +1,21 @@
-/*********************                                                        */
-/*! \file matrix.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sparse matrix implementations for different types.
- **
- ** Sparse matrix implementations for different types.
- ** This defines Matrix<T>, IntegerEqualityTables and Tableau.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Mathias Preiner, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ * Sparse matrix implementations for different types.
+ *
+ * Sparse matrix implementations for different types.
+ * This defines Matrix<T>, IntegerEqualityTables and Tableau.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -28,7 +28,7 @@
 #include "util/dense_map.h"
 #include "util/index.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -368,8 +368,8 @@ public:
   typedef MatrixEntry<T> Entry;
 
 protected:
-  typedef CVC4::theory::arith::RowVector<T> RowVectorT;
-  typedef CVC4::theory::arith::ColumnVector<T> ColumnVectorT;
+ typedef cvc5::theory::arith::RowVector<T> RowVectorT;
+ typedef cvc5::theory::arith::ColumnVector<T> ColumnVectorT;
 
 public:
   typedef typename RowVectorT::const_iterator RowIterator;
@@ -997,7 +997,6 @@ protected:
 
 };/* class Matrix<T> */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

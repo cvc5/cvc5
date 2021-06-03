@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file cvc_printer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The pretty-printer interface for the CVC output language
- **
- ** The pretty-printer interface for the CVC output language.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The pretty-printer interface for the CVC output language.
+ */
 
 #include "printer/cvc/cvc_printer.h"
 
@@ -24,9 +23,13 @@
 #include <typeinfo>
 #include <vector>
 
+#include "expr/array_store_all.h"
+#include "expr/ascription_type.h"
+#include "expr/datatype_index.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/dtype_selector.h"
+#include "expr/emptyset.h"
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
@@ -39,10 +42,14 @@
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
+#include "util/bitvector.h"
+#include "util/divisible.h"
+#include "util/rational.h"
+#include "util/string.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace printer {
 namespace cvc {
 
@@ -275,17 +282,6 @@ void CvcPrinter::toStreamNode(std::ostream& out,
       out << " ENDIF";
       return;
       break;
-    case kind::SEXPR_TYPE:
-      out << '[';
-      for (unsigned i = 0; i < n.getNumChildren(); ++ i) {
-        if (i > 0) {
-          out << ", ";
-        }
-        toStreamNode(out, n[i], depth, false, lbind);
-      }
-      out << ']';
-      return;
-      break;
     case kind::SEXPR:
       // no-op
       break;
@@ -497,18 +493,6 @@ void CvcPrinter::toStreamNode(std::ostream& out,
     case kind::TESTER_TYPE:
       toStreamNode(out, n[0], depth, false, lbind);
       out << " -> BOOLEAN";
-      return;
-      break;
-    case kind::TUPLE_UPDATE:
-      toStreamNode(out, n[0], depth, true, lbind);
-      out << " WITH ." << n.getOperator().getConst<TupleUpdate>().getIndex() << " := ";
-      toStreamNode(out, n[1], depth, true, lbind);
-      return;
-      break;
-    case kind::RECORD_UPDATE:
-      toStreamNode(out, n[0], depth, true, lbind);
-      out << " WITH ." << n.getOperator().getConst<RecordUpdate>().getField() << " := ";
-      toStreamNode(out, n[1], depth, true, lbind);
       return;
       break;
 
@@ -726,8 +710,9 @@ void CvcPrinter::toStreamNode(std::ostream& out,
       op << "@";
       opType = INFIX;
       break;
-    case kind::BITVECTOR_PLUS: {
-      // This interprets a BITVECTOR_PLUS as a bvadd in SMT-LIB
+    case kind::BITVECTOR_ADD:
+    {
+      // This interprets a BITVECTOR_ADD as a bvadd in SMT-LIB
       Assert(n.getType().isBitVector());
       unsigned numc = n.getNumChildren()-2;
       unsigned child = 0;
@@ -944,7 +929,7 @@ void CvcPrinter::toStreamNode(std::ostream& out,
         }
         toStreamNode(out, n[i], -1, false, lbind);
         out << ":";
-        n[i].getType().toStream(out, language::output::LANG_CVC4);
+        n[i].getType().toStream(out, language::output::LANG_CVC);
       }
       out << ')';
       return;
@@ -1623,6 +1608,6 @@ void CvcPrinter::toStreamNodeWithLetify(std::ostream& out,
   lbind->popScope();
 }
 
-}/* CVC4::printer::cvc namespace */
-}/* CVC4::printer namespace */
-}/* CVC4 namespace */
+}  // namespace cvc
+}  // namespace printer
+}  // namespace cvc5

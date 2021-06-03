@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file real_algebraic_number_poly_imp.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Algebraic number constants; wraps a libpoly algebraic number.
- **
- ** Algebraic number constants; wraps a libpoly algebraic number.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Algebraic number constants; wraps a libpoly algebraic number.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__REAL_ALGEBRAIC_NUMBER_H
-#define CVC4__REAL_ALGEBRAIC_NUMBER_H
+#ifndef CVC5__REAL_ALGEBRAIC_NUMBER_H
+#define CVC5__REAL_ALGEBRAIC_NUMBER_H
 
 #include <vector>
 
@@ -26,7 +25,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * Represents a real algebraic number based on poly::AlgebraicNumber.
@@ -148,6 +147,6 @@ bool isZero(const RealAlgebraicNumber& ran);
 /** Check whether a real algebraic number is one. */
 bool isOne(const RealAlgebraicNumber& ran);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__REAL_ALGEBRAIC_NUMBER_H */
+#endif /* CVC5__REAL_ALGEBRAIC_NUMBER_H */

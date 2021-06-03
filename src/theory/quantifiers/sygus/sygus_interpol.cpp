@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file sygus_interpol.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Ying Sheng, Abdalrhman Mohamed, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of sygus interpolation utility, which
- ** transforms an input of axioms and conjecture into an interpolation problem,
- *and solve it.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Ying Sheng, Abdalrhman Mohamed, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of sygus interpolation utility, which transforms an input of
+ * axioms and conjecture into an interpolation problem, and solve it.
+ */
 
 #include "theory/quantifiers/sygus/sygus_interpol.h"
 
 #include <sstream>
 
+#include "base/modal_exception.h"
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "options/smt_options.h"
@@ -27,7 +28,7 @@
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -37,8 +38,8 @@ void SygusInterpol::collectSymbols(const std::vector<Node>& axioms,
                                    const Node& conj)
 {
   Trace("sygus-interpol-debug") << "Collect symbols..." << std::endl;
-  std::unordered_set<Node, NodeHashFunction> symSetAxioms;
-  std::unordered_set<Node, NodeHashFunction> symSetConj;
+  std::unordered_set<Node> symSetAxioms;
+  std::unordered_set<Node> symSetConj;
   for (size_t i = 0, size = axioms.size(); i < size; i++)
   {
     expr::getSymbols(axioms[i], symSetAxioms);
@@ -95,7 +96,7 @@ void SygusInterpol::createVariables(bool needsShared)
 void SygusInterpol::getIncludeCons(
     const std::vector<Node>& axioms,
     const Node& conj,
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& result)
+    std::map<TypeNode, std::unordered_set<Node>>& result)
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(options::produceInterpols() != options::ProduceInterpols::NONE);
@@ -115,38 +116,35 @@ void SygusInterpol::getIncludeCons(
   else if (options::produceInterpols() == options::ProduceInterpols::SHARED)
   {
     // Get operators from axioms
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>
-        include_cons_axioms;
+    std::map<TypeNode, std::unordered_set<Node>> include_cons_axioms;
     Node tmpAssumptions =
         (axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms));
     expr::getOperatorsMap(tmpAssumptions, include_cons_axioms);
 
     // Get operators from conj
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>
-        include_cons_conj;
+    std::map<TypeNode, std::unordered_set<Node>> include_cons_conj;
     expr::getOperatorsMap(conj, include_cons_conj);
 
     // Compute intersection
-    for (std::map<TypeNode,
-                  std::unordered_set<Node, NodeHashFunction>>::iterator it =
+    for (std::map<TypeNode, std::unordered_set<Node>>::iterator it =
              include_cons_axioms.begin();
          it != include_cons_axioms.end();
          it++)
     {
       TypeNode tn = it->first;
-      std::unordered_set<Node, NodeHashFunction> axiomsOps = it->second;
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
-          concIter = include_cons_conj.find(tn);
+      std::unordered_set<Node> axiomsOps = it->second;
+      std::map<TypeNode, std::unordered_set<Node>>::iterator concIter =
+          include_cons_conj.find(tn);
       if (concIter != include_cons_conj.end())
       {
-        std::unordered_set<Node, NodeHashFunction> conjOps = concIter->second;
+        std::unordered_set<Node> conjOps = concIter->second;
         for (const Node& n : axiomsOps)
         {
           if (conjOps.find(n) != conjOps.end())
           {
             if (result.find(tn) == result.end())
             {
-              result[tn] = std::unordered_set<Node, NodeHashFunction>();
+              result[tn] = std::unordered_set<Node>();
             }
             result[tn].insert(n);
           }
@@ -183,11 +181,11 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
   else
   {
     // set default grammar
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> extra_cons;
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> exclude_cons;
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> include_cons;
+    std::map<TypeNode, std::unordered_set<Node>> extra_cons;
+    std::map<TypeNode, std::unordered_set<Node>> exclude_cons;
+    std::map<TypeNode, std::unordered_set<Node>> include_cons;
     getIncludeCons(axioms, conj, include_cons);
-    std::unordered_set<Node, NodeHashFunction> terms_irrelevant;
+    std::unordered_set<Node> terms_irrelevant;
     itpGTypeS = CegGrammarConstructor::mkSygusDefaultType(
         NodeManager::currentNM()->booleanType(),
         d_ibvlShared,
@@ -358,4 +356,4 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

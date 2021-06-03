@@ -1,31 +1,30 @@
-/*********************                                                        */
-/*! \file exception.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief CVC4's exception base class and some associated utilities
- **
- ** CVC4's exception base class and some associated utilities.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * cvc5's exception base class and some associated utilities.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__EXCEPTION_H
-#define CVC4__EXCEPTION_H
+#ifndef CVC5__EXCEPTION_H
+#define CVC5__EXCEPTION_H
 
 #include <exception>
 #include <iosfwd>
 #include <string>
 
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Exception : public std::exception
 {
@@ -71,7 +70,7 @@ class Exception : public std::exception
 
 }; /* class Exception */
 
-class CVC4_EXPORT IllegalArgumentException : public Exception
+class CVC5_EXPORT IllegalArgumentException : public Exception
 {
  protected:
   IllegalArgumentException() : Exception() {}
@@ -119,21 +118,26 @@ inline std::ostream& operator<<(std::ostream& os, const Exception& e)
 
 template <class T>
 inline void CheckArgument(bool cond, const T& arg, const char* tail);
-template <class T> inline void CheckArgument(bool cond, const T& arg CVC4_UNUSED,
-                                             const char* tail CVC4_UNUSED) {
-  if(__builtin_expect( ( !cond ), false )) { \
-    throw ::CVC4::IllegalArgumentException("", "", tail); \
-  } \
+template <class T>
+inline void CheckArgument(bool cond,
+                          const T& arg CVC5_UNUSED,
+                          const char* tail CVC5_UNUSED)
+{
+  if(__builtin_expect( ( !cond ), false )) {
+    throw ::cvc5::IllegalArgumentException("", "", tail);
+  }
 }
 template <class T>
 inline void CheckArgument(bool cond, const T& arg);
-template <class T> inline void CheckArgument(bool cond, const T& arg CVC4_UNUSED) {
-  if(__builtin_expect( ( !cond ), false )) { \
-    throw ::CVC4::IllegalArgumentException("", "", ""); \
-  } \
+template <class T>
+inline void CheckArgument(bool cond, const T& arg CVC5_UNUSED)
+{
+  if(__builtin_expect( ( !cond ), false )) {
+    throw ::cvc5::IllegalArgumentException("", "", "");
+  }
 }
 
-class CVC4_EXPORT LastExceptionBuffer
+class CVC5_EXPORT LastExceptionBuffer
 {
  public:
   LastExceptionBuffer();
@@ -159,6 +163,6 @@ private:
   static thread_local LastExceptionBuffer* s_currentBuffer;
 }; /* class LastExceptionBuffer */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__EXCEPTION_H */
+#endif /* CVC5__EXCEPTION_H */

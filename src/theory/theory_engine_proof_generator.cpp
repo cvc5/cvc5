@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file theory_engine_proof_generator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The theory engine proof generator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The theory engine proof generator.
+ */
 
 #include "theory/theory_engine_proof_generator.h"
 
 #include <sstream>
 
-#include "expr/proof_node.h"
+#include "proof/proof_node.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 TheoryEngineProofGenerator::TheoryEngineProofGenerator(ProofNodeManager* pnm,
                                                        context::UserContext* u)
@@ -29,21 +30,21 @@ TheoryEngineProofGenerator::TheoryEngineProofGenerator(ProofNodeManager* pnm,
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-theory::TrustNode TheoryEngineProofGenerator::mkTrustExplain(
+TrustNode TheoryEngineProofGenerator::mkTrustExplain(
     TNode lit, Node exp, std::shared_ptr<LazyCDProof> lpf)
 {
   Node p;
-  theory::TrustNode trn;
+  TrustNode trn;
   if (lit == d_false)
   {
     // propagation of false is a conflict
-    trn = theory::TrustNode::mkTrustConflict(exp, this);
+    trn = TrustNode::mkTrustConflict(exp, this);
     p = trn.getProven();
     Assert(p.getKind() == NOT);
   }
   else
   {
-    trn = theory::TrustNode::mkTrustPropExp(lit, exp, this);
+    trn = TrustNode::mkTrustPropExp(lit, exp, this);
     p = trn.getProven();
     Assert(p.getKind() == IMPLIES && p.getNumChildren() == 2);
   }
@@ -128,4 +129,4 @@ std::string TheoryEngineProofGenerator::identify() const
   return "TheoryEngineProofGenerator";
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

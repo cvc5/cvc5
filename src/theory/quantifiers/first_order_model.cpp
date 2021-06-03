@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file first_order_model.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of model engine model class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of model engine model class.
+ */
 
 #include "theory/quantifiers/first_order_model.h"
 #include "options/base_options.h"
@@ -23,10 +24,10 @@
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -43,10 +44,8 @@ using ModelBasisArgAttribute = expr::Attribute<ModelBasisArgAttributeId, uint64_
 
 FirstOrderModel::FirstOrderModel(QuantifiersState& qs,
                                  QuantifiersRegistry& qr,
-                                 TermRegistry& tr,
-                                 std::string name)
-    : TheoryModel(qs.getSatContext(), name, true),
-      d_qe(nullptr),
+                                 TermRegistry& tr)
+    : d_model(nullptr),
       d_qreg(qr),
       d_treg(tr),
       d_eq_query(qs, this),
@@ -55,8 +54,32 @@ FirstOrderModel::FirstOrderModel(QuantifiersState& qs,
 {
 }
 
-//!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
-void FirstOrderModel::finishInit(QuantifiersEngine* qe) { d_qe = qe; }
+void FirstOrderModel::finishInit(TheoryModel* m) { d_model = m; }
+
+Node FirstOrderModel::getValue(TNode n) const { return d_model->getValue(n); }
+bool FirstOrderModel::hasTerm(TNode a) { return d_model->hasTerm(a); }
+Node FirstOrderModel::getRepresentative(TNode a)
+{
+  return d_model->getRepresentative(a);
+}
+bool FirstOrderModel::areEqual(TNode a, TNode b)
+{
+  return d_model->areEqual(a, b);
+}
+bool FirstOrderModel::areDisequal(TNode a, TNode b)
+{
+  return d_model->areDisequal(a, b);
+}
+eq::EqualityEngine* FirstOrderModel::getEqualityEngine()
+{
+  return d_model->getEqualityEngine();
+}
+const RepSet* FirstOrderModel::getRepSet() const
+{
+  return d_model->getRepSet();
+}
+RepSet* FirstOrderModel::getRepSetPtr() { return d_model->getRepSetPtr(); }
+TheoryModel* FirstOrderModel::getTheoryModel() { return d_model; }
 
 Node FirstOrderModel::getInternalRepresentative(Node a, Node q, size_t index)
 {
@@ -117,23 +140,25 @@ void FirstOrderModel::initializeModelForTerm( Node n, std::map< Node, bool >& vi
 
 Node FirstOrderModel::getSomeDomainElement(TypeNode tn){
   //check if there is even any domain elements at all
-  if (!d_rep_set.hasType(tn) || d_rep_set.d_type_reps[tn].size() == 0)
+  RepSet* rs = d_model->getRepSetPtr();
+  if (!rs->hasType(tn) || rs->getNumRepresentatives(tn) == 0)
   {
     Trace("fm-debug") << "Must create domain element for " << tn << "..."
                       << std::endl;
     Node mbt = getModelBasisTerm(tn);
     Trace("fm-debug") << "Add to representative set..." << std::endl;
-    d_rep_set.add(tn, mbt);
+    rs->add(tn, mbt);
   }
-  return d_rep_set.d_type_reps[tn][0];
+  return rs->getRepresentative(tn, 0);
 }
 
 bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
 {
+  RepSet* rs = d_model->getRepSetPtr();
   if (tn.isSort())
   {
     // must ensure uninterpreted type is non-empty.
-    if (!d_rep_set.hasType(tn))
+    if (!rs->hasType(tn))
     {
       // terms in rep_set are now constants which mapped to terms through
       // TheoryModel. Thus, should introduce a constant and a term.
@@ -141,7 +166,7 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
       Node var = getSomeDomainElement(tn);
       Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn
                      << std::endl;
-      d_rep_set.add(tn, var);
+      rs->add(tn, var);
     }
     return true;
   }
@@ -152,9 +177,9 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
     {
       Trace("fm-debug") << "  do complete, since cardinality is small ("
                         << tn.getCardinality() << ")..." << std::endl;
-      d_rep_set.complete(tn);
+      rs->complete(tn);
       // must have succeeded
-      Assert(d_rep_set.hasType(tn));
+      Assert(rs->hasType(tn));
       return true;
     }
     Trace("fm-debug") << "  variable cannot be bounded." << std::endl;
@@ -361,6 +386,6 @@ unsigned FirstOrderModel::getModelBasisArg(Node n)
   return n.getAttribute(ModelBasisArgAttribute());
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

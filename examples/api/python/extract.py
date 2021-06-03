@@ -1,21 +1,23 @@
 #!/usr/bin/env python
-#####################
-## extract.py
-## Top contributors (to current version):
-##   Makai Mann, Aina Niemetz
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
-## A simple demonstration of the solving capabilities of the CVC4
-## bit-vector solver through the Python API. This is a direct translation
-## of extract-new.cpp.
+###############################################################################
+# Top contributors (to current version):
+#   Makai Mann, Aina Niemetz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# A simple demonstration of the solving capabilities of the cvc5 bit-vector
+# solver through the Python API. This is a direct translation of
+# extract-new.cpp.
 ##
 
-from pycvc4 import Solver
-from pycvc4.kinds import BVExtract, Equal
+from pycvc5 import Solver
+from pycvc5.kinds import BVExtract, Equal
 
 if __name__ == "__main__":
     slv = Solver()
@@ -47,4 +49,4 @@ if __name__ == "__main__":
     eq2 = slv.mkTerm(Equal, x_31_31, x_0_0)
     print("Check entailment assuming:", eq2)
     print("Expect ENTAILED")
-    print("CVC4:", slv.checkEntailed(eq2))
+    print("cvc5:", slv.checkEntailed(eq2))

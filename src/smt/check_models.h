@@ -1,30 +1,33 @@
-/*********************                                                        */
-/*! \file check_models.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utility for checking models
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utility for checking models.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__SMT__CHECK_MODELS_H
-#define CVC4__SMT__CHECK_MODELS_H
+#ifndef CVC5__SMT__CHECK_MODELS_H
+#define CVC5__SMT__CHECK_MODELS_H
 
 #include "context/cdlist.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class Env;
+
 namespace smt {
 
 class Model;
-class SmtSolver;
 
 /**
  * This utility is responsible for checking the current model.
@@ -32,7 +35,7 @@ class SmtSolver;
 class CheckModels
 {
  public:
-  CheckModels(SmtSolver& s);
+  CheckModels(Env& e);
   ~CheckModels();
   /**
    * Check model m against the current set of input assertions al.
@@ -43,11 +46,11 @@ class CheckModels
   void checkModel(Model* m, context::CDList<Node>* al, bool hardFailure);
 
  private:
-  /** Reference to the SMT solver */
-  SmtSolver& d_smt;
+  /** Reference to the environment */
+  Env& d_env;
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

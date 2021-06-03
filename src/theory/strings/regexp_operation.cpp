@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file regexp_operation.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tianyi Liang, Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Symbolic Regular Expresion Operations
- **
- ** Symbolic Regular Expresion Operations
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tianyi Liang, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Symbolic Regular Expresion Operations
+ */
 
 #include "theory/strings/regexp_operation.h"
 
@@ -24,10 +23,11 @@
 #include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/regexp.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -36,8 +36,8 @@ RegExpOpr::RegExpOpr(SkolemCache* sc)
       d_false(NodeManager::currentNM()->mkConst(false)),
       d_emptyRegexp(NodeManager::currentNM()->mkNode(kind::REGEXP_EMPTY,
                                                      std::vector<Node>{})),
-      d_zero(NodeManager::currentNM()->mkConst(::CVC4::Rational(0))),
-      d_one(NodeManager::currentNM()->mkConst(::CVC4::Rational(1))),
+      d_zero(NodeManager::currentNM()->mkConst(::cvc5::Rational(0))),
+      d_one(NodeManager::currentNM()->mkConst(::cvc5::Rational(1))),
       d_sigma(NodeManager::currentNM()->mkNode(kind::REGEXP_SIGMA,
                                                std::vector<Node>{})),
       d_sigma_star(
@@ -64,7 +64,7 @@ bool RegExpOpr::checkConstRegExp( Node r ) {
 RegExpConstType RegExpOpr::getRegExpConstType(Node r)
 {
   Assert(r.getType().isRegExp());
-  std::unordered_map<Node, RegExpConstType, NodeHashFunction>::iterator it;
+  std::unordered_map<Node, RegExpConstType>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(r);
@@ -266,13 +266,15 @@ int RegExpOpr::delta( Node r, Node &exp ) {
 }
 
 // 0-unknown, 1-yes, 2-no
-int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
+int RegExpOpr::derivativeS(Node r, cvc5::String c, Node& retNode)
+{
   Assert(c.size() < 2);
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
 
   int ret = 1;
   retNode = d_emptyRegexp;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   PairNodeStr dv = std::make_pair( r, c );
   if( d_deriv_cache.find( dv ) != d_deriv_cache.end() ) {
@@ -301,8 +303,8 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
         break;
       }
       case kind::REGEXP_RANGE: {
-        CVC4::String a = r[0].getConst<String>();
-        CVC4::String b = r[1].getConst<String>();
+        cvc5::String a = r[0].getConst<String>();
+        cvc5::String b = r[1].getConst<String>();
         retNode = (a <= c && c <= b) ? d_emptySingleton : d_emptyRegexp;
         break;
       }
@@ -354,7 +356,8 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
             }
           }
           if(ret == 0) {
-            Node sk = NodeManager::currentNM()->mkSkolem( "rsp", NodeManager::currentNM()->stringType(), "Split RegExp" );
+            Node sk =
+                sm->mkDummySkolem("rsp", nm->stringType(), "Split RegExp");
             retNode = NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, sk);
             if(!rest.isNull()) {
               retNode = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, retNode, rest));
@@ -520,7 +523,8 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
   return ret;
 }
 
-Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
+Node RegExpOpr::derivativeSingle(Node r, cvc5::String c)
+{
   Assert(c.size() < 2);
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
   Node retNode = d_emptyRegexp;
@@ -553,8 +557,8 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
         break;
       }
       case kind::REGEXP_RANGE: {
-        CVC4::String a = r[0].getConst<String>();
-        CVC4::String b = r[1].getConst<String>();
+        cvc5::String a = r[0].getConst<String>();
+        cvc5::String b = r[1].getConst<String>();
         retNode = (a <= c && c <= b) ? d_emptySingleton : d_emptyRegexp;
         break;
       }
@@ -1014,16 +1018,7 @@ Node RegExpOpr::reduceRegExpPos(Node mem,
   {
     std::vector<Node> nvec;
     std::vector<Node> cc;
-    // get the (valid) existential for this membership
-    Node eform = getExistsForRegExpConcatMem(mem);
     SkolemManager* sm = nm->getSkolemManager();
-    // Notice that this rule does not introduce witness terms, instead it
-    // uses skolems in the conclusion of the proof rule directly. Thus,
-    // the existential eform does not need to be explicitly justified by a
-    // proof here, since it is only being used as an intermediate formula in
-    // this inference. Hence we do not pass a proof generator to mkSkolemize.
-    sm->mkSkolemize(eform, newSkolems, "rc", "regexp concat skolem");
-    Assert(newSkolems.size() == r.getNumChildren());
     // Look up skolems for each of the components. If sc has optimizations
     // enabled, this will return arguments of str.to_re.
     for (unsigned i = 0, nchild = r.getNumChildren(); i < nchild; ++i)
@@ -1031,17 +1026,22 @@ Node RegExpOpr::reduceRegExpPos(Node mem,
       if (r[i].getKind() == STRING_TO_REGEXP)
       {
         // optimization, just take the body
-        newSkolems[i] = r[i][0];
+        newSkolems.push_back(r[i][0]);
       }
       else
       {
+        Node ivalue = nm->mkConst(Rational(i));
+        Node sk = sm->mkSkolemFunction(SkolemFunId::RE_UNFOLD_POS_COMPONENT,
+                                       s.getType(),
+                                       {mem[0], mem[1], ivalue});
+        newSkolems.push_back(sk);
         nvec.push_back(nm->mkNode(STRING_IN_REGEXP, newSkolems[i], r[i]));
       }
     }
-    // (str.in_re x (re.++ R1 .... Rn)) =>
-    // (and (str.in_re k1 R1) ... (str.in_re kn Rn) (= x (str.++ k1 ... kn)))
+    // (str.in_re x (re.++ R0 .... Rn)) =>
+    // (and (= x (str.++ k0 ... kn)) (str.in_re k0 R0) ... (str.in_re kn Rn) )
     Node lem = s.eqNode(nm->mkNode(STRING_CONCAT, newSkolems));
-    nvec.push_back(lem);
+    nvec.insert(nvec.begin(), lem);
     conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
   }
   else if (k == REGEXP_STAR)
@@ -1310,7 +1310,9 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
             rt = itr2->second;
           } else {
             std::map< PairNodes, Node > cache2(cache);
-            cache2[ p ] = NodeManager::currentNM()->mkNode(kind::REGEXP_RV, NodeManager::currentNM()->mkConst(CVC4::Rational(cnt)));
+            cache2[p] = NodeManager::currentNM()->mkNode(
+                kind::REGEXP_RV,
+                NodeManager::currentNM()->mkConst(cvc5::Rational(cnt)));
             rt = intersectInternal(r1l, r2l, cache2, cnt+1);
             cacheX[ pp ] = rt;
           }
@@ -1340,8 +1342,8 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
 Node RegExpOpr::removeIntersection(Node r) {
   Assert(checkConstRegExp(r));
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(r);
@@ -1569,50 +1571,6 @@ bool RegExpOpr::regExpIncludes(Node r1, Node r2)
   return result;
 }
 
-/**
- * Associating formulas with their "exists form", or an existentially
- * quantified formula that is equivalent to it. This is currently used
- * for regular expression memberships in the method below.
- */
-struct ExistsFormAttributeId
-{
-};
-typedef expr::Attribute<ExistsFormAttributeId, Node> ExistsFormAttribute;
-
-Node RegExpOpr::getExistsForRegExpConcatMem(Node mem)
-{
-  // get or make the exists form of the membership
-  ExistsFormAttribute efa;
-  if (mem.hasAttribute(efa))
-  {
-    // already computed
-    return mem.getAttribute(efa);
-  }
-  Assert(mem.getKind() == STRING_IN_REGEXP);
-  Node x = mem[0];
-  Node r = mem[1];
-  Assert(r.getKind() == REGEXP_CONCAT);
-  NodeManager* nm = NodeManager::currentNM();
-  TypeNode xtn = x.getType();
-  std::vector<Node> vars;
-  std::vector<Node> mems;
-  for (const Node& rc : r)
-  {
-    Node v = nm->mkBoundVar(xtn);
-    vars.push_back(v);
-    mems.push_back(nm->mkNode(STRING_IN_REGEXP, v, rc));
-  }
-  Node sconcat = nm->mkNode(STRING_CONCAT, vars);
-  Node eq = x.eqNode(sconcat);
-  mems.insert(mems.begin(), eq);
-  Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
-  Node ebody = nm->mkNode(AND, mems);
-  Node eform = nm->mkNode(EXISTS, bvl, ebody);
-  mem.setAttribute(efa, eform);
-  Trace("regexp-opr") << "Exists form " << mem << " : " << eform << std::endl;
-  return eform;
-}
-
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5

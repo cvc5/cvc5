@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file theory_bv_rewriter_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Unit tests for bit-vector solving via integers
- **
- ** Unit tests for bit-vector solving via integers.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Unit tests for bit-vector solving via integers.
+ */
 
 #include <iostream>
 #include <memory>
@@ -21,8 +20,9 @@
 #include "test_smt.h"
 #include "theory/bv/int_blaster.h"
 #include "util/bitvector.h"
+#include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace theory;
@@ -44,4 +44,4 @@ class TestTheoryWhiteBvIntblaster : public TestSmtNoFinishInit
   Node d_one;
 };
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

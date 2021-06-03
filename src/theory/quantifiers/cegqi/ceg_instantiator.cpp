@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file ceg_instantiator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Piotr Trojanek, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of counterexample-guided quantifier instantiation
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Piotr Trojanek, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of counterexample-guided quantifier instantiation.
+ */
 
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
@@ -29,14 +30,12 @@
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
-#include "theory/theory_engine.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -185,11 +184,12 @@ void SolvedForm::pop_back(Node pv, Node n, TermProperties& pv_prop)
 
 CegInstantiator::CegInstantiator(Node q,
                                  QuantifiersState& qs,
+                                 TermRegistry& tr,
                                  InstStrategyCegqi* parent)
     : d_quant(q),
       d_qstate(qs),
+      d_treg(tr),
       d_parent(parent),
-      d_qe(parent->getQuantifiersEngine()),
       d_is_nested_quant(false),
       d_effort(CEG_INST_EFFORT_NONE)
 {
@@ -274,7 +274,7 @@ CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
 CegHandledStatus CegInstantiator::isCbqiTerm(Node n)
 {
   CegHandledStatus ret = CEG_HANDLED;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -315,16 +315,14 @@ CegHandledStatus CegInstantiator::isCbqiTerm(Node n)
   return ret;
 }
 
-CegHandledStatus CegInstantiator::isCbqiSort(TypeNode tn, QuantifiersEngine* qe)
+CegHandledStatus CegInstantiator::isCbqiSort(TypeNode tn)
 {
   std::map<TypeNode, CegHandledStatus> visited;
-  return isCbqiSort(tn, visited, qe);
+  return isCbqiSort(tn, visited);
 }
 
 CegHandledStatus CegInstantiator::isCbqiSort(
-    TypeNode tn,
-    std::map<TypeNode, CegHandledStatus>& visited,
-    QuantifiersEngine* qe)
+    TypeNode tn, std::map<TypeNode, CegHandledStatus>& visited)
 {
   std::map<TypeNode, CegHandledStatus>::iterator itv = visited.find(tn);
   if (itv != visited.end())
@@ -360,7 +358,7 @@ CegHandledStatus CegInstantiator::isCbqiSort(
       }
       for (const TypeNode& crange : consType)
       {
-        CegHandledStatus cret = isCbqiSort(crange, visited, qe);
+        CegHandledStatus cret = isCbqiSort(crange, visited);
         if (cret == CEG_UNHANDLED)
         {
           Trace("cegqi-debug2")
@@ -380,14 +378,13 @@ CegHandledStatus CegInstantiator::isCbqiSort(
   return ret;
 }
 
-CegHandledStatus CegInstantiator::isCbqiQuantPrefix(Node q,
-                                                    QuantifiersEngine* qe)
+CegHandledStatus CegInstantiator::isCbqiQuantPrefix(Node q)
 {
   CegHandledStatus hmin = CEG_HANDLED_UNCONDITIONAL;
   for (const Node& v : q[0])
   {
     TypeNode tn = v.getType();
-    CegHandledStatus handled = isCbqiSort(tn, qe);
+    CegHandledStatus handled = isCbqiSort(tn);
     if (handled == CEG_UNHANDLED)
     {
       return CEG_UNHANDLED;
@@ -400,7 +397,7 @@ CegHandledStatus CegInstantiator::isCbqiQuantPrefix(Node q,
   return hmin;
 }
 
-CegHandledStatus CegInstantiator::isCbqiQuant(Node q, QuantifiersEngine* qe)
+CegHandledStatus CegInstantiator::isCbqiQuant(Node q)
 {
   Assert(q.getKind() == FORALL);
   // compute attributes
@@ -428,8 +425,7 @@ CegHandledStatus CegInstantiator::isCbqiQuant(Node q, QuantifiersEngine* qe)
   }
   CegHandledStatus ret = CEG_HANDLED;
   // if quantifier has a non-handled variable, then do not use cbqi
-  // if quantifier has an APPLY_UF term, then do not use cbqi unless EPR
-  CegHandledStatus ncbqiv = CegInstantiator::isCbqiQuantPrefix(q, qe);
+  CegHandledStatus ncbqiv = CegInstantiator::isCbqiQuantPrefix(q);
   Trace("cegqi-quant-debug") << "isCbqiQuantPrefix returned " << ncbqiv
                             << std::endl;
   if (ncbqiv == CEG_UNHANDLED)
@@ -566,7 +562,6 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
         sf.d_vars.size() > d_input_vars.size() || !d_var_order_index.empty();
     std::vector< Instantiator * > pp_inst;
     std::map< Instantiator *, Node > pp_inst_to_var;
-    std::vector< Node > lemmas;
     for( std::map< Node, Instantiator * >::iterator ita = d_active_instantiators.begin(); ita != d_active_instantiators.end(); ++ita ){
       if (ita->second->needsPostProcessInstantiationForVariable(
               this, sf, ita->first, d_effort))
@@ -581,19 +576,19 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
       bool postProcessSuccess = true;
       for( std::map< Instantiator *, Node >::iterator itp = pp_inst_to_var.begin(); itp != pp_inst_to_var.end(); ++itp ){
         if (!itp->first->postProcessInstantiationForVariable(
-                this, sf_tmp, itp->second, d_effort, lemmas))
+                this, sf_tmp, itp->second, d_effort))
         {
           postProcessSuccess = false;
           break;
         }
       }
       if( postProcessSuccess ){
-        return doAddInstantiation( sf_tmp.d_vars, sf_tmp.d_subs, lemmas );
+        return doAddInstantiation(sf_tmp.d_vars, sf_tmp.d_subs);
       }else{
         return false;
       }
     }else{
-      return doAddInstantiation( sf.d_vars, sf.d_subs, lemmas );
+      return doAddInstantiation(sf.d_vars, sf.d_subs);
     }
   }else{
     bool is_sv = false;
@@ -668,7 +663,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   TypeNode pvtn = pv.getType();
   TypeNode pvtnb = pvtn.getBaseType();
   Node pvr = pv;
-  eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
+  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
   if (ee->hasTerm(pv))
   {
     pvr = ee->getRepresentative(pv);
@@ -851,7 +846,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   }
   Trace("cegqi-inst-debug") << "[3] try based on assertions." << std::endl;
   d_curr_iphase[pv] = CEG_INST_PHASE_ASSERTION;
-  std::unordered_set<Node, NodeHashFunction> lits;
+  std::unordered_set<Node> lits;
   for (unsigned r = 0; r < 2; r++)
   {
     TheoryId tid = r == 0 ? Theory::theoryOf(pvtn) : THEORY_UF;
@@ -1054,7 +1049,9 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
   }
 }
 
-bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& lemmas ) {
+bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
+                                         std::vector<Node>& subs)
+{
   if (vars.size() > d_input_vars.size() || !d_var_order_index.empty())
   {
     Trace("cegqi-inst-debug") << "Reconstructing instantiations...." << std::endl;
@@ -1086,17 +1083,13 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector
     }
   }
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;
-  bool ret = d_parent->doAddInstantiation(subs);
-  for (const Node& l : lemmas)
-  {
-    d_parent->addPendingLemma(l);
-  }
-  return ret;
+  return d_parent->doAddInstantiation(subs);
 }
 
 bool CegInstantiator::isEligibleForInstantiation(Node n) const
 {
-  if (n.getKind() != INST_CONSTANT && n.getKind() != SKOLEM)
+  Kind nk = n.getKind();
+  if (nk != INST_CONSTANT && nk != SKOLEM && nk != BOOLEAN_TERM_VARIABLE)
   {
     return true;
   }
@@ -1112,8 +1105,7 @@ bool CegInstantiator::isEligibleForInstantiation(Node n) const
 bool CegInstantiator::canApplyBasicSubstitution( Node n, std::vector< Node >& non_basic ){
   Assert(d_prog_var.find(n) != d_prog_var.end());
   if( !non_basic.empty() ){
-    for (std::unordered_set<Node, NodeHashFunction>::iterator it =
-             d_prog_var[n].begin();
+    for (std::unordered_set<Node>::iterator it = d_prog_var[n].begin();
          it != d_prog_var[n].end();
          ++it)
     {
@@ -1321,7 +1313,7 @@ void CegInstantiator::processAssertions() {
   d_curr_type_eqc.clear();
 
   // must use master equality engine to avoid value instantiations
-  eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
+  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
 
   //for each variable
   for( unsigned i=0; i<d_vars.size(); i++ ){
@@ -1441,13 +1433,13 @@ void CegInstantiator::processAssertions() {
 }
 
 Node CegInstantiator::getModelValue( Node n ) {
-  return d_qe->getModel()->getValue( n );
+  return d_treg.getModel()->getValue(n);
 }
 
 Node CegInstantiator::getBoundVariable(TypeNode tn)
 {
   unsigned index = 0;
-  std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>::iterator itb =
+  std::unordered_map<TypeNode, unsigned>::iterator itb =
       d_bound_var_index.find(tn);
   if (itb != d_bound_var_index.end())
   {
@@ -1537,9 +1529,9 @@ void CegInstantiator::registerCounterexampleLemma(Node lem,
   }
 
   // register variables that were introduced during TheoryEngine preprocessing
-  std::unordered_set<Node, NodeHashFunction> ceSyms;
+  std::unordered_set<Node> ceSyms;
   expr::getSymbols(lem, ceSyms);
-  std::unordered_set<Node, NodeHashFunction> qSyms;
+  std::unordered_set<Node> qSyms;
   expr::getSymbols(d_quant, qSyms);
   // all variables that are in counterexample lemma but not in quantified
   // formula
@@ -1645,6 +1637,6 @@ bool Instantiator::processEqualTerm(CegInstantiator* ci,
   return ci->constructInstantiationInc(pv, n, pv_prop, sf);
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

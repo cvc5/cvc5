@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file minisat.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Haniel Barbosa, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SAT Solver.
- **
- ** Implementation of the minisat interface for cvc4.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Haniel Barbosa, Liana Hadarean
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SAT Solver.
+ *
+ * Implementation of the minisat interface for cvc5.
+ */
 
 #pragma once
 
@@ -20,13 +21,21 @@
 #include "prop/minisat/simp/SimpSolver.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+template <class Solver>
+prop::SatLiteral toSatLiteral(typename Solver::TLit lit);
+
+template <class Solver>
+void toSatClause(const typename Solver::TClause& minisat_cl,
+                 prop::SatClause& sat_cl);
+
 namespace prop {
 
 class MinisatSatSolver : public CDCLTSatSolverInterface
 {
  public:
-  MinisatSatSolver(StatisticsRegistry* registry);
+  MinisatSatSolver(StatisticsRegistry& registry);
   ~MinisatSatSolver() override;
 
   static SatVariable     toSatVariable(Minisat::Var var);
@@ -40,7 +49,7 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
   static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
   void initialize(context::Context* context,
                   TheoryProxy* theoryProxy,
-                  CVC4::context::UserContext* userContext,
+                  cvc5::context::UserContext* userContext,
                   ProofNodeManager* pnm) override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
@@ -57,6 +66,8 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
 
   SatValue solve() override;
   SatValue solve(long unsigned int&) override;
+  SatValue solve(const std::vector<SatLiteral>& assumptions) override;
+  void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions) override;
 
   bool ok() const override;
 
@@ -82,6 +93,10 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
 
   bool isDecision(SatVariable decn) const override;
 
+  int32_t getDecisionLevel(SatVariable v) const override;
+
+  int32_t getIntroLevel(SatVariable v) const override;
+
   /** Retrieve a pointer to the unerlying solver. */
   Minisat::SimpSolver* getSolver() { return d_minisat; }
 
@@ -99,24 +114,32 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
   /** Context we will be using to synchronize the sat solver */
   context::Context* d_context;
 
+  /**
+   * Stores assumptions passed via last solve() call.
+   *
+   * It is used in getUnsatAssumptions() to determine which of the literals in
+   * the final conflict clause are assumptions.
+   */
+  std::unordered_set<SatLiteral, SatLiteralHashFunction> d_assumptions;
+
   void setupOptions();
 
   class Statistics {
   private:
-    StatisticsRegistry* d_registry;
-    ReferenceStat<uint64_t> d_statStarts, d_statDecisions;
-    ReferenceStat<uint64_t> d_statRndDecisions, d_statPropagations;
-    ReferenceStat<uint64_t> d_statConflicts, d_statClausesLiterals;
-    ReferenceStat<uint64_t> d_statLearntsLiterals,  d_statMaxLiterals;
-    ReferenceStat<uint64_t> d_statTotLiterals;
+   ReferenceStat<int64_t> d_statStarts, d_statDecisions;
+   ReferenceStat<int64_t> d_statRndDecisions, d_statPropagations;
+   ReferenceStat<int64_t> d_statConflicts, d_statClausesLiterals;
+   ReferenceStat<int64_t> d_statLearntsLiterals, d_statMaxLiterals;
+   ReferenceStat<int64_t> d_statTotLiterals;
+
   public:
-    Statistics(StatisticsRegistry* registry);
-    ~Statistics();
-    void init(Minisat::SimpSolver* d_minisat);
+   Statistics(StatisticsRegistry& registry);
+   void init(Minisat::SimpSolver* d_minisat);
+   void deinit();
   };/* class MinisatSatSolver::Statistics */
   Statistics d_statistics;
 
 }; /* class MinisatSatSolver */
 
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+}  // namespace prop
+}  // namespace cvc5

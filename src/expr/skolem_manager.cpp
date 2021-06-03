@@ -1,26 +1,29 @@
-/*********************                                                        */
-/*! \file skolem_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of skolem manager class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of skolem manager class.
+ */
 
 #include "expr/skolem_manager.h"
+
+#include <sstream>
 
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 // Attributes are global maps from Nodes to data. Thus, note that these could
 // be implemented as internal maps in SkolemManager.
@@ -38,6 +41,28 @@ struct OriginalFormAttributeId
 {
 };
 typedef expr::Attribute<OriginalFormAttributeId, Node> OriginalFormAttribute;
+
+const char* toString(SkolemFunId id)
+{
+  switch (id)
+  {
+    case SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
+    case SkolemFunId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
+    case SkolemFunId::MOD_BY_ZERO: return "MOD_BY_ZERO";
+    case SkolemFunId::SQRT: return "SQRT";
+    case SkolemFunId::SELECTOR_WRONG: return "SELECTOR_WRONG";
+    case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
+    case SkolemFunId::SEQ_NTH_OOB: return "SEQ_NTH_OOB";
+    case SkolemFunId::RE_UNFOLD_POS_COMPONENT: return "RE_UNFOLD_POS_COMPONENT";
+    default: return "?";
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, SkolemFunId id)
+{
+  out << toString(id);
+  return out;
+}
 
 Node SkolemManager::mkSkolem(Node v,
                              Node pred,
@@ -167,9 +192,58 @@ Node SkolemManager::mkPurifySkolem(Node t,
   return k;
 }
 
-Node SkolemManager::mkBooleanTermVariable(Node t)
+Node SkolemManager::mkSkolemFunction(SkolemFunId id,
+                                     TypeNode tn,
+                                     Node cacheVal,
+                                     int flags)
 {
-  return mkPurifySkolem(t, "", "", NodeManager::SKOLEM_BOOL_TERM_VAR);
+  std::tuple<SkolemFunId, TypeNode, Node> key(id, tn, cacheVal);
+  std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node>::iterator it =
+      d_skolemFuns.find(key);
+  if (it == d_skolemFuns.end())
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    std::stringstream ss;
+    ss << "SKOLEM_FUN_" << id;
+    Node k = nm->mkSkolem(ss.str(), tn, "an internal skolem function", flags);
+    d_skolemFuns[key] = k;
+    d_skolemFunMap[k] = key;
+    return k;
+  }
+  return it->second;
+}
+
+Node SkolemManager::mkSkolemFunction(SkolemFunId id,
+                                     TypeNode tn,
+                                     const std::vector<Node>& cacheVals,
+                                     int flags)
+{
+  Assert(cacheVals.size() > 1);
+  Node cacheVal = NodeManager::currentNM()->mkNode(SEXPR, cacheVals);
+  return mkSkolemFunction(id, tn, cacheVal, flags);
+}
+
+bool SkolemManager::isSkolemFunction(Node k,
+                                     SkolemFunId& id,
+                                     Node& cacheVal) const
+{
+  std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>>::const_iterator it =
+      d_skolemFunMap.find(k);
+  if (it == d_skolemFunMap.end())
+  {
+    return false;
+  }
+  id = std::get<0>(it->second);
+  cacheVal = std::get<2>(it->second);
+  return true;
+}
+
+Node SkolemManager::mkDummySkolem(const std::string& prefix,
+                                  const TypeNode& type,
+                                  const std::string& comment,
+                                  int flags)
+{
+  return NodeManager::currentNM()->mkSkolem(prefix, type, comment, flags);
 }
 
 ProofGenerator* SkolemManager::getProofGenerator(Node t) const
@@ -200,8 +274,8 @@ Node SkolemManager::getOriginalForm(Node n)
       << "SkolemManager::getOriginalForm " << n << std::endl;
   OriginalFormAttribute ofa;
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -298,4 +372,4 @@ Node SkolemManager::mkSkolemInternal(Node w,
   return k;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

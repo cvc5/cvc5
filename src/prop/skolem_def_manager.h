@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file skolem_def_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Skolem definition manager
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Skolem definition manager.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PROP__SKOLEM_DEF_MANAGER_H
-#define CVC4__PROP__SKOLEM_DEF_MANAGER_H
+#ifndef CVC5__PROP__SKOLEM_DEF_MANAGER_H
+#define CVC5__PROP__SKOLEM_DEF_MANAGER_H
 
 #include <iosfwd>
 #include <unordered_set>
@@ -26,7 +27,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 /**
@@ -40,8 +41,8 @@ namespace prop {
  */
 class SkolemDefManager
 {
-  using NodeNodeMap = context::CDInsertHashMap<Node, Node, NodeHashFunction>;
-  using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
+  using NodeNodeMap = context::CDInsertHashMap<Node, Node>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   SkolemDefManager(context::Context* context,
@@ -63,8 +64,15 @@ class SkolemDefManager
    * Notify that the given literal has been asserted. This method adds skolems
    * that become "active" as a result of asserting this literal. A skolem
    * is active in the SAT context if it appears in an asserted literal.
+   *
+   * @param literal The literal that became asserted
+   * @param activatedSkolems The list to add skolems to
+   * @param useDefs If this flag is true, we add the skolem definition for
+   * skolems to activatedSkolems instead of the skolem itself.
    */
-  void notifyAsserted(TNode literal, std::vector<TNode>& activatedSkolems);
+  void notifyAsserted(TNode literal,
+                      std::vector<TNode>& activatedSkolems,
+                      bool useDefs = false);
 
   /**
    * Get the set of skolems maintained by this class that occur in node n,
@@ -73,8 +81,7 @@ class SkolemDefManager
    * @param n The node to traverse
    * @param skolems The set where the skolems are added
    */
-  void getSkolems(TNode n,
-                  std::unordered_set<Node, NodeHashFunction>& skolems) const;
+  void getSkolems(TNode n, std::unordered_set<Node>& skolems) const;
   /** Does n have skolems having definitions managed by this class? */
   bool hasSkolems(TNode n) const;
 
@@ -86,6 +93,6 @@ class SkolemDefManager
 };
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PROP__SKOLEM_DEF_MANAGER_H */
+#endif /* CVC5__PROP__SKOLEM_DEF_MANAGER_H */

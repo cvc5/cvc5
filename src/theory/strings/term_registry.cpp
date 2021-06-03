@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file term_registry.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of term registry for the theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of term registry for the theory of strings.
+ */
 
 #include "theory/strings/term_registry.h"
 
@@ -22,12 +23,14 @@
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/rational.h"
+#include "util/string.h"
 
 using namespace std;
-using namespace CVC4::context;
-using namespace CVC4::kind;
+using namespace cvc5::context;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -85,11 +88,12 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
             LT, t, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
     lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
   }
-  else if (tk == STRING_STRIDOF)
+  else if (tk == STRING_STRIDOF || tk == STRING_INDEXOF_RE)
   {
-    // (and (>= (str.indexof x y n) (- 1)) (<= (str.indexof x y n) (str.len
-    // x)))
-    Node l = utils::mkNLength(t[0]);
+    // (and (>= (f x y n) (- 1)) (<= (f x y n) (str.len x)))
+    //
+    // where f in { str.indexof, str.indexof_re }
+    Node l = nm->mkNode(STRING_LENGTH, t[0]);
     lemma = nm->mkNode(AND,
                        nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
                        nm->mkNode(LEQ, t, l));
@@ -140,11 +144,12 @@ void TermRegistry::preRegisterTerm(TNode n)
   Kind k = n.getKind();
   if (!options::stringExp())
   {
-    if (k == STRING_STRIDOF || k == STRING_ITOS || k == STRING_STOI
-        || k == STRING_STRREPL || k == STRING_SUBSTR || k == STRING_STRREPLALL
-        || k == SEQ_NTH || k == STRING_REPLACE_RE || k == STRING_REPLACE_RE_ALL
-        || k == STRING_STRCTN || k == STRING_LEQ || k == STRING_TOLOWER
-        || k == STRING_TOUPPER || k == STRING_REV || k == STRING_UPDATE)
+    if (k == STRING_STRIDOF || k == STRING_INDEXOF_RE || k == STRING_ITOS
+        || k == STRING_STOI || k == STRING_STRREPL || k == STRING_SUBSTR
+        || k == STRING_STRREPLALL || k == SEQ_NTH || k == STRING_REPLACE_RE
+        || k == STRING_REPLACE_RE_ALL || k == STRING_STRCTN || k == STRING_LEQ
+        || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV
+        || k == STRING_UPDATE)
     {
       std::stringstream ss;
       ss << "Term of kind " << k
@@ -174,6 +179,22 @@ void TermRegistry::preRegisterTerm(TNode n)
   else if (k == STRING_TO_CODE)
   {
     d_hasStrCode = true;
+  }
+  else if (k == REGEXP_RANGE)
+  {
+    for (const Node& nc : n)
+    {
+      if (!nc.isConst())
+      {
+        throw LogicException(
+            "expecting a constant string term in regexp range");
+      }
+      if (nc.getConst<String>().size() != 1)
+      {
+        throw LogicException(
+            "expecting a single constant string term in regexp range");
+      }
+    }
   }
   registerTerm(n, 0);
   TypeNode tn = n.getType();
@@ -436,8 +457,7 @@ const context::CDList<TNode>& TermRegistry::getFunctionTerms() const
   return d_functionsTerms;
 }
 
-const context::CDHashSet<Node, NodeHashFunction>& TermRegistry::getInputVars()
-    const
+const context::CDHashSet<Node>& TermRegistry::getInputVars() const
 {
   return d_inputVars;
 }
@@ -618,4 +638,4 @@ void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

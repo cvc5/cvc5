@@ -1,19 +1,21 @@
-/*********************                                                        */
-/*! \file quantifiers_engine.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of quantifiers engine class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of quantifiers engine class.
+ */
 
 #include "theory/quantifiers_engine.h"
 
+#include "options/base_options.h"
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -37,43 +39,80 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 QuantifiersEngine::QuantifiersEngine(
-    quantifiers::QuantifiersState& qstate,
+    quantifiers::QuantifiersState& qs,
     quantifiers::QuantifiersRegistry& qr,
     quantifiers::TermRegistry& tr,
     quantifiers::QuantifiersInferenceManager& qim,
     ProofNodeManager* pnm)
-    : d_qstate(qstate),
+    : d_qstate(qs),
       d_qim(qim),
       d_te(nullptr),
       d_pnm(pnm),
       d_qreg(qr),
       d_treg(tr),
-      d_model(d_treg.getModel()),
-      d_quants_prereg(qstate.getUserContext()),
-      d_quants_red(qstate.getUserContext())
+      d_model(nullptr),
+      d_quants_prereg(qs.getUserContext()),
+      d_quants_red(qs.getUserContext())
 {
+  Trace("quant-init-debug")
+      << "Initialize model engine, mbqi : " << options::mbqiMode() << " "
+      << options::fmfBound() << std::endl;
+  // Finite model finding requires specialized ways of building the model.
+  // We require constructing the model here, since it is required for
+  // initializing the CombinationEngine and the rest of quantifiers engine.
+  if (options::fmfBound()
+      || (options::finiteModelFind()
+          && (options::mbqiMode() == options::MbqiMode::FMC
+              || options::mbqiMode() == options::MbqiMode::TRUST)))
+  {
+    Trace("quant-init-debug") << "...make fmc builder." << std::endl;
+    d_builder.reset(
+        new quantifiers::fmcheck::FullModelChecker(qs, qim, qr, tr));
+  }
+  else
+  {
+    Trace("quant-init-debug") << "...make default model builder." << std::endl;
+    d_builder.reset(new quantifiers::QModelBuilder(qs, qim, qr, tr));
+  }
+  // set the model object
+  d_builder->finishInit();
+  d_model = d_builder->getModel();
+
+  // Finish initializing the term registry by hooking it up to the model and the
+  // inference manager. The former is required since theories are not given
+  // access to the model in their constructors currently.
+  // The latter is required due to a cyclic dependency between the term
+  // database and the instantiate module. Term database needs inference manager
+  // since it sends out lemmas when term indexing is inconsistent, instantiate
+  // needs term database for entailment checks.
+  d_treg.finishInit(d_model, &d_qim);
+
   // initialize the utilities
   d_util.push_back(d_model->getEqualityQuery());
   // quantifiers registry must come before the remaining utilities
   d_util.push_back(&d_qreg);
   d_util.push_back(tr.getTermDatabase());
   d_util.push_back(qim.getInstantiate());
+  d_util.push_back(tr.getTermPools());
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}
 
 void QuantifiersEngine::finishInit(TheoryEngine* te)
 {
+  // connect the quantifiers model to the underlying theory model
+  d_model->finishInit(te->getModel());
   d_te = te;
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(this, d_qstate, d_qim, d_qreg, d_treg, d_modules);
+  d_qmodules->initialize(
+      d_qstate, d_qim, d_qreg, d_treg, d_builder.get(), d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
@@ -86,32 +125,14 @@ void QuantifiersEngine::finishInit(TheoryEngine* te)
   d_qreg.getQuantifiersBoundInference().finishInit(d_qmodules->d_bint.get());
 }
 
-quantifiers::QuantifiersState& QuantifiersEngine::getState()
-{
-  return d_qstate;
-}
-quantifiers::QuantifiersInferenceManager&
-QuantifiersEngine::getInferenceManager()
-{
-  return d_qim;
-}
-
 quantifiers::QuantifiersRegistry& QuantifiersEngine::getQuantifiersRegistry()
 {
   return d_qreg;
 }
-quantifiers::TermRegistry& QuantifiersEngine::getTermRegistry()
-{
-  return d_treg;
-}
 
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
-  return d_qmodules->d_builder.get();
-}
-quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
-{
-  return d_model;
+  return d_builder.get();
 }
 
 /// !!!!!!!!!!!!!! temporary (project #15)
@@ -119,11 +140,6 @@ quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
 quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 {
   return d_treg.getTermDatabaseSygus();
-}
-
-quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
-{
-  return d_treg.getTermDatabase();
 }
 /// !!!!!!!!!!!!!!
 
@@ -224,6 +240,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
   d_qim.reset();
   bool setIncomplete = false;
+  IncompleteId setIncompleteId = IncompleteId::QUANTIFIERS;
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
@@ -373,7 +390,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
             //sources of incompleteness
             for (QuantifiersUtil*& util : d_util)
             {
-              if (!util->checkComplete())
+              if (!util->checkComplete(setIncompleteId))
               {
                 Trace("quant-engine-debug") << "Set incomplete because utility "
                                             << util->identify().c_str()
@@ -391,7 +408,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
               //check if we should set the incomplete flag
               for (QuantifiersModule*& mdl : d_modules)
               {
-                if (!mdl->checkComplete())
+                if (!mdl->checkComplete(setIncompleteId))
                 {
                   Trace("quant-engine-debug")
                       << "Set incomplete because module "
@@ -445,7 +462,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if (options::debugInst() || debugInstTrace)
       {
         Options& sopts = smt::currentSmtEngine()->getOptions();
-        std::ostream& out = *sopts.getOut();
+        std::ostream& out = *sopts.base.out;
         d_qim.getInstantiate()->debugPrint(out);
       }
     }
@@ -466,7 +483,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   {
     if( setIncomplete ){
       Trace("quant-engine") << "Set incomplete flag." << std::endl;
-      d_qim.setIncomplete();
+      d_qim.setIncomplete(setIncompleteId);
     }
     //output debug stats
     d_qim.getInstantiate()->debugPrintModel();
@@ -630,13 +647,9 @@ void QuantifiersEngine::getInstantiationTermVectors( std::map< Node, std::vector
   d_qim.getInstantiate()->getInstantiationTermVectors(insts);
 }
 
-void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
-  if (d_qmodules->d_synth_e)
-  {
-    d_qmodules->d_synth_e->printSynthSolution(out);
-  }else{
-    out << "Internal error : module for synth solution not found." << std::endl;
-  }
+void QuantifiersEngine::getInstantiations(Node q, std::vector<Node>& insts)
+{
+  d_qim.getInstantiate()->getInstantiations(q, insts);
 }
 
 void QuantifiersEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
@@ -665,6 +678,10 @@ bool QuantifiersEngine::getSynthSolutions(
 {
   return d_qmodules->d_synth_e->getSynthSolutions(sol_map);
 }
+void QuantifiersEngine::declarePool(Node p, const std::vector<Node>& initValue)
+{
+  d_treg.declarePool(p, initValue);
+}
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

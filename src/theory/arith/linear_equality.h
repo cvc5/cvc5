@@ -1,31 +1,32 @@
-/*********************                                                        */
-/*! \file linear_equality.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief This module maintains the relationship between a Tableau and
- ** PartialModel.
- **
- ** This shares with the theory a Tableau, and a PartialModel that:
- **  - satisfies the equalities in the Tableau, and
- **  - the assignment for the non-basic variables satisfies their bounds.
- ** This maintains the relationship needed by the SimplexDecisionProcedure.
- **
- ** In the language of Simplex for DPLL(T), this provides:
- ** - update()
- ** - pivotAndUpdate()
- **
- ** This class also provides utility functions that require
- ** using both the Tableau and PartialModel.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Mathias Preiner, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This module maintains the relationship between a Tableau and
+ * PartialModel.
+ *
+ * This shares with the theory a Tableau, and a PartialModel that:
+ *  - satisfies the equalities in the Tableau, and
+ *  - the assignment for the non-basic variables satisfies their bounds.
+ * This maintains the relationship needed by the SimplexDecisionProcedure.
+ *
+ * In the language of Simplex for DPLL(T), this provides:
+ * - update()
+ * - pivotAndUpdate()
+ *
+ * This class also provides utility functions that require
+ * using both the Tableau and PartialModel.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -37,10 +38,9 @@
 #include "theory/arith/simplex_update.h"
 #include "theory/arith/tableau.h"
 #include "util/maybe.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -713,7 +713,6 @@ private:
     TimerStat d_forceTime;
 
     Statistics();
-    ~Statistics();
   };
   mutable Statistics d_statistics;
 
@@ -756,6 +755,6 @@ public:
   }
 };
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

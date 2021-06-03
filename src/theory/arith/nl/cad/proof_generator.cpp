@@ -1,25 +1,27 @@
-/*********************                                                        */
-/*! \file proof_generator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of CAD proof generator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of CAD proof generator.
+ */
 
 #include "theory/arith/nl/cad/proof_generator.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
-#include "theory/lazy_tree_proof_generator.h"
+#include "proof/lazy_tree_proof_generator.h"
 #include "theory/arith/nl/poly_conversion.h"
+#include "util/indexed_root_predicate.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -68,7 +70,7 @@ std::pair<std::size_t, std::size_t> getRootIDs(
  * @param zero A node representing Rational(0)
  * @param k The index of the root (starting with 1)
  * @param poly The polynomial whose root shall be considered
- * @param vm A variable mapper from CVC4 to libpoly variables
+ * @param vm A variable mapper from cvc5 to libpoly variables
  */
 Node mkIRP(const Node& var,
            Kind rel,
@@ -230,6 +232,6 @@ std::ostream& operator<<(std::ostream& os, const CADProofGenerator& proof)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

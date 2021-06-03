@@ -1,6 +1,6 @@
 ; Temporarily disable checking of unsat cores (see issue #3606)
 ; COMMAND-LINE: --no-check-unsat-cores
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-option :strings-exp true)
 (set-info :status unsat)
 (declare-fun a () String)
@@ -10,9 +10,9 @@
 (declare-fun f () Int)
 (declare-fun g () String)
 (declare-fun h () String)
-(assert (or 
-            (not (= ( str.replace "B" ( str.at "A" f) "") "B")) 
-            (not (= ( str.replace "B" ( str.replace "B" g "") "") 
+(assert (or
+            (not (= ( str.replace "B" ( str.at "A" f) "") "B"))
+            (not (= ( str.replace "B" ( str.replace "B" g "") "")
                     ( str.at ( str.replace ( str.replace a d "") "C" "") ( str.indexof "B" ( str.replace ( str.replace a d "") "C" "") 0))))))
 (assert (= a (str.++ (str.++ d "C") g)))
 (assert (= b (str.++ e g)))

@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file int_blaster.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A translation utility from bit-vectors to integers.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A translation utility from bit-vectors to integers.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__BV__INT_BLASTER__H
-#define __CVC4__THEORY__BV__INT_BLASTER__H
+#ifndef __CVC5__THEORY__BV__INT_BLASTER__H
+#define __CVC5__THEORY__BV__INT_BLASTER__H
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -24,7 +25,7 @@
 #include "options/smt_options.h"
 #include "theory/arith/nl/iand_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /*
 ** Converts bit-vector formulas to integer formulas.
@@ -86,7 +87,7 @@ namespace CVC4 {
 **/
 class IntBlaster
 {
-  using CDNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
+  using CDNodeMap = context::CDHashMap<Node, Node>;
 
  public:
   /**
@@ -318,13 +319,13 @@ class IntBlaster
    * Range constraints of the form 0 <= x < 2^k
    * These are added for every new integer variable that we introduce.
    */
-  context::CDHashSet<Node, NodeHashFunction> d_rangeAssertions;
+  context::CDHashSet<Node> d_rangeAssertions;
 
   /**
    * A set of "bitwise" equalities over integers for BITVECTOR_AND
    *   used in for options::SolveBVAsIntMode::BITWISE
    */
-  context::CDHashSet<Node, NodeHashFunction> d_bitwiseAssertions;
+  context::CDHashSet<Node> d_bitwiseAssertions;
 
   /** Useful constants */
   Node d_zero;
@@ -349,6 +350,6 @@ class IntBlaster
   bool d_introduceFreshIntVars;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* __CVC4__THEORY__BV__INT_BLASTER_H */
+#endif /* __CVC5__THEORY__BV__INT_BLASTER_H */

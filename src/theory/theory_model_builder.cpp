@@ -1,20 +1,22 @@
-/*********************                                                        */
-/*! \file theory_model_builder.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Clark Barrett, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of theory model buidler class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Clark Barrett, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of theory model buidler class.
+ */
 #include "theory/theory_model_builder.h"
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/uninterpreted_constant.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -23,10 +25,10 @@
 #include "theory/uf/theory_uf_model.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 void TheoryEngineModelBuilder::Assigner::initialize(
@@ -272,7 +274,13 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v,
   return false;
 }
 
-bool TheoryEngineModelBuilder::involvesUSort(TypeNode tn)
+bool TheoryEngineModelBuilder::isFiniteType(TypeNode tn) const
+{
+  return isCardinalityClassFinite(tn.getCardinalityClass(),
+                                  options::finiteModelFind());
+}
+
+bool TheoryEngineModelBuilder::involvesUSort(TypeNode tn) const
 {
   if (tn.isSort())
   {
@@ -333,7 +341,7 @@ bool TheoryEngineModelBuilder::isExcludedUSortValue(
 void TheoryEngineModelBuilder::addToTypeList(
     TypeNode tn,
     std::vector<TypeNode>& type_list,
-    std::unordered_set<TypeNode, TypeNodeHashFunction>& visiting)
+    std::unordered_set<TypeNode>& visiting)
 {
   if (std::find(type_list.begin(), type_list.end(), tn) == type_list.end())
   {
@@ -420,11 +428,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
   // the set of equivalence classes that are "assignable", i.e. those that have
   // an assignable expression in them (see isAssignable), and have not already
   // been assigned a constant.
-  std::unordered_set<Node, NodeHashFunction> assignableEqc;
+  std::unordered_set<Node> assignableEqc;
   // The set of equivalence classes that are "evaluable", i.e. those that have
   // an expression in them that is not assignable, and have not already been
   // assigned a constant.
-  std::unordered_set<Node, NodeHashFunction> evaluableEqc;
+  std::unordered_set<Node> evaluableEqc;
   // Assigner objects for relevant equivalence classes that require special
   // ways of assigning values, e.g. those that take into account assignment
   // exclusion sets.
@@ -442,7 +450,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
   // should we compute assigner objects?
   bool computeAssigners = tm->hasAssignmentExclusionSets();
   // the set of exclusion sets we have processed
-  std::unordered_set<Node, NodeHashFunction> processedExcSet;
+  std::unordered_set<Node> processedExcSet;
   for (; !eqcs_i.isFinished(); ++eqcs_i)
   {
     Node eqc = *eqcs_i;
@@ -459,7 +467,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     bool evaluable = false;
     // Set to true if a term in the current equivalence class has been given an
     // assignment exclusion set.
-    bool hasESet CVC4_UNUSED = false;
+    bool hasESet CVC5_UNUSED = false;
     // Set to true if we found that a term in the current equivalence class has
     // been given an assignment exclusion set, and we have not seen this term
     // as part of a previous assignment exclusion group. In other words, when
@@ -584,13 +592,13 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     {
       assertedReps[eqc] = rep;
       typeRepSet.add(eqct.getBaseType(), eqc);
-      std::unordered_set<TypeNode, TypeNodeHashFunction> visiting;
+      std::unordered_set<TypeNode> visiting;
       addToTypeList(eqct.getBaseType(), type_list, visiting);
     }
     else
     {
       typeNoRepSet.add(eqct, eqc);
-      std::unordered_set<TypeNode, TypeNodeHashFunction> visiting;
+      std::unordered_set<TypeNode> visiting;
       addToTypeList(eqct, type_list, visiting);
     }
 
@@ -836,9 +844,9 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       {
         const DType& dt = t.getDType();
         isCorecursive = dt.isCodatatype()
-                        && (!dt.isFinite(t) || dt.isRecursiveSingleton(t));
+                        && (!isFiniteType(t) || dt.isRecursiveSingleton(t));
       }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
       bool isUSortFiniteRestricted = false;
       if (options::finiteModelFind())
       {
@@ -861,7 +869,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       }
       Trace("model-builder") << "  Assign phase, working on type: " << t
                              << endl;
-      bool assignable, evaluable CVC4_UNUSED;
+      bool assignable, evaluable CVC5_UNUSED;
       std::map<Node, Assigner>::iterator itAssigner;
       std::map<Node, Node>::iterator itAssignerM;
       set<Node>* repSet = typeRepSet.getSet(t);
@@ -913,13 +921,13 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             n = itAssigner->second.getNextAssignment();
             Assert(!n.isNull());
           }
-          else if (t.isSort() || !t.isInterpretedFinite())
+          else if (t.isSort() || !isFiniteType(t))
           {
             // If its interpreted as infinite, we get a fresh value that does
             // not occur in the model.
             // Note we also consider uninterpreted sorts to be infinite here
-            // regardless of whether isInterpretedFinite is true (which is true
-            // for uninterpreted sorts iff finite model finding is enabled).
+            // regardless of whether the cardinality class of t is
+            // CardinalityClass::INTERPRETED_FINITE.
             // This is required because the UF solver does not explicitly
             // assign uninterpreted constants to equivalence classes in its
             // collectModelValues method. Doing so would have the same effect
@@ -935,7 +943,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
               success = true;
               Trace("model-builder-debug") << "Check if excluded : " << n
                                            << std::endl;
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
               if (isUSortFiniteRestricted)
               {
                 // must not involve uninterpreted constants beyond cardinality
@@ -1012,7 +1020,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     }
   }
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   // Assert that all representatives have been converted to constants
   for (it = typeRepSet.begin(); it != typeRepSet.end(); ++it)
   {
@@ -1024,7 +1032,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       Assert(false);
     }
   }
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 
   Trace("model-builder") << "Copy representatives to model..." << std::endl;
   tm->d_reps.clear();
@@ -1081,7 +1089,7 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, TheoryModel* m)
 
 void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   if (tm->hasApproximations())
   {
     // models with approximations may fail the assertions below
@@ -1125,7 +1133,7 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       }
     }
   }
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 
   // builder-specific debugging
   debugModel(tm);
@@ -1428,5 +1436,5 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
   Trace("model-builder") << "Finished assigning function values." << std::endl;
 }
 
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace theory
+}  // namespace cvc5

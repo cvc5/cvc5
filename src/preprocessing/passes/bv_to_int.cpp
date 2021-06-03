@@ -3,7 +3,7 @@
  ** \verbatim
  ** Top contributors (to current version):
  **   Yoni Zohar, Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
+ ** This file is part of the cvc5 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
@@ -31,13 +31,13 @@
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
 using namespace std;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
+using namespace cvc5::theory;
+using namespace cvc5::theory::bv;
 
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-int"),
@@ -107,4 +107,4 @@ void BVToInt::addFinalizeAssertions(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

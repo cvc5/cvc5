@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file single_inv_partition.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief utility for single invocation partitioning
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utility for single invocation partitioning.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
-#define CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
+#define CVC5__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
 
 #include <map>
 #include <vector>
@@ -23,7 +24,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -201,7 +202,7 @@ class SingleInvocationPartition
   std::vector<Node> d_si_vars;
 
   /** every free variable of conjuncts[2] */
-  std::unordered_set<Node, NodeHashFunction> d_all_vars;
+  std::unordered_set<Node> d_all_vars;
   /** map from functions to first-order variables that anti-skolemized them */
   std::map<Node, Node> d_func_fo_var;
   /** map from first-order variables to the function it anti-skolemized */
@@ -290,8 +291,8 @@ class SingleInvocationPartition
   Node getConjunct(int index);
 };
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H */

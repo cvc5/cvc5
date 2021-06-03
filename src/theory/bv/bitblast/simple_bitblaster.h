@@ -1,25 +1,25 @@
-/*********************                                                        */
-/*! \file simple_bitblaster.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bitblaster for simple BV solver.
- **
- **/
-#include "cvc4_private.h"
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bitblaster for simple BV solver.
+ */
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BV__BITBLAST_SIMPLE_BITBLASTER_H
-#define CVC4__THEORY__BV__BITBLAST_SIMPLE_BITBLASTER_H
+#ifndef CVC5__THEORY__BV__BITBLAST_SIMPLE_BITBLASTER_H
+#define CVC5__THEORY__BV__BITBLAST_SIMPLE_BITBLASTER_H
 
 #include "theory/bv/bitblast/bitblaster.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -68,13 +68,13 @@ class BBSimple : public TBitblaster<Node>
   /** Caches variables for which we already created bits. */
   TNodeSet d_variables;
   /** Stores bit-blasted atoms. */
-  std::unordered_map<Node, Node, NodeHashFunction> d_bbAtoms;
+  std::unordered_map<Node, Node> d_bbAtoms;
   /** Theory state. */
   TheoryState* d_state;
 };
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

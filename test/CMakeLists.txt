@@ -1,14 +1,18 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Aina Niemetz, Mathias Preiner, Makai Mann
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Aina Niemetz, Mathias Preiner, Yoni Zohar
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
-#-----------------------------------------------------------------------------#
+
 # Add target 'check', builds and runs
 # > unit tests
 # > regression tests of levels 0 and 1
@@ -38,8 +42,9 @@ add_subdirectory(api EXCLUDE_FROM_ALL)
 
 if(ENABLE_UNIT_TESTING)
   add_subdirectory(unit EXCLUDE_FROM_ALL)
+endif()
 
-  if(BUILD_SWIG_BINDINGS_JAVA)
-    add_subdirectory(java)
-  endif()
+# add Python bindings tests if building with Python bindings
+if (BUILD_BINDINGS_PYTHON)
+  add_subdirectory(python)
 endif()

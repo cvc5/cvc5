@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file node_traversal.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Alex Ozdemir, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Iterators for traversing nodes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Alex Ozdemir, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Iterators for traversing nodes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__NODE_TRAVERSAL_H
-#define CVC4__EXPR__NODE_TRAVERSAL_H
+#ifndef CVC5__EXPR__NODE_TRAVERSAL_H
+#define CVC5__EXPR__NODE_TRAVERSAL_H
 
 #include <iterator>
 #include <unordered_map>
@@ -23,7 +24,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * Enum that represents an order in which nodes are visited.
@@ -97,7 +98,7 @@ class NodeDfsIterator
   // Absent if we haven't visited it.
   // Set to `false` if we've already pre-visited it (enqueued its children).
   // Set to `true` if we've also already post-visited it.
-  std::unordered_map<TNode, bool, TNodeHashFunction> d_visited;
+  std::unordered_map<TNode, bool> d_visited;
 
   // The visit order that this iterator is using
   VisitOrder d_order;
@@ -144,6 +145,6 @@ class NodeDfsIterable
   std::function<bool(TNode)> d_skipIf;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif  // CVC4__EXPR__NODE_TRAVERSAL_H
+#endif  // CVC5__EXPR__NODE_TRAVERSAL_H

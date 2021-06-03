@@ -1,6 +1,6 @@
-; COMMAND-LINE: --cegqi --no-check-models
+; COMMAND-LINE: --cegqi
 ; EXPECT: sat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 (declare-datatypes ((nat 0)) (( (Suc (pred nat)) (zero))))
 (declare-fun y () nat)

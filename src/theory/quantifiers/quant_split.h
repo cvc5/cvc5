@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file quant_split.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief dynamic quantifiers splitting
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * dynamic quantifiers splitting
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANT_SPLIT_H
-#define CVC4__THEORY__QUANT_SPLIT_H
+#ifndef CVC5__THEORY__QUANT_SPLIT_H
+#define CVC5__THEORY__QUANT_SPLIT_H
 
 #include "context/cdo.h"
 #include "theory/quantifiers/quant_module.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class QuantifiersEngine;
@@ -46,11 +47,10 @@ namespace quantifiers {
  * one variable per quantified formula at a time.
  */
 class QuantDSplit : public QuantifiersModule {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  QuantDSplit(QuantifiersEngine* qe,
-              QuantifiersState& qs,
+  QuantDSplit(QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
               QuantifiersRegistry& qr,
               TermRegistry& tr);
@@ -74,6 +74,6 @@ class QuantDSplit : public QuantifiersModule {
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file decision_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of Decision manager, which manages all decision
- ** strategies owned by theory solvers within TheoryEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of Decision manager, which manages all decision
+ * strategies owned by theory solvers within TheoryEngine.
+ */
 
 #include "theory/decision_manager.h"
 
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 DecisionManager::DecisionManager(context::Context* userContext)
@@ -107,4 +108,4 @@ Node DecisionManager::getNextDecisionRequest()
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,31 +1,33 @@
-/*********************                                                        */
-/*! \file sygus_qe_preproc.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sygus quantifier elimination preprocessor
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sygus quantifier elimination preprocessor.
+ */
 
 #include "theory/quantifiers/sygus/sygus_qe_preproc.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/quantifiers/single_inv_partition.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusQePreproc::SygusQePreproc(QuantifiersEngine* qe) {}
+SygusQePreproc::SygusQePreproc() {}
 
 Node SygusQePreproc::preprocess(Node q)
 {
@@ -35,6 +37,7 @@ Node SygusQePreproc::preprocess(Node q)
     body = body[0][1];
   }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Trace("cegqi-qep") << "Compute single invocation for " << q << "..."
                      << std::endl;
   quantifiers::SingleInvocationPartition sip;
@@ -84,7 +87,7 @@ Node SygusQePreproc::preprocess(Node q)
   // skolemize non-qe variables
   for (unsigned i = 0, size = nqe_vars.size(); i < size; i++)
   {
-    Node k = nm->mkSkolem(
+    Node k = sm->mkDummySkolem(
         "k", nqe_vars[i].getType(), "qe for non-ground single invocation");
     orig.push_back(nqe_vars[i]);
     subs.push_back(k);
@@ -100,7 +103,7 @@ Node SygusQePreproc::preprocess(Node q)
     Node fv = sip.getFirstOrderVariableForFunction(f);
     Assert(!fi.isNull());
     orig.push_back(fi);
-    Node k = nm->mkSkolem(
+    Node k = sm->mkDummySkolem(
         "k", fv.getType(), "qe for function in non-ground single invocation");
     subs.push_back(k);
     Trace("cegqi-qep") << "  subs : " << fi << " -> " << k << std::endl;
@@ -144,4 +147,4 @@ Node SygusQePreproc::preprocess(Node q)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
