@@ -25,8 +25,8 @@ int main()
 {
   // Create a solver
   Solver solver;
-  
-  // In this example we will ask the solver to produce
+
+  // We will ask the solver to produce
   // models and unsat cores, hence these options
   // should be turned on.
   solver.setOption("produce-models", "true");
@@ -46,19 +46,19 @@ int main()
 
   // x,y will be real variables, while
   // a,b will be integer variables.
-  // Formally, their cpp type is Term, and 
+  // Formally, their cpp type is Term, and
   // they are called "constants" in SMT jargon,
   Term x = solver.mkConst(realSort, "x");
   Term y = solver.mkConst(realSort, "y");
   Term a = solver.mkConst(intSort, "a");
   Term b = solver.mkConst(intSort, "b");
-  
+
   // Our constraints regarding x,y,z will be:
   // '''
   //    0 < x
   //    0 < y
   //    x+y < 1
-  //    x<=y 
+  //    x<=y
   // '''
 
   // Formally, constraints are also terms. Their sort is Boolean.
@@ -68,11 +68,11 @@ int main()
   Term zero = solver.mkReal(0);
   Term one = solver.mkReal(1);
 
-  // Next, we continue with the compound terms, that 
+  // Next, we continue with the compound terms, that
   // employ +, <=, and <.
   // In the API, these are denoted by
   // PLUS, LEQ, and LT.
-  // A list of operators is available in... 
+  // A list of operators is available in...
   // src/api/cpp/cvc5_kind.h
   Term xPlusY = solver.mkTerm(PLUS, x, y);
   // Now we can define the first and second constraints:
@@ -96,7 +96,7 @@ int main()
   // In this case, it is SAT.
   std::cout << "result:" << r1 << std::endl;
 
-  // We can get actual values for x,y,z that 
+  // We can get actual values for x,y,z that
   // satisfy the constraints.
   Term xVal = solver.getValue(x);
   Term yVal = solver.getValue(y);
@@ -111,13 +111,13 @@ int main()
   // using standard cpp conversion functions.
   double xDouble = std::stod(xStr);
   double yDouble = std::stod(yStr);
-  
+
   std::cout << "solution for x: " << xDouble << std::endl;
   std::cout << "solution for y: " << yDouble << std::endl;
 
   // Next, we will check satisfiability of the same formula,
   // only this time over integer variables a,b,c
-  
+
   // We start by reseting the solver to flush
   // previous assertions.
   solver.resetAssertions();
@@ -129,10 +129,8 @@ int main()
   solver.assertFormula(solver.mkTerm(LT, solver.mkInteger(0), a));
   solver.assertFormula(solver.mkTerm(LT, solver.mkInteger(0), b));
   solver.assertFormula(
-        solver.mkTerm(LT, solver.mkTerm(PLUS, a, b), solver.mkInteger(1)));
-  solver.assertFormula(
-        solver.mkTerm(LEQ, a, b)
-      );
+      solver.mkTerm(LT, solver.mkTerm(PLUS, a, b), solver.mkInteger(1)));
+  solver.assertFormula(solver.mkTerm(LEQ, a, b));
   // We check whether the revised assertion is satisfiable.
   Result r2 = solver.checkSat();
 
@@ -147,7 +145,8 @@ int main()
   std::vector<Term> unsatCore = solver.getUnsatCore();
   std::cout << "unsat core size: " << unsatCore.size() << std::endl;
   std::cout << "unsat core: " << std::endl;
-  for (const Term & t : unsatCore) {
+  for (const Term& t : unsatCore)
+  {
     std::cout << t << std::endl;
   }
 
