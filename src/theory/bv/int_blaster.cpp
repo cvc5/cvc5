@@ -308,7 +308,6 @@ Node IntBlaster::translateWithChildren(
   Assert(oldKind != kind::BITVECTOR_ROTATE_RIGHT);
   Assert(oldKind != kind::BITVECTOR_ROTATE_LEFT);
   Assert(oldKind != kind::BITVECTOR_COMP);
-  Assert(oldKind != kind::BITVECTOR_SLT);
   Assert(oldKind != kind::BITVECTOR_SGT);
   Assert(oldKind != kind::BITVECTOR_SLE);
   Assert(oldKind != kind::BITVECTOR_SGE);
@@ -557,6 +556,11 @@ Node IntBlaster::translateWithChildren(
       returnNode = d_nm->mkNode(kind::LT, translated_children);
       break;
     }
+    case kind::BITVECTOR_SLT:
+    {
+      returnNode = d_nm->mkNode(kind::LT, uts(translated_children[0], bvsize), uts(translated_children[1], bvsize));
+      break;
+    }
     case kind::BITVECTOR_ULE:
     {
       returnNode = d_nm->mkNode(kind::LEQ, translated_children);
@@ -665,6 +669,12 @@ Node IntBlaster::translateWithChildren(
   Trace("bv-to-int-debug") << "original: " << original << std::endl;
   Trace("bv-to-int-debug") << "returnNode: " << returnNode << std::endl;
   return returnNode;
+}
+
+Node IntBlaster::uts(Node x, uint64_t bvsize) {
+  Node powNode = pow2(bvsize - 1);
+  Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, x, powNode);
+  return d_nm->mkNode(kind::MINUS, modNode, x);
 }
 
 Node IntBlaster::translateNoChildren(Node original,
