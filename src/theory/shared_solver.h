@@ -109,7 +109,8 @@ class SharedSolver
   virtual bool isShared(TNode t) const;
 
   /**
-   * Method called by equalityEngine
+   * Propagate the predicate with polarity value on the output channel of this
+   * solver.
    */
   bool propagateLit(TNode predicate, bool value);
   /**

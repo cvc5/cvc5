@@ -78,7 +78,7 @@ void SharedSolver::preNotifySharedFact(TNode atom)
 {
   if (d_sharedTerms.hasSharedTerms(atom))
   {
-    // Always notify the theories the shared terms, which is independent of
+    // Always notify the theories of the shared terms, which is independent of
     // the architecture currently.
     SharedTermsDatabase::shared_terms_iterator it = d_sharedTerms.begin(atom);
     SharedTermsDatabase::shared_terms_iterator it_end = d_sharedTerms.end(atom);

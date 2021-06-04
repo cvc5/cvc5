@@ -106,6 +106,7 @@ bool CombinationEngine::isProofEnabled() const { return d_cmbsPg != nullptr; }
 
 eq::EqualityEngineNotify* CombinationEngine::getModelEqualityEngineNotify()
 {
+  // by default, no notifications from model's equality engine
   return nullptr;
 }
 
