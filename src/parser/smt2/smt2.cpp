@@ -690,9 +690,17 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addSepOperators();
   }
 
-  Command* cmd =
-      new SetBenchmarkLogicCommand(sygus() ? d_logic.getLogicString() : name);
-  cmd->setMuted(!fromCommand);
+  std::string logic = sygus() ? d_logic.getLogicString() : name;
+  if (!fromCommand)
+  {
+    // If not from a command, just set the logic directly. Notice this is
+    // important since we do not want to enqueue a set-logic command and
+    // fully initialize the underlying SmtEngine in the meantime before the
+    // command has a chance to execute, which would lead to an error.
+    d_solver->setLogic(logic);
+    return nullptr;
+  }
+  Command* cmd = new SetBenchmarkLogicCommand(logic);
   return cmd;
 } /* Smt2::setLogic() */
 
@@ -725,10 +733,10 @@ void Smt2::checkThatLogicIsSet()
     }
     else
     {
-      Command* cmd = nullptr;
+      // the calls to setLogic below set the logic on the solver directly
       if (logicIsForced())
       {
-        cmd = setLogic(getForcedLogic(), false);
+        setLogic(getForcedLogic(), false);
       }
       else
       {
@@ -739,9 +747,8 @@ void Smt2::checkThatLogicIsSet()
             "performance.");
         warning("To suppress this warning in the future use (set-logic ALL).");
 
-        cmd = setLogic("ALL", false);
+        setLogic("ALL", false);
       }
-      preemptCommand(cmd);
     }
   }
 }

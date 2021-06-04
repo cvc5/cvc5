@@ -1,4 +1,4 @@
-; COMMAND-LINE:
+; COMMAND-LINE: --bv-solver=lazy
 ; EXPECT: unsat
 (set-logic QF_BVLIA)
 (set-info :status unsat)

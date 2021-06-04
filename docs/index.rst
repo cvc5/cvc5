@@ -19,5 +19,6 @@ Table of Contents
    api/api
    examples/examples
    languages
+   theory
    references
    genindex
