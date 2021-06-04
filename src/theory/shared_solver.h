@@ -140,7 +140,7 @@ class SharedSolver
   PreRegisterVisitor d_preRegistrationVisitor;
   /** Visitor for collecting shared terms */
   SharedTermsVisitor d_sharedTermsVisitor;
-  /** Output channel */
+  /** Output channel of theory builtin */
   OutputChannel& d_out;
 };
 
