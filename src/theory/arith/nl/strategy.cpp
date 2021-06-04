@@ -37,9 +37,6 @@ std::ostream& operator<<(std::ostream& os, InferStep step)
     case InferStep::IAND_INIT: return os << "IAND_INIT";
     case InferStep::IAND_FULL: return os << "IAND_FULL";
     case InferStep::IAND_INITIAL: return os << "IAND_INITIAL";
-    case InferStep::POW2_INIT: return os << "POW2_INIT";
-    case InferStep::POW2_FULL: return os << "POW2_FULL";
-    case InferStep::POW2_INITIAL: return os << "POW2_INITIAL";
     case InferStep::ICP: return os << "ICP";
     case InferStep::NL_INIT: return os << "NL_INIT";
     case InferStep::NL_MONOMIAL_INFER_BOUNDS:
@@ -128,8 +125,6 @@ void Strategy::initializeStrategy()
   }
   one << InferStep::IAND_INIT;
   one << InferStep::IAND_INITIAL << InferStep::BREAK;
-  one << InferStep::POW2_INIT;
-  one << InferStep::POW2_INITIAL << InferStep::BREAK;
   if (options::nlExt() == options::NlExtMode::FULL
       || options::nlExt() == options::NlExtMode::LIGHT)
   {
@@ -169,7 +164,6 @@ void Strategy::initializeStrategy()
     one << InferStep::BREAK;
   }
   one << InferStep::IAND_FULL << InferStep::BREAK;
-  one << InferStep::POW2_FULL << InferStep::BREAK;
   if (options::nlCad())
   {
     one << InferStep::CAD_INIT;

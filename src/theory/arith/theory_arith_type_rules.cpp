@@ -133,25 +133,6 @@ TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
-                                   TNode n,
-                                   bool check)
-{
-  if (n.getKind() != kind::POW2)
-  {
-    InternalError() << "POW2 typerule invoked for POW2 kind";
-  }
-  if (check)
-  {
-    TypeNode arg1 = n[0].getType(check);
-    if (!arg1.isInteger())
-    {
-      throw TypeCheckingExceptionPrivate(n, "expecting integer terms");
-    }
-  }
-  return nodeManager->integerType();
-}
-
 TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,
                                                    bool check)

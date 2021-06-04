@@ -76,7 +76,7 @@ bool NlExtTheoryCallback::isExtfReduced(
   if (n != d_zero)
   {
     Kind k = n.getKind();
-    if (k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND && k != POW2)
+    if (k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND)
     {
       id = ExtReducedId::ARITH_SR_LINEAR;
       return true;

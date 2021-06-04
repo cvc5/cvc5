@@ -26,7 +26,6 @@ operator INTS_MODULUS_TOTAL 2 "integer modulus with interpreted division by 0 (i
 operator ABS 1 "absolute value"
 parameterized DIVISIBLE DIVISIBLE_OP 1 "divisibility-by-k predicate; first parameter is a DIVISIBLE_OP, second is integer term"
 operator POW 2 "arithmetic power"
-operator POW2 1 "arithmetic power of 2"
 
 operator EXPONENTIAL 1 "exponential"
 operator SINE 1 "sine"
@@ -149,7 +148,6 @@ typerule ARCTANGENT "SimpleTypeRule<RReal, AReal>"
 typerule ARCCOSECANT "SimpleTypeRule<RReal, AReal>"
 typerule ARCSECANT "SimpleTypeRule<RReal, AReal>"
 typerule ARCCOTANGENT "SimpleTypeRule<RReal, AReal>"
-typerule POW2 "SimpleTypeRule<RInteger, AInteger>"
 
 typerule SQRT "SimpleTypeRule<RReal, AReal>"
 
