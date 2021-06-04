@@ -27,7 +27,6 @@
 #include "expr/skolem_manager.h"
 #include "options/uf_options.h"
 #include "options/option_exception.h"
-#include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
 #include "util/iand.h"
@@ -50,7 +49,6 @@ IntBlaster::IntBlaster(context::Context* c,
                        uint64_t granularity,
                        bool introduceFreshIntVars)
     : d_binarizeCache(c),
-      d_eliminationCache(c),
       d_rebuildCache(c),
       d_intblastCache(c),
       d_rangeAssertions(c),
@@ -181,116 +179,6 @@ Node IntBlaster::makeBinary(Node n)
 }
 
 /**
- * We traverse n and perform rewrites both on the way down and on the way up.
- * On the way down we rewrite the node but not it's children.
- * On the way up, we update the node's children to the rewritten ones.
- * For each sub-node, we perform rewrites to eliminate operators.
- * Then, the original children are added to toVisit stack so that we rewrite
- * them as well.
- */
-Node IntBlaster::eliminationPass(Node n)
-{
-  std::vector<Node> toVisit;
-  toVisit.push_back(n);
-  Node current;
-  while (!toVisit.empty())
-  {
-    current = toVisit.back();
-    // assert that the node is binarized
-    // The following variable is only used in assertions
-    CVC5_UNUSED kind::Kind_t k = current.getKind();
-    uint64_t numChildren = current.getNumChildren();
-    Assert((numChildren == 2)
-           || !(k == kind::BITVECTOR_ADD || k == kind::BITVECTOR_MULT
-                || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
-                || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT));
-    toVisit.pop_back();
-    bool inEliminationCache =
-        (d_eliminationCache.find(current) != d_eliminationCache.end());
-    bool inRebuildCache =
-        (d_rebuildCache.find(current) != d_rebuildCache.end());
-    if (!inEliminationCache)
-    {
-      // current is not the elimination of any previously-visited node
-      // current hasn't been eliminated yet.
-      // eliminate operators from it using rewrite rules
-      Node currentEliminated =
-          FixpointRewriteStrategy<RewriteRule<UdivZero>,
-                                  RewriteRule<SdivEliminateFewerBitwiseOps>,
-                                  RewriteRule<SremEliminateFewerBitwiseOps>,
-                                  RewriteRule<SmodEliminateFewerBitwiseOps>,
-                                  RewriteRule<XnorEliminate>,
-                                  RewriteRule<NandEliminate>,
-                                  RewriteRule<NorEliminate>,
-                                  RewriteRule<NegEliminate>,
-                                  RewriteRule<XorEliminate>,
-                                  RewriteRule<OrEliminate>,
-                                  RewriteRule<SubEliminate>,
-                                  RewriteRule<RepeatEliminate>,
-                                  RewriteRule<RotateRightEliminate>,
-                                  RewriteRule<RotateLeftEliminate>,
-                                  RewriteRule<CompEliminate>,
-                                  RewriteRule<SleEliminate>,
-                                  RewriteRule<SltEliminate>,
-                                  RewriteRule<SgtEliminate>,
-                                  RewriteRule<SgeEliminate>>::apply(current);
-
-      // save in the cache
-      d_eliminationCache[current] = currentEliminated;
-      // also assign the eliminated now to itself to avoid revisiting.
-      d_eliminationCache[currentEliminated] = currentEliminated;
-      // put the eliminated node in the rebuild cache, but mark that it hasn't
-      // yet been rebuilt by assigning null.
-      d_rebuildCache[currentEliminated] = Node();
-      // Push the eliminated node to the stack
-      toVisit.push_back(currentEliminated);
-      // Add the children to the stack for future processing.
-      toVisit.insert(
-          toVisit.end(), currentEliminated.begin(), currentEliminated.end());
-    }
-    if (inRebuildCache)
-    {
-      // current was already added to the rebuild cache.
-      if (d_rebuildCache[current].get().isNull())
-      {
-        // current wasn't rebuilt yet.
-        numChildren = current.getNumChildren();
-        if (numChildren == 0)
-        {
-          // We only eliminate operators that are not nullary.
-          d_rebuildCache[current] = current;
-        }
-        else
-        {
-          // The main operator is replaced, and the children
-          // are replaced with their eliminated counterparts.
-          NodeBuilder builder(current.getKind());
-          if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
-          {
-            builder << current.getOperator();
-          }
-          for (Node child : current)
-          {
-            Assert(d_eliminationCache.find(child) != d_eliminationCache.end());
-            Node eliminatedChild = d_eliminationCache[child];
-            Assert(d_rebuildCache.find(eliminatedChild)
-                   != d_eliminationCache.end());
-            Assert(!d_rebuildCache[eliminatedChild].get().isNull());
-            builder << d_rebuildCache[eliminatedChild].get();
-          }
-          d_rebuildCache[current] = builder.constructNode();
-        }
-      }
-    }
-  }
-  Assert(d_eliminationCache.find(n) != d_eliminationCache.end());
-  Node eliminated = d_eliminationCache[n];
-  Assert(d_rebuildCache.find(eliminated) != d_rebuildCache.end());
-  Assert(!d_rebuildCache[eliminated].get().isNull());
-  return d_rebuildCache[eliminated];
-}
-
-/**
  * Translate n to Integers via post-order traversal.
  */
 Node IntBlaster::intBlast(Node n,
@@ -299,10 +187,6 @@ Node IntBlaster::intBlast(Node n,
 {
   // make sure the node is re-written before processing it.
   n = Rewriter::rewrite(n);
-  n = makeBinary(n);
-  n = eliminationPass(n);
-  // binarize again, in case the elimination pass introduced
-  // non-binary terms (as can happen by RepeatEliminate, for example).
   n = makeBinary(n);
   std::vector<Node> toVisit;
   toVisit.push_back(n);
@@ -403,6 +287,8 @@ Node IntBlaster::unsignedTosigned(Node n, uint64_t bw)
   return result;
 }
 
+
+
 Node IntBlaster::translateWithChildren(
     Node original,
     const std::vector<Node>& translated_children,
@@ -412,30 +298,37 @@ Node IntBlaster::translateWithChildren(
   // the node.
   kind::Kind_t oldKind = original.getKind();
   // signed comparisons were supposed to be eliminated by this point.
+  Assert(oldKind != kind::BITVECTOR_SDIV);
+  Assert(oldKind != kind::BITVECTOR_SREM);
+  Assert(oldKind != kind::BITVECTOR_SMOD);
+  Assert(oldKind != kind::BITVECTOR_XNOR);
+  Assert(oldKind != kind::BITVECTOR_NAND);
+  Assert(oldKind != kind::BITVECTOR_SUB);
+  Assert(oldKind != kind::BITVECTOR_REPEAT);
+  Assert(oldKind != kind::BITVECTOR_ROTATE_RIGHT);
+  Assert(oldKind != kind::BITVECTOR_ROTATE_LEFT);
+  Assert(oldKind != kind::BITVECTOR_COMP);
   Assert(oldKind != kind::BITVECTOR_SLT);
   Assert(oldKind != kind::BITVECTOR_SGT);
   Assert(oldKind != kind::BITVECTOR_SLE);
   Assert(oldKind != kind::BITVECTOR_SGE);
-  // Exists is eliminated using Forall
   Assert(oldKind != kind::EXISTS);
+  Assert(oldKind != kind::BITVECTOR_UDIV || (original[1].isConst() && original[1].getConst<BitVector>().getValue().isZero()));
   // The following variable will only be used in assertions.
   CVC5_UNUSED uint64_t originalNumChildren = original.getNumChildren();
   Node returnNode;
+  uint64_t bvsize = original[0].getType().getBitVectorSize();
   switch (oldKind)
   {
     case kind::BITVECTOR_ADD:
     {
       Assert(originalNumChildren == 2);
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
-      Node plus = d_nm->mkNode(kind::PLUS, translated_children);
-      Node p2 = pow2(bvsize);
-      returnNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, plus, p2);
+      returnNode = createBVAddNode(translated_children[0], translated_children[1], bvsize);
       break;
     }
     case kind::BITVECTOR_MULT:
     {
       Assert(originalNumChildren == 2);
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
       Node mult = d_nm->mkNode(kind::MULT, translated_children);
       Node p2 = pow2(bvsize);
       returnNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, mult, p2);
@@ -443,7 +336,6 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_UDIV:
     {
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
       // we use an ITE for the case where the second operand is 0.
       Node pow2BvSize = pow2(bvsize);
       Node divNode =
@@ -469,9 +361,13 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_NOT:
     {
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
       // we use a specified function to generate the node.
       returnNode = createBVNotNode(translated_children[0], bvsize);
+      break;
+    }
+    case kind::BITVECTOR_NEG:
+    {
+      returnNode = createBVNegNode(translated_children[0], bvsize);
       break;
     }
     case kind::BITVECTOR_TO_NAT:
@@ -490,78 +386,26 @@ Node IntBlaster::translateWithChildren(
                   original.getOperator().getConst<IntToBitVector>().d_size);
       break;
     }
+    case kind::BITVECTOR_OR:
+    {
+      Assert(translated_children.size() == 2);
+      returnNode = createBVOrNode(translated_children[0], translated_children[1], bvsize, lemmas);
+      break;
+    }
+    case kind::BITVECTOR_XOR:
+    {
+      Assert(translated_children.size() == 2);
+      // Based on Hacker's Delight section 2-2 equation n:
+      // x xor y = x|y - x&y
+      Node bvor = createBVOrNode(translated_children[0], translated_children[1], bvsize, lemmas);
+      Node bvand = createBVAndNode(translated_children[0], translated_children[1], bvsize, lemmas);
+      returnNode = createBVSubNode(bvor, bvand, bvsize);
+      break;
+    }
     case kind::BITVECTOR_AND:
     {
-      // We support three configurations:
-      // 1. translating to IAND
-      // 2. translating back to BV (using BITVECTOR_TO_NAT and INT_TO_BV
-      // operators)
-      // 3. translating into a sum
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
-      if (d_mode == options::SolveBVAsIntMode::IAND)
-      {
-        Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
-        returnNode = d_nm->mkNode(
-            kind::IAND, iAndOp, translated_children[0], translated_children[1]);
-      }
-      else if (d_mode == options::SolveBVAsIntMode::BV)
-      {
-        // translate the children back to BV
-        Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
-        Node x = translated_children[0];
-        Node y = translated_children[1];
-        Node bvx = d_nm->mkNode(intToBVOp, x);
-        Node bvy = d_nm->mkNode(intToBVOp, y);
-        // perform bvand on the bit-vectors
-        Node bvand = d_nm->mkNode(kind::BITVECTOR_AND, bvx, bvy);
-        // translate the result to integers
-        returnNode = d_nm->mkNode(kind::BITVECTOR_TO_NAT, bvand);
-      }
-      else if (d_mode == options::SolveBVAsIntMode::SUM)
-      {
-        // Construct a sum of ites, based on granularity.
-        Assert(translated_children.size() == 2);
-        returnNode = d_iandUtils.createSumNode(translated_children[0],
-                                               translated_children[1],
-                                               bvsize,
-                                               d_granularity);
-      }
-      else
-      {
-        Assert(d_mode == options::SolveBVAsIntMode::BITWISE);
-        // Enforce semantics over individual bits with iextract and ites
-        Assert(translated_children.size() == 2);
-        uint64_t granularity = options::BVAndIntegerGranularity();
-
-        Node x = translated_children[0];
-        Node y = translated_children[1];
-        Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
-        Node iAnd = d_nm->mkNode(kind::IAND, iAndOp, x, y);
-        // get a skolem so the IAND solver knows not to do work
-        returnNode = d_nm->getSkolemManager()->mkPurifySkolem(
-            iAnd,
-            "__intblast__iand",
-            "skolem for an IAND node in bitwise mode " + iAnd.toString());
-        addRangeConstraint(returnNode, bvsize, lemmas);
-
-        // eagerly add bitwise lemmas according to the provided granularity
-        uint64_t high_bit;
-        for (uint64_t j = 0; j < bvsize; j += granularity)
-        {
-          high_bit = j + granularity - 1;
-          // don't let high_bit pass bvsize
-          if (high_bit >= bvsize)
-          {
-            high_bit = bvsize - 1;
-          }
-          Node extractedReturnNode =
-              d_iandUtils.iextract(high_bit, j, returnNode);
-          addBitwiseConstraint(
-              extractedReturnNode.eqNode(
-                  d_iandUtils.createBitwiseIAndNode(x, y, high_bit, j)),
-              lemmas);
-        }
-      }
+      Assert(translated_children.size() == 2);
+      returnNode = createBVAndNode(translated_children[0], translated_children[1], bvsize, lemmas);
       break;
     }
     case kind::BITVECTOR_SHL:
@@ -572,7 +416,6 @@ Node IntBlaster::translateWithChildren(
        * Only cases where b <= bit width are considered.
        * Otherwise, the result is 0.
        */
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createShiftNode(translated_children, bvsize, true);
       break;
     }
@@ -584,7 +427,6 @@ Node IntBlaster::translateWithChildren(
        * Only cases where b <= bit width are considered.
        * Otherwise, the result is 0.
        */
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createShiftNode(translated_children, bvsize, false);
       break;
     }
@@ -603,7 +445,6 @@ Node IntBlaster::translateWithChildren(
        *           (bvnot (bvlshr (bvnot s) t)))
        *
        */
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
       // signed_min is 100000...
       Node signed_min = pow2(bvsize - 1);
       Node condition =
@@ -632,7 +473,6 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_SIGN_EXTEND:
     {
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
       Node arg = translated_children[0];
       if (arg.isConst())
       {
@@ -742,7 +582,6 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_SLTBV:
     {
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = d_nm->mkNode(
           kind::ITE,
           d_nm->mkNode(kind::LT,
@@ -1168,6 +1007,102 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   Node newBoundVarsList = d_nm->mkNode(kind::BOUND_VAR_LIST, newBoundVars);
   Node result = d_nm->mkNode(kind::FORALL, newBoundVarsList, matrix);
   return result;
+}
+
+Node IntBlaster::createBVAndNode(Node x, Node y, uint64_t bvsize, std::vector<Node> lemmas) {
+      // We support three configurations:
+      // 1. translating to IAND
+      // 2. translating back to BV (using BITVECTOR_TO_NAT and INT_TO_BV
+      // operators)
+      // 3. translating into a sum
+  Node returnNode;
+      if (d_mode == options::SolveBVAsIntMode::IAND)
+      {
+        Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
+        returnNode = d_nm->mkNode(
+            kind::IAND, iAndOp, x, y);
+      }
+      else if (d_mode == options::SolveBVAsIntMode::BV)
+      {
+        // translate the children back to BV
+        Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
+        Node bvx = d_nm->mkNode(intToBVOp, x);
+        Node bvy = d_nm->mkNode(intToBVOp, y);
+        // perform bvand on the bit-vectors
+        Node bvand = d_nm->mkNode(kind::BITVECTOR_AND, bvx, bvy);
+        // translate the result to integers
+        returnNode = d_nm->mkNode(kind::BITVECTOR_TO_NAT, bvand);
+      }
+      else if (d_mode == options::SolveBVAsIntMode::SUM)
+      {
+        // Construct a sum of ites, based on granularity.
+        returnNode = d_iandUtils.createSumNode(x,
+                                               y,
+                                               bvsize,
+                                               d_granularity);
+      }
+      else
+      {
+        Assert(d_mode == options::SolveBVAsIntMode::BITWISE);
+        // Enforce semantics over individual bits with iextract and ites
+        uint64_t granularity = options::BVAndIntegerGranularity();
+
+        Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
+        Node iAnd = d_nm->mkNode(kind::IAND, iAndOp, x, y);
+        // get a skolem so the IAND solver knows not to do work
+        returnNode = d_nm->getSkolemManager()->mkPurifySkolem(
+            iAnd,
+            "__intblast__iand",
+            "skolem for an IAND node in bitwise mode " + iAnd.toString());
+        addRangeConstraint(returnNode, bvsize, lemmas);
+
+        // eagerly add bitwise lemmas according to the provided granularity
+        uint64_t high_bit;
+        for (uint64_t j = 0; j < bvsize; j += granularity)
+        {
+          high_bit = j + granularity - 1;
+          // don't let high_bit pass bvsize
+          if (high_bit >= bvsize)
+          {
+            high_bit = bvsize - 1;
+          }
+          Node extractedReturnNode =
+              d_iandUtils.iextract(high_bit, j, returnNode);
+          addBitwiseConstraint(
+              extractedReturnNode.eqNode(
+                  d_iandUtils.createBitwiseIAndNode(x, y, high_bit, j)),
+              lemmas);
+        }
+      }
+      return returnNode;
+}
+
+Node IntBlaster::createBVOrNode(Node x, Node y, uint64_t bvsize, std::vector<Node> lemmas) {
+      // Based on Hacker's Delight section 2-2 equation h:
+      // x+y = x|y + x&y
+      // from which we deduce:
+      // x|y = x+y - x&y
+      Node plus = createBVAddNode(x, y, bvsize);
+      Node bvand = createBVAndNode(x, y, bvsize, lemmas);
+      return createBVSubNode(plus, bvand, bvsize);
+}
+
+Node IntBlaster::createBVSubNode(Node x, Node y, uint64_t bvsize) {
+    return d_nm->mkNode(kind::PLUS, x, createBVNegNode(y, bvsize));
+}
+
+Node IntBlaster::createBVAddNode(Node x, Node y, uint64_t bvsize) {
+      Node plus = d_nm->mkNode(kind::PLUS, x, y);
+      Node p2 = pow2(bvsize);
+      return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, plus, p2);
+
+}
+
+Node IntBlaster::createBVNegNode(Node n, uint64_t bvsize) {
+      // Based on Hacker's Delight section 2-2 equation a:
+      // -x = ~x+1
+      Node notNode = createBVNotNode(n, bvsize);
+      return createBVAddNode(notNode, d_one, bvsize);
 }
 
 Node IntBlaster::createBVNotNode(Node n, uint64_t bvsize)

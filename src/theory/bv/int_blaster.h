@@ -153,6 +153,11 @@ class IntBlaster
 
   /** Returns a node that represents the bitwise negation of n. */
   Node createBVNotNode(Node n, uint64_t bvsize);
+  Node createBVNegNode(Node n, uint64_t bvsize);
+  Node createBVAndNode(Node x, Node y, uint64_t bvsize, std::vector<Node> lemmas);
+  Node createBVAddNode(Node x, Node y, uint64_t bvsize);
+  Node createBVOrNode(Node x, Node y, uint64_t bvsize, std::vector<Node> lemmas);
+  Node createBVSubNode(Node x, Node y, uint64_t bvsize);
 
   /**
    * Whenever we introduce an integer variable that represents a bit-vector
@@ -163,13 +168,6 @@ class IntBlaster
    * @return a node representing the range constraint.
    */
   Node mkRangeConstraint(Node newVar, uint64_t k);
-
-  /**
-   * In the translation to integers, it is convenient to assume that certain
-   * bit-vector operators do not occur in the original formula (e.g., repeat).
-   * This function eliminates all these operators.
-   */
-  Node eliminationPass(Node n);
 
   /**
    * Some bit-vector operators (e.g., bvadd, bvand) are binary, but allow more
@@ -308,7 +306,6 @@ class IntBlaster
 
   /** Caches for the different functions */
   CDNodeMap d_binarizeCache;
-  CDNodeMap d_eliminationCache;
   CDNodeMap d_rebuildCache;
   CDNodeMap d_intblastCache;
 
