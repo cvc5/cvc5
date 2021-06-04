@@ -106,13 +106,7 @@ bool CombinationEngine::isProofEnabled() const { return d_cmbsPg != nullptr; }
 
 eq::EqualityEngineNotify* CombinationEngine::getModelEqualityEngineNotify()
 {
-  // by default, no notifications from model's equality engine
   return nullptr;
-}
-
-void CombinationEngine::sendLemma(TrustNode trn, TheoryId atomsTo)
-{
-  d_te.lemma(trn, LemmaProperty::NONE, atomsTo);
 }
 
 void CombinationEngine::resetRound()
