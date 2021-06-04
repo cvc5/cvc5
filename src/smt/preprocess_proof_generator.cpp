@@ -51,8 +51,8 @@ void PreprocessProofGenerator::notifyInput(Node n)
 void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
 {
   Trace("smt-proof-pp-debug")
-      << "PreprocessProofGenerator::notifyNewAssert: " << identify() << " " << n << " from "
-      << (pg == nullptr ? "null" : pg->identify()) << std::endl;
+      << "PreprocessProofGenerator::notifyNewAssert: " << identify() << " " << n
+      << " from " << (pg == nullptr ? "null" : pg->identify()) << std::endl;
   if (d_src.find(n) == d_src.end())
   {
     // if no proof generator provided for (non-true) assertion
@@ -96,8 +96,8 @@ void PreprocessProofGenerator::notifyTrustedPreprocessed(TrustNode tnp)
   Assert(tnp.getKind() == TrustNodeKind::REWRITE);
   Node np = tnp.getNode();
   Trace("smt-proof-pp-debug")
-      << "PreprocessProofGenerator::notifyPreprocessed: " << identify() << " " << tnp.getProven()
-      << std::endl;
+      << "PreprocessProofGenerator::notifyPreprocessed: " << identify() << " "
+      << tnp.getProven() << std::endl;
   if (d_src.find(np) == d_src.end())
   {
     if (tnp.getGenerator() == nullptr)
@@ -117,7 +117,8 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
   NodeTrustNodeMap::iterator it = d_src.find(f);
   if (it == d_src.end())
   {
-    Trace("smt-pppg") << "...no proof for " << identify() << " " << f << std::endl;
+    Trace("smt-pppg") << "...no proof for " << identify() << " " << f
+                      << std::endl;
     // could be an assumption, return nullptr
     return nullptr;
   }
