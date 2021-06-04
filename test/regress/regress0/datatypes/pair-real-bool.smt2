@@ -1,6 +1,6 @@
 ; EXPECT: sat
 ;(set-option :produce-models true)
-(set-logic QF_ALL_SUPPORTED)
+(set-logic QF_ALL)
 (set-info :status sat)
 (declare-datatypes ((RealTree 0)) (
   (

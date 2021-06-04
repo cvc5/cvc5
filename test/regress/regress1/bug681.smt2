@@ -1,6 +1,6 @@
 ; EXIT: 1
 ; EXPECT: (error "Array theory solver does not yet support write-chains connecting two different constant arrays")
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (declare-fun start!1 () Bool)
 
 (assert start!1)

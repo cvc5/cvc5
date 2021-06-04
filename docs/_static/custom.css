@@ -76,3 +76,14 @@ a:hover, a:focus {
   color: #ace600;
 }
 
+.highlight .o {
+  color: #ac7339;
+}
+
+.highlight .k {
+  color: #2980b9;
+}
+
+.highlight .m {
+  color: #ba2121;
+}

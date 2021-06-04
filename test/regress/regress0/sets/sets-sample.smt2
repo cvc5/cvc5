@@ -4,7 +4,7 @@
 ; EXPECT: unsat
 ; EXPECT: unsat
 ; EXPECT: unsat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (define-sort SetInt () (Set Int))
 
 ; Something simple to test parsing
