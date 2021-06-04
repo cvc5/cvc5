@@ -31,31 +31,31 @@ namespace smt {
 OptionsManager::OptionsManager(Options* opts) : d_options(opts)
 {
   // set options that must take effect immediately
-  if (opts->wasSetByUser(options::defaultExprDepth))
+  if (opts->expr.defaultExprDepth__setByUser)
   {
     notifySetOption(options::expr::defaultExprDepth__name);
   }
-  if (opts->wasSetByUser(options::defaultDagThresh))
+  if (opts->expr.defaultDagThresh__setByUser)
   {
     notifySetOption(options::expr::defaultDagThresh__name);
   }
-  if (opts->wasSetByUser(options::dumpModeString))
+  if (opts->smt.dumpModeString__setByUser)
   {
     notifySetOption(options::smt::dumpModeString__name);
   }
-  if (opts->wasSetByUser(options::printSuccess))
+  if (opts->base.printSuccess__setByUser)
   {
     notifySetOption(options::base::printSuccess__name);
   }
-  if (opts->wasSetByUser(options::diagnosticChannelName))
+  if (opts->smt.diagnosticChannelName__setByUser)
   {
     notifySetOption(options::smt::diagnosticChannelName__name);
   }
-  if (opts->wasSetByUser(options::regularChannelName))
+  if (opts->smt.regularChannelName__setByUser)
   {
     notifySetOption(options::smt::regularChannelName__name);
   }
-  if (opts->wasSetByUser(options::dumpToFileName))
+  if (opts->smt.dumpToFileName__setByUser)
   {
     notifySetOption(options::smt::dumpToFileName__name);
   }

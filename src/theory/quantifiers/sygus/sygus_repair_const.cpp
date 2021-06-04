@@ -234,7 +234,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   std::unique_ptr<SmtEngine> repcChecker;
   // initialize the subsolver using the standard method
   initializeSubsolver(repcChecker,
-                      Options::current().wasSetByUser(options::sygusRepairConstTimeout),
+                      Options::current().quantifiers.sygusRepairConstTimeout__setByUser,
                       options::sygusRepairConstTimeout());
   // renable options disabled by sygus
   repcChecker->setOption("miniscope-quant", "true");
