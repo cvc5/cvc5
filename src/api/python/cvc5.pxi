@@ -18,6 +18,7 @@ from cvc5 cimport DatatypeDecl as c_DatatypeDecl
 from cvc5 cimport DatatypeSelector as c_DatatypeSelector
 from cvc5 cimport Result as c_Result
 from cvc5 cimport RoundingMode as c_RoundingMode
+from cvc5 cimport UnknownExplanation as c_UnknownExplanation
 from cvc5 cimport Op as c_Op
 from cvc5 cimport Solver as c_Solver
 from cvc5 cimport Grammar as c_Grammar
@@ -25,6 +26,10 @@ from cvc5 cimport Sort as c_Sort
 from cvc5 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
 from cvc5 cimport ROUND_TOWARD_NEGATIVE, ROUND_TOWARD_ZERO
 from cvc5 cimport ROUND_NEAREST_TIES_TO_AWAY
+from cvc5 cimport REQUIRES_FULL_CHECK, INCOMPLETE, TIMEOUT
+from cvc5 cimport RESOURCEOUT, MEMOUT, INTERRUPTED
+from cvc5 cimport NO_STATUS, UNSUPPORTED, UNKNOWN_REASON
+from cvc5 cimport OTHER
 from cvc5 cimport Term as c_Term
 from cvc5 cimport hash as c_hash
 from cvc5 cimport wstring as c_wstring
@@ -413,7 +418,7 @@ cdef class Result:
         return self.cr != other.cr
 
     def getUnknownExplanation(self):
-        return self.cr.getUnknownExplanation().decode()
+        return UnknownExplanation(self.cr.getUnknownExplanation())
 
     def __str__(self):
         return self.cr.toString().decode()
@@ -434,6 +439,30 @@ cdef class RoundingMode:
         return (<int> self.crm) == (<int> other.crm)
 
     def __ne__(self, RoundingMode other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash((<int> self.crm, self.name))
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.name
+
+
+cdef class UnknownExplanation:
+    cdef c_UnknownExplanation cue
+    cdef str name
+    def __cinit__(self, int ue):
+        # crm always assigned externally
+        self.cue = <c_UnknownExplanation> ue
+        self.name = __unknown_explanations[ue]
+
+    def __eq__(self, UnknownExplanation other):
+        return (<int> self.cue) == (<int> other.cue)
+
+    def __ne__(self, UnknownExplanation other):
         return not self.__eq__(other)
 
     def __hash__(self):
@@ -1844,4 +1873,35 @@ for rm_int, name in __rounding_modes.items():
 
 del r
 del rm_int
+del name
+
+
+
+
+
+# Generate unknown explanations
+cdef __unknown_explanations = {
+    <int> REQUIRES_FULL_CHECK: "RequiresFullCheck",
+    <int> INCOMPLETE: "Incomplete",
+    <int> TIMEOUT: "Timeout",
+    <int> RESOURCEOUT: "Resourceout",
+    <int> MEMOUT: "Memout",
+    <int> INTERRUPTED: "Interrupted",
+    <int> NO_STATUS: "NoStatus",
+    <int> UNSUPPORTED: "Unsupported",
+    <int> OTHER: "Other",
+    <int> UNKNOWN_REASON: "UnknownReason"
+}
+
+mod_ref = sys.modules[__name__]
+for ue_int, name in __unknown_explanations.items():
+    u = UnknownExplanation(ue_int)
+
+    if name in dir(mod_ref):
+        raise RuntimeError("Redefinition of Python RoundingMode %s."%name)
+
+    setattr(mod_ref, name, u)
+
+del u
+del ue_int
 del name
