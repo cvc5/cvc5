@@ -117,15 +117,6 @@ TPL_OPTION_STRUCT_RW = \
   type operator()() const;
 }} thread_local {name};"""
 
-TPL_DECL_WAS_SET_BY_USER = \
-"""template <> bool Options::wasSetByUser(options::{name}__option_t) const;"""
-
-TPL_IMPL_WAS_SET_BY_USER = TPL_DECL_WAS_SET_BY_USER[:-1] + \
-"""
-{{
-  return {module}.{name}__setByUser;
-}}"""
-
 # Option specific methods
 
 TPL_IMPL_OP_PAR = \
@@ -556,7 +547,6 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
 
         # Generate module specialization
         default_decl.append(TPL_DECL_SET_DEFAULT.format(module=module.id, name=option.name, funcname=capoptionname, type=option.type))
-        specs.append(TPL_DECL_WAS_SET_BY_USER.format(name=option.name))
 
         if option.long and option.type not in ['bool', 'void'] and \
            '=' not in option.long:
@@ -577,7 +567,6 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
 
         # Accessors
         default_impl.append(TPL_IMPL_SET_DEFAULT.format(module=module.id, name=option.name, funcname=capoptionname, type=option.type))
-        accs.append(TPL_IMPL_WAS_SET_BY_USER.format(module=module.id, name=option.name))
 
         # Global definitions
         defs.append('thread_local struct {name}__option_t {name};'.format(name=option.name))
