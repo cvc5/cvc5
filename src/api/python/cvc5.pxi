@@ -196,6 +196,11 @@ cdef class DatatypeConstructor:
         term.cterm = self.cdc.getConstructorTerm()
         return term
 
+    def getSpecializedConstructorTerm(self, Sort retSort):
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cdc.getSpecializedConstructorTerm(retSort.csort)
+        return term
+
     def getTesterTerm(self):
         cdef Term term = Term(self.solver)
         term.cterm = self.cdc.getTesterTerm()
