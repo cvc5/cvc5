@@ -961,7 +961,7 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(_ tupSel " << DType::indexOf(op) << ") ";
     }
   }
-    break;
+  break;
   case kind::APPLY_TESTER:
   {
     stillNeedToPrintParams = false;
@@ -969,12 +969,11 @@ void Smt2Printer::toStream(std::ostream& out,
     size_t cindex = DType::indexOf(op);
     const DType& dt = DType::datatypeOf(op);
     out << "(_ is ";
-    toStream(out,
-              dt[cindex].getConstructor(),
-              toDepth < 0 ? toDepth : toDepth - 1);
+    toStream(
+        out, dt[cindex].getConstructor(), toDepth < 0 ? toDepth : toDepth - 1);
     out << ") ";
   }
-    break;
+  break;
   case kind::APPLY_UPDATER:
   {
     Node op = n.getOperator();
@@ -983,11 +982,11 @@ void Smt2Printer::toStream(std::ostream& out,
     size_t cindex = DType::cindexOf(op);
     out << "(_ update ";
     toStream(out,
-              dt[cindex][index].getSelector(),
-              toDepth < 0 ? toDepth : toDepth - 1);
+             dt[cindex][index].getSelector(),
+             toDepth < 0 ? toDepth : toDepth - 1);
     out << ") ";
   }
-    break;
+  break;
   case kind::APPLY_SELECTOR_TOTAL:
   case kind::PARAMETRIC_DATATYPE: break;
 
