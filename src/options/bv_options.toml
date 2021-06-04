@@ -227,7 +227,7 @@ name   = "Bitvector Theory"
   category   = "regular"
   long       = "bv-solver=MODE"
   type       = "BVSolver"
-  default    = "LAZY"
+  default    = "BITBLAST"
   help       = "choose bit-vector solver, see --bv-solver=help"
   help_mode  = "Bit-vector solvers."
 [[option.mode.BITBLAST]]
