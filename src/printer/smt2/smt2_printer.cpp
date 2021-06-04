@@ -966,7 +966,7 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     stillNeedToPrintParams = false;
     Node op = n.getOperator();
-    unsigned cindex = DType::indexOf(op);
+    size_t cindex = DType::indexOf(op);
     const DType& dt = DType::datatypeOf(op);
     out << "(_ is ";
     toStream(out,
@@ -978,9 +978,9 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::APPLY_UPDATER:
   {
     Node op = n.getOperator();
-    unsigned index = DType::indexOf(op);
+    size_t index = DType::indexOf(op);
     const DType& dt = DType::datatypeOf(op);
-    unsigned cindex = DType::cindexOf(op);
+    size_t cindex = DType::cindexOf(op);
     out << "(_ update ";
     toStream(out,
               dt[cindex][index].getSelector(),
