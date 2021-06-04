@@ -219,6 +219,34 @@ def get_holder_ref_decls(modules):
     return concat_format('  options::Holder{id_cap}& {id};', modules)
 
 
+def get_handler(option):
+    """Render handler call for assignment functions"""
+    optname = option.long_name if option.long else ""
+    if option.handler:
+        if option.type == 'void':
+            return 'opts.handler().{}("{}", option)'.format(option.handler, optname)
+        else:
+            return 'opts.handler().{}("{}", option, optionarg)'.format(option.handler, optname)
+    elif option.mode:
+        return 'stringTo{}(optionarg)'.format(option.type)
+    elif option.type != 'bool':
+        return 'handleOption<{}>(option, optionarg)'.format(option.type)
+    return None
+
+
+def get_predicates(option):
+    """Render predicate calls for assignment functions"""
+    if not option.predicates:
+        return []
+    optname = option.long_name if option.long else ""
+    if option.type == 'bool':
+        return ['opts.handler().{}("{}", option, value);'.format(x, optname) \
+                for x in option.predicates]
+    else:
+        assert option.type != 'void'
+        return ['opts.handler().{}("{}", option, value);'.format(x, optname) \
+                for x in option.predicates]
+
 class Module(object):
     """Options module.
 
@@ -720,31 +748,10 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
             sphinxgen.add(module, option)
 
             # Generate handler call
-            handler = None
-            if option.handler:
-                if option.type == 'void':
-                    handler = 'opts.handler().{}(option)'.format(option.handler)
-                else:
-                    handler = \
-                        'opts.handler().{}(option, optionarg)'.format(option.handler)
-            elif option.mode:
-                handler = 'stringTo{}(optionarg)'.format(option.type)
-            elif option.type != 'bool':
-                handler = \
-                    'handleOption<{}>(option, optionarg)'.format(option.type)
+            handler = get_handler(option)
 
             # Generate predicate calls
-            predicates = []
-            if option.predicates:
-                if option.type == 'bool':
-                    predicates = \
-                        ['opts.handler().{}(option, value);'.format(x) \
-                            for x in option.predicates]
-                else:
-                    assert option.type != 'void'
-                    predicates = \
-                        ['opts.handler().{}(option, value);'.format(x) \
-                            for x in option.predicates]
+            predicates = get_predicates(option)
 
             # Generate options_handler and getopt_long
             cases = []
@@ -820,7 +827,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
                             name=option.name,
                             option='key'))
                 elif option.handler:
-                    h = 'handler->{handler}("{smtname}"'
+                    h = 'handler->{handler}("{smtname}", key'
                     if argument_req:
                         h += ', optionarg'
                     h += ');'
