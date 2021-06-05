@@ -512,7 +512,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
               // right-hand prefix).
               if (lenPfx1.isConst() && lenPfx1.getConst<Rational>().isZero())
               {
-                sfxv0.insert(pfxv0.end(), v0.begin() + i, v0.end());
+                sfxv0.insert(sfxv0.end(), v0.begin() + i, v0.end());
                 std::vector<Node> sfxv1(v1.begin() + j, v1.end());
                 Node ret =
                     nm->mkNode(kind::AND,
