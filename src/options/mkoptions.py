@@ -49,7 +49,7 @@ import toml
 ### Allowed attributes for module/option
 
 MODULE_ATTR_REQ = ['id', 'name']
-MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option']
+MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option', 'public']
 
 OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
@@ -643,10 +643,14 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
                     help=help_mode_format(option),
                     long=option.long.split('=')[0]))
 
+    if module.public:
+        visibility_include = '#include "cvc5_public.h"'
+    else:
+        visibility_include = '#include "cvc5_private.h"'
+
     filename = os.path.splitext(os.path.split(module.header)[1])[0]
     write_file(dst_dir, '{}.h'.format(filename), tpl_module_h.format(
-        filename=filename,
-        header=module.header,
+        visibility_include=visibility_include,
         id_cap=module.id_cap,
         id=module.id,
         includes='\n'.join(sorted(list(includes))),

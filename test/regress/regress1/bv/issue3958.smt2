@@ -1,0 +1,8 @@
+(set-logic QF_BV)
+(set-info :status sat)
+(declare-const v4 Bool)
+(declare-const v8 Bool)
+(declare-const bv_21-0 (_ BitVec 21))
+(assert (or (= bv_21-0 bv_21-0 bv_21-0 (_ bv0 21) bv_21-0) v4))
+(assert (or (= (_ bv0 21) (bvudiv bv_21-0 bv_21-0) (_ bv0 21) (_ bv0 21)) v8))
+(check-sat)
