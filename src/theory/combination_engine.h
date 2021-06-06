@@ -105,8 +105,6 @@ class CombinationEngine
    * who listens to the model's equality engine (if any).
    */
   virtual eq::EqualityEngineNotify* getModelEqualityEngineNotify();
-  /** Send lemma to the theory engine, atomsTo is the theory to send atoms to */
-  void sendLemma(TrustNode trn, TheoryId atomsTo);
   /** Reference to the theory engine */
   TheoryEngine& d_te;
   /** Reference to the environment */
