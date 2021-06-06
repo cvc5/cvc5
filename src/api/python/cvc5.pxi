@@ -747,7 +747,7 @@ cdef class Solver:
 
         Can be used in various forms.
         * Given a string "N/D" constructs the corresponding rational.
-        * Given a string "W.D" constructs the reduction of (N * P + D)/P, where
+        * Given a string "W.D" constructs the reduction of (W * P + D)/P, where
           P is the appropriate power of 10.
         * Given a float f, constructs the rational matching f's string
           representation. This means that mkReal(0.3) gives 3/10 and not the
