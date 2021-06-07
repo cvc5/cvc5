@@ -31,7 +31,6 @@
 #include "options/options.h"
 #include "options/printer_modes.h"
 #include "options/printer_options.h"
-#include "options/resource_manager_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 
@@ -46,36 +45,9 @@ bool getIncrementalSolving(const Options& opts)
 {
   return opts.smt.incrementalSolving;
 }
-bool getLanguageHelp(const Options& opts) { return opts.base.languageHelp; }
-bool getParseOnly(const Options& opts) { return opts.base.parseOnly; }
-bool getProduceModels(const Options& opts) { return opts.smt.produceModels; }
-bool getStatistics(const Options& opts) { return opts.base.statistics; }
-bool getStatsEveryQuery(const Options& opts)
-{
-  return opts.base.statisticsEveryQuery;
-}
-uint64_t getCumulativeTimeLimit(const Options& opts)
-{
-  return opts.resman.cumulativeMillisecondLimit;
-}
-int32_t getVerbosity(const Options& opts) { return opts.base.verbosity; }
-
-std::istream* getIn(const Options& opts) { return opts.base.in; }
-std::ostream* getErr(const Options& opts) { return opts.base.err; }
-std::ostream* getOut(const Options& opts) { return opts.base.out; }
 const std::string& getBinaryName(const Options& opts)
 {
   return opts.base.binary_name;
-}
-
-void setInputLanguage(InputLanguage val, Options& opts)
-{
-  opts.base.inputLanguage = val;
-}
-void setOut(std::ostream* val, Options& opts) { opts.base.out = val; }
-void setOutputLanguage(OutputLanguage val, Options& opts)
-{
-  opts.base.outputLanguage = val;
 }
 
 bool wasSetByUserIncrementalSolving(const Options& opts)

@@ -32,22 +32,8 @@ namespace cvc5::options {
 InstFormatMode getInstFormatMode(const Options& opts) CVC5_EXPORT;
 bool getUfHo(const Options& opts) CVC5_EXPORT;
 bool getIncrementalSolving(const Options& opts) CVC5_EXPORT;
-bool getLanguageHelp(const Options& opts) CVC5_EXPORT;
-bool getParseOnly(const Options& opts) CVC5_EXPORT;
-bool getProduceModels(const Options& opts) CVC5_EXPORT;
-bool getStatistics(const Options& opts) CVC5_EXPORT;
-bool getStatsEveryQuery(const Options& opts) CVC5_EXPORT;
-uint64_t getCumulativeTimeLimit(const Options& opts) CVC5_EXPORT;
-int32_t getVerbosity(const Options& opts) CVC5_EXPORT;
 
-std::istream* getIn(const Options& opts) CVC5_EXPORT;
-std::ostream* getErr(const Options& opts) CVC5_EXPORT;
-std::ostream* getOut(const Options& opts) CVC5_EXPORT;
 const std::string& getBinaryName(const Options& opts) CVC5_EXPORT;
-
-void setInputLanguage(InputLanguage val, Options& opts) CVC5_EXPORT;
-void setOut(std::ostream* val, Options& opts) CVC5_EXPORT;
-void setOutputLanguage(OutputLanguage val, Options& opts) CVC5_EXPORT;
 
 bool wasSetByUserIncrementalSolving(const Options& opts) CVC5_EXPORT;
 
