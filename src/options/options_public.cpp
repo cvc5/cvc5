@@ -100,17 +100,9 @@ void setOutputLanguage(OutputLanguage val, Options& opts)
   opts.base.outputLanguage = val;
 }
 
-bool wasSetByUserEarlyExit(const Options& opts)
-{
-  return opts.driver.earlyExitWasSetByUser;
-}
 bool wasSetByUserIncrementalSolving(const Options& opts)
 {
   return opts.smt.incrementalSolvingWasSetByUser;
-}
-bool wasSetByUserInteractive(const Options& opts)
-{
-  return opts.driver.interactiveWasSetByUser;
 }
 
 }  // namespace cvc5::options

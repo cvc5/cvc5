@@ -56,10 +56,7 @@ void setInputLanguage(InputLanguage val, Options& opts) CVC5_EXPORT;
 void setOut(std::ostream* val, Options& opts) CVC5_EXPORT;
 void setOutputLanguage(OutputLanguage val, Options& opts) CVC5_EXPORT;
 
-bool wasSetByUserEarlyExit(const Options& opts) CVC5_EXPORT;
-bool wasSetByUserForceLogicString(const Options& opts) CVC5_EXPORT;
 bool wasSetByUserIncrementalSolving(const Options& opts) CVC5_EXPORT;
-bool wasSetByUserInteractive(const Options& opts) CVC5_EXPORT;
 
 }  // namespace cvc5::options
 

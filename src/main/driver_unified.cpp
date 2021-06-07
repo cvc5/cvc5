@@ -146,7 +146,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
   const bool inputFromStdin = filenames.empty() || filenames[0] == "-";
 
   // if we're reading from stdin on a TTY, default to interactive mode
-  if (!options::wasSetByUserInteractive(opts))
+  if (!opts.driver.interactiveWasSetByUser)
   {
     opts.driver.interactive = inputFromStdin && isatty(fileno(stdin));
   }
@@ -513,7 +513,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
     pExecutor->flushOutputStreams();
 
 #ifdef CVC5_DEBUG
-    if (opts.driver.earlyExit && options::wasSetByUserEarlyExit(opts))
+    if (opts.driver.earlyExit && opts.driver.earlyExitWasSetByUser)
     {
       _exit(returnValue);
     }
