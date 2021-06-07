@@ -61,10 +61,6 @@ bool getDumpUnsatCores(const Options& opts)
 {
   return opts.smt.dumpUnsatCores || opts.smt.dumpUnsatCoresFull;
 }
-bool getFilesystemAccess(const Options& opts)
-{
-  return opts.parser.filesystemAccess;
-}
 bool getForceNoLimitCpuWhileDump(const Options& opts)
 {
   return opts.smt.forceNoLimitCpuWhileDump;
@@ -74,29 +70,16 @@ bool getIncrementalSolving(const Options& opts)
   return opts.smt.incrementalSolving;
 }
 bool getLanguageHelp(const Options& opts) { return opts.base.languageHelp; }
-bool getMemoryMap(const Options& opts) { return opts.parser.memoryMap; }
 bool getParseOnly(const Options& opts) { return opts.base.parseOnly; }
 bool getProduceModels(const Options& opts) { return opts.smt.produceModels; }
-bool getSemanticChecks(const Options& opts)
-{
-  return opts.parser.semanticChecks;
-}
 bool getStatistics(const Options& opts) { return opts.base.statistics; }
 bool getStatsEveryQuery(const Options& opts)
 {
   return opts.base.statisticsEveryQuery;
 }
-bool getStrictParsing(const Options& opts)
-{
-  return opts.parser.strictParsing;
-}
 uint64_t getCumulativeTimeLimit(const Options& opts)
 {
   return opts.resman.cumulativeMillisecondLimit;
-}
-const std::string& getForceLogicString(const Options& opts)
-{
-  return opts.parser.forceLogicString;
 }
 int32_t getVerbosity(const Options& opts) { return opts.base.verbosity; }
 
@@ -121,10 +104,6 @@ void setOutputLanguage(OutputLanguage val, Options& opts)
 bool wasSetByUserEarlyExit(const Options& opts)
 {
   return opts.driver.earlyExitWasSetByUser;
-}
-bool wasSetByUserForceLogicString(const Options& opts)
-{
-  return opts.parser.forceLogicStringWasSetByUser;
 }
 bool wasSetByUserIncrementalSolving(const Options& opts)
 {
