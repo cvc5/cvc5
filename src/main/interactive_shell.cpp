@@ -44,6 +44,7 @@
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/options_public.h"
+#include "options/parser_options.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -96,9 +97,9 @@ InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
   ParserBuilder parserBuilder(solver, sm, d_options);
   /* Create parser with bogus input. */
   d_parser = parserBuilder.build();
-  if (options::wasSetByUserForceLogicString(d_options))
+  if (d_options.parser.forceLogicStringWasSetByUser)
   {
-    LogicInfo tmp(options::getForceLogicString(d_options));
+    LogicInfo tmp(d_options.parser.forceLogicString);
     d_parser->forceLogic(tmp.getLogicString());
   }
 

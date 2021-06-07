@@ -23,6 +23,7 @@
 #include "cvc/cvc.h"
 #include "options/options.h"
 #include "options/options_public.h"
+#include "options/parser_options.h"
 #include "parser/antlr_input.h"
 #include "parser/input.h"
 #include "parser/parser.h"
@@ -121,13 +122,13 @@ ParserBuilder& ParserBuilder::withOptions(const Options& opts)
 {
   ParserBuilder& retval = *this;
   retval = retval.withInputLanguage(options::getInputLanguage(opts))
-               .withChecks(options::getSemanticChecks(opts))
-               .withStrictMode(options::getStrictParsing(opts))
+               .withChecks(opts.parser.semanticChecks)
+               .withStrictMode(opts.parser.strictParsing)
                .withParseOnly(options::getParseOnly(opts))
-               .withIncludeFile(options::getFilesystemAccess(opts));
-  if (options::wasSetByUserForceLogicString(opts))
+               .withIncludeFile(opts.parser.filesystemAccess);
+  if (opts.parser.forceLogicStringWasSetByUser)
   {
-    LogicInfo tmp(options::getForceLogicString(opts));
+    LogicInfo tmp(opts.parser.forceLogicString);
     retval = retval.withForcedLogic(tmp.getLogicString());
   }
   return retval;

@@ -35,6 +35,7 @@
 #include "main/time_limit.h"
 #include "options/options.h"
 #include "options/options_public.h"
+#include "options/parser_options.h"
 #include "options/main_options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
@@ -290,7 +291,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
       {
         parser->setInput(Input::newFileInput(options::getInputLanguage(opts),
                                              filename,
-                                             options::getMemoryMap(opts)));
+                                             opts.parser.memoryMap));
       }
 
       vector< vector<Command*> > allCommands;
@@ -457,7 +458,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
       {
         parser->setInput(Input::newFileInput(options::getInputLanguage(opts),
                                              filename,
-                                             options::getMemoryMap(opts)));
+                                             opts.parser.memoryMap));
       }
 
       bool interrupted = false;
