@@ -179,7 +179,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Sort s = solver.mkTupleSort(sorts);``                                                                                         |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-|                    | ``(declare-const t (tuple Int Int))``  | ``Sort s_int = solver.getIntegerSort();``                                                                                       |
+|                    | ``(declare-const t (Tuple Int Int))``  | ``Sort s_int = solver.getIntegerSort();``                                                                                       |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Sort s = solver.mkTypleSort({s_int, s_int});``                                                                                |
 |                    |                                        |                                                                                                                                 |
