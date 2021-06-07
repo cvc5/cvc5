@@ -103,10 +103,6 @@ int32_t getVerbosity(const Options& opts) { return opts.base.verbosity; }
 std::istream* getIn(const Options& opts) { return opts.base.in; }
 std::ostream* getErr(const Options& opts) { return opts.base.err; }
 std::ostream* getOut(const Options& opts) { return opts.base.out; }
-const std::string& getBinaryName(const Options& opts)
-{
-  return opts.base.binary_name;
-}
 
 void setInputLanguage(InputLanguage val, Options& opts)
 {

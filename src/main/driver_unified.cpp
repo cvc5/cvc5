@@ -80,7 +80,7 @@ TotalTimer::~TotalTimer()
 
 void printUsage(Options& opts, bool full) {
   stringstream ss;
-  ss << "usage: " << options::getBinaryName(opts) << " [options] [input-file]"
+  ss << "usage: " << progName << " [options] [input-file]"
      << endl
      << endl
      << "Without an input file, or with `-', cvc5 reads from standard input."
