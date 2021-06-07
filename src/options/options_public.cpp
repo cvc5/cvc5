@@ -29,7 +29,6 @@
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
-#include "options/parser_options.h"
 #include "options/printer_modes.h"
 #include "options/printer_options.h"
 #include "options/resource_manager_options.h"
