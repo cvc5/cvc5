@@ -1,5 +1,6 @@
 id     = "BASE"
 name   = "Base"
+public = true
 
 [[option]]
   name       = "binary_name"
