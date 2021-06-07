@@ -34,7 +34,8 @@ SharedSolver::SharedSolver(TheoryEngine& te, ProofNodeManager* pnm)
       d_logicInfo(te.getLogicInfo()),
       d_sharedTerms(&d_te, d_te.getSatContext(), d_te.getUserContext(), pnm),
       d_preRegistrationVisitor(&te, d_te.getSatContext()),
-      d_sharedTermsVisitor(&te, d_sharedTerms, d_te.getSatContext())
+      d_sharedTermsVisitor(&te, d_sharedTerms, d_te.getSatContext()),
+      d_out(te.theoryOf(THEORY_BUILTIN)->getOutputChannel())
 {
 }
 
@@ -104,9 +105,13 @@ EqualityStatus SharedSolver::getEqualityStatus(TNode a, TNode b)
   return EQUALITY_UNKNOWN;
 }
 
-void SharedSolver::sendLemma(TrustNode trn, TheoryId atomsTo)
+bool SharedSolver::propagateLit(TNode predicate, bool value)
 {
-  d_te.lemma(trn, LemmaProperty::NONE, atomsTo);
+  if (value)
+  {
+    return d_out.propagate(predicate);
+  }
+  return d_out.propagate(predicate.notNode());
 }
 
 bool SharedSolver::propagateSharedEquality(theory::TheoryId theory,
@@ -129,6 +134,13 @@ bool SharedSolver::propagateSharedEquality(theory::TheoryId theory,
 }
 
 bool SharedSolver::isShared(TNode t) const { return d_sharedTerms.isShared(t); }
+
+void SharedSolver::sendLemma(TrustNode trn, TheoryId atomsTo)
+{
+  d_te.lemma(trn, LemmaProperty::NONE, atomsTo);
+}
+
+void SharedSolver::sendConflict(TrustNode trn) { d_out.trustedConflict(trn); }
 
 }  // namespace theory
 }  // namespace cvc5
