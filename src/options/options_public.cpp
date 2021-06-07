@@ -42,20 +42,6 @@ InstFormatMode getInstFormatMode(const Options& opts)
   return opts.printer.instFormatMode;
 }
 bool getUfHo(const Options& opts) { return opts.uf.ufHo; }
-bool getDumpInstantiations(const Options& opts)
-{
-  return opts.smt.dumpInstantiations;
-}
-bool getDumpModels(const Options& opts) { return opts.smt.dumpModels; }
-bool getDumpProofs(const Options& opts) { return opts.smt.dumpProofs; }
-bool getDumpUnsatCores(const Options& opts)
-{
-  return opts.smt.dumpUnsatCores || opts.smt.dumpUnsatCoresFull;
-}
-bool getForceNoLimitCpuWhileDump(const Options& opts)
-{
-  return opts.smt.forceNoLimitCpuWhileDump;
-}
 bool getIncrementalSolving(const Options& opts)
 {
   return opts.smt.incrementalSolving;

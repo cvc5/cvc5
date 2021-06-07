@@ -31,11 +31,6 @@ namespace cvc5::options {
 
 InstFormatMode getInstFormatMode(const Options& opts) CVC5_EXPORT;
 bool getUfHo(const Options& opts) CVC5_EXPORT;
-bool getDumpInstantiations(const Options& opts) CVC5_EXPORT;
-bool getDumpModels(const Options& opts) CVC5_EXPORT;
-bool getDumpProofs(const Options& opts) CVC5_EXPORT;
-bool getDumpUnsatCores(const Options& opts) CVC5_EXPORT;
-bool getForceNoLimitCpuWhileDump(const Options& opts) CVC5_EXPORT;
 bool getIncrementalSolving(const Options& opts) CVC5_EXPORT;
 bool getLanguageHelp(const Options& opts) CVC5_EXPORT;
 bool getParseOnly(const Options& opts) CVC5_EXPORT;

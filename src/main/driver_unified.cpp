@@ -90,9 +90,9 @@ void printUsage(Options& opts, bool full) {
      << endl
      << "cvc5 options:" << endl;
   if(full) {
-    Options::printUsage(ss.str(), *(options::getOut(opts)));
+    Options::printUsage(ss.str(), *opts.base.out);
   } else {
-    Options::printShortUsage(ss.str(), *(options::getOut(opts)));
+    Options::printShortUsage(ss.str(), *opts.base.out);
   }
 }
 
@@ -122,7 +122,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
   }
   else if (opts.base.languageHelp)
   {
-    Options::printLanguageHelp(*(options::getOut(opts)));
+    Options::printLanguageHelp(*opts.base.out);
     exit(1);
   }
   else if (opts.driver.version)
