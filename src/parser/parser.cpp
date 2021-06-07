@@ -51,10 +51,10 @@ Parser::Parser(api::Solver* solver,
       d_strictMode(strictMode),
       d_parseOnly(parseOnly),
       d_canIncludeFile(true),
-      d_hol(false),
       d_logicIsForced(false),
       d_forcedLogic(),
-      d_solver(solver)
+      d_solver(solver),
+      d_hol(false)
 {
 }
 

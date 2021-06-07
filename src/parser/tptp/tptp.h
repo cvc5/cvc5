@@ -184,6 +184,8 @@ class Tptp : public Parser {
  private:
   void addArithmeticOperators();
 
+  void setHOL() override;
+
   // In CNF variable are implicitly binded
   // d_freevar collect them
   std::vector<api::Term> d_freeVar;

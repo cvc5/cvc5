@@ -25,6 +25,7 @@
 #include "options/options_public.h"
 #include "parser/parser.h"
 #include "smt/command.h"
+#include "theory/logic_info.h"
 
 // ANTLR defines these, which is really bad!
 #undef true
@@ -70,6 +71,13 @@ Tptp::~Tptp() {
   for( unsigned i=0; i<d_in_created.size(); i++ ){
     d_in_created[i]->free(d_in_created[i]);
   }
+}
+
+void Tptp::setHOL()
+{
+  Assert(!d_hol);
+  d_hol = true;
+  d_solver->setLogic("HO_UF");
 }
 
 void Tptp::addTheory(Theory theory) {
@@ -312,12 +320,10 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     isBuiltinKind = true;
   }
   Assert(kind != api::NULL_EXPR);
-  const Options& opts = d_solver->getOptions();
   // Second phase: apply parse op to the arguments
   if (isBuiltinKind)
   {
-    if (!options::getUfHo(opts)
-        && (kind == api::EQUAL || kind == api::DISTINCT))
+    if (!isHOL() && (kind == api::EQUAL || kind == api::DISTINCT))
     {
       // need --uf-ho if these operators are applied over function args
       for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
@@ -364,7 +370,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       unsigned arity = argt.getFunctionArity();
       if (args.size() - 1 < arity)
       {
-        if (!options::getUfHo(opts))
+        if (!isHOL())
         {
           parseError("Cannot partially apply functions unless --uf-ho is set.");
         }

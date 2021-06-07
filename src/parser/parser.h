@@ -149,9 +149,6 @@ private:
   */
  bool d_canIncludeFile;
 
- /** Whether the logic is higher order. */
- bool d_hol;
-
  /**
   * Whether the logic has been forced with --force-logic.
   */
@@ -194,6 +191,9 @@ private:
 protected:
  /** The API Solver object. */
  api::Solver* d_solver;
+
+ /** Whether the logic is higher order. */
+ Bool d_hol;
 
  /**
   * Create a parser state.
@@ -268,7 +268,7 @@ public:
   bool canIncludeFile() const { return d_canIncludeFile; }
 
   /** Set parser to accept higher-order logic. */
-  void setHOL();
+  virtual void setHOL();
 
   /** Expose the functionality from SMT/SMT2 parsers, while making
       implementation optional by returning false by default. */
