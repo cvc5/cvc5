@@ -233,6 +233,8 @@ enum class PfRule : uint32_t
   // ---------------------------------------------------------------
   // Conclusion: F
   //
+  // Unless stated below, the expected children vector of the rule is empty.
+  //
   // where F is an equality of the form t = t' where t was replaced by t'
   // based on some preprocessing pass, or otherwise F was added as a new
   // assertion by some preprocessing pass.

@@ -1,5 +1,6 @@
 id     = "DRIVER"
 name   = "Driver"
+public = true
 
 [[option]]
   name       = "version"
