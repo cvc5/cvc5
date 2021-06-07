@@ -312,7 +312,8 @@ public:
   virtual api::Term getExpressionForName(const std::string& name);
 
   /**
-   * Returns the expression that name should be interpreted as, based on the current binding.
+   * Returns the expression that name should be interpreted as, based on the
+   * current binding.
    *
    * This is the same as above but where the name has been type cast to t.
    */
@@ -456,7 +457,8 @@ public:
    * levelZero is set if the binding must be done at level 0.
    * If a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   *  else if doOverload is false, the existing expression is shadowed by the
+   * new expression.
    */
   void defineVar(const std::string& name,
                  const api::Term& val,
@@ -658,8 +660,9 @@ public:
   bool isBoolean(const std::string& name);
 
   /** Is fun a function (or function-like thing)?
-  * Currently this means its type is either a function, constructor, tester, or selector.
-  */
+   * Currently this means its type is either a function, constructor, tester, or
+   * selector.
+   */
   bool isFunctionLike(api::Term fun);
 
   /** Is the symbol bound to a predicate? */

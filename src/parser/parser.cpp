@@ -118,8 +118,8 @@ api::Term Parser::getExpressionForNameAndType(const std::string& name,
   if(expr.isNull()) {
     // the variable is overloaded, try with type if the type exists
     if(!t.isNull()) {
-      // if we decide later to support annotations for function types, this will update to
-      // separate t into ( argument types, return type )
+      // if we decide later to support annotations for function types, this will
+      // update to separate t into ( argument types, return type )
       expr = getOverloadedConstantForType(name, t);
       if(expr.isNull()) {
         parseError("Cannot get overloaded constant for type ascription.");
