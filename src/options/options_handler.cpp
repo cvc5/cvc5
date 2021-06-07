@@ -159,7 +159,7 @@ void OptionsHandler::checkBvSatSolver(const std::string& option, const std::stri
           || m == SatSolverMode::KISSAT))
   {
     if (options::bitblastMode() == options::BitblastMode::LAZY
-        && Options::current().wasSetByUser(options::bitblastMode))
+        && d_options->bv.bitblastModeWasSetByUser)
     {
       throwLazyBBUnsupported(m);
     }
@@ -189,7 +189,7 @@ void OptionsHandler::checkBitblastMode(const std::string& option, const std::str
 void OptionsHandler::setBitblastAig(const std::string& option, const std::string& flag, bool arg)
 {
   if(arg) {
-    if(Options::current().wasSetByUser(options::bitblastMode)) {
+    if (d_options->bv.bitblastModeWasSetByUser) {
       if (options::bitblastMode() != options::BitblastMode::EAGER)
       {
         throw OptionException("bitblast-aig must be used with eager bitblaster");
