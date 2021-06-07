@@ -29,9 +29,7 @@
 
 namespace cvc5::options {
 
-InputLanguage getInputLanguage(const Options& opts) CVC5_EXPORT;
 InstFormatMode getInstFormatMode(const Options& opts) CVC5_EXPORT;
-OutputLanguage getOutputLanguage(const Options& opts) CVC5_EXPORT;
 bool getUfHo(const Options& opts) CVC5_EXPORT;
 bool getDumpInstantiations(const Options& opts) CVC5_EXPORT;
 bool getDumpModels(const Options& opts) CVC5_EXPORT;

@@ -37,17 +37,9 @@
 
 namespace cvc5::options {
 
-InputLanguage getInputLanguage(const Options& opts)
-{
-  return opts.base.inputLanguage;
-}
 InstFormatMode getInstFormatMode(const Options& opts)
 {
   return opts.printer.instFormatMode;
-}
-OutputLanguage getOutputLanguage(const Options& opts)
-{
-  return opts.base.outputLanguage;
 }
 bool getUfHo(const Options& opts) { return opts.uf.ufHo; }
 bool getDumpInstantiations(const Options& opts)
