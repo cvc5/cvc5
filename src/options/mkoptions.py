@@ -75,7 +75,7 @@ void assign_{module}_{name}(Options& opts, const std::string& option, const std:
   auto value = {handler};
   {predicates}
   opts.{module}.{name} = value;
-  opts.{module}.{name}__setByUser = true;
+  opts.{module}.{name}WasSetByUser = true;
   Trace("options") << "user assigned option {name} = " << value << std::endl;
 }}'''
 
@@ -83,7 +83,7 @@ TPL_ASSIGN_BOOL = '''
 void assign_{module}_{name}(Options& opts, const std::string& option, bool value) {{
   {predicates}
   opts.{module}.{name} = value;
-  opts.{module}.{name}__setByUser = true;
+  opts.{module}.{name}WasSetByUser = true;
   Trace("options") << "user assigned option {name} = " << value << std::endl;
 }}'''
 
@@ -95,15 +95,15 @@ TPL_CALL_SET_OPTION = 'setOption(std::string("{smtname}"), ("{value}"));'
 TPL_GETOPT_LONG = '{{ "{}", {}_argument, nullptr, {} }},'
 
 TPL_HOLDER_MACRO_ATTR = '''  {type} {name};
-  bool {name}__setByUser = false;'''
+  bool {name}WasSetByUser = false;'''
 
 TPL_HOLDER_MACRO_ATTR_DEF = '''  {type} {name} = {default};
-  bool {name}__setByUser = false;'''
+  bool {name}WasSetByUser = false;'''
 
 TPL_DECL_SET_DEFAULT = 'void setDefault{funcname}(Options& opts, {type} value);'
 TPL_IMPL_SET_DEFAULT = TPL_DECL_SET_DEFAULT[:-1] + '''
 {{
-    if (!opts.{module}.{name}__setByUser) {{
+    if (!opts.{module}.{name}WasSetByUser) {{
         opts.{module}.{name} = value;
     }}
 }}'''
@@ -914,7 +914,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
                 if option.mode and option.type not in default:
                     default = '{}::{}'.format(option.type, default)
                 defaults.append('{}({})'.format(option.name, default))
-                defaults.append('{}__setByUser(false)'.format(option.name))
+                defaults.append('{}WasSetByUser(false)'.format(option.name))
 
     write_file(dst_dir, 'options.h', tpl_options_h.format(
         holder_fwd_decls=get_holder_fwd_decls(modules),
