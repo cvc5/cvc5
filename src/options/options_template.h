@@ -183,7 +183,8 @@ public:
    */
   static std::vector<std::string> parseOptions(Options* options,
                                                int argc,
-                                               char* argv[]);
+                                               char* argv[],
+                                               std::string& binaryName);
 
   /**
    * Get the setting for all options.
