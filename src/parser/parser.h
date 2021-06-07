@@ -149,6 +149,9 @@ private:
   */
  bool d_canIncludeFile;
 
+ /** Whether the logic is higher order. */
+ bool d_hol;
+
  /**
   * Whether the logic has been forced with --force-logic.
   */
@@ -264,11 +267,17 @@ public:
   void disallowIncludeFile() { d_canIncludeFile = false; }
   bool canIncludeFile() const { return d_canIncludeFile; }
 
+  /** Set parser to accept higher-order logic. */
+  void setHOL();
+
   /** Expose the functionality from SMT/SMT2 parsers, while making
       implementation optional by returning false by default. */
   virtual bool logicIsSet() { return false; }
 
   virtual void forceLogic(const std::string& logic);
+
+  /** Whether higher-order logic. */
+  bool isHOL() const;
 
   const std::string& getForcedLogic() const { return d_forcedLogic; }
   bool logicIsForced() const { return d_logicIsForced; }
@@ -305,7 +314,7 @@ public:
   /**
    * Returns the expression that name should be interpreted as, based on the current binding.
    *
-   * This is the same as above but where the name has been type cast to t. 
+   * This is the same as above but where the name has been type cast to t.
    */
   virtual api::Term getExpressionForNameAndType(const std::string& name,
                                                 api::Sort t);
@@ -331,9 +340,9 @@ public:
    * This is a generalization of ExprManager::operatorToKind that also
    * handles variables whose types are "function-like", i.e. where
    * checkFunctionLike(fun) returns true.
-   * 
+   *
    * For examples of the latter, this function returns
-   *   APPLY_UF if fun has function type, 
+   *   APPLY_UF if fun has function type,
    *   APPLY_CONSTRUCTOR if fun has constructor type.
    */
   api::Kind getKindForFunction(api::Term fun);
@@ -379,7 +388,7 @@ public:
 
   /**
    * Checks whether the given expression is function-like, i.e.
-   * it expects arguments. This is checked by looking at the type 
+   * it expects arguments. This is checked by looking at the type
    * of fun. Examples of function types are function, constructor,
    * selector, tester.
    * @param fun the expression to check
@@ -443,7 +452,7 @@ public:
   std::vector<api::Term> bindBoundVars(const std::vector<std::string> names,
                                        const api::Sort& type);
 
-  /** Create a new variable definition (e.g., from a let binding). 
+  /** Create a new variable definition (e.g., from a let binding).
    * levelZero is set if the binding must be done at level 0.
    * If a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
@@ -648,7 +657,7 @@ public:
   /** Is the symbol bound to a boolean variable? */
   bool isBoolean(const std::string& name);
 
-  /** Is fun a function (or function-like thing)? 
+  /** Is fun a function (or function-like thing)?
   * Currently this means its type is either a function, constructor, tester, or selector.
   */
   bool isFunctionLike(api::Term fun);

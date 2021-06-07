@@ -1,4 +1,4 @@
-; COMMAND-LINE: --uf-ho
+; COMMAND-LINE: --hol
 ; EXPECT: unknown
 (set-logic ALL)
 (declare-sort $$unsorted 0)

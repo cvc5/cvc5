@@ -1,9 +1,9 @@
+; COMMAND-LINE: --hol
 (set-logic ALL)
 (set-option :ag-miniscope-quant true)
 (set-option :conjecture-gen true)
 (set-option :int-wf-ind true)
 (set-option :sygus-inference true)
-(set-option :uf-ho true)
 (set-info :status unsat)
 (declare-fun a () Real)
 (declare-fun b () Real)

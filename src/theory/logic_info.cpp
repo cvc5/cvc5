@@ -39,7 +39,7 @@ LogicInfo::LogicInfo()
       d_linear(false),
       d_differenceLogic(false),
       d_cardinalityConstraints(false),
-      d_higherOrder(true),
+      d_higherOrder(false),
       d_locked(false)
 {
   for (TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id)
@@ -309,7 +309,7 @@ std::string LogicInfo::getLogicString() const {
       if(d_theories[THEORY_FP]) {
         ss << "FP";
         ++seen;
-      } 
+      }
       if(d_theories[THEORY_DATATYPES]) {
         ss << "DT";
         ++seen;
@@ -373,7 +373,14 @@ void LogicInfo::setLogicString(std::string logicString)
   enableTheory(THEORY_BUILTIN);
   enableTheory(THEORY_BOOL);
 
+  bool isHOL = false;
+
   const char* p = logicString.c_str();
+  if (!strncmp(p, "HO_", 3))
+  {
+    isHOL = true;
+    p += 3;
+  }
   if(*p == '\0') {
     // propositional logic only; we're done.
   } else if(!strcmp(p, "QF_SAT")) {
@@ -535,6 +542,11 @@ void LogicInfo::setLogicString(std::string logicString)
       err << "junk (\"" << p << "\") at end of logic string: " << logicString;
     }
     IllegalArgument(logicString, err.str().c_str());
+  }
+
+  if (isHOL)
+  {
+    enableHigherOrder();
   }
 
   // ensure a getLogic() returns the same thing as was set

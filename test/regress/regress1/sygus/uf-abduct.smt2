@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-abducts --uf-ho
+; COMMAND-LINE: --produce-abducts --hol
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
 (set-logic UFLIA)

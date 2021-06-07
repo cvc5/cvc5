@@ -1,4 +1,4 @@
-% COMMAND-LINE:  --uf-ho --ho-elim
+% COMMAND-LINE:  --hol --ho-elim
 % EXPECT: % SZS status Theorem for NUM925^1
 
 %------------------------------------------------------------------------------

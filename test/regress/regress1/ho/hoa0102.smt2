@@ -1,4 +1,4 @@
-; COMMAND-LINE: --uf-ho --full-saturate-quant
+; COMMAND-LINE: --hol --full-saturate-quant
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)

@@ -317,7 +317,7 @@ bool Smt2::isTheoryEnabled(theory::TheoryId theory) const
 
 bool Smt2::isHoEnabled() const
 {
-  return getLogic().isHigherOrder() && options::getUfHo(d_solver->getOptions());
+  return d_logic.isHigherOrder();
 }
 
 bool Smt2::logicIsSet() {
@@ -503,6 +503,12 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   }
 
   d_logicSet = true;
+  if (isHOL())
+  {
+    std::stringstream ss;
+    ss << "HO_" << name;
+    name = ss.str();
+  }
   d_logic = name;
 
   // if sygus is enabled, we must enable UF, datatypes, integer arithmetic and
@@ -1012,8 +1018,6 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       }
     }
   }
-  // Second phase: apply the arguments to the parse op
-  const Options& opts = d_solver->getOptions();
   // handle special cases
   if (p.d_kind == api::CONST_ARRAY && !p.d_type.isNull())
   {
@@ -1102,8 +1106,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   }
   else if (isBuiltinOperator)
   {
-    if (!options::getUfHo(opts)
-        && (kind == api::EQUAL || kind == api::DISTINCT))
+    if (!isHoEnabled() && (kind == api::EQUAL || kind == api::DISTINCT))
     {
       // need --uf-ho if these operators are applied over function args
       for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
@@ -1155,7 +1158,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       unsigned arity = argt.getFunctionArity();
       if (args.size() - 1 < arity)
       {
-        if (!options::getUfHo(opts))
+        if (!isHoEnabled())
         {
           parseError("Cannot partially apply functions unless --uf-ho is set.");
         }

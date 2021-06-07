@@ -1,7 +1,6 @@
-; COMMAND-LINE: --uf-ho --sort-inference
+; COMMAND-LINE: --hol --sort-inference
 ; EXPECT: sat
 (set-logic ALL)
-(set-option :uf-ho true)
 (set-option :sort-inference true)
 (set-info :status sat)
 (declare-fun a () Int)

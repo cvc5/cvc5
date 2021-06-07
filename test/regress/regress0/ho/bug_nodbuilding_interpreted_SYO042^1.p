@@ -1,4 +1,4 @@
-% COMMAND-LINE:  --uf-ho
+% COMMAND-LINE:  --hol
 % EXPECT: % SZS status Unsatisfiable for bug_nodbuilding_interpreted_SYO042^1
 
 %------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --uf-ho --finite-model-find
+; COMMAND-LINE: --hol --finite-model-find
 ; EXPECT: unsat
 
 (set-option :incremental false)

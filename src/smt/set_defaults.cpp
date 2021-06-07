@@ -762,7 +762,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // If in arrays, set the UF handler to arrays
-  if (logic.isTheoryEnabled(THEORY_ARRAYS) && !options::ufHo()
+  if (logic.isTheoryEnabled(THEORY_ARRAYS) && !logic.isHigherOrder()
       && !options::finiteModelFind()
       && (!logic.isQuantified()
           || (logic.isQuantified() && !logic.isTheoryEnabled(THEORY_UF))))
@@ -995,8 +995,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       opts.quantifiers.prenexQuant = options::PrenexQuantMode::NONE;
     }
   }
-  if (options::ufHo())
+  if (logic.isHigherOrder())
   {
+    opts.uf.ufHo = true;
     // if higher-order, then current variants of model-based instantiation
     // cannot be used
     if (options::mbqiMode() != options::MbqiMode::NONE)

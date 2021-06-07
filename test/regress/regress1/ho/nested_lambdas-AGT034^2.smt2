@@ -1,4 +1,4 @@
-; COMMAND-LINE: --uf-ho --no-check-unsat-cores --no-produce-models --ho-elim
+; COMMAND-LINE: --hol --no-check-unsat-cores --no-produce-models --ho-elim
 ; EXPECT: unsat
 
 (set-logic ALL)

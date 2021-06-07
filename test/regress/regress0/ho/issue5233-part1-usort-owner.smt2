@@ -1,7 +1,6 @@
-; COMMAND-LINE: --uf-ho
+; COMMAND-LINE: --hol
 ; EXPECT: sat
 (set-logic QF_AUFBVLIA)
-(set-option :uf-ho true)
 (declare-fun a (Int) Int)
 (declare-fun b (Int) Int)
 (assert (distinct a b))

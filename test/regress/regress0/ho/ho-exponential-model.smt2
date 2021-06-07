@@ -1,4 +1,4 @@
-; COMMAND-LINE: --uf-ho
+; COMMAND-LINE: --hol
 ; EXPECT: sat
 (set-logic UFLIA)
 (set-info :status sat)

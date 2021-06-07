@@ -1,7 +1,6 @@
-; COMMAND-LINE: --uf-ho
+; COMMAND-LINE: --hol
 ; EXPECT: sat
 (set-logic QF_AUFBVLIA)
-(set-option :uf-ho true)
 (declare-fun a () Int)
 (declare-fun b () Int)
 (declare-fun c (Int) Int)

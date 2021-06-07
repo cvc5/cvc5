@@ -51,6 +51,7 @@ Parser::Parser(api::Solver* solver,
       d_strictMode(strictMode),
       d_parseOnly(parseOnly),
       d_canIncludeFile(true),
+      d_hol(false),
       d_logicIsForced(false),
       d_forcedLogic(),
       d_solver(solver)
@@ -84,6 +85,14 @@ void Parser::forceLogic(const std::string& logic)
   d_forcedLogic = logic;
 }
 
+void Parser::setHOL()
+{
+  Assert(!d_hol);
+  d_hol = true;
+}
+
+bool Parser::isHOL() const { return d_hol; }
+
 api::Term Parser::getVariable(const std::string& name)
 {
   return getSymbol(name, SYM_VARIABLE);
@@ -109,7 +118,7 @@ api::Term Parser::getExpressionForNameAndType(const std::string& name,
   if(expr.isNull()) {
     // the variable is overloaded, try with type if the type exists
     if(!t.isNull()) {
-      // if we decide later to support annotations for function types, this will update to 
+      // if we decide later to support annotations for function types, this will update to
       // separate t into ( argument types, return type )
       expr = getOverloadedConstantForType(name, t);
       if(expr.isNull()) {
