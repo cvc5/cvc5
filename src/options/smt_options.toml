@@ -320,15 +320,6 @@ name   = "SMT Layer"
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
 
 [[option]]
-  name       = "incrementalSolving"
-  category   = "common"
-  short      = "i"
-  long       = "incremental"
-  type       = "bool"
-  default    = "true"
-  help       = "enable incremental solving"
-
-[[option]]
   name       = "abstractValues"
   category   = "regular"
   long       = "abstract-values"

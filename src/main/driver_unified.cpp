@@ -221,7 +221,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
         throw Exception(
             "--tear-down-incremental doesn't work in interactive mode");
       }
-      if (!options::wasSetByUserIncrementalSolving(opts))
+      if (!opts.base.incrementalSolvingWasSetByUser)
       {
         cmd.reset(new SetOptionCommand("incremental", "true"));
         cmd->setMuted(true);
@@ -261,7 +261,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
     }
     else if (opts.driver.tearDownIncremental > 0)
     {
-      if (!options::getIncrementalSolving(opts)
+      if (!opts.base.incrementalSolving
           && opts.driver.tearDownIncremental > 1)
       {
         // For tear-down-incremental values greater than 1, need incremental
@@ -439,7 +439,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
     }
     else
     {
-      if (!options::wasSetByUserIncrementalSolving(opts))
+      if (!opts.base.incrementalSolvingWasSetByUser)
       {
         cmd.reset(new SetOptionCommand("incremental", "false"));
         cmd->setMuted(true);

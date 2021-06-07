@@ -41,18 +41,9 @@ InstFormatMode getInstFormatMode(const Options& opts)
   return opts.printer.instFormatMode;
 }
 bool getUfHo(const Options& opts) { return opts.uf.ufHo; }
-bool getIncrementalSolving(const Options& opts)
-{
-  return opts.smt.incrementalSolving;
-}
 const std::string& getBinaryName(const Options& opts)
 {
   return opts.base.binary_name;
-}
-
-bool wasSetByUserIncrementalSolving(const Options& opts)
-{
-  return opts.smt.incrementalSolvingWasSetByUser;
 }
 
 }  // namespace cvc5::options

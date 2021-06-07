@@ -82,6 +82,15 @@ public = true
   help       = "decrease verbosity (may be repeated)"
 
 [[option]]
+  name       = "incrementalSolving"
+  category   = "common"
+  short      = "i"
+  long       = "incremental"
+  type       = "bool"
+  default    = "true"
+  help       = "enable incremental solving"
+
+[[option]]
   name       = "statistics"
   long       = "stats"
   category   = "common"

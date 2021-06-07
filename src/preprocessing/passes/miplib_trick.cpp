@@ -22,7 +22,7 @@
 #include "expr/node_self_iterator.h"
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
-#include "options/smt_options.h"
+#include "options/base_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_statistics_registry.h"
