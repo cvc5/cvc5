@@ -221,7 +221,7 @@ def get_handler(option):
     elif option.mode:
         return 'stringTo{}(optionarg)'.format(option.type)
     elif option.type != 'bool':
-        return 'handleOption<{}>(option, optionarg)'.format(option.type)
+        return 'handleOption<{}>("{}", option, optionarg)'.format(option.type, optname)
     return None
 
 
