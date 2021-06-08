@@ -30,7 +30,7 @@ bool OMTOptimizer::nodeSupportsOptimization(TNode node)
 }
 
 std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(
-    OptimizationObjective& objective)
+    const OptimizationObjective& objective)
 {
   // the datatype of the target node
   TypeNode objectiveType = objective.getTarget().getType(true);
@@ -53,7 +53,7 @@ std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(
 }
 
 Node OMTOptimizer::mkStrongIncrementalExpression(
-    NodeManager* nm, TNode lhs, TNode rhs, OptimizationObjective& objective)
+    NodeManager* nm, TNode lhs, TNode rhs, const OptimizationObjective& objective)
 {
   constexpr const char lhsTypeError[] =
       "lhs type does not match or is not implicitly convertable to the target "
@@ -117,7 +117,7 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
 Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
                                                TNode lhs,
                                                TNode rhs,
-                                               OptimizationObjective& objective)
+                                               const OptimizationObjective& objective)
 {
   constexpr const char lhsTypeError[] =
       "lhs type does not match or is not implicitly convertable to the target "

@@ -18,6 +18,8 @@
 #ifndef CVC5__SMT__OPTIMIZATION_SOLVER_H
 #define CVC5__SMT__OPTIMIZATION_SOLVER_H
 
+#include "context/cdhashmap_forward.h"
+#include "context/cdlist.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "util/result.h"
@@ -74,14 +76,14 @@ class OptimizationResult
    * @return an enum showing whether the result is optimal, unbounded,
    *   unsat or unknown.
    **/
-  ResultType getType() { return d_type; }
+  ResultType getType() const { return d_type; }
   /**
    * Returns the optimal value.
    * @return Node containing the optimal value,
    *   if getType() is not OPTIMAL, it might return an empty node or a node
    *   containing non-optimal value
    **/
-  Node getValue() { return d_value; }
+  Node getValue() const { return d_value; }
 
  private:
   /** the indicating whether the result is optimal or something else **/
@@ -124,13 +126,13 @@ class OptimizationObjective
   ~OptimizationObjective() = default;
 
   /** A getter for d_type **/
-  ObjectiveType getType() { return d_type; }
+  ObjectiveType getType() const { return d_type; }
 
   /** A getter for d_target **/
-  Node getTarget() { return d_target; }
+  Node getTarget() const { return d_target; }
 
   /** A getter for d_bvSigned **/
-  bool bvIsSigned() { return d_bvSigned; }
+  bool bvIsSigned() const { return d_bvSigned; }
 
  private:
   /**
@@ -173,7 +175,7 @@ class OptimizationSolver
    *
    * Lexicographic: optimize the objectives one-by-one, in the order they are
    * added:
-   *   v_x = max(x) s.t. phi(x, y) = sat 
+   *   v_x = max(x) s.t. phi(x, y) = sat
    *   v_y = max(y) s.t. phi(v_x, y) = sat
    *
    * Pareto: optimize multiple goals to a state such that
@@ -213,11 +215,6 @@ class OptimizationSolver
   void addObjective(TNode target,
                     OptimizationObjective::ObjectiveType type,
                     bool bvSigned = false);
-
-  /**
-   * Clear all the added optimization objectives
-   **/
-  void resetObjectives();
 
   /**
    * Returns the values of the optimized objective after checkOpt is called
@@ -293,7 +290,7 @@ class OptimizationSolver
   std::unique_ptr<SmtEngine> d_optChecker;
 
   /** The objectives to optimize for **/
-  std::vector<OptimizationObjective> d_objectives;
+  context::CDList<OptimizationObjective> d_objectives;
 
   /** The results of the optimizations from the last checkOpt call **/
   std::vector<OptimizationResult> d_results;
