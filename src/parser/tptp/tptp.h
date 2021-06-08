@@ -212,7 +212,7 @@ class Tptp : public Parser {
 
   bool d_cnf; // in a cnf formula
   bool d_fof; // in an fof formula
-  bool d_hol; // in a thf formula
+  bool d_hol;  // in a thf formula
 };/* class Tptp */
 
 

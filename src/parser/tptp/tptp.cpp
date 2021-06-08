@@ -327,8 +327,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       {
         if ((*i).getSort().isFunction())
         {
-          parseError(
-              "Cannot apply equalty to functions unless THF.");
+          parseError("Cannot apply equalty to functions unless THF.");
         }
       }
     }
