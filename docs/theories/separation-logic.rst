@@ -7,10 +7,10 @@ language.
 Signature
 ---------
 
-Given a (decidable) base theory ``T``, cvc5 has a
+Given a (decidable) base theory :math:`T`, cvc5 has a
 `decision procedure <https://cvc4.github.io/publications/2016/RIS+16.pdf>`__
 for quantifier-free :math:`SL(T)_{Loc,Data}` formulas, where ``Loc`` and
-``Data`` are any sort belonging to ``T``.
+``Data`` are any sort belonging to :math:`T`.
 
 A :math:`SL(T)_{Loc,Data}` formula is one from the following grammar:
 
@@ -19,8 +19,8 @@ A :math:`SL(T)_{Loc,Data}` formula is one from the following grammar:
   F : L | (emp t u) | (pto t u) | (sep F1 ... Fn) | (wand F1 F2) | ~F1 | F1 op ... op Fn
 
 where ``op`` is any classical Boolean connective, ``t`` and ``u`` are terms
-built from symbols in the signature of ``T`` of sort ``Loc`` and ``Data``
-respectively, and ``L`` is a ``T``-literal.
+built from symbols in the signature of :math:`T` of sort ``Loc`` and ``Data``
+respectively, and ``L`` is a :math:`T`-literal.
 
 The operator ``emp`` denotes the empty heap constraint, the operator ``pto``
 denotes the points-to predicate, the operator ``sep`` denotes separation start
@@ -69,7 +69,7 @@ Separation logic in cvc5 requires the ``QF_ALL`` logic.
 The syntax for the operators of separation logic is summarized in the following
 table.
 For the C++ API examples in this table, we assume that we have created
-a `cvc5::api::Solver solver` object.
+a :cpp:class:`cvc5::api::Solver` object.
 
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
 |                      | SMTLIB language                              | C++ API                                                            |
@@ -151,4 +151,3 @@ denotes a user-defined inductive `datatypes <datatypes>`__.
 
   since the sorts of the first arguments of the points-to predicates do not
   agree.
-
