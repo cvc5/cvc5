@@ -64,7 +64,7 @@ All classical Boolean connectives are interpreted as expected.
 Syntax
 ------
 
-Separation logic in cvc5 requires the ``QF_ALL_SUPPORTED`` logic.
+Separation logic in cvc5 requires the ``QF_ALL`` logic.
 
 The syntax for the operators of separation logic is summarized in the following
 table.
@@ -97,7 +97,7 @@ The following input on heaps ``Int -> Int`` is unsatisfiable:
 
 .. code:: smtlib
 
-  (set-logic QF_ALL_SUPPORTED)
+  (set-logic QF_ALL)
   (set-info :status unsat)
   (declare-const x Int)
   (declare-const a Int)
@@ -113,7 +113,7 @@ formula ``(not (emp x 0))`` is satisfied by heaps ``U -> Int`` (the sorts of
 
 .. code:: smtlib
 
-  (set-logic QF_ALL_SUPPORTED)
+  (set-logic QF_ALL)
   (set-info :status sat)
   (declare-sort U 0)
   (declare-const x U)
@@ -126,7 +126,7 @@ denotes a user-defined inductive `datatypes <datatypes>`__.
 
 .. code:: smtlib
 
-  (set-logic QF_ALL_SUPPORTED)
+  (set-logic QF_ALL)
   (set-info :status sat)
   (declare-const x Int)
   (declare-const y Int)
@@ -143,7 +143,7 @@ denotes a user-defined inductive `datatypes <datatypes>`__.
 
   .. code:: smtlib
 
-    (set-logic QF_ALL_SUPPORTED)
+    (set-logic QF_ALL)
     (declare-sort U 0)
     (declare-const x U)
     (assert (and (pto x 0) (pto 1 2)))
