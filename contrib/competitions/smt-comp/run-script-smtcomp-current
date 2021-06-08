@@ -56,7 +56,8 @@ QF_LIA)
   finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites --ite-simp --simp-ite-compress
   ;;
 QF_NIA)
-  trywith 480 --nl-ext-tplanes --decision=internal
+  trywith 420 --nl-ext-tplanes --decision=justification
+  trywith 60 --nl-ext-tplanes --decision=internal
   trywith 60 --nl-ext-tplanes --decision=justification
   trywith 60 --no-nl-ext-tplanes --decision=internal
   trywith 60 --no-arith-brab --nl-ext-tplanes --decision=internal
@@ -140,13 +141,10 @@ QF_ABV)
   finishwith --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
   ;;
 QF_UFBV)
-  # Benchmarks with uninterpreted sorts cannot be solved with eager
-  # bit-blasting currently
-  trywith 1200 --bitblast=eager --bv-sat-solver=cadical
-  finishwith
+  finishwith --bitblast=eager
   ;;
 QF_BV)
-  finishwith --bv-div-zero-const --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
+  finishwith --bitblast=eager
   ;;
 QF_AUFLIA)
   finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=justification
@@ -162,8 +160,8 @@ QF_ALIA)
   finishwith --decision=justification-stoponly --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 QF_S|QF_SLIA)
-  trywith 300 --strings-exp --rewrite-divk --strings-fmf --no-jh-rlv-order
-  finishwith --strings-exp --rewrite-divk --no-jh-rlv-order
+  trywith 300 --strings-exp --strings-fmf --no-jh-rlv-order
+  finishwith --strings-exp --no-jh-rlv-order
   ;;
 QF_ABVFP|QF_ABVFPLRA)
   finishwith --fp-exp
