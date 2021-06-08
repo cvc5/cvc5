@@ -54,7 +54,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::proofReq() && !options::produceProofs())
   {
     AlwaysAssert(false) << "Fail due to --proof-req "
-                        << opts.wasSetByUser(options::produceProofs);
+                        << opts.smt.produceProofsWasSetByUser;
   }
   // implied options
   if (options::debugCheckModels())
