@@ -240,5 +240,70 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
   ASSERT_EQ(possibleResults.size(), 0);
 }
 
+TEST_F(TestTheoryWhiteOptMultigoal, pushpop)
+{
+  d_smtEngine->resetAssertions();
+  Node x = d_nodeManager->mkVar(*d_BV32Type);
+  Node y = d_nodeManager->mkVar(*d_BV32Type);
+  Node z = d_nodeManager->mkVar(*d_BV32Type);
+
+  // 18 <= x
+  d_smtEngine->assertFormula(d_nodeManager->mkNode(
+      kind::BITVECTOR_ULE, d_nodeManager->mkConst(BitVector(32u, 18u)), x));
+
+  // y <= x
+  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, y, x));
+
+  // Box optimization
+  OptimizationSolver optSolver(d_smtEngine.get());
+
+  optSolver.setObjectiveCombination(OptimizationSolver::BOX);
+
+  // minimize x
+  optSolver.addObjective(x, OptimizationObjective::MINIMIZE, false);
+
+  // push
+  d_smtEngine->push();
+
+  // maximize y with `signed` comparison over bit-vectors.
+  optSolver.addObjective(y, OptimizationObjective::MAXIMIZE, true);
+  // maximize z
+  optSolver.addObjective(z, OptimizationObjective::MAXIMIZE, false);
+
+  OptimizationResult::ResultType r = optSolver.checkOpt();
+
+  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+
+  std::vector<OptimizationResult> results = optSolver.getValues();
+
+  // x == 18
+  ASSERT_EQ(results[0].getValue().getConst<BitVector>(), BitVector(32u, 18u));
+
+  // y == 0x7FFFFFFF
+  ASSERT_EQ(results[1].getValue().getConst<BitVector>(),
+            BitVector(32u, (unsigned)0x7FFFFFFF));
+
+  // z == 0xFFFFFFFF
+  ASSERT_EQ(results[2].getValue().getConst<BitVector>(),
+            BitVector(32u, (unsigned)0xFFFFFFFF));
+
+  // pop
+  d_smtEngine->pop();
+
+  // now we only have one objective: (minimize x)
+  r = optSolver.checkOpt();
+  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  results = optSolver.getValues();
+  ASSERT_EQ(results.size(), 1);
+  ASSERT_EQ(results[0].getValue().getConst<BitVector>(), BitVector(32u, 18u));
+
+  // resetting the assertions also resets the optimization objectives
+  d_smtEngine->resetAssertions();
+  r = optSolver.checkOpt();
+  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  results = optSolver.getValues();
+  ASSERT_EQ(results.size(), 0);
+}
+
 }  // namespace test
 }  // namespace cvc5
