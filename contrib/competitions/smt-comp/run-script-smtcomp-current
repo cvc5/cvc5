@@ -58,15 +58,15 @@ QF_LIA)
 QF_NIA)
   trywith 420 --nl-ext-tplanes --decision=justification
   trywith 60 --nl-ext-tplanes --decision=internal
-  trywith 60 --nl-ext-tplanes --decision=justification
+  trywith 60 --nl-ext-tplanes --decision=justification-old
   trywith 60 --no-nl-ext-tplanes --decision=internal
   trywith 60 --no-arith-brab --nl-ext-tplanes --decision=internal
   # this totals up to more than 20 minutes, although notice that smaller bit-widths may quickly fail
-  trywith 300 --solve-int-as-bv=2 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
-  trywith 300 --solve-int-as-bv=4 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
-  trywith 300 --solve-int-as-bv=8 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
-  trywith 300 --solve-int-as-bv=16 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
-  trywith 600 --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
+  trywith 300 --solve-int-as-bv=2 --bitblast=eager
+  trywith 300 --solve-int-as-bv=4 --bitblast=eager
+  trywith 300 --solve-int-as-bv=8 --bitblast=eager
+  trywith 300 --solve-int-as-bv=16 --bitblast=eager
+  trywith 600 --solve-int-as-bv=32 --bitblast=eager
   finishwith --nl-ext-tplanes --decision=internal
   ;;
 QF_NRA)
