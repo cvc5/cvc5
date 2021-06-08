@@ -2126,6 +2126,7 @@ set(regress_1_tests
   regress1/strings/issue6337-replace-re.smt2
   regress1/strings/issue6567-empty-re-range.smt2
   regress1/strings/issue6604-2.smt2
+  regress1/strings/issue6635-rre.smt2
   regress1/strings/issue6653-2-update-c-len.smt2
   regress1/strings/issue6653-4-rre.smt2
   regress1/strings/issue6653-rre.smt2
