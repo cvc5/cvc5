@@ -193,7 +193,7 @@ protected:
  api::Solver* d_solver;
 
  /** Whether the logic is higher order. */
- Bool d_hol;
+ bool d_hol;
 
  /**
   * Create a parser state.

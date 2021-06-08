@@ -325,14 +325,14 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   {
     if (!isHOL() && (kind == api::EQUAL || kind == api::DISTINCT))
     {
-      // need --uf-ho if these operators are applied over function args
+      // need hol if these operators are applied over function args
       for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
            ++i)
       {
         if ((*i).getSort().isFunction())
         {
           parseError(
-              "Cannot apply equalty to functions unless --uf-ho is set.");
+              "Cannot apply equalty to functions unless --hol is set.");
         }
       }
     }
@@ -372,7 +372,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       {
         if (!isHOL())
         {
-          parseError("Cannot partially apply functions unless --uf-ho is set.");
+          parseError("Cannot partially apply functions unless --hol is set.");
         }
         Debug("parser") << "Partial application of " << args[0];
         Debug("parser") << " : #argTypes = " << arity;

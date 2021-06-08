@@ -775,7 +775,8 @@ void Smt2::checkLogicAllowsFunctions()
     parseError(
         "Functions (of non-zero arity) cannot "
         "be declared in logic "
-        + d_logic.getLogicString() + " unless option --uf-ho is used");
+        + d_logic.getLogicString()
+        + " unless option HO_ logic prefix or parsing option --hol is used");
   }
 }
 
@@ -1105,14 +1106,15 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   {
     if (!isHoEnabled() && (kind == api::EQUAL || kind == api::DISTINCT))
     {
-      // need --uf-ho if these operators are applied over function args
+      // need --hol if these operators are applied over function args
       for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
            ++i)
       {
         if ((*i).getSort().isFunction())
         {
           parseError(
-              "Cannot apply equalty to functions unless --uf-ho is set.");
+              "Cannot apply equalty to functions unless HO_ logic prexif or "
+              "parsing option --hol is set.");
         }
       }
     }
@@ -1157,7 +1159,9 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       {
         if (!isHoEnabled())
         {
-          parseError("Cannot partially apply functions unless --uf-ho is set.");
+          parseError(
+              "Cannot partially apply functions unless HO_ logic preifx or "
+              "parsing option --hol is set.");
         }
         Debug("parser") << "Partial application of " << args[0];
         Debug("parser") << " : #argTypes = " << arity;
