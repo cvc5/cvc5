@@ -1098,11 +1098,11 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
   CheckArgument(indexType.isFirstClass(),
                 indexType,
                 "cannot index arrays by types that are not first-class. Try "
-                "parsing option --hol.");
+                "option --uf-ho.");
   CheckArgument(constituentType.isFirstClass(),
                 constituentType,
                 "cannot store types that are not first-class in arrays. Try "
-                "parsing option --hol.");
+                "option --uf-ho.");
   Debug("arrays") << "making array type " << indexType << " "
                   << constituentType << std::endl;
   return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
@@ -1114,7 +1114,7 @@ inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
   CheckArgument(elementType.isFirstClass(),
                 elementType,
                 "cannot store types that are not first-class in sets. Try "
-                "parsing option --hol.");
+                "option --uf-ho.");
   Debug("sets") << "making sets type " << elementType << std::endl;
   return mkTypeNode(kind::SET_TYPE, elementType);
 }
