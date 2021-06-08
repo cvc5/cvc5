@@ -252,8 +252,11 @@ void OptionsHandler::setStats(const std::string& option, bool value)
     throw OptionException(ss.str());
   }
 #endif /* CVC5_STATISTICS_ON */
-  Assert(option.substr(0, 2) == "--");
-  std::string opt = option.substr(2);
+  std::string opt = option;
+  if (option.substr(0, 2) == "--")
+  {
+    opt = opt.substr(2);
+  }
   if (value)
   {
     if (opt == options::base::statisticsAll__name)
