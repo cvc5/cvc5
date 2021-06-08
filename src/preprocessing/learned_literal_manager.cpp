@@ -33,7 +33,7 @@ void LearnedLiteralManager::notifyLearnedLiteral(Node lit)
   Trace("pp-llm") << "LLM:notifyLearnedLiteral: " << lit << std::endl;
 }
 
-std::vector<Node> LearnedLiteralManager::getLearnedLiterals()
+std::vector<Node> LearnedLiteralManager::getLearnedLiterals() const
 {
   std::vector<Node> currLearnedLits;
   for (const auto& lit: d_learnedLits)

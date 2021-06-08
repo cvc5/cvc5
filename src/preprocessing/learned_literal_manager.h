@@ -54,7 +54,7 @@ class LearnedLiteralManager
    * provided to this class. These literals are refreshed so that the current
    * top-level substitutions are applied to them, and then are rewritten.
    */
-  std::vector<Node> getLearnedLiterals();
+  std::vector<Node> getLearnedLiterals() const;
 
  private:
   /** Learned literal map */
