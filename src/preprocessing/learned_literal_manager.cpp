@@ -36,16 +36,13 @@ void LearnedLiteralManager::notifyLearnedLiteral(Node lit)
 std::vector<Node> LearnedLiteralManager::getLearnedLiterals()
 {
   std::vector<Node> currLearnedLits;
-  for (NodeSet::const_iterator it = d_learnedLits.begin(),
-                               itEnd = d_learnedLits.end();
-       it != itEnd;
-       ++it)
+  for (const auto& lit: d_learnedLits)
   {
     // update based on substitutions
-    Node tlsNode = d_topLevelSubs.get().apply(*it);
+    Node tlsNode = d_topLevelSubs.get().apply(lit);
     tlsNode = theory::Rewriter::rewrite(tlsNode);
     currLearnedLits.push_back(tlsNode);
-    Trace("pp-llm") << "Learned literal : " << tlsNode << " from " << (*it)
+    Trace("pp-llm") << "Learned literal : " << tlsNode << " from " << lit
                     << std::endl;
   }
   return currLearnedLits;
