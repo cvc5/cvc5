@@ -43,6 +43,7 @@ Env::Env(NodeManager* nm, Options* opts)
       d_logic(),
       d_statisticsRegistry(std::make_unique<StatisticsRegistry>()),
       d_options(),
+      d_originalOptions(opts),
       d_resourceManager()
 {
   if (opts != nullptr)
@@ -96,6 +97,8 @@ StatisticsRegistry& Env::getStatisticsRegistry()
 }
 
 const Options& Env::getOptions() const { return d_options; }
+
+const Options& Env::getOriginalOptions() const { return *d_originalOptions; }
 
 ResourceManager* Env::getResourceManager() const
 {
