@@ -39,6 +39,9 @@ OptimizationSolver::OptimizationSolver(SmtEngine* parent)
 
 OptimizationResult::ResultType OptimizationSolver::checkOpt()
 {
+  // if the results of the previous call have different size than the
+  // objectives, then we should clear the pareto optimization context
+  if (d_results.size() != d_objectives.size()) d_optChecker.reset();
   // initialize the result vector
   d_results.clear();
   for (size_t i = 0, numObj = d_objectives.size(); i < numObj; ++i)
