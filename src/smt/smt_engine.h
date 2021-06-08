@@ -529,6 +529,11 @@ class CVC5_EXPORT SmtEngine
    */
   std::vector<Node> getValues(const std::vector<Node>& exprs);
 
+  /**
+   * Get the domain of an (uninterpreted) sort
+   */
+  std::vector<Node> getDomainElements(const TypeNode& sort);
+
   /** print instantiations
    *
    * Print all instantiations for all quantified formulas on out,

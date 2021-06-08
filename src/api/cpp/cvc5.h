@@ -3740,6 +3740,13 @@ class CVC5_EXPORT Solver
   std::vector<Term> getValue(const std::vector<Term>& terms) const;
 
   /**
+   * Get the domain of the given uninterpreted sort.
+   * @param sort the sort for with the domain is queried
+   * @return the set of ground terms of the given sort
+   */
+  std::vector<Term> getDomainElements(const Sort& sort) const;
+
+  /**
    * Do quantifier elimination.
    * SMT-LIB:
    * \verbatim

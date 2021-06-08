@@ -1227,6 +1227,14 @@ cdef class Solver:
         term.cterm = self.csolver.getValue(t.cterm)
         return term
 
+    def getDomainElements(self, Sort s):
+        elements = []
+        for n in self.csolver.getDomainElements(s.csort):
+            term = Term(self)
+            term.cterm = n
+            elements.append(term)
+        return elements
+
     def getSeparationHeap(self):
         cdef Term term = Term(self)
         term.cterm = self.csolver.getSeparationHeap()

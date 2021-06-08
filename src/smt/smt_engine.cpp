@@ -1186,6 +1186,15 @@ std::vector<Node> SmtEngine::getValues(const std::vector<Node>& exprs)
   return result;
 }
 
+std::vector<Node> SmtEngine::getDomainElements(const TypeNode& sort)
+{
+  SmtScope smts(this);
+
+  const Model* m = getModel();
+  const theory::TheoryModel* tm = m->getTheoryModel();
+  return tm->getDomainElements(sort);
+}
+
 // TODO(#1108): Simplify the error reporting of this method.
 Model* SmtEngine::getModel() {
   Trace("smt") << "SMT getModel()" << endl;

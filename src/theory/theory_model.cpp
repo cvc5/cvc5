@@ -129,7 +129,7 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
   {
     // This is called when t is a sort that does not occur in this model.
     // Sorts are always interpreted as non-empty, thus we add a single element.
-    elements.push_back(tn.mkGroundTerm());
+    elements.push_back(tn.mkGroundValue());
     return elements;
   }
   return *type_refs;
