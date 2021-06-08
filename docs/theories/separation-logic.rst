@@ -9,8 +9,8 @@ Signature
 
 Given a (decidable) base theory :math:`T`, cvc5 has a
 `decision procedure <https://cvc4.github.io/publications/2016/RIS+16.pdf>`__
-for quantifier-free :math:`SL(T)_{Loc,Data}` formulas, where ``Loc`` and
-``Data`` are any sort belonging to :math:`T`.
+for quantifier-free :math:`SL(T)_{Loc,Data}` formulas, where :math:`Loc` and
+:math:`Data` are any sort belonging to :math:`T`.
 
 A :math:`SL(T)_{Loc,Data}` formula is one from the following grammar:
 
@@ -19,8 +19,8 @@ A :math:`SL(T)_{Loc,Data}` formula is one from the following grammar:
   F : L | (emp t u) | (pto t u) | (sep F1 ... Fn) | (wand F1 F2) | ~F1 | F1 op ... op Fn
 
 where ``op`` is any classical Boolean connective, ``t`` and ``u`` are terms
-built from symbols in the signature of :math:`T` of sort ``Loc`` and ``Data``
-respectively, and ``L`` is a :math:`T`-literal.
+built from symbols in the signature of :math:`T` of sort :math:`Loc` and
+:math:`Data` respectively, and :math:`L` is a :math:`T`-literal.
 
 The operator ``emp`` denotes the empty heap constraint, the operator ``pto``
 denotes the points-to predicate, the operator ``sep`` denotes separation start
@@ -31,12 +31,12 @@ Semantics
 
 A satisfiability relation :math:`I,h \models_{SL} \varphi` is defined for
 :math:`SL(T)_{Loc,Data}` formulas :math:`\varphi`,
-where ``I`` is an interpretation, and ``h`` is a heap.
+where :math:`I` is an interpretation, and :math:`h` is a heap.
 
 The semantics of separation logic operators are as follows:
 
 +-------------------------------------------------------------+------+-------------------------------------------------------------------------------------+
-| :math:`I,h \models_{SL} L`                                  | Iff  | :math:`I \models L`, if ``L`` is a ``T``-literal                                    |
+| :math:`I,h \models_{SL} L`                                  | Iff  | :math:`I \models L`, if :math:`L` is a :math:`T`-literal                            |
 +-------------------------------------------------------------+------+-------------------------------------------------------------------------------------+
 | :math:`I,h \models_{SL}` (emp :math:`t \ u`)                | Iff  | :math:`h = \emptyset`                                                               |
 +-------------------------------------------------------------+------+-------------------------------------------------------------------------------------+
@@ -54,7 +54,7 @@ The semantics of separation logic operators are as follows:
 where :math:`h_1 \uplus \ldots \uplus h_n` denotes the disjoint union of heaps
 :math:`h_1, \ldots, h_n` and :math:`h'\#h` denotes that heaps :math:`h'` and
 :math:`h` are disjoint, and :math:`nil` is a distinguished variable of sort
-``Loc``.
+:math:`Loc`.
 All classical Boolean connectives are interpreted as expected.
 
 .. note::
@@ -137,8 +137,9 @@ denotes a user-defined inductive `datatypes <datatypes>`__.
 
 .. note::
 
-  Given a separation logic input, the sorts ``Loc`` and ``Data`` are inferred
-  by cvc5, and must be consistent across all predicates occurring in an input.
+  Given a separation logic input, the sorts :math:`Loc` and :math:`Data` are
+  inferred by cvc5, and must be consistent across all predicates occurring in
+  an input.
   cvc5 does not accept an input such as:
 
   .. code:: smtlib
