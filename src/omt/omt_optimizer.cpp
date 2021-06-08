@@ -53,7 +53,10 @@ std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(
 }
 
 Node OMTOptimizer::mkStrongIncrementalExpression(
-    NodeManager* nm, TNode lhs, TNode rhs, const OptimizationObjective& objective)
+    NodeManager* nm,
+    TNode lhs,
+    TNode rhs,
+    const OptimizationObjective& objective)
 {
   constexpr const char lhsTypeError[] =
       "lhs type does not match or is not implicitly convertable to the target "
@@ -114,10 +117,11 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
   Unreachable();
 }
 
-Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
-                                               TNode lhs,
-                                               TNode rhs,
-                                               const OptimizationObjective& objective)
+Node OMTOptimizer::mkWeakIncrementalExpression(
+    NodeManager* nm,
+    TNode lhs,
+    TNode rhs,
+    const OptimizationObjective& objective)
 {
   constexpr const char lhsTypeError[] =
       "lhs type does not match or is not implicitly convertable to the target "
