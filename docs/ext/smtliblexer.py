@@ -10,7 +10,7 @@ class SmtLibLexer(RegexLexer):
             (r'QF_BV', token.Text),
             (r'QF_UFDT', token.Text),
             (r'QF_UFLIAFS', token.Text),
-            (r'ALL_SUPPORTED', token.Text),
+            (r'ALL', token.Text),
             (r'set-info', token.Keyword),
             (r'set-logic', token.Keyword),
             (r'set-option', token.Keyword),
