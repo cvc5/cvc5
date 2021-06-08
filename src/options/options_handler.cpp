@@ -256,22 +256,22 @@ void OptionsHandler::setStats(const std::string& option, bool value)
   std::string opt = option.substr(2);
   if (value)
   {
-    if (option == options::base::statisticsAll__name)
+    if (opt == options::base::statisticsAll__name)
     {
       d_options->base.statistics = true;
     }
-    else if (option == options::base::statisticsEveryQuery__name)
+    else if (opt == options::base::statisticsEveryQuery__name)
     {
       d_options->base.statistics = true;
     }
-    else if (option == options::base::statisticsExpert__name)
+    else if (opt == options::base::statisticsExpert__name)
     {
       d_options->base.statistics = true;
     }
   }
   else
   {
-    if (option == options::base::statistics__name)
+    if (opt == options::base::statistics__name)
     {
       d_options->base.statisticsAll = false;
       d_options->base.statisticsEveryQuery = false;
