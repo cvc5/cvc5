@@ -172,16 +172,10 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetProofCommand());
     }
 
-    if (options::getDumpInstantiations(d_options)
-        && ((options::getInstFormatMode(d_options)
-                 != options::InstFormatMode::SZS
-             && (res.isSat()
-                 || (res.isSatUnknown()
-                     && res.getUnknownExplanation()
-                            == api::Result::INCOMPLETE)))
-            || isResultUnsat))
+    if (options::getDumpInstantiations(d_options))
     {
-      getterCommands.emplace_back(new GetInstantiationsCommand());
+      // is only conditionally executed based on res
+      getterCommands.emplace_back(new GetInstantiationsCommand(res));
     }
 
     if (options::getDumpUnsatCores(d_options) && isResultUnsat)

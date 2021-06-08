@@ -1075,7 +1075,7 @@ class CVC5_EXPORT GetProofCommand : public Command
 class CVC5_EXPORT GetInstantiationsCommand : public Command
 {
  public:
-  GetInstantiationsCommand();
+  GetInstantiationsCommand(const api::Result& res);
 
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
@@ -1089,6 +1089,7 @@ class CVC5_EXPORT GetInstantiationsCommand : public Command
 
  protected:
   api::Solver* d_solver;
+  api::Result d_result;
 }; /* class GetInstantiationsCommand */
 
 /** The command (get-interpol s B (G)?)

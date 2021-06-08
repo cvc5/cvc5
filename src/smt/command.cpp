@@ -31,6 +31,7 @@
 #include "expr/symbol_manager.h"
 #include "expr/type_node.h"
 #include "options/options.h"
+#include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
@@ -2040,7 +2041,10 @@ void GetProofCommand::toStream(std::ostream& out,
 /* class GetInstantiationsCommand                                             */
 /* -------------------------------------------------------------------------- */
 
-GetInstantiationsCommand::GetInstantiationsCommand() : d_solver(nullptr) {}
+GetInstantiationsCommand::GetInstantiationsCommand(const api::Result& res)
+    : d_solver(nullptr), d_result(res)
+{
+}
 void GetInstantiationsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
@@ -2057,6 +2061,14 @@ void GetInstantiationsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 void GetInstantiationsCommand::printResult(std::ostream& out,
                                            uint32_t verbosity) const
 {
+  bool enabled =
+      (d_solver->getOptions().printer.instFormatMode
+           != options::InstFormatMode::SZS
+       && (d_result.isSat()
+           || (d_result.isSatUnknown()
+               && d_result.getUnknownExplanation() == api::Result::INCOMPLETE)))
+      || d_result.isUnsat() || d_result.isEntailed();
+  if (!enabled) return;
   if (!ok())
   {
     this->Command::printResult(out, verbosity);
@@ -2069,7 +2081,7 @@ void GetInstantiationsCommand::printResult(std::ostream& out,
 
 Command* GetInstantiationsCommand::clone() const
 {
-  GetInstantiationsCommand* c = new GetInstantiationsCommand();
+  GetInstantiationsCommand* c = new GetInstantiationsCommand(d_result);
   // c->d_result = d_result;
   c->d_solver = d_solver;
   return c;
