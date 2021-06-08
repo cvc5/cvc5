@@ -194,7 +194,11 @@ parseCommand returns [cvc5::Command* cmd = NULL]
         cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ false, true);
       }
     ) RPAREN_TOK DOT_TOK
-  | THF_TOK LPAREN_TOK nameN[name] COMMA_TOK
+  | THF_TOK
+    {
+      PARSER_STATE->setHol();
+    }
+    LPAREN_TOK nameN[name] COMMA_TOK
     // Supported THF formulas: either a logic formula or a typing atom (i.e. we
     // ignore subtyping and logic sequents). Also, only TH0
     ( TYPE_TOK COMMA_TOK thfAtomTyping[cmd]

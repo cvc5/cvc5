@@ -1,6 +1,5 @@
-; COMMAND-LINE: --hol
 ; EXPECT: sat
-(set-logic QF_AUFBVLIA)
+(set-logic HO_QF_AUFBVLIA)
 (declare-fun a () Int)
 (declare-fun b () Int)
 (declare-fun c (Int) Int)

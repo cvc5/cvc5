@@ -1,7 +1,7 @@
-; COMMAND-LINE: -q --hol
+; COMMAND-LINE: -q
 ; EXPECT: sat
 ; REQUIRES: symfpu
-(set-logic ALL)
+(set-logic HO_ALL)
 (set-option :assign-function-values false)
 (set-info :status sat)
 (declare-fun b () (_ BitVec 1))

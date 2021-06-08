@@ -38,7 +38,10 @@ Tptp::Tptp(api::Solver* solver,
            SymbolManager* sm,
            bool strictMode,
            bool parseOnly)
-    : Parser(solver, sm, strictMode, parseOnly), d_cnf(false), d_fof(false)
+    : Parser(solver, sm, strictMode, parseOnly),
+      d_cnf(false),
+      d_fof(false),
+      d_hol(false)
 {
   addTheory(Tptp::THEORY_CORE);
 
@@ -71,13 +74,6 @@ Tptp::~Tptp() {
   for( unsigned i=0; i<d_in_created.size(); i++ ){
     d_in_created[i]->free(d_in_created[i]);
   }
-}
-
-void Tptp::setHOL()
-{
-  Assert(!d_hol);
-  d_hol = true;
-  d_solver->setLogic("HO_UF");
 }
 
 void Tptp::addTheory(Theory theory) {
@@ -323,7 +319,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   // Second phase: apply parse op to the arguments
   if (isBuiltinKind)
   {
-    if (!isHOL() && (kind == api::EQUAL || kind == api::DISTINCT))
+    if (!hol() && (kind == api::EQUAL || kind == api::DISTINCT))
     {
       // need hol if these operators are applied over function args
       for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
@@ -332,7 +328,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         if ((*i).getSort().isFunction())
         {
           parseError(
-              "Cannot apply equalty to functions unless --hol is set.");
+              "Cannot apply equalty to functions unless THF.");
         }
       }
     }
@@ -370,9 +366,9 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       unsigned arity = argt.getFunctionArity();
       if (args.size() - 1 < arity)
       {
-        if (!isHOL())
+        if (!hol())
         {
-          parseError("Cannot partially apply functions unless --hol is set.");
+          parseError("Cannot partially apply functions unless THF.");
         }
         Debug("parser") << "Partial application of " << args[0];
         Debug("parser") << " : #argTypes = " << arity;
@@ -442,6 +438,17 @@ api::Term Tptp::mkDecimal(
   }
   ss << ssn.str() << "." << ssd.str();
   return d_solver->mkReal(ss.str());
+}
+
+bool Tptp::hol() const { return d_hol; }
+void Tptp::setHol()
+{
+  if (d_hol)
+  {
+    return;
+  }
+  d_hol = true;
+  d_solver->setLogic("HO_UF");
 }
 
 void Tptp::forceLogic(const std::string& logic)

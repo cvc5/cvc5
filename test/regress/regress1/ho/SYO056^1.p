@@ -1,4 +1,4 @@
-% COMMAND-LINE:  --hol --finite-model-find
+% COMMAND-LINE:  --finite-model-find
 % EXPECT: % SZS status CounterSatisfiable for SYO056^1
 
 %------------------------------------------------------------------------------

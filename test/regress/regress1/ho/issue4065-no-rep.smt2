@@ -1,5 +1,4 @@
-; COMMAND-LINE: --hol
-(set-logic AUFBV)
+(set-logic HO_AUFBV)
 (set-info :status unsat)
 (set-option :fmf-bound-int true)
 (declare-fun _substvar_20_ () Bool)

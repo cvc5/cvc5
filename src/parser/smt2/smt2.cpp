@@ -500,12 +500,6 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   }
 
   d_logicSet = true;
-  if (isHOL())
-  {
-    std::stringstream ss;
-    ss << "HO_" << name;
-    name = ss.str();
-  }
   d_logic = name;
 
   // if sygus is enabled, we must enable UF, datatypes, integer arithmetic and
@@ -775,8 +769,7 @@ void Smt2::checkLogicAllowsFunctions()
     parseError(
         "Functions (of non-zero arity) cannot "
         "be declared in logic "
-        + d_logic.getLogicString()
-        + " unless option HO_ logic prefix or parsing option --hol is used");
+        + d_logic.getLogicString() + " unless logic is prefixed by HO_.");
   }
 }
 
@@ -1106,15 +1099,15 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   {
     if (!isHoEnabled() && (kind == api::EQUAL || kind == api::DISTINCT))
     {
-      // need --hol if these operators are applied over function args
+      // need hol if these operators are applied over function args
       for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
            ++i)
       {
         if ((*i).getSort().isFunction())
         {
           parseError(
-              "Cannot apply equalty to functions unless HO_ logic prexif or "
-              "parsing option --hol is set.");
+              "Cannot apply equalty to functions unless logic is prefixed by "
+              "HO_.");
         }
       }
     }
@@ -1160,8 +1153,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         if (!isHoEnabled())
         {
           parseError(
-              "Cannot partially apply functions unless HO_ logic preifx or "
-              "parsing option --hol is set.");
+              "Cannot partially apply functions unless logic is prefixed by "
+              "HO_.");
         }
         Debug("parser") << "Partial application of " << args[0];
         Debug("parser") << " : #argTypes = " << arity;

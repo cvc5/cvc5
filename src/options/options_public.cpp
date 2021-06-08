@@ -76,7 +76,6 @@ bool getIncrementalSolving(const Options& opts)
 bool getLanguageHelp(const Options& opts) { return opts.base.languageHelp; }
 bool getMemoryMap(const Options& opts) { return opts.parser.memoryMap; }
 bool getParseOnly(const Options& opts) { return opts.base.parseOnly; }
-bool getHOL(const Options& opts) { return opts.parser.hol; }
 bool getProduceModels(const Options& opts) { return opts.smt.produceModels; }
 bool getSemanticChecks(const Options& opts)
 {

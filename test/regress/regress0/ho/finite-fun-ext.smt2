@@ -1,6 +1,5 @@
-; COMMAND-LINE: --hol
 ; EXPECT: unsat
-(set-logic ALL)
+(set-logic HO_ALL)
 
 (declare-datatype Unit ((unit)))
 

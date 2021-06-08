@@ -373,12 +373,10 @@ void LogicInfo::setLogicString(std::string logicString)
   enableTheory(THEORY_BUILTIN);
   enableTheory(THEORY_BOOL);
 
-  bool isHOL = false;
-
   const char* p = logicString.c_str();
   if (!strncmp(p, "HO_", 3))
   {
-    isHOL = true;
+    enableHigherOrder();
     p += 3;
   }
   if(*p == '\0') {
@@ -392,13 +390,29 @@ void LogicInfo::setLogicString(std::string logicString)
     p += 3;
   } else if(!strcmp(p, "QF_ALL")) {
     // the "all theories included" logic, no quantifiers
-    enableEverything();
+    if (d_higherOrder)
+    {
+      enableEverything();
+      enableHigherOrder();
+    }
+    else
+    {
+      enableEverything();
+    }
     disableQuantifiers();
     arithNonLinear();
     p += 6;
   } else if(!strcmp(p, "ALL")) {
     // the "all theories included" logic, with quantifiers
-    enableEverything();
+    if (d_higherOrder)
+    {
+      enableEverything();
+      enableHigherOrder();
+    }
+    else
+    {
+      enableEverything();
+    }
     enableQuantifiers();
     arithNonLinear();
     p += 3;
@@ -406,7 +420,15 @@ void LogicInfo::setLogicString(std::string logicString)
   else if (!strcmp(p, "HORN"))
   {
     // the HORN logic
-    enableEverything();
+    if (d_higherOrder)
+    {
+      enableEverything();
+      enableHigherOrder();
+    }
+    else
+    {
+      enableEverything();
+    }
     enableQuantifiers();
     arithNonLinear();
     p += 4;
@@ -542,11 +564,6 @@ void LogicInfo::setLogicString(std::string logicString)
       err << "junk (\"" << p << "\") at end of logic string: " << logicString;
     }
     IllegalArgument(logicString, err.str().c_str());
-  }
-
-  if (isHOL)
-  {
-    enableHigherOrder();
   }
 
   // ensure a getLogic() returns the same thing as was set

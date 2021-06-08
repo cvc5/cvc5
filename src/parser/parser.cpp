@@ -53,8 +53,7 @@ Parser::Parser(api::Solver* solver,
       d_canIncludeFile(true),
       d_logicIsForced(false),
       d_forcedLogic(),
-      d_solver(solver),
-      d_hol(false)
+      d_solver(solver)
 {
 }
 
@@ -84,14 +83,6 @@ void Parser::forceLogic(const std::string& logic)
   d_logicIsForced = true;
   d_forcedLogic = logic;
 }
-
-void Parser::setHOL()
-{
-  Assert(!d_hol);
-  d_hol = true;
-}
-
-bool Parser::isHOL() const { return d_hol; }
 
 api::Term Parser::getVariable(const std::string& name)
 {

@@ -47,6 +47,9 @@ class Tptp : public Parser {
   bool fof() const { return d_fof; }
   void setFof(bool fof) { d_fof = fof; }
 
+  bool hol() const;
+  void setHol();
+
   void forceLogic(const std::string& logic) override;
 
   void addFreeVar(api::Term var);
@@ -184,8 +187,6 @@ class Tptp : public Parser {
  private:
   void addArithmeticOperators();
 
-  void setHOL() override;
-
   // In CNF variable are implicitly binded
   // d_freevar collect them
   std::vector<api::Term> d_freeVar;
@@ -211,6 +212,7 @@ class Tptp : public Parser {
 
   bool d_cnf; // in a cnf formula
   bool d_fof; // in an fof formula
+  bool d_hol; // in a thf formula
 };/* class Tptp */
 
 

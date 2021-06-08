@@ -1,6 +1,5 @@
-; COMMAND-LINE: --hol
 ; EXPECT: unsat
-(set-logic ALL)
+(set-logic HO_ALL)
 (declare-sort A$ 0)
 (declare-sort Nat$ 0)
 (declare-sort A_poly$ 0)

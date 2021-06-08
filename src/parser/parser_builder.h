@@ -65,9 +65,6 @@ class CVC5_EXPORT ParserBuilder
   /** Are we parsing only? */
   bool d_parseOnly;
 
-  /** Is the logic higher order? */
-  bool d_hol;
-
   /** Is the logic forced by the user? */
   bool d_logicIsForced;
 
@@ -110,9 +107,6 @@ class CVC5_EXPORT ParserBuilder
    * language parser).
    */
   ParserBuilder& withParseOnly(bool flag = true);
-
-  /** Set the parser to use higher-order logic. */
-  ParserBuilder& withHOL(bool flag = true);
 
   /** Derive settings from the given options. */
   ParserBuilder& withOptions(const Options& opts);

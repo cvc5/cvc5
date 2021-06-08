@@ -56,7 +56,6 @@ void ParserBuilder::init(api::Solver* solver, SymbolManager* sm)
   d_strictMode = false;
   d_canIncludeFile = true;
   d_parseOnly = false;
-  d_hol = false;
   d_logicIsForced = false;
   d_forcedLogic = "";
 }
@@ -96,11 +95,6 @@ Parser* ParserBuilder::build()
     parser->disallowIncludeFile();
   }
 
-  if (d_hol)
-  {
-    parser->setHOL();
-  }
-
   if( d_logicIsForced ) {
     parser->forceLogic(d_forcedLogic);
   }
@@ -123,12 +117,6 @@ ParserBuilder& ParserBuilder::withParseOnly(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withHOL(bool flag)
-{
-  d_hol = flag;
-  return *this;
-}
-
 ParserBuilder& ParserBuilder::withOptions(const Options& opts)
 {
   ParserBuilder& retval = *this;
@@ -136,7 +124,6 @@ ParserBuilder& ParserBuilder::withOptions(const Options& opts)
                .withChecks(options::getSemanticChecks(opts))
                .withStrictMode(options::getStrictParsing(opts))
                .withParseOnly(options::getParseOnly(opts))
-               .withHOL(options::getHOL(opts))
                .withIncludeFile(options::getFilesystemAccess(opts));
   if (options::wasSetByUserForceLogicString(opts))
   {
@@ -159,16 +146,7 @@ ParserBuilder& ParserBuilder::withIncludeFile(bool flag) {
 ParserBuilder& ParserBuilder::withForcedLogic(const std::string& logic)
 {
   d_logicIsForced = true;
-  if (d_hol)
-  {
-    std::stringstream ss;
-    ss << "HO_" << logic;
-    d_forcedLogic = ss.str();
-  }
-  else
-  {
-    d_forcedLogic = logic;
-  }
+  d_forcedLogic = logic;
   return *this;
 }
 

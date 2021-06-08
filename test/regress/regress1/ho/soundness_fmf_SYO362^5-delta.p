@@ -1,4 +1,4 @@
-% COMMAND-LINE:  --hol --finite-model-find
+% COMMAND-LINE:   --finite-model-find
 % EXPECT: % SZS status GaveUp for soundness_fmf_SYO362^5-delta
 
 %------------------------------------------------------------------------------

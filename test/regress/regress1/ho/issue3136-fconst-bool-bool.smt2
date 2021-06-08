@@ -1,7 +1,7 @@
-; COMMAND-LINE:  --hol --ho-elim
+; COMMAND-LINE:  --ho-elim
 ; EXPECT: unsat
 
-(set-logic ALL)
+(set-logic HO_ALL)
 (declare-sort $$unsorted 0)
 (declare-sort num 0)
 (declare-fun agent_THFTYPE_i () $$unsorted)

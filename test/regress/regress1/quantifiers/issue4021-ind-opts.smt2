@@ -1,5 +1,5 @@
-; COMMAND-LINE: --hol
-(set-logic ALL)
+; COMMAND-LINE:
+(set-logic HO_ALL)
 (set-option :ag-miniscope-quant true)
 (set-option :conjecture-gen true)
 (set-option :int-wf-ind true)

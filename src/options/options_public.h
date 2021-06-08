@@ -43,7 +43,6 @@ bool getIncrementalSolving(const Options& opts) CVC5_EXPORT;
 bool getLanguageHelp(const Options& opts) CVC5_EXPORT;
 bool getMemoryMap(const Options& opts) CVC5_EXPORT;
 bool getParseOnly(const Options& opts) CVC5_EXPORT;
-bool getHOL(const Options& opts) CVC5_EXPORT;
 bool getProduceModels(const Options& opts) CVC5_EXPORT;
 bool getSemanticChecks(const Options& opts) CVC5_EXPORT;
 bool getStatistics(const Options& opts) CVC5_EXPORT;

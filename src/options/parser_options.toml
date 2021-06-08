@@ -2,14 +2,6 @@ id     = "PARSER"
 name   = "Parser"
 
 [[option]]
-  name       = "hol"
-  category   = "regular"
-  long       = "hol"
-  type       = "bool"
-  default    = "false"
-  help       = "Force higher-order logic."
-
-[[option]]
   name       = "strictParsing"
   category   = "common"
   long       = "strict-parsing"

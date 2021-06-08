@@ -1,6 +1,5 @@
-; COMMAND-LINE: --hol
 ; EXPECT: sat
-(set-logic ALL)
+(set-logic HO_ALL)
 (set-info :status sat)
 (declare-fun f (Int) Int)
 

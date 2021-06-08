@@ -1,4 +1,4 @@
-% COMMAND-LINE:  --hol --full-saturate-quant --ho-elim
+% COMMAND-LINE:  --full-saturate-quant --ho-elim
 % EXPECT: % SZS status Theorem for bug_instfalse_SEU882^5
 
 %------------------------------------------------------------------------------

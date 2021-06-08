@@ -267,17 +267,11 @@ public:
   void disallowIncludeFile() { d_canIncludeFile = false; }
   bool canIncludeFile() const { return d_canIncludeFile; }
 
-  /** Set parser to accept higher-order logic. */
-  virtual void setHOL();
-
   /** Expose the functionality from SMT/SMT2 parsers, while making
       implementation optional by returning false by default. */
   virtual bool logicIsSet() { return false; }
 
   virtual void forceLogic(const std::string& logic);
-
-  /** Whether higher-order logic. */
-  bool isHOL() const;
 
   const std::string& getForcedLogic() const { return d_forcedLogic; }
   bool logicIsForced() const { return d_logicIsForced; }
