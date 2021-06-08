@@ -55,7 +55,6 @@ int32_t getVerbosity(const Options& opts) CVC5_EXPORT;
 std::istream* getIn(const Options& opts) CVC5_EXPORT;
 std::ostream* getErr(const Options& opts) CVC5_EXPORT;
 std::ostream* getOut(const Options& opts) CVC5_EXPORT;
-const std::string& getBinaryName(const Options& opts) CVC5_EXPORT;
 
 void setInputLanguage(InputLanguage val, Options& opts) CVC5_EXPORT;
 void setOut(std::ostream* val, Options& opts) CVC5_EXPORT;
