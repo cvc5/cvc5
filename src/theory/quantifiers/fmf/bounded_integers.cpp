@@ -716,7 +716,22 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
     Trace("bound-int-rsi") << "Look up the value for " << d_set[q][i] << " " << i << std::endl;
     int vo = rsi->getVariableOrder(i);
     Assert(q[0][vo] == d_set[q][i]);
-    Node t = rsi->getCurrentTerm(vo, true);
+    TypeNode tn = d_set[q][i].getType();
+    // If the type of tn is not closed enumerable, we must map the value back
+    // to a term that appears in the same equivalence class as the constant.
+    // Notice that this is to ensure that unhandled values (e.g. uninterpreted
+    // constants, datatype values) do not enter instantiations/lemmas, which
+    // can lead to refutation unsoundness. However, it is important that we
+    // conversely do *not* map terms to values in other cases. In particular,
+    // replacing a constant c with a term t can lead to solution unsoundness
+    // if we are instantiating a quantified formula that corresponds to a
+    // reduction for t, since then the reduction is using circular reasoning:
+    // the current value of t is being used to reason about the range of
+    // its axiomatization. This is limited to reductions in the theory of
+    // strings, which use quantification on integers only. Note this
+    // impacts only quantified formulas with 2+ dimensions and dependencies
+    // between dimensions, e.g. str.indexof_re reduction.
+    Node t = rsi->getCurrentTerm(vo, !tn.isClosedEnumerable());
     Trace("bound-int-rsi") << "term : " << t << std::endl;
     vars.push_back( d_set[q][i] );
     subs.push_back( t );
