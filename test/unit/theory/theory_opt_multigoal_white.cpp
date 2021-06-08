@@ -254,10 +254,10 @@ TEST_F(TestTheoryWhiteOptMultigoal, pushpop)
   // y <= x
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, y, x));
 
-  // Box optimization
+  // Lexico optimization
   OptimizationSolver optSolver(d_smtEngine.get());
 
-  optSolver.setObjectiveCombination(OptimizationSolver::BOX);
+  optSolver.setObjectiveCombination(OptimizationSolver::LEXICOGRAPHIC);
 
   // minimize x
   optSolver.addObjective(x, OptimizationObjective::MINIMIZE, false);
@@ -279,9 +279,8 @@ TEST_F(TestTheoryWhiteOptMultigoal, pushpop)
   // x == 18
   ASSERT_EQ(results[0].getValue().getConst<BitVector>(), BitVector(32u, 18u));
 
-  // y == 0x7FFFFFFF
-  ASSERT_EQ(results[1].getValue().getConst<BitVector>(),
-            BitVector(32u, (unsigned)0x7FFFFFFF));
+  // y == 18
+  ASSERT_EQ(results[1].getValue().getConst<BitVector>(), BitVector(32u, 18u));
 
   // z == 0xFFFFFFFF
   ASSERT_EQ(results[2].getValue().getConst<BitVector>(),
