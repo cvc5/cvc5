@@ -31,7 +31,6 @@ namespace cvc5::options {
 
 InstFormatMode getInstFormatMode(const Options& opts) CVC5_EXPORT;
 bool getUfHo(const Options& opts) CVC5_EXPORT;
-const std::string& getBinaryName(const Options& opts) CVC5_EXPORT;
 
 }  // namespace cvc5::options
 

@@ -41,9 +41,5 @@ InstFormatMode getInstFormatMode(const Options& opts)
   return opts.printer.instFormatMode;
 }
 bool getUfHo(const Options& opts) { return opts.uf.ufHo; }
-const std::string& getBinaryName(const Options& opts)
-{
-  return opts.base.binary_name;
-}
 
 }  // namespace cvc5::options

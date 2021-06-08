@@ -3,11 +3,6 @@ name   = "Base"
 public = true
 
 [[option]]
-  name       = "binary_name"
-  category   = "undocumented"
-  type       = "std::string"
-
-[[option]]
   name       = "in"
   category   = "undocumented"
   type       = "std::istream*"
