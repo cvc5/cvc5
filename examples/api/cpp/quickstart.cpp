@@ -43,12 +43,12 @@ int main()
 
   // In this example, we will define constraints
   // over reals and integers.
-  // Hence we first obtain the corresponding sorts.
+  // Hence, we first obtain the corresponding sorts.
   Sort realSort = solver.getRealSort();
   Sort intSort = solver.getIntegerSort();
 
-  // x,y will be real variables, while
-  // a,b will be integer variables.
+  // x and y will be real variables, while
+  // a and b will be integer variables.
   // Formally, their cpp type is Term, and
   // they are called "constants" in SMT jargon:
   Term x = solver.mkConst(realSort, "x");
@@ -56,13 +56,13 @@ int main()
   Term a = solver.mkConst(intSort, "a");
   Term b = solver.mkConst(intSort, "b");
 
-  // Our constraints regarding x,y will be:
-  // '''
+  // Our constraints regarding x and y will be:
+  //
   //   (1)  0 < x
   //   (2)  0 < y
   //   (3)  x + y < 1
   //   (4)  x <= y
-  // '''
+  //
 
   // Formally, constraints are also terms. Their sort is Boolean.
   // We will construct these constraints gradually,
@@ -71,16 +71,16 @@ int main()
   Term zero = solver.mkReal(0);
   Term one = solver.mkReal(1);
 
-  // Next, we construct the term x+y
+  // Next, we construct the term x + y
   Term xPlusY = solver.mkTerm(PLUS, x, y);
 
   // Next, we continue with the compound terms, that
 
   // Now we can define the constraints.
-  // They employ +, <=, and <.
+  // They use the operators +, <=, and <.
   // In the API, these are denoted by
   // PLUS, LEQ, and LT.
-  // A list of operators is available in:
+  // A list of available operators is available in:
   // src/api/cpp/cvc5_kind.h
   Term constraint1 = solver.mkTerm(LT, zero, x);
   Term constraint2 = solver.mkTerm(LT, zero, y);
@@ -94,15 +94,16 @@ int main()
   solver.assertFormula(constraint4);
 
   // Check if the formula is satisfiable, that is,
-  // are there real x,y,z that satisfy all the
+  // are there real values for x,y,z that satisfy all the
   // constraints?
   Result r1 = solver.checkSat();
 
   // The result is either SAT, UNSAT, or UNKNOWN.
   // In this case, it is SAT.
+  std::cout << "expected: sat" << std::endl;
   std::cout << "result:" << r1 << std::endl;
 
-  // We can get actual values for x,y that
+  // We can get the values for x and y that
   // satisfy the constraints.
   Term xVal = solver.getValue(x);
   Term yVal = solver.getValue(y);
@@ -122,10 +123,9 @@ int main()
   std::cout << "solution for y: " << yDouble << std::endl;
 
   // Next, we will check satisfiability of the same formula,
-  // only this time over integer variables a,b
+  // only this time over integer variables a and b.
 
-  // We start by reseting the solver to flush
-  // previous assertions.
+  // We start by resetting assertions added to the solver.
   solver.resetAssertions();
 
   // Next, we assert the same assertions above with integers,
@@ -139,6 +139,7 @@ int main()
   Result r2 = solver.checkSat();
 
   // This time the formula is unsatisfiable
+  std::cout << "expected: unsat" << std::endl;
   std::cout << "result: " << r2 << std::endl;
 
   // We can query the solver
