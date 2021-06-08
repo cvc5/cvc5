@@ -57,7 +57,7 @@ thread_local Options* pOptions;
 const char* progPath;
 
 /** Just the basename component of argv[0] */
-const std::string* progName;
+std::string progName;
 
 /** A pointer to the CommandExecutor (the signal handlers need it) */
 std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
@@ -80,7 +80,7 @@ TotalTimer::~TotalTimer()
 
 void printUsage(Options& opts, bool full) {
   stringstream ss;
-  ss << "usage: " << options::getBinaryName(opts) << " [options] [input-file]"
+  ss << "usage: " << progName << " [options] [input-file]"
      << endl
      << endl
      << "Without an input file, or with `-', cvc5 reads from standard input."
@@ -106,12 +106,10 @@ int runCvc5(int argc, char* argv[], Options& opts)
   progPath = argv[0];
 
   // Parse the options
-  vector<string> filenames = Options::parseOptions(&opts, argc, argv);
+  std::vector<string> filenames =
+      Options::parseOptions(&opts, argc, argv, progName);
 
   auto limit = install_time_limit(opts);
-
-  string progNameStr = options::getBinaryName(opts);
-  progName = &progNameStr;
 
   if (opts.driver.help)
   {
