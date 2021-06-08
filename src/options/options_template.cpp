@@ -200,26 +200,6 @@ std::string handleOption<std::string>(const std::string& option, const std::stri
   return optionarg;
 }
 
-/**
- * Run handler, and any user-given predicates, for option T.
- * If a user specifies a :handler or :predicates, it overrides this.
- */
-template <class T>
-typename T::type runHandlerAndPredicates(T, std::string option, std::string optionarg, options::OptionsHandler* handler) {
-  // By default, parse the option argument in a way appropriate for its type.
-  // E.g., for "unsigned int" options, ensure that the provided argument is
-  // a nonnegative integer that fits in the unsigned int type.
-
-  return handleOption<typename T::type>(option, optionarg);
-}
-
-template <class T>
-void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* handler) {
-  // By default, nothing to do for bool.  Users add things with
-  // :predicate in options files to provide custom checking routines
-  // that can throw exceptions.
-}
-
 Options::Options(OptionsListener* ol)
     : d_handler(new options::OptionsHandler(this)),
 // clang-format off
