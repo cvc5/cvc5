@@ -163,8 +163,9 @@ Node StringsPreprocess::reduce(Node t,
     Node a2 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, sk3, sk2));
     // length of first skolem is second argument
     Node a3 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
+    Node a4 = nm->mkNode(STRING_LENGTH, rs).eqNode(nm->mkNode(STRING_LENGTH, sk3));
 
-    Node b1 = nm->mkNode(AND, a1, a2, a3);
+    Node b1 = nm->mkNode(AND, {a1, a2, a3, a4});
     Node b2 = skt.eqNode(s);
     Node lemma = nm->mkNode(ITE, cond, b1, b2);
 
@@ -172,7 +173,8 @@ Node StringsPreprocess::reduce(Node t,
     // IF    n >=0 AND n < len( s )
     // THEN: skt = sk1 ++ substr(r,0,len(s)-n) ++ sk2 AND
     //       s = sk1 ++ sk3 ++ sk2 AND
-    //       len( sk1 ) = n
+    //       len( sk1 ) = n AND
+    //       len( substr(r,0,len(s)-n) ) = len( sk3 )
     // ELSE: skt = s
     // We use an optimization where r is used instead of substr(r,0,len(s)-n)
     // if r is a constant of length one.
@@ -321,7 +323,7 @@ Node StringsPreprocess::reduce(Node t,
     //         n <= i < ite(skk = -1, len(s), skk) ^ 0 < l <= len(s) - i =>
     //           ~in_re(substr(s, i, l), r)) ^
     //       (skk != -1 =>
-    //          exists l. 0 <= l < len(s) - skk ^ in_re(substr(s, skk, l), r))
+    //          exists l. 0 <= l <= len(s) - skk ^ in_re(substr(s, skk, l), r))
     //
     // Note that this reduction relies on eager reduction lemmas being sent to
     // properly limit the range of skk.

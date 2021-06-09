@@ -46,7 +46,7 @@ class OMTOptimizer
    *   and this is the optimizer for targetNode
    **/
   static std::unique_ptr<OMTOptimizer> getOptimizerForObjective(
-      smt::OptimizationObjective& objective);
+      const smt::OptimizationObjective& objective);
 
   /**
    * Given the lhs and rhs expressions, with an optimization objective,
@@ -70,7 +70,7 @@ class OMTOptimizer
       NodeManager* nm,
       TNode lhs,
       TNode rhs,
-      smt::OptimizationObjective& objective);
+      const smt::OptimizationObjective& objective);
 
   /**
    * Given the lhs and rhs expressions, with an optimization objective,
@@ -94,7 +94,7 @@ class OMTOptimizer
       NodeManager* nm,
       TNode lhs,
       TNode rhs,
-      smt::OptimizationObjective& objective);
+      const smt::OptimizationObjective& objective);
 
   /**
    * Minimize the target node with constraints encoded in optChecker
