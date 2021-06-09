@@ -26,9 +26,8 @@ int main()
   // Create a solver
   Solver solver;
 
-  // We will ask the solver to produce
-  // models and unsat cores, hence these options
-  // should be turned on.
+  // We will ask the solver to produce models and unsat cores, 
+  // hence these options should be turned on.
   solver.setOption("produce-models", "true");
   solver.setOption("produce-unsat-cores", "true");
 
@@ -41,16 +40,14 @@ int main()
   // Set the logic
   solver.setLogic("ALL");
 
-  // In this example, we will define constraints
-  // over reals and integers.
+  // In this example, we will define constraints over reals and integers.
   // Hence, we first obtain the corresponding sorts.
   Sort realSort = solver.getRealSort();
   Sort intSort = solver.getIntegerSort();
 
-  // x and y will be real variables, while
-  // a and b will be integer variables.
-  // Formally, their cpp type is Term, and
-  // they are called "constants" in SMT jargon:
+  // x and y will be real variables, while a and b will be integer variables.
+  // Formally, their cpp type is Term, 
+  // and they are called "constants" in SMT jargon:
   Term x = solver.mkConst(realSort, "x");
   Term y = solver.mkConst(realSort, "y");
   Term a = solver.mkConst(intSort, "a");
@@ -76,8 +73,7 @@ int main()
 
   // Now we can define the constraints.
   // They use the operators +, <=, and <.
-  // In the API, these are denoted by
-  // PLUS, LEQ, and LT.
+  // In the API, these are denoted by PLUS, LEQ, and LT.
   // A list of available operators is available in:
   // src/api/cpp/cvc5_kind.h
   Term constraint1 = solver.mkTerm(LT, zero, x);
@@ -92,8 +88,7 @@ int main()
   solver.assertFormula(constraint4);
 
   // Check if the formula is satisfiable, that is,
-  // are there real values for x,y,z that satisfy all the
-  // constraints?
+  // are there real values for x,y,z that satisfy all the constraints?
   Result r1 = solver.checkSat();
 
   // The result is either SAT, UNSAT, or UNKNOWN.
@@ -101,8 +96,7 @@ int main()
   std::cout << "expected: sat" << std::endl;
   std::cout << "result:" << r1 << std::endl;
 
-  // We can get the values for x and y that
-  // satisfy the constraints.
+  // We can get the values for x and y that satisfy the constraints.
   Term xVal = solver.getValue(x);
   Term yVal = solver.getValue(y);
 
@@ -111,8 +105,7 @@ int main()
   Term xMinusY = solver.mkTerm(MINUS, x, y);
   Term xMinusYVal = solver.getValue(xMinusY);
 
-  // We can now obtain thestring representations
-  // of the values.
+  // We can now obtain thestring representations of the values.
   std::string xStr = xVal.getRealValue();
   std::string yStr = yVal.getRealValue();
   std::string xMinusYStr = xMinusYVal.getRealValue();
@@ -121,16 +114,16 @@ int main()
   std::cout << "value for y: " << yStr << std::endl;
   std::cout << "value for x - y: " << xMinusYStr << std::endl;
 
-  // further, we can convert the values to cpp types
+  // Further, we can convert the values to cpp types, 
   // using standard cpp conversion functions.
   double xDouble = std::stod(xStr);
   double yDouble = std::stod(yStr);
   double xMinusYDouble = std::stod(xMinusYStr);
 
-  // Another way to independently compute the value of x and y
-  // would be using ordinary cpp minus operator, rather than asking
-  // the solver. However, for more complex terms,
-  // it is easier to let the solver do the evaluation for you.
+  // Another way to independently compute the value of x and y would be using
+  // ordinary cpp minus operator, rather than asking the solver. 
+  // However, for more complex terms,
+  // it is easier to let the solver do the evaluation.
   double xMinusYComputed = xDouble - yDouble;
   if (xMinusYComputed == xMinusYDouble) {
     std::cout << "computed correctly" << std::endl;
@@ -152,6 +145,7 @@ int main()
   solver.assertFormula(
       solver.mkTerm(LT, solver.mkTerm(PLUS, a, b), solver.mkInteger(1)));
   solver.assertFormula(solver.mkTerm(LEQ, a, b));
+  
   // We check whether the revised assertion is satisfiable.
   Result r2 = solver.checkSat();
 
@@ -159,8 +153,7 @@ int main()
   std::cout << "expected: unsat" << std::endl;
   std::cout << "result: " << r2 << std::endl;
 
-  // We can query the solver
-  // for an unsatisfiable core, i.e., a subset
+  // We can query the solver for an unsatisfiable core, i.e., a subset
   // of the assertions that is already unsatisfiable.
   std::vector<Term> unsatCore = solver.getUnsatCore();
   std::cout << "unsat core size: " << unsatCore.size() << std::endl;
