@@ -63,7 +63,7 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_min)
 
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
             BitVector(32u, (uint32_t)0x3FFFFFA1));
-  d_optslv->resetObjectives();
+  d_smtEngine->resetAssertions();
 }
 
 TEST_F(TestTheoryWhiteBVOpt, signed_min)
@@ -87,7 +87,7 @@ TEST_F(TestTheoryWhiteBVOpt, signed_min)
 
   // expect the minimum x = -1
   ASSERT_EQ(val, BitVector(32u, (uint32_t)0x80000000));
-  d_optslv->resetObjectives();
+  d_smtEngine->resetAssertions();
 }
 
 TEST_F(TestTheoryWhiteBVOpt, unsigned_max)
@@ -114,7 +114,7 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_max)
 
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
             BitVector(32u, 2u));
-  d_optslv->resetObjectives();
+  d_smtEngine->resetAssertions();
 }
 
 TEST_F(TestTheoryWhiteBVOpt, signed_max)
@@ -137,7 +137,7 @@ TEST_F(TestTheoryWhiteBVOpt, signed_max)
   // expect the maxmum x =
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
             BitVector(32u, 10u));
-  d_optslv->resetObjectives();
+  d_smtEngine->resetAssertions();
 }
 
 TEST_F(TestTheoryWhiteBVOpt, min_boundary)
@@ -161,7 +161,7 @@ TEST_F(TestTheoryWhiteBVOpt, min_boundary)
   // expect the maximum x = 18
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
             BitVector(32u, 18u));
-  d_optslv->resetObjectives();
+  d_smtEngine->resetAssertions();
 }
 
 }  // namespace test

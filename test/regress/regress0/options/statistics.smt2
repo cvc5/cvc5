@@ -1,3 +1,4 @@
+; REQUIRES: statistics
 ; EXPECT: false
 ; EXPECT: false
 ; EXPECT: false
