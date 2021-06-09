@@ -16,6 +16,7 @@ For every example, the same problem is constructed and solved using different in
     datatypes
     floatingpoint
     lineararith
+    relations
     sequences
     sets
     strings

@@ -36,13 +36,12 @@ class OMTOptimizerInteger : public OMTOptimizer
  private:
   /**
    * Handles the optimization query specified by objType
-   * isMinimize = true will trigger minimization, 
+   * isMinimize = true will trigger minimization,
    * otherwise trigger maximization
    **/
-  smt::OptimizationResult optimize(
-      SmtEngine* optChecker,
-      TNode target,
-      bool isMinimize);
+  smt::OptimizationResult optimize(SmtEngine* optChecker,
+                                   TNode target,
+                                   bool isMinimize);
 };
 
 }  // namespace cvc5::omt
