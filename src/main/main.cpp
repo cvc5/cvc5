@@ -30,7 +30,6 @@
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/options.h"
-#include "options/options_public.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/parser_exception.h"

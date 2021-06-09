@@ -26,7 +26,6 @@
 #include <vector>
 
 #include "main/main.h"
-#include "options/options_public.h"
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "smt/command.h"

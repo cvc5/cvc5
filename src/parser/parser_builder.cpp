@@ -23,7 +23,6 @@
 #include "cvc/cvc.h"
 #include "options/base_options.h"
 #include "options/options.h"
-#include "options/options_public.h"
 #include "options/parser_options.h"
 #include "parser/antlr_input.h"
 #include "parser/input.h"

@@ -35,7 +35,6 @@
 #include "main/time_limit.h"
 #include "options/base_options.h"
 #include "options/options.h"
-#include "options/options_public.h"
 #include "options/parser_options.h"
 #include "options/main_options.h"
 #include "options/set_language.h"

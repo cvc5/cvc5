@@ -28,7 +28,6 @@
 #include "expr/kind.h"
 #include "options/base_options.h"
 #include "options/options.h"
-#include "options/options_public.h"
 #include "parser/input.h"
 #include "parser/parser_exception.h"
 #include "smt/command.h"
