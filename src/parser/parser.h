@@ -192,9 +192,6 @@ protected:
  /** The API Solver object. */
  api::Solver* d_solver;
 
- /** Whether the logic is higher order. */
- bool d_hol;
-
  /**
   * Create a parser state.
   *
