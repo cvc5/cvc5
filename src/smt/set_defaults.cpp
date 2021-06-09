@@ -163,15 +163,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
   }
 
-  /* Only BVSolver::LAZY natively supports int2bv and nat2bv, for other solvers
-   * we need to eagerly eliminate the operators. */
-  if (options::bvSolver() == options::BVSolver::SIMPLE
-      || options::bvSolver() == options::BVSolver::BITBLAST)
-  {
-    opts.bv.bvLazyReduceExtf = false;
-    opts.bv.bvLazyRewriteExtf = false;
-  }
-
   /* Disable bit-level propagation by default for the BITBLAST solver. */
   if (options::bvSolver() == options::BVSolver::BITBLAST)
   {
@@ -198,6 +189,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
   {
+    // do not rewrite bv2nat eagerly
+    opts.bv.bvLazyReduceExtf = true;
+    opts.bv.bvLazyRewriteExtf = true;
     if (options::boolToBitvector() != options::BoolToBVMode::OFF)
     {
       throw OptionException(
@@ -221,6 +215,15 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       logic.arithNonLinear();
       logic.lock();
     }
+  }
+  else if (options::bvSolver() == options::BVSolver::SIMPLE
+      || options::bvSolver() == options::BVSolver::BITBLAST)
+  {
+    // Only BVSolver::LAZY natively supports int2bv and nat2bv, for other
+    // solvers we need to eagerly eliminate the operators. Note this is only
+    // applied if we are not eliminating BV (e.g. with solveBVAsInt).
+    opts.bv.bvLazyReduceExtf = false;
+    opts.bv.bvLazyRewriteExtf = false;
   }
 
   // set options about ackermannization
