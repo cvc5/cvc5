@@ -33,9 +33,15 @@ namespace api {
 /**
  * The kind of a cvc5 term.
  *
- * Note that the underlying type of Kind must be signed (to enable range
- * checks for validity). The size of this type depends on the size of
- * cvc5::Kind (NodeValue::NBITS_KIND, currently 10 bits, see expr/node_value.h).
+ * \internal
+ *
+ * Note that the API type `cvc5::api::Kind` roughly corresponds to
+ * `cvc5::Kind`, but is a different type. It hides internal kinds that should
+ * not be exported to the API, and maps all kinds that we want to export to its
+ * corresponding internal kinds. The underlying type of `cvc5::api::Kind` must
+ * be signed (to enable range checks for validity). The size of this type
+ * depends on the size of `cvc5::Kind` (`NodeValue::NBITS_KIND`, currently 10
+ * bits, see expr/node_value.h).
  */
 enum CVC5_EXPORT Kind : int32_t
 {
