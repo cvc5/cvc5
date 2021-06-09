@@ -2045,6 +2045,16 @@ GetInstantiationsCommand::GetInstantiationsCommand(const api::Result& res)
     : d_solver(nullptr), d_result(res)
 {
 }
+bool GetInstantiationsCommand::isEnabled(api::Solver* solver) const
+{
+  return (solver->getOptions().printer.instFormatMode
+              != options::InstFormatMode::SZS
+          && (d_result.isSat()
+              || (d_result.isSatUnknown()
+                  && d_result.getUnknownExplanation()
+                         == api::Result::INCOMPLETE)))
+         || d_result.isUnsat() || d_result.isEntailed();
+}
 void GetInstantiationsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
@@ -2061,14 +2071,6 @@ void GetInstantiationsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 void GetInstantiationsCommand::printResult(std::ostream& out,
                                            uint32_t verbosity) const
 {
-  bool enabled =
-      (d_solver->getOptions().printer.instFormatMode
-           != options::InstFormatMode::SZS
-       && (d_result.isSat()
-           || (d_result.isSatUnknown()
-               && d_result.getUnknownExplanation() == api::Result::INCOMPLETE)))
-      || d_result.isUnsat() || d_result.isEntailed();
-  if (!enabled) return;
   if (!ok())
   {
     this->Command::printResult(out, verbosity);

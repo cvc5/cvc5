@@ -175,7 +175,11 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     if (options::getDumpInstantiations(d_options))
     {
       // is only conditionally executed based on res
-      getterCommands.emplace_back(new GetInstantiationsCommand(res));
+      auto gic = std::make_unique<GetInstantiationsCommand>(res);
+      if (gic->isEnabled(d_solver.get()))
+      {
+        getterCommands.emplace_back(std::move(gic));
+      }
     }
 
     if (options::getDumpUnsatCores(d_options) && isResultUnsat)

@@ -1077,6 +1077,7 @@ class CVC5_EXPORT GetInstantiationsCommand : public Command
  public:
   GetInstantiationsCommand(const api::Result& res);
 
+  bool isEnabled(api::Solver* solver) const;
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
