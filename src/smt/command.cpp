@@ -1404,11 +1404,16 @@ void DefineFunctionCommand::toStream(std::ostream& out,
                                      size_t dag,
                                      OutputLanguage language) const
 {
+  TypeNode rangeType = termToNode(d_func).getType();
+  if (rangeType.isFunction())
+  {
+    rangeType = rangeType.getRangeType();
+  }
   Printer::getPrinter(language)->toStreamCmdDefineFunction(
       out,
       d_func.toString(),
       termVectorToNodes(d_formals),
-      termToNode(d_func).getType().getRangeType(),
+      rangeType,
       termToNode(d_formula));
 }
 
