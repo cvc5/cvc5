@@ -230,13 +230,9 @@ def get_predicates(option):
     if not option.predicates:
         return []
     optname = option.long_name if option.long else ""
-    if option.type == 'bool':
-        return ['opts.handler().{}("{}", option, value);'.format(x, optname) \
-                for x in option.predicates]
-    else:
-        assert option.type != 'void'
-        return ['opts.handler().{}("{}", option, value);'.format(x, optname) \
-                for x in option.predicates]
+    assert option.type != 'void'
+    return ['opts.handler().{}("{}", option, value);'.format(x, optname)
+            for x in option.predicates]
 
 class Module(object):
     """Options module.
