@@ -115,7 +115,7 @@ int main()
   // of the values.
   std::string xStr = xVal.getRealValue();
   std::string yStr = yVal.getRealValue();
-  std::string xMinusYStr = xMinuxYVal.getRealValue();
+  std::string xMinusYStr = xMinusYVal.getRealValue();
 
   std::cout << "value for x: " << xStr << std::endl;
   std::cout << "value for y: " << yStr << std::endl;
@@ -131,10 +131,10 @@ int main()
   // would be using ordinary cpp minus operator, rather than asking
   // the solver. However, for more complex terms,
   // it is easier to let the solver do the evaluation for you.
-  double xMinusYComputed = x - y;
-  if (xMinusYComputed == xMinusYDouble)
-    then { std::cout << "computed correctly" << std::endl; }
-  else {
+  double xMinusYComputed = xDouble - yDouble;
+  if (xMinusYComputed == xMinusYDouble) {
+    std::cout << "computed correctly" << std::endl;
+  } else {
     std::cout << "computed incorrectly" << std::endl;
   }
 
