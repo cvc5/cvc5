@@ -19,7 +19,6 @@
 
 #include "preprocessing/passes/int_to_bv.h"
 
-#include <limits>
 #include <string>
 #include <unordered_map>
 #include <vector>
