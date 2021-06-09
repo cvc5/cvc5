@@ -176,7 +176,7 @@ Node intToBV(TNode n, NodeMap& cache)
             }
             break;
         }
-        for (size_t i = 0; i < children.size(); ++i)
+        for (size_t i = 0, csize = children.size(); i < csize; ++i)
         {
           TypeNode type = children[i].getType();
           if (!type.isBitVector())
