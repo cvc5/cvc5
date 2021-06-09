@@ -5,7 +5,7 @@
 (set-logic QF_NIA)
 (declare-const x Int)
 (declare-const y Int)
-; The negative constants fits, the positive does not
+; The negative constant fits, the positive does not
 (assert (= (- 4) (* x y)))
 (assert (= 4 (* x y)))
 (check-sat)
