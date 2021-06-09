@@ -323,7 +323,7 @@ Node StringsPreprocess::reduce(Node t,
     //         n <= i < ite(skk = -1, len(s), skk) ^ 0 < l <= len(s) - i =>
     //           ~in_re(substr(s, i, l), r)) ^
     //       (skk != -1 =>
-    //          exists l. 0 <= l < len(s) - skk ^ in_re(substr(s, skk, l), r))
+    //          exists l. 0 <= l <= len(s) - skk ^ in_re(substr(s, skk, l), r))
     //
     // Note that this reduction relies on eager reduction lemmas being sent to
     // properly limit the range of skk.
