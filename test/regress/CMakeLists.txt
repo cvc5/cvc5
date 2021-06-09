@@ -163,6 +163,7 @@ set(regress_0_tests
   regress0/auflia/fuzz05.smtv1.smt2
   regress0/auflia/x2.smtv1.smt2
   regress0/bool/issue1978.smt2
+  regress0/bool/issue6717-ite-rewrite.smt2
   regress0/boolean-prec.cvc
   regress0/boolean-terms-bug-array.smt2
   regress0/boolean-terms-kernel1.smt2
