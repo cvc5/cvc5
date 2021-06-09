@@ -216,7 +216,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
   }
   else if (options::bvSolver() == options::BVSolver::SIMPLE
-      || options::bvSolver() == options::BVSolver::BITBLAST)
+           || options::bvSolver() == options::BVSolver::BITBLAST)
   {
     // Only BVSolver::LAZY natively supports int2bv and nat2bv, for other
     // solvers we need to eagerly eliminate the operators. Note this is only

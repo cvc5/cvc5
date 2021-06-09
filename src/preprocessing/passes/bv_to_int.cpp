@@ -412,9 +412,10 @@ Node BVToInt::translateWithChildren(Node original,
     {
       // ((_ int2bv n) t) ---> (mod t 2^n)
       size_t sz = original.getOperator().getConst<IntToBitVector>().d_size;
-      returnNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, translated_children[0], pow2(sz));
+      returnNode = d_nm->mkNode(
+          kind::INTS_MODULUS_TOTAL, translated_children[0], pow2(sz));
     }
-      break;
+    break;
     case kind::BITVECTOR_AND:
     {
       // We support three configurations:
