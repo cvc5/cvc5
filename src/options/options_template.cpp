@@ -81,7 +81,9 @@ thread_local Options* Options::s_current = NULL;
  */
 template <class T, bool is_numeric, bool is_integer>
 struct OptionHandler {
-  static T handle(const std::string& option, const std::string& flag, const std::string& optionarg);
+  static T handle(const std::string& option,
+                  const std::string& flag,
+                  const std::string& optionarg);
 };/* struct OptionHandler<> */
 
 /** Variant for integral C++ types */
@@ -98,14 +100,17 @@ struct OptionHandler<T, true, true> {
     return str.find('-') != std::string::npos;
   }
 
-  static T handle(const std::string& option, const std::string& flag, const std::string& optionarg) {
+  static T handle(const std::string& option,
+                  const std::string& flag,
+                  const std::string& optionarg)
+  {
     try {
       T i;
       bool success = stringToInt(i, optionarg);
 
       if(!success){
-        throw OptionException(flag + ": failed to parse "+ optionarg +
-                              " as an integer of the appropriate type.");
+        throw OptionException(flag + ": failed to parse " + optionarg
+                              + " as an integer of the appropriate type.");
       }
 
       // Depending in the platform unsigned numbers with '-' signs may parse.
@@ -116,14 +121,14 @@ struct OptionHandler<T, true, true> {
       } else if(i < std::numeric_limits<T>::min()) {
         // negative overflow for type
         std::stringstream ss;
-        ss << flag << " requires an argument >= "
-           << std::numeric_limits<T>::min();
+        ss << flag
+           << " requires an argument >= " << std::numeric_limits<T>::min();
         throw OptionException(ss.str());
       } else if(i > std::numeric_limits<T>::max()) {
         // positive overflow for type
         std::stringstream ss;
-        ss << flag << " requires an argument <= "
-           << std::numeric_limits<T>::max();
+        ss << flag
+           << " requires an argument <= " << std::numeric_limits<T>::max();
         throw OptionException(ss.str());
       }
 
@@ -144,11 +149,15 @@ struct OptionHandler<T, true, true> {
 /** Variant for numeric but non-integral C++ types */
 template <class T>
 struct OptionHandler<T, true, false> {
-  static T handle(const std::string& option, const std::string& flag, const std::string& optionarg) {
+  static T handle(const std::string& option,
+                  const std::string& flag,
+                  const std::string& optionarg)
+  {
     std::stringstream inss(optionarg);
     long double r;
     inss >> r;
-    if(! inss.eof()) {
+    if (!inss.eof())
+    {
       // we didn't consume the whole string (junk at end)
       throw OptionException(flag + " requires a numeric argument");
     }
@@ -159,14 +168,14 @@ struct OptionHandler<T, true, false> {
     } else if(r < -std::numeric_limits<T>::max()) {
       // negative overflow for type
       std::stringstream ss;
-      ss << flag << " requires an argument >= "
-         << -std::numeric_limits<T>::max();
+      ss << flag
+         << " requires an argument >= " << -std::numeric_limits<T>::max();
       throw OptionException(ss.str());
     } else if(r > std::numeric_limits<T>::max()) {
       // positive overflow for type
       std::stringstream ss;
-      ss << flag << " requires an argument <= "
-         << std::numeric_limits<T>::max();
+      ss << flag
+         << " requires an argument <= " << std::numeric_limits<T>::max();
       throw OptionException(ss.str());
     }
 
@@ -177,7 +186,10 @@ struct OptionHandler<T, true, false> {
 /** Variant for non-numeric C++ types */
 template <class T>
 struct OptionHandler<T, false, false> {
-  static T handle(const std::string& option, const std::string& flag, const std::string& optionarg) {
+  static T handle(const std::string& option,
+                  const std::string& flag,
+                  const std::string& optionarg)
+  {
     T::unsupported_handleOption_call___please_write_me;
     // The above line causes a compiler error if this version of the template
     // is ever instantiated (meaning that a specialization is missing).  So
@@ -190,13 +202,23 @@ struct OptionHandler<T, false, false> {
 
 /** Handle an option of type T in the default way. */
 template <class T>
-T handleOption(const std::string& option, const std::string& flag, const std::string& optionarg) {
-  return OptionHandler<T, std::numeric_limits<T>::is_specialized, std::numeric_limits<T>::is_integer>::handle(option, flag, optionarg);
+T handleOption(const std::string& option,
+               const std::string& flag,
+               const std::string& optionarg)
+{
+  return OptionHandler<T,
+                       std::numeric_limits<T>::is_specialized,
+                       std::numeric_limits<T>::is_integer>::handle(option,
+                                                                   flag,
+                                                                   optionarg);
 }
 
 /** Handle an option of type std::string in the default way. */
 template <>
-std::string handleOption<std::string>(const std::string& option, const std::string& flag, const std::string& optionarg) {
+std::string handleOption<std::string>(const std::string& option,
+                                      const std::string& flag,
+                                      const std::string& optionarg)
+{
   return optionarg;
 }
 
