@@ -17,29 +17,10 @@
 
 #include "options_public.h"
 
-#include <fstream>
-#include <ostream>
-#include <string>
-#include <vector>
-
-#include "base/listener.h"
-#include "base/modal_exception.h"
-#include "options/base_options.h"
-#include "options/language.h"
-#include "options/main_options.h"
-#include "options/option_exception.h"
-#include "options/options.h"
-#include "options/printer_modes.h"
-#include "options/printer_options.h"
-#include "options/smt_options.h"
 #include "options/uf_options.h"
 
 namespace cvc5::options {
 
-InstFormatMode getInstFormatMode(const Options& opts)
-{
-  return opts.printer.instFormatMode;
-}
 bool getUfHo(const Options& opts) { return opts.uf.ufHo; }
 
 }  // namespace cvc5::options

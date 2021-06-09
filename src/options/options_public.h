@@ -23,13 +23,10 @@
 #ifndef CVC5__OPTIONS__OPTIONS_PUBLIC_H
 #define CVC5__OPTIONS__OPTIONS_PUBLIC_H
 
-#include "options/language.h"
 #include "options/options.h"
-#include "options/printer_modes.h"
 
 namespace cvc5::options {
 
-InstFormatMode getInstFormatMode(const Options& opts) CVC5_EXPORT;
 bool getUfHo(const Options& opts) CVC5_EXPORT;
 
 }  // namespace cvc5::options
