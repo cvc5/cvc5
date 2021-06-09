@@ -12,6 +12,7 @@
 #
 
 import sys
+
 # add path to enable extensions
 sys.path.insert(0, '${CMAKE_CURRENT_SOURCE_DIR}/ext/')
 
@@ -74,3 +75,8 @@ cpp_index_common_prefix = ["cvc5::api::"]
 
 # where to look for include-build-file
 ibf_folders = ['${CMAKE_CURRENT_BINARY_DIR}']
+
+# -- SMT-LIB syntax highlighting ---------------------------------------------
+from smtliblexer import SmtLibLexer
+from sphinx.highlighting import lexers
+lexers['smtlib'] = SmtLibLexer()

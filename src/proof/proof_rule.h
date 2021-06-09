@@ -219,10 +219,12 @@ enum class PfRule : uint32_t
   THEORY_REWRITE,
   // The remaining rules in this section have the signature of a "trusted rule":
   //
-  // Children: none
+  // Children: ?
   // Arguments: (F)
   // ---------------------------------------------------------------
   // Conclusion: F
+  //
+  // Unless stated below, the expected children vector of the rule is empty.
   //
   // where F is an equality of the form t = t' where t was replaced by t'
   // based on some preprocessing pass, or otherwise F was added as a new
@@ -248,8 +250,13 @@ enum class PfRule : uint32_t
   // could not be replayed during proof postprocessing.
   TRUST_SUBS,
   // where F is an equality (= t t') that holds by a form of substitution that
-  // could not be determined by the TrustSubstitutionMap.
+  // could not be determined by the TrustSubstitutionMap. This inference may
+  // contain possibly multiple children corresponding to the formulas used to
+  // derive the substitution.
   TRUST_SUBS_MAP,
+  // where F is a solved equality of the form (= x t) derived as the solved
+  // form of F', where F' is given as a child.
+  TRUST_SUBS_EQ,
   // ========= SAT Refutation for assumption-based unsat cores
   // Children: (P1, ..., Pn)
   // Arguments: none

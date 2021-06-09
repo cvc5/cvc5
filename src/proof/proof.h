@@ -144,7 +144,7 @@ class CDProof : public ProofGenerator
    */
   CDProof(ProofNodeManager* pnm,
           context::Context* c = nullptr,
-          std::string name = "CDProof",
+          const std::string& name = "CDProof",
           bool autoSymm = true);
   virtual ~CDProof();
   /**
