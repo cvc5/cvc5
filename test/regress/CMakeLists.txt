@@ -1606,13 +1606,10 @@ set(regress_1_tests
   regress1/ho/issue4065-no-rep.smt2
   regress1/ho/issue4092-sinf.smt2
   regress1/ho/issue4134-sinf.smt2
-  regress1/ho/nested_lambdas-AGT034^2.smt2
-  regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   regress1/ho/NUM638^1.smt2
   regress1/ho/NUM925^1.p
   regress1/ho/soundness_fmf_SYO362^5-delta.p
   regress1/ho/store-ax-min.p
-  regress1/ho/SYO056^1.p
   regress1/hole6.cvc
   regress1/ite5.smt2
   regress1/issue3970-nl-ext-purify.smt2
@@ -2625,6 +2622,10 @@ set(regression_disabled_tests
   regress1/fmf/ko-bound-set.cvc
   # results in an assertion failure (see issue #1650).
   regress1/ho/hoa0102.smt2
+  # after disallowing solving for terms with quantifiers
+  regress1/ho/nested_lambdas-AGT034^2.smt2
+  regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
+  regress1/ho/SYO056^1.p
   # slow on some builds after changes to tangent planes
   regress1/nl/approx-sqrt-unsat.smt2
   # times out after update to circuit propagator
