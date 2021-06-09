@@ -26,7 +26,7 @@ int main()
   // Create a solver
   Solver solver;
 
-  // We will ask the solver to produce models and unsat cores, 
+  // We will ask the solver to produce models and unsat cores,
   // hence these options should be turned on.
   solver.setOption("produce-models", "true");
   solver.setOption("produce-unsat-cores", "true");
@@ -46,7 +46,7 @@ int main()
   Sort intSort = solver.getIntegerSort();
 
   // x and y will be real variables, while a and b will be integer variables.
-  // Formally, their cpp type is Term, 
+  // Formally, their cpp type is Term,
   // and they are called "constants" in SMT jargon:
   Term x = solver.mkConst(realSort, "x");
   Term y = solver.mkConst(realSort, "y");
@@ -114,14 +114,14 @@ int main()
   std::cout << "value for y: " << yStr << std::endl;
   std::cout << "value for x - y: " << xMinusYStr << std::endl;
 
-  // Further, we can convert the values to cpp types, 
+  // Further, we can convert the values to cpp types,
   // using standard cpp conversion functions.
   double xDouble = std::stod(xStr);
   double yDouble = std::stod(yStr);
   double xMinusYDouble = std::stod(xMinusYStr);
 
   // Another way to independently compute the value of x and y would be using
-  // ordinary cpp minus operator, rather than asking the solver. 
+  // ordinary cpp minus operator, rather than asking the solver.
   // However, for more complex terms,
   // it is easier to let the solver do the evaluation.
   double xMinusYComputed = xDouble - yDouble;
@@ -145,7 +145,7 @@ int main()
   solver.assertFormula(
       solver.mkTerm(LT, solver.mkTerm(PLUS, a, b), solver.mkInteger(1)));
   solver.assertFormula(solver.mkTerm(LEQ, a, b));
-  
+
   // We check whether the revised assertion is satisfiable.
   Result r2 = solver.checkSat();
 
