@@ -68,10 +68,10 @@ void throwLazyBBUnsupported(options::SatSolverMode m)
 
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
-unsigned long OptionsHandler::limitHandler(const std::string& option, const std::string& flag,
+uint64_t OptionsHandler::limitHandler(const std::string& option, const std::string& flag,
                                            std::string optarg)
 {
-  unsigned long ms;
+  uint64_t ms;
   std::istringstream convert(optarg);
   if (!(convert >> ms))
   {

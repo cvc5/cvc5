@@ -89,7 +89,7 @@ public:
 
   void setStats(const std::string& option, const std::string& flag, bool value);
 
-  unsigned long limitHandler(const std::string& option, const std::string& flag, std::string optarg);
+  uint64_t limitHandler(const std::string& option, const std::string& flag, std::string optarg);
   void setResourceWeight(const std::string& option, const std::string& flag, std::string optarg);
 
   /* expr/options_handlers.h */
