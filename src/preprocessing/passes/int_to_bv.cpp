@@ -19,6 +19,7 @@
 
 #include "preprocessing/passes/int_to_bv.h"
 
+#include <limits>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -69,7 +70,8 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
     }
     else if (current.getNumChildren() > 2
              && (current.getKind() == kind::PLUS
-                 || current.getKind() == kind::MULT))
+                 || current.getKind() == kind::MULT
+                 || current.getKind() == kind::NONLINEAR_MULT))
     {
       Assert(cache.find(current[0]) != cache.end());
       result = cache[current[0]];
@@ -118,15 +120,15 @@ Node intToBV(TNode n, NodeMap& cache)
     {
       // Not a leaf
       vector<Node> children;
-      unsigned max = 0;
-      for (unsigned i = 0; i < current.getNumChildren(); ++i)
+      uint64_t max = 0;
+      for (const Node& nc : current)
       {
-        Assert(cache.find(current[i]) != cache.end());
-        TNode childRes = cache[current[i]];
+        Assert(cache.find(nc) != cache.end());
+        TNode childRes = cache[nc];
         TypeNode type = childRes.getType();
         if (type.isBitVector())
         {
-          unsigned bvsize = type.getBitVectorSize();
+          uint32_t bvsize = type.getBitVectorSize();
           if (bvsize > max)
           {
             max = bvsize;
@@ -146,6 +148,7 @@ Node intToBV(TNode n, NodeMap& cache)
             max = max + 1;
             break;
           case kind::MULT:
+          case kind::NONLINEAR_MULT:
             Assert(children.size() == 2);
             newKind = kind::BITVECTOR_MULT;
             max = max * 2;
@@ -174,14 +177,14 @@ Node intToBV(TNode n, NodeMap& cache)
             }
             break;
         }
-        for (unsigned i = 0; i < children.size(); ++i)
+        for (size_t i = 0; i < children.size(); ++i)
         {
           TypeNode type = children[i].getType();
           if (!type.isBitVector())
           {
             continue;
           }
-          unsigned bvsize = type.getBitVectorSize();
+          uint32_t bvsize = type.getBitVectorSize();
           if (bvsize < max)
           {
             // sign extend
@@ -195,10 +198,7 @@ Node intToBV(TNode n, NodeMap& cache)
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << current.getOperator();
       }
-      for (unsigned i = 0; i < children.size(); ++i)
-      {
-        builder << children[i];
-      }
+      builder.append(children);
       // Mark the substitution and continue
       Node result = builder;
 
@@ -226,7 +226,6 @@ Node intToBV(TNode n, NodeMap& cache)
           {
             Rational constant = current.getConst<Rational>();
             if (constant.isIntegral()) {
-              AlwaysAssert(constant >= 0);
               BitVector bv(size, constant.getNumerator());
               if (bv.toSignedInteger() != constant.getNumerator())
               {
