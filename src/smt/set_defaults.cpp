@@ -190,7 +190,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
   {
     // do not rewrite bv2nat eagerly
-    opts.bv.bvLazyReduceExtf = true;
     opts.bv.bvLazyRewriteExtf = true;
     if (options::boolToBitvector() != options::BoolToBVMode::OFF)
     {
