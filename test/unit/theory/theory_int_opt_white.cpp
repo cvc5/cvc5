@@ -70,7 +70,7 @@ TEST_F(TestTheoryWhiteIntOpt, max)
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
             Rational("99"));
 
-  d_optslv->resetObjectives();
+  d_smtEngine->resetAssertions();
 }
 
 TEST_F(TestTheoryWhiteIntOpt, min)
@@ -101,7 +101,7 @@ TEST_F(TestTheoryWhiteIntOpt, min)
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
             Rational("1"));
 
-  d_optslv->resetObjectives();
+  d_smtEngine->resetAssertions();
 }
 
 TEST_F(TestTheoryWhiteIntOpt, result)
@@ -129,7 +129,7 @@ TEST_F(TestTheoryWhiteIntOpt, result)
 
   // We expect our check to have returned UNSAT
   ASSERT_EQ(r, OptimizationResult::UNSAT);
-  d_optslv->resetObjectives();
+  d_smtEngine->resetAssertions();
 }
 
 TEST_F(TestTheoryWhiteIntOpt, open_interval)
@@ -164,7 +164,7 @@ TEST_F(TestTheoryWhiteIntOpt, open_interval)
   // expect the minimum result of cost3 = cost1 + cost2 to be 1 + 111 = 112
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
             Rational("112"));
-  d_optslv->resetObjectives();
+  d_smtEngine->resetAssertions();
 }
 
 }  // namespace test

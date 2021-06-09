@@ -33,9 +33,15 @@ namespace api {
 /**
  * The kind of a cvc5 term.
  *
- * Note that the underlying type of Kind must be signed (to enable range
- * checks for validity). The size of this type depends on the size of
- * cvc5::Kind (NodeValue::NBITS_KIND, currently 10 bits, see expr/node_value.h).
+ * \internal
+ *
+ * Note that the API type `cvc5::api::Kind` roughly corresponds to
+ * `cvc5::Kind`, but is a different type. It hides internal kinds that should
+ * not be exported to the API, and maps all kinds that we want to export to its
+ * corresponding internal kinds. The underlying type of `cvc5::api::Kind` must
+ * be signed (to enable range checks for validity). The size of this type
+ * depends on the size of `cvc5::Kind` (`NodeValue::NBITS_KIND`, currently 10
+ * bits, see expr/node_value.h).
  */
 enum CVC5_EXPORT Kind : int32_t
 {
@@ -913,12 +919,8 @@ enum CVC5_EXPORT Kind : int32_t
    */
   BITVECTOR_NEG,
   /**
-   * Unsigned division of two bit-vectors, truncating towards 0.
-   *
-   * Note: The semantics of this operator depends on `bv-div-zero-const`
-   * (default is true).  Depending on the setting, a division by zero is
-   * treated as all ones (default, corresponds to SMT-LIB >=2.6) or an
-   * uninterpreted value (corresponds to SMT-LIB <2.6).
+   * Unsigned division of two bit-vectors, truncating towards 0. If the divisor
+   * is zero, the result is all ones.
    *
    * Parameters:
    *   - 1..2: Terms of bit-vector sort (sorts must match)
@@ -929,12 +931,8 @@ enum CVC5_EXPORT Kind : int32_t
    */
   BITVECTOR_UDIV,
   /**
-   * Unsigned remainder from truncating division of two bit-vectors.
-   *
-   * Note: The semantics of this operator depends on `bv-div-zero-const`
-   * (default is true). Depending on the setting, if the modulus is zero, the
-   * result is either the dividend (default, corresponds to SMT-LIB >=2.6) or
-   * an uninterpreted value (corresponds to SMT-LIB <2.6).
+   * Unsigned remainder from truncating division of two bit-vectors. If the
+   * modulus is zero, the result is the dividend.
    *
    * Parameters:
    *   - 1..2: Terms of bit-vector sort (sorts must match)
@@ -945,13 +943,9 @@ enum CVC5_EXPORT Kind : int32_t
    */
   BITVECTOR_UREM,
   /**
-   * Two's complement signed division of two bit-vectors.
-   *
-   * Note: The semantics of this operator depends on `bv-div-zero-const`
-   * (default is true). By default, the function returns all ones if the
-   * dividend is positive and one if the dividend is negative (corresponds to
-   * SMT-LIB >=2.6). If the option is disabled, a division by zero is treated
-   * as an uninterpreted value (corresponds to SMT-LIB <2.6).
+   * Two's complement signed division of two bit-vectors. If the divisor is
+   * zero and the dividend is positive, the result is all ones. If the divisor
+   * is zero and the dividend is negative, the result is one.
    *
    * Parameters:
    *   - 1..2: Terms of bit-vector sort (sorts must match)
@@ -962,13 +956,8 @@ enum CVC5_EXPORT Kind : int32_t
    */
   BITVECTOR_SDIV,
   /**
-   * Two's complement signed remainder of two bit-vectors
-   * (sign follows dividend).
-   *
-   * Note: The semantics of this operator depends on `bv-div-zero-const`
-   * (default is true, corresponds to SMT-LIB >=2.6). Depending on the setting,
-   * if the modulus is zero, the result is either the dividend (default) or an
-   * uninterpreted value (corresponds to SMT-LIB <2.6).
+   * Two's complement signed remainder of two bit-vectors (sign follows
+   * dividend). If the modulus is zero, the result is the dividend.
    *
    * Parameters:
    *   - 1..2: Terms of bit-vector sort (sorts must match)
@@ -979,13 +968,8 @@ enum CVC5_EXPORT Kind : int32_t
    */
   BITVECTOR_SREM,
   /**
-   * Two's complement signed remainder
-   * (sign follows divisor).
-   *
-   * Note: The semantics of this operator depends on `bv-div-zero-const`
-   * (default is on). Depending on the setting, if the modulus is zero, the
-   * result is either the dividend (default, corresponds to SMT-LIB >=2.6) or
-   * an uninterpreted value (corresponds to SMT-LIB <2.6).
+   * Two's complement signed remainder (sign follows divisor). If the modulus
+   * is zero, the result is the dividend.
    *
    * Parameters:
    *   - 1..2: Terms of bit-vector sort (sorts must match)

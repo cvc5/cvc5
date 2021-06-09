@@ -951,10 +951,43 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
     break;
   }
-  case kind::APPLY_TESTER:
   case kind::APPLY_SELECTOR:
-  case kind::APPLY_SELECTOR_TOTAL:
+  {
+    Node op = n.getOperator();
+    const DType& dt = DType::datatypeOf(op);
+    if (dt.isTuple())
+    {
+      stillNeedToPrintParams = false;
+      out << "(_ tupSel " << DType::indexOf(op) << ") ";
+    }
+  }
+  break;
+  case kind::APPLY_TESTER:
+  {
+    stillNeedToPrintParams = false;
+    Node op = n.getOperator();
+    size_t cindex = DType::indexOf(op);
+    const DType& dt = DType::datatypeOf(op);
+    out << "(_ is ";
+    toStream(
+        out, dt[cindex].getConstructor(), toDepth < 0 ? toDepth : toDepth - 1);
+    out << ") ";
+  }
+  break;
   case kind::APPLY_UPDATER:
+  {
+    Node op = n.getOperator();
+    size_t index = DType::indexOf(op);
+    const DType& dt = DType::datatypeOf(op);
+    size_t cindex = DType::cindexOf(op);
+    out << "(_ update ";
+    toStream(out,
+             dt[cindex][index].getSelector(),
+             toDepth < 0 ? toDepth : toDepth - 1);
+    out << ") ";
+  }
+  break;
+  case kind::APPLY_SELECTOR_TOTAL:
   case kind::PARAMETRIC_DATATYPE: break;
 
   // separation logic
@@ -1037,19 +1070,8 @@ void Smt2Printer::toStream(std::ostream& out,
   if( n.getMetaKind() == kind::metakind::PARAMETERIZED &&
       stillNeedToPrintParams ) {
     if(toDepth != 0) {
-      if (n.getKind() == kind::APPLY_TESTER)
-      {
-        unsigned cindex = DType::indexOf(n.getOperator());
-        const DType& dt = DType::datatypeOf(n.getOperator());
-        out << "(_ is ";
-        toStream(out,
-                 dt[cindex].getConstructor(),
-                 toDepth < 0 ? toDepth : toDepth - 1);
-        out << ")";
-      }else{
-        toStream(
-            out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, lbind);
-      }
+      toStream(
+          out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, lbind);
     } else {
       out << "(...)";
     }
@@ -1698,21 +1720,20 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
     out << funcs[i] << " (";
     // print its type signature
     vector<Node>::const_iterator itf = formals[i].cbegin();
-    for (;;)
+    while (itf != formals[i].cend())
     {
       out << "(" << (*itf) << " " << (*itf).getType() << ")";
       ++itf;
-      if (itf != formals[i].end())
+      if (itf != formals[i].cend())
       {
         out << " ";
       }
-      else
-      {
-        break;
-      }
     }
     TypeNode type = funcs[i].getType();
-    type = type.getRangeType();
+    if (type.isFunction())
+    {
+      type = type.getRangeType();
+    }
     out << ") " << type;
     if (funcs.size() > 1)
     {
@@ -1722,6 +1743,10 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
   if (funcs.size() > 1)
   {
     out << ") (";
+  }
+  else
+  {
+    out << " ";
   }
   for (unsigned i = 0, size = formulas.size(); i < size; i++)
   {
