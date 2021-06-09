@@ -38,7 +38,7 @@ QF_AUFLIA)
   runcvc5 --tear-down-incremental=1 --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 QF_BV)
-  runcvc5 --incremental --bitblast=eager
+  runcvc5 --incremental --bitblast=eager --bv-assert-input
   ;;
 QF_UFBV)
   runcvc5 --incremental

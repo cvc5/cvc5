@@ -70,10 +70,9 @@ QF_NIA)
   finishwith --nl-ext-tplanes --decision=internal
   ;;
 QF_NRA)
-  trywith 300 --nl-ext-tplanes --decision=internal
-  trywith 300 --nl-ext-tplanes --decision=justification --no-nl-ext-factor
-  trywith 30 --nl-ext-tplanes --decision=internal --solve-real-as-int
-  finishwith --nl-ext-tplanes --decision=justification
+  trywith 600 --decision=justification
+  trywith 300 --decision=internal --no-nl-cad --nl-ext=full --nl-ext-tplanes
+  finishwith --decision=internal --nl-ext=none
   ;;
 # all logics with UF + quantifiers should either fall under this or special cases below
 ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUFBVDTLIA|AUFNIA|UFFPDTLIRA|UFFPDTNIRA)
