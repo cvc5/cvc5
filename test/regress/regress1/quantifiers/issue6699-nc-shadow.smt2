@@ -1,5 +1,6 @@
 ; COMMAND-LINE: -i
 ; EXPECT: unsat
+(set-logic ALL)
 (declare-fun v1 () Bool)
 (declare-fun v4 () Bool)
 (declare-fun v7 () Bool)
