@@ -144,7 +144,7 @@ QF_UFBV)
   finishwith --bitblast=eager
   ;;
 QF_BV)
-  finishwith --bitblast=eager
+  finishwith --bitblast=eager --bv-assert-input
   ;;
 QF_AUFLIA)
   finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=justification
