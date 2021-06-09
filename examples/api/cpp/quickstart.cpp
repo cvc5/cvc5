@@ -74,8 +74,6 @@ int main()
   // Next, we construct the term x + y
   Term xPlusY = solver.mkTerm(PLUS, x, y);
 
-  // Next, we continue with the compound terms, that
-
   // Now we can define the constraints.
   // They use the operators +, <=, and <.
   // In the API, these are denoted by
@@ -108,19 +106,37 @@ int main()
   Term xVal = solver.getValue(x);
   Term yVal = solver.getValue(y);
 
-  // To cast these values to cpp types,
-  // we first obtain their string representations
-  // from the solver.
+  // It is also possible to get values for compound terms,
+  // even if those did not appear in the original formula.
+  Term xMinusY = solver.mkTerm(MINUS, x, y);
+  Term xMinusYVal = solver.getValue(xMinusY);
+
+  // We can now obtain thestring representations
+  // of the values.
   std::string xStr = xVal.getRealValue();
   std::string yStr = yVal.getRealValue();
+  std::string xMinusYStr = xMinuxYVal.getRealValue();
 
-  // now we can convert the values to cpp types
+  std::cout << "value for x: " << xStr << std::endl;
+  std::cout << "value for y: " << yStr << std::endl;
+  std::cout << "value for x - y: " << xMinusYStr << std::endl;
+
+  // further, we can convert the values to cpp types
   // using standard cpp conversion functions.
   double xDouble = std::stod(xStr);
   double yDouble = std::stod(yStr);
-
-  std::cout << "solution for x: " << xDouble << std::endl;
-  std::cout << "solution for y: " << yDouble << std::endl;
+  double xMinusYDouble = std::stod(xMinusYStr);
+	
+  // Another way to independently compute the value of x and y
+  // would be using ordinary cpp minus operator, rather than asking
+  // the solver. However, for more complex terms,
+  // it is easier to let the solver do the evaluation for you.
+  double xMinusYComputed = x - y;
+  if (xMinusYComputed == xMinusYDouble) then {
+	  std::cout << "computed correctly" << std::endl;
+  } else {
+	  std::cout << "computed incorrectly" << std::endl;
+  }
 
   // Next, we will check satisfiability of the same formula,
   // only this time over integer variables a and b.
@@ -128,8 +144,9 @@ int main()
   // We start by resetting assertions added to the solver.
   solver.resetAssertions();
 
-  // Next, we assert the same assertions above with integers,
-  // in an abbreviated manner.
+  // Next, we assert the same assertions above with integers.
+  // This time, we inline the construction of terms
+  // to the assertion command.
   solver.assertFormula(solver.mkTerm(LT, solver.mkInteger(0), a));
   solver.assertFormula(solver.mkTerm(LT, solver.mkInteger(0), b));
   solver.assertFormula(
