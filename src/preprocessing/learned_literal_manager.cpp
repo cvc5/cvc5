@@ -27,7 +27,7 @@ LearnedLiteralManager::LearnedLiteralManager(theory::TrustSubstitutionMap& tls,
 {
 }
 
-void LearnedLiteralManager::notifyLearnedLiteral(Node lit)
+void LearnedLiteralManager::notifyLearnedLiteral(TNode lit)
 {
   d_learnedLits.insert(lit);
   Trace("pp-llm") << "LLM:notifyLearnedLiteral: " << lit << std::endl;
