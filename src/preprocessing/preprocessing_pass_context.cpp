@@ -70,7 +70,7 @@ void PreprocessingPassContext::recordSymbolsInAssertions(
   }
 }
 
-void PreprocessingPassContext::notifyLearnedLiteral(Node lit)
+void PreprocessingPassContext::notifyLearnedLiteral(TNode lit)
 {
   d_llm.notifyLearnedLiteral(lit);
 }

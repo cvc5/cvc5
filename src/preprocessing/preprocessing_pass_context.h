@@ -57,9 +57,6 @@ class PreprocessingPassContext
     return d_circuitPropagator;
   }
 
-  /** Get the learned literal manager */
-  LearnedLiteralManager* getLearnedLiteralManager();
-
   context::CDHashSet<Node>& getSymsInAssertions() { return d_symsInAssertions; }
 
   void spendResource(Resource r);
@@ -84,7 +81,7 @@ class PreprocessingPassContext
    * It should be rewritten, and such that top level substitutions have
    * been applied to it.
    */
-  void notifyLearnedLiteral(Node lit);
+  void notifyLearnedLiteral(TNode lit);
   /**
    * Get the learned literals
    */
