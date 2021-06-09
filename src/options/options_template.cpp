@@ -364,7 +364,8 @@ public:
  */
 std::vector<std::string> Options::parseOptions(Options* options,
                                                int argc,
-                                               char* argv[])
+                                               char* argv[],
+                                               std::string& binaryName)
 {
   Assert(options != NULL);
   Assert(argv != NULL);
@@ -386,7 +387,7 @@ std::vector<std::string> Options::parseOptions(Options* options,
   if(x != NULL) {
     progName = x + 1;
   }
-  options->base.binary_name = std::string(progName);
+  binaryName = std::string(progName);
 
   std::vector<std::string> nonoptions;
   options->parseOptionsRecursive(argc, argv, &nonoptions);

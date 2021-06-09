@@ -429,14 +429,17 @@ Node RepSetIterator::getCurrentTerm(unsigned i, bool valTerm) const
                      << d_domain_elements[i].size() << std::endl;
   Assert(0 <= curr && curr < d_domain_elements[i].size());
   Node t = d_domain_elements[i][curr];
+  Trace("rsi-debug") << "rsi : term = " << t << std::endl;
   if (valTerm)
   {
     Node tt = d_rs->getTermForRepresentative(t);
     if (!tt.isNull())
     {
+  Trace("rsi-debug") << "rsi : return rep term = " << tt << std::endl;
       return tt;
     }
   }
+  Trace("rsi-debug") << "rsi : return" << std::endl;
   return t;
 }
 
