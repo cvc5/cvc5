@@ -15,6 +15,8 @@
 
 #include "smt/optimization_solver.h"
 
+#include "context/cdhashmap.h"
+#include "context/cdlist.h"
 #include "omt/omt_optimizer.h"
 #include "options/smt_options.h"
 #include "smt/assertions.h"
@@ -29,7 +31,7 @@ namespace smt {
 OptimizationSolver::OptimizationSolver(SmtEngine* parent)
     : d_parent(parent),
       d_optChecker(),
-      d_objectives(),
+      d_objectives(parent->getUserContext()),
       d_results(),
       d_objectiveCombination(LEXICOGRAPHIC)
 {
@@ -37,10 +39,14 @@ OptimizationSolver::OptimizationSolver(SmtEngine* parent)
 
 OptimizationResult::ResultType OptimizationSolver::checkOpt()
 {
+  // if the results of the previous call have different size than the
+  // objectives, then we should clear the pareto optimization context
+  if (d_results.size() != d_objectives.size()) d_optChecker.reset();
+  // initialize the result vector
+  d_results.clear();
   for (size_t i = 0, numObj = d_objectives.size(); i < numObj; ++i)
   {
-    // reset the optimization results
-    d_results[i] = OptimizationResult();
+    d_results.emplace_back();
   }
   switch (d_objectiveCombination)
   {
@@ -66,14 +72,6 @@ void OptimizationSolver::addObjective(TNode target,
   }
   d_optChecker.reset();
   d_objectives.emplace_back(target, type, bvSigned);
-  d_results.emplace_back(OptimizationResult::UNKNOWN, Node());
-}
-
-void OptimizationSolver::resetObjectives()
-{
-  d_optChecker.reset();
-  d_objectives.clear();
-  d_results.clear();
 }
 
 std::vector<OptimizationResult> OptimizationSolver::getValues()
