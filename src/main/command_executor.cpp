@@ -172,14 +172,10 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetProofCommand());
     }
 
-    if (options::getDumpInstantiations(d_options))
+    if (options::getDumpInstantiations(d_options)
+        && GetInstantiationsCommand::isEnabled(d_solver.get(), res))
     {
-      // is only conditionally executed based on res
-      auto gic = std::make_unique<GetInstantiationsCommand>(res);
-      if (gic->isEnabled(d_solver.get()))
-      {
-        getterCommands.emplace_back(std::move(gic));
-      }
+      getterCommands.emplace_back(new GetInstantiationsCommand());
     }
 
     if (options::getDumpUnsatCores(d_options) && isResultUnsat)

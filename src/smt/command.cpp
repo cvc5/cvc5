@@ -2041,19 +2041,16 @@ void GetProofCommand::toStream(std::ostream& out,
 /* class GetInstantiationsCommand                                             */
 /* -------------------------------------------------------------------------- */
 
-GetInstantiationsCommand::GetInstantiationsCommand(const api::Result& res)
-    : d_solver(nullptr), d_result(res)
-{
-}
-bool GetInstantiationsCommand::isEnabled(api::Solver* solver) const
+GetInstantiationsCommand::GetInstantiationsCommand() : d_solver(nullptr) {}
+bool GetInstantiationsCommand::isEnabled(api::Solver* solver,
+                                         const api::Result& res)
 {
   return (solver->getOptions().printer.instFormatMode
               != options::InstFormatMode::SZS
-          && (d_result.isSat()
-              || (d_result.isSatUnknown()
-                  && d_result.getUnknownExplanation()
-                         == api::Result::INCOMPLETE)))
-         || d_result.isUnsat() || d_result.isEntailed();
+          && (res.isSat()
+              || (res.isSatUnknown()
+                  && res.getUnknownExplanation() == api::Result::INCOMPLETE)))
+         || res.isUnsat() || res.isEntailed();
 }
 void GetInstantiationsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
@@ -2083,7 +2080,7 @@ void GetInstantiationsCommand::printResult(std::ostream& out,
 
 Command* GetInstantiationsCommand::clone() const
 {
-  GetInstantiationsCommand* c = new GetInstantiationsCommand(d_result);
+  GetInstantiationsCommand* c = new GetInstantiationsCommand();
   // c->d_result = d_result;
   c->d_solver = d_solver;
   return c;
