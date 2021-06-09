@@ -174,14 +174,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetProofCommand());
     }
 
-    if (d_options.driver.dumpInstantiations
-        && ((options::getInstFormatMode(d_options)
-                 != options::InstFormatMode::SZS
-             && (res.isSat()
-                 || (res.isSatUnknown()
-                     && res.getUnknownExplanation()
-                            == api::Result::INCOMPLETE)))
-            || isResultUnsat))
+    if (options::getDumpInstantiations(d_options)
+        && GetInstantiationsCommand::isEnabled(d_solver.get(), res))
     {
       getterCommands.emplace_back(new GetInstantiationsCommand());
     }

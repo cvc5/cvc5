@@ -528,10 +528,6 @@ TypeNode NodeManager::mkBagType(TypeNode elementType)
 {
   CheckArgument(
       !elementType.isNull(), elementType, "unexpected NULL element type");
-  CheckArgument(elementType.isFirstClass(),
-                elementType,
-                "cannot store types that are not first-class in bags. Try "
-                "option --uf-ho.");
   Debug("bags") << "making bags type " << elementType << std::endl;
   return mkTypeNode(kind::BAG_TYPE, elementType);
 }
@@ -540,10 +536,6 @@ TypeNode NodeManager::mkSequenceType(TypeNode elementType)
 {
   CheckArgument(
       !elementType.isNull(), elementType, "unexpected NULL element type");
-  CheckArgument(elementType.isFirstClass(),
-                elementType,
-                "cannot store types that are not first-class in sequences. Try "
-                "option --uf-ho.");
   return mkTypeNode(kind::SEQUENCE_TYPE, elementType);
 }
 
