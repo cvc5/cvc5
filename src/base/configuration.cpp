@@ -99,8 +99,8 @@ std::string Configuration::getVersionExtra() { return CVC5_EXTRAVERSION; }
 
 std::string Configuration::copyright() {
   std::stringstream ss;
-  ss << "Copyright (c) 2009-2020 by the authors and their institutional\n"
-     << "affiliations listed at http://cvc4.cs.stanford.edu/authors\n\n";
+  ss << "Copyright (c) 2009-2021 by the authors and their institutional\n"
+     << "affiliations listed at https://cvc5.github.io/people.html\n\n";
 
   if (Configuration::licenseIsGpl()) {
     ss << "This build of cvc5 uses GPLed libraries, and is thus covered by\n"
@@ -185,7 +185,7 @@ std::string Configuration::copyright() {
       ss << "cvc5 is statically linked against these libraries. To recompile\n"
             "this version of cvc5 with different versions of these libraries\n"
             "follow the instructions on "
-            "https://github.com/CVC4/CVC4/blob/master/INSTALL.md\n\n";
+            "https://github.com/cvc5/cvc5/blob/master/INSTALL.md\n\n";
     }
   }
 
