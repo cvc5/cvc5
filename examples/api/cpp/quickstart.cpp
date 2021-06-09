@@ -126,16 +126,16 @@ int main()
   double xDouble = std::stod(xStr);
   double yDouble = std::stod(yStr);
   double xMinusYDouble = std::stod(xMinusYStr);
-	
+
   // Another way to independently compute the value of x and y
   // would be using ordinary cpp minus operator, rather than asking
   // the solver. However, for more complex terms,
   // it is easier to let the solver do the evaluation for you.
   double xMinusYComputed = x - y;
-  if (xMinusYComputed == xMinusYDouble) then {
-	  std::cout << "computed correctly" << std::endl;
-  } else {
-	  std::cout << "computed incorrectly" << std::endl;
+  if (xMinusYComputed == xMinusYDouble)
+    then { std::cout << "computed correctly" << std::endl; }
+  else {
+    std::cout << "computed incorrectly" << std::endl;
   }
 
   // Next, we will check satisfiability of the same formula,
