@@ -46,23 +46,40 @@ std::string DotPrinter::sanitizeString(const std::string& s)
   return newS;
 }
 
+void DotPrinter::countSubproofs(
+    const ProofNode* pn, std::map<const ProofNode*, size_t>& subpfCounter)
+{
+  size_t counter = 1;
+  const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
+  for (const std::shared_ptr<ProofNode>& c : children)
+  {
+    countSubproofs(c.get(), subpfCounter);
+    counter += subpfCounter[c.get()];
+  }
+  subpfCounter[pn] = counter;
+}
+
 void DotPrinter::print(std::ostream& out, const ProofNode* pn)
 {
   uint64_t ruleID = 0;
+  std::map<const ProofNode*, size_t> subpfCounter;
+  countSubproofs(pn, subpfCounter);
 
   // The dot attribute rankdir="BT" sets the direction of the graph layout,
   // placing the root node at the top. The "node [shape..." attribute sets the
   // shape of all nodes to record.
   out << "digraph proof {\n\trankdir=\"BT\";\n\tnode [shape=record];\n";
-  DotPrinter::printInternal(out, pn, ruleID, 0, false);
+  DotPrinter::printInternal(out, pn, ruleID, 0, false, subpfCounter);
   out << "}\n";
 }
 
-void DotPrinter::printInternal(std::ostream& out,
-                               const ProofNode* pn,
-                               uint64_t& ruleID,
-                               uint64_t scopeCounter,
-                               bool inPropositionalView)
+void DotPrinter::printInternal(
+    std::ostream& out,
+    const ProofNode* pn,
+    uint64_t& ruleID,
+    uint64_t scopeCounter,
+    bool inPropositionalView,
+    const std::map<const ProofNode*, size_t>& subpfCounter)
 {
   uint64_t currentRuleID = ruleID;
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
@@ -126,7 +143,8 @@ void DotPrinter::printInternal(std::ostream& out,
   {
     ++ruleID;
     out << "\t" << ruleID << " -> " << currentRuleID << ";\n";
-    printInternal(out, c.get(), ruleID, scopeCounter, inPropositionalView);
+    printInternal(
+        out, c.get(), ruleID, scopeCounter, inPropositionalView, subpfCounter);
   }
 }
 
