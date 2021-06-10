@@ -290,11 +290,16 @@ std::string LogicInfo::getLogicString() const {
     {
       d_logicString = "HO_ALL";
     }
-    else if(hasEverything()) {
+    else if (hasEverything())
+    {
       d_logicString = "ALL";
-    } else if(*this == qf_all_supported) {
+    }
+    else if (*this == qf_all_supported)
+    {
       d_logicString = "QF_ALL";
-    } else {
+    }
+    else
+    {
       size_t seen = 0; // make sure we support all the active theories
       stringstream ss;
       if (isHigherOrder())
