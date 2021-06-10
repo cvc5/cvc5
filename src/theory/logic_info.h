@@ -120,11 +120,14 @@ public:
   /** Is this a quantified logic? */
   bool isQuantified() const;
 
-  /** Is this the all-inclusive logic? */
-  bool hasEverything() const;
-
-  /** Is this the all-inclusive higher-order logic? */
-  bool hasEverythingAndHol() const;
+  /** Is this the all-inclusive logic?
+   *
+   * @param andHol Whether also to check if it's the all-inclusive logic with
+   * HOL.
+   * @return Yields true if the logic corresponds to "ALL" or, if andHol is set,
+   * to either "ALL" or "HO_ALL".
+   */
+  bool hasEverything(bool andHol = false) const;
 
   /** Is this the all-exclusive logic?  (Here, that means propositional logic) */
   bool hasNothing() const;

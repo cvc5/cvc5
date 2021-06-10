@@ -118,23 +118,21 @@ bool LogicInfo::isHigherOrder() const
 }
 
 /** Is this the all-inclusive logic? */
-bool LogicInfo::hasEverything() const {
-  PrettyCheckArgument(d_locked, *this,
-                      "This LogicInfo isn't locked yet, and cannot be queried");
-  LogicInfo everything;
-  everything.lock();
-  return *this == everything;
-}
-
-bool LogicInfo::hasEverythingAndHol() const
+bool LogicInfo::hasEverything(bool andHol) const
 {
   PrettyCheckArgument(d_locked,
                       *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
+  LogicInfo everything;
+  everything.lock();
+  if (!andHol)
+  {
+    return *this == everything;
+  }
   LogicInfo everythingAndHol;
   everythingAndHol.enableHigherOrder();
   everythingAndHol.lock();
-  return *this == everythingAndHol;
+  return *this == everything || *this == everythingAndHol;
 }
 
 /** Is this the all-exclusive logic?  (Here, that means propositional logic) */
@@ -286,13 +284,13 @@ std::string LogicInfo::getLogicString() const {
     LogicInfo qf_all_supported;
     qf_all_supported.disableQuantifiers();
     qf_all_supported.lock();
-    if (hasEverythingAndHol())
-    {
-      d_logicString = "HO_ALL";
-    }
-    else if (hasEverything())
+    if (hasEverything())
     {
       d_logicString = "ALL";
+    }
+    else if (hasEverything(true))
+    {
+      d_logicString = "HO_ALL";
     }
     else if (*this == qf_all_supported)
     {

@@ -283,8 +283,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   //
   // We don't want to set this option when we are in logics like ALL
   // (everything) or HO_ALL (everything + HOL), so we guard against that.
-  if (!logic.hasEverything() && !logic.hasEverythingAndHol()
-      && logic.isTheoryEnabled(THEORY_STRINGS))
+  if (!logic.hasEverything(true) && logic.isTheoryEnabled(THEORY_STRINGS))
   {
     // If the user explicitly set a logic that includes strings, but is not
     // the generic "ALL" logic, then enable stringsExp.
@@ -906,7 +905,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         // anything that uses sygus uses internal
         usesSygus ? options::DecisionMode::INTERNAL :
                   // ALL or HO_ALL
-            logic.hasEverything() || logic.hasEverythingAndHol()
+            logic.hasEverything(true)
                 ? options::DecisionMode::JUSTIFICATION
                 : (  // QF_BV
                     (not logic.isQuantified() && logic.isPure(THEORY_BV)) ||
@@ -938,8 +937,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
     bool stoponly =
         // ALL or HO_ALL
-        logic.hasEverything() || logic.hasEverythingAndHol()
-                || logic.isTheoryEnabled(THEORY_STRINGS)
+        logic.hasEverything(true) || logic.isTheoryEnabled(THEORY_STRINGS)
             ? false
             : (  // QF_AUFLIA
                 (not logic.isQuantified()
