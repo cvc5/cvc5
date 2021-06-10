@@ -412,51 +412,22 @@ void LogicInfo::setLogicString(std::string logicString)
     enableQuantifiers();
     p += 3;
   } else if(!strcmp(p, "QF_ALL")) {
-    // the "all theories included" logic, no quantifiers. Note we must check
-    // whether HOL *bofer* enabling everything because doing so will set
-    // d_higherOrder to false regardless. For the same reason we cannot factor
-    // out enableEverything() from the branches because enableHigherOrder() must
-    // be called after it.
-    if (d_higherOrder)
-    {
-      enableEverything();
-      enableHigherOrder();
-    }
-    else
-    {
-      enableEverything();
-    }
+    // the "all theories included" logic, no quantifiers.
+    enableEverything(d_higherOrder);
     disableQuantifiers();
     arithNonLinear();
     p += 6;
   } else if(!strcmp(p, "ALL")) {
-    // the "all theories included" logic, with quantifiers. Control flow
-    // explained above in "QF_ALL" case.
-    if (d_higherOrder)
-    {
-      enableEverything();
-      enableHigherOrder();
-    }
-    else
-    {
-      enableEverything();
-    }
+    // the "all theories included" logic, with quantifiers.
+    enableEverything(d_higherOrder);
     enableQuantifiers();
     arithNonLinear();
     p += 3;
   }
   else if (!strcmp(p, "HORN"))
   {
-    // the HORN logic. Control flow explained above in "QF_ALL" case.
-    if (d_higherOrder)
-    {
-      enableEverything();
-      enableHigherOrder();
-    }
-    else
-    {
-      enableEverything();
-    }
+    // the HORN logic
+    enableEverything(d_higherOrder);
     enableQuantifiers();
     arithNonLinear();
     p += 4;
@@ -598,9 +569,10 @@ void LogicInfo::setLogicString(std::string logicString)
   d_logicString = logicString;
 }
 
-void LogicInfo::enableEverything() {
+void LogicInfo::enableEverything(bool enableHigherOrder) {
   PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   *this = LogicInfo();
+  this->d_higherOrder = enableHigherOrder;
 }
 
 void LogicInfo::disableEverything() {

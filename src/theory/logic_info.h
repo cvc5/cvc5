@@ -171,8 +171,11 @@ public:
   /**
    * Enable all functionality.  All theories, plus quantifiers, will be
    * enabled.
+   *
+   * @param enableHigherOrder Whether HOL should be enable together with the
+   * above.
    */
-  void enableEverything();
+  void enableEverything(bool enableHigherOrder = false);
 
   /**
    * Disable all functionality.  The result will be a LogicInfo with
