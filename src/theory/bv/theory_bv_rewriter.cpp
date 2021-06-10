@@ -65,16 +65,14 @@ TrustNode TheoryBVRewriter::expandDefinition(Node node)
     case kind::BITVECTOR_SREM:
     case kind::BITVECTOR_SMOD: ret = eliminateBVSDiv(node); break;
     case kind::BITVECTOR_TO_NAT:
-      if (!options::bvLazyReduceExtf())
-      {
+
         ret = utils::eliminateBv2Nat(node);
-      }
+      
       break;
     case kind::INT_TO_BITVECTOR:
-      if (!options::bvLazyReduceExtf())
-      {
+
         ret = utils::eliminateInt2Bv(node);
-      }
+      
       break;
     default: break;
   }
@@ -646,28 +644,11 @@ RewriteResponse TheoryBVRewriter::RewriteRedand(TNode node, bool prerewrite){
 }
 
 RewriteResponse TheoryBVRewriter::RewriteBVToNat(TNode node, bool prerewrite) {
-  //do not use lazy rewrite strategy if equality solver is disabled
-  if( node[0].isConst() || !options::bvLazyRewriteExtf() ){
-    Node resultNode = LinearRewriteStrategy
-      < RewriteRule<BVToNatEliminate>
-      >::apply(node);
-    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
-  }else{
-    return RewriteResponse(REWRITE_DONE, node); 
-  }
+  return RewriteResponse(REWRITE_DONE, node);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteIntToBV(TNode node, bool prerewrite) {
-  //do not use lazy rewrite strategy if equality solver is disabled
-  if( node[0].isConst() || !options::bvLazyRewriteExtf() ){
-    Node resultNode = LinearRewriteStrategy
-      < RewriteRule<IntToBVEliminate>
-      >::apply(node);
-
-    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
-  }else{
-    return RewriteResponse(REWRITE_DONE, node); 
-  }
+  return RewriteResponse(REWRITE_DONE, node);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteEqual(TNode node, bool prerewrite) {
