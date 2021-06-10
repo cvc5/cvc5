@@ -35,6 +35,7 @@
 #include "main/time_limit.h"
 #include "options/options.h"
 #include "options/options_public.h"
+#include "options/main_options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -56,7 +57,7 @@ thread_local Options* pOptions;
 const char* progPath;
 
 /** Just the basename component of argv[0] */
-const std::string* progName;
+std::string progName;
 
 /** A pointer to the CommandExecutor (the signal handlers need it) */
 std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
@@ -79,7 +80,7 @@ TotalTimer::~TotalTimer()
 
 void printUsage(Options& opts, bool full) {
   stringstream ss;
-  ss << "usage: " << options::getBinaryName(opts) << " [options] [input-file]"
+  ss << "usage: " << progName << " [options] [input-file]"
      << endl
      << endl
      << "Without an input file, or with `-', cvc5 reads from standard input."
@@ -105,14 +106,12 @@ int runCvc5(int argc, char* argv[], Options& opts)
   progPath = argv[0];
 
   // Parse the options
-  vector<string> filenames = Options::parseOptions(&opts, argc, argv);
+  std::vector<string> filenames =
+      Options::parseOptions(&opts, argc, argv, progName);
 
   auto limit = install_time_limit(opts);
 
-  string progNameStr = options::getBinaryName(opts);
-  progName = &progNameStr;
-
-  if (options::getHelp(opts))
+  if (opts.driver.help)
   {
     printUsage(opts, true);
     exit(1);
@@ -122,13 +121,13 @@ int runCvc5(int argc, char* argv[], Options& opts)
     Options::printLanguageHelp(*(options::getOut(opts)));
     exit(1);
   }
-  else if (options::getVersion(opts))
+  else if (opts.driver.version)
   {
     *(options::getOut(opts)) << Configuration::about().c_str() << flush;
     exit(0);
   }
 
-  segvSpin = options::getSegvSpin(opts);
+  segvSpin = opts.driver.segvSpin;
 
   // If in competition mode, set output stream option to flush immediately
 #ifdef CVC5_COMPETITION_MODE
@@ -146,7 +145,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
   // if we're reading from stdin on a TTY, default to interactive mode
   if (!options::wasSetByUserInteractive(opts))
   {
-    options::setInteractive(inputFromStdin && isatty(fileno(stdin)), opts);
+    opts.driver.interactive = inputFromStdin && isatty(fileno(stdin));
   }
 
   // Auto-detect input language by filename extension
@@ -212,9 +211,9 @@ int runCvc5(int argc, char* argv[], Options& opts)
     // Parse and execute commands until we are done
     std::unique_ptr<Command> cmd;
     bool status = true;
-    if (options::getInteractive(opts) && inputFromStdin)
+    if (opts.driver.interactive && inputFromStdin)
     {
-      if (options::getTearDownIncremental(opts) > 0)
+      if (opts.driver.tearDownIncremental > 0)
       {
         throw Exception(
             "--tear-down-incremental doesn't work in interactive mode");
@@ -227,7 +226,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
       }
       InteractiveShell shell(pExecutor->getSolver(),
                              pExecutor->getSymbolManager());
-      if (options::getInteractivePrompt(opts))
+      if (opts.driver.interactivePrompt)
       {
         CVC5Message() << Configuration::getPackageName() << " "
                       << Configuration::getVersionString();
@@ -257,10 +256,10 @@ int runCvc5(int argc, char* argv[], Options& opts)
         }
       }
     }
-    else if (options::getTearDownIncremental(opts) > 0)
+    else if (opts.driver.tearDownIncremental > 0)
     {
       if (!options::getIncrementalSolving(opts)
-          && options::getTearDownIncremental(opts) > 1)
+          && opts.driver.tearDownIncremental > 1)
       {
         // For tear-down-incremental values greater than 1, need incremental
         // on too.
@@ -313,7 +312,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
         }
 
         if(dynamic_cast<PushCommand*>(cmd.get()) != nullptr) {
-          if (needReset >= options::getTearDownIncremental(opts))
+          if (needReset >= opts.driver.tearDownIncremental)
           {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
@@ -342,7 +341,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
           }
         } else if(dynamic_cast<PopCommand*>(cmd.get()) != nullptr) {
           allCommands.pop_back(); // fixme leaks cmds here
-          if (needReset >= options::getTearDownIncremental(opts))
+          if (needReset >= opts.driver.tearDownIncremental)
           {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
@@ -371,7 +370,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
           }
         } else if(dynamic_cast<CheckSatCommand*>(cmd.get()) != nullptr ||
                   dynamic_cast<QueryCommand*>(cmd.get()) != nullptr) {
-          if (needReset >= options::getTearDownIncremental(opts))
+          if (needReset >= opts.driver.tearDownIncremental)
           {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
@@ -511,12 +510,12 @@ int runCvc5(int argc, char* argv[], Options& opts)
     pExecutor->flushOutputStreams();
 
 #ifdef CVC5_DEBUG
-    if (options::getEarlyExit(opts) && options::wasSetByUserEarlyExit(opts))
+    if (opts.driver.earlyExit && options::wasSetByUserEarlyExit(opts))
     {
       _exit(returnValue);
     }
 #else  /* CVC5_DEBUG */
-    if (options::getEarlyExit(opts))
+    if (opts.driver.earlyExit)
     {
       _exit(returnValue);
     }

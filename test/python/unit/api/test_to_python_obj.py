@@ -22,8 +22,8 @@ def testGetBool():
     solver = pycvc5.Solver()
     t = solver.mkTrue()
     f = solver.mkFalse()
-    assert t.toPythonObj() == True
-    assert f.toPythonObj() == False
+    assert t.toPythonObj() is True
+    assert f.toPythonObj() is False
 
 
 def testGetInt():
@@ -115,4 +115,4 @@ def testGetValueReal():
     xval = solver.getValue(x)
     yval = solver.getValue(y)
     assert xval.toPythonObj() == Fraction("6")
-    assert yval.toPythonObj() == float(Fraction("8.33"))
+    assert yval.toPythonObj() == Fraction("8.33")

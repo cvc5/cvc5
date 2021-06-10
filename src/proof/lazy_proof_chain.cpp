@@ -28,13 +28,15 @@ LazyCDProofChain::LazyCDProofChain(ProofNodeManager* pnm,
                                    bool cyclic,
                                    context::Context* c,
                                    ProofGenerator* defGen,
-                                   bool defRec)
+                                   bool defRec,
+                                   const std::string& name)
     : d_manager(pnm),
       d_cyclic(cyclic),
       d_defRec(defRec),
       d_context(),
       d_gens(c ? c : &d_context),
-      d_defGen(defGen)
+      d_defGen(defGen),
+      d_name(name)
 {
 }
 
@@ -322,6 +324,6 @@ ProofGenerator* LazyCDProofChain::getGeneratorForInternal(Node fact, bool& rec)
   return nullptr;
 }
 
-std::string LazyCDProofChain::identify() const { return "LazyCDProofChain"; }
+std::string LazyCDProofChain::identify() const { return d_name; }
 
 }  // namespace cvc5

@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of reasoning about sets with CVC4.
+ * A simple demonstration of reasoning about sets with cvc5.
  */
 
 #include <cvc5/cvc5.h>

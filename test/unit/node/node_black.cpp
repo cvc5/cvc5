@@ -67,7 +67,8 @@ class TestNodeBlackNode : public TestNode
     char* argv[2];
     argv[0] = strdup("");
     argv[1] = strdup("--output-lang=ast");
-    Options::parseOptions(&opts, 2, argv);
+    std::string progName;
+    Options::parseOptions(&opts, 2, argv, progName);
     free(argv[0]);
     free(argv[1]);
     d_smt.reset(new SmtEngine(d_nodeManager.get(), &opts));
