@@ -284,26 +284,22 @@ std::string LogicInfo::getLogicString() const {
     LogicInfo qf_all_supported;
     qf_all_supported.disableQuantifiers();
     qf_all_supported.lock();
+    stringstream ss;
+    if (isHigherOrder())
+    {
+      ss << "HO_";
+    }
     if (hasEverything())
     {
-      d_logicString = "ALL";
-    }
-    else if (hasEverything(true))
-    {
-      d_logicString = "HO_ALL";
+      ss << "ALL";
     }
     else if (*this == qf_all_supported)
     {
-      d_logicString = "QF_ALL";
+      ss << "QF_ALL";
     }
     else
     {
       size_t seen = 0; // make sure we support all the active theories
-      stringstream ss;
-      if (isHigherOrder())
-      {
-        ss << "HO_";
-      }
       if(!isQuantified()) {
         ss << "QF_";
       }
@@ -371,9 +367,8 @@ std::string LogicInfo::getLogicString() const {
       if(seen == 0) {
         ss << "SAT";
       }
-
-      d_logicString = ss.str();
     }
+    d_logicString = ss.str();
   }
   return d_logicString;
 }
