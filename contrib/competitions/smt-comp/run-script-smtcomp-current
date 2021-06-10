@@ -139,10 +139,7 @@ QF_ABV)
   trywith 500 --arrays-weak-equiv
   finishwith --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
   ;;
-QF_UFBV)
-  finishwith --bitblast=eager
-  ;;
-QF_BV)
+QF_BV|QF_UFBV)
   finishwith --bitblast=eager --bv-assert-input
   ;;
 QF_AUFLIA)
