@@ -123,6 +123,9 @@ public:
   /** Is this the all-inclusive logic? */
   bool hasEverything() const;
 
+  /** Is this the all-inclusive higher-order logic? */
+  bool hasEverythingAndHol() const;
+
   /** Is this the all-exclusive logic?  (Here, that means propositional logic) */
   bool hasNothing() const;
 

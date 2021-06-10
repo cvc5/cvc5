@@ -126,6 +126,17 @@ bool LogicInfo::hasEverything() const {
   return *this == everything;
 }
 
+bool LogicInfo::hasEverythingAndHol() const
+{
+  PrettyCheckArgument(d_locked,
+                      *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  LogicInfo everythingAndHol;
+  everythingAndHol.enableHigherOrder();
+  everythingAndHol.lock();
+  return *this == everythingAndHol;
+}
+
 /** Is this the all-exclusive logic?  (Here, that means propositional logic) */
 bool LogicInfo::hasNothing() const {
   PrettyCheckArgument(d_locked, *this,
@@ -275,14 +286,21 @@ std::string LogicInfo::getLogicString() const {
     LogicInfo qf_all_supported;
     qf_all_supported.disableQuantifiers();
     qf_all_supported.lock();
-    if(hasEverything()) {
+    if (hasEverythingAndHol())
+    {
+      d_logicString = "HO_ALL";
+    }
+    else if(hasEverything()) {
       d_logicString = "ALL";
     } else if(*this == qf_all_supported) {
       d_logicString = "QF_ALL";
     } else {
       size_t seen = 0; // make sure we support all the active theories
-
       stringstream ss;
+      if (isHigherOrder())
+      {
+        ss << "HO_";
+      }
       if(!isQuantified()) {
         ss << "QF_";
       }
@@ -613,7 +631,6 @@ void LogicInfo::enableSygus()
   enableTheory(THEORY_UF);
   enableTheory(THEORY_DATATYPES);
   enableIntegers();
-  enableHigherOrder();
 }
 
 void LogicInfo::enableSeparationLogic()
