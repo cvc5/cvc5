@@ -86,9 +86,6 @@ class CoreSolver : public SubtheorySolver {
   bool isCompleteForTerm(TNode term, TNodeBoolMap& seen);
   Statistics d_statistics;
 
-  /** Whether we need a last call effort check */
-  bool d_needsLastCallCheck;
-
  public:
   CoreSolver(context::Context* c, BVSolverLazy* bv);
   ~CoreSolver();
@@ -104,9 +101,6 @@ class CoreSolver : public SubtheorySolver {
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   bool hasTerm(TNode node) const;
   void addTermToEqualityEngine(TNode node);
-  /** check extended functions at the given effort */
-  void checkExtf(Theory::Effort e);
-  bool needsCheckLastEffort() const;
 };
 
 }

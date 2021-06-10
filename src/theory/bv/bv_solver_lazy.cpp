@@ -233,18 +233,6 @@ void BVSolverLazy::check(Theory::Effort e)
     return;
   }
 
-  // last call : do reductions on extended bitvector functions
-  if (e == Theory::EFFORT_LAST_CALL)
-  {
-    CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
-    if (core)
-    {
-      // check extended functions at last call effort
-      core->checkExtf(e);
-    }
-    return;
-  }
-
   Debug("bitvector") << "BVSolverLazy::check(" << e << ")" << std::endl;
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveTimer);
   // we may be getting new assertions so the model cache may not be sound
@@ -331,27 +319,6 @@ void BVSolverLazy::check(Theory::Effort e)
       break;
     }
   }
-
-  // check extended functions
-  if (Theory::fullEffort(e))
-  {
-    CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
-    if (core)
-    {
-      // check extended functions at full effort
-      core->checkExtf(e);
-    }
-  }
-}
-
-bool BVSolverLazy::needsCheckLastEffort()
-{
-  CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
-  if (core)
-  {
-    return core->needsCheckLastEffort();
-  }
-  return false;
 }
 
 bool BVSolverLazy::collectModelValues(TheoryModel* m,

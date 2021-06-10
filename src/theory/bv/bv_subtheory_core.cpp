@@ -40,8 +40,7 @@ CoreSolver::CoreSolver(context::Context* c, BVSolverLazy* bv)
       d_preregisterCalled(false),
       d_checkCalled(false),
       d_bv(bv),
-      d_reasons(c),
-      d_needsLastCallCheck(false)
+      d_reasons(c)
 {
 }
 
@@ -417,5 +416,3 @@ CoreSolver::Statistics::Statistics()
         "theory::bv::CoreSolver::NumCallsToCheck"))
 {
 }
-
-bool CoreSolver::needsCheckLastEffort() const { return d_needsLastCallCheck; }
