@@ -569,7 +569,8 @@ void LogicInfo::setLogicString(std::string logicString)
   d_logicString = logicString;
 }
 
-void LogicInfo::enableEverything(bool enableHigherOrder) {
+void LogicInfo::enableEverything(bool enableHigherOrder)
+{
   PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   *this = LogicInfo();
   this->d_higherOrder = enableHigherOrder;
