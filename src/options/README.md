@@ -12,6 +12,8 @@ Additional, a module can optionally be defined to be public. A public module
 includes `cvc5_public.h` instead of `cvc5_private.h` can thus be included from
 "external" code like the parser or the main driver.
 
+* `public` (bool): make option module public
+
 A module defines 0 or more options.
 
 In general, each attribute/value pair is required to be in one line. Comments
