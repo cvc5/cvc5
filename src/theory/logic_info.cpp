@@ -407,7 +407,11 @@ void LogicInfo::setLogicString(std::string logicString)
     enableQuantifiers();
     p += 3;
   } else if(!strcmp(p, "QF_ALL")) {
-    // the "all theories included" logic, no quantifiers
+    // the "all theories included" logic, no quantifiers. Note we must check
+    // whether HOL *bofer* enabling everything because doing so will set
+    // d_higherOrder to false regardless. For the same reason we cannot factor
+    // out enableEverything() from the branches because enableHigherOrder() must
+    // be called after it.
     if (d_higherOrder)
     {
       enableEverything();
@@ -421,7 +425,8 @@ void LogicInfo::setLogicString(std::string logicString)
     arithNonLinear();
     p += 6;
   } else if(!strcmp(p, "ALL")) {
-    // the "all theories included" logic, with quantifiers
+    // the "all theories included" logic, with quantifiers. Control flow
+    // explained above in "QF_ALL" case.
     if (d_higherOrder)
     {
       enableEverything();
@@ -437,7 +442,7 @@ void LogicInfo::setLogicString(std::string logicString)
   }
   else if (!strcmp(p, "HORN"))
   {
-    // the HORN logic
+    // the HORN logic. Control flow explained above in "QF_ALL" case.
     if (d_higherOrder)
     {
       enableEverything();
