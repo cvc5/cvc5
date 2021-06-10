@@ -64,7 +64,18 @@ TrustNode TheoryBVRewriter::expandDefinition(Node node)
     case kind::BITVECTOR_SDIV:
     case kind::BITVECTOR_SREM:
     case kind::BITVECTOR_SMOD: ret = eliminateBVSDiv(node); break;
-
+    case kind::BITVECTOR_TO_NAT:
+      if (!options::bvLazyReduceExtf())
+      {
+        ret = utils::eliminateBv2Nat(node);
+      }
+      break;
+    case kind::INT_TO_BITVECTOR:
+      if (!options::bvLazyReduceExtf())
+      {
+        ret = utils::eliminateInt2Bv(node);
+      }
+      break;
     default: break;
   }
   if (!ret.isNull() && node != ret)
