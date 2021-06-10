@@ -82,7 +82,7 @@ public:
                        bool value);
   void abcEnabledBuild(const std::string& option,
                        const std::string& flag,
-                       std::string value);
+                       const std::string& value);
 
   template <class T>
   void checkSatSolverEnabled(const std::string& option,
@@ -103,7 +103,7 @@ public:
   // printer/options_handlers.h
   InstFormatMode stringToInstFormatMode(const std::string& option,
                                         const std::string& flag,
-                                        std::string optarg);
+                                        const std::string& optarg);
 
   // decision/options_handlers.h
   void setDecisionModeStopOnly(const std::string& option,
@@ -122,10 +122,10 @@ public:
 
   uint64_t limitHandler(const std::string& option,
                         const std::string& flag,
-                        std::string optarg);
+                        const std::string& optarg);
   void setResourceWeight(const std::string& option,
                          const std::string& flag,
-                         std::string optarg);
+                         const std::string& optarg);
 
   /* expr/options_handlers.h */
   void setDefaultExprDepthPredicate(const std::string& option,
@@ -150,16 +150,16 @@ public:
   void decreaseVerbosity(const std::string& option, const std::string& flag);
   OutputLanguage stringToOutputLanguage(const std::string& option,
                                         const std::string& flag,
-                                        std::string optarg);
+                                        const std::string& optarg);
   InputLanguage stringToInputLanguage(const std::string& option,
                                       const std::string& flag,
-                                      std::string optarg);
+                                      const std::string& optarg);
   void enableTraceTag(const std::string& option,
                       const std::string& flag,
-                      std::string optarg);
+                      const std::string& optarg);
   void enableDebugTag(const std::string& option,
                       const std::string& flag,
-                      std::string optarg);
+                      const std::string& optarg);
 
  private:
 

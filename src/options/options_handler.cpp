@@ -70,7 +70,7 @@ OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
 uint64_t OptionsHandler::limitHandler(const std::string& option,
                                       const std::string& flag,
-                                      std::string optarg)
+                                      const std::string& optarg)
 {
   uint64_t ms;
   std::istringstream convert(optarg);
@@ -84,7 +84,7 @@ uint64_t OptionsHandler::limitHandler(const std::string& option,
 
 void OptionsHandler::setResourceWeight(const std::string& option,
                                        const std::string& flag,
-                                       std::string optarg)
+                                       const std::string& optarg)
 {
   d_options->resman.resourceWeightHolder.emplace_back(optarg);
 }
@@ -120,7 +120,7 @@ void OptionsHandler::abcEnabledBuild(const std::string& option,
 
 void OptionsHandler::abcEnabledBuild(const std::string& option,
                                      const std::string& flag,
-                                     std::string value)
+                                     const std::string& value)
 {
 #ifndef CVC5_USE_ABC
   if(!value.empty()) {
@@ -229,7 +229,7 @@ szs\n\
 
 InstFormatMode OptionsHandler::stringToInstFormatMode(const std::string& option,
                                                       const std::string& flag,
-                                                      std::string optarg)
+                                                      const std::string& optarg)
 {
   if(optarg == "default") {
     return InstFormatMode::DEFAULT;
@@ -469,7 +469,7 @@ static std::string suggestTags(char const* const* validTags,
 
 void OptionsHandler::enableTraceTag(const std::string& option,
                                     const std::string& flag,
-                                    std::string optarg)
+                                    const std::string& optarg)
 {
   if(!Configuration::isTracingBuild())
   {
@@ -493,7 +493,7 @@ void OptionsHandler::enableTraceTag(const std::string& option,
 
 void OptionsHandler::enableDebugTag(const std::string& option,
                                     const std::string& flag,
-                                    std::string optarg)
+                                    const std::string& optarg)
 {
   if (!Configuration::isDebugBuild())
   {
@@ -526,7 +526,7 @@ void OptionsHandler::enableDebugTag(const std::string& option,
 
 OutputLanguage OptionsHandler::stringToOutputLanguage(const std::string& option,
                                                       const std::string& flag,
-                                                      std::string optarg)
+                                                      const std::string& optarg)
 {
   if(optarg == "help") {
     d_options->base.languageHelp = true;
@@ -545,7 +545,7 @@ OutputLanguage OptionsHandler::stringToOutputLanguage(const std::string& option,
 
 InputLanguage OptionsHandler::stringToInputLanguage(const std::string& option,
                                                     const std::string& flag,
-                                                    std::string optarg)
+                                                    const std::string& optarg)
 {
   if(optarg == "help") {
     d_options->base.languageHelp = true;
