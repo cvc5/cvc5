@@ -222,7 +222,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // solvers we need to eagerly eliminate the operators. Note this is only
     // applied if we are not eliminating BV (e.g. with solveBVAsInt).
     opts.bv.bvLazyReduceExtf = false;
-    opts.bv.bvLazyRewriteExtf = false;
   }
 
   // set options about ackermannization
