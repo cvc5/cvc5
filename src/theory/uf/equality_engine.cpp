@@ -787,7 +787,9 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
               class1triggers.d_triggers[i1++];
           // since they are both tagged notify of merge
           EqualityNodeId tag2id = class2triggers.d_triggers[i2++];
-          if (!d_notify.eqNotifyTriggerTermEquality(tag1, d_nodes[tag1id], d_nodes[tag2id], true)) {
+          if (!d_notify.eqNotifyTriggerTermEquality(
+                  tag1, d_nodes[tag1id], d_nodes[tag2id], true))
+          {
             return false;
           }
           // Next tags
@@ -1921,7 +1923,8 @@ void EqualityEngine::propagate() {
       d_assertedEqualities.push_back(Equality(null_id, null_id));
       d_assertedEqualitiesCount = d_assertedEqualitiesCount + 1;
       // Notify
-      d_notify.eqNotifyConstantTermMerge(d_nodes[t1classId], d_nodes[t2classId]);
+      d_notify.eqNotifyConstantTermMerge(d_nodes[t1classId],
+                                         d_nodes[t2classId]);
       // Empty the queue and exit
       continue;
     }
@@ -1980,7 +1983,8 @@ void EqualityEngine::propagate() {
     }
 
     // Notify the triggers
-    if (!d_done) {
+    if (!d_done)
+    {
       for (size_t trigger_i = 0, trigger_end = triggers.size(); trigger_i < trigger_end && !d_done; ++ trigger_i) {
         const TriggerInfo& triggerInfo = d_equalityTriggersOriginal[triggers[trigger_i]];
         if (triggerInfo.d_trigger.getKind() == kind::EQUAL)
@@ -2203,11 +2207,16 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
   if (triggerSetRef != +null_set_id && getTriggerTermSet(triggerSetRef).hasTrigger(tag)) {
     // If the term already is in the equivalence class that a tagged representative, just notify
     EqualityNodeId triggerId = getTriggerTermSet(triggerSetRef).getTrigger(tag);
-    Debug("equality::trigger") << d_name << "::eq::addTriggerTerm(" << t << ", " << tag << "): already have this trigger in class with " << d_nodes[triggerId] << std::endl;
-    if (eqNodeId != triggerId && !d_notify.eqNotifyTriggerTermEquality(tag, t, d_nodes[triggerId], true)) {
+    Debug("equality::trigger")
+        << d_name << "::eq::addTriggerTerm(" << t << ", " << tag
+        << "): already have this trigger in class with " << d_nodes[triggerId]
+        << std::endl;
+    if (eqNodeId != triggerId
+        && !d_notify.eqNotifyTriggerTermEquality(
+               tag, t, d_nodes[triggerId], true))
+    {
       d_done = true;
     }
-    
   } else {
 
     // Check for disequalities by going through the equivalence class looking for equalities in the
@@ -2586,7 +2595,9 @@ bool EqualityEngine::propagateTriggerTermDisequalities(
         // Store the propagation
         storePropagatedDisequality(currentTag, myRep, tagRep);
         // Notify
-        if (!d_notify.eqNotifyTriggerTermEquality(currentTag, d_nodes[myRep], d_nodes[tagRep], false)) {
+        if (!d_notify.eqNotifyTriggerTermEquality(
+                currentTag, d_nodes[myRep], d_nodes[tagRep], false))
+        {
           d_done = true;
         }
       }
