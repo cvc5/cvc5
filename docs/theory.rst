@@ -6,3 +6,4 @@ Theory References
 
    theories/datatypes
    theories/separation-logic
+   theories/sets-and-relations
