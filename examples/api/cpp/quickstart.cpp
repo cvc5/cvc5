@@ -121,7 +121,7 @@ int main()
   double xMinusYDouble = std::stod(xMinusYStr);
 
   // Another way to independently compute the value of x and y would be using
-  // ordinary cpp minus operator, rather than asking the solver.
+  // the ordinary cpp minus operator instead of asking the solver.
   // However, for more complex terms,
   // it is easier to let the solver do the evaluation.
   double xMinusYComputed = xDouble - yDouble;
