@@ -502,8 +502,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   d_logicSet = true;
   d_logic = name;
 
-  // if sygus is enabled, we must enable UF, datatypes, integer arithmetic and
-  // higher-order
+  // if sygus is enabled, we must enable UF, datatypes, and integer arithmetic
   if(sygus()) {
     if (!d_logic.isQuantified())
     {
