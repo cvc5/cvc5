@@ -1,6 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
+<<<<<<< HEAD
  *   Andrew Reynolds, Makai Mann, Gereon Kremer
+=======
+ *   Yoni Zohar
+>>>>>>> master
  *
  * This file is part of the cvc5 project.
  *
@@ -33,12 +37,12 @@ namespace nl {
 
 class NlModel;
 
-/** Integer and solver class
+/** pow2 solver class
  *
  */
 class Pow2Solver
 {
-  typedef context::CDHashSet<Node> NodeSet;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   Pow2Solver(InferenceManager& im, ArithState& state, NlModel& model);
@@ -62,7 +66,7 @@ class Pow2Solver
    *
    * Examples
    *
-   * x>=0 --> x < pow2(x) 
+   * x>=0 --> x < pow2(x)
    *
    * This should be a heuristic incomplete check that only introduces a
    * small number of new terms in the lemmas it returns.
@@ -90,13 +94,13 @@ class Pow2Solver
 
   NodeSet d_initRefine;
   /** all pow2 terms 
-   * Cleared at each last call effort check.
+   * Cleared at each last call effort check. 
    * */
   std::vector<Node> d_pow2s;
 
   /**
    * Value-based refinement lemma for i of the form (pow2 x). Returns:
-   *   x = M(x) >= 0 ---->
+   *   x = M(x) /\ x>= 0 ---->
    *     (pow2 x) = Rewriter::rewrite((pow2 M(x)))
    */
   Node valueBasedLemma(Node i);

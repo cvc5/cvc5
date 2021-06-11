@@ -159,7 +159,7 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
           || m == SatSolverMode::KISSAT))
   {
     if (options::bitblastMode() == options::BitblastMode::LAZY
-        && Options::current().wasSetByUser(options::bitblastMode))
+        && d_options->bv.bitblastModeWasSetByUser)
     {
       throwLazyBBUnsupported(m);
     }
@@ -189,7 +189,7 @@ void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
 void OptionsHandler::setBitblastAig(std::string option, bool arg)
 {
   if(arg) {
-    if(Options::current().wasSetByUser(options::bitblastMode)) {
+    if (d_options->bv.bitblastModeWasSetByUser) {
       if (options::bitblastMode() != options::BitblastMode::EAGER)
       {
         throw OptionException("bitblast-aig must be used with eager bitblaster");
@@ -252,26 +252,29 @@ void OptionsHandler::setStats(const std::string& option, bool value)
     throw OptionException(ss.str());
   }
 #endif /* CVC5_STATISTICS_ON */
-  Assert(option.substr(0, 2) == "--");
-  std::string opt = option.substr(2);
+  std::string opt = option;
+  if (option.substr(0, 2) == "--")
+  {
+    opt = opt.substr(2);
+  }
   if (value)
   {
-    if (option == options::base::statisticsAll__name)
+    if (opt == options::base::statisticsAll__name)
     {
       d_options->base.statistics = true;
     }
-    else if (option == options::base::statisticsEveryQuery__name)
+    else if (opt == options::base::statisticsEveryQuery__name)
     {
       d_options->base.statistics = true;
     }
-    else if (option == options::base::statisticsExpert__name)
+    else if (opt == options::base::statisticsExpert__name)
     {
       d_options->base.statistics = true;
     }
   }
   else
   {
-    if (option == options::base::statistics__name)
+    if (opt == options::base::statistics__name)
     {
       d_options->base.statisticsAll = false;
       d_options->base.statisticsEveryQuery = false;

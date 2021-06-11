@@ -126,7 +126,7 @@ typedef NodeTemplate<true> Node;
  *
  * More guidelines on when to use TNodes is available in the cvc5
  * Developer's Guide:
- * https://github.com/CVC4/CVC4/wiki/Developer-Guide#dealing-with-expressions-nodes-and-tnodes
+ * https://github.com/cvc5/cvc5/wiki/Developer-Guide#dealing-with-expressions-nodes-and-tnodes
  */
 typedef NodeTemplate<false> TNode;
 

@@ -82,8 +82,6 @@ class BVSolverLazy : public BVSolver
 
   bool preCheck(Theory::Effort e) override;
 
-  bool needsCheckLastEffort() override;
-
   void propagate(Theory::Effort e) override;
 
   TrustNode explain(TNode n) override;
