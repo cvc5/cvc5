@@ -63,18 +63,11 @@ void Pow2Solver::initLastCall(const std::vector<Node>& assertions,
   Trace("pow2") << "We have " << d_pow2s.size() << " pow2 terms." << std::endl;
 }
 
-void Pow2Solver::checkInitialRefine()
-{
-}
+void Pow2Solver::checkInitialRefine() {}
 
-void Pow2Solver::checkFullRefine()
-{
-}
+void Pow2Solver::checkFullRefine() {}
 
-Node Pow2Solver::valueBasedLemma(Node i)
-{
-	return Node();
-}
+Node Pow2Solver::valueBasedLemma(Node i) { return Node(); }
 
 }  // namespace nl
 }  // namespace arith
