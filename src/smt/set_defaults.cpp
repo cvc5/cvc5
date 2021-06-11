@@ -907,49 +907,50 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
             logic.hasEverything()
                 ? options::DecisionMode::JUSTIFICATION
                 : (  // QF_BV
-                    (not logic.isQuantified() && logic.isPure(THEORY_BV)) ||
-                            // QF_AUFBV or QF_ABV or QF_UFBV
-                            (not logic.isQuantified()
-                             && (logic.isTheoryEnabled(THEORY_ARRAYS)
-                                 || logic.isTheoryEnabled(THEORY_UF))
-                             && logic.isTheoryEnabled(THEORY_BV))
-                            ||
-                            // QF_AUFLIA (and may be ends up enabling
-                            // QF_AUFLRA?)
-                            (not logic.isQuantified()
-                             && logic.isTheoryEnabled(THEORY_ARRAYS)
-                             && logic.isTheoryEnabled(THEORY_UF)
-                             && logic.isTheoryEnabled(THEORY_ARITH))
-                            ||
-                            // QF_LRA
-                            (not logic.isQuantified()
-                             && logic.isPure(THEORY_ARITH) && logic.isLinear()
-                             && !logic.isDifferenceLogic()
-                             && !logic.areIntegersUsed())
-                            ||
-                            // Quantifiers
-                            logic.isQuantified() ||
-                            // Strings
-                            logic.isTheoryEnabled(THEORY_STRINGS)
-                        ? options::DecisionMode::JUSTIFICATION
-                        : options::DecisionMode::INTERNAL);
+                      (not logic.isQuantified() && logic.isPure(THEORY_BV)) ||
+                              // QF_AUFBV or QF_ABV or QF_UFBV
+                              (not logic.isQuantified()
+                               && (logic.isTheoryEnabled(THEORY_ARRAYS)
+                                   || logic.isTheoryEnabled(THEORY_UF))
+                               && logic.isTheoryEnabled(THEORY_BV))
+                              ||
+                              // QF_AUFLIA (and may be ends up enabling
+                              // QF_AUFLRA?)
+                              (not logic.isQuantified()
+                               && logic.isTheoryEnabled(THEORY_ARRAYS)
+                               && logic.isTheoryEnabled(THEORY_UF)
+                               && logic.isTheoryEnabled(THEORY_ARITH))
+                              ||
+                              // QF_LRA
+                              (not logic.isQuantified()
+                               && logic.isPure(THEORY_ARITH) && logic.isLinear()
+                               && !logic.isDifferenceLogic()
+                               && !logic.areIntegersUsed())
+                              ||
+                              // Quantifiers
+                              logic.isQuantified() ||
+                              // Strings
+                              logic.isTheoryEnabled(THEORY_STRINGS)
+                          ? options::DecisionMode::JUSTIFICATION
+                          : options::DecisionMode::INTERNAL);
 
     bool stoponly =
         // ALL or its supersets
         logic.hasEverything() || logic.isTheoryEnabled(THEORY_STRINGS)
             ? false
             : (  // QF_AUFLIA
-                (not logic.isQuantified()
-                 && logic.isTheoryEnabled(THEORY_ARRAYS)
-                 && logic.isTheoryEnabled(THEORY_UF)
-                 && logic.isTheoryEnabled(THEORY_ARITH))
-                        ||
-                        // QF_LRA
-                        (not logic.isQuantified() && logic.isPure(THEORY_ARITH)
-                         && logic.isLinear() && !logic.isDifferenceLogic()
-                         && !logic.areIntegersUsed())
-                    ? true
-                    : false);
+                  (not logic.isQuantified()
+                   && logic.isTheoryEnabled(THEORY_ARRAYS)
+                   && logic.isTheoryEnabled(THEORY_UF)
+                   && logic.isTheoryEnabled(THEORY_ARITH))
+                          ||
+                          // QF_LRA
+                          (not logic.isQuantified()
+                           && logic.isPure(THEORY_ARITH) && logic.isLinear()
+                           && !logic.isDifferenceLogic()
+                           && !logic.areIntegersUsed())
+                      ? true
+                      : false);
 
     Trace("smt") << "setting decision mode to " << decMode << std::endl;
     opts.decision.decisionMode = decMode;
