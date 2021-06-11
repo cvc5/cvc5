@@ -125,9 +125,12 @@ int main()
   // However, for more complex terms,
   // it is easier to let the solver do the evaluation.
   double xMinusYComputed = xDouble - yDouble;
-  if (xMinusYComputed == xMinusYDouble) {
+  if (xMinusYComputed == xMinusYDouble)
+  {
     std::cout << "computed correctly" << std::endl;
-  } else {
+  }
+  else
+  {
     std::cout << "computed incorrectly" << std::endl;
   }
 
