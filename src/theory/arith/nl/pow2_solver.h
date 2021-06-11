@@ -1,10 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
-<<<<<<< HEAD
- *   Andrew Reynolds, Makai Mann, Gereon Kremer
-=======
  *   Yoni Zohar
->>>>>>> master
  *
  * This file is part of the cvc5 project.
  *
