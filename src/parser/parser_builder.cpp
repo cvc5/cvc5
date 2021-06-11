@@ -143,7 +143,8 @@ ParserBuilder& ParserBuilder::withIncludeFile(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withForcedLogic(const std::string& logic) {
+ParserBuilder& ParserBuilder::withForcedLogic(const std::string& logic)
+{
   d_logicIsForced = true;
   d_forcedLogic = logic;
   return *this;
