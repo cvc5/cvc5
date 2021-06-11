@@ -148,56 +148,54 @@ void TheoryUF::postCheck(Effort level)
   }
 }
 
-bool TheoryUF::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
 {
+  if (d_state.isInConflict())
+  {
+    return;
+  }
   if (d_thss != nullptr)
   {
     bool isDecision =
         d_valuation.isSatLiteral(fact) && d_valuation.isDecision(fact);
     d_thss->assertNode(fact, isDecision);
-    if (d_state.isInConflict())
-    {
-      return true;
-    }
   }
-  if (atom.getKind() == kind::CARDINALITY_CONSTRAINT
-      || atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT)
+  switch (atom.getKind())
   {
-    if (d_thss == nullptr)
+    case kind::EQUAL:
     {
-      if (!getLogicInfo().hasCardinalityConstraints())
+      if (options::ufHo() && options::ufHoExt())
       {
-        std::stringstream ss;
-        ss << "Cardinality constraint " << atom
-           << " was asserted, but the logic does not allow it." << std::endl;
-        ss << "Try using a logic containing \"UFC\"." << std::endl;
-        throw Exception(ss.str());
-      }
-      else
-      {
-        // support for cardinality constraints is not enabled, set incomplete
-        d_im.setIncomplete(IncompleteId::UF_CARD_DISABLED);
+        if (!pol && !d_state.isInConflict() && atom[0].getType().isFunction())
+        {
+          // apply extensionality eagerly using the ho extension
+          d_ho->applyExtensionality(fact);
+        }
       }
     }
-    // don't need to assert cardinality constraints if not producing models
-    return !options::produceModels();
-  }
-  return false;
-}
-
-void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
-{
-  if (!d_state.isInConflict() && atom.getKind() == kind::EQUAL)
-  {
-    if (options::ufHo() && options::ufHoExt())
+    break;
+    case kind::CARDINALITY_CONSTRAINT:
+    case kind::COMBINED_CARDINALITY_CONSTRAINT:
     {
-      if (!pol && !d_state.isInConflict() && atom[0].getType().isFunction())
+      if (d_thss == nullptr)
       {
-        // apply extensionality eagerly using the ho extension
-        d_ho->applyExtensionality(fact);
+        if (!getLogicInfo().hasCardinalityConstraints())
+        {
+          std::stringstream ss;
+          ss << "Cardinality constraint " << atom
+             << " was asserted, but the logic does not allow it." << std::endl;
+          ss << "Try using a logic containing \"UFC\"." << std::endl;
+          throw Exception(ss.str());
+        }
+        else
+        {
+          // support for cardinality constraints is not enabled, set incomplete
+          d_im.setIncomplete(IncompleteId::UF_CARD_DISABLED);
+        }
       }
     }
+    break;
+    default: break;
   }
 }
 //--------------------------------- end standard check

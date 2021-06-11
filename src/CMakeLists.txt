@@ -52,6 +52,8 @@ libcvc5_add_sources(
   omt/omt_optimizer.h
   preprocessing/assertion_pipeline.cpp
   preprocessing/assertion_pipeline.h
+  preprocessing/learned_literal_manager.cpp
+  preprocessing/learned_literal_manager.h
   preprocessing/passes/ackermann.cpp
   preprocessing/passes/ackermann.h
   preprocessing/passes/apply_substs.cpp
@@ -389,6 +391,8 @@ libcvc5_add_sources(
   theory/arith/nl/cad/cdcac_utils.h
   theory/arith/nl/cad/constraints.cpp
   theory/arith/nl/cad/constraints.h
+  theory/arith/nl/cad/lazard_evaluation.cpp
+  theory/arith/nl/cad/lazard_evaluation.h
   theory/arith/nl/cad/projections.cpp
   theory/arith/nl/cad/projections.h
   theory/arith/nl/cad/proof_checker.cpp
@@ -437,6 +441,7 @@ libcvc5_add_sources(
   theory/arith/nl/nonlinear_extension.h
   theory/arith/nl/poly_conversion.cpp
   theory/arith/nl/poly_conversion.h
+  theory/arith/nl/pow2_solver.h
   theory/arith/nl/stats.cpp
   theory/arith/nl/stats.h
   theory/arith/nl/strategy.cpp

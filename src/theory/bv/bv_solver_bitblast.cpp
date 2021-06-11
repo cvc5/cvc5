@@ -253,6 +253,28 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
       return false;
     }
   }
+
+  // In eager bitblast mode we also have to collect the model values for
+  // Boolean variables in the CNF stream.
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<TNode> vars;
+    d_cnfStream->getBooleanVariables(vars);
+    for (TNode var : vars)
+    {
+      Assert(d_cnfStream->hasLiteral(var));
+      prop::SatLiteral bit = d_cnfStream->getLiteral(var);
+      prop::SatValue value = d_satSolver->value(bit);
+      Assert(value != prop::SAT_VALUE_UNKNOWN);
+      if (!m->assertEquality(
+              var, nm->mkConst(value == prop::SAT_VALUE_TRUE), true))
+      {
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 

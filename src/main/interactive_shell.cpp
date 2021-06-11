@@ -41,6 +41,7 @@
 #include "base/output.h"
 #include "expr/symbol_manager.h"
 #include "options/language.h"
+#include "options/main_options.h"
 #include "options/options.h"
 #include "options/options_public.h"
 #include "parser/input.h"
@@ -198,7 +199,7 @@ restart:
   if (d_usingEditline)
   {
 #if HAVE_LIBEDITLINE
-    lineBuf = ::readline(options::getInteractivePrompt(d_options)
+    lineBuf = ::readline(d_options.driver.interactivePrompt
                              ? (line == "" ? "cvc5> " : "... > ")
                              : "");
     if(lineBuf != NULL && lineBuf[0] != '\0') {
@@ -210,7 +211,7 @@ restart:
   }
   else
   {
-    if (options::getInteractivePrompt(d_options))
+    if (d_options.driver.interactivePrompt)
     {
       if(line == "") {
         d_out << "cvc5> " << flush;
@@ -284,7 +285,7 @@ restart:
       if (d_usingEditline)
       {
 #if HAVE_LIBEDITLINE
-        lineBuf = ::readline(options::getInteractivePrompt(d_options) ? "... > "
+        lineBuf = ::readline(d_options.driver.interactivePrompt ? "... > "
                                                                       : "");
         if(lineBuf != NULL && lineBuf[0] != '\0') {
           ::add_history(lineBuf);
@@ -295,7 +296,7 @@ restart:
       }
       else
       {
-        if (options::getInteractivePrompt(d_options))
+        if (d_options.driver.interactivePrompt)
         {
           d_out << "... > " << flush;
         }

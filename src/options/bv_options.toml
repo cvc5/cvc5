@@ -191,22 +191,6 @@ name   = "Bitvector Theory"
   help       = "simplify formula via Gaussian Elimination if applicable"
 
 [[option]]
-  name       = "bvLazyRewriteExtf"
-  category   = "regular"
-  long       = "bv-lazy-rewrite-extf"
-  type       = "bool"
-  default    = "true"
-  help       = "lazily rewrite extended functions like bv2nat and int2bv"
-
-[[option]]
-  name       = "bvLazyReduceExtf"
-  category   = "regular"
-  long       = "bv-lazy-reduce-extf"
-  type       = "bool"
-  default    = "false"
-  help       = "reduce extended functions like bv2nat and int2bv at last call instead of full effort"
-
-[[option]]
   name       = "bvAlgExtf"
   category   = "regular"
   long       = "bv-alg-extf"
@@ -227,7 +211,7 @@ name   = "Bitvector Theory"
   category   = "regular"
   long       = "bv-solver=MODE"
   type       = "BVSolver"
-  default    = "LAZY"
+  default    = "BITBLAST"
   help       = "choose bit-vector solver, see --bv-solver=help"
   help_mode  = "Bit-vector solvers."
 [[option.mode.BITBLAST]]
