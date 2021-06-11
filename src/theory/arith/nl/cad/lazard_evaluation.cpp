@@ -8,7 +8,8 @@ namespace cvc5::theory::arith::nl::cad {
 /**
  * Do a very simple wrapper around the regular poly::infeasible_regions.
  * Warn the user about doing this.
- * This allows for a graceful fallback (albeit with a warning) if CoCoA is not available.
+ * This allows for a graceful fallback (albeit with a warning) if CoCoA is not
+ * available.
  */
 struct LazardEvaluationState
 {
