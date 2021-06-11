@@ -312,22 +312,23 @@ Node IntBlaster::translateWithChildren(
   Assert(oldKind != kind::BITVECTOR_SLE);
   Assert(oldKind != kind::BITVECTOR_SGE);
   Assert(oldKind != kind::EXISTS);
-  Assert(oldKind != kind::BITVECTOR_UDIV || (original[1].isConst() && original[1].getConst<BitVector>().getValue().isZero()));
+  Assert(oldKind != kind::BITVECTOR_UDIV || !(original[1].isConst() && original[1].getConst<BitVector>().getValue().isZero()));
   // The following variable will only be used in assertions.
   CVC5_UNUSED uint64_t originalNumChildren = original.getNumChildren();
   Node returnNode;
-  uint64_t bvsize = original[0].getType().getBitVectorSize();
   switch (oldKind)
   {
     case kind::BITVECTOR_ADD:
     {
       Assert(originalNumChildren == 2);
+  uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createBVAddNode(translated_children[0], translated_children[1], bvsize);
       break;
     }
     case kind::BITVECTOR_MULT:
     {
       Assert(originalNumChildren == 2);
+  uint64_t bvsize = original[0].getType().getBitVectorSize();
       Node mult = d_nm->mkNode(kind::MULT, translated_children);
       Node p2 = pow2(bvsize);
       returnNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, mult, p2);
@@ -336,6 +337,7 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_UDIV:
     {
       // we use an ITE for the case where the second operand is 0.
+  uint64_t bvsize = original[0].getType().getBitVectorSize();
       Node pow2BvSize = pow2(bvsize);
       Node divNode =
           d_nm->mkNode(kind::INTS_DIVISION_TOTAL, translated_children);
@@ -361,11 +363,13 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_NOT:
     {
       // we use a specified function to generate the node.
+  uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createBVNotNode(translated_children[0], bvsize);
       break;
     }
     case kind::BITVECTOR_NEG:
     {
+  uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createBVNegNode(translated_children[0], bvsize);
       break;
     }
@@ -388,12 +392,14 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_OR:
     {
       Assert(translated_children.size() == 2);
+  uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createBVOrNode(translated_children[0], translated_children[1], bvsize, lemmas);
       break;
     }
     case kind::BITVECTOR_XOR:
     {
       Assert(translated_children.size() == 2);
+  uint64_t bvsize = original[0].getType().getBitVectorSize();
       // Based on Hacker's Delight section 2-2 equation n:
       // x xor y = x|y - x&y
       Node bvor = createBVOrNode(translated_children[0], translated_children[1], bvsize, lemmas);
@@ -404,6 +410,7 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_AND:
     {
       Assert(translated_children.size() == 2);
+  uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createBVAndNode(translated_children[0], translated_children[1], bvsize, lemmas);
       break;
     }
@@ -415,6 +422,7 @@ Node IntBlaster::translateWithChildren(
        * Only cases where b <= bit width are considered.
        * Otherwise, the result is 0.
        */
+  uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createShiftNode(translated_children, bvsize, true);
       break;
     }
@@ -426,6 +434,7 @@ Node IntBlaster::translateWithChildren(
        * Only cases where b <= bit width are considered.
        * Otherwise, the result is 0.
        */
+  uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createShiftNode(translated_children, bvsize, false);
       break;
     }
@@ -445,6 +454,7 @@ Node IntBlaster::translateWithChildren(
        *
        */
       // signed_min is 100000...
+  uint64_t bvsize = original[0].getType().getBitVectorSize();
       Node signed_min = pow2(bvsize - 1);
       Node condition =
           d_nm->mkNode(kind::LT, translated_children[0], signed_min);
@@ -472,6 +482,7 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_SIGN_EXTEND:
     {
+  uint64_t bvsize = original[0].getType().getBitVectorSize();
       Node arg = translated_children[0];
       if (arg.isConst())
       {
@@ -558,6 +569,7 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_SLT:
     {
+  uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = d_nm->mkNode(kind::LT, uts(translated_children[0], bvsize), uts(translated_children[1], bvsize));
       break;
     }
@@ -586,6 +598,7 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_SLTBV:
     {
+  uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = d_nm->mkNode(
           kind::ITE,
           d_nm->mkNode(kind::LT,
@@ -1098,7 +1111,9 @@ Node IntBlaster::createBVOrNode(Node x, Node y, uint64_t bvsize, std::vector<Nod
 }
 
 Node IntBlaster::createBVSubNode(Node x, Node y, uint64_t bvsize) {
-    return d_nm->mkNode(kind::PLUS, x, createBVNegNode(y, bvsize));
+      Node minus = d_nm->mkNode(kind::MINUS, x, y);
+      Node p2 = pow2(bvsize);
+      return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, minus, p2);
 }
 
 Node IntBlaster::createBVAddNode(Node x, Node y, uint64_t bvsize) {
@@ -1111,8 +1126,8 @@ Node IntBlaster::createBVAddNode(Node x, Node y, uint64_t bvsize) {
 Node IntBlaster::createBVNegNode(Node n, uint64_t bvsize) {
       // Based on Hacker's Delight section 2-2 equation a:
       // -x = ~x+1
-      Node notNode = createBVNotNode(n, bvsize);
-      return createBVAddNode(notNode, d_one, bvsize);
+      Node p2 = pow2(bvsize);
+      return d_nm->mkNode(kind::MINUS, p2, n);
 }
 
 Node IntBlaster::createBVNotNode(Node n, uint64_t bvsize)
