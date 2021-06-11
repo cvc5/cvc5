@@ -117,22 +117,25 @@ bool LogicInfo::isHigherOrder() const
   return d_higherOrder;
 }
 
-/** Is this the all-inclusive logic? */
-bool LogicInfo::hasEverything(bool andHol) const
+bool LogicInfo::hasEverything() const
 {
   PrettyCheckArgument(d_locked,
                       *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
-  LogicInfo everything;
-  everything.lock();
-  if (!andHol)
+  // A logic has everything if all theories are enabled as well as quantifiers
+  bool doesNotHaveEverything = !isQuantified();
+  for (TheoryId id = THEORY_FIRST; !doesNotHaveEverything && id < THEORY_LAST;
+       ++id)
   {
-    return *this == everything;
+    // if not configured with symfpu, we allow THEORY_FP to be disabled and
+    // still *this to contain the ALL logic
+    if (!this->d_theories[id]
+        && (id != THEORY_FP || Configuration::isBuiltWithSymFPU()))
+    {
+      doesNotHaveEverything = true;
+    }
   }
-  LogicInfo everythingAndHol;
-  everythingAndHol.enableHigherOrder();
-  everythingAndHol.lock();
-  return *this == everything || *this == everythingAndHol;
+  return !doesNotHaveEverything;
 }
 
 /** Is this the all-exclusive logic?  (Here, that means propositional logic) */
@@ -289,20 +292,17 @@ std::string LogicInfo::getLogicString() const {
     {
       ss << "HO_";
     }
-    if (hasEverything())
+    if (!isQuantified())
+    {
+      ss << "QF_";
+    }
+    if (*this == qf_all_supported || hasEverything())
     {
       ss << "ALL";
-    }
-    else if (*this == qf_all_supported)
-    {
-      ss << "QF_ALL";
     }
     else
     {
       size_t seen = 0; // make sure we support all the active theories
-      if(!isQuantified()) {
-        ss << "QF_";
-      }
       if (d_theories[THEORY_SEP])
       {
         ss << "SEP_";

@@ -281,9 +281,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // if we are using eager string preprocessing, which may introduce quantified
   // formulas at preprocess time.
   //
-  // We don't want to set this option when we are in logics like ALL
-  // (everything) or HO_ALL (everything + HOL), so we guard against that.
-  if (!logic.hasEverything(true) && logic.isTheoryEnabled(THEORY_STRINGS))
+  // We don't want to set this option when we are in logics that contain ALL.
+  if (!logic.hasEverything() && logic.isTheoryEnabled(THEORY_STRINGS))
   {
     // If the user explicitly set a logic that includes strings, but is not
     // the generic "ALL" logic, then enable stringsExp.
@@ -904,8 +903,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::DecisionMode decMode =
         // anything that uses sygus uses internal
         usesSygus ? options::DecisionMode::INTERNAL :
-                  // ALL or HO_ALL
-            logic.hasEverything(true)
+                  // ALL  or its supersets
+            logic.hasEverything()
                 ? options::DecisionMode::JUSTIFICATION
                 : (  // QF_BV
                     (not logic.isQuantified() && logic.isPure(THEORY_BV)) ||
@@ -936,8 +935,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                         : options::DecisionMode::INTERNAL);
 
     bool stoponly =
-        // ALL or HO_ALL
-        logic.hasEverything(true) || logic.isTheoryEnabled(THEORY_STRINGS)
+        // ALL or its supersets
+        logic.hasEverything() || logic.isTheoryEnabled(THEORY_STRINGS)
             ? false
             : (  // QF_AUFLIA
                 (not logic.isQuantified()
