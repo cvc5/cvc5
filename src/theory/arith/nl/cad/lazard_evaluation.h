@@ -30,9 +30,10 @@ struct LazardEvaluationState;
  * This class does the heavy lifting for the modified lifting procedure that is
  * required for Lazard's projection.
  *
- * Let p \in Q[x1, ..., xn] a multivariate polynomial whose roots we want to
- * isolate over the partial sample point A = {x1 = a1, ... xn-1 = an-1} where
- * a1, ... an-1 are real algebraic numbers and xn is the last free variable.
+ * Let p \in Q[x_0, ..., x_n] a multivariate polynomial whose roots we want to
+ * isolate over the partial sample point A = [x_0 = a_0, ... x_{n-1} = a_{n-1}]
+ * where a_0, ... a_{n-1} are real algebraic numbers and x_n is the last free
+ * variable.
  *
  * The modified lifting procedure conceptually works as follows:
  *
@@ -47,17 +48,17 @@ struct LazardEvaluationState;
  * from Z or Q, but not extensions (in the algebraic sense) thereof.
  *
  * Our approach is as follows:
- * Let pk be the minimal polynomial for ak.
- * Instead of substituting p[xk // ak] we (canonically) embed p into the
- * quotient ring Q[xk]/<pk> and recursively build a tower of such quotient rings
- * that is isomorphic to nesting the corresponding field extensions Q(a1)(a2)...
- * When we have done that, we obtain p that is reduced with respect to all
- * minimal polynomials, but may still contain x1,... xn-1. To get rid of these,
- * we compute a Gröbner basis of p and the minimal polynomials (using a suitable
- * elimination order) and extract the polynomial in xn. This polynomial has all
- * roots (and possibly some more) that we are looking for. Instead of a Gröbner
- * basis, we can also compute the iterated resultant as follows: Res(Res(p,
- * pn-1, xn-1), pn-2, xn-2)...
+ * Let pk be the minimal polynomial for a_k.
+ * Instead of substituting p[x_k // a_k] we (canonically) embed p into the
+ * quotient ring Q[x_k]/<p_k> and recursively build a tower of such quotient
+ * rings that is isomorphic to nesting the corresponding field extensions
+ * Q(a_1)(a_2)... When we have done that, we obtain p that is reduced with
+ * respect to all minimal polynomials, but may still contain x_0,... x_{n-1}. To
+ * get rid of these, we compute a Gröbner basis of p and the minimal polynomials
+ * (using a suitable elimination order) and extract the polynomial in x_n. This
+ * polynomial has all roots (and possibly some more) that we are looking for.
+ * Instead of a Gröbner basis, we can also compute the iterated resultant as
+ * follows: Res(Res(p, p_{n-1}, x_{n-1}), p_{n-2}, x_{n-2})...
  *
  * Consider
  * http://sunsite.informatik.rwth-aachen.de/Publications/AIB/2020/2020-04.pdf
