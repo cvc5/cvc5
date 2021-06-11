@@ -39,7 +39,7 @@ LogicInfo::LogicInfo()
       d_linear(false),
       d_differenceLogic(false),
       d_cardinalityConstraints(false),
-      d_higherOrder(true),
+      d_higherOrder(false),
       d_locked(false)
 {
   for (TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id)
@@ -117,13 +117,25 @@ bool LogicInfo::isHigherOrder() const
   return d_higherOrder;
 }
 
-/** Is this the all-inclusive logic? */
-bool LogicInfo::hasEverything() const {
-  PrettyCheckArgument(d_locked, *this,
+bool LogicInfo::hasEverything() const
+{
+  PrettyCheckArgument(d_locked,
+                      *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
-  LogicInfo everything;
-  everything.lock();
-  return *this == everything;
+  // A logic has everything if all theories are enabled as well as quantifiers
+  bool doesNotHaveEverything = !isQuantified();
+  for (TheoryId id = THEORY_FIRST; !doesNotHaveEverything && id < THEORY_LAST;
+       ++id)
+  {
+    // if not configured with symfpu, we allow THEORY_FP to be disabled and
+    // still *this to contain the ALL logic
+    if (!this->d_theories[id]
+        && (id != THEORY_FP || Configuration::isBuiltWithSymFPU()))
+    {
+      doesNotHaveEverything = true;
+    }
+  }
+  return !doesNotHaveEverything;
 }
 
 /** Is this the all-exclusive logic?  (Here, that means propositional logic) */
@@ -275,17 +287,22 @@ std::string LogicInfo::getLogicString() const {
     LogicInfo qf_all_supported;
     qf_all_supported.disableQuantifiers();
     qf_all_supported.lock();
-    if(hasEverything()) {
-      d_logicString = "ALL";
-    } else if(*this == qf_all_supported) {
-      d_logicString = "QF_ALL";
-    } else {
+    stringstream ss;
+    if (isHigherOrder())
+    {
+      ss << "HO_";
+    }
+    if (!isQuantified())
+    {
+      ss << "QF_";
+    }
+    if (*this == qf_all_supported || hasEverything())
+    {
+      ss << "ALL";
+    }
+    else
+    {
       size_t seen = 0; // make sure we support all the active theories
-
-      stringstream ss;
-      if(!isQuantified()) {
-        ss << "QF_";
-      }
       if (d_theories[THEORY_SEP])
       {
         ss << "SEP_";
@@ -309,7 +326,7 @@ std::string LogicInfo::getLogicString() const {
       if(d_theories[THEORY_FP]) {
         ss << "FP";
         ++seen;
-      } 
+      }
       if(d_theories[THEORY_DATATYPES]) {
         ss << "DT";
         ++seen;
@@ -350,9 +367,8 @@ std::string LogicInfo::getLogicString() const {
       if(seen == 0) {
         ss << "SAT";
       }
-
-      d_logicString = ss.str();
     }
+    d_logicString = ss.str();
   }
   return d_logicString;
 }
@@ -374,6 +390,11 @@ void LogicInfo::setLogicString(std::string logicString)
   enableTheory(THEORY_BOOL);
 
   const char* p = logicString.c_str();
+  if (!strncmp(p, "HO_", 3))
+  {
+    enableHigherOrder();
+    p += 3;
+  }
   if(*p == '\0') {
     // propositional logic only; we're done.
   } else if(!strcmp(p, "QF_SAT")) {
@@ -384,14 +405,14 @@ void LogicInfo::setLogicString(std::string logicString)
     enableQuantifiers();
     p += 3;
   } else if(!strcmp(p, "QF_ALL")) {
-    // the "all theories included" logic, no quantifiers
-    enableEverything();
+    // the "all theories included" logic, no quantifiers.
+    enableEverything(d_higherOrder);
     disableQuantifiers();
     arithNonLinear();
     p += 6;
   } else if(!strcmp(p, "ALL")) {
-    // the "all theories included" logic, with quantifiers
-    enableEverything();
+    // the "all theories included" logic, with quantifiers.
+    enableEverything(d_higherOrder);
     enableQuantifiers();
     arithNonLinear();
     p += 3;
@@ -399,7 +420,7 @@ void LogicInfo::setLogicString(std::string logicString)
   else if (!strcmp(p, "HORN"))
   {
     // the HORN logic
-    enableEverything();
+    enableEverything(d_higherOrder);
     enableQuantifiers();
     arithNonLinear();
     p += 4;
@@ -541,9 +562,11 @@ void LogicInfo::setLogicString(std::string logicString)
   d_logicString = logicString;
 }
 
-void LogicInfo::enableEverything() {
+void LogicInfo::enableEverything(bool enableHigherOrder)
+{
   PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   *this = LogicInfo();
+  this->d_higherOrder = enableHigherOrder;
 }
 
 void LogicInfo::disableEverything() {
@@ -584,7 +607,6 @@ void LogicInfo::enableSygus()
   enableTheory(THEORY_UF);
   enableTheory(THEORY_DATATYPES);
   enableIntegers();
-  enableHigherOrder();
 }
 
 void LogicInfo::enableSeparationLogic()

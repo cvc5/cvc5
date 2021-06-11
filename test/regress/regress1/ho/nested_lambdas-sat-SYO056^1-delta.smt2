@@ -1,8 +1,7 @@
-; COMMAND-LINE:  --uf-ho --finite-model-find --no-check-models
+; COMMAND-LINE:  --finite-model-find --no-check-models
 ; EXPECT: sat
 
-
-(set-logic ALL)
+(set-logic HO_ALL)
 (declare-sort $$unsorted 0)
 
 (declare-fun mvalid ((-> $$unsorted Bool)) Bool)
