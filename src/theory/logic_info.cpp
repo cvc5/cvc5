@@ -276,6 +276,9 @@ std::string LogicInfo::getLogicString() const {
       d_locked, *this,
       "This LogicInfo isn't locked yet, and cannot be queried");
   if(d_logicString == "") {
+    LogicInfo qf_all_supported;
+    qf_all_supported.disableQuantifiers();
+    qf_all_supported.lock();
     stringstream ss;
     if (isHigherOrder())
     {
@@ -285,7 +288,7 @@ std::string LogicInfo::getLogicString() const {
     {
       ss << "QF_";
     }
-    if (hasEverything())
+    if (*this == qf_all_supported || hasEverything())
     {
       ss << "ALL";
     }
