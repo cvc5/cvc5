@@ -47,7 +47,6 @@ void Pow2Solver::initLastCall(const std::vector<Node>& assertions,
                               const std::vector<Node>& xts)
 {
   d_pow2s.clear();
-
   Trace("pow2-mv") << "POW2 terms : " << std::endl;
   for (const Node& a : xts)
   {
@@ -59,7 +58,6 @@ void Pow2Solver::initLastCall(const std::vector<Node>& assertions,
     }
     d_pow2s.push_back(a);
   }
-
   Trace("pow2") << "We have " << d_pow2s.size() << " pow2 terms." << std::endl;
 }
 
