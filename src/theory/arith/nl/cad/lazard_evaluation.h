@@ -63,6 +63,10 @@ struct LazardEvaluationState;
  * Consider
  * http://sunsite.informatik.rwth-aachen.de/Publications/AIB/2020/2020-04.pdf
  * Section 2.5.1 for a full discussion.
+ *
+ * !!! WARNING !!!
+ * If CoCoALib is not available, this class will simply fall back to
+ * poly::infeasible_regions and issue a warning about this.
  */
 class LazardEvaluation
 {
@@ -71,19 +75,28 @@ class LazardEvaluation
   ~LazardEvaluation();
 
   /**
-   * Add the next assigned variable var -> ran to this construction.
+   * Add the next assigned variable x_k = a_k to this construction.
    */
   void add(const poly::Variable& var, const poly::Value& val);
   /**
-   * Finish by adding the free variable var.
+   * Finish by adding the free variable x_n.
    */
   void addFreeVariable(const poly::Variable& var);
   /**
-   * Reduce the polynomial q.
+   * Reduce the polynomial q. Compared to the above description, there may
+   * actually be multiple polynomials in the Gröbner basis and instead of
+   * loosing this knowledge and returning their product, we return them as a
+   * vector.
    */
   std::vector<poly::Polynomial> reducePolynomial(
       const poly::Polynomial& q) const;
 
+  /**
+   * Compute the infeasible regions of q under the given sign condition.
+   * Uses reducePolynomial and then performs real root isolation on the
+   * resulting polynomials to obtain the intervals. Mimics
+   * poly::infeasible_regions, but uses Lazard's evaluation.
+   */
   std::vector<poly::Interval> infeasibleRegions(const poly::Polynomial& q,
                                                 poly::SignCondition sc) const;
 
