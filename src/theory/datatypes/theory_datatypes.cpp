@@ -93,7 +93,10 @@ ProofRuleChecker* TheoryDatatypes::getProofChecker() { return &d_checker; }
 bool TheoryDatatypes::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
-  esi.d_name = "theory::datatypes::ee";
+  esi.d_name = "theory::datatypes::ee";+  
+  // need notifications on new constructors, merging datatype eqcs
+  esi.d_notifyNewClass = true;
+  esi.d_notifyMerge = true;
   return true;
 }
 
