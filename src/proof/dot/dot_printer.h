@@ -76,6 +76,11 @@ class DotPrinter
    */
   static std::string sanitizeString(const std::string& s);
 
+  /** Tree-traverse proof node and populate map of subproofs to their quantity
+   *
+   * @param pn the proof node to be traversed
+   * @param subpfCounter the map to be populated
+   */
   static void countSubproofs(const ProofNode* pn,
                              std::map<const ProofNode*, size_t>& subpfCounter);
 };
