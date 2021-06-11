@@ -15,6 +15,7 @@ import pytest
 import pycvc5
 from pycvc5 import kinds
 from pycvc5 import Sort, Term
+from fractions import Fraction
 
 
 @pytest.fixture
@@ -1145,12 +1146,27 @@ def test_get_real(solver):
     assert 0 == real1.getRealValue()
     assert 0 == real2.getRealValue()
     assert -17 == real3.getRealValue()
-    assert -3 / 5 == real4.getRealValue()
-    assert 127 / 10 == real5.getRealValue()
-    assert 1 / 4294967297 == real6.getRealValue()
+    assert Fraction(-3, 5) == real4.getRealValue()
+    assert Fraction(127, 10) == real5.getRealValue()
+    assert Fraction(1, 4294967297) == real6.getRealValue()
     assert 4294967297 == real7.getRealValue()
-    assert 1 / 18446744073709551617 == real8.getRealValue()
-    assert float(18446744073709551617) == real9.getRealValue()
+    assert Fraction(1, 18446744073709551617) == real8.getRealValue()
+    assert Fraction(18446744073709551617, 1) == real9.getRealValue()
+
+    # Check denominator too large for float
+    num = 1
+    den = 2 ** 64 + 1
+    real_big = solver.mkReal(num, den)
+    assert real_big.isRealValue()
+    assert Fraction(num, den) == real_big.getRealValue()
+
+    # Check that we're treating floats as decimal aproximations rather than
+    # IEEE-754-specified values.
+    real_decimal = solver.mkReal(0.3)
+    assert real_decimal.isRealValue()
+    assert Fraction("0.3") == real_decimal.getRealValue()
+    assert Fraction(0.3) == Fraction(5404319552844595, 18014398509481984)
+    assert Fraction(0.3) != real_decimal.getRealValue()
 
 
 def test_get_boolean(solver):

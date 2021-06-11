@@ -260,10 +260,9 @@ void DType::setSygus(TypeNode st, Node bvl, bool allowConst, bool allowAll)
   // Notice we only want to do this for sygus datatypes that are user-provided.
   // At the moment, the condition !allow_all implies the grammar is
   // user-provided and hence may require a default constant.
-  // TODO (https://github.com/CVC4/cvc4-projects/issues/38):
-  // In an API for SyGuS, it probably makes more sense for the user to
-  // explicitly add the "any constant" constructor with a call instead of
-  // passing a flag. This would make the block of code unnecessary.
+  // For the SyGuS API, we could consider requiring the user to explicitly add
+  // the "any constant" constructor with a call instead of passing a flag. This
+  // would make the block of code unnecessary.
   if (allowConst && !allowAll)
   {
     // if I don't already have a constant (0-ary constructor)
