@@ -139,7 +139,7 @@ void DotPrinter::printInternal(
   out << classes.str() << colors.str();
   // add number of subchildren
   std::map<const ProofNode*, size_t>::const_iterator it = subpfCounter.find(pn);
-  out << ", comment = \"\{\"subProofQty\":" << it->second  << "}\"";
+  out << ", comment = \"\{\"subProofQty\":" << it->second << "}\"";
   out << " ];\n";
 
   for (const std::shared_ptr<ProofNode>& c : children)
