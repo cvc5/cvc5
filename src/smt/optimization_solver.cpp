@@ -75,7 +75,6 @@ void OptimizationSolver::addObjective(TNode target,
 
 std::vector<OptimizationResult> OptimizationSolver::getValues()
 {
-  Assert(d_objectives.size() == d_results.size());
   return d_results;
 }
 
