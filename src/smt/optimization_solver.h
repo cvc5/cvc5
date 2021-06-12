@@ -34,7 +34,8 @@ namespace smt {
  * The optimization result of an optimization objective
  * containing:
  * - the optimization result: SAT/UNSAT/UNKNOWN
- * - if SAT, the optimal value or if unbounded, an empty node,
+ * - the optimal value if SAT and bounded,
+ *   or an empty node if SAT and unbounded,
  *   otherwise the value might be empty node or something suboptimal
  * - whether the objective is unbounded
  */
@@ -70,8 +71,9 @@ class OptimizationResult
   /**
    * Returns the optimal value.
    * @return Node containing the optimal value,
-   *   if getType() is not OPTIMAL, it might return an empty node or a node
-   *   containing non-optimal value
+   *   if result is unbounded, this will be an empty node,
+   *   if getResult() is not SAT, it might return an empty node or a node
+   *   containing sub-optimal value
    **/
   Node getValue() const { return d_value; }
 
@@ -87,7 +89,7 @@ class OptimizationResult
  private:
   /** indicating whether the result is SAT, UNSAT or UNKNOWN **/
   Result d_result;
-  /** if the result is optimal, this is storing the optimal value **/
+  /** if the result is bounded, this is storing the value **/
   Node d_value;
   /** whether the objective is unbounded
    * If this is true, then:
@@ -284,8 +286,8 @@ class OptimizationSolver
    *
    * @return if it finds a new Pareto optimal result it will return SAT;
    *   if it exhausts the results in the Pareto front it will return UNSAT;
-   *   if the underlying SMT solver returns SAT_UNKNOWN, it will return
-   *SAT_UNKNOWN.
+   *   if the underlying SMT solver returns SAT_UNKNOWN,
+   *   it will return SAT_UNKNOWN.
    **/
   Result optimizeParetoNaiveGIA();
 
