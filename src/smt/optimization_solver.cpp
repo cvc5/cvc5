@@ -32,12 +32,11 @@ OptimizationSolver::OptimizationSolver(SmtEngine* parent)
     : d_parent(parent),
       d_optChecker(),
       d_objectives(parent->getUserContext()),
-      d_results(),
-      d_objectiveCombination(LEXICOGRAPHIC)
+      d_results()
 {
 }
 
-Result OptimizationSolver::checkOpt()
+Result OptimizationSolver::checkOpt(ObjectiveCombination combination)
 {
   // if the results of the previous call have different size than the
   // objectives, then we should clear the pareto optimization context
@@ -48,7 +47,7 @@ Result OptimizationSolver::checkOpt()
   {
     d_results.emplace_back();
   }
-  switch (d_objectiveCombination)
+  switch (combination)
   {
     case BOX: return optimizeBox(); break;
     case LEXICOGRAPHIC: return optimizeLexicographicIterative(); break;
@@ -78,12 +77,6 @@ std::vector<OptimizationResult> OptimizationSolver::getValues()
 {
   Assert(d_objectives.size() == d_results.size());
   return d_results;
-}
-
-void OptimizationSolver::setObjectiveCombination(
-    ObjectiveCombination combination)
-{
-  d_objectiveCombination = combination;
 }
 
 std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(

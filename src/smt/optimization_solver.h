@@ -206,10 +206,10 @@ class OptimizationSolver
   /**
    * Run the optimization loop for the added objective
    * For multiple objective combination, it defaults to lexicographic,
-   * and combination could be set by calling
-   *   setObjectiveCombination(BOX/LEXICOGRAPHIC/PARETO)
+   * possible combinations: BOX, LEXICOGRAPHIC, PARETO
+   * @param combination BOX / LEXICOGRAPHIC / PARETO
    */
-  Result checkOpt();
+  Result checkOpt(ObjectiveCombination combination = LEXICOGRAPHIC);
 
   /**
    * Add an optimization objective.
@@ -229,11 +229,6 @@ class OptimizationSolver
    *   each containing the outcome and the value.
    **/
   std::vector<OptimizationResult> getValues();
-
-  /**
-   * Sets the objective combination
-   **/
-  void setObjectiveCombination(ObjectiveCombination combination);
 
  private:
   /**
@@ -302,9 +297,6 @@ class OptimizationSolver
 
   /** The results of the optimizations from the last checkOpt call **/
   std::vector<OptimizationResult> d_results;
-
-  /** The current objective combination method **/
-  ObjectiveCombination d_objectiveCombination;
 };
 
 }  // namespace smt
