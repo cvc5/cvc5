@@ -197,8 +197,12 @@ Result OptimizationSolver::optimizeLexicographicIterative()
         d_optChecker->assertFormula(d_optChecker->getNodeManager()->mkNode(
             kind::EQUAL, d_objectives[i].getTarget(), d_results[i].getValue()));
         break;
-      case Result::UNSAT: return partialResult.getResult();
-      case Result::SAT_UNKNOWN: return partialResult.getResult();
+      case Result::UNSAT:
+        d_optChecker.reset();
+        return partialResult.getResult();
+      case Result::SAT_UNKNOWN:
+        d_optChecker.reset();
+        return partialResult.getResult();
       default: Unreachable();
     }
 
