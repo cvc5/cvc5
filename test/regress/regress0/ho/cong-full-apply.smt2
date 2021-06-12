@@ -1,6 +1,5 @@
-; COMMAND-LINE: --uf-ho
 ; EXPECT: unsat
-(set-logic UFLIA)
+(set-logic HO_UFLIA)
 (set-info :status unsat)
 (declare-fun f (Int) Int)
 (declare-fun g (Int) Int)
