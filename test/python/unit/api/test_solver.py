@@ -46,6 +46,8 @@ def test_get_boolean_sort(solver):
 def test_get_integer_sort(solver):
     solver.getIntegerSort()
 
+def test_get_null_sort(solver):
+    solver.getNullSort()
 
 def test_get_real_sort(solver):
     solver.getRealSort()
@@ -257,6 +259,15 @@ def test_mk_set_sort(solver):
         slv.mkSetSort(solver.mkBitVectorSort(4))
 
 
+def test_mk_bag_sort(solver):
+    solver.mkBagSort(solver.getBooleanSort())
+    solver.mkBagSort(solver.getIntegerSort())
+    solver.mkBagSort(solver.mkBitVectorSort(4))
+    slv = pycvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.mkBagSort(solver.mkBitVectorSort(4))
+
+
 def test_mk_sequence_sort(solver):
     solver.mkSequenceSort(solver.getBooleanSort())
     solver.mkSequenceSort(\
@@ -288,6 +299,42 @@ def test_mk_tuple_sort(solver):
     slv = pycvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.mkTupleSort([solver.getIntegerSort()])
+
+
+def test_mk_bit_vector(solver):
+    size0 = 0
+    size1 = 8
+    size2 = 32
+    val1 = 2
+    val2 = 2
+    solver.mkBitVector(size1, val1)
+    solver.mkBitVector(size2, val2)
+    solver.mkBitVector("1010", 2)
+    solver.mkBitVector("1010", 10)
+    solver.mkBitVector("1234", 10)
+    solver.mkBitVector("1010", 16)
+    solver.mkBitVector("a09f", 16)
+    solver.mkBitVector(8, "-127", 10)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(size0, val1)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(size0, val2)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector("", 2)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector("10", 3)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector("20", 2)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(8, "101010101", 2)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(8, "-256", 10)
+    assert solver.mkBitVector("1010", 2) == solver.mkBitVector("10", 10)
+    assert solver.mkBitVector("1010", 2) == solver.mkBitVector("a", 16)
+    assert str(solver.mkBitVector(8, "01010101", 2)) == "#b01010101"
+    assert str(solver.mkBitVector(8, "F", 16)) == "#b00001111"
+    assert solver.mkBitVector(8, "-1", 10) ==\
+            solver.mkBitVector(8, "FF", 16)
 
 
 def test_mk_var(solver):
@@ -329,6 +376,26 @@ def test_mk_uninterpreted_const(solver):
         slv.mkUninterpretedConst(solver.getBooleanSort(), 1)
 
 
+def test_mk_abstract_value(solver):
+    solver.mkAbstractValue("1")
+    with pytest.raises(ValueError):
+        solver.mkAbstractValue("0")
+    with pytest.raises(ValueError):
+        solver.mkAbstractValue("-1")
+    with pytest.raises(ValueError):
+        solver.mkAbstractValue("1.2")
+    with pytest.raises(ValueError):
+        solver.mkAbstractValue("1/2")
+    with pytest.raises(ValueError):
+        solver.mkAbstractValue("asdf")
+
+    solver.mkAbstractValue(1)
+    with pytest.raises(ValueError):
+        solver.mkAbstractValue(-1)
+    with pytest.raises(ValueError):
+        solver.mkAbstractValue(0)
+
+
 def test_mk_floating_point(solver):
     t1 = solver.mkBitVector(8)
     t2 = solver.mkBitVector(4)
@@ -365,6 +432,17 @@ def test_mk_empty_set(solver):
         solver.mkEmptySet(solver.getBooleanSort())
     with pytest.raises(RuntimeError):
         slv.mkEmptySet(s)
+
+
+def test_mk_empty_bag(solver):
+    slv = pycvc5.Solver()
+    s = solver.mkBagSort(solver.getBooleanSort())
+    solver.mkEmptyBag(pycvc5.Sort(solver))
+    solver.mkEmptyBag(s)
+    with pytest.raises(RuntimeError):
+        solver.mkEmptyBag(solver.getBooleanSort())
+    with pytest.raises(RuntimeError):
+        slv.mkEmptyBag(s)
 
 
 def test_mk_empty_sequence(solver):
@@ -419,6 +497,33 @@ def test_mk_pos_zero(solver):
     else:
         with pytest.raises(RuntimeError):
             solver.mkPosZero(3, 5)
+
+
+def test_mk_op(solver):
+    # mkOp(Kind kind, Kind k)
+    with pytest.raises(RuntimeError):
+        solver.mkOp(kinds.BVExtract, kinds.Equal)
+
+    # mkOp(Kind kind, const std::string& arg)
+    solver.mkOp(kinds.Divisible, "2147483648")
+    with pytest.raises(RuntimeError):
+        solver.mkOp(kinds.BVExtract, "asdf")
+
+    # mkOp(Kind kind, uint32_t arg)
+    solver.mkOp(kinds.Divisible, 1)
+    solver.mkOp(kinds.BVRotateLeft, 1)
+    solver.mkOp(kinds.BVRotateRight, 1)
+    with pytest.raises(RuntimeError):
+        solver.mkOp(kinds.BVExtract, 1)
+
+    # mkOp(Kind kind, uint32_t arg1, uint32_t arg2)
+    solver.mkOp(kinds.BVExtract, 1, 1)
+    with pytest.raises(RuntimeError):
+        solver.mkOp(kinds.Divisible, 1, 2)
+
+    # mkOp(Kind kind, std::vector<uint32_t> args)
+    args = [1, 2, 2]
+    solver.mkOp(kinds.TupleProject, args)
 
 
 def test_mk_pi(solver):
@@ -566,6 +671,14 @@ def test_mk_sep_nil(solver):
     slv = pycvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.mkSepNil(solver.getIntegerSort())
+
+
+def test_mk_string(solver):
+    solver.mkString("")
+    solver.mkString("asdfasdf")
+    str(solver.mkString("asdf\\nasdf")) == "\"asdf\\u{5c}nasdf\""
+#    str(solver.mkString("asdf\\u{005c}nasdf", True)) ==\
+#            "\"asdf\\u{5c}nasdf\""
 
 
 def test_mk_true(solver):
