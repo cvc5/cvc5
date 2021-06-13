@@ -806,7 +806,7 @@ cdef class Solver:
         cdef Py_ssize_t size
         cdef wchar_t* tmp = PyUnicode_AsWideCharString(s, &size)
         if isinstance(useEscSequences, bool):
-            term.cterm = self.csolver.mkString(c_wstring(tmp, size), <bint> useEscSequences)
+            term.cterm = self.csolver.mkString(s.encode(), <bint> useEscSequences)
         else:
             term.cterm = self.csolver.mkString(c_wstring(tmp, size))
         PyMem_Free(tmp)

@@ -214,7 +214,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkSepNil(Sort sort) except +
         Term mkString(const string& s) except +
         Term mkString(const wstring& s) except +
-        Term mkString(const wstring& s, bint useEscSequences) except +
+        Term mkString(const string& s, bint useEscSequences) except +
         Term mkEmptySequence(Sort sort) except +
         Term mkUniverseSet(Sort sort) except +
         Term mkBitVector(uint32_t size) except +

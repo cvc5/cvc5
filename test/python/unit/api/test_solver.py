@@ -677,8 +677,64 @@ def test_mk_string(solver):
     solver.mkString("")
     solver.mkString("asdfasdf")
     str(solver.mkString("asdf\\nasdf")) == "\"asdf\\u{5c}nasdf\""
-#    str(solver.mkString("asdf\\u{005c}nasdf", True)) ==\
-#            "\"asdf\\u{5c}nasdf\""
+    str(solver.mkString("asdf\\u{005c}nasdf", True)) ==\
+            "\"asdf\\u{5c}nasdf\""
+
+
+def test_mk_term(solver):
+    bv32 = solver.mkBitVectorSort(32)
+    a = solver.mkConst(bv32, "a")
+    b = solver.mkConst(bv32, "b")
+    v1 = [a, b]
+    v2 = [a, pycvc5.Term(solver)]
+    v3 = [a, solver.mkTrue()]
+    v4 = [solver.mkInteger(1), solver.mkInteger(2)]
+    v5 = [solver.mkInteger(1), pycvc5.Term(solver)]
+    v6 = []
+    slv = pycvc5.Solver()
+
+    # mkTerm(Kind kind) const
+    solver.mkTerm(kinds.Pi)
+    solver.mkTerm(kinds.RegexpEmpty)
+    solver.mkTerm(kinds.RegexpSigma)
+#  ASSERT_THROW(d_solver.mkTerm(CONST_BITVECTOR), CVC5ApiException);
+#
+#  // mkTerm(Kind kind, Term child) const
+#  ASSERT_NO_THROW(d_solver.mkTerm(NOT, d_solver.mkTrue()));
+#  ASSERT_THROW(d_solver.mkTerm(NOT, Term()), CVC5ApiException);
+#  ASSERT_THROW(d_solver.mkTerm(NOT, a), CVC5ApiException);
+#  ASSERT_THROW(slv.mkTerm(NOT, d_solver.mkTrue()), CVC5ApiException);
+#
+#  // mkTerm(Kind kind, Term child1, Term child2) const
+#  ASSERT_NO_THROW(d_solver.mkTerm(EQUAL, a, b));
+#  ASSERT_THROW(d_solver.mkTerm(EQUAL, Term(), b), CVC5ApiException);
+#  ASSERT_THROW(d_solver.mkTerm(EQUAL, a, Term()), CVC5ApiException);
+#  ASSERT_THROW(d_solver.mkTerm(EQUAL, a, d_solver.mkTrue()), CVC5ApiException);
+#  ASSERT_THROW(slv.mkTerm(EQUAL, a, b), CVC5ApiException);
+#
+#  // mkTerm(Kind kind, Term child1, Term child2, Term child3) const
+#  ASSERT_NO_THROW(d_solver.mkTerm(
+#      ITE, d_solver.mkTrue(), d_solver.mkTrue(), d_solver.mkTrue()));
+#  ASSERT_THROW(
+#      d_solver.mkTerm(ITE, Term(), d_solver.mkTrue(), d_solver.mkTrue()),
+#      CVC5ApiException);
+#  ASSERT_THROW(
+#      d_solver.mkTerm(ITE, d_solver.mkTrue(), Term(), d_solver.mkTrue()),
+#      CVC5ApiException);
+#  ASSERT_THROW(
+#      d_solver.mkTerm(ITE, d_solver.mkTrue(), d_solver.mkTrue(), Term()),
+#      CVC5ApiException);
+#  ASSERT_THROW(d_solver.mkTerm(ITE, d_solver.mkTrue(), d_solver.mkTrue(), b),
+#               CVC5ApiException);
+#  ASSERT_THROW(
+#      slv.mkTerm(ITE, d_solver.mkTrue(), d_solver.mkTrue(), d_solver.mkTrue()),
+#      CVC5ApiException);
+#
+#  // mkTerm(Kind kind, const std::vector<Term>& children) const
+#  ASSERT_NO_THROW(d_solver.mkTerm(EQUAL, v1));
+#  ASSERT_THROW(d_solver.mkTerm(EQUAL, v2), CVC5ApiException);
+#  ASSERT_THROW(d_solver.mkTerm(EQUAL, v3), CVC5ApiException);
+#  ASSERT_THROW(d_solver.mkTerm(DISTINCT, v6), CVC5ApiException);
 
 
 def test_mk_true(solver):
