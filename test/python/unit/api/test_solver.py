@@ -932,6 +932,27 @@ def test_mk_const_array(solver):
         slv.mkConstArray(arrSort, zero2)
 
 
+def test_declare_datatype(solver):
+    nil = solver.mkDatatypeConstructorDecl("nil")
+    ctors1 = [nil]
+    solver.declareDatatype("a", ctors1)
+    cons = solver.mkDatatypeConstructorDecl("cons")
+    nil2 = solver.mkDatatypeConstructorDecl("nil")
+    ctors2 = [cons, nil2]
+    solver.declareDatatype("b", ctors2)
+    cons2 = solver.mkDatatypeConstructorDecl("cons")
+    nil3 = solver.mkDatatypeConstructorDecl("nil")
+    ctors3 = [cons2, nil3]
+    solver.declareDatatype("", ctors3)
+    ctors4 = []
+#    with pytest.raises(RuntimeError):
+    solver.declareDatatype("c", ctors4)
+#  ASSERT_THROW(d_solver.declareDatatype(std::string(""), ctors4),
+#               CVC5ApiException);
+#  Solver slv;
+#  ASSERT_THROW(slv.declareDatatype(std::string("a"), ctors1), CVC5ApiException);
+#}
+
 def test_declare_fun(solver):
     bvSort = solver.mkBitVectorSort(32)
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
