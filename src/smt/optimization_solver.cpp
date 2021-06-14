@@ -129,11 +129,12 @@ Result OptimizationSolver::optimizeBox()
     {
       case Result::SAT: break;
       case Result::UNSAT:
-        if (aggregatedResult.isSat() == Result::SAT)
+        // the assertions are unsatisfiable
+        for (size_t j = 0; j < numObj; ++j)
         {
-          aggregatedResult = partialResult.getResult();
+          d_results[j] = partialResult;
         }
-        break;
+        return partialResult.getResult();
       case Result::SAT_UNKNOWN:
         aggregatedResult = partialResult.getResult();
         break;
@@ -153,8 +154,8 @@ Result OptimizationSolver::optimizeLexicographicIterative()
   d_optChecker = createOptCheckerWithTimeout(d_parent);
   // partialResult defaults to SAT if no objective is present
   // NOTE: the parenthesis around Result(Result::SAT) is required,
-  // otherwise the compiler will report "parameter declarator cannot be qualified".
-  // For more details:
+  // otherwise the compiler will report "parameter declarator cannot be
+  // qualified". For more details:
   // https://stackoverflow.com/questions/44045257/c-compiler-error-c2751-what-exactly-causes-it
   // https://en.wikipedia.org/wiki/Most_vexing_parse
   OptimizationResult partialResult((Result(Result::SAT)), TNode());
