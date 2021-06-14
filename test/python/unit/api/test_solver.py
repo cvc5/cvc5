@@ -694,53 +694,192 @@ def test_mk_term(solver):
     slv = pycvc5.Solver()
 
     # mkTerm(Kind kind) const
-    solver.mkTerm(kinds.Pi)
+    solver.mkPi()
     solver.mkTerm(kinds.RegexpEmpty)
     solver.mkTerm(kinds.RegexpSigma)
-#  ASSERT_THROW(d_solver.mkTerm(CONST_BITVECTOR), CVC5ApiException);
-#
-#  // mkTerm(Kind kind, Term child) const
-#  ASSERT_NO_THROW(d_solver.mkTerm(NOT, d_solver.mkTrue()));
-#  ASSERT_THROW(d_solver.mkTerm(NOT, Term()), CVC5ApiException);
-#  ASSERT_THROW(d_solver.mkTerm(NOT, a), CVC5ApiException);
-#  ASSERT_THROW(slv.mkTerm(NOT, d_solver.mkTrue()), CVC5ApiException);
-#
-#  // mkTerm(Kind kind, Term child1, Term child2) const
-#  ASSERT_NO_THROW(d_solver.mkTerm(EQUAL, a, b));
-#  ASSERT_THROW(d_solver.mkTerm(EQUAL, Term(), b), CVC5ApiException);
-#  ASSERT_THROW(d_solver.mkTerm(EQUAL, a, Term()), CVC5ApiException);
-#  ASSERT_THROW(d_solver.mkTerm(EQUAL, a, d_solver.mkTrue()), CVC5ApiException);
-#  ASSERT_THROW(slv.mkTerm(EQUAL, a, b), CVC5ApiException);
-#
-#  // mkTerm(Kind kind, Term child1, Term child2, Term child3) const
-#  ASSERT_NO_THROW(d_solver.mkTerm(
-#      ITE, d_solver.mkTrue(), d_solver.mkTrue(), d_solver.mkTrue()));
-#  ASSERT_THROW(
-#      d_solver.mkTerm(ITE, Term(), d_solver.mkTrue(), d_solver.mkTrue()),
-#      CVC5ApiException);
-#  ASSERT_THROW(
-#      d_solver.mkTerm(ITE, d_solver.mkTrue(), Term(), d_solver.mkTrue()),
-#      CVC5ApiException);
-#  ASSERT_THROW(
-#      d_solver.mkTerm(ITE, d_solver.mkTrue(), d_solver.mkTrue(), Term()),
-#      CVC5ApiException);
-#  ASSERT_THROW(d_solver.mkTerm(ITE, d_solver.mkTrue(), d_solver.mkTrue(), b),
-#               CVC5ApiException);
-#  ASSERT_THROW(
-#      slv.mkTerm(ITE, d_solver.mkTrue(), d_solver.mkTrue(), d_solver.mkTrue()),
-#      CVC5ApiException);
-#
-#  // mkTerm(Kind kind, const std::vector<Term>& children) const
-#  ASSERT_NO_THROW(d_solver.mkTerm(EQUAL, v1));
-#  ASSERT_THROW(d_solver.mkTerm(EQUAL, v2), CVC5ApiException);
-#  ASSERT_THROW(d_solver.mkTerm(EQUAL, v3), CVC5ApiException);
-#  ASSERT_THROW(d_solver.mkTerm(DISTINCT, v6), CVC5ApiException);
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.ConstBV)
+
+    # mkTerm(Kind kind, Term child) const
+    solver.mkTerm(kinds.Not, solver.mkTrue())
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Not, pycvc5.Term(solver))
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Not, a)
+    with pytest.raises(RuntimeError):
+        slv.mkTerm(kinds.Not, solver.mkTrue())
+
+    # mkTerm(Kind kind, Term child1, Term child2) const
+    solver.mkTerm(kinds.Equal, a, b)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Equal, pycvc5.Term(solver), b)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Equal, a, pycvc5.Term(solver))
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Equal, a, solver.mkTrue())
+    with pytest.raises(RuntimeError):
+        slv.mkTerm(kinds.Equal, a, b)
+
+    # mkTerm(Kind kind, Term child1, Term child2, Term child3) const
+    solver.mkTerm(
+        kinds.Ite, solver.mkTrue(), solver.mkTrue(), solver.mkTrue())
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Ite, pycvc5.Term(solver), solver.mkTrue(), solver.mkTrue())
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Ite, solver.mkTrue(), pycvc5.Term(solver), solver.mkTrue())
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Ite, solver.mkTrue(), solver.mkTrue(), pycvc5.Term(solver))
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Ite, solver.mkTrue(), solver.mkTrue(), b)
+    with pytest.raises(RuntimeError):
+        slv.mkTerm(kinds.Ite, solver.mkTrue(), solver.mkTrue(), solver.mkTrue())
+
+    # mkTerm(Kind kind, const std::vector<Term>& children) const
+    solver.mkTerm(kinds.Equal, v1)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Equal, v2)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Equal, v3)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Distinct, v6)
+
+
+def test_mk_term_from_op(solver):
+    bv32 = solver.mkBitVectorSort(32)
+    a = solver.mkConst(bv32, "a")
+    b = solver.mkConst(bv32, "b")
+    v1 = [solver.mkInteger(1), solver.mkInteger(2)]
+    v2 = [solver.mkInteger(1), pycvc5.Term(solver)]
+    v3 = []
+    v4 = [solver.mkInteger(5)]
+    slv = pycvc5.Solver()
+
+    # simple operator terms
+    opterm1 = solver.mkOp(kinds.BVExtract, 2, 1)
+    opterm2 = solver.mkOp(kinds.Divisible, 1)
+
+    # list datatype
+    sort = solver.mkParamSort("T")
+    listDecl = solver.mkDatatypeDecl("paramlist", sort)
+    cons = solver.mkDatatypeConstructorDecl("cons")
+    nil = solver.mkDatatypeConstructorDecl("nil")
+    cons.addSelector("head", sort)
+    cons.addSelectorSelf("tail")
+    listDecl.addConstructor(cons)
+    listDecl.addConstructor(nil)
+    listSort = solver.mkDatatypeSort(listDecl)
+    intListSort =\
+        listSort.instantiate([solver.getIntegerSort()])
+    c = solver.mkConst(intListSort, "c")
+    lis = listSort.getDatatype()
+
+    # list datatype constructor and selector operator terms
+    consTerm1 = lis.getConstructorTerm("cons")
+    consTerm2 = lis.getConstructor("cons").getConstructorTerm()
+    nilTerm1 = lis.getConstructorTerm("nil")
+    nilTerm2 = lis.getConstructor("nil").getConstructorTerm()
+    headTerm1 = lis["cons"].getSelectorTerm("head")
+    headTerm2 = lis["cons"].getSelector("head").getSelectorTerm()
+    tailTerm1 = lis["cons"].getSelectorTerm("tail")
+    tailTerm2 = lis["cons"]["tail"].getSelectorTerm()
+
+    # mkTerm(Op op, Term term) const
+    solver.mkTerm(kinds.ApplyConstructor, nilTerm1)
+    solver.mkTerm(kinds.ApplyConstructor, nilTerm2)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.ApplySelector, nilTerm1)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.ApplySelector, consTerm1)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.ApplyConstructor, consTerm2)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm1)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.ApplySelector, headTerm1)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm1)
+    with pytest.raises(RuntimeError):
+        slv.mkTerm(kinds.ApplyConstructor, nilTerm1)
+
+    # mkTerm(Op op, Term child) const
+    solver.mkTerm(opterm1, a)
+    solver.mkTerm(opterm2, solver.mkInteger(1))
+    solver.mkTerm(kinds.ApplySelector, headTerm1, c)
+    solver.mkTerm(kinds.ApplySelector, tailTerm2, c)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm2, a)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm1, pycvc5.Term(solver))
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.ApplyConstructor, consTerm1, solver.mkInteger(0))
+    with pytest.raises(RuntimeError):
+        slv.mkTerm(opterm1, a)
+
+    # mkTerm(Op op, Term child1, Term child2) const
+    solver.mkTerm(kinds.ApplyConstructor,
+                  consTerm1,
+                  solver.mkInteger(0),
+                  solver.mkTerm(kinds.ApplyConstructor, nilTerm1))
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm2, solver.mkInteger(1), solver.mkInteger(2))
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm1, a, b)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm2, solver.mkInteger(1), pycvc5.Term(solver))
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm2, pycvc5.Term(solver), solver.mkInteger(1))
+    with pytest.raises(RuntimeError):
+        slv.mkTerm(kinds.ApplyConstructor,\
+                        consTerm1,\
+                        solver.mkInteger(0),\
+                        solver.mkTerm(kinds.ApplyConstructor, nilTerm1))
+
+    # mkTerm(Op op, Term child1, Term child2, Term child3) const
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm1, a, b, a)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(
+            opterm2, solver.mkInteger(1), solver.mkInteger(1), pycvc5.Term(solver))
+
+    # mkTerm(Op op, const std::vector<Term>& children) const
+    solver.mkTerm(opterm2, v4)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm2, v1)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm2, v2)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm2, v3)
+    with pytest.raises(RuntimeError):
+        slv.mkTerm(opterm2, v4)
 
 
 def test_mk_true(solver):
     solver.mkTrue()
     solver.mkTrue()
 
+
+def test_mk_tuple(solver):
+#  ASSERT_NO_THROW(d_solver.mkTuple({d_solver.mkBitVectorSort(3)},
+#                                   {d_solver.mkBitVector("101", 2)}));
+#  ASSERT_NO_THROW(
+#      d_solver.mkTuple({d_solver.getRealSort()}, {d_solver.mkInteger("5")}));
+#
+#  ASSERT_THROW(d_solver.mkTuple({}, {d_solver.mkBitVector("101", 2)}),
+#               CVC5ApiException);
+#  ASSERT_THROW(d_solver.mkTuple({d_solver.mkBitVectorSort(4)},
+#                                {d_solver.mkBitVector("101", 2)}),
+#               CVC5ApiException);
+#  ASSERT_THROW(
+#      d_solver.mkTuple({d_solver.getIntegerSort()}, {d_solver.mkReal("5.3")}),
+#      CVC5ApiException);
+#  Solver slv;
+#  ASSERT_THROW(
+#      slv.mkTuple({d_solver.mkBitVectorSort(3)}, {slv.mkBitVector("101", 2)}),
+#      CVC5ApiException);
+#  ASSERT_THROW(
+#      slv.mkTuple({slv.mkBitVectorSort(3)}, {d_solver.mkBitVector("101", 2)}),
+#      CVC5ApiException);
+#}
 
 def test_mk_universe_set(solver):
     solver.mkUniverseSet(solver.getBooleanSort())
