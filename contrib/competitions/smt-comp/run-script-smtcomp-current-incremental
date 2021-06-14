@@ -41,16 +41,16 @@ QF_BV)
   runcvc5 --incremental --bitblast=eager --bv-assert-input
   ;;
 QF_UFBV)
-  runcvc5 --incremental
+  runcvc5 --incremental --bv-assert-input
   ;;
 QF_UF)
   runcvc5 --incremental
   ;;
 QF_AUFBV)
-  runcvc5 --incremental
+  runcvc5 --incremental --bv-assert-input
   ;;
 QF_ABV)
-  runcvc5 --incremental
+  runcvc5 --incremental --bv-assert-input
   ;;
 ABVFP)
   runcvc5 --incremental
