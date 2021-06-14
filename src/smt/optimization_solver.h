@@ -34,9 +34,12 @@ namespace smt {
  * The optimization result of an optimization objective
  * containing:
  * - the optimization result: SAT/UNSAT/UNKNOWN
- * - the optimal value if SAT and bounded,
- *   or an empty node if SAT and unbounded,
- *   otherwise the value might be empty node or something suboptimal
+ * - the optimal value if SAT and bounded
+ *     (optimal value reached and it's not infinity),
+ *   or an empty node if SAT and unbounded
+ *     (optimal value is +inf for maximum or -inf for minimum),
+ *   otherwise the value might be empty node
+ *   or something suboptimal
  * - whether the objective is unbounded
  */
 class OptimizationResult
@@ -72,15 +75,15 @@ class OptimizationResult
    * Returns the optimal value.
    * @return Node containing the optimal value,
    *   if result is unbounded, this will be an empty node,
-   *   if getResult() is not SAT, it might return an empty node or a node
-   *   containing sub-optimal value
+   *   if getResult() is not SAT, it will return an empty node
    **/
   Node getValue() const { return d_value; }
 
   /**
    * Checks whether the objective is unbouned
    * @return whether the objective is unbounded
-   *   if the objective is unbounded, then it's:
+   *   if the objective is unbounded (this function returns true), 
+   *   then the optimal value is:
    *   +inf, if it's maximize;
    *   -inf, if it's minimize
    **/
