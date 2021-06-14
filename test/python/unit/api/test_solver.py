@@ -863,27 +863,20 @@ def test_mk_true(solver):
 
 def test_mk_tuple(solver):
     solver.mkTuple([solver.mkBitVectorSort(3)], [solver.mkBitVector("101", 2)])
+    solver.mkTuple([solver.getRealSort()], [solver.mkInteger("5")])
 
-
-#  ASSERT_NO_THROW(
-#      d_solver.mkTuple({d_solver.getRealSort()}, {d_solver.mkInteger("5")}));
-#
-#  ASSERT_THROW(d_solver.mkTuple({}, {d_solver.mkBitVector("101", 2)}),
-#               CVC5ApiException);
-#  ASSERT_THROW(d_solver.mkTuple({d_solver.mkBitVectorSort(4)},
-#                                {d_solver.mkBitVector("101", 2)}),
-#               CVC5ApiException);
-#  ASSERT_THROW(
-#      d_solver.mkTuple({d_solver.getIntegerSort()}, {d_solver.mkReal("5.3")}),
-#      CVC5ApiException);
-#  Solver slv;
-#  ASSERT_THROW(
-#      slv.mkTuple({d_solver.mkBitVectorSort(3)}, {slv.mkBitVector("101", 2)}),
-#      CVC5ApiException);
-#  ASSERT_THROW(
-#      slv.mkTuple({slv.mkBitVectorSort(3)}, {d_solver.mkBitVector("101", 2)}),
-#      CVC5ApiException);
-#}
+    with pytest.raises(RuntimeError):
+        solver.mkTuple([], [solver.mkBitVector("101", 2)])
+    with pytest.raises(RuntimeError):
+        solver.mkTuple([solver.mkBitVectorSort(4)],
+                       [solver.mkBitVector("101", 2)])
+    with pytest.raises(RuntimeError):
+        solver.mkTuple([solver.getIntegerSort()], [solver.mkReal("5.3")])
+    slv = pycvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.mkTuple([solver.mkBitVectorSort(3)], [slv.mkBitVector("101", 2)])
+    with pytest.raises(RuntimeError):
+        slv.mkTuple([slv.mkBitVectorSort(3)], [solver.mkBitVector("101", 2)])
 
 
 def test_mk_universe_set(solver):
