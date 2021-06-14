@@ -67,7 +67,7 @@ class OptimizationResult
   /**
    * Returns an enum indicating whether
    * the result is SAT or not.
-   * @return an enum showing whether the result is SAT, UNSAT or SAT_UNKNOWN
+   * @return whether the result is SAT, UNSAT or SAT_UNKNOWN
    **/
   Result getResult() const { return d_result; }
 
