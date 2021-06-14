@@ -46,8 +46,10 @@ def test_get_boolean_sort(solver):
 def test_get_integer_sort(solver):
     solver.getIntegerSort()
 
+
 def test_get_null_sort(solver):
     solver.getNullSort()
+
 
 def test_get_real_sort(solver):
     solver.getRealSort()
@@ -721,18 +723,21 @@ def test_mk_term(solver):
         slv.mkTerm(kinds.Equal, a, b)
 
     # mkTerm(Kind kind, Term child1, Term child2, Term child3) const
-    solver.mkTerm(
-        kinds.Ite, solver.mkTrue(), solver.mkTrue(), solver.mkTrue())
+    solver.mkTerm(kinds.Ite, solver.mkTrue(), solver.mkTrue(), solver.mkTrue())
     with pytest.raises(RuntimeError):
-        solver.mkTerm(kinds.Ite, pycvc5.Term(solver), solver.mkTrue(), solver.mkTrue())
+        solver.mkTerm(kinds.Ite, pycvc5.Term(solver), solver.mkTrue(),
+                      solver.mkTrue())
     with pytest.raises(RuntimeError):
-        solver.mkTerm(kinds.Ite, solver.mkTrue(), pycvc5.Term(solver), solver.mkTrue())
+        solver.mkTerm(kinds.Ite, solver.mkTrue(), pycvc5.Term(solver),
+                      solver.mkTrue())
     with pytest.raises(RuntimeError):
-        solver.mkTerm(kinds.Ite, solver.mkTrue(), solver.mkTrue(), pycvc5.Term(solver))
+        solver.mkTerm(kinds.Ite, solver.mkTrue(), solver.mkTrue(),
+                      pycvc5.Term(solver))
     with pytest.raises(RuntimeError):
         solver.mkTerm(kinds.Ite, solver.mkTrue(), solver.mkTrue(), b)
     with pytest.raises(RuntimeError):
-        slv.mkTerm(kinds.Ite, solver.mkTrue(), solver.mkTrue(), solver.mkTrue())
+        slv.mkTerm(kinds.Ite, solver.mkTrue(), solver.mkTrue(),
+                   solver.mkTrue())
 
     # mkTerm(Kind kind, const std::vector<Term>& children) const
     solver.mkTerm(kinds.Equal, v1)
@@ -816,9 +821,7 @@ def test_mk_term_from_op(solver):
         slv.mkTerm(opterm1, a)
 
     # mkTerm(Op op, Term child1, Term child2) const
-    solver.mkTerm(kinds.ApplyConstructor,
-                  consTerm1,
-                  solver.mkInteger(0),
+    solver.mkTerm(kinds.ApplyConstructor, consTerm1, solver.mkInteger(0),
                   solver.mkTerm(kinds.ApplyConstructor, nilTerm1))
     with pytest.raises(RuntimeError):
         solver.mkTerm(opterm2, solver.mkInteger(1), solver.mkInteger(2))
@@ -838,8 +841,8 @@ def test_mk_term_from_op(solver):
     with pytest.raises(RuntimeError):
         solver.mkTerm(opterm1, a, b, a)
     with pytest.raises(RuntimeError):
-        solver.mkTerm(
-            opterm2, solver.mkInteger(1), solver.mkInteger(1), pycvc5.Term(solver))
+        solver.mkTerm(opterm2, solver.mkInteger(1), solver.mkInteger(1),
+                      pycvc5.Term(solver))
 
     # mkTerm(Op op, const std::vector<Term>& children) const
     solver.mkTerm(opterm2, v4)
@@ -859,8 +862,9 @@ def test_mk_true(solver):
 
 
 def test_mk_tuple(solver):
-#  ASSERT_NO_THROW(d_solver.mkTuple({d_solver.mkBitVectorSort(3)},
-#                                   {d_solver.mkBitVector("101", 2)}));
+    solver.mkTuple([solver.mkBitVectorSort(3)], [solver.mkBitVector("101", 2)])
+
+
 #  ASSERT_NO_THROW(
 #      d_solver.mkTuple({d_solver.getRealSort()}, {d_solver.mkInteger("5")}));
 #
@@ -880,6 +884,7 @@ def test_mk_tuple(solver):
 #      slv.mkTuple({slv.mkBitVectorSort(3)}, {d_solver.mkBitVector("101", 2)}),
 #      CVC5ApiException);
 #}
+
 
 def test_mk_universe_set(solver):
     solver.mkUniverseSet(solver.getBooleanSort())
