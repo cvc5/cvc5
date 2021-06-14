@@ -122,20 +122,10 @@ bool LogicInfo::hasEverything() const
   PrettyCheckArgument(d_locked,
                       *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
-  // A logic has everything if all theories are enabled as well as quantifiers
-  bool doesNotHaveEverything = !isQuantified();
-  for (TheoryId id = THEORY_FIRST; !doesNotHaveEverything && id < THEORY_LAST;
-       ++id)
-  {
-    // if not configured with symfpu, we allow THEORY_FP to be disabled and
-    // still *this to contain the ALL logic
-    if (!this->d_theories[id]
-        && (id != THEORY_FP || Configuration::isBuiltWithSymFPU()))
-    {
-      doesNotHaveEverything = true;
-    }
-  }
-  return !doesNotHaveEverything;
+  LogicInfo everything;
+  everything.enableEverything(isHigherOrder());
+  everything.lock();
+  return (*this == everything);
 }
 
 /** Is this the all-exclusive logic?  (Here, that means propositional logic) */
@@ -223,16 +213,18 @@ bool LogicInfo::operator==(const LogicInfo& other) const {
 
   PrettyCheckArgument(d_sharingTheories == other.d_sharingTheories, *this,
                       "LogicInfo internal inconsistency");
-  bool res = d_cardinalityConstraints == other.d_cardinalityConstraints
-             && d_higherOrder == other.d_higherOrder;
+  if (d_cardinalityConstraints != other.d_cardinalityConstraints ||
+             d_higherOrder != other.d_higherOrder )
+  {
+    return false;
+  }
   if(isTheoryEnabled(theory::THEORY_ARITH)) {
     return d_integers == other.d_integers && d_reals == other.d_reals
            && d_transcendentals == other.d_transcendentals
            && d_linear == other.d_linear
-           && d_differenceLogic == other.d_differenceLogic && res;
-  } else {
-    return res;
+           && d_differenceLogic == other.d_differenceLogic;
   }
+  return true;
 }
 
 bool LogicInfo::operator<=(const LogicInfo& other) const {
