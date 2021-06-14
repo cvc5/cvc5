@@ -56,23 +56,23 @@ QF_LIA)
   finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites --ite-simp --simp-ite-compress
   ;;
 QF_NIA)
-  trywith 480 --nl-ext-tplanes --decision=internal
-  trywith 60 --nl-ext-tplanes --decision=justification
+  trywith 420 --nl-ext-tplanes --decision=justification
+  trywith 60 --nl-ext-tplanes --decision=internal
+  trywith 60 --nl-ext-tplanes --decision=justification-old
   trywith 60 --no-nl-ext-tplanes --decision=internal
   trywith 60 --no-arith-brab --nl-ext-tplanes --decision=internal
   # this totals up to more than 20 minutes, although notice that smaller bit-widths may quickly fail
-  trywith 300 --solve-int-as-bv=2 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
-  trywith 300 --solve-int-as-bv=4 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
-  trywith 300 --solve-int-as-bv=8 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
-  trywith 300 --solve-int-as-bv=16 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
-  trywith 600 --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
+  trywith 300 --solve-int-as-bv=2 --bitblast=eager
+  trywith 300 --solve-int-as-bv=4 --bitblast=eager
+  trywith 300 --solve-int-as-bv=8 --bitblast=eager
+  trywith 300 --solve-int-as-bv=16 --bitblast=eager
+  trywith 600 --solve-int-as-bv=32 --bitblast=eager
   finishwith --nl-ext-tplanes --decision=internal
   ;;
 QF_NRA)
-  trywith 300 --nl-ext-tplanes --decision=internal
-  trywith 300 --nl-ext-tplanes --decision=justification --no-nl-ext-factor
-  trywith 30 --nl-ext-tplanes --decision=internal --solve-real-as-int
-  finishwith --nl-ext-tplanes --decision=justification
+  trywith 600 --decision=justification
+  trywith 300 --decision=internal --no-nl-cad --nl-ext=full --nl-ext-tplanes
+  finishwith --decision=internal --nl-ext=none
   ;;
 # all logics with UF + quantifiers should either fall under this or special cases below
 ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUFBVDTLIA|AUFNIA|UFFPDTLIRA|UFFPDTNIRA)
@@ -139,14 +139,8 @@ QF_ABV)
   trywith 500 --arrays-weak-equiv
   finishwith --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
   ;;
-QF_UFBV)
-  # Benchmarks with uninterpreted sorts cannot be solved with eager
-  # bit-blasting currently
-  trywith 1200 --bitblast=eager --bv-sat-solver=cadical
-  finishwith
-  ;;
-QF_BV)
-  finishwith --bv-div-zero-const --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
+QF_BV|QF_UFBV)
+  finishwith --bitblast=eager --bv-assert-input
   ;;
 QF_AUFLIA)
   finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=justification
@@ -162,8 +156,8 @@ QF_ALIA)
   finishwith --decision=justification-stoponly --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 QF_S|QF_SLIA)
-  trywith 300 --strings-exp --rewrite-divk --strings-fmf --no-jh-rlv-order
-  finishwith --strings-exp --rewrite-divk --no-jh-rlv-order
+  trywith 300 --strings-exp --strings-fmf --no-jh-rlv-order
+  finishwith --strings-exp --no-jh-rlv-order
   ;;
 QF_ABVFP|QF_ABVFPLRA)
   finishwith --fp-exp

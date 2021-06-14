@@ -201,6 +201,11 @@ cdef class DatatypeConstructor:
         term.cterm = self.cdc.getConstructorTerm()
         return term
 
+    def getSpecializedConstructorTerm(self, Sort retSort):
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cdc.getSpecializedConstructorTerm(retSort.csort)
+        return term
+
     def getTesterTerm(self):
         cdef Term term = Term(self.solver)
         term.cterm = self.cdc.getTesterTerm()
@@ -764,6 +769,21 @@ cdef class Solver:
         return term
 
     def mkReal(self, val, den=None):
+        '''
+        Make a real number term.
+
+        Really, makes a rational term.
+
+        Can be used in various forms.
+        * Given a string "N/D" constructs the corresponding rational.
+        * Given a string "W.D" constructs the reduction of (W * P + D)/P, where
+          P is the appropriate power of 10.
+        * Given a float f, constructs the rational matching f's string
+          representation. This means that mkReal(0.3) gives 3/10 and not the
+          IEEE-754 approximation of 3/10.
+        * Given a string "W" or an integer, constructs that integer.
+        * Given two strings and/or integers N and D, constructs N/D.
+        '''
         cdef Term term = Term(self)
         if den is None:
             term.cterm = self.csolver.mkReal(str(val).encode())
@@ -1790,12 +1810,14 @@ cdef class Term:
         return self.cterm.isRealValue()
 
     def getRealValue(self):
-        return float(Fraction(self.cterm.getRealValue().decode()))
+        '''Returns the value of a real term as a Fraction'''
+        return Fraction(self.cterm.getRealValue().decode())
 
     def isBitVectorValue(self):
         return self.cterm.isBitVectorValue()
 
     def getBitVectorValue(self, base = 2):
+        '''Returns the value of a bit-vector term as a 0/1 string'''
         return self.cterm.getBitVectorValue(base).decode()
 
     def toPythonObj(self):

@@ -163,8 +163,9 @@ Node StringsPreprocess::reduce(Node t,
     Node a2 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, sk3, sk2));
     // length of first skolem is second argument
     Node a3 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
+    Node a4 = nm->mkNode(STRING_LENGTH, rs).eqNode(nm->mkNode(STRING_LENGTH, sk3));
 
-    Node b1 = nm->mkNode(AND, a1, a2, a3);
+    Node b1 = nm->mkNode(AND, {a1, a2, a3, a4});
     Node b2 = skt.eqNode(s);
     Node lemma = nm->mkNode(ITE, cond, b1, b2);
 
@@ -172,7 +173,8 @@ Node StringsPreprocess::reduce(Node t,
     // IF    n >=0 AND n < len( s )
     // THEN: skt = sk1 ++ substr(r,0,len(s)-n) ++ sk2 AND
     //       s = sk1 ++ sk3 ++ sk2 AND
-    //       len( sk1 ) = n
+    //       len( sk1 ) = n AND
+    //       len( substr(r,0,len(s)-n) ) = len( sk3 )
     // ELSE: skt = s
     // We use an optimization where r is used instead of substr(r,0,len(s)-n)
     // if r is a constant of length one.
@@ -301,14 +303,14 @@ Node StringsPreprocess::reduce(Node t,
     Node bvll = nm->mkNode(BOUND_VAR_LIST, l);
     Node validLen =
         nm->mkNode(AND,
-                   nm->mkNode(GEQ, l, n),
+                   nm->mkNode(GEQ, l, zero),
                    nm->mkNode(LEQ, l, nm->mkNode(MINUS, sLen, skk)));
     Node matchBody = nm->mkNode(
         AND,
         validLen,
         nm->mkNode(STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, s, skk, l), r));
     // skk != -1 =>
-    //   exists l. n <= l < len(s) - skk ^ in_re(substr(s, skk, l), r))
+    //   exists l. (0 <= l < len(s) - skk) ^ in_re(substr(s, skk, l), r))
     Node match = nm->mkNode(
         OR, retNegOne, mkForallInternal(bvll, matchBody.negate()).negate());
 
@@ -321,7 +323,7 @@ Node StringsPreprocess::reduce(Node t,
     //         n <= i < ite(skk = -1, len(s), skk) ^ 0 < l <= len(s) - i =>
     //           ~in_re(substr(s, i, l), r)) ^
     //       (skk != -1 =>
-    //          exists l. n <= l < len(s) - skk ^ in_re(substr(s, skk, l), r))
+    //          exists l. 0 <= l <= len(s) - skk ^ in_re(substr(s, skk, l), r))
     //
     // Note that this reduction relies on eager reduction lemmas being sent to
     // properly limit the range of skk.
@@ -758,9 +760,8 @@ Node StringsPreprocess::reduce(Node t,
     Node emp = Word::mkEmptyWord(t.getType());
 
     Node yp = nm->mkNode(REGEXP_DIFF, y, nm->mkNode(STRING_TO_REGEXP, emp));
-    Node idx = nm->mkNode(STRING_INDEXOF_RE, x, yp, zero);
     // indexof_re(x, y', 0) = -1
-    Node noMatch = idx.eqNode(negOne);
+    Node noMatch = nm->mkNode(STRING_INDEXOF_RE, x, yp, zero).eqNode(negOne);
 
     Node ufno = nm->mkNode(APPLY_UF, uf, numOcc);
     Node usno = nm->mkNode(APPLY_UF, us, numOcc);
@@ -791,7 +792,7 @@ Node StringsPreprocess::reduce(Node t,
     Node ii = nm->mkNode(MINUS, ufip1, ulip1);
 
     std::vector<Node> flem;
-    // Ul(i) > 0
+    // Ul(i + 1) > 0
     flem.push_back(nm->mkNode(GT, ulip1, zero));
     // Uf(i + 1) = indexof_re(x, yp, Uf(i)) + Ul(i + 1)
     flem.push_back(ufip1.eqNode(
@@ -829,13 +830,13 @@ Node StringsPreprocess::reduce(Node t,
     //   k = Us(0) ^ Us(numOcc) = substr(x, Uf(numOcc)) ^
     //   Uf(0) = 0 ^ indexof_re(substr(x, Uf(numOcc)), y', 0) = -1 ^
     //   forall i. 0 <= i < nummOcc =>
-    //     Ul(i) > 0 ^
+    //     Ul(i + 1) > 0 ^
     //     Uf(i + 1) = indexof_re(x, yp, Uf(i)) + Ul(i + 1) ^
     //     in_re(substr(x, ii, Ul(i + 1)), y') ^
     //     forall l. 0 < l < Ul(i + 1) =>
-    //       ~in_re(substr(x, Uf(i + 1) - Ul(i + 1), l), y')
+    //       ~in_re(substr(x, ii, l), y')
     //     Us(i) = substr(x, Uf(i), ii - Uf(i)) ++ z ++ Us(i + 1)
-    //     where ii = Uf(i + 1) - Ul(i)
+    //     where ii = Uf(i + 1) - Ul(i + 1)
     // where y' = re.diff(y, "")
     //
     // Conceptually, y' is the regex y but excluding the empty string (because
