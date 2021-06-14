@@ -1,6 +1,5 @@
-; COMMAND-LINE: --uf-ho
 ; EXPECT: unsat
-(set-logic ALL)
+(set-logic HO_ALL)
 (declare-sort A$ 0)
 (declare-sort Com$ 0)
 (declare-sort Loc$ 0)
