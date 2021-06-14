@@ -75,7 +75,9 @@ class OptimizationResult
    * Returns the optimal value.
    * @return Node containing the optimal value,
    *   if result is unbounded, this will be an empty node,
-   *   if getResult() is not SAT, it will return an empty node
+   *   if getResult() is UNSAT, it will return an empty node,
+   *   if getResult() is SAT_UNKNOWN, it will return something suboptimal
+   *   or an empty node, depending on how the solver runs.
    **/
   Node getValue() const { return d_value; }
 
