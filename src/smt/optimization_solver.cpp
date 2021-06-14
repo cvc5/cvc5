@@ -153,10 +153,9 @@ Result OptimizationSolver::optimizeLexicographicIterative()
   d_optChecker = createOptCheckerWithTimeout(d_parent);
   // partialResult defaults to SAT if no objective is present
   // NOTE: the parenthesis around Result(Result::SAT) is required,
-  // otherwise compiler will report "parameter declarator cannot be qualified"
-  // check this out:
+  // otherwise the compiler will report "parameter declarator cannot be qualified".
+  // For more details:
   // https://stackoverflow.com/questions/44045257/c-compiler-error-c2751-what-exactly-causes-it
-  // and this:
   // https://en.wikipedia.org/wiki/Most_vexing_parse
   OptimizationResult partialResult((Result(Result::SAT)), TNode());
   std::unique_ptr<OMTOptimizer> optimizer;
