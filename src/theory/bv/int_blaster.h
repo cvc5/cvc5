@@ -154,9 +154,9 @@ class IntBlaster
   /** Returns a node that represents the bitwise negation of n. */
   Node createBVNotNode(Node n, uint64_t bvsize);
   Node createBVNegNode(Node n, uint64_t bvsize);
-  Node createBVAndNode(Node x, Node y, uint64_t bvsize, std::vector<Node> lemmas);
+  Node createBVAndNode(Node x, Node y, uint64_t bvsize, std::vector<Node>& lemmas);
   Node createBVAddNode(Node x, Node y, uint64_t bvsize);
-  Node createBVOrNode(Node x, Node y, uint64_t bvsize, std::vector<Node> lemmas);
+  Node createBVOrNode(Node x, Node y, uint64_t bvsize, std::vector<Node>& lemmas);
   Node createBVSubNode(Node x, Node y, uint64_t bvsize);
   Node uts(Node x, uint64_t bvsize);
 

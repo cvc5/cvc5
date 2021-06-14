@@ -1032,7 +1032,7 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   return result;
 }
 
-Node IntBlaster::createBVAndNode(Node x, Node y, uint64_t bvsize, std::vector<Node> lemmas) {
+Node IntBlaster::createBVAndNode(Node x, Node y, uint64_t bvsize, std::vector<Node>& lemmas) {
       // We support three configurations:
       // 1. translating to IAND
       // 2. translating back to BV (using BITVECTOR_TO_NAT and INT_TO_BV
@@ -1100,7 +1100,7 @@ Node IntBlaster::createBVAndNode(Node x, Node y, uint64_t bvsize, std::vector<No
       return returnNode;
 }
 
-Node IntBlaster::createBVOrNode(Node x, Node y, uint64_t bvsize, std::vector<Node> lemmas) {
+Node IntBlaster::createBVOrNode(Node x, Node y, uint64_t bvsize, std::vector<Node>& lemmas) {
       // Based on Hacker's Delight section 2-2 equation h:
       // x+y = x|y + x&y
       // from which we deduce:
