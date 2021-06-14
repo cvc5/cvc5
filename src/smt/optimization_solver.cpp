@@ -134,6 +134,7 @@ Result OptimizationSolver::optimizeBox()
         {
           d_results[j] = partialResult;
         }
+        d_optChecker.reset();
         return partialResult.getResult();
       case Result::SAT_UNKNOWN:
         aggregatedResult = partialResult.getResult();
