@@ -391,6 +391,8 @@ libcvc5_add_sources(
   theory/arith/nl/cad/cdcac_utils.h
   theory/arith/nl/cad/constraints.cpp
   theory/arith/nl/cad/constraints.h
+  theory/arith/nl/cad/lazard_evaluation.cpp
+  theory/arith/nl/cad/lazard_evaluation.h
   theory/arith/nl/cad/projections.cpp
   theory/arith/nl/cad/projections.h
   theory/arith/nl/cad/proof_checker.cpp
