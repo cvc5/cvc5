@@ -87,11 +87,3 @@ public = true
   type       = "bool"
   default    = "false"
   help       = "spin on segfault/other crash waiting for gdb"
-
-[[option]]
-  name       = "tearDownIncremental"
-  category   = "expert"
-  long       = "tear-down-incremental=N"
-  type       = "int"
-  default    = "0"
-  help       = "implement PUSH/POP/multi-query by destroying and recreating SmtEngine every N queries"
