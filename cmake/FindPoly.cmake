@@ -45,7 +45,7 @@ if(NOT Poly_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(Poly_VERSION "6309f7a94e97753ef3ecb7dbfcbd435d558c4bd6")
+  set(Poly_VERSION "f543721215ec17a724dc86820a0430233931a637")
 
   check_if_cross_compiling(CCWIN "Windows" "")
   if(CCWIN)
@@ -78,7 +78,7 @@ if(NOT Poly_FOUND_SYSTEM)
     Poly-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/SRI-CSL/libpoly/archive/${Poly_VERSION}.tar.gz
-    URL_HASH SHA1=7bac7aa4aab8201f5b14494fc486fa2b0ffb7b31
+    URL_HASH SHA1=3fad3b310727fa0fb2fdff5a8857709d12f72e04
     PATCH_COMMAND
       sed -i.orig
       "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"
