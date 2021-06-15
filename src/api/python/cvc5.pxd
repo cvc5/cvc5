@@ -180,7 +180,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkTerm(Op op, const vector[Term]& children) except +
         Term mkTuple(const vector[Sort]& sorts, const vector[Term]& terms) except +
         Op mkOp(Kind kind) except +
-        Op mkOp(Kind kind, Kind k) except +
         Op mkOp(Kind kind, const string& arg) except +
         Op mkOp(Kind kind, uint32_t arg) except +
         Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) except +

@@ -696,9 +696,7 @@ cdef class Solver:
         if len(args) == 0:
             op.cop = self.csolver.mkOp(k.k)
         elif len(args) == 1:
-            if isinstance(args[0], kind):
-                op.cop = self.csolver.mkOp(k.k, (<kind?> args[0]).k)
-            elif isinstance(args[0], str):
+            if isinstance(args[0], str):
                 op.cop = self.csolver.mkOp(k.k,
                                            <const string &>
                                            args[0].encode())
@@ -713,8 +711,7 @@ cdef class Solver:
                                  " mkOp: {}".format(" X ".join([str(k), str(args[0])])))
         elif len(args) == 2:
             if isinstance(args[0], int) and isinstance(args[1], int):
-                op.cop = self.csolver.mkOp(k.k, <int> args[0],
-                                                       <int> args[1])
+                op.cop = self.csolver.mkOp(k.k, <int> args[0], <int> args[1])
             else:
                 raise ValueError("Unsupported signature"
                                  " mkOp: {}".format(" X ".join([k, args[0], args[1]])))
