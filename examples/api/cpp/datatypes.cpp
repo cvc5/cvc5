@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * An example of using inductive datatypes in CVC4.
+ * An example of using inductive datatypes in cvc5.
  */
 
 #include <cvc5/cvc5.h>
@@ -127,7 +127,7 @@ void test(Solver& slv, Sort& consListSort)
   std::cout << "Assert " << assertion << std::endl;
   slv.assertFormula(assertion);
   std::cout << "Expect sat." << std::endl;
-  std::cout << "CVC4: " << slv.checkSat() << std::endl;
+  std::cout << "cvc5: " << slv.checkSat() << std::endl;
 }
 
 int main()
@@ -153,7 +153,7 @@ int main()
   std::cout << "spec is:" << std::endl << consListSpec << std::endl;
 
   // Keep in mind that "DatatypeDecl" is the specification class for
-  // datatypes---"DatatypeDecl" is not itself a CVC4 Sort.
+  // datatypes---"DatatypeDecl" is not itself a cvc5 Sort.
   // Now that our Datatype is fully specified, we can get a Sort for it.
   // This step resolves the "SelfSort" reference and creates
   // symbols for all the constructors, etc.
