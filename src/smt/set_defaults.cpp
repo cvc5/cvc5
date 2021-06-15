@@ -66,7 +66,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // unsat cores and proofs shenanigans
   if (options::dumpUnsatCoresFull())
   {
-    opts.smt.dumpUnsatCores = true;
+    opts.driver.dumpUnsatCores = true;
   }
   if (options::checkUnsatCores() || options::dumpUnsatCores()
       || options::unsatAssumptions()
@@ -189,8 +189,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
   {
-    // do not rewrite bv2nat eagerly
-    opts.bv.bvLazyRewriteExtf = true;
     if (options::boolToBitvector() != options::BoolToBVMode::OFF)
     {
       throw OptionException(
@@ -214,14 +212,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       logic.arithNonLinear();
       logic.lock();
     }
-  }
-  else if (options::bvSolver() == options::BVSolver::SIMPLE
-           || options::bvSolver() == options::BVSolver::BITBLAST)
-  {
-    // Only BVSolver::LAZY natively supports int2bv and nat2bv, for other
-    // solvers we need to eagerly eliminate the operators. Note this is only
-    // applied if we are not eliminating BV (e.g. with solveBVAsInt).
-    opts.bv.bvLazyReduceExtf = false;
   }
 
   // set options about ackermannization
@@ -281,11 +271,15 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // Set default options associated with strings-exp. We also set these options
   // if we are using eager string preprocessing, which may introduce quantified
   // formulas at preprocess time.
+  //
+  // We don't want to set this option when we are in logics that contain ALL.
   if (!logic.hasEverything() && logic.isTheoryEnabled(THEORY_STRINGS))
   {
     // If the user explicitly set a logic that includes strings, but is not
     // the generic "ALL" logic, then enable stringsExp.
     opts.strings.stringExp = true;
+    Trace("smt") << "Turning stringExp on since logic does not have everything "
+                    "and string theory is enabled\n";
   }
   if (options::stringExp() || !options::stringLazyPreproc())
   {
@@ -763,7 +757,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // If in arrays, set the UF handler to arrays
-  if (logic.isTheoryEnabled(THEORY_ARRAYS) && !options::ufHo()
+  if (logic.isTheoryEnabled(THEORY_ARRAYS) && !logic.isHigherOrder()
       && !options::finiteModelFind()
       && (!logic.isQuantified()
           || (logic.isQuantified() && !logic.isTheoryEnabled(THEORY_UF))))
@@ -900,7 +894,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::DecisionMode decMode =
         // anything that uses sygus uses internal
         usesSygus ? options::DecisionMode::INTERNAL :
-                  // ALL
+                  // ALL  or its supersets
             logic.hasEverything()
                 ? options::DecisionMode::JUSTIFICATION
                 : (  // QF_BV
@@ -932,7 +926,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                           : options::DecisionMode::INTERNAL);
 
     bool stoponly =
-        // ALL
+        // ALL or its supersets
         logic.hasEverything() || logic.isTheoryEnabled(THEORY_STRINGS)
             ? false
             : (  // QF_AUFLIA
@@ -996,8 +990,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       opts.quantifiers.prenexQuant = options::PrenexQuantMode::NONE;
     }
   }
-  if (options::ufHo())
+  if (logic.isHigherOrder())
   {
+    opts.uf.ufHo = true;
     // if higher-order, then current variants of model-based instantiation
     // cannot be used
     if (options::mbqiMode() != options::MbqiMode::NONE)
@@ -1399,22 +1394,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       || options::checkModels())
   {
     opts.arrays.arraysOptimizeLinear = false;
-  }
-
-  if (!options::bitvectorEqualitySolver())
-  {
-    if (options::bvLazyRewriteExtf())
-    {
-      if (opts.bv.bvLazyRewriteExtfWasSetByUser)
-      {
-        throw OptionException(
-            "--bv-lazy-rewrite-extf requires --bv-eq-solver to be set");
-      }
-    }
-    Trace("smt")
-        << "disabling bvLazyRewriteExtf since equality solver is disabled"
-        << std::endl;
-    opts.bv.bvLazyRewriteExtf = false;
   }
 
   if (options::stringFMF() && !opts.strings.stringProcessLoopModeWasSetByUser)

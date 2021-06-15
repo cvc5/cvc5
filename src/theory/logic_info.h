@@ -120,7 +120,11 @@ public:
   /** Is this a quantified logic? */
   bool isQuantified() const;
 
-  /** Is this the all-inclusive logic? */
+  /** Is this a logic that includes the all-inclusive logic?
+   *
+   * @return Yields true if the logic corresponds to "ALL" or its super
+   * set including , such as "HO_ALL".
+   */
   bool hasEverything() const;
 
   /** Is this the all-exclusive logic?  (Here, that means propositional logic) */
@@ -168,8 +172,11 @@ public:
   /**
    * Enable all functionality.  All theories, plus quantifiers, will be
    * enabled.
+   *
+   * @param enableHigherOrder Whether HOL should be enable together with the
+   * above.
    */
-  void enableEverything();
+  void enableEverything(bool enableHigherOrder = false);
 
   /**
    * Disable all functionality.  The result will be a LogicInfo with
