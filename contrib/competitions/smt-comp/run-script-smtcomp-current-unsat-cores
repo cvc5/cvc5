@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cvc5=./cvc5
+cvc5=$(dirname "$(readlink -f "$0")")/cvc5
 bench="$1"
 
 logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]*\) *) *$')
@@ -17,13 +17,10 @@ QF_LRA)
   finishwith --no-restrict-pivots --use-soi --new-prop
   ;;
 QF_LIA)
-  finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --use-soi --ite-simp --simp-ite-compress
+  finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --use-soi
   ;;
 QF_NIA)
-  finishwith --nl-ext --nl-ext-tplanes
-  ;;
-QF_NRA)
-  finishwith --nl-ext --nl-ext-tplanes
+  finishwith --nl-ext-tplanes
   ;;
 # all logics with UF + quantifiers should either fall under this or special cases below
 ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUFBVDTLIA|AUFNIA|ABVFP|BVFP|FP)
@@ -42,16 +39,16 @@ NIA|NRA)
   finishwith --full-saturate-quant --cegqi-nested-qe --decision=internal
   ;;
 QF_AUFBV)
-  finishwith --decision=justification-stoponly --ite-simp
+  finishwith --decision=justification-stoponly
   ;;
 QF_ABV)
-  finishwith --ite-simp --simp-with-care --arrays-weak-equiv
+  finishwith --arrays-weak-equiv
   ;;
 QF_UFBV)
   finishwith
   ;;
 QF_BV)
-  finishwith --no-bv-abstraction
+  finishwith
   ;;
 QF_AUFLIA)
   finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=justification

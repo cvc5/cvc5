@@ -1,7 +1,7 @@
-; COMMAND-LINE: --produce-abducts --uf-ho
+; COMMAND-LINE: --produce-abducts
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
-(set-logic UFLIA)
+(set-logic HO_UFLIA)
 (declare-fun f (Int) Int)
 (declare-fun a () Int)
 (assert (and (<= 0 a) (< a 4)))

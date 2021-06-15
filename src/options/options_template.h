@@ -137,15 +137,6 @@ public:
   static std::ostream* currentGetOut();
 
   /**
-   * Returns true iff the value of the given option was set
-   * by the user via a command-line option or SmtEngine::setOption().
-   * (Options::set() is low-level and doesn't count.)  Returns false
-   * otherwise.
-   */
-  template <class T>
-  bool wasSetByUser(T) const;
-
-  /**
    * Get a description of the command-line flags accepted by
    * parseOptions.  The returned string will be escaped so that it is
    * suitable as an argument to printf. */
@@ -183,7 +174,8 @@ public:
    */
   static std::vector<std::string> parseOptions(Options* options,
                                                int argc,
-                                               char* argv[]);
+                                               char* argv[],
+                                               std::string& binaryName);
 
   /**
    * Get the setting for all options.

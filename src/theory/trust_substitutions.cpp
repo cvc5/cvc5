@@ -115,11 +115,10 @@ ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
   // Try to transform tn.getProven() to (= x t) here, if necessary
   if (!d_tspb->applyPredTransform(proven, eq, {}))
   {
-    // failed to rewrite, it is critical for unsat cores that proven is a
-    // premise here, since the conclusion depends on it
-    addSubstitution(x, t, PfRule::TRUST_SUBS_MAP, {proven}, {eq});
-    Trace("trust-subs") << "...failed to rewrite" << std::endl;
-    return nullptr;
+    // failed to rewrite, we add a trust step which assumes eq is provable
+    // from proven, and proceed as normal.
+    Trace("trust-subs") << "...failed to rewrite " << proven << std::endl;
+    d_tspb->addStep(PfRule::TRUST_SUBS_EQ, {proven}, {eq}, eq);
   }
   Trace("trust-subs") << "...successful rewrite" << std::endl;
   solvePg->addSteps(*d_tspb.get());

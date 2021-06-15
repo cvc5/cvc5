@@ -76,7 +76,7 @@ SimpSolver::SimpSolver(cvc5::prop::TheoryProxy* proxy,
       n_touched(0)
 {
     if(options::minisatUseElim() &&
-       Options::current().wasSetByUser(options::minisatUseElim) &&
+       Options::current().prop.minisatUseElimWasSetByUser &&
        enableIncremental) {
         WarningOnce() << "Incremental mode incompatible with --minisat-elim" << std::endl;
     }
