@@ -7,10 +7,9 @@ language.
 Signature
 ---------
 
-Given a (decidable) base theory :math:`T`, cvc5 has a
-`decision procedure <https://cvc4.github.io/publications/2016/RIS+16.pdf>`__
-for quantifier-free :math:`SL(T)_{Loc,Data}` formulas, where :math:`Loc` and
-:math:`Data` are any sort belonging to :math:`T`.
+Given a (decidable) base theory :math:`T`, cvc5 implements a decision procedure
+for quantifier-free :math:`SL(T)_{Loc,Data}` formulas :cite:`ReynoldsISK16`,
+where :math:`Loc` and :math:`Data` are any sort belonging to :math:`T`.
 
 A :math:`SL(T)_{Loc,Data}` formula is one from the following grammar:
 

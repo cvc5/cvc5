@@ -33,7 +33,6 @@
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
-#include "options/resource_manager_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 
@@ -86,7 +85,7 @@ void OptionsHandler::setResourceWeight(const std::string& option,
                                        const std::string& flag,
                                        const std::string& optarg)
 {
-  d_options->resman.resourceWeightHolder.emplace_back(optarg);
+  d_options->base.resourceWeightHolder.emplace_back(optarg);
 }
 
 // theory/quantifiers/options_handlers.h

@@ -48,7 +48,7 @@ class LearnedLiteralManager
    * It should be rewritten, and such that top level substitutions have
    * been applied to it.
    */
-  void notifyLearnedLiteral(Node lit);
+  void notifyLearnedLiteral(TNode lit);
   /**
    * Get learned literals, which returns the current set of learned literals
    * provided to this class. These literals are refreshed so that the current

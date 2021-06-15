@@ -1,6 +1,5 @@
-; COMMAND-LINE: --uf-ho
 ; EXPECT: sat
-(set-logic ALL)
+(set-logic HO_ALL)
 (declare-fun g (Int) Real)
 (declare-fun h (Int) Real)
 (assert (not (= g h)))
