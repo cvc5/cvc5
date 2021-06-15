@@ -18,6 +18,7 @@
 #include <sstream>
 
 #include "api/cpp/cvc5.h"
+#include "options/base_options.h"
 #include "options/options.h"
 #include "options/options_public.h"
 #include "options/set_language.h"
@@ -35,8 +36,8 @@ void testGetInfo(api::Solver* solver, const char* s);
 int main()
 {
   Options opts;
-  options::setInputLanguage(language::input::LANG_SMTLIB_V2, opts);
-  options::setOutputLanguage(language::output::LANG_SMTLIB_V2, opts);
+  opts.base.inputLanguage = language::input::LANG_SMTLIB_V2;
+  opts.base.outputLanguage = language::output::LANG_SMTLIB_V2;
 
   cout << language::SetLanguage(language::output::LANG_SMTLIB_V2);
 

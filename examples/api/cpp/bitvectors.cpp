@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of the solving capabilities of the CVC4
+ * A simple demonstration of the solving capabilities of the cvc5
  * bit-vector solver.
  *
  */
@@ -43,7 +43,7 @@ int main()
   //
   //(2) x = a + b - x;
   //
-  // We will use CVC4 to prove that the three pieces of code above are all
+  // We will use cvc5 to prove that the three pieces of code above are all
   // equivalent by encoding the problem in the bit-vector theory.
 
   // Creating a bit-vector type of width 32
@@ -73,7 +73,7 @@ int main()
   Term assignment0 = slv.mkTerm(EQUAL, new_x, ite);
 
   // Assert the encoding of code (0)
-  cout << "Asserting " << assignment0 << " to CVC4 " << endl;
+  cout << "Asserting " << assignment0 << " to cvc5 " << endl;
   slv.assertFormula(assignment0);
   cout << "Pushing a new context." << endl;
   slv.push();
@@ -83,14 +83,14 @@ int main()
   Term a_xor_b_xor_x = slv.mkTerm(BITVECTOR_XOR, a, b, x);
   Term assignment1 = slv.mkTerm(EQUAL, new_x_, a_xor_b_xor_x);
 
-  // Assert encoding to CVC4 in current context;
-  cout << "Asserting " << assignment1 << " to CVC4 " << endl;
+  // Assert encoding to cvc5 in current context;
+  cout << "Asserting " << assignment1 << " to cvc5 " << endl;
   slv.assertFormula(assignment1);
   Term new_x_eq_new_x_ = slv.mkTerm(EQUAL, new_x, new_x_);
 
   cout << " Check entailment assuming: " << new_x_eq_new_x_ << endl;
   cout << " Expect ENTAILED. " << endl;
-  cout << " CVC4: " << slv.checkEntailed(new_x_eq_new_x_) << endl;
+  cout << " cvc5: " << slv.checkEntailed(new_x_eq_new_x_) << endl;
   cout << " Popping context. " << endl;
   slv.pop();
 
@@ -100,19 +100,19 @@ int main()
   Term a_plus_b_minus_x = slv.mkTerm(BITVECTOR_SUB, a_plus_b, x);
   Term assignment2 = slv.mkTerm(EQUAL, new_x_, a_plus_b_minus_x);
 
-  // Assert encoding to CVC4 in current context;
-  cout << "Asserting " << assignment2 << " to CVC4 " << endl;
+  // Assert encoding to cvc5 in current context;
+  cout << "Asserting " << assignment2 << " to cvc5 " << endl;
   slv.assertFormula(assignment2);
 
   cout << " Check entailment assuming: " << new_x_eq_new_x_ << endl;
   cout << " Expect ENTAILED. " << endl;
-  cout << " CVC4: " << slv.checkEntailed(new_x_eq_new_x_) << endl;
+  cout << " cvc5: " << slv.checkEntailed(new_x_eq_new_x_) << endl;
 
   Term x_neq_x = slv.mkTerm(EQUAL, x, x).notTerm();
   std::vector<Term> v{new_x_eq_new_x_, x_neq_x};
   cout << " Check entailment assuming: " << v << endl;
   cout << " Expect NOT_ENTAILED. " << endl;
-  cout << " CVC4: " << slv.checkEntailed(v) << endl;
+  cout << " cvc5: " << slv.checkEntailed(v) << endl;
 
   // Assert that a is odd
   Op extract_op = slv.mkOp(BITVECTOR_EXTRACT, 0, 0);
@@ -123,6 +123,6 @@ int main()
   cout << "Check satisfiability." << endl;
   slv.assertFormula(a_odd);
   cout << " Expect sat. " << endl;
-  cout << " CVC4: " << slv.checkSat() << endl;
+  cout << " cvc5: " << slv.checkSat() << endl;
   return 0;
 }
