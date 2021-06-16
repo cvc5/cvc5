@@ -1204,9 +1204,8 @@ endif()
 if(USE_POLY)
   target_link_libraries(cvc5 PRIVATE Polyxx)
 endif()
-if(USE_SYMFPU)
-  target_link_libraries(cvc5 PRIVATE SymFPU)
-endif()
+
+target_link_libraries(cvc5 PRIVATE SymFPU)
 
 # Note: When linked statically GMP needs to be linked after CLN since CLN
 # depends on GMP.

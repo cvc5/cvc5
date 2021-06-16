@@ -151,7 +151,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
 
     cdef cppclass Solver:
         Solver(Options*) except +
-        bint supportsFloatingPoint() except +
         Sort getBooleanSort() except +
         Sort getIntegerSort() except +
         Sort getRealSort() except +

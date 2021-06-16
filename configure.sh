@@ -64,7 +64,6 @@ The following flags enable optional packages (disable with --no-<option name>).
   --kissat                 use the Kissat SAT solver
   --poly                   use the LibPoly library [default=yes]
   --cocoa                  use the CoCoA library
-  --symfpu                 use SymFPU for floating point solver [default=yes]
   --editline               support the editline library
 
 Optional Path to Optional Packages:
@@ -133,7 +132,6 @@ editline=default
 shared=default
 static_binary=default
 statistics=default
-symfpu=ON
 tracing=default
 tsan=default
 ubsan=default
@@ -259,9 +257,6 @@ do
 
     --statistics) statistics=ON;;
     --no-statistics) statistics=OFF;;
-
-    --symfpu) symfpu=ON;;
-    --no-symfpu) symfpu=OFF;;
 
     --tracing) tracing=ON;;
     --no-tracing) tracing=OFF;;
@@ -398,8 +393,6 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_POLY=$poly"
 [ $cocoa != default ] \
   && cmake_opts="$cmake_opts -DUSE_COCOA=$cocoa"
-[ $symfpu != default ] \
-  && cmake_opts="$cmake_opts -DUSE_SYMFPU=$symfpu"
 [ "$abc_dir" != default ] \
   && cmake_opts="$cmake_opts -DABC_DIR=$abc_dir"
 [ "$glpk_dir" != default ] \

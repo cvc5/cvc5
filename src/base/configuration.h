@@ -113,8 +113,6 @@ public:
 
   static bool isBuiltWithPoly();
 
-  static bool isBuiltWithSymFPU();
-
   /* Return the number of debug tags */
   static unsigned getNumDebugTags();
   /* Return a sorted array of the debug tags name */
