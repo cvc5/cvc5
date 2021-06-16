@@ -20,7 +20,7 @@
 (assert (= new_x_ (bvxor a b x)))
 
 (echo "Check entailment assuming new_x = new_x_.")
-(echo "Unsat == ENTAILED")
+(echo "UNSAT (of negation) == ENTAILED")
 (check-sat-assuming ((not (= new_x new_x_))))
 (echo "Popping context.")
 (pop 1)
@@ -29,11 +29,11 @@
 (assert (= new_x_ (bvsub (bvadd a b) x)))
 
 (echo "Check entailment assuming new_x = new_x_.")
-(echo "Unsat == ENTAILED")
+(echo "UNSAT (of negation) == ENTAILED")
 (check-sat-assuming ((not (= new_x new_x_))))
 
 (echo "Check entailment assuming [new_x = new_x_, x != x.")
-(echo "Unsat == ENTAILED")
+(echo "UNSAT (of negation) == ENTAILED")
 (check-sat-assuming ((not (= new_x new_x_)) (not (= x x))))
 
 (echo "Assert that a is odd, i.e. lsb is one.")
