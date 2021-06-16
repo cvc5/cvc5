@@ -7,21 +7,21 @@ public = true
   category   = "undocumented"
   type       = "std::istream*"
   default    = "&std::cin"
-  includes   = ["<iosfwd>"]
+  includes   = ["<iostream>"]
 
 [[option]]
   name       = "out"
   category   = "undocumented"
   type       = "std::ostream*"
   default    = "&std::cout"
-  includes   = ["<iosfwd>"]
+  includes   = ["<iostream>"]
 
 [[option]]
   name       = "err"
   category   = "undocumented"
   type       = "std::ostream*"
   default    = "&std::cerr"
-  includes   = ["<iosfwd>"]
+  includes   = ["<iostream>"]
 
 [[option]]
   name       = "inputLanguage"
