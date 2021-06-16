@@ -127,6 +127,7 @@ cvc5_option(USE_EDITLINE      "Use Editline for better interactive support")
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(USE_POLY               "Use LibPoly for polynomial arithmetic")
+option(USE_COCOA              "Use CoCoALib for further polynomial operations")
 option(USE_PYTHON2            "Force Python 2 (deprecated)")
 
 # Custom install directories for dependencies
@@ -461,6 +462,11 @@ else()
   set(CVC5_USE_POLY_IMP 0)
 endif()
 
+if(USE_COCOA)
+  find_package(CoCoA REQUIRED 0.99711)
+  add_definitions(-DCVC5_USE_COCOA)
+endif()
+
 if(USE_EDITLINE)
   find_package(Editline REQUIRED)
   set(HAVE_LIBEDITLINE 1)
@@ -650,6 +656,7 @@ print_config("CryptoMiniSat             " ${USE_CRYPTOMINISAT})
 print_config("GLPK                      " ${USE_GLPK})
 print_config("Kissat                    " ${USE_KISSAT})
 print_config("LibPoly                   " ${USE_POLY})
+print_config("CoCoALib                  " ${USE_COCOA})
 message("")
 print_config("Build libcvc5 only        " ${BUILD_LIB_ONLY})
 
