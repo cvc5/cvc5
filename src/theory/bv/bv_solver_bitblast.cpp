@@ -236,6 +236,14 @@ TrustNode BVSolverBitblast::explain(TNode n)
   return d_im.explainLit(n);
 }
 
+void BVSolverBitblast::computeRelevantTerms(std::set<Node>& termSet)
+{
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  {
+    d_bitblaster->computeRelevantTerms(termSet);
+  }
+}
+
 bool BVSolverBitblast::collectModelValues(TheoryModel* m,
                                           const std::set<Node>& termSet)
 {

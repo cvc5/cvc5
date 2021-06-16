@@ -80,6 +80,9 @@ class BVSolver
     return TrustNode::null();
   }
 
+  /** Additionally collect terms relevant for collecting model values. */
+  virtual void computeRelevantTerms(std::set<Node>& termSet){};
+
   /** Collect model values in m based on the relevant terms given by termSet */
   virtual bool collectModelValues(TheoryModel* m,
                                   const std::set<Node>& termSet) = 0;

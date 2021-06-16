@@ -129,6 +129,17 @@ Node BBSimple::getModelFromSatSolver(TNode a, bool fullModel)
   return utils::mkConst(bits.size(), value);
 }
 
+void BBSimple::computeRelevantTerms(std::set<Node>& termSet)
+{
+  for (const auto& var : d_variables)
+  {
+    if (termSet.find(var) == termSet.end())
+    {
+      termSet.insert(var);
+    }
+  }
+}
+
 bool BBSimple::collectModelValues(TheoryModel* m,
                                   const std::set<Node>& relevantTerms)
 {
