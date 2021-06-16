@@ -93,7 +93,8 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
 
   bool isDecision(SatVariable decn) const override;
 
-  int32_t getDecisionLevel(SatVariable v) const override;
+  /** Return SAT context level at which `lit` was decided on. */
+  int32_t getSatContextLevel(SatVariable v) const override;
 
   int32_t getIntroLevel(SatVariable v) const override;
 

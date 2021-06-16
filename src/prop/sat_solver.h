@@ -171,7 +171,7 @@ class CDCLTSatSolverInterface : public SatSolver
   /**
    * Return the current decision level of `lit`.
    */
-  virtual int32_t getDecisionLevel(SatVariable v) const { return -1; }
+  virtual int32_t getSatContextLevel(SatVariable v) const { return -1; }
 
   /**
    * Return the user-context level when `lit` was introduced..

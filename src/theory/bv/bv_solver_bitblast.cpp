@@ -217,9 +217,9 @@ bool BVSolverBitblast::preNotifyFact(
    * using assumptions.
    */
   if (options::bvAssertInput() && val.isSatLiteral(fact)
-      && !val.isDecision(fact) && val.getDecisionLevel(fact) == 0
-      && val.getIntroLevel(fact) == 0)
+      && val.getSatContextLevel(fact) == 0 && val.getIntroLevel(fact) == 0)
   {
+    Assert(!val.isDecision(fact));
     d_bbInputFacts.push_back(fact);
   }
   else
