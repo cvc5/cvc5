@@ -17,7 +17,6 @@
 check_python_module("toml")
 
 libcvc5_add_sources(
-  base_handlers.h
   decision_weight.h
   didyoumean.cpp
   didyoumean.h
