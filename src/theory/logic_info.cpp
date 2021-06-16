@@ -44,10 +44,6 @@ LogicInfo::LogicInfo()
 {
   for (TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id)
   {
-    if (id == THEORY_FP && !Configuration::isBuiltWithSymFPU())
-    {
-      continue;
-    }
     enableTheory(id);
   }
 }
