@@ -570,6 +570,12 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_SLT:
     {
   uint64_t bvsize = original[0].getType().getBitVectorSize();
+      Trace("int-blaster-debug") << "first arg: " << original[0] << std::endl;
+      Trace("int-blaster-debug") << "translated first arg: " << translated_children[0] << std::endl;
+      Trace("int-blaster-debug") << "second arg: " << original[1] << std::endl;
+      Trace("int-blaster-debug") << "translated second arg: " << translated_children[1] << std::endl;
+      Trace("int-blaster-debug") << "first uts: " << uts(translated_children[0], bvsize) << std::endl;
+      Trace("int-blaster-debug") << "second uts: " << uts(translated_children[1], bvsize) << std::endl;
       returnNode = d_nm->mkNode(kind::LT, uts(translated_children[0], bvsize), uts(translated_children[1], bvsize));
       break;
     }
@@ -687,7 +693,9 @@ Node IntBlaster::translateWithChildren(
 Node IntBlaster::uts(Node x, uint64_t bvsize) {
   Node powNode = pow2(bvsize - 1);
   Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, x, powNode);
-  return d_nm->mkNode(kind::MINUS, modNode, x);
+  Node two =  d_nm->mkConst<Rational>(2);
+  Node twoTimesNode = d_nm->mkNode(kind::MULT, two, modNode);
+  return d_nm->mkNode(kind::MINUS, twoTimesNode, x);
 }
 
 Node IntBlaster::translateNoChildren(Node original,
