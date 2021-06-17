@@ -1,4 +1,4 @@
-(set-logic QF_LRAT)
+(set-logic QF_NRAT)
 (declare-fun x () Real)
 (declare-fun y () Real)
 
