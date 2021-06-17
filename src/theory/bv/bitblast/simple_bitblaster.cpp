@@ -17,6 +17,7 @@
 
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
+#include "options/bv_options.h"
 
 namespace cvc5 {
 namespace theory {
@@ -131,6 +132,7 @@ Node BBSimple::getModelFromSatSolver(TNode a, bool fullModel)
 
 void BBSimple::computeRelevantTerms(std::set<Node>& termSet)
 {
+  Assert(options::bitblastMode() == options::BitblastMode::EAGER);
   for (const auto& var : d_variables)
   {
     termSet.insert(var);
