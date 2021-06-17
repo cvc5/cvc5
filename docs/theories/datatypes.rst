@@ -45,8 +45,8 @@ evaluate to true iff their argument has top-symbol ``C``.
 Semantics
 ---------
 
-The decision procedure for inductive datatypes can be found
-`here <http://homepage.cs.uiowa.edu/~tinelli/papers/BarST-JSAT-07.pdf>`__.
+The decision procedure for inductive datatypes is described in
+:cite:`BarrettST07`.
 
 Example Declarations
 --------------------
@@ -150,8 +150,8 @@ For example:
 Codatatypes
 -----------
 
-cvc5 also supports co-inductive datatypes, as described
-`here <http://homepage.cs.uiowa.edu/~ajreynol/cade15.pdf>`__.
+cvc5 also supports co-inductive datatypes, as described in
+:cite:`ReynoldsB15`.
 
 The syntax for declaring mutually recursive coinductive datatype blocks is
 identical to inductive datatypes, except that ``declare-datatypes`` is replaced

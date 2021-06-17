@@ -22,12 +22,6 @@ from pycvc5 import kinds
 if __name__ == "__main__":
     slv = pycvc5.Solver()
 
-    if not slv.supportsFloatingPoint():
-        # cvc5 must be built with SymFPU to support the theory of
-        # floating-point numbers
-        print("cvc5 was not built with floating-point support.")
-        exit()
-
     slv.setOption("produce-models", "true")
     slv.setLogic("QF_FP")
 

@@ -11,7 +11,7 @@
  * ****************************************************************************
  *
  * A simple demonstration of the linear arithmetic solving capabilities and
- * the push pop of CVC4. This also gives an example option.
+ * the push pop of cvc5. This also gives an example option.
  */
 
 #include <iostream>
@@ -60,9 +60,9 @@ int main()
 
   slv.push();
   Term diff_leq_two_thirds = slv.mkTerm(LEQ, diff, two_thirds);
-  cout << "Prove that " << diff_leq_two_thirds << " with CVC4." << endl;
-  cout << "CVC4 should report ENTAILED." << endl;
-  cout << "Result from CVC4 is: " << slv.checkEntailed(diff_leq_two_thirds)
+  cout << "Prove that " << diff_leq_two_thirds << " with cvc5." << endl;
+  cout << "cvc5 should report ENTAILED." << endl;
+  cout << "Result from cvc5 is: " << slv.checkEntailed(diff_leq_two_thirds)
        << endl;
   slv.pop();
 
@@ -72,9 +72,9 @@ int main()
   Term diff_is_two_thirds = slv.mkTerm(EQUAL, diff, two_thirds);
   slv.assertFormula(diff_is_two_thirds);
   cout << "Show that the assertions are consistent with " << endl;
-  cout << diff_is_two_thirds << " with CVC4." << endl;
-  cout << "CVC4 should report SAT." << endl;
-  cout << "Result from CVC4 is: " << slv.checkSat() << endl;
+  cout << diff_is_two_thirds << " with cvc5." << endl;
+  cout << "cvc5 should report SAT." << endl;
+  cout << "Result from cvc5 is: " << slv.checkSat() << endl;
   slv.pop();
 
   cout << "Thus the maximum value of (y - x) is 2/3."<< endl;

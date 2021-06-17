@@ -34,9 +34,7 @@ namespace arith {
 namespace nl {
 
 Pow2Solver::Pow2Solver(InferenceManager& im, ArithState& state, NlModel& model)
-    : d_im(im),
-      d_model(model),
-      d_initRefine(state.getUserContext())
+    : d_im(im), d_model(model), d_initRefine(state.getUserContext())
 {
   NodeManager* nm = NodeManager::currentNM();
   d_false = nm->mkConst(false);
@@ -53,7 +51,6 @@ void Pow2Solver::initLastCall(const std::vector<Node>& assertions,
                               const std::vector<Node>& xts)
 {
   d_pow2s.clear();
-
   Trace("pow2-mv") << "POW2 terms : " << std::endl;
   for (const Node& a : xts)
   {
@@ -150,8 +147,6 @@ Node Pow2Solver::valueBasedLemma(Node i)
       IMPLIES,x.eqNode(valX), i.eqNode(valC));
   return lem;
 }
-
-
 
 }  // namespace nl
 }  // namespace arith

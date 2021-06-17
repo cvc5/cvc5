@@ -489,9 +489,6 @@ cdef class Solver:
     def __dealloc__(self):
         del self.csolver
 
-    def supportsFloatingPoint(self):
-        return self.csolver.supportsFloatingPoint()
-
     def getBooleanSort(self):
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.getBooleanSort()

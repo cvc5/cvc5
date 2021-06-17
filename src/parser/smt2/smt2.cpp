@@ -17,6 +17,7 @@
 #include <algorithm>
 
 #include "base/check.h"
+#include "options/base_options.h"
 #include "options/options.h"
 #include "options/options_public.h"
 #include "parser/antlr_input.h"
@@ -315,10 +316,7 @@ bool Smt2::isTheoryEnabled(theory::TheoryId theory) const
   return d_logic.isTheoryEnabled(theory);
 }
 
-bool Smt2::isHoEnabled() const
-{
-  return getLogic().isHigherOrder() && options::getUfHo(d_solver->getOptions());
-}
+bool Smt2::isHoEnabled() const { return d_logic.isHigherOrder(); }
 
 bool Smt2::logicIsSet() {
   return d_logicSet;
@@ -505,8 +503,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   d_logicSet = true;
   d_logic = name;
 
-  // if sygus is enabled, we must enable UF, datatypes, integer arithmetic and
-  // higher-order
+  // if sygus is enabled, we must enable UF, datatypes, and integer arithmetic
   if(sygus()) {
     if (!d_logic.isQuantified())
     {
@@ -774,7 +771,7 @@ void Smt2::checkLogicAllowsFunctions()
     parseError(
         "Functions (of non-zero arity) cannot "
         "be declared in logic "
-        + d_logic.getLogicString() + " unless option --uf-ho is used");
+        + d_logic.getLogicString() + ". Try adding the prefix HO_.");
   }
 }
 
@@ -852,7 +849,7 @@ api::Term Smt2::mkAbstractValue(const std::string& name)
 
 InputLanguage Smt2::getLanguage() const
 {
-  return options::getInputLanguage(d_solver->getOptions());
+  return d_solver->getOptions().base.inputLanguage;
 }
 
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
@@ -1014,8 +1011,6 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       }
     }
   }
-  // Second phase: apply the arguments to the parse op
-  const Options& opts = d_solver->getOptions();
   // handle special cases
   if (p.d_kind == api::CONST_ARRAY && !p.d_type.isNull())
   {
@@ -1104,17 +1099,17 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   }
   else if (isBuiltinOperator)
   {
-    if (!options::getUfHo(opts)
-        && (kind == api::EQUAL || kind == api::DISTINCT))
+    if (!isHoEnabled() && (kind == api::EQUAL || kind == api::DISTINCT))
     {
-      // need --uf-ho if these operators are applied over function args
+      // need hol if these operators are applied over function args
       for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
            ++i)
       {
         if ((*i).getSort().isFunction())
         {
           parseError(
-              "Cannot apply equalty to functions unless --uf-ho is set.");
+              "Cannot apply equalty to functions unless logic is prefixed by "
+              "HO_.");
         }
       }
     }
@@ -1157,9 +1152,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       unsigned arity = argt.getFunctionArity();
       if (args.size() - 1 < arity)
       {
-        if (!options::getUfHo(opts))
+        if (!isHoEnabled())
         {
-          parseError("Cannot partially apply functions unless --uf-ho is set.");
+          parseError(
+              "Cannot partially apply functions unless logic is prefixed by "
+              "HO_.");
         }
         Debug("parser") << "Partial application of " << args[0];
         Debug("parser") << " : #argTypes = " << arity;
