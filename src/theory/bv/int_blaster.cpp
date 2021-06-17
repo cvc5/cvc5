@@ -73,9 +73,6 @@ Node IntBlaster::pow2(uint64_t k) {}
 
 Node IntBlaster::modpow2(Node n, uint64_t exponent) {}
 
-/**
- * Binarizing n via post-order traversal.
- */
 Node IntBlaster::makeBinary(Node n)
 {
   for (TNode current : NodeDfsIterable(n,
