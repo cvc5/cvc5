@@ -15,12 +15,16 @@
 
 #include "theory/arith/nl/pow2_solver.h"
 
+#include "options/arith_options.h"
+#include "options/smt_options.h"
+#include "preprocessing/passes/bv_to_int.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
 
 using namespace cvc5::kind;
 
@@ -58,14 +62,87 @@ void Pow2Solver::initLastCall(const std::vector<Node>& assertions,
     }
     d_pow2s.push_back(a);
   }
+
   Trace("pow2") << "We have " << d_pow2s.size() << " pow2 terms." << std::endl;
 }
 
-void Pow2Solver::checkInitialRefine() {}
+void Pow2Solver::checkInitialRefine()
+{
+  Trace("pow2-check") << "Pow2Solver::checkInitialRefine" << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  for (const Node& i : d_pow2s)
+  {
+    if (d_initRefine.find(i) != d_initRefine.end())
+    {
+      // already sent initial axioms for i in this user context
+      continue;
+    }
+    d_initRefine.insert(i);
+    Node op = i.getOperator();
+    // initial refinement lemmas
+    std::vector<Node> conj;
+    // x>=0 -> x < pow2(x)
+    Node xgeq0 = nm->mkNode(LEQ, d_zero, i[0]);
+    Node xltpow2x = nm->mkNode(LT, i[0], i);
+    conj.push_back(nm->mkNode(IMPLIES, xgeq0, xltpow2x));
+    Node lem = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
+    Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; INIT_REFINE"
+                        << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_POW2_INIT_REFINE);
+  }
+}
 
-void Pow2Solver::checkFullRefine() {}
+void Pow2Solver::checkFullRefine()
+{
+  Trace("pow2-check") << "Pow2Solver::checkFullRefine";
+  Trace("pow2-check") << "pow2 terms: " << std::endl;
+  for (const Node& i : d_pow2s)
+  {
+    // the reference bitwidth
+    Node valPow2x = d_model.computeAbstractModelValue(i);
+    Node valPow2xC = d_model.computeConcreteModelValue(i);
+    if (Trace.isOn("pow2-check"))
+    {
+      Node x = i[0];
+      Node valX = d_model.computeConcreteModelValue(x);
 
-Node Pow2Solver::valueBasedLemma(Node i) { return Node(); }
+      Trace("pow2-check") << "* " << i << ", value = " << valPow2x << std::endl;
+      Trace("pow2-check") << "  actual (" << valX << ", "
+                          << ") = " << valPow2xC << std::endl;
+      if (valPow2x == valPow2xC)
+      {
+        Trace("pow2-check") << "...already correct" << std::endl;
+        continue;
+      }
+
+      // ************* additional lemma schemas go here
+      else
+      {
+        // this is the most naive model-based schema based on model values
+        Node lem = valueBasedLemma(i);
+        Trace("pow2-lemma")
+            << "Pow2Solver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
+        // send the value lemma
+        d_im.addPendingLemma(
+            lem, InferenceId::ARITH_NL_POW2_VALUE_REFINE, nullptr, true);
+      }
+    }
+  }
+}
+Node Pow2Solver::valueBasedLemma(Node i)
+{
+  Assert(i.getKind() == POW2);
+  Node x = i[0];
+
+  Node valX = d_model.computeConcreteModelValue(x);
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node valC = nm->mkNode(POW2, valX);
+  valC = Rewriter::rewrite(valC);
+
+  Node lem = nm->mkNode(IMPLIES, x.eqNode(valX), i.eqNode(valC));
+  return lem;
+}
 
 }  // namespace nl
 }  // namespace arith
