@@ -32,11 +32,7 @@ def test_recoverable_exception(solver):
 
 
 def test_supports_floating_point(solver):
-    if solver.supportsFloatingPoint():
-        solver.mkRoundingMode(pycvc5.RoundNearestTiesToEven)
-    else:
-        with pytest.raises(RuntimeError):
-            solver.mkRoundingMode(pycvc5.RoundNearestTiesToEven)
+    solver.mkRoundingMode(pycvc5.RoundNearestTiesToEven)
 
 
 def test_get_boolean_sort(solver):
@@ -60,11 +56,7 @@ def test_get_string_sort(solver):
 
 
 def test_get_rounding_mode_sort(solver):
-    if solver.supportsFloatingPoint():
-        solver.getRoundingModeSort()
-    else:
-        with pytest.raises(RuntimeError):
-            solver.getRoundingModeSort()
+    solver.getRoundingModeSort()
 
 
 def test_mk_array_sort(solver):
@@ -79,10 +71,9 @@ def test_mk_array_sort(solver):
     solver.mkArraySort(boolSort, intSort)
     solver.mkArraySort(realSort, bvSort)
 
-    if (solver.supportsFloatingPoint()):
-        fpSort = solver.mkFloatingPointSort(3, 5)
-        solver.mkArraySort(fpSort, fpSort)
-        solver.mkArraySort(bvSort, fpSort)
+    fpSort = solver.mkFloatingPointSort(3, 5)
+    solver.mkArraySort(fpSort, fpSort)
+    solver.mkArraySort(bvSort, fpSort)
 
     slv = pycvc5.Solver()
     with pytest.raises(RuntimeError):
@@ -96,15 +87,11 @@ def test_mk_bit_vector_sort(solver):
 
 
 def test_mk_floating_point_sort(solver):
-    if solver.supportsFloatingPoint():
-        solver.mkFloatingPointSort(4, 8)
-        with pytest.raises(RuntimeError):
-            solver.mkFloatingPointSort(0, 8)
-        with pytest.raises(RuntimeError):
-            solver.mkFloatingPointSort(4, 0)
-    else:
-        with pytest.raises(RuntimeError):
-            solver.mkFloatingPointSort(4, 8)
+    solver.mkFloatingPointSort(4, 8)
+    with pytest.raises(RuntimeError):
+        solver.mkFloatingPointSort(0, 8)
+    with pytest.raises(RuntimeError):
+        solver.mkFloatingPointSort(4, 0)
 
 
 def test_mk_datatype_sort(solver):
@@ -313,11 +300,7 @@ def test_mk_boolean(solver):
 
 
 def test_mk_rounding_mode(solver):
-    if solver.supportsFloatingPoint():
-        solver.mkRoundingMode(pycvc5.RoundTowardZero)
-    else:
-        with pytest.raises(RuntimeError):
-            solver.mkRoundingMode(pycvc5.RoundTowardZero)
+    solver.mkRoundingMode(pycvc5.RoundTowardZero)
 
 
 def test_mk_uninterpreted_const(solver):
@@ -333,11 +316,7 @@ def test_mk_floating_point(solver):
     t1 = solver.mkBitVector(8)
     t2 = solver.mkBitVector(4)
     t3 = solver.mkInteger(2)
-    if (solver.supportsFloatingPoint()):
-        solver.mkFloatingPoint(3, 5, t1)
-    else:
-        with pytest.raises(RuntimeError):
-            solver.mkFloatingPoint(3, 5, t1)
+    solver.mkFloatingPoint(3, 5, t1)
 
     with pytest.raises(RuntimeError):
         solver.mkFloatingPoint(0, 5, pycvc5.Term(solver))
@@ -350,10 +329,9 @@ def test_mk_floating_point(solver):
     with pytest.raises(RuntimeError):
         solver.mkFloatingPoint(3, 5, t2)
 
-    if (solver.supportsFloatingPoint()):
-        slv = pycvc5.Solver()
-        with pytest.raises(RuntimeError):
-            slv.mkFloatingPoint(3, 5, t1)
+    slv = pycvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.mkFloatingPoint(3, 5, t1)
 
 
 def test_mk_empty_set(solver):
@@ -382,43 +360,23 @@ def test_mk_false(solver):
 
 
 def test_mk_nan(solver):
-    if (solver.supportsFloatingPoint()):
-        solver.mkNaN(3, 5)
-    else:
-        with pytest.raises(RuntimeError):
-            solver.mkNaN(3, 5)
+    solver.mkNaN(3, 5)
 
 
 def test_mk_neg_zero(solver):
-    if (solver.supportsFloatingPoint()):
-        solver.mkNegZero(3, 5)
-    else:
-        with pytest.raises(RuntimeError):
-            solver.mkNegZero(3, 5)
+    solver.mkNegZero(3, 5)
 
 
 def test_mk_neg_inf(solver):
-    if (solver.supportsFloatingPoint()):
-        solver.mkNegInf(3, 5)
-    else:
-        with pytest.raises(RuntimeError):
-            solver.mkNegInf(3, 5)
+    solver.mkNegInf(3, 5)
 
 
 def test_mk_pos_inf(solver):
-    if (solver.supportsFloatingPoint()):
-        solver.mkPosInf(3, 5)
-    else:
-        with pytest.raises(RuntimeError):
-            solver.mkPosInf(3, 5)
+    solver.mkPosInf(3, 5)
 
 
 def test_mk_pos_zero(solver):
-    if (solver.supportsFloatingPoint()):
-        solver.mkPosZero(3, 5)
-    else:
-        with pytest.raises(RuntimeError):
-            solver.mkPosZero(3, 5)
+    solver.mkPosZero(3, 5)
 
 
 def test_mk_pi(solver):

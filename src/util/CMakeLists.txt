@@ -13,9 +13,6 @@
 # The build system configuration.
 ##
 
-configure_file(floatingpoint_literal_symfpu.h.in floatingpoint_literal_symfpu.h)
-configure_file(floatingpoint_literal_symfpu_traits.h.in
-               floatingpoint_literal_symfpu_traits.h)
 configure_file(rational.h.in rational.h)
 configure_file(integer.h.in integer.h)
 configure_file(real_algebraic_number.h.in real_algebraic_number.h)

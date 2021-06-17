@@ -27,13 +27,6 @@ public class FloatingPointArith {
     System.loadLibrary("cvc4jni");
 
     // Test whether CVC4 was built with floating-point support
-    if (!Configuration.isBuiltWithSymFPU()) {
-      System.out.println("CVC4 was built without floating-point support.");
-      System.out.println("Configure with --symfpu and rebuild CVC4 to run");
-      System.out.println("this example.");
-      System.exit(77);
-    }
-
     ExprManager em = new ExprManager();
     SmtEngine smt = new SmtEngine(em);
 
