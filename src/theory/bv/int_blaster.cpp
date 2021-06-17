@@ -224,10 +224,6 @@ Node IntBlaster::intBlast(Node n,
   return d_intblastCache[n].get();
 }
 
-// given an integer n with unsigned binary representation
-// b, there is an integer m with signed binary representation
-// b. m:=2*(n mod 2^{k-1}) - n, with k being the size
-// of the binary representations.
 Node IntBlaster::unsignedToSigned(Node n, uint64_t bw) { return Node(); }
 
 Node IntBlaster::translateWithChildren(
