@@ -13,8 +13,6 @@
  * SymFPU glue code for floating-point values.
  */
 
-#if CVC5_USE_SYMFPU
-
 #include "util/floatingpoint_literal_symfpu_traits.h"
 
 #include "base/check.h"
@@ -413,4 +411,3 @@ void traits::invariant(const traits::prop& p)
 }
 }  // namespace symfpuLiteral
 }  // namespace cvc5
-#endif

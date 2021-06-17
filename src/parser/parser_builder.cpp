@@ -21,8 +21,9 @@
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "cvc/cvc.h"
+#include "options/base_options.h"
 #include "options/options.h"
-#include "options/options_public.h"
+#include "options/parser_options.h"
 #include "parser/antlr_input.h"
 #include "parser/input.h"
 #include "parser/parser.h"
@@ -120,14 +121,14 @@ ParserBuilder& ParserBuilder::withParseOnly(bool flag) {
 ParserBuilder& ParserBuilder::withOptions(const Options& opts)
 {
   ParserBuilder& retval = *this;
-  retval = retval.withInputLanguage(options::getInputLanguage(opts))
-               .withChecks(options::getSemanticChecks(opts))
-               .withStrictMode(options::getStrictParsing(opts))
-               .withParseOnly(options::getParseOnly(opts))
-               .withIncludeFile(options::getFilesystemAccess(opts));
-  if (options::wasSetByUserForceLogicString(opts))
+  retval = retval.withInputLanguage(opts.base.inputLanguage)
+               .withChecks(opts.parser.semanticChecks)
+               .withStrictMode(opts.parser.strictParsing)
+               .withParseOnly(opts.base.parseOnly)
+               .withIncludeFile(opts.parser.filesystemAccess);
+  if (opts.parser.forceLogicStringWasSetByUser)
   {
-    LogicInfo tmp(options::getForceLogicString(opts));
+    LogicInfo tmp(opts.parser.forceLogicString);
     retval = retval.withForcedLogic(tmp.getLogicString());
   }
   return retval;

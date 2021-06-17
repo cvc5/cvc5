@@ -4,6 +4,7 @@ Changes since CVC4 1.8
 ======================
 
 New Features:
+* SymFPU is now a required dependency.
 * New unsat-core production modes based on the new proof infrastructure
   (`--unsat-cores-mode=sat-proof`) and on the solving-under-assumption feature
   of Minisat (`--unsat-cores-mode=assumptions`). The mode based on SAT
