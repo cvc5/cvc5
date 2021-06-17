@@ -320,14 +320,14 @@ void CnfStream::handleOr(TNode orNode)
   Trace("cnf") << "CnfStream::handleOr(" << orNode << ")\n";
 
   // Number of children
-  size_t n_children = orNode.getNumChildren();
+  size_t numChildren = orNode.getNumChildren();
 
   // Get the literal for this node
   SatLiteral orLit = newLiteral(orNode);
 
   // Transform all the children first
-  SatClause clause(n_children + 1);
-  for (size_t i = 0; i < n_children; ++i)
+  SatClause clause(numChildren + 1);
+  for (size_t i = 0; i < numChildren; ++i)
   {
     clause[i] = getLiteral(orNode[i]);
 
@@ -339,7 +339,7 @@ void CnfStream::handleOr(TNode orNode)
 
   // lit -> (a_1 | a_2 | a_3 | ... | a_n)
   // ~lit | a_1 | a_2 | a_3 | ... | a_n
-  clause[n_children] = ~orLit;
+  clause[numChildren] = ~orLit;
   // This needs to go last, as the clause might get modified by the SAT solver
   assertClause(orNode.negate(), clause);
 }
@@ -353,14 +353,14 @@ void CnfStream::handleAnd(TNode andNode)
   Trace("cnf") << "handleAnd(" << andNode << ")\n";
 
   // Number of children
-  unsigned n_children = andNode.getNumChildren();
+  size_t numChildren = andNode.getNumChildren();
 
   // Get the literal for this node
   SatLiteral andLit = newLiteral(andNode);
 
   // Transform all the children first (remembering the negation)
-  SatClause clause(n_children + 1);
-  for (size_t i = 0; i < n_children; ++i)
+  SatClause clause(numChildren + 1);
+  for (size_t i = 0; i < numChildren; ++i)
   {
     clause[i] = ~getLiteral(andNode[i]);
 
@@ -373,7 +373,7 @@ void CnfStream::handleAnd(TNode andNode)
   // lit <- (a_1 & a_2 & a_3 & ... a_n)
   // lit | ~(a_1 & a_2 & a_3 & ... & a_n)
   // lit | ~a_1 | ~a_2 | ~a_3 | ... | ~a_n
-  clause[n_children] = andLit;
+  clause[numChildren] = andLit;
   // This needs to go last, as the clause might get modified by the SAT solver
   assertClause(andNode, clause);
 }
@@ -492,7 +492,7 @@ SatLiteral CnfStream::toCNF(TNode node, bool negated)
       continue;
     }
 
-    auto it = cache.find(cur);
+    const auto& it = cache.find(cur);
     if (it == cache.end())
     {
       cache.emplace(cur, false);
@@ -514,38 +514,24 @@ SatLiteral CnfStream::toCNF(TNode node, bool negated)
     {
       it->second = true;
       Kind k = cur.getKind();
-
-      if (k == kind::NOT)
+      switch (k)
       {
-        Assert(hasLiteral(cur[0]));
-      }
-      else if (k == kind::XOR)
-      {
-        handleXor(cur);
-      }
-      else if (k == kind::ITE)
-      {
-        handleIte(cur);
-      }
-      else if (k == kind::IMPLIES)
-      {
-        handleImplies(cur);
-      }
-      else if (k == kind::OR)
-      {
-        handleOr(cur);
-      }
-      else if (k == kind::AND)
-      {
-        handleAnd(cur);
-      }
-      else if (k == kind::EQUAL && cur[0].getType().isBoolean())
-      {
-        handleIff(cur);
-      }
-      else
-      {
-        convertAtom(cur);
+        case kind::NOT: Assert(hasLiteral(cur[0])); break;
+        case kind::XOR: handleXor(cur); break;
+        case kind::ITE: handleIte(cur); break;
+        case kind::IMPLIES: handleImplies(cur); break;
+        case kind::OR: handleOr(cur); break;
+        case kind::AND: handleAnd(cur); break;
+        default:
+          if (k == kind::EQUAL && cur[0].getType().isBoolean())
+          {
+            handleIff(cur);
+          }
+          else
+          {
+            convertAtom(cur);
+          }
+          break;
       }
     }
     visit.pop_back();
