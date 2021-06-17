@@ -54,10 +54,7 @@ TEST_F(TestTheoryWhiteOptMultigoal, box)
   // y <= x
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, y, x));
 
-  // Box optimization
   OptimizationSolver optSolver(d_smtEngine.get());
-
-  optSolver.setObjectiveCombination(OptimizationSolver::BOX);
 
   // minimize x
   optSolver.addObjective(x, OptimizationObjective::MINIMIZE, false);
@@ -66,9 +63,10 @@ TEST_F(TestTheoryWhiteOptMultigoal, box)
   // maximize z
   optSolver.addObjective(z, OptimizationObjective::MAXIMIZE, false);
 
-  OptimizationResult::ResultType r = optSolver.checkOpt();
+  // Box optimization
+  Result r = optSolver.checkOpt(OptimizationSolver::BOX);
 
-  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  ASSERT_EQ(r.isSat(), Result::SAT);
 
   std::vector<OptimizationResult> results = optSolver.getValues();
 
@@ -100,8 +98,6 @@ TEST_F(TestTheoryWhiteOptMultigoal, lex)
 
   OptimizationSolver optSolver(d_smtEngine.get());
 
-  optSolver.setObjectiveCombination(OptimizationSolver::LEXICOGRAPHIC);
-
   // minimize x
   optSolver.addObjective(x, OptimizationObjective::MINIMIZE, false);
   // maximize y with `signed` comparison over bit-vectors.
@@ -109,9 +105,9 @@ TEST_F(TestTheoryWhiteOptMultigoal, lex)
   // maximize z
   optSolver.addObjective(z, OptimizationObjective::MAXIMIZE, false);
 
-  OptimizationResult::ResultType r = optSolver.checkOpt();
+  Result r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
 
-  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  ASSERT_EQ(r.isSat(), Result::SAT);
 
   std::vector<OptimizationResult> results = optSolver.getValues();
 
@@ -180,18 +176,17 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
     (maximize b)
    */
   OptimizationSolver optSolver(d_smtEngine.get());
-  optSolver.setObjectiveCombination(OptimizationSolver::PARETO);
   optSolver.addObjective(a, OptimizationObjective::MAXIMIZE);
   optSolver.addObjective(b, OptimizationObjective::MAXIMIZE);
 
-  OptimizationResult::ResultType r;
+  Result r;
 
   // all possible result pairs <a, b>
   std::set<std::pair<uint32_t, uint32_t>> possibleResults = {
       {1, 3}, {2, 2}, {3, 1}};
 
-  r = optSolver.checkOpt();
-  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  r = optSolver.checkOpt(OptimizationSolver::PARETO);
+  ASSERT_EQ(r.isSat(), Result::SAT);
   std::vector<OptimizationResult> results = optSolver.getValues();
   std::pair<uint32_t, uint32_t> res = {
       results[0].getValue().getConst<BitVector>().toInteger().toUnsignedInt(),
@@ -205,8 +200,8 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
   ASSERT_EQ(possibleResults.count(res), 1);
   possibleResults.erase(res);
 
-  r = optSolver.checkOpt();
-  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  r = optSolver.checkOpt(OptimizationSolver::PARETO);
+  ASSERT_EQ(r.isSat(), Result::SAT);
   results = optSolver.getValues();
   res = {
       results[0].getValue().getConst<BitVector>().toInteger().toUnsignedInt(),
@@ -220,8 +215,8 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
   ASSERT_EQ(possibleResults.count(res), 1);
   possibleResults.erase(res);
 
-  r = optSolver.checkOpt();
-  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  r = optSolver.checkOpt(OptimizationSolver::PARETO);
+  ASSERT_EQ(r.isSat(), Result::SAT);
   results = optSolver.getValues();
   res = {
       results[0].getValue().getConst<BitVector>().toInteger().toUnsignedInt(),
@@ -235,8 +230,8 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
   ASSERT_EQ(possibleResults.count(res), 1);
   possibleResults.erase(res);
 
-  r = optSolver.checkOpt();
-  ASSERT_EQ(r, OptimizationResult::UNSAT);
+  r = optSolver.checkOpt(OptimizationSolver::PARETO);
+  ASSERT_EQ(r.isSat(), Result::UNSAT);
   ASSERT_EQ(possibleResults.size(), 0);
 }
 
@@ -254,10 +249,7 @@ TEST_F(TestTheoryWhiteOptMultigoal, pushpop)
   // y <= x
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, y, x));
 
-  // Lexico optimization
   OptimizationSolver optSolver(d_smtEngine.get());
-
-  optSolver.setObjectiveCombination(OptimizationSolver::LEXICOGRAPHIC);
 
   // minimize x
   optSolver.addObjective(x, OptimizationObjective::MINIMIZE, false);
@@ -270,9 +262,10 @@ TEST_F(TestTheoryWhiteOptMultigoal, pushpop)
   // maximize z
   optSolver.addObjective(z, OptimizationObjective::MAXIMIZE, false);
 
-  OptimizationResult::ResultType r = optSolver.checkOpt();
+  // Lexico optimization
+  Result r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
 
-  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  ASSERT_EQ(r.isSat(), Result::SAT);
 
   std::vector<OptimizationResult> results = optSolver.getValues();
 
@@ -290,16 +283,16 @@ TEST_F(TestTheoryWhiteOptMultigoal, pushpop)
   d_smtEngine->pop();
 
   // now we only have one objective: (minimize x)
-  r = optSolver.checkOpt();
-  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
+  ASSERT_EQ(r.isSat(), Result::SAT);
   results = optSolver.getValues();
   ASSERT_EQ(results.size(), 1);
   ASSERT_EQ(results[0].getValue().getConst<BitVector>(), BitVector(32u, 18u));
 
   // resetting the assertions also resets the optimization objectives
   d_smtEngine->resetAssertions();
-  r = optSolver.checkOpt();
-  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
+  ASSERT_EQ(r.isSat(), Result::SAT);
   results = optSolver.getValues();
   ASSERT_EQ(results.size(), 0);
 }

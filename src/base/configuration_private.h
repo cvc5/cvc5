@@ -126,12 +126,6 @@ namespace cvc5 {
 #define IS_EDITLINE_BUILD false
 #endif /* HAVE_LIBEDITLINE */
 
-#ifdef CVC5_USE_SYMFPU
-#define IS_SYMFPU_BUILD true
-#else /* HAVE_SYMFPU_HEADERS */
-#define IS_SYMFPU_BUILD false
-#endif /* HAVE_SYMFPU_HEADERS */
-
 #if CVC5_GPL_DEPS
 #  define IS_GPL_BUILD true
 #else /* CVC5_GPL_DEPS */
