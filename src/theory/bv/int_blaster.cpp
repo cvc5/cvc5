@@ -32,9 +32,7 @@
 #include "util/rational.h"
 
 namespace cvc5 {
-
 using namespace cvc5::theory;
-using namespace cvc5::theory::bv;
 
 IntBlaster::IntBlaster(context::Context* c,
                        options::SolveBVAsIntMode mode,
@@ -90,12 +88,12 @@ Node IntBlaster::makeBinary(Node n)
      * Now we binarize the current node itself.
      */
     kind::Kind_t k = current.getKind();
+    // We only binarize bvadd, bvmul, bvand, bvor, bvxor, bvconcat
     if ((numChildren > 2)
         && (k == kind::BITVECTOR_ADD || k == kind::BITVECTOR_MULT
             || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
             || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
     {
-      // We only binarize bvadd, bvmul, bvand, bvor, bvxor, bvconcat
       Assert(d_binarizeCache.find(current[0]) != d_binarizeCache.end());
       Node result = d_binarizeCache[current[0]];
       for (uint64_t i = 1; i < numChildren; i++)
@@ -136,9 +134,11 @@ Node IntBlaster::intBlast(Node n,
                           std::vector<Node>& lemmas,
                           std::map<Node, Node>& skolems)
 {
-  // make sure the node is re-written before processing it.
+  // make sure the node is re-written and binarized before processing it.
   n = Rewriter::rewrite(n);
   n = makeBinary(n);
+
+  // helper vector for traversal.
   std::vector<Node> toVisit;
   toVisit.push_back(n);
 
@@ -178,10 +178,6 @@ Node IntBlaster::intBlast(Node n,
         if (currentNumChildren == 0)
         {
           translation = translateNoChildren(current, lemmas, skolems);
-          if (translation.isNull())
-          {
-            return Node();
-          }
         }
         else
         {
@@ -206,10 +202,6 @@ Node IntBlaster::intBlast(Node n,
           }
           translation =
               translateWithChildren(current, translated_children, lemmas);
-          if (translation.isNull())
-          {
-            return Node();
-          }
         }
 
         Assert(!translation.isNull());
@@ -271,34 +263,6 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 {
   return Node();
 }
-
-Node IntBlaster::createBVAndNode(Node x,
-                                 Node y,
-                                 uint64_t bvsize,
-                                 std::vector<Node>& lemmas)
-{
-  return Node();
-}
-
-Node IntBlaster::createBVOrNode(Node x,
-                                Node y,
-                                uint64_t bvsize,
-                                std::vector<Node>& lemmas)
-{
-  return Node();
-}
-
-Node IntBlaster::createBVSubNode(Node x, Node y, uint64_t bvsize)
-{
-  return Node();
-}
-
-Node IntBlaster::createBVAddNode(Node x, Node y, uint64_t bvsize)
-{
-  return Node();
-}
-
-Node IntBlaster::createBVNegNode(Node n, uint64_t bvsize) { return Node(); }
 
 Node IntBlaster::createBVNotNode(Node n, uint64_t bvsize) { return Node(); }
 

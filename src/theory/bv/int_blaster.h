@@ -119,8 +119,7 @@ class IntBlaster
    * ff((bv2nat x))), where k is the bit-width of the domain of f, i is the
    * bit-width of its range, and ff is a Int->Int function that corresponds to
    * f. For functions with other signatures this is similar
-   * @return integer node that corresponds to n, or a null node if d_supportNoBV
-   * is set to false and n is note purely BV.
+   * @return integer node that corresponds to n
    */
   Node intBlast(Node n,
                 std::vector<Node>& lemmas,
