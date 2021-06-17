@@ -87,3 +87,7 @@ a:hover, a:focus {
 .highlight .m {
   color: #ba2121;
 }
+
+.sphinx-tabs-panel div[class^="highlight"] {
+  margin: 1px 0 0 0;
+}
