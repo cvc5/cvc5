@@ -22,6 +22,7 @@ set(EXAMPLES_API_PYTHON
   extract
   floating_point
   helloworld
+  id
   linear_arith
   sequences
   sets
@@ -30,7 +31,6 @@ set(EXAMPLES_API_PYTHON
   sygus-grammar
   sygus-inv
   transcendentals
-  id
 )
 
 find_package(PythonInterp ${CVC5_BINDINGS_PYTHON_VERSION} REQUIRED)

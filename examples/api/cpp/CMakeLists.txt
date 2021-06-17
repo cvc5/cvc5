@@ -21,10 +21,10 @@ set(CVC5_EXAMPLES_API
   extract
   helloworld
   linear_arith
-  sets
-  sequences
-  strings
   quickstart
+  sequences
+  sets
+  strings
   transcendentals
 )
 
