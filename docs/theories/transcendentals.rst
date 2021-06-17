@@ -1,7 +1,7 @@
 Theory Reference: Transcendentals
 =================================
 
-cvc5 supports transcendental functions that naturally extend the arithmetic theories.
+cvc5 supports transcendental functions that naturally extend the nonlinear real arithmetic theories ``NRA`` and ``NIRA``.
 The theory consists of the constant :math:`\pi` and function symbols for most common transcendental functions like, e.g., ``sin``, ``cos`` and ``tan``.
 
 Logic
@@ -11,7 +11,7 @@ To enable cvc5's decision procedure for transcendentals, append ``T`` to the ari
 
 .. code:: smtlib
 
-  (set-logic QF_UFLRAT)
+  (set-logic QF_NRAT)
 
 Alternatively, use the ``ALL`` logic:
 
@@ -22,7 +22,7 @@ Alternatively, use the ``ALL`` logic:
 Syntax
 ------
 
-cvc5 internally defines a constant ``real.pi`` and the following unary function symbols:
+cvc5 internally defines a constant ``real.pi`` of sort ``Real`` and the following unary function symbols from ``Real`` to ``Real``:
 
 * the square root function ``sqrt``
 * the exponential function ``exp``
