@@ -322,22 +322,18 @@ void CnfStream::handleOr(TNode orNode)
   // Number of children
   size_t n_children = orNode.getNumChildren();
 
+  // Get the literal for this node
+  SatLiteral orLit = newLiteral(orNode);
+
   // Transform all the children first
   SatClause clause(n_children + 1);
   for (size_t i = 0; i < n_children; ++i)
   {
     clause[i] = getLiteral(orNode[i]);
-  }
 
-  // Get the literal for this node
-  SatLiteral orLit = newLiteral(orNode);
-
-  // lit <- (a_1 | a_2 | a_3 | ... | a_n)
-  // lit | ~(a_1 | a_2 | a_3 | ... | a_n)
-  // (lit | ~a_1) & (lit | ~a_2) & (lit & ~a_3) & ... & (lit & ~a_n)
-  // TODO: merge with above loop
-  for (size_t i = 0; i < n_children; ++i)
-  {
+    // lit <- (a_1 | a_2 | a_3 | ... | a_n)
+    // lit | ~(a_1 | a_2 | a_3 | ... | a_n)
+    // (lit | ~a_1) & (lit | ~a_2) & (lit & ~a_3) & ... & (lit & ~a_n)
     assertClause(orNode, orLit, ~clause[i]);
   }
 
@@ -359,22 +355,18 @@ void CnfStream::handleAnd(TNode andNode)
   // Number of children
   unsigned n_children = andNode.getNumChildren();
 
+  // Get the literal for this node
+  SatLiteral andLit = newLiteral(andNode);
+
   // Transform all the children first (remembering the negation)
   SatClause clause(n_children + 1);
   for (size_t i = 0; i < n_children; ++i)
   {
     clause[i] = ~getLiteral(andNode[i]);
-  }
 
-  // Get the literal for this node
-  SatLiteral andLit = newLiteral(andNode);
-
-  // lit -> (a_1 & a_2 & a_3 & ... & a_n)
-  // ~lit | (a_1 & a_2 & a_3 & ... & a_n)
-  // (~lit | a_1) & (~lit | a_2) & ... & (~lit | a_n)
-  // TODO: merge with above loop
-  for (size_t i = 0; i < n_children; ++i)
-  {
+    // lit -> (a_1 & a_2 & a_3 & ... & a_n)
+    // ~lit | (a_1 & a_2 & a_3 & ... & a_n)
+    // (~lit | a_1) & (~lit | a_2) & ... & (~lit | a_n)
     assertClause(andNode.negate(), ~andLit, ~clause[i]);
   }
 
