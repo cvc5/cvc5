@@ -412,6 +412,22 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
   IAND,
+  /**
+   * Operator for raising 2 to a non-negative integer  power
+   *
+   * Create with:
+   *   - `Solver::mkOp(Kind kind) const`
+   *
+
+   * Parameters:
+   *   - 1: Op of kind IAND
+   *   - 2: Integer term
+   *
+   * Create with:
+   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
+   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   */
+  POW2,
 #if 0
   /* Synonym for MULT.  */
   NONLINEAR_MULT,

@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of reasoning about strings with CVC4 via C++ API.
+ * A simple demonstration of reasoning about strings with cvc5 via C++ API.
  */
 
 #include <cvc5/cvc5.h>
@@ -84,7 +84,7 @@ int main()
 
   // check sat
   Result result = slv.checkSatAssuming(q);
-  std::cout << "CVC4 reports: " << q << " is " << result << "." << std::endl;
+  std::cout << "cvc5 reports: " << q << " is " << result << "." << std::endl;
 
   if(result.isSat())
   {

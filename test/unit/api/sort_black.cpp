@@ -95,11 +95,8 @@ TEST_F(TestApiBlackSort, isRegExp)
 
 TEST_F(TestApiBlackSort, isRoundingMode)
 {
-  if (d_solver.supportsFloatingPoint())
-  {
-    ASSERT_TRUE(d_solver.getRoundingModeSort().isRoundingMode());
-    ASSERT_NO_THROW(Sort().isRoundingMode());
-  }
+  ASSERT_TRUE(d_solver.getRoundingModeSort().isRoundingMode());
+  ASSERT_NO_THROW(Sort().isRoundingMode());
 }
 
 TEST_F(TestApiBlackSort, isBitVector)
@@ -110,11 +107,8 @@ TEST_F(TestApiBlackSort, isBitVector)
 
 TEST_F(TestApiBlackSort, isFloatingPoint)
 {
-  if (d_solver.supportsFloatingPoint())
-  {
-    ASSERT_TRUE(d_solver.mkFloatingPointSort(8, 24).isFloatingPoint());
-    ASSERT_NO_THROW(Sort().isFloatingPoint());
-  }
+  ASSERT_TRUE(d_solver.mkFloatingPointSort(8, 24).isFloatingPoint());
+  ASSERT_NO_THROW(Sort().isFloatingPoint());
 }
 
 TEST_F(TestApiBlackSort, isDatatype)
@@ -486,24 +480,18 @@ TEST_F(TestApiBlackSort, getBVSize)
 
 TEST_F(TestApiBlackSort, getFPExponentSize)
 {
-  if (d_solver.supportsFloatingPoint())
-  {
-    Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
-    ASSERT_NO_THROW(fpSort.getFPExponentSize());
-    Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
-    ASSERT_THROW(setSort.getFPExponentSize(), CVC5ApiException);
-  }
+  Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
+  ASSERT_NO_THROW(fpSort.getFPExponentSize());
+  Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
+  ASSERT_THROW(setSort.getFPExponentSize(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSort, getFPSignificandSize)
 {
-  if (d_solver.supportsFloatingPoint())
-  {
-    Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
-    ASSERT_NO_THROW(fpSort.getFPSignificandSize());
-    Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
-    ASSERT_THROW(setSort.getFPSignificandSize(), CVC5ApiException);
-  }
+  Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
+  ASSERT_NO_THROW(fpSort.getFPSignificandSize());
+  Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
+  ASSERT_THROW(setSort.getFPSignificandSize(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSort, getDatatypeParamSorts)

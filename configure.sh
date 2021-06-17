@@ -63,7 +63,7 @@ The following flags enable optional packages (disable with --no-<option name>).
   --cryptominisat          use the CryptoMiniSat SAT solver
   --kissat                 use the Kissat SAT solver
   --poly                   use the LibPoly library [default=yes]
-  --symfpu                 use SymFPU for floating point solver [default=yes]
+  --cocoa                  use the CoCoA library
   --editline               support the editline library
 
 Optional Path to Optional Packages:
@@ -121,6 +121,7 @@ glpk=default
 gpl=default
 kissat=default
 poly=ON
+cocoa=default
 muzzle=default
 ninja=default
 profiling=default
@@ -131,7 +132,6 @@ editline=default
 shared=default
 static_binary=default
 statistics=default
-symfpu=ON
 tracing=default
 tsan=default
 ubsan=default
@@ -240,6 +240,9 @@ do
     --poly) poly=ON;;
     --no-poly) poly=OFF;;
 
+    --cocoa) cocoa=ON;;
+    --no-cocoa) cocoa=OFF;;
+
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
 
@@ -254,9 +257,6 @@ do
 
     --statistics) statistics=ON;;
     --no-statistics) statistics=OFF;;
-
-    --symfpu) symfpu=ON;;
-    --no-symfpu) symfpu=OFF;;
 
     --tracing) tracing=ON;;
     --no-tracing) tracing=OFF;;
@@ -391,8 +391,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_KISSAT=$kissat"
 [ $poly != default ] \
   && cmake_opts="$cmake_opts -DUSE_POLY=$poly"
-[ $symfpu != default ] \
-  && cmake_opts="$cmake_opts -DUSE_SYMFPU=$symfpu"
+[ $cocoa != default ] \
+  && cmake_opts="$cmake_opts -DUSE_COCOA=$cocoa"
 [ "$abc_dir" != default ] \
   && cmake_opts="$cmake_opts -DABC_DIR=$abc_dir"
 [ "$glpk_dir" != default ] \
