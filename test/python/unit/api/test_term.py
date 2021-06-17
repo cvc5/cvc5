@@ -240,11 +240,15 @@ def test_not_term(solver):
         zero.notTerm()
     f_x = solver.mkTerm(kinds.ApplyUf, f, x)
     with pytest.raises(RuntimeError):
+        print("panda a")
         f_x.notTerm()
+        print("panda b")
     sum = solver.mkTerm(kinds.Plus, f_x, f_x)
     with pytest.raises(RuntimeError):
         sum.notTerm()
+    print("panda c")
     p_0 = solver.mkTerm(kinds.ApplyUf, p, zero)
+    print("panda d")
     p_0.notTerm()
     p_f_x = solver.mkTerm(kinds.ApplyUf, p, f_x)
     p_f_x.notTerm()

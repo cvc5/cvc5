@@ -423,7 +423,7 @@ cdef class Result:
         return self.cr != other.cr
 
     def getUnknownExplanation(self):
-        return UnknownExplanation(self.cr.getUnknownExplanation())
+        return UnknownExplanation(<int> self.cr.getUnknownExplanation())
 
     def __str__(self):
         return self.cr.toString().decode()
