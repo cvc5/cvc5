@@ -29,6 +29,7 @@ set(EXAMPLES_API_PYTHON
   sygus-fun
   sygus-grammar
   sygus-inv
+  transcendentals
   id
 )
 
