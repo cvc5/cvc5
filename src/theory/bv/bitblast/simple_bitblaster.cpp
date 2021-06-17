@@ -133,10 +133,7 @@ void BBSimple::computeRelevantTerms(std::set<Node>& termSet)
 {
   for (const auto& var : d_variables)
   {
-    if (termSet.find(var) == termSet.end())
-    {
-      termSet.insert(var);
-    }
+    termSet.insert(var);
   }
 }
 
