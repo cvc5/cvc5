@@ -63,13 +63,13 @@ void IntBlaster::addBitwiseConstraint(Node bitwiseConstraint,
 {
 }
 
-Node IntBlaster::mkRangeConstraint(Node newVar, uint64_t k) {}
+Node IntBlaster::mkRangeConstraint(Node newVar, uint64_t k) { return Node(); }
 
-Node IntBlaster::maxInt(uint64_t k) {}
+Node IntBlaster::maxInt(uint64_t k) { return Node(); }
 
-Node IntBlaster::pow2(uint64_t k) {}
+Node IntBlaster::pow2(uint64_t k) { return Node(); }
 
-Node IntBlaster::modpow2(Node n, uint64_t exponent) {}
+Node IntBlaster::modpow2(Node n, uint64_t exponent) { return Node(); }
 
 Node IntBlaster::makeBinary(Node n)
 {
