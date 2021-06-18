@@ -19,6 +19,8 @@
 #ifndef CVC5__THEORY__ARITH__NL__CAD__LAZARD_EVALUATION_H
 #define CVC5__THEORY__ARITH__NL__CAD__LAZARD_EVALUATION_H
 
+#ifdef CVC5_POLY_IMP
+
 #include <poly/polyxx.h>
 
 #include <memory>
@@ -106,4 +108,5 @@ class LazardEvaluation
 
 }  // namespace cvc5::theory::arith::nl::cad
 
+#endif
 #endif
