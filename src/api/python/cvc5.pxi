@@ -1895,9 +1895,6 @@ del rm_int
 del name
 
 
-
-
-
 # Generate unknown explanations
 cdef __unknown_explanations = {
     <int> REQUIRES_FULL_CHECK: "RequiresFullCheck",
@@ -1912,7 +1909,6 @@ cdef __unknown_explanations = {
     <int> UNKNOWN_REASON: "UnknownReason"
 }
 
-mod_ref = sys.modules[__name__]
 for ue_int, name in __unknown_explanations.items():
     u = UnknownExplanation(ue_int)
 
