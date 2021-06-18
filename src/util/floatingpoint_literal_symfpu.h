@@ -20,20 +20,16 @@
 #define CVC5__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_H
 
 #include "util/bitvector.h"
-#include "util/floatingpoint_size.h"
 #include "util/floatingpoint_literal_symfpu_traits.h"
+#include "util/floatingpoint_size.h"
 #include "util/roundingmode.h"
 
 /* -------------------------------------------------------------------------- */
 
 namespace cvc5 {
 
-// clang-format off
-#if @CVC5_USE_SYMFPU@
-// clang-format on
 using SymFPUUnpackedFloatLiteral =
     ::symfpu::unpackedFloat<symfpuLiteral::traits>;
-#endif
 
 class FloatingPointLiteral
 {
@@ -64,13 +60,6 @@ class FloatingPointLiteral
    * FloatingPointSize::significandWidth().
    */
   static uint32_t getUnpackedSignificandWidth(FloatingPointSize& size);
-
-// clang-format off
-#if !@CVC5_USE_SYMFPU@
-  // clang-format on
-  /** Catch-all for unimplemented functions. */
-  static void unimplemented(void);
-#endif
 
   /** Constructors. */
 
@@ -197,18 +186,10 @@ class FloatingPointLiteral
   BitVector convertToUBVTotal(BitVectorSize width,
                               const RoundingMode& rm,
                               BitVector undefinedCase) const;
-// clang-format off
-#if @CVC5_USE_SYMFPU@
-  // clang-format on
   /** Return wrapped floating-point literal. */
   const SymFPUUnpackedFloatLiteral& getSymUF() const { return d_symuf; }
-#else
-  /** Dummy hash function. */
-  size_t hash(void) const;
-#endif
 
  private:
-
   /**
    * Create a FP literal from unpacked representation.
    *
@@ -223,34 +204,19 @@ class FloatingPointLiteral
                        const bool sign,
                        const BitVector& exp,
                        const BitVector& sig)
-      : d_fp_size(size)
-// clang-format off
-#if @CVC5_USE_SYMFPU@
-        // clang-format on
-        ,
-        d_symuf(SymFPUUnpackedFloatLiteral(sign, exp, sig))
-#endif
+      : d_fp_size(size), d_symuf(SymFPUUnpackedFloatLiteral(sign, exp, sig))
   {
   }
-
-// clang-format off
-#if @CVC5_USE_SYMFPU@
-  // clang-format on
 
   /** Create a FP literal from a symFPU unpacked float. */
   FloatingPointLiteral(const FloatingPointSize& size,
                        SymFPUUnpackedFloatLiteral symuf)
       : d_fp_size(size), d_symuf(symuf){};
-#endif
 
   /** The floating-point size of this floating-point literal. */
   FloatingPointSize d_fp_size;
-// clang-format off
-#if @CVC5_USE_SYMFPU@
-  // clang-format on
   /** The actual floating-point value, a SymFPU unpackedFloat. */
   SymFPUUnpackedFloatLiteral d_symuf;
-#endif
 };
 
 /* -------------------------------------------------------------------------- */
