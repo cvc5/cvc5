@@ -96,17 +96,19 @@ BVSolverBitblast::BVSolverBitblast(TheoryState* s,
   {
     case options::SatSolverMode::CRYPTOMINISAT:
       d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(
-          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast"));
+          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast::"));
       break;
     default:
       d_satSolver.reset(prop::SatSolverFactory::createCadical(
-          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast"));
+          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast::"));
   }
   d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
                                         d_bbRegistrar.get(),
                                         d_nullContext.get(),
                                         nullptr,
-                                        smt::currentResourceManager()));
+                                        smt::currentResourceManager(),
+                                        prop::FormulaLitPolicy::INTERNAL,
+                                        "theory::bv::BVSolverBitblast"));
 }
 
 void BVSolverBitblast::postCheck(Theory::Effort level)
