@@ -79,7 +79,7 @@ void Pow2Solver::checkInitialRefine()
     Node xgeq0 = nm->mkNode(LEQ, d_zero, i[0]);
     Node xltpow2x = nm->mkNode(LT, i[0], i);
     conj.push_back(nm->mkNode(IMPLIES, xgeq0, xltpow2x));
-    Node lem = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
+    Node lem = nm->mkAnd(conj);
     Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; INIT_REFINE"
                         << std::endl;
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_POW2_INIT_REFINE);
