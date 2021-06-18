@@ -1,5 +1,7 @@
 #include "theory/arith/nl/cad/lazard_evaluation.h"
 
+#ifdef CVC5_POLY_IMP
+
 #include "base/check.h"
 #include "base/output.h"
 
@@ -44,3 +46,5 @@ std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
 }
 
 }  // namespace cvc5::theory::arith::nl::cad
+
+#endif
