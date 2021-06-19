@@ -292,7 +292,7 @@ SatLiteral CnfStream::getLiteral(TNode node) {
   return literal;
 }
 
-SatLiteral CnfStream::handleXor(TNode xorNode)
+void CnfStream::handleXor(TNode xorNode)
 {
   Assert(!hasLiteral(xorNode)) << "Atom already mapped!";
   Assert(xorNode.getKind() == kind::XOR) << "Expecting an XOR expression!";
@@ -300,8 +300,8 @@ SatLiteral CnfStream::handleXor(TNode xorNode)
   Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
   Trace("cnf") << "CnfStream::handleXor(" << xorNode << ")\n";
 
-  SatLiteral a = toCNF(xorNode[0]);
-  SatLiteral b = toCNF(xorNode[1]);
+  SatLiteral a = getLiteral(xorNode[0]);
+  SatLiteral b = getLiteral(xorNode[1]);
 
   SatLiteral xorLit = newLiteral(xorNode);
 
@@ -309,11 +309,9 @@ SatLiteral CnfStream::handleXor(TNode xorNode)
   assertClause(xorNode.negate(), ~a, ~b, ~xorLit);
   assertClause(xorNode, a, ~b, xorLit);
   assertClause(xorNode, ~a, b, xorLit);
-
-  return xorLit;
 }
 
-SatLiteral CnfStream::handleOr(TNode orNode)
+void CnfStream::handleOr(TNode orNode)
 {
   Assert(!hasLiteral(orNode)) << "Atom already mapped!";
   Assert(orNode.getKind() == kind::OR) << "Expecting an OR expression!";
@@ -322,37 +320,31 @@ SatLiteral CnfStream::handleOr(TNode orNode)
   Trace("cnf") << "CnfStream::handleOr(" << orNode << ")\n";
 
   // Number of children
-  unsigned n_children = orNode.getNumChildren();
-
-  // Transform all the children first
-  TNode::const_iterator node_it = orNode.begin();
-  TNode::const_iterator node_it_end = orNode.end();
-  SatClause clause(n_children + 1);
-  for(int i = 0; node_it != node_it_end; ++node_it, ++i) {
-    clause[i] = toCNF(*node_it);
-  }
+  size_t numChildren = orNode.getNumChildren();
 
   // Get the literal for this node
   SatLiteral orLit = newLiteral(orNode);
 
-  // lit <- (a_1 | a_2 | a_3 | ... | a_n)
-  // lit | ~(a_1 | a_2 | a_3 | ... | a_n)
-  // (lit | ~a_1) & (lit | ~a_2) & (lit & ~a_3) & ... & (lit & ~a_n)
-  for(unsigned i = 0; i < n_children; ++i) {
+  // Transform all the children first
+  SatClause clause(numChildren + 1);
+  for (size_t i = 0; i < numChildren; ++i)
+  {
+    clause[i] = getLiteral(orNode[i]);
+
+    // lit <- (a_1 | a_2 | a_3 | ... | a_n)
+    // lit | ~(a_1 | a_2 | a_3 | ... | a_n)
+    // (lit | ~a_1) & (lit | ~a_2) & (lit & ~a_3) & ... & (lit & ~a_n)
     assertClause(orNode, orLit, ~clause[i]);
   }
 
   // lit -> (a_1 | a_2 | a_3 | ... | a_n)
   // ~lit | a_1 | a_2 | a_3 | ... | a_n
-  clause[n_children] = ~orLit;
+  clause[numChildren] = ~orLit;
   // This needs to go last, as the clause might get modified by the SAT solver
   assertClause(orNode.negate(), clause);
-
-  // Return the literal
-  return orLit;
 }
 
-SatLiteral CnfStream::handleAnd(TNode andNode)
+void CnfStream::handleAnd(TNode andNode)
 {
   Assert(!hasLiteral(andNode)) << "Atom already mapped!";
   Assert(andNode.getKind() == kind::AND) << "Expecting an AND expression!";
@@ -361,37 +353,32 @@ SatLiteral CnfStream::handleAnd(TNode andNode)
   Trace("cnf") << "handleAnd(" << andNode << ")\n";
 
   // Number of children
-  unsigned n_children = andNode.getNumChildren();
-
-  // Transform all the children first (remembering the negation)
-  TNode::const_iterator node_it = andNode.begin();
-  TNode::const_iterator node_it_end = andNode.end();
-  SatClause clause(n_children + 1);
-  for(int i = 0; node_it != node_it_end; ++node_it, ++i) {
-    clause[i] = ~toCNF(*node_it);
-  }
+  size_t numChildren = andNode.getNumChildren();
 
   // Get the literal for this node
   SatLiteral andLit = newLiteral(andNode);
 
-  // lit -> (a_1 & a_2 & a_3 & ... & a_n)
-  // ~lit | (a_1 & a_2 & a_3 & ... & a_n)
-  // (~lit | a_1) & (~lit | a_2) & ... & (~lit | a_n)
-  for(unsigned i = 0; i < n_children; ++i) {
+  // Transform all the children first (remembering the negation)
+  SatClause clause(numChildren + 1);
+  for (size_t i = 0; i < numChildren; ++i)
+  {
+    clause[i] = ~getLiteral(andNode[i]);
+
+    // lit -> (a_1 & a_2 & a_3 & ... & a_n)
+    // ~lit | (a_1 & a_2 & a_3 & ... & a_n)
+    // (~lit | a_1) & (~lit | a_2) & ... & (~lit | a_n)
     assertClause(andNode.negate(), ~andLit, ~clause[i]);
   }
 
   // lit <- (a_1 & a_2 & a_3 & ... a_n)
   // lit | ~(a_1 & a_2 & a_3 & ... & a_n)
   // lit | ~a_1 | ~a_2 | ~a_3 | ... | ~a_n
-  clause[n_children] = andLit;
+  clause[numChildren] = andLit;
   // This needs to go last, as the clause might get modified by the SAT solver
   assertClause(andNode, clause);
-
-  return andLit;
 }
 
-SatLiteral CnfStream::handleImplies(TNode impliesNode)
+void CnfStream::handleImplies(TNode impliesNode)
 {
   Assert(!hasLiteral(impliesNode)) << "Atom already mapped!";
   Assert(impliesNode.getKind() == kind::IMPLIES)
@@ -401,8 +388,8 @@ SatLiteral CnfStream::handleImplies(TNode impliesNode)
   Trace("cnf") << "handleImplies(" << impliesNode << ")\n";
 
   // Convert the children to cnf
-  SatLiteral a = toCNF(impliesNode[0]);
-  SatLiteral b = toCNF(impliesNode[1]);
+  SatLiteral a = getLiteral(impliesNode[0]);
+  SatLiteral b = getLiteral(impliesNode[1]);
 
   SatLiteral impliesLit = newLiteral(impliesNode);
 
@@ -415,11 +402,9 @@ SatLiteral CnfStream::handleImplies(TNode impliesNode)
   // (a | l) & (~b | l)
   assertClause(impliesNode, a, impliesLit);
   assertClause(impliesNode, ~b, impliesLit);
-
-  return impliesLit;
 }
 
-SatLiteral CnfStream::handleIff(TNode iffNode)
+void CnfStream::handleIff(TNode iffNode)
 {
   Assert(!hasLiteral(iffNode)) << "Atom already mapped!";
   Assert(iffNode.getKind() == kind::EQUAL) << "Expecting an EQUAL expression!";
@@ -428,8 +413,8 @@ SatLiteral CnfStream::handleIff(TNode iffNode)
   Trace("cnf") << "handleIff(" << iffNode << ")\n";
 
   // Convert the children to CNF
-  SatLiteral a = toCNF(iffNode[0]);
-  SatLiteral b = toCNF(iffNode[1]);
+  SatLiteral a = getLiteral(iffNode[0]);
+  SatLiteral b = getLiteral(iffNode[1]);
 
   // Get the now literal
   SatLiteral iffLit = newLiteral(iffNode);
@@ -447,11 +432,9 @@ SatLiteral CnfStream::handleIff(TNode iffNode)
   // (~a | ~b | lit) & (a | b | lit)
   assertClause(iffNode, ~a, ~b, iffLit);
   assertClause(iffNode, a, b, iffLit);
-
-  return iffLit;
 }
 
-SatLiteral CnfStream::handleIte(TNode iteNode)
+void CnfStream::handleIte(TNode iteNode)
 {
   Assert(!hasLiteral(iteNode)) << "Atom already mapped!";
   Assert(iteNode.getKind() == kind::ITE);
@@ -460,9 +443,9 @@ SatLiteral CnfStream::handleIte(TNode iteNode)
   Trace("cnf") << "handleIte(" << iteNode[0] << " " << iteNode[1] << " "
                << iteNode[2] << ")\n";
 
-  SatLiteral condLit = toCNF(iteNode[0]);
-  SatLiteral thenLit = toCNF(iteNode[1]);
-  SatLiteral elseLit = toCNF(iteNode[2]);
+  SatLiteral condLit = getLiteral(iteNode[0]);
+  SatLiteral thenLit = getLiteral(iteNode[1]);
+  SatLiteral elseLit = getLiteral(iteNode[2]);
 
   SatLiteral iteLit = newLiteral(iteNode);
 
@@ -485,47 +468,79 @@ SatLiteral CnfStream::handleIte(TNode iteNode)
   assertClause(iteNode, iteLit, ~thenLit, ~elseLit);
   assertClause(iteNode, iteLit, ~condLit, ~thenLit);
   assertClause(iteNode, iteLit, condLit, ~elseLit);
-
-  return iteLit;
 }
 
 SatLiteral CnfStream::toCNF(TNode node, bool negated)
 {
   Trace("cnf") << "toCNF(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
-  SatLiteral nodeLit;
-  Node negatedNode = node.notNode();
 
-  // If the non-negated node has already been translated, get the translation
-  if(hasLiteral(node)) {
-    Trace("cnf") << "toCNF(): already translated\n";
-    nodeLit = getLiteral(node);
-    // Return the (maybe negated) literal
-    return !negated ? nodeLit : ~nodeLit;
-  }
-  // Handle each Boolean operator case
-  switch (node.getKind())
+  TNode cur;
+  SatLiteral nodeLit;
+  std::vector<TNode> visit;
+  std::unordered_map<TNode, bool> cache;
+
+  visit.push_back(node);
+  while (!visit.empty())
   {
-    case kind::NOT: nodeLit = ~toCNF(node[0]); break;
-    case kind::XOR: nodeLit = handleXor(node); break;
-    case kind::ITE: nodeLit = handleIte(node); break;
-    case kind::IMPLIES: nodeLit = handleImplies(node); break;
-    case kind::OR: nodeLit = handleOr(node); break;
-    case kind::AND: nodeLit = handleAnd(node); break;
-    case kind::EQUAL:
-      nodeLit =
-          node[0].getType().isBoolean() ? handleIff(node) : convertAtom(node);
-      break;
-    default:
+    cur = visit.back();
+    Assert(cur.getType().isBoolean());
+
+    if (hasLiteral(cur))
     {
-      nodeLit = convertAtom(node);
+      visit.pop_back();
+      continue;
     }
-    break;
+
+    const auto& it = cache.find(cur);
+    if (it == cache.end())
+    {
+      cache.emplace(cur, false);
+      Kind k = cur.getKind();
+      // Only traverse Boolean nodes
+      if (k == kind::NOT || k == kind::XOR || k == kind::ITE
+          || k == kind::IMPLIES || k == kind::OR || k == kind::AND
+          || (k == kind::EQUAL && cur[0].getType().isBoolean()))
+      {
+        // Preserve the order of the recursive version
+        for (size_t i = 0, size = cur.getNumChildren(); i < size; ++i)
+        {
+          visit.push_back(cur[size - 1 - i]);
+        }
+      }
+      continue;
+    }
+    else if (!it->second)
+    {
+      it->second = true;
+      Kind k = cur.getKind();
+      switch (k)
+      {
+        case kind::NOT: Assert(hasLiteral(cur[0])); break;
+        case kind::XOR: handleXor(cur); break;
+        case kind::ITE: handleIte(cur); break;
+        case kind::IMPLIES: handleImplies(cur); break;
+        case kind::OR: handleOr(cur); break;
+        case kind::AND: handleAnd(cur); break;
+        default:
+          if (k == kind::EQUAL && cur[0].getType().isBoolean())
+          {
+            handleIff(cur);
+          }
+          else
+          {
+            convertAtom(cur);
+          }
+          break;
+      }
+    }
+    visit.pop_back();
   }
-  // Return the (maybe negated) literal
+
+  nodeLit = getLiteral(node);
   Trace("cnf") << "toCNF(): resulting literal: "
                << (!negated ? nodeLit : ~nodeLit) << "\n";
-  return !negated ? nodeLit : ~nodeLit;
+  return negated ? ~nodeLit : nodeLit;
 }
 
 void CnfStream::convertAndAssertAnd(TNode node, bool negated)

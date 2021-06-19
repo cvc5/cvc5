@@ -70,6 +70,7 @@ html_theme = 'sphinx_rtd_theme'
 html_theme_options = {}
 html_static_path = ['${CMAKE_CURRENT_SOURCE_DIR}/_static/']
 html_css_files = ['custom.css']
+html_show_sourcelink = False
 
 # -- Breathe configuration ---------------------------------------------------
 breathe_default_project = "cvc5"
