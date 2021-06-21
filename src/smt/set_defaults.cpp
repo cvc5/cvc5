@@ -385,7 +385,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     opts.smt.unsatCores = false;
     opts.smt.checkUnsatCores = false;
-    opts.smt.dumpUnsatCores = false;
+    opts.driver.dumpUnsatCores = false;
     opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
     if (options::produceProofs())
     {
@@ -393,7 +393,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
     opts.smt.produceProofs = false;
     opts.smt.checkProofs = false;
-    opts.smt.dumpProofs = false;
+    opts.driver.dumpProofs = false;
     opts.proof.proofReq = false;
     opts.proof.proofEagerChecking = false;
   }
