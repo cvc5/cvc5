@@ -193,7 +193,9 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
 
       if (!proofStepProcessed)
       {
-        Trace("smt-pppg") << "...add missing step" << std::endl;
+        Trace("smt-pppg") << "...justify missing step with "
+                          << (tnk == TrustNodeKind::LEMMA ? d_ra : d_rpp)
+                          << std::endl;
         // add trusted step, the rule depends on the kind of trust node
         cdp.addStep(
             proven, tnk == TrustNodeKind::LEMMA ? d_ra : d_rpp, {}, {proven});

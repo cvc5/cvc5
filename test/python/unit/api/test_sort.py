@@ -89,9 +89,8 @@ def test_is_reg_exp(solver):
 
 
 def test_is_rounding_mode(solver):
-    if solver.supportsFloatingPoint():
-        assert solver.getRoundingModeSort().isRoundingMode()
-        Sort(solver).isRoundingMode()
+    assert solver.getRoundingModeSort().isRoundingMode()
+    Sort(solver).isRoundingMode()
 
 
 def test_is_bit_vector(solver):
@@ -100,9 +99,8 @@ def test_is_bit_vector(solver):
 
 
 def test_is_floating_point(solver):
-    if solver.supportsFloatingPoint():
-        assert solver.mkFloatingPointSort(8, 24).isFloatingPoint()
-        Sort(solver).isFloatingPoint()
+    assert solver.mkFloatingPointSort(8, 24).isFloatingPoint()
+    Sort(solver).isFloatingPoint()
 
 
 def test_is_datatype(solver):
@@ -447,21 +445,19 @@ def test_get_bv_size(solver):
 
 
 def test_get_fp_exponent_size(solver):
-    if solver.supportsFloatingPoint():
-        fpSort = solver.mkFloatingPointSort(4, 8)
-        fpSort.getFPExponentSize()
-        setSort = solver.mkSetSort(solver.getIntegerSort())
-        with pytest.raises(RuntimeError):
-            setSort.getFPExponentSize()
+    fpSort = solver.mkFloatingPointSort(4, 8)
+    fpSort.getFPExponentSize()
+    setSort = solver.mkSetSort(solver.getIntegerSort())
+    with pytest.raises(RuntimeError):
+        setSort.getFPExponentSize()
 
 
 def test_get_fp_significand_size(solver):
-    if solver.supportsFloatingPoint():
-        fpSort = solver.mkFloatingPointSort(4, 8)
-        fpSort.getFPSignificandSize()
-        setSort = solver.mkSetSort(solver.getIntegerSort())
-        with pytest.raises(RuntimeError):
-            setSort.getFPSignificandSize()
+    fpSort = solver.mkFloatingPointSort(4, 8)
+    fpSort.getFPSignificandSize()
+    setSort = solver.mkSetSort(solver.getIntegerSort())
+    with pytest.raises(RuntimeError):
+        setSort.getFPSignificandSize()
 
 
 def test_get_datatype_paramsorts(solver):

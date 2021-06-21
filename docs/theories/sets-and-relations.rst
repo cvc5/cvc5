@@ -20,8 +20,7 @@ The source code of these examples is available at:
 
 
 Below is a short summary of the sorts, constants, functions and
-predicates.  For more details, see
-`this paper at IJCAR 2016 <https://cvc4.github.io/publications/2016/BRBT16.pdf>`__.
+predicates.  More details can be found in :cite:`BansalBRT17`.
 
 For the C++ API examples in the table below, we assume that we have created
 a `cvc5::api::Solver solver` object.
@@ -151,8 +150,7 @@ Example:
 
 For reference, below is a short summary of the sorts, constants, functions and
 predicates.
-For more details, see
-`this paper at CADE 2017 <https://cvc4.github.io/publications/2017/MRT+17.pdf>`__.
+More details can be found in :cite:`MengRTB17`.
 
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
 |                      | SMTLIB language                              | C++ API                                                                            |

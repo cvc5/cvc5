@@ -467,6 +467,7 @@ libcvc5_add_sources(
   theory/arith/nl/nonlinear_extension.h
   theory/arith/nl/poly_conversion.cpp
   theory/arith/nl/poly_conversion.h
+  theory/arith/nl/pow2_solver.cpp
   theory/arith/nl/pow2_solver.h
   theory/arith/nl/stats.cpp
   theory/arith/nl/stats.h
@@ -1239,9 +1240,8 @@ endif()
 if(USE_POLY)
   target_link_libraries(cvc5 PRIVATE Polyxx)
 endif()
-if(USE_SYMFPU)
-  target_link_libraries(cvc5 PRIVATE SymFPU)
-endif()
+
+target_link_libraries(cvc5 PRIVATE SymFPU)
 
 # Note: When linked statically GMP needs to be linked after CLN since CLN
 # depends on GMP.

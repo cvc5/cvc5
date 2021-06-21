@@ -123,7 +123,6 @@ std::string Configuration::copyright() {
   if (Configuration::isBuiltWithAbc() || Configuration::isBuiltWithCadical()
       || Configuration::isBuiltWithCryptominisat()
       || Configuration::isBuiltWithKissat()
-      || Configuration::isBuiltWithSymFPU()
       || Configuration::isBuiltWithEditline())
   {
     ss << "This version of cvc5 is linked against the following non-(L)GPL'ed\n"
@@ -151,12 +150,6 @@ std::string Configuration::copyright() {
          << "  See https://fmv.jku.at/kissat for copyright "
          << "information.\n\n";
     }
-    if (Configuration::isBuiltWithSymFPU())
-    {
-      ss << "  SymFPU - The Symbolic Floating Point Unit\n"
-         << "  See https://github.com/martin-cs/symfpu/tree/cvc5 for copyright "
-         << "information.\n\n";
-    }
     if (Configuration::isBuiltWithEditline())
     {
       ss << "  Editline Library\n"
@@ -164,6 +157,10 @@ std::string Configuration::copyright() {
          << "  for copyright information.\n\n";
     }
   }
+
+  ss << "  SymFPU - The Symbolic Floating Point Unit\n"
+     << "  See https://github.com/martin-cs/symfpu/tree/cvc5 for copyright "
+     << "information.\n\n";
 
   if (Configuration::isBuiltWithGmp() || Configuration::isBuiltWithPoly())
   {
@@ -258,8 +255,6 @@ bool Configuration::isBuiltWithPoly()
 {
   return IS_POLY_BUILD;
 }
-
-bool Configuration::isBuiltWithSymFPU() { return IS_SYMFPU_BUILD; }
 
 unsigned Configuration::getNumDebugTags() {
 #if defined(CVC5_DEBUG) && defined(CVC5_TRACING)

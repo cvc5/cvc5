@@ -1,7 +1,7 @@
-; COMMAND-LINE: --uf-ho --no-check-unsat-cores  --no-check-unsat-cores --no-produce-models --ho-elim
+; COMMAND-LINE: --no-check-unsat-cores --no-produce-models --ho-elim
 ; EXPECT: unsat
 
-(set-logic ALL)
+(set-logic HO_ALL)
 (declare-sort $$unsorted 0)
 (declare-sort mu 0)
 (declare-fun meq_ind (mu mu $$unsorted) Bool)

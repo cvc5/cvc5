@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of the solving capabilities of the CVC4
+ * A simple demonstration of the solving capabilities of the cvc5
  * bit-vector solver.
  *
  */
@@ -50,7 +50,7 @@ int main()
   Term eq2 = slv.mkTerm(EQUAL, x_31_31, x_0_0);
   cout << " Check entailment assuming: " << eq2 << endl;
   cout << " Expect ENTAILED. " << endl;
-  cout << " CVC4: " << slv.checkEntailed(eq2) << endl;
+  cout << " cvc5: " << slv.checkEntailed(eq2) << endl;
 
   return 0;
 }
