@@ -141,7 +141,7 @@ void CnfStream::ensureLiteral(TNode n)
       n.toString().c_str(),
       n.getType().toString().c_str());
   Trace("cnf") << "ensureLiteral(" << n << ")\n";
-  TimerStat::CodeTimer codeTimer(d_stats.d_cnfConversionTime);
+  TimerStat::CodeTimer codeTimer(d_stats.d_cnfConversionTime, true);
   if (hasLiteral(n))
   {
     ensureMappingForLiteral(n);
@@ -725,7 +725,7 @@ void CnfStream::convertAndAssert(TNode node,
                << ", negated = " << (negated ? "true" : "false")
                << ", removable = " << (removable ? "true" : "false") << ")\n";
   d_removable = removable;
-  TimerStat::CodeTimer codeTimer(d_stats.d_cnfConversionTime);
+  TimerStat::CodeTimer codeTimer(d_stats.d_cnfConversionTime, true);
   convertAndAssert(node, negated);
 }
 
