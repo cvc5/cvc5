@@ -53,13 +53,9 @@ SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry& registry,
 SatSolver* SatSolverFactory::createCadical(StatisticsRegistry& registry,
                                            const std::string& name)
 {
-#ifdef CVC5_USE_CADICAL
   CadicalSolver* res = new CadicalSolver(registry, name);
   res->init();
   return res;
-#else
-  Unreachable() << "cvc5 was not compiled with CaDiCaL support.";
-#endif
 }
 
 SatSolver* SatSolverFactory::createKissat(StatisticsRegistry& registry,
