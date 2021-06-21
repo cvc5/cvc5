@@ -3,8 +3,8 @@
 ; declaring a List datatype and defining List terms
 (declare-datatype List ((cons (head Int) (tail List)) (nil)))
 
-(define-fun t () List (cons 0 nil))
-(define-fun t2 () Int (head t))
+(define-const t List (cons 0 nil))
+(define-const t2 Int (head t))
 
 ; declaring a parameterized datatype. We need the general
 ; declare-datatypes command since the singular version is a macro for
@@ -14,7 +14,7 @@
 
 (define-sort ParListInt () (ParList Int))
 (declare-const a ParListInt)
-(define-fun aHead () Int (parHead a))
+(define-const aHead Int (parHead a))
 
 (assert (< aHead 50))
 (check-sat)
