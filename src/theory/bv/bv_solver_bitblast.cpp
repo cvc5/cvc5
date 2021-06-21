@@ -238,6 +238,21 @@ TrustNode BVSolverBitblast::explain(TNode n)
   return d_im.explainLit(n);
 }
 
+void BVSolverBitblast::computeRelevantTerms(std::set<Node>& termSet)
+{
+  /* BITVECTOR_EAGER_ATOM wraps input assertions that may also contain
+   * equalities. As a result, these equalities are not handled by the equality
+   * engine and terms below these equalities do not appear in `termSet`.
+   * We need to make sure that we compute model values for all relevant terms
+   * in BitblastMode::EAGER and therefore add all variables from the
+   * bit-blaster to `termSet`.
+   */
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  {
+    d_bitblaster->computeRelevantTerms(termSet);
+  }
+}
+
 bool BVSolverBitblast::collectModelValues(TheoryModel* m,
                                           const std::set<Node>& termSet)
 {
