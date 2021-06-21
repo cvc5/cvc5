@@ -670,6 +670,7 @@ set(regress_0_tests
   regress0/issue5743.smt2
   regress0/issue5947.smt2
   regress0/issue6605-2-abd-triv.smt2
+  regress0/issue6741.smt2
   regress0/ite_arith.smt2
   regress0/ite_real_int_type.smtv1.smt2
   regress0/ite_real_valid.smtv1.smt2

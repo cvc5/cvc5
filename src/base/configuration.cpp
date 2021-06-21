@@ -120,23 +120,22 @@ std::string Configuration::copyright() {
      << "See licenses/antlr3-LICENSE for copyright and licensing information."
      << "\n\n";
 
-  if (Configuration::isBuiltWithAbc() || Configuration::isBuiltWithCadical()
+  ss << "This version of cvc5 is linked against the following non-(L)GPL'ed\n"
+     << "third party libraries.\n\n";
+
+  ss << "  CaDiCaL - Simplified Satisfiability Solver\n"
+     << "  See https://github.com/arminbiere/cadical for copyright "
+     << "information.\n\n";
+
+  if (Configuration::isBuiltWithAbc()
       || Configuration::isBuiltWithCryptominisat()
       || Configuration::isBuiltWithKissat()
       || Configuration::isBuiltWithEditline())
   {
-    ss << "This version of cvc5 is linked against the following non-(L)GPL'ed\n"
-       << "third party libraries.\n\n";
     if (Configuration::isBuiltWithAbc()) {
       ss << "  ABC - A System for Sequential Synthesis and Verification\n"
          << "  See http://bitbucket.org/alanmi/abc for copyright and\n"
          << "  licensing information.\n\n";
-    }
-    if (Configuration::isBuiltWithCadical())
-    {
-      ss << "  CaDiCaL - Simplified Satisfiability Solver\n"
-         << "  See https://github.com/arminbiere/cadical for copyright "
-         << "information.\n\n";
     }
     if (Configuration::isBuiltWithCryptominisat())
     {
@@ -240,8 +239,6 @@ bool Configuration::isBuiltWithGlpk() {
 bool Configuration::isBuiltWithAbc() {
   return IS_ABC_BUILD;
 }
-
-bool Configuration::isBuiltWithCadical() { return IS_CADICAL_BUILD; }
 
 bool Configuration::isBuiltWithCryptominisat() {
   return IS_CRYPTOMINISAT_BUILD;
