@@ -23,12 +23,17 @@
 #include "base/listener.h"
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
+#include "expr/datatype_index.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/metakind.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
+#include "theory/bags/make_bag_op.h"
+#include "theory/sets/singleton_op.h"
+#include "util/abstract_value.h"
+#include "util/bitvector.h"
 #include "util/resource_manager.h"
 
 using namespace std;
@@ -523,10 +528,6 @@ TypeNode NodeManager::mkBagType(TypeNode elementType)
 {
   CheckArgument(
       !elementType.isNull(), elementType, "unexpected NULL element type");
-  CheckArgument(elementType.isFirstClass(),
-                elementType,
-                "cannot store types that are not first-class in bags. Try "
-                "option --uf-ho.");
   Debug("bags") << "making bags type " << elementType << std::endl;
   return mkTypeNode(kind::BAG_TYPE, elementType);
 }
@@ -535,10 +536,6 @@ TypeNode NodeManager::mkSequenceType(TypeNode elementType)
 {
   CheckArgument(
       !elementType.isNull(), elementType, "unexpected NULL element type");
-  CheckArgument(elementType.isFirstClass(),
-                elementType,
-                "cannot store types that are not first-class in sequences. Try "
-                "option --uf-ho.");
   return mkTypeNode(kind::SEQUENCE_TYPE, elementType);
 }
 

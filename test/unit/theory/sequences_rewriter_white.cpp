@@ -26,6 +26,8 @@
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/strings_rewriter.h"
+#include "util/rational.h"
+#include "util/string.h"
 
 namespace cvc5 {
 

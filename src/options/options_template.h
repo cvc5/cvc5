@@ -53,16 +53,15 @@ class CVC5_EXPORT Options
 // clang-format off
 ${holder_mem_decls}$
 // clang-format on
+ public:
+// clang-format off
+${holder_ref_decls}$
+// clang-format on
+  
+ private:
 
   /** The current Options in effect */
   static thread_local Options* s_current;
-
-  /** Low-level assignment function for options */
-  template <class T>
-  void assign(T, std::string option, std::string value);
-  /** Low-level assignment function for bool-valued options */
-  template <class T>
-  void assignBool(T, std::string option, bool value);
 
   friend class options::OptionsHandler;
 
@@ -77,8 +76,6 @@ ${holder_mem_decls}$
    * Listeners to respond to.
    */
   Options& operator=(const Options& options) = delete;
-
-  static std::string formatThreadOptionException(const std::string& option);
 
 public:
  class OptionsScope
@@ -109,9 +106,9 @@ public:
   Options(OptionsListener* ol = nullptr);
   ~Options();
 
-// clang-format off
-${holder_getter_decls}$
-// clang-format on
+  options::OptionsHandler& handler() const {
+    return *d_handler;
+  }
 
   /**
    * Copies the value of the options stored in OptionsHolder into the current
@@ -121,51 +118,11 @@ ${holder_getter_decls}$
   void copyValues(const Options& options);
 
   /**
-   * Set the value of the given option.  Uses `ref()`, which causes a
-   * compile-time error if the given option is read-only.
-   */
-  template <class T>
-  void set(T t, const typename T::type& val) {
-    ref(t) = val;
-  }
-
-  /**
-   * Set the default value of the given option. Is equivalent to calling `set()`
-   * if `wasSetByUser()` returns false. Uses `ref()`, which causes a compile-time
-   * error if the given option is read-only.
-   */
-  template <class T>
-  void setDefault(T t, const typename T::type& val)
-  {
-    if (!wasSetByUser(t))
-    {
-      ref(t) = val;
-    }
-  }
-
-  /**
-   * Get a non-const reference to the value of the given option. Causes a
-   * compile-time error if the given option is read-only. Writeable options
-   * specialize this template with a real implementation.
-   */
-  template <class T>
-  typename T::type& ref(T) {
-    // Flag a compile-time error.
-    T::you_are_trying_to_get_nonconst_access_to_a_read_only_option;
-    // Ensure the compiler does not complain about the return value.
-    return *static_cast<typename T::type*>(nullptr);
-  }
-
-  /**
    * Set the value of the given option by key.
    *
    * Throws OptionException or ModalException on failures.
    */
   void setOption(const std::string& key, const std::string& optionarg);
-
-  /** Get the value of the given option.  Const access only. */
-  template <class T>
-  const typename T::type& operator[](T) const;
 
   /**
    * Gets the value of the given option by key and returns value as a string.
@@ -175,65 +132,9 @@ ${holder_getter_decls}$
    */
   std::string getOption(const std::string& key) const;
 
-  // Get accessor functions.
-  InputLanguage getInputLanguage() const;
-  options::InstFormatMode getInstFormatMode() const;
-  OutputLanguage getOutputLanguage() const;
-  bool getUfHo() const;
-  bool getDumpInstantiations() const;
-  bool getDumpModels() const;
-  bool getDumpProofs() const;
-  bool getDumpUnsatCores() const;
-  bool getEarlyExit() const;
-  bool getFilesystemAccess() const;
-  bool getForceNoLimitCpuWhileDump() const;
-  bool getHelp() const;
-  bool getIncrementalSolving() const;
-  bool getInteractive() const;
-  bool getInteractivePrompt() const;
-  bool getLanguageHelp() const;
-  bool getMemoryMap() const;
-  bool getParseOnly() const;
-  bool getProduceModels() const;
-  bool getSegvSpin() const;
-  bool getSemanticChecks() const;
-  bool getStatistics() const;
-  bool getStatsEveryQuery() const;
-  bool getStrictParsing() const;
-  int getTearDownIncremental() const;
-  uint64_t getCumulativeTimeLimit() const;
-  bool getVersion() const;
-  const std::string& getForceLogicString() const;
-  int getVerbosity() const;
-  std::istream* getIn() const;
-  std::ostream* getErr();
-  std::ostream* getOut();
-  std::ostream* getOutConst() const; // TODO: Remove this.
-  std::string getBinaryName() const;
-
-  // TODO: Document these.
-  void setInputLanguage(InputLanguage);
-  void setInteractive(bool);
-  void setOut(std::ostream*);
-  void setOutputLanguage(OutputLanguage);
-
-  bool wasSetByUserEarlyExit() const;
-  bool wasSetByUserForceLogicString() const;
-  bool wasSetByUserIncrementalSolving() const;
-  bool wasSetByUserInteractive() const;
-
   // Static accessor functions.
   // TODO: Document these.
   static std::ostream* currentGetOut();
-
-  /**
-   * Returns true iff the value of the given option was set
-   * by the user via a command-line option or SmtEngine::setOption().
-   * (Options::set() is low-level and doesn't count.)  Returns false
-   * otherwise.
-   */
-  template <class T>
-  bool wasSetByUser(T) const;
 
   /**
    * Get a description of the command-line flags accepted by
@@ -273,7 +174,8 @@ ${holder_getter_decls}$
    */
   static std::vector<std::string> parseOptions(Options* options,
                                                int argc,
-                                               char* argv[]);
+                                               char* argv[],
+                                               std::string& binaryName);
 
   /**
    * Get the setting for all options.

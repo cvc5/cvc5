@@ -29,12 +29,12 @@
 #include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
-#include "util/cardinality.h"
 #include "util/cardinality_class.h"
 
 namespace cvc5 {
 
 class NodeManager;
+class Cardinality;
 class DType;
 
 namespace expr {
@@ -657,7 +657,7 @@ private:
   unsigned getFloatingPointSignificandSize() const;
 
   /** Get the size of this bit-vector type */
-  unsigned getBitVectorSize() const;
+  uint32_t getBitVectorSize() const;
 
   /** Is this a sort kind */
   bool isSort() const;
@@ -1000,12 +1000,6 @@ inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
           && getConst<FloatingPointSize>().significandWidth() == sig);
 }
 
-/** Is this a bit-vector type of size <code>size</code> */
-inline bool TypeNode::isBitVector(unsigned size) const {
-  return
-    ( getKind() == kind::BITVECTOR_TYPE && getConst<BitVectorSize>() == size );
-}
-
 /** Get the exponent size of this floating-point type */
 inline unsigned TypeNode::getFloatingPointExponentSize() const {
   Assert(isFloatingPoint());
@@ -1016,12 +1010,6 @@ inline unsigned TypeNode::getFloatingPointExponentSize() const {
 inline unsigned TypeNode::getFloatingPointSignificandSize() const {
   Assert(isFloatingPoint());
   return getConst<FloatingPointSize>().significandWidth();
-}
-
-/** Get the size of this bit-vector type */
-inline unsigned TypeNode::getBitVectorSize() const {
-  Assert(isBitVector());
-  return getConst<BitVectorSize>();
 }
 
 #ifdef CVC5_DEBUG

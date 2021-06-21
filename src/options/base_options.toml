@@ -1,10 +1,6 @@
 id     = "BASE"
 name   = "Base"
-
-[[option]]
-  name       = "binary_name"
-  category   = "undocumented"
-  type       = "std::string"
+public = true
 
 [[option]]
   name       = "in"
@@ -81,6 +77,15 @@ name   = "Base"
   help       = "decrease verbosity (may be repeated)"
 
 [[option]]
+  name       = "incrementalSolving"
+  category   = "common"
+  short      = "i"
+  long       = "incremental"
+  type       = "bool"
+  default    = "true"
+  help       = "enable incremental solving"
+
+[[option]]
   name       = "statistics"
   long       = "stats"
   category   = "common"
@@ -149,3 +154,52 @@ name   = "Base"
   long       = "print-success"
   type       = "bool"
   help       = "print the \"success\" output required of SMT-LIBv2"
+
+[[option]]
+  name       = "cumulativeMillisecondLimit"
+  category   = "common"
+  long       = "tlimit=MS"
+  type       = "uint64_t"
+  help       = "set time limit in milliseconds of wall clock time"
+
+[[option]]
+  name       = "perCallMillisecondLimit"
+  category   = "common"
+  long       = "tlimit-per=MS"
+  type       = "uint64_t"
+  help       = "set time limit per query in milliseconds"
+
+[[option]]
+  name       = "cumulativeResourceLimit"
+  category   = "common"
+  long       = "rlimit=N"
+  type       = "uint64_t"
+  help       = "set resource limit"
+
+[[option]]
+  name       = "perCallResourceLimit"
+  alias      = ["reproducible-resource-limit"]
+  category   = "common"
+  long       = "rlimit-per=N"
+  type       = "uint64_t"
+  help       = "set resource limit per query"
+
+# --rweight is used to override the default of one particular resource weight.
+# It can be given multiple times to override multiple weights. When options are
+# parsed, the resource manager might now be created yet, and it is not clear
+# how an option handler would access it in a reasonable way. The option handler
+# thus merely puts the data in another option that holds a vector of strings.
+# This other option "resourceWeightHolder" has the sole purpose of storing
+# this data in a way so that the resource manager can access it in its
+# constructor.
+[[option]]
+  category   = "expert"
+  long       = "rweight=VAL=N"
+  type       = "std::string"
+  handler    = "setResourceWeight"
+  help       = "set a single resource weight"
+
+[[option]]
+  name       = "resourceWeightHolder"
+  category   = "undocumented"
+  type       = "std::vector<std::string>"

@@ -22,11 +22,17 @@
 #include <vector>
 
 #include "api/cpp/cvc5.h"
+#include "expr/array_store_all.h"
+#include "expr/ascription_type.h"
+#include "expr/datatype_index.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/emptybag.h"
+#include "expr/emptyset.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
+#include "expr/uninterpreted_constant.h"
 #include "options/bv_options.h"
 #include "options/language.h"
 #include "options/printer_options.h"
@@ -39,9 +45,17 @@
 #include "smt_util/boolean_simplification.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/datatypes/tuple_project_op.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/theory_model.h"
+#include "util/bitvector.h"
+#include "util/divisible.h"
+#include "util/floatingpoint.h"
+#include "util/iand.h"
+#include "util/indexed_root_predicate.h"
+#include "util/regexp.h"
 #include "util/smt2_quote_string.h"
+#include "util/string.h"
 
 using namespace std;
 
@@ -201,11 +215,19 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     case kind::CONST_ROUNDINGMODE:
       switch (n.getConst<RoundingMode>()) {
-        case ROUND_NEAREST_TIES_TO_EVEN: out << "roundNearestTiesToEven"; break;
-        case ROUND_NEAREST_TIES_TO_AWAY: out << "roundNearestTiesToAway"; break;
-        case ROUND_TOWARD_POSITIVE: out << "roundTowardPositive"; break;
-        case ROUND_TOWARD_NEGATIVE: out << "roundTowardNegative"; break;
-        case ROUND_TOWARD_ZERO: out << "roundTowardZero"; break;
+        case RoundingMode::ROUND_NEAREST_TIES_TO_EVEN:
+          out << "roundNearestTiesToEven";
+          break;
+        case RoundingMode::ROUND_NEAREST_TIES_TO_AWAY:
+          out << "roundNearestTiesToAway";
+          break;
+        case RoundingMode::ROUND_TOWARD_POSITIVE:
+          out << "roundTowardPositive";
+          break;
+        case RoundingMode::ROUND_TOWARD_NEGATIVE:
+          out << "roundTowardNegative";
+          break;
+        case RoundingMode::ROUND_TOWARD_ZERO: out << "roundTowardZero"; break;
         default:
           Unreachable() << "Invalid value of rounding mode constant ("
                         << n.getConst<RoundingMode>() << ")";
@@ -701,6 +723,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STRING_CHARAT:
   case kind::STRING_STRCTN:
   case kind::STRING_STRIDOF:
+  case kind::STRING_INDEXOF_RE:
   case kind::STRING_STRREPL:
   case kind::STRING_STRREPLALL:
   case kind::STRING_REPLACE_RE:
@@ -853,7 +876,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::FLOATINGPOINT_EQ:
   case kind::FLOATINGPOINT_ABS:
   case kind::FLOATINGPOINT_NEG:
-  case kind::FLOATINGPOINT_PLUS:
+  case kind::FLOATINGPOINT_ADD:
   case kind::FLOATINGPOINT_SUB:
   case kind::FLOATINGPOINT_MULT:
   case kind::FLOATINGPOINT_DIV:
@@ -928,10 +951,43 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
     break;
   }
-  case kind::APPLY_TESTER:
   case kind::APPLY_SELECTOR:
-  case kind::APPLY_SELECTOR_TOTAL:
+  {
+    Node op = n.getOperator();
+    const DType& dt = DType::datatypeOf(op);
+    if (dt.isTuple())
+    {
+      stillNeedToPrintParams = false;
+      out << "(_ tupSel " << DType::indexOf(op) << ") ";
+    }
+  }
+  break;
+  case kind::APPLY_TESTER:
+  {
+    stillNeedToPrintParams = false;
+    Node op = n.getOperator();
+    size_t cindex = DType::indexOf(op);
+    const DType& dt = DType::datatypeOf(op);
+    out << "(_ is ";
+    toStream(
+        out, dt[cindex].getConstructor(), toDepth < 0 ? toDepth : toDepth - 1);
+    out << ") ";
+  }
+  break;
   case kind::APPLY_UPDATER:
+  {
+    Node op = n.getOperator();
+    size_t index = DType::indexOf(op);
+    const DType& dt = DType::datatypeOf(op);
+    size_t cindex = DType::cindexOf(op);
+    out << "(_ update ";
+    toStream(out,
+             dt[cindex][index].getSelector(),
+             toDepth < 0 ? toDepth : toDepth - 1);
+    out << ") ";
+  }
+  break;
+  case kind::APPLY_SELECTOR_TOTAL:
   case kind::PARAMETRIC_DATATYPE: break;
 
   // separation logic
@@ -1014,19 +1070,8 @@ void Smt2Printer::toStream(std::ostream& out,
   if( n.getMetaKind() == kind::metakind::PARAMETERIZED &&
       stillNeedToPrintParams ) {
     if(toDepth != 0) {
-      if (n.getKind() == kind::APPLY_TESTER)
-      {
-        unsigned cindex = DType::indexOf(n.getOperator());
-        const DType& dt = DType::datatypeOf(n.getOperator());
-        out << "(_ is ";
-        toStream(out,
-                 dt[cindex].getConstructor(),
-                 toDepth < 0 ? toDepth : toDepth - 1);
-        out << ")";
-      }else{
-        toStream(
-            out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, lbind);
-      }
+      toStream(
+          out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, lbind);
     } else {
       out << "(...)";
     }
@@ -1231,7 +1276,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::FLOATINGPOINT_EQ: return "fp.eq";
   case kind::FLOATINGPOINT_ABS: return "fp.abs";
   case kind::FLOATINGPOINT_NEG: return "fp.neg";
-  case kind::FLOATINGPOINT_PLUS: return "fp.add";
+  case kind::FLOATINGPOINT_ADD: return "fp.add";
   case kind::FLOATINGPOINT_SUB: return "fp.sub";
   case kind::FLOATINGPOINT_MULT: return "fp.mul";
   case kind::FLOATINGPOINT_DIV: return "fp.div";
@@ -1287,6 +1332,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_STRCTN: return "str.contains" ;
   case kind::STRING_CHARAT: return "str.at" ;
   case kind::STRING_STRIDOF: return "str.indexof" ;
+  case kind::STRING_INDEXOF_RE: return "str.indexof_re";
   case kind::STRING_STRREPL: return "str.replace" ;
   case kind::STRING_STRREPLALL: return "str.replace_all";
   case kind::STRING_REPLACE_RE: return "str.replace_re";
@@ -1674,21 +1720,20 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
     out << funcs[i] << " (";
     // print its type signature
     vector<Node>::const_iterator itf = formals[i].cbegin();
-    for (;;)
+    while (itf != formals[i].cend())
     {
       out << "(" << (*itf) << " " << (*itf).getType() << ")";
       ++itf;
-      if (itf != formals[i].end())
+      if (itf != formals[i].cend())
       {
         out << " ";
       }
-      else
-      {
-        break;
-      }
     }
     TypeNode type = funcs[i].getType();
-    type = type.getRangeType();
+    if (type.isFunction())
+    {
+      type = type.getRangeType();
+    }
     out << ") " << type;
     if (funcs.size() > 1)
     {
@@ -1698,6 +1743,10 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
   if (funcs.size() > 1)
   {
     out << ") (";
+  }
+  else
+  {
+    out << " ";
   }
   for (unsigned i = 0, size = formulas.size(); i < size; i++)
   {

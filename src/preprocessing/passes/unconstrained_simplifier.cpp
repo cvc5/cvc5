@@ -27,6 +27,8 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace preprocessing {

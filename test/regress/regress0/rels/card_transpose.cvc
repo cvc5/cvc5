@@ -1,5 +1,5 @@
 % EXPECT: unknown (INCOMPLETE)
-OPTION "logic" "ALL_SUPPORTED";
+OPTION "logic" "ALL";
 IntPair: TYPE = [INT, INT];
 x : SET OF IntPair;
 ASSERT (CARD(TRANSPOSE(x)) > 0);

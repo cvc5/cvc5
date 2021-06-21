@@ -30,21 +30,21 @@ TheoryEngineProofGenerator::TheoryEngineProofGenerator(ProofNodeManager* pnm,
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-theory::TrustNode TheoryEngineProofGenerator::mkTrustExplain(
+TrustNode TheoryEngineProofGenerator::mkTrustExplain(
     TNode lit, Node exp, std::shared_ptr<LazyCDProof> lpf)
 {
   Node p;
-  theory::TrustNode trn;
+  TrustNode trn;
   if (lit == d_false)
   {
     // propagation of false is a conflict
-    trn = theory::TrustNode::mkTrustConflict(exp, this);
+    trn = TrustNode::mkTrustConflict(exp, this);
     p = trn.getProven();
     Assert(p.getKind() == NOT);
   }
   else
   {
-    trn = theory::TrustNode::mkTrustPropExp(lit, exp, this);
+    trn = TrustNode::mkTrustPropExp(lit, exp, this);
     p = trn.getProven();
     Assert(p.getKind() == IMPLIES && p.getNumChildren() == 2);
   }

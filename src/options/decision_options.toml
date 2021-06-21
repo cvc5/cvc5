@@ -17,6 +17,9 @@ name   = "Decision Heuristics"
 [[option.mode.JUSTIFICATION]]
   name = "justification"
   help = "An ATGP-inspired justification heuristic."
+[[option.mode.JUSTIFICATION_OLD]]
+  name = "justification-old"
+  help = "Older implementation of an ATGP-inspired justification heuristic."
 [[option.mode.RELEVANCY]]
   name = "justification-stoponly"
   help = "Use the justification heuristic only to stop early, not for decisions."
@@ -30,7 +33,7 @@ name   = "Decision Heuristics"
   name       = "decisionThreshold"
   category   = "expert"
   long       = "decision-threshold=N"
-  type       = "decision::DecisionWeight"
+  type       = "cvc5::decision::DecisionWeight"
   default    = "0"
   includes   = ["options/decision_weight.h"]
   help       = "ignore all nodes greater than threshold in first attempt to pick decision"
@@ -89,7 +92,7 @@ name   = "Decision Heuristics"
   category   = "expert"
   long       = "jh-rlv-order"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "maintain activity-based ordering for decision justification heuristic"
 
 [[option]]

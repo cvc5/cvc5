@@ -23,7 +23,6 @@
 #include "util/floatingpoint.h"
 #include "util/floatingpoint_literal_symfpu.h"
 
-#ifdef CVC5_USE_SYMFPU
 #include "symfpu/core/add.h"
 #include "symfpu/core/classify.h"
 #include "symfpu/core/compare.h"
@@ -38,9 +37,7 @@
 #include "symfpu/core/sqrt.h"
 #include "symfpu/utils/numberOfRoundingModes.h"
 #include "symfpu/utils/properties.h"
-#endif
 
-#ifdef CVC5_USE_SYMFPU
 namespace symfpu {
 using namespace ::cvc5::theory::fp::symfpuSymbolic;
 
@@ -143,11 +140,6 @@ void probabilityAnnotation<traits, traits::prop>(const traits::prop &p,
   return;
 }
 };
-#endif
-
-#ifndef CVC5_USE_SYMFPU
-#define SYMFPU_NUMBER_OF_ROUNDING_MODES 5
-#endif
 
 namespace cvc5 {
 namespace theory {
@@ -242,11 +234,7 @@ symbolicProposition symbolicProposition::operator^(
 
 bool symbolicRoundingMode::checkNodeType(const TNode n)
 {
-#ifdef CVC5_USE_SYMFPU
   return n.getType(false).isBitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES);
-#else
-  return false;
-#endif
 }
 
 symbolicRoundingMode::symbolicRoundingMode(const Node n) : nodeWrapper(n)
@@ -254,7 +242,6 @@ symbolicRoundingMode::symbolicRoundingMode(const Node n) : nodeWrapper(n)
   Assert(checkNodeType(*this));
 }
 
-#ifdef CVC5_USE_SYMFPU
 symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
     : nodeWrapper(NodeManager::currentNM()->mkConst(
           BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, v)))
@@ -262,14 +249,6 @@ symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
   Assert((v & (v - 1)) == 0 && v != 0);  // Exactly one bit set
   Assert(checkNodeType(*this));
 }
-#else
-symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
-    : nodeWrapper(NodeManager::currentNM()->mkConst(
-          BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, v)))
-{
-  Unreachable();
-}
-#endif
 
 symbolicRoundingMode::symbolicRoundingMode(const symbolicRoundingMode &old)
     : nodeWrapper(old)
@@ -755,20 +734,17 @@ TypeNode floatingPointTypeInfo::getTypeNode(void) const
 
 FpConverter::FpConverter(context::UserContext* user)
     : d_additionalAssertions(user)
-#ifdef CVC5_USE_SYMFPU
       ,
       d_fpMap(user),
       d_rmMap(user),
       d_boolMap(user),
       d_ubvMap(user),
       d_sbvMap(user)
-#endif
 {
 }
 
 FpConverter::~FpConverter() {}
 
-#ifdef CVC5_USE_SYMFPU
 Node FpConverter::ufToNode(const fpt &format, const uf &u) const
 {
   NodeManager *nm = NodeManager::currentNM();
@@ -800,17 +776,19 @@ Node FpConverter::rmToNode(const rm &r) const
   Node value = nm->mkNode(
       kind::ITE,
       nm->mkNode(kind::EQUAL, transVar, RNE),
-      nm->mkConst(ROUND_NEAREST_TIES_TO_EVEN),
-      nm->mkNode(kind::ITE,
-                 nm->mkNode(kind::EQUAL, transVar, RNA),
-                 nm->mkConst(ROUND_NEAREST_TIES_TO_AWAY),
-                 nm->mkNode(kind::ITE,
-                            nm->mkNode(kind::EQUAL, transVar, RTP),
-                            nm->mkConst(ROUND_TOWARD_POSITIVE),
-                            nm->mkNode(kind::ITE,
-                                       nm->mkNode(kind::EQUAL, transVar, RTN),
-                                       nm->mkConst(ROUND_TOWARD_NEGATIVE),
-                                       nm->mkConst(ROUND_TOWARD_ZERO)))));
+      nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN),
+      nm->mkNode(
+          kind::ITE,
+          nm->mkNode(kind::EQUAL, transVar, RNA),
+          nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY),
+          nm->mkNode(
+              kind::ITE,
+              nm->mkNode(kind::EQUAL, transVar, RTP),
+              nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE),
+              nm->mkNode(kind::ITE,
+                         nm->mkNode(kind::EQUAL, transVar, RTN),
+                         nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE),
+                         nm->mkConst(RoundingMode::ROUND_TOWARD_ZERO)))));
   return value;
 }
 
@@ -841,7 +819,6 @@ FpConverter::uf FpConverter::buildComponents(TNode current)
 
   return tmp;
 }
-#endif
 
 // Non-convertible things should only be added to the stack at the very start,
 // thus...
@@ -849,7 +826,6 @@ FpConverter::uf FpConverter::buildComponents(TNode current)
 
 Node FpConverter::convert(TNode node)
 {
-#ifdef CVC5_USE_SYMFPU
   std::vector<TNode> workStack;
   TNode result = node;
 
@@ -878,19 +854,19 @@ Node FpConverter::convert(TNode node)
             /******** Constants ********/
             switch (current.getConst<RoundingMode>())
             {
-              case ROUND_NEAREST_TIES_TO_EVEN:
+              case RoundingMode::ROUND_NEAREST_TIES_TO_EVEN:
                 d_rmMap.insert(current, traits::RNE());
                 break;
-              case ROUND_NEAREST_TIES_TO_AWAY:
+              case RoundingMode::ROUND_NEAREST_TIES_TO_AWAY:
                 d_rmMap.insert(current, traits::RNA());
                 break;
-              case ROUND_TOWARD_POSITIVE:
+              case RoundingMode::ROUND_TOWARD_POSITIVE:
                 d_rmMap.insert(current, traits::RTP());
                 break;
-              case ROUND_TOWARD_NEGATIVE:
+              case RoundingMode::ROUND_TOWARD_NEGATIVE:
                 d_rmMap.insert(current, traits::RTN());
                 break;
-              case ROUND_TOWARD_ZERO:
+              case RoundingMode::ROUND_TOWARD_ZERO:
                 d_rmMap.insert(current, traits::RTZ());
                 break;
               default: Unreachable() << "Unknown rounding mode"; break;
@@ -1100,7 +1076,7 @@ Node FpConverter::convert(TNode node)
             }
             break;
 
-            case kind::FLOATINGPOINT_PLUS:
+            case kind::FLOATINGPOINT_ADD:
             case kind::FLOATINGPOINT_SUB:
             case kind::FLOATINGPOINT_MULT:
             case kind::FLOATINGPOINT_DIV:
@@ -1132,7 +1108,7 @@ Node FpConverter::convert(TNode node)
 
               switch (current.getKind())
               {
-                case kind::FLOATINGPOINT_PLUS:
+                case kind::FLOATINGPOINT_ADD:
                   d_fpMap.insert(current,
                                  symfpu::add<traits>(fpt(current.getType()),
                                                      (*mode).second,
@@ -1702,9 +1678,6 @@ Node FpConverter::convert(TNode node)
   }
 
   return result;
-#else
-  Unimplemented() << "Conversion is dependent on SymFPU";
-#endif
 }
 
 #undef CVC5_FPCONV_PASSTHROUGH
@@ -1713,7 +1686,6 @@ Node FpConverter::getValue(Valuation &val, TNode var)
 {
   Assert(Theory::isLeafOf(var, THEORY_FP));
 
-#ifdef CVC5_USE_SYMFPU
   TypeNode t(var.getType());
 
   Assert(t.isRoundingMode() || t.isFloatingPoint())
@@ -1733,9 +1705,6 @@ Node FpConverter::getValue(Valuation &val, TNode var)
   Assert(i != d_fpMap.end())
       << "Asking for the value of an unregistered expression";
   return ufToNode(fpt(t), (*i).second);
-#else
-  Unimplemented() << "Conversion is dependent on SymFPU";
-#endif
 }
 
 }  // namespace fp

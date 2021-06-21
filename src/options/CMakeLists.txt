@@ -17,7 +17,6 @@
 check_python_module("toml")
 
 libcvc5_add_sources(
-  base_handlers.h
   decision_weight.h
   didyoumean.cpp
   didyoumean.h
@@ -30,7 +29,8 @@ libcvc5_add_sources(
   options_handler.cpp
   options_handler.h
   options_listener.h
-  options_public_functions.cpp
+  options_public.cpp
+  options_public.h
   printer_modes.cpp
   printer_modes.h
   set_language.cpp
@@ -54,7 +54,6 @@ set(options_toml_files
   proof_options.toml
   prop_options.toml
   quantifiers_options.toml
-  resource_manager_options.toml
   sep_options.toml
   sets_options.toml
   smt_options.toml

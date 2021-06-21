@@ -68,6 +68,10 @@ const char* toString(Rewrite r)
     case Rewrite::IDOF_PULL_ENDPT: return "IDOF_PULL_ENDPT";
     case Rewrite::IDOF_STRIP_CNST_ENDPTS: return "IDOF_STRIP_CNST_ENDPTS";
     case Rewrite::IDOF_STRIP_SYM_LEN: return "IDOF_STRIP_SYM_LEN";
+    case Rewrite::INDEXOF_RE_EMP_RE: return "INDEXOF_RE_EMP_RE";
+    case Rewrite::INDEXOF_RE_EVAL: return "INDEXOF_RE_EVAL";
+    case Rewrite::INDEXOF_RE_INVALID_INDEX: return "INDEXOF_RE_INVALID_INDEX";
+    case Rewrite::INDEXOF_RE_MAX_INDEX: return "INDEXOF_RE_MAX_INDEX";
     case Rewrite::ITOS_EVAL: return "ITOS_EVAL";
     case Rewrite::RE_AND_EMPTY: return "RE_AND_EMPTY";
     case Rewrite::RE_ANDOR_FLATTEN: return "RE_ANDOR_FLATTEN";

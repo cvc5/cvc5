@@ -1,4 +1,4 @@
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 (declare-sort term 0)
 (declare-codatatypes ((llist_tree 0) (tree 0)) (

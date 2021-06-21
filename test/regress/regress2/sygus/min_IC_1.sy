@@ -1,4 +1,3 @@
-; REQUIRES: symfpu
 ; EXPECT: unsat
 ; COMMAND-LINE: --lang=sygus2 --sygus-out=status --fp-exp
 (set-logic ALL)

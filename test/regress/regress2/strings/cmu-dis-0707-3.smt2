@@ -1,5 +1,5 @@
 ; EXPECT: sat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 (set-info :smt-lib-version 2.6)
 (set-option :strings-exp true)

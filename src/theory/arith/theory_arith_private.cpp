@@ -35,7 +35,7 @@
 #include "expr/node_builder.h"
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
-#include "options/smt_options.h"  // for incrementalSolving()
+#include "options/base_options.h"
 #include "preprocessing/util/ite_utilities.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
@@ -2906,10 +2906,10 @@ void TheoryArithPrivate::importSolution(const ApproximateSimplex::Solution& solu
   if(d_qflraStatus != Result::UNSAT){
     static const int32_t pass2Limit = 20;
     int16_t oldCap = options::arithStandardCheckVarOrderPivots();
-    Options::current().set(options::arithStandardCheckVarOrderPivots, pass2Limit);
+    Options::current().arith.arithStandardCheckVarOrderPivots = pass2Limit;
     SimplexDecisionProcedure& simplex = selectSimplex(false);
     d_qflraStatus = simplex.findModel(false);
-    Options::current().set(options::arithStandardCheckVarOrderPivots, oldCap);
+    Options::current().arith.arithStandardCheckVarOrderPivots = oldCap;
   }
 
   if(Debug.isOn("arith::importSolution")){

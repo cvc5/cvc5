@@ -21,6 +21,7 @@
 #include "expr/node_manager.h"
 #include "test_node.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "util/bitvector.h"
 #include "util/integer.h"
 #include "util/rational.h"
 

@@ -15,24 +15,16 @@ code.xref {
     background: unset !important;
 }
 
-a {
-  color: #0099e6;
-}
-
-a:visited {
-  color: #0099e6;
-}
-
-a:hover, a:focus {
-  color: #739900;
-}
-
 .wy-side-nav-search {
   background-color: #0099e6;
 }
 
-.wy-side-nav-search > a {
-  color: #fcfffa;
+.wy-breadcrumbs a {
+  color: #739900;
+}
+
+.wy-breadcrumbs a:hover, a:focus {
+  color: #0099e6;
 }
 
 .wy-side-nav-search input[type="text"] {
@@ -55,11 +47,43 @@ a:hover, a:focus {
   color: #ace600;
 }
 
+a {
+  color: #0099e6;
+}
+
+a:visited {
+  color: #0099e6;
+}
+
+a:hover, a:focus {
+  color: #739900;
+}
+
 .wy-nav-top {
-  color: #fcfffa;
+  color: #ace600;
   background-color: #0099e6;
 }
 
 .wy-nav-top a {
-  color: #fcfffa;
+  color: #ace600;
+}
+
+.wy-side-nav-search > a {
+  color: #ace600;
+}
+
+.wy-side-nav-search > a:hover, > a:focus, > a:visited {
+  color: #ace600;
+}
+
+.highlight .o {
+  color: #ac7339;
+}
+
+.highlight .k {
+  color: #2980b9;
+}
+
+.highlight .m {
+  color: #ba2121;
 }

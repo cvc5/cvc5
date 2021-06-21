@@ -16,11 +16,13 @@
  * \todo document this file
  */
 
+#include "theory/booleans/theory_bool_rewriter.h"
+
 #include <algorithm>
 #include <unordered_set>
 
 #include "expr/node_value.h"
-#include "theory/booleans/theory_bool_rewriter.h"
+#include "util/cardinality.h"
 
 namespace cvc5 {
 namespace theory {
@@ -343,16 +345,6 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
             << n << ": " << n[0].notNode() << std::endl;
         return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
       }
-      if (n[1] == tt || n[1] == ff)
-      {
-        // ITE C true y --> C v y
-        // ITE C false y --> ~C ^ y
-        Node resp =
-            n[1] == tt ? n[0].orNode(n[2]) : (n[0].negate()).andNode(n[2]);
-        Debug("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[1] const "
-                          << n << ": " << resp << std::endl;
-        return RewriteResponse(REWRITE_AGAIN, resp);
-      }
     }
 
     if (n[0].getKind() == kind::NOT)
@@ -360,17 +352,6 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       // ite(not(c), x, y) ---> ite(c, y, x)
       return RewriteResponse(
           REWRITE_AGAIN, nodeManager->mkNode(kind::ITE, n[0][0], n[2], n[1]));
-    }
-
-    if (n[2].isConst() && (n[2] == tt || n[2] == ff))
-    {
-      // ITE C x true --> ~C v x
-      // ITE C x false --> C ^ x
-      Node resp =
-          n[2] == tt ? (n[0].negate()).orNode(n[1]) : n[0].andNode(n[1]);
-      Debug("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[2] const "
-                        << n << ": " << resp << std::endl;
-      return RewriteResponse(REWRITE_AGAIN, resp);
     }
 
     int parityTmp;
@@ -422,6 +403,32 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
           << parityTmp << " " << n << ": " << resp << std::endl;
       return RewriteResponse(REWRITE_AGAIN, resp);
     }
+
+    // Rewrites for ITEs with a constant branch. These rewrites are applied
+    // after the parity rewrites above because they may simplify ITEs such as
+    // `(ite c c true)` to `(ite c true true)`. As a result, we avoid
+    // introducing an unnecessary conjunction/disjunction here.
+    if (n[1].isConst() && (n[1] == tt || n[1] == ff))
+    {
+      // ITE C true y --> C v y
+      // ITE C false y --> ~C ^ y
+      Node resp =
+          n[1] == tt ? n[0].orNode(n[2]) : (n[0].negate()).andNode(n[2]);
+      Debug("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[1] const "
+                        << n << ": " << resp << std::endl;
+      return RewriteResponse(REWRITE_AGAIN, resp);
+    }
+    else if (n[2].isConst() && (n[2] == tt || n[2] == ff))
+    {
+      // ITE C x true --> ~C v x
+      // ITE C x false --> C ^ x
+      Node resp =
+          n[2] == tt ? (n[0].negate()).orNode(n[1]) : n[0].andNode(n[1]);
+      Debug("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[2] const "
+                        << n << ": " << resp << std::endl;
+      return RewriteResponse(REWRITE_AGAIN, resp);
+    }
+
     break;
   }
   default:

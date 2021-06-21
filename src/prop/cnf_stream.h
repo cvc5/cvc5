@@ -191,16 +191,16 @@ class CnfStream {
    */
   SatLiteral toCNF(TNode node, bool negated = false);
 
-  /** Specific clausifiers, based on the formula kinds, that clausify a formula,
-   * by calling toCNF into each of the formula's children under the respective
-   * kind, and introduce a literal definitionally equal to it. */
-  SatLiteral handleNot(TNode node);
-  SatLiteral handleXor(TNode node);
-  SatLiteral handleImplies(TNode node);
-  SatLiteral handleIff(TNode node);
-  SatLiteral handleIte(TNode node);
-  SatLiteral handleAnd(TNode node);
-  SatLiteral handleOr(TNode node);
+  /**
+   * Specific clausifiers that clausify a formula based on the given formula
+   * kind and introduce a literal definitionally equal to it.
+   */
+  void handleXor(TNode node);
+  void handleImplies(TNode node);
+  void handleIff(TNode node);
+  void handleIte(TNode node);
+  void handleAnd(TNode node);
+  void handleOr(TNode node);
 
   /** Stores the literal of the given node in d_literalToNodeMap.
    *
@@ -309,6 +309,14 @@ class CnfStream {
 
   /** Pointer to resource manager for associated SmtEngine */
   ResourceManager* d_resourceManager;
+
+ private:
+  struct Statistics
+  {
+    Statistics(const std::string& name);
+    TimerStat d_cnfConversionTime;
+  } d_stats;
+
 }; /* class CnfStream */
 
 }  // namespace prop

@@ -249,6 +249,10 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         {
           // Keep the literal
           learned_literals[j++] = learned_literals[i];
+          // Its a literal that could not be processed as a substitution or
+          // conflict. In this case, we notify the context of the learned
+          // literal, which will process it with the learned literal manager.
+          d_preprocContext->notifyLearnedLiteral(learnedLiteral);
         }
         break;
     }
@@ -474,7 +478,7 @@ Node NonClausalSimp::processLearnedLit(Node lit,
   return lit;
 }
 
-Node NonClausalSimp::processRewrittenLearnedLit(theory::TrustNode trn)
+Node NonClausalSimp::processRewrittenLearnedLit(TrustNode trn)
 {
   if (isProofEnabled())
   {

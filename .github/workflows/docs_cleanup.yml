@@ -4,8 +4,9 @@ on:
     - cron: '0 1 * * SUN'
 
 jobs:
-  build:
+  docs-cleanup:
     runs-on: ubuntu-latest
+    if: github.repository == 'cvc5/cvc5'
     steps:
       - name: Install Packages
         run: |
@@ -35,6 +36,7 @@ jobs:
             touch -d "$mod" $file
           done
           find ./ -maxdepth 1 -name "docs-*" -mtime +7 -exec git rm -r {} +
+          find ./ -maxdepth 1 -name "docs-*" -xtype l -exec git rm {} +
           git commit -m "Prune docs" || echo "Nothing to prune"
 
       - name: Squash old commits
@@ -42,12 +44,19 @@ jobs:
             SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
           cd target
-          git log
           first=`git rev-list --max-parents=0 HEAD`
           last=`git rev-list --until=1.month.ago -n1 HEAD`
           if [ -n "$last" ]; then
-            git rebase -Xtheirs --onto $first $last
-            git log
+            git checkout $last
+            ts=`git log -1 --format=%ct`
+            git reset --soft $first
+            if git diff --cached --exit-code
+            then
+              echo "Nothing to squash"
+            else
+              git commit -m "Squash old history" --date=$ts
+            fi
+            git cherry-pick $last..main
           fi
       
       - name: Push
@@ -58,6 +67,11 @@ jobs:
 
           python3 genindex.py
           git add README.md
-          git commit -m "Update README.md"
+          if git diff --cached --exit-code
+          then
+            echo "Nothing changed"
+          else
+            git commit -m "Update README.md"
+          fi
 
-          git push -f
+          git push -f origin HEAD:main

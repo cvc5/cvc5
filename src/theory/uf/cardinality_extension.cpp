@@ -28,6 +28,7 @@
 #include "theory/theory_model.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;

@@ -29,6 +29,7 @@
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "util/floatingpoint.h"
 
 using namespace std;
 
@@ -100,7 +101,7 @@ void TheoryFp::finishInit()
 
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ABS);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_NEG);
-  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_PLUS);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ADD);
   // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_SUB); // Removed
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MULT);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_DIV);
@@ -362,7 +363,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
           nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
                      nm->mkConst(FloatingPointToFPReal(
                          concrete[0].getType().getConst<FloatingPointSize>())),
-                     nm->mkConst(ROUND_TOWARD_POSITIVE),
+                     nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE),
                      abstractValue));
 
       Node bg = nm->mkNode(
@@ -379,7 +380,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
           nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
                      nm->mkConst(FloatingPointToFPReal(
                          concrete[0].getType().getConst<FloatingPointSize>())),
-                     nm->mkConst(ROUND_TOWARD_NEGATIVE),
+                     nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE),
                      abstractValue));
 
       Node bl = nm->mkNode(
@@ -660,7 +661,7 @@ bool TheoryFp::isRegistered(TNode node) {
 
 void TheoryFp::preRegisterTerm(TNode node)
 {
-  if (Configuration::isBuiltWithSymFPU() && !options::fpExp())
+  if (!options::fpExp())
   {
     TypeNode tn = node.getType();
     if (tn.isFloatingPoint())

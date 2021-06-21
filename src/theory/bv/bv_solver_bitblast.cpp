@@ -96,17 +96,19 @@ BVSolverBitblast::BVSolverBitblast(TheoryState* s,
   {
     case options::SatSolverMode::CRYPTOMINISAT:
       d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(
-          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast"));
+          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast::"));
       break;
     default:
       d_satSolver.reset(prop::SatSolverFactory::createCadical(
-          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast"));
+          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast::"));
   }
   d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
                                         d_bbRegistrar.get(),
                                         d_nullContext.get(),
                                         nullptr,
-                                        smt::currentResourceManager()));
+                                        smt::currentResourceManager(),
+                                        prop::FormulaLitPolicy::INTERNAL,
+                                        "theory::bv::BVSolverBitblast"));
 }
 
 void BVSolverBitblast::postCheck(Theory::Effort level)
@@ -253,6 +255,28 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
       return false;
     }
   }
+
+  // In eager bitblast mode we also have to collect the model values for
+  // Boolean variables in the CNF stream.
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<TNode> vars;
+    d_cnfStream->getBooleanVariables(vars);
+    for (TNode var : vars)
+    {
+      Assert(d_cnfStream->hasLiteral(var));
+      prop::SatLiteral bit = d_cnfStream->getLiteral(var);
+      prop::SatValue value = d_satSolver->value(bit);
+      Assert(value != prop::SAT_VALUE_UNKNOWN);
+      if (!m->assertEquality(
+              var, nm->mkConst(value == prop::SAT_VALUE_TRUE), true))
+      {
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 

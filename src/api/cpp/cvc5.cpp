@@ -39,9 +39,13 @@
 #include "base/check.h"
 #include "base/configuration.h"
 #include "base/modal_exception.h"
+#include "expr/array_store_all.h"
+#include "expr/ascription_type.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/dtype_selector.h"
+#include "expr/emptybag.h"
+#include "expr/emptyset.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node.h"
@@ -50,6 +54,8 @@
 #include "expr/node_manager.h"
 #include "expr/sequence.h"
 #include "expr/type_node.h"
+#include "expr/uninterpreted_constant.h"
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
@@ -58,13 +64,22 @@
 #include "smt/model.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_mode.h"
+#include "theory/datatypes/tuple_project_op.h"
 #include "theory/logic_info.h"
 #include "theory/theory_model.h"
+#include "util/abstract_value.h"
+#include "util/bitvector.h"
+#include "util/divisible.h"
+#include "util/floatingpoint.h"
+#include "util/iand.h"
 #include "util/random.h"
+#include "util/regexp.h"
 #include "util/result.h"
+#include "util/roundingmode.h"
 #include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
 #include "util/statistics_value.h"
+#include "util/string.h"
 #include "util/utility.h"
 
 namespace cvc5 {
@@ -202,7 +217,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {FLOATINGPOINT_EQ, cvc5::Kind::FLOATINGPOINT_EQ},
     {FLOATINGPOINT_ABS, cvc5::Kind::FLOATINGPOINT_ABS},
     {FLOATINGPOINT_NEG, cvc5::Kind::FLOATINGPOINT_NEG},
-    {FLOATINGPOINT_PLUS, cvc5::Kind::FLOATINGPOINT_PLUS},
+    {FLOATINGPOINT_ADD, cvc5::Kind::FLOATINGPOINT_ADD},
     {FLOATINGPOINT_SUB, cvc5::Kind::FLOATINGPOINT_SUB},
     {FLOATINGPOINT_MULT, cvc5::Kind::FLOATINGPOINT_MULT},
     {FLOATINGPOINT_DIV, cvc5::Kind::FLOATINGPOINT_DIV},
@@ -298,6 +313,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {STRING_CHARAT, cvc5::Kind::STRING_CHARAT},
     {STRING_CONTAINS, cvc5::Kind::STRING_STRCTN},
     {STRING_INDEXOF, cvc5::Kind::STRING_STRIDOF},
+    {STRING_INDEXOF_RE, cvc5::Kind::STRING_INDEXOF_RE},
     {STRING_REPLACE, cvc5::Kind::STRING_STRREPL},
     {STRING_REPLACE_ALL, cvc5::Kind::STRING_STRREPLALL},
     {STRING_REPLACE_RE, cvc5::Kind::STRING_REPLACE_RE},
@@ -488,7 +504,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::FLOATINGPOINT_EQ, FLOATINGPOINT_EQ},
         {cvc5::Kind::FLOATINGPOINT_ABS, FLOATINGPOINT_ABS},
         {cvc5::Kind::FLOATINGPOINT_NEG, FLOATINGPOINT_NEG},
-        {cvc5::Kind::FLOATINGPOINT_PLUS, FLOATINGPOINT_PLUS},
+        {cvc5::Kind::FLOATINGPOINT_ADD, FLOATINGPOINT_ADD},
         {cvc5::Kind::FLOATINGPOINT_SUB, FLOATINGPOINT_SUB},
         {cvc5::Kind::FLOATINGPOINT_MULT, FLOATINGPOINT_MULT},
         {cvc5::Kind::FLOATINGPOINT_DIV, FLOATINGPOINT_DIV},
@@ -604,6 +620,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::STRING_CHARAT, STRING_CHARAT},
         {cvc5::Kind::STRING_STRCTN, STRING_CONTAINS},
         {cvc5::Kind::STRING_STRIDOF, STRING_INDEXOF},
+        {cvc5::Kind::STRING_INDEXOF_RE, STRING_INDEXOF_RE},
         {cvc5::Kind::STRING_STRREPL, STRING_REPLACE},
         {cvc5::Kind::STRING_STRREPLALL, STRING_REPLACE_ALL},
         {cvc5::Kind::STRING_REPLACE_RE, STRING_REPLACE_RE},
@@ -4727,7 +4744,7 @@ Solver::Solver(Options* opts)
   }
   d_smtEngine.reset(new SmtEngine(d_nodeMgr.get(), d_originalOptions.get()));
   d_smtEngine->setSolver(this);
-  d_rng.reset(new Random(d_smtEngine->getOptions()[options::seed]));
+  d_rng.reset(new Random(d_smtEngine->getOptions().driver.seed));
   resetStatistics();
 }
 
@@ -5180,18 +5197,6 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
       << " children (the one under construction has " << nchildren << ")";
 }
 
-/* Solver Configuration                                                       */
-/* -------------------------------------------------------------------------- */
-
-bool Solver::supportsFloatingPoint() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return Configuration::isBuiltWithSymFPU();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 /* Sorts Handling                                                             */
 /* -------------------------------------------------------------------------- */
 
@@ -5259,8 +5264,6 @@ Sort Solver::getRoundingModeSort(void) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return Sort(this, getNodeManager()->roundingModeType());
   ////////
@@ -5297,8 +5300,6 @@ Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "exponent size > 0";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "significand size > 0";
   //////// all checks before this line
@@ -5777,8 +5778,6 @@ Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeInf(FloatingPointSize(exp, sig), false));
@@ -5790,8 +5789,6 @@ Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeInf(FloatingPointSize(exp, sig), true));
@@ -5803,8 +5800,6 @@ Term Solver::mkNaN(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeNaN(FloatingPointSize(exp, sig)));
@@ -5816,8 +5811,6 @@ Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeZero(FloatingPointSize(exp, sig), false));
@@ -5829,8 +5822,6 @@ Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeZero(FloatingPointSize(exp, sig), true));
@@ -5842,8 +5833,6 @@ Term Solver::mkRoundingMode(RoundingMode rm) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::RoundingMode>(s_rmodes.at(rm));
   ////////
@@ -5897,8 +5886,6 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   CVC5_API_SOLVER_CHECK_TERM(val);
   CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "a value > 0";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "a value > 0";
@@ -6436,7 +6423,7 @@ Result Solver::checkEntailed(const Term& term) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_smtEngine->isQueryMade()
-                 || d_smtEngine->getOptions()[options::incrementalSolving])
+                 || d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERM(term);
@@ -6452,7 +6439,7 @@ Result Solver::checkEntailed(const std::vector<Term>& terms) const
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(!d_smtEngine->isQueryMade()
-                 || d_smtEngine->getOptions()[options::incrementalSolving])
+                 || d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERMS(terms);
@@ -6481,7 +6468,7 @@ Result Solver::checkSat(void) const
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(!d_smtEngine->isQueryMade()
-                 || d_smtEngine->getOptions()[options::incrementalSolving])
+                 || d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   //////// all checks before this line
@@ -6496,7 +6483,7 @@ Result Solver::checkSatAssuming(const Term& assumption) const
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(!d_smtEngine->isQueryMade()
-                 || d_smtEngine->getOptions()[options::incrementalSolving])
+                 || d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(assumption, getBooleanSort());
@@ -6512,7 +6499,7 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(!d_smtEngine->isQueryMade() || assumptions.size() == 0
-                 || d_smtEngine->getOptions()[options::incrementalSolving])
+                 || d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERMS_WITH_SORT(assumptions, getBooleanSort());
@@ -6847,10 +6834,10 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
-  CVC5_API_CHECK(d_smtEngine->getOptions()[options::incrementalSolving])
+  CVC5_API_CHECK(d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot get unsat assumptions unless incremental solving is enabled "
          "(try --incremental)";
-  CVC5_API_CHECK(d_smtEngine->getOptions()[options::unsatAssumptions])
+  CVC5_API_CHECK(d_smtEngine->getOptions().smt.unsatAssumptions)
       << "Cannot get unsat assumptions unless explicitly enabled "
          "(try --produce-unsat-assumptions)";
   CVC5_API_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
@@ -6875,7 +6862,7 @@ std::vector<Term> Solver::getUnsatCore(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
-  CVC5_API_CHECK(d_smtEngine->getOptions()[options::unsatCores])
+  CVC5_API_CHECK(d_smtEngine->getOptions().smt.unsatCores)
       << "Cannot get unsat core unless explicitly enabled "
          "(try --produce-unsat-cores)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
@@ -6909,7 +6896,7 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
-  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions()[options::produceModels])
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions().smt.produceModels)
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
@@ -6976,7 +6963,7 @@ Term Solver::getSeparationHeap() const
       d_smtEngine->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
       << "Cannot obtain separation logic expressions if not using the "
          "separation logic theory.";
-  CVC5_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
+  CVC5_API_CHECK(d_smtEngine->getOptions().smt.produceModels)
       << "Cannot get separation heap term unless model generation is enabled "
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
@@ -6995,7 +6982,7 @@ Term Solver::getSeparationNilTerm() const
       d_smtEngine->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
       << "Cannot obtain separation logic expressions if not using the "
          "separation logic theory.";
-  CVC5_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
+  CVC5_API_CHECK(d_smtEngine->getOptions().smt.produceModels)
       << "Cannot get separation nil term unless model generation is enabled "
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
@@ -7028,7 +7015,7 @@ void Solver::pop(uint32_t nscopes) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_smtEngine->getOptions()[options::incrementalSolving])
+  CVC5_API_CHECK(d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot pop when not solving incrementally (use --incremental)";
   CVC5_API_CHECK(nscopes <= d_smtEngine->getNumUserLevels())
       << "Cannot pop beyond first pushed context";
@@ -7117,7 +7104,7 @@ void Solver::blockModel() const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
+  CVC5_API_CHECK(d_smtEngine->getOptions().smt.produceModels)
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
@@ -7132,7 +7119,7 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
+  CVC5_API_CHECK(d_smtEngine->getOptions().smt.produceModels)
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
@@ -7160,7 +7147,7 @@ void Solver::push(uint32_t nscopes) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_smtEngine->getOptions()[options::incrementalSolving])
+  CVC5_API_CHECK(d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot push when not solving incrementally (use --incremental)";
   //////// all checks before this line
   for (uint32_t n = 0; n < nscopes; ++n)
