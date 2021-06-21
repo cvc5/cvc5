@@ -88,13 +88,13 @@ int main()
   solver.assertFormula(constraint4);
 
   // Check if the formula is satisfiable, that is,
-  // are there real values for x,y,z that satisfy all the constraints?
+  // are there real values for x and y that satisfy all the constraints?
   Result r1 = solver.checkSat();
 
   // The result is either SAT, UNSAT, or UNKNOWN.
   // In this case, it is SAT.
   std::cout << "expected: sat" << std::endl;
-  std::cout << "result:" << r1 << std::endl;
+  std::cout << "result: " << r1 << std::endl;
 
   // We can get the values for x and y that satisfy the constraints.
   Term xVal = solver.getValue(x);
@@ -105,7 +105,7 @@ int main()
   Term xMinusY = solver.mkTerm(MINUS, x, y);
   Term xMinusYVal = solver.getValue(xMinusY);
 
-  // We can now obtain thestring representations of the values.
+  // We can now obtain the string representations of the values.
   std::string xStr = xVal.getRealValue();
   std::string yStr = yVal.getRealValue();
   std::string xMinusYStr = xMinusYVal.getRealValue();
