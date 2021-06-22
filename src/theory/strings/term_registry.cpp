@@ -249,7 +249,8 @@ void TermRegistry::preRegisterTerm(TNode n)
   // Concatenation terms do not need to be considered here because
   // their arguments have string type and do not introduce any shared
   // terms.
-  if (n.hasOperator() && ee->isFunctionKind(k) && k != STRING_CONCAT)
+  if (n.hasOperator() && ee->isFunctionKind(k)
+      && kindToTheoryId(k) == THEORY_STRINGS && k != STRING_CONCAT)
   {
     d_functionsTerms.push_back(n);
   }

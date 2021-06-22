@@ -163,6 +163,7 @@ set(regress_0_tests
   regress0/auflia/fuzz05.smtv1.smt2
   regress0/auflia/x2.smtv1.smt2
   regress0/bool/issue1978.smt2
+  regress0/bool/issue6717-ite-rewrite.smt2
   regress0/boolean-prec.cvc
   regress0/boolean-terms-bug-array.smt2
   regress0/boolean-terms-kernel1.smt2
@@ -644,6 +645,10 @@ set(regress_0_tests
   regress0/incorrect1.smtv1.smt2
   regress0/ineq_basic.smtv1.smt2
   regress0/ineq_slack.smtv1.smt2
+  regress0/int-to-bv/basic.smt2
+  regress0/int-to-bv/neg-consts.smt2
+  regress0/int-to-bv/not-enough-bits.smt2
+  regress0/int-to-bv/overflow.smt2
   regress0/issue1063-overloading-dt-cons.smt2
   regress0/issue1063-overloading-dt-fun.smt2
   regress0/issue1063-overloading-dt-sel.smt2
@@ -665,6 +670,7 @@ set(regress_0_tests
   regress0/issue5743.smt2
   regress0/issue5947.smt2
   regress0/issue6605-2-abd-triv.smt2
+  regress0/issue6741.smt2
   regress0/ite_arith.smt2
   regress0/ite_real_int_type.smtv1.smt2
   regress0/ite_real_valid.smtv1.smt2
@@ -1490,6 +1496,7 @@ set(regress_1_tests
   regress1/bags/union_disjoint.smt2
   regress1/bags/union_max1.smt2
   regress1/bags/union_max2.smt2
+  regress1/bv2int-isabelle.smt2
   regress1/bv/bench_38.delta.smt2
   regress1/bv/bug787.smt2
   regress1/bv/bug_extract_mult_leading_bit.smt2
@@ -1583,6 +1590,7 @@ set(regress_1_tests
   regress1/fmf/issue4068-si-qf.smt2
   regress1/fmf/issue4225-univ-fun.smt2
   regress1/fmf/issue5738-dt-interp-finite.smt2
+  regress1/fmf/issue6690-re-enum.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/loopy_coda.smt2
@@ -1606,13 +1614,10 @@ set(regress_1_tests
   regress1/ho/issue4065-no-rep.smt2
   regress1/ho/issue4092-sinf.smt2
   regress1/ho/issue4134-sinf.smt2
-  regress1/ho/nested_lambdas-AGT034^2.smt2
-  regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   regress1/ho/NUM638^1.smt2
   regress1/ho/NUM925^1.p
   regress1/ho/soundness_fmf_SYO362^5-delta.p
   regress1/ho/store-ax-min.p
-  regress1/ho/SYO056^1.p
   regress1/hole6.cvc
   regress1/ite5.smt2
   regress1/issue3970-nl-ext-purify.smt2
@@ -1841,6 +1846,7 @@ set(regress_1_tests
   regress1/quantifiers/issue5658-qe.smt2
   regress1/quantifiers/issue5766-wrong-sel-trigger.smt2
   regress1/quantifiers/issue5899-qe.smt2
+  regress1/quantifiers/issue6699-nc-shadow.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
@@ -2624,6 +2630,10 @@ set(regression_disabled_tests
   regress1/fmf/ko-bound-set.cvc
   # results in an assertion failure (see issue #1650).
   regress1/ho/hoa0102.smt2
+  # after disallowing solving for terms with quantifiers
+  regress1/ho/nested_lambdas-AGT034^2.smt2
+  regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
+  regress1/ho/SYO056^1.p
   # slow on some builds after changes to tangent planes
   regress1/nl/approx-sqrt-unsat.smt2
   # times out after update to circuit propagator

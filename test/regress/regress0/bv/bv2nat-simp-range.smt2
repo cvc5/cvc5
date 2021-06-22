@@ -1,3 +1,4 @@
+; COMMAND-LINE: --solve-bv-as-int=sum
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)

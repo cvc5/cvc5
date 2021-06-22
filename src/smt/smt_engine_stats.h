@@ -30,8 +30,6 @@ struct SmtEngineStatistics
   TimerStat d_definitionExpansionTime;
   /** number of constant propagations found during nonclausal simp */
   IntStat d_numConstantProps;
-  /** time spent converting to CNF */
-  TimerStat d_cnfConversionTime;
   /** Number of assertions before ite removal */
   IntStat d_numAssertionsPre;
   /** Number of assertions after ite removal */

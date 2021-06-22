@@ -941,8 +941,9 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
   else if( n.getNumChildren()==0 ){
     Node r = n;
     if( !n.isConst() ){
-      if( !fm->hasTerm(n) ){
-        r = getSomeDomainElement(fm, n.getType() );
+      TypeNode tn = n.getType();
+      if( !fm->hasTerm(n) && tn.isFirstClass() ){
+        r = getSomeDomainElement(fm, tn );
       }
       r = fm->getRepresentative( r );
     }

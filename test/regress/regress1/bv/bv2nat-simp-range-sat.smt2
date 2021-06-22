@@ -1,3 +1,5 @@
+; COMMAND-LINE: --solve-bv-as-int=sum
+; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
 (declare-fun t () (_ BitVec 16))

@@ -107,7 +107,8 @@ PropEngine::PropEngine(TheoryEngine* te,
                               userContext,
                               &d_outMgr,
                               rm,
-                              FormulaLitPolicy::TRACK);
+                              FormulaLitPolicy::TRACK,
+                              "prop");
 
   // connect theory proxy
   d_theoryProxy->finishInit(d_cnfStream);

@@ -1,6 +1,5 @@
-; COMMAND-LINE: --uf-ho
 ; EXPECT: unsat
-(set-logic ALL)
+(set-logic HO_ALL)
 (declare-sort Nat$ 0)
 (declare-sort Complex$ 0)
 (declare-sort Real_set$ 0)

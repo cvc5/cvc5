@@ -1026,12 +1026,10 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     bool result;
     switch (k)
     {
-#ifdef CVC5_USE_SYMFPU
       case kind::FLOATINGPOINT_COMPONENT_NAN: result = arg0.isNaN(); break;
       case kind::FLOATINGPOINT_COMPONENT_INF: result = arg0.isInfinite(); break;
       case kind::FLOATINGPOINT_COMPONENT_ZERO: result = arg0.isZero(); break;
       case kind::FLOATINGPOINT_COMPONENT_SIGN: result = arg0.getSign(); break;
-#endif
       default: Unreachable() << "Unknown kind used in componentFlag"; break;
     }
 
@@ -1050,11 +1048,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     // \todo Add a proper interface for this sort of thing to FloatingPoint #1915
     return RewriteResponse(
         REWRITE_DONE,
-#ifdef CVC5_USE_SYMFPU
         NodeManager::currentNM()->mkConst((BitVector)arg0.getExponent())
-#else
-        node
-#endif
     );
   }
 
@@ -1066,11 +1060,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
     return RewriteResponse(
         REWRITE_DONE,
-#ifdef CVC5_USE_SYMFPU
         NodeManager::currentNM()->mkConst((BitVector)arg0.getSignificand())
-#else
-        node
-#endif
     );
   }
 
@@ -1080,7 +1070,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
     BitVector value;
 
-#ifdef CVC5_USE_SYMFPU
     /* \todo fix the numbering of rounding modes so this doesn't need
      * to call symfpu at all and remove the dependency on fp_converter.h #1915 */
     RoundingMode arg0(node[0].getConst<RoundingMode>());
@@ -1110,9 +1099,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
         Unreachable() << "Unknown rounding mode in roundingModeBitBlast";
         break;
     }
-#else
-    value = BitVector(5U, 0U);
-#endif
     return RewriteResponse(REWRITE_DONE,
                            NodeManager::currentNM()->mkConst(value));
   }
