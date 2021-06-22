@@ -154,6 +154,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Solver(Options*) except +
         Sort getBooleanSort() except +
         Sort getIntegerSort() except +
+        Sort getNullSort() except +
         Sort getRealSort() except +
         Sort getRegExpSort() except +
         Sort getRoundingModeSort() except +
@@ -179,10 +180,10 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkTerm(Op op, const vector[Term]& children) except +
         Term mkTuple(const vector[Sort]& sorts, const vector[Term]& terms) except +
         Op mkOp(Kind kind) except +
-        Op mkOp(Kind kind, Kind k) except +
         Op mkOp(Kind kind, const string& arg) except +
         Op mkOp(Kind kind, uint32_t arg) except +
         Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) except +
+        Op mkOp(Kind kind, const vector[uint32_t]& args) except +
         # Sygus related functions
         Grammar mkSygusGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
         Term mkSygusVar(Sort sort, const string& symbol) except +
@@ -208,9 +209,11 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkRegexpEmpty() except +
         Term mkRegexpSigma() except +
         Term mkEmptySet(Sort s) except +
+        Term mkEmptyBag(Sort s) except +
         Term mkSepNil(Sort sort) except +
         Term mkString(const string& s) except +
         Term mkString(const wstring& s) except +
+        Term mkString(const string& s, bint useEscSequences) except +
         Term mkEmptySequence(Sort sort) except +
         Term mkUniverseSet(Sort sort) except +
         Term mkBitVector(uint32_t size) except +
