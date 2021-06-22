@@ -19,9 +19,9 @@
 #define CVC5__OPTIONS__OPTIONS_HANDLER_H
 
 #include <ostream>
+#include <sstream>
 #include <string>
 
-#include "options/base_handlers.h"
 #include "options/bv_options.h"
 #include "options/decision_options.h"
 #include "options/language.h"
@@ -44,72 +44,117 @@ class OptionsHandler {
 public:
   OptionsHandler(Options* options);
 
-  void unsignedGreater0(const std::string& option, unsigned value) {
-    options::greater(0)(option, value);
+  template <typename T>
+  void geqZero(const std::string& option,
+               const std::string& flag,
+               T value) const
+  {
+    if (value < 0)
+    {
+      std::stringstream ss;
+      ss << flag << ": " << value << " is not a legal setting, should be "
+         << value << " >= 0.";
+      throw OptionException(ss.str());
+    }
   }
-
-  void unsignedLessEqual2(const std::string& option, unsigned value) {
-    options::less_equal(2)(option, value);
-  }
-
-  void doubleGreaterOrEqual0(const std::string& option, double value) {
-    options::greater_equal(0.0)(option, value);
-  }
-
-  void doubleLessOrEqual1(const std::string& option, double value) {
-    options::less_equal(1.0)(option, value);
+  template <typename T>
+  void betweenZeroAndOne(const std::string& option,
+                         const std::string& flag,
+                         T value) const
+  {
+    if (value < 0 || value > 1)
+    {
+      std::stringstream ss;
+      ss << flag << ": " << value
+         << " is not a legal setting, should be 0 <= " << flag << " <= 1.";
+      throw OptionException(ss.str());
+    }
   }
 
   // theory/quantifiers/options_handlers.h
-  void checkInstWhenMode(std::string option, InstWhenMode mode);
+  void checkInstWhenMode(const std::string& option,
+                         const std::string& flag,
+                         InstWhenMode mode);
 
   // theory/bv/options_handlers.h
-  void abcEnabledBuild(std::string option, bool value);
-  void abcEnabledBuild(std::string option, std::string value);
+  void abcEnabledBuild(const std::string& option,
+                       const std::string& flag,
+                       bool value);
+  void abcEnabledBuild(const std::string& option,
+                       const std::string& flag,
+                       const std::string& value);
 
-  template<class T> void checkSatSolverEnabled(std::string option, T m);
+  void checkBvSatSolver(const std::string& option,
+                        const std::string& flag,
+                        SatSolverMode m);
+  void checkBitblastMode(const std::string& option,
+                         const std::string& flag,
+                         BitblastMode m);
 
-  void checkBvSatSolver(std::string option, SatSolverMode m);
-  void checkBitblastMode(std::string option, BitblastMode m);
-
-  void setBitblastAig(std::string option, bool arg);
+  void setBitblastAig(const std::string& option,
+                      const std::string& flag,
+                      bool arg);
 
   // printer/options_handlers.h
-  InstFormatMode stringToInstFormatMode(std::string option, std::string optarg);
+  InstFormatMode stringToInstFormatMode(const std::string& option,
+                                        const std::string& flag,
+                                        const std::string& optarg);
 
   // decision/options_handlers.h
-  void setDecisionModeStopOnly(std::string option, DecisionMode m);
+  void setDecisionModeStopOnly(const std::string& option,
+                               const std::string& flag,
+                               DecisionMode m);
 
   /**
    * Throws a ModalException if this option is being set after final
    * initialization.
    */
-  void setProduceAssertions(std::string option, bool value);
+  void setProduceAssertions(const std::string& option,
+                            const std::string& flag,
+                            bool value);
 
-  void setStats(const std::string& option, bool value);
+  void setStats(const std::string& option, const std::string& flag, bool value);
 
-  unsigned long limitHandler(std::string option, std::string optarg);
-  void setResourceWeight(std::string option, std::string optarg);
+  uint64_t limitHandler(const std::string& option,
+                        const std::string& flag,
+                        const std::string& optarg);
+  void setResourceWeight(const std::string& option,
+                         const std::string& flag,
+                         const std::string& optarg);
 
   /* expr/options_handlers.h */
-  void setDefaultExprDepthPredicate(std::string option, int depth);
-  void setDefaultDagThreshPredicate(std::string option, int dag);
+  void setDefaultExprDepthPredicate(const std::string& option,
+                                    const std::string& flag,
+                                    int depth);
+  void setDefaultDagThreshPredicate(const std::string& option,
+                                    const std::string& flag,
+                                    int dag);
 
   /* main/options_handlers.h */
-  void copyright(std::string option);
-  void showConfiguration(std::string option);
-  void showDebugTags(std::string option);
-  void showTraceTags(std::string option);
-  void threadN(std::string option);
+  void copyright(const std::string& option, const std::string& flag);
+  void showConfiguration(const std::string& option, const std::string& flag);
+  void showDebugTags(const std::string& option, const std::string& flag);
+  void showTraceTags(const std::string& option, const std::string& flag);
+  void threadN(const std::string& option, const std::string& flag);
 
   /* options/base_options_handlers.h */
-  void setVerbosity(std::string option, int value);
-  void increaseVerbosity(std::string option);
-  void decreaseVerbosity(std::string option);
-  OutputLanguage stringToOutputLanguage(std::string option, std::string optarg);
-  InputLanguage stringToInputLanguage(std::string option, std::string optarg);
-  void enableTraceTag(std::string option, std::string optarg);
-  void enableDebugTag(std::string option, std::string optarg);
+  void setVerbosity(const std::string& option,
+                    const std::string& flag,
+                    int value);
+  void increaseVerbosity(const std::string& option, const std::string& flag);
+  void decreaseVerbosity(const std::string& option, const std::string& flag);
+  OutputLanguage stringToOutputLanguage(const std::string& option,
+                                        const std::string& flag,
+                                        const std::string& optarg);
+  InputLanguage stringToInputLanguage(const std::string& option,
+                                      const std::string& flag,
+                                      const std::string& optarg);
+  void enableTraceTag(const std::string& option,
+                      const std::string& flag,
+                      const std::string& optarg);
+  void enableDebugTag(const std::string& option,
+                      const std::string& flag,
+                      const std::string& optarg);
 
  private:
 
@@ -120,18 +165,6 @@ public:
   static const std::string s_instFormatHelp;
 
 }; /* class OptionHandler */
-
-template<class T>
-void OptionsHandler::checkSatSolverEnabled(std::string option, T m)
-{
-#if !defined(CVC5_USE_CRYPTOMINISAT) && !defined(CVC5_USE_CADICAL) \
-    && !defined(CVC5_USE_KISSAT)
-  std::stringstream ss;
-  ss << "option `" << option
-     << "' requires cvc5 to be built with CryptoMiniSat or CaDiCaL or Kissat";
-  throw OptionException(ss.str());
-#endif
-}
 
 }  // namespace options
 }  // namespace cvc5

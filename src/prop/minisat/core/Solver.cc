@@ -27,6 +27,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "base/check.h"
 #include "base/output.h"
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/prop_options.h"
 #include "options/smt_options.h"
