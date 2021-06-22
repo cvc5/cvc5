@@ -364,6 +364,10 @@ bool RegExpEntail::isConstRegExp(TNode t)
           }
         }
       }
+      else if (ck == ITE)
+      {
+        return false;
+      }
       else if (cur.isVar())
       {
         return false;
