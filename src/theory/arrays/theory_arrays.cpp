@@ -151,6 +151,8 @@ bool TheoryArrays::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
   esi.d_name = d_instanceName + "ee";
+  esi.d_notifyNewClass = true;
+  esi.d_notifyMerge = true;
   return true;
 }
 
