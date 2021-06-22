@@ -71,24 +71,27 @@ Node IntBlaster::modpow2(Node n, uint64_t exponent) { return Node(); }
 
 Node IntBlaster::makeBinary(Node n)
 {
-    if (d_binarizeCache.find(n) != d_binarizeCache.end()) {
-        return d_binarizeCache[n];
-    }
-    uint64_t numChildren = n.getNumChildren();
-    kind::Kind_t k = n.getKind();
-    Node result;
-    if ((numChildren > 2)
-        && (k == kind::BITVECTOR_ADD || k == kind::BITVECTOR_MULT
-            || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
-            || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
+  if (d_binarizeCache.find(n) != d_binarizeCache.end())
+  {
+    return d_binarizeCache[n];
+  }
+  uint64_t numChildren = n.getNumChildren();
+  kind::Kind_t k = n.getKind();
+  Node result = n;
+  if ((numChildren > 2)
+      && (k == kind::BITVECTOR_ADD || k == kind::BITVECTOR_MULT
+          || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
+          || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
+  {
+    result = n[0];
+    for (uint64_t i = 1; i < numChildren; i++)
     {
-      Node result = n[0];
-      for (uint64_t i = 1; i < numChildren; i++)
-      {
-        result = d_nm->mkNode(n.getKind(), result, n[i]);
-      }
+      result = d_nm->mkNode(n.getKind(), result, n[i]);
     }
+  }
     d_binarizeCache[n] = result;
+    Trace("int-blaster-debug")
+        << "binarization result: " << result << std::endl;
     return result;
 }
 
@@ -104,7 +107,7 @@ Node IntBlaster::intBlast(Node n,
 
   // helper vector for traversal.
   std::vector<Node> toVisit;
-  toVisit.push_back(n);
+  toVisit.push_back(makeBinary(n));
 
   while (!toVisit.empty())
   {
@@ -118,7 +121,10 @@ Node IntBlaster::intBlast(Node n,
       d_intblastCache[current] = Node();
       // all the node's children are added to the stack to be visited
       // before visiting this node again.
-      toVisit.insert(toVisit.end(), current.begin(), current.end());
+      for (Node child : current)
+      {
+        toVisit.push_back(makeBinary(child));
+      }
       // If this is a UF applicatinon, we also add the function to
       // toVisit.
       if (current.getKind() == kind::APPLY_UF)
