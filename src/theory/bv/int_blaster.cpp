@@ -1,19 +1,17 @@
-/*********************                                                        */
-/*! \file int_blaster.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar, Andrew Reynolds, Andres Noetzli
- ** This file is part of the cvc5 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The bit-blaster utility
- **
- ** Converts bit-vector operations into integer operations.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Int-blasting utility
+ */
 
 #include "theory/bv/int_blaster.h"
 
@@ -73,58 +71,25 @@ Node IntBlaster::modpow2(Node n, uint64_t exponent) { return Node(); }
 
 Node IntBlaster::makeBinary(Node n)
 {
-  for (TNode current : NodeDfsIterable(n,
-                                       VisitOrder::POSTORDER,
-                                       // skip visited nodes
-                                       [this](TNode tn) {
-                                         return d_binarizeCache.find(tn)
-                                                != d_binarizeCache.end();
-                                       }))
-  {
-    uint64_t numChildren = current.getNumChildren();
-    /*
-     * We already visited the sub-dag rooted at the current node,
-     * and binarized all its children.
-     * Now we binarize the current node itself.
-     */
-    kind::Kind_t k = current.getKind();
-    // We only binarize bvadd, bvmul, bvand, bvor, bvxor, bvconcat
+    if (d_binarizeCache.find(n) != d_binarizeCache.end()) {
+        return d_binarizeCache[n];
+    }
+    uint64_t numChildren = n.getNumChildren();
+    kind::Kind_t k = n.getKind();
+    Node result;
     if ((numChildren > 2)
         && (k == kind::BITVECTOR_ADD || k == kind::BITVECTOR_MULT
             || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
             || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
     {
-      Assert(d_binarizeCache.find(current[0]) != d_binarizeCache.end());
-      Node result = d_binarizeCache[current[0]];
+      Node result = n[0];
       for (uint64_t i = 1; i < numChildren; i++)
       {
-        Assert(d_binarizeCache.find(current[i]) != d_binarizeCache.end());
-        Node child = d_binarizeCache[current[i]];
-        result = d_nm->mkNode(current.getKind(), result, child);
+        result = d_nm->mkNode(n.getKind(), result, n[i]);
       }
-      d_binarizeCache[current] = result;
     }
-    else if (numChildren > 0)
-    {
-      // current has children, but we do not binarize it
-      NodeBuilder builder(k);
-      if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        builder << current.getOperator();
-      }
-      for (Node child : current)
-      {
-        builder << d_binarizeCache[child].get();
-      }
-      d_binarizeCache[current] = builder.constructNode();
-    }
-    else
-    {
-      // current has no children
-      d_binarizeCache[current] = current;
-    }
-  }
-  return d_binarizeCache[n];
+    d_binarizeCache[n] = result;
+    return result;
 }
 
 /**
@@ -134,9 +99,8 @@ Node IntBlaster::intBlast(Node n,
                           std::vector<Node>& lemmas,
                           std::map<Node, Node>& skolems)
 {
-  // make sure the node is re-written and binarized before processing it.
+  // make sure the node is re-written 
   n = Rewriter::rewrite(n);
-  n = makeBinary(n);
 
   // helper vector for traversal.
   std::vector<Node> toVisit;
@@ -223,6 +187,8 @@ Node IntBlaster::translateWithChildren(
     const std::vector<Node>& translated_children,
     std::vector<Node>& lemmas)
 {
+  Node binarized = makeBinary(original);
+  // continue to process the binarized version
   return Node();
 }
 
