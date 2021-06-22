@@ -89,10 +89,9 @@ Node IntBlaster::makeBinary(Node n)
       result = d_nm->mkNode(n.getKind(), result, n[i]);
     }
   }
-    d_binarizeCache[n] = result;
-    Trace("int-blaster-debug")
-        << "binarization result: " << result << std::endl;
-    return result;
+  d_binarizeCache[n] = result;
+  Trace("int-blaster-debug") << "binarization result: " << result << std::endl;
+  return result;
 }
 
 /**
@@ -102,7 +101,7 @@ Node IntBlaster::intBlast(Node n,
                           std::vector<Node>& lemmas,
                           std::map<Node, Node>& skolems)
 {
-  // make sure the node is re-written 
+  // make sure the node is re-written
   n = Rewriter::rewrite(n);
 
   // helper vector for traversal.
