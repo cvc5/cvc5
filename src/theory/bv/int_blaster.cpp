@@ -119,63 +119,30 @@ Node IntBlaster::modpow2(Node n, uint64_t exponent)
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
 }
 
-/**
- * Binarizing n via post-order traversal.
- */
 Node IntBlaster::makeBinary(Node n)
 {
-  for (TNode current : NodeDfsIterable(n,
-                                       VisitOrder::POSTORDER,
-                                       // skip visited nodes
-                                       [this](TNode tn) {
-                                         return d_binarizeCache.find(tn)
-                                                != d_binarizeCache.end();
-                                       }))
+  if (d_binarizeCache.find(n) != d_binarizeCache.end())
   {
-    uint64_t numChildren = current.getNumChildren();
-    /*
-     * We already visited the sub-dag rooted at the current node,
-     * and binarized all its children.
-     * Now we binarize the current node itself.
-     */
-    kind::Kind_t k = current.getKind();
-    if ((numChildren > 2)
-        && (k == kind::BITVECTOR_ADD || k == kind::BITVECTOR_MULT
-            || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
-            || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
-    {
-      // We only binarize bvadd, bvmul, bvand, bvor, bvxor, bvconcat
-      Assert(d_binarizeCache.find(current[0]) != d_binarizeCache.end());
-      Node result = d_binarizeCache[current[0]];
-      for (uint64_t i = 1; i < numChildren; i++)
-      {
-        Assert(d_binarizeCache.find(current[i]) != d_binarizeCache.end());
-        Node child = d_binarizeCache[current[i]];
-        result = d_nm->mkNode(current.getKind(), result, child);
-      }
-      d_binarizeCache[current] = result;
-    }
-    else if (numChildren > 0)
-    {
-      // current has children, but we do not binarize it
-      NodeBuilder builder(k);
-      if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        builder << current.getOperator();
-      }
-      for (Node child : current)
-      {
-        builder << d_binarizeCache[child].get();
-      }
-      d_binarizeCache[current] = builder.constructNode();
-    }
-    else
-    {
-      // current has no children
-      d_binarizeCache[current] = current;
-    }
+    return d_binarizeCache[n];
   }
-  return d_binarizeCache[n];
+  uint64_t numChildren = n.getNumChildren();
+  kind::Kind_t k = n.getKind();
+  Node result = n;
+  if ((numChildren > 2)
+      && (k == kind::BITVECTOR_ADD || k == kind::BITVECTOR_MULT
+          || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
+          || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
+  {
+    result = n[0];
+    for (uint64_t i = 1; i < numChildren; i++)
+    {
+      result = d_nm->mkNode(n.getKind(), result, n[i]);
+    }
+    }
+    d_binarizeCache[n] = result;
+    Trace("int-blaster-debug")
+        << "binarization result: " << result << std::endl;
+    return result;
 }
 
 /**
@@ -187,13 +154,13 @@ Node IntBlaster::intBlast(Node n,
 {
   // make sure the node is re-written before processing it.
   n = Rewriter::rewrite(n);
-  n = makeBinary(n);
   std::vector<Node> toVisit;
-  toVisit.push_back(n);
+  toVisit.push_back(makeBinary(n));
 
   while (!toVisit.empty())
   {
     Node current = toVisit.back();
+    Trace("int-blaster-debug") << "current: " << current << std::endl;
     uint64_t currentNumChildren = current.getNumChildren();
     if (d_intblastCache.find(current) == d_intblastCache.end())
     {
@@ -203,7 +170,10 @@ Node IntBlaster::intBlast(Node n,
       d_intblastCache[current] = Node();
       // all the node's children are added to the stack to be visited
       // before visiting this node again.
-      toVisit.insert(toVisit.end(), current.begin(), current.end());
+      for (Node child : current)
+      {
+        toVisit.push_back(makeBinary(child));
+      }
       // If this is a UF applicatinon, we also add the function to
       // toVisit.
       if (current.getKind() == kind::APPLY_UF)
