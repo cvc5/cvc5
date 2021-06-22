@@ -1766,6 +1766,7 @@ set(regress_1_tests
   regress1/push-pop/fuzz_7.smt2
   regress1/push-pop/fuzz_8.smt2
   regress1/push-pop/fuzz_9.smt2
+  regress1/push-pop/issue6773-arith-no-check.smt2
   regress1/push-pop/model-unsound-ania.smt2
   regress1/push-pop/quant-fun-proc-unmacro.smt2
   regress1/push-pop/quant-fun-proc.smt2
