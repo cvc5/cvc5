@@ -146,7 +146,7 @@ Node TheoryModel::getValue(TNode n) const
   {
     return nn;
   }
-  else if (nn.getKind()==kind::LAMBDA)
+  else if (nn.getKind() == kind::LAMBDA)
   {
     if (options::condenseFunctionValues())
     {
