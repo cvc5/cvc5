@@ -309,6 +309,14 @@ class CnfStream {
 
   /** Pointer to resource manager for associated SmtEngine */
   ResourceManager* d_resourceManager;
+
+ private:
+  struct Statistics
+  {
+    Statistics(const std::string& name);
+    TimerStat d_cnfConversionTime;
+  } d_stats;
+
 }; /* class CnfStream */
 
 }  // namespace prop
