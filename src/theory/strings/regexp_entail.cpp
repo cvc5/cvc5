@@ -364,7 +364,7 @@ bool RegExpEntail::isConstRegExp(TNode t)
           }
         }
       }
-      else if (ck==ITE)
+      else if (ck == ITE)
       {
         return false;
       }
