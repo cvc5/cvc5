@@ -56,9 +56,9 @@ struct EeSetupInfo
   //-------------------------- fine grained notifications
   /** Whether we need to be notified of new equivalence classes */
   bool d_notifyNewClass;
-  /** Whether we need to be notified of new equivalence classes */
+  /** Whether we need to be notified of merged equivalence classes */
   bool d_notifyMerge;
-  /** Whether we need to be notified of new equivalence classes */
+  /** Whether we need to be notified of disequal equivalence classes */
   bool d_notifyDisequal;
   //-------------------------- end fine grained notifications
   /**
