@@ -1913,7 +1913,7 @@ for ue_int, name in __unknown_explanations.items():
     u = UnknownExplanation(ue_int)
 
     if name in dir(mod_ref):
-        raise RuntimeError("Redefinition of Python RoundingMode %s."%name)
+        raise RuntimeError("Redefinition of Python UnknownExplanation %s."%name)
 
     setattr(mod_ref, name, u)
 
