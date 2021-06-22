@@ -10,9 +10,9 @@
 # directory for licensing information.
 # #############################################################################
 #
-# Unit tests for sort API.
+# Unit tests for result API.
 #
-# Obtained by translating test/unit/api/sort_black.cpp
+# Obtained by translating test/unit/api/result_black.cpp
 ##
 
 import pytest
