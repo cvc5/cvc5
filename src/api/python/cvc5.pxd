@@ -142,12 +142,16 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isEntailmentUnknown() except +
         bint operator==(const Result& r) except +
         bint operator!=(const Result& r) except +
-        string getUnknownExplanation() except +
+        UnknownExplanation getUnknownExplanation() except +
         string toString() except +
 
 
     cdef cppclass RoundingMode:
         pass
+
+    cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::Result":
+        cdef cppclass UnknownExplanation:
+            pass
 
 
     cdef cppclass Solver:
@@ -436,3 +440,16 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::RoundingMode":
     cdef RoundingMode ROUND_TOWARD_NEGATIVE,
     cdef RoundingMode ROUND_TOWARD_ZERO,
     cdef RoundingMode ROUND_NEAREST_TIES_TO_AWAY
+
+
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::Result::UnknownExplanation":
+    cdef UnknownExplanation REQUIRES_FULL_CHECK
+    cdef UnknownExplanation INCOMPLETE
+    cdef UnknownExplanation TIMEOUT
+    cdef UnknownExplanation RESOURCEOUT
+    cdef UnknownExplanation MEMOUT
+    cdef UnknownExplanation INTERRUPTED
+    cdef UnknownExplanation NO_STATUS
+    cdef UnknownExplanation UNSUPPORTED
+    cdef UnknownExplanation OTHER
+    cdef UnknownExplanation UNKNOWN_REASON
