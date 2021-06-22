@@ -121,7 +121,7 @@ Node IntBlaster::intBlast(Node n,
       d_intblastCache[current] = Node();
       // all the node's children are added to the stack to be visited
       // before visiting this node again.
-      for (Node child : current)
+      for (const Node& child : current)
       {
         toVisit.push_back(makeBinary(child));
       }
