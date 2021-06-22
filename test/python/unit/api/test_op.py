@@ -55,15 +55,15 @@ def test_get_num_indices(solver):
   bitvector_rotate_right = solver.mkOp(kinds.BVRotateRight, 9)
   int_to_bitvector = solver.mkOp(kinds.IntToBV, 10)
   iand = solver.mkOp(kinds.Iand, 3)
-  floatingpoint_to_ubv = solver.mkOp(kinds.FPToUBV, 11)
-  floatingopint_to_sbv = solver.mkOp(kinds.FPToSBV, 13)
-  floatingpoint_to_fp_ieee_bitvector =       solver.mkOp(FLOATINGPOINT_TO_FP_IEEE_BITVECTOR, 4, 25)
-  floatingpoint_to_fp_floatingpoint =       solver.mkOp(FLOATINGPOINT_TO_FP_FLOATINGPOINT, 4, 25)
-  floatingpoint_to_fp_real = solver.mkOp(FLOATINGPOINT_TO_FP_REAL, 4, 25)
-  floatingpoint_to_fp_signed_bitvector =       solver.mkOp(FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR, 4, 25)
-  floatingpoint_to_fp_unsigned_bitvector =       solver.mkOp(FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR, 4, 25)
-  floatingpoint_to_fp_generic =       solver.mkOp(FLOATINGPOINT_TO_FP_GENERIC, 4, 25)
-  regexp_loop = solver.mkOp(REGEXP_LOOP, 2, 3)
+  floatingpoint_to_ubv = solver.mkOp(kinds.FPToUbv, 11)
+  floatingopint_to_sbv = solver.mkOp(kinds.FPToSbv, 13)
+  floatingpoint_to_fp_ieee_bitvector =       solver.mkOp(kinds.FPToFpIeeeBV, 4, 25)
+  floatingpoint_to_fp_floatingpoint =       solver.mkOp(kinds.FPToFpFP, 4, 25)
+  floatingpoint_to_fp_real = solver.mkOp(kinds.FPToFpReal, 4, 25)
+  floatingpoint_to_fp_signed_bitvector =       solver.mkOp(kinds.FPToFpSignedBV, 4, 25)
+  floatingpoint_to_fp_unsigned_bitvector =       solver.mkOp(kinds.FPToFpUnsignedBV, 4, 25)
+  floatingpoint_to_fp_generic =       solver.mkOp(kinds.FPToFpGeneric, 4, 25)
+  regexp_loop = solver.mkOp(kinds.RegexpLoop, 2, 3)
 
   assert 0 == plus.getNumIndices()
   assert 1 == divisible.getNumIndices()
@@ -88,86 +88,82 @@ def test_get_num_indices(solver):
 def test_get_indices_string(solver):
   x = Op(solver)
   with pytest.raises(RuntimeError):
-      x.getIndices[string]()
+      x.getIndices()
 
   divisible_ot = solver.mkOp(kinds.Divisible, 4)
   assert divisible_ot.isIndexed()
-  divisible_idx = divisible_ot.getIndices[string]()
+  divisible_idx = divisible_ot.getIndices()
   assert divisible_idx == "4"
 
 
 def test_get_indices_uint(solver):
-  bitvector_repeat_ot = solver.mkOp(kinds.BitvectorRepeat, 5)
+  bitvector_repeat_ot = solver.mkOp(kinds.BVRepeat, 5)
   assert bitvector_repeat_ot.isIndexed()
-  bitvector_repeat_idx = bitvector_repeat_ot.getIndices[int]()
+  bitvector_repeat_idx = bitvector_repeat_ot.getIndices()
   assert bitvector_repeat_idx == 5
-  with pytest.raises(RuntimeError):
-      bitvector_repeat_ot.getIndices[int, int]()
 
   bitvector_zero_extend_ot = solver.mkOp(kinds.BVZeroExtend, 6)
-  bitvector_zero_extend_idx =       bitvector_zero_extend_ot.getIndices[int]()
+  bitvector_zero_extend_idx =       bitvector_zero_extend_ot.getIndices()
   assert bitvector_zero_extend_idx == 6
 
   bitvector_sign_extend_ot = solver.mkOp(kinds.BVSignExtend, 7)
-  bitvector_sign_extend_idx =       bitvector_sign_extend_ot.getIndices[int]()
+  bitvector_sign_extend_idx =       bitvector_sign_extend_ot.getIndices()
   assert bitvector_sign_extend_idx == 7
 
   bitvector_rotate_left_ot = solver.mkOp(kinds.BVRotateLeft, 8)
-  bitvector_rotate_left_idx =       bitvector_rotate_left_ot.getIndices[int]()
+  bitvector_rotate_left_idx =       bitvector_rotate_left_ot.getIndices()
   assert bitvector_rotate_left_idx == 8
 
   bitvector_rotate_right_ot = solver.mkOp(kinds.BVRotateRight, 9)
-  bitvector_rotate_right_idx =       bitvector_rotate_right_ot.getIndices[int]()
+  bitvector_rotate_right_idx =       bitvector_rotate_right_ot.getIndices()
   assert bitvector_rotate_right_idx == 9
 
   int_to_bitvector_ot = solver.mkOp(kinds.IntToBV, 10)
-  int_to_bitvector_idx = int_to_bitvector_ot.getIndices[int]()
+  int_to_bitvector_idx = int_to_bitvector_ot.getIndices()
   assert int_to_bitvector_idx == 10
 
-  floatingpoint_to_ubv_ot = solver.mkOp(kinds.FPToUBV, 11)
-  floatingpoint_to_ubv_idx =       floatingpoint_to_ubv_ot.getIndices[int]()
+  floatingpoint_to_ubv_ot = solver.mkOp(kinds.FPToUbv, 11)
+  floatingpoint_to_ubv_idx =       floatingpoint_to_ubv_ot.getIndices()
   assert floatingpoint_to_ubv_idx == 11
 
-  floatingpoint_to_sbv_ot = solver.mkOp(kinds.FPToSBV, 13)
-  floatingpoint_to_sbv_idx =       floatingpoint_to_sbv_ot.getIndices[int]()
+  floatingpoint_to_sbv_ot = solver.mkOp(kinds.FPToSbv, 13)
+  floatingpoint_to_sbv_idx =       floatingpoint_to_sbv_ot.getIndices()
   assert floatingpoint_to_sbv_idx == 13
 
 
 def test_get_indices_pair_uint(solver):
   bitvector_extract_ot = solver.mkOp(kinds.BVExtract, 4, 0)
   assert bitvector_extract_ot.isIndexed()
-  bitvector_extract_indices =       bitvector_extract_ot.getIndices[int, int]()
+  bitvector_extract_indices =       bitvector_extract_ot.getIndices()
   assert bitvector_extract_indices == (4, 0)
 
-  floatingpoint_to_fp_ieee_bitvector_ot =       solver.mkOp(FLOATINGPOINT_TO_FP_IEEE_BITVECTOR, 4, 25)
-  floatingpoint_to_fp_ieee_bitvector_indices =       floatingpoint_to_fp_ieee_bitvector_ot.getIndices[int, int]()
+  floatingpoint_to_fp_ieee_bitvector_ot =       solver.mkOp(kinds.FPToFpIeeeBV, 4, 25)
+  floatingpoint_to_fp_ieee_bitvector_indices =       floatingpoint_to_fp_ieee_bitvector_ot.getIndices()
   assert floatingpoint_to_fp_ieee_bitvector_indices == (4, 25)
 
-  floatingpoint_to_fp_floatingpoint_ot =       solver.mkOp(FLOATINGPOINT_TO_FP_FLOATINGPOINT, 4, 25)
-  floatingpoint_to_fp_floatingpoint_indices =       floatingpoint_to_fp_floatingpoint_ot.getIndices[int, int]()
+  floatingpoint_to_fp_floatingpoint_ot =       solver.mkOp(kinds.FPToFpFP, 4, 25)
+  floatingpoint_to_fp_floatingpoint_indices =       floatingpoint_to_fp_floatingpoint_ot.getIndices()
   assert floatingpoint_to_fp_floatingpoint_indices == (4, 25)
 
-  floatingpoint_to_fp_real_ot =       solver.mkOp(FLOATINGPOINT_TO_FP_REAL, 4, 25)
-  floatingpoint_to_fp_real_indices =       floatingpoint_to_fp_real_ot.getIndices[int, int]()
+  floatingpoint_to_fp_real_ot =       solver.mkOp(kinds.FPToFpReal, 4, 25)
+  floatingpoint_to_fp_real_indices =       floatingpoint_to_fp_real_ot.getIndices()
   assert floatingpoint_to_fp_real_indices == (4, 25)
 
-  floatingpoint_to_fp_signed_bitvector_ot =       solver.mkOp(FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR, 4, 25)
-  floatingpoint_to_fp_signed_bitvector_indices =       floatingpoint_to_fp_signed_bitvector_ot.getIndices[int, int]()
+  floatingpoint_to_fp_signed_bitvector_ot =       solver.mkOp(kinds.FPToFpSignedBV, 4, 25)
+  floatingpoint_to_fp_signed_bitvector_indices =       floatingpoint_to_fp_signed_bitvector_ot.getIndices()
   assert floatingpoint_to_fp_signed_bitvector_indices == (4,25)
 
-  floatingpoint_to_fp_unsigned_bitvector_ot =       solver.mkOp(FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR, 4, 25)
-  floatingpoint_to_fp_unsigned_bitvector_indices =       floatingpoint_to_fp_unsigned_bitvector_ot.getIndices[int, int]()
+  floatingpoint_to_fp_unsigned_bitvector_ot =       solver.mkOp(kinds.FPToFpUnsignedBV, 4, 25)
+  floatingpoint_to_fp_unsigned_bitvector_indices =       floatingpoint_to_fp_unsigned_bitvector_ot.getIndices()
   assert floatingpoint_to_fp_unsigned_bitvector_indices == (4,25)
 
-  floatingpoint_to_fp_generic_ot =       solver.mkOp(FLOATINGPOINT_TO_FP_GENERIC, 4, 25)
-  floatingpoint_to_fp_generic_indices =       floatingpoint_to_fp_generic_ot.getIndices[int, int]()
+  floatingpoint_to_fp_generic_ot =       solver.mkOp(kinds.FPToFpGeneric, 4, 25)
+  floatingpoint_to_fp_generic_indices =       floatingpoint_to_fp_generic_ot.getIndices()
   assert floatingpoint_to_fp_generic_indices == (4,25)
-  with pytest.raises(RuntimeError):
-      floatingpoint_to_fp_generic_ot.getIndices[string]()
 
 
 def test_op_scoping_to_string(solver):
-  bitvector_repeat_ot = solver.mkOp(kinds.BitvectorRepeat, 5)
-  op_repr = bitvector_repeat_ot.toString()
-  assert bitvector_repeat_ot.toString() == op_repr
+  bitvector_repeat_ot = solver.mkOp(kinds.BVRepeat, 5)
+  op_repr = str(bitvector_repeat_ot)
+  assert str(bitvector_repeat_ot) == op_repr
 

@@ -340,10 +340,13 @@ cdef class Op:
     def isNull(self):
         return self.cop.isNull()
 
+    def getNumIndices(self):
+        return self.cop.getNumIndices()
+
     def getIndices(self):
         indices = None
         try:
-            indices = self.cop.getIndices[string]()
+            indices = self.cop.getIndices[string]().decode()
         except:
             pass
 
