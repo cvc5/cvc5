@@ -169,7 +169,11 @@ class IntBlaster
    * than two arguments as a syntactic sugar.
    * For example, we can have a node for (bvand x y z),
    * that represents (bvand (x (bvand y z))).
-   * This function makes all such operators strictly binary.
+   * This function locally binarizes these operators.
+   * In the above example, this means that x,y,z 
+   * are not handled recursively, but will require a separate
+   * call to the function.
+   *
    */
   Node makeBinary(Node n);
 
