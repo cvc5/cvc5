@@ -64,6 +64,8 @@ class BVSolverBitblast : public BVSolver
 
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
+  void computeRelevantTerms(std::set<Node>& termSet) override;
+
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
 

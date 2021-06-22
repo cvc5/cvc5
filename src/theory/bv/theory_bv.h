@@ -83,6 +83,8 @@ class TheoryBV : public Theory
 
   TrustNode explain(TNode n) override;
 
+  void computeRelevantTerms(std::set<Node>& termSet) override;
+
   /** Collect model values in m based on the relevant terms given by termSet */
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;

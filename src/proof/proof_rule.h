@@ -688,9 +688,9 @@ enum class PfRule : uint32_t
   //================================================= Array rules
   // ======== Read over write
   // Children: (P:(not (= i1 i2)))
-  // Arguments: ((select (store a i2 e) i1))
+  // Arguments: ((select (store a i1 e) i2))
   // ----------------------------------------
-  // Conclusion: (= (select (store a i2 e) i1) (select a i1))
+  // Conclusion: (= (select (store a i1 e) i2) (select a i2))
   ARRAYS_READ_OVER_WRITE,
   // ======== Read over write, contrapositive
   // Children: (P:(not (= (select (store a i2 e) i1) (select a i1)))
