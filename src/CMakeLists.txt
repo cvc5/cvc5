@@ -391,6 +391,8 @@ libcvc5_add_sources(
   theory/arith/nl/cad/cdcac_utils.h
   theory/arith/nl/cad/constraints.cpp
   theory/arith/nl/cad/constraints.h
+  theory/arith/nl/cad/lazard_evaluation.cpp
+  theory/arith/nl/cad/lazard_evaluation.h
   theory/arith/nl/cad/projections.cpp
   theory/arith/nl/cad/projections.h
   theory/arith/nl/cad/proof_checker.cpp
@@ -439,6 +441,7 @@ libcvc5_add_sources(
   theory/arith/nl/nonlinear_extension.h
   theory/arith/nl/poly_conversion.cpp
   theory/arith/nl/poly_conversion.h
+  theory/arith/nl/pow2_solver.cpp
   theory/arith/nl/pow2_solver.h
   theory/arith/nl/stats.cpp
   theory/arith/nl/stats.h
@@ -1182,9 +1185,9 @@ if(USE_ABC)
   target_link_libraries(cvc5 PRIVATE ${ABC_LIBRARIES})
   target_include_directories(cvc5 PRIVATE ${ABC_INCLUDE_DIR})
 endif()
-if(USE_CADICAL)
-  target_link_libraries(cvc5 PRIVATE CaDiCaL)
-endif()
+
+target_link_libraries(cvc5 PRIVATE CaDiCaL)
+
 if(USE_CLN)
   target_link_libraries(cvc5 PRIVATE CLN)
 endif()
@@ -1201,9 +1204,8 @@ endif()
 if(USE_POLY)
   target_link_libraries(cvc5 PRIVATE Polyxx)
 endif()
-if(USE_SYMFPU)
-  target_link_libraries(cvc5 PRIVATE SymFPU)
-endif()
+
+target_link_libraries(cvc5 PRIVATE SymFPU)
 
 # Note: When linked statically GMP needs to be linked after CLN since CLN
 # depends on GMP.

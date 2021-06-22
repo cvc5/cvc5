@@ -727,7 +727,6 @@ TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
     }
   }
 
-#ifdef CVC5_USE_SYMFPU
   /* Need to create some symfpu objects as the size of bit-vector
    * that is needed for this component is dependent on the encoding
    * used (i.e. whether subnormals are forcibly normalised or not).
@@ -735,9 +734,6 @@ TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
    * back-end but it should't make a difference. */
   FloatingPointSize fps = operandType.getConst<FloatingPointSize>();
   uint32_t bw = FloatingPoint::getUnpackedExponentWidth(fps);
-#else
-  uint32_t bw = 2;
-#endif
   return nodeManager->mkBitVectorType(bw);
 }
 
@@ -767,13 +763,9 @@ TypeNode FloatingPointComponentSignificand::computeType(
     }
   }
 
-#ifdef CVC5_USE_SYMFPU
   /* As before we need to use some of sympfu. */
   FloatingPointSize fps = operandType.getConst<FloatingPointSize>();
   uint32_t bw = FloatingPoint::getUnpackedSignificandWidth(fps);
-#else
-  uint32_t bw = 1;
-#endif
   return nodeManager->mkBitVectorType(bw);
 }
 

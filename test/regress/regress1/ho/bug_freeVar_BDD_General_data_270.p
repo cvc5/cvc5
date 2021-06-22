@@ -1,4 +1,4 @@
-% COMMAND-LINE: --uf-ho --finite-model-find
+% COMMAND-LINE: --finite-model-find
 % EXPECT: % SZS status Satisfiable for bug_freeVar_BDD_General_data_270
 
 thf(ty_n_t__Nat__Onat, type,

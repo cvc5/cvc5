@@ -39,7 +39,12 @@ class EqualityEngineNotify;
 struct EeSetupInfo
 {
   EeSetupInfo()
-      : d_notify(nullptr), d_constantsAreTriggers(true), d_useMaster(false)
+      : d_notify(nullptr),
+        d_constantsAreTriggers(true),
+        d_notifyNewClass(false),
+        d_notifyMerge(false),
+        d_notifyDisequal(false),
+        d_useMaster(false)
   {
   }
   /** The notification class of the theory */
@@ -48,11 +53,25 @@ struct EeSetupInfo
   std::string d_name;
   /** Constants are triggers */
   bool d_constantsAreTriggers;
+  //-------------------------- fine grained notifications
+  /** Whether we need to be notified of new equivalence classes */
+  bool d_notifyNewClass;
+  /** Whether we need to be notified of merged equivalence classes */
+  bool d_notifyMerge;
+  /** Whether we need to be notified of disequal equivalence classes */
+  bool d_notifyDisequal;
+  //-------------------------- end fine grained notifications
   /**
    * Whether we want our state to use the master equality engine. This should
    * be true exclusively for the theory of quantifiers.
    */
   bool d_useMaster;
+  /** Does it need notifications when equivalence classes are created? */
+  bool needsNotifyNewClass() const { return d_notifyNewClass; }
+  /** Does it need notifications when equivalence classes are merged? */
+  bool needsNotifyMerge() const { return d_notifyMerge; }
+  /** Does it need notifications when disequalities are generated? */
+  bool needsNotifyDisequal() const { return d_notifyDisequal; }
 };
 
 }  // namespace theory

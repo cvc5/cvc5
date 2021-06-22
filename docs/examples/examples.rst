@@ -1,13 +1,15 @@
 Examples
 ===========
 
-The following examples show how the APIs (:ref:`cpp-api`, :ref:`python-api`) and input languages can be used.
-For every example, the same problem is constructed and solved using different input mechanisms.
+The following examples show how the APIs (:ref:`cpp-api`, :ref:`python-api`)
+and input languages can be used.
+For every example, the same problem is constructed and solved using different
+input mechanisms.
 
 
 .. toctree::
     :maxdepth: 2
- 
+
     helloworld
     exceptions
     bitvectors
@@ -16,6 +18,7 @@ For every example, the same problem is constructed and solved using different in
     datatypes
     floatingpoint
     lineararith
+    relations
     sequences
     sets
     strings

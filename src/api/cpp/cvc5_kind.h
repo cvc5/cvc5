@@ -33,9 +33,15 @@ namespace api {
 /**
  * The kind of a cvc5 term.
  *
- * Note that the underlying type of Kind must be signed (to enable range
- * checks for validity). The size of this type depends on the size of
- * cvc5::Kind (NodeValue::NBITS_KIND, currently 10 bits, see expr/node_value.h).
+ * \internal
+ *
+ * Note that the API type `cvc5::api::Kind` roughly corresponds to
+ * `cvc5::Kind`, but is a different type. It hides internal kinds that should
+ * not be exported to the API, and maps all kinds that we want to export to its
+ * corresponding internal kinds. The underlying type of `cvc5::api::Kind` must
+ * be signed (to enable range checks for validity). The size of this type
+ * depends on the size of `cvc5::Kind` (`NodeValue::NBITS_KIND`, currently 10
+ * bits, see expr/node_value.h).
  */
 enum CVC5_EXPORT Kind : int32_t
 {
@@ -406,6 +412,22 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
   IAND,
+  /**
+   * Operator for raising 2 to a non-negative integer  power
+   *
+   * Create with:
+   *   - `Solver::mkOp(Kind kind) const`
+   *
+
+   * Parameters:
+   *   - 1: Op of kind IAND
+   *   - 2: Integer term
+   *
+   * Create with:
+   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
+   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   */
+  POW2,
 #if 0
   /* Synonym for MULT.  */
   NONLINEAR_MULT,
@@ -1844,9 +1866,10 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    *
-   * Note: We currently support the creation of constant arrays, but under some
+   * @note We currently support the creation of constant arrays, but under some
    * conditions when there is a chain of equalities connecting two constant
-   * arrays, the solver doesn't know what to do and aborts (Issue <a href="https://github.com/CVC4/CVC4/issues/1667">#1667</a>).
+   * arrays, the solver doesn't know what to do and aborts (Issue <a
+   * href="https://github.com/cvc5/cvc5/issues/1667">#1667</a>).
    */
   CONST_ARRAY,
   /**

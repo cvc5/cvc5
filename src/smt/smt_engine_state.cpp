@@ -16,6 +16,7 @@
 #include "smt/smt_engine_state.h"
 
 #include "base/modal_exception.h"
+#include "options/base_options.h"
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"

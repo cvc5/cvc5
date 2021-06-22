@@ -57,13 +57,13 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_min)
 
   d_optslv->addObjective(x, OptimizationObjective::MINIMIZE, false);
 
-  OptimizationResult::ResultType r = d_optslv->checkOpt();
+  Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  ASSERT_EQ(r.isSat(), Result::SAT);
 
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
             BitVector(32u, (uint32_t)0x3FFFFFA1));
-  d_optslv->resetObjectives();
+  d_smtEngine->resetAssertions();
 }
 
 TEST_F(TestTheoryWhiteBVOpt, signed_min)
@@ -78,16 +78,16 @@ TEST_F(TestTheoryWhiteBVOpt, signed_min)
 
   d_optslv->addObjective(x, OptimizationObjective::MINIMIZE, true);
 
-  OptimizationResult::ResultType r = d_optslv->checkOpt();
+  Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  ASSERT_EQ(r.isSat(), Result::SAT);
 
   BitVector val = d_optslv->getValues()[0].getValue().getConst<BitVector>();
   std::cout << "opt value is: " << val << std::endl;
 
   // expect the minimum x = -1
   ASSERT_EQ(val, BitVector(32u, (uint32_t)0x80000000));
-  d_optslv->resetObjectives();
+  d_smtEngine->resetAssertions();
 }
 
 TEST_F(TestTheoryWhiteBVOpt, unsigned_max)
@@ -105,16 +105,16 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_max)
 
   d_optslv->addObjective(x, OptimizationObjective::MAXIMIZE, false);
 
-  OptimizationResult::ResultType r = d_optslv->checkOpt();
+  Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  ASSERT_EQ(r.isSat(), Result::SAT);
 
   BitVector val = d_optslv->getValues()[0].getValue().getConst<BitVector>();
   std::cout << "opt value is: " << val << std::endl;
 
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
             BitVector(32u, 2u));
-  d_optslv->resetObjectives();
+  d_smtEngine->resetAssertions();
 }
 
 TEST_F(TestTheoryWhiteBVOpt, signed_max)
@@ -130,14 +130,14 @@ TEST_F(TestTheoryWhiteBVOpt, signed_max)
 
   d_optslv->addObjective(x, OptimizationObjective::MAXIMIZE, true);
 
-  OptimizationResult::ResultType r = d_optslv->checkOpt();
+  Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  ASSERT_EQ(r.isSat(), Result::SAT);
 
   // expect the maxmum x =
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
             BitVector(32u, 10u));
-  d_optslv->resetObjectives();
+  d_smtEngine->resetAssertions();
 }
 
 TEST_F(TestTheoryWhiteBVOpt, min_boundary)
@@ -154,14 +154,14 @@ TEST_F(TestTheoryWhiteBVOpt, min_boundary)
 
   d_optslv->addObjective(x, OptimizationObjective::MINIMIZE, false);
 
-  OptimizationResult::ResultType r = d_optslv->checkOpt();
+  Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  ASSERT_EQ(r.isSat(), Result::SAT);
 
   // expect the maximum x = 18
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
             BitVector(32u, 18u));
-  d_optslv->resetObjectives();
+  d_smtEngine->resetAssertions();
 }
 
 }  // namespace test

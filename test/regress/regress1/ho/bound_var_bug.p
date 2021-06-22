@@ -1,4 +1,3 @@
-% COMMAND-LINE: --uf-ho
 % EXPECT: % SZS status GaveUp for bound_var_bug
 
 % TIMEFORMAT='%3R'; { time (exec 2>&1; /Users/blanchette/misc/leo --foatp e --atp e="$E_HOME"/eprover --atp epclextract="$E_HOME"/epclextract --proofoutput 1 --timeout 30 /Users/blanchette/hgs/afp_mining/tools/judgment_day_2017/data_afp/leo2-mepo/Call_Arity_SestoftGC_data/prob_308__3244432_1 ) ; }
