@@ -33,13 +33,10 @@ OptimizationResult OMTOptimizerInteger::optimize(SmtEngine* optChecker,
   Result intermediateSatResult = optChecker->checkSat();
   // Model-value of objective (used in optimization loop)
   Node value;
-  if (intermediateSatResult.isUnknown())
+  if (intermediateSatResult.isUnknown()
+      || intermediateSatResult.isSat() == Result::UNSAT)
   {
-    return OptimizationResult(OptimizationResult::UNKNOWN, value);
-  }
-  if (intermediateSatResult.isSat() == Result::UNSAT)
-  {
-    return OptimizationResult(OptimizationResult::UNSAT, value);
+    return OptimizationResult(intermediateSatResult, value);
   }
   // node storing target > old_value (used in optimization loop)
   Node increment;
@@ -56,12 +53,14 @@ OptimizationResult OMTOptimizerInteger::optimize(SmtEngine* optChecker,
     // then assert optimization_target > current_model_value
     incrementalOperator = kind::GT;
   }
+  Result lastSatResult = intermediateSatResult;
   // Workhorse of linear search:
   // This loop will keep incrmenting/decrementing the objective until unsat
   // When unsat is hit,
   // the optimized value is the model value just before the unsat call
   while (intermediateSatResult.isSat() == Result::SAT)
   {
+    lastSatResult = intermediateSatResult;
     value = optChecker->getValue(target);
     Assert(!value.isNull());
     increment = nm->mkNode(incrementalOperator, target, value);
@@ -69,7 +68,7 @@ OptimizationResult OMTOptimizerInteger::optimize(SmtEngine* optChecker,
     intermediateSatResult = optChecker->checkSat();
   }
   optChecker->pop();
-  return OptimizationResult(OptimizationResult::OPTIMAL, value);
+  return OptimizationResult(lastSatResult, value);
 }
 
 OptimizationResult OMTOptimizerInteger::minimize(SmtEngine* optChecker,

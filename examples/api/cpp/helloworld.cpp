@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A very simple CVC4 example.
+ * A very simple cvc5 example.
  */
 
 #include <cvc5/cvc5.h>

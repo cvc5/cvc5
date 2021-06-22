@@ -15,6 +15,7 @@
 
 #include "theory/bv/bv_eager_solver.h"
 
+#include "options/base_options.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "theory/bv/bitblast/aig_bitblaster.h"

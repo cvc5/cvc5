@@ -25,15 +25,11 @@
 #ifndef CVC5__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_TRAITS_H
 #define CVC5__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_TRAITS_H
 
-// clang-format off
-#if @CVC5_USE_SYMFPU@
-// clang-format on
+#include <symfpu/core/unpackedFloat.h>
 
 #include "util/bitvector.h"
 #include "util/floatingpoint_size.h"
 #include "util/roundingmode.h"
-
-#include <symfpu/core/unpackedFloat.h>
 
 /* -------------------------------------------------------------------------- */
 
@@ -258,7 +254,6 @@ class wrappedBitVector : public BitVector
                                      Cvc5BitWidth lower) const;
 };
 }  // namespace symfpuLiteral
-}
+}  // namespace cvc5
 
-#endif
 #endif

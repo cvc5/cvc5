@@ -20,8 +20,6 @@
 #ifndef CVC5__PROP__CADICAL_H
 #define CVC5__PROP__CADICAL_H
 
-#ifdef CVC5_USE_CADICAL
-
 #include "prop/sat_solver.h"
 
 #include <cadical.hpp>
@@ -103,5 +101,4 @@ class CadicalSolver : public SatSolver
 }  // namespace prop
 }  // namespace cvc5
 
-#endif  // CVC5_USE_CADICAL
 #endif  // CVC5__PROP__CADICAL_H

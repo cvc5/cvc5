@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of reasoning about sets with CVC4.
+ * A simple demonstration of reasoning about sets with cvc5.
  */
 
 #include <cvc5/cvc5.h>
@@ -51,7 +51,7 @@ int main()
 
     Term theorem = slv.mkTerm(EQUAL, lhs, rhs);
 
-    cout << "CVC4 reports: " << theorem << " is " << slv.checkEntailed(theorem)
+    cout << "cvc5 reports: " << theorem << " is " << slv.checkEntailed(theorem)
          << "." << endl;
   }
 
@@ -62,7 +62,7 @@ int main()
 
     Term theorem = slv.mkTerm(SUBSET, emptyset, A);
 
-    cout << "CVC4 reports: " << theorem << " is " << slv.checkEntailed(theorem)
+    cout << "cvc5 reports: " << theorem << " is " << slv.checkEntailed(theorem)
          << "." << endl;
   }
 
@@ -84,7 +84,7 @@ int main()
     Term e = slv.mkTerm(MEMBER, x, intersection);
 
     Result result = slv.checkSatAssuming(e);
-    cout << "CVC4 reports: " << e << " is " << result << "." << endl;
+    cout << "cvc5 reports: " << e << " is " << result << "." << endl;
 
     if (result.isSat())
     {

@@ -412,6 +412,22 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
   IAND,
+  /**
+   * Operator for raising 2 to a non-negative integer  power
+   *
+   * Create with:
+   *   - `Solver::mkOp(Kind kind) const`
+   *
+
+   * Parameters:
+   *   - 1: Op of kind IAND
+   *   - 2: Integer term
+   *
+   * Create with:
+   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
+   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   */
+  POW2,
 #if 0
   /* Synonym for MULT.  */
   NONLINEAR_MULT,
@@ -1850,9 +1866,10 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    *
-   * Note: We currently support the creation of constant arrays, but under some
+   * @note We currently support the creation of constant arrays, but under some
    * conditions when there is a chain of equalities connecting two constant
-   * arrays, the solver doesn't know what to do and aborts (Issue <a href="https://github.com/CVC4/CVC4/issues/1667">#1667</a>).
+   * arrays, the solver doesn't know what to do and aborts (Issue <a
+   * href="https://github.com/cvc5/cvc5/issues/1667">#1667</a>).
    */
   CONST_ARRAY,
   /**

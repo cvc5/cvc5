@@ -24,6 +24,7 @@ set(CVC5_EXAMPLES_API
   sets
   sequences
   strings
+  quickstart 
 )
 
 foreach(example ${CVC5_EXAMPLES_API})
