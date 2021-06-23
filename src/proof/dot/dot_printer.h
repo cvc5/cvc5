@@ -21,6 +21,7 @@
 #include <iostream>
 
 #include "proof/proof_node.h"
+#include "printer/let_binding.h"
 
 namespace cvc5 {
 namespace proof {
@@ -79,9 +80,17 @@ class DotPrinter
    */
   void countSubproofs(const ProofNode* pn);
 
+  /** Traverse proof node and populate d_lbind
+   *
+   * @param pn the proof node to be traversed
+   */
+  void letifyResults(const ProofNode* pn);
+
   /** All unique subproofs of a given proof node (counting itself). */
   std::map<const ProofNode*, size_t> d_subpfCounter;
 
+  /** Let binder for conclusions of proof nodes */
+  LetBinding d_lbind;
 };
 
 }  // namespace proof
