@@ -43,6 +43,10 @@ def test_get_integer_sort(solver):
     solver.getIntegerSort()
 
 
+def test_get_null_sort(solver):
+    solver.getNullSort()
+
+
 def test_get_real_sort(solver):
     solver.getRealSort()
 
@@ -244,6 +248,15 @@ def test_mk_set_sort(solver):
         slv.mkSetSort(solver.mkBitVectorSort(4))
 
 
+def test_mk_bag_sort(solver):
+    solver.mkBagSort(solver.getBooleanSort())
+    solver.mkBagSort(solver.getIntegerSort())
+    solver.mkBagSort(solver.mkBitVectorSort(4))
+    slv = pycvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.mkBagSort(solver.mkBitVectorSort(4))
+
+
 def test_mk_sequence_sort(solver):
     solver.mkSequenceSort(solver.getBooleanSort())
     solver.mkSequenceSort(\
@@ -275,6 +288,42 @@ def test_mk_tuple_sort(solver):
     slv = pycvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.mkTupleSort([solver.getIntegerSort()])
+
+
+def test_mk_bit_vector(solver):
+    size0 = 0
+    size1 = 8
+    size2 = 32
+    val1 = 2
+    val2 = 2
+    solver.mkBitVector(size1, val1)
+    solver.mkBitVector(size2, val2)
+    solver.mkBitVector("1010", 2)
+    solver.mkBitVector("1010", 10)
+    solver.mkBitVector("1234", 10)
+    solver.mkBitVector("1010", 16)
+    solver.mkBitVector("a09f", 16)
+    solver.mkBitVector(8, "-127", 10)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(size0, val1)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(size0, val2)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector("", 2)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector("10", 3)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector("20", 2)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(8, "101010101", 2)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(8, "-256", 10)
+    assert solver.mkBitVector("1010", 2) == solver.mkBitVector("10", 10)
+    assert solver.mkBitVector("1010", 2) == solver.mkBitVector("a", 16)
+    assert str(solver.mkBitVector(8, "01010101", 2)) == "#b01010101"
+    assert str(solver.mkBitVector(8, "F", 16)) == "#b00001111"
+    assert solver.mkBitVector(8, "-1", 10) ==\
+            solver.mkBitVector(8, "FF", 16)
 
 
 def test_mk_var(solver):
@@ -312,6 +361,26 @@ def test_mk_uninterpreted_const(solver):
         slv.mkUninterpretedConst(solver.getBooleanSort(), 1)
 
 
+def test_mk_abstract_value(solver):
+    solver.mkAbstractValue("1")
+    with pytest.raises(ValueError):
+        solver.mkAbstractValue("0")
+    with pytest.raises(ValueError):
+        solver.mkAbstractValue("-1")
+    with pytest.raises(ValueError):
+        solver.mkAbstractValue("1.2")
+    with pytest.raises(ValueError):
+        solver.mkAbstractValue("1/2")
+    with pytest.raises(ValueError):
+        solver.mkAbstractValue("asdf")
+
+    solver.mkAbstractValue(1)
+    with pytest.raises(ValueError):
+        solver.mkAbstractValue(-1)
+    with pytest.raises(ValueError):
+        solver.mkAbstractValue(0)
+
+
 def test_mk_floating_point(solver):
     t1 = solver.mkBitVector(8)
     t2 = solver.mkBitVector(4)
@@ -343,6 +412,17 @@ def test_mk_empty_set(solver):
         solver.mkEmptySet(solver.getBooleanSort())
     with pytest.raises(RuntimeError):
         slv.mkEmptySet(s)
+
+
+def test_mk_empty_bag(solver):
+    slv = pycvc5.Solver()
+    s = solver.mkBagSort(solver.getBooleanSort())
+    solver.mkEmptyBag(pycvc5.Sort(solver))
+    solver.mkEmptyBag(s)
+    with pytest.raises(RuntimeError):
+        solver.mkEmptyBag(solver.getBooleanSort())
+    with pytest.raises(RuntimeError):
+        slv.mkEmptyBag(s)
 
 
 def test_mk_empty_sequence(solver):
@@ -377,6 +457,33 @@ def test_mk_pos_inf(solver):
 
 def test_mk_pos_zero(solver):
     solver.mkPosZero(3, 5)
+
+
+def test_mk_op(solver):
+    # mkOp(Kind kind, Kind k)
+    with pytest.raises(ValueError):
+        solver.mkOp(kinds.BVExtract, kinds.Equal)
+
+    # mkOp(Kind kind, const std::string& arg)
+    solver.mkOp(kinds.Divisible, "2147483648")
+    with pytest.raises(RuntimeError):
+        solver.mkOp(kinds.BVExtract, "asdf")
+
+    # mkOp(Kind kind, uint32_t arg)
+    solver.mkOp(kinds.Divisible, 1)
+    solver.mkOp(kinds.BVRotateLeft, 1)
+    solver.mkOp(kinds.BVRotateRight, 1)
+    with pytest.raises(RuntimeError):
+        solver.mkOp(kinds.BVExtract, 1)
+
+    # mkOp(Kind kind, uint32_t arg1, uint32_t arg2)
+    solver.mkOp(kinds.BVExtract, 1, 1)
+    with pytest.raises(RuntimeError):
+        solver.mkOp(kinds.Divisible, 1, 2)
+
+    # mkOp(Kind kind, std::vector<uint32_t> args)
+    args = [1, 2, 2]
+    solver.mkOp(kinds.TupleProject, args)
 
 
 def test_mk_pi(solver):
@@ -526,9 +633,208 @@ def test_mk_sep_nil(solver):
         slv.mkSepNil(solver.getIntegerSort())
 
 
+def test_mk_string(solver):
+    solver.mkString("")
+    solver.mkString("asdfasdf")
+    str(solver.mkString("asdf\\nasdf")) == "\"asdf\\u{5c}nasdf\""
+    str(solver.mkString("asdf\\u{005c}nasdf", True)) ==\
+            "\"asdf\\u{5c}nasdf\""
+
+
+def test_mk_term(solver):
+    bv32 = solver.mkBitVectorSort(32)
+    a = solver.mkConst(bv32, "a")
+    b = solver.mkConst(bv32, "b")
+    v1 = [a, b]
+    v2 = [a, pycvc5.Term(solver)]
+    v3 = [a, solver.mkTrue()]
+    v4 = [solver.mkInteger(1), solver.mkInteger(2)]
+    v5 = [solver.mkInteger(1), pycvc5.Term(solver)]
+    v6 = []
+    slv = pycvc5.Solver()
+
+    # mkTerm(Kind kind) const
+    solver.mkPi()
+    solver.mkTerm(kinds.RegexpEmpty)
+    solver.mkTerm(kinds.RegexpSigma)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.ConstBV)
+
+    # mkTerm(Kind kind, Term child) const
+    solver.mkTerm(kinds.Not, solver.mkTrue())
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Not, pycvc5.Term(solver))
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Not, a)
+    with pytest.raises(RuntimeError):
+        slv.mkTerm(kinds.Not, solver.mkTrue())
+
+    # mkTerm(Kind kind, Term child1, Term child2) const
+    solver.mkTerm(kinds.Equal, a, b)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Equal, pycvc5.Term(solver), b)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Equal, a, pycvc5.Term(solver))
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Equal, a, solver.mkTrue())
+    with pytest.raises(RuntimeError):
+        slv.mkTerm(kinds.Equal, a, b)
+
+    # mkTerm(Kind kind, Term child1, Term child2, Term child3) const
+    solver.mkTerm(kinds.Ite, solver.mkTrue(), solver.mkTrue(), solver.mkTrue())
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Ite, pycvc5.Term(solver), solver.mkTrue(),
+                      solver.mkTrue())
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Ite, solver.mkTrue(), pycvc5.Term(solver),
+                      solver.mkTrue())
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Ite, solver.mkTrue(), solver.mkTrue(),
+                      pycvc5.Term(solver))
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Ite, solver.mkTrue(), solver.mkTrue(), b)
+    with pytest.raises(RuntimeError):
+        slv.mkTerm(kinds.Ite, solver.mkTrue(), solver.mkTrue(),
+                   solver.mkTrue())
+
+    # mkTerm(Kind kind, const std::vector<Term>& children) const
+    solver.mkTerm(kinds.Equal, v1)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Equal, v2)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Equal, v3)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.Distinct, v6)
+
+
+def test_mk_term_from_op(solver):
+    bv32 = solver.mkBitVectorSort(32)
+    a = solver.mkConst(bv32, "a")
+    b = solver.mkConst(bv32, "b")
+    v1 = [solver.mkInteger(1), solver.mkInteger(2)]
+    v2 = [solver.mkInteger(1), pycvc5.Term(solver)]
+    v3 = []
+    v4 = [solver.mkInteger(5)]
+    slv = pycvc5.Solver()
+
+    # simple operator terms
+    opterm1 = solver.mkOp(kinds.BVExtract, 2, 1)
+    opterm2 = solver.mkOp(kinds.Divisible, 1)
+
+    # list datatype
+    sort = solver.mkParamSort("T")
+    listDecl = solver.mkDatatypeDecl("paramlist", sort)
+    cons = solver.mkDatatypeConstructorDecl("cons")
+    nil = solver.mkDatatypeConstructorDecl("nil")
+    cons.addSelector("head", sort)
+    cons.addSelectorSelf("tail")
+    listDecl.addConstructor(cons)
+    listDecl.addConstructor(nil)
+    listSort = solver.mkDatatypeSort(listDecl)
+    intListSort =\
+        listSort.instantiate([solver.getIntegerSort()])
+    c = solver.mkConst(intListSort, "c")
+    lis = listSort.getDatatype()
+
+    # list datatype constructor and selector operator terms
+    consTerm1 = lis.getConstructorTerm("cons")
+    consTerm2 = lis.getConstructor("cons").getConstructorTerm()
+    nilTerm1 = lis.getConstructorTerm("nil")
+    nilTerm2 = lis.getConstructor("nil").getConstructorTerm()
+    headTerm1 = lis["cons"].getSelectorTerm("head")
+    headTerm2 = lis["cons"].getSelector("head").getSelectorTerm()
+    tailTerm1 = lis["cons"].getSelectorTerm("tail")
+    tailTerm2 = lis["cons"]["tail"].getSelectorTerm()
+
+    # mkTerm(Op op, Term term) const
+    solver.mkTerm(kinds.ApplyConstructor, nilTerm1)
+    solver.mkTerm(kinds.ApplyConstructor, nilTerm2)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.ApplySelector, nilTerm1)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.ApplySelector, consTerm1)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.ApplyConstructor, consTerm2)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm1)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.ApplySelector, headTerm1)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm1)
+    with pytest.raises(RuntimeError):
+        slv.mkTerm(kinds.ApplyConstructor, nilTerm1)
+
+    # mkTerm(Op op, Term child) const
+    solver.mkTerm(opterm1, a)
+    solver.mkTerm(opterm2, solver.mkInteger(1))
+    solver.mkTerm(kinds.ApplySelector, headTerm1, c)
+    solver.mkTerm(kinds.ApplySelector, tailTerm2, c)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm2, a)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm1, pycvc5.Term(solver))
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(kinds.ApplyConstructor, consTerm1, solver.mkInteger(0))
+    with pytest.raises(RuntimeError):
+        slv.mkTerm(opterm1, a)
+
+    # mkTerm(Op op, Term child1, Term child2) const
+    solver.mkTerm(kinds.ApplyConstructor, consTerm1, solver.mkInteger(0),
+                  solver.mkTerm(kinds.ApplyConstructor, nilTerm1))
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm2, solver.mkInteger(1), solver.mkInteger(2))
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm1, a, b)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm2, solver.mkInteger(1), pycvc5.Term(solver))
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm2, pycvc5.Term(solver), solver.mkInteger(1))
+    with pytest.raises(RuntimeError):
+        slv.mkTerm(kinds.ApplyConstructor,\
+                        consTerm1,\
+                        solver.mkInteger(0),\
+                        solver.mkTerm(kinds.ApplyConstructor, nilTerm1))
+
+    # mkTerm(Op op, Term child1, Term child2, Term child3) const
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm1, a, b, a)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm2, solver.mkInteger(1), solver.mkInteger(1),
+                      pycvc5.Term(solver))
+
+    # mkTerm(Op op, const std::vector<Term>& children) const
+    solver.mkTerm(opterm2, v4)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm2, v1)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm2, v2)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(opterm2, v3)
+    with pytest.raises(RuntimeError):
+        slv.mkTerm(opterm2, v4)
+
+
 def test_mk_true(solver):
     solver.mkTrue()
     solver.mkTrue()
+
+
+def test_mk_tuple(solver):
+    solver.mkTuple([solver.mkBitVectorSort(3)], [solver.mkBitVector("101", 2)])
+    solver.mkTuple([solver.getRealSort()], [solver.mkInteger("5")])
+
+    with pytest.raises(RuntimeError):
+        solver.mkTuple([], [solver.mkBitVector("101", 2)])
+    with pytest.raises(RuntimeError):
+        solver.mkTuple([solver.mkBitVectorSort(4)],
+                       [solver.mkBitVector("101", 2)])
+    with pytest.raises(RuntimeError):
+        solver.mkTuple([solver.getIntegerSort()], [solver.mkReal("5.3")])
+    slv = pycvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.mkTuple([solver.mkBitVectorSort(3)], [slv.mkBitVector("101", 2)])
+    with pytest.raises(RuntimeError):
+        slv.mkTuple([slv.mkBitVectorSort(3)], [solver.mkBitVector("101", 2)])
 
 
 def test_mk_universe_set(solver):
