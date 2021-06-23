@@ -96,12 +96,6 @@ namespace cvc5 {
 #  define IS_ABC_BUILD false
 #endif /* CVC5_USE_ABC */
 
-#if CVC5_USE_CADICAL
-#define IS_CADICAL_BUILD true
-#else /* CVC5_USE_CADICAL */
-#define IS_CADICAL_BUILD false
-#endif /* CVC5_USE_CADICAL */
-
 #if CVC5_USE_CRYPTOMINISAT
 #  define IS_CRYPTOMINISAT_BUILD true
 #else /* CVC5_USE_CRYPTOMINISAT */

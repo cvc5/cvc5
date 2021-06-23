@@ -175,6 +175,11 @@ bool TheoryBV::needsCheckLastEffort()
   return d_internal->needsCheckLastEffort();
 }
 
+void TheoryBV::computeRelevantTerms(std::set<Node>& termSet)
+{
+  return d_internal->computeRelevantTerms(termSet);
+}
+
 bool TheoryBV::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 {
   return d_internal->collectModelValues(m, termSet);

@@ -18,6 +18,7 @@ from cvc5 cimport DatatypeDecl as c_DatatypeDecl
 from cvc5 cimport DatatypeSelector as c_DatatypeSelector
 from cvc5 cimport Result as c_Result
 from cvc5 cimport RoundingMode as c_RoundingMode
+from cvc5 cimport UnknownExplanation as c_UnknownExplanation
 from cvc5 cimport Op as c_Op
 from cvc5 cimport Solver as c_Solver
 from cvc5 cimport Grammar as c_Grammar
@@ -25,6 +26,10 @@ from cvc5 cimport Sort as c_Sort
 from cvc5 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
 from cvc5 cimport ROUND_TOWARD_NEGATIVE, ROUND_TOWARD_ZERO
 from cvc5 cimport ROUND_NEAREST_TIES_TO_AWAY
+from cvc5 cimport REQUIRES_FULL_CHECK, INCOMPLETE, TIMEOUT
+from cvc5 cimport RESOURCEOUT, MEMOUT, INTERRUPTED
+from cvc5 cimport NO_STATUS, UNSUPPORTED, UNKNOWN_REASON
+from cvc5 cimport OTHER
 from cvc5 cimport Term as c_Term
 from cvc5 cimport hash as c_hash
 from cvc5 cimport wstring as c_wstring
@@ -340,10 +345,13 @@ cdef class Op:
     def isNull(self):
         return self.cop.isNull()
 
+    def getNumIndices(self):
+        return self.cop.getNumIndices()
+
     def getIndices(self):
         indices = None
         try:
-            indices = self.cop.getIndices[string]()
+            indices = self.cop.getIndices[string]().decode()
         except:
             pass
 
@@ -418,7 +426,7 @@ cdef class Result:
         return self.cr != other.cr
 
     def getUnknownExplanation(self):
-        return self.cr.getUnknownExplanation().decode()
+        return UnknownExplanation(<int> self.cr.getUnknownExplanation())
 
     def __str__(self):
         return self.cr.toString().decode()
@@ -451,6 +459,30 @@ cdef class RoundingMode:
         return self.name
 
 
+cdef class UnknownExplanation:
+    cdef c_UnknownExplanation cue
+    cdef str name
+    def __cinit__(self, int ue):
+        # crm always assigned externally
+        self.cue = <c_UnknownExplanation> ue
+        self.name = __unknown_explanations[ue]
+
+    def __eq__(self, UnknownExplanation other):
+        return (<int> self.cue) == (<int> other.cue)
+
+    def __ne__(self, UnknownExplanation other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash((<int> self.crm, self.name))
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.name
+
+
 cdef class Solver:
     cdef c_Solver* csolver
 
@@ -468,6 +500,11 @@ cdef class Solver:
     def getIntegerSort(self):
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.getIntegerSort()
+        return sort
+
+    def getNullSort(self):
+        cdef Sort sort = Sort(self)
+        sort.csort = self.csolver.getNullSort()
         return sort
 
     def getRealSort(self):
@@ -672,8 +709,8 @@ cdef class Solver:
         result.cterm = self.csolver.mkTuple(csorts, cterms)
         return result
 
-
-    def mkOp(self, kind k, arg0=None, arg1 = None):
+    @expand_list_arg(num_req_args=0)
+    def mkOp(self, kind k, *args):
         '''
         Supports the following uses:
                 Op mkOp(Kind kind)
@@ -683,28 +720,30 @@ cdef class Solver:
                 Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)
         '''
         cdef Op op = Op(self)
+        cdef vector[int] v
 
-        if arg0 is None:
+        if len(args) == 0:
             op.cop = self.csolver.mkOp(k.k)
-        elif arg1 is None:
-            if isinstance(arg0, kind):
-                op.cop = self.csolver.mkOp(k.k, (<kind?> arg0).k)
-            elif isinstance(arg0, str):
+        elif len(args) == 1:
+            if isinstance(args[0], str):
                 op.cop = self.csolver.mkOp(k.k,
                                            <const string &>
-                                           arg0.encode())
-            elif isinstance(arg0, int):
-                op.cop = self.csolver.mkOp(k.k, <int?> arg0)
+                                           args[0].encode())
+            elif isinstance(args[0], int):
+                op.cop = self.csolver.mkOp(k.k, <int?> args[0])
+            elif isinstance(args[0], list):
+                for a in args[0]:
+                    v.push_back((<int?> a))
+                op.cop = self.csolver.mkOp(k.k, <const vector[uint32_t]&> v)   
             else:
                 raise ValueError("Unsupported signature"
-                                 " mkOp: {}".format(" X ".join([str(k), str(arg0)])))
-        else:
-            if isinstance(arg0, int) and isinstance(arg1, int):
-                op.cop = self.csolver.mkOp(k.k, <int> arg0,
-                                                       <int> arg1)
+                                 " mkOp: {}".format(" X ".join([str(k), str(args[0])])))
+        elif len(args) == 2:
+            if isinstance(args[0], int) and isinstance(args[1], int):
+                op.cop = self.csolver.mkOp(k.k, <int> args[0], <int> args[1])
             else:
                 raise ValueError("Unsupported signature"
-                                 " mkOp: {}".format(" X ".join([k, arg0, arg1])))
+                                 " mkOp: {}".format(" X ".join([k, args[0], args[1]])))
         return op
 
     def mkTrue(self):
@@ -778,17 +817,24 @@ cdef class Solver:
         term.cterm = self.csolver.mkEmptySet(s.csort)
         return term
 
+    def mkEmptyBag(self, Sort s):
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.mkEmptyBag(s.csort)
+        return term
 
     def mkSepNil(self, Sort sort):
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkSepNil(sort.csort)
         return term
 
-    def mkString(self, str s):
+    def mkString(self, str s, useEscSequences = None):
         cdef Term term = Term(self)
         cdef Py_ssize_t size
         cdef wchar_t* tmp = PyUnicode_AsWideCharString(s, &size)
-        term.cterm = self.csolver.mkString(c_wstring(tmp, size))
+        if isinstance(useEscSequences, bool):
+            term.cterm = self.csolver.mkString(s.encode(), <bint> useEscSequences)
+        else:
+            term.cterm = self.csolver.mkString(c_wstring(tmp, size))
         PyMem_Free(tmp)
         return term
 
@@ -1863,4 +1909,31 @@ for rm_int, name in __rounding_modes.items():
 
 del r
 del rm_int
+del name
+
+
+# Generate unknown explanations
+cdef __unknown_explanations = {
+    <int> REQUIRES_FULL_CHECK: "RequiresFullCheck",
+    <int> INCOMPLETE: "Incomplete",
+    <int> TIMEOUT: "Timeout",
+    <int> RESOURCEOUT: "Resourceout",
+    <int> MEMOUT: "Memout",
+    <int> INTERRUPTED: "Interrupted",
+    <int> NO_STATUS: "NoStatus",
+    <int> UNSUPPORTED: "Unsupported",
+    <int> OTHER: "Other",
+    <int> UNKNOWN_REASON: "UnknownReason"
+}
+
+for ue_int, name in __unknown_explanations.items():
+    u = UnknownExplanation(ue_int)
+
+    if name in dir(mod_ref):
+        raise RuntimeError("Redefinition of Python UnknownExplanation %s."%name)
+
+    setattr(mod_ref, name, u)
+
+del u
+del ue_int
 del name

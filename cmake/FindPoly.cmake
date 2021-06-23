@@ -51,10 +51,6 @@ if(NOT Poly_FOUND_SYSTEM)
   if(CCWIN)
     # Roughly following https://stackoverflow.com/a/44383330/2375725
     set(patchcmd
-        COMMAND
-        patch
-        <SOURCE_DIR>/src/CMakeLists.txt
-        ${CMAKE_CURRENT_LIST_DIR}/deps-utils/Poly-patch-cmake.patch
         # Avoid %z and %llu format specifiers
         COMMAND find <SOURCE_DIR>/ -type f -exec
                 sed -i.orig "s/%z[diu]/%\" PRIu64 \"/g" {} +

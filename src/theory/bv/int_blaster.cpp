@@ -1,19 +1,17 @@
-/*********************                                                        */
-/*! \file int_blaster.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar, Andrew Reynolds, Andres Noetzli
- ** This file is part of the cvc5 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The bit-blaster utility
- **
- ** Converts bit-vector operations into integer operations.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Int-blasting utility
+ */
 
 #include "theory/bv/int_blaster.h"
 
@@ -25,10 +23,10 @@
 #include "expr/node.h"
 #include "expr/node_traversal.h"
 #include "expr/skolem_manager.h"
-#include "options/uf_options.h"
 #include "options/option_exception.h"
-#include "theory/bv/theory_bv_rewrite_rules_simplification.h"
+#include "options/uf_options.h"
 #include "theory/rewriter.h"
+#include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "util/iand.h"
 #include "util/rational.h"
 
@@ -49,7 +47,6 @@ IntBlaster::IntBlaster(context::Context* c,
                        uint64_t granularity,
                        bool introduceFreshIntVars)
     : d_binarizeCache(c),
-      d_rebuildCache(c),
       d_intblastCache(c),
       d_rangeAssertions(c),
       d_bitwiseAssertions(c),
@@ -138,11 +135,10 @@ Node IntBlaster::makeBinary(Node n)
     {
       result = d_nm->mkNode(n.getKind(), result, n[i]);
     }
-    }
-    d_binarizeCache[n] = result;
-    Trace("int-blaster-debug")
-        << "binarization result: " << result << std::endl;
-    return result;
+  }
+  d_binarizeCache[n] = result;
+  Trace("int-blaster-debug") << "binarization result: " << result << std::endl;
+  return result;
 }
 
 /**
@@ -152,8 +148,10 @@ Node IntBlaster::intBlast(Node n,
                           std::vector<Node>& lemmas,
                           std::map<Node, Node>& skolems)
 {
-  // make sure the node is re-written before processing it.
+  // make sure the node is re-written
   n = Rewriter::rewrite(n);
+
+  // helper vector for traversal.
   std::vector<Node> toVisit;
   toVisit.push_back(makeBinary(n));
 
@@ -170,7 +168,7 @@ Node IntBlaster::intBlast(Node n,
       d_intblastCache[current] = Node();
       // all the node's children are added to the stack to be visited
       // before visiting this node again.
-      for (Node child : current)
+      for (const Node& child : current)
       {
         toVisit.push_back(makeBinary(child));
       }
@@ -197,10 +195,6 @@ Node IntBlaster::intBlast(Node n,
         if (currentNumChildren == 0)
         {
           translation = translateNoChildren(current, lemmas, skolems);
-          if (translation.isNull())
-          {
-            return Node();
-          }
         }
         else
         {
@@ -225,10 +219,6 @@ Node IntBlaster::intBlast(Node n,
           }
           translation =
               translateWithChildren(current, translated_children, lemmas);
-          if (translation.isNull())
-          {
-            return Node();
-          }
         }
 
         Assert(!translation.isNull());
@@ -242,22 +232,6 @@ Node IntBlaster::intBlast(Node n,
   }
   return d_intblastCache[n].get();
 }
-
-// given an integer n with unsigned binary representation
-// b, there is an integer m with signed binary representation
-// b. m:=2*(n mod 2^{k-1}) - n, with k being the size
-// of the binary representations.
-Node IntBlaster::unsignedTosigned(Node n, uint64_t bw)
-{
-  Assert(n.getType().isInteger());
-  Node modNode = modpow2(n, bw - 1);
-  Node mulNode =
-      d_nm->mkNode(kind::MULT, d_nm->mkConst<Rational>(Rational(2)), modNode);
-  Node result = d_nm->mkNode(kind::MINUS, mulNode, n);
-  return result;
-}
-
-
 
 Node IntBlaster::translateWithChildren(
     Node original,
@@ -578,8 +552,8 @@ Node IntBlaster::translateWithChildren(
       returnNode = d_nm->mkNode(
           kind::ITE,
           d_nm->mkNode(kind::LT,
-                       unsignedTosigned(translated_children[0], bvsize),
-                       unsignedTosigned(translated_children[1], bvsize)),
+                       uts(translated_children[0], bvsize),
+                       uts(translated_children[1], bvsize)),
           d_one,
           d_zero);
       break;
