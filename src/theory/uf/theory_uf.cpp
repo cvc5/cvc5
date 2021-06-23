@@ -73,6 +73,14 @@ bool TheoryUF::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
   esi.d_name = d_instanceName + "theory::uf::ee";
+  if (options::finiteModelFind()
+      && options::ufssMode() != options::UfssMode::NONE)
+  {
+    // need notifications about sorts
+    esi.d_notifyNewClass = true;
+    esi.d_notifyMerge = true;
+    esi.d_notifyDisequal = true;
+  }
   return true;
 }
 

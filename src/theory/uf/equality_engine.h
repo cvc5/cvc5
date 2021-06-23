@@ -120,9 +120,6 @@ private:
   /** If we are done, we don't except any new assertions */
   context::CDO<bool> d_done;
 
-  /** Whether to notify or not (temporarily disabled on equality checks) */
-  bool d_performNotify;
-
   /** The class to notify when a representative changes for a term */
   EqualityEngineNotify& d_notify;
 
