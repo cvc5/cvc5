@@ -769,7 +769,8 @@ void Smt2::checkLogicAllowsFunctions()
     parseError(
         "Functions (of non-zero arity) cannot "
         "be declared in logic "
-        + d_logic.getLogicString() + ". Try adding the prefix HO_.");
+        + d_logic.getLogicString()
+        + ". Try including UF or adding the prefix HO_.");
   }
 }
 
