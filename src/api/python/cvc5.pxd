@@ -122,6 +122,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort getSort() except +
         bint isNull() except +
         bint isIndexed() except +
+        size_t getNumIndices() except +
         T getIndices[T]() except +
         string toString() except +
 
