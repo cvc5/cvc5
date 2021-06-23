@@ -20,8 +20,8 @@
 
 #include <iostream>
 
-#include "proof/proof_node.h"
 #include "printer/let_binding.h"
+#include "proof/proof_node.h"
 
 namespace cvc5 {
 namespace proof {
