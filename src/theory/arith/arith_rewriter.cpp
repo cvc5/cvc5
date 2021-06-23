@@ -383,7 +383,6 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   return RewriteResponse(REWRITE_DONE, res.getNode());
 }
 
-
 RewriteResponse ArithRewriter::postRewritePow2(TNode t)
 {
   Assert(t.getKind() == kind::POW2);
@@ -391,6 +390,8 @@ RewriteResponse ArithRewriter::postRewritePow2(TNode t)
   // if constant, we eliminate
   if (t[0].isConst())
   {
+    // pow2 is only supported for integers
+    Assert(t[0].getType().isInteger());
     Integer i = t[0].getConst<Rational>().getNumerator();
     unsigned long k = i.getUnsignedLong();
     Node ret = nm->mkConst<Rational>(Rational(Integer(2).pow(k), Integer(1)));
