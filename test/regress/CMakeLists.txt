@@ -634,6 +634,7 @@ set(regress_0_tests
   regress0/ho/issue5233-part1-usort-owner.smt2
   regress0/ho/issue5371.smt2
   regress0/ho/issue6526.smt2
+  regress0/ho/issue6536.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-equality-non-canon.smt2
   regress0/ho/match-middle.smt2
