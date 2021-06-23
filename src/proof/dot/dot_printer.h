@@ -76,7 +76,8 @@ class DotPrinter
    */
   static std::string sanitizeString(const std::string& s);
 
-  /** Traverse proof node and populate map of subproofs to their quantity
+  /** Traverse proof node and map each proof node to the number of subproofs it
+   * contains, including itself
    *
    * @param pn the proof node to be traversed
    * @param subpfCounter the map to be populated
