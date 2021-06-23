@@ -95,6 +95,7 @@ void Pow2Solver::checkFullRefine()
 {
   Trace("pow2-check") << "Pow2Solver::checkFullRefine";
   Trace("pow2-check") << "pow2 terms: " << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
   for (const Node& i : d_pow2s)
   {
     Node valPow2x = d_model.computeAbstractModelValue(i);
@@ -114,8 +115,34 @@ void Pow2Solver::checkFullRefine()
       continue;
     }
 
+    // x<=y --> pow2(x) <= pow2(y)
+    for (const Node& j : d_pow2s) {
+	    if (i != j) {
+		// i = pow2(x)
+		// j = pow2(y)
+		//
+    		Node valPow2xC = d_model.computeConcreteModelValue(i);
+    		Node valPow2yC = d_model.computeConcreteModelValue(j);
+		Node valXC = d_model.computeConcreteModelValue(i[0]);
+		Node valYC = d_model.computeConcreteModelValue(j[0]);
+
+		Integer x = valXC.getConst<Rational>().getNumerator();
+		Integer y = valYC.getConst<Rational>().getNumerator();
+		Integer pow2x = valPow2xC.getConst<Rational>().getNumerator();
+		Integer pow2y = valPow2yC.getConst<Rational>().getNumerator();
+
+		if (x <= y && pow2x > pow2y) {
+			Node assumption = nm->mkNode(LEQ, i[0], j[0]);
+			Node conclusion= nm->mkNode(LEQ, i, j);
+			Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+			d_im.addPendingLemma(lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, nullptr, true);
+		}
+	    }
+
+    }
+
     // Place holder for additional lemma schemas
-    //
+    
     // End of additional lemma schemas
 
     // this is the most naive model-based schema based on model values
