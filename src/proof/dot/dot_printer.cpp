@@ -49,14 +49,40 @@ std::string DotPrinter::sanitizeString(const std::string& s)
 void DotPrinter::countSubproofs(
     const ProofNode* pn, std::map<const ProofNode*, size_t>& subpfCounter)
 {
-  size_t counter = 1;
-  const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
-  for (const std::shared_ptr<ProofNode>& c : children)
+  std::vector<const ProofNode*> visit;
+  std::unordered_map<const ProofNode*, bool> visited;
+  std::unordered_map<const ProofNode*, bool>::iterator it;
+  const ProofNode* cur;
+  visit.push_back(pn);
+  do
   {
-    countSubproofs(c.get(), subpfCounter);
-    counter += subpfCounter[c.get()];
-  }
-  subpfCounter[pn] = counter;
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited[cur] = false;
+      visit.push_back(cur);
+      const std::vector<std::shared_ptr<ProofNode>>& children =
+          cur->getChildren();
+      for (const std::shared_ptr<ProofNode>& c : children)
+      {
+        visit.push_back(c.get());
+      }
+    }
+    else if (!it->second)
+    {
+      visited[cur] = true;
+      size_t counter = 1;
+      const std::vector<std::shared_ptr<ProofNode>>& children =
+          cur->getChildren();
+      for (const std::shared_ptr<ProofNode>& c : children)
+      {
+        counter += subpfCounter[c.get()];
+      }
+      subpfCounter[cur] = counter;
+    }
+  } while (!visit.empty());
 }
 
 void DotPrinter::print(std::ostream& out, const ProofNode* pn)
