@@ -26,8 +26,8 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"
+#include "options/base_options.h"
 #include "options/options.h"
-#include "options/options_public.h"
 #include "parser/input.h"
 #include "parser/parser_exception.h"
 #include "smt/command.h"
@@ -900,7 +900,7 @@ std::wstring Parser::processAdHocStringEsc(const std::string& s)
 api::Term Parser::mkStringConstant(const std::string& s)
 {
   if (language::isInputLang_smt2_6(
-          options::getInputLanguage(d_solver->getOptions())))
+          d_solver->getOptions().base.inputLanguage))
   {
     return d_solver->mkString(s, true);
   }

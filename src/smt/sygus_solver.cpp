@@ -20,6 +20,7 @@
 #include "base/modal_exception.h"
 #include "expr/dtype.h"
 #include "expr/skolem_manager.h"
+#include "options/base_options.h"
 #include "options/option_exception.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"

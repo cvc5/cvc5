@@ -1,4 +1,3 @@
-; REQUIRES: symfpu
 ; EXPECT: unsat
 (set-logic QF_FP)    
 (declare-const x Float32)

@@ -55,6 +55,7 @@
 #include "expr/sequence.h"
 #include "expr/type_node.h"
 #include "expr/uninterpreted_constant.h"
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
@@ -5196,18 +5197,6 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
       << " children (the one under construction has " << nchildren << ")";
 }
 
-/* Solver Configuration                                                       */
-/* -------------------------------------------------------------------------- */
-
-bool Solver::supportsFloatingPoint() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return Configuration::isBuiltWithSymFPU();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 /* Sorts Handling                                                             */
 /* -------------------------------------------------------------------------- */
 
@@ -5275,8 +5264,6 @@ Sort Solver::getRoundingModeSort(void) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return Sort(this, getNodeManager()->roundingModeType());
   ////////
@@ -5313,8 +5300,6 @@ Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "exponent size > 0";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "significand size > 0";
   //////// all checks before this line
@@ -5793,8 +5778,6 @@ Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeInf(FloatingPointSize(exp, sig), false));
@@ -5806,8 +5789,6 @@ Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeInf(FloatingPointSize(exp, sig), true));
@@ -5819,8 +5800,6 @@ Term Solver::mkNaN(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeNaN(FloatingPointSize(exp, sig)));
@@ -5832,8 +5811,6 @@ Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeZero(FloatingPointSize(exp, sig), false));
@@ -5845,8 +5822,6 @@ Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeZero(FloatingPointSize(exp, sig), true));
@@ -5858,8 +5833,6 @@ Term Solver::mkRoundingMode(RoundingMode rm) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::RoundingMode>(s_rmodes.at(rm));
   ////////
@@ -5913,8 +5886,6 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   CVC5_API_SOLVER_CHECK_TERM(val);
   CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "a value > 0";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "a value > 0";
@@ -6452,7 +6423,7 @@ Result Solver::checkEntailed(const Term& term) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_smtEngine->isQueryMade()
-                 || d_smtEngine->getOptions().smt.incrementalSolving)
+                 || d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERM(term);
@@ -6468,7 +6439,7 @@ Result Solver::checkEntailed(const std::vector<Term>& terms) const
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(!d_smtEngine->isQueryMade()
-                 || d_smtEngine->getOptions().smt.incrementalSolving)
+                 || d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERMS(terms);
@@ -6497,7 +6468,7 @@ Result Solver::checkSat(void) const
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(!d_smtEngine->isQueryMade()
-                 || d_smtEngine->getOptions().smt.incrementalSolving)
+                 || d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   //////// all checks before this line
@@ -6512,7 +6483,7 @@ Result Solver::checkSatAssuming(const Term& assumption) const
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(!d_smtEngine->isQueryMade()
-                 || d_smtEngine->getOptions().smt.incrementalSolving)
+                 || d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(assumption, getBooleanSort());
@@ -6528,7 +6499,7 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(!d_smtEngine->isQueryMade() || assumptions.size() == 0
-                 || d_smtEngine->getOptions().smt.incrementalSolving)
+                 || d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERMS_WITH_SORT(assumptions, getBooleanSort());
@@ -6863,7 +6834,7 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
-  CVC5_API_CHECK(d_smtEngine->getOptions().smt.incrementalSolving)
+  CVC5_API_CHECK(d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot get unsat assumptions unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_CHECK(d_smtEngine->getOptions().smt.unsatAssumptions)
@@ -7044,7 +7015,7 @@ void Solver::pop(uint32_t nscopes) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_smtEngine->getOptions().smt.incrementalSolving)
+  CVC5_API_CHECK(d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot pop when not solving incrementally (use --incremental)";
   CVC5_API_CHECK(nscopes <= d_smtEngine->getNumUserLevels())
       << "Cannot pop beyond first pushed context";
@@ -7176,7 +7147,7 @@ void Solver::push(uint32_t nscopes) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_smtEngine->getOptions().smt.incrementalSolving)
+  CVC5_API_CHECK(d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot push when not solving incrementally (use --incremental)";
   //////// all checks before this line
   for (uint32_t n = 0; n < nscopes; ++n)

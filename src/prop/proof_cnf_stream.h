@@ -133,7 +133,6 @@ class ProofCnfStream : public ProofGenerator
    * Specific clausifiers, based on the formula kinds, that clausify a formula,
    * by calling toCNF into each of the formula's children under the respective
    * kind, and introduce a literal definitionally equal to it. */
-  SatLiteral handleNot(TNode node);
   SatLiteral handleXor(TNode node);
   SatLiteral handleImplies(TNode node);
   SatLiteral handleIff(TNode node);

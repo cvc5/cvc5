@@ -62,9 +62,9 @@ TEST_F(TestTheoryWhiteIntOpt, max)
   // We activate our objective so the subsolver knows to optimize it
   d_optslv->addObjective(max_cost, OptimizationObjective::MAXIMIZE);
 
-  OptimizationResult::ResultType r = d_optslv->checkOpt();
+  Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  ASSERT_EQ(r.isSat(), Result::SAT);
 
   // We expect max_cost == 99
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
@@ -93,9 +93,9 @@ TEST_F(TestTheoryWhiteIntOpt, min)
   // We activate our objective so the subsolver knows to optimize it
   d_optslv->addObjective(max_cost, OptimizationObjective::MINIMIZE);
 
-  OptimizationResult::ResultType r = d_optslv->checkOpt();
+  Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  ASSERT_EQ(r.isSat(), Result::SAT);
 
   // We expect max_cost == 99
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
@@ -125,10 +125,10 @@ TEST_F(TestTheoryWhiteIntOpt, result)
   d_optslv->addObjective(max_cost, OptimizationObjective::MAXIMIZE);
 
   // This should return OPT_UNSAT since 0 > x > 100 is impossible.
-  OptimizationResult::ResultType r = d_optslv->checkOpt();
+  Result r = d_optslv->checkOpt();
 
   // We expect our check to have returned UNSAT
-  ASSERT_EQ(r, OptimizationResult::UNSAT);
+  ASSERT_EQ(r.isSat(), Result::UNSAT);
   d_smtEngine->resetAssertions();
 }
 
@@ -157,9 +157,9 @@ TEST_F(TestTheoryWhiteIntOpt, open_interval)
 
   d_optslv->addObjective(cost3, OptimizationObjective::MINIMIZE);
 
-  OptimizationResult::ResultType r = d_optslv->checkOpt();
+  Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r, OptimizationResult::OPTIMAL);
+  ASSERT_EQ(r.isSat(), Result::SAT);
 
   // expect the minimum result of cost3 = cost1 + cost2 to be 1 + 111 = 112
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),

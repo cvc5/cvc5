@@ -1,6 +1,5 @@
 ; COMMAND-LINE: -q
 ; EXPECT: sat
-; REQUIRES: symfpu
 (set-logic HO_ALL)
 (set-option :assign-function-values false)
 (set-info :status sat)
