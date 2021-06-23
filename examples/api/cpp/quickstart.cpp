@@ -120,8 +120,8 @@ int main()
   double yDouble = std::stod(yStr);
   double xMinusYDouble = std::stod(xMinusYStr);
 
-  // Another way to independently compute the value of x and y would be using
-  // the ordinary cpp minus operator instead of asking the solver.
+  // Another way to independently compute the value of x - y would be
+  // to use the cpp minus operator instead of asking the solver.
   // However, for more complex terms,
   // it is easier to let the solver do the evaluation.
   double xMinusYComputed = xDouble - yDouble;

@@ -34,6 +34,7 @@ For this, we first query the solver for the corresponding sorts.
 
 Now, we create two constants ``x`` and ``y`` of sort ``Real``,
 and two constants ``a`` and ``b`` of sort ``Integer``.
+Notice that these are *symbolic* constants, but not actual values.
 
 .. literalinclude:: ../../../examples/api/cpp/quickstart.cpp
      :language: cpp
@@ -112,14 +113,14 @@ We can convert these values to C++ types using standard conversion functions.
      :language: cpp
      :lines: 119-121
 
-Another way to independently compute the values of ``x`` and ``y`` would be
-using the C++ minus operator instead of asking the solver.
+Another way to independently compute the value of ``x - y`` would be to
+use the C++ minus operator instead of asking the solver.
 However, for more complex terms, it is easier to let the solver do the
 evaluation.
 
 .. literalinclude:: ../../../examples/api/cpp/quickstart.cpp
      :language: cpp
-     :lines: 119-121
+     :lines: 127-135
 
 This will print:
 
@@ -147,13 +148,9 @@ Now, we check whether the revised assertion is satisfiable.
 
 .. literalinclude:: ../../../examples/api/cpp/quickstart.cpp
      :language: cpp
-     :lines: 153
+     :lines: 153, 156-157
 
 This time the asserted formula is unsatisfiable:
-
-.. literalinclude:: ../../../examples/api/cpp/quickstart.cpp
-     :language: cpp
-     :lines: 156-157
 
 .. code:: text
 
@@ -165,7 +162,7 @@ of the assertions that is already unsatisfiable.
 
 .. literalinclude:: ../../../examples/api/cpp/quickstart.cpp
      :language: cpp
-     :lines: 161-166
+     :lines: 161-167
 
 This will print:
 
