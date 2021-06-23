@@ -146,15 +146,6 @@ void OptionsHandler::checkBvSatSolver(const std::string& option,
     throw OptionException(ss.str());
   }
 
-  if (m == SatSolverMode::CADICAL && !Configuration::isBuiltWithCadical())
-  {
-    std::stringstream ss;
-    ss << "option `" << option
-       << "' requires a CaDiCaL build of cvc5; this binary was not built with "
-          "CaDiCaL support";
-    throw OptionException(ss.str());
-  }
-
   if (m == SatSolverMode::KISSAT && !Configuration::isBuiltWithKissat())
   {
     std::stringstream ss;
@@ -397,7 +388,6 @@ void OptionsHandler::showConfiguration(const std::string& option,
   print_config_cond("abc", Configuration::isBuiltWithAbc());
   print_config_cond("cln", Configuration::isBuiltWithCln());
   print_config_cond("glpk", Configuration::isBuiltWithGlpk());
-  print_config_cond("cadical", Configuration::isBuiltWithCadical());
   print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
   print_config_cond("gmp", Configuration::isBuiltWithGmp());
   print_config_cond("kissat", Configuration::isBuiltWithKissat());

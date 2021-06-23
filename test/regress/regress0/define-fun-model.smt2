@@ -1,8 +1,8 @@
-; SCRUBBER: sed -e 's/BOUND_VARIABLE_[0-9]*/BOUND_VARIABLE/'
+; SCRUBBER: sed -e 's/BOUND_VARIABLE_[0-9]*/V/; s/_arg_[0-9]*/V/'
 ; EXPECT: sat
 ; EXPECT: (((f 4) 7))
-; EXPECT: ((g (lambda ((BOUND_VARIABLE Int)) 7)))
-; EXPECT: ((f (lambda ((BOUND_VARIABLE Int)) 7)))
+; EXPECT: ((g (lambda ((V Int)) 7)))
+; EXPECT: ((f (lambda ((V Int)) 7)))
 (set-logic UFLIA)
 (set-option :produce-models true)
 (define-fun f ((x Int)) Int 7)
