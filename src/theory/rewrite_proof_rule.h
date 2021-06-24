@@ -40,6 +40,13 @@ class RewriteProofRule
   void init(const std::string& name, const std::vector<Node>& cond, Node conc);
   /** get name */
   const std::string& getName() const;
+  /** Get variable list */
+  const std::vector<Node>& getVarList() const;
+  /** 
+   * Is variable explicit? An explicit variable is one that does not occur
+   * in a condition and thus its value must be specified in a proof.
+   */
+  bool isExplicitVar(Node v) const;
   /** Does this rule have conditions? */
   bool hasConditions() const;
   /** Get (declared) conditions */

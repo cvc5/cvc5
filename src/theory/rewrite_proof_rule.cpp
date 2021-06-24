@@ -145,6 +145,15 @@ Node RewriteProofRule::purifySideConditions(Node n, std::vector<Node>& scs)
 
 const std::string& RewriteProofRule::getName() const { return d_name; }
 
+const std::vector<Node>& RewriteProofRule::getVarList() const
+{
+  return d_fvs;
+}
+bool RewriteProofRule::isExplicitVar(Node v) const
+{
+  Assert (std::find(d_fvs.begin(), d_fvs.end(), v)!=d_fvs.end());
+  return d_noOccVars.find(v)!=d_noOccVars.end();
+}
 bool RewriteProofRule::hasConditions() const { return !d_cond.empty(); }
 
 const std::vector<Node>& RewriteProofRule::getConditions() const

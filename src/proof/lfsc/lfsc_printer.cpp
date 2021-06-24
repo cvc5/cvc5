@@ -227,8 +227,7 @@ void LfscPrinter::print(std::ostream& out,
   for (DslPfRule dslr : dslrs)
   {
     const theory::RewriteProofRule& rpr = d_rdb->getRule(dslr);
-    // TODO
-    std::vector<Node> varList;
+    const std::vector<Node>& varList = rpr.getVarList();
     const std::vector<Node>& conds = rpr.getConditions();
     Node conc = rpr.getConclusion();
     std::stringstream rparen;
@@ -674,14 +673,27 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     break;
     case PfRule::DSL_REWRITE:
     {
-      // TODO
-      return false;
-      // currently assume all arguments are explicit
+      DslPfRule di;
+      if (!theory::getDslPfRule(args[0], di))
+      {
+        Assert(false);
+      }
+      const theory::RewriteProofRule& rpr = d_rdb->getRule(di);
+      const std::vector<Node>& varList = rpr.getVarList();
+      Assert (as.size()==varList.size()+1);
+      // print holes/terms based on whether variables are explicit
       for (size_t i = 1, nargs = as.size(); i < nargs; i++)
       {
-        pf << as[i];
+        if (rpr.isExplicitVar(varList[i]))
+        {
+          pf << as[i];
+        }
+        else
+        {
+          pf << h;
+        }
       }
-      // child proofs
+      // print child proofs
       for (const ProofNode* c : cs)
       {
         pf << c;
