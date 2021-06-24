@@ -1,2 +1,5 @@
+(declare-const t Bool)
+
+(define-rule bool-symmetry (= t t) true)
 (define-rule nottrue (not true) false)
 (define-rule orfalse (or false false) false)

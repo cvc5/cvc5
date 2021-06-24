@@ -1,6 +1,7 @@
 import pyparsing as pp
 from node import *
 from rule import Rule
+from util import die, fresh_name
 
 symbol_to_op = {
     'bvugt': Op.BVUGT,
@@ -55,6 +56,8 @@ symbol_to_op = {
     '=': Op.EQ,
     'ite': Op.ITE,
     'str.++': Op.STRING_CONCAT,
+    'str.len': Op.STRING_LENGTH,
+    'str.substr': Op.STRING_SUBSTR,
 }
 
 
@@ -62,8 +65,16 @@ class SymbolTable:
     def __init__(self):
         self.symbols = dict()
 
-    def add_symbol(self, v, s):
-        self.symbols[v] = s
+    def add_symbol(self, name, sort):
+        if name in self.symbols:
+            die(f'Symbol {name} has already been declared')
+
+        self.symbols[name] = Var(fresh_name(name), sort)
+
+    def get_symbol(self, name):
+        if name not in self.symbols:
+            die(f'Symbol {name} not declared')
+        return self.symbols[name]
 
 
 class Parser:
@@ -98,7 +109,8 @@ class Parser:
         expr = pp.Forward()
 
         # Variable
-        var = self.symbol().setParseAction(lambda s, l, t: Var(t[0]))
+        var = self.symbol().setParseAction(
+            lambda s, l, t: self.symbols.get_symbol(t[0]))
 
         # Constants
         bconst = pp.Keyword('true').setParseAction(
@@ -160,7 +172,7 @@ class Parser:
                    self.expr(False) + pp.Suppress(')')).setParseAction(
                        lambda s, l, t: Sort(BaseSort.BitVec, [t[1]]))
         int_sort = pp.Keyword('Int').setParseAction(
-            lambda s, l, t: Sort(BaseSort.Int32, []))
+            lambda s, l, t: Sort(BaseSort.Int, []))
         bool_sort = pp.Keyword('Bool').setParseAction(
             lambda s, l, t: Sort(BaseSort.Bool, []))
         string_sort = pp.Keyword('String').setParseAction(
@@ -178,7 +190,7 @@ class Parser:
              self.sort() + pp.Suppress(')')).setParseAction(
                  lambda s, l, t: self.symbols.add_symbol(t[1], t[2])))
         rule = comments + (pp.Suppress('(') + pp.Keyword('define-rule') +
-                           pp.Word(pp.alphas) + self.expr() + self.expr() +
+                           self.symbol() + self.expr() + self.expr() +
                            pp.Suppress(')')).setParseAction(
                                lambda s, l, t: Rule(t[1], t[2], t[3]))
         rules = pp.OneOrMore(decl | rule) + comments + pp.StringEnd()

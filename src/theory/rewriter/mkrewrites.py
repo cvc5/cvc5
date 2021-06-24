@@ -2,38 +2,10 @@ import argparse
 import logging
 import os
 import sys
-from subprocess import Popen, PIPE, STDOUT
+from collections import defaultdict
 from parser import Parser
 from node import *
-
-
-# TODO: refactor common code
-def read_tpl(directory, name):
-    """
-    Read a template file directory/name. The contents of the template file will
-    be read into a string, which will later be used to fill in the generated
-    code/documentation via format. Hence, we have to escape curly braces. All
-    placeholder variables in the template files are enclosed in ${placeholer}$
-    and will be {placeholder} in the returned string.
-    """
-    fname = os.path.join(directory, name)
-    try:
-        # Escape { and } since we later use .format to add the generated code.
-        # Further, strip ${ and }$ from placeholder variables in the template
-        # file.
-        with open(fname, 'r') as file:
-            contents = \
-                file.read().replace('{', '{{').replace('}', '}}').\
-                            replace('${', '').replace('}$', '')
-            return contents
-    except IOError:
-        die("Could not find '{}'. Aborting.".format(fname))
-
-
-def format_cpp(s):
-    p = Popen(["clang-format"], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-    out = p.communicate(input=s.encode())[0]
-    return out.decode()
+from util import *
 
 
 def gen_kind(op):
@@ -42,23 +14,32 @@ def gen_kind(op):
         Op.AND: 'AND',
         Op.OR: 'OR',
         Op.EQ: 'EQUAL',
-        Op.STRING_CONCAT: 'STRING_CONCAT'
+        Op.STRING_CONCAT: 'STRING_CONCAT',
+        Op.STRING_LENGTH: 'STRING_LENGTH',
+        Op.STRING_SUBSTR: 'STRING_SUBSTR',
     }
     return op_to_kind[op]
 
 
 def gen_mk_skolem(name, sort):
     sort_code = None
-    if sort.base == BaseSort.String:
+    if sort.base == BaseSort.Bool:
+        sort_code = 'nm->booleanType()'
+    elif sort.base == BaseSort.Int:
+        sort_code = 'nm->integerType()'
+    elif sort.base == BaseSort.String:
         sort_code = 'nm->stringType()'
     else:
         die(f'Cannot generate code for {sort}')
-    return f'Node {name} = nm->mkBoundVar("{name}", {sort_code})'
+    return f'Node {name} = nm->mkBoundVar("{name}", {sort_code});'
 
 
-def gen_mk_node(expr):
+def gen_mk_node(defns, expr):
+    if defns is not None and expr in defns:
+        return defns[expr]
+
     if isinstance(expr, App):
-        args = ",".join(gen_mk_node(child) for child in expr.children)
+        args = ",".join(gen_mk_node(defns, child) for child in expr.children)
         return f'nm->mkNode({gen_kind(expr.op)}, {args})'
     elif isinstance(expr, CString):
         return f'nm->mkConst(String("{expr.val}"))'
@@ -71,22 +52,71 @@ def gen_mk_node(expr):
         die(f'Cannot generate code for {expr}')
 
 
-def gen_rewrite_db_rule(rule):
-    return f'db.addRule({gen_mk_node(rule.lhs)}, {gen_mk_node(rule.rhs)}, nm->mkConst(true), "{rule.name}");'
+def gen_rewrite_db_rule(defns, rule):
+    return f'db.addRule({gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, {gen_mk_node(defns, CBool(True))}, "{rule.name}");'
+
+
+class Rewrites:
+    def __init__(self, filename, decls, rules):
+        self.decls = decls
+        self.rules = rules
 
 
 def gen_rewrite_db(args):
-    instrs = []
+    block_tpl = '''
+        {{
+            // from {filename}
+            {block_code}
+        }}
+    '''
+
+    decls = []
+    rewrites = []
     for rewrites_file in args.rewrites_files:
         parser = Parser()
         rules = parser.parse_rules(rewrites_file.read())
         symbols = parser.get_symbols()
 
-        for name, sort in parser.get_symbols().symbols.items():
-            instrs.append(gen_mk_skolem(name, sort))
+        file_decls = parser.get_symbols().symbols.values()
+        rewrites.append(Rewrites(rewrites_file.name, file_decls, rules))
+        decls.extend(file_decls)
 
-        for rule in rules:
-            instrs.append(gen_rewrite_db_rule(rule))
+    defns = {}
+    expr_counts = defaultdict(lambda: 0)
+    to_visit = [
+        expr for rewrite in rewrites for rule in rewrite.rules
+        for expr in [rule.lhs, rule.rhs]
+    ]
+    while to_visit:
+        curr = to_visit.pop()
+
+        if isinstance(curr, Var):
+            # Don't generate definitions for variables
+            continue
+
+        if expr_counts[curr] == 0:
+            expr_counts[curr] = 1
+            to_visit.extend(curr.children)
+        elif curr not in defns:
+            defns[curr] = fresh_name('e')
+
+    decls_code = []
+    for decl in decls:
+        decls_code.append(gen_mk_skolem(decl.name, decl.sort))
+
+    defns_code = []
+    for expr, name in defns.items():
+        defns_code.append(f'Node {name} = {gen_mk_node(None, expr)};')
+
+    rules_code = []
+    for rewrite_file in rewrites:
+        block = []
+        for rule in rewrite_file.rules:
+            block.append(gen_rewrite_db_rule(defns, rule))
+
+        rules_code.append(
+            block_tpl.format(filename=rewrites_file.name,
+                             block_code='\n'.join(block)))
 
     rewrites_h = read_tpl(args.src_dir, 'rewrites_template.h')
     with open('rewrites.h', 'w') as f:
@@ -94,7 +124,11 @@ def gen_rewrite_db(args):
 
     rewrites_cpp = read_tpl(args.src_dir, 'rewrites_template.cpp')
     with open('rewrites.cpp', 'w') as f:
-        f.write(format_cpp(rewrites_cpp.format(instrs=';'.join(instrs))))
+        f.write(
+            format_cpp(
+                rewrites_cpp.format(decls='\n'.join(decls_code),
+                                    defns='\n'.join(defns_code),
+                                    rules='\n'.join(rules_code))))
 
 
 def main():

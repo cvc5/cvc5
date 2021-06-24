@@ -29,7 +29,14 @@ namespace rewriter {
 void addRules(RewriteDb& db) {
   NodeManager* nm = NodeManager::currentNM();
 
-${instrs}$
+  // Declarations
+${decls}$
+
+  // Definitions
+${defns}$
+
+  // Rules
+${rules}$
 }
 
 }

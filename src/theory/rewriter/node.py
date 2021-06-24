@@ -90,8 +90,11 @@ class Op(Enum):
     # Strings
     ###########################################################################
 
-    STRING_CONCAT = auto()
     CONST_STRING = auto()
+    STRING_CONCAT = auto()
+    STRING_LENGTH = auto()
+
+    STRING_SUBSTR = auto()
 
 
 class BaseSort(Enum):
