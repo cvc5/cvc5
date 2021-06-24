@@ -193,7 +193,7 @@ void PfManager::printProof(std::ostream& out,
     proof::LfscNodeConverter ltp;
     proof::LfscProofPostprocess lpp(ltp, d_pnm.get());
     lpp.process(fp);
-    proof::LfscPrinter lp(ltp);
+    proof::LfscPrinter lp(ltp, d_rewriteDb.get());
     lp.print(out, assertions, fp.get());
   }
   else

@@ -37,34 +37,43 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
                                MethodId mid,
                                uint32_t recLimit)
 {
+  Trace("rewrite-pc") << "RewriteDbProofCons::prove: " << a << " == " << b << std::endl;
+  Trace("rewrite-pc-debug") << "- prove basic" << std::endl;
   // first, try with the basic utility
   if (d_trrc.prove(cdp, a, b, tid, mid))
   {
+    Trace("rewrite-pc") << "...success (basic)" << std::endl;
     return true;
   }
+  Trace("rewrite-pc-debug") << "- convert to internal" << std::endl;
   DslPfRule id;
   Node eq = a.eqNode(b);
   Node eqi = RewriteDbTermProcess::toInternal(eq);
   if (!proveInternalBase(eqi, id))
   {
+    Trace("rewrite-pc-debug") << "- prove internal" << std::endl;
     // add one to recursion limit, since it is decremented whenever we initiate
     // the getMatches routine.
     d_currRecLimit = recLimit + 1;
     // Otherwise, we call the main prove internal method, which recurisvely
     // tries to find a matched conclusion whose conditions can be proven
     id = proveInternal(eqi);
+    Trace("rewrite-pc-debug") << "- finished prove internal" << std::endl;
   }
-  // clear the proof caches? use attributes instead?
-  d_pcache.clear();
-  d_pcacheFailMaxDepth.clear();
   bool success = (id != DslPfRule::FAIL);
   // if a proof was provided, fill it in
   if (success && cdp != nullptr)
   {
+    Trace("rewrite-pc-debug") << "- ensure proof" << std::endl;
     // ensure proof exists
     ensureProofInternal(cdp, eqi);
     Assert(cdp->hasStep(eqi));
+    Trace("rewrite-pc-debug") << "- finish ensure proof" << std::endl;
   }
+  Trace("rewrite-pc") << "..." << (success ? "success" : "fail") << std::endl;
+  // clear the proof caches? use attributes instead?
+  d_pcache.clear();
+  d_pcacheFailMaxDepth.clear();
   // clear the evaluate cache?
   d_evalCache.clear();
   return success;

@@ -28,8 +28,8 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace proof {
 
-LfscPrinter::LfscPrinter(LfscNodeConverter& ltp)
-    : d_tproc(ltp), d_assumpCounter(0)
+LfscPrinter::LfscPrinter(LfscNodeConverter& ltp, theory::RewriteDb* rdb)
+    : d_tproc(ltp), d_assumpCounter(0), d_rdb(rdb)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_boolType = nm->booleanType();
@@ -187,7 +187,6 @@ void LfscPrinter::print(std::ostream& out,
   computeProofLetification(pnBody, pletList, pletMap);
 
   Trace("lfsc-print-debug") << "; compute term lets" << std::endl;
-  // [3] print the check command and term lets
   // compute the term lets
   LetBinding lbind;
   for (const Node& ia : iasserts)
@@ -198,7 +197,7 @@ void LfscPrinter::print(std::ostream& out,
   // channel. This pass traverses the proof but does not print it, but instead
   // updates the let binding data structure for all nodes that appear anywhere
   // in the proof.
-  LfscPrintChannelLetifyNode lpcln(lbind);
+  LfscPrintChannelPre lpcp(lbind);
   LetBinding emptyLetBind;
   std::map<const ProofNode*, size_t>::iterator itp;
   for (const ProofNode* p : pletList)
@@ -207,21 +206,32 @@ void LfscPrinter::print(std::ostream& out,
     Assert(itp != pletMap.end());
     size_t pid = itp->second;
     pletMap.erase(p);
-    printProofInternal(&lpcln, p, emptyLetBind, pletMap, passumeMap);
+    printProofInternal(&lpcp, p, emptyLetBind, pletMap, passumeMap);
     pletMap[p] = pid;
   }
   // Print the body of the outermost scope
-  printProofInternal(&lpcln, pnBody, emptyLetBind, pletMap, passumeMap);
+  printProofInternal(&lpcp, pnBody, emptyLetBind, pletMap, passumeMap);
   Trace("lfsc-print-debug2")
-      << "node count let " << lpcln.d_nodeCount << std::endl;
+      << "node count let " << lpcp.d_nodeCount << std::endl;
   Trace("lfsc-print-debug2")
-      << "trust count let " << lpcln.d_trustCount << std::endl;
+      << "trust count let " << lpcp.d_trustCount << std::endl;
 
-  // [1a] print warnings
+  // [3] print warnings
   for (PfRule r : d_trustWarned)
   {
     out << "; WARNING: adding trust step for " << r << std::endl;
   }
+  // [4] print the DSL rewrite rules
+  const std::unordered_set<theory::DslPfRule>& dslrs = lpcp.getDslRewrites();
+  for (theory::DslPfRule dslr : dslrs)
+  {
+    const theory::RewriteProofRule& rpr = d_rdb->getRule(dslr);
+    // TODO
+    out << "; (declare dsl." << rpr.getName();
+    out << ")";
+  }
+
+  // [5] print the check command and term lets
   out << preamble.str();
   out << "(check" << std::endl;
   cparen << ")";
@@ -229,7 +239,7 @@ void LfscPrinter::print(std::ostream& out,
   printLetList(out, cparen, lbind);
 
   Trace("lfsc-print-debug") << "; print asserts" << std::endl;
-  // [4] print the assertions, with letification
+  // [6] print the assertions, with letification
   // the assumption identifier mapping
   for (size_t i = 0, nasserts = iasserts.size(); i < nasserts; i++)
   {
@@ -243,12 +253,12 @@ void LfscPrinter::print(std::ostream& out,
   }
 
   Trace("lfsc-print-debug") << "; print annotation" << std::endl;
-  // [5] print the annotation
+  // [7] print the annotation
   out << "(: (holds false)" << std::endl;
   cparen << ")";
 
   Trace("lfsc-print-debug") << "; print proof body" << std::endl;
-  // [6] print the proof body
+  // [8] print the proof body
   Assert(pn->getRule() == PfRule::SCOPE);
   // the outermost scope can be ignored (it is the scope of the assertions,
   // which are already printed above).
@@ -636,8 +646,23 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         case LfscRule::ARITH_SUM_UB: pf << h << h << h << cs[0] << cs[1]; break;
         default: return false; break;
       }
-      break;
     }
+    break;
+    case PfRule::DSL_REWRITE:
+    {
+      theory::DslPfRule di;
+      if (theory::getDslPfRule(as[0], di))
+      {
+        //const theory::RewriteProofRule& rpr = d_rdb->getRule(dslr);
+        // TODO
+      }
+      else
+      {
+        Assert(false);
+      }
+      return false;
+    }
+    break;
     default:
     {
       return false;

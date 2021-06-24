@@ -17,6 +17,7 @@
 #include <sstream>
 
 #include "proof/lfsc/lfsc_util.h"
+#include "theory/rewrite_proof_rule.h"
 
 namespace cvc5 {
 namespace proof {
@@ -145,20 +146,43 @@ void LfscPrintChannelOut::cleanSymbols(std::string& s)
   }
 }
 
-LfscPrintChannelLetifyNode::LfscPrintChannelLetifyNode(LetBinding& lbind)
+LfscPrintChannelPre::LfscPrintChannelPre(LetBinding& lbind)
     : d_lbind(lbind)
 {
 }
 
-void LfscPrintChannelLetifyNode::printNode(TNode n)
+void LfscPrintChannelPre::printNode(TNode n)
 {
   d_nodeCount++;
   d_lbind.process(n);
 }
-void LfscPrintChannelLetifyNode::printTrust(TNode res, PfRule src)
+void LfscPrintChannelPre::printTrust(TNode res, PfRule src)
 {
   d_trustCount++;
   d_lbind.process(res);
+}
+
+void LfscPrintChannelPre::printOpenRule(const ProofNode* pn)
+{
+  // if its a DSL rule, remember it
+  if (pn->getRule()==PfRule::DSL_REWRITE)
+  {
+    Node idn = pn->getArguments()[0];
+    theory::DslPfRule di;
+    if (theory::getDslPfRule(idn, di))
+    {
+      d_dprs.insert(di);
+    }
+    else
+    {
+      Assert(false);
+    }
+  }
+}
+
+const std::unordered_set<theory::DslPfRule>& LfscPrintChannelPre::getDslRewrites() const
+{
+  return d_dprs;
 }
 
 }  // namespace proof

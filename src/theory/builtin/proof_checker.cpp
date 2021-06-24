@@ -41,6 +41,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this);
   pc->registerChecker(PfRule::THEORY_REWRITE, this);
   pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
+  pc->registerChecker(PfRule::DSL_REWRITE, this);
   // trusted rules
   pc->registerTrustedChecker(PfRule::THEORY_LEMMA, this, 1);
   pc->registerTrustedChecker(PfRule::PREPROCESS, this, 3);
@@ -412,7 +413,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     return args[0];
   }
   else if (id == PfRule::LFSC_RULE || id == PfRule::VERIT_RULE
-           || id == PfRule::LEAN_RULE)
+           || id == PfRule::LEAN_RULE  || id == PfRule::DSL_REWRITE)
   {
     Assert(args.size() > 1);
     Assert(args[0].getType().isInteger());

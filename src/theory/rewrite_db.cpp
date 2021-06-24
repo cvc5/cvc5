@@ -112,6 +112,11 @@ const RewriteProofRule& RewriteDb::getRule(DslPfRule id) const
   return it->second;
 }
 
+const std::string& RewriteDb::getRuleName(DslPfRule id) const
+{
+  return getRule(id).getName();
+}
+
 const std::vector<DslPfRule>& RewriteDb::getRuleIdsForConclusion(Node eq) const
 {
   std::map<Node, std::vector<DslPfRule> >::const_iterator it =

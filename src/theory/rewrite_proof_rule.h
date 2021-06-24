@@ -46,6 +46,9 @@ const char* toString(DslPfRule drule);
  */
 std::ostream& operator<<(std::ostream& out, DslPfRule drule);
 
+/** Get DslPfRule from node */
+bool getDslPfRule(TNode n, DslPfRule& id);
+
 /**
  * The definition of a (conditional) rewrite rule.
  */

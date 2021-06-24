@@ -26,6 +26,7 @@
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/print_expr.h"
 #include "proof/proof_node.h"
+#include "theory/rewrite_db.h"
 
 namespace cvc5 {
 namespace proof {
@@ -35,7 +36,7 @@ class LfscPrintChannel;
 class LfscPrinter
 {
  public:
-  LfscPrinter(LfscNodeConverter& ltp);
+  LfscPrinter(LfscNodeConverter& ltp, theory::RewriteDb* rdb);
   ~LfscPrinter() {}
 
   /**
@@ -116,6 +117,8 @@ class LfscPrinter
   size_t d_assumpCounter;
   /** for debugging the open rules, the set of PfRule we have warned about */
   std::unordered_set<PfRule, PfRuleHashFunction> d_trustWarned;
+  /** Pointer to the rewrite database */
+  theory::RewriteDb* d_rdb;
 };
 
 }  // namespace proof

@@ -19,6 +19,7 @@
 #include "expr/node_algorithm.h"
 #include "theory/rewrite_db_sc.h"
 #include "theory/rewrite_db_term_process.h"
+#include "proof/proof_checker.h"
 
 using namespace cvc5::kind;
 
@@ -40,6 +41,17 @@ std::ostream& operator<<(std::ostream& out, DslPfRule drule)
 {
   out << toString(drule);
   return out;
+}
+
+bool getDslPfRule(TNode n, DslPfRule& id)
+{
+  uint32_t i;
+  if (ProofRuleChecker::getUInt32(n, i))
+  {
+    id = static_cast<theory::DslPfRule>(i);
+    return true;
+  }
+  return false;
 }
 
 RewriteProofRule::RewriteProofRule() : d_name("") {}
