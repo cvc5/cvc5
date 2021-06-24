@@ -43,7 +43,9 @@ def read_tpl(directory, name):
         with open(fname, 'r') as file:
             contents = \
                 file.read().replace('{', '{{').replace('}', '}}').\
-                            replace('${', '').replace('}$', '')
+                            replace('${', '').replace('}$', '').\
+                            replace('// clang-format on\n', '').\
+                            replace('// clang-format off\n', '')
             return contents
     except IOError:
         die("Could not find '{}'. Aborting.".format(fname))

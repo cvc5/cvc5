@@ -32,7 +32,10 @@ enum class DslPfRule : uint32_t
   FAIL = 0,
   REFL,
   EVAL,
+  // Generated rule ids
+  // clang-format off
   ${rule_ids}$
+  // clang-format on
 };
 
 void addRules(RewriteDb& db);

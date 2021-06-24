@@ -30,14 +30,16 @@ void addRules(RewriteDb& db)
 {
   NodeManager* nm = NodeManager::currentNM();
 
-// Declarations
+  // Declarations
+  // clang-format off
 ${decls}$
 
-// Definitions
+  // Definitions
 ${defns}$
 
-// Rules
+  // Rules
 ${rules}$
+  // clang-format on
 }
 
 const char* toString(DslPfRule drule)
@@ -47,8 +49,10 @@ const char* toString(DslPfRule drule)
     case DslPfRule::FAIL: return "FAIL";
     case DslPfRule::REFL: return "REFL";
     case DslPfRule::EVAL: return "EVAL";
+      // clang-format off
 ${printer}$
-    default: Unreachable();
+    default : Unreachable();
+      // clang-format on
   }
 }
 
