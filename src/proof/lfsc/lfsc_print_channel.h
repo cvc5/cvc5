@@ -24,6 +24,7 @@
 #include "printer/let_binding.h"
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/proof_node.h"
+#include "theory/rewrite_proof_rule.h"
 
 namespace cvc5 {
 namespace proof {
@@ -98,6 +99,8 @@ class LfscPrintChannelLetifyNode : public LfscPrintChannel
  private:
   /** The let binding */
   LetBinding& d_lbind;
+  /** The DSL rules we have seen */
+  std::unordered_set<theory::DslPfRule> d_dprs;
 };
 
 }  // namespace proof

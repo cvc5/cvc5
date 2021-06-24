@@ -45,6 +45,8 @@ class RewriteDb
   DslPfRule addRule(Node a, Node b, Node cond, const std::string& name);
   /** get matches */
   void getMatches(Node eq, expr::NotifyMatch* ntm);
+  /** Get the maximum rule identifier */
+  DslPfRule getMaxRuleId() const;
   /** get rule for id */
   const RewriteProofRule& getRule(DslPfRule id) const;
   /** get ids for conclusion */

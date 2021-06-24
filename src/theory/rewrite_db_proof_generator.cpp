@@ -58,14 +58,14 @@ bool RewriteDbProofCons::prove(CDProof* cdp, Node a, Node b, theory::TheoryId ti
   {
     // ensure proof exists
     ensureProofInternal(cdp, eqi);
-    Assert(cdp.hasStep(eqi));
+    Assert(cdp->hasStep(eqi));
   }
   // clear the evaluate cache?
   d_evalCache.clear();
   return success;
 }
 
-DslPfRule RewriteDbProofCons::proveInternal(CDProof* cdp, Node eqi)
+DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
 {
   // eqi should not hold trivially and should not be cached
   Assert(d_currRecLimit > 0);
@@ -260,7 +260,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
     {
       visit.push_back(cur);
       // may already have a proof rule from a previous call
-      if (cdp.hasStep(cur))
+      if (cdp->hasStep(cur))
       {
         visited[cur] = true;
       }
@@ -273,7 +273,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
         {
           // trivial proof
           Assert(cur[0] == cur[1]);
-          cdp.addStep(cur, PfRule::REFL, {}, {cur[0]});
+          cdp->addStep(cur, PfRule::REFL, {}, {cur[0]});
         }
         else if (itd->second == DslPfRule::EVAL)
         {
@@ -291,12 +291,12 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
             // flip orientation for second child
             transc.push_back(i == 1 ? curv.eqNode(cur[i]) : eq);
             // trivial evaluation, add evaluation method id
-            cdp.addStep(eq, PfRule::EVALUATE, {}, {cur[i]});
+            cdp->addStep(eq, PfRule::EVALUATE, {}, {cur[i]});
           }
           if (transc.size() == 2)
           {
             // do transitivity if both sides evaluate
-            cdp.addStep(cur, PfRule::TRANS, transc, {});
+            cdp->addStep(cur, PfRule::TRANS, transc, {});
           }
         }
         else
@@ -337,7 +337,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       pfArgs.push_back(
           nm->mkConst(Rational(static_cast<uint32_t>(itd->second))));
       pfArgs.push_back(cur);
-      cdp.addStep(cur, PfRule::DSL_REWRITE, premises[cur], pfArgs);
+      cdp->addStep(cur, PfRule::DSL_REWRITE, premises[cur], pfArgs);
     }
   } while (!visit.empty());
   return true;
