@@ -39,7 +39,12 @@ class RewriteDbProofCons
    * Prove (= a b) with recursion limit recLimit. If cdp is provided, we add
    * a proove for this fact on it.
    */
-  bool prove(CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid, uint32_t recLimit);
+  bool prove(CDProof* cdp,
+             Node a,
+             Node b,
+             theory::TheoryId tid,
+             MethodId mid,
+             uint32_t recLimit);
 
  private:
   /** Notify class for the match trie */

@@ -26,19 +26,20 @@ namespace cvc5 {
 namespace theory {
 namespace rewriter {
 
-void addRules(RewriteDb& db) {
+void addRules(RewriteDb& db)
+{
   NodeManager* nm = NodeManager::currentNM();
 
   // Declarations
-${decls}$
+  ${decls} $
 
-  // Definitions
-${defns}$
+      // Definitions
+      ${defns} $
 
-  // Rules
-${rules}$
+          // Rules
+          ${rules} $
 }
 
-}
-}
-}
+}  // namespace rewriter
+}  // namespace theory
+}  // namespace cvc5

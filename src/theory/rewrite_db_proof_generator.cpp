@@ -30,7 +30,12 @@ RewriteDbProofCons::RewriteDbProofCons(RewriteDb* db, ProofNodeManager* pnm)
   d_false = nm->mkConst(false);
 }
 
-bool RewriteDbProofCons::prove(CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid, uint32_t recLimit)
+bool RewriteDbProofCons::prove(CDProof* cdp,
+                               Node a,
+                               Node b,
+                               theory::TheoryId tid,
+                               MethodId mid,
+                               uint32_t recLimit)
 {
   // first, try with the basic utility
   if (d_trrc.prove(cdp, a, b, tid, mid))
@@ -54,7 +59,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp, Node a, Node b, theory::TheoryId ti
   d_pcacheFailMaxDepth.clear();
   bool success = (id != DslPfRule::FAIL);
   // if a proof was provided, fill it in
-  if (success && cdp!=nullptr)
+  if (success && cdp != nullptr)
   {
     // ensure proof exists
     ensureProofInternal(cdp, eqi);

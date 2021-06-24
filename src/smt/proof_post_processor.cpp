@@ -36,8 +36,8 @@ namespace smt {
 ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
                                                    SmtEngine* smte,
                                                    ProofGenerator* pppg,
-                                                   
-                           theory::RewriteDb * rdb,
+
+                                                   theory::RewriteDb* rdb,
                                                    bool updateScopedAssumptions)
     : d_pnm(pnm),
       d_smte(smte),
@@ -1250,7 +1250,7 @@ bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
 ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
                                      SmtEngine* smte,
                                      ProofGenerator* pppg,
-                                     theory::RewriteDb * rdb,
+                                     theory::RewriteDb* rdb,
                                      bool updateScopedAssumptions)
     : d_pnm(pnm),
       d_cb(pnm, smte, pppg, rdb, updateScopedAssumptions),

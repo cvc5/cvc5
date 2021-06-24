@@ -24,8 +24,8 @@
 
 #include "proof/proof_node_updater.h"
 #include "smt/witness_form.h"
-#include "util/statistics_stats.h"
 #include "theory/rewrite_db_proof_generator.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 
@@ -43,7 +43,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   ProofPostprocessCallback(ProofNodeManager* pnm,
                            SmtEngine* smte,
                            ProofGenerator* pppg,
-                           theory::RewriteDb * rdb,
+                           theory::RewriteDb* rdb,
                            bool updateScopedAssumptions);
   ~ProofPostprocessCallback() {}
   /**
@@ -294,7 +294,7 @@ class ProofPostproccess
   ProofPostproccess(ProofNodeManager* pnm,
                     SmtEngine* smte,
                     ProofGenerator* pppg,
-                    theory::RewriteDb * rdb,
+                    theory::RewriteDb* rdb,
                     bool updateScopedAssumptions = true);
   ~ProofPostproccess();
   /** post-process */

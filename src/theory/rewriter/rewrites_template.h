@@ -28,9 +28,8 @@ class RewriteDb;
 namespace rewriter {
 
 void addRules(RewriteDb& db);
-
 }
-}
-}
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

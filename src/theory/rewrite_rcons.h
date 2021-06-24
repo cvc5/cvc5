@@ -10,7 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The module for basic (non-DSL-dependent) automatic reconstructing proofs of THEORY_REWRITE steps.
+ * The module for basic (non-DSL-dependent) automatic reconstructing proofs of
+ * THEORY_REWRITE steps.
  */
 
 #include "cvc5_private.h"
@@ -38,9 +39,7 @@ class TheoryRewriteRCons
   /**
    * Reconstruct
    */
-  bool prove(CDProof* cdp, 
-                                     Node a,
-                                     Node b, theory::TheoryId tid, MethodId mid);
+  bool prove(CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid);
 
  private:
   /** Try rule */

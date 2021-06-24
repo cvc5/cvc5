@@ -10,7 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The module for basic (non-DSL-dependent) automatic reconstructing proofs of THEORY_REWRITE steps.
+ * The module for basic (non-DSL-dependent) automatic reconstructing proofs of
+ * THEORY_REWRITE steps.
  */
 
 #include "theory/rewrite_rcons.h"
@@ -24,11 +25,8 @@ namespace theory {
 
 TheoryRewriteRCons::TheoryRewriteRCons(ProofNodeManager* pnm) : d_pnm(pnm) {}
 
-bool TheoryRewriteRCons::prove(CDProof* cdp,
-                                     Node a,
-                                     Node b,
-                                     theory::TheoryId tid,
-                                     MethodId mid)
+bool TheoryRewriteRCons::prove(
+    CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid)
 {
   Node eq = a.eqNode(b);
   Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid << ", "
@@ -67,5 +65,5 @@ bool TheoryRewriteRCons::tryRule(CDProof* cdp,
   return false;
 }
 
-}  // namespace smt
+}  // namespace theory
 }  // namespace cvc5

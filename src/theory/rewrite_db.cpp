@@ -102,10 +102,7 @@ void RewriteDb::getMatches(Node eq, expr::NotifyMatch* ntm)
   d_mt.getMatches(eq, ntm);
 }
 
-DslPfRule RewriteDb::getMaxRuleId() const
-{
-  return d_idCounter;
-}
+DslPfRule RewriteDb::getMaxRuleId() const { return d_idCounter; }
 
 const RewriteProofRule& RewriteDb::getRule(DslPfRule id) const
 {
