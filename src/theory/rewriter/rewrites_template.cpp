@@ -30,14 +30,14 @@ void addRules(RewriteDb& db)
 {
   NodeManager* nm = NodeManager::currentNM();
 
-  // Declarations
-  ${decls} $
+// Declarations
+${decls}$
 
-      // Definitions
-      ${defns} $
+// Definitions
+${defns}$
 
-          // Rules
-          ${rules} $
+// Rules
+${rules}$
 }
 
 }  // namespace rewriter
