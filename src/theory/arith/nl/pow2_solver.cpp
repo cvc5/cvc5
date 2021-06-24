@@ -91,7 +91,7 @@ void Pow2Solver::checkFullRefine()
   Trace("pow2-check") << "Pow2Solver::checkFullRefine";
   Trace("pow2-check") << "pow2 terms: " << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-
+  // sort the pow2 terms according to their values in the current model.
   struct
   {
     bool operator()(Node a, Node b, NlModel& model) const
@@ -104,6 +104,7 @@ void Pow2Solver::checkFullRefine()
   std::sort(
       d_pow2s.begin(), d_pow2s.end(), std::bind(modelSort, _1, _2, d_model));
 
+  // add lemmas for each pow2 term
   for (uint64_t i = 0, size = d_pow2s.size(); i < size; i++)
   {
     Node n = d_pow2s[i];
@@ -123,12 +124,10 @@ void Pow2Solver::checkFullRefine()
       continue;
     }
 
+    // add monotinicity lemmas
     for (uint64_t j = i + 1; j < size; j++)
     {
       Node m = d_pow2s[j];
-      // i = pow2(x)
-      // j = pow2(y)
-      // compute values for y and pow(y)
       Node valPow2yConcrete = d_model.computeConcreteModelValue(m);
       Node valYConcrete = d_model.computeConcreteModelValue(m[0]);
 
