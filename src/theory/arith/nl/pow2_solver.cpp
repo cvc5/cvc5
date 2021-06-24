@@ -98,18 +98,16 @@ void Pow2Solver::checkFullRefine()
   NodeManager* nm = NodeManager::currentNM();
   for (const Node& i : d_pow2s)
   {
-    Node valPow2x = d_model.computeAbstractModelValue(i);
-    Node valPow2xC = d_model.computeConcreteModelValue(i);
+    Node valPow2xAbstract = d_model.computeAbstractModelValue(i);
+    Node valPow2xConcrete = d_model.computeConcreteModelValue(i);
+    Node valXConcrete = d_model.computeConcreteModelValue(i[0]);
     if (Trace.isOn("pow2-check"))
     {
-      Node x = i[0];
-      Node valX = d_model.computeConcreteModelValue(x);
-
-      Trace("pow2-check") << "* " << i << ", value = " << valPow2x << std::endl;
-      Trace("pow2-check") << "  actual (" << valX << ", "
-                          << ") = " << valPow2xC << std::endl;
+      Trace("pow2-check") << "* " << i << ", value = " << valPow2xAbstract << std::endl;
+      Trace("pow2-check") << "  actual (" << valXConcrete << ", "
+                          << ") = " << valPow2xConcrete << std::endl;
     }
-    if (valPow2x == valPow2xC)
+    if (valPow2xAbstract == valPow2xConcrete)
     {
       Trace("pow2-check") << "...already correct" << std::endl;
       continue;
@@ -120,16 +118,14 @@ void Pow2Solver::checkFullRefine()
 	    if (i != j) {
 		// i = pow2(x)
 		// j = pow2(y)
-		//
-    		Node valPow2xC = d_model.computeConcreteModelValue(i);
-    		Node valPow2yC = d_model.computeConcreteModelValue(j);
-		Node valXC = d_model.computeConcreteModelValue(i[0]);
-		Node valYC = d_model.computeConcreteModelValue(j[0]);
+		// compute values for y and pow(y)
+    		Node valPow2yConcrete = d_model.computeConcreteModelValue(j);
+		Node valYConcrete = d_model.computeConcreteModelValue(j[0]);
 
-		Integer x = valXC.getConst<Rational>().getNumerator();
-		Integer y = valYC.getConst<Rational>().getNumerator();
-		Integer pow2x = valPow2xC.getConst<Rational>().getNumerator();
-		Integer pow2y = valPow2yC.getConst<Rational>().getNumerator();
+		Integer x = valXConcrete.getConst<Rational>().getNumerator();
+		Integer y = valYConcrete.getConst<Rational>().getNumerator();
+		Integer pow2x = valPow2xConcrete.getConst<Rational>().getNumerator();
+		Integer pow2y = valPow2yConcrete.getConst<Rational>().getNumerator();
 
 		if (x <= y && pow2x > pow2y) {
 			Node assumption = nm->mkNode(LEQ, i[0], j[0]);
