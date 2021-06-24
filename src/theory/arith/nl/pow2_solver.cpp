@@ -95,7 +95,7 @@ void Pow2Solver::checkFullRefine()
   
   struct {
         bool operator()(Node a, Node b, NlModel& model) const { 
-		return model.computeConcreteModelValue(a[0]) < model.computeConcreteModelValue(b[1]);	
+		return model.computeConcreteModelValue(a[0]) < model.computeConcreteModelValue(b[0]);	
 	}
     } modelSort;
   using namespace std::placeholders;
