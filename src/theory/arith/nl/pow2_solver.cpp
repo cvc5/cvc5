@@ -92,16 +92,20 @@ void Pow2Solver::checkFullRefine()
   Trace("pow2-check") << "pow2 terms: " << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> pow2Args;
-  
-  struct {
-        bool operator()(Node a, Node b, NlModel& model) const { 
-		return model.computeConcreteModelValue(a[0]) < model.computeConcreteModelValue(b[0]);	
-	}
-    } modelSort;
-  using namespace std::placeholders;
-  std::sort(d_pow2s.begin(), d_pow2s.end(), std::bind(modelSort, _1, _2, d_model));
 
-  for (uint64_t i=0, size = d_pow2s.size(); i<size; i++)
+  struct
+  {
+    bool operator()(Node a, Node b, NlModel& model) const
+    {
+      return model.computeConcreteModelValue(a[0])
+             < model.computeConcreteModelValue(b[0]);
+    }
+  } modelSort;
+  using namespace std::placeholders;
+  std::sort(
+      d_pow2s.begin(), d_pow2s.end(), std::bind(modelSort, _1, _2, d_model));
+
+  for (uint64_t i = 0, size = d_pow2s.size(); i < size; i++)
   {
     Node n = d_pow2s[i];
     Node valPow2xAbstract = d_model.computeAbstractModelValue(n);
@@ -120,27 +124,27 @@ void Pow2Solver::checkFullRefine()
       continue;
     }
 
-    for (uint64_t j=i+1; j<size; j++)
+    for (uint64_t j = i + 1; j < size; j++)
     {
       Node m = d_pow2s[j];
-        // i = pow2(x)
-        // j = pow2(y)
-        // compute values for y and pow(y)
-        Node valPow2yConcrete = d_model.computeConcreteModelValue(m);
-        Node valYConcrete = d_model.computeConcreteModelValue(m[0]);
+      // i = pow2(x)
+      // j = pow2(y)
+      // compute values for y and pow(y)
+      Node valPow2yConcrete = d_model.computeConcreteModelValue(m);
+      Node valYConcrete = d_model.computeConcreteModelValue(m[0]);
 
-        Integer x = valXConcrete.getConst<Rational>().getNumerator();
-        Integer y = valYConcrete.getConst<Rational>().getNumerator();
-        Integer pow2x = valPow2xConcrete.getConst<Rational>().getNumerator();
-        Integer pow2y = valPow2yConcrete.getConst<Rational>().getNumerator();
+      Integer x = valXConcrete.getConst<Rational>().getNumerator();
+      Integer y = valYConcrete.getConst<Rational>().getNumerator();
+      Integer pow2x = valPow2xConcrete.getConst<Rational>().getNumerator();
+      Integer pow2y = valPow2yConcrete.getConst<Rational>().getNumerator();
 
-        if (x <= y && pow2x > pow2y)
-        {
-          Node assumption = nm->mkNode(LEQ, n[0], m[0]);
-          Node conclusion = nm->mkNode(LEQ, n, m);
-          Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
-          d_im.addPendingLemma(
-              lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, nullptr, true);
+      if (x <= y && pow2x > pow2y)
+      {
+        Node assumption = nm->mkNode(LEQ, n[0], m[0]);
+        Node conclusion = nm->mkNode(LEQ, n, m);
+        Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+        d_im.addPendingLemma(
+            lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, nullptr, true);
         }
     }
 
