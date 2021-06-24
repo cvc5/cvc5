@@ -86,7 +86,8 @@ void Pow2Solver::checkInitialRefine()
   }
 }
 
-void Pow2Solver::sortPow2sBasedOnModel() {
+void Pow2Solver::sortPow2sBasedOnModel()
+{
   struct
   {
     bool operator()(Node a, Node b, NlModel& model) const
@@ -102,9 +103,9 @@ void Pow2Solver::sortPow2sBasedOnModel() {
 
 void Pow2Solver::checkFullRefine()
 {
-  Trace("pow2-check") << "Pow2Solver::checkFullRefine";
+  Trace("pow2-check") << "Pow2Solver::checkFullRefine" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-
+  sortPow2sBasedOnModel();
   // add lemmas for each pow2 term
   for (uint64_t i = 0, size = d_pow2s.size(); i < size; i++)
   {
