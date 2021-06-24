@@ -17,9 +17,9 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
+#include "proof/proof_checker.h"
 #include "theory/rewrite_db_sc.h"
 #include "theory/rewrite_db_term_process.h"
-#include "proof/proof_checker.h"
 
 using namespace cvc5::kind;
 
@@ -169,8 +169,8 @@ const std::vector<Node>& RewriteProofRule::getConditions() const
 bool RewriteProofRule::hasSideConditions() const { return !d_scs.empty(); }
 
 bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
-                                     const std::vector<Node>& ss,
-                                     std::vector<Node>& vcs) const
+                                      const std::vector<Node>& ss,
+                                      std::vector<Node>& vcs) const
 {
   if (!d_scs.empty())
   {

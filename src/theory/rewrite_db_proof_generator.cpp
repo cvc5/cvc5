@@ -37,7 +37,8 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
                                MethodId mid,
                                uint32_t recLimit)
 {
-  Trace("rewrite-pc") << "RewriteDbProofCons::prove: " << a << " == " << b << std::endl;
+  Trace("rewrite-pc") << "RewriteDbProofCons::prove: " << a << " == " << b
+                      << std::endl;
   Trace("rewrite-pc-debug") << "- prove basic" << std::endl;
   // first, try with the basic utility
   if (d_trrc.prove(cdp, a, b, tid, mid))

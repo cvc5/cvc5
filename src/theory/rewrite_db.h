@@ -53,6 +53,7 @@ class RewriteDb
   const std::vector<DslPfRule>& getRuleIdsForConclusion(Node eq) const;
   /** get name for id */
   const std::string& getRuleName(DslPfRule id) const;
+
  private:
   /** common constants */
   Node d_true;

@@ -71,8 +71,8 @@ class RewriteProofRule
    * side conditions of this method.
    */
   bool getObligations(const std::vector<Node>& vs,
-                     const std::vector<Node>& ss,
-                     std::vector<Node>& vcs) const;
+                      const std::vector<Node>& ss,
+                      std::vector<Node>& vcs) const;
   /** Get conclusion of the rule */
   Node getConclusion() const;
 

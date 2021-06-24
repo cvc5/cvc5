@@ -239,7 +239,7 @@ void LfscPrinter::print(std::ostream& out,
       rparen << ")";
     }
     // print conditions
-    for (size_t i=0, nconds = conds.size(); i<nconds; i++)
+    for (size_t i = 0, nconds = conds.size(); i < nconds; i++)
     {
       out << "(! u" << i << " (holds ";
       Node ic = d_tproc.convert(conds[i]);
@@ -676,12 +676,12 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       // TODO
       return false;
       // currently assume all arguments are explicit
-      for (size_t i=1, nargs = as.size(); i<nargs; i++)
+      for (size_t i = 1, nargs = as.size(); i < nargs; i++)
       {
         pf << as[i];
       }
       // child proofs
-      Assert (cs.size()==rpr.getConditions().size());
+      Assert(cs.size() == rpr.getConditions().size());
       for (const ProofNode* c : cs)
       {
         pf << c;
@@ -751,12 +751,11 @@ void LfscPrinter::printLetList(std::ostream& out,
   }
 }
 
-  void LfscPrinter::printInternal(std::ostream& out,
-                    Node n)
-  {
+void LfscPrinter::printInternal(std::ostream& out, Node n)
+{
   LetBinding lbind;
   printInternal(out, n, lbind);
-  }
+}
 void LfscPrinter::printInternal(std::ostream& out,
                                 Node n,
                                 LetBinding& lbind,

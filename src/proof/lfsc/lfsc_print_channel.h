@@ -89,7 +89,7 @@ class LfscPrintChannelOut : public LfscPrintChannel
   std::ostream& d_out;
 };
 
-/** 
+/**
  * Run on the proof before it is printed, and does two preparation steps:
  * - Computes the letification of nodes that appear in the proof.
  * - Computes the set of DSL rules that appear in the proof.
@@ -101,9 +101,10 @@ class LfscPrintChannelPre : public LfscPrintChannel
   void printNode(TNode n) override;
   void printTrust(TNode res, PfRule src) override;
   void printOpenRule(const ProofNode* pn) override;
-  
+
   /** Get the DSL rewrites */
   const std::unordered_set<theory::DslPfRule>& getDslRewrites() const;
+
  private:
   /** The let binding */
   LetBinding& d_lbind;
