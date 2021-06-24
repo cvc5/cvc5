@@ -96,11 +96,24 @@ void Pow2Solver::checkFullRefine()
   Trace("pow2-check") << "Pow2Solver::checkFullRefine";
   Trace("pow2-check") << "pow2 terms: " << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  for (const Node& i : d_pow2s)
+  std::vector<Node> pow2Args;
+  
+  struct {
+        bool operator()(Node a, Node b, NlModel& model) const { 
+		Trace("pow2-solver-debug") << "comparing "<< a << "vs. " << b << std::endl;
+		Trace("pow2-solver-debug") << "children: "<< a[0] << "vs. " << b[0] << std::endl;
+		return model.computeConcreteModelValue(a[0]) < model.computeConcreteModelValue(b[0]);	
+	}
+    } modelSort;
+  using namespace std::placeholders;
+  std::sort(d_pow2s.begin(), d_pow2s.end(), std::bind(modelSort, _1, _2, d_model));
+
+  for (uint64_t i=0, size = d_pow2s.size(); i<size; i++)
   {
-    Node valPow2xAbstract = d_model.computeAbstractModelValue(i);
-    Node valPow2xConcrete = d_model.computeConcreteModelValue(i);
-    Node valXConcrete = d_model.computeConcreteModelValue(i[0]);
+    Node n = d_pow2s[i];
+    Node valPow2xAbstract = d_model.computeAbstractModelValue(n);
+    Node valPow2xConcrete = d_model.computeConcreteModelValue(n);
+    Node valXConcrete = d_model.computeConcreteModelValue(n[0]);
     if (Trace.isOn("pow2-check"))
     {
       Trace("pow2-check") << "* " << i << ", value = " << valPow2xAbstract
@@ -114,16 +127,14 @@ void Pow2Solver::checkFullRefine()
       continue;
     }
 
-    // x<=y --> pow2(x) <= pow2(y)
-    for (const Node& j : d_pow2s)
+    for (uint64_t j=i+1; j<size; j++)
     {
-      if (i != j)
-      {
+      Node m = d_pow2s[j];
         // i = pow2(x)
         // j = pow2(y)
         // compute values for y and pow(y)
-        Node valPow2yConcrete = d_model.computeConcreteModelValue(j);
-        Node valYConcrete = d_model.computeConcreteModelValue(j[0]);
+        Node valPow2yConcrete = d_model.computeConcreteModelValue(m);
+        Node valYConcrete = d_model.computeConcreteModelValue(m[0]);
 
         Integer x = valXConcrete.getConst<Rational>().getNumerator();
         Integer y = valYConcrete.getConst<Rational>().getNumerator();
@@ -132,13 +143,12 @@ void Pow2Solver::checkFullRefine()
 
         if (x <= y && pow2x > pow2y)
         {
-          Node assumption = nm->mkNode(LEQ, i[0], j[0]);
-          Node conclusion = nm->mkNode(LEQ, i, j);
+          Node assumption = nm->mkNode(LEQ, n[0], m[0]);
+          Node conclusion = nm->mkNode(LEQ, n, m);
           Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
           d_im.addPendingLemma(
               lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, nullptr, true);
         }
-      }
     }
 
     // Place holder for additional lemma schemas
@@ -146,7 +156,7 @@ void Pow2Solver::checkFullRefine()
     // End of additional lemma schemas
 
     // this is the most naive model-based schema based on model values
-    Node lem = valueBasedLemma(i);
+    Node lem = valueBasedLemma(n);
     Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; VALUE_REFINE"
                         << std::endl;
     // send the value lemma

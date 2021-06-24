@@ -89,8 +89,8 @@ class Pow2Solver
   Node d_two;
 
   NodeSet d_initRefine;
-  /** all pow2 terms 
-   * Cleared at each last call effort check. 
+  /** all pow2 terms
+   * Cleared at each last call effort check.
    * */
   std::vector<Node> d_pow2s;
 
