@@ -40,7 +40,7 @@ void RewriteDb::addRule(DslPfRule id, Node a, Node b, Node cond)
   // order, since we index based on conclusion, we make a dummy node here
   Node tmp = nm->mkNode(IMPLIES, eq, cond);
   // convert to internal
-  Node tmpi = RewriteDbTermProcess::toInternal(tmp);
+  Node tmpi = tmp;//RewriteDbTermProcess::toInternal(tmp);
 
   // must canonize
   Trace("rewrite-db") << "Add rule " << id << ": " << cond << " => " << a

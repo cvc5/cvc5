@@ -46,6 +46,7 @@ void RewriteProofRule::init(const std::string& name,
 {
   d_name = name;
   d_cond.clear();
+  d_obGen.clear();
   // Must purify side conditions from the condition. For each subterm of
   // condition c that is an application of a side condition, we replace it
   // with a free variable and add its definition to d_scs. In the end,
@@ -53,8 +54,9 @@ void RewriteProofRule::init(const std::string& name,
   // (internally generated) variables.
   for (const Node& c : cond)
   {
+    d_cond.push_back(c);
     Node cc = purifySideConditions(c, d_scs);
-    d_cond.push_back(cc);
+    d_obGen.push_back(cc);
   }
   d_conc = conc;
 
@@ -161,7 +163,7 @@ bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
     return runSideConditions(vs, ss, vcs);
   }
   // otherwise, just substitute into each condition
-  for (const Node& c : d_cond)
+  for (const Node& c : d_obGen)
   {
     Node sc = c.substitute(vs.begin(), vs.end(), ss.begin(), ss.end());
     vcs.push_back(sc);
@@ -200,7 +202,7 @@ bool RewriteProofRule::runSideConditions(const std::vector<Node>& vs,
     vctx.push_back(sc[1]);
     sctx.push_back(res);
   }
-  for (const Node& c : d_cond)
+  for (const Node& c : d_obGen)
   {
     Node sc = c.substitute(vctx.begin(), vctx.end(), sctx.begin(), sctx.end());
     vcs.push_back(sc);

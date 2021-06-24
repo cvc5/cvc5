@@ -39,41 +39,41 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
                                MethodId mid,
                                uint32_t recLimit)
 {
-  Trace("rewrite-pc") << "RewriteDbProofCons::prove: " << a << " == " << b
+  Trace("rpc") << "RewriteDbProofCons::prove: " << a << " == " << b
                       << std::endl;
-  Trace("rewrite-pc-debug") << "- prove basic" << std::endl;
+  Trace("rpc-debug") << "- prove basic" << std::endl;
   // first, try with the basic utility
   if (d_trrc.prove(cdp, a, b, tid, mid))
   {
-    Trace("rewrite-pc") << "...success (basic)" << std::endl;
+    Trace("rpc") << "...success (basic)" << std::endl;
     return true;
   }
-  Trace("rewrite-pc-debug") << "- convert to internal" << std::endl;
+  Trace("rpc-debug") << "- convert to internal" << std::endl;
   DslPfRule id;
   Node eq = a.eqNode(b);
-  Node eqi = RewriteDbTermProcess::toInternal(eq);
+  Node eqi = eq;//RewriteDbTermProcess::toInternal(eq);
   if (!proveInternalBase(eqi, id))
   {
-    Trace("rewrite-pc-debug") << "- prove internal" << std::endl;
+    Trace("rpc-debug") << "- prove internal" << std::endl;
     // add one to recursion limit, since it is decremented whenever we initiate
     // the getMatches routine.
     d_currRecLimit = recLimit + 1;
     // Otherwise, we call the main prove internal method, which recurisvely
     // tries to find a matched conclusion whose conditions can be proven
     id = proveInternal(eqi);
-    Trace("rewrite-pc-debug") << "- finished prove internal" << std::endl;
+    Trace("rpc-debug") << "- finished prove internal" << std::endl;
   }
   bool success = (id != DslPfRule::FAIL);
   // if a proof was provided, fill it in
   if (success && cdp != nullptr)
   {
-    Trace("rewrite-pc-debug") << "- ensure proof" << std::endl;
+    Trace("rpc-debug") << "- ensure proof" << std::endl;
     // ensure proof exists
     ensureProofInternal(cdp, eqi);
     Assert(cdp->hasStep(eqi));
-    Trace("rewrite-pc-debug") << "- finish ensure proof" << std::endl;
+    Trace("rpc-debug") << "- finish ensure proof" << std::endl;
   }
-  Trace("rewrite-pc") << "..." << (success ? "success" : "fail") << std::endl;
+  Trace("rpc") << "..." << (success ? "success" : "fail") << std::endl;
   // clear the proof caches? use attributes instead?
   d_pcache.clear();
   d_pcacheFailMaxDepth.clear();
@@ -122,7 +122,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     const RewriteProofRule& rpr = d_db->getRule(id);
     // do its conditions hold?
     bool condSuccess = true;
-    Trace("rew-db") << "Check rule " << rpr.getName() << std::endl;
+    Trace("rpc-debug") << "Check rule " << rpr.getName() << std::endl;
     if (!recurse && rpr.hasConditions())
     {
       // can't recurse and has conditions, continue
@@ -165,13 +165,13 @@ bool RewriteDbProofCons::notifyMatch(Node s,
       // if no trivial failures, go back and try to recursively prove
       for (const Node& cond : condToProve)
       {
-        Trace("rew-db-infer-sc") << "Check condition: " << cond << std::endl;
+        Trace("rpc-infer-sc") << "Check condition: " << cond << std::endl;
         // recursively check if the condition holds
         DslPfRule cid = proveInternal(cond);
         if (cid == DslPfRule::FAIL)
         {
           // print reason for failure
-          Trace("rew-db") << "required: " << cond << " for " << rpr.getName()
+          Trace("rpc-infer-debug") << "required: " << cond << " for " << rpr.getName()
                           << std::endl;
           condSuccess = false;
           break;
@@ -180,11 +180,10 @@ bool RewriteDbProofCons::notifyMatch(Node s,
       if (condSuccess)
       {
         // successfully found instance of rule
-        if (Trace.isOn("rew-db-infer"))
+        if (Trace.isOn("rpc-infer"))
         {
-          Node se = RewriteDbTermProcess::toExternal(s);
-          Trace("rew-db-infer")
-              << "INFER " << se << " by " << rpr.getName() << std::endl;
+          Trace("rpc-infer")
+              << "INFER " << s << " by " << rpr.getName() << std::endl;
         }
         d_pcache[s] = id;
         // don't need to notify any further matches, we are done
@@ -270,6 +269,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
   do
   {
     cur = visit.back();
+    Trace("rpc-debug") << "Ensure proof for " << cur << std::endl;
     visit.pop_back();
     it = visited.find(cur);
     Assert(cur.getKind() == kind::EQUAL);

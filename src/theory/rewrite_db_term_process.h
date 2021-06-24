@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file rewrite_db_term_process.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Rewrite database term processor
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Rewrite database term processor
+ */
 
 #include "cvc5_private.h"
 
@@ -44,19 +45,10 @@ class RewriteDbTermProcess
    * to (left-associative) chains.
    */
   static Node toInternal(Node n);
-  /** convert to external
-   *
-   * Inverse of the above translation
-   */
-  static Node toExternal(Node n);
 
  private:
-  /** convert */
-  static Node convert(Node n, bool toInternal);
   /** convert to internal */
   static Node computeInternal(Node n);
-  /** convert to external */
-  static Node computeExternal(Node n);
 };
 
 }  // namespace theory

@@ -75,6 +75,8 @@ class RewriteProofRule
   std::vector<Node> d_scs;
   /** The conditions of the rule */
   std::vector<Node> d_cond;
+  /** The obligation generator formulas of the rule */
+  std::vector<Node> d_obGen;
   /** The conclusion of the rule (an equality) */
   Node d_conc;
   /** the ordered list of free variables */
