@@ -975,3 +975,4 @@ std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
 }  // namespace cvc5::theory::arith::nl::cad
 
 #endif
+#endif
