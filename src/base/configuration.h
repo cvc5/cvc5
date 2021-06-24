@@ -103,8 +103,6 @@ public:
 
   static bool isBuiltWithAbc();
 
-  static bool isBuiltWithCadical();
-
   static bool isBuiltWithCryptominisat();
 
   static bool isBuiltWithKissat();
@@ -112,8 +110,6 @@ public:
   static bool isBuiltWithEditline();
 
   static bool isBuiltWithPoly();
-
-  static bool isBuiltWithSymFPU();
 
   /* Return the number of debug tags */
   static unsigned getNumDebugTags();

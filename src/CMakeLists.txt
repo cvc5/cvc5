@@ -596,6 +596,7 @@ libcvc5_add_sources(
   theory/bv/bv_subtheory_core.h
   theory/bv/bv_subtheory_inequality.cpp
   theory/bv/bv_subtheory_inequality.h
+  theory/bv/int_blaster.cpp
   theory/bv/int_blaster.h
   theory/bv/proof_checker.cpp
   theory/bv/proof_checker.h
@@ -1185,9 +1186,9 @@ if(USE_ABC)
   target_link_libraries(cvc5 PRIVATE ${ABC_LIBRARIES})
   target_include_directories(cvc5 PRIVATE ${ABC_INCLUDE_DIR})
 endif()
-if(USE_CADICAL)
-  target_link_libraries(cvc5 PRIVATE CaDiCaL)
-endif()
+
+target_link_libraries(cvc5 PRIVATE CaDiCaL)
+
 if(USE_CLN)
   target_link_libraries(cvc5 PRIVATE CLN)
 endif()
@@ -1204,9 +1205,8 @@ endif()
 if(USE_POLY)
   target_link_libraries(cvc5 PRIVATE Polyxx)
 endif()
-if(USE_SYMFPU)
-  target_link_libraries(cvc5 PRIVATE SymFPU)
-endif()
+
+target_link_libraries(cvc5 PRIVATE SymFPU)
 
 # Note: When linked statically GMP needs to be linked after CLN since CLN
 # depends on GMP.

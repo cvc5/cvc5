@@ -5197,18 +5197,6 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
       << " children (the one under construction has " << nchildren << ")";
 }
 
-/* Solver Configuration                                                       */
-/* -------------------------------------------------------------------------- */
-
-bool Solver::supportsFloatingPoint() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return Configuration::isBuiltWithSymFPU();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 /* Sorts Handling                                                             */
 /* -------------------------------------------------------------------------- */
 
@@ -5276,8 +5264,6 @@ Sort Solver::getRoundingModeSort(void) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return Sort(this, getNodeManager()->roundingModeType());
   ////////
@@ -5314,8 +5300,6 @@ Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "exponent size > 0";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "significand size > 0";
   //////// all checks before this line
@@ -5794,8 +5778,6 @@ Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeInf(FloatingPointSize(exp, sig), false));
@@ -5807,8 +5789,6 @@ Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeInf(FloatingPointSize(exp, sig), true));
@@ -5820,8 +5800,6 @@ Term Solver::mkNaN(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeNaN(FloatingPointSize(exp, sig)));
@@ -5833,8 +5811,6 @@ Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeZero(FloatingPointSize(exp, sig), false));
@@ -5846,8 +5822,6 @@ Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeZero(FloatingPointSize(exp, sig), true));
@@ -5859,8 +5833,6 @@ Term Solver::mkRoundingMode(RoundingMode rm) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::RoundingMode>(s_rmodes.at(rm));
   ////////
@@ -5914,8 +5886,6 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected cvc5 to be compiled with SymFPU support";
   CVC5_API_SOLVER_CHECK_TERM(val);
   CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "a value > 0";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "a value > 0";
