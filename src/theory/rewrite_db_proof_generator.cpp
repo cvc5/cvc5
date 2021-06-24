@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file rewrite_db_proof_generator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Rewrite database proof generator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Rewrite database proof reconstructor
+ */
 
 #include "theory/rewrite_db_proof_generator.h"
 
@@ -21,19 +22,21 @@
 namespace cvc5 {
 namespace theory {
 
-RewriteDbProofCons::RewriteDbProofCons(RewriteDb& db, ProofNodeManager* pnm)
-    : d_notify(*this), d_db(db), d_eval(), d_proof(pnm), d_currRecLimit(0)
+RewriteDbProofCons::RewriteDbProofCons(RewriteDb* db, ProofNodeManager* pnm)
+    : d_notify(*this), d_trrc(pnm), d_db(db), d_eval(), d_currRecLimit(0)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
 
-bool RewriteDbProofCons::prove(Node a,
-                               Node b,
-                               unsigned recLimit,
-                               bool ensureProof)
+bool RewriteDbProofCons::prove(CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid, uint32_t recLimit)
 {
+  // first, try with the basic utility
+  if (d_trrc.prove(cdp, a, b, tid, mid))
+  {
+    return true;
+  }
   DslPfRule id;
   Node eq = a.eqNode(b);
   Node eqi = RewriteDbTermProcess::toInternal(eq);
@@ -50,23 +53,19 @@ bool RewriteDbProofCons::prove(Node a,
   d_pcache.clear();
   d_pcacheFailMaxDepth.clear();
   bool success = (id != DslPfRule::FAIL);
-  if (success && ensureProof)
+  // if a proof was provided, fill it in
+  if (success && cdp!=nullptr)
   {
     // ensure proof exists
-    ensureProofInternal(eqi);
-    Assert(d_proof.hasStep(eqi));
+    ensureProofInternal(cdp, eqi);
+    Assert(cdp.hasStep(eqi));
   }
   // clear the evaluate cache?
   d_evalCache.clear();
   return success;
 }
 
-std::string RewriteDbProofCons::identify() const
-{
-  return "RewriteDbProofCons";
-}
-
-DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
+DslPfRule RewriteDbProofCons::proveInternal(CDProof* cdp, Node eqi)
 {
   // eqi should not hold trivially and should not be cached
   Assert(d_currRecLimit > 0);
@@ -74,7 +73,7 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
   // for each matching rewrite rule conclusion in the database
   // decrease the recursion depth
   d_currRecLimit--;
-  d_db.getMatches(eqi, &d_notify);
+  d_db->getMatches(eqi, &d_notify);
   d_currRecLimit++;
   // if we cached it during the above call, we succeeded
   std::unordered_map<Node, DslPfRule>::iterator it = d_pcache.find(eqi);
@@ -97,13 +96,13 @@ bool RewriteDbProofCons::notifyMatch(Node s,
   Assert(s.getType().isComparableTo(n.getType()));
   Assert(vars.size() == subs.size());
   // get the rule identifiers for the conclusion
-  const std::vector<DslPfRule>& ids = d_db.getRuleIdsForConclusion(n);
+  const std::vector<DslPfRule>& ids = d_db->getRuleIdsForConclusion(n);
   Assert(!ids.empty());
   // check each rule instance, succeed if one proves
   bool recurse = d_currRecLimit > 0;
   for (DslPfRule id : ids)
   {
-    const RewriteProofRule& rpr = d_db.getRule(id);
+    const RewriteProofRule& rpr = d_db->getRule(id);
     // do its conditions hold?
     bool condSuccess = true;
     Trace("rew-db") << "Check rule " << rpr.getName() << std::endl;
@@ -241,7 +240,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
   return true;
 }
 
-bool RewriteDbProofCons::ensureProofInternal(Node eqi)
+bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, bool> visited;
@@ -261,7 +260,7 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
     {
       visit.push_back(cur);
       // may already have a proof rule from a previous call
-      if (d_proof.hasStep(cur))
+      if (cdp.hasStep(cur))
       {
         visited[cur] = true;
       }
@@ -274,7 +273,7 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
         {
           // trivial proof
           Assert(cur[0] == cur[1]);
-          d_proof.addStep(cur, PfRule::REFL, {}, {cur[0]});
+          cdp.addStep(cur, PfRule::REFL, {}, {cur[0]});
         }
         else if (itd->second == DslPfRule::EVAL)
         {
@@ -292,18 +291,18 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
             // flip orientation for second child
             transc.push_back(i == 1 ? curv.eqNode(cur[i]) : eq);
             // trivial evaluation, add evaluation method id
-            d_proof.addStep(eq, PfRule::EVALUATE, {}, {cur[i]});
+            cdp.addStep(eq, PfRule::EVALUATE, {}, {cur[i]});
           }
           if (transc.size() == 2)
           {
             // do transitivity if both sides evaluate
-            d_proof.addStep(cur, PfRule::TRANS, transc, {});
+            cdp.addStep(cur, PfRule::TRANS, transc, {});
           }
         }
         else
         {
           visited[cur] = false;
-          const RewriteProofRule& rpr = d_db.getRule(itd->second);
+          const RewriteProofRule& rpr = d_db->getRule(itd->second);
           // compute premises based on the used substitution
           std::unordered_map<Node, Node> subs;
           if (!expr::match(rpr.getConclusion(), cur, subs))
@@ -338,7 +337,7 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
       pfArgs.push_back(
           nm->mkConst(Rational(static_cast<uint32_t>(itd->second))));
       pfArgs.push_back(cur);
-      d_proof.addStep(cur, PfRule::DSL_REWRITE, premises[cur], pfArgs);
+      cdp.addStep(cur, PfRule::DSL_REWRITE, premises[cur], pfArgs);
     }
   } while (!visit.empty());
   return true;

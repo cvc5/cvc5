@@ -36,12 +36,14 @@ namespace smt {
 ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
                                                    SmtEngine* smte,
                                                    ProofGenerator* pppg,
+                                                   
+                           theory::RewriteDb * rdb,
                                                    bool updateScopedAssumptions)
     : d_pnm(pnm),
       d_smte(smte),
       d_pppg(pppg),
+      d_rdbPc(rdb, pnm),
       d_wfpm(pnm),
-      d_trrc(pnm),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -1020,9 +1022,12 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
     MethodId mid = MethodId::RW_REWRITE;
     getMethodId(args[2], mid);
-    // first, try to replay the rewrite using the standard reconstruction module
-    if (d_trrc.reconstruct(cdp, eq, tid, mid))
+    uint32_t recLimit = options::proofRewriteRconsRecLimit();
+    // attempt to reconstruct the proof of the equality into cdp using the
+    // rewrite database proof reconstructor
+    if (d_rdbPc.prove(cdp, args[0][0], args[0][1], tid, mid, recLimit))
     {
+      // if successful, we update the proof
       return eq;
     }
     // otherwise no update
@@ -1245,9 +1250,10 @@ bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
 ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
                                      SmtEngine* smte,
                                      ProofGenerator* pppg,
+                                     theory::RewriteDb * rdb,
                                      bool updateScopedAssumptions)
     : d_pnm(pnm),
-      d_cb(pnm, smte, pppg, updateScopedAssumptions),
+      d_cb(pnm, smte, pppg, rdb, updateScopedAssumptions),
       // the update merges subproofs
       d_updater(d_pnm, d_cb, true),
       d_finalCb(pnm),

@@ -46,6 +46,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
           d_pnm.get(),
           smte,
           d_pppg.get(),
+          d_rewriteDb.get(),
           // by default the post-processor will update all assumptions, which
           // can lead to SCOPE subproofs of the form
           //   A

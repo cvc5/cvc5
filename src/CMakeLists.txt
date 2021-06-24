@@ -348,8 +348,6 @@ libcvc5_add_sources(
   smt/sygus_solver.h
   smt/term_formula_removal.cpp
   smt/term_formula_removal.h
-  smt/theory_rewrite_rcons.cpp
-  smt/theory_rewrite_rcons.h
   smt/unsat_core_manager.cpp
   smt/unsat_core_manager.h
   smt/update_ostream.h
@@ -979,6 +977,8 @@ libcvc5_add_sources(
   theory/rewrite_db_term_process.h
   theory/rewrite_proof_rule.cpp
   theory/rewrite_proof_rule.h
+  theory/rewrite_rcons.cpp
+  theory/rewrite_rcons.h
   theory/rewriter.cpp
   theory/rewriter.h
   theory/rewriter_attributes.h

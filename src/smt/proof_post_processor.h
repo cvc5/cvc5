@@ -23,9 +23,9 @@
 #include <unordered_set>
 
 #include "proof/proof_node_updater.h"
-#include "smt/theory_rewrite_rcons.h"
 #include "smt/witness_form.h"
 #include "util/statistics_stats.h"
+#include "theory/rewrite_db_proof_generator.h"
 
 namespace cvc5 {
 
@@ -43,6 +43,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   ProofPostprocessCallback(ProofNodeManager* pnm,
                            SmtEngine* smte,
                            ProofGenerator* pppg,
+                           theory::RewriteDb * rdb,
                            bool updateScopedAssumptions);
   ~ProofPostprocessCallback() {}
   /**
@@ -78,10 +79,10 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   SmtEngine* d_smte;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
+  /** The rewrite database proof generator */
+  theory::RewriteDbProofCons d_rdbPc;
   /** The witness form proof generator */
   WitnessFormGenerator d_wfpm;
-  /** The theory rewrite reconstruction proof generator */
-  TheoryRewriteRCons d_trrc;
   /** The witness form assumptions used in the proof */
   std::vector<Node> d_wfAssumptions;
   /** Kinds of proof rules we are eliminating */
@@ -293,6 +294,7 @@ class ProofPostproccess
   ProofPostproccess(ProofNodeManager* pnm,
                     SmtEngine* smte,
                     ProofGenerator* pppg,
+                    theory::RewriteDb * rdb,
                     bool updateScopedAssumptions = true);
   ~ProofPostproccess();
   /** post-process */

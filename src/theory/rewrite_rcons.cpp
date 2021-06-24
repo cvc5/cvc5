@@ -1,34 +1,36 @@
-/*********************                                                        */
-/*! \file theory_rewrite_rcons.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for reconstructing proofs of THEORY_REWRITE steps.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for basic (non-DSL-dependent) automatic reconstructing proofs of THEORY_REWRITE steps.
+ */
 
-#include "smt/theory_rewrite_rcons.h"
+#include "theory/rewrite_rcons.h"
 
 #include "proof/proof_checker.h"
 
 using namespace cvc5::kind;
 
 namespace cvc5 {
-namespace smt {
+namespace theory {
 
 TheoryRewriteRCons::TheoryRewriteRCons(ProofNodeManager* pnm) : d_pnm(pnm) {}
 
-bool TheoryRewriteRCons::reconstruct(CDProof* cdp,
-                                     Node eq,
+bool TheoryRewriteRCons::prove(CDProof* cdp,
+                                     Node a,
+                                     Node b,
                                      theory::TheoryId tid,
                                      MethodId mid)
 {
-  Assert(eq.getKind() == EQUAL);
+  Node eq = a.eqNode(b);
   Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid << ", "
                           << mid << ")" << std::endl;
   Node lhs = eq[0];

@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file rewrite_db_proof_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Rewrite database proof generator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Rewrite database proof reconstructor
+ */
 
 #include "cvc5_private.h"
 
@@ -25,21 +26,20 @@
 #include "proof/proof_generator.h"
 #include "theory/evaluator.h"
 #include "theory/rewrite_db.h"
+#include "theory/rewrite_rcons.h"
 
 namespace cvc5 {
 namespace theory {
 
-class RewriteDbProofCons : public ProofGenerator
+class RewriteDbProofCons
 {
  public:
-  RewriteDbProofCons(RewriteDb& db, ProofNodeManager* pnm);
+  RewriteDbProofCons(RewriteDb* db, ProofNodeManager* pnm);
   /**
-   * Prove (= a b) with recursion limit recLimit. If ensureProof is true, then
-   * we ensure a proof is generated for (= a b) internally.
+   * Prove (= a b) with recursion limit recLimit. If cdp is provided, we add
+   * a proove for this fact on it.
    */
-  bool prove(Node a, Node b, unsigned recLimit, bool ensureProof = false);
-  /** Identify this generator (for debugging, etc..) */
-  std::string identify() const override;
+  bool prove(CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid, uint32_t recLimit);
 
  private:
   /** Notify class for the match trie */
@@ -58,8 +58,10 @@ class RewriteDbProofCons : public ProofGenerator
     }
   };
   RdpcMatchTrieNotify d_notify;
-  /** reference to rewrite database */
-  RewriteDb& d_db;
+  /** Basic utility */
+  TheoryRewriteRCons d_trrc;
+  /** Pointer to rewrite database */
+  RewriteDb* d_db;
   /** the evaluator utility */
   Evaluator d_eval;
   /** cache for exists rule */
@@ -71,16 +73,14 @@ class RewriteDbProofCons : public ProofGenerator
   /** common constants */
   Node d_true;
   Node d_false;
-  /** A CDProof */
-  CDProof d_proof;
   /** current recursion limit */
-  unsigned d_currRecLimit;
+  uint32_t d_currRecLimit;
   /** prove internal */
   DslPfRule proveInternal(Node eqi);
   /** prove internal base eqi * { vars -> subs } */
   bool proveInternalBase(Node eqi, DslPfRule& id);
-  /** ensure proof for proven fact */
-  bool ensureProofInternal(Node eqi);
+  /** ensure proof for proven fact exists in cdp */
+  bool ensureProofInternal(CDProof* cdp, Node eqi);
   /** do evaluate */
   Node doEvaluate(Node n);
   /**

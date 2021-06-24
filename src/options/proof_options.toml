@@ -96,3 +96,11 @@ name   = "Proof"
 [[option.mode.DSL_REWRITE]]
   name = "dsl-rewrite"
   help = "Allow DSL rewrites and evaluation steps, expand macros, rewrite, substitution, and theory rewrite steps."
+
+[[option]]
+  name       = "proofRewriteRconsRecLimit"
+  category   = "regular"
+  long       = "proof-rewrite-rcons-limit=N"
+  type       = "int32_t"
+  default    = "3"
+  help       = "the matching recursion limit for reconstructing proofs of theory rewrites"
