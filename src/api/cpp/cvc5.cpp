@@ -2812,8 +2812,9 @@ std::string Term::getRealValue() const
   CVC5_API_ARG_CHECK_EXPECTED(detail::isReal(*d_node), *d_node)
       << "Term to be a rational value when calling getRealValue()";
   //////// all checks before this line
-  std::string res = detail::getRational(*d_node).toString();
-  if (res.find('/') == std::string::npos && res.find('.') == std::string::npos)
+  const Rational& rat = detail::getRational(*d_node);
+  std::string res = rat.toString();
+  if (rat.isIntegral())
   {
     return res + ".0";
   }
