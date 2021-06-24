@@ -66,7 +66,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // unsat cores and proofs shenanigans
   if (options::dumpUnsatCoresFull())
   {
-    opts.smt.dumpUnsatCores = true;
+    opts.driver.dumpUnsatCores = true;
   }
   if (options::checkUnsatCores() || options::dumpUnsatCores()
       || options::unsatAssumptions()
@@ -271,11 +271,15 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // Set default options associated with strings-exp. We also set these options
   // if we are using eager string preprocessing, which may introduce quantified
   // formulas at preprocess time.
+  //
+  // We don't want to set this option when we are in logics that contain ALL.
   if (!logic.hasEverything() && logic.isTheoryEnabled(THEORY_STRINGS))
   {
     // If the user explicitly set a logic that includes strings, but is not
     // the generic "ALL" logic, then enable stringsExp.
     opts.strings.stringExp = true;
+    Trace("smt") << "Turning stringExp on since logic does not have everything "
+                    "and string theory is enabled\n";
   }
   if (options::stringExp() || !options::stringLazyPreproc())
   {
@@ -292,7 +296,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (!opts.quantifiers.fmfBoundWasSetByUser)
     {
       opts.quantifiers.fmfBound = true;
-      Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
+      Trace("smt") << "turning on fmf-bound, for strings-exp" << std::endl;
     }
     // Note we allow E-matching by default to support combinations of sequences
     // and quantifiers.
@@ -753,7 +757,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // If in arrays, set the UF handler to arrays
-  if (logic.isTheoryEnabled(THEORY_ARRAYS) && !options::ufHo()
+  if (logic.isTheoryEnabled(THEORY_ARRAYS) && !logic.isHigherOrder()
       && !options::finiteModelFind()
       && (!logic.isQuantified()
           || (logic.isQuantified() && !logic.isTheoryEnabled(THEORY_UF))))
@@ -890,7 +894,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::DecisionMode decMode =
         // anything that uses sygus uses internal
         usesSygus ? options::DecisionMode::INTERNAL :
-                  // ALL
+                  // ALL or its supersets
             logic.hasEverything()
                 ? options::DecisionMode::JUSTIFICATION
                 : (  // QF_BV
@@ -922,7 +926,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                           : options::DecisionMode::INTERNAL);
 
     bool stoponly =
-        // ALL
+        // ALL or its supersets
         logic.hasEverything() || logic.isTheoryEnabled(THEORY_STRINGS)
             ? false
             : (  // QF_AUFLIA
@@ -969,9 +973,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       || (opts.quantifiers.fmfBoundIntWasSetByUser && options::fmfBoundInt()))
   {
     opts.quantifiers.fmfBound = true;
+    Trace("smt")
+        << "turning on fmf-bound, for fmf-bound-int or fmf-bound-lazy\n";
   }
-  // now have determined whether fmfBoundInt is on/off
-  // apply fmfBoundInt options
+  // now have determined whether fmfBound is on/off
+  // apply fmfBound options
   if (options::fmfBound())
   {
     if (!opts.quantifiers.mbqiModeWasSetByUser
@@ -986,8 +992,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       opts.quantifiers.prenexQuant = options::PrenexQuantMode::NONE;
     }
   }
-  if (options::ufHo())
+  if (logic.isHigherOrder())
   {
+    opts.uf.ufHo = true;
     // if higher-order, then current variants of model-based instantiation
     // cannot be used
     if (options::mbqiMode() != options::MbqiMode::NONE)
@@ -1009,6 +1016,20 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (options::macrosQuant())
     {
       opts.quantifiers.macrosQuant = false;
+    }
+    // HOL is incompatible with fmfBound
+    if (options::fmfBound())
+    {
+      if (opts.quantifiers.fmfBoundWasSetByUser
+          || opts.quantifiers.fmfBoundLazyWasSetByUser
+          || opts.quantifiers.fmfBoundIntWasSetByUser)
+      {
+        Notice() << "Disabling bound finite-model finding since it is "
+                    "incompatible with HOL.\n";
+      }
+
+      opts.quantifiers.fmfBound = false;
+      Trace("smt") << "turning off fmf-bound, since HOL\n";
     }
   }
   if (options::fmfFunWellDefinedRelevant())

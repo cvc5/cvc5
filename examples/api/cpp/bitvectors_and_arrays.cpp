@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of the solving capabilities of the CVC4
+ * A simple demonstration of the solving capabilities of the cvc5
  * bit-vector and array solvers.
  *
  */
@@ -84,10 +84,10 @@ int main()
 
   Term query = slv.mkTerm(NOT, slv.mkTerm(AND, assertions));
 
-  cout << "Asserting " << query << " to CVC4 " << endl;
+  cout << "Asserting " << query << " to cvc5 " << endl;
   slv.assertFormula(query);
   cout << "Expect sat. " << endl;
-  cout << "CVC4: " << slv.checkSatAssuming(slv.mkTrue()) << endl;
+  cout << "cvc5: " << slv.checkSatAssuming(slv.mkTrue()) << endl;
 
   // Getting the model
   cout << "The satisfying model is: " << endl;

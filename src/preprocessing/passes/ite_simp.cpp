@@ -17,6 +17,7 @@
 
 #include <vector>
 
+#include "options/base_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"

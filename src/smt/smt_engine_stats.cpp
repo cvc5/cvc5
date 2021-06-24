@@ -25,8 +25,6 @@ SmtEngineStatistics::SmtEngineStatistics(const std::string& name)
         name + "definitionExpansionTime")),
       d_numConstantProps(
           smtStatisticsRegistry().registerInt(name + "numConstantProps")),
-      d_cnfConversionTime(
-          smtStatisticsRegistry().registerTimer(name + "cnfConversionTime")),
       d_numAssertionsPre(smtStatisticsRegistry().registerInt(
           name + "numAssertionsPreITERemoval")),
       d_numAssertionsPost(smtStatisticsRegistry().registerInt(
