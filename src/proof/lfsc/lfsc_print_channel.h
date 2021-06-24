@@ -77,7 +77,8 @@ class LfscPrintChannelOut : public LfscPrintChannel
   static void printId(std::ostream& out, size_t id);
   static void printProofId(std::ostream& out, size_t id);
   static void printAssumeId(std::ostream& out, size_t id);
-  static void printDslProofRuleId(std::ostream& out, theory::DslPfRule id);
+  static void printDslProofRuleId(std::ostream& out,
+                                  theory::rewriter::DslPfRule id);
   //------------------- end helper methods
  private:
   /**
@@ -103,13 +104,13 @@ class LfscPrintChannelPre : public LfscPrintChannel
   void printOpenRule(const ProofNode* pn) override;
 
   /** Get the DSL rewrites */
-  const std::unordered_set<theory::DslPfRule>& getDslRewrites() const;
+  const std::unordered_set<theory::rewriter::DslPfRule>& getDslRewrites() const;
 
  private:
   /** The let binding */
   LetBinding& d_lbind;
   /** The DSL rules we have seen */
-  std::unordered_set<theory::DslPfRule> d_dprs;
+  std::unordered_set<theory::rewriter::DslPfRule> d_dprs;
 };
 
 }  // namespace proof

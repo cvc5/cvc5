@@ -22,33 +22,17 @@
 #include "theory/rewrite_db_term_process.h"
 
 using namespace cvc5::kind;
+using namespace cvc5::theory::rewriter;
 
 namespace cvc5 {
 namespace theory {
-
-const char* toString(DslPfRule drule)
-{
-  switch (drule)
-  {
-    case DslPfRule::FAIL: return "FAIL";
-    case DslPfRule::REFL: return "REFL";
-    case DslPfRule::EVAL: return "EVAL";
-    default: return "USER_?";
-  }
-}
-
-std::ostream& operator<<(std::ostream& out, DslPfRule drule)
-{
-  out << toString(drule);
-  return out;
-}
 
 bool getDslPfRule(TNode n, DslPfRule& id)
 {
   uint32_t i;
   if (ProofRuleChecker::getUInt32(n, i))
   {
-    id = static_cast<theory::DslPfRule>(i);
+    id = static_cast<DslPfRule>(i);
     return true;
   }
   return false;

@@ -19,6 +19,8 @@
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewrite_db_term_process.h"
 
+using namespace cvc5::theory::rewriter;
+
 namespace cvc5 {
 namespace theory {
 

@@ -19,11 +19,12 @@
 #include "theory/rewriter/rewrites.h"
 
 using namespace cvc5::kind;
+using namespace cvc5::theory::rewriter;
 
 namespace cvc5 {
 namespace theory {
 
-RewriteDb::RewriteDb() : d_idCounter(DslPfRule::USER_START)
+RewriteDb::RewriteDb()
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -31,7 +32,7 @@ RewriteDb::RewriteDb() : d_idCounter(DslPfRule::USER_START)
   rewriter::addRules(*this);
 }
 
-DslPfRule RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
+void RewriteDb::addRule(DslPfRule id, Node a, Node b, Node cond)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node eq = a.eqNode(b);
@@ -42,7 +43,7 @@ DslPfRule RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
   Node tmpi = RewriteDbTermProcess::toInternal(tmp);
 
   // must canonize
-  Trace("rewrite-db") << "Add rule " << name << ": " << cond << " => " << a
+  Trace("rewrite-db") << "Add rule " << id << ": " << cond << " => " << a
                       << " == " << b << std::endl;
   Node cr = d_canon.getCanonicalTerm(tmpi, false, false);
 
@@ -64,7 +65,7 @@ DslPfRule RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
   else if (!condC.getConst<bool>())
   {
     // skip those with false condition
-    return DslPfRule::FAIL;
+    return;
   }
   // make as expected matching: top symbol of all conditions is equality
   // this means (not p) becomes (= p false), p becomes (= p true)
@@ -89,20 +90,14 @@ DslPfRule RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
   d_mt.addTerm(eqC);
 
   // initialize rule
-  DslPfRule ret = d_idCounter;
-  // increment the counter
-  d_idCounter = DslPfRule(static_cast<uint32_t>(d_idCounter) + 1);
-  d_rewDbRule[ret].init(name, conds, eqC);
-  d_concToRules[eqC].push_back(ret);
-  return ret;
+  d_rewDbRule[id].init(toString(id), conds, eqC);
+  d_concToRules[eqC].push_back(id);
 }
 
 void RewriteDb::getMatches(Node eq, expr::NotifyMatch* ntm)
 {
   d_mt.getMatches(eq, ntm);
 }
-
-DslPfRule RewriteDb::getMaxRuleId() const { return d_idCounter; }
 
 const RewriteProofRule& RewriteDb::getRule(DslPfRule id) const
 {

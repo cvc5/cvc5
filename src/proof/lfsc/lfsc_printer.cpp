@@ -24,6 +24,7 @@
 #include "proof/lfsc/lfsc_print_channel.h"
 
 using namespace cvc5::kind;
+using namespace cvc5::theory::rewriter;
 
 namespace cvc5 {
 namespace proof {
@@ -222,8 +223,8 @@ void LfscPrinter::print(std::ostream& out,
     out << "; WARNING: adding trust step for " << r << std::endl;
   }
   // [4] print the DSL rewrite rule declarations
-  const std::unordered_set<theory::DslPfRule>& dslrs = lpcp.getDslRewrites();
-  for (theory::DslPfRule dslr : dslrs)
+  const std::unordered_set<DslPfRule>& dslrs = lpcp.getDslRewrites();
+  for (DslPfRule dslr : dslrs)
   {
     const theory::RewriteProofRule& rpr = d_rdb->getRule(dslr);
     // TODO
@@ -681,7 +682,6 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         pf << as[i];
       }
       // child proofs
-      Assert(cs.size() == rpr.getConditions().size());
       for (const ProofNode* c : cs)
       {
         pf << c;

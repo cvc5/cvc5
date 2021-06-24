@@ -70,7 +70,7 @@ class RewriteDbProofCons
   /** the evaluator utility */
   Evaluator d_eval;
   /** cache for exists rule */
-  std::unordered_map<Node, DslPfRule> d_pcache;
+  std::unordered_map<Node, rewriter::DslPfRule> d_pcache;
   /** the maximum depth tried for rules that have failed */
   std::unordered_map<Node, unsigned> d_pcacheFailMaxDepth;
   /** the evaluation cache */
@@ -81,9 +81,9 @@ class RewriteDbProofCons
   /** current recursion limit */
   uint32_t d_currRecLimit;
   /** prove internal */
-  DslPfRule proveInternal(Node eqi);
+  rewriter::DslPfRule proveInternal(Node eqi);
   /** prove internal base eqi * { vars -> subs } */
-  bool proveInternalBase(Node eqi, DslPfRule& id);
+  bool proveInternalBase(Node eqi, rewriter::DslPfRule& id);
   /** ensure proof for proven fact exists in cdp */
   bool ensureProofInternal(CDProof* cdp, Node eqi);
   /** do evaluate */

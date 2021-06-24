@@ -53,7 +53,7 @@ def gen_mk_node(defns, expr):
 
 
 def gen_rewrite_db_rule(defns, rule):
-    return f'db.addRule({gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, {gen_mk_node(defns, CBool(True))}, "{rule.name}");'
+    return f'db.addRule(DslPfRule::{rule.get_enum()}, {gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, {gen_mk_node(defns, CBool(True))});'
 
 
 class Rewrites:
@@ -108,11 +108,17 @@ def gen_rewrite_db(args):
     for expr, name in defns.items():
         defns_code.append(f'Node {name} = {gen_mk_node(None, expr)};')
 
+    ids = []
+    printer_code = []
     rules_code = []
     for rewrite_file in rewrites:
         block = []
         for rule in rewrite_file.rules:
             block.append(gen_rewrite_db_rule(defns, rule))
+
+            enum = rule.get_enum()
+            ids.append(enum)
+            printer_code.append(f'case DslPfRule::{enum}: return "{rule.name}";')
 
         rules_code.append(
             block_tpl.format(filename=rewrites_file.name,
@@ -120,7 +126,7 @@ def gen_rewrite_db(args):
 
     rewrites_h = read_tpl(args.src_dir, 'rewrites_template.h')
     with open('rewrites.h', 'w') as f:
-        f.write(format_cpp(rewrites_h.format()))
+        f.write(format_cpp(rewrites_h.format(rule_ids=','.join(ids))))
 
     rewrites_cpp = read_tpl(args.src_dir, 'rewrites_template.cpp')
     with open('rewrites.cpp', 'w') as f:
@@ -128,7 +134,7 @@ def gen_rewrite_db(args):
             format_cpp(
                 rewrites_cpp.format(decls='\n'.join(decls_code),
                                     defns='\n'.join(defns_code),
-                                    rules='\n'.join(rules_code))))
+                                    rules='\n'.join(rules_code), printer='\n'.join(printer_code))))
 
 
 def main():

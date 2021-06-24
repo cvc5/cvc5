@@ -19,6 +19,8 @@
 #include "proof/lfsc/lfsc_util.h"
 #include "theory/rewrite_proof_rule.h"
 
+using namespace cvc5::theory::rewriter;
+
 namespace cvc5 {
 namespace proof {
 
@@ -108,7 +110,7 @@ void LfscPrintChannelOut::printRule(std::ostream& out, const ProofNode* pn)
   else if (pn->getRule() == PfRule::DSL_REWRITE)
   {
     const std::vector<Node>& args = pn->getArguments();
-    theory::DslPfRule di;
+    DslPfRule di;
     if (theory::getDslPfRule(args[0], di))
     {
       printDslProofRuleId(out, di);
@@ -145,8 +147,7 @@ void LfscPrintChannelOut::printAssumeId(std::ostream& out, size_t id)
 {
   out << "__a" << id;
 }
-void LfscPrintChannelOut::printDslProofRuleId(std::ostream& out,
-                                              theory::DslPfRule id)
+void LfscPrintChannelOut::printDslProofRuleId(std::ostream& out, DslPfRule id)
 {
   out << "dsl." << id;
 }
@@ -185,7 +186,7 @@ void LfscPrintChannelPre::printOpenRule(const ProofNode* pn)
   if (pn->getRule() == PfRule::DSL_REWRITE)
   {
     Node idn = pn->getArguments()[0];
-    theory::DslPfRule di;
+    DslPfRule di;
     if (theory::getDslPfRule(idn, di))
     {
       d_dprs.insert(di);
@@ -197,8 +198,7 @@ void LfscPrintChannelPre::printOpenRule(const ProofNode* pn)
   }
 }
 
-const std::unordered_set<theory::DslPfRule>&
-LfscPrintChannelPre::getDslRewrites() const
+const std::unordered_set<DslPfRule>& LfscPrintChannelPre::getDslRewrites() const
 {
   return d_dprs;
 }

@@ -40,6 +40,24 @@ ${defns}$
 ${rules}$
 }
 
+const char* toString(DslPfRule drule)
+{
+  switch (drule)
+  {
+    case DslPfRule::FAIL: return "FAIL";
+    case DslPfRule::REFL: return "REFL";
+    case DslPfRule::EVAL: return "EVAL";
+${printer}$
+    default: Unreachable();
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, DslPfRule drule)
+{
+  out << toString(drule);
+  return out;
+}
+
 }  // namespace rewriter
 }  // namespace theory
 }  // namespace cvc5
