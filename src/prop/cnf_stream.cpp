@@ -21,14 +21,15 @@
 #include "base/output.h"
 #include "expr/node.h"
 #include "options/bv_options.h"
+#include "printer/printer.h"
 #include "proof/clause_id.h"
 #include "prop/minisat/minisat.h"
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
 #include "smt/dump.h"
 #include "smt/smt_engine.h"
-#include "printer/printer.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 
@@ -52,7 +53,8 @@ CnfStream::CnfStream(SatSolver* satSolver,
       d_registrar(registrar),
       d_name(name),
       d_removable(false),
-      d_resourceManager(rm)
+      d_resourceManager(rm),
+      d_stats(name)
 {
 }
 
@@ -139,6 +141,7 @@ void CnfStream::ensureLiteral(TNode n)
       n.toString().c_str(),
       n.getType().toString().c_str());
   Trace("cnf") << "ensureLiteral(" << n << ")\n";
+  TimerStat::CodeTimer codeTimer(d_stats.d_cnfConversionTime, true);
   if (hasLiteral(n))
   {
     ensureMappingForLiteral(n);
@@ -722,6 +725,7 @@ void CnfStream::convertAndAssert(TNode node,
                << ", negated = " << (negated ? "true" : "false")
                << ", removable = " << (removable ? "true" : "false") << ")\n";
   d_removable = removable;
+  TimerStat::CodeTimer codeTimer(d_stats.d_cnfConversionTime, true);
   convertAndAssert(node, negated);
 }
 
@@ -758,6 +762,12 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
   }
     break;
   }
+}
+
+CnfStream::Statistics::Statistics(const std::string& name)
+    : d_cnfConversionTime(smtStatisticsRegistry().registerTimer(
+        name + "::CnfStream::cnfConversionTime"))
+{
 }
 
 }  // namespace prop

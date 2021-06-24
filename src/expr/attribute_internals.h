@@ -372,8 +372,9 @@ namespace attr {
  * This is the last-attribute-assigner.  IDs are not globally
  * unique; rather, they are unique for each table_value_type.
  */
-template <class T, bool context_dep>
-struct LastAttributeId {
+template <class T>
+struct LastAttributeId
+{
  public:
   static uint64_t getNextId() {
     uint64_t* id = raw_id();
@@ -402,11 +403,8 @@ struct LastAttributeId {
  * @param T the tag for the attribute kind.
  *
  * @param value_t the underlying value_type for the attribute kind
- *
- * @param context_dep whether this attribute kind is
- * context-dependent
  */
-template <class T, class value_t, bool context_dep = false>
+template <class T, class value_t>
 class Attribute
 {
   /**
@@ -432,11 +430,6 @@ public:
   static const bool has_default_value = false;
 
   /**
-   * Expose this setting to the users of this Attribute kind.
-   */
-  static const bool context_dependent = context_dep;
-
-  /**
    * Register this attribute kind and check that the ID is a valid ID
    * for bool-valued attributes.  Fail an assert if not.  Otherwise
    * return the id.
@@ -444,15 +437,15 @@ public:
   static inline uint64_t registerAttribute() {
     typedef typename attr::KindValueToTableValueMapping<value_t>::
                      table_value_type table_value_type;
-    return attr::LastAttributeId<table_value_type, context_dep>::getNextId();
+    return attr::LastAttributeId<table_value_type>::getNextId();
   }
 };/* class Attribute<> */
 
 /**
  * An "attribute type" structure for boolean flags (special).
  */
-template <class T, bool context_dep>
-class Attribute<T, bool, context_dep>
+template <class T>
+class Attribute<T, bool>
 {
   /** IDs for bool-valued attributes are actually bit assignments. */
   static const uint64_t s_id;
@@ -480,17 +473,12 @@ public:
   static const bool default_value = false;
 
   /**
-   * Expose this setting to the users of this Attribute kind.
-   */
-  static const bool context_dependent = context_dep;
-
-  /**
    * Register this attribute kind and check that the ID is a valid ID
    * for bool-valued attributes.  Fail an assert if not.  Otherwise
    * return the id.
    */
   static inline uint64_t registerAttribute() {
-    const uint64_t id = attr::LastAttributeId<bool, context_dep>::getNextId();
+    const uint64_t id = attr::LastAttributeId<bool>::getNextId();
     AlwaysAssert(id <= 63) << "Too many boolean node attributes registered "
                               "during initialization !";
     return id;
@@ -500,15 +488,14 @@ public:
 // ATTRIBUTE IDENTIFIER ASSIGNMENT =============================================
 
 /** Assign unique IDs to attributes at load time. */
-template <class T, class value_t, bool context_dep>
-const uint64_t Attribute<T, value_t, context_dep>::s_id =
-    Attribute<T, value_t,  context_dep>::registerAttribute();
-
+template <class T, class value_t>
+const uint64_t Attribute<T, value_t>::s_id =
+    Attribute<T, value_t>::registerAttribute();
 
 /** Assign unique IDs to attributes at load time. */
-template <class T, bool context_dep>
-const uint64_t Attribute<T, bool, context_dep>::s_id =
-    Attribute<T, bool, context_dep>::registerAttribute();
+template <class T>
+const uint64_t Attribute<T, bool>::s_id =
+    Attribute<T, bool>::registerAttribute();
 
 }  // namespace expr
 }  // namespace cvc5
