@@ -23,7 +23,7 @@
 namespace cvc5 {
 namespace theory {
 
-class RewriterDB;
+class RewriteDb;
 
 namespace rewriter {
 
