@@ -4,8 +4,9 @@ C++ API Documentation
 =====================
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
 
+  quickstart
   class_hierarchy
 
 .. container:: hide-toctree

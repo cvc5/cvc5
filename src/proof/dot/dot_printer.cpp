@@ -156,11 +156,13 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
   out << "}\n";
 }
 
-void DotPrinter::printInternal(std::ostream& out,
-                               const ProofNode* pn,
-                               uint64_t& ruleID,
-                               uint64_t scopeCounter,
-                               bool inPropositionalView)
+void DotPrinter::printInternal(
+    std::ostream& out,
+    const ProofNode* pn,
+    uint64_t& ruleID,
+    uint64_t scopeCounter,
+    bool inPropositionalView,
+    const std::map<const ProofNode*, size_t>& subpfCounter)
 {
   uint64_t currentRuleID = ruleID;
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
@@ -228,7 +230,8 @@ void DotPrinter::printInternal(std::ostream& out,
   {
     ++ruleID;
     out << "\t" << ruleID << " -> " << currentRuleID << ";\n";
-    printInternal(out, c.get(), ruleID, scopeCounter, inPropositionalView);
+    printInternal(
+        out, c.get(), ruleID, scopeCounter, inPropositionalView, subpfCounter);
   }
 }
 
