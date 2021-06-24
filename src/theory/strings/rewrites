@@ -1,0 +1,3 @@
+(declare-const t String)
+
+(define-rule strsymmetry (= t t) true)

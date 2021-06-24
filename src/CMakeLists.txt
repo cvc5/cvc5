@@ -1176,6 +1176,12 @@ set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds)
 
 #-----------------------------------------------------------------------------#
+
+set(REWRITES_FILES
+  ${PROJECT_SOURCE_DIR}/src/theory/booleans/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites)
+
+#-----------------------------------------------------------------------------#
 # Add subdirectories
 
 add_subdirectory(base)
@@ -1193,6 +1199,7 @@ add_subdirectory(util)
 # LIBCVC5_GEN_SRCS (via libcvc5_add_sources). We can now build libcvc5.
 
 set_source_files_properties(${LIBCVC5_GEN_SRCS} PROPERTIES GENERATED TRUE)
+
 add_library(cvc5 ${LIBCVC5_SRCS} ${LIBCVC5_GEN_SRCS}
   $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
 target_include_directories(cvc5
@@ -1212,7 +1219,7 @@ install(TARGETS cvc5
 set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
 target_compile_definitions(cvc5 PRIVATE -D__BUILDING_CVC5LIB)
 # Add libcvc5 dependencies for generated sources.
-add_dependencies(cvc5 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
+add_dependencies(cvc5 gen-expr gen-gitinfo gen-options gen-rewrites gen-tags gen-theory)
 
 # Add library/include dependencies
 if(ENABLE_VALGRIND)

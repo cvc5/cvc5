@@ -15,6 +15,7 @@
 #include "theory/rewrite_db.h"
 
 #include "theory/rewrite_db_term_process.h"
+#include "theory/rewriter/rewrites.h"
 
 using namespace cvc5::kind;
 
@@ -26,7 +27,7 @@ RewriteDb::RewriteDb() : d_idCounter(DslPfRule::USER_START)
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
-  // TODO: AUTO-GENERATE
+  rewriter::addRules(*this);
 }
 
 DslPfRule RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)

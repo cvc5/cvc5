@@ -1,0 +1,2 @@
+(define-rule nottrue (not true) false)
+(define-rule orfalse (or false false) false)
