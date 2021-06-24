@@ -15,12 +15,16 @@
 
 #include "theory/arith/nl/pow2_solver.h"
 
+#include "options/arith_options.h"
+#include "options/smt_options.h"
+#include "preprocessing/passes/bv_to_int.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
 
 using namespace cvc5::kind;
 
@@ -58,6 +62,7 @@ void Pow2Solver::initLastCall(const std::vector<Node>& assertions,
     }
     d_pow2s.push_back(a);
   }
+
   Trace("pow2") << "We have " << d_pow2s.size() << " pow2 terms." << std::endl;
 }
 
@@ -90,27 +95,54 @@ void Pow2Solver::checkFullRefine()
 {
   Trace("pow2-check") << "Pow2Solver::checkFullRefine";
   Trace("pow2-check") << "pow2 terms: " << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
   for (const Node& i : d_pow2s)
   {
-    Node valPow2x = d_model.computeAbstractModelValue(i);
-    Node valPow2xC = d_model.computeConcreteModelValue(i);
+    Node valPow2xAbstract = d_model.computeAbstractModelValue(i);
+    Node valPow2xConcrete = d_model.computeConcreteModelValue(i);
+    Node valXConcrete = d_model.computeConcreteModelValue(i[0]);
     if (Trace.isOn("pow2-check"))
     {
-      Node x = i[0];
-      Node valX = d_model.computeConcreteModelValue(x);
-
-      Trace("pow2-check") << "* " << i << ", value = " << valPow2x << std::endl;
-      Trace("pow2-check") << "  actual (" << valX << ", "
-                          << ") = " << valPow2xC << std::endl;
+      Trace("pow2-check") << "* " << i << ", value = " << valPow2xAbstract
+                          << std::endl;
+      Trace("pow2-check") << "  actual (" << valXConcrete << ", "
+                          << ") = " << valPow2xConcrete << std::endl;
     }
-    if (valPow2x == valPow2xC)
+    if (valPow2xAbstract == valPow2xConcrete)
     {
       Trace("pow2-check") << "...already correct" << std::endl;
       continue;
     }
 
+    // x<=y --> pow2(x) <= pow2(y)
+    for (const Node& j : d_pow2s)
+    {
+      if (i != j)
+      {
+        // i = pow2(x)
+        // j = pow2(y)
+        // compute values for y and pow(y)
+        Node valPow2yConcrete = d_model.computeConcreteModelValue(j);
+        Node valYConcrete = d_model.computeConcreteModelValue(j[0]);
+
+        Integer x = valXConcrete.getConst<Rational>().getNumerator();
+        Integer y = valYConcrete.getConst<Rational>().getNumerator();
+        Integer pow2x = valPow2xConcrete.getConst<Rational>().getNumerator();
+        Integer pow2y = valPow2yConcrete.getConst<Rational>().getNumerator();
+
+        if (x <= y && pow2x > pow2y)
+        {
+          Node assumption = nm->mkNode(LEQ, i[0], j[0]);
+          Node conclusion = nm->mkNode(LEQ, i, j);
+          Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+          d_im.addPendingLemma(
+              lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, nullptr, true);
+        }
+      }
+    }
+
     // Place holder for additional lemma schemas
-    //
+
     // End of additional lemma schemas
 
     // this is the most naive model-based schema based on model values
