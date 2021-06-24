@@ -91,7 +91,6 @@ void Pow2Solver::checkFullRefine()
   Trace("pow2-check") << "Pow2Solver::checkFullRefine";
   Trace("pow2-check") << "pow2 terms: " << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> pow2Args;
 
   struct
   {
