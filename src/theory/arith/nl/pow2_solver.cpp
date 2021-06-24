@@ -103,7 +103,8 @@ void Pow2Solver::checkFullRefine()
     Node valXConcrete = d_model.computeConcreteModelValue(i[0]);
     if (Trace.isOn("pow2-check"))
     {
-      Trace("pow2-check") << "* " << i << ", value = " << valPow2xAbstract << std::endl;
+      Trace("pow2-check") << "* " << i << ", value = " << valPow2xAbstract
+                          << std::endl;
       Trace("pow2-check") << "  actual (" << valXConcrete << ", "
                           << ") = " << valPow2xConcrete << std::endl;
     }
@@ -114,31 +115,34 @@ void Pow2Solver::checkFullRefine()
     }
 
     // x<=y --> pow2(x) <= pow2(y)
-    for (const Node& j : d_pow2s) {
-	    if (i != j) {
-		// i = pow2(x)
-		// j = pow2(y)
-		// compute values for y and pow(y)
-    		Node valPow2yConcrete = d_model.computeConcreteModelValue(j);
-		Node valYConcrete = d_model.computeConcreteModelValue(j[0]);
+    for (const Node& j : d_pow2s)
+    {
+      if (i != j)
+      {
+        // i = pow2(x)
+        // j = pow2(y)
+        // compute values for y and pow(y)
+        Node valPow2yConcrete = d_model.computeConcreteModelValue(j);
+        Node valYConcrete = d_model.computeConcreteModelValue(j[0]);
 
-		Integer x = valXConcrete.getConst<Rational>().getNumerator();
-		Integer y = valYConcrete.getConst<Rational>().getNumerator();
-		Integer pow2x = valPow2xConcrete.getConst<Rational>().getNumerator();
-		Integer pow2y = valPow2yConcrete.getConst<Rational>().getNumerator();
+        Integer x = valXConcrete.getConst<Rational>().getNumerator();
+        Integer y = valYConcrete.getConst<Rational>().getNumerator();
+        Integer pow2x = valPow2xConcrete.getConst<Rational>().getNumerator();
+        Integer pow2y = valPow2yConcrete.getConst<Rational>().getNumerator();
 
-		if (x <= y && pow2x > pow2y) {
-			Node assumption = nm->mkNode(LEQ, i[0], j[0]);
-			Node conclusion= nm->mkNode(LEQ, i, j);
-			Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
-			d_im.addPendingLemma(lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, nullptr, true);
-		}
-	    }
-
+        if (x <= y && pow2x > pow2y)
+        {
+          Node assumption = nm->mkNode(LEQ, i[0], j[0]);
+          Node conclusion = nm->mkNode(LEQ, i, j);
+          Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+          d_im.addPendingLemma(
+              lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, nullptr, true);
+        }
+      }
     }
 
     // Place holder for additional lemma schemas
-    
+
     // End of additional lemma schemas
 
     // this is the most naive model-based schema based on model values
