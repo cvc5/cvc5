@@ -77,6 +77,7 @@ class LfscPrintChannelOut : public LfscPrintChannel
   static void printId(std::ostream& out, size_t id);
   static void printProofId(std::ostream& out, size_t id);
   static void printAssumeId(std::ostream& out, size_t id);
+  static void printDslProofRuleId(std::ostream& out, theory::DslPfRule id);
   //------------------- end helper methods
  private:
   /**

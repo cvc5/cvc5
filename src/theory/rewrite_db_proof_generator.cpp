@@ -128,7 +128,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     // Get the conditions, substituted { vars -> subs } and with side conditions
     // evaluated.
     std::vector<Node> vcs;
-    if (!rpr.getConditions(vars, subs, vcs))
+    if (!rpr.getObligations(vars, subs, vcs))
     {
       // cannot get conditions, likely due to failed side condition
       continue;
@@ -333,7 +333,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
             ss.push_back(sp.second);
           }
           // get the conditions, store into premises of cur.
-          if (!rpr.getConditions(vs, ss, premises[cur]))
+          if (!rpr.getObligations(vs, ss, premises[cur]))
           {
             Assert(false);
             // failed a side condition?

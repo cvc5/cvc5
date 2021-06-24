@@ -413,8 +413,16 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     return args[0];
   }
   else if (id == PfRule::LFSC_RULE || id == PfRule::VERIT_RULE
-           || id == PfRule::LEAN_RULE  || id == PfRule::DSL_REWRITE)
+           || id == PfRule::LEAN_RULE)
   {
+    Assert(args.size() > 1);
+    Assert(args[0].getType().isInteger());
+    return args[1];
+  }
+  else if (id == PfRule::DSL_REWRITE)
+  {
+    // TODO: should consult rewrite db, apply args[1]...args[n] as a substituion
+    // to variable list and prove equality between LHS and RHS.
     Assert(args.size() > 1);
     Assert(args[0].getType().isInteger());
     return args[1];

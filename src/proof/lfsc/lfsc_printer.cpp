@@ -221,14 +221,37 @@ void LfscPrinter::print(std::ostream& out,
   {
     out << "; WARNING: adding trust step for " << r << std::endl;
   }
-  // [4] print the DSL rewrite rules
+  // [4] print the DSL rewrite rule declarations
   const std::unordered_set<theory::DslPfRule>& dslrs = lpcp.getDslRewrites();
   for (theory::DslPfRule dslr : dslrs)
   {
     const theory::RewriteProofRule& rpr = d_rdb->getRule(dslr);
     // TODO
-    out << "; (declare dsl." << rpr.getName();
-    out << ")";
+    std::vector<Node> varList;
+    const std::vector<Node>& conds = rpr.getConditions();
+    Node conc = rpr.getConclusion();
+    std::stringstream rparen;
+    out << "; (declare ";
+    LfscPrintChannelOut::printDslProofRuleId(out, dslr);
+    for (const Node& v : varList)
+    {
+      out << "(! " << v << " term ";
+      rparen << ")";
+    }
+    // print conditions
+    for (size_t i=0, nconds = conds.size(); i<nconds; i++)
+    {
+      out << "(! u" << i << " (holds ";
+      Node ic = d_tproc.convert(conds[i]);
+      printInternal(out, ic);
+      out << ") ";
+      rparen << ")";
+    }
+    // print conclusion
+    out << "(holds ";
+    Node icc = d_tproc.convert(conc);
+    printInternal(out, icc);
+    out << "))" << rparen.str() << std::endl;
   }
 
   // [5] print the check command and term lets
@@ -650,17 +673,19 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     break;
     case PfRule::DSL_REWRITE:
     {
-      theory::DslPfRule di;
-      if (theory::getDslPfRule(as[0], di))
-      {
-        //const theory::RewriteProofRule& rpr = d_rdb->getRule(dslr);
-        // TODO
-      }
-      else
-      {
-        Assert(false);
-      }
+      // TODO
       return false;
+      // currently assume all arguments are explicit
+      for (size_t i=1, nargs = as.size(); i<nargs; i++)
+      {
+        pf << as[i];
+      }
+      // child proofs
+      Assert (cs.size()==rpr.getConditions().size());
+      for (const ProofNode* c : cs)
+      {
+        pf << c;
+      }
     }
     break;
     default:
@@ -726,6 +751,12 @@ void LfscPrinter::printLetList(std::ostream& out,
   }
 }
 
+  void LfscPrinter::printInternal(std::ostream& out,
+                    Node n)
+  {
+  LetBinding lbind;
+  printInternal(out, n, lbind);
+  }
 void LfscPrinter::printInternal(std::ostream& out,
                                 Node n,
                                 LetBinding& lbind,

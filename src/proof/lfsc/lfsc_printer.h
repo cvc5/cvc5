@@ -64,6 +64,11 @@ class LfscPrinter
    * Print node to stream in the expected format of LFSC.
    */
   void printInternal(std::ostream& out,
+                     Node n);
+  /**
+   * Print node to stream in the expected format of LFSC.
+   */
+  void printInternal(std::ostream& out,
                      Node n,
                      LetBinding& lbind,
                      bool letTop = true);

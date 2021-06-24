@@ -161,9 +161,14 @@ const std::string& RewriteProofRule::getName() const { return d_name; }
 
 bool RewriteProofRule::hasConditions() const { return !d_cond.empty(); }
 
+const std::vector<Node>& RewriteProofRule::getConditions() const
+{
+  return d_cond;
+}
+
 bool RewriteProofRule::hasSideConditions() const { return !d_scs.empty(); }
 
-bool RewriteProofRule::getConditions(const std::vector<Node>& vs,
+bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
                                      const std::vector<Node>& ss,
                                      std::vector<Node>& vcs) const
 {

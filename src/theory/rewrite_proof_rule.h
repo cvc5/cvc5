@@ -62,13 +62,15 @@ class RewriteProofRule
   const std::string& getName() const;
   /** Does this rule have conditions? */
   bool hasConditions() const;
+  /** Get (declared) conditions */
+  const std::vector<Node>& getConditions() const;
   /** Does this rule have side conditions? */
   bool hasSideConditions() const;
   /**
    * Get the conditions in context { vs -> ss }. This may involve running the
    * side conditions of this method.
    */
-  bool getConditions(const std::vector<Node>& vs,
+  bool getObligations(const std::vector<Node>& vs,
                      const std::vector<Node>& ss,
                      std::vector<Node>& vcs) const;
   /** Get conclusion of the rule */

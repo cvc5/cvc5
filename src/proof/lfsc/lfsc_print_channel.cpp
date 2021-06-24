@@ -105,6 +105,21 @@ void LfscPrintChannelOut::printRule(std::ostream& out, const ProofNode* pn)
     out << getLfscRule(args[0]);
     return;
   }
+  else if (pn->getRule() == PfRule::DSL_REWRITE)
+  {
+    const std::vector<Node>& args = pn->getArguments();
+    theory::DslPfRule di;
+    if (theory::getDslPfRule(args[0], di))
+    {
+      printDslProofRuleId(out, di);
+    }
+    else
+    {
+      out << "?";
+      Assert (false);
+    }
+    return;
+  }
   // Otherwise, convert to lower case
   std::stringstream ss;
   ss << pn->getRule();
@@ -129,6 +144,10 @@ void LfscPrintChannelOut::printProofId(std::ostream& out, size_t id)
 void LfscPrintChannelOut::printAssumeId(std::ostream& out, size_t id)
 {
   out << "__a" << id;
+}
+void LfscPrintChannelOut::printDslProofRuleId(std::ostream& out, theory::DslPfRule id)
+{
+  out << "dsl." << id;
 }
 
 void LfscPrintChannelOut::cleanSymbols(std::string& s)
