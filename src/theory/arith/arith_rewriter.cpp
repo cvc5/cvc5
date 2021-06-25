@@ -393,6 +393,9 @@ RewriteResponse ArithRewriter::postRewritePow2(TNode t)
     // pow2 is only supported for integers
     Assert(t[0].getType().isInteger());
     Integer i = t[0].getConst<Rational>().getNumerator();
+    if (i < 0) {
+        return RewriteResponse(REWRITE_DONE, nm->mkConst<Rational>(Rational(Integer(0), Integer(1))));
+    }
     unsigned long k = i.getUnsignedLong();
     Node ret = nm->mkConst<Rational>(Rational(Integer(2).pow(k), Integer(1)));
     return RewriteResponse(REWRITE_DONE, ret);

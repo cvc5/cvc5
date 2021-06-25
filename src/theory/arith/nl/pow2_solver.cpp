@@ -121,8 +121,8 @@ void Pow2Solver::checkFullRefine()
     {
       Trace("pow2-check") << "* " << i << ", value = " << valPow2xAbstract
                           << std::endl;
-      Trace("pow2-check") << "  actual (" << valXConcrete << ", "
-                          << ") = " << valPow2xConcrete << std::endl;
+      Trace("pow2-check") << "  actual " << valXConcrete 
+                          << " = " << valPow2xConcrete << std::endl;
     }
     if (valPow2xAbstract == valPow2xConcrete)
     {
@@ -130,6 +130,8 @@ void Pow2Solver::checkFullRefine()
       continue;
     }
 
+    Integer x = valXConcrete.getConst<Rational>().getNumerator();
+    Integer pow2x = valPow2xAbstract.getConst<Rational>().getNumerator();
     // add monotinicity lemmas
     for (uint64_t j = i + 1; j < size; j++)
     {
@@ -137,9 +139,7 @@ void Pow2Solver::checkFullRefine()
       Node valPow2yAbstract = d_model.computeAbstractModelValue(m);
       Node valYConcrete = d_model.computeConcreteModelValue(m[0]);
 
-      Integer x = valXConcrete.getConst<Rational>().getNumerator();
       Integer y = valYConcrete.getConst<Rational>().getNumerator();
-      Integer pow2x = valPow2xAbstract.getConst<Rational>().getNumerator();
       Integer pow2y = valPow2yAbstract.getConst<Rational>().getNumerator();
 
       if (x < y && pow2x >= pow2y)
@@ -150,6 +150,17 @@ void Pow2Solver::checkFullRefine()
         d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, nullptr, true);
         }
+    }
+
+
+    // triviality lemmas: pow2(x) = 0 whenever
+    // x < 0
+    if (x < 0) {
+        Node assumption = nm->mkNode(LT, n[0], d_zero);
+        Node conclusion = nm->mkNode(EQUAL, n, d_zero);
+        Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+        d_im.addPendingLemma(
+            lem, InferenceId::ARITH_NL_POW2_TRIVIAL_CASE_REFINE, nullptr, true);
     }
 
     // Place holder for additional lemma schemas
