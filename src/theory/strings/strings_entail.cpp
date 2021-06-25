@@ -471,7 +471,7 @@ bool StringsEntail::componentContainsBase(
 
       if (!computeRemainder && dir == 0)
       {
-        if (n1.getKind() == STRING_STRREPL)
+        if (n1.getKind() == STRING_REPLACE)
         {
           // (str.contains (str.replace x y z) w) ---> true
           // if (str.contains x w) --> true and (str.contains z w) ---> true
@@ -839,7 +839,7 @@ Node StringsEntail::getMultisetApproximation(Node a)
   {
     return a[0];
   }
-  else if (a.getKind() == STRING_STRREPL)
+  else if (a.getKind() == STRING_REPLACE)
   {
     return getMultisetApproximation(nm->mkNode(STRING_CONCAT, a[0], a[2]));
   }
@@ -865,7 +865,7 @@ Node StringsEntail::getStringOrEmpty(Node n)
   {
     switch (n.getKind())
     {
-      case STRING_STRREPL:
+      case STRING_REPLACE:
       {
         if (Word::isEmpty(n[0]))
         {

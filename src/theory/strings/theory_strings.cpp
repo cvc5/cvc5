@@ -134,11 +134,11 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_STOI, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_STRIDOF, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_INDEXOF_RE, eagerEval);
-  d_equalityEngine->addFunctionKind(kind::STRING_STRREPL, eagerEval);
-  d_equalityEngine->addFunctionKind(kind::STRING_STRREPLALL, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_REPLACE, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_REPLACEALL, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_RE, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_RE_ALL, eagerEval);
-  d_equalityEngine->addFunctionKind(kind::STRING_STRREPLALL, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_REPLACEALL, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TOLOWER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TOUPPER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REV, eagerEval);

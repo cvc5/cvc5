@@ -435,7 +435,7 @@ void ArithEntail::getArithApproximations(Node a,
         }
       }
     }
-    else if (aak == STRING_STRREPL)
+    else if (aak == STRING_REPLACE)
     {
       // over,under-approximations for len( replace( x, y, z ) )
       // notice this is either len( x ) or ( len( x ) + len( z ) - len( y ) )

@@ -541,7 +541,7 @@ Node StringsPreprocess::reduce(Node t,
     asserts.push_back(lemma);
     retNode = skt;
   }
-  else if (t.getKind() == kind::STRING_STRREPL)
+  else if (t.getKind() == kind::STRING_REPLACE)
   {
     // processing term: replace( x, y, z )
     Node x = t[0];
@@ -602,7 +602,7 @@ Node StringsPreprocess::reduce(Node t,
     // Thus, replace( x, y, z ) = rpw.
     retNode = rpw;
   }
-  else if (t.getKind() == kind::STRING_STRREPLALL)
+  else if (t.getKind() == kind::STRING_REPLACEALL)
   {
     // processing term: replaceall( x, y, z )
     Node x = t[0];

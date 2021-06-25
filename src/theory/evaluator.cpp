@@ -606,7 +606,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::STRING_STRREPL:
+        case kind::STRING_REPLACE:
         {
           const String& s = results[currNode[0]].d_str;
           const String& x = results[currNode[1]].d_str;

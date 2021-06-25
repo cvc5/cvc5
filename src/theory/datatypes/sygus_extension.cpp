@@ -764,12 +764,12 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
             deq_child[1].push_back(1);
           }
         }
-        if (nk == ITE || nk == STRING_STRREPL || nk == STRING_STRREPLALL)
+        if (nk == ITE || nk == STRING_REPLACE || nk == STRING_REPLACEALL)
         {
           deq_child[0].push_back(1);
           deq_child[1].push_back(2);
         }
-        if (nk == STRING_STRREPL || nk == STRING_STRREPLALL)
+        if (nk == STRING_REPLACE || nk == STRING_REPLACEALL)
         {
           deq_child[0].push_back(0);
           deq_child[1].push_back(1);
