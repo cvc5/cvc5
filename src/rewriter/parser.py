@@ -58,6 +58,7 @@ symbol_to_op = {
     'str.++': Op.STRING_CONCAT,
     'str.len': Op.STRING_LENGTH,
     'str.substr': Op.STRING_SUBSTR,
+    'str.replace': Op.STRING_REPLACE,
 }
 
 

@@ -95,6 +95,7 @@ class Op(Enum):
     STRING_LENGTH = auto()
 
     STRING_SUBSTR = auto()
+    STRING_REPLACE = auto()
 
 
 class BaseSort(Enum):

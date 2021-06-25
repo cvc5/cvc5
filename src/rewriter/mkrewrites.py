@@ -17,6 +17,7 @@ def gen_kind(op):
         Op.STRING_CONCAT: 'STRING_CONCAT',
         Op.STRING_LENGTH: 'STRING_LENGTH',
         Op.STRING_SUBSTR: 'STRING_SUBSTR',
+        Op.STRING_REPLACE: 'STRING_REPLACE',
     }
     return op_to_kind[op]
 

@@ -311,11 +311,11 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {STRING_SUBSTR, cvc5::Kind::STRING_SUBSTR},
     {STRING_UPDATE, cvc5::Kind::STRING_UPDATE},
     {STRING_CHARAT, cvc5::Kind::STRING_CHARAT},
-    {STRING_CONTAINS, cvc5::Kind::STRING_STRCTN},
-    {STRING_INDEXOF, cvc5::Kind::STRING_STRIDOF},
+    {STRING_CONTAINS, cvc5::Kind::STRING_CONTAINS},
+    {STRING_INDEXOF, cvc5::Kind::STRING_INDEXOF},
     {STRING_INDEXOF_RE, cvc5::Kind::STRING_INDEXOF_RE},
-    {STRING_REPLACE, cvc5::Kind::STRING_STRREPL},
-    {STRING_REPLACE_ALL, cvc5::Kind::STRING_STRREPLALL},
+    {STRING_REPLACE, cvc5::Kind::STRING_REPLACE},
+    {STRING_REPLACE_ALL, cvc5::Kind::STRING_REPLACEALL},
     {STRING_REPLACE_RE, cvc5::Kind::STRING_REPLACE_RE},
     {STRING_REPLACE_RE_ALL, cvc5::Kind::STRING_REPLACE_RE_ALL},
     {STRING_TOLOWER, cvc5::Kind::STRING_TOLOWER},
@@ -351,10 +351,10 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {SEQ_EXTRACT, cvc5::Kind::STRING_SUBSTR},
     {SEQ_UPDATE, cvc5::Kind::STRING_UPDATE},
     {SEQ_AT, cvc5::Kind::STRING_CHARAT},
-    {SEQ_CONTAINS, cvc5::Kind::STRING_STRCTN},
-    {SEQ_INDEXOF, cvc5::Kind::STRING_STRIDOF},
-    {SEQ_REPLACE, cvc5::Kind::STRING_STRREPL},
-    {SEQ_REPLACE_ALL, cvc5::Kind::STRING_STRREPLALL},
+    {SEQ_CONTAINS, cvc5::Kind::STRING_CONTAINS},
+    {SEQ_INDEXOF, cvc5::Kind::STRING_INDEXOF},
+    {SEQ_REPLACE, cvc5::Kind::STRING_REPLACE},
+    {SEQ_REPLACE_ALL, cvc5::Kind::STRING_REPLACEALL},
     {SEQ_REV, cvc5::Kind::STRING_REV},
     {SEQ_PREFIX, cvc5::Kind::STRING_PREFIX},
     {SEQ_SUFFIX, cvc5::Kind::STRING_SUFFIX},
@@ -618,11 +618,11 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::STRING_SUBSTR, STRING_SUBSTR},
         {cvc5::Kind::STRING_UPDATE, STRING_UPDATE},
         {cvc5::Kind::STRING_CHARAT, STRING_CHARAT},
-        {cvc5::Kind::STRING_STRCTN, STRING_CONTAINS},
-        {cvc5::Kind::STRING_STRIDOF, STRING_INDEXOF},
+        {cvc5::Kind::STRING_CONTAINS, STRING_CONTAINS},
+        {cvc5::Kind::STRING_INDEXOF, STRING_INDEXOF},
         {cvc5::Kind::STRING_INDEXOF_RE, STRING_INDEXOF_RE},
-        {cvc5::Kind::STRING_STRREPL, STRING_REPLACE},
-        {cvc5::Kind::STRING_STRREPLALL, STRING_REPLACE_ALL},
+        {cvc5::Kind::STRING_REPLACE, STRING_REPLACE},
+        {cvc5::Kind::STRING_REPLACEALL, STRING_REPLACE_ALL},
         {cvc5::Kind::STRING_REPLACE_RE, STRING_REPLACE_RE},
         {cvc5::Kind::STRING_REPLACE_RE_ALL, STRING_REPLACE_RE_ALL},
         {cvc5::Kind::STRING_TOLOWER, STRING_TOLOWER},
@@ -3206,10 +3206,10 @@ Kind Term::getKindHelper() const
       case cvc5::Kind::STRING_SUBSTR: return SEQ_EXTRACT;
       case cvc5::Kind::STRING_UPDATE: return SEQ_UPDATE;
       case cvc5::Kind::STRING_CHARAT: return SEQ_AT;
-      case cvc5::Kind::STRING_STRCTN: return SEQ_CONTAINS;
-      case cvc5::Kind::STRING_STRIDOF: return SEQ_INDEXOF;
-      case cvc5::Kind::STRING_STRREPL: return SEQ_REPLACE;
-      case cvc5::Kind::STRING_STRREPLALL: return SEQ_REPLACE_ALL;
+      case cvc5::Kind::STRING_CONTAINS: return SEQ_CONTAINS;
+      case cvc5::Kind::STRING_INDEXOF: return SEQ_INDEXOF;
+      case cvc5::Kind::STRING_REPLACE: return SEQ_REPLACE;
+      case cvc5::Kind::STRING_REPLACEALL: return SEQ_REPLACE_ALL;
       case cvc5::Kind::STRING_REV: return SEQ_REV;
       case cvc5::Kind::STRING_PREFIX: return SEQ_PREFIX;
       case cvc5::Kind::STRING_SUFFIX: return SEQ_SUFFIX;

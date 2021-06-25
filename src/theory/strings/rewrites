@@ -1,3 +1,8 @@
 (define-rule str-eq-refl ((t String)) (= t t) true)
 (define-rule str-eq-symm ((t String) (s String)) (= t s) (= s t))
 (define-rule substr-empty-str ((t String) (n Int) (m Int)) (str.substr "" n m) "")
+
+(define-cond-rule str-len-replace-inv ((t String) (s String) (r String)) 
+  (= (str.len s) (str.len r)) 
+  (str.len (str.replace t s r))
+  (str.len t))
