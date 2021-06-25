@@ -121,8 +121,8 @@ void Pow2Solver::checkFullRefine()
     {
       Trace("pow2-check") << "* " << i << ", value = " << valPow2xAbstract
                           << std::endl;
-      Trace("pow2-check") << "  actual " << valXConcrete 
-                          << " = " << valPow2xConcrete << std::endl;
+      Trace("pow2-check") << "  actual " << valXConcrete << " = "
+                          << valPow2xConcrete << std::endl;
     }
     if (valPow2xAbstract == valPow2xConcrete)
     {
@@ -152,15 +152,15 @@ void Pow2Solver::checkFullRefine()
         }
     }
 
-
     // triviality lemmas: pow2(x) = 0 whenever
     // x < 0
-    if (x < 0) {
-        Node assumption = nm->mkNode(LT, n[0], d_zero);
-        Node conclusion = nm->mkNode(EQUAL, n, d_zero);
-        Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
-        d_im.addPendingLemma(
-            lem, InferenceId::ARITH_NL_POW2_TRIVIAL_CASE_REFINE, nullptr, true);
+    if (x < 0)
+    {
+      Node assumption = nm->mkNode(LT, n[0], d_zero);
+      Node conclusion = nm->mkNode(EQUAL, n, d_zero);
+      Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+      d_im.addPendingLemma(
+          lem, InferenceId::ARITH_NL_POW2_TRIVIAL_CASE_REFINE, nullptr, true);
     }
 
     // Place holder for additional lemma schemas
