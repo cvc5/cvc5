@@ -51,7 +51,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   Trace("rpc-debug") << "- convert to internal" << std::endl;
   DslPfRule id;
   Node eq = a.eqNode(b);
-  Node eqi = eq;  // RewriteDbTermProcess::toInternal(eq);
+  Node eqi = eq;//d_rdnc.convert(eq);
   if (!proveInternalBase(eqi, id))
   {
     Trace("rpc-debug") << "- prove internal" << std::endl;
@@ -60,7 +60,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
     d_currRecLimit = recLimit + 1;
     // Otherwise, we call the main prove internal method, which recurisvely
     // tries to find a matched conclusion whose conditions can be proven
-    id = proveInternal(eqi);
+    id = proveInternal(eq);
     Trace("rpc-debug") << "- finished prove internal" << std::endl;
   }
   bool success = (id != DslPfRule::FAIL);
@@ -338,15 +338,6 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
             pfArgs[cur].push_back(subs[v]);
           }
           Assert(subs.size() == vs.size());
-          /*
-          std::vector<Node> vs;
-          std::vector<Node> ss;
-          for (const std::pair<const Node, Node>& sp : subs)
-          {
-            vs.push_back(sp.first);
-            ss.push_back(sp.second);
-          }
-          */
           // get the conditions, store into premises of cur.
           std::vector<Node>& ps = premises[cur];
           if (!rpr.getObligations(vs, pfArgs[cur], ps))

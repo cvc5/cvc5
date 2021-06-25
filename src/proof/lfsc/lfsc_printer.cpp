@@ -413,6 +413,11 @@ void LfscPrinter::printProofInternal(
           Assert(passumeIt != passumeMap.end());
           out->printAssumeId(passumeIt->second);
         }
+        else if (r == PfRule::ENCODE_PRED_TRANSFORM)
+        {
+          // just add child
+          visit.push_back(PExpr(cur->getChildren()[0].get()));
+        }
         else if (isLambda)
         {
           Assert(cur->getArguments().size() == 3);

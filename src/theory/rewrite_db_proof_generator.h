@@ -27,6 +27,7 @@
 #include "theory/evaluator.h"
 #include "theory/rewrite_db.h"
 #include "theory/rewrite_rcons.h"
+#include "theory/rewrite_db_term_process.h"
 
 namespace cvc5 {
 namespace theory {
@@ -65,6 +66,8 @@ class RewriteDbProofCons
   RdpcMatchTrieNotify d_notify;
   /** Basic utility */
   TheoryRewriteRCons d_trrc;
+  /** Node converter utility */
+  RewriteDbNodeConverter d_rdnc;
   /** Pointer to rewrite database */
   RewriteDb* d_db;
   /** the evaluator utility */
