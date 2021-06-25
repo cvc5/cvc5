@@ -38,6 +38,8 @@ add_custom_command(
       ${REWRITES_FILES}
       ${CMAKE_CURRENT_LIST_DIR}/rewrites_template.cpp
       ${CMAKE_CURRENT_LIST_DIR}/rewrites_template.h
+    COMMENT
+      "Generating rewrites.{h,cpp}"
 )
 
 add_custom_target(gen-rewrites

@@ -77,6 +77,20 @@ class Rewrites:
         self.rules = rules
 
 
+def validate_rule(rule):
+    used_vars = set()
+    to_visit = [rule.cond, rule.lhs, rule.rhs]
+    while to_visit:
+        curr = to_visit.pop()
+        if isinstance(curr, Var):
+            used_vars.add(curr)
+        to_visit.extend(curr.children)
+
+    unused_vars = set(rule.bvars) - used_vars
+    if unused_vars:
+        die(f'Variables {unused_vars} are unused in {rule.name}')
+
+
 def gen_rewrite_db(args):
     block_tpl = '''
         {{
@@ -95,6 +109,7 @@ def gen_rewrite_db(args):
         file_decls = []
         for rule in rules:
             file_decls.extend(rule.bvars)
+            validate_rule(rule)
 
         rewrites.append(Rewrites(rewrites_file.name, file_decls, rules))
         decls.extend(file_decls)
