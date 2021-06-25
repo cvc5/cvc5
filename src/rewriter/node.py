@@ -64,6 +64,7 @@ class Op(Enum):
     NOT = auto()
     AND = auto()
     OR = auto()
+    IMPLIES = auto()
     XOR = auto()
 
     ###########################################################################

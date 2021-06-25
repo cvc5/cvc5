@@ -1,2 +1,4 @@
 (define-rule bool-eq-refl ((t Bool)) (= t t) true)
 (define-rule bool-double-neg-elim ((t Bool)) (not (not t)) t)
+
+(define-rule bool-impl-false ((t Bool)) (=> t false) (not t))

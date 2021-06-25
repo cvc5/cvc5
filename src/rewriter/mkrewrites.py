@@ -13,6 +13,7 @@ def gen_kind(op):
         Op.NOT: 'NOT',
         Op.AND: 'AND',
         Op.OR: 'OR',
+        Op.IMPLIES: 'IMPLIES',
         Op.EQ: 'EQUAL',
         Op.MULT: 'MULT',
         Op.LT: 'LT',

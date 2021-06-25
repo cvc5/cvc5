@@ -46,6 +46,7 @@ symbol_to_op = {
     'not': Op.NOT,
     'and': Op.AND,
     'or': Op.OR,
+    '=>': Op.IMPLIES,
     'xor': Op.XOR,
     '+': Op.PLUS,
     '-': Op.MINUS,

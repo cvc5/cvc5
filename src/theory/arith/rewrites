@@ -5,4 +5,5 @@
 (define-rule arith-eq-symm-real ((t Real) (s Real)) (= t s) (= s t))
 
 
+(define-rule arith-elim-gt ((t Int) (s Int)) (> t s) (not (<= t s)))
 (define-rule arith-elim-lt ((t Int) (s Int)) (< t s) (not (>= t s)))
