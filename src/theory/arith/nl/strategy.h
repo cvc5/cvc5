@@ -52,7 +52,7 @@ enum class InferStep
   POW2_INITIAL,
 
   /** An ICP check */
-  
+
   ICP,
 
   /** Initialize the NL solver */

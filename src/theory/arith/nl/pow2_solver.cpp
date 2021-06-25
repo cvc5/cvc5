@@ -135,14 +135,15 @@ void Pow2Solver::checkFullRefine()
     for (uint64_t j = i + 1; j < size; j++)
     {
       Node m = d_pow2s[j];
-      Node valPow2yAbstract= d_model.computeAbstractModelValue(m);
+      Node valPow2yAbstract = d_model.computeAbstractModelValue(m);
       Node valYConcrete = d_model.computeConcreteModelValue(m[0]);
 
       Integer x = valXConcrete.getConst<Rational>().getNumerator();
       Integer y = valYConcrete.getConst<Rational>().getNumerator();
       Integer pow2x = valPow2xAbstract.getConst<Rational>().getNumerator();
       Integer pow2y = valPow2yAbstract.getConst<Rational>().getNumerator();
-      Trace("pow2-solver-debug") << "checking whether to add monotinicity lemma" << std::endl;
+      Trace("pow2-solver-debug")
+          << "checking whether to add monotinicity lemma" << std::endl;
       Trace("pow2-solver-debug") << "x: " << x << std::endl;
       Trace("pow2-solver-debug") << "y: " << y << std::endl;
       Trace("pow2-solver-debug") << "(pow2 x): " << pow2x << std::endl;
