@@ -75,6 +75,9 @@ class Pow2Solver
    */
   void checkFullRefine();
 
+  /** sort d_pow2 according to their values in the current model */
+  void sortPow2sBasedOnModel();
+
   //-------------------------------------------- end lemma schemas
  private:
   // The inference manager that we push conflicts and lemmas to.
