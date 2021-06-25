@@ -348,16 +348,19 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
           }
           */
           // get the conditions, store into premises of cur.
-          if (!rpr.getObligations(vs, pfArgs[cur], premises[cur]))
+          std::vector<Node>& ps = premises[cur];
+          if (!rpr.getObligations(vs, pfArgs[cur], ps))
           {
             Assert(false);
             // failed a side condition?
             return false;
           }
-          // TODO: recurse
+          // add the DSL proof rule we used
           pfArgs[cur].insert(
               pfArgs[cur].begin(),
               nm->mkConst(Rational(static_cast<uint32_t>(itd->second))));
+          // recurse on premises
+          visit.insert(visit.end(), ps.begin(), ps.end());
         }
       }
     }
