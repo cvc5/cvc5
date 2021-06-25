@@ -98,22 +98,24 @@ void RewriteDb::addRule(
     Assert(false);
   }
   std::unordered_map<Node, Node>::iterator its;
+  std::vector<Node> ofvs;
   std::vector<Node> cfvs;
   for (const Node& v : fvs)
   {
     its = msubs.find(v);
     if (its != msubs.end())
     {
+      ofvs.push_back(v);
       cfvs.push_back(its->second);
     }
     else
     {
-      cfvs.push_back(v);
+      Notice() << "In DSL rule " << id << ", variable " << v << " is unused, dropping it" << std::endl;
     }
   }
 
   // initialize rule
-  d_rewDbRule[id].init(id, fvs, cfvs, conds, eqC);
+  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC);
   d_concToRules[eqC].push_back(id);
 }
 
