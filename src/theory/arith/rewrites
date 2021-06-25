@@ -6,4 +6,7 @@
 
 (define-rule arith-elim-lt ((t Int) (s Int)) (< t s) (not (>= t s)))
 
-(define-rule mul-one ((t Int)) (* 1 t) t)
+(define-rule arith-mul-one ((t Int)) (* 1 t) t)
+
+(define-rule arith-elim-minus ((t Int) (s Int)) (- t s) (+ t (* (- 1) s)))
+(define-cond-rule arith-elim-gt ((t Int) (s Int) (r Int)) (= r (+ s 1)) (> t s) (>= t r))

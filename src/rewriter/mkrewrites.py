@@ -14,6 +14,8 @@ def gen_kind(op):
         Op.AND: 'AND',
         Op.OR: 'OR',
         Op.EQ: 'EQUAL',
+        Op.PLUS: 'PLUS',
+        Op.MINUS: 'MINUS',
         Op.MULT: 'MULT',
         Op.LT: 'LT',
         Op.GT: 'GT',
