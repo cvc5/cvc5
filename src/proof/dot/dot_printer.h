@@ -74,6 +74,9 @@ class DotPrinter
    */
   static std::string sanitizeString(const std::string& s);
 
+  /** As above, but quotes are doubly escaped. */
+  static std::string sanitizeStringDoubleQuotes(const std::string& s);
+
   /** Traverse proof node and populate d_subpfCounter
    *
    * @param pn the proof node to be traversed
