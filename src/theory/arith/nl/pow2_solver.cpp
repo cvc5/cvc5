@@ -62,7 +62,6 @@ void Pow2Solver::initLastCall(const std::vector<Node>& assertions,
     }
     d_pow2s.push_back(a);
   }
-
   Trace("pow2") << "We have " << d_pow2s.size() << " pow2 terms." << std::endl;
 }
 
