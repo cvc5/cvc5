@@ -84,7 +84,7 @@ class OptimizationResult
   /**
    * Checks whether the objective is unbouned
    * @return whether the objective is unbounded
-   *   if the objective is unbounded (this function returns true), 
+   *   if the objective is unbounded (this function returns true),
    *   then the optimal value is:
    *   +inf, if it's maximize;
    *   -inf, if it's minimize
@@ -103,6 +103,14 @@ class OptimizationResult
    **/
   bool d_unbounded;
 };
+
+/**
+ * To serialize the OptimizationResult.
+ * @param os the stream to put the serialization result
+ * @param result the OptimizationResult object to serialize
+ * @return the parameter os
+ **/
+std::ostream& operator<<(std::ostream& os, const OptimizationResult& result);
 
 /**
  * The optimization objective, which contains:
@@ -164,6 +172,15 @@ class OptimizationObjective
    **/
   bool d_bvSigned;
 };
+
+/**
+ * To serialize the OptimizationObjective.
+ * @param os the stream to put the serialization result
+ * @param objective the OptimizationObjective object to serialize
+ * @return the parameter os
+ **/
+std::ostream& operator<<(std::ostream& os,
+                         const OptimizationObjective& objective);
 
 /**
  * A solver for optimization queries.

@@ -18,6 +18,8 @@
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "omt/omt_optimizer.h"
+#include "options/base_options.h"
+#include "options/language.h"
 #include "options/smt_options.h"
 #include "smt/assertions.h"
 #include "smt/smt_engine.h"
@@ -27,6 +29,55 @@ using namespace cvc5::theory;
 using namespace cvc5::omt;
 namespace cvc5 {
 namespace smt {
+
+std::ostream& operator<<(std::ostream& os, const OptimizationResult& result)
+{
+  // check the output language first
+  OutputLanguage lang = language::SetLanguage::getLanguage(os);
+  if (!language::isOutputLang_smt2(lang))
+  {
+    Unimplemented()
+        << "Only SMTLib2 or Sygus languages support optimization right now";
+  }
+  os << "(" << result.getResult();
+  switch (result.getResult().isSat())
+  {
+    case Result::SAT: CVC5_FALLTHROUGH;
+    case Result::SAT_UNKNOWN: os << "\t" << result.getValue(); break;
+    case Result::UNSAT: break;
+    default: Unreachable();
+  }
+  os << ")";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         const OptimizationObjective& objective)
+{
+  // check the output language first
+  OutputLanguage lang = language::SetLanguage::getLanguage(os);
+  if (!language::isOutputLang_smt2(lang))
+  {
+    Unimplemented()
+        << "Only SMTLib2 or Sygus languages support optimization right now";
+  }
+  os << "(";
+  switch (objective.getType())
+  {
+    case OptimizationObjective::MAXIMIZE: os << "maximize "; break;
+    case OptimizationObjective::MINIMIZE: os << "minimize "; break;
+    default: Unreachable();
+  }
+  TNode target = objective.getTarget();
+  TypeNode type = target.getType();
+  os << target;
+  if (type.isBitVector())
+  {
+    os << (objective.bvIsSigned() ? " :signed" : " :unsigned");
+  }
+  os << ")";
+  return os;
+}
 
 OptimizationSolver::OptimizationSolver(SmtEngine* parent)
     : d_parent(parent),
