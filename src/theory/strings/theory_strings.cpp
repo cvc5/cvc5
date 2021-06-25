@@ -126,13 +126,13 @@ void TheoryStrings::finishInit()
   // `seq.nth` is not always defined, and so we do not evaluate it eagerly.
   d_equalityEngine->addFunctionKind(kind::SEQ_NTH, false);
   // extended functions
-  d_equalityEngine->addFunctionKind(kind::STRING_STRCTN, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_CONTAINS, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_LEQ, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_SUBSTR, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_UPDATE, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_ITOS, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_STOI, eagerEval);
-  d_equalityEngine->addFunctionKind(kind::STRING_STRIDOF, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_INDEXOF, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_INDEXOF_RE, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REPLACE, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REPLACEALL, eagerEval);

@@ -88,7 +88,7 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
             LT, t, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
     lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
   }
-  else if (tk == STRING_STRIDOF || tk == STRING_INDEXOF_RE)
+  else if (tk == STRING_INDEXOF || tk == STRING_INDEXOF_RE)
   {
     // (and
     //   (or (= (f x y n) (- 1)) (>= (f x y n) n))
@@ -107,7 +107,7 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
     // (>= (str.to_int x) (- 1))
     lemma = nm->mkNode(GEQ, t, nm->mkConst(Rational(-1)));
   }
-  else if (tk == STRING_STRCTN)
+  else if (tk == STRING_CONTAINS)
   {
     // ite( (str.contains s r), (= s (str.++ sk1 r sk2)), (not (= s r)))
     Node sk1 =
@@ -148,10 +148,10 @@ void TermRegistry::preRegisterTerm(TNode n)
   Kind k = n.getKind();
   if (!options::stringExp())
   {
-    if (k == STRING_STRIDOF || k == STRING_INDEXOF_RE || k == STRING_ITOS
+    if (k == STRING_INDEXOF || k == STRING_INDEXOF_RE || k == STRING_ITOS
         || k == STRING_STOI || k == STRING_REPLACE || k == STRING_SUBSTR
         || k == STRING_REPLACEALL || k == SEQ_NTH || k == STRING_REPLACE_RE
-        || k == STRING_REPLACE_RE_ALL || k == STRING_STRCTN || k == STRING_LEQ
+        || k == STRING_REPLACE_RE_ALL || k == STRING_CONTAINS || k == STRING_LEQ
         || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV
         || k == STRING_UPDATE)
     {
@@ -230,7 +230,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   else if (tn.isBoolean())
   {
     // All kinds that we do congruence over that may return a Boolean go here
-    if (k==STRING_STRCTN || k == STRING_LEQ || k == SEQ_NTH)
+    if (k==STRING_CONTAINS || k == STRING_LEQ || k == SEQ_NTH)
     {
       // Get triggered for both equal and dis-equal
       ee->addTriggerPredicate(n);
@@ -310,7 +310,7 @@ void TermRegistry::registerTerm(Node n, int effort)
     //  for concat/const/replace, introduce proxy var and state length relation
     regTermLem = getRegisterTermLemma(n);
   }
-  else if (n.getKind() != STRING_STRCTN)
+  else if (n.getKind() != STRING_CONTAINS)
   {
     // we don't send out eager reduction lemma for str.contains currently
     Node eagerRedLemma = eagerReduce(n, &d_skCache);

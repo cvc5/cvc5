@@ -675,7 +675,7 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
 Node StringsEntail::checkContains(Node a, Node b, bool fullRewriter)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node ctn = nm->mkNode(STRING_STRCTN, a, b);
+  Node ctn = nm->mkNode(STRING_CONTAINS, a, b);
 
   if (fullRewriter)
   {
@@ -688,7 +688,7 @@ Node StringsEntail::checkContains(Node a, Node b, bool fullRewriter)
     {
       prev = ctn;
       ctn = d_rewriter.rewriteContains(ctn);
-    } while (prev != ctn && ctn.getKind() == STRING_STRCTN);
+    } while (prev != ctn && ctn.getKind() == STRING_CONTAINS);
   }
 
   Assert(ctn.getType().isBoolean());
