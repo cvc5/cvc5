@@ -141,12 +141,6 @@ void Pow2Solver::checkFullRefine()
       Integer y = valYConcrete.getConst<Rational>().getNumerator();
       Integer pow2x = valPow2xAbstract.getConst<Rational>().getNumerator();
       Integer pow2y = valPow2yAbstract.getConst<Rational>().getNumerator();
-      Trace("pow2-solver-debug")
-          << "checking whether to add monotinicity lemma" << std::endl;
-      Trace("pow2-solver-debug") << "x: " << x << std::endl;
-      Trace("pow2-solver-debug") << "y: " << y << std::endl;
-      Trace("pow2-solver-debug") << "(pow2 x): " << pow2x << std::endl;
-      Trace("pow2-solver-debug") << "(pow2 y): " << pow2y << std::endl;
       if (x < y && pow2x >= pow2y)
       {
         Node assumption = nm->mkNode(LEQ, n[0], m[0]);
