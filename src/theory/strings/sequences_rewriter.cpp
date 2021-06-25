@@ -2262,9 +2262,10 @@ Node SequencesRewriter::rewriteContains(Node node)
     //   (or (str.contains x y) (str.contains x z))
     if (node[0][2] == node[1])
     {
-      Node ret = nm->mkNode(OR,
-                            nm->mkNode(STRING_CONTAINS, node[0][0], node[0][1]),
-                            nm->mkNode(STRING_CONTAINS, node[0][0], node[0][2]));
+      Node ret =
+          nm->mkNode(OR,
+                     nm->mkNode(STRING_CONTAINS, node[0][0], node[0][1]),
+                     nm->mkNode(STRING_CONTAINS, node[0][0], node[0][2]));
       return returnRewrite(node, ret, Rewrite::CTN_REPL_TO_CTN_DISJ);
     }
 
