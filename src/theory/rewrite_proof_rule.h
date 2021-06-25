@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/rewriter/rewrites.h"
+#include "rewriter/rewrites.h"
 
 namespace cvc5 {
 namespace theory {

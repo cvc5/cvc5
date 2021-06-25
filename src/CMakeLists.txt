@@ -1191,6 +1191,7 @@ add_subdirectory(options)
 if (NOT BUILD_LIB_ONLY)
   add_subdirectory(parser)
 endif()
+add_subdirectory(rewriter)
 add_subdirectory(theory)
 add_subdirectory(util)
 

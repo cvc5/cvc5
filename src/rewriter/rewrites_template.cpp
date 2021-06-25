@@ -13,17 +13,16 @@
  * Generated rewrites
  */
 
-#include "theory/rewriter/rewrites.h"
-
 #include "expr/node.h"
 #include "expr/node_manager.h"
+#include "rewriter/rewrites.h"
 #include "theory/rewrite_db.h"
 #include "util/string.h"
 
 using namespace cvc5::kind;
+using namespace cvc5::theory;
 
 namespace cvc5 {
-namespace theory {
 namespace rewriter {
 
 void addRules(RewriteDb& db)
@@ -48,7 +47,8 @@ const char* toString(DslPfRule drule)
   {
     case DslPfRule::FAIL: return "FAIL";
     case DslPfRule::REFL: return "REFL";
-    case DslPfRule::EVAL: return "EVAL";
+    case DslPfRule::EVAL:
+      return "EVAL";
       // clang-format off
 ${printer}$
     default : Unreachable();
@@ -63,5 +63,4 @@ std::ostream& operator<<(std::ostream& out, DslPfRule drule)
 }
 
 }  // namespace rewriter
-}  // namespace theory
 }  // namespace cvc5

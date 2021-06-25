@@ -24,8 +24,8 @@
 #include "expr/match_trie.h"
 #include "expr/node.h"
 #include "expr/term_canonize.h"
+#include "rewriter/rewrites.h"
 #include "theory/rewrite_proof_rule.h"
-#include "theory/rewriter/rewrites.h"
 
 namespace cvc5 {
 namespace theory {
