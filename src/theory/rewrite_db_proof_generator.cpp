@@ -323,6 +323,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
           const RewriteProofRule& rpr = d_db->getRule(itd->second);
           // compute premises based on the used substitution
           std::unordered_map<Node, Node> subs;
+          Trace("rpc-debug") << "...match to " << rpr.getConclusion() << std::endl;
           if (!expr::match(rpr.getConclusion(), cur, subs))
           {
             Assert(false);

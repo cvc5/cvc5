@@ -232,25 +232,33 @@ void LfscPrinter::print(std::ostream& out,
     const std::vector<Node>& conds = rpr.getConditions();
     Node conc = rpr.getConclusion();
     std::stringstream rparen;
-    out << "; (declare ";
+    out << "(declare ";
     LfscPrintChannelOut::printDslProofRuleId(out, dslr);
+    out << " ";
+    std::vector<Node> vlsubs;
     for (const Node& v : varList)
     {
-      out << "(! " << v << " term ";
+      std::stringstream sss;
+      sss << v;
+      Node s = d_tproc.mkInternalSymbol(sss.str(), v.getType());
+      out << "(! " << sss.str() << " term ";
       rparen << ")";
+      vlsubs.push_back(s);
     }
     // print conditions
     for (size_t i = 0, nconds = conds.size(); i < nconds; i++)
     {
+      Node scond = conds[i].substitute(varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
       out << "(! u" << i << " (holds ";
-      Node ic = d_tproc.convert(conds[i]);
+      Node ic = d_tproc.convert(scond);
       printInternal(out, ic);
       out << ") ";
       rparen << ")";
     }
     // print conclusion
     out << "(holds ";
-    Node icc = d_tproc.convert(conc);
+    Node sconc = conc.substitute(varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
+    Node icc = d_tproc.convert(sconc);
     printInternal(out, icc);
     out << "))" << rparen.str() << std::endl;
   }
