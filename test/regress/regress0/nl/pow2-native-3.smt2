@@ -4,9 +4,9 @@
 (declare-fun x () Int)
 (declare-fun y () Int)
 
-(assert (and (<= 0 x) (< x 16)))
-(assert (and (<= 0 y) (< y 16)))
-(assert (<= x y))
+(assert (<= 0 x))
+(assert (<= 0 y))
+(assert (< x y))
 (assert (> (pow2 x) (pow2 y)))
 
 (check-sat)

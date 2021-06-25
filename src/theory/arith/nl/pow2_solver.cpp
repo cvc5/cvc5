@@ -15,12 +15,16 @@
 
 #include "theory/arith/nl/pow2_solver.h"
 
+#include "options/arith_options.h"
+#include "options/smt_options.h"
+#include "preprocessing/passes/bv_to_int.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
 
 using namespace cvc5::kind;
 
@@ -58,6 +62,7 @@ void Pow2Solver::initLastCall(const std::vector<Node>& assertions,
     }
     d_pow2s.push_back(a);
   }
+
   Trace("pow2") << "We have " << d_pow2s.size() << " pow2 terms." << std::endl;
 }
 
@@ -130,15 +135,19 @@ void Pow2Solver::checkFullRefine()
     for (uint64_t j = i + 1; j < size; j++)
     {
       Node m = d_pow2s[j];
-      Node valPow2yConcrete = d_model.computeConcreteModelValue(m);
+      Node valPow2yAbstract= d_model.computeAbstractModelValue(m);
       Node valYConcrete = d_model.computeConcreteModelValue(m[0]);
 
       Integer x = valXConcrete.getConst<Rational>().getNumerator();
       Integer y = valYConcrete.getConst<Rational>().getNumerator();
-      Integer pow2x = valPow2xConcrete.getConst<Rational>().getNumerator();
-      Integer pow2y = valPow2yConcrete.getConst<Rational>().getNumerator();
-
-      if (x <= y && pow2x > pow2y)
+      Integer pow2x = valPow2xAbstract.getConst<Rational>().getNumerator();
+      Integer pow2y = valPow2yAbstract.getConst<Rational>().getNumerator();
+      Trace("pow2-solver-debug") << "checking whether to add monotinicity lemma" << std::endl;
+      Trace("pow2-solver-debug") << "x: " << x << std::endl;
+      Trace("pow2-solver-debug") << "y: " << y << std::endl;
+      Trace("pow2-solver-debug") << "(pow2 x): " << pow2x << std::endl;
+      Trace("pow2-solver-debug") << "(pow2 y): " << pow2y << std::endl;
+      if (x < y && pow2x >= pow2y)
       {
         Node assumption = nm->mkNode(LEQ, n[0], m[0]);
         Node conclusion = nm->mkNode(LEQ, n, m);
@@ -161,6 +170,7 @@ void Pow2Solver::checkFullRefine()
         lem, InferenceId::ARITH_NL_POW2_VALUE_REFINE, nullptr, true);
   }
 }
+
 Node Pow2Solver::valueBasedLemma(Node i)
 {
   Assert(i.getKind() == POW2);

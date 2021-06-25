@@ -16,6 +16,7 @@
 #ifndef CVC5__THEORY__ARITH__NL__POW2_SOLVER_H
 #define CVC5__THEORY__ARITH__NL__POW2_SOLVER_H
 
+#include <map>
 #include <vector>
 
 #include "context/cdhashset.h"
