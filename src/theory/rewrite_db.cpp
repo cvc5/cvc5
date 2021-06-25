@@ -110,7 +110,7 @@ void RewriteDb::addRule(
     }
     else
     {
-      Notice() << "In DSL rule " << id << ", variable " << v << " is unused, dropping it" << std::endl;
+      Unhandled() << "In DSL rule " << id << ", variable " << v << " is unused, dropping it" << std::endl;
     }
   }
 

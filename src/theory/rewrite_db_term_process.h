@@ -21,6 +21,7 @@
 #include <map>
 #include <unordered_map>
 #include "expr/node.h"
+#include "expr/node_converter.h"
 
 namespace cvc5 {
 namespace theory {
@@ -35,7 +36,7 @@ namespace theory {
  * concatenations of constants, e.g. "ABC" is (str.++ "A" (str.++ "B" "C")).
  *
  */
-class RewriteDbTermProcess
+class RewriteDbTermProcess : public NodeConverter
 {
  public:
   /** convert to internal
@@ -44,11 +45,10 @@ class RewriteDbTermProcess
    * the proof checker. This means that n-ary applications are converted
    * to (left-associative) chains.
    */
-  static Node toInternal(Node n);
-
- private:
-  /** convert to internal */
-  static Node computeInternal(Node n);
+  Node postConvert(Node n) override;
+  
+  /** get the null terminator */
+  static Node getNullTerminator(Kind k, TypeNode tn);
 };
 
 }  // namespace theory

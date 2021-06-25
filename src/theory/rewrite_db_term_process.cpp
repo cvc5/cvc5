@@ -17,93 +17,22 @@
 #include "expr/attribute.h"
 #include "util/rational.h"
 #include "util/string.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
+#include "util/regexp.h"
+#include "theory/strings/word.h"
+#include "theory/bv/theory_bv_utils.h"
 
 using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace theory {
 
-struct RdtpInternalAttributeId
+Node RewriteDbTermProcess::postConvert(Node n)
 {
-};
-typedef expr::Attribute<RdtpInternalAttributeId, Node> RdtpInternalAttribute;
-
-Node RewriteDbTermProcess::toInternal(Node n)
-{
-  if (n.isNull())
-  {
-    return n;
-  }
-  Trace("rdtp-debug") << "RewriteDbTermProcess::toInternal: " << n << std::endl;
-  RdtpInternalAttribute ria;
-  NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node> visited;
-  std::unordered_map<TNode, Node>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-
-    if (it == visited.end())
-    {
-      if (cur.hasAttribute(ria))
-      {
-        visited[cur] = cur.getAttribute(ria);
-      }
-      else
-      {
-        visited[cur] = Node::null();
-        visit.push_back(cur);
-        if (cur.getMetaKind() == metakind::PARAMETERIZED)
-        {
-          visit.push_back(cur.getOperator());
-        }
-        visit.insert(visit.end(), cur.begin(), cur.end());
-      }
-    }
-    else if (it->second.isNull())
-    {
-      Node ret = cur;
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (cur.getMetaKind() == metakind::PARAMETERIZED)
-      {
-        it = visited.find(cur.getOperator());
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cur.getOperator() != it->second;
-        children.push_back(it->second);
-      }
-      for (const Node& cn : cur)
-      {
-        it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
-      }
-      if (childChanged)
-      {
-        ret = nm->mkNode(cur.getKind(), children);
-      }
-      ret = computeInternal(ret);
-      cur.setAttribute(ria, ret);
-      visited[cur] = ret;
-    }
-  } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
-  return visited[n];
-}
-
-Node RewriteDbTermProcess::computeInternal(Node n)
-{
-  Kind ck = n.getKind();
-  if (ck == CONST_STRING)
+  Kind k = n.getKind();
+  TypeNode tn = n.getType();
+  if (k == CONST_STRING)
   {
     NodeManager* nm = NodeManager::currentNM();
     // "ABC" is (str.++ "A" (str.++ "B" "C"))
@@ -114,41 +43,80 @@ Node RewriteDbTermProcess::computeInternal(Node n)
     }
     std::vector<unsigned> v(vec.begin(), vec.end());
     std::reverse(v.begin(), v.end());
-    std::vector<unsigned> tmp;
-    tmp.push_back(v[0]);
-    Node ret = nm->mkConst(String(tmp));
-    tmp.pop_back();
-    for (unsigned i = 1, size = v.size(); i < size; i++)
+    Node ret = getNullTerminator(STRING_CONCAT, tn);
+    for (unsigned i = 0, size = v.size(); i < size; i++)
     {
+      std::vector<unsigned> tmp;
       tmp.push_back(v[i]);
       ret = nm->mkNode(STRING_CONCAT, nm->mkConst(String(tmp)), ret);
-      tmp.pop_back();
     }
     return ret;
   }
-  else if (ck == UMINUS)
+  else if (NodeManager::isNAryKind(k) && n.getNumChildren() >= 2)
   {
-    if (n[0].isConst())
+    if (k==DISTINCT)
     {
-      NodeManager* nm = NodeManager::currentNM();
-      return nm->mkConst(-n[0].getConst<Rational>());
+      // FIXME
+      return n;
     }
-  }
-  else if (NodeManager::isNAryKind(ck) && n.getNumChildren() >= 2)
-  {
     NodeManager* nm = NodeManager::currentNM();
     Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
-    // convert to binary
+    // convert to binary + null terminator
     std::vector<Node> children(n.begin(), n.end());
     std::reverse(children.begin(), children.end());
-    Node ret = children[0];
-    for (unsigned i = 1, nchild = n.getNumChildren(); i < nchild; i++)
+    Node ret = getNullTerminator(k, tn);
+    for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
     {
-      ret = nm->mkNode(ck, children[i], ret);
+      ret = nm->mkNode(k, children[i], ret);
     }
     return ret;
   }
   return n;
+}
+
+Node RewriteDbTermProcess::getNullTerminator(Kind k, TypeNode tn)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node nullTerm;
+  switch (k)
+  {
+    case OR: nullTerm = nm->mkConst(false); break;
+    case AND:
+    case SEP_STAR: nullTerm = nm->mkConst(true); break;
+    case PLUS: nullTerm = nm->mkConst(Rational(0)); break;
+    case MULT:
+    case NONLINEAR_MULT: nullTerm = nm->mkConst(Rational(1)); break;
+    case STRING_CONCAT:
+      // handles strings and sequences
+      nullTerm = theory::strings::Word::mkEmptyWord(tn);
+      break;
+    case REGEXP_CONCAT:
+      // the language containing only the empty string
+      nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
+      break;
+    case BITVECTOR_AND:
+      nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
+      break;
+    case BITVECTOR_OR:
+    case BITVECTOR_ADD:
+    case BITVECTOR_XOR:
+      nullTerm = theory::bv::utils::mkZero(tn.getBitVectorSize());
+      break;
+    case BITVECTOR_MULT:
+      nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
+      break;
+    case BITVECTOR_CONCAT:
+    {
+      // the null terminator of bitvector concat is a dummy variable of
+      // bit-vector type with zero width, regardless of the type of the overall
+      // concat. FIXME
+    }
+    break;
+    default:
+      // not handled as null-terminated
+      break;
+  }
+  return nullTerm;
 }
 
 }  // namespace theory
