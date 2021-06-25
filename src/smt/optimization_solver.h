@@ -106,11 +106,11 @@ class OptimizationResult
 
 /**
  * To serialize the OptimizationResult.
- * @param os the stream to put the serialization result
+ * @param out the stream to put the serialization result
  * @param result the OptimizationResult object to serialize
- * @return the parameter os
+ * @return the parameter out
  **/
-std::ostream& operator<<(std::ostream& os, const OptimizationResult& result);
+std::ostream& operator<<(std::ostream& out, const OptimizationResult& result);
 
 /**
  * The optimization objective, which contains:
@@ -175,11 +175,11 @@ class OptimizationObjective
 
 /**
  * To serialize the OptimizationObjective.
- * @param os the stream to put the serialization result
+ * @param out the stream to put the serialization result
  * @param objective the OptimizationObjective object to serialize
- * @return the parameter os
+ * @return the parameter out
  **/
-std::ostream& operator<<(std::ostream& os,
+std::ostream& operator<<(std::ostream& out,
                          const OptimizationObjective& objective);
 
 /**

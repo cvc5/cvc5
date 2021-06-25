@@ -30,53 +30,53 @@ using namespace cvc5::omt;
 namespace cvc5 {
 namespace smt {
 
-std::ostream& operator<<(std::ostream& os, const OptimizationResult& result)
+std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
 {
   // check the output language first
-  OutputLanguage lang = language::SetLanguage::getLanguage(os);
+  OutputLanguage lang = language::SetLanguage::getLanguage(out);
   if (!language::isOutputLang_smt2(lang))
   {
     Unimplemented()
         << "Only SMTLib2 or Sygus languages support optimization right now";
   }
-  os << "(" << result.getResult();
+  out << "(" << result.getResult();
   switch (result.getResult().isSat())
   {
     case Result::SAT: CVC5_FALLTHROUGH;
-    case Result::SAT_UNKNOWN: os << "\t" << result.getValue(); break;
+    case Result::SAT_UNKNOWN: out << "\t" << result.getValue(); break;
     case Result::UNSAT: break;
     default: Unreachable();
   }
-  os << ")";
-  return os;
+  out << ")";
+  return out;
 }
 
-std::ostream& operator<<(std::ostream& os,
+std::ostream& operator<<(std::ostream& out,
                          const OptimizationObjective& objective)
 {
   // check the output language first
-  OutputLanguage lang = language::SetLanguage::getLanguage(os);
+  OutputLanguage lang = language::SetLanguage::getLanguage(out);
   if (!language::isOutputLang_smt2(lang))
   {
     Unimplemented()
         << "Only SMTLib2 or Sygus languages support optimization right now";
   }
-  os << "(";
+  out << "(";
   switch (objective.getType())
   {
-    case OptimizationObjective::MAXIMIZE: os << "maximize "; break;
-    case OptimizationObjective::MINIMIZE: os << "minimize "; break;
+    case OptimizationObjective::MAXIMIZE: out << "maximize "; break;
+    case OptimizationObjective::MINIMIZE: out << "minimize "; break;
     default: Unreachable();
   }
   TNode target = objective.getTarget();
   TypeNode type = target.getType();
-  os << target;
+  out << target;
   if (type.isBitVector())
   {
-    os << (objective.bvIsSigned() ? " :signed" : " :unsigned");
+    out << (objective.bvIsSigned() ? " :signed" : " :unsigned");
   }
-  os << ")";
-  return os;
+  out << ")";
+  return out;
 }
 
 OptimizationSolver::OptimizationSolver(SmtEngine* parent)
