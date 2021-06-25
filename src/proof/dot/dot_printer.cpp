@@ -33,6 +33,27 @@ DotPrinter::DotPrinter()
 
 DotPrinter::~DotPrinter() {}
 
+std::string DotPrinter::sanitizeStringDoubleQuotes(const std::string& s)
+{
+  std::string newS;
+  newS.reserve(s.size());
+  for (const char c : s)
+  {
+    switch (c)
+    {
+      case '\"': newS += "\\\\\\\""; break;
+      case '>': newS += "\\>"; break;
+      case '<': newS += "\\<"; break;
+      case '{': newS += "\\{"; break;
+      case '}': newS += "\\}"; break;
+      case '|': newS += "\\|"; break;
+      default: newS += c; break;
+    }
+  }
+
+  return newS;
+}
+
 std::string DotPrinter::sanitizeString(const std::string& s)
 {
   std::string newS;
@@ -148,7 +169,12 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
         first = false;
       }
       out << "\"let" << id << "\" : \"";
-      out << d_lbind.convert(n, "let", false) << "\"";
+      std::ostringstream nStr;
+      nStr << d_lbind.convert(n, "let", false);
+      std::string astring = nStr.str();
+      // we double the scaping of quotes because "simple scape" is ambiguous
+      // with the scape of the delimiter of the value in the key-value map
+      out << sanitizeStringDoubleQuotes(astring) << "\"";
     }
     out << "}}\"\n";
   }

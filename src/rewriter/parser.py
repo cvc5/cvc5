@@ -210,13 +210,12 @@ class Parser:
         rule = comments + (
             pp.Suppress('(') + pp.Keyword('define-rule') + self.symbol() +
             self.var_list() + self.expr() + self.expr() +
-            pp.Suppress(')')).setParseAction(
-                lambda s, l, t: self.rule_action(t[1], CBool(True), t[2], t[3]))
+            pp.Suppress(')')).setParseAction(lambda s, l, t: self.rule_action(
+                t[1], CBool(True), t[2], t[3]))
         cond_rule = comments + (
             pp.Suppress('(') + pp.Keyword('define-cond-rule') + self.symbol() +
             self.var_list() + self.expr() + self.expr() + self.expr() +
-            pp.Suppress(')')
-        ).setParseAction(
+            pp.Suppress(')')).setParseAction(
                 lambda s, l, t: self.rule_action(t[1], t[2], t[3], t[4]))
         rules = pp.OneOrMore(rule | cond_rule) + comments + pp.StringEnd()
         res = rules.parseString(s)
