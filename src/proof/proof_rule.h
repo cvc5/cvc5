@@ -185,6 +185,17 @@ enum class PfRule : uint32_t
   // where F' and G' are the result of each side of the equation above. Here,
   // original forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
   MACRO_SR_PRED_TRANSFORM,
+  // ======== Encode predicate transformation
+  // Children: (P1:F)
+  // Arguments: (G)
+  // ----------------------------------------
+  // Conclusion: G
+  // where F and G are equivalent up to their encoding in an external proof
+  // format. This is currently verified by:
+  //   RewriteDbNodeConverter::convert(F) == RewriteDbNodeConverter::convert(G)
+  // This rule can be treated as a no-op when appropriate in external proof
+  // formats.
+  ENCODE_PRED_TRANSFORM,
   // ======== DSL Rewrite
   // Children: (P1:F1 ... Pn:Fn)
   // Arguments: (id, F)

@@ -36,7 +36,7 @@ namespace theory {
  * concatenations of constants, e.g. "ABC" is (str.++ "A" (str.++ "B" "C")).
  *
  */
-class RewriteDbTermProcess : public NodeConverter
+class RewriteDbNodeConverter : public NodeConverter
 {
  public:
   /** convert to internal

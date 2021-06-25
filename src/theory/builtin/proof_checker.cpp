@@ -21,6 +21,7 @@
 #include "theory/rewrite_db.h"
 #include "theory/rewrite_proof_rule.h"
 #include "theory/rewriter.h"
+#include "theory/rewrite_db_term_process.h"
 #include "theory/substitutions.h"
 #include "theory/theory.h"
 
@@ -43,6 +44,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this);
   pc->registerChecker(PfRule::THEORY_REWRITE, this);
   pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
+  pc->registerChecker(PfRule::ENCODE_PRED_TRANSFORM, this);
   pc->registerChecker(PfRule::DSL_REWRITE, this);
   // trusted rules
   pc->registerTrustedChecker(PfRule::THEORY_LEMMA, this, 1);
@@ -422,6 +424,19 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(args.size() > 1);
     Assert(args[0].getType().isInteger());
     return args[1];
+  }
+  else if (id == PfRule::ENCODE_PRED_TRANSFORM)
+  {
+    Assert(args.size() == 1);
+    RewriteDbNodeConverter rconv;
+    Node f = children[0];
+    Node g = args[0];
+    // equivalent up to conversion via utility
+    if (rconv.convert(f)!=rconv.convert(g))
+    {
+      return Node::null();
+    }
+    return g;
   }
   else if (id == PfRule::DSL_REWRITE)
   {

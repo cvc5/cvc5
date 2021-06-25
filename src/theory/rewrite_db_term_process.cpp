@@ -28,7 +28,7 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 
-Node RewriteDbTermProcess::postConvert(Node n)
+Node RewriteDbNodeConverter::postConvert(Node n)
 {
   Kind k = n.getKind();
   TypeNode tn = n.getType();
@@ -44,6 +44,7 @@ Node RewriteDbTermProcess::postConvert(Node n)
     std::vector<unsigned> v(vec.begin(), vec.end());
     std::reverse(v.begin(), v.end());
     Node ret = getNullTerminator(STRING_CONCAT, tn);
+    Assert (!ret.isNull());
     for (unsigned i = 0, size = v.size(); i < size; i++)
     {
       std::vector<unsigned> tmp;
@@ -54,17 +55,20 @@ Node RewriteDbTermProcess::postConvert(Node n)
   }
   else if (NodeManager::isNAryKind(k) && n.getNumChildren() >= 2)
   {
-    if (k==DISTINCT)
-    {
-      // FIXME
-      return n;
-    }
     NodeManager* nm = NodeManager::currentNM();
     Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
     // convert to binary + null terminator
     std::vector<Node> children(n.begin(), n.end());
     std::reverse(children.begin(), children.end());
     Node ret = getNullTerminator(k, tn);
+    if (ret.isNull())
+    {
+      if (k==DISTINCT)
+      {
+        // FIXME
+      }
+      return n;
+    }
     for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
     {
       ret = nm->mkNode(k, children[i], ret);
@@ -74,7 +78,7 @@ Node RewriteDbTermProcess::postConvert(Node n)
   return n;
 }
 
-Node RewriteDbTermProcess::getNullTerminator(Kind k, TypeNode tn)
+Node RewriteDbNodeConverter::getNullTerminator(Kind k, TypeNode tn)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node nullTerm;
