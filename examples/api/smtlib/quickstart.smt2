@@ -1,16 +1,13 @@
 (set-logic ALL)
 (set-option :produce-models true)
 (set-option :produce-unsat-cores true)
-(set-option :global-declarations true)
 (set-option :incremental true)
 ; necessary to print in the unsat core assertions that do not have names
 (set-option :dump-unsat-cores-full true)
 
-; Declare real constanst x,y and integer constants a,b"
+; Declare real constanst x,y
 (declare-const x Real)
 (declare-const y Real)
-(declare-const a Int)
-(declare-const b Int)
 
 ; Our constraints regarding x and y will be:
 ;
@@ -30,7 +27,9 @@
 
 (echo "We will reset the solver with the (reset-assertions) command and check satisfiability of the same assertions but with the integers constants rather than with the real ones.")
 (reset-assertions)
-
+; Declare integer constanst a,b
+(declare-const a Int)
+(declare-const b Int)
 (assert (< 0 a))
 (assert (< 0 b))
 (assert (< (+ a b) 1))

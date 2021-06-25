@@ -185,6 +185,63 @@ function(SETUP_TARGET_FOR_COVERAGE_LCOV)
 
 endfunction() # SETUP_TARGET_FOR_COVERAGE_LCOV
 
+function(SETUP_TARGET_FOR_COVERAGE_LCOV_NO_EXECUTABLE)
+
+    set(options NONE)
+    set(oneValueArgs NAME)
+    cmake_parse_arguments(Coverage "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    if(NOT LCOV_PATH)
+        message(FATAL_ERROR "lcov not found! Aborting...")
+    endif() # NOT LCOV_PATH
+
+    if(NOT GENHTML_PATH)
+        message(FATAL_ERROR "genhtml not found! Aborting...")
+    endif() # NOT GENHTML_PATH
+
+    set(DIRECTORIES -d .)
+    foreach(LPATH ${COVERAGE_LCOV_PATHS})
+      list(APPEND DIRECTORIES "-d")
+      list(APPEND DIRECTORIES "${LPATH}")
+    endforeach()
+
+
+    add_custom_target(${Coverage_NAME}-reset
+        # Cleanup lcov
+        COMMAND ${LCOV_PATH} ${DIRECTORIES} --zerocounters
+        # Create baseline to make sure untouched files show up in the report
+        COMMAND ${LCOV_PATH} -c -i ${DIRECTORIES} -o ${Coverage_NAME}.base
+        COMMENT "Resetting code coverage counters to zero."
+    )
+
+    # Setup target
+    add_custom_target(${Coverage_NAME}
+        # Capturing lcov counters and generating report
+        COMMAND ${LCOV_PATH} ${DIRECTORIES} --capture --output-file ${Coverage_NAME}.info
+        # add baseline counters
+        COMMAND ${LCOV_PATH} -a ${Coverage_NAME}.base -a ${Coverage_NAME}.info --output-file ${Coverage_NAME}.total
+        COMMAND ${LCOV_PATH} --remove ${Coverage_NAME}.total ${COVERAGE_LCOV_EXCLUDES} --output-file ${PROJECT_BINARY_DIR}/${Coverage_NAME}.info.cleaned
+        COMMAND ${GENHTML_PATH} -o ${Coverage_NAME} ${PROJECT_BINARY_DIR}/${Coverage_NAME}.info.cleaned
+
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+        DEPENDS ${Coverage_DEPENDENCIES}
+        COMMENT "Processing code coverage counters and generating report."
+    )
+
+    # Show where to find the lcov info report
+    add_custom_command(TARGET ${Coverage_NAME} POST_BUILD
+        COMMAND ;
+        COMMENT "Lcov code coverage info report saved in ${Coverage_NAME}.info."
+    )
+
+    # Show info where to find the report
+    add_custom_command(TARGET ${Coverage_NAME} POST_BUILD
+        COMMAND ;
+        COMMENT "Open ./${Coverage_NAME}/index.html in your browser to view the coverage report."
+    )
+
+endfunction() # SETUP_TARGET_FOR_COVERAGE_LCOV_NO_EXECUTABLE
+
 # Defines a target for running and collection code coverage information
 # Builds dependencies, runs the given executable and outputs reports.
 # NOTE! The executable should always have a ZERO as exit code otherwise

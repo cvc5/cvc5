@@ -103,6 +103,9 @@ bool TheoryStrings::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
   esi.d_name = "theory::strings::ee";
+  esi.d_notifyNewClass = true;
+  esi.d_notifyMerge = true;
+  esi.d_notifyDisequal = true;
   return true;
 }
 
