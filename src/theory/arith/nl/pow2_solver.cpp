@@ -141,7 +141,7 @@ void Pow2Solver::checkFullRefine()
       Integer y = valYConcrete.getConst<Rational>().getNumerator();
       Integer pow2x = valPow2xAbstract.getConst<Rational>().getNumerator();
       Integer pow2y = valPow2yAbstract.getConst<Rational>().getNumerator();
-      
+
       if (x < y && pow2x >= pow2y)
       {
         Node assumption = nm->mkNode(LEQ, n[0], m[0]);
