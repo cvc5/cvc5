@@ -28,6 +28,8 @@ def gen_mk_skolem(name, sort):
         sort_code = 'nm->booleanType()'
     elif sort.base == BaseSort.Int:
         sort_code = 'nm->integerType()'
+    elif sort.base == BaseSort.Real:
+        sort_code = 'nm->realType()'
     elif sort.base == BaseSort.String:
         sort_code = 'nm->stringType()'
     else:

@@ -102,6 +102,7 @@ class BaseSort(Enum):
     Bool = auto()
     BitVec = auto()
     Int = auto()
+    Real = auto()
     String = auto()
 
 

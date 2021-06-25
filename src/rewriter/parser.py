@@ -178,11 +178,13 @@ class Parser:
                        lambda s, l, t: Sort(BaseSort.BitVec, [t[1]]))
         int_sort = pp.Keyword('Int').setParseAction(
             lambda s, l, t: Sort(BaseSort.Int, []))
+        real_sort = pp.Keyword('Real').setParseAction(
+            lambda s, l, t: Sort(BaseSort.Real, []))
         bool_sort = pp.Keyword('Bool').setParseAction(
             lambda s, l, t: Sort(BaseSort.Bool, []))
         string_sort = pp.Keyword('String').setParseAction(
             lambda s, l, t: Sort(BaseSort.String, []))
-        return bv_sort | int_sort | bool_sort | string_sort
+        return bv_sort | int_sort | real_sort | bool_sort | string_sort
 
     def attrs(self):
         return pp.Keyword(':list') | pp.Keyword(':const')
