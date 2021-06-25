@@ -133,7 +133,7 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
   d_lbind.letify(letList);
   if (!letList.empty())
   {
-    out << "\tcomment=\"{\"letMap : {";
+    out << "\tcomment=\"{\"letMap\" : {";
     bool first = true;
     for (TNode n : letList)
     {
