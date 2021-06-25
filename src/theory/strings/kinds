@@ -149,11 +149,11 @@ typerule STRING_LENGTH ::cvc5::theory::strings::StringStrToIntTypeRule
 typerule STRING_SUBSTR ::cvc5::theory::strings::StringSubstrTypeRule
 typerule STRING_UPDATE ::cvc5::theory::strings::StringUpdateTypeRule
 typerule STRING_CHARAT ::cvc5::theory::strings::StringAtTypeRule
-typerule STRING_STRCTN ::cvc5::theory::strings::StringRelationTypeRule
-typerule STRING_STRIDOF ::cvc5::theory::strings::StringIndexOfTypeRule
+typerule STRING_CONTAINS ::cvc5::theory::strings::StringRelationTypeRule
+typerule STRING_INDEXOF ::cvc5::theory::strings::StringIndexOfTypeRule
 typerule STRING_INDEXOF_RE "SimpleTypeRule<RInteger, AString, ARegExp, AInteger>"
-typerule STRING_STRREPL ::cvc5::theory::strings::StringReplaceTypeRule
-typerule STRING_STRREPLALL ::cvc5::theory::strings::StringReplaceTypeRule
+typerule STRING_REPLACE ::cvc5::theory::strings::StringReplaceTypeRule
+typerule STRING_REPLACEALL ::cvc5::theory::strings::StringReplaceTypeRule
 typerule STRING_REPLACE_RE "SimpleTypeRule<RString, AString, ARegExp, AString>"
 typerule STRING_REPLACE_RE_ALL "SimpleTypeRule<RString, AString, ARegExp, AString>"
 typerule STRING_PREFIX ::cvc5::theory::strings::StringStrToBoolTypeRule
