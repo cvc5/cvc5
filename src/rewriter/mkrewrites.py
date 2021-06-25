@@ -15,6 +15,8 @@ def gen_kind(op):
         Op.OR: 'OR',
         Op.IMPLIES: 'IMPLIES',
         Op.EQ: 'EQUAL',
+        Op.PLUS: 'PLUS',
+        Op.MINUS: 'MINUS',
         Op.MULT: 'MULT',
         Op.LT: 'LT',
         Op.GT: 'GT',
@@ -50,11 +52,13 @@ def gen_mk_node(defns, expr):
     if isinstance(expr, App):
         args = ",".join(gen_mk_node(defns, child) for child in expr.children)
         return f'nm->mkNode({gen_kind(expr.op)}, {args})'
-    elif isinstance(expr, CString):
-        return f'nm->mkConst(String("{expr.val}"))'
     elif isinstance(expr, CBool):
         val_code = 'true' if expr.val else 'false'
         return f'nm->mkConst({val_code})'
+    elif isinstance(expr, CString):
+        return f'nm->mkConst(String("{expr.val}"))'
+    elif isinstance(expr, CInt):
+        return f'nm->mkConst(Rational({expr.val}))'
     elif isinstance(expr, Var):
         return expr.name
     else:
@@ -68,6 +72,7 @@ def gen_rewrite_db_rule(defns, rule):
 
 class Rewrites:
     def __init__(self, filename, decls, rules):
+        self.filename = filename
         self.decls = decls
         self.rules = rules
 
@@ -135,7 +140,7 @@ def gen_rewrite_db(args):
                 f'case DslPfRule::{enum}: return "{rule.name}";')
 
         rules_code.append(
-            block_tpl.format(filename=rewrites_file.name,
+            block_tpl.format(filename=rewrite_file.filename,
                              block_code='\n'.join(block)))
 
     rewrites_h = read_tpl(args.src_dir, 'rewrites_template.h')
