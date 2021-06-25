@@ -113,7 +113,7 @@ void RewriteDb::addRule(
   }
 
   // initialize rule
-  d_rewDbRule[id].init(id, cfvs, conds, eqC);
+  d_rewDbRule[id].init(id, fvs, cfvs, conds, eqC);
   d_concToRules[eqC].push_back(id);
 }
 

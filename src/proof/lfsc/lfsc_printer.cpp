@@ -229,6 +229,7 @@ void LfscPrinter::print(std::ostream& out,
   {
     const theory::RewriteProofRule& rpr = d_rdb->getRule(dslr);
     const std::vector<Node>& varList = rpr.getVarList();
+    const std::vector<Node>& uvarList = rpr.getUserVarList();
     const std::vector<Node>& conds = rpr.getConditions();
     Node conc = rpr.getConclusion();
     std::stringstream rparen;
@@ -236,7 +237,8 @@ void LfscPrinter::print(std::ostream& out,
     LfscPrintChannelOut::printDslProofRuleId(out, dslr);
     out << " ";
     std::vector<Node> vlsubs;
-    for (const Node& v : varList)
+    // use the names from the user variable list
+    for (const Node& v : uvarList)
     {
       std::stringstream sss;
       sss << v;

@@ -36,13 +36,29 @@ class RewriteProofRule
 {
  public:
   RewriteProofRule();
-  /** initialize this rule */
+  /** 
+   * Initialize this rule.
+   * @param id The identifier of this rule
+   * @param userFvs The (user-provided) free variable list of the rule. This
+   * is used only to track the original names of the arguments to the rule.
+   * @param fvs The internal free variable list of the rule. Notice these
+   * variables are normalized such that *all* proof rules use the same
+   * variables, per type. In detail, the n^th argument left-to-right of a given
+   * type T is the same for all rules. This is to facilitate parallel matching.
+   * @param cond The conditions of the rule, normalized to fvs.
+   * @param conc The conclusion of the rule, which is an equality of the form
+   * (= t s), where t is specified as rewriting to s. This equality is
+   * normalized to fvs.
+   */
   void init(rewriter::DslPfRule id,
+            const std::vector<Node>& userFvs,
             const std::vector<Node>& fvs,
             const std::vector<Node>& cond,
             Node conc);
   /** get name */
   const char* getName() const;
+  /** Get user variable list */
+  const std::vector<Node>& getUserVarList() const;
   /** Get variable list */
   const std::vector<Node>& getVarList() const;
   /**
@@ -89,6 +105,8 @@ class RewriteProofRule
   std::vector<Node> d_obGen;
   /** The conclusion of the rule (an equality) */
   Node d_conc;
+  /** the ordered list of free variables, provided by the user */
+  std::vector<Node> d_userFvs;
   /** the ordered list of free variables */
   std::vector<Node> d_fvs;
   /** number of free variables */

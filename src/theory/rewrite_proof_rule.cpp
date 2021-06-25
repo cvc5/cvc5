@@ -41,13 +41,15 @@ bool getDslPfRule(TNode n, DslPfRule& id)
 RewriteProofRule::RewriteProofRule() : d_id(DslPfRule::FAIL) {}
 
 void RewriteProofRule::init(DslPfRule id,
+                            const std::vector<Node>& userFvs,
                             const std::vector<Node>& fvs,
                             const std::vector<Node>& cond,
                             Node conc)
 {
+  // not initialized yet
+  Assert (d_cond.empty() && d_obGen.empty() && d_fvs.empty());
   d_id = id;
-  d_cond.clear();
-  d_obGen.clear();
+  d_userFvs = userFvs;
   // Must purify side conditions from the condition. For each subterm of
   // condition c that is an application of a side condition, we replace it
   // with a free variable and add its definition to d_scs. In the end,
@@ -143,6 +145,7 @@ Node RewriteProofRule::purifySideConditions(Node n, std::vector<Node>& scs)
 
 const char* RewriteProofRule::getName() const { return toString(d_id); }
 
+const std::vector<Node>& RewriteProofRule::getUserVarList() const { return d_userFvs; }
 const std::vector<Node>& RewriteProofRule::getVarList() const { return d_fvs; }
 bool RewriteProofRule::isExplicitVar(Node v) const
 {
