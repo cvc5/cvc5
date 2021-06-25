@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/rewriter/rewrites.h"
+#include "rewriter/rewrites.h"
 
 namespace cvc5 {
 namespace theory {
@@ -37,9 +37,12 @@ class RewriteProofRule
  public:
   RewriteProofRule();
   /** initialize this rule */
-  void init(const std::string& name, const std::vector<Node>& cond, Node conc);
+  void init(rewriter::DslPfRule id,
+            const std::vector<Node>& fvs,
+            const std::vector<Node>& cond,
+            Node conc);
   /** get name */
-  const std::string& getName() const;
+  const char* getName() const;
   /** Get variable list */
   const std::vector<Node>& getVarList() const;
   /** 
@@ -76,8 +79,8 @@ class RewriteProofRule
   bool runSideConditions(const std::vector<Node>& vs,
                          const std::vector<Node>& ss,
                          std::vector<Node>& vcs) const;
-  /** The name of the rule */
-  std::string d_name;
+  /** The id of the rule */
+  rewriter::DslPfRule d_id;
   /** The side conditions of the rule */
   std::vector<Node> d_scs;
   /** The conditions of the rule */

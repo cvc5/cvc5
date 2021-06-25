@@ -13,10 +13,6 @@
 # The build system configuration.
 ##
 
-# Must be added before `libcvc5_add_sources()` s.t. changes from `rewriter` are
-# propagated to the parent scope
-add_subdirectory(rewriter)
-
 libcvc5_add_sources(GENERATED
   rewriter_tables.h
   theory_traits.h

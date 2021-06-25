@@ -24,7 +24,7 @@
 #include "proof/lfsc/lfsc_print_channel.h"
 
 using namespace cvc5::kind;
-using namespace cvc5::theory::rewriter;
+using namespace cvc5::rewriter;
 
 namespace cvc5 {
 namespace proof {

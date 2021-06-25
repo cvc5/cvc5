@@ -22,7 +22,7 @@
 #include "theory/rewrite_db_term_process.h"
 
 using namespace cvc5::kind;
-using namespace cvc5::theory::rewriter;
+using namespace cvc5::rewriter;
 
 namespace cvc5 {
 namespace theory {
@@ -38,13 +38,14 @@ bool getDslPfRule(TNode n, DslPfRule& id)
   return false;
 }
 
-RewriteProofRule::RewriteProofRule() : d_name("") {}
+RewriteProofRule::RewriteProofRule() : d_id(DslPfRule::FAIL) {}
 
-void RewriteProofRule::init(const std::string& name,
+void RewriteProofRule::init(DslPfRule id,
+                            const std::vector<Node>& fvs,
                             const std::vector<Node>& cond,
                             Node conc)
 {
-  d_name = name;
+  d_id = id;
   d_cond.clear();
   d_obGen.clear();
   // Must purify side conditions from the condition. For each subterm of
@@ -59,9 +60,6 @@ void RewriteProofRule::init(const std::string& name,
     d_obGen.push_back(cc);
   }
   d_conc = conc;
-
-  std::unordered_set<Node> fvs;
-  expr::getFreeVariables(conc, fvs);
 
   d_numFv = fvs.size();
 
@@ -143,7 +141,7 @@ Node RewriteProofRule::purifySideConditions(Node n, std::vector<Node>& scs)
   return visited[n];
 }
 
-const std::string& RewriteProofRule::getName() const { return d_name; }
+const char* RewriteProofRule::getName() const { return toString(d_id); }
 
 const std::vector<Node>& RewriteProofRule::getVarList() const
 {

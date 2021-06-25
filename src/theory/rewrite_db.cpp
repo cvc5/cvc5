@@ -15,11 +15,11 @@
 
 #include "theory/rewrite_db.h"
 
+#include "rewriter/rewrites.h"
 #include "theory/rewrite_db_term_process.h"
-#include "theory/rewriter/rewrites.h"
 
 using namespace cvc5::kind;
-using namespace cvc5::theory::rewriter;
+using namespace cvc5::rewriter;
 
 namespace cvc5 {
 namespace theory {
@@ -32,7 +32,8 @@ RewriteDb::RewriteDb()
   rewriter::addRules(*this);
 }
 
-void RewriteDb::addRule(DslPfRule id, Node a, Node b, Node cond)
+void RewriteDb::addRule(
+    DslPfRule id, const std::vector<Node> fvs, Node a, Node b, Node cond)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node eq = a.eqNode(b);
@@ -90,7 +91,7 @@ void RewriteDb::addRule(DslPfRule id, Node a, Node b, Node cond)
   d_mt.addTerm(eqC);
 
   // initialize rule
-  d_rewDbRule[id].init(toString(id), conds, eqC);
+  d_rewDbRule[id].init(id, fvs, conds, eqC);
   d_concToRules[eqC].push_back(id);
 }
 
@@ -105,11 +106,6 @@ const RewriteProofRule& RewriteDb::getRule(DslPfRule id) const
       d_rewDbRule.find(id);
   Assert(it != d_rewDbRule.end());
   return it->second;
-}
-
-const std::string& RewriteDb::getRuleName(DslPfRule id) const
-{
-  return getRule(id).getName();
 }
 
 const std::vector<DslPfRule>& RewriteDb::getRuleIdsForConclusion(Node eq) const

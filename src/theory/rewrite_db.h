@@ -24,8 +24,8 @@
 #include "expr/match_trie.h"
 #include "expr/node.h"
 #include "expr/term_canonize.h"
+#include "rewriter/rewrites.h"
 #include "theory/rewrite_proof_rule.h"
-#include "theory/rewriter/rewrites.h"
 
 namespace cvc5 {
 namespace theory {
@@ -43,7 +43,11 @@ class RewriteDb
   RewriteDb();
   ~RewriteDb() {}
   /** Add rule, return its identifier */
-  void addRule(rewriter::DslPfRule id, Node a, Node b, Node cond);
+  void addRule(rewriter::DslPfRule id,
+               const std::vector<Node> fvs,
+               Node a,
+               Node b,
+               Node cond);
   /** get matches */
   void getMatches(Node eq, expr::NotifyMatch* ntm);
   /** get rule for id */
@@ -51,8 +55,6 @@ class RewriteDb
   /** get ids for conclusion */
   const std::vector<rewriter::DslPfRule>& getRuleIdsForConclusion(
       Node eq) const;
-  /** get name for id */
-  const std::string& getRuleName(rewriter::DslPfRule id) const;
 
  private:
   /** common constants */

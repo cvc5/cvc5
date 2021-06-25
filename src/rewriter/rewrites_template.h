@@ -21,9 +21,10 @@
 #include "expr/node.h"
 
 namespace cvc5 {
-namespace theory {
 
+namespace theory {
 class RewriteDb;
+}
 
 namespace rewriter {
 
@@ -38,7 +39,7 @@ enum class DslPfRule : uint32_t
   // clang-format on
 };
 
-void addRules(RewriteDb& db);
+void addRules(theory::RewriteDb& db);
 
 /**
  * Converts a DSL proof rule to a string.
@@ -54,8 +55,8 @@ const char* toString(DslPfRule drule);
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, DslPfRule drule);
-}
-}  // namespace theory
+
+}  // namespace rewriter
 }  // namespace cvc5
 
 #endif

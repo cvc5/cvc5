@@ -19,7 +19,7 @@
 #include "proof/lfsc/lfsc_util.h"
 #include "theory/rewrite_proof_rule.h"
 
-using namespace cvc5::theory::rewriter;
+using namespace cvc5::rewriter;
 
 namespace cvc5 {
 namespace proof {
