@@ -152,9 +152,8 @@ void Pow2Solver::checkFullRefine()
         }
     }
 
-    // triviality lemmas: pow2(x) = 0 whenever
-    // x < 0
-    if (x < 0)
+    // triviality lemmas: pow2(x) = 0 whenever x < 0
+    if (x < 0 && pow2x != 0)
     {
       Node assumption = nm->mkNode(LT, n[0], d_zero);
       Node conclusion = nm->mkNode(EQUAL, n, d_zero);
