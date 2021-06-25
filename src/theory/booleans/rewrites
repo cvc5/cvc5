@@ -1,3 +1,2 @@
-(define-rule bool-symmetry ((t Bool)) (= t t) true)
-(define-rule nottrue () (not true) false)
-(define-rule orfalse () (or false false) false)
+(define-rule bool-eq-refl ((t Bool)) (= t t) true)
+(define-rule bool-double-neg-elim ((t Bool)) (not (not t)) t)
