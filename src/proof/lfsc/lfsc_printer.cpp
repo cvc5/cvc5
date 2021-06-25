@@ -248,7 +248,8 @@ void LfscPrinter::print(std::ostream& out,
     // print conditions
     for (size_t i = 0, nconds = conds.size(); i < nconds; i++)
     {
-      Node scond = conds[i].substitute(varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
+      Node scond = conds[i].substitute(
+          varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
       out << "(! u" << i << " (holds ";
       Node ic = d_tproc.convert(scond);
       printInternal(out, ic);
@@ -257,7 +258,8 @@ void LfscPrinter::print(std::ostream& out,
     }
     // print conclusion
     out << "(holds ";
-    Node sconc = conc.substitute(varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
+    Node sconc = conc.substitute(
+        varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
     Node icc = d_tproc.convert(sconc);
     printInternal(out, icc);
     out << "))" << rparen.str() << std::endl;

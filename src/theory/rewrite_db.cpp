@@ -15,9 +15,9 @@
 
 #include "theory/rewrite_db.h"
 
+#include "expr/node_algorithm.h"
 #include "rewriter/rewrites.h"
 #include "theory/rewrite_db_term_process.h"
-#include "expr/node_algorithm.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::rewriter;
@@ -90,19 +90,19 @@ void RewriteDb::addRule(
   // add to discrimination tree
   Trace("proof-db-debug") << "Add (canonical) rule " << eqC << std::endl;
   d_mt.addTerm(eqC);
-  
+
   // match to get canonical variables
   std::unordered_map<Node, Node> msubs;
   if (!expr::match(eq, eqC, msubs))
   {
-    Assert (false);
+    Assert(false);
   }
   std::unordered_map<Node, Node>::iterator its;
   std::vector<Node> cfvs;
   for (const Node& v : fvs)
   {
     its = msubs.find(v);
-    if (its!=msubs.end())
+    if (its != msubs.end())
     {
       cfvs.push_back(its->second);
     }
