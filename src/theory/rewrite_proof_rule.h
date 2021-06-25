@@ -45,7 +45,7 @@ class RewriteProofRule
   const char* getName() const;
   /** Get variable list */
   const std::vector<Node>& getVarList() const;
-  /** 
+  /**
    * Is variable explicit? An explicit variable is one that does not occur
    * in a condition and thus its value must be specified in a proof.
    */

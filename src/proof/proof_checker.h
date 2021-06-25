@@ -30,7 +30,7 @@ class ProofChecker;
 class ProofNode;
 
 namespace theory {
-  class RewriteDb;
+class RewriteDb;
 }
 
 /** A virtual base class for checking a proof rule */
@@ -105,8 +105,7 @@ class ProofCheckerStatistics
 class ProofChecker
 {
  public:
-  ProofChecker(uint32_t pclevel = 0, 
-                           theory::RewriteDb* rdb = nullptr);
+  ProofChecker(uint32_t pclevel = 0, theory::RewriteDb* rdb = nullptr);
   ~ProofChecker() {}
   /**
    * Return the formula that is proven by proof node pn, or null if pn is not

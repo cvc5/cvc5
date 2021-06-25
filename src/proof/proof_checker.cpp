@@ -19,8 +19,8 @@
 #include "options/proof_options.h"
 #include "proof/proof_node.h"
 #include "smt/smt_statistics_registry.h"
-#include "util/rational.h"
 #include "theory/rewrite_proof_rule.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -86,9 +86,11 @@ ProofCheckerStatistics::ProofCheckerStatistics()
 {
 }
 
-ProofChecker::ProofChecker(uint32_t pclevel, 
-                          theory::RewriteDb* rdb) : d_pclevel(pclevel), d_rdb(rdb) {}
-                          
+ProofChecker::ProofChecker(uint32_t pclevel, theory::RewriteDb* rdb)
+    : d_pclevel(pclevel), d_rdb(rdb)
+{
+}
+
 Node ProofChecker::check(ProofNode* pn, Node expected)
 {
   return check(pn->getRule(), pn->getChildren(), pn->getArguments(), expected);
@@ -307,10 +309,7 @@ ProofRuleChecker* ProofChecker::getCheckerFor(PfRule id)
   return it->second;
 }
 
-theory::RewriteDb* ProofChecker::getRewriteDatabase()
-{
-  return d_rdb;
-}
+theory::RewriteDb* ProofChecker::getRewriteDatabase() { return d_rdb; }
 
 uint32_t ProofChecker::getPedanticLevel(PfRule id) const
 {

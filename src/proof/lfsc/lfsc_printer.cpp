@@ -222,7 +222,7 @@ void LfscPrinter::print(std::ostream& out,
   {
     out << "; WARNING: adding trust step for " << r << std::endl;
   }
-  
+
   // [4] print the DSL rewrite rule declarations
   const std::unordered_set<DslPfRule>& dslrs = lpcp.getDslRewrites();
   for (DslPfRule dslr : dslrs)
@@ -681,11 +681,11 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       }
       const theory::RewriteProofRule& rpr = d_rdb->getRule(di);
       const std::vector<Node>& varList = rpr.getVarList();
-      Assert (as.size()==varList.size()+1);
+      Assert(as.size() == varList.size() + 1);
       // print holes/terms based on whether variables are explicit
       for (size_t i = 1, nargs = as.size(); i < nargs; i++)
       {
-        if (rpr.isExplicitVar(varList[i-1]))
+        if (rpr.isExplicitVar(varList[i - 1]))
         {
           pf << as[i];
         }

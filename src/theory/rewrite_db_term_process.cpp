@@ -28,15 +28,13 @@ struct RdtpInternalAttributeId
 };
 typedef expr::Attribute<RdtpInternalAttributeId, Node> RdtpInternalAttribute;
 
-
 Node RewriteDbTermProcess::toInternal(Node n)
 {
   if (n.isNull())
   {
     return n;
   }
-  Trace("rdtp-debug") << "RewriteDbTermProcess::toInternal: "
-                      << n << std::endl;
+  Trace("rdtp-debug") << "RewriteDbTermProcess::toInternal: " << n << std::endl;
   RdtpInternalAttribute ria;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;

@@ -41,7 +41,7 @@ void RewriteDb::addRule(
   // order, since we index based on conclusion, we make a dummy node here
   Node tmp = nm->mkNode(IMPLIES, eq, cond);
   // convert to internal
-  Node tmpi = tmp;//RewriteDbTermProcess::toInternal(tmp);
+  Node tmpi = tmp;  // RewriteDbTermProcess::toInternal(tmp);
 
   // must canonize
   Trace("rewrite-db") << "Add rule " << id << ": " << cond << " => " << a

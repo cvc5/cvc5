@@ -40,7 +40,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
                                uint32_t recLimit)
 {
   Trace("rpc") << "RewriteDbProofCons::prove: " << a << " == " << b
-                      << std::endl;
+               << std::endl;
   Trace("rpc-debug") << "- prove basic" << std::endl;
   // first, try with the basic utility
   if (d_trrc.prove(cdp, a, b, tid, mid))
@@ -51,7 +51,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   Trace("rpc-debug") << "- convert to internal" << std::endl;
   DslPfRule id;
   Node eq = a.eqNode(b);
-  Node eqi = eq;//RewriteDbTermProcess::toInternal(eq);
+  Node eqi = eq;  // RewriteDbTermProcess::toInternal(eq);
   if (!proveInternalBase(eqi, id))
   {
     Trace("rpc-debug") << "- prove internal" << std::endl;
@@ -171,8 +171,8 @@ bool RewriteDbProofCons::notifyMatch(Node s,
         if (cid == DslPfRule::FAIL)
         {
           // print reason for failure
-          Trace("rpc-infer-debug") << "required: " << cond << " for " << rpr.getName()
-                          << std::endl;
+          Trace("rpc-infer-debug")
+              << "required: " << cond << " for " << rpr.getName() << std::endl;
           condSuccess = false;
           break;
         }
@@ -332,10 +332,10 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
           const std::vector<Node>& vs = rpr.getVarList();
           for (const Node& v : vs)
           {
-            Assert (subs.find(v)!=subs.end());
+            Assert(subs.find(v) != subs.end());
             pfArgs[cur].push_back(subs[v]);
           }
-          Assert (subs.size()==vs.size());
+          Assert(subs.size() == vs.size());
           /*
           std::vector<Node> vs;
           std::vector<Node> ss;
@@ -353,7 +353,8 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
             return false;
           }
           // TODO: recurse
-          pfArgs[cur].insert(pfArgs[cur].begin(),
+          pfArgs[cur].insert(
+              pfArgs[cur].begin(),
               nm->mkConst(Rational(static_cast<uint32_t>(itd->second))));
         }
       }
@@ -363,8 +364,8 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       // Now, add the proof rule. We do this after its children proofs already
       // exist.
       visited[cur] = true;
-      Assert (premises.find(cur)!=premises.end());
-      Assert (pfArgs.find(cur)!=pfArgs.end());
+      Assert(premises.find(cur) != premises.end());
+      Assert(pfArgs.find(cur) != pfArgs.end());
       cdp->addStep(cur, PfRule::DSL_REWRITE, premises[cur], pfArgs[cur]);
     }
   } while (!visit.empty());
