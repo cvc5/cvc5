@@ -124,7 +124,7 @@ class Parser:
             lambda s, l, t: CBool(True)) | pp.Keyword('false').setParseAction(
                 lambda s, l, t: CBool(False))
         iconst = pp.Word(
-            pp.nums).setParseAction(lambda s, l, t: IntConst(int(t[0])))
+            pp.nums).setParseAction(lambda s, l, t: CInt(int(t[0])))
         bvconst = (
             pp.Suppress('(') + pp.Suppress('_') + pp.Keyword('bv') + expr +
             expr +

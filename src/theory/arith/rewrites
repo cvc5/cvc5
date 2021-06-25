@@ -4,5 +4,6 @@
 (define-rule arith-eq-refl-real ((t Real)) (= t t) true)
 (define-rule arith-eq-symm-real ((t Real) (s Real)) (= t s) (= s t))
 
-
 (define-rule arith-elim-lt ((t Int) (s Int)) (< t s) (not (>= t s)))
+
+(define-rule mul-one ((t Int)) (* 1 t) t)

@@ -175,7 +175,7 @@ class CBool(Node):
         return str(self.val)
 
 
-class IntConst(Node):
+class CInt(Node):
     def __init__(self, val):
         super().__init__([])
         self.val = val
