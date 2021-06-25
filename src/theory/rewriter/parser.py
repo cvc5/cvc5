@@ -76,6 +76,10 @@ class SymbolTable:
             die(f'Symbol {name} not declared')
         return self.symbols[name]
 
+    def pop(self):
+        # TODO: Actual push/pop
+        self.symbols = dict()
+
 
 class Parser:
     def __init__(self):
@@ -182,17 +186,32 @@ class Parser:
     def attrs(self):
         return pp.Keyword(':list') | pp.Keyword(':const')
 
+    def var_list(self):
+        decl = pp.Suppress(
+            (pp.Suppress('(') + self.symbol() + self.sort() +
+             pp.Suppress(')')).setParseAction(
+                 lambda s, l, t: self.symbols.add_symbol(t[0], t[1])))
+        return (pp.Suppress('(') + pp.ZeroOrMore(decl) + pp.Suppress(')'))
+
+    def rule_action(self, name, cond, lhs, rhs):
+        bvars = self.symbols.symbols.values()
+        self.symbols.pop()
+        return Rule(name, bvars, cond, lhs, rhs)
+
     def parse_rules(self, s):
         comments = pp.ZeroOrMore(pp.Suppress(pp.cStyleComment))
 
-        decl = comments + pp.Suppress(
-            (pp.Suppress('(') + pp.Keyword('declare-const') + self.symbol() +
-             self.sort() + pp.Suppress(')')).setParseAction(
-                 lambda s, l, t: self.symbols.add_symbol(t[1], t[2])))
-        rule = comments + (pp.Suppress('(') + pp.Keyword('define-rule') +
-                           self.symbol() + self.expr() + self.expr() +
-                           pp.Suppress(')')).setParseAction(
-                               lambda s, l, t: Rule(t[1], t[2], t[3]))
-        rules = pp.OneOrMore(decl | rule) + comments + pp.StringEnd()
+        rule = comments + (
+            pp.Suppress('(') + pp.Keyword('define-rule') + self.symbol() +
+            self.var_list() + self.expr() + self.expr() +
+            pp.Suppress(')')).setParseAction(
+                lambda s, l, t: self.rule_action(t[1], CBool(True), t[2], t[3]))
+        cond_rule = comments + (
+            pp.Suppress('(') + pp.Keyword('define-cond-rule') + self.symbol() +
+            self.var_list() + self.expr() + self.expr() + self.expr() +
+            pp.Suppress(')')
+        ).setParseAction(
+                lambda s, l, t: self.rule_action(t[1], t[2], t[3], t[4]))
+        rules = pp.OneOrMore(rule | cond_rule) + comments + pp.StringEnd()
         res = rules.parseString(s)
         return res

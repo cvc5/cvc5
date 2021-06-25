@@ -1,6 +1,2 @@
-(declare-const t String)
-(declare-const n Int)
-(declare-const m Int)
-
-(define-rule str-symmetry (= t t) true)
-(define-rule substr-empty-str (str.substr "" n m) "")
+(define-rule str-symmetry ((t String)) (= t t) true)
+(define-rule substr-empty-str ((t String) (n Int) (m Int)) (str.substr "" n m) "")

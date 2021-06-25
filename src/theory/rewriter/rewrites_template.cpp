@@ -30,7 +30,7 @@ void addRules(RewriteDb& db)
 {
   NodeManager* nm = NodeManager::currentNM();
 
-  // Declarations
+  // Variables
   // clang-format off
 ${decls}$
 

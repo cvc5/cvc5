@@ -53,7 +53,8 @@ def gen_mk_node(defns, expr):
 
 
 def gen_rewrite_db_rule(defns, rule):
-    return f'db.addRule(DslPfRule::{rule.get_enum()}, {gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, {gen_mk_node(defns, CBool(True))});'
+    fvs_list = ', '.join(bvar.name for bvar in rule.bvars)
+    return f'db.addRule(DslPfRule::{rule.get_enum()}, {{ {fvs_list} }}, {gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, {gen_mk_node(defns, rule.cond)});'
 
 
 class Rewrites:
@@ -77,7 +78,10 @@ def gen_rewrite_db(args):
         rules = parser.parse_rules(rewrites_file.read())
         symbols = parser.get_symbols()
 
-        file_decls = parser.get_symbols().symbols.values()
+        file_decls = []
+        for rule in rules:
+            file_decls.extend(rule.bvars)
+
         rewrites.append(Rewrites(rewrites_file.name, file_decls, rules))
         decls.extend(file_decls)
 
@@ -85,7 +89,7 @@ def gen_rewrite_db(args):
     expr_counts = defaultdict(lambda: 0)
     to_visit = [
         expr for rewrite in rewrites for rule in rewrite.rules
-        for expr in [rule.lhs, rule.rhs]
+        for expr in [rule.cond, rule.lhs, rule.rhs]
     ]
     while to_visit:
         curr = to_visit.pop()
@@ -118,7 +122,8 @@ def gen_rewrite_db(args):
 
             enum = rule.get_enum()
             ids.append(enum)
-            printer_code.append(f'case DslPfRule::{enum}: return "{rule.name}";')
+            printer_code.append(
+                f'case DslPfRule::{enum}: return "{rule.name}";')
 
         rules_code.append(
             block_tpl.format(filename=rewrites_file.name,
@@ -134,7 +139,8 @@ def gen_rewrite_db(args):
             format_cpp(
                 rewrites_cpp.format(decls='\n'.join(decls_code),
                                     defns='\n'.join(defns_code),
-                                    rules='\n'.join(rules_code), printer='\n'.join(printer_code))))
+                                    rules='\n'.join(rules_code),
+                                    printer='\n'.join(printer_code))))
 
 
 def main():
