@@ -261,6 +261,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, std::vector<Node>> premises;
+  std::unordered_map<TNode, std::vector<Node>> pfArgs;
   std::unordered_map<TNode, bool>::iterator it;
   std::unordered_map<Node, DslPfRule>::iterator itd;
   std::vector<TNode> visit;
@@ -328,6 +329,14 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
             return false;
           }
           // build the substitution context
+          const std::vector<Node>& vs = rpr.getVarList();
+          for (const Node& v : vs)
+          {
+            Assert (subs.find(v)!=subs.end());
+            pfArgs[cur].push_back(subs[v]);
+          }
+          Assert (subs.size()==vs.size());
+          /*
           std::vector<Node> vs;
           std::vector<Node> ss;
           for (const std::pair<const Node, Node>& sp : subs)
@@ -335,13 +344,17 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
             vs.push_back(sp.first);
             ss.push_back(sp.second);
           }
+          */
           // get the conditions, store into premises of cur.
-          if (!rpr.getObligations(vs, ss, premises[cur]))
+          if (!rpr.getObligations(vs, pfArgs[cur], premises[cur]))
           {
             Assert(false);
             // failed a side condition?
             return false;
           }
+          // TODO: recurse
+          pfArgs[cur].insert(pfArgs[cur].begin(),
+              nm->mkConst(Rational(static_cast<uint32_t>(itd->second))));
         }
       }
     }
@@ -350,11 +363,9 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       // Now, add the proof rule. We do this after its children proofs already
       // exist.
       visited[cur] = true;
-      std::vector<Node> pfArgs;
-      pfArgs.push_back(
-          nm->mkConst(Rational(static_cast<uint32_t>(itd->second))));
-      pfArgs.push_back(cur);
-      cdp->addStep(cur, PfRule::DSL_REWRITE, premises[cur], pfArgs);
+      Assert (premises.find(cur)!=premises.end());
+      Assert (pfArgs.find(cur)!=pfArgs.end());
+      cdp->addStep(cur, PfRule::DSL_REWRITE, premises[cur], pfArgs[cur]);
     }
   } while (!visit.empty());
   return true;

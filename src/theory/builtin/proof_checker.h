@@ -32,7 +32,7 @@ namespace builtin {
 class BuiltinProofRuleChecker : public ProofRuleChecker
 {
  public:
-  BuiltinProofRuleChecker() {}
+  BuiltinProofRuleChecker() : d_rdb(nullptr) {}
   ~BuiltinProofRuleChecker() {}
   /**
    * Apply rewrite on n (in skolem form). This encapsulates the exact behavior
@@ -121,6 +121,8 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
 
   /** extended rewriter object */
   quantifiers::ExtendedRewriter d_ext_rewriter;
+  /** Pointer to the rewrite database */
+  RewriteDb* d_rdb;
 };
 
 }  // namespace builtin

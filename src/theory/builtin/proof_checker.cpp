@@ -21,6 +21,8 @@
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory.h"
+#include "theory/rewrite_proof_rule.h"
+#include "theory/rewrite_db.h"
 
 using namespace cvc5::kind;
 
@@ -58,6 +60,8 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::LFSC_RULE, this);
   pc->registerChecker(PfRule::VERIT_RULE, this);
   pc->registerChecker(PfRule::LEAN_RULE, this);
+  
+  d_rdb = pc->getRewriteDatabase();
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
@@ -421,11 +425,38 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::DSL_REWRITE)
   {
-    // TODO: should consult rewrite db, apply args[1]...args[n] as a substituion
+    // consult rewrite db, apply args[1]...args[n] as a substituion
     // to variable list and prove equality between LHS and RHS.
-    Assert(args.size() > 1);
-    Assert(args[0].getType().isInteger());
-    return args[1];
+    Assert (d_rdb!=nullptr);
+    rewriter::DslPfRule di;
+    if (!getDslPfRule(args[0], di))
+    {
+      return Node::null();
+    }
+    const RewriteProofRule& rpr = d_rdb->getRule(di);
+    const std::vector<Node>& varList = rpr.getVarList();
+    const std::vector<Node>& conds = rpr.getConditions();
+    std::vector<Node> subs(args.begin()+1, args.end());
+    if (varList.size()!=subs.size())
+    {
+      return Node::null();
+    }
+    // check whether child proof match
+    if (conds.size()!=children.size())
+    {
+      return Node::null();
+    }
+    for (size_t i=0, nchildren = children.size(); i<nchildren; i++)
+    {
+      Node scond = conds[i].substitute(varList.begin(), varList.end(), subs.begin(), subs.end());
+      if (scond!=children[i])
+      {
+      return Node::null();
+      }
+    }
+    // conclusion is substituted form of rewrite rule conclusion
+    Node conc = rpr.getConclusion();
+    return conc.substitute(varList.begin(), varList.end(), subs.begin(), subs.end());
   }
 
   // no rule
