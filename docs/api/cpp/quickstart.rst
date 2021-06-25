@@ -105,7 +105,7 @@ This will print the following:
 
   value for x: 1/6
   value for y: 1/6
-  value for x - y: 0
+  value for x - y: 0.0
 
 We can convert these values to C++ types using standard conversion functions.
 
