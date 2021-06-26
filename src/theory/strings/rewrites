@@ -10,3 +10,8 @@
 (define-rule re-in-empty ((t String)) (str.in_re t re.none) false)
 (define-rule re-in-sigma ((t String)) (str.in_re t re.allchar) (= (str.len t) 1))
 (define-rule re-in-cstring ((t String) (s String)) (str.in_re t (str.to_re s)) (= t s))
+
+(define-cond-rule concat-clash ((s1 String) (s2 String :list) (t1 String) (t2 String :list))
+  (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))
+  (= (str.++ s1 s2) (str.++ t1 t2))
+  false)

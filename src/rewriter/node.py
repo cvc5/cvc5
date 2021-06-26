@@ -165,22 +165,28 @@ class Node:
 
 
 class Sort(Node):
-    def __init__(self, base, args):
+    def __init__(self, base, args, is_list=False):
         super().__init__(args)
         self.base = base
+        self.is_list = is_list
 
     def __eq__(self, other):
-        return self.base == other.base and super().__eq__(other)
+        return self.base == other.base and self.is_list == other.is_list and super(
+        ).__eq__(other)
 
     def __hash__(self):
-        return hash((self.base, tupe(self.children)))
+        return hash((self.base, self.is_list, tupe(self.children)))
 
     def __repr__(self):
+        rep = ''
         if len(self.children) == 0:
-            return '{}'.format(self.base)
+            rep = '{}'.format(self.base)
         else:
-            return '({} {})'.format(
+            rep = '({} {})'.format(
                 self.base, ' '.join(str(child) for child in self.children))
+        if self.is_list:
+            rep = rep + ' :list'
+        return rep
 
 
 class Var(Node):

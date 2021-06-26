@@ -235,14 +235,17 @@ class Parser:
             lambda s, l, t: Sort(BaseSort.String, []))
         return bv_sort | int_sort | real_sort | bool_sort | string_sort
 
-    def attrs(self):
-        return pp.Keyword(':list') | pp.Keyword(':const')
+    def var_decl_action(self, name, sort, attrs):
+        if attrs:
+            sort.is_list = True
+        self.symbols.add_symbol(name, sort)
 
     def var_list(self):
         decl = pp.Suppress(
             (pp.Suppress('(') + self.symbol() + self.sort() +
+             pp.Optional(pp.Keyword(':list')) +
              pp.Suppress(')')).setParseAction(
-                 lambda s, l, t: self.symbols.add_symbol(t[0], t[1])))
+                 lambda s, l, t: self.var_decl_action(t[0], t[1], t[2:])))
         return (pp.Suppress('(') + pp.ZeroOrMore(decl) + pp.Suppress(')'))
 
     def rule_action(self, name, cond, lhs, rhs):

@@ -80,7 +80,10 @@ def gen_mk_skolem(name, sort):
         sort_code = 'nm->stringType()'
     else:
         die(f'Cannot generate code for {sort}')
-    return f'Node {name} = nm->mkBoundVar("{name}", {sort_code});'
+    res = f'Node {name} = nm->mkBoundVar("{name}", {sort_code});'
+    if sort.is_list:
+        res += f'db.markListVar({name});'
+    return res
 
 
 def gen_mk_node(defns, expr):

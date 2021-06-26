@@ -15,6 +15,7 @@
 
 #include "theory/rewrite_db.h"
 
+#include "expr/attribute.h"
 #include "expr/node_algorithm.h"
 #include "rewriter/rewrites.h"
 #include "theory/rewrite_db_term_process.h"
@@ -25,12 +26,23 @@ using namespace cvc5::rewriter;
 namespace cvc5 {
 namespace theory {
 
+struct IsListTag
+{
+};
+using IsListAttr = expr::Attribute<IsListTag, bool>;
+
 RewriteDb::RewriteDb()
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
   rewriter::addRules(*this);
+}
+
+void RewriteDb::markListVar(TNode fv)
+{
+  Assert(fv.getKind() == BOUND_VARIABLE);
+  fv.setAttribute(IsListAttr(), true);
 }
 
 void RewriteDb::addRule(
