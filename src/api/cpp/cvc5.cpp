@@ -135,6 +135,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {PLUS, cvc5::Kind::PLUS},
     {MULT, cvc5::Kind::MULT},
     {IAND, cvc5::Kind::IAND},
+    {POW2, cvc5::Kind::POW2},
     {MINUS, cvc5::Kind::MINUS},
     {UMINUS, cvc5::Kind::UMINUS},
     {DIVISION, cvc5::Kind::DIVISION},
@@ -410,6 +411,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::PLUS, PLUS},
         {cvc5::Kind::MULT, MULT},
         {cvc5::Kind::IAND, IAND},
+        {cvc5::Kind::POW2, POW2},
         {cvc5::Kind::MINUS, MINUS},
         {cvc5::Kind::UMINUS, UMINUS},
         {cvc5::Kind::DIVISION, DIVISION},
@@ -2812,7 +2814,13 @@ std::string Term::getRealValue() const
   CVC5_API_ARG_CHECK_EXPECTED(detail::isReal(*d_node), *d_node)
       << "Term to be a rational value when calling getRealValue()";
   //////// all checks before this line
-  return detail::getRational(*d_node).toString();
+  const Rational& rat = detail::getRational(*d_node);
+  std::string res = rat.toString();
+  if (rat.isIntegral())
+  {
+    return res + ".0";
+  }
+  return res;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
