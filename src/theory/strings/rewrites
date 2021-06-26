@@ -6,3 +6,7 @@
   (= (str.len s) (str.len r))
   (str.len (str.replace t s r))
   (str.len t))
+
+(define-rule re-in-empty ((t String)) (str.in_re t re.none) false)
+(define-rule re-in-sigma ((t String)) (str.in_re t re.allchar) (= (str.len t) 1))
+(define-rule re-in-cstring ((t String) (s String)) (str.in_re t (str.to_re s)) (= t s))

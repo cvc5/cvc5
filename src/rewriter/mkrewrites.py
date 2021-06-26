@@ -15,17 +15,55 @@ def gen_kind(op):
         Op.OR: 'OR',
         Op.IMPLIES: 'IMPLIES',
         Op.EQ: 'EQUAL',
+        Op.UMINUS: 'UMINUS',
         Op.PLUS: 'PLUS',
         Op.MINUS: 'MINUS',
         Op.MULT: 'MULT',
+        Op.INT_DIV: 'INTS_DIVISION',
+        Op.DIV: 'DIVISION',
+        Op.MOD: 'INTS_MODULUS',
+        Op.ABS: 'ABS',
         Op.LT: 'LT',
         Op.GT: 'GT',
         Op.LEQ: 'LEQ',
         Op.GEQ: 'GEQ',
         Op.STRING_CONCAT: 'STRING_CONCAT',
+        Op.STRING_IN_REGEXP: 'STRING_IN_REGEXP',
         Op.STRING_LENGTH: 'STRING_LENGTH',
         Op.STRING_SUBSTR: 'STRING_SUBSTR',
+        Op.STRING_UPDATE: 'STRING_UPDATE',
+        Op.STRING_AT: 'STRING_CHARAT',
+        Op.STRING_CONTAINS: 'STRING_CONTAINS',
+        Op.STRING_LT: 'STRING_LT',
+        Op.STRING_LEQ: 'STRING_LEQ',
+        Op.STRING_INDEXOF: 'STRING_INDEXOF',
+        Op.STRING_INDEXOF_RE: 'STRING_INDEXOF_RE',
         Op.STRING_REPLACE: 'STRING_REPLACE',
+        Op.STRING_REPLACEALL: 'STRING_REPLACEALL',
+        Op.STRING_REPLACE_RE: 'STRING_REPLACE_RE',
+        Op.STRING_REPLACE_RE_ALL: 'STRING_REPLACE_RE_ALL',
+        Op.STRING_PREFIX: 'STRING_PREFIX',
+        Op.STRING_SUFFIX: 'STRING_SUFFIX',
+        Op.STRING_IS_DIGIT: 'STRING_IS_DIGIT',
+        Op.STRING_ITOS: 'STRING_ITOS',
+        Op.STRING_STOI: 'STRING_STOI',
+        Op.STRING_TO_CODE: 'STRING_TO_CODE',
+        Op.STRING_FROM_CODE: 'STRING_FROM_CODE',
+        Op.STRING_TOLOWER: 'STRING_TOLOWER',
+        Op.STRING_TOUPPER: 'STRING_TOUPPER',
+        Op.STRING_REV: 'STRING_REV',
+        Op.STRING_TO_REGEXP: 'STRING_TO_REGEXP',
+        Op.REGEXP_CONCAT: 'REGEXP_CONCAT',
+        Op.REGEXP_UNION: 'REGEXP_UNION',
+        Op.REGEXP_INTER: 'REGEXP_INTER',
+        Op.REGEXP_DIFF: 'REGEXP_DIFF',
+        Op.REGEXP_STAR: 'REGEXP_STAR',
+        Op.REGEXP_PLUS: 'REGEXP_PLUS',
+        Op.REGEXP_OPT: 'REGEXP_OPT',
+        Op.REGEXP_RANGE: 'REGEXP_RANGE',
+        Op.REGEXP_COMPLEMENT: 'REGEXP_COMPLEMENT',
+        Op.REGEXP_EMPTY: 'REGEXP_EMPTY',
+        Op.REGEXP_SIGMA: 'REGEXP_SIGMA',
     }
     return op_to_kind[op]
 
@@ -51,7 +89,7 @@ def gen_mk_node(defns, expr):
 
     if isinstance(expr, App):
         args = ",".join(gen_mk_node(defns, child) for child in expr.children)
-        return f'nm->mkNode({gen_kind(expr.op)}, {args})'
+        return f'nm->mkNode({gen_kind(expr.op)}, {{ {args} }})'
     elif isinstance(expr, CBool):
         val_code = 'true' if expr.val else 'false'
         return f'nm->mkConst({val_code})'

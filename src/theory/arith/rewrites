@@ -6,6 +6,8 @@
 (define-rule arith-eq-symm-real ((t Real) (s Real)) (= t s) (= s t))
 
 (define-rule arith-mul-one ((t Int)) (* 1 t) t)
+; Test for unary minus
+(define-rule arith-neg-neg ((t Int)) (- (- t)) t)
 
 ; Eliminations
 (define-rule arith-elim-minus ((t Int) (s Int)) (- t s) (+ t (* (- 1) s)))

@@ -71,15 +71,18 @@ class Op(Enum):
     # Arithmetic
     ###########################################################################
 
+    UMINUS = auto()
     PLUS = auto()
     MINUS = auto()
     MULT = auto()
+    INT_DIV = auto()
+    DIV = auto()
+    MOD = auto()
+    ABS = auto()
     LT = auto()
     GT = auto()
     LEQ = auto()
     GEQ = auto()
-    LEFT_SHIFT = auto()
-    MOD = auto()
 
     ###########################################################################
     # Theory-independent
@@ -94,10 +97,45 @@ class Op(Enum):
 
     CONST_STRING = auto()
     STRING_CONCAT = auto()
+    STRING_IN_REGEXP = auto()
     STRING_LENGTH = auto()
 
     STRING_SUBSTR = auto()
+    STRING_UPDATE = auto()
+    STRING_AT = auto()
+    STRING_CONTAINS = auto()
+    STRING_LT = auto()
+    STRING_LEQ = auto()
+    STRING_INDEXOF = auto()
+    STRING_INDEXOF_RE = auto()
     STRING_REPLACE = auto()
+    STRING_REPLACEALL = auto()
+    STRING_REPLACE_RE = auto()
+    STRING_REPLACE_RE_ALL = auto()
+    STRING_PREFIX = auto()
+    STRING_SUFFIX = auto()
+    STRING_IS_DIGIT = auto()
+    STRING_ITOS = auto()
+    STRING_STOI = auto()
+    STRING_TO_CODE = auto()
+    STRING_FROM_CODE = auto()
+    STRING_TOLOWER = auto()
+    STRING_TOUPPER = auto()
+    STRING_REV = auto()
+
+    STRING_TO_REGEXP = auto()
+    REGEXP_CONCAT = auto()
+    REGEXP_UNION = auto()
+    REGEXP_INTER = auto()
+    REGEXP_DIFF = auto()
+    REGEXP_STAR = auto()
+    REGEXP_PLUS = auto()
+    REGEXP_OPT = auto()
+    REGEXP_RANGE = auto()
+    REGEXP_COMPLEMENT = auto()
+
+    REGEXP_EMPTY = auto()
+    REGEXP_SIGMA = auto()
 
 
 class BaseSort(Enum):

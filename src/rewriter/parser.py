@@ -50,39 +50,80 @@ symbol_to_op = {
     'xor': Op.XOR,
     '+': Op.PLUS,
     '-': Op.MINUS,
-    'mod': Op.MOD,
     '*': Op.MULT,
+    'div': Op.INT_DIV,
+    '/': Op.DIV,
+    'mod': Op.MOD,
+    'abs': Op.ABS,
     '<': Op.LT,
     '>': Op.GT,
-    '>=': Op.GEQ,
     '<=': Op.LEQ,
+    '>=': Op.GEQ,
     '=': Op.EQ,
     'ite': Op.ITE,
     'str.++': Op.STRING_CONCAT,
+    'str.in_re': Op.STRING_IN_REGEXP,
     'str.len': Op.STRING_LENGTH,
     'str.substr': Op.STRING_SUBSTR,
+    'str.update': Op.STRING_UPDATE,
+    'str.at': Op.STRING_AT,
+    'str.contains': Op.STRING_CONTAINS,
+    'str.<': Op.STRING_LT,
+    'str.<=': Op.STRING_LEQ,
+    'str.indexof': Op.STRING_INDEXOF,
+    'str.indexof_re': Op.STRING_INDEXOF_RE,
     'str.replace': Op.STRING_REPLACE,
+    'str.replace_all': Op.STRING_REPLACEALL,
+    'str.replace_re': Op.STRING_REPLACE_RE,
+    'str.replace_re_all': Op.STRING_REPLACE_RE_ALL,
+    'str.prefixof': Op.STRING_PREFIX,
+    'str.suffixof': Op.STRING_SUFFIX,
+    'str.is_digit': Op.STRING_IS_DIGIT,
+    'str.from_int': Op.STRING_ITOS,
+    'str.to_int': Op.STRING_STOI,
+    'str.to_code': Op.STRING_TO_CODE,
+    'str.from_code': Op.STRING_FROM_CODE,
+    'str.tolower': Op.STRING_TOLOWER,
+    'str.toupper': Op.STRING_TOUPPER,
+    'str.rev': Op.STRING_REV,
+    'str.to_re': Op.STRING_TO_REGEXP,
+    're.++': Op.REGEXP_CONCAT,
+    're.union': Op.REGEXP_UNION,
+    're.inter': Op.REGEXP_INTER,
+    're.diff': Op.REGEXP_DIFF,
+    're.*': Op.REGEXP_STAR,
+    're.+': Op.REGEXP_PLUS,
+    're.opt': Op.REGEXP_OPT,
+    're.range': Op.REGEXP_RANGE,
+    're.comp': Op.REGEXP_COMPLEMENT,
 }
 
 
 class SymbolTable:
     def __init__(self):
-        self.symbols = dict()
+        self.consts = {
+            're.none': App(Op.REGEXP_EMPTY, []),
+            're.allchar': App(Op.REGEXP_SIGMA, []),
+        }
+        self.symbols = {}
 
     def add_symbol(self, name, sort):
-        if name in self.symbols:
+        if name in self.consts or name in self.symbols:
             die(f'Symbol {name} has already been declared')
 
         self.symbols[name] = Var(fresh_name(name), sort)
 
     def get_symbol(self, name):
+        if name in self.consts:
+            return self.consts[name]
+
         if name not in self.symbols:
             die(f'Symbol {name} not declared')
         return self.symbols[name]
 
     def pop(self):
         # TODO: Actual push/pop
-        self.symbols = dict()
+        self.symbols = {}
 
 
 class Parser:
@@ -113,6 +154,12 @@ class Parser:
             cases.append(App(Op.CASE, [CBool(True), App(Op.FAIL, [])]))
         return App(Op.COND, cases)
 
+    def app_action(self, s, l, t):
+        op = symbol_to_op[t[0]]
+        if op == Op.MINUS and len(t) == 2:
+            op = Op.UMINUS
+        return App(op, t[1:])
+
     def expr(self, allow_comprehension=True):
         expr = pp.Forward()
 
@@ -139,8 +186,7 @@ class Parser:
                        pp.OneOrMore(expr) + pp.Suppress(')')).setParseAction(
                            lambda s, l, t: App(symbol_to_op[t[0]], t[1:]))
         app = (pp.Suppress('(') + self.symbol() + pp.OneOrMore(expr) +
-               pp.Suppress(')')
-               ).setParseAction(lambda s, l, t: App(symbol_to_op[t[0]], t[1:]))
+               pp.Suppress(')')).setParseAction(self.app_action)
 
         # Let bindings
         binding = (
