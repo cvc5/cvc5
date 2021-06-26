@@ -681,9 +681,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::IS_INTEGER:
   case kind::TO_INTEGER:
   case kind::TO_REAL:
-  case kind::POW: 
-    out << smtKindString(k, d_variant) << " ";
-    break;
+  case kind::POW:
+  case kind::POW2: out << smtKindString(k, d_variant) << " "; break;
   case kind::IAND:
     out << "(_ iand " << n.getOperator().getConst<IntAnd>().d_size << ") ";
     stillNeedToPrintParams = false;
@@ -1152,6 +1151,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::MULT:
   case kind::NONLINEAR_MULT: return "*";
   case kind::IAND: return "iand";
+  case kind::POW2: return "POW2";
   case kind::EXPONENTIAL: return "exp";
   case kind::SINE: return "sin";
   case kind::COSINE: return "cos";
