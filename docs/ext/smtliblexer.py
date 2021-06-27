@@ -1,105 +1,106 @@
-from pygments.lexer import RegexLexer
+from pygments.lexer import RegexLexer, include
 from pygments import token
+import re
+
 
 class SmtLibLexer(RegexLexer):
 
     name = 'smtlib'
 
+    COMMANDS = [
+        'assert', 'check-sat', 'check-sat-assuming', 'declare-const',
+        'declare-datatype', 'declare-datatypes', 'declare-codatatypes',
+        'declare-fun', 'declare-sort', 'define-fun', 'define-fun-rec',
+        'define-funs-rec', 'define-sort', 'echo', 'exit', 'get-assertions',
+        'get-assignment', 'get-info', 'get-model', 'get-option', 'get-proof',
+        'get-unsat-assumptions', 'get-unsat-core', 'get-value', 'pop', 'push',
+        'reset', 'reset-assertions', 'set-info', 'set-logic', 'set-option',
+    ]
+    SORTS = [
+        'Array', 'BitVec', 'Bool', 'FloatingPoint', 'Float[0-9]+', 'Int',
+        'Real', 'RegLan', 'RoundingMode', 'Set', 'String', 'Tuple',
+    ]
+    OPERATORS = [
+        # array
+        'select', 'store',
+        # bv
+        'concat', 'extract', 'repeat', 'zero_extend', 'sign_extend',
+        'rotate_left', 'rotate_right', 'bvnot', 'bvand', 'bvor', 'bvneg',
+        'bvadd', 'bvmul', 'bvudiv', 'bvurem', 'bvshl', 'bvlshr', 'bvult',
+        'bvnand', 'bvnor', 'bvxor', 'bvxnor', 'bvcomp', 'bvsub', 'bvsdiv',
+        'bvsrem', 'bvsmod', 'bvashr', 'bvule', 'bvugt', 'bvuge', 'bvslt',
+        'bvsle', 'bvsgt', 'bvsge',
+        # core
+        'true', 'false', 'not', 'and', 'or', 'xor', 'distinct', 'ite',
+        # datatypes
+        'mkTuple', 'tupSel',
+        # fp
+        'RNE', 'RNA', 'RTP', 'RTN', 'RTZ', 'fp', 'NaN', 'fp\.abs', 'fp\.neg',
+        'fp\.add', 'fp\.sub', 'fp\.mul', 'fp\.div', 'fp\.fma', 'fp\.sqrt',
+        'fp\.rem', 'fp\.roundToIntegral', 'fp\.min', 'fp\.max', 'fp\.leq',
+        'fp\.lt', 'fp\.geq', 'fp\.gt', 'fp\.eq', 'fp\.isNormal',
+        'fp\.isSubnormal', 'fp\.isZero', 'fp\.isInfinite', 'fp\.isNaN',
+        'fp\.isNegative', 'fp\.isPositive', 'to_fp', 'to_fp_unsigned',
+        'fp\.to_ubv', 'fp\.to_sbv', 'fp\.to_real',
+        # int / real
+        'div', 'mod', 'abs', 'divisible', 'to_real', 'to_int', 'is_int',
+        # separation logic
+        'emp', 'pto', 'sep', 'wand', 'nil',
+        # sets / relations
+        'union', 'setminus', 'member', 'subset', 'emptyset', 'singleton',
+        'card', 'insert', 'complement', 'univset', 'transpose', 'tclosure',
+        'join', 'product', 'intersection',
+        # string
+        'char', 'str\.\+\+', 'str\.len', 'str\.<', 'str\.to_re', 'str\.in_re',
+        're\.none', 're\.all', 're\.allchar', 're\.\+\+', 're\.union',
+        're\.inter', 're\.*', 'str\.<=', 'str\.at', 'str\.substr',
+        'str\.prefixof', 'str\.suffixof', 'str\.contains', 'str\.indexof',
+        'str\.replace', 'str\.replace_all', 'str\.replace_re',
+        'str\.replace_re_all', 're\.comp', 're\.diff', 're\.\+', 're\.opt',
+        're\.range', 're\.^', 're\.loop', 'str\.is_digit', 'str\.to_code',
+        'str\.from_code', 'str\.to_int', 'str\.from_int',
+    ]
+    OPERATORS_NONWORD = [
+        # core
+        '=>', '=',
+        # fp
+        '\+oo', '-oo', '\+zero', '-zero',
+        # int / real
+        '<', '>', '<=', '>=', '!=', '\+', '-', '\*', '/',
+    ]
+
     tokens = {
         'root': [
-            (r'ALL', token.Text),
-            (r'QF_ALL', token.Text),
-            (r'QF_BV', token.Text),
-            (r'QF_UFDT', token.Text),
-            (r'QF_UFLIAFS', token.Text),
-            (r'set-info', token.Keyword),
-            (r'set-logic', token.Keyword),
-            (r'set-option', token.Keyword),
-            (r'declare-codatatypes', token.Keyword),
-            (r'declare-const', token.Keyword),
-            (r'declare-datatype', token.Keyword),
-            (r'declare-datatypes', token.Keyword),
-            (r'declare-fun', token.Keyword),
-            (r'declare-sort', token.Keyword),
-            (r'define-fun', token.Keyword),
-            (r'assert\b', token.Keyword),
-            (r'check-sat-assuming', token.Keyword),
-            (r'check-sat', token.Keyword),
-            (r'exit', token.Keyword),
-            (r'get-model', token.Keyword),
-            (r'get-unsat-assumptions', token.Keyword),
-            (r'get-unsat-core', token.Keyword),
-            (r'get-value', token.Keyword),
-            (r'reset-assertions', token.Keyword),
-            (r'push', token.Keyword),
-            (r'pop', token.Keyword),
-            (r'as', token.Name.Attribute),
-            (r':incremental', token.Name.Attribute),
-            (r':named', token.Name.Attribute),
-            (r':produce-models', token.Name.Attribute),
-            (r':produce-unsat-cores', token.Name.Attribute),
-            (r':produce-unsat-assumptions', token.Name.Attribute),
-            (r':status', token.Name.Attribute),
-            (r'!', token.Name.Attribute),
-            (r'Array', token.Name.Attribute),
-            (r'BitVec', token.Name.Attribute),
-            (r'Int', token.Name.Attribute),
-            (r'RNE', token.Name.Attribute),
-            (r'Set', token.Name.Attribute),
-            (r'String', token.Name.Attribute),
-            (r'Tuple', token.Name.Attribute),
-            (r'tupSel', token.Name.Attribute),
-            (r'true', token.String),
-            (r'distinct', token.Operator),
-            (r'=', token.Operator),
-            (r'>', token.Operator),
-            (r'<', token.Operator),
-            (r'<=', token.Operator),
-            (r'\+', token.Operator),
-            (r'\*', token.Operator),
-            (r'and', token.Operator),
-            (r'bvadd', token.Operator),
-            (r'bvashr', token.Operator),
-            (r'bvmul', token.Operator),
-            (r'bvugt', token.Operator),
-            (r'bvult', token.Operator),
-            (r'bvule', token.Operator),
-            (r'bvsdiv', token.Operator),
-            (r'card', token.Operator),
-            (r'emp', token.Operator),
-            (r'emptyset', token.Operator),
-            (r'exists', token.Operator),
-            (r'extract', token.Operator),
-            (r'forall', token.Operator),
-            (r'fp.gt', token.Operator),
-            (r'insert', token.Operator),
-            (r'intersection', token.Operator),
-            (r'ite', token.Operator),
-            (r'member', token.Operator),
-            (r'mkTuple', token.Operator),
-            (r'not', token.Operator),
-            (r'product', token.Operator),
-            (r'pto', token.Operator),
-            (r'sep', token.Operator),
-            (r'singleton', token.Operator),
-            (r'subset', token.Operator),
-            (r'tclosure', token.Operator),
-            (r'to_fp_unsigned', token.Operator),
-            (r'transpose', token.Operator),
-            (r'union', token.Operator),
-            (r'univset', token.Operator),
-            (r'wand', token.Operator),
-            (r'\+zero', token.Operator),
-            (r'#b[0-1]+', token.Text),
-            (r'bv[0-9]+', token.Text),
-            (r'".*?"', token.String),
-            (r'[a-zA-Z][a-zA-Z0-9]*', token.Name),
+            # comment
+            (r';.*$', token.Comment),
+            # whitespace
+            (r'\s+', token.Text),
+            # numeral (decimal, hexadecimal, binary)
             (r'[0-9]+', token.Number),
-            (r'\s', token.Text),
-            (r'\(_', token.Text),
+            (r'#x[0-9a-fA-F]+', token.Number),
+            (r'#b[01]+', token.Number),
+            # bv constant
+            (r'bv[0-9]+', token.Number),
+            # string constant (including escaped "")
+            (r'".*?"', token.String),
+            # reserved words (non-word and regular)
+            (r'[!_](?=\s)', token.Name.Attribute),
+            ('(as|let|exists|forall|match|per)\\b', token.Keyword),
+            # Keywords (:foo)
+            (r':[a-zA-Z~!@$%^&*_+=<>.?/-][a-zA-Z0-9~!@$%^&*_+=<>.?/-]*',
+             token.Name.Attribute),
+            # parantheses
             (r'\(', token.Text),
             (r'\)', token.Text),
-            (r';.*$', token.Comment),
-            (r'\.\.\.', token.Text)
-        ]
+            # commands
+            ('(' + '|'.join(COMMANDS) + ')\\b', token.Keyword),
+            # sorts
+            ('(' + '|'.join(SORTS) + ')\\b', token.Name.Attribute),
+            # operators (non-word and regular)
+            ('(' + '|'.join(OPERATORS_NONWORD) + ')(?=\s)', token.Operator),
+            ('(' + '|'.join(OPERATORS) + ')\\b', token.Operator),
+            # symbols (regular and quoted)
+            (r'[a-zA-Z~!@$%^&*_+=<>.?/-][a-zA-Z0-9~!@$%^&*_+=<>.?/-]*', token.Name),
+            (r'\|[^|\\]*\|', token.Name),
+        ],
     }
