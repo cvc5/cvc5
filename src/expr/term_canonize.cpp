@@ -25,7 +25,10 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace expr {
 
-TermCanonize::TermCanonize(TypeClassCallback * tcc) : d_tcc(tcc), d_op_id_count(0), d_typ_id_count(0) {}
+TermCanonize::TermCanonize(TypeClassCallback* tcc)
+    : d_tcc(tcc), d_op_id_count(0), d_typ_id_count(0)
+{
+}
 
 int TermCanonize::getIdForOperator(Node op)
 {
@@ -119,7 +122,7 @@ Node TermCanonize::getCanonicalFreeVar(TypeNode tn, unsigned i, uint32_t tc)
 
 uint32_t TermCanonize::getTypeClass(TNode v)
 {
-  return d_tcc==nullptr ? 0 : d_tcc->getTypeClass(v);
+  return d_tcc == nullptr ? 0 : d_tcc->getTypeClass(v);
 }
 
 size_t TermCanonize::getIndexForFreeVariable(Node v) const
@@ -138,11 +141,12 @@ struct sortTermOrder
   bool operator()(Node i, Node j) { return d_tu->getTermOrder(i, j); }
 };
 
-Node TermCanonize::getCanonicalTerm(TNode n,
-                                    bool apply_torder,
-                                    bool doHoVar,
-                                    std::map<std::pair<TypeNode, uint32_t>, unsigned>& var_count,
-                                    std::map<TNode, Node>& visited)
+Node TermCanonize::getCanonicalTerm(
+    TNode n,
+    bool apply_torder,
+    bool doHoVar,
+    std::map<std::pair<TypeNode, uint32_t>, unsigned>& var_count,
+    std::map<TNode, Node>& visited)
 {
   std::map<TNode, Node>::iterator it = visited.find(n);
   if (it != visited.end())

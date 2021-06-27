@@ -37,14 +37,18 @@ bool containsListVar(TNode n);
 /** get the null terminator */
 Node getNullTerminator(Kind k, TypeNode tn);
 /**
- * Substitution with list semantics 
+ * Substitution with list semantics
  */
-Node listSubstitute(Node src, std::vector<Node>& vars, std::vector< std::vector<Node > >& subs);
+Node listSubstitute(Node src,
+                    std::vector<Node>& vars,
+                    std::vector<std::vector<Node> >& subs);
 
 /**
- * Match with list semantics 
+ * Match with list semantics
  */
-bool listMatch(Node n1, Node n2, std::unordered_map<Node, std::vector<Node> >& subs);
+bool listMatch(Node n1,
+               Node n2,
+               std::unordered_map<Node, std::vector<Node> >& subs);
 
 }  // namespace theory
 }  // namespace cvc5

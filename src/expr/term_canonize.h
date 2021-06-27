@@ -24,14 +24,14 @@
 namespace cvc5 {
 namespace expr {
 
-/** 
+/**
  * Generalization of types
  */
 class TypeClassCallback
 {
-public:
-  TypeClassCallback(){}
-  virtual ~TypeClassCallback(){}
+ public:
+  TypeClassCallback() {}
+  virtual ~TypeClassCallback() {}
   virtual uint32_t getTypeClass(TNode v) = 0;
 };
 
@@ -45,7 +45,7 @@ public:
 class TermCanonize
 {
  public:
-  TermCanonize(TypeClassCallback * tcc = nullptr);
+  TermCanonize(TypeClassCallback* tcc = nullptr);
   ~TermCanonize() {}
 
   /** Maps operators to an identifier, useful for ordering. */
@@ -79,8 +79,8 @@ class TermCanonize
                         bool doHoVar = true);
 
  private:
-   /** The (optional) type class callback */
-   TypeClassCallback * d_tcc;
+  /** The (optional) type class callback */
+  TypeClassCallback* d_tcc;
   /** the number of ids we have allocated for operators */
   int d_op_id_count;
   /** map from operators to id */
@@ -108,11 +108,12 @@ class TermCanonize
    * counter of how many variables we have allocated for each type (var_count),
    * and a cache of visited nodes (visited).
    */
-  Node getCanonicalTerm(TNode n,
-                        bool apply_torder,
-                        bool doHoVar,
-                        std::map<std::pair<TypeNode, uint32_t>, unsigned>& var_count,
-                        std::map<TNode, Node>& visited);
+  Node getCanonicalTerm(
+      TNode n,
+      bool apply_torder,
+      bool doHoVar,
+      std::map<std::pair<TypeNode, uint32_t>, unsigned>& var_count,
+      std::map<TNode, Node>& visited);
 };
 
 }  // namespace expr

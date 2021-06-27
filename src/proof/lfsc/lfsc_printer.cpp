@@ -771,10 +771,10 @@ void LfscPrinter::printDslRule(std::ostream& out, DslPfRule id)
   const std::vector<Node>& uvarList = rpr.getUserVarList();
   const std::vector<Node>& conds = rpr.getConditions();
   Node conc = rpr.getConclusion();
-  
+
   std::stringstream oscs;
   std::stringstream odecl;
-  
+
   std::stringstream rparen;
   odecl << "(declare ";
   LfscPrintChannelOut::printDslProofRuleId(odecl, id);
@@ -808,7 +808,7 @@ void LfscPrinter::printDslRule(std::ostream& out, DslPfRule id)
   Node icc = d_tproc.convert(sconc);
   printInternal(odecl, icc);
   odecl << "))" << rparen.str() << std::endl;
-  // print the side conditions 
+  // print the side conditions
   out << oscs.str();
   // print the rule declaration
   out << odecl.str();

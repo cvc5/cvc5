@@ -48,17 +48,20 @@ bool containsListVar(TNode n)
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
 
-    if (it == visited.end()) {
+    if (it == visited.end())
+    {
       visited.insert(cur);
-      if( isListVar(cur) ){
+      if (isListVar(cur))
+      {
         return true;
       }
-      visit.insert(visit.end(),cur.begin(),cur.end());
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
   return false;
@@ -109,33 +112,35 @@ Node getNullTerminator(Kind k, TypeNode tn)
   return nullTerm;
 }
 
-Node listSubstitute(Node src, std::vector<Node>& vars, std::vector< std::vector<Node > >& subs)
+Node listSubstitute(Node src,
+                    std::vector<Node>& vars,
+                    std::vector<std::vector<Node> >& subs)
 {
   // assumes all variables are list variables
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   std::vector<Node>::iterator itv;
   TNode cur;
   visit.push_back(src);
-  do 
+  do
   {
     cur = visit.back();
     it = visited.find(cur);
-    if (it == visited.end()) 
+    if (it == visited.end())
     {
       visited[cur] = Node::null();
-      visit.insert(visit.end(),cur.begin(),cur.end());
+      visit.insert(visit.end(), cur.begin(), cur.end());
       continue;
     }
     visit.pop_back();
-    if (it->second.isNull()) 
+    if (it->second.isNull())
     {
       Node ret = cur;
       bool childChanged = false;
       std::vector<Node> children;
-      for (const Node& cn : cur )
+      for (const Node& cn : cur)
       {
         // if it is variable to replace, insert the list
         itv = std::find(vars.begin(), vars.end(), cur);
@@ -143,8 +148,8 @@ Node listSubstitute(Node src, std::vector<Node>& vars, std::vector< std::vector<
         {
           childChanged = true;
           size_t d = std::distance(vars.begin(), itv);
-          Assert (d<subs.size());
-          std::vector<Node >& sd = subs[d];
+          Assert(d < subs.size());
+          std::vector<Node>& sd = subs[d];
           children.insert(children.end(), sd.begin(), sd.end());
           continue;
         }
@@ -154,32 +159,39 @@ Node listSubstitute(Node src, std::vector<Node>& vars, std::vector< std::vector<
         childChanged = childChanged || cn != it->second;
         children.push_back(it->second);
       }
-      if (childChanged) 
+      if (childChanged)
       {
-        if (children.size()!=cur.getNumChildren())
+        if (children.size() != cur.getNumChildren())
         {
           // n-ary operators cannot be parameterized
-          Assert (cur.getMetaKind() != metakind::PARAMETERIZED);
-          ret = children.empty() ? getNullTerminator(cur.getKind(), cur.getType()) : ( children.size()==1 ? children[0] : nm->mkNode(cur.getKind(), children));
+          Assert(cur.getMetaKind() != metakind::PARAMETERIZED);
+          ret = children.empty()
+                    ? getNullTerminator(cur.getKind(), cur.getType())
+                    : (children.size() == 1
+                           ? children[0]
+                           : nm->mkNode(cur.getKind(), children));
         }
         else
         {
-          if (cur.getMetaKind() == metakind::PARAMETERIZED) {
-            children.insert(children.begin(),cur.getOperator());
+          if (cur.getMetaKind() == metakind::PARAMETERIZED)
+          {
+            children.insert(children.begin(), cur.getOperator());
           }
           ret = nm->mkNode(cur.getKind(), children);
         }
       }
       visited[cur] = ret;
     }
-    
+
   } while (!visit.empty());
   Assert(visited.find(src) != visited.end());
   Assert(!visited.find(src)->second.isNull());
   return visited[src];
 }
 
-bool listMatch(Node n1, Node n2, std::unordered_map<Node, std::vector<Node> >& subs)
+bool listMatch(Node n1,
+               Node n2,
+               std::unordered_map<Node, std::vector<Node> >& subs)
 {
   // TODO
   return false;
