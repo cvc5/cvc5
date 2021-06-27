@@ -30,7 +30,8 @@ class SmtLibLexer(RegexLexer):
         'bvsrem', 'bvsmod', 'bvashr', 'bvule', 'bvugt', 'bvuge', 'bvslt',
         'bvsle', 'bvsgt', 'bvsge',
         # core
-        'true', 'false', 'not', 'and', 'or', 'xor', 'distinct', 'ite',
+        '=>', '=', 'true', 'false', 'not', 'and', 'or', 'xor', 'distinct',
+        'ite',
         # datatypes
         'mkTuple', 'tupSel',
         # fp
@@ -40,9 +41,11 @@ class SmtLibLexer(RegexLexer):
         'fp\.lt', 'fp\.geq', 'fp\.gt', 'fp\.eq', 'fp\.isNormal',
         'fp\.isSubnormal', 'fp\.isZero', 'fp\.isInfinite', 'fp\.isNaN',
         'fp\.isNegative', 'fp\.isPositive', 'to_fp', 'to_fp_unsigned',
-        'fp\.to_ubv', 'fp\.to_sbv', 'fp\.to_real',
+        'fp\.to_ubv', 'fp\.to_sbv', 'fp\.to_real', '\+oo', '-oo', '\+zero',
+        '-zero',
         # int / real
-        'div', 'mod', 'abs', 'divisible', 'to_real', 'to_int', 'is_int',
+        '<', '>', '<=', '>=', '!=', '\+', '-', '\*', '/', 'div', 'mod', 'abs',
+        'divisible', 'to_real', 'to_int', 'is_int',
         # separation logic
         'emp', 'pto', 'sep', 'wand', 'nil',
         # sets / relations
@@ -58,14 +61,6 @@ class SmtLibLexer(RegexLexer):
         'str\.replace_re_all', 're\.comp', 're\.diff', 're\.\+', 're\.opt',
         're\.range', 're\.^', 're\.loop', 'str\.is_digit', 'str\.to_code',
         'str\.from_code', 'str\.to_int', 'str\.from_int',
-    ]
-    OPERATORS_NONWORD = [
-        # core
-        '=>', '=',
-        # fp
-        '\+oo', '-oo', '\+zero', '-zero',
-        # int / real
-        '<', '>', '<=', '>=', '!=', '\+', '-', '\*', '/',
     ]
 
     tokens = {
@@ -92,12 +87,11 @@ class SmtLibLexer(RegexLexer):
             (r'\(', token.Text),
             (r'\)', token.Text),
             # commands
-            ('(' + '|'.join(COMMANDS) + ')\\b', token.Keyword),
+            ('(' + '|'.join(COMMANDS) + ')(?=(\s|\)))', token.Keyword),
             # sorts
-            ('(' + '|'.join(SORTS) + ')\\b', token.Name.Attribute),
-            # operators (non-word and regular)
-            ('(' + '|'.join(OPERATORS_NONWORD) + ')(?=\s)', token.Operator),
-            ('(' + '|'.join(OPERATORS) + ')\\b', token.Operator),
+            ('(' + '|'.join(SORTS) + ')(?=(\s|\)))', token.Name.Attribute),
+            # operators
+            ('(' + '|'.join(OPERATORS) + ')(?=(\s|\)))', token.Operator),
             # symbols (regular and quoted)
             (r'[a-zA-Z~!@$%^&*_+=<>.?/-][a-zA-Z0-9~!@$%^&*_+=<>.?/-]*', token.Name),
             (r'\|[^|\\]*\|', token.Name),
