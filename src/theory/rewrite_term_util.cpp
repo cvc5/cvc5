@@ -114,7 +114,7 @@ Node getNullTerminator(Kind k, TypeNode tn)
 
 Node listSubstitute(Node src,
                     std::vector<Node>& vars,
-                    std::vector<std::vector<Node> >& subs)
+                    std::vector<Node >& subs)
 {
   // assumes all variables are list variables
   NodeManager* nm = NodeManager::currentNM();
@@ -130,6 +130,17 @@ Node listSubstitute(Node src,
     it = visited.find(cur);
     if (it == visited.end())
     {
+      // if it is a non-list variable, do the replacement
+      itv = std::find(vars.begin(), vars.end(), cur);
+      if (itv != vars.end())
+      {
+        size_t d = std::distance(vars.begin(), itv);
+        if (!isListVar(vars[d]))
+        {
+          visited[cur] = subs[d];
+          continue;
+        }
+      }
       visited[cur] = Node::null();
       visit.insert(visit.end(), cur.begin(), cur.end());
       continue;
@@ -142,16 +153,21 @@ Node listSubstitute(Node src,
       std::vector<Node> children;
       for (const Node& cn : cur)
       {
-        // if it is variable to replace, insert the list
+        // if it is a list variable, insert the corresponding list as children
         itv = std::find(vars.begin(), vars.end(), cur);
         if (itv != vars.end())
         {
           childChanged = true;
           size_t d = std::distance(vars.begin(), itv);
           Assert(d < subs.size());
-          std::vector<Node>& sd = subs[d];
-          children.insert(children.end(), sd.begin(), sd.end());
-          continue;
+          if (isListVar(vars[d]))
+          {
+            Node sd = subs[d];
+            Assert (sd.getKind()==SEXPR);
+            // add its children
+            children.insert(children.end(), sd.begin(), sd.end());
+            continue;
+          }
         }
         it = visited.find(cn);
         Assert(it != visited.end());

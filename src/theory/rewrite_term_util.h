@@ -36,19 +36,24 @@ bool containsListVar(TNode n);
 
 /** get the null terminator */
 Node getNullTerminator(Kind k, TypeNode tn);
+
 /**
- * Substitution with list semantics
+ * Substitution with list semantics.
+ * Handles mixtures of list / non-list variables in vars.
+ * List variables are mapped to SEXPR whose children are the list to substitute.
  */
 Node listSubstitute(Node src,
                     std::vector<Node>& vars,
-                    std::vector<std::vector<Node> >& subs);
+                    std::vector<Node>& subs);
 
 /**
- * Match with list semantics
+ * Match with list semantics.
+ * 
+ * Maps list variables in n1 to SEXPR nodes.
  */
 bool listMatch(Node n1,
                Node n2,
-               std::unordered_map<Node, std::vector<Node> >& subs);
+               std::unordered_map<Node, Node >& subs);
 
 }  // namespace theory
 }  // namespace cvc5
