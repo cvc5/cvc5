@@ -1,6 +1,5 @@
-from pygments.lexer import RegexLexer, include
+from pygments.lexer import RegexLexer
 from pygments import token
-import re
 
 
 class SmtLibLexer(RegexLexer):
