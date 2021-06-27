@@ -104,9 +104,10 @@ class LfscPrinter
    * Compute proof letification for proof node pn.
    */
   void computeProofLetification(const ProofNode* pn,
-
                                 std::vector<const ProofNode*>& pletList,
                                 std::map<const ProofNode*, size_t>& pletMap);
+  /** Print DSL rule */
+  void printDslRule(std::ostream& out, rewriter::DslPfRule id);
   //------------------------------ end printing proofs
   /** The term processor */
   LfscNodeConverter& d_tproc;

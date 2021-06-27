@@ -27,9 +27,24 @@ namespace cvc5 {
 namespace theory {
 
 /** Mark variable as list */
-static void markRewriteListVar(TNode fv);
+void markListVar(TNode fv);
 /** Is list variable */
-static bool isRewriteListVar(TNode fv);
+bool isListVar(TNode fv);
+
+/** Contains list variable */
+bool containsListVar(TNode n);
+
+/** get the null terminator */
+Node getNullTerminator(Kind k, TypeNode tn);
+/**
+ * Substitution with list semantics 
+ */
+Node listSubstitute(Node src, std::vector<Node>& vars, std::vector< std::vector<Node > >& subs);
+
+/**
+ * Match with list semantics 
+ */
+bool listMatch(Node n1, Node n2, std::unordered_map<Node, std::vector<Node> >& subs);
 
 }  // namespace theory
 }  // namespace cvc5

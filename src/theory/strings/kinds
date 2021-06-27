@@ -24,7 +24,7 @@ operator STRING_LEQ 2 "string less than or equal"
 operator STRING_INDEXOF 3 "string index of substring"
 operator STRING_INDEXOF_RE 3 "string index of regular expression match"
 operator STRING_REPLACE 3 "string replace"
-operator STRING_REPLACEALL 3 "string replace all"
+operator STRING_REPLACE_ALL 3 "string replace all"
 operator STRING_REPLACE_RE 3 "string replace regular expression match"
 operator STRING_REPLACE_RE_ALL 3 "string replace all regular expression matches"
 operator STRING_PREFIX 2 "string prefixof"
@@ -153,7 +153,7 @@ typerule STRING_CONTAINS ::cvc5::theory::strings::StringRelationTypeRule
 typerule STRING_INDEXOF ::cvc5::theory::strings::StringIndexOfTypeRule
 typerule STRING_INDEXOF_RE "SimpleTypeRule<RInteger, AString, ARegExp, AInteger>"
 typerule STRING_REPLACE ::cvc5::theory::strings::StringReplaceTypeRule
-typerule STRING_REPLACEALL ::cvc5::theory::strings::StringReplaceTypeRule
+typerule STRING_REPLACE_ALL ::cvc5::theory::strings::StringReplaceTypeRule
 typerule STRING_REPLACE_RE "SimpleTypeRule<RString, AString, ARegExp, AString>"
 typerule STRING_REPLACE_RE_ALL "SimpleTypeRule<RString, AString, ARegExp, AString>"
 typerule STRING_PREFIX ::cvc5::theory::strings::StringStrToBoolTypeRule

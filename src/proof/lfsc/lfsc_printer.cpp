@@ -227,44 +227,7 @@ void LfscPrinter::print(std::ostream& out,
   const std::unordered_set<DslPfRule>& dslrs = lpcp.getDslRewrites();
   for (DslPfRule dslr : dslrs)
   {
-    const theory::RewriteProofRule& rpr = d_rdb->getRule(dslr);
-    const std::vector<Node>& varList = rpr.getVarList();
-    const std::vector<Node>& uvarList = rpr.getUserVarList();
-    const std::vector<Node>& conds = rpr.getConditions();
-    Node conc = rpr.getConclusion();
-    std::stringstream rparen;
-    out << "(declare ";
-    LfscPrintChannelOut::printDslProofRuleId(out, dslr);
-    out << " ";
-    std::vector<Node> vlsubs;
-    // use the names from the user variable list
-    for (const Node& v : uvarList)
-    {
-      std::stringstream sss;
-      sss << v;
-      Node s = d_tproc.mkInternalSymbol(sss.str(), v.getType());
-      out << "(! " << sss.str() << " term ";
-      rparen << ")";
-      vlsubs.push_back(s);
-    }
-    // print conditions
-    for (size_t i = 0, nconds = conds.size(); i < nconds; i++)
-    {
-      Node scond = conds[i].substitute(
-          varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
-      out << "(! u" << i << " (holds ";
-      Node ic = d_tproc.convert(scond);
-      printInternal(out, ic);
-      out << ") ";
-      rparen << ")";
-    }
-    // print conclusion
-    out << "(holds ";
-    Node sconc = conc.substitute(
-        varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
-    Node icc = d_tproc.convert(sconc);
-    printInternal(out, icc);
-    out << "))" << rparen.str() << std::endl;
+    printDslRule(out, dslr);
   }
 
   // [5] print the check command and term lets
@@ -799,6 +762,56 @@ void LfscPrinter::printType(std::ostream& out, TypeNode tn)
 {
   TypeNode tni = d_tproc.convertType(tn);
   LfscPrintChannelOut::printTypeNodeInternal(out, tni);
+}
+
+void LfscPrinter::printDslRule(std::ostream& out, DslPfRule id)
+{
+  const theory::RewriteProofRule& rpr = d_rdb->getRule(id);
+  const std::vector<Node>& varList = rpr.getVarList();
+  const std::vector<Node>& uvarList = rpr.getUserVarList();
+  const std::vector<Node>& conds = rpr.getConditions();
+  Node conc = rpr.getConclusion();
+  
+  std::stringstream oscs;
+  std::stringstream odecl;
+  
+  std::stringstream rparen;
+  odecl << "(declare ";
+  LfscPrintChannelOut::printDslProofRuleId(odecl, id);
+  odecl << " ";
+  std::vector<Node> vlsubs;
+  // use the names from the user variable list
+  for (const Node& v : uvarList)
+  {
+    std::stringstream sss;
+    sss << v;
+    Node s = d_tproc.mkInternalSymbol(sss.str(), v.getType());
+    odecl << "(! " << sss.str() << " term ";
+    rparen << ")";
+    vlsubs.push_back(s);
+  }
+  // print conditions
+  for (size_t i = 0, nconds = conds.size(); i < nconds; i++)
+  {
+    Node scond = conds[i].substitute(
+        varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
+    odecl << "(! u" << i << " (holds ";
+    Node ic = d_tproc.convert(scond);
+    printInternal(odecl, ic);
+    odecl << ") ";
+    rparen << ")";
+  }
+  // print conclusion
+  odecl << "(holds ";
+  Node sconc = conc.substitute(
+      varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
+  Node icc = d_tproc.convert(sconc);
+  printInternal(odecl, icc);
+  odecl << "))" << rparen.str() << std::endl;
+  // print the side conditions 
+  out << oscs.str();
+  // print the rule declaration
+  out << odecl.str();
 }
 
 }  // namespace proof

@@ -15,7 +15,6 @@
 
 #include "theory/rewrite_db.h"
 
-#include "expr/attribute.h"
 #include "expr/node_algorithm.h"
 #include "rewriter/rewrites.h"
 #include "theory/rewrite_db_term_process.h"

@@ -39,7 +39,7 @@ def gen_kind(op):
         Op.STRING_INDEXOF: 'STRING_INDEXOF',
         Op.STRING_INDEXOF_RE: 'STRING_INDEXOF_RE',
         Op.STRING_REPLACE: 'STRING_REPLACE',
-        Op.STRING_REPLACEALL: 'STRING_REPLACEALL',
+        Op.STRING_REPLACE_ALL: 'STRING_REPLACE_ALL',
         Op.STRING_REPLACE_RE: 'STRING_REPLACE_RE',
         Op.STRING_REPLACE_RE_ALL: 'STRING_REPLACE_RE_ALL',
         Op.STRING_PREFIX: 'STRING_PREFIX',
@@ -82,7 +82,7 @@ def gen_mk_skolem(name, sort):
         die(f'Cannot generate code for {sort}')
     res = f'Node {name} = nm->mkBoundVar("{name}", {sort_code});'
     if sort.is_list:
-        res += f'markRewriteListVar({name});'
+        res += f'markListVar({name});'
     return res
 
 

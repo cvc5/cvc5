@@ -73,7 +73,7 @@ symbol_to_op = {
     'str.indexof': Op.STRING_INDEXOF,
     'str.indexof_re': Op.STRING_INDEXOF_RE,
     'str.replace': Op.STRING_REPLACE,
-    'str.replace_all': Op.STRING_REPLACEALL,
+    'str.replace_all': Op.STRING_REPLACE_ALL,
     'str.replace_re': Op.STRING_REPLACE_RE,
     'str.replace_re_all': Op.STRING_REPLACE_RE_ALL,
     'str.prefixof': Op.STRING_PREFIX,

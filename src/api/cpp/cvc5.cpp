@@ -315,7 +315,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {STRING_INDEXOF, cvc5::Kind::STRING_INDEXOF},
     {STRING_INDEXOF_RE, cvc5::Kind::STRING_INDEXOF_RE},
     {STRING_REPLACE, cvc5::Kind::STRING_REPLACE},
-    {STRING_REPLACE_ALL, cvc5::Kind::STRING_REPLACEALL},
+    {STRING_REPLACE_ALL, cvc5::Kind::STRING_REPLACE_ALL},
     {STRING_REPLACE_RE, cvc5::Kind::STRING_REPLACE_RE},
     {STRING_REPLACE_RE_ALL, cvc5::Kind::STRING_REPLACE_RE_ALL},
     {STRING_TOLOWER, cvc5::Kind::STRING_TOLOWER},
@@ -354,7 +354,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {SEQ_CONTAINS, cvc5::Kind::STRING_CONTAINS},
     {SEQ_INDEXOF, cvc5::Kind::STRING_INDEXOF},
     {SEQ_REPLACE, cvc5::Kind::STRING_REPLACE},
-    {SEQ_REPLACE_ALL, cvc5::Kind::STRING_REPLACEALL},
+    {SEQ_REPLACE_ALL, cvc5::Kind::STRING_REPLACE_ALL},
     {SEQ_REV, cvc5::Kind::STRING_REV},
     {SEQ_PREFIX, cvc5::Kind::STRING_PREFIX},
     {SEQ_SUFFIX, cvc5::Kind::STRING_SUFFIX},
@@ -622,7 +622,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::STRING_INDEXOF, STRING_INDEXOF},
         {cvc5::Kind::STRING_INDEXOF_RE, STRING_INDEXOF_RE},
         {cvc5::Kind::STRING_REPLACE, STRING_REPLACE},
-        {cvc5::Kind::STRING_REPLACEALL, STRING_REPLACE_ALL},
+        {cvc5::Kind::STRING_REPLACE_ALL, STRING_REPLACE_ALL},
         {cvc5::Kind::STRING_REPLACE_RE, STRING_REPLACE_RE},
         {cvc5::Kind::STRING_REPLACE_RE_ALL, STRING_REPLACE_RE_ALL},
         {cvc5::Kind::STRING_TOLOWER, STRING_TOLOWER},
@@ -3209,7 +3209,7 @@ Kind Term::getKindHelper() const
       case cvc5::Kind::STRING_CONTAINS: return SEQ_CONTAINS;
       case cvc5::Kind::STRING_INDEXOF: return SEQ_INDEXOF;
       case cvc5::Kind::STRING_REPLACE: return SEQ_REPLACE;
-      case cvc5::Kind::STRING_REPLACEALL: return SEQ_REPLACE_ALL;
+      case cvc5::Kind::STRING_REPLACE_ALL: return SEQ_REPLACE_ALL;
       case cvc5::Kind::STRING_REV: return SEQ_REV;
       case cvc5::Kind::STRING_PREFIX: return SEQ_PREFIX;
       case cvc5::Kind::STRING_SUFFIX: return SEQ_SUFFIX;

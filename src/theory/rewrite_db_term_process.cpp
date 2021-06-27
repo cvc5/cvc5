@@ -15,11 +15,7 @@
 #include "theory/rewrite_db_term_process.h"
 
 #include "expr/attribute.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "theory/strings/word.h"
-#include "util/bitvector.h"
-#include "util/rational.h"
-#include "util/regexp.h"
+#include "theory/rewrite_term_util.h"
 #include "util/string.h"
 
 using namespace cvc5::kind;
@@ -75,51 +71,6 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     return ret;
   }
   return n;
-}
-
-Node RewriteDbNodeConverter::getNullTerminator(Kind k, TypeNode tn)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  Node nullTerm;
-  switch (k)
-  {
-    case OR: nullTerm = nm->mkConst(false); break;
-    case AND:
-    case SEP_STAR: nullTerm = nm->mkConst(true); break;
-    case PLUS: nullTerm = nm->mkConst(Rational(0)); break;
-    case MULT:
-    case NONLINEAR_MULT: nullTerm = nm->mkConst(Rational(1)); break;
-    case STRING_CONCAT:
-      // handles strings and sequences
-      nullTerm = theory::strings::Word::mkEmptyWord(tn);
-      break;
-    case REGEXP_CONCAT:
-      // the language containing only the empty string
-      nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
-      break;
-    case BITVECTOR_AND:
-      nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
-      break;
-    case BITVECTOR_OR:
-    case BITVECTOR_ADD:
-    case BITVECTOR_XOR:
-      nullTerm = theory::bv::utils::mkZero(tn.getBitVectorSize());
-      break;
-    case BITVECTOR_MULT:
-      nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
-      break;
-    case BITVECTOR_CONCAT:
-    {
-      // the null terminator of bitvector concat is a dummy variable of
-      // bit-vector type with zero width, regardless of the type of the overall
-      // concat. FIXME
-    }
-    break;
-    default:
-      // not handled as null-terminated
-      break;
-  }
-  return nullTerm;
 }
 
 }  // namespace theory

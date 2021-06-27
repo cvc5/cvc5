@@ -109,7 +109,7 @@ class Op(Enum):
     STRING_INDEXOF = auto()
     STRING_INDEXOF_RE = auto()
     STRING_REPLACE = auto()
-    STRING_REPLACEALL = auto()
+    STRING_REPLACE_ALL = auto()
     STRING_REPLACE_RE = auto()
     STRING_REPLACE_RE_ALL = auto()
     STRING_PREFIX = auto()

@@ -46,9 +46,6 @@ class RewriteDbNodeConverter : public NodeConverter
    * to (left-associative) chains.
    */
   Node postConvert(Node n) override;
-
-  /** get the null terminator */
-  static Node getNullTerminator(Kind k, TypeNode tn);
 };
 
 }  // namespace theory
