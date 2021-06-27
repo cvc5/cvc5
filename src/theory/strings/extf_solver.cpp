@@ -57,7 +57,7 @@ ExtfSolver::ExtfSolver(SolverState& s,
   d_extt.addFunctionKind(kind::STRING_ITOS);
   d_extt.addFunctionKind(kind::STRING_STOI);
   d_extt.addFunctionKind(kind::STRING_REPLACE);
-  d_extt.addFunctionKind(kind::STRING_REPLACEALL);
+  d_extt.addFunctionKind(kind::STRING_REPLACE_ALL);
   d_extt.addFunctionKind(kind::STRING_REPLACE_RE);
   d_extt.addFunctionKind(kind::STRING_REPLACE_RE_ALL);
   d_extt.addFunctionKind(kind::STRING_CONTAINS);
@@ -193,7 +193,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     NodeManager* nm = NodeManager::currentNM();
     Assert(k == STRING_SUBSTR || k == STRING_UPDATE || k == STRING_CONTAINS
            || k == STRING_INDEXOF || k == STRING_INDEXOF_RE || k == STRING_ITOS
-           || k == STRING_STOI || k == STRING_REPLACE || k == STRING_REPLACEALL
+           || k == STRING_STOI || k == STRING_REPLACE || k == STRING_REPLACE_ALL
            || k == SEQ_NTH || k == STRING_REPLACE_RE
            || k == STRING_REPLACE_RE_ALL || k == STRING_LEQ
            || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV);

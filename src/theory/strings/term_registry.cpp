@@ -150,7 +150,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   {
     if (k == STRING_INDEXOF || k == STRING_INDEXOF_RE || k == STRING_ITOS
         || k == STRING_STOI || k == STRING_REPLACE || k == STRING_SUBSTR
-        || k == STRING_REPLACEALL || k == SEQ_NTH || k == STRING_REPLACE_RE
+        || k == STRING_REPLACE_ALL || k == SEQ_NTH || k == STRING_REPLACE_RE
         || k == STRING_REPLACE_RE_ALL || k == STRING_CONTAINS || k == STRING_LEQ
         || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV
         || k == STRING_UPDATE)

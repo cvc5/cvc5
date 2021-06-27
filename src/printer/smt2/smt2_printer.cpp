@@ -725,7 +725,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STRING_INDEXOF:
   case kind::STRING_INDEXOF_RE:
   case kind::STRING_REPLACE:
-  case kind::STRING_REPLACEALL:
+  case kind::STRING_REPLACE_ALL:
   case kind::STRING_REPLACE_RE:
   case kind::STRING_REPLACE_RE_ALL:
   case kind::STRING_TOLOWER:
@@ -1334,7 +1334,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_INDEXOF: return "str.indexof";
   case kind::STRING_INDEXOF_RE: return "str.indexof_re";
   case kind::STRING_REPLACE: return "str.replace";
-  case kind::STRING_REPLACEALL: return "str.replace_all";
+  case kind::STRING_REPLACE_ALL: return "str.replace_all";
   case kind::STRING_REPLACE_RE: return "str.replace_re";
   case kind::STRING_REPLACE_RE_ALL: return "str.replace_re_all";
   case kind::STRING_TOLOWER: return "str.tolower";

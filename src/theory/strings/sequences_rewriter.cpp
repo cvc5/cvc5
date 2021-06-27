@@ -581,7 +581,7 @@ Node SequencesRewriter::rewriteLength(Node node)
       return returnRewrite(node, retNode, Rewrite::LEN_CONCAT);
     }
   }
-  else if (nk0 == STRING_REPLACE || nk0 == STRING_REPLACEALL)
+  else if (nk0 == STRING_REPLACE || nk0 == STRING_REPLACE_ALL)
   {
     Node len1 = Rewriter::rewrite(nm->mkNode(STRING_LENGTH, node[0][1]));
     Node len2 = Rewriter::rewrite(nm->mkNode(STRING_LENGTH, node[0][2]));
@@ -1470,7 +1470,7 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewriteReplace(node);
   }
-  else if (nk == kind::STRING_REPLACEALL)
+  else if (nk == kind::STRING_REPLACE_ALL)
   {
     retNode = rewriteReplaceAll(node);
   }
@@ -3077,7 +3077,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
 
 Node SequencesRewriter::rewriteReplaceAll(Node node)
 {
-  Assert(node.getKind() == STRING_REPLACEALL);
+  Assert(node.getKind() == STRING_REPLACE_ALL);
 
   TypeNode stype = node.getType();
 
@@ -3130,7 +3130,7 @@ Node SequencesRewriter::rewriteReplaceAll(Node node)
 Node SequencesRewriter::rewriteReplaceInternal(Node node)
 {
   Kind nk = node.getKind();
-  Assert(nk == STRING_REPLACE || nk == STRING_REPLACEALL);
+  Assert(nk == STRING_REPLACE || nk == STRING_REPLACE_ALL);
 
   if (node[1] == node[2])
   {

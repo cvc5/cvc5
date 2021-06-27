@@ -602,7 +602,7 @@ Node StringsPreprocess::reduce(Node t,
     // Thus, replace( x, y, z ) = rpw.
     retNode = rpw;
   }
-  else if (t.getKind() == kind::STRING_REPLACEALL)
+  else if (t.getKind() == kind::STRING_REPLACE_ALL)
   {
     // processing term: replaceall( x, y, z )
     Node x = t[0];
