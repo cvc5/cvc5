@@ -979,6 +979,8 @@ libcvc5_add_sources(
   theory/rewrite_proof_rule.h
   theory/rewrite_rcons.cpp
   theory/rewrite_rcons.h
+  theory/rewrite_term_util.cpp
+  theory/rewrite_term_util.h
   theory/rewriter.cpp
   theory/rewriter.h
   theory/rewriter_attributes.h

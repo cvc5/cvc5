@@ -42,8 +42,6 @@ class RewriteDb
    */
   RewriteDb();
   ~RewriteDb() {}
-  /** Mark variable as list */
-  void markListVar(TNode fv);
   /** Add rule, return its identifier */
   void addRule(rewriter::DslPfRule id,
                const std::vector<Node> fvs,
