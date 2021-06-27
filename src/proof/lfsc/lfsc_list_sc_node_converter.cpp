@@ -15,24 +15,24 @@
 
 #include "proof/lfsc/lfsc_list_sc_node_converter.h"
 
-
 namespace cvc5 {
 namespace proof {
 
-LfscListScNodeConverter::LfscListScNodeConverter(LfscNodeConverter& conv, const std::unordered_set<Node>& listVars)
+LfscListScNodeConverter::LfscListScNodeConverter(
+    LfscNodeConverter& conv, const std::unordered_set<Node>& listVars)
     : d_conv(conv), d_listVars(listVars)
 {
 }
 
 Node LfscListScNodeConverter::postConvert(Node n)
 {
-  Assert (!NodeManager::isNAryKind(n.getKind()) || n.getNumChildren()==2);
+  Assert(!NodeManager::isNAryKind(n.getKind()) || n.getNumChildren() == 2);
   // note that after converting to binary form, variables should only appear
   // as the first child of binary applications of n-ary operators
-  if (n.getNumChildren() == 2 && d_listVars.find(n[0])!=d_listVars.end())
+  if (n.getNumChildren() == 2 && d_listVars.find(n[0]) != d_listVars.end())
   {
     // this will fail if e.g. a list variable is a child of a non-n-ary kind
-    Assert (NodeManager::isNAryKind(n.getKind()));
+    Assert(NodeManager::isNAryKind(n.getKind()));
     NodeManager* nm = NodeManager::currentNM();
     Kind k = n.getKind();
     TypeNode tn = n.getType();
@@ -48,7 +48,8 @@ Node LfscListScNodeConverter::postConvert(Node n)
       childTypes.push_back(n[i].getType());
     }
     Node null = d_conv.getNullTerminator(k, tn);
-    AlwaysAssert(!null.isNull()) << "No null terminator for " << k << ", " << tn;
+    AlwaysAssert(!null.isNull())
+        << "No null terminator for " << k << ", " << tn;
     children.push_back(null);
     childTypes.push_back(null.getType());
     TypeNode ftype = nm->mkFunctionType(childTypes, tn);

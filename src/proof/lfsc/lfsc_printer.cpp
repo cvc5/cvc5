@@ -21,8 +21,8 @@
 #include "expr/dtype_selector.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
-#include "proof/lfsc/lfsc_print_channel.h"
 #include "proof/lfsc/lfsc_list_sc_node_converter.h"
+#include "proof/lfsc/lfsc_print_channel.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::rewriter;
@@ -798,7 +798,8 @@ void LfscPrinter::printDslRule(std::ostream& out, DslPfRule id)
     argListTerms << " " << sss.str();
     rparen << ")";
     vlsubs.push_back(s);
-    // remember if v was a list variable, we must convert these in side condition printing below
+    // remember if v was a list variable, we must convert these in side
+    // condition printing below
     if (theory::isListVar(v))
     {
       listVars.insert(s);
@@ -812,20 +813,21 @@ void LfscPrinter::printDslRule(std::ostream& out, DslPfRule id)
   // TODO: incorporate other side conditions
   for (size_t i = 0, nconds = conds.size(); i <= nconds; i++)
   {
-    bool isConclusion = i==nconds;
+    bool isConclusion = i == nconds;
     Node term = isConclusion ? conc : conds[i];
     Node sterm = term.substitute(
         varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
     Node t = d_tproc.convert(sterm);
     if (theory::hasListVar(term))
     {
-      Assert (!listVars.empty());
+      Assert(!listVars.empty());
       scCount++;
       std::stringstream scName;
       scName << "dsl.sc" << scCount << "." << id;
       // generate the side condition
-      oscs << "(program " << scName.str() << " " << argList.str() << " term" << std::endl;
-      //body must be converted to incorporate list semantics for substitutions
+      oscs << "(program " << scName.str() << " " << argList.str() << " term"
+           << std::endl;
+      // body must be converted to incorporate list semantics for substitutions
       LfscListScNodeConverter llsnc(d_tproc, listVars);
       Node tsc = llsnc.convert(t);
       oscs << "  ";
