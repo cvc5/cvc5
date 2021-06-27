@@ -37,7 +37,7 @@ class IsListTypeClassCallback : public expr::TypeClassCallback
  public:
   uint32_t getTypeClass(TNode v) override;
 };
-  
+
 /**
  * A database of conditional rewrite rules.
  */

@@ -20,15 +20,16 @@
 namespace cvc5 {
 namespace proof {
 
-LfscListScNodeConverter::LfscListScNodeConverter(LfscNodeConverter& conv) : d_conv(conv)
+LfscListScNodeConverter::LfscListScNodeConverter(LfscNodeConverter& conv)
+    : d_conv(conv)
 {
 }
 
 Node LfscListScNodeConverter::postConvert(Node n)
 {
-  if (n.getNumChildren()==2 && theory::isListVar(n[0]))
+  if (n.getNumChildren() == 2 && theory::isListVar(n[0]))
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     Kind k = n.getKind();
     TypeNode tn = n.getType();
     // E.g. (or x t) becomes (nary_concat f_or x t false)
@@ -37,13 +38,13 @@ Node LfscListScNodeConverter::postConvert(Node n)
     Node f = d_conv.getOperatorOfTerm(n);
     children.push_back(f);
     childTypes.push_back(f.getType());
-    for (size_t i=0; i<2; i++)
+    for (size_t i = 0; i < 2; i++)
     {
       children.push_back(n[i]);
       childTypes.push_back(n[i].getType());
     }
     Node null = d_conv.getNullTerminator(k, tn);
-    Assert (!null.isNull());
+    Assert(!null.isNull());
     children.push_back(null);
     childTypes.push_back(null.getType());
     TypeNode ftype = nm->mkFunctionType(childTypes, tn);
@@ -53,7 +54,6 @@ Node LfscListScNodeConverter::postConvert(Node n)
   }
   return n;
 }
-
 
 }  // namespace proof
 }  // namespace cvc5

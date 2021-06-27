@@ -17,7 +17,6 @@
 #ifndef CVC4__PROOF__LFSC__LFSC_LIST_SC_NODE_CONVERTER_H
 #define CVC4__PROOF__LFSC__LFSC_LIST_SC_NODE_CONVERTER_H
 
-
 #include "expr/node_converter.h"
 #include "proof/lfsc/lfsc_node_converter.h"
 
@@ -27,11 +26,12 @@ namespace proof {
 /** Convert list variables in side conditions */
 class LfscListScNodeConverter : public NodeConverter
 {
-public:
+ public:
   LfscListScNodeConverter(LfscNodeConverter& conv);
   /** convert to internal */
   Node postConvert(Node n) override;
-private:
+
+ private:
   /** The parent converter, used for getting internal symbols and utilities */
   LfscNodeConverter& d_conv;
 };

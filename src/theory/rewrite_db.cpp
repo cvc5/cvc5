@@ -29,7 +29,7 @@ uint32_t IsListTypeClassCallback::getTypeClass(TNode v)
 {
   return isListVar(v) ? 1 : 0;
 }
-  
+
 RewriteDb::RewriteDb() : d_canonCb(), d_canon(&d_canonCb)
 {
   NodeManager* nm = NodeManager::currentNM();
