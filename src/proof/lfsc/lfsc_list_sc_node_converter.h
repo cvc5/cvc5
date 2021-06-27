@@ -27,13 +27,15 @@ namespace proof {
 class LfscListScNodeConverter : public NodeConverter
 {
  public:
-  LfscListScNodeConverter(LfscNodeConverter& conv);
+  LfscListScNodeConverter(LfscNodeConverter& conv, const std::unordered_set<Node>& listVars);
   /** convert to internal */
   Node postConvert(Node n) override;
 
  private:
   /** The parent converter, used for getting internal symbols and utilities */
   LfscNodeConverter& d_conv;
+  /** Variables we are treating as list variables */
+  std::unordered_set<Node> d_listVars;
 };
 
 }  // namespace proof

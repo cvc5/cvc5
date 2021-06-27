@@ -32,7 +32,7 @@ void markListVar(TNode fv);
 bool isListVar(TNode fv);
 
 /** Contains list variable */
-bool containsListVar(TNode n);
+bool hasListVar(TNode n);
 
 /** get the null terminator */
 Node getNullTerminator(Kind k, TypeNode tn);

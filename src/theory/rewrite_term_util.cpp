@@ -39,9 +39,9 @@ void markListVar(TNode fv)
   fv.setAttribute(IsListAttr(), true);
 }
 
-bool isListVar(TNode fv) { return fv.hasAttribute(IsListAttr()); }
+bool isListVar(TNode fv) { return fv.getAttribute(IsListAttr()); }
 
-bool containsListVar(TNode n)
+bool hasListVar(TNode n)
 {
   std::unordered_set<TNode> visited;
   std::unordered_set<TNode>::iterator it;

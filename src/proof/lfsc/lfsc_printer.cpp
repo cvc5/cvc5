@@ -22,6 +22,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "proof/lfsc/lfsc_print_channel.h"
+#include "proof/lfsc/lfsc_list_sc_node_converter.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::rewriter;
@@ -778,36 +779,87 @@ void LfscPrinter::printDslRule(std::ostream& out, DslPfRule id)
   std::stringstream rparen;
   odecl << "(declare ";
   LfscPrintChannelOut::printDslProofRuleId(odecl, id);
-  odecl << " ";
   std::vector<Node> vlsubs;
-  // use the names from the user variable list
+  // streams for printing the computation of term in side conditions or
+  // list semantics substitutions
+  std::stringstream argList;
+  std::stringstream argListTerms;
+  // the list variables
+  std::unordered_set<Node> listVars;
+  argList << "(";
+  // use the names from the user variable list (uvarList)
   for (const Node& v : uvarList)
   {
     std::stringstream sss;
     sss << v;
     Node s = d_tproc.mkInternalSymbol(sss.str(), v.getType());
-    odecl << "(! " << sss.str() << " term ";
+    odecl << " (! " << sss.str() << " term";
+    argList << "(" << sss.str() << " term)";
+    argListTerms << " " << sss.str();
     rparen << ")";
     vlsubs.push_back(s);
+    // remember if v was a list variable, we must convert these in side condition printing below
+    if (theory::isListVar(v))
+    {
+      listVars.insert(s);
+    }
   }
+  argList << ")";
   // print conditions
-  for (size_t i = 0, nconds = conds.size(); i < nconds; i++)
+  size_t termCount = 0;
+  size_t scCount = 0;
+  // print conditions, then conclusion
+  // TODO: incorporate other side conditions
+  for (size_t i = 0, nconds = conds.size(); i <= nconds; i++)
   {
-    Node scond = conds[i].substitute(
+    bool isConclusion = i==nconds;
+    Node term = isConclusion ? conc : conds[i];
+    Node sterm = term.substitute(
         varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
-    odecl << "(! u" << i << " (holds ";
-    Node ic = d_tproc.convert(scond);
-    printInternal(odecl, ic);
-    odecl << ") ";
-    rparen << ")";
+    Node t = d_tproc.convert(sterm);
+    if (theory::hasListVar(term))
+    {
+      Assert (!listVars.empty());
+      scCount++;
+      std::stringstream scName;
+      scName << "dsl.sc" << scCount << "." << id;
+      // generate the side condition
+      oscs << "(program " << scName.str() << " " << argList.str() << " term" << std::endl;
+      //body must be converted to incorporate list semantics for substitutions
+      LfscListScNodeConverter llsnc(d_tproc, listVars);
+      Node tsc = llsnc.convert(t);
+      oscs << "  ";
+      printInternal(oscs, tsc);
+      oscs << ")" << std::endl;
+      termCount++;
+      // introduce a term computed by side condition
+      odecl << " (! _t" << termCount << " term";
+      rparen << ")";
+      odecl << " (! _s" << scCount << "(^ (" << scName.str() << " ";
+      rparen << ")";
+      // arguments to side condition
+      odecl << argListTerms.str() << ")";
+      // matches condition
+      odecl << "_t" << termCount << ")";
+      if (!isConclusion)
+      {
+        odecl << " (! _u" << i;
+        rparen << ")";
+      }
+      odecl << " (holds _t" << termCount << ")";
+      continue;
+    }
+    // ordinary condition/conclusion, print the term directly
+    if (!isConclusion)
+    {
+      odecl << " (! _u" << i;
+      rparen << ")";
+    }
+    odecl << " (holds ";
+    printInternal(odecl, t);
+    odecl << ")";
   }
-  // print conclusion
-  odecl << "(holds ";
-  Node sconc = conc.substitute(
-      varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
-  Node icc = d_tproc.convert(sconc);
-  printInternal(odecl, icc);
-  odecl << "))" << rparen.str() << std::endl;
+  odecl << rparen.str() << std::endl;
   // print the side conditions
   out << oscs.str();
   // print the rule declaration
