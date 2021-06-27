@@ -47,7 +47,7 @@ void RewriteProofRule::init(DslPfRule id,
                             Node conc)
 {
   // not initialized yet
-  Assert (d_cond.empty() && d_obGen.empty() && d_fvs.empty());
+  Assert(d_cond.empty() && d_obGen.empty() && d_fvs.empty());
   d_id = id;
   d_userFvs = userFvs;
   // Must purify side conditions from the condition. For each subterm of
@@ -145,7 +145,10 @@ Node RewriteProofRule::purifySideConditions(Node n, std::vector<Node>& scs)
 
 const char* RewriteProofRule::getName() const { return toString(d_id); }
 
-const std::vector<Node>& RewriteProofRule::getUserVarList() const { return d_userFvs; }
+const std::vector<Node>& RewriteProofRule::getUserVarList() const
+{
+  return d_userFvs;
+}
 const std::vector<Node>& RewriteProofRule::getVarList() const { return d_fvs; }
 bool RewriteProofRule::isExplicitVar(Node v) const
 {

@@ -31,10 +31,7 @@ void markRewriteListVar(TNode fv)
   fv.setAttribute(IsListAttr(), true);
 }
 
-bool isRewriteListVar(TNode fv)
-{
-  return fv.hasAttribute(isListAttr());
-}
+bool isRewriteListVar(TNode fv) { return fv.hasAttribute(isListAttr()); }
 
 }  // namespace theory
 }  // namespace cvc5

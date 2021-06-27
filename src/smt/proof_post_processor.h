@@ -23,10 +23,10 @@
 #include <unordered_set>
 
 #include "proof/proof_node_updater.h"
+#include "rewriter/rewrites.h"
 #include "smt/witness_form.h"
 #include "theory/rewrite_db_proof_generator.h"
 #include "util/statistics_stats.h"
-#include "rewriter/rewrites.h"
 
 namespace cvc5 {
 
@@ -261,7 +261,8 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
  private:
   /** Counts number of postprocessed proof nodes for each kind of proof rule */
   HistogramStat<PfRule> d_ruleCount;
-  /** Counts number of postprocessed proof nodes for each kind of DSL proof rule */
+  /** Counts number of postprocessed proof nodes for each kind of DSL proof rule
+   */
   HistogramStat<rewriter::DslPfRule> d_dslRuleCount;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;

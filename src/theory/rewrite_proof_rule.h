@@ -36,7 +36,7 @@ class RewriteProofRule
 {
  public:
   RewriteProofRule();
-  /** 
+  /**
    * Initialize this rule.
    * @param id The identifier of this rule
    * @param userFvs The (user-provided) free variable list of the rule. This

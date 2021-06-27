@@ -51,7 +51,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   Trace("rpc-debug") << "- convert to internal" << std::endl;
   DslPfRule id;
   Node eq = a.eqNode(b);
-  Node eqi = eq;//d_rdnc.convert(eq);
+  Node eqi = eq;  // d_rdnc.convert(eq);
   if (!proveInternalBase(eqi, id))
   {
     Trace("rpc-debug") << "- prove internal" << std::endl;

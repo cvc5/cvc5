@@ -1336,11 +1336,11 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_LENGTH: return "str.len";
   case kind::STRING_SUBSTR: return "str.substr" ;
   case kind::STRING_UPDATE: return "str.update";
-  case kind::STRING_CONTAINS: return "str.contains" ;
+  case kind::STRING_CONTAINS: return "str.contains";
   case kind::STRING_CHARAT: return "str.at" ;
-  case kind::STRING_INDEXOF: return "str.indexof" ;
+  case kind::STRING_INDEXOF: return "str.indexof";
   case kind::STRING_INDEXOF_RE: return "str.indexof_re";
-  case kind::STRING_REPLACE: return "str.replace" ;
+  case kind::STRING_REPLACE: return "str.replace";
   case kind::STRING_REPLACEALL: return "str.replace_all";
   case kind::STRING_REPLACE_RE: return "str.replace_re";
   case kind::STRING_REPLACE_RE_ALL: return "str.replace_re_all";

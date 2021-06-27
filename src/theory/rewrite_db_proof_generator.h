@@ -26,8 +26,8 @@
 #include "proof/proof_generator.h"
 #include "theory/evaluator.h"
 #include "theory/rewrite_db.h"
-#include "theory/rewrite_rcons.h"
 #include "theory/rewrite_db_term_process.h"
+#include "theory/rewrite_rcons.h"
 
 namespace cvc5 {
 namespace theory {

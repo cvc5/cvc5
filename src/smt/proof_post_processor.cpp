@@ -1175,9 +1175,10 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
 ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(
     ProofNodeManager* pnm)
     : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
-        "finalProof::ruleCount")),
-     d_dslRuleCount(smtStatisticsRegistry().registerHistogram<rewriter::DslPfRule>(
-        "finalProof::dslRuleCount")),
+          "finalProof::ruleCount")),
+      d_dslRuleCount(
+          smtStatisticsRegistry().registerHistogram<rewriter::DslPfRule>(
+              "finalProof::dslRuleCount")),
       d_totalRuleCount(
           smtStatisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
@@ -1222,7 +1223,7 @@ bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   // record stats for the rule
   d_ruleCount << r;
   // if a DSL rewrite, take DSL stat
-  if (r==PfRule::DSL_REWRITE)
+  if (r == PfRule::DSL_REWRITE)
   {
     const std::vector<Node>& args = pn->getArguments();
     rewriter::DslPfRule di;

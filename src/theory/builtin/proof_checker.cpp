@@ -19,9 +19,9 @@
 #include "smt/term_formula_removal.h"
 #include "theory/evaluator.h"
 #include "theory/rewrite_db.h"
+#include "theory/rewrite_db_term_process.h"
 #include "theory/rewrite_proof_rule.h"
 #include "theory/rewriter.h"
-#include "theory/rewrite_db_term_process.h"
 #include "theory/substitutions.h"
 #include "theory/theory.h"
 
@@ -432,7 +432,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Node f = children[0];
     Node g = args[0];
     // equivalent up to conversion via utility
-    if (rconv.convert(f)!=rconv.convert(g))
+    if (rconv.convert(f) != rconv.convert(g))
     {
       return Node::null();
     }

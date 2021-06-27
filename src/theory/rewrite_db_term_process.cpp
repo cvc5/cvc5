@@ -15,13 +15,12 @@
 #include "theory/rewrite_db_term_process.h"
 
 #include "expr/attribute.h"
-#include "util/rational.h"
-#include "util/string.h"
+#include "theory/bv/theory_bv_utils.h"
+#include "theory/strings/word.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
 #include "util/regexp.h"
-#include "theory/strings/word.h"
-#include "theory/bv/theory_bv_utils.h"
+#include "util/string.h"
 
 using namespace cvc5::kind;
 
@@ -44,7 +43,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     std::vector<unsigned> v(vec.begin(), vec.end());
     std::reverse(v.begin(), v.end());
     Node ret = getNullTerminator(STRING_CONCAT, tn);
-    Assert (!ret.isNull());
+    Assert(!ret.isNull());
     for (unsigned i = 0, size = v.size(); i < size; i++)
     {
       std::vector<unsigned> tmp;
@@ -63,7 +62,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     Node ret = getNullTerminator(k, tn);
     if (ret.isNull())
     {
-      if (k==DISTINCT)
+      if (k == DISTINCT)
       {
         // FIXME
       }
