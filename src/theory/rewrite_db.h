@@ -32,7 +32,7 @@ namespace cvc5 {
 namespace theory {
 
 /** Type class callback */
-class IsListTypeClassCallback
+class IsListTypeClassCallback : public expr::TypeClassCallback
 {
  public:
   uint32_t getTypeClass(TNode v) override;

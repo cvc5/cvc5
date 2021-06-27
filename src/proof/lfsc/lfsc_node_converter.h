@@ -99,18 +99,6 @@ class LfscNodeConverter : public NodeConverter
   std::map<Kind, Node> d_typeKindToNodeCons;
 };
 
-/** Convert list variables in side conditions */
-class LfscListScNodeConverter : public NodeConverter
-{
-public:
-  LfscListScNodeConverter(LfscNodeConverter& conv);
-  /** convert to internal */
-  Node postConvert(Node n) override;
-private:
-  /** The parent converter, used for getting internal symbols and utilities */
-  LfscNodeConverter& d_conv;
-};
-
 }  // namespace proof
 }  // namespace cvc5
 

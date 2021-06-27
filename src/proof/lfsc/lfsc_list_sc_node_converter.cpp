@@ -13,7 +13,9 @@
  * Implementation of LFSC node conversion for list variables in side conditions
  */
 
-#include "proof/lfsc/lfsc_lfsc_sc_node_converter.h"
+#include "proof/lfsc/lfsc_list_sc_node_converter.h"
+
+#include "theory/rewrite_term_util.h"
 
 namespace cvc5 {
 namespace proof {
@@ -24,7 +26,7 @@ LfscListScNodeConverter::LfscListScNodeConverter(LfscNodeConverter& conv) : d_co
 
 Node LfscListScNodeConverter::postConvert(Node n)
 {
-  if (n.getNumChildren()==2 && isListVar(n[0]))
+  if (n.getNumChildren()==2 && theory::isListVar(n[0]))
   {
     NodeManager * nm = NodeManager::currentNM();
     Kind k = n.getKind();
@@ -47,7 +49,7 @@ Node LfscListScNodeConverter::postConvert(Node n)
     TypeNode ftype = nm->mkFunctionType(childTypes, tn);
     Node sop = d_conv.mkInternalSymbol("nary_concat", ftype);
     children.insert(children.begin(), sop);
-    return nm->mkNode(APPLY_UF, children);
+    return nm->mkNode(kind::APPLY_UF, children);
   }
   return n;
 }
