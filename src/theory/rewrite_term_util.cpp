@@ -112,9 +112,7 @@ Node getNullTerminator(Kind k, TypeNode tn)
   return nullTerm;
 }
 
-Node listSubstitute(Node src,
-                    std::vector<Node>& vars,
-                    std::vector<Node >& subs)
+Node listSubstitute(Node src, std::vector<Node>& vars, std::vector<Node>& subs)
 {
   // assumes all variables are list variables
   NodeManager* nm = NodeManager::currentNM();
@@ -163,7 +161,7 @@ Node listSubstitute(Node src,
           if (isListVar(vars[d]))
           {
             Node sd = subs[d];
-            Assert (sd.getKind()==SEXPR);
+            Assert(sd.getKind() == SEXPR);
             // add its children
             children.insert(children.end(), sd.begin(), sd.end());
             continue;

@@ -21,20 +21,19 @@
 #include <map>
 #include <vector>
 
-#include "expr/node.h"
 #include "expr/match_trie.h"
+#include "expr/node.h"
 
 namespace cvc5 {
 namespace expr {
 
-
 /**
  * A trie used for matching n-ary terms. We use the null node as a terminator
  * when adding terms to this trie to signify the end of n-ary symbols.
- * 
+ *
  * For example:
  * Adding the terms (or a b c), (or a b), (or a a) would create this index:
- * 
+ *
  * OR
  *   a
  *     a
@@ -53,7 +52,7 @@ class NaryMatchTrie
    * trie that is matchable with n where s = n * { vars -> subs } for some
    * vars, subs, where * has list semantics for substitution (see
    * listSubstitute in theory/rewrite_term_util.h).
-   * 
+   *
    * This function returns false if one of these calls to notify
    * returns false.
    */
@@ -62,6 +61,7 @@ class NaryMatchTrie
   void addTerm(Node n);
   /** Clear this trie */
   void clear();
+
  private:
   /**
    * The children of this node in the trie. Terms t are indexed by a
@@ -69,9 +69,9 @@ class NaryMatchTrie
    * top-symbol of t is indexed by:
    * - operator, if t has an operator, or
    * - t, if t does not have an operator
-   * Additionally we 
+   * Additionally we
    */
-  std::map<Node, NaryMatchTrie > d_children;
+  std::map<Node, NaryMatchTrie> d_children;
   /** The set of variables in the domain of d_children */
   std::vector<Node> d_vars;
   /** The data of this node in the trie */
