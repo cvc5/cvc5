@@ -161,6 +161,8 @@ libcvc5_add_sources(
   proof/lean/lean_post_processor.h
   proof/lean/lean_printer.cpp
   proof/lean/lean_printer.h
+  proof/lfsc/lfsc_list_sc_node_converter.cpp
+  proof/lfsc/lfsc_list_sc_node_converter.h
   proof/lfsc/lfsc_node_converter.cpp
   proof/lfsc/lfsc_node_converter.h
   proof/lfsc/lfsc_post_processor.cpp

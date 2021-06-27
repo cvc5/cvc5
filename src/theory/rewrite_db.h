@@ -31,6 +31,13 @@
 namespace cvc5 {
 namespace theory {
 
+/** Type class callback */
+class IsListTypeClassCallback
+{
+ public:
+  uint32_t getTypeClass(TNode v) override;
+};
+  
 /**
  * A database of conditional rewrite rules.
  */
@@ -61,6 +68,8 @@ class RewriteDb
   /** common constants */
   Node d_true;
   Node d_false;
+  /** Callback to distinguish list variables */
+  IsListTypeClassCallback d_canonCb;
   /** the term canonization utility */
   expr::TermCanonize d_canon;
   /** The match trie */

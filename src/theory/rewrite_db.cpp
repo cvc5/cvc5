@@ -25,7 +25,12 @@ using namespace cvc5::rewriter;
 namespace cvc5 {
 namespace theory {
 
-RewriteDb::RewriteDb()
+uint32_t IsListTypeClassCallback::getTypeClass(TNode v)
+{
+  return isListVar(v) ? 1 : 0;
+}
+  
+RewriteDb::RewriteDb() : d_canonCb(), d_canon(&d_canonCb)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -107,6 +112,11 @@ void RewriteDb::addRule(
     {
       ofvs.push_back(v);
       cfvs.push_back(its->second);
+      if (isListVar(v))
+      {
+        // mark the canonical variable as a list variable as well
+        markListVar(its->second);
+      }
     }
     else
     {
