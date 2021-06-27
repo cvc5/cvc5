@@ -13,7 +13,7 @@
  * Implements a n-ary match trie
  */
 
-#include "expr/match_trie.h"
+#include "expr/nary_match_trie.h"
 
 using namespace cvc5::kind;
 

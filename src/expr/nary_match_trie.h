@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__EXPR__MATCH_TRIE_H
-#define CVC5__EXPR__MATCH_TRIE_H
+#ifndef CVC5__EXPR__NARY_MATCH_TRIE_H
+#define CVC5__EXPR__NARY_MATCH_TRIE_H
 
 #include <map>
 #include <vector>
@@ -71,7 +71,7 @@ class NaryMatchTrie
    * - t, if t does not have an operator
    * Additionally we 
    */
-  std::map<Node, MatchTrie > d_children;
+  std::map<Node, NaryMatchTrie > d_children;
   /** The set of variables in the domain of d_children */
   std::vector<Node> d_vars;
   /** The data of this node in the trie */
