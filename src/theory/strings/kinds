@@ -153,7 +153,7 @@ typerule STRING_CONTAINS ::cvc5::theory::strings::StringRelationTypeRule
 typerule STRING_INDEXOF ::cvc5::theory::strings::StringIndexOfTypeRule
 typerule STRING_INDEXOF_RE "SimpleTypeRule<RInteger, AString, ARegExp, AInteger>"
 typerule STRING_REPLACE ::cvc5::theory::strings::StringReplaceTypeRule
-typerule STRING_REPLACEALL ::cvc5::theory::strings::StringReplaceTypeRule
+typerule STRING_REPLACE_ALL ::cvc5::theory::strings::StringReplaceTypeRule
 typerule STRING_REPLACE_RE "SimpleTypeRule<RString, AString, ARegExp, AString>"
 typerule STRING_REPLACE_RE_ALL "SimpleTypeRule<RString, AString, ARegExp, AString>"
 typerule STRING_PREFIX ::cvc5::theory::strings::StringStrToBoolTypeRule
