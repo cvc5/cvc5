@@ -837,8 +837,9 @@ Node FpConverter::convert(TNode node)
     /* Already word-blasted, skip. */
     if ((t.isBoolean() && d_boolMap.find(cur) != d_boolMap.end())
         || (t.isRoundingMode() && d_rmMap.find(cur) != d_rmMap.end())
-        || (t.isBitVector() && d_sbvMap.find(cur) != d_sbvMap.end())
-        || (t.isBitVector() && d_ubvMap.find(cur) != d_ubvMap.end())
+        || (t.isBitVector()
+            && (d_sbvMap.find(cur) != d_sbvMap.end()
+                || d_ubvMap.find(cur) != d_ubvMap.end()))
         || (t.isFloatingPoint() && d_fpMap.find(cur) != d_fpMap.end()))
     {
       continue;
