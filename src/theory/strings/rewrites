@@ -16,4 +16,9 @@
   (= (str.++ s1 s2) (str.++ t1 t2))
   false)
 
+
 (define-rule str-concat-emp ((xs String :list) (ys String :list)) (str.++ xs "" ys) (str.++ xs ys))
+
+; Regular expression rules
+(define-rule re-concat-emp ((xs RegLan :list) (ys RegLan :list)) (re.++ xs (str.to_re "") ys) (re.++ xs ys))
+

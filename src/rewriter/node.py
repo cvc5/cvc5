@@ -144,6 +144,7 @@ class BaseSort(Enum):
     Int = auto()
     Real = auto()
     String = auto()
+    RegLan = auto()
 
 
 class Node:

@@ -233,7 +233,9 @@ class Parser:
             lambda s, l, t: Sort(BaseSort.Bool, []))
         string_sort = pp.Keyword('String').setParseAction(
             lambda s, l, t: Sort(BaseSort.String, []))
-        return bv_sort | int_sort | real_sort | bool_sort | string_sort
+        reglan_sort = pp.Keyword('RegLan').setParseAction(
+            lambda s, l, t: Sort(BaseSort.RegLan, []))
+        return bv_sort | int_sort | real_sort | bool_sort | string_sort | reglan_sort
 
     def var_decl_action(self, name, sort, attrs):
         if attrs:
