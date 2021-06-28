@@ -79,6 +79,7 @@ class RewriteDbProofCons
     /** The identifier of the proof rule */
     rewriter::DslPfRule d_id;
     /** The substitution */
+    std::vector<Node> d_vars;
     std::vector<Node> d_subs;
     /** the maximum depth tried for rules that have failed */
     uint32_t d_failMaxDepth;

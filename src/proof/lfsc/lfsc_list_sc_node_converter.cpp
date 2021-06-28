@@ -36,6 +36,12 @@ Node LfscListScNodeConverter::postConvert(Node n)
     NodeManager* nm = NodeManager::currentNM();
     Kind k = n.getKind();
     TypeNode tn = n.getType();
+    Node null = d_conv.getNullTerminator(k, tn);
+    // as an optimization, there is no need if we are at the RHS
+    if (n[1]==null)
+    {
+      return n;
+    }
     // E.g. (or x t) becomes (nary_concat f_or x t false)
     std::vector<Node> children;
     std::vector<TypeNode> childTypes;
@@ -47,7 +53,6 @@ Node LfscListScNodeConverter::postConvert(Node n)
       children.push_back(n[i]);
       childTypes.push_back(n[i].getType());
     }
-    Node null = d_conv.getNullTerminator(k, tn);
     AlwaysAssert(!null.isNull())
         << "No null terminator for " << k << ", " << tn;
     children.push_back(null);

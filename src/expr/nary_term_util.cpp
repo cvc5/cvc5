@@ -154,7 +154,7 @@ Node narySubstitute(Node src,
       for (const Node& cn : cur)
       {
         // if it is a list variable, insert the corresponding list as children;
-        itv = std::find(vars.begin(), vars.end(), cur);
+        itv = std::find(vars.begin(), vars.end(), cn);
         if (itv != vars.end())
         {
           childChanged = true;

@@ -112,6 +112,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
 {
   Assert(s.getType().isComparableTo(n.getType()));
   Assert(vars.size() == subs.size());
+  Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via " << vars << " -> " << subs << std::endl;
   // get the rule identifiers for the conclusion
   const std::vector<DslPfRule>& ids = d_db->getRuleIdsForConclusion(n);
   Assert(!ids.empty());
@@ -191,6 +192,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     }
     ProvenInfo& pi = d_pcache[s];
     pi.d_id = id;
+    pi.d_vars = vars;
     pi.d_subs = subs;
     // don't need to notify any further matches, we are done
     return false;
@@ -268,6 +270,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
   std::unordered_map<TNode, std::vector<Node>> pfArgs;
   std::unordered_map<TNode, bool>::iterator it;
   std::unordered_map<Node, ProvenInfo>::iterator itd;
+  std::vector<Node>::iterator itv;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(eqi);
@@ -328,10 +331,15 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
           // compute premises based on the used substitution
           // build the substitution context
           const std::vector<Node>& vs = rpr.getVarList();
-          Assert(itd->second.d_subs.size() == vs.size());
-          pfArgs[cur].insert(pfArgs[cur].end(),
-                             itd->second.d_subs.begin(),
-                             itd->second.d_subs.end());
+          Assert(itd->second.d_vars.size() == vs.size());
+          // must order the variables to match order of rewrite rule
+          for (const Node& v : vs)
+          {
+            itv = std::find(itd->second.d_vars.begin(), itd->second.d_vars.end(), v);
+            size_t d = std::distance(itd->second.d_vars.begin(), itv);
+            Assert (d<itd->second.d_subs.size());
+            pfArgs[cur].push_back(itd->second.d_subs[d]);
+          }
           // get the conditions, store into premises of cur.
           std::vector<Node>& ps = premises[cur];
           if (!rpr.getObligations(vs, pfArgs[cur], ps))

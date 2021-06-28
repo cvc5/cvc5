@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "expr/match_trie.h"
+#include "expr/nary_match_trie.h"
 #include "expr/nary_term_util.h"
 #include "expr/node.h"
 #include "expr/term_canonize.h"
@@ -73,7 +74,8 @@ class RewriteDb
   /** the term canonization utility */
   expr::TermCanonize d_canon;
   /** The match trie */
-  expr::MatchTrie d_mt;
+  expr::NaryMatchTrie d_mt;
+  //expr::MatchTrie d_mt;
   /** map ids to rewrite db rule information */
   std::map<rewriter::DslPfRule, RewriteProofRule> d_rewDbRule;
   /** map conclusions to proof ids */
