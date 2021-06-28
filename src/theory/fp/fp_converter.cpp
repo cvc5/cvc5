@@ -943,7 +943,7 @@ Node FpConverter::convert(TNode node)
               Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
               d_fpMap.insert(
                   cur,
-                  symfpu::negate<traits>(fpt(cur.getType()),
+                  symfpu::negate<traits>(fpt(t),
                                          (*d_fpMap.find(cur[0])).second));
               break;
 
