@@ -112,14 +112,14 @@ Node getNullTerminator(Kind k, TypeNode tn)
   return nullTerm;
 }
 
-Node listSubstitute(Node src, std::vector<Node>& vars, std::vector<Node>& subs)
+Node narySubstitute(Node src, const std::vector<Node>& vars, const std::vector<Node>& subs)
 {
   // assumes all variables are list variables
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
-  std::vector<Node>::iterator itv;
+  std::vector<Node>::const_iterator itv;
   TNode cur;
   visit.push_back(src);
   do
@@ -151,21 +151,25 @@ Node listSubstitute(Node src, std::vector<Node>& vars, std::vector<Node>& subs)
       std::vector<Node> children;
       for (const Node& cn : cur)
       {
-        // if it is a list variable, insert the corresponding list as children
+        // if it is a list variable, insert the corresponding list as children;
         itv = std::find(vars.begin(), vars.end(), cur);
         if (itv != vars.end())
         {
           childChanged = true;
           size_t d = std::distance(vars.begin(), itv);
           Assert(d < subs.size());
+          Node sd = subs[d];
           if (isListVar(vars[d]))
           {
-            Node sd = subs[d];
             Assert(sd.getKind() == SEXPR);
             // add its children
             children.insert(children.end(), sd.begin(), sd.end());
-            continue;
           }
+          else
+          {
+            children.push_back(sd);
+          }
+          continue;
         }
         it = visited.find(cn);
         Assert(it != visited.end());
@@ -203,7 +207,7 @@ Node listSubstitute(Node src, std::vector<Node>& vars, std::vector<Node>& subs)
   return visited[src];
 }
 
-bool listMatch(Node n1,
+bool naryMatch(Node n1,
                Node n2,
                std::unordered_map<Node, std::vector<Node> >& subs)
 {

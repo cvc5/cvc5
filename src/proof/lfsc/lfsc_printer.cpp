@@ -800,7 +800,7 @@ void LfscPrinter::printDslRule(std::ostream& out, DslPfRule id)
     vlsubs.push_back(s);
     // remember if v was a list variable, we must convert these in side
     // condition printing below
-    if (theory::isListVar(v))
+    if (expr::isListVar(v))
     {
       listVars.insert(s);
     }
@@ -818,7 +818,7 @@ void LfscPrinter::printDslRule(std::ostream& out, DslPfRule id)
     Node sterm = term.substitute(
         varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
     Node t = d_tproc.convert(sterm);
-    if (theory::hasListVar(term))
+    if (expr::hasListVar(term))
     {
       Assert(!listVars.empty());
       scCount++;

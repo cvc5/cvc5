@@ -463,8 +463,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     for (size_t i = 0, nchildren = children.size(); i < nchildren; i++)
     {
-      Node scond = conds[i].substitute(
-          varList.begin(), varList.end(), subs.begin(), subs.end());
+      Node scond = expr::narySubstitute(conds[i], varList, subs);
       if (scond != children[i])
       {
         return Node::null();
@@ -472,8 +471,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     // conclusion is substituted form of rewrite rule conclusion
     Node conc = rpr.getConclusion();
-    return conc.substitute(
-        varList.begin(), varList.end(), subs.begin(), subs.end());
+    return expr::narySubstitute(conc, varList, subs);
   }
 
   // no rule

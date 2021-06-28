@@ -38,7 +38,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     }
     std::vector<unsigned> v(vec.begin(), vec.end());
     std::reverse(v.begin(), v.end());
-    Node ret = getNullTerminator(STRING_CONCAT, tn);
+    Node ret = expr::getNullTerminator(STRING_CONCAT, tn);
     Assert(!ret.isNull());
     for (unsigned i = 0, size = v.size(); i < size; i++)
     {
@@ -55,7 +55,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     // convert to binary + null terminator
     std::vector<Node> children(n.begin(), n.end());
     std::reverse(children.begin(), children.end());
-    Node ret = getNullTerminator(k, tn);
+    Node ret = expr::getNullTerminator(k, tn);
     if (ret.isNull())
     {
       if (k == DISTINCT)

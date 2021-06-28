@@ -115,7 +115,7 @@ void RewriteDb::addRule(
       if (expr::isListVar(v))
       {
         // mark the canonical variable as a list variable as well
-        markListVar(its->second);
+        expr::markListVar(its->second);
       }
     }
     else

@@ -2,3 +2,5 @@
 (define-rule bool-double-neg-elim ((t Bool)) (not (not t)) t)
 
 (define-rule bool-impl-false ((t Bool)) (=> t false) (not t))
+
+(define-rule bool-or-true ((xs Bool :list) (ys Bool :list)) (or xs true ys) true)
