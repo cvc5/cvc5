@@ -677,7 +677,11 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
             Assert(args[i].getKind() == SEXPR);
             NodeManager* nm = NodeManager::currentNM();
             Kind k = rpr.getListContext(v);
-            Node null = expr::getNullTerminator(k, v.getType());
+            // notice we use d_tproc.getNullTerminator and not
+            // expr::getNullTerminator here, which has subtle differences
+            // e.g. re.empty vs (str.to_re "").
+            Node null = d_tproc.getNullTerminator(k, v.getType());
+            null = d_tproc.convert(null);
             Node t;
             if (as[i].getNumChildren() == 1)
             {
@@ -871,7 +875,6 @@ void LfscPrinter::printDslRule(std::ostream& out,
     Node term = isConclusion ? conc : conds[i];
     Node sterm = term.substitute(
         varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
-    Node t = d_tproc.convert(sterm);
     if (expr::hasListVar(term))
     {
       Assert(!listVars.empty());
@@ -882,7 +885,14 @@ void LfscPrinter::printDslRule(std::ostream& out,
       oscs << "(program " << scName.str() << " " << argList.str() << " term"
            << std::endl;
       // body must be converted to incorporate list semantics for substitutions
-      LfscListScNodeConverter llsnc(d_tproc, listVars);
+      // first traversal applies nary_elim to required n-ary applications
+      // TODO: do this only on the RHS of conclusions?
+      LfscListScNodeConverter llsncp(d_tproc, listVars, true);
+      Node tscp = llsncp.convert(sterm);
+      // second traversal converts to LFSC form
+      Node t = d_tproc.convert(tscp);
+      // third traversal applies nary_concat where list variables are used
+      LfscListScNodeConverter llsnc(d_tproc, listVars, false);
       Node tsc = llsnc.convert(t);
       oscs << "  ";
       printInternal(oscs, tsc);
@@ -917,6 +927,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
       format.push_back(term);
     }
     odecl << " (holds ";
+    Node t = d_tproc.convert(sterm);
     printInternal(odecl, t);
     odecl << ")";
   }
