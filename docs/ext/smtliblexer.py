@@ -3,6 +3,15 @@ from pygments import token
 
 
 class SmtLibLexer(RegexLexer):
+    """This class implements a lexer for SMT-LIBv2.
+    It tries to be very close to the SMT-LIBv2 standard while providing proper
+    highlighting for everything cvc5 supports.
+    The lexer implements the SMT-LIBv2 lexicon (section 3.1 of the standard)
+    directly in the root state, as well as the commands, sorts and operators.
+    Note that commands, sorts and operators are used to build regular
+    expressions and, thus, can contain character classes (e.g. "[0-9]+"), but
+    also need to escape certain characters (e.g. "\." or "\+").
+    """
 
     name = 'smtlib'
 
@@ -65,34 +74,34 @@ class SmtLibLexer(RegexLexer):
 
     tokens = {
         'root': [
-            # comment
+            # comment (see lexicon)
             (r';.*$', token.Comment),
             # whitespace
             (r'\s+', token.Text),
-            # numeral (decimal, hexadecimal, binary)
+            # numeral (decimal, hexadecimal, binary, see lexicon)
             (r'[0-9]+', token.Number),
             (r'#x[0-9a-fA-F]+', token.Number),
             (r'#b[01]+', token.Number),
-            # bv constant
+            # bv constant (see BV theory specification)
             (r'bv[0-9]+', token.Number),
-            # string constant (including escaped "")
+            # string constant (including escaped "", see lexicon)
             (r'".*?"', token.String),
-            # reserved words (non-word and regular)
+            # reserved words (non-word and regular, see lexicon)
             (r'[!_](?=\s)', token.Name.Attribute),
             ('(as|let|exists|forall|match|per)\\b', token.Keyword),
-            # Keywords (:foo)
+            # Keywords (:foo, see lexicon)
             (r':[a-zA-Z~!@$%^&*_+=<>.?/-][a-zA-Z0-9~!@$%^&*_+=<>.?/-]*',
              token.Name.Attribute),
             # parantheses
             (r'\(', token.Text),
             (r'\)', token.Text),
-            # commands
+            # commands (terminated by whitespace or ")")
             ('(' + '|'.join(COMMANDS) + ')(?=(\s|\)))', token.Keyword),
-            # sorts
+            # sorts (terminated by whitespace or ")")
             ('(' + '|'.join(SORTS) + ')(?=(\s|\)))', token.Name.Attribute),
-            # operators
+            # operators (terminated by whitespace or ")")
             ('(' + '|'.join(OPERATORS) + ')(?=(\s|\)))', token.Operator),
-            # symbols (regular and quoted)
+            # symbols (regular and quoted, see lexicon)
             (r'[a-zA-Z~!@$%^&*_+=<>.?/-][a-zA-Z0-9~!@$%^&*_+=<>.?/-]*', token.Name),
             (r'\|[^|\\]*\|', token.Name),
         ],
