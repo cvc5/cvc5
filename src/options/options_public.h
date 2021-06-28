@@ -70,8 +70,16 @@ std::vector<std::string> parse(Options& opts,
                                char* argv[],
                                std::string& binaryName) CVC5_EXPORT;
 
+/**
+ * Retrieve an option value by name (as given in key) from the Options object
+ * opts as a string.
+ */
 std::string get(const Options& opts, const std::string& key) CVC5_EXPORT;
 
+/**
+ * Update the Options object opts, set the value of the option specified by key
+ * to the value parsed from optionarg.
+ */
 void set(Options& opts,
          const std::string& key,
          const std::string& optionarg) CVC5_EXPORT;

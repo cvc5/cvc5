@@ -240,16 +240,18 @@ def get_predicates(option):
     return ['opts.handler().{}("{}", option, value);'.format(x, optname)
             for x in option.predicates]
 
+
 def get_getall(module, option):
     """Render snippet to add option to result of getAll()"""
     if option.type == 'bool':
-        return 'res.push_back({{"{}", opts.{}.{} ? "true" : "false"}});'.format(option.long_name, module.id, option.name)
+        return 'res.push_back({{"{}", opts.{}.{} ? "true" : "false"}});'.format(
+            option.long_name, module.id, option.name)
     elif is_numeric_cpp_type(option.type):
         return 'res.push_back({{"{}", std::to_string(opts.{}.{})}});'.format(
             option.long_name, module.id, option.name)
     else:
-        return '{{ std::stringstream ss; ss << opts.{}.{}; res.push_back({{"{}", ss.str()}}); }}'.format(module.id,
-            option.name, option.long_name)
+        return '{{ std::stringstream ss; ss << opts.{}.{}; res.push_back({{"{}", ss.str()}}); }}'.format(
+            module.id, option.name, option.long_name)
 
 class Module(object):
     """Options module.
