@@ -21,15 +21,18 @@ using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace expr {
-  
+
 class NaryMatchFrame
 {
-public:
-  NaryMatchFrame(const std::vector<Node>& syms, NaryMatchTrie * t) : d_syms(syms), d_trie(t), d_index(0), d_variant(0), d_boundVar(false){}
+ public:
+  NaryMatchFrame(const std::vector<Node>& syms, NaryMatchTrie* t)
+      : d_syms(syms), d_trie(t), d_index(0), d_variant(0), d_boundVar(false)
+  {
+  }
   /** Symbols to match */
   std::vector<Node> d_syms;
   /** The match trie */
-  NaryMatchTrie * d_trie;
+  NaryMatchTrie* d_trie;
   /** The index we are considering, 0 = operator, n>0 = variable # (n-1) */
   size_t d_index;
   /** List length considering */
@@ -40,16 +43,16 @@ public:
 
 bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> vars;
   std::vector<Node> subs;
   std::map<Node, Node> smap;
-  
+
   std::map<Node, NaryMatchTrie>::iterator itc;
-  
+
   std::vector<NaryMatchFrame> visit;
   visit.push_back(NaryMatchFrame({n}, this));
-  
+
   while (!visit.empty())
   {
     NaryMatchFrame& curr = visit.back();
@@ -59,8 +62,8 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
     if (syms.empty())
     {
       // if we matched, there must be a data member at this node
-      Assert (!mt->d_data.isNull());
-      //notify match?
+      Assert(!mt->d_data.isNull());
+      // notify match?
       Assert(n == theory::listSubstitute(mt->d_data, vars, subs));
       Trace("match-debug") << "notify : " << mt->d_data << std::endl;
       if (!ntm->notify(n, mt->d_data, vars, subs))
@@ -70,26 +73,27 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
       visit.pop_back();
       continue;
     }
-    
+
     // clean up if we previously bound a variable
     if (curr.d_boundVar)
     {
       Assert(!vars.empty());
-      Assert(smap.find(vars.back())!=smap.end());
+      Assert(smap.find(vars.back()) != smap.end());
       smap.erase(vars.back());
       vars.pop_back();
       subs.pop_back();
       curr.d_boundVar = false;
     }
-    
-    if (curr.d_index==0)
+
+    if (curr.d_index == 0)
     {
       curr.d_index++;
       // finished matching variables, try to match the operator
       Node next = syms.back();
-      Node op = (!next.isNull() && next.hasOperator()) ? next.getOperator() : next;
+      Node op =
+          (!next.isNull() && next.hasOperator()) ? next.getOperator() : next;
       itc = mt->d_children.find(op);
-      if (itc!=mt->d_children.end())
+      if (itc != mt->d_children.end())
       {
         syms.pop_back();
         // push the children + null termination marker, in reverse order
@@ -108,15 +112,15 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
         visit.push_back(NaryMatchFrame(syms, &itc->second));
       }
     }
-    else if (curr.d_index<=mt->d_vars.size())
+    else if (curr.d_index <= mt->d_vars.size())
     {
       // try to match the next (variable, length)
       Node var;
       Node next;
       do
       {
-        var = mt->d_vars[curr.d_index-1];
-        Assert (mt->d_children.find(var)!=mt->d_children.end());
+        var = mt->d_vars[curr.d_index - 1];
+        Assert(mt->d_children.find(var) != mt->d_children.end());
         std::vector<Node> currChildren;
         if (theory::isListVar(var))
         {
@@ -129,9 +133,9 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
           // have been pused to syms. We try to extract l children here. If
           // we encounter the null symbol, then we do not have sufficient
           // children to match for this variant and fail.
-          for (size_t i=0; i<l; i++)
+          for (size_t i = 0; i < l; i++)
           {
-            Assert (!syms.empty());
+            Assert(!syms.empty());
             Node s = syms.back();
             if (s.isNull())
             {
@@ -190,7 +194,7 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
           // if we failed, revert changes to syms
           syms.insert(syms.end(), currChildren.begin(), currChildren.end());
         }
-      } while (next.isNull() && curr.d_index<=mt->d_vars.size());
+      } while (next.isNull() && curr.d_index <= mt->d_vars.size());
       if (next.isNull())
       {
         // we are out of variables to match, finished with this frame
