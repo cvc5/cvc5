@@ -175,24 +175,27 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
             }
           }
         }
-        // check if it is already bound, do the binding if necessary
-        std::map<Node, Node>::iterator its = smap.find(var);
-        if (its != smap.end())
+        if (!next.isNull())
         {
-          if (its->second != next)
+          // check if it is already bound, do the binding if necessary
+          std::map<Node, Node>::iterator its = smap.find(var);
+          if (its != smap.end())
           {
-            // failed to match
-            next = Node::null();
+            if (its->second != next)
+            {
+              // failed to match
+              next = Node::null();
+            }
+            // otherwise, successfully matched, nothing to do
           }
-          // otherwise, successfully matched, nothing to do
-        }
-        else
-        {
-          // add to binding
-          vars.push_back(var);
-          subs.push_back(next);
-          smap[var] = next;
-          curr.d_boundVar = true;
+          else
+          {
+            // add to binding
+            vars.push_back(var);
+            subs.push_back(next);
+            smap[var] = next;
+            curr.d_boundVar = true;
+          }
         }
         if (next.isNull())
         {
