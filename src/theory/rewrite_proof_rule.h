@@ -61,11 +61,6 @@ class RewriteProofRule
   const std::vector<Node>& getUserVarList() const;
   /** Get variable list */
   const std::vector<Node>& getVarList() const;
-  /**
-   * Is variable explicit? An explicit variable is one that does not occur
-   * in a condition and thus its value must be specified in a proof.
-   */
-  bool isExplicitVar(Node v) const;
   /** Does this rule have conditions? */
   bool hasConditions() const;
   /** Get (declared) conditions */
@@ -82,6 +77,15 @@ class RewriteProofRule
   /** Get conclusion of the rule */
   Node getConclusion() const;
 
+  /**
+   * Is variable explicit? An explicit variable is one that does not occur
+   * in a condition and thus its value must be specified in a proof.
+   */
+  bool isExplicitVar(Node v) const;
+  /**
+   * Get list context
+   */
+  Kind getListContext(Node v) const;
  private:
   /**
    * Purify side conditions from term n, store introduced side condition
@@ -116,6 +120,8 @@ class RewriteProofRule
    * "holes" in a proof.
    */
   std::map<Node, bool> d_noOccVars;
+  /** The context for list variables (see expr::getListVarContext). */
+  std::map<Node, Kind> d_listVarCtx;
 };
 
 }  // namespace theory

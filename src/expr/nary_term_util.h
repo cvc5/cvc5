@@ -34,6 +34,13 @@ bool isListVar(TNode fv);
 /** Contains list variable */
 bool hasListVar(TNode n);
 
+/** 
+ * Compute list variable context 
+ * Get the parent kind of each list variable in n, or fail if a list
+ * variable occurs in two contexts.
+ */
+bool getListVarContext(TNode n, std::map< Node, Kind>& context);
+
 /** get the null terminator */
 Node getNullTerminator(Kind k, TypeNode tn);
 

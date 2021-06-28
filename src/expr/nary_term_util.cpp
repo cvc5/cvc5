@@ -67,6 +67,49 @@ bool hasListVar(TNode n)
   return false;
 }
 
+bool getListVarContext(TNode n, std::map< Node, Kind>& context)
+{
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
+  std::map< Node, Kind>::iterator itc;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited.insert(cur);
+      if (isListVar(cur))
+      {
+        // top-level list variable, undefined
+        return false;
+      }
+      for (const Node& cn : cur)
+      {
+        if (isListVar(cn))
+        {
+          itc = context.find(cn);
+          if (itc==context.end())
+          {
+            context[cn] = cur.getKind();
+          }
+          else if (itc->second != cur.getKind())
+          {
+            return false;
+          }
+          continue;
+        }
+        visit.push_back(cn);
+      }
+    }
+  } while (!visit.empty());
+  return true;
+}
+
 Node getNullTerminator(Kind k, TypeNode tn)
 {
   NodeManager* nm = NodeManager::currentNM();

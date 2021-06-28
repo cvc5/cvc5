@@ -228,7 +228,8 @@ void LfscPrinter::print(std::ostream& out,
   const std::unordered_set<DslPfRule>& dslrs = lpcp.getDslRewrites();
   for (DslPfRule dslr : dslrs)
   {
-    printDslRule(out, dslr);
+    // also computes the format for the rule
+    printDslRule(out, dslr, d_dslFormat[dslr]);
   }
 
   // [5] print the check command and term lets
@@ -666,20 +667,70 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       // print holes/terms based on whether variables are explicit
       for (size_t i = 1, nargs = as.size(); i < nargs; i++)
       {
-        if (rpr.isExplicitVar(varList[i - 1]))
+        Node v = varList[i - 1];
+        if (rpr.isExplicitVar(v))
         {
-          pf << as[i];
+          // If the variable is a list variable, we must convert its value to
+          // the proper term. This is based on its context.
+          if (as[i].getKind()==SEXPR)
+          {
+            Assert (args[i].getKind()==SEXPR);
+            NodeManager * nm = NodeManager::currentNM();
+            Kind k = rpr.getListContext(v);
+            Node null = expr::getNullTerminator(k, v.getType());
+            Node t;
+            if (as[i].getNumChildren()==1)
+            {
+              // singleton list uses null terminator
+              t = nm->mkNode(k, as[i][0], null);
+            }
+            else
+            {
+              if (k==UNDEFINED_KIND)
+              {
+                Unhandled() << "Unknown context for list variable " << v << " in rule " << di;
+              }
+              if (as[i].getNumChildren()==0)
+              {
+                t = null;
+              }
+              else
+              {
+                // re-convert it
+                std::vector<Node> vec(args[i].begin(), args[i].end());
+                t = nm->mkNode(k, vec);
+                t = d_tproc.convert(t);
+              }
+            }
+            pf << t;
+          }
+          else
+          {
+            pf << as[i];
+          }
         }
         else
         {
           pf << h;
         }
       }
-      // print child proofs
-      for (const ProofNode* c : cs)
+      // print child proofs, which is based on the format computed for the rule
+      size_t ccounter = 0;
+      Assert (d_dslFormat.find(di)!=d_dslFormat.end());
+      std::vector<Node>& format = d_dslFormat[di];
+      for (const Node& f : format)
       {
-        pf << c;
+        if (f.isNull())
+        {
+          // this position is a hole
+          pf << h;
+          continue;
+        }
+        Assert (ccounter<cs.size());
+        pf << cs[ccounter];
+        ccounter++;
       }
+      Assert (ccounter==cs.size());
     }
     break;
     default:
@@ -765,7 +816,7 @@ void LfscPrinter::printType(std::ostream& out, TypeNode tn)
   LfscPrintChannelOut::printTypeNodeInternal(out, tni);
 }
 
-void LfscPrinter::printDslRule(std::ostream& out, DslPfRule id)
+void LfscPrinter::printDslRule(std::ostream& out, DslPfRule id, std::vector<Node>& format)
 {
   const theory::RewriteProofRule& rpr = d_rdb->getRule(id);
   const std::vector<Node>& varList = rpr.getVarList();
@@ -837,16 +888,20 @@ void LfscPrinter::printDslRule(std::ostream& out, DslPfRule id)
       // introduce a term computed by side condition
       odecl << " (! _t" << termCount << " term";
       rparen << ")";
-      odecl << " (! _s" << scCount << "(^ (" << scName.str() << " ";
+      format.push_back(Node::null());
+      // side condition, which is an implicit argument
+      odecl << " (! _s" << scCount << " (^ (" << scName.str();
       rparen << ")";
       // arguments to side condition
-      odecl << argListTerms.str() << ")";
+      odecl << argListTerms.str() << ") ";
       // matches condition
       odecl << "_t" << termCount << ")";
       if (!isConclusion)
       {
+        // the child proof
         odecl << " (! _u" << i;
         rparen << ")";
+        format.push_back(term);
       }
       odecl << " (holds _t" << termCount << ")";
       continue;
@@ -856,6 +911,7 @@ void LfscPrinter::printDslRule(std::ostream& out, DslPfRule id)
     {
       odecl << " (! _u" << i;
       rparen << ")";
+      format.push_back(term);
     }
     odecl << " (holds ";
     printInternal(odecl, t);

@@ -40,9 +40,10 @@ Node LfscListScNodeConverter::postConvert(Node n)
     // as an optimization, there is no need if we are at the RHS
     if (n[1] == null)
     {
-      return n;
+      return n[0];
     }
-    // E.g. (or x t) becomes (nary_concat f_or x t false)
+    // E.g. (or x t) becomes
+    // (nary_concat f_or x t false)
     std::vector<Node> children;
     std::vector<TypeNode> childTypes;
     Node f = d_conv.getOperatorOfTerm(n);
