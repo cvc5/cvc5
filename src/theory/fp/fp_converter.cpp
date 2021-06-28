@@ -868,10 +868,7 @@ Node FpConverter::convert(TNode node)
     {
       visited.emplace(cur, 0);
       visit.push_back(cur);
-      for (const auto& n : cur)
-      {
-        visit.push_back(n);
-      }
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
     else if (it->second == false)
     {
@@ -941,7 +938,7 @@ Node FpConverter::convert(TNode node)
               Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
               d_fpMap.insert(
                   cur,
-                  symfpu::absolute<traits>(fpt(cur.getType()),
+                  symfpu::absolute<traits>(fpt(t),
                                            (*d_fpMap.find(cur[0])).second));
               break;
 
@@ -949,7 +946,7 @@ Node FpConverter::convert(TNode node)
               Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
               d_fpMap.insert(
                   cur,
-                  symfpu::negate<traits>(fpt(cur.getType()),
+                  symfpu::negate<traits>(fpt(t),
                                          (*d_fpMap.find(cur[0])).second));
               break;
 
@@ -958,7 +955,7 @@ Node FpConverter::convert(TNode node)
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               d_fpMap.insert(
                   cur,
-                  symfpu::sqrt<traits>(fpt(cur.getType()),
+                  symfpu::sqrt<traits>(fpt(t),
                                        (*d_rmMap.find(cur[0])).second,
                                        (*d_fpMap.find(cur[1])).second));
               break;
@@ -968,7 +965,7 @@ Node FpConverter::convert(TNode node)
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               d_fpMap.insert(cur,
                              symfpu::roundToIntegral<traits>(
-                                 fpt(cur.getType()),
+                                 fpt(t),
                                  (*d_rmMap.find(cur[0])).second,
                                  (*d_fpMap.find(cur[1])).second));
               break;
@@ -978,7 +975,7 @@ Node FpConverter::convert(TNode node)
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               d_fpMap.insert(
                   cur,
-                  symfpu::remainder<traits>(fpt(cur.getType()),
+                  symfpu::remainder<traits>(fpt(t),
                                             (*d_fpMap.find(cur[0])).second,
                                             (*d_fpMap.find(cur[1])).second));
               break;
@@ -988,7 +985,7 @@ Node FpConverter::convert(TNode node)
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               Assert(cur[2].getType().isBitVector());
               d_fpMap.insert(cur,
-                             symfpu::max<traits>(fpt(cur.getType()),
+                             symfpu::max<traits>(fpt(t),
                                                  (*d_fpMap.find(cur[0])).second,
                                                  (*d_fpMap.find(cur[1])).second,
                                                  prop(cur[2])));
@@ -999,7 +996,7 @@ Node FpConverter::convert(TNode node)
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               Assert(cur[2].getType().isBitVector());
               d_fpMap.insert(cur,
-                             symfpu::min<traits>(fpt(cur.getType()),
+                             symfpu::min<traits>(fpt(t),
                                                  (*d_fpMap.find(cur[0])).second,
                                                  (*d_fpMap.find(cur[1])).second,
                                                  prop(cur[2])));
@@ -1010,7 +1007,7 @@ Node FpConverter::convert(TNode node)
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               Assert(d_fpMap.find(cur[2]) != d_fpMap.end());
               d_fpMap.insert(cur,
-                             symfpu::add<traits>(fpt(cur.getType()),
+                             symfpu::add<traits>(fpt(t),
                                                  (*d_rmMap.find(cur[0])).second,
                                                  (*d_fpMap.find(cur[1])).second,
                                                  (*d_fpMap.find(cur[2])).second,
@@ -1023,7 +1020,7 @@ Node FpConverter::convert(TNode node)
               Assert(d_fpMap.find(cur[2]) != d_fpMap.end());
               d_fpMap.insert(
                   cur,
-                  symfpu::multiply<traits>(fpt(cur.getType()),
+                  symfpu::multiply<traits>(fpt(t),
                                            (*d_rmMap.find(cur[0])).second,
                                            (*d_fpMap.find(cur[1])).second,
                                            (*d_fpMap.find(cur[2])).second));
@@ -1035,7 +1032,7 @@ Node FpConverter::convert(TNode node)
               Assert(d_fpMap.find(cur[2]) != d_fpMap.end());
               d_fpMap.insert(
                   cur,
-                  symfpu::divide<traits>(fpt(cur.getType()),
+                  symfpu::divide<traits>(fpt(t),
                                          (*d_rmMap.find(cur[0])).second,
                                          (*d_fpMap.find(cur[1])).second,
                                          (*d_fpMap.find(cur[2])).second));
@@ -1049,7 +1046,7 @@ Node FpConverter::convert(TNode node)
 
               d_fpMap.insert(
                   cur,
-                  symfpu::fma<traits>(fpt(cur.getType()),
+                  symfpu::fma<traits>(fpt(t),
                                       (*d_rmMap.find(cur[0])).second,
                                       (*d_fpMap.find(cur[1])).second,
                                       (*d_fpMap.find(cur[2])).second,
@@ -1063,7 +1060,7 @@ Node FpConverter::convert(TNode node)
               d_fpMap.insert(cur,
                              symfpu::convertFloatToFloat<traits>(
                                  fpt(cur[1].getType()),
-                                 fpt(cur.getType()),
+                                 fpt(t),
                                  (*d_rmMap.find(cur[0])).second,
                                  (*d_fpMap.find(cur[1])).second));
               break;
@@ -1077,21 +1074,21 @@ Node FpConverter::convert(TNode node)
               Node IEEEBV(
                   nm->mkNode(kind::BITVECTOR_CONCAT, cur[0], cur[1], cur[2]));
               d_fpMap.insert(
-                  cur, symfpu::unpack<traits>(fpt(cur.getType()), IEEEBV));
+                  cur, symfpu::unpack<traits>(fpt(t), IEEEBV));
             }
             break;
 
             case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
               Assert(cur[0].getType().isBitVector());
               d_fpMap.insert(
-                  cur, symfpu::unpack<traits>(fpt(cur.getType()), ubv(cur[0])));
+                  cur, symfpu::unpack<traits>(fpt(t), ubv(cur[0])));
               break;
 
             case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
               Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
               d_fpMap.insert(cur,
                              symfpu::convertSBVToFloat<traits>(
-                                 fpt(cur.getType()),
+                                 fpt(t),
                                  (*d_rmMap.find(cur[0])).second,
                                  sbv(cur[1])));
               break;
@@ -1100,7 +1097,7 @@ Node FpConverter::convert(TNode node)
               Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
               d_fpMap.insert(cur,
                              symfpu::convertUBVToFloat<traits>(
-                                 fpt(cur.getType()),
+                                 fpt(t),
                                  (*d_rmMap.find(cur[0])).second,
                                  ubv(cur[1])));
               break;
