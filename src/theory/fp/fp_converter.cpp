@@ -929,8 +929,9 @@ Node FpConverter::convert(TNode node)
         else
         {
           /* ---- FloatingPoint operators --------------------------- */
-          Assert(kind != kind::CONST_FLOATINGPOINT && kind != kind::VARIABLE
-                 && kind != kind::BOUND_VARIABLE && kind != kind::SKOLEM);
+          Assert(kind != kind::CONST_FLOATINGPOINT);
+          Assert(kind != kind::VARIABLE);
+          Assert(kind != kind::BOUND_VARIABLE && kind != kind::SKOLEM);
 
           switch (kind)
           {
