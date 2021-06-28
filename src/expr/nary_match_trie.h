@@ -69,7 +69,8 @@ class NaryMatchTrie
    * top-symbol of t is indexed by:
    * - operator, if t has an operator, or
    * - t, if t does not have an operator
-   * Additionally we
+   * Additionally we use "null" to mark the end of applications of n-ary
+   * symbols.
    */
   std::map<Node, NaryMatchTrie> d_children;
   /** The set of variables in the domain of d_children */

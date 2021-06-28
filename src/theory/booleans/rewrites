@@ -1,6 +1,25 @@
 (define-rule bool-eq-refl ((t Bool)) (= t t) true)
+(define-rule bool-eq-symm ((t Bool) (s Bool)) (= t s) (= s t))
 (define-rule bool-double-neg-elim ((t Bool)) (not (not t)) t)
+
+(define-rule bool-eq-true ((t Bool)) (= t true) t)
+(define-rule bool-eq-false ((t Bool)) (= t false) (not t))
 
 (define-rule bool-impl-false ((t Bool)) (=> t false) (not t))
 
 (define-rule bool-or-true ((xs Bool :list) (ys Bool :list)) (or xs true ys) true)
+(define-rule bool-or-false ((xs Bool :list) (ys Bool :list)) (or xs false ys) (or xs ys))
+
+(define-rule bool-and-true ((xs Bool :list) (ys Bool :list)) (and xs true ys) (and xs ys))
+(define-rule bool-and-false ((xs Bool :list) (ys Bool :list)) (and xs false ys) false)
+
+
+; TODO: improve these?
+
+; required since we don't construct singleton or on RHS of conclusion
+(define-rule bool-or-false-single-l ((x Bool)) (or false x) x)
+(define-rule bool-or-false-single-r ((x Bool)) (or x false) x)
+
+; required since we don't construct singleton and on RHS of conclusion
+(define-rule bool-and-true-single-l ((x Bool)) (and true x) x)
+(define-rule bool-and-true-single-r ((x Bool)) (and x true) x)

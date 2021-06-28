@@ -877,7 +877,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
       Assert(!listVars.empty());
       scCount++;
       std::stringstream scName;
-      scName << "dsl.sc" << scCount << "." << id;
+      scName << "dsl.sc." << scCount << "." << id;
       // generate the side condition
       oscs << "(program " << scName.str() << " " << argList.str() << " term"
            << std::endl;
