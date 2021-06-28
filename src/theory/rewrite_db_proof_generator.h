@@ -72,10 +72,19 @@ class RewriteDbProofCons
   RewriteDb* d_db;
   /** the evaluator utility */
   Evaluator d_eval;
-  /** cache for exists rule */
-  std::unordered_map<Node, rewriter::DslPfRule> d_pcache;
+  class ProvenInfo
+  {
+  public:
+    ProvenInfo() : d_id(rewriter::DslPfRule::FAIL), d_failMaxDepth(0) {}
+    /** The identifier of the proof rule */
+  rewriter::DslPfRule d_id;
+  /** The substitution */
+  std::vector<Node> d_subs;
   /** the maximum depth tried for rules that have failed */
-  std::unordered_map<Node, unsigned> d_pcacheFailMaxDepth;
+  uint32_t d_failMaxDepth;
+  };
+  /** cache for exists rule */
+  std::unordered_map<Node, ProvenInfo> d_pcache;
   /** the evaluation cache */
   std::unordered_map<Node, Node> d_evalCache;
   /** common constants */

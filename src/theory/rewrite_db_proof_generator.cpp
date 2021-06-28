@@ -76,7 +76,6 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   Trace("rpc") << "..." << (success ? "success" : "fail") << std::endl;
   // clear the proof caches? use attributes instead?
   d_pcache.clear();
-  d_pcacheFailMaxDepth.clear();
   // clear the evaluate cache?
   d_evalCache.clear();
   return success;
@@ -93,15 +92,16 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
   d_db->getMatches(eqi, &d_notify);
   d_currRecLimit++;
   // if we cached it during the above call, we succeeded
-  std::unordered_map<Node, DslPfRule>::iterator it = d_pcache.find(eqi);
+  std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
   if (it != d_pcache.end())
   {
-    Assert(it->second != DslPfRule::FAIL);
-    return it->second;
+    Assert(it->second.d_id != DslPfRule::FAIL);
+    return it->second.d_id;
   }
   // store failure, and its maximum depth
-  d_pcache[eqi] = DslPfRule::FAIL;
-  d_pcacheFailMaxDepth[eqi] = d_currRecLimit;
+  ProvenInfo& pi = d_pcache[eqi];
+  pi.d_id = DslPfRule::FAIL;
+  pi.d_failMaxDepth = d_currRecLimit;
   return DslPfRule::FAIL;
 }
 
@@ -160,36 +160,40 @@ bool RewriteDbProofCons::notifyMatch(Node s,
       // save, to check below
       condToProve.push_back(cond);
     }
-    if (condSuccess)
+    if (!condSuccess)
     {
-      // if no trivial failures, go back and try to recursively prove
-      for (const Node& cond : condToProve)
+      continue;
+    }
+    // if no trivial failures, go back and try to recursively prove
+    for (const Node& cond : condToProve)
+    {
+      Trace("rpc-infer-sc") << "Check condition: " << cond << std::endl;
+      // recursively check if the condition holds
+      DslPfRule cid = proveInternal(cond);
+      if (cid == DslPfRule::FAIL)
       {
-        Trace("rpc-infer-sc") << "Check condition: " << cond << std::endl;
-        // recursively check if the condition holds
-        DslPfRule cid = proveInternal(cond);
-        if (cid == DslPfRule::FAIL)
-        {
-          // print reason for failure
-          Trace("rpc-infer-debug")
-              << "required: " << cond << " for " << rpr.getName() << std::endl;
-          condSuccess = false;
-          break;
-        }
-      }
-      if (condSuccess)
-      {
-        // successfully found instance of rule
-        if (Trace.isOn("rpc-infer"))
-        {
-          Trace("rpc-infer")
-              << "INFER " << s << " by " << rpr.getName() << std::endl;
-        }
-        d_pcache[s] = id;
-        // don't need to notify any further matches, we are done
-        return false;
+        // print reason for failure
+        Trace("rpc-infer-debug")
+            << "required: " << cond << " for " << rpr.getName() << std::endl;
+        condSuccess = false;
+        break;
       }
     }
+    if (!condSuccess)
+    {
+      continue;
+    }
+    // successfully found instance of rule
+    if (Trace.isOn("rpc-infer"))
+    {
+      Trace("rpc-infer")
+          << "INFER " << s << " by " << rpr.getName() << std::endl;
+    }
+    ProvenInfo& pi = d_pcache[s];
+    pi.d_id = id;
+    pi.d_subs = subs;
+    // don't need to notify any further matches, we are done
+    return false;
   }
   // want to keep getting notify calls
   return true;
@@ -199,19 +203,18 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
 {
   Assert(eqi.getKind() == kind::EQUAL);
   // already cached?
-  std::unordered_map<Node, DslPfRule>::iterator it = d_pcache.find(eqi);
+  std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
   if (it != d_pcache.end())
   {
-    if (it->second != DslPfRule::FAIL)
+    if (it->second.d_id != DslPfRule::FAIL)
     {
       // proof exists, return
-      idb = it->second;
+      idb = it->second.d_id;
       return true;
     }
-    Assert(d_pcacheFailMaxDepth.find(eqi) != d_pcacheFailMaxDepth.end());
-    if (d_currRecLimit <= d_pcacheFailMaxDepth[eqi])
+    if (d_currRecLimit <= it->second.d_failMaxDepth)
     {
-      idb = it->second;
+      idb = it->second.d_id;
       return true;
     }
     // Will not succeed below, since we know we've already tried. Hence, we
@@ -221,10 +224,11 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
   }
   // symmetry or reflexivity, applied potentially to non-Booleans?
   // if (CDProof::isSame(eqi[0], eqi[1]))
+  ProvenInfo& pi = d_pcache[eqi];
   if (eqi[0] == eqi[1])
   {
     idb = DslPfRule::REFL;
-    d_pcache[eqi] = idb;
+    pi.d_id = idb;
     return true;
   }
   // evaluate the two sides of the equality, without help of the rewriter
@@ -249,10 +253,10 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
   {
     idb = DslPfRule::FAIL;
     // failure relies on nothing, depth is 0
-    d_pcacheFailMaxDepth[eqi] = 0;
+    pi.d_failMaxDepth = 0;
   }
   // cache it
-  d_pcache[eqi] = idb;
+  pi.d_id = idb;
   return true;
 }
 
@@ -263,7 +267,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
   std::unordered_map<TNode, std::vector<Node>> premises;
   std::unordered_map<TNode, std::vector<Node>> pfArgs;
   std::unordered_map<TNode, bool>::iterator it;
-  std::unordered_map<Node, DslPfRule>::iterator itd;
+  std::unordered_map<Node, ProvenInfo>::iterator itd;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(eqi);
@@ -286,14 +290,14 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       {
         itd = d_pcache.find(cur);
         Assert(itd != d_pcache.end());
-        Assert(itd->second != DslPfRule::FAIL);
-        if (itd->second == DslPfRule::REFL)
+        Assert(itd->second.d_id != DslPfRule::FAIL);
+        if (itd->second.d_id == DslPfRule::REFL)
         {
           // trivial proof
           Assert(cur[0] == cur[1]);
           cdp->addStep(cur, PfRule::REFL, {}, {cur[0]});
         }
-        else if (itd->second == DslPfRule::EVAL)
+        else if (itd->second.d_id == DslPfRule::EVAL)
         {
           visited[cur] = true;
           Assert(cur.getKind() == kind::EQUAL);
@@ -320,24 +324,12 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
         else
         {
           visited[cur] = false;
-          const RewriteProofRule& rpr = d_db->getRule(itd->second);
+          const RewriteProofRule& rpr = d_db->getRule(itd->second.d_id);
           // compute premises based on the used substitution
-          std::unordered_map<Node, Node> subs;
-          Trace("rpc-debug")
-              << "...match to " << rpr.getConclusion() << std::endl;
-          if (!expr::match(rpr.getConclusion(), cur, subs))
-          {
-            Assert(false);
-            return false;
-          }
           // build the substitution context
           const std::vector<Node>& vs = rpr.getVarList();
-          for (const Node& v : vs)
-          {
-            Assert(subs.find(v) != subs.end());
-            pfArgs[cur].push_back(subs[v]);
-          }
-          Assert(subs.size() == vs.size());
+          Assert(itd->second.d_subs.size() == vs.size());
+          pfArgs[cur].insert(pfArgs[cur].end(),itd->second.d_subs.begin(), itd->second.d_subs.end());
           // get the conditions, store into premises of cur.
           std::vector<Node>& ps = premises[cur];
           if (!rpr.getObligations(vs, pfArgs[cur], ps))
@@ -349,7 +341,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
           // add the DSL proof rule we used
           pfArgs[cur].insert(
               pfArgs[cur].begin(),
-              nm->mkConst(Rational(static_cast<uint32_t>(itd->second))));
+              nm->mkConst(Rational(static_cast<uint32_t>(itd->second.d_id))));
           // recurse on premises
           visit.insert(visit.end(), ps.begin(), ps.end());
         }
