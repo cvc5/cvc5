@@ -186,8 +186,8 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     // successfully found instance of rule
     if (Trace.isOn("rpc-infer"))
     {
-      Trace("rpc-infer")
-          << "INFER " << s << " by " << rpr.getName() << std::endl;
+      Trace("rpc-infer") << "INFER " << s << " by " << rpr.getName()
+                         << std::endl;
     }
     ProvenInfo& pi = d_pcache[s];
     pi.d_id = id;
@@ -329,7 +329,9 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
           // build the substitution context
           const std::vector<Node>& vs = rpr.getVarList();
           Assert(itd->second.d_subs.size() == vs.size());
-          pfArgs[cur].insert(pfArgs[cur].end(),itd->second.d_subs.begin(), itd->second.d_subs.end());
+          pfArgs[cur].insert(pfArgs[cur].end(),
+                             itd->second.d_subs.begin(),
+                             itd->second.d_subs.end());
           // get the conditions, store into premises of cur.
           std::vector<Node>& ps = premises[cur];
           if (!rpr.getObligations(vs, pfArgs[cur], ps))
