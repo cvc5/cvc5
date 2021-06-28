@@ -15,14 +15,197 @@
 
 #include "expr/nary_match_trie.h"
 
+#include "theory/rewrite_term_util.h"
+
 using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace expr {
+  
+class NaryMatchFrame
+{
+public:
+  NaryMatchFrame(const std::vector<Node>& syms, NaryMatchTrie * t) : d_syms(syms), d_trie(t), d_index(0), d_variant(0), d_boundVar(false){}
+  /** Symbols to match */
+  std::vector<Node> d_syms;
+  /** The match trie */
+  NaryMatchTrie * d_trie;
+  /** The index we are considering, 0 = operator, n>0 = variable # (n-1) */
+  size_t d_index;
+  /** List length considering */
+  size_t d_variant;
+  /** Whether we just bound a variable */
+  bool d_boundVar;
+};
 
 bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
 {
-  // TODO
+  NodeManager * nm = NodeManager::currentNM();
+  std::vector<Node> vars;
+  std::vector<Node> subs;
+  std::map<Node, Node> smap;
+  
+  std::map<Node, NaryMatchTrie>::iterator itc;
+  
+  std::vector<NaryMatchFrame> visit;
+  visit.push_back(NaryMatchFrame({n}, this));
+  
+  while (!visit.empty())
+  {
+    NaryMatchFrame& curr = visit.back();
+    // currently, copy the symbols from previous frame TODO: improve?
+    std::vector<Node> syms = curr.d_syms;
+    NaryMatchTrie* mt = curr.d_trie;
+    if (syms.empty())
+    {
+      // if we matched, there must be a data member at this node
+      Assert (!mt->d_data.isNull());
+      //notify match?
+      Assert(n == theory::listSubstitute(mt->d_data, vars, subs));
+      Trace("match-debug") << "notify : " << mt->d_data << std::endl;
+      if (!ntm->notify(n, mt->d_data, vars, subs))
+      {
+        return false;
+      }
+      visit.pop_back();
+      continue;
+    }
+    
+    // clean up if we previously bound a variable
+    if (curr.d_boundVar)
+    {
+      Assert(!vars.empty());
+      Assert(smap.find(vars.back())!=smap.end());
+      smap.erase(vars.back());
+      vars.pop_back();
+      subs.pop_back();
+      curr.d_boundVar = false;
+    }
+    
+    if (curr.d_index==0)
+    {
+      curr.d_index++;
+      // finished matching variables, try to match the operator
+      Node next = syms.back();
+      Node op = (!next.isNull() && next.hasOperator()) ? next.getOperator() : next;
+      itc = mt->d_children.find(op);
+      if (itc!=mt->d_children.end())
+      {
+        syms.pop_back();
+        // push the children + null termination marker, in reverse order
+        if (NodeManager::isNAryKind(next.getKind()))
+        {
+          syms.push_back(Node::null());
+        }
+        if (next.hasOperator())
+        {
+          for (const Node& cnc : next)
+          {
+            syms.push_back(cnc);
+          }
+        }
+        // new frame
+        visit.push_back(NaryMatchFrame(syms, &itc->second));
+      }
+    }
+    else if (curr.d_index<=mt->d_vars.size())
+    {
+      // try to match the next (variable, length)
+      Node var;
+      Node next;
+      do
+      {
+        var = mt->d_vars[curr.d_index-1];
+        Assert (mt->d_children.find(var)!=mt->d_children.end());
+        std::vector<Node> currChildren;
+        if (theory::isListVar(var))
+        {
+          // get the length of the list we want to consider
+          size_t l = curr.d_variant;
+          curr.d_variant++;
+          // match with l, or increment d_index otherwise
+          bool foundChildren = true;
+          // We are in a state where the children of an n-ary child
+          // have been pused to syms. We try to extract l children here. If
+          // we encounter the null symbol, then we do not have sufficient
+          // children to match for this variant and fail.
+          for (size_t i=0; i<l; i++)
+          {
+            Assert (!syms.empty());
+            Node s = syms.back();
+            if (s.isNull())
+            {
+              foundChildren = false;
+              break;
+            }
+            currChildren.push_back(s);
+            syms.pop_back();
+          }
+          std::reverse(currChildren.begin(), currChildren.end());
+          if (foundChildren)
+          {
+            // we are matching the next list
+            next = nm->mkNode(SEXPR, currChildren);
+          }
+          else
+          {
+            // otherwise, we have run out of variants, go to next variable
+            curr.d_index++;
+            curr.d_variant = 0;
+          }
+        }
+        else
+        {
+          next = syms.back();
+          currChildren.push_back(next);
+          syms.pop_back();
+          curr.d_index++;
+          // check subtyping in the (non-list) case
+          if (!var.getType().isSubtypeOf(next.getType()))
+          {
+            next = Node::null();
+          }
+        }
+        // check if it is already bound, do the binding if necessary
+        std::map<Node, Node>::iterator its = smap.find(var);
+        if (its != smap.end())
+        {
+          if (its->second != next)
+          {
+            // failed to match
+            next = Node::null();
+          }
+          // otherwise, successfully matched, nothing to do
+        }
+        else
+        {
+          // add to binding
+          vars.push_back(var);
+          subs.push_back(next);
+          smap[var] = next;
+          curr.d_boundVar = true;
+        }
+        if (next.isNull())
+        {
+          // if we failed, revert changes to syms
+          syms.insert(syms.end(), currChildren.begin(), currChildren.end());
+        }
+      } while (next.isNull() && curr.d_index<=mt->d_vars.size());
+      if (next.isNull())
+      {
+        // we are out of variables to match, finished with this frame
+        visit.pop_back();
+        continue;
+      }
+      Trace("match-debug") << "recurse var : " << var << std::endl;
+      visit.push_back(NaryMatchFrame(syms, &mt->d_children[var]));
+    }
+    else
+    {
+      // no variables to match, we are done
+      visit.pop_back();
+    }
+  }
   return true;
 }
 
