@@ -112,7 +112,9 @@ Node getNullTerminator(Kind k, TypeNode tn)
   return nullTerm;
 }
 
-Node narySubstitute(Node src, const std::vector<Node>& vars, const std::vector<Node>& subs)
+Node narySubstitute(Node src,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs)
 {
   // assumes all variables are list variables
   NodeManager* nm = NodeManager::currentNM();
@@ -215,5 +217,5 @@ bool naryMatch(Node n1,
   return false;
 }
 
-}  // namespace theory
+}  // namespace expr
 }  // namespace cvc5
