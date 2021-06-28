@@ -866,10 +866,7 @@ Node FpConverter::convert(TNode node)
     {
       visited.emplace(cur, 0);
       visit.push_back(cur);
-      for (const auto& n : cur)
-      {
-        visit.push_back(n);
-      }
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
     else if (it->second == false)
     {
