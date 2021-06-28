@@ -78,6 +78,10 @@ def gen_mk_skolem(name, sort):
         sort_code = 'nm->realType()'
     elif sort.base == BaseSort.String:
         sort_code = 'nm->stringType()'
+    elif sort.base == BaseSort.String:
+        sort_code = 'nm->stringType()'
+    elif sort.base == BaseSort.RegLan:
+        sort_code = 'nm->regExpType()'
     else:
         die(f'Cannot generate code for {sort}')
     res = f'Node {name} = nm->mkBoundVar("{name}", {sort_code});'
@@ -119,6 +123,7 @@ class Rewrites:
 
 
 def validate_rule(rule):
+    # Check that all variables are used
     used_vars = set()
     to_visit = [rule.cond, rule.lhs, rule.rhs]
     while to_visit:
@@ -130,6 +135,20 @@ def validate_rule(rule):
     unused_vars = set(rule.bvars) - used_vars
     if unused_vars:
         die(f'Variables {unused_vars} are unused in {rule.name}')
+
+    # Check that list variables are always used within the same operators
+    var_to_op = dict()
+    to_visit = [rule.cond, rule.lhs, rule.rhs]
+    while to_visit:
+        curr = to_visit.pop()
+        if isinstance(curr, App):
+            for child in curr.children:
+                if isinstance(child, Var) and child.sort.is_list:
+                    if child in var_to_op and curr.op != var_to_op[child]:
+                        die(f'List variable {child.name} cannot be used in {curr.op} and {var_to_op[child]} simultaneously'
+                            )
+                    var_to_op[child] = curr.op
+        to_visit.extend(curr.children)
 
 
 def gen_rewrite_db(args):

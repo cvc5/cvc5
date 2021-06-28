@@ -15,3 +15,6 @@
   (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))
   (= (str.++ s1 s2) (str.++ t1 t2))
   false)
+
+; Regular expression rules
+(define-rule re-concat-emp ((xs RegLan :list) (ys RegLan :list)) (re.++ xs (str.to_re "") ys) (re.++ xs ys))
