@@ -834,6 +834,7 @@ Node FpConverter::convert(TNode node)
     visit.pop_back();
     TypeNode t(cur.getType());
 
+    /* Already word-blasted, skip. */
     if ((t.isBoolean() && d_boolMap.find(cur) != d_boolMap.end())
         || (t.isRoundingMode() && d_rmMap.find(cur) != d_rmMap.end())
         || (t.isBitVector() && d_sbvMap.find(cur) != d_sbvMap.end())
