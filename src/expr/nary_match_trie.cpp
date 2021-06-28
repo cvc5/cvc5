@@ -15,7 +15,7 @@
 
 #include "expr/nary_match_trie.h"
 
-#include "theory/rewrite_term_util.h"
+#include "expr/nary_term_util.h"
 
 using namespace cvc5::kind;
 
@@ -122,7 +122,7 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
         var = mt->d_vars[curr.d_index - 1];
         Assert(mt->d_children.find(var) != mt->d_children.end());
         std::vector<Node> currChildren;
-        if (theory::isListVar(var))
+        if (isListVar(var))
         {
           // get the length of the list we want to consider
           size_t l = curr.d_variant;

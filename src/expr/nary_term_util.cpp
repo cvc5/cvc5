@@ -13,7 +13,7 @@
  * Rewrite database
  */
 
-#include "theory/rewrite_term_util.h"
+#include "expr/nary_term_util.h"
 
 #include "expr/attribute.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -26,7 +26,7 @@
 using namespace cvc5::kind;
 
 namespace cvc5 {
-namespace theory {
+namespace expr {
 
 struct IsListTag
 {

@@ -35,6 +35,8 @@ libcvc5_add_sources(
   match_trie.h
   nary_match_trie.cpp
   nary_match_trie.h
+  nary_term_util.cpp
+  nary_term_util.h
   node.cpp
   node.h
   node_algorithm.cpp

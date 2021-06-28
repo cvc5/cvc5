@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Rewrite term utilities
+ * N-ary term utilities
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__REWRITE_TERM_UTIL__H
-#define CVC4__THEORY__REWRITE_TERM_UTIL__H
+#ifndef CVC4__EXPR__NARY_TERM_UTIL__H
+#define CVC4__EXPR__NARY_TERM_UTIL__H
 
 #include <map>
 #include <vector>
@@ -24,7 +24,7 @@
 #include "expr/node.h"
 
 namespace cvc5 {
-namespace theory {
+namespace expr {
 
 /** Mark variable as list */
 void markListVar(TNode fv);
@@ -51,7 +51,7 @@ Node listSubstitute(Node src, std::vector<Node>& vars, std::vector<Node>& subs);
  */
 bool listMatch(Node n1, Node n2, std::unordered_map<Node, Node>& subs);
 
-}  // namespace theory
+}  // namespace expr
 }  // namespace cvc5
 
-#endif /* CVC4__REWRITER__TERM_UTIL__H */
+#endif /* CVC4__EXPR__NARY_TERM_UTIL__H */

@@ -26,7 +26,7 @@
 #include "expr/term_canonize.h"
 #include "rewriter/rewrites.h"
 #include "theory/rewrite_proof_rule.h"
-#include "theory/rewrite_term_util.h"
+#include "expr/nary_term_util.h"
 
 namespace cvc5 {
 namespace theory {

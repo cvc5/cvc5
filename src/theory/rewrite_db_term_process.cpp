@@ -15,7 +15,7 @@
 #include "theory/rewrite_db_term_process.h"
 
 #include "expr/attribute.h"
-#include "theory/rewrite_term_util.h"
+#include "expr/nary_term_util.h"
 #include "util/string.h"
 
 using namespace cvc5::kind;

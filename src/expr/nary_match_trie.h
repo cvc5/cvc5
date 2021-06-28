@@ -51,7 +51,7 @@ class NaryMatchTrie
    * This calls ntm->notify( n, s, vars, subs ) for each term s stored in this
    * trie that is matchable with n where s = n * { vars -> subs } for some
    * vars, subs, where * has list semantics for substitution (see
-   * listSubstitute in theory/rewrite_term_util.h).
+   * listSubstitute in expr/nary_term_util.h).
    *
    * This function returns false if one of these calls to notify
    * returns false.

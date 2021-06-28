@@ -82,7 +82,7 @@ def gen_mk_skolem(name, sort):
         die(f'Cannot generate code for {sort}')
     res = f'Node {name} = nm->mkBoundVar("{name}", {sort_code});'
     if sort.is_list:
-        res += f'markListVar({name});'
+        res += f'expr::markListVar({name});'
     return res
 
 
