@@ -75,7 +75,6 @@ class RewriteDb
   expr::TermCanonize d_canon;
   /** The match trie */
   expr::NaryMatchTrie d_mt;
-  //expr::MatchTrie d_mt;
   /** map ids to rewrite db rule information */
   std::map<rewriter::DslPfRule, RewriteProofRule> d_rewDbRule;
   /** map conclusions to proof ids */

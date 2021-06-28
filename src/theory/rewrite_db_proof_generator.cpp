@@ -112,7 +112,8 @@ bool RewriteDbProofCons::notifyMatch(Node s,
 {
   Assert(s.getType().isComparableTo(n.getType()));
   Assert(vars.size() == subs.size());
-  Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via " << vars << " -> " << subs << std::endl;
+  Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
+                      << vars << " -> " << subs << std::endl;
   // get the rule identifiers for the conclusion
   const std::vector<DslPfRule>& ids = d_db->getRuleIdsForConclusion(n);
   Assert(!ids.empty());
@@ -335,9 +336,10 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
           // must order the variables to match order of rewrite rule
           for (const Node& v : vs)
           {
-            itv = std::find(itd->second.d_vars.begin(), itd->second.d_vars.end(), v);
+            itv = std::find(
+                itd->second.d_vars.begin(), itd->second.d_vars.end(), v);
             size_t d = std::distance(itd->second.d_vars.begin(), itv);
-            Assert (d<itd->second.d_subs.size());
+            Assert(d < itd->second.d_subs.size());
             pfArgs[cur].push_back(itd->second.d_subs[d]);
           }
           // get the conditions, store into premises of cur.

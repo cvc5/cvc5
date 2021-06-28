@@ -38,7 +38,7 @@ Node LfscListScNodeConverter::postConvert(Node n)
     TypeNode tn = n.getType();
     Node null = d_conv.getNullTerminator(k, tn);
     // as an optimization, there is no need if we are at the RHS
-    if (n[1]==null)
+    if (n[1] == null)
     {
       return n;
     }
