@@ -19,7 +19,9 @@ namespace cvc5 {
 namespace proof {
 
 LfscListScNodeConverter::LfscListScNodeConverter(
-    LfscNodeConverter& conv, const std::unordered_set<Node>& listVars, bool isPre)
+    LfscNodeConverter& conv,
+    const std::unordered_set<Node>& listVars,
+    bool isPre)
     : d_conv(conv), d_listVars(listVars), d_isPre(isPre)
 {
 }
@@ -39,7 +41,7 @@ Node LfscListScNodeConverter::postConvert(Node n)
         if (d_listVars.find(nc) == d_listVars.end())
         {
           minLength++;
-          if (minLength>=2)
+          if (minLength >= 2)
           {
             // no need to convert
             return n;
@@ -55,7 +57,7 @@ Node LfscListScNodeConverter::postConvert(Node n)
       // convert n, since this node will not be converted further
       children.push_back(d_conv.convert(n));
       Node null = d_conv.getNullTerminator(k, tn);
-      Assert (!null.isNull());
+      Assert(!null.isNull());
       // likewise, convert null
       children.push_back(d_conv.convert(null));
       Node sop = mkOperatorFor("nary_elim", children, tn);
@@ -97,7 +99,9 @@ Node LfscListScNodeConverter::postConvert(Node n)
   return n;
 }
 
-Node LfscListScNodeConverter::mkOperatorFor(const std::string& name, const std::vector<Node>& children, TypeNode retType)
+Node LfscListScNodeConverter::mkOperatorFor(const std::string& name,
+                                            const std::vector<Node>& children,
+                                            TypeNode retType)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<TypeNode> childTypes;

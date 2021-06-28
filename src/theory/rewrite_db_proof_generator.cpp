@@ -89,7 +89,7 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
   // for each matching rewrite rule conclusion in the database
   // decrease the recursion depth
   d_currRecLimit--;
-  Assert (eqi.getKind()==EQUAL);
+  Assert(eqi.getKind() == EQUAL);
   Node prevTarget = d_target;
   d_target = eqi;
   d_db->getMatches(eqi[0], &d_notify);
@@ -114,7 +114,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
                                      std::vector<Node>& vars,
                                      std::vector<Node>& subs)
 {
-  Assert (d_target.getKind()==EQUAL && d_target[0]==s);
+  Assert(d_target.getKind() == EQUAL && d_target[0] == s);
   Assert(s.getType().isComparableTo(n.getType()));
   Assert(vars.size() == subs.size());
   Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
@@ -130,11 +130,11 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     Trace("rpc-debug2") << "Check rule " << id << std::endl;
     // does it conclusion match what we are trying to show?
     Node conc = rpr.getConclusion();
-    Assert (conc.getKind()==EQUAL && d_target.getKind()==EQUAL);
+    Assert(conc.getKind() == EQUAL && d_target.getKind() == EQUAL);
     Node stgt = expr::narySubstitute(conc[1], vars, subs);
     Trace("rpc-debug2") << "Substituted RHS: " << stgt << std::endl;
     Trace("rpc-debug2") << "     Target RHS: " << d_target[1] << std::endl;
-    if (stgt!=d_target[1])
+    if (stgt != d_target[1])
     {
       continue;
     }

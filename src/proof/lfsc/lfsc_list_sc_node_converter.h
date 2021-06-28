@@ -29,14 +29,15 @@ class LfscListScNodeConverter : public NodeConverter
  public:
   LfscListScNodeConverter(LfscNodeConverter& conv,
                           const std::unordered_set<Node>& listVars,
-                          bool isPre = false
-                         );
+                          bool isPre = false);
   /** convert to internal */
   Node postConvert(Node n) override;
 
  private:
   /** Make application for */
-  Node mkOperatorFor(const std::string& name, const std::vector<Node>& children, TypeNode retType);
+  Node mkOperatorFor(const std::string& name,
+                     const std::vector<Node>& children,
+                     TypeNode retType);
   /** The parent converter, used for getting internal symbols and utilities */
   LfscNodeConverter& d_conv;
   /** Variables we are treating as list variables */

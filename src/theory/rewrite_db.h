@@ -65,8 +65,7 @@ class RewriteDb
   const std::vector<rewriter::DslPfRule>& getRuleIdsForConclusion(
       Node eq) const;
   /** get ids for head */
-  const std::vector<rewriter::DslPfRule>& getRuleIdsForHead(
-      Node h) const;
+  const std::vector<rewriter::DslPfRule>& getRuleIdsForHead(Node h) const;
 
  private:
   /** common constants */
