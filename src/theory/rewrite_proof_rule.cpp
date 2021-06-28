@@ -16,8 +16,8 @@
 
 #include <sstream>
 
-#include "expr/node_algorithm.h"
 #include "expr/nary_term_util.h"
+#include "expr/node_algorithm.h"
 #include "proof/proof_checker.h"
 #include "theory/rewrite_db_sc.h"
 #include "theory/rewrite_db_term_process.h"
@@ -60,7 +60,8 @@ void RewriteProofRule::init(DslPfRule id,
   {
     if (!expr::getListVarContext(c, d_listVarCtx))
     {
-      Unhandled() << "Ambiguous context for list variables in condition of rule " << id;
+      Unhandled()
+          << "Ambiguous context for list variables in condition of rule " << id;
     }
     d_cond.push_back(c);
     Node cc = purifySideConditions(c, d_scs);
@@ -69,7 +70,8 @@ void RewriteProofRule::init(DslPfRule id,
   d_conc = conc;
   if (!expr::getListVarContext(conc, d_listVarCtx))
   {
-      Unhandled() << "Ambiguous context for list variables in conclusion of rule " << id;
+    Unhandled() << "Ambiguous context for list variables in conclusion of rule "
+                << id;
   }
 
   d_numFv = fvs.size();
@@ -167,7 +169,7 @@ bool RewriteProofRule::isExplicitVar(Node v) const
 Kind RewriteProofRule::getListContext(Node v) const
 {
   std::map<Node, Kind>::const_iterator it = d_listVarCtx.find(v);
-  if (it!=d_listVarCtx.end())
+  if (it != d_listVarCtx.end())
   {
     return it->second;
   }

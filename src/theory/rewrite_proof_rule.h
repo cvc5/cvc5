@@ -86,6 +86,7 @@ class RewriteProofRule
    * Get list context
    */
   Kind getListContext(Node v) const;
+
  private:
   /**
    * Purify side conditions from term n, store introduced side condition
