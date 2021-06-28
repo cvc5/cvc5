@@ -890,7 +890,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
       Node tscp;
       if (isConclusion)
       {
-        Assert (sterm.getKind()==EQUAL);
+        Assert(sterm.getKind() == EQUAL);
         // optimization: don't need nary_elim for heads
         tscp = llsncp.convert(sterm[1]);
         tscp = sterm[0].eqNode(tscp);
