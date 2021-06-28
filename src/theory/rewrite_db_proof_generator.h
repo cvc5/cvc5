@@ -91,6 +91,8 @@ class RewriteDbProofCons
   /** common constants */
   Node d_true;
   Node d_false;
+  /** current target */
+  Node d_target;
   /** current recursion limit */
   uint32_t d_currRecLimit;
   /** prove internal */

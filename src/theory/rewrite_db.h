@@ -64,6 +64,9 @@ class RewriteDb
   /** get ids for conclusion */
   const std::vector<rewriter::DslPfRule>& getRuleIdsForConclusion(
       Node eq) const;
+  /** get ids for head */
+  const std::vector<rewriter::DslPfRule>& getRuleIdsForHead(
+      Node h) const;
 
  private:
   /** common constants */
@@ -79,6 +82,8 @@ class RewriteDb
   std::map<rewriter::DslPfRule, RewriteProofRule> d_rewDbRule;
   /** map conclusions to proof ids */
   std::map<Node, std::vector<rewriter::DslPfRule> > d_concToRules;
+  /** map head to proof ids */
+  std::map<Node, std::vector<rewriter::DslPfRule> > d_headToRules;
   /** dummy empty vector */
   std::vector<rewriter::DslPfRule> d_emptyVec;
 };

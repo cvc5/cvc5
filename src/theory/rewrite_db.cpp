@@ -94,7 +94,7 @@ void RewriteDb::addRule(
 
   // add to discrimination tree
   Trace("proof-db-debug") << "Add (canonical) rule " << eqC << std::endl;
-  d_mt.addTerm(eqC);
+  d_mt.addTerm(eqC[0]);
 
   // match to get canonical variables
   std::unordered_map<Node, Node> msubs;
@@ -128,6 +128,7 @@ void RewriteDb::addRule(
   // initialize rule
   d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC);
   d_concToRules[eqC].push_back(id);
+  d_headToRules[eqC[0]].push_back(id);
 }
 
 void RewriteDb::getMatches(Node eq, expr::NotifyMatch* ntm)
@@ -148,6 +149,17 @@ const std::vector<DslPfRule>& RewriteDb::getRuleIdsForConclusion(Node eq) const
   std::map<Node, std::vector<DslPfRule> >::const_iterator it =
       d_concToRules.find(eq);
   if (it != d_concToRules.end())
+  {
+    return it->second;
+  }
+  return d_emptyVec;
+}
+
+const std::vector<DslPfRule>& RewriteDb::getRuleIdsForHead(Node eq) const
+{
+  std::map<Node, std::vector<DslPfRule> >::const_iterator it =
+      d_headToRules.find(eq);
+  if (it != d_headToRules.end())
   {
     return it->second;
   }

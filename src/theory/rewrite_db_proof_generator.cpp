@@ -89,7 +89,11 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
   // for each matching rewrite rule conclusion in the database
   // decrease the recursion depth
   d_currRecLimit--;
-  d_db->getMatches(eqi, &d_notify);
+  Assert (eqi.getKind()==EQUAL);
+  Node prevTarget = d_target;
+  d_target = eqi;
+  d_db->getMatches(eqi[0], &d_notify);
+  d_target = prevTarget;
   d_currRecLimit++;
   // if we cached it during the above call, we succeeded
   std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
@@ -110,21 +114,32 @@ bool RewriteDbProofCons::notifyMatch(Node s,
                                      std::vector<Node>& vars,
                                      std::vector<Node>& subs)
 {
+  Assert (d_target.getKind()==EQUAL && d_target[0]==s);
   Assert(s.getType().isComparableTo(n.getType()));
   Assert(vars.size() == subs.size());
   Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
                       << vars << " -> " << subs << std::endl;
   // get the rule identifiers for the conclusion
-  const std::vector<DslPfRule>& ids = d_db->getRuleIdsForConclusion(n);
+  const std::vector<DslPfRule>& ids = d_db->getRuleIdsForHead(n);
   Assert(!ids.empty());
   // check each rule instance, succeed if one proves
   bool recurse = d_currRecLimit > 0;
   for (DslPfRule id : ids)
   {
     const RewriteProofRule& rpr = d_db->getRule(id);
+    Trace("rpc-debug2") << "Check rule " << id << std::endl;
+    // does it conclusion match what we are trying to show?
+    Node conc = rpr.getConclusion();
+    Assert (conc.getKind()==EQUAL && d_target.getKind()==EQUAL);
+    Node stgt = expr::narySubstitute(conc[1], vars, subs);
+    Trace("rpc-debug2") << "Substituted RHS: " << stgt << std::endl;
+    Trace("rpc-debug2") << "     Target RHS: " << d_target[1] << std::endl;
+    if (stgt!=d_target[1])
+    {
+      continue;
+    }
     // do its conditions hold?
     bool condSuccess = true;
-    Trace("rpc-debug") << "Check rule " << rpr.getName() << std::endl;
     if (!recurse && rpr.hasConditions())
     {
       // can't recurse and has conditions, continue
@@ -188,10 +203,10 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     // successfully found instance of rule
     if (Trace.isOn("rpc-infer"))
     {
-      Trace("rpc-infer") << "INFER " << s << " by " << rpr.getName()
+      Trace("rpc-infer") << "INFER " << d_target << " by " << rpr.getName()
                          << std::endl;
     }
-    ProvenInfo& pi = d_pcache[s];
+    ProvenInfo& pi = d_pcache[d_target];
     pi.d_id = id;
     pi.d_vars = vars;
     pi.d_subs = subs;
