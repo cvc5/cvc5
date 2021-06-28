@@ -256,7 +256,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
           }
         }
         else if (t[0].getKind() == kind::CONST_RATIONAL
-                 && t[0].getConst<Rational>().getNumerator().toUnsignedInt())
+                 && t[0].getConst<Rational>().getNumerator().toUnsignedInt() == 2)
         {
           return RewriteResponse(
               REWRITE_DONE, NodeManager::currentNM()->mkNode(kind::POW2, t[1]));
