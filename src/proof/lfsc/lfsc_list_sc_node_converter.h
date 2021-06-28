@@ -23,7 +23,15 @@
 namespace cvc5 {
 namespace proof {
 
-/** Convert list variables in side conditions */
+/** 
+ * Convert list variables in side conditions
+ * 
+ * This runs in two modes.
+ * - If isPre is true, then the input is in its original form, and we add
+ * applications of nary_elim.
+ * - If isPre is false, then the input is in converted form, and we add
+ * applications of nary_concat.
+ */
 class LfscListScNodeConverter : public NodeConverter
 {
  public:

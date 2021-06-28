@@ -75,9 +75,12 @@ Node LfscListScNodeConverter::postConvert(Node n)
     Assert(NodeManager::isNAryKind(k));
     TypeNode tn = n.getType();
     Node null = d_conv.getNullTerminator(k, tn);
+    AlwaysAssert(!null.isNull())
+        << "No null terminator for " << k << ", " << tn;
+    null = d_conv.convert(null);
     // if a list variable occurs as a rightmost child, then we return just
     // the variable
-    if (n[1] == d_conv.convert(null))
+    if (n[1] == null)
     {
       return n[0];
     }
@@ -89,8 +92,6 @@ Node LfscListScNodeConverter::postConvert(Node n)
     {
       children.push_back(n[i]);
     }
-    AlwaysAssert(!null.isNull())
-        << "No null terminator for " << k << ", " << tn;
     children.push_back(null);
     Node sop = mkOperatorFor("nary_concat", children, tn);
     children.insert(children.begin(), sop);

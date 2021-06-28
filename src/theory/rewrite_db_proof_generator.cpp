@@ -20,6 +20,7 @@
 #include "theory/rewrite_db_term_process.h"
 
 using namespace cvc5::rewriter;
+using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace theory {
@@ -39,6 +40,10 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
                                MethodId mid,
                                uint32_t recLimit)
 {
+  // clear the proof caches? use attributes instead?
+  d_pcache.clear();
+  // clear the evaluate cache?
+  d_evalCache.clear();
   Trace("rpc") << "RewriteDbProofCons::prove: " << a << " == " << b
                << std::endl;
   Trace("rpc-debug") << "- prove basic" << std::endl;
@@ -74,10 +79,6 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
     Trace("rpc-debug") << "- finish ensure proof" << std::endl;
   }
   Trace("rpc") << "..." << (success ? "success" : "fail") << std::endl;
-  // clear the proof caches? use attributes instead?
-  d_pcache.clear();
-  // clear the evaluate cache?
-  d_evalCache.clear();
   return success;
 }
 
@@ -126,8 +127,8 @@ bool RewriteDbProofCons::notifyMatch(Node s,
   bool recurse = d_currRecLimit > 0;
   for (DslPfRule id : ids)
   {
-    const RewriteProofRule& rpr = d_db->getRule(id);
     Trace("rpc-debug2") << "Check rule " << id << std::endl;
+    const RewriteProofRule& rpr = d_db->getRule(id);
     // does it conclusion match what we are trying to show?
     Node conc = rpr.getConclusion();
     Assert(conc.getKind() == EQUAL && d_target.getKind() == EQUAL);
@@ -136,6 +137,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     Trace("rpc-debug2") << "     Target RHS: " << d_target[1] << std::endl;
     if (stgt != d_target[1])
     {
+      Trace("rpc-debug2") << "...fail (conc mismatch)" << std::endl;
       continue;
     }
     // do its conditions hold?
@@ -143,6 +145,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     if (!recurse && rpr.hasConditions())
     {
       // can't recurse and has conditions, continue
+      Trace("rpc-debug2") << "...fail (recursion limit)" << std::endl;
       continue;
     }
     // Get the conditions, substituted { vars -> subs } and with side conditions
@@ -151,6 +154,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     if (!rpr.getObligations(vars, subs, vcs))
     {
       // cannot get conditions, likely due to failed side condition
+      Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
       continue;
     }
 

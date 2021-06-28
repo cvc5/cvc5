@@ -886,9 +886,19 @@ void LfscPrinter::printDslRule(std::ostream& out,
            << std::endl;
       // body must be converted to incorporate list semantics for substitutions
       // first traversal applies nary_elim to required n-ary applications
-      // TODO: do this only on the RHS of conclusions?
       LfscListScNodeConverter llsncp(d_tproc, listVars, true);
-      Node tscp = llsncp.convert(sterm);
+      Node tscp;
+      if (isConclusion)
+      {
+        Assert (sterm.getKind()==EQUAL);
+        // optimization: don't need nary_elim for heads
+        tscp = llsncp.convert(sterm[1]);
+        tscp = sterm[0].eqNode(tscp);
+      }
+      else
+      {
+        tscp = llsncp.convert(sterm);
+      }
       // second traversal converts to LFSC form
       Node t = d_tproc.convert(tscp);
       // third traversal applies nary_concat where list variables are used

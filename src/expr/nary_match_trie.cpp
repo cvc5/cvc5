@@ -64,7 +64,7 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
       // if we matched, there must be a data member at this node
       Assert(!mt->d_data.isNull());
       // notify match?
-      // Assert(n == theory::listSubstitute(mt->d_data, vars, subs));
+      Assert(n == expr::narySubstitute(mt->d_data, vars, subs));
       Trace("match-debug") << "notify : " << mt->d_data << std::endl;
       if (!ntm->notify(n, mt->d_data, vars, subs))
       {
@@ -161,13 +161,18 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
         else
         {
           next = syms.back();
-          currChildren.push_back(next);
-          syms.pop_back();
           curr.d_index++;
-          // check subtyping in the (non-list) case
-          if (!var.getType().isSubtypeOf(next.getType()))
+          // we could be at the end of an n-ary operator, in which case we
+          // do not match
+          if (!next.isNull())
           {
-            next = Node::null();
+            currChildren.push_back(next);
+            syms.pop_back();
+            // check subtyping in the (non-list) case
+            if (!var.getType().isSubtypeOf(next.getType()))
+            {
+              next = Node::null();
+            }
           }
         }
         // check if it is already bound, do the binding if necessary
