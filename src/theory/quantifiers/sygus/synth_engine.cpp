@@ -164,7 +164,7 @@ void SynthEngine::checkOwnership(Node q)
   // take ownership of quantified formulas with sygus attribute, and function
   // definitions when options::sygusRecFun is true.
   QuantAttributes& qa = d_qreg.getQuantAttributes();
-  if (qa.isSygus(q) || (options::sygusRecFun() && qa.isFunDef(q)))
+  if (qa.isSygus(q))
   {
     d_qreg.setOwner(q, this, 2);
   }
@@ -174,11 +174,7 @@ void SynthEngine::registerQuantifier(Node q)
 {
   Trace("cegqi-debug") << "SynthEngine: Register quantifier : " << q
                        << std::endl;
-  if (d_qreg.getOwner(q) != this)
-  {
-    return;
-  }
-  if (d_qreg.getQuantAttributes().isFunDef(q))
+  if (d_qreg.getQuantAttributes().isFunDef(q) && options::sygusRecFun())
   {
     Assert(options::sygusRecFun());
     // If it is a recursive function definition, add it to the function
@@ -186,6 +182,10 @@ void SynthEngine::registerQuantifier(Node q)
     Trace("cegqi") << "Registering function definition : " << q << "\n";
     FunDefEvaluator* fde = d_treg.getTermDatabaseSygus()->getFunDefEvaluator();
     fde->assertDefinition(q);
+    return;
+  }
+  if (d_qreg.getOwner(q) != this)
+  {
     return;
   }
   Trace("cegqi") << "Register conjecture : " << q << std::endl;

@@ -53,6 +53,8 @@ class FunDefEvaluator
    */
   bool hasDefinitions() const;
 
+  /** Get definitions */
+  const std::vector<Node>& getDefinitions() const;
  private:
   /** information cached per function definition */
   class FunDefInfo
@@ -65,6 +67,8 @@ class FunDefEvaluator
   };
   /** maps functions to the above information */
   std::map<Node, FunDefInfo> d_funDefMap;
+  /** list of all definitions */
+  std::vector<Node> d_funDefs;
   /** evaluator utility */
   Evaluator d_eval;
 };

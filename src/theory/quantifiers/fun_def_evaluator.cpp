@@ -41,6 +41,7 @@ void FunDefEvaluator::assertDefinition(Node q)
   Node f = h.hasOperator() ? h.getOperator() : h;
   Assert(d_funDefMap.find(f) == d_funDefMap.end())
       << "FunDefEvaluator::assertDefinition: function already defined";
+      d_funDefs.push_back(q);
   FunDefInfo& fdi = d_funDefMap[f];
   fdi.d_body = QuantAttributes::getFunDefBody(q);
   Assert(!fdi.d_body.isNull());
@@ -250,6 +251,11 @@ Node FunDefEvaluator::evaluate(Node n) const
 }
 
 bool FunDefEvaluator::hasDefinitions() const { return !d_funDefMap.empty(); }
+
+const std::vector<Node>& FunDefEvaluator::getDefinitions() const
+{
+  return d_funDefs;
+}
 
 }  // namespace quantifiers
 }  // namespace theory
