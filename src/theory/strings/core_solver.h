@@ -79,8 +79,8 @@ class CoreInferInfo
 class CoreSolver
 {
   friend class InferenceManager;
-  using NodeIntMap = context::CDHashMap<Node, int, NodeHashFunction>;
-  using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
+  using NodeIntMap = context::CDHashMap<Node, int>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   CoreSolver(SolverState& s,
