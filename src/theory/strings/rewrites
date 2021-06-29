@@ -21,4 +21,4 @@
 
 ; Regular expression rules
 (define-rule re-concat-emp ((xs RegLan :list) (ys RegLan :list)) (re.++ xs (str.to_re "") ys) (re.++ xs ys))
-
+(define-rule re-concat-star-swap ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs r (re.* r) ys) (re.++ xs (re.* r) r ys))
