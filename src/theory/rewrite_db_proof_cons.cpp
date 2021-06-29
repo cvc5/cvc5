@@ -15,25 +15,30 @@
 
 #include "theory/rewrite_db_proof_cons.h"
 
+#include "expr/attribute.h"
+#include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewrite_db_term_process.h"
-#include "expr/attribute.h"
-#include "expr/bound_var_manager.h"
 
 using namespace cvc5::rewriter;
 using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace theory {
-  
+
 struct InflectionVarAttributeId
 {
 };
 using InflectionVarAttribute = expr::Attribute<InflectionVarAttributeId, Node>;
 
 RewriteDbProofCons::RewriteDbProofCons(RewriteDb* db, ProofNodeManager* pnm)
-    : d_notify(*this), d_trrc(pnm), d_db(db), d_pnm(pnm), d_eval(), d_currRecLimit(0)
+    : d_notify(*this),
+      d_trrc(pnm),
+      d_db(db),
+      d_pnm(pnm),
+      d_eval(),
+      d_currRecLimit(0)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -144,11 +149,12 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     Trace("rpc-debug2") << "Substituted RHS: " << stgt << std::endl;
     Trace("rpc-debug2") << "     Target RHS: " << d_target[1] << std::endl;
     // inflection substitution, used if conclusion does not exactly match
-    std::unordered_map<Node, std::pair<Node,Node>> isubs;
+    std::unordered_map<Node, std::pair<Node, Node>> isubs;
     if (stgt != d_target[1])
     {
       Trace("rpc-debug2") << "...fail (conc mismatch)" << std::endl;
-      // if not a perfect match, infer the (conditional) rule that would have matched
+      // if not a perfect match, infer the (conditional) rule that would have
+      // matched
       Node irhs = inflectMatch(conc[1], d_target[1], vars, subs, isubs);
       Trace("rpc-debug2") << "Would have succeeded with rule: " << std::endl;
       std::vector<Node> conds;
@@ -157,11 +163,13 @@ bool RewriteDbProofCons::notifyMatch(Node s,
         Node eq = i.first.eqNode(i.second.first);
         conds.push_back(eq);
         // orient: target comes second
-        Node seq = expr::narySubstitute(i.second.first, vars, subs).eqNode(i.second.second);
+        Node seq = expr::narySubstitute(i.second.first, vars, subs)
+                       .eqNode(i.second.second);
         iconds.push_back(seq);
         Trace("rpc-debug2") << eq << " ";
       }
-      Trace("rpc-debug2") << "=> (" << conc[0] << " == " << irhs << ")" << std::endl;
+      Trace("rpc-debug2") << "=> (" << conc[0] << " == " << irhs << ")"
+                          << std::endl;
       Trace("rpc-debug2") << "Inflection conditions: " << iconds << std::endl;
     }
     // do its conditions hold?
@@ -404,7 +412,9 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
           // recurse on premises
           visit.insert(visit.end(), ps.begin(), ps.end());
           // recurse on inflection conditions
-          visit.insert(visit.end(), itd->second.d_iconds.begin(), itd->second.d_iconds.end());
+          visit.insert(visit.end(),
+                       itd->second.d_iconds.begin(),
+                       itd->second.d_iconds.end());
         }
       }
     }
@@ -422,14 +432,15 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       std::vector<Node> subs(args.begin() + 1, args.end());
       Node conc = rpr.getConclusionFor(subs);
       cdp->addStep(conc, PfRule::DSL_REWRITE, premises[cur], args);
-      
+
       // if we had inflection conditions, we need to use a term conversion
       if (!itd->second.d_iconds.empty())
       {
         Trace("rpc-debug") << "Proved: " << cur << std::endl;
         Trace("rpc-debug") << "From: " << conc << std::endl;
-        Trace("rpc-debug") << "Used inflection conditions: " << itd->second.d_iconds << std::endl;
-        Assert (cur[1]!=conc[1]);
+        Trace("rpc-debug") << "Used inflection conditions: "
+                           << itd->second.d_iconds << std::endl;
+        Assert(cur[1] != conc[1]);
         Node eqk = conc[1].eqNode(cur[1]);
         Trace("rpc-debug") << "Prove skeleton: " << eqk << std::endl;
         ensureProofSkeletonInternal(cdp, conc[1], cur[1]);
@@ -439,11 +450,14 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
   } while (!visit.empty());
   return true;
 }
-void RewriteDbProofCons::ensureProofSkeletonInternal(CDProof* cdp, Node a, Node b)
+void RewriteDbProofCons::ensureProofSkeletonInternal(CDProof* cdp,
+                                                     Node a,
+                                                     Node b)
 {
-  std::unordered_map<std::pair<TNode, TNode>, bool, TNodePairHashFunction> visited;
-  std::unordered_map<std::pair<TNode, TNode>, bool, TNodePairHashFunction>::iterator
-      it;
+  std::unordered_map<std::pair<TNode, TNode>, bool, TNodePairHashFunction>
+      visited;
+  std::unordered_map<std::pair<TNode, TNode>, bool, TNodePairHashFunction>::
+      iterator it;
   std::unordered_map<Node, Node>::iterator subsIt;
 
   std::vector<std::pair<TNode, TNode>> stack;
@@ -480,27 +494,30 @@ void RewriteDbProofCons::ensureProofSkeletonInternal(CDProof* cdp, Node a, Node 
         }
         // otherwise, equality should be proven already
       }
-      // otherwise the two terms do not match, and the equality should be proven already
+      // otherwise the two terms do not match, and the equality should be proven
+      // already
     }
     else if (!it->second)
     {
       // we match due to children, thus, congruence
-      Assert (curr.first.getNumChildren() > 0);
-      Assert (curr.first.getOperator() == curr.second.getOperator());
-      Assert (curr.first.getNumChildren() == curr.second.getNumChildren());
+      Assert(curr.first.getNumChildren() > 0);
+      Assert(curr.first.getOperator() == curr.second.getOperator());
+      Assert(curr.first.getNumChildren() == curr.second.getNumChildren());
       std::vector<Node> childPf;
-      for (size_t i=0, nchild = curr.first.getNumChildren(); i<nchild; i++)
+      for (size_t i = 0, nchild = curr.first.getNumChildren(); i < nchild; i++)
       {
         childPf.push_back(curr.first[i].eqNode(curr.second[i]));
       }
       std::vector<Node> argsPf;
       argsPf.push_back(ProofRuleChecker::mkKindNode(curr.first.getKind()));
-      if (curr.first.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      if (curr.first.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
         argsPf.push_back(curr.first.getOperator());
       }
       Node eq = curr.first.eqNode(curr.second);
       Trace("rpc-debug") << "Add cong step " << eq << std::endl;
-      cdp->addStep(curr.first.eqNode(curr.second), PfRule::CONG, childPf, argsPf);
+      cdp->addStep(
+          curr.first.eqNode(curr.second), PfRule::CONG, childPf, argsPf);
     }
   }
 }
@@ -516,7 +533,6 @@ Node RewriteDbProofCons::doEvaluate(Node n)
   d_evalCache[n] = nev;
   return nev;
 }
-
 Node RewriteDbProofCons::inflectMatch(Node n, Node s, 
                    const std::vector<Node>& vars,
                    const std::vector<Node>& subs, std::unordered_map<Node, std::pair<Node,Node>>& isubs)
@@ -581,11 +597,11 @@ Node RewriteDbProofCons::inflectMatch(Node n, Node s,
       {
         // if the two subterms are not equal, make sure that their operators are
         // equal
-        // we compare operators instead of kinds because different terms may have
-        // the same kind (both `(id x)` and `(square x)` have kind APPLY_UF)
-        // since many builtin operators like `PLUS` allow arbitrary number of
-        // arguments, we also need to check if the two subterms have the same
-        // number of children
+        // we compare operators instead of kinds because different terms may
+        // have the same kind (both `(id x)` and `(square x)` have kind
+        // APPLY_UF) since many builtin operators like `PLUS` allow arbitrary
+        // number of arguments, we also need to check if the two subterms have
+        // the same number of children
         if (curr.first.getNumChildren() != curr.second.getNumChildren()
             || curr.first.getOperator() != curr.second.getOperator())
         {
@@ -601,10 +617,11 @@ Node RewriteDbProofCons::inflectMatch(Node n, Node s,
             // eagerly check type constraints, which is important for cases
             // like (select A x) (select B s) where A and B are arrays with
             // the same element type but different index types.
-            if (!curr.first[i].getType().isComparableTo(curr.second[i].getType()))
+            if (!curr.first[i].getType().isComparableTo(
+                    curr.second[i].getType()))
             {
               matchSuccess = false;
-              stack.resize(stack.size()-i-1);
+              stack.resize(stack.size() - i - 1);
               // visited[curr] will be overwritten below
               break;
             }
@@ -619,7 +636,9 @@ Node RewriteDbProofCons::inflectMatch(Node n, Node s,
         size_t inflectId = inflectCounter[tn];
         Node idn = nm->mkConst(Rational(inflectId));
         Node v = bvm->mkBoundVar<InflectionVarAttribute>(idn, tn);
-        Trace("rpc-inflect") << "- inflect " << curr.first << " == " << curr.second << " via " << v << std::endl;
+        Trace("rpc-inflect")
+            << "- inflect " << curr.first << " == " << curr.second << " via "
+            << v << std::endl;
         inflectCounter[tn]++;
         visited[curr] = v;
         isubs[v] = curr;
@@ -631,7 +650,8 @@ Node RewriteDbProofCons::inflectMatch(Node n, Node s,
       Node ret = curr.first;
       bool childChanged = false;
       std::vector<Node> children;
-      if (curr.first.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      if (curr.first.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
         children.push_back(curr.first.getOperator());
       }
       for (size_t i = 0, nc = curr.first.getNumChildren(); i < nc; ++i)
@@ -643,7 +663,8 @@ Node RewriteDbProofCons::inflectMatch(Node n, Node s,
         childChanged = childChanged || curr.first[i] != it->second;
         children.push_back(it->second);
       }
-      if (childChanged) {
+      if (childChanged)
+      {
         ret = nm->mkNode(curr.first.getKind(), children);
       }
       visited[curr] = ret;

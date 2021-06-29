@@ -120,7 +120,7 @@ class RewriteDbProofCons
   /**
    * Inflect match, if possible, return a modified form of n that matches s
    * with subs.
-   * 
+   *
    * In particular, for return term ret, we have:
    * ret * isubs.first = n
    * ret * isubs.second = s
