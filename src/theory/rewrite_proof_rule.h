@@ -76,6 +76,8 @@ class RewriteProofRule
                       std::vector<Node>& vcs) const;
   /** Get conclusion of the rule */
   Node getConclusion() const;
+  /** Get conclusion of the rule for ss */
+  Node getConclusionFor(const std::vector<Node>& ss) const;
 
   /**
    * Is variable explicit? An explicit variable is one that does not occur

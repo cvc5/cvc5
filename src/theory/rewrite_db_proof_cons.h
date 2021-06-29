@@ -70,6 +70,8 @@ class RewriteDbProofCons
   RewriteDbNodeConverter d_rdnc;
   /** Pointer to rewrite database */
   RewriteDb* d_db;
+  /** Pointer to proof node manager */
+  ProofNodeManager* d_pnm;
   /** the evaluator utility */
   Evaluator d_eval;
   class ProvenInfo
@@ -103,6 +105,8 @@ class RewriteDbProofCons
   bool proveInternalBase(Node eqi, rewriter::DslPfRule& id);
   /** ensure proof for proven fact exists in cdp */
   bool ensureProofInternal(CDProof* cdp, Node eqi);
+  /** ensure proof skeleton */
+  void ensureProofSkeletonInternal(CDProof* cdp, Node a, Node b);
   /** do evaluate */
   Node doEvaluate(Node n);
   /**

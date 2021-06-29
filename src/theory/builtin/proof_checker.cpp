@@ -469,9 +469,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
         return Node::null();
       }
     }
-    // conclusion is substituted form of rewrite rule conclusion
-    Node conc = rpr.getConclusion();
-    return expr::narySubstitute(conc, varList, subs);
+    return rpr.getConclusionFor(subs);
   }
 
   // no rule

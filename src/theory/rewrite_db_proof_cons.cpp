@@ -33,7 +33,7 @@ struct InflectionVarAttributeId
 using InflectionVarAttribute = expr::Attribute<InflectionVarAttributeId, Node>;
 
 RewriteDbProofCons::RewriteDbProofCons(RewriteDb* db, ProofNodeManager* pnm)
-    : d_notify(*this), d_trrc(pnm), d_db(db), d_eval(), d_currRecLimit(0)
+    : d_notify(*this), d_trrc(pnm), d_db(db), d_pnm(pnm), d_eval(), d_currRecLimit(0)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -148,10 +148,6 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     if (stgt != d_target[1])
     {
       Trace("rpc-debug2") << "...fail (conc mismatch)" << std::endl;
-      if (!recurse)
-      {
-        continue;
-      }
       // if not a perfect match, infer the (conditional) rule that would have matched
       Node irhs = inflectMatch(conc[1], d_target[1], isubs);
       Trace("rpc-debug2") << "Would have succeeded with rule: " << std::endl;
@@ -166,21 +162,14 @@ bool RewriteDbProofCons::notifyMatch(Node s,
         Trace("rpc-debug2") << eq << " ";
       }
       Trace("rpc-debug2") << "=> (" << conc[0] << " == " << irhs << ")" << std::endl;
-      Trace("rpc-debug2") << "Instances of conditions: " << iconds << std::endl;
-      // FIXME: allow
-      continue;
+      Trace("rpc-debug2") << "Inflection conditions: " << iconds << std::endl;
     }
     // do its conditions hold?
     bool condSuccess = true;
-    if (!recurse && (rpr.hasConditions() || !iconds.empty()))
-    {
-      // can't recurse and has conditions, continue
-      Trace("rpc-debug2") << "...fail (recursion limit)" << std::endl;
-      continue;
-    }
     // Get the conditions, substituted { vars -> subs } and with side conditions
     // evaluated.
     std::vector<Node> vcs;
+    // add inflection conditions
     vcs.insert(vcs.begin(), iconds.begin(), iconds.end());
     if (!rpr.getObligations(vars, subs, vcs))
     {
@@ -188,7 +177,6 @@ bool RewriteDbProofCons::notifyMatch(Node s,
       Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
       continue;
     }
-
     // First, check which premises are non-trivial, and if there is a trivial
     // failure. Those that are non-trivial are added to condToProve.
     std::vector<Node> condToProve;
@@ -214,6 +202,12 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     }
     if (!condSuccess)
     {
+      continue;
+    }
+    if (!recurse && !condToProve.empty())
+    {
+      // can't recurse and has conditions, continue
+      Trace("rpc-debug2") << "...fail (recursion limit)" << std::endl;
       continue;
     }
     // if no trivial failures, go back and try to recursively prove
@@ -316,6 +310,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
 
 bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
 {
+  // TODO: use single internal cdp to improve subproof sharing?
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, std::vector<Node>> premises;
@@ -329,12 +324,13 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
   do
   {
     cur = visit.back();
-    Trace("rpc-debug") << "Ensure proof for " << cur << std::endl;
     visit.pop_back();
     it = visited.find(cur);
+    itd = d_pcache.find(cur);
     Assert(cur.getKind() == kind::EQUAL);
     if (it == visited.end())
     {
+      Trace("rpc-debug") << "Ensure proof for " << cur << std::endl;
       visit.push_back(cur);
       // may already have a proof rule from a previous call
       if (cdp->hasStep(cur))
@@ -343,7 +339,6 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       }
       else
       {
-        itd = d_pcache.find(cur);
         Assert(itd != d_pcache.end());
         Assert(itd->second.d_id != DslPfRule::FAIL);
         if (itd->second.d_id == DslPfRule::REFL)
@@ -408,27 +403,106 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
               nm->mkConst(Rational(static_cast<uint32_t>(itd->second.d_id))));
           // recurse on premises
           visit.insert(visit.end(), ps.begin(), ps.end());
+          // recurse on inflection conditions
+          visit.insert(visit.end(), itd->second.d_iconds.begin(), itd->second.d_iconds.end());
         }
       }
     }
     else if (!it->second)
     {
+      Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
       // Now, add the proof rule. We do this after its children proofs already
       // exist.
       visited[cur] = true;
       Assert(premises.find(cur) != premises.end());
       Assert(pfArgs.find(cur) != pfArgs.end());
-      cdp->addStep(cur, PfRule::DSL_REWRITE, premises[cur], pfArgs[cur]);
+      // get the conclusion
+      const RewriteProofRule& rpr = d_db->getRule(itd->second.d_id);
+      const std::vector<Node>& args = pfArgs[cur];
+      std::vector<Node> subs(args.begin() + 1, args.end());
+      Node conc = rpr.getConclusionFor(subs);
+      cdp->addStep(conc, PfRule::DSL_REWRITE, premises[cur], args);
       
       // if we had inflection conditions, we need to use a term conversion
       if (!itd->second.d_iconds.empty())
       {
+        Trace("rpc-debug") << "Proved: " << cur << std::endl;
+        Trace("rpc-debug") << "From: " << conc << std::endl;
         Trace("rpc-debug") << "Used inflection conditions: " << itd->second.d_iconds << std::endl;
-        AlwaysAssert(false);
+        Assert (cur[1]!=conc[1]);
+        Node eqk = conc[1].eqNode(cur[1]);
+        Trace("rpc-debug") << "Prove skeleton: " << eqk << std::endl;
+        ensureProofSkeletonInternal(cdp, conc[1], cur[1]);
+        cdp->addStep(cur, PfRule::TRANS, {conc, eqk}, {});
       }
     }
   } while (!visit.empty());
   return true;
+}
+void RewriteDbProofCons::ensureProofSkeletonInternal(CDProof* cdp, Node a, Node b)
+{
+  std::unordered_map<std::pair<TNode, TNode>, bool, TNodePairHashFunction> visited;
+  std::unordered_map<std::pair<TNode, TNode>, bool, TNodePairHashFunction>::iterator
+      it;
+  std::unordered_map<Node, Node>::iterator subsIt;
+
+  std::vector<std::pair<TNode, TNode>> stack;
+  stack.emplace_back(a, b);
+  std::pair<TNode, TNode> curr;
+
+  while (!stack.empty())
+  {
+    curr = stack.back();
+    stack.pop_back();
+    it = visited.find(curr);
+    if (it == visited.end())
+    {
+      visited[curr] = true;
+      if (curr.first == curr.second)
+      {
+        Node eq = curr.first.eqNode(curr.second);
+        Trace("rpc-debug") << "Add refl step " << eq << std::endl;
+        // holds trivially, add REFL
+        cdp->addStep(eq, PfRule::REFL, {}, {curr.first});
+      }
+      else if (curr.first.getNumChildren() > 0)
+      {
+        if (curr.first.getNumChildren() == curr.second.getNumChildren()
+            && curr.first.getOperator() == curr.second.getOperator())
+        {
+          visited[curr] = false;
+          stack.push_back(curr);
+          // recurse on children
+          for (size_t i = 0, n = curr.first.getNumChildren(); i < n; ++i)
+          {
+            stack.emplace_back(curr.first[i], curr.second[i]);
+          }
+        }
+        // otherwise, equality should be proven already
+      }
+      // otherwise the two terms do not match, and the equality should be proven already
+    }
+    else if (!it->second)
+    {
+      // we match due to children, thus, congruence
+      Assert (curr.first.getNumChildren() > 0);
+      Assert (curr.first.getOperator() == curr.second.getOperator());
+      Assert (curr.first.getNumChildren() == curr.second.getNumChildren());
+      std::vector<Node> childPf;
+      for (size_t i=0, nchild = curr.first.getNumChildren(); i<nchild; i++)
+      {
+        childPf.push_back(curr.first[i].eqNode(curr.second[i]));
+      }
+      std::vector<Node> argsPf;
+      argsPf.push_back(ProofRuleChecker::mkKindNode(curr.first.getKind()));
+      if (curr.first.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        argsPf.push_back(curr.first.getOperator());
+      }
+      Node eq = curr.first.eqNode(curr.second);
+      Trace("rpc-debug") << "Add cong step " << eq << std::endl;
+      cdp->addStep(curr.first.eqNode(curr.second), PfRule::CONG, childPf, argsPf);
+    }
+  }
 }
 
 Node RewriteDbProofCons::doEvaluate(Node n)
