@@ -111,6 +111,17 @@ class RewriteDbProofCons
                    Node n,
                    std::vector<Node>& vars,
                    std::vector<Node>& subs);
+  /**
+   * Inflect match, if possible, return a modified form of n that matches s
+   * with subs.
+   * 
+   * In particular, for return term ret, we have:
+   * ret * isubs = n
+   * ret * subs = s
+   * where subs and isubs are "weakly compatible", i.e. they do not map
+   * the same variable to terms that are definitely semantically different.
+   */
+  Node inflectMatch(Node n, Node s, std::unordered_map<Node, Node>& isubs, std::unordered_map<Node, Node>& subs);
 };
 
 }  // namespace theory
