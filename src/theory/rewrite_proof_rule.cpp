@@ -195,7 +195,7 @@ bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
   // otherwise, just substitute into each condition
   for (const Node& c : d_obGen)
   {
-    Node sc = c.substitute(vs.begin(), vs.end(), ss.begin(), ss.end());
+    Node sc = expr::narySubstitute(c, vs, ss);
     vcs.push_back(sc);
   }
   return true;

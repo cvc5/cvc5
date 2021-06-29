@@ -83,6 +83,8 @@ class RewriteDbProofCons
     std::vector<Node> d_subs;
     /** the maximum depth tried for rules that have failed */
     uint32_t d_failMaxDepth;
+    /** The inflection conditions */
+    std::vector<Node> d_iconds;
   };
   /** cache for exists rule */
   std::unordered_map<Node, ProvenInfo> d_pcache;
@@ -116,12 +118,10 @@ class RewriteDbProofCons
    * with subs.
    * 
    * In particular, for return term ret, we have:
-   * ret * isubs = n
-   * ret * subs = s
-   * where subs and isubs are "weakly compatible", i.e. they do not map
-   * the same variable to terms that are definitely semantically different.
+   * ret * isubs.first = n
+   * ret * isubs.second = s
    */
-  Node inflectMatch(Node n, Node s, std::unordered_map<Node, Node>& isubs, std::unordered_map<Node, Node>& subs);
+  Node inflectMatch(Node n, Node s, std::unordered_map<Node, std::pair<Node,Node>>& isubs);
 };
 
 }  // namespace theory

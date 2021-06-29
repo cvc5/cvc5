@@ -140,32 +140,39 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     Node conc = rpr.getConclusion();
     Assert(conc.getKind() == EQUAL && d_target.getKind() == EQUAL);
     Node stgt = expr::narySubstitute(conc[1], vars, subs);
+    std::vector<Node> iconds;
     Trace("rpc-debug2") << "Substituted RHS: " << stgt << std::endl;
     Trace("rpc-debug2") << "     Target RHS: " << d_target[1] << std::endl;
+    // inflection substitution, used if conclusion does not exactly match
+    std::unordered_map<Node, std::pair<Node,Node>> isubs;
     if (stgt != d_target[1])
     {
       Trace("rpc-debug2") << "...fail (conc mismatch)" << std::endl;
-      // auto-infer the rule that would have matched
-      /*
-      std::unordered_map<Node, Node> isubs;
-      std::unordered_map<Node, Node> tsubs;
-      Node irhs = inflectMatch(conc[1], d_target[1], isubs, tsubs);
-      
+      if (!recurse)
+      {
+        continue;
+      }
+      // if not a perfect match, infer the (conditional) rule that would have matched
+      Node irhs = inflectMatch(conc[1], d_target[1], isubs);
       Trace("rpc-debug2") << "Would have succeeded with rule: " << std::endl;
       std::vector<Node> conds;
-      for (const std::pair<Node, Node>& i : isubs)
+      for (const std::pair<Node, std::pair<Node, Node>>& i : isubs)
       {
-        Node eq = i.first.eqNode(i.second);
+        Node eq = i.first.eqNode(i.second.first);
         conds.push_back(eq);
+        // orient: target comes second
+        Node seq = expr::narySubstitute(i.second.first, vars, subs).eqNode(i.second.second);
+        iconds.push_back(seq);
         Trace("rpc-debug2") << eq << " ";
       }
       Trace("rpc-debug2") << "=> (" << conc[0] << " == " << irhs << ")" << std::endl;
-      */
+      Trace("rpc-debug2") << "Instances of conditions: " << iconds << std::endl;
+      // FIXME: allow
       continue;
     }
     // do its conditions hold?
     bool condSuccess = true;
-    if (!recurse && rpr.hasConditions())
+    if (!recurse && (rpr.hasConditions() || !iconds.empty()))
     {
       // can't recurse and has conditions, continue
       Trace("rpc-debug2") << "...fail (recursion limit)" << std::endl;
@@ -174,6 +181,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     // Get the conditions, substituted { vars -> subs } and with side conditions
     // evaluated.
     std::vector<Node> vcs;
+    vcs.insert(vcs.begin(), iconds.begin(), iconds.end());
     if (!rpr.getObligations(vars, subs, vcs))
     {
       // cannot get conditions, likely due to failed side condition
@@ -237,6 +245,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     pi.d_id = id;
     pi.d_vars = vars;
     pi.d_subs = subs;
+    pi.d_iconds = iconds;
     // don't need to notify any further matches, we are done
     return false;
   }
@@ -346,6 +355,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
         else if (itd->second.d_id == DslPfRule::EVAL)
         {
           visited[cur] = true;
+          // NOTE: this could just evaluate the equality itself
           Assert(cur.getKind() == kind::EQUAL);
           std::vector<Node> transc;
           for (unsigned i = 0; i < 2; i++)
@@ -409,6 +419,13 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       Assert(premises.find(cur) != premises.end());
       Assert(pfArgs.find(cur) != pfArgs.end());
       cdp->addStep(cur, PfRule::DSL_REWRITE, premises[cur], pfArgs[cur]);
+      
+      // if we had inflection conditions, we need to use a term conversion
+      if (!itd->second.d_iconds.empty())
+      {
+        Trace("rpc-debug") << "Used inflection conditions: " << itd->second.d_iconds << std::endl;
+        AlwaysAssert(false);
+      }
     }
   } while (!visit.empty());
   return true;
@@ -426,7 +443,7 @@ Node RewriteDbProofCons::doEvaluate(Node n)
   return nev;
 }
 
-Node RewriteDbProofCons::inflectMatch(Node n, Node s, std::unordered_map<Node, Node>& isubs, std::unordered_map<Node, Node>& subs)
+Node RewriteDbProofCons::inflectMatch(Node n, Node s, std::unordered_map<Node, std::pair<Node,Node>>& isubs)
 {
   Trace("rpc-inflect") << "InflectMatch " << n << " == " << s << std::endl;
   NodeManager * nm = NodeManager::currentNM();
@@ -434,6 +451,8 @@ Node RewriteDbProofCons::inflectMatch(Node n, Node s, std::unordered_map<Node, N
   std::unordered_map<std::pair<TNode, TNode>, Node, TNodePairHashFunction> visited;
   std::unordered_map<std::pair<TNode, TNode>, Node, TNodePairHashFunction>::iterator
       it;
+  // the ordinary substitution
+  std::unordered_map<Node, Node> subs;
   std::unordered_map<Node, Node>::iterator subsIt;
   
   std::unordered_map<TypeNode, size_t> inflectCounter;
@@ -534,8 +553,7 @@ Node RewriteDbProofCons::inflectMatch(Node n, Node s, std::unordered_map<Node, N
         Trace("rpc-inflect") << "- inflect " << curr.first << " == " << curr.second << " via " << v << std::endl;
         inflectCounter[tn]++;
         visited[curr] = v;
-        isubs[v] = curr.first;
-        subs[v] = curr.second;
+        isubs[v] = curr;
       }
     }
     else if (it->second.isNull())
