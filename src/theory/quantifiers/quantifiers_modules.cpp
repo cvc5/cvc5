@@ -112,6 +112,11 @@ void QuantifiersModules::initialize(QuantifiersState& qs,
     d_sygus_inst.reset(new SygusInst(qs, qim, qr, tr));
     modules.push_back(d_sygus_inst.get());
   }
+
+  for (QuantifiersModule* qm : modules)
+  {
+    qm->init();
+  }
 }
 
 }  // namespace quantifiers

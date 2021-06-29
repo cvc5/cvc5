@@ -283,7 +283,7 @@ class ConjectureGenerator : public QuantifiersModule
   Node d_true;
   Node d_false;
   /** (universal) equaltity engine */
-  eq::EqualityEngine d_uequalityEngine;
+  std::unique_ptr<eq::EqualityEngine> d_uequalityEngine;
   /** pending adds */
   std::vector< Node > d_upendingAdds;
   /** relevant terms */
@@ -443,6 +443,7 @@ private:  //information about ground equivalence classes
                       TermRegistry& tr);
   ~ConjectureGenerator();
 
+  void init() override;
   /* needs check */
   bool needsCheck(Theory::Effort e) override;
   /* reset at a round */

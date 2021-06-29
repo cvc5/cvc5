@@ -64,6 +64,13 @@ class QuantifiersModule
                     quantifiers::QuantifiersRegistry& qr,
                     quantifiers::TermRegistry& tr);
   virtual ~QuantifiersModule() {}
+  /** Initialize the module.
+   *
+   * This method is called after all the modules have been constructed. It can
+   * be used to initialize class members that expect the module to be fully
+   * constructed (e.g., because they may result in callbacks to the module).
+   */
+  virtual void init() {}
   /** Presolve.
    *
    * Called at the beginning of check-sat call.
