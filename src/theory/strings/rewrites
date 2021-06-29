@@ -1,5 +1,10 @@
 (define-rule str-eq-refl ((t String)) (= t t) true)
 (define-rule str-eq-symm ((t String) (s String)) (= t s) (= s t))
+
+
+(define-rule str-concat-flatten ((xs String :list) (s String) (ys String :list) (zs String :list)) (str.++ xs (str.++ s ys) zs) (str.++ xs s ys zs))
+
+
 (define-rule substr-empty-str ((n Int) (m Int)) (str.substr "" n m) "")
 
 (define-cond-rule str-len-replace-inv ((t String) (s String) (r String)) 
@@ -22,3 +27,5 @@
 ; Regular expression rules
 (define-rule re-concat-emp ((xs RegLan :list) (ys RegLan :list)) (re.++ xs (str.to_re "") ys) (re.++ xs ys))
 
+;(define-rule re-concat-star-swap ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs r (re.* r) ys) (re.++ xs (re.* r) r ys))
+(define-rule re-concat-flatten ((xs RegLan :list) (s RegLan) (ys RegLan :list) (zs RegLan :list)) (re.++ xs (re.++ s ys) zs) (re.++ xs s ys zs))
