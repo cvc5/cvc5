@@ -22,8 +22,8 @@
 #ifndef CVC5__PREPROCESSING__PASSES__INT_TO_BV_H
 #define CVC5__PREPROCESSING__PASSES__INT_TO_BV_H
 
-#include "preprocessing/preprocessing_pass.h"
 #include "expr/node.h"
+#include "preprocessing/preprocessing_pass.h"
 
 namespace cvc5 {
 namespace preprocessing {

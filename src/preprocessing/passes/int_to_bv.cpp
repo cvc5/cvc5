@@ -218,7 +218,8 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
                                      nm->mkBitVectorType(size),
                                      "Variable introduced in intToBV pass");
         }
-        // d_preprocContext->addSubstitution(current, result);
+        Node bv2nat = nm->mkNode(kind::BITVECTOR_TO_NAT, result);
+        d_preprocContext->addSubstitution(current, bv2nat);
       }
       else if (current.isConst())
       {
