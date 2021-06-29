@@ -365,12 +365,22 @@ if(ENABLE_COVERAGE)
   # prevent this we always return with exit code 0 after the ctest command has
   # finished.
   setup_target_for_coverage_gcovr_html(
-    NAME coverage
+    NAME coverage-test
     EXECUTABLE
       ctest -j${CTEST_NTHREADS} -LE "example"
         --output-on-failure $$ARGS || exit 0
     DEPENDS
       build-tests)
+
+  # Adds targets `coverage` and `coverage-reset` for manually generating
+  # coverage reports for specific executions.
+  #
+  # Target coverage-reset resets all the coverage counters to zero, while
+  # target coverage will generate a coverage report for all executions since
+  # the last coverage-reset.
+  setup_target_for_coverage_lcov_no_executable(
+    NAME coverage
+    DEPENDENCIES cvc5-bin)
 endif()
 
 if(ENABLE_DEBUG_CONTEXT_MM)

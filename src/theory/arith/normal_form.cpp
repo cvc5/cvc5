@@ -78,6 +78,11 @@ bool Variable::isIAndMember(Node n)
          && Polynomial::isMember(n[1]);
 }
 
+bool Variable::isPow2Member(Node n)
+{
+  return n.getKind() == kind::POW2 && Polynomial::isMember(n[0]);
+}
+
 bool Variable::isDivMember(Node n){
   switch(n.getKind()){
   case kind::DIVISION:
