@@ -244,7 +244,7 @@ Node RewriteProofRule::getConclusion() const { return d_conc; }
 
 Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss) const
 {
-  Assert (d_fvs.size()==ss.size());
+  Assert(d_fvs.size() == ss.size());
   return expr::narySubstitute(d_conc, d_fvs, ss);
 }
 

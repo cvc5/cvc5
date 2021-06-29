@@ -120,12 +120,14 @@ class RewriteDbProofCons
   /**
    * Inflect match, if possible, return a modified form of n that matches s
    * with subs.
-   * 
+   *
    * In particular, for return term ret, we have:
    * ret * isubs.first = n
    * ret * isubs.second = s
    */
-  Node inflectMatch(Node n, Node s, std::unordered_map<Node, std::pair<Node,Node>>& isubs);
+  Node inflectMatch(Node n,
+                    Node s,
+                    std::unordered_map<Node, std::pair<Node, Node>>& isubs);
 };
 
 }  // namespace theory
