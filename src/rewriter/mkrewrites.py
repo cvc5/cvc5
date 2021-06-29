@@ -123,9 +123,9 @@ class Rewrites:
 
 
 def validate_rule(rule):
-    # Check that all variables are used
+    # Check that all variables are matched with the left-hand side of the rule
     used_vars = set()
-    to_visit = [rule.cond, rule.lhs, rule.rhs]
+    to_visit = [rule.lhs]
     while to_visit:
         curr = to_visit.pop()
         if isinstance(curr, Var):
@@ -134,7 +134,7 @@ def validate_rule(rule):
 
     unused_vars = set(rule.bvars) - used_vars
     if unused_vars:
-        die(f'Variables {unused_vars} are unused in {rule.name}')
+        die(f'Variables {unused_vars} are not matched in {rule.name}')
 
     # Check that list variables are always used within the same operators
     var_to_op = dict()

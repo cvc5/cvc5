@@ -258,7 +258,7 @@ class App(Node):
 
     def __eq__(self, other):
         return isinstance(other,
-                          Fn) and self.op == other.op and super().__eq__(other)
+                          App) and self.op == other.op and super().__eq__(other)
 
     def __hash__(self):
         return hash((self.op, tuple(self.children)))
