@@ -16,6 +16,7 @@
 # translation of sygus-inv.cpp .
 ##
 
+import utils
 import pycvc5
 from pycvc5 import kinds
 
@@ -60,7 +61,7 @@ if __name__ == "__main__":
   if slv.checkSynth().isUnsat():
     # Output should be equivalent to:
     # (define-fun inv-f ((x Int)) Bool (not (>= x 11)))
-    slv.printSynthSolution()
-
+    terms = [inv_f]
+    utils.print_synth_solutions(terms, slv.getSynthSolutions(terms))
 
 

@@ -24,10 +24,9 @@ namespace cvc5 {
 
 class TConvProofGenerator;
 class ProofNodeManager;
+class TrustNode;
 
 namespace theory {
-
-class TrustNode;
 
 namespace builtin {
 class BuiltinProofRuleChecker;
@@ -147,6 +146,9 @@ class Rewriter {
       theory::TheoryId tid,
       std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn);
 
+  /** Get the theory rewriter for the given id */
+  TheoryRewriter* getTheoryRewriter(theory::TheoryId theoryId);
+
  private:
   /**
    * Get the rewriter associated with the SmtEngine in scope.
@@ -225,8 +227,7 @@ class Rewriter {
   /** The proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;
 #ifdef CVC5_ASSERTIONS
-  std::unique_ptr<std::unordered_set<Node, NodeHashFunction>> d_rewriteStack =
-      nullptr;
+  std::unique_ptr<std::unordered_set<Node>> d_rewriteStack = nullptr;
 #endif /* CVC5_ASSERTIONS */
 };/* class Rewriter */
 

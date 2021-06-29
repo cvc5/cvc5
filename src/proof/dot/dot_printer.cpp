@@ -17,13 +17,16 @@
 
 #include <sstream>
 
-#include "expr/proof_checker.h"
-#include "expr/proof_node_manager.h"
 #include "printer/smt2/smt2_printer.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_node_manager.h"
 #include "theory/builtin/proof_checker.h"
 
 namespace cvc5 {
 namespace proof {
+
+DotPrinter::DotPrinter() {}
+DotPrinter::~DotPrinter() {}
 
 std::string DotPrinter::sanitizeString(const std::string& s)
 {
@@ -46,9 +49,48 @@ std::string DotPrinter::sanitizeString(const std::string& s)
   return newS;
 }
 
+void DotPrinter::countSubproofs(const ProofNode* pn)
+{
+  std::vector<const ProofNode*> visit;
+  std::unordered_map<const ProofNode*, bool> visited;
+  std::unordered_map<const ProofNode*, bool>::iterator it;
+  const ProofNode* cur;
+  visit.push_back(pn);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited[cur] = false;
+      visit.push_back(cur);
+      const std::vector<std::shared_ptr<ProofNode>>& children =
+          cur->getChildren();
+      for (const std::shared_ptr<ProofNode>& c : children)
+      {
+        visit.push_back(c.get());
+      }
+    }
+    else if (!it->second)
+    {
+      visited[cur] = true;
+      size_t counter = 1;
+      const std::vector<std::shared_ptr<ProofNode>>& children =
+          cur->getChildren();
+      for (const std::shared_ptr<ProofNode>& c : children)
+      {
+        counter += d_subpfCounter[c.get()];
+      }
+      d_subpfCounter[cur] = counter;
+    }
+  } while (!visit.empty());
+}
+
 void DotPrinter::print(std::ostream& out, const ProofNode* pn)
 {
   uint64_t ruleID = 0;
+  countSubproofs(pn);
 
   // The dot attribute rankdir="BT" sets the direction of the graph layout,
   // placing the root node at the top. The "node [shape..." attribute sets the
@@ -120,6 +162,10 @@ void DotPrinter::printInternal(std::ostream& out,
   }
   classes << " \"";
   out << classes.str() << colors.str();
+  // add number of subchildren
+  std::map<const ProofNode*, size_t>::const_iterator it =
+      d_subpfCounter.find(pn);
+  out << ", comment = \"\{\"subProofQty\":" << it->second << "}\"";
   out << " ];\n";
 
   for (const std::shared_ptr<ProofNode>& c : children)

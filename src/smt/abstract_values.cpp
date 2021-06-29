@@ -15,6 +15,7 @@
 
 #include "smt/abstract_values.h"
 
+#include "expr/ascription_type.h"
 #include "options/smt_options.h"
 
 namespace cvc5 {

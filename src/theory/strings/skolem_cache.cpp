@@ -40,6 +40,16 @@ struct IndexVarAttributeId
 };
 typedef expr::Attribute<IndexVarAttributeId, Node> IndexVarAttribute;
 
+/**
+ * A bound variable corresponding to the universally quantified integer
+ * variable used to range over the valid lengths of a string, used for
+ * axiomatizing the behavior of some term.
+ */
+struct LengthVarAttributeId
+{
+};
+typedef expr::Attribute<LengthVarAttributeId, Node> LengthVarAttribute;
+
 SkolemCache::SkolemCache(bool useOpts) : d_useOpts(useOpts)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -96,8 +106,14 @@ Node SkolemCache::mkTypedSkolemCached(
   {
     // exists k. k = a
     case SK_PURIFY:
-      sk = sm->mkPurifySkolem(a, c, "string purify skolem");
-      break;
+    {
+      // for sequences of Booleans, we may purify Boolean terms, in which case
+      // they must be Boolean term variables.
+      int flags = a.getType().isBoolean() ? NodeManager::SKOLEM_BOOL_TERM_VAR
+                                          : NodeManager::SKOLEM_DEFAULT;
+      sk = sm->mkPurifySkolem(a, c, "string purify skolem", flags);
+    }
+    break;
     // these are eliminated by normalizeStringSkolem
     case SK_ID_V_SPT:
     case SK_ID_V_SPT_REV:
@@ -241,7 +257,7 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
   {
     // SK_FIRST_CTN_PRE(x,y) ---> SK_PREFIX(x, indexof(x,y,0))
     id = SK_PREFIX;
-    b = nm->mkNode(STRING_STRIDOF, a, b, d_zero);
+    b = nm->mkNode(STRING_INDEXOF, a, b, d_zero);
   }
 
   if (id == SK_ID_V_UNIFIED_SPT || id == SK_ID_V_UNIFIED_SPT_REV)
@@ -292,6 +308,14 @@ Node SkolemCache::mkIndexVar(Node t)
   TypeNode intType = nm->integerType();
   BoundVarManager* bvm = nm->getBoundVarManager();
   return bvm->mkBoundVar<IndexVarAttribute>(t, intType);
+}
+
+Node SkolemCache::mkLengthVar(Node t)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode intType = nm->integerType();
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  return bvm->mkBoundVar<LengthVarAttribute>(t, intType);
 }
 
 }  // namespace strings

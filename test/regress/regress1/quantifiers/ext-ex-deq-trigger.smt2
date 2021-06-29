@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --relational-triggers
 ; EXPECT: unsat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status unsat)
 
 (declare-sort U 0)

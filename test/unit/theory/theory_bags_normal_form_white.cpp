@@ -14,10 +14,14 @@
  */
 
 #include "expr/dtype.h"
+#include "expr/emptybag.h"
+#include "expr/emptyset.h"
 #include "test_smt.h"
 #include "theory/bags/bags_rewriter.h"
 #include "theory/bags/normal_form.h"
 #include "theory/strings/type_enumerator.h"
+#include "util/rational.h"
+#include "util/string.h"
 
 namespace cvc5 {
 

@@ -2,7 +2,7 @@
 ; EXPECT: unsat
 ; Preamble  --------------
 (set-option :produce-models true)
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 ;(declare-datatypes ((x2 0)) (((x1))))
 (declare-datatypes ((x5 0)) (((x3) (x4))))
 (declare-sort x6 0)

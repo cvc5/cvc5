@@ -22,6 +22,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "theory/theory.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -131,7 +132,7 @@ bool ArithEntail::checkApprox(Node ar)
       // c.isNull() means c = 1
       bool isOverApprox = !c.isNull() && c.getConst<Rational>().sgn() == -1;
       std::vector<Node>& approx = mApprox[v];
-      std::unordered_set<Node, NodeHashFunction> visited;
+      std::unordered_set<Node> visited;
       std::vector<Node> toProcess;
       toProcess.push_back(v);
       do
@@ -434,7 +435,7 @@ void ArithEntail::getArithApproximations(Node a,
         }
       }
     }
-    else if (aak == STRING_STRREPL)
+    else if (aak == STRING_REPLACE)
     {
       // over,under-approximations for len( replace( x, y, z ) )
       // notice this is either len( x ) or ( len( x ) + len( z ) - len( y ) )
@@ -505,7 +506,7 @@ void ArithEntail::getArithApproximations(Node a,
       }
     }
   }
-  else if (ak == STRING_STRIDOF)
+  else if (ak == STRING_INDEXOF)
   {
     // over,under-approximations for indexof( x, y, n )
     if (isOverApprox)
@@ -561,7 +562,7 @@ bool ArithEntail::checkWithEqAssumption(Node assumption, Node a, bool strict)
                           << ", strict=" << strict << std::endl;
 
   // Find candidates variables to compute substitutions for
-  std::unordered_set<Node, NodeHashFunction> candVars;
+  std::unordered_set<Node> candVars;
   std::vector<Node> toVisit = {assumption};
   while (!toVisit.empty())
   {

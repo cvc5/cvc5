@@ -18,7 +18,9 @@
 #include <sstream>
 
 #include "api/cpp/cvc5.h"
+#include "options/base_options.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -34,8 +36,8 @@ void testGetInfo(api::Solver* solver, const char* s);
 int main()
 {
   Options opts;
-  opts.setInputLanguage(language::input::LANG_SMTLIB_V2);
-  opts.setOutputLanguage(language::output::LANG_SMTLIB_V2);
+  opts.base.inputLanguage = language::input::LANG_SMTLIB_V2;
+  opts.base.outputLanguage = language::output::LANG_SMTLIB_V2;
 
   cout << language::SetLanguage(language::output::LANG_SMTLIB_V2);
 
@@ -60,8 +62,11 @@ void testGetInfo(api::Solver* solver, const char* s)
 {
   std::unique_ptr<SymbolManager> symman(new SymbolManager(solver));
 
-  ParserBuilder pb(solver, symman.get(), "<internal>", solver->getOptions());
-  Parser* p = pb.withStringInput(string("(get-info ") + s + ")").build();
+  std::unique_ptr<Parser> p(
+      ParserBuilder(solver, symman.get(), solver->getOptions()).build());
+  p->setInput(Input::newStringInput(language::input::LANG_SMTLIB_V2,
+                                    string("(get-info ") + s + ")",
+                                    "<internal>"));
   assert(p != NULL);
   Command* c = p->nextCommand();
   assert(c != NULL);
@@ -69,7 +74,6 @@ void testGetInfo(api::Solver* solver, const char* s)
   stringstream ss;
   c->invoke(solver, symman.get(), ss);
   assert(p->nextCommand() == NULL);
-  delete p;
   delete c;
   cout << ss.str() << endl << endl;
 }

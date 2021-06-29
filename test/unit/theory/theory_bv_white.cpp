@@ -45,6 +45,7 @@ TEST_F(TestTheoryWhiteBv, bitblaster_core)
   d_smtEngine->setLogic("QF_BV");
 
   d_smtEngine->setOption("bitblast", "eager");
+  d_smtEngine->setOption("bv-solver", "lazy");
   d_smtEngine->setOption("incremental", "false");
   // Notice that this unit test uses the theory engine of a created SMT
   // engine d_smtEngine. We must ensure that d_smtEngine is properly initialized
@@ -58,7 +59,7 @@ TEST_F(TestTheoryWhiteBv, bitblaster_core)
 
   Node x = d_nodeManager->mkVar("x", d_nodeManager->mkBitVectorType(16));
   Node y = d_nodeManager->mkVar("y", d_nodeManager->mkBitVectorType(16));
-  Node x_plus_y = d_nodeManager->mkNode(kind::BITVECTOR_PLUS, x, y);
+  Node x_plus_y = d_nodeManager->mkNode(kind::BITVECTOR_ADD, x, y);
   Node one = d_nodeManager->mkConst<BitVector>(BitVector(16, 1u));
   Node x_shl_one = d_nodeManager->mkNode(kind::BITVECTOR_SHL, x, one);
   Node eq = d_nodeManager->mkNode(kind::EQUAL, x_plus_y, x_shl_one);

@@ -15,9 +15,9 @@
 
 #include "theory/bv/theory_bv.h"
 
-#include "expr/proof_checker.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
+#include "proof/proof_checker.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/bv_solver_bitblast.h"
 #include "theory/bv/bv_solver_lazy.h"
@@ -112,7 +112,7 @@ void TheoryBV::finishInit()
     //    ee->addFunctionKind(kind::BITVECTOR_XNOR);
     //    ee->addFunctionKind(kind::BITVECTOR_COMP);
     ee->addFunctionKind(kind::BITVECTOR_MULT, true);
-    ee->addFunctionKind(kind::BITVECTOR_PLUS, true);
+    ee->addFunctionKind(kind::BITVECTOR_ADD, true);
     ee->addFunctionKind(kind::BITVECTOR_EXTRACT, true);
     //    ee->addFunctionKind(kind::BITVECTOR_SUB);
     //    ee->addFunctionKind(kind::BITVECTOR_NEG);
@@ -173,6 +173,11 @@ void TheoryBV::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
 bool TheoryBV::needsCheckLastEffort()
 {
   return d_internal->needsCheckLastEffort();
+}
+
+void TheoryBV::computeRelevantTerms(std::set<Node>& termSet)
+{
+  return d_internal->computeRelevantTerms(termSet);
 }
 
 bool TheoryBV::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)

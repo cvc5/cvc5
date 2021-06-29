@@ -78,7 +78,7 @@ class RegExpOpr {
   std::map<PairNodeStr, Node> d_dv_cache;
   std::map<PairNodeStr, std::pair<Node, int> > d_deriv_cache;
   /** cache mapping regular expressions to whether they contain constants */
-  std::unordered_map<Node, RegExpConstType, NodeHashFunction> d_constCache;
+  std::unordered_map<Node, RegExpConstType> d_constCache;
   std::map<Node, std::pair<std::set<unsigned>, std::set<Node> > > d_fset_cache;
   std::map<PairNodes, Node> d_inter_cache;
   std::map<Node, std::vector<PairNodes> > d_split_cache;
@@ -190,18 +190,6 @@ class RegExpOpr {
   bool regExpIncludes(Node r1, Node r2);
 
  private:
-  /**
-   * Given a regular expression membership of the form:
-   *   (str.in_re x (re.++ R1 ... Rn))
-   * This returns the valid existentially quantified formula:
-   *   (exists ((x1 String) ... (xn String))
-   *      (=> (str.in_re x (re.++ R1 ... Rn))
-   *      (and (= x (str.++ x1 ... xn))
-   *           (str.in_re x1 R1) ... (str.in_re xn Rn))))
-   * Moreover, this formula is cached per regular expression membership via
-   * an attribute, meaning it is always the same for a given membership mem.
-   */
-  static Node getExistsForRegExpConcatMem(Node mem);
   /** pointer to the skolem cache used by this class */
   SkolemCache* d_sc;
 };

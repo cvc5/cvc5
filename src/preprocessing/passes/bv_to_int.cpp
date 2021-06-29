@@ -34,6 +34,9 @@
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
+#include "util/iand.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -100,7 +103,7 @@ Node BVToInt::makeBinary(Node n)
      */
     kind::Kind_t k = current.getKind();
     if ((numChildren > 2)
-        && (k == kind::BITVECTOR_PLUS || k == kind::BITVECTOR_MULT
+        && (k == kind::BITVECTOR_ADD || k == kind::BITVECTOR_MULT
             || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
             || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
     {
@@ -159,7 +162,7 @@ Node BVToInt::eliminationPass(Node n)
     CVC5_UNUSED kind::Kind_t k = current.getKind();
     uint64_t numChildren = current.getNumChildren();
     Assert((numChildren == 2)
-           || !(k == kind::BITVECTOR_PLUS || k == kind::BITVECTOR_MULT
+           || !(k == kind::BITVECTOR_ADD || k == kind::BITVECTOR_MULT
                 || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
                 || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT));
     toVisit.pop_back();
@@ -347,7 +350,7 @@ Node BVToInt::translateWithChildren(Node original,
   Node returnNode;
   switch (oldKind)
   {
-    case kind::BITVECTOR_PLUS:
+    case kind::BITVECTOR_ADD:
     {
       Assert(originalNumChildren == 2);
       uint64_t bvsize = original[0].getType().getBitVectorSize();
@@ -405,6 +408,14 @@ Node BVToInt::translateWithChildren(Node original,
       returnNode = translated_children[0];
       break;
     }
+    case kind::INT_TO_BITVECTOR:
+    {
+      // ((_ int2bv n) t) ---> (mod t 2^n)
+      size_t sz = original.getOperator().getConst<IntToBitVector>().d_size;
+      returnNode = d_nm->mkNode(
+          kind::INTS_MODULUS_TOTAL, translated_children[0], pow2(sz));
+    }
+    break;
     case kind::BITVECTOR_AND:
     {
       // We support three configurations:

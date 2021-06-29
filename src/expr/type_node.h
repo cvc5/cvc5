@@ -29,12 +29,12 @@
 #include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
-#include "util/cardinality.h"
 #include "util/cardinality_class.h"
 
 namespace cvc5 {
 
 class NodeManager;
+class Cardinality;
 class DType;
 
 namespace expr {
@@ -46,15 +46,6 @@ namespace expr {
  * maintained in the NodeValue.
  */
 class TypeNode {
-
-public:
-
-  // for hash_maps, hash_sets..
-  struct HashFunction {
-    size_t operator()(TypeNode node) const {
-      return (size_t) node.getId();
-    }
-  };/* struct HashFunction */
 
 private:
 
@@ -92,20 +83,22 @@ private:
    * Cache-aware, recursive version of substitute() used by the public
    * member function with a similar signature.
    */
-  TypeNode substitute(const TypeNode& type, const TypeNode& replacement,
-                      std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const;
+  TypeNode substitute(const TypeNode& type,
+                      const TypeNode& replacement,
+                      std::unordered_map<TypeNode, TypeNode>& cache) const;
 
   /**
    * Cache-aware, recursive version of substitute() used by the public
    * member function with a similar signature.
    */
   template <class Iterator1, class Iterator2>
-  TypeNode substitute(Iterator1 typesBegin, Iterator1 typesEnd,
-                      Iterator2 replacementsBegin, Iterator2 replacementsEnd,
-                      std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const;
+  TypeNode substitute(Iterator1 typesBegin,
+                      Iterator1 typesEnd,
+                      Iterator2 replacementsBegin,
+                      Iterator2 replacementsEnd,
+                      std::unordered_map<TypeNode, TypeNode>& cache) const;
 
-public:
-
+ public:
   /** Default constructor, makes a null expression. */
   TypeNode() : d_nv(&expr::NodeValue::null()) { }
 
@@ -652,7 +645,7 @@ public:
   bool isTester() const;
 
   /** Is this a datatype updater type */
-  bool isDatatypeUpdater() const;
+  bool isUpdater() const;
 
   /** Get the internal Datatype specification from a datatype type */
   const DType& getDType() const;
@@ -664,7 +657,7 @@ public:
   unsigned getFloatingPointSignificandSize() const;
 
   /** Get the size of this bit-vector type */
-  unsigned getBitVectorSize() const;
+  uint32_t getBitVectorSize() const;
 
   /** Is this a sort kind */
   bool isSort() const;
@@ -735,9 +728,17 @@ inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
   return out;
 }
 
-typedef TypeNode::HashFunction TypeNodeHashFunction;
-
 }  // namespace cvc5
+
+namespace std {
+
+template <>
+struct hash<cvc5::TypeNode>
+{
+  size_t operator()(const cvc5::TypeNode& tn) const;
+};
+
+}  // namespace std
 
 #include "expr/node_manager.h"
 
@@ -746,7 +747,7 @@ namespace cvc5 {
 inline TypeNode
 TypeNode::substitute(const TypeNode& type,
                      const TypeNode& replacement) const {
-  std::unordered_map<TypeNode, TypeNode, HashFunction> cache;
+  std::unordered_map<TypeNode, TypeNode> cache;
   return substitute(type, replacement, cache);
 }
 
@@ -756,19 +757,21 @@ TypeNode::substitute(Iterator1 typesBegin,
                      Iterator1 typesEnd,
                      Iterator2 replacementsBegin,
                      Iterator2 replacementsEnd) const {
-  std::unordered_map<TypeNode, TypeNode, HashFunction> cache;
+  std::unordered_map<TypeNode, TypeNode> cache;
   return substitute(typesBegin, typesEnd,
                     replacementsBegin, replacementsEnd, cache);
 }
 
 template <class Iterator1, class Iterator2>
-TypeNode TypeNode::substitute(Iterator1 typesBegin,
-                              Iterator1 typesEnd,
-                              Iterator2 replacementsBegin,
-                              Iterator2 replacementsEnd,
-                              std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const {
+TypeNode TypeNode::substitute(
+    Iterator1 typesBegin,
+    Iterator1 typesEnd,
+    Iterator2 replacementsBegin,
+    Iterator2 replacementsEnd,
+    std::unordered_map<TypeNode, TypeNode>& cache) const
+{
   // in cache?
-  std::unordered_map<TypeNode, TypeNode, HashFunction>::const_iterator i = cache.find(*this);
+  std::unordered_map<TypeNode, TypeNode>::const_iterator i = cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
@@ -997,12 +1000,6 @@ inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
           && getConst<FloatingPointSize>().significandWidth() == sig);
 }
 
-/** Is this a bit-vector type of size <code>size</code> */
-inline bool TypeNode::isBitVector(unsigned size) const {
-  return
-    ( getKind() == kind::BITVECTOR_TYPE && getConst<BitVectorSize>() == size );
-}
-
 /** Get the exponent size of this floating-point type */
 inline unsigned TypeNode::getFloatingPointExponentSize() const {
   Assert(isFloatingPoint());
@@ -1013,12 +1010,6 @@ inline unsigned TypeNode::getFloatingPointExponentSize() const {
 inline unsigned TypeNode::getFloatingPointSignificandSize() const {
   Assert(isFloatingPoint());
   return getConst<FloatingPointSize>().significandWidth();
-}
-
-/** Get the size of this bit-vector type */
-inline unsigned TypeNode::getBitVectorSize() const {
-  Assert(isBitVector());
-  return getConst<BitVectorSize>();
 }
 
 #ifdef CVC5_DEBUG

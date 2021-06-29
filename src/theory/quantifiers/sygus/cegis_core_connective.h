@@ -260,7 +260,7 @@ class CegisCoreConnective : public Cegis
      */
     Node getRefinementPt(CegisCoreConnective* p,
                          Node n,
-                         std::unordered_set<Node, NodeHashFunction>& visited,
+                         std::unordered_set<Node>& visited,
                          std::vector<Node>& ss);
     /** Get term pool, i.e. pool(A)/pool(B) in the algorithms above */
     void getTermPool(std::vector<Node>& passerts) const;
@@ -349,10 +349,9 @@ class CegisCoreConnective : public Cegis
    * If one of the formulas in queryAsserts was in the unsat core, then this
    * method returns true. Otherwise, this method returns false.
    */
-  bool getUnsatCore(
-      SmtEngine& smt,
-      const std::unordered_set<Node, NodeHashFunction>& queryAsserts,
-      std::vector<Node>& uasserts) const;
+  bool getUnsatCore(SmtEngine& smt,
+                    const std::unordered_set<Node>& queryAsserts,
+                    std::vector<Node>& uasserts) const;
   /**
    * Return the result of checking satisfiability of formula n.
    * If n was satisfiable, then we store the model for d_vars in mvs.
@@ -367,10 +366,7 @@ class CegisCoreConnective : public Cegis
    */
   Node evaluate(Node n, Node id, const std::vector<Node>& mvs);
   /** A cache of the above function */
-  std::unordered_map<Node,
-                     std::unordered_map<Node, Node, NodeHashFunction>,
-                     NodeHashFunction>
-      d_eval_cache;
+  std::unordered_map<Node, std::unordered_map<Node, Node>> d_eval_cache;
   /** The evaluator utility used for the above function */
   Evaluator d_eval;
   //-----------------------------------end for evaluation

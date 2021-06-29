@@ -1,5 +1,5 @@
 ; EXPECT: sat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 (define-sort SetInt () (Set Int))
 

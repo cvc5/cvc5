@@ -22,13 +22,14 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "proof/trust_node.h"
 #include "prop/skolem_def_manager.h"
 #include "theory/output_channel.h"
-#include "theory/trust_node.h"
 #include "util/result.h"
 
 namespace cvc5 {
 
+class Env;
 class ResourceManager;
 class OutputManager;
 class ProofNodeManager;
@@ -56,10 +57,8 @@ class PropEngine
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(TheoryEngine*,
-             context::Context* satContext,
-             context::UserContext* userContext,
-             ResourceManager* rm,
+  PropEngine(TheoryEngine* te,
+             Env& env,
              OutputManager& outMgr,
              ProofNodeManager* pnm);
 
@@ -95,9 +94,9 @@ class PropEngine
    * @return The (REWRITE) trust node corresponding to rewritten node via
    * preprocessing.
    */
-  theory::TrustNode preprocess(TNode node,
-                               std::vector<theory::TrustNode>& ppLemmas,
-                               std::vector<Node>& ppSkolems);
+  TrustNode preprocess(TNode node,
+                       std::vector<TrustNode>& ppLemmas,
+                       std::vector<Node>& ppSkolems);
   /**
    * Remove term ITEs (and more generally, term formulas) from the given node.
    * Return the REWRITE trust node corresponding to rewriting node. New lemmas
@@ -111,9 +110,9 @@ class PropEngine
    * @return The (REWRITE) trust node corresponding to rewritten node via
    * preprocessing.
    */
-  theory::TrustNode removeItes(TNode node,
-                               std::vector<theory::TrustNode>& ppLemmas,
-                               std::vector<Node>& ppSkolems);
+  TrustNode removeItes(TNode node,
+                       std::vector<TrustNode>& ppLemmas,
+                       std::vector<Node>& ppSkolems);
 
   /**
    * Converts the given formulas to CNF and assert the CNF to the SAT solver.
@@ -137,7 +136,7 @@ class PropEngine
    * @param trn the trust node storing the formula to assert
    * @param p the properties of the lemma
    */
-  void assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p);
+  void assertLemma(TrustNode tlemma, theory::LemmaProperty p);
 
   /**
    * If ever n is decided upon, it must be in the given phase.  This
@@ -156,6 +155,22 @@ class PropEngine
    * returns true for both lit and the negation of lit.
    */
   bool isDecision(Node lit) const;
+
+  /**
+   * Return the current decision level of `lit`.
+   *
+   * @param lit: The node in question, must have an associated SAT literal.
+   * @return Decision level of the SAT variable of `lit` (phase is disregarded),
+   *         or -1 if `lit` has not been assigned yet.
+   */
+  int32_t getDecisionLevel(Node lit) const;
+
+  /**
+   * Return the user-context level when `lit` was introduced..
+   *
+   * @return User-context level or -1 if not yet introduced.
+   */
+  int32_t getIntroLevel(Node lit) const;
 
   /**
    * Checks the current context for satisfiability.
@@ -306,7 +321,7 @@ class PropEngine
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic
    */
-  void assertTrustedLemmaInternal(theory::TrustNode trn, bool removable);
+  void assertTrustedLemmaInternal(TrustNode trn, bool removable);
   /**
    * Assert node as a formula to the CNF stream
    * @param node The formula to assert
@@ -327,8 +342,8 @@ class PropEngine
    * skolem definitions and skolems obtained from preprocessing it, and
    * removable is whether the lemma is removable.
    */
-  void assertLemmasInternal(theory::TrustNode trn,
-                            const std::vector<theory::TrustNode>& ppLemmas,
+  void assertLemmasInternal(TrustNode trn,
+                            const std::vector<TrustNode>& ppLemmas,
                             const std::vector<Node>& ppSkolems,
                             bool removable);
 
@@ -341,11 +356,11 @@ class PropEngine
   /** The theory engine we will be using */
   TheoryEngine* d_theoryEngine;
 
+  /** Reference to the environment */
+  Env& d_env;
+
   /** The decision engine we will be using */
   std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
-
-  /** The context */
-  context::Context* d_context;
 
   /** The skolem definition manager */
   std::unique_ptr<SkolemDefManager> d_skdm;
@@ -372,8 +387,6 @@ class PropEngine
 
   /** Whether we were just interrupted (or not) */
   bool d_interrupted;
-  /** Pointer to resource manager for associated SmtEngine */
-  ResourceManager* d_resourceManager;
 
   /** Reference to the output manager of the smt engine */
   OutputManager& d_outMgr;

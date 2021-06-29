@@ -118,7 +118,6 @@ option(ENABLE_PROFILING        "Enable support for gprof profiling")
 #    > allows to detect if set by user (default: IGNORE)
 #    > only necessary for options set for ENABLE_BEST
 cvc5_option(USE_ABC           "Use ABC for AIG bit-blasting")
-cvc5_option(USE_CADICAL       "Use CaDiCaL SAT solver")
 cvc5_option(USE_CLN           "Use CLN instead of GMP")
 cvc5_option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
 cvc5_option(USE_GLPK          "Use GLPK simplex solver")
@@ -127,7 +126,7 @@ cvc5_option(USE_EDITLINE      "Use Editline for better interactive support")
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(USE_POLY               "Use LibPoly for polynomial arithmetic")
-option(USE_SYMFPU             "Use SymFPU for floating point support")
+option(USE_COCOA              "Use CoCoALib for further polynomial operations")
 option(USE_PYTHON2            "Force Python 2 (deprecated)")
 
 # Custom install directories for dependencies
@@ -366,12 +365,22 @@ if(ENABLE_COVERAGE)
   # prevent this we always return with exit code 0 after the ctest command has
   # finished.
   setup_target_for_coverage_gcovr_html(
-    NAME coverage
+    NAME coverage-test
     EXECUTABLE
       ctest -j${CTEST_NTHREADS} -LE "example"
         --output-on-failure $$ARGS || exit 0
     DEPENDS
       build-tests)
+
+  # Adds targets `coverage` and `coverage-reset` for manually generating
+  # coverage reports for specific executions.
+  #
+  # Target coverage-reset resets all the coverage counters to zero, while
+  # target coverage will generate a coverage report for all executions since
+  # the last coverage-reset.
+  setup_target_for_coverage_lcov_no_executable(
+    NAME coverage
+    DEPENDENCIES cvc5-bin)
 endif()
 
 if(ENABLE_DEBUG_CONTEXT_MM)
@@ -417,10 +426,7 @@ if(USE_ABC)
   add_definitions(-DCVC5_USE_ABC ${ABC_ARCH_FLAGS})
 endif()
 
-if(USE_CADICAL)
-  find_package(CaDiCaL REQUIRED)
-  add_definitions(-DCVC5_USE_CADICAL)
-endif()
+find_package(CaDiCaL REQUIRED)
 
 if(USE_CLN)
   set(GPL_LIBS "${GPL_LIBS} cln")
@@ -462,6 +468,11 @@ else()
   set(CVC5_USE_POLY_IMP 0)
 endif()
 
+if(USE_COCOA)
+  find_package(CoCoA REQUIRED 0.99711)
+  add_definitions(-DCVC5_USE_COCOA)
+endif()
+
 if(USE_EDITLINE)
   find_package(Editline REQUIRED)
   set(HAVE_LIBEDITLINE 1)
@@ -470,13 +481,7 @@ if(USE_EDITLINE)
   endif()
 endif()
 
-if(USE_SYMFPU)
-  find_package(SymFPU REQUIRED)
-  add_definitions(-DCVC5_USE_SYMFPU)
-  set(CVC5_USE_SYMFPU 1)
-else()
-  set(CVC5_USE_SYMFPU 0)
-endif()
+find_package(SymFPU REQUIRED)
 
 if(GPL_LIBS)
   if(NOT ENABLE_GPL)
@@ -503,7 +508,6 @@ endif()
 # Add subdirectories
 
 add_subdirectory(src)
-add_subdirectory(test)
 
 if(BUILD_BINDINGS_PYTHON)
   set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
@@ -518,6 +522,8 @@ endif()
 if(BUILD_DOCS)
   add_subdirectory(docs)
 endif()
+
+add_subdirectory(test)
 
 #-----------------------------------------------------------------------------#
 # Package configuration
@@ -651,11 +657,11 @@ print_config("Java bindings             " ${BUILD_BINDINGS_JAVA})
 print_config("Python2                   " ${USE_PYTHON2})
 message("")
 print_config("ABC                       " ${USE_ABC})
-print_config("CaDiCaL                   " ${USE_CADICAL})
 print_config("CryptoMiniSat             " ${USE_CRYPTOMINISAT})
 print_config("GLPK                      " ${USE_GLPK})
 print_config("Kissat                    " ${USE_KISSAT})
 print_config("LibPoly                   " ${USE_POLY})
+print_config("CoCoALib                  " ${USE_COCOA})
 message("")
 print_config("Build libcvc5 only        " ${BUILD_LIB_ONLY})
 
@@ -665,7 +671,6 @@ else()
   print_config("MP library                " "gmp")
 endif()
 print_config("Editline                  " ${USE_EDITLINE})
-print_config("SymFPU                    " ${USE_SYMFPU})
 message("")
 print_config("Api docs                  " ${BUILD_DOCS})
 message("")

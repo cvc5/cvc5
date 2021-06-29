@@ -115,11 +115,10 @@ ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
   // Try to transform tn.getProven() to (= x t) here, if necessary
   if (!d_tspb->applyPredTransform(proven, eq, {}))
   {
-    // failed to rewrite, it is critical for unsat cores that proven is a
-    // premise here, since the conclusion depends on it
-    addSubstitution(x, t, PfRule::TRUST_SUBS_MAP, {proven}, {eq});
-    Trace("trust-subs") << "...failed to rewrite" << std::endl;
-    return nullptr;
+    // failed to rewrite, we add a trust step which assumes eq is provable
+    // from proven, and proceed as normal.
+    Trace("trust-subs") << "...failed to rewrite " << proven << std::endl;
+    d_tspb->addStep(PfRule::TRUST_SUBS_EQ, {proven}, {eq}, eq);
   }
   Trace("trust-subs") << "...successful rewrite" << std::endl;
   solvePg->addSteps(*d_tspb.get());
@@ -146,7 +145,7 @@ void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
   }
 }
 
-TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
+TrustNode TrustSubstitutionMap::applyTrusted(Node n, bool doRewrite)
 {
   Trace("trust-subs") << "TrustSubstitutionMap::addSubstitution: apply " << n
                       << std::endl;
@@ -167,6 +166,11 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   d_eqtIndex[eq] = d_tsubs.size();
   // this class will provide a proof if asked
   return TrustNode::mkTrustRewrite(n, ns, this);
+}
+
+Node TrustSubstitutionMap::apply(Node n, bool doRewrite)
+{
+  return d_subs.apply(n, doRewrite);
 }
 
 std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)

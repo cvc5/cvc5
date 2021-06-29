@@ -17,6 +17,8 @@
 
 // This is only needed for checking that components are only applied to leaves.
 #include "theory/theory.h"
+#include "util/cardinality.h"
+#include "util/floatingpoint.h"
 #include "util/roundingmode.h"
 
 namespace cvc5 {
@@ -431,18 +433,31 @@ TypeNode FloatingPointToFPGenericTypeRule::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    /* As this is a generic kind intended only for parsing,
-     * the checking here is light.  For better checking, use
-     * expandDefinitions first.
-     */
-
-    size_t children = n.getNumChildren();
-    for (size_t i = 0; i < children; ++i)
+    uint32_t nchildren = n.getNumChildren();
+    if (nchildren == 1)
     {
-      n[i].getType(check);
+      if (!n[0].getType(check).isBitVector())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "first argument must be a bit-vector");
+      }
+    }
+    else
+    {
+      Assert(nchildren == 2);
+      if (!n[0].getType(check).isRoundingMode())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "first argument must be a roundingmode");
+      }
+      TypeNode tn = n[1].getType(check);
+      if (!tn.isBitVector() && !tn.isFloatingPoint() && !tn.isReal())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "second argument must be a bit-vector, floating-point or Real");
+      }
     }
   }
-
   return nodeManager->mkFloatingPointType(info.getSize());
 }
 
@@ -712,7 +727,6 @@ TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
     }
   }
 
-#ifdef CVC5_USE_SYMFPU
   /* Need to create some symfpu objects as the size of bit-vector
    * that is needed for this component is dependent on the encoding
    * used (i.e. whether subnormals are forcibly normalised or not).
@@ -720,9 +734,6 @@ TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
    * back-end but it should't make a difference. */
   FloatingPointSize fps = operandType.getConst<FloatingPointSize>();
   uint32_t bw = FloatingPoint::getUnpackedExponentWidth(fps);
-#else
-  uint32_t bw = 2;
-#endif
   return nodeManager->mkBitVectorType(bw);
 }
 
@@ -752,13 +763,9 @@ TypeNode FloatingPointComponentSignificand::computeType(
     }
   }
 
-#ifdef CVC5_USE_SYMFPU
   /* As before we need to use some of sympfu. */
   FloatingPointSize fps = operandType.getConst<FloatingPointSize>();
   uint32_t bw = FloatingPoint::getUnpackedSignificandWidth(fps);
-#else
-  uint32_t bw = 1;
-#endif
   return nodeManager->mkBitVectorType(bw);
 }
 

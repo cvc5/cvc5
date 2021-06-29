@@ -19,6 +19,36 @@ if(POLICY CMP0057)
   cmake_policy(SET CMP0057 NEW)
 endif()
 
+# Check that scikit-build is installed
+# Provides CMake files for Python bindings
+check_python_module("skbuild" "scikit-build")
+
+# setuptools for installing the module
+check_python_module("setuptools")
+
+# Find cmake modules distributed with scikit-build
+# They are distributed under <scikit-build directory>/resources/cmake
+execute_process(
+  COMMAND
+    ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; \
+      import os; import skbuild; \
+      cmake_module_path=os.path.join(os.path.dirname(skbuild.__file__), \
+        'resources', 'cmake'); print(cmake_module_path, end='')"
+  OUTPUT_VARIABLE
+    SKBUILD_CMAKE_MODULE_PATH
+  RESULT_VARIABLE
+    RET_SKBUILD_CMAKE_MODULE_PATH
+)
+
+if (NOT EXISTS ${SKBUILD_CMAKE_MODULE_PATH})
+  message(FATAL_ERROR "Expected CMake module path from
+                       scikit-build at ${SKBUILD_CMAKE_MODULE_PATH}")
+endif()
+
+# Add scikit-build cmake files to cmake module path
+# Required for Cython target below
+list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
+
 find_package(PythonExtensions REQUIRED)
 find_package(Cython 0.29 REQUIRED)
 
@@ -73,25 +103,19 @@ set_target_properties(pycvc5
                       COMPILE_FLAGS
                         "-Wno-error -Wno-shadow -Wno-implicit-fallthrough"
                       CXX_VISIBILITY_PRESET default
-                      VISIBILITY_INLINES_HIDDEN 0)
+                      VISIBILITY_INLINES_HIDDEN 0
+                      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/pycvc5")
 
 python_extension_module(pycvc5)
 
 # Installation based on https://bloerg.net/2012/11/10/cmake-and-distutils.html
 # Create a wrapper python directory and generate a distutils setup.py file
 configure_file(setup.py.in setup.py)
-set(PYCVC5_MODULE "${CMAKE_CURRENT_BINARY_DIR}/pycvc5")
-file(MAKE_DIRECTORY "${PYCVC5_MODULE}")
-file(WRITE ${PYCVC5_MODULE}/__init__.py
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/pycvc5/__init__.py
 "import sys
 from .pycvc5 import *
 # fake a submodule for dotted imports, e.g. from pycvc5.kinds import *
 sys.modules['%s.%s'%(__name__, kinds.__name__)] = kinds")
-
-set(PYCVC5_LOC "${PYCVC5_MODULE}/$<TARGET_FILE_NAME:pycvc5>")
-add_custom_command(TARGET pycvc5 POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E rename $<TARGET_FILE:pycvc5> ${PYCVC5_LOC}
-)
 
 # figure out if we're in a virtualenv
 execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
@@ -104,8 +128,14 @@ print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')")
 set(INSTALL_CMD
     "${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/setup.py install")
 # if we're in a virtualenv, we install it in the virtualenv lib location
+# otherwise install in site-packages
+# option --single-version-externally-managed prevents it from being
+# an .egg distribution and --record records the list of installed files
 if ("${IN_VIRTUALENV}" STREQUAL "NO")
-  set(INSTALL_CMD "${INSTALL_CMD} --prefix=${CMAKE_INSTALL_PREFIX}")
+  set(INSTALL_CMD "${INSTALL_CMD}
+          --prefix=${CMAKE_INSTALL_PREFIX}
+          --single-version-externally-managed
+          --record=pycvc5-installed-files.txt")
 endif()
 
 message("Python bindings install command: ${INSTALL_CMD}")

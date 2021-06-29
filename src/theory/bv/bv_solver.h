@@ -32,7 +32,7 @@ class BVSolver
   BVSolver(TheoryState& state, TheoryInferenceManager& inferMgr)
       : d_state(state), d_im(inferMgr){};
 
-  virtual ~BVSolver(){};
+  virtual ~BVSolver() {}
 
   /**
    * Returns true if we need an equality engine. If so, we initialize the
@@ -71,7 +71,7 @@ class BVSolver
 
   virtual bool needsCheckLastEffort() { return false; }
 
-  virtual void propagate(Theory::Effort e){};
+  virtual void propagate(Theory::Effort e) {}
 
   virtual TrustNode explain(TNode n)
   {
@@ -80,17 +80,20 @@ class BVSolver
     return TrustNode::null();
   }
 
+  /** Additionally collect terms relevant for collecting model values. */
+  virtual void computeRelevantTerms(std::set<Node>& termSet) {}
+
   /** Collect model values in m based on the relevant terms given by termSet */
   virtual bool collectModelValues(TheoryModel* m,
                                   const std::set<Node>& termSet) = 0;
 
   virtual std::string identify() const = 0;
 
-  virtual TrustNode ppRewrite(TNode t) { return TrustNode::null(); };
+  virtual TrustNode ppRewrite(TNode t) { return TrustNode::null(); }
 
-  virtual void ppStaticLearn(TNode in, NodeBuilder& learned){};
+  virtual void ppStaticLearn(TNode in, NodeBuilder& learned) {}
 
-  virtual void presolve(){};
+  virtual void presolve() {}
 
   virtual void notifySharedTerm(TNode t) {}
 

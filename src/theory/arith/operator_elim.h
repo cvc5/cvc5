@@ -19,7 +19,7 @@
 
 #include "expr/node.h"
 #include "expr/skolem_manager.h"
-#include "theory/eager_proof_generator.h"
+#include "proof/eager_proof_generator.h"
 #include "theory/logic_info.h"
 #include "theory/skolem_lemma.h"
 

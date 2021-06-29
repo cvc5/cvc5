@@ -19,6 +19,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/strings/word.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -73,9 +74,9 @@ bool SubstitutionMinimize::findWithImplied(Node t,
   std::vector<Node> tconj;
   getConjuncts(t, tconj);
   // map from conjuncts to their free symbols
-  std::map<Node, std::unordered_set<Node, NodeHashFunction> > tcFv;
+  std::map<Node, std::unordered_set<Node> > tcFv;
 
-  std::unordered_set<Node, NodeHashFunction> reqSet;
+  std::unordered_set<Node> reqSet;
   std::vector<Node> reqSubs;
   std::map<Node, unsigned> reqVarToIndex;
   for (const Node& v : reqVars)
@@ -104,8 +105,7 @@ bool SubstitutionMinimize::findWithImplied(Node t,
     for (const Node& tc : tconj)
     {
       // ensure we've computed its free symbols
-      std::map<Node, std::unordered_set<Node, NodeHashFunction> >::iterator
-          itf = tcFv.find(tc);
+      std::map<Node, std::unordered_set<Node> >::iterator itf = tcFv.find(tc);
       if (itf == tcFv.end())
       {
         expr::getSymbols(tc, tcFv[tc]);
@@ -181,8 +181,8 @@ bool SubstitutionMinimize::findInternal(Node n,
 
   Trace("subs-min") << "--- Compute values for subterms..." << std::endl;
   // the value of each subterm in n under the substitution
-  std::unordered_map<TNode, Node, TNodeHashFunction> value;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> value;
+  std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -262,12 +262,12 @@ bool SubstitutionMinimize::findInternal(Node n,
   }
 
   Trace("subs-min") << "--- Compute relevant variables..." << std::endl;
-  std::unordered_set<Node, NodeHashFunction> rlvFv;
+  std::unordered_set<Node> rlvFv;
   // only variables that occur in assertions are relevant
 
   visit.push_back(n);
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator itv;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator itv;
   do
   {
     cur = visit.back();
@@ -447,7 +447,7 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
     }
   }
 
-  if ((arg == 1 && k == STRING_STRCTN) || (arg == 0 && k == STRING_SUBSTR))
+  if ((arg == 1 && k == STRING_CONTAINS) || (arg == 0 && k == STRING_SUBSTR))
   {
     // empty string
     if (strings::Word::getLength(n) == 0)
@@ -455,7 +455,7 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
       return true;
     }
   }
-  if ((arg != 0 && k == STRING_SUBSTR) || (arg == 2 && k == STRING_STRIDOF))
+  if ((arg != 0 && k == STRING_SUBSTR) || (arg == 2 && k == STRING_INDEXOF))
   {
     // negative integer
     if (n.getConst<Rational>().sgn() < 0)

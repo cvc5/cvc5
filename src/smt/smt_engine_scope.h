@@ -27,7 +27,6 @@
 
 namespace cvc5 {
 
-class ProofManager;
 class SmtEngine;
 class StatisticsRegistry;
 
@@ -35,9 +34,6 @@ namespace smt {
 
 SmtEngine* currentSmtEngine();
 bool smtEngineInScope();
-
-// FIXME: Maybe move into SmtScope?
-ProofManager* currentProofManager();
 
 /** get the current resource manager */
 ResourceManager* currentResourceManager();

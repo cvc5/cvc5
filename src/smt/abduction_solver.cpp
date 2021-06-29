@@ -19,11 +19,13 @@
 
 #include "base/modal_exception.h"
 #include "options/smt_options.h"
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_abduct.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/trust_substitutions.h"
 
 using namespace cvc5::theory;
 
@@ -46,7 +48,7 @@ bool AbductionSolver::getAbduct(const Node& goal,
   std::vector<Node> axioms = d_parent->getExpandedAssertions();
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // must expand definitions
-  Node conjn = d_parent->expandDefinitions(goal);
+  Node conjn = d_parent->getEnv().getTopLevelSubstitutions().apply(goal);
   // now negate
   conjn = conjn.negate();
   d_abdConj = conjn;
@@ -103,20 +105,22 @@ bool AbductionSolver::getAbductInternal(Node& abd)
       }
       // get the grammar type for the abduct
       Node agdtbv = d_sssf.getAttribute(SygusSynthFunVarListAttribute());
-      Assert(!agdtbv.isNull());
-      Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
-      // convert back to original
-      // must replace formal arguments of abd with the free variables in the
-      // input problem that they correspond to.
-      std::vector<Node> vars;
-      std::vector<Node> syms;
-      SygusVarToTermAttribute sta;
-      for (const Node& bv : agdtbv)
+      if(!agdtbv.isNull())
       {
-        vars.push_back(bv);
-        syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
+        Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
+        // convert back to original
+        // must replace formal arguments of abd with the free variables in the
+        // input problem that they correspond to.
+        std::vector<Node> vars;
+        std::vector<Node> syms;
+        SygusVarToTermAttribute sta;
+        for (const Node& bv : agdtbv)
+        {
+          vars.push_back(bv);
+          syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
+        }
+        abd = abd.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
       }
-      abd = abd.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
 
       // if check abducts option is set, we check the correctness
       if (options::checkAbducts())

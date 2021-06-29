@@ -22,9 +22,12 @@
 #include "expr/dtype.h"
 #include "expr/kind.h"
 #include "expr/type_node.h"
+#include "expr/uninterpreted_constant.h"
 #include "options/language.h"
 #include "test_smt.h"
 #include "theory/type_enumerator.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 
@@ -248,7 +251,7 @@ TEST_F(TestTheoryWhiteTypeEnumerator, arrays_infinite)
 {
   TypeEnumerator te(d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                d_nodeManager->integerType()));
-  std::unordered_set<Node, NodeHashFunction> elts;
+  std::unordered_set<Node> elts;
   for (uint32_t i = 0; i < 1000; ++i)
   {
     ASSERT_FALSE(te.isFinished());

@@ -22,6 +22,9 @@
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/word.h"
+#include "util/rational.h"
+#include "util/regexp.h"
+#include "util/string.h"
 
 using namespace cvc5::kind;
 
@@ -70,8 +73,8 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj)
     return;
   }
   // otherwise, traverse
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -243,16 +246,19 @@ std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x)
   {
     for (const Node& c : x)
     {
-      if (c.getKind() == EQUAL)
+      if (c.getKind() != EQUAL)
       {
-        if (Word::isEmpty(c[0]))
-        {
-          emptyNodes.insert(c[1]);
-        }
-        else if (Word::isEmpty(c[1]))
-        {
-          emptyNodes.insert(c[0]);
-        }
+        allEmptyEqs = false;
+        continue;
+      }
+
+      if (Word::isEmpty(c[0]))
+      {
+        emptyNodes.insert(c[1]);
+      }
+      else if (Word::isEmpty(c[1]))
+      {
+        emptyNodes.insert(c[0]);
       }
       else
       {
@@ -377,8 +383,9 @@ TypeNode getOwnerStringType(Node n)
 {
   TypeNode tn;
   Kind k = n.getKind();
-  if (k == STRING_STRIDOF || k == STRING_LENGTH || k == STRING_STRCTN
-      || k == SEQ_NTH || k == STRING_PREFIX || k == STRING_SUFFIX)
+  if (k == STRING_INDEXOF || k == STRING_INDEXOF_RE || k == STRING_LENGTH
+      || k == STRING_CONTAINS || k == SEQ_NTH || k == STRING_PREFIX
+      || k == STRING_SUFFIX)
   {
     // owning string type is the type of first argument
     tn = n[0].getType();

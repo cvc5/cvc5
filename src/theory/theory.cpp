@@ -330,19 +330,26 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!options::produceModels())
+  if (!options::produceModels() && !d_logicInfo.isQuantified())
   {
-    // don't care about the model, we are fine
+    // Don't care about the model and logic is not quantified, we can eliminate.
     return true;
   }
-  // if there is a model object
+  // If models are enabled, then it depends on whether the term contains any
+  // unevaluable operators like FORALL, SINE, etc. Having such operators makes
+  // model construction contain non-constant values for variables, which is
+  // not ideal from a user perspective.
+  // We also insist on this check since the term to eliminate should never
+  // contain quantifiers, or else variable shadowing issues may arise.
+  // there should be a model object
   TheoryModel* tm = d_valuation.getModel();
   Assert(tm != nullptr);
   return tm->isLegalElimination(x, val);
 }
 
-std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{
-  std::unordered_set<TNode, TNodeHashFunction> currentlyShared;
+std::unordered_set<TNode> Theory::currentlySharedTerms() const
+{
+  std::unordered_set<TNode> currentlyShared;
   for (shared_terms_iterator i = shared_terms_begin(),
            i_end = shared_terms_end(); i != i_end; ++i) {
     currentlyShared.insert (*i);

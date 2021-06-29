@@ -19,14 +19,14 @@
 #define CVC5__PROP__PROOF_CNF_STREAM_H
 
 #include "context/cdhashmap.h"
-#include "expr/lazy_proof.h"
 #include "expr/node.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
+#include "proof/eager_proof_generator.h"
+#include "proof/lazy_proof.h"
+#include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
+#include "proof/theory_proof_step_buffer.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_proof_manager.h"
-#include "theory/eager_proof_generator.h"
-#include "theory/theory_proof_step_buffer.h"
 
 namespace cvc5 {
 namespace prop {
@@ -83,7 +83,7 @@ class ProofCnfStream : public ProofGenerator
    * clause in the SAT solver, as this is handled internally by the SAT
    * solver. The clausification steps and the generator within the trust node
    * are saved in d_proof if we are producing proofs in the theory engine. */
-  void convertPropagation(theory::TrustNode ttn);
+  void convertPropagation(TrustNode ttn);
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node
@@ -133,7 +133,6 @@ class ProofCnfStream : public ProofGenerator
    * Specific clausifiers, based on the formula kinds, that clausify a formula,
    * by calling toCNF into each of the formula's children under the respective
    * kind, and introduce a literal definitionally equal to it. */
-  SatLiteral handleNot(TNode node);
   SatLiteral handleXor(TNode node);
   SatLiteral handleImplies(TNode node);
   SatLiteral handleIff(TNode node);
@@ -162,7 +161,7 @@ class ProofCnfStream : public ProofGenerator
   LazyCDProof d_proof;
   /** An accumulator of steps that may be applied to normalize the clauses
    * generated during clausification. */
-  theory::TheoryProofStepBuffer d_psb;
+  TheoryProofStepBuffer d_psb;
   /** Blocked proofs.
    *
    * These are proof nodes added to this class by external generators. */

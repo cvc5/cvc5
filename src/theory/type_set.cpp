@@ -113,14 +113,14 @@ Node TypeSet::nextTypeEnum(TypeNode t, bool useBaseType)
   // this is necessary for parametric types whose values are constructed from
   // other types to ensure that we do not enumerate subterms of other 
   // previously enumerated values
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
   addSubTerms(n, visited);
   ++(*te);
   return n;
 }
 
 void TypeSet::addSubTerms(TNode n,
-                          std::unordered_set<TNode, TNodeHashFunction>& visited,
+                          std::unordered_set<TNode>& visited,
                           bool topLevel)
 {
   if (visited.find(n) == visited.end())

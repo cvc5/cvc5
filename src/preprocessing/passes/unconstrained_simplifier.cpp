@@ -27,6 +27,8 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -454,7 +456,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         case kind::XOR:
         case kind::BITVECTOR_XOR:
         case kind::BITVECTOR_XNOR:
-        case kind::BITVECTOR_PLUS:
+        case kind::BITVECTOR_ADD:
         case kind::BITVECTOR_SUB: checkParent = true; break;
 
         // Multiplication/division: must be non-integer and other operand must

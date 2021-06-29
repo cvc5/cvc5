@@ -24,7 +24,7 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "expr/proof_node_manager.h"
+#include "proof/proof_node_manager.h"
 #include "theory/ext_theory.h"
 #include "theory/inference_manager_buffered.h"
 #include "theory/output_channel.h"
@@ -72,8 +72,8 @@ namespace strings {
  */
 class InferenceManager : public InferenceManagerBuffered
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
   friend class InferInfo;
 
  public:

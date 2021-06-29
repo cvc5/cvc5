@@ -15,7 +15,7 @@
 
 #include "theory/bv/bv_solver_simple.h"
 
-#include "expr/term_conversion_proof_generator.h"
+#include "proof/conv_proof_generator.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
@@ -38,10 +38,10 @@ bool isBVAtom(TNode n)
 }
 
 /* Traverse Boolean nodes and collect BV atoms. */
-void collectBVAtoms(TNode n, std::unordered_set<Node, NodeHashFunction>& atoms)
+void collectBVAtoms(TNode n, std::unordered_set<Node>& atoms)
 {
   std::vector<TNode> visit;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
 
   visit.push_back(n);
 
@@ -138,7 +138,7 @@ bool BVSolverSimple::preNotifyFact(
       d_im.trustedLemma(tlem, InferenceId::BV_SIMPLE_LEMMA);
     }
 
-    std::unordered_set<Node, NodeHashFunction> bv_atoms;
+    std::unordered_set<Node> bv_atoms;
     collectBVAtoms(n, bv_atoms);
     for (const Node& nn : bv_atoms)
     {

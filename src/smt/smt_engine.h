@@ -37,12 +37,10 @@ template <bool ref_count> class NodeTemplate;
 typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
 class TypeNode;
-struct NodeHashFunction;
 
 class Env;
 class NodeManager;
 class TheoryEngine;
-class ProofManager;
 class UnsatCore;
 class LogicRequest;
 class StatisticsRegistry;
@@ -100,7 +98,6 @@ class SmtScope;
 class PfManager;
 class UnsatCoreManager;
 
-ProofManager* currentProofManager();
 }  // namespace smt
 
 /* -------------------------------------------------------------------------- */
@@ -512,12 +509,10 @@ class CVC5_EXPORT SmtEngine
    * Expand the definitions in a term or formula.
    *
    * @param n The node to expand
-   * @param expandOnly if true, then the expandDefinitions function of
-   * TheoryEngine is not called on subterms of n.
    *
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
-  Node expandDefinitions(const Node& n, bool expandOnly = true);
+  Node expandDefinitions(const Node& n);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT
@@ -548,11 +543,6 @@ class CVC5_EXPORT SmtEngine
    * in the proper format.
    */
   void printProof();
-  /**
-   * Print solution for synthesis conjectures found by counter-example guided
-   * instantiation module.
-   */
-  void printSynthSolution(std::ostream& out);
 
   /**
    * Get synth solution.
@@ -861,12 +851,6 @@ class CVC5_EXPORT SmtEngine
   /** Get a pointer to the PropEngine owned by this SmtEngine. */
   prop::PropEngine* getPropEngine();
 
-  /**
-   * Get a pointer to the ProofManager owned by this SmtEngine.
-   * TODO (project #37): this is the old proof manager and will be deleted
-   */
-  ProofManager* getProofManager() { return d_proofManager.get(); };
-
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager() const;
 
@@ -887,6 +871,12 @@ class CVC5_EXPORT SmtEngine
    * Return the set of assertions, after expanding definitions.
    */
   std::vector<Node> getExpandedAssertions();
+
+  /**
+   * !!!!! temporary, until the environment is passsed to all classes that
+   * require it.
+   */
+  Env& getEnv();
   /* .......................................................................  */
  private:
   /* .......................................................................  */
@@ -1073,8 +1063,6 @@ class CVC5_EXPORT SmtEngine
   /** The SMT solver */
   std::unique_ptr<smt::SmtSolver> d_smtSolver;
 
-  /** The (old) proof manager TODO (project #37): delete this */
-  std::unique_ptr<ProofManager> d_proofManager;
   /**
    * The SMT-level model object, which contains information about how to
    * print the model, as well as a pointer to the underlying TheoryModel

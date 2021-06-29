@@ -26,6 +26,8 @@
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/strings_rewriter.h"
+#include "util/rational.h"
+#include "util/string.h"
 
 namespace cvc5 {
 
@@ -294,11 +296,11 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
   // (str.replace "" s (str.substr "B" x x)))
   Node lhs = d_nodeManager->mkNode(
       kind::STRING_SUBSTR,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, empty, s, b),
+      d_nodeManager->mkNode(kind::STRING_REPLACE, empty, s, b),
       x,
       x);
   Node rhs = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
+      kind::STRING_REPLACE,
       empty,
       s,
       d_nodeManager->mkNode(kind::STRING_SUBSTR, b, x, x));
@@ -311,11 +313,11 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
   // (str.replace (str.substr s 0 x) "A" "B")
   Node substr_repl = d_nodeManager->mkNode(
       kind::STRING_SUBSTR,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, s, a, b),
+      d_nodeManager->mkNode(kind::STRING_REPLACE, s, a, b),
       zero,
       x);
   Node repl_substr = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
+      kind::STRING_REPLACE,
       d_nodeManager->mkNode(kind::STRING_SUBSTR, s, zero, x),
       a,
       b);
@@ -333,11 +335,11 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
                             one);
   substr_repl = d_nodeManager->mkNode(
       kind::STRING_SUBSTR,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, s, substr_y, b),
+      d_nodeManager->mkNode(kind::STRING_REPLACE, s, substr_y, b),
       zero,
       x);
   repl_substr = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
+      kind::STRING_REPLACE,
       d_nodeManager->mkNode(kind::STRING_SUBSTR, s, zero, x),
       substr_y,
       b);
@@ -378,7 +380,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_concat)
   // (str.++ (str.replace "A" x "") "A")
   //
   // (str.++ "A" (str.replace "A" x ""))
-  Node repl_a_x_e = d_nodeManager->mkNode(kind::STRING_STRREPL, a, x, empty);
+  Node repl_a_x_e = d_nodeManager->mkNode(kind::STRING_REPLACE, a, x, empty);
   Node repl_a = d_nodeManager->mkNode(kind::STRING_CONCAT, repl_a_x_e, a);
   Node a_repl = d_nodeManager->mkNode(kind::STRING_CONCAT, a, repl_a_x_e);
   sameNormalForm(repl_a, a_repl);
@@ -391,9 +393,9 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_concat)
   // (str.++ y (str.substr y 0 3) (str.replace "" x (str.substr y 0 3)) "A"
   // (str.substr y 0 3))
   Node z = d_nodeManager->mkNode(kind::STRING_SUBSTR, y, zero, three);
-  Node repl_e_x_z = d_nodeManager->mkNode(kind::STRING_STRREPL, empty, x, z);
-  repl_a = d_nodeManager->mkNode(kind::STRING_CONCAT, y, repl_e_x_z, z, a, z);
-  a_repl = d_nodeManager->mkNode(kind::STRING_CONCAT, y, z, repl_e_x_z, a, z);
+  Node repl_e_x_z = d_nodeManager->mkNode(kind::STRING_REPLACE, empty, x, z);
+  repl_a = d_nodeManager->mkNode(kind::STRING_CONCAT, {y, repl_e_x_z, z, a, z});
+  a_repl = d_nodeManager->mkNode(kind::STRING_CONCAT, {y, z, repl_e_x_z, a, z});
   sameNormalForm(repl_a, a_repl);
 
   // Same normal form for:
@@ -417,7 +419,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_concat)
   // "A" 0 i))
   Node charat_a = d_nodeManager->mkNode(kind::STRING_CHARAT, a, i);
   Node repl_e_x_s =
-      d_nodeManager->mkNode(kind::STRING_STRREPL, empty, x, substr_a);
+      d_nodeManager->mkNode(kind::STRING_REPLACE, empty, x, substr_a);
   Node repl_substr_a = d_nodeManager->mkNode(
       kind::STRING_CONCAT, repl_e_x_s, substr_a, charat_a);
   Node a_repl_substr = d_nodeManager->mkNode(
@@ -452,10 +454,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, length_preserve_rewrite)
                             d_nodeManager->mkNode(kind::STRING_CONCAT, x, x));
   Node concat2 = d_nodeManager->mkNode(
       kind::STRING_CONCAT,
-      gh,
-      x,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, gh, ij),
-      ij);
+      {gh, x, d_nodeManager->mkNode(kind::STRING_REPLACE, x, gh, ij), ij});
   Node res_concat1 = SequencesRewriter::lengthPreserveRewrite(concat1);
   Node res_concat2 = SequencesRewriter::lengthPreserveRewrite(concat2);
   ASSERT_EQ(res_concat1, res_concat2);
@@ -487,9 +486,9 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_indexOf)
   // (str.to.int (str.indexof "A" x 1))
   //
   // (str.to.int (str.indexof "B" x 1))
-  Node a_idof_x = d_nodeManager->mkNode(kind::STRING_STRIDOF, a, x, two);
+  Node a_idof_x = d_nodeManager->mkNode(kind::STRING_INDEXOF, a, x, two);
   Node itos_a_idof_x = d_nodeManager->mkNode(kind::STRING_ITOS, a_idof_x);
-  Node b_idof_x = d_nodeManager->mkNode(kind::STRING_STRIDOF, b, x, two);
+  Node b_idof_x = d_nodeManager->mkNode(kind::STRING_INDEXOF, b, x, two);
   Node itos_b_idof_x = d_nodeManager->mkNode(kind::STRING_ITOS, b_idof_x);
   sameNormalForm(itos_a_idof_x, itos_b_idof_x);
 
@@ -499,12 +498,12 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_indexOf)
   //
   // (str.indexof (str.++ "AAAD" x) y 3)
   Node idof_abcd =
-      d_nodeManager->mkNode(kind::STRING_STRIDOF,
+      d_nodeManager->mkNode(kind::STRING_INDEXOF,
                             d_nodeManager->mkNode(kind::STRING_CONCAT, abcd, x),
                             y,
                             three);
   Node idof_aaad =
-      d_nodeManager->mkNode(kind::STRING_STRIDOF,
+      d_nodeManager->mkNode(kind::STRING_INDEXOF,
                             d_nodeManager->mkNode(kind::STRING_CONCAT, aaad, x),
                             y,
                             three);
@@ -512,7 +511,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_indexOf)
 
   // (str.indexof (str.substr x 1 i) "A" i) ---> -1
   Node idof_substr = d_nodeManager->mkNode(
-      kind::STRING_STRIDOF,
+      kind::STRING_INDEXOF,
       d_nodeManager->mkNode(kind::STRING_SUBSTR, x, one, i),
       a,
       i);
@@ -525,15 +524,15 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_indexOf)
     //
     // (+ 2 (str.indexof (str.++ "A" x y) "A" 0))
     Node lhs = d_nodeManager->mkNode(
-        kind::STRING_STRIDOF,
-        d_nodeManager->mkNode(kind::STRING_CONCAT, b, c, a, x, y),
+        kind::STRING_INDEXOF,
+        d_nodeManager->mkNode(kind::STRING_CONCAT, {b, c, a, x, y}),
         a,
         zero);
     Node rhs = d_nodeManager->mkNode(
         kind::PLUS,
         two,
         d_nodeManager->mkNode(
-            kind::STRING_STRIDOF,
+            kind::STRING_INDEXOF,
             d_nodeManager->mkNode(kind::STRING_CONCAT, a, x, y),
             a,
             zero));
@@ -562,30 +561,30 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_replace)
   // (str.replace (str.replace x "B" x) x "A") -->
   //   (str.replace (str.replace x "B" "A") x "A")
   Node repl_repl = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, b, x),
+      kind::STRING_REPLACE,
+      d_nodeManager->mkNode(kind::STRING_REPLACE, x, b, x),
       x,
       a);
   Node repl_repl_short = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, b, a),
+      kind::STRING_REPLACE,
+      d_nodeManager->mkNode(kind::STRING_REPLACE, x, b, a),
       x,
       a);
   sameNormalForm(repl_repl, repl_repl_short);
 
   // (str.replace "A" (str.replace "B", x, "C") "D") --> "A"
   repl_repl = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
+      kind::STRING_REPLACE,
       a,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, b, x, c),
+      d_nodeManager->mkNode(kind::STRING_REPLACE, b, x, c),
       d);
   sameNormalForm(repl_repl, a);
 
   // (str.replace "A" (str.replace "B", x, "A") "D") -/-> "A"
   repl_repl = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
+      kind::STRING_REPLACE,
       a,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, b, x, a),
+      d_nodeManager->mkNode(kind::STRING_REPLACE, b, x, a),
       d);
   differentNormalForms(repl_repl, a);
 
@@ -595,13 +594,13 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_replace)
   //
   // (str.replace x (str.++ x y z) z)
   Node xyz = d_nodeManager->mkNode(kind::STRING_CONCAT, x, y, z);
-  Node repl_x_xyz = d_nodeManager->mkNode(kind::STRING_STRREPL, x, xyz, y);
-  Node repl_x_zyx = d_nodeManager->mkNode(kind::STRING_STRREPL, x, xyz, z);
+  Node repl_x_xyz = d_nodeManager->mkNode(kind::STRING_REPLACE, x, xyz, y);
+  Node repl_x_zyx = d_nodeManager->mkNode(kind::STRING_REPLACE, x, xyz, z);
   sameNormalForm(repl_x_xyz, repl_x_zyx);
 
   // (str.replace "" (str.++ x x) x) --> ""
   Node repl_empty_xx =
-      d_nodeManager->mkNode(kind::STRING_STRREPL,
+      d_nodeManager->mkNode(kind::STRING_REPLACE,
                             empty,
                             d_nodeManager->mkNode(kind::STRING_CONCAT, x, x),
                             x);
@@ -610,12 +609,12 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_replace)
   // (str.replace "AB" (str.++ x "A") x) --> (str.replace "AB" (str.++ x "A")
   // "")
   Node repl_ab_xa_x =
-      d_nodeManager->mkNode(kind::STRING_STRREPL,
+      d_nodeManager->mkNode(kind::STRING_REPLACE,
                             d_nodeManager->mkNode(kind::STRING_CONCAT, a, b),
                             d_nodeManager->mkNode(kind::STRING_CONCAT, x, a),
                             x);
   Node repl_ab_xa_e =
-      d_nodeManager->mkNode(kind::STRING_STRREPL,
+      d_nodeManager->mkNode(kind::STRING_REPLACE,
                             d_nodeManager->mkNode(kind::STRING_CONCAT, a, b),
                             d_nodeManager->mkNode(kind::STRING_CONCAT, x, a),
                             empty);
@@ -624,7 +623,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_replace)
   // (str.replace "AB" (str.++ x "A") x) -/-> (str.replace "AB" (str.++ "A" x)
   // "")
   Node repl_ab_ax_e =
-      d_nodeManager->mkNode(kind::STRING_STRREPL,
+      d_nodeManager->mkNode(kind::STRING_REPLACE,
                             d_nodeManager->mkNode(kind::STRING_CONCAT, a, b),
                             d_nodeManager->mkNode(kind::STRING_CONCAT, a, x),
                             empty);
@@ -632,23 +631,23 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_replace)
 
   // (str.replace "" (str.replace y x "A") y) ---> ""
   repl_repl = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
+      kind::STRING_REPLACE,
       empty,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, y, x, a),
+      d_nodeManager->mkNode(kind::STRING_REPLACE, y, x, a),
       y);
   sameNormalForm(repl_repl, empty);
 
   // (str.replace "" (str.replace x y x) x) ---> ""
   repl_repl = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
+      kind::STRING_REPLACE,
       empty,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, y, x),
+      d_nodeManager->mkNode(kind::STRING_REPLACE, x, y, x),
       x);
   sameNormalForm(repl_repl, empty);
 
   // (str.replace "" (str.substr x 0 1) x) ---> ""
   repl_repl = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
+      kind::STRING_REPLACE,
       empty,
       d_nodeManager->mkNode(kind::STRING_SUBSTR, x, zero, one),
       x);
@@ -660,11 +659,11 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_replace)
   //
   // (str.replace "" x y)
   repl_repl = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
+      kind::STRING_REPLACE,
       empty,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, y, x),
+      d_nodeManager->mkNode(kind::STRING_REPLACE, x, y, x),
       y);
-  Node repl = d_nodeManager->mkNode(kind::STRING_STRREPL, empty, x, y);
+  Node repl = d_nodeManager->mkNode(kind::STRING_REPLACE, empty, x, y);
   sameNormalForm(repl_repl, repl);
 
   // Same normal form:
@@ -673,11 +672,11 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_replace)
   //
   // (str.replace "B" x "B"))
   repl_repl = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
+      kind::STRING_REPLACE,
       b,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, a, b),
+      d_nodeManager->mkNode(kind::STRING_REPLACE, x, a, b),
       b);
-  repl = d_nodeManager->mkNode(kind::STRING_STRREPL, b, x, b);
+  repl = d_nodeManager->mkNode(kind::STRING_REPLACE, b, x, b);
   sameNormalForm(repl_repl, repl);
 
   // Different normal forms for:
@@ -686,11 +685,11 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_replace)
   //
   // (str.replace "B" x "B")
   repl_repl = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
+      kind::STRING_REPLACE,
       b,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, empty, x, a),
+      d_nodeManager->mkNode(kind::STRING_REPLACE, empty, x, a),
       b);
-  repl = d_nodeManager->mkNode(kind::STRING_STRREPL, b, x, b);
+  repl = d_nodeManager->mkNode(kind::STRING_REPLACE, b, x, b);
   differentNormalForms(repl_repl, repl);
 
   {
@@ -700,14 +699,14 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_replace)
     //
     // (str.++ "AB" (str.replace x "C" y))
     Node lhs =
-        d_nodeManager->mkNode(kind::STRING_STRREPL,
+        d_nodeManager->mkNode(kind::STRING_REPLACE,
                               d_nodeManager->mkNode(kind::STRING_CONCAT, ab, x),
                               c,
                               y);
     Node rhs = d_nodeManager->mkNode(
         kind::STRING_CONCAT,
         ab,
-        d_nodeManager->mkNode(kind::STRING_STRREPL, x, c, y));
+        d_nodeManager->mkNode(kind::STRING_REPLACE, x, c, y));
     sameNormalForm(lhs, rhs);
   }
 }
@@ -989,12 +988,12 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
   //
   // (str.replace "A" (str.substr x 1 4) y z)
   Node substr_3 = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
+      kind::STRING_REPLACE,
       a,
       d_nodeManager->mkNode(kind::STRING_SUBSTR, x, one, three),
       z);
   Node substr_4 = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
+      kind::STRING_REPLACE,
       a,
       d_nodeManager->mkNode(kind::STRING_SUBSTR, x, one, four),
       z);
@@ -1006,7 +1005,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
   //
   // (str.replace "A" (str.++ y (str.substr x 1 4)) y z)
   Node concat_substr_3 = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
+      kind::STRING_REPLACE,
       a,
       d_nodeManager->mkNode(
           kind::STRING_CONCAT,
@@ -1014,7 +1013,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
           d_nodeManager->mkNode(kind::STRING_SUBSTR, x, one, three)),
       z);
   Node concat_substr_4 = d_nodeManager->mkNode(
-      kind::STRING_STRREPL,
+      kind::STRING_REPLACE,
       a,
       d_nodeManager->mkNode(
           kind::STRING_CONCAT,
@@ -1025,17 +1024,17 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
 
   // (str.contains "A" (str.++ a (str.replace "B", x, "C")) --> false
   Node ctn_repl = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
+      kind::STRING_CONTAINS,
       a,
       d_nodeManager->mkNode(
           kind::STRING_CONCAT,
           a,
-          d_nodeManager->mkNode(kind::STRING_STRREPL, b, x, c)));
+          d_nodeManager->mkNode(kind::STRING_REPLACE, b, x, c)));
   sameNormalForm(ctn_repl, f);
 
   // (str.contains x (str.++ x x)) --> (= x "")
   Node x_cnts_x_x = d_nodeManager->mkNode(
-      kind::STRING_STRCTN, x, d_nodeManager->mkNode(kind::STRING_CONCAT, x, x));
+      kind::STRING_CONTAINS, x, d_nodeManager->mkNode(kind::STRING_CONCAT, x, x));
   sameNormalForm(x_cnts_x_x, d_nodeManager->mkNode(kind::EQUAL, x, empty));
 
   // Same normal form for:
@@ -1044,13 +1043,13 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
   //
   // (and (str.contains (str.++ y x) (str.++ x y)) (= z ""))
   Node yx_cnts_xzy = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
+      kind::STRING_CONTAINS,
       yx,
       d_nodeManager->mkNode(kind::STRING_CONCAT, x, z, y));
   Node yx_cnts_xy =
       d_nodeManager->mkNode(kind::AND,
                             d_nodeManager->mkNode(kind::EQUAL, z, empty),
-                            d_nodeManager->mkNode(kind::STRING_STRCTN, yx, xy));
+                            d_nodeManager->mkNode(kind::STRING_CONTAINS, yx, xy));
   sameNormalForm(yx_cnts_xzy, yx_cnts_xy);
 
   // Same normal form for:
@@ -1059,7 +1058,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
   //
   // (= (str.substr x n (str.len y)) y)
   Node ctn_substr = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
+      kind::STRING_CONTAINS,
       d_nodeManager->mkNode(kind::STRING_SUBSTR,
                             x,
                             n,
@@ -1080,10 +1079,10 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
   //
   // (str.contains x y)
   Node ctn_repl_y_x_y = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
+      kind::STRING_CONTAINS,
       x,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, y, x, y));
-  Node ctn_x_y = d_nodeManager->mkNode(kind::STRING_STRCTN, x, y);
+      d_nodeManager->mkNode(kind::STRING_REPLACE, y, x, y));
+  Node ctn_x_y = d_nodeManager->mkNode(kind::STRING_CONTAINS, x, y);
   sameNormalForm(ctn_repl_y_x_y, ctn_repl_y_x_y);
 
   // Same normal form for:
@@ -1092,21 +1091,21 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
   //
   // (= x (str.replace x y x))
   Node ctn_repl_self = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
+      kind::STRING_CONTAINS,
       x,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, y, x));
+      d_nodeManager->mkNode(kind::STRING_REPLACE, x, y, x));
   Node eq_repl = d_nodeManager->mkNode(
-      kind::EQUAL, x, d_nodeManager->mkNode(kind::STRING_STRREPL, x, y, x));
+      kind::EQUAL, x, d_nodeManager->mkNode(kind::STRING_REPLACE, x, y, x));
   sameNormalForm(ctn_repl_self, eq_repl);
 
   // (str.contains x (str.++ "A" (str.replace x y x))) ---> false
   Node ctn_repl_self_f = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
+      kind::STRING_CONTAINS,
       x,
       d_nodeManager->mkNode(
           kind::STRING_CONCAT,
           a,
-          d_nodeManager->mkNode(kind::STRING_STRREPL, x, y, x)));
+          d_nodeManager->mkNode(kind::STRING_REPLACE, x, y, x)));
   sameNormalForm(ctn_repl_self_f, f);
 
   // Same normal form for:
@@ -1115,13 +1114,13 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
   //
   // (= "" (str.replace "" x y))
   Node ctn_repl_empty = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
+      kind::STRING_CONTAINS,
       x,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, empty, x, y));
+      d_nodeManager->mkNode(kind::STRING_REPLACE, empty, x, y));
   Node eq_repl_empty = d_nodeManager->mkNode(
       kind::EQUAL,
       empty,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, empty, x, y));
+      d_nodeManager->mkNode(kind::STRING_REPLACE, empty, x, y));
   sameNormalForm(ctn_repl_empty, eq_repl_empty);
 
   // Same normal form for:
@@ -1130,7 +1129,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
   //
   // (= "" y)
   Node ctn_x_x_y = d_nodeManager->mkNode(
-      kind::STRING_STRCTN, x, d_nodeManager->mkNode(kind::STRING_CONCAT, x, y));
+      kind::STRING_CONTAINS, x, d_nodeManager->mkNode(kind::STRING_CONCAT, x, y));
   Node eq_emp_y = d_nodeManager->mkNode(kind::EQUAL, empty, y);
   sameNormalForm(ctn_x_x_y, eq_emp_y);
 
@@ -1139,32 +1138,32 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
   // (str.contains (str.++ y x) (str.++ x y))
   //
   // (= (str.++ y x) (str.++ x y))
-  Node ctn_yxxy = d_nodeManager->mkNode(kind::STRING_STRCTN, yx, xy);
+  Node ctn_yxxy = d_nodeManager->mkNode(kind::STRING_CONTAINS, yx, xy);
   Node eq_yxxy = d_nodeManager->mkNode(kind::EQUAL, yx, xy);
   sameNormalForm(ctn_yxxy, eq_yxxy);
 
   // (str.contains (str.replace x y x) x) ---> true
   ctn_repl = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, y, x),
+      kind::STRING_CONTAINS,
+      d_nodeManager->mkNode(kind::STRING_REPLACE, x, y, x),
       x);
   sameNormalForm(ctn_repl, t);
 
   // (str.contains (str.replace (str.++ x y) z (str.++ y x)) x) ---> true
   ctn_repl = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, xy, z, yx),
+      kind::STRING_CONTAINS,
+      d_nodeManager->mkNode(kind::STRING_REPLACE, xy, z, yx),
       x);
   sameNormalForm(ctn_repl, t);
 
   // (str.contains (str.++ z (str.replace (str.++ x y) z (str.++ y x))) x)
   //   ---> true
   ctn_repl = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
+      kind::STRING_CONTAINS,
       d_nodeManager->mkNode(
           kind::STRING_CONCAT,
           z,
-          d_nodeManager->mkNode(kind::STRING_STRREPL, xy, z, yx)),
+          d_nodeManager->mkNode(kind::STRING_REPLACE, xy, z, yx)),
       x);
   sameNormalForm(ctn_repl, t);
 
@@ -1174,10 +1173,10 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
   //
   // (str.contains x y)
   Node lhs = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, y, x),
+      kind::STRING_CONTAINS,
+      d_nodeManager->mkNode(kind::STRING_REPLACE, x, y, x),
       y);
-  Node rhs = d_nodeManager->mkNode(kind::STRING_STRCTN, x, y);
+  Node rhs = d_nodeManager->mkNode(kind::STRING_CONTAINS, x, y);
   sameNormalForm(lhs, rhs);
 
   // Same normal form for:
@@ -1186,10 +1185,10 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
   //
   // (str.contains x "B")
   lhs = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, y, x),
+      kind::STRING_CONTAINS,
+      d_nodeManager->mkNode(kind::STRING_REPLACE, x, y, x),
       b);
-  rhs = d_nodeManager->mkNode(kind::STRING_STRCTN, x, b);
+  rhs = d_nodeManager->mkNode(kind::STRING_CONTAINS, x, b);
   sameNormalForm(lhs, rhs);
 
   // Same normal form for:
@@ -1199,10 +1198,10 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
   // (str.contains x (str.substr z n 1))
   Node substr_z = d_nodeManager->mkNode(kind::STRING_SUBSTR, z, n, one);
   lhs = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, y, x),
+      kind::STRING_CONTAINS,
+      d_nodeManager->mkNode(kind::STRING_REPLACE, x, y, x),
       substr_z);
-  rhs = d_nodeManager->mkNode(kind::STRING_STRCTN, x, substr_z);
+  rhs = d_nodeManager->mkNode(kind::STRING_CONTAINS, x, substr_z);
   sameNormalForm(lhs, rhs);
 
   // Same normal form for:
@@ -1211,12 +1210,12 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
   //
   // (str.contains (str.replace x z y) y)
   lhs = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, y, z),
+      kind::STRING_CONTAINS,
+      d_nodeManager->mkNode(kind::STRING_REPLACE, x, y, z),
       z);
   rhs = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, z, y),
+      kind::STRING_CONTAINS,
+      d_nodeManager->mkNode(kind::STRING_REPLACE, x, z, y),
       y);
   sameNormalForm(lhs, rhs);
 
@@ -1226,19 +1225,19 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
   //
   // (str.contains (str.replace x "A" "") "A")
   lhs = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, a, b),
+      kind::STRING_CONTAINS,
+      d_nodeManager->mkNode(kind::STRING_REPLACE, x, a, b),
       a);
   rhs = d_nodeManager->mkNode(
-      kind::STRING_STRCTN,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, a, empty),
+      kind::STRING_CONTAINS,
+      d_nodeManager->mkNode(kind::STRING_REPLACE, x, a, empty),
       a);
   sameNormalForm(lhs, rhs);
 
   {
     // (str.contains (str.++ x "A") (str.++ "B" x)) ---> false
     Node ctn =
-        d_nodeManager->mkNode(kind::STRING_STRCTN,
+        d_nodeManager->mkNode(kind::STRING_CONTAINS,
                               d_nodeManager->mkNode(kind::STRING_CONCAT, x, a),
                               d_nodeManager->mkNode(kind::STRING_CONCAT, b, x));
     sameNormalForm(ctn, f);
@@ -1251,10 +1250,10 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
     //
     // (str.contains x "GHI")
     lhs = d_nodeManager->mkNode(
-        kind::STRING_STRCTN,
-        d_nodeManager->mkNode(kind::STRING_STRREPL, x, abc, def),
+        kind::STRING_CONTAINS,
+        d_nodeManager->mkNode(kind::STRING_REPLACE, x, abc, def),
         ghi);
-    rhs = d_nodeManager->mkNode(kind::STRING_STRCTN, x, ghi);
+    rhs = d_nodeManager->mkNode(kind::STRING_CONTAINS, x, ghi);
     sameNormalForm(lhs, rhs);
   }
 
@@ -1265,10 +1264,10 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
     //
     // (str.contains x "B")
     lhs = d_nodeManager->mkNode(
-        kind::STRING_STRCTN,
-        d_nodeManager->mkNode(kind::STRING_STRREPL, x, abc, def),
+        kind::STRING_CONTAINS,
+        d_nodeManager->mkNode(kind::STRING_REPLACE, x, abc, def),
         b);
-    rhs = d_nodeManager->mkNode(kind::STRING_STRCTN, x, b);
+    rhs = d_nodeManager->mkNode(kind::STRING_CONTAINS, x, b);
     differentNormalForms(lhs, rhs);
   }
 
@@ -1279,10 +1278,10 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
     //
     // (str.contains x "ABC")
     lhs = d_nodeManager->mkNode(
-        kind::STRING_STRCTN,
-        d_nodeManager->mkNode(kind::STRING_STRREPL, x, b, def),
+        kind::STRING_CONTAINS,
+        d_nodeManager->mkNode(kind::STRING_REPLACE, x, b, def),
         abc);
-    rhs = d_nodeManager->mkNode(kind::STRING_STRCTN, x, abc);
+    rhs = d_nodeManager->mkNode(kind::STRING_CONTAINS, x, abc);
     differentNormalForms(lhs, rhs);
   }
 
@@ -1294,12 +1293,12 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
     // (or (= x "")
     //     (= x "A") (= x "B") (= x "C"))
     Node cat = d_nodeManager->mkNode(kind::STRING_CHARAT, x, n);
-    lhs = d_nodeManager->mkNode(kind::STRING_STRCTN, abc, cat);
+    lhs = d_nodeManager->mkNode(kind::STRING_CONTAINS, abc, cat);
     rhs = d_nodeManager->mkNode(kind::OR,
-                                d_nodeManager->mkNode(kind::EQUAL, cat, empty),
-                                d_nodeManager->mkNode(kind::EQUAL, cat, a),
-                                d_nodeManager->mkNode(kind::EQUAL, cat, b),
-                                d_nodeManager->mkNode(kind::EQUAL, cat, c));
+                                {d_nodeManager->mkNode(kind::EQUAL, cat, empty),
+                                 d_nodeManager->mkNode(kind::EQUAL, cat, a),
+                                 d_nodeManager->mkNode(kind::EQUAL, cat, b),
+                                 d_nodeManager->mkNode(kind::EQUAL, cat, c)});
     sameNormalForm(lhs, rhs);
   }
 }
@@ -1325,7 +1324,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, infer_eqs_from_contains)
   sameNormalForm(StringsEntail::inferEqsFromContains(empty, xy), empty_x_y);
 
   // inferEqsFromContains(x, (str.++ x y)) returns false
-  Node bxya = d_nodeManager->mkNode(kind::STRING_CONCAT, b, y, x, a);
+  Node bxya = d_nodeManager->mkNode(kind::STRING_CONCAT, {b, y, x, a});
   sameNormalForm(StringsEntail::inferEqsFromContains(x, bxya), f);
 
   // inferEqsFromContains(x, y) returns null
@@ -1338,7 +1337,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, infer_eqs_from_contains)
 
   // inferEqsFromContains((str.replace x "B" "A"), x) returns something
   // equivalent to (= (str.replace x "B" "A") x)
-  Node repl = d_nodeManager->mkNode(kind::STRING_STRREPL, x, b, a);
+  Node repl = d_nodeManager->mkNode(kind::STRING_REPLACE, x, b, a);
   Node eq_repl_x = d_nodeManager->mkNode(kind::EQUAL, repl, x);
   sameNormalForm(StringsEntail::inferEqsFromContains(repl, x), eq_repl_x);
 
@@ -1413,7 +1412,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_equality_ext)
   Node empty_repl = d_nodeManager->mkNode(
       kind::EQUAL,
       empty,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, empty, x, b));
+      d_nodeManager->mkNode(kind::STRING_REPLACE, empty, x, b));
   Node empty_x = d_nodeManager->mkNode(
       kind::NOT, d_nodeManager->mkNode(kind::EQUAL, x, empty));
   sameNormalForm(empty_repl, empty_x);
@@ -1426,7 +1425,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_equality_ext)
   Node empty_repl_xaa = d_nodeManager->mkNode(
       kind::EQUAL,
       empty,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, y, xxa));
+      d_nodeManager->mkNode(kind::STRING_REPLACE, x, y, xxa));
   Node empty_xy = d_nodeManager->mkNode(
       kind::AND,
       d_nodeManager->mkNode(kind::EQUAL, x, empty),
@@ -1438,11 +1437,11 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_equality_ext)
   Node empty_repl_xxaxy = d_nodeManager->mkNode(
       kind::EQUAL,
       empty,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, xxa, x, y));
+      d_nodeManager->mkNode(kind::STRING_REPLACE, xxa, x, y));
   Node eq_xxa_repl = d_nodeManager->mkNode(
       kind::EQUAL,
       xxa,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, empty, y, x));
+      d_nodeManager->mkNode(kind::STRING_REPLACE, empty, y, x));
   sameNormalForm(empty_repl_xxaxy, f);
 
   // Same normal form for:
@@ -1451,9 +1450,9 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_equality_ext)
   //
   // (= "A" (str.replace "" y x))
   Node empty_repl_axy = d_nodeManager->mkNode(
-      kind::EQUAL, empty, d_nodeManager->mkNode(kind::STRING_STRREPL, a, x, y));
+      kind::EQUAL, empty, d_nodeManager->mkNode(kind::STRING_REPLACE, a, x, y));
   Node eq_a_repl = d_nodeManager->mkNode(
-      kind::EQUAL, a, d_nodeManager->mkNode(kind::STRING_STRREPL, empty, y, x));
+      kind::EQUAL, a, d_nodeManager->mkNode(kind::STRING_REPLACE, empty, y, x));
   sameNormalForm(empty_repl_axy, eq_a_repl);
 
   // Same normal form for:
@@ -1464,7 +1463,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_equality_ext)
   Node empty_repl_a = d_nodeManager->mkNode(
       kind::EQUAL,
       empty,
-      d_nodeManager->mkNode(kind::STRING_STRREPL, x, a, empty));
+      d_nodeManager->mkNode(kind::STRING_REPLACE, x, a, empty));
   Node prefix_a = d_nodeManager->mkNode(kind::STRING_PREFIX, x, a);
   sameNormalForm(empty_repl_a, prefix_a);
 
@@ -1510,13 +1509,13 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_equality_ext)
   //
   // (= (str.++ x x a) y)
   Node eq_xxa_repl_y = d_nodeManager->mkNode(
-      kind::EQUAL, xxa, d_nodeManager->mkNode(kind::STRING_STRREPL, y, xxa, y));
+      kind::EQUAL, xxa, d_nodeManager->mkNode(kind::STRING_REPLACE, y, xxa, y));
   Node eq_xxa_y = d_nodeManager->mkNode(kind::EQUAL, xxa, y);
   sameNormalForm(eq_xxa_repl_y, eq_xxa_y);
 
   // (= (str.++ x x a) (str.replace (str.++ x x a) "A" "B")) ---> false
   Node eq_xxa_repl_xxa = d_nodeManager->mkNode(
-      kind::EQUAL, xxa, d_nodeManager->mkNode(kind::STRING_STRREPL, xxa, a, b));
+      kind::EQUAL, xxa, d_nodeManager->mkNode(kind::STRING_REPLACE, xxa, a, b));
   sameNormalForm(eq_xxa_repl_xxa, f);
 
   // Same normal form for:
@@ -1525,7 +1524,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_equality_ext)
   //
   // (= x "")
   Node eq_repl = d_nodeManager->mkNode(
-      kind::EQUAL, d_nodeManager->mkNode(kind::STRING_STRREPL, x, a, b), empty);
+      kind::EQUAL, d_nodeManager->mkNode(kind::STRING_REPLACE, x, a, b), empty);
   Node eq_x = d_nodeManager->mkNode(kind::EQUAL, x, empty);
   sameNormalForm(eq_repl, eq_x);
 
@@ -1536,9 +1535,9 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_equality_ext)
     //
     // (= (str.replace y "B" "A") "A")
     Node lhs = d_nodeManager->mkNode(
-        kind::EQUAL, d_nodeManager->mkNode(kind::STRING_STRREPL, x, a, b), b);
+        kind::EQUAL, d_nodeManager->mkNode(kind::STRING_REPLACE, x, a, b), b);
     Node rhs = d_nodeManager->mkNode(
-        kind::EQUAL, d_nodeManager->mkNode(kind::STRING_STRREPL, x, b, a), a);
+        kind::EQUAL, d_nodeManager->mkNode(kind::STRING_REPLACE, x, b, a), a);
     sameNormalForm(lhs, rhs);
   }
 
@@ -1645,7 +1644,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_equality_ext)
   }
 
   {
-    Node xrepl = d_nodeManager->mkNode(kind::STRING_STRREPL, x, a, b);
+    Node xrepl = d_nodeManager->mkNode(kind::STRING_REPLACE, x, a, b);
 
     // Same normal form for:
     //
@@ -1657,8 +1656,8 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_equality_ext)
     //      (= (str.++ y w) (str.++ "A" z)))
     Node lhs = d_nodeManager->mkNode(
         kind::EQUAL,
-        d_nodeManager->mkNode(kind::STRING_CONCAT, b, xrepl, z, y, w),
-        d_nodeManager->mkNode(kind::STRING_CONCAT, z, x, ba, z));
+        d_nodeManager->mkNode(kind::STRING_CONCAT, {b, xrepl, z, y, w}),
+        d_nodeManager->mkNode(kind::STRING_CONCAT, {z, x, ba, z}));
     Node rhs = d_nodeManager->mkNode(
         kind::AND,
         d_nodeManager->mkNode(
@@ -1804,9 +1803,9 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_membership)
     Node lhs = d_nodeManager->mkNode(
         kind::STRING_IN_REGEXP,
         x,
-        d_nodeManager->mkNode(
-            kind::REGEXP_CONCAT, sig_star, sig_star, re_abc, sig_star));
-    Node rhs = d_nodeManager->mkNode(kind::STRING_STRCTN, x, abc);
+        d_nodeManager->mkNode(kind::REGEXP_CONCAT,
+                              {sig_star, sig_star, re_abc, sig_star}));
+    Node rhs = d_nodeManager->mkNode(kind::STRING_CONTAINS, x, abc);
     sameNormalForm(lhs, rhs);
   }
 
@@ -1823,7 +1822,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_membership)
         kind::STRING_IN_REGEXP,
         x,
         d_nodeManager->mkNode(kind::REGEXP_CONCAT, sig_star, re_abc));
-    Node rhs = d_nodeManager->mkNode(kind::STRING_STRCTN, x, abc);
+    Node rhs = d_nodeManager->mkNode(kind::STRING_CONTAINS, x, abc);
     differentNormalForms(lhs, rhs);
   }
 }

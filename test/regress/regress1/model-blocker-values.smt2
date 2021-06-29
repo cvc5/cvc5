@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --produce-models --block-models=values
+; COMMAND-LINE: --incremental --produce-models --block-models=values --no-check-unsat-cores
 ; EXPECT: sat
 ; EXPECT: sat
 ; if we only block models restricted to (a,b), then there are only 2 models

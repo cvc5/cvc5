@@ -57,7 +57,7 @@ Node EvalSygusInvarianceTest::doEvaluateWithUnfolding(TermDbSygus* tds, Node n)
 bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
 {
   TNode tnvn = nvn;
-  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+  std::unordered_map<TNode, TNode> cache;
   for (const Node& c : d_terms)
   {
     Node conj_subs = c.substitute(d_var, tnvn, cache);
@@ -221,7 +221,7 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
       Node nbvre = tds->evaluateBuiltin(tn, nbvr, d_ex[ii]);
       Node out = d_exo[ii];
       Node cont =
-          NodeManager::currentNM()->mkNode(kind::STRING_STRCTN, out, nbvre);
+          NodeManager::currentNM()->mkNode(kind::STRING_CONTAINS, out, nbvre);
       Trace("sygus-pbe-cterm-debug") << "Check: " << cont << std::endl;
       Node contr = Rewriter::rewrite(cont);
       if (!contr.isConst())

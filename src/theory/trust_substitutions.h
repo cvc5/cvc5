@@ -21,14 +21,14 @@
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "context/context.h"
-#include "expr/lazy_proof.h"
-#include "expr/proof_node_manager.h"
-#include "expr/proof_set.h"
-#include "expr/term_conversion_proof_generator.h"
-#include "theory/eager_proof_generator.h"
+#include "proof/conv_proof_generator.h"
+#include "proof/eager_proof_generator.h"
+#include "proof/lazy_proof.h"
+#include "proof/proof_node_manager.h"
+#include "proof/proof_set.h"
+#include "proof/theory_proof_step_buffer.h"
+#include "proof/trust_node.h"
 #include "theory/substitutions.h"
-#include "theory/theory_proof_step_buffer.h"
-#include "theory/trust_node.h"
 
 namespace cvc5 {
 namespace theory {
@@ -38,7 +38,7 @@ namespace theory {
  */
 class TrustSubstitutionMap : public ProofGenerator
 {
-  using NodeUIntMap = context::CDHashMap<Node, size_t, NodeHashFunction>;
+  using NodeUIntMap = context::CDHashMap<Node, size_t>;
 
  public:
   TrustSubstitutionMap(context::Context* c,
@@ -89,7 +89,9 @@ class TrustSubstitutionMap : public ProofGenerator
    * proving n = n*sigma, where the proof generator is provided by this class
    * (when proofs are enabled).
    */
-  TrustNode apply(Node n, bool doRewrite = true);
+  TrustNode applyTrusted(Node n, bool doRewrite = true);
+  /** Same as above, without proofs */
+  Node apply(Node n, bool doRewrite = true);
 
   /** Get the proof for formula f */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;

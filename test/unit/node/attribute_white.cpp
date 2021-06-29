@@ -78,7 +78,7 @@ TEST_F(TestNodeWhiteAttribute, attribute_ids)
   // and that the next ID to be assigned is strictly greater than
   // those that have already been assigned.
 
-  unsigned lastId = attr::LastAttributeId<std::string, false>::getId();
+  unsigned lastId = attr::LastAttributeId<std::string>::getId();
   ASSERT_LT(VarNameAttr::s_id, lastId);
   ASSERT_LT(TestStringAttr1::s_id, lastId);
   ASSERT_LT(TestStringAttr2::s_id, lastId);
@@ -87,7 +87,7 @@ TEST_F(TestNodeWhiteAttribute, attribute_ids)
   ASSERT_NE(VarNameAttr::s_id, TestStringAttr2::s_id);
   ASSERT_NE(TestStringAttr1::s_id, TestStringAttr2::s_id);
 
-  lastId = attr::LastAttributeId<bool, false>::getId();
+  lastId = attr::LastAttributeId<bool>::getId();
   ASSERT_LT(TestFlag1::s_id, lastId);
   ASSERT_LT(TestFlag2::s_id, lastId);
   ASSERT_LT(TestFlag3::s_id, lastId);
@@ -104,7 +104,7 @@ TEST_F(TestNodeWhiteAttribute, attribute_ids)
   ASSERT_NE(TestFlag3::s_id, TestFlag5::s_id);
   ASSERT_NE(TestFlag4::s_id, TestFlag5::s_id);
 
-  lastId = attr::LastAttributeId<TypeNode, false>::getId();
+  lastId = attr::LastAttributeId<TypeNode>::getId();
   ASSERT_LT(TypeAttr::s_id, lastId);
 }
 

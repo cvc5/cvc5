@@ -15,6 +15,7 @@
 
 #include "theory/datatypes/theory_datatypes_utils.h"
 
+#include "expr/ascription_type.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 
@@ -117,7 +118,7 @@ const DType& datatypeOf(Node n)
     case CONSTRUCTOR_TYPE: return t[t.getNumChildren() - 1].getDType();
     case SELECTOR_TYPE:
     case TESTER_TYPE:
-    case DT_UPDATE_TYPE: return t[0].getDType();
+    case UPDATER_TYPE: return t[0].getDType();
     default:
       Unhandled() << "arg must be a datatype constructor, selector, or tester";
   }

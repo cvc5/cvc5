@@ -1,15 +1,25 @@
 This file contains a summary of important user-visible changes.
 
-Changes since 1.8
-=================
+Changes since CVC4 1.8
+======================
 
 New Features:
+* CaDiCaL is now a required dependency.
+* SymFPU is now a required dependency.
+* New unsat-core production modes based on the new proof infrastructure
+  (`--unsat-cores-mode=sat-proof`) and on the solving-under-assumption feature
+  of Minisat (`--unsat-cores-mode=assumptions`). The mode based on SAT
+  assumptions + preprocessing proofs is the new default.
 * A new parametric theory of sequences whose syntax is compatible with the
   syntax for sequences used by Z3.
 * Arrays: Added support for an `eqrange` predicate. `(eqrange a b i j)` is true
   if arrays `a` and `b` are equal on all indices within indices `i` and `j`.
 * Support for an integer operator `(_ iand n)` that returns the bitwise `and`
   of two integers, seen as integers modulo n.
+* Strings:
+  * Support for `str.indexof_re(s, r, n)`, which returns the index of the first
+    occurrence of a regular expression `r` in a string `s` after index `n` or
+    -1 if `r` does not match a substring after `n`.
 
 Improvements:
 * New API: Added functions to retrieve the heap/nil term when using separation
@@ -24,9 +34,10 @@ Changes:
   builds will be BSD licensed.
 * The semantics for division and remainder operators in the CVC language now
   correspond to SMT-LIB 2.6 semantics (i.e. a division by zero or a zero
-  modulus results in a constant value, instead of an uninterpreted one).
-  Similarly, when no language is set, the API semantics now correspond to the
-  SMT-LIB 2.6 semantics.
+  modulus results in a constant value, instead of an uninterpreted one). As a
+  result the option `--bv-div-zero-const` has been removed. Similarly, when no
+  language is set, the API semantics now correspond to the SMT-LIB 2.6
+  semantics.
 * The `competition` build type includes the dependencies used for SMT-COMP by
   default. Note that this makes this build type produce GPL-licensed binaries.
 * Bit-vector operator bvxnor was previously mistakenly marked as
@@ -38,261 +49,6 @@ Changes:
   and does *not* begin with the keyword `model`. The output
   is the same as before, only with this word removed from the beginning.
 * Building with Python 2 is now deprecated.
-
-
-Changes since 1.7
-=================
-
-New Features:
-* New C++ and Python API: CVC4 has a new, more streamlined API. We plan to
-  make CVC4 1.8 the last version that ships with the legacy API.
-* Strings: Full support of the new SMT-LIB standard for the theory of strings,
-  including:
-  * Support for `str.replace_re`, `str.replace_re_all`, `str.is_digit`,
-    `str.from_code`, `re.diff`, and `re.comp`
-  * Support for new operator names (e.g. `str.in_re` instead of `str.in.re`),
-    new escape sequences. The new syntax is enabled by default for smt2 files.
-* Support for syntax-guided synthesis (SyGuS) problems in the new API. C++
-  examples of the SyGuS API can be found in `./examples/api/sygus_*.cpp`.
-* Support for higher-order constraints. This includes treating function sorts
-  (constructible by `->`) as first-class sorts and handling partially applied
-  function symbols. Support for higher-order constraints can be enabled by
-  the option `--uf-ho`.
-* Support for set comprehension binders `comprehension`.
-* Eager bit-blasting: Support for SAT solver Kissat.
-
-Improvements:
-* API: Function definitions can now be requested to be global. If the `global`
-  parameter is set to true, they persist after popping the user context.
-* Java/Python bindings: The bindings now allow users to catch exceptions
-* Arithmetic: Performance improvements
-  * Linear solver: New lemmas inspired by unit-cube tests
-  * Non-linear solver: Expanded set of axioms
-* Ackermannization: The Ackermannization preprocessing pass now supports
-  uninterpreted sorts and as a result all QF_UFBV problems are supported in
-  combination with eager bit blasting.
-
-Changes:
-* CVC language: Models printed in the CVC language now include an explicit end
-  marker to facilitate the communication over pipes with CVC4.
-* API change: `SmtEngine::query()` has been renamed to
-  `SmtEngine::checkEntailed()` and `Result::Validity` has been renamed to
-  `Result::Entailment` along with corresponding changes to the enum values.
-* Java API change: The name of CVC4's package is now `edu.stanford.CVC4`
-  instead of `edu.nyu.acsys.CVC4`.
-* The default output language is changed from CVC to SMT-LIB 2.6. The
-  default output language is used when the problem language cannot be
-  easily inferred (for example when CVC4 is used from the API).
-* Printing of BV constants: previously CVC4 would print BV constant
-  values as indexed symbols by default and in binary notation with the
-  option --bv-print-consts-in-binary. To be SMT-LIB compliant the
-  default behavior is now to print BV constant values in binary
-  notation and as indexed symbols with the new option
-  --bv-print-consts-as-indexed-symbols. The option
-  --bv-print-consts-in-binary has been removed.
-* Updated to SyGuS language version 2.0 by default. This is the last release
-  that will support the SyGuS language version 1.0 (`--lang=sygus1`). A
-  script is provided to convert version 1.0 files to version 2.0, see
-  `./contrib/sygus-v1-to-v2.sh`.
-* Support for user-provided rewrite rule quantifiers have been removed.
-* Support for certain option aliases have been removed.
-* Support for parallel portfolio builds has been removed.
-
-Changes since 1.6
-=================
-
-New Features:
-* Proofs:
-  * Support for bit-vector proofs with eager bitblasting (older versions only
-    supported proofs with lazy bitblasting).
-* Strings:
-  * Support for `str.replaceall` operator.
-  * New option `--re-elim` to reduce regular expressions to extended string
-    operators, resulting in better performance on regular expression benchmarks
-    (enabled by default).
-* SyGuS:
-  * Support for abduction (`--sygus-abduct`). Given a formula, this option uses
-    CVC4's SyGuS solver to find a sufficient condition such that the
-    conjunction of the condition and the formula is unsatisfiable.
-  * Support for two new term enumerator strategies: variable agnostic
-    (`--sygus-active-gen=var-agnostic`) and fast (`--sygus-active-gen=enum`).
-    By default, CVC4 tries to choose the best term enumerator strategy
-    automatically based on the input (`--sygus-active-gen=auto`).
-  * Support for streaming solutions of increasingly smaller size when using the
-    PBE solver (`--sygus-stream --sygus-pbe`). After the first solution is found
-    and printed, the solver will continue to look for new solutions and print
-    those, if any, that are smaller than previously printed solutions.
-  * Support for unification-based techniques in non-separable specifications
-    (`--sygus-unif`). For solving invariant problems a dedicate mode
-    (`--sygus-unif-boolean-heuristic-dt`) is available that builds candidate
-    solutions using heuristic decision tree learning.
-
-Improvements:
-* Strings:
-  * Significantly better performance on string benchmarks over the core theory
-    and those with extended string functions like substring, contains, and
-    replace.
-
-Changes:
-* API change: Expr::iffExpr() is renamed to Expr::eqExpr() to reflect its
-              actual behavior.
-* Compiling the language bindings now requires SWIG 3 instead of SWIG 2.
-* The CVC3 compatibility layer has been removed.
-* The build system now uses CMake instead of Autotools. Please refer to
-  [INSTALL.md](https://github.com/CVC4/CVC4/blob/master/INSTALL.md) for
-  up-to-date instructions on how to build CVC4.
-
-Changes since 1.5
-=================
-
-New Features:
-* A new theory of floating points.
-* Novel approach for solving quantified bit-vectors (BV).
-* Eager bit-blasting: Support for SAT solver CaDiCaL.
-* A new Gaussian Elimination preprocessing pass for the theory of bit-vectors.
-* Support for transcendental functions (sin, cos, exp). In SMT2 input, this
-  can be enabled by adding T to the logic (e.g., QF_NRAT).
-* Support for new operators in strings, including string inequality (str.<=)
-  and string code (str.code).
-* Support for automated rewrite rule generation from sygus (*.sy) inputs using
-  syntax-guided enumeration (option --sygus-rr).
-
-Improvements:
-* Incremental unsat core support.
-* Further development of rewrite rules for the theory of strings and regular
-  expressions.
-* Many optimizations for syntax-guided synthesis, including improved symmetry
-  breaking for enumerative search and specialized algorithms for
-  programming-by-examples conjectures.
-
-Changes:
-* Eager bit-blasting: Removed support for SAT solver CryptoMinisat 4, added
-  support for CryptoMinisat 5.
-* The LFSC proof checker now resides in its own repository on GitHub at
-  https://github.com/CVC4/LFSC. It is not distributed with CVC4 anymore.
-
-Changes since 1.4
-=================
-
-* Improved heuristics for reasoning about non-linear arithmetic.
-* Native support for syntax-guided synthesis (sygus).
-* Support for many new heuristics for reasoning with quantifiers, including
-  finite model finding.
-* Support for proofs for uninterpreted functions, arrays, bitvectors, and
-  their combinations.
-* Performance improvements to existing theories.
-* A new theory of sets with cardinality and relations.
-* A new theory of strings.
-* Support for unsat cores.
-* Support for separation logic constraints.
-* Simplification mode "incremental" no longer supported.
-* Support for array constants in constraints.
-* Syntax for array models has changed in some language front-ends.
-* New input/output languages supported: "smt2.0" and "smtlib2.0" to
-  force SMT-LIB v2.0; "smt2.5" and "smtlib2.5" to force SMT-LIB v2.5;
-  "smt2.6" and "smtlib2.6" to force SMT-LIB v2.6;
-  "smt", "smtlib", "smt2", and "smtlib2" all refer to the current standard
-  version 2.6.  If an :smt-lib-version is set in the input, that overrides
-  the command line.
-* Abstract values in SMT-LIB models are now ascribed types (with "as").
-* In SMT-LIB model output, real-sorted but integer-valued constants are
-  now printed in accordance with the standard (e.g. "1.0").
-
-Changes since 1.3
-=================
-
-* CVC4 now supports libc++ in addition to libstdc++ (this especially
-  helps on Mac OS Mavericks).
-* The LFSC proof checker has been incorporated into CVC4 sources.
-* Theory of finite sets, handling the MLSS fragment (singleton, union,
-  intersection, set subtraction, membership and subset).
-* By default, CVC4 builds in "production" mode (optimized, with fewer
-  internal checks on).  The common alternative is a "debug" build, which
-  is much slower.  By default, CVC4 builds with no GPL'ed dependences.
-  However, this is not the best-performing version; for that, you should
-  configure with "--enable-gpl --best", which links against GPL'ed
-  libraries that improve usability and performance.  For details on
-  licensing and dependences, see the README file.
-* Small API adjustments to Datatypes to even out the API and make it
-  function better in Java.
-* Timed statistics are now properly updated even on process abort.
-* Better automatic handling of output language setting when using CVC4
-  via API.  Previously, the "automatic" language setting was sometimes
-  (though not always) defaulting to the internal "AST" language; it
-  should now (correctly) default to the same as the input language
-  (if the input language is supported as an output language), or the
-  "CVC4" native output language if no input language setting is applied.
-* The SmtEngine cannot be safely copied with the copy constructor.
-  Previous versions inadvertently permitted clients to do this via the
-  API.  This has been corrected, copy and assignment of the SmtEngine
-  is no longer permitted.
-
-Changes since 1.2
-=================
-
-New features:
-* SMT-LIB-compliant support for abs, to_real, to_int, is_int, which were
-  previously missing
-* New bv2nat/int2bv operators for bitvector/integer inter-compatibility.
-* Support in linear logics for /, div, and mod by constants (with the
-  --rewrite-divk command line option).
-* Parsing support for TPTP's TFF and TFA formats.
-* A new theory of strings: word (dis-)equations, length constraints,
-  regular expressions.
-* Increased compliance to SMT-LIBv2, numerous bugs and usability issues
-  resolved.
-* New :command-verbosity SMT option to silence success and error messages
-  on a per-command basis, and API changes to Command infrastructure to
-  support this.
-
-Behavioral changes:
-* It is no longer permitted to request model or proof generation if there's
-  been an intervening push/pop.
-* User-defined symbols (define-funs) are no longer reported in the output
-  of get-model commands.
-* Exit codes are now more standard for UNIX command-line tools.  Exit code
-  zero means no error---but the result could be sat, unsat, or unknown---and
-  nonzero means error.
-
-API changes:
-* Expr::substitute() now capable of substituting operators (e.g.,
-  function symbols under an APPLY_UF)
-* Numerous improvements to the Java language bindings
-
-Changes since 1.1
-=================
-
-* Real arithmetic now has three simplex solvers for exact precision linear
-  arithmetic: the classical dual solver and two new solvers based on
-  techniques for minimizing the sum of infeasibilities. GLPK can now be used
-  as a heuristic backup to the exact precision solvers.  GLPK must be enabled
-  at configure time. See --help for more information on enabling these solvers.
-* added support for "bit0" and "bit1" bitvector constants in SMT-LIB v1.2
-* support for theory "alternates": new ability to prototype new decision
-  procedures that are selectable at runtime
-* various bugfixes
-
-Changes since 1.0
-=================
-
-* bit-vector solver now has a specialized decision procedure for unsigned bit-
-  vector inequalities
-* numerous important bug fixes, performance improvements, and usability
-  improvements
-* support for multiline input in interactive mode
-* Win32-building support via mingw
-* SMT-LIB get-model output now is easier to machine-parse: contains (model...)
-* user patterns for quantifier instantiation are now supported in the
-  SMT-LIBv1.2 parser
-* --finite-model-find was incomplete when using --incremental, now fixed
-* the E-matching procedure is slightly improved
-* Boolean terms are now supported in datatypes
-* tuple and record support have been added to the compatibility library
-* driver verbosity change: for printing all commands as they're executed, you
-  now need verbosity level >= 3 (e.g., -vvv) instead of level 1 (-v).  This
-  allows tracing the solver's activities (with -v and -vv) without having too
-  much output.
-* to make CVC4 quieter in abnormal (e.g., "warning" conditions), you can
-  use -q.  Previously, this would silence all output (including "sat" or
-  "unsat") as well.  Now, single -q silences messages and warnings, and
-  double -qq silences all output (except on exception or signal).
+* Removed the option `--rewrite-divk` (now effectively enabled by default).
+* Removed support for redundant logics ALL_SUPPORTED and QF_ALL_SUPPORTED,
+  use ALL and QF_ALL instead.

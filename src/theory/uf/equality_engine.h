@@ -120,9 +120,6 @@ private:
   /** If we are done, we don't except any new assertions */
   context::CDO<bool> d_done;
 
-  /** Whether to notify or not (temporarily disabled on equality checks) */
-  bool d_performNotify;
-
   /** The class to notify when a representative changes for a term */
   EqualityEngineNotify& d_notify;
 
@@ -136,7 +133,7 @@ private:
   KindMap d_congruenceKindsExtOperators;
 
   /** Map from nodes to their ids */
-  std::unordered_map<TNode, EqualityNodeId, TNodeHashFunction> d_nodeIds;
+  std::unordered_map<TNode, EqualityNodeId> d_nodeIds;
 
   /** Map from function applications to their ids */
   typedef std::unordered_map<FunctionApplication, EqualityNodeId, FunctionApplicationHashFunction> ApplicationIdsMap;

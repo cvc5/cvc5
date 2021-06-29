@@ -21,12 +21,12 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/proof_checker.h"
-#include "expr/proof_rule.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_rule.h"
+#include "proof/theory_proof_step_buffer.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
-#include "theory/theory_proof_step_buffer.h"
 #include "theory/uf/proof_equality_engine.h"
 
 namespace cvc5 {
@@ -45,8 +45,7 @@ namespace strings {
  */
 class InferProofCons : public ProofGenerator
 {
-  typedef context::CDHashMap<Node, std::shared_ptr<InferInfo>, NodeHashFunction>
-      NodeInferInfoMap;
+  typedef context::CDHashMap<Node, std::shared_ptr<InferInfo>> NodeInferInfoMap;
 
  public:
   InferProofCons(context::Context* c,

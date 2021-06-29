@@ -55,6 +55,12 @@ class IAndTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+class Pow2TypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
+
 class IndexedRootPredicateTypeRule
 {
  public:

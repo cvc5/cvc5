@@ -1,6 +1,5 @@
-(set-logic ALL)
+(set-logic HO_ALL)
 (set-option :sygus-inference true)
-(set-option :uf-ho true)
 (set-option :sygus-ext-rew false)
 (set-info :status sat)
 (declare-fun a (Int) Int)

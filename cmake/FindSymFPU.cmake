@@ -39,6 +39,8 @@ if(NOT SymFPU_FOUND_SYSTEM)
     ${COMMON_EP_CONFIG}
     URL https://github.com/martin-cs/symfpu/archive/${SymFPU_COMMIT}.tar.gz
     URL_HASH SHA1=9e00045130b93e3c2a46ce73a1b5b6451340dc46
+    PATCH_COMMAND patch -p1 -d <SOURCE_DIR>
+          -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/SymFPU-patch-20201114.patch
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/core
