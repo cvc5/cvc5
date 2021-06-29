@@ -6,7 +6,7 @@
 ; EXPECT: in term : (R (as x (List Real)))")
 ; EXIT: 1
 
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 
 (declare-datatypes ((List 1)) ((par (T) ((cons (hd T) (tl (List T))) (nil)))))
 

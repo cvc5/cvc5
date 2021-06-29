@@ -86,24 +86,23 @@
 #include "context/cdlist.h"
 #include "context/cdqueue.h"
 #include "expr/node.h"
+#include "proof/trust_node.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/callbacks.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/proof_macros.h"
-#include "theory/trust_node.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
 
 class ProofNodeManager;
+class EagerProofGenerator;
 
 namespace context {
 class Context;
 }
 namespace theory {
-
-class EagerProofGenerator;
 
 namespace arith {
 
@@ -156,7 +155,7 @@ enum ConstraintType {LowerBound, Equality, UpperBound, Disequality};
 
 typedef context::CDList<ConstraintCP> CDConstraintList;
 
-typedef std::unordered_map<Node, ConstraintP, NodeHashFunction> NodetoConstraintMap;
+typedef std::unordered_map<Node, ConstraintP> NodetoConstraintMap;
 
 typedef size_t ConstraintRuleID;
 static const ConstraintRuleID ConstraintRuleIdSentinel = std::numeric_limits<ConstraintRuleID>::max();

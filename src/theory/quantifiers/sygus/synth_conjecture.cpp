@@ -444,7 +444,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       if (printDebug)
       {
         Options& sopts = smt::currentSmtEngine()->getOptions();
-        std::ostream& out = *sopts.getOut();
+        std::ostream& out = *sopts.base.out;
         out << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
       }
     }
@@ -529,7 +529,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     if (printDebug)
     {
       Options& sopts = smt::currentSmtEngine()->getOptions();
-      std::ostream& out = *sopts.getOut();
+      std::ostream& out = *sopts.base.out;
       out << "(sygus-candidate ";
       Assert(d_quant[0].getNumChildren() == candidate_values.size());
       for (unsigned i = 0, ncands = candidate_values.size(); i < ncands; i++)
@@ -995,7 +995,7 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
   // we have generated a solution, print it
   // get the current output stream
   Options& sopts = smt::currentSmtEngine()->getOptions();
-  printSynthSolution(*sopts.getOut());
+  printSynthSolutionInternal(*sopts.base.out);
   excludeCurrentSolution(enums, values);
 }
 
@@ -1041,7 +1041,7 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& enums,
   }
 }
 
-void SynthConjecture::printSynthSolution(std::ostream& out)
+void SynthConjecture::printSynthSolutionInternal(std::ostream& out)
 {
   Trace("cegqi-sol-debug") << "Printing synth solution..." << std::endl;
   Assert(d_quant[0].getNumChildren() == d_embed_quant[0].getNumChildren());

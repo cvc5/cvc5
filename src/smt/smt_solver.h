@@ -27,6 +27,7 @@
 namespace cvc5 {
 
 class SmtEngine;
+class Env;
 class TheoryEngine;
 class ResourceManager;
 class ProofNodeManager;
@@ -64,8 +65,8 @@ class SmtSolver
 {
  public:
   SmtSolver(SmtEngine& smt,
+            Env& env,
             SmtEngineState& state,
-            ResourceManager* rm,
             Preprocessor& pp,
             SmtEngineStatistics& stats);
   ~SmtSolver();
@@ -135,10 +136,10 @@ class SmtSolver
  private:
   /** Reference to the parent SMT engine */
   SmtEngine& d_smt;
+  /** Reference to the environment */
+  Env& d_env;
   /** Reference to the state of the SmtEngine */
   SmtEngineState& d_state;
-  /** Pointer to a resource manager (owned by SmtEngine) */
-  ResourceManager* d_rm;
   /** Reference to the preprocessor of SmtEngine */
   Preprocessor& d_pp;
   /** Reference to the statistics of SmtEngine */

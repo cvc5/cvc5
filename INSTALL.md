@@ -57,6 +57,7 @@ minimum versions; more recent versions should be compatible.
 - [GMP v6.1 (GNU Multi-Precision arithmetic library)](https://gmplib.org)
 - [ANTLR 3.4](http://www.antlr3.org/)
 - [Java >= 1.6](https://www.java.com)
+- [SymFPU](https://github.com/martin-cs/symfpu/tree/CVC4)
 
 
 ### ANTLR 3.4 parser generator
@@ -74,8 +75,6 @@ cross-compile, or you want to build cvc5 statically but the distribution does
 not ship static libraries, cvc5 builds GMP automatically when `--auto-download`
 is given.
 
-## Optional Dependencies
-
 ### SymFPU (Support for the Theory of Floating Point Numbers)
 
 [SymFPU](https://github.com/martin-cs/symfpu/tree/CVC4)
@@ -83,7 +82,8 @@ is an implementation of SMT-LIB/IEEE-754 floating-point operations in terms
 of bit-vector operations.
 It is required for supporting the theory of floating-point numbers and
 can be downloaded and built automatically.
-Configure cvc5 with `configure.sh --symfpu` to build with this dependency.
+
+## Optional Dependencies
 
 ### CaDiCaL (Optional SAT solver)
 
@@ -179,6 +179,13 @@ examples). It further provides Java (see `examples/SimpleVC.java` and
 
 Configure cvc5 with `configure.sh --<lang>-bindings` to build with language
 bindings for `<lang>`.
+
+### Dependencies for Language Bindings
+
+* Python
+  * [Cython](https://cython.org/)
+  * [scikit-build](https://pypi.org/project/scikit-build/)
+  * [pytest](https://docs.pytest.org/en/6.2.x/)
 
 If you're interested in helping to develop, maintain, and test a language
 binding, please contact one of the project leaders.

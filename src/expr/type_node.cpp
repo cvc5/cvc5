@@ -16,12 +16,15 @@
 
 #include <vector>
 
+#include "expr/datatype_index.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/type_properties.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/type_enumerator.h"
+#include "util/bitvector.h"
+#include "util/cardinality.h"
 
 using namespace std;
 
@@ -29,11 +32,13 @@ namespace cvc5 {
 
 TypeNode TypeNode::s_null( &expr::NodeValue::null() );
 
-TypeNode TypeNode::substitute(const TypeNode& type,
-                              const TypeNode& replacement,
-                              std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const {
+TypeNode TypeNode::substitute(
+    const TypeNode& type,
+    const TypeNode& replacement,
+    std::unordered_map<TypeNode, TypeNode>& cache) const
+{
   // in cache?
-  std::unordered_map<TypeNode, TypeNode, HashFunction>::const_iterator i = cache.find(*this);
+  std::unordered_map<TypeNode, TypeNode>::const_iterator i = cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
@@ -249,7 +254,7 @@ bool TypeNode::isClosedEnumerable()
 bool TypeNode::isFirstClass() const
 {
   return getKind() != kind::CONSTRUCTOR_TYPE && getKind() != kind::SELECTOR_TYPE
-         && getKind() != kind::TESTER_TYPE && getKind() != kind::DT_UPDATE_TYPE
+         && getKind() != kind::TESTER_TYPE && getKind() != kind::UPDATER_TYPE
          && (getKind() != kind::TYPE_CONSTANT
              || (getConst<TypeConstant>() != REGEXP_TYPE
                  && getConst<TypeConstant>() != SEXPR_TYPE));
@@ -633,10 +638,7 @@ bool TypeNode::isSelector() const { return getKind() == kind::SELECTOR_TYPE; }
 
 bool TypeNode::isTester() const { return getKind() == kind::TESTER_TYPE; }
 
-bool TypeNode::isDatatypeUpdater() const
-{
-  return getKind() == kind::DT_UPDATE_TYPE;
-}
+bool TypeNode::isUpdater() const { return getKind() == kind::UPDATER_TYPE; }
 
 bool TypeNode::isCodatatype() const
 {
@@ -685,4 +687,25 @@ TypeNode TypeNode::getBagElementType() const
   return (*this)[0];
 }
 
+bool TypeNode::isBitVector(unsigned size) const
+{
+  return (getKind() == kind::BITVECTOR_TYPE
+          && getConst<BitVectorSize>() == size);
+}
+
+uint32_t TypeNode::getBitVectorSize() const
+{
+  Assert(isBitVector());
+  return getConst<BitVectorSize>();
+}
+
 }  // namespace cvc5
+
+namespace std {
+
+size_t hash<cvc5::TypeNode>::operator()(const cvc5::TypeNode& tn) const
+{
+  return tn.getId();
+}
+
+}  // namespace std

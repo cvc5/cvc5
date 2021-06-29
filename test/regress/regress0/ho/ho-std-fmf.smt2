@@ -1,6 +1,6 @@
-; COMMAND-LINE: --uf-ho --finite-model-find
+; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
-(set-logic UF)
+(set-logic HO_UF)
 (set-info :status sat)
 (declare-sort U 0)
 (declare-fun P (U U) Bool)

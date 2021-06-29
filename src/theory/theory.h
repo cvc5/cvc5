@@ -28,12 +28,12 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "options/theory_options.h"
+#include "proof/trust_node.h"
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
 #include "theory/logic_info.h"
 #include "theory/skolem_lemma.h"
 #include "theory/theory_id.h"
-#include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/statistics_stats.h"
 
@@ -675,8 +675,8 @@ class Theory {
    * add the solved substitutions to the map, if any. The method should return
    * true if the literal can be safely removed from the input problem.
    *
-   * Note that tin has trude node kind LEMMA. Its proof generator should be
-   * take into account when adding a substitution to outSubstitutions when
+   * Note that tin has trust node kind LEMMA. Its proof generator should be
+   * taken into account when adding a substitution to outSubstitutions when
    * proofs are enabled.
    */
   virtual PPAssertStatus ppAssert(TrustNode tin,
@@ -828,7 +828,7 @@ class Theory {
    * This is a utility function for constructing a copy of the currently shared terms
    * in a queriable form.  As this is
    */
-  std::unordered_set<TNode, TNodeHashFunction> currentlySharedTerms() const;
+  std::unordered_set<TNode> currentlySharedTerms() const;
 
   /**
    * This allows the theory to be queried for whether a literal, lit, is

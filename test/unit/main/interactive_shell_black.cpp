@@ -37,9 +37,9 @@ class TestMainBlackInteractiveShell : public TestInternal
     TestInternal::SetUp();
     d_sin.reset(new std::stringstream);
     d_sout.reset(new std::stringstream);
-    d_options.set(options::in, d_sin.get());
-    d_options.set(options::out, d_sout.get());
-    d_options.set(options::inputLanguage, language::input::LANG_CVC);
+    d_options.base.in = d_sin.get();
+    d_options.base.out = d_sout.get();
+    d_options.base.inputLanguage = language::input::LANG_CVC;
     d_solver.reset(new cvc5::api::Solver(&d_options));
     d_symman.reset(new SymbolManager(d_solver.get()));
   }

@@ -20,10 +20,13 @@
 
 #include "expr/node_manager_attributes.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "proof/conv_proof_generator.h"
 #include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_stats.h"
-#include "theory/theory_engine.h"
+#include "theory/rewriter.h"
+#include "theory/theory.h"
+#include "util/resource_manager.h"
 
 using namespace cvc5::preprocessing;
 using namespace cvc5::theory;
@@ -32,27 +35,23 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-ExpandDefs::ExpandDefs(SmtEngine& smt, Env& env, SmtEngineStatistics& stats)
-    : d_smt(smt), d_env(env), d_smtStats(stats), d_tpg(nullptr)
+ExpandDefs::ExpandDefs(Env& env, SmtEngineStatistics& stats)
+    : d_env(env), d_smtStats(stats), d_tpg(nullptr)
 {
 }
 
 ExpandDefs::~ExpandDefs() {}
 
-Node ExpandDefs::expandDefinitions(
-    TNode n,
-    std::unordered_map<Node, Node, NodeHashFunction>& cache,
-    bool expandOnly)
+Node ExpandDefs::expandDefinitions(TNode n,
+                                   std::unordered_map<Node, Node>& cache)
 {
-  TrustNode trn = expandDefinitions(n, cache, expandOnly, nullptr);
+  TrustNode trn = expandDefinitions(n, cache, nullptr);
   return trn.isNull() ? Node(n) : trn.getNode();
 }
 
-TrustNode ExpandDefs::expandDefinitions(
-    TNode n,
-    std::unordered_map<Node, Node, NodeHashFunction>& cache,
-    bool expandOnly,
-    TConvProofGenerator* tpg)
+TrustNode ExpandDefs::expandDefinitions(TNode n,
+                                        std::unordered_map<Node, Node>& cache,
+                                        TConvProofGenerator* tpg)
 {
   const TNode orig = n;
   std::stack<std::tuple<Node, Node, bool>> worklist;
@@ -62,9 +61,11 @@ TrustNode ExpandDefs::expandDefinitions(
   // output / rewritten node and finally a flag tracking whether the children
   // have been explored (i.e. if this is a downward or upward pass).
 
+  ResourceManager* rm = d_env.getResourceManager();
+  Rewriter* rr = d_env.getRewriter();
   do
   {
-    d_env.getResourceManager()->spendResource(Resource::PreprocessStep);
+    rm->spendResource(Resource::PreprocessStep);
 
     // n is the input / original
     // node is the output / result
@@ -85,38 +86,31 @@ TrustNode ExpandDefs::expandDefinitions(
       }
 
       // maybe it's in the cache
-      std::unordered_map<Node, Node, NodeHashFunction>::iterator cacheHit =
-          cache.find(n);
+      std::unordered_map<Node, Node>::iterator cacheHit = cache.find(n);
       if (cacheHit != cache.end())
       {
         TNode ret = (*cacheHit).second;
         result.push(ret.isNull() ? n : ret);
         continue;
       }
-      if (!expandOnly)
+      theory::TheoryId tid = theory::Theory::theoryOf(node);
+      theory::TheoryRewriter* tr = rr->getTheoryRewriter(tid);
+
+      Assert(tr != NULL);
+      TrustNode trn = tr->expandDefinition(n);
+      if (!trn.isNull())
       {
-        // do not do any theory stuff if expandOnly is true
-
-        theory::Theory* t = d_smt.getTheoryEngine()->theoryOf(node);
-        theory::TheoryRewriter* tr = t->getTheoryRewriter();
-
-        Assert(t != NULL);
-        TrustNode trn = tr->expandDefinition(n);
-        if (!trn.isNull())
+        node = trn.getNode();
+        if (tpg != nullptr)
         {
-          node = trn.getNode();
-          if (tpg != nullptr)
-          {
-            tpg->addRewriteStep(
-                n, node, trn.getGenerator(), true, PfRule::THEORY_EXPAND_DEF);
-          }
-        }
-        else
-        {
-          node = n;
+          tpg->addRewriteStep(
+              n, node, trn.getGenerator(), true, PfRule::THEORY_EXPAND_DEF);
         }
       }
-
+      else
+      {
+        node = n;
+      }
       // the partial functions can fall through, in which case we still
       // consider their children
       worklist.push(std::make_tuple(

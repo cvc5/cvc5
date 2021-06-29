@@ -21,9 +21,11 @@
 #include <map>
 #include <string>
 #include <vector>
+
 #include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "util/cardinality.h"
 
 namespace cvc5 {
 
@@ -542,10 +544,9 @@ class DType
    * @param isAlienPos Whether we are in an alien subfield type position. This
    * flag is true if we have traversed beneath a non-datatype type constructor.
    */
-  void getAlienSubfieldTypes(
-      std::unordered_set<TypeNode, TypeNodeHashFunction>& types,
-      std::map<TypeNode, bool>& processed,
-      bool isAlienPos) const;
+  void getAlienSubfieldTypes(std::unordered_set<TypeNode>& types,
+                             std::map<TypeNode, bool>& processed,
+                             bool isAlienPos) const;
   /** name of this datatype */
   std::string d_name;
   /** the type parameters of this datatype (if this is a parametric datatype)

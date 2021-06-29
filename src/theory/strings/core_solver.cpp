@@ -16,6 +16,7 @@
 #include "theory/strings/core_solver.h"
 
 #include "base/configuration.h"
+#include "expr/sequence.h"
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
 #include "theory/rewriter.h"
@@ -23,6 +24,8 @@
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/rational.h"
+#include "util/string.h"
 
 using namespace std;
 using namespace cvc5::context;
@@ -1079,7 +1082,7 @@ void CoreSolver::processNEqc(Node eqc,
   // the possible inferences
   std::vector<CoreInferInfo> pinfer;
   // compute normal forms that are effectively unique
-  std::unordered_map<Node, size_t, NodeHashFunction> nfCache;
+  std::unordered_map<Node, size_t> nfCache;
   std::vector<size_t> nfIndices;
   bool hasConstIndex = false;
   for (size_t i = 0, nnforms = normal_forms.size(); i < nnforms; i++)

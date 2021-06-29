@@ -22,6 +22,14 @@
 #include "util/statistics_registry.h"
 
 namespace cvc5 {
+
+template <class Solver>
+prop::SatLiteral toSatLiteral(typename Solver::TLit lit);
+
+template <class Solver>
+void toSatClause(const typename Solver::TClause& minisat_cl,
+                 prop::SatClause& sat_cl);
+
 namespace prop {
 
 class MinisatSatSolver : public CDCLTSatSolverInterface
@@ -84,6 +92,10 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
   void requirePhase(SatLiteral lit) override;
 
   bool isDecision(SatVariable decn) const override;
+
+  int32_t getDecisionLevel(SatVariable v) const override;
+
+  int32_t getIntroLevel(SatVariable v) const override;
 
   /** Retrieve a pointer to the unerlying solver. */
   Minisat::SimpSolver* getSolver() { return d_minisat; }

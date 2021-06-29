@@ -107,9 +107,14 @@ class SkolemCache
     // in_re(a, re.++(_*, b, _*)) =>
     //    exists k_pre, k_match, k_post.
     //       a = k_pre ++ k_match ++ k_post ^
-    //       ~in_re(k_pre ++ substr(k_match, 0, str.len(k_match) - 1),
-    //              re.++(_*, b, _*)) ^
-    //       in_re(k2, y)
+    //       len(k_pre) = indexof_re(x, y, 0) ^
+    //       (forall l. 0 < l < len(k_match) =>
+    //         ~in_re(substr(k_match, 0, l), r)) ^
+    //       in_re(k_match, b)
+    //
+    // k_pre is the prefix before the first, shortest match of b in a. k_match
+    // is the substring of a matched by b. It is either empty or there is no
+    // shorter string that matches b.
     SK_FIRST_MATCH_PRE,
     SK_FIRST_MATCH,
     SK_FIRST_MATCH_POST,
@@ -183,6 +188,16 @@ class SkolemCache
    */
   static Node mkIndexVar(Node t);
 
+  /** Make length variable
+   *
+   * This returns an integer variable of kind BOUND_VARIABLE that is used for
+   * axiomatizing the behavior of a term or predicate t. It refers to lengths
+   * of strings in the reduction of t. For example, the length variable for the
+   * term str.indexof(s, r, n) is used to quantify over the lengths of strings
+   * that could be matched by r.
+   */
+  static Node mkLengthVar(Node t);
+
  private:
   /**
    * Simplifies the arguments for a string skolem used for indexing into the
@@ -210,7 +225,7 @@ class SkolemCache
   /** map from node pairs and identifiers to skolems */
   std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolemCache;
   /** the set of all skolems we have generated */
-  std::unordered_set<Node, NodeHashFunction> d_allSkolems;
+  std::unordered_set<Node> d_allSkolems;
 };
 
 }  // namespace strings

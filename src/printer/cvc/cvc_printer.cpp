@@ -23,9 +23,13 @@
 #include <typeinfo>
 #include <vector>
 
+#include "expr/array_store_all.h"
+#include "expr/ascription_type.h"
+#include "expr/datatype_index.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/dtype_selector.h"
+#include "expr/emptyset.h"
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
@@ -38,6 +42,10 @@
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
+#include "util/bitvector.h"
+#include "util/divisible.h"
+#include "util/rational.h"
+#include "util/string.h"
 
 using namespace std;
 
@@ -487,18 +495,6 @@ void CvcPrinter::toStreamNode(std::ostream& out,
       out << " -> BOOLEAN";
       return;
       break;
-    case kind::TUPLE_UPDATE:
-      toStreamNode(out, n[0], depth, true, lbind);
-      out << " WITH ." << n.getOperator().getConst<TupleUpdate>().getIndex() << " := ";
-      toStreamNode(out, n[1], depth, true, lbind);
-      return;
-      break;
-    case kind::RECORD_UPDATE:
-      toStreamNode(out, n[0], depth, true, lbind);
-      out << " WITH ." << n.getOperator().getConst<RecordUpdate>().getField() << " := ";
-      toStreamNode(out, n[1], depth, true, lbind);
-      return;
-      break;
 
     // ARRAYS
     case kind::ARRAY_TYPE:
@@ -714,8 +710,9 @@ void CvcPrinter::toStreamNode(std::ostream& out,
       op << "@";
       opType = INFIX;
       break;
-    case kind::BITVECTOR_PLUS: {
-      // This interprets a BITVECTOR_PLUS as a bvadd in SMT-LIB
+    case kind::BITVECTOR_ADD:
+    {
+      // This interprets a BITVECTOR_ADD as a bvadd in SMT-LIB
       Assert(n.getType().isBitVector());
       unsigned numc = n.getNumChildren()-2;
       unsigned child = 0;

@@ -25,9 +25,10 @@
 
 #include <unordered_map>
 
-#include "expr/node.h"
-#include "context/cdo.h"
 #include "context/cdinsert_hashmap.h"
+#include "context/cdo.h"
+#include "expr/node.h"
+#include "util/integer.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -39,16 +40,14 @@ class ContainsTermITEVisitor;
 namespace theory {
 
 class SubstitutionMap;
-class TheoryModel;
 
 namespace arith {
 
 class ArithIteUtils {
   preprocessing::util::ContainsTermITEVisitor& d_contains;
-  SubstitutionMap* d_subs;
-  TheoryModel* d_model;
+  SubstitutionMap& d_subs;
 
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node> NodeMap;
   // cache for reduce vars
   NodeMap d_reduceVar; // if reduceVars[n].isNull(), treat reduceVars[n] == n
 
@@ -58,13 +57,13 @@ class ArithIteUtils {
 
 
   NodeMap d_reduceGcd;
-  typedef std::unordered_map<Node, Integer, NodeHashFunction> NodeIntegerMap;
+  typedef std::unordered_map<Node, Integer> NodeIntegerMap;
   NodeIntegerMap d_gcds;
 
   Integer d_one;
 
   context::CDO<unsigned> d_subcount;
-  typedef context::CDInsertHashMap<Node, Node, NodeHashFunction> CDNodeMap;
+  typedef context::CDInsertHashMap<Node, Node> CDNodeMap;
   CDNodeMap d_skolems;
 
   typedef std::map<Node, std::set<Node> > ImpMap;
@@ -75,7 +74,7 @@ class ArithIteUtils {
 public:
  ArithIteUtils(preprocessing::util::ContainsTermITEVisitor& contains,
                context::Context* userContext,
-               TheoryModel* model);
+               SubstitutionMap& subs);
  ~ArithIteUtils();
 
  //(ite ?v_2 ?v_1 (ite ?v_3 (- ?v_1 128) (- ?v_1 256)))

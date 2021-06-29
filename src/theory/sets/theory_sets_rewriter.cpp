@@ -20,6 +20,7 @@
 #include "options/sets_options.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/rels_utils.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 

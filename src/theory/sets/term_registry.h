@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "context/cdhashmap.h"
-#include "theory/eager_proof_generator.h"
+#include "proof/eager_proof_generator.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
@@ -37,7 +37,7 @@ namespace sets {
  */
 class TermRegistry
 {
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
+  typedef context::CDHashMap<Node, Node> NodeMap;
 
  public:
   TermRegistry(SolverState& state,

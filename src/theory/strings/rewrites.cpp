@@ -68,6 +68,10 @@ const char* toString(Rewrite r)
     case Rewrite::IDOF_PULL_ENDPT: return "IDOF_PULL_ENDPT";
     case Rewrite::IDOF_STRIP_CNST_ENDPTS: return "IDOF_STRIP_CNST_ENDPTS";
     case Rewrite::IDOF_STRIP_SYM_LEN: return "IDOF_STRIP_SYM_LEN";
+    case Rewrite::INDEXOF_RE_EMP_RE: return "INDEXOF_RE_EMP_RE";
+    case Rewrite::INDEXOF_RE_EVAL: return "INDEXOF_RE_EVAL";
+    case Rewrite::INDEXOF_RE_INVALID_INDEX: return "INDEXOF_RE_INVALID_INDEX";
+    case Rewrite::INDEXOF_RE_MAX_INDEX: return "INDEXOF_RE_MAX_INDEX";
     case Rewrite::ITOS_EVAL: return "ITOS_EVAL";
     case Rewrite::RE_AND_EMPTY: return "RE_AND_EMPTY";
     case Rewrite::RE_ANDOR_FLATTEN: return "RE_ANDOR_FLATTEN";
@@ -201,6 +205,7 @@ const char* toString(Rewrite r)
     case Rewrite::SUF_PREFIX_ELIM: return "SUF_PREFIX_ELIM";
     case Rewrite::STR_LT_ELIM: return "STR_LT_ELIM";
     case Rewrite::RE_RANGE_SINGLE: return "RE_RANGE_SINGLE";
+    case Rewrite::RE_RANGE_EMPTY: return "RE_RANGE_EMPTY";
     case Rewrite::RE_OPT_ELIM: return "RE_OPT_ELIM";
     case Rewrite::RE_PLUS_ELIM: return "RE_PLUS_ELIM";
     case Rewrite::RE_DIFF_ELIM: return "RE_DIFF_ELIM";

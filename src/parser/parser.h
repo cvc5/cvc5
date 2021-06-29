@@ -19,6 +19,7 @@
 #define CVC5__PARSER__PARSER_H
 
 #include <list>
+#include <memory>
 #include <set>
 #include <string>
 
@@ -107,7 +108,7 @@ class CVC5_EXPORT Parser
 private:
 
  /** The input that we're parsing. */
- Input* d_input;
+ std::unique_ptr<Input> d_input;
 
  /**
   * Reference to the symbol manager, which manages the symbol table used by
@@ -207,7 +208,6 @@ protected:
   */
  Parser(api::Solver* solver,
         SymbolManager* sm,
-        Input* input,
         bool strictMode = false,
         bool parseOnly = false);
 
@@ -219,17 +219,14 @@ public:
   api::Solver* getSolver() const;
 
   /** Get the associated input. */
-  inline Input* getInput() const {
-    return d_input;
-  }
+  Input* getInput() const { return d_input.get(); }
 
   /** Get unresolved sorts */
   inline std::set<api::Sort>& getUnresolvedSorts() { return d_unresolved; }
 
   /** Deletes and replaces the current parser input. */
   void setInput(Input* input)  {
-    delete d_input;
-    d_input = input;
+    d_input.reset(input);
     d_input->setParser(*this);
     d_done = false;
   }
@@ -306,9 +303,10 @@ public:
   virtual api::Term getExpressionForName(const std::string& name);
 
   /**
-   * Returns the expression that name should be interpreted as, based on the current binding.
+   * Returns the expression that name should be interpreted as, based on the
+   * current binding.
    *
-   * This is the same as above but where the name has been type cast to t. 
+   * This is the same as above but where the name has been type cast to t.
    */
   virtual api::Term getExpressionForNameAndType(const std::string& name,
                                                 api::Sort t);
@@ -334,9 +332,9 @@ public:
    * This is a generalization of ExprManager::operatorToKind that also
    * handles variables whose types are "function-like", i.e. where
    * checkFunctionLike(fun) returns true.
-   * 
+   *
    * For examples of the latter, this function returns
-   *   APPLY_UF if fun has function type, 
+   *   APPLY_UF if fun has function type,
    *   APPLY_CONSTRUCTOR if fun has constructor type.
    */
   api::Kind getKindForFunction(api::Term fun);
@@ -382,7 +380,7 @@ public:
 
   /**
    * Checks whether the given expression is function-like, i.e.
-   * it expects arguments. This is checked by looking at the type 
+   * it expects arguments. This is checked by looking at the type
    * of fun. Examples of function types are function, constructor,
    * selector, tester.
    * @param fun the expression to check
@@ -446,11 +444,12 @@ public:
   std::vector<api::Term> bindBoundVars(const std::vector<std::string> names,
                                        const api::Sort& type);
 
-  /** Create a new variable definition (e.g., from a let binding). 
+  /** Create a new variable definition (e.g., from a let binding).
    * levelZero is set if the binding must be done at level 0.
    * If a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   *  else if doOverload is false, the existing expression is shadowed by the
+   * new expression.
    */
   void defineVar(const std::string& name,
                  const api::Term& val,
@@ -651,9 +650,10 @@ public:
   /** Is the symbol bound to a boolean variable? */
   bool isBoolean(const std::string& name);
 
-  /** Is fun a function (or function-like thing)? 
-  * Currently this means its type is either a function, constructor, tester, or selector.
-  */
+  /** Is fun a function (or function-like thing)?
+   * Currently this means its type is either a function, constructor, tester, or
+   * selector.
+   */
   bool isFunctionLike(api::Term fun);
 
   /** Is the symbol bound to a predicate? */
@@ -760,6 +760,14 @@ public:
    */
   api::Term mkStringConstant(const std::string& s);
 
+  /**
+   * Make string constant from a single character in hex representation
+   *
+   * This makes the string constant based on the character from the strings,
+   * represented as a hexadecimal code point.
+   */
+  api::Term mkCharConstant(const std::string& s);
+
   /** ad-hoc string escaping
    *
    * Returns the (internal) vector of code points corresponding to processing
@@ -770,7 +778,7 @@ public:
    * \\, \x[N] and octal escape sequences of the form \[c1]([c2]([c3])?)? where
    * c1, c2, c3 are digits from 0 to 7.
    */
-  std::vector<unsigned> processAdHocStringEsc(const std::string& s);
+  std::wstring processAdHocStringEsc(const std::string& s);
 }; /* class Parser */
 
 }  // namespace parser

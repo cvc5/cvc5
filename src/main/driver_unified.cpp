@@ -33,7 +33,10 @@
 #include "main/main.h"
 #include "main/signal_handlers.h"
 #include "main/time_limit.h"
+#include "options/base_options.h"
 #include "options/options.h"
+#include "options/parser_options.h"
+#include "options/main_options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -55,7 +58,7 @@ thread_local Options* pOptions;
 const char* progPath;
 
 /** Just the basename component of argv[0] */
-const std::string* progName;
+std::string progName;
 
 /** A pointer to the CommandExecutor (the signal handlers need it) */
 std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
@@ -78,16 +81,17 @@ TotalTimer::~TotalTimer()
 
 void printUsage(Options& opts, bool full) {
   stringstream ss;
-  ss << "usage: " << opts.getBinaryName() << " [options] [input-file]" << endl
+  ss << "usage: " << progName << " [options] [input-file]"
+     << endl
      << endl
      << "Without an input file, or with `-', cvc5 reads from standard input."
      << endl
      << endl
      << "cvc5 options:" << endl;
   if(full) {
-    Options::printUsage( ss.str(), *(opts.getOut()) );
+    Options::printUsage(ss.str(), *opts.base.out);
   } else {
-    Options::printShortUsage( ss.str(), *(opts.getOut()) );
+    Options::printShortUsage(ss.str(), *opts.base.out);
   }
 }
 
@@ -103,29 +107,32 @@ int runCvc5(int argc, char* argv[], Options& opts)
   progPath = argv[0];
 
   // Parse the options
-  vector<string> filenames = Options::parseOptions(&opts, argc, argv);
+  std::vector<string> filenames =
+      Options::parseOptions(&opts, argc, argv, progName);
 
   auto limit = install_time_limit(opts);
 
-  string progNameStr = opts.getBinaryName();
-  progName = &progNameStr;
-
-  if( opts.getHelp() ) {
+  if (opts.driver.help)
+  {
     printUsage(opts, true);
     exit(1);
-  } else if( opts.getLanguageHelp() ) {
-    Options::printLanguageHelp(*(opts.getOut()));
+  }
+  else if (opts.base.languageHelp)
+  {
+    Options::printLanguageHelp(*opts.base.out);
     exit(1);
-  } else if( opts.getVersion() ) {
-    *(opts.getOut()) << Configuration::about().c_str() << flush;
+  }
+  else if (opts.driver.version)
+  {
+    *opts.base.out << Configuration::about().c_str() << flush;
     exit(0);
   }
 
-  segvSpin = opts.getSegvSpin();
+  segvSpin = opts.driver.segvSpin;
 
   // If in competition mode, set output stream option to flush immediately
 #ifdef CVC5_COMPETITION_MODE
-  *(opts.getOut()) << unitbuf;
+  *opts.base.out << unitbuf;
 #endif /* CVC5_COMPETITION_MODE */
 
   // We only accept one input file
@@ -137,8 +144,9 @@ int runCvc5(int argc, char* argv[], Options& opts)
   const bool inputFromStdin = filenames.empty() || filenames[0] == "-";
 
   // if we're reading from stdin on a TTY, default to interactive mode
-  if(!opts.wasSetByUserInteractive()) {
-    opts.setInteractive(inputFromStdin && isatty(fileno(stdin)));
+  if (!opts.driver.interactiveWasSetByUser)
+  {
+    opts.driver.interactive = inputFromStdin && isatty(fileno(stdin));
   }
 
   // Auto-detect input language by filename extension
@@ -150,30 +158,32 @@ int runCvc5(int argc, char* argv[], Options& opts)
   }
   const char* filename = filenameStr.c_str();
 
-  if(opts.getInputLanguage() == language::input::LANG_AUTO) {
+  if (opts.base.inputLanguage == language::input::LANG_AUTO)
+  {
     if( inputFromStdin ) {
       // We can't do any fancy detection on stdin
-      opts.setInputLanguage(language::input::LANG_CVC);
+      opts.base.inputLanguage = language::input::LANG_CVC;
     } else {
-      unsigned len = filenameStr.size();
+      size_t len = filenameStr.size();
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
-        opts.setInputLanguage(language::input::LANG_SMTLIB_V2_6);
+        opts.base.inputLanguage = language::input::LANG_SMTLIB_V2_6;
       } else if((len >= 2 && !strcmp(".p", filename + len - 2))
                 || (len >= 5 && !strcmp(".tptp", filename + len - 5))) {
-        opts.setInputLanguage(language::input::LANG_TPTP);
+        opts.base.inputLanguage = language::input::LANG_TPTP;
       } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
                 || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
-        opts.setInputLanguage(language::input::LANG_CVC);
+        opts.base.inputLanguage = language::input::LANG_CVC;
       } else if((len >= 3 && !strcmp(".sy", filename + len - 3))
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
         // version 2 sygus is the default
-        opts.setInputLanguage(language::input::LANG_SYGUS_V2);
+        opts.base.inputLanguage = language::input::LANG_SYGUS_V2;
       }
     }
   }
 
-  if(opts.getOutputLanguage() == language::output::LANG_AUTO) {
-    opts.setOutputLanguage(language::toOutputLanguage(opts.getInputLanguage()));
+  if (opts.base.outputLanguage == language::output::LANG_AUTO)
+  {
+    opts.base.outputLanguage = language::toOutputLanguage(opts.base.inputLanguage);
   }
 
   // Determine which messages to show based on smtcomp_mode and verbosity
@@ -187,7 +197,8 @@ int runCvc5(int argc, char* argv[], Options& opts)
   }
 
   // important even for muzzled builds (to get result output right)
-  (*(opts.getOut())) << language::SetLanguage(opts.getOutputLanguage());
+  (*opts.base.out)
+      << language::SetLanguage(opts.base.outputLanguage);
 
   // Create the command executor to execute the parsed commands
   pExecutor = std::make_unique<CommandExecutor>(opts);
@@ -200,19 +211,18 @@ int runCvc5(int argc, char* argv[], Options& opts)
     // Parse and execute commands until we are done
     std::unique_ptr<Command> cmd;
     bool status = true;
-    if(opts.getInteractive() && inputFromStdin) {
-      if(opts.getTearDownIncremental() > 0) {
-        throw Exception(
-            "--tear-down-incremental doesn't work in interactive mode");
-      }
-      if(!opts.wasSetByUserIncrementalSolving()) {
+    if (opts.driver.interactive && inputFromStdin)
+    {
+      if (!opts.base.incrementalSolvingWasSetByUser)
+      {
         cmd.reset(new SetOptionCommand("incremental", "true"));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
       }
       InteractiveShell shell(pExecutor->getSolver(),
                              pExecutor->getSymbolManager());
-      if(opts.getInteractivePrompt()) {
+      if (opts.driver.interactivePrompt)
+      {
         CVC5Message() << Configuration::getPackageName() << " "
                       << Configuration::getVersionString();
         if(Configuration::isGitBuild()) {
@@ -230,7 +240,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
         try {
           cmd.reset(shell.readCommand());
         } catch(UnsafeInterruptException& e) {
-          (*opts.getOut()) << CommandInterrupted();
+          *opts.base.out << CommandInterrupted();
           break;
         }
         if (cmd == nullptr)
@@ -240,174 +250,11 @@ int runCvc5(int argc, char* argv[], Options& opts)
           break;
         }
       }
-    } else if( opts.getTearDownIncremental() > 0) {
-      if(!opts.getIncrementalSolving() && opts.getTearDownIncremental() > 1) {
-        // For tear-down-incremental values greater than 1, need incremental
-        // on too.
-        cmd.reset(new SetOptionCommand("incremental", "true"));
-        cmd->setMuted(true);
-        pExecutor->doCommand(cmd);
-        // if(opts.wasSetByUserIncrementalSolving()) {
-        //   throw OptionException(
-        //     "--tear-down-incremental incompatible with --incremental");
-        // }
-
-        // cmd.reset(new SetOptionCommand("incremental", "false"));
-        // cmd->setMuted(true);
-        // pExecutor->doCommand(cmd);
-      }
-
-      ParserBuilder parserBuilder(pExecutor->getSolver(),
-                                  pExecutor->getSymbolManager(),
-                                  filename,
-                                  opts);
-
-      if( inputFromStdin ) {
-#if defined(CVC5_COMPETITION_MODE) && !defined(CVC5_SMTCOMP_APPLICATION_TRACK)
-        parserBuilder.withStreamInput(cin);
-#else  /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
-        parserBuilder.withLineBufferedStreamInput(cin);
-#endif /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
-      }
-
-      vector< vector<Command*> > allCommands;
-      allCommands.push_back(vector<Command*>());
-      std::unique_ptr<Parser> parser(parserBuilder.build());
-      int needReset = 0;
-      // true if one of the commands was interrupted
-      bool interrupted = false;
-      while (status)
+    }
+    else
+    {
+      if (!opts.base.incrementalSolvingWasSetByUser)
       {
-        if (interrupted) {
-          (*opts.getOut()) << CommandInterrupted();
-          break;
-        }
-
-        try {
-          cmd.reset(parser->nextCommand());
-          if (cmd == nullptr) break;
-        } catch (UnsafeInterruptException& e) {
-          interrupted = true;
-          continue;
-        }
-
-        if(dynamic_cast<PushCommand*>(cmd.get()) != nullptr) {
-          if(needReset >= opts.getTearDownIncremental()) {
-            pExecutor->reset();
-            for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
-              if (interrupted) break;
-              for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j)
-              {
-                Command* ccmd = allCommands[i][j]->clone();
-                ccmd->setMuted(true);
-                pExecutor->doCommand(ccmd);
-                if (ccmd->interrupted())
-                {
-                  interrupted = true;
-                }
-                delete ccmd;
-              }
-            }
-            needReset = 0;
-          }
-          allCommands.push_back(vector<Command*>());
-          Command* copy = cmd->clone();
-          allCommands.back().push_back(copy);
-          status = pExecutor->doCommand(cmd);
-          if(cmd->interrupted()) {
-            interrupted = true;
-            continue;
-          }
-        } else if(dynamic_cast<PopCommand*>(cmd.get()) != nullptr) {
-          allCommands.pop_back(); // fixme leaks cmds here
-          if (needReset >= opts.getTearDownIncremental()) {
-            pExecutor->reset();
-            for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
-              for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j)
-              {
-                std::unique_ptr<Command> ccmd(allCommands[i][j]->clone());
-                ccmd->setMuted(true);
-                pExecutor->doCommand(ccmd);
-                if (ccmd->interrupted())
-                {
-                  interrupted = true;
-                }
-              }
-            }
-            if (interrupted) continue;
-            (*opts.getOut()) << CommandSuccess();
-            needReset = 0;
-          } else {
-            status = pExecutor->doCommand(cmd);
-            if(cmd->interrupted()) {
-              interrupted = true;
-              continue;
-            }
-          }
-        } else if(dynamic_cast<CheckSatCommand*>(cmd.get()) != nullptr ||
-                  dynamic_cast<QueryCommand*>(cmd.get()) != nullptr) {
-          if(needReset >= opts.getTearDownIncremental()) {
-            pExecutor->reset();
-            for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
-              for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j)
-              {
-                Command* ccmd = allCommands[i][j]->clone();
-                ccmd->setMuted(true);
-                pExecutor->doCommand(ccmd);
-                if (ccmd->interrupted())
-                {
-                  interrupted = true;
-                }
-                delete ccmd;
-              }
-            }
-            needReset = 0;
-          } else {
-            ++needReset;
-          }
-          if (interrupted) {
-            continue;
-          }
-
-          status = pExecutor->doCommand(cmd);
-          if(cmd->interrupted()) {
-            interrupted = true;
-            continue;
-          }
-        } else if(dynamic_cast<ResetCommand*>(cmd.get()) != nullptr) {
-          pExecutor->doCommand(cmd);
-          allCommands.clear();
-          allCommands.push_back(vector<Command*>());
-        } else {
-          // We shouldn't copy certain commands, because they can cause
-          // an error on replay since there's no associated sat/unsat check
-          // preceding them.
-          if(dynamic_cast<GetUnsatCoreCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<GetProofCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<GetValueCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<GetModelCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<GetAssignmentCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<GetInstantiationsCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<GetAssertionsCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<GetInfoCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<GetOptionCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<EchoCommand*>(cmd.get()) == nullptr) {
-            Command* copy = cmd->clone();
-            allCommands.back().push_back(copy);
-          }
-          status = pExecutor->doCommand(cmd);
-          if(cmd->interrupted()) {
-            interrupted = true;
-            continue;
-          }
-
-          if(dynamic_cast<QuitCommand*>(cmd.get()) != nullptr) {
-            break;
-          }
-        }
-      }
-    } else {
-      if(!opts.wasSetByUserIncrementalSolving()) {
         cmd.reset(new SetOptionCommand("incremental", "false"));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
@@ -415,23 +262,24 @@ int runCvc5(int argc, char* argv[], Options& opts)
 
       ParserBuilder parserBuilder(pExecutor->getSolver(),
                                   pExecutor->getSymbolManager(),
-                                  filename,
                                   opts);
-
+      std::unique_ptr<Parser> parser(parserBuilder.build());
       if( inputFromStdin ) {
-#if defined(CVC5_COMPETITION_MODE) && !defined(CVC5_SMTCOMP_APPLICATION_TRACK)
-        parserBuilder.withStreamInput(cin);
-#else  /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
-        parserBuilder.withLineBufferedStreamInput(cin);
-#endif /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
+        parser->setInput(Input::newStreamInput(
+            opts.base.inputLanguage, cin, filename));
+      }
+      else
+      {
+        parser->setInput(Input::newFileInput(opts.base.inputLanguage,
+                                             filename,
+                                             opts.parser.memoryMap));
       }
 
-      std::unique_ptr<Parser> parser(parserBuilder.build());
       bool interrupted = false;
       while (status)
       {
         if (interrupted) {
-          (*opts.getOut()) << CommandInterrupted();
+          *opts.base.out << CommandInterrupted();
           pExecutor->reset();
           break;
         }
@@ -465,7 +313,10 @@ int runCvc5(int argc, char* argv[], Options& opts)
     }
 
 #ifdef CVC5_COMPETITION_MODE
-    opts.flushOut();
+    if (opts.base.out != nullptr)
+    {
+      *opts.base.out << std::flush;
+    }
     // exit, don't return (don't want destructors to run)
     // _exit() from unistd.h doesn't run global destructors
     // or other on_exit/atexit stuff.
@@ -476,11 +327,13 @@ int runCvc5(int argc, char* argv[], Options& opts)
     pExecutor->flushOutputStreams();
 
 #ifdef CVC5_DEBUG
-    if(opts.getEarlyExit() && opts.wasSetByUserEarlyExit()) {
+    if (opts.driver.earlyExit && opts.driver.earlyExitWasSetByUser)
+    {
       _exit(returnValue);
     }
 #else  /* CVC5_DEBUG */
-    if(opts.getEarlyExit()) {
+    if (opts.driver.earlyExit)
+    {
       _exit(returnValue);
     }
 #endif /* CVC5_DEBUG */

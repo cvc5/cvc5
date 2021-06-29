@@ -21,12 +21,12 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/kind.h"
-#include "expr/proof_node_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_type_rules.h"
@@ -94,6 +94,9 @@ bool TheoryDatatypes::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
   esi.d_name = "theory::datatypes::ee";
+  // need notifications on new constructors, merging datatype eqcs
+  esi.d_notifyNewClass = true;
+  esi.d_notifyMerge = true;
   return true;
 }
 

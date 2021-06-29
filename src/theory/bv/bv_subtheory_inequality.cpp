@@ -237,7 +237,7 @@ bool InequalitySolver::addInequality(TNode a, TNode b, bool strict, TNode fact)
 
   Node one = utils::mkConst(utils::getSize(a), 1);
   Node a_plus_one = Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_PLUS, a, one));
+      NodeManager::currentNM()->mkNode(kind::BITVECTOR_ADD, a, one));
   if (d_ineqTerms.find(a_plus_one) != d_ineqTerms.end())
   {
     ok = d_inequalityGraph.addInequality(a_plus_one, b, false, fact);

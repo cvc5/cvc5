@@ -323,8 +323,8 @@ bool SygusSampler::isContiguous(Node n)
 
 void SygusSampler::computeFreeVariables(Node n, std::vector<Node>& fvs)
 {
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -359,8 +359,8 @@ bool SygusSampler::checkVariables(Node n, bool checkOrder, bool checkLinear)
   // compute free variables in n for each type
   std::map<unsigned, std::vector<Node> > fvs;
 
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -411,8 +411,8 @@ bool SygusSampler::containsFreeVariables(Node a, Node b, bool strict)
   computeFreeVariables(a, fvs);
   std::vector<Node> fv_found;
 
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(b);
@@ -828,7 +828,7 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
     }
     // we have detected unsoundness in the rewriter
     Options& sopts = smt::currentSmtEngine()->getOptions();
-    std::ostream* out = sopts.getOut();
+    std::ostream* out = sopts.base.out;
     (*out) << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
     // debugging information
     (*out) << "Terms are not equivalent for : " << std::endl;

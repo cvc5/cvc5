@@ -27,6 +27,7 @@
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -58,13 +59,15 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_tangentPlaneSlv(&d_extState),
       d_cadSlv(d_im, d_model, state.getUserContext(), pnm),
       d_icpSlv(d_im),
-      d_iandSlv(d_im, state, d_model)
+      d_iandSlv(d_im, state, d_model),
+      d_pow2Slv(d_im, state, d_model)
 {
   d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
   d_extTheory.addFunctionKind(kind::EXPONENTIAL);
   d_extTheory.addFunctionKind(kind::SINE);
   d_extTheory.addFunctionKind(kind::PI);
   d_extTheory.addFunctionKind(kind::IAND);
+  d_extTheory.addFunctionKind(kind::POW2);
   d_true = NodeManager::currentNM()->mkConst(true);
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
@@ -123,7 +126,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 
   BoundInference bounds;
 
-  std::unordered_set<Node, NodeHashFunction> init_assertions;
+  std::unordered_set<Node> init_assertions;
 
   for (Theory::assertions_iterator it = d_containing.facts_begin();
        it != d_containing.facts_end();
@@ -218,7 +221,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
   // relevance here, since we may have discarded literals that are relevant
   // that are entailed based on the techniques in getAssertions.
   std::vector<Node> passertions = assertions;
-  if (options::nlExt())
+  if (options::nlExt() == options::NlExtMode::FULL)
   {
     // preprocess the assertions with the trancendental solver
     if (!d_trSlv.preprocessAssertionsCheckModel(passertions))
@@ -474,8 +477,8 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
       }
 
       // we are incomplete
-      if (options::nlExt() && options::nlExtIncPrecision()
-          && d_model.usedApproximate())
+      if (options::nlExt() == options::NlExtMode::FULL
+          && options::nlExtIncPrecision() && d_model.usedApproximate())
       {
         d_trSlv.incrementTaylorDegree();
         needsRecheck = true;
@@ -567,6 +570,11 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         break;
       case InferStep::IAND_FULL: d_iandSlv.checkFullRefine(); break;
       case InferStep::IAND_INITIAL: d_iandSlv.checkInitialRefine(); break;
+      case InferStep::POW2_INIT:
+        d_pow2Slv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::POW2_FULL: d_pow2Slv.checkFullRefine(); break;
+      case InferStep::POW2_INITIAL: d_pow2Slv.checkInitialRefine(); break;
       case InferStep::ICP:
         d_icpSlv.reset(assertions);
         d_icpSlv.check();

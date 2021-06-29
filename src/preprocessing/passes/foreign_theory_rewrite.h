@@ -28,7 +28,7 @@ namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using CDNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
+using CDNodeMap = context::CDHashMap<Node, Node>;
 
 class ForeignTheoryRewrite : public PreprocessingPass
 {

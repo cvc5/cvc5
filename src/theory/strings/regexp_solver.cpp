@@ -49,8 +49,7 @@ RegExpSolver::RegExpSolver(SolverState& s,
       d_regexp_opr(skc)
 {
   d_emptyString = NodeManager::currentNM()->mkConst(::cvc5::String(""));
-  std::vector<Node> nvec;
-  d_emptyRegexp = NodeManager::currentNM()->mkNode(REGEXP_EMPTY, nvec);
+  d_emptyRegexp = NodeManager::currentNM()->mkNode(REGEXP_EMPTY);
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -126,18 +125,14 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
     {
       for (const Node& m : mr.second)
       {
-        bool polarity = m.getKind() != NOT;
-        if (polarity || !options::stringIgnNegMembership())
-        {
-          allMems[m] = mr.first;
-        }
+        allMems[m] = mr.first;
       }
     }
 
     NodeManager* nm = NodeManager::currentNM();
     // representatives of strings that are the LHS of positive memberships that
     // we unfolded
-    std::unordered_set<Node, NodeHashFunction> repUnfold;
+    std::unordered_set<Node> repUnfold;
     // check positive (e=0), then negative (e=1) memberships
     for (unsigned e = 0; e < 2; e++)
     {
@@ -329,7 +324,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
 
 bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
 {
-  std::unordered_set<Node, NodeHashFunction> remove;
+  std::unordered_set<Node> remove;
 
   for (const Node& m1 : mems)
   {

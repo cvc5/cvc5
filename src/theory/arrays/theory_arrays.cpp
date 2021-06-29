@@ -18,11 +18,12 @@
 #include <map>
 #include <memory>
 
+#include "expr/array_store_all.h"
 #include "expr/kind.h"
 #include "expr/node_algorithm.h"
-#include "expr/proof_checker.h"
 #include "options/arrays_options.h"
 #include "options/smt_options.h"
+#include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arrays/skolem_cache.h"
@@ -150,6 +151,8 @@ bool TheoryArrays::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
   esi.d_name = d_instanceName + "ee";
+  esi.d_notifyNewClass = true;
+  esi.d_notifyMerge = true;
   return true;
 }
 
@@ -551,7 +554,7 @@ void TheoryArrays::weakEquivMakeRepIndex(TNode node) {
 }
 
 void TheoryArrays::weakEquivAddSecondary(TNode index, TNode arrayFrom, TNode arrayTo, TNode reason) {
-  std::unordered_set<TNode, TNodeHashFunction> marked;
+  std::unordered_set<TNode> marked;
   vector<TNode> index_trail;
   vector<TNode>::iterator it, iend;
   Node equivalence_trail = reason;
@@ -1043,7 +1046,8 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
   std::vector<Node> arrays;
 
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
-  for (; !eqcs_i.isFinished(); ++eqcs_i) {
+  for (; !eqcs_i.isFinished(); ++eqcs_i)
+  {
     Node eqc = (*eqcs_i);
     if (!eqc.getType().isArray())
     {
@@ -1051,9 +1055,11 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
       continue;
     }
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, d_equalityEngine);
-    for (; !eqc_i.isFinished(); ++eqc_i) {
+    for (; !eqc_i.isFinished(); ++eqc_i)
+    {
       Node n = *eqc_i;
-      // If this EC is an array type and it contains something other than STORE nodes, we have to compute a representative explicitly
+      // If this EC is an array type and it contains something other than STORE
+      // nodes, we have to compute a representative explicitly
       if (termSet.find(n) != termSet.end())
       {
         if (n.getKind() != kind::STORE)
@@ -1068,10 +1074,13 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
   // Build a list of all the relevant reads, indexed by the store representative
   std::map<Node, std::vector<Node> > selects;
   set<Node>::iterator set_it = termSet.begin(), set_it_end = termSet.end();
-  for (; set_it != set_it_end; ++set_it) {
+  for (; set_it != set_it_end; ++set_it)
+  {
     Node n = *set_it;
-    // If this term is a select, record that the EC rep of its store parameter is being read from using this term
-    if (n.getKind() == kind::SELECT) {
+    // If this term is a select, record that the EC rep of its store parameter
+    // is being read from using this term
+    if (n.getKind() == kind::SELECT)
+    {
       selects[d_equalityEngine->getRepresentative(n[0])].push_back(n);
     }
   }
@@ -1081,71 +1090,82 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
   TypeSet defaultValuesSet;
 
   // Compute all default values already in use
-  //if (fullModel) {
-    for (size_t i=0; i<arrays.size(); ++i) {
-      TNode nrep = d_equalityEngine->getRepresentative(arrays[i]);
-      d_mayEqualEqualityEngine.addTerm(nrep); // add the term in case it isn't there already
-      TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(nrep);
-      it = d_defValues.find(mayRep);
-      if (it != d_defValues.end()) {
-        defaultValuesSet.add(nrep.getType().getArrayConstituentType(), (*it).second);
-      }
+  // if (fullModel) {
+  for (size_t i = 0; i < arrays.size(); ++i)
+  {
+    TNode nrep = d_equalityEngine->getRepresentative(arrays[i]);
+    d_mayEqualEqualityEngine.addTerm(
+        nrep);  // add the term in case it isn't there already
+    TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(nrep);
+    it = d_defValues.find(mayRep);
+    if (it != d_defValues.end())
+    {
+      defaultValuesSet.add(nrep.getType().getArrayConstituentType(),
+                           (*it).second);
     }
+  }
   //}
 
-  // Loop through all array equivalence classes that need a representative computed
-    for (size_t i = 0; i < arrays.size(); ++i)
+  // Loop through all array equivalence classes that need a representative
+  // computed
+  for (size_t i = 0; i < arrays.size(); ++i)
+  {
+    TNode n = arrays[i];
+    TNode nrep = d_equalityEngine->getRepresentative(n);
+
+    // if (fullModel) {
+    // Compute default value for this array - there is one default value for
+    // every mayEqual equivalence class
+    TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(nrep);
+    it = d_defValues.find(mayRep);
+    // If this mayEqual EC doesn't have a default value associated, get the next
+    // available default value for the associated array element type
+    if (it == d_defValues.end())
     {
-      TNode n = arrays[i];
-      TNode nrep = d_equalityEngine->getRepresentative(n);
-
-      // if (fullModel) {
-      // Compute default value for this array - there is one default value for
-      // every mayEqual equivalence class
-      TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(nrep);
-      it = d_defValues.find(mayRep);
-      // If this mayEqual EC doesn't have a default value associated, get the next available default value for the associated array element type
-      if (it == d_defValues.end()) {
-        TypeNode valueType = nrep.getType().getArrayConstituentType();
-        rep = defaultValuesSet.nextTypeEnum(valueType);
-        if (rep.isNull()) {
-          Assert(defaultValuesSet.getSet(valueType)->begin()
-                 != defaultValuesSet.getSet(valueType)->end());
-          rep = *(defaultValuesSet.getSet(valueType)->begin());
-        }
-        Trace("arrays-models") << "New default value = " << rep << endl;
-        d_defValues[mayRep] = rep;
+      TypeNode valueType = nrep.getType().getArrayConstituentType();
+      rep = defaultValuesSet.nextTypeEnum(valueType);
+      if (rep.isNull())
+      {
+        Assert(defaultValuesSet.getSet(valueType)->begin()
+               != defaultValuesSet.getSet(valueType)->end());
+        rep = *(defaultValuesSet.getSet(valueType)->begin());
       }
-      else {
-        rep = (*it).second;
-      }
+      Trace("arrays-models") << "New default value = " << rep << endl;
+      d_defValues[mayRep] = rep;
+    }
+    else
+    {
+      rep = (*it).second;
+    }
 
-      // Build the STORE_ALL term with the default value
-      rep = nm->mkConst(ArrayStoreAll(nrep.getType(), rep));
-      /*
+    // Build the STORE_ALL term with the default value
+    rep = nm->mkConst(ArrayStoreAll(nrep.getType(), rep));
+    /*
+  }
+  else {
+    std::unordered_map<Node, Node>::iterator it = d_skolemCache.find(n);
+    if (it == d_skolemCache.end()) {
+      rep = nm->mkSkolem("array_collect_model_var", n.getType(), "base model
+  variable for array collectModelInfo"); d_skolemCache[n] = rep;
     }
     else {
-      std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(n);
-      if (it == d_skolemCache.end()) {
-        rep = nm->mkSkolem("array_collect_model_var", n.getType(), "base model variable for array collectModelInfo");
-        d_skolemCache[n] = rep;
-      }
-      else {
-        rep = (*it).second;
-      }
+      rep = (*it).second;
     }
+  }
 */
 
     // For each read, require that the rep stores the right value
     vector<Node>& reads = selects[nrep];
-    for (unsigned j = 0; j < reads.size(); ++j) {
+    for (unsigned j = 0; j < reads.size(); ++j)
+    {
       rep = nm->mkNode(kind::STORE, rep, reads[j][1], reads[j]);
     }
     if (!m->assertEquality(n, rep, true))
     {
       return false;
     }
-    if (!n.isConst()) {
+    if (!n.isConst())
+    {
       m->assertSkeleton(rep);
     }
   }
@@ -1181,7 +1201,7 @@ Node TheoryArrays::getSkolem(TNode ref)
   // the call to SkolemCache::getExtIndexSkolem should be deterministic, but use
   // cache anyways for now
   Node skolem;
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(ref);
+  std::unordered_map<Node, Node>::iterator it = d_skolemCache.find(ref);
   if (it == d_skolemCache.end()) {
     Assert(ref.getKind() == kind::NOT && ref[0].getKind() == kind::EQUAL);
     // make the skolem using the skolem cache utility

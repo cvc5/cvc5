@@ -135,12 +135,12 @@ Printer* Printer::getPrinter(OutputLanguage lang)
     // the singleton "null" expr.  So we guard against segfault
     if (not Options::isCurrentNull())
     {
-      if (Options::current().wasSetByUser(options::outputLanguage))
+      if (Options::current().base.outputLanguageWasSetByUser)
       {
         lang = options::outputLanguage();
       }
       if (lang == language::output::LANG_AUTO
-          && Options::current().wasSetByUser(options::inputLanguage))
+          && Options::current().base.inputLanguageWasSetByUser)
       {
         lang = language::toOutputLanguage(options::inputLanguage());
       }
@@ -331,11 +331,6 @@ void Printer::toStreamCmdGetProof(std::ostream& out) const
 void Printer::toStreamCmdGetInstantiations(std::ostream& out) const
 {
   printUnknownCommand(out, "get-instantiations");
-}
-
-void Printer::toStreamCmdGetSynthSolution(std::ostream& out) const
-{
-  printUnknownCommand(out, "get-synth-solution");
 }
 
 void Printer::toStreamCmdGetInterpol(std::ostream& out,

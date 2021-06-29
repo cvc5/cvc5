@@ -16,63 +16,11 @@
 #include "theory/fp/fp_expand_defs.h"
 
 #include "expr/skolem_manager.h"
+#include "util/floatingpoint.h"
 
 namespace cvc5 {
 namespace theory {
 namespace fp {
-
-namespace removeToFPGeneric {
-
-Node removeToFPGeneric(TNode node)
-{
-  Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_GENERIC);
-
-  FloatingPointToFPGeneric info =
-      node.getOperator().getConst<FloatingPointToFPGeneric>();
-
-  size_t children = node.getNumChildren();
-
-  Node op;
-  NodeManager* nm = NodeManager::currentNM();
-
-  if (children == 1)
-  {
-    op = nm->mkConst(FloatingPointToFPIEEEBitVector(info));
-    return nm->mkNode(op, node[0]);
-  }
-  else
-  {
-    Assert(children == 2);
-    Assert(node[0].getType().isRoundingMode());
-
-    TypeNode t = node[1].getType();
-
-    if (t.isFloatingPoint())
-    {
-      op = nm->mkConst(FloatingPointToFPFloatingPoint(info));
-    }
-    else if (t.isReal())
-    {
-      op = nm->mkConst(FloatingPointToFPReal(info));
-    }
-    else if (t.isBitVector())
-    {
-      op = nm->mkConst(FloatingPointToFPSignedBitVector(info));
-    }
-    else
-    {
-      throw TypeCheckingExceptionPrivate(
-          node,
-          "cannot rewrite to_fp generic due to incorrect type of second "
-          "argument");
-    }
-
-    return nm->mkNode(op, node[0], node[1]);
-  }
-
-  Unreachable() << "to_fp generic not rewritten";
-}
-}  // namespace removeToFPGeneric
 
 FpExpandDefs::FpExpandDefs(context::UserContext* u)
     :
@@ -103,11 +51,7 @@ Node FpExpandDefs::minUF(Node node)
     args[1] = t;
     fun = sm->mkDummySkolem("floatingpoint_min_zero_case",
                             nm->mkFunctionType(args,
-#ifdef SYMFPUPROPISBOOL
-                                               nm->booleanType()
-#else
                                                nm->mkBitVectorType(1U)
-#endif
                                                    ),
                             "floatingpoint_min_zero_case",
                             NodeManager::SKOLEM_EXACT_NAME);
@@ -141,11 +85,7 @@ Node FpExpandDefs::maxUF(Node node)
     args[1] = t;
     fun = sm->mkDummySkolem("floatingpoint_max_zero_case",
                             nm->mkFunctionType(args,
-#ifdef SYMFPUPROPISBOOL
-                                               nm->booleanType()
-#else
                                                nm->mkBitVectorType(1U)
-#endif
                                                    ),
                             "floatingpoint_max_zero_case",
                             NodeManager::SKOLEM_EXACT_NAME);
@@ -262,11 +202,7 @@ TrustNode FpExpandDefs::expandDefinition(Node node)
   Node res = node;
   Kind kind = node.getKind();
 
-  if (kind == kind::FLOATINGPOINT_TO_FP_GENERIC)
-  {
-    res = removeToFPGeneric::removeToFPGeneric(node);
-  }
-  else if (kind == kind::FLOATINGPOINT_MIN)
+  if (kind == kind::FLOATINGPOINT_MIN)
   {
     res = NodeManager::currentNM()->mkNode(
         kind::FLOATINGPOINT_MIN_TOTAL, node[0], node[1], minUF(node));

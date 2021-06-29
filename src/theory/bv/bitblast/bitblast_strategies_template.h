@@ -25,6 +25,7 @@
 #include "theory/bv/bitblast/bitblast_utils.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
 
 namespace cvc5 {
 
@@ -394,9 +395,11 @@ void DefaultMultBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
 }
 
 template <class T>
-void DefaultPlusBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultPlusBB bitblasting " << node << "\n";
-  Assert(node.getKind() == kind::BITVECTOR_PLUS && res.size() == 0);
+void DefaultAddBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
+{
+  Debug("bitvector-bb") << "theory::bv::DefaultAddBB bitblasting " << node
+                        << "\n";
+  Assert(node.getKind() == kind::BITVECTOR_ADD && res.size() == 0);
 
   bb->bbTerm(node[0], res);
 
@@ -412,7 +415,6 @@ void DefaultPlusBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
 
   Assert(res.size() == utils::getSize(node));
 }
-
 
 template <class T>
 void DefaultSubBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {

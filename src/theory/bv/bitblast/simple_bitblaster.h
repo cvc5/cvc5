@@ -53,6 +53,8 @@ class BBSimple : public TBitblaster<Node>
   /** Create 'bits' for variable 'var'. */
   void makeVariable(TNode var, Bits& bits) override;
 
+  /** Add d_variables to termSet. */
+  void computeRelevantTerms(std::set<Node>& termSet);
   /** Collect model values for all relevant terms given in 'relevantTerms'. */
   bool collectModelValues(TheoryModel* m, const std::set<Node>& relevantTerms);
 
@@ -68,7 +70,7 @@ class BBSimple : public TBitblaster<Node>
   /** Caches variables for which we already created bits. */
   TNodeSet d_variables;
   /** Stores bit-blasted atoms. */
-  std::unordered_map<Node, Node, NodeHashFunction> d_bbAtoms;
+  std::unordered_map<Node, Node> d_bbAtoms;
   /** Theory state. */
   TheoryState* d_state;
 };

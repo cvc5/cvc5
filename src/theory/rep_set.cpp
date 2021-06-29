@@ -69,7 +69,7 @@ const std::vector<Node>* RepSet::getTypeRepsOrNull(TypeNode tn) const
 
 namespace {
 
-bool containsStoreAll(Node n, std::unordered_set<Node, NodeHashFunction>& cache)
+bool containsStoreAll(Node n, std::unordered_set<Node>& cache)
 {
   if( std::find( cache.begin(), cache.end(), n )==cache.end() ){
     cache.insert(n);
@@ -91,7 +91,7 @@ bool containsStoreAll(Node n, std::unordered_set<Node, NodeHashFunction>& cache)
 void RepSet::add( TypeNode tn, Node n ){
   //for now, do not add array constants FIXME
   if( tn.isArray() ){
-    std::unordered_set<Node, NodeHashFunction> cache;
+    std::unordered_set<Node> cache;
     if( containsStoreAll( n, cache ) ){
       return;
     }
@@ -429,14 +429,17 @@ Node RepSetIterator::getCurrentTerm(unsigned i, bool valTerm) const
                      << d_domain_elements[i].size() << std::endl;
   Assert(0 <= curr && curr < d_domain_elements[i].size());
   Node t = d_domain_elements[i][curr];
+  Trace("rsi-debug") << "rsi : term = " << t << std::endl;
   if (valTerm)
   {
     Node tt = d_rs->getTermForRepresentative(t);
     if (!tt.isNull())
     {
+  Trace("rsi-debug") << "rsi : return rep term = " << tt << std::endl;
       return tt;
     }
   }
+  Trace("rsi-debug") << "rsi : return" << std::endl;
   return t;
 }
 

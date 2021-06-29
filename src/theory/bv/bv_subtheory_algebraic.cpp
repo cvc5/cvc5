@@ -29,6 +29,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "util/bitvector.h"
 
 using namespace cvc5::context;
 using namespace cvc5::prop;
@@ -47,7 +48,7 @@ namespace {
 void collectVariables(TNode node, utils::NodeSet& vars)
 {
   std::vector<TNode> stack;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
 
   stack.push_back(node);
   while (!stack.empty())

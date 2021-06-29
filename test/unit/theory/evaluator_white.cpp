@@ -109,25 +109,25 @@ TEST_F(TestTheoryWhiteEvaluator, strIdOf)
   Evaluator eval;
 
   {
-    Node n = d_nodeManager->mkNode(kind::STRING_STRIDOF, a, empty, one);
+    Node n = d_nodeManager->mkNode(kind::STRING_INDEXOF, a, empty, one);
     Node r = eval.eval(n, args, vals);
     ASSERT_EQ(r, Rewriter::rewrite(n));
   }
 
   {
-    Node n = d_nodeManager->mkNode(kind::STRING_STRIDOF, a, a, one);
+    Node n = d_nodeManager->mkNode(kind::STRING_INDEXOF, a, a, one);
     Node r = eval.eval(n, args, vals);
     ASSERT_EQ(r, Rewriter::rewrite(n));
   }
 
   {
-    Node n = d_nodeManager->mkNode(kind::STRING_STRIDOF, a, empty, two);
+    Node n = d_nodeManager->mkNode(kind::STRING_INDEXOF, a, empty, two);
     Node r = eval.eval(n, args, vals);
     ASSERT_EQ(r, Rewriter::rewrite(n));
   }
 
   {
-    Node n = d_nodeManager->mkNode(kind::STRING_STRIDOF, a, a, two);
+    Node n = d_nodeManager->mkNode(kind::STRING_INDEXOF, a, a, two);
     Node r = eval.eval(n, args, vals);
     ASSERT_EQ(r, Rewriter::rewrite(n));
   }

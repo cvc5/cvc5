@@ -18,9 +18,9 @@
 
 #include "context/context.h"
 #include "expr/node.h"
-#include "expr/term_conversion_proof_generator.h"
 #include "options/base_options.h"
 #include "printer/printer.h"
+#include "proof/conv_proof_generator.h"
 #include "smt/dump_manager.h"
 #include "smt/smt_engine_stats.h"
 #include "theory/rewriter.h"
@@ -43,6 +43,7 @@ Env::Env(NodeManager* nm, Options* opts)
       d_logic(),
       d_statisticsRegistry(std::make_unique<StatisticsRegistry>()),
       d_options(),
+      d_originalOptions(opts),
       d_resourceManager()
 {
   if (opts != nullptr)
@@ -97,6 +98,8 @@ StatisticsRegistry& Env::getStatisticsRegistry()
 
 const Options& Env::getOptions() const { return d_options; }
 
+const Options& Env::getOriginalOptions() const { return *d_originalOptions; }
+
 ResourceManager* Env::getResourceManager() const
 {
   return d_resourceManager.get();
@@ -104,9 +107,9 @@ ResourceManager* Env::getResourceManager() const
 
 const Printer& Env::getPrinter()
 {
-  return *Printer::getPrinter(d_options[options::outputLanguage]);
+  return *Printer::getPrinter(d_options.base.outputLanguage);
 }
 
-std::ostream& Env::getDumpOut() { return *d_options.getOut(); }
+std::ostream& Env::getDumpOut() { return *d_options.base.out; }
 
 }  // namespace cvc5

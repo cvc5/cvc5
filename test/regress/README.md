@@ -1,12 +1,24 @@
 # Regression
 
-## Regression Levels and Running Regression Tests
+## Regression Levels
 
-cvc5's regression tests are divided into 5 levels (level 0 to 4). Higher
-regression levels are reserved for longer running regressions. 
+cvc5's regression tests are divided into 5 levels (level 0 to 4), based on
+their run time (`production` build with `--assertions`).
+Higher regression levels are reserved for longer running regressions.
 
-For running regressions tests, 
-see the [INSTALL](https://github.com/CVC4/CVC4/blob/master/INSTALL.md#testing-cvc4) file.
+The time limits for each level are:
+
+* **Level 0:** <= 1s
+* **Level 1:** <= 5s
+* **Level 2:** <= 10s
+* **Level 3:** <= 100s
+* **Level 4:** > 100s
+
+## Running Regression Tests
+
+For running regressions tests, see the
+[INSTALL](https://github.com/CVC4/CVC4/blob/master/INSTALL.md#testing-cvc4)
+file.
 
 By default, each invocation of cvc5 is done with a 10 minute timeout. To use a
 different timeout, set the `TEST_TIMEOUT` environment variable:
@@ -103,11 +115,11 @@ configurations. The `REQUIRES` directive can be used to only run
 a given benchmark when a feature is supported. For example:
 
 ```
-; REQUIRES: symfpu
+; REQUIRES: cryptominisat
 ```
 
-This benchmark is only run when symfpu has been configured.  Multiple
+This benchmark is only run when CryptoMiniSat has been configured.  Multiple
 `REQUIRES` directives are supported. For a list of features that can be listed
 as a requirement, refer to cvc5's `--show-config` output. Features can also be
-excluded by adding the `no-` prefix, e.g. `no-symfpu` means that the test is
-not valid for builds that include symfpu support.
+excluded by adding the `no-` prefix, e.g. `no-cryptominisat` means that the
+test is not valid for builds that include CryptoMiniSat support.

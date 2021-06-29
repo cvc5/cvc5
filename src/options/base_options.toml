@@ -1,11 +1,6 @@
 id     = "BASE"
 name   = "Base"
-header = "options/base_options.h"
-
-[[option]]
-  name       = "binary_name"
-  category   = "undocumented"
-  type       = "std::string"
+public = true
 
 [[option]]
   name       = "in"
@@ -30,7 +25,7 @@ header = "options/base_options.h"
 
 [[option]]
   name       = "inputLanguage"
-  smt_name   = "input-language"
+  alias      = ["input-language"]
   category   = "common"
   short      = "L"
   long       = "lang=LANG"
@@ -42,7 +37,7 @@ header = "options/base_options.h"
 
 [[option]]
   name       = "outputLanguage"
-  smt_name   = "output-language"
+  alias      = ["output-language"]
   category   = "common"
   long       = "output-lang=LANG"
   type       = "OutputLanguage"
@@ -58,7 +53,7 @@ header = "options/base_options.h"
 
 [[option]]
   name       = "verbosity"
-  smt_name   = "verbosity"
+  long       = "verbosity=N"
   category   = "regular"
   type       = "int"
   default    = "0"
@@ -71,7 +66,6 @@ header = "options/base_options.h"
   long       = "verbose"
   type       = "void"
   handler    = "increaseVerbosity"
-  read_only  = true
   help       = "increase verbosity (may be repeated)"
 
 [[option]]
@@ -80,48 +74,48 @@ header = "options/base_options.h"
   long       = "quiet"
   type       = "void"
   handler    = "decreaseVerbosity"
-  read_only  = true
   help       = "decrease verbosity (may be repeated)"
 
 [[option]]
+  name       = "incrementalSolving"
+  category   = "common"
+  short      = "i"
+  long       = "incremental"
+  type       = "bool"
+  default    = "true"
+  help       = "enable incremental solving"
+
+[[option]]
   name       = "statistics"
-  smt_name   = "stats"
   long       = "stats"
   category   = "common"
   type       = "bool"
   predicates = ["setStats"]
-  read_only  = true
   help       = "give statistics on exit"
 
 [[option]]
   name       = "statisticsAll"
-  smt_name   = "stats-all"
   long       = "stats-all"
   category   = "expert"
   type       = "bool"
   predicates = ["setStats"]
-  read_only  = true
   help       = "print unchanged (defaulted) statistics as well"
 
 [[option]]
   name       = "statisticsExpert"
-  smt_name   = "stats-expert"
   long       = "stats-expert"
   category   = "expert"
   type       = "bool"
   predicates = ["setStats"]
-  read_only  = true
   help       = "print expert (non-public) statistics as well"
 
 [[option]]
   name       = "statisticsEveryQuery"
-  smt_name   = "stats-every-query"
   long       = "stats-every-query"
   category   = "regular"
   type       = "bool"
   predicates = ["setStats"]
   default    = "false"
-  read_only  = true
   help       = "in incremental mode, print stats after every satisfiability or validity query"
 
 [[option]]
@@ -136,27 +130,22 @@ header = "options/base_options.h"
   category   = "regular"
   long       = "preprocess-only"
   type       = "bool"
-  read_only  = true
   help       = "exit after preprocessing input"
 
 [[option]]
-  smt_name   = "trace"
   category   = "regular"
   short      = "t"
   long       = "trace=TAG"
   type       = "std::string"
   handler    = "enableTraceTag"
-  read_only  = true
   help       = "trace something (e.g. -t pushpop), can repeat"
 
 [[option]]
-  smt_name   = "debug"
   category   = "regular"
   short      = "d"
   long       = "debug=TAG"
   type       = "std::string"
   handler    = "enableDebugTag"
-  read_only  = true
   help       = "debug something (e.g. -d arith), can repeat"
 
 [[option]]
@@ -164,5 +153,53 @@ header = "options/base_options.h"
   category   = "regular"
   long       = "print-success"
   type       = "bool"
-  read_only  = true
   help       = "print the \"success\" output required of SMT-LIBv2"
+
+[[option]]
+  name       = "cumulativeMillisecondLimit"
+  category   = "common"
+  long       = "tlimit=MS"
+  type       = "uint64_t"
+  help       = "set time limit in milliseconds of wall clock time"
+
+[[option]]
+  name       = "perCallMillisecondLimit"
+  category   = "common"
+  long       = "tlimit-per=MS"
+  type       = "uint64_t"
+  help       = "set time limit per query in milliseconds"
+
+[[option]]
+  name       = "cumulativeResourceLimit"
+  category   = "common"
+  long       = "rlimit=N"
+  type       = "uint64_t"
+  help       = "set resource limit"
+
+[[option]]
+  name       = "perCallResourceLimit"
+  alias      = ["reproducible-resource-limit"]
+  category   = "common"
+  long       = "rlimit-per=N"
+  type       = "uint64_t"
+  help       = "set resource limit per query"
+
+# --rweight is used to override the default of one particular resource weight.
+# It can be given multiple times to override multiple weights. When options are
+# parsed, the resource manager might now be created yet, and it is not clear
+# how an option handler would access it in a reasonable way. The option handler
+# thus merely puts the data in another option that holds a vector of strings.
+# This other option "resourceWeightHolder" has the sole purpose of storing
+# this data in a way so that the resource manager can access it in its
+# constructor.
+[[option]]
+  category   = "expert"
+  long       = "rweight=VAL=N"
+  type       = "std::string"
+  handler    = "setResourceWeight"
+  help       = "set a single resource weight"
+
+[[option]]
+  name       = "resourceWeightHolder"
+  category   = "undocumented"
+  type       = "std::vector<std::string>"

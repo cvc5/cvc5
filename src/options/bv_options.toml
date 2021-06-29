@@ -1,10 +1,8 @@
 id     = "BV"
-name   = "Bitvector theory"
-header = "options/bv_options.h"
+name   = "Bitvector Theory"
 
 [[option]]
   name       = "bvSatSolver"
-  smt_name   = "bv-sat-solver"
   category   = "expert"
   long       = "bv-sat-solver=MODE"
   type       = "SatSolverMode"
@@ -23,7 +21,6 @@ header = "options/bv_options.h"
 
 [[option]]
   name       = "bitblastMode"
-  smt_name   = "bitblast"
   category   = "regular"
   long       = "bitblast=MODE"
   type       = "BitblastMode"
@@ -105,7 +102,6 @@ header = "options/bv_options.h"
 
 [[option]]
   name       = "boolToBitvector"
-  smt_name   = "bool-to-bv"
   category   = "regular"
   long       = "bool-to-bv=MODE"
   type       = "BoolToBVMode"
@@ -160,7 +156,6 @@ header = "options/bv_options.h"
   long       = "bv-num-func=N"
   type       = "unsigned"
   default    = "1"
-  read_only  = true
   help       = "number of function symbols in conflicts that are generalized"
 
 [[option]]
@@ -177,7 +172,6 @@ header = "options/bv_options.h"
   long       = "bv-quick-xplain"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "minimize bv conflicts using the QuickXplain algorithm"
 
 [[option]]
@@ -194,24 +188,7 @@ header = "options/bv_options.h"
   long       = "bv-gauss-elim"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "simplify formula via Gaussian Elimination if applicable"
-
-[[option]]
-  name       = "bvLazyRewriteExtf"
-  category   = "regular"
-  long       = "bv-lazy-rewrite-extf"
-  type       = "bool"
-  default    = "true"
-  help       = "lazily rewrite extended functions like bv2nat and int2bv"
-
-[[option]]
-  name       = "bvLazyReduceExtf"
-  category   = "regular"
-  long       = "bv-lazy-reduce-extf"
-  type       = "bool"
-  default    = "false"
-  help       = "reduce extended functions like bv2nat and int2bv at last call instead of full effort"
 
 [[option]]
   name       = "bvAlgExtf"
@@ -234,7 +211,7 @@ header = "options/bv_options.h"
   category   = "regular"
   long       = "bv-solver=MODE"
   type       = "BVSolver"
-  default    = "LAZY"
+  default    = "BITBLAST"
   help       = "choose bit-vector solver, see --bv-solver=help"
   help_mode  = "Bit-vector solvers."
 [[option.mode.BITBLAST]]
@@ -246,4 +223,12 @@ header = "options/bv_options.h"
 [[option.mode.SIMPLE]]
   name = "simple"
   help = "Enables simple bitblasting solver with proof support."
+
+[[option]]
+  name       = "bvAssertInput"
+  category   = "regular"
+  long       = "bv-assert-input"
+  type       = "bool"
+  default    = "false"
+  help       = "assert input assertions on user-level 0 instead of assuming them in the bit-vector SAT solver"
 

@@ -28,6 +28,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "util/rational.h"
 
 using namespace std;
 namespace cvc5 {
@@ -1264,7 +1265,7 @@ bool ITESimplifier::leavesAreConst(TNode e, theory::TheoryId tid)
     return true;
   }
 
-  unordered_map<Node, bool, NodeHashFunction>::iterator it;
+  unordered_map<Node, bool>::iterator it;
   it = d_leavesConstCache.find(e);
   if (it != d_leavesConstCache.end())
   {
@@ -1358,7 +1359,7 @@ Node ITESimplifier::simpConstants(TNode simpContext,
 
 Node ITESimplifier::getSimpVar(TypeNode t)
 {
-  std::unordered_map<TypeNode, Node, TypeNode::HashFunction>::iterator it;
+  std::unordered_map<TypeNode, Node>::iterator it;
   it = d_simpVars.find(t);
   if (it != d_simpVars.end())
   {
@@ -1424,7 +1425,7 @@ Node ITESimplifier::createSimpContext(TNode c, Node& iteNode, Node& simpVar)
   d_simpContextCache[c] = result;
   return result;
 }
-typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+typedef std::unordered_set<Node> NodeSet;
 void countReachable_(Node x, Kind k, NodeSet& visited, uint32_t& reached)
 {
   if (visited.find(x) != visited.end())

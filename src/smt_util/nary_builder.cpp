@@ -18,6 +18,7 @@
 #include "smt_util/nary_builder.h"
 
 #include "expr/metakind.h"
+#include "util/rational.h"
 
 using namespace std;
 
@@ -129,7 +130,7 @@ bool RePairAssocCommutativeOperators::isAssociateCommutative(Kind k){
   case BITVECTOR_OR:
   case BITVECTOR_XOR:
   case BITVECTOR_MULT:
-  case BITVECTOR_PLUS:
+  case BITVECTOR_ADD:
   case DISTINCT:
   case PLUS:
   case MULT:

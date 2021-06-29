@@ -16,11 +16,14 @@
 #include <sstream>
 #include <vector>
 
+#include "expr/array_store_all.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_value.h"
 #include "test_smt.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 

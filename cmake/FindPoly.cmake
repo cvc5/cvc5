@@ -45,16 +45,12 @@ if(NOT Poly_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(Poly_VERSION "0.1.9")
+  set(Poly_VERSION "f543721215ec17a724dc86820a0430233931a637")
 
   check_if_cross_compiling(CCWIN "Windows" "")
   if(CCWIN)
     # Roughly following https://stackoverflow.com/a/44383330/2375725
     set(patchcmd
-        COMMAND
-        patch
-        <SOURCE_DIR>/src/CMakeLists.txt
-        ${CMAKE_CURRENT_LIST_DIR}/deps-utils/Poly-patch-cmake.patch
         # Avoid %z and %llu format specifiers
         COMMAND find <SOURCE_DIR>/ -type f -exec
                 sed -i.orig "s/%z[diu]/%\" PRIu64 \"/g" {} +
@@ -77,9 +73,8 @@ if(NOT Poly_FOUND_SYSTEM)
   ExternalProject_Add(
     Poly-EP
     ${COMMON_EP_CONFIG}
-    URL https://github.com/SRI-CSL/libpoly/archive/refs/tags/v${Poly_VERSION}.tar.gz
-    URL_HASH SHA1=7af3bbb7a2bca6ef2a41e79447baac08ff30d2fd
-    DOWNLOAD_NAME libpoly.tar.gz
+    URL https://github.com/SRI-CSL/libpoly/archive/${Poly_VERSION}.tar.gz
+    URL_HASH SHA1=3fad3b310727fa0fb2fdff5a8857709d12f72e04
     PATCH_COMMAND
       sed -i.orig
       "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"

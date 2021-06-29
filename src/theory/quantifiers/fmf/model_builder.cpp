@@ -30,15 +30,25 @@ using namespace cvc5::theory;
 using namespace cvc5::theory::quantifiers;
 
 QModelBuilder::QModelBuilder(QuantifiersState& qs,
+                             QuantifiersInferenceManager& qim,
                              QuantifiersRegistry& qr,
-                             QuantifiersInferenceManager& qim)
+                             TermRegistry& tr)
     : TheoryEngineModelBuilder(),
       d_addedLemmas(0),
       d_triedLemmas(0),
       d_qstate(qs),
+      d_qim(qim),
       d_qreg(qr),
-      d_qim(qim)
+      d_treg(tr),
+      d_model(nullptr)
 {
+}
+
+void QModelBuilder::finishInit()
+{
+  // allocate the default model
+  d_modelAloc.reset(new FirstOrderModel(d_qstate, d_qreg, d_treg));
+  d_model = d_modelAloc.get();
 }
 
 bool QModelBuilder::optUseModel() {
@@ -54,20 +64,23 @@ bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
   d_triedLemmas = 0;
   if (options::fmfFunWellDefinedRelevant())
   {
-    FirstOrderModel * fm = (FirstOrderModel*)m;
     //traverse equality engine
     std::map< TypeNode, bool > eqc_usort;
     eq::EqClassesIterator eqcs_i =
-        eq::EqClassesIterator(fm->getEqualityEngine());
+        eq::EqClassesIterator(m->getEqualityEngine());
     while( !eqcs_i.isFinished() ){
       TypeNode tr = (*eqcs_i).getType();
       eqc_usort[tr] = true;
       ++eqcs_i;
     }
     //look at quantified formulas
-    for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
-      Node q = fm->getAssertedQuantifier( i, true );
-      if( fm->isQuantifierActive( q ) ){
+    for (size_t i = 0, nquant = d_model->getNumAssertedQuantifiers();
+         i < nquant;
+         i++)
+    {
+      Node q = d_model->getAssertedQuantifier(i, true);
+      if (d_model->isQuantifierActive(q))
+      {
         //check if any of these quantified formulas can be set inactive
         if (q[0].getNumChildren() == 1)
         {
@@ -79,7 +92,7 @@ bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
             {
               Trace("model-engine-debug")
                   << "Irrelevant function definition : " << q << std::endl;
-              fm->setQuantifierActive( q, false );
+              d_model->setQuantifierActive(q, false);
             }
           }
         }
@@ -92,7 +105,7 @@ bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
 void QModelBuilder::debugModel( TheoryModel* m ){
   //debug the model: cycle through all instantiations for all quantifiers, report ones that are not true
   if( Trace.isOn("quant-check-model") ){
-    FirstOrderModel* fm = (FirstOrderModel*)m;
+    FirstOrderModel* fm = d_model;
     Trace("quant-check-model") << "Testing quantifier instantiations..." << std::endl;
     int tests = 0;
     int bad = 0;
@@ -105,7 +118,7 @@ void QModelBuilder::debugModel( TheoryModel* m ){
         vars.push_back( f[0][j] );
       }
       QRepBoundExt qrbe(qbi, fm);
-      RepSetIterator riter(fm->getRepSet(), &qrbe);
+      RepSetIterator riter(m->getRepSet(), &qrbe);
       if( riter.setQuantifier( f ) ){
         while( !riter.isFinished() ){
           tests++;
@@ -115,7 +128,7 @@ void QModelBuilder::debugModel( TheoryModel* m ){
             terms.push_back( riter.getCurrentTerm( k ) );
           }
           Node n = inst->getInstantiation(f, vars, terms);
-          Node val = fm->getValue( n );
+          Node val = m->getValue(n);
           if (!val.isConst() || !val.getConst<bool>())
           {
             Trace("quant-check-model") << "*******  Instantiation " << n << " for " << std::endl;
@@ -138,3 +151,4 @@ void QModelBuilder::debugModel( TheoryModel* m ){
     }
   }
 }
+FirstOrderModel* QModelBuilder::getModel() { return d_model; }
