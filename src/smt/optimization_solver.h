@@ -34,15 +34,14 @@ class OptimizationObjective;
 class OptimizationResult;
 
 /**
- * The optimization result of an optimization objective
- * containing:
+ * The optimization result, containing:
  * - the optimization result: SAT/UNSAT/UNKNOWN
  * - the optimal value if SAT and finite
  *     (optimal value reached and it's not infinity),
  *   or an empty node if SAT and infinite
  *   otherwise the value might be empty node
  *   or something suboptimal
- * - whether the objective is finite/+-infinity
+ * - whether the result is finite/+-infinity
  */
 class OptimizationResult
 {
@@ -57,8 +56,7 @@ class OptimizationResult
    * Constructor
    * @param type the optimization outcome
    * @param value the optimized value
-   * @param objective the corresponding optimization objective
-   * @param isInf whether the objective is infinity
+   * @param isInf whether the result is FINITE/POSITIVE_INF/NEGATIVE_INF
    **/
   OptimizationResult(Result result, TNode value, IsInfinity isInf = FINITE)
       : d_result(result), d_value(value), d_infinity(isInf)
@@ -91,8 +89,8 @@ class OptimizationResult
   Node getValue() const { return d_value; }
 
   /**
-   * Checks whether the objective is infinity
-   * @return whether the objective is FINITE/POSITIVE_INF/NEGATIVE_INF
+   * Checks whether the result is infinity
+   * @return whether the result is FINITE/POSITIVE_INF/NEGATIVE_INF
    **/
   IsInfinity isInfinity() const { return d_infinity; }
 
@@ -101,7 +99,7 @@ class OptimizationResult
   Result d_result;
   /** if the result is finite, this is storing the value **/
   Node d_value;
-  /** whether the objective is finite/+infinity/-infinity **/
+  /** whether the result is finite/+infinity/-infinity **/
   IsInfinity d_infinity;
 };
 
