@@ -971,8 +971,8 @@ libcvc5_add_sources(
   theory/rep_set.h
   theory/rewrite_db.cpp
   theory/rewrite_db.h
-  theory/rewrite_db_proof_generator.cpp
-  theory/rewrite_db_proof_generator.h
+  theory/rewrite_db_proof_cons.cpp
+  theory/rewrite_db_proof_cons.h
   theory/rewrite_db_sc.cpp
   theory/rewrite_db_sc.h
   theory/rewrite_db_term_process.cpp

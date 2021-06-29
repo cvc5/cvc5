@@ -25,7 +25,7 @@
 #include "proof/proof_node_updater.h"
 #include "rewriter/rewrites.h"
 #include "smt/witness_form.h"
-#include "theory/rewrite_db_proof_generator.h"
+#include "theory/rewrite_db_proof_cons.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {

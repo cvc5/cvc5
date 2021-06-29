@@ -13,7 +13,7 @@
  * Rewrite database proof reconstructor
  */
 
-#include "theory/rewrite_db_proof_generator.h"
+#include "theory/rewrite_db_proof_cons.h"
 
 #include "expr/node_algorithm.h"
 #include "theory/builtin/proof_checker.h"

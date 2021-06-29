@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__REWRITE_DB_PROOF_GENERATOR__H
-#define CVC4__THEORY__REWRITE_DB_PROOF_GENERATOR__H
+#ifndef CVC4__THEORY__REWRITE_DB_PROOF_CONS__H
+#define CVC4__THEORY__REWRITE_DB_PROOF_CONS__H
 
 #include <map>
 
@@ -116,4 +116,4 @@ class RewriteDbProofCons
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__REWRITE_DB_PROOF_GENERATOR__H */
+#endif /* CVC4__THEORY__REWRITE_DB_PROOF_CONS__H */
