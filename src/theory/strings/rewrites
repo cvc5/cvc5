@@ -6,7 +6,8 @@
 
 
 (define-rule substr-empty-str ((n Int) (m Int)) (str.substr "" n m) "")
-(define-cond-rule substr-empty-bound ((x String) (n Int) (m Int)) (>= n m) (str.substr x n m) "")
+(define-cond-rule substr-empty-range ((x String) (n Int) (m Int)) (>= n m) (str.substr x n m) "")
+(define-cond-rule substr-empty-start ((x String) (n Int) (m Int)) (>= n (str.len x)) (str.substr x n m) "")
 
 (define-cond-rule str-len-replace-inv ((t String) (s String) (r String)) 
   (= (str.len s) (str.len r))

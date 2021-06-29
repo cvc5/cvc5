@@ -14,3 +14,10 @@
 (define-rule arith-elim-gt ((t Int) (s Int)) (> t s) (not (<= t s)))
 (define-rule arith-elim-lt ((t Int) (s Int)) (< t s) (not (>= t s)))
 (define-rule arith-elim-leq ((t Int) (s Int)) (<= t s) (not (>= t (+ s 1))))
+
+
+
+(define-rule arith-refl-leq ((t Int)) (<= t t) true)
+(define-rule arith-refl-lt ((t Int)) (< t t) false)
+(define-rule arith-refl-geq ((t Int)) (>= t t) true)
+(define-rule arith-refl-gt ((t Int)) (> t t) false)
