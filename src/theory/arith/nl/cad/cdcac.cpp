@@ -304,7 +304,17 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
                    << requiredCoefficientsOriginal(p, d_assignment)
                    << std::endl;
   }
-  return requiredCoefficientsOriginal(p, d_assignment);
+  switch (options::nlCadProjection()) {
+    case options::NlCadProjectionMode::MCCALLUM:
+      return requiredCoefficientsOriginal(p, d_assignment);
+    case options::NlCadProjectionMode::LAZARD:
+      return requiredCoefficientsLazard(p, d_assignment);
+    case options::NlCadProjectionMode::LAZARDMOD:
+      return requiredCoefficientsLazardModified(p, d_assignment, d_constraints.varMapper());
+    default:
+      Assert(false);
+      return requiredCoefficientsOriginal(p, d_assignment);
+  }
 }
 
 PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
