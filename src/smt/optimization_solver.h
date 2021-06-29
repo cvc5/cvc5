@@ -107,7 +107,7 @@ class OptimizationResult
 
 /**
  * To serialize the OptimizationResult.
- * @param out the stream to put the serialization result
+ * @param out the stream to put the serialized result
  * @param result the OptimizationResult object to serialize
  * @return the parameter out
  **/
@@ -176,7 +176,7 @@ class OptimizationObjective
 
 /**
  * To serialize the OptimizationObjective.
- * @param out the stream to put the serialization result
+ * @param out the stream to put the serialized result
  * @param objective the OptimizationObjective object to serialize
  * @return the parameter out
  **/
