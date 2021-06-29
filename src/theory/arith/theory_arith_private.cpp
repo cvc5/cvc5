@@ -3362,7 +3362,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
     ++d_fullCheckCounter;
   }
   if(!emmittedConflictOrSplit && Theory::fullEffort(effortLevel)){
-    //emmittedConflictOrSplit = splitDisequalities();
+    emmittedConflictOrSplit = splitDisequalities();
   }
   Debug("arith::ems") << "ems: " << emmittedConflictOrSplit
                       << "pos splitting" << endl;
