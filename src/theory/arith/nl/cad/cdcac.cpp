@@ -138,7 +138,7 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
     }
     else
     {
-      intervals = infeasible_regions(p, d_assignment, sc);
+      intervals = poly::infeasible_regions(p, d_assignment, sc);
     }
     for (const auto& i : intervals)
     {
