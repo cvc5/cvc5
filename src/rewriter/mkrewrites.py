@@ -10,6 +10,7 @@ from util import *
 
 def gen_kind(op):
     op_to_kind = {
+        Op.ITE: 'ITE',
         Op.NOT: 'NOT',
         Op.AND: 'AND',
         Op.OR: 'OR',

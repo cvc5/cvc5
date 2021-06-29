@@ -20,6 +20,7 @@
 #include "expr/node_algorithm.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewrite_db_term_process.h"
+#include "theory/rewriter.h"
 
 using namespace cvc5::rewriter;
 using namespace cvc5::kind;
@@ -287,6 +288,21 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
     pi.d_id = idb;
     return true;
   }
+  // If it rewrites to false, then it is obviously infeasible.
+  Node eqr = Rewriter::rewrite(eqi[0].eqNode(eqi[1]));
+  if (eqr.isConst())
+  {
+    // definitely not true
+    if (!eqr.getConst<bool>())
+    {
+      Trace("rpc-debug2") << "Infeasible due to rewriting: " << eqi[0] << " == " << eqi[1] << std::endl;
+      idb = DslPfRule::FAIL;
+      pi.d_failMaxDepth = 0;
+      pi.d_id = idb;
+      return true;
+    }
+  }
+  // NOTE: if does not rewrite to true, it still could be true
   // evaluate the two sides of the equality, without help of the rewriter
   Node aev = doEvaluate(eqi[0]);
   if (aev.isNull())
@@ -632,6 +648,12 @@ Node RewriteDbProofCons::inflectMatch(Node n, Node s,
       if (!matchSuccess)
       {
         // failed to match
+        // if they are definitely equal, return null now
+        if (curr.first.isConst() && curr.second.isConst())
+        {
+          Assert (curr.first!=curr.second);
+          return Node::null();
+        }
         TypeNode tn = curr.first.getType();
         size_t inflectId = inflectCounter[tn];
         Node idn = nm->mkConst(Rational(inflectId));
