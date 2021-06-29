@@ -74,6 +74,9 @@ class Pow2Solver
    */
   void checkFullRefine();
 
+  /** sort d_pow2 according to their values in the current model */
+  void sortPow2sBasedOnModel();
+
   //-------------------------------------------- end lemma schemas
  private:
   // The inference manager that we push conflicts and lemmas to.
@@ -88,8 +91,8 @@ class Pow2Solver
   Node d_two;
 
   NodeSet d_initRefine;
-  /** all pow2 terms 
-   * Cleared at each last call effort check. 
+  /** all pow2 terms
+   * Cleared at each last call effort check.
    * */
   std::vector<Node> d_pow2s;
 
