@@ -60,12 +60,11 @@ namespace theory {
  *              REPEAT traversal
  *      )
  *      apply term formula removal
+ *      apply rewriter
  *    }
  *  postrewrite: // for Boolean connectives
- *    // nothing
+ *    apply rewriter
  * )
- * [3]
- * apply rewriter
  *
  * Note that the rewriter must be applied beforehand, since the rewriter may
  * rewrite a theory atom into a formula, e.g. quantifiers miniscoping. This
