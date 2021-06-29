@@ -533,7 +533,7 @@ Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
         return mkTypeValue(NodeManager::currentNM()->stringType(), 0);
       }
     }
-    else if (ik == STRING_STRIDOF)
+    else if (ik == STRING_INDEXOF)
     {
       if (arg == 0 || arg == 1)
       {
@@ -564,7 +564,7 @@ Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
       {
         return mkTypeValue(NodeManager::currentNM()->stringType(), 0);
       }
-      else if (ik == STRING_STRIDOF)
+      else if (ik == STRING_INDEXOF)
       {
         Assert(arg == 2);
         return mkTypeValue(NodeManager::currentNM()->integerType(), -1);

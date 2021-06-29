@@ -79,6 +79,10 @@ const char* toString(InferenceId i)
       return "ARITH_NL_POW2_INIT_REFINE";
     case InferenceId::ARITH_NL_POW2_VALUE_REFINE:
       return "ARITH_NL_POW2_VALUE_REFINE";
+    case InferenceId::ARITH_NL_POW2_MONOTONE_REFINE:
+      return "ARITH_NL_POW2_MONOTONE_REFINE";
+    case InferenceId::ARITH_NL_POW2_TRIVIAL_CASE_REFINE:
+      return "ARITH_NL_POW2_TRIVIAL_CASE_REFINE";
     case InferenceId::ARITH_NL_CAD_CONFLICT: return "ARITH_NL_CAD_CONFLICT";
     case InferenceId::ARITH_NL_CAD_EXCLUDED_INTERVAL:
       return "ARITH_NL_CAD_EXCLUDED_INTERVAL";

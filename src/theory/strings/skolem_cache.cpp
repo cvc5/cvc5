@@ -257,7 +257,7 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
   {
     // SK_FIRST_CTN_PRE(x,y) ---> SK_PREFIX(x, indexof(x,y,0))
     id = SK_PREFIX;
-    b = nm->mkNode(STRING_STRIDOF, a, b, d_zero);
+    b = nm->mkNode(STRING_INDEXOF, a, b, d_zero);
   }
 
   if (id == SK_ID_V_UNIFIED_SPT || id == SK_ID_V_UNIFIED_SPT_REV)
