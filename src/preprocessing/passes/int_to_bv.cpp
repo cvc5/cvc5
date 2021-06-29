@@ -217,9 +217,9 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
           result = sm->mkDummySkolem("__intToBV_var",
                                      nm->mkBitVectorType(size),
                                      "Variable introduced in intToBV pass");
+          Node bv2nat = nm->mkNode(kind::BITVECTOR_TO_NAT, result);
+          d_preprocContext->addSubstitution(current, bv2nat);
         }
-        Node bv2nat = nm->mkNode(kind::BITVECTOR_TO_NAT, result);
-        d_preprocContext->addSubstitution(current, bv2nat);
       }
       else if (current.isConst())
       {
