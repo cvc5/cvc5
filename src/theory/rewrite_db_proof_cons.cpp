@@ -549,18 +549,22 @@ Node RewriteDbProofCons::doEvaluate(Node n)
   d_evalCache[n] = nev;
   return nev;
 }
-Node RewriteDbProofCons::inflectMatch(Node n, Node s, 
-                   const std::vector<Node>& vars,
-                   const std::vector<Node>& subs, std::unordered_map<Node, std::pair<Node,Node>>& isubs)
+Node RewriteDbProofCons::inflectMatch(
+    Node n,
+    Node s,
+    const std::vector<Node>& vars,
+    const std::vector<Node>& subs,
+    std::unordered_map<Node, std::pair<Node, Node>>& isubs)
 {
   Trace("rpc-inflect") << "InflectMatch " << n << " == " << s << std::endl;
-  NodeManager * nm = NodeManager::currentNM();
-  BoundVarManager * bvm = nm->getBoundVarManager();
-  std::unordered_map<std::pair<TNode, TNode>, Node, TNodePairHashFunction> visited;
-  std::unordered_map<std::pair<TNode, TNode>, Node, TNodePairHashFunction>::iterator
-      it;
+  NodeManager* nm = NodeManager::currentNM();
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  std::unordered_map<std::pair<TNode, TNode>, Node, TNodePairHashFunction>
+      visited;
+  std::unordered_map<std::pair<TNode, TNode>, Node, TNodePairHashFunction>::
+      iterator it;
   std::vector<Node>::const_iterator itv;
-  
+
   std::unordered_map<TypeNode, size_t> inflectCounter;
 
   std::vector<std::pair<TNode, TNode>> stack;
@@ -592,7 +596,7 @@ Node RewriteDbProofCons::inflectMatch(Node n, Node s,
           visited[curr] = curr.first;
           // and we have not seen this variable before...
           itv = std::find(vars.begin(), vars.end(), curr.first);
-          Assert (itv != vars.end());
+          Assert(itv != vars.end());
           size_t d = std::distance(vars.begin(), itv);
           Assert(d < subs.size());
           // if we saw this variable before, make sure that (now and before) it

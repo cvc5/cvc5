@@ -125,9 +125,11 @@ class RewriteDbProofCons
    * ret * isubs.first = n
    * ret * isubs.second = s
    */
-  Node inflectMatch(Node n, Node s, 
-                   const std::vector<Node>& vars,
-                   const std::vector<Node>& subs, std::unordered_map<Node, std::pair<Node,Node>>& isubs);
+  Node inflectMatch(Node n,
+                    Node s,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs,
+                    std::unordered_map<Node, std::pair<Node, Node>>& isubs);
 };
 
 }  // namespace theory
