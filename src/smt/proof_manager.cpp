@@ -153,7 +153,8 @@ void PfManager::printProof(std::ostream& out,
 
   if (options::proofFormatMode() == options::ProofFormatMode::DOT)
   {
-    proof::DotPrinter::print(out, fp.get());
+    proof::DotPrinter dotPrinter;
+    dotPrinter.print(out, fp.get());
   }
   else
   {
