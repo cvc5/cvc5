@@ -44,7 +44,19 @@ std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
   switch (result.getResult().isSat())
   {
     case Result::SAT: CVC5_FALLTHROUGH;
-    case Result::SAT_UNKNOWN: out << "\t" << result.getValue(); break;
+    case Result::SAT_UNKNOWN:
+    {
+      switch (result.isInfinity())
+      {
+        case OptimizationResult::FINITE:
+          out << "\t" << result.getValue();
+          break;
+        case OptimizationResult::POSTITIVE_INF: out << "\t+Inf"; break;
+        case OptimizationResult::NEGATIVE_INF: out << "\t-Inf"; break;
+        default: break;
+      }
+      break;
+    }
     case Result::UNSAT: break;
     default: Unreachable();
   }
@@ -253,8 +265,8 @@ Result OptimizationSolver::optimizeLexicographicIterative()
     }
 
     // if the result for the current objective is unbounded
-    // then just stop
-    if (partialResult.isUnbounded()) break;
+    // (result is not finite) then just stop
+    if (partialResult.isInfinity() != OptimizationResult::FINITE) break;
   }
   // kill optChecker in case pareto misuses it
   d_optChecker.reset();

@@ -30,36 +30,45 @@ class SmtEngine;
 
 namespace smt {
 
+class OptimizationObjective;
+class OptimizationResult;
+
 /**
  * The optimization result of an optimization objective
  * containing:
  * - the optimization result: SAT/UNSAT/UNKNOWN
- * - the optimal value if SAT and bounded
+ * - the optimal value if SAT and finite
  *     (optimal value reached and it's not infinity),
- *   or an empty node if SAT and unbounded
- *     (optimal value is +inf for maximum or -inf for minimum),
+ *   or an empty node if SAT and infinite
  *   otherwise the value might be empty node
  *   or something suboptimal
- * - whether the objective is unbounded
+ * - whether the objective is finite/+-infinity
  */
 class OptimizationResult
 {
  public:
+  enum IsInfinity
+  {
+    FINITE = 0,
+    POSTITIVE_INF,
+    NEGATIVE_INF
+  };
   /**
    * Constructor
    * @param type the optimization outcome
    * @param value the optimized value
-   * @param unbounded whether the objective is unbounded
+   * @param objective the corresponding optimization objective
+   * @param isInf whether the objective is infinity
    **/
-  OptimizationResult(Result result, TNode value, bool unbounded = false)
-      : d_result(result), d_value(value), d_unbounded(unbounded)
+  OptimizationResult(Result result, TNode value, IsInfinity isInf = FINITE)
+      : d_result(result), d_value(value), d_infinity(isInf)
   {
   }
   OptimizationResult()
       : d_result(Result::Sat::SAT_UNKNOWN,
                  Result::UnknownExplanation::NO_STATUS),
         d_value(),
-        d_unbounded(false)
+        d_infinity(FINITE)
   {
   }
   ~OptimizationResult() = default;
@@ -74,7 +83,7 @@ class OptimizationResult
   /**
    * Returns the optimal value.
    * @return Node containing the optimal value,
-   *   if result is unbounded, this will be an empty node,
+   *   if result is infinite, this will be an empty node,
    *   if getResult() is UNSAT, it will return an empty node,
    *   if getResult() is SAT_UNKNOWN, it will return something suboptimal
    *   or an empty node, depending on how the solver runs.
@@ -82,26 +91,18 @@ class OptimizationResult
   Node getValue() const { return d_value; }
 
   /**
-   * Checks whether the objective is unbouned
-   * @return whether the objective is unbounded
-   *   if the objective is unbounded (this function returns true),
-   *   then the optimal value is:
-   *   +inf, if it's maximize;
-   *   -inf, if it's minimize
+   * Checks whether the objective is infinity
+   * @return whether the objective is FINITE/POSITIVE_INF/NEGATIVE_INF
    **/
-  bool isUnbounded() const { return d_unbounded; }
+  IsInfinity isInfinity() const { return d_infinity; }
 
  private:
   /** indicating whether the result is SAT, UNSAT or UNKNOWN **/
   Result d_result;
-  /** if the result is bounded, this is storing the value **/
+  /** if the result is finite, this is storing the value **/
   Node d_value;
-  /** whether the objective is unbounded
-   * If this is true, then:
-   * if objective is maximize, it's +infinity;
-   * if objective is minimize, it's -infinity
-   **/
-  bool d_unbounded;
+  /** whether the objective is finite/+infinity/-infinity **/
+  IsInfinity d_infinity;
 };
 
 /**
@@ -268,7 +269,7 @@ class OptimizationSolver
 
   /**
    * Optimize multiple goals in Box order
-   * @return SAT if all of the objectives are optimal or unbounded;
+   * @return SAT if all of the objectives are optimal (could be infinite);
    *   UNSAT if at least one objective is UNSAT and no objective is SAT_UNKNOWN;
    *   SAT_UNKNOWN if any of the objective is SAT_UNKNOWN.
    **/
@@ -278,7 +279,7 @@ class OptimizationSolver
    * Optimize multiple goals in Lexicographic order,
    * using iterative implementation
    * @return SAT if the objectives are optimal,
-   *     if one of the objectives is unbounded,
+   *     if one of the objectives is unbounded (result is infinite),
    *     the optimization will stop at that objective;
    *   UNSAT if any of the objectives is UNSAT
    *     and optimization will stop at that objective;
