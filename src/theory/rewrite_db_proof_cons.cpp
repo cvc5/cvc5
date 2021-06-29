@@ -149,7 +149,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     {
       Trace("rpc-debug2") << "...fail (conc mismatch)" << std::endl;
       // if not a perfect match, infer the (conditional) rule that would have matched
-      Node irhs = inflectMatch(conc[1], d_target[1], isubs);
+      Node irhs = inflectMatch(conc[1], d_target[1], vars, subs, isubs);
       Trace("rpc-debug2") << "Would have succeeded with rule: " << std::endl;
       std::vector<Node> conds;
       for (const std::pair<Node, std::pair<Node, Node>>& i : isubs)
@@ -517,7 +517,9 @@ Node RewriteDbProofCons::doEvaluate(Node n)
   return nev;
 }
 
-Node RewriteDbProofCons::inflectMatch(Node n, Node s, std::unordered_map<Node, std::pair<Node,Node>>& isubs)
+Node RewriteDbProofCons::inflectMatch(Node n, Node s, 
+                   const std::vector<Node>& vars,
+                   const std::vector<Node>& subs, std::unordered_map<Node, std::pair<Node,Node>>& isubs)
 {
   Trace("rpc-inflect") << "InflectMatch " << n << " == " << s << std::endl;
   NodeManager * nm = NodeManager::currentNM();
@@ -525,9 +527,7 @@ Node RewriteDbProofCons::inflectMatch(Node n, Node s, std::unordered_map<Node, s
   std::unordered_map<std::pair<TNode, TNode>, Node, TNodePairHashFunction> visited;
   std::unordered_map<std::pair<TNode, TNode>, Node, TNodePairHashFunction>::iterator
       it;
-  // the ordinary substitution
-  std::unordered_map<Node, Node> subs;
-  std::unordered_map<Node, Node>::iterator subsIt;
+  std::vector<Node>::const_iterator itv;
   
   std::unordered_map<TypeNode, size_t> inflectCounter;
 
@@ -559,21 +559,16 @@ Node RewriteDbProofCons::inflectMatch(Node n, Node s, std::unordered_map<Node, s
           // the inflected form of n is itself
           visited[curr] = curr.first;
           // and we have not seen this variable before...
-          subsIt = subs.find(curr.first);
-          if (subsIt == subs.cend())
+          itv = std::find(vars.begin(), vars.end(), curr.first);
+          Assert (itv != vars.end());
+          size_t d = std::distance(vars.begin(), itv);
+          Assert(d < subs.size());
+          // if we saw this variable before, make sure that (now and before) it
+          // maps to the same subterm
+          if (curr.second != subs[d])
           {
-            // add the two subterms to `sub`
-            subs.emplace(curr.first, curr.second);
-          }
-          else
-          {
-            // if we saw this variable before, make sure that (now and before) it
-            // maps to the same subterm
-            if (curr.second != subsIt->second)
-            {
-              matchSuccess = false;
-              // visited[curr] will be overwritten below
-            }
+            matchSuccess = false;
+            // visited[curr] will be overwritten below
           }
         }
         else
