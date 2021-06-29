@@ -691,7 +691,7 @@ Node IntBlaster::translateNoChildren(Node original,
           uint64_t bvsize = original.getType().getBitVectorSize();
           addRangeConstraint(translation, bvsize, lemmas);
           // put new definition of old variable in skolems
-          bvCast = defineBVUFAsIntUF(original, translation);
+          bvCast = original;
         }
         else
         {
@@ -714,7 +714,35 @@ Node IntBlaster::translateNoChildren(Node original,
     }
     else if (original.getType().isFunction())
     {
+      // translate function symbol
       translation = translateFunctionSymbol(original, skolems);
+
+
+    std::vector<Node> achildren;
+    achildren.push_back(intUF);
+    int i = 0;
+    for (const TypeNode& d : bvDomain)
+    {
+      // Each bit-vector argument is casted to a natural number
+      // Other arguments are left intact.
+      Node fresh_bound_var = nm->mkBoundVar(d);
+      args.push_back(fresh_bound_var);
+      Node castedArg = args[i];
+      if (d.isBitVector())
+      {
+        castedArg = castToType(castedArg, nm->integerType());
+      }
+      achildren.push_back(castedArg);
+      i++;
+    }
+    Node app = nm->mkNode(kind::APPLY_UF, achildren);
+    Node body = castToType(app, resultType);
+    Node bvlist = d_nm->mkNode(kind::BOUND_VAR_LIST, args);
+    result = d_nm->mkNode(kind::LAMBDA, bvlist, body);
+      if (skolems.find(bvUF) == skolems.end())
+      {
+        skolems[bvUF] = lambda;
+      }
     }
     else
     {
@@ -740,58 +768,6 @@ Node IntBlaster::translateNoChildren(Node original,
     }
   }
   return translation;
-}
-
-Node IntBlaster::defineBVUFAsIntUF(Node bvUF, Node intUF)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  // The resulting term
-  Node result;
-  // The type of the resulting term
-  TypeNode resultType;
-  // symbolic arguments of original function
-  std::vector<Node> args;
-  if (!bvUF.getType().isFunction())
-  {
-    // bvUF is a variable.
-    // in this case, the result is just the original term
-    // casted back if needed
-    resultType = bvUF.getType();
-    result = castToType(intUF, resultType);
-  }
-  else
-  {
-    // bvUF is a function with arguments
-    // The arguments need to be casted as well.
-    TypeNode tn = bvUF.getType();
-    resultType = tn.getRangeType();
-    std::vector<TypeNode> bvDomain = tn.getArgTypes();
-    // children of the new symbolic application
-    std::vector<Node> achildren;
-    achildren.push_back(intUF);
-    int i = 0;
-    for (const TypeNode& d : bvDomain)
-    {
-      // Each bit-vector argument is casted to a natural number
-      // Other arguments are left intact.
-      Node fresh_bound_var = nm->mkBoundVar(d);
-      args.push_back(fresh_bound_var);
-      Node castedArg = args[i];
-      if (d.isBitVector())
-      {
-        castedArg = castToType(castedArg, nm->integerType());
-      }
-      achildren.push_back(castedArg);
-      i++;
-    }
-    Node app = nm->mkNode(kind::APPLY_UF, achildren);
-    Node body = castToType(app, resultType);
-    Node bvlist = d_nm->mkNode(kind::BOUND_VAR_LIST, args);
-    result = d_nm->mkNode(kind::LAMBDA, bvlist, body);
-  }
-  // If the result is BV, it needs to be casted back.
-  // add the function definition to the smt engine.
-  return result;
 }
 
 Node IntBlaster::translateFunctionSymbol(Node bvUF,
@@ -821,11 +797,6 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
   intUF = sm->mkDummySkolem(
       os.str(), d_nm->mkFunctionType(intDomain, intRange), "bv2int function");
   // add definition of old function symbol to skolems
-  Node lambda = defineBVUFAsIntUF(bvUF, intUF);
-  if (skolems.find(bvUF) == skolems.end())
-  {
-    skolems[bvUF] = lambda;
-  }
   return intUF;
 }
 
