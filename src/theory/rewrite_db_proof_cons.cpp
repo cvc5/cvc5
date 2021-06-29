@@ -153,10 +153,14 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     std::unordered_map<Node, std::pair<Node, Node>> isubs;
     if (stgt != d_target[1])
     {
-      Trace("rpc-debug2") << "...fail (conc mismatch)" << std::endl;
       // if not a perfect match, infer the (conditional) rule that would have
       // matched
       Node irhs = inflectMatch(conc[1], d_target[1], vars, subs, isubs);
+      if (irhs.isNull())
+      {
+        Trace("rpc-debug2") << "...fail (inflection match)" << std::endl;
+        continue;
+      }
       Trace("rpc-debug2") << "Would have succeeded with rule: " << std::endl;
       std::vector<Node> conds;
       for (const std::pair<Node, std::pair<Node, Node>>& i : isubs)
