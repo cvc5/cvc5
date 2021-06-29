@@ -280,9 +280,6 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
     Trace("cdcac") << "Original: "
                    << requiredCoefficientsOriginal(p, d_assignment)
                    << std::endl;
-    Assert(requiredCoefficientsLazard(p, d_assignment)
-           == requiredCoefficientsLazardModified(
-               p, d_assignment, d_constraints.varMapper()));
   }
   return requiredCoefficientsOriginal(p, d_assignment);
 }
