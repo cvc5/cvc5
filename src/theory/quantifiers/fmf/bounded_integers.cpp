@@ -325,6 +325,7 @@ void BoundedIntegers::checkOwnership(Node f)
     QuantAttributes& qattr = d_qreg.getQuantAttributes();
     if (!qattr.isInternal(f))
     {
+      Trace("bound-int") << "...not internal, skip" << std::endl;
       return;
     }
   }
