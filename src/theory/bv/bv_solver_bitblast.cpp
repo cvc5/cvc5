@@ -27,6 +27,46 @@ namespace theory {
 namespace bv {
 
 /**
+ * Notifies the BV solver when assertions were reset.
+ *
+ * This class is notified after every user-context pop and maintains a flag
+ * that indicates whether assertions have been reset. If the user-context level
+ * reaches level 0 it means that the assertions were reset.
+ */
+class NotifyResetAssertions : public context::ContextNotifyObj
+{
+ public:
+  NotifyResetAssertions(context::Context* c)
+      : context::ContextNotifyObj(c, false),
+        d_context(c),
+        d_reset_assertions_notified(false)
+  {
+  }
+
+  bool notifiedResetAssertions() { return d_reset_assertions_notified; }
+
+  void reset() { d_reset_assertions_notified = false; }
+
+ protected:
+  void contextNotifyPop() override
+  {
+    // If the user-context level reaches 0 it means that reset-assertions was
+    // called.
+    if (d_context->getLevel() == 0)
+    {
+      d_reset_assertions_notified = true;
+    }
+  }
+
+ private:
+  /** The user-context. */
+  context::Context* d_context;
+
+  /** Flag to notify whether reset assertions was called. */
+  bool d_reset_assertions_notified;
+};
+
+/**
  * Bit-blasting registrar.
  *
  * The CnfStream calls preRegister() if it encounters a theory atom.
@@ -85,30 +125,15 @@ BVSolverBitblast::BVSolverBitblast(TheoryState* s,
                 : nullptr),
       d_factLiteralCache(s->getSatContext()),
       d_literalFactCache(s->getSatContext()),
-      d_propagate(options::bitvectorPropagate())
+      d_propagate(options::bitvectorPropagate()),
+      d_reset_notify(new NotifyResetAssertions(s->getUserContext()))
 {
   if (pnm != nullptr)
   {
     d_bvProofChecker.registerTo(pnm->getChecker());
   }
 
-  switch (options::bvSatSolver())
-  {
-    case options::SatSolverMode::CRYPTOMINISAT:
-      d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(
-          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast::"));
-      break;
-    default:
-      d_satSolver.reset(prop::SatSolverFactory::createCadical(
-          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast::"));
-  }
-  d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
-                                        d_bbRegistrar.get(),
-                                        d_nullContext.get(),
-                                        nullptr,
-                                        smt::currentResourceManager(),
-                                        prop::FormulaLitPolicy::INTERNAL,
-                                        "theory::bv::BVSolverBitblast"));
+  initSatSolver();
 }
 
 void BVSolverBitblast::postCheck(Theory::Effort level)
@@ -120,6 +145,16 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
     {
       return;
     }
+  }
+
+  // If we permanently added assertions to the SAT solver and the assertions
+  // were reset, we have to reset the SAT solver and the CNF stream.
+  if (options::bvAssertInput() && d_reset_notify->notifiedResetAssertions())
+  {
+    d_satSolver.reset(nullptr);
+    d_cnfStream.reset(nullptr);
+    initSatSolver();
+    d_reset_notify->reset();
   }
 
   NodeManager* nm = NodeManager::currentNM();
@@ -314,6 +349,27 @@ EqualityStatus BVSolverBitblast::getEqualityStatus(TNode a, TNode b)
   }
   Debug("bv-bitblast") << EQUALITY_FALSE_IN_MODEL << std::endl;
   return EQUALITY_FALSE_IN_MODEL;
+}
+
+void BVSolverBitblast::initSatSolver()
+{
+  switch (options::bvSatSolver())
+  {
+    case options::SatSolverMode::CRYPTOMINISAT:
+      d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(
+          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast::"));
+      break;
+    default:
+      d_satSolver.reset(prop::SatSolverFactory::createCadical(
+          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast::"));
+  }
+  d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
+                                        d_bbRegistrar.get(),
+                                        d_nullContext.get(),
+                                        nullptr,
+                                        smt::currentResourceManager(),
+                                        prop::FormulaLitPolicy::INTERNAL,
+                                        "theory::bv::BVSolverBitblast"));
 }
 
 Node BVSolverBitblast::getValueFromSatSolver(TNode node, bool initialize)

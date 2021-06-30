@@ -428,6 +428,7 @@ set(regress_0_tests
   regress0/bv/mult-pow2-negative.smt2
   regress0/bv/pr4993-bvugt-bvurem-a.smt2
   regress0/bv/pr4993-bvugt-bvurem-b.smt2
+  regress0/bv/reset-assertions-assert-input.smt2
   regress0/bv/sizecheck.cvc
   regress0/bv/smtcompbug.smtv1.smt2
   regress0/bv/test-bv_intro_pow2.smt2
