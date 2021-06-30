@@ -234,7 +234,7 @@ class CInt(Node):
         self.val = val
 
     def __eq__(self, other):
-        return self.val == other.val
+        return isinstance(other, CInt) and self.val == other.val
 
     def __hash__(self):
         return hash(self.val)
