@@ -21,6 +21,7 @@
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewrite_db_term_process.h"
 #include "theory/rewriter.h"
+#include "smt/smt_statistics_registry.h"
 
 using namespace cvc5::rewriter;
 using namespace cvc5::kind;
@@ -39,7 +40,11 @@ RewriteDbProofCons::RewriteDbProofCons(RewriteDb* db, ProofNodeManager* pnm)
       d_db(db),
       d_pnm(pnm),
       d_eval(),
-      d_currRecLimit(0)
+      d_currRecLimit(0),
+      d_statTotalInputs(
+          smtStatisticsRegistry().registerInt("RewriteDbProofCons::totalInputs")),
+      d_statTotalAttempts(
+          smtStatisticsRegistry().registerInt("RewriteDbProofCons::totalAttempts"))
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -53,6 +58,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
                                MethodId mid,
                                uint32_t recLimit)
 {
+  ++d_statTotalInputs;
   // clear the proof caches? use attributes instead?
   d_pcache.clear();
   // clear the evaluate cache?
@@ -69,7 +75,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   Trace("rpc-debug") << "- convert to internal" << std::endl;
   DslPfRule id;
   Node eq = a.eqNode(b);
-  Node eqi = eq;  // d_rdnc.convert(eq);
+  Node eqi = eq;//d_rdnc.convert(eq);
   if (!proveInternalBase(eqi, id))
   {
     Trace("rpc-debug") << "- prove internal" << std::endl;
@@ -78,7 +84,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
     d_currRecLimit = recLimit + 1;
     // Otherwise, we call the main prove internal method, which recurisvely
     // tries to find a matched conclusion whose conditions can be proven
-    id = proveInternal(eq);
+    id = proveInternal(eqi);
     Trace("rpc-debug") << "- finished prove internal" << std::endl;
   }
   bool success = (id != DslPfRule::FAIL);
@@ -86,7 +92,11 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   if (success && cdp != nullptr)
   {
     Trace("rpc-debug") << "- ensure proof" << std::endl;
-    // ensure proof exists
+    // if it changed encoding, account for this
+    if (eq!=eqi)
+    {
+      cdp->addStep(eq, PfRule::ENCODE_PRED_TRANSFORM, {eqi}, {eq});
+    }
     ensureProofInternal(cdp, eqi);
     Assert(cdp->hasStep(eqi));
     Trace("rpc-debug") << "- finish ensure proof" << std::endl;
@@ -97,8 +107,10 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
 
 DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
 {
+  ++d_statTotalAttempts;
   // eqi should not hold trivially and should not be cached
   Assert(d_currRecLimit > 0);
+  Trace("rpc-debug2") << "proveInternal " << eqi << std::endl;
   // Otherwise, call the get matches routine. This will call notifyMatch below
   // for each matching rewrite rule conclusion in the database
   // decrease the recursion depth
@@ -113,7 +125,7 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
   std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
   if (it != d_pcache.end())
   {
-    Assert(it->second.d_id != DslPfRule::FAIL);
+    Assert(it->second.d_id != DslPfRule::FAIL) << "unexpected failure for " << eqi;
     return it->second.d_id;
   }
   // store failure, and its maximum depth
@@ -285,9 +297,9 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
   }
   // symmetry or reflexivity, applied potentially to non-Booleans?
   // if (CDProof::isSame(eqi[0], eqi[1]))
-  ProvenInfo& pi = d_pcache[eqi];
   if (eqi[0] == eqi[1])
   {
+    ProvenInfo& pi = d_pcache[eqi];
     idb = DslPfRule::REFL;
     pi.d_id = idb;
     return true;
@@ -299,6 +311,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
     // definitely not true
     if (!eqr.getConst<bool>())
     {
+      ProvenInfo& pi = d_pcache[eqi];
       Trace("rpc-debug2") << "Infeasible due to rewriting: " << eqi[0] << " == " << eqi[1] << std::endl;
       idb = DslPfRule::FAIL;
       pi.d_failMaxDepth = 0;
@@ -320,6 +333,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
     // does not evaluate
     return false;
   }
+  ProvenInfo& pi = d_pcache[eqi];
   // we can evaluate both sides, check to see if the values are the same
   if (aev == bev)
   {
@@ -664,8 +678,12 @@ Node RewriteDbProofCons::inflectMatch(
         }
         TypeNode tn = curr.first.getType();
         size_t inflectId = inflectCounter[tn];
+        // variables are unique to (id, type id)
         Node idn = nm->mkConst(Rational(inflectId));
-        Node v = bvm->mkBoundVar<InflectionVarAttribute>(idn, tn);
+        size_t typeId = getOrAssignTypeId(tn);
+        Node idt = nm->mkConst(Rational(typeId));
+        Node cval = BoundVarManager::getCacheValue(idn, idt);
+        Node v = bvm->mkBoundVar<InflectionVarAttribute>(cval, tn);
         Trace("rpc-inflect")
             << "- inflect " << curr.first << " == " << curr.second << " via "
             << v << std::endl;
@@ -703,6 +721,18 @@ Node RewriteDbProofCons::inflectMatch(
   AlwaysAssert(visited.find(init) != visited.end());
   AlwaysAssert(!visited.find(init)->second.isNull());
   return visited[init];
+}
+
+size_t RewriteDbProofCons::getOrAssignTypeId(TypeNode tn)
+{
+  std::map< TypeNode, size_t >::iterator it = d_typeId.find(tn);
+  if (it!=d_typeId.end())
+  {
+    return it->second;
+  }
+  size_t id = d_typeId.size();
+  d_typeId[tn] = id;
+  return id;
 }
 
 }  // namespace theory

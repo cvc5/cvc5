@@ -159,9 +159,7 @@ void PfManager::printProof(std::ostream& out,
   {
     fp = d_pnm->clone(fp);
   }
-  // TODO (proj #37) according to the proof format, post process the proof node
-  // TODO (proj #37) according to the proof format, print the proof node
-
+  // according to the proof format, post process and print the proof node
   if (options::proofFormatMode() == options::ProofFormatMode::DOT)
   {
     proof::DotPrinter dotPrinter;
@@ -189,7 +187,6 @@ void PfManager::printProof(std::ostream& out,
   {
     std::vector<Node> assertions;
     getAssertions(as, assertions);
-    // NOTE: update permanent to fp, which could be reused in incremental mode
     proof::LfscNodeConverter ltp;
     proof::LfscProofPostprocess lpp(ltp, d_pnm.get());
     lpp.process(fp);
@@ -198,6 +195,7 @@ void PfManager::printProof(std::ostream& out,
   }
   else
   {
+    // otherwise, print using default printer
     out << "(proof\n";
     out << *fp;
     out << "\n)\n";

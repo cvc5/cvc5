@@ -30,6 +30,26 @@ Node RewriteDbNodeConverter::postConvert(Node n)
   if (k == CONST_STRING)
   {
     NodeManager* nm = NodeManager::currentNM();
+    // "ABC" is (str.++ "A" "B" "C")
+    const std::vector<unsigned>& vec = n.getConst<String>().getVec();
+    if (vec.size() <= 1)
+    {
+      return n;
+    }
+    std::vector<unsigned> v(vec.begin(), vec.end());
+    std::vector<Node> children;
+    for (unsigned i = 0, size = v.size(); i < size; i++)
+    {
+      std::vector<unsigned> tmp;
+      tmp.push_back(v[i]);
+      children.push_back(nm->mkConst(String(tmp)));
+    }
+    return nm->mkNode(STRING_CONCAT, children);
+  }
+  /*
+  if (k == CONST_STRING)
+  {
+    NodeManager* nm = NodeManager::currentNM();
     // "ABC" is (str.++ "A" (str.++ "B" "C"))
     const std::vector<unsigned>& vec = n.getConst<String>().getVec();
     if (vec.size() <= 1)
@@ -70,6 +90,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     }
     return ret;
   }
+  */
   return n;
 }
 

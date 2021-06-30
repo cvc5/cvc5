@@ -28,6 +28,7 @@
 #include "theory/rewrite_db.h"
 #include "theory/rewrite_db_term_process.h"
 #include "theory/rewrite_rcons.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -97,8 +98,14 @@ class RewriteDbProofCons
   Node d_false;
   /** current target */
   Node d_target;
+  /** Identifiers for types, for inflection variables */
+  std::map< TypeNode, size_t > d_typeId;
   /** current recursion limit */
   uint32_t d_currRecLimit;
+  /** Total number of rewrites we were asked to prove */
+  IntStat d_statTotalInputs;
+  /** Total number of rewrites we tried to prove internally */
+  IntStat d_statTotalAttempts;
   /** prove internal */
   rewriter::DslPfRule proveInternal(Node eqi);
   /** prove internal base eqi * { vars -> subs } */
@@ -130,6 +137,8 @@ class RewriteDbProofCons
                     const std::vector<Node>& vars,
                     const std::vector<Node>& subs,
                     std::unordered_map<Node, std::pair<Node, Node>>& isubs);
+  /** get or assign type identifier */
+  size_t getOrAssignTypeId(TypeNode tn);
 };
 
 }  // namespace theory
