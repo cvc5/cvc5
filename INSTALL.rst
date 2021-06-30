@@ -21,7 +21,7 @@ Supported Operating Systems
 ---------------------------
 
 cvc5 can be built natively on Linux and macOS, cross-compilation is possible for
-Windows using Mingw-w64. cvc5 also supports cross-compilation for Arm64 systems.
+Windows using Mingw-w64. cvc5 also supports cross-compilation for ARM64 systems.
 We generally recommend a 64-bit operating system.
 
 
@@ -85,7 +85,7 @@ GMP (GNU Multi-Precision arithmetic library)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 GMP is usually available on your distribution and should be used from there. If
-it does not, or you want to cross-compile, or you want to build cvc5 statically
+it is not, or you want to cross-compile, or you want to build cvc5 statically
 but the distribution does not ship static libraries, cvc5 builds GMP
 automatically when ``--auto-download`` is given.
 
@@ -107,10 +107,7 @@ CaDiCaL (Optional SAT solver)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `CaDiCaL <https://github.com/arminbiere/cadical>`_ is a SAT solver that can be
-used for solving non-incremental bit-vector problems with eager bit-blasting.
-This dependency may improve performance. It can be downloaded and built
-automatically. Configure cvc5 with ``configure.sh --cadical`` to build with this
-dependency.
+used for the bit-vector solver. It can be downloaded and built automatically.
 
 
 CryptoMiniSat (Optional SAT solver)
