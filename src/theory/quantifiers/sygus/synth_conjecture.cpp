@@ -91,7 +91,8 @@ SynthConjecture::SynthConjecture(QuantifiersState& qs,
   SmtEngine* smtCurr = smt::currentSmtEngine();
   d_subOptions.copyValues(smtCurr->getOptions());
   // limit the number of instantiation rounds on subcalls
-  d_subOptions.quantifiers.instMaxRounds = d_subOptions.quantifiers.sygusVerifyInstMaxRounds;
+  d_subOptions.quantifiers.instMaxRounds =
+      d_subOptions.quantifiers.sygusVerifyInstMaxRounds;
 }
 
 SynthConjecture::~SynthConjecture() {}

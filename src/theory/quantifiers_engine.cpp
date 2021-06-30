@@ -248,7 +248,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
   d_qim.reset();
   bool setIncomplete = false;
   IncompleteId setIncompleteId = IncompleteId::QUANTIFIERS;
-  if (options::instMaxRounds() >= 0 && d_numInstRoundsLemma>=options::instMaxRounds())
+  if (options::instMaxRounds() >= 0
+      && d_numInstRoundsLemma >= options::instMaxRounds())
   {
     needsCheck = false;
     setIncomplete = true;
