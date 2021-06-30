@@ -1323,7 +1323,7 @@ name   = "Quantifiers"
   long       = "sygus-verify-inst-max-rounds=N"
   type       = "int"
   default    = "3"
-  help       = "maximum number of instantiation rounds for sygus verification calls (-1 == no limit, default)"
+  help       = "maximum number of instantiation rounds for sygus verification calls (-1 == no limit, default is 3)"
 
 # Internal uses of sygus
 
