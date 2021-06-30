@@ -150,7 +150,8 @@ void QuantifiersEngine::presolve() {
   {
     u->presolve();
   }
-  for (QuantifiersModule*& mdl : d_modules){
+  for (QuantifiersModule*& mdl : d_modules)
+  {
     mdl->presolve();
   }
   // presolve with term registry, which populates the term database based on

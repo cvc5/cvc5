@@ -23,6 +23,8 @@
 #include "proof/lazy_proof.h"
 #include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -33,8 +35,6 @@
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "smt/smt_engine_scope.h"
-#include "smt/smt_engine.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::context;
@@ -683,7 +683,7 @@ bool Instantiate::isProofEnabled() const { return d_pfInst != nullptr; }
 void Instantiate::notifyEndRound()
 {
   bool debugInstTrace = Trace.isOn("inst-per-quant-round");
-  if (options::debugInst() || debugInstTrace || options::instMaxRounds()>=0)
+  if (options::debugInst() || debugInstTrace || options::instMaxRounds() >= 0)
   {
     Options& sopts = smt::currentSmtEngine()->getOptions();
     std::ostream& out = *sopts.base.out;
@@ -692,8 +692,8 @@ void Instantiate::notifyEndRound()
     {
       for (std::pair<const Node, uint32_t>& i : d_instDebugTemp)
       {
-        Trace("inst-per-quant-round") << " * " << i.second << " for " << i.first
-                                      << std::endl;
+        Trace("inst-per-quant-round")
+            << " * " << i.second << " for " << i.first << std::endl;
       }
     }
     if (options::debugInst())

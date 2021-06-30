@@ -584,7 +584,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   if (!query.isConst() || query.getConst<bool>())
   {
     // add recursive function definitions
-    const std::vector<Node>& fdefs = d_tds->getFunDefEvaluator()->getDefinitions();
+    const std::vector<Node>& fdefs =
+        d_tds->getFunDefEvaluator()->getDefinitions();
     if (!fdefs.empty())
     {
       std::vector<Node> qconj;
@@ -594,7 +595,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       Trace("cegqi-debug") << "query is " << query << std::endl;
     }
     Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
-    Result r = checkWithSubsolver(query, d_ce_sk_vars, d_ce_sk_var_mvs, &d_subOptions);
+    Result r =
+        checkWithSubsolver(query, d_ce_sk_vars, d_ce_sk_var_mvs, &d_subOptions);
     Trace("sygus-engine") << "  ...got " << r << std::endl;
     if (r.asSatisfiabilityResult().isSat() == Result::SAT)
     {

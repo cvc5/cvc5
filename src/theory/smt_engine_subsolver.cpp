@@ -48,7 +48,7 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
 {
   NodeManager* nm = NodeManager::currentNM();
   SmtEngine* smtCurr = smt::currentSmtEngine();
-  if (opts==nullptr)
+  if (opts == nullptr)
   {
     // must copy the options
     opts = &smtCurr->getOptions();
@@ -80,18 +80,21 @@ Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
   return smte->checkSat();
 }
 
-Result checkWithSubsolver(Node query, 
-                         Options* opts, bool needsTimeout, unsigned long timeout)
+Result checkWithSubsolver(Node query,
+                          Options* opts,
+                          bool needsTimeout,
+                          unsigned long timeout)
 {
   std::vector<Node> vars;
   std::vector<Node> modelVals;
-  return checkWithSubsolver(query, vars, modelVals, opts, needsTimeout, timeout);
+  return checkWithSubsolver(
+      query, vars, modelVals, opts, needsTimeout, timeout);
 }
 
 Result checkWithSubsolver(Node query,
                           const std::vector<Node>& vars,
                           std::vector<Node>& modelVals,
-                         Options* opts,
+                          Options* opts,
                           bool needsTimeout,
                           unsigned long timeout)
 {

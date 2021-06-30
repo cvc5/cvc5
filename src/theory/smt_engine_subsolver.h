@@ -47,7 +47,7 @@ namespace theory {
  * @param timeout The timeout (in milliseconds)
  */
 void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
-                         Options * opts = nullptr,
+                         Options* opts = nullptr,
                          bool needsTimeout = false,
                          unsigned long timeout = 0);
 
@@ -59,7 +59,7 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
  */
 Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
                           Node query,
-                          Options * opts = nullptr,
+                          Options* opts = nullptr,
                           bool needsTimeout = false,
                           unsigned long timeout = 0);
 
@@ -75,7 +75,7 @@ Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
  * @param timeout The timeout (in milliseconds)
  */
 Result checkWithSubsolver(Node query,
-                          Options * opts = nullptr,
+                          Options* opts = nullptr,
                           bool needsTimeout = false,
                           unsigned long timeout = 0);
 
@@ -94,7 +94,7 @@ Result checkWithSubsolver(Node query,
 Result checkWithSubsolver(Node query,
                           const std::vector<Node>& vars,
                           std::vector<Node>& modelVals,
-                          Options * opts = nullptr,
+                          Options* opts = nullptr,
                           bool needsTimeout = false,
                           unsigned long timeout = 0);
 

@@ -55,6 +55,7 @@ class FunDefEvaluator
 
   /** Get definitions */
   const std::vector<Node>& getDefinitions() const;
+
  private:
   /** information cached per function definition */
   class FunDefInfo
