@@ -163,7 +163,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
       }
       Trace("rpc-debug2") << "Would have succeeded with rule: " << std::endl;
       std::vector<Node> conds;
-      for (const std::pair<Node, std::pair<Node, Node>>& i : isubs)
+      for (const std::pair<const Node, std::pair<Node, Node>>& i : isubs)
       {
         Node eq = i.first.eqNode(i.second.first);
         conds.push_back(eq);

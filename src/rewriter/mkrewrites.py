@@ -91,22 +91,31 @@ def gen_mk_skolem(name, sort):
     return res
 
 
+def gen_mk_const(expr):
+    if isinstance(expr, CBool):
+        return 'true' if expr.val else 'false'
+    elif isinstance(expr, CString):
+        return f'String("{expr.val}")'
+    elif isinstance(expr, CInt):
+        return f'Rational({expr.val})'
+    elif isinstance(expr, App):
+        args = [gen_mk_const(child) for child in expr.children]
+        if expr.op == Op.UMINUS:
+            return f'-({args[0]})'
+    die(f'Cannot generate constant for {expr}')
+
+
 def gen_mk_node(defns, expr):
     if defns is not None and expr in defns:
         return defns[expr]
 
-    if isinstance(expr, App):
-        args = ",".join(gen_mk_node(defns, child) for child in expr.children)
-        return f'nm->mkNode({gen_kind(expr.op)}, {{ {args} }})'
-    elif isinstance(expr, CBool):
-        val_code = 'true' if expr.val else 'false'
-        return f'nm->mkConst({val_code})'
-    elif isinstance(expr, CString):
-        return f'nm->mkConst(String("{expr.val}"))'
-    elif isinstance(expr, CInt):
-        return f'nm->mkConst(Rational({expr.val}))'
+    elif expr.sort and expr.sort.is_const:
+        return f'nm->mkConst({gen_mk_const(expr)})'
     elif isinstance(expr, Var):
         return expr.name
+    elif isinstance(expr, App):
+        args = ",".join(gen_mk_node(defns, child) for child in expr.children)
+        return f'nm->mkNode({gen_kind(expr.op)}, {{ {args} }})'
     else:
         die(f'Cannot generate code for {expr}')
 
@@ -121,6 +130,27 @@ class Rewrites:
         self.filename = filename
         self.decls = decls
         self.rules = rules
+
+
+def type_check(expr):
+    for child in expr.children:
+        type_check(child)
+
+    if isinstance(expr, CBool):
+        expr.sort = Sort(BaseSort.Bool, is_const=True)
+    elif isinstance(expr, CString):
+        expr.sort = Sort(BaseSort.String, is_const=True)
+    elif isinstance(expr, CInt):
+        expr.sort = Sort(BaseSort.Int, is_const=True)
+    elif isinstance(expr, App):
+        sort = None
+        if expr.op == Op.UMINUS:
+            sort = Sort(BaseSort.Int)
+
+        if sort:
+            sort.is_const = all(child.sort and child.sort.is_const
+                                for child in expr.children)
+            expr.sort = sort
 
 
 def validate_rule(rule):
@@ -150,6 +180,11 @@ def validate_rule(rule):
                             )
                     var_to_op[child] = curr.op
         to_visit.extend(curr.children)
+
+    # Perform type checking
+    type_check(rule.lhs)
+    type_check(rule.rhs)
+    type_check(rule.cond)
 
 
 def gen_rewrite_db(args):

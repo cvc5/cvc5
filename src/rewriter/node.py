@@ -154,6 +154,9 @@ class Node:
         self.sort = sort
         self.name = None
 
+    def __getitem__(self, i):
+        return self.children[i]
+
     def __eq__(self, other):
         if len(self.children) != len(other.children):
             return False
@@ -166,10 +169,11 @@ class Node:
 
 
 class Sort(Node):
-    def __init__(self, base, args, is_list=False):
-        super().__init__(args)
+    def __init__(self, base, args=None, is_list=False, is_const=False):
+        super().__init__(args if args else [])
         self.base = base
         self.is_list = is_list
+        self.is_const = is_const
 
     def __eq__(self, other):
         return self.base == other.base and self.is_list == other.is_list and super(
@@ -188,6 +192,9 @@ class Sort(Node):
         if self.is_list:
             rep = rep + ' :list'
         return rep
+
+    def is_int(self):
+        return self.base == BaseSort.Int
 
 
 class Var(Node):
@@ -257,8 +264,8 @@ class App(Node):
         self.op = op
 
     def __eq__(self, other):
-        return isinstance(other,
-                          App) and self.op == other.op and super().__eq__(other)
+        return isinstance(
+            other, App) and self.op == other.op and super().__eq__(other)
 
     def __hash__(self):
         return hash((self.op, tuple(self.children)))
