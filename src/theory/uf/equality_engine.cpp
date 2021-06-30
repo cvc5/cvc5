@@ -154,6 +154,9 @@ EqualityEngine::EqualityEngine(EqualityEngineNotify& notify,
       d_name(name)
 {
   init();
+  // since init makes notifications (e.g. new eq class for true/false), and
+  // since the notify class may not be fully constructed yet, we
+  // don't set up the provided notification class until after initialization.
   d_notify = &notify;
 }
 
