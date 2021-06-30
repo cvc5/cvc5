@@ -104,10 +104,8 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
         }
         if (next.hasOperator())
         {
-          for (const Node& cnc : next)
-          {
-            syms.push_back(cnc);
-          }
+          std::vector<Node> nextc(next.begin(), next.end());
+          syms.insert(syms.end(), nextc.rbegin(), nextc.rend());
         }
         // new frame
         visit.push_back(NaryMatchFrame(syms, &itc->second));
@@ -146,7 +144,6 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
             currChildren.push_back(s);
             syms.pop_back();
           }
-          std::reverse(currChildren.begin(), currChildren.end());
           if (foundChildren)
           {
             // we are matching the next list
@@ -201,7 +198,7 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
         if (next.isNull())
         {
           // if we failed, revert changes to syms
-          syms.insert(syms.end(), currChildren.begin(), currChildren.end());
+          syms.insert(syms.end(), currChildren.rbegin(), currChildren.rend());
         }
       } while (next.isNull() && curr.d_index <= mt->d_vars.size());
       if (next.isNull())
@@ -244,11 +241,9 @@ void NaryMatchTrie::addTerm(Node n)
       {
         visit.push_back(Node::null());
       }
-      // note children in reverse order
-      for (const Node& cnc : cn)
-      {
-        visit.push_back(cnc);
-      }
+      // note children are processed left to right
+      std::vector<Node> cc(cn.begin(), cn.end());
+      visit.insert(visit.end(), cc.rbegin(), cc.rend());
     }
     else
     {
