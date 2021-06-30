@@ -721,19 +721,30 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       }
       // print child proofs, which is based on the format computed for the rule
       size_t ccounter = 0;
-      Assert(d_dslFormat.find(di) != d_dslFormat.end());
-      std::vector<Node>& format = d_dslFormat[di];
-      for (const Node& f : format)
+      std::map<rewriter::DslPfRule, std::vector<Node>>::iterator itf = d_dslFormat.find(di);
+      if (itf == d_dslFormat.end())
       {
-        if (f.isNull())
+        // We may not have computed the format yet, e.g. if we are printing
+        // via the pre print channel. In this case, just print all the children.
+        for (const ProofNode* c : cs)
         {
-          // this position is a hole
-          pf << h;
-          continue;
+          pf << c;
         }
-        Assert(ccounter < cs.size());
-        pf << cs[ccounter];
-        ccounter++;
+      }
+      else
+      {
+        for (const Node& f : itf->second)
+        {
+          if (f.isNull())
+          {
+            // this position is a hole
+            pf << h;
+            continue;
+          }
+          Assert(ccounter < cs.size());
+          pf << cs[ccounter];
+          ccounter++;
+        }
       }
       Assert(ccounter == cs.size());
     }
