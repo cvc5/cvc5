@@ -57,8 +57,10 @@ Build dependencies
 cvc5 makes uses of a number of tools and libraries. Some of these are required
 while others are only used with certain configuration options. If
 ``--auto-download`` is given, cvc5 can automatically download and build most
-libraries that are not already installed on your system. Versions given are
-minimum versions; more recent versions should be compatible.
+libraries that are not already installed on your system. If your libraries are
+installed in a non-standard location, you can use ``--dep-path`` to define an
+additional search path for all dependencies. Versions given are minimum
+versions; more recent versions should be compatible.
 
 - `GNU C and C++ (gcc and g++) <https://gcc.gnu.org>`_
   or `Clang <https://clang.llvm.org>`_ (reasonably recent versions)
