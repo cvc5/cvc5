@@ -418,6 +418,7 @@ set(regress_0_tests
   regress0/bv/inequality04.smt2
   regress0/bv/inequality05.smt2
   regress0/bv/int_to_bv_err_on_demand_1.smt2
+  regress0/bv/int_to_bv_model.smt2
   regress0/bv/issue-4075.smt2
   regress0/bv/issue-4076.smt2
   regress0/bv/issue-4130.smt2
@@ -739,6 +740,7 @@ set(regress_0_tests
   regress0/nl/pow2-native-2.smt2
   regress0/nl/pow2-native-3.smt2
   regress0/nl/pow2-pow.smt2
+  regress0/nl/pow2-pow-isabelle.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
   regress0/nl/sin-cos-346-b-chunk-0169.smt2
@@ -794,6 +796,7 @@ set(regress_0_tests
   regress0/preprocess/circuit-prop.smt2
   regress0/preprocess/issue5729-rewritten-assertions.smt2
   regress0/preprocess/issue5943-non-clausal-simp.smt2
+  regress0/preprocess/issue6754-tpp.smt2
   regress0/preprocess/preprocess_00.cvc
   regress0/preprocess/preprocess_01.cvc
   regress0/preprocess/preprocess_02.cvc
@@ -2197,6 +2200,7 @@ set(regress_1_tests
   regress1/strings/rev-ex5.smt2
   regress1/strings/rew-020618.smt2
   regress1/strings/rew-check1.smt2
+  regress1/strings/seq-quant-infinite-branch.smt2
   regress1/strings/simple-re-consume.smt2
   regress1/strings/stoi-400million.smt2
   regress1/strings/stoi-solve.smt2
