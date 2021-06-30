@@ -146,8 +146,12 @@ quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 void QuantifiersEngine::presolve() {
   Trace("quant-engine-proc") << "QuantifiersEngine : presolve " << std::endl;
   d_qim.clearPending();
-  for( unsigned i=0; i<d_modules.size(); i++ ){
-    d_modules[i]->presolve();
+  for (QuantifiersUtil*& u : d_util)
+  {
+    u->presolve();
+  }
+  for (QuantifiersModule*& mdl : d_modules){
+    mdl->presolve();
   }
   // presolve with term registry, which populates the term database based on
   // terms registered before presolve when in incremental mode
@@ -458,13 +462,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     // debug print
     if (d_qim.hasSentLemma())
     {
-      bool debugInstTrace = Trace.isOn("inst-per-quant-round");
-      if (options::debugInst() || debugInstTrace)
-      {
-        Options& sopts = smt::currentSmtEngine()->getOptions();
-        std::ostream& out = *sopts.base.out;
-        d_qim.getInstantiate()->debugPrint(out);
-      }
+      d_qim.getInstantiate()->notifyEndRound();
     }
     if( Trace.isOn("quant-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);

@@ -111,6 +111,8 @@ class Instantiate : public QuantifiersUtil
               ProofNodeManager* pnm = nullptr);
   ~Instantiate();
 
+  /** presolve, resets per-call statistics */
+  void presolve() override;
   /** reset */
   bool reset(Theory::Effort e) override;
   /** register quantifier */
@@ -237,11 +239,11 @@ class Instantiate : public QuantifiersUtil
   //--------------------------------------end general utilities
 
   /**
-   * Debug print, called once per instantiation round. This prints
+   * Called once at the end of each instantiation round. This prints
    * instantiations added this round to trace inst-per-quant-round, if
    * applicable, and prints to out if the option debug-inst is enabled.
    */
-  void debugPrint(std::ostream& out);
+  void notifyEndRound();
   /** debug print model, called once, before we terminate with sat/unknown. */
   void debugPrintModel();
 
@@ -339,7 +341,9 @@ class Instantiate : public QuantifiersUtil
    */
   std::map<Node, std::vector<Node> > d_recordedInst;
   /** statistics for debugging total instantiations per quantifier per round */
-  std::map<Node, uint32_t> d_temp_inst_debug;
+  std::map<Node, uint32_t> d_instDebugTemp;
+  /** Number of rounds we have instantiated */
+  uint32_t d_instDebugNumRounds;
 
   /** list of all instantiations produced for each quantifier
    *

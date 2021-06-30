@@ -33,6 +33,8 @@
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include "smt/smt_engine_scope.h"
+#include "smt/smt_engine.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::context;
@@ -52,6 +54,7 @@ Instantiate::Instantiate(QuantifiersState& qs,
       d_treg(tr),
       d_pnm(pnm),
       d_insts(qs.getUserContext()),
+      d_instDebugNumRounds(0),
       d_c_inst_match_trie_dom(qs.getUserContext()),
       d_pfInst(pnm ? new CDProof(pnm) : nullptr)
 {
@@ -65,12 +68,18 @@ Instantiate::~Instantiate()
   }
   d_c_inst_match_trie.clear();
 }
+void Instantiate::presolve()
+{
+  // reset the number of rounds we have instantiated
+  d_instDebugNumRounds = 0;
+}
 
 bool Instantiate::reset(Theory::Effort e)
 {
   Trace("inst-debug") << "Reset, effort " << e << std::endl;
   // clear explicitly recorded instantiations
   d_recordedInst.clear();
+  d_instDebugTemp.clear();
   return true;
 }
 
@@ -334,7 +343,7 @@ bool Instantiate::addInstantiation(Node q,
   InstLemmaList* ill = getOrMkInstLemmaList(q);
   ill->d_list.push_back(body);
   // add to temporary debug statistics (# inst on this round)
-  d_temp_inst_debug[q]++;
+  d_instDebugTemp[q]++;
   if (Trace.isOn("inst"))
   {
     Trace("inst") << "*** Instantiate " << q << " with " << std::endl;
@@ -671,30 +680,35 @@ void Instantiate::getInstantiations(Node q, std::vector<Node>& insts)
 
 bool Instantiate::isProofEnabled() const { return d_pfInst != nullptr; }
 
-void Instantiate::debugPrint(std::ostream& out)
+void Instantiate::notifyEndRound()
 {
-  // debug information
-  if (Trace.isOn("inst-per-quant-round"))
+  bool debugInstTrace = Trace.isOn("inst-per-quant-round");
+  if (options::debugInst() || debugInstTrace || options::instMaxRounds()>=0)
   {
-    for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
+    Options& sopts = smt::currentSmtEngine()->getOptions();
+    std::ostream& out = *sopts.base.out;
+    // debug information
+    if (debugInstTrace)
     {
-      Trace("inst-per-quant-round") << " * " << i.second << " for " << i.first
-                                    << std::endl;
-      d_temp_inst_debug[i.first] = 0;
-    }
-  }
-  if (options::debugInst())
-  {
-    bool req = !options::printInstFull();
-    for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
-    {
-      Node name;
-      if (!d_qreg.getNameForQuant(i.first, name, req))
+      for (std::pair<const Node, uint32_t>& i : d_instDebugTemp)
       {
-        continue;
+        Trace("inst-per-quant-round") << " * " << i.second << " for " << i.first
+                                      << std::endl;
       }
-      out << "(num-instantiations " << name << " " << i.second << ")"
-          << std::endl;
+    }
+    if (options::debugInst())
+    {
+      bool req = !options::printInstFull();
+      for (std::pair<const Node, uint32_t>& i : d_instDebugTemp)
+      {
+        Node name;
+        if (!d_qreg.getNameForQuant(i.first, name, req))
+        {
+          continue;
+        }
+        out << "(num-instantiations " << name << " " << i.second << ")"
+            << std::endl;
+      }
     }
   }
 }

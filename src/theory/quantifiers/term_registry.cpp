@@ -60,7 +60,6 @@ void TermRegistry::finishInit(FirstOrderModel* fm,
 
 void TermRegistry::presolve()
 {
-  d_termDb->presolve();
   d_presolve = false;
   // add all terms to database
   if (options::incrementalSolving() && !options::termDbCd())
