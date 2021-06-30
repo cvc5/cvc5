@@ -279,7 +279,7 @@ $3 const& NodeValue::getConst< $3 >() const {
   cname=`echo "$3" | awk 'BEGIN {FS="::"} {print$NF}'`
   metakind_constDeleters="${metakind_constDeleters}
   case kind::$1:
-    std::allocator< $3 >().destroy(reinterpret_cast< $3* >(nv->d_children));
+    std::destroy_at(reinterpret_cast< $3* >(nv->d_children));
     break;
 "
 }

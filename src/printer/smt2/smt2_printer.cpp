@@ -681,9 +681,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::IS_INTEGER:
   case kind::TO_INTEGER:
   case kind::TO_REAL:
-  case kind::POW: 
-    out << smtKindString(k, d_variant) << " ";
-    break;
+  case kind::POW:
+  case kind::POW2: out << smtKindString(k, d_variant) << " "; break;
   case kind::IAND:
     out << "(_ iand " << n.getOperator().getConst<IntAnd>().d_size << ") ";
     stillNeedToPrintParams = false;
@@ -721,11 +720,11 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STRING_SUBSTR:
   case kind::STRING_UPDATE:
   case kind::STRING_CHARAT:
-  case kind::STRING_STRCTN:
-  case kind::STRING_STRIDOF:
+  case kind::STRING_CONTAINS:
+  case kind::STRING_INDEXOF:
   case kind::STRING_INDEXOF_RE:
-  case kind::STRING_STRREPL:
-  case kind::STRING_STRREPLALL:
+  case kind::STRING_REPLACE:
+  case kind::STRING_REPLACE_ALL:
   case kind::STRING_REPLACE_RE:
   case kind::STRING_REPLACE_RE_ALL:
   case kind::STRING_TOLOWER:
@@ -1152,6 +1151,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::MULT:
   case kind::NONLINEAR_MULT: return "*";
   case kind::IAND: return "iand";
+  case kind::POW2: return "POW2";
   case kind::EXPONENTIAL: return "exp";
   case kind::SINE: return "sin";
   case kind::COSINE: return "cos";
@@ -1329,12 +1329,12 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_LENGTH: return "str.len";
   case kind::STRING_SUBSTR: return "str.substr" ;
   case kind::STRING_UPDATE: return "str.update";
-  case kind::STRING_STRCTN: return "str.contains" ;
+  case kind::STRING_CONTAINS: return "str.contains";
   case kind::STRING_CHARAT: return "str.at" ;
-  case kind::STRING_STRIDOF: return "str.indexof" ;
+  case kind::STRING_INDEXOF: return "str.indexof";
   case kind::STRING_INDEXOF_RE: return "str.indexof_re";
-  case kind::STRING_STRREPL: return "str.replace" ;
-  case kind::STRING_STRREPLALL: return "str.replace_all";
+  case kind::STRING_REPLACE: return "str.replace";
+  case kind::STRING_REPLACE_ALL: return "str.replace_all";
   case kind::STRING_REPLACE_RE: return "str.replace_re";
   case kind::STRING_REPLACE_RE_ALL: return "str.replace_re_all";
   case kind::STRING_TOLOWER: return "str.tolower";
