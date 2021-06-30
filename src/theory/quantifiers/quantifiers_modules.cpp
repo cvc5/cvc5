@@ -16,6 +16,7 @@
 #include "theory/quantifiers/quantifiers_modules.h"
 
 #include "options/quantifiers_options.h"
+#include "options/strings_options.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/term_registry.h"
 
@@ -74,8 +75,9 @@ void QuantifiersModules::initialize(QuantifiersState& qs,
     d_synth_e.reset(new SynthEngine(qs, qim, qr, tr));
     modules.push_back(d_synth_e.get());
   }
-  // finite model finding
-  if (options::fmfBound())
+  // bounded integer instantiation is used when the user requests it via
+  // fmfBound, or if strings are enabled.
+  if (options::fmfBound() || options::stringExp())
   {
     d_bint.reset(new BoundedIntegers(qs, qim, qr, tr));
     modules.push_back(d_bint.get());
