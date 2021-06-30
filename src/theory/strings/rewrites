@@ -22,7 +22,10 @@
   (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))
   (= (str.++ s1 s2) (str.++ t1 t2))
   false)
-
+(define-cond-rule concat-clash-ss ((s String) (t String))
+  (not (= (str.substr s 0 1) (str.substr t 0 1)))
+  (= s t)
+  false)
 
 (define-rule str-concat-emp ((xs String :list) (ys String :list)) (str.++ xs "" ys) (str.++ xs ys))
 
@@ -32,4 +35,3 @@
 (define-rule re-concat-flatten ((xs RegLan :list) (s RegLan) (ys RegLan :list) (zs RegLan :list)) (re.++ xs (re.++ s ys) zs) (re.++ xs s ys zs))
 
 (define-rule re-concat-star-swap ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs (re.* r) r ys) (re.++ xs r (re.* r) ys))
-
