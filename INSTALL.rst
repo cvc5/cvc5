@@ -84,11 +84,10 @@ build ANTLR 3.4.
 GMP (GNU Multi-Precision arithmetic library)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-GMP is usually available on you distribution and should be used from there. It
-can be downloaded and built automatically. If it does not, or you want to
-cross-compile, or you want to build cvc5 statically but the distribution does
-not ship static libraries, cvc5 builds GMP automatically when
-``--auto-download`` is given.
+GMP is usually available on your distribution and should be used from there. If
+it does not, or you want to cross-compile, or you want to build cvc5 statically
+but the distribution does not ship static libraries, cvc5 builds GMP
+automatically when ``--auto-download`` is given.
 
 
 SymFPU (Support for the Theory of Floating Point Numbers)
