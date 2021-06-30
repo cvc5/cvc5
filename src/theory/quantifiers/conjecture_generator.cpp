@@ -92,6 +92,7 @@ ConjectureGenerator::ConjectureGenerator(QuantifiersState& qs,
                                          TermRegistry& tr)
     : QuantifiersModule(qs, qim, qr, tr),
       d_notify(*this),
+      d_uequalityEngine(qs.getSatContext(), "ConjectureGenerator::ee", false),
       d_ee_conjectures(qs.getSatContext()),
       d_conj_count(0),
       d_subs_confirmCount(0),
@@ -101,7 +102,8 @@ ConjectureGenerator::ConjectureGenerator(QuantifiersState& qs,
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-
+  d_uequalityEngine.addFunctionKind(kind::APPLY_UF);
+  d_uequalityEngine.addFunctionKind(kind::APPLY_CONSTRUCTOR);
 }
 
 ConjectureGenerator::~ConjectureGenerator()
@@ -117,13 +119,7 @@ ConjectureGenerator::~ConjectureGenerator()
   }
 }
 
-void ConjectureGenerator::init()
-{
-  d_uequalityEngine = std::make_unique<eq::EqualityEngine>(
-      d_notify, d_qstate.getSatContext(), "ConjectureGenerator::ee", false);
-  d_uequalityEngine->addFunctionKind(kind::APPLY_UF);
-  d_uequalityEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
-}
+void ConjectureGenerator::init() { d_uequalityEngine.setNotify(d_notify); }
 
 void ConjectureGenerator::eqNotifyNewClass( TNode t ){
   Trace("thm-ee-debug") << "UEE : new equivalence class " << t << std::endl;
@@ -231,14 +227,14 @@ void ConjectureGenerator::markReportedCanon( TNode n ) {
 
 bool ConjectureGenerator::areUniversalEqual( TNode n1, TNode n2 ) {
   return n1 == n2
-         || (d_uequalityEngine->hasTerm(n1) && d_uequalityEngine->hasTerm(n2)
-             && d_uequalityEngine->areEqual(n1, n2));
+         || (d_uequalityEngine.hasTerm(n1) && d_uequalityEngine.hasTerm(n2)
+             && d_uequalityEngine.areEqual(n1, n2));
 }
 
 bool ConjectureGenerator::areUniversalDisequal( TNode n1, TNode n2 ) {
-  return n1 != n2 && d_uequalityEngine->hasTerm(n1)
-         && d_uequalityEngine->hasTerm(n2)
-         && d_uequalityEngine->areDisequal(n1, n2, false);
+  return n1 != n2 && d_uequalityEngine.hasTerm(n1)
+         && d_uequalityEngine.hasTerm(n2)
+         && d_uequalityEngine.areDisequal(n1, n2, false);
 }
 
 Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
@@ -247,7 +243,7 @@ Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
     if( d_urelevant_terms.find( n )==d_urelevant_terms.end() ){
       setUniversalRelevant( n );
       //add term to universal equality engine
-      d_uequalityEngine->addTerm(n);
+      d_uequalityEngine.addTerm(n);
       // addding this term to equality engine will lead to a set of new terms (the new subterms of n)
       // now, do instantiation-based merging for each of these terms
       Trace("thm-ee-debug") << "Merge equivalence classes based on instantiations of terms..." << std::endl;
@@ -294,7 +290,7 @@ Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
               }
               if( assertEq ){
                 Node exp;
-                d_uequalityEngine->assertEquality(t.eqNode(eqt), true, exp);
+                d_uequalityEngine.assertEquality(t.eqNode(eqt), true, exp);
               }else{
                 Trace("thm-ee-no-add")
                     << "Do not add : " << t << " == " << eqt << std::endl;
@@ -308,9 +304,9 @@ Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
     }
   }
 
-  if (d_uequalityEngine->hasTerm(n))
+  if (d_uequalityEngine.hasTerm(n))
   {
-    Node r = d_uequalityEngine->getRepresentative(n);
+    Node r = d_uequalityEngine.getRepresentative(n);
     EqcInfo * ei = getOrMakeEqcInfo( r );
     if( ei && !ei->d_rep.get().isNull() ){
       return ei->d_rep.get();
@@ -587,7 +583,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                   {
                     Node exp;
                     d_ee_conjectures[q[1]] = true;
-                    d_uequalityEngine->assertEquality(
+                    d_uequalityEngine.assertEquality(
                         nlu.eqNode(nru), true, exp);
                   }
                 }
@@ -861,7 +857,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
       if( Trace.isOn("thm-ee") ){
         Trace("thm-ee") << "Universal equality engine is : " << std::endl;
         eq::EqClassesIterator ueqcs_i =
-            eq::EqClassesIterator(d_uequalityEngine.get());
+            eq::EqClassesIterator(&d_uequalityEngine);
         while( !ueqcs_i.isFinished() ){
           TNode r = (*ueqcs_i);
           bool firstTime = true;
@@ -869,7 +865,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           Trace("thm-ee") << "  " << rr;
           Trace("thm-ee") << " : { ";
           eq::EqClassIterator ueqc_i =
-              eq::EqClassIterator(r, d_uequalityEngine.get());
+              eq::EqClassIterator(r, &d_uequalityEngine);
           while( !ueqc_i.isFinished() ){
             TNode n = (*ueqc_i);
             if( rr!=n ){

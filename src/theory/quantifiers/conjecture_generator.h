@@ -282,10 +282,10 @@ class ConjectureGenerator : public QuantifiersModule
   /** boolean terms */
   Node d_true;
   Node d_false;
-  /** (universal) equaltity engine */
-  std::unique_ptr<eq::EqualityEngine> d_uequalityEngine;
   /** pending adds */
   std::vector< Node > d_upendingAdds;
+  /** (universal) equaltity engine */
+  eq::EqualityEngine d_uequalityEngine;
   /** relevant terms */
   std::map< Node, bool > d_urelevant_terms;
   /** information necessary for equivalence classes */
