@@ -632,6 +632,9 @@ set(regress_0_tests
   regress0/ho/issue4477.smt2
   regress0/ho/issue4990-care-graph.smt2
   regress0/ho/issue5233-part1-usort-owner.smt2
+  regress0/ho/issue5371.smt2
+  regress0/ho/issue6526.smt2
+  regress0/ho/issue6536.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-equality-non-canon.smt2
   regress0/ho/match-middle.smt2
@@ -730,6 +733,11 @@ set(regress_0_tests
   regress0/nl/nta/sin-sym.smt2
   regress0/nl/nta/sqrt-simple.smt2
   regress0/nl/nta/tan-rewrite.smt2
+  regress0/nl/pow2-native-0.smt2
+  regress0/nl/pow2-native-1.smt2
+  regress0/nl/pow2-native-2.smt2
+  regress0/nl/pow2-native-3.smt2
+  regress0/nl/pow2-pow.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
   regress0/nl/sin-cos-346-b-chunk-0169.smt2
@@ -1765,6 +1773,7 @@ set(regress_1_tests
   regress1/push-pop/fuzz_7.smt2
   regress1/push-pop/fuzz_8.smt2
   regress1/push-pop/fuzz_9.smt2
+  regress1/push-pop/issue6773-arith-no-check.smt2
   regress1/push-pop/model-unsound-ania.smt2
   regress1/push-pop/quant-fun-proc-unmacro.smt2
   regress1/push-pop/quant-fun-proc.smt2

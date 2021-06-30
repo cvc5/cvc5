@@ -264,7 +264,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
           non_greedy_find_vars.push_back(k);
           prev_end = nm->mkNode(PLUS, prev_end, k);
         }
-        Node curr = nm->mkNode(STRING_STRIDOF, x, sc, prev_end);
+        Node curr = nm->mkNode(STRING_INDEXOF, x, sc, prev_end);
         Node idofFind = curr.eqNode(nm->mkConst(Rational(-1))).negate();
         conj.push_back(idofFind);
         prev_end = nm->mkNode(PLUS, curr, lensc);
