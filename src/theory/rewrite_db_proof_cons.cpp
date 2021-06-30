@@ -75,7 +75,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   Trace("rpc-debug") << "- convert to internal" << std::endl;
   DslPfRule id;
   Node eq = a.eqNode(b);
-  Node eqi = eq;//d_rdnc.convert(eq);
+  Node eqi = d_rdnc.convert(eq);
   if (!proveInternalBase(eqi, id))
   {
     Trace("rpc-debug") << "- prove internal" << std::endl;
@@ -224,9 +224,15 @@ bool RewriteDbProofCons::notifyMatch(Node s,
       }
       // save, to check below
       condToProve.push_back(cond);
+      if (!recurse)
+      {
+        // we can't apply recursion, break now
+        break;
+      }
     }
     if (!condSuccess)
     {
+      Trace("rpc-debug2") << "...fail (simple condition failure)" << std::endl;
       continue;
     }
     if (!recurse && !condToProve.empty())
@@ -304,38 +310,39 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
     pi.d_id = idb;
     return true;
   }
-  // If it rewrites to false, then it is obviously infeasible.
-  Node eqr = Rewriter::rewrite(eqi[0].eqNode(eqi[1]));
-  if (eqr.isConst())
-  {
-    // definitely not true
-    if (!eqr.getConst<bool>())
-    {
-      ProvenInfo& pi = d_pcache[eqi];
-      Trace("rpc-debug2") << "Infeasible due to rewriting: " << eqi[0] << " == " << eqi[1] << std::endl;
-      idb = DslPfRule::FAIL;
-      pi.d_failMaxDepth = 0;
-      pi.d_id = idb;
-      return true;
-    }
-  }
-  // NOTE: if does not rewrite to true, it still could be true
   // evaluate the two sides of the equality, without help of the rewriter
-  Node aev = doEvaluate(eqi[0]);
-  if (aev.isNull())
+  Node ev[2];
+  for (size_t i=0; i<2; i++)
   {
-    // does not evaluate
-    return false;
-  }
-  Node bev = doEvaluate(eqi[1]);
-  if (bev.isNull())
-  {
-    // does not evaluate
-    return false;
+    ev[i] = doEvaluate(eqi[i]);
+    if (ev[i].isNull())
+    {
+      // does not evaluate
+      // If it rewrites to false, then it is obviously infeasible. Notice that
+      // rewriting is more expensive than evaluation, so we do it as a second
+      // resort.
+      Node lhs = i==1 ? ev[0] : eqi[0];
+      Node eqr = Rewriter::rewrite(lhs.eqNode(eqi[1]));
+      if (eqr.isConst())
+      {
+        // definitely not true
+        if (!eqr.getConst<bool>())
+        {
+          ProvenInfo& pi = d_pcache[eqi];
+          Trace("rpc-debug2") << "Infeasible due to rewriting: " << eqi[0] << " == " << eqi[1] << std::endl;
+          idb = DslPfRule::FAIL;
+          pi.d_failMaxDepth = 0;
+          pi.d_id = idb;
+          return true;
+        }
+        // NOTE: if does not rewrite to true, it still could be true, hence we fail
+      }
+      return false;
+    }
   }
   ProvenInfo& pi = d_pcache[eqi];
   // we can evaluate both sides, check to see if the values are the same
-  if (aev == bev)
+  if (ev[0] == ev[1])
   {
     idb = DslPfRule::EVAL;
   }
