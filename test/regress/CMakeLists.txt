@@ -418,6 +418,7 @@ set(regress_0_tests
   regress0/bv/inequality04.smt2
   regress0/bv/inequality05.smt2
   regress0/bv/int_to_bv_err_on_demand_1.smt2
+  regress0/bv/int_to_bv_model.smt2
   regress0/bv/issue-4075.smt2
   regress0/bv/issue-4076.smt2
   regress0/bv/issue-4130.smt2
@@ -793,6 +794,7 @@ set(regress_0_tests
   regress0/preprocess/circuit-prop.smt2
   regress0/preprocess/issue5729-rewritten-assertions.smt2
   regress0/preprocess/issue5943-non-clausal-simp.smt2
+  regress0/preprocess/issue6754-tpp.smt2
   regress0/preprocess/preprocess_00.cvc
   regress0/preprocess/preprocess_01.cvc
   regress0/preprocess/preprocess_02.cvc

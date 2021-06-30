@@ -22,16 +22,20 @@
 #ifndef CVC5__PREPROCESSING__PASSES__INT_TO_BV_H
 #define CVC5__PREPROCESSING__PASSES__INT_TO_BV_H
 
+#include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 
 namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
+using NodeMap = std::unordered_map<Node, Node>;
+
 class IntToBV : public PreprocessingPass
 {
  public:
   IntToBV(PreprocessingPassContext* preprocContext);
+  Node intToBV(TNode n, NodeMap& cache);
 
  protected:
   PreprocessingPassResult applyInternal(
