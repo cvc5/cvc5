@@ -217,12 +217,12 @@ unsigned getLoopMaxOccurrences(TNode node);
 unsigned getLoopMinOccurrences(TNode node);
 
 /**
-  * Make internal quantified formula with bound variable list bvl and body.
-  * Internally, we get a node corresponding to marking a quantified formula as
-  * an "internal" one. This node is provided as the third argument of the
-  * FORALL returned by this method. This ensures that E-matching is not applied
-  * to the quantified formula.
-  */
+ * Make internal quantified formula with bound variable list bvl and body.
+ * Internally, we get a node corresponding to marking a quantified formula as
+ * an "internal" one. This node is provided as the third argument of the
+ * FORALL returned by this method. This ensures that E-matching is not applied
+ * to the quantified formula.
+ */
 Node mkForallInternal(Node bvl, Node body);
 
 }  // namespace utils

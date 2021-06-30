@@ -22,8 +22,8 @@
 #include "smt/logic_exception.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
-#include "theory/strings/word.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 #include "util/rational.h"
 #include "util/statistics_registry.h"
 #include "util/string.h"
@@ -304,8 +304,10 @@ Node StringsPreprocess::reduce(Node t,
         nm->mkNode(STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, s, skk, l), r));
     // skk != -1 =>
     //   exists l. (0 <= l < len(s) - skk) ^ in_re(substr(s, skk, l), r))
-    Node match = nm->mkNode(
-        OR, retNegOne, utils::mkForallInternal(bvll, matchBody.negate()).negate());
+    Node match =
+        nm->mkNode(OR,
+                   retNegOne,
+                   utils::mkForallInternal(bvll, matchBody.negate()).negate());
 
     // assert:
     // IF:   n > len(s) OR 0 > n
@@ -945,7 +947,7 @@ Node StringsPreprocess::reduce(Node t,
             kind::EQUAL,
             NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, x, b1, lens),
             s));
-    retNode = utils::mkForallInternal( b1v, body.negate() ).negate();
+    retNode = utils::mkForallInternal(b1v, body.negate()).negate();
   }
   else if (t.getKind() == kind::STRING_LEQ)
   {
@@ -975,7 +977,9 @@ Node StringsPreprocess::reduce(Node t,
     }
     conj.push_back(nm->mkNode(ITE, ite_ch));
 
-    Node conjn = utils::mkForallInternal(nm->mkNode(BOUND_VAR_LIST, k), nm->mkNode(AND, conj).negate()).negate();
+    Node conjn = utils::mkForallInternal(nm->mkNode(BOUND_VAR_LIST, k),
+                                         nm->mkNode(AND, conj).negate())
+                     .negate();
     // Intuitively, the reduction says either x and y are equal, or they have
     // some (maximal) common prefix after which their characters at position k
     // are distinct, and the comparison of their code matches the return value
