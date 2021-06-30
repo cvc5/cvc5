@@ -739,6 +739,7 @@ set(regress_0_tests
   regress0/nl/pow2-native-2.smt2
   regress0/nl/pow2-native-3.smt2
   regress0/nl/pow2-pow.smt2
+  regress0/nl/pow2-pow-isabelle.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
   regress0/nl/sin-cos-346-b-chunk-0169.smt2
