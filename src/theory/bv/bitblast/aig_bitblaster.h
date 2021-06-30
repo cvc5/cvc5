@@ -99,7 +99,6 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
     TimerStat d_cnfConversionTime;
     TimerStat d_solveTime;
     Statistics();
-    ~Statistics();
   };
 
   Statistics d_statistics;
