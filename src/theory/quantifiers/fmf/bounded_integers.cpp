@@ -317,6 +317,18 @@ void BoundedIntegers::checkOwnership(Node f)
 {
   //this needs to be done at preregister since it affects e.g. QuantDSplit's preregister
   Trace("bound-int") << "check ownership quantifier " << f << std::endl;
+
+  // determine if we should look at the quantified formula at all
+  if (!options::fmfBound())
+  {
+    // only applying it to internal quantifiers
+    QuantAttributes& qattr = d_qreg.getQuantAttributes();
+    if (!qattr.isInternal(f))
+    {
+      return;
+    }
+  }
+  
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
 
