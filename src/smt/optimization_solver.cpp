@@ -43,7 +43,7 @@ std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
   out << "(" << result.getResult();
   switch (result.getResult().isSat())
   {
-    case Result::SAT: CVC5_FALLTHROUGH;
+    case Result::SAT:
     case Result::SAT_UNKNOWN:
     {
       switch (result.isInfinity())
@@ -285,7 +285,7 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
 
   switch (satResult.isSat())
   {
-    case Result::Sat::UNSAT: return satResult;
+    case Result::Sat::UNSAT:
     case Result::Sat::SAT_UNKNOWN: return satResult;
     case Result::Sat::SAT:
     {
