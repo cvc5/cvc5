@@ -157,6 +157,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     // does it conclusion match what we are trying to show?
     Node conc = rpr.getConclusion();
     Assert(conc.getKind() == EQUAL && d_target.getKind() == EQUAL);
+    Trace("rpc-debug2") << "            RHS: " << conc[1] << std::endl;
     Node stgt = expr::narySubstitute(conc[1], vars, subs);
     std::vector<Node> iconds;
     Trace("rpc-debug2") << "Substituted RHS: " << stgt << std::endl;

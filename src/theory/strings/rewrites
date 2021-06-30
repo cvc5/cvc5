@@ -1,7 +1,6 @@
 (define-rule str-eq-refl ((t String)) (= t t) true)
 (define-rule str-eq-symm ((t String) (s String)) (= t s) (= s t))
 
-
 (define-rule str-concat-flatten ((xs String :list) (s String) (ys String :list) (zs String :list)) (str.++ xs (str.++ s ys) zs) (str.++ xs s ys zs))
 
 
@@ -23,6 +22,10 @@
   (= (str.++ s1 s2) (str.++ t1 t2))
   false)
 
+(define-cond-rule concat-clash-char ((s1 String) (s2 String :list) (s3 String :list) (t1 String) (t2 String :list) (t3 String :list))
+  (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))
+  (= (str.++ (str.++ s1 s2) s3) (str.++ (str.++ t1 t2) t3))
+  false)
 
 (define-rule str-concat-emp ((xs String :list) (ys String :list)) (str.++ xs "" ys) (str.++ xs ys))
 
