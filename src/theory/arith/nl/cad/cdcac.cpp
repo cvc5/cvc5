@@ -130,7 +130,8 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
     if (options::nlCadLifting() == options::NlCadLiftingMode::LAZARD)
     {
       intervals = le.infeasibleRegions(p, sc);
-      if (Trace.isOn("cdcac")) {
+      if (Trace.isOn("cdcac"))
+      {
         auto reference = poly::infeasible_regions(p, d_assignment, sc);
         Trace("cdcac") << "Lazard: " << intervals << std::endl;
         Trace("cdcac") << "Regular: " << reference << std::endl;
@@ -304,13 +305,15 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
                    << requiredCoefficientsOriginal(p, d_assignment)
                    << std::endl;
   }
-  switch (options::nlCadProjection()) {
+  switch (options::nlCadProjection())
+  {
     case options::NlCadProjectionMode::MCCALLUM:
       return requiredCoefficientsOriginal(p, d_assignment);
     case options::NlCadProjectionMode::LAZARD:
       return requiredCoefficientsLazard(p, d_assignment);
     case options::NlCadProjectionMode::LAZARDMOD:
-      return requiredCoefficientsLazardModified(p, d_assignment, d_constraints.varMapper());
+      return requiredCoefficientsLazardModified(
+          p, d_assignment, d_constraints.varMapper());
     default:
       Assert(false);
       return requiredCoefficientsOriginal(p, d_assignment);
