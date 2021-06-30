@@ -54,7 +54,6 @@ Instantiate::Instantiate(QuantifiersState& qs,
       d_treg(tr),
       d_pnm(pnm),
       d_insts(qs.getUserContext()),
-      d_instDebugNumRounds(0),
       d_c_inst_match_trie_dom(qs.getUserContext()),
       d_pfInst(pnm ? new CDProof(pnm) : nullptr)
 {
@@ -67,11 +66,6 @@ Instantiate::~Instantiate()
     delete t.second;
   }
   d_c_inst_match_trie.clear();
-}
-void Instantiate::presolve()
-{
-  // reset the number of rounds we have instantiated
-  d_instDebugNumRounds = 0;
 }
 
 bool Instantiate::reset(Theory::Effort e)
@@ -683,7 +677,7 @@ bool Instantiate::isProofEnabled() const { return d_pfInst != nullptr; }
 void Instantiate::notifyEndRound()
 {
   bool debugInstTrace = Trace.isOn("inst-per-quant-round");
-  if (options::debugInst() || debugInstTrace || options::instMaxRounds() >= 0)
+  if (options::debugInst() || debugInstTrace)
   {
     Options& sopts = smt::currentSmtEngine()->getOptions();
     std::ostream& out = *sopts.base.out;

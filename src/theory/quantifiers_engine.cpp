@@ -58,7 +58,8 @@ QuantifiersEngine::QuantifiersEngine(
       d_treg(tr),
       d_model(nullptr),
       d_quants_prereg(qs.getUserContext()),
-      d_quants_red(qs.getUserContext())
+      d_quants_red(qs.getUserContext()),
+      d_numInstRoundsLemma(0)
 {
   Trace("quant-init-debug")
       << "Initialize model engine, mbqi : " << options::mbqiMode() << " "
@@ -145,6 +146,7 @@ quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 
 void QuantifiersEngine::presolve() {
   Trace("quant-engine-proc") << "QuantifiersEngine : presolve " << std::endl;
+  d_numInstRoundsLemma = 0;
   d_qim.clearPending();
   for (QuantifiersUtil*& u : d_util)
   {
@@ -246,6 +248,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
   d_qim.reset();
   bool setIncomplete = false;
   IncompleteId setIncompleteId = IncompleteId::QUANTIFIERS;
+  if (options::instMaxRounds() >= 0 && d_numInstRoundsLemma>=options::instMaxRounds())
+  {
+    needsCheck = false;
+    setIncomplete = true;
+    setIncompleteId = IncompleteId::QUANTIFIERS_MAX_INST_ROUNDS;
+  }
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
@@ -464,6 +472,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     if (d_qim.hasSentLemma())
     {
       d_qim.getInstantiate()->notifyEndRound();
+      d_numInstRoundsLemma++;
     }
     if( Trace.isOn("quant-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
