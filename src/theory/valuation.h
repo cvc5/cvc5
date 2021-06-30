@@ -191,7 +191,7 @@ public:
    * @return Decision level of the SAT variable of `lit` (phase is disregarded),
    *         or -1 if `lit` has not been assigned yet.
    */
-  int32_t getSatContextLevel(Node lit) const;
+  int32_t getDecisionLevel(Node lit) const;
 
   /**
    * Return the user-context level when `lit` was introduced..
