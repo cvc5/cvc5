@@ -249,7 +249,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   bool setIncomplete = false;
   IncompleteId setIncompleteId = IncompleteId::QUANTIFIERS;
   if (options::instMaxRounds() >= 0
-      && d_numInstRoundsLemma >= options::instMaxRounds())
+      && d_numInstRoundsLemma >= static_cast<uint32_t>(options::instMaxRounds()))
   {
     needsCheck = false;
     setIncomplete = true;
