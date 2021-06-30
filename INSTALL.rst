@@ -20,8 +20,13 @@ All binaries are built into ``<build_dir>/bin``, the cvc5 library is built into
 Supported Operating Systems
 ---------------------------
 
-cvc5 can be built on Linux and macOS.  Cross-compilation is possible for Arm64
-systems and Windows using Mingw-w64.  We recommend a 64-bit operating system.
+cvc5 can be built natively on Linux and macOS, cross-compilation is possible for
+Windows using Mingw-w64. cvc5 also supports cross-compilation for Arm64 systems.
+We generally recommend a 64-bit operating system.
+
+
+Compilation on macOS
+^^^^^^^^^^^^^^^^^^^^
 
 On macOS, we recommend using `Homebrew <https://brew.sh/>`_ to install the
 dependencies.  We also have a Homebrew Tap available at
