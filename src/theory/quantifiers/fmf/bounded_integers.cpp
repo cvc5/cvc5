@@ -328,7 +328,7 @@ void BoundedIntegers::checkOwnership(Node f)
       return;
     }
   }
-  
+
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
 
