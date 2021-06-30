@@ -234,6 +234,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   std::unique_ptr<SmtEngine> repcChecker;
   // initialize the subsolver using the standard method
   initializeSubsolver(repcChecker,
+                      nullptr,
                       Options::current().quantifiers.sygusRepairConstTimeoutWasSetByUser,
                       options::sygusRepairConstTimeout());
   // renable options disabled by sygus

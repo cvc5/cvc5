@@ -423,6 +423,8 @@ class SynthConjecture
    * rewrite rules.
    */
   std::map<Node, ExpressionMinerManager> d_exprm;
+  /** The options for subsolver calls */
+  Options d_subOptions;
 };
 
 }  // namespace quantifiers

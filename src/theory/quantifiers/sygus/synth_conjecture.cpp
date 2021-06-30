@@ -87,6 +87,9 @@ SynthConjecture::SynthConjecture(QuantifiersState& qs,
     d_modules.push_back(d_sygus_ccore.get());
   }
   d_modules.push_back(d_ceg_cegis.get());
+  // we use options of the current SmtEngine
+  SmtEngine* smtCurr = smt::currentSmtEngine();
+  d_subOptions.copyValues(smtCurr->getOptions());
 }
 
 SynthConjecture::~SynthConjecture() {}
@@ -591,7 +594,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       Trace("cegqi-debug") << "query is " << query << std::endl;
     }
     Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
-    Result r = checkWithSubsolver(query, d_ce_sk_vars, d_ce_sk_var_mvs);
+    Result r = checkWithSubsolver(query, d_ce_sk_vars, d_ce_sk_var_mvs, &d_subOptions);
     Trace("sygus-engine") << "  ...got " << r << std::endl;
     if (r.asSatisfiabilityResult().isSat() == Result::SAT)
     {
