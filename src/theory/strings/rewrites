@@ -27,10 +27,32 @@
   (= (str.++ (str.++ s1 s2) s3) (str.++ (str.++ t1 t2) t3))
   false)
 
-(define-cond-rule concat-clash-ss ((s String) (t String))
-  (not (= (str.substr s 0 1) (str.substr t 0 1)))
-  (= s t)
+(define-cond-rule concat-clash-char2 ((s1 String) (s2 String :list) (t1 String) (t2 String :list) (t3 String :list))
+  (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))
+  (= (str.++ s1 s2) (str.++ (str.++ t1 t2) t3))
   false)
+
+(define-rule str-prefixof-elim ((s String) (t String))
+  (str.prefixof s t)
+  (= s (str.substr t 0 (str.len s))))
+(define-rule str-suffixof-elim ((s String) (t String))
+  (str.suffixof s t)
+  (= s (str.substr t (- (str.len t) (str.len s)) (str.len s))))
+
+(define-cond-rule str-prefixof-one ((s String) (t String))
+  (= (str.len t) 1)
+  (str.prefixof s t)
+  (str.contains t s))
+(define-cond-rule str-suffixof-one ((s String) (t String))
+  (= (str.len t) 1)
+  (str.suffixof s t)
+  (str.contains t s))
+
+
+;(define-cond-rule concat-clash-ss ((s String) (t String))
+;  (not (= (str.substr s 0 1) (str.substr t 0 1)))
+;  (= s t)
+;  false)
 
 (define-rule str-concat-emp ((xs String :list) (ys String :list)) (str.++ xs "" ys) (str.++ xs ys))
 
@@ -40,3 +62,4 @@
 (define-rule re-concat-flatten ((xs RegLan :list) (s RegLan) (ys RegLan :list) (zs RegLan :list)) (re.++ xs (re.++ s ys) zs) (re.++ xs s ys zs))
 
 (define-rule re-concat-star-swap ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs (re.* r) r ys) (re.++ xs r (re.* r) ys))
+
