@@ -258,7 +258,7 @@ bool MinisatSatSolver::isDecision(SatVariable decn) const {
   return d_minisat->isDecision( decn );
 }
 
-int32_t MinisatSatSolver::getSatContextLevel(SatVariable v) const
+int32_t MinisatSatSolver::getDecisionLevel(SatVariable v) const
 {
   return d_minisat->level(v) + d_minisat->user_level(v);
 }
