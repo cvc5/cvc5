@@ -317,10 +317,8 @@ void test_delta(const std::vector<Node>& a)
 {
   cad::CDCAC cac(nullptr, nullptr, {});
   cac.reset();
-  // std::cout << "Constraints:" << std::endl;
   for (const Node& n : a)
   {
-    // std::cout << " " << n << std::endl;
     cac.getConstraints().addConstraint(n);
   }
   cac.computeVariableOrdering();
