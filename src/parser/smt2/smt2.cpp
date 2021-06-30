@@ -17,6 +17,7 @@
 #include <algorithm>
 
 #include "base/check.h"
+#include "options/base_options.h"
 #include "options/options.h"
 #include "options/options_public.h"
 #include "parser/antlr_input.h"
@@ -564,6 +565,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     {
       // integer version of AND
       addIndexedOperator(api::IAND, api::IAND, "iand");
+      // pow2
+      addOperator(api::POW2, "pow2");
     }
   }
 
@@ -763,12 +766,13 @@ void Smt2::checkLogicAllowsFreeSorts()
 
 void Smt2::checkLogicAllowsFunctions()
 {
-  if (!d_logic.isTheoryEnabled(theory::THEORY_UF))
+  if (!d_logic.isTheoryEnabled(theory::THEORY_UF) && !isHoEnabled())
   {
     parseError(
         "Functions (of non-zero arity) cannot "
         "be declared in logic "
-        + d_logic.getLogicString() + ". Try adding the prefix HO_.");
+        + d_logic.getLogicString()
+        + ". Try including UF or adding the prefix HO_.");
   }
 }
 
@@ -846,7 +850,7 @@ api::Term Smt2::mkAbstractValue(const std::string& name)
 
 InputLanguage Smt2::getLanguage() const
 {
-  return options::getInputLanguage(d_solver->getOptions());
+  return d_solver->getOptions().base.inputLanguage;
 }
 
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)

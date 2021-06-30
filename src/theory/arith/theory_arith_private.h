@@ -695,8 +695,8 @@ private:
   inline TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
   inline void debugPrintFacts() const { d_containing.debugPrintFacts(); }
   inline context::Context* getSatContext() const { return d_containing.getSatContext(); }
-  void outputTrustedLemma(TrustNode lem, InferenceId id);
-  void outputLemma(TNode lem, InferenceId id);
+  bool outputTrustedLemma(TrustNode lem, InferenceId id);
+  bool outputLemma(TNode lem, InferenceId id);
   void outputTrustedConflict(TrustNode conf, InferenceId id);
   void outputConflict(TNode lit, InferenceId id);
   void outputPropagate(TNode lit);

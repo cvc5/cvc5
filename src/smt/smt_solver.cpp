@@ -239,7 +239,6 @@ void SmtSolver::processAssertions(Assertions& as)
   // Push the formula to SAT
   {
     Chat() << "converting to CNF..." << endl;
-    TimerStat::CodeTimer codeTimer(d_stats.d_cnfConversionTime);
     const std::vector<Node>& assertions = ap.ref();
     // It is important to distinguish the input assertions from the skolem
     // definitions, as the decision justification heuristic treates the latter

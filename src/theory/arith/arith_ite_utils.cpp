@@ -22,6 +22,7 @@
 
 #include "base/output.h"
 #include "expr/skolem_manager.h"
+#include "options/base_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/util/ite_utilities.h"
 #include "theory/arith/arith_utilities.h"

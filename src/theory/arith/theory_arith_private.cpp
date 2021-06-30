@@ -35,7 +35,7 @@
 #include "expr/node_builder.h"
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
-#include "options/smt_options.h"  // for incrementalSolving()
+#include "options/base_options.h"
 #include "preprocessing/util/ite_utilities.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
@@ -1830,15 +1830,15 @@ void TheoryArithPrivate::outputConflicts(){
   }
 }
 
-void TheoryArithPrivate::outputTrustedLemma(TrustNode lemma, InferenceId id)
+bool TheoryArithPrivate::outputTrustedLemma(TrustNode lemma, InferenceId id)
 {
   Debug("arith::channel") << "Arith trusted lemma: " << lemma << std::endl;
-  d_containing.d_im.trustedLemma(lemma, id);
+  return d_containing.d_im.trustedLemma(lemma, id);
 }
 
-void TheoryArithPrivate::outputLemma(TNode lem, InferenceId id) {
+bool TheoryArithPrivate::outputLemma(TNode lem, InferenceId id) {
   Debug("arith::channel") << "Arith lemma: " << lem << std::endl;
-  d_containing.d_im.lemma(lem, id);
+  return d_containing.d_im.lemma(lem, id);
 }
 
 void TheoryArithPrivate::outputTrustedConflict(TrustNode conf, InferenceId id)
@@ -3391,11 +3391,13 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       if(getDioCuttingResource()){
         TrustNode possibleLemma = dioCutting();
         if(!possibleLemma.isNull()){
-          emmittedConflictOrSplit = true;
           d_hasDoneWorkSinceCut = false;
           d_cutCount = d_cutCount + 1;
           Debug("arith::lemma") << "dio cut   " << possibleLemma << endl;
-          outputTrustedLemma(possibleLemma, InferenceId::ARITH_DIO_CUT);
+          if (outputTrustedLemma(possibleLemma, InferenceId::ARITH_DIO_CUT))
+          {
+            emmittedConflictOrSplit = true;
+          }
         }
       }
     }
@@ -3406,10 +3408,12 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       {
         ++(d_statistics.d_externalBranchAndBounds);
         d_cutCount = d_cutCount + 1;
-        emmittedConflictOrSplit = true;
         Debug("arith::lemma") << "rrbranch lemma"
                               << possibleLemma << endl;
-        outputTrustedLemma(possibleLemma, InferenceId::ARITH_BB_LEMMA);
+        if (outputTrustedLemma(possibleLemma, InferenceId::ARITH_BB_LEMMA))
+        {
+          emmittedConflictOrSplit = true;
+        }
       }
     }
 

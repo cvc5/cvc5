@@ -126,6 +126,15 @@ enum class InferenceId
   ARITH_NL_IAND_SUM_REFINE,
   // bitwise refinements (IAndSolver::checkFullRefine)
   ARITH_NL_IAND_BITWISE_REFINE,
+  //-------------------- nonlinear pow2 solver
+  // initial refinements (Pow2Solver::checkInitialRefine)
+  ARITH_NL_POW2_INIT_REFINE,
+  // value refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_VALUE_REFINE,
+  // monotonicity refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_MONOTONE_REFINE,
+  // trivial refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_TRIVIAL_CASE_REFINE,
   //-------------------- nonlinear cad solver
   // conflict / infeasible subset obtained from cad
   ARITH_NL_CAD_CONFLICT,

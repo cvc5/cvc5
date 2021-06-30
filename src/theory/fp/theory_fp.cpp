@@ -525,36 +525,32 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
   size_t newAdditionalAssertions = d_conv->d_additionalAssertions.size();
   Assert(oldAdditionalAssertions <= newAdditionalAssertions);
 
-  while (oldAdditionalAssertions < newAdditionalAssertions) {
+  while (oldAdditionalAssertions < newAdditionalAssertions)
+  {
     Node addA = d_conv->d_additionalAssertions[oldAdditionalAssertions];
 
     Debug("fp-convertTerm") << "TheoryFp::convertTerm(): additional assertion  "
                             << addA << std::endl;
 
-#ifdef SYMFPUPROPISBOOL
-    handleLemma(addA, false, true);
-#else
-    NodeManager *nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
 
     handleLemma(
         nm->mkNode(kind::EQUAL, addA, nm->mkConst(::cvc5::BitVector(1U, 1U))),
         InferenceId::FP_EQUATE_TERM);
-#endif
 
     ++oldAdditionalAssertions;
   }
 
   // Equate the floating-point atom and the converted one.
   // Also adds the bit-vectors to the bit-vector solver.
-  if (node.getType().isBoolean()) {
-    if (converted != node) {
+  if (node.getType().isBoolean())
+  {
+    if (converted != node)
+    {
       Assert(converted.getType().isBitVector());
 
-      NodeManager *nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
 
-#ifdef SYMFPUPROPISBOOL
-      handleLemma(nm->mkNode(kind::EQUAL, node, converted));
-#else
       handleLemma(
           nm->mkNode(kind::EQUAL,
                      node,
@@ -562,13 +558,14 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
                                 converted,
                                 nm->mkConst(::cvc5::BitVector(1U, 1U)))),
           InferenceId::FP_EQUATE_TERM);
-#endif
-
-    } else {
+    }
+    else
+    {
       Assert((node.getKind() == kind::EQUAL));
     }
-
-  } else if (node.getType().isBitVector()) {
+  }
+  else if (node.getType().isBitVector())
+  {
     if (converted != node) {
       Assert(converted.getType().isBitVector());
 
@@ -661,7 +658,7 @@ bool TheoryFp::isRegistered(TNode node) {
 
 void TheoryFp::preRegisterTerm(TNode node)
 {
-  if (Configuration::isBuiltWithSymFPU() && !options::fpExp())
+  if (!options::fpExp())
   {
     TypeNode tn = node.getType();
     if (tn.isFloatingPoint())

@@ -59,11 +59,10 @@ The following flags enable optional packages (disable with --no-<option name>).
   --cln                    use CLN instead of GMP
   --glpk                   use GLPK simplex solver
   --abc                    use the ABC AIG library
-  --cadical                use the CaDiCaL SAT solver [default=yes]
   --cryptominisat          use the CryptoMiniSat SAT solver
   --kissat                 use the Kissat SAT solver
   --poly                   use the LibPoly library [default=yes]
-  --symfpu                 use SymFPU for floating point solver [default=yes]
+  --cocoa                  use the CoCoA library
   --editline               support the editline library
 
 Optional Path to Optional Packages:
@@ -108,7 +107,6 @@ abc=default
 asan=default
 assertions=default
 auto_download=default
-cadical=ON
 cln=default
 comp_inc=default
 coverage=default
@@ -121,6 +119,7 @@ glpk=default
 gpl=default
 kissat=default
 poly=ON
+cocoa=default
 muzzle=default
 ninja=default
 profiling=default
@@ -131,7 +130,6 @@ editline=default
 shared=default
 static_binary=default
 statistics=default
-symfpu=ON
 tracing=default
 tsan=default
 ubsan=default
@@ -174,7 +172,6 @@ do
     # Best configuration
     --best)
       abc=ON
-      cadical=ON
       cln=ON
       cryptominisat=ON
       glpk=ON
@@ -197,9 +194,6 @@ do
 
     --name) die "missing argument to $1 (try -h)" ;;
     --name=*) build_dir=${1##*=} ;;
-
-    --cadical) cadical=ON;;
-    --no-cadical) cadical=OFF;;
 
     --cln) cln=ON;;
     --no-cln) cln=OFF;;
@@ -240,6 +234,9 @@ do
     --poly) poly=ON;;
     --no-poly) poly=OFF;;
 
+    --cocoa) cocoa=ON;;
+    --no-cocoa) cocoa=OFF;;
+
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
 
@@ -254,9 +251,6 @@ do
 
     --statistics) statistics=ON;;
     --no-statistics) statistics=OFF;;
-
-    --symfpu) symfpu=ON;;
-    --no-symfpu) symfpu=OFF;;
 
     --tracing) tracing=ON;;
     --no-tracing) tracing=OFF;;
@@ -379,8 +373,6 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_EDITLINE=$editline"
 [ $abc != default ] \
   && cmake_opts="$cmake_opts -DUSE_ABC=$abc"
-[ $cadical != default ] \
-  && cmake_opts="$cmake_opts -DUSE_CADICAL=$cadical"
 [ $cln != default ] \
   && cmake_opts="$cmake_opts -DUSE_CLN=$cln"
 [ $cryptominisat != default ] \
@@ -391,8 +383,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_KISSAT=$kissat"
 [ $poly != default ] \
   && cmake_opts="$cmake_opts -DUSE_POLY=$poly"
-[ $symfpu != default ] \
-  && cmake_opts="$cmake_opts -DUSE_SYMFPU=$symfpu"
+[ $cocoa != default ] \
+  && cmake_opts="$cmake_opts -DUSE_COCOA=$cocoa"
 [ "$abc_dir" != default ] \
   && cmake_opts="$cmake_opts -DABC_DIR=$abc_dir"
 [ "$glpk_dir" != default ] \
