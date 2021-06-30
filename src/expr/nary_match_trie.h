@@ -61,7 +61,8 @@ class NaryMatchTrie
   void addTerm(Node n);
   /** Clear this trie */
   void clear();
-
+  /** debug print */
+  std::string debugPrint() const;
  private:
   /**
    * The children of this node in the trie. Terms t are indexed by a

@@ -36,6 +36,11 @@ RewriteDb::RewriteDb() : d_canonCb(), d_canon(&d_canonCb)
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
   rewriter::addRules(*this);
+  
+  Trace("rewrite-db") << "Rewrite database:" << std::endl;
+  Trace("rewrite-db") << "START" << std::endl;
+  Trace("rewrite-db") << d_mt.debugPrint();
+  Trace("rewrite-db") << "END" << std::endl;
 }
 
 void RewriteDb::addRule(

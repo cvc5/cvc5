@@ -16,6 +16,7 @@
 #include "expr/nary_match_trie.h"
 
 #include "expr/nary_term_util.h"
+#include <sstream>
 
 using namespace cvc5::kind;
 
@@ -268,6 +269,40 @@ void NaryMatchTrie::clear()
   d_children.clear();
   d_vars.clear();
   d_data = Node::null();
+}
+
+std::string NaryMatchTrie::debugPrint() const
+{
+  std::stringstream ss;
+  std::vector<std::tuple<const NaryMatchTrie*, size_t, Node>> visit;
+  visit.emplace_back(this, 0, Node::null());
+  do
+  {
+    std::tuple<const NaryMatchTrie*, size_t, Node> curr = visit.back();
+    visit.pop_back();
+    size_t indent = std::get<1>(curr);
+    for (size_t i=0; i<indent; i++)
+    {
+      ss << "  ";
+    }
+    Node n = std::get<2>(curr);
+    if (indent==0)
+    {
+      ss << ".";
+    }
+    else
+    {
+      ss << n;
+    }
+    ss << ( (!n.isNull() && isListVar(n)) ? " [*]" : "");
+    ss << std::endl;
+    const NaryMatchTrie* mt = std::get<0>(curr);
+    for (const std::pair<const Node, NaryMatchTrie>& c : mt->d_children)
+    {
+      visit.emplace_back(&c.second, indent+1, c.first);
+    }
+  }while (!visit.empty());
+  return ss.str();
 }
 
 }  // namespace expr
