@@ -13,6 +13,8 @@
  * Unit tests for the CAD module for nonlinear arithmetic.
  */
 
+#ifdef CVC5_USE_POLY
+
 #include <poly/polyxx.h>
 
 #include <iostream>
@@ -398,3 +400,5 @@ TEST_F(TestTheoryWhiteArithCAD, test_ran_conversion)
   }
 }
 }  // namespace cvc5::test
+
+#endif
