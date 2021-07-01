@@ -157,7 +157,7 @@ class PropEngine
   bool isDecision(Node lit) const;
 
   /**
-   * Return the current decision level of `lit`.
+   * Return SAT context level at which `lit` was decided on.
    *
    * @param lit: The node in question, must have an associated SAT literal.
    * @return Decision level of the SAT variable of `lit` (phase is disregarded),
