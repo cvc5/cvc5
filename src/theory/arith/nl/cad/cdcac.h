@@ -101,9 +101,11 @@ class CDCAC
 
   /**
    * Collects the coefficients required for projection from the given
-   * polynomial. Implements Algorithm 6.
+   * polynomial. Implements Algorithm 6, depending on the command line
+   * arguments. Either directly implements Algorithm 6, or improved variants
+   * based on Lazard's projection.
    */
-  PolyVector requiredCoefficients(const poly::Polynomial& p) const;
+  PolyVector requiredCoefficients(const poly::Polynomial& p);
 
   /**
    * Constructs a characterization of the given covering.
