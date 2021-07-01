@@ -16,8 +16,8 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
 #include "base/configuration.h"
-#include "expr/skolem_manager.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -593,9 +593,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   if (!query.isConst() || query.getConst<bool>())
   {
     // add recursive function definitions
-    FunDefEvaluator * feval = d_tds->getFunDefEvaluator();
-    const std::vector<Node>& fdefs =
-        feval->getDefinitions();
+    FunDefEvaluator* feval = d_tds->getFunDefEvaluator();
+    const std::vector<Node>& fdefs = feval->getDefinitions();
     if (!fdefs.empty())
     {
       // get the relevant definitions based on the symbols in the query

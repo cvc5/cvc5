@@ -57,6 +57,7 @@ class FunDefEvaluator
   const std::vector<Node>& getDefinitions() const;
   /** Get definition for function symbol f, if it is cached by this class */
   Node getDefinitionFor(Node f) const;
+
  private:
   /** information cached per function definition */
   class FunDefInfo

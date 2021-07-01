@@ -260,7 +260,7 @@ const std::vector<Node>& FunDefEvaluator::getDefinitions() const
 Node FunDefEvaluator::getDefinitionFor(Node f) const
 {
   std::map<Node, FunDefInfo>::const_iterator it = d_funDefMap.find(f);
-  if (it!=d_funDefMap.end())
+  if (it != d_funDefMap.end())
   {
     return it->second.d_quant;
   }
