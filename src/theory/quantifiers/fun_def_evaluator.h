@@ -55,12 +55,15 @@ class FunDefEvaluator
 
   /** Get definitions */
   const std::vector<Node>& getDefinitions() const;
-
+  /** Get definition for function symbol f, if it is cached by this class */
+  Node getDefinitionFor(Node f) const;
  private:
   /** information cached per function definition */
   class FunDefInfo
   {
    public:
+    /** the quantified formula */
+    Node d_quant;
     /** the body */
     Node d_body;
     /** the formal argument list */

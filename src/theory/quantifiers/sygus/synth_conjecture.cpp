@@ -17,6 +17,7 @@
 
 #include "base/configuration.h"
 #include "expr/skolem_manager.h"
+#include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -93,6 +94,11 @@ SynthConjecture::SynthConjecture(QuantifiersState& qs,
   // limit the number of instantiation rounds on subcalls
   d_subOptions.quantifiers.instMaxRounds =
       d_subOptions.quantifiers.sygusVerifyInstMaxRounds;
+  // Disable sygus on the subsolver. This is particularly important since it
+  // ensures that recursive function definitions have the standard ownership,
+  // instead of being claimed by sygus in the subsolver.
+  d_subOptions.base.inputLanguage = language::input::LANG_SMTLIB_V2_6;
+  d_subOptions.quantifiers.sygus = false;
 }
 
 SynthConjecture::~SynthConjecture() {}
@@ -587,13 +593,24 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   if (!query.isConst() || query.getConst<bool>())
   {
     // add recursive function definitions
+    FunDefEvaluator * feval = d_tds->getFunDefEvaluator();
     const std::vector<Node>& fdefs =
-        d_tds->getFunDefEvaluator()->getDefinitions();
+        feval->getDefinitions();
     if (!fdefs.empty())
     {
+      // get the relevant definitions based on the symbols in the query
+      std::unordered_set<Node> syms;
+      expr::getSymbols(query, syms);
       std::vector<Node> qconj;
       qconj.push_back(query);
-      qconj.insert(qconj.end(), fdefs.begin(), fdefs.end());
+      for (const Node& f : syms)
+      {
+        Node q = feval->getDefinitionFor(f);
+        if (!q.isNull())
+        {
+          qconj.push_back(q);
+        }
+      }
       query = nm->mkAnd(qconj);
       Trace("cegqi-debug") << "query is " << query << std::endl;
     }
