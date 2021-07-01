@@ -36,7 +36,7 @@ RewriteDb::RewriteDb() : d_canonCb(), d_canon(&d_canonCb)
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
   rewriter::addRules(*this);
-  
+
   Trace("rewrite-db") << "Rewrite database:" << std::endl;
   Trace("rewrite-db") << "START" << std::endl;
   Trace("rewrite-db") << d_mt.debugPrint();
@@ -57,7 +57,7 @@ void RewriteDb::addRule(
   // must canonize
   Trace("rewrite-db") << "Add rule " << id << ": " << cond << " => " << a
                       << " == " << b << std::endl;
-  Assert (a.getType().isComparableTo(b.getType()));
+  Assert(a.getType().isComparableTo(b.getType()));
   Node cr = d_canon.getCanonicalTerm(tmpi, false, false);
 
   Node condC = cr[1];

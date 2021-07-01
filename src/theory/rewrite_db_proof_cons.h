@@ -99,7 +99,7 @@ class RewriteDbProofCons
   /** current target */
   Node d_target;
   /** Identifiers for types, for inflection variables */
-  std::map< TypeNode, size_t > d_typeId;
+  std::map<TypeNode, size_t> d_typeId;
   /** current recursion limit */
   uint32_t d_currRecLimit;
   /** Total number of rewrites we were asked to prove */

@@ -721,7 +721,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       }
       // print child proofs, which is based on the format computed for the rule
       size_t ccounter = 0;
-      std::map<rewriter::DslPfRule, std::vector<Node>>::iterator itf = d_dslFormat.find(di);
+      std::map<rewriter::DslPfRule, std::vector<Node>>::iterator itf =
+          d_dslFormat.find(di);
       if (itf == d_dslFormat.end())
       {
         // We may not have computed the format yet, e.g. if we are printing

@@ -18,10 +18,10 @@
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewrite_db_term_process.h"
 #include "theory/rewriter.h"
-#include "smt/smt_statistics_registry.h"
 
 using namespace cvc5::rewriter;
 using namespace cvc5::kind;
@@ -41,10 +41,10 @@ RewriteDbProofCons::RewriteDbProofCons(RewriteDb* db, ProofNodeManager* pnm)
       d_pnm(pnm),
       d_eval(),
       d_currRecLimit(0),
-      d_statTotalInputs(
-          smtStatisticsRegistry().registerInt("RewriteDbProofCons::totalInputs")),
-      d_statTotalAttempts(
-          smtStatisticsRegistry().registerInt("RewriteDbProofCons::totalAttempts"))
+      d_statTotalInputs(smtStatisticsRegistry().registerInt(
+          "RewriteDbProofCons::totalInputs")),
+      d_statTotalAttempts(smtStatisticsRegistry().registerInt(
+          "RewriteDbProofCons::totalAttempts"))
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -93,7 +93,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   {
     Trace("rpc-debug") << "- ensure proof" << std::endl;
     // if it changed encoding, account for this
-    if (eq!=eqi)
+    if (eq != eqi)
     {
       cdp->addStep(eq, PfRule::ENCODE_PRED_TRANSFORM, {eqi}, {eq});
     }
@@ -125,7 +125,8 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
   std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
   if (it != d_pcache.end())
   {
-    Assert(it->second.d_id != DslPfRule::FAIL) << "unexpected failure for " << eqi;
+    Assert(it->second.d_id != DslPfRule::FAIL)
+        << "unexpected failure for " << eqi;
     return it->second.d_id;
   }
   // store failure, and its maximum depth
@@ -313,7 +314,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
   }
   // evaluate the two sides of the equality, without help of the rewriter
   Node ev[2];
-  for (size_t i=0; i<2; i++)
+  for (size_t i = 0; i < 2; i++)
   {
     ev[i] = doEvaluate(eqi[i]);
     if (ev[i].isNull())
@@ -322,7 +323,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
       // If it rewrites to false, then it is obviously infeasible. Notice that
       // rewriting is more expensive than evaluation, so we do it as a second
       // resort.
-      Node lhs = i==1 ? ev[0] : eqi[0];
+      Node lhs = i == 1 ? ev[0] : eqi[0];
       Node eqr = Rewriter::rewrite(lhs.eqNode(eqi[1]));
       if (eqr.isConst())
       {
@@ -330,13 +331,15 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
         if (!eqr.getConst<bool>())
         {
           ProvenInfo& pi = d_pcache[eqi];
-          Trace("rpc-debug2") << "Infeasible due to rewriting: " << eqi[0] << " == " << eqi[1] << std::endl;
+          Trace("rpc-debug2") << "Infeasible due to rewriting: " << eqi[0]
+                              << " == " << eqi[1] << std::endl;
           idb = DslPfRule::FAIL;
           pi.d_failMaxDepth = 0;
           pi.d_id = idb;
           return true;
         }
-        // NOTE: if does not rewrite to true, it still could be true, hence we fail
+        // NOTE: if does not rewrite to true, it still could be true, hence we
+        // fail
       }
       return false;
     }
@@ -681,7 +684,7 @@ Node RewriteDbProofCons::inflectMatch(
         // if they are definitely equal, return null now
         if (curr.first.isConst() && curr.second.isConst())
         {
-          Assert (curr.first!=curr.second);
+          Assert(curr.first != curr.second);
           return Node::null();
         }
         TypeNode tn = curr.first.getType();
@@ -733,8 +736,8 @@ Node RewriteDbProofCons::inflectMatch(
 
 size_t RewriteDbProofCons::getOrAssignTypeId(TypeNode tn)
 {
-  std::map< TypeNode, size_t >::iterator it = d_typeId.find(tn);
-  if (it!=d_typeId.end())
+  std::map<TypeNode, size_t>::iterator it = d_typeId.find(tn);
+  if (it != d_typeId.end())
   {
     return it->second;
   }
