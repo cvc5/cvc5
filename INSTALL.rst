@@ -69,6 +69,7 @@ versions; more recent versions should be compatible.
   + module `toml <https://pypi.org/project/toml/>`_
 - `GMP v6.1 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
 - `ANTLR 3.4 <http://www.antlr3.org/>`_
+- `CaDiCaL (SAT solver) <https://github.com/arminbiere/cadical>`_
 - `Java >= 1.6 <https://www.java.com>`_
 - `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_
 
@@ -79,6 +80,13 @@ ANTLR 3.4 parser generator
 For most systems, the package manager no longer contains pre-packaged versions
 of ANTLR 3.4. With ``--auto-download``, cvc5 will automatically download and
 build ANTLR 3.4.
+
+
+CaDiCaL (SAT solver)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`CaDiCaL <https://github.com/arminbiere/cadical>`_ is a SAT solver that can be
+used for the bit-vector solver. It can be downloaded and built automatically.
 
 
 GMP (GNU Multi-Precision arithmetic library)
@@ -101,13 +109,6 @@ downloaded and built automatically.
 
 Optional Dependencies
 ---------------------
-
-
-CaDiCaL (Optional SAT solver)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`CaDiCaL <https://github.com/arminbiere/cadical>`_ is a SAT solver that can be
-used for the bit-vector solver. It can be downloaded and built automatically.
 
 
 CryptoMiniSat (Optional SAT solver)
@@ -221,7 +222,8 @@ Dependencies for Language Bindings
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
 
 If you're interested in helping to develop, maintain, and test a language
-binding, please contact one of the project leaders.
+binding, please contact one of the project leaders via `our issue tracker
+<https://github.com/cvc5/cvc5/issues>`_.
 
 
 Building the API Documentation
@@ -380,7 +382,7 @@ All custom test targets build and run a preconfigured set of tests.
 - ``make runexamples [-jN] [ARGS=-jN]``
   Build and run all examples.
 
-- ``make coverage [-jN] [ARGS=-jN]``
+- ``make coverage-test [-jN] [ARGS=-jN]``
   Build and run all tests (system and unit tests, regression tests level 0-4)
   with gcov to determine code coverage.
 
