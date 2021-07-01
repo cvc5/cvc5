@@ -92,7 +92,7 @@ class SmtLibLexer(RegexLexer):
             # Keywords (:foo, see lexicon)
             (r':[a-zA-Z~!@$%^&*_+=<>.?/-][a-zA-Z0-9~!@$%^&*_+=<>.?/-]*',
              token.Name.Attribute),
-            # parantheses
+            # parentheses
             (r'\(', token.Text),
             (r'\)', token.Text),
             # commands (terminated by whitespace or ")")
