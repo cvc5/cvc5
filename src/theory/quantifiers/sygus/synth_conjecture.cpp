@@ -88,14 +88,15 @@ SynthConjecture::SynthConjecture(QuantifiersState& qs,
     d_modules.push_back(d_sygus_ccore.get());
   }
   d_modules.push_back(d_ceg_cegis.get());
-  // we use options of the current SmtEngine
+  // determine the options to use for the verification subsolvers we spawn
+  // we start with the options of the current SmtEngine
   SmtEngine* smtCurr = smt::currentSmtEngine();
   d_subOptions.copyValues(smtCurr->getOptions());
   // limit the number of instantiation rounds on subcalls
   d_subOptions.quantifiers.instMaxRounds =
       d_subOptions.quantifiers.sygusVerifyInstMaxRounds;
   // Disable sygus on the subsolver. This is particularly important since it
-  // ensures that recursive function definitions have the standard ownership,
+  // ensures that recursive function definitions have the standard ownership
   // instead of being claimed by sygus in the subsolver.
   d_subOptions.base.inputLanguage = language::input::LANG_SMTLIB_V2_6;
   d_subOptions.quantifiers.sygus = false;
