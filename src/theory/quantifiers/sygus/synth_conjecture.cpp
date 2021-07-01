@@ -598,7 +598,11 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     const std::vector<Node>& fdefs = feval->getDefinitions();
     if (!fdefs.empty())
     {
-      // get the relevant definitions based on the symbols in the query
+      // Get the relevant definitions based on the symbols in the query.
+      // Notice in some cases, this may have the effect of making the subcall
+      // involve no recursive function definitions at all, in which case the
+      // subcall to verification may be decidable, in which case the call
+      // below is guaranteed to generate a new counterexample point.
       std::unordered_set<Node> syms;
       expr::getSymbols(query, syms);
       std::vector<Node> qconj;
