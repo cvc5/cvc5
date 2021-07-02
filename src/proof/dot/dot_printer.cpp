@@ -25,6 +25,9 @@
 namespace cvc5 {
 namespace proof {
 
+DotPrinter::DotPrinter() {}
+DotPrinter::~DotPrinter() {}
+
 std::string DotPrinter::sanitizeString(const std::string& s)
 {
   std::string newS;
@@ -46,8 +49,7 @@ std::string DotPrinter::sanitizeString(const std::string& s)
   return newS;
 }
 
-void DotPrinter::countSubproofs(
-    const ProofNode* pn, std::map<const ProofNode*, size_t>& subpfCounter)
+void DotPrinter::countSubproofs(const ProofNode* pn)
 {
   std::vector<const ProofNode*> visit;
   std::unordered_map<const ProofNode*, bool> visited;
@@ -78,9 +80,9 @@ void DotPrinter::countSubproofs(
           cur->getChildren();
       for (const std::shared_ptr<ProofNode>& c : children)
       {
-        counter += subpfCounter[c.get()];
+        counter += d_subpfCounter[c.get()];
       }
-      subpfCounter[cur] = counter;
+      d_subpfCounter[cur] = counter;
     }
   } while (!visit.empty());
 }
@@ -88,24 +90,21 @@ void DotPrinter::countSubproofs(
 void DotPrinter::print(std::ostream& out, const ProofNode* pn)
 {
   uint64_t ruleID = 0;
-  std::map<const ProofNode*, size_t> subpfCounter;
-  countSubproofs(pn, subpfCounter);
+  countSubproofs(pn);
 
   // The dot attribute rankdir="BT" sets the direction of the graph layout,
   // placing the root node at the top. The "node [shape..." attribute sets the
   // shape of all nodes to record.
   out << "digraph proof {\n\trankdir=\"BT\";\n\tnode [shape=record];\n";
-  DotPrinter::printInternal(out, pn, ruleID, 0, false, subpfCounter);
+  DotPrinter::printInternal(out, pn, ruleID, 0, false);
   out << "}\n";
 }
 
-void DotPrinter::printInternal(
-    std::ostream& out,
-    const ProofNode* pn,
-    uint64_t& ruleID,
-    uint64_t scopeCounter,
-    bool inPropositionalView,
-    const std::map<const ProofNode*, size_t>& subpfCounter)
+void DotPrinter::printInternal(std::ostream& out,
+                               const ProofNode* pn,
+                               uint64_t& ruleID,
+                               uint64_t scopeCounter,
+                               bool inPropositionalView)
 {
   uint64_t currentRuleID = ruleID;
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
@@ -164,7 +163,8 @@ void DotPrinter::printInternal(
   classes << " \"";
   out << classes.str() << colors.str();
   // add number of subchildren
-  std::map<const ProofNode*, size_t>::const_iterator it = subpfCounter.find(pn);
+  std::map<const ProofNode*, size_t>::const_iterator it =
+      d_subpfCounter.find(pn);
   out << ", comment = \"\{\"subProofQty\":" << it->second << "}\"";
   out << " ];\n";
 
@@ -172,8 +172,7 @@ void DotPrinter::printInternal(
   {
     ++ruleID;
     out << "\t" << ruleID << " -> " << currentRuleID << ";\n";
-    printInternal(
-        out, c.get(), ruleID, scopeCounter, inPropositionalView, subpfCounter);
+    printInternal(out, c.get(), ruleID, scopeCounter, inPropositionalView);
   }
 }
 

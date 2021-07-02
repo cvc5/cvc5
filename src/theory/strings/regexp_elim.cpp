@@ -264,7 +264,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
           non_greedy_find_vars.push_back(k);
           prev_end = nm->mkNode(PLUS, prev_end, k);
         }
-        Node curr = nm->mkNode(STRING_STRIDOF, x, sc, prev_end);
+        Node curr = nm->mkNode(STRING_INDEXOF, x, sc, prev_end);
         Node idofFind = curr.eqNode(nm->mkConst(Rational(-1))).negate();
         conj.push_back(idofFind);
         prev_end = nm->mkNode(PLUS, curr, lensc);
@@ -347,7 +347,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         children2.push_back(res);
         Node body = nm->mkNode(AND, children2);
         Node bvl = nm->mkNode(BOUND_VAR_LIST, non_greedy_find_vars);
-        res = nm->mkNode(EXISTS, bvl, body);
+        res = utils::mkForallInternal(bvl, body.negate()).negate();
       }
       // must also give a minimum length requirement
       res = nm->mkNode(AND, res, nm->mkNode(GEQ, lenx, lenSum));
@@ -486,7 +486,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       if (k.getKind() == BOUND_VARIABLE)
       {
         Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
-        body = nm->mkNode(EXISTS, bvl, body);
+        body = utils::mkForallInternal(bvl, body.negate()).negate();
       }
       // e.g. x in re.++( R1, "AB", R2 ) --->
       //  exists k.
@@ -575,7 +575,7 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
                                              : nm->mkNode(OR, char_constraints);
     Node body = nm->mkNode(OR, bound.negate(), conc);
     Node bvl = nm->mkNode(BOUND_VAR_LIST, index);
-    Node res = nm->mkNode(FORALL, bvl, body);
+    Node res = utils::mkForallInternal(bvl, body);
     // e.g.
     //   x in (re.* (re.union "A" "B" )) --->
     //   forall k. 0<=k<len(x) => (substr(x,k,1) in "A" OR substr(x,k,1) in "B")
@@ -605,7 +605,7 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
                 .eqNode(s);
         Node body = nm->mkNode(OR, bound.negate(), conc);
         Node bvl = nm->mkNode(BOUND_VAR_LIST, index);
-        Node res = nm->mkNode(FORALL, bvl, body);
+        Node res = utils::mkForallInternal(bvl, body);
         res = nm->mkNode(
             AND, nm->mkNode(INTS_MODULUS_TOTAL, lenx, lens).eqNode(zero), res);
         // e.g.

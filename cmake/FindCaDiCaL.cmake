@@ -41,7 +41,7 @@ endif()
 if(NOT CaDiCaL_FOUND_SYSTEM)
   check_ep_downloaded("CaDiCaL-EP")
   if(NOT CaDiCaL-EP_DOWNLOADED)
-    check_auto_download("CaDiCaL" "--no-cadical")
+    check_auto_download("CaDiCaL" "")
   endif()
 
   include(CheckSymbolExists)

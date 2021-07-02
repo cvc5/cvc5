@@ -488,6 +488,24 @@ TEST_F(TestNodeBlackNode, iterator)
   }
 }
 
+TEST_F(TestNodeBlackNode, const_reverse_iterator)
+{
+  NodeBuilder b;
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
+  Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->booleanType());
+  Node z = d_skolemManager->mkDummySkolem("z", d_nodeManager->booleanType());
+  Node n = b << x << y << z << kind::AND;
+
+  {  // same for const iterator
+    const Node& c = n;
+    Node::const_reverse_iterator i = c.rbegin();
+    ASSERT_EQ(*i++, z);
+    ASSERT_EQ(*i++, y);
+    ASSERT_EQ(*i++, x);
+    ASSERT_EQ(i, n.rend());
+  }
+}
+
 TEST_F(TestNodeBlackNode, kinded_iterator)
 {
   TypeNode integerType = d_nodeManager->integerType();
