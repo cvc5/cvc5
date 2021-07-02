@@ -55,6 +55,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(d_state, d_im),
       d_csolver(d_state, d_im, d_termReg, d_bsolver),
+      d_susolver(d_state, d_im, d_termReg, d_csolver),
       d_esolver(d_state,
                 d_im,
                 d_termReg,
@@ -1001,6 +1002,7 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
     case CHECK_NORMAL_FORMS_DEQ: d_csolver.checkNormalFormsDeq(); break;
     case CHECK_CODES: checkCodes(); break;
     case CHECK_LENGTH_EQC: d_csolver.checkLengthsEqc(); break;
+    case CHECK_SEQUENCES_UPDATE: d_susolver.check(); break;
     case CHECK_REGISTER_TERMS_NF: checkRegisterTermsNormalForms(); break;
     case CHECK_EXTF_REDUCTION: d_esolver.checkExtfReductions(effort); break;
     case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(); break;

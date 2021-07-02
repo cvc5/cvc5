@@ -37,6 +37,7 @@
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
 #include "theory/strings/sequences_stats.h"
+#include "theory/strings/sequences_update_solver.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/strategy.h"
 #include "theory/strings/strings_fmf.h"
@@ -285,6 +286,11 @@ class TheoryStrings : public Theory {
    * with length constraints.
    */
   CoreSolver d_csolver;
+  /**
+   * The sequences update solver, responsible for reasoning about
+   * seq.nth/seq.update.
+   */
+  SequencesUpdateSolver d_susolver;
   /**
    * Extended function solver, responsible for reductions and simplifications
    * involving extended string functions.

@@ -150,6 +150,10 @@ class TermRegistry
   const context::CDHashSet<Node>& getInputVars() const;
   /** Returns true if any str.code terms have been preregistered */
   bool hasStringCode() const;
+  /**
+   * @return true if any seq.nth or seq.update terms have been preregistered
+   */
+  bool hasSeqUpdate() const;
   //---------------------------- end queries
   //---------------------------- proxy variables
   /** Get symbolic definition
@@ -214,6 +218,8 @@ class TermRegistry
   SequencesStatistics& d_statistics;
   /** have we asserted any str.code terms? */
   bool d_hasStrCode;
+  /** have we asserted any seq.update/seq.nth terms? */
+  bool d_hasSeqUpdate;
   /** The cache of all skolems, which is owned by this class. */
   SkolemCache d_skCache;
   /** All function terms that the theory has seen in the current SAT context */

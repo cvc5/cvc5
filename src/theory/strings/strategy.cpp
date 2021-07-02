@@ -38,6 +38,7 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
     case CHECK_EXTF_REDUCTION: out << "check_extf_reduction"; break;
     case CHECK_MEMBERSHIP: out << "check_membership"; break;
     case CHECK_CARDINALITY: out << "check_cardinality"; break;
+    case CHECK_SEQUENCES_UPDATE: out << "check_sequences_update"; break;
     default: out << "?"; break;
   }
   return out;
@@ -130,6 +131,7 @@ void Strategy::initializeStrategy()
     {
       addStrategyStep(CHECK_LENGTH_EQC);
     }
+    addStrategyStep(CHECK_SEQUENCES_UPDATE);
     if (options::stringExp() && !options::stringGuessModel())
     {
       addStrategyStep(CHECK_EXTF_REDUCTION, 2);
