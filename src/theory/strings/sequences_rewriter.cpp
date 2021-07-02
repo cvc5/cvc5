@@ -1589,14 +1589,17 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
   if (s.isConst() && i.isConst())
   {
     size_t len = Word::getLength(s);
-    size_t pos = i.getConst<Rational>().getNumerator().toUnsignedInt();
-    if (i.getConst<Rational>().sgn() != -1 && pos < len)
+    if (i.getConst<Rational>().sgn() != -1)
     {
-      std::vector<Node> elements = s.getConst<Sequence>().getVec();
-      const Node& ret = elements[pos];
-      return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL);
+      size_t pos = i.getConst<Rational>().getNumerator().toUnsignedInt();
+      if (pos < len)
+      {
+        std::vector<Node> elements = s.getConst<Sequence>().getVec();
+        const Node& ret = elements[pos];
+        return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL);
+      }
     }
-    else if (node.getKind() == SEQ_NTH_TOTAL)
+    if (node.getKind() == SEQ_NTH_TOTAL)
     {
       // return arbitrary term
       Node ret = s.getType().getSequenceElementType().mkGroundValue();
