@@ -34,11 +34,10 @@ std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
 {
   // check the output language first
   OutputLanguage lang = language::SetLanguage::getLanguage(out);
-  if ((!language::isOutputLang_smt2(lang))
-      && (!language::isOutputLangSygus(lang)))
+  if (!language::isOutputLang_smt2(lang))
   {
     Unimplemented()
-        << "Only SMTLib2 or Sygus languages support optimization right now";
+        << "Only the SMTLib2 language supports optimization right now";
   }
   out << "(" << result.getResult();
   switch (result.getResult().isSat())
@@ -69,11 +68,10 @@ std::ostream& operator<<(std::ostream& out,
 {
   // check the output language first
   OutputLanguage lang = language::SetLanguage::getLanguage(out);
-  if ((!language::isOutputLang_smt2(lang))
-      && (!language::isOutputLangSygus(lang)))
+  if (!language::isOutputLang_smt2(lang))
   {
     Unimplemented()
-        << "Only SMTLib2 or Sygus languages support optimization right now";
+        << "Only the SMTLib2 language supports optimization right now";
   }
   out << "(";
   switch (objective.getType())
