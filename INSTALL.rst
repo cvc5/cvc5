@@ -222,7 +222,7 @@ Dependencies for Language Bindings
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
 
 If you're interested in helping to develop, maintain, and test a language
-binding, please contact one of the project leaders via `our issue tracker
+binding, please contact the cvc5 team via `our issue tracker
 <https://github.com/cvc5/cvc5/issues>`_.
 
 
@@ -243,8 +243,8 @@ Building cvc5 will then include building the API documentation.
 The API documentation can then be found at
 ``<build_dir>/docs/sphinx/index.html``.
 
-To only build the documentation, change to the build directory and call ``make
-docs``.
+To only build the documentation, change to the build directory and call
+``make docs``.
 
 To build the documentation for GitHub pages, change to the build directory and
 call ``make docs-gh``. The content of directory ``<build_dir>/docs/sphinx-gh``
@@ -263,7 +263,7 @@ examples.
 Testing cvc5
 ------------
 
-We use ``ctest`` as test infrastructure, for all command-line options of ctest,
+We use ``ctest`` as test infrastructure. For all command-line options of ctest,
 see ``ctest -h``. Some useful options are:
 
 .. code::
