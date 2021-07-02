@@ -33,6 +33,7 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
+class NotifyResetAssertions;
 class BBRegistrar;
 
 /**
@@ -70,6 +71,9 @@ class BVSolverBitblast : public BVSolver
                           const std::set<Node>& termSet) override;
 
  private:
+  /** Initialize SAT solver and CNF stream.  */
+  void initSatSolver();
+
   /**
    * Get value of `node` from SAT solver.
    *
@@ -153,6 +157,9 @@ class BVSolverBitblast : public BVSolver
 
   /** Option to enable/disable bit-level propagation. */
   bool d_propagate;
+
+  /** Notifies when reset-assertion was called. */
+  std::unique_ptr<NotifyResetAssertions> d_resetNotify;
 };
 
 }  // namespace bv
