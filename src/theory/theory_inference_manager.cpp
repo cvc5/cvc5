@@ -70,16 +70,10 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
   // if it is non-null
   if (d_pnm != nullptr && d_ee != nullptr)
   {
-    d_pfee = d_ee->getProofEqualityEngine();
-    if (d_pfee == nullptr)
-    {
-      d_pfeeAlloc.reset(new eq::ProofEqEngine(d_theoryState.getSatContext(),
-                                              d_theoryState.getUserContext(),
-                                              *d_ee,
-                                              d_pnm));
-      d_pfee = d_pfeeAlloc.get();
-      d_ee->setProofEqualityEngine(d_pfee);
-    }
+    d_pfee.reset(new eq::ProofEqEngine(d_theoryState.getSatContext(),
+                                       d_theoryState.getUserContext(),
+                                       *d_ee,
+                                       d_pnm));
   }
 }
 
@@ -392,39 +386,6 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
   Trace("infer-manager") << "TheoryInferenceManager::assertInternalFact: "
                          << (pol ? Node(atom) : atom.notNode()) << " from "
                          << expn << std::endl;
-#ifdef CVC5_ASSERTIONS
-  // check that all facts hold in the equality engine, to ensure that we
-  // aren't processing a stale fact
-  std::vector<Node> expc = exp;
-  for (size_t i = 0; i < expc.size(); i++)
-  {
-    Node e = expc[i];
-    bool epol = e.getKind() != NOT;
-    Node eatom = epol ? e : e[0];
-    Trace("infer-manager") << "...check " << eatom << " " << epol << std::endl;
-    if (eatom.getKind() == AND)
-    {
-      Assert(epol);
-      for (const Node& ea : eatom)
-      {
-        expc.push_back(ea);
-      }
-      continue;
-    }
-    else if (eatom.getKind() == EQUAL)
-    {
-      Assert(d_ee->hasTerm(eatom[0]));
-      Assert(d_ee->hasTerm(eatom[1]));
-      Assert(!epol || d_ee->areEqual(eatom[0], eatom[1]));
-      Assert(epol || d_ee->areDisequal(eatom[0], eatom[1], false));
-    }
-    else
-    {
-      Assert(d_ee->hasTerm(eatom));
-      Assert(d_ee->areEqual(eatom, NodeManager::currentNM()->mkConst(epol)));
-    }
-  }
-#endif
   d_numCurrentFacts++;
   // Now, assert the fact. How to do so depends on whether proofs are enabled.
   // If no proof production, or no proof rule was given

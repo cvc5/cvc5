@@ -367,7 +367,6 @@ std::unordered_set<TNode> Theory::currentlySharedTerms() const
 
 bool Theory::collectModelInfo(TheoryModel* m, const std::set<Node>& termSet)
 {
-  // FIXME: could move entirely into model engine distributed
   // if we are using an equality engine, assert it to the model
   if (d_equalityEngine != nullptr)
   {
