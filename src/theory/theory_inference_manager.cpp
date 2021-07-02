@@ -67,7 +67,9 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
 {
   d_ee = ee;
   // if proofs are enabled, also make a proof equality engine to wrap ee
-  // if it is non-null
+  // if it is non-null. If its proof equality engine has already been assigned,
+  // use it. This is to ensure that all theories use the same proof equality
+  // engine when in ee-mode=central.
   if (d_pnm != nullptr && d_ee != nullptr)
   {
     d_pfee = d_ee->getProofEqualityEngine();
