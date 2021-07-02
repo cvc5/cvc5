@@ -227,7 +227,6 @@ class Theory {
 
   /** Pointer to proof node manager */
   ProofNodeManager* d_pnm;
-
   /**
    * Are proofs enabled?
    *
@@ -310,6 +309,8 @@ class Theory {
   virtual void notifySharedTerm(TNode n);
 
  public:
+  /** Notify in conflict */
+  virtual void notifyInConflict();
   //--------------------------------- initialization
   /**
    * @return The theory rewriter associated with this theory.

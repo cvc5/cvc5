@@ -371,7 +371,11 @@ class TheoryInferenceManager
    * this context level.
    */
   void setIncomplete(IncompleteId id);
-
+  /**
+   * Notify this inference manager that a conflict was sent in this SAT context.
+   * This method is called via TheoryEngine when a conflict is sent.
+   */
+  virtual void notifyInConflict();
  protected:
   /**
    * Process internal fact. This is a common helper method for the
@@ -429,7 +433,9 @@ class TheoryInferenceManager
   /** Pointer to the decision manager */
   DecisionManager* d_decManager;
   /** A proof equality engine */
-  std::unique_ptr<eq::ProofEqEngine> d_pfee;
+  eq::ProofEqEngine* d_pfee;
+  /** The proof equality engine we allocated */
+  std::unique_ptr<eq::ProofEqEngine> d_pfeeAlloc;
   /** The proof node manager of the theory */
   ProofNodeManager* d_pnm;
   /** Whether this manager caches lemmas */
