@@ -83,7 +83,7 @@ void QuantifiersModules::initialize(QuantifiersState& qs,
     modules.push_back(d_bint.get());
   }
 
-  if (options::finiteModelFind() || options::fmfBound())
+  if (options::finiteModelFind() || options::fmfBound() || options::stringExp())
   {
     d_model_engine.reset(new ModelEngine(qs, qim, qr, tr, builder));
     modules.push_back(d_model_engine.get());

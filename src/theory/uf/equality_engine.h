@@ -121,7 +121,7 @@ private:
   context::CDO<bool> d_done;
 
   /** The class to notify when a representative changes for a term */
-  EqualityEngineNotify& d_notify;
+  EqualityEngineNotify* d_notify;
 
   /** The map of kinds to be treated as function applications */
   KindMap d_congruenceKinds;

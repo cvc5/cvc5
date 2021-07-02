@@ -475,6 +475,14 @@ name   = "Quantifiers"
   help       = "only input terms are assigned instantiation level zero"
 
 [[option]]
+  name       = "instMaxRounds"
+  category   = "regular"
+  long       = "inst-max-rounds=N"
+  type       = "int"
+  default    = "-1"
+  help       = "maximum number of instantiation rounds (-1 == no limit, default)"
+
+[[option]]
   name       = "quantRepMode"
   category   = "regular"
   long       = "quant-rep-mode=MODE"
@@ -1308,6 +1316,14 @@ name   = "Quantifiers"
   type       = "unsigned"
   default    = "1000"
   help       = "use a hard limit for how many times in a given evaluator call a recursive function can be evaluated (so infinite loops can be avoided)"
+
+[[option]]
+  name       = "sygusVerifyInstMaxRounds"
+  category   = "regular"
+  long       = "sygus-verify-inst-max-rounds=N"
+  type       = "int"
+  default    = "3"
+  help       = "maximum number of instantiation rounds for sygus verification calls (-1 == no limit, default is 3)"
 
 # Internal uses of sygus
 
