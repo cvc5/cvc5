@@ -17,6 +17,7 @@
 
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
+#include "options/outputc.h"
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -677,7 +678,8 @@ bool Instantiate::isProofEnabled() const { return d_pfInst != nullptr; }
 void Instantiate::notifyEndRound()
 {
   bool debugInstTrace = Trace.isOn("inst-per-quant-round");
-  if (options::debugInst() || debugInstTrace)
+  bool outputInst = Output.isOn(options::OutputTag::INST);
+  if (outputInst || debugInstTrace)
   {
     Options& sopts = smt::currentSmtEngine()->getOptions();
     std::ostream& out = *sopts.base.out;
@@ -690,7 +692,7 @@ void Instantiate::notifyEndRound()
             << " * " << i.second << " for " << i.first << std::endl;
       }
     }
-    if (options::debugInst())
+    if (outputInst)
     {
       bool req = !options::printInstFull();
       for (std::pair<const Node, uint32_t>& i : d_instDebugTemp)
