@@ -292,14 +292,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       Trace("smt") << "turning on quantifier logic, for strings-exp"
                    << std::endl;
     }
-    // We require bounded quantifier handling.
-    if (!opts.quantifiers.fmfBoundWasSetByUser)
-    {
-      opts.quantifiers.fmfBound = true;
-      Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
-    }
     // Note we allow E-matching by default to support combinations of sequences
-    // and quantifiers.
+    // and quantifiers. We also do not enable fmfBound here, which would
+    // enable bounded integer instantiation for *all* quantifiers. Instead,
+    // the bounded integers module will always process internally generated
+    // quantifiers (those marked with InternalQuantAttribute).
   }
   // whether we must disable proofs
   bool disableProofs = false;
@@ -894,7 +891,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::DecisionMode decMode =
         // anything that uses sygus uses internal
         usesSygus ? options::DecisionMode::INTERNAL :
-                  // ALL  or its supersets
+                  // ALL or its supersets
             logic.hasEverything()
                 ? options::DecisionMode::JUSTIFICATION
                 : (  // QF_BV
@@ -973,9 +970,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       || (opts.quantifiers.fmfBoundIntWasSetByUser && options::fmfBoundInt()))
   {
     opts.quantifiers.fmfBound = true;
+    Trace("smt")
+        << "turning on fmf-bound, for fmf-bound-int or fmf-bound-lazy\n";
   }
-  // now have determined whether fmfBoundInt is on/off
-  // apply fmfBoundInt options
+  // now have determined whether fmfBound is on/off
+  // apply fmfBound options
   if (options::fmfBound())
   {
     if (!opts.quantifiers.mbqiModeWasSetByUser
@@ -1014,6 +1013,20 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (options::macrosQuant())
     {
       opts.quantifiers.macrosQuant = false;
+    }
+    // HOL is incompatible with fmfBound
+    if (options::fmfBound())
+    {
+      if (opts.quantifiers.fmfBoundWasSetByUser
+          || opts.quantifiers.fmfBoundLazyWasSetByUser
+          || opts.quantifiers.fmfBoundIntWasSetByUser)
+      {
+        Notice() << "Disabling bound finite-model finding since it is "
+                    "incompatible with HOL.\n";
+      }
+
+      opts.quantifiers.fmfBound = false;
+      Trace("smt") << "turning off fmf-bound, since HOL\n";
     }
   }
   if (options::fmfFunWellDefinedRelevant())

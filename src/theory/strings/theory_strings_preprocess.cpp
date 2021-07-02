@@ -20,9 +20,9 @@
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
+#include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "util/rational.h"
 #include "util/statistics_registry.h"
@@ -34,13 +34,6 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 namespace strings {
-
-/** Mapping to a dummy node for marking an attribute on internal quantified
- * formulas */
-struct QInternalVarAttributeId
-{
-};
-typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
 
 StringsPreprocess::StringsPreprocess(SkolemCache* sc,
                                      HistogramStat<Kind>* statReductions)
@@ -183,7 +176,7 @@ Node StringsPreprocess::reduce(Node t,
     // Thus, str.update( s, n, r ) = skt
     retNode = skt;
   }
-  else if (t.getKind() == kind::STRING_STRIDOF)
+  else if (t.getKind() == kind::STRING_INDEXOF)
   {
     // processing term:  indexof( x, y, n )
     Node x = t[0];
@@ -205,7 +198,7 @@ Node StringsPreprocess::reduce(Node t,
         sc->mkSkolemCached(st, y, SkolemCache::SK_FIRST_CTN_POST, "iopost");
 
     // ~contains( substr( x, n, len( x ) - n ), y )
-    Node c11 = nm->mkNode(STRING_STRCTN, st, y).negate();
+    Node c11 = nm->mkNode(STRING_CONTAINS, st, y).negate();
     // n > len( x )
     Node c12 = nm->mkNode(GT, n, nm->mkNode(STRING_LENGTH, x));
     // 0 > n
@@ -225,7 +218,7 @@ Node StringsPreprocess::reduce(Node t,
     // ~contains( str.++( io2, substr( y, 0, len( y ) - 1) ), y )
     Node c32 =
         nm->mkNode(
-              STRING_STRCTN,
+              STRING_CONTAINS,
               nm->mkNode(
                   STRING_CONCAT,
                   io2,
@@ -299,7 +292,7 @@ Node StringsPreprocess::reduce(Node t,
     // forall il.
     //   n <= i < ite(skk = -1, len(s), skk) ^ 0 < l <= len(s) - i =>
     //     ~in_re(substr(s, i, l), r)
-    Node firstMatch = mkForallInternal(bvl, body);
+    Node firstMatch = utils::mkForallInternal(bvl, body);
     Node bvll = nm->mkNode(BOUND_VAR_LIST, l);
     Node validLen =
         nm->mkNode(AND,
@@ -311,8 +304,10 @@ Node StringsPreprocess::reduce(Node t,
         nm->mkNode(STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, s, skk, l), r));
     // skk != -1 =>
     //   exists l. (0 <= l < len(s) - skk) ^ in_re(substr(s, skk, l), r))
-    Node match = nm->mkNode(
-        OR, retNegOne, mkForallInternal(bvll, matchBody.negate()).negate());
+    Node match =
+        nm->mkNode(OR,
+                   retNegOne,
+                   utils::mkForallInternal(bvll, matchBody.negate()).negate());
 
     // assert:
     // IF:   n > len(s) OR 0 > n
@@ -382,7 +377,7 @@ Node StringsPreprocess::reduce(Node t,
     Node ux1lem = nm->mkNode(GEQ, n, ux1);
 
     lem = nm->mkNode(OR, g.negate(), nm->mkNode(AND, eq, cb, ux1lem));
-    lem = mkForallInternal(xbv, lem);
+    lem = utils::mkForallInternal(xbv, lem);
     conc.push_back(lem);
 
     Node nonneg = nm->mkNode(GEQ, n, zero);
@@ -470,7 +465,7 @@ Node StringsPreprocess::reduce(Node t,
     Node ux1lem = nm->mkNode(GEQ, stoit, ux1);
 
     lem = nm->mkNode(OR, g.negate(), nm->mkNode(AND, eq, cb, ux1lem));
-    lem = mkForallInternal(xbv, lem);
+    lem = utils::mkForallInternal(xbv, lem);
     conc2.push_back(lem);
 
     Node sneg = nm->mkNode(LT, stoit, zero);
@@ -541,7 +536,7 @@ Node StringsPreprocess::reduce(Node t,
     asserts.push_back(lemma);
     retNode = skt;
   }
-  else if (t.getKind() == kind::STRING_STRREPL)
+  else if (t.getKind() == kind::STRING_REPLACE)
   {
     // processing term: replace( x, y, z )
     Node x = t[0];
@@ -561,14 +556,14 @@ Node StringsPreprocess::reduce(Node t,
     Node c1 = rpw.eqNode(nm->mkNode(kind::STRING_CONCAT, z, x));
 
     // contains( x, y )
-    Node cond2 = nm->mkNode(kind::STRING_STRCTN, x, y);
+    Node cond2 = nm->mkNode(kind::STRING_CONTAINS, x, y);
     // x = str.++( rp1, y, rp2 )
     Node c21 = x.eqNode(nm->mkNode(kind::STRING_CONCAT, rp1, y, rp2));
     // rpw = str.++( rp1, z, rp2 )
     Node c22 = rpw.eqNode(nm->mkNode(kind::STRING_CONCAT, rp1, z, rp2));
     // ~contains( str.++( rp1, substr( y, 0, len(y)-1 ) ), y )
     Node c23 =
-        nm->mkNode(kind::STRING_STRCTN,
+        nm->mkNode(kind::STRING_CONTAINS,
                    nm->mkNode(
                        kind::STRING_CONCAT,
                        rp1,
@@ -602,7 +597,7 @@ Node StringsPreprocess::reduce(Node t,
     // Thus, replace( x, y, z ) = rpw.
     retNode = rpw;
   }
-  else if (t.getKind() == kind::STRING_STRREPLALL)
+  else if (t.getKind() == kind::STRING_REPLACE_ALL)
   {
     // processing term: replaceall( x, y, z )
     Node x = t[0];
@@ -629,7 +624,7 @@ Node StringsPreprocess::reduce(Node t,
     lem.push_back(rpaw.eqNode(nm->mkNode(APPLY_UF, us, zero)));
     lem.push_back(usno.eqNode(rem));
     lem.push_back(nm->mkNode(APPLY_UF, uf, zero).eqNode(zero));
-    lem.push_back(nm->mkNode(STRING_STRIDOF, x, y, ufno).eqNode(negOne));
+    lem.push_back(nm->mkNode(STRING_INDEXOF, x, y, ufno).eqNode(negOne));
 
     Node i = SkolemCache::mkIndexVar(t);
     Node bvli = nm->mkNode(BOUND_VAR_LIST, i);
@@ -637,7 +632,7 @@ Node StringsPreprocess::reduce(Node t,
         nm->mkNode(AND, nm->mkNode(GEQ, i, zero), nm->mkNode(LT, i, numOcc));
     Node ufi = nm->mkNode(APPLY_UF, uf, i);
     Node ufip1 = nm->mkNode(APPLY_UF, uf, nm->mkNode(PLUS, i, one));
-    Node ii = nm->mkNode(STRING_STRIDOF, x, y, ufi);
+    Node ii = nm->mkNode(STRING_INDEXOF, x, y, ufi);
     Node cc = nm->mkNode(
         STRING_CONCAT,
         nm->mkNode(STRING_SUBSTR, x, ufi, nm->mkNode(MINUS, ii, ufi)),
@@ -651,7 +646,7 @@ Node StringsPreprocess::reduce(Node t,
         ufip1.eqNode(nm->mkNode(PLUS, ii, nm->mkNode(STRING_LENGTH, y))));
 
     Node body = nm->mkNode(OR, bound.negate(), nm->mkNode(AND, flem));
-    Node q = mkForallInternal(bvli, body);
+    Node q = utils::mkForallInternal(bvli, body);
     lem.push_back(q);
 
     // assert:
@@ -717,7 +712,7 @@ Node StringsPreprocess::reduce(Node t,
         nm->mkNode(STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, k2, zero, l), y)
             .negate());
     // forall l. 0 <= l < len(k2) => ~in_re(substr(k2, 0, l), r)
-    Node shortestMatch = mkForallInternal(bvll, body);
+    Node shortestMatch = utils::mkForallInternal(bvll, body);
     // in_re(k2, y)
     Node match = nm->mkNode(STRING_IN_REGEXP, k2, y);
     // k = k1 ++ z ++ k3
@@ -811,7 +806,7 @@ Node StringsPreprocess::reduce(Node t,
             .negate());
     // forall l. 0 < l < Ul(i + 1) =>
     //   ~in_re(substr(x, Uf(i + 1) - Ul(i + 1), l), y')
-    flem.push_back(mkForallInternal(bvll, shortestMatchBody));
+    flem.push_back(utils::mkForallInternal(bvll, shortestMatchBody));
     Node pfxMatch =
         nm->mkNode(STRING_SUBSTR, x, ufi, nm->mkNode(MINUS, ii, ufi));
     // Us(i) = substr(x, Uf(i), ii - Uf(i)) ++ z ++ Us(i + 1)
@@ -820,7 +815,7 @@ Node StringsPreprocess::reduce(Node t,
             .eqNode(nm->mkNode(
                 STRING_CONCAT, pfxMatch, z, nm->mkNode(APPLY_UF, us, ip1))));
     Node body = nm->mkNode(OR, bound.negate(), nm->mkNode(AND, flem));
-    Node forall = mkForallInternal(bvli, body);
+    Node forall = utils::mkForallInternal(bvli, body);
     lemmas.push_back(forall);
 
     // IF indexof(x, y', 0) = -1
@@ -886,7 +881,7 @@ Node StringsPreprocess::reduce(Node t,
     Node bound =
         nm->mkNode(AND, nm->mkNode(LEQ, zero, i), nm->mkNode(LT, i, lenr));
     Node body = nm->mkNode(OR, bound.negate(), ri.eqNode(res));
-    Node rangeA = mkForallInternal(bvi, body);
+    Node rangeA = utils::mkForallInternal(bvi, body);
 
     // upper 65 ... 90
     // lower 97 ... 122
@@ -921,7 +916,7 @@ Node StringsPreprocess::reduce(Node t,
     Node bound =
         nm->mkNode(AND, nm->mkNode(LEQ, zero, i), nm->mkNode(LT, i, lenr));
     Node body = nm->mkNode(OR, bound.negate(), ssr.eqNode(ssx));
-    Node rangeA = mkForallInternal(bvi, body);
+    Node rangeA = utils::mkForallInternal(bvi, body);
     // assert:
     //   len(r) = len(x) ^
     //   forall i. 0 <= i < len(r) =>
@@ -932,7 +927,7 @@ Node StringsPreprocess::reduce(Node t,
     // Thus, (str.rev x) = r
     retNode = r;
   }
-  else if (t.getKind() == kind::STRING_STRCTN)
+  else if (t.getKind() == kind::STRING_CONTAINS)
   {
     Node x = t[0];
     Node s = t[1];
@@ -952,7 +947,7 @@ Node StringsPreprocess::reduce(Node t,
             kind::EQUAL,
             NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, x, b1, lens),
             s));
-    retNode = NodeManager::currentNM()->mkNode( kind::EXISTS, b1v, body );
+    retNode = utils::mkForallInternal(b1v, body.negate()).negate();
   }
   else if (t.getKind() == kind::STRING_LEQ)
   {
@@ -982,8 +977,9 @@ Node StringsPreprocess::reduce(Node t,
     }
     conj.push_back(nm->mkNode(ITE, ite_ch));
 
-    Node conjn = nm->mkNode(
-        EXISTS, nm->mkNode(BOUND_VAR_LIST, k), nm->mkNode(AND, conj));
+    Node conjn = utils::mkForallInternal(nm->mkNode(BOUND_VAR_LIST, k),
+                                         nm->mkNode(AND, conj).negate())
+                     .negate();
     // Intuitively, the reduction says either x and y are equal, or they have
     // some (maximal) common prefix after which their characters at position k
     // are distinct, and the comparison of their code matches the return value
@@ -1093,31 +1089,6 @@ Node StringsPreprocess::processAssertion(Node n, std::vector<Node>& asserts)
     asserts.push_back(curr);
   }
   return ret;
-}
-
-Node StringsPreprocess::mkForallInternal(Node bvl, Node body)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  QInternalVarAttribute qiva;
-  Node qvar;
-  if (bvl.hasAttribute(qiva))
-  {
-    qvar = bvl.getAttribute(qiva);
-  }
-  else
-  {
-    SkolemManager* sm = nm->getSkolemManager();
-    qvar = sm->mkDummySkolem("qinternal", nm->booleanType());
-    // this dummy variable marks that the quantified formula is internal
-    qvar.setAttribute(InternalQuantAttribute(), true);
-    // remember the dummy variable
-    bvl.setAttribute(qiva, qvar);
-  }
-  // make the internal attribute, and put it in a singleton list
-  Node ip = nm->mkNode(INST_ATTRIBUTE, qvar);
-  Node ipl = nm->mkNode(INST_PATTERN_LIST, ip);
-  // make the overall formula
-  return nm->mkNode(FORALL, bvl, body, ipl);
 }
 
 }  // namespace strings

@@ -75,9 +75,10 @@ namespace cvc5 {
 ** Tr((bvult a b)) = Tr(a) < Tr(b)
 ** Similar transformations are done for bvule, bvugt, and bvuge.
 **
-** Bit-vector operators that are not listed above are either eliminated using
-** the function eliminationPass, or go through the following default
-*translation, that also works for non-bit-vector operators
+** Bit-vector operators that are not listed above are either
+** eliminated using the BV rewriter,
+** or go through the following default
+** translation, that also works for non-bit-vector operators
 ** with result type BV:
 ** Tr((op t1 ... tn)) = (bv2nat (op (cast t1) ... (cast tn)))
 ** where (cast x) is ((_ nat2bv k) x) or just x,
@@ -118,8 +119,7 @@ class IntBlaster
    * ff((bv2nat x))), where k is the bit-width of the domain of f, i is the
    * bit-width of its range, and ff is a Int->Int function that corresponds to
    * f. For functions with other signatures this is similar
-   * @return integer node that corresponds to n, or a null node if d_supportNoBV
-   * is set to false and n is note purely BV.
+   * @return integer node that corresponds to n
    */
   Node intBlast(Node n,
                 std::vector<Node>& lemmas,
@@ -165,18 +165,15 @@ class IntBlaster
   Node mkRangeConstraint(Node newVar, uint64_t k);
 
   /**
-   * In the translation to integers, it is convenient to assume that certain
-   * bit-vector operators do not occur in the original formula (e.g., repeat).
-   * This function eliminates all these operators.
-   */
-  Node eliminationPass(Node n);
-
-  /**
    * Some bit-vector operators (e.g., bvadd, bvand) are binary, but allow more
    * than two arguments as a syntactic sugar.
    * For example, we can have a node for (bvand x y z),
    * that represents (bvand (x (bvand y z))).
-   * This function makes all such operators strictly binary.
+   * This function locally binarizes these operators.
+   * In the above example, this means that x,y,z
+   * are not handled recursively, but will require a separate
+   * call to the function.
+   *
    */
   Node makeBinary(Node n);
 
@@ -287,7 +284,7 @@ class IntBlaster
    * binary representation of n is the same as the
    * signed binary representation of m.
    */
-  Node unsignedTosigned(Node n, uint64_t bvsize);
+  Node unsignedToSigned(Node n, uint64_t bvsize);
 
   /**
    * Performs the actual translation to integers for nodes
@@ -308,8 +305,6 @@ class IntBlaster
 
   /** Caches for the different functions */
   CDNodeMap d_binarizeCache;
-  CDNodeMap d_eliminationCache;
-  CDNodeMap d_rebuildCache;
   CDNodeMap d_intblastCache;
 
   /** Node manager that is used throughout the pass */

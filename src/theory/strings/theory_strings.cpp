@@ -103,6 +103,9 @@ bool TheoryStrings::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
   esi.d_name = "theory::strings::ee";
+  esi.d_notifyNewClass = true;
+  esi.d_notifyMerge = true;
+  esi.d_notifyDisequal = true;
   return true;
 }
 
@@ -123,19 +126,19 @@ void TheoryStrings::finishInit()
   // `seq.nth` is not always defined, and so we do not evaluate it eagerly.
   d_equalityEngine->addFunctionKind(kind::SEQ_NTH, false);
   // extended functions
-  d_equalityEngine->addFunctionKind(kind::STRING_STRCTN, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_CONTAINS, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_LEQ, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_SUBSTR, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_UPDATE, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_ITOS, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_STOI, eagerEval);
-  d_equalityEngine->addFunctionKind(kind::STRING_STRIDOF, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_INDEXOF, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_INDEXOF_RE, eagerEval);
-  d_equalityEngine->addFunctionKind(kind::STRING_STRREPL, eagerEval);
-  d_equalityEngine->addFunctionKind(kind::STRING_STRREPLALL, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_REPLACE, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_ALL, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_RE, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_RE_ALL, eagerEval);
-  d_equalityEngine->addFunctionKind(kind::STRING_STRREPLALL, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_ALL, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TOLOWER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TOUPPER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REV, eagerEval);

@@ -418,6 +418,7 @@ set(regress_0_tests
   regress0/bv/inequality04.smt2
   regress0/bv/inequality05.smt2
   regress0/bv/int_to_bv_err_on_demand_1.smt2
+  regress0/bv/int_to_bv_model.smt2
   regress0/bv/issue-4075.smt2
   regress0/bv/issue-4076.smt2
   regress0/bv/issue-4130.smt2
@@ -632,6 +633,9 @@ set(regress_0_tests
   regress0/ho/issue4477.smt2
   regress0/ho/issue4990-care-graph.smt2
   regress0/ho/issue5233-part1-usort-owner.smt2
+  regress0/ho/issue5371.smt2
+  regress0/ho/issue6526.smt2
+  regress0/ho/issue6536.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-equality-non-canon.smt2
   regress0/ho/match-middle.smt2
@@ -670,6 +674,8 @@ set(regress_0_tests
   regress0/issue5743.smt2
   regress0/issue5947.smt2
   regress0/issue6605-2-abd-triv.smt2
+  regress0/issue6738.smt2
+  regress0/issue6741.smt2
   regress0/ite_arith.smt2
   regress0/ite_real_int_type.smtv1.smt2
   regress0/ite_real_valid.smtv1.smt2
@@ -729,6 +735,12 @@ set(regress_0_tests
   regress0/nl/nta/sin-sym.smt2
   regress0/nl/nta/sqrt-simple.smt2
   regress0/nl/nta/tan-rewrite.smt2
+  regress0/nl/pow2-native-0.smt2
+  regress0/nl/pow2-native-1.smt2
+  regress0/nl/pow2-native-2.smt2
+  regress0/nl/pow2-native-3.smt2
+  regress0/nl/pow2-pow.smt2
+  regress0/nl/pow2-pow-isabelle.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
   regress0/nl/sin-cos-346-b-chunk-0169.smt2
@@ -784,6 +796,7 @@ set(regress_0_tests
   regress0/preprocess/circuit-prop.smt2
   regress0/preprocess/issue5729-rewritten-assertions.smt2
   regress0/preprocess/issue5943-non-clausal-simp.smt2
+  regress0/preprocess/issue6754-tpp.smt2
   regress0/preprocess/preprocess_00.cvc
   regress0/preprocess/preprocess_01.cvc
   regress0/preprocess/preprocess_02.cvc
@@ -1589,6 +1602,7 @@ set(regress_1_tests
   regress1/fmf/issue4068-si-qf.smt2
   regress1/fmf/issue4225-univ-fun.smt2
   regress1/fmf/issue5738-dt-interp-finite.smt2
+  regress1/fmf/issue6690-re-enum.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/loopy_coda.smt2
@@ -1612,13 +1626,10 @@ set(regress_1_tests
   regress1/ho/issue4065-no-rep.smt2
   regress1/ho/issue4092-sinf.smt2
   regress1/ho/issue4134-sinf.smt2
-  regress1/ho/nested_lambdas-AGT034^2.smt2
-  regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   regress1/ho/NUM638^1.smt2
   regress1/ho/NUM925^1.p
   regress1/ho/soundness_fmf_SYO362^5-delta.p
   regress1/ho/store-ax-min.p
-  regress1/ho/SYO056^1.p
   regress1/hole6.cvc
   regress1/ite5.smt2
   regress1/issue3970-nl-ext-purify.smt2
@@ -1766,6 +1777,7 @@ set(regress_1_tests
   regress1/push-pop/fuzz_7.smt2
   regress1/push-pop/fuzz_8.smt2
   regress1/push-pop/fuzz_9.smt2
+  regress1/push-pop/issue6773-arith-no-check.smt2
   regress1/push-pop/model-unsound-ania.smt2
   regress1/push-pop/quant-fun-proc-unmacro.smt2
   regress1/push-pop/quant-fun-proc.smt2
@@ -1847,6 +1859,7 @@ set(regress_1_tests
   regress1/quantifiers/issue5658-qe.smt2
   regress1/quantifiers/issue5766-wrong-sel-trigger.smt2
   regress1/quantifiers/issue5899-qe.smt2
+  regress1/quantifiers/issue6699-nc-shadow.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
@@ -2187,6 +2200,7 @@ set(regress_1_tests
   regress1/strings/rev-ex5.smt2
   regress1/strings/rew-020618.smt2
   regress1/strings/rew-check1.smt2
+  regress1/strings/seq-quant-infinite-branch.smt2
   regress1/strings/simple-re-consume.smt2
   regress1/strings/stoi-400million.smt2
   regress1/strings/stoi-solve.smt2
@@ -2507,6 +2521,7 @@ set(regress_2_tests
   regress2/sygus/process-arg-invariance.sy
   regress2/sygus/real-grammar-neg.sy
   regress2/sygus/sets-fun-test.sy
+  regress2/sygus/sumn_recur_synth.sy
   regress2/sygus/strings-no-syntax-len.sy
   regress2/sygus/three.sy
   regress2/typed_v1l50016-simp.cvc
@@ -2630,6 +2645,10 @@ set(regression_disabled_tests
   regress1/fmf/ko-bound-set.cvc
   # results in an assertion failure (see issue #1650).
   regress1/ho/hoa0102.smt2
+  # after disallowing solving for terms with quantifiers
+  regress1/ho/nested_lambdas-AGT034^2.smt2
+  regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
+  regress1/ho/SYO056^1.p
   # slow on some builds after changes to tangent planes
   regress1/nl/approx-sqrt-unsat.smt2
   # times out after update to circuit propagator

@@ -565,6 +565,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     {
       // integer version of AND
       addIndexedOperator(api::IAND, api::IAND, "iand");
+      // pow2
+      addOperator(api::POW2, "pow2");
     }
   }
 
@@ -764,12 +766,13 @@ void Smt2::checkLogicAllowsFreeSorts()
 
 void Smt2::checkLogicAllowsFunctions()
 {
-  if (!d_logic.isTheoryEnabled(theory::THEORY_UF))
+  if (!d_logic.isTheoryEnabled(theory::THEORY_UF) && !isHoEnabled())
   {
     parseError(
         "Functions (of non-zero arity) cannot "
         "be declared in logic "
-        + d_logic.getLogicString() + ". Try adding the prefix HO_.");
+        + d_logic.getLogicString()
+        + ". Try including UF or adding the prefix HO_.");
   }
 }
 

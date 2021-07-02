@@ -92,3 +92,13 @@ a:hover, a:focus {
 .sphinx-tabs-panel div[class^="highlight"] {
   margin: 1px 0 0 0;
 }
+
+#c-api-class-hierarchy code {
+  font-size: 100%;
+  font-weight: normal;
+  font-family: "Lato","proxima-nova","Helvetica Neue","Arial","sans-serif";
+}
+
+.hide-toctree {
+  display: none;
+}
