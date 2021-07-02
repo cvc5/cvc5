@@ -56,7 +56,7 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   # check for getc_unlocked
   check_symbol_exists("getc_unlocked" "cstdio" HAVE_UNLOCKED_IO)
   if(NOT HAVE_UNLOCKED_IO)
-    string(APPEND CXXFLAGS "${CXXFLAGS} -DNUNLOCKED")
+    string(APPEND CXXFLAGS " -DNUNLOCKED")
   endif()
 
   # On macOS, we have to set `-isysroot` to make sure that include headers are
