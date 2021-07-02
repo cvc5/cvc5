@@ -26,7 +26,7 @@ endif()
 if(NOT SymFPU_FOUND_SYSTEM)
   check_ep_downloaded("SymFPU-EP")
   if(NOT SymFPU-EP_DOWNLOADED)
-    check_auto_download("SymFPU" "--no-symfpu")
+    check_auto_download("SymFPU" "")
   endif()
 
   include(ExternalProject)
