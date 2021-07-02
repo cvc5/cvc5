@@ -1388,7 +1388,7 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
   Assert(tconflict.getKind() == TrustNodeKind::CONFLICT);
 
   TNode conflict = tconflict.getNode();
-  Trace("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", "
+  Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", "
                             << theoryId << ")" << endl;
   Trace("te-proof-debug") << "Check closed conflict" << std::endl;
   // doesn't require proof generator, yet, since THEORY_LEMMA is added below
@@ -1667,10 +1667,6 @@ TrustNode TheoryEngine::getExplanation(
     Debug("theory::explain")
         << "TheoryEngine::explain(): got explanation " << explanation
         << " got from " << toExplain.d_theory << endl;
-    if (explanation == toExplain.d_node)
-    {
-      Trace("ajr-temp") << "Bad explanation: " << explanation << std::endl;
-    }
     Assert(explanation != toExplain.d_node)
         << "wasn't sent to you, so why are you explaining it trivially";
     // Mark the explanation

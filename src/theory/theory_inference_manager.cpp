@@ -39,7 +39,6 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_out(t.getOutputChannel()),
       d_ee(nullptr),
       d_decManager(nullptr),
-      d_pfee(nullptr),
       d_pnm(pnm),
       d_cacheLemmas(cacheLemmas),
       d_keep(t.getSatContext()),
@@ -97,7 +96,7 @@ bool TheoryInferenceManager::hasSent() const
          || d_numCurrentFacts > 0;
 }
 
-eq::ProofEqEngine* TheoryInferenceManager::getProofEqEngine() { return d_pfee; }
+eq::ProofEqEngine* TheoryInferenceManager::getProofEqEngine() { return d_pfee.get(); }
 
 void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
 {
