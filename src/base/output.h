@@ -428,8 +428,6 @@ extern DumpOutC DumpOutChannel CVC5_EXPORT;
 #define Trace ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::TraceChannel
 #define DumpOut \
   ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::DumpOutChannel
-#define Output \
-  ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::OutputChannel
 
 #else /* CVC5_MUZZLE */
 
@@ -462,8 +460,6 @@ extern DumpOutC DumpOutChannel CVC5_EXPORT;
 #define DumpOut \
   ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::DumpOutChannel
 #endif /* CVC5_DUMPING */
-
-#define Output ::cvc5::OutputChannel
 
 #endif /* CVC5_MUZZLE */
 
