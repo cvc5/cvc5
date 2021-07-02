@@ -20,7 +20,7 @@ Cvc5ostream OutputC::operator()(const options::OutputTag tag) const
 
 bool OutputC::isOn(const options::OutputTag tag) const
 {
-  return options::outputTagHolder()[static_cast<size_t>(tag)] == 1;
+  return options::outputTagHolder()[static_cast<size_t>(tag)];
 }
 
 }  // namespace cvc5
