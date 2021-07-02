@@ -1,5 +1,6 @@
 ; EXPECT: unknown
-; EXPECT: ((charlst2 ((as const (Array Int String)) "")))
+; SCRUBBER: grep -o "((charlst2 ("
+; EXPECT: ((charlst2 (
 
 (set-logic ALL)
 (set-option :strings-exp true)
