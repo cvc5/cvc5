@@ -39,6 +39,7 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_out(t.getOutputChannel()),
       d_ee(nullptr),
       d_decManager(nullptr),
+      d_pfee(nullptr),
       d_pnm(pnm),
       d_cacheLemmas(cacheLemmas),
       d_keep(t.getSatContext()),
@@ -69,10 +70,16 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
   // if it is non-null
   if (d_pnm != nullptr && d_ee != nullptr)
   {
-    d_pfee.reset(new eq::ProofEqEngine(d_theoryState.getSatContext(),
-                                       d_theoryState.getUserContext(),
-                                       *d_ee,
-                                       d_pnm));
+    d_pfee = d_ee->getProofEqualityEngine();
+    if (d_pfee == nullptr)
+    {
+      d_pfeeAlloc.reset(new eq::ProofEqEngine(d_theoryState.getSatContext(),
+                                              d_theoryState.getUserContext(),
+                                              *d_ee,
+                                              d_pnm));
+      d_pfee = d_pfeeAlloc.get();
+      d_ee->setProofEqualityEngine(d_pfee);
+    }
   }
 }
 
@@ -96,10 +103,7 @@ bool TheoryInferenceManager::hasSent() const
          || d_numCurrentFacts > 0;
 }
 
-eq::ProofEqEngine* TheoryInferenceManager::getProofEqEngine()
-{
-  return d_pfee.get();
-}
+eq::ProofEqEngine* TheoryInferenceManager::getProofEqEngine() { return d_pfee; }
 
 void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
 {
@@ -374,10 +378,10 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
 {
   d_factIdStats << iid;
   smt::currentResourceManager()->spendResource(iid);
-  Trace("im") << "(fact " << iid << " " << (pol ? Node(atom) : atom.notNode())
-              << ")" << std::endl;
   // make the node corresponding to the explanation
   Node expn = NodeManager::currentNM()->mkAnd(exp);
+  Trace("im") << "(fact " << iid << " " << (pol ? Node(atom) : atom.notNode())
+              << " " << expn << ")" << std::endl;
   // call the pre-notify fact method with preReg = false, isInternal = true
   if (d_theory.preNotifyFact(atom, pol, expn, false, true))
   {
@@ -387,7 +391,41 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
   }
   Assert(d_ee != nullptr);
   Trace("infer-manager") << "TheoryInferenceManager::assertInternalFact: "
+                         << (pol ? Node(atom) : atom.notNode()) << " from "
                          << expn << std::endl;
+#ifdef CVC5_ASSERTIONS
+  // check that all facts hold in the equality engine, to ensure that we
+  // aren't processing a stale fact
+  std::vector<Node> expc = exp;
+  for (size_t i = 0; i < expc.size(); i++)
+  {
+    Node e = expc[i];
+    bool epol = e.getKind() != NOT;
+    Node eatom = epol ? e : e[0];
+    Trace("infer-manager") << "...check " << eatom << " " << epol << std::endl;
+    if (eatom.getKind() == AND)
+    {
+      Assert(epol);
+      for (const Node& ea : eatom)
+      {
+        expc.push_back(ea);
+      }
+      continue;
+    }
+    else if (eatom.getKind() == EQUAL)
+    {
+      Assert(d_ee->hasTerm(eatom[0]));
+      Assert(d_ee->hasTerm(eatom[1]));
+      Assert(!epol || d_ee->areEqual(eatom[0], eatom[1]));
+      Assert(epol || d_ee->areDisequal(eatom[0], eatom[1], false));
+    }
+    else
+    {
+      Assert(d_ee->hasTerm(eatom));
+      Assert(d_ee->areEqual(eatom, NodeManager::currentNM()->mkConst(epol)));
+    }
+  }
+#endif
   d_numCurrentFacts++;
   // Now, assert the fact. How to do so depends on whether proofs are enabled.
   // If no proof production, or no proof rule was given
