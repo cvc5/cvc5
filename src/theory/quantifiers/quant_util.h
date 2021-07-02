@@ -38,6 +38,8 @@ class QuantifiersUtil {
 public:
   QuantifiersUtil(){}
   virtual ~QuantifiersUtil(){}
+  /**  Called at the beginning of check-sat call. */
+  virtual void presolve() {}
   /* reset
    * Called at the beginning of an instantiation round
    * Returns false if the reset failed. When reset fails, the utility should
