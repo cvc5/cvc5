@@ -159,7 +159,7 @@ class BVSolverBitblast : public BVSolver
   bool d_propagate;
 
   /** Notifies when reset-assertion was called. */
-  std::unique_ptr<NotifyResetAssertions> d_reset_notify;
+  std::unique_ptr<NotifyResetAssertions> d_resetNotify;
 };
 
 }  // namespace bv

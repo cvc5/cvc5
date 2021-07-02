@@ -39,13 +39,13 @@ class NotifyResetAssertions : public context::ContextNotifyObj
   NotifyResetAssertions(context::Context* c)
       : context::ContextNotifyObj(c, false),
         d_context(c),
-        d_reset_assertions_notified(false)
+        d_doneResetAssertions(false)
   {
   }
 
-  bool notifiedResetAssertions() { return d_reset_assertions_notified; }
+  bool doneResetAssertions() { return d_doneResetAssertions; }
 
-  void reset() { d_reset_assertions_notified = false; }
+  void reset() { d_doneResetAssertions = false; }
 
  protected:
   void contextNotifyPop() override
@@ -54,7 +54,7 @@ class NotifyResetAssertions : public context::ContextNotifyObj
     // called.
     if (d_context->getLevel() == 0)
     {
-      d_reset_assertions_notified = true;
+      d_doneResetAssertions = true;
     }
   }
 
@@ -63,7 +63,7 @@ class NotifyResetAssertions : public context::ContextNotifyObj
   context::Context* d_context;
 
   /** Flag to notify whether reset assertions was called. */
-  bool d_reset_assertions_notified;
+  bool d_doneResetAssertions;
 };
 
 /**
@@ -126,7 +126,7 @@ BVSolverBitblast::BVSolverBitblast(TheoryState* s,
       d_factLiteralCache(s->getSatContext()),
       d_literalFactCache(s->getSatContext()),
       d_propagate(options::bitvectorPropagate()),
-      d_reset_notify(new NotifyResetAssertions(s->getUserContext()))
+      d_resetNotify(new NotifyResetAssertions(s->getUserContext()))
 {
   if (pnm != nullptr)
   {
@@ -149,12 +149,12 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
 
   // If we permanently added assertions to the SAT solver and the assertions
   // were reset, we have to reset the SAT solver and the CNF stream.
-  if (options::bvAssertInput() && d_reset_notify->notifiedResetAssertions())
+  if (options::bvAssertInput() && d_resetNotify->doneResetAssertions())
   {
     d_satSolver.reset(nullptr);
     d_cnfStream.reset(nullptr);
     initSatSolver();
-    d_reset_notify->reset();
+    d_resetNotify->reset();
   }
 
   NodeManager* nm = NodeManager::currentNM();
