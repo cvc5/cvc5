@@ -166,6 +166,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * these will be stale after the solver backtracks.
    */
   void notifyInConflict() override;
+
  protected:
   /** A set of pending inferences to be processed as lemmas */
   std::vector<std::unique_ptr<TheoryInference>> d_pendingLem;

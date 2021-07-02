@@ -376,6 +376,7 @@ class TheoryInferenceManager
    * This method is called via TheoryEngine when a conflict is sent.
    */
   virtual void notifyInConflict();
+
  protected:
   /**
    * Process internal fact. This is a common helper method for the
