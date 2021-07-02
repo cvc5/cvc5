@@ -164,7 +164,7 @@ void SynthEngine::checkOwnership(Node q)
   // take ownership of quantified formulas with sygus attribute, and function
   // definitions when options::sygusRecFun is true.
   QuantAttributes& qa = d_qreg.getQuantAttributes();
-  if (qa.isSygus(q) || (options::sygusRecFun() && qa.isFunDef(q)))
+  if (qa.isSygus(q) || (qa.isFunDef(q) && options::sygusRecFun()))
   {
     d_qreg.setOwner(q, this, 2);
   }
