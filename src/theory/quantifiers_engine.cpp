@@ -19,6 +19,7 @@
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "options/strings_options.h"
 #include "options/uf_options.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/equality_query.h"
@@ -67,7 +68,7 @@ QuantifiersEngine::QuantifiersEngine(
   // Finite model finding requires specialized ways of building the model.
   // We require constructing the model here, since it is required for
   // initializing the CombinationEngine and the rest of quantifiers engine.
-  if (options::fmfBound()
+  if (options::fmfBound() || options::stringExp()
       || (options::finiteModelFind()
           && (options::mbqiMode() == options::MbqiMode::FMC
               || options::mbqiMode() == options::MbqiMode::TRUST)))
