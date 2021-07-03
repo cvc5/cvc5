@@ -156,6 +156,10 @@ public:
                       const std::string& flag,
                       const std::string& optarg);
 
+  void enableOutputTag(const std::string& option,
+                       const std::string& flag,
+                       const std::string& optarg);
+
  private:
 
   /** Pointer to the containing Options object.*/
