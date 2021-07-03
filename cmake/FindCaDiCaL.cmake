@@ -56,7 +56,13 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   # check for getc_unlocked
   check_symbol_exists("getc_unlocked" "cstdio" HAVE_UNLOCKED_IO)
   if(NOT HAVE_UNLOCKED_IO)
-    set(CXXFLAGS "${CXXFLAGS} -DNUNLOCKED")
+    string(APPEND CXXFLAGS " -DNUNLOCKED")
+  endif()
+
+  # On macOS, we have to set `-isysroot` to make sure that include headers are
+  # found because they are not necessarily installed at /usr/include anymore.
+  if(CMAKE_OSX_SYSROOT)
+    string(APPEND CXXFLAGS " ${CMAKE_CXX_SYSROOT_FLAG} ${CMAKE_OSX_SYSROOT}")
   endif()
 
   if("${CMAKE_GENERATOR}" STREQUAL "Unix Makefiles")
