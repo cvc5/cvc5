@@ -982,8 +982,6 @@ libcvc5_add_sources(
   theory/sets/theory_sets_type_rules.h
   theory/shared_solver.cpp
   theory/shared_solver.h
-  theory/shared_solver_central.cpp
-  theory/shared_solver_central.h
   theory/shared_solver_distributed.cpp
   theory/shared_solver_distributed.h
   theory/shared_terms_database.cpp
