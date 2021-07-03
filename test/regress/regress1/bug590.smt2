@@ -1,5 +1,5 @@
+; SCRUBBER: grep -o "unknown\|((charlst2 ("
 ; EXPECT: unknown
-; SCRUBBER: grep -o "((charlst2 ("
 ; EXPECT: ((charlst2 (
 
 (set-logic ALL)
