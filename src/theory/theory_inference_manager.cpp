@@ -122,7 +122,6 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
   smt::currentResourceManager()->spendResource(id);
   Trace("im") << "(conflict " << id << " " << tconf.getProven() << ")"
               << std::endl;
-  d_theoryState.notifyInConflict();
   d_out.trustedConflict(tconf);
   ++d_numConflicts;
 }
@@ -374,10 +373,10 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
 {
   d_factIdStats << iid;
   smt::currentResourceManager()->spendResource(iid);
-  Trace("im") << "(fact " << iid << " " << (pol ? Node(atom) : atom.notNode())
-              << ")" << std::endl;
   // make the node corresponding to the explanation
   Node expn = NodeManager::currentNM()->mkAnd(exp);
+  Trace("im") << "(fact " << iid << " " << (pol ? Node(atom) : atom.notNode())
+              << " " << expn << ")" << std::endl;
   // call the pre-notify fact method with preReg = false, isInternal = true
   if (d_theory.preNotifyFact(atom, pol, expn, false, true))
   {
@@ -387,6 +386,7 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
   }
   Assert(d_ee != nullptr);
   Trace("infer-manager") << "TheoryInferenceManager::assertInternalFact: "
+                         << (pol ? Node(atom) : atom.notNode()) << " from "
                          << expn << std::endl;
   d_numCurrentFacts++;
   // Now, assert the fact. How to do so depends on whether proofs are enabled.
@@ -522,6 +522,11 @@ void TheoryInferenceManager::safePoint(Resource r)
 void TheoryInferenceManager::setIncomplete(IncompleteId id)
 {
   d_out.setIncomplete(id);
+}
+
+void TheoryInferenceManager::notifyInConflict()
+{
+  d_theoryState.notifyInConflict();
 }
 
 }  // namespace theory

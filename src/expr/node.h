@@ -605,7 +605,14 @@ public:
   /** Iterator allowing for scanning through the children. */
   typedef typename expr::NodeValue::iterator< NodeTemplate<ref_count> > iterator;
   /** Constant iterator allowing for scanning through the children. */
-  typedef typename expr::NodeValue::iterator< NodeTemplate<ref_count> > const_iterator;
+  using const_iterator =
+      typename expr::NodeValue::iterator<NodeTemplate<ref_count>>;
+  /**
+   * Reverse constant iterator allowing for scanning through the children in
+   * reverse order.
+   */
+  using const_reverse_iterator = std::reverse_iterator<
+      typename expr::NodeValue::iterator<NodeTemplate<ref_count>>>;
 
   class kinded_iterator {
     friend class NodeTemplate<ref_count>;
@@ -729,7 +736,8 @@ public:
    * Returns the const_iterator pointing to the first child.
    * @return the const_iterator
    */
-  inline const_iterator begin() const {
+  const_iterator begin() const
+  {
     assertTNodeNotExpired();
     return d_nv->begin< NodeTemplate<ref_count> >();
   }
@@ -739,9 +747,30 @@ public:
    * beyond the last one.
    * @return the end of the children const_iterator.
    */
-  inline const_iterator end() const {
+  const_iterator end() const
+  {
     assertTNodeNotExpired();
     return d_nv->end< NodeTemplate<ref_count> >();
+  }
+
+  /**
+   * Returns the const_reverse_iterator pointing to the last child.
+   * @return the const_reverse_iterator
+   */
+  const_reverse_iterator rbegin() const
+  {
+    assertTNodeNotExpired();
+    return std::make_reverse_iterator(d_nv->end<NodeTemplate<ref_count>>());
+  }
+
+  /**
+   * Returns the const_reverse_iterator pointing to one before the first child.
+   * @return the end of the const_reverse_iterator.
+   */
+  const_reverse_iterator rend() const
+  {
+    assertTNodeNotExpired();
+    return std::make_reverse_iterator(d_nv->begin<NodeTemplate<ref_count>>());
   }
 
   /**

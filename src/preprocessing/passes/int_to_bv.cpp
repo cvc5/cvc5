@@ -29,6 +29,7 @@
 #include "options/base_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "util/bitvector.h"
@@ -41,7 +42,6 @@ namespace passes {
 using namespace std;
 using namespace cvc5::theory;
 
-using NodeMap = std::unordered_map<Node, Node>;
 
 namespace {
 
@@ -101,8 +101,9 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
   }
   return cache[n];
 }
+}  // namespace
 
-Node intToBV(TNode n, NodeMap& cache)
+Node IntToBV::intToBV(TNode n, NodeMap& cache)
 {
   int size = options::solveIntAsBV();
   AlwaysAssert(size > 0);
@@ -216,6 +217,8 @@ Node intToBV(TNode n, NodeMap& cache)
           result = sm->mkDummySkolem("__intToBV_var",
                                      nm->mkBitVectorType(size),
                                      "Variable introduced in intToBV pass");
+          Node bv2nat = nm->mkNode(kind::BITVECTOR_TO_NAT, result);
+          d_preprocContext->addSubstitution(current, bv2nat);
         }
       }
       else if (current.isConst())
@@ -249,9 +252,11 @@ Node intToBV(TNode n, NodeMap& cache)
       cache[current] = result;
     }
   }
+  Trace("int-to-bv-debug") << "original: " << n << std::endl;
+  Trace("int-to-bv-debug") << "binary: " << n_binary << std::endl;
+  Trace("int-to-bv-debug") << "result: " << cache[n_binary] << std::endl;
   return cache[n_binary];
 }
-}  // namespace
 
 IntToBV::IntToBV(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "int-to-bv"){};

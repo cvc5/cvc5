@@ -292,14 +292,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       Trace("smt") << "turning on quantifier logic, for strings-exp"
                    << std::endl;
     }
-    // We require bounded quantifier handling.
-    if (!opts.quantifiers.fmfBoundWasSetByUser)
-    {
-      opts.quantifiers.fmfBound = true;
-      Trace("smt") << "turning on fmf-bound, for strings-exp" << std::endl;
-    }
     // Note we allow E-matching by default to support combinations of sequences
-    // and quantifiers.
+    // and quantifiers. We also do not enable fmfBound here, which would
+    // enable bounded integer instantiation for *all* quantifiers. Instead,
+    // the bounded integers module will always process internally generated
+    // quantifiers (those marked with InternalQuantAttribute).
   }
   // whether we must disable proofs
   bool disableProofs = false;
