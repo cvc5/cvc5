@@ -187,5 +187,12 @@ void InferenceManagerBuffered::assertInternalFactTheoryInference(
   assertInternalFact(atom, pol, fact->getId(), exp, pg);
 }
 
+void InferenceManagerBuffered::notifyInConflict()
+{
+  d_theoryState.notifyInConflict();
+  // also clear the pending facts, which will be stale after backtracking
+  clearPending();
+}
+
 }  // namespace theory
 }  // namespace cvc5
