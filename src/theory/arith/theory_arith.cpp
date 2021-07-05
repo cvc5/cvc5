@@ -175,6 +175,7 @@ void TheoryArith::postCheck(Effort level)
   {
     if (d_nonlinearExtension != nullptr)
     {
+      Trace("arith-check") << "TheoryArith::nlExt regular check" << std::endl;
       d_nonlinearExtension->check(level);
     }
     return;
@@ -190,7 +191,17 @@ void TheoryArith::postCheck(Effort level)
   {
     if (d_nonlinearExtension != nullptr)
     {
+      Trace("arith-check") << "TheoryArith::nlExt regular check" << std::endl;
       d_nonlinearExtension->check(level);
+
+      std::map<Node, Node> arithModel;
+      std::set<Node> termSet;
+      //modelManager::collectAssertedTerms()
+      computeRelevantTerms(termSet);
+      Trace("arith-check") << "termSet check: " << termSet << std::endl;
+      d_internal->collectModelValues(termSet, arithModel);
+      Trace("arith-check") << "TheoryArith::nlExt intercept model" << std::endl;
+      d_nonlinearExtension->interceptModel(arithModel, termSet);
     }
     else if (d_internal->foundNonlinear())
     {
@@ -244,6 +255,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   {
     // Non-linear may repair values to satisfy non-linear constraints (see
     // documentation for NonlinearExtension::interceptModel).
+    Trace("arith-check") << "termSet cmv: " << termSet << std::endl;
     d_nonlinearExtension->interceptModel(arithModel, termSet);
   }
   // We are now ready to assert the model.
