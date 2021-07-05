@@ -307,13 +307,13 @@ class Theory {
    * class (see addSharedTerm).
    */
   virtual void notifySharedTerm(TNode n);
-
   /**
    * Notify in conflict, called when a conflict clause is added to TheoryEngine
    * by any theory (not necessarily this one). This signals that the theory
    * should suspend what it is currently doing and wait for backtracking.
    */
   virtual void notifyInConflict();
+
  public:
   //--------------------------------- initialization
   /**
@@ -876,6 +876,11 @@ class Theory {
    * E |= lit in the theory.
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit);
+
+  /** uses central equality engine */
+  bool usesCentralEqualityEngine() const;
+  /** uses central equality engine (static) */
+  static bool usesCentralEqualityEngine(TheoryId id);
 };/* class Theory */
 
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);
