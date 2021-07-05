@@ -613,8 +613,7 @@ bool Theory::usesCentralEqualityEngine(TheoryId id)
   {
     return false;
   }
-  // || id ==THEORY_BV
-  // || id ==THEORY_ARITH
+  // Below are all theories with an equality engine except id ==THEORY_ARITH
   return id == THEORY_UF || id == THEORY_DATATYPES || id == THEORY_BAGS
          || id == THEORY_FP || id == THEORY_SETS || id == THEORY_STRINGS
          || id == THEORY_SEP || id == THEORY_ARRAYS || id == THEORY_BV;
