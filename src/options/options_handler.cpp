@@ -512,6 +512,14 @@ void OptionsHandler::enableDebugTag(const std::string& option,
   Trace.on(optarg);
 }
 
+void OptionsHandler::enableOutputTag(const std::string& option,
+                                     const std::string& flag,
+                                     const std::string& optarg)
+{
+  d_options->base.outputTagHolder.set(
+      static_cast<size_t>(stringToOutputTag(optarg)));
+}
+
 OutputLanguage OptionsHandler::stringToOutputLanguage(const std::string& option,
                                                       const std::string& flag,
                                                       const std::string& optarg)
