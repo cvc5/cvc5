@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-fun --no-check-models
+; COMMAND-LINE: --fmf-fun --no-check-models --fmf-bound
 ; EXPECT: sat
 (set-logic UFDTSLIA)
 (set-option :produce-models true)

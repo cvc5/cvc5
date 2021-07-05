@@ -213,7 +213,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
 
       if (debugTraceEnabled)
       {
-        Trace("tconv-pf-gen-debug") << "Printing rewrite steps..." << std::endl;
+        Trace("tconv-pf-gen-debug") << "Rewrite steps:" << std::endl;
         for (size_t r = 0; r < 2; r++)
         {
           const NodeNodeMap& rm = r == 0 ? d_preRewriteMap : d_postRewriteMap;
@@ -233,7 +233,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   std::shared_ptr<ProofNode> pfn = lpf.getProofFor(f);
   Trace("tconv-pf-gen") << "... success" << std::endl;
   Assert(pfn != nullptr);
-  Trace("tconv-pf-gen-debug") << "... proof is " << *pfn << std::endl;
+  Trace("tconv-pf-gen-debug-pf") << "... proof is " << *pfn << std::endl;
   return pfn;
 }
 
@@ -251,7 +251,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node n)
   }
   std::shared_ptr<ProofNode> pfn = lpf.getProofFor(conc);
   Assert(pfn != nullptr);
-  Trace("tconv-pf-gen-debug") << "... proof is " << *pfn << std::endl;
+  Trace("tconv-pf-gen-debug-pf") << "... proof is " << *pfn << std::endl;
   return pfn;
 }
 

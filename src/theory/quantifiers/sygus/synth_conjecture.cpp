@@ -16,9 +16,11 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
 #include "base/configuration.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
+#include "options/outputc.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "smt/logic_exception.h"
@@ -87,6 +89,18 @@ SynthConjecture::SynthConjecture(QuantifiersState& qs,
     d_modules.push_back(d_sygus_ccore.get());
   }
   d_modules.push_back(d_ceg_cegis.get());
+  // determine the options to use for the verification subsolvers we spawn
+  // we start with the options of the current SmtEngine
+  SmtEngine* smtCurr = smt::currentSmtEngine();
+  d_subOptions.copyValues(smtCurr->getOptions());
+  // limit the number of instantiation rounds on subcalls
+  d_subOptions.quantifiers.instMaxRounds =
+      d_subOptions.quantifiers.sygusVerifyInstMaxRounds;
+  // Disable sygus on the subsolver. This is particularly important since it
+  // ensures that recursive function definitions have the standard ownership
+  // instead of being claimed by sygus in the subsolver.
+  d_subOptions.base.inputLanguage = language::input::LANG_SMTLIB_V2_6;
+  d_subOptions.quantifiers.sygus = false;
 }
 
 SynthConjecture::~SynthConjecture() {}
@@ -371,7 +385,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     }
   }
 
-  bool printDebug = options::debugSygus();
+  bool printDebug = Output.isOn(options::OutputTag::SYGUS);
   if (!constructed_cand)
   {
     // get the model value of the relevant terms from the master module
@@ -441,12 +455,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         }
       }
       Trace("sygus-engine") << std::endl;
-      if (printDebug)
-      {
-        Options& sopts = smt::currentSmtEngine()->getOptions();
-        std::ostream& out = *sopts.base.out;
-        out << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
-      }
+      Output(options::OutputTag::SYGUS)
+          << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
     }
     Assert(candidate_values.empty());
     constructed_cand = d_master->constructCandidates(
@@ -580,8 +590,34 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
 
   if (!query.isConst() || query.getConst<bool>())
   {
+    // add recursive function definitions
+    FunDefEvaluator* feval = d_tds->getFunDefEvaluator();
+    const std::vector<Node>& fdefs = feval->getDefinitions();
+    if (!fdefs.empty())
+    {
+      // Get the relevant definitions based on the symbols in the query.
+      // Notice in some cases, this may have the effect of making the subcall
+      // involve no recursive function definitions at all, in which case the
+      // subcall to verification may be decidable, in which case the call
+      // below is guaranteed to generate a new counterexample point.
+      std::unordered_set<Node> syms;
+      expr::getSymbols(query, syms);
+      std::vector<Node> qconj;
+      qconj.push_back(query);
+      for (const Node& f : syms)
+      {
+        Node q = feval->getDefinitionFor(f);
+        if (!q.isNull())
+        {
+          qconj.push_back(q);
+        }
+      }
+      query = nm->mkAnd(qconj);
+      Trace("cegqi-debug") << "query is " << query << std::endl;
+    }
     Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
-    Result r = checkWithSubsolver(query, d_ce_sk_vars, d_ce_sk_var_mvs);
+    Result r =
+        checkWithSubsolver(query, d_ce_sk_vars, d_ce_sk_var_mvs, &d_subOptions);
     Trace("sygus-engine") << "  ...got " << r << std::endl;
     if (r.asSatisfiabilityResult().isSat() == Result::SAT)
     {
