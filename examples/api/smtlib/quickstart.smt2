@@ -19,7 +19,7 @@
 (assert (< 0 x))
 (assert (< 0 y))
 (assert (< (+ x y) 1))
-(assert (<= 0 x y))
+(assert (<= x y))
 
 (check-sat)
 (echo "Values of declared real constants and of compound terms built with them.")
@@ -33,7 +33,7 @@
 (assert (< 0 a))
 (assert (< 0 b))
 (assert (< (+ a b) 1))
-(assert (<= 0 a b))
+(assert (<= a b))
 
 (check-sat)
 (get-unsat-core)
