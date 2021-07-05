@@ -129,7 +129,10 @@ TPL_DECL_MODE_ENUM = \
 enum class {type}
 {{
   {values}
-}};"""
+}};
+
+static constexpr size_t {type}__numValues = {nvalues};
+"""
 
 TPL_DECL_MODE_FUNC = \
 """
@@ -506,7 +509,10 @@ def help_mode_format(option):
 
     wrapper = textwrap.TextWrapper(width=78, break_on_hyphens=False)
     text = ['{}'.format(x) for x in wrapper.wrap(option.help_mode)]
-    text.append('Available modes for --{} are:'.format(option.long.split('=')[0]))
+
+    optname, optvalue = option.long.split('=')
+    text.append('Available {}s for --{} are:'.format(
+                optvalue.lower(), optname))
 
     for value, attrib in option.mode.items():
         assert len(attrib) == 1
@@ -600,7 +606,8 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
             mode_decl.append(
                 TPL_DECL_MODE_ENUM.format(
                     type=option.type,
-                    values=',\n  '.join(values)))
+                    values=',\n  '.join(values),
+                    nvalues=len(values)))
             mode_decl.append(TPL_DECL_MODE_FUNC.format(type=option.type))
             cases = [TPL_IMPL_MODE_CASE.format(
                         type=option.type, enum=x) for x in values]
@@ -730,6 +737,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
             sorted(module.options, key=lambda x: x.long if x.long else x.name):
             assert option.type != 'void' or option.name is None
             assert option.name or option.short or option.long
+            mode_handler = option.handler and option.mode
             argument_req = option.type not in ['bool', 'void']
 
             docgen_option(option, help_common, help_others)
@@ -773,7 +781,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
                             name=option.name,
                             option='option',
                             value='true'))
-                elif option.type != 'void' and option.name:
+                elif option.type != 'void' and option.name and not mode_handler:
                     cases.append(
                         TPL_CALL_ASSIGN.format(
                             module=module.id,
@@ -809,7 +817,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
                             name=option.name,
                             option='key',
                             value='optionarg == "true"'))
-                elif argument_req and option.name:
+                elif argument_req and option.name and not mode_handler:
                     setoption_handlers.append(
                         TPL_CALL_ASSIGN.format(
                             module=module.id,
@@ -896,20 +904,21 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_
 
 
                 # Define handler assign/assignBool
-                if option.type == 'bool':
-                    custom_handlers.append(TPL_ASSIGN_BOOL.format(
-                        module=module.id,
-                        name=option.name,
-                        handler=handler,
-                        predicates='\n'.join(predicates)
-                    ))
-                elif option.short or option.long:
-                    custom_handlers.append(TPL_ASSIGN.format(
-                        module=module.id,
-                        name=option.name,
-                        handler=handler,
-                        predicates='\n'.join(predicates)
-                    ))
+                if not mode_handler:
+                    if option.type == 'bool':
+                        custom_handlers.append(TPL_ASSIGN_BOOL.format(
+                            module=module.id,
+                            name=option.name,
+                            handler=handler,
+                            predicates='\n'.join(predicates)
+                        ))
+                    elif option.short or option.long:
+                        custom_handlers.append(TPL_ASSIGN.format(
+                            module=module.id,
+                            name=option.name,
+                            handler=handler,
+                            predicates='\n'.join(predicates)
+                        ))
 
                 # Default option values
                 default = option.default if option.default else ''
@@ -1026,8 +1035,6 @@ def parse_module(filename, module):
             option = Option(attribs)
             if option.mode and not option.help_mode:
                 perr(filename, 'defines modes but no help_mode', option)
-            if option.mode and option.handler:
-                perr(filename, 'defines modes and a handler', option)
             if option.mode and option.default and \
                     option.default not in option.mode.keys():
                 perr(filename,
