@@ -32,23 +32,24 @@ from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
 
-def get_root_path():
+def get_project_src_path():
     # expecting this script to be in src/api/python/wheels
-    # root is 4 directories up (5 dirnames because start with file)
-    root_path = __file__
+    # The project source directory is 4 directories up
+    # (5 dirnames because start with file)
+    project_src_path = __file__
     for i in range(5):
-        root_path = os.path.dirname(root_path)
-    return os.path.abspath(root_path)
+        project_src_path = os.path.dirname(project_src_path)
+    return os.path.abspath(project_src_path)
 
 
 def get_cvc5_version():
-    root_path = get_root_path()
+    project_src_path = get_project_src_path()
 
     # read CMakeLists.txt to get version number
     version = dict()
     str_pattern = 'set\(CVC5_(?P<component>MAJOR|MINOR|RELEASE)\s*(?P<version>\d+)\)'
     pattern = re.compile(str_pattern)
-    with open(root_path + '/CMakeLists.txt', 'r') as f:
+    with open(project_src_path + '/CMakeLists.txt', 'r') as f:
         for line in f.read().split('\n'):
             line = line.strip()
             m = pattern.search(line)
@@ -106,15 +107,15 @@ class CMakeBuild(build_ext):
         cpu_count = max(2, multiprocessing.cpu_count() // 2)
         build_args += ['--', '-j{0}'.format(cpu_count)]
 
-        root_path = get_root_path()
-        build_dir = os.path.join(root_path, "build")
+        project_src_path = get_project_src_path()
+        build_dir = os.path.join(project_src_path, "build")
 
         # to avoid multiple build, only call reconfigure if we couldn't find the makefile
         # for python
         python_build_dir = os.path.join(build_dir, "src", "api", "python")
         if not os.path.isfile(os.path.join(python_build_dir, "Makefile")):
             args = ['--python-bindings', '--auto-download', '--lib-only']
-            config_filename = os.path.join(root_path, "configure.sh")
+            config_filename = os.path.join(project_src_path, "configure.sh")
             # call configure
             subprocess.check_call([config_filename] + args)
 
