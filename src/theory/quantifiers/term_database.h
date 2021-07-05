@@ -79,7 +79,7 @@ class TermDb : public QuantifiersUtil {
   /** Finish init, which sets the inference manager */
   void finishInit(QuantifiersInferenceManager* qim);
   /** presolve (called once per user check-sat) */
-  void presolve();
+  void presolve() override;
   /** reset (calculate which terms are active) */
   bool reset(Theory::Effort effort) override;
   /** register quantified formula */

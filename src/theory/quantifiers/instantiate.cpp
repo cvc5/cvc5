@@ -17,12 +17,15 @@
 
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
+#include "options/outputc.h"
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "proof/lazy_proof.h"
 #include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -71,6 +74,7 @@ bool Instantiate::reset(Theory::Effort e)
   Trace("inst-debug") << "Reset, effort " << e << std::endl;
   // clear explicitly recorded instantiations
   d_recordedInst.clear();
+  d_instDebugTemp.clear();
   return true;
 }
 
@@ -334,7 +338,7 @@ bool Instantiate::addInstantiation(Node q,
   InstLemmaList* ill = getOrMkInstLemmaList(q);
   ill->d_list.push_back(body);
   // add to temporary debug statistics (# inst on this round)
-  d_temp_inst_debug[q]++;
+  d_instDebugTemp[q]++;
   if (Trace.isOn("inst"))
   {
     Trace("inst") << "*** Instantiate " << q << " with " << std::endl;
@@ -671,30 +675,29 @@ void Instantiate::getInstantiations(Node q, std::vector<Node>& insts)
 
 bool Instantiate::isProofEnabled() const { return d_pfInst != nullptr; }
 
-void Instantiate::debugPrint(std::ostream& out)
+void Instantiate::notifyEndRound()
 {
   // debug information
   if (Trace.isOn("inst-per-quant-round"))
   {
-    for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
+    for (std::pair<const Node, uint32_t>& i : d_instDebugTemp)
     {
-      Trace("inst-per-quant-round") << " * " << i.second << " for " << i.first
-                                    << std::endl;
-      d_temp_inst_debug[i.first] = 0;
+      Trace("inst-per-quant-round")
+          << " * " << i.second << " for " << i.first << std::endl;
     }
   }
-  if (options::debugInst())
+  if (Output.isOn(options::OutputTag::INST))
   {
     bool req = !options::printInstFull();
-    for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
+    for (std::pair<const Node, uint32_t>& i : d_instDebugTemp)
     {
       Node name;
       if (!d_qreg.getNameForQuant(i.first, name, req))
       {
         continue;
       }
-      out << "(num-instantiations " << name << " " << i.second << ")"
-          << std::endl;
+      Output(options::OutputTag::INST) << "(num-instantiations " << name << " "
+                                       << i.second << ")" << std::endl;
     }
   }
 }

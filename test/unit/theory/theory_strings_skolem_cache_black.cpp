@@ -43,7 +43,7 @@ TEST_F(TestTheoryBlackStringsSkolemCache, mkSkolemCached)
       kind::STRING_SUBSTR,
       a,
       zero,
-      d_nodeManager->mkNode(kind::STRING_STRIDOF, a, b, zero));
+      d_nodeManager->mkNode(kind::STRING_INDEXOF, a, b, zero));
   Node sc = d_nodeManager->mkNode(kind::STRING_SUBSTR, c, zero, n);
 
   SkolemCache sk;

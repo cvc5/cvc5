@@ -1,5 +1,6 @@
+; SCRUBBER: grep -o "unknown\|((charlst2 ("
 ; EXPECT: unknown
-; EXPECT: ((charlst2 ((as const (Array Int String)) "")))
+; EXPECT: ((charlst2 (
 
 (set-logic ALL)
 (set-option :strings-exp true)
