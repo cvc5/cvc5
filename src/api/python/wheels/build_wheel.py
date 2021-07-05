@@ -12,6 +12,11 @@
 #
 # Script for building wheels distribution for pycvc5
 #
+# Example usage (from top-level directory):
+#   python3 ./src/api/python/wheels/build_wheel.py bdist_wheel
+# Configures and builds in directory ./build
+# Creates wheel in ./dist
+#
 ##
 
 import os
