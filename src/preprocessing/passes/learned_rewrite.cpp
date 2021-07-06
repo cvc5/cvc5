@@ -82,7 +82,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     }
     const std::map<Node, arith::Bounds>& bs = binfer.get();
     // get the literals that were critical
-    for (const std::pair<Node, arith::Bounds>& b : bs)
+    for (const std::pair<const Node, arith::Bounds>& b : bs)
     {
       for (size_t i = 0; i < 2; i++)
       {
