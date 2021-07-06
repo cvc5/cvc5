@@ -50,9 +50,10 @@ void setNoLimitCPU() {
 #endif /* ! __WIN32__ */
 }
 
-const Options& CommandExecutor::options() const {
-    return d_solver->d_smtEngine->getOptions(); 
-  }
+const Options& CommandExecutor::options() const
+{
+  return d_solver->d_smtEngine->getOptions();
+}
 
 CommandExecutor::CommandExecutor(const Options& options)
     : d_solver(new api::Solver(&options)),
@@ -131,8 +132,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   bool status = true;
   if (options().base.verbosity >= -1)
   {
-    status = solverInvoke(
-        d_solver.get(), d_symman.get(), cmd, options().base.out);
+    status =
+        solverInvoke(d_solver.get(), d_symman.get(), cmd, options().base.out);
   }
   else
   {
@@ -183,7 +184,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetInstantiationsCommand());
     }
 
-    if ((options().driver.dumpUnsatCores || options().driver.dumpUnsatCoresFull) && isResultUnsat)
+    if ((options().driver.dumpUnsatCores || options().driver.dumpUnsatCoresFull)
+        && isResultUnsat)
     {
       getterCommands.emplace_back(new GetUnsatCoreCommand());
     }

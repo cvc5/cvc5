@@ -50,7 +50,7 @@ class Result;
 class StatisticsRegistry;
 
 namespace main {
-  class CommandExecutor;
+class CommandExecutor;
 }
 
 namespace api {
