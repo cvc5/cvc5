@@ -74,7 +74,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     Trace("learned-rewrite-ll") << "Learned literals:" << std::endl;
     for (const Node& l : learnedLits)
     {
-      // maybe for bound inference?
+      // maybe use bound inference?
       Kind k = l.getKind();
       if (k == EQUAL || k == GEQ)
       {
