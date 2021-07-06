@@ -60,6 +60,7 @@ LearnedRewrite::LearnedRewrite(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult LearnedRewrite::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
+  NodeManager* nm = NodeManager::currentNM();
   arith::BoundInference binfer;
   std::vector<Node> learnedLits = d_preprocContext->getLearnedLiterals();
   std::unordered_set<Node> llrw;
@@ -72,14 +73,29 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
   else
   {
     Trace("learned-rewrite-ll") << "Learned literals:" << std::endl;
+    std::map<Node, Node> originLit;
     for (const Node& l : learnedLits)
     {
       // maybe use the literal for bound inference?
-      Kind k = l.getKind();
-      Assert(k != LT && k != GT && k != LEQ);
-      if (k == EQUAL || k == GEQ)
+      bool pol = l.getKind()!=NOT;
+      TNode atom = pol ? l : l[0];
+      Kind ak = atom.getKind();
+      Assert(ak != LT && ak != GT && ak != LEQ);
+      if ((ak == EQUAL && pol) || ak == GEQ)
       {
-        binfer.add(l);
+        // provide as < if negated >=
+        Node atomu;
+        if (!pol)
+        {
+          atomu = nm->mkNode(LT, atom[0], atom[1]);
+          originLit[atomu] = l;
+        }
+        else
+        {
+          atomu = l;
+          originLit[l] = l;
+        }
+        binfer.add(atomu);
       }
       Trace("learned-rewrite-ll") << "- " << l << std::endl;
     }
@@ -93,7 +109,8 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
         Node origin = i == 0 ? b.second.lower_origin : b.second.upper_origin;
         if (!origin.isNull())
         {
-          llrw.insert(origin);
+          Assert (originLit.find(origin)!=originLit.end());
+          llrw.insert(originLit[origin]);
         }
       }
     }
@@ -139,7 +156,6 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
   // unchanged.
   if (!llrw.empty())
   {
-    NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> llrvec(llrw.begin(), llrw.end());
     Node llc = nm->mkAnd(llrvec);
     Trace("learned-rewrite-assert")
@@ -165,7 +181,13 @@ Node LearnedRewrite::rewriteLearnedRec(Node n,
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
-
+    if (lems.find(cur) != lems.end())
+    {
+      // n is a learned literal: replace by true, not considered a rewrite
+      // for statistics
+      visited[cur] = nm->mkConst(true);
+      continue;
+    }
     if (it == visited.end())
     {
       // mark pre-visited with null; will post-visit to construct final node
@@ -210,12 +232,6 @@ Node LearnedRewrite::rewriteLearned(Node n,
                                     std::unordered_set<Node>& lems)
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (lems.find(n) != lems.end())
-  {
-    // n is a learned literal: replace by true, not considered a rewrite
-    // for statistics
-    return nm->mkConst(true);
-  }
   Trace("learned-rewrite-rr-debug") << "Rewrite " << n << std::endl;
   Node nr = Rewriter::rewrite(n);
   Kind k = nr.getKind();
