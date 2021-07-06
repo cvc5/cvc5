@@ -75,7 +75,9 @@ Trigger::Trigger(QuantifiersState& qs,
     Output(options::OutputTag::TRIGGER) << "(trigger " << qa.quantToString(q) << " (";
     for (size_t i=0, nnodes = d_nodes.size(); i<nnodes; i++)
     {
-      Output(options::OutputTag::TRIGGER) << (i>0 ? " " : "") << d_nodes[i];
+      // note we must display the original form, so we go back to bound vars
+      Node ns = d_qreg.substituteInstConstantsToBoundVariables(d_nodes[i], q);
+      Output(options::OutputTag::TRIGGER) << (i>0 ? " " : "") << ns;
     }
     Output(options::OutputTag::TRIGGER) << "))" << std::endl;
   }
