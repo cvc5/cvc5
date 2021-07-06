@@ -67,6 +67,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
   if (learnedLits.empty())
   {
     Trace("learned-rewrite-ll") << "No learned literals" << std::endl;
+    return PreprocessingPassResult::NO_CONFLICT;
   }
   else
   {
