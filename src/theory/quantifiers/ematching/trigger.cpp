@@ -16,9 +16,9 @@
 #include "theory/quantifiers/ematching/trigger.h"
 
 #include "expr/skolem_manager.h"
-#include "options/quantifiers_options.h"
 #include "options/base_options.h"
 #include "options/outputc.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 #include "theory/quantifiers/ematching/inst_match_generator_multi.h"
@@ -72,12 +72,13 @@ Trigger::Trigger(QuantifiersState& qs,
   if (Output.isOn(options::OutputTag::TRIGGER))
   {
     QuantAttributes& qa = d_qreg.getQuantAttributes();
-    Output(options::OutputTag::TRIGGER) << "(trigger " << qa.quantToString(q) << " (";
-    for (size_t i=0, nnodes = d_nodes.size(); i<nnodes; i++)
+    Output(options::OutputTag::TRIGGER)
+        << "(trigger " << qa.quantToString(q) << " (";
+    for (size_t i = 0, nnodes = d_nodes.size(); i < nnodes; i++)
     {
       // note we must display the original form, so we go back to bound vars
       Node ns = d_qreg.substituteInstConstantsToBoundVariables(d_nodes[i], q);
-      Output(options::OutputTag::TRIGGER) << (i>0 ? " " : "") << ns;
+      Output(options::OutputTag::TRIGGER) << (i > 0 ? " " : "") << ns;
     }
     Output(options::OutputTag::TRIGGER) << "))" << std::endl;
   }

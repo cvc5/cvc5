@@ -147,7 +147,8 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
         && d_auto_gen_trigger[1][f].empty() && f.getNumChildren() == 2)
     {
       Trace("trigger-warn") << "Could not find trigger for " << f << std::endl;
-      Output(options::OutputTag::TRIGGER) << "(no-trigger " << f << ")" << std::endl;
+      Output(options::OutputTag::TRIGGER)
+          << "(no-trigger " << f << ")" << std::endl;
     }
   }
   if (options::triggerActiveSelMode() != options::TriggerActiveSelMode::ALL)
