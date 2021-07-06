@@ -57,15 +57,15 @@ Trigger::Trigger(QuantifiersState& qs,
     Node np = ensureGroundTermPreprocessed(val, n, d_groundTerms);
     d_nodes.push_back(np);
   }
-  if (Trace.isOn("trigger"))
+  if (Output.isOn(options::OutputTag::TRIGGER))
   {
     QuantAttributes& qa = d_qreg.getQuantAttributes();
-    Trace("trigger") << "Trigger for " << qa.quantToString(q) << ": "
-                     << std::endl;
-    for (const Node& n : d_nodes)
+    Output(options::OutputTag::TRIGGER) << "(trigger " << qa.quantToString(q) << " ("
+    for (size_t i=0, nnodes = d_nodes.size(); i<nnodes; i++)
     {
-      Trace("trigger") << "   " << n << std::endl;
+      Output(options::OutputTag::TRIGGER) << (i>0 ? " " : "") << n;
     }
+    Output(options::OutputTag::TRIGGER) << "))" << std::endl;
   }
   QuantifiersStatistics& stats = qs.getStats();
   if( d_nodes.size()==1 ){
