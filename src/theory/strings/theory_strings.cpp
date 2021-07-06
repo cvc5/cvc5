@@ -55,7 +55,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(d_state, d_im),
       d_csolver(d_state, d_im, d_termReg, d_bsolver),
-      d_susolver(d_state, d_im, d_termReg, d_csolver),
       d_esolver(d_state,
                 d_im,
                 d_termReg,
@@ -64,6 +63,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                 d_csolver,
                 d_extTheory,
                 d_statistics),
+      d_susolver(d_state, d_im, d_termReg, d_csolver, d_esolver),
       d_rsolver(d_state,
                 d_im,
                 d_termReg.getSkolemCache(),
@@ -197,7 +197,6 @@ void TheoryStrings::presolve() {
   Debug("strings-presolve") << "Finished presolve" << std::endl;
 }
 
-
 /////////////////////////////////////////////////////////////////////////////
 // MODEL GENERATION
 /////////////////////////////////////////////////////////////////////////////
@@ -217,7 +216,7 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
   Trace("strings-model") << "TheoryStrings::collectModelValues" << std::endl;
   // Collects representatives by types and orders sequence types by how nested
   // they are
-  std::map<TypeNode, std::unordered_set<Node> > repSet;
+  std::map<TypeNode, ModelTypeInfo > tinfo;
   std::unordered_set<TypeNode> toProcess;
   // Generate model
   // get the relevant string equivalence classes
@@ -227,7 +226,17 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
     if (tn.isStringLike())
     {
       Node r = d_state.getRepresentative(s);
-      repSet[tn].insert(r);
+      tinfo[tn].d_repSet.insert(r);
+      toProcess.insert(tn);
+      if (s.getKind()==STRING_UPDATE)
+      {
+        tinfo[tn].d_updateTerms.insert(s);
+      }
+    }
+    if (s.getKind()==SEQ_NTH)
+    {
+      tn = s[0].getType();
+      tinfo[tn].d_nthTerms.insert(s);
       toProcess.insert(tn);
     }
   }
@@ -236,7 +245,7 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
   {
     // Pick one of the remaining types to collect model values for
     TypeNode tn = *toProcess.begin();
-    if (!collectModelInfoType(tn, toProcess, repSet, m))
+    if (!collectModelInfoType(tn, toProcess, tinfo, m))
     {
       return false;
     }
@@ -248,7 +257,7 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
 bool TheoryStrings::collectModelInfoType(
     TypeNode tn,
     std::unordered_set<TypeNode>& toProcess,
-    const std::map<TypeNode, std::unordered_set<Node> >& repSet,
+    const std::map<TypeNode, ModelTypeInfo >& tinfo,
     TheoryModel* m)
 {
   // Make sure that the model values for the element type of sequences are
@@ -257,7 +266,7 @@ bool TheoryStrings::collectModelInfoType(
   {
     TypeNode tnElem = tn.getSequenceElementType();
     if (toProcess.find(tnElem) != toProcess.end()
-        && !collectModelInfoType(tnElem, toProcess, repSet, m))
+        && !collectModelInfoType(tnElem, toProcess, tinfo, m))
     {
       return false;
     }
@@ -268,7 +277,7 @@ bool TheoryStrings::collectModelInfoType(
   // current type
   std::map<TypeNode, std::vector<std::vector<Node> > > colT;
   std::map<TypeNode, std::vector<Node> > ltsT;
-  const std::vector<Node> repVec(repSet.at(tn).begin(), repSet.at(tn).end());
+  const std::vector<Node> repVec(tinfo.at(tn).d_repSet.begin(), tinfo.at(tn).d_repSet.end());
   d_state.separateByLength(repVec, colT, ltsT);
   const std::vector<std::vector<Node> >& col = colT[tn];
   const std::vector<Node>& lts = ltsT[tn];
@@ -338,57 +347,7 @@ bool TheoryStrings::collectModelInfoType(
     {
       Trace("strings-model") << eqc << " ";
       //check if col[i][j] has only variables
-      if (!eqc.isConst())
-      {
-        NormalForm& nfe = d_csolver.getNormalForm(eqc);
-        if (nfe.d_nf.size() == 1)
-        {
-          // is it an equivalence class with a seq.unit term?
-          if (nfe.d_nf[0].getKind() == SEQ_UNIT)
-          {
-            Node argVal;
-            if (nfe.d_nf[0][0].getType().isStringLike())
-            {
-              // By this point, we should have assigned model values for the
-              // elements of this sequence type because of the check in the
-              // beginning of this method
-              argVal = m->getRepresentative(nfe.d_nf[0][0]);
-            }
-            else
-            {
-              // otherwise, it is a shared term
-              argVal = d_valuation.getModelValue(nfe.d_nf[0][0]);
-            }
-            Assert(!argVal.isNull());
-            Node c = Rewriter::rewrite(nm->mkNode(SEQ_UNIT, argVal));
-            pure_eq_assign[eqc] = c;
-            Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
-            m->getEqualityEngine()->addTerm(c);
-          }
-          // does it have a code and the length of these equivalence classes are
-          // one?
-          else if (d_termReg.hasStringCode() && lts_values[i] == d_one)
-          {
-            EqcInfo* eip = d_state.getOrMakeEqcInfo(eqc, false);
-            if (eip && !eip->d_codeTerm.get().isNull())
-            {
-              // its value must be equal to its code
-              Node ct = nm->mkNode(kind::STRING_TO_CODE, eip->d_codeTerm.get());
-              Node ctv = d_valuation.getModelValue(ct);
-              unsigned cvalue =
-                  ctv.getConst<Rational>().getNumerator().toUnsignedInt();
-              Trace("strings-model") << "(code: " << cvalue << ") ";
-              std::vector<unsigned> vec;
-              vec.push_back(cvalue);
-              Node mv = nm->mkConst(String(vec));
-              pure_eq_assign[eqc] = mv;
-              m->getEqualityEngine()->addTerm(mv);
-            }
-          }
-          pure_eq.push_back(eqc);
-        }
-      }
-      else
+      if (eqc.isConst())
       {
         processed[eqc] = eqc;
         // Make sure that constants are asserted to the theory model that we
@@ -397,7 +356,61 @@ bool TheoryStrings::collectModelInfoType(
         // in the term set and, as a result, are skipped when the equality
         // engine is asserted to the theory model.
         m->getEqualityEngine()->addTerm(eqc);
+        continue;
       }
+      NormalForm& nfe = d_csolver.getNormalForm(eqc);
+      if (nfe.d_nf.size() != 1)
+      {
+        // will be assigned via a concatenation of normal form eqc
+        continue;
+      }
+      // is it an equivalence class with a seq.unit term?
+      if (nfe.d_nf[0].getKind() == SEQ_UNIT)
+      {
+        Node argVal;
+        if (nfe.d_nf[0][0].getType().isStringLike())
+        {
+          // By this point, we should have assigned model values for the
+          // elements of this sequence type because of the check in the
+          // beginning of this method
+          argVal = m->getRepresentative(nfe.d_nf[0][0]);
+        }
+        else
+        {
+          // otherwise, it is a shared term
+          argVal = d_valuation.getModelValue(nfe.d_nf[0][0]);
+        }
+        Assert(!argVal.isNull());
+        Node c = Rewriter::rewrite(nm->mkNode(SEQ_UNIT, argVal));
+        pure_eq_assign[eqc] = c;
+        Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
+        m->getEqualityEngine()->addTerm(c);
+      }
+      // does it have a code and the length of these equivalence classes are
+      // one?
+      else if (d_termReg.hasStringCode() && lts_values[i] == d_one)
+      {
+        EqcInfo* eip = d_state.getOrMakeEqcInfo(eqc, false);
+        if (eip && !eip->d_codeTerm.get().isNull())
+        {
+          // its value must be equal to its code
+          Node ct = nm->mkNode(kind::STRING_TO_CODE, eip->d_codeTerm.get());
+          Node ctv = d_valuation.getModelValue(ct);
+          unsigned cvalue =
+              ctv.getConst<Rational>().getNumerator().toUnsignedInt();
+          Trace("strings-model") << "(code: " << cvalue << ") ";
+          std::vector<unsigned> vec;
+          vec.push_back(cvalue);
+          Node mv = nm->mkConst(String(vec));
+          pure_eq_assign[eqc] = mv;
+          m->getEqualityEngine()->addTerm(mv);
+        }
+      }
+      else
+      {
+        
+      }
+      pure_eq.push_back(eqc);
     }
     Trace("strings-model") << "have length " << lts_values[i] << std::endl;
 

@@ -19,6 +19,7 @@
 #define CVC5__THEORY__STRINGS__SEQ_UPDATE_SOLVER_H
 
 #include "theory/strings/core_solver.h"
+#include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
@@ -33,7 +34,8 @@ class SequencesUpdateSolver
   SequencesUpdateSolver(SolverState& s,
                         InferenceManager& im,
                         TermRegistry& tr,
-                        CoreSolver& cs);
+                        CoreSolver& cs,
+                        ExtfSolver& es);
   ~SequencesUpdateSolver();
 
   /**
@@ -41,7 +43,13 @@ class SequencesUpdateSolver
    */
   void check();
 
+  /** is handled update */
+  static bool isHandledUpdate(Node n);
+  /** get base */
+  static Node getUpdateBase(Node n);
  private:
+  /** check terms of given kind */
+  void checkTerms(Kind k);
   /** The solver state object */
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
@@ -50,6 +58,10 @@ class SequencesUpdateSolver
   TermRegistry& d_termReg;
   /** reference to the core solver, used for certain queries */
   CoreSolver& d_csolver;
+  /** reference to the extended solver, used for certain queries */
+  ExtfSolver& d_esolver;
+  /** Common constants */
+  Node d_zero;
 };
 
 }  // namespace strings

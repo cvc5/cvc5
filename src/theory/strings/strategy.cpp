@@ -131,7 +131,10 @@ void Strategy::initializeStrategy()
     {
       addStrategyStep(CHECK_LENGTH_EQC);
     }
-    addStrategyStep(CHECK_SEQUENCES_UPDATE);
+    if (options::stringSeqUpdate())
+    {
+      addStrategyStep(CHECK_SEQUENCES_UPDATE);
+    }
     if (options::stringExp() && !options::stringGuessModel())
     {
       addStrategyStep(CHECK_EXTF_REDUCTION, 2);

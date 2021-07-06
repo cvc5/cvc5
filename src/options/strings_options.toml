@@ -198,3 +198,11 @@ name   = "Strings Theory"
   type       = "bool"
   default    = "false"
   help       = "use extensionality for string disequalities"
+
+[[option]]
+  name       = "stringSeqUpdate"
+  category   = "regular"
+  long       = "strings-seq-update"
+  type       = "bool"
+  default    = "false"
+  help       = "use array-inspired solver for sequence updates"

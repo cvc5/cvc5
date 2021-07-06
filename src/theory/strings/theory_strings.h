@@ -176,6 +176,17 @@ class TheoryStrings : public Theory {
     /** The eager solver of the theory of strings */
     EagerSolver& d_eagerSolver;
   };/* class TheoryStrings::NotifyClass */
+  /** Model type info, update in collectModelValues below */
+  class ModelTypeInfo
+  {
+  public:
+    /** The set of representatives */
+    std::unordered_set<Node> d_repSet;
+    /** The set of str.update terms */
+    std::unordered_set< Node > d_updateTerms;
+    /** The set of seq.nth terms */
+    std::unordered_set< Node > d_nthTerms;
+  };
   /** compute care graph */
   void computeCareGraph() override;
   /**
@@ -195,14 +206,14 @@ class TheoryStrings : public Theory {
    *
    * @param tn The type to compute model values for
    * @param toProcess Remaining types to compute model values for
-   * @param repSet A map of types to the representatives of the equivalence
+   * @param tinfo A map of types to information, including representatives of the equivalence
    *               classes of the given type
    * @return false if a conflict is discovered while doing this assignment.
    */
   bool collectModelInfoType(
       TypeNode tn,
       std::unordered_set<TypeNode>& toProcess,
-      const std::map<TypeNode, std::unordered_set<Node>>& repSet,
+      const std::map<TypeNode, ModelTypeInfo>& tinfo,
       TheoryModel* m);
 
   /** assert pending fact
@@ -287,15 +298,15 @@ class TheoryStrings : public Theory {
    */
   CoreSolver d_csolver;
   /**
-   * The sequences update solver, responsible for reasoning about
-   * seq.nth/seq.update.
-   */
-  SequencesUpdateSolver d_susolver;
-  /**
    * Extended function solver, responsible for reductions and simplifications
    * involving extended string functions.
    */
   ExtfSolver d_esolver;
+  /**
+   * The sequences update solver, responsible for reasoning about
+   * seq.nth/seq.update.
+   */
+  SequencesUpdateSolver d_susolver;
   /** regular expression solver module */
   RegExpSolver d_rsolver;
   /** regular expression elimination module */
