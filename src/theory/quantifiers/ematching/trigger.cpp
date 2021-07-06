@@ -17,6 +17,8 @@
 
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "options/base_options.h"
+#include "options/outputc.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 #include "theory/quantifiers/ematching/inst_match_generator_multi.h"
@@ -57,13 +59,23 @@ Trigger::Trigger(QuantifiersState& qs,
     Node np = ensureGroundTermPreprocessed(val, n, d_groundTerms);
     d_nodes.push_back(np);
   }
+  if (Trace.isOn("trigger"))
+  {
+    QuantAttributes& qa = d_qreg.getQuantAttributes();
+    Trace("trigger") << "Trigger for " << qa.quantToString(q) << ": "
+                     << std::endl;
+    for (const Node& n : d_nodes)
+    {
+      Trace("trigger") << "   " << n << std::endl;
+    }
+  }
   if (Output.isOn(options::OutputTag::TRIGGER))
   {
     QuantAttributes& qa = d_qreg.getQuantAttributes();
-    Output(options::OutputTag::TRIGGER) << "(trigger " << qa.quantToString(q) << " ("
+    Output(options::OutputTag::TRIGGER) << "(trigger " << qa.quantToString(q) << " (";
     for (size_t i=0, nnodes = d_nodes.size(); i<nnodes; i++)
     {
-      Output(options::OutputTag::TRIGGER) << (i>0 ? " " : "") << n;
+      Output(options::OutputTag::TRIGGER) << (i>0 ? " " : "") << d_nodes[i];
     }
     Output(options::OutputTag::TRIGGER) << "))" << std::endl;
   }
