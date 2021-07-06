@@ -51,8 +51,6 @@ using namespace cvc5::main;
 
 namespace cvc5 {
 namespace main {
-/** Global options variable */
-thread_local Options* pOptions;
 
 /** Full argv[0] */
 const char* progPath;
@@ -98,8 +96,6 @@ void printUsage(Options& opts, bool full) {
 int runCvc5(int argc, char* argv[], Options& opts)
 {
   main::totalTime = std::make_unique<TotalTimer>();
-  // For the signal handlers' benefit
-  pOptions = &opts;
 
   // Initialize the signal handlers
   signal_handlers::install();

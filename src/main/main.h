@@ -59,9 +59,6 @@ extern std::unique_ptr<TotalTimer> totalTime;
  */
 extern bool segvSpin;
 
-/** A pointer to the options in play */
-extern thread_local Options* pOptions;
-
 }  // namespace main
 }  // namespace cvc5
 
