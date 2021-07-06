@@ -71,6 +71,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     Trace("learned-rewrite-ll") << "Learned literals:" << std::endl;
     for (const Node& l : learnedLits)
     {
+      // we apply learned rewriting to the literal
       Node e = rewriteLearnedRec(l, binfer, llrw);
       // maybe for bound inference?
       Kind k = e.getKind();
@@ -343,11 +344,12 @@ Node LearnedRewrite::rewriteLearned(Node n,
 
 Node LearnedRewrite::returnRewriteLearned(Node n, Node nr, LearnedRewriteId id)
 {
-  if (Trace.isOn("learned-rewrite-rr"))
+  if (Trace.isOn("learned-rewrite"))
   {
-    Trace("learned-rewrite-rr") << "LearnedRewrite::Rewrite: (" << id << ") "
+    Trace("learned-rewrite") << "LearnedRewrite::Rewrite: (" << id << ") "
                                 << n << " == " << nr << std::endl;
   }
+  d_lrewCount << id;
   return nr;
 }
 
