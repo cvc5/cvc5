@@ -40,6 +40,7 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
       d_lastDecisionLit(c),
       d_currStatusDec(false),
       d_useRlvOrder(options::jhRlvOrder()),
+      d_decisionStopOnly(options::decisionMode() == options::DecisionMode::STOPONLY),
       d_jhSkMode(options::jhSkolemMode()),
       d_jhSkRlvMode(options::jhSkolemRlvMode())
 {
@@ -186,6 +187,11 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
           d_lastDecisionLit = next.first;
           // record that we made a decision
           d_currStatusDec = true;
+          if (d_decisionStopOnly)
+          {
+            // only doing stop-only, return undefSatLiteral.
+            return undefSatLiteral;
+          }
           return lastChildVal == SAT_VALUE_FALSE ? ~nsl : nsl;
         }
         else

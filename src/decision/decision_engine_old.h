@@ -142,6 +142,8 @@ class DecisionEngineOld
   unsigned d_engineState;  // 0=pre-init; 1=init,pre-shutdown; 2=shutdown
   /** The ITE decision strategy we have allocated */
   std::unique_ptr<ITEDecisionStrategy> d_enabledITEStrategy;
+  /** Whether we are using stop only */
+  bool d_decisionStopOnly;
 
 }; /* DecisionEngineOld class */
 

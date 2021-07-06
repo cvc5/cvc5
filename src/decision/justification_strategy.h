@@ -252,6 +252,8 @@ class JustificationStrategy
   //------------------------------------ options
   /** using relevancy order */
   bool d_useRlvOrder;
+  /** using stop only */
+  bool d_decisionStopOnly;
   /** skolem mode */
   options::JutificationSkolemMode d_jhSkMode;
   /** skolem relevancy mode */

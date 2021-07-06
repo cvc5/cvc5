@@ -29,7 +29,7 @@ DecisionEngine::DecisionEngine(context::Context* c,
     : d_decEngineOld(new DecisionEngineOld(c, u)),
       d_jstrat(new JustificationStrategy(c, u, skdm)),
       d_resourceManager(rm),
-      d_useOld(options::decisionMode() != options::DecisionMode::JUSTIFICATION)
+      d_useOld(options::decisionMode() == options::DecisionMode::JUSTIFICATION_OLD || options::decisionMode() == options::DecisionMode::STOPONLY_OLD )
 {
 }
 

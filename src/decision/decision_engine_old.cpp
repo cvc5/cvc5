@@ -33,7 +33,8 @@ DecisionEngineOld::DecisionEngineOld(context::Context* sc,
       d_userContext(uc),
       d_result(sc, SAT_VALUE_UNKNOWN),
       d_engineState(0),
-      d_enabledITEStrategy(nullptr)
+      d_enabledITEStrategy(nullptr),
+      d_decisionStopOnly(options::decisionMode() == options::DecisionMode::STOPONLY_OLD)
 {
   Trace("decision") << "Creating decision engine" << std::endl;
   Assert(d_engineState == 0);
@@ -42,8 +43,8 @@ DecisionEngineOld::DecisionEngineOld(context::Context* sc,
   Trace("decision-init") << "DecisionEngineOld::init()" << std::endl;
   Trace("decision-init") << " * options->decisionMode: "
                          << options::decisionMode() << std::endl;
-  Trace("decision-init") << " * options->decisionStopOnly: "
-                         << options::decisionStopOnly() << std::endl;
+  Trace("decision-init") << " * decisionStopOnly: "
+                         << d_decisionStopOnly << std::endl;
 
   if (options::decisionMode() == options::DecisionMode::JUSTIFICATION)
   {
@@ -68,9 +69,11 @@ SatLiteral DecisionEngineOld::getNext(bool& stopSearch)
   Assert(d_satSolver != nullptr)
       << "Forgot to set satSolver for decision engine?";
 
-  return d_enabledITEStrategy == nullptr
+  SatLiteral ret = d_enabledITEStrategy == nullptr
              ? undefSatLiteral
              : d_enabledITEStrategy->getNext(stopSearch);
+  // if we are doing stop only, we don't return the literal
+  return d_decisionStopOnly ? undefSatLiteral : ret;
 }
 
 void DecisionEngineOld::addAssertion(TNode assertion)
