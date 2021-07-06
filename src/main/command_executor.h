@@ -57,11 +57,8 @@ class CommandExecutor
    * parsed from the command line.
    */
   const Options* d_driverOptions;
-  /**
-   * A pointer to the current options from the smt engine. Contain options from
-   * the command line and those set from the input.
-   */
-  Options* d_options;
+
+  const Options& options() const;
   api::Result d_result;
 
  public:
