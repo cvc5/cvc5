@@ -1207,6 +1207,9 @@ endif()
 if(USE_POLY)
   target_link_libraries(cvc5 PRIVATE Polyxx)
 endif()
+if(USE_COCOA)
+  target_link_libraries(cvc5 PRIVATE CoCoA)
+endif()
 
 target_link_libraries(cvc5 PRIVATE SymFPU)
 
