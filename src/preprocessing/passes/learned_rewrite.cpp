@@ -168,6 +168,8 @@ Node LearnedRewrite::rewriteLearnedRec(Node n,
 
     if (it == visited.end())
     {
+      // mark pre-visited with null; will post-visit to construct final node
+      // in the block below.
       visited[cur] = Node::null();
       visit.push_back(cur);
       visit.insert(visit.end(), cur.begin(), cur.end());
