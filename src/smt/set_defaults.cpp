@@ -488,7 +488,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                << std::endl;
       opts.smt.simplificationMode = options::SimplificationMode::NONE;
     }
-    
+
     if (options::learnedRewrite())
     {
       if (opts.smt.learnedRewriteWasSetByUser)
@@ -517,8 +517,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (opts.smt.sortInferenceWasSetByUser)
       {
-        throw OptionException(
-            "sort inference not supported with unsat cores");
+        throw OptionException("sort inference not supported with unsat cores");
       }
       Notice() << "SmtEngine: turning off sort inference to support unsat "
                   "cores\n";
@@ -555,8 +554,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         throw OptionException(
             "bool-to-bv != off not supported with unsat cores");
       }
-      Notice()
-          << "SmtEngine: turning off bool-to-bv to support unsat cores\n";
+      Notice() << "SmtEngine: turning off bool-to-bv to support unsat cores\n";
       opts.bv.boolToBitvector = options::BoolToBVMode::OFF;
     }
 
@@ -564,11 +562,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (opts.bv.bvIntroducePow2WasSetByUser)
       {
-        throw OptionException(
-            "bv-intro-pow2 not supported with unsat cores");
+        throw OptionException("bv-intro-pow2 not supported with unsat cores");
       }
-      Notice()
-          << "SmtEngine: turning off bv-intro-pow2 to support unsat cores";
+      Notice() << "SmtEngine: turning off bv-intro-pow2 to support unsat cores";
       opts.bv.bvIntroducePow2 = false;
     }
 
@@ -578,8 +574,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       {
         throw OptionException("repeat-simp not supported with unsat cores");
       }
-      Notice()
-          << "SmtEngine: turning off repeat-simp to support unsat cores\n";
+      Notice() << "SmtEngine: turning off repeat-simp to support unsat cores\n";
       opts.smt.repeatSimp = false;
     }
 
@@ -587,8 +582,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (opts.quantifiers.globalNegateWasSetByUser)
       {
-        throw OptionException(
-            "global-negate not supported with unsat cores");
+        throw OptionException("global-negate not supported with unsat cores");
       }
       Notice() << "SmtEngine: turning off global-negate to support unsat "
                   "cores\n";
