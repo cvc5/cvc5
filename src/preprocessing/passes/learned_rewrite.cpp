@@ -74,8 +74,9 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     Trace("learned-rewrite-ll") << "Learned literals:" << std::endl;
     for (const Node& l : learnedLits)
     {
-      // maybe for bound inference?
+      // maybe use the literal for bound inference?
       Kind k = l.getKind();
+      Assert (k != LT && k != GT && k != LEQ);
       if (k == EQUAL || k == GEQ)
       {
         binfer.add(l);
@@ -83,7 +84,8 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
       Trace("learned-rewrite-ll") << "- " << l << std::endl;
     }
     const std::map<Node, arith::Bounds>& bs = binfer.get();
-    // get the literals that were critical
+    // get the literals that were critical, i.e. used in the derivation of a
+    // bound
     for (const std::pair<const Node, arith::Bounds>& b : bs)
     {
       for (size_t i = 0; i < 2; i++)
@@ -132,7 +134,9 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
       assertionsToPreprocess->replace(i, e);
     }
   }
-  // add the conjunction of learned literals back to assertions
+  // Add the conjunction of learned literals back to assertions. Notice that
+  // in some cases we may add top-level assertions back to the assertion list
+  // unchanged.
   if (!llrw.empty())
   {
     NodeManager* nm = NodeManager::currentNM();
