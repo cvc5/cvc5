@@ -49,6 +49,10 @@ class Random;
 class Result;
 class StatisticsRegistry;
 
+namespace main {
+  class CommandExecutor;
+}
+
 namespace api {
 
 class Solver;
@@ -2725,6 +2729,7 @@ class CVC5_EXPORT Solver
   friend class Grammar;
   friend class Op;
   friend class cvc5::Command;
+  friend class cvc5::main::CommandExecutor;
   friend class Sort;
   friend class Term;
 

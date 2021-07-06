@@ -53,7 +53,7 @@ void setNoLimitCPU() {
 CommandExecutor::CommandExecutor(Options& options)
     : d_solver(new api::Solver(&options)),
       d_symman(new SymbolManager(d_solver.get())),
-      d_options(options),
+      d_options(d_solver->d_smtEngine->getOptions()),
       d_result()
 {
 }
