@@ -206,6 +206,9 @@ public:
   /** quantifiers reduced */
   BoolMap d_quants_red;
   std::map<Node, TrustNode> d_quantsRedTrustLem;
+  std::map<Node, Node> d_quants_red_lem;
+  /** Number of rounds we have instantiated */
+  uint32_t d_numInstRoundsLemma;
 };/* class QuantifiersEngine */
 
 }  // namespace theory

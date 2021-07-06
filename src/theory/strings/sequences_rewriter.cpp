@@ -206,8 +206,15 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
     // e.g. x++y = x++z ---> y = z, "AB" ++ x = "A" ++ y --> "B" ++ x = y
     Node s1 = utils::mkConcat(c[0], stype);
     Node s2 = utils::mkConcat(c[1], stype);
-    new_ret = s1.eqNode(s2);
-    node = returnRewrite(node, new_ret, Rewrite::STR_EQ_UNIFY);
+    if (s1 != node[0] || s2 != node[1])
+    {
+      new_ret = s1.eqNode(s2);
+      // We generally don't apply the extended equality rewriter if the
+      // original node was an equality but we may be able to do additional
+      // rewriting here, e.g.,
+      // x++y = "" --> x = "" and y = ""
+      return returnRewrite(node, new_ret, Rewrite::STR_EQ_UNIFY, true);
+    }
   }
 
   // ------- homogeneous constants
@@ -280,8 +287,12 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
         // e.g.
         //  "AA" = y ++ x ---> "AA" = x ++ y if x < y
         //  "AAA" = y ++ "A" ++ z ---> "AA" = y ++ z
+        //
+        // We generally don't apply the extended equality rewriter if the
+        // original node was an equality but we may be able to do additional
+        // rewriting here.
         new_ret = lhs.eqNode(ss);
-        node = returnRewrite(node, new_ret, Rewrite::STR_EQ_HOMOG_CONST);
+        return returnRewrite(node, new_ret, Rewrite::STR_EQ_HOMOG_CONST, true);
       }
     }
   }
@@ -1589,14 +1600,17 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
   if (s.isConst() && i.isConst())
   {
     size_t len = Word::getLength(s);
-    size_t pos = i.getConst<Rational>().getNumerator().toUnsignedInt();
-    if (pos < len)
+    if (i.getConst<Rational>().sgn() != -1)
     {
-      std::vector<Node> elements = s.getConst<Sequence>().getVec();
-      const Node& ret = elements[pos];
-      return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL);
+      size_t pos = i.getConst<Rational>().getNumerator().toUnsignedInt();
+      if (pos < len)
+      {
+        std::vector<Node> elements = s.getConst<Sequence>().getVec();
+        const Node& ret = elements[pos];
+        return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL);
+      }
     }
-    else if (node.getKind() == SEQ_NTH_TOTAL)
+    if (node.getKind() == SEQ_NTH_TOTAL)
     {
       // return arbitrary term
       Node ret = s.getType().getSequenceElementType().mkGroundValue();
@@ -3468,7 +3482,10 @@ Node SequencesRewriter::rewriteSeqUnit(Node node)
   return node;
 }
 
-Node SequencesRewriter::returnRewrite(Node node, Node ret, Rewrite r)
+Node SequencesRewriter::returnRewrite(Node node,
+                                      Node ret,
+                                      Rewrite r,
+                                      bool rewriteEqAgain)
 {
   Trace("strings-rewrite") << "Rewrite " << node << " to " << ret << " by " << r
                            << "." << std::endl;
@@ -3512,7 +3529,7 @@ Node SequencesRewriter::returnRewrite(Node node, Node ret, Rewrite r)
   {
     ret = nm->mkNode(NOT, rewriteEqualityExt(ret[0]));
   }
-  else if (retk == EQUAL && node.getKind() != EQUAL)
+  else if (retk == EQUAL && (rewriteEqAgain || node.getKind() != EQUAL))
   {
     Trace("strings-rewrite")
         << "Apply extended equality rewrite on " << ret << std::endl;
