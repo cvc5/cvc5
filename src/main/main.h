@@ -64,6 +64,6 @@ extern bool segvSpin;
 
 /** Actual cvc5 driver functions **/
 int runCvc5(int argc, char* argv[], cvc5::Options&);
-void printUsage(cvc5::Options&, bool full = false);
+void printUsage(const cvc5::Options&, bool full = false);
 
 #endif /* CVC5__MAIN__MAIN_H */

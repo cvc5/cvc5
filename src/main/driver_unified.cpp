@@ -77,7 +77,7 @@ TotalTimer::~TotalTimer()
     }  // namespace main
     }  // namespace cvc5
 
-void printUsage(Options& opts, bool full) {
+void printUsage(const Options& opts, bool full) {
   stringstream ss;
   ss << "usage: " << progName << " [options] [input-file]"
      << endl
