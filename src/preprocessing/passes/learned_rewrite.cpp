@@ -103,11 +103,14 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
       Node e = rewriteLearnedRec(l, binfer, llrw, visited);
       if (e.isConst())
       {
+        // ignore true
         if (e.getConst<bool>())
         {
           continue;
         }
-        // TODO: conflict
+        // conflict, we are done
+        assertionsToPreprocess->push_back(e);
+        return PreprocessingPassResult::CONFLICT;
       }
       llrw.insert(e);
     }
