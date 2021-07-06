@@ -2743,7 +2743,7 @@ class CVC5_EXPORT Solver
    * @param opts an optional pointer to a solver options object
    * @return the Solver
    */
-  Solver(Options* opts = nullptr);
+  Solver(const Options* opts = nullptr);
 
   /**
    * Destructor.

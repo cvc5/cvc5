@@ -52,11 +52,20 @@ class CommandExecutor
    * symbol manager.
    */
   std::unique_ptr<SymbolManager> d_symman;
-  Options& d_options;
+  /**
+   * A pointer to the original options from the driver. Contain options as
+   * parsed from the command line.
+   */
+  const Options* d_driverOptions;
+  /**
+   * A pointer to the current options from the smt engine. Contain options from
+   * the command line and those set from the input.
+   */
+  Options* d_options;
   api::Result d_result;
 
  public:
-  CommandExecutor(Options& options);
+  CommandExecutor(const Options& options);
 
   virtual ~CommandExecutor();
 
