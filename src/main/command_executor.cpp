@@ -175,9 +175,6 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetProofCommand());
     }
 
-    std::cerr << "DumpInstantiations: " << d_options->driver.dumpInstantiations << std::endl;
-    std::cerr << "From " << static_cast<void*>(&d_options) << std::endl;
-
     if (d_options->driver.dumpInstantiations
         && GetInstantiationsCommand::isEnabled(d_solver.get(), res))
     {
