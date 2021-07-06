@@ -6,3 +6,4 @@ Theory of Bit-Vectors
     ../../examples/api/cpp/bitvectors.cpp
     ../../examples/api/java/BitVectors.java
     ../../examples/api/python/bitvectors.py
+    ../../examples/api/smtlib/bitvectors.smt2
