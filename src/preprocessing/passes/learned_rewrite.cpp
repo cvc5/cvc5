@@ -76,7 +76,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     {
       // maybe use the literal for bound inference?
       Kind k = l.getKind();
-      Assert (k != LT && k != GT && k != LEQ);
+      Assert(k != LT && k != GT && k != LEQ);
       if (k == EQUAL || k == GEQ)
       {
         binfer.add(l);
@@ -153,7 +153,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
 Node LearnedRewrite::rewriteLearnedRec(Node n,
                                        arith::BoundInference& binfer,
                                        std::unordered_set<Node>& lems,
-                         std::unordered_map<TNode, Node>& visited)
+                                       std::unordered_map<TNode, Node>& visited)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node>::iterator it;
