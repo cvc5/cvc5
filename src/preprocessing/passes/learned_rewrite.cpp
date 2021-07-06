@@ -61,7 +61,8 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
 {
   arith::BoundInference binfer;
   std::vector<Node> learnedLits = d_preprocContext->getLearnedLiterals();
-  std::vector<Node> llrw;
+  std::unordered_set<Node> llrw;
+  std::unordered_map<TNode, Node> visited;
   if (learnedLits.empty())
   {
     Trace("learned-rewrite-ll") << "No learned literals" << std::endl;
@@ -71,16 +72,44 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     Trace("learned-rewrite-ll") << "Learned literals:" << std::endl;
     for (const Node& l : learnedLits)
     {
-      // we apply learned rewriting to the literal
-      Node e = rewriteLearnedRec(l, binfer, llrw);
       // maybe for bound inference?
-      Kind k = e.getKind();
+      Kind k = l.getKind();
       if (k == EQUAL || k == GEQ)
       {
-        binfer.add(e);
-        llrw.push_back(e);
+        binfer.add(l);
       }
-      Trace("learned-rewrite-ll") << "- " << e << std::endl;
+      Trace("learned-rewrite-ll") << "- " << l << std::endl;
+    }
+    const std::map<Node, arith::Bounds>& bs = binfer.get();
+    // get the literals that were critical
+    for (const std::pair<Node, arith::Bounds>& b : bs)
+    {
+      for (size_t i=0; i<2; i++)
+      {
+        Node origin = i==0 ? b.second.lower_origin : b.second.upper_origin;
+        if (!origin.isNull())
+        {
+          llrw.insert(origin);
+        }
+      }
+    }
+    // rewrite the non-critical learned literals, some may be redundant
+    for (const Node& l : learnedLits)
+    {
+      if (llrw.find(l)!=llrw.end())
+      {
+        continue;
+      }
+      Node e = rewriteLearnedRec(l, binfer, llrw, visited);
+      if (e.isConst())
+      {
+        if (e.getConst<bool>())
+        {
+          continue;
+        }
+        // TODO: conflict
+      }
+      llrw.insert(e);
     }
     Trace("learned-rewrite-ll") << "end" << std::endl;
   }
@@ -90,7 +119,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     Node prev = (*assertionsToPreprocess)[i];
     Trace("learned-rewrite-assert")
         << "LearnedRewrite: assert: " << prev << std::endl;
-    Node e = rewriteLearnedRec(prev, binfer, llrw);
+    Node e = rewriteLearnedRec(prev, binfer, llrw, visited);
     if (e != prev)
     {
       Trace("learned-rewrite-assert")
@@ -102,7 +131,8 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
   if (!llrw.empty())
   {
     NodeManager* nm = NodeManager::currentNM();
-    Node llc = nm->mkAnd(llrw);
+    std::vector<Node> llrvec(llrw.begin(), llrw.end());
+    Node llc = nm->mkAnd(llrvec);
     Trace("learned-rewrite-assert")
         << "Re-add rewritten learned conjunction: " << llc << std::endl;
     assertionsToPreprocess->push_back(llc);
@@ -113,10 +143,10 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
 
 Node LearnedRewrite::rewriteLearnedRec(Node n,
                                        arith::BoundInference& binfer,
-                                       std::vector<Node>& lems)
+                                       std::unordered_set<Node>& lems,
+  std::unordered_map<TNode, Node>& visited)
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
@@ -166,9 +196,15 @@ Node LearnedRewrite::rewriteLearnedRec(Node n,
 
 Node LearnedRewrite::rewriteLearned(Node n,
                                     arith::BoundInference& binfer,
-                                    std::vector<Node>& lems)
+                                    std::unordered_set<Node>& lems)
 {
   NodeManager* nm = NodeManager::currentNM();
+  if (lems.find(n)!=lems.end())
+  {
+    // n is a learned literal: replace by true, not considered a rewrite
+    // for statistics
+    return nm->mkConst(true);
+  }
   Trace("learned-rewrite-rr-debug") << "Rewrite " << n << std::endl;
   Node nr = Rewriter::rewrite(n);
   Kind k = nr.getKind();
