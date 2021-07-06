@@ -84,9 +84,9 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     // get the literals that were critical
     for (const std::pair<Node, arith::Bounds>& b : bs)
     {
-      for (size_t i=0; i<2; i++)
+      for (size_t i = 0; i < 2; i++)
       {
-        Node origin = i==0 ? b.second.lower_origin : b.second.upper_origin;
+        Node origin = i == 0 ? b.second.lower_origin : b.second.upper_origin;
         if (!origin.isNull())
         {
           llrw.insert(origin);
@@ -96,7 +96,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     // rewrite the non-critical learned literals, some may be redundant
     for (const Node& l : learnedLits)
     {
-      if (llrw.find(l)!=llrw.end())
+      if (llrw.find(l) != llrw.end())
       {
         continue;
       }
@@ -144,7 +144,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
 Node LearnedRewrite::rewriteLearnedRec(Node n,
                                        arith::BoundInference& binfer,
                                        std::unordered_set<Node>& lems,
-  std::unordered_map<TNode, Node>& visited)
+                                       std::unordered_map<TNode, Node>& visited)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node>::iterator it;
@@ -199,7 +199,7 @@ Node LearnedRewrite::rewriteLearned(Node n,
                                     std::unordered_set<Node>& lems)
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (lems.find(n)!=lems.end())
+  if (lems.find(n) != lems.end())
   {
     // n is a learned literal: replace by true, not considered a rewrite
     // for statistics
@@ -382,8 +382,8 @@ Node LearnedRewrite::returnRewriteLearned(Node n, Node nr, LearnedRewriteId id)
 {
   if (Trace.isOn("learned-rewrite"))
   {
-    Trace("learned-rewrite") << "LearnedRewrite::Rewrite: (" << id << ") "
-                                << n << " == " << nr << std::endl;
+    Trace("learned-rewrite") << "LearnedRewrite::Rewrite: (" << id << ") " << n
+                             << " == " << nr << std::endl;
   }
   d_lrewCount << id;
   return nr;
