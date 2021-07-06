@@ -277,10 +277,26 @@ bool TheoryStrings::collectModelInfoType(
   // current type
   std::map<TypeNode, std::vector<std::vector<Node> > > colT;
   std::map<TypeNode, std::vector<Node> > ltsT;
-  const std::vector<Node> repVec(tinfo.at(tn).d_repSet.begin(), tinfo.at(tn).d_repSet.end());
+  const ModelTypeInfo& mti = tinfo.at(tn);
+  const std::vector<Node> repVec(mti.d_repSet.begin(), mti.d_repSet.end());
   d_state.separateByLength(repVec, colT, ltsT);
   const std::vector<std::vector<Node> >& col = colT[tn];
   const std::vector<Node>& lts = ltsT[tn];
+  
+  // process the update terms: organize by eqc?
+  if (options::stringSeqUpdate())
+  {
+    /*
+    for (size_t i=0; i<2; i++)
+    {
+      const std::unordered_set<Node>& terms = i==0 ? mti.d_updateTerms : mti.d_nthTerms;
+      for (const Node& t : terms)
+      {
+        
+      }
+    }
+    */
+  }
 
   NodeManager* nm = NodeManager::currentNM();
   std::map< Node, Node > processed;
@@ -386,10 +402,9 @@ bool TheoryStrings::collectModelInfoType(
         Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
         m->getEqualityEngine()->addTerm(c);
       }
-      // does it have a code and the length of these equivalence classes are
-      // one?
       else if (d_termReg.hasStringCode() && lts_values[i] == d_one)
       {
+        // it has a code and the length of these equivalence classes are one
         EqcInfo* eip = d_state.getOrMakeEqcInfo(eqc, false);
         if (eip && !eip->d_codeTerm.get().isNull())
         {
@@ -408,7 +423,18 @@ bool TheoryStrings::collectModelInfoType(
       }
       else
       {
-        
+        // TODO: determine skeleton based on relevant terms?
+        // it has seq.update or seq.nth terms
+        /*
+        std::map<Node, Node> updatePts;
+        for (size_t i=0; i<2; i++)
+        {
+        }
+        if (!updatePts.empty())
+        {
+          
+        }
+        */
       }
       pure_eq.push_back(eqc);
     }
