@@ -50,7 +50,7 @@ def get_cvc5_version():
     str_pattern = 'set\(CVC5_(?P<component>MAJOR|MINOR|RELEASE)\s*(?P<version>\d+)\)'
     pattern = re.compile(str_pattern)
     with open(project_src_path + '/CMakeLists.txt', 'r') as f:
-        for line in f.read().split('\n'):
+        for line in f:
             line = line.strip()
             m = pattern.search(line)
             if m:
