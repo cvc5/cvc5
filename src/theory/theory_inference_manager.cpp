@@ -128,7 +128,6 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
   smt::currentResourceManager()->spendResource(id);
   Trace("im") << "(conflict " << id << " " << tconf.getProven() << ")"
               << std::endl;
-  d_theoryState.notifyInConflict();
   d_out.trustedConflict(tconf);
   ++d_numConflicts;
 }
@@ -562,6 +561,11 @@ void TheoryInferenceManager::safePoint(Resource r)
 void TheoryInferenceManager::setIncomplete(IncompleteId id)
 {
   d_out.setIncomplete(id);
+}
+
+void TheoryInferenceManager::notifyInConflict()
+{
+  d_theoryState.notifyInConflict();
 }
 
 }  // namespace theory

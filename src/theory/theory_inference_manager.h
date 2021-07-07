@@ -371,6 +371,11 @@ class TheoryInferenceManager
    * this context level.
    */
   void setIncomplete(IncompleteId id);
+  /**
+   * Notify this inference manager that a conflict was sent in this SAT context.
+   * This method is called via TheoryEngine when a conflict is sent.
+   */
+  virtual void notifyInConflict();
 
  protected:
   /**
