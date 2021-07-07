@@ -88,6 +88,8 @@ libcvc5_add_sources(
   preprocessing/passes/ite_removal.h
   preprocessing/passes/ite_simp.cpp
   preprocessing/passes/ite_simp.h
+  preprocessing/passes/learned_rewrite.cpp
+  preprocessing/passes/learned_rewrite.h
   preprocessing/passes/miplib_trick.cpp
   preprocessing/passes/miplib_trick.h
   preprocessing/passes/nl_ext_purify.cpp
@@ -1204,6 +1206,9 @@ if(USE_GLPK)
 endif()
 if(USE_POLY)
   target_link_libraries(cvc5 PRIVATE Polyxx)
+endif()
+if(USE_COCOA)
+  target_link_libraries(cvc5 PRIVATE CoCoA)
 endif()
 
 target_link_libraries(cvc5 PRIVATE SymFPU)
