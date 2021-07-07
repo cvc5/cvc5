@@ -280,6 +280,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       continue;
     }
+    AlwaysAssert(false) << "A model equality could not be asserted: " << p.first << " == " << p.second << std::endl;
     // If we failed to assert an equality, it is likely due to theory
     // combination, namely the repaired model for non-linear changed
     // an equality status that was agreed upon by both (linear) arithmetic
