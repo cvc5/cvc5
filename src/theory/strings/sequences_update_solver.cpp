@@ -64,6 +64,7 @@ void SequencesUpdateSolver::check()
                         << std::endl;
     return;
   }
+  d_writeModel.clear();
 
   Trace("seq-update") << "check..." << std::endl;
 
@@ -96,6 +97,7 @@ void SequencesUpdateSolver::checkTerms(Kind k)
     }
     else if (nf.d_nf.size() == 1)
     {
+      // TODO: split on n=0 if needed, do not introduce ITE
       if (nf.d_nf[0].getKind() == SEQ_UNIT)
       {
         // do we know whether n = 0 ?
@@ -127,6 +129,7 @@ void SequencesUpdateSolver::checkTerms(Kind k)
       continue;
     }
     // otherwise, we are the concatenation of the components
+    // TODO: for nth, split on index vs component lengths, do not introduce ITE
     std::vector<Node> cond;
     std::vector<Node> cchildren;
     Node curr;
@@ -161,6 +164,7 @@ void SequencesUpdateSolver::checkTerms(Kind k)
     // z = (seq.++ x y) => 
     // (seq.update z n l) = 
     //   (seq.++ (seq.update x n 1) (seq.update y (- n len(x)) 1))
+    // FIXME: negative n
     // z = (seq.++ x y) =>
     // (seq.nth z n) = 
     //    (ite (< n (str.len x)) (seq.nth x n) 
@@ -193,6 +197,10 @@ void SequencesUpdateSolver::checkTerms(Kind k)
   }
 }
 
+const std::map<Node, Node>& SequencesUpdateSolver::getWriteModel(Node eqc)
+{
+  return d_writeModel[eqc];
+}
 
 }  // namespace strings
 }  // namespace theory

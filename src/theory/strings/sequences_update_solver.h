@@ -47,6 +47,18 @@ class SequencesUpdateSolver
   static bool isHandledUpdate(Node n);
   /** get base */
   static Node getUpdateBase(Node n);
+  
+  /**
+   * 
+   * @param eqc The sequence equivalence class representative. We can assume
+   * the equivalence class of eqc contains no concatenation terms.
+   * @return the map corresponding to the model for eqc. The domain of
+   * the returned map should be in distinct integer equivalence classes of the
+   * equality engine of strings theory. The model assigned to eqc will be
+   * a skeleton constructed via seq.++ where the components take values from
+   * this map.
+   */
+  const std::map<Node, Node>& getWriteModel(Node eqc);
  private:
   /** check terms of given kind */
   void checkTerms(Kind k);
@@ -62,6 +74,8 @@ class SequencesUpdateSolver
   ExtfSolver& d_esolver;
   /** Common constants */
   Node d_zero;
+  /** The write model */
+  std::map< Node, std::map< Node, Node > > d_writeModel;
 };
 
 }  // namespace strings
