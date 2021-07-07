@@ -245,8 +245,14 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
                                      const std::set<Node>& termSet)
 {
   // get the model from the linear solver
-  std::map<Node, Node> arithModel;
-  d_internal->collectModelValues(termSet, arithModel);
+  if (Trace.isOn("arith::model"))
+  {
+    Trace("arith::model") << "arithmetic model before pruning" << std::endl;
+    for (const auto& p : d_arithModelCache)
+    {
+      Trace("arith::model") << "\t" << p.first << " -> " << p.second << std::endl;
+    }
+  }
 
   for (auto it = d_arithModelCache.begin(); it != d_arithModelCache.end();)
   {
@@ -256,9 +262,17 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
       it = d_arithModelCache.erase(it);
     }
   }
+  if (Trace.isOn("arith::model"))
+  {
+    Trace("arith::model") << "arithmetic model after pruning" << std::endl;
+    for (const auto& p : d_arithModelCache)
+    {
+      Trace("arith::model") << "\t" << p.first << " -> " << p.second << std::endl;
+    }
+  }
 
   // We are now ready to assert the model.
-  for (const std::pair<const Node, Node>& p : arithModel)
+  for (const std::pair<const Node, Node>& p : d_arithModelCache)
   {
     // maps to constant of comparable type
     Assert(p.first.getType().isComparableTo(p.second.getType()));
