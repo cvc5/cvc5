@@ -54,7 +54,8 @@ class RewriteProofRule
             const std::vector<Node>& userFvs,
             const std::vector<Node>& fvs,
             const std::vector<Node>& cond,
-            Node conc);
+            Node conc,
+            bool isFixedPoint);
   /** get name */
   const char* getName() const;
   /** Get user variable list */
@@ -112,6 +113,8 @@ class RewriteProofRule
   std::vector<Node> d_obGen;
   /** The conclusion of the rule (an equality) */
   Node d_conc;
+  /** Is the rule applied until a fixed point is reached? */
+  bool d_isFixedPoint;
   /** the ordered list of free variables, provided by the user */
   std::vector<Node> d_userFvs;
   /** the ordered list of free variables */

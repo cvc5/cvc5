@@ -43,8 +43,12 @@ RewriteDb::RewriteDb() : d_canonCb(), d_canon(&d_canonCb)
   Trace("rewrite-db") << "END" << std::endl;
 }
 
-void RewriteDb::addRule(
-    DslPfRule id, const std::vector<Node> fvs, Node a, Node b, Node cond)
+void RewriteDb::addRule(DslPfRule id,
+                        const std::vector<Node> fvs,
+                        Node a,
+                        Node b,
+                        Node cond,
+                        bool isFixedPoint)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node eq = a.eqNode(b);
@@ -132,7 +136,7 @@ void RewriteDb::addRule(
   }
 
   // initialize rule
-  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC);
+  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC, isFixedPoint);
   d_concToRules[eqC].push_back(id);
   d_headToRules[eqC[0]].push_back(id);
 }

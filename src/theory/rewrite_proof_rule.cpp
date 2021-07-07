@@ -39,13 +39,17 @@ bool getDslPfRule(TNode n, DslPfRule& id)
   return false;
 }
 
-RewriteProofRule::RewriteProofRule() : d_id(DslPfRule::FAIL) {}
+RewriteProofRule::RewriteProofRule()
+    : d_id(DslPfRule::FAIL), d_isFixedPoint(false)
+{
+}
 
 void RewriteProofRule::init(DslPfRule id,
                             const std::vector<Node>& userFvs,
                             const std::vector<Node>& fvs,
                             const std::vector<Node>& cond,
-                            Node conc)
+                            Node conc,
+                            bool isFixedPoint)
 {
   // not initialized yet
   Assert(d_cond.empty() && d_obGen.empty() && d_fvs.empty());
@@ -68,6 +72,7 @@ void RewriteProofRule::init(DslPfRule id,
     d_obGen.push_back(cc);
   }
   d_conc = conc;
+  d_isFixedPoint = isFixedPoint;
   if (!expr::getListVarContext(conc, d_listVarCtx))
   {
     Unhandled() << "Ambiguous context for list variables in conclusion of rule "

@@ -250,22 +250,25 @@ class Parser:
                  lambda s, l, t: self.var_decl_action(t[0], t[1], t[2:])))
         return (pp.Suppress('(') + pp.ZeroOrMore(decl) + pp.Suppress(')'))
 
-    def rule_action(self, name, cond, lhs, rhs):
+    def rule_action(self, name, cond, lhs, rhs, is_fixed_point):
         bvars = self.symbols.symbols.values()
         self.symbols.pop()
-        return Rule(name, bvars, cond, lhs, rhs)
+        return Rule(name, bvars, cond, lhs, rhs, is_fixed_point)
 
     def parse_rules(self, s):
         rule = (
-            pp.Suppress('(') + pp.Keyword('define-rule') + self.symbol() +
-            self.var_list() + self.expr() + self.expr() +
+            pp.Suppress('(') +
+            (pp.Keyword('define-rule*') | pp.Keyword('define-rule')) +
+            self.symbol() + self.var_list() + self.expr() + self.expr() +
             pp.Suppress(')')).setParseAction(lambda s, l, t: self.rule_action(
-                t[1], CBool(True), t[2], t[3]))
+                t[1], CBool(True), t[2], t[3], t[0] == 'define-rule*'))
         cond_rule = (
-            pp.Suppress('(') + pp.Keyword('define-cond-rule') + self.symbol() +
-            self.var_list() + self.expr() + self.expr() + self.expr() +
-            pp.Suppress(')')).setParseAction(
-                lambda s, l, t: self.rule_action(t[1], t[2], t[3], t[4]))
+            pp.Suppress('(') +
+            (pp.Keyword('define-cond-rule*') | pp.Keyword('define-cond-rule'))
+            + self.symbol() + self.var_list() + self.expr() + self.expr() +
+            self.expr() +
+            pp.Suppress(')')).setParseAction(lambda s, l, t: self.rule_action(
+                t[1], t[2], t[3], t[4], t[0] == 'define-cond-rule*'))
         rules = pp.OneOrMore(rule | cond_rule) + pp.StringEnd()
         rules.ignore(';' + pp.restOfLine)
         return rules.parseString(s)

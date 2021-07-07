@@ -8,7 +8,7 @@
 (define-rule bool-impl-false ((t Bool)) (=> t false) (not t))
 
 (define-rule bool-or-true ((xs Bool :list) (ys Bool :list)) (or xs true ys) true)
-(define-rule bool-or-false ((xs Bool :list) (ys Bool :list)) (or xs false ys) (or xs ys))
+(define-rule* bool-or-false ((xs Bool :list) (ys Bool :list)) (or xs false ys) (or xs ys))
 (define-rule bool-or-flatten ((xs Bool :list) (b Bool) (ys Bool :list) (zs Bool :list)) (or xs (or b ys) zs) (or xs b ys zs))
 (define-rule bool-or-dup ((xs Bool :list) (b Bool) (ys Bool :list) (zs Bool :list)) (or xs b ys b zs) (or xs b ys zs))
 

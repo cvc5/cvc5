@@ -56,7 +56,8 @@ class RewriteDb
                const std::vector<Node> fvs,
                Node a,
                Node b,
-               Node cond);
+               Node cond,
+               bool isFixedPoint);
   /** get matches */
   void getMatches(Node eq, expr::NotifyMatch* ntm);
   /** get rule for id */
