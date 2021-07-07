@@ -312,7 +312,17 @@ void TheoryArith::presolve(){
 }
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
-  return d_internal->getEqualityStatus(a,b);
+  auto ait = d_arithModelCache.find(a);
+  auto bit = d_arithModelCache.find(b);
+  if (ait == d_arithModelCache.end() || bit == d_arithModelCache.end())
+  {
+    return EQUALITY_UNKNOWN;
+  }
+  if (ait->second == bit->second) {
+    return EQUALITY_TRUE_IN_MODEL;
+  }
+  return EQUALITY_FALSE_IN_MODEL;
+  //return d_internal->getEqualityStatus(a,b);
 }
 
 Node TheoryArith::getModelValue(TNode var) {
