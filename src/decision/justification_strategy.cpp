@@ -26,7 +26,7 @@ namespace decision {
 JustificationStrategy::JustificationStrategy(context::Context* c,
                                              context::UserContext* u,
                                              prop::SkolemDefManager* skdm,
-                 ResourceManager* rm)
+                                             ResourceManager* rm)
     : DecisionEngine(c, rm),
       d_skdm(skdm),
       d_assertions(
@@ -39,7 +39,8 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
       d_lastDecisionLit(c),
       d_currStatusDec(false),
       d_useRlvOrder(options::jhRlvOrder()),
-      d_decisionStopOnly(options::decisionMode() == options::DecisionMode::STOPONLY),
+      d_decisionStopOnly(options::decisionMode()
+                         == options::DecisionMode::STOPONLY),
       d_jhSkMode(options::jhSkolemMode()),
       d_jhSkRlvMode(options::jhSkolemRlvMode())
 {

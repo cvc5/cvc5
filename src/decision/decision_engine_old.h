@@ -20,13 +20,13 @@
 
 #include "base/output.h"
 #include "context/cdo.h"
+#include "decision/decision_engine.h"
 #include "decision/decision_strategy.h"
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
 #include "util/result.h"
-#include "decision/decision_engine.h"
 
 using namespace cvc5::prop;
 using namespace cvc5::decision;
@@ -39,8 +39,9 @@ class DecisionEngineOld : public decision::DecisionEngine
   // Necessary functions
 
   /** Constructor */
-  DecisionEngineOld(context::Context* sc, context::UserContext* uc,
-                 ResourceManager* rm);
+  DecisionEngineOld(context::Context* sc,
+                    context::UserContext* uc,
+                    ResourceManager* rm);
 
   /** Destructor, currently does nothing */
   ~DecisionEngineOld()

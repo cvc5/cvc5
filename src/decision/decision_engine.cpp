@@ -22,8 +22,7 @@
 namespace cvc5 {
 namespace decision {
 
-DecisionEngine::DecisionEngine(context::Context* c,
-                               ResourceManager* rm)
+DecisionEngine::DecisionEngine(context::Context* c, ResourceManager* rm)
     : d_context(c),
       d_resourceManager(rm),
       d_cnfStream(nullptr),
@@ -31,8 +30,7 @@ DecisionEngine::DecisionEngine(context::Context* c,
 {
 }
 
-void DecisionEngine::finishInit(CDCLTSatSolverInterface* ss,
-                                       CnfStream* cs)
+void DecisionEngine::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
 {
   d_satSolver = ss;
   d_cnfStream = cs;
@@ -45,11 +43,17 @@ prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
 }
 
 DecisionEngineEmpty::DecisionEngineEmpty(context::Context* sc,
-                ResourceManager* rm) : DecisionEngine(sc, rm) {}
+                                         ResourceManager* rm)
+    : DecisionEngine(sc, rm)
+{
+}
 bool DecisionEngineEmpty::isDone() { return false; }
 void DecisionEngineEmpty::addAssertion(TNode assertion) {}
 void DecisionEngineEmpty::addSkolemDefinition(TNode lem, TNode skolem) {}
-prop::SatLiteral DecisionEngineEmpty::getNextInternal(bool& stopSearch) { return undefSatLiteral; }
+prop::SatLiteral DecisionEngineEmpty::getNextInternal(bool& stopSearch)
+{
+  return undefSatLiteral;
+}
 
 }  // namespace decision
 }  // namespace cvc5

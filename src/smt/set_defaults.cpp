@@ -943,16 +943,17 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     opts.decision.decisionMode = decMode;
     if (stoponly)
     {
-      if (opts.decision.decisionMode==options::DecisionMode::JUSTIFICATION)
+      if (opts.decision.decisionMode == options::DecisionMode::JUSTIFICATION)
       {
         opts.decision.decisionMode = options::DecisionMode::STOPONLY;
       }
       else
       {
-        Assert (opts.decision.decisionMode==options::DecisionMode::INTERNAL);
+        Assert(opts.decision.decisionMode == options::DecisionMode::INTERNAL);
       }
     }
-    Trace("smt") << "setting decision mode to " << opts.decision.decisionMode << std::endl;
+    Trace("smt") << "setting decision mode to " << opts.decision.decisionMode
+                 << std::endl;
   }
   if (options::incrementalSolving())
   {

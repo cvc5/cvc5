@@ -21,8 +21,8 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "decision/justification_strategy.h"
 #include "decision/decision_engine_old.h"
+#include "decision/justification_strategy.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/main_options.h"
@@ -89,20 +89,20 @@ PropEngine::PropEngine(TheoryEngine* te,
   ResourceManager* rm = d_env.getResourceManager();
 
   options::DecisionMode dmode = options::decisionMode();
-  if (dmode == options::DecisionMode::JUSTIFICATION || dmode == options::DecisionMode::STOPONLY)
+  if (dmode == options::DecisionMode::JUSTIFICATION
+      || dmode == options::DecisionMode::STOPONLY)
   {
-    d_decisionEngine.reset(
-        new decision::JustificationStrategy(satContext, userContext, d_skdm.get(), rm));
+    d_decisionEngine.reset(new decision::JustificationStrategy(
+        satContext, userContext, d_skdm.get(), rm));
   }
-  else if (dmode == options::DecisionMode::JUSTIFICATION_OLD || dmode == options::DecisionMode::STOPONLY_OLD)
+  else if (dmode == options::DecisionMode::JUSTIFICATION_OLD
+           || dmode == options::DecisionMode::STOPONLY_OLD)
   {
-    d_decisionEngine.reset(
-        new DecisionEngineOld(satContext, userContext,  rm));
+    d_decisionEngine.reset(new DecisionEngineOld(satContext, userContext, rm));
   }
   else
   {
-    d_decisionEngine.reset(
-        new decision::DecisionEngineEmpty(satContext, rm));
+    d_decisionEngine.reset(new decision::DecisionEngineEmpty(satContext, rm));
   }
 
   d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());

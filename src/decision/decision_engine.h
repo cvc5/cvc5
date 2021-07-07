@@ -32,7 +32,7 @@ class DecisionEngine
   /** Constructor */
   DecisionEngine(context::Context* sc,
                  ResourceManager* rm);
-  virtual ~DecisionEngine(){}
+  virtual ~DecisionEngine() {}
 
   /** Finish initialize */
   void finishInit(prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
@@ -85,12 +85,12 @@ class DecisionEngine
  */
 class DecisionEngineEmpty : public DecisionEngine
 {
-public:
-  DecisionEngineEmpty(context::Context* sc,
-                 ResourceManager* rm);
+ public:
+  DecisionEngineEmpty(context::Context* sc, ResourceManager* rm);
   bool isDone() override;
   void addAssertion(TNode assertion) override;
   void addSkolemDefinition(TNode lem, TNode skolem) override;
+
  protected:
   prop::SatLiteral getNextInternal(bool& stopSearch) override;
 };
