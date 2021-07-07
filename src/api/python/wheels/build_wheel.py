@@ -49,7 +49,7 @@ def get_cvc5_version():
     version = dict()
     str_pattern = 'set\(CVC5_(?P<component>MAJOR|MINOR|RELEASE)\s*(?P<version>\d+)\)'
     pattern = re.compile(str_pattern)
-    with open(project_src_path + '/CMakeLists.txt', 'r') as f:
+    with open(os.path.join(project_src_path, 'CMakeLists.txt'), 'r') as f:
         for line in f:
             line = line.strip()
             m = pattern.search(line)
@@ -92,11 +92,6 @@ class CMakeBuild(build_ext):
         tag = platform.system().lower()
         return tag == "windows"
 
-    @staticmethod
-    def is_linux():
-        tag = platform.system().lower()
-        return tag == "linux"
-
     def build_extension(self, ext):
         extdir = os.path.abspath(
             os.path.dirname(self.get_ext_fullpath(ext.name)))
@@ -110,7 +105,7 @@ class CMakeBuild(build_ext):
         project_src_path = get_project_src_path()
         build_dir = os.path.join(project_src_path, "build")
 
-        # to avoid multiple build, only call reconfigure if we couldn't find the makefile
+        # to avoid multiple builds, only call reconfigure if we couldn't find the makefile
         # for python
         python_build_dir = os.path.join(build_dir, "src", "api", "python")
         if not os.path.isfile(os.path.join(python_build_dir, "Makefile")):
