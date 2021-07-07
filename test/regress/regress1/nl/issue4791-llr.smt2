@@ -1,4 +1,4 @@
-; COMMAND-LINE: --learned-rewrite
+; COMMAND-LINE: --learned-rewrite --no-check-unsat-cores
 ; EXPECT: unsat
 ;
 ;!(a,b,c).( 0<=b & 1<=c & 0<=a & 1<=c
