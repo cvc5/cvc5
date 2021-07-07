@@ -160,6 +160,16 @@ class TheoryArith : public Theory {
   /** The theory rewriter for this theory. */
   ArithRewriter d_rewriter;
 
+  /**
+   * Caches the current arithmetic model with the following life cycle:
+   * postCheck retrieves the model from arith_private and puts it into the
+   * cache. If nonlinear reasoning is enabled, the cache is used for (and
+   * possibly updated by) model-based refinement in postCheck.
+   * In collectModelValues, the cache is filtered for the termSet and then
+   * used to augment the TheoryModel.
+   */
+  std::map<Node, Node> d_arithModelCache;
+
 };/* class TheoryArith */
 
 }  // namespace arith

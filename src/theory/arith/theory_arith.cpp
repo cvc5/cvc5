@@ -187,6 +187,9 @@ void TheoryArith::postCheck(Effort level)
     return;
   }
 
+  d_arithModelCache.clear();
+  d_internal->collectModelValues({}, d_arithModelCache, false);
+
   if (Theory::fullEffort(level))
   {
     if (d_nonlinearExtension != nullptr)
@@ -194,14 +197,8 @@ void TheoryArith::postCheck(Effort level)
       Trace("arith-check") << "TheoryArith::nlExt regular check" << std::endl;
       d_nonlinearExtension->check(level);
 
-      std::map<Node, Node> arithModel;
-      std::set<Node> termSet;
-      //modelManager::collectAssertedTerms()
-      computeRelevantTerms(termSet);
-      Trace("arith-check") << "termSet check: " << termSet << std::endl;
-      d_internal->collectModelValues(termSet, arithModel);
       Trace("arith-check") << "TheoryArith::nlExt intercept model" << std::endl;
-      d_nonlinearExtension->interceptModel(arithModel, termSet);
+      d_nonlinearExtension->interceptModel(d_arithModelCache, {});
     }
     else if (d_internal->foundNonlinear())
     {
@@ -250,14 +247,16 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   // get the model from the linear solver
   std::map<Node, Node> arithModel;
   d_internal->collectModelValues(termSet, arithModel);
-  // if non-linear is enabled, intercept the model, which may repair its values
-  if (d_nonlinearExtension != nullptr)
+
+  for (auto it = d_arithModelCache.begin(); it != d_arithModelCache.end();)
   {
-    // Non-linear may repair values to satisfy non-linear constraints (see
-    // documentation for NonlinearExtension::interceptModel).
-    Trace("arith-check") << "termSet cmv: " << termSet << std::endl;
-    d_nonlinearExtension->interceptModel(arithModel, termSet);
+    if (termSet.count(it->first) > 0) {
+      ++it;
+    } else {
+      it = d_arithModelCache.erase(it);
+    }
   }
+
   // We are now ready to assert the model.
   for (const std::pair<const Node, Node>& p : arithModel)
   {
