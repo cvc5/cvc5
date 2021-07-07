@@ -460,9 +460,12 @@ private:
    * @param termSet The set of relevant terms
    * @param arithModel Mapping from terms (of real type) to their values. The
    * caller should assert equalities to the model for each entry in this map.
+   * @param respectTermSet If set to false, ignore the term set and collect the
+   * whole model.
    */
   void collectModelValues(const std::set<Node>& termSet,
-                          std::map<Node, Node>& arithModel);
+                          std::map<Node, Node>& arithModel,
+                          bool respectTermSet = true);
 
   void shutdown(){ }
 
