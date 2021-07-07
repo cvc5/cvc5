@@ -1,3 +1,4 @@
+; REQUIRES: no-competition
 ; COMMAND-LINE: -o sygus
 ; EXPECT: (sygus-enum 0)
 ; EXPECT: (sygus-candidate (f 0))
