@@ -26,11 +26,9 @@ using namespace std;
 namespace cvc5 {
 
 DecisionEngineOld::DecisionEngineOld(context::Context* sc,
-                                     context::UserContext* uc)
-    : d_cnfStream(nullptr),
-      d_satSolver(nullptr),
-      d_satContext(sc),
-      d_userContext(uc),
+                                     context::UserContext* uc,
+                 ResourceManager* rm)
+    : DecisionEngine(sc, rm),
       d_result(sc, SAT_VALUE_UNKNOWN),
       d_engineState(0),
       d_enabledITEStrategy(nullptr),
@@ -49,7 +47,7 @@ DecisionEngineOld::DecisionEngineOld(context::Context* sc,
   if (options::decisionMode() == options::DecisionMode::JUSTIFICATION)
   {
     d_enabledITEStrategy.reset(new decision::JustificationHeuristic(
-        this, d_userContext, d_satContext));
+        this, uc, sc));
   }
 }
 
@@ -62,7 +60,7 @@ void DecisionEngineOld::shutdown()
   d_enabledITEStrategy.reset(nullptr);
 }
 
-SatLiteral DecisionEngineOld::getNext(bool& stopSearch)
+SatLiteral DecisionEngineOld::getNextInternal(bool& stopSearch)
 {
   Assert(d_cnfStream != nullptr)
       << "Forgot to set cnfStream for decision engine?";

@@ -25,10 +25,9 @@ namespace decision {
 
 JustificationStrategy::JustificationStrategy(context::Context* c,
                                              context::UserContext* u,
-                                             prop::SkolemDefManager* skdm)
-    : d_context(c),
-      d_cnfStream(nullptr),
-      d_satSolver(nullptr),
+                                             prop::SkolemDefManager* skdm,
+                 ResourceManager* rm)
+    : DecisionEngine(c, rm),
       d_skdm(skdm),
       d_assertions(
           u,
@@ -46,13 +45,6 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
 {
 }
 
-void JustificationStrategy::finishInit(CDCLTSatSolverInterface* ss,
-                                       CnfStream* cs)
-{
-  d_satSolver = ss;
-  d_cnfStream = cs;
-}
-
 void JustificationStrategy::presolve()
 {
   d_lastDecisionLit = Node::null();
@@ -65,7 +57,7 @@ void JustificationStrategy::presolve()
   d_stack.clear();
 }
 
-SatLiteral JustificationStrategy::getNext(bool& stopSearch)
+SatLiteral JustificationStrategy::getNextInternal(bool& stopSearch)
 {
   // ensure we have an assertion
   if (!refreshCurrentAssertion())
