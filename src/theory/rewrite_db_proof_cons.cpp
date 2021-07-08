@@ -189,15 +189,14 @@ bool RewriteDbProofCons::notifyMatch(Node s,
 }
 
 bool RewriteDbProofCons::proveWithRule(const RewriteProofRule& rpr,
-                    Node target,
-                  const std::vector<Node>& vars,
-                  const std::vector<Node>& subs,
-                  bool doInflectMatch,
-                         bool doFixedPoint,
-                         bool doRecurse
-                                      )
+                                       Node target,
+                                       const std::vector<Node>& vars,
+                                       const std::vector<Node>& subs,
+                                       bool doInflectMatch,
+                                       bool doFixedPoint,
+                                       bool doRecurse)
 {
-  Assert (!target.isNull() && target.getKind()==EQUAL);
+  Assert(!target.isNull() && target.getKind() == EQUAL);
   // does it conclusion match what we are trying to show?
   Node conc = rpr.getConclusion();
   Assert(conc.getKind() == EQUAL && d_target.getKind() == EQUAL);
@@ -233,7 +232,7 @@ bool RewriteDbProofCons::proveWithRule(const RewriteProofRule& rpr,
       conds.push_back(eq);
       // orient: target comes second
       Node seq = expr::narySubstitute(i.second.first, vars, subs)
-                      .eqNode(i.second.second);
+                     .eqNode(i.second.second);
       iconds.push_back(seq);
       Trace("rpc-debug2") << eq << " ";
     }
@@ -267,7 +266,8 @@ bool RewriteDbProofCons::proveWithRule(const RewriteProofRule& rpr,
       if (cid == DslPfRule::FAIL)
       {
         // does not hold, we fail
-        Trace("rpc-debug2") << "...fail (simple condition failure)" << std::endl;
+        Trace("rpc-debug2")
+            << "...fail (simple condition failure)" << std::endl;
         return false;
       }
       // already holds, continue
@@ -300,7 +300,7 @@ bool RewriteDbProofCons::proveWithRule(const RewriteProofRule& rpr,
   if (Trace.isOn("rpc-infer"))
   {
     Trace("rpc-infer") << "INFER " << target << " by " << rpr.getName()
-                        << std::endl;
+                       << std::endl;
   }
   // cache the success
   ProvenInfo& pi = d_pcache[target];
