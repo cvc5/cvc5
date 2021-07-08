@@ -147,11 +147,14 @@ bool RewriteDbProofCons::notifyMatch(Node s,
   Assert(vars.size() == subs.size());
   Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
                       << vars << " -> " << subs << std::endl;
+  bool recurse = d_currRecLimit > 0;
   if (d_currFixedPointId != DslPfRule::FAIL)
   {
     const RewriteProofRule& rpr = d_db->getRule(d_currFixedPointId);
     // get the conclusion, and store it in temporary var d_currFixedPointConc
     d_currFixedPointConc = rpr.getConclusionFor(subs);
+    // We now prove with the given rule. this should only fail if there are
+    // conditions on the rule which fail.
     // remember that we proved it
     // note that we may overwrite a conclusion here?
     ProvenInfo& pi = d_pcache[d_currFixedPointConc];
@@ -166,134 +169,146 @@ bool RewriteDbProofCons::notifyMatch(Node s,
   const std::vector<DslPfRule>& ids = d_db->getRuleIdsForHead(n);
   Assert(!ids.empty());
   // check each rule instance, succeed if one proves
-  bool recurse = d_currRecLimit > 0;
   for (DslPfRule id : ids)
   {
     Trace("rpc-debug2") << "Check rule " << id << std::endl;
     const RewriteProofRule& rpr = d_db->getRule(id);
-    // does it conclusion match what we are trying to show?
-    Node conc = rpr.getConclusion();
-    Assert(conc.getKind() == EQUAL && d_target.getKind() == EQUAL);
-    Trace("rpc-debug2") << "            RHS: " << conc[1] << std::endl;
-    // get rule conclusion, which may incorporate fixed point semantics
-    Node stgt = getRuleConclusion(rpr, vars, subs, true);
-    std::vector<Node> iconds;
-    Trace("rpc-debug2") << "Substituted RHS: " << stgt << std::endl;
-    Trace("rpc-debug2") << "     Target RHS: " << d_target[1] << std::endl;
-    // inflection substitution, used if conclusion does not exactly match
-    std::unordered_map<Node, std::pair<Node, Node>> isubs;
-    if (stgt != d_target[1])
+    // try to prove target with the current rule, using inflection matching
+    // and fixed point semantics
+    if (proveWithRule(rpr, d_target, vars, subs, true, true, recurse))
     {
-      // if not a perfect match, infer the (conditional) rule that would have
-      // matched
-      Node irhs = inflectMatch(conc[1], d_target[1], vars, subs, isubs);
-      if (irhs.isNull())
-      {
-        Trace("rpc-debug2") << "...fail (inflection match)" << std::endl;
-        continue;
-      }
-      Trace("rpc-debug2") << "Would have succeeded with rule: " << std::endl;
-      std::vector<Node> conds;
-      for (const std::pair<const Node, std::pair<Node, Node>>& i : isubs)
-      {
-        Node eq = i.first.eqNode(i.second.first);
-        conds.push_back(eq);
-        // orient: target comes second
-        Node seq = expr::narySubstitute(i.second.first, vars, subs)
-                       .eqNode(i.second.second);
-        iconds.push_back(seq);
-        Trace("rpc-debug2") << eq << " ";
-      }
-      Trace("rpc-debug2") << "=> (" << conc[0] << " == " << irhs << ")"
-                          << std::endl;
-      Trace("rpc-debug2") << "Inflection conditions: " << iconds << std::endl;
+      // if successful, we do not want to be notified of further matches
+      // and return false here.
+      return false;
     }
-    // do its conditions hold?
-    bool condSuccess = true;
-    // Get the conditions, substituted { vars -> subs } and with side conditions
-    // evaluated.
-    std::vector<Node> vcs;
-    // add inflection conditions
-    vcs.insert(vcs.begin(), iconds.begin(), iconds.end());
-    if (!rpr.getObligations(vars, subs, vcs))
-    {
-      // cannot get conditions, likely due to failed side condition
-      Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
-      continue;
-    }
-    // First, check which premises are non-trivial, and if there is a trivial
-    // failure. Those that are non-trivial are added to condToProve.
-    std::vector<Node> condToProve;
-    for (const Node& cond : vcs)
-    {
-      Assert(cond.getKind() == kind::EQUAL);
-      // substitute to get the condition-to-prove
-      DslPfRule cid;
-      // check whether condition is already known to hold or not hold
-      if (proveInternalBase(cond, cid))
-      {
-        if (cid == DslPfRule::FAIL)
-        {
-          // does not hold, we fail
-          condSuccess = false;
-          break;
-        }
-        // already holds, continue
-        continue;
-      }
-      // save, to check below
-      condToProve.push_back(cond);
-      if (!recurse)
-      {
-        // we can't apply recursion, break now
-        break;
-      }
-    }
-    if (!condSuccess)
-    {
-      Trace("rpc-debug2") << "...fail (simple condition failure)" << std::endl;
-      continue;
-    }
-    if (!recurse && !condToProve.empty())
-    {
-      // can't recurse and has conditions, continue
-      Trace("rpc-debug2") << "...fail (recursion limit)" << std::endl;
-      continue;
-    }
-    // if no trivial failures, go back and try to recursively prove
-    for (const Node& cond : condToProve)
-    {
-      Trace("rpc-infer-sc") << "Check condition: " << cond << std::endl;
-      // recursively check if the condition holds
-      DslPfRule cid = proveInternal(cond);
-      if (cid == DslPfRule::FAIL)
-      {
-        // print reason for failure
-        Trace("rpc-infer-debug")
-            << "required: " << cond << " for " << rpr.getName() << std::endl;
-        condSuccess = false;
-        break;
-      }
-    }
-    if (!condSuccess)
-    {
-      continue;
-    }
-    // successfully found instance of rule
-    if (Trace.isOn("rpc-infer"))
-    {
-      Trace("rpc-infer") << "INFER " << d_target << " by " << rpr.getName()
-                         << std::endl;
-    }
-    ProvenInfo& pi = d_pcache[d_target];
-    pi.d_id = id;
-    pi.d_vars = vars;
-    pi.d_subs = subs;
-    pi.d_iconds = iconds;
-    // don't need to notify any further matches, we are done
-    return false;
+    // notice that we do not cache a failure here since we only know that the
+    // current rule was not able to prove the current target
   }
   // want to keep getting notify calls
+  return true;
+}
+
+bool RewriteDbProofCons::proveWithRule(const RewriteProofRule& rpr,
+                    Node target,
+                  const std::vector<Node>& vars,
+                  const std::vector<Node>& subs,
+                  bool doInflectMatch,
+                         bool doFixedPoint,
+                         bool doRecurse
+                                      )
+{
+  Assert (!target.isNull() && target.getKind()==EQUAL);
+  // does it conclusion match what we are trying to show?
+  Node conc = rpr.getConclusion();
+  Assert(conc.getKind() == EQUAL && d_target.getKind() == EQUAL);
+  Trace("rpc-debug2") << "            RHS: " << conc[1] << std::endl;
+  // get rule conclusion, which may incorporate fixed point semantics when
+  // doFixedPoint is true
+  Node stgt = getRuleConclusion(rpr, vars, subs, doFixedPoint);
+  std::vector<Node> iconds;
+  Trace("rpc-debug2") << "Substituted RHS: " << stgt << std::endl;
+  Trace("rpc-debug2") << "     Target RHS: " << target[1] << std::endl;
+  // inflection substitution, used if conclusion does not exactly match
+  std::unordered_map<Node, std::pair<Node, Node>> isubs;
+  if (stgt != target[1])
+  {
+    if (!doInflectMatch)
+    {
+      Trace("rpc-debug2") << "...fail (no inflection)" << std::endl;
+      return false;
+    }
+    // if not a perfect match, infer the (conditional) rule that would have
+    // matched
+    Node irhs = inflectMatch(conc[1], target[1], vars, subs, isubs);
+    if (irhs.isNull())
+    {
+      Trace("rpc-debug2") << "...fail (inflection match)" << std::endl;
+      return false;
+    }
+    Trace("rpc-debug2") << "Would have succeeded with rule: " << std::endl;
+    std::vector<Node> conds;
+    for (const std::pair<const Node, std::pair<Node, Node>>& i : isubs)
+    {
+      Node eq = i.first.eqNode(i.second.first);
+      conds.push_back(eq);
+      // orient: target comes second
+      Node seq = expr::narySubstitute(i.second.first, vars, subs)
+                      .eqNode(i.second.second);
+      iconds.push_back(seq);
+      Trace("rpc-debug2") << eq << " ";
+    }
+    Trace("rpc-debug2") << "=> (" << conc[0] << " == " << irhs << ")"
+                        << std::endl;
+    Trace("rpc-debug2") << "Inflection conditions: " << iconds << std::endl;
+  }
+  // do its conditions hold?
+  // Get the conditions, substituted { vars -> subs } and with side conditions
+  // evaluated.
+  std::vector<Node> vcs;
+  // add inflection conditions
+  vcs.insert(vcs.begin(), iconds.begin(), iconds.end());
+  if (!rpr.getObligations(vars, subs, vcs))
+  {
+    // cannot get conditions, likely due to failed side condition
+    Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
+    return false;
+  }
+  // First, check which premises are non-trivial, and if there is a trivial
+  // failure. Those that are non-trivial are added to condToProve.
+  std::vector<Node> condToProve;
+  for (const Node& cond : vcs)
+  {
+    Assert(cond.getKind() == kind::EQUAL);
+    // substitute to get the condition-to-prove
+    DslPfRule cid;
+    // check whether condition is already known to hold or not hold
+    if (proveInternalBase(cond, cid))
+    {
+      if (cid == DslPfRule::FAIL)
+      {
+        // does not hold, we fail
+        Trace("rpc-debug2") << "...fail (simple condition failure)" << std::endl;
+        return false;
+      }
+      // already holds, continue
+      continue;
+    }
+    if (!doRecurse)
+    {
+      // we can't apply recursion, return false
+      Trace("rpc-debug2") << "...fail (recursion limit)" << std::endl;
+      return false;
+    }
+    // save, to check below
+    condToProve.push_back(cond);
+  }
+  // if no trivial failures, go back and try to recursively prove
+  for (const Node& cond : condToProve)
+  {
+    Trace("rpc-infer-sc") << "Check condition: " << cond << std::endl;
+    // recursively check if the condition holds
+    DslPfRule cid = proveInternal(cond);
+    if (cid == DslPfRule::FAIL)
+    {
+      // print reason for failure
+      Trace("rpc-infer-debug")
+          << "required: " << cond << " for " << rpr.getName() << std::endl;
+      return false;
+    }
+  }
+  // successfully found instance of rule
+  if (Trace.isOn("rpc-infer"))
+  {
+    Trace("rpc-infer") << "INFER " << target << " by " << rpr.getName()
+                        << std::endl;
+  }
+  // cache the success
+  ProvenInfo& pi = d_pcache[target];
+  pi.d_id = rpr.getId();
+  pi.d_vars = vars;
+  pi.d_subs = subs;
+  pi.d_iconds = iconds;
+  // success
   return true;
 }
 

@@ -96,6 +96,15 @@ class RewriteDbProofCons
                    Node n,
                    std::vector<Node>& vars,
                    std::vector<Node>& subs);
+  /** prove with rule */
+  bool proveWithRule(const RewriteProofRule& rpr,
+                     Node target,
+                   const std::vector<Node>& vars,
+                   const std::vector<Node>& subs,
+                   bool doInflectMatch,
+                         bool doFixedPoint,
+                     bool doRecurse
+                    );
   /** get conclusion */
   Node getRuleConclusion(const RewriteProofRule& rpr,
                          const std::vector<Node>& vars,
