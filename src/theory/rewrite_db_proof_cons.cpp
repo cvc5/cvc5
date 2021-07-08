@@ -152,13 +152,15 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     const RewriteProofRule& rpr = d_db->getRule(d_currFixedPointId);
     // get the conclusion
     Node target = rpr.getConclusion();
-    // apply substitution, which may notice vars may be out of order wrt rule var list
+    // apply substitution, which may notice vars may be out of order wrt rule
+    // var list
     target = expr::narySubstitute(target, vars, subs);
     // We now prove with the given rule. this should only fail if there are
     // conditions on the rule which fail. Notice we never allow recursion here.
     // We also don't permit inflection matching (which regardless should not
     // apply).
-    if (proveWithRule(d_currFixedPointId, target, vars, subs, false, false, false))
+    if (proveWithRule(
+            d_currFixedPointId, target, vars, subs, false, false, false))
     {
       // successfully proved, store in temporary variable
       d_currFixedPointConc = target;
@@ -464,10 +466,12 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
         {
           visited[cur] = false;
           std::vector<Node>& ps = premises[cur];
-          if (itd->second.d_id==DslPfRule::TRANS)
+          if (itd->second.d_id == DslPfRule::TRANS)
           {
             // premises are the steps, stored in d_vars
-            ps.insert(premises[cur].end(), itd->second.d_vars.begin(), itd->second.d_vars.end());
+            ps.insert(premises[cur].end(),
+                      itd->second.d_vars.begin(),
+                      itd->second.d_vars.end());
           }
           else
           {
@@ -517,7 +521,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       Assert(pfArgs.find(cur) != pfArgs.end());
       // get the conclusion
       Node conc;
-      if (itd->second.d_id==DslPfRule::TRANS)
+      if (itd->second.d_id == DslPfRule::TRANS)
       {
         conc = ps[0][0].eqNode(ps.back()[1]);
         cdp->addStep(conc, PfRule::TRANS, ps, {});
@@ -532,7 +536,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
         Trace("rpc-debug") << "Proved: " << cur << std::endl;
         Trace("rpc-debug") << "From: " << conc << std::endl;
         Trace("rpc-debug") << "Used inflection conditions: "
-                            << itd->second.d_iconds << std::endl;
+                           << itd->second.d_iconds << std::endl;
         cdp->addStep(conc, PfRule::DSL_REWRITE, ps, args);
       }
       // if we had inflection conditions, we need to also use a skeleton
@@ -667,7 +671,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
     } while (continueFixedPoint);
     d_currFixedPointId = DslPfRule::FAIL;
     // add the transistivity rule here if needed
-    if (transEq.size()>=2)
+    if (transEq.size() >= 2)
     {
       Node feq = ssrc.eqNode(stgt);
       ProvenInfo& pi = d_pcache[feq];

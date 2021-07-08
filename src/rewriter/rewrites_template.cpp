@@ -48,7 +48,8 @@ const char* toString(DslPfRule drule)
     case DslPfRule::FAIL: return "FAIL";
     case DslPfRule::REFL: return "REFL";
     case DslPfRule::EVAL: return "EVAL";
-    case DslPfRule::TRANS: return "TRANS";
+    case DslPfRule::TRANS:
+      return "TRANS";
       // clang-format off
 ${printer}$
     default : Unreachable();
