@@ -149,6 +149,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
                       << vars << " -> " << subs << std::endl;
   if (d_currFixedPointId != DslPfRule::FAIL)
   {
+    Trace("rpc-debug2") << "Part of fixed point for rule " << d_currFixedPointId << std::endl;
     const RewriteProofRule& rpr = d_db->getRule(d_currFixedPointId);
     // get the conclusion
     Node target = rpr.getConclusion();
@@ -207,8 +208,10 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   Assert(conc.getKind() == EQUAL && d_target.getKind() == EQUAL);
   Trace("rpc-debug2") << "            RHS: " << conc[1] << std::endl;
   // get rule conclusion, which may incorporate fixed point semantics when
-  // doFixedPoint is true
-  Node stgt = getRuleConclusion(rpr, vars, subs, doFixedPoint);
+  // doFixedPoint is true. This stores the rule for the conclusion in pic,
+  // which is either id or DslPfRule::TRANS.
+  ProvenInfo pic;
+  Node stgt = getRuleConclusion(rpr, vars, subs, pic, doFixedPoint);
   std::vector<Node> iconds;
   Trace("rpc-debug2") << "Substituted RHS: " << stgt << std::endl;
   Trace("rpc-debug2") << "     Target RHS: " << target[1] << std::endl;
@@ -309,9 +312,16 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   }
   // cache the success
   ProvenInfo& pi = d_pcache[target];
-  pi.d_id = rpr.getId();
-  pi.d_vars = vars;
-  pi.d_subs = subs;
+  pi.d_id = pic.d_id;
+  if (pi.d_id==DslPfRule::TRANS)
+  {
+    pi.d_vars = pic.d_vars;
+  }
+  else
+  {
+    pi.d_vars = vars;
+    pi.d_subs = subs;
+  }
   pi.d_iconds = iconds;
   // success
   return true;
@@ -639,11 +649,14 @@ Node RewriteDbProofCons::doEvaluate(Node n)
 Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
                                            const std::vector<Node>& vars,
                                            const std::vector<Node>& subs,
-                                           bool doFixedPoint)
+                                           ProvenInfo& pi,
+                                           bool doFixedPoint
+                                          )
 {
+  pi.d_id = rpr.getId();
   Node conc = rpr.getConclusion();
   // if fixed point, we continue applying
-  if (false && doFixedPoint && rpr.isFixedPoint())
+  if (doFixedPoint && rpr.isFixedPoint())
   {
     Assert(d_currFixedPointId == DslPfRule::FAIL);
     Assert(d_currFixedPointConc.isNull());
@@ -662,7 +675,8 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       rpr.getMatches(stgt, &d_notify);
       if (!d_currFixedPointConc.isNull())
       {
-        continueFixedPoint = true;
+        // currently avoid accidental loops: arbitrarily bound to 1000
+        continueFixedPoint = transEq.size()<=1000;
         Assert(d_currFixedPointConc.getKind() == EQUAL);
         transEq.push_back(stgt.eqNode(d_currFixedPointConc[1]));
         stgt = d_currFixedPointConc[1];
@@ -673,8 +687,6 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
     // add the transistivity rule here if needed
     if (transEq.size() >= 2)
     {
-      Node feq = ssrc.eqNode(stgt);
-      ProvenInfo& pi = d_pcache[feq];
       pi.d_id = DslPfRule::TRANS;
       // store transEq in d_vars
       pi.d_vars = transEq;
