@@ -159,7 +159,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     Node conc = rpr.getConclusion();
     Assert(conc.getKind() == EQUAL && d_target.getKind() == EQUAL);
     Trace("rpc-debug2") << "            RHS: " << conc[1] << std::endl;
-    Node stgt = expr::narySubstitute(conc[1], vars, subs);
+    Node stgt = getRuleConclusion(rpr, vars, subs);
     std::vector<Node> iconds;
     Trace("rpc-debug2") << "Substituted RHS: " << stgt << std::endl;
     Trace("rpc-debug2") << "     Target RHS: " << d_target[1] << std::endl;
@@ -578,6 +578,36 @@ Node RewriteDbProofCons::doEvaluate(Node n)
   d_evalCache[n] = nev;
   return nev;
 }
+
+Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
+                  const std::vector<Node>& vars,
+                  const std::vector<Node>& subs)
+{
+  Node conc = rpr.getConclusion();
+  Node stgt = expr::narySubstitute(conc[1], vars, subs);
+#if 0
+  // if fixed point, we continue applying
+  if (rpr.isFixedPoint())
+  {
+    // check if stgt also rewrites with the same rule?
+    bool continueFixedPoint;
+    do
+    {
+      std::vector<Node> vnext;
+      std::vector<Node> snext;
+      continueFixedPoint = rpr.getMatch(stgt, vnext, snext);
+      if (continueFixedPoint)
+      {
+        // TODO: remember we proved it
+        stgt = expr::narySubstitute(stgt, vnext, snext);
+      }
+    }
+    while (continueFixedPoint);
+  }
+#endif
+  return stgt;
+}
+
 Node RewriteDbProofCons::inflectMatch(
     Node n,
     Node s,

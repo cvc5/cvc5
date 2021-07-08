@@ -75,6 +75,14 @@ class RewriteProofRule
   bool getObligations(const std::vector<Node>& vs,
                       const std::vector<Node>& ss,
                       std::vector<Node>& vcs) const;
+  /**
+   * Check match, return true if h matches the head of this rule; add
+   * resulting substitution to vs / ss.
+   *
+   * Note this method is not run as the main matching algorithm for rewrite
+   * proof reconstruction, which considers all rules in parallel.
+   */
+  bool getMatch(Node h, std::vector<Node>& vs, std::vector<Node>& ss) const;
   /** Get conclusion of the rule */
   Node getConclusion() const;
   /** Get conclusion of the rule for ss */
@@ -89,6 +97,8 @@ class RewriteProofRule
    * Get list context
    */
   Kind getListContext(Node v) const;
+  /** Was this rule marked as being applied to fixed point? */
+  bool isFixedPoint() const;
 
  private:
   /**
