@@ -1,4 +1,8 @@
+% COMMAND-LINE: --jh-rlv-order
 % EXPECT: unsat
+
+% note we require jh-rlv-order on this benchmark to avoid a proof failure currently (7/7/21)
+
 OPTION "logic" "ALL";
 BvPair: TYPE = [BITVECTOR(1), BITVECTOR(1)];
 x : SET OF BvPair;
