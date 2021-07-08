@@ -209,7 +209,7 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm) const
       }
       Trace("match-debug") << "recurse var : " << var << std::endl;
       itc = mt->d_children.find(var);
-      Assert (itc!= mt->d_children.end());
+      Assert(itc != mt->d_children.end());
       visit.push_back(NaryMatchFrame(syms, &itc->second));
     }
     else

@@ -20,9 +20,9 @@
 #include <string>
 #include <vector>
 
+#include "expr/nary_match_trie.h"
 #include "expr/node.h"
 #include "rewriter/rewrites.h"
-#include "expr/nary_match_trie.h"
 
 namespace cvc5 {
 namespace theory {

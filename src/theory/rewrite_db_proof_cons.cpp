@@ -147,7 +147,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
   Assert(vars.size() == subs.size());
   Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
                       << vars << " -> " << subs << std::endl;
-  if (d_currFixedPointId!=DslPfRule::FAIL)
+  if (d_currFixedPointId != DslPfRule::FAIL)
   {
     const RewriteProofRule& rpr = d_db->getRule(d_currFixedPointId);
     // get the conclusion, and store it in temporary var d_currFixedPointConc
@@ -599,16 +599,15 @@ Node RewriteDbProofCons::doEvaluate(Node n)
 Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
                                            const std::vector<Node>& vars,
                                            const std::vector<Node>& subs,
-                                           bool doFixedPoint
-                                          )
+                                           bool doFixedPoint)
 {
   Node conc = rpr.getConclusion();
   Node stgt = expr::narySubstitute(conc[1], vars, subs);
   // if fixed point, we continue applying
   if (false && doFixedPoint && rpr.isFixedPoint())
   {
-    Assert (d_currFixedPointId==DslPfRule::FAIL);
-    Assert (d_currFixedPointConc.isNull());
+    Assert(d_currFixedPointId == DslPfRule::FAIL);
+    Assert(d_currFixedPointConc.isNull());
     d_currFixedPointId = rpr.getId();
     // check if stgt also rewrites with the same rule?
     bool continueFixedPoint;
@@ -619,12 +618,11 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       if (!d_currFixedPointConc.isNull())
       {
         continueFixedPoint = true;
-        Assert (d_currFixedPointConc.getKind()==EQUAL);
+        Assert(d_currFixedPointConc.getKind() == EQUAL);
         stgt = d_currFixedPointConc[1];
       }
       d_currFixedPointConc = Node::null();
-    }
-    while (continueFixedPoint);
+    } while (continueFixedPoint);
     d_currFixedPointId = DslPfRule::FAIL;
   }
   return stgt;

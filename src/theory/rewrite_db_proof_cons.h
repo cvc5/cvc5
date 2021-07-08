@@ -99,7 +99,8 @@ class RewriteDbProofCons
   /** get conclusion */
   Node getRuleConclusion(const RewriteProofRule& rpr,
                          const std::vector<Node>& vars,
-                         const std::vector<Node>& subs, bool doFixedPoint = false);
+                         const std::vector<Node>& subs,
+                         bool doFixedPoint = false);
   /**
    * Inflect match, if possible, return a modified form of n that matches s
    * with subs.
@@ -114,7 +115,7 @@ class RewriteDbProofCons
                     const std::vector<Node>& subs,
                     std::unordered_map<Node, std::pair<Node, Node>>& isubs);
   /** get or assign type identifier */
-  size_t getOrAssignTypeId(TypeNode tn);  
+  size_t getOrAssignTypeId(TypeNode tn);
   /** Notify class for matches */
   RdpcMatchTrieNotify d_notify;
   /** Basic utility */
