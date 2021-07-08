@@ -149,7 +149,8 @@ bool RewriteDbProofCons::notifyMatch(Node s,
                       << vars << " -> " << subs << std::endl;
   if (d_currFixedPointId != DslPfRule::FAIL)
   {
-    Trace("rpc-debug2") << "Part of fixed point for rule " << d_currFixedPointId << std::endl;
+    Trace("rpc-debug2") << "Part of fixed point for rule " << d_currFixedPointId
+                        << std::endl;
     const RewriteProofRule& rpr = d_db->getRule(d_currFixedPointId);
     // get the conclusion
     Node target = rpr.getConclusion();
@@ -313,7 +314,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   // cache the success
   ProvenInfo& pi = d_pcache[target];
   pi.d_id = pic.d_id;
-  if (pi.d_id==DslPfRule::TRANS)
+  if (pi.d_id == DslPfRule::TRANS)
   {
     pi.d_vars = pic.d_vars;
   }
@@ -650,8 +651,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
                                            const std::vector<Node>& vars,
                                            const std::vector<Node>& subs,
                                            ProvenInfo& pi,
-                                           bool doFixedPoint
-                                          )
+                                           bool doFixedPoint)
 {
   pi.d_id = rpr.getId();
   Node conc = rpr.getConclusion();
@@ -676,7 +676,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       if (!d_currFixedPointConc.isNull())
       {
         // currently avoid accidental loops: arbitrarily bound to 1000
-        continueFixedPoint = transEq.size()<=1000;
+        continueFixedPoint = transEq.size() <= 1000;
         Assert(d_currFixedPointConc.getKind() == EQUAL);
         transEq.push_back(stgt.eqNode(d_currFixedPointConc[1]));
         stgt = d_currFixedPointConc[1];

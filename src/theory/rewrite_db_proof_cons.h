@@ -108,7 +108,7 @@ class RewriteDbProofCons
   Node getRuleConclusion(const RewriteProofRule& rpr,
                          const std::vector<Node>& vars,
                          const std::vector<Node>& subs,
-                                           ProvenInfo& pi,
+                         ProvenInfo& pi,
                          bool doFixedPoint = false);
   /**
    * Inflect match, if possible, return a modified form of n that matches s
