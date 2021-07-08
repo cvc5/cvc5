@@ -20,6 +20,7 @@
 
 #include <iostream>
 
+#include "printer/let_binding.h"
 #include "proof/proof_node.h"
 
 namespace cvc5 {
@@ -73,6 +74,9 @@ class DotPrinter
    */
   static std::string sanitizeString(const std::string& s);
 
+  /** As above, but quotes are doubly escaped. */
+  static std::string sanitizeStringDoubleQuotes(const std::string& s);
+
   /** Traverse proof node and populate d_subpfCounter, mapping each proof node
    * to the number of subproofs it contains, including itself
    *
@@ -80,9 +84,17 @@ class DotPrinter
    */
   void countSubproofs(const ProofNode* pn);
 
+  /** Traverse proof node and populate d_lbind
+   *
+   * @param pn the proof node to be traversed
+   */
+  void letifyResults(const ProofNode* pn);
+
   /** All unique subproofs of a given proof node (counting itself). */
   std::map<const ProofNode*, size_t> d_subpfCounter;
 
+  /** Let binder for terms in proof nodes */
+  LetBinding d_lbind;
 };
 
 }  // namespace proof
