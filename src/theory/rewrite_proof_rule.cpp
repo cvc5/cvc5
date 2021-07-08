@@ -94,9 +94,10 @@ void RewriteProofRule::init(DslPfRule id,
       d_noOccVars[v] = true;
     }
   }
-  // TODO: if fixed point, set up match utility
+  // if fixed point, initialize match utility
   if (d_isFixedPoint)
   {
+    d_mt.addTerm(conc[0]);
   }
 }
 
@@ -162,6 +163,8 @@ Node RewriteProofRule::purifySideConditions(Node n, std::vector<Node>& scs)
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
 }
+
+rewriter::DslPfRule RewriteProofRule::getId() const { return d_id; }
 
 const char* RewriteProofRule::getName() const { return toString(d_id); }
 
@@ -249,12 +252,9 @@ bool RewriteProofRule::runSideConditions(const std::vector<Node>& vs,
   return true;
 }
 
-bool RewriteProofRule::getMatch(Node h,
-                                std::vector<Node>& vs,
-                                std::vector<Node>& ss) const
+void RewriteProofRule::getMatches(Node h, expr::NotifyMatch* ntm) const
 {
-  // TODO
-  return false;
+  d_mt.getMatches(h, ntm);
 }
 
 Node RewriteProofRule::getConclusion() const { return d_conc; }

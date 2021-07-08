@@ -41,6 +41,7 @@ RewriteDbProofCons::RewriteDbProofCons(RewriteDb* db, ProofNodeManager* pnm)
       d_pnm(pnm),
       d_eval(),
       d_currRecLimit(0),
+      d_currFixedPointId(DslPfRule::FAIL),
       d_statTotalInputs(smtStatisticsRegistry().registerInt(
           "RewriteDbProofCons::totalInputs")),
       d_statTotalAttempts(smtStatisticsRegistry().registerInt(
@@ -146,6 +147,21 @@ bool RewriteDbProofCons::notifyMatch(Node s,
   Assert(vars.size() == subs.size());
   Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
                       << vars << " -> " << subs << std::endl;
+  if (d_currFixedPointId!=DslPfRule::FAIL)
+  {
+    const RewriteProofRule& rpr = d_db->getRule(d_currFixedPointId);
+    // get the conclusion, and store it in temporary var d_currFixedPointConc
+    d_currFixedPointConc = rpr.getConclusionFor(subs);
+    // remember that we proved it
+    // note that we may overwrite a conclusion here?
+    ProvenInfo& pi = d_pcache[d_currFixedPointConc];
+    pi.d_id = d_currFixedPointId;
+    pi.d_vars = vars;
+    pi.d_subs = subs;
+    // regardless, no further matches, due to semantics of fixed point which
+    // limits to first match
+    return false;
+  }
   // get the rule identifiers for the conclusion
   const std::vector<DslPfRule>& ids = d_db->getRuleIdsForHead(n);
   Assert(!ids.empty());
@@ -159,7 +175,8 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     Node conc = rpr.getConclusion();
     Assert(conc.getKind() == EQUAL && d_target.getKind() == EQUAL);
     Trace("rpc-debug2") << "            RHS: " << conc[1] << std::endl;
-    Node stgt = getRuleConclusion(rpr, vars, subs);
+    // get rule conclusion, which may incorporate fixed point semantics
+    Node stgt = getRuleConclusion(rpr, vars, subs, true);
     std::vector<Node> iconds;
     Trace("rpc-debug2") << "Substituted RHS: " << stgt << std::endl;
     Trace("rpc-debug2") << "     Target RHS: " << d_target[1] << std::endl;
@@ -581,30 +598,35 @@ Node RewriteDbProofCons::doEvaluate(Node n)
 
 Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
                                            const std::vector<Node>& vars,
-                                           const std::vector<Node>& subs)
+                                           const std::vector<Node>& subs,
+                                           bool doFixedPoint
+                                          )
 {
   Node conc = rpr.getConclusion();
   Node stgt = expr::narySubstitute(conc[1], vars, subs);
-#if 0
   // if fixed point, we continue applying
-  if (rpr.isFixedPoint())
+  if (false && doFixedPoint && rpr.isFixedPoint())
   {
+    Assert (d_currFixedPointId==DslPfRule::FAIL);
+    Assert (d_currFixedPointConc.isNull());
+    d_currFixedPointId = rpr.getId();
     // check if stgt also rewrites with the same rule?
     bool continueFixedPoint;
     do
     {
-      std::vector<Node> vnext;
-      std::vector<Node> snext;
-      continueFixedPoint = rpr.getMatch(stgt, vnext, snext);
-      if (continueFixedPoint)
+      continueFixedPoint = false;
+      rpr.getMatches(stgt, &d_notify);
+      if (!d_currFixedPointConc.isNull())
       {
-        // TODO: remember we proved it
-        stgt = expr::narySubstitute(stgt, vnext, snext);
+        continueFixedPoint = true;
+        Assert (d_currFixedPointConc.getKind()==EQUAL);
+        stgt = d_currFixedPointConc[1];
       }
+      d_currFixedPointConc = Node::null();
     }
     while (continueFixedPoint);
+    d_currFixedPointId = DslPfRule::FAIL;
   }
-#endif
   return stgt;
 }
 

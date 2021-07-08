@@ -26,14 +26,14 @@ namespace expr {
 class NaryMatchFrame
 {
  public:
-  NaryMatchFrame(const std::vector<Node>& syms, NaryMatchTrie* t)
+  NaryMatchFrame(const std::vector<Node>& syms, const NaryMatchTrie* t)
       : d_syms(syms), d_trie(t), d_index(0), d_variant(0), d_boundVar(false)
   {
   }
   /** Symbols to match */
   std::vector<Node> d_syms;
   /** The match trie */
-  NaryMatchTrie* d_trie;
+  const NaryMatchTrie* d_trie;
   /** The index we are considering, 0 = operator, n>0 = variable # (n-1) */
   size_t d_index;
   /** List length considering */
@@ -42,14 +42,14 @@ class NaryMatchFrame
   bool d_boundVar;
 };
 
-bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
+bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm) const
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> vars;
   std::vector<Node> subs;
   std::map<Node, Node> smap;
 
-  std::map<Node, NaryMatchTrie>::iterator itc;
+  std::map<Node, NaryMatchTrie>::const_iterator itc;
 
   std::vector<NaryMatchFrame> visit;
   visit.push_back(NaryMatchFrame({n}, this));
@@ -59,7 +59,7 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
     NaryMatchFrame& curr = visit.back();
     // currently, copy the symbols from previous frame TODO: improve?
     std::vector<Node> syms = curr.d_syms;
-    NaryMatchTrie* mt = curr.d_trie;
+    const NaryMatchTrie* mt = curr.d_trie;
     if (syms.empty())
     {
       // if we matched, there must be a data member at this node
@@ -208,7 +208,9 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm)
         continue;
       }
       Trace("match-debug") << "recurse var : " << var << std::endl;
-      visit.push_back(NaryMatchFrame(syms, &mt->d_children[var]));
+      itc = mt->d_children.find(var);
+      Assert (itc!= mt->d_children.end());
+      visit.push_back(NaryMatchFrame(syms, &itc->second));
     }
     else
     {

@@ -64,17 +64,6 @@ class RewriteDbProofCons
       return d_parent.notifyMatch(s, n, vars, subs);
     }
   };
-  RdpcMatchTrieNotify d_notify;
-  /** Basic utility */
-  TheoryRewriteRCons d_trrc;
-  /** Node converter utility */
-  RewriteDbNodeConverter d_rdnc;
-  /** Pointer to rewrite database */
-  RewriteDb* d_db;
-  /** Pointer to proof node manager */
-  ProofNodeManager* d_pnm;
-  /** the evaluator utility */
-  Evaluator d_eval;
   class ProvenInfo
   {
    public:
@@ -89,23 +78,6 @@ class RewriteDbProofCons
     /** The inflection conditions */
     std::vector<Node> d_iconds;
   };
-  /** cache for exists rule */
-  std::unordered_map<Node, ProvenInfo> d_pcache;
-  /** the evaluation cache */
-  std::unordered_map<Node, Node> d_evalCache;
-  /** common constants */
-  Node d_true;
-  Node d_false;
-  /** current target */
-  Node d_target;
-  /** Identifiers for types, for inflection variables */
-  std::map<TypeNode, size_t> d_typeId;
-  /** current recursion limit */
-  uint32_t d_currRecLimit;
-  /** Total number of rewrites we were asked to prove */
-  IntStat d_statTotalInputs;
-  /** Total number of rewrites we tried to prove internally */
-  IntStat d_statTotalAttempts;
   /** prove internal */
   rewriter::DslPfRule proveInternal(Node eqi);
   /** prove internal base eqi * { vars -> subs } */
@@ -127,7 +99,7 @@ class RewriteDbProofCons
   /** get conclusion */
   Node getRuleConclusion(const RewriteProofRule& rpr,
                          const std::vector<Node>& vars,
-                         const std::vector<Node>& subs);
+                         const std::vector<Node>& subs, bool doFixedPoint = false);
   /**
    * Inflect match, if possible, return a modified form of n that matches s
    * with subs.
@@ -142,7 +114,40 @@ class RewriteDbProofCons
                     const std::vector<Node>& subs,
                     std::unordered_map<Node, std::pair<Node, Node>>& isubs);
   /** get or assign type identifier */
-  size_t getOrAssignTypeId(TypeNode tn);
+  size_t getOrAssignTypeId(TypeNode tn);  
+  /** Notify class for matches */
+  RdpcMatchTrieNotify d_notify;
+  /** Basic utility */
+  TheoryRewriteRCons d_trrc;
+  /** Node converter utility */
+  RewriteDbNodeConverter d_rdnc;
+  /** Pointer to rewrite database */
+  RewriteDb* d_db;
+  /** Pointer to proof node manager */
+  ProofNodeManager* d_pnm;
+  /** the evaluator utility */
+  Evaluator d_eval;
+  /** cache for exists rule */
+  std::unordered_map<Node, ProvenInfo> d_pcache;
+  /** the evaluation cache */
+  std::unordered_map<Node, Node> d_evalCache;
+  /** common constants */
+  Node d_true;
+  Node d_false;
+  /** current target */
+  Node d_target;
+  /** Identifiers for types, for inflection variables */
+  std::map<TypeNode, size_t> d_typeId;
+  /** current recursion limit */
+  uint32_t d_currRecLimit;
+  /** current rule we are applying to fixed point */
+  rewriter::DslPfRule d_currFixedPointId;
+  /** current conclusion from fixed point */
+  Node d_currFixedPointConc;
+  /** Total number of rewrites we were asked to prove */
+  IntStat d_statTotalInputs;
+  /** Total number of rewrites we tried to prove internally */
+  IntStat d_statTotalAttempts;
 };
 
 }  // namespace theory

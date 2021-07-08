@@ -21,7 +21,6 @@
 #include <map>
 #include <vector>
 
-#include "expr/match_trie.h"
 #include "expr/nary_match_trie.h"
 #include "expr/nary_term_util.h"
 #include "expr/node.h"

@@ -56,7 +56,7 @@ class NaryMatchTrie
    * This function returns false if one of these calls to notify
    * returns false.
    */
-  bool getMatches(Node n, NotifyMatch* ntm);
+  bool getMatches(Node n, NotifyMatch* ntm) const;
   /** Adds node n to this trie */
   void addTerm(Node n);
   /** Clear this trie */

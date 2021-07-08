@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "rewriter/rewrites.h"
+#include "expr/nary_match_trie.h"
 
 namespace cvc5 {
 namespace theory {
@@ -56,6 +57,8 @@ class RewriteProofRule
             const std::vector<Node>& cond,
             Node conc,
             bool isFixedPoint);
+  /** get id */
+  rewriter::DslPfRule getId() const;
   /** get name */
   const char* getName() const;
   /** Get user variable list */
@@ -76,13 +79,13 @@ class RewriteProofRule
                       const std::vector<Node>& ss,
                       std::vector<Node>& vcs) const;
   /**
-   * Check match, return true if h matches the head of this rule; add
-   * resulting substitution to vs / ss.
+   * Check match, return true if h matches the head of this rule; notifies
+   * the match notify object ntm.
    *
    * Note this method is not run as the main matching algorithm for rewrite
    * proof reconstruction, which considers all rules in parallel.
    */
-  bool getMatch(Node h, std::vector<Node>& vs, std::vector<Node>& ss) const;
+  void getMatches(Node h, expr::NotifyMatch* ntm) const;
   /** Get conclusion of the rule */
   Node getConclusion() const;
   /** Get conclusion of the rule for ss */
@@ -138,6 +141,8 @@ class RewriteProofRule
   std::map<Node, bool> d_noOccVars;
   /** The context for list variables (see expr::getListVarContext). */
   std::map<Node, Kind> d_listVarCtx;
+  /** The match trie (for fixed point matching) */
+  expr::NaryMatchTrie d_mt;
 };
 
 }  // namespace theory
