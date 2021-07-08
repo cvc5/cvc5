@@ -249,7 +249,9 @@ bool RewriteProofRule::runSideConditions(const std::vector<Node>& vs,
   return true;
 }
 
-bool RewriteProofRule::getMatch(Node h, std::vector<Node>& vs, std::vector<Node>& ss) const
+bool RewriteProofRule::getMatch(Node h,
+                                std::vector<Node>& vs,
+                                std::vector<Node>& ss) const
 {
   // TODO
   return false;
@@ -262,10 +264,7 @@ Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss) const
   Assert(d_fvs.size() == ss.size());
   return expr::narySubstitute(d_conc, d_fvs, ss);
 }
-bool RewriteProofRule::isFixedPoint() const
-{
-  return d_isFixedPoint;
-}
+bool RewriteProofRule::isFixedPoint() const { return d_isFixedPoint; }
 
 }  // namespace theory
 }  // namespace cvc5

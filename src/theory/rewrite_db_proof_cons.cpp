@@ -580,8 +580,8 @@ Node RewriteDbProofCons::doEvaluate(Node n)
 }
 
 Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
-                  const std::vector<Node>& vars,
-                  const std::vector<Node>& subs)
+                                           const std::vector<Node>& vars,
+                                           const std::vector<Node>& subs)
 {
   Node conc = rpr.getConclusion();
   Node stgt = expr::narySubstitute(conc[1], vars, subs);

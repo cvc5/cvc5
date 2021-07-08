@@ -504,15 +504,27 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       opts.smt.simplificationMode = options::SimplificationMode::NONE;
     }
 
+    if (options::learnedRewrite())
+    {
+      if (opts.smt.learnedRewriteWasSetByUser)
+      {
+        throw OptionException(
+            "learned rewrites not supported with unsat cores");
+      }
+      Notice() << "SmtEngine: turning off learned rewrites to support "
+                  "unsat cores\n";
+      opts.smt.learnedRewrite = false;
+    }
+
     if (options::pbRewrites())
     {
       if (opts.arith.pbRewritesWasSetByUser)
       {
         throw OptionException(
-            "pseudoboolean rewrites not supported with old unsat cores");
+            "pseudoboolean rewrites not supported with unsat cores");
       }
       Notice() << "SmtEngine: turning off pseudoboolean rewrites to support "
-                  "old unsat cores\n";
+                  "unsat cores\n";
       opts.arith.pbRewrites = false;
     }
 
@@ -520,10 +532,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (opts.smt.sortInferenceWasSetByUser)
       {
-        throw OptionException(
-            "sort inference not supported with old unsat cores");
+        throw OptionException("sort inference not supported with unsat cores");
       }
-      Notice() << "SmtEngine: turning off sort inference to support old unsat "
+      Notice() << "SmtEngine: turning off sort inference to support unsat "
                   "cores\n";
       opts.smt.sortInference = false;
     }
@@ -533,9 +544,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       if (opts.quantifiers.preSkolemQuantWasSetByUser)
       {
         throw OptionException(
-            "pre-skolemization not supported with old unsat cores");
+            "pre-skolemization not supported with unsat cores");
       }
-      Notice() << "SmtEngine: turning off pre-skolemization to support old "
+      Notice() << "SmtEngine: turning off pre-skolemization to support "
                   "unsat cores\n";
       opts.quantifiers.preSkolemQuant = false;
     }
@@ -544,9 +555,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (opts.bv.bitvectorToBoolWasSetByUser)
       {
-        throw OptionException("bv-to-bool not supported with old unsat cores");
+        throw OptionException("bv-to-bool not supported with unsat cores");
       }
-      Notice() << "SmtEngine: turning off bitvector-to-bool to support old "
+      Notice() << "SmtEngine: turning off bitvector-to-bool to support "
                   "unsat cores\n";
       opts.bv.bitvectorToBool = false;
     }
@@ -556,10 +567,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       if (opts.bv.boolToBitvectorWasSetByUser)
       {
         throw OptionException(
-            "bool-to-bv != off not supported with old unsat cores");
+            "bool-to-bv != off not supported with unsat cores");
       }
-      Notice()
-          << "SmtEngine: turning off bool-to-bv to support old unsat cores\n";
+      Notice() << "SmtEngine: turning off bool-to-bv to support unsat cores\n";
       opts.bv.boolToBitvector = options::BoolToBVMode::OFF;
     }
 
@@ -567,11 +577,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (opts.bv.bvIntroducePow2WasSetByUser)
       {
-        throw OptionException(
-            "bv-intro-pow2 not supported with old unsat cores");
+        throw OptionException("bv-intro-pow2 not supported with unsat cores");
       }
-      Notice()
-          << "SmtEngine: turning off bv-intro-pow2 to support old unsat cores";
+      Notice() << "SmtEngine: turning off bv-intro-pow2 to support unsat cores";
       opts.bv.bvIntroducePow2 = false;
     }
 
@@ -580,10 +588,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (opts.smt.repeatSimpWasSetByUser)
       {
-        throw OptionException("repeat-simp not supported with old unsat cores");
+        throw OptionException("repeat-simp not supported with unsat cores");
       }
-      Notice()
-          << "SmtEngine: turning off repeat-simp to support old unsat cores\n";
+      Notice() << "SmtEngine: turning off repeat-simp to support unsat cores\n";
       opts.smt.repeatSimp = false;
     }
 
@@ -591,22 +598,21 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (opts.quantifiers.globalNegateWasSetByUser)
       {
-        throw OptionException(
-            "global-negate not supported with old unsat cores");
+        throw OptionException("global-negate not supported with unsat cores");
       }
-      Notice() << "SmtEngine: turning off global-negate to support old unsat "
+      Notice() << "SmtEngine: turning off global-negate to support unsat "
                   "cores\n";
       opts.quantifiers.globalNegate = false;
     }
 
     if (options::bitvectorAig())
     {
-      throw OptionException("bitblast-aig not supported with old unsat cores");
+      throw OptionException("bitblast-aig not supported with unsat cores");
     }
 
     if (options::doITESimp())
     {
-      throw OptionException("ITE simp not supported with old unsat cores");
+      throw OptionException("ITE simp not supported with unsat cores");
     }
   }
   else

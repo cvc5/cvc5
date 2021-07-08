@@ -93,7 +93,7 @@ class DotPrinter
   /** All unique subproofs of a given proof node (counting itself). */
   std::map<const ProofNode*, size_t> d_subpfCounter;
 
-  /** Let binder for conclusions of proof nodes */
+  /** Let binder for terms in proof nodes */
   LetBinding d_lbind;
 };
 

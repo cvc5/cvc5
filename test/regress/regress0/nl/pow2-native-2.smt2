@@ -4,6 +4,6 @@
 (declare-fun x () Int)
 
 (assert (and (<= 0 x) (< x 16)))
-(assert (< (pow2 x) x))
+(assert (< (int.pow2 x) x))
 
 (check-sat)

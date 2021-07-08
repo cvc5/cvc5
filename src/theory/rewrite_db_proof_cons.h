@@ -126,8 +126,8 @@ class RewriteDbProofCons
                    std::vector<Node>& subs);
   /** get conclusion */
   Node getRuleConclusion(const RewriteProofRule& rpr,
-                   const std::vector<Node>& vars,
-                   const std::vector<Node>& subs);  
+                         const std::vector<Node>& vars,
+                         const std::vector<Node>& subs);
   /**
    * Inflect match, if possible, return a modified form of n that matches s
    * with subs.
