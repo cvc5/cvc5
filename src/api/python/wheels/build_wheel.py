@@ -31,6 +31,8 @@ from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
 
+WORKING_DIR="build-python-wheel"
+
 def get_project_src_path():
     # expecting this script to be in src/api/python/wheels
     # The project source directory is 4 directories up
@@ -102,22 +104,22 @@ class CMakeBuild(build_ext):
         build_args += ['--', '-j{0}'.format(cpu_count)]
 
         project_src_path = get_project_src_path()
-        build_dir = os.path.join(project_src_path, "build")
+        build_dir = os.path.join(project_src_path, WORKING_DIR)
 
-        # to avoid multiple builds, only call reconfigure if we couldn't find the makefile
-        # for python
-        python_build_dir = os.path.join(build_dir, "src", "api", "python")
-        if not os.path.isfile(os.path.join(python_build_dir, "Makefile")):
-            args = ['--python-bindings', '--auto-download', '--lib-only']
-            config_filename = os.path.join(project_src_path, "configure.sh")
-            # call configure
-            subprocess.check_call([config_filename] + args)
+        # configure with the working directory python-build-wheel
+        args = ['--python-bindings',
+                '--auto-download',
+                '--lib-only',
+                '--name='+WORKING_DIR]
+        config_filename = os.path.join(project_src_path, "configure.sh")
+        subprocess.check_call([config_filename] + args)
 
         # build the main library
         subprocess.check_call(
             ['cmake', '--build', '.', "--target", "cvc5"] + build_args, cwd=build_dir)
 
         # build the python binding
+        python_build_dir = os.path.join(build_dir, "src", "api", "python")
         subprocess.check_call(["make"], cwd=python_build_dir)
         # the build folder gets cleaned during the config, need to create it again
         # this is necessary since "build" is a python dist folder
