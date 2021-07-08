@@ -1,8 +1,14 @@
 (define-rule str-eq-refl ((t String)) (= t t) true)
 (define-rule str-eq-symm ((t String) (s String)) (= t s) (= s t))
 
-(define-rule str-concat-flatten ((xs String :list) (s String) (ys String :list) (zs String :list)) (str.++ xs (str.++ s ys) zs) (str.++ xs s ys zs))
+(define-rule str-concat-flatten ((xs String :list) (s String) (ys String :list) (zs String :list))
+  (str.++ xs (str.++ s ys) zs)
+  (str.++ xs s ys zs))
 
+; flips so that it can be applied to both sides easier
+(define-rule str-concat-flatten-eq ((x String) (x1 String :list) (x2 String :list) (y String))
+  (= (str.++ (str.++ x x1) x2) y)
+  (= y (str.++ x x1 x2)))
 
 (define-rule substr-empty-str ((n Int) (m Int)) (str.substr "" n m) "")
 (define-cond-rule substr-empty-range ((x String) (n Int) (m Int)) (>= n m) (str.substr x n m) "")
@@ -21,6 +27,10 @@
   (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))
   (= (str.++ s1 s2) (str.++ t1 t2))
   false)
+
+(define-rule* concat-unify ((s1 String) (s2 String) (s3 String :list) (t2 String) (t3 String :list))
+  (= (str.++ s1 s2 s3) (str.++ s1 t2 t3))
+  (= (str.++ s2 s3) (str.++ t2 t3)))
 
 (define-cond-rule concat-clash-char ((s1 String) (s2 String :list) (s3 String :list) (t1 String) (t2 String :list) (t3 String :list))
   (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))

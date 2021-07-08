@@ -207,13 +207,13 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   // does it conclusion match what we are trying to show?
   Node conc = rpr.getConclusion();
   Assert(conc.getKind() == EQUAL && d_target.getKind() == EQUAL);
-  Trace("rpc-debug2") << "            RHS: " << conc[1] << std::endl;
   // get rule conclusion, which may incorporate fixed point semantics when
   // doFixedPoint is true. This stores the rule for the conclusion in pic,
   // which is either id or DslPfRule::TRANS.
   ProvenInfo pic;
   Node stgt = getRuleConclusion(rpr, vars, subs, pic, doFixedPoint);
   std::vector<Node> iconds;
+  Trace("rpc-debug2") << "            RHS: " << conc[1] << std::endl;
   Trace("rpc-debug2") << "Substituted RHS: " << stgt << std::endl;
   Trace("rpc-debug2") << "     Target RHS: " << target[1] << std::endl;
   // inflection substitution, used if conclusion does not exactly match
@@ -234,18 +234,36 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
       return false;
     }
     Trace("rpc-debug2") << "Would have succeeded with rule: " << std::endl;
+    // the variables / substitution we will use to generate constraints below
+    std::vector<Node> uvars;
+    std::vector<Node> usubs;
+    if (pic.usedFixPoint())
+    {
+      // use the substitution of the last proven equality, which determines
+      // what the generated inflection conditions are
+      Node lastEq = pic.d_vars.back();
+      ProvenInfo& pile = d_pcache[lastEq];
+      Assert (pile.d_id==id);
+      uvars = pile.d_vars;
+      usubs = pile.d_subs;
+    }
+    else
+    {
+      uvars = vars;
+      usubs = subs;
+    }
     std::vector<Node> conds;
     for (const std::pair<const Node, std::pair<Node, Node>>& i : isubs)
     {
       Node eq = i.first.eqNode(i.second.first);
       conds.push_back(eq);
       // orient: target comes second
-      Node seq = expr::narySubstitute(i.second.first, vars, subs)
+      Node seq = expr::narySubstitute(i.second.first, uvars, usubs)
                      .eqNode(i.second.second);
       iconds.push_back(seq);
       Trace("rpc-debug2") << eq << " ";
     }
-    Trace("rpc-debug2") << "=> (" << conc[0] << " == " << irhs << ")"
+    Trace("rpc-debug2") << "=> (" << irhs << " == " << conc[0] << ")"
                         << std::endl;
     Trace("rpc-debug2") << "Inflection conditions: " << iconds << std::endl;
   }
@@ -314,7 +332,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   // cache the success
   ProvenInfo& pi = d_pcache[target];
   pi.d_id = pic.d_id;
-  if (pi.d_id == DslPfRule::TRANS)
+  if (pic.usedFixPoint())
   {
     pi.d_vars = pic.d_vars;
   }
@@ -477,7 +495,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
         {
           visited[cur] = false;
           std::vector<Node>& ps = premises[cur];
-          if (itd->second.d_id == DslPfRule::TRANS)
+          if (itd->second.usedFixPoint())
           {
             // premises are the steps, stored in d_vars
             ps.insert(premises[cur].end(),
@@ -532,7 +550,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       Assert(pfArgs.find(cur) != pfArgs.end());
       // get the conclusion
       Node conc;
-      if (itd->second.d_id == DslPfRule::TRANS)
+      if (itd->second.usedFixPoint())
       {
         conc = ps[0][0].eqNode(ps.back()[1]);
         cdp->addStep(conc, PfRule::TRANS, ps, {});
