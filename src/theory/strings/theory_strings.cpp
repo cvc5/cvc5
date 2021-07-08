@@ -476,12 +476,20 @@ bool TheoryStrings::collectModelInfoType(
           std::sort(writes.begin(), writes.end(), ssi);
           std::vector<Node> cc;
           uint32_t currIndex = 0;
-          for (const std::pair<const Node, Node>& w : writes)
+          for (size_t i=0, wsize = writes.size(); i<=wsize; i++)
           {
-            Assert(w.first.getConst<Rational>() <= Rational(String::maxSize()));
-            uint32_t nextIndex =
-                w.first.getConst<Rational>().getNumerator().toUnsignedInt();
-            Assert (nextIndex>=currIndex);
+            if (i==writes.size())
+            {
+              nextIndex = lenValue.getConst<Rational>().getNumerator().toUnsignedInt();
+            }
+            else
+            {
+              Node windex = writes[i].first;
+              Assert(windex.getConst<Rational>() <= Rational(String::maxSize()));
+              nextIndex =
+                  windex.getConst<Rational>().getNumerator().toUnsignedInt();
+              Assert (nextIndex>=currIndex);
+            }
             if (nextIndex>currIndex)
             {
               // allocate arbitrary value to fill gap
@@ -493,7 +501,11 @@ bool TheoryStrings::collectModelInfoType(
               cc.push_back(cgap);
             }
             // then take read
-            cc.push_back(w.second);
+            if (i<wsize)
+            {
+              cc.push_back(writes[i].second);
+            }
+            currIndex = nextIndex+1;
           }
           assignedValue = utils::mkConcat(cc, tn);
         }
@@ -516,10 +528,10 @@ bool TheoryStrings::collectModelInfoType(
       Trace("strings-model") << std::endl;
 
       //use type enumerator
-      Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()))
+      Assert(lenValue.getConst<Rational>() <= Rational(String::maxSize()))
           << "Exceeded UINT32_MAX in string model";
       uint32_t currLen =
-          lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt();
+          lenValue.getConst<Rational>().getNumerator().toUnsignedInt();
       Trace("strings-model") << "Cardinality of alphabet is "
                              << utils::getAlphabetCardinality() << std::endl;
       SEnumLen * sel = sels.getEnumerator(currLen, tn);
