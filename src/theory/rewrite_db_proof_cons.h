@@ -97,7 +97,7 @@ class RewriteDbProofCons
                    std::vector<Node>& vars,
                    std::vector<Node>& subs);
   /** prove with rule */
-  bool proveWithRule(const RewriteProofRule& rpr,
+  bool proveWithRule(rewriter::DslPfRule id,
                      Node target,
                      const std::vector<Node>& vars,
                      const std::vector<Node>& subs,

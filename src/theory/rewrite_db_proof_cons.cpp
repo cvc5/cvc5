@@ -147,24 +147,27 @@ bool RewriteDbProofCons::notifyMatch(Node s,
   Assert(vars.size() == subs.size());
   Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
                       << vars << " -> " << subs << std::endl;
-  bool recurse = d_currRecLimit > 0;
   if (d_currFixedPointId != DslPfRule::FAIL)
   {
     const RewriteProofRule& rpr = d_db->getRule(d_currFixedPointId);
-    // get the conclusion, and store it in temporary var d_currFixedPointConc
-    d_currFixedPointConc = rpr.getConclusionFor(subs);
+    // get the conclusion
+    Node target = rpr.getConclusion();
+    // apply substitution, which may notice vars may be out of order wrt rule var list
+    target = expr::narySubstitute(target, vars, subs);
     // We now prove with the given rule. this should only fail if there are
-    // conditions on the rule which fail.
-    // remember that we proved it
-    // note that we may overwrite a conclusion here?
-    ProvenInfo& pi = d_pcache[d_currFixedPointConc];
-    pi.d_id = d_currFixedPointId;
-    pi.d_vars = vars;
-    pi.d_subs = subs;
+    // conditions on the rule which fail. Notice we never allow recursion here.
+    // We also don't permit inflection matching (which regardless should not
+    // apply).
+    if (proveWithRule(d_currFixedPointId, target, vars, subs, false, false, false))
+    {
+      // successfully proved, store in temporary variable
+      d_currFixedPointConc = target;
+    }
     // regardless, no further matches, due to semantics of fixed point which
     // limits to first match
     return false;
   }
+  bool recurse = d_currRecLimit > 0;
   // get the rule identifiers for the conclusion
   const std::vector<DslPfRule>& ids = d_db->getRuleIdsForHead(n);
   Assert(!ids.empty());
@@ -172,10 +175,9 @@ bool RewriteDbProofCons::notifyMatch(Node s,
   for (DslPfRule id : ids)
   {
     Trace("rpc-debug2") << "Check rule " << id << std::endl;
-    const RewriteProofRule& rpr = d_db->getRule(id);
     // try to prove target with the current rule, using inflection matching
     // and fixed point semantics
-    if (proveWithRule(rpr, d_target, vars, subs, true, true, recurse))
+    if (proveWithRule(id, d_target, vars, subs, true, true, recurse))
     {
       // if successful, we do not want to be notified of further matches
       // and return false here.
@@ -188,7 +190,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
   return true;
 }
 
-bool RewriteDbProofCons::proveWithRule(const RewriteProofRule& rpr,
+bool RewriteDbProofCons::proveWithRule(DslPfRule id,
                                        Node target,
                                        const std::vector<Node>& vars,
                                        const std::vector<Node>& subs,
@@ -197,6 +199,7 @@ bool RewriteDbProofCons::proveWithRule(const RewriteProofRule& rpr,
                                        bool doRecurse)
 {
   Assert(!target.isNull() && target.getKind() == EQUAL);
+  const RewriteProofRule& rpr = d_db->getRule(id);
   // does it conclusion match what we are trying to show?
   Node conc = rpr.getConclusion();
   Assert(conc.getKind() == EQUAL && d_target.getKind() == EQUAL);
@@ -460,32 +463,41 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
         else
         {
           visited[cur] = false;
-          const RewriteProofRule& rpr = d_db->getRule(itd->second.d_id);
-          // compute premises based on the used substitution
-          // build the substitution context
-          const std::vector<Node>& vs = rpr.getVarList();
-          Assert(itd->second.d_vars.size() == vs.size());
-          // must order the variables to match order of rewrite rule
-          for (const Node& v : vs)
-          {
-            itv = std::find(
-                itd->second.d_vars.begin(), itd->second.d_vars.end(), v);
-            size_t d = std::distance(itd->second.d_vars.begin(), itv);
-            Assert(d < itd->second.d_subs.size());
-            pfArgs[cur].push_back(itd->second.d_subs[d]);
-          }
-          // get the conditions, store into premises of cur.
           std::vector<Node>& ps = premises[cur];
-          if (!rpr.getObligations(vs, pfArgs[cur], ps))
+          if (itd->second.d_id==DslPfRule::TRANS)
           {
-            Assert(false);
-            // failed a side condition?
-            return false;
+            // premises are the steps, stored in d_vars
+            ps.insert(premises[cur].end(), itd->second.d_vars.begin(), itd->second.d_vars.end());
           }
-          // add the DSL proof rule we used
-          pfArgs[cur].insert(
-              pfArgs[cur].begin(),
-              nm->mkConst(Rational(static_cast<uint32_t>(itd->second.d_id))));
+          else
+          {
+            const RewriteProofRule& rpr = d_db->getRule(itd->second.d_id);
+            // add the DSL proof rule we used
+            pfArgs[cur].push_back(
+                nm->mkConst(Rational(static_cast<uint32_t>(itd->second.d_id))));
+            // compute premises based on the used substitution
+            // build the substitution context
+            const std::vector<Node>& vs = rpr.getVarList();
+            Assert(itd->second.d_vars.size() == vs.size());
+            std::vector<Node> rsubs;
+            // must order the variables to match order of rewrite rule
+            for (const Node& v : vs)
+            {
+              itv = std::find(
+                  itd->second.d_vars.begin(), itd->second.d_vars.end(), v);
+              size_t d = std::distance(itd->second.d_vars.begin(), itv);
+              Assert(d < itd->second.d_subs.size());
+              rsubs.push_back(itd->second.d_subs[d]);
+            }
+            // get the conditions, store into premises of cur.
+            if (!rpr.getObligations(vs, rsubs, ps))
+            {
+              Assert(false);
+              // failed a side condition?
+              return false;
+            }
+            pfArgs[cur].insert(pfArgs[cur].end(), rsubs.begin(), rsubs.end());
+          }
           // recurse on premises
           visit.insert(visit.end(), ps.begin(), ps.end());
           // recurse on inflection conditions
@@ -497,26 +509,35 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
     }
     else if (!it->second)
     {
-      Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
       // Now, add the proof rule. We do this after its children proofs already
       // exist.
       visited[cur] = true;
       Assert(premises.find(cur) != premises.end());
+      std::vector<Node>& ps = premises[cur];
       Assert(pfArgs.find(cur) != pfArgs.end());
       // get the conclusion
-      const RewriteProofRule& rpr = d_db->getRule(itd->second.d_id);
-      const std::vector<Node>& args = pfArgs[cur];
-      std::vector<Node> subs(args.begin() + 1, args.end());
-      Node conc = rpr.getConclusionFor(subs);
-      cdp->addStep(conc, PfRule::DSL_REWRITE, premises[cur], args);
-
-      // if we had inflection conditions, we need to use a term conversion
-      if (!itd->second.d_iconds.empty())
+      Node conc;
+      if (itd->second.d_id==DslPfRule::TRANS)
       {
+        conc = ps[0][0].eqNode(ps.back()[1]);
+        cdp->addStep(conc, PfRule::TRANS, ps, {});
+      }
+      else
+      {
+        const RewriteProofRule& rpr = d_db->getRule(itd->second.d_id);
+        const std::vector<Node>& args = pfArgs[cur];
+        std::vector<Node> subs(args.begin() + 1, args.end());
+        conc = rpr.getConclusionFor(subs);
+        Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
         Trace("rpc-debug") << "Proved: " << cur << std::endl;
         Trace("rpc-debug") << "From: " << conc << std::endl;
         Trace("rpc-debug") << "Used inflection conditions: "
-                           << itd->second.d_iconds << std::endl;
+                            << itd->second.d_iconds << std::endl;
+        cdp->addStep(conc, PfRule::DSL_REWRITE, ps, args);
+      }
+      // if we had inflection conditions, we need to also use a skeleton
+      if (!itd->second.d_iconds.empty())
+      {
         Assert(cur[1] != conc[1]);
         Node eqk = conc[1].eqNode(cur[1]);
         Trace("rpc-debug") << "Prove skeleton: " << eqk << std::endl;
@@ -617,7 +638,6 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
                                            bool doFixedPoint)
 {
   Node conc = rpr.getConclusion();
-  Node stgt = expr::narySubstitute(conc[1], vars, subs);
   // if fixed point, we continue applying
   if (false && doFixedPoint && rpr.isFixedPoint())
   {
@@ -626,6 +646,12 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
     d_currFixedPointId = rpr.getId();
     // check if stgt also rewrites with the same rule?
     bool continueFixedPoint;
+    std::vector<Node> transEq;
+    // start from the source, match again to start the chain. Notice this is
+    // required for uniformity since we want to successfully cache the first
+    // step, independent of the target.
+    Node ssrc = expr::narySubstitute(conc[0], vars, subs);
+    Node stgt = ssrc;
     do
     {
       continueFixedPoint = false;
@@ -634,13 +660,25 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       {
         continueFixedPoint = true;
         Assert(d_currFixedPointConc.getKind() == EQUAL);
+        transEq.push_back(stgt.eqNode(d_currFixedPointConc[1]));
         stgt = d_currFixedPointConc[1];
       }
       d_currFixedPointConc = Node::null();
     } while (continueFixedPoint);
     d_currFixedPointId = DslPfRule::FAIL;
+    // add the transistivity rule here if needed
+    if (transEq.size()>=2)
+    {
+      Node feq = ssrc.eqNode(stgt);
+      ProvenInfo& pi = d_pcache[feq];
+      pi.d_id = DslPfRule::TRANS;
+      // store transEq in d_vars
+      pi.d_vars = transEq;
+    }
+    // return the end of the chain, which will be used for constrained matching
+    return stgt;
   }
-  return stgt;
+  return expr::narySubstitute(conc[1], vars, subs);
 }
 
 Node RewriteDbProofCons::inflectMatch(
