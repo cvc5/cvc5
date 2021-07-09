@@ -605,7 +605,9 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
             }
           }
           Node cpnlb = d_cardParent[n][l].second;
-          d_im.assertInference(conc, InferenceId::SETS_CARD_GRAPH_EQ_PARENT_2, cpk.eqNode(cpnlb));
+          d_im.assertInference(conc,
+                               InferenceId::SETS_CARD_GRAPH_EQ_PARENT_2,
+                               cpk.eqNode(cpnlb));
           d_im.doPendingLemmas();
           if (d_im.hasSent())
           {
@@ -623,8 +625,8 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     exp.push_back(eqc.eqNode(n));
     for (const std::pair<Node, Node>& cpnc : d_cardParent[n])
     {
-      Trace("sets-cycle-debug")
-          << "Traverse card parent " << eqc << " -> " << cpnc.first << std::endl;
+      Trace("sets-cycle-debug") << "Traverse card parent " << eqc << " -> "
+                                << cpnc.first << std::endl;
       checkCardCyclesRec(cpnc.first, curr, exp);
       if (d_im.hasSent())
       {
@@ -897,7 +899,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
     Assert(d_localBase.find(n) != d_localBase.end());
     Node cbase = d_localBase[n];
     Trace("sets-nf-debug") << "Card base is " << cbase << std::endl;
-    for (const std::pair<Node, Node >& cp : d_cardParent[n])
+    for (const std::pair<Node, Node>& cp : d_cardParent[n])
     {
       Node p = cp.first;
       Trace("sets-nf-debug") << "Check parent " << p << std::endl;

@@ -362,7 +362,7 @@ class CardinalityExtension
    * where t is the parent term and r is the representative of equivalence
    * class of t.
    */
-  std::map<Node, std::vector<std::pair<Node,Node>> > d_cardParent;
+  std::map<Node, std::vector<std::pair<Node, Node>>> d_cardParent;
   /**
    * Maps equivalence classes + set terms in that equivalence class to their
    * "flat form" (see checkNormalForms).
