@@ -1,5 +1,5 @@
-; COMMAND-LINE: --incremental -q --check-unsat-cores
-; EXPECT: unknown
+; COMMAND-LINE: --incremental -q --check-unsat-cores --cegqi-full
+; EXPECT: unsat
 ; EXPECT: unsat
 ; EXPECT: (
 ; EXPECT: IP_1
