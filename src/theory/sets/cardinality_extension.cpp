@@ -604,6 +604,9 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
               conc.push_back(cpk.eqNode(n));
             }
           }
+          // use the original term, not the representative.
+          // for example, we conclude T = (union T S) => (intersect T S) = S
+          // here where we do not use the representative of T or (union T S).
           Node cpnlb = d_cardParent[n][l].second;
           d_im.assertInference(conc,
                                InferenceId::SETS_CARD_GRAPH_EQ_PARENT_2,
