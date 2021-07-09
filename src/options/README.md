@@ -194,14 +194,14 @@ Full Example
     [[option.mode.JUSTIFICATION]]
       name = "justification"
       help = "An ATGP-inspired justification heuristic."
-    [[option.mode.RELEVANCY]]
+    [[option.mode.STOPONLY]]
       name = "justification-stoponly"
       help = "Use the justification heuristic only to stop early, not for decisions."
 
 This defines a new option that is accessible via
 `d_options.{module.id}.decisionMode` and stores an automatically generated mode
 `DecisionMode`, an enum class with the values `INTERNAL`, `JUSTIFICATION` and
-`RELEVANCY`. From the outside, it can be set by `--decision=internal`, but also
+`STOPONLY`. From the outside, it can be set by `--decision=internal`, but also
 with `--decision-mode=justification`, and similarly from an SMT-LIB input with
 `(set-option :decision internal)` and `(set-option :decision-mode
 justification)`. The command-line help for this option looks as follows:

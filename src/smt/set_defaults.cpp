@@ -946,9 +946,20 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                       ? true
                       : false);
 
-    Trace("smt") << "setting decision mode to " << decMode << std::endl;
     opts.decision.decisionMode = decMode;
-    opts.decision.decisionStopOnly = stoponly;
+    if (stoponly)
+    {
+      if (opts.decision.decisionMode == options::DecisionMode::JUSTIFICATION)
+      {
+        opts.decision.decisionMode = options::DecisionMode::STOPONLY;
+      }
+      else
+      {
+        Assert(opts.decision.decisionMode == options::DecisionMode::INTERNAL);
+      }
+    }
+    Trace("smt") << "setting decision mode to " << opts.decision.decisionMode
+                 << std::endl;
   }
   if (options::incrementalSolving())
   {
