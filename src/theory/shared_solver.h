@@ -123,7 +123,7 @@ class SharedSolver
                                TNode b,
                                bool value);
   /** Send lemma to the theory engine, atomsTo is the theory to send atoms to */
-  void sendLemma(TrustNode trn, TheoryId atomsTo);
+  void sendLemma(TrustNode trn, TheoryId atomsTo, InferenceId id);
   /** Send conflict to the theory engine */
   void sendConflict(TrustNode trn);
 
