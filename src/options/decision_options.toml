@@ -24,7 +24,7 @@ name   = "Decision Heuristics"
   help = "Older implementation of an ATGP-inspired justification heuristic."
 [[option.mode.STOPONLY_OLD]]
   name = "stoponly-old"
-  help = "Use the old implmentation of justification heuristic only to stop early, not for decisions."
+  help = "Use the old implementation of justification heuristic only to stop early, not for decisions."
 
 [[option]]
   name       = "decisionThreshold"
