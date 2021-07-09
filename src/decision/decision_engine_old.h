@@ -20,6 +20,7 @@
 
 #include "base/output.h"
 #include "context/cdo.h"
+#include "decision/decision_engine.h"
 #include "decision/decision_strategy.h"
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
@@ -32,34 +33,20 @@ using namespace cvc5::decision;
 
 namespace cvc5 {
 
-class DecisionEngineOld
+class DecisionEngineOld : public decision::DecisionEngine
 {
  public:
   // Necessary functions
 
   /** Constructor */
-  DecisionEngineOld(context::Context* sc, context::UserContext* uc);
+  DecisionEngineOld(context::Context* sc,
+                    context::UserContext* uc,
+                    ResourceManager* rm);
 
   /** Destructor, currently does nothing */
   ~DecisionEngineOld()
   {
     Trace("decision") << "Destroying decision engine" << std::endl;
-  }
-
-  void setSatSolver(CDCLTSatSolverInterface* ss)
-  {
-    // setPropEngine should not be called more than once
-    Assert(d_satSolver == NULL);
-    Assert(ss != NULL);
-    d_satSolver = ss;
-  }
-
-  void setCnfStream(CnfStream* cs)
-  {
-    // setPropEngine should not be called more than once
-    Assert(d_cnfStream == NULL);
-    Assert(cs != NULL);
-    d_cnfStream = cs;
   }
 
   /**
@@ -72,10 +59,10 @@ class DecisionEngineOld
   // Interface for External World to use our services
 
   /** Gets the next decision based on strategies that are enabled */
-  SatLiteral getNext(bool& stopSearch);
+  SatLiteral getNextInternal(bool& stopSearch) override;
 
   /** Is the DecisionEngineOld in a state where it has solved everything? */
-  bool isDone()
+  bool isDone() override
   {
     Trace("decision") << "DecisionEngineOld::isDone() returning "
                       << (d_result != SAT_VALUE_UNKNOWN)
@@ -107,12 +94,12 @@ class DecisionEngineOld
    * Notify this class that assertion is an (input) assertion, not corresponding
    * to a skolem definition.
    */
-  void addAssertion(TNode assertion);
+  void addAssertion(TNode assertion) override;
   /**
    * Notify this class  that lem is the skolem definition for skolem, which is
    * a part of the current assertions.
    */
-  void addSkolemDefinition(TNode lem, TNode skolem);
+  void addSkolemDefinition(TNode lem, TNode skolem) override;
 
   // Interface for Strategies to use stuff stored in Decision Engine
   // (which was possibly requested by them on initialization)
@@ -129,12 +116,6 @@ class DecisionEngineOld
   // Disable creating decision engine without required parameters
   DecisionEngineOld();
 
-  CnfStream* d_cnfStream;
-  CDCLTSatSolverInterface* d_satSolver;
-
-  context::Context* d_satContext;
-  context::UserContext* d_userContext;
-
   // Does decision engine know the answer?
   context::CDO<SatValue> d_result;
 
@@ -142,6 +123,8 @@ class DecisionEngineOld
   unsigned d_engineState;  // 0=pre-init; 1=init,pre-shutdown; 2=shutdown
   /** The ITE decision strategy we have allocated */
   std::unique_ptr<ITEDecisionStrategy> d_enabledITEStrategy;
+  /** Whether we are using stop only */
+  bool d_decisionStopOnly;
 
 }; /* DecisionEngineOld class */
 
