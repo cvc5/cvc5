@@ -7,6 +7,6 @@
 (assert (<= 0 x))
 (assert (<= 0 y))
 (assert (< x y))
-(assert (> (pow2 x) (pow2 y)))
+(assert (> (int.pow2 x) (int.pow2 y)))
 
 (check-sat)

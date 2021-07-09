@@ -15,6 +15,8 @@
 
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
 
+#include "options/base_options.h"
+#include "options/outputc.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/ematching/trigger_database.h"
 #include "theory/quantifiers/quant_relevance.h"
@@ -145,6 +147,8 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
         && d_auto_gen_trigger[1][f].empty() && f.getNumChildren() == 2)
     {
       Trace("trigger-warn") << "Could not find trigger for " << f << std::endl;
+      Output(options::OutputTag::TRIGGER)
+          << "(no-trigger " << f << ")" << std::endl;
     }
   }
   if (options::triggerActiveSelMode() != options::TriggerActiveSelMode::ALL)

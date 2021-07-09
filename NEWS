@@ -14,8 +14,11 @@ New Features:
   syntax for sequences used by Z3.
 * Arrays: Added support for an `eqrange` predicate. `(eqrange a b i j)` is true
   if arrays `a` and `b` are equal on all indices within indices `i` and `j`.
-* Support for an integer operator `(_ iand n)` that returns the bitwise `and`
-  of two integers, seen as integers modulo n.
+* Integers:
+  * Support for an integer operator `(_ iand n)` that returns the bitwise `and`
+    of two integers, seen as integers modulo n.
+  * Support for an integer operator `int.pow2`, used as `(int.pow2 x)` which
+    represents 2 to the power of x.
 * Strings:
   * Support for `str.indexof_re(s, r, n)`, which returns the index of the first
     occurrence of a regular expression `r` in a string `s` after index `n` or
