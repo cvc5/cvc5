@@ -520,7 +520,9 @@ void TheoryFp::convertAndEquateTerm(TNode node)
 {
   Trace("fp-convertTerm") << "TheoryFp::convertTerm(): " << node << std::endl;
 
-  if (node.getKind() == kind::NOT)
+  /* When word-blasting more lazily, we get facts to word-blast instead of
+   * registered Terms. Hence, 'node' can be inverted. */
+  if (options::fpLazyWb() && node.getKind() == kind::NOT)
   {
     /* we only convert theory FP atoms */
     node = node[0];
@@ -666,6 +668,13 @@ void TheoryFp::registerTerm(TNode node)
       handleLemma(nm->mkNode(kind::EQUAL, node, equalityAlias),
                   InferenceId::FP_REGISTER_TERM);
     }
+
+    /* When not word-blasting lazier, we word-blast every term on
+     * registration. */
+    if (!options::fpLazyWb())
+    {
+      convertAndEquateTerm(node);
+    }
   }
   return;
 }
@@ -758,8 +767,8 @@ void TheoryFp::postCheck(Effort level)
 bool TheoryFp::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
-  /* Word -blast. */
-  if (d_wbFactsCache.find(fact) == d_wbFactsCache.end())
+  /* Word-blast lazier if configured. */
+  if (options::fpLazyWb() && d_wbFactsCache.find(fact) == d_wbFactsCache.end())
   {
     d_wbFactsCache.insert(fact);
     convertAndEquateTerm(fact);
@@ -791,8 +800,8 @@ bool TheoryFp::preNotifyFact(
 
 void TheoryFp::notifySharedTerm(TNode n)
 {
-  /* Word -blast. */
-  if (d_wbFactsCache.find(n) == d_wbFactsCache.end())
+  /* Word-blast lazier if configured. */
+  if (options::fpLazyWb() && d_wbFactsCache.find(n) == d_wbFactsCache.end())
   {
     d_wbFactsCache.insert(n);
     convertAndEquateTerm(n);
