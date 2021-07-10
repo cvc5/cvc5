@@ -1118,8 +1118,8 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       Node n = *eqc_i;
       static int repCheckInstance = 0;
       ++repCheckInstance;
-      AlwaysAssert(!rep.getType().isSubtypeOf(n.getType()))
-            << "Representative " << rep << " of " << n << " violates type constraints";
+      AlwaysAssert(rep.getType().isSubtypeOf(n.getType()))
+            << "Representative " << rep << " of " << n << " violates type constraints (" << rep.getType() << " and " << n.getType() << ")";
       // non-linear mult is not necessarily accurate wrt getValue
       if (n.getKind() != kind::NONLINEAR_MULT)
       {
