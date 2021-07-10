@@ -1119,15 +1119,17 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       static int repCheckInstance = 0;
       ++repCheckInstance;
       AlwaysAssert(rep.getType().isSubtypeOf(n.getType()))
-            << "Representative " << rep << " of " << n << " violates type constraints (" << rep.getType() << " and " << n.getType() << ")";
+          << "Representative " << rep << " of " << n
+          << " violates type constraints (" << rep.getType() << " and "
+          << n.getType() << ")";
       // non-linear mult is not necessarily accurate wrt getValue
       if (n.getKind() != kind::NONLINEAR_MULT)
       {
-        Trace("check-model::rep-checking") << "( " << repCheckInstance << ") "
-                                           << "n: " << n << endl
-                                           << "getValue(n): " << tm->getValue(n)
-                                           << endl
-                                           << "rep: " << rep << endl;
+        Trace("check-model::rep-checking")
+            << "( " << repCheckInstance << ") "
+            << "n: " << n << endl
+            << "getValue(n): " << tm->getValue(n) << endl
+            << "rep: " << rep << endl;
         AlwaysAssert(tm->getValue(*eqc_i) == rep)
             << "run with -t check-model::rep-checking for details";
       }
