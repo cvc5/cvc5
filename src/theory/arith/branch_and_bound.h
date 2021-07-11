@@ -47,3 +47,5 @@ private:
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5
+
+#endif
