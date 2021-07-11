@@ -21,6 +21,7 @@
 #include "theory/arith/arith_preprocess.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_state.h"
+#include "theory/arith/branch_and_bound.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/theory.h"
 

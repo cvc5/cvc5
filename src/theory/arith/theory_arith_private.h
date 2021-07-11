@@ -48,6 +48,7 @@
 #include "theory/arith/partial_model.h"
 #include "theory/arith/proof_checker.h"
 #include "theory/arith/soi_simplex.h"
+#include "theory/arith/branch_and_bound.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"

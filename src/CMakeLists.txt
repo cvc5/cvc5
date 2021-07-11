@@ -358,6 +358,8 @@ libcvc5_add_sources(
   theory/arith/bound_counts.h
   theory/arith/bound_inference.cpp
   theory/arith/bound_inference.h
+  theory/arith/branch_and_bound.cpp
+  theory/arith/branch_and_bound.h
   theory/arith/callbacks.cpp
   theory/arith/callbacks.h
   theory/arith/congruence_manager.cpp
