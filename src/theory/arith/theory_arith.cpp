@@ -43,11 +43,12 @@ TheoryArith::TheoryArith(context::Context* c,
     : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
       d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
           "theory::arith::ppRewriteTimer")),
+      d_pfGen(new EagerProofGenerator(d_pnm, u)),
       d_astate(c, u, valuation),
       d_im(*this, d_astate, pnm),
       d_ppre(c, pnm),
-      d_bab(d_astate, d_im, d_ppre, pnm),
-      d_internal(new TheoryArithPrivate(*this, c, u, d_bab, pnm)),
+      d_bab(d_astate, d_im, d_ppre, d_pfGen.get(), pnm),
+      d_internal(new TheoryArithPrivate(*this, c, u, d_pfGen.get(), d_bab, pnm)),
       d_nonlinearExtension(nullptr),
       d_opElim(pnm, logicInfo),
       d_arithPreproc(d_astate, d_im, pnm, d_opElim),
@@ -174,20 +175,6 @@ void TheoryArith::postCheck(Effort level)
       // set incomplete
       d_im.setIncomplete(IncompleteId::ARITH_NL_DISABLED);
     }
-    if (!d_valuation.needCheck())
-    {
-      // get the model from the linear solver
-      d_arithModel.clear();
-      d_internal->collectModelValues(termSet, d_arithModel);
-      for (const std::pair<const Node, Node>& p : d_arithModel)
-      {
-        if (p.first.getType().isInteger() && !p.second.getType().isInteger())
-        {
-          // must branch and bound
-          d_bab.branchIntegerValue(p.first, p.second.getConst<Rational>());
-        }
-      }
-    }
   }
 }
 
@@ -227,15 +214,42 @@ bool TheoryArith::collectModelInfo(TheoryModel* m,
 bool TheoryArith::collectModelValues(TheoryModel* m,
                                      const std::set<Node>& termSet)
 {
+  // get the model from the linear solver
+  std::map<Node, Node> arithModel;
+  d_internal->collectModelValues(termSet, arithModel);
+  bool addedLemma = false;
+  bool badAssignment = false;
+  for (const std::pair<const Node, Node>& p : arithModel)
+  {
+    if (p.first.getType().isInteger() && !p.second.getType().isInteger())
+    {
+      // must branch and bound
+      TrustNode lem = d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());
+      if (d_im.trustedLemma(lem, InferenceId::ARITH_BB_LEMMA))
+      {
+        addedLemma = true;
+      }
+      badAssignment = true;
+    }
+  }
+  if (addedLemma)
+  {
+    return false;
+  }
+  if (badAssignment)
+  {
+    // FIXME
+  }
+
   // if non-linear is enabled, intercept the model, which may repair its values
   if (d_nonlinearExtension != nullptr)
   {
     // Non-linear may repair values to satisfy non-linear constraints (see
     // documentation for NonlinearExtension::interceptModel).
-    d_nonlinearExtension->interceptModel(d_arithModel, termSet);
+    d_nonlinearExtension->interceptModel(arithModel, termSet);
   }
   // We are now ready to assert the model.
-  for (const std::pair<const Node, Node>& p : d_arithModel)
+  for (const std::pair<const Node, Node>& p : arithModel)
   {
     // maps to constant of comparable type
     Assert(p.first.getType().isComparableTo(p.second.getType()));

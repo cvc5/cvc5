@@ -18,6 +18,11 @@
 #include "options/arith_options.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "proof/proof_node.h"
+#include "proof/eager_proof_generator.h"
+#include "theory/arith/arith_utilities.h"
+
+using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace theory {
@@ -26,33 +31,34 @@ namespace arith {
 BranchAndBound::BranchAndBound(ArithState& s,
                                InferenceManager& im,
                                PreprocessRewriteEq& ppre,
+                               EagerProofGenerator* pg,
                                ProofNodeManager* pnm)
-    : d_astate(s), d_im(im), d_ppre(ppre), d_pnm(pnm)
+    : d_astate(s), d_im(im), d_ppre(ppre), d_pfGen(pg), d_pnm(pnm)
 {
 }
 
-TrustNode BranchAndBound::branchVariable(TNode var, Rational value)
+TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
 {
   TrustNode lem = TrustNode::null();
   NodeManager* nm = NodeManager::currentNM();
-  Rational floor = value.floor();
+  Integer floor = value.floor();
   if (options::brabTest())
   {
     Trace("integers") << "branch-round-and-bound enabled" << std::endl;
     Integer ceil = value.ceiling();
-    Rational f = r - floor;
+    Rational f = value - floor;
     // Multiply by -1 to get abs value.
-    Rational c = (r - ceil) * (-1);
+    Rational c = (value - ceil) * (-1);
     Integer nearest = (c > f) ? floor : ceil;
 
     // Prioritize trying a simple rounding of the real solution first,
     // it that fails, fall back on original branch and bound strategy.
     Node ub = Rewriter::rewrite(
-        nm->mkNode(kind::LEQ, var, mkRationalNode(nearest - 1)));
+        nm->mkNode(LEQ, var, mkRationalNode(nearest - 1)));
     Node lb = Rewriter::rewrite(
-        nm->mkNode(kind::GEQ, var, mkRationalNode(nearest + 1)));
-    Node right = nm->mkNode(kind::OR, ub, lb);
-    Node rawEq = nm->mkNode(kind::EQUAL, var, mkRationalNode(nearest));
+        nm->mkNode(GEQ, var, mkRationalNode(nearest + 1)));
+    Node right = nm->mkNode(OR, ub, lb);
+    Node rawEq = nm->mkNode(EQUAL, var, mkRationalNode(nearest));
     Node eq = Rewriter::rewrite(rawEq);
     // Also preprocess it before we send it out. This is important since
     // arithmetic may prefer eliminating equalities.
@@ -65,12 +71,12 @@ TrustNode BranchAndBound::branchVariable(TNode var, Rational value)
     Node literal = d_astate.getValuation().ensureLiteral(eq);
     Trace("integers") << "eq: " << eq << "\nto: " << literal << std::endl;
     d_im.requirePhase(literal, true);
-    Node l = nm->mkNode(kind::OR, literal, right);
+    Node l = nm->mkNode(OR, literal, right);
     Trace("integers") << "l: " << l << std::endl;
     if (proofsEnabled())
     {
-      Node less = nm->mkNode(kind::LT, var, mkRationalNode(nearest));
-      Node greater = nm->mkNode(kind::GT, var, mkRationalNode(nearest));
+      Node less = nm->mkNode(LT, var, mkRationalNode(nearest));
+      Node greater = nm->mkNode(GT, var, mkRationalNode(nearest));
       // TODO (project #37): justify. Thread proofs through *ensureLiteral*.
       Debug("integers::pf") << "less: " << less << std::endl;
       Debug("integers::pf") << "greater: " << greater << std::endl;
@@ -111,16 +117,16 @@ TrustNode BranchAndBound::branchVariable(TNode var, Rational value)
   else
   {
     Node ub =
-        Rewriter::rewrite(nm->mkNode(kind::LEQ, var, mkRationalNode(floor)));
+        Rewriter::rewrite(nm->mkNode(LEQ, var, mkRationalNode(floor)));
     Node lb = ub.notNode();
     if (proofsEnabled())
     {
       lem = d_pfGen->mkTrustNode(
-          nm->mkNode(kind::OR, ub, lb), PfRule::SPLIT, {}, {ub});
+          nm->mkNode(OR, ub, lb), PfRule::SPLIT, {}, {ub});
     }
     else
     {
-      lem = TrustNode::mkTrustLemma(nm->mkNode(kind::OR, ub, lb), nullptr);
+      lem = TrustNode::mkTrustLemma(nm->mkNode(OR, ub, lb), nullptr);
     }
   }
 

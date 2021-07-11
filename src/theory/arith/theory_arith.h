@@ -131,6 +131,10 @@ class TheoryArith : public Theory {
  private:
   /** Get the proof equality engine */
   eq::ProofEqEngine* getProofEqEngine();
+  /** Timer for ppRewrite */
+  TimerStat d_ppRewriteTimer;
+  /** Stores proposition(node)/proof pairs. */
+  std::unique_ptr<EagerProofGenerator> d_pfGen;
   /** The state object wrapping TheoryArithPrivate  */
   ArithState d_astate;
   /** The arith::InferenceManager. */
@@ -154,7 +158,7 @@ class TheoryArith : public Theory {
   /** The theory rewriter for this theory. */
   ArithRewriter d_rewriter;
   /** The arithmetic model, valid after a call to full effort check */
-  std::map<Node, Node> d_arithModel;
+  //std::map<Node, Node> d_arithModel;
 };/* class TheoryArith */
 
 }  // namespace arith

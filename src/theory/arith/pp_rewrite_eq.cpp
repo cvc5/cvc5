@@ -16,20 +16,19 @@
 #include "theory/arith/pp_rewrite_eq.h"
 
 #include "theory/rewriter.h"
+#include "options/arith_options.h"
 
 namespace cvc5 {
 namespace theory {
 namespace arith {
 
-PreprocessRewrite::PreprocessRewrite(ProofNodeManager* pnm)
-    :
-
-      d_ppPfGen(pnm, c, "Arith::ppRewrite"),
+PreprocessRewriteEq::PreprocessRewriteEq(context::Context* c, ProofNodeManager* pnm)
+    : d_ppPfGen(pnm, c, "Arith::ppRewrite"),
       d_pnm(pnm)
 {
 }
 
-TrustNode PreprocessRewrite::ppRewriteEq(TNode atom)
+TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
 {
   Assert(atom.getKind() == kind::EQUAL);
   if (!options::arithRewriteEq())
@@ -41,7 +40,7 @@ TrustNode PreprocessRewrite::ppRewriteEq(TNode atom)
   Node geq = NodeBuilder(kind::GEQ) << atom[0] << atom[1];
   Node rewritten = Rewriter::rewrite(leq.andNode(geq));
   Debug("arith::preprocess")
-      << "arith::preprocess() : returning " << rewritten << endl;
+      << "arith::preprocess() : returning " << rewritten << std::endl;
   // don't need to rewrite terms since rewritten is not a non-standard op
   if (proofsEnabled())
   {
@@ -53,7 +52,7 @@ TrustNode PreprocessRewrite::ppRewriteEq(TNode atom)
   return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
 }
 
-bool PreprocessRewrite::proofsEnabled() const { return d_pnm != nullptr; }
+bool PreprocessRewriteEq::proofsEnabled() const { return d_pnm != nullptr; }
 
 }  // namespace arith
 }  // namespace theory

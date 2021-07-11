@@ -103,7 +103,7 @@ private:
   /** Checks the proof rules of this theory. */
   ArithProofRuleChecker d_checker;
   /** Stores proposition(node)/proof pairs. */
-  std::unique_ptr<EagerProofGenerator> d_pfGen;
+  EagerProofGenerator* d_pfGen;
 
   /**
    * The constraint database associated with the theory.
@@ -426,6 +426,7 @@ private:
   TheoryArithPrivate(TheoryArith& containing,
                      context::Context* c,
                      context::UserContext* u,
+                     EagerProofGenerator *pg,
                      BranchAndBound& bab,
                      ProofNodeManager* pnm);
   ~TheoryArithPrivate();

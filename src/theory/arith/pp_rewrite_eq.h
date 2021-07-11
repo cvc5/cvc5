@@ -21,6 +21,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "proof/eager_proof_generator.h"
+#include "proof/proof_node_manager.h"
 
 namespace cvc5 {
 namespace theory {
@@ -29,8 +30,8 @@ namespace arith {
 class PreprocessRewriteEq
 {
  public:
-  PreprocessRewrite(context::Context* c, ProofNodeManager* pnm);
-  ~PreprocessRewrite() {}
+  PreprocessRewriteEq(context::Context* c, ProofNodeManager* pnm);
+  ~PreprocessRewriteEq() {}
   /**
    * Preprocess equality, applies ppRewrite for equalities. This method is
    * distinct from ppRewrite since it is not allowed to construct lemmas.
@@ -40,8 +41,6 @@ class PreprocessRewriteEq
  private:
   /** Are proofs enabled? */
   bool proofsEnabled() const;
-  /** Timer */
-  TimerStat d_ppRewriteTimer;
   /** Used to prove pp-rewrites */
   EagerProofGenerator d_ppPfGen;
   /** Proof node manager */

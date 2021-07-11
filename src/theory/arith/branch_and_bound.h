@@ -38,13 +38,14 @@ class BranchAndBound
   BranchAndBound(ArithState& s,
                  InferenceManager& im,
                  PreprocessRewriteEq& ppre,
+  EagerProofGenerator* pg,
                  ProofNodeManager* pnm);
   ~BranchAndBound() {}
   /**
    * Branch variable, called when integer var has given value
    * in the current model, returns a split to eliminate this model.
    */
-  TrustNode branchVariable(TNode var, Rational value);
+  TrustNode branchIntegerVariable(TNode var, Rational value);
 
  private:
   /** Are proofs enabled? */
@@ -54,7 +55,9 @@ class BranchAndBound
   /** Reference to the inference manager */
   InferenceManager& d_im;
   /** Reference to the preprocess rewriter for equality */
-  PreprocessRewriteEq d_ppre;
+  PreprocessRewriteEq& d_ppre;
+  /** Proof generator */
+  EagerProofGenerator* d_pfGen;
   /** Proof node manager */
   ProofNodeManager* d_pnm;
 };
