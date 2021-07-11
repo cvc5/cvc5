@@ -242,7 +242,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   }
   // this would imply that linear arithmetic's model failed to satisfy a branch
   // and bound lemma
-  AlwaysAssert (!badAssignment);
+  AlwaysAssert(!badAssignment);
 
   // if non-linear is enabled, intercept the model, which may repair its values
   if (d_nonlinearExtension != nullptr)
