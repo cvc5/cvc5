@@ -38,7 +38,7 @@ class BranchAndBound
   BranchAndBound(ArithState& s,
                  InferenceManager& im,
                  PreprocessRewriteEq& ppre,
-  EagerProofGenerator* pg,
+                 EagerProofGenerator* pg,
                  ProofNodeManager* pnm);
   ~BranchAndBound() {}
   /**

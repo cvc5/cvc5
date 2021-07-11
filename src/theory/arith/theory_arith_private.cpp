@@ -87,7 +87,7 @@ static bool complexityBelow(const DenseMap<Rational>& row, uint32_t cap);
 TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                                        context::Context* c,
                                        context::UserContext* u,
-                     EagerProofGenerator *pg,
+                                       EagerProofGenerator* pg,
                                        BranchAndBound& bab,
                                        ProofNodeManager* pnm)
     : d_containing(containing),

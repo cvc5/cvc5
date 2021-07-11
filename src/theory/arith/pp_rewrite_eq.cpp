@@ -15,16 +15,16 @@
 
 #include "theory/arith/pp_rewrite_eq.h"
 
-#include "theory/rewriter.h"
 #include "options/arith_options.h"
+#include "theory/rewriter.h"
 
 namespace cvc5 {
 namespace theory {
 namespace arith {
 
-PreprocessRewriteEq::PreprocessRewriteEq(context::Context* c, ProofNodeManager* pnm)
-    : d_ppPfGen(pnm, c, "Arith::ppRewrite"),
-      d_pnm(pnm)
+PreprocessRewriteEq::PreprocessRewriteEq(context::Context* c,
+                                         ProofNodeManager* pnm)
+    : d_ppPfGen(pnm, c, "Arith::ppRewrite"), d_pnm(pnm)
 {
 }
 

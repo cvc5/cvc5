@@ -48,7 +48,8 @@ TheoryArith::TheoryArith(context::Context* c,
       d_im(*this, d_astate, pnm),
       d_ppre(c, pnm),
       d_bab(d_astate, d_im, d_ppre, d_pfGen.get(), pnm),
-      d_internal(new TheoryArithPrivate(*this, c, u, d_pfGen.get(), d_bab, pnm)),
+      d_internal(
+          new TheoryArithPrivate(*this, c, u, d_pfGen.get(), d_bab, pnm)),
       d_nonlinearExtension(nullptr),
       d_opElim(pnm, logicInfo),
       d_arithPreproc(d_astate, d_im, pnm, d_opElim),
@@ -224,7 +225,8 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     if (p.first.getType().isInteger() && !p.second.getType().isInteger())
     {
       // must branch and bound
-      TrustNode lem = d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());
+      TrustNode lem =
+          d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());
       if (d_im.trustedLemma(lem, InferenceId::ARITH_BB_LEMMA))
       {
         addedLemma = true;

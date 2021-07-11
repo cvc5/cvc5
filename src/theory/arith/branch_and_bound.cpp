@@ -16,11 +16,11 @@
 #include "theory/arith/branch_and_bound.h"
 
 #include "options/arith_options.h"
+#include "proof/eager_proof_generator.h"
+#include "proof/proof_node.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
-#include "proof/proof_node.h"
-#include "proof/eager_proof_generator.h"
-#include "theory/arith/arith_utilities.h"
 
 using namespace cvc5::kind;
 
@@ -53,10 +53,10 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
 
     // Prioritize trying a simple rounding of the real solution first,
     // it that fails, fall back on original branch and bound strategy.
-    Node ub = Rewriter::rewrite(
-        nm->mkNode(LEQ, var, mkRationalNode(nearest - 1)));
-    Node lb = Rewriter::rewrite(
-        nm->mkNode(GEQ, var, mkRationalNode(nearest + 1)));
+    Node ub =
+        Rewriter::rewrite(nm->mkNode(LEQ, var, mkRationalNode(nearest - 1)));
+    Node lb =
+        Rewriter::rewrite(nm->mkNode(GEQ, var, mkRationalNode(nearest + 1)));
     Node right = nm->mkNode(OR, ub, lb);
     Node rawEq = nm->mkNode(EQUAL, var, mkRationalNode(nearest));
     Node eq = Rewriter::rewrite(rawEq);
@@ -116,13 +116,12 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
   }
   else
   {
-    Node ub =
-        Rewriter::rewrite(nm->mkNode(LEQ, var, mkRationalNode(floor)));
+    Node ub = Rewriter::rewrite(nm->mkNode(LEQ, var, mkRationalNode(floor)));
     Node lb = ub.notNode();
     if (proofsEnabled())
     {
-      lem = d_pfGen->mkTrustNode(
-          nm->mkNode(OR, ub, lb), PfRule::SPLIT, {}, {ub});
+      lem =
+          d_pfGen->mkTrustNode(nm->mkNode(OR, ub, lb), PfRule::SPLIT, {}, {ub});
     }
     else
     {

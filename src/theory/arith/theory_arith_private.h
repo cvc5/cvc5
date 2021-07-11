@@ -426,7 +426,7 @@ private:
   TheoryArithPrivate(TheoryArith& containing,
                      context::Context* c,
                      context::UserContext* u,
-                     EagerProofGenerator *pg,
+                     EagerProofGenerator* pg,
                      BranchAndBound& bab,
                      ProofNodeManager* pnm);
   ~TheoryArithPrivate();
