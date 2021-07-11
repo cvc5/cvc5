@@ -21,12 +21,13 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-PreprocessRewrite::PreprocessRewrite(ProofNodeManager * pnm) :
+PreprocessRewrite::PreprocessRewrite(ProofNodeManager* pnm)
+    :
 
-      d_ppPfGen(pnm, c, "Arith::ppRewrite"), d_pnm(pnm)
-      {
-        
-      }
+      d_ppPfGen(pnm, c, "Arith::ppRewrite"),
+      d_pnm(pnm)
+{
+}
 
 TrustNode PreprocessRewrite::ppRewriteEq(TNode atom)
 {
@@ -52,10 +53,7 @@ TrustNode PreprocessRewrite::ppRewriteEq(TNode atom)
   return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
 }
 
-bool PreprocessRewrite::proofsEnabled() const
-{
-  return d_pnm!=nullptr;
-}
+bool PreprocessRewrite::proofsEnabled() const { return d_pnm != nullptr; }
 
 }  // namespace arith
 }  // namespace theory

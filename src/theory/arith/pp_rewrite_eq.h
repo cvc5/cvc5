@@ -18,9 +18,9 @@
 #ifndef CVC5__THEORY__ARITH__PP_REWRITE_EQ__H
 #define CVC5__THEORY__ARITH__PP_REWRITE_EQ__H
 
-#include "proof/eager_proof_generator.h"
-#include "expr/node.h"
 #include "context/context.h"
+#include "expr/node.h"
+#include "proof/eager_proof_generator.h"
 
 namespace cvc5 {
 namespace theory {
@@ -29,15 +29,15 @@ namespace arith {
 class PreprocessRewriteEq
 {
  public:
-  PreprocessRewrite(context::Context* c,
-                        ProofNodeManager * pnm);
+  PreprocessRewrite(context::Context* c, ProofNodeManager* pnm);
   ~PreprocessRewrite() {}
   /**
    * Preprocess equality, applies ppRewrite for equalities. This method is
    * distinct from ppRewrite since it is not allowed to construct lemmas.
    */
   TrustNode ppRewriteEq(TNode eq);
-private:
+
+ private:
   /** Are proofs enabled? */
   bool proofsEnabled() const;
   /** Timer */
@@ -45,7 +45,7 @@ private:
   /** Used to prove pp-rewrites */
   EagerProofGenerator d_ppPfGen;
   /** Proof node manager */
-  ProofNodeManager * d_pnm;
+  ProofNodeManager* d_pnm;
 };
 
 }  // namespace arith

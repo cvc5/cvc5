@@ -15,16 +15,19 @@
 
 #include "theory/arith/branch_and_bound.h"
 
-#include "theory/rewriter.h"
 #include "options/arith_options.h"
+#include "theory/rewriter.h"
 #include "theory/theory.h"
 
 namespace cvc5 {
 namespace theory {
 namespace arith {
 
-
-BranchAndBound::BranchAndBound(ArithState& s, InferenceManager& im, PreprocessRewriteEq& ppre, ProofNodeManager * pnm) : d_astate(s), d_im(im), d_ppre(ppre), d_pnm(pnm)
+BranchAndBound::BranchAndBound(ArithState& s,
+                               InferenceManager& im,
+                               PreprocessRewriteEq& ppre,
+                               ProofNodeManager* pnm)
+    : d_astate(s), d_im(im), d_ppre(ppre), d_pnm(pnm)
 {
 }
 
@@ -80,16 +83,17 @@ TrustNode BranchAndBound::branchVariable(TNode var, Rational value)
           literal == rawEq
               ? pfNotLit
               : d_pnm->mkNode(
-                  PfRule::MACRO_SR_PRED_TRANSFORM,
-                  {pfNotLit, teq.getGenerator()->getProofFor(teq.getProven())},
-                  {rawEq.negate()});
-      Pf pfBot =
-          d_pnm->mkNode(PfRule::CONTRA,
-                        {d_pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
-                                       {d_pnm->mkAssume(less.negate()), pfNotRawEq},
-                                       {greater}),
-                         d_pnm->mkAssume(greater.negate())},
-                        {});
+                    PfRule::MACRO_SR_PRED_TRANSFORM,
+                    {pfNotLit,
+                     teq.getGenerator()->getProofFor(teq.getProven())},
+                    {rawEq.negate()});
+      Pf pfBot = d_pnm->mkNode(
+          PfRule::CONTRA,
+          {d_pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
+                         {d_pnm->mkAssume(less.negate()), pfNotRawEq},
+                         {greater}),
+           d_pnm->mkAssume(greater.negate())},
+          {});
       std::vector<Node> assumptions = {
           literal.negate(), less.negate(), greater.negate()};
       // Proof of (not (and (not (= v i)) (not (< v i)) (not (> v i))))
@@ -124,10 +128,7 @@ TrustNode BranchAndBound::branchVariable(TNode var, Rational value)
   return lem;
 }
 
-bool BranchAndBound::proofsEnabled() const
-{
-  return d_pnm!=nullptr;
-}
+bool BranchAndBound::proofsEnabled() const { return d_pnm != nullptr; }
 
 }  // namespace arith
 }  // namespace theory
