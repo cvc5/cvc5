@@ -32,6 +32,11 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
+/**
+ * Class is responsible for constructing branch and bound lemmas. It is
+ * agnostic to the state of solver; instead is simply given (variable, value)
+ * pairs in branchIntegerVariable below and constructs the appropriate lemma.
+ */
 class BranchAndBound
 {
  public:

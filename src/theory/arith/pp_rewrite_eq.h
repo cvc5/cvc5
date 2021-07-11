@@ -27,6 +27,12 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
+/**
+ * This class is responsible for rewriting arithmetic equalities based on the
+ * current options.
+ *
+ * In particular, we may rewrite (= x y) to (and (>= x y) (<= x y)).
+ */
 class PreprocessRewriteEq
 {
  public:
