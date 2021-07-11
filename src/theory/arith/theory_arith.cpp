@@ -236,12 +236,13 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   }
   if (addedLemma)
   {
+    // we had to add a branch and bound lemma since the linear solver assigned
+    // a non-integer value to an integer variable.
     return false;
   }
-  if (badAssignment)
-  {
-    // FIXME
-  }
+  // this would imply that linear arithmetic's model failed to satisfy a branch
+  // and bound lemma
+  AlwaysAssert (!badAssignment);
 
   // if non-linear is enabled, intercept the model, which may repair its values
   if (d_nonlinearExtension != nullptr)
