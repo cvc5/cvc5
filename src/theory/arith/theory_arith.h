@@ -23,6 +23,7 @@
 #include "theory/arith/arith_state.h"
 #include "theory/arith/branch_and_bound.h"
 #include "theory/arith/inference_manager.h"
+#include "theory/arith/pp_rewrite_eq.h"
 #include "theory/theory.h"
 
 namespace cvc5 {
@@ -40,14 +41,7 @@ class TheoryArithPrivate;
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
 class TheoryArith : public Theory {
- private:
   friend class TheoryArithPrivate;
-
-  TimerStat d_ppRewriteTimer;
-
-  /** Used to prove pp-rewrites */
-  EagerProofGenerator d_ppPfGen;
-
  public:
   TheoryArith(context::Context* c,
               context::UserContext* u,
@@ -135,19 +129,18 @@ class TheoryArith : public Theory {
   }
 
  private:
-  /**
-   * Preprocess equality, applies ppRewrite for equalities. This method is
-   * distinct from ppRewrite since it is not allowed to construct lemmas.
-   */
-  TrustNode ppRewriteEq(TNode eq);
   /** Get the proof equality engine */
   eq::ProofEqEngine* getProofEqEngine();
-  /** The (old) linear arithmetic solver */
-  TheoryArithPrivate* d_internal;
   /** The state object wrapping TheoryArithPrivate  */
   ArithState d_astate;
   /** The arith::InferenceManager. */
   InferenceManager d_im;
+  /** The preprocess rewriter for equality */
+  PreprocessRewriteEq d_ppre;
+  /** The branch and bound utility */
+  BranchAndBound d_bab;
+  /** The (old) linear arithmetic solver */
+  TheoryArithPrivate* d_internal;
 
   /**
    * The non-linear extension, responsible for all approaches for non-linear
@@ -160,8 +153,6 @@ class TheoryArith : public Theory {
   ArithPreprocess d_arithPreproc;
   /** The theory rewriter for this theory. */
   ArithRewriter d_rewriter;
-  /** The branch and bound utility */
-  BranchAndBound d_bab;
   /** The arithmetic model, valid after a call to full effort check */
   std::map<Node, Node> d_arithModel;
 };/* class TheoryArith */

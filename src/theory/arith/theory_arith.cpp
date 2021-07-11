@@ -41,19 +41,20 @@ TheoryArith::TheoryArith(context::Context* c,
                          const LogicInfo& logicInfo,
                          ProofNodeManager* pnm)
     : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
-    d_bab(pnm),
-      d_internal(
-          new TheoryArithPrivate(*this, c, u, d_bab, pnm)),
       d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
           "theory::arith::ppRewriteTimer")),
-      d_ppPfGen(pnm, c, "Arith::ppRewrite"),
-      d_astate(*d_internal, c, u, valuation),
+      d_astate(c, u, valuation),
       d_im(*this, d_astate, pnm),
+      d_ppre(c, pnm),
+      d_bab(d_astate, d_im, d_ppre, pnm),
+      d_internal(
+          new TheoryArithPrivate(*this, c, u, d_bab, pnm)),
       d_nonlinearExtension(nullptr),
       d_opElim(pnm, logicInfo),
       d_arithPreproc(d_astate, d_im, pnm, d_opElim),
       d_rewriter(d_opElim)
 {
+  d_astate.setParent(d_internal);
   // indicate we are using the theory state object and inference manager
   d_theoryState = &d_astate;
   d_inferManager = &d_im;
@@ -115,7 +116,7 @@ TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 
   if (atom.getKind() == kind::EQUAL)
   {
-    return ppRewriteEq(atom);
+    return d_ppre.ppRewriteEq(atom);
   }
   Assert(Theory::theoryOf(atom) == THEORY_ARITH);
   // Eliminate operators. Notice we must do this here since other
@@ -125,30 +126,6 @@ TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   // call eliminate operators. In contrast to expandDefinitions, we eliminate
   // *all* extended arithmetic operators here, including total ones.
   return d_arithPreproc.eliminate(atom, lems, false);
-}
-
-TrustNode TheoryArith::ppRewriteEq(TNode atom)
-{
-  Assert(atom.getKind() == kind::EQUAL);
-  if (!options::arithRewriteEq())
-  {
-    return TrustNode::null();
-  }
-  Assert(atom[0].getType().isReal());
-  Node leq = NodeBuilder(kind::LEQ) << atom[0] << atom[1];
-  Node geq = NodeBuilder(kind::GEQ) << atom[0] << atom[1];
-  Node rewritten = Rewriter::rewrite(leq.andNode(geq));
-  Debug("arith::preprocess")
-      << "arith::preprocess() : returning " << rewritten << endl;
-  // don't need to rewrite terms since rewritten is not a non-standard op
-  if (proofsEnabled())
-  {
-    return d_ppPfGen.mkTrustedRewrite(
-        atom,
-        rewritten,
-        d_pnm->mkNode(PfRule::INT_TRUST, {}, {atom.eqNode(rewritten)}));
-  }
-  return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(

@@ -3456,7 +3456,32 @@ TrustNode TheoryArithPrivate::branchIntegerVariable(ArithVar x) const
   Trace("integers") << "integers: assignment to [[" << d_partialModel.asNode(x) << "]] is " << r << "[" << i << "]" << endl;
   Assert(!(r.getDenominator() == 1 && i.getNumerator() == 0));
   TNode var = d_partialModel.asNode(x);
-  return d_bab.branchIntegerVariable(var, r);
+  TrustNode lem = d_bab.branchIntegerVariable(var, r);
+  if (Debug.isOn("integers"))
+  {
+    Node l = lem.getNode();
+    if (isSatLiteral(l[0]))
+    {
+      Debug("integers") << "    " << l[0] << " == " << getSatValue(l[0])
+                        << endl;
+    }
+    else
+    {
+      Debug("integers") << "    " << l[0] << " is not assigned a SAT literal"
+                        << endl;
+    }
+    if (isSatLiteral(l[1]))
+    {
+      Debug("integers") << "    " << l[1] << " == " << getSatValue(l[1])
+                        << endl;
+    }
+    else
+    {
+      Debug("integers") << "    " << l[1] << " is not assigned a SAT literal"
+                        << endl;
+    }
+  }
+  return lem;
 }
 
 std::vector<ArithVar> TheoryArithPrivate::cutAllBounded() const{

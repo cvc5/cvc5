@@ -24,6 +24,9 @@
 #include "util/rational.h"
 #include "proof/proof_node_manager.h"
 #include "proof/trust_node.h"
+#include "theory/arith/arith_state.h"
+#include "theory/arith/inference_manager.h"
+#include "theory/arith/pp_rewrite_eq.h"
 
 namespace cvc5 {
 namespace theory {
@@ -32,7 +35,7 @@ namespace arith {
 class BranchAndBound
 {
  public:
-  BranchAndBound(ProofNodeManager * pnm);
+  BranchAndBound(ArithState& s, InferenceManager& im, PreprocessRewriteEq& ppre, ProofNodeManager * pnm);
   ~BranchAndBound() {}
   /** 
    * Branch variable, called when integer var has given value
@@ -40,6 +43,14 @@ class BranchAndBound
    */
   TrustNode branchVariable(TNode var, Rational value);
 private:
+  /** Are proofs enabled? */
+  bool proofsEnabled() const;
+  /** Reference to the state */
+  ArithState& d_astate;
+  /** Reference to the inference manager */
+  InferenceManager& d_im;  
+  /** Reference to the preprocess rewriter for equality */
+  PreprocessRewriteEq d_ppre;
   /** Proof node manager */
   ProofNodeManager * d_pnm;
 };

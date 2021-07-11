@@ -15,12 +15,16 @@
 
 #include "theory/arith/branch_and_bound.h"
 
+#include "theory/rewriter.h"
+#include "options/arith_options.h"
+#include "theory/theory.h"
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
 
 
-BranchAndBound::BranchAndBound(ProofNodeManager * pnm) : d_pnm(pnm)
+BranchAndBound::BranchAndBound(ArithState& s, InferenceManager& im, PreprocessRewriteEq& ppre, ProofNodeManager * pnm) : d_astate(s), d_im(im), d_ppre(ppre), d_pnm(pnm)
 {
 }
 
@@ -31,7 +35,7 @@ TrustNode BranchAndBound::branchVariable(TNode var, Rational value)
   Rational floor = value.floor();
   if (options::brabTest())
   {
-    Trace("integers") << "branch-round-and-bound enabled" << endl;
+    Trace("integers") << "branch-round-and-bound enabled" << std::endl;
     Integer ceil = value.ceiling();
     Rational f = r - floor;
     // Multiply by -1 to get abs value.
@@ -52,24 +56,24 @@ TrustNode BranchAndBound::branchVariable(TNode var, Rational value)
     TrustNode teq;
     if (Theory::theoryOf(eq) == THEORY_ARITH)
     {
-      teq = d_containing.ppRewriteEq(eq);
+      teq = d_ppre.ppRewriteEq(eq);
       eq = teq.isNull() ? eq : teq.getNode();
     }
-    Node literal = d_containing.getValuation().ensureLiteral(eq);
-    Trace("integers") << "eq: " << eq << "\nto: " << literal << endl;
-    d_containing.getOutputChannel().requirePhase(literal, true);
+    Node literal = d_astate.getValuation().ensureLiteral(eq);
+    Trace("integers") << "eq: " << eq << "\nto: " << literal << std::endl;
+    d_im.requirePhase(literal, true);
     Node l = nm->mkNode(kind::OR, literal, right);
-    Trace("integers") << "l: " << l << endl;
+    Trace("integers") << "l: " << l << std::endl;
     if (proofsEnabled())
     {
       Node less = nm->mkNode(kind::LT, var, mkRationalNode(nearest));
       Node greater = nm->mkNode(kind::GT, var, mkRationalNode(nearest));
       // TODO (project #37): justify. Thread proofs through *ensureLiteral*.
-      Debug("integers::pf") << "less: " << less << endl;
-      Debug("integers::pf") << "greater: " << greater << endl;
-      Debug("integers::pf") << "literal: " << literal << endl;
-      Debug("integers::pf") << "eq: " << eq << endl;
-      Debug("integers::pf") << "rawEq: " << rawEq << endl;
+      Debug("integers::pf") << "less: " << less << std::endl;
+      Debug("integers::pf") << "greater: " << greater << std::endl;
+      Debug("integers::pf") << "literal: " << literal << std::endl;
+      Debug("integers::pf") << "eq: " << eq << std::endl;
+      Debug("integers::pf") << "rawEq: " << rawEq << std::endl;
       Pf pfNotLit = d_pnm->mkAssume(literal.negate());
       // rewrite notLiteral to notRawEq, using teq.
       Pf pfNotRawEq =
@@ -116,32 +120,13 @@ TrustNode BranchAndBound::branchVariable(TNode var, Rational value)
     }
   }
 
-  Trace("integers") << "integers: branch & bound: " << lem << endl;
-  if (Debug.isOn("integers"))
-  {
-    Node l = lem.getNode();
-    if (isSatLiteral(l[0]))
-    {
-      Debug("integers") << "    " << l[0] << " == " << getSatValue(l[0])
-                        << endl;
-    }
-    else
-    {
-      Debug("integers") << "    " << l[0] << " is not assigned a SAT literal"
-                        << endl;
-    }
-    if (isSatLiteral(l[1]))
-    {
-      Debug("integers") << "    " << l[1] << " == " << getSatValue(l[1])
-                        << endl;
-    }
-    else
-    {
-      Debug("integers") << "    " << l[1] << " is not assigned a SAT literal"
-                        << endl;
-    }
-  }
+  Trace("integers") << "integers: branch & bound: " << lem << std::endl;
   return lem;
+}
+
+bool BranchAndBound::proofsEnabled() const
+{
+  return d_pnm!=nullptr;
 }
 
 }  // namespace arith
