@@ -42,8 +42,6 @@ class TheoryArith : public Theory {
  private:
   friend class TheoryArithPrivate;
 
-  TheoryArithPrivate* d_internal;
-
   TimerStat d_ppRewriteTimer;
 
   /** Used to prove pp-rewrites */
@@ -143,6 +141,8 @@ class TheoryArith : public Theory {
   TrustNode ppRewriteEq(TNode eq);
   /** Get the proof equality engine */
   eq::ProofEqEngine* getProofEqEngine();
+  /** The (old) linear arithmetic solver */
+  TheoryArithPrivate* d_internal;
   /** The state object wrapping TheoryArithPrivate  */
   ArithState d_astate;
   /** The arith::InferenceManager. */
@@ -159,7 +159,10 @@ class TheoryArith : public Theory {
   ArithPreprocess d_arithPreproc;
   /** The theory rewriter for this theory. */
   ArithRewriter d_rewriter;
-
+  /** The branch and bound utility */
+  BranchAndBound d_bab;
+  /** The arithmetic model, valid after a call to full effort check */
+  std::map<Node, Node> d_arithModel;
 };/* class TheoryArith */
 
 }  // namespace arith

@@ -44,6 +44,7 @@
 #include "theory/arith/linear_equality.h"
 #include "theory/arith/matrix.h"
 #include "theory/arith/normal_form.h"
+#include "theory/arith/branch_and_bound.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/proof_checker.h"
 #include "theory/arith/soi_simplex.h"
@@ -94,7 +95,8 @@ private:
   bool d_foundNl;
 
   BoundInfoMap d_rowTracking;
-
+  /** Branch and bound utility */
+  BranchAndBound& d_bab;
   // For proofs
   /** Manages the proof nodes of this theory. */
   ProofNodeManager* d_pnm;
@@ -424,9 +426,7 @@ private:
   TheoryArithPrivate(TheoryArith& containing,
                      context::Context* c,
                      context::UserContext* u,
-                     OutputChannel& out,
-                     Valuation valuation,
-                     const LogicInfo& logicInfo,
+                     BranchAndBound& bab,
                      ProofNodeManager* pnm);
   ~TheoryArithPrivate();
 

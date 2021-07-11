@@ -41,8 +41,9 @@ TheoryArith::TheoryArith(context::Context* c,
                          const LogicInfo& logicInfo,
                          ProofNodeManager* pnm)
     : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
+    d_bab(pnm),
       d_internal(
-          new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pnm)),
+          new TheoryArithPrivate(*this, c, u, d_bab, pnm)),
       d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
           "theory::arith::ppRewriteTimer")),
       d_ppPfGen(pnm, c, "Arith::ppRewrite"),
@@ -197,6 +198,20 @@ void TheoryArith::postCheck(Effort level)
       // set incomplete
       d_im.setIncomplete(IncompleteId::ARITH_NL_DISABLED);
     }
+    if (!d_valuation.needCheck())
+    {
+      // get the model from the linear solver
+      d_arithModel.clear();
+      d_internal->collectModelValues(termSet, d_arithModel);
+      for (const std::pair<const Node, Node>& p : d_arithModel)
+      {
+        if (p.first.getType().isInteger() && !p.second.getType().isInteger())
+        {
+          // must branch and bound
+          d_bab.branchIntegerValue(p.first, p.second.getConst<Rational>());
+        }
+      }
+    }
   }
 }
 
@@ -236,18 +251,15 @@ bool TheoryArith::collectModelInfo(TheoryModel* m,
 bool TheoryArith::collectModelValues(TheoryModel* m,
                                      const std::set<Node>& termSet)
 {
-  // get the model from the linear solver
-  std::map<Node, Node> arithModel;
-  d_internal->collectModelValues(termSet, arithModel);
   // if non-linear is enabled, intercept the model, which may repair its values
   if (d_nonlinearExtension != nullptr)
   {
     // Non-linear may repair values to satisfy non-linear constraints (see
     // documentation for NonlinearExtension::interceptModel).
-    d_nonlinearExtension->interceptModel(arithModel, termSet);
+    d_nonlinearExtension->interceptModel(d_arithModel, termSet);
   }
   // We are now ready to assert the model.
-  for (const std::pair<const Node, Node>& p : arithModel)
+  for (const std::pair<const Node, Node>& p : d_arithModel)
   {
     // maps to constant of comparable type
     Assert(p.first.getType().isComparableTo(p.second.getType()));
