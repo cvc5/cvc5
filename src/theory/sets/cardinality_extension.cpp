@@ -305,7 +305,7 @@ void CardinalityExtension::checkCardCycles()
   // build order of equivalence classes, also build cardinality graph
   const std::vector<Node>& setEqc = d_state.getSetsEqClasses();
   d_oSetEqc.clear();
-  d_card_parent.clear();
+  d_cardParent.clear();
   for (const Node& s : setEqc)
   {
     std::vector<Node> curr;
@@ -317,7 +317,6 @@ void CardinalityExtension::checkCardCycles()
     }
   }
 
-  Trace("sets") << "d_card_parent: " << d_card_parent << std::endl;
   Trace("sets") << "d_oSetEqc: " << d_oSetEqc << std::endl;
   Trace("sets") << "Done check cardinality cycles" << std::endl;
 }
@@ -432,14 +431,6 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       {
         return;
       }
-      else
-      {
-        // justify why there is no edge to parents (necessary?)
-        for (unsigned e = 0; e < n_parents; e++)
-        {
-          Node p = (e == true_sib) ? u : n[e];
-        }
-      }
       continue;
     }
     std::vector<Node> card_parents;
@@ -521,7 +512,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         card_parent_ids.push_back(is_union ? 2 : e);
       }
     }
-    Assert(d_card_parent[n].empty());
+    Assert(d_cardParent[n].empty());
     Trace("sets-debug") << "get parent representatives..." << std::endl;
     // for each parent, take their representatives
     for (unsigned k = 0, numcp = card_parents.size(); k < numcp; k++)
@@ -573,9 +564,9 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       else
       {
         bool dup = false;
-        for (unsigned l = 0, numcpn = d_card_parent[n].size(); l < numcpn; l++)
+        for (unsigned l = 0, numcpn = d_cardParent[n].size(); l < numcpn; l++)
         {
-          Node cpnl = d_card_parent[n][l];
+          Node cpnl = d_cardParent[n][l].first;
           if (eqcc != cpnl)
           {
             continue;
@@ -613,7 +604,13 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
               conc.push_back(cpk.eqNode(n));
             }
           }
-          d_im.assertInference(conc, InferenceId::SETS_CARD_GRAPH_EQ_PARENT_2, cpk.eqNode(cpnl));
+          // use the original term, not the representative.
+          // for example, we conclude T = (union T S) => (intersect T S) = S
+          // here where we do not use the representative of T or (union T S).
+          Node cpnlb = d_cardParent[n][l].second;
+          d_im.assertInference(conc,
+                               InferenceId::SETS_CARD_GRAPH_EQ_PARENT_2,
+                               cpk.eqNode(cpnlb));
           d_im.doPendingLemmas();
           if (d_im.hasSent())
           {
@@ -622,18 +619,18 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         }
         if (!dup)
         {
-          d_card_parent[n].push_back(eqcc);
+          d_cardParent[n].emplace_back(eqcc, cpk);
         }
       }
     }
     // now recurse on parents (to ensure their normal will be computed after
     // this eqc)
     exp.push_back(eqc.eqNode(n));
-    for (const Node& cpnc : d_card_parent[n])
+    for (const std::pair<Node, Node>& cpnc : d_cardParent[n])
     {
-      Trace("sets-cycle-debug")
-          << "Traverse card parent " << eqc << " -> " << cpnc << std::endl;
-      checkCardCyclesRec(cpnc, curr, exp);
+      Trace("sets-cycle-debug") << "Traverse card parent " << eqc << " -> "
+                                << cpnc.first << std::endl;
+      checkCardCyclesRec(cpnc.first, curr, exp);
       if (d_im.hasSent())
       {
         return;
@@ -897,7 +894,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
   for (const Node& n : nvsets)
   {
     Trace("sets-nf-debug") << "Carry nf for term " << n << std::endl;
-    if (d_card_parent[n].empty())
+    if (d_cardParent[n].empty())
     {
       // nothing to do
       continue;
@@ -905,8 +902,9 @@ void CardinalityExtension::checkNormalForm(Node eqc,
     Assert(d_localBase.find(n) != d_localBase.end());
     Node cbase = d_localBase[n];
     Trace("sets-nf-debug") << "Card base is " << cbase << std::endl;
-    for (const Node& p : d_card_parent[n])
+    for (const std::pair<Node, Node>& cp : d_cardParent[n])
     {
+      Node p = cp.first;
       Trace("sets-nf-debug") << "Check parent " << p << std::endl;
       if (parents_proc[cbase].find(p) != parents_proc[cbase].end())
       {

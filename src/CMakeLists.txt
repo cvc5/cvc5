@@ -493,6 +493,8 @@ libcvc5_add_sources(
   theory/arith/operator_elim.h
   theory/arith/partial_model.cpp
   theory/arith/partial_model.h
+  theory/arith/pp_rewrite_eq.cpp
+  theory/arith/pp_rewrite_eq.h
   theory/arith/proof_checker.cpp
   theory/arith/proof_checker.h
   theory/arith/proof_macros.h
