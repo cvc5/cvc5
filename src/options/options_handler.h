@@ -100,11 +100,6 @@ public:
                                         const std::string& flag,
                                         const std::string& optarg);
 
-  // decision/options_handlers.h
-  void setDecisionModeStopOnly(const std::string& option,
-                               const std::string& flag,
-                               DecisionMode m);
-
   /**
    * Throws a ModalException if this option is being set after final
    * initialization.

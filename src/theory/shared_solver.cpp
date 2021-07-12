@@ -135,8 +135,9 @@ bool SharedSolver::propagateSharedEquality(theory::TheoryId theory,
 
 bool SharedSolver::isShared(TNode t) const { return d_sharedTerms.isShared(t); }
 
-void SharedSolver::sendLemma(TrustNode trn, TheoryId atomsTo)
+void SharedSolver::sendLemma(TrustNode trn, TheoryId atomsTo, InferenceId id)
 {
+  Trace("im") << "(lemma " << id << " " << trn.getProven() << ")" << std::endl;
   d_te.lemma(trn, LemmaProperty::NONE, atomsTo);
 }
 

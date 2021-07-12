@@ -439,6 +439,9 @@ set(regress_0_tests
   regress0/cores/issue3455.smt2
   regress0/cores/issue3651.smt2
   regress0/cores/issue4925.smt2
+  regress0/cores/issue4971-0.smt2
+  regress0/cores/issue4971-1.smt2
+  regress0/cores/issue4971-2.smt2
   regress0/cores/issue4971-3.smt2
   regress0/cores/issue5079.smt2
   regress0/cores/issue5238.smt2
@@ -2066,6 +2069,7 @@ set(regress_1_tests
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
   regress1/sets/sets-tuple-poly.cvc
+  regress1/sets/sets-uc-wrong.smt2
   regress1/sets/set-comp-sat.smt2
   regress1/sets/sharingbug.smt2
   regress1/sets/univ-set-uf-elim.smt2
