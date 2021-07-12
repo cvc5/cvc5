@@ -30,7 +30,7 @@ SequencesUpdateSolver::SequencesUpdateSolver(SolverState& s,
                                              TermRegistry& tr,
                                              CoreSolver& cs,
                                              ExtfSolver& es)
-    : d_state(s), d_im(im), d_termReg(tr), d_csolver(cs), d_esolver(es), d_sasolver(s, im, tr, es)
+    : d_state(s), d_im(im), d_termReg(tr), d_csolver(cs), d_esolver(es), d_sasolver(s, im, tr, es), d_eqProc(s.getSatContext())
 {
   NodeManager * nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -90,14 +90,17 @@ void SequencesUpdateSolver::checkTerms(Kind k)
   std::vector<Node> terms = d_esolver.getActive(k);
   for (const Node& t : terms)
   {
+    Trace("seq-update-debug") << "check term " << t << "..." << std::endl;
     Assert (t.getKind()==k);
     if (k==STRING_UPDATE && !isHandledUpdate(t))
     {
       // not handled by procedure
+      Trace("seq-update-debug") << "...unhandled " << std::endl;
       continue;
     }
     Node r = d_state.getRepresentative(t[0]);
     NormalForm& nf = d_csolver.getNormalForm(r);
+    Trace("seq-update-debug") << "...normal form " << nf.d_nf << std::endl;
     if (nf.d_nf.empty())
     {
       // should have been reduced (UPD_EMPTYSTR)
@@ -125,7 +128,7 @@ void SequencesUpdateSolver::checkTerms(Kind k)
         {
           Assert (k==SEQ_NTH);
           thenBranch = nf.d_nf[0][0];
-          Node uf = SkolemCache::mkSkolemSeqNth(t.getType(), "Uf");
+          Node uf = SkolemCache::mkSkolemSeqNth(t[0].getType(), "Uf");
           elseBranch = nm->mkNode(APPLY_UF, uf, t[0], t[1]);
           iid = InferenceId::STRINGS_SU_NTH_UNIT;
         }
@@ -142,44 +145,47 @@ void SequencesUpdateSolver::checkTerms(Kind k)
     // TODO: for nth, split on index vs component lengths, do not introduce ITE
     std::vector<Node> cond;
     std::vector<Node> cchildren;
-    Node curr;
     std::vector<Node> lacc;
     for (const Node& c : nf.d_nf)
     {
+      Trace("seq-update-debug") << "...process " << c << std::endl;
       Node clen = nm->mkNode(STRING_LENGTH, c);
       Node currIndex = t[1];
       if (!lacc.empty())
       {
-        Node currSum = lacc.size()==1 ? lacc[1] : nm->mkNode(PLUS, lacc);
+        Node currSum = lacc.size()==1 ? lacc[0] : nm->mkNode(PLUS, lacc);
         currIndex = nm->mkNode(MINUS, currIndex, currSum);
       }
       if (k==STRING_UPDATE)
       {
         Node cc = nm->mkNode(STRING_UPDATE, c, currIndex, t[2]);
+        Trace("seq-update-debug") << "......component " << cc << std::endl;
         cchildren.push_back(cc);
       }
       else
       {
         Assert (k==SEQ_NTH);
         Node cc = nm->mkNode(SEQ_NTH, c, currIndex);
+        Trace("seq-update-debug") << "......component " << cc << std::endl;
         cchildren.push_back(cc);
       }
       lacc.push_back(clen);
       if (k==SEQ_NTH)
       {
-        Node currSumPost = lacc.size()==1 ? lacc[1] : nm->mkNode(PLUS, lacc);
-        cond.push_back(nm->mkNode(LT, t[1], currSumPost));
+        Node currSumPost = lacc.size()==1 ? lacc[0] : nm->mkNode(PLUS, lacc);
+        Node cc = nm->mkNode(LT, t[1], currSumPost);
+        Trace("seq-update-debug") << "......condition " << cc << std::endl;
+        cond.push_back(cc);
       }
     }
     // z = (seq.++ x y) => 
     // (seq.update z n l) = 
     //   (seq.++ (seq.update x n 1) (seq.update y (- n len(x)) 1))
-    // FIXME: negative n
     // z = (seq.++ x y) =>
     // (seq.nth z n) = 
+    //    (ite (or (< n 0) (>= n (+ (str.len x) (str.len y)))) (Uf z n) 
     //    (ite (< n (str.len x)) (seq.nth x n) 
-    //    (ite (< n (+ (str.len x) (str.len y))) (seq.nth y (- n (str.len x)))
-    //       (Uf z n)))
+    //      (seq.nth y (- n (str.len x)))))
     InferenceId iid;
     Node eq;
     if (k==STRING_UPDATE)
@@ -192,21 +198,25 @@ void SequencesUpdateSolver::checkTerms(Kind k)
     {
       std::reverse(cchildren.begin(), cchildren.end());
       std::reverse(cond.begin(), cond.end());
-      Node uf = SkolemCache::mkSkolemSeqNth(t.getType(), "Uf");
+      Node uf = SkolemCache::mkSkolemSeqNth(t[0].getType(), "Uf");
       eq = t.eqNode(cchildren[0]);
       for (size_t i=1, ncond = cond.size(); i<ncond; i++)
       {
         eq = nm->mkNode(ITE, cond[i], t.eqNode(cchildren[i]), eq);
       }
       Node ufa = nm->mkNode(APPLY_UF, uf, t[0], t[1]);
-      Node oobCond = nm->mkNode(AND, nm->mkNode(LT, t[0], d_zero), cond[0]);
+      Node oobCond = nm->mkNode(OR, nm->mkNode(LT, t[0], d_zero), cond[0].notNode());
       eq = nm->mkNode(ITE, oobCond, t.eqNode(ufa), eq);
       iid = InferenceId::STRINGS_SU_NTH_CONCAT;
     }
     std::vector<Node> exp;
     exp.insert(exp.end(), nf.d_exp.begin(), nf.d_exp.end());
     exp.push_back(t[0].eqNode(nf.d_base));
-    d_im.sendInference(exp, eq, iid);
+    if (d_eqProc.find(eq)!=d_eqProc.end())
+    {
+      d_eqProc.insert(eq);
+      d_im.sendInference(exp, eq, iid);
+    }
   }
 }
 

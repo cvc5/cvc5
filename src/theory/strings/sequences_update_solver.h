@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__STRINGS__SEQ_UPDATE_SOLVER_H
 #define CVC5__THEORY__STRINGS__SEQ_UPDATE_SOLVER_H
 
+#include "context/cdhashset.h"
 #include "theory/strings/core_solver.h"
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
@@ -37,6 +38,7 @@ namespace strings {
   */
 class SequencesUpdateSolver
 {
+  typedef context::CDHashSet<Node> NodeSet;
  public:
   SequencesUpdateSolver(SolverState& s,
                         InferenceManager& im,
@@ -90,6 +92,8 @@ class SequencesUpdateSolver
   Node d_zero;
   /** The write model */
   SequencesArraySolver d_sasolver;
+  /** (TODO: eliminate this) equalities in the current context */
+  NodeSet d_eqProc;
 };
 
 }  // namespace strings
