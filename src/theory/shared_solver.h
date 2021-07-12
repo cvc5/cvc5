@@ -19,10 +19,10 @@
 #define CVC5__THEORY__SHARED_SOLVER__H
 
 #include "expr/node.h"
+#include "theory/inference_id.h"
 #include "theory/shared_terms_database.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/valuation.h"
-#include "theory/inference_id.h"
 
 namespace cvc5 {
 
