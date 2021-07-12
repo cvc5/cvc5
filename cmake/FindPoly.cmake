@@ -79,7 +79,7 @@ if(NOT Poly_FOUND_SYSTEM)
       sed -i.orig
       "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"
       <SOURCE_DIR>/CMakeLists.txt ${patchcmd}
-    CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                -DLIBPOLY_BUILD_PYTHON_API=OFF
