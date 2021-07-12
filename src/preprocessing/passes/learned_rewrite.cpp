@@ -293,7 +293,7 @@ Node LearnedRewrite::rewriteLearned(Node n,
         || (!db.upper_value.isNull()
             && db.upper_value.getConst<Rational>().sgn() == -1))
     {
-      Rational bden = db.lower_value.isNull()
+      Rational bden = db.upper_value.isNull()
                           ? db.lower_value.getConst<Rational>()
                           : db.upper_value.getConst<Rational>().abs();
       // if 0 <= UB(num) < LB(den) or 0 <= UB(num) < -UB(den)
