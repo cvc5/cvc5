@@ -226,7 +226,9 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   {
     if (p.first.getType().isInteger() && !p.second.getType().isInteger())
     {
-      Assert (false) << "TheoryArithPrivate generated a bad model value for integer variable " << p.first << " : " << p.second; 
+      Assert(false) << "TheoryArithPrivate generated a bad model value for "
+                       "integer variable "
+                    << p.first << " : " << p.second;
       // must branch and bound
       TrustNode lem =
           d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());
