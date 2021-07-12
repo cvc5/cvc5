@@ -53,7 +53,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ${CMAKE_COMMAND} -E copy
-            <SOURCE_DIR>/../antlr-3.4-complete.jar
+            <DOWNLOADED_FILE>
             <INSTALL_DIR>/share/java/antlr-3.4-complete.jar
         BUILD_BYPRODUCTS <INSTALL_DIR>/share/java/antlr-3.4-complete.jar
     )
@@ -68,7 +68,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ${CMAKE_COMMAND} -E copy
-          <DOWNLOAD_DIR>/config.guess
+          <DOWNLOADED_FILE>
           <INSTALL_DIR>/share/config.guess
         BUILD_BYPRODUCTS <INSTALL_DIR>/share/config.guess
     )
@@ -83,7 +83,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ${CMAKE_COMMAND} -E copy
-          <DOWNLOAD_DIR>/config.sub
+          <DOWNLOADED_FILE>
           <INSTALL_DIR>/share/config.sub
         BUILD_BYPRODUCTS <INSTALL_DIR>/share/config.sub
     )
