@@ -217,12 +217,16 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   // get the model from the linear solver
   std::map<Node, Node> arithModel;
   d_internal->collectModelValues(termSet, arithModel);
+  // Double check that the model from the linear solver respects integer types,
+  // if it does not, add a branch and bound lemma. This typically should never
+  // be necessary, but is needed in rare cases.
   bool addedLemma = false;
   bool badAssignment = false;
   for (const std::pair<const Node, Node>& p : arithModel)
   {
     if (p.first.getType().isInteger() && !p.second.getType().isInteger())
     {
+      Assert (false) << "TheoryArithPrivate generated a bad model value for integer variable " << p.first << " : " << p.second; 
       // must branch and bound
       TrustNode lem =
           d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());
@@ -242,7 +246,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   // this would imply that linear arithmetic's model failed to satisfy a branch
   // and bound lemma
   AlwaysAssert(!badAssignment)
-      << "Bad assignment from TheoryArith::collectModelValues, and no "
+      << "Bad assignment from TheoryArithPrivate::collectModelValues, and no "
          "branching lemma was sent";
 
   // if non-linear is enabled, intercept the model, which may repair its values
