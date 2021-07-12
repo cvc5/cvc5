@@ -133,8 +133,6 @@ class TheoryArith : public Theory {
   eq::ProofEqEngine* getProofEqEngine();
   /** Timer for ppRewrite */
   TimerStat d_ppRewriteTimer;
-  /** Stores proposition(node)/proof pairs. */
-  std::unique_ptr<EagerProofGenerator> d_pfGen;
   /** The state object wrapping TheoryArithPrivate  */
   ArithState d_astate;
   /** The arith::InferenceManager. */

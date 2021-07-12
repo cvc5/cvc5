@@ -43,7 +43,6 @@ class BranchAndBound
   BranchAndBound(ArithState& s,
                  InferenceManager& im,
                  PreprocessRewriteEq& ppre,
-                 EagerProofGenerator* pg,
                  ProofNodeManager* pnm);
   ~BranchAndBound() {}
   /**
@@ -61,8 +60,8 @@ class BranchAndBound
   InferenceManager& d_im;
   /** Reference to the preprocess rewriter for equality */
   PreprocessRewriteEq& d_ppre;
-  /** Proof generator */
-  EagerProofGenerator* d_pfGen;
+  /** Proof generator. */
+  std::unique_ptr<EagerProofGenerator> d_pfGen;
   /** Proof node manager */
   ProofNodeManager* d_pnm;
 };

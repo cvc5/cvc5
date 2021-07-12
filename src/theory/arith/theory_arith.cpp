@@ -43,18 +43,18 @@ TheoryArith::TheoryArith(context::Context* c,
     : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
       d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
           "theory::arith::ppRewriteTimer")),
-      d_pfGen(new EagerProofGenerator(d_pnm, u)),
       d_astate(c, u, valuation),
       d_im(*this, d_astate, pnm),
       d_ppre(c, pnm),
-      d_bab(d_astate, d_im, d_ppre, d_pfGen.get(), pnm),
+      d_bab(d_astate, d_im, d_ppre, pnm),
       d_internal(
-          new TheoryArithPrivate(*this, c, u, d_pfGen.get(), d_bab, pnm)),
+          new TheoryArithPrivate(*this, c, u, d_bab, pnm)),
       d_nonlinearExtension(nullptr),
       d_opElim(pnm, logicInfo),
       d_arithPreproc(d_astate, d_im, pnm, d_opElim),
       d_rewriter(d_opElim)
 {
+  // currently a cyclic dependency to TheoryArithPrivate
   d_astate.setParent(d_internal);
   // indicate we are using the theory state object and inference manager
   d_theoryState = &d_astate;

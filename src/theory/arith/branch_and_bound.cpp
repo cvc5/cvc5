@@ -31,9 +31,8 @@ namespace arith {
 BranchAndBound::BranchAndBound(ArithState& s,
                                InferenceManager& im,
                                PreprocessRewriteEq& ppre,
-                               EagerProofGenerator* pg,
                                ProofNodeManager* pnm)
-    : d_astate(s), d_im(im), d_ppre(ppre), d_pfGen(pg), d_pnm(pnm)
+    : d_astate(s), d_im(im), d_ppre(ppre), d_pfGen(new EagerProofGenerator(d_pnm, s.getUserContext())), d_pnm(pnm)
 {
 }
 
