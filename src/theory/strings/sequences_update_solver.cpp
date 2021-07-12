@@ -64,6 +64,7 @@ void SequencesUpdateSolver::checkArrayConcat()
                         << std::endl;
     return;
   }
+  d_currTerms.clear();
   Trace("seq-update") << "SequencesUpdateSolver::checkArrayConcat..." << std::endl;
   checkTerms(STRING_UPDATE);
   checkTerms(SEQ_NTH);
@@ -77,7 +78,7 @@ void SequencesUpdateSolver::checkArray()
     return;
   }
   Trace("seq-update") << "SequencesUpdateSolver::checkArray..." << std::endl;
-  d_sasolver.check();
+  d_sasolver.check(d_currTerms[SEQ_NTH], d_currTerms[STRING_UPDATE]);
 }
   
 void SequencesUpdateSolver::checkTerms(Kind k)
@@ -134,6 +135,7 @@ void SequencesUpdateSolver::checkTerms(Kind k)
         d_im.sendInference(exp, eq, iid);
       }
       // otherwise, the equivalence class is pure wrt concatenation
+      d_currTerms[k].push_back(t);
       continue;
     }
     // otherwise, we are the concatenation of the components

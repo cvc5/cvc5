@@ -34,11 +34,17 @@ SequencesArraySolver::SequencesArraySolver(SolverState& s,
 
 SequencesArraySolver::~SequencesArraySolver() {}
 
-void SequencesArraySolver::check()
+void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
+             const std::vector<Node>& updateTerms)
 {
   Trace("seq-update") << "SequencesArraySolver::check..." << std::endl;
   d_writeModel.clear();
-  std::vector<Node> nths = d_esolver.getActive(SEQ_NTH);
+  for (const Node& n : nthTerms)
+  {
+    Node r = d_state.getRepresentative(n[0]);
+    Trace("seq-update") << "- " << r << ": " << n[1] << " -> " << n << std::endl;
+    d_writeModel[r][n[1]] = n;
+  }
 }
 
 const std::map<Node, Node>& SequencesArraySolver::getWriteModel(Node eqc)

@@ -84,6 +84,8 @@ class SequencesUpdateSolver
   CoreSolver& d_csolver;
   /** reference to the extended solver, used for certain queries */
   ExtfSolver& d_esolver;
+  /** Current terms */
+  std::map<Kind, std::vector<Node> > d_currTerms;
   /** Common constants */
   Node d_zero;
   /** The write model */

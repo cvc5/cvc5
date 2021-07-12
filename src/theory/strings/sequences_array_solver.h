@@ -43,7 +43,8 @@ class SequencesArraySolver
    * Can assume that seq.update / seq.nth terms only apply to concatenation-free
    * equivalence classes.
    */
-  void check();
+  void check(const std::vector<Node>& nthTerms,
+             const std::vector<Node>& updateTerms);
   
   /**
    * 

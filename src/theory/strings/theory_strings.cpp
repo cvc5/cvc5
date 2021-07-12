@@ -372,11 +372,11 @@ bool TheoryStrings::collectModelInfoType(
   for( unsigned i=0; i<col.size(); i++ ){
     std::vector< Node > pure_eq;
     Node lenValue = lts_values[i];
-    Trace("strings-model") << "The (" << col[i].size()
-                           << ") equivalence classes ";
+    Trace("strings-model") << "Considering (" << col[i].size()
+                           << ") equivalence classes for length " << lenValue << std::endl;
     for (const Node& eqc : col[i])
     {
-      Trace("strings-model") << eqc << " ";
+      Trace("strings-model") << "- eqc: " << eqc << std::endl;
       //check if col[i][j] has only variables
       if (eqc.isConst())
       {
@@ -425,8 +425,8 @@ bool TheoryStrings::collectModelInfoType(
         }
         Assert(!argVal.isNull());
         Node c = Rewriter::rewrite(nm->mkNode(SEQ_UNIT, argVal));
-        Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
         assignedValue = c;
+        Trace("strings-model") << "-> assign via seq.unit: " << assignedValue << std::endl;
       }
       else if (d_termReg.hasStringCode() && lenValue == d_one)
       {
@@ -443,6 +443,7 @@ bool TheoryStrings::collectModelInfoType(
           std::vector<unsigned> vec;
           vec.push_back(cvalue);
           assignedValue = nm->mkConst(String(vec));
+          Trace("strings-model") << "-> assign via str.code: " << assignedValue << std::endl;
         }
       }
       else if (options::stringSeqUpdate())
@@ -457,7 +458,7 @@ bool TheoryStrings::collectModelInfoType(
           {
             Node ivalue = d_valuation.getModelValue(w.first);
             Assert (ivalue.getKind()==CONST_RATIONAL);
-            // ignore if out of bounds?
+            // ignore if out of bounds
             Rational irat = ivalue.getConst<Rational>();
             if (irat.sgn()==-1 || irat>=lenValue.getConst<Rational>())
             {
@@ -465,11 +466,11 @@ bool TheoryStrings::collectModelInfoType(
             }
             if (usedWrites.find(ivalue)!=usedWrites.end())
             {
-              Assert (false) << "Duplicate write index";
               continue;
             }
             usedWrites.insert(ivalue);
-            writes.emplace_back(ivalue, w.second);
+            Node wsunit = nm->mkNode(SEQ_UNIT, w.second);
+            writes.emplace_back(ivalue, wsunit);
           }
           // sort based on index value
           SortSeqIndex ssi;
@@ -509,6 +510,7 @@ bool TheoryStrings::collectModelInfoType(
             currIndex = nextIndex+1;
           }
           assignedValue = utils::mkConcat(cc, tn);
+          Trace("strings-model") << "-> assign via seq.update/nth eqc: " << assignedValue << std::endl;
         }
       }
       if (!assignedValue.isNull())
@@ -516,9 +518,12 @@ bool TheoryStrings::collectModelInfoType(
         pure_eq_assign[eqc] = assignedValue;
         m->getEqualityEngine()->addTerm(assignedValue);
       }
+      else
+      {
+        Trace("strings-model") << "-> no assignment" << std::endl;
+      }
       pure_eq.push_back(eqc);
     }
-    Trace("strings-model") << "have length " << lenValue << std::endl;
 
     //assign a new length if necessary
     if( !pure_eq.empty() ){
