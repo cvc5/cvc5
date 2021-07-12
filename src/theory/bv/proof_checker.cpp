@@ -75,9 +75,11 @@ Node BVProofRuleChecker::checkInternal(PfRule id,
     BBSimple bb(nullptr);
     Assert(children.empty());
     Assert(args.size() == 1);
-    bb.bbAtom(args[0]);
-    Node n = bb.getStoredBBAtom(args[0]);
-    return args[0].eqNode(n);
+    Assert(args[0].getKind() == kind::EQUAL);
+    TNode eq = args[0];
+    bb.bbAtom(eq[0]);
+    Node n = bb.getStoredBBAtom(eq[0]);
+    return eq[0].eqNode(n);
   }
   else if (id == PfRule::BV_BITBLAST_CONST || id == PfRule::BV_BITBLAST_VAR
            || id == PfRule::BV_BITBLAST_EQUAL || id == PfRule::BV_BITBLAST_ULT
