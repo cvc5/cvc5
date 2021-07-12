@@ -35,7 +35,7 @@ BranchAndBound::BranchAndBound(ArithState& s,
     : d_astate(s),
       d_im(im),
       d_ppre(ppre),
-      d_pfGen(new EagerProofGenerator(d_pnm, s.getUserContext())),
+      d_pfGen(new EagerProofGenerator(pnm, s.getUserContext())),
       d_pnm(pnm)
 {
 }
