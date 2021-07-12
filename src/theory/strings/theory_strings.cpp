@@ -476,15 +476,16 @@ bool TheoryStrings::collectModelInfoType(
           std::sort(writes.begin(), writes.end(), ssi);
           std::vector<Node> cc;
           uint32_t currIndex = 0;
-          for (size_t i=0, wsize = writes.size(); i<=wsize; i++)
+          for (size_t w=0, wsize = writes.size(); w<=wsize; w++)
           {
-            if (i==writes.size())
+            uint32_t nextIndex;
+            if (w==writes.size())
             {
               nextIndex = lenValue.getConst<Rational>().getNumerator().toUnsignedInt();
             }
             else
             {
-              Node windex = writes[i].first;
+              Node windex = writes[w].first;
               Assert(windex.getConst<Rational>() <= Rational(String::maxSize()));
               nextIndex =
                   windex.getConst<Rational>().getNumerator().toUnsignedInt();
@@ -501,9 +502,9 @@ bool TheoryStrings::collectModelInfoType(
               cc.push_back(cgap);
             }
             // then take read
-            if (i<wsize)
+            if (w<wsize)
             {
-              cc.push_back(writes[i].second);
+              cc.push_back(writes[w].second);
             }
             currIndex = nextIndex+1;
           }
@@ -1101,7 +1102,8 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
     case CHECK_NORMAL_FORMS_DEQ: d_csolver.checkNormalFormsDeq(); break;
     case CHECK_CODES: checkCodes(); break;
     case CHECK_LENGTH_EQC: d_csolver.checkLengthsEqc(); break;
-    case CHECK_SEQUENCES_UPDATE: d_susolver.check(); break;
+    case CHECK_SEQUENCES_ARRAY_CONCAT: d_susolver.checkArrayConcat(); break;
+    case CHECK_SEQUENCES_ARRAY: d_susolver.checkArray(); break;
     case CHECK_REGISTER_TERMS_NF: checkRegisterTermsNormalForms(); break;
     case CHECK_EXTF_REDUCTION: d_esolver.checkExtfReductions(effort); break;
     case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(); break;

@@ -65,8 +65,10 @@ enum InferStep
   CHECK_MEMBERSHIP,
   // check cardinality
   CHECK_CARDINALITY,
-  // check sequence updates
-  CHECK_SEQUENCES_UPDATE,
+  // check sequence updates wrt concat
+  CHECK_SEQUENCES_ARRAY_CONCAT,
+  // check sequence array-like reasoning
+  CHECK_SEQUENCES_ARRAY,
 };
 std::ostream& operator<<(std::ostream& out, InferStep i);
 

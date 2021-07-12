@@ -30,7 +30,7 @@ SequencesUpdateSolver::SequencesUpdateSolver(SolverState& s,
                                              TermRegistry& tr,
                                              CoreSolver& cs,
                                              ExtfSolver& es)
-    : d_state(s), d_im(im), d_termReg(tr), d_csolver(cs), d_esolver(es)
+    : d_state(s), d_im(im), d_termReg(tr), d_csolver(cs), d_esolver(es), d_sasolver(s, im, tr, es)
 {
   NodeManager * nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -56,7 +56,7 @@ Node SequencesUpdateSolver::getUpdateBase(Node n)
   return n;
 }
 
-void SequencesUpdateSolver::check()
+void SequencesUpdateSolver::checkArrayConcat()
 {
   if (!d_termReg.hasSeqUpdate())
   {
@@ -64,12 +64,20 @@ void SequencesUpdateSolver::check()
                         << std::endl;
     return;
   }
-  d_writeModel.clear();
-
-  Trace("seq-update") << "check..." << std::endl;
-
+  Trace("seq-update") << "SequencesUpdateSolver::checkArrayConcat..." << std::endl;
   checkTerms(STRING_UPDATE);
   checkTerms(SEQ_NTH);
+}
+void SequencesUpdateSolver::checkArray()
+{
+  if (!d_termReg.hasSeqUpdate())
+  {
+    Trace("seq-update") << "No seq.update/seq.nth terms, skipping check..."
+                        << std::endl;
+    return;
+  }
+  Trace("seq-update") << "SequencesUpdateSolver::checkArray..." << std::endl;
+  d_sasolver.check();
 }
   
 void SequencesUpdateSolver::checkTerms(Kind k)
@@ -78,8 +86,8 @@ void SequencesUpdateSolver::checkTerms(Kind k)
   NodeManager * nm = NodeManager::currentNM();
   // get all the active update terms that have not been reduced in the
   // current context by context-dependent simplification
-  std::vector<Node> updates = d_esolver.getActive(k);
-  for (const Node& t : updates)
+  std::vector<Node> terms = d_esolver.getActive(k);
+  for (const Node& t : terms)
   {
     Assert (t.getKind()==k);
     if (k==STRING_UPDATE && !isHandledUpdate(t))
@@ -180,14 +188,17 @@ void SequencesUpdateSolver::checkTerms(Kind k)
     }
     else
     {
-      Node uf = SkolemCache::mkSkolemSeqNth(t.getType(), "Uf");
-      eq = t.eqNode(nm->mkNode(APPLY_UF, uf, t[0], t[1]));
       std::reverse(cchildren.begin(), cchildren.end());
       std::reverse(cond.begin(), cond.end());
-      for (size_t i=0, ncond = cond.size(); i<ncond; i++)
+      Node uf = SkolemCache::mkSkolemSeqNth(t.getType(), "Uf");
+      eq = t.eqNode(cchildren[0]);
+      for (size_t i=1, ncond = cond.size(); i<ncond; i++)
       {
         eq = nm->mkNode(ITE, cond[i], t.eqNode(cchildren[i]), eq);
       }
+      Node ufa = nm->mkNode(APPLY_UF, uf, t[0], t[1]);
+      Node oobCond = nm->mkNode(AND, nm->mkNode(LT, t[0], d_zero), cond[0]);
+      eq = nm->mkNode(ITE, oobCond, t.eqNode(ufa), eq);
       iid = InferenceId::STRINGS_SU_NTH_CONCAT;
     }
     std::vector<Node> exp;
@@ -199,7 +210,7 @@ void SequencesUpdateSolver::checkTerms(Kind k)
 
 const std::map<Node, Node>& SequencesUpdateSolver::getWriteModel(Node eqc)
 {
-  return d_writeModel[eqc];
+  return d_sasolver.getWriteModel(eqc);
 }
 
 }  // namespace strings
