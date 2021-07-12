@@ -155,8 +155,6 @@ class TheoryArith : public Theory {
   ArithPreprocess d_arithPreproc;
   /** The theory rewriter for this theory. */
   ArithRewriter d_rewriter;
-  /** The arithmetic model, valid after a call to full effort check */
-  // std::map<Node, Node> d_arithModel;
 };/* class TheoryArith */
 
 }  // namespace arith
