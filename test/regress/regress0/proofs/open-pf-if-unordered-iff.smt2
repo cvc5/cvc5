@@ -1,4 +1,3 @@
-; COMMAND-LINE: --check-proofs
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-const __ (_ BitVec 3))
