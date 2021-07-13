@@ -70,6 +70,7 @@ std::unordered_map<Kind, PfRule, kind::KindHashFunction>
 BBProof::BBProof(TheoryState* state, ProofNodeManager* pnm, bool fineGrained)
     : d_bb(new BBSimple(state)),
       d_pnm(pnm),
+      d_tcontext(new TheoryLeafTermContext(theory::THEORY_BV)),
       d_tcpg(pnm ? new TConvProofGenerator(
                  pnm,
                  nullptr,
@@ -80,7 +81,7 @@ BBProof::BBProof(TheoryState* state, ProofNodeManager* pnm, bool fineGrained)
                  /* STATIC to get the same ProofNode for a shared subterm. */
                  TConvCachePolicy::STATIC,
                  "BBProof::TConvProofGenerator",
-                 nullptr,
+                 d_tcontext.get(),
                  false)
                  : nullptr),
       d_recordFineGrainedProofs(fineGrained)
