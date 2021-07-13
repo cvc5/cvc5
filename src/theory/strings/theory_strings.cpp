@@ -1137,18 +1137,6 @@ std::string TheoryStrings::debugPrintStringsEqc()
   return ss.str();
 }
 
-size_t TheoryStrings::getOrAssignTypeId(TypeNode tn)
-{
-  std::map<TypeNode, size_t>::iterator it = d_typeId.find(tn);
-  if (it != d_typeId.end())
-  {
-    return it->second;
-  }
-  size_t id = d_typeId.size();
-  d_typeId[tn] = id;
-  return id;
-}
-
 }  // namespace strings
 }  // namespace theory
 }  // namespace cvc5

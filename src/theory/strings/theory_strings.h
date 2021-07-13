@@ -244,8 +244,6 @@ class TheoryStrings : public Theory {
   void runStrategy(Theory::Effort e);
   /** print strings equivalence classes for debugging */
   std::string debugPrintStringsEqc();
-  /** get or assign type identifier */
-  size_t getOrAssignTypeId(TypeNode tn);
   /** Commonly used constants */
   Node d_true;
   Node d_false;
