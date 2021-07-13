@@ -15,7 +15,10 @@
 
 #include "theory/strings/theory_strings.h"
 
+#include "expr/attribute.h"
+#include "expr/bound_var_manager.h"
 #include "expr/kind.h"
+#include "expr/sequence.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
@@ -27,10 +30,7 @@
 #include "theory/strings/type_enumerator.h"
 #include "theory/strings/word.h"
 #include "theory/theory_model.h"
-#include "expr/attribute.h"
 #include "theory/valuation.h"
-#include "expr/sequence.h"
-#include "expr/bound_var_manager.h"
 
 using namespace std;
 using namespace cvc5::context;
@@ -39,7 +39,7 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 namespace strings {
-  
+
 struct SeqModelVarAttributeId
 {
 };
@@ -491,12 +491,13 @@ bool TheoryStrings::collectModelInfoType(
               return false;
             }
             c = sel->getCurrent();
-            if (tn.isSequence() && !d_state.isFiniteType(tn.getSequenceElementType()))
+            if (tn.isSequence()
+                && !d_state.isFiniteType(tn.getSequenceElementType()))
             {
               // make a skeleton instead
               SkolemManager* sm = nm->getSkolemManager();
               BoundVarManager* bvm = nm->getBoundVarManager();
-              Assert (c.getKind()==CONST_SEQUENCE);
+              Assert(c.getKind() == CONST_SEQUENCE);
               const Sequence& sn = c.getConst<Sequence>();
               const std::vector<Node>& snvec = sn.getVec();
               std::vector<Node> skChildren;
@@ -1127,7 +1128,6 @@ size_t TheoryStrings::getOrAssignTypeId(TypeNode tn)
   d_typeId[tn] = id;
   return id;
 }
-
 
 }  // namespace strings
 }  // namespace theory
