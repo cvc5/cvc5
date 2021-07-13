@@ -36,7 +36,7 @@ RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
  * flattenNode looks for children of same kind, and if found merges
  * them into the parent.
  *
- * It simultaneously handles a couple of other optimizations: 
+ * It simultaneously handles a couple of other optimizations:
  * - trivialNode - if found during exploration, return that node itself
  *    (like in case of OR, if "true" is found, makes sense to replace
  *     whole formula with "true")
@@ -287,7 +287,13 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         }
       }
     }
-    break;
+    // sort
+    if (n[0].getId() > n[1].getId())
+    {
+      return RewriteResponse(REWRITE_AGAIN,
+                             nodeManager->mkNode(kind::EQUAL, n[1], n[0]));
+    }
+    return RewriteResponse(REWRITE_DONE, n);
   }
   case kind::XOR: {
     // rewrite simple cases of XOR
