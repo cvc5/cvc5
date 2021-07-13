@@ -525,6 +525,7 @@ bool TheoryStrings::collectModelInfoType(
               {
                 TypeNode etn = snv.getType();
                 Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
+                // use a skolem, not a bound variable
                 Node kv = sm->mkPurifySkolem(v, "smv");
                 skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
               }
