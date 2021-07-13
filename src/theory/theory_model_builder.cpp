@@ -1089,7 +1089,6 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, TheoryModel* m)
 
 void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
 {
-#ifdef CVC5_ASSERTIONS
   if (tm->hasApproximations())
   {
     // models with approximations may fail the assertions below
@@ -1111,7 +1110,7 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       // if Boolean, it does not necessarily have a constant representative, use
       // get value instead
       rep = tm->getValue(eqc);
-      Assert(rep.isConst());
+      AlwaysAssert(rep.isConst());
     }
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, tm->d_equalityEngine);
     for (; !eqc_i.isFinished(); ++eqc_i)
@@ -1119,21 +1118,26 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       Node n = *eqc_i;
       static int repCheckInstance = 0;
       ++repCheckInstance;
-
+      AlwaysAssert(rep.getType().isSubtypeOf(n.getType()))
+          << "Representative " << rep << " of " << n
+          << " violates type constraints (" << rep.getType() << " and "
+          << n.getType() << ")";
       // non-linear mult is not necessarily accurate wrt getValue
       if (n.getKind() != kind::NONLINEAR_MULT)
       {
-        Debug("check-model::rep-checking") << "( " << repCheckInstance << ") "
-                                           << "n: " << n << endl
-                                           << "getValue(n): " << tm->getValue(n)
-                                           << endl
-                                           << "rep: " << rep << endl;
-        Assert(tm->getValue(*eqc_i) == rep)
-            << "run with -d check-model::rep-checking for details";
+        if (tm->getValue(*eqc_i) != rep)
+        {
+          std::stringstream err;
+          err << "Failed representative check:" << std::endl
+              << "( " << repCheckInstance << ") "
+              << "n: " << n << endl
+              << "getValue(n): " << tm->getValue(n) << std::endl
+              << "rep: " << rep << std::endl;
+          AlwaysAssert(tm->getValue(*eqc_i) == rep) << err.str();
+        }
       }
     }
   }
-#endif /* CVC5_ASSERTIONS */
 
   // builder-specific debugging
   debugModel(tm);

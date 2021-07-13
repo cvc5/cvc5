@@ -25,6 +25,7 @@ const char* toString(InferenceId i)
   switch (i)
   {
     case InferenceId::EQ_CONSTANT_MERGE: return "EQ_CONSTANT_MERGE";
+    case InferenceId::COMBINATION_SPLIT: return "COMBINATION_SPLIT";
     case InferenceId::ARITH_BLACK_BOX: return "ARITH_BLACK_BOX";
     case InferenceId::ARITH_CONF_EQ: return "ARITH_CONF_EQ";
     case InferenceId::ARITH_CONF_LOWER: return "ARITH_CONF_LOWER";

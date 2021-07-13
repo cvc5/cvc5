@@ -358,6 +358,8 @@ libcvc5_add_sources(
   theory/arith/bound_counts.h
   theory/arith/bound_inference.cpp
   theory/arith/bound_inference.h
+  theory/arith/branch_and_bound.cpp
+  theory/arith/branch_and_bound.h
   theory/arith/callbacks.cpp
   theory/arith/callbacks.h
   theory/arith/congruence_manager.cpp
@@ -467,6 +469,8 @@ libcvc5_add_sources(
   theory/arith/operator_elim.h
   theory/arith/partial_model.cpp
   theory/arith/partial_model.h
+  theory/arith/pp_rewrite_eq.cpp
+  theory/arith/pp_rewrite_eq.h
   theory/arith/proof_checker.cpp
   theory/arith/proof_checker.h
   theory/arith/proof_macros.h
