@@ -50,13 +50,18 @@ void PreprocessProofGenerator::notifyInput(Node n)
 
 void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
 {
+  if (n.isConst() && n.getConst<bool>())
+  {
+    // ignore true assertions
+    return;    
+  }
   Trace("smt-proof-pp-debug")
       << "PreprocessProofGenerator::notifyNewAssert: " << identify() << " " << n
       << " from " << (pg == nullptr ? "null" : pg->identify()) << std::endl;
   if (d_src.find(n) == d_src.end())
   {
     // if no proof generator provided for (non-true) assertion
-    if (pg == nullptr && (!n.isConst() || !n.getConst<bool>()))
+    if (pg == nullptr)
     {
       checkEagerPedantic(d_ra);
     }
@@ -153,7 +158,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       bool proofStepProcessed = false;
 
       // if a generator for the step was provided, it is stored in the proof
-      Trace("smt-pppg") << "...get provided proof" << std::endl;
+      Trace("smt-pppg") << "...get provided proof " << (*it).second << std::endl;
       std::shared_ptr<ProofNode> pfr = (*it).second.toProofNode();
       if (pfr != nullptr)
       {
