@@ -40,6 +40,11 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
+/**
+ * Attribute used for making unique (bound variables) which correspond to
+ * unique element values used in sequence models. See use in collectModelValues
+ * below.
+ */
 struct SeqModelVarAttributeId
 {
 };
@@ -363,10 +368,13 @@ bool TheoryStrings::collectModelInfoType(
             }
             else
             {
-              // otherwise, it is a shared term
+              // Otherwise, we use the term itself. We cannot get the model
+              // value of this term, since it might not be available yet, as
+              // it may belong to a theory that has not built its model yet.
+              // Hence, we assign a (non-constant) skeleton (seq.unit argVal).
               argVal = nfe.d_nf[0][0];
             }
-            AlwaysAssert(!argVal.isNull()) << "No value for " << nfe.d_nf[0][0];
+            Assert(!argVal.isNull()) << "No value for " << nfe.d_nf[0][0];
             Node c = Rewriter::rewrite(nm->mkNode(SEQ_UNIT, argVal));
             pure_eq_assign[eqc] = c;
             Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
@@ -491,10 +499,22 @@ bool TheoryStrings::collectModelInfoType(
               return false;
             }
             c = sel->getCurrent();
+            // if we are a sequence with infinite element type
             if (tn.isSequence()
                 && !d_state.isFiniteType(tn.getSequenceElementType()))
             {
-              // make a skeleton instead
+              // Make a skeleton instead. In particular, this means that
+              // a value:
+              //   (seq.++ (seq.unit 0) (seq.unit 1) (seq.unit 2))
+              // becomes:
+              //   (seq.++ (seq.unit k_0) (seq.unit k_1) (seq.unit k_2))
+              // where k_0, k_1, k_2 are fresh integer variables. These
+              // variables will be assigned values in the standard way by the
+              // model. This construction is necessary since the strings solver
+              // must constrain the length of the model of an equivalence class
+              // (e.g. in this case to length 3); moreover we cannot assign a
+              // concrete value since it may conflict with other skeletons we
+              // have assigned, e.g. for the case of (seq.unit argVal) above.
               SkolemManager* sm = nm->getSkolemManager();
               BoundVarManager* bvm = nm->getBoundVarManager();
               Assert(c.getKind() == CONST_SEQUENCE);
