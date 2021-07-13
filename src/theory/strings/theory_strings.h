@@ -298,8 +298,6 @@ class TheoryStrings : public Theory {
   StringsFmf d_stringsFmf;
   /** The representation of the strategy */
   Strategy d_strat;
-  /** Identifiers for types, for model variables */
-  std::map<TypeNode, size_t> d_typeId;
 };/* class TheoryStrings */
 
 }  // namespace strings
