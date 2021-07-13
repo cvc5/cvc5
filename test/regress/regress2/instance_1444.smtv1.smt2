@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-produce-proofs
 (set-option :incremental false)
 (set-info :status unsat)
 (set-logic QF_UF)
