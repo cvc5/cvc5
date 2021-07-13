@@ -27,7 +27,10 @@
 #include "theory/strings/type_enumerator.h"
 #include "theory/strings/word.h"
 #include "theory/theory_model.h"
+#include "expr/attribute.h"
 #include "theory/valuation.h"
+#include "expr/sequence.h"
+#include "expr/bound_var_manager.h"
 
 using namespace std;
 using namespace cvc5::context;
@@ -36,6 +39,11 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 namespace strings {
+  
+struct SeqModelVarAttributeId
+{
+};
+using SeqModelVarAttribute = expr::Attribute<SeqModelVarAttributeId, Node>;
 
 TheoryStrings::TheoryStrings(context::Context* c,
                              context::UserContext* u,
@@ -483,6 +491,24 @@ bool TheoryStrings::collectModelInfoType(
               return false;
             }
             c = sel->getCurrent();
+            if (tn.isSequence() && !d_state.isFiniteType(tn.getSequenceElementType()))
+            {
+              // make a skeleton instead
+              SkolemManager* sm = nm->getSkolemManager();
+              BoundVarManager* bvm = nm->getBoundVarManager();
+              Assert (c.getKind()==CONST_SEQUENCE);
+              const Sequence& sn = c.getConst<Sequence>();
+              const std::vector<Node>& snvec = sn.getVec();
+              std::vector<Node> skChildren;
+              for (const Node& snv : snvec)
+              {
+                TypeNode etn = snv.getType();
+                Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
+                Node kv = sm->mkPurifySkolem(v, "smv");
+                skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
+              }
+              c = utils::mkConcat(skChildren, tn);
+            }
             // increment
             sel->increment();
           } while (m->hasTerm(c));
@@ -1089,6 +1115,19 @@ std::string TheoryStrings::debugPrintStringsEqc()
   ss << std::endl;
   return ss.str();
 }
+
+size_t TheoryStrings::getOrAssignTypeId(TypeNode tn)
+{
+  std::map<TypeNode, size_t>::iterator it = d_typeId.find(tn);
+  if (it != d_typeId.end())
+  {
+    return it->second;
+  }
+  size_t id = d_typeId.size();
+  d_typeId[tn] = id;
+  return id;
+}
+
 
 }  // namespace strings
 }  // namespace theory
