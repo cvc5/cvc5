@@ -16,7 +16,6 @@
 
 #include <unordered_set>
 
-#include "options/proof_options.h"
 #include "proof/conv_proof_generator.h"
 #include "theory/theory_model.h"
 
@@ -68,10 +67,24 @@ std::unordered_map<Kind, PfRule, kind::KindHashFunction>
         {kind::BITVECTOR_ROTATE_LEFT, PfRule::BV_BITBLAST_ROTATE_LEFT},
 };
 
-BBProof::BBProof(TheoryState* state,
-                 ProofNodeManager* pnm,
-                 TConvProofGenerator* tcpg)
-    : d_bb(new BBSimple(state)), d_pnm(pnm), d_tcpg(tcpg)
+BBProof::BBProof(TheoryState* state, ProofNodeManager* pnm, bool fineGrained)
+    : d_bb(new BBSimple(state)),
+      d_pnm(pnm),
+      d_tcontext(new TheoryLeafTermContext(theory::THEORY_BV)),
+      d_tcpg(pnm ? new TConvProofGenerator(
+                 pnm,
+                 nullptr,
+                 /* ONCE to visit each term only once, post-order.  FIXPOINT
+                  * could lead to infinite loops due to terms being rewritten
+                  * to terms that contain themselves */
+                 TConvPolicy::ONCE,
+                 /* STATIC to get the same ProofNode for a shared subterm. */
+                 TConvCachePolicy::STATIC,
+                 "BBProof::TConvProofGenerator",
+                 d_tcontext.get(),
+                 false)
+                 : nullptr),
+      d_recordFineGrainedProofs(fineGrained)
 {
 }
 
@@ -83,9 +96,7 @@ void BBProof::bbAtom(TNode node)
   visit.push_back(node);
   std::unordered_set<TNode> visited;
 
-  bool fproofs =
-      options::proofGranularityMode() != options::ProofGranularityMode::OFF;
-  bool fpenabled = isProofsEnabled() && fproofs;
+  bool fpenabled = isProofsEnabled() && d_recordFineGrainedProofs;
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -183,7 +194,8 @@ void BBProof::bbAtom(TNode node)
       visit.pop_back();
     }
   }
-  if (isProofsEnabled() && !fproofs)
+  /* Record coarse-grain bit-blast proof step. */
+  if (isProofsEnabled() && !d_recordFineGrainedProofs)
   {
     Node node_tobv = getStoredBBAtom(node);
     d_tcpg->addRewriteStep(node,
@@ -209,6 +221,8 @@ bool BBProof::collectModelValues(TheoryModel* m,
 {
   return d_bb->collectModelValues(m, relevantTerms);
 }
+
+TConvProofGenerator* BBProof::getProofGenerator() { return d_tcpg.get(); }
 
 bool BBProof::isProofsEnabled() const { return d_pnm != nullptr; }
 
