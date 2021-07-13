@@ -19,8 +19,8 @@
 #ifndef CVC5__THEORY__STRINGS__CORE_SOLVER_H
 #define CVC5__THEORY__STRINGS__CORE_SOLVER_H
 
+#include "context/cdhashmap.h"
 #include "context/cdhashset.h"
-#include "context/cdlist.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
@@ -80,6 +80,7 @@ class CoreSolver
 {
   friend class InferenceManager;
   using NodeIntMap = context::CDHashMap<Node, int>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   CoreSolver(SolverState& s,
@@ -467,6 +468,16 @@ class CoreSolver
                         Node nj,
                         size_t& index,
                         bool isRev);
+  /**
+   * Process disequality by extensionality. If necessary, this may result
+   * in inferences that follow from this disequality of the form:
+   *   (not (= n1 n2)) => (not (= k1 k2))
+   * where k1, k2 are either strings of length one or elements of a sequence.
+   *
+   * @param n1 The first string in the disequality
+   * @param n2 The second string in the disequality
+   */
+  void processDeqExtensionality(Node n1, Node n2);
   //--------------------------end for checkNormalFormsDeq
 
   /** The solver state object */
@@ -520,6 +531,8 @@ class CoreSolver
    * the argument number of the t1 ... tn they were generated from.
    */
   std::map<Node, std::vector<int> > d_flat_form_index;
+  /** Set of equalities for which we have applied extensionality. */
+  NodeSet d_extDeq;
 }; /* class CoreSolver */
 
 }  // namespace strings

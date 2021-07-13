@@ -190,3 +190,19 @@ name   = "Strings Theory"
   type       = "bool"
   default    = "true"
   help       = "perform eager context-dependent evaluation for applications of string kinds"
+
+[[option]]
+  name       = "stringsDeqExt"
+  category   = "regular"
+  long       = "strings-deq-ext"
+  type       = "bool"
+  default    = "false"
+  help       = "use extensionality for string disequalities"
+
+[[option]]
+  name       = "stringSeqUpdate"
+  category   = "regular"
+  long       = "strings-seq-update"
+  type       = "bool"
+  default    = "false"
+  help       = "use array-inspired solver for sequence updates"

@@ -38,6 +38,8 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
     case CHECK_EXTF_REDUCTION: out << "check_extf_reduction"; break;
     case CHECK_MEMBERSHIP: out << "check_membership"; break;
     case CHECK_CARDINALITY: out << "check_cardinality"; break;
+    case CHECK_SEQUENCES_ARRAY_CONCAT: out << "check_sequences_update_concat_terms"; break;
+    case CHECK_SEQUENCES_ARRAY: out << "check_sequences_array"; break;
     default: out << "?"; break;
   }
   return out;
@@ -129,6 +131,11 @@ void Strategy::initializeStrategy()
     if (options::stringEagerLen() && options::stringLenNorm())
     {
       addStrategyStep(CHECK_LENGTH_EQC);
+    }
+    if (options::stringSeqUpdate())
+    {
+      addStrategyStep(CHECK_SEQUENCES_ARRAY_CONCAT);
+      addStrategyStep(CHECK_SEQUENCES_ARRAY);
     }
     if (options::stringExp() && !options::stringGuessModel())
     {

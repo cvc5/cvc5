@@ -602,12 +602,19 @@ enum class InferenceId
   // is unknown, we apply the inference:
   //   len(s) != len(t) V len(s) = len(t)
   STRINGS_DEQ_LENGTH_SP,
+  // Disequality extensionality
+  STRINGS_DEQ_EXTENSIONALITY,
   //-------------------- codes solver
   // str.to_code( v ) = rewrite( str.to_code(c) )
   // where v is the proxy variable for c.
   STRINGS_CODE_PROXY,
   // str.code(x) = -1 V str.code(x) != str.code(y) V x = y
   STRINGS_CODE_INJ,
+  //-------------------- sequence update solver
+  STRINGS_SU_UPDATE_UNIT,
+  STRINGS_SU_UPDATE_CONCAT,
+  STRINGS_SU_NTH_UNIT,
+  STRINGS_SU_NTH_CONCAT,
   //-------------------- regexp solver
   // regular expression normal form conflict
   //   ( x in R ^ x = y ^ rewrite((str.in_re y R)) = false ) => false

@@ -184,6 +184,10 @@ void TermRegistry::preRegisterTerm(TNode n)
   {
     d_hasStrCode = true;
   }
+  else if (k == SEQ_NTH || k == STRING_UPDATE)
+  {
+    d_hasSeqUpdate = true;
+  }
   else if (k == REGEXP_RANGE)
   {
     for (const Node& nc : n)
@@ -468,6 +472,8 @@ const context::CDHashSet<Node>& TermRegistry::getInputVars() const
 }
 
 bool TermRegistry::hasStringCode() const { return d_hasStrCode; }
+
+bool TermRegistry::hasSeqUpdate() const { return d_hasSeqUpdate; }
 
 TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Node n, LengthStatus s, std::map<Node, bool>& reqPhase)

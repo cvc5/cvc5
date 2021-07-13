@@ -1028,6 +1028,10 @@ libcvc5_add_sources(
   theory/strings/sequences_rewriter.h
   theory/strings/sequences_stats.cpp
   theory/strings/sequences_stats.h
+  theory/strings/sequences_array_solver.cpp
+  theory/strings/sequences_array_solver.h
+  theory/strings/sequences_update_solver.cpp
+  theory/strings/sequences_update_solver.h
   theory/strings/skolem_cache.cpp
   theory/strings/skolem_cache.h
   theory/strings/solver_state.cpp
