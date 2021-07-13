@@ -31,7 +31,7 @@ class BBProof
   using Bits = std::vector<Node>;
 
  public:
-  BBProof(TheoryState* state, ProofNodeManager* pnm, TConvProofGenerator* tcpg);
+  BBProof(TheoryState* state, ProofNodeManager* pnm, bool fineGrained);
   ~BBProof();
 
   /** Bit-blast atom 'node'. */
@@ -44,6 +44,8 @@ class BBProof
   Node getStoredBBAtom(TNode node);
   /** Collect model values for all relevant terms given in 'relevantTerms'. */
   bool collectModelValues(TheoryModel* m, const std::set<Node>& relevantTerms);
+
+  TConvProofGenerator* getProofGenerator();
 
  private:
   /** Map node kinds to proof rules. */
@@ -58,9 +60,11 @@ class BBProof
   /** The associated proof node manager. */
   ProofNodeManager* d_pnm;
   /** The associated term conversion proof generator. */
-  TConvProofGenerator* d_tcpg;
+  std::unique_ptr<TConvProofGenerator> d_tcpg;
   /** Map bit-vector nodes to bit-blasted nodes. */
   std::unordered_map<Node, Node> d_bbMap;
+
+  bool d_recordFineGrainedProofs;
 };
 
 }  // namespace bv
