@@ -271,7 +271,7 @@ void Smt2Printer::toStream(std::ostream& out,
         toStreamType(out, n.getType());
         out << ")";
       }
-      if (snvec.size() > 1)
+      else if (snvec.size() > 1)
       {
         out << "(seq.++";
         for (const Node& snvc : snvec)
@@ -282,7 +282,7 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       else
       {
-        out << "(seq.unit " << snvc[0] << ")";
+        out << "(seq.unit " << snvec[0] << ")";
       }
       break;
     }
