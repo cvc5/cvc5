@@ -67,8 +67,8 @@ class BVSolverSimple : public BVSolver
    */
   void addBBLemma(TNode fact);
 
-  /** Proof generator. */
-  std::unique_ptr<TConvProofGenerator> d_tcpg;
+  /** Proof node manager. */
+  ProofNodeManager* d_pnm;
   /** Bit-blaster used to bit-blast atoms/terms. */
   std::unique_ptr<BBProof> d_bitblaster;
   /** Proof rule checker */

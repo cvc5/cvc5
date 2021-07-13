@@ -38,17 +38,16 @@ class TheoryArithPrivate;
 class ArithState : public TheoryState
 {
  public:
-  ArithState(TheoryArithPrivate& parent,
-             context::Context* c,
-             context::UserContext* u,
-             Valuation val);
+  ArithState(context::Context* c, context::UserContext* u, Valuation val);
   ~ArithState() {}
   /** Are we currently in conflict? */
   bool isInConflict() const override;
+  /** Set parent */
+  void setParent(TheoryArithPrivate* p);
 
  private:
   /** reference to parent */
-  TheoryArithPrivate& d_parent;
+  TheoryArithPrivate* d_parent;
 };
 
 }  // namespace arith
