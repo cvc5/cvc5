@@ -41,6 +41,8 @@ enum class InferenceId
   // ---------------------------------- core
   // a conflict when two constants merge in the equality engine (of any theory)
   EQ_CONSTANT_MERGE,
+  // a split from theory combination
+  COMBINATION_SPLIT,
   // ---------------------------------- arith theory
   //-------------------- linear core
   // black box conflicts. It's magic.
