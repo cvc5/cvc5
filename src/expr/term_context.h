@@ -19,6 +19,7 @@
 #define CVC5__EXPR__TERM_CONTEXT_H
 
 #include "expr/node.h"
+#include "theory/theory_id.h"
 
 namespace cvc5 {
 
@@ -162,6 +163,23 @@ class PolarityTermContext : public TermContext
    * are set to false.
    */
   static void getFlags(uint32_t val, bool& hasPol, bool& pol);
+};
+
+/**
+ * Similar to InQuantTermContext, but computes whether we are below a theory
+ * leaf of given theory id.
+ */
+class TheoryLeafTermContext : public TermContext
+{
+ public:
+  TheoryLeafTermContext(theory::TheoryId id) : d_theoryId(id) {}
+  /** The initial value: not beneath a theory leaf. */
+  uint32_t initialValue() const override;
+  /** Compute the value of the index^th child of t whose hash is tval */
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
+
+ private:
+  theory::TheoryId d_theoryId;
 };
 
 }  // namespace cvc5
