@@ -243,7 +243,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
       // what the generated inflection conditions are
       Node lastEq = pic.d_vars.back();
       ProvenInfo& pile = d_pcache[lastEq];
-      Assert (pile.d_id==id);
+      Assert(pile.d_id == id);
       uvars = pile.d_vars;
       usubs = pile.d_subs;
     }
