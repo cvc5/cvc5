@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Yoni Zohar
  *
  * This file is part of the cvc5 project.
  *
@@ -28,16 +28,9 @@ namespace cvc5 {
 namespace proof {
 
 /**
-work steps:
-1. make new rules in the lfsc signature
-2. add to LfscRule enum
-3. print in toString
-4. convert PfRule to LfscRule in the postprocessor
-5. Add printing code to computeProofArgs
-*/
-
-/**
- * LFSC rules
+ * LFSC rules. The enum below contains all rules that don't correspond to a
+ * PfRule, e.g. congruence in LFSC does not have the same form as congruence
+ * in the internal calculus.
  */
 enum class LfscRule : uint32_t
 {
