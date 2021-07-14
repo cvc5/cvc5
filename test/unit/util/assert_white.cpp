@@ -52,27 +52,27 @@ TEST_F(TestUtilWhite, AssertArgument)
 
 TEST_F(TestUtilWhite, Unreachable)
 {
-  ASSERT_DEATH(Unreachable(), "Unreachable code reached");
-  ASSERT_DEATH(Unreachable() << "hello", "Unreachable code reachedhello");
+  ASSERT_DEATH(Unreachable(), "Unreachable code reached ");
+  ASSERT_DEATH(Unreachable() << "hello", "Unreachable code reached hello");
   ASSERT_DEATH(Unreachable() << "hello "
                              << "world",
-               "Unreachable code reachedhello world");
+               "Unreachable code reached hello world");
 }
 
 TEST_F(TestUtilWhite, Unhandled)
 {
-  ASSERT_DEATH(Unhandled(), "Unhandled case encountered");
-  ASSERT_DEATH(Unhandled() << 5, "Unhandled case encountered5");
-  ASSERT_DEATH(Unhandled() << "foo", "Unhandled case encounteredfoo");
+  ASSERT_DEATH(Unhandled(), "Unhandled case encountered ");
+  ASSERT_DEATH(Unhandled() << 5, "Unhandled case encountered 5");
+  ASSERT_DEATH(Unhandled() << "foo", "Unhandled case encountered foo");
   ASSERT_DEATH(Unhandled() << "foo "
                            << "bar"
                            << " baz",
-               "Unhandled case encounteredfoo bar baz");
+               "Unhandled case encountered foo bar baz");
 }
 
 TEST_F(TestUtilWhite, Unimplemented)
 {
-  ASSERT_DEATH(Unimplemented(), "Unimplemented code encountered");
+  ASSERT_DEATH(Unimplemented(), "Unimplemented code encountered ");
 }
 
 TEST_F(TestUtilWhite, IllegalArgument)
