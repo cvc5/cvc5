@@ -49,10 +49,6 @@ class BBProof
   TConvProofGenerator* getProofGenerator();
 
  private:
-  /** Map node kinds to proof rules. */
-  static std::unordered_map<Kind, PfRule, kind::KindHashFunction>
-      s_kindToPfRule;
-
   /** Return true if proofs are enabled. */
   bool isProofsEnabled() const;
 
