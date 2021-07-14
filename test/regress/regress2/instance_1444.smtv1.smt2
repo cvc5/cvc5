@@ -1,3 +1,5 @@
+; COMMAND-LINE: --no-check-proofs
+; EXPECT: unsat
 (set-option :incremental false)
 (set-info :status unsat)
 (set-logic QF_UF)

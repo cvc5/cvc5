@@ -186,7 +186,7 @@ void CircuitPropagator::makeConflict(Node n)
 
 void CircuitPropagator::computeBackEdges(TNode node)
 {
-  Trace("circuit-prop") << "CircuitPropagator::computeBackEdges(" << node << ")"
+  Debug("circuit-prop") << "CircuitPropagator::computeBackEdges(" << node << ")"
                         << endl;
 
   // Vector of nodes to visit
@@ -207,7 +207,7 @@ void CircuitPropagator::computeBackEdges(TNode node)
   {
     // Node we need to visit
     TNode current = toVisit[i];
-    Trace("circuit-prop")
+    Debug("circuit-prop")
         << "CircuitPropagator::computeBackEdges(): processing " << current
         << endl;
     Assert(d_seen.find(current) != d_seen.end());
@@ -235,7 +235,7 @@ void CircuitPropagator::computeBackEdges(TNode node)
 
 void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
 {
-  Trace("circuit-prop") << "CircuitPropagator::propagateBackward(" << parent
+  Debug("circuit-prop") << "CircuitPropagator::propagateBackward(" << parent
                         << ", " << parentAssignment << ")" << endl;
   ProofCircuitPropagatorBackward prover{d_pnm, parent, parentAssignment};
 
@@ -433,7 +433,7 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
 void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
 {
   // The assignment we have
-  Trace("circuit-prop") << "CircuitPropagator::propagateForward(" << child
+  Debug("circuit-prop") << "CircuitPropagator::propagateForward(" << child
                         << ", " << childAssignment << ")" << endl;
 
   // Get the back any nodes where this is child
@@ -446,7 +446,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
   {
     // The current parent of the child
     TNode parent = *parent_it;
-    Trace("circuit-prop") << "Parent: " << parent << endl;
+    Debug("circuit-prop") << "Parent: " << parent << endl;
     Assert(expr::hasSubterm(parent, child));
 
     ProofCircuitPropagatorForward prover{d_pnm, child, childAssignment, parent};
@@ -695,7 +695,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
 
 TrustNode CircuitPropagator::propagate()
 {
-  Trace("circuit-prop") << "CircuitPropagator::propagate()" << std::endl;
+  Debug("circuit-prop") << "CircuitPropagator::propagate()" << std::endl;
 
   for (unsigned i = 0;
        i < d_propagationQueue.size() && d_conflict.get().isNull();
@@ -703,10 +703,10 @@ TrustNode CircuitPropagator::propagate()
   {
     // The current node we are propagating
     TNode current = d_propagationQueue[i];
-    Trace("circuit-prop") << "CircuitPropagator::propagate(): processing "
+    Debug("circuit-prop") << "CircuitPropagator::propagate(): processing "
                           << current << std::endl;
     bool assignment = getAssignment(current);
-    Trace("circuit-prop") << "CircuitPropagator::propagate(): assigned to "
+    Debug("circuit-prop") << "CircuitPropagator::propagate(): assigned to "
                           << (assignment ? "true" : "false") << std::endl;
 
     // Is this an atom
@@ -719,7 +719,7 @@ TrustNode CircuitPropagator::propagate()
         || (current.getKind() == kind::EQUAL
             && (current[0].isVar() || current[1].isVar())))
     {
-      Trace("circuit-prop")
+      Debug("circuit-prop")
           << "CircuitPropagator::propagate(): adding to learned: "
           << (assignment ? (Node)current : current.notNode()) << std::endl;
       Node lit = assignment ? Node(current) : current.notNode();
