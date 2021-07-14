@@ -72,14 +72,13 @@ bool LfscProofLetifyTraverseCallback::shouldTraverse(const ProofNode* pn)
 {
   if (pn->getRule() == PfRule::SCOPE)
   {
-    // this may not be necessary?
     return false;
   }
   if (pn->getRule() != PfRule::LFSC_RULE)
   {
     return true;
   }
-  // do not traverse under LFSC scope
+  // do not traverse under LFSC (lambda) scope
   LfscRule lr = getLfscRule(pn->getArguments()[0]);
   return lr != LfscRule::LAMBDA;
 }
