@@ -123,6 +123,8 @@ bool BVSolverSimple::preNotifyFact(
     }
     else
     {
+      d_bitblaster->getProofGenerator()->addRewriteStep(
+          fact, n, PfRule::BV_EAGER_ATOM, {}, {fact});
       TrustNode tlem =
           TrustNode::mkTrustLemma(lemma, d_bitblaster->getProofGenerator());
       d_im.trustedLemma(tlem, InferenceId::BV_SIMPLE_LEMMA);
