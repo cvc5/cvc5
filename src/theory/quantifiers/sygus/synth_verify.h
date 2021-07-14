@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Class for verifying a synthesis solution
+ * Class for verifying queries for synthesis solutions
  */
 
 #include "cvc5_private.h"

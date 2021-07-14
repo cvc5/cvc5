@@ -10,9 +10,9 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of class that encapsulates techniques for a single
- * (SyGuS) synthesis conjecture.
+ * Class for verifying queries for synthesis solutions
  */
+
 #include "theory/quantifiers/sygus/synth_verify.h"
 
 #include "expr/node_algorithm.h"
