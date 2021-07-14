@@ -25,10 +25,9 @@ namespace decision {
 
 JustificationStrategy::JustificationStrategy(context::Context* c,
                                              context::UserContext* u,
-                                             prop::SkolemDefManager* skdm)
-    : d_context(c),
-      d_cnfStream(nullptr),
-      d_satSolver(nullptr),
+                                             prop::SkolemDefManager* skdm,
+                                             ResourceManager* rm)
+    : DecisionEngine(c, rm),
       d_skdm(skdm),
       d_assertions(
           u,
@@ -40,16 +39,11 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
       d_lastDecisionLit(c),
       d_currStatusDec(false),
       d_useRlvOrder(options::jhRlvOrder()),
+      d_decisionStopOnly(options::decisionMode()
+                         == options::DecisionMode::STOPONLY),
       d_jhSkMode(options::jhSkolemMode()),
       d_jhSkRlvMode(options::jhSkolemRlvMode())
 {
-}
-
-void JustificationStrategy::finishInit(CDCLTSatSolverInterface* ss,
-                                       CnfStream* cs)
-{
-  d_satSolver = ss;
-  d_cnfStream = cs;
 }
 
 void JustificationStrategy::presolve()
@@ -64,7 +58,7 @@ void JustificationStrategy::presolve()
   d_stack.clear();
 }
 
-SatLiteral JustificationStrategy::getNext(bool& stopSearch)
+SatLiteral JustificationStrategy::getNextInternal(bool& stopSearch)
 {
   // ensure we have an assertion
   if (!refreshCurrentAssertion())
@@ -186,6 +180,11 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
           d_lastDecisionLit = next.first;
           // record that we made a decision
           d_currStatusDec = true;
+          if (d_decisionStopOnly)
+          {
+            // only doing stop-only, return undefSatLiteral.
+            return undefSatLiteral;
+          }
           return lastChildVal == SAT_VALUE_FALSE ? ~nsl : nsl;
         }
         else

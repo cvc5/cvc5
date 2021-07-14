@@ -70,20 +70,8 @@ BVSolverSimple::BVSolverSimple(TheoryState* s,
                                TheoryInferenceManager& inferMgr,
                                ProofNodeManager* pnm)
     : BVSolver(*s, inferMgr),
-      d_tcpg(pnm ? new TConvProofGenerator(
-                 pnm,
-                 nullptr,
-                 /* ONCE to visit each term only once, post-order.  FIXPOINT
-                  * could lead to infinite loops due to terms being rewritten
-                  * to terms that contain themselves */
-                 TConvPolicy::ONCE,
-                 /* STATIC to get the same ProofNode for a shared subterm. */
-                 TConvCachePolicy::STATIC,
-                 "BVSolverSimple::TConvProofGenerator",
-                 nullptr,
-                 false)
-                 : nullptr),
-      d_bitblaster(new BBProof(s, pnm, d_tcpg.get()))
+      d_pnm(pnm),
+      d_bitblaster(new BBProof(s, pnm, false))
 {
 }
 
@@ -98,13 +86,14 @@ void BVSolverSimple::addBBLemma(TNode fact)
   Node atom_bb = d_bitblaster->getStoredBBAtom(fact);
   Node lemma = nm->mkNode(kind::EQUAL, fact, atom_bb);
 
-  if (d_tcpg == nullptr)
+  if (d_pnm == nullptr)
   {
     d_im.lemma(lemma, InferenceId::BV_SIMPLE_BITBLAST_LEMMA);
   }
   else
   {
-    TrustNode tlem = TrustNode::mkTrustLemma(lemma, d_tcpg.get());
+    TrustNode tlem =
+        TrustNode::mkTrustLemma(lemma, d_bitblaster->getProofGenerator());
     d_im.trustedLemma(tlem, InferenceId::BV_SIMPLE_BITBLAST_LEMMA);
   }
 }
@@ -128,13 +117,16 @@ bool BVSolverSimple::preNotifyFact(
     NodeManager* nm = NodeManager::currentNM();
     Node lemma = nm->mkNode(kind::EQUAL, fact, n);
 
-    if (d_tcpg == nullptr)
+    if (d_pnm == nullptr)
     {
       d_im.lemma(lemma, InferenceId::BV_SIMPLE_LEMMA);
     }
     else
     {
-      TrustNode tlem = TrustNode::mkTrustLemma(lemma, d_tcpg.get());
+      d_bitblaster->getProofGenerator()->addRewriteStep(
+          fact, n, PfRule::BV_EAGER_ATOM, {}, {fact});
+      TrustNode tlem =
+          TrustNode::mkTrustLemma(lemma, d_bitblaster->getProofGenerator());
       d_im.trustedLemma(tlem, InferenceId::BV_SIMPLE_LEMMA);
     }
 

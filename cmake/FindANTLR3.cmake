@@ -53,7 +53,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ${CMAKE_COMMAND} -E copy
-            <SOURCE_DIR>/../antlr-3.4-complete.jar
+            <DOWNLOADED_FILE>
             <INSTALL_DIR>/share/java/antlr-3.4-complete.jar
         BUILD_BYPRODUCTS <INSTALL_DIR>/share/java/antlr-3.4-complete.jar
     )
@@ -62,13 +62,30 @@ if(NOT ANTLR3_FOUND_SYSTEM)
     ExternalProject_Add(
         ANTLR3-EP-config.guess
         ${COMMON_EP_CONFIG}
-        URL "http://git.savannah.gnu.org/gitweb/?p=config.git\\\;a=blob_plain\\\;f=config.guess\\\;hb=HEAD"
+        URL "https://git.savannah.gnu.org/cgit/config.git/plain/config.guess"
         DOWNLOAD_NAME config.guess
         DOWNLOAD_NO_EXTRACT ON
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
-        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../config.guess <INSTALL_DIR>/share/config.guess
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy
+          <DOWNLOADED_FILE>
+          <INSTALL_DIR>/share/config.guess
         BUILD_BYPRODUCTS <INSTALL_DIR>/share/config.guess
+    )
+
+    # Download config sub
+    ExternalProject_Add(
+        ANTLR3-EP-config.sub
+        ${COMMON_EP_CONFIG}
+        URL "https://git.savannah.gnu.org/cgit/config.git/plain/config.sub"
+        DOWNLOAD_NAME config.sub
+        DOWNLOAD_NO_EXTRACT ON
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy
+          <DOWNLOADED_FILE>
+          <INSTALL_DIR>/share/config.sub
+        BUILD_BYPRODUCTS <INSTALL_DIR>/share/config.sub
     )
 
     if(CMAKE_SYSTEM_PROCESSOR MATCHES ".*64$")
@@ -81,15 +98,17 @@ if(NOT ANTLR3_FOUND_SYSTEM)
     ExternalProject_Add(
         ANTLR3-EP-runtime
         ${COMMON_EP_CONFIG}
-        DEPENDS ANTLR3-EP-config.guess
+        BUILD_IN_SOURCE ON
+        DEPENDS ANTLR3-EP-config.guess ANTLR3-EP-config.sub
         URL https://www.antlr3.org/download/C/libantlr3c-3.4.tar.gz
         URL_HASH SHA1=faa9ab43ab4d3774f015471c3f011cc247df6a18
-        CONFIGURE_COMMAND ${CMAKE_COMMAND} -E copy 
-            <SOURCE_DIR>/../config.guess <SOURCE_DIR>/config.guess
-        COMMAND sed -i.orig "s/avr | avr32/avr | aarch64 | avr32/"
-            <SOURCE_DIR>/config.sub
-        COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include include/
-        COMMAND <SOURCE_DIR>/configure
+        PATCH_COMMAND ${CMAKE_COMMAND} -E copy
+          <INSTALL_DIR>/share/config.guess
+          <SOURCE_DIR>/config.guess
+        COMMAND ${CMAKE_COMMAND} -E copy
+          <INSTALL_DIR>/share/config.sub
+          <SOURCE_DIR>/config.sub
+        CONFIGURE_COMMAND <SOURCE_DIR>/configure
             --with-pic
             --disable-antlrdebug
             --prefix=<INSTALL_DIR>

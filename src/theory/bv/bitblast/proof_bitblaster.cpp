@@ -16,7 +16,6 @@
 
 #include <unordered_set>
 
-#include "options/proof_options.h"
 #include "proof/conv_proof_generator.h"
 #include "theory/theory_model.h"
 
@@ -24,54 +23,24 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
-std::unordered_map<Kind, PfRule, kind::KindHashFunction>
-    BBProof::s_kindToPfRule = {
-        {kind::CONST_BITVECTOR, PfRule::BV_BITBLAST_CONST},
-        {kind::EQUAL, PfRule::BV_BITBLAST_EQUAL},
-        {kind::BITVECTOR_ULT, PfRule::BV_BITBLAST_ULT},
-        {kind::BITVECTOR_ULE, PfRule::BV_BITBLAST_ULE},
-        {kind::BITVECTOR_UGT, PfRule::BV_BITBLAST_UGT},
-        {kind::BITVECTOR_UGE, PfRule::BV_BITBLAST_UGE},
-        {kind::BITVECTOR_SLT, PfRule::BV_BITBLAST_SLT},
-        {kind::BITVECTOR_SLE, PfRule::BV_BITBLAST_SLE},
-        {kind::BITVECTOR_SGT, PfRule::BV_BITBLAST_SGT},
-        {kind::BITVECTOR_SGE, PfRule::BV_BITBLAST_SGE},
-        {kind::BITVECTOR_NOT, PfRule::BV_BITBLAST_NOT},
-        {kind::BITVECTOR_CONCAT, PfRule::BV_BITBLAST_CONCAT},
-        {kind::BITVECTOR_AND, PfRule::BV_BITBLAST_AND},
-        {kind::BITVECTOR_OR, PfRule::BV_BITBLAST_OR},
-        {kind::BITVECTOR_XOR, PfRule::BV_BITBLAST_XOR},
-        {kind::BITVECTOR_XNOR, PfRule::BV_BITBLAST_XNOR},
-        {kind::BITVECTOR_NAND, PfRule::BV_BITBLAST_NAND},
-        {kind::BITVECTOR_NOR, PfRule::BV_BITBLAST_NOR},
-        {kind::BITVECTOR_COMP, PfRule::BV_BITBLAST_COMP},
-        {kind::BITVECTOR_MULT, PfRule::BV_BITBLAST_MULT},
-        {kind::BITVECTOR_ADD, PfRule::BV_BITBLAST_ADD},
-        {kind::BITVECTOR_SUB, PfRule::BV_BITBLAST_SUB},
-        {kind::BITVECTOR_NEG, PfRule::BV_BITBLAST_NEG},
-        {kind::BITVECTOR_UDIV, PfRule::BV_BITBLAST_UDIV},
-        {kind::BITVECTOR_UREM, PfRule::BV_BITBLAST_UREM},
-        {kind::BITVECTOR_SDIV, PfRule::BV_BITBLAST_SDIV},
-        {kind::BITVECTOR_SREM, PfRule::BV_BITBLAST_SREM},
-        {kind::BITVECTOR_SMOD, PfRule::BV_BITBLAST_SMOD},
-        {kind::BITVECTOR_SHL, PfRule::BV_BITBLAST_SHL},
-        {kind::BITVECTOR_LSHR, PfRule::BV_BITBLAST_LSHR},
-        {kind::BITVECTOR_ASHR, PfRule::BV_BITBLAST_ASHR},
-        {kind::BITVECTOR_ULTBV, PfRule::BV_BITBLAST_ULTBV},
-        {kind::BITVECTOR_SLTBV, PfRule::BV_BITBLAST_SLTBV},
-        {kind::BITVECTOR_ITE, PfRule::BV_BITBLAST_ITE},
-        {kind::BITVECTOR_EXTRACT, PfRule::BV_BITBLAST_EXTRACT},
-        {kind::BITVECTOR_REPEAT, PfRule::BV_BITBLAST_REPEAT},
-        {kind::BITVECTOR_ZERO_EXTEND, PfRule::BV_BITBLAST_ZERO_EXTEND},
-        {kind::BITVECTOR_SIGN_EXTEND, PfRule::BV_BITBLAST_SIGN_EXTEND},
-        {kind::BITVECTOR_ROTATE_RIGHT, PfRule::BV_BITBLAST_ROTATE_RIGHT},
-        {kind::BITVECTOR_ROTATE_LEFT, PfRule::BV_BITBLAST_ROTATE_LEFT},
-};
-
-BBProof::BBProof(TheoryState* state,
-                 ProofNodeManager* pnm,
-                 TConvProofGenerator* tcpg)
-    : d_bb(new BBSimple(state)), d_pnm(pnm), d_tcpg(tcpg)
+BBProof::BBProof(TheoryState* state, ProofNodeManager* pnm, bool fineGrained)
+    : d_bb(new BBSimple(state)),
+      d_pnm(pnm),
+      d_tcontext(new TheoryLeafTermContext(theory::THEORY_BV)),
+      d_tcpg(pnm ? new TConvProofGenerator(
+                 pnm,
+                 nullptr,
+                 /* ONCE to visit each term only once, post-order.  FIXPOINT
+                  * could lead to infinite loops due to terms being rewritten
+                  * to terms that contain themselves */
+                 TConvPolicy::ONCE,
+                 /* STATIC to get the same ProofNode for a shared subterm. */
+                 TConvCachePolicy::STATIC,
+                 "BBProof::TConvProofGenerator",
+                 d_tcontext.get(),
+                 false)
+                 : nullptr),
+      d_recordFineGrainedProofs(fineGrained)
 {
 }
 
@@ -83,9 +52,7 @@ void BBProof::bbAtom(TNode node)
   visit.push_back(node);
   std::unordered_set<TNode> visited;
 
-  bool fproofs =
-      options::proofGranularityMode() != options::ProofGranularityMode::OFF;
-  bool fpenabled = isProofsEnabled() && fproofs;
+  bool fpenabled = isProofsEnabled() && d_recordFineGrainedProofs;
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -118,7 +85,7 @@ void BBProof::bbAtom(TNode node)
           d_bbMap.emplace(n, n_tobv);
           d_tcpg->addRewriteStep(n,
                                  n_tobv,
-                                 PfRule::BV_BITBLAST_VAR,
+                                 PfRule::BV_BITBLAST_STEP,
                                  {},
                                  {n.eqNode(n_tobv)},
                                  false);
@@ -154,7 +121,7 @@ void BBProof::bbAtom(TNode node)
           }
           d_tcpg->addRewriteStep(c_tobv,
                                  n_tobv,
-                                 s_kindToPfRule.at(kind),
+                                 PfRule::BV_BITBLAST_STEP,
                                  {},
                                  {c_tobv.eqNode(n_tobv)},
                                  false);
@@ -174,7 +141,7 @@ void BBProof::bbAtom(TNode node)
           Node c_tobv = nm->mkNode(n.getKind(), children_tobv);
           d_tcpg->addRewriteStep(c_tobv,
                                  n_tobv,
-                                 s_kindToPfRule.at(n.getKind()),
+                                 PfRule::BV_BITBLAST_STEP,
                                  {},
                                  {c_tobv.eqNode(n_tobv)},
                                  false);
@@ -183,7 +150,8 @@ void BBProof::bbAtom(TNode node)
       visit.pop_back();
     }
   }
-  if (isProofsEnabled() && !fproofs)
+  /* Record coarse-grain bit-blast proof step. */
+  if (isProofsEnabled() && !d_recordFineGrainedProofs)
   {
     Node node_tobv = getStoredBBAtom(node);
     d_tcpg->addRewriteStep(node,
@@ -209,6 +177,8 @@ bool BBProof::collectModelValues(TheoryModel* m,
 {
   return d_bb->collectModelValues(m, relevantTerms);
 }
+
+TConvProofGenerator* BBProof::getProofGenerator() { return d_tcpg.get(); }
 
 bool BBProof::isProofsEnabled() const { return d_pnm != nullptr; }
 
