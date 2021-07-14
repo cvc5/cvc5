@@ -336,6 +336,10 @@ void SatProofManager::explainLit(SatLiteral lit,
   Trace("sat-proof") << push << "SatProofManager::explainLit: Lit: " << lit;
   Node litNode = getClauseNode(lit);
   Trace("sat-proof") << " [" << litNode << "]\n";
+  // Note that if we had two literals for (= a b) and (= b a) and we had already
+  // a proof for (= a b) this test would return true for (= b a), which could
+  // lead to open proof. However we should never have two literals like this in
+  // the SAT solver since they'd be rewritten to the same one
   if (d_resChainPg.hasProofFor(litNode))
   {
     Trace("sat-proof") << "SatProofManager::explainLit: already justified "

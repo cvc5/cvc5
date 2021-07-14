@@ -17,6 +17,7 @@
 #ifndef CVC5__THEORY__BV__BITBLAST__PROOF_BITBLASTER_H
 #define CVC5__THEORY__BV__BITBLAST__PROOF_BITBLASTER_H
 
+#include "expr/term_context.h"
 #include "theory/bv/bitblast/simple_bitblaster.h"
 
 namespace cvc5 {
@@ -48,10 +49,6 @@ class BBProof
   TConvProofGenerator* getProofGenerator();
 
  private:
-  /** Map node kinds to proof rules. */
-  static std::unordered_map<Kind, PfRule, kind::KindHashFunction>
-      s_kindToPfRule;
-
   /** Return true if proofs are enabled. */
   bool isProofsEnabled() const;
 
@@ -59,6 +56,8 @@ class BBProof
   std::unique_ptr<BBSimple> d_bb;
   /** The associated proof node manager. */
   ProofNodeManager* d_pnm;
+  /** Term context for d_tcpg to not rewrite below BV leafs. */
+  std::unique_ptr<TermContext> d_tcontext;
   /** The associated term conversion proof generator. */
   std::unique_ptr<TConvProofGenerator> d_tcpg;
   /** Map bit-vector nodes to bit-blasted nodes. */
