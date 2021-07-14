@@ -33,6 +33,7 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/attempt_solution_simplex.h"
+#include "theory/arith/branch_and_bound.h"
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint.h"
 #include "theory/arith/delta_rational.h"
@@ -94,7 +95,8 @@ private:
   bool d_foundNl;
 
   BoundInfoMap d_rowTracking;
-
+  /** Branch and bound utility */
+  BranchAndBound& d_bab;
   // For proofs
   /** Manages the proof nodes of this theory. */
   ProofNodeManager* d_pnm;
@@ -424,9 +426,7 @@ private:
   TheoryArithPrivate(TheoryArith& containing,
                      context::Context* c,
                      context::UserContext* u,
-                     OutputChannel& out,
-                     Valuation valuation,
-                     const LogicInfo& logicInfo,
+                     BranchAndBound& bab,
                      ProofNodeManager* pnm);
   ~TheoryArithPrivate();
 
