@@ -32,7 +32,12 @@ namespace arith {
 class InferenceManager;
 
 /**
- * The arithmetic equality solver.
+ * The arithmetic equality solver. This class manages arithmetic equalities
+ * in the default way via an equality engine.
+ *
+ * Since arithmetic has multiple ways of propagating literals, it tracks
+ * the literals that it propagates and only explains the literals that
+ * originated from this class.
  */
 class EqualitySolver
 {
@@ -62,6 +67,7 @@ class EqualitySolver
   TrustNode explain(TNode lit);
 
  private:
+  /** Notification class from the equality engine */
   class EqualitySolverNotify : public eq::EqualityEngineNotify
   {
    public:
