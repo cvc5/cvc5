@@ -57,7 +57,7 @@ class NodeConverter
   /** Run the conversion for n during pre-order traversal. */
   virtual Node preConvert(Node n);
   /**
-   * Run the conversion for at post-order traversal, where notice n is a term
+   * Run the conversion for post-order traversal, where notice n is a term
    * of the form:
    *   (f i_1 ... i_m)
    * where i_1, ..., i_m are terms that have been returned by previous calls
@@ -65,12 +65,12 @@ class NodeConverter
    */
   virtual Node postConvert(Node n);
   /**
-   * Run the conversion, same as above, but for type nodes, which notice can
+   * Run the conversion, same as `preConvert`, but for type nodes, which notice can
    * be built from children similar to Node.
    */
   virtual TypeNode preConvertType(TypeNode n);
   /**
-   * Run the conversion, same as above, but for type nodes, which notice can
+   * Run the conversion, same as `postConvert`, but for type nodes, which notice can
    * be built from children similar to Node.
    */
   virtual TypeNode postConvertType(TypeNode n);
