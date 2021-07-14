@@ -28,8 +28,8 @@ namespace cvc5 {
 namespace theory {
 
 /**
- * The (distributed) equality engine manager. This encapsulates an architecture
- * in which all theories maintain their own copy of an equality engine.
+ * The (central) equality engine manager. This encapsulates an architecture
+ * in which all applicable theories use a single central equality engine.
  *
  * This class is not responsible for actually initializing equality engines in
  * theories (since this class does not have access to the internals of Theory).
@@ -38,9 +38,13 @@ namespace theory {
  * class during finishInit() to determine the equality engines to pass to each
  * theories based on getEeTheoryInfo.
  *
- * This class is also responsible for setting up the master equality engine,
- * which is used as a special communication channel to quantifiers engine (e.g.
- * for ensuring quantifiers E-matching is aware of terms from all theories).
+ * It also may allocate a "master" equality engine, which is intuitively the
+ * equality engine of the theory of quantifiers. If all theories use the
+ * central equality engine, then master equality engine is the same as the
+ * central equality engine.
+ *
+ * The theories that use central equality engine is determined by
+ * Theory::usesCentralEqualityEngine.
  */
 class EqEngineManagerCentral : public EqEngineManager
 {
@@ -54,9 +58,7 @@ class EqEngineManagerCentral : public EqEngineManager
    * per theories and connects them to a master equality engine.
    */
   void initializeTheories() override;
-  /**
-   * Notify this class that we are building the model.
-   */
+  /** Notify this class that we are building the model. */
   void notifyBuildingModel();
 
  private:
@@ -94,9 +96,8 @@ class EqEngineManagerCentral : public EqEngineManager
   std::unique_ptr<MasterNotifyClass> d_masterEENotify;
   /** The master equality engine. */
   eq::EqualityEngine* d_masterEqualityEngine;
+  /** The master equality engine, if we allocated it */
   std::unique_ptr<eq::EqualityEngine> d_masterEqualityEngineAlloc;
-
-  // ============================ central
 
   /**
    * Notify class for central equality engine. This class dispatches
