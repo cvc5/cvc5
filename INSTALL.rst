@@ -65,7 +65,7 @@ versions; more recent versions should be compatible.
 - `GNU C and C++ (gcc and g++) <https://gcc.gnu.org>`_
   or `Clang <https://clang.llvm.org>`_ (reasonably recent versions)
 - `CMake >= 3.9 <https://cmake.org>`_
-- `Python 3.x <https://www.python.org>`_
+- `Python >= 3.6 <https://www.python.org>`_
   + module `toml <https://pypi.org/project/toml/>`_
 - `GMP v6.1 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
 - `ANTLR 3.4 <http://www.antlr3.org/>`_
