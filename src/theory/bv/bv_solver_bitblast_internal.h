@@ -10,8 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * BitblastInternal bit-blast solver that sends bit-blast lemmas directly to
- * the internal MiniSat.
+ * Bit-blast solver that sends bit-blast lemmas directly to the internal
+ * MiniSat.
  */
 
 #include "cvc5_private.h"

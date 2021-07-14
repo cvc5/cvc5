@@ -10,7 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Simple bit-blast solver that sends bitblast lemmas directly to MiniSat.
+ * Bit-blast solver that sends bit-blast lemmas directly to the internal
+ * MiniSat.
  */
 
 #include "theory/bv/bv_solver_bitblast_internal.h"
@@ -87,13 +88,13 @@ void BVSolverBitblastInternal::addBBLemma(TNode fact)
 
   if (d_pnm == nullptr)
   {
-    d_im.lemma(lemma, InferenceId::BV_SIMPLE_BITBLAST_LEMMA);
+    d_im.lemma(lemma, InferenceId::BV_BITBLAST_INTERNAL_BITBLAST_LEMMA);
   }
   else
   {
     TrustNode tlem =
         TrustNode::mkTrustLemma(lemma, d_bitblaster->getProofGenerator());
-    d_im.trustedLemma(tlem, InferenceId::BV_SIMPLE_BITBLAST_LEMMA);
+    d_im.trustedLemma(tlem, InferenceId::BV_BITBLAST_INTERNAL_BITBLAST_LEMMA);
   }
 }
 
@@ -118,7 +119,7 @@ bool BVSolverBitblastInternal::preNotifyFact(
 
     if (d_pnm == nullptr)
     {
-      d_im.lemma(lemma, InferenceId::BV_SIMPLE_LEMMA);
+      d_im.lemma(lemma, InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA);
     }
     else
     {
@@ -126,7 +127,7 @@ bool BVSolverBitblastInternal::preNotifyFact(
           fact, n, PfRule::BV_EAGER_ATOM, {}, {fact});
       TrustNode tlem =
           TrustNode::mkTrustLemma(lemma, d_bitblaster->getProofGenerator());
-      d_im.trustedLemma(tlem, InferenceId::BV_SIMPLE_LEMMA);
+      d_im.trustedLemma(tlem, InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA);
     }
 
     std::unordered_set<Node> bv_atoms;
