@@ -58,10 +58,6 @@ class CommandExecutor
    */
   const Options* d_driverOptions;
 
-  /**
-   * Retrieve the current options from the smt engine.
-   */
-  const Options& options() const;
   api::Result d_result;
 
  public:

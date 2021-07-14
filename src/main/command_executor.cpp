@@ -50,11 +50,6 @@ void setNoLimitCPU() {
 #endif /* ! __WIN32__ */
 }
 
-const Options& CommandExecutor::options() const
-{
-  return d_solver->d_smtEngine->getOptions();
-}
-
 CommandExecutor::CommandExecutor(const Options& options)
     : d_solver(new api::Solver(&options)),
       d_symman(new SymbolManager(d_solver.get())),
@@ -71,7 +66,7 @@ CommandExecutor::~CommandExecutor()
 
 void CommandExecutor::printStatistics(std::ostream& out) const
 {
-  if (options().base.statistics)
+  if (d_solver->getOptions().base.statistics)
   {
     getSmtEngine()->printStatistics(out);
   }
@@ -79,7 +74,7 @@ void CommandExecutor::printStatistics(std::ostream& out) const
 
 void CommandExecutor::printStatisticsSafe(int fd) const
 {
-  if (options().base.statistics)
+  if (d_solver->getOptions().base.statistics)
   {
     getSmtEngine()->printStatisticsSafe(fd);
   }
@@ -87,7 +82,7 @@ void CommandExecutor::printStatisticsSafe(int fd) const
 
 bool CommandExecutor::doCommand(Command* cmd)
 {
-  if (options().base.parseOnly)
+  if (d_solver->getOptions().base.parseOnly)
   {
     return true;
   }
@@ -106,9 +101,9 @@ bool CommandExecutor::doCommand(Command* cmd)
 
     return status;
   } else {
-    if (options().base.verbosity > 2)
+    if (d_solver->getOptions().base.verbosity > 2)
     {
-      *options().base.out << "Invoking: " << *cmd << std::endl;
+      *d_solver->getOptions().base.out << "Invoking: " << *cmd << std::endl;
     }
 
     return doCommandSingleton(cmd);
@@ -117,7 +112,7 @@ bool CommandExecutor::doCommand(Command* cmd)
 
 void CommandExecutor::reset()
 {
-  printStatistics(*options().base.err);
+  printStatistics(*d_solver->getOptions().base.err);
   /* We have to keep options passed via CL on reset. These options are stored
    * in CommandExecutor::d_driverOptions (populated and created in the driver),
    * and CommandExecutor::d_driverOptions only contains *these* options since
@@ -131,10 +126,10 @@ void CommandExecutor::reset()
 bool CommandExecutor::doCommandSingleton(Command* cmd)
 {
   bool status = true;
-  if (options().base.verbosity >= -1)
+  if (d_solver->getOptions().base.verbosity >= -1)
   {
-    status =
-        solverInvoke(d_solver.get(), d_symman.get(), cmd, options().base.out);
+    status = solverInvoke(
+        d_solver.get(), d_symman.get(), cmd, d_solver->getOptions().base.out);
   }
   else
   {
@@ -157,9 +152,10 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     d_result = res = q->getResult();
   }
 
-  if ((cs != nullptr || q != nullptr) && options().base.statisticsEveryQuery)
+  if ((cs != nullptr || q != nullptr)
+      && d_solver->getOptions().base.statisticsEveryQuery)
   {
-    getSmtEngine()->printStatisticsDiff(*options().base.err);
+    getSmtEngine()->printStatisticsDiff(*d_solver->getOptions().base.err);
   }
 
   bool isResultUnsat = res.isUnsat() || res.isEntailed();
@@ -167,25 +163,26 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   // dump the model/proof/unsat core if option is set
   if (status) {
     std::vector<std::unique_ptr<Command> > getterCommands;
-    if (options().driver.dumpModels
+    if (d_solver->getOptions().driver.dumpModels
         && (res.isSat()
             || (res.isSatUnknown()
                 && res.getUnknownExplanation() == api::Result::INCOMPLETE)))
     {
       getterCommands.emplace_back(new GetModelCommand());
     }
-    if (options().driver.dumpProofs && isResultUnsat)
+    if (d_solver->getOptions().driver.dumpProofs && isResultUnsat)
     {
       getterCommands.emplace_back(new GetProofCommand());
     }
 
-    if (options().driver.dumpInstantiations
+    if (d_solver->getOptions().driver.dumpInstantiations
         && GetInstantiationsCommand::isEnabled(d_solver.get(), res))
     {
       getterCommands.emplace_back(new GetInstantiationsCommand());
     }
 
-    if ((options().driver.dumpUnsatCores || options().driver.dumpUnsatCoresFull)
+    if ((d_solver->getOptions().driver.dumpUnsatCores
+         || d_solver->getOptions().driver.dumpUnsatCoresFull)
         && isResultUnsat)
     {
       getterCommands.emplace_back(new GetUnsatCoreCommand());
@@ -193,7 +190,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 
     if (!getterCommands.empty()) {
       // set no time limit during dumping if applicable
-      if (options().driver.forceNoLimitCpuWhileDump)
+      if (d_solver->getOptions().driver.forceNoLimitCpuWhileDump)
       {
         setNoLimitCPU();
       }
@@ -233,17 +230,17 @@ bool solverInvoke(api::Solver* solver,
 }
 
 void CommandExecutor::flushOutputStreams() {
-  printStatistics(*options().base.err);
+  printStatistics(*d_solver->getOptions().base.err);
 
   // make sure out and err streams are flushed too
 
-  if (options().base.out != nullptr)
+  if (d_solver->getOptions().base.out != nullptr)
   {
-    *options().base.out << std::flush;
+    *d_solver->getOptions().base.out << std::flush;
   }
-  if (options().base.err != nullptr)
+  if (d_solver->getOptions().base.err != nullptr)
   {
-    *options().base.err << std::flush;
+    *d_solver->getOptions().base.err << std::flush;
   }
 }
 
