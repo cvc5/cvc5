@@ -26,14 +26,14 @@ using namespace std;
 namespace cvc5 {
 
 DecisionEngineOld::DecisionEngineOld(context::Context* sc,
-                                     context::UserContext* uc)
-    : d_cnfStream(nullptr),
-      d_satSolver(nullptr),
-      d_satContext(sc),
-      d_userContext(uc),
+                                     context::UserContext* uc,
+                                     ResourceManager* rm)
+    : DecisionEngine(sc, rm),
       d_result(sc, SAT_VALUE_UNKNOWN),
       d_engineState(0),
-      d_enabledITEStrategy(nullptr)
+      d_enabledITEStrategy(nullptr),
+      d_decisionStopOnly(options::decisionMode()
+                         == options::DecisionMode::STOPONLY_OLD)
 {
   Trace("decision") << "Creating decision engine" << std::endl;
   Assert(d_engineState == 0);
@@ -42,13 +42,13 @@ DecisionEngineOld::DecisionEngineOld(context::Context* sc,
   Trace("decision-init") << "DecisionEngineOld::init()" << std::endl;
   Trace("decision-init") << " * options->decisionMode: "
                          << options::decisionMode() << std::endl;
-  Trace("decision-init") << " * options->decisionStopOnly: "
-                         << options::decisionStopOnly() << std::endl;
+  Trace("decision-init") << " * decisionStopOnly: " << d_decisionStopOnly
+                         << std::endl;
 
   if (options::decisionMode() == options::DecisionMode::JUSTIFICATION)
   {
-    d_enabledITEStrategy.reset(new decision::JustificationHeuristic(
-        this, d_userContext, d_satContext));
+    d_enabledITEStrategy.reset(
+        new decision::JustificationHeuristic(this, uc, sc));
   }
 }
 
@@ -61,16 +61,18 @@ void DecisionEngineOld::shutdown()
   d_enabledITEStrategy.reset(nullptr);
 }
 
-SatLiteral DecisionEngineOld::getNext(bool& stopSearch)
+SatLiteral DecisionEngineOld::getNextInternal(bool& stopSearch)
 {
   Assert(d_cnfStream != nullptr)
       << "Forgot to set cnfStream for decision engine?";
   Assert(d_satSolver != nullptr)
       << "Forgot to set satSolver for decision engine?";
 
-  return d_enabledITEStrategy == nullptr
-             ? undefSatLiteral
-             : d_enabledITEStrategy->getNext(stopSearch);
+  SatLiteral ret = d_enabledITEStrategy == nullptr
+                       ? undefSatLiteral
+                       : d_enabledITEStrategy->getNext(stopSearch);
+  // if we are doing stop only, we don't return the literal
+  return d_decisionStopOnly ? undefSatLiteral : ret;
 }
 
 void DecisionEngineOld::addAssertion(TNode assertion)

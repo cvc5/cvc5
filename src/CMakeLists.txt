@@ -88,6 +88,8 @@ libcvc5_add_sources(
   preprocessing/passes/ite_removal.h
   preprocessing/passes/ite_simp.cpp
   preprocessing/passes/ite_simp.h
+  preprocessing/passes/learned_rewrite.cpp
+  preprocessing/passes/learned_rewrite.h
   preprocessing/passes/miplib_trick.cpp
   preprocessing/passes/miplib_trick.h
   preprocessing/passes/nl_ext_purify.cpp
@@ -356,6 +358,8 @@ libcvc5_add_sources(
   theory/arith/bound_counts.h
   theory/arith/bound_inference.cpp
   theory/arith/bound_inference.h
+  theory/arith/branch_and_bound.cpp
+  theory/arith/branch_and_bound.h
   theory/arith/callbacks.cpp
   theory/arith/callbacks.h
   theory/arith/congruence_manager.cpp
@@ -465,6 +469,8 @@ libcvc5_add_sources(
   theory/arith/operator_elim.h
   theory/arith/partial_model.cpp
   theory/arith/partial_model.h
+  theory/arith/pp_rewrite_eq.cpp
+  theory/arith/pp_rewrite_eq.h
   theory/arith/proof_checker.cpp
   theory/arith/proof_checker.h
   theory/arith/proof_macros.h
@@ -1206,6 +1212,9 @@ if(USE_GLPK)
 endif()
 if(USE_POLY)
   target_link_libraries(cvc5 PRIVATE Polyxx)
+endif()
+if(USE_COCOA)
+  target_link_libraries(cvc5 PRIVATE CoCoA)
 endif()
 
 target_link_libraries(cvc5 PRIVATE SymFPU)

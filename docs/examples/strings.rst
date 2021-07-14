@@ -6,3 +6,4 @@ Theory of Strings
     ../../examples/api/cpp/strings.cpp
     ../../examples/api/java/Strings.java
     ../../examples/api/python/strings.py
+    ../../examples/api/smtlib/strings.smt2
