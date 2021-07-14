@@ -32,3 +32,6 @@
         (union (singleton 2) (singleton 3))))
   )
 )
+
+(echo "A member: ")
+(get-value (x))

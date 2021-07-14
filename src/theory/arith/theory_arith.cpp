@@ -41,18 +41,20 @@ TheoryArith::TheoryArith(context::Context* c,
                          const LogicInfo& logicInfo,
                          ProofNodeManager* pnm)
     : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
-      d_internal(
-          new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pnm)),
       d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
           "theory::arith::ppRewriteTimer")),
-      d_ppPfGen(pnm, c, "Arith::ppRewrite"),
-      d_astate(*d_internal, c, u, valuation),
+      d_astate(c, u, valuation),
       d_im(*this, d_astate, pnm),
+      d_ppre(c, pnm),
+      d_bab(d_astate, d_im, d_ppre, pnm),
+      d_internal(new TheoryArithPrivate(*this, c, u, d_bab, pnm)),
       d_nonlinearExtension(nullptr),
       d_opElim(pnm, logicInfo),
       d_arithPreproc(d_astate, d_im, pnm, d_opElim),
       d_rewriter(d_opElim)
 {
+  // currently a cyclic dependency to TheoryArithPrivate
+  d_astate.setParent(d_internal);
   // indicate we are using the theory state object and inference manager
   d_theoryState = &d_astate;
   d_inferManager = &d_im;
@@ -114,7 +116,7 @@ TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 
   if (atom.getKind() == kind::EQUAL)
   {
-    return ppRewriteEq(atom);
+    return d_ppre.ppRewriteEq(atom);
   }
   Assert(Theory::theoryOf(atom) == THEORY_ARITH);
   // Eliminate operators. Notice we must do this here since other
@@ -124,30 +126,6 @@ TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   // call eliminate operators. In contrast to expandDefinitions, we eliminate
   // *all* extended arithmetic operators here, including total ones.
   return d_arithPreproc.eliminate(atom, lems, false);
-}
-
-TrustNode TheoryArith::ppRewriteEq(TNode atom)
-{
-  Assert(atom.getKind() == kind::EQUAL);
-  if (!options::arithRewriteEq())
-  {
-    return TrustNode::null();
-  }
-  Assert(atom[0].getType().isReal());
-  Node leq = NodeBuilder(kind::LEQ) << atom[0] << atom[1];
-  Node geq = NodeBuilder(kind::GEQ) << atom[0] << atom[1];
-  Node rewritten = Rewriter::rewrite(leq.andNode(geq));
-  Debug("arith::preprocess")
-      << "arith::preprocess() : returning " << rewritten << endl;
-  // don't need to rewrite terms since rewritten is not a non-standard op
-  if (proofsEnabled())
-  {
-    return d_ppPfGen.mkTrustedRewrite(
-        atom,
-        rewritten,
-        d_pnm->mkNode(PfRule::INT_TRUST, {}, {atom.eqNode(rewritten)}));
-  }
-  return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(
@@ -239,6 +217,40 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   // get the model from the linear solver
   std::map<Node, Node> arithModel;
   d_internal->collectModelValues(termSet, arithModel);
+  // Double check that the model from the linear solver respects integer types,
+  // if it does not, add a branch and bound lemma. This typically should never
+  // be necessary, but is needed in rare cases.
+  bool addedLemma = false;
+  bool badAssignment = false;
+  for (const std::pair<const Node, Node>& p : arithModel)
+  {
+    if (p.first.getType().isInteger() && !p.second.getType().isInteger())
+    {
+      Assert(false) << "TheoryArithPrivate generated a bad model value for "
+                       "integer variable "
+                    << p.first << " : " << p.second;
+      // must branch and bound
+      TrustNode lem =
+          d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());
+      if (d_im.trustedLemma(lem, InferenceId::ARITH_BB_LEMMA))
+      {
+        addedLemma = true;
+      }
+      badAssignment = true;
+    }
+  }
+  if (addedLemma)
+  {
+    // we had to add a branch and bound lemma since the linear solver assigned
+    // a non-integer value to an integer variable.
+    return false;
+  }
+  // this would imply that linear arithmetic's model failed to satisfy a branch
+  // and bound lemma
+  AlwaysAssert(!badAssignment)
+      << "Bad assignment from TheoryArithPrivate::collectModelValues, and no "
+         "branching lemma was sent";
+
   // if non-linear is enabled, intercept the model, which may repair its values
   if (d_nonlinearExtension != nullptr)
   {

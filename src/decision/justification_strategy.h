@@ -21,6 +21,7 @@
 #include "context/cdinsert_hashmap.h"
 #include "context/cdo.h"
 #include "decision/assertion_list.h"
+#include "decision/decision_engine.h"
 #include "decision/justify_info.h"
 #include "decision/justify_stack.h"
 #include "decision/justify_stats.h"
@@ -117,19 +118,17 @@ namespace decision {
  * definition, and Q alone would have sufficed to show the input formula
  * was satisfied.
  */
-class JustificationStrategy
+class JustificationStrategy : public DecisionEngine
 {
  public:
   /** Constructor */
   JustificationStrategy(context::Context* c,
                         context::UserContext* u,
-                        prop::SkolemDefManager* skdm);
-
-  /** Finish initialize */
-  void finishInit(prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
+                        prop::SkolemDefManager* skdm,
+                        ResourceManager* rm);
 
   /** Presolve, called at the beginning of each check-sat call */
-  void presolve();
+  void presolve() override;
 
   /**
    * Gets the next decision based on the current assertion to satisfy. This
@@ -140,7 +139,7 @@ class JustificationStrategy
    * @param stopSearch Set to true if we can stop the search
    * @return The next SAT literal to decide on.
    */
-  prop::SatLiteral getNext(bool& stopSearch);
+  prop::SatLiteral getNextInternal(bool& stopSearch) override;
 
   /**
    * Are we finished assigning values to literals?
@@ -148,24 +147,24 @@ class JustificationStrategy
    * @return true if and only if all relevant input assertions are already
    * propositionally satisfied by the current assignment.
    */
-  bool isDone();
+  bool isDone() override;
 
   /**
    * Notify this class that assertion is an (input) assertion, not corresponding
    * to a skolem definition.
    */
-  void addAssertion(TNode assertion);
+  void addAssertion(TNode assertion) override;
   /**
    * Notify this class that lem is the skolem definition for skolem, which is
    * a part of the current assertions.
    */
-  void addSkolemDefinition(TNode lem, TNode skolem);
+  void addSkolemDefinition(TNode lem, TNode skolem) override;
   /**
    * Notify this class that literal n has been asserted. This is triggered when
    * n is sent to TheoryEngine. This activates skolem definitions for skolems
    * k that occur in n.
    */
-  void notifyAsserted(TNode n);
+  void notifyAsserted(TNode n) override;
 
  private:
   /**
@@ -225,12 +224,6 @@ class JustificationStrategy
   static bool isTheoryLiteral(TNode n);
   /** Is n a theory atom? */
   static bool isTheoryAtom(TNode n);
-  /** Pointer to the SAT context */
-  context::Context* d_context;
-  /** Pointer to the CNF stream */
-  prop::CnfStream* d_cnfStream;
-  /** Pointer to the SAT solver */
-  prop::CDCLTSatSolverInterface* d_satSolver;
   /** Pointer to the skolem definition manager */
   prop::SkolemDefManager* d_skdm;
   /** The assertions, which are user-context dependent. */
@@ -252,6 +245,8 @@ class JustificationStrategy
   //------------------------------------ options
   /** using relevancy order */
   bool d_useRlvOrder;
+  /** using stop only */
+  bool d_decisionStopOnly;
   /** skolem mode */
   options::JutificationSkolemMode d_jhSkMode;
   /** skolem relevancy mode */

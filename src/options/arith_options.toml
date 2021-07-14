@@ -511,8 +511,8 @@ name   = "Arithmetic Theory"
   long       = "nl-rlv=MODE"
   type       = "NlRlvMode"
   default    = "NONE"
-  help       = "choose mode for using relevance of assertoins in non-linear arithmetic"
-  help_mode  = "Modes for using relevance of assertoins in non-linear arithmetic."
+  help       = "choose mode for using relevance of assertions in non-linear arithmetic"
+  help_mode  = "Modes for using relevance of assertions in non-linear arithmetic."
 [[option.mode.NONE]]
   name = "none"
   help = "Do not use relevance."
@@ -546,6 +546,39 @@ name   = "Arithmetic Theory"
   type       = "bool"
   default    = "false"
   help       = "whether to use the linear model as initial guess for the cylindrical algebraic decomposition solver"
+
+[[option]]
+  name       = "nlCadProjection"
+  category   = "expert"
+  long       = "nl-cad-proj=MODE"
+  type       = "NlCadProjectionMode"
+  default    = "MCCALLUM"
+  help       = "choose the CAD projection operator"
+  help_mode  = "Modes for the CAD projection operator in non-linear arithmetic."
+[[option.mode.MCCALLUM]]
+  name = "mccallum"
+  help = "McCallum's projection operator."
+[[option.mode.LAZARD]]
+  name = "lazard"
+  help = "Lazard's projection operator."
+[[option.mode.LAZARDMOD]]
+  name = "lazard-mod"
+  help = "A modification of Lazard's projection operator."
+
+[[option]]
+  name       = "nlCadLifting"
+  category   = "expert"
+  long       = "nl-cad-lift=MODE"
+  type       = "NlCadLiftingMode"
+  default    = "REGULAR"
+  help       = "choose the CAD lifting mode"
+  help_mode  = "Modes for the CAD lifting in non-linear arithmetic."
+[[option.mode.REGULAR]]
+  name = "regular"
+  help = "Regular lifting."
+[[option.mode.LAZARD]]
+  name = "lazard"
+  help = "Lazard's lifting scheme."
 
 [[option]]
   name       = "nlICP"

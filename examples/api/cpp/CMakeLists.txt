@@ -21,10 +21,11 @@ set(CVC5_EXAMPLES_API
   extract
   helloworld
   linear_arith
-  sets
+  quickstart
   sequences
+  sets
   strings
-  quickstart 
+  transcendentals
 )
 
 foreach(example ${CVC5_EXAMPLES_API})

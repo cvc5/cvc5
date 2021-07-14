@@ -17,6 +17,7 @@
 
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
+#include "options/outputc.h"
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -676,33 +677,27 @@ bool Instantiate::isProofEnabled() const { return d_pfInst != nullptr; }
 
 void Instantiate::notifyEndRound()
 {
-  bool debugInstTrace = Trace.isOn("inst-per-quant-round");
-  if (options::debugInst() || debugInstTrace)
+  // debug information
+  if (Trace.isOn("inst-per-quant-round"))
   {
-    Options& sopts = smt::currentSmtEngine()->getOptions();
-    std::ostream& out = *sopts.base.out;
-    // debug information
-    if (debugInstTrace)
+    for (std::pair<const Node, uint32_t>& i : d_instDebugTemp)
     {
-      for (std::pair<const Node, uint32_t>& i : d_instDebugTemp)
-      {
-        Trace("inst-per-quant-round")
-            << " * " << i.second << " for " << i.first << std::endl;
-      }
+      Trace("inst-per-quant-round")
+          << " * " << i.second << " for " << i.first << std::endl;
     }
-    if (options::debugInst())
+  }
+  if (Output.isOn(options::OutputTag::INST))
+  {
+    bool req = !options::printInstFull();
+    for (std::pair<const Node, uint32_t>& i : d_instDebugTemp)
     {
-      bool req = !options::printInstFull();
-      for (std::pair<const Node, uint32_t>& i : d_instDebugTemp)
+      Node name;
+      if (!d_qreg.getNameForQuant(i.first, name, req))
       {
-        Node name;
-        if (!d_qreg.getNameForQuant(i.first, name, req))
-        {
-          continue;
-        }
-        out << "(num-instantiations " << name << " " << i.second << ")"
-            << std::endl;
+        continue;
       }
+      Output(options::OutputTag::INST) << "(num-instantiations " << name << " "
+                                       << i.second << ")" << std::endl;
     }
   }
 }

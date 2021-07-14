@@ -234,14 +234,6 @@ InstFormatMode OptionsHandler::stringToInstFormatMode(const std::string& option,
   }
 }
 
-// decision/options_handlers.h
-void OptionsHandler::setDecisionModeStopOnly(const std::string& option,
-                                             const std::string& flag,
-                                             DecisionMode m)
-{
-  d_options->decision.decisionStopOnly = (m == DecisionMode::RELEVANCY);
-}
-
 void OptionsHandler::setProduceAssertions(const std::string& option,
                                           const std::string& flag,
                                           bool value)
@@ -510,6 +502,14 @@ void OptionsHandler::enableDebugTag(const std::string& option,
   }
   Debug.on(optarg);
   Trace.on(optarg);
+}
+
+void OptionsHandler::enableOutputTag(const std::string& option,
+                                     const std::string& flag,
+                                     const std::string& optarg)
+{
+  d_options->base.outputTagHolder.set(
+      static_cast<size_t>(stringToOutputTag(optarg)));
 }
 
 OutputLanguage OptionsHandler::stringToOutputLanguage(const std::string& option,
