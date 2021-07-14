@@ -915,6 +915,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/synth_conjecture.h
   theory/quantifiers/sygus/synth_engine.cpp
   theory/quantifiers/sygus/synth_engine.h
+  theory/quantifiers/sygus/synth_verify.cpp
+  theory/quantifiers/sygus/synth_verify.h
   theory/quantifiers/sygus/template_infer.cpp
   theory/quantifiers/sygus/template_infer.h
   theory/quantifiers/sygus/term_database_sygus.cpp
