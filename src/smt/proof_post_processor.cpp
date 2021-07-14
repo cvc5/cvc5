@@ -23,6 +23,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/bv/bitblast/proof_bitblaster.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "util/rational.h"
@@ -1079,6 +1080,16 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Debug("macro::arith") << "Expansion done. Proved: " << sumBounds
                           << std::endl;
     return sumBounds;
+  }
+  else if (id == PfRule::BV_BITBLAST)
+  {
+    bv::BBProof bb(nullptr, d_pnm, true);
+    Node eq = args[0];
+    Assert(eq.getKind() == EQUAL);
+    bb.bbAtom(eq[0]);
+    Node bbAtom = bb.getStoredBBAtom(eq[0]);
+    bb.getProofGenerator()->addProofTo(eq[0].eqNode(bbAtom), cdp);
+    return eq;
   }
 
   // TRUST, PREPROCESS, THEORY_LEMMA, THEORY_PREPROCESS?

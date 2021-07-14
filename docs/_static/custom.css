@@ -88,6 +88,11 @@ a:hover, a:focus {
   color: #ba2121;
 }
 
+/* Removes margin of code blocks within tabs */
+.sphinx-tabs-panel div[class^="highlight"] {
+  margin: 1px 0 0 0;
+}
+
 #c-api-class-hierarchy code {
   font-size: 100%;
   font-weight: normal;

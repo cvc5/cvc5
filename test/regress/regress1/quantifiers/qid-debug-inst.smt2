@@ -1,3 +1,4 @@
+; REQUIRES: no-competition
 ; COMMAND-LINE: -o inst --no-check-unsat-cores
 ; EXPECT: (num-instantiations myQuant1 1)
 ; EXPECT: (num-instantiations myQuant2 1)

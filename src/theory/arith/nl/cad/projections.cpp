@@ -77,7 +77,7 @@ void PolyVector::pushDownPolys(PolyVector& down, poly::Variable var)
   erase(it, end());
 }
 
-PolyVector projection_mccallum(const std::vector<Polynomial>& polys)
+PolyVector projectionMcCallum(const std::vector<Polynomial>& polys)
 {
   PolyVector res;
 
