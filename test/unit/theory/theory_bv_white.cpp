@@ -53,7 +53,7 @@ TEST_F(TestTheoryWhiteBv, bitblaster_core)
   d_smtEngine->finishInit();
   TheoryBV* tbv = dynamic_cast<TheoryBV*>(
       d_smtEngine->getTheoryEngine()->d_theoryTable[THEORY_BV]);
-  BVSolverLazy* bvsl = dynamic_cast<BVSolverLazy*>(tbv->d_internal.get());
+  BVSolverLayered* bvsl = dynamic_cast<BVSolverLazy*>(tbv->d_internal.get());
   std::unique_ptr<EagerBitblaster> bb(
       new EagerBitblaster(bvsl, d_smtEngine->getContext()));
 
