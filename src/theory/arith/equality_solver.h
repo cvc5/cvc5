@@ -57,7 +57,10 @@ class EqualitySolver
    */
   void finishInit();
   //--------------------------------- end initialization
-  /** Pre-notify fact, return true if processed. */
+  /**
+   * Pre-notify fact, return true if we are finished processed, false if
+   * we wish to assert the fact to the equality engine of this class.
+   */
   bool preNotifyFact(
       TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal);
   /**

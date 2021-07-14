@@ -60,8 +60,6 @@ bool EqualitySolver::preNotifyFact(
   }
   Trace("arith-eq-solver") << "EqualitySolver::preNotifyFact: " << fact
                            << std::endl;
-  // Trace("arith-eq-solver")
-  //    << "(in state " << d_astate.toString() << ")" << std::endl;
   // we will process
   return false;
 }
