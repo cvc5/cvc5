@@ -572,9 +572,9 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   // Record the solution, which may be falsified below. We require recording
   // here since the result of the satisfiability test may be unknown.
   recordSolution(candidate_values);
-  
+
   Result r = d_verify.verify(query, d_ce_sk_vars, d_ce_sk_var_mvs);
-  
+
   if (r.asSatisfiabilityResult().isSat() == Result::SAT)
   {
     // we have a counterexample
@@ -593,7 +593,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     return false;
   }
   // otherwise we are unsat, and we will process the solution below
-  
+
   // now mark that we have a solution
   d_hasSolution = true;
   if (options::sygusStream())

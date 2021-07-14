@@ -32,8 +32,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SynthVerify::SynthVerify(TermDbSygus* tds)
-    : d_tds(tds)
+SynthVerify::SynthVerify(TermDbSygus* tds) : d_tds(tds)
 {
   // determine the options to use for the verification subsolvers we spawn
   // we start with the options of the current SmtEngine
@@ -51,9 +50,11 @@ SynthVerify::SynthVerify(TermDbSygus* tds)
 
 SynthVerify::~SynthVerify() {}
 
-Result SynthVerify::verify(Node query, const std::vector<Node>& vars, std::vector<Node>& mvs)
+Result SynthVerify::verify(Node query,
+                           const std::vector<Node>& vars,
+                           std::vector<Node>& mvs)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   // simplify the lemma based on the term database sygus utility
   query = d_tds->rewriteNode(query);
   // eagerly unfold applications of evaluation function
@@ -96,8 +97,7 @@ Result SynthVerify::verify(Node query, const std::vector<Node>& vars, std::vecto
     }
   }
   Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
-  Result r =
-      checkWithSubsolver(query, vars, mvs, &d_subOptions);
+  Result r = checkWithSubsolver(query, vars, mvs, &d_subOptions);
   Trace("sygus-engine") << "  ...got " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::SAT)
   {
@@ -106,23 +106,20 @@ Result SynthVerify::verify(Node query, const std::vector<Node>& vars, std::vecto
       Trace("sygus-engine") << "  * Verification lemma failed for:\n   ";
       for (unsigned i = 0, size = vars.size(); i < size; i++)
       {
-        Trace("sygus-engine")
-            << vars[i] << " -> " << mvs[i] << " ";
+        Trace("sygus-engine") << vars[i] << " -> " << mvs[i] << " ";
       }
       Trace("sygus-engine") << std::endl;
     }
     if (Configuration::isAssertionBuild())
     {
       // the values for the query should be a complete model
-      Node squery = query.substitute(vars.begin(),
-                                      vars.end(),
-                                      mvs.begin(),
-                                      mvs.end());
+      Node squery =
+          query.substitute(vars.begin(), vars.end(), mvs.begin(), mvs.end());
       Trace("cegqi-debug") << "...squery : " << squery << std::endl;
       squery = Rewriter::rewrite(squery);
       Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
       Assert(options::sygusRecFun()
-              || (squery.isConst() && squery.getConst<bool>()));
+             || (squery.isConst() && squery.getConst<bool>()));
     }
   }
   return r;

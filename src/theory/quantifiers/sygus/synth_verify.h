@@ -39,14 +39,17 @@ class SynthVerify
   /**
    * Verification call, which takes into account specific aspects of the
    * synthesis conjecture, e.g. recursive function definitions.
-   * 
+   *
    * @param query The query corresponding to the negated body of the synthesis
    * conjecture
    * @param vars The skolem variables witnessing the counterexample
    * @param mvs If satisfiable, these contain the model value for vars
    * @return The result of whether query is satisfiable.
    */
-  Result verify(Node query, const std::vector<Node>& vars, std::vector<Node>& mvs);
+  Result verify(Node query,
+                const std::vector<Node>& vars,
+                std::vector<Node>& mvs);
+
  private:
   /** Pointer to the term database sygus */
   TermDbSygus* d_tds;
