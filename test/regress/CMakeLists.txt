@@ -829,6 +829,7 @@ set(regress_0_tests
   regress0/printer/tuples_and_records.cvc
   regress0/proofs/andy1.smt2
   regress0/proofs/alpha-equivalence.smt2
+  regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/open-pf-if-unordered-iff.smt2
   regress0/proofs/scope.smt2
