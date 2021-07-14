@@ -61,32 +61,39 @@ Result SynthVerify::verify(Node query, const std::vector<Node>& vars, std::vecto
 
   if (query.isConst())
   {
-    return Result(query.getConst<bool>() ? Result::SAT : Result::UNSAT);
-  }
-  // add recursive function definitions
-  FunDefEvaluator* feval = d_tds->getFunDefEvaluator();
-  const std::vector<Node>& fdefs = feval->getDefinitions();
-  if (!fdefs.empty())
-  {
-    // Get the relevant definitions based on the symbols in the query.
-    // Notice in some cases, this may have the effect of making the subcall
-    // involve no recursive function definitions at all, in which case the
-    // subcall to verification may be decidable, in which case the call
-    // below is guaranteed to generate a new counterexample point.
-    std::unordered_set<Node> syms;
-    expr::getSymbols(query, syms);
-    std::vector<Node> qconj;
-    qconj.push_back(query);
-    for (const Node& f : syms)
+    if (!query.getConst<bool>())
     {
-      Node q = feval->getDefinitionFor(f);
-      if (!q.isNull())
-      {
-        qconj.push_back(q);
-      }
+      return Result(Result::UNSAT);
     }
-    query = nm->mkAnd(qconj);
-    Trace("cegqi-debug") << "query is " << query << std::endl;
+    // sat, but we need to get arbtirary model values below
+  }
+  else
+  {
+    // if non-constant, we may need to add recursive function definitions
+    FunDefEvaluator* feval = d_tds->getFunDefEvaluator();
+    const std::vector<Node>& fdefs = feval->getDefinitions();
+    if (!fdefs.empty())
+    {
+      // Get the relevant definitions based on the symbols in the query.
+      // Notice in some cases, this may have the effect of making the subcall
+      // involve no recursive function definitions at all, in which case the
+      // subcall to verification may be decidable, in which case the call
+      // below is guaranteed to generate a new counterexample point.
+      std::unordered_set<Node> syms;
+      expr::getSymbols(query, syms);
+      std::vector<Node> qconj;
+      qconj.push_back(query);
+      for (const Node& f : syms)
+      {
+        Node q = feval->getDefinitionFor(f);
+        if (!q.isNull())
+        {
+          qconj.push_back(q);
+        }
+      }
+      query = nm->mkAnd(qconj);
+      Trace("cegqi-debug") << "query is " << query << std::endl;
+    }
   }
   Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
   Result r =
