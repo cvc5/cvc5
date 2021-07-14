@@ -25,10 +25,6 @@ NodeConverter::NodeConverter(bool forceIdem) : d_forceIdem(forceIdem) {}
 
 Node NodeConverter::convert(Node n)
 {
-  if (n.isNull())
-  {
-    return n;
-  }
   Trace("nconv-debug") << "NodeConverter::convert: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<Node, Node>::iterator it;
@@ -46,7 +42,8 @@ Node NodeConverter::convert(Node n)
       d_cache[cur] = Node::null();
       Assert(d_preCache.find(cur) == d_preCache.end());
       Node curp = preConvert(cur);
-      // if curp = cur, set null to avoid infinite loop
+      // If curp = cur, then we did not pre-rewrite. Hence, we should not
+      // revisit cur, and instead set curp to null.
       curp = curp == cur ? Node::null() : curp;
       d_preCache[cur] = curp;
       if (!curp.isNull())

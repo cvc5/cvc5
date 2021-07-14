@@ -31,11 +31,16 @@ namespace cvc5 {
  * calling the provided implementations of conversion methods (pre/postConvert
  * and pre/postConvertType) at pre-traversal and post-traversal.
  *
- * This class can be used as a generic method for converting terms/types.
+ * This class can be used as a generic method for converting terms/types, which
+ * is orthogonal to methods for traversing nodes.
  */
 class NodeConverter
 {
  public:
+   /**
+    * @param forceIdem If true, this assumes that terms returned by postConvert
+    * and postConvertType should not be converted again.
+    */
   NodeConverter(bool forceIdem = true);
   virtual ~NodeConverter() {}
   /**
@@ -54,7 +59,10 @@ class NodeConverter
   //------------------------- virtual interface
   /** Should we traverse n? */
   virtual bool shouldTraverse(Node n);
-  /** Run the conversion for n during pre-order traversal. */
+  /** 
+   * Run the conversion for n during pre-order traversal.
+   * Returning null is equivalent to saying the node should not be changed.
+   */
   virtual Node preConvert(Node n);
   /**
    * Run the conversion for post-order traversal, where notice n is a term
@@ -62,6 +70,8 @@ class NodeConverter
    *   (f i_1 ... i_m)
    * where i_1, ..., i_m are terms that have been returned by previous calls
    * to postConvert.
+   *
+   * Returning null is equivalent to saying the node should not be changed.
    */
   virtual Node postConvert(Node n);
   /**
