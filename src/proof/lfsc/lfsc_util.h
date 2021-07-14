@@ -22,6 +22,7 @@
 #include <map>
 
 #include "expr/node.h"
+#include "proof/proof_letify.h"
 
 namespace cvc5 {
 namespace proof {
