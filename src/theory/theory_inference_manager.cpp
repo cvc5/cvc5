@@ -404,7 +404,8 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
       Node e = expc[i];
       bool epol = e.getKind() != NOT;
       Node eatom = epol ? e : e[0];
-      Trace("infer-manager") << "...check " << eatom << " " << epol << std::endl;
+      Trace("infer-manager")
+          << "...check " << eatom << " " << epol << std::endl;
       if (eatom.getKind() == AND)
       {
         Assert(epol);
