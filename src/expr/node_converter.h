@@ -39,13 +39,13 @@ class NodeConverter
   NodeConverter(bool forceIdem = true);
   virtual ~NodeConverter() {}
   /**
-   * This converts node n based on the runConvert method that can be overriden
+   * This converts node n based on the preConvert/postConvert methods that can be overriden
    * by instances of this class.
    */
   Node convert(Node n);
 
   /**
-   * This converts type node n based on the runConvertType method that can be
+   * This converts type node n based on the preConvertType/postConvertType methods that can be
    * overriden by instances of this class.
    */
   TypeNode convertType(TypeNode tn);
