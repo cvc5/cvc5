@@ -37,21 +37,21 @@ namespace cvc5 {
 class NodeConverter
 {
  public:
-   /**
-    * @param forceIdem If true, this assumes that terms returned by postConvert
-    * and postConvertType should not be converted again.
-    */
+  /**
+   * @param forceIdem If true, this assumes that terms returned by postConvert
+   * and postConvertType should not be converted again.
+   */
   NodeConverter(bool forceIdem = true);
   virtual ~NodeConverter() {}
   /**
-   * This converts node n based on the preConvert/postConvert methods that can be overriden
-   * by instances of this class.
+   * This converts node n based on the preConvert/postConvert methods that can
+   * be overriden by instances of this class.
    */
   Node convert(Node n);
 
   /**
-   * This converts type node n based on the preConvertType/postConvertType methods that can be
-   * overriden by instances of this class.
+   * This converts type node n based on the preConvertType/postConvertType
+   * methods that can be overriden by instances of this class.
    */
   TypeNode convertType(TypeNode tn);
 
@@ -59,7 +59,7 @@ class NodeConverter
   //------------------------- virtual interface
   /** Should we traverse n? */
   virtual bool shouldTraverse(Node n);
-  /** 
+  /**
    * Run the conversion for n during pre-order traversal.
    * Returning null is equivalent to saying the node should not be changed.
    */
@@ -75,13 +75,13 @@ class NodeConverter
    */
   virtual Node postConvert(Node n);
   /**
-   * Run the conversion, same as `preConvert`, but for type nodes, which notice can
-   * be built from children similar to Node.
+   * Run the conversion, same as `preConvert`, but for type nodes, which notice
+   * can be built from children similar to Node.
    */
   virtual TypeNode preConvertType(TypeNode n);
   /**
-   * Run the conversion, same as `postConvert`, but for type nodes, which notice can
-   * be built from children similar to Node.
+   * Run the conversion, same as `postConvert`, but for type nodes, which notice
+   * can be built from children similar to Node.
    */
   virtual TypeNode postConvertType(TypeNode n);
   //------------------------- end virtual interface
