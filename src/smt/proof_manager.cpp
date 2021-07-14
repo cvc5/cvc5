@@ -79,6 +79,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
         d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
       }
     }
+    d_pfpp->setEliminateRule(PfRule::BV_BITBLAST);
   }
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -153,7 +154,8 @@ void PfManager::printProof(std::ostream& out,
 
   if (options::proofFormatMode() == options::ProofFormatMode::DOT)
   {
-    proof::DotPrinter::print(out, fp.get());
+    proof::DotPrinter dotPrinter;
+    dotPrinter.print(out, fp.get());
   }
   else
   {

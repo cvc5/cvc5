@@ -93,7 +93,7 @@ class NodeValue
     using value_type = T;
     using difference_type = std::ptrdiff_t;
     using pointer = T*;
-    using reference = T&;
+    using reference = T;
 
     iterator() : d_i(NULL) {}
     explicit iterator(const_nv_iterator i) : d_i(i) {}

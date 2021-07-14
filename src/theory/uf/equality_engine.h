@@ -43,6 +43,7 @@ namespace eq {
 class EqClassesIterator;
 class EqClassIterator;
 class EqProof;
+class ProofEqEngine;
 
 /**
  * Class for keeping an incremental congruence closure over a set of terms. It provides
@@ -61,6 +62,9 @@ class EqualityEngine : public context::ContextNotifyObj {
    * this one, or null if none.
    */
   EqualityEngine* d_masterEqualityEngine;
+
+  /** Proof equality engine */
+  ProofEqEngine* d_proofEqualityEngine;
 
  public:
   /**
@@ -93,6 +97,10 @@ class EqualityEngine : public context::ContextNotifyObj {
    * of all the terms and equalities from this engine.
    */
   void setMasterEqualityEngine(EqualityEngine* master);
+  /** Set the proof equality engine for this one. */
+  void setProofEqualityEngine(ProofEqEngine* pfee);
+  /** Get the proof equality engine */
+  ProofEqEngine* getProofEqualityEngine();
 
   /** Print the equivalence classes for debugging */
   std::string debugPrintEqc() const;
@@ -121,7 +129,7 @@ private:
   context::CDO<bool> d_done;
 
   /** The class to notify when a representative changes for a term */
-  EqualityEngineNotify& d_notify;
+  EqualityEngineNotify* d_notify;
 
   /** The map of kinds to be treated as function applications */
   KindMap d_congruenceKinds;

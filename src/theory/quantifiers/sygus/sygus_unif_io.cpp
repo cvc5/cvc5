@@ -952,7 +952,7 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
         Assert(d_examples_out[i].isConst());
         Trace("sygus-sui-cterm-debug")
             << "  " << results[i] << " <> " << d_examples_out[i];
-        Node cont = nm->mkNode(STRING_STRCTN, d_examples_out[i], results[i]);
+        Node cont = nm->mkNode(STRING_CONTAINS, d_examples_out[i], results[i]);
         Node contr = Rewriter::rewrite(cont);
         if (contr == d_false)
         {

@@ -26,7 +26,7 @@
 
 namespace cvc5 {
 
-class Exception : public std::exception
+class CVC5_EXPORT Exception : public std::exception
 {
  protected:
   std::string d_msg;

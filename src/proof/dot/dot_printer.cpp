@@ -17,6 +17,7 @@
 
 #include <sstream>
 
+#include "options/expr_options.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
@@ -24,6 +25,34 @@
 
 namespace cvc5 {
 namespace proof {
+
+DotPrinter::DotPrinter()
+    : d_lbind(options::defaultDagThresh() ? options::defaultDagThresh() + 1 : 0)
+{
+}
+
+DotPrinter::~DotPrinter() {}
+
+std::string DotPrinter::sanitizeStringDoubleQuotes(const std::string& s)
+{
+  std::string newS;
+  newS.reserve(s.size());
+  for (const char c : s)
+  {
+    switch (c)
+    {
+      case '\"': newS += "\\\\\\\""; break;
+      case '>': newS += "\\>"; break;
+      case '<': newS += "\\<"; break;
+      case '{': newS += "\\{"; break;
+      case '}': newS += "\\}"; break;
+      case '|': newS += "\\|"; break;
+      default: newS += c; break;
+    }
+  }
+
+  return newS;
+}
 
 std::string DotPrinter::sanitizeString(const std::string& s)
 {
@@ -46,8 +75,7 @@ std::string DotPrinter::sanitizeString(const std::string& s)
   return newS;
 }
 
-void DotPrinter::countSubproofs(
-    const ProofNode* pn, std::map<const ProofNode*, size_t>& subpfCounter)
+void DotPrinter::countSubproofs(const ProofNode* pn)
 {
   std::vector<const ProofNode*> visit;
   std::unordered_map<const ProofNode*, bool> visited;
@@ -78,9 +106,35 @@ void DotPrinter::countSubproofs(
           cur->getChildren();
       for (const std::shared_ptr<ProofNode>& c : children)
       {
-        counter += subpfCounter[c.get()];
+        counter += d_subpfCounter[c.get()];
       }
-      subpfCounter[cur] = counter;
+      d_subpfCounter[cur] = counter;
+    }
+  } while (!visit.empty());
+}
+
+void DotPrinter::letifyResults(const ProofNode* pn)
+{
+  std::vector<const ProofNode*> visit;
+  std::unordered_set<const ProofNode*> visited;
+  std::unordered_set<const ProofNode*>::iterator it;
+  const ProofNode* cur;
+  visit.push_back(pn);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      d_lbind.process(cur->getResult());
+      visited.insert(cur);
+      const std::vector<std::shared_ptr<ProofNode>>& children =
+          cur->getChildren();
+      for (const std::shared_ptr<ProofNode>& c : children)
+      {
+        visit.push_back(c.get());
+      }
     }
   } while (!visit.empty());
 }
@@ -88,24 +142,51 @@ void DotPrinter::countSubproofs(
 void DotPrinter::print(std::ostream& out, const ProofNode* pn)
 {
   uint64_t ruleID = 0;
-  std::map<const ProofNode*, size_t> subpfCounter;
-  countSubproofs(pn, subpfCounter);
+  countSubproofs(pn);
+  letifyResults(pn);
 
   // The dot attribute rankdir="BT" sets the direction of the graph layout,
   // placing the root node at the top. The "node [shape..." attribute sets the
   // shape of all nodes to record.
   out << "digraph proof {\n\trankdir=\"BT\";\n\tnode [shape=record];\n";
-  DotPrinter::printInternal(out, pn, ruleID, 0, false, subpfCounter);
+  // print let map
+  std::vector<Node> letList;
+  d_lbind.letify(letList);
+  if (!letList.empty())
+  {
+    out << "\tcomment=\"{\"letMap\" : {";
+    bool first = true;
+    for (TNode n : letList)
+    {
+      size_t id = d_lbind.getId(n);
+      Assert(id != 0);
+      if (!first)
+      {
+        out << ", ";
+      }
+      else
+      {
+        first = false;
+      }
+      out << "\"let" << id << "\" : \"";
+      std::ostringstream nStr;
+      nStr << d_lbind.convert(n, "let", false);
+      std::string astring = nStr.str();
+      // we double the scaping of quotes because "simple scape" is ambiguous
+      // with the scape of the delimiter of the value in the key-value map
+      out << sanitizeStringDoubleQuotes(astring) << "\"";
+    }
+    out << "}}\"\n";
+  }
+  DotPrinter::printInternal(out, pn, ruleID, 0, false);
   out << "}\n";
 }
 
-void DotPrinter::printInternal(
-    std::ostream& out,
-    const ProofNode* pn,
-    uint64_t& ruleID,
-    uint64_t scopeCounter,
-    bool inPropositionalView,
-    const std::map<const ProofNode*, size_t>& subpfCounter)
+void DotPrinter::printInternal(std::ostream& out,
+                               const ProofNode* pn,
+                               uint64_t& ruleID,
+                               uint64_t scopeCounter,
+                               bool inPropositionalView)
 {
   uint64_t currentRuleID = ruleID;
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
@@ -113,7 +194,7 @@ void DotPrinter::printInternal(
 
   out << "\t" << currentRuleID << " [ label = \"{";
 
-  resultStr << pn->getResult();
+  resultStr << d_lbind.convert(pn->getResult(), "let");
   std::string astring = resultStr.str();
   out << sanitizeString(astring);
 
@@ -164,7 +245,8 @@ void DotPrinter::printInternal(
   classes << " \"";
   out << classes.str() << colors.str();
   // add number of subchildren
-  std::map<const ProofNode*, size_t>::const_iterator it = subpfCounter.find(pn);
+  std::map<const ProofNode*, size_t>::const_iterator it =
+      d_subpfCounter.find(pn);
   out << ", comment = \"\{\"subProofQty\":" << it->second << "}\"";
   out << " ];\n";
 
@@ -172,8 +254,7 @@ void DotPrinter::printInternal(
   {
     ++ruleID;
     out << "\t" << ruleID << " -> " << currentRuleID << ";\n";
-    printInternal(
-        out, c.get(), ruleID, scopeCounter, inPropositionalView, subpfCounter);
+    printInternal(out, c.get(), ruleID, scopeCounter, inPropositionalView);
   }
 }
 
@@ -197,7 +278,7 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
     // if two arguments, ignore first and print second
     if (args.size() == 2)
     {
-      currentArguments << args[1];
+      currentArguments << d_lbind.convert(args[1], "let");
     }
     else
     {
@@ -221,10 +302,10 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
   }
   else
   {
-    currentArguments << args[0];
+    currentArguments << d_lbind.convert(args[0], "let");
     for (size_t i = 1, size = args.size(); i < size; i++)
     {
-      currentArguments << ", " << args[i];
+      currentArguments << ", " << d_lbind.convert(args[i], "let");
     }
   }
   currentArguments << " ]";

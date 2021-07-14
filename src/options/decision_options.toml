@@ -8,7 +8,6 @@ name   = "Decision Heuristics"
   long       = "decision=MODE"
   type       = "DecisionMode"
   default    = "INTERNAL"
-  predicates = ["setDecisionModeStopOnly"]
   help       = "choose decision mode, see --decision=help"
   help_mode  = "Decision modes."
 [[option.mode.INTERNAL]]
@@ -17,17 +16,15 @@ name   = "Decision Heuristics"
 [[option.mode.JUSTIFICATION]]
   name = "justification"
   help = "An ATGP-inspired justification heuristic."
+[[option.mode.STOPONLY]]
+  name = "stoponly"
+  help = "Use the justification heuristic only to stop early, not for decisions."
 [[option.mode.JUSTIFICATION_OLD]]
   name = "justification-old"
   help = "Older implementation of an ATGP-inspired justification heuristic."
-[[option.mode.RELEVANCY]]
-  name = "justification-stoponly"
-  help = "Use the justification heuristic only to stop early, not for decisions."
-
-[[option]]
-  name       = "decisionStopOnly"
-  category   = "undocumented"
-  type       = "bool"
+[[option.mode.STOPONLY_OLD]]
+  name = "stoponly-old"
+  help = "Use the old implementation of justification heuristic only to stop early, not for decisions."
 
 [[option]]
   name       = "decisionThreshold"
@@ -92,7 +89,7 @@ name   = "Decision Heuristics"
   category   = "expert"
   long       = "jh-rlv-order"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "maintain activity-based ordering for decision justification heuristic"
 
 [[option]]

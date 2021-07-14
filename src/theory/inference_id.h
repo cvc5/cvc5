@@ -41,6 +41,8 @@ enum class InferenceId
   // ---------------------------------- core
   // a conflict when two constants merge in the equality engine (of any theory)
   EQ_CONSTANT_MERGE,
+  // a split from theory combination
+  COMBINATION_SPLIT,
   // ---------------------------------- arith theory
   //-------------------- linear core
   // black box conflicts. It's magic.
@@ -133,6 +135,8 @@ enum class InferenceId
   ARITH_NL_POW2_VALUE_REFINE,
   // monotonicity refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_MONOTONE_REFINE,
+  // trivial refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_TRIVIAL_CASE_REFINE,
   //-------------------- nonlinear cad solver
   // conflict / infeasible subset obtained from cad
   ARITH_NL_CAD_CONFLICT,
