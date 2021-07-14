@@ -56,7 +56,9 @@ Instantiate::Instantiate(QuantifiersState& qs,
       d_pnm(pnm),
       d_insts(qs.getUserContext()),
       d_c_inst_match_trie_dom(qs.getUserContext()),
-      d_pfInst(pnm ? new CDProof(pnm, qs.getUserContext(), "Instantiate::pfInst") : nullptr)
+      d_pfInst(
+          pnm ? new CDProof(pnm, qs.getUserContext(), "Instantiate::pfInst")
+              : nullptr)
 {
 }
 
