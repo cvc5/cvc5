@@ -1,3 +1,4 @@
+; COMMAND-LINE: --bv-solver=simple
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-const __ (_ BitVec 3))
