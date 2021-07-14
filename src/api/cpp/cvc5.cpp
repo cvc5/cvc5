@@ -4742,7 +4742,7 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats)
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Solver::Solver(Options* opts)
+Solver::Solver(const Options* opts)
 {
   d_nodeMgr.reset(new NodeManager());
   d_originalOptions.reset(new Options());
