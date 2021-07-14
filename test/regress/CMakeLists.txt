@@ -831,7 +831,9 @@ set(regress_0_tests
   regress0/proofs/alpha-equivalence.smt2
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
+  regress0/proofs/open-pf-datatypes.smt2
   regress0/proofs/open-pf-if-unordered-iff.smt2
+  regress0/proofs/open-pf-rederivation.smt2
   regress0/proofs/scope.smt2
   regress0/proofs/trust-subs-eq-open.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
