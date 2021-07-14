@@ -23,6 +23,7 @@
 
 #include "theory/ee_manager.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/quantifiers/master_eq_notify.h"
 
 namespace cvc5 {
 namespace theory {
@@ -45,6 +46,10 @@ namespace theory {
  *
  * The theories that use central equality engine is determined by
  * Theory::usesCentralEqualityEngine.
+ *
+ * The main idea behind this class is to use a notification class on the
+ * central equality engine which dispatches *multiple* notifications to the
+ * theories that use the central equality engine.
  */
 class EqEngineManagerCentral : public EqEngineManager
 {
@@ -62,43 +67,6 @@ class EqEngineManagerCentral : public EqEngineManager
   void notifyBuildingModel();
 
  private:
-  /** notify class for master equality engine */
-  class MasterNotifyClass : public theory::eq::EqualityEngineNotify
-  {
-   public:
-    MasterNotifyClass(QuantifiersEngine* qe) : d_quantEngine(qe) {}
-    /**
-     * Called when a new equivalence class is created in the master equality
-     * engine.
-     */
-    void eqNotifyNewClass(TNode t) override;
-
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
-    {
-      return true;
-    }
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override
-    {
-      return true;
-    }
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
-    void eqNotifyMerge(TNode t1, TNode t2) override {}
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
-
-   private:
-    /** Pointer to quantifiers engine */
-    QuantifiersEngine* d_quantEngine;
-  };
-  /** The master equality engine notify class */
-  std::unique_ptr<MasterNotifyClass> d_masterEENotify;
-  /** The master equality engine. */
-  eq::EqualityEngine* d_masterEqualityEngine;
-  /** The master equality engine, if we allocated it */
-  std::unique_ptr<eq::EqualityEngine> d_masterEqualityEngineAlloc;
-
   /**
    * Notify class for central equality engine. This class dispatches
    * notifications from the central equality engine to the appropriate
@@ -138,6 +106,12 @@ class EqEngineManagerCentral : public EqEngineManager
                                    bool value);
   /** Notification when constants are merged in central equality engine */
   void eqNotifyConstantTermMerge(TNode t1, TNode t2);
+  /** The master equality engine notify class */
+  std::unique_ptr<quantifiers::MasterNotifyClass> d_masterEENotify;
+  /** The master equality engine. */
+  eq::EqualityEngine* d_masterEqualityEngine;
+  /** The master equality engine, if we allocated it */
+  std::unique_ptr<eq::EqualityEngine> d_masterEqualityEngineAlloc;
   /** The central equality engine notify class */
   CentralNotifyClass d_centralEENotify;
   /** The central equality engine. */
@@ -148,15 +122,8 @@ class EqEngineManagerCentral : public EqEngineManager
    * A table of from theory IDs to notify classes.
    */
   eq::EqualityEngineNotify* d_theoryNotify[theory::THEORY_LAST];
-  /**
-   * The state objects of each of the theories that use the central
-   * equality engine.
-   */
-  std::vector<Theory*> d_centralThs;
   /** Whether we are building the model */
   context::CDO<bool> d_buildingModel;
-  /** set in conflict */
-  void notifyInConflict();
 };
 
 }  // namespace theory

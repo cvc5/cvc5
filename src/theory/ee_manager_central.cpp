@@ -108,7 +108,7 @@ void EqEngineManagerCentral::initializeTheories()
     Assert(d_masterEqualityEngine == nullptr);
     QuantifiersEngine* qe = d_te.getQuantifiersEngine();
     Assert(qe != nullptr);
-    d_masterEENotify.reset(new MasterNotifyClass(qe));
+    d_masterEENotify.reset(new quantifiers::MasterNotifyClass(qe));
     if (!masterEqToCentral)
     {
       d_masterEqualityEngineAlloc.reset(
@@ -173,8 +173,6 @@ void EqEngineManagerCentral::initializeTheories()
       {
         d_centralEENotify.d_disequalNotify.push_back(notify);
       }
-      // remember the list of central theories
-      d_centralThs.push_back(t);
       continue;
     }
     Trace("ee-central") << "...uses new" << std::endl;
@@ -194,14 +192,6 @@ void EqEngineManagerCentral::initializeTheories()
     d_centralEqualityEngine.setMasterEqualityEngine(d_masterEqualityEngine);
   }
 }
-
-void EqEngineManagerCentral::MasterNotifyClass::eqNotifyNewClass(TNode t)
-{
-  // adds t to the quantifiers term database
-  d_quantEngine->eqNotifyNewClass(t);
-}
-
-//================================================ central
 
 void EqEngineManagerCentral::notifyBuildingModel() {}
 
@@ -285,12 +275,7 @@ bool EqEngineManagerCentral::eqNotifyTriggerPredicate(TNode predicate,
   // always propagate with the shared solver
   Trace("eem-central") << "...propagate " << predicate << ", " << value
                        << " with shared solver" << std::endl;
-  bool ok = d_sharedSolver.propagateLit(predicate, value);
-  if (!ok)
-  {
-    notifyInConflict();
-  }
-  return ok;
+  return d_sharedSolver.propagateLit(predicate, value);
 }
 
 bool EqEngineManagerCentral::eqNotifyTriggerTermEquality(TheoryId tag,
@@ -302,7 +287,6 @@ bool EqEngineManagerCentral::eqNotifyTriggerTermEquality(TheoryId tag,
   bool ok = d_sharedSolver.propagateLit(a.eqNode(b), value);
   if (!ok)
   {
-    notifyInConflict();
     return false;
   }
   if (tag == THEORY_UF)
@@ -321,15 +305,6 @@ void EqEngineManagerCentral::eqNotifyConstantTermMerge(TNode t1, TNode t2)
                        << conflict << std::endl;
   d_sharedSolver.sendConflict(TrustNode::mkTrustConflict(conflict));
   return;
-}
-
-void EqEngineManagerCentral::notifyInConflict()
-{
-  // notify the states we are in conflict
-  for (Theory* t : d_centralThs)
-  {
-    t->notifyInConflict();
-  }
 }
 
 }  // namespace theory
