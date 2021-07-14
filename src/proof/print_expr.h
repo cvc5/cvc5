@@ -26,7 +26,10 @@
 namespace cvc5 {
 namespace proof {
 
-/** A term or a proof */
+/** 
+ * A term, type or a proof. This class is used for printing combinations of
+ * proofs terms and types.
+ */
 class PExpr
 {
  public:
@@ -35,17 +38,24 @@ class PExpr
   PExpr(const ProofNode* pn) : d_node(), d_pnode(pn), d_typeNode() {}
   PExpr(TypeNode tn) : d_node(), d_pnode(nullptr), d_typeNode(tn) {}
   ~PExpr() {}
-  /** The node */
+  /** The node, if this p-exression is a node */
   Node d_node;
-  /** The proof node */
+  /** The proof node, if this p-expression is a proof */
   const ProofNode* d_pnode;
-  /** The type node */
+  /** The type node, if this p-expression is a type */
   TypeNode d_typeNode;
 };
 
+/**
+ * A stream of p-expressions
+ */
 class PExprStream
 {
  public:
+   /** 
+    * Takes a reference to a stream (vector of p-expressions), and the
+    * representation true/false (tt/ff).
+    */
   PExprStream(std::vector<PExpr>& stream,
               Node tt = Node::null(),
               Node ff = Node::null());
