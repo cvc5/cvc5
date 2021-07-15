@@ -10,22 +10,23 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Bitblaster for simple BV solver.
- *
+ * Bitblaster used to bitblast to Boolean Nodes.
  */
-#include "theory/bv/bitblast/simple_bitblaster.h"
+#include "theory/bv/bitblast/node_bitblaster.h"
 
+#include "options/bv_options.h"
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
-#include "options/bv_options.h"
 
 namespace cvc5 {
 namespace theory {
 namespace bv {
 
-BBSimple::BBSimple(TheoryState* s) : TBitblaster<Node>(), d_state(s) {}
+NodeBitblaster::NodeBitblaster(TheoryState* s) : TBitblaster<Node>(), d_state(s)
+{
+}
 
-void BBSimple::bbAtom(TNode node)
+void NodeBitblaster::bbAtom(TNode node)
 {
   node = node.getKind() == kind::NOT ? node[0] : node;
 
@@ -44,17 +45,17 @@ void BBSimple::bbAtom(TNode node)
   storeBBAtom(node, Rewriter::rewrite(atom_bb));
 }
 
-void BBSimple::storeBBAtom(TNode atom, Node atom_bb)
+void NodeBitblaster::storeBBAtom(TNode atom, Node atom_bb)
 {
   d_bbAtoms.emplace(atom, atom_bb);
 }
 
-void BBSimple::storeBBTerm(TNode node, const Bits& bits)
+void NodeBitblaster::storeBBTerm(TNode node, const Bits& bits)
 {
   d_termCache.emplace(node, bits);
 }
 
-bool BBSimple::hasBBAtom(TNode lit) const
+bool NodeBitblaster::hasBBAtom(TNode lit) const
 {
   if (lit.getKind() == kind::NOT)
   {
@@ -63,7 +64,7 @@ bool BBSimple::hasBBAtom(TNode lit) const
   return d_bbAtoms.find(lit) != d_bbAtoms.end();
 }
 
-void BBSimple::makeVariable(TNode var, Bits& bits)
+void NodeBitblaster::makeVariable(TNode var, Bits& bits)
 {
   Assert(bits.size() == 0);
   for (unsigned i = 0; i < utils::getSize(var); ++i)
@@ -73,9 +74,9 @@ void BBSimple::makeVariable(TNode var, Bits& bits)
   d_variables.insert(var);
 }
 
-Node BBSimple::getBBAtom(TNode node) const { return node; }
+Node NodeBitblaster::getBBAtom(TNode node) const { return node; }
 
-void BBSimple::bbTerm(TNode node, Bits& bits)
+void NodeBitblaster::bbTerm(TNode node, Bits& bits)
 {
   Assert(node.getType().isBitVector());
   if (hasBBTerm(node))
@@ -88,7 +89,7 @@ void BBSimple::bbTerm(TNode node, Bits& bits)
   storeBBTerm(node, bits);
 }
 
-Node BBSimple::getStoredBBAtom(TNode node)
+Node NodeBitblaster::getStoredBBAtom(TNode node)
 {
   bool negated = false;
   if (node.getKind() == kind::NOT)
@@ -102,7 +103,7 @@ Node BBSimple::getStoredBBAtom(TNode node)
   return negated ? atom_bb.negate() : atom_bb;
 }
 
-Node BBSimple::getModelFromSatSolver(TNode a, bool fullModel)
+Node NodeBitblaster::getModelFromSatSolver(TNode a, bool fullModel)
 {
   if (!hasBBTerm(a))
   {
@@ -130,7 +131,7 @@ Node BBSimple::getModelFromSatSolver(TNode a, bool fullModel)
   return utils::mkConst(bits.size(), value);
 }
 
-void BBSimple::computeRelevantTerms(std::set<Node>& termSet)
+void NodeBitblaster::computeRelevantTerms(std::set<Node>& termSet)
 {
   Assert(options::bitblastMode() == options::BitblastMode::EAGER);
   for (const auto& var : d_variables)
@@ -139,8 +140,8 @@ void BBSimple::computeRelevantTerms(std::set<Node>& termSet)
   }
 }
 
-bool BBSimple::collectModelValues(TheoryModel* m,
-                                  const std::set<Node>& relevantTerms)
+bool NodeBitblaster::collectModelValues(TheoryModel* m,
+                                        const std::set<Node>& relevantTerms)
 {
   for (const auto& var : relevantTerms)
   {
@@ -159,7 +160,7 @@ bool BBSimple::collectModelValues(TheoryModel* m,
   return true;
 }
 
-bool BBSimple::isVariable(TNode node)
+bool NodeBitblaster::isVariable(TNode node)
 {
   return d_variables.find(node) != d_variables.end();
 }
