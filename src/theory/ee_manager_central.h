@@ -122,8 +122,6 @@ class EqEngineManagerCentral : public EqEngineManager
    * A table of from theory IDs to notify classes.
    */
   eq::EqualityEngineNotify* d_theoryNotify[theory::THEORY_LAST];
-  /** Whether we are building the model */
-  context::CDO<bool> d_buildingModel;
 };
 
 }  // namespace theory

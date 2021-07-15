@@ -31,8 +31,7 @@ EqEngineManagerCentral::EqEngineManagerCentral(TheoryEngine& te,
       d_masterEqualityEngine(nullptr),
       d_centralEENotify(*this),
       d_centralEqualityEngine(
-          d_centralEENotify, te.getSatContext(), "central::ee", true),
-      d_buildingModel(te.getSatContext(), false)
+          d_centralEENotify, te.getSatContext(), "central::ee", true)
 {
   for (TheoryId theoryId = theory::THEORY_FIRST;
        theoryId != theory::THEORY_LAST;
@@ -83,6 +82,7 @@ void EqEngineManagerCentral::initializeTheories()
       // theory not active, skip
       continue;
     }
+    Assert (logicInfo.isTheoryEnabled(theoryId));
     if (!t->needsEqualityEngine(esiMap[theoryId]))
     {
       // theory said it doesn't need an equality engine, skip
@@ -235,11 +235,6 @@ void EqEngineManagerCentral::CentralNotifyClass::eqNotifyNewClass(TNode t)
   {
     notify->eqNotifyNewClass(t);
   }
-  // also always forward to quantifiers
-  if (d_quantEngine != nullptr)
-  {
-    d_quantEngine->eqNotifyNewClass(t);
-  }
 }
 
 void EqEngineManagerCentral::CentralNotifyClass::eqNotifyMerge(TNode t1,
@@ -269,11 +264,6 @@ void EqEngineManagerCentral::CentralNotifyClass::eqNotifyDisequal(TNode t1,
 bool EqEngineManagerCentral::eqNotifyTriggerPredicate(TNode predicate,
                                                       bool value)
 {
-  // if we're building model, ignore this propagation
-  if (d_buildingModel.get())
-  {
-    return true;
-  }
   // always propagate with the shared solver
   Trace("eem-central") << "...propagate " << predicate << ", " << value
                        << " with shared solver" << std::endl;
@@ -291,6 +281,7 @@ bool EqEngineManagerCentral::eqNotifyTriggerTermEquality(TheoryId tag,
   {
     return false;
   }
+  // no need to propagate shared term equalities to the UF theory
   if (tag == THEORY_UF)
   {
     return true;
