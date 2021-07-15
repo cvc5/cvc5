@@ -19,7 +19,7 @@
 #define CVC5__THEORY__BV__BV_EAGER_SOLVER_H
 
 #include "expr/node.h"
-#include "theory/bv/bv_solver_lazy.h"
+#include "theory/bv/bv_solver_layered.h"
 #include "theory/theory_model.h"
 
 namespace cvc5 {
@@ -34,7 +34,7 @@ class AigBitblaster;
  */
 class EagerBitblastSolver {
  public:
-  EagerBitblastSolver(context::Context* c, theory::bv::BVSolverLazy* bv);
+  EagerBitblastSolver(context::Context* c, theory::bv::BVSolverLayered* bv);
   ~EagerBitblastSolver();
   bool checkSat();
   void assertFormula(TNode formula);
@@ -54,7 +54,7 @@ class EagerBitblastSolver {
   std::unique_ptr<AigBitblaster> d_aigBitblaster;
   bool d_useAig;
 
-  BVSolverLazy* d_bv;
+  BVSolverLayered* d_bv;
 };  // class EagerBitblastSolver
 
 }  // namespace bv

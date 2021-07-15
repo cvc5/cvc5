@@ -24,7 +24,7 @@ namespace theory {
 namespace bv {
 
 BBProof::BBProof(TheoryState* state, ProofNodeManager* pnm, bool fineGrained)
-    : d_bb(new BBSimple(state)),
+    : d_bb(new NodeBitblaster(state)),
       d_pnm(pnm),
       d_tcontext(new TheoryLeafTermContext(theory::THEORY_BV)),
       d_tcpg(pnm ? new TConvProofGenerator(
