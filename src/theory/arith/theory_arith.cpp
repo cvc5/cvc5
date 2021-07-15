@@ -107,7 +107,7 @@ void TheoryArith::finishInit()
   }
   if (d_eqSolver != nullptr)
   {
-    return d_eqSolver->finishInit();
+    d_eqSolver->finishInit();
   }
   // finish initialize internally
   d_internal->finishInit();
