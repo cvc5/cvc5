@@ -21,7 +21,6 @@
 #include "expr/node.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
-#include "theory/bv/bitblast/simple_bitblaster.h"
 
 namespace cvc5 {
 namespace theory {
