@@ -576,10 +576,10 @@ libcvc5_add_sources(
   theory/bv/bitblast/eager_bitblaster.h
   theory/bv/bitblast/lazy_bitblaster.cpp
   theory/bv/bitblast/lazy_bitblaster.h
+  theory/bv/bitblast/node_bitblaster.cpp
+  theory/bv/bitblast/node_bitblaster.h
   theory/bv/bitblast/proof_bitblaster.cpp
   theory/bv/bitblast/proof_bitblaster.h
-  theory/bv/bitblast/simple_bitblaster.cpp
-  theory/bv/bitblast/simple_bitblaster.h
   theory/bv/bv_eager_solver.cpp
   theory/bv/bv_eager_solver.h
   theory/bv/bv_inequality_graph.cpp
