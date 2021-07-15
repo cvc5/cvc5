@@ -69,9 +69,9 @@ void EqEngineManagerCentral::initializeTheories()
   // whether to use master equality engine as central
   bool masterEqToCentral = true;
   // setup info for each theory
-  std::map< TheoryId, EeSetupInfo > esiMap;
+  std::map<TheoryId, EeSetupInfo> esiMap;
   // set of theories that need equality engines
-  std::unordered_set< TheoryId > eeTheories;
+  std::unordered_set<TheoryId> eeTheories;
   const LogicInfo& logicInfo = d_te.getLogicInfo();
   for (TheoryId theoryId = theory::THEORY_FIRST;
        theoryId != theory::THEORY_LAST;
@@ -93,9 +93,11 @@ void EqEngineManagerCentral::initializeTheories()
     // if the logic has a theory that does not use central equality engine,
     // we can't use the central equality engine for the master equality
     // engine
-    if (theoryId!=THEORY_QUANTIFIERS && logicInfo.isTheoryEnabled(theoryId) && !Theory::usesCentralEqualityEngine(theoryId))
+    if (theoryId != THEORY_QUANTIFIERS && logicInfo.isTheoryEnabled(theoryId)
+        && !Theory::usesCentralEqualityEngine(theoryId))
     {
-      Trace("ee-central") << "Must use separate master equality engine due to " << theoryId << std::endl;
+      Trace("ee-central") << "Must use separate master equality engine due to "
+                          << theoryId << std::endl;
       masterEqToCentral = false;
     }
   }
@@ -111,16 +113,15 @@ void EqEngineManagerCentral::initializeTheories()
     d_masterEENotify.reset(new quantifiers::MasterNotifyClass(qe));
     if (!masterEqToCentral)
     {
-      d_masterEqualityEngineAlloc.reset(
-          new eq::EqualityEngine(*d_masterEENotify.get(),
-                                 d_te.getSatContext(),
-                                 "master::ee",
-                                 false));
+      d_masterEqualityEngineAlloc.reset(new eq::EqualityEngine(
+          *d_masterEENotify.get(), d_te.getSatContext(), "master::ee", false));
       d_masterEqualityEngine = d_masterEqualityEngineAlloc.get();
     }
     else
     {
-      Trace("ee-central") << "Master equality engine is the central equality engine" << std::endl;
+      Trace("ee-central")
+          << "Master equality engine is the central equality engine"
+          << std::endl;
       d_masterEqualityEngine = &d_centralEqualityEngine;
       d_centralEENotify.d_newClassNotify.push_back(d_masterEENotify.get());
     }
@@ -135,14 +136,15 @@ void EqEngineManagerCentral::initializeTheories()
                         << std::endl;
     // always allocate an object in d_einfo here
     EeTheoryInfo& eet = d_einfo[theoryId];
-    if (eeTheories.find(theoryId)==eeTheories.end())
+    if (eeTheories.find(theoryId) == eeTheories.end())
     {
-      Trace("ee-central") << "..." << theoryId << " does not need ee" << std::endl;
+      Trace("ee-central") << "..." << theoryId << " does not need ee"
+                          << std::endl;
       continue;
     }
     Theory* t = d_te.theoryOf(theoryId);
-    Assert (t!=nullptr);
-    Assert (esiMap.find(theoryId) != esiMap.end());
+    Assert(t != nullptr);
+    Assert(esiMap.find(theoryId) != esiMap.end());
     EeSetupInfo& esi = esiMap[theoryId];
     if (esi.d_useMaster)
     {

@@ -22,8 +22,8 @@
 #include <memory>
 
 #include "theory/ee_manager.h"
-#include "theory/uf/equality_engine.h"
 #include "theory/quantifiers/master_eq_notify.h"
+#include "theory/uf/equality_engine.h"
 
 namespace cvc5 {
 namespace theory {
