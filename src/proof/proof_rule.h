@@ -858,7 +858,13 @@ enum class PfRule : uint32_t
   //                (forall ((y1 T1) ... (yn Tn)) F*sigma))
   // sigma maps x1 ... xn to y1 ... yn.
   ALPHA_EQUIV,
-
+  // ======== (Trusted) quantifiers preprocess
+  // Children: ?
+  // Arguments: (F)
+  // ---------------------------------------------------------------
+  // Conclusion: F
+  // where F is an equality of the form t = QuantifiersRewriter::preprocess(t)
+  QUANTIFIERS_PREPROCESS,
   //================================================= String rules
   //======================== Core solver
   // ======== Concat eq

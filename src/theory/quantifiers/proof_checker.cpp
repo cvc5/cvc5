@@ -33,6 +33,8 @@ void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::SKOLEMIZE, this);
   pc->registerChecker(PfRule::INSTANTIATE, this);
   pc->registerChecker(PfRule::ALPHA_EQUIV, this);
+  // trusted rules
+  pc->registerTrustedChecker(PfRule::QUANTIFIERS_PREPROCESS, this, 3);
 }
 
 Node QuantifiersProofRuleChecker::checkInternal(
@@ -118,7 +120,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
         body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     return inst;
   }
-  if (id == PfRule::ALPHA_EQUIV)
+  else if (id == PfRule::ALPHA_EQUIV)
   {
     Assert(children.empty());
     if (args[0].getKind() != kind::FORALL
@@ -133,6 +135,12 @@ Node QuantifiersProofRuleChecker::checkInternal(
         vars.begin(), vars.end(), newVars.begin(), newVars.end());
     return args[0].eqNode(nm->mkNode(
         kind::FORALL, nm->mkNode(kind::BOUND_VAR_LIST, newVars), renamedBody));
+  }
+  else if (id == PfRule::QUANTIFIERS_PREPROCESS)
+  {
+    Assert(!args.empty());
+    Assert(args[0].getType().isBoolean());
+    return args[0];
   }
 
   // no rule
