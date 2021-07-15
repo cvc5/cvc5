@@ -220,9 +220,9 @@ name   = "Bitvector Theory"
 [[option.mode.LAZY]]
   name = "lazy"
   help = "Enables the lazy BV solver infrastructure."
-[[option.mode.SIMPLE]]
-  name = "simple"
-  help = "Enables simple bitblasting solver with proof support."
+[[option.mode.BITBLAST_INTERNAL]]
+  name = "bitblast-internal"
+  help = "Enables bitblasting to internal SAT solver with proof support."
 
 [[option]]
   name       = "bvAssertInput"

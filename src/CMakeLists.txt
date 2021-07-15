@@ -589,10 +589,10 @@ libcvc5_add_sources(
   theory/bv/bv_solver.h
   theory/bv/bv_solver_bitblast.cpp
   theory/bv/bv_solver_bitblast.h
+  theory/bv/bv_solver_bitblast_internal.cpp
+  theory/bv/bv_solver_bitblast_internal.h
   theory/bv/bv_solver_lazy.cpp
   theory/bv/bv_solver_lazy.h
-  theory/bv/bv_solver_simple.cpp
-  theory/bv/bv_solver_simple.h
   theory/bv/bv_subtheory.h
   theory/bv/bv_subtheory_algebraic.cpp
   theory/bv/bv_subtheory_algebraic.h
@@ -915,6 +915,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/synth_conjecture.h
   theory/quantifiers/sygus/synth_engine.cpp
   theory/quantifiers/sygus/synth_engine.h
+  theory/quantifiers/sygus/synth_verify.cpp
+  theory/quantifiers/sygus/synth_verify.h
   theory/quantifiers/sygus/template_infer.cpp
   theory/quantifiers/sygus/template_infer.h
   theory/quantifiers/sygus/term_database_sygus.cpp
