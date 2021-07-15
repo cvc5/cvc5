@@ -21,7 +21,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/bv_solver_bitblast.h"
 #include "theory/bv/bv_solver_bitblast_internal.h"
-#include "theory/bv/bv_solver_lazy.h"
+#include "theory/bv/bv_solver_layered.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ee_setup_info.h"
 #include "theory/trust_substitutions.h"
@@ -51,8 +51,8 @@ TheoryBV::TheoryBV(context::Context* c,
       d_internal.reset(new BVSolverBitblast(&d_state, d_im, pnm));
       break;
 
-    case options::BVSolver::LAZY:
-      d_internal.reset(new BVSolverLazy(*this, c, u, pnm, name));
+    case options::BVSolver::LAYERED:
+      d_internal.reset(new BVSolverLayered(*this, c, u, pnm, name));
       break;
 
     default:

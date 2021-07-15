@@ -34,9 +34,9 @@ class BVSolver;
 
 class TheoryBV : public Theory
 {
-  /* BVSolverLazy accesses methods from theory in a way that is deprecated and
-   * will be removed in the future. For now we allow direct access. */
-  friend class BVSolverLazy;
+  /* BVSolverLayered accesses methods from theory in a way that is deprecated
+   * and will be removed in the future. For now we allow direct access. */
+  friend class BVSolverLayered;
 
  public:
   TheoryBV(context::Context* c,
