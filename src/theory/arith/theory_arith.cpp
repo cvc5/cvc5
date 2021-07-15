@@ -20,6 +20,7 @@
 #include "proof/proof_rule.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_rewriter.h"
+#include "theory/arith/equality_solver.h"
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/theory_arith_private.h"
@@ -47,6 +48,7 @@ TheoryArith::TheoryArith(context::Context* c,
       d_im(*this, d_astate, pnm),
       d_ppre(c, pnm),
       d_bab(d_astate, d_im, d_ppre, pnm),
+      d_eqSolver(nullptr),
       d_internal(new TheoryArithPrivate(*this, c, u, d_bab, pnm)),
       d_nonlinearExtension(nullptr),
       d_opElim(pnm, logicInfo),
@@ -58,6 +60,11 @@ TheoryArith::TheoryArith(context::Context* c,
   // indicate we are using the theory state object and inference manager
   d_theoryState = &d_astate;
   d_inferManager = &d_im;
+
+  if (options::arithEqSolver())
+  {
+    d_eqSolver.reset(new EqualitySolver(d_astate, d_im));
+  }
 }
 
 TheoryArith::~TheoryArith(){
@@ -73,6 +80,10 @@ ProofRuleChecker* TheoryArith::getProofChecker()
 
 bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 {
+  if (d_eqSolver != nullptr)
+  {
+    return d_eqSolver->needsEqualityEngine(esi);
+  }
   return d_internal->needsEqualityEngine(esi);
 }
 void TheoryArith::finishInit()
@@ -93,6 +104,10 @@ void TheoryArith::finishInit()
   {
     d_nonlinearExtension.reset(
         new nl::NonlinearExtension(*this, d_astate, d_equalityEngine, d_pnm));
+  }
+  if (d_eqSolver != nullptr)
+  {
+    return d_eqSolver->finishInit();
   }
   // finish initialize internally
   d_internal->finishInit();
@@ -184,10 +199,15 @@ bool TheoryArith::preNotifyFact(
   Trace("arith-check") << "TheoryArith::preNotifyFact: " << fact
                        << ", isPrereg=" << isPrereg
                        << ", isInternal=" << isInternal << std::endl;
-  d_internal->preNotifyFact(atom, pol, fact);
   // We do not assert to the equality engine of arithmetic in the standard way,
   // hence we return "true" to indicate we are finished with this fact.
-  return true;
+  bool ret = true;
+  if (d_eqSolver != nullptr)
+  {
+    ret = d_eqSolver->preNotifyFact(atom, pol, fact, isPrereg, isInternal);
+  }
+  d_internal->preNotifyFact(atom, pol, fact);
+  return ret;
 }
 
 bool TheoryArith::needsCheckLastEffort() {
@@ -198,7 +218,19 @@ bool TheoryArith::needsCheckLastEffort() {
   return false;
 }
 
-TrustNode TheoryArith::explain(TNode n) { return d_internal->explain(n); }
+TrustNode TheoryArith::explain(TNode n)
+{
+  if (d_eqSolver != nullptr)
+  {
+    // if the equality solver has an explanation for it, use it
+    TrustNode texp = d_eqSolver->explain(n);
+    if (!texp.isNull())
+    {
+      return texp;
+    }
+  }
+  return d_internal->explain(n);
+}
 
 void TheoryArith::propagate(Effort e) {
   d_internal->propagate(e);
