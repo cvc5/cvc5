@@ -78,7 +78,7 @@ class NotifyResetAssertions : public context::ContextNotifyObj
 class BBRegistrar : public prop::Registrar
 {
  public:
-  BBRegistrar(BBSimple* bb) : d_bitblaster(bb) {}
+  BBRegistrar(NodeBitblaster* bb) : d_bitblaster(bb) {}
 
   void preRegister(Node n) override
   {
@@ -102,7 +102,7 @@ class BBRegistrar : public prop::Registrar
 
  private:
   /** The bitblaster used. */
-  BBSimple* d_bitblaster;
+  NodeBitblaster* d_bitblaster;
 
   /** Stores bit-vector atoms encounterd on preRegister(). */
   std::unordered_set<TNode> d_registeredAtoms;
@@ -112,7 +112,7 @@ BVSolverBitblast::BVSolverBitblast(TheoryState* s,
                                    TheoryInferenceManager& inferMgr,
                                    ProofNodeManager* pnm)
     : BVSolver(*s, inferMgr),
-      d_bitblaster(new BBSimple(s)),
+      d_bitblaster(new NodeBitblaster(s)),
       d_bbRegistrar(new BBRegistrar(d_bitblaster.get())),
       d_nullContext(new context::Context()),
       d_bbFacts(s->getSatContext()),
