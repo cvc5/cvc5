@@ -1,4 +1,4 @@
-; COMMAND-LINE: --decision=justification
+; COMMAND-LINE: --decision=justification --no-produce-proofs
 ; EXPECT: sat
 (set-logic QF_NRA)
 (set-info :status sat)
