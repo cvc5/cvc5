@@ -58,7 +58,7 @@ class EqualitySolver
   void finishInit();
   //--------------------------------- end initialization
   /**
-   * Pre-notify fact, return true if we are finished processed, false if
+   * Pre-notify fact, return true if we are finished processing, false if
    * we wish to assert the fact to the equality engine of this class.
    */
   bool preNotifyFact(
