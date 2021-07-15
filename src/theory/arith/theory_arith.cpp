@@ -109,7 +109,7 @@ void TheoryArith::finishInit()
   {
     d_eqSolver->finishInit();
   }
-  // finish initialize internally
+  // finish initialize in the old linear solver
   d_internal->finishInit();
 }
 
@@ -204,8 +204,11 @@ bool TheoryArith::preNotifyFact(
   bool ret = true;
   if (d_eqSolver != nullptr)
   {
+    // the equality solver may indicate ret = false, after which the assertion
+    // will be asserted to the equality engine in the default way.
     ret = d_eqSolver->preNotifyFact(atom, pol, fact, isPrereg, isInternal);
   }
+  // we also always also notify the internal solver
   d_internal->preNotifyFact(atom, pol, fact);
   return ret;
 }
