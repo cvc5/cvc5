@@ -25,13 +25,17 @@ namespace cvc5 {
 namespace expr {
 
 /**
- * Generalization of types
+ * Generalization of types. This class is a simple callback for giving
+ * identifiers to variables that may be a more fine-grained way of classifying
+ * the variable than its type. An example usage of type classes are for
+ * distinguishing "list variables" for rewrite rule reconstruction.
  */
 class TypeClassCallback
 {
  public:
   TypeClassCallback() {}
   virtual ~TypeClassCallback() {}
+  /** Return the type class for variable v */
   virtual uint32_t getTypeClass(TNode v) = 0;
 };
 
@@ -45,6 +49,12 @@ class TypeClassCallback
 class TermCanonize
 {
  public:
+  /**
+   * @param tcc The type class callback. This class will canonize variables in
+   * a way that disinguishes variables that are given different type class
+   * identifiers. Otherwise, this class will assume all variables of the
+   * same type have the same type class.
+   */
   TermCanonize(TypeClassCallback* tcc = nullptr);
   ~TermCanonize() {}
 
