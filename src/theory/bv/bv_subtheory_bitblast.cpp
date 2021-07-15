@@ -22,7 +22,7 @@
 #include "theory/bv/abstraction.h"
 #include "theory/bv/bitblast/lazy_bitblaster.h"
 #include "theory/bv/bv_quick_check.h"
-#include "theory/bv/bv_solver_lazy.h"
+#include "theory/bv/bv_solver_layered.h"
 #include "theory/bv/theory_bv_utils.h"
 
 using namespace std;
@@ -32,7 +32,7 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
-BitblastSolver::BitblastSolver(context::Context* c, BVSolverLazy* bv)
+BitblastSolver::BitblastSolver(context::Context* c, BVSolverLayered* bv)
     : SubtheorySolver(c, bv),
       d_bitblaster(new TLazyBitblaster(c, bv, "theory::bv::lazy")),
       d_bitblastQueue(c),
