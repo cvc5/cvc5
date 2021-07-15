@@ -80,10 +80,14 @@ ProofRuleChecker* TheoryArith::getProofChecker()
 
 bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 {
+  // if the equality solver is enabled, then it is responsible for setting
+  // up the equality engine
   if (d_eqSolver != nullptr)
   {
     return d_eqSolver->needsEqualityEngine(esi);
   }
+  // otherwise, the linear arithmetic solver is responsible for setting up
+  // the equality engine
   return d_internal->needsEqualityEngine(esi);
 }
 void TheoryArith::finishInit()
