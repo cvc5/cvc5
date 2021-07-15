@@ -20,8 +20,8 @@
 #include "proof/proof_checker.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/bv_solver_bitblast.h"
+#include "theory/bv/bv_solver_bitblast_internal.h"
 #include "theory/bv/bv_solver_layered.h"
-#include "theory/bv/bv_solver_simple.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ee_setup_info.h"
 #include "theory/trust_substitutions.h"
@@ -56,8 +56,8 @@ TheoryBV::TheoryBV(context::Context* c,
       break;
 
     default:
-      AlwaysAssert(options::bvSolver() == options::BVSolver::SIMPLE);
-      d_internal.reset(new BVSolverSimple(&d_state, d_im, pnm));
+      AlwaysAssert(options::bvSolver() == options::BVSolver::BITBLAST_INTERNAL);
+      d_internal.reset(new BVSolverBitblastInternal(&d_state, d_im, pnm));
   }
   d_theoryState = &d_state;
   d_inferManager = &d_im;
@@ -69,9 +69,10 @@ TheoryRewriter* TheoryBV::getTheoryRewriter() { return &d_rewriter; }
 
 ProofRuleChecker* TheoryBV::getProofChecker()
 {
-  if (options::bvSolver() == options::BVSolver::SIMPLE)
+  if (options::bvSolver() == options::BVSolver::BITBLAST_INTERNAL)
   {
-    return static_cast<BVSolverSimple*>(d_internal.get())->getProofChecker();
+    return static_cast<BVSolverBitblastInternal*>(d_internal.get())
+        ->getProofChecker();
   }
   return nullptr;
 }

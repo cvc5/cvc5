@@ -173,10 +173,10 @@ enum class InferenceId
 
   // ---------------------------------- bitvector theory
   BV_BITBLAST_CONFLICT,
+  BV_BITBLAST_INTERNAL_EAGER_LEMMA,
+  BV_BITBLAST_INTERNAL_BITBLAST_LEMMA,
   BV_LAYERED_CONFLICT,
   BV_LAYERED_LEMMA,
-  BV_SIMPLE_LEMMA,
-  BV_SIMPLE_BITBLAST_LEMMA,
   BV_EXTF_LEMMA,
   BV_EXTF_COLLAPSE,
   // ---------------------------------- end bitvector theory

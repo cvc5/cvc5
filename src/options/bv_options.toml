@@ -217,12 +217,12 @@ name   = "Bitvector Theory"
 [[option.mode.BITBLAST]]
   name = "bitblast"
   help = "Enables bitblasting solver."
+[[option.mode.BITBLAST_INTERNAL]]
+  name = "bitblast-internal"
+  help = "Enables bitblasting to internal SAT solver with proof support."
 [[option.mode.LAYERED]]
   name = "layered"
   help = "Enables the layered BV solver."
-[[option.mode.SIMPLE]]
-  name = "simple"
-  help = "Enables simple bitblasting solver with proof support."
 
 [[option]]
   name       = "bvAssertInput"
