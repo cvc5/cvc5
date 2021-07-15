@@ -162,6 +162,16 @@ void SatProofManager::endResChain(Node conclusion,
                                   const std::set<SatLiteral>& conclusionLits)
 {
   Trace("sat-proof") << ", " << conclusion << "\n";
+  if (d_resChains.hasGenerator(conclusion))
+  {
+    Trace("sat-proof")
+        << "SatProofManager::endResChain: skip repeated proof of " << conclusion
+        << "\n";
+    // clearing
+    d_resLinks.clear();
+    d_redundantLits.clear();
+    return;
+  }
   // first process redundant literals
   std::set<SatLiteral> visited;
   unsigned pos = d_resLinks.size();
@@ -240,11 +250,6 @@ void SatProofManager::endResChain(Node conclusion,
       return;
     }
   }
-  if (Trace.isOn("sat-proof") && d_resChains.hasGenerator(conclusion))
-  {
-    Trace("sat-proof") << "SatProofManager::endResChain: replacing proof of "
-                       << conclusion << "\n";
-  }
   // since the conclusion can be both reordered and without duplicates and the
   // SAT solver does not record this information, we use a MACRO_RESOLUTION
   // step, which bypasses these. Note that we could generate a chain resolution
@@ -252,7 +257,7 @@ void SatProofManager::endResChain(Node conclusion,
   // post-processing.
   ProofStep ps(PfRule::MACRO_RESOLUTION_TRUST, children, args);
   // note that we must tell the proof generator to overwrite if repeated
-  d_resChainPg.addStep(conclusion, ps, CDPOverwrite::ALWAYS);
+  d_resChainPg.addStep(conclusion, ps);
   // the premises of this resolution may not have been justified yet, so we do
   // not pass assumptions to check closedness
   d_resChains.addLazyStep(conclusion, &d_resChainPg);

@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A bit-blaster wrapper around BBSimple for proof logging.
+ * A bit-blaster wrapper around NodeBitblaster for proof logging.
  */
 #include "cvc5_private.h"
 
@@ -18,7 +18,7 @@
 #define CVC5__THEORY__BV__BITBLAST__PROOF_BITBLASTER_H
 
 #include "expr/term_context.h"
-#include "theory/bv/bitblast/simple_bitblaster.h"
+#include "theory/bv/bitblast/node_bitblaster.h"
 
 namespace cvc5 {
 
@@ -53,7 +53,7 @@ class BBProof
   bool isProofsEnabled() const;
 
   /** The associated simple bit-blaster. */
-  std::unique_ptr<BBSimple> d_bb;
+  std::unique_ptr<NodeBitblaster> d_bb;
   /** The associated proof node manager. */
   ProofNodeManager* d_pnm;
   /** Term context for d_tcpg to not rewrite below BV leafs. */
