@@ -19,7 +19,7 @@
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/bv/bv_solver_lazy.h"
+#include "theory/bv/bv_solver_layered.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ext_theory.h"
 #include "theory/theory_model.h"
@@ -32,7 +32,7 @@ using namespace cvc5::theory;
 using namespace cvc5::theory::bv;
 using namespace cvc5::theory::bv::utils;
 
-CoreSolver::CoreSolver(context::Context* c, BVSolverLazy* bv)
+CoreSolver::CoreSolver(context::Context* c, BVSolverLayered* bv)
     : SubtheorySolver(c, bv),
       d_notify(*this),
       d_isComplete(c, true),
