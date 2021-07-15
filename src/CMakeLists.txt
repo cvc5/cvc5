@@ -401,6 +401,8 @@ libcvc5_add_sources(
   theory/arith/dio_solver.h
   theory/arith/dual_simplex.cpp
   theory/arith/dual_simplex.h
+  theory/arith/equality_solver.cpp
+  theory/arith/equality_solver.h
   theory/arith/error_set.cpp
   theory/arith/error_set.h
   theory/arith/fc_simplex.cpp
@@ -823,6 +825,8 @@ libcvc5_add_sources(
   theory/quantifiers/instantiation_list.h
   theory/quantifiers/lazy_trie.cpp
   theory/quantifiers/lazy_trie.h
+  theory/quantifiers/master_eq_notify.cpp
+  theory/quantifiers/master_eq_notify.h
   theory/quantifiers/proof_checker.cpp
   theory/quantifiers/proof_checker.h
   theory/quantifiers/quant_bound_inference.cpp
