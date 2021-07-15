@@ -237,6 +237,8 @@ enum class PfRule : uint32_t
   THEORY_PREPROCESS,
   // where F was added as a new assertion by theory preprocessing.
   THEORY_PREPROCESS_LEMMA,
+  // where F is an equality of the form t = QuantifiersRewriter::preprocess(t)
+  THEORY_QUANTIFIERS_PREPROCESS,
   // where F is an equality of the form t = t' where t was replaced by t'
   // based on theory expand definitions.
   THEORY_EXPAND_DEF,

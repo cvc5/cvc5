@@ -41,6 +41,7 @@ const char* toString(PfRule id)
     case PfRule::PREPROCESS_LEMMA: return "PREPROCESS_LEMMA";
     case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     case PfRule::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
+    case PfRule::THEORY_QUANTIFIERS_PREPROCESS: return "THEORY_QUANTIFIERS_PREPROCESS";
     case PfRule::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
     case PfRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
     case PfRule::TRUST_REWRITE: return "TRUST_REWRITE";
