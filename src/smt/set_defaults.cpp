@@ -406,7 +406,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   if (options::bvAssertInput() && options::produceProofs())
   {
-    Notice() << "Disabling bv-assert-input it is incompatible with proofs."
+    Notice() << "Disabling bv-assert-input since it is incompatible with proofs."
              << std::endl;
     opts.bv.bvAssertInput = false;
   }
