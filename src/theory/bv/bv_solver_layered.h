@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Lazy bit-vector solver.
+ * Layered bit-vector solver.
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__BV__BV_SOLVER_LAZY_H
-#define CVC5__THEORY__BV__BV_SOLVER_LAZY_H
+#ifndef CVC5__THEORY__BV__BV_SOLVER_LAYERED_H
+#define CVC5__THEORY__BV__BV_SOLVER_LAYERED_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -40,7 +40,7 @@ class BitblastSolver;
 class EagerBitblastSolver;
 class AbstractionModule;
 
-class BVSolverLazy : public BVSolver
+class BVSolverLayered : public BVSolver
 {
   /** Back reference to TheoryBV */
   TheoryBV& d_bv;
@@ -57,13 +57,13 @@ class BVSolverLazy : public BVSolver
       d_subtheoryMap;
 
  public:
-  BVSolverLazy(TheoryBV& bv,
-               context::Context* c,
-               context::UserContext* u,
-               ProofNodeManager* pnm = nullptr,
-               std::string name = "");
+  BVSolverLayered(TheoryBV& bv,
+                  context::Context* c,
+                  context::UserContext* u,
+                  ProofNodeManager* pnm = nullptr,
+                  std::string name = "");
 
-  ~BVSolverLazy();
+  ~BVSolverLayered();
 
   //--------------------------------- initialization
 
@@ -89,7 +89,10 @@ class BVSolverLazy : public BVSolver
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
 
-  std::string identify() const override { return std::string("BVSolverLazy"); }
+  std::string identify() const override
+  {
+    return std::string("BVSolverLayered");
+  }
 
   TrustNode ppRewrite(TNode t) override;
 
@@ -197,7 +200,7 @@ class BVSolverLazy : public BVSolver
 
   void lemma(TNode node)
   {
-    d_im.lemma(node, InferenceId::BV_LAZY_LEMMA);
+    d_im.lemma(node, InferenceId::BV_LAYERED_LEMMA);
     d_lemmasAdded = true;
   }
 
@@ -218,7 +221,7 @@ class BVSolverLazy : public BVSolver
   friend class InequalitySolver;
   friend class AlgebraicSolver;
   friend class EagerBitblastSolver;
-}; /* class BVSolverLazy */
+}; /* class BVSolverLayered */
 
 }  // namespace bv
 }  // namespace theory

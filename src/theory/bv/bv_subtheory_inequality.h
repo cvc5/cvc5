@@ -62,7 +62,9 @@ class InequalitySolver : public SubtheorySolver
   Statistics d_statistics;
 
  public:
-  InequalitySolver(context::Context* c, context::Context* u, BVSolverLazy* bv)
+  InequalitySolver(context::Context* c,
+                   context::Context* u,
+                   BVSolverLayered* bv)
       : SubtheorySolver(c, bv),
         d_assertionSet(c),
         d_inequalityGraph(c, u),

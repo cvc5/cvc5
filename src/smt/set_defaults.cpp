@@ -404,6 +404,13 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     opts.smt.produceAssertions = true;
   }
 
+  if (options::bvAssertInput() && options::produceProofs())
+  {
+    Notice() << "Disabling bv-assert-input since it is incompatible with proofs."
+             << std::endl;
+    opts.bv.bvAssertInput = false;
+  }
+
   // whether we want to force safe unsat cores, i.e., if we are in the default
   // ASSUMPTIONS mode, since other ones are experimental
   bool safeUnsatCores =
