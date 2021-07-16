@@ -217,7 +217,7 @@ int ModelEngine::checkModel(){
       Node q = fm->getAssertedQuantifier( i, true );
       Trace("fmf-exh-inst") << "-> Exhaustive instantiate " << q << ", effort = " << e << "..." << std::endl;
       //determine if we should check this quantifier
-      if (fm->isQuantifierActive(q))
+      if (!fm->isQuantifierActive(q))
       {
         Trace("fmf-exh-inst") << "-> Inactive : " << q << std::endl;
         continue;
