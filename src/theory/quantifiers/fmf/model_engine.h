@@ -67,8 +67,6 @@ private:
  bool shouldProcess(Node q);
  /** Pointer to the model builder of quantifiers engine */
  QModelBuilder* d_builder;
- /** Set of quantified formulas that are infinite */
- std::unordered_map<Node, bool> d_infiniteQuants;
  /** set of quantified formulas for which check was incomplete */
  std::unordered_set<Node> d_incompleteQuants;
 };/* class ModelEngine */
