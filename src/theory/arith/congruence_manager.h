@@ -244,7 +244,7 @@ private:
   bool needsEqualityEngine(EeSetupInfo& esi);
   /**
    * Finish initialize. This class is instructed by TheoryArithPrivate to use
-   * the equality engine ee and proof equality engine pfee.
+   * the equality engine ee.
    */
   void finishInit(eq::EqualityEngine* ee);
   //--------------------------------- end initialization
