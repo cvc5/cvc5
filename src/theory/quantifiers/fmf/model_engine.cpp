@@ -103,7 +103,9 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
     }
 
     if( addedLemmas==0 ){
-      Trace("model-engine-debug") << "No lemmas added, incomplete = " << ( d_incomplete_check || !d_incompleteQuants.empty() ) << std::endl;
+      Trace("model-engine-debug")
+          << "No lemmas added, incomplete = "
+          << (d_incomplete_check || !d_incompleteQuants.empty()) << std::endl;
       // cvc5 will answer SAT or unknown
       if( Trace.isOn("fmf-consistent") ){
         Trace("fmf-consistent") << std::endl;
@@ -124,7 +126,7 @@ bool ModelEngine::checkComplete(IncompleteId& incId)
 }
 
 bool ModelEngine::checkCompleteFor( Node q ) {
-  return d_incompleteQuants.find(q)==d_incompleteQuants.end();
+  return d_incompleteQuants.find(q) == d_incompleteQuants.end();
 }
 
 void ModelEngine::registerQuantifier( Node f ){
@@ -228,7 +230,7 @@ int ModelEngine::checkModel(){
         d_incompleteQuants.insert(q);
         continue;
       }
-      exhaustiveInstantiate( q, e );
+      exhaustiveInstantiate(q, e);
       if (d_qstate.isInConflict())
       {
         break;
@@ -264,7 +266,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
   if( retEi!=0 ){
     if( retEi<0 ){
       Trace("fmf-exh-inst") << "-> Builder determined complete instantiation was impossible." << std::endl;
-      d_incompleteQuants.insert( f );
+      d_incompleteQuants.insert(f);
     }else{
       Trace("fmf-exh-inst") << "-> Builder determined instantiation(s)." << std::endl;
     }
@@ -320,7 +322,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     }
     //if the iterator is incomplete, we will return unknown instead of sat if no instantiations are added this round
     if( riter.isIncomplete() ){
-      d_incompleteQuants.insert( f );
+      d_incompleteQuants.insert(f);
     }
   }
 }
@@ -361,7 +363,8 @@ bool ModelEngine::shouldProcess(Node q)
   {
     return true;
   }
-  // otherwise, we are only using model-based instantiation for internal quantified formulas
+  // otherwise, we are only using model-based instantiation for internal
+  // quantified formulas
   QuantAttributes& qattr = d_qreg.getQuantAttributes();
   return qattr.isInternal(q);
 }
