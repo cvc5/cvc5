@@ -124,7 +124,7 @@ bool ModelEngine::checkComplete(IncompleteId& incId)
 }
 
 bool ModelEngine::checkCompleteFor( Node q ) {
-  return d_incompleteQuants.find(q)!=d_incompleteQuants.end();
+  return d_incompleteQuants.find(q)==d_incompleteQuants.end();
 }
 
 void ModelEngine::registerQuantifier( Node f ){
