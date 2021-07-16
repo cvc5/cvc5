@@ -1366,10 +1366,11 @@ void FullModelChecker::registerQuantifiedFormula(Node q)
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   std::vector<TypeNode> types;
+  QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
   for (const Node& v : q[0])
   {
     TypeNode tn = v.getType();
-    if (tn.isFunction())
+    if (tn.isFunction() || !qbi.isFiniteBound(q, v))
     {
       // we will not use model-based quantifier instantiation for q, since
       // the model-based instantiation algorithm does not handle (universally
