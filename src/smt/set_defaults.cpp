@@ -411,6 +411,19 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     opts.bv.bvAssertInput = false;
   }
 
+  // If proofs are required and neither the BV solver has not been set by the
+  // user, or the internal BV solver has not been set by the user to any other
+  // than Minisat, set the BV solver to the internal bitblaster
+  if (options::produceProofs()
+      && options::bvSolver() != options::BVSolver::BITBLAST_INTERNAL
+      && !opts.bv.bvSolverWasSetByUser
+      && opts.bv.bvSatSolver == options::SatSolverMode::MINISAT)
+  {
+    Notice() << "Forcing internal bit-vector solver due to proof production."
+             << std::endl;
+    opts.bv.bvSolver = options::BVSolver::BITBLAST_INTERNAL;
+  }
+
   // whether we want to force safe unsat cores, i.e., if we are in the default
   // ASSUMPTIONS mode, since other ones are experimental
   bool safeUnsatCores =
