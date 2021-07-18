@@ -830,6 +830,13 @@ enum class PfRule : uint32_t
   // Conclusion: F*sigma
   // sigma maps x1 ... xn to t1 ... tn.
   INSTANTIATE,
+  // ======== (Trusted) quantifiers preprocess
+  // Children: ?
+  // Arguments: (F)
+  // ---------------------------------------------------------------
+  // Conclusion: F
+  // where F is an equality of the form t = QuantifiersRewriter::preprocess(t)
+  QUANTIFIERS_PREPROCESS,
 
   //================================================= String rules
   //======================== Core solver
