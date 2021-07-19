@@ -68,12 +68,13 @@ class ProofLetify
                               std::map<const ProofNode*, size_t>& pletMap,
                               size_t thresh = 2,
                               ProofLetifyTraverseCallback* pltc = nullptr);
- private:  
-   /**
-    * Convert a map from proof nodes to # occurrences (pcount) to a list
-    * pletList / pletMap as described in the method above, where thresh
-    * is the minimum number of occurrences to be added to the list.
-    */
+
+ private:
+  /**
+   * Convert a map from proof nodes to # occurrences (pcount) to a list
+   * pletList / pletMap as described in the method above, where thresh
+   * is the minimum number of occurrences to be added to the list.
+   */
   static void convertProofCountToLet(
       const std::vector<const ProofNode*>& visitList,
       const std::map<const ProofNode*, size_t>& pcount,
