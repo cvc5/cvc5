@@ -117,12 +117,12 @@ if(NOT ANTLR3_FOUND_SYSTEM)
             --enable-static
             ${64bit}
             --host=${TOOLCHAIN_PREFIX}
-        BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libantlr3c.a
+        BUILD_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libantlr3c.a
     )
 
     set(ANTLR3_JAR "${DEPS_BASE}/share/java/antlr-3.4-complete.jar")
     set(ANTLR3_INCLUDE_DIR "${DEPS_BASE}/include/")
-    set(ANTLR3_RUNTIME "${DEPS_BASE}/lib/libantlr3c.a")
+    set(ANTLR3_RUNTIME "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libantlr3c.a")
 endif()
 
 find_package(Java COMPONENTS Runtime REQUIRED)
