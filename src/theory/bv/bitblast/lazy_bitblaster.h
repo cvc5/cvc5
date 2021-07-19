@@ -33,7 +33,7 @@ class NullRegistrat;
 namespace theory {
 namespace bv {
 
-class BVSolverLazy;
+class BVSolverLayered;
 
 class TLazyBitblaster : public TBitblaster<Node>
 {
@@ -46,7 +46,7 @@ class TLazyBitblaster : public TBitblaster<Node>
   bool hasBBAtom(TNode atom) const override;
 
   TLazyBitblaster(context::Context* c,
-                  BVSolverLazy* bv,
+                  BVSolverLayered* bv,
                   const std::string name = "",
                   bool emptyNotify = false);
   ~TLazyBitblaster();
@@ -109,11 +109,13 @@ class TLazyBitblaster : public TBitblaster<Node>
   class MinisatNotify : public prop::BVSatSolverNotify
   {
     prop::CnfStream* d_cnf;
-    BVSolverLazy* d_bv;
+    BVSolverLayered* d_bv;
     TLazyBitblaster* d_lazyBB;
 
    public:
-    MinisatNotify(prop::CnfStream* cnf, BVSolverLazy* bv, TLazyBitblaster* lbv)
+    MinisatNotify(prop::CnfStream* cnf,
+                  BVSolverLayered* bv,
+                  TLazyBitblaster* lbv)
         : d_cnf(cnf), d_bv(bv), d_lazyBB(lbv)
     {
     }
@@ -124,7 +126,7 @@ class TLazyBitblaster : public TBitblaster<Node>
     void safePoint(Resource r) override;
   };
 
-  BVSolverLazy* d_bv;
+  BVSolverLayered* d_bv;
   context::Context* d_ctx;
 
   std::unique_ptr<prop::NullRegistrar> d_nullRegistrar;

@@ -110,10 +110,12 @@ const char* toString(InferenceId i)
     case InferenceId::BAG_DUPLICATE_REMOVAL: return "BAG_DUPLICATE_REMOVAL";
 
     case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
-    case InferenceId::BV_LAZY_CONFLICT: return "BV_LAZY_CONFLICT";
-    case InferenceId::BV_LAZY_LEMMA: return "BV_LAZY_LEMMA";
-    case InferenceId::BV_SIMPLE_LEMMA: return "BV_SIMPLE_LEMMA";
-    case InferenceId::BV_SIMPLE_BITBLAST_LEMMA: return "BV_SIMPLE_BITBLAST_LEMMA";
+    case InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA:
+      return "BV_BITBLAST_EAGER_LEMMA";
+    case InferenceId::BV_BITBLAST_INTERNAL_BITBLAST_LEMMA:
+      return "BV_BITBLAST_INTERNAL_BITBLAST_LEMMA";
+    case InferenceId::BV_LAYERED_CONFLICT: return "BV_LAYERED_CONFLICT";
+    case InferenceId::BV_LAYERED_LEMMA: return "BV_LAYERED_LEMMA";
     case InferenceId::BV_EXTF_LEMMA: return "BV_EXTF_LEMMA";
     case InferenceId::BV_EXTF_COLLAPSE: return "BV_EXTF_COLLAPSE";
 

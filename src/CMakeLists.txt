@@ -375,6 +375,8 @@ libcvc5_add_sources(
   theory/arith/dio_solver.h
   theory/arith/dual_simplex.cpp
   theory/arith/dual_simplex.h
+  theory/arith/equality_solver.cpp
+  theory/arith/equality_solver.h
   theory/arith/error_set.cpp
   theory/arith/error_set.h
   theory/arith/fc_simplex.cpp
@@ -576,10 +578,10 @@ libcvc5_add_sources(
   theory/bv/bitblast/eager_bitblaster.h
   theory/bv/bitblast/lazy_bitblaster.cpp
   theory/bv/bitblast/lazy_bitblaster.h
+  theory/bv/bitblast/node_bitblaster.cpp
+  theory/bv/bitblast/node_bitblaster.h
   theory/bv/bitblast/proof_bitblaster.cpp
   theory/bv/bitblast/proof_bitblaster.h
-  theory/bv/bitblast/simple_bitblaster.cpp
-  theory/bv/bitblast/simple_bitblaster.h
   theory/bv/bv_eager_solver.cpp
   theory/bv/bv_eager_solver.h
   theory/bv/bv_inequality_graph.cpp
@@ -589,10 +591,10 @@ libcvc5_add_sources(
   theory/bv/bv_solver.h
   theory/bv/bv_solver_bitblast.cpp
   theory/bv/bv_solver_bitblast.h
-  theory/bv/bv_solver_lazy.cpp
-  theory/bv/bv_solver_lazy.h
-  theory/bv/bv_solver_simple.cpp
-  theory/bv/bv_solver_simple.h
+  theory/bv/bv_solver_bitblast_internal.cpp
+  theory/bv/bv_solver_bitblast_internal.h
+  theory/bv/bv_solver_layered.cpp
+  theory/bv/bv_solver_layered.h
   theory/bv/bv_subtheory.h
   theory/bv/bv_subtheory_algebraic.cpp
   theory/bv/bv_subtheory_algebraic.h
@@ -797,6 +799,8 @@ libcvc5_add_sources(
   theory/quantifiers/instantiation_list.h
   theory/quantifiers/lazy_trie.cpp
   theory/quantifiers/lazy_trie.h
+  theory/quantifiers/master_eq_notify.cpp
+  theory/quantifiers/master_eq_notify.h
   theory/quantifiers/proof_checker.cpp
   theory/quantifiers/proof_checker.h
   theory/quantifiers/quant_bound_inference.cpp
@@ -915,6 +919,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/synth_conjecture.h
   theory/quantifiers/sygus/synth_engine.cpp
   theory/quantifiers/sygus/synth_engine.h
+  theory/quantifiers/sygus/synth_verify.cpp
+  theory/quantifiers/sygus/synth_verify.h
   theory/quantifiers/sygus/template_infer.cpp
   theory/quantifiers/sygus/template_infer.h
   theory/quantifiers/sygus/term_database_sygus.cpp

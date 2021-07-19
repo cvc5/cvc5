@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Bitblaster for the lazy bv solver.
+ * Bitblaster for the layered BV solver.
  */
 
 #include "theory/bv/bitblast/lazy_bitblaster.h"
@@ -23,7 +23,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
-#include "theory/bv/bv_solver_lazy.h"
+#include "theory/bv/bv_solver_layered.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
@@ -58,7 +58,7 @@ uint64_t numNodes(TNode node, utils::NodeSet& seen)
 }
 
 TLazyBitblaster::TLazyBitblaster(context::Context* c,
-                                 bv::BVSolverLazy* bv,
+                                 bv::BVSolverLayered* bv,
                                  const std::string name,
                                  bool emptyNotify)
     : TBitblaster<Node>(),
@@ -294,10 +294,10 @@ bool TLazyBitblaster::assertToSat(TNode lit, bool propagate) {
   }
 
   Debug("bitvector-bb")
-      << "BVSolverLazy::TLazyBitblaster::assertToSat asserting node: " << atom
-      << "\n";
+      << "BVSolverLayered::TLazyBitblaster::assertToSat asserting node: "
+      << atom << "\n";
   Debug("bitvector-bb")
-      << "BVSolverLazy::TLazyBitblaster::assertToSat with literal:   "
+      << "BVSolverLayered::TLazyBitblaster::assertToSat with literal:   "
       << markerLit << "\n";
 
   prop::SatValue ret = d_satSolver->assertAssumption(markerLit, propagate);
@@ -404,9 +404,9 @@ void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
       lemmab << d_cnf->getNode(clause[i]);
     }
     Node lemma = lemmab;
-    d_bv->d_im.lemma(lemma, InferenceId::BV_LAZY_LEMMA);
+    d_bv->d_im.lemma(lemma, InferenceId::BV_LAYERED_LEMMA);
   } else {
-    d_bv->d_im.lemma(d_cnf->getNode(clause[0]), InferenceId::BV_LAZY_LEMMA);
+    d_bv->d_im.lemma(d_cnf->getNode(clause[0]), InferenceId::BV_LAYERED_LEMMA);
   }
 }
 
