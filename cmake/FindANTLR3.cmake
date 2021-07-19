@@ -112,6 +112,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
             --with-pic
             --disable-antlrdebug
             --prefix=<INSTALL_DIR>
+            --libdir=<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}
             --srcdir=<SOURCE_DIR>
             --disable-shared
             --enable-static
