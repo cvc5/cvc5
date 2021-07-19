@@ -198,8 +198,6 @@ TEST_F(TestContextBlack, pre_post_notify)
   d_context.reset(nullptr);
 }
 
-// TODO: reenable after #2607 is merged in (issue 6047)
-#if 0
 TEST_F(TestContextBlack, top_scope_context_obj)
 {
   // this test's implementation is based on the fact that a
@@ -211,33 +209,60 @@ TEST_F(TestContextBlack, top_scope_context_obj)
 
   d_context->push();
 
-  MyContextObj x(true, d_context.get(), n);
-  MyContextObj y(false, d_context.get(), n);
+  MyContextObj x(false, d_context.get(), n);
+  {
+    MyContextObj y(true, d_context.get(), n);
 
-  ASSERT_EQ(x.d_nsaves, 0);
-  ASSERT_EQ(y.d_nsaves, 0);
+    ASSERT_EQ(x.d_nsaves, 0);
+    ASSERT_EQ(y.d_nsaves, 0);
 
-  x.makeCurrent();
-  y.makeCurrent();
+    x.makeCurrent();
+    y.makeCurrent();
 
-  ASSERT_EQ(x.d_nsaves, 0);
-  ASSERT_EQ(y.d_nsaves, 1);
+    ASSERT_EQ(x.d_nsaves, 1);
+    ASSERT_EQ(y.d_nsaves, 0);
 
-  d_context->push();
+    d_context->push();
 
-  x.makeCurrent();
-  y.makeCurrent();
+    x.makeCurrent();
+    y.makeCurrent();
 
-  ASSERT_EQ(x.d_nsaves, 1);
-  ASSERT_EQ(y.d_nsaves, 2);
+    ASSERT_EQ(x.d_nsaves, 2);
+    ASSERT_EQ(y.d_nsaves, 1);
+
+    d_context->pop();
+
+    // `y` is invalid below the first level because it was allocated in the top
+    // scope. We have to make sure to destroy it before the next pop.
+  }
 
   d_context->pop();
-  d_context->pop();
 
-  ASSERT_EQ(x.d_nsaves, 1);
-  ASSERT_EQ(y.d_nsaves, 2);
+  ASSERT_EQ(x.d_nsaves, 2);
 }
-#endif
+
+TEST_F(TestContextBlack, detect_invalid_obj)
+{
+  MyContextNotifyObj n(d_context.get(), true);
+
+  {
+    // Objects allocated at the bottom scope are allowed to outlive the scope
+    // that they have been allocated in.
+    d_context->push();
+    MyContextObj x(false, d_context.get(), n);
+    d_context->pop();
+  }
+
+  ASSERT_DEATH(
+      {
+        // Objects allocated at the top scope are not allowed to outlive the
+        // scope that they have been allocated in.
+        d_context->push();
+        MyContextObj y(true, d_context.get(), n);
+        d_context->pop();
+      },
+      "d_pScope != nullptr");
+}
 
 }  // namespace test
 }  // namespace cvc5
