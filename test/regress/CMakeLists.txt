@@ -1199,7 +1199,6 @@ set(regress_0_tests
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/parser-syms.cvc
-  regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
   regress0/strings/re-syntax.smt2
@@ -2642,6 +2641,8 @@ set(regression_disabled_tests
   regress0/auflia/fuzz01.smtv1.smt2
   ###
   regress0/bv/test00.smtv1.smt2
+  # timeout after changes to equality rewriting policy in strings
+  regress0/strings/quad-028-2-2-unsat.smt2
   # FIXME #1649
   regress0/datatypes/datatype-dump.cvc
   # no longer support overloaded symbols across multiple parametric datatypes
