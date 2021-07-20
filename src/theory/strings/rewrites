@@ -13,6 +13,10 @@
 (define-rule substr-empty-str ((n Int) (m Int)) (str.substr "" n m) "")
 (define-cond-rule substr-empty-range ((x String) (n Int) (m Int)) (>= n m) (str.substr x n m) "")
 (define-cond-rule substr-empty-start ((x String) (n Int) (m Int)) (>= n (str.len x)) (str.substr x n m) "")
+(define-cond-rule substr-eq-empty ((s String) (n Int) (m Int))
+  (and (= n 0) (> m n))
+  (= (str.substr s n m) "")
+  (= s ""))
 
 (define-rule* str-len-concat ((s1 String) (s2 String) (s3 String :list))
   (str.len (str.++ s1 s2 s3))
@@ -25,6 +29,7 @@
 
 (define-rule re-in-empty ((t String)) (str.in_re t re.none) false)
 (define-rule re-in-sigma ((t String)) (str.in_re t re.allchar) (= (str.len t) 1))
+(define-rule re-in-sigma-star ((t String)) (str.in_re t (re.* re.allchar)) true)
 (define-rule re-in-cstring ((t String) (s String)) (str.in_re t (str.to_re s)) (= t s))
 (define-rule re-in-comp ((t String) (r RegLan)) (str.in_re t (re.comp r)) (not (str.in_re t r)))
 
