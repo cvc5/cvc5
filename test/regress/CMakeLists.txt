@@ -2140,6 +2140,8 @@ set(regress_1_tests
   regress1/strings/issue6057-replace-re-all-jiwonparc.smt2
   regress1/strings/issue6072-inc-no-const-reg.smt2
   regress1/strings/issue6075-repl-len-one-rr.smt2
+  regress1/strings/issue6101.smt2
+  regress1/strings/issue6101-2.smt2
   regress1/strings/issue6132-non-unique-skolem.smt2
   regress1/strings/issue6142-repl-inv-rew.smt2
   regress1/strings/issue6191-replace-all.smt2
@@ -2162,6 +2164,7 @@ set(regress_1_tests
   regress1/strings/issue6653-rre.smt2
   regress1/strings/issue6653-rre-small.smt2
   regress1/strings/issue6777-seq-nth-eval-cm.smt2
+  regress1/strings/issue6913.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2

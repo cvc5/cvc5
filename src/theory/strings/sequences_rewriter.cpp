@@ -84,13 +84,13 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
   Assert(node.getKind() == EQUAL && node[0].getType().isStringLike());
   TypeNode stype = node[0].getType();
 
+  NodeManager* nm = NodeManager::currentNM();
   // ( ~contains( s, t ) V ~contains( t, s ) ) => ( s == t ---> false )
   for (unsigned r = 0; r < 2; r++)
   {
     // must call rewrite contains directly to avoid infinite loop
-    // we do a fix point since we may rewrite contains terms to simpler
-    // contains terms.
-    Node ctn = d_stringsEntail.checkContains(node[r], node[1 - r], false);
+    Node ctn = nm->mkNode(STRING_CONTAINS, node[r], node[1-r]);
+    ctn = rewriteContains(ctn);
     if (!ctn.isNull())
     {
       if (!ctn.getConst<bool>())
@@ -154,7 +154,6 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
     }
   }
   
-  NodeManager* nm = NodeManager::currentNM();
   Node new_ret;
   // ------- equality unification
   bool changed = false;

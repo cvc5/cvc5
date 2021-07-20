@@ -120,16 +120,6 @@ class SequencesRewriter : public TheoryRewriter
   Node returnRewrite(Node node,
                      Node ret,
                      Rewrite r);
-  /** 
-   * post-process rewrite
-   *
-   * If node is not an equality and ret is an equality,
-   * this method applies an additional rewrite step (rewriteEqualityExt) that
-   * performs additional rewrites on ret, after which we return the result of
-   * this call. Otherwise, this method simply returns ret.
-   */
-  Node postProcessRewrite(Node node,
-                     Node ret);
  public:
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
@@ -301,6 +291,15 @@ class SequencesRewriter : public TheoryRewriter
    */
   static Node canonicalStrForSymbolicLength(Node n, TypeNode stype);
 
+  /** 
+   * post-process rewrite
+   *
+   * If node is not an equality and ret is an equality,
+   * this method applies an additional rewrite step (rewriteEqualityExt) that
+   * performs additional rewrites on ret, after which we return the result of
+   * this call. Otherwise, this method simply returns ret.
+   */
+  Node postProcessRewrite(Node node, Node ret);
   /** Reference to the rewriter statistics. */
   HistogramStat<Rewrite>* d_statistics;
 
