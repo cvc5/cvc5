@@ -116,17 +116,20 @@ class SequencesRewriter : public TheoryRewriter
    *
    * The rewrite r indicates the justification for the rewrite, which is printed
    * by this function for debugging.
+   */
+  Node returnRewrite(Node node,
+                     Node ret,
+                     Rewrite r);
+  /** 
+   * post-process rewrite
    *
-   * If node is not an equality (or rewriteEq is true) and ret is an equality,
+   * If node is not an equality and ret is an equality,
    * this method applies an additional rewrite step (rewriteEqualityExt) that
    * performs additional rewrites on ret, after which we return the result of
    * this call. Otherwise, this method simply returns ret.
    */
-  Node returnRewrite(Node node,
-                     Node ret,
-                     Rewrite r,
-                     bool rewriteEqAgain = false);
-
+  Node postProcessRewrite(Node node,
+                     Node ret);
  public:
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
