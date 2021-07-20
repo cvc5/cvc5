@@ -259,6 +259,8 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
   d_lemmaIdStats << id;
   smt::currentResourceManager()->spendResource(id);
   Trace("im") << "(lemma " << id << " " << tlem.getProven() << ")" << std::endl;
+  // shouldn't send trivially true or false lemmas
+  Assert(!Rewriter::rewrite(tlem.getProven()).isConst());
   d_numCurrentLemmas++;
   d_out.trustedLemma(tlem, p);
   return true;

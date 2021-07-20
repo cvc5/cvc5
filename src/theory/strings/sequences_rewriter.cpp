@@ -55,6 +55,34 @@ Node SequencesRewriter::rewriteEquality(Node node)
     Node ret = NodeManager::currentNM()->mkConst(false);
     return returnRewrite(node, ret, Rewrite::EQ_CONST_FALSE);
   }
+  // standard ordering
+  if (node[0] > node[1])
+  {
+    Node ret = NodeManager::currentNM()->mkNode(kind::EQUAL, node[1], node[0]);
+    return returnRewrite(node, ret, Rewrite::EQ_SYM);
+  }
+  return node;
+}
+
+Node SequencesRewriter::rewriteEqualityExt(Node node)
+{
+  Assert (node.getKind()==EQUAL);
+  TypeNode tn = node[0].getType();
+  if (tn.isInteger())
+  {
+    return rewriteArithEqualityExt(node);
+  }
+  if (tn.isStringLike())
+  {
+    return rewriteStrEqualityExt(node);
+  }
+  return node;
+}
+
+Node SequencesRewriter::rewriteStrEqualityExt(Node node)
+{
+  Assert(node.getKind() == EQUAL && node[0].getType().isStringLike());
+  TypeNode stype = node[0].getType();
 
   // ( ~contains( s, t ) V ~contains( t, s ) ) => ( s == t ---> false )
   for (unsigned r = 0; r < 2; r++)
@@ -125,42 +153,9 @@ Node SequencesRewriter::rewriteEquality(Node node)
       }
     }
   }
-
-  // standard ordering
-  if (node[0] > node[1])
-  {
-    Node ret = NodeManager::currentNM()->mkNode(kind::EQUAL, node[1], node[0]);
-    return returnRewrite(node, ret, Rewrite::EQ_SYM);
-  }
-  return node;
-}
-
-Node SequencesRewriter::rewriteEqualityExt(Node node)
-{
-  Assert(node.getKind() == EQUAL);
-  if (node[0].getType().isInteger())
-  {
-    return rewriteArithEqualityExt(node);
-  }
-  if (node[0].getType().isStringLike())
-  {
-    return rewriteStrEqualityExt(node);
-  }
-  return node;
-}
-
-Node SequencesRewriter::rewriteStrEqualityExt(Node node)
-{
-  Assert(node.getKind() == EQUAL && node[0].getType().isStringLike());
-  TypeNode stype = node[0].getType();
-
+  
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> c[2];
   Node new_ret;
-  for (unsigned i = 0; i < 2; i++)
-  {
-    utils::getConcat(node[i], c[i]);
-  }
   // ------- equality unification
   bool changed = false;
   for (unsigned i = 0; i < 2; i++)
@@ -3497,44 +3492,6 @@ Node SequencesRewriter::returnRewrite(Node node,
     (*d_statistics) << r;
   }
 
-  // standard post-processing
-  // We rewrite (string) equalities immediately here. This allows us to forego
-  // the standard invariant on equality rewrites (that s=t must rewrite to one
-  // of { s=t, t=s, true, false } ).
-  Kind retk = ret.getKind();
-  if (retk == OR || retk == AND)
-  {
-    std::vector<Node> children;
-    bool childChanged = false;
-    for (const Node& cret : ret)
-    {
-      Node creter = cret;
-      if (cret.getKind() == EQUAL)
-      {
-        creter = rewriteEqualityExt(cret);
-      }
-      else if (cret.getKind() == NOT && cret[0].getKind() == EQUAL)
-      {
-        creter = nm->mkNode(NOT, rewriteEqualityExt(cret[0]));
-      }
-      childChanged = childChanged || cret != creter;
-      children.push_back(creter);
-    }
-    if (childChanged)
-    {
-      ret = nm->mkNode(retk, children);
-    }
-  }
-  else if (retk == NOT && ret[0].getKind() == EQUAL)
-  {
-    ret = nm->mkNode(NOT, rewriteEqualityExt(ret[0]));
-  }
-  else if (retk == EQUAL && (rewriteEqAgain || node.getKind() != EQUAL))
-  {
-    Trace("strings-rewrite")
-        << "Apply extended equality rewrite on " << ret << std::endl;
-    ret = rewriteEqualityExt(ret);
-  }
   return ret;
 }
 
