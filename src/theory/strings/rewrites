@@ -14,6 +14,10 @@
 (define-cond-rule substr-empty-range ((x String) (n Int) (m Int)) (>= n m) (str.substr x n m) "")
 (define-cond-rule substr-empty-start ((x String) (n Int) (m Int)) (>= n (str.len x)) (str.substr x n m) "")
 
+(define-rule* str-len-concat ((s1 String) (s2 String) (s3 String :list))
+  (str.len (str.++ s1 s2 s3))
+  (+ (str.len s1) (str.len (str.++ s2 s3))))
+
 (define-cond-rule str-len-replace-inv ((t String) (s String) (r String)) 
   (= (str.len s) (str.len r))
   (str.len (str.replace t s r))
@@ -22,6 +26,7 @@
 (define-rule re-in-empty ((t String)) (str.in_re t re.none) false)
 (define-rule re-in-sigma ((t String)) (str.in_re t re.allchar) (= (str.len t) 1))
 (define-rule re-in-cstring ((t String) (s String)) (str.in_re t (str.to_re s)) (= t s))
+(define-rule re-in-comp ((t String) (r RegLan)) (str.in_re t (re.comp r)) (not (str.in_re t r)))
 
 (define-cond-rule concat-clash ((s1 String) (s2 String :list) (t1 String) (t2 String :list))
   (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))
@@ -58,11 +63,20 @@
   (str.suffixof s t)
   (str.contains t s))
 
+;(define-cond-rule str-substr-combine ((s String) (n1 Int) (m1 Int) (n2 Int) (m2 Int))
+;  (and (>= n2 0) (<= (+ n2 m2) m1))
+;  (str.substr (str.substr s n1 m1) n2 m2)
+;  (str.substr s (+ n1 n2) m2))
 
 ;(define-cond-rule concat-clash-ss ((s String) (t String))
 ;  (not (= (str.substr s 0 1) (str.substr t 0 1)))
 ;  (= s t)
 ;  false)
+
+(define-cond-rule str-contains-split-char ((x String) (y String) (z String :list) (w String))
+  (= (str.len w) 1)
+  (str.contains (str.++ x y z) w)
+  (or (str.contains x w) (str.contains (str.++ y z) w)))
 
 (define-rule str-concat-emp ((xs String :list) (ys String :list)) (str.++ xs "" ys) (str.++ xs ys))
 
