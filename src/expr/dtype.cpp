@@ -872,7 +872,6 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
                            nindex,
                            NodeManager::SKOLEM_NO_NOTIFY);
   d_sharedSel[dtt][t][index] = s;
-  d_sharedSelList.push_back(s);
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;
   return s;
@@ -894,10 +893,6 @@ const std::vector<std::shared_ptr<DTypeConstructor> >& DType::getConstructors()
     const
 {
   return d_constructors;
-}
-const std::vector<Node>& DType::getSharedSelectors() const
-{
-  return d_sharedSelList;
 }
 
 std::ostream& operator<<(std::ostream& os, const DType& dt)

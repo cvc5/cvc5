@@ -672,8 +672,7 @@ const DType& TypeNode::getDType() const
     DatatypeIndexConstant dic = getConst<DatatypeIndexConstant>();
     return NodeManager::currentNM()->getDTypeForIndex(dic.getIndex());
   }
-  AlwaysAssert(getKind() == kind::PARAMETRIC_DATATYPE)
-      << "Cannot get datatype for " << getKind();
+  Assert(getKind() == kind::PARAMETRIC_DATATYPE);
   return (*this)[0].getDType();
 }
 

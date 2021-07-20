@@ -424,10 +424,6 @@ class DType
    */
   const std::vector<std::shared_ptr<DTypeConstructor> >& getConstructors()
       const;
-  /**
-   * Get the list of all shared selectors.
-   */
-  const std::vector<Node>& getSharedSelectors() const;
 
   /** prints this datatype to stream */
   void toStream(std::ostream& out) const;
@@ -620,8 +616,6 @@ class DType
   /** cache of shared selectors for this datatype */
   mutable std::map<TypeNode, std::map<TypeNode, std::map<unsigned, Node> > >
       d_sharedSel;
-  /** List of all shared selectors */
-  mutable std::vector<Node> d_sharedSelList;
   /**  A cache for getCardinalityClass. */
   mutable std::map<TypeNode, CardinalityClass> d_cardClass;
 }; /* class DType */
