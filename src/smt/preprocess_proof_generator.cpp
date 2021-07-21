@@ -19,12 +19,12 @@
 #include <sstream>
 
 #include "options/proof_options.h"
+#include "proof/method_id.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
-#include "theory/rewriter.h"
 #include "theory/quantifiers/extended_rewrite.h"
-#include "proof/method_id.h"
+#include "theory/rewriter.h"
 
 namespace cvc5 {
 namespace smt {

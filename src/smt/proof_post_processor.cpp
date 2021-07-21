@@ -1007,9 +1007,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       // try to reconstruct as a standalone rewrite
       std::vector<Node> targs;
       targs.push_back(eq);
-      targs.push_back(builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId));
+      targs.push_back(
+          builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId));
       // in this case, must be a non-standard rewrite kind
-      Assert (args.size() >= 2);
+      Assert(args.size() >= 2);
       targs.push_back(args[1]);
       Node eqp = expandMacros(PfRule::THEORY_REWRITE, {}, targs, cdp);
       if (eqp.isNull())
