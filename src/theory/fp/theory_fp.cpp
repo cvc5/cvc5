@@ -520,17 +520,6 @@ void TheoryFp::convertAndEquateTerm(TNode node)
 {
   Trace("fp-convertTerm") << "TheoryFp::convertTerm(): " << node << std::endl;
 
-  /* When word-blasting more lazily, we get facts to word-blast instead of
-   * registered Terms. Hence, 'node' can be inverted. */
-  if (options::fpLazyWb() && node.getKind() == kind::NOT)
-  {
-    /* we only convert theory FP atoms */
-    node = node[0];
-    Trace("fp-convertTerm")
-        << "TheoryFp::convertTerm() [actually convert]: " << node << ")"
-        << std::endl;
-  }
-
   size_t oldSize = d_conv->d_additionalAssertions.size();
 
   Node converted(d_conv->convert(node));
@@ -768,10 +757,10 @@ bool TheoryFp::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
   /* Word-blast lazier if configured. */
-  if (options::fpLazyWb() && d_wbFactsCache.find(fact) == d_wbFactsCache.end())
+  if (options::fpLazyWb() && d_wbFactsCache.find(atom) == d_wbFactsCache.end())
   {
-    d_wbFactsCache.insert(fact);
-    convertAndEquateTerm(fact);
+    d_wbFactsCache.insert(atom);
+    convertAndEquateTerm(atom);
   }
 
   if (atom.getKind() == kind::EQUAL)
