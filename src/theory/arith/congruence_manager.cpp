@@ -82,18 +82,20 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
   if (options::arithEqSolver())
   {
     // use our own copy
-    d_allocEe.reset(new eq::EqualityEngine(d_notify, d_satContext, "arithCong::ee", true));
+    d_allocEe.reset(
+        new eq::EqualityEngine(d_notify, d_satContext, "arithCong::ee", true));
     d_ee = d_allocEe.get();
     if (d_pnm != nullptr)
     {
       // allocate an internal proof equality engine
-      d_allocPfee.reset(new eq::ProofEqEngine(d_satContext, d_userContext, *d_ee, d_pnm));
+      d_allocPfee.reset(
+          new eq::ProofEqEngine(d_satContext, d_userContext, *d_ee, d_pnm));
       d_ee->setProofEqualityEngine(d_allocPfee.get());
     }
   }
   else
   {
-    Assert (ee!=nullptr);
+    Assert(ee != nullptr);
     // otherwise, we use the official one
     d_ee = ee;
   }
