@@ -645,20 +645,15 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
   {
     return;
   }
-  Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::preRegisterTerm(" << node << ")" << std::endl;
+  Debug("arrays") << spaces(getSatContext()->getLevel())
+                  << "TheoryArrays::preRegisterTerm(" << node << ")"
+                  << std::endl;
   Kind nk = node.getKind();
   if (nk == kind::EQUAL)
   {
     // Add the trigger for equality
     // NOTE: note that if the equality is true or false already, it might not be added
     d_equalityEngine->addTriggerPredicate(node);
-    return;
-  }
-  else if (d_equalityEngine->hasTerm(node))
-  {
-    // Invariant: array terms should be preregistered before being added to the equality engine
-    Assert(nk != kind::SELECT
-           || d_isPreRegistered.find(node) != d_isPreRegistered.end());
     return;
   }
   // add to equality engine and the may equality engine
@@ -674,6 +669,15 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       throw LogicException(ss.str());
     }
     d_mayEqualEqualityEngine.addTerm(node);
+  }
+  if (d_equalityEngine->hasTerm(node))
+  {
+    // Notice that array terms may be added to its equality engine before
+    // being preregistered in the central equality engine architecture.
+    // Prior to this, an assertion in this case was:
+    // Assert(nk != kind::SELECT
+    //         || d_isPreRegistered.find(node) != d_isPreRegistered.end());
+    return;
   }
   d_equalityEngine->addTerm(node);
 
