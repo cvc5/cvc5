@@ -1216,7 +1216,7 @@ bool SygusEnumerator::TermEnumMasterFv::initialize(SygusEnumerator* se,
 
 Node SygusEnumerator::TermEnumMasterFv::getCurrent()
 {
-  Assert(d_tds != nullptr);
+  Assert(d_se->d_tds != nullptr);
   Node ret = d_se->d_tds->getFreeVar(d_tn, d_currSize);
   Trace("sygus-enum-debug2") << "master_fv(" << d_tn << "): mk " << ret
                              << std::endl;
