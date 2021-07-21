@@ -23,6 +23,8 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 #include "theory/rewriter.h"
+#include "theory/quantifiers/extended_rewrite.h"
+#include "proof/method_id.h"
 
 namespace cvc5 {
 namespace smt {
@@ -177,11 +179,14 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
         Assert(proven.getKind() == kind::EQUAL);
         if (!proofStepProcessed)
         {
-          // maybe its just a simple rewrite?
-          if (proven[1] == theory::Rewriter::rewrite(proven[0]))
+          // maybe its just an (extended) rewrite?
+          theory::quantifiers::ExtendedRewriter extr(true);
+          Node pr = extr.extendedRewrite(proven[0]);
+          if (proven[1] == pr)
           {
+            Node idr = mkMethodId(MethodId::RW_EXT_REWRITE);
             Trace("smt-pppg-debug") << "...add simple rewrite" << std::endl;
-            cdp.addStep(proven, PfRule::REWRITE, {}, {proven[0]});
+            cdp.addStep(proven, PfRule::REWRITE, {}, {proven[0], idr});
             proofStepProcessed = true;
           }
         }
