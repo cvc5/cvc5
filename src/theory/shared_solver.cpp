@@ -65,7 +65,7 @@ void SharedSolver::preRegister(TNode atom)
     // Register it with the shared terms database if sharing is enabled.
     // Notice that this must come *after* the above call, since we must ensure
     // that all subterms of atom have already been added to the central
-    // equality engine before atom is added. This avoid spurious notifications
+    // equality engine before atom is added. This avoids spurious notifications
     // from the equality engine.
     preRegisterSharedInternal(atom);
   }
