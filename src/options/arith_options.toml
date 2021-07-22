@@ -588,3 +588,10 @@ name   = "Arithmetic Theory"
   default    = "false"
   help       = "whether to use ICP-style propagations for non-linear arithmetic"
 
+[[option]]
+  name       = "arithEqSolver"
+  category   = "regular"
+  long       = "arith-eq-solver"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to use the equality solver in the theory of arithmetic"

@@ -375,6 +375,8 @@ libcvc5_add_sources(
   theory/arith/dio_solver.h
   theory/arith/dual_simplex.cpp
   theory/arith/dual_simplex.h
+  theory/arith/equality_solver.cpp
+  theory/arith/equality_solver.h
   theory/arith/error_set.cpp
   theory/arith/error_set.h
   theory/arith/fc_simplex.cpp
