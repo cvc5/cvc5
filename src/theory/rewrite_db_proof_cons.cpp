@@ -791,6 +791,7 @@ Node RewriteDbProofCons::inflectMatch(
         if (curr.first.getNumChildren() != curr.second.getNumChildren()
             || curr.first.getOperator() != curr.second.getOperator())
         {
+          // TODO: (+ a b c) could match (+ a d) with constraint (= (+ b c) d)
           matchSuccess = false;
         }
         else

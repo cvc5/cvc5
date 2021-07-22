@@ -5,6 +5,11 @@
   (str.++ xs (str.++ s ys) zs)
   (str.++ xs s ys zs))
 
+;(define-cond-rule str-concat-const-unflatten ((xs String :list) (s String) (c String) (ys String :list))
+;  (= (str.len c) 1)
+;  (str.++ xs s c ys)
+;  (str.++ xs (str.++ s c) ys))
+
 ; flips so that it can be applied to both sides easier
 (define-rule str-concat-flatten-eq ((x String) (x1 String :list) (x2 String :list) (y String))
   (= (str.++ (str.++ x x1) x2) y)
@@ -68,10 +73,10 @@
   (str.suffixof s t)
   (str.contains t s))
 
-;(define-cond-rule str-substr-combine ((s String) (n1 Int) (m1 Int) (n2 Int) (m2 Int))
-;  (and (>= n2 0) (<= (+ n2 m2) m1))
-;  (str.substr (str.substr s n1 m1) n2 m2)
-;  (str.substr s (+ n1 n2) m2))
+(define-cond-rule str-substr-combine ((s String) (n1 Int) (m1 Int) (n2 Int) (m2 Int))
+  (and (>= n2 0) (>= (- (+ n2 m2) m1) 0))
+  (str.substr (str.substr s n1 m1) n2 m2)
+  (str.substr s (+ n1 n2) m2))
 
 ;(define-cond-rule concat-clash-ss ((s String) (t String))
 ;  (not (= (str.substr s 0 1) (str.substr t 0 1)))
