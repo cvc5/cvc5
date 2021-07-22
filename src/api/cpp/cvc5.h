@@ -782,6 +782,8 @@ namespace cvc5::api {
 /* Op                                                                     */
 /* -------------------------------------------------------------------------- */
 
+class Term;
+
 /**
  * A cvc5 operator.
  * An operator is a term that represents certain operators, instantiated
@@ -843,6 +845,14 @@ class CVC5_EXPORT Op
   size_t getNumIndices() const;
 
   /**
+   * Get the index at position i.
+   * @param i the position of the index to return
+   * @return the index at position i
+   */
+
+  Term operator[](size_t i) const;
+
+  /**
    * Get the indices used to create this Op.
    * Supports the following template arguments:
    *   - string
@@ -890,6 +900,19 @@ class CVC5_EXPORT Op
    * @return true iff this Op is indexed
    */
   bool isIndexedHelper() const;
+
+  /**
+   * Helper for getNumIndices
+   * @return the number of indices of this op
+   */
+  size_t getNumIndicesHelper() const;
+
+  /**
+   * Helper for operator[](size_t i).
+   * @param i position of the index. Should be less than getNumIndicesHelper().
+   * @return the index at position i
+   */
+  Term getIndexHelper(size_t index) const;
 
   /**
    * The associated solver object.
