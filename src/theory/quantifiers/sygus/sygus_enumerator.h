@@ -22,9 +22,9 @@
 #include <unordered_set>
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "theory/quantifiers/sygus/enum_val_generator.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers/sygus/enum_val_generator.h"
 
 namespace cvc5 {
 namespace theory {
