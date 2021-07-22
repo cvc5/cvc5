@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+
  *
  * This file is part of the cvc5 project.
  *
@@ -370,7 +370,7 @@ class CVC5_EXPORT SmtEngine
   /**
    * Reduce an unsatisfiable core to make it minimal.
    */
-  UnsatCore reduceUnsatCore(const UnsatCore& core);
+  std::vector<Node> reduceUnsatCore(const std::vector<Node>& core);
 
   /**
    * Check if a given (set of) expression(s) is entailed with respect to the

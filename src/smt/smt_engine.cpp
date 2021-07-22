@@ -1413,13 +1413,17 @@ std::vector<Node> SmtEngine::reduceUnsatCore(const std::vector<Node>& core)
       << "cannot reduce unsat core if unsat cores are turned off";
 
   Notice() << "SmtEngine::reduceUnsatCore(): reducing unsat core" << endl;
-  std::unordered_set<Node, NodeHashFunction> removed;
+  std::unordered_set<Node> removed;
   for (const Node& skip : core)
   {
     std::unique_ptr<SmtEngine> coreChecker;
     initializeSubsolver(coreChecker);
     coreChecker->setLogic(getLogicInfo());
-    coreChecker->getOptions().set(options::checkUnsatCores, false);
+    coreChecker->getOptions().smt.checkUnsatCores = false;
+    // disable all proof options
+    coreChecker->getOptions().smt.produceProofs = false;
+    coreChecker->getOptions().smt.checkProofs = false;
+    coreChecker->getOptions().proof.proofEagerChecking = false;
 
     for (const Node& ucAssertion : core)
     {

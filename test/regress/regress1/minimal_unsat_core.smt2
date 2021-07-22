@@ -1,6 +1,5 @@
 ; COMMAND-LINE: --minimal-unsat-cores
 (set-logic QF_NIA)
-(set-info :smt-lib-version 2.0)
 (set-info :status unsat)
 (declare-fun n () Int)
 
