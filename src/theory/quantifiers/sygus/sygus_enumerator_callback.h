@@ -31,44 +31,74 @@ class ExampleEvalCache;
 class SygusStatistics;
 class SygusSampler;
 
+/**
+ * Base class for callbacks in the fast enumerator. This allows a user to
+ * provide custom criteria for whether or not enumerated values should be
+ * considered.
+ */
 class SygusEnumeratorCallback
 {
  public:
-  SygusEnumeratorCallback(Node e);
+  SygusEnumeratorCallback(Node e, SygusStatistics* s = nullptr);
   virtual ~SygusEnumeratorCallback() {}
   /**
-   * Add term, return true if the term should be considered in the enumeration
+   * Add term, return true if the term should be considered in the enumeration.
+   * Notice that returning false indicates that n should not be considered as a
+   * subterm of any other term in the enumeration.
+   *
+   * @param n The SyGuS term
+   * @param bterms The (rewritten, builtin) terms we have already enumerated
+   * @return true if n should be considered in the enumeration.
    */
-  virtual bool addTerm(Node bn, Node bnr, bool isPre) = 0;
+  virtual bool addTerm(Node n, std::unordered_set<Node>& bterms) = 0;
 
  protected:
+  /**
+   * Callback-specific notification of the above
+   * 
+   * @param n The SyGuS term
+   * @param bn The builtin version of the enumerated term
+   * @param bnr The (extended) rewritten form of bn
+   */
+  virtual void notifyTermInternal(Node n, Node bn, Node bnr) = 0;
+  /**
+   * Callback-specific add term
+   * 
+   * @param n The SyGuS term
+   * @param bn The builtin version of the enumerated term
+   * @param bnr The (extended) rewritten form of bn
+   * @return true if the term should be considered in the enumeration. 
+   */
+  virtual bool addTermInternal(Node n, Node bn, Node bnr) = 0;
   /** The enumerator */
   Node d_enum;
   /** The type of enum */
   TypeNode d_tn;
+  /** extended rewriter */
+  ExtendedRewriter d_extr;
+  /** pointer to the statistics */
+  SygusStatistics* d_stats;
 };
 
 class SygusEnumeratorCallbackDefault : public SygusEnumeratorCallback
 {
  public:
   SygusEnumeratorCallbackDefault(Node e,
-                                 ExampleEvalCache* eec = nullptr,
                                  SygusStatistics* s = nullptr,
+                                 ExampleEvalCache* eec = nullptr,
                                  SygusSampler* ssrv = nullptr);
   virtual ~SygusEnumeratorCallbackDefault() {}
-  /**
-   * Add term, return true if the term should be considered in the enumeration
-   */
-  bool addTerm(Node bn, Node bnr, bool isPre) override;
 
  protected:
+  /** Notify that bn / bnr is an enumerated builtin, rewritten form of a term */
+  void notifyTermInternal(Node n, Node bn, Node bnr) override;
+  /** Add term, return true if n should be considered in the enumeration */
+  bool addTermInternal(Node n, Node bn, Node bnr) override;
   /**
    * Pointer to the example evaluation cache utility (used for symmetry
    * breaking).
    */
   ExampleEvalCache* d_eec;
-  /** pointer to the statistics */
-  SygusStatistics* d_stats;
   /** sampler (for --sygus-rr-verify) */
   SygusSampler* d_samplerRrV;
 };
