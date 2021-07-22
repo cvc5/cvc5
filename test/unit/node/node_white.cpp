@@ -18,6 +18,7 @@
 #include "base/check.h"
 #include "expr/node_builder.h"
 #include "test_node.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 

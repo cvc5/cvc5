@@ -16,6 +16,7 @@
 #include "expr/bound_var_manager.h"
 
 #include "expr/node_manager_attributes.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 

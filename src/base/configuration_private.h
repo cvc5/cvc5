@@ -96,12 +96,6 @@ namespace cvc5 {
 #  define IS_ABC_BUILD false
 #endif /* CVC5_USE_ABC */
 
-#if CVC5_USE_CADICAL
-#define IS_CADICAL_BUILD true
-#else /* CVC5_USE_CADICAL */
-#define IS_CADICAL_BUILD false
-#endif /* CVC5_USE_CADICAL */
-
 #if CVC5_USE_CRYPTOMINISAT
 #  define IS_CRYPTOMINISAT_BUILD true
 #else /* CVC5_USE_CRYPTOMINISAT */
@@ -125,12 +119,6 @@ namespace cvc5 {
 #else /* HAVE_LIBEDITLINE */
 #define IS_EDITLINE_BUILD false
 #endif /* HAVE_LIBEDITLINE */
-
-#ifdef CVC5_USE_SYMFPU
-#define IS_SYMFPU_BUILD true
-#else /* HAVE_SYMFPU_HEADERS */
-#define IS_SYMFPU_BUILD false
-#endif /* HAVE_SYMFPU_HEADERS */
 
 #if CVC5_GPL_DEPS
 #  define IS_GPL_BUILD true

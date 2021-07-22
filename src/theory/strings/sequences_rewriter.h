@@ -117,12 +117,15 @@ class SequencesRewriter : public TheoryRewriter
    * The rewrite r indicates the justification for the rewrite, which is printed
    * by this function for debugging.
    *
-   * If node is not an equality and ret is an equality, this method applies
-   * an additional rewrite step (rewriteEqualityExt) that performs
-   * additional rewrites on ret, after which we return the result of this call.
-   * Otherwise, this method simply returns ret.
+   * If node is not an equality (or rewriteEq is true) and ret is an equality,
+   * this method applies an additional rewrite step (rewriteEqualityExt) that
+   * performs additional rewrites on ret, after which we return the result of
+   * this call. Otherwise, this method simply returns ret.
    */
-  Node returnRewrite(Node node, Node ret, Rewrite r);
+  Node returnRewrite(Node node,
+                     Node ret,
+                     Rewrite r,
+                     bool rewriteEqAgain = false);
 
  public:
   RewriteResponse postRewrite(TNode node) override;
@@ -194,6 +197,12 @@ class SequencesRewriter : public TheoryRewriter
    * Returns the rewritten form of node.
    */
   Node rewriteIndexof(Node node);
+  /** rewrite indexof regular expression match
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.indexof_re( s, r, n )
+   * Returns the rewritten form of node.
+   */
+  Node rewriteIndexofRe(Node node);
   /** rewrite replace
    * This is the entry point for post-rewriting terms n of the form
    *   str.replace( s, t, r )

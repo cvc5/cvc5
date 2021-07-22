@@ -769,6 +769,7 @@ TEST_F(TestApiBlackTerm, getReal)
   Term real7 = d_solver.mkReal("4294967297");
   Term real8 = d_solver.mkReal("1/18446744073709551617");
   Term real9 = d_solver.mkReal("18446744073709551617");
+  Term real10 = d_solver.mkReal("2343.2343");
 
   ASSERT_TRUE(real1.isRealValue() && real1.isReal64Value()
               && real1.isReal32Value());
@@ -784,36 +785,39 @@ TEST_F(TestApiBlackTerm, getReal)
   ASSERT_TRUE(real7.isRealValue() && real7.isReal64Value());
   ASSERT_TRUE(real8.isRealValue());
   ASSERT_TRUE(real9.isRealValue());
+  ASSERT_TRUE(real10.isRealValue());
 
-  ASSERT_EQ(std::make_pair(0, 1u), real1.getReal32Value());
-  ASSERT_EQ(std::make_pair(0l, 1ul), real1.getReal64Value());
-  ASSERT_EQ("0", real1.getRealValue());
+  ASSERT_EQ((std::pair<int32_t, uint32_t>(0, 1)), real1.getReal32Value());
+  ASSERT_EQ((std::pair<int64_t, uint64_t>(0, 1)), real1.getReal64Value());
+  ASSERT_EQ("0.0", real1.getRealValue());
 
-  ASSERT_EQ(std::make_pair(0, 1u), real2.getReal32Value());
-  ASSERT_EQ(std::make_pair(0l, 1ul), real2.getReal64Value());
-  ASSERT_EQ("0", real2.getRealValue());
+  ASSERT_EQ((std::pair<int32_t, uint32_t>(0, 1)), real2.getReal32Value());
+  ASSERT_EQ((std::pair<int64_t, uint64_t>(0, 1)), real2.getReal64Value());
+  ASSERT_EQ("0.0", real2.getRealValue());
 
-  ASSERT_EQ(std::make_pair(-17, 1u), real3.getReal32Value());
-  ASSERT_EQ(std::make_pair(-17l, 1ul), real3.getReal64Value());
-  ASSERT_EQ("-17", real3.getRealValue());
+  ASSERT_EQ((std::pair<int32_t, uint32_t>(-17, 1)), real3.getReal32Value());
+  ASSERT_EQ((std::pair<int64_t, uint64_t>(-17, 1)), real3.getReal64Value());
+  ASSERT_EQ("-17.0", real3.getRealValue());
 
-  ASSERT_EQ(std::make_pair(-3, 5u), real4.getReal32Value());
-  ASSERT_EQ(std::make_pair(-3l, 5ul), real4.getReal64Value());
+  ASSERT_EQ((std::pair<int32_t, uint32_t>(-3, 5)), real4.getReal32Value());
+  ASSERT_EQ((std::pair<int64_t, uint64_t>(-3, 5)), real4.getReal64Value());
   ASSERT_EQ("-3/5", real4.getRealValue());
 
-  ASSERT_EQ(std::make_pair(127, 10u), real5.getReal32Value());
-  ASSERT_EQ(std::make_pair(127l, 10ul), real5.getReal64Value());
+  ASSERT_EQ((std::pair<int32_t, uint32_t>(127, 10)), real5.getReal32Value());
+  ASSERT_EQ((std::pair<int64_t, uint64_t>(127, 10)), real5.getReal64Value());
   ASSERT_EQ("127/10", real5.getRealValue());
 
-  ASSERT_EQ(std::make_pair(1l, 4294967297ul), real6.getReal64Value());
+  ASSERT_EQ((std::pair<int64_t, uint64_t>(1, 4294967297)), real6.getReal64Value());
   ASSERT_EQ("1/4294967297", real6.getRealValue());
 
-  ASSERT_EQ(std::make_pair(4294967297l, 1ul), real7.getReal64Value());
-  ASSERT_EQ("4294967297", real7.getRealValue());
+  ASSERT_EQ((std::pair<int64_t, uint64_t>(4294967297, 1)), real7.getReal64Value());
+  ASSERT_EQ("4294967297.0", real7.getRealValue());
 
   ASSERT_EQ("1/18446744073709551617", real8.getRealValue());
 
-  ASSERT_EQ("18446744073709551617", real9.getRealValue());
+  ASSERT_EQ("18446744073709551617.0", real9.getRealValue());
+
+  ASSERT_EQ("23432343/10000", real10.getRealValue());
 }
 
 TEST_F(TestApiBlackTerm, getConstArrayBase)

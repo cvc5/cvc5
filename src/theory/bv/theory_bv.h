@@ -34,9 +34,9 @@ class BVSolver;
 
 class TheoryBV : public Theory
 {
-  /* BVSolverLazy accesses methods from theory in a way that is deprecated and
-   * will be removed in the future. For now we allow direct access. */
-  friend class BVSolverLazy;
+  /* BVSolverLayered accesses methods from theory in a way that is deprecated
+   * and will be removed in the future. For now we allow direct access. */
+  friend class BVSolverLayered;
 
  public:
   TheoryBV(context::Context* c,
@@ -82,6 +82,8 @@ class TheoryBV : public Theory
   void propagate(Effort e) override;
 
   TrustNode explain(TNode n) override;
+
+  void computeRelevantTerms(std::set<Node>& termSet) override;
 
   /** Collect model values in m based on the relevant terms given by termSet */
   bool collectModelValues(TheoryModel* m,

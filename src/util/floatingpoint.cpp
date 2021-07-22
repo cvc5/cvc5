@@ -265,8 +265,8 @@ FloatingPoint FloatingPoint::negate(void) const
   return FloatingPoint(new FloatingPointLiteral(d_fpl->negate()));
 }
 
-FloatingPoint FloatingPoint::plus(const RoundingMode& rm,
-                                  const FloatingPoint& arg) const
+FloatingPoint FloatingPoint::add(const RoundingMode& rm,
+                                 const FloatingPoint& arg) const
 {
   return FloatingPoint(new FloatingPointLiteral(d_fpl->add(rm, *arg.d_fpl)));
 }

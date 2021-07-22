@@ -1,5 +1,5 @@
 ; EXPECT: sat
-(set-logic QF_ALL_SUPPORTED)
+(set-logic QF_ALL)
 (set-info :status sat)
 (declare-datatypes ((Pair 2)) ((par (T S) ((pair (first T) (second S))))))
 

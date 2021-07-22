@@ -1321,24 +1321,30 @@ Node EqProof::addToProof(CDProof* p,
     }
   }
   std::vector<Node> children(arity + 1);
-  // Check if there is a justification for equality between functions (HO case)
-  if (!transitivityChildren[0].empty())
-  {
-    Assert(k == kind::APPLY_UF) << "Congruence with different functions only "
-                                   "allowed for uninterpreted functions.\n";
-
-    children[0] =
-        conclusion[0].getOperator().eqNode(conclusion[1].getOperator());
-    Assert(transitivityChildren[0].size() == 1
-           && CDProof::isSame(children[0], transitivityChildren[0][0]))
-        << "Justification of operators equality is wrong: "
-        << transitivityChildren[0] << "\n";
-  }
   // Proccess transitivity matrix to (possibly) generate transitivity steps for
   // congruence premises (= ai bi)
-  for (unsigned i = 1; i <= arity; ++i)
+  for (unsigned i = 0; i <= arity; ++i)
   {
-    Node transConclusion = conclusion[0][i - 1].eqNode(conclusion[1][i - 1]);
+    Node transConclusion;
+    // We special case the operator case because there is only ever the need to
+    // do something when in some HO case
+    if (i == 0)
+    {
+      // no justification for equality between functions, skip
+      if (transitivityChildren[0].empty())
+      {
+        continue;
+      }
+      // HO case
+      Assert(k == kind::APPLY_UF) << "Congruence with different functions only "
+                                     "allowed for uninterpreted functions.\n";
+      transConclusion =
+          conclusion[0].getOperator().eqNode(conclusion[1].getOperator());
+    }
+    else
+    {
+      transConclusion = conclusion[0][i - 1].eqNode(conclusion[1][i - 1]);
+    }
     children[i] = transConclusion;
     Assert(!transitivityChildren[i].empty())
         << "EqProof::addToProof: did not add any justification for " << i

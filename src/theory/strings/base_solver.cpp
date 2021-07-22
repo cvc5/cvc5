@@ -21,6 +21,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::context;
@@ -539,7 +540,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
   {
     Assert(tn.isSequence());
     TypeNode etn = tn.getSequenceElementType();
-    if (d_state.isFiniteType(etn))
+    if (!d_state.isFiniteType(etn))
     {
       // infinite cardinality, we are fine
       return;

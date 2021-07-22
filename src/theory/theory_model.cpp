@@ -23,6 +23,7 @@
 #include "smt/smt_engine.h"
 #include "theory/rewriter.h"
 #include "theory/trust_substitutions.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -141,8 +142,22 @@ Node TheoryModel::getValue(TNode n) const
   Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
   nn = getModelValue(nn);
-  if (nn.isNull()) return nn;
-  if(options::condenseFunctionValues() || nn.getKind() != kind::LAMBDA) {
+  if (nn.isNull())
+  {
+    return nn;
+  }
+  else if (nn.getKind() == kind::LAMBDA)
+  {
+    if (options::condenseFunctionValues())
+    {
+      // normalize the body. Do not normalize the entire node, which
+      // involves array normalization.
+      NodeManager* nm = NodeManager::currentNM();
+      nn = nm->mkNode(kind::LAMBDA, nn[0], Rewriter::rewrite(nn[1]));
+    }
+  }
+  else
+  {
     //normalize
     nn = Rewriter::rewrite(nn);
   }

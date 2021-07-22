@@ -15,6 +15,7 @@
 
 #include "theory/bags/term_registry.h"
 
+#include "expr/emptyset.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
 

@@ -25,6 +25,7 @@ const char* toString(InferenceId i)
   switch (i)
   {
     case InferenceId::EQ_CONSTANT_MERGE: return "EQ_CONSTANT_MERGE";
+    case InferenceId::COMBINATION_SPLIT: return "COMBINATION_SPLIT";
     case InferenceId::ARITH_BLACK_BOX: return "ARITH_BLACK_BOX";
     case InferenceId::ARITH_CONF_EQ: return "ARITH_CONF_EQ";
     case InferenceId::ARITH_CONF_LOWER: return "ARITH_CONF_LOWER";
@@ -75,6 +76,14 @@ const char* toString(InferenceId i)
       return "ARITH_NL_IAND_SUM_REFINE";
     case InferenceId::ARITH_NL_IAND_BITWISE_REFINE:
       return "ARITH_NL_IAND_BITWISE_REFINE";
+    case InferenceId::ARITH_NL_POW2_INIT_REFINE:
+      return "ARITH_NL_POW2_INIT_REFINE";
+    case InferenceId::ARITH_NL_POW2_VALUE_REFINE:
+      return "ARITH_NL_POW2_VALUE_REFINE";
+    case InferenceId::ARITH_NL_POW2_MONOTONE_REFINE:
+      return "ARITH_NL_POW2_MONOTONE_REFINE";
+    case InferenceId::ARITH_NL_POW2_TRIVIAL_CASE_REFINE:
+      return "ARITH_NL_POW2_TRIVIAL_CASE_REFINE";
     case InferenceId::ARITH_NL_CAD_CONFLICT: return "ARITH_NL_CAD_CONFLICT";
     case InferenceId::ARITH_NL_CAD_EXCLUDED_INTERVAL:
       return "ARITH_NL_CAD_EXCLUDED_INTERVAL";
@@ -101,10 +110,12 @@ const char* toString(InferenceId i)
     case InferenceId::BAG_DUPLICATE_REMOVAL: return "BAG_DUPLICATE_REMOVAL";
 
     case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
-    case InferenceId::BV_LAZY_CONFLICT: return "BV_LAZY_CONFLICT";
-    case InferenceId::BV_LAZY_LEMMA: return "BV_LAZY_LEMMA";
-    case InferenceId::BV_SIMPLE_LEMMA: return "BV_SIMPLE_LEMMA";
-    case InferenceId::BV_SIMPLE_BITBLAST_LEMMA: return "BV_SIMPLE_BITBLAST_LEMMA";
+    case InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA:
+      return "BV_BITBLAST_EAGER_LEMMA";
+    case InferenceId::BV_BITBLAST_INTERNAL_BITBLAST_LEMMA:
+      return "BV_BITBLAST_INTERNAL_BITBLAST_LEMMA";
+    case InferenceId::BV_LAYERED_CONFLICT: return "BV_LAYERED_CONFLICT";
+    case InferenceId::BV_LAYERED_LEMMA: return "BV_LAYERED_LEMMA";
     case InferenceId::BV_EXTF_LEMMA: return "BV_EXTF_LEMMA";
     case InferenceId::BV_EXTF_COLLAPSE: return "BV_EXTF_COLLAPSE";
 

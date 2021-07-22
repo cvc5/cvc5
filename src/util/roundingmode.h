@@ -19,6 +19,8 @@
 
 #include <fenv.h>
 
+#include <iosfwd>
+
 namespace cvc5 {
 
 #define CVC5_NUM_ROUNDING_MODES 5
@@ -26,7 +28,7 @@ namespace cvc5 {
 /**
  * A concrete instance of the rounding mode sort
  */
-enum RoundingMode
+enum class RoundingMode
 {
   ROUND_NEAREST_TIES_TO_EVEN = FE_TONEAREST,
   ROUND_TOWARD_POSITIVE = FE_UPWARD,
@@ -45,6 +47,8 @@ struct RoundingModeHashFunction
 {
   inline size_t operator()(const RoundingMode& rm) const { return size_t(rm); }
 }; /* struct RoundingModeHashFunction */
+
+std::ostream& operator<<(std::ostream& os, RoundingMode s);
 
 }  // namespace cvc5
 

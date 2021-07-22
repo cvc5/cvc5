@@ -48,6 +48,14 @@ name   = "SMT Layer"
   help       = "use static learning (on by default)"
 
 [[option]]
+  name       = "learnedRewrite"
+  category   = "regular"
+  long       = "learned-rewrite"
+  type       = "bool"
+  default    = "false"
+  help       = "rewrite the input based on learned literals"
+
+[[option]]
   name       = "expandDefinitions"
   long       = "expand-definitions"
   category   = "regular"
@@ -77,14 +85,6 @@ name   = "SMT Layer"
   long       = "debug-check-models"
   type       = "bool"
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user and internal assertions"
-
-[[option]]
-  name       = "dumpModels"
-  category   = "regular"
-  long       = "dump-models"
-  type       = "bool"
-  default    = "false"
-  help       = "output models after every SAT/INVALID/UNKNOWN response"
 
 [[option]]
   name       = "modelCoresMode"
@@ -131,27 +131,11 @@ name   = "SMT Layer"
   help       = "produce proofs, support check-proofs and get-proof"
 
 [[option]]
-  name       = "dumpProofs"
-  category   = "regular"
-  long       = "dump-proofs"
-  type       = "bool"
-  default    = "false"
-  help       = "output proofs after every UNSAT/VALID response"
-
-[[option]]
   name       = "checkProofs"
   category   = "regular"
   long       = "check-proofs"
   type       = "bool"
   help       = "after UNSAT/VALID, check the generated proof (with proof)"
-
-[[option]]
-  name       = "dumpInstantiations"
-  category   = "regular"
-  long       = "dump-instantiations"
-  type       = "bool"
-  default    = "false"
-  help       = "output instantiations of quantified formulas after every UNSAT/VALID response"
 
 [[option]]
   name       = "sygusOut"
@@ -216,22 +200,6 @@ name   = "SMT Layer"
   long       = "check-unsat-cores"
   type       = "bool"
   help       = "after UNSAT/VALID, produce and check an unsat core (expensive)"
-
-[[option]]
-  name       = "dumpUnsatCores"
-  category   = "regular"
-  long       = "dump-unsat-cores"
-  type       = "bool"
-  default    = "false"
-  help       = "output unsat cores after every UNSAT/VALID response"
-
-[[option]]
-  name       = "dumpUnsatCoresFull"
-  category   = "regular"
-  long       = "dump-unsat-cores-full"
-  type       = "bool"
-  default    = "false"
-  help       = "dump the full unsat core, including unlabeled assertions"
 
 [[option]]
   name       = "unsatAssumptions"
@@ -360,15 +328,6 @@ name   = "SMT Layer"
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
 
 [[option]]
-  name       = "incrementalSolving"
-  category   = "common"
-  short      = "i"
-  long       = "incremental"
-  type       = "bool"
-  default    = "true"
-  help       = "enable incremental solving"
-
-[[option]]
   name       = "abstractValues"
   category   = "regular"
   long       = "abstract-values"
@@ -420,14 +379,6 @@ name   = "SMT Layer"
   category   = "regular"
   type       = "std::string"
   help       = "set the diagnostic output channel of the solver"
-
-[[option]]
-  name       = "forceNoLimitCpuWhileDump"
-  category   = "regular"
-  long       = "force-no-limit-cpu-while-dump"
-  type       = "bool"
-  default    = "false"
-  help       = "Force no CPU limit when dumping models and proofs"
 
 [[option]]
   name       = "foreignTheoryRewrite"

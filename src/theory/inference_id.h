@@ -41,6 +41,8 @@ enum class InferenceId
   // ---------------------------------- core
   // a conflict when two constants merge in the equality engine (of any theory)
   EQ_CONSTANT_MERGE,
+  // a split from theory combination
+  COMBINATION_SPLIT,
   // ---------------------------------- arith theory
   //-------------------- linear core
   // black box conflicts. It's magic.
@@ -126,6 +128,15 @@ enum class InferenceId
   ARITH_NL_IAND_SUM_REFINE,
   // bitwise refinements (IAndSolver::checkFullRefine)
   ARITH_NL_IAND_BITWISE_REFINE,
+  //-------------------- nonlinear pow2 solver
+  // initial refinements (Pow2Solver::checkInitialRefine)
+  ARITH_NL_POW2_INIT_REFINE,
+  // value refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_VALUE_REFINE,
+  // monotonicity refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_MONOTONE_REFINE,
+  // trivial refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_TRIVIAL_CASE_REFINE,
   //-------------------- nonlinear cad solver
   // conflict / infeasible subset obtained from cad
   ARITH_NL_CAD_CONFLICT,
@@ -162,10 +173,10 @@ enum class InferenceId
 
   // ---------------------------------- bitvector theory
   BV_BITBLAST_CONFLICT,
-  BV_LAZY_CONFLICT,
-  BV_LAZY_LEMMA,
-  BV_SIMPLE_LEMMA,
-  BV_SIMPLE_BITBLAST_LEMMA,
+  BV_BITBLAST_INTERNAL_EAGER_LEMMA,
+  BV_BITBLAST_INTERNAL_BITBLAST_LEMMA,
+  BV_LAYERED_CONFLICT,
+  BV_LAYERED_LEMMA,
   BV_EXTF_LEMMA,
   BV_EXTF_COLLAPSE,
   // ---------------------------------- end bitvector theory

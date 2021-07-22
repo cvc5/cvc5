@@ -33,6 +33,7 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/attempt_solution_simplex.h"
+#include "theory/arith/branch_and_bound.h"
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint.h"
 #include "theory/arith/delta_rational.h"
@@ -56,9 +57,11 @@
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
-namespace theory {
 
 class EagerProofGenerator;
+
+namespace theory {
+
 class TheoryModel;
 
 namespace arith {
@@ -92,7 +95,8 @@ private:
   bool d_foundNl;
 
   BoundInfoMap d_rowTracking;
-
+  /** Branch and bound utility */
+  BranchAndBound& d_bab;
   // For proofs
   /** Manages the proof nodes of this theory. */
   ProofNodeManager* d_pnm;
@@ -422,9 +426,7 @@ private:
   TheoryArithPrivate(TheoryArith& containing,
                      context::Context* c,
                      context::UserContext* u,
-                     OutputChannel& out,
-                     Valuation valuation,
-                     const LogicInfo& logicInfo,
+                     BranchAndBound& bab,
                      ProofNodeManager* pnm);
   ~TheoryArithPrivate();
 
@@ -693,8 +695,8 @@ private:
   inline TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
   inline void debugPrintFacts() const { d_containing.debugPrintFacts(); }
   inline context::Context* getSatContext() const { return d_containing.getSatContext(); }
-  void outputTrustedLemma(TrustNode lem, InferenceId id);
-  void outputLemma(TNode lem, InferenceId id);
+  bool outputTrustedLemma(TrustNode lem, InferenceId id);
+  bool outputLemma(TNode lem, InferenceId id);
   void outputTrustedConflict(TrustNode conf, InferenceId id);
   void outputConflict(TNode lit, InferenceId id);
   void outputPropagate(TNode lit);

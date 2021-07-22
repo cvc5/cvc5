@@ -18,6 +18,7 @@
 #include <map>
 #include <memory>
 
+#include "expr/array_store_all.h"
 #include "expr/kind.h"
 #include "expr/node_algorithm.h"
 #include "options/arrays_options.h"
@@ -150,6 +151,8 @@ bool TheoryArrays::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
   esi.d_name = d_instanceName + "ee";
+  esi.d_notifyNewClass = true;
+  esi.d_notifyMerge = true;
   return true;
 }
 

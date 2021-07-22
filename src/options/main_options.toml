@@ -1,5 +1,6 @@
 id     = "DRIVER"
 name   = "Driver"
+public = true
 
 [[option]]
   name       = "version"
@@ -88,9 +89,49 @@ name   = "Driver"
   help       = "spin on segfault/other crash waiting for gdb"
 
 [[option]]
-  name       = "tearDownIncremental"
-  category   = "expert"
-  long       = "tear-down-incremental=N"
-  type       = "int"
-  default    = "0"
-  help       = "implement PUSH/POP/multi-query by destroying and recreating SmtEngine every N queries"
+  name       = "dumpModels"
+  category   = "regular"
+  long       = "dump-models"
+  type       = "bool"
+  default    = "false"
+  help       = "output models after every SAT/INVALID/UNKNOWN response"
+
+[[option]]
+  name       = "dumpProofs"
+  category   = "regular"
+  long       = "dump-proofs"
+  type       = "bool"
+  default    = "false"
+  help       = "output proofs after every UNSAT/VALID response"
+
+[[option]]
+  name       = "dumpInstantiations"
+  category   = "regular"
+  long       = "dump-instantiations"
+  type       = "bool"
+  default    = "false"
+  help       = "output instantiations of quantified formulas after every UNSAT/VALID response"
+
+[[option]]
+  name       = "dumpUnsatCores"
+  category   = "regular"
+  long       = "dump-unsat-cores"
+  type       = "bool"
+  default    = "false"
+  help       = "output unsat cores after every UNSAT/VALID response"
+
+[[option]]
+  name       = "dumpUnsatCoresFull"
+  category   = "regular"
+  long       = "dump-unsat-cores-full"
+  type       = "bool"
+  default    = "false"
+  help       = "dump the full unsat core, including unlabeled assertions"
+
+[[option]]
+  name       = "forceNoLimitCpuWhileDump"
+  category   = "regular"
+  long       = "force-no-limit-cpu-while-dump"
+  type       = "bool"
+  default    = "false"
+  help       = "Force no CPU limit when dumping models and proofs"

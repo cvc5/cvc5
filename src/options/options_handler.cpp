@@ -33,7 +33,6 @@
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
-#include "options/resource_manager_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 
@@ -68,10 +67,11 @@ void throwLazyBBUnsupported(options::SatSolverMode m)
 
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
-unsigned long OptionsHandler::limitHandler(std::string option,
-                                           std::string optarg)
+uint64_t OptionsHandler::limitHandler(const std::string& option,
+                                      const std::string& flag,
+                                      const std::string& optarg)
 {
-  unsigned long ms;
+  uint64_t ms;
   std::istringstream convert(optarg);
   if (!(convert >> ms))
   {
@@ -81,14 +81,18 @@ unsigned long OptionsHandler::limitHandler(std::string option,
   return ms;
 }
 
-void OptionsHandler::setResourceWeight(std::string option, std::string optarg)
+void OptionsHandler::setResourceWeight(const std::string& option,
+                                       const std::string& flag,
+                                       const std::string& optarg)
 {
-  d_options->resman().resourceWeightHolder.emplace_back(optarg);
+  d_options->base.resourceWeightHolder.emplace_back(optarg);
 }
 
 // theory/quantifiers/options_handlers.h
 
-void OptionsHandler::checkInstWhenMode(std::string option, InstWhenMode mode)
+void OptionsHandler::checkInstWhenMode(const std::string& option,
+                                       const std::string& flag,
+                                       InstWhenMode mode)
 {
   if (mode == InstWhenMode::PRE_FULL)
   {
@@ -98,7 +102,9 @@ void OptionsHandler::checkInstWhenMode(std::string option, InstWhenMode mode)
 }
 
 // theory/bv/options_handlers.h
-void OptionsHandler::abcEnabledBuild(std::string option, bool value)
+void OptionsHandler::abcEnabledBuild(const std::string& option,
+                                     const std::string& flag,
+                                     bool value)
 {
 #ifndef CVC5_USE_ABC
   if(value) {
@@ -111,7 +117,9 @@ void OptionsHandler::abcEnabledBuild(std::string option, bool value)
 #endif /* CVC5_USE_ABC */
 }
 
-void OptionsHandler::abcEnabledBuild(std::string option, std::string value)
+void OptionsHandler::abcEnabledBuild(const std::string& option,
+                                     const std::string& flag,
+                                     const std::string& value)
 {
 #ifndef CVC5_USE_ABC
   if(!value.empty()) {
@@ -124,7 +132,9 @@ void OptionsHandler::abcEnabledBuild(std::string option, std::string value)
 #endif /* CVC5_USE_ABC */
 }
 
-void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
+void OptionsHandler::checkBvSatSolver(const std::string& option,
+                                      const std::string& flag,
+                                      SatSolverMode m)
 {
   if (m == SatSolverMode::CRYPTOMINISAT
       && !Configuration::isBuiltWithCryptominisat())
@@ -133,15 +143,6 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
     ss << "option `" << option
        << "' requires a CryptoMiniSat build of cvc5; this binary was not built "
           "with CryptoMiniSat support";
-    throw OptionException(ss.str());
-  }
-
-  if (m == SatSolverMode::CADICAL && !Configuration::isBuiltWithCadical())
-  {
-    std::stringstream ss;
-    ss << "option `" << option
-       << "' requires a CaDiCaL build of cvc5; this binary was not built with "
-          "CaDiCaL support";
     throw OptionException(ss.str());
   }
 
@@ -159,22 +160,24 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
           || m == SatSolverMode::KISSAT))
   {
     if (options::bitblastMode() == options::BitblastMode::LAZY
-        && Options::current().wasSetByUser(options::bitblastMode))
+        && d_options->bv.bitblastModeWasSetByUser)
     {
       throwLazyBBUnsupported(m);
     }
-    Options::current().setDefault(options::bitvectorToBool, true);
+    options::bv::setDefaultBitvectorToBool(*d_options, true);
   }
 }
 
-void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
+void OptionsHandler::checkBitblastMode(const std::string& option,
+                                       const std::string& flag,
+                                       BitblastMode m)
 {
   if (m == options::BitblastMode::LAZY)
   {
-    Options::current().setDefault(options::bitvectorPropagate, true);
-    Options::current().setDefault(options::bitvectorEqualitySolver, true);
-    Options::current().setDefault(options::bitvectorInequalitySolver, true);
-    Options::current().setDefault(options::bitvectorAlgebraicSolver, true);
+    options::bv::setDefaultBitvectorPropagate(*d_options, true);
+    options::bv::setDefaultBitvectorEqualitySolver(*d_options, true);
+    options::bv::setDefaultBitvectorInequalitySolver(*d_options, true);
+    options::bv::setDefaultBitvectorAlgebraicSolver(*d_options, true);
     if (options::bvSatSolver() != options::SatSolverMode::MINISAT)
     {
       throwLazyBBUnsupported(options::bvSatSolver());
@@ -182,21 +185,23 @@ void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
   }
   else if (m == BitblastMode::EAGER)
   {
-    Options::current().setDefault(options::bitvectorToBool, true);
+    options::bv::setDefaultBitvectorToBool(*d_options, true);
   }
 }
 
-void OptionsHandler::setBitblastAig(std::string option, bool arg)
+void OptionsHandler::setBitblastAig(const std::string& option,
+                                    const std::string& flag,
+                                    bool arg)
 {
   if(arg) {
-    if(Options::current().wasSetByUser(options::bitblastMode)) {
+    if (d_options->bv.bitblastModeWasSetByUser) {
       if (options::bitblastMode() != options::BitblastMode::EAGER)
       {
         throw OptionException("bitblast-aig must be used with eager bitblaster");
       }
     } else {
       options::BitblastMode mode = stringToBitblastMode("eager");
-      Options::current().set(options::bitblastMode, mode);
+      d_options->bv.bitblastMode = mode;
     }
   }
 }
@@ -212,8 +217,9 @@ szs\n\
 + Print instantiations as SZS compliant proof.\n\
 ";
 
-InstFormatMode OptionsHandler::stringToInstFormatMode(std::string option,
-                                                      std::string optarg)
+InstFormatMode OptionsHandler::stringToInstFormatMode(const std::string& option,
+                                                      const std::string& flag,
+                                                      const std::string& optarg)
 {
   if(optarg == "default") {
     return InstFormatMode::DEFAULT;
@@ -228,70 +234,78 @@ InstFormatMode OptionsHandler::stringToInstFormatMode(std::string option,
   }
 }
 
-// decision/options_handlers.h
-void OptionsHandler::setDecisionModeStopOnly(std::string option, DecisionMode m)
+void OptionsHandler::setProduceAssertions(const std::string& option,
+                                          const std::string& flag,
+                                          bool value)
 {
-  Options::current().set(options::decisionStopOnly, m == DecisionMode::RELEVANCY);
+  d_options->smt.produceAssertions = value;
+  d_options->smt.interactiveMode = value;
 }
 
-void OptionsHandler::setProduceAssertions(std::string option, bool value)
-{
-  Options::current().set(options::produceAssertions, value);
-  Options::current().set(options::interactiveMode, value);
-}
-
-void OptionsHandler::setStats(const std::string& option, bool value)
+void OptionsHandler::setStats(const std::string& option,
+                              const std::string& flag,
+                              bool value)
 {
 #ifndef CVC5_STATISTICS_ON
   if (value)
   {
     std::stringstream ss;
-    ss << "option `" << option
+    ss << "option `" << flag
        << "' requires a statistics-enabled build of cvc5; this binary was not "
           "built with statistics support";
     throw OptionException(ss.str());
   }
 #endif /* CVC5_STATISTICS_ON */
-  Assert(option.substr(0, 2) == "--");
-  std::string opt = option.substr(2);
+  std::string opt = option;
+  if (option.substr(0, 2) == "--")
+  {
+    opt = opt.substr(2);
+  }
   if (value)
   {
-    if (option == options::base::statisticsAll__name)
+    if (opt == options::base::statisticsAll__name)
     {
-      d_options->base().statistics = true;
+      d_options->base.statistics = true;
     }
-    else if (option == options::base::statisticsEveryQuery__name)
+    else if (opt == options::base::statisticsEveryQuery__name)
     {
-      d_options->base().statistics = true;
+      d_options->base.statistics = true;
     }
-    else if (option == options::base::statisticsExpert__name)
+    else if (opt == options::base::statisticsExpert__name)
     {
-      d_options->base().statistics = true;
+      d_options->base.statistics = true;
     }
   }
   else
   {
-    if (option == options::base::statistics__name)
+    if (opt == options::base::statistics__name)
     {
-      d_options->base().statisticsAll = false;
-      d_options->base().statisticsEveryQuery = false;
-      d_options->base().statisticsExpert = false;
+      d_options->base.statisticsAll = false;
+      d_options->base.statisticsEveryQuery = false;
+      d_options->base.statisticsExpert = false;
     }
   }
 }
 
-void OptionsHandler::threadN(std::string option) {
-  throw OptionException(option + " is not a real option by itself.  Use e.g. --thread0=\"--random-seed=10 --random-freq=0.02\" --thread1=\"--random-seed=20 --random-freq=0.05\"");
+void OptionsHandler::threadN(const std::string& option, const std::string& flag)
+{
+  throw OptionException(flag + " is not a real option by itself.  Use e.g. --thread0=\"--random-seed=10 --random-freq=0.02\" --thread1=\"--random-seed=20 --random-freq=0.05\"");
 }
 
 // expr/options_handlers.h
-void OptionsHandler::setDefaultExprDepthPredicate(std::string option, int depth) {
+void OptionsHandler::setDefaultExprDepthPredicate(const std::string& option,
+                                                  const std::string& flag,
+                                                  int depth)
+{
   if(depth < -1) {
     throw OptionException("--expr-depth requires a positive argument, or -1.");
   }
 }
 
-void OptionsHandler::setDefaultDagThreshPredicate(std::string option, int dag) {
+void OptionsHandler::setDefaultDagThreshPredicate(const std::string& option,
+                                                  const std::string& flag,
+                                                  int dag)
+{
   if(dag < 0) {
     throw OptionException("--dag-thresh requires a nonnegative argument.");
   }
@@ -310,12 +324,16 @@ static void print_config_cond (const char * str, bool cond = false) {
   print_config(str, cond ? "yes" : "no");
 }
 
-void OptionsHandler::copyright(std::string option) {
+void OptionsHandler::copyright(const std::string& option,
+                               const std::string& flag)
+{
   std::cout << Configuration::copyright() << std::endl;
   exit(0);
 }
 
-void OptionsHandler::showConfiguration(std::string option) {
+void OptionsHandler::showConfiguration(const std::string& option,
+                                       const std::string& flag)
+{
   std::cout << Configuration::about() << std::endl;
 
   print_config ("version", Configuration::getVersionString());
@@ -362,13 +380,11 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("abc", Configuration::isBuiltWithAbc());
   print_config_cond("cln", Configuration::isBuiltWithCln());
   print_config_cond("glpk", Configuration::isBuiltWithGlpk());
-  print_config_cond("cadical", Configuration::isBuiltWithCadical());
   print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
   print_config_cond("gmp", Configuration::isBuiltWithGmp());
   print_config_cond("kissat", Configuration::isBuiltWithKissat());
   print_config_cond("poly", Configuration::isBuiltWithPoly());
   print_config_cond("editline", Configuration::isBuiltWithEditline());
-  print_config_cond("symfpu", Configuration::isBuiltWithSymFPU());
 
   exit(0);
 }
@@ -383,7 +399,8 @@ static void printTags(unsigned ntags, char const* const* tags)
   std::cout << std::endl;
 }
 
-void OptionsHandler::showDebugTags(std::string option)
+void OptionsHandler::showDebugTags(const std::string& option,
+                                   const std::string& flag)
 {
   if (!Configuration::isDebugBuild())
   {
@@ -397,7 +414,8 @@ void OptionsHandler::showDebugTags(std::string option)
   exit(0);
 }
 
-void OptionsHandler::showTraceTags(std::string option)
+void OptionsHandler::showTraceTags(const std::string& option,
+                                   const std::string& flag)
 {
   if (!Configuration::isTracingBuild())
   {
@@ -429,7 +447,9 @@ static std::string suggestTags(char const* const* validTags,
   return didYouMean.getMatchAsString(inputTag);
 }
 
-void OptionsHandler::enableTraceTag(std::string option, std::string optarg)
+void OptionsHandler::enableTraceTag(const std::string& option,
+                                    const std::string& flag,
+                                    const std::string& optarg)
 {
   if(!Configuration::isTracingBuild())
   {
@@ -451,7 +471,9 @@ void OptionsHandler::enableTraceTag(std::string option, std::string optarg)
   Trace.on(optarg);
 }
 
-void OptionsHandler::enableDebugTag(std::string option, std::string optarg)
+void OptionsHandler::enableDebugTag(const std::string& option,
+                                    const std::string& flag,
+                                    const std::string& optarg)
 {
   if (!Configuration::isDebugBuild())
   {
@@ -482,11 +504,20 @@ void OptionsHandler::enableDebugTag(std::string option, std::string optarg)
   Trace.on(optarg);
 }
 
-OutputLanguage OptionsHandler::stringToOutputLanguage(std::string option,
-                                                      std::string optarg)
+void OptionsHandler::enableOutputTag(const std::string& option,
+                                     const std::string& flag,
+                                     const std::string& optarg)
+{
+  d_options->base.outputTagHolder.set(
+      static_cast<size_t>(stringToOutputTag(optarg)));
+}
+
+OutputLanguage OptionsHandler::stringToOutputLanguage(const std::string& option,
+                                                      const std::string& flag,
+                                                      const std::string& optarg)
 {
   if(optarg == "help") {
-    Options::current().set(options::languageHelp, true);
+    d_options->base.languageHelp = true;
     return language::output::LANG_AUTO;
   }
 
@@ -500,11 +531,12 @@ OutputLanguage OptionsHandler::stringToOutputLanguage(std::string option,
   Unreachable();
 }
 
-InputLanguage OptionsHandler::stringToInputLanguage(std::string option,
-                                                    std::string optarg)
+InputLanguage OptionsHandler::stringToInputLanguage(const std::string& option,
+                                                    const std::string& flag,
+                                                    const std::string& optarg)
 {
   if(optarg == "help") {
-    Options::current().set(options::languageHelp, true);
+    d_options->base.languageHelp = true;
     return language::input::LANG_AUTO;
   }
 
@@ -518,7 +550,9 @@ InputLanguage OptionsHandler::stringToInputLanguage(std::string option,
 }
 
 /* options/base_options_handlers.h */
-void OptionsHandler::setVerbosity(std::string option, int value)
+void OptionsHandler::setVerbosity(const std::string& option,
+                                  const std::string& flag,
+                                  int value)
 {
   if(Configuration::isMuzzledBuild()) {
     DebugChannel.setStream(&cvc5::null_os);
@@ -548,14 +582,18 @@ void OptionsHandler::setVerbosity(std::string option, int value)
   }
 }
 
-void OptionsHandler::increaseVerbosity(std::string option) {
-  Options::current().set(options::verbosity, options::verbosity() + 1);
-  setVerbosity(option, options::verbosity());
+void OptionsHandler::increaseVerbosity(const std::string& option,
+                                       const std::string& flag)
+{
+  d_options->base.verbosity += 1;
+  setVerbosity(option, flag, d_options->base.verbosity);
 }
 
-void OptionsHandler::decreaseVerbosity(std::string option) {
-  Options::current().set(options::verbosity, options::verbosity() - 1);
-  setVerbosity(option, options::verbosity());
+void OptionsHandler::decreaseVerbosity(const std::string& option,
+                                       const std::string& flag)
+{
+  d_options->base.verbosity -= 1;
+  setVerbosity(option, flag, d_options->base.verbosity);
 }
 
 }  // namespace options

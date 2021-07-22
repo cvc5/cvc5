@@ -129,13 +129,13 @@ struct NodeValuePoolEq {
 
 #endif /* CVC5__KIND__METAKIND_H */
 
-// clang-format off
-${metakind_includes}
-// clang-format on
-
 #ifdef CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP
 
 namespace cvc5 {
+
+// clang-format off
+${metakind_fwd_decls}
+// clang-format on
 
 namespace expr {
 // clang-format off

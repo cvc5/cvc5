@@ -35,15 +35,7 @@ TEST_F(TestApiBlackSolver, recoverableException)
 
 TEST_F(TestApiBlackSolver, supportsFloatingPoint)
 {
-  if (d_solver.supportsFloatingPoint())
-  {
-    ASSERT_NO_THROW(d_solver.mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN));
-  }
-  else
-  {
-    ASSERT_THROW(d_solver.mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN),
-                 CVC5ApiException);
-  }
+  ASSERT_NO_THROW(d_solver.mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN));
 }
 
 TEST_F(TestApiBlackSolver, getBooleanSort)
@@ -78,14 +70,7 @@ TEST_F(TestApiBlackSolver, getStringSort)
 
 TEST_F(TestApiBlackSolver, getRoundingModeSort)
 {
-  if (d_solver.supportsFloatingPoint())
-  {
-    ASSERT_NO_THROW(d_solver.getRoundingModeSort());
-  }
-  else
-  {
-    ASSERT_THROW(d_solver.getRoundingModeSort(), CVC5ApiException);
-  }
+  ASSERT_NO_THROW(d_solver.getRoundingModeSort());
 }
 
 TEST_F(TestApiBlackSolver, mkArraySort)
@@ -101,12 +86,9 @@ TEST_F(TestApiBlackSolver, mkArraySort)
   ASSERT_NO_THROW(d_solver.mkArraySort(boolSort, intSort));
   ASSERT_NO_THROW(d_solver.mkArraySort(realSort, bvSort));
 
-  if (d_solver.supportsFloatingPoint())
-  {
-    Sort fpSort = d_solver.mkFloatingPointSort(3, 5);
-    ASSERT_NO_THROW(d_solver.mkArraySort(fpSort, fpSort));
-    ASSERT_NO_THROW(d_solver.mkArraySort(bvSort, fpSort));
-  }
+  Sort fpSort = d_solver.mkFloatingPointSort(3, 5);
+  ASSERT_NO_THROW(d_solver.mkArraySort(fpSort, fpSort));
+  ASSERT_NO_THROW(d_solver.mkArraySort(bvSort, fpSort));
 
   Solver slv;
   ASSERT_THROW(slv.mkArraySort(boolSort, boolSort), CVC5ApiException);
@@ -120,16 +102,9 @@ TEST_F(TestApiBlackSolver, mkBitVectorSort)
 
 TEST_F(TestApiBlackSolver, mkFloatingPointSort)
 {
-  if (d_solver.supportsFloatingPoint())
-  {
-    ASSERT_NO_THROW(d_solver.mkFloatingPointSort(4, 8));
-    ASSERT_THROW(d_solver.mkFloatingPointSort(0, 8), CVC5ApiException);
-    ASSERT_THROW(d_solver.mkFloatingPointSort(4, 0), CVC5ApiException);
-  }
-  else
-  {
-    ASSERT_THROW(d_solver.mkFloatingPointSort(4, 8), CVC5ApiException);
-  }
+  ASSERT_NO_THROW(d_solver.mkFloatingPointSort(4, 8));
+  ASSERT_THROW(d_solver.mkFloatingPointSort(0, 8), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkFloatingPointSort(4, 0), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkDatatypeSort)
@@ -377,15 +352,7 @@ TEST_F(TestApiBlackSolver, mkBoolean)
 
 TEST_F(TestApiBlackSolver, mkRoundingMode)
 {
-  if (d_solver.supportsFloatingPoint())
-  {
-    ASSERT_NO_THROW(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
-  }
-  else
-  {
-    ASSERT_THROW(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO),
-                 CVC5ApiException);
-  }
+  ASSERT_NO_THROW(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
 }
 
 TEST_F(TestApiBlackSolver, mkUninterpretedConst)
@@ -420,25 +387,15 @@ TEST_F(TestApiBlackSolver, mkFloatingPoint)
   Term t1 = d_solver.mkBitVector(8);
   Term t2 = d_solver.mkBitVector(4);
   Term t3 = d_solver.mkInteger(2);
-  if (d_solver.supportsFloatingPoint())
-  {
-    ASSERT_NO_THROW(d_solver.mkFloatingPoint(3, 5, t1));
-  }
-  else
-  {
-    ASSERT_THROW(d_solver.mkFloatingPoint(3, 5, t1), CVC5ApiException);
-  }
+  ASSERT_NO_THROW(d_solver.mkFloatingPoint(3, 5, t1));
   ASSERT_THROW(d_solver.mkFloatingPoint(0, 5, Term()), CVC5ApiException);
   ASSERT_THROW(d_solver.mkFloatingPoint(0, 5, t1), CVC5ApiException);
   ASSERT_THROW(d_solver.mkFloatingPoint(3, 0, t1), CVC5ApiException);
   ASSERT_THROW(d_solver.mkFloatingPoint(3, 5, t2), CVC5ApiException);
   ASSERT_THROW(d_solver.mkFloatingPoint(3, 5, t2), CVC5ApiException);
 
-  if (d_solver.supportsFloatingPoint())
-  {
-    Solver slv;
-    ASSERT_THROW(slv.mkFloatingPoint(3, 5, t1), CVC5ApiException);
-  }
+  Solver slv;
+  ASSERT_THROW(slv.mkFloatingPoint(3, 5, t1), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkEmptySet)
@@ -478,64 +435,26 @@ TEST_F(TestApiBlackSolver, mkFalse)
   ASSERT_NO_THROW(d_solver.mkFalse());
 }
 
-TEST_F(TestApiBlackSolver, mkNaN)
-{
-  if (d_solver.supportsFloatingPoint())
-  {
-    ASSERT_NO_THROW(d_solver.mkNaN(3, 5));
-  }
-  else
-  {
-    ASSERT_THROW(d_solver.mkNaN(3, 5), CVC5ApiException);
-  }
-}
+TEST_F(TestApiBlackSolver, mkNaN) { ASSERT_NO_THROW(d_solver.mkNaN(3, 5)); }
 
 TEST_F(TestApiBlackSolver, mkNegZero)
 {
-  if (d_solver.supportsFloatingPoint())
-  {
-    ASSERT_NO_THROW(d_solver.mkNegZero(3, 5));
-  }
-  else
-  {
-    ASSERT_THROW(d_solver.mkNegZero(3, 5), CVC5ApiException);
-  }
+  ASSERT_NO_THROW(d_solver.mkNegZero(3, 5));
 }
 
 TEST_F(TestApiBlackSolver, mkNegInf)
 {
-  if (d_solver.supportsFloatingPoint())
-  {
-    ASSERT_NO_THROW(d_solver.mkNegInf(3, 5));
-  }
-  else
-  {
-    ASSERT_THROW(d_solver.mkNegInf(3, 5), CVC5ApiException);
-  }
+  ASSERT_NO_THROW(d_solver.mkNegInf(3, 5));
 }
 
 TEST_F(TestApiBlackSolver, mkPosInf)
 {
-  if (d_solver.supportsFloatingPoint())
-  {
-    ASSERT_NO_THROW(d_solver.mkPosInf(3, 5));
-  }
-  else
-  {
-    ASSERT_THROW(d_solver.mkPosInf(3, 5), CVC5ApiException);
-  }
+  ASSERT_NO_THROW(d_solver.mkPosInf(3, 5));
 }
 
 TEST_F(TestApiBlackSolver, mkPosZero)
 {
-  if (d_solver.supportsFloatingPoint())
-  {
-    ASSERT_NO_THROW(d_solver.mkPosZero(3, 5));
-  }
-  else
-  {
-    ASSERT_THROW(d_solver.mkPosZero(3, 5), CVC5ApiException);
-  }
+  ASSERT_NO_THROW(d_solver.mkPosZero(3, 5));
 }
 
 TEST_F(TestApiBlackSolver, mkOp)
@@ -1552,7 +1471,7 @@ TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
 
 TEST_F(TestApiBlackSolver, declareSeparationHeap)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   Sort integer = d_solver.getIntegerSort();
   ASSERT_NO_THROW(d_solver.declareSeparationHeap(integer, integer));
   // cannot declare separation logic heap more than once
@@ -1592,7 +1511,7 @@ TEST_F(TestApiBlackSolver, getSeparationHeapTerm1)
 
 TEST_F(TestApiBlackSolver, getSeparationHeapTerm2)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "false");
   checkSimpleSeparationConstraints(&d_solver);
@@ -1601,7 +1520,7 @@ TEST_F(TestApiBlackSolver, getSeparationHeapTerm2)
 
 TEST_F(TestApiBlackSolver, getSeparationHeapTerm3)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   Term t = d_solver.mkFalse();
@@ -1612,7 +1531,7 @@ TEST_F(TestApiBlackSolver, getSeparationHeapTerm3)
 
 TEST_F(TestApiBlackSolver, getSeparationHeapTerm4)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   Term t = d_solver.mkTrue();
@@ -1623,7 +1542,7 @@ TEST_F(TestApiBlackSolver, getSeparationHeapTerm4)
 
 TEST_F(TestApiBlackSolver, getSeparationHeapTerm5)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   checkSimpleSeparationConstraints(&d_solver);
@@ -1642,7 +1561,7 @@ TEST_F(TestApiBlackSolver, getSeparationNilTerm1)
 
 TEST_F(TestApiBlackSolver, getSeparationNilTerm2)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "false");
   checkSimpleSeparationConstraints(&d_solver);
@@ -1651,7 +1570,7 @@ TEST_F(TestApiBlackSolver, getSeparationNilTerm2)
 
 TEST_F(TestApiBlackSolver, getSeparationNilTerm3)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   Term t = d_solver.mkFalse();
@@ -1662,7 +1581,7 @@ TEST_F(TestApiBlackSolver, getSeparationNilTerm3)
 
 TEST_F(TestApiBlackSolver, getSeparationNilTerm4)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   Term t = d_solver.mkTrue();
@@ -1673,7 +1592,7 @@ TEST_F(TestApiBlackSolver, getSeparationNilTerm4)
 
 TEST_F(TestApiBlackSolver, getSeparationNilTerm5)
 {
-  d_solver.setLogic("ALL_SUPPORTED");
+  d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   checkSimpleSeparationConstraints(&d_solver);

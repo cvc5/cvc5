@@ -23,9 +23,13 @@
 #include <typeinfo>
 #include <vector>
 
+#include "expr/array_store_all.h"
+#include "expr/ascription_type.h"
+#include "expr/datatype_index.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/dtype_selector.h"
+#include "expr/emptyset.h"
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
@@ -38,6 +42,10 @@
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
+#include "util/bitvector.h"
+#include "util/divisible.h"
+#include "util/rational.h"
+#include "util/string.h"
 
 using namespace std;
 

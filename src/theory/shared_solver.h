@@ -19,6 +19,7 @@
 #define CVC5__THEORY__SHARED_SOLVER__H
 
 #include "expr/node.h"
+#include "theory/inference_id.h"
 #include "theory/shared_terms_database.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/valuation.h"
@@ -32,6 +33,7 @@ class TheoryEngine;
 namespace theory {
 
 struct EeSetupInfo;
+class OutputChannel;
 
 /**
  * A base class for shared solver. The shared solver is the component of theory
@@ -108,6 +110,11 @@ class SharedSolver
   virtual bool isShared(TNode t) const;
 
   /**
+   * Propagate the predicate with polarity value on the output channel of this
+   * solver.
+   */
+  bool propagateLit(TNode predicate, bool value);
+  /**
    * Method called by equalityEngine when a becomes (dis-)equal to b and a and b
    * are shared with the theory. Returns false if there is a direct conflict
    * (via rewrite for example).
@@ -117,7 +124,9 @@ class SharedSolver
                                TNode b,
                                bool value);
   /** Send lemma to the theory engine, atomsTo is the theory to send atoms to */
-  void sendLemma(TrustNode trn, TheoryId atomsTo);
+  void sendLemma(TrustNode trn, TheoryId atomsTo, InferenceId id);
+  /** Send conflict to the theory engine */
+  void sendConflict(TrustNode trn);
 
  protected:
   /** Solver-specific pre-register shared */
@@ -132,6 +141,8 @@ class SharedSolver
   PreRegisterVisitor d_preRegistrationVisitor;
   /** Visitor for collecting shared terms */
   SharedTermsVisitor d_sharedTermsVisitor;
+  /** Output channel of theory builtin */
+  OutputChannel& d_out;
 };
 
 }  // namespace theory

@@ -21,6 +21,7 @@
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
 #include "theory/uf/equality_engine.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace theory {

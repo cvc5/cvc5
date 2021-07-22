@@ -1,4 +1,3 @@
-; REQUIRES: symfpu
 ; COMMAND-LINE: --fp-exp
 ; EXPECT: unsat
 (set-logic QF_FP)

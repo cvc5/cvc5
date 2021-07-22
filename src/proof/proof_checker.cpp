@@ -19,6 +19,7 @@
 #include "options/proof_options.h"
 #include "proof/proof_node.h"
 #include "smt/smt_statistics_registry.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 

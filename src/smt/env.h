@@ -91,14 +91,11 @@ class Env
   /** Get a pointer to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
 
-  template <typename Opt>
-  const auto& getOption(Opt opt) const
-  {
-    return d_options[opt];
-  }
-
   /** Get the options object (const version only) owned by this Env. */
   const Options& getOptions() const;
+
+  /** Get the original options object (const version only). */
+  const Options& getOriginalOptions() const;
 
   /** Get the resource manager owned by this Env. */
   ResourceManager* getResourceManager() const;
@@ -186,6 +183,12 @@ class Env
    * consider during solving and initialization.
    */
   Options d_options;
+  /**
+   * A pointer to the original options object as stored in the api::Solver.
+   * The referenced objects holds the options as initially parsed before being
+   * changed, e.g., by setDefaults().
+   */
+  const Options* d_originalOptions;
   /** Manager for limiting time and abstract resource usage. */
   std::unique_ptr<ResourceManager> d_resourceManager;
 }; /* class Env */

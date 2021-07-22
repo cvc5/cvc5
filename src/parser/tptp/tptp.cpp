@@ -22,8 +22,10 @@
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "parser/parser.h"
 #include "smt/command.h"
+#include "theory/logic_info.h"
 
 // ANTLR defines these, which is really bad!
 #undef true
@@ -36,7 +38,10 @@ Tptp::Tptp(api::Solver* solver,
            SymbolManager* sm,
            bool strictMode,
            bool parseOnly)
-    : Parser(solver, sm, strictMode, parseOnly), d_cnf(false), d_fof(false)
+    : Parser(solver, sm, strictMode, parseOnly),
+      d_cnf(false),
+      d_fof(false),
+      d_hol(false)
 {
   addTheory(Tptp::THEORY_CORE);
 
@@ -311,20 +316,18 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     isBuiltinKind = true;
   }
   Assert(kind != api::NULL_EXPR);
-  const Options& opts = d_solver->getOptions();
   // Second phase: apply parse op to the arguments
   if (isBuiltinKind)
   {
-    if (!opts.getUfHo() && (kind == api::EQUAL || kind == api::DISTINCT))
+    if (!hol() && (kind == api::EQUAL || kind == api::DISTINCT))
     {
-      // need --uf-ho if these operators are applied over function args
+      // need hol if these operators are applied over function args
       for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
            ++i)
       {
         if ((*i).getSort().isFunction())
         {
-          parseError(
-              "Cannot apply equalty to functions unless --uf-ho is set.");
+          parseError("Cannot apply equalty to functions unless THF.");
         }
       }
     }
@@ -362,9 +365,9 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       unsigned arity = argt.getFunctionArity();
       if (args.size() - 1 < arity)
       {
-        if (!opts.getUfHo())
+        if (!hol())
         {
-          parseError("Cannot partially apply functions unless --uf-ho is set.");
+          parseError("Cannot partially apply functions unless THF.");
         }
         Debug("parser") << "Partial application of " << args[0];
         Debug("parser") << " : #argTypes = " << arity;
@@ -434,6 +437,17 @@ api::Term Tptp::mkDecimal(
   }
   ss << ssn.str() << "." << ssd.str();
   return d_solver->mkReal(ss.str());
+}
+
+bool Tptp::hol() const { return d_hol; }
+void Tptp::setHol()
+{
+  if (d_hol)
+  {
+    return;
+  }
+  d_hol = true;
+  d_solver->setLogic("HO_UF");
 }
 
 void Tptp::forceLogic(const std::string& logic)

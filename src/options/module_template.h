@@ -16,7 +16,7 @@
  * expands this template and generates a <module>_options.h file.
  */
 
-#include "cvc5_private.h"
+${visibility_include}$
 
 #ifndef CVC5__OPTIONS__${id_cap}$_H
 #define CVC5__OPTIONS__${id_cap}$_H
@@ -70,6 +70,13 @@ namespace options {
 // clang-format off
 ${inls}$
 // clang-format on
+
+namespace ${id}$
+{
+// clang-format off
+${defaults}$
+// clang-format on
+}
 
 }  // namespace options
 }  // namespace cvc5

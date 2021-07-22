@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yancheng Ou, Michael Chang, Aina Niemetz
+ *   Yancheng Ou, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -30,7 +30,7 @@ bool OMTOptimizer::nodeSupportsOptimization(TNode node)
 }
 
 std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(
-    OptimizationObjective& objective)
+    const OptimizationObjective& objective)
 {
   // the datatype of the target node
   TypeNode objectiveType = objective.getTarget().getType(true);
@@ -47,12 +47,16 @@ std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(
   }
   else
   {
-    return nullptr;
+    Unimplemented() << "Target type " << objectiveType
+                    << " does not support optimization";
   }
 }
 
 Node OMTOptimizer::mkStrongIncrementalExpression(
-    NodeManager* nm, TNode lhs, TNode rhs, OptimizationObjective& objective)
+    NodeManager* nm,
+    TNode lhs,
+    TNode rhs,
+    const OptimizationObjective& objective)
 {
   constexpr const char lhsTypeError[] =
       "lhs type does not match or is not implicitly convertable to the target "
@@ -81,7 +85,8 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
       }
       else
       {
-        Unimplemented() << "Target type does not support optimization";
+        Unimplemented() << "Target type " << targetType
+                        << " does not support optimization";
       }
     }
     case OptimizationObjective::MAXIMIZE:
@@ -102,7 +107,8 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
       }
       else
       {
-        Unimplemented() << "Target type does not support optimization";
+        Unimplemented() << "Target type " << targetType
+                        << " does not support optimization";
       }
     }
     default:
@@ -111,10 +117,11 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
   Unreachable();
 }
 
-Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
-                                               TNode lhs,
-                                               TNode rhs,
-                                               OptimizationObjective& objective)
+Node OMTOptimizer::mkWeakIncrementalExpression(
+    NodeManager* nm,
+    TNode lhs,
+    TNode rhs,
+    const OptimizationObjective& objective)
 {
   constexpr const char lhsTypeError[] =
       "lhs type does not match or is not implicitly convertable to the target "
@@ -143,7 +150,8 @@ Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
       }
       else
       {
-        Unimplemented() << "Target type does not support optimization";
+        Unimplemented() << "Target type " << targetType
+                        << " does not support optimization";
       }
     }
     case OptimizationObjective::MAXIMIZE:
@@ -164,7 +172,8 @@ Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
       }
       else
       {
-        Unimplemented() << "Target type does not support optimization";
+        Unimplemented() << "Target type " << targetType
+                        << " does not support optimization";
       }
     }
     default:

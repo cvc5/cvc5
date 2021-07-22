@@ -24,7 +24,7 @@
 #include "proof/eager_proof_generator.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
-#include "theory/bv/bitblast/simple_bitblaster.h"
+#include "theory/bv/bitblast/node_bitblaster.h"
 #include "theory/bv/bv_solver.h"
 #include "theory/bv/proof_checker.h"
 
@@ -33,6 +33,7 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
+class NotifyResetAssertions;
 class BBRegistrar;
 
 /**
@@ -64,10 +65,15 @@ class BVSolverBitblast : public BVSolver
 
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
+  void computeRelevantTerms(std::set<Node>& termSet) override;
+
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
 
  private:
+  /** Initialize SAT solver and CNF stream.  */
+  void initSatSolver();
+
   /**
    * Get value of `node` from SAT solver.
    *
@@ -100,7 +106,7 @@ class BVSolverBitblast : public BVSolver
   std::unordered_map<Node, Node> d_modelCache;
 
   /** Bit-blaster used to bit-blast atoms/terms. */
-  std::unique_ptr<BBSimple> d_bitblaster;
+  std::unique_ptr<NodeBitblaster> d_bitblaster;
 
   /** Used for initializing `d_cnfStream`. */
   std::unique_ptr<BBRegistrar> d_bbRegistrar;
@@ -151,6 +157,9 @@ class BVSolverBitblast : public BVSolver
 
   /** Option to enable/disable bit-level propagation. */
   bool d_propagate;
+
+  /** Notifies when reset-assertion was called. */
+  std::unique_ptr<NotifyResetAssertions> d_resetNotify;
 };
 
 }  // namespace bv

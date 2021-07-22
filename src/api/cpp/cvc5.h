@@ -49,6 +49,10 @@ class Random;
 class Result;
 class StatisticsRegistry;
 
+namespace main {
+class CommandExecutor;
+}
+
 namespace api {
 
 class Solver;
@@ -179,8 +183,8 @@ class CVC5_EXPORT Result
   bool isNotEntailed() const;
 
   /**
-   * Return true if query was a checkEntailed() () query and cvc5 was not able
-   * to determine if it is entailed.
+   * Return true if query was a checkEntailed() query and cvc5 was not able to
+   * determine if it is entailed.
    */
   bool isEntailmentUnknown() const;
 
@@ -2706,7 +2710,7 @@ class CVC5_EXPORT Statistics
   /**
    * Retrieve the statistic with the given name.
    * Asserts that a statistic with the given name actually exists and throws
-   * a `CVC4ApiRecoverableException` if it does not.
+   * a `CVC5ApiRecoverableException` if it does not.
    * @param name Name of the statistic.
    * @return The statistic with the given name.
    */
@@ -2748,6 +2752,7 @@ class CVC5_EXPORT Solver
   friend class Grammar;
   friend class Op;
   friend class cvc5::Command;
+  friend class cvc5::main::CommandExecutor;
   friend class Sort;
   friend class Term;
 
@@ -2761,7 +2766,7 @@ class CVC5_EXPORT Solver
    * @param opts an optional pointer to a solver options object
    * @return the Solver
    */
-  Solver(Options* opts = nullptr);
+  Solver(const Options* opts = nullptr);
 
   /**
    * Destructor.
@@ -2773,12 +2778,6 @@ class CVC5_EXPORT Solver
    */
   Solver(const Solver&) = delete;
   Solver& operator=(const Solver&) = delete;
-
-  /* .................................................................... */
-  /* Solver Configuration                                                 */
-  /* .................................................................... */
-
-  bool supportsFloatingPoint() const;
 
   /* .................................................................... */
   /* Sorts Handling                                                       */

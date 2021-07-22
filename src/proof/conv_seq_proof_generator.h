@@ -98,7 +98,7 @@ class TConvSeqProofGenerator : public ProofGenerator
    * then we return a trust node proving (= d e) with the 2nd component proof
    * generator, as it alone is capable of proving this equality.
    */
-  theory::TrustNode mkTrustRewriteSequence(const std::vector<Node>& cterms);
+  TrustNode mkTrustRewriteSequence(const std::vector<Node>& cterms);
 
  protected:
   using NodeIndexPairHashFunction =

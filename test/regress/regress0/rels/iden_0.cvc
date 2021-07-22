@@ -1,5 +1,5 @@
 % EXPECT: unsat
-OPTION "logic" "ALL_SUPPORTED";
+OPTION "logic" "ALL";
 Atom: TYPE;
 IntPair: TYPE = [INT, INT];
 x : SET OF IntPair;

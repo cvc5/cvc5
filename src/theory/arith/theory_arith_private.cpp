@@ -35,7 +35,7 @@
 #include "expr/node_builder.h"
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
-#include "options/smt_options.h"  // for incrementalSolving()
+#include "options/base_options.h"
 #include "preprocessing/util/ite_utilities.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
@@ -87,13 +87,12 @@ static bool complexityBelow(const DenseMap<Rational>& row, uint32_t cap);
 TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                                        context::Context* c,
                                        context::UserContext* u,
-                                       OutputChannel& out,
-                                       Valuation valuation,
-                                       const LogicInfo& logicInfo,
+                                       BranchAndBound& bab,
                                        ProofNodeManager* pnm)
     : d_containing(containing),
       d_foundNl(false),
       d_rowTracking(),
+      d_bab(bab),
       d_pnm(pnm),
       d_checker(),
       d_pfGen(new EagerProofGenerator(d_pnm, u)),
@@ -1830,15 +1829,15 @@ void TheoryArithPrivate::outputConflicts(){
   }
 }
 
-void TheoryArithPrivate::outputTrustedLemma(TrustNode lemma, InferenceId id)
+bool TheoryArithPrivate::outputTrustedLemma(TrustNode lemma, InferenceId id)
 {
   Debug("arith::channel") << "Arith trusted lemma: " << lemma << std::endl;
-  d_containing.d_im.trustedLemma(lemma, id);
+  return d_containing.d_im.trustedLemma(lemma, id);
 }
 
-void TheoryArithPrivate::outputLemma(TNode lem, InferenceId id) {
+bool TheoryArithPrivate::outputLemma(TNode lem, InferenceId id) {
   Debug("arith::channel") << "Arith lemma: " << lem << std::endl;
-  d_containing.d_im.lemma(lem, id);
+  return d_containing.d_im.lemma(lem, id);
 }
 
 void TheoryArithPrivate::outputTrustedConflict(TrustNode conf, InferenceId id)
@@ -2906,10 +2905,10 @@ void TheoryArithPrivate::importSolution(const ApproximateSimplex::Solution& solu
   if(d_qflraStatus != Result::UNSAT){
     static const int32_t pass2Limit = 20;
     int16_t oldCap = options::arithStandardCheckVarOrderPivots();
-    Options::current().set(options::arithStandardCheckVarOrderPivots, pass2Limit);
+    Options::current().arith.arithStandardCheckVarOrderPivots = pass2Limit;
     SimplexDecisionProcedure& simplex = selectSimplex(false);
     d_qflraStatus = simplex.findModel(false);
-    Options::current().set(options::arithStandardCheckVarOrderPivots, oldCap);
+    Options::current().arith.arithStandardCheckVarOrderPivots = oldCap;
   }
 
   if(Debug.isOn("arith::importSolution")){
@@ -3391,11 +3390,13 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       if(getDioCuttingResource()){
         TrustNode possibleLemma = dioCutting();
         if(!possibleLemma.isNull()){
-          emmittedConflictOrSplit = true;
           d_hasDoneWorkSinceCut = false;
           d_cutCount = d_cutCount + 1;
           Debug("arith::lemma") << "dio cut   " << possibleLemma << endl;
-          outputTrustedLemma(possibleLemma, InferenceId::ARITH_DIO_CUT);
+          if (outputTrustedLemma(possibleLemma, InferenceId::ARITH_DIO_CUT))
+          {
+            emmittedConflictOrSplit = true;
+          }
         }
       }
     }
@@ -3406,10 +3407,12 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       {
         ++(d_statistics.d_externalBranchAndBounds);
         d_cutCount = d_cutCount + 1;
-        emmittedConflictOrSplit = true;
         Debug("arith::lemma") << "rrbranch lemma"
                               << possibleLemma << endl;
-        outputTrustedLemma(possibleLemma, InferenceId::ARITH_BB_LEMMA);
+        if (outputTrustedLemma(possibleLemma, InferenceId::ARITH_BB_LEMMA))
+        {
+          emmittedConflictOrSplit = true;
+        }
       }
     }
 
@@ -3451,102 +3454,9 @@ TrustNode TheoryArithPrivate::branchIntegerVariable(ArithVar x) const
   const Rational& r = d.getNoninfinitesimalPart();
   const Rational& i = d.getInfinitesimalPart();
   Trace("integers") << "integers: assignment to [[" << d_partialModel.asNode(x) << "]] is " << r << "[" << i << "]" << endl;
-
   Assert(!(r.getDenominator() == 1 && i.getNumerator() == 0));
-  Assert(!d.isIntegral());
   TNode var = d_partialModel.asNode(x);
-  Integer floor_d = d.floor();
-
-  TrustNode lem = TrustNode::null();
-  NodeManager* nm = NodeManager::currentNM();
-  if (options::brabTest())
-  {
-    Trace("integers") << "branch-round-and-bound enabled" << endl;
-    Integer ceil_d = d.ceiling();
-    Rational f = r - floor_d;
-    // Multiply by -1 to get abs value.
-    Rational c = (r - ceil_d) * (-1);
-    Integer nearest = (c > f) ? floor_d : ceil_d;
-
-    // Prioritize trying a simple rounding of the real solution first,
-    // it that fails, fall back on original branch and bound strategy.
-    Node ub = Rewriter::rewrite(
-        nm->mkNode(kind::LEQ, var, mkRationalNode(nearest - 1)));
-    Node lb = Rewriter::rewrite(
-        nm->mkNode(kind::GEQ, var, mkRationalNode(nearest + 1)));
-    Node right = nm->mkNode(kind::OR, ub, lb);
-    Node rawEq = nm->mkNode(kind::EQUAL, var, mkRationalNode(nearest));
-    Node eq = Rewriter::rewrite(rawEq);
-    // Also preprocess it before we send it out. This is important since
-    // arithmetic may prefer eliminating equalities.
-    TrustNode teq;
-    if (Theory::theoryOf(eq) == THEORY_ARITH)
-    {
-      teq = d_containing.ppRewriteEq(eq);
-      eq = teq.isNull() ? eq : teq.getNode();
-    }
-    Node literal = d_containing.getValuation().ensureLiteral(eq);
-    Trace("integers") << "eq: " << eq << "\nto: " << literal << endl;
-    d_containing.getOutputChannel().requirePhase(literal, true);
-    Node l = nm->mkNode(kind::OR, literal, right);
-    Trace("integers") << "l: " << l << endl;
-    if (proofsEnabled())
-    {
-      Node less = nm->mkNode(kind::LT, var, mkRationalNode(nearest));
-      Node greater = nm->mkNode(kind::GT, var, mkRationalNode(nearest));
-      // TODO (project #37): justify. Thread proofs through *ensureLiteral*.
-      Debug("integers::pf") << "less: " << less << endl;
-      Debug("integers::pf") << "greater: " << greater << endl;
-      Debug("integers::pf") << "literal: " << literal << endl;
-      Debug("integers::pf") << "eq: " << eq << endl;
-      Debug("integers::pf") << "rawEq: " << rawEq << endl;
-      Pf pfNotLit = d_pnm->mkAssume(literal.negate());
-      // rewrite notLiteral to notRawEq, using teq.
-      Pf pfNotRawEq =
-          literal == rawEq
-              ? pfNotLit
-              : d_pnm->mkNode(
-                  PfRule::MACRO_SR_PRED_TRANSFORM,
-                  {pfNotLit, teq.getGenerator()->getProofFor(teq.getProven())},
-                  {rawEq.negate()});
-      Pf pfBot =
-          d_pnm->mkNode(PfRule::CONTRA,
-                        {d_pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
-                                       {d_pnm->mkAssume(less.negate()), pfNotRawEq},
-                                       {greater}),
-                         d_pnm->mkAssume(greater.negate())},
-                        {});
-      std::vector<Node> assumptions = {
-          literal.negate(), less.negate(), greater.negate()};
-      // Proof of (not (and (not (= v i)) (not (< v i)) (not (> v i))))
-      Pf pfNotAnd = d_pnm->mkScope(pfBot, assumptions);
-      Pf pfL = d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
-                             {d_pnm->mkNode(PfRule::NOT_AND, {pfNotAnd}, {})},
-                             {l});
-      lem = d_pfGen->mkTrustNode(l, pfL);
-    }
-    else
-    {
-      lem = TrustNode::mkTrustLemma(l, nullptr);
-    }
-  }
-  else
-  {
-    Node ub =
-        Rewriter::rewrite(nm->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
-    Node lb = ub.notNode();
-    if (proofsEnabled())
-    {
-      lem = d_pfGen->mkTrustNode(
-          nm->mkNode(kind::OR, ub, lb), PfRule::SPLIT, {}, {ub});
-    }
-    else
-    {
-      lem = TrustNode::mkTrustLemma(nm->mkNode(kind::OR, ub, lb), nullptr);
-    }
-  }
-
-  Trace("integers") << "integers: branch & bound: " << lem << endl;
+  TrustNode lem = d_bab.branchIntegerVariable(var, r);
   if (Debug.isOn("integers"))
   {
     Node l = lem.getNode();

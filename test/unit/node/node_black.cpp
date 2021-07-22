@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "api/cpp/cvc5.h"
+#include "expr/array_store_all.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
@@ -29,6 +30,8 @@
 #include "smt/smt_engine.h"
 #include "test_node.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 
@@ -64,7 +67,8 @@ class TestNodeBlackNode : public TestNode
     char* argv[2];
     argv[0] = strdup("");
     argv[1] = strdup("--output-lang=ast");
-    Options::parseOptions(&opts, 2, argv);
+    std::string progName;
+    Options::parseOptions(&opts, 2, argv, progName);
     free(argv[0]);
     free(argv[1]);
     d_smt.reset(new SmtEngine(d_nodeManager.get(), &opts));
@@ -481,6 +485,24 @@ TEST_F(TestNodeBlackNode, iterator)
     ASSERT_EQ(*i++, y);
     ASSERT_EQ(*i++, z);
     ASSERT_EQ(i, n.end());
+  }
+}
+
+TEST_F(TestNodeBlackNode, const_reverse_iterator)
+{
+  NodeBuilder b;
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
+  Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->booleanType());
+  Node z = d_skolemManager->mkDummySkolem("z", d_nodeManager->booleanType());
+  Node n = b << x << y << z << kind::AND;
+
+  {  // same for const iterator
+    const Node& c = n;
+    Node::const_reverse_iterator i = c.rbegin();
+    ASSERT_EQ(*i++, z);
+    ASSERT_EQ(*i++, y);
+    ASSERT_EQ(*i++, x);
+    ASSERT_EQ(i, n.rend());
   }
 }
 

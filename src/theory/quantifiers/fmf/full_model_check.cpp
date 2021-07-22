@@ -17,6 +17,7 @@
 
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -706,7 +707,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         d_star_insts[f].push_back(i);
         continue;
       }
-      if (options::fmfBound())
+      if (options::fmfBound() || options::stringExp())
       {
         std::vector<Node> cond;
         cond.push_back(d_quant_cond[f]);
@@ -941,8 +942,9 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
   else if( n.getNumChildren()==0 ){
     Node r = n;
     if( !n.isConst() ){
-      if( !fm->hasTerm(n) ){
-        r = getSomeDomainElement(fm, n.getType() );
+      TypeNode tn = n.getType();
+      if( !fm->hasTerm(n) && tn.isFirstClass() ){
+        r = getSomeDomainElement(fm, tn );
       }
       r = fm->getRepresentative( r );
     }

@@ -219,10 +219,12 @@ enum class PfRule : uint32_t
   THEORY_REWRITE,
   // The remaining rules in this section have the signature of a "trusted rule":
   //
-  // Children: none
+  // Children: ?
   // Arguments: (F)
   // ---------------------------------------------------------------
   // Conclusion: F
+  //
+  // Unless stated below, the expected children vector of the rule is empty.
   //
   // where F is an equality of the form t = t' where t was replaced by t'
   // based on some preprocessing pass, or otherwise F was added as a new
@@ -248,8 +250,13 @@ enum class PfRule : uint32_t
   // could not be replayed during proof postprocessing.
   TRUST_SUBS,
   // where F is an equality (= t t') that holds by a form of substitution that
-  // could not be determined by the TrustSubstitutionMap.
+  // could not be determined by the TrustSubstitutionMap. This inference may
+  // contain possibly multiple children corresponding to the formulas used to
+  // derive the substitution.
   TRUST_SUBS_MAP,
+  // where F is a solved equality of the form (= x t) derived as the solved
+  // form of F', where F' is given as a child.
+  TRUST_SUBS_EQ,
   // ========= SAT Refutation for assumption-based unsat cores
   // Children: (P1, ..., Pn)
   // Arguments: none
@@ -681,9 +688,9 @@ enum class PfRule : uint32_t
   //================================================= Array rules
   // ======== Read over write
   // Children: (P:(not (= i1 i2)))
-  // Arguments: ((select (store a i2 e) i1))
+  // Arguments: ((select (store a i1 e) i2))
   // ----------------------------------------
-  // Conclusion: (= (select (store a i2 e) i1) (select a i1))
+  // Conclusion: (= (select (store a i1 e) i2) (select a i2))
   ARRAYS_READ_OVER_WRITE,
   // ======== Read over write, contrapositive
   // Children: (P:(not (= (select (store a i2 e) i1) (select a i1)))
@@ -723,63 +730,18 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (= t bitblast(t))
   BV_BITBLAST,
-  // ======== Bitblast Bit-Vector Constant
+  // ======== Bitblast Bit-Vector Constant, Variable
   // Children: none
   // Arguments: (= t bitblast(t))
   // ---------------------
   // Conclusion: (= t bitblast(t))
-  BV_BITBLAST_CONST,
-  // ======== Bitblast Bit-Vector Variable
-  // Children: none
-  // Arguments: (= t bitblast(t))
-  // ---------------------
-  // Conclusion: (= t bitblast(t))
-  BV_BITBLAST_VAR,
   // ======== Bitblast Bit-Vector Terms
-  // TODO cvc4-projects issue #275
   // Children: none
   // Arguments: (= (KIND bitblast(child_1) ... bitblast(child_n)) bitblast(t))
   // ---------------------
   // Conclusion: (= (KIND bitblast(child_1) ... bitblast(child_n)) bitblast(t))
-  BV_BITBLAST_EQUAL,
-  BV_BITBLAST_ULT,
-  BV_BITBLAST_ULE,
-  BV_BITBLAST_UGT,
-  BV_BITBLAST_UGE,
-  BV_BITBLAST_SLT,
-  BV_BITBLAST_SLE,
-  BV_BITBLAST_SGT,
-  BV_BITBLAST_SGE,
-  BV_BITBLAST_NOT,
-  BV_BITBLAST_CONCAT,
-  BV_BITBLAST_AND,
-  BV_BITBLAST_OR,
-  BV_BITBLAST_XOR,
-  BV_BITBLAST_XNOR,
-  BV_BITBLAST_NAND,
-  BV_BITBLAST_NOR,
-  BV_BITBLAST_COMP,
-  BV_BITBLAST_MULT,
-  BV_BITBLAST_ADD,
-  BV_BITBLAST_SUB,
-  BV_BITBLAST_NEG,
-  BV_BITBLAST_UDIV,
-  BV_BITBLAST_UREM,
-  BV_BITBLAST_SDIV,
-  BV_BITBLAST_SREM,
-  BV_BITBLAST_SMOD,
-  BV_BITBLAST_SHL,
-  BV_BITBLAST_LSHR,
-  BV_BITBLAST_ASHR,
-  BV_BITBLAST_ULTBV,
-  BV_BITBLAST_SLTBV,
-  BV_BITBLAST_ITE,
-  BV_BITBLAST_EXTRACT,
-  BV_BITBLAST_REPEAT,
-  BV_BITBLAST_ZERO_EXTEND,
-  BV_BITBLAST_SIGN_EXTEND,
-  BV_BITBLAST_ROTATE_RIGHT,
-  BV_BITBLAST_ROTATE_LEFT,
+  BV_BITBLAST_STEP,
+
   // ======== Eager Atom
   // Children: none
   // Arguments: (F)
@@ -868,6 +830,13 @@ enum class PfRule : uint32_t
   // Conclusion: F*sigma
   // sigma maps x1 ... xn to t1 ... tn.
   INSTANTIATE,
+  // ======== (Trusted) quantifiers preprocess
+  // Children: ?
+  // Arguments: (F)
+  // ---------------------------------------------------------------
+  // Conclusion: F
+  // where F is an equality of the form t = QuantifiersRewriter::preprocess(t)
+  QUANTIFIERS_PREPROCESS,
 
   //================================================= String rules
   //======================== Core solver

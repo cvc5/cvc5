@@ -58,7 +58,6 @@ extern int optreset;
 ${headers_module}$
 
 #include "base/cvc5config.h"
-#include "options/base_handlers.h"
 
 ${headers_handler}$
 
@@ -82,7 +81,9 @@ thread_local Options* Options::s_current = NULL;
  */
 template <class T, bool is_numeric, bool is_integer>
 struct OptionHandler {
-  static T handle(std::string option, std::string optionarg);
+  static T handle(const std::string& option,
+                  const std::string& flag,
+                  const std::string& optionarg);
 };/* struct OptionHandler<> */
 
 /** Variant for integral C++ types */
@@ -99,32 +100,35 @@ struct OptionHandler<T, true, true> {
     return str.find('-') != std::string::npos;
   }
 
-  static T handle(const std::string& option, const std::string& optionarg) {
+  static T handle(const std::string& option,
+                  const std::string& flag,
+                  const std::string& optionarg)
+  {
     try {
       T i;
       bool success = stringToInt(i, optionarg);
 
       if(!success){
-        throw OptionException(option + ": failed to parse "+ optionarg +
-                              " as an integer of the appropriate type.");
+        throw OptionException(flag + ": failed to parse " + optionarg
+                              + " as an integer of the appropriate type.");
       }
 
       // Depending in the platform unsigned numbers with '-' signs may parse.
       // Reject these by looking for any minus if it is not signed.
       if( (! std::numeric_limits<T>::is_signed) && containsMinus(optionarg) ) {
         // unsigned type but user gave negative argument
-        throw OptionException(option + " requires a nonnegative argument");
+        throw OptionException(flag + " requires a nonnegative argument");
       } else if(i < std::numeric_limits<T>::min()) {
         // negative overflow for type
         std::stringstream ss;
-        ss << option << " requires an argument >= "
-           << std::numeric_limits<T>::min();
+        ss << flag
+           << " requires an argument >= " << std::numeric_limits<T>::min();
         throw OptionException(ss.str());
       } else if(i > std::numeric_limits<T>::max()) {
         // positive overflow for type
         std::stringstream ss;
-        ss << option << " requires an argument <= "
-           << std::numeric_limits<T>::max();
+        ss << flag
+           << " requires an argument <= " << std::numeric_limits<T>::max();
         throw OptionException(ss.str());
       }
 
@@ -137,7 +141,7 @@ struct OptionHandler<T, true, true> {
       // }
     } catch(std::invalid_argument&) {
       // user gave something other than an integer
-      throw OptionException(option + " requires an integer argument");
+      throw OptionException(flag + " requires an integer argument");
     }
   }
 };/* struct OptionHandler<T, true, true> */
@@ -145,29 +149,33 @@ struct OptionHandler<T, true, true> {
 /** Variant for numeric but non-integral C++ types */
 template <class T>
 struct OptionHandler<T, true, false> {
-  static T handle(std::string option, std::string optionarg) {
-    std::stringstream in(optionarg);
+  static T handle(const std::string& option,
+                  const std::string& flag,
+                  const std::string& optionarg)
+  {
+    std::stringstream inss(optionarg);
     long double r;
-    in >> r;
-    if(! in.eof()) {
+    inss >> r;
+    if (!inss.eof())
+    {
       // we didn't consume the whole string (junk at end)
-      throw OptionException(option + " requires a numeric argument");
+      throw OptionException(flag + " requires a numeric argument");
     }
 
     if(! std::numeric_limits<T>::is_signed && r < 0.0) {
       // unsigned type but user gave negative value
-      throw OptionException(option + " requires a nonnegative argument");
+      throw OptionException(flag + " requires a nonnegative argument");
     } else if(r < -std::numeric_limits<T>::max()) {
       // negative overflow for type
       std::stringstream ss;
-      ss << option << " requires an argument >= "
-         << -std::numeric_limits<T>::max();
+      ss << flag
+         << " requires an argument >= " << -std::numeric_limits<T>::max();
       throw OptionException(ss.str());
     } else if(r > std::numeric_limits<T>::max()) {
       // positive overflow for type
       std::stringstream ss;
-      ss << option << " requires an argument <= "
-         << std::numeric_limits<T>::max();
+      ss << flag
+         << " requires an argument <= " << std::numeric_limits<T>::max();
       throw OptionException(ss.str());
     }
 
@@ -178,7 +186,10 @@ struct OptionHandler<T, true, false> {
 /** Variant for non-numeric C++ types */
 template <class T>
 struct OptionHandler<T, false, false> {
-  static T handle(std::string option, std::string optionarg) {
+  static T handle(const std::string& option,
+                  const std::string& flag,
+                  const std::string& optionarg)
+  {
     T::unsupported_handleOption_call___please_write_me;
     // The above line causes a compiler error if this version of the template
     // is ever instantiated (meaning that a specialization is missing).  So
@@ -191,40 +202,31 @@ struct OptionHandler<T, false, false> {
 
 /** Handle an option of type T in the default way. */
 template <class T>
-T handleOption(std::string option, std::string optionarg) {
-  return OptionHandler<T, std::numeric_limits<T>::is_specialized, std::numeric_limits<T>::is_integer>::handle(option, optionarg);
+T handleOption(const std::string& option,
+               const std::string& flag,
+               const std::string& optionarg)
+{
+  return OptionHandler<T,
+                       std::numeric_limits<T>::is_specialized,
+                       std::numeric_limits<T>::is_integer>::handle(option,
+                                                                   flag,
+                                                                   optionarg);
 }
 
 /** Handle an option of type std::string in the default way. */
 template <>
-std::string handleOption<std::string>(std::string option, std::string optionarg) {
+std::string handleOption<std::string>(const std::string& option,
+                                      const std::string& flag,
+                                      const std::string& optionarg)
+{
   return optionarg;
-}
-
-/**
- * Run handler, and any user-given predicates, for option T.
- * If a user specifies a :handler or :predicates, it overrides this.
- */
-template <class T>
-typename T::type runHandlerAndPredicates(T, std::string option, std::string optionarg, options::OptionsHandler* handler) {
-  // By default, parse the option argument in a way appropriate for its type.
-  // E.g., for "unsigned int" options, ensure that the provided argument is
-  // a nonnegative integer that fits in the unsigned int type.
-
-  return handleOption<typename T::type>(option, optionarg);
-}
-
-template <class T>
-void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* handler) {
-  // By default, nothing to do for bool.  Users add things with
-  // :predicate in options files to provide custom checking routines
-  // that can throw exceptions.
 }
 
 Options::Options(OptionsListener* ol)
     : d_handler(new options::OptionsHandler(this)),
 // clang-format off
 ${holder_mem_inits}$
+${holder_ref_inits}$
 // clang-format on
       d_olisten(ol)
 {}
@@ -239,16 +241,6 @@ void Options::copyValues(const Options& options){
 ${holder_mem_copy}$
 // clang-format on
   }
-}
-
-${holder_getter_impl}$
-
-std::string Options::formatThreadOptionException(const std::string& option) {
-  std::stringstream ss;
-  ss << "can't understand option `" << option
-     << "': expected something like --threadN=\"--option1 --option2\","
-     << " where N is a nonnegative integer";
-  return ss.str();
 }
 
 void Options::setListener(OptionsListener* ol) { d_olisten = ol; }
@@ -373,7 +365,8 @@ public:
  */
 std::vector<std::string> Options::parseOptions(Options* options,
                                                int argc,
-                                               char* argv[])
+                                               char* argv[],
+                                               std::string& binaryName)
 {
   Assert(options != NULL);
   Assert(argv != NULL);
@@ -395,7 +388,7 @@ std::vector<std::string> Options::parseOptions(Options* options,
   if(x != NULL) {
     progName = x + 1;
   }
-  options->base().binary_name = std::string(progName);
+  binaryName = std::string(progName);
 
   std::vector<std::string> nonoptions;
   options->parseOptionsRecursive(argc, argv, &nonoptions);
@@ -425,7 +418,7 @@ void Options::parseOptionsRecursive(int argc,
                                     char* argv[],
                                     std::vector<std::string>* nonoptions)
 {
-
+  Options& opts = *this;
   if(Debug.isOn("options")) {
     Debug("options") << "starting a new parseOptionsRecursive with "
                      << argc << " arguments" << std::endl;
@@ -562,6 +555,7 @@ void Options::setOptionInternal(const std::string& key,
                                 const std::string& optionarg)
 {
   options::OptionsHandler* handler = d_handler;
+  Options& opts = *this;
   ${setoption_handlers}$
   throw UnrecognizedOptionException(key);
 }
@@ -571,6 +565,7 @@ void Options::setOptionInternal(const std::string& key,
 std::string Options::getOption(const std::string& key) const
 {
   Trace("options") << "Options::getOption(" << key << ")" << std::endl;
+  const Options& options = *this;
   ${getoption_handlers}$
 
   throw UnrecognizedOptionException(key);
