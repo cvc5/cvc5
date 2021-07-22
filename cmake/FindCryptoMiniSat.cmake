@@ -66,7 +66,7 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
                -DNOZLIB=ON
                -DONLY_SIMPLE=ON
                -DSTATICCOMPILE=ON
-    BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcryptominisat5.a
+    BUILD_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcryptominisat5.a
   )
   # remove unused stuff to keep folder small
   ExternalProject_Add_Step(
@@ -77,7 +77,7 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
   )
 
   set(CryptoMiniSat_INCLUDE_DIR "${DEPS_BASE}/include/")
-  set(CryptoMiniSat_LIBRARIES "${DEPS_BASE}/lib/libcryptominisat5.a")
+  set(CryptoMiniSat_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libcryptominisat5.a")
 
   add_library(CryptoMiniSat STATIC IMPORTED GLOBAL)
   set_target_properties(
