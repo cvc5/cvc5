@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file smt2.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definitions of SMT2 constants.
- **
- ** Definitions of SMT2 constants.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definitions of SMT2 constants.
+ */
 
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 
-#ifndef CVC4__PARSER__SMT2_H
-#define CVC4__PARSER__SMT2_H
+#ifndef CVC5__PARSER__SMT2_H
+#define CVC5__PARSER__SMT2_H
 
 #include <sstream>
 #include <stack>
@@ -25,16 +24,14 @@
 #include <unordered_map>
 #include <utility>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "theory/logic_info.h"
-#include "util/abstract_value.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
-class SExpr;
 
 namespace api {
 class Solver;
@@ -69,7 +66,6 @@ class Smt2 : public Parser
  protected:
   Smt2(api::Solver* solver,
        SymbolManager* sm,
-       Input* input,
        bool strictMode = false,
        bool parseOnly = false);
 
@@ -192,8 +188,6 @@ class Smt2 : public Parser
 
   void reset() override;
 
-  void resetAssertions();
-
   /**
    * Creates a command that adds an invariant constraint.
    *
@@ -211,7 +205,8 @@ class Smt2 : public Parser
    * @param name the name of the logic (e.g., QF_UF, AUFLIA)
    * @param fromCommand should be set to true if the request originates from a
    *                    set-logic command and false otherwise
-   * @return the command corresponding to setting the logic
+   * @return the command corresponding to setting the logic (if fromCommand
+   * is true), and nullptr otherwise.
    */
   Command* setLogic(std::string name, bool fromCommand = true);
 
@@ -229,18 +224,6 @@ class Smt2 : public Parser
   api::Grammar* mkGrammar(const std::vector<api::Term>& boundVars,
                           const std::vector<api::Term>& ntSymbols);
 
-  bool v2_0() const
-  {
-    return getLanguage() == language::input::LANG_SMTLIB_V2_0;
-  }
-  /**
-   * Are we using smtlib 2.5 or above? If exact=true, then this method returns
-   * false if the input language is not exactly SMT-LIB 2.5.
-   */
-  bool v2_5(bool exact = false) const
-  {
-    return language::isInputLang_smt2_5(getLanguage(), exact);
-  }
   /**
    * Are we using smtlib 2.6 or above? If exact=true, then this method returns
    * false if the input language is not exactly SMT-LIB 2.6.
@@ -259,7 +242,7 @@ class Smt2 : public Parser
    * and SyGuS) treats duplicate double quotes ("") as an escape sequence
    * denoting a single double quote (").
    */
-  bool escapeDupDblQuote() const { return v2_5() || sygus(); }
+  bool escapeDupDblQuote() const { return v2_6() || sygus(); }
 
   void checkThatLogicIsSet();
 
@@ -445,6 +428,6 @@ class Smt2 : public Parser
 }; /* class Smt2 */
 
 }  // namespace parser
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PARSER__SMT2_H */
+#endif /* CVC5__PARSER__SMT2_H */

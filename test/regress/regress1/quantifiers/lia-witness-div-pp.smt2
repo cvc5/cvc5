@@ -1,5 +1,5 @@
 (set-info :smt-lib-version 2.6)
-(set-logic LIA)
+(set-logic NIA)
 (set-info :status unsat)
 (declare-fun c_main_~x~0 () Int)
 (declare-fun c_main_~y~0 () Int)

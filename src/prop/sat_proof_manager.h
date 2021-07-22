@@ -1,39 +1,41 @@
-/*********************                                                        */
-/*! \file sat_proof_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The proof manager for Minisat
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The proof manager for Minisat.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__SAT_PROOF_MANAGER_H
-#define CVC4__SAT_PROOF_MANAGER_H
+#ifndef CVC5__SAT_PROOF_MANAGER_H
+#define CVC5__SAT_PROOF_MANAGER_H
 
 #include "context/cdhashset.h"
-#include "expr/buffered_proof_generator.h"
-#include "expr/expr.h"
-#include "expr/lazy_proof_chain.h"
 #include "expr/node.h"
-#include "expr/proof.h"
-#include "expr/proof_node_manager.h"
+#include "proof/buffered_proof_generator.h"
+#include "proof/lazy_proof_chain.h"
 #include "prop/minisat/core/SolverTypes.h"
-#include "prop/cnf_stream.h"
 #include "prop/sat_solver_types.h"
 
 namespace Minisat {
 class Solver;
 }
 
-namespace CVC4 {
+namespace cvc5 {
+
+class ProofNodeManager;
+
 namespace prop {
+
+class CnfStream;
 
 /**
  * This class is responsible for managing the proof production of the SAT
@@ -296,7 +298,8 @@ class SatProofManager
    * level, and the literal, at the node level, as the pivot.
    *
    * @param clause the clause being resolved against
-   * @param lit the pivot of the resolution step
+   * @param lit the literal occurring in clause to be the pivot of the
+   * resolution step
    */
   void addResolutionStep(const Minisat::Clause& clause, Minisat::Lit lit);
   /** Adds a resolution step with a unit clause
@@ -490,8 +493,7 @@ class SatProofManager
    * have been used as premises of resolution steps while explaining
    * propagations
    */
-  void explainLit(prop::SatLiteral lit,
-                  std::unordered_set<TNode, TNodeHashFunction>& premises);
+  void explainLit(prop::SatLiteral lit, std::unordered_set<TNode>& premises);
 
   /** Build refutation proof starting from conflict clause
    *
@@ -529,13 +531,16 @@ class SatProofManager
   ProofNodeManager* d_pnm;
   /** Resolution steps (links) accumulator for chain resolution.
    *
-   * Each pair has a clause and the pivot for the resolution step it is involved
-   * on. The pivot occurs positively in the clause yielded by the resolution up
-   * to the previous link and negatively in this link. The first link has a null
-   * pivot. Links are kept at the node level.
+   * Each tuple has a clause and the pivot for the resolution step it is
+   * involved on, as well as whether the pivot occurs positively/negatively or
+   * negatively/positively in the clauses being resolved. If the third argument
+   * is true (resp. false), the pivot occurs positively (negatively) in the
+   * clause yielded by the resolution up to the previous link and negatively
+   * (positively) in this link. The first link has a null pivot. Links are kept
+   * at the node level.
    *
    * This accumulator is reset after each chain resolution. */
-  std::vector<std::pair<Node, Node>> d_resLinks;
+  std::vector<std::tuple<Node, Node, bool>> d_resLinks;
 
   /** Redundant literals removed from the resolution chain's conclusion.
    *
@@ -556,12 +561,13 @@ class SatProofManager
   /** The proof generator for resolution chains */
   BufferedProofGenerator d_resChainPg;
 
-  /** The false node */
+  /** The true/false nodes */
+  Node d_true;
   Node d_false;
 
   /** All clauses added to the SAT solver, kept in a context-dependent manner.
    */
-  context::CDHashSet<Node, NodeHashFunction> d_assumptions;
+  context::CDHashSet<Node> d_assumptions;
 
   /**
    * A placeholder that may be used to store the literal with the final
@@ -582,6 +588,6 @@ class SatProofManager
 }; /* class SatProofManager */
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__SAT_PROOF_MANAGER_H */
+#endif /* CVC5__SAT_PROOF_MANAGER_H */

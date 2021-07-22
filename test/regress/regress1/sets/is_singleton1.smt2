@@ -1,4 +1,6 @@
-(set-logic ALL_SUPPORTED)
+; COMMAND-LINE:
+; EXPECT: sat
+(set-logic ALL)
 (set-info :status sat)
 (declare-fun S () (Set Int))
 (declare-fun x () Int)

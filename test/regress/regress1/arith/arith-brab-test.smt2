@@ -1,5 +1,5 @@
-; COMMAND-LINE: --arith-brab
-; COMMAND-LINE: --no-arith-brab
+; COMMAND-LINE: --arith-brab -q
+; COMMAND-LINE: --no-arith-brab -q
 ; EXPECT: sat
 (set-logic ALL)
 

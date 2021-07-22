@@ -1,33 +1,36 @@
-/*********************                                                        */
-/*! \file bounded_integers.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
-**/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bounded integers module
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__BOUNDED_INTEGERS_H
-#define CVC4__BOUNDED_INTEGERS_H
+#ifndef CVC5__BOUNDED_INTEGERS_H
+#define CVC5__BOUNDED_INTEGERS_H
 
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quant_module.h"
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
 #include "expr/attribute.h"
+#include "theory/decision_strategy.h"
+#include "theory/quantifiers/quant_bound_inference.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class RepSetIterator;
+class DecisionManager;
 
 /**
  * Attribute set to 1 for literals that comprise the bounds of a quantified
@@ -44,9 +47,9 @@ namespace quantifiers {
 
 class BoundedIntegers : public QuantifiersModule
 {
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef context::CDHashMap<Node, bool> NodeBoolMap;
+  typedef context::CDHashMap<Node, int> NodeIntMap;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
   typedef context::CDHashMap<int, bool> IntBoolMap;
 private:
   //for determining bounds
@@ -159,8 +162,12 @@ private:
     }
   };
   std::map< Node, std::map< Node, BoundInstTrie > > d_bnd_it;
-public:
-  BoundedIntegers( context::Context* c, QuantifiersEngine* qe );
+
+ public:
+  BoundedIntegers(QuantifiersState& qs,
+                  QuantifiersInferenceManager& qim,
+                  QuantifiersRegistry& qr,
+                  TermRegistry& tr);
   virtual ~BoundedIntegers();
 
   void presolve() override;
@@ -231,6 +238,6 @@ public:
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

@@ -3,7 +3,6 @@
 (set-logic BV)
 (set-info :status sat)
 (declare-fun _substvar_16_ () Bool)
-(set-option :cegqi-prereg-inst true)
 (set-option :check-models true)
 (declare-fun v2 () Bool)
 (push 1)

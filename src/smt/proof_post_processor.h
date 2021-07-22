@@ -1,29 +1,32 @@
-/*********************                                                        */
-/*! \file proof_post_processor.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for processing proof nodes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for processing proof nodes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__SMT__PROOF_POST_PROCESSOR_H
-#define CVC4__SMT__PROOF_POST_PROCESSOR_H
+#ifndef CVC5__SMT__PROOF_POST_PROCESSOR_H
+#define CVC5__SMT__PROOF_POST_PROCESSOR_H
 
 #include <map>
+#include <sstream>
 #include <unordered_set>
 
-#include "expr/proof_node_updater.h"
+#include "proof/proof_node_updater.h"
 #include "smt/witness_form.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SmtEngine;
 
@@ -38,7 +41,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
  public:
   ProofPostprocessCallback(ProofNodeManager* pnm,
                            SmtEngine* smte,
-                           ProofGenerator* pppg);
+                           ProofGenerator* pppg,
+                           bool updateScopedAssumptions);
   ~ProofPostprocessCallback() {}
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
@@ -54,6 +58,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   void setEliminateRule(PfRule rule);
   /** Should proof pn be updated? */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    const std::vector<Node>& fa,
                     bool& continueUpdate) override;
   /** Update the proof rule application. */
   bool update(Node res,
@@ -78,6 +83,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   std::vector<Node> d_wfAssumptions;
   /** Kinds of proof rules we are eliminating */
   std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
+  /** Whether we post-process assumptions in scope. */
+  bool d_updateScopedAssumptions;
   //---------------------------------reset at the begining of each update
   /** Mapping assumptions to their proof from preprocessing */
   std::map<Node, std::shared_ptr<ProofNode> > d_assumpToProof;
@@ -149,6 +156,84 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   bool addToTransChildren(Node eq,
                           std::vector<Node>& tchildren,
                           bool isSymm = false);
+
+  /**
+   * When given children and args lead to different sets of literals in a
+   * conclusion depending on whether macro resolution or chain resolution is
+   * applied, the literals that appear in the chain resolution result, but not
+   * in the macro resolution result, from now on "crowding literals", are
+   * literals removed implicitly by macro resolution. For example
+   *
+   *      l0 v l0 v l0 v l1 v l2    ~l0 v l1   ~l1
+   * (1)  ----------------------------------------- MACRO_RES
+   *                 l2
+   *
+   * but
+   *
+   *      l0 v l0 v l0 v l1 v l2    ~l0 v l1   ~l1
+   * (2)  ---------------------------------------- CHAIN_RES
+   *                l0 v l0 v l1 v l2
+   *
+   * where l0 and l1 are crowding literals in the second proof.
+   *
+   * There are two views for how MACRO_RES implicitly removes the crowding
+   * literal, i.e., how MACRO_RES can be expanded into CHAIN_RES so that
+   * crowding literals are removed. The first is that (1) becomes
+   *
+   *  l0 v l0 v l0 v l1 v l2  ~l0 v l1  ~l0 v l1  ~l0 v l1  ~l1  ~l1  ~l1  ~l1
+   *  ---------------------------------------------------------------- CHAIN_RES
+   *                                 l2
+   *
+   * via the repetition of the premise responsible for removing more than one
+   * occurrence of the crowding literal. The issue however is that this
+   * expansion is exponential. Note that (2) has two occurrences of l0 and one
+   * of l1 as crowding literals. However, by repeating ~l0 v l1 two times to
+   * remove l0, the clause ~l1, which would originally need to be repeated only
+   * one time, now has to be repeated two extra times on top of that one. With
+   * multiple crowding literals and their elimination depending on premises that
+   * themselves add crowding literals one can easily end up with resolution
+   * chains going from dozens to thousands of premises. Such examples do occur
+   * in practice, even in our regressions.
+   *
+   * The second way of expanding MACRO_RES, which avoids this exponential
+   * behavior, is so that (1) becomes
+   *
+   *      l0 v l0 v l0 v l1 v l2
+   * (4)  ---------------------- FACTORING
+   *      l0 v l1 v l2                       ~l0 v l1
+   *      ------------------------------------------- CHAIN_RES
+   *                   l1 v l1 v l2
+   *                  ------------- FACTORING
+   *                     l1 v l2                   ~l1
+   *                    ------------------------------ CHAIN_RES
+   *                                 l2
+   *
+   * This method first determines what are the crowding literals by checking
+   * what literals occur in clauseLits that do not occur in targetClauseLits
+   * (the latter contains the literals from the original MACRO_RES conclusion
+   * while the former the literals from a direct application of CHAIN_RES). Then
+   * it builds a proof such as (4) and adds the steps to cdp. The final
+   * conclusion is returned.
+   *
+   * Note that in the example the CHAIN_RES steps introduced had only two
+   * premises, and could thus be replaced by a RESOLUTION step, but since we
+   * general there can be more than two premises we always use CHAIN_RES.
+   *
+   * @param clauseLits literals in the conclusion of a CHAIN_RESOLUTION step
+   * with children and args[1:]
+   * @param clauseLits literals in the conclusion of a MACRO_RESOLUTION step
+   * with children and args
+   * @param children a list of clauses
+   * @param args a list of arguments to a MACRO_RESOLUTION step
+   * @param cdp a CDProof
+   * @return The resulting node of transforming MACRO_RESOLUTION into
+   * CHAIN_RESOLUTION according to the above idea.
+   */
+  Node eliminateCrowdingLits(const std::vector<Node>& clauseLits,
+                             const std::vector<Node>& targetClauseLits,
+                             const std::vector<Node>& children,
+                             const std::vector<Node>& args,
+                             CDProof* cdp);
 };
 
 /** Final callback class, for stats and pedantic checking */
@@ -156,7 +241,6 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 {
  public:
   ProofPostprocessFinalCallback(ProofNodeManager* pnm);
-  ~ProofPostprocessFinalCallback();
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
@@ -164,6 +248,7 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
   void initializeUpdate();
   /** Should proof pn be updated? Returns false, adds to stats. */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    const std::vector<Node>& fa,
                     bool& continueUpdate) override;
   /** was pedantic failure */
   bool wasPedanticFailure(std::ostream& out) const;
@@ -194,9 +279,18 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 class ProofPostproccess
 {
  public:
+  /**
+   * @param pnm The proof node manager we are using
+   * @param smte The SMT engine whose proofs are being post-processed
+   * @param pppg The proof generator for pre-processing proofs
+   * @param updateScopedAssumptions Whether we post-process assumptions in
+   * scope. Since doing so is sound and only problematic depending on who is
+   * consuming the proof, it's true by default.
+   */
   ProofPostproccess(ProofNodeManager* pnm,
                     SmtEngine* smte,
-                    ProofGenerator* pppg);
+                    ProofGenerator* pppg,
+                    bool updateScopedAssumptions = true);
   ~ProofPostproccess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
@@ -223,6 +317,6 @@ class ProofPostproccess
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

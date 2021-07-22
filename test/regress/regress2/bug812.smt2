@@ -3,7 +3,7 @@
     VCC and HAVOC benchmarks.  Contributed by Nikolaj Bjorner, Leonardo de Moura,
     Michal Moskal, and Shaz Qadeer.
   |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
 (set-info :status unsat)
 (declare-fun x (Int Int) Int)

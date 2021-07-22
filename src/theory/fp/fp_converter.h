@@ -1,45 +1,42 @@
-/*********************                                                        */
-/*! \file fp_converter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Martin Brain, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Converts floating-point nodes to bit-vector expressions.
- **
- ** Uses the symfpu library to convert from floating-point operations to
- ** bit-vectors and propositions allowing the theory to be solved by
- ** 'bit-blasting'.
- **
- ** !!! This header is not to be included in any other headers !!!
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Martin Brain, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Converts floating-point nodes to bit-vector expressions.
+ *
+ * Uses the symfpu library to convert from floating-point operations to
+ * bit-vectors and propositions allowing the theory to be solved by
+ * 'bit-blasting'.
+ *
+ * !!! This header is not to be included in any other headers !!!
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__FP__FP_CONVERTER_H
-#define CVC4__THEORY__FP__FP_CONVERTER_H
+#ifndef CVC5__THEORY__FP__FP_CONVERTER_H
+#define CVC5__THEORY__FP__FP_CONVERTER_H
 
-#include "base/check.h"
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
-#include "expr/node_builder.h"
 #include "expr/type_node.h"
 #include "theory/valuation.h"
 #include "util/bitvector.h"
 #include "util/floatingpoint_size.h"
 #include "util/hash.h"
 
-#ifdef CVC4_USE_SYMFPU
 #include "symfpu/core/unpackedFloat.h"
-#endif
 
-#ifdef CVC4_SYM_SYMBOLIC_EVAL
-// This allows debugging of the CVC4 symbolic back-end.
+#ifdef CVC5_SYM_SYMBOLIC_EVAL
+// This allows debugging of the cvc5 symbolic back-end.
 // By enabling this and disabling constant folding in the rewriter,
 // SMT files that have operations on constants will be evaluated
 // during the encoding step, which means that the expressions
@@ -47,7 +44,7 @@
 #include "theory/rewriter.h"
 #endif
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -55,7 +52,7 @@ namespace fp {
  * This is a symfpu symbolic "back-end".  It allows the library to be used to
  * construct bit-vector expressions that compute floating-point operations.
  * This is effectively the glue between symfpu's notion of "signed bit-vector"
- * and CVC4's node.
+ * and cvc5's node.
  */
 namespace symfpuSymbolic {
 
@@ -99,17 +96,17 @@ class traits
 typedef traits::bwt bwt;
 
 /**
- * Wrap the CVC4::Node types so that we can debug issues with this back-end
+ * Wrap the cvc5::Node types so that we can debug issues with this back-end
  */
 class nodeWrapper : public Node
 {
  protected:
-/* CVC4_SYM_SYMBOLIC_EVAL is for debugging CVC4 symbolic back-end issues.
+/* CVC5_SYM_SYMBOLIC_EVAL is for debugging cvc5 symbolic back-end issues.
  * Enable this and disabling constant folding will mean that operations
  * that are input with constant args are 'folded' using the symbolic encoding
  * allowing them to be traced via GDB.
  */
-#ifdef CVC4_SYM_SYMBOLIC_EVAL
+#ifdef CVC5_SYM_SYMBOLIC_EVAL
   nodeWrapper(const Node &n) : Node(theory::Rewriter::rewrite(n)) {}
 #else
   nodeWrapper(const Node &n) : Node(n) {}
@@ -121,9 +118,7 @@ class symbolicProposition : public nodeWrapper
  protected:
   bool checkNodeType(const TNode node);
 
-#ifdef CVC4_USE_SYMFPU
   friend ::symfpu::ite<symbolicProposition, symbolicProposition>;  // For ITE
-#endif
 
  public:
   symbolicProposition(const Node n);
@@ -142,9 +137,7 @@ class symbolicRoundingMode : public nodeWrapper
  protected:
   bool checkNodeType(const TNode n);
 
-#ifdef CVC4_USE_SYMFPU
   friend ::symfpu::ite<symbolicProposition, symbolicRoundingMode>;  // For ITE
-#endif
 
  public:
   symbolicRoundingMode(const Node n);
@@ -184,10 +177,8 @@ class symbolicBitVector : public nodeWrapper
   bool checkNodeType(const TNode n);
   friend symbolicBitVector<!isSigned>;  // To allow conversion between the types
 
-#ifdef CVC4_USE_SYMFPU
   friend ::symfpu::ite<symbolicProposition,
                        symbolicBitVector<isSigned> >;  // For ITE
-#endif
 
  public:
   symbolicBitVector(const Node n);
@@ -256,7 +247,7 @@ class symbolicBitVector : public nodeWrapper
   symbolicProposition operator>(const symbolicBitVector<isSigned> &op) const;
 
   /*** Type conversion ***/
-  // CVC4 nodes make no distinction between signed and unsigned, thus these are
+  // cvc5 nodes make no distinction between signed and unsigned, thus these are
   // trivial
   symbolicBitVector<true> toSigned(void) const;
   symbolicBitVector<false> toUnsigned(void) const;
@@ -315,7 +306,6 @@ class FpConverter
   context::CDList<Node> d_additionalAssertions;
 
  protected:
-#ifdef CVC4_USE_SYMFPU
   typedef symfpuSymbolic::traits traits;
   typedef ::symfpu::unpackedFloat<symfpuSymbolic::traits> uf;
   typedef symfpuSymbolic::traits::rm rm;
@@ -324,11 +314,11 @@ class FpConverter
   typedef symfpuSymbolic::traits::ubv ubv;
   typedef symfpuSymbolic::traits::sbv sbv;
 
-  typedef context::CDHashMap<Node, uf, NodeHashFunction> fpMap;
-  typedef context::CDHashMap<Node, rm, NodeHashFunction> rmMap;
-  typedef context::CDHashMap<Node, prop, NodeHashFunction> boolMap;
-  typedef context::CDHashMap<Node, ubv, NodeHashFunction> ubvMap;
-  typedef context::CDHashMap<Node, sbv, NodeHashFunction> sbvMap;
+  typedef context::CDHashMap<Node, uf> fpMap;
+  typedef context::CDHashMap<Node, rm> rmMap;
+  typedef context::CDHashMap<Node, prop> boolMap;
+  typedef context::CDHashMap<Node, ubv> ubvMap;
+  typedef context::CDHashMap<Node, sbv> sbvMap;
 
   fpMap d_fpMap;
   rmMap d_rmMap;
@@ -349,11 +339,10 @@ class FpConverter
 
   /* Creates the relevant components for a variable */
   uf buildComponents(TNode current);
-#endif
 };
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__FP__THEORY_FP_H */
+#endif /* CVC5__THEORY__FP__THEORY_FP_H */

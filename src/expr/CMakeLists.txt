@@ -1,14 +1,19 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Mathias Preiner, Aina Niemetz, Andrew Reynolds
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Mathias Preiner, Andrew Reynolds, Aina Niemetz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
-libcvc4_add_sources(
+
+libcvc5_add_sources(
   array_store_all.cpp
   array_store_all.h
   ascription_type.cpp
@@ -17,27 +22,27 @@ libcvc4_add_sources(
   attribute.cpp
   attribute_internals.h
   attribute_unique_id.h
-  buffered_proof_generator.cpp
-  buffered_proof_generator.h
+  bound_var_manager.cpp
+  bound_var_manager.h
   emptyset.cpp
   emptyset.h
   emptybag.cpp
   emptybag.h
   expr_iomanip.cpp
   expr_iomanip.h
-  expr_manager_scope.h
   kind_map.h
-  lazy_proof.cpp
-  lazy_proof.h
-  lazy_proof_chain.cpp
-  lazy_proof_chain.h
   match_trie.cpp
   match_trie.h
+  nary_term_util.cpp
+  nary_term_util.h
   node.cpp
   node.h
   node_algorithm.cpp
   node_algorithm.h
+  node_builder.cpp
   node_builder.h
+  node_converter.cpp
+  node_converter.h
   node_manager.cpp
   node_manager.h
   node_manager_attributes.h
@@ -51,35 +56,12 @@ libcvc4_add_sources(
   sequence.cpp
   sequence.h
   node_visitor.h
-  proof.cpp
-  proof.h
-  proof_checker.cpp
-  proof_checker.h
-  proof_generator.cpp
-  proof_generator.h
-  proof_node.cpp
-  proof_node.h
-  proof_node_algorithm.cpp
-  proof_node_algorithm.h
-  proof_node_to_sexpr.cpp
-  proof_node_to_sexpr.h
-  proof_node_manager.cpp
-  proof_node_manager.h
-  proof_node_updater.cpp
-  proof_node_updater.h
-  proof_rule.cpp
-  proof_rule.h
-  proof_set.h
-  proof_step_buffer.cpp
-  proof_step_buffer.h
   skolem_manager.cpp
   skolem_manager.h
   symbol_manager.cpp
   symbol_manager.h
   symbol_table.cpp
   symbol_table.h
-  tconv_seq_proof_generator.cpp
-  tconv_seq_proof_generator.h
   term_canonize.cpp
   term_canonize.h
   term_context.cpp
@@ -88,16 +70,11 @@ libcvc4_add_sources(
   term_context_node.h
   term_context_stack.cpp
   term_context_stack.h
-  term_conversion_proof_generator.cpp
-  term_conversion_proof_generator.h
-  type.cpp
-  type.h
   type_checker.h
   type_matcher.cpp
   type_matcher.h
   type_node.cpp
   type_node.h
-  variable_type_map.h
   datatype_index.h
   datatype_index.cpp
   dtype.h
@@ -106,8 +83,6 @@ libcvc4_add_sources(
   dtype_cons.cpp
   dtype_selector.h
   dtype_selector.cpp
-  record.cpp
-  record.h
   sequence.cpp
   sequence.h
   subs.cpp
@@ -118,15 +93,11 @@ libcvc4_add_sources(
   uninterpreted_constant.h
 )
 
-libcvc4_add_sources(GENERATED
+libcvc5_add_sources(GENERATED
   kind.cpp
   kind.h
   metakind.cpp
   metakind.h
-  expr.cpp
-  expr.h
-  expr_manager.cpp
-  expr_manager.h
   type_checker.cpp
   type_properties.h
 )
@@ -190,46 +161,6 @@ add_custom_command(
 )
 
 add_custom_command(
-  OUTPUT expr.h
-  COMMAND
-    ${mkexpr_script}
-    ${CMAKE_CURRENT_LIST_DIR}/expr_template.h
-    ${KINDS_FILES}
-    > ${CMAKE_CURRENT_BINARY_DIR}/expr.h
-  DEPENDS mkexpr expr_template.h kind.h ${KINDS_FILES}
-)
-
-add_custom_command(
-  OUTPUT expr.cpp
-  COMMAND
-    ${mkexpr_script}
-    ${CMAKE_CURRENT_LIST_DIR}/expr_template.cpp
-    ${KINDS_FILES}
-    > ${CMAKE_CURRENT_BINARY_DIR}/expr.cpp
-  DEPENDS mkexpr expr_template.cpp expr.h ${KINDS_FILES}
-)
-
-add_custom_command(
-  OUTPUT expr_manager.h
-  COMMAND
-    ${mkexpr_script}
-    ${CMAKE_CURRENT_LIST_DIR}/expr_manager_template.h
-    ${KINDS_FILES}
-    > ${CMAKE_CURRENT_BINARY_DIR}/expr_manager.h
-  DEPENDS mkexpr expr_manager_template.h expr.h ${KINDS_FILES}
-)
-
-add_custom_command(
-  OUTPUT expr_manager.cpp
-  COMMAND
-    ${mkexpr_script}
-    ${CMAKE_CURRENT_LIST_DIR}/expr_manager_template.cpp
-    ${KINDS_FILES}
-    > ${CMAKE_CURRENT_BINARY_DIR}/expr_manager.cpp
-  DEPENDS mkexpr expr_manager_template.cpp expr_manager.h ${KINDS_FILES}
-)
-
-add_custom_command(
   OUTPUT type_checker.cpp
   COMMAND
     ${mkexpr_script}
@@ -245,10 +176,6 @@ add_custom_target(gen-expr
     kind.h
     metakind.cpp
     metakind.h
-    expr.cpp
-    expr.h
-    expr_manager.cpp
-    expr_manager.h
     type_checker.cpp
     type_properties.h
 )

@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file theory_state.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A theory state for Theory
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A theory state for Theory.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__THEORY_STATE_H
-#define CVC4__THEORY__THEORY_STATE_H
+#ifndef CVC5__THEORY__THEORY_STATE_H
+#define CVC5__THEORY__THEORY_STATE_H
 
 #include "context/cdo.h"
 #include "expr/node.h"
 #include "theory/valuation.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 namespace eq {
@@ -60,6 +61,8 @@ class TheoryState
    * returns true if the representative of a and b are distinct constants.
    */
   virtual bool areDisequal(TNode a, TNode b) const;
+  /** get list of members in the equivalence class of a */
+  virtual void getEquivalenceClass(Node a, std::vector<Node>& eqc) const;
   /** get equality engine */
   eq::EqualityEngine* getEqualityEngine() const;
   //-------------------------------------- end equality information
@@ -79,9 +82,33 @@ class TheoryState
    * check.
    */
   TheoryModel* getModel();
+  /**
+   * Returns a pointer to the sort inference module, which lives in TheoryEngine
+   * and is non-null when options::sortInference is true.
+   */
+  SortInference* getSortInference();
 
   /** Returns true if n has a current SAT assignment and stores it in value. */
   virtual bool hasSatValue(TNode n, bool& value) const;
+
+  //------------------------------------------- access methods for assertions
+  /**
+   * The following methods are intended only to be used in limited use cases,
+   * for cases where a theory (e.g. quantifiers) requires knowing about the
+   * assertions from other theories.
+   */
+  /** The beginning iterator of facts for theory tid.*/
+  context::CDList<Assertion>::const_iterator factsBegin(TheoryId tid);
+  /** The beginning iterator of facts for theory tid.*/
+  context::CDList<Assertion>::const_iterator factsEnd(TheoryId tid);
+  /**
+   * Is the cardinality of type tn finite? This method depends on whether
+   * finite model finding is enabled. For details, see theory_engine.h.
+   */
+  bool isFiniteType(TypeNode tn) const;
+
+  /** Get the underlying valuation class */
+  Valuation& getValuation();
 
  protected:
   /** Pointer to the SAT context object used by the theory. */
@@ -100,6 +127,6 @@ class TheoryState
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__SOLVER_STATE_H */
+#endif /* CVC5__THEORY__SOLVER_STATE_H */

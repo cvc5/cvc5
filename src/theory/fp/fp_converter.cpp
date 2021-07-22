@@ -1,26 +1,28 @@
-/*********************                                                        */
-/*! \file fp_converter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Martin Brain, Mathias Preiner, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Conversion of floating-point operations to bit-vectors using symfpu.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Martin Brain, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Conversion of floating-point operations to bit-vectors using symfpu.
+ */
 
 #include "theory/fp/fp_converter.h"
 
 #include <vector>
 
+#include "base/check.h"
+#include "expr/node_builder.h"
 #include "theory/theory.h"  // theory.h Only needed for the leaf test
 #include "util/floatingpoint.h"
 #include "util/floatingpoint_literal_symfpu.h"
 
-#ifdef CVC4_USE_SYMFPU
 #include "symfpu/core/add.h"
 #include "symfpu/core/classify.h"
 #include "symfpu/core/compare.h"
@@ -35,89 +37,87 @@
 #include "symfpu/core/sqrt.h"
 #include "symfpu/utils/numberOfRoundingModes.h"
 #include "symfpu/utils/properties.h"
-#endif
 
-#ifdef CVC4_USE_SYMFPU
 namespace symfpu {
-using namespace ::CVC4::theory::fp::symfpuSymbolic;
+using namespace ::cvc5::theory::fp::symfpuSymbolic;
 
-#define CVC4_SYM_ITE_DFN(T)                                                \
+#define CVC5_SYM_ITE_DFN(T)                                                \
   template <>                                                              \
   struct ite<symbolicProposition, T>                                       \
   {                                                                        \
-    static const T iteOp(const symbolicProposition &_cond,                 \
-                         const T &_l,                                      \
-                         const T &_r)                                      \
+    static const T iteOp(const symbolicProposition& _cond,                 \
+                         const T& _l,                                      \
+                         const T& _r)                                      \
     {                                                                      \
-      ::CVC4::NodeManager *nm = ::CVC4::NodeManager::currentNM();          \
+      ::cvc5::NodeManager* nm = ::cvc5::NodeManager::currentNM();          \
                                                                            \
-      ::CVC4::Node cond = _cond;                                           \
-      ::CVC4::Node l = _l;                                                 \
-      ::CVC4::Node r = _r;                                                 \
+      ::cvc5::Node cond = _cond;                                           \
+      ::cvc5::Node l = _l;                                                 \
+      ::cvc5::Node r = _r;                                                 \
                                                                            \
       /* Handle some common symfpu idioms */                               \
       if (cond.isConst())                                                  \
       {                                                                    \
-        return (cond == nm->mkConst(::CVC4::BitVector(1U, 1U))) ? l : r;   \
+        return (cond == nm->mkConst(::cvc5::BitVector(1U, 1U))) ? l : r;   \
       }                                                                    \
       else                                                                 \
       {                                                                    \
-        if (l.getKind() == ::CVC4::kind::BITVECTOR_ITE)                    \
+        if (l.getKind() == ::cvc5::kind::BITVECTOR_ITE)                    \
         {                                                                  \
           if (l[1] == r)                                                   \
           {                                                                \
             return nm->mkNode(                                             \
-                ::CVC4::kind::BITVECTOR_ITE,                               \
-                nm->mkNode(::CVC4::kind::BITVECTOR_AND,                    \
+                ::cvc5::kind::BITVECTOR_ITE,                               \
+                nm->mkNode(::cvc5::kind::BITVECTOR_AND,                    \
                            cond,                                           \
-                           nm->mkNode(::CVC4::kind::BITVECTOR_NOT, l[0])), \
+                           nm->mkNode(::cvc5::kind::BITVECTOR_NOT, l[0])), \
                 l[2],                                                      \
                 r);                                                        \
           }                                                                \
           else if (l[2] == r)                                              \
           {                                                                \
             return nm->mkNode(                                             \
-                ::CVC4::kind::BITVECTOR_ITE,                               \
-                nm->mkNode(::CVC4::kind::BITVECTOR_AND, cond, l[0]),       \
+                ::cvc5::kind::BITVECTOR_ITE,                               \
+                nm->mkNode(::cvc5::kind::BITVECTOR_AND, cond, l[0]),       \
                 l[1],                                                      \
                 r);                                                        \
           }                                                                \
         }                                                                  \
-        else if (r.getKind() == ::CVC4::kind::BITVECTOR_ITE)               \
+        else if (r.getKind() == ::cvc5::kind::BITVECTOR_ITE)               \
         {                                                                  \
           if (r[1] == l)                                                   \
           {                                                                \
             return nm->mkNode(                                             \
-                ::CVC4::kind::BITVECTOR_ITE,                               \
-                nm->mkNode(::CVC4::kind::BITVECTOR_AND,                    \
-                           nm->mkNode(::CVC4::kind::BITVECTOR_NOT, cond),  \
-                           nm->mkNode(::CVC4::kind::BITVECTOR_NOT, r[0])), \
+                ::cvc5::kind::BITVECTOR_ITE,                               \
+                nm->mkNode(::cvc5::kind::BITVECTOR_AND,                    \
+                           nm->mkNode(::cvc5::kind::BITVECTOR_NOT, cond),  \
+                           nm->mkNode(::cvc5::kind::BITVECTOR_NOT, r[0])), \
                 r[2],                                                      \
                 l);                                                        \
           }                                                                \
           else if (r[2] == l)                                              \
           {                                                                \
             return nm->mkNode(                                             \
-                ::CVC4::kind::BITVECTOR_ITE,                               \
-                nm->mkNode(::CVC4::kind::BITVECTOR_AND,                    \
-                           nm->mkNode(::CVC4::kind::BITVECTOR_NOT, cond),  \
+                ::cvc5::kind::BITVECTOR_ITE,                               \
+                nm->mkNode(::cvc5::kind::BITVECTOR_AND,                    \
+                           nm->mkNode(::cvc5::kind::BITVECTOR_NOT, cond),  \
                            r[0]),                                          \
                 r[1],                                                      \
                 l);                                                        \
           }                                                                \
         }                                                                  \
       }                                                                    \
-      return T(nm->mkNode(::CVC4::kind::BITVECTOR_ITE, cond, l, r));       \
+      return T(nm->mkNode(::cvc5::kind::BITVECTOR_ITE, cond, l, r));       \
     }                                                                      \
   }
 
 // Can (unsurprisingly) only ITE things which contain Nodes
-CVC4_SYM_ITE_DFN(traits::rm);
-CVC4_SYM_ITE_DFN(traits::prop);
-CVC4_SYM_ITE_DFN(traits::sbv);
-CVC4_SYM_ITE_DFN(traits::ubv);
+CVC5_SYM_ITE_DFN(traits::rm);
+CVC5_SYM_ITE_DFN(traits::prop);
+CVC5_SYM_ITE_DFN(traits::sbv);
+CVC5_SYM_ITE_DFN(traits::ubv);
 
-#undef CVC4_SYM_ITE_DFN
+#undef CVC5_SYM_ITE_DFN
 
 template <>
 traits::ubv orderEncode<traits, traits::ubv>(const traits::ubv &b)
@@ -140,13 +140,8 @@ void probabilityAnnotation<traits, traits::prop>(const traits::prop &p,
   return;
 }
 };
-#endif
 
-#ifndef CVC4_USE_SYMFPU
-#define SYMFPU_NUMBER_OF_ROUNDING_MODES 5
-#endif
-
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 namespace symfpuSymbolic {
@@ -239,11 +234,7 @@ symbolicProposition symbolicProposition::operator^(
 
 bool symbolicRoundingMode::checkNodeType(const TNode n)
 {
-#ifdef CVC4_USE_SYMFPU
   return n.getType(false).isBitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES);
-#else
-  return false;
-#endif
 }
 
 symbolicRoundingMode::symbolicRoundingMode(const Node n) : nodeWrapper(n)
@@ -251,7 +242,6 @@ symbolicRoundingMode::symbolicRoundingMode(const Node n) : nodeWrapper(n)
   Assert(checkNodeType(*this));
 }
 
-#ifdef CVC4_USE_SYMFPU
 symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
     : nodeWrapper(NodeManager::currentNM()->mkConst(
           BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, v)))
@@ -259,14 +249,6 @@ symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
   Assert((v & (v - 1)) == 0 && v != 0);  // Exactly one bit set
   Assert(checkNodeType(*this));
 }
-#else
-symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
-    : nodeWrapper(NodeManager::currentNM()->mkConst(
-          BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, v)))
-{
-  Unreachable();
-}
-#endif
 
 symbolicRoundingMode::symbolicRoundingMode(const symbolicRoundingMode &old)
     : nodeWrapper(old)
@@ -410,8 +392,8 @@ symbolicBitVector<true> symbolicBitVector<true>::maxValue(const bwt &w)
   symbolicBitVector<true> leadingZero(symbolicBitVector<true>::zero(1));
   symbolicBitVector<true> base(symbolicBitVector<true>::allOnes(w - 1));
 
-  return symbolicBitVector<true>(::CVC4::NodeManager::currentNM()->mkNode(
-      ::CVC4::kind::BITVECTOR_CONCAT, leadingZero, base));
+  return symbolicBitVector<true>(::cvc5::NodeManager::currentNM()->mkNode(
+      ::cvc5::kind::BITVECTOR_CONCAT, leadingZero, base));
 }
 
 template <>
@@ -426,8 +408,8 @@ symbolicBitVector<true> symbolicBitVector<true>::minValue(const bwt &w)
   symbolicBitVector<true> leadingOne(symbolicBitVector<true>::one(1));
   symbolicBitVector<true> base(symbolicBitVector<true>::zero(w - 1));
 
-  return symbolicBitVector<true>(::CVC4::NodeManager::currentNM()->mkNode(
-      ::CVC4::kind::BITVECTOR_CONCAT, leadingOne, base));
+  return symbolicBitVector<true>(::cvc5::NodeManager::currentNM()->mkNode(
+      ::cvc5::kind::BITVECTOR_CONCAT, leadingOne, base));
 }
 
 template <>
@@ -474,7 +456,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator+(
     const symbolicBitVector<isSigned> &op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_PLUS, *this, op));
+      NodeManager::currentNM()->mkNode(kind::BITVECTOR_ADD, *this, op));
 }
 
 template <bool isSigned>
@@ -498,9 +480,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator/(
     const symbolicBitVector<isSigned> &op) const
 {
   return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
-      (isSigned) ? kind::BITVECTOR_SDIV : kind::BITVECTOR_UDIV_TOTAL,
-      *this,
-      op));
+      (isSigned) ? kind::BITVECTOR_SDIV : kind::BITVECTOR_UDIV, *this, op));
 }
 
 template <bool isSigned>
@@ -508,9 +488,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator%(
     const symbolicBitVector<isSigned> &op) const
 {
   return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
-      (isSigned) ? kind::BITVECTOR_SREM : kind::BITVECTOR_UREM_TOTAL,
-      *this,
-      op));
+      (isSigned) ? kind::BITVECTOR_SREM : kind::BITVECTOR_UREM, *this, op));
 }
 
 template <bool isSigned>
@@ -531,7 +509,7 @@ template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::increment() const
 {
   return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_PLUS, *this, one(this->getWidth())));
+      kind::BITVECTOR_ADD, *this, one(this->getWidth())));
 }
 
 template <bool isSigned>
@@ -634,7 +612,7 @@ symbolicProposition symbolicBitVector<isSigned>::operator>(
 }
 
 /*** Type conversion ***/
-// CVC4 nodes make no distinction between signed and unsigned, thus ...
+// cvc5 nodes make no distinction between signed and unsigned, thus ...
 template <bool isSigned>
 symbolicBitVector<true> symbolicBitVector<isSigned>::toSigned(void) const
 {
@@ -650,7 +628,7 @@ symbolicBitVector<false> symbolicBitVector<isSigned>::toUnsigned(void) const
 template <>
 symbolicBitVector<true> symbolicBitVector<true>::extend(bwt extension) const
 {
-  NodeBuilder<> construct(kind::BITVECTOR_SIGN_EXTEND);
+  NodeBuilder construct(kind::BITVECTOR_SIGN_EXTEND);
   construct << NodeManager::currentNM()->mkConst<BitVectorSignExtend>(
                    BitVectorSignExtend(extension))
             << *this;
@@ -661,7 +639,7 @@ symbolicBitVector<true> symbolicBitVector<true>::extend(bwt extension) const
 template <>
 symbolicBitVector<false> symbolicBitVector<false>::extend(bwt extension) const
 {
-  NodeBuilder<> construct(kind::BITVECTOR_ZERO_EXTEND);
+  NodeBuilder construct(kind::BITVECTOR_ZERO_EXTEND);
   construct << NodeManager::currentNM()->mkConst<BitVectorZeroExtend>(
                    BitVectorZeroExtend(extension))
             << *this;
@@ -675,7 +653,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::contract(
 {
   Assert(this->getWidth() > reduction);
 
-  NodeBuilder<> construct(kind::BITVECTOR_EXTRACT);
+  NodeBuilder construct(kind::BITVECTOR_EXTRACT);
   construct << NodeManager::currentNM()->mkConst<BitVectorExtract>(
                    BitVectorExtract((this->getWidth() - 1) - reduction, 0))
             << *this;
@@ -726,7 +704,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::extract(
 {
   Assert(upper >= lower);
 
-  NodeBuilder<> construct(kind::BITVECTOR_EXTRACT);
+  NodeBuilder construct(kind::BITVECTOR_EXTRACT);
   construct << NodeManager::currentNM()->mkConst<BitVectorExtract>(
                    BitVectorExtract(upper, lower))
             << *this;
@@ -756,20 +734,17 @@ TypeNode floatingPointTypeInfo::getTypeNode(void) const
 
 FpConverter::FpConverter(context::UserContext* user)
     : d_additionalAssertions(user)
-#ifdef CVC4_USE_SYMFPU
       ,
       d_fpMap(user),
       d_rmMap(user),
       d_boolMap(user),
       d_ubvMap(user),
       d_sbvMap(user)
-#endif
 {
 }
 
 FpConverter::~FpConverter() {}
 
-#ifdef CVC4_USE_SYMFPU
 Node FpConverter::ufToNode(const fpt &format, const uf &u) const
 {
   NodeManager *nm = NodeManager::currentNM();
@@ -801,17 +776,19 @@ Node FpConverter::rmToNode(const rm &r) const
   Node value = nm->mkNode(
       kind::ITE,
       nm->mkNode(kind::EQUAL, transVar, RNE),
-      nm->mkConst(ROUND_NEAREST_TIES_TO_EVEN),
-      nm->mkNode(kind::ITE,
-                 nm->mkNode(kind::EQUAL, transVar, RNA),
-                 nm->mkConst(ROUND_NEAREST_TIES_TO_AWAY),
-                 nm->mkNode(kind::ITE,
-                            nm->mkNode(kind::EQUAL, transVar, RTP),
-                            nm->mkConst(ROUND_TOWARD_POSITIVE),
-                            nm->mkNode(kind::ITE,
-                                       nm->mkNode(kind::EQUAL, transVar, RTN),
-                                       nm->mkConst(ROUND_TOWARD_NEGATIVE),
-                                       nm->mkConst(ROUND_TOWARD_ZERO)))));
+      nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN),
+      nm->mkNode(
+          kind::ITE,
+          nm->mkNode(kind::EQUAL, transVar, RNA),
+          nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY),
+          nm->mkNode(
+              kind::ITE,
+              nm->mkNode(kind::EQUAL, transVar, RTP),
+              nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE),
+              nm->mkNode(kind::ITE,
+                         nm->mkNode(kind::EQUAL, transVar, RTN),
+                         nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE),
+                         nm->mkConst(RoundingMode::ROUND_TOWARD_ZERO)))));
   return value;
 }
 
@@ -819,7 +796,7 @@ Node FpConverter::propToNode(const prop &p) const
 {
   NodeManager *nm = NodeManager::currentNM();
   Node value =
-      nm->mkNode(kind::EQUAL, p, nm->mkConst(::CVC4::BitVector(1U, 1U)));
+      nm->mkNode(kind::EQUAL, p, nm->mkConst(::cvc5::BitVector(1U, 1U)));
   return value;
 }
 Node FpConverter::ubvToNode(const ubv &u) const { return u; }
@@ -842,879 +819,474 @@ FpConverter::uf FpConverter::buildComponents(TNode current)
 
   return tmp;
 }
-#endif
-
-// Non-convertible things should only be added to the stack at the very start,
-// thus...
-#define CVC4_FPCONV_PASSTHROUGH Assert(workStack.empty())
 
 Node FpConverter::convert(TNode node)
 {
-#ifdef CVC4_USE_SYMFPU
-  std::vector<TNode> workStack;
-  TNode result = node;
+  std::vector<TNode> visit;
+  std::unordered_map<TNode, bool> visited;
+  NodeManager* nm = NodeManager::currentNM();
 
-  workStack.push_back(node);
+  visit.push_back(node);
 
-  NodeManager *nm = NodeManager::currentNM();
-
-  while (!workStack.empty())
+  while (!visit.empty())
   {
-    TNode current = workStack.back();
-    workStack.pop_back();
-    result = current;
+    TNode cur = visit.back();
+    visit.pop_back();
+    TypeNode t(cur.getType());
 
-    TypeNode t(current.getType());
-
-    if (t.isRoundingMode())
+    /* Already word-blasted, skip. */
+    if ((t.isBoolean() && d_boolMap.find(cur) != d_boolMap.end())
+        || (t.isRoundingMode() && d_rmMap.find(cur) != d_rmMap.end())
+        || (t.isBitVector()
+            && (d_sbvMap.find(cur) != d_sbvMap.end()
+                || d_ubvMap.find(cur) != d_ubvMap.end()))
+        || (t.isFloatingPoint() && d_fpMap.find(cur) != d_fpMap.end()))
     {
-      rmMap::const_iterator i(d_rmMap.find(current));
+      continue;
+    }
 
-      if (i == d_rmMap.end())
+    Kind kind = cur.getKind();
+
+    if (t.isReal() && kind != kind::FLOATINGPOINT_TO_REAL_TOTAL)
+    {
+      // The only nodes with Real sort in Theory FP are of kind
+      // kind::FLOATINGPOINT_TO_REAL_TOTAL (kind::FLOATINGPOINT_TO_REAL is
+      // rewritten to kind::FLOATINGPOINT_TO_REAL_TOTAL).
+      // We don't need to do anything explicitly with them since they will be
+      // treated as an uninterpreted function by the Real theory and we don't
+      // need to bit-blast the float expression unless we need to say something
+      // about its value.
+      //
+      // We still have to word blast it's arguments, though.
+      //
+      // All other Real expressions can be skipped.
+      continue;
+    }
+
+    auto it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited.emplace(cur, 0);
+      visit.push_back(cur);
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+    else if (it->second == false)
+    {
+      it->second = true;
+
+      if (t.isRoundingMode())
       {
-        if (Theory::isLeafOf(current, THEORY_FP))
+        /* ---- RoundingMode constants and variables -------------- */
+        Assert(Theory::isLeafOf(cur, THEORY_FP));
+        if (kind == kind::CONST_ROUNDINGMODE)
         {
-          if (current.getKind() == kind::CONST_ROUNDINGMODE)
+          switch (cur.getConst<RoundingMode>())
           {
-            /******** Constants ********/
-            switch (current.getConst<RoundingMode>())
-            {
-              case ROUND_NEAREST_TIES_TO_EVEN:
-                d_rmMap.insert(current, traits::RNE());
-                break;
-              case ROUND_NEAREST_TIES_TO_AWAY:
-                d_rmMap.insert(current, traits::RNA());
-                break;
-              case ROUND_TOWARD_POSITIVE:
-                d_rmMap.insert(current, traits::RTP());
-                break;
-              case ROUND_TOWARD_NEGATIVE:
-                d_rmMap.insert(current, traits::RTN());
-                break;
-              case ROUND_TOWARD_ZERO:
-                d_rmMap.insert(current, traits::RTZ());
-                break;
-              default: Unreachable() << "Unknown rounding mode"; break;
-            }
-          }
-          else
-          {
-            /******** Variables ********/
-            rm tmp(nm->mkNode(kind::ROUNDINGMODE_BITBLAST, current));
-            d_rmMap.insert(current, tmp);
-            d_additionalAssertions.push_back(tmp.valid());
+            case RoundingMode::ROUND_NEAREST_TIES_TO_EVEN:
+              d_rmMap.insert(cur, traits::RNE());
+              break;
+            case RoundingMode::ROUND_NEAREST_TIES_TO_AWAY:
+              d_rmMap.insert(cur, traits::RNA());
+              break;
+            case RoundingMode::ROUND_TOWARD_POSITIVE:
+              d_rmMap.insert(cur, traits::RTP());
+              break;
+            case RoundingMode::ROUND_TOWARD_NEGATIVE:
+              d_rmMap.insert(cur, traits::RTN());
+              break;
+            case RoundingMode::ROUND_TOWARD_ZERO:
+              d_rmMap.insert(cur, traits::RTZ());
+              break;
+            default: Unreachable() << "Unknown rounding mode"; break;
           }
         }
         else
         {
-          Unreachable() << "Unknown kind of type RoundingMode";
+          rm tmp(nm->mkNode(kind::ROUNDINGMODE_BITBLAST, cur));
+          d_rmMap.insert(cur, tmp);
+          d_additionalAssertions.push_back(tmp.valid());
         }
       }
-      // Returns a rounding-mode type so don't alter the return value
-    }
-    else if (t.isFloatingPoint())
-    {
-      fpMap::const_iterator i(d_fpMap.find(current));
-
-      if (i == d_fpMap.end())
+      else if (t.isFloatingPoint())
       {
-        if (Theory::isLeafOf(current, THEORY_FP))
+        /* ---- FloatingPoint constants and variables ------------- */
+        if (Theory::isLeafOf(cur, THEORY_FP))
         {
-          if (current.getKind() == kind::CONST_FLOATINGPOINT)
+          if (kind == kind::CONST_FLOATINGPOINT)
           {
-            /******** Constants ********/
             d_fpMap.insert(
-                current,
-                symfpu::unpackedFloat<traits>(current.getConst<FloatingPoint>()
-                                                  .getLiteral()
-                                                  ->getSymUF()));
+                cur,
+                symfpu::unpackedFloat<traits>(
+                    cur.getConst<FloatingPoint>().getLiteral()->getSymUF()));
           }
           else
           {
-            /******** Variables ********/
-            d_fpMap.insert(current, buildComponents(current));
+            d_fpMap.insert(cur, buildComponents(cur));
           }
         }
         else
         {
-          switch (current.getKind())
+          /* ---- FloatingPoint operators --------------------------- */
+          Assert(kind != kind::CONST_FLOATINGPOINT);
+          Assert(kind != kind::VARIABLE);
+          Assert(kind != kind::BOUND_VARIABLE && kind != kind::SKOLEM);
+
+          switch (kind)
           {
-            case kind::CONST_FLOATINGPOINT:
-            case kind::VARIABLE:
-            case kind::BOUND_VARIABLE:
-            case kind::SKOLEM:
-              Unreachable() << "Kind should have been handled as a leaf.";
+            /* ---- Arithmetic operators ---- */
+            case kind::FLOATINGPOINT_ABS:
+              Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
+              d_fpMap.insert(
+                  cur,
+                  symfpu::absolute<traits>(fpt(t),
+                                           (*d_fpMap.find(cur[0])).second));
               break;
 
-            /******** Operations ********/
-            case kind::FLOATINGPOINT_ABS:
             case kind::FLOATINGPOINT_NEG:
-            {
-              fpMap::const_iterator arg1(d_fpMap.find(current[0]));
-
-              if (arg1 == d_fpMap.end())
-              {
-                workStack.push_back(current);
-                workStack.push_back(current[0]);
-                continue;  // i.e. recurse!
-              }
-
-              switch (current.getKind())
-              {
-                case kind::FLOATINGPOINT_ABS:
-                  d_fpMap.insert(current,
-                                 symfpu::absolute<traits>(
-                                     fpt(current.getType()), (*arg1).second));
-                  break;
-                case kind::FLOATINGPOINT_NEG:
-                  d_fpMap.insert(current,
-                                 symfpu::negate<traits>(fpt(current.getType()),
-                                                        (*arg1).second));
-                  break;
-                default:
-                  Unreachable() << "Unknown unary floating-point function";
-                  break;
-              }
-            }
-            break;
+              Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
+              d_fpMap.insert(
+                  cur,
+                  symfpu::negate<traits>(fpt(t),
+                                         (*d_fpMap.find(cur[0])).second));
+              break;
 
             case kind::FLOATINGPOINT_SQRT:
+              Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
+              Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
+              d_fpMap.insert(
+                  cur,
+                  symfpu::sqrt<traits>(fpt(t),
+                                       (*d_rmMap.find(cur[0])).second,
+                                       (*d_fpMap.find(cur[1])).second));
+              break;
+
             case kind::FLOATINGPOINT_RTI:
-            {
-              rmMap::const_iterator mode(d_rmMap.find(current[0]));
-              fpMap::const_iterator arg1(d_fpMap.find(current[1]));
-              bool recurseNeeded =
-                  (mode == d_rmMap.end()) || (arg1 == d_fpMap.end());
-
-              if (recurseNeeded)
-              {
-                workStack.push_back(current);
-                if (mode == d_rmMap.end())
-                {
-                  workStack.push_back(current[0]);
-                }
-                if (arg1 == d_fpMap.end())
-                {
-                  workStack.push_back(current[1]);
-                }
-                continue;  // i.e. recurse!
-              }
-
-              switch (current.getKind())
-              {
-                case kind::FLOATINGPOINT_SQRT:
-                  d_fpMap.insert(current,
-                                 symfpu::sqrt<traits>(fpt(current.getType()),
-                                                      (*mode).second,
-                                                      (*arg1).second));
-                  break;
-                case kind::FLOATINGPOINT_RTI:
-                  d_fpMap.insert(
-                      current,
-                      symfpu::roundToIntegral<traits>(fpt(current.getType()),
-                                                      (*mode).second,
-                                                      (*arg1).second));
-                  break;
-                default:
-                  Unreachable()
-                      << "Unknown unary rounded floating-point function";
-                  break;
-              }
-            }
-            break;
+              Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
+              Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
+              d_fpMap.insert(cur,
+                             symfpu::roundToIntegral<traits>(
+                                 fpt(t),
+                                 (*d_rmMap.find(cur[0])).second,
+                                 (*d_fpMap.find(cur[1])).second));
+              break;
 
             case kind::FLOATINGPOINT_REM:
-            {
-              fpMap::const_iterator arg1(d_fpMap.find(current[0]));
-              fpMap::const_iterator arg2(d_fpMap.find(current[1]));
-              bool recurseNeeded =
-                  (arg1 == d_fpMap.end()) || (arg2 == d_fpMap.end());
-
-              if (recurseNeeded)
-              {
-                workStack.push_back(current);
-                if (arg1 == d_fpMap.end())
-                {
-                  workStack.push_back(current[0]);
-                }
-                if (arg2 == d_fpMap.end())
-                {
-                  workStack.push_back(current[1]);
-                }
-                continue;  // i.e. recurse!
-              }
-
+              Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
+              Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               d_fpMap.insert(
-                  current,
-                  symfpu::remainder<traits>(
-                      fpt(current.getType()), (*arg1).second, (*arg2).second));
-            }
-            break;
+                  cur,
+                  symfpu::remainder<traits>(fpt(t),
+                                            (*d_fpMap.find(cur[0])).second,
+                                            (*d_fpMap.find(cur[1])).second));
+              break;
+
+            case kind::FLOATINGPOINT_MAX_TOTAL:
+              Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
+              Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
+              Assert(cur[2].getType().isBitVector());
+              d_fpMap.insert(cur,
+                             symfpu::max<traits>(fpt(t),
+                                                 (*d_fpMap.find(cur[0])).second,
+                                                 (*d_fpMap.find(cur[1])).second,
+                                                 prop(cur[2])));
+              break;
 
             case kind::FLOATINGPOINT_MIN_TOTAL:
-            case kind::FLOATINGPOINT_MAX_TOTAL:
-            {
-              fpMap::const_iterator arg1(d_fpMap.find(current[0]));
-              fpMap::const_iterator arg2(d_fpMap.find(current[1]));
-              // current[2] is a bit-vector so we do not need to recurse down it
+              Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
+              Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
+              Assert(cur[2].getType().isBitVector());
+              d_fpMap.insert(cur,
+                             symfpu::min<traits>(fpt(t),
+                                                 (*d_fpMap.find(cur[0])).second,
+                                                 (*d_fpMap.find(cur[1])).second,
+                                                 prop(cur[2])));
+              break;
 
-              bool recurseNeeded =
-                  (arg1 == d_fpMap.end()) || (arg2 == d_fpMap.end());
+            case kind::FLOATINGPOINT_ADD:
+              Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
+              Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
+              Assert(d_fpMap.find(cur[2]) != d_fpMap.end());
+              d_fpMap.insert(cur,
+                             symfpu::add<traits>(fpt(t),
+                                                 (*d_rmMap.find(cur[0])).second,
+                                                 (*d_fpMap.find(cur[1])).second,
+                                                 (*d_fpMap.find(cur[2])).second,
+                                                 prop(true)));
+              break;
 
-              if (recurseNeeded)
-              {
-                workStack.push_back(current);
-                if (arg1 == d_fpMap.end())
-                {
-                  workStack.push_back(current[0]);
-                }
-                if (arg2 == d_fpMap.end())
-                {
-                  workStack.push_back(current[1]);
-                }
-                continue;  // i.e. recurse!
-              }
-
-              switch (current.getKind())
-              {
-                case kind::FLOATINGPOINT_MAX_TOTAL:
-                  d_fpMap.insert(current,
-                                 symfpu::max<traits>(fpt(current.getType()),
-                                                     (*arg1).second,
-                                                     (*arg2).second,
-                                                     prop(current[2])));
-                  break;
-
-                case kind::FLOATINGPOINT_MIN_TOTAL:
-                  d_fpMap.insert(current,
-                                 symfpu::min<traits>(fpt(current.getType()),
-                                                     (*arg1).second,
-                                                     (*arg2).second,
-                                                     prop(current[2])));
-                  break;
-
-                default:
-                  Unreachable()
-                      << "Unknown binary floating-point partial function";
-                  break;
-              }
-            }
-            break;
-
-            case kind::FLOATINGPOINT_PLUS:
-            case kind::FLOATINGPOINT_SUB:
             case kind::FLOATINGPOINT_MULT:
+              Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
+              Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
+              Assert(d_fpMap.find(cur[2]) != d_fpMap.end());
+              d_fpMap.insert(
+                  cur,
+                  symfpu::multiply<traits>(fpt(t),
+                                           (*d_rmMap.find(cur[0])).second,
+                                           (*d_fpMap.find(cur[1])).second,
+                                           (*d_fpMap.find(cur[2])).second));
+              break;
+
             case kind::FLOATINGPOINT_DIV:
-            {
-              rmMap::const_iterator mode(d_rmMap.find(current[0]));
-              fpMap::const_iterator arg1(d_fpMap.find(current[1]));
-              fpMap::const_iterator arg2(d_fpMap.find(current[2]));
-              bool recurseNeeded = (mode == d_rmMap.end())
-                                   || (arg1 == d_fpMap.end())
-                                   || (arg2 == d_fpMap.end());
-
-              if (recurseNeeded)
-              {
-                workStack.push_back(current);
-                if (mode == d_rmMap.end())
-                {
-                  workStack.push_back(current[0]);
-                }
-                if (arg1 == d_fpMap.end())
-                {
-                  workStack.push_back(current[1]);
-                }
-                if (arg2 == d_fpMap.end())
-                {
-                  workStack.push_back(current[2]);
-                }
-                continue;  // i.e. recurse!
-              }
-
-              switch (current.getKind())
-              {
-                case kind::FLOATINGPOINT_PLUS:
-                  d_fpMap.insert(current,
-                                 symfpu::add<traits>(fpt(current.getType()),
-                                                     (*mode).second,
-                                                     (*arg1).second,
-                                                     (*arg2).second,
-                                                     prop(true)));
-                  break;
-
-                case kind::FLOATINGPOINT_SUB:
-                  // Should have been removed by the rewriter
-                  Unreachable()
-                      << "Floating-point subtraction should be removed by the "
-                         "rewriter.";
-                  break;
-
-                case kind::FLOATINGPOINT_MULT:
-                  d_fpMap.insert(
-                      current,
-                      symfpu::multiply<traits>(fpt(current.getType()),
-                                               (*mode).second,
-                                               (*arg1).second,
-                                               (*arg2).second));
-                  break;
-                case kind::FLOATINGPOINT_DIV:
-                  d_fpMap.insert(current,
-                                 symfpu::divide<traits>(fpt(current.getType()),
-                                                        (*mode).second,
-                                                        (*arg1).second,
-                                                        (*arg2).second));
-                  break;
-                case kind::FLOATINGPOINT_REM:
-                  /*
-                  d_fpMap.insert(current,
-                  symfpu::remainder<traits>(fpt(current.getType()),
-                                                             (*mode).second,
-                                                             (*arg1).second,
-                                                             (*arg2).second));
-                  */
-                  Unimplemented()
-                      << "Remainder with rounding mode not yet supported by "
-                         "SMT-LIB";
-                  break;
-
-                default:
-                  Unreachable()
-                      << "Unknown binary rounded floating-point function";
-                  break;
-              }
-            }
-            break;
+              Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
+              Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
+              Assert(d_fpMap.find(cur[2]) != d_fpMap.end());
+              d_fpMap.insert(
+                  cur,
+                  symfpu::divide<traits>(fpt(t),
+                                         (*d_rmMap.find(cur[0])).second,
+                                         (*d_fpMap.find(cur[1])).second,
+                                         (*d_fpMap.find(cur[2])).second));
+              break;
 
             case kind::FLOATINGPOINT_FMA:
-            {
-              rmMap::const_iterator mode(d_rmMap.find(current[0]));
-              fpMap::const_iterator arg1(d_fpMap.find(current[1]));
-              fpMap::const_iterator arg2(d_fpMap.find(current[2]));
-              fpMap::const_iterator arg3(d_fpMap.find(current[3]));
-              bool recurseNeeded =
-                  (mode == d_rmMap.end()) || (arg1 == d_fpMap.end())
-                  || (arg2 == d_fpMap.end() || (arg3 == d_fpMap.end()));
-
-              if (recurseNeeded)
-              {
-                workStack.push_back(current);
-                if (mode == d_rmMap.end())
-                {
-                  workStack.push_back(current[0]);
-                }
-                if (arg1 == d_fpMap.end())
-                {
-                  workStack.push_back(current[1]);
-                }
-                if (arg2 == d_fpMap.end())
-                {
-                  workStack.push_back(current[2]);
-                }
-                if (arg3 == d_fpMap.end())
-                {
-                  workStack.push_back(current[3]);
-                }
-                continue;  // i.e. recurse!
-              }
-
-              d_fpMap.insert(current,
-                             symfpu::fma<traits>(fpt(current.getType()),
-                                                 (*mode).second,
-                                                 (*arg1).second,
-                                                 (*arg2).second,
-                                                 (*arg3).second));
-            }
-            break;
-
-            /******** Conversions ********/
-            case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT:
-            {
-              rmMap::const_iterator mode(d_rmMap.find(current[0]));
-              fpMap::const_iterator arg1(d_fpMap.find(current[1]));
-              bool recurseNeeded =
-                  (mode == d_rmMap.end()) || (arg1 == d_fpMap.end());
-
-              if (recurseNeeded)
-              {
-                workStack.push_back(current);
-                if (mode == d_rmMap.end())
-                {
-                  workStack.push_back(current[0]);
-                }
-                if (arg1 == d_fpMap.end())
-                {
-                  workStack.push_back(current[1]);
-                }
-                continue;  // i.e. recurse!
-              }
+              Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
+              Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
+              Assert(d_fpMap.find(cur[2]) != d_fpMap.end());
+              Assert(d_fpMap.find(cur[3]) != d_fpMap.end());
 
               d_fpMap.insert(
-                  current,
-                  symfpu::convertFloatToFloat<traits>(fpt(current[1].getType()),
-                                                      fpt(current.getType()),
-                                                      (*mode).second,
-                                                      (*arg1).second));
-            }
-            break;
+                  cur,
+                  symfpu::fma<traits>(fpt(t),
+                                      (*d_rmMap.find(cur[0])).second,
+                                      (*d_fpMap.find(cur[1])).second,
+                                      (*d_fpMap.find(cur[2])).second,
+                                      (*d_fpMap.find(cur[3])).second));
+              break;
+
+            /* ---- Conversions ---- */
+            case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT:
+              Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
+              Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
+              d_fpMap.insert(cur,
+                             symfpu::convertFloatToFloat<traits>(
+                                 fpt(cur[1].getType()),
+                                 fpt(t),
+                                 (*d_rmMap.find(cur[0])).second,
+                                 (*d_fpMap.find(cur[1])).second));
+              break;
 
             case kind::FLOATINGPOINT_FP:
             {
-              Node IEEEBV(nm->mkNode(
-                  kind::BITVECTOR_CONCAT, current[0], current[1], current[2]));
+              Assert(cur[0].getType().isBitVector());
+              Assert(cur[1].getType().isBitVector());
+              Assert(cur[2].getType().isBitVector());
+
+              Node IEEEBV(
+                  nm->mkNode(kind::BITVECTOR_CONCAT, cur[0], cur[1], cur[2]));
               d_fpMap.insert(
-                  current,
-                  symfpu::unpack<traits>(fpt(current.getType()), IEEEBV));
+                  cur, symfpu::unpack<traits>(fpt(t), IEEEBV));
             }
             break;
 
             case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
-              d_fpMap.insert(current,
-                             symfpu::unpack<traits>(fpt(current.getType()),
-                                                    ubv(current[0])));
+              Assert(cur[0].getType().isBitVector());
+              d_fpMap.insert(
+                  cur, symfpu::unpack<traits>(fpt(t), ubv(cur[0])));
               break;
 
             case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
+              Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
+              d_fpMap.insert(cur,
+                             symfpu::convertSBVToFloat<traits>(
+                                 fpt(t),
+                                 (*d_rmMap.find(cur[0])).second,
+                                 sbv(cur[1])));
+              break;
+
             case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR:
-            {
-              rmMap::const_iterator mode(d_rmMap.find(current[0]));
-              bool recurseNeeded = (mode == d_rmMap.end());
-
-              if (recurseNeeded)
-              {
-                workStack.push_back(current);
-                if (mode == d_rmMap.end())
-                {
-                  workStack.push_back(current[0]);
-                }
-                continue;  // i.e. recurse!
-              }
-
-              switch (current.getKind())
-              {
-                case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
-                  d_fpMap.insert(
-                      current,
-                      symfpu::convertSBVToFloat<traits>(fpt(current.getType()),
-                                                        (*mode).second,
-                                                        sbv(current[1])));
-                  break;
-
-                case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR:
-                  d_fpMap.insert(
-                      current,
-                      symfpu::convertUBVToFloat<traits>(fpt(current.getType()),
-                                                        (*mode).second,
-                                                        ubv(current[1])));
-                  break;
-
-                default:
-                  Unreachable() << "Unknown converstion from bit-vector to "
-                                   "floating-point";
-                  break;
-              }
-            }
-            break;
+              Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
+              d_fpMap.insert(cur,
+                             symfpu::convertUBVToFloat<traits>(
+                                 fpt(t),
+                                 (*d_rmMap.find(cur[0])).second,
+                                 ubv(cur[1])));
+              break;
 
             case kind::FLOATINGPOINT_TO_FP_REAL:
-            {
-              d_fpMap.insert(current, buildComponents(current));
+              d_fpMap.insert(cur, buildComponents(cur));
               // Rely on the real theory and theory combination
               // to handle the value
-            }
-            break;
-
-            case kind::FLOATINGPOINT_TO_FP_GENERIC:
-              Unreachable() << "Generic to_fp not removed";
               break;
 
-            default:
-              Unreachable() << "Unknown kind of type FloatingPoint";
-              break;
+            default: Unreachable() << "Unhandled kind " << kind; break;
           }
         }
       }
-      // Returns a floating-point type so don't alter the return value
-    }
-    else if (t.isBoolean())
-    {
-      boolMap::const_iterator i(d_boolMap.find(current));
-
-      if (i == d_boolMap.end())
+      else if (t.isBoolean())
       {
-        switch (current.getKind())
+        switch (kind)
         {
-          /******** Comparisons ********/
+          /* ---- Comparisons --------------------------------------- */
           case kind::EQUAL:
           {
-            TypeNode childType(current[0].getType());
+            TypeNode childType(cur[0].getType());
 
             if (childType.isFloatingPoint())
             {
-              fpMap::const_iterator arg1(d_fpMap.find(current[0]));
-              fpMap::const_iterator arg2(d_fpMap.find(current[1]));
-              bool recurseNeeded =
-                  (arg1 == d_fpMap.end()) || (arg2 == d_fpMap.end());
-
-              if (recurseNeeded)
-              {
-                workStack.push_back(current);
-                if (arg1 == d_fpMap.end())
-                {
-                  workStack.push_back(current[0]);
-                }
-                if (arg2 == d_fpMap.end())
-                {
-                  workStack.push_back(current[1]);
-                }
-                continue;  // i.e. recurse!
-              }
-
+              Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
+              Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               d_boolMap.insert(
-                  current,
-                  symfpu::smtlibEqual<traits>(
-                      fpt(childType), (*arg1).second, (*arg2).second));
+                  cur,
+                  symfpu::smtlibEqual<traits>(fpt(childType),
+                                              (*d_fpMap.find(cur[0])).second,
+                                              (*d_fpMap.find(cur[1])).second));
             }
             else if (childType.isRoundingMode())
             {
-              rmMap::const_iterator arg1(d_rmMap.find(current[0]));
-              rmMap::const_iterator arg2(d_rmMap.find(current[1]));
-              bool recurseNeeded =
-                  (arg1 == d_rmMap.end()) || (arg2 == d_rmMap.end());
-
-              if (recurseNeeded)
-              {
-                workStack.push_back(current);
-                if (arg1 == d_rmMap.end())
-                {
-                  workStack.push_back(current[0]);
-                }
-                if (arg2 == d_rmMap.end())
-                {
-                  workStack.push_back(current[1]);
-                }
-                continue;  // i.e. recurse!
-              }
-
-              d_boolMap.insert(current, (*arg1).second == (*arg2).second);
+              Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
+              Assert(d_rmMap.find(cur[1]) != d_rmMap.end());
+              d_boolMap.insert(cur,
+                               (*d_rmMap.find(cur[0])).second
+                                   == (*d_rmMap.find(cur[1])).second);
             }
-            else
-            {
-              CVC4_FPCONV_PASSTHROUGH;
-              return result;
-            }
+            // else do nothing
           }
           break;
 
           case kind::FLOATINGPOINT_LEQ:
+            Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
+            Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
+            d_boolMap.insert(cur,
+                             symfpu::lessThanOrEqual<traits>(
+                                 fpt(cur[0].getType()),
+                                 (*d_fpMap.find(cur[0])).second,
+                                 (*d_fpMap.find(cur[1])).second));
+            break;
+
           case kind::FLOATINGPOINT_LT:
-          {
-            TypeNode childType(current[0].getType());
+            Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
+            Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
+            d_boolMap.insert(
+                cur,
+                symfpu::lessThan<traits>(fpt(cur[0].getType()),
+                                         (*d_fpMap.find(cur[0])).second,
+                                         (*d_fpMap.find(cur[1])).second));
+            break;
 
-            fpMap::const_iterator arg1(d_fpMap.find(current[0]));
-            fpMap::const_iterator arg2(d_fpMap.find(current[1]));
-            bool recurseNeeded =
-                (arg1 == d_fpMap.end()) || (arg2 == d_fpMap.end());
-
-            if (recurseNeeded)
-            {
-              workStack.push_back(current);
-              if (arg1 == d_fpMap.end())
-              {
-                workStack.push_back(current[0]);
-              }
-              if (arg2 == d_fpMap.end())
-              {
-                workStack.push_back(current[1]);
-              }
-              continue;  // i.e. recurse!
-            }
-
-            switch (current.getKind())
-            {
-              case kind::FLOATINGPOINT_LEQ:
-                d_boolMap.insert(
-                    current,
-                    symfpu::lessThanOrEqual<traits>(
-                        fpt(childType), (*arg1).second, (*arg2).second));
-                break;
-
-              case kind::FLOATINGPOINT_LT:
-                d_boolMap.insert(
-                    current,
-                    symfpu::lessThan<traits>(
-                        fpt(childType), (*arg1).second, (*arg2).second));
-                break;
-
-              default:
-                Unreachable() << "Unknown binary floating-point relation";
-                break;
-            }
-          }
-          break;
-
+          /* ---- Tester -------------------------------------------- */
           case kind::FLOATINGPOINT_ISN:
+            Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
+            d_boolMap.insert(
+                cur,
+                symfpu::isNormal<traits>(fpt(cur[0].getType()),
+                                         (*d_fpMap.find(cur[0])).second));
+            break;
+
           case kind::FLOATINGPOINT_ISSN:
+            Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
+            d_boolMap.insert(
+                cur,
+                symfpu::isSubnormal<traits>(fpt(cur[0].getType()),
+                                            (*d_fpMap.find(cur[0])).second));
+            break;
+
           case kind::FLOATINGPOINT_ISZ:
+            Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
+            d_boolMap.insert(
+                cur,
+                symfpu::isZero<traits>(fpt(cur[0].getType()),
+                                       (*d_fpMap.find(cur[0])).second));
+            break;
+
           case kind::FLOATINGPOINT_ISINF:
+            Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
+            d_boolMap.insert(
+                cur,
+                symfpu::isInfinite<traits>(fpt(cur[0].getType()),
+                                           (*d_fpMap.find(cur[0])).second));
+            break;
+
           case kind::FLOATINGPOINT_ISNAN:
+            Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
+            d_boolMap.insert(
+                cur,
+                symfpu::isNaN<traits>(fpt(cur[0].getType()),
+                                      (*d_fpMap.find(cur[0])).second));
+            break;
+
           case kind::FLOATINGPOINT_ISNEG:
+            Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
+            d_boolMap.insert(
+                cur,
+                symfpu::isNegative<traits>(fpt(cur[0].getType()),
+                                           (*d_fpMap.find(cur[0])).second));
+            break;
+
           case kind::FLOATINGPOINT_ISPOS:
-          {
-            TypeNode childType(current[0].getType());
-            fpMap::const_iterator arg1(d_fpMap.find(current[0]));
-
-            if (arg1 == d_fpMap.end())
-            {
-              workStack.push_back(current);
-              workStack.push_back(current[0]);
-              continue;  // i.e. recurse!
-            }
-
-            switch (current.getKind())
-            {
-              case kind::FLOATINGPOINT_ISN:
-                d_boolMap.insert(
-                    current,
-                    symfpu::isNormal<traits>(fpt(childType), (*arg1).second));
-                break;
-
-              case kind::FLOATINGPOINT_ISSN:
-                d_boolMap.insert(current,
-                                 symfpu::isSubnormal<traits>(fpt(childType),
-                                                             (*arg1).second));
-                break;
-
-              case kind::FLOATINGPOINT_ISZ:
-                d_boolMap.insert(
-                    current,
-                    symfpu::isZero<traits>(fpt(childType), (*arg1).second));
-                break;
-
-              case kind::FLOATINGPOINT_ISINF:
-                d_boolMap.insert(
-                    current,
-                    symfpu::isInfinite<traits>(fpt(childType), (*arg1).second));
-                break;
-
-              case kind::FLOATINGPOINT_ISNAN:
-                d_boolMap.insert(
-                    current,
-                    symfpu::isNaN<traits>(fpt(childType), (*arg1).second));
-                break;
-
-              case kind::FLOATINGPOINT_ISPOS:
-                d_boolMap.insert(
-                    current,
-                    symfpu::isPositive<traits>(fpt(childType), (*arg1).second));
-                break;
-
-              case kind::FLOATINGPOINT_ISNEG:
-                d_boolMap.insert(
-                    current,
-                    symfpu::isNegative<traits>(fpt(childType), (*arg1).second));
-                break;
-
-              default:
-                Unreachable() << "Unknown unary floating-point relation";
-                break;
-            }
-          }
-          break;
-
-          case kind::FLOATINGPOINT_EQ:
-          case kind::FLOATINGPOINT_GEQ:
-          case kind::FLOATINGPOINT_GT:
-            Unreachable() << "Kind should have been removed by rewriter.";
+            Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
+            d_boolMap.insert(
+                cur,
+                symfpu::isPositive<traits>(fpt(cur[0].getType()),
+                                           (*d_fpMap.find(cur[0])).second));
             break;
 
-          // Components will be registered as they are owned by
-          // the floating-point theory.  No action is required.
-          case kind::FLOATINGPOINT_COMPONENT_NAN:
-          case kind::FLOATINGPOINT_COMPONENT_INF:
-          case kind::FLOATINGPOINT_COMPONENT_ZERO:
-          case kind::FLOATINGPOINT_COMPONENT_SIGN:
-          /* Fall through... */
-
-          default:
-            CVC4_FPCONV_PASSTHROUGH;
-            return result;
-            break;
+          default:;  // do nothing
         }
-
-        i = d_boolMap.find(current);
       }
-
-      result = (*i).second;
-    }
-    else if (t.isBitVector())
-    {
-      switch (current.getKind())
+      else if (t.isBitVector())
       {
-        /******** Conversions ********/
-        case kind::FLOATINGPOINT_TO_UBV_TOTAL:
+        /* ---- Conversions --------------------------------------- */
+        if (kind == kind::FLOATINGPOINT_TO_UBV_TOTAL)
         {
-          TypeNode childType(current[1].getType());
-          ubvMap::const_iterator i(d_ubvMap.find(current));
-
-          if (i == d_ubvMap.end())
-          {
-            rmMap::const_iterator mode(d_rmMap.find(current[0]));
-            fpMap::const_iterator arg1(d_fpMap.find(current[1]));
-            bool recurseNeeded =
-                (mode == d_rmMap.end()) || (arg1 == d_fpMap.end());
-
-            if (recurseNeeded)
-            {
-              workStack.push_back(current);
-              if (mode == d_rmMap.end())
-              {
-                workStack.push_back(current[0]);
-              }
-              if (arg1 == d_fpMap.end())
-              {
-                workStack.push_back(current[1]);
-              }
-              continue;  // i.e. recurse!
-            }
-
-            FloatingPointToUBVTotal info =
-                current.getOperator().getConst<FloatingPointToUBVTotal>();
-
-            d_ubvMap.insert(current,
-                            symfpu::convertFloatToUBV<traits>(fpt(childType),
-                                                              (*mode).second,
-                                                              (*arg1).second,
-                                                              info.d_bv_size,
-                                                              ubv(current[2])));
-            i = d_ubvMap.find(current);
-          }
-
-          result = (*i).second;
+          Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
+          Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
+          FloatingPointToUBVTotal info =
+              cur.getOperator().getConst<FloatingPointToUBVTotal>();
+          d_ubvMap.insert(
+              cur,
+              symfpu::convertFloatToUBV<traits>(fpt(cur[1].getType()),
+                                                (*d_rmMap.find(cur[0])).second,
+                                                (*d_fpMap.find(cur[1])).second,
+                                                info.d_bv_size,
+                                                ubv(cur[2])));
         }
-        break;
-
-        case kind::FLOATINGPOINT_TO_SBV_TOTAL:
+        else if (kind == kind::FLOATINGPOINT_TO_SBV_TOTAL)
         {
-          TypeNode childType(current[1].getType());
-          sbvMap::const_iterator i(d_sbvMap.find(current));
+          Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
+          Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
+          FloatingPointToSBVTotal info =
+              cur.getOperator().getConst<FloatingPointToSBVTotal>();
 
-          if (i == d_sbvMap.end())
-          {
-            rmMap::const_iterator mode(d_rmMap.find(current[0]));
-            fpMap::const_iterator arg1(d_fpMap.find(current[1]));
-            bool recurseNeeded =
-                (mode == d_rmMap.end()) || (arg1 == d_fpMap.end());
-
-            if (recurseNeeded)
-            {
-              workStack.push_back(current);
-              if (mode == d_rmMap.end())
-              {
-                workStack.push_back(current[0]);
-              }
-              if (arg1 == d_fpMap.end())
-              {
-                workStack.push_back(current[1]);
-              }
-              continue;  // i.e. recurse!
-            }
-
-            FloatingPointToSBVTotal info =
-                current.getOperator().getConst<FloatingPointToSBVTotal>();
-
-            d_sbvMap.insert(current,
-                            symfpu::convertFloatToSBV<traits>(fpt(childType),
-                                                              (*mode).second,
-                                                              (*arg1).second,
-                                                              info.d_bv_size,
-                                                              sbv(current[2])));
-
-            i = d_sbvMap.find(current);
-          }
-
-          result = (*i).second;
+          d_sbvMap.insert(
+              cur,
+              symfpu::convertFloatToSBV<traits>(fpt(cur[1].getType()),
+                                                (*d_rmMap.find(cur[0])).second,
+                                                (*d_fpMap.find(cur[1])).second,
+                                                info.d_bv_size,
+                                                sbv(cur[2])));
         }
-        break;
-
-        case kind::FLOATINGPOINT_TO_UBV:
-          Unreachable()
-              << "Partially defined fp.to_ubv should have been removed by "
-                 "expandDefinition";
-          break;
-
-        case kind::FLOATINGPOINT_TO_SBV:
-          Unreachable()
-              << "Partially defined fp.to_sbv should have been removed by "
-                 "expandDefinition";
-          break;
-
-        // Again, no action is needed
-        case kind::FLOATINGPOINT_COMPONENT_EXPONENT:
-        case kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND:
-        case kind::ROUNDINGMODE_BITBLAST:
-        /* Fall through ... */
-
-        default: CVC4_FPCONV_PASSTHROUGH; break;
-      }
-    }
-    else if (t.isReal())
-    {
-      switch (current.getKind())
-      {
-        /******** Conversions ********/
-        case kind::FLOATINGPOINT_TO_REAL_TOTAL:
-        {
-          // We need to recurse so that any variables that are only
-          // used under this will have components created
-          // (via auxiliary constraints)
-
-          TypeNode childType(current[0].getType());
-          fpMap::const_iterator arg1(d_fpMap.find(current[0]));
-
-          if (arg1 == d_fpMap.end())
-          {
-            workStack.push_back(current);
-            workStack.push_back(current[0]);
-            continue;  // i.e. recurse!
-          }
-
-          // However we don't need to do anything explicitly with
-          // this as it will be treated as an uninterpreted function
-          // by the real theory and we don't need to bit-blast the
-          // float expression unless we need to say something about
-          // its value.
-        }
-
-        break;
-
-        case kind::FLOATINGPOINT_TO_REAL:
-          Unreachable()
-              << "Partially defined fp.to_real should have been removed by "
-                 "expandDefinition";
-          break;
-
-        default: CVC4_FPCONV_PASSTHROUGH; break;
+        // else do nothing
       }
     }
     else
     {
-      CVC4_FPCONV_PASSTHROUGH;
+      Assert(visited.at(cur) == 1);
+      continue;
     }
   }
 
-  return result;
-#else
-  Unimplemented() << "Conversion is dependent on SymFPU";
-#endif
+  if (d_boolMap.find(node) != d_boolMap.end())
+  {
+    Assert(node.getType().isBoolean());
+    return (*d_boolMap.find(node)).second;
+  }
+  if (d_sbvMap.find(node) != d_sbvMap.end())
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_SBV_TOTAL);
+    return (*d_sbvMap.find(node)).second;
+  }
+  if (d_ubvMap.find(node) != d_ubvMap.end())
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_UBV_TOTAL);
+    return (*d_ubvMap.find(node)).second;
+  }
+  return node;
 }
-
-#undef CVC4_FPCONV_PASSTHROUGH
 
 Node FpConverter::getValue(Valuation &val, TNode var)
 {
   Assert(Theory::isLeafOf(var, THEORY_FP));
 
-#ifdef CVC4_USE_SYMFPU
   TypeNode t(var.getType());
 
   Assert(t.isRoundingMode() || t.isFloatingPoint())
@@ -1734,11 +1306,8 @@ Node FpConverter::getValue(Valuation &val, TNode var)
   Assert(i != d_fpMap.end())
       << "Asking for the value of an unregistered expression";
   return ufToNode(fpt(t), (*i).second);
-#else
-  Unimplemented() << "Conversion is dependent on SymFPU";
-#endif
 }
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

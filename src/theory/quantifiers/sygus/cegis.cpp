@@ -1,18 +1,20 @@
-/*********************                                                        */
-/*! \file cegis.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of cegis
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of cegis.
+ */
 
 #include "theory/quantifiers/sygus/cegis.h"
+
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
@@ -20,21 +22,23 @@
 #include "theory/quantifiers/sygus/example_min_eval.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
+#include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-Cegis::Cegis(QuantifiersEngine* qe, SynthConjecture* p)
-    : SygusModule(qe, p), d_eval_unfold(nullptr), d_usingSymCons(false)
+Cegis::Cegis(QuantifiersInferenceManager& qim,
+             TermDbSygus* tds,
+             SynthConjecture* p)
+    : SygusModule(qim, tds, p),
+      d_eval_unfold(tds->getEvalUnfold()),
+      d_usingSymCons(false)
 {
-  d_eval_unfold = qe->getTermDatabaseSygus()->getEvalUnfold();
 }
 
 bool Cegis::initialize(Node conj,
@@ -504,7 +508,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
 
   for (unsigned r = 0; r < 2; r++)
   {
-    std::unordered_set<Node, NodeHashFunction>& rlemmas =
+    std::unordered_set<Node>& rlemmas =
         r == 0 ? d_refinement_lemma_unit : d_refinement_lemma_conj;
     for (const Node& lem : rlemmas)
     {
@@ -581,7 +585,7 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
   // Maybe we already evaluated some terms in refinement lemmas.
   // In particular, the example eval cache for f may have some evaluations
   // cached, which we add to evalVisited and pass to the evaluator below.
-  std::unordered_map<Node, Node, NodeHashFunction> evalVisited;
+  std::unordered_map<Node, Node> evalVisited;
   ExampleInfer* ei = d_parent->getExampleInfer();
   for (unsigned i = 0, vsize = vs.size(); i < vsize; i++)
   {
@@ -607,7 +611,7 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
   Evaluator* eval = d_tds->getEvaluator();
   for (unsigned r = 0; r < 2; r++)
   {
-    std::unordered_set<Node, NodeHashFunction>& rlemmas =
+    std::unordered_set<Node>& rlemmas =
         r == 0 ? d_refinement_lemma_unit : d_refinement_lemma_conj;
     for (const Node& lem : rlemmas)
     {
@@ -701,6 +705,6 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
   return false;
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

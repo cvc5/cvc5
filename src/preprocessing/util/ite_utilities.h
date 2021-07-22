@@ -1,42 +1,43 @@
-/*********************                                                        */
-/*! \file ite_utilities.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Aina Niemetz, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Simplifications for ITE expressions
- **
- ** This module implements preprocessing phases designed to simplify ITE
- ** expressions.  Based on:
- ** Kim, Somenzi, Jin.  Efficient Term-ITE Conversion for SMT.  FMCAD 2009.
- ** Burch, Jerry.  Techniques for Verifying Superscalar Microprocessors.  DAC
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Simplifications for ITE expressions.
+ *
+ * This module implements preprocessing phases designed to simplify ITE
+ * expressions.  Based on:
+ * Kim, Somenzi, Jin.  Efficient Term-ITE Conversion for SMT.  FMCAD 2009.
+ * Burch, Jerry.  Techniques for Verifying Superscalar Microprocessors.  DAC
  *'96
- **/
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__ITE_UTILITIES_H
-#define CVC4__ITE_UTILITIES_H
+#ifndef CVC5__ITE_UTILITIES_H
+#define CVC5__ITE_UTILITIES_H
 
 #include <unordered_map>
 #include <vector>
 
 #include "expr/node.h"
-#include "preprocessing/assertion_pipeline.h"
 #include "util/hash.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
+
+class AssertionPipeline;
+
 namespace util {
 
-class IncomingArcCounter;
-class TermITEHeightCounter;
 class ITECompressor;
 class ITESimplifier;
 class ITECareSimplifier;
@@ -60,7 +61,7 @@ class ContainsTermITEVisitor
   size_t cache_size() const { return d_cache.size(); }
 
  private:
-  typedef std::unordered_map<Node, bool, NodeHashFunction> NodeBoolMap;
+  typedef std::unordered_map<Node, bool> NodeBoolMap;
   NodeBoolMap d_cache;
 };
 
@@ -120,7 +121,7 @@ class IncomingArcCounter
   void clear();
 
  private:
-  typedef std::unordered_map<Node, uint32_t, NodeHashFunction> NodeCountMap;
+  typedef std::unordered_map<Node, uint32_t> NodeCountMap;
   NodeCountMap d_reachCount;
 
   bool d_skipVariables;
@@ -153,7 +154,7 @@ class TermITEHeightCounter
   size_t cache_size() const;
 
  private:
-  typedef std::unordered_map<Node, uint32_t, NodeHashFunction> NodeCountMap;
+  typedef std::unordered_map<Node, uint32_t> NodeCountMap;
   NodeCountMap d_termITEHeight;
 }; /* class TermITEHeightCounter */
 
@@ -180,7 +181,7 @@ class ITECompressor
   AssertionPipeline* d_assertions;
   IncomingArcCounter d_incoming;
 
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node> NodeMap;
   NodeMap d_compressed;
 
   void reset();
@@ -197,7 +198,6 @@ class ITECompressor
     IntStat d_compressCalls;
     IntStat d_skolemsAdded;
     Statistics();
-    ~Statistics();
   };
   Statistics d_statistics;
 }; /* class ITECompressor */
@@ -232,8 +232,7 @@ class ITESimplifier
   //     constant
   // or  termITE(cnd, ConstantIte, ConstantIte)
   typedef std::vector<Node> NodeVec;
-  typedef std::unordered_map<Node, NodeVec*, NodeHashFunction>
-      ConstantLeavesMap;
+  typedef std::unordered_map<Node, NodeVec*> ConstantLeavesMap;
   ConstantLeavesMap d_constantLeaves;
 
   // d_constantLeaves satisfies the following invariants:
@@ -269,7 +268,7 @@ class ITESimplifier
 
   typedef std::pair<Node, Node> NodePair;
   using NodePairHashFunction =
-      PairHashFunction<Node, Node, NodeHashFunction, NodeHashFunction>;
+      PairHashFunction<Node, Node, std::hash<Node>, std::hash<Node>>;
   typedef std::unordered_map<NodePair, Node, NodePairHashFunction> NodePairMap;
   NodePairMap d_constantIteEqualsConstantCache;
   NodePairMap d_replaceOverCache;
@@ -277,16 +276,16 @@ class ITESimplifier
   Node replaceOver(Node n, Node replaceWith, Node simpVar);
   Node replaceOverTermIte(Node term, Node simpAtom, Node simpVar);
 
-  std::unordered_map<Node, bool, NodeHashFunction> d_leavesConstCache;
+  std::unordered_map<Node, bool> d_leavesConstCache;
   bool leavesAreConst(TNode e, theory::TheoryId tid);
   bool leavesAreConst(TNode e);
 
   NodePairMap d_simpConstCache;
   Node simpConstants(TNode simpContext, TNode iteNode, TNode simpVar);
-  std::unordered_map<TypeNode, Node, TypeNode::HashFunction> d_simpVars;
+  std::unordered_map<TypeNode, Node> d_simpVars;
   Node getSimpVar(TypeNode t);
 
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node> NodeMap;
   NodeMap d_simpContextCache;
   Node createSimpContext(TNode c, Node& iteNode, Node& simpVar);
 
@@ -308,7 +307,6 @@ class ITESimplifier
     HistogramStat<uint32_t> d_inSmaller;
 
     Statistics();
-    ~Statistics();
   };
 
   Statistics d_statistics;
@@ -336,7 +334,7 @@ class ITECareSimplifier
   Node d_true;
   Node d_false;
 
-  typedef std::unordered_map<TNode, Node, TNodeHashFunction> TNodeMap;
+  typedef std::unordered_map<TNode, Node> TNodeMap;
 
   class CareSetPtr;
   class CareSetPtrVal
@@ -416,6 +414,6 @@ class ITECareSimplifier
 
 }  // namespace util
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

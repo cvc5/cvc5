@@ -1,47 +1,41 @@
-/*********************                                                        */
-/*! \file equality_engine.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Andrew Reynolds, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ * [[ Add one-line brief description here ]]
+ *
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/uf/equality_engine.h"
 
+#include "base/output.h"
 #include "options/smt_options.h"
-#include "proof/proof_manager.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/rewriter.h"
+#include "theory/uf/eq_proof.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 
-EqualityEngine::Statistics::Statistics(std::string name)
-    : d_mergesCount(name + "::mergesCount", 0),
-      d_termsCount(name + "::termsCount", 0),
-      d_functionTermsCount(name + "::functionTermsCount", 0),
-      d_constantTermsCount(name + "::constantTermsCount", 0)
+EqualityEngine::Statistics::Statistics(const std::string& name)
+    : d_mergesCount(smtStatisticsRegistry().registerInt(name + "mergesCount")),
+      d_termsCount(smtStatisticsRegistry().registerInt(name + "termsCount")),
+      d_functionTermsCount(
+          smtStatisticsRegistry().registerInt(name + "functionTermsCount")),
+      d_constantTermsCount(
+          smtStatisticsRegistry().registerInt(name + "constantTermsCount"))
 {
-  smtStatisticsRegistry()->registerStat(&d_mergesCount);
-  smtStatisticsRegistry()->registerStat(&d_termsCount);
-  smtStatisticsRegistry()->registerStat(&d_functionTermsCount);
-  smtStatisticsRegistry()->registerStat(&d_constantTermsCount);
-}
-
-EqualityEngine::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_mergesCount);
-  smtStatisticsRegistry()->unregisterStat(&d_termsCount);
-  smtStatisticsRegistry()->unregisterStat(&d_functionTermsCount);
-  smtStatisticsRegistry()->unregisterStat(&d_constantTermsCount);
 }
 
 /**
@@ -94,10 +88,6 @@ void EqualityEngine::init() {
   d_triggerDatabaseAllocatedSize = 100000;
   d_triggerDatabase = (char*) malloc(d_triggerDatabaseAllocatedSize);
 
-  //We can't notify during the initialization because it notifies
-  // QuantifiersEngine.AddTermToDatabase that try to access to the uf
-  // instantiator that currently doesn't exist.
-  ScopedBool sb(d_performNotify, false);
   addTermInternal(d_true);
   addTermInternal(d_false);
 
@@ -117,14 +107,13 @@ EqualityEngine::EqualityEngine(context::Context* context,
       d_masterEqualityEngine(0),
       d_context(context),
       d_done(context, false),
-      d_performNotify(true),
-      d_notify(s_notifyNone),
+      d_notify(&s_notifyNone),
       d_applicationLookupsCount(context, 0),
       d_nodesCount(context, 0),
       d_assertedEqualitiesCount(context, 0),
       d_equalityTriggersCount(context, 0),
       d_subtermEvaluatesSize(context, 0),
-      d_stats(name),
+      d_stats(name + "::"),
       d_inPropagate(false),
       d_constantsAreTriggers(constantsAreTriggers),
       d_anyTermsAreTriggers(anyTermTriggers),
@@ -144,17 +133,17 @@ EqualityEngine::EqualityEngine(EqualityEngineNotify& notify,
                                bool constantsAreTriggers,
                                bool anyTermTriggers)
     : ContextNotifyObj(context),
-      d_masterEqualityEngine(0),
+      d_masterEqualityEngine(nullptr),
+      d_proofEqualityEngine(nullptr),
       d_context(context),
       d_done(context, false),
-      d_performNotify(true),
-      d_notify(notify),
+      d_notify(&s_notifyNone),
       d_applicationLookupsCount(context, 0),
       d_nodesCount(context, 0),
       d_assertedEqualitiesCount(context, 0),
       d_equalityTriggersCount(context, 0),
       d_subtermEvaluatesSize(context, 0),
-      d_stats(name),
+      d_stats(name + "::"),
       d_inPropagate(false),
       d_constantsAreTriggers(constantsAreTriggers),
       d_anyTermsAreTriggers(anyTermTriggers),
@@ -166,11 +155,25 @@ EqualityEngine::EqualityEngine(EqualityEngineNotify& notify,
       d_name(name)
 {
   init();
+  // since init makes notifications (e.g. new eq class for true/false), and
+  // since the notify class may not be fully constructed yet, we
+  // don't set up the provided notification class until after initialization.
+  d_notify = &notify;
 }
 
 void EqualityEngine::setMasterEqualityEngine(EqualityEngine* master) {
-  Assert(d_masterEqualityEngine == 0);
+  Assert(d_masterEqualityEngine == nullptr);
   d_masterEqualityEngine = master;
+}
+
+void EqualityEngine::setProofEqualityEngine(ProofEqEngine* pfee)
+{
+  Assert(d_proofEqualityEngine == nullptr);
+  d_proofEqualityEngine = pfee;
+}
+ProofEqEngine* EqualityEngine::getProofEqualityEngine()
+{
+  return d_proofEqualityEngine;
 }
 
 void EqualityEngine::enqueue(const MergeCandidate& candidate, bool back) {
@@ -276,16 +279,26 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
   return newId;
 }
 
-void EqualityEngine::addFunctionKind(Kind fun, bool interpreted, bool extOperator) {
-  d_congruenceKinds |= fun;
-  if (fun != kind::EQUAL) {
-    if (interpreted) {
-      Debug("equality::evaluation") << d_name << "::eq::addFunctionKind(): " << fun << " is interpreted " << std::endl;
-      d_congruenceKindsInterpreted |= fun;
+void EqualityEngine::addFunctionKind(Kind fun,
+                                     bool interpreted,
+                                     bool extOperator)
+{
+  d_congruenceKinds.set(fun);
+  if (fun != kind::EQUAL)
+  {
+    if (interpreted)
+    {
+      Debug("equality::evaluation")
+          << d_name << "::eq::addFunctionKind(): " << fun << " is interpreted "
+          << std::endl;
+      d_congruenceKindsInterpreted.set(fun);
     }
-    if (extOperator) {
-      Debug("equality::extoperator") << d_name << "::eq::addFunctionKind(): " << fun << " is an external operator kind " << std::endl;
-      d_congruenceKindsExtOperators |= fun;
+    if (extOperator)
+    {
+      Debug("equality::extoperator")
+          << d_name << "::eq::addFunctionKind(): " << fun
+          << " is an external operator kind " << std::endl;
+      d_congruenceKindsExtOperators.set(fun);
     }
   }
 }
@@ -377,10 +390,7 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
   {
     // Notify e.g. the theory that owns this equality engine that there is a
     // new equivalence class.
-    if (d_performNotify)
-    {
-      d_notify.eqNotifyNewClass(t);
-    }
+    d_notify->eqNotifyNewClass(t);
     if (d_constantsAreTriggers && d_isConstant[result])
     {
       // Non-Boolean constants are trigger terms for all tags
@@ -502,9 +512,7 @@ bool EqualityEngine::assertEquality(TNode eq,
     }
 
     // notify the theory
-    if (d_performNotify) {
-      d_notify.eqNotifyDisequal(eq[0], eq[1], reason);
-    }
+    d_notify->eqNotifyDisequal(eq[0], eq[1], reason);
 
     Debug("equality::trigger") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ")" << std::endl;
 
@@ -562,7 +570,7 @@ bool EqualityEngine::assertEquality(TNode eq,
             storePropagatedDisequality(aTag, aSharedId, bSharedId);
             // Notify
             Debug("equality::trigger") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ": notifying " << aTag << " for " << d_nodes[aSharedId] << " != " << d_nodes[bSharedId] << std::endl;
-            if (!d_notify.eqNotifyTriggerTermEquality(aTag, d_nodes[aSharedId], d_nodes[bSharedId], false)) {
+            if (!d_notify->eqNotifyTriggerTermEquality(aTag, d_nodes[aSharedId], d_nodes[bSharedId], false)) {
               break;
             }
           }
@@ -604,7 +612,7 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
   // Determine if we should notify the owner of this class of this merge.
   // The second part of this check is needed due to the internal implementation
   // of this class. It ensures that we are merging terms and not operators.
-  if (d_performNotify && class1Id == cc1.getFind() && class2Id == cc2.getFind())
+  if (class1Id == cc1.getFind() && class2Id == cc2.getFind())
   {
     doNotify = true;
   }
@@ -737,7 +745,7 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
 
   // notify the theory
   if (doNotify) {
-    d_notify.eqNotifyMerge(n1, n2);
+    d_notify->eqNotifyMerge(n1, n2);
   }
 
   // Go through the trigger term disequalities and propagate
@@ -793,11 +801,11 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
           EqualityNodeId tag1id = newSetTriggers[newSetTriggersSize++] =
               class1triggers.d_triggers[i1++];
           // since they are both tagged notify of merge
-          if (d_performNotify) {
-            EqualityNodeId tag2id = class2triggers.d_triggers[i2++];
-            if (!d_notify.eqNotifyTriggerTermEquality(tag1, d_nodes[tag1id], d_nodes[tag2id], true)) {
-              return false;
-            }
+          EqualityNodeId tag2id = class2triggers.d_triggers[i2++];
+          if (!d_notify->eqNotifyTriggerTermEquality(
+                  tag1, d_nodes[tag1id], d_nodes[tag2id], true))
+          {
+            return false;
           }
           // Next tags
           tag1 = TheoryIdSetUtil::setPop(tags1);
@@ -1016,7 +1024,7 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
   if ((d_isInternal[id1] || d_isInternal[id2])
       && (k1 != k2 || k1 == kind::APPLY_UF || k1 == kind::APPLY_CONSTRUCTOR
           || k1 == kind::APPLY_SELECTOR || k1 == kind::APPLY_TESTER
-          || !ExprManager::isNAryKind(k1)))
+          || !NodeManager::isNAryKind(k1)))
   {
     return;
   }
@@ -1063,7 +1071,7 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
         << id2 << "} " << d_nodes[id2] << "\n";
     // if has at least as many children as the minimal
     // number of children of the n-ary kind, build the node
-    if (numChildren >= ExprManager::minArity(k1))
+    if (numChildren >= kind::metakind::getMinArityForKind(k1))
     {
       std::vector<Node> children;
       for (unsigned j = 0; j < numChildren; ++j)
@@ -1286,7 +1294,7 @@ void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions)
     explainPredicate(atom, polarity, tassumptions);
   }
   // ensure that duplicates are removed
-  for (const TNode a : tassumptions)
+  for (TNode a : tassumptions)
   {
     if (std::find(assumptions.begin(), assumptions.end(), a)
         == assumptions.end())
@@ -1374,7 +1382,7 @@ void EqualityEngine::getExplanation(
   cache[cacheKey] = eqp;
 
   // We can only explain the nodes that got merged
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   bool canExplain = getEqualityNode(t1Id).getFind() == getEqualityNode(t2Id).getFind()
                   || (d_done && isConstant(t1Id) && isConstant(t2Id));
 
@@ -1716,11 +1724,11 @@ void EqualityEngine::addTriggerEquality(TNode eq) {
 
   // If they are equal or disequal already, no need for the trigger
   if (areEqual(eq[0], eq[1])) {
-    d_notify.eqNotifyTriggerPredicate(eq, true);
+    d_notify->eqNotifyTriggerPredicate(eq, true);
     skipTrigger = true;
   }
   if (areDisequal(eq[0], eq[1], true)) {
-    d_notify.eqNotifyTriggerPredicate(eq, false);
+    d_notify->eqNotifyTriggerPredicate(eq, false);
     skipTrigger = true;
   }
 
@@ -1744,8 +1752,9 @@ void EqualityEngine::addTriggerPredicate(TNode predicate) {
     // equality is handled separately
     return addTriggerEquality(predicate);
   }
-  Assert(d_congruenceKinds.tst(predicate.getKind()))
-      << "No point in adding non-congruence predicates, kind is " << predicate.getKind();
+  Assert(d_congruenceKinds.test(predicate.getKind()))
+      << "No point in adding non-congruence predicates, kind is "
+      << predicate.getKind();
 
   if (d_done) {
     return;
@@ -1758,11 +1767,11 @@ void EqualityEngine::addTriggerPredicate(TNode predicate) {
 
   // If it's know already, no need for the trigger
   if (areEqual(predicate, d_true)) {
-    d_notify.eqNotifyTriggerPredicate(predicate, true);
+    d_notify->eqNotifyTriggerPredicate(predicate, true);
     skipTrigger = true;
   }
   if (areEqual(predicate, d_false)) {
-    d_notify.eqNotifyTriggerPredicate(predicate, false);
+    d_notify->eqNotifyTriggerPredicate(predicate, false);
     skipTrigger = true;
   }
 
@@ -1827,7 +1836,7 @@ void EqualityEngine::addTriggerEqualityInternal(TNode t1, TNode t2, TNode trigge
 
 Node EqualityEngine::evaluateTerm(TNode node) {
   Debug("equality::evaluation") << d_name << "::eq::evaluateTerm(" << node << ")" << std::endl;
-  NodeBuilder<> builder;
+  NodeBuilder builder;
   builder << node.getKind();
   if (node.getMetaKind() == kind::metakind::PARAMETERIZED) {
     builder << node.getOperator();
@@ -1929,9 +1938,8 @@ void EqualityEngine::propagate() {
       d_assertedEqualities.push_back(Equality(null_id, null_id));
       d_assertedEqualitiesCount = d_assertedEqualitiesCount + 1;
       // Notify
-      if (d_performNotify) {
-        d_notify.eqNotifyConstantTermMerge(d_nodes[t1classId], d_nodes[t2classId]);
-      }
+      d_notify->eqNotifyConstantTermMerge(d_nodes[t1classId],
+                                         d_nodes[t2classId]);
       // Empty the queue and exit
       continue;
     }
@@ -1990,7 +1998,8 @@ void EqualityEngine::propagate() {
     }
 
     // Notify the triggers
-    if (d_performNotify && !d_done) {
+    if (!d_done)
+    {
       for (size_t trigger_i = 0, trigger_end = triggers.size(); trigger_i < trigger_end && !d_done; ++ trigger_i) {
         const TriggerInfo& triggerInfo = d_equalityTriggersOriginal[triggers[trigger_i]];
         if (triggerInfo.d_trigger.getKind() == kind::EQUAL)
@@ -2013,7 +2022,7 @@ void EqualityEngine::propagate() {
                 d_deducedDisequalityReasons.push_back(EqualityPair(original, d_falseId));
               }
               storePropagatedDisequality(THEORY_LAST, lhsId, rhsId);
-              if (!d_notify.eqNotifyTriggerPredicate(triggerInfo.d_trigger,
+              if (!d_notify->eqNotifyTriggerPredicate(triggerInfo.d_trigger,
                                                      triggerInfo.d_polarity))
               {
                 d_done = true;
@@ -2023,7 +2032,7 @@ void EqualityEngine::propagate() {
           else
           {
             // Equalities are simple
-            if (!d_notify.eqNotifyTriggerPredicate(triggerInfo.d_trigger,
+            if (!d_notify->eqNotifyTriggerPredicate(triggerInfo.d_trigger,
                                                    triggerInfo.d_polarity))
             {
               d_done = true;
@@ -2032,7 +2041,7 @@ void EqualityEngine::propagate() {
         }
         else
         {
-          if (!d_notify.eqNotifyTriggerPredicate(triggerInfo.d_trigger,
+          if (!d_notify->eqNotifyTriggerPredicate(triggerInfo.d_trigger,
                                                  triggerInfo.d_polarity))
           {
             d_done = true;
@@ -2059,6 +2068,29 @@ void EqualityEngine::debugPrintGraph() const {
     Debug("equality::graph") << std::endl;
   }
   Debug("equality::graph") << std::endl;
+}
+
+std::string EqualityEngine::debugPrintEqc() const
+{
+  std::stringstream ss;
+  eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator(this);
+  while (!eqcs2_i.isFinished())
+  {
+    Node eqc = (*eqcs2_i);
+    eq::EqClassIterator eqc2_i = eq::EqClassIterator(eqc, this);
+    ss << "Eqc( " << eqc << " ) : { ";
+    while (!eqc2_i.isFinished())
+    {
+      if ((*eqc2_i) != eqc && (*eqc2_i).getKind() != kind::EQUAL)
+      {
+        ss << (*eqc2_i) << " ";
+      }
+      ++eqc2_i;
+    }
+    ss << " } " << std::endl;
+    ++eqcs2_i;
+  }
+  return ss.str();
 }
 
 bool EqualityEngine::areEqual(TNode t1, TNode t2) const {
@@ -2189,12 +2221,16 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
   TriggerTermSetRef triggerSetRef = d_nodeIndividualTrigger[classId];
   if (triggerSetRef != +null_set_id && getTriggerTermSet(triggerSetRef).hasTrigger(tag)) {
     // If the term already is in the equivalence class that a tagged representative, just notify
-    if (d_performNotify) {
-      EqualityNodeId triggerId = getTriggerTermSet(triggerSetRef).getTrigger(tag);
-      Debug("equality::trigger") << d_name << "::eq::addTriggerTerm(" << t << ", " << tag << "): already have this trigger in class with " << d_nodes[triggerId] << std::endl;
-      if (eqNodeId != triggerId && !d_notify.eqNotifyTriggerTermEquality(tag, t, d_nodes[triggerId], true)) {
-        d_done = true;
-      }
+    EqualityNodeId triggerId = getTriggerTermSet(triggerSetRef).getTrigger(tag);
+    Debug("equality::trigger")
+        << d_name << "::eq::addTriggerTerm(" << t << ", " << tag
+        << "): already have this trigger in class with " << d_nodes[triggerId]
+        << std::endl;
+    if (eqNodeId != triggerId
+        && !d_notify->eqNotifyTriggerTermEquality(
+               tag, t, d_nodes[triggerId], true))
+    {
+      d_done = true;
     }
   } else {
 
@@ -2348,7 +2384,7 @@ EqualityEngine::TriggerTermSetRef EqualityEngine::newTriggerTermSet(
 bool EqualityEngine::hasPropagatedDisequality(EqualityNodeId lhsId, EqualityNodeId rhsId) const {
   EqualityPair eq(lhsId, rhsId);
   bool propagated = d_propagatedDisequalities.find(eq) != d_propagatedDisequalities.end();
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   bool stored = d_disequalityReasonsMap.find(eq) != d_disequalityReasonsMap.end();
   Assert(propagated == stored) << "These two should be in sync";
 #endif
@@ -2402,7 +2438,7 @@ void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhs
     Assert(d_disequalityReasonsMap.find(pair1) == d_disequalityReasonsMap.end())
         << "There can't be a proof if you're adding a new one";
     DisequalityReasonRef ref(d_deducedDisequalityReasonsSize, d_deducedDisequalityReasons.size());
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     // Check that the reasons are valid
     for (unsigned i = ref.d_mergesStart; i < ref.d_mergesEnd; ++i)
     {
@@ -2574,10 +2610,10 @@ bool EqualityEngine::propagateTriggerTermDisequalities(
         // Store the propagation
         storePropagatedDisequality(currentTag, myRep, tagRep);
         // Notify
-        if (d_performNotify) {
-          if (!d_notify.eqNotifyTriggerTermEquality(currentTag, d_nodes[myRep], d_nodes[tagRep], false)) {
-            d_done = true;
-          }
+        if (!d_notify->eqNotifyTriggerTermEquality(
+                currentTag, d_nodes[myRep], d_nodes[tagRep], false))
+        {
+          d_done = true;
         }
       }
     }
@@ -2598,4 +2634,4 @@ EqualityNodeId EqualityEngine::TriggerTermSet::getTrigger(TheoryId tag) const
 
 } // Namespace uf
 } // Namespace theory
-} // Namespace CVC4
+}  // namespace cvc5

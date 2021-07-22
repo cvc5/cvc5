@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file smt_engine_scope.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Morgan Deters, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "smt/smt_engine_scope.h"
 
@@ -22,7 +23,7 @@
 #include "base/output.h"
 #include "smt/smt_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 thread_local SmtEngine* s_smtEngine_current = NULL;
@@ -34,24 +35,13 @@ SmtEngine* currentSmtEngine() {
 
 bool smtEngineInScope() { return s_smtEngine_current != NULL; }
 
-ProofManager* currentProofManager() {
-#if IS_PROOFS_BUILD
-  Assert(s_smtEngine_current != NULL);
-  return s_smtEngine_current->getProofManager();
-#else  /* IS_PROOFS_BUILD */
-  InternalError()
-      << "proofs/unsat cores are not on, but ProofManager requested";
-  return NULL;
-#endif /* IS_PROOFS_BUILD */
-}
-
 ResourceManager* currentResourceManager()
 {
   return s_smtEngine_current->getResourceManager();
 }
 
 SmtScope::SmtScope(const SmtEngine* smt)
-    : NodeManagerScope(smt->d_nodeManager),
+    : NodeManagerScope(smt->getNodeManager()),
       d_oldSmtEngine(s_smtEngine_current),
       d_optionsScope(smt ? &const_cast<SmtEngine*>(smt)->getOptions() : nullptr)
 {
@@ -66,10 +56,11 @@ SmtScope::~SmtScope() {
                    << std::endl;
 }
 
-StatisticsRegistry* SmtScope::currentStatisticsRegistry() {
+StatisticsRegistry& SmtScope::currentStatisticsRegistry()
+{
   Assert(smtEngineInScope());
   return s_smtEngine_current->getStatisticsRegistry();
 }
 
-}/* CVC4::smt namespace */
-}/* CVC4 namespace */
+}  // namespace smt
+}  // namespace cvc5

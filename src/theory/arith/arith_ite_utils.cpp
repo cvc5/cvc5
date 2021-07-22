@@ -1,25 +1,28 @@
-/*********************                                                        */
-/*! \file arith_ite_utils.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Aina Niemetz, Piotr Trojanek
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz, Piotr Trojanek
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/arith/arith_ite_utils.h"
 
 #include <ostream>
 
 #include "base/output.h"
+#include "expr/skolem_manager.h"
+#include "options/base_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/util/ite_utilities.h"
 #include "theory/arith/arith_utilities.h"
@@ -30,12 +33,12 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
 Node ArithIteUtils::applyReduceVariablesInItes(Node n){
-  NodeBuilder<> nb(n.getKind());
+  NodeBuilder nb(n.getKind());
   if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
     nb << (n.getOperator());
   }
@@ -47,7 +50,7 @@ Node ArithIteUtils::applyReduceVariablesInItes(Node n){
 }
 
 Node ArithIteUtils::reduceVariablesInItes(Node n){
-  using namespace CVC4::kind;
+  using namespace cvc5::kind;
   if(d_reduceVar.find(n) != d_reduceVar.end()){
     Node res = d_reduceVar[n];
     return res.isNull() ? n : res;
@@ -143,22 +146,18 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
 ArithIteUtils::ArithIteUtils(
     preprocessing::util::ContainsTermITEVisitor& contains,
     context::Context* uc,
-    TheoryModel* model)
+    SubstitutionMap& subs)
     : d_contains(contains),
-      d_subs(NULL),
-      d_model(model),
+      d_subs(subs),
       d_one(1),
       d_subcount(uc, 0),
       d_skolems(uc),
       d_implies(),
       d_orBinEqs()
 {
-  d_subs = new SubstitutionMap(uc);
 }
 
 ArithIteUtils::~ArithIteUtils(){
-  delete d_subs;
-  d_subs = NULL;
 }
 
 void ArithIteUtils::clear(){
@@ -239,7 +238,7 @@ Node ArithIteUtils::reduceConstantIteByGCD(Node n){
   }
 
   if(n.getNumChildren() > 0){
-    NodeBuilder<> nb(n.getKind());
+    NodeBuilder nb(n.getKind());
     if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
       nb << (n.getOperator());
     }
@@ -270,13 +269,12 @@ unsigned ArithIteUtils::getSubCount() const{
 void ArithIteUtils::addSubstitution(TNode f, TNode t){
   Debug("arith::ite") << "adding " << f << " -> " << t << endl;
   d_subcount = d_subcount + 1;
-  d_subs->addSubstitution(f, t);
-  d_model->addSubstitution(f, t);
+  d_subs.addSubstitution(f, t);
 }
 
 Node ArithIteUtils::applySubstitutions(TNode f){
   AlwaysAssert(!options::incrementalSolving());
-  return d_subs->apply(f);
+  return d_subs.apply(f);
 }
 
 Node ArithIteUtils::selectForCmp(Node n) const{
@@ -441,10 +439,11 @@ bool ArithIteUtils::solveBinOr(TNode binor){
         // a: (sel = otherL) or (sel = otherR), otherL-otherR = c
 
         NodeManager* nm = NodeManager::currentNM();
+        SkolemManager* sm = nm->getSkolemManager();
 
         Node cnd = findIteCnd(binor[0], binor[1]);
 
-        Node sk = nm->mkSkolem("deor", nm->booleanType());
+        Node sk = sm->mkDummySkolem("deor", nm->booleanType());
         Node ite = sk.iteNode(otherL, otherR);
         d_skolems.insert(sk, cnd);
         addSubstitution(sel, ite);
@@ -455,7 +454,6 @@ bool ArithIteUtils::solveBinOr(TNode binor){
   return false;
 }
 
-
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

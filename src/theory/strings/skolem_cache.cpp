@@ -1,29 +1,32 @@
-/*********************                                                        */
-/*! \file skolem_cache.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of a cache of skolems for theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of a cache of skolems for theory of strings.
+ */
 
 #include "theory/strings/skolem_cache.h"
 
 #include "expr/attribute.h"
+#include "expr/bound_var_manager.h"
+#include "expr/skolem_manager.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "util/rational.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -36,6 +39,16 @@ struct IndexVarAttributeId
 {
 };
 typedef expr::Attribute<IndexVarAttributeId, Node> IndexVarAttribute;
+
+/**
+ * A bound variable corresponding to the universally quantified integer
+ * variable used to range over the valid lengths of a string, used for
+ * axiomatizing the behavior of some term.
+ */
+struct LengthVarAttributeId
+{
+};
+typedef expr::Attribute<LengthVarAttributeId, Node> LengthVarAttribute;
 
 SkolemCache::SkolemCache(bool useOpts) : d_useOpts(useOpts)
 {
@@ -60,9 +73,13 @@ Node SkolemCache::mkTypedSkolemCached(
   Trace("skolem-cache") << "mkTypedSkolemCached start: (" << id << ", " << a
                         << ", " << b << ")" << std::endl;
   SkolemId idOrig = id;
-  a = a.isNull() ? a : Rewriter::rewrite(a);
-  b = b.isNull() ? b : Rewriter::rewrite(b);
-
+  // do not rewrite beforehand if we are not using optimizations, this is so
+  // that the proof checker does not depend on the rewriter.
+  if (d_useOpts)
+  {
+    a = a.isNull() ? a : Rewriter::rewrite(a);
+    b = b.isNull() ? b : Rewriter::rewrite(b);
+  }
   std::tie(id, a, b) = normalizeStringSkolem(id, a, b);
 
   // optimization: if we aren't asking for the purification skolem for constant
@@ -77,6 +94,7 @@ Node SkolemCache::mkTypedSkolemCached(
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it != d_skolemCache[a][b].end())
   {
+    Trace("skolem-cache") << "...return existing " << it->second << std::endl;
     // already cached
     return it->second;
   }
@@ -88,8 +106,14 @@ Node SkolemCache::mkTypedSkolemCached(
   {
     // exists k. k = a
     case SK_PURIFY:
-      sk = sm->mkPurifySkolem(a, c, "string purify skolem");
-      break;
+    {
+      // for sequences of Booleans, we may purify Boolean terms, in which case
+      // they must be Boolean term variables.
+      int flags = a.getType().isBoolean() ? NodeManager::SKOLEM_BOOL_TERM_VAR
+                                          : NodeManager::SKOLEM_DEFAULT;
+      sk = sm->mkPurifySkolem(a, c, "string purify skolem", flags);
+    }
+    break;
     // these are eliminated by normalizeStringSkolem
     case SK_ID_V_SPT:
     case SK_ID_V_SPT_REV:
@@ -118,6 +142,7 @@ Node SkolemCache::mkTypedSkolemCached(
     }
     break;
   }
+  Trace("skolem-cache") << "...returned " << sk << std::endl;
   d_allSkolems.insert(sk);
   d_skolemCache[a][b][id] = sk;
   return sk;
@@ -130,10 +155,27 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
   return mkTypedSkolemCached(tn, a, Node::null(), id, c);
 }
 
+Node SkolemCache::mkSkolemSeqNth(TypeNode seqType, const char* c)
+{
+  // Note this method is static and does not rely on any local caching.
+  // It is used by expand definitions and by (dynamic) reductions, thus
+  // it is centrally located here.
+  Assert(seqType.isSequence());
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  std::vector<TypeNode> argTypes;
+  argTypes.push_back(seqType);
+  argTypes.push_back(nm->integerType());
+  TypeNode elemType = seqType.getSequenceElementType();
+  TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
+  return sm->mkSkolemFunction(SkolemFunId::SEQ_NTH_OOB, ufType);
+}
+
 Node SkolemCache::mkSkolem(const char* c)
 {
   // TODO: eliminate this
-  Node n = NodeManager::currentNM()->mkSkolem(c, d_strType, "string skolem");
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  Node n = sm->mkDummySkolem(c, d_strType, "string skolem");
   d_allSkolems.insert(n);
   return n;
 }
@@ -215,7 +257,7 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
   {
     // SK_FIRST_CTN_PRE(x,y) ---> SK_PREFIX(x, indexof(x,y,0))
     id = SK_PREFIX;
-    b = nm->mkNode(STRING_STRIDOF, a, b, d_zero);
+    b = nm->mkNode(STRING_INDEXOF, a, b, d_zero);
   }
 
   if (id == SK_ID_V_UNIFIED_SPT || id == SK_ID_V_UNIFIED_SPT_REV)
@@ -250,9 +292,11 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     b = Node::null();
   }
 
-  a = a.isNull() ? a : Rewriter::rewrite(a);
-  b = b.isNull() ? b : Rewriter::rewrite(b);
-
+  if (d_useOpts)
+  {
+    a = a.isNull() ? a : Rewriter::rewrite(a);
+    b = b.isNull() ? b : Rewriter::rewrite(b);
+  }
   Trace("skolem-cache") << "normalizeStringSkolem end: (" << id << ", " << a
                         << ", " << b << ")" << std::endl;
   return std::make_tuple(id, a, b);
@@ -260,17 +304,20 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
 
 Node SkolemCache::mkIndexVar(Node t)
 {
-  IndexVarAttribute iva;
-  if (t.hasAttribute(iva))
-  {
-    return t.getAttribute(iva);
-  }
   NodeManager* nm = NodeManager::currentNM();
-  Node v = nm->mkBoundVar(nm->integerType());
-  t.setAttribute(iva, v);
-  return v;
+  TypeNode intType = nm->integerType();
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  return bvm->mkBoundVar<IndexVarAttribute>(t, intType);
+}
+
+Node SkolemCache::mkLengthVar(Node t)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode intType = nm->integerType();
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  return bvm->mkBoundVar<LengthVarAttribute>(t, intType);
 }
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file int_to_bv.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Yoni Zohar, Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The IntToBV preprocessing pass
- **
- ** Converts integer operations into bitvector operations. The width of the
- ** bitvectors is controlled through the `--solve-int-as-bv` command line
- ** option.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Yoni Zohar, Alex Ozdemir
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The IntToBV preprocessing pass.
+ *
+ * Converts integer operations into bitvector operations. The width of the
+ * bitvectors is controlled through the `--solve-int-as-bv` command line
+ * option.
+ */
 
 #include "preprocessing/passes/int_to_bv.h"
 
@@ -24,16 +25,23 @@
 
 #include "expr/node.h"
 #include "expr/node_traversal.h"
+#include "expr/skolem_manager.h"
+#include "options/base_options.h"
+#include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using namespace CVC4::theory;
+using namespace std;
+using namespace cvc5::theory;
 
-using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
 
 namespace {
 
@@ -62,7 +70,8 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
     }
     else if (current.getNumChildren() > 2
              && (current.getKind() == kind::PLUS
-                 || current.getKind() == kind::MULT))
+                 || current.getKind() == kind::MULT
+                 || current.getKind() == kind::NONLINEAR_MULT))
     {
       Assert(cache.find(current[0]) != cache.end());
       result = cache[current[0]];
@@ -76,7 +85,7 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
     }
     else
     {
-      NodeBuilder<> builder(current.getKind());
+      NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << current.getOperator();
       }
@@ -92,33 +101,35 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
   }
   return cache[n];
 }
+}  // namespace
 
-Node intToBV(TNode n, NodeMap& cache)
+Node IntToBV::intToBV(TNode n, NodeMap& cache)
 {
   int size = options::solveIntAsBV();
   AlwaysAssert(size > 0);
   AlwaysAssert(!options::incrementalSolving());
 
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   NodeMap binaryCache;
   Node n_binary = intToBVMakeBinary(n, binaryCache);
 
   for (TNode current : NodeDfsIterable(n_binary, VisitOrder::POSTORDER,
            [&cache](TNode nn) { return cache.count(nn) > 0; }))
   {
-    NodeManager* nm = NodeManager::currentNM();
     if (current.getNumChildren() > 0)
     {
       // Not a leaf
       vector<Node> children;
-      unsigned max = 0;
-      for (unsigned i = 0; i < current.getNumChildren(); ++i)
+      uint64_t max = 0;
+      for (const Node& nc : current)
       {
-        Assert(cache.find(current[i]) != cache.end());
-        TNode childRes = cache[current[i]];
+        Assert(cache.find(nc) != cache.end());
+        TNode childRes = cache[nc];
         TypeNode type = childRes.getType();
         if (type.isBitVector())
         {
-          unsigned bvsize = type.getBitVectorSize();
+          uint32_t bvsize = type.getBitVectorSize();
           if (bvsize > max)
           {
             max = bvsize;
@@ -134,10 +145,11 @@ Node intToBV(TNode n, NodeMap& cache)
         {
           case kind::PLUS:
             Assert(children.size() == 2);
-            newKind = kind::BITVECTOR_PLUS;
+            newKind = kind::BITVECTOR_ADD;
             max = max + 1;
             break;
           case kind::MULT:
+          case kind::NONLINEAR_MULT:
             Assert(children.size() == 2);
             newKind = kind::BITVECTOR_MULT;
             max = max * 2;
@@ -160,20 +172,20 @@ Node intToBV(TNode n, NodeMap& cache)
           case kind::ITE: break;
           default:
             if (childrenTypesChanged(current, cache)) {
-              throw TypeCheckingException(
-                current.toExpr(),
-                string("Cannot translate to BV: ") + current.toString());
+              throw TypeCheckingExceptionPrivate(
+                  current,
+                  string("Cannot translate to BV: ") + current.toString());
             }
             break;
         }
-        for (unsigned i = 0; i < children.size(); ++i)
+        for (size_t i = 0, csize = children.size(); i < csize; ++i)
         {
           TypeNode type = children[i].getType();
           if (!type.isBitVector())
           {
             continue;
           }
-          unsigned bvsize = type.getBitVectorSize();
+          uint32_t bvsize = type.getBitVectorSize();
           if (bvsize < max)
           {
             // sign extend
@@ -183,14 +195,11 @@ Node intToBV(TNode n, NodeMap& cache)
           }
         }
       }
-      NodeBuilder<> builder(newKind);
+      NodeBuilder builder(newKind);
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << current.getOperator();
       }
-      for (unsigned i = 0; i < children.size(); ++i)
-      {
-        builder << children[i];
-      }
+      builder.append(children);
       // Mark the substitution and continue
       Node result = builder;
 
@@ -205,9 +214,11 @@ Node intToBV(TNode n, NodeMap& cache)
       {
         if (current.getType() == nm->integerType())
         {
-          result = nm->mkSkolem("__intToBV_var",
-                                nm->mkBitVectorType(size),
-                                "Variable introduced in intToBV pass");
+          result = sm->mkDummySkolem("__intToBV_var",
+                                     nm->mkBitVectorType(size),
+                                     "Variable introduced in intToBV pass");
+          Node bv2nat = nm->mkNode(kind::BITVECTOR_TO_NAT, result);
+          d_preprocContext->addSubstitution(current, bv2nat);
         }
       }
       else if (current.isConst())
@@ -218,12 +229,11 @@ Node intToBV(TNode n, NodeMap& cache)
           {
             Rational constant = current.getConst<Rational>();
             if (constant.isIntegral()) {
-              AlwaysAssert(constant >= 0);
               BitVector bv(size, constant.getNumerator());
               if (bv.toSignedInteger() != constant.getNumerator())
               {
-                throw TypeCheckingException(
-                    current.toExpr(),
+                throw TypeCheckingExceptionPrivate(
+                    current,
                     string("Not enough bits for constant in intToBV: ")
                         + current.toString());
               }
@@ -236,16 +246,17 @@ Node intToBV(TNode n, NodeMap& cache)
       }
       else
       {
-        throw TypeCheckingException(
-            current.toExpr(),
-            string("Cannot translate to BV: ") + current.toString());
+        throw TypeCheckingExceptionPrivate(
+            current, string("Cannot translate to BV: ") + current.toString());
       }
       cache[current] = result;
     }
   }
+  Trace("int-to-bv-debug") << "original: " << n << std::endl;
+  Trace("int-to-bv-debug") << "binary: " << n_binary << std::endl;
+  Trace("int-to-bv-debug") << "result: " << cache[n_binary] << std::endl;
   return cache[n_binary];
 }
-}  // namespace
 
 IntToBV::IntToBV(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "int-to-bv"){};
@@ -265,4 +276,4 @@ PreprocessingPassResult IntToBV::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

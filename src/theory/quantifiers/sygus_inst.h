@@ -1,29 +1,31 @@
-/*********************                                                        */
-/*! \file sygus_inst.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SyGuS instantiator class.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SyGuS instantiator class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_INST_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_INST_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_INST_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_INST_H
 
 #include <unordered_map>
 #include <unordered_set>
 
 #include "context/cdhashset.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/decision_strategy.h"
+#include "theory/quantifiers/quant_module.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class QuantifiersEngine;
@@ -62,7 +64,10 @@ namespace quantifiers {
 class SygusInst : public QuantifiersModule
 {
  public:
-  SygusInst(QuantifiersEngine* qe);
+  SygusInst(QuantifiersState& qs,
+            QuantifiersInferenceManager& qim,
+            QuantifiersRegistry& qr,
+            TermRegistry& tr);
   ~SygusInst() = default;
 
   bool needsCheck(Theory::Effort e) override;
@@ -105,44 +110,39 @@ class SygusInst : public QuantifiersModule
   bool sendEvalUnfoldLemmas(const std::vector<Node>& lemmas);
 
   /* Maps quantifiers to a vector of instantiation constants. */
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction>
-      d_inst_constants;
+  std::unordered_map<Node, std::vector<Node>> d_inst_constants;
 
   /* Maps quantifiers to a vector of DT_SYGUS_EVAL terms. */
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction> d_var_eval;
+  std::unordered_map<Node, std::vector<Node>> d_var_eval;
 
   /* Maps quantified formulas to registered counterexample literals. */
-  std::unordered_map<Node, Node, NodeHashFunction> d_ce_lits;
+  std::unordered_map<Node, Node> d_ce_lits;
 
   /* Decision strategies registered for quantified formulas. */
-  std::unordered_map<Node, std::unique_ptr<DecisionStrategy>, NodeHashFunction>
-      d_dstrat;
+  std::unordered_map<Node, std::unique_ptr<DecisionStrategy>> d_dstrat;
 
   /* Currently active quantifiers. */
-  std::unordered_set<Node, NodeHashFunction> d_active_quant;
+  std::unordered_set<Node> d_active_quant;
 
   /* Currently inactive quantifiers. */
-  std::unordered_set<Node, NodeHashFunction> d_inactive_quant;
+  std::unordered_set<Node> d_inactive_quant;
 
   /* Registered counterexample lemma cache. */
-  std::unordered_map<Node, Node, NodeHashFunction> d_ce_lemmas;
+  std::unordered_map<Node, Node> d_ce_lemmas;
 
   /* Indicates whether a counterexample lemma was added for a quantified
    * formula in the current context. */
-  context::CDHashSet<Node, NodeHashFunction> d_ce_lemma_added;
+  context::CDHashSet<Node> d_ce_lemma_added;
 
   /* Set of global ground terms in assertions (outside of quantifiers). */
-  context::CDHashMap<TypeNode,
-                     std::unordered_set<Node, NodeHashFunction>,
-                     TypeNodeHashFunction>
-      d_global_terms;
+  context::CDHashMap<TypeNode, std::unordered_set<Node>> d_global_terms;
 
   /* Assertions sent by ppNotifyAssertions. */
-  context::CDHashSet<Node, NodeHashFunction> d_notified_assertions;
+  context::CDHashSet<Node> d_notified_assertions;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

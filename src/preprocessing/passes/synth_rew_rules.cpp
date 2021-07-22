@@ -1,34 +1,39 @@
-/*********************                                                        */
-/*! \file synth_rew_rules.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A technique for synthesizing candidate rewrites of the form t1 = t2,
- ** where t1 and t2 are subterms of the input.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A technique for synthesizing candidate rewrites of the form t1 = t2,
+ * where t1 and t2 are subterms of the input.
+ */
 
 #include "preprocessing/passes/synth_rew_rules.h"
+
+#include <sstream>
 
 #include "expr/sygus_datatype.h"
 #include "expr/term_canonize.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "printer/printer.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -49,8 +54,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   NodeManager* nm = NodeManager::currentNM();
 
   // initialize the candidate rewrite
-  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
-  std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, bool> visited;
+  std::unordered_map<TNode, bool>::iterator it;
   std::vector<TNode> visit;
   // Get all usable terms from the input. A term is usable if it does not
   // contain a quantified subterm
@@ -251,7 +256,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     std::stringstream ss;
     ss << "T" << i;
     std::string tname = ss.str();
-    TypeNode tnu = nm->mkSort(tname, ExprManager::SORT_FLAG_PLACEHOLDER);
+    TypeNode tnu = nm->mkSort(tname, NodeManager::SORT_FLAG_PLACEHOLDER);
     cterm_to_utype[ct] = tnu;
     unres.insert(tnu);
     sdts.push_back(SygusDatatype(tname));
@@ -429,12 +434,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
   // sygus attribute to mark the conjecture as a sygus conjecture
   Trace("srs-input") << "Make sygus conjecture..." << std::endl;
-  Node iaVar = nm->mkSkolem("sygus", nm->booleanType());
-  // the attribute to mark the conjecture as being a sygus conjecture
-  theory::SygusAttribute ca;
-  iaVar.setAttribute(ca, true);
-  Node instAttr = nm->mkNode(INST_ATTRIBUTE, iaVar);
-  Node instAttrList = nm->mkNode(INST_PATTERN_LIST, instAttr);
   // we are "synthesizing" functions for each type of subterm
   std::vector<Node> synthConj;
   unsigned fCounter = 1;
@@ -451,10 +450,9 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     // this marks that the grammar used for solutions for sfun is the type of
     // gvar, which is the sygus datatype type constructed above.
     sfun.setAttribute(ssg, gvar);
-    Node fvarBvl = nm->mkNode(BOUND_VAR_LIST, sfun);
 
     Node body = nm->mkConst(false);
-    body = nm->mkNode(FORALL, fvarBvl, body, instAttrList);
+    body = theory::quantifiers::SygusUtils::mkSygusConjecture({sfun}, body);
     synthConj.push_back(body);
   }
   Node trueNode = nm->mkConst(true);
@@ -477,4 +475,4 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

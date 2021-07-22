@@ -1,18 +1,115 @@
 #!/usr/bin/env bash
-#
-source "$(dirname "$0")/get-script-header.sh"
 
-LFSC_DIR="$DEPS_DIR/lfsc-checker"
-version="61ef1dc55d2bc909656f905699b28c99ddcfc518"
+# utility function to download a file
+function download {
+  if [ -x "$(command -v wget)" ]; then
+    wget -c -O "$2" "$1"
+  elif [ -x "$(command -v curl)" ]; then
+    curl -L "$1" >"$2"
+  else
+    echo "Can't figure out how to download from web.  Please install wget or curl." >&2
+    exit 1
+  fi
+}
 
-setup_dep "https://github.com/CVC4/LFSC/archive/$version.tar.gz" "$LFSC_DIR"
-cd "$LFSC_DIR"
+CVC_DIR=$(dirname $(dirname "$0"))
+mkdir -p $CVC_DIR/deps
+pushd $CVC_DIR/deps
 
-mkdir build
-cd build
-cmake -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" ..
-make install -j$(nproc)
+BASE_DIR=`pwd`
+mkdir -p $BASE_DIR/tmp/
 
-echo
-echo ===================== Now configure CVC4 with =====================
-echo ./configure.sh --lfsc
+##### LFSC
+LFSC_DIR="$BASE_DIR/lfsc-checker"
+mkdir -p $LFSC_DIR
+
+# download and unpack LFSC
+version="15f53d6feb84e4ddb41deaf2b5630f5c1303b06d"
+download "https://github.com/CVC4/LFSC/archive/$version.tar.gz" $BASE_DIR/tmp/lfsc.tgz
+tar --strip 1 -xzf $BASE_DIR/tmp/lfsc.tgz -C $LFSC_DIR
+
+# build and install LFSC
+pushd $LFSC_DIR
+mkdir -p build && cd build
+cmake -DCMAKE_INSTALL_PREFIX="$BASE_DIR" ..
+make install
+popd
+
+##### signatures
+SIG_DIR="$BASE_DIR/lfsc-signatures"
+mkdir -p $SIG_DIR
+
+# download and unpack signatures
+sig_version="5d72dafd48aded21fd717ef77321e1c88f732d28"
+download "https://github.com/CVC4/signatures/archive/$sig_version.tar.gz" $BASE_DIR/tmp/signatures.tgz
+tar --strip 1 -xzf $BASE_DIR/tmp/signatures.tgz -C $SIG_DIR
+
+# install signatures and scripts
+mkdir -p $BASE_DIR/share/lfsc
+cp -r $SIG_DIR/lfsc/new/signatures $BASE_DIR/share/lfsc
+
+# based on https://github.com/CVC4/signatures/blob/master/lfsc/new/scripts/cvc4_gen_and_check.sh
+cat << EOF > $BASE_DIR/bin/cvc5-lfsc-check.sh
+#!/bin/bash
+
+echo "=== Generate proof: \$@" 
+$BASE_DIR/bin/cvc5-proof.sh \$@ > proof.plf
+
+echo "=== Check proof with LFSC" 
+$BASE_DIR/bin/lfsc-check.sh proof.plf
+EOF
+chmod +x $BASE_DIR/bin/cvc5-lfsc-check.sh
+
+# based on https://github.com/CVC4/signatures/blob/master/lfsc/new/scripts/cvc4_gen.sh
+cat << EOF > $BASE_DIR/bin/cvc5-proof.sh
+#!/bin/bash
+
+# call cvc5 and remove the first line of the output (should be "unsat")
+\$@ --dump-proofs --proof-format=lfsc | tail -n +2
+EOF
+chmod +x $BASE_DIR/bin/cvc5-proof.sh
+
+# based on https://github.com/CVC4/signatures/blob/master/lfsc/new/scripts/lfsc_check.sh
+cat << EOF > $BASE_DIR/bin/lfsc-check.sh
+#!/bin/bash
+
+cat \$@ | grep WARNING
+CHECK=\$(cat \$@ | grep check)
+[ -z "\$CHECK" ] && echo "; WARNING: Empty proof!!!"
+
+SIG_DIR=$BASE_DIR/share/lfsc/signatures
+SIGS="\$SIG_DIR/core_defs.plf \\
+    \$SIG_DIR/util_defs.plf \\
+    \$SIG_DIR/theory_def.plf \\
+    \$SIG_DIR/type_checking_programs.plf \\
+    \$SIG_DIR/nary_programs.plf \\
+    \$SIG_DIR/boolean_programs.plf \\
+    \$SIG_DIR/boolean_rules.plf \\
+    \$SIG_DIR/cnf_rules.plf \\
+    \$SIG_DIR/equality_rules.plf \\
+    \$SIG_DIR/arith_programs.plf \\
+    \$SIG_DIR/arith_rules.plf \\
+    \$SIG_DIR/strings_programs.plf \\
+    \$SIG_DIR/strings_rules.plf \\
+    \$SIG_DIR/quantifiers_rules.plf"
+$BASE_DIR/bin/lfscc \$SIGS \$@ >& lfsc.out
+
+# recover macros for applications of arity 1,2,3, and simplify builtin syntax for constants
+#sed -i.orig 's/(f_ite [^ \)]*)/f_ite/g' lfsc.out
+sed -i.orig 's/(\\ [^ ]* (\\ [^ ]* (\\ [^ ]* (apply (apply (apply f_\([^ ]*\) [^ ]*) [^ ]*) [^ ]*))))/\1/g; s/(\\ [^ ]* (\\ [^ ]* (apply (apply f_\([^ ]*\) [^ ]*) [^ ]*)))/\1/g; s/(\\ [^ ]* (apply f_\([^ ]*\) [^ ]*))/\1/g; s/(var \([^ ]*\) [^ \)]*)/var_\1/g; s/(int \([^ \)]*\))/\1/g; s/emptystr/""/g; s/int\.//g' lfsc.out
+
+cat lfsc.out
+rm lfsc.out
+EOF
+chmod +x $BASE_DIR/bin/lfsc-check.sh
+
+popd
+
+echo ""
+echo "========== How to use LFSC =========="
+echo "Generate a LFSC proof with cvc5:"
+echo "  $CVC_DIR/deps/bin/cvc5-proof.sh cvc5 <options> <input file>"
+echo "Check a generated proof:"
+echo "  $CVC_DIR/deps/bin/lfsc-check.sh <proof file>"
+echo "Run cvc5 and check the generated proof:"
+echo "  $CVC_DIR/deps/bin/cvc5-lfsc-check.sh cvc5 <options> <input file>"

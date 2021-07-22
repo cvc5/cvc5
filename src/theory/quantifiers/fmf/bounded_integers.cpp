@@ -1,37 +1,40 @@
-/*********************                                                        */
-/*! \file bounded_integers.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bounded integers module
- **
- ** This class manages integer bounds for quantifiers
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bounded integers module
+ *
+ * This class manages integer bounds for quantifiers.
+ */
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
 
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
+#include "theory/rewriter.h"
 
-using namespace CVC4;
+using namespace cvc5;
 using namespace std;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
-using namespace CVC4::kind;
+using namespace cvc5::theory;
+using namespace cvc5::theory::quantifiers;
+using namespace cvc5::kind;
 
 BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
     Node r,
@@ -42,7 +45,8 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
     : DecisionStrategyFmf(c, valuation), d_range(r), d_ranges_proxied(u)
 {
   if( options::fmfBoundLazy() ){
-    d_proxy_range = isProxy ? r : NodeManager::currentNM()->mkSkolem( "pbir", r.getType() );
+    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+    d_proxy_range = isProxy ? r : sm->mkDummySkolem("pbir", r.getType());
   }else{
     d_proxy_range = r;
   }
@@ -84,8 +88,11 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
   return lem;
 }
 
-BoundedIntegers::BoundedIntegers(context::Context* c, QuantifiersEngine* qe)
-    : QuantifiersModule(qe)
+BoundedIntegers::BoundedIntegers(QuantifiersState& qs,
+                                 QuantifiersInferenceManager& qim,
+                                 QuantifiersRegistry& qr,
+                                 TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr)
 {
 }
 
@@ -291,7 +298,7 @@ void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
     {
       Trace("bound-int-lemma")
           << "*** bound int : proxy lemma : " << prangeLem << std::endl;
-      d_quantEngine->addLemma(prangeLem);
+      d_qim.addPendingLemma(prangeLem, InferenceId::QUANTIFIERS_BINT_PROXY);
       addedLemma = true;
     }
   }
@@ -310,7 +317,21 @@ void BoundedIntegers::checkOwnership(Node f)
 {
   //this needs to be done at preregister since it affects e.g. QuantDSplit's preregister
   Trace("bound-int") << "check ownership quantifier " << f << std::endl;
+
+  // determine if we should look at the quantified formula at all
+  if (!options::fmfBound())
+  {
+    // only applying it to internal quantifiers
+    QuantAttributes& qattr = d_qreg.getQuantAttributes();
+    if (!qattr.isInternal(f))
+    {
+      Trace("bound-int") << "...not internal, skip" << std::endl;
+      return;
+    }
+  }
+
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   bool success;
   do{
@@ -349,7 +370,7 @@ void BoundedIntegers::checkOwnership(Node f)
           // supported for finite element types #1123). Regardless, this is
           // typically not a limitation since this variable can be bound in a
           // standard way below since its type is finite.
-          if (!v.getType().isInterpretedFinite())
+          if (!d_qstate.isFiniteType(v.getType()))
           {
             setBoundedVar(f, v, BOUND_SET_MEMBER);
             setBoundVar = true;
@@ -409,8 +430,8 @@ void BoundedIntegers::checkOwnership(Node f)
       for( unsigned i=0; i<f[0].getNumChildren(); i++) {
         if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
           TypeNode tn = f[0][i].getType();
-          if ((tn.isSort() && tn.isInterpretedFinite())
-              || d_quantEngine->getTermEnumeration()->mayComplete(tn))
+          if ((tn.isSort() && d_qstate.isFiniteType(tn))
+              || d_qreg.getQuantifiersBoundInference().mayComplete(tn))
           {
             success = true;
             setBoundedVar( f, f[0][i], BOUND_FINITE );
@@ -469,6 +490,7 @@ void BoundedIntegers::checkOwnership(Node f)
   
   if( bound_success ){
     d_bound_quants.push_back( f );
+    DecisionManager* dm = d_qim.getDecisionManager();
     for( unsigned i=0; i<d_set[f].size(); i++) {
       Node v = d_set[f][i];
       std::map< Node, Node >::iterator itr = d_range[f].find( v );
@@ -479,8 +501,8 @@ void BoundedIntegers::checkOwnership(Node f)
         if (expr::hasBoundVar(r))
         {
           // introduce a new bound
-          Node new_range = NodeManager::currentNM()->mkSkolem(
-              "bir", r.getType(), "bound for term");
+          Node new_range =
+              sm->mkDummySkolem("bir", r.getType(), "bound for term");
           d_nground_range[f][v] = r;
           d_range[f][v] = new_range;
           r = new_range;
@@ -493,14 +515,12 @@ void BoundedIntegers::checkOwnership(Node f)
             d_ranges.push_back( r );
             d_rms[r].reset(
                 new IntRangeDecisionHeuristic(r,
-                                              d_quantEngine->getSatContext(),
-                                              d_quantEngine->getUserContext(),
-                                              d_quantEngine->getValuation(),
+                                              d_qstate.getSatContext(),
+                                              d_qstate.getUserContext(),
+                                              d_qstate.getValuation(),
                                               isProxy));
-            d_quantEngine->getTheoryEngine()
-                ->getDecisionManager()
-                ->registerStrategy(DecisionManager::STRAT_QUANT_BOUND_INT_SIZE,
-                                   d_rms[r].get());
+            dm->registerStrategy(DecisionManager::STRAT_QUANT_BOUND_INT_SIZE,
+                                 d_rms[r].get());
           }
         }
       }
@@ -543,7 +563,7 @@ void BoundedIntegers::getBoundVarIndices(Node q,
   {
     for (const Node& v : it->second)
     {
-      indices.push_back(d_quantEngine->getTermUtil()->getVariableNum(q, v));
+      indices.push_back(TermUtil::getVariableNum(q, v));
     }
   }
 }
@@ -569,10 +589,10 @@ void BoundedIntegers::getBoundValues( Node f, Node v, RepSetIterator * rsi, Node
   getBounds( f, v, rsi, l, u );
   Trace("bound-int-rsi") << "Get value in model for..." << l << " and " << u << std::endl;
   if( !l.isNull() ){
-    l = d_quantEngine->getModel()->getValue( l );
+    l = d_treg.getModel()->getValue(l);
   }
   if( !u.isNull() ){
-    u = d_quantEngine->getModel()->getValue( u );
+    u = d_treg.getModel()->getValue(u);
   }
   Trace("bound-int-rsi") << "Value is " << l << " ... " << u << std::endl;
   return;
@@ -627,7 +647,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   Trace("bound-int-rsi") << "Get value in model for..." << sr << std::endl;
   Assert(!expr::hasFreeVar(sr));
   Node sro = sr;
-  sr = d_quantEngine->getModel()->getValue(sr);
+  sr = d_treg.getModel()->getValue(sr);
   // if non-constant, then sr does not occur in the model, we fail
   if (!sr.isConst())
   {
@@ -709,7 +729,22 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
     Trace("bound-int-rsi") << "Look up the value for " << d_set[q][i] << " " << i << std::endl;
     int vo = rsi->getVariableOrder(i);
     Assert(q[0][vo] == d_set[q][i]);
-    Node t = rsi->getCurrentTerm(vo, true);
+    TypeNode tn = d_set[q][i].getType();
+    // If the type of tn is not closed enumerable, we must map the value back
+    // to a term that appears in the same equivalence class as the constant.
+    // Notice that this is to ensure that unhandled values (e.g. uninterpreted
+    // constants, datatype values) do not enter instantiations/lemmas, which
+    // can lead to refutation unsoundness. However, it is important that we
+    // conversely do *not* map terms to values in other cases. In particular,
+    // replacing a constant c with a term t can lead to solution unsoundness
+    // if we are instantiating a quantified formula that corresponds to a
+    // reduction for t, since then the reduction is using circular reasoning:
+    // the current value of t is being used to reason about the range of
+    // its axiomatization. This is limited to reductions in the theory of
+    // strings, which use quantification on integers only. Note this
+    // impacts only quantified formulas with 2+ dimensions and dependencies
+    // between dimensions, e.g. str.indexof_re reduction.
+    Node t = rsi->getCurrentTerm(vo, !tn.isClosedEnumerable());
     Trace("bound-int-rsi") << "term : " << t << std::endl;
     vars.push_back( d_set[q][i] );
     subs.push_back( t );
@@ -723,7 +758,7 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
       nn = nn.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
       Node lem = NodeManager::currentNM()->mkNode( LEQ, nn, d_range[q][v] );
       Trace("bound-int-lemma") << "*** Add lemma to minimize instantiated non-ground term " << lem << std::endl;
-      d_quantEngine->getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
+      d_qim.lemma(lem, InferenceId::QUANTIFIERS_BINT_MIN_NG);
     }
     return false;
   }else{
@@ -780,10 +815,12 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         Node tu = u;
         getBounds( q, v, rsi, tl, tu );
         Assert(!tl.isNull() && !tu.isNull());
-        if( ra==d_quantEngine->getTermUtil()->d_true ){
+        if (ra.isConst() && ra.getConst<bool>())
+        {
           long rr = range.getConst<Rational>().getNumerator().getLong()+1;
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
-          for( unsigned k=0; k<rr; k++ ){
+          for (long k = 0; k < rr; k++)
+          {
             Node t = NodeManager::currentNM()->mkNode(PLUS, tl, NodeManager::currentNM()->mkConst( Rational(k) ) );
             t = Rewriter::rewrite( t );
             elements.push_back( t );

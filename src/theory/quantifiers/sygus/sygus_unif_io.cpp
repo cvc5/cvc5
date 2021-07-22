@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file sygus_unif_io.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of sygus_unif_io
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of sygus_unif_io.
+ */
 
 #include "theory/quantifiers/sygus/sygus_unif_io.h"
 
@@ -20,15 +21,15 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "theory/strings/word.h"
 #include "util/random.h"
 
 #include <math.h>
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -522,7 +523,7 @@ SygusUnifIo::SygusUnifIo(SynthConjecture* p)
 SygusUnifIo::~SygusUnifIo() {}
 
 void SygusUnifIo::initializeCandidate(
-    QuantifiersEngine* qe,
+    TermDbSygus* tds,
     Node f,
     std::vector<Node>& enums,
     std::map<Node, std::vector<Node>>& strategy_lemmas)
@@ -545,7 +546,7 @@ void SygusUnifIo::initializeCandidate(
     }
   }
   d_ecache.clear();
-  SygusUnif::initializeCandidate(qe, f, enums, strategy_lemmas);
+  SygusUnif::initializeCandidate(tds, f, enums, strategy_lemmas);
   // learn redundant operators based on the strategy
   d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
 }
@@ -951,7 +952,7 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
         Assert(d_examples_out[i].isConst());
         Trace("sygus-sui-cterm-debug")
             << "  " << results[i] << " <> " << d_examples_out[i];
-        Node cont = nm->mkNode(STRING_STRCTN, d_examples_out[i], results[i]);
+        Node cont = nm->mkNode(STRING_CONTAINS, d_examples_out[i], results[i]);
         Node contr = Rewriter::rewrite(cont);
         if (contr == d_false)
         {
@@ -1127,9 +1128,8 @@ Node SygusUnifIo::constructSol(
     if (ret_dt.isNull() && !retValMod)
     {
       bool firstTime = true;
-      std::unordered_set<Node, NodeHashFunction> intersection;
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
-          pit;
+      std::unordered_set<Node> intersection;
+      std::map<TypeNode, std::unordered_set<Node>>::iterator pit;
       for (size_t i = 0, nvals = x.d_vals.size(); i < nvals; i++)
       {
         if (x.d_vals[i].getConst<bool>())
@@ -1362,7 +1362,7 @@ Node SygusUnifIo::constructSol(
       // for ITE
       Node split_cond_enum;
       unsigned split_cond_res_index = 0;
-      CVC4_UNUSED bool set_split_cond_res_index = false;
+      CVC5_UNUSED bool set_split_cond_res_index = false;
 
       for (unsigned sc = 0, size = etis->d_cenum.size(); sc < size; sc++)
       {
@@ -1675,6 +1675,6 @@ Node SygusUnifIo::constructBestConditional(Node ce,
   return conds[bestIndex];
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

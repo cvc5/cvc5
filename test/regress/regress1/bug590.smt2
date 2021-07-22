@@ -1,10 +1,11 @@
+; SCRUBBER: grep -o "unknown\|((charlst2 ("
 ; EXPECT: unknown
-; EXPECT: ((charlst2 ((as const (Array Int String)) "")))
+; EXPECT: ((charlst2 (
 
-(set-logic QF_ALL_SUPPORTED)
+(set-logic ALL)
 (set-option :strings-exp true)
 (set-option :produce-models true)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :status unknown)
 
 (declare-fun text () String)
@@ -21,7 +22,7 @@
 (assert (= html_escape_table 
     (store (store (store (store (store ((as const (Array String String)) "A") 
     "&" "&amp;") 
-    "\"" "&quot;")
+    "\\""" "&quot;")
     "'" "&apos;") 
     ">" "&gt;") 
     "<" "&lt;")))
@@ -29,7 +30,7 @@
 (assert (= html_escape_table_keys
     (store (store (store (store (store ((as const (Array Int String)) "B")
     0 "&")
-    1 "\"")
+    1 "\\""")
     2 "'")
     3 ">")
     4 "<"))) 

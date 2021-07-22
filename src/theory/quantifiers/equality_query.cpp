@@ -1,106 +1,65 @@
-/*********************                                                        */
-/*! \file equality_query.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities used for querying about equality information
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities used for querying about equality information.
+ */
 
 #include "theory/quantifiers/equality_query.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
-#include "theory/uf/equality_engine.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine(
-    context::Context* c, QuantifiersEngine* qe)
-    : d_qe(qe), d_eqi_counter(c), d_reset_count(0)
+EqualityQuery::EqualityQuery(QuantifiersState& qs, FirstOrderModel* m)
+    : d_qstate(qs),
+      d_model(m),
+      d_eqi_counter(qs.getSatContext()),
+      d_reset_count(0)
 {
 }
 
-EqualityQueryQuantifiersEngine::~EqualityQueryQuantifiersEngine(){
-}
+EqualityQuery::~EqualityQuery() {}
 
-bool EqualityQueryQuantifiersEngine::reset( Theory::Effort e ){
+bool EqualityQuery::reset(Theory::Effort e)
+{
   d_int_rep.clear();
   d_reset_count++;
   return true;
 }
 
-bool EqualityQueryQuantifiersEngine::hasTerm( Node a ){
-  return getEngine()->hasTerm( a );
-}
-
-Node EqualityQueryQuantifiersEngine::getRepresentative( Node a ){
-  eq::EqualityEngine* ee = getEngine();
-  if( ee->hasTerm( a ) ){
-    return ee->getRepresentative( a );
-  }else{
-    return a;
-  }
-}
-
-bool EqualityQueryQuantifiersEngine::areEqual( Node a, Node b ){
-  if( a==b ){
-    return true;
-  }else{
-    eq::EqualityEngine* ee = getEngine();
-    if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
-      return ee->areEqual( a, b );
-    }else{
-      return false;
-    }
-  }
-}
-
-bool EqualityQueryQuantifiersEngine::areDisequal( Node a, Node b ){
-  if( a==b ){
-    return false;
-  }else{
-    eq::EqualityEngine* ee = getEngine();
-    if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
-      return ee->areDisequal( a, b, false );
-    }else{
-      return a.isConst() && b.isConst();
-    }
-  }
-}
-
-Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
-                                                               Node q,
-                                                               int index)
+Node EqualityQuery::getInternalRepresentative(Node a, Node q, size_t index)
 {
   Assert(q.isNull() || q.getKind() == FORALL);
-  Node r = getRepresentative( a );
+  Node r = d_qstate.getRepresentative(a);
   if( options::finiteModelFind() ){
     if( r.isConst() && quantifiers::TermUtil::containsUninterpretedConstant( r ) ){
       //map back from values assigned by model, if any
-      if( d_qe->getModel() ){
-        Node tr = d_qe->getModel()->getRepSet()->getTermForRepresentative(r);
+      if (d_model != nullptr)
+      {
+        Node tr = d_model->getRepSet()->getTermForRepresentative(r);
         if (!tr.isNull())
         {
           r = tr;
-          r = getRepresentative( r );
+          r = d_qstate.getRepresentative(r);
         }else{
           if( r.getType().isSort() ){
             Trace("internal-rep-warn") << "No representative for UF constant." << std::endl;
@@ -114,7 +73,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
   TypeNode v_tn = q.isNull() ? a.getType() : q[0][index].getType();
   if (options::quantRepMode() == options::QuantRepMode::EE)
   {
-    int score = getRepScore(r, q, index, v_tn);
+    int32_t score = getRepScore(r, q, index, v_tn);
     if (score >= 0)
     {
       return r;
@@ -130,14 +89,14 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
   // find best selection for representative
   Node r_best;
   std::vector<Node> eqc;
-  getEquivalenceClass(r, eqc);
+  d_qstate.getEquivalenceClass(r, eqc);
   Trace("internal-rep-select")
       << "Choose representative for equivalence class : " << eqc
       << ", type = " << v_tn << std::endl;
-  int r_best_score = -1;
+  int32_t r_best_score = -1;
   for (const Node& n : eqc)
   {
-    int score = getRepScore(n, q, index, v_tn);
+    int32_t score = getRepScore(n, q, index, v_tn);
     if (score != -2)
     {
       if (r_best.isNull()
@@ -156,7 +115,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
     return Node::null();
   }
   // now, make sure that no other member of the class is an instance
-  std::unordered_map<TNode, Node, TNodeHashFunction> cache;
+  std::unordered_map<TNode, Node> cache;
   r_best = getInstance(r_best, eqc, cache);
   // store that this representative was chosen at this point
   if (d_rep_score.find(r_best) == d_rep_score.end())
@@ -181,33 +140,12 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
   return r_best;
 }
 
-eq::EqualityEngine* EqualityQueryQuantifiersEngine::getEngine(){
-  return d_qe->getMasterEqualityEngine();
-}
-
-void EqualityQueryQuantifiersEngine::getEquivalenceClass( Node a, std::vector< Node >& eqc ){
-  eq::EqualityEngine* ee = getEngine();
-  if( ee->hasTerm( a ) ){
-    Node rep = ee->getRepresentative( a );
-    eq::EqClassIterator eqc_iter( rep, ee );
-    while( !eqc_iter.isFinished() ){
-      eqc.push_back( *eqc_iter );
-      eqc_iter++;
-    }
-  }else{
-    eqc.push_back( a );
-  }
-  //a should be in its equivalence class
-  Assert(std::find(eqc.begin(), eqc.end(), a) != eqc.end());
-}
-
-TNode EqualityQueryQuantifiersEngine::getCongruentTerm( Node f, std::vector< TNode >& args ) {
-  return d_qe->getTermDatabase()->getCongruentTerm( f, args );
-}
-
 //helper functions
 
-Node EqualityQueryQuantifiersEngine::getInstance( Node n, const std::vector< Node >& eqc, std::unordered_map<TNode, Node, TNodeHashFunction>& cache ){
+Node EqualityQuery::getInstance(Node n,
+                                const std::vector<Node>& eqc,
+                                std::unordered_map<TNode, Node>& cache)
+{
   if(cache.find(n) != cache.end()) {
     return cache[n];
   }
@@ -225,38 +163,28 @@ Node EqualityQueryQuantifiersEngine::getInstance( Node n, const std::vector< Nod
 }
 
 //-2 : invalid, -1 : undesired, otherwise : smaller the score, the better
-int EqualityQueryQuantifiersEngine::getRepScore(Node n,
-                                                Node q,
-                                                int index,
-                                                TypeNode v_tn)
+int32_t EqualityQuery::getRepScore(Node n, Node q, size_t index, TypeNode v_tn)
 {
   if( options::cegqi() && quantifiers::TermUtil::hasInstConstAttr(n) ){  //reject
     return -2;
   }else if( !n.getType().isSubtypeOf( v_tn ) ){  //reject if incorrect type
     return -2;
-  }else if( options::lteRestrictInstClosure() && ( !d_qe->getTermDatabase()->isInstClosure( n ) || !d_qe->getTermDatabase()->hasTermCurrent( n, false ) ) ){
-    return -1;
   }else if( options::instMaxLevel()!=-1 ){
     //score prefer lowest instantiation level
     if( n.hasAttribute(InstLevelAttribute()) ){
       return n.getAttribute(InstLevelAttribute());
-    }else{
-      return options::instLevelInputOnly() ? -1 : 0;
     }
-  }else{
-    if (options::quantRepMode() == options::QuantRepMode::FIRST)
-    {
-      //score prefers earliest use of this term as a representative
-      return d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];
-    }
-    else
-    {
-      Assert(options::quantRepMode() == options::QuantRepMode::DEPTH);
-      return quantifiers::TermUtil::getTermDepth( n );
-    }
+    return options::instLevelInputOnly() ? -1 : 0;
   }
+  else if (options::quantRepMode() == options::QuantRepMode::FIRST)
+  {
+    // score prefers earliest use of this term as a representative
+    return d_rep_score.find(n) == d_rep_score.end() ? -1 : d_rep_score[n];
+  }
+  Assert(options::quantRepMode() == options::QuantRepMode::DEPTH);
+  return quantifiers::TermUtil::getTermDepth(n);
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

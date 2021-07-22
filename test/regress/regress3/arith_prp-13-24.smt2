@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-unsat-cores
+; COMMAND-LINE:
 ; EXPECT: unsat
 (set-logic QF_LIA)
 (set-option :ite-simp true)
@@ -8,7 +8,7 @@
  The logic is changed to QF_LIA. 
  The category is set as industrial. 
  The status (except 'large' cases) is assigned according to the 'outfile' on http://www.nec-labs.com/~fsoft/bench.html.  |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
 (set-info :status unsat)
 (declare-fun i1430 () Int)

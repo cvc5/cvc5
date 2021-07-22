@@ -1,30 +1,30 @@
-/*********************                                                        */
-/*! \file witness_form.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for managing witness form conversion in proofs
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for managing witness form conversion in proofs.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__SMT__WITNESS_FORM_H
-#define CVC4__SMT__WITNESS_FORM_H
+#ifndef CVC5__SMT__WITNESS_FORM_H
+#define CVC5__SMT__WITNESS_FORM_H
 
 #include <unordered_set>
 
-#include "expr/node_manager.h"
-#include "expr/proof.h"
-#include "expr/proof_generator.h"
-#include "expr/term_conversion_proof_generator.h"
+#include "proof/conv_proof_generator.h"
+#include "proof/proof.h"
+#include "proof/proof_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 /**
@@ -72,7 +72,7 @@ class WitnessFormGenerator : public ProofGenerator
    * where k is a skolem, containing all rewrite steps used in calls to
    * getProofFor during the entire lifetime of this generator.
    */
-  const std::unordered_set<Node, NodeHashFunction>& getWitnessFormEqs() const;
+  const std::unordered_set<Node>& getWitnessFormEqs() const;
 
  private:
   /**
@@ -88,9 +88,9 @@ class WitnessFormGenerator : public ProofGenerator
   /** The term conversion proof generator */
   TConvProofGenerator d_tcpg;
   /** The nodes we have already added rewrite steps for in d_tcpg */
-  std::unordered_set<TNode, TNodeHashFunction> d_visited;
+  std::unordered_set<TNode> d_visited;
   /** The set of equalities added as proof steps */
-  std::unordered_set<Node, NodeHashFunction> d_eqs;
+  std::unordered_set<Node> d_eqs;
   /** Lazy proof storing witness intro steps */
   LazyCDProof d_wintroPf;
   /** CDProof for justifying purification existentials */
@@ -98,6 +98,6 @@ class WitnessFormGenerator : public ProofGenerator
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

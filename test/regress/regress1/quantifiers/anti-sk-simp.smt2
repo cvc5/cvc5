@@ -1,6 +1,6 @@
-; COMMAND-LINE: --cegqi --quant-anti-skolem
+; COMMAND-LINE: --sygus-inference
 ; EXPECT: unsat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status unsat)
 (declare-fun f (Int) Int)
 (declare-fun a () Int)

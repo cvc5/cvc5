@@ -1,37 +1,35 @@
-/*********************                                                        */
-/*! \file smt_engine_stats.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Statistics for SMT engine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Statistics for SMT engine.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__SMT__SMT_ENGINE_STATS_H
-#define CVC4__SMT__SMT_ENGINE_STATS_H
+#ifndef CVC5__SMT__SMT_ENGINE_STATS_H
+#define CVC5__SMT__SMT_ENGINE_STATS_H
 
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 struct SmtEngineStatistics
 {
-  SmtEngineStatistics();
-  ~SmtEngineStatistics();
+  SmtEngineStatistics(const std::string& name = "smt::SmtEngine::");
   /** time spent in definition-expansion */
   TimerStat d_definitionExpansionTime;
   /** number of constant propagations found during nonclausal simp */
   IntStat d_numConstantProps;
-  /** time spent converting to CNF */
-  TimerStat d_cnfConversionTime;
   /** Number of assertions before ite removal */
   IntStat d_numAssertionsPre;
   /** Number of assertions after ite removal */
@@ -52,6 +50,6 @@ struct SmtEngineStatistics
 }; /* struct SmtEngineStatistics */
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__SMT__SMT_ENGINE_STATS_H */
+#endif /* CVC5__SMT__SMT_ENGINE_STATS_H */

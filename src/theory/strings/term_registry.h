@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file term_registry.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Term registry for the theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Term registry for the theory of strings.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__TERM_REGISTRY_H
-#define CVC4__THEORY__STRINGS__TERM_REGISTRY_H
+#ifndef CVC5__THEORY__STRINGS__TERM_REGISTRY_H
+#define CVC5__THEORY__STRINGS__TERM_REGISTRY_H
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
-#include "expr/proof_node_manager.h"
-#include "theory/eager_proof_generator.h"
+#include "proof/eager_proof_generator.h"
+#include "proof/proof_node_manager.h"
 #include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
@@ -28,10 +29,11 @@
 #include "theory/strings/solver_state.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
+class InferenceManager;
 /**
  * This class manages all the (pre)registration tasks for terms. These tasks
  * include:
@@ -44,16 +46,17 @@ namespace strings {
  */
 class TermRegistry
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashSet<TypeNode, TypeNodeHashFunction> TypeNodeSet;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
   TermRegistry(SolverState& s,
-               OutputChannel& out,
                SequencesStatistics& statistics,
                ProofNodeManager* pnm);
   ~TermRegistry();
+  /** Finish initialize, which sets the inference manager */
+  void finishInit(InferenceManager* im);
   /** The eager reduce routine
    *
    * Constructs a lemma for t that is incomplete, but communicates pertinent
@@ -144,7 +147,7 @@ class TermRegistry
    * Get the "input variables", corresponding to the set of leaf nodes of
    * string-like type that have been preregistered as terms to this object.
    */
-  const context::CDHashSet<Node, NodeHashFunction>& getInputVars() const;
+  const context::CDHashSet<Node>& getInputVars() const;
   /** Returns true if any str.code terms have been preregistered */
   bool hasStringCode() const;
   //---------------------------- end queries
@@ -176,39 +179,25 @@ class TermRegistry
    */
   Node ensureProxyVariableFor(Node n);
 
-  /** infer substitution proxy vars
+  /**
+   * This method attempts to (partially) remove trivial parts of an explanation
+   * n. It adds conjuncts of n that must be included in the explanation into
+   * unproc and drops the rest.
    *
-   * This method attempts to (partially) convert the formula n into a
-   * substitution of the form:
-   *   v1 -> s1, ..., vn -> sn
-   * where s1 ... sn are proxy variables and v1 ... vn are either variables
-   * or constants.
+   * For example, say that v1 was introduced as a proxy variable for "ABC".
    *
-   * This method ensures that P ^ v1 = s1 ^ ... ^ vn = sn ^ unproc is equivalent
-   * to P ^ n, where P is the conjunction of equalities corresponding to the
-   * definition of all proxy variables introduced by the theory of strings.
-   *
-   * For example, say that v1 was introduced as a proxy variable for "ABC", and
-   * v2 was introduced as a proxy variable for "AA".
-   *
-   * Given the input n := v1 = "ABC" ^ v2 = x ^ x = "AA", this method sets:
-   * vars = { x },
-   * subs = { v2 },
-   * unproc = {}.
+   * Given the input n := v1 = "ABC" ^ x = "AA", this method sets:
+   * unproc = { x = "AA" }.
    * In particular, this says that the information content of n is essentially
-   * x = v2. The first and third conjunctions can be dropped from the
-   * explanation since these equalities simply correspond to definitions
-   * of proxy variables.
+   * x = "AA". The first conjunct can be dropped from the explanation since
+   * that equality simply corresponds to definition of a proxy variable.
    *
    * This method is used as a performance heuristic. It can infer when the
-   * explanation of a fact depends only trivially on equalities corresponding
-   * to definitions of proxy variables, which can be omitted since they are
+   * explanation of a fact depends only on equalities corresponding to
+   * definitions of proxy variables, which can be omitted since they are
    * assumed to hold globally.
    */
-  void inferSubstitutionProxyVars(Node n,
-                                  std::vector<Node>& vars,
-                                  std::vector<Node>& subs,
-                                  std::vector<Node>& unproc) const;
+  void removeProxyEqs(Node n, std::vector<Node>& unproc) const;
   //---------------------------- end proxy variables
  private:
   /** Common constants */
@@ -219,8 +208,8 @@ class TermRegistry
   uint32_t d_cardSize;
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
-  /** Reference to the output channel of the theory of strings. */
-  OutputChannel& d_out;
+  /** Pointer to the inference manager of the theory of strings. */
+  InferenceManager* d_im;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
   /** have we asserted any str.code terms? */
@@ -249,7 +238,7 @@ class TermRegistry
    * which rewrites to 3 = 3.
    * In the above example, we store "ABC" -> v_{"ABC"} in this map.
    */
-  std::map<Node, Node> d_proxyVar;
+  NodeNodeMap d_proxyVar;
   /**
    * Map from proxy variables to their normalized length. In the above example,
    * we store "ABC" -> 3.
@@ -291,6 +280,6 @@ class TermRegistry
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__TERM_REGISTRY_H */
+#endif /* CVC5__THEORY__STRINGS__TERM_REGISTRY_H */

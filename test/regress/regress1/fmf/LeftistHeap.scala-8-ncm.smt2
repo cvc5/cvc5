@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 (declare-datatypes ((array!896 0)) (((array!896!897 (size!898 (_ BitVec 32)) (content!899 (Array (_ BitVec 32) (_ BitVec 32)))))))
 (declare-datatypes ((tuple2!900 0)) (((tuple2!900!901 (_1!902 array!896) (_2!903 (_ BitVec 32))))))

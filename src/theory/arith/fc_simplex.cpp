@@ -1,89 +1,69 @@
-/*********************                                                        */
-/*! \file fc_simplex.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This is an implementation of the Simplex Module for the Simplex for
+ * DPLL(T)decision procedure.
+ */
 #include "theory/arith/fc_simplex.h"
 
 #include "base/output.h"
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
-#include "util/statistics_registry.h"
+#include "theory/arith/error_set.h"
+#include "util/statistics_stats.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
-
-FCSimplexDecisionProcedure::FCSimplexDecisionProcedure(LinearEqualityModule& linEq, ErrorSet& errors, RaiseConflict conflictChannel, TempVarMalloc tvmalloc)
-  : SimplexDecisionProcedure(linEq, errors, conflictChannel, tvmalloc)
-  , d_focusSize(0)
-  , d_focusErrorVar(ARITHVAR_SENTINEL)
-  , d_focusCoefficients()
-  , d_pivotBudget(0)
-  , d_prevWitnessImprovement(AntiProductive)
-  , d_witnessImprovementInARow(0)
-  , d_sgnDisagreements()
-  , d_statistics(d_pivots)
+FCSimplexDecisionProcedure::FCSimplexDecisionProcedure(
+    LinearEqualityModule& linEq,
+    ErrorSet& errors,
+    RaiseConflict conflictChannel,
+    TempVarMalloc tvmalloc)
+    : SimplexDecisionProcedure(linEq, errors, conflictChannel, tvmalloc),
+      d_focusSize(0),
+      d_focusErrorVar(ARITHVAR_SENTINEL),
+      d_focusCoefficients(),
+      d_pivotBudget(0),
+      d_prevWitnessImprovement(AntiProductive),
+      d_witnessImprovementInARow(0),
+      d_sgnDisagreements(),
+      d_statistics("theory::arith::FC::", d_pivots)
 { }
 
-FCSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots):
-  d_initialSignalsTime("theory::arith::FC::initialProcessTime"),
-  d_initialConflicts("theory::arith::FC::UpdateConflicts", 0),
-  d_fcFoundUnsat("theory::arith::FC::FoundUnsat", 0),
-  d_fcFoundSat("theory::arith::FC::FoundSat", 0),
-  d_fcMissed("theory::arith::FC::Missed", 0),
-  d_fcTimer("theory::arith::FC::Timer"),
-  d_fcFocusConstructionTimer("theory::arith::FC::Construction"),
-  d_selectUpdateForDualLike("theory::arith::FC::selectUpdateForDualLike"),
-  d_selectUpdateForPrimal("theory::arith::FC::selectUpdateForPrimal"),
-  d_finalCheckPivotCounter("theory::arith::FC::lastPivots", pivots)
+FCSimplexDecisionProcedure::Statistics::Statistics(const std::string& name,
+                                                   uint32_t& pivots)
+    : d_initialSignalsTime(
+        smtStatisticsRegistry().registerTimer(name + "initialProcessTime")),
+      d_initialConflicts(
+          smtStatisticsRegistry().registerInt(name + "UpdateConflicts")),
+      d_fcFoundUnsat(smtStatisticsRegistry().registerInt(name + "FoundUnsat")),
+      d_fcFoundSat(smtStatisticsRegistry().registerInt(name + "FoundSat")),
+      d_fcMissed(smtStatisticsRegistry().registerInt(name + "Missed")),
+      d_fcTimer(smtStatisticsRegistry().registerTimer(name + "Timer")),
+      d_fcFocusConstructionTimer(
+          smtStatisticsRegistry().registerTimer(name + "Construction")),
+      d_selectUpdateForDualLike(smtStatisticsRegistry().registerTimer(
+          name + "selectUpdateForDualLike")),
+      d_selectUpdateForPrimal(smtStatisticsRegistry().registerTimer(
+          name + "selectUpdateForPrimal")),
+      d_finalCheckPivotCounter(
+          smtStatisticsRegistry().registerReference<uint32_t>(
+              name + "lastPivots", pivots))
 {
-  smtStatisticsRegistry()->registerStat(&d_initialSignalsTime);
-  smtStatisticsRegistry()->registerStat(&d_initialConflicts);
-
-  smtStatisticsRegistry()->registerStat(&d_fcFoundUnsat);
-  smtStatisticsRegistry()->registerStat(&d_fcFoundSat);
-  smtStatisticsRegistry()->registerStat(&d_fcMissed);
-
-  smtStatisticsRegistry()->registerStat(&d_fcTimer);
-  smtStatisticsRegistry()->registerStat(&d_fcFocusConstructionTimer);
-
-  smtStatisticsRegistry()->registerStat(&d_selectUpdateForDualLike);
-  smtStatisticsRegistry()->registerStat(&d_selectUpdateForPrimal);
-
-  smtStatisticsRegistry()->registerStat(&d_finalCheckPivotCounter);
-}
-
-FCSimplexDecisionProcedure::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_initialSignalsTime);
-  smtStatisticsRegistry()->unregisterStat(&d_initialConflicts);
-
-  smtStatisticsRegistry()->unregisterStat(&d_fcFoundUnsat);
-  smtStatisticsRegistry()->unregisterStat(&d_fcFoundSat);
-  smtStatisticsRegistry()->unregisterStat(&d_fcMissed);
-
-  smtStatisticsRegistry()->unregisterStat(&d_fcTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_fcFocusConstructionTimer);
-
-  smtStatisticsRegistry()->unregisterStat(&d_selectUpdateForDualLike);
-  smtStatisticsRegistry()->unregisterStat(&d_selectUpdateForPrimal);
-
-  smtStatisticsRegistry()->unregisterStat(&d_finalCheckPivotCounter);
 }
 
 Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
@@ -98,7 +78,10 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
   if(d_errorSet.errorEmpty() && !d_errorSet.moreSignals()){
     Debug("arith::findModel") << "fcFindModel("<< instance <<") trivial" << endl;
     Assert(d_conflictVariables.empty());
-    //if(verbose){ Message() << "fcFindModel("<< instance <<") trivial" << endl; }
+    // if (verbose)
+    //{
+    //  CVC5Message() << "fcFindModel(" << instance << ") trivial" << endl;
+    //}
     return Result::SAT;
   }
 
@@ -110,12 +93,18 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
 
   if(initialProcessSignals()){
     d_conflictVariables.purge();
-    if(verbose){ Message() << "fcFindModel("<< instance <<") early conflict" << endl; }
+    if (verbose)
+    {
+      CVC5Message() << "fcFindModel(" << instance << ") early conflict" << endl;
+    }
     Debug("arith::findModel") << "fcFindModel("<< instance <<") early conflict" << endl;
     Assert(d_conflictVariables.empty());
     return Result::UNSAT;
   }else if(d_errorSet.errorEmpty()){
-    //if(verbose){ Message() << "fcFindModel("<< instance <<") fixed itself" << endl; }
+    // if (verbose)
+    //{
+    //  CVC5Message() << "fcFindModel(" << instance << ") fixed itself" << endl;
+    //}
     Debug("arith::findModel") << "fcFindModel("<< instance <<") fixed itself" << endl;
     if (verbose) Assert(!d_errorSet.moreSignals());
     Assert(d_conflictVariables.empty());
@@ -142,17 +131,27 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
 
     if(result ==  Result::UNSAT){
       ++(d_statistics.d_fcFoundUnsat);
-      if(verbose){ Message() << "fc found unsat";}
+      if (verbose)
+      {
+        CVC5Message() << "fc found unsat";
+      }
     }else if(d_errorSet.errorEmpty()){
       ++(d_statistics.d_fcFoundSat);
-      if(verbose){ Message() << "fc found model"; }
+      if (verbose)
+      {
+        CVC5Message() << "fc found model";
+      }
     }else{
       ++(d_statistics.d_fcMissed);
-      if(verbose){ Message() << "fc missed"; }
+      if (verbose)
+      {
+        CVC5Message() << "fc missed";
+      }
     }
   }
-  if(verbose){
-    Message() << "(" << instance << ") pivots " << d_pivots << endl;
+  if (verbose)
+  {
+    CVC5Message() << "(" << instance << ") pivots " << d_pivots << endl;
   }
 
   Assert(!d_errorSet.moreSignals());
@@ -524,12 +523,10 @@ void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected, Wit
     }
     if(degenerate(w) && selected.describesPivot()){
       ArithVar leaving = selected.leaving();
-      Message()
-        << "degenerate " << leaving
-        << ", atBounds " << d_linEq.basicsAtBounds(selected)
-        << ", len " << d_tableau.basicRowLength(leaving)
-        << ", bc " << d_linEq.debugBasicAtBoundCount(leaving)
-        << endl;
+      CVC5Message() << "degenerate " << leaving << ", atBounds "
+                    << d_linEq.basicsAtBounds(selected) << ", len "
+                    << d_tableau.basicRowLength(leaving) << ", bc "
+                    << d_linEq.debugBasicAtBoundCount(leaving) << endl;
     }
   }
 
@@ -575,9 +572,10 @@ void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected, Wit
     }
   }
 
-  if(verbose){
-    Message() << "conflict variable " << selected << endl;
-    Message() << ss.str();
+  if (verbose)
+  {
+    CVC5Message() << "conflict variable " << selected << endl;
+    CVC5Message() << ss.str();
   }
   if(Debug.isOn("error")){ d_errorSet.debugPrint(Debug("error")); }
 
@@ -791,8 +789,9 @@ Result::Sat FCSimplexDecisionProcedure::dualLike(){
     Assert(d_focusSize == d_errorSet.focusSize());
     Assert(d_errorSize == d_errorSet.errorSize());
 
-    if(verbose){
-      debugDualLike(w,  Message(), instance, prevFocusSize, prevErrorSize);
+    if (verbose)
+    {
+      debugDualLike(w, CVC5Message(), instance, prevFocusSize, prevErrorSize);
     }
     Assert(debugDualLike(
         w, Debug("dualLike"), instance, prevFocusSize, prevErrorSize));
@@ -839,6 +838,6 @@ const Rational& FCSimplexDecisionProcedure::focusCoefficient(ArithVar nb) const 
   }
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

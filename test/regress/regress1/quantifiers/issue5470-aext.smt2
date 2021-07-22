@@ -1,3 +1,5 @@
+; COMMAND-LINE:
+; EXPECT: sat
 (set-logic NIA)
 (set-option :strings-exp true)
 (set-info :status sat)

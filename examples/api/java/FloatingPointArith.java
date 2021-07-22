@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file FloatingPointArith.java
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An example of solving floating-point problems with CVC4's Java API
- **
- ** This example shows how to check whether CVC4 was built with floating-point
- ** support, how to create floating-point types, variables and expressions, and
- ** how to create rounding mode constants by solving toy problems. The example
- ** also shows making special values (such as NaN and +oo) and converting an
- ** IEEE 754-2008 bit-vector to a floating-point number.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An example of solving floating-point problems with CVC4's Java API
+ *
+ * This example shows how to check whether CVC4 was built with floating-point
+ * support, how to create floating-point types, variables and expressions, and
+ * how to create rounding mode constants by solving toy problems. The example
+ * also shows making special values (such as NaN and +oo) and converting an
+ * IEEE 754-2008 bit-vector to a floating-point number.
+ */
 
 import edu.stanford.CVC4.*;
 import java.util.Iterator;
@@ -26,13 +27,6 @@ public class FloatingPointArith {
     System.loadLibrary("cvc4jni");
 
     // Test whether CVC4 was built with floating-point support
-    if (!Configuration.isBuiltWithSymFPU()) {
-      System.out.println("CVC4 was built without floating-point support.");
-      System.out.println("Configure with --symfpu and rebuild CVC4 to run");
-      System.out.println("this example.");
-      System.exit(77);
-    }
-
     ExprManager em = new ExprManager();
     SmtEngine smt = new SmtEngine(em);
 
@@ -50,13 +44,13 @@ public class FloatingPointArith {
     // Assert that floating-point addition is not associative:
     // (a + (b + c)) != ((a + b) + c)
     Expr rm = em.mkConst(RoundingMode.roundNearestTiesToEven);
-    Expr lhs = em.mkExpr(Kind.FLOATINGPOINT_PLUS,
+    Expr lhs = em.mkExpr(Kind.FLOATINGPOINT_ADD,
         rm,
         a,
-        em.mkExpr(Kind.FLOATINGPOINT_PLUS, rm, b, c));
-    Expr rhs = em.mkExpr(Kind.FLOATINGPOINT_PLUS,
+        em.mkExpr(Kind.FLOATINGPOINT_ADD, rm, b, c));
+    Expr rhs = em.mkExpr(Kind.FLOATINGPOINT_ADD,
         rm,
-        em.mkExpr(Kind.FLOATINGPOINT_PLUS, rm, a, b),
+        em.mkExpr(Kind.FLOATINGPOINT_ADD, rm, a, b),
         c);
     smt.assertFormula(em.mkExpr(Kind.NOT, em.mkExpr(Kind.EQUAL, a, b)));
 

@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file tptp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Francois Bobot, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definitions of TPTP constants.
- **
- ** Definitions of TPTP constants.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Francois Bobot, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definition of TPTP parser.
+ */
 
 // Do not #include "parser/antlr_input.h" directly. Rely on the header.
 #include "parser/tptp/tptp.h"
@@ -20,27 +19,29 @@
 #include <algorithm>
 #include <set>
 
-#include "api/cvc4cpp.h"
-#include "expr/type.h"
+#include "api/cpp/cvc5.h"
+#include "base/check.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "parser/parser.h"
 #include "smt/command.h"
+#include "theory/logic_info.h"
 
 // ANTLR defines these, which is really bad!
 #undef true
 #undef false
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 Tptp::Tptp(api::Solver* solver,
            SymbolManager* sm,
-           Input* input,
            bool strictMode,
            bool parseOnly)
-    : Parser(solver, sm, input, strictMode, parseOnly),
+    : Parser(solver, sm, strictMode, parseOnly),
       d_cnf(false),
-      d_fof(false)
+      d_fof(false),
+      d_hol(false)
 {
   addTheory(Tptp::THEORY_CORE);
 
@@ -116,11 +117,11 @@ bool newInputStream(std::string fileName, pANTLR3_LEXER lexer, std::vector< pANT
   // in C target runtime.
   //
   pANTLR3_INPUT_STREAM    in;
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   in = antlr3AsciiFileStreamNew((pANTLR3_UINT8) fileName.c_str());
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   in = antlr3FileStreamNew((pANTLR3_UINT8) fileName.c_str(), ANTLR3_ENC_8BIT);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   if(in == NULL) {
     Debug("parser") << "Can't open " << fileName << std::endl;
     return false;
@@ -204,7 +205,7 @@ void Tptp::checkLetBinding(const std::vector<api::Term>& bvlist,
   {
     parseError("malformed let: LHS must be formula");
   }
-  for (const CVC4::api::Term& var : vars)
+  for (const cvc5::api::Term& var : vars)
   {
     if (var.hasOp())
     {
@@ -238,7 +239,7 @@ api::Term Tptp::parseOpToExpr(ParseOp& p)
   }
   // if it has a kind, it's a builtin one and this function should not have been
   // called
-  assert(p.d_kind == api::NULL_EXPR);
+  Assert(p.d_kind == api::NULL_EXPR);
   if (isDeclared(p.d_name))
   {  // already appeared
     expr = getVariable(p.d_name);
@@ -247,7 +248,7 @@ api::Term Tptp::parseOpToExpr(ParseOp& p)
   {
     api::Sort t =
         p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
-    expr = bindVar(p.d_name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
+    expr = bindVar(p.d_name, t, true);  // must define at level zero
     preemptCommand(new DeclareFunctionCommand(p.d_name, expr, t));
   }
   return expr;
@@ -264,7 +265,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       Debug("parser") << "++ " << *i << std::endl;
     }
   }
-  assert(!args.empty());
+  Assert(!args.empty());
   // If operator already defined, just build application
   if (!p.d_expr.isNull())
   {
@@ -291,7 +292,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       api::Sort t =
           p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
       t = d_solver->mkFunctionSort(sorts, t);
-      v = bindVar(p.d_name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
+      v = bindVar(p.d_name, t, true);  // must define at level zero
       preemptCommand(new DeclareFunctionCommand(p.d_name, v, t));
     }
     // args might be rationals, in which case we need to create
@@ -304,7 +305,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         args[i] = convertRatToUnsorted(args[i]);
       }
     }
-    assert(!v.isNull());
+    Assert(!v.isNull());
     checkFunctionLike(v);
     kind = getKindForFunction(v);
     args.insert(args.begin(), v);
@@ -314,21 +315,19 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     kind = p.d_kind;
     isBuiltinKind = true;
   }
-  assert(kind != api::NULL_EXPR);
-  const Options& opts = d_solver->getOptions();
+  Assert(kind != api::NULL_EXPR);
   // Second phase: apply parse op to the arguments
   if (isBuiltinKind)
   {
-    if (!opts.getUfHo() && (kind == api::EQUAL || kind == api::DISTINCT))
+    if (!hol() && (kind == api::EQUAL || kind == api::DISTINCT))
     {
-      // need --uf-ho if these operators are applied over function args
+      // need hol if these operators are applied over function args
       for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
            ++i)
       {
         if ((*i).getSort().isFunction())
         {
-          parseError(
-              "Cannot apply equalty to functions unless --uf-ho is set.");
+          parseError("Cannot apply equalty to functions unless THF.");
         }
       }
     }
@@ -342,6 +341,18 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       return d_solver->mkTerm(api::UMINUS, args[0]);
     }
+    if (kind == api::TO_REAL)
+    {
+      // If the type is real, this is a no-op. We require this special
+      // case in the TPTP parser since TO_REAL is designed to match the
+      // SMT-LIB operator, meaning it can only be applied to integers, whereas
+      // the TPTP to_real / to_rat do not have the same semantics.
+      api::Sort s = args[0].getSort();
+      if (s.isReal())
+      {
+        return args[0];
+      }
+    }
     return d_solver->mkTerm(kind, args);
   }
 
@@ -354,9 +365,9 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       unsigned arity = argt.getFunctionArity();
       if (args.size() - 1 < arity)
       {
-        if (!opts.getUfHo())
+        if (!hol())
         {
-          parseError("Cannot partially apply functions unless --uf-ho is set.");
+          parseError("Cannot partially apply functions unless THF.");
         }
         Debug("parser") << "Partial application of " << args[0];
         Debug("parser") << " : #argTypes = " << arity;
@@ -369,6 +380,76 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   return d_solver->mkTerm(kind, args);
 }
 
+api::Term Tptp::mkDecimal(
+    std::string& snum, std::string& sden, bool pos, size_t exp, bool posE)
+{
+  // the numerator and the denominator
+  std::stringstream ssn;
+  std::stringstream ssd;
+  if (exp != 0)
+  {
+    if (posE)
+    {
+      // see if we need to pad zeros on the end, e.g. 1.2E5 ---> 120000
+      if (exp >= sden.size())
+      {
+        ssn << snum << sden;
+        for (size_t i = 0, nzero = (exp - sden.size()); i < nzero; i++)
+        {
+          ssn << "0";
+        }
+        ssd << "0";
+      }
+      else
+      {
+        ssn << snum << sden.substr(0, exp);
+        ssd << sden.substr(exp);
+      }
+    }
+    else
+    {
+      // see if we need to pad zeros on the beginning, e.g. 1.2E-5 ---> 0.000012
+      if (exp >= snum.size())
+      {
+        ssn << "0";
+        for (size_t i = 0, nzero = (exp - snum.size()); i < nzero; i++)
+        {
+          ssd << "0";
+        }
+        ssd << snum << sden;
+      }
+      else
+      {
+        ssn << snum.substr(0, exp);
+        ssd << snum.substr(exp) << sden;
+      }
+    }
+  }
+  else
+  {
+    ssn << snum;
+    ssd << sden;
+  }
+  std::stringstream ss;
+  if (!pos)
+  {
+    ss << "-";
+  }
+  ss << ssn.str() << "." << ssd.str();
+  return d_solver->mkReal(ss.str());
+}
+
+bool Tptp::hol() const { return d_hol; }
+void Tptp::setHol()
+{
+  if (d_hol)
+  {
+    return;
+  }
+  d_hol = true;
+  d_solver->setLogic("HO_UF");
+}
+
 void Tptp::forceLogic(const std::string& logic)
 {
   Parser::forceLogic(logic);
@@ -377,13 +458,13 @@ void Tptp::forceLogic(const std::string& logic)
 
 void Tptp::addFreeVar(api::Term var)
 {
-  assert(cnf());
+  Assert(cnf());
   d_freeVar.push_back(var);
 }
 
 std::vector<api::Term> Tptp::getFreeVar()
 {
-  assert(cnf());
+  Assert(cnf());
   std::vector<api::Term> r;
   r.swap(d_freeVar);
   return r;
@@ -474,7 +555,7 @@ api::Term Tptp::getAssertionExpr(FormulaRole fr, api::Term expr)
       return d_nullExpr;
       break;
   }
-  assert(false);  // unreachable
+  Assert(false);  // unreachable
   return d_nullExpr;
 }
 
@@ -502,7 +583,7 @@ Command* Tptp::makeAssertCommand(FormulaRole fr,
   // "CounterSatisfiable".
   if (!cnf && (fr == FR_NEGATED_CONJECTURE || fr == FR_CONJECTURE)) {
     d_hasConjecture = true;
-    assert(!expr.isNull());
+    Assert(!expr.isNull());
   }
   if( expr.isNull() ){
     return new EmptyCommand("Untreated role for expression");
@@ -511,5 +592,5 @@ Command* Tptp::makeAssertCommand(FormulaRole fr,
   }
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

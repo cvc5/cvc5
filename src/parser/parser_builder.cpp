@@ -1,70 +1,61 @@
-/*********************                                                        */
-/*! \file parser_builder.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A builder for parsers.
- **
- ** A builder for parsers.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Christopher L. Conway, Morgan Deters, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A builder for parsers.
+ */
 
 // This must be included first.
-#include "parser/antlr_input.h"
-
 #include "parser/parser_builder.h"
 
 #include <string>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
+#include "base/check.h"
 #include "cvc/cvc.h"
-#include "expr/expr_manager.h"
+#include "options/base_options.h"
 #include "options/options.h"
+#include "options/parser_options.h"
+#include "parser/antlr_input.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "smt2/smt2.h"
 #include "tptp/tptp.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
-ParserBuilder::ParserBuilder(api::Solver* solver,
-                             SymbolManager* sm,
-                             const std::string& filename)
-    : d_filename(filename), d_solver(solver), d_symman(sm)
+ParserBuilder::ParserBuilder(api::Solver* solver, SymbolManager* sm)
+    : d_solver(solver), d_symman(sm)
 {
-  init(solver, sm, filename);
+  init(solver, sm);
 }
 
 ParserBuilder::ParserBuilder(api::Solver* solver,
                              SymbolManager* sm,
-                             const std::string& filename,
                              const Options& options)
-    : d_filename(filename), d_solver(solver), d_symman(sm)
+    : d_solver(solver), d_symman(sm)
 {
-  init(solver, sm, filename);
+  init(solver, sm);
   withOptions(options);
 }
 
-void ParserBuilder::init(api::Solver* solver,
-                         SymbolManager* sm,
-                         const std::string& filename)
+void ParserBuilder::init(api::Solver* solver, SymbolManager* sm)
 {
-  d_inputType = FILE_INPUT;
   d_lang = language::input::LANG_AUTO;
-  d_filename = filename;
-  d_streamInput = NULL;
   d_solver = solver;
   d_symman = sm;
   d_checksEnabled = true;
   d_strictMode = false;
   d_canIncludeFile = true;
-  d_mmap = false;
   d_parseOnly = false;
   d_logicIsForced = false;
   d_forcedLogic = "";
@@ -72,43 +63,23 @@ void ParserBuilder::init(api::Solver* solver,
 
 Parser* ParserBuilder::build()
 {
-  Input* input = NULL;
-  switch( d_inputType ) {
-  case FILE_INPUT:
-    input = Input::newFileInput(d_lang, d_filename, d_mmap);
-    break;
-  case LINE_BUFFERED_STREAM_INPUT:
-    assert( d_streamInput != NULL );
-    input = Input::newStreamInput(d_lang, *d_streamInput, d_filename, true);
-    break;
-  case STREAM_INPUT:
-    assert( d_streamInput != NULL );
-    input = Input::newStreamInput(d_lang, *d_streamInput, d_filename);
-    break;
-  case STRING_INPUT:
-    input = Input::newStringInput(d_lang, d_stringInput, d_filename);
-    break;
-  }
-
-  assert(input != NULL);
-
   Parser* parser = NULL;
   switch (d_lang)
   {
     case language::input::LANG_SYGUS_V2:
-      parser = new Smt2(d_solver, d_symman, input, d_strictMode, d_parseOnly);
+      parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
       break;
     case language::input::LANG_TPTP:
-      parser = new Tptp(d_solver, d_symman, input, d_strictMode, d_parseOnly);
+      parser = new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly);
       break;
     default:
       if (language::isInputLang_smt2(d_lang))
       {
-        parser = new Smt2(d_solver, d_symman, input, d_strictMode, d_parseOnly);
+        parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
       }
       else
       {
-        parser = new Cvc(d_solver, d_symman, input, d_strictMode, d_parseOnly);
+        parser = new Cvc(d_solver, d_symman, d_strictMode, d_parseOnly);
       }
       break;
   }
@@ -137,29 +108,8 @@ ParserBuilder& ParserBuilder::withChecks(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withSolver(api::Solver* solver)
-{
-  d_solver = solver;
-  return *this;
-}
-
-ParserBuilder& ParserBuilder::withFileInput() {
-  d_inputType = FILE_INPUT;
-  return *this;
-}
-
-ParserBuilder& ParserBuilder::withFilename(const std::string& filename) {
-  d_filename = filename;
-  return *this;
-}
-
 ParserBuilder& ParserBuilder::withInputLanguage(InputLanguage lang) {
   d_lang = lang;
-  return *this;
-}
-
-ParserBuilder& ParserBuilder::withMmap(bool flag) {
-  d_mmap = flag;
   return *this;
 }
 
@@ -168,17 +118,17 @@ ParserBuilder& ParserBuilder::withParseOnly(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withOptions(const Options& options) {
+ParserBuilder& ParserBuilder::withOptions(const Options& opts)
+{
   ParserBuilder& retval = *this;
-  retval =
-      retval.withInputLanguage(options.getInputLanguage())
-      .withMmap(options.getMemoryMap())
-      .withChecks(options.getSemanticChecks())
-      .withStrictMode(options.getStrictParsing())
-      .withParseOnly(options.getParseOnly())
-      .withIncludeFile(options.getFilesystemAccess());
-  if(options.wasSetByUserForceLogicString()) {
-    LogicInfo tmp(options.getForceLogicString());
+  retval = retval.withInputLanguage(opts.base.inputLanguage)
+               .withChecks(opts.parser.semanticChecks)
+               .withStrictMode(opts.parser.strictParsing)
+               .withParseOnly(opts.base.parseOnly)
+               .withIncludeFile(opts.parser.filesystemAccess);
+  if (opts.parser.forceLogicStringWasSetByUser)
+  {
+    LogicInfo tmp(opts.parser.forceLogicString);
     retval = retval.withForcedLogic(tmp.getLogicString());
   }
   return retval;
@@ -194,29 +144,12 @@ ParserBuilder& ParserBuilder::withIncludeFile(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withForcedLogic(const std::string& logic) {
+ParserBuilder& ParserBuilder::withForcedLogic(const std::string& logic)
+{
   d_logicIsForced = true;
   d_forcedLogic = logic;
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withStreamInput(std::istream& input) {
-  d_inputType = STREAM_INPUT;
-  d_streamInput = &input;
-  return *this;
-}
-
-ParserBuilder& ParserBuilder::withLineBufferedStreamInput(std::istream& input) {
-  d_inputType = LINE_BUFFERED_STREAM_INPUT;
-  d_streamInput = &input;
-  return *this;
-}
-
-ParserBuilder& ParserBuilder::withStringInput(const std::string& input) {
-  d_inputType = STRING_INPUT;
-  d_stringInput = input;
-  return *this;
-}
-
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

@@ -1,5 +1,5 @@
 ; REQUIRES: poly
-; COMMAND-LINE: --theoryof-mode=term --nl-ext --nl-icp
+; COMMAND-LINE: --theoryof-mode=term --nl-icp
 ; EXPECT: unknown
 (set-logic QF_NRA)
 (declare-fun x () Real)

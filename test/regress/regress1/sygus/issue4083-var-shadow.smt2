@@ -1,3 +1,5 @@
+; COMMAND-LINE: -q
+; EXPECT: unsat
 (set-logic ALL)
 (set-option :miniscope-quant true)
 (set-option :sygus-inference true)

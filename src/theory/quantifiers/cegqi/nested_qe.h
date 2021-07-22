@@ -1,35 +1,36 @@
-/*********************                                                        */
-/*! \file nested_qe.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Methods for counterexample-guided quantifier instantiation
- ** based on nested quantifier elimination.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Methods for counterexample-guided quantifier instantiation
+ * based on nested quantifier elimination.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
-#define CVC4__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
+#define CVC5__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
 
 #include <unordered_set>
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
 class NestedQe
 {
-  using NodeNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
+  using NodeNodeMap = context::CDHashMap<Node, Node>;
 
  public:
   NestedQe(context::UserContext* u);
@@ -52,8 +53,7 @@ class NestedQe
    * Get nested quantification. Returns true if q has nested quantifiers.
    * Adds each nested quantifier in the body of q to nqs.
    */
-  static bool getNestedQuantification(
-      Node q, std::unordered_set<Node, NodeHashFunction>& nqs);
+  static bool getNestedQuantification(Node q, std::unordered_set<Node>& nqs);
   /**
    * Does quantified formula q have nested quantification?
    */
@@ -81,6 +81,6 @@ class NestedQe
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

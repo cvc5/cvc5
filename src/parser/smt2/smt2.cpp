@@ -1,50 +1,47 @@
-/*********************                                                        */
-/*! \file smt2.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definitions of SMT2 constants.
- **
- ** Definitions of SMT2 constants.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definitions of SMT2 constants.
+ */
 #include "parser/smt2/smt2.h"
 
 #include <algorithm>
 
 #include "base/check.h"
-#include "expr/type.h"
+#include "options/base_options.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2_input.h"
-#include "util/bitvector.h"
 
 // ANTLR defines these, which is really bad!
 #undef true
 #undef false
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 Smt2::Smt2(api::Solver* solver,
            SymbolManager* sm,
-           Input* input,
            bool strictMode,
            bool parseOnly)
-    : Parser(solver, sm, input, strictMode, parseOnly),
+    : Parser(solver, sm, strictMode, parseOnly),
       d_logicSet(false),
       d_seenSetLogic(false)
 {
-  pushScope(true);
 }
 
-Smt2::~Smt2() { popScope(); }
+Smt2::~Smt2() {}
 
 void Smt2::addArithmeticOperators() {
   addOperator(api::PLUS, "+");
@@ -84,10 +81,6 @@ void Smt2::addTranscendentalOperators()
 
 void Smt2::addQuantifiersOperators()
 {
-  if (!strictModeEnabled())
-  {
-    addOperator(api::INST_CLOSURE, "inst-closure");
-  }
 }
 
 void Smt2::addBitvectorOperators() {
@@ -96,7 +89,7 @@ void Smt2::addBitvectorOperators() {
   addOperator(api::BITVECTOR_AND, "bvand");
   addOperator(api::BITVECTOR_OR, "bvor");
   addOperator(api::BITVECTOR_NEG, "bvneg");
-  addOperator(api::BITVECTOR_PLUS, "bvadd");
+  addOperator(api::BITVECTOR_ADD, "bvadd");
   addOperator(api::BITVECTOR_MULT, "bvmul");
   addOperator(api::BITVECTOR_UDIV, "bvudiv");
   addOperator(api::BITVECTOR_UREM, "bvurem");
@@ -143,6 +136,7 @@ void Smt2::addDatatypesOperators()
 
   if (!strictModeEnabled())
   {
+    Parser::addOperator(api::APPLY_UPDATER);
     addOperator(api::DT_SIZE, "dt.size");
   }
 }
@@ -166,6 +160,7 @@ void Smt2::addStringOperators() {
   addOperator(api::STRING_REPLACE_RE_ALL, "str.replace_re_all");
   if (!strictModeEnabled())
   {
+    addOperator(api::STRING_INDEXOF_RE, "str.indexof_re");
     addOperator(api::STRING_UPDATE, "str.update");
     addOperator(api::STRING_TOLOWER, "str.tolower");
     addOperator(api::STRING_TOUPPER, "str.toupper");
@@ -186,26 +181,12 @@ void Smt2::addStringOperators() {
     addOperator(api::SEQ_UNIT, "seq.unit");
     addOperator(api::SEQ_NTH, "seq.nth");
   }
-  // at the moment, we only use this syntax for smt2.6
-  if (getLanguage() == language::input::LANG_SMTLIB_V2_6
-      || getLanguage() == language::input::LANG_SYGUS_V2)
-  {
-    addOperator(api::STRING_FROM_INT, "str.from_int");
-    addOperator(api::STRING_TO_INT, "str.to_int");
-    addOperator(api::STRING_IN_REGEXP, "str.in_re");
-    addOperator(api::STRING_TO_REGEXP, "str.to_re");
-    addOperator(api::STRING_TO_CODE, "str.to_code");
-    addOperator(api::STRING_REPLACE_ALL, "str.replace_all");
-  }
-  else
-  {
-    addOperator(api::STRING_FROM_INT, "int.to.str");
-    addOperator(api::STRING_TO_INT, "str.to.int");
-    addOperator(api::STRING_IN_REGEXP, "str.in.re");
-    addOperator(api::STRING_TO_REGEXP, "str.to.re");
-    addOperator(api::STRING_TO_CODE, "str.code");
-    addOperator(api::STRING_REPLACE_ALL, "str.replaceall");
-  }
+  addOperator(api::STRING_FROM_INT, "str.from_int");
+  addOperator(api::STRING_TO_INT, "str.to_int");
+  addOperator(api::STRING_IN_REGEXP, "str.in_re");
+  addOperator(api::STRING_TO_REGEXP, "str.to_re");
+  addOperator(api::STRING_TO_CODE, "str.to_code");
+  addOperator(api::STRING_REPLACE_ALL, "str.replace_all");
 
   addOperator(api::REGEXP_CONCAT, "re.++");
   addOperator(api::REGEXP_UNION, "re.union");
@@ -227,7 +208,7 @@ void Smt2::addFloatingPointOperators() {
   addOperator(api::FLOATINGPOINT_EQ, "fp.eq");
   addOperator(api::FLOATINGPOINT_ABS, "fp.abs");
   addOperator(api::FLOATINGPOINT_NEG, "fp.neg");
-  addOperator(api::FLOATINGPOINT_PLUS, "fp.add");
+  addOperator(api::FLOATINGPOINT_ADD, "fp.add");
   addOperator(api::FLOATINGPOINT_SUB, "fp.sub");
   addOperator(api::FLOATINGPOINT_MULT, "fp.mul");
   addOperator(api::FLOATINGPOINT_DIV, "fp.div");
@@ -335,10 +316,7 @@ bool Smt2::isTheoryEnabled(theory::TheoryId theory) const
   return d_logic.isTheoryEnabled(theory);
 }
 
-bool Smt2::isHoEnabled() const
-{
-  return getLogic().isHigherOrder() && d_solver->getOptions().getUfHo();
-}
+bool Smt2::isHoEnabled() const { return d_logic.isHigherOrder(); }
 
 bool Smt2::logicIsSet() {
   return d_logicSet;
@@ -445,7 +423,7 @@ api::Term Smt2::bindDefineFunRec(
   api::Sort ft = mkFlatFunctionType(sorts, t, flattenVars);
 
   // allow overloading
-  return bindVar(fname, ft, ExprManager::VAR_FLAG_NONE, true);
+  return bindVar(fname, ft, false, true);
 }
 
 void Smt2::pushDefineFunRecScope(
@@ -473,16 +451,6 @@ void Smt2::reset() {
   d_logic = LogicInfo();
   operatorKindMap.clear();
   d_lastNamedTerm = std::pair<api::Term, std::string>();
-  this->Parser::reset();
-  pushScope(true);
-}
-
-void Smt2::resetAssertions() {
-  // Remove all declarations except the ones at level 0.
-  while (this->scopeLevel() > 0) {
-    this->popScope();
-  }
-  pushScope(true);
 }
 
 std::unique_ptr<Command> Smt2::invConstraint(
@@ -535,8 +503,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   d_logicSet = true;
   d_logic = name;
 
-  // if sygus is enabled, we must enable UF, datatypes, integer arithmetic and
-  // higher-order
+  // if sygus is enabled, we must enable UF, datatypes, and integer arithmetic
   if(sygus()) {
     if (!d_logic.isQuantified())
     {
@@ -562,9 +529,12 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     if(d_logic.areIntegersUsed()) {
       defineType("Int", d_solver->getIntegerSort(), true, true);
       addArithmeticOperators();
-      addOperator(api::INTS_DIVISION, "div");
-      addOperator(api::INTS_MODULUS, "mod");
-      addOperator(api::ABS, "abs");
+      if (!strictModeEnabled() || !d_logic.isLinear())
+      {
+        addOperator(api::INTS_DIVISION, "div");
+        addOperator(api::INTS_MODULUS, "mod");
+        addOperator(api::ABS, "abs");
+      }
       addIndexedOperator(api::DIVISIBLE, api::DIVISIBLE, "divisible");
     }
 
@@ -595,6 +565,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     {
       // integer version of AND
       addIndexedOperator(api::IAND, api::IAND, "iand");
+      // pow2
+      addOperator(api::POW2, "int.pow2");
     }
   }
 
@@ -654,7 +626,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::INTERSECTION_MIN, "intersection_min");
     addOperator(api::DIFFERENCE_SUBTRACT, "difference_subtract");
     addOperator(api::DIFFERENCE_REMOVE, "difference_remove");
-    addOperator(api::SUBBAG, "bag.is_included");
+    addOperator(api::SUBBAG, "subbag");
     addOperator(api::BAG_COUNT, "bag.count");
     addOperator(api::DUPLICATE_REMOVAL, "duplicate_removal");
     addOperator(api::MK_BAG, "bag");
@@ -669,15 +641,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     defineType("RegLan", d_solver->getRegExpSort(), true, true);
     defineType("Int", d_solver->getIntegerSort(), true, true);
 
-    if (getLanguage() == language::input::LANG_SMTLIB_V2_6
-        || getLanguage() == language::input::LANG_SYGUS_V2)
-    {
-      defineVar("re.none", d_solver->mkRegexpEmpty());
-    }
-    else
-    {
-      defineVar("re.nostr", d_solver->mkRegexpEmpty());
-    }
+    defineVar("re.none", d_solver->mkRegexpEmpty());
     defineVar("re.allchar", d_solver->mkRegexpSigma());
 
     // Boolean is a placeholder
@@ -725,9 +689,17 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addSepOperators();
   }
 
-  Command* cmd =
-      new SetBenchmarkLogicCommand(sygus() ? d_logic.getLogicString() : name);
-  cmd->setMuted(!fromCommand);
+  std::string logic = sygus() ? d_logic.getLogicString() : name;
+  if (!fromCommand)
+  {
+    // If not from a command, just set the logic directly. Notice this is
+    // important since we do not want to enqueue a set-logic command and
+    // fully initialize the underlying SmtEngine in the meantime before the
+    // command has a chance to execute, which would lead to an error.
+    d_solver->setLogic(logic);
+    return nullptr;
+  }
+  Command* cmd = new SetBenchmarkLogicCommand(logic);
   return cmd;
 } /* Smt2::setLogic() */
 
@@ -760,23 +732,22 @@ void Smt2::checkThatLogicIsSet()
     }
     else
     {
-      Command* cmd = nullptr;
+      // the calls to setLogic below set the logic on the solver directly
       if (logicIsForced())
       {
-        cmd = setLogic(getForcedLogic(), false);
+        setLogic(getForcedLogic(), false);
       }
       else
       {
         warning("No set-logic command was given before this point.");
-        warning("CVC4 will make all theories available.");
+        warning("cvc5 will make all theories available.");
         warning(
             "Consider setting a stricter logic for (likely) better "
             "performance.");
         warning("To suppress this warning in the future use (set-logic ALL).");
 
-        cmd = setLogic("ALL", false);
+        setLogic("ALL", false);
       }
-      preemptCommand(cmd);
     }
   }
 }
@@ -795,12 +766,13 @@ void Smt2::checkLogicAllowsFreeSorts()
 
 void Smt2::checkLogicAllowsFunctions()
 {
-  if (!d_logic.isTheoryEnabled(theory::THEORY_UF))
+  if (!d_logic.isTheoryEnabled(theory::THEORY_UF) && !isHoEnabled())
   {
     parseError(
         "Functions (of non-zero arity) cannot "
         "be declared in logic "
-        + d_logic.getLogicString() + " unless option --uf-ho is used");
+        + d_logic.getLogicString()
+        + ". Try including UF or adding the prefix HO_.");
   }
 }
 
@@ -813,11 +785,11 @@ static bool newInputStream(const std::string& filename, pANTLR3_LEXER lexer) {
   // in C target runtime.
   //
   pANTLR3_INPUT_STREAM    in;
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   in = antlr3AsciiFileStreamNew((pANTLR3_UINT8) filename.c_str());
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   in = antlr3FileStreamNew((pANTLR3_UINT8) filename.c_str(), ANTLR3_ENC_8BIT);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   if( in == NULL ) {
     Debug("parser") << "Can't open " << filename << std::endl;
     return false;
@@ -871,14 +843,14 @@ bool Smt2::isAbstractValue(const std::string& name)
 
 api::Term Smt2::mkAbstractValue(const std::string& name)
 {
-  assert(isAbstractValue(name));
+  Assert(isAbstractValue(name));
   // remove the '@'
   return d_solver->mkAbstractValue(name.substr(1));
 }
 
 InputLanguage Smt2::getLanguage() const
 {
-  return d_solver->getOptions().getInputLanguage();
+  return d_solver->getOptions().base.inputLanguage;
 }
 
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
@@ -948,7 +920,7 @@ api::Term Smt2::parseOpToExpr(ParseOp& p)
   {
     expr = getExpressionForName(p.d_name);
   }
-  assert(!expr.isNull());
+  Assert(!expr.isNull());
   return expr;
 }
 
@@ -1040,8 +1012,6 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       }
     }
   }
-  // Second phase: apply the arguments to the parse op
-  const Options& opts = d_solver->getOptions();
   // handle special cases
   if (p.d_kind == api::CONST_ARRAY && !p.d_type.isNull())
   {
@@ -1083,12 +1053,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   else if (p.d_kind == api::APPLY_SELECTOR && !p.d_expr.isNull())
   {
     // tuple selector case
-    Integer x = p.d_expr.getExpr().getConst<Rational>().getNumerator();
-    if (!x.fitsUnsignedInt())
+    if (!p.d_expr.isUInt64Value())
     {
-      parseError("index of tupSel is larger than size of unsigned int");
+      parseError("index of tupSel is larger than size of uint64_t");
     }
-    unsigned int n = x.toUnsignedInt();
+    uint64_t n = p.d_expr.getUInt64Value();
     if (args.size() != 1)
     {
       parseError("tupSel should only be applied to one tuple argument");
@@ -1111,6 +1080,12 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
+  else if (p.d_kind == api::TUPLE_PROJECT)
+  {
+    api::Term ret = d_solver->mkTerm(p.d_op, args[0]);
+    Debug("parser") << "applyParseOp: return projection " << ret << std::endl;
+    return ret;
+  }
   else if (p.d_kind != api::NULL_EXPR)
   {
     // it should not have an expression or type specified at this point
@@ -1125,16 +1100,17 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   }
   else if (isBuiltinOperator)
   {
-    if (!opts.getUfHo() && (kind == api::EQUAL || kind == api::DISTINCT))
+    if (!isHoEnabled() && (kind == api::EQUAL || kind == api::DISTINCT))
     {
-      // need --uf-ho if these operators are applied over function args
+      // need hol if these operators are applied over function args
       for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
            ++i)
       {
         if ((*i).getSort().isFunction())
         {
           parseError(
-              "Cannot apply equalty to functions unless --uf-ho is set.");
+              "Cannot apply equalty to functions unless logic is prefixed by "
+              "HO_.");
         }
       }
     }
@@ -1177,9 +1153,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       unsigned arity = argt.getFunctionArity();
       if (args.size() - 1 < arity)
       {
-        if (!opts.getUfHo())
+        if (!isHoEnabled())
         {
-          parseError("Cannot partially apply functions unless --uf-ho is set.");
+          parseError(
+              "Cannot partially apply functions unless logic is prefixed by "
+              "HO_.");
         }
         Debug("parser") << "Partial application of " << args[0];
         Debug("parser") << " : #argTypes = " << arity;
@@ -1214,7 +1192,12 @@ void Smt2::notifyNamedExpression(api::Term& expr, std::string name)
 {
   checkUserSymbol(name);
   // remember the expression name in the symbol manager
-  getSymbolManager()->setExpressionName(expr, name, false);
+  if (getSymbolManager()->setExpressionName(expr, name, false)
+      == NamingResult::ERROR_IN_BINDER)
+  {
+    parseError(
+        "Cannot name a term in a binder (e.g., quantifiers, definitions)");
+  }
   // define the variable
   defineVar(name, expr);
   // set the last named term, which ensures that we catch when assertions are
@@ -1239,4 +1222,4 @@ api::Term Smt2::mkAnd(const std::vector<api::Term>& es)
 }
 
 }  // namespace parser
-}/* CVC4 namespace */
+}  // namespace cvc5

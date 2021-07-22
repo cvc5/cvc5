@@ -1,5 +1,5 @@
 (set-logic UFLIA)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
 (set-info :status unsat)
 (declare-fun boolIff (Int Int) Int)

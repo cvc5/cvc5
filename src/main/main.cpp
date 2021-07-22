@@ -1,77 +1,77 @@
-/*********************                                                        */
-/*! \file main.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Main driver for CVC4 executable
- **
- ** Main driver for CVC4 executable.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Main driver for cvc5 executable.
+ */
 #include "main/main.h"
+
+#include <stdio.h>
+#include <unistd.h>
 
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <stdio.h>
-#include <unistd.h>
 
 #include "base/configuration.h"
 #include "base/output.h"
-#include "expr/expr_manager.h"
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
+#include "options/base_options.h"
 #include "options/language.h"
+#include "options/option_exception.h"
 #include "options/options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/parser_exception.h"
-#include "smt/smt_engine.h"
 #include "util/result.h"
-#include "util/statistics.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::main;
-using namespace CVC4::language;
+using namespace cvc5;
+using namespace cvc5::main;
+using namespace cvc5::language;
 
 /**
- * CVC4's main() routine is just an exception-safe wrapper around CVC4.
+ * cvc5's main() routine is just an exception-safe wrapper around cvc5.
  * Please don't construct anything here.  Even if the constructor is
  * inside the try { }, an exception during destruction can cause
- * problems.  That's why main() wraps runCvc4() in the first place.
- * Put everything in runCvc4().
+ * problems.  That's why main() wraps runCvc5() in the first place.
+ * Put everything in runCvc5().
  */
 int main(int argc, char* argv[]) {
   Options opts;
   try {
-    return runCvc4(argc, argv, opts);
+    return runCvc5(argc, argv, opts);
   } catch(OptionException& e) {
-#ifdef CVC4_COMPETITION_MODE
-    *opts.getOut() << "unknown" << endl;
+#ifdef CVC5_COMPETITION_MODE
+    *opts.base.out << "unknown" << endl;
 #endif
     cerr << "(error \"" << e << "\")" << endl
          << endl
          << "Please use --help to get help on command-line options." << endl;
   } catch(Exception& e) {
-#ifdef CVC4_COMPETITION_MODE
-    *opts.getOut() << "unknown" << endl;
+#ifdef CVC5_COMPETITION_MODE
+    *opts.base.out << "unknown" << endl;
 #endif
-    if (language::isOutputLang_smt2(opts.getOutputLanguage()))
+    if (language::isOutputLang_smt2(opts.base.outputLanguage))
     {
-      *opts.getOut() << "(error \"" << e << "\")" << endl;
+      *opts.base.out << "(error \"" << e << "\")" << endl;
     } else {
-      *opts.getErr() << "(error \"" << e << "\")" << endl;
+      *opts.base.err << "(error \"" << e << "\")" << endl;
     }
-    if(opts.getStatistics() && pExecutor != NULL) {
-      pTotalTime->stop();
-      pExecutor->flushStatistics(*opts.getErr());
+    if (opts.base.statistics && pExecutor != nullptr)
+    {
+      totalTime.reset();
+      pExecutor->printStatistics(*opts.base.err);
     }
   }
   exit(1);

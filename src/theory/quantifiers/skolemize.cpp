@@ -1,41 +1,50 @@
-/*********************                                                        */
-/*! \file skolemize.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of skolemization utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of skolemization utility.
+ */
 
 #include "theory/quantifiers/skolemize.h"
 
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "proof/proof.h"
+#include "proof/proof_node_manager.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "theory/sort_inference.h"
-#include "theory/theory_engine.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-Skolemize::Skolemize(QuantifiersEngine* qe,
-                     context::UserContext* u,
+Skolemize::Skolemize(QuantifiersState& qs,
+                     TermRegistry& tr,
                      ProofNodeManager* pnm)
-    : d_quantEngine(qe),
-      d_skolemized(u),
+    : d_qstate(qs),
+      d_treg(tr),
+      d_skolemized(qs.getUserContext()),
       d_pnm(pnm),
       d_epg(pnm == nullptr ? nullptr
-                           : new EagerProofGenerator(pnm, u, "Skolemize::epg"))
+                           : new EagerProofGenerator(
+                                 pnm, qs.getUserContext(), "Skolemize::epg"))
 {
 }
 
@@ -81,17 +90,19 @@ TrustNode Skolemize::process(Node q)
     // otherwise, we use the more general skolemization with inductive
     // strengthening, which does not support proofs
     Node body = getSkolemizedBody(q);
-    NodeBuilder<> nb(kind::OR);
+    NodeBuilder nb(kind::OR);
     nb << q << body.notNode();
     lem = nb;
   }
   d_skolemized[q] = lem;
+  // triggered when skolemizing
+  d_treg.processSkolemization(q, d_skolem_constants[q]);
   return TrustNode::mkTrustLemma(lem, pg);
 }
 
 bool Skolemize::getSkolemConstants(Node q, std::vector<Node>& skolems)
 {
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction>::iterator it =
+  std::unordered_map<Node, std::vector<Node>>::iterator it =
       d_skolem_constants.find(q);
   if (it != d_skolem_constants.end())
   {
@@ -103,7 +114,7 @@ bool Skolemize::getSkolemConstants(Node q, std::vector<Node>& skolems)
 
 Node Skolemize::getSkolemConstant(Node q, unsigned i)
 {
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction>::iterator it =
+  std::unordered_map<Node, std::vector<Node>>::iterator it =
       d_skolem_constants.find(q);
   if (it != d_skolem_constants.end())
   {
@@ -174,6 +185,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
                                  std::vector<unsigned>& sub_vars)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Assert(sk.empty() || sk.size() == f[0].getNumChildren());
   // calculate the variables and substitution
   std::vector<TNode> ind_vars;
@@ -198,21 +210,20 @@ Node Skolemize::mkSkolemizedBody(Node f,
     {
       if (argTypes.empty())
       {
-        s = NodeManager::currentNM()->mkSkolem(
+        s = sm->mkDummySkolem(
             "skv", f[0][i].getType(), "created during skolemization");
       }
       else
       {
-        TypeNode typ = NodeManager::currentNM()->mkFunctionType(
-            argTypes, f[0][i].getType());
-        Node op = NodeManager::currentNM()->mkSkolem(
+        TypeNode typ = nm->mkFunctionType(argTypes, f[0][i].getType());
+        Node op = sm->mkDummySkolem(
             "skop", typ, "op created during pre-skolemization");
         // DOTHIS: set attribute on op, marking that it should not be selected
         // as trigger
         std::vector<Node> funcArgs;
         funcArgs.push_back(op);
         funcArgs.insert(funcArgs.end(), fvs.begin(), fvs.end());
-        s = NodeManager::currentNM()->mkNode(kind::APPLY_UF, funcArgs);
+        s = nm->mkNode(kind::APPLY_UF, funcArgs);
       }
       sk.push_back(s);
     }
@@ -260,27 +271,19 @@ Node Skolemize::mkSkolemizedBody(Node f,
         {
           conj.push_back(ret.substitute(ind_vars[0], selfSel[j]).negate());
         }
-        disj.push_back(conj.size() == 1
-                           ? conj[0]
-                           : NodeManager::currentNM()->mkNode(OR, conj));
+        disj.push_back(conj.size() == 1 ? conj[0] : nm->mkNode(OR, conj));
       }
       Assert(!disj.empty());
-      n_str_ind = disj.size() == 1
-                      ? disj[0]
-                      : NodeManager::currentNM()->mkNode(AND, disj);
+      n_str_ind = disj.size() == 1 ? disj[0] : nm->mkNode(AND, disj);
     }
     else if (options::intWfInduction() && tn.isInteger())
     {
-      Node icond = NodeManager::currentNM()->mkNode(
-          GEQ, k, NodeManager::currentNM()->mkConst(Rational(0)));
-      Node iret =
-          ret.substitute(
-                 ind_vars[0],
-                 NodeManager::currentNM()->mkNode(
-                     MINUS, k, NodeManager::currentNM()->mkConst(Rational(1))))
-              .negate();
-      n_str_ind = NodeManager::currentNM()->mkNode(OR, icond.negate(), iret);
-      n_str_ind = NodeManager::currentNM()->mkNode(AND, icond, n_str_ind);
+      Node icond = nm->mkNode(GEQ, k, nm->mkConst(Rational(0)));
+      Node iret = ret.substitute(ind_vars[0],
+                                 nm->mkNode(MINUS, k, nm->mkConst(Rational(1))))
+                      .negate();
+      n_str_ind = nm->mkNode(OR, icond.negate(), iret);
+      n_str_ind = nm->mkNode(AND, icond, n_str_ind);
     }
     else
     {
@@ -295,17 +298,15 @@ Node Skolemize::mkSkolemizedBody(Node f,
         rem_ind_vars.end(), ind_vars.begin() + 1, ind_vars.end());
     if (!rem_ind_vars.empty())
     {
-      Node bvl = NodeManager::currentNM()->mkNode(BOUND_VAR_LIST, rem_ind_vars);
-      nret = NodeManager::currentNM()->mkNode(FORALL, bvl, nret);
+      Node bvl = nm->mkNode(BOUND_VAR_LIST, rem_ind_vars);
+      nret = nm->mkNode(FORALL, bvl, nret);
       nret = Rewriter::rewrite(nret);
       sub = nret;
       sub_vars.insert(
           sub_vars.end(), ind_var_indicies.begin() + 1, ind_var_indicies.end());
-      n_str_ind = NodeManager::currentNM()
-                      ->mkNode(FORALL, bvl, n_str_ind.negate())
-                      .negate();
+      n_str_ind = nm->mkNode(FORALL, bvl, n_str_ind.negate()).negate();
     }
-    ret = NodeManager::currentNM()->mkNode(OR, nret, n_str_ind);
+    ret = nm->mkNode(OR, nret, n_str_ind);
   }
   Trace("quantifiers-sk-debug") << "mkSkolem body for " << f
                                 << " returns : " << ret << std::endl;
@@ -325,8 +326,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
 Node Skolemize::getSkolemizedBody(Node f)
 {
   Assert(f.getKind() == FORALL);
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
-      d_skolem_body.find(f);
+  std::unordered_map<Node, Node>::iterator it = d_skolem_body.find(f);
   if (it == d_skolem_body.end())
   {
     std::vector<TypeNode> fvTypes;
@@ -348,13 +348,13 @@ Node Skolemize::getSkolemizedBody(Node f)
       }
     }
     Assert(d_skolem_constants[f].size() == f[0].getNumChildren());
-    if (options::sortInference())
+    SortInference* si = d_qstate.getSortInference();
+    if (si != nullptr)
     {
       for (unsigned i = 0; i < d_skolem_constants[f].size(); i++)
       {
         // carry information for sort inference
-        d_quantEngine->getTheoryEngine()->getSortInference()->setSkolemVar(
-            f, f[0][i], d_skolem_constants[f][i]);
+        si->setSkolemVar(f, f[0][i], d_skolem_constants[f][i]);
       }
     }
     return ret;
@@ -377,33 +377,21 @@ bool Skolemize::isInductionTerm(Node n)
   return false;
 }
 
-bool Skolemize::printSkolemization(std::ostream& out)
+void Skolemize::getSkolemTermVectors(
+    std::map<Node, std::vector<Node> >& sks) const
 {
-  bool printed = false;
-  for (NodeNodeMap::iterator it = d_skolemized.begin();
-       it != d_skolemized.end();
-       ++it)
+  std::unordered_map<Node, std::vector<Node>>::const_iterator itk;
+  for (const auto& p : d_skolemized)
   {
-    Node q = (*it).first;
-    printed = true;
-    out << "(skolem " << q << std::endl;
-    out << "  ( ";
-    for (unsigned i = 0; i < d_skolem_constants[q].size(); i++)
-    {
-      if (i > 0)
-      {
-        out << " ";
-      }
-      out << d_skolem_constants[q][i];
-    }
-    out << " )" << std::endl;
-    out << ")" << std::endl;
+    Node q = p.first;
+    itk = d_skolem_constants.find(q);
+    Assert(itk != d_skolem_constants.end());
+    sks[q].insert(sks[q].end(), itk->second.begin(), itk->second.end());
   }
-  return printed;
 }
 
 bool Skolemize::isProofEnabled() const { return d_epg != nullptr; }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

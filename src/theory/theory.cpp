@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file theory.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Base for theory interface.
- **
- ** Base for theory interface.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Base for theory interface.
+ */
 
 #include "theory/theory.h"
 
@@ -26,14 +25,20 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/ee_setup_info.h"
 #include "theory/ext_theory.h"
+#include "theory/output_channel.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/substitutions.h"
+#include "theory/theory_inference_manager.h"
+#include "theory/theory_model.h"
 #include "theory/theory_rewriter.h"
+#include "theory/theory_state.h"
+#include "theory/trust_substitutions.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Default value for the uninterpreted sorts is the UF theory */
@@ -68,13 +73,12 @@ Theory::Theory(TheoryId id,
       d_facts(satContext),
       d_factsHead(satContext, 0),
       d_sharedTermsIndex(satContext, 0),
-      d_careGraph(NULL),
-      d_quantEngine(NULL),
-      d_decManager(nullptr),
+      d_careGraph(nullptr),
       d_instanceName(name),
-      d_checkTime(getStatsPrefix(id) + name + "::checkTime"),
-      d_computeCareGraphTime(getStatsPrefix(id) + name
-                             + "::computeCareGraphTime"),
+      d_checkTime(smtStatisticsRegistry().registerTimer(getStatsPrefix(id)
+                                                        + name + "checkTime")),
+      d_computeCareGraphTime(smtStatisticsRegistry().registerTimer(
+          getStatsPrefix(id) + name + "computeCareGraphTime")),
       d_sharedTerms(satContext),
       d_out(&out),
       d_valuation(valuation),
@@ -82,15 +86,12 @@ Theory::Theory(TheoryId id,
       d_allocEqualityEngine(nullptr),
       d_theoryState(nullptr),
       d_inferManager(nullptr),
+      d_quantEngine(nullptr),
       d_pnm(pnm)
 {
-  smtStatisticsRegistry()->registerStat(&d_checkTime);
-  smtStatisticsRegistry()->registerStat(&d_computeCareGraphTime);
 }
 
 Theory::~Theory() {
-  smtStatisticsRegistry()->unregisterStat(&d_checkTime);
-  smtStatisticsRegistry()->unregisterStat(&d_computeCareGraphTime);
 }
 
 bool Theory::needsEqualityEngine(EeSetupInfo& esi)
@@ -115,16 +116,17 @@ void Theory::setEqualityEngine(eq::EqualityEngine* ee)
 
 void Theory::setQuantifiersEngine(QuantifiersEngine* qe)
 {
-  Assert(d_quantEngine == nullptr);
   // quantifiers engine may be null if not in quantified logic
   d_quantEngine = qe;
 }
 
 void Theory::setDecisionManager(DecisionManager* dm)
 {
-  Assert(d_decManager == nullptr);
   Assert(dm != nullptr);
-  d_decManager = dm;
+  if (d_inferManager != nullptr)
+  {
+    d_inferManager->setDecisionManager(dm);
+  }
 }
 
 void Theory::finishInitStandalone()
@@ -158,10 +160,6 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
           tid = Theory::theoryOf(node.getType());
         }
       }
-      else if (node.isConst())
-      {
-        tid = Theory::theoryOf(node.getType());
-      }
       else if (node.getKind() == kind::EQUAL)
       {
         // Equality is owned by the theory that owns the domain
@@ -169,7 +167,9 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
       }
       else
       {
-        // Regular nodes are owned by the kind
+        // Regular nodes are owned by the kind. Notice that constants are a
+        // special case here, where the theory of the kind of a constant
+        // always coincides with the type of that constant.
         tid = kindToTheoryId(node.getKind());
       }
       break;
@@ -196,11 +196,6 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
           }
         }
       }
-      else if (node.isConst())
-      {
-        // Constants go to the theory of the type
-        tid = Theory::theoryOf(node.getType());
-      }
       else if (node.getKind() == kind::EQUAL)
       {  // Equality
         // If one of them is an ITE, it's irelevant, since they will get
@@ -219,9 +214,12 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
           TNode r = node[1];
           TypeNode ltype = l.getType();
           TypeNode rtype = r.getType();
-          if (ltype != rtype)
+          // If the types are different, we must assign based on type due
+          // to handling subtypes (limited to arithmetic). Also, if we are
+          // a Boolean equality, we must assign THEORY_BOOL.
+          if (ltype != rtype || ltype.isBoolean())
           {
-            tid = Theory::theoryOf(l.getType());
+            tid = Theory::theoryOf(ltype);
           }
           else
           {
@@ -260,7 +258,8 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
       }
       else
       {
-        // Regular nodes are owned by the kind
+        // Regular nodes are owned by the kind, which includes constants as a
+        // special case.
         tid = kindToTheoryId(node.getKind());
       }
     break;
@@ -274,6 +273,14 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
 void Theory::notifySharedTerm(TNode n)
 {
   // do nothing
+}
+
+void Theory::notifyInConflict()
+{
+  if (d_inferManager != nullptr)
+  {
+    d_inferManager->notifyInConflict();
+  }
 }
 
 void Theory::computeCareGraph() {
@@ -331,19 +338,26 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!options::produceModels())
+  if (!options::produceModels() && !d_logicInfo.isQuantified())
   {
-    // don't care about the model, we are fine
+    // Don't care about the model and logic is not quantified, we can eliminate.
     return true;
   }
-  // if there is a model object
+  // If models are enabled, then it depends on whether the term contains any
+  // unevaluable operators like FORALL, SINE, etc. Having such operators makes
+  // model construction contain non-constant values for variables, which is
+  // not ideal from a user perspective.
+  // We also insist on this check since the term to eliminate should never
+  // contain quantifiers, or else variable shadowing issues may arise.
+  // there should be a model object
   TheoryModel* tm = d_valuation.getModel();
   Assert(tm != nullptr);
   return tm->isLegalElimination(x, val);
 }
 
-std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{
-  std::unordered_set<TNode, TNodeHashFunction> currentlyShared;
+std::unordered_set<TNode> Theory::currentlySharedTerms() const
+{
+  std::unordered_set<TNode> currentlyShared;
   for (shared_terms_iterator i = shared_terms_begin(),
            i_end = shared_terms_end(); i != i_end; ++i) {
     currentlyShared.insert (*i);
@@ -356,11 +370,14 @@ bool Theory::collectModelInfo(TheoryModel* m, const std::set<Node>& termSet)
   // if we are using an equality engine, assert it to the model
   if (d_equalityEngine != nullptr)
   {
+    Trace("model-builder") << "Assert Equality engine for " << d_id
+                           << std::endl;
     if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
     {
       return false;
     }
   }
+  Trace("model-builder") << "Collect Model values for " << d_id << std::endl;
   // now, collect theory-specific value assigments
   return collectModelValues(m, termSet);
 }
@@ -405,6 +422,23 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
       }
     }
   }
+  else if (in.getKind() == kind::NOT && in[0].getKind() == kind::EQUAL
+           && in[0][0].getType().isBoolean())
+  {
+    TNode eq = in[0];
+    if (eq[0].isVar())
+    {
+      Node res = eq[0].eqNode(eq[1].notNode());
+      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
+      return ppAssert(tn, outSubstitutions);
+    }
+    else if (eq[1].isVar())
+    {
+      Node res = eq[1].eqNode(eq[0].notNode());
+      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
+      return ppAssert(tn, outSubstitutions);
+    }
+  }
 
   return PP_ASSERT_STATUS_UNSOLVED;
 }
@@ -428,6 +462,11 @@ void Theory::getCareGraph(CareGraph* careGraph) {
   d_careGraph = careGraph;
   computeCareGraph();
   d_careGraph = NULL;
+}
+
+bool Theory::proofsEnabled() const
+{
+  return d_pnm != nullptr;
 }
 
 EqualityStatus Theory::getEqualityStatus(TNode a, TNode b)
@@ -468,7 +507,7 @@ void Theory::check(Effort level)
   }
   Assert(d_theoryState!=nullptr);
   // standard calls for resource, stats
-  d_out->spendResource(ResourceManager::Resource::TheoryCheckStep);
+  d_out->spendResource(Resource::TheoryCheckStep);
   TimerStat::CodeTimer checkTimer(d_checkTime);
   Trace("theory-check") << "Theory::preCheck " << level << " " << d_id
                         << std::endl;
@@ -559,5 +598,5 @@ eq::EqualityEngine* Theory::getEqualityEngine()
   return d_equalityEngine;
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

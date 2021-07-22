@@ -1,49 +1,63 @@
-/*********************                                                        */
-/*! \file cad_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of new non-linear solver
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andrew Reynolds, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of new non-linear solver.
+ */
 
 #include "theory/arith/nl/cad_solver.h"
 
-#ifdef CVC4_POLY_IMP
-#include <poly/polyxx.h>
-#endif
-
-#include "options/arith_options.h"
-#include "theory/arith/inference_id.h"
+#include "expr/skolem_manager.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/cad/cdcac.h"
+#include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/poly_conversion.h"
-#include "util/poly_util.h"
+#include "theory/inference_id.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
 
-CadSolver::CadSolver(InferenceManager& im, NlModel& model)
-    : d_foundSatisfiability(false), d_im(im), d_model(model)
+CadSolver::CadSolver(InferenceManager& im,
+                     NlModel& model,
+                     context::Context* ctx,
+                     ProofNodeManager* pnm)
+    :
+#ifdef CVC5_POLY_IMP
+      d_CAC(ctx, pnm),
+#endif
+      d_foundSatisfiability(false),
+      d_im(im),
+      d_model(model)
 {
-  d_ranVariable =
-      NodeManager::currentNM()->mkSkolem("__z",
-                                         NodeManager::currentNM()->realType(),
-                                         "",
-                                         NodeManager::SKOLEM_EXACT_NAME);
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  d_ranVariable = sm->mkDummySkolem(
+      "__z", nm->realType(), "", NodeManager::SKOLEM_EXACT_NAME);
+#ifdef CVC5_POLY_IMP
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    // add checkers
+    d_proofChecker.registerTo(pc);
+  }
+#endif
 }
 
 CadSolver::~CadSolver() {}
 
 void CadSolver::initLastCall(const std::vector<Node>& assertions)
 {
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
   if (Trace.isOn("nl-cad"))
   {
     Trace("nl-cad") << "CadSolver::initLastCall" << std::endl;
@@ -70,11 +84,12 @@ void CadSolver::initLastCall(const std::vector<Node>& assertions)
 
 void CadSolver::checkFull()
 {
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
   if (d_CAC.getConstraints().getConstraints().empty()) {
     Trace("nl-cad") << "No constraints. Return." << std::endl;
     return;
   }
+  d_CAC.startNewProof();
   auto covering = d_CAC.getUnsatCover();
   if (covering.empty())
   {
@@ -88,12 +103,9 @@ void CadSolver::checkFull()
     Trace("nl-cad") << "Collected MIS: " << mis << std::endl;
     Assert(!mis.empty()) << "Infeasible subset can not be empty";
     Trace("nl-cad") << "UNSAT with MIS: " << mis << std::endl;
-    for (auto& n : mis)
-    {
-      n = n.negate();
-    }
-    d_im.addPendingArithLemma(NodeManager::currentNM()->mkOr(mis),
-                              InferenceId::NL_CAD_CONFLICT);
+    Node lem = NodeManager::currentNM()->mkAnd(mis).negate();
+    ProofGenerator* proof = d_CAC.closeProof(mis);
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_CAD_CONFLICT, proof);
   }
 #else
   Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
@@ -104,7 +116,7 @@ void CadSolver::checkFull()
 
 void CadSolver::checkPartial()
 {
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
   if (d_CAC.getConstraints().getConstraints().empty()) {
     Trace("nl-cad") << "No constraints. Return." << std::endl;
     return;
@@ -140,7 +152,8 @@ void CadSolver::checkPartial()
         Trace("nl-cad") << "Excluding " << first_var << " -> "
                         << interval.d_interval << " using " << lemma
                         << std::endl;
-        d_im.addPendingArithLemma(lemma, InferenceId::NL_CAD_EXCLUDED_INTERVAL);
+        d_im.addPendingLemma(lemma,
+                             InferenceId::ARITH_NL_CAD_EXCLUDED_INTERVAL);
       }
     }
   }
@@ -153,7 +166,7 @@ void CadSolver::checkPartial()
 
 bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
 {
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
   if (!d_foundSatisfiability)
   {
     return false;
@@ -200,4 +213,4 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

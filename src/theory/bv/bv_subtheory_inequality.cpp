@@ -1,39 +1,39 @@
-/*********************                                                        */
-/*! \file bv_subtheory_inequality.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Algebraic solver.
- **
- ** Algebraic solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Aina Niemetz, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Algebraic solver.
+ */
 
 #include "theory/bv/bv_subtheory_inequality.h"
 
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/bv/bv_solver_lazy.h"
+#include "theory/bv/bv_solver_layered.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
-using namespace CVC4::theory::bv::utils;
+using namespace cvc5;
+using namespace cvc5::context;
+using namespace cvc5::theory;
+using namespace cvc5::theory::bv;
+using namespace cvc5::theory::bv::utils;
 
 bool InequalitySolver::check(Theory::Effort e) {
   Debug("bv-subtheory-inequality") << "InequalitySolveR::check("<< e <<")\n";
   TimerStat::CodeTimer inequalityTimer(d_statistics.d_solveTime);
   ++(d_statistics.d_numCallstoCheck);
-  d_bv->spendResource(ResourceManager::Resource::TheoryCheckStep);
+  d_bv->spendResource(Resource::TheoryCheckStep);
 
   bool ok = true;
   while (!done() && ok) {
@@ -237,7 +237,7 @@ bool InequalitySolver::addInequality(TNode a, TNode b, bool strict, TNode fact)
 
   Node one = utils::mkConst(utils::getSize(a), 1);
   Node a_plus_one = Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_PLUS, a, one));
+      NodeManager::currentNM()->mkNode(kind::BITVECTOR_ADD, a, one));
   if (d_ineqTerms.find(a_plus_one) != d_ineqTerms.end())
   {
     ok = d_inequalityGraph.addInequality(a_plus_one, b, false, fact);
@@ -246,15 +246,9 @@ bool InequalitySolver::addInequality(TNode a, TNode b, bool strict, TNode fact)
 }
 
 InequalitySolver::Statistics::Statistics()
-    : d_numCallstoCheck("theory::bv::inequality::NumCallsToCheck", 0),
-      d_solveTime("theory::bv::inequality::SolveTime")
+    : d_numCallstoCheck(smtStatisticsRegistry().registerInt(
+        "theory::bv::inequality::NumCallsToCheck")),
+      d_solveTime(smtStatisticsRegistry().registerTimer(
+          "theory::bv::inequality::SolveTime"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
-  smtStatisticsRegistry()->registerStat(&d_solveTime);
-}
-
-InequalitySolver::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
-  smtStatisticsRegistry()->unregisterStat(&d_solveTime);
 }

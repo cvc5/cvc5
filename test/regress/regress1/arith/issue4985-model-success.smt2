@@ -1,3 +1,5 @@
+; COMMAND-LINE:
+; EXPECT: sat
 (set-logic QF_AUFNRA)
 (set-info :status sat)
 (declare-const arr0 (Array Real Real))

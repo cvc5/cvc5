@@ -7,7 +7,7 @@ CADE ATP System competition. See http://www.cs.miami.edu/~tptp/CASC
 This benchmark was obtained by trying to find a finite model of a first-order 
 formula (Albert Oliveras).
 |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-info :status unsat)
 (declare-sort U 0)

@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file evaluator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The Evaluator class
- **
- ** The Evaluator class can be used to evaluate terms with constant leaves
- ** quickly, without going through the rewriter.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The Evaluator class.
+ *
+ * The Evaluator class can be used to evaluate terms with constant leaves
+ * quickly, without going through the rewriter.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__EVALUATOR_H
-#define CVC4__THEORY__EVALUATOR_H
+#ifndef CVC5__THEORY__EVALUATOR_H
+#define CVC5__THEORY__EVALUATOR_H
 
 #include <utility>
 #include <vector>
@@ -30,7 +31,7 @@
 #include "util/rational.h"
 #include "util/string.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -116,7 +117,7 @@ class Evaluator
   Node eval(TNode n,
             const std::vector<Node>& args,
             const std::vector<Node>& vals,
-            const std::unordered_map<Node, Node, NodeHashFunction>& visited,
+            const std::unordered_map<Node, Node>& visited,
             bool useRewriter = true) const;
 
  private:
@@ -136,13 +137,12 @@ class Evaluator
    * `args` to `vals` and rewriting. Notice that this map contains an entry
    * for n in the case that it cannot be evaluated.
    */
-  EvalResult evalInternal(
-      TNode n,
-      const std::vector<Node>& args,
-      const std::vector<Node>& vals,
-      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode,
-      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results,
-      bool useRewriter) const;
+  EvalResult evalInternal(TNode n,
+                          const std::vector<Node>& args,
+                          const std::vector<Node>& vals,
+                          std::unordered_map<TNode, Node>& evalAsNode,
+                          std::unordered_map<TNode, EvalResult>& results,
+                          bool useRewriter) const;
   /** reconstruct
    *
    * This function reconstructs the result of evaluating n using a combination
@@ -152,13 +152,12 @@ class Evaluator
    * above method for some args and vals. This method ensures that the return
    * value is equivalent to the rewritten form of n * { args -> vals }.
    */
-  Node reconstruct(
-      TNode n,
-      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& eresults,
-      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode) const;
+  Node reconstruct(TNode n,
+                   std::unordered_map<TNode, EvalResult>& eresults,
+                   std::unordered_map<TNode, Node>& evalAsNode) const;
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__EVALUATOR_H */
+#endif /* CVC5__THEORY__EVALUATOR_H */

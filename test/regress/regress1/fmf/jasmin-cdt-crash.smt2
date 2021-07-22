@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --finite-model-find --fmf-inst-engine --uf-ss-fair-monotone
 ; EXPECT: sat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 (declare-sort a_ 0)
 (declare-fun __nun_card_witness_0 () a_)

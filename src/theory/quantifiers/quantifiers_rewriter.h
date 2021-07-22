@@ -1,28 +1,27 @@
-/*********************                                                        */
-/*! \file quantifiers_rewriter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Rewriter for the theory of inductive quantifiers
- **
- ** Rewriter for the theory of inductive quantifiers.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Rewriter for the theory of inductive quantifiers.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
-#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
+#define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 
+#include "proof/trust_node.h"
 #include "theory/theory_rewriter.h"
-#include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -140,7 +139,7 @@ class QuantifiersRewriter : public TheoryRewriter
                                 Kind k,
                                 std::map<Node, bool>& lit_pol,
                                 bool& childrenChanged);
-  static void addNodeToOrBuilder(Node n, NodeBuilder<>& t);
+  static void addNodeToOrBuilder(Node n, NodeBuilder& t);
   static void computeArgs(const std::vector<Node>& args,
                           std::map<Node, bool>& activeMap,
                           Node n,
@@ -155,20 +154,12 @@ class QuantifiersRewriter : public TheoryRewriter
   static Node computeProcessTerms2(Node body,
                                    std::map<Node, Node>& cache,
                                    std::vector<Node>& new_vars,
-                                   std::vector<Node>& new_conds,
-                                   bool elimExtArith);
+                                   std::vector<Node>& new_conds);
   static void computeDtTesterIteSplit(
       Node n,
       std::map<Node, Node>& pcons,
       std::map<Node, std::map<int, Node> >& ncons,
       std::vector<Node>& conj);
-  /** datatype expand
-   *
-   * If v occurs in args and has a datatype type whose index^th constructor is
-   * C, this method returns a node of the form C( x1, ..., xn ), removes v from
-   * args and adds x1...xn to args.
-   */
-  static Node datatypeExpand(unsigned index, Node v, std::vector<Node>& args);
 
   //-------------------------------------variable elimination
   /** compute variable elimination
@@ -233,7 +224,10 @@ class QuantifiersRewriter : public TheoryRewriter
   //------------------------------------- end extended rewrite
  public:
   static Node computeElimSymbols( Node body );
-  static Node computeMiniscoping( std::vector< Node >& args, Node body, QAttributes& qa );
+  /**
+   * Compute miniscoping in quantified formula q with attributes in qa.
+   */
+  static Node computeMiniscoping(Node q, QAttributes& qa);
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
   /**
    * This function removes top-level quantifiers from subformulas of body
@@ -251,7 +245,12 @@ class QuantifiersRewriter : public TheoryRewriter
    *   (or (P x z) (not (Q y z)))
    * and add {x} to args, and {y} to nargs.
    */
-  static Node computePrenex( Node body, std::vector< Node >& args, std::vector< Node >& nargs, bool pol, bool prenexAgg );
+  static Node computePrenex(Node q,
+                            Node body,
+                            std::unordered_set<Node>& args,
+                            std::unordered_set<Node>& nargs,
+                            bool pol,
+                            bool prenexAgg);
   /**
    * Apply prenexing aggressively. Returns the prenex normal form of n.
    */
@@ -289,15 +288,20 @@ public:
    * The result is wrapped in a trust node of kind TrustNodeKind::REWRITE.
    */
   static TrustNode preprocess(Node n, bool isInst = false);
-  static Node mkForAll( std::vector< Node >& args, Node body, QAttributes& qa );
-  static Node mkForall( std::vector< Node >& args, Node body, bool marked = false );
-  static Node mkForall( std::vector< Node >& args, Node body, std::vector< Node >& iplc, bool marked = false );
+  static Node mkForAll(const std::vector<Node>& args,
+                       Node body,
+                       QAttributes& qa);
+  static Node mkForall(const std::vector<Node>& args,
+                       Node body,
+                       bool marked = false);
+  static Node mkForall(const std::vector<Node>& args,
+                       Node body,
+                       std::vector<Node>& iplc,
+                       bool marked = false);
 }; /* class QuantifiersRewriter */
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H */
-
-
+#endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H */

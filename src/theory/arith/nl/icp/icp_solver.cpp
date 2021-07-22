@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file icp_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements a ICP-based solver for nonlinear arithmetic.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements a ICP-based solver for nonlinear arithmetic.
+ */
 
 #include "theory/arith/nl/icp/icp_solver.h"
 
@@ -20,18 +21,19 @@
 #include "base/output.h"
 #include "expr/node_algorithm.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/poly_conversion.h"
 #include "theory/arith/normal_form.h"
 #include "theory/rewriter.h"
 #include "util/poly_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
 namespace icp {
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 namespace {
 /** A simple wrapper to nicely print an interval assignment. */
@@ -65,7 +67,7 @@ inline std::ostream& operator<<(std::ostream& os, const IAWrapper& iaw)
 
 std::vector<Node> ICPSolver::collectVariables(const Node& n) const
 {
-  std::unordered_set<TNode, TNodeHashFunction> tmp;
+  std::unordered_set<TNode> tmp;
   expr::getVariables(n, tmp);
   std::vector<Node> res;
   for (const auto& t : tmp)
@@ -91,7 +93,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
   auto poly = std::get<0>(comp);
 
   std::vector<Candidate> result;
-  std::unordered_set<TNode, TNodeHashFunction> vars;
+  std::unordered_set<TNode> vars;
   expr::getVariables(n, vars);
   for (const auto& v : vars)
   {
@@ -348,8 +350,8 @@ void ICPSolver::check()
         {
           mis.emplace_back(n.negate());
         }
-        d_im.addPendingArithLemma(NodeManager::currentNM()->mkOr(mis),
-                                  InferenceId::NL_ICP_CONFLICT);
+        d_im.addPendingLemma(NodeManager::currentNM()->mkOr(mis),
+                             InferenceId::ARITH_NL_ICP_CONFLICT);
         did_progress = true;
         progress = false;
         break;
@@ -360,27 +362,27 @@ void ICPSolver::check()
     std::vector<Node> lemmas = generateLemmas();
     for (const auto& l : lemmas)
     {
-      d_im.addPendingArithLemma(l, InferenceId::NL_ICP_PROPAGATION);
+      d_im.addPendingLemma(l, InferenceId::ARITH_NL_ICP_PROPAGATION);
     }
   }
 }
 
-#else /* CVC4_POLY_IMP */
+#else /* CVC5_POLY_IMP */
 
 void ICPSolver::reset(const std::vector<Node>& assertions)
 {
-  Unimplemented() << "ICPSolver requires CVC4 to be configured with LibPoly";
+  Unimplemented() << "ICPSolver requires cvc5 to be configured with LibPoly";
 }
 
 void ICPSolver::check()
 {
-  Unimplemented() << "ICPSolver requires CVC4 to be configured with LibPoly";
+  Unimplemented() << "ICPSolver requires cvc5 to be configured with LibPoly";
 }
 
-#endif /* CVC4_POLY_IMP */
+#endif /* CVC5_POLY_IMP */
 
 }  // namespace icp
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

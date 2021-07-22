@@ -1,37 +1,38 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Solving for handling transcendental functions.
+ */
 
-/*********************                                                        */
-/*! \file transcendental_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Solving for handling transcendental functions.
- **/
+#ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_SOLVER_H
+#define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_SOLVER_H
 
-#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_SOLVER_H
-#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_SOLVER_H
-
-#include <map>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/transcendental/exponential_solver.h"
 #include "theory/arith/nl/transcendental/sine_solver.h"
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
+
+class InferenceManager;
+
 namespace nl {
+
+class NlModel;
+
 namespace transcendental {
 
 /** Transcendental solver class
@@ -49,7 +50,10 @@ namespace transcendental {
 class TranscendentalSolver
 {
  public:
-  TranscendentalSolver(InferenceManager& im, NlModel& m);
+  TranscendentalSolver(InferenceManager& im,
+                       NlModel& m,
+                       ProofNodeManager* pnm,
+                       context::UserContext* c);
   ~TranscendentalSolver();
 
   /** init last call
@@ -63,9 +67,7 @@ class TranscendentalSolver
    * This call may add lemmas to lems based on registering term
    * information (for example, purification of sine terms).
    */
-  void initLastCall(const std::vector<Node>& assertions,
-                    const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts);
+  void initLastCall(const std::vector<Node>& xts);
   /** increment taylor degree */
   void incrementTaylorDegree();
   /** get taylor degree */
@@ -199,6 +201,6 @@ class TranscendentalSolver
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */

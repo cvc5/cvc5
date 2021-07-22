@@ -1,32 +1,37 @@
-/*********************                                                        */
-/*! \file sygus_inference.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sygus inference module
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sygus inference module.
+ */
 
 #include "preprocessing/passes/sygus_inference.h"
 
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_utils.h"
+#include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::theory;
+using namespace cvc5::kind;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -42,23 +47,13 @@ PreprocessingPassResult SygusInference::applyInternal(
   // see if we can succesfully solve the input as a sygus problem
   if (solveSygus(assertionsToPreprocess->ref(), funs, sols))
   {
+    Trace("sygus-infer") << "...Solved:" << std::endl;
     Assert(funs.size() == sols.size());
-    // if so, sygus gives us function definitions
-    SmtEngine* master_smte = d_preprocContext->getSmt();
+    // if so, sygus gives us function definitions, which we add as substitutions
     for (unsigned i = 0, size = funs.size(); i < size; i++)
     {
-      std::vector<Node> args;
-      Node sol = sols[i];
-      // if it is a non-constant function
-      if (sol.getKind() == LAMBDA)
-      {
-        for (const Node& v : sol[0])
-        {
-          args.push_back(v);
-        }
-        sol = sol[1];
-      }
-      master_smte->defineFunction(funs[i], args, sol);
+      Trace("sygus-infer") << funs[i] << " -> " << sols[i] << std::endl;
+      d_preprocContext->addSubstitution(funs[i], sols[i]);
     }
 
     // apply substitution to everything, should result in SAT
@@ -98,7 +93,7 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   std::vector<Node> free_functions;
 
   std::vector<TNode> visit;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
 
   // add top-level conjuncts to eassertions
   std::vector<Node> assertions_proc = assertions;
@@ -293,15 +288,8 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
 
   // sygus attribute to mark the conjecture as a sygus conjecture
   Trace("sygus-infer") << "Make outer sygus conjecture..." << std::endl;
-  Node sygusVar = nm->mkSkolem("sygus", nm->booleanType());
-  theory::SygusAttribute ca;
-  sygusVar.setAttribute(ca, true);
-  Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusVar);
-  Node instAttrList = nm->mkNode(INST_PATTERN_LIST, instAttr);
 
-  Node fbvl = nm->mkNode(BOUND_VAR_LIST, ff_vars);
-
-  body = nm->mkNode(FORALL, fbvl, body, instAttrList);
+  body = quantifiers::SygusUtils::mkSygusConjecture(ff_vars, body);
 
   Trace("sygus-infer") << "*** Return sygus inference : " << body << std::endl;
 
@@ -348,4 +336,4 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

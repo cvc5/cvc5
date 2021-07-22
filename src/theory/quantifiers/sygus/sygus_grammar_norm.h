@@ -1,33 +1,31 @@
-/*********************                                                        */
-/*! \file sygus_grammar_norm.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief class for simplifying SyGuS grammars after they are encoded into
- ** datatypes.
- **/
-#include "cvc4_private.h"
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Class for simplifying SyGuS grammars after they are encoded into datatypes.
+ */
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
 
 #include <map>
 #include <memory>
-#include <string>
 #include <vector>
 
 #include "expr/node.h"
 #include "expr/sygus_datatype.h"
 #include "expr/type_node.h"
-#include "theory/quantifiers/term_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -128,7 +126,7 @@ class OpPosTrie
 class SygusGrammarNorm
 {
  public:
-  SygusGrammarNorm(QuantifiersEngine* qe);
+  SygusGrammarNorm(TermDbSygus* tds);
   ~SygusGrammarNorm() {}
   /** creates a normalized typenode from a given one.
    *
@@ -363,8 +361,6 @@ class SygusGrammarNorm
 
   }; /* class TransfChain */
 
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
   /** sygus term database associated with this utility */
   TermDbSygus* d_tds;
   /** List of variable inputs of function-to-synthesize.
@@ -430,6 +426,6 @@ class SygusGrammarNorm
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

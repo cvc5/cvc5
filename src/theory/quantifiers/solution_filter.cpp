@@ -1,28 +1,31 @@
-/*********************                                                        */
-/*! \file solution_filter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities for filtering solutions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for filtering solutions.
+ */
 
 #include "theory/quantifiers/solution_filter.h"
 
 #include <fstream>
+
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "util/random.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -89,7 +92,7 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
       else
       {
         Options& opts = smt::currentSmtEngine()->getOptions();
-        std::ostream* smtOut = opts.getOut();
+        std::ostream* smtOut = opts.base.out;
         (*smtOut) << "; (filtered " << (d_isStrong ? s : s.negate()) << ")"
                   << std::endl;
       }
@@ -103,4 +106,4 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

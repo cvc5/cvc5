@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file ast_printer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Abdalrhman Mohamed, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The pretty-printer interface for the AST output language
- **
- ** The pretty-printer interface for the AST output language.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Abdalrhman Mohamed, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The pretty-printer interface for the AST output language.
+ */
 #include "printer/ast/ast_printer.h"
 
 #include <iostream>
@@ -20,7 +19,6 @@
 #include <typeinfo>
 #include <vector>
 
-#include "expr/expr.h"                     // for ExprSetDepth etc..
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
 #include "options/language.h"  // for LANG_AST
@@ -30,7 +28,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace printer {
 namespace ast {
 
@@ -347,9 +345,9 @@ void AstPrinter::toStreamCmdSetBenchmarkLogic(std::ostream& out,
 
 void AstPrinter::toStreamCmdSetInfo(std::ostream& out,
                                     const std::string& flag,
-                                    SExpr sexpr) const
+                                    const std::string& value) const
 {
-  out << "SetInfo(" << flag << ", " << sexpr << ')' << std::endl;
+  out << "SetInfo(" << flag << ", " << value << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetInfo(std::ostream& out,
@@ -360,9 +358,9 @@ void AstPrinter::toStreamCmdGetInfo(std::ostream& out,
 
 void AstPrinter::toStreamCmdSetOption(std::ostream& out,
                                       const std::string& flag,
-                                      SExpr sexpr) const
+                                      const std::string& value) const
 {
-  out << "SetOption(" << flag << ", " << sexpr << ')' << std::endl;
+  out << "SetOption(" << flag << ", " << value << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetOption(std::ostream& out,
@@ -474,6 +472,6 @@ static bool tryToStream(std::ostream& out, const CommandStatus* s)
   return false;
 }
 
-}/* CVC4::printer::ast namespace */
-}/* CVC4::printer namespace */
-}/* CVC4 namespace */
+}  // namespace ast
+}  // namespace printer
+}  // namespace cvc5

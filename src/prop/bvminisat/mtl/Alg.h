@@ -21,9 +21,10 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef BVMinisat_Alg_h
 #define BVMinisat_Alg_h
 
+#include "base/check.h"
 #include "prop/bvminisat/mtl/Vec.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace BVMinisat {
 
 //=================================================================================================
@@ -38,7 +39,7 @@ static inline void remove(V& ts, const T& t)
 {
     int j = 0;
     for (; j < ts.size() && ts[j] != t; j++);
-    assert(j < ts.size());
+    Assert(j < ts.size());
     for (; j < ts.size()-1; j++) ts[j] = ts[j+1];
     ts.pop();
 }
@@ -80,7 +81,7 @@ template<class T>
 static inline void append(const vec<T>& from, vec<T>& to){ copy(from, to, true); }
 
 //=================================================================================================
-} /* CVC4::BVMinisat namespace */
-} /* CVC4 namespace */
+}  // namespace BVMinisat
+}  // namespace cvc5
 
 #endif

@@ -1,29 +1,38 @@
-/*********************                                                        */
-/*! \file transcendental_state.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities for transcendental lemmas.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for transcendental lemmas.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
-#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
+#ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
+#define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
 
 #include "expr/node.h"
-#include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nl_model.h"
+#include "proof/proof_set.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
+#include "theory/arith/nl/transcendental/proof_checker.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
+class CDProof;
 namespace theory {
 namespace arith {
+
+class InferenceManager;
+
 namespace nl {
+
+class NlModel;
+
 namespace transcendental {
 
 /**
@@ -52,22 +61,39 @@ inline std::ostream& operator<<(std::ostream& os, Convexity c) {
  */
 struct TranscendentalState
 {
-  TranscendentalState(InferenceManager& im, NlModel& model);
+  TranscendentalState(InferenceManager& im,
+                      NlModel& model,
+                      ProofNodeManager* pnm,
+                      context::UserContext* c);
+
+  /**
+   * Checks whether proofs are enabled.
+   */
+  bool isProofEnabled() const;
+  /**
+   * Creates and returns a new LazyCDProof that can be used to prove some lemma.
+   */
+  CDProof* getProof();
 
   /** init last call
    *
-   * This is called at the beginning of last call effort check, where
-   * assertions are the set of assertions belonging to arithmetic,
-   * false_asserts is the subset of assertions that are false in the current
-   * model, and xts is the set of extended function terms that are active in
-   * the current context.
+   * This is called at the beginning of last call effort check xts is the set of
+   * extended function terms that are active in the current context.
    *
    * This call may add lemmas to lems based on registering term
-   * information (for example, purification of sine terms).
+   * information (for example to ensure congruence of terms).
+   * It puts terms that need to be treated further as a master term on their own
+   * (for example purification of sine terms) into needsMaster.
    */
-  void init(const std::vector<Node>& assertions,
-            const std::vector<Node>& false_asserts,
-            const std::vector<Node>& xts);
+  void init(const std::vector<Node>& xts, std::vector<Node>& needsMaster);
+
+  /**
+   * Checks for terms that are congruent but disequal to a.
+   * If any are found, appropriate lemmas are sent.
+   * @param a Some node
+   * @param argTrie Lookup for equivalence classes
+   */
+  void ensureCongruence(TNode a, std::map<Kind, ArgTrie>& argTrie);
 
   /** Initialize members for pi-related values */
   void mkPi();
@@ -146,6 +172,20 @@ struct TranscendentalState
   NlModel& d_model;
   /** Utility to compute taylor approximations */
   TaylorGenerator d_taylor;
+  /**
+   * Pointer to the current proof node manager. nullptr, if proofs are
+   * disabled.
+   */
+  ProofNodeManager* d_pnm;
+  /** The user context. */
+  context::UserContext* d_ctx;
+  /**
+   * A CDProofSet that hands out CDProof objects for lemmas.
+   */
+  std::unique_ptr<CDProofSet<CDProof>> d_proof;
+
+  /** The proof checker for transcendental proofs */
+  std::unique_ptr<TranscendentalProofRuleChecker> d_proofChecker;
 
   /**
    * Some transcendental functions f(t) are "purified", e.g. we add
@@ -161,7 +201,7 @@ struct TranscendentalState
    * arguments that contain transcendental functions.
    */
   std::map<Node, Node> d_trMaster;
-  std::map<Node, std::unordered_set<Node, NodeHashFunction>> d_trSlaves;
+  std::map<Node, std::unordered_set<Node>> d_trSlaves;
 
   /** concavity region for transcendental functions
    *
@@ -183,7 +223,7 @@ struct TranscendentalState
    * of transcendental functions whose arguments have model
    * values that reside in valid regions.
    */
-  std::unordered_map<Node, int, NodeHashFunction> d_tf_region;
+  std::unordered_map<Node, int> d_tf_region;
   /**
    * Maps representives of a congruence class to the members of that class.
    *
@@ -213,9 +253,7 @@ struct TranscendentalState
    * each transcendental function application. We store this set for each
    * Taylor degree.
    */
-  std::unordered_map<Node,
-                     std::map<unsigned, std::vector<Node>>,
-                     NodeHashFunction>
+  std::unordered_map<Node, std::map<unsigned, std::vector<Node>>>
       d_secant_points;
 
   /** PI
@@ -239,6 +277,6 @@ struct TranscendentalState
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H */
+#endif /* CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H */

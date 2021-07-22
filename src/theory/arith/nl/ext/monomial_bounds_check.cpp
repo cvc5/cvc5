@@ -1,27 +1,31 @@
-/*********************                                                        */
-/*! \file monomial_bounds_check.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Check for monomial bound inference lemmas
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Check for monomial bound inference lemmas.
+ */
 
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
 
 #include "expr/node.h"
 #include "options/arith_options.h"
+#include "proof/proof.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/nl_model.h"
+#include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -296,11 +300,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
           Node infer_rhs = nm->mkNode(Kind::MULT, mult, rhs);
           Node infer = nm->mkNode(infer_type, infer_lhs, infer_rhs);
           Trace("nl-ext-bound-debug") << "     " << infer << std::endl;
-          infer = Rewriter::rewrite(infer);
-          Trace("nl-ext-bound-debug2")
-              << "     ...rewritten : " << infer << std::endl;
-          // check whether it is false in model for abstraction
-          Node infer_mv = d_data->d_model.computeAbstractModelValue(infer);
+          Node infer_mv = d_data->d_model.computeAbstractModelValue(Rewriter::rewrite(infer));
           Trace("nl-ext-bound-debug")
               << "       ...infer model value is " << infer_mv << std::endl;
           if (infer_mv == d_data->d_false)
@@ -311,16 +311,40 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                     mmv_sign == 1 ? Kind::GT : Kind::LT, mult, d_data->d_zero),
                 d_ci_exp[x][coeff][rhs]);
             Node iblem = nm->mkNode(Kind::IMPLIES, exp, infer);
-            Node pr_iblem = iblem;
-            iblem = Rewriter::rewrite(iblem);
-            bool introNewTerms = hasNewMonomials(iblem, d_data->d_ms);
+            Node iblem_rw = Rewriter::rewrite(iblem);
+            bool introNewTerms = hasNewMonomials(iblem_rw, d_data->d_ms);
             Trace("nl-ext-bound-lemma")
-                << "*** Bound inference lemma : " << iblem
-                << " (pre-rewrite : " << pr_iblem << ")" << std::endl;
-            // Trace("nl-ext-bound-lemma") << "       intro new
-            // monomials = " << introNewTerms << std::endl;
-            d_data->d_im.addPendingArithLemma(
-                iblem, InferenceId::NL_INFER_BOUNDS_NT, nullptr, introNewTerms);
+                << "*** Bound inference lemma : " << iblem_rw
+                << " (pre-rewrite : " << iblem << ")" << std::endl;
+            CDProof* proof = nullptr;
+            Node orig = d_ci_exp[x][coeff][rhs];
+            if (d_data->isProofEnabled())
+            {
+              proof = d_data->getProof();
+              // this is iblem, but uses (type t rhs) instead of the original
+              // variant (which is identical under rewriting)
+              // we first infer the "clean" version of the lemma and then
+              // use MACRO_SR_PRED_TRANSFORM to rewrite
+              Node tmplem = nm->mkNode(
+                  Kind::IMPLIES,
+                  nm->mkNode(Kind::AND,
+                             nm->mkNode(mmv_sign == 1 ? Kind::GT : Kind::LT,
+                                        mult,
+                                        d_data->d_zero),
+                             nm->mkNode(type, t, rhs)),
+                  infer);
+              proof->addStep(tmplem,
+                             mmv_sign == 1 ? PfRule::ARITH_MULT_POS
+                                           : PfRule::ARITH_MULT_NEG,
+                             {},
+                             {mult, nm->mkNode(type, t, rhs)});
+              proof->addStep(
+                  iblem, PfRule::MACRO_SR_PRED_TRANSFORM, {tmplem}, {iblem});
+            }
+            d_data->d_im.addPendingLemma(iblem,
+                                         InferenceId::ARITH_NL_INFER_BOUNDS_NT,
+                                         proof,
+                                         introNewTerms);
           }
         }
       }
@@ -478,8 +502,8 @@ void MonomialBoundsCheck::checkResBounds()
                   rblem = Rewriter::rewrite(rblem);
                   Trace("nl-ext-rbound-lemma")
                       << "Resolution bound lemma : " << rblem << std::endl;
-                  d_data->d_im.addPendingArithLemma(
-                      rblem, InferenceId::NL_RES_INFER_BOUNDS);
+                  d_data->d_im.addPendingLemma(
+                      rblem, InferenceId::ARITH_NL_RES_INFER_BOUNDS);
                 }
               }
               exp.pop_back();
@@ -497,4 +521,4 @@ void MonomialBoundsCheck::checkResBounds()
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

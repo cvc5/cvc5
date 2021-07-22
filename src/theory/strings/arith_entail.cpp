@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file arith_entail.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of arithmetic entailment computation for string terms.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of arithmetic entailment computation for string terms.
+ */
 
 #include "theory/strings/arith_entail.h"
 
@@ -21,10 +22,11 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "theory/theory.h"
+#include "util/rational.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -130,7 +132,7 @@ bool ArithEntail::checkApprox(Node ar)
       // c.isNull() means c = 1
       bool isOverApprox = !c.isNull() && c.getConst<Rational>().sgn() == -1;
       std::vector<Node>& approx = mApprox[v];
-      std::unordered_set<Node, NodeHashFunction> visited;
+      std::unordered_set<Node> visited;
       std::vector<Node> toProcess;
       toProcess.push_back(v);
       do
@@ -174,7 +176,7 @@ bool ArithEntail::checkApprox(Node ar)
         {
           if (approxMsums.find(aa) == approxMsums.end())
           {
-            CVC4_UNUSED bool ret =
+            CVC5_UNUSED bool ret =
                 ArithMSum::getMonomialSum(aa, approxMsums[aa]);
             Assert(ret);
           }
@@ -433,7 +435,7 @@ void ArithEntail::getArithApproximations(Node a,
         }
       }
     }
-    else if (aak == STRING_STRREPL)
+    else if (aak == STRING_REPLACE)
     {
       // over,under-approximations for len( replace( x, y, z ) )
       // notice this is either len( x ) or ( len( x ) + len( z ) - len( y ) )
@@ -504,7 +506,7 @@ void ArithEntail::getArithApproximations(Node a,
       }
     }
   }
-  else if (ak == STRING_STRIDOF)
+  else if (ak == STRING_INDEXOF)
   {
     // over,under-approximations for indexof( x, y, n )
     if (isOverApprox)
@@ -560,7 +562,7 @@ bool ArithEntail::checkWithEqAssumption(Node assumption, Node a, bool strict)
                           << ", strict=" << strict << std::endl;
 
   // Find candidates variables to compute substitutions for
-  std::unordered_set<Node, NodeHashFunction> candVars;
+  std::unordered_set<Node> candVars;
   std::vector<Node> toVisit = {assumption};
   while (!toVisit.empty())
   {
@@ -866,4 +868,4 @@ bool ArithEntail::inferZerosInSumGeq(Node x,
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

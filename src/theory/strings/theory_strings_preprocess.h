@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file theory_strings_preprocess.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Strings Preprocess
- **
- ** Strings Preprocess.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tianyi Liang, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Strings Preprocess.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__PREPROCESS_H
-#define CVC4__THEORY__STRINGS__PREPROCESS_H
+#ifndef CVC5__THEORY__STRINGS__PREPROCESS_H
+#define CVC5__THEORY__STRINGS__PREPROCESS_H
 
 #include <vector>
 #include "context/cdhashmap.h"
@@ -27,7 +26,7 @@
 #include "theory/theory.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -41,8 +40,7 @@ namespace strings {
 class StringsPreprocess {
  public:
   StringsPreprocess(SkolemCache* sc,
-                    context::UserContext* u,
-                    SequencesStatistics& stats);
+                    HistogramStat<Kind>* statReductions = nullptr);
   ~StringsPreprocess();
   /** The reduce routine
    *
@@ -79,39 +77,24 @@ class StringsPreprocess {
    * asserts.
    */
   Node processAssertion(Node t, std::vector<Node>& asserts);
-  /**
-   * Replaces all formulas t in vec_node with an equivalent formula t' that
-   * contains no free instances of extended functions (that is, extended
-   * functions may only appear beneath quantifiers). This applies simplifyRec
-   * on each assertion in vec_node until a fixed point is reached.
-   */
-  void processAssertions(std::vector<Node>& vec_node);
 
  private:
   /** pointer to the skolem cache used by this class */
   SkolemCache* d_sc;
   /** Reference to the statistics for the theory of strings/sequences. */
-  SequencesStatistics& d_statistics;
+  HistogramStat<Kind>* d_statReductions;
+  /** visited cache */
+  std::map<Node, Node> d_visited;
   /**
    * Applies simplify to all top-level extended function subterms of t. New
    * assertions created in this reduction are added to asserts. The argument
    * visited stores a cache of previous results.
    */
-  Node simplifyRec(Node t,
-                   std::vector<Node>& asserts,
-                   std::map<Node, Node>& visited);
-  /**
-   * Make internal quantified formula with bound variable list bvl and body.
-   * Internally, we get a node corresponding to marking a quantified formula as
-   * an "internal" one. This node is provided as the third argument of the
-   * FORALL returned by this method. This ensures that E-matching is not applied
-   * to the quantified formula.
-   */
-  static Node mkForallInternal(Node bvl, Node body);
+  Node simplifyRec(Node t, std::vector<Node>& asserts);
 };
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__PREPROCESS_H */
+#endif /* CVC5__THEORY__STRINGS__PREPROCESS_H */

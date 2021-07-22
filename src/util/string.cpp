@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file string.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the string data type.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the string data type.
+ */
 
 #include "util/string.h"
 
@@ -25,13 +26,22 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 static_assert(UCHAR_MAX == 255, "Unsigned char is assumed to have 256 values.");
 
+String::String(const std::wstring& s)
+{
+  d_str.resize(s.size());
+  for (size_t i = 0, n = s.size(); i < n; ++i)
+  {
+    d_str[i] = static_cast<unsigned>(s[i]);
+  }
+}
+
 String::String(const std::vector<unsigned> &s) : d_str(s)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (unsigned u : d_str)
   {
     Assert(u < num_codes());
@@ -101,7 +111,7 @@ void String::addCharToInternal(unsigned char ch, std::vector<unsigned>& str)
     std::stringstream serr;
     serr << "Illegal string character: \"" << ch
          << "\", must use escape sequence";
-    throw CVC4::Exception(serr.str());
+    throw cvc5::Exception(serr.str());
   }
   else
   {
@@ -226,7 +236,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
       str.insert(str.end(), nonEscCache.begin(), nonEscCache.end());
     }
   }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (unsigned u : str)
   {
     Assert(u < num_codes());
@@ -289,6 +299,16 @@ std::string String::toString(bool useEscSequences) const {
     }
   }
   return str.str();
+}
+
+std::wstring String::toWString() const
+{
+  std::wstring res(size(), static_cast<wchar_t>(0));
+  for (std::size_t i = 0; i < size(); ++i)
+  {
+    res[i] = static_cast<wchar_t>(d_str[i]);
+  }
+  return res;
 }
 
 bool String::isLeq(const String &y) const
@@ -500,7 +520,7 @@ Rational String::toNumber() const
 }
 
 std::ostream &operator<<(std::ostream &os, const String &s) {
-  return os << "\"" << s.toString(true) << "\"";
+  return os << "\"" << s.toString() << "\"";
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,32 +1,32 @@
-/*********************                                                        */
-/*! \file inst_match.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief inst match class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Inst match class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
-#define CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
+#ifndef CVC5__THEORY__QUANTIFIERS__INST_MATCH_H
+#define CVC5__THEORY__QUANTIFIERS__INST_MATCH_H
 
 #include <vector>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+namespace quantifiers {
 
-class EqualityQuery;
-
-namespace inst {
+class QuantifiersState;
 
 /** Inst match
  *
@@ -50,13 +50,6 @@ public:
    * not already initialized in this match.
    */
   void add(InstMatch& m);
-  /** merge with match m
-   *
-   * This method returns true if the merge was successful, that is, all jointly
-   * initialized fields of this class and m are equivalent modulo the equalities
-   * given by q.
-   */
-  bool merge( EqualityQuery* q, InstMatch& m );
   /** is this complete, i.e. are all fields non-null? */
   bool isComplete();
   /** is this empty, i.e. are all fields the null node? */
@@ -87,7 +80,7 @@ public:
    * This method returns true if the i^th field was previously uninitialized,
    * or is equivalent to n modulo the equalities given by q.
    */
-  bool set(EqualityQuery* q, size_t i, TNode n);
+  bool set(QuantifiersState& qs, size_t i, TNode n);
 };
 
 inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {
@@ -95,11 +88,8 @@ inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {
   return out;
 }
 
-}/* CVC4::theory::inst namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-typedef CVC4::theory::inst::InstMatch InstMatch;
-
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
-#endif /* CVC4__THEORY__QUANTIFIERS__INST_MATCH_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__INST_MATCH_H */

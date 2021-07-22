@@ -1,22 +1,25 @@
-/*********************                                                        */
-/*! \file relevance_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of relevance manager.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of relevance manager.
+ */
 
 #include "theory/relevance_manager.h"
 
-using namespace CVC4::kind;
+#include <sstream>
 
-namespace CVC4 {
+using namespace cvc5::kind;
+
+namespace cvc5 {
 namespace theory {
 
 RelevanceManager::RelevanceManager(context::UserContext* userContext,
@@ -82,14 +85,14 @@ void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
 void RelevanceManager::resetRound()
 {
   d_computed = false;
-  d_rset.clear();
 }
 
 void RelevanceManager::computeRelevance()
 {
   d_computed = true;
+  d_rset.clear();
   Trace("rel-manager") << "RelevanceManager::computeRelevance..." << std::endl;
-  std::unordered_map<TNode, int, TNodeHashFunction> cache;
+  std::unordered_map<TNode, int> cache;
   for (const Node& node: d_input)
   {
     TNode n = node;
@@ -102,6 +105,7 @@ void RelevanceManager::computeRelevance()
       Trace("rel-manager") << serr.str() << std::endl;
       Assert(false) << serr.str();
       d_success = false;
+      d_rset.clear();
       return;
     }
   }
@@ -119,7 +123,7 @@ bool RelevanceManager::isBooleanConnective(TNode cur)
 bool RelevanceManager::updateJustifyLastChild(
     TNode cur,
     std::vector<int>& childrenJustify,
-    std::unordered_map<TNode, int, TNodeHashFunction>& cache)
+    std::unordered_map<TNode, int>& cache)
 {
   // This method is run when we are informed that child index of cur
   // has justify status lastChildJustify. We return true if we would like to
@@ -222,13 +226,12 @@ bool RelevanceManager::updateJustifyLastChild(
   return false;
 }
 
-int RelevanceManager::justify(
-    TNode n, std::unordered_map<TNode, int, TNodeHashFunction>& cache)
+int RelevanceManager::justify(TNode n, std::unordered_map<TNode, int>& cache)
 {
   // the vector of values of children
-  std::unordered_map<TNode, std::vector<int>, TNodeHashFunction> childJustify;
-  std::unordered_map<TNode, int, TNodeHashFunction>::iterator it;
-  std::unordered_map<TNode, std::vector<int>, TNodeHashFunction>::iterator itc;
+  std::unordered_map<TNode, std::vector<int>> childJustify;
+  std::unordered_map<TNode, int>::iterator it;
+  std::unordered_map<TNode, std::vector<int>>::iterator itc;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -311,5 +314,17 @@ bool RelevanceManager::isRelevant(Node lit)
   return d_rset.find(lit) != d_rset.end();
 }
 
+const std::unordered_set<TNode>& RelevanceManager::getRelevantAssertions(
+    bool& success)
+{
+  if (!d_computed)
+  {
+    computeRelevance();
+  }
+  // update success flag
+  success = d_success;
+  return d_rset;
+}
+
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

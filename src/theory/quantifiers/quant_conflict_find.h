@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file quant_conflict_find.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief quantifiers conflict find class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Quantifiers conflict find class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef QUANT_CONFLICT_FIND
 #define QUANT_CONFLICT_FIND
@@ -23,9 +24,9 @@
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/node_trie.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quant_module.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -131,6 +132,8 @@ public:
 public:
   QuantInfo();
   ~QuantInfo();
+  /** Get quantifiers inference manager */
+  QuantifiersInferenceManager& getInferenceManager();
   std::vector< TNode > d_vars;
   std::vector< TypeNode > d_var_types;
   std::map< TNode, int > d_var_num;
@@ -143,6 +146,8 @@ public:
 
   typedef std::map< int, MatchGen * > VarMgMap;
  private:
+  /** The parent who owns this class */
+  QuantConflictFind* d_parent;
   MatchGen * d_mg;
   VarMgMap d_var_mg;
  public:
@@ -188,8 +193,9 @@ class QuantConflictFind : public QuantifiersModule
 {
   friend class MatchGen;
   friend class QuantInfo;
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
-private:
+  typedef context::CDHashMap<Node, bool> NodeBoolMap;
+
+ private:
   context::CDO< bool > d_conflict;
   std::map< Kind, Node > d_zero;
   //for storing nodes created during t-constraint solving (prevents memory leaks)
@@ -230,8 +236,12 @@ private:  //for equivalence classes
  public:
   bool areMatchEqual( TNode n1, TNode n2 );
   bool areMatchDisequal( TNode n1, TNode n2 );
-public:
-  QuantConflictFind( QuantifiersEngine * qe, context::Context* c );
+
+ public:
+  QuantConflictFind(QuantifiersState& qs,
+                    QuantifiersInferenceManager& qim,
+                    QuantifiersRegistry& qr,
+                    TermRegistry& tr);
 
   /** register quantifier */
   void registerQuantifier(Node q) override;
@@ -245,7 +255,7 @@ public:
    *
    * This method attempts to construct a conflicting or propagating instance.
    * If such an instance exists, then it makes a call to
-   * Instantiation::addInstantiation or QuantifiersEngine::addLemma.
+   * Instantiation::addInstantiation.
    */
   void check(Theory::Effort level, QEffort quant_e) override;
 
@@ -278,7 +288,6 @@ public:
     IntStat d_inst_rounds;
     IntStat d_entailment_checks;
     Statistics();
-    ~Statistics();
   };
   Statistics d_statistics;
   /** Identify this module */
@@ -303,8 +312,8 @@ public:
 
 std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e);
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

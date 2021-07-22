@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file theory_sets_private.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sets theory implementation.
- **
- ** Sets theory implementation.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sets theory implementation.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H
-#define CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H
+#ifndef CVC5__THEORY__SETS__THEORY_SETS_PRIVATE_H
+#define CVC5__THEORY__SETS__THEORY_SETS_PRIVATE_H
 
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
@@ -31,7 +30,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -39,8 +38,8 @@ namespace sets {
 class TheorySets;
 
 class TheorySetsPrivate {
-  typedef context::CDHashMap< Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashMap<Node, bool> NodeBoolMap;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   void eqNotifyNewClass(TNode t);
@@ -122,7 +121,9 @@ class TheorySetsPrivate {
    * is incomplete for some reason (for instance, if we combine cardinality
    * with a relation or extended function kind).
    */
-  bool d_full_check_incomplete;
+  bool d_fullCheckIncomplete;
+  /** The reason we set the above flag to true */
+  IncompleteId d_fullCheckIncompleteId;
   std::map< Node, TypeNode > d_most_common_type;
   std::map< Node, Node > d_most_common_type_term;
 
@@ -135,7 +136,8 @@ class TheorySetsPrivate {
   TheorySetsPrivate(TheorySets& external,
                     SolverState& state,
                     InferenceManager& im,
-                    SkolemCache& skc);
+                    SkolemCache& skc,
+                    ProofNodeManager* pnm);
 
   ~TheorySetsPrivate();
 
@@ -167,36 +169,8 @@ class TheorySetsPrivate {
 
   void preRegisterTerm(TNode node);
 
-  /** expandDefinition
-   * If the sets-ext option is not set and we have an extended operator, 
-   * we throw an exception. This function is a no-op otherwise.
-   *
-   * TheorySets uses expandDefinition as an entry point to see if the input
-   * contains extended operators.
-   *
-   * We need to be notified when a universe set occurs in our input,
-   * before preprocessing and simplification takes place. Otherwise the models
-   * may be inaccurate when setsExt is false, here is an example:
-   *
-   * x,y : (Set Int)
-   * x = (as univset (Set Int));
-   * 0 in y;
-   * check-sat;
-   *
-   * If setsExt is enabled, the model value of (as univset (Set Int)) is always accurate.
-   *
-   * If setsExt is not enabled, the following can happen for the above example:
-   * x = (as univset (Set Int)) is made into a model substitution during 
-   * simplification. This means (as univset (Set Int)) is not a term in any assertion, 
-   * and hence we do not throw an exception, nor do we infer that 0 is a member of 
-   * (as univset (Set Int)). We instead report a model where x = {}. The correct behavior 
-   * is to throw an exception that says universe set is not supported when setsExt disabled.
-   * Hence we check for the existence of universe set before simplification here.
-   *
-   * Another option to fix this is to make TheoryModel::getValue more general
-   * so that it makes theory-specific calls to evaluate interpreted symbols.
-   */
-  TrustNode expandDefinition(Node n);
+  /** ppRewrite, which expands choose and is_singleton.  */
+  TrustNode ppRewrite(Node n, std::vector<SkolemLemma>& lems);
 
   void presolve();
 
@@ -230,7 +204,8 @@ class TheorySetsPrivate {
    */
   Node getChooseFunction(const TypeNode& setType);
   /** expand the definition of the choose operator */
-  TrustNode expandChooseOperator(const Node& node);
+  TrustNode expandChooseOperator(const Node& node,
+                                 std::vector<SkolemLemma>& lems);
   /** expand the definition of is_singleton operator */
   TrustNode expandIsSingletonOperator(const Node& node);
   /** subtheory solver for the theory of relations */
@@ -261,9 +236,8 @@ class TheorySetsPrivate {
   std::map<Node, Node> d_isSingletonNodes;
 };/* class TheorySetsPrivate */
 
+}  // namespace sets
+}  // namespace theory
+}  // namespace cvc5
 
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
-#endif /* CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H */
+#endif /* CVC5__THEORY__SETS__THEORY_SETS_PRIVATE_H */

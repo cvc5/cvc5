@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file ceg_bv_instantiator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief ceg_bv_instantiator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * ceg_bv_instantiator
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
-#define CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
+#define CVC5__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
 
 #include <unordered_map>
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -107,16 +108,15 @@ class BvInstantiator : public Instantiator
   /** identifier counter, used to allocate ids to each solve form */
   unsigned d_inst_id_counter;
   /** map from variables to list of solved form ids */
-  std::unordered_map<Node, std::vector<unsigned>, NodeHashFunction>
-      d_var_to_inst_id;
+  std::unordered_map<Node, std::vector<unsigned>> d_var_to_inst_id;
   /** for each solved form id, the term for instantiation */
   std::unordered_map<unsigned, Node> d_inst_id_to_term;
   /** for each solved form id, the corresponding asserted literal */
   std::unordered_map<unsigned, Node> d_inst_id_to_alit;
   /** map from variable to current id we are processing */
-  std::unordered_map<Node, unsigned, NodeHashFunction> d_var_to_curr_inst_id;
+  std::unordered_map<Node, unsigned> d_var_to_curr_inst_id;
   /** the amount of slack we added for asserted literals */
-  std::unordered_map<Node, Node, NodeHashFunction> d_alit_to_model_slack;
+  std::unordered_map<Node, Node> d_alit_to_model_slack;
   //--------------------------------end solved forms
   /** rewrite assertion for solve pv
    *
@@ -136,11 +136,10 @@ class BvInstantiator : public Instantiator
    * where we guarantee that all subterms of terms in children
    * appear in the domain of contains_pv.
    */
-  Node rewriteTermForSolvePv(
-      Node pv,
-      Node n,
-      std::vector<Node>& children,
-      std::unordered_map<Node, bool, NodeHashFunction>& contains_pv);
+  Node rewriteTermForSolvePv(Node pv,
+                             Node n,
+                             std::vector<Node>& children,
+                             std::unordered_map<Node, bool>& contains_pv);
   /** process literal, called from processAssertion
    *
    * lit is the literal to solve for pv that has been rewritten according to
@@ -203,12 +202,12 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
    * visited is the terms we've already visited.
    */
   void collectExtracts(Node lem,
-                       std::map<Node, std::vector<Node> >& extract_map,
-                       std::unordered_set<TNode, TNodeHashFunction>& visited);
+                       std::map<Node, std::vector<Node>>& extract_map,
+                       std::unordered_set<TNode>& visited);
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H */

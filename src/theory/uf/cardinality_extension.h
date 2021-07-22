@@ -1,33 +1,30 @@
-/*********************                                                        */
-/*! \file cardinality_extension.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Theory of UF with cardinality.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of UF with cardinality.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY_UF_STRONG_SOLVER_H
-#define CVC4__THEORY_UF_STRONG_SOLVER_H
+#ifndef CVC5__THEORY_UF_STRONG_SOLVER_H
+#define CVC5__THEORY_UF_STRONG_SOLVER_H
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
+#include "theory/decision_strategy.h"
 #include "theory/theory.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-#include "theory/decision_manager.h"
-
-namespace CVC4 {
-
-class SortInference;
-
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -42,8 +39,8 @@ class TheoryUF;
 class CardinalityExtension
 {
  protected:
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
+  typedef context::CDHashMap<Node, bool> NodeBoolMap;
+  typedef context::CDHashMap<Node, int> NodeIntMap;
 
  public:
   /**
@@ -366,8 +363,6 @@ class CardinalityExtension
   ~CardinalityExtension();
   /** get theory */
   TheoryUF* getTheory() { return d_th; }
-  /** get sort inference module */
-  SortInference* getSortInference();
   /** new node */
   void newEqClass( Node n );
   /** merge */
@@ -402,7 +397,6 @@ class CardinalityExtension
     IntStat d_split_lemmas;
     IntStat d_max_model_size;
     Statistics();
-    ~Statistics();
   };
   /** statistics class */
   Statistics d_statistics;
@@ -467,8 +461,8 @@ class CardinalityExtension
   NodeBoolMap d_rel_eqc;
 }; /* class CardinalityExtension */
 
-}/* CVC4::theory namespace::uf */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace uf
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY_UF_STRONG_SOLVER_H */
+#endif /* CVC5__THEORY_UF_STRONG_SOLVER_H */

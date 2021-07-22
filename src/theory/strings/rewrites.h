@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file rewrites.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Type for rewrites for strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Type for rewrites for strings.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__REWRITES_H
-#define CVC4__THEORY__STRINGS__REWRITES_H
+#ifndef CVC5__THEORY__STRINGS__REWRITES_H
+#define CVC5__THEORY__STRINGS__REWRITES_H
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -72,6 +73,10 @@ enum class Rewrite : uint32_t
   IDOF_PULL_ENDPT,
   IDOF_STRIP_CNST_ENDPTS,
   IDOF_STRIP_SYM_LEN,
+  INDEXOF_RE_EMP_RE,
+  INDEXOF_RE_EVAL,
+  INDEXOF_RE_INVALID_INDEX,
+  INDEXOF_RE_MAX_INDEX,
   ITOS_EVAL,
   RE_AND_EMPTY,
   RE_ANDOR_FLATTEN,
@@ -203,6 +208,7 @@ enum class Rewrite : uint32_t
   SUF_PREFIX_ELIM,
   STR_LT_ELIM,
   RE_RANGE_SINGLE,
+  RE_RANGE_EMPTY,
   RE_OPT_ELIM,
   RE_PLUS_ELIM,
   RE_DIFF_ELIM,
@@ -213,7 +219,8 @@ enum class Rewrite : uint32_t
   LEN_SEQ_UNIT,
   CHARAT_ELIM,
   SEQ_UNIT_EVAL,
-  SEQ_NTH_EVAL
+  SEQ_NTH_EVAL,
+  SEQ_NTH_TOTAL_OOB
 };
 
 /**
@@ -238,6 +245,6 @@ std::ostream& operator<<(std::ostream& out, Rewrite r);
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__REWRITES_H */
+#endif /* CVC5__THEORY__STRINGS__REWRITES_H */

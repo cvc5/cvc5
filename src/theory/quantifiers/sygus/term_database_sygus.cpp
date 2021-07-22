@@ -1,35 +1,40 @@
-/*********************                                                        */
-/*! \file term_database_sygus.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of term database sygus class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of term database sygus class.
+ */
 
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
+#include <sstream>
+
 #include "base/check.h"
+#include "expr/dtype_cons.h"
+#include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "theory/arith/arith_msum.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -46,8 +51,8 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
   return os;
 }
 
-TermDbSygus::TermDbSygus(context::Context* c, QuantifiersEngine* qe)
-    : d_quantEngine(qe),
+TermDbSygus::TermDbSygus(QuantifiersState& qs)
+    : d_qstate(qs),
       d_syexp(new SygusExplain(this)),
       d_ext_rw(new ExtendedRewriter(true)),
       d_eval(new Evaluator),
@@ -57,6 +62,8 @@ TermDbSygus::TermDbSygus(context::Context* c, QuantifiersEngine* qe)
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 }
+
+void TermDbSygus::finishInit(QuantifiersInferenceManager* qim) { d_qim = qim; }
 
 bool TermDbSygus::reset( Theory::Effort e ) { 
   return true;  
@@ -160,18 +167,19 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
   {
     SygusTypeInfo& ti = getTypeInfo(tn);
     int anyC = ti.getAnyConstantConsNum();
+    NodeManager* nm = NodeManager::currentNM();
     Node k;
     if (anyC == -1)
     {
-      k = NodeManager::currentNM()->mkSkolem("sy", tn, "sygus proxy");
+      SkolemManager* sm = nm->getSkolemManager();
+      k = sm->mkDummySkolem("sy", tn, "sygus proxy");
       SygusPrintProxyAttribute spa;
       k.setAttribute(spa, c);
     }
     else
     {
       const DType& dt = tn.getDType();
-      k = NodeManager::currentNM()->mkNode(
-          APPLY_CONSTRUCTOR, dt[anyC].getConstructor(), c);
+      k = nm->mkNode(APPLY_CONSTRUCTOR, dt[anyC].getConstructor(), c);
     }
     d_proxy_vars[tn][c] = k;
     return k;
@@ -499,17 +507,16 @@ void TermDbSygus::registerEnumerator(Node e,
       if (options::sygusActiveGenMode() == options::SygusActiveGenMode::AUTO)
       {
         // We use active generation if the grammar of the enumerator does not
-        // have ITE and is not Boolean. Experimentally, it is better to
-        // use passive generation for these cases since it enables useful
-        // search space pruning techniques, e.g. evaluation unfolding,
+        // have ITE and does not have Boolean connectives. Experimentally, it
+        // is better to use passive generation for these cases since it enables
+        // useful search space pruning techniques, e.g. evaluation unfolding,
         // conjecture-specific symmetry breaking. Also, if sygus-stream is
         // enabled, we always use active generation, since the use cases of
         // sygus stream are to find many solutions to an easy problem, where
         // the bottleneck often becomes the large number of "exclude the current
         // solution" clauses.
-        const DType& dt = et.getDType();
         if (options::sygusStream()
-            || (!eti.hasIte() && !dt.getSygusType().isBoolean()))
+            || (!eti.hasIte() && !eti.hasBoolConnective()))
         {
           isActiveGen = true;
         }
@@ -557,14 +564,15 @@ void TermDbSygus::registerEnumerator(Node e,
   // populate a pool of terms, or (some cases) of when it is actively generated.
   if (isActiveGen || erole == ROLE_ENUM_POOL)
   {
+    SkolemManager* sm = nm->getSkolemManager();
     // make the guard
-    Node ag = nm->mkSkolem("eG", nm->booleanType());
+    Node ag = sm->mkDummySkolem("eG", nm->booleanType());
     // must ensure it is a literal immediately here
-    ag = d_quantEngine->getValuation().ensureLiteral(ag);
+    ag = d_qstate.getValuation().ensureLiteral(ag);
     // must ensure that it is asserted as a literal before we begin solving
     Node lem = nm->mkNode(OR, ag, ag.negate());
-    d_quantEngine->getOutputChannel().requirePhase(ag, true);
-    d_quantEngine->getOutputChannel().lemma(lem);
+    d_qim->requirePhase(ag, true);
+    d_qim->lemma(lem, InferenceId::QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT);
     d_enum_to_active_guard[e] = ag;
   }
 }
@@ -935,8 +943,7 @@ bool TermDbSygus::involvesDivByZero( Node n, std::map< Node, bool >& visited ){
     if( k==DIVISION || k==DIVISION_TOTAL || k==INTS_DIVISION || k==INTS_DIVISION_TOTAL || 
         k==INTS_MODULUS || k==INTS_MODULUS_TOTAL ){
       if( n[1].isConst() ){
-        if (n[1]
-            == d_quantEngine->getTermUtil()->getTypeValue(n[1].getType(), 0))
+        if (n[1] == TermUtil::mkTypeValue(n[1].getType(), 0))
         {
           return true;
         }
@@ -1011,11 +1018,10 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
   return rewriteNode(res);
 }
 
-Node TermDbSygus::evaluateWithUnfolding(
-    Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited)
+Node TermDbSygus::evaluateWithUnfolding(Node n,
+                                        std::unordered_map<Node, Node>& visited)
 {
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
-      visited.find(n);
+  std::unordered_map<Node, Node>::iterator it = visited.find(n);
   if( it==visited.end() ){
     Node ret = n;
     while (ret.getKind() == DT_SYGUS_EVAL
@@ -1061,7 +1067,7 @@ Node TermDbSygus::evaluateWithUnfolding(
 
 Node TermDbSygus::evaluateWithUnfolding(Node n)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> visited;
+  std::unordered_map<Node, Node> visited;
   return evaluateWithUnfolding(n, visited);
 }
 
@@ -1085,6 +1091,6 @@ bool TermDbSygus::isEvaluationPoint(Node n) const
   return true;
 }
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

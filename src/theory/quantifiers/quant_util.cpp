@@ -1,69 +1,26 @@
-/*********************                                                        */
-/*! \file quant_util.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of quantifier utilities
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of quantifier utilities
+ */
 
 #include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/inst_match.h"
-#include "theory/quantifiers/term_database.h"
+
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
-using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
-
-QuantifiersModule::QEffort QuantifiersModule::needsModel(Theory::Effort e)
-{
-  return QEFFORT_NONE;
-}
-
-eq::EqualityEngine* QuantifiersModule::getEqualityEngine() const
-{
-  return d_quantEngine->getMasterEqualityEngine();
-}
-
-bool QuantifiersModule::areEqual(TNode n1, TNode n2) const
-{
-  return d_quantEngine->getEqualityQuery()->areEqual( n1, n2 );
-}
-
-bool QuantifiersModule::areDisequal(TNode n1, TNode n2) const
-{
-  return d_quantEngine->getEqualityQuery()->areDisequal( n1, n2 );
-}
-
-TNode QuantifiersModule::getRepresentative(TNode n) const
-{
-  return d_quantEngine->getEqualityQuery()->getRepresentative( n );
-}
-
-QuantifiersEngine* QuantifiersModule::getQuantifiersEngine() const
-{
-  return d_quantEngine;
-}
-
-quantifiers::TermDb* QuantifiersModule::getTermDatabase() const
-{
-  return d_quantEngine->getTermDatabase();
-}
-
-quantifiers::TermUtil* QuantifiersModule::getTermUtil() const
-{
-  return d_quantEngine->getTermUtil();
-}
 
 QuantPhaseReq::QuantPhaseReq( Node n, bool computeEq ){
   initialize( n, computeEq );
@@ -174,5 +131,5 @@ void QuantPhaseReq::getEntailPolarity( Node n, int child, bool hasPol, bool pol,
   }
 }
 
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace theory
+}  // namespace cvc5

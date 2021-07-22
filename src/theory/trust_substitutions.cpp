@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file trust_substitutions.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Trust substitutions
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Trust substitutions.
+ */
 
 #include "theory/trust_substitutions.h"
 
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
@@ -26,21 +27,32 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
                                            MethodId ids)
     : d_ctx(c),
       d_subs(c),
-      d_pnm(pnm),
       d_tsubs(c),
-      d_tspb(pnm ? new TheoryProofStepBuffer(pnm->getChecker()) : nullptr),
-      d_subsPg(
-          pnm ? new LazyCDProof(pnm, nullptr, c, "TrustSubstitutionMap::subsPg")
-              : nullptr),
-      d_applyPg(pnm ? new LazyCDProof(
-                          pnm, nullptr, c, "TrustSubstitutionMap::applyPg")
-                    : nullptr),
-      d_helperPf(pnm, c),
-      d_currentSubs(c),
+      d_tspb(nullptr),
+      d_subsPg(nullptr),
+      d_applyPg(nullptr),
+      d_helperPf(nullptr),
       d_name(name),
       d_trustId(trustId),
-      d_ids(ids)
+      d_ids(ids),
+      d_eqtIndex(c)
 {
+  setProofNodeManager(pnm);
+}
+
+void TrustSubstitutionMap::setProofNodeManager(ProofNodeManager* pnm)
+{
+  if (pnm != nullptr)
+  {
+    // should not set the proof node manager more than once
+    Assert(d_tspb == nullptr);
+    d_tspb.reset(new TheoryProofStepBuffer(pnm->getChecker())),
+        d_subsPg.reset(new LazyCDProof(
+            pnm, nullptr, d_ctx, "TrustSubstitutionMap::subsPg"));
+    d_applyPg.reset(
+        new LazyCDProof(pnm, nullptr, d_ctx, "TrustSubstitutionMap::applyPg"));
+    d_helperPf.reset(new CDProofSet<LazyCDProof>(pnm, d_ctx));
+  }
 }
 
 void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
@@ -52,8 +64,6 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
   {
     TrustNode tnl = TrustNode::mkTrustRewrite(x, t, pg);
     d_tsubs.push_back(tnl);
-    // current substitution node is no longer valid.
-    d_currentSubs = Node::null();
     // add to lazy proof
     d_subsPg->addLazyStep(tnl.getProven(), pg, d_trustId);
   }
@@ -62,6 +72,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
 void TrustSubstitutionMap::addSubstitution(TNode x,
                                            TNode t,
                                            PfRule id,
+                                           const std::vector<Node>& children,
                                            const std::vector<Node>& args)
 {
   if (!isProofEnabled())
@@ -69,9 +80,9 @@ void TrustSubstitutionMap::addSubstitution(TNode x,
     addSubstitution(x, t, nullptr);
     return;
   }
-  LazyCDProof* stepPg = d_helperPf.allocateProof(nullptr, d_ctx);
+  LazyCDProof* stepPg = d_helperPf->allocateProof(nullptr, d_ctx);
   Node eq = x.eqNode(t);
-  stepPg->addStep(eq, id, {}, args);
+  stepPg->addStep(eq, id, children, args);
   addSubstitution(x, t, stepPg);
 }
 
@@ -100,14 +111,14 @@ ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
     Trace("trust-subs") << "...use generator directly" << std::endl;
     return tn.getGenerator();
   }
-  LazyCDProof* solvePg = d_helperPf.allocateProof(nullptr, d_ctx);
+  LazyCDProof* solvePg = d_helperPf->allocateProof(nullptr, d_ctx);
   // Try to transform tn.getProven() to (= x t) here, if necessary
   if (!d_tspb->applyPredTransform(proven, eq, {}))
   {
-    // failed to rewrite
-    addSubstitution(x, t, nullptr);
-    Trace("trust-subs") << "...failed to rewrite" << std::endl;
-    return nullptr;
+    // failed to rewrite, we add a trust step which assumes eq is provable
+    // from proven, and proceed as normal.
+    Trace("trust-subs") << "...failed to rewrite " << proven << std::endl;
+    d_tspb->addStep(PfRule::TRUST_SUBS_EQ, {proven}, {eq}, eq);
   }
   Trace("trust-subs") << "...successful rewrite" << std::endl;
   solvePg->addSteps(*d_tspb.get());
@@ -134,18 +145,12 @@ void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
   }
 }
 
-TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
+TrustNode TrustSubstitutionMap::applyTrusted(Node n, bool doRewrite)
 {
   Trace("trust-subs") << "TrustSubstitutionMap::addSubstitution: apply " << n
                       << std::endl;
-  Node ns = d_subs.apply(n);
+  Node ns = d_subs.apply(n, doRewrite);
   Trace("trust-subs") << "...subs " << ns << std::endl;
-  // rewrite if indicated
-  if (doRewrite)
-  {
-    ns = Rewriter::rewrite(ns);
-    Trace("trust-subs") << "...rewrite " << ns << std::endl;
-  }
   if (n == ns)
   {
     // no change
@@ -156,10 +161,23 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
     // no proofs, use null generator
     return TrustNode::mkTrustRewrite(n, ns, nullptr);
   }
-  Node cs = getCurrentSubstitution();
-  Trace("trust-subs")
-      << "TrustSubstitutionMap::addSubstitution: current substitution is " << cs
-      << std::endl;
+  Node eq = n.eqNode(ns);
+  // remember the index
+  d_eqtIndex[eq] = d_tsubs.size();
+  // this class will provide a proof if asked
+  return TrustNode::mkTrustRewrite(n, ns, this);
+}
+
+Node TrustSubstitutionMap::apply(Node n, bool doRewrite)
+{
+  return d_subs.apply(n, doRewrite);
+}
+
+std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
+{
+  Assert(eq.getKind() == kind::EQUAL);
+  Node n = eq[0];
+  Node ns = eq[1];
   // Easy case: if n is in the domain of the substitution, maybe it is already
   // a proof in the substitution proof generator. This is moreover required
   // to avoid cyclic proofs below. For example, if { x -> 5 } is a substitution,
@@ -172,11 +190,15 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   // ---------- MACRO_SR_EQ_INTRO{x}
   // (= x 5)
   // by taking the premise proof directly.
-  Node eq = n.eqNode(ns);
   if (d_subsPg->hasStep(eq) || d_subsPg->hasGenerator(eq))
   {
-    return TrustNode::mkTrustRewrite(n, ns, d_subsPg.get());
+    return d_subsPg->getProofFor(eq);
   }
+  NodeUIntMap::iterator it = d_eqtIndex.find(eq);
+  Assert(it != d_eqtIndex.end());
+  Trace("trust-subs-pf") << "TrustSubstitutionMap::getProofFor, # assumptions= "
+                         << it->second << std::endl;
+  Node cs = getSubstitution(it->second);
   Assert(eq != cs);
   std::vector<Node> pfChildren;
   if (!cs.isConst())
@@ -198,15 +220,25 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
       d_applyPg->addLazyStep(cs, d_subsPg.get());
     }
   }
-  if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids))
+  Trace("trust-subs-pf") << "...apply eq intro" << std::endl;
+  // We use fixpoint as the substitution-apply identifier. Notice that it
+  // suffices to use SBA_SEQUENTIAL here, but SBA_FIXPOINT is typically
+  // more efficient. This is because for substitution of size n, sequential
+  // substitution can either be implemented as n traversals of the term to
+  // apply the substitution to, or a single traversal of the term, but n^2/2
+  // traversals of the range of the substitution to prepare a simultaneous
+  // substitution. Both of these options are inefficient.
+  if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids, MethodId::SBA_FIXPOINT))
   {
-    return TrustNode::mkTrustRewrite(n, ns, nullptr);
+    // if we fail for any reason, we must use a trusted step instead
+    d_tspb->addStep(PfRule::TRUST_SUBS_MAP, pfChildren, {eq}, eq);
   }
+  Trace("trust-subs-pf") << "...made steps" << std::endl;
   // -------        ------- from external proof generators
   // x1 = t1 ...    xn = tn
   // ----------------------- AND_INTRO
   //   ...
-  // --------- MACRO_SR_EQ_INTRO
+  // --------- MACRO_SR_EQ_INTRO (or TRUST_SUBS_MAP if we failed above)
   // n == ns
   // add it to the apply proof generator.
   //
@@ -219,8 +251,11 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   // notice this proof is reused.
   d_applyPg->addSteps(*d_tspb.get());
   d_tspb->clear();
-  return TrustNode::mkTrustRewrite(n, ns, d_applyPg.get());
+  Trace("trust-subs-pf") << "...finish, make proof" << std::endl;
+  return d_applyPg->getProofFor(eq);
 }
+
+std::string TrustSubstitutionMap::identify() const { return d_name; }
 
 SubstitutionMap& TrustSubstitutionMap::get() { return d_subs; }
 
@@ -229,25 +264,22 @@ bool TrustSubstitutionMap::isProofEnabled() const
   return d_subsPg != nullptr;
 }
 
-Node TrustSubstitutionMap::getCurrentSubstitution()
+Node TrustSubstitutionMap::getSubstitution(size_t index)
 {
-  Assert(isProofEnabled());
-  if (!d_currentSubs.get().isNull())
-  {
-    return d_currentSubs;
-  }
+  Assert(index <= d_tsubs.size());
   std::vector<Node> csubsChildren;
-  for (const TrustNode& tns : d_tsubs)
+  for (size_t i = 0; i < index; i++)
   {
-    csubsChildren.push_back(tns.getProven());
+    csubsChildren.push_back(d_tsubs[i].getProven());
   }
-  d_currentSubs = NodeManager::currentNM()->mkAnd(csubsChildren);
-  if (d_currentSubs.get().getKind() == kind::AND)
+  std::reverse(csubsChildren.begin(), csubsChildren.end());
+  Node cs = NodeManager::currentNM()->mkAnd(csubsChildren);
+  if (cs.getKind() == kind::AND)
   {
-    d_subsPg->addStep(d_currentSubs, PfRule::AND_INTRO, csubsChildren, {});
+    d_subsPg->addStep(cs, PfRule::AND_INTRO, csubsChildren, {});
   }
-  return d_currentSubs;
+  return cs;
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

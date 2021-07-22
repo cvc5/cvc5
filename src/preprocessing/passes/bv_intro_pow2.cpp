@@ -1,34 +1,37 @@
-/*********************                                                        */
-/*! \file bv_intro_pow2.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The BvIntroPow2 preprocessing pass
- **
- ** Traverses the formula and applies the IsPowerOfTwo rewrite rule. This
- ** preprocessing pass is particularly useful on QF_BV/pspace benchmarks and
- ** can be enabled via option `--bv-intro-pow2`.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Liana Hadarean, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The BvIntroPow2 preprocessing pass.
+ *
+ * Traverses the formula and applies the IsPowerOfTwo rewrite rule. This
+ * preprocessing pass is particularly useful on QF_BV/pspace benchmarks and
+ * can be enabled via option `--bv-intro-pow2`.
+ */
 
 #include "preprocessing/passes/bv_intro_pow2.h"
 
 #include <unordered_map>
 
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
-using namespace CVC4::theory;
+using NodeMap = std::unordered_map<Node, Node>;
+using namespace cvc5::theory;
 
 namespace {
 
@@ -84,7 +87,7 @@ BvIntroPow2::BvIntroPow2(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult BvIntroPow2::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  std::unordered_map<Node, Node> cache;
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Node cur = (*assertionsToPreprocess)[i];
@@ -98,8 +101,7 @@ PreprocessingPassResult BvIntroPow2::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
+}  // namespace passes
+}  // namespace preprocessing
 
-}/* CVC4::theory::bv namespace */
-}/* CVC4::theory namespace */
-
-}/* CVC4 namespace */
+}  // namespace cvc5

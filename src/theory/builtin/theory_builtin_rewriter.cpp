@@ -1,29 +1,31 @@
-/*********************                                                        */
-/*! \file theory_builtin_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/builtin/theory_builtin_rewriter.h"
 
+#include "expr/array_store_all.h"
 #include "expr/attribute.h"
 #include "expr/node_algorithm.h"
 #include "theory/rewriter.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace builtin {
 
@@ -143,9 +145,13 @@ TypeNode TheoryBuiltinRewriter::getArrayTypeForFunctionType(TypeNode ftn)
   return ret;
 }
 
-Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec( TNode a, TNode bvl, unsigned bvlIndex, 
-                                                                std::unordered_map< TNode, Node, TNodeHashFunction >& visited ){
-  std::unordered_map< TNode, Node, TNodeHashFunction >::iterator it = visited.find( a );
+Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec(
+    TNode a,
+    TNode bvl,
+    unsigned bvlIndex,
+    std::unordered_map<TNode, Node>& visited)
+{
+  std::unordered_map<TNode, Node>::iterator it = visited.find(a);
   if( it==visited.end() ){
     Node ret;
     if( bvlIndex<bvl.getNumChildren() ){
@@ -184,7 +190,7 @@ Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec( TNode a, TNode b
 
 Node TheoryBuiltinRewriter::getLambdaForArrayRepresentation( TNode a, TNode bvl ){
   Assert(a.getType().isArray());
-  std::unordered_map< TNode, Node, TNodeHashFunction > visited;
+  std::unordered_map<TNode, Node> visited;
   Trace("builtin-rewrite-debug") << "Get lambda for : " << a << ", with variables " << bvl << std::endl;
   Node body = getLambdaForArrayRepresentationRec( a, bvl, 0, visited );
   if( !body.isNull() ){
@@ -502,6 +508,6 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambda(TNode n)
   return Rewriter::rewrite(anode);
 }
 
-}/* CVC4::theory::builtin namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace builtin
+}  // namespace theory
+}  // namespace cvc5

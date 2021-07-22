@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file sygus_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The solver for sygus queries
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The solver for SyGuS queries.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__SMT__SYGUS_SOLVER_H
-#define CVC4__SMT__SYGUS_SOLVER_H
+#ifndef CVC5__SMT__SYGUS_SOLVER_H
+#define CVC5__SMT__SYGUS_SOLVER_H
 
 #include "context/cdo.h"
 #include "expr/node.h"
@@ -23,7 +24,7 @@
 #include "smt/assertions.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class OutputManager;
 
@@ -62,7 +63,7 @@ class SygusSolver
    * which a function is being synthesized. Thus declared functions should use
    * this method as well.
    */
-  void declareSygusVar(const std::string& id, Node var, TypeNode type);
+  void declareSygusVar(Node var);
 
   /**
    * Add a function-to-synthesize declaration.
@@ -79,8 +80,7 @@ class SygusSolver
    * invariant. This information is necessary if we are dumping a command
    * corresponding to this declaration, so that it can be properly printed.
    */
-  void declareSynthFun(const std::string& id,
-                       Node func,
+  void declareSynthFun(Node func,
                        TypeNode type,
                        bool isInv,
                        const std::vector<Node>& vars);
@@ -185,6 +185,6 @@ class SygusSolver
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__SMT__SYGUS_SOLVER_H */
+#endif /* CVC5__SMT__SYGUS_SOLVER_H */

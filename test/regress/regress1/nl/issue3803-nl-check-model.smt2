@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ext-rew-prep
+; COMMAND-LINE: --ext-rew-prep -q
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)

@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file proof_checker.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of quantifiers proof checker
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of quantifiers proof checker.
+ */
 
 #include "theory/quantifiers/proof_checker.h"
 
@@ -18,19 +19,21 @@
 #include "expr/skolem_manager.h"
 #include "theory/builtin/proof_checker.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
 void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
 {
   // add checkers
-  pc->registerChecker(PfRule::WITNESS_INTRO, this);
+  pc->registerChecker(PfRule::SKOLEM_INTRO, this);
   pc->registerChecker(PfRule::EXISTS_INTRO, this);
   pc->registerChecker(PfRule::SKOLEMIZE, this);
   pc->registerChecker(PfRule::INSTANTIATE, this);
+  // trusted rules
+  pc->registerTrustedChecker(PfRule::QUANTIFIERS_PREPROCESS, this, 3);
 }
 
 Node QuantifiersProofRuleChecker::checkInternal(
@@ -49,7 +52,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     {
       return Node::null();
     }
-    std::unordered_map<Node, Node, NodeHashFunction> subs;
+    std::unordered_map<Node, Node> subs;
     if (!expr::match(exists[1], p, subs))
     {
       return Node::null();
@@ -64,20 +67,12 @@ Node QuantifiersProofRuleChecker::checkInternal(
     }
     return exists;
   }
-  else if (id == PfRule::WITNESS_INTRO)
+  else if (id == PfRule::SKOLEM_INTRO)
   {
-    Assert(children.size() == 1);
-    Assert(args.empty());
-    if (children[0].getKind() != EXISTS || children[0][0].getNumChildren() != 1)
-    {
-      return Node::null();
-    }
-    std::vector<Node> skolems;
-    sm->mkSkolemize(children[0], skolems, "k");
-    Assert(skolems.size() == 1);
-    Node witness = SkolemManager::getWitnessForm(skolems[0]);
-    Assert(witness.getKind() == WITNESS && witness[0] == children[0][0]);
-    return skolems[0].eqNode(witness);
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node t = SkolemManager::getOriginalForm(args[0]);
+    return args[0].eqNode(t);
   }
   else if (id == PfRule::SKOLEMIZE)
   {
@@ -124,6 +119,12 @@ Node QuantifiersProofRuleChecker::checkInternal(
         body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     return inst;
   }
+  else if (id == PfRule::QUANTIFIERS_PREPROCESS)
+  {
+    Assert(!args.empty());
+    Assert(args[0].getType().isBoolean());
+    return args[0];
+  }
 
   // no rule
   return Node::null();
@@ -131,4 +132,4 @@ Node QuantifiersProofRuleChecker::checkInternal(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,38 +1,41 @@
-/*********************                                                        */
-/*! \file proof_equality_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The proof-producing equality engine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The proof-producing equality engine.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__UF__PROOF_EQUALITY_ENGINE_H
-#define CVC4__THEORY__UF__PROOF_EQUALITY_ENGINE_H
+#ifndef CVC5__THEORY__UF__PROOF_EQUALITY_ENGINE_H
+#define CVC5__THEORY__UF__PROOF_EQUALITY_ENGINE_H
 
-#include <map>
 #include <vector>
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
-#include "expr/buffered_proof_generator.h"
-#include "expr/lazy_proof.h"
 #include "expr/node.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
-#include "theory/eager_proof_generator.h"
-#include "theory/uf/equality_engine.h"
+#include "proof/buffered_proof_generator.h"
+#include "proof/eager_proof_generator.h"
+#include "proof/lazy_proof.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class ProofNode;
+class ProofNodeManager;
+
 namespace theory {
 namespace eq {
+
+class EqualityEngine;
 
 /**
  * A layer on top of an EqualityEngine. The goal of this class is manage the
@@ -77,9 +80,8 @@ namespace eq {
  */
 class ProofEqEngine : public EagerProofGenerator
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
-      NodeProofMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofMap;
 
  public:
   ProofEqEngine(context::Context* c,
@@ -294,6 +296,6 @@ class ProofEqEngine : public EagerProofGenerator
 
 }  // namespace eq
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__PROOF_MANAGER_H */
+#endif /* CVC5__THEORY__STRINGS__PROOF_MANAGER_H */

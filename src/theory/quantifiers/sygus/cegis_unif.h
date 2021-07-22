@@ -1,28 +1,30 @@
-/*********************                                                        */
-/*! \file cegis_unif.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief cegis with unification techinques
- **/
-#include "cvc4_private.h"
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * cegis with unification techinques.
+ */
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
 
 #include <map>
 #include <vector>
 
+#include "theory/decision_strategy.h"
 #include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -47,7 +49,10 @@ namespace quantifiers {
 class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 {
  public:
-  CegisUnifEnumDecisionStrategy(QuantifiersEngine* qe, SynthConjecture* parent);
+  CegisUnifEnumDecisionStrategy(QuantifiersState& qs,
+                                QuantifiersInferenceManager& qim,
+                                TermDbSygus* tds,
+                                SynthConjecture* parent);
   /** Make the n^th literal of this strategy (G_uq_n).
    *
    * This call may add new lemmas of the form described above
@@ -97,8 +102,8 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
   void registerEvalPts(const std::vector<Node>& eis, Node e);
 
  private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
+  /** Reference to the quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
   /** reference to the parent conjecture */
@@ -202,7 +207,10 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 class CegisUnif : public Cegis
 {
  public:
-  CegisUnif(QuantifiersEngine* qe, SynthConjecture* p);
+  CegisUnif(QuantifiersState& qs,
+            QuantifiersInferenceManager& qim,
+            TermDbSygus* tds,
+            SynthConjecture* p);
   ~CegisUnif() override;
   /** Retrieves enumerators for constructing solutions
    *
@@ -326,6 +334,6 @@ class CegisUnif : public Cegis
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

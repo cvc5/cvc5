@@ -2,7 +2,7 @@
 ; EXPECT: unsat
 ; EXIT: 0
 (set-logic QF_BV)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (declare-fun v0 () (_ BitVec 16))
 (declare-fun v1 () (_ BitVec 16))

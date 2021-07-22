@@ -1,29 +1,37 @@
-/*********************                                                        */
-/*! \file ite_simp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief ITE simplification preprocessing pass.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Tim King, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * ITE simplification preprocessing pass.
+ */
 
 #include "preprocessing/passes/ite_simp.h"
 
 #include <vector>
 
+#include "options/base_options.h"
+#include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/nary_builder.h"
 #include "theory/arith/arith_ite_utils.h"
+#include "theory/rewriter.h"
+#include "theory/theory_engine.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
+using namespace std;
+using namespace cvc5;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -91,7 +99,7 @@ void compressBeforeRealAssertions(AssertionPipeline* assertionsToPreprocess,
   assertionsToPreprocess->resize(before);
   size_t lastBeforeItes = assertionsToPreprocess->getRealAssertionsEnd() - 1;
   intoConjunction.push_back((*assertionsToPreprocess)[lastBeforeItes]);
-  Node newLast = CVC4::util::NaryBuilder::mkAssoc(kind::AND, intoConjunction);
+  Node newLast = cvc5::util::NaryBuilder::mkAssoc(kind::AND, intoConjunction);
   assertionsToPreprocess->replace(lastBeforeItes, newLast);
   Assert(assertionsToPreprocess->size() == before);
 }
@@ -101,26 +109,13 @@ void compressBeforeRealAssertions(AssertionPipeline* assertionsToPreprocess,
 /* -------------------------------------------------------------------------- */
 
 ITESimp::Statistics::Statistics()
-    : d_arithSubstitutionsAdded(
-          "preprocessing::passes::ITESimp::ArithSubstitutionsAdded", 0)
+    : d_arithSubstitutionsAdded(smtStatisticsRegistry().registerInt(
+        "preprocessing::passes::ITESimp::ArithSubstitutionsAdded"))
 {
-  smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
-}
-
-ITESimp::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_arithSubstitutionsAdded);
 }
 
 bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
 {
-  // This pass does not support dependency tracking yet
-  // (learns substitutions from all assertions so just
-  // adding addDependence is not enough)
-  if (options::unsatCores())
-  {
-    return true;
-  }
   bool result = true;
   bool simpDidALotOfWork = d_iteUtilities.simpIteDidALotOfWorkHeuristic();
   if (simpDidALotOfWork)
@@ -160,7 +155,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
           *(d_iteUtilities.getContainsVisitor());
       arith::ArithIteUtils aiteu(contains,
                                  d_preprocContext->getUserContext(),
-                                 theory_engine->getModel());
+                                 d_preprocContext->getTopLevelSubstitutions().get());
       bool anyItes = false;
       for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
       {
@@ -235,12 +230,12 @@ ITESimp::ITESimp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult ITESimp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
 
   size_t nasserts = assertionsToPreprocess->size();
   for (size_t i = 0; i < nasserts; ++i)
   {
-    d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+    d_preprocContext->spendResource(Resource::PreprocessStep);
     Node simp = simpITE(&d_iteUtilities, (*assertionsToPreprocess)[i]);
     assertionsToPreprocess->replace(i, simp);
     if (simp.isConst() && !simp.getConst<bool>())
@@ -262,4 +257,4 @@ PreprocessingPassResult ITESimp::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

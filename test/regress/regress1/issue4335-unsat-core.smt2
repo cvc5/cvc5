@@ -1,15 +1,6 @@
-; SCRUBBER: sed -e 's/IP_[0-9]*/IP/'
+; SCRUBBER: sed -e '/IP_[0-9]/d'
 ; EXPECT: unsat
 ; EXPECT: (
-; EXPECT: IP
-; EXPECT: IP
-; EXPECT: IP
-; EXPECT: IP
-; EXPECT: IP
-; EXPECT: IP
-; EXPECT: IP
-; EXPECT: IP
-; EXPECT: IP
 ; EXPECT: )
 (set-logic ALL)
 (set-option :produce-unsat-cores true)

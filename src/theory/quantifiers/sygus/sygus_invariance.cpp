@@ -1,27 +1,29 @@
-/*********************                                                        */
-/*! \file sygus_invariance.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of techniques for sygus invariance tests.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of techniques for sygus invariance tests.
+ */
 
 #include "theory/quantifiers/sygus/sygus_invariance.h"
 
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -55,7 +57,7 @@ Node EvalSygusInvarianceTest::doEvaluateWithUnfolding(TermDbSygus* tds, Node n)
 bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
 {
   TNode tnvn = nvn;
-  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+  std::unordered_map<TNode, TNode> cache;
   for (const Node& c : d_terms)
   {
     Node conj_subs = c.substitute(d_var, tnvn, cache);
@@ -219,7 +221,7 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
       Node nbvre = tds->evaluateBuiltin(tn, nbvr, d_ex[ii]);
       Node out = d_exo[ii];
       Node cont =
-          NodeManager::currentNM()->mkNode(kind::STRING_STRCTN, out, nbvre);
+          NodeManager::currentNM()->mkNode(kind::STRING_CONTAINS, out, nbvre);
       Trace("sygus-pbe-cterm-debug") << "Check: " << cont << std::endl;
       Node contr = Rewriter::rewrite(cont);
       if (!contr.isConst())
@@ -258,6 +260,6 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
   return d_isUniversal;
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

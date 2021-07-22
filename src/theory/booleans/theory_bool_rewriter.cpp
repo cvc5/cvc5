@@ -1,27 +1,30 @@
-/*********************                                                        */
-/*! \file theory_bool_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Dejan Jovanovic, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
+
+#include "theory/booleans/theory_bool_rewriter.h"
 
 #include <algorithm>
 #include <unordered_set>
 
 #include "expr/node_value.h"
-#include "theory/booleans/theory_bool_rewriter.h"
+#include "util/cardinality.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace booleans {
 
@@ -33,7 +36,7 @@ RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
  * flattenNode looks for children of same kind, and if found merges
  * them into the parent.
  *
- * It simultaneously handles a couple of other optimizations: 
+ * It simultaneously handles a couple of other optimizations:
  * - trivialNode - if found during exploration, return that node itself
  *    (like in case of OR, if "true" is found, makes sense to replace
  *     whole formula with "true")
@@ -44,7 +47,7 @@ RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
  */
 RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
 {
-  typedef std::unordered_set<TNode, TNodeHashFunction> node_set;
+  typedef std::unordered_set<TNode> node_set;
 
   node_set visited;
   visited.insert(skipNode);
@@ -88,7 +91,7 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
     Assert(childList.size()
            < static_cast<size_t>(expr::NodeValue::MAX_CHILDREN)
                  * static_cast<size_t>(expr::NodeValue::MAX_CHILDREN));
-    NodeBuilder<> nb(k);
+    NodeBuilder nb(k);
     ChildList::iterator cur = childList.begin(), next, en = childList.end();
     while (cur != en)
     {
@@ -284,7 +287,13 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         }
       }
     }
-    break;
+    // sort
+    if (n[0].getId() > n[1].getId())
+    {
+      return RewriteResponse(REWRITE_AGAIN,
+                             nodeManager->mkNode(kind::EQUAL, n[1], n[0]));
+    }
+    return RewriteResponse(REWRITE_DONE, n);
   }
   case kind::XOR: {
     // rewrite simple cases of XOR
@@ -342,16 +351,6 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
             << n << ": " << n[0].notNode() << std::endl;
         return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
       }
-      if (n[1] == tt || n[1] == ff)
-      {
-        // ITE C true y --> C v y
-        // ITE C false y --> ~C ^ y
-        Node resp =
-            n[1] == tt ? n[0].orNode(n[2]) : (n[0].negate()).andNode(n[2]);
-        Debug("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[1] const "
-                          << n << ": " << resp << std::endl;
-        return RewriteResponse(REWRITE_AGAIN, resp);
-      }
     }
 
     if (n[0].getKind() == kind::NOT)
@@ -359,17 +358,6 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       // ite(not(c), x, y) ---> ite(c, y, x)
       return RewriteResponse(
           REWRITE_AGAIN, nodeManager->mkNode(kind::ITE, n[0][0], n[2], n[1]));
-    }
-
-    if (n[2].isConst() && (n[2] == tt || n[2] == ff))
-    {
-      // ITE C x true --> ~C v x
-      // ITE C x false --> C ^ x
-      Node resp =
-          n[2] == tt ? (n[0].negate()).orNode(n[1]) : n[0].andNode(n[1]);
-      Debug("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[2] const "
-                        << n << ": " << resp << std::endl;
-      return RewriteResponse(REWRITE_AGAIN, resp);
     }
 
     int parityTmp;
@@ -421,6 +409,32 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
           << parityTmp << " " << n << ": " << resp << std::endl;
       return RewriteResponse(REWRITE_AGAIN, resp);
     }
+
+    // Rewrites for ITEs with a constant branch. These rewrites are applied
+    // after the parity rewrites above because they may simplify ITEs such as
+    // `(ite c c true)` to `(ite c true true)`. As a result, we avoid
+    // introducing an unnecessary conjunction/disjunction here.
+    if (n[1].isConst() && (n[1] == tt || n[1] == ff))
+    {
+      // ITE C true y --> C v y
+      // ITE C false y --> ~C ^ y
+      Node resp =
+          n[1] == tt ? n[0].orNode(n[2]) : (n[0].negate()).andNode(n[2]);
+      Debug("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[1] const "
+                        << n << ": " << resp << std::endl;
+      return RewriteResponse(REWRITE_AGAIN, resp);
+    }
+    else if (n[2].isConst() && (n[2] == tt || n[2] == ff))
+    {
+      // ITE C x true --> ~C v x
+      // ITE C x false --> C ^ x
+      Node resp =
+          n[2] == tt ? (n[0].negate()).orNode(n[1]) : n[0].andNode(n[1]);
+      Debug("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[2] const "
+                        << n << ": " << resp << std::endl;
+      return RewriteResponse(REWRITE_AGAIN, resp);
+    }
+
     break;
   }
   default:
@@ -429,6 +443,6 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
   return RewriteResponse(REWRITE_DONE, n);
 }
 
-}/* CVC4::theory::booleans namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace booleans
+}  // namespace theory
+}  // namespace cvc5

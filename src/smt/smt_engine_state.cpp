@@ -1,29 +1,35 @@
-/*********************                                                        */
-/*! \file smt_engine_state.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utility for maintaining the state of the SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Ying Sheng
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utility for maintaining the state of the SMT engine.
+ */
 
 #include "smt/smt_engine_state.h"
 
+#include "base/modal_exception.h"
+#include "options/base_options.h"
+#include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
-SmtEngineState::SmtEngineState(SmtEngine& smt)
+SmtEngineState::SmtEngineState(context::Context* c,
+                               context::UserContext* u,
+                               SmtEngine& smt)
     : d_smt(smt),
-      d_context(new context::Context()),
-      d_userContext(new context::UserContext()),
+      d_context(c),
+      d_userContext(u),
       d_pendingPops(0),
       d_fullyInited(false),
       d_queryMade(false),
@@ -94,7 +100,7 @@ void SmtEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
   if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
       && d_status != d_expectedStatus)
   {
-    CVC4_FATAL() << "Expected result " << d_expectedStatus << " but got "
+    CVC5_FATAL() << "Expected result " << d_expectedStatus << " but got "
                  << d_status;
   }
   // clear expected status
@@ -233,12 +239,9 @@ void SmtEngineState::popto(int toLevel)
   d_userContext->popto(toLevel);
 }
 
-context::UserContext* SmtEngineState::getUserContext()
-{
-  return d_userContext.get();
-}
+context::UserContext* SmtEngineState::getUserContext() { return d_userContext; }
 
-context::Context* SmtEngineState::getContext() { return d_context.get(); }
+context::Context* SmtEngineState::getContext() { return d_context; }
 
 Result SmtEngineState::getStatus() const { return d_status; }
 
@@ -309,4 +312,4 @@ void SmtEngineState::doPendingPops()
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

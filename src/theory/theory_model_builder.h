@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file theory_model_builder.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Model class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__THEORY_MODEL_BUILDER_H
-#define CVC4__THEORY__THEORY_MODEL_BUILDER_H
+#ifndef CVC5__THEORY__THEORY_MODEL_BUILDER_H
+#define CVC5__THEORY__THEORY_MODEL_BUILDER_H
 
 #include <unordered_map>
 #include <unordered_set>
 
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -43,11 +44,11 @@ namespace theory {
  */
 class TheoryEngineModelBuilder
 {
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
-  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+  typedef std::unordered_map<Node, Node> NodeMap;
+  typedef std::unordered_set<Node> NodeSet;
 
  public:
-  TheoryEngineModelBuilder(TheoryEngine* te);
+  TheoryEngineModelBuilder();
   virtual ~TheoryEngineModelBuilder() {}
   /**
    * Should be called only on models m after they have been prepared
@@ -72,6 +73,9 @@ class TheoryEngineModelBuilder
    * Lemmas may be sent on an output channel by this
    * builder in steps (2) or (5), for instance, if the model we
    * are building fails to satisfy a quantified formula.
+   *
+   * @param m The model to build
+   * @return true if the model was successfully built.
    */
   bool buildModel(TheoryModel* m);
 
@@ -84,8 +88,6 @@ class TheoryEngineModelBuilder
   void postProcessModel(bool incomplete, TheoryModel* m);
 
  protected:
-  /** pointer to theory engine */
-  TheoryEngine* d_te;
 
   //-----------------------------------virtual functions
   /** pre-process build model
@@ -162,10 +164,9 @@ class TheoryEngineModelBuilder
    * For example, if tn is (Array Int Bool) and type_list is empty,
    * then we append ( Int, Bool, (Array Int Bool) ) to type_list.
    */
-  void addToTypeList(
-      TypeNode tn,
-      std::vector<TypeNode>& type_list,
-      std::unordered_set<TypeNode, TypeNodeHashFunction>& visiting);
+  void addToTypeList(TypeNode tn,
+                     std::vector<TypeNode>& type_list,
+                     std::unordered_set<TypeNode>& visiting);
   /** assign function f based on the model m.
   * This construction is based on "table form". For example:
   * (f 0 1) = 1
@@ -266,37 +267,6 @@ class TheoryEngineModelBuilder
    * these values whenever possible.
    */
   bool isAssignerActive(TheoryModel* tm, Assigner& a);
-  /** compute assignable information
-   *
-   * This computes necessary information pertaining to how values should be
-   * assigned to equivalence classes in the equality engine of tm.
-   *
-   * The argument tep stores global information about how values should be
-   * assigned, such as information on how many uninterpreted constant
-   * values are available, which is restricted if finite model finding is
-   * enabled.
-   *
-   * In particular this method constructs the following, passed as arguments:
-   * (1) assignableEqc: the set of equivalence classes that are "assignable",
-   * i.e. those that have an assignable expression in them (see isAssignable),
-   * and have not already been assigned a constant,
-   * (2) evaluableEqc: the set of equivalence classes that are "evaluable", i.e.
-   * those that have an expression in them that is not assignable, and have not
-   * already been assigned a constant,
-   * (3) eqcToAssigner: assigner objects for relevant equivalence classes that
-   * require special ways of assigning values, e.g. those that take into
-   * account assignment exclusion sets,
-   * (4) eqcToAssignerMaster: a map from equivalence classes to the equivalence
-   * class that it shares an assigner object with (all elements in the range of
-   * this map are in the domain of eqcToAssigner).
-   */
-  void computeAssignableInfo(
-      TheoryModel* tm,
-      TypeEnumeratorProperties& tep,
-      std::unordered_set<Node, NodeHashFunction>& assignableEqc,
-      std::unordered_set<Node, NodeHashFunction>& evaluableEqc,
-      std::map<Node, Assigner>& eqcToAssigner,
-      std::map<Node, Node>& eqcToAssignerMaster);
   //------------------------------------for codatatypes
   /** is v an excluded codatatype value?
    *
@@ -328,9 +298,14 @@ class TheoryEngineModelBuilder
   bool isCdtValueMatch(Node v, Node r, Node eqc, Node& eqc_m);
   //------------------------------------end for codatatypes
 
+  /**
+   * Is the given type constrained to be finite? This depends on whether
+   * finite model finding is enabled.
+   */
+  bool isFiniteType(TypeNode tn) const;
   //---------------------------------for debugging finite model finding
   /** does type tn involve an uninterpreted sort? */
-  bool involvesUSort(TypeNode tn);
+  bool involvesUSort(TypeNode tn) const;
   /** is v an excluded value based on uninterpreted sorts?
    * This gives an assertion failure in the case that v contains
    * an uninterpreted constant whose index is out of the bounds
@@ -343,7 +318,7 @@ class TheoryEngineModelBuilder
 
 }; /* class TheoryEngineModelBuilder */
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__THEORY_MODEL_BUILDER_H */
+#endif /* CVC5__THEORY__THEORY_MODEL_BUILDER_H */

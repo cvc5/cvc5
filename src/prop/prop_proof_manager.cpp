@@ -1,31 +1,35 @@
-/*********************                                                        */
-/*! \file prop_proof_manager
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the proof manager for the PropPfManager
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the proof manager for the PropPfManager.
+ */
 
 #include "prop/prop_proof_manager.h"
 
-#include "expr/proof_node_algorithm.h"
+#include "proof/proof_ensure_closed.h"
+#include "proof/proof_node_algorithm.h"
+#include "prop/prop_proof_manager.h"
+#include "prop/sat_solver.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 PropPfManager::PropPfManager(context::UserContext* userContext,
                              ProofNodeManager* pnm,
-                             SatProofManager* satPM,
+                             CDCLTSatSolverInterface* satSolver,
                              ProofCnfStream* cnfProof)
     : d_pnm(pnm),
       d_pfpp(new ProofPostproccess(pnm, cnfProof)),
-      d_satPM(satPM),
+      d_satSolver(satSolver),
       d_assertions(userContext)
 {
   // add trivial assumption. This is so that we can check the that the prop
@@ -46,7 +50,7 @@ void PropPfManager::checkProof(context::CDList<Node>* assertions)
 {
   Trace("sat-proof") << "PropPfManager::checkProof: Checking if resolution "
                         "proof of false is closed\n";
-  std::shared_ptr<ProofNode> conflictProof = d_satPM->getProof();
+  std::shared_ptr<ProofNode> conflictProof = d_satSolver->getProof();
   Assert(conflictProof);
   // connect it with CNF proof
   d_pfpp->process(conflictProof);
@@ -65,7 +69,7 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
   // retrieve the SAT solver's refutation proof
   Trace("sat-proof")
       << "PropPfManager::getProof: Getting resolution proof of false\n";
-  std::shared_ptr<ProofNode> conflictProof = d_satPM->getProof();
+  std::shared_ptr<ProofNode> conflictProof = d_satSolver->getProof();
   Assert(conflictProof);
   if (Trace.isOn("sat-proof"))
   {
@@ -106,4 +110,4 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,24 +1,27 @@
-/*********************                                                        */
-/*! \file proof_circuit_propagator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Proofs for the non-clausal circuit propagator.
- **
- ** Proofs for the non-clausal circuit propagator.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Proofs for the non-clausal circuit propagator.
+ */
 
 #include "theory/booleans/proof_circuit_propagator.h"
 
-#include "expr/proof_node_manager.h"
+#include <sstream>
 
-namespace CVC4 {
+#include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
+#include "util/rational.h"
+
+namespace cvc5 {
 namespace theory {
 namespace booleans {
 
@@ -166,11 +169,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::neqXFromY(bool y,
   {
     return nullptr;
   }
-  return mkResolution(
+  return mkNot(mkResolution(
       mkProof(y ? PfRule::NOT_EQUIV_ELIM2 : PfRule::NOT_EQUIV_ELIM1,
               {assume(parent.notNode())}),
       parent[1],
-      !y);
+      !y));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::neqYFromX(bool x,
@@ -180,11 +183,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::neqYFromX(bool x,
   {
     return nullptr;
   }
-  return mkResolution(
+  return mkNot(mkResolution(
       mkProof(x ? PfRule::NOT_EQUIV_ELIM2 : PfRule::NOT_EQUIV_ELIM1,
               {assume(parent.notNode())}),
       parent[0],
-      !x);
+      !x));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::xorXFromY(bool negated,
@@ -584,4 +587,4 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::xorEval(bool x,
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

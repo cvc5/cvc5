@@ -1,70 +1,69 @@
-/*********************                                                        */
-/*! \file inference_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Datatypes inference manager
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Datatypes inference manager.
+ */
 
 #include "theory/datatypes/inference_manager.h"
 
 #include "expr/dtype.h"
 #include "options/datatypes_options.h"
+#include "proof/eager_proof_generator.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_state.h"
+#include "theory/trust_substitutions.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
 InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, pnm),
-      d_inferenceLemmas("theory::datatypes::inferenceLemmas"),
-      d_inferenceFacts("theory::datatypes::inferenceFacts"),
-      d_inferenceConflicts("theory::datatypes::inferenceConflicts"),
+    : InferenceManagerBuffered(t, state, pnm, "theory::datatypes::"),
       d_pnm(pnm),
       d_ipc(pnm == nullptr ? nullptr
                            : new InferProofCons(state.getSatContext(), pnm)),
       d_lemPg(pnm == nullptr
                   ? nullptr
                   : new EagerProofGenerator(
-                        pnm, state.getUserContext(), "datatypes::lemPg"))
+                      pnm, state.getUserContext(), "datatypes::lemPg"))
 {
   d_false = NodeManager::currentNM()->mkConst(false);
-  smtStatisticsRegistry()->registerStat(&d_inferenceLemmas);
-  smtStatisticsRegistry()->registerStat(&d_inferenceFacts);
-  smtStatisticsRegistry()->registerStat(&d_inferenceConflicts);
 }
 
 InferenceManager::~InferenceManager()
 {
-  smtStatisticsRegistry()->unregisterStat(&d_inferenceLemmas);
-  smtStatisticsRegistry()->unregisterStat(&d_inferenceFacts);
-  smtStatisticsRegistry()->unregisterStat(&d_inferenceConflicts);
 }
 
 void InferenceManager::addPendingInference(Node conc,
+                                           InferenceId id,
                                            Node exp,
-                                           bool forceLemma,
-                                           InferId i)
+                                           bool forceLemma)
 {
-  if (forceLemma)
+  // if we are forcing the inference to be processed as a lemma, or if the
+  // inference must be sent as a lemma based on the policy in
+  // mustCommunicateFact.
+  if (forceLemma || DatatypesInference::mustCommunicateFact(conc, exp))
   {
-    d_pendingLem.emplace_back(new DatatypesInference(this, conc, exp, i));
+    d_pendingLem.emplace_back(new DatatypesInference(this, conc, exp, id));
   }
   else
   {
-    d_pendingFact.emplace_back(new DatatypesInference(this, conc, exp, i));
+    d_pendingFact.emplace_back(new DatatypesInference(this, conc, exp, id));
   }
 }
 
@@ -76,51 +75,31 @@ void InferenceManager::process()
   doPendingFacts();
 }
 
-void InferenceManager::sendDtLemma(Node lem,
-                                   InferId id,
-                                   LemmaProperty p,
-                                   bool doCache)
+void InferenceManager::sendDtLemma(Node lem, InferenceId id, LemmaProperty p)
 {
   if (isProofEnabled())
   {
-    processDtLemma(lem, Node::null(), id);
+    TrustNode trn = processDtLemma(lem, Node::null(), id);
+    trustedLemma(trn, id);
     return;
   }
-  // otherwise send as a normal lemma
-  if (lemma(lem, p, doCache))
-  {
-    d_inferenceLemmas << id;
-  }
+  // otherwise send as a normal lemma directly
+  lemma(lem, id, p);
 }
 
-void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferId id)
+void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferenceId id)
 {
   if (isProofEnabled())
   {
     Node exp = NodeManager::currentNM()->mkAnd(conf);
     prepareDtInference(d_false, exp, id, d_ipc.get());
   }
-  conflictExp(conf, d_ipc.get());
-  d_inferenceConflicts << id;
-}
-
-bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
-{
-  bool ret = false;
-  for (const Node& lem : lemmas)
-  {
-    if (lemma(lem))
-    {
-      ret = true;
-    }
-  }
-  return ret;
+  conflictExp(id, conf, d_ipc.get());
 }
 
 bool InferenceManager::isProofEnabled() const { return d_ipc != nullptr; }
 
-bool InferenceManager::processDtLemma(
-    Node conc, Node exp, InferId id, LemmaProperty p, bool doCache)
+TrustNode InferenceManager::processDtLemma(Node conc, Node exp, InferenceId id)
 {
   // set up a proof constructor
   std::shared_ptr<InferProofCons> ipcl;
@@ -152,44 +131,21 @@ bool InferenceManager::processDtLemma(
     }
     d_lemPg->setProofFor(lem, pn);
   }
-  // use trusted lemma
-  TrustNode tlem = TrustNode::mkTrustLemma(lem, d_lemPg.get());
-  if (!trustedLemma(tlem))
-  {
-    Trace("dt-lemma-debug") << "...duplicate lemma" << std::endl;
-    return false;
-  }
-  d_inferenceLemmas << id;
-  return true;
+  return TrustNode::mkTrustLemma(lem, d_lemPg.get());
 }
 
-bool InferenceManager::processDtFact(Node conc, Node exp, InferId id)
+Node InferenceManager::processDtFact(Node conc,
+                                     Node exp,
+                                     InferenceId id,
+                                     ProofGenerator*& pg)
 {
-  conc = prepareDtInference(conc, exp, id, d_ipc.get());
-  // assert the internal fact, which has the same issue as above
-  bool polarity = conc.getKind() != NOT;
-  TNode atom = polarity ? conc : conc[0];
-  if (isProofEnabled())
-  {
-    std::vector<Node> expv;
-    if (!exp.isNull() && !exp.isConst())
-    {
-      expv.push_back(exp);
-    }
-    assertInternalFact(atom, polarity, expv, d_ipc.get());
-  }
-  else
-  {
-    // use version without proofs
-    assertInternalFact(atom, polarity, exp);
-  }
-  d_inferenceFacts << id;
-  return true;
+  pg = d_ipc.get();
+  return prepareDtInference(conc, exp, id, d_ipc.get());
 }
 
 Node InferenceManager::prepareDtInference(Node conc,
                                           Node exp,
-                                          InferId id,
+                                          InferenceId id,
                                           InferProofCons* ipc)
 {
   Trace("dt-lemma-debug") << "prepareDtInference : " << conc << " via " << exp
@@ -216,4 +172,4 @@ Node InferenceManager::prepareDtInference(Node conc,
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

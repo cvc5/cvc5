@@ -1,3 +1,4 @@
+; COMMAND-LINE:
 ; EXPECT: sat
 
 ; Preamble  --------------

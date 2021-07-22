@@ -1,8 +1,8 @@
-; COMMAND-LINE: --cegqi -mi --no-check-models
+; COMMAND-LINE: --cegqi -mi
 ; EXPECT: sat
 ; EXPECT: unsat
 
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 
 ; must make parts 1 through 6 with different deadlines
 

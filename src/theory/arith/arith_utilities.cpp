@@ -1,22 +1,25 @@
-/*********************                                                        */
-/*! \file arith_utilities.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of common functions for dealing with nodes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Alex Ozdemir, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of common functions for dealing with nodes.
+ */
 
 #include "arith_utilities.h"
 
-using namespace CVC4::kind;
+#include <cmath>
 
-namespace CVC4 {
+using namespace cvc5::kind;
+
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -114,7 +117,7 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec)
   Rational cr = c.getConst<Rational>();
 
   unsigned lower = 0;
-  unsigned upper = pow(10, prec);
+  unsigned upper = std::pow(10, prec);
 
   Rational den = Rational(upper);
   if (cr.getDenominator() < den.getNumerator())
@@ -204,8 +207,8 @@ Node arithSubstitute(Node n, std::vector<Node>& vars, std::vector<Node>& subs)
 {
   Assert(vars.size() == subs.size());
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::vector<Node>::iterator itv;
   std::vector<TNode> visit;
   TNode cur;
@@ -323,4 +326,4 @@ Node negateProofLiteral(TNode n)
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

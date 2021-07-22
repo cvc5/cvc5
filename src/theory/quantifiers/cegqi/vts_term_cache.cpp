@@ -1,30 +1,34 @@
-/*********************                                                        */
-/*! \file vts_term_cache.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of virtual term substitution term cache.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of virtual term substitution term cache.
+ */
 
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/rewriter.h"
+#include "util/rational.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-VtsTermCache::VtsTermCache(QuantifiersEngine* qe) : d_qe(qe)
+VtsTermCache::VtsTermCache(QuantifiersInferenceManager& qim) : d_qim(qim)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
 }
@@ -59,18 +63,19 @@ Node VtsTermCache::getVtsDelta(bool isFree, bool create)
   if (create)
   {
     NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     if (d_vts_delta_free.isNull())
     {
       d_vts_delta_free =
-          nm->mkSkolem("delta_free",
-                       nm->realType(),
-                       "free delta for virtual term substitution");
+          sm->mkDummySkolem("delta_free",
+                            nm->realType(),
+                            "free delta for virtual term substitution");
       Node delta_lem = nm->mkNode(GT, d_vts_delta_free, d_zero);
-      d_qe->getOutputChannel().lemma(delta_lem);
+      d_qim.lemma(delta_lem, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_DELTA);
     }
     if (d_vts_delta.isNull())
     {
-      d_vts_delta = nm->mkSkolem(
+      d_vts_delta = sm->mkDummySkolem(
           "delta", nm->realType(), "delta for virtual term substitution");
       // mark as a virtual term
       VirtualTermSkolemAttribute vtsa;
@@ -85,15 +90,16 @@ Node VtsTermCache::getVtsInfinity(TypeNode tn, bool isFree, bool create)
   if (create)
   {
     NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     if (d_vts_inf_free[tn].isNull())
     {
-      d_vts_inf_free[tn] = nm->mkSkolem(
+      d_vts_inf_free[tn] = sm->mkDummySkolem(
           "inf_free", tn, "free infinity for virtual term substitution");
     }
     if (d_vts_inf[tn].isNull())
     {
-      d_vts_inf[tn] =
-          nm->mkSkolem("inf", tn, "infinity for virtual term substitution");
+      d_vts_inf[tn] = sm->mkDummySkolem(
+          "inf", tn, "infinity for virtual term substitution");
       // mark as a virtual term
       VirtualTermSkolemAttribute vtsa;
       d_vts_inf[tn].setAttribute(vtsa, true);
@@ -295,4 +301,4 @@ bool VtsTermCache::containsVtsInfinity(Node n, bool isFree)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

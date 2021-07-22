@@ -8,7 +8,7 @@ http://www.ai.dist.unige.it/pdpar05/
 
 
 |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-info :status unsat)
 (declare-sort Index 0)

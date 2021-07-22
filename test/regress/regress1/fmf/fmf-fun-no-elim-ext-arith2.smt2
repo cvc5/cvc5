@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --fmf-fun --no-check-models
 ; EXPECT: sat
-(set-logic UFLIA)
+(set-logic UFNIA)
 (set-info :status sat)
 (define-fun-rec int-and ((n Int) (n1 Int) (n2 Int)) Bool (
     or

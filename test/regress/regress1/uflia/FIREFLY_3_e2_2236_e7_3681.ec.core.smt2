@@ -2,7 +2,7 @@
 ; EXPECT: sat
 
 (set-logic QF_UFLIA)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (declare-fun _base () Int)
 (declare-fun _n () Int)
 (declare-fun ___z3z___ (Int) Bool)

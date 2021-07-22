@@ -1,25 +1,23 @@
-/*********************                                                        */
-/*! \file circuit_propagator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A non-clausal circuit propagator for Boolean simplification
- **
- ** A non-clausal circuit propagator for Boolean simplification.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A non-clausal circuit propagator for Boolean simplification.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
-#define CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
+#ifndef CVC5__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
+#define CVC5__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
 
-#include <functional>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -28,16 +26,16 @@
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "context/context.h"
-#include "expr/lazy_proof_chain.h"
 #include "expr/node.h"
-#include "expr/proof_generator.h"
-#include "expr/proof_node.h"
-#include "theory/eager_proof_generator.h"
-#include "theory/theory.h"
-#include "theory/trust_node.h"
-#include "util/hash.h"
+#include "proof/lazy_proof_chain.h"
+#include "proof/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class ProofGenerator;
+class ProofNode;
+class EagerProofGenerator;
+
 namespace theory {
 namespace booleans {
 
@@ -63,8 +61,7 @@ class CircuitPropagator
     ASSIGNED_TO_FALSE,
   };
 
-  typedef std::unordered_map<Node, std::vector<Node>, NodeHashFunction>
-      BackEdgesMap;
+  typedef std::unordered_map<Node, std::vector<Node>> BackEdgesMap;
 
   /**
    * Construct a new CircuitPropagator.
@@ -102,7 +99,7 @@ class CircuitPropagator
    * @return a trust node encapsulating the proof for a conflict as a lemma that
    * proves false, or the null trust node otherwise
    */
-  TrustNode propagate() CVC4_WARN_UNUSED_RESULT;
+  TrustNode propagate() CVC5_WARN_UNUSED_RESULT;
 
   /**
    * Get the back edges of this circuit.
@@ -169,40 +166,10 @@ class CircuitPropagator
     T& d_data;
   }; /* class DataClearer<T> */
 
-  /** Predicate for use in STL functions. */
-  class IsAssigned : public std::unary_function<TNode, bool>
-  {
-    CircuitPropagator& d_circuit;
-
-   public:
-    IsAssigned(CircuitPropagator& circuit) : d_circuit(circuit) {}
-
-    bool operator()(TNode in) const { return d_circuit.isAssigned(in); }
-  }; /* class IsAssigned */
-
-  /** Predicate for use in STL functions. */
-  class IsAssignedTo : public std::unary_function<TNode, bool>
-  {
-    CircuitPropagator& d_circuit;
-    bool d_value;
-
-   public:
-    IsAssignedTo(CircuitPropagator& circuit, bool value)
-        : d_circuit(circuit), d_value(value)
-    {
-    }
-
-    bool operator()(TNode in) const
-    {
-      return d_circuit.isAssignedTo(in, d_value);
-    }
-  }; /* class IsAssignedTo */
-
   /**
    * Assignment status of each node.
    */
-  typedef context::CDHashMap<TNode, AssignmentStatus, TNodeHashFunction>
-      AssignmentMap;
+  typedef context::CDHashMap<TNode, AssignmentStatus> AssignmentMap;
 
   /**
    * Assign Node in circuit with the value and add it to the queue; note
@@ -274,7 +241,7 @@ class CircuitPropagator
 
   /** Nodes that have been attached already (computed forward edges for) */
   // All the nodes we've visited so far
-  context::CDHashSet<Node, NodeHashFunction> d_seen;
+  context::CDHashSet<Node> d_seen;
 
   AssignmentMap d_state;
 
@@ -302,6 +269,6 @@ class CircuitPropagator
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H */
+#endif /* CVC5__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H */

@@ -5,7 +5,7 @@ Benchmark generated from the verification of programs manipulating linked lists 
 
 This benchmark was automatically translated into SMT-LIB format by Albert Oliveras.
 |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
 (set-info :status sat)
 (declare-fun t.l () Int)

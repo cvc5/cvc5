@@ -1,26 +1,25 @@
-/*********************                                                        */
-/*! \file cdcac_utils.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements utilities for cdcac.
- **
- ** Implements utilities for cdcac.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements utilities for cdcac.
+ */
 
 #include "theory/arith/nl/cad/cdcac_utils.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include "theory/arith/nl/cad/projections.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -275,7 +274,7 @@ namespace {
  * The first factor needs to be a proper polynomial (!is_constant(subst.first)),
  * but the second factor may be anything.
  */
-void replace_polynomial(std::vector<poly::Polynomial>& polys,
+void replace_polynomial(PolyVector& polys,
                         std::size_t id,
                         std::pair<poly::Polynomial, poly::Polynomial> subst,
                         CACInterval& interval)
@@ -301,7 +300,7 @@ void replace_polynomial(std::vector<poly::Polynomial>& polys,
   else
   {
     // Push to d_downPolys
-    interval.d_downPolys.emplace_back(subst.first);
+    interval.d_downPolys.add(subst.first);
   }
   // Skip constant poly
   if (!is_constant(subst.second))
@@ -311,8 +310,8 @@ void replace_polynomial(std::vector<poly::Polynomial>& polys,
       if (replaced)
       {
         // Append to polys and d_mainPolys
-        polys.emplace_back(subst.second);
-        interval.d_mainPolys.emplace_back(subst.second);
+        polys.add(subst.second);
+        interval.d_mainPolys.add(subst.second);
       }
       else
       {
@@ -328,7 +327,7 @@ void replace_polynomial(std::vector<poly::Polynomial>& polys,
     else
     {
       // Push to d_downPolys
-      interval.d_downPolys.emplace_back(subst.second);
+      interval.d_downPolys.add(subst.second);
     }
   }
   Assert(replaced)
@@ -358,18 +357,18 @@ void makeFinestSquareFreeBasis(CACInterval& lhs, CACInterval& rhs)
       }
     }
   }
-  reduceProjectionPolynomials(l);
-  reduceProjectionPolynomials(r);
-  reduceProjectionPolynomials(lhs.d_mainPolys);
-  reduceProjectionPolynomials(rhs.d_mainPolys);
-  reduceProjectionPolynomials(lhs.d_downPolys);
-  reduceProjectionPolynomials(rhs.d_downPolys);
+  l.reduce();
+  r.reduce();
+  lhs.d_mainPolys.reduce();
+  rhs.d_mainPolys.reduce();
+  lhs.d_downPolys.reduce();
+  rhs.d_downPolys.reduce();
 }
 
 }  // namespace cad
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

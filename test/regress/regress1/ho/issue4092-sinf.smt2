@@ -1,10 +1,9 @@
-; COMMAND-LINE: --uf-ho --sort-inference --no-check-models
+; COMMAND-LINE: --sort-inference
 ; EXPECT: sat
-(set-logic ALL)
+(set-logic HO_ALL)
 (set-option :sort-inference true)
-(set-option :uf-ho true)
 (set-info :status sat)
-(declare-fun a ( Int ) Int) 
-(declare-fun b ( Int ) Int)  
-(assert (and (distinct 0 (b 5)) (distinct a b ))) 
-(check-sat) 
+(declare-fun a ( Int ) Int)
+(declare-fun b ( Int ) Int)
+(assert (and (distinct 0 (b 5)) (distinct a b )))
+(check-sat)

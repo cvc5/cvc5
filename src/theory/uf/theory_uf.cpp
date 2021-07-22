@@ -1,30 +1,32 @@
-/*********************                                                        */
-/*! \file theory_uf.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief This is the interface to TheoryUF implementations
- **
- ** This is the interface to TheoryUF implementations.  All
- ** implementations of TheoryUF should inherit from this class.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This is the interface to TheoryUF implementations
+ *
+ * All implementations of TheoryUF should inherit from this class.
+ */
 
 #include "theory/uf/theory_uf.h"
 
 #include <memory>
+#include <sstream>
 
 #include "expr/node_algorithm.h"
-#include "expr/proof_node_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "proof/proof_node_manager.h"
+#include "smt/logic_exception.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/uf/cardinality_extension.h"
@@ -33,7 +35,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -51,16 +53,10 @@ TheoryUF::TheoryUF(context::Context* c,
       d_functionsTerms(c),
       d_symb(u, instanceName),
       d_state(c, u, valuation),
-      d_im(*this, d_state, pnm),
+      d_im(*this, d_state, pnm, "theory::uf::" + instanceName, false),
       d_notify(d_im, *this)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
-
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
-  {
-    d_ufProofChecker.registerTo(pc);
-  }
   // indicate we are using the default theory state and inference managers
   d_theoryState = &d_state;
   d_inferManager = &d_im;
@@ -71,10 +67,20 @@ TheoryUF::~TheoryUF() {
 
 TheoryRewriter* TheoryUF::getTheoryRewriter() { return &d_rewriter; }
 
+ProofRuleChecker* TheoryUF::getProofChecker() { return &d_checker; }
+
 bool TheoryUF::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
   esi.d_name = d_instanceName + "theory::uf::ee";
+  if (options::finiteModelFind()
+      && options::ufssMode() != options::UfssMode::NONE)
+  {
+    // need notifications about sorts
+    esi.d_notifyNewClass = true;
+    esi.d_notifyMerge = true;
+    esi.d_notifyDisequal = true;
+  }
   return true;
 }
 
@@ -110,7 +116,7 @@ static Node mkAnd(const std::vector<TNode>& conjunctions) {
     return conjunctions[0];
   }
 
-  NodeBuilder<> conjunction(kind::AND);
+  NodeBuilder conjunction(kind::AND);
   std::set<TNode>::const_iterator it = all.begin();
   std::set<TNode>::const_iterator it_end = all.end();
   while (it != it_end) {
@@ -150,65 +156,65 @@ void TheoryUF::postCheck(Effort level)
   }
 }
 
-bool TheoryUF::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
 {
+  if (d_state.isInConflict())
+  {
+    return;
+  }
   if (d_thss != nullptr)
   {
     bool isDecision =
         d_valuation.isSatLiteral(fact) && d_valuation.isDecision(fact);
     d_thss->assertNode(fact, isDecision);
-    if (d_state.isInConflict())
-    {
-      return true;
-    }
   }
-  if (atom.getKind() == kind::CARDINALITY_CONSTRAINT
-      || atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT)
+  switch (atom.getKind())
   {
-    if (d_thss == nullptr)
+    case kind::EQUAL:
     {
-      if (!getLogicInfo().hasCardinalityConstraints())
+      if (options::ufHo() && options::ufHoExt())
       {
-        std::stringstream ss;
-        ss << "Cardinality constraint " << atom
-           << " was asserted, but the logic does not allow it." << std::endl;
-        ss << "Try using a logic containing \"UFC\"." << std::endl;
-        throw Exception(ss.str());
-      }
-      else
-      {
-        // support for cardinality constraints is not enabled, set incomplete
-        d_out->setIncomplete();
+        if (!pol && !d_state.isInConflict() && atom[0].getType().isFunction())
+        {
+          // apply extensionality eagerly using the ho extension
+          d_ho->applyExtensionality(fact);
+        }
       }
     }
-    // don't need to assert cardinality constraints if not producing models
-    return !options::produceModels();
-  }
-  return false;
-}
-
-void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
-{
-  if (!d_state.isInConflict() && atom.getKind() == kind::EQUAL)
-  {
-    if (options::ufHo() && options::ufHoExt())
+    break;
+    case kind::CARDINALITY_CONSTRAINT:
+    case kind::COMBINED_CARDINALITY_CONSTRAINT:
     {
-      if (!pol && !d_state.isInConflict() && atom[0].getType().isFunction())
+      if (d_thss == nullptr)
       {
-        // apply extensionality eagerly using the ho extension
-        d_ho->applyExtensionality(fact);
+        if (!getLogicInfo().hasCardinalityConstraints())
+        {
+          std::stringstream ss;
+          ss << "Cardinality constraint " << atom
+             << " was asserted, but the logic does not allow it." << std::endl;
+          ss << "Try using a logic containing \"UFC\"." << std::endl;
+          throw Exception(ss.str());
+        }
+        else
+        {
+          // support for cardinality constraints is not enabled, set incomplete
+          d_im.setIncomplete(IncompleteId::UF_CARD_DISABLED);
+        }
       }
     }
+    break;
+    default: break;
   }
 }
 //--------------------------------- end standard check
 
-TrustNode TheoryUF::ppRewrite(TNode node)
+TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 {
   Trace("uf-exp-def") << "TheoryUF::ppRewrite: expanding definition : " << node
                       << std::endl;
-  if( node.getKind()==kind::HO_APPLY ){
+  Kind k = node.getKind();
+  if (k == kind::HO_APPLY)
+  {
     if( !options::ufHo() ){
       std::stringstream ss;
       ss << "Partial function applications are not supported in default mode, try --uf-ho.";
@@ -220,6 +226,18 @@ TrustNode TheoryUF::ppRewrite(TNode node)
       Trace("uf-exp-def") << "TheoryUF::ppRewrite: higher-order: " << node
                           << " to " << ret << std::endl;
       return TrustNode::mkTrustRewrite(node, ret, nullptr);
+    }
+  }
+  else if (k == kind::APPLY_UF)
+  {
+    // check for higher-order
+    // logic exception if higher-order is not enabled
+    if (isHigherOrderType(node.getOperator().getType()) && !options::ufHo())
+    {
+      std::stringstream ss;
+      ss << "UF received an application whose operator has higher-order type "
+         << node << ", which is not supported by default, try --uf-ho";
+      throw LogicException(ss.str());
     }
   }
   return TrustNode::null();
@@ -237,23 +255,30 @@ void TheoryUF::preRegisterTerm(TNode node)
   //Assert( node.getKind()!=kind::APPLY_UF || !options::ufHo() );
   Assert(node.getKind() != kind::HO_APPLY || options::ufHo());
 
-  switch (node.getKind()) {
-  case kind::EQUAL:
-    // Add the trigger for equality
-    d_equalityEngine->addTriggerPredicate(node);
-    break;
-  case kind::APPLY_UF:
-  case kind::HO_APPLY:
-    // Maybe it's a predicate
-    if (node.getType().isBoolean()) {
-      // Get triggered for both equal and dis-equal
+  Kind k = node.getKind();
+  switch (k)
+  {
+    case kind::EQUAL:
+      // Add the trigger for equality
       d_equalityEngine->addTriggerPredicate(node);
-    } else {
-      // Function applications/predicates
-      d_equalityEngine->addTerm(node);
+      break;
+    case kind::APPLY_UF:
+    case kind::HO_APPLY:
+    {
+      // Maybe it's a predicate
+      if (node.getType().isBoolean())
+      {
+        // Get triggered for both equal and dis-equal
+        d_equalityEngine->addTriggerPredicate(node);
+      }
+      else
+      {
+        // Function applications/predicates
+        d_equalityEngine->addTerm(node);
+      }
+      // Remember the function and predicate terms
+      d_functionsTerms.push_back(node);
     }
-    // Remember the function and predicate terms
-    d_functionsTerms.push_back(node);
     break;
   case kind::CARDINALITY_CONSTRAINT:
   case kind::COMBINED_CARDINALITY_CONSTRAINT:
@@ -315,7 +340,7 @@ void TheoryUF::presolve() {
         ++i) {
       Debug("uf") << "uf: generating a lemma: " << *i << std::endl;
       // no proof generator provided
-      d_im.lemma(*i);
+      d_im.lemma(*i, InferenceId::UF_BREAK_SYMMETRY);
     }
   }
   if( d_thss ){
@@ -324,12 +349,13 @@ void TheoryUF::presolve() {
   Debug("uf") << "uf: end presolve()" << endl;
 }
 
-void TheoryUF::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
+void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
+{
   //TimerStat::CodeTimer codeTimer(d_staticLearningTimer);
 
   vector<TNode> workList;
   workList.push_back(n);
-  std::unordered_set<TNode, TNodeHashFunction> processed;
+  std::unordered_set<TNode> processed;
 
   while(!workList.empty()) {
     n = workList.back();
@@ -443,7 +469,7 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
   if(options::ufSymmetryBreaker()) {
     d_symb.assertFormula(n);
   }
-}/* TheoryUF::ppStaticLearn() */
+} /* TheoryUF::ppStaticLearn() */
 
 EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b) {
 
@@ -646,6 +672,28 @@ void TheoryUF::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
   }
 }
 
-} /* namespace CVC4::theory::uf */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+bool TheoryUF::isHigherOrderType(TypeNode tn)
+{
+  Assert(tn.isFunction());
+  std::map<TypeNode, bool>::iterator it = d_isHoType.find(tn);
+  if (it != d_isHoType.end())
+  {
+    return it->second;
+  }
+  bool ret = false;
+  const std::vector<TypeNode>& argTypes = tn.getArgTypes();
+  for (const TypeNode& tnc : argTypes)
+  {
+    if (tnc.isFunction())
+    {
+      ret = true;
+      break;
+    }
+  }
+  d_isHoType[tn] = ret;
+  return ret;
+}
+
+}  // namespace uf
+}  // namespace theory
+}  // namespace cvc5

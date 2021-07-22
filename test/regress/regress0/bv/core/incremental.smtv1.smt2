@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(set-info :status unknown)
+(set-info :status unsat)
 (set-logic QF_BV)
 (declare-fun v4 () (_ BitVec 16))
 (declare-fun dummy4 () (_ BitVec 1))

@@ -1,26 +1,25 @@
-/*********************                                                        */
-/*! \file options_template.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Contains code for handling command-line options.
- **
- ** Contains code for handling command-line options
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Contains code for handling command-line options.
+ */
 
 #if !defined(_BSD_SOURCE) && defined(__MINGW32__) && !defined(__MINGW64__)
 // force use of optreset; mingw32 croaks on argv-switching otherwise
-#  include "cvc4autoconfig.h"
-#  define _BSD_SOURCE
-#  undef HAVE_DECL_OPTRESET
-#  define HAVE_DECL_OPTRESET 1
-#  define CVC4_IS_NOT_REALLY_BSD
+#include "base/cvc5config.h"
+#define _BSD_SOURCE
+#undef HAVE_DECL_OPTRESET
+#define HAVE_DECL_OPTRESET 1
+#define CVC5_IS_NOT_REALLY_BSD
 #endif /* !_BSD_SOURCE && __MINGW32__ && !__MINGW64__ */
 
 #ifdef __MINGW64__
@@ -30,9 +29,9 @@ extern int optreset;
 #include <getopt.h>
 
 // clean up
-#ifdef CVC4_IS_NOT_REALLY_BSD
+#ifdef CVC5_IS_NOT_REALLY_BSD
 #  undef _BSD_SOURCE
-#endif /* CVC4_IS_NOT_REALLY_BSD */
+#endif /* CVC5_IS_NOT_REALLY_BSD */
 
 #include <unistd.h>
 #include <string.h>
@@ -55,20 +54,18 @@ extern int optreset;
 #include "options/options_handler.h"
 #include "options/options_listener.h"
 
+// clang-format off
 ${headers_module}$
 
-
-#include "options/options_holder.h"
-#include "cvc4autoconfig.h"
-#include "options/base_handlers.h"
+#include "base/cvc5config.h"
 
 ${headers_handler}$
 
+using namespace cvc5;
+using namespace cvc5::options;
+// clang-format on
 
-using namespace CVC4;
-using namespace CVC4::options;
-
-namespace CVC4 {
+namespace cvc5 {
 
 thread_local Options* Options::s_current = NULL;
 
@@ -84,7 +81,9 @@ thread_local Options* Options::s_current = NULL;
  */
 template <class T, bool is_numeric, bool is_integer>
 struct OptionHandler {
-  static T handle(std::string option, std::string optionarg);
+  static T handle(const std::string& option,
+                  const std::string& flag,
+                  const std::string& optionarg);
 };/* struct OptionHandler<> */
 
 /** Variant for integral C++ types */
@@ -101,32 +100,35 @@ struct OptionHandler<T, true, true> {
     return str.find('-') != std::string::npos;
   }
 
-  static T handle(const std::string& option, const std::string& optionarg) {
+  static T handle(const std::string& option,
+                  const std::string& flag,
+                  const std::string& optionarg)
+  {
     try {
       T i;
       bool success = stringToInt(i, optionarg);
 
       if(!success){
-        throw OptionException(option + ": failed to parse "+ optionarg +
-                              " as an integer of the appropriate type.");
+        throw OptionException(flag + ": failed to parse " + optionarg
+                              + " as an integer of the appropriate type.");
       }
 
       // Depending in the platform unsigned numbers with '-' signs may parse.
       // Reject these by looking for any minus if it is not signed.
       if( (! std::numeric_limits<T>::is_signed) && containsMinus(optionarg) ) {
         // unsigned type but user gave negative argument
-        throw OptionException(option + " requires a nonnegative argument");
+        throw OptionException(flag + " requires a nonnegative argument");
       } else if(i < std::numeric_limits<T>::min()) {
         // negative overflow for type
         std::stringstream ss;
-        ss << option << " requires an argument >= "
-           << std::numeric_limits<T>::min();
+        ss << flag
+           << " requires an argument >= " << std::numeric_limits<T>::min();
         throw OptionException(ss.str());
       } else if(i > std::numeric_limits<T>::max()) {
         // positive overflow for type
         std::stringstream ss;
-        ss << option << " requires an argument <= "
-           << std::numeric_limits<T>::max();
+        ss << flag
+           << " requires an argument <= " << std::numeric_limits<T>::max();
         throw OptionException(ss.str());
       }
 
@@ -139,7 +141,7 @@ struct OptionHandler<T, true, true> {
       // }
     } catch(std::invalid_argument&) {
       // user gave something other than an integer
-      throw OptionException(option + " requires an integer argument");
+      throw OptionException(flag + " requires an integer argument");
     }
   }
 };/* struct OptionHandler<T, true, true> */
@@ -147,29 +149,33 @@ struct OptionHandler<T, true, true> {
 /** Variant for numeric but non-integral C++ types */
 template <class T>
 struct OptionHandler<T, true, false> {
-  static T handle(std::string option, std::string optionarg) {
-    std::stringstream in(optionarg);
+  static T handle(const std::string& option,
+                  const std::string& flag,
+                  const std::string& optionarg)
+  {
+    std::stringstream inss(optionarg);
     long double r;
-    in >> r;
-    if(! in.eof()) {
+    inss >> r;
+    if (!inss.eof())
+    {
       // we didn't consume the whole string (junk at end)
-      throw OptionException(option + " requires a numeric argument");
+      throw OptionException(flag + " requires a numeric argument");
     }
 
     if(! std::numeric_limits<T>::is_signed && r < 0.0) {
       // unsigned type but user gave negative value
-      throw OptionException(option + " requires a nonnegative argument");
+      throw OptionException(flag + " requires a nonnegative argument");
     } else if(r < -std::numeric_limits<T>::max()) {
       // negative overflow for type
       std::stringstream ss;
-      ss << option << " requires an argument >= "
-         << -std::numeric_limits<T>::max();
+      ss << flag
+         << " requires an argument >= " << -std::numeric_limits<T>::max();
       throw OptionException(ss.str());
     } else if(r > std::numeric_limits<T>::max()) {
       // positive overflow for type
       std::stringstream ss;
-      ss << option << " requires an argument <= "
-         << std::numeric_limits<T>::max();
+      ss << flag
+         << " requires an argument <= " << std::numeric_limits<T>::max();
       throw OptionException(ss.str());
     }
 
@@ -180,7 +186,10 @@ struct OptionHandler<T, true, false> {
 /** Variant for non-numeric C++ types */
 template <class T>
 struct OptionHandler<T, false, false> {
-  static T handle(std::string option, std::string optionarg) {
+  static T handle(const std::string& option,
+                  const std::string& flag,
+                  const std::string& optionarg)
+  {
     T::unsupported_handleOption_call___please_write_me;
     // The above line causes a compiler error if this version of the template
     // is ever instantiated (meaning that a specialization is missing).  So
@@ -193,88 +202,66 @@ struct OptionHandler<T, false, false> {
 
 /** Handle an option of type T in the default way. */
 template <class T>
-T handleOption(std::string option, std::string optionarg) {
-  return OptionHandler<T, std::numeric_limits<T>::is_specialized, std::numeric_limits<T>::is_integer>::handle(option, optionarg);
+T handleOption(const std::string& option,
+               const std::string& flag,
+               const std::string& optionarg)
+{
+  return OptionHandler<T,
+                       std::numeric_limits<T>::is_specialized,
+                       std::numeric_limits<T>::is_integer>::handle(option,
+                                                                   flag,
+                                                                   optionarg);
 }
 
 /** Handle an option of type std::string in the default way. */
 template <>
-std::string handleOption<std::string>(std::string option, std::string optionarg) {
+std::string handleOption<std::string>(const std::string& option,
+                                      const std::string& flag,
+                                      const std::string& optionarg)
+{
   return optionarg;
 }
 
-/**
- * Run handler, and any user-given predicates, for option T.
- * If a user specifies a :handler or :predicates, it overrides this.
- */
-template <class T>
-typename T::type runHandlerAndPredicates(T, std::string option, std::string optionarg, options::OptionsHandler* handler) {
-  // By default, parse the option argument in a way appropriate for its type.
-  // E.g., for "unsigned int" options, ensure that the provided argument is
-  // a nonnegative integer that fits in the unsigned int type.
-
-  return handleOption<typename T::type>(option, optionarg);
-}
-
-template <class T>
-void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* handler) {
-  // By default, nothing to do for bool.  Users add things with
-  // :predicate in options files to provide custom checking routines
-  // that can throw exceptions.
-}
-
 Options::Options(OptionsListener* ol)
-    : d_holder(new options::OptionsHolder()),
-      d_handler(new options::OptionsHandler(this)),
+    : d_handler(new options::OptionsHandler(this)),
+// clang-format off
+${holder_mem_inits}$
+${holder_ref_inits}$
+// clang-format on
       d_olisten(ol)
 {}
 
 Options::~Options() {
   delete d_handler;
-  delete d_holder;
 }
 
 void Options::copyValues(const Options& options){
   if(this != &options) {
-    delete d_holder;
-    d_holder = new options::OptionsHolder(*options.d_holder);
+// clang-format off
+${holder_mem_copy}$
+// clang-format on
   }
-}
-
-std::string Options::formatThreadOptionException(const std::string& option) {
-  std::stringstream ss;
-  ss << "can't understand option `" << option
-     << "': expected something like --threadN=\"--option1 --option2\","
-     << " where N is a nonnegative integer";
-  return ss.str();
 }
 
 void Options::setListener(OptionsListener* ol) { d_olisten = ol; }
 
+// clang-format off
 ${custom_handlers}$
+// clang-format on
 
-#if defined(CVC4_MUZZLED) || defined(CVC4_COMPETITION_MODE)
-#  define DO_SEMANTIC_CHECKS_BY_DEFAULT false
-#else /* CVC4_MUZZLED || CVC4_COMPETITION_MODE */
-#  define DO_SEMANTIC_CHECKS_BY_DEFAULT true
-#endif /* CVC4_MUZZLED || CVC4_COMPETITION_MODE */
+static const std::string mostCommonOptionsDescription =
+    "\
+Most commonly-used cvc5 options:\n"
+    // clang-format off
+${help_common}$
+    // clang-format on
+    ;
 
-options::OptionsHolder::OptionsHolder() :
-  ${module_defaults}$
-{
-}
-
-
-static const std::string mostCommonOptionsDescription = "\
-Most commonly-used CVC4 options:\n"
-${help_common}$;
-
-
-static const std::string optionsDescription = mostCommonOptionsDescription + "\n\
-\n\
-Additional CVC4 options:\n"
+// clang-format off
+static const std::string optionsDescription =
+    mostCommonOptionsDescription + "\n\nAdditional cvc5 options:\n"
 ${help_others}$;
-
+// clang-format on
 
 static const std::string optionsFootnote = "\n\
 [*] Each of these options has a --no-OPTIONNAME variant, which reverses the\n\
@@ -285,21 +272,16 @@ static const std::string languageDescription =
     "\
 Languages currently supported as arguments to the -L / --lang option:\n\
   auto                           attempt to automatically determine language\n\
-  cvc4 | presentation | pl       CVC4 presentation language\n\
+  cvc | presentation | pl        CVC presentation language\n\
   smt | smtlib | smt2 |\n\
-  smt2.0 | smtlib2 | smtlib2.0   SMT-LIB format 2.0\n\
-  smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format (cnf, fof and tff)\n\
   sygus | sygus2                 SyGuS version 2.0\n\
 \n\
 Languages currently supported as arguments to the --output-lang option:\n\
   auto                           match output language to input language\n\
-  cvc4 | presentation | pl       CVC4 presentation language\n\
-  cvc3                           CVC3 presentation language\n\
+  cvc | presentation | pl        CVC presentation language\n\
   smt | smtlib | smt2 |\n\
-  smt2.0 | smtlib2.0 | smtlib2   SMT-LIB format 2.0\n\
-  smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format\n\
   ast                            internal format (simple syntax trees)\n\
@@ -349,10 +331,11 @@ void Options::printLanguageHelp(std::ostream& out) {
  * If you add something that has a short option equivalent, you should
  * add it to the getopt_long() call in parseOptions().
  */
+// clang-format off
 static struct option cmdlineOptions[] = {
   ${cmdline_options}$
-  { NULL, no_argument, NULL, '\0' }
-};/* cmdlineOptions */
+  {nullptr, no_argument, nullptr, '\0'}};
+// clang-format on
 
 namespace options {
 
@@ -371,10 +354,10 @@ public:
   }
 };/* class OptionsGuard */
 
-}/* CVC4::options namespace */
+}  // namespace options
 
 /**
- * Parse argc/argv and put the result into a CVC4::Options.
+ * Parse argc/argv and put the result into a cvc5::Options.
  * The return value is what's left of the command line (that is, the
  * non-option arguments).
  *
@@ -382,7 +365,8 @@ public:
  */
 std::vector<std::string> Options::parseOptions(Options* options,
                                                int argc,
-                                               char* argv[])
+                                               char* argv[],
+                                               std::string& binaryName)
 {
   Assert(options != NULL);
   Assert(argv != NULL);
@@ -404,10 +388,10 @@ std::vector<std::string> Options::parseOptions(Options* options,
   if(x != NULL) {
     progName = x + 1;
   }
-  options->d_holder->binary_name = std::string(progName);
+  binaryName = std::string(progName);
 
   std::vector<std::string> nonoptions;
-  parseOptionsRecursive(options, argc, argv, &nonoptions);
+  options->parseOptionsRecursive(argc, argv, &nonoptions);
   if(Debug.isOn("options")){
     for(std::vector<std::string>::const_iterator i = nonoptions.begin(),
           iend = nonoptions.end(); i != iend; ++i){
@@ -418,12 +402,23 @@ std::vector<std::string> Options::parseOptions(Options* options,
   return nonoptions;
 }
 
-void Options::parseOptionsRecursive(Options* options,
-                                    int argc,
+std::string suggestCommandLineOptions(const std::string& optionName)
+{
+  DidYouMean didYouMean;
+
+  const char* opt;
+  for(size_t i = 0; (opt = cmdlineOptions[i].name) != nullptr; ++i) {
+    didYouMean.addWord(std::string("--") + cmdlineOptions[i].name);
+  }
+
+  return didYouMean.getMatchAsString(optionName.substr(0, optionName.find('=')));
+}
+
+void Options::parseOptionsRecursive(int argc,
                                     char* argv[],
                                     std::vector<std::string>* nonoptions)
 {
-
+  Options& opts = *this;
   if(Debug.isOn("options")) {
     Debug("options") << "starting a new parseOptionsRecursive with "
                      << argc << " arguments" << std::endl;
@@ -432,9 +427,6 @@ void Options::parseOptionsRecursive(Options* options,
       Debug("options") << "  argv[" << i << "] = " << argv[i] << std::endl;
     }
   }
-
-  // Having this synonym simplifies the generation code in mkoptions.
-  options::OptionsHandler* handler = options->d_handler;
 
   // Reset getopt(), in the case of multiple calls to parseOptions().
   // This can be = 1 in newer GNU getopt, but older (< 2007) require = 0.
@@ -475,9 +467,11 @@ void Options::parseOptionsRecursive(Options* options,
     Debug("options") << "[ before, optind == " << optind << " ]" << std::endl;
     Debug("options") << "[ argc == " << argc << ", argv == " << argv << " ]"
                      << std::endl;
+    // clang-format off
     int c = getopt_long(argc, argv,
                         "+:${options_short}$",
                         cmdlineOptions, NULL);
+    // clang-format on
 
     main_optind = optind;
 
@@ -509,68 +503,39 @@ void Options::parseOptionsRecursive(Options* options,
     Debug("preemptGetopt") << "processing option " << c
                            << " (`" << char(c) << "'), " << option << std::endl;
 
-    switch(c) {
+    // clang-format off
+    switch(c)
+    {
 ${options_handler}$
 
-
-    case ':':
+      case ':' :
       // This can be a long or short option, and the way to get at the
       // name of it is different.
-      throw OptionException(std::string("option `") + option +
-                            "' missing its required argument");
+      throw OptionException(std::string("option `") + option
+                            + "' missing its required argument");
 
-    case '?':
-    default:
-      throw OptionException(std::string("can't understand option `") + option +
-                            "'" + suggestCommandLineOptions(option));
+      case '?':
+      default:
+        throw OptionException(std::string("can't understand option `") + option
+                              + "'" + suggestCommandLineOptions(option));
     }
   }
+  // clang-format on
 
   Debug("options") << "got " << nonoptions->size()
                    << " non-option arguments." << std::endl;
 }
 
-std::string Options::suggestCommandLineOptions(const std::string& optionName)
-{
-  DidYouMean didYouMean;
-
-  const char* opt;
-  for(size_t i = 0; (opt = cmdlineOptions[i].name) != NULL; ++i) {
-    didYouMean.addWord(std::string("--") + cmdlineOptions[i].name);
-  }
-
-  return didYouMean.getMatchAsString(optionName.substr(0, optionName.find('=')));
-}
-
-static const char* smtOptions[] = {
-  ${options_smt}$
-  NULL
-};/* smtOptions[] */
-
-std::vector<std::string> Options::suggestSmtOptions(
-    const std::string& optionName)
-{
-  std::vector<std::string> suggestions;
-
-  const char* opt;
-  for(size_t i = 0; (opt = smtOptions[i]) != NULL; ++i) {
-    if(std::strstr(opt, optionName.c_str()) != NULL) {
-      suggestions.push_back(opt);
-    }
-  }
-
-  return suggestions;
-}
-
+// clang-format off
 std::vector<std::vector<std::string> > Options::getOptions() const
 {
   std::vector< std::vector<std::string> > opts;
 
   ${options_getoptions}$
 
-
   return opts;
 }
+// clang-format on
 
 void Options::setOption(const std::string& key, const std::string& optionarg)
 {
@@ -585,24 +550,27 @@ void Options::setOption(const std::string& key, const std::string& optionarg)
   }
 }
 
+// clang-format off
 void Options::setOptionInternal(const std::string& key,
                                 const std::string& optionarg)
 {
   options::OptionsHandler* handler = d_handler;
-  Options* options = this;
+  Options& opts = *this;
   ${setoption_handlers}$
   throw UnrecognizedOptionException(key);
 }
+// clang-format on
 
+// clang-format off
 std::string Options::getOption(const std::string& key) const
 {
   Trace("options") << "Options::getOption(" << key << ")" << std::endl;
+  const Options& options = *this;
   ${getoption_handlers}$
 
   throw UnrecognizedOptionException(key);
 }
+// clang-format on
 
-#undef USE_EARLY_TYPE_CHECKING_BY_DEFAULT
-#undef DO_SEMANTIC_CHECKS_BY_DEFAULT
+}  // namespace cvc5
 
-}  // namespace CVC4

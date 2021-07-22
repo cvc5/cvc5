@@ -4,13 +4,13 @@
 # src/theory/builtin/kinds.
 #
 
-theory THEORY_ARITH ::CVC4::theory::arith::TheoryArith "theory/arith/theory_arith.h"
+theory THEORY_ARITH ::cvc5::theory::arith::TheoryArith "theory/arith/theory_arith.h"
 typechecker "theory/arith/theory_arith_type_rules.h"
 
 properties stable-infinite
 properties check propagate ppStaticLearn presolve notifyRestart
 
-rewriter ::CVC4::theory::arith::ArithRewriter "theory/arith/arith_rewriter.h"
+rewriter ::cvc5::theory::arith::ArithRewriter "theory/arith/arith_rewriter.h"
 
 operator PLUS 2: "arithmetic addition (N-ary)"
 operator MULT 2: "arithmetic multiplication (N-ary)"
@@ -26,6 +26,7 @@ operator INTS_MODULUS_TOTAL 2 "integer modulus with interpreted division by 0 (i
 operator ABS 1 "absolute value"
 parameterized DIVISIBLE DIVISIBLE_OP 1 "divisibility-by-k predicate; first parameter is a DIVISIBLE_OP, second is integer term"
 operator POW 2 "arithmetic power"
+operator POW2 1 "arithmetic power of 2"
 
 operator EXPONENTIAL 1 "exponential"
 operator SINE 1 "sine"
@@ -44,10 +45,11 @@ operator ARCCOTANGENT 1 "arc cotangent"
 operator SQRT 1 "square root"
 
 constant DIVISIBLE_OP \
-        ::CVC4::Divisible \
-        ::CVC4::DivisibleHashFunction \
-        "util/divisible.h" \
-        "operator for the divisibility-by-k predicate; payload is an instance of the CVC4::Divisible class"
+  struct \
+  Divisible \
+  ::cvc5::DivisibleHashFunction \
+  "util/divisible.h" \
+  "operator for the divisibility-by-k predicate; payload is an instance of the cvc5::Divisible class"
 
 sort REAL_TYPE \
     Cardinality::REALS \
@@ -63,16 +65,17 @@ sort INTEGER_TYPE \
     "integer type"
 
 constant CONST_RATIONAL \
-    ::CVC4::Rational \
-    ::CVC4::RationalHashFunction \
+    class \
+    Rational \
+    ::cvc5::RationalHashFunction \
     "util/rational.h" \
-    "a multiple-precision rational constant; payload is an instance of the CVC4::Rational class"
+    "a multiple-precision rational constant; payload is an instance of the cvc5::Rational class"
 
 enumerator REAL_TYPE \
-    "::CVC4::theory::arith::RationalEnumerator" \
+    "::cvc5::theory::arith::RationalEnumerator" \
     "theory/arith/type_enumerator.h"
 enumerator INTEGER_TYPE \
-    "::CVC4::theory::arith::IntegerEnumerator" \
+    "::cvc5::theory::arith::IntegerEnumerator" \
     "theory/arith/type_enumerator.h"
 
 operator LT 2 "less than, x < y"
@@ -80,9 +83,18 @@ operator LEQ 2 "less than or equal, x <= y"
 operator GT 2 "greater than, x > y"
 operator GEQ 2 "greater than or equal, x >= y"
 
-operator IS_INTEGER   1 "term-is-integer predicate (parameter is a real-sorted term)"
-operator TO_INTEGER   1 "convert term to integer by the floor function (parameter is a real-sorted term)"
-operator TO_REAL      1 "cast term to real (parameter is an integer-sorted term; this is a no-op in CVC4, as integer is a subtype of real)"
+# represents an indexed root predicate. See util/indexed_root_predicate.h for more documentation.
+constant INDEXED_ROOT_PREDICATE_OP \
+  struct \
+  IndexedRootPredicate \
+  ::cvc5::IndexedRootPredicateHashFunction \
+  "util/indexed_root_predicate.h" \
+  "operator for the indexed root predicate; payload is an instance of the cvc5::IndexedRootPredicate class"
+parameterized INDEXED_ROOT_PREDICATE INDEXED_ROOT_PREDICATE_OP 2 "indexed root predicate; first parameter is a INDEXED_ROOT_PREDICATE_OP, second is a real variable compared to zero, third is a polynomial"
+
+operator IS_INTEGER 1 "term-is-integer predicate (parameter is a real-sorted term)"
+operator TO_INTEGER 1 "convert term to integer by the floor function (parameter is a real-sorted term)"
+operator TO_REAL 1 "cast term to real (parameter is an integer-sorted term; this is a no-op in cvc5, as integer is a subtype of real)"
 
 # CAST_TO_REAL is added to distinguish between integers casted to reals internally, and
 # integers casted to reals or using the API \
@@ -91,25 +103,28 @@ operator TO_REAL      1 "cast term to real (parameter is an integer-sorted term;
 # This way, we avoid having 2 nested TO_REAL nodess as a result of Solver::mkTerm(TO_REAL, Solver::mkReal(int val))
 operator CAST_TO_REAL 1 "cast term to real same as TO_REAL, but it is used internally, whereas TO_REAL is accessible in the API"
 
-typerule PLUS ::CVC4::theory::arith::ArithOperatorTypeRule
-typerule MULT ::CVC4::theory::arith::ArithOperatorTypeRule
-typerule NONLINEAR_MULT ::CVC4::theory::arith::ArithOperatorTypeRule
-typerule MINUS ::CVC4::theory::arith::ArithOperatorTypeRule
-typerule UMINUS ::CVC4::theory::arith::ArithOperatorTypeRule
-typerule DIVISION ::CVC4::theory::arith::ArithOperatorTypeRule
-typerule POW ::CVC4::theory::arith::ArithOperatorTypeRule
+typerule PLUS ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule MULT ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule NONLINEAR_MULT ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule MINUS ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule UMINUS ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule DIVISION ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule POW ::cvc5::theory::arith::ArithOperatorTypeRule
 
-typerule CONST_RATIONAL ::CVC4::theory::arith::ArithConstantTypeRule
+typerule CONST_RATIONAL ::cvc5::theory::arith::ArithConstantTypeRule
 
 typerule LT "SimpleTypeRule<RBool, AReal, AReal>"
 typerule LEQ "SimpleTypeRule<RBool, AReal, AReal>"
 typerule GT "SimpleTypeRule<RBool, AReal, AReal>"
 typerule GEQ "SimpleTypeRule<RBool, AReal, AReal>"
 
-typerule TO_REAL      ::CVC4::theory::arith::ArithOperatorTypeRule
-typerule CAST_TO_REAL ::CVC4::theory::arith::ArithOperatorTypeRule
-typerule TO_INTEGER   ::CVC4::theory::arith::ArithOperatorTypeRule
-typerule IS_INTEGER   "SimpleTypeRule<RBool, AReal>"
+typerule INDEXED_ROOT_PREDICATE_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule INDEXED_ROOT_PREDICATE ::cvc5::theory::arith::IndexedRootPredicateTypeRule
+
+typerule TO_REAL ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule CAST_TO_REAL ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule TO_INTEGER ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule IS_INTEGER "SimpleTypeRule<RBool, AReal>"
 
 typerule ABS "SimpleTypeRule<RInteger, AInteger>"
 typerule INTS_DIVISION "SimpleTypeRule<RInteger, AInteger, AInteger>"
@@ -117,7 +132,7 @@ typerule INTS_MODULUS "SimpleTypeRule<RInteger, AInteger, AInteger>"
 typerule DIVISIBLE "SimpleTypeRule<RBool, AInteger>"
 typerule DIVISIBLE_OP "SimpleTypeRule<RBuiltinOperator>"
 
-typerule DIVISION_TOTAL ::CVC4::theory::arith::ArithOperatorTypeRule
+typerule DIVISION_TOTAL ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule INTS_DIVISION_TOTAL "SimpleTypeRule<RInteger, AInteger, AInteger>"
 typerule INTS_MODULUS_TOTAL "SimpleTypeRule<RInteger, AInteger, AInteger>"
 
@@ -134,25 +149,27 @@ typerule ARCTANGENT "SimpleTypeRule<RReal, AReal>"
 typerule ARCCOSECANT "SimpleTypeRule<RReal, AReal>"
 typerule ARCSECANT "SimpleTypeRule<RReal, AReal>"
 typerule ARCCOTANGENT "SimpleTypeRule<RReal, AReal>"
+typerule POW2 "SimpleTypeRule<RInteger, AInteger>"
 
 typerule SQRT "SimpleTypeRule<RReal, AReal>"
 
 nullaryoperator PI "pi"
 
-typerule PI ::CVC4::theory::arith::RealNullaryOperatorTypeRule
+typerule PI ::cvc5::theory::arith::RealNullaryOperatorTypeRule
 
 # Integer AND, which is parameterized by a (positive) bitwidth k.
 # ((_ iand k) i1 i2) is equivalent to:
 # (bv2int (bvand ((_ int2bv k) i1) ((_ int2bv k) i2)))
 # for all integers i1, i2.
 constant IAND_OP \
-	::CVC4::IntAnd \
-	"::CVC4::UnsignedHashFunction< ::CVC4::IntAnd >" \
-	"util/iand.h" \
-	"operator for integer AND; payload is an instance of the CVC4::IntAnd class"
+  struct \
+  IntAnd \
+  "::cvc5::UnsignedHashFunction< ::cvc5::IntAnd >" \
+  "util/iand.h" \
+  "operator for integer AND; payload is an instance of the cvc5::IntAnd class"
 parameterized IAND IAND_OP 2 "integer version of AND operator; first parameter is an IAND_OP, second and third are integer terms"
 
-typerule IAND_OP ::CVC4::theory::arith::IAndOpTypeRule
-typerule IAND ::CVC4::theory::arith::IAndTypeRule
+typerule IAND_OP ::cvc5::theory::arith::IAndOpTypeRule
+typerule IAND ::cvc5::theory::arith::IAndTypeRule
 
 endtheory

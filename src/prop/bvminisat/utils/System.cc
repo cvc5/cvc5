@@ -25,7 +25,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <stdio.h>
 #include <stdlib.h>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace BVMinisat {
 
 // TODO: split the memory reading functions into two: one for reading high-watermark of RSS, and
@@ -95,6 +95,5 @@ double BVMinisat::memUsed() {
     return 0; }
 #endif
 
-
-} /* CVC4::BVMinisat namespace */
-} /* CVC4 namespace */
+} /* cvc5::BVMinisat namespace */
+} /* cvc5 namespace */

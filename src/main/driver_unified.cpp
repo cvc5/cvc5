@@ -1,20 +1,22 @@
-/*********************                                                        */
-/*! \file driver_unified.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Liana Hadarean, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Driver for CVC4 executable (cvc4)
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Liana Hadarean, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Driver for cvc5 executable (cvc5).
+ */
 
 #include <stdio.h>
 #include <unistd.h>
 
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -22,75 +24,78 @@
 #include <memory>
 #include <new>
 
-#include "cvc4autoconfig.h"
-
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/configuration.h"
+#include "base/cvc5config.h"
 #include "base/output.h"
-#include "expr/expr_iomanip.h"
-#include "expr/expr_manager.h"
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
 #include "main/main.h"
 #include "main/signal_handlers.h"
 #include "main/time_limit.h"
+#include "options/base_options.h"
 #include "options/options.h"
+#include "options/parser_options.h"
+#include "options/main_options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "parser/parser_exception.h"
 #include "smt/command.h"
+#include "smt/smt_engine.h"
 #include "util/result.h"
-#include "util/statistics_registry.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::parser;
-using namespace CVC4::main;
+using namespace cvc5;
+using namespace cvc5::parser;
+using namespace cvc5::main;
 
-namespace CVC4 {
-  namespace main {
-    /** Global options variable */
-    thread_local Options* pOptions;
+namespace cvc5 {
+namespace main {
 
-    /** Full argv[0] */
-    const char *progPath;
+/** Full argv[0] */
+const char* progPath;
 
-    /** Just the basename component of argv[0] */
-    const std::string *progName;
+/** Just the basename component of argv[0] */
+std::string progName;
 
-    /** A pointer to the CommandExecutor (the signal handlers need it) */
-    CVC4::main::CommandExecutor* pExecutor = nullptr;
+/** A pointer to the CommandExecutor (the signal handlers need it) */
+std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
 
-    /** A pointer to the totalTime driver stat (the signal handlers need it) */
-    CVC4::TimerStat* pTotalTime = nullptr;
+/** The time point the binary started, accessible to signal handlers */
+std::unique_ptr<TotalTimer> totalTime;
 
-  }/* CVC4::main namespace */
-}/* CVC4 namespace */
+TotalTimer::~TotalTimer()
+{
+  if (pExecutor != nullptr)
+  {
+    auto duration = std::chrono::steady_clock::now() - d_start;
+    pExecutor->getSmtEngine()->setTotalTimeStatistic(
+        std::chrono::duration<double>(duration).count());
+  }
+    }
 
+    }  // namespace main
+    }  // namespace cvc5
 
-void printUsage(Options& opts, bool full) {
+void printUsage(const Options& opts, bool full) {
   stringstream ss;
-  ss << "usage: " << opts.getBinaryName() << " [options] [input-file]"
-     << endl << endl
-     << "Without an input file, or with `-', CVC4 reads from standard input."
-     << endl << endl
-     << "CVC4 options:" << endl;
+  ss << "usage: " << progName << " [options] [input-file]"
+     << endl
+     << endl
+     << "Without an input file, or with `-', cvc5 reads from standard input."
+     << endl
+     << endl
+     << "cvc5 options:" << endl;
   if(full) {
-    Options::printUsage( ss.str(), *(opts.getOut()) );
+    Options::printUsage(ss.str(), *opts.base.out);
   } else {
-    Options::printShortUsage( ss.str(), *(opts.getOut()) );
+    Options::printShortUsage(ss.str(), *opts.base.out);
   }
 }
 
-int runCvc4(int argc, char* argv[], Options& opts) {
-
-  // Timer statistic
-  pTotalTime = new TimerStat("totalTime");
-  pTotalTime->start();
-
-  // For the signal handlers' benefit
-  pOptions = &opts;
+int runCvc5(int argc, char* argv[], Options& opts)
+{
+  main::totalTime = std::make_unique<TotalTimer>();
 
   // Initialize the signal handlers
   signal_handlers::install();
@@ -98,30 +103,33 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   progPath = argv[0];
 
   // Parse the options
-  vector<string> filenames = Options::parseOptions(&opts, argc, argv);
+  std::vector<string> filenames =
+      Options::parseOptions(&opts, argc, argv, progName);
 
-  install_time_limit(opts);
+  auto limit = install_time_limit(opts);
 
-  string progNameStr = opts.getBinaryName();
-  progName = &progNameStr;
-
-  if( opts.getHelp() ) {
+  if (opts.driver.help)
+  {
     printUsage(opts, true);
     exit(1);
-  } else if( opts.getLanguageHelp() ) {
-    Options::printLanguageHelp(*(opts.getOut()));
+  }
+  else if (opts.base.languageHelp)
+  {
+    Options::printLanguageHelp(*opts.base.out);
     exit(1);
-  } else if( opts.getVersion() ) {
-    *(opts.getOut()) << Configuration::about().c_str() << flush;
+  }
+  else if (opts.driver.version)
+  {
+    *opts.base.out << Configuration::about().c_str() << flush;
     exit(0);
   }
 
-  segvSpin = opts.getSegvSpin();
+  segvSpin = opts.driver.segvSpin;
 
   // If in competition mode, set output stream option to flush immediately
-#ifdef CVC4_COMPETITION_MODE
-  *(opts.getOut()) << unitbuf;
-#endif /* CVC4_COMPETITION_MODE */
+#ifdef CVC5_COMPETITION_MODE
+  *opts.base.out << unitbuf;
+#endif /* CVC5_COMPETITION_MODE */
 
   // We only accept one input file
   if(filenames.size() > 1) {
@@ -132,8 +140,9 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   const bool inputFromStdin = filenames.empty() || filenames[0] == "-";
 
   // if we're reading from stdin on a TTY, default to interactive mode
-  if(!opts.wasSetByUserInteractive()) {
-    opts.setInteractive(inputFromStdin && isatty(fileno(stdin)));
+  if (!opts.driver.interactiveWasSetByUser)
+  {
+    opts.driver.interactive = inputFromStdin && isatty(fileno(stdin));
   }
 
   // Auto-detect input language by filename extension
@@ -145,94 +154,89 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   }
   const char* filename = filenameStr.c_str();
 
-  if(opts.getInputLanguage() == language::input::LANG_AUTO) {
+  if (opts.base.inputLanguage == language::input::LANG_AUTO)
+  {
     if( inputFromStdin ) {
       // We can't do any fancy detection on stdin
-      opts.setInputLanguage(language::input::LANG_CVC4);
+      opts.base.inputLanguage = language::input::LANG_CVC;
     } else {
-      unsigned len = filenameStr.size();
+      size_t len = filenameStr.size();
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
-        opts.setInputLanguage(language::input::LANG_SMTLIB_V2_6);
+        opts.base.inputLanguage = language::input::LANG_SMTLIB_V2_6;
       } else if((len >= 2 && !strcmp(".p", filename + len - 2))
                 || (len >= 5 && !strcmp(".tptp", filename + len - 5))) {
-        opts.setInputLanguage(language::input::LANG_TPTP);
+        opts.base.inputLanguage = language::input::LANG_TPTP;
       } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
                 || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
-        opts.setInputLanguage(language::input::LANG_CVC4);
+        opts.base.inputLanguage = language::input::LANG_CVC;
       } else if((len >= 3 && !strcmp(".sy", filename + len - 3))
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
         // version 2 sygus is the default
-        opts.setInputLanguage(language::input::LANG_SYGUS_V2);
+        opts.base.inputLanguage = language::input::LANG_SYGUS_V2;
       }
     }
   }
 
-  if(opts.getOutputLanguage() == language::output::LANG_AUTO) {
-    opts.setOutputLanguage(language::toOutputLanguage(opts.getInputLanguage()));
+  if (opts.base.outputLanguage == language::output::LANG_AUTO)
+  {
+    opts.base.outputLanguage = language::toOutputLanguage(opts.base.inputLanguage);
   }
 
   // Determine which messages to show based on smtcomp_mode and verbosity
   if(Configuration::isMuzzledBuild()) {
-    DebugChannel.setStream(&CVC4::null_os);
-    TraceChannel.setStream(&CVC4::null_os);
-    NoticeChannel.setStream(&CVC4::null_os);
-    ChatChannel.setStream(&CVC4::null_os);
-    MessageChannel.setStream(&CVC4::null_os);
-    WarningChannel.setStream(&CVC4::null_os);
+    DebugChannel.setStream(&cvc5::null_os);
+    TraceChannel.setStream(&cvc5::null_os);
+    NoticeChannel.setStream(&cvc5::null_os);
+    ChatChannel.setStream(&cvc5::null_os);
+    MessageChannel.setStream(&cvc5::null_os);
+    WarningChannel.setStream(&cvc5::null_os);
   }
 
   // important even for muzzled builds (to get result output right)
-  (*(opts.getOut())) << language::SetLanguage(opts.getOutputLanguage());
+  (*opts.base.out)
+      << language::SetLanguage(opts.base.outputLanguage);
 
   // Create the command executor to execute the parsed commands
-  pExecutor = new CommandExecutor(opts);
+  pExecutor = std::make_unique<CommandExecutor>(opts);
 
   int returnValue = 0;
   {
-    // Timer statistic
-    RegisterStatistic statTotalTime(&pExecutor->getStatisticsRegistry(),
-                                    pTotalTime);
-
-    // Filename statistics
-    ReferenceStat<std::string> s_statFilename("filename", filenameStr);
-    RegisterStatistic statFilenameReg(&pExecutor->getStatisticsRegistry(),
-                                      &s_statFilename);
     // notify SmtEngine that we are starting to parse
     pExecutor->getSmtEngine()->notifyStartParsing(filenameStr);
 
     // Parse and execute commands until we are done
     std::unique_ptr<Command> cmd;
     bool status = true;
-    if(opts.getInteractive() && inputFromStdin) {
-      if(opts.getTearDownIncremental() > 0) {
-        throw OptionException(
-            "--tear-down-incremental doesn't work in interactive mode");
-      }
-      if(!opts.wasSetByUserIncrementalSolving()) {
+    if (opts.driver.interactive && inputFromStdin)
+    {
+      if (!opts.base.incrementalSolvingWasSetByUser)
+      {
         cmd.reset(new SetOptionCommand("incremental", "true"));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
       }
       InteractiveShell shell(pExecutor->getSolver(),
                              pExecutor->getSymbolManager());
-      if(opts.getInteractivePrompt()) {
-        Message() << Configuration::getPackageName()
-                  << " " << Configuration::getVersionString();
+      if (opts.driver.interactivePrompt)
+      {
+        CVC5Message() << Configuration::getPackageName() << " "
+                      << Configuration::getVersionString();
         if(Configuration::isGitBuild()) {
-          Message() << " [" << Configuration::getGitId() << "]";
+          CVC5Message() << " [" << Configuration::getGitId() << "]";
         }
-        Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
-                  << " assertions:"
-                  << (Configuration::isAssertionBuild() ? "on" : "off")
-                  << endl << endl;
-        Message() << Configuration::copyright() << endl;
+        CVC5Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
+                      << " assertions:"
+                      << (Configuration::isAssertionBuild() ? "on" : "off")
+                      << endl
+                      << endl;
+        CVC5Message() << Configuration::copyright() << endl;
       }
 
       while(true) {
         try {
           cmd.reset(shell.readCommand());
         } catch(UnsafeInterruptException& e) {
-          (*opts.getOut()) << CommandInterrupted();
+          *opts.base.out << CommandInterrupted();
           break;
         }
         if (cmd == nullptr)
@@ -242,174 +246,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           break;
         }
       }
-    } else if( opts.getTearDownIncremental() > 0) {
-      if(!opts.getIncrementalSolving() && opts.getTearDownIncremental() > 1) {
-        // For tear-down-incremental values greater than 1, need incremental
-        // on too.
-        cmd.reset(new SetOptionCommand("incremental", "true"));
-        cmd->setMuted(true);
-        pExecutor->doCommand(cmd);
-        // if(opts.wasSetByUserIncrementalSolving()) {
-        //   throw OptionException(
-        //     "--tear-down-incremental incompatible with --incremental");
-        // }
-
-        // cmd.reset(new SetOptionCommand("incremental", SExpr(false)));
-        // cmd->setMuted(true);
-        // pExecutor->doCommand(cmd);
-      }
-
-      ParserBuilder parserBuilder(pExecutor->getSolver(),
-                                  pExecutor->getSymbolManager(),
-                                  filename,
-                                  opts);
-
-      if( inputFromStdin ) {
-#if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
-        parserBuilder.withStreamInput(cin);
-#else /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
-        parserBuilder.withLineBufferedStreamInput(cin);
-#endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
-      }
-
-      vector< vector<Command*> > allCommands;
-      allCommands.push_back(vector<Command*>());
-      std::unique_ptr<Parser> parser(parserBuilder.build());
-      int needReset = 0;
-      // true if one of the commands was interrupted
-      bool interrupted = false;
-      while (status)
+    }
+    else
+    {
+      if (!opts.base.incrementalSolvingWasSetByUser)
       {
-        if (interrupted) {
-          (*opts.getOut()) << CommandInterrupted();
-          break;
-        }
-
-        try {
-          cmd.reset(parser->nextCommand());
-          if (cmd == nullptr) break;
-        } catch (UnsafeInterruptException& e) {
-          interrupted = true;
-          continue;
-        }
-
-        if(dynamic_cast<PushCommand*>(cmd.get()) != nullptr) {
-          if(needReset >= opts.getTearDownIncremental()) {
-            pExecutor->reset();
-            for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
-              if (interrupted) break;
-              for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j)
-              {
-                Command* ccmd = allCommands[i][j]->clone();
-                ccmd->setMuted(true);
-                pExecutor->doCommand(ccmd);
-                if (ccmd->interrupted())
-                {
-                  interrupted = true;
-                }
-                delete ccmd;
-              }
-            }
-            needReset = 0;
-          }
-          allCommands.push_back(vector<Command*>());
-          Command* copy = cmd->clone();
-          allCommands.back().push_back(copy);
-          status = pExecutor->doCommand(cmd);
-          if(cmd->interrupted()) {
-            interrupted = true;
-            continue;
-          }
-        } else if(dynamic_cast<PopCommand*>(cmd.get()) != nullptr) {
-          allCommands.pop_back(); // fixme leaks cmds here
-          if (needReset >= opts.getTearDownIncremental()) {
-            pExecutor->reset();
-            for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
-              for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j)
-              {
-                std::unique_ptr<Command> ccmd(allCommands[i][j]->clone());
-                ccmd->setMuted(true);
-                pExecutor->doCommand(ccmd);
-                if (ccmd->interrupted())
-                {
-                  interrupted = true;
-                }
-              }
-            }
-            if (interrupted) continue;
-            (*opts.getOut()) << CommandSuccess();
-            needReset = 0;
-          } else {
-            status = pExecutor->doCommand(cmd);
-            if(cmd->interrupted()) {
-              interrupted = true;
-              continue;
-            }
-          }
-        } else if(dynamic_cast<CheckSatCommand*>(cmd.get()) != nullptr ||
-                  dynamic_cast<QueryCommand*>(cmd.get()) != nullptr) {
-          if(needReset >= opts.getTearDownIncremental()) {
-            pExecutor->reset();
-            for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
-              for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j)
-              {
-                Command* ccmd = allCommands[i][j]->clone();
-                ccmd->setMuted(true);
-                pExecutor->doCommand(ccmd);
-                if (ccmd->interrupted())
-                {
-                  interrupted = true;
-                }
-                delete ccmd;
-              }
-            }
-            needReset = 0;
-          } else {
-            ++needReset;
-          }
-          if (interrupted) {
-            continue;
-          }
-
-          status = pExecutor->doCommand(cmd);
-          if(cmd->interrupted()) {
-            interrupted = true;
-            continue;
-          }
-        } else if(dynamic_cast<ResetCommand*>(cmd.get()) != nullptr) {
-          pExecutor->doCommand(cmd);
-          allCommands.clear();
-          allCommands.push_back(vector<Command*>());
-        } else {
-          // We shouldn't copy certain commands, because they can cause
-          // an error on replay since there's no associated sat/unsat check
-          // preceding them.
-          if(dynamic_cast<GetUnsatCoreCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<GetProofCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<GetValueCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<GetModelCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<GetAssignmentCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<GetInstantiationsCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<GetAssertionsCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<GetInfoCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<GetOptionCommand*>(cmd.get()) == nullptr &&
-             dynamic_cast<EchoCommand*>(cmd.get()) == nullptr) {
-            Command* copy = cmd->clone();
-            allCommands.back().push_back(copy);
-          }
-          status = pExecutor->doCommand(cmd);
-          if(cmd->interrupted()) {
-            interrupted = true;
-            continue;
-          }
-
-          if(dynamic_cast<QuitCommand*>(cmd.get()) != nullptr) {
-            break;
-          }
-        }
-      }
-    } else {
-      if(!opts.wasSetByUserIncrementalSolving()) {
         cmd.reset(new SetOptionCommand("incremental", "false"));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
@@ -417,23 +258,24 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
       ParserBuilder parserBuilder(pExecutor->getSolver(),
                                   pExecutor->getSymbolManager(),
-                                  filename,
                                   opts);
-
+      std::unique_ptr<Parser> parser(parserBuilder.build());
       if( inputFromStdin ) {
-#if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
-        parserBuilder.withStreamInput(cin);
-#else /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
-        parserBuilder.withLineBufferedStreamInput(cin);
-#endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
+        parser->setInput(Input::newStreamInput(
+            opts.base.inputLanguage, cin, filename));
+      }
+      else
+      {
+        parser->setInput(Input::newFileInput(opts.base.inputLanguage,
+                                             filename,
+                                             opts.parser.memoryMap));
       }
 
-      std::unique_ptr<Parser> parser(parserBuilder.build());
       bool interrupted = false;
       while (status)
       {
         if (interrupted) {
-          (*opts.getOut()) << CommandInterrupted();
+          *opts.base.out << CommandInterrupted();
           pExecutor->reset();
           break;
         }
@@ -466,43 +308,34 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       returnValue = 1;
     }
 
-#ifdef CVC4_COMPETITION_MODE
-    opts.flushOut();
+#ifdef CVC5_COMPETITION_MODE
+    if (opts.base.out != nullptr)
+    {
+      *opts.base.out << std::flush;
+    }
     // exit, don't return (don't want destructors to run)
     // _exit() from unistd.h doesn't run global destructors
     // or other on_exit/atexit stuff.
     _exit(returnValue);
-#endif /* CVC4_COMPETITION_MODE */
+#endif /* CVC5_COMPETITION_MODE */
 
-    ReferenceStat<api::Result> s_statSatResult("sat/unsat", result);
-    RegisterStatistic statSatResultReg(&pExecutor->getStatisticsRegistry(),
-                                       &s_statSatResult);
-
-    pTotalTime->stop();
-
-    // Tim: I think that following comment is out of date?
-    // Set the global executor pointer to nullptr first.  If we get a
-    // signal while dumping statistics, we don't want to try again.
+    totalTime.reset();
     pExecutor->flushOutputStreams();
 
-#ifdef CVC4_DEBUG
-    if(opts.getEarlyExit() && opts.wasSetByUserEarlyExit()) {
+#ifdef CVC5_DEBUG
+    if (opts.driver.earlyExit && opts.driver.earlyExitWasSetByUser)
+    {
       _exit(returnValue);
     }
-#else /* CVC4_DEBUG */
-    if(opts.getEarlyExit()) {
+#else  /* CVC5_DEBUG */
+    if (opts.driver.earlyExit)
+    {
       _exit(returnValue);
     }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
   }
 
-  // On exceptional exit, these are leaked, but that's okay... they
-  // need to be around in that case for main() to print statistics.
-  delete pTotalTime;
-  delete pExecutor;
-
-  pTotalTime = nullptr;
-  pExecutor = nullptr;
+  pExecutor.reset();
 
   signal_handlers::cleanup();
 

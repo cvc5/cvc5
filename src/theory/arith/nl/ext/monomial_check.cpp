@@ -1,25 +1,30 @@
-/*********************                                                        */
-/*! \file monomial_check.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Check for some monomial lemmas
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Check for some monomial lemmas.
+ */
 
 #include "theory/arith/nl/ext/monomial_check.h"
 
 #include "expr/node.h"
+#include "proof/proof.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/ext/ext_state.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
+#include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -112,7 +117,7 @@ void MonomialCheck::checkMagnitude(unsigned c)
   }
 
   unsigned r = 1;
-  std::vector<ArithLemma> lemmas;
+  std::vector<SimpleTheoryLemma> lemmas;
   // if (x,y,L) in cmp_infers, then x > y inferred as conclusion of L
   // in lemmas
   std::map<int, std::map<Node, std::map<Node, Node> > > cmp_infers;
@@ -234,7 +239,7 @@ void MonomialCheck::checkMagnitude(unsigned c)
   Trace("nl-ext-comp") << "Compute redundancies for " << lemmas.size()
                        << " lemmas." << std::endl;
   // naive
-  std::unordered_set<Node, NodeHashFunction> r_lemmas;
+  std::unordered_set<Node> r_lemmas;
   for (std::map<int, std::map<Node, std::map<Node, Node> > >::iterator itb =
            cmp_infers.begin();
        itb != cmp_infers.end();
@@ -274,7 +279,7 @@ void MonomialCheck::checkMagnitude(unsigned c)
   {
     if (r_lemmas.find(lemmas[i].d_node) == r_lemmas.end())
     {
-      d_data->d_im.addPendingArithLemma(lemmas[i]);
+      d_data->d_im.addPendingLemma(lemmas[i]);
     }
   }
   // could only take maximal lower/minimial lower bounds?
@@ -295,7 +300,15 @@ int MonomialCheck::compareSign(
     {
       Node lemma =
           nm->mkAnd(exp).impNode(mkLit(oa, d_data->d_zero, status * 2));
-      d_data->d_im.addPendingArithLemma(lemma, InferenceId::NL_SIGN);
+      CDProof* proof = nullptr;
+      if (d_data->isProofEnabled())
+      {
+        proof = d_data->getProof();
+        std::vector<Node> args = exp;
+        args.emplace_back(oa);
+        proof->addStep(lemma, PfRule::ARITH_MULT_SIGN, {}, args);
+      }
+      d_data->d_im.addPendingLemma(lemma, InferenceId::ARITH_NL_SIGN, proof);
     }
     return status;
   }
@@ -311,8 +324,17 @@ int MonomialCheck::compareSign(
   {
     if (mvaoa.getConst<Rational>().sgn() != 0)
     {
-      Node lemma = av.eqNode(d_data->d_zero).impNode(oa.eqNode(d_data->d_zero));
-      d_data->d_im.addPendingArithLemma(lemma, InferenceId::NL_SIGN);
+      Node prem = av.eqNode(d_data->d_zero);
+      Node conc = oa.eqNode(d_data->d_zero);
+      Node lemma = prem.impNode(conc);
+      CDProof* proof = nullptr;
+      if (d_data->isProofEnabled())
+      {
+        proof = d_data->getProof();
+        proof->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {prem}, {conc});
+        proof->addStep(lemma, PfRule::SCOPE, {conc}, {prem});
+      }
+      d_data->d_im.addPendingLemma(lemma, InferenceId::ARITH_NL_SIGN, proof);
     }
     return 0;
   }
@@ -333,7 +355,7 @@ bool MonomialCheck::compareMonomial(
     Node b,
     NodeMultiset& b_exp_proc,
     std::vector<Node>& exp,
-    std::vector<ArithLemma>& lem,
+    std::vector<SimpleTheoryLemma>& lem,
     std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers)
 {
   Trace("nl-ext-comp-debug")
@@ -368,7 +390,7 @@ bool MonomialCheck::compareMonomial(
     NodeMultiset& b_exp_proc,
     int status,
     std::vector<Node>& exp,
-    std::vector<ArithLemma>& lem,
+    std::vector<SimpleTheoryLemma>& lem,
     std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers)
 {
   Trace("nl-ext-comp-debug")
@@ -401,7 +423,7 @@ bool MonomialCheck::compareMonomial(
           Kind::IMPLIES, nm->mkAnd(exp), mkLit(oa, ob, status, true));
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
       lem.emplace_back(
-          clem, LemmaProperty::NONE, nullptr, InferenceId::NL_COMPARISON);
+          InferenceId::ARITH_NL_COMPARISON, clem, LemmaProperty::NONE, nullptr);
       cmp_infers[status][oa][ob] = clem;
     }
     return true;
@@ -737,4 +759,4 @@ void MonomialCheck::setMonomialFactor(Node a,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

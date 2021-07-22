@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file projections.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements utilities for CAD projection operators.
- **
- ** Implements utilities for CAD projection operators.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements utilities for CAD projection operators.
+ */
 
 #include "theory/arith/nl/cad/projections.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
-namespace CVC4 {
+#include "base/check.h"
+
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -26,72 +27,77 @@ namespace cad {
 
 using namespace poly;
 
-void reduceProjectionPolynomials(std::vector<Polynomial>& polys)
+void PolyVector::add(const poly::Polynomial& poly, bool assertMain)
 {
-  std::sort(polys.begin(), polys.end());
-  auto it = std::unique(polys.begin(), polys.end());
-  polys.erase(it, polys.end());
-}
-
-void addPolynomial(std::vector<Polynomial>& polys, const Polynomial& poly)
-{
-  for (const auto& p : square_free_factors(poly))
+  for (const auto& p : poly::square_free_factors(poly))
   {
-    if (is_constant(p)) continue;
-    polys.emplace_back(p);
+    if (poly::is_constant(p)) continue;
+    if (assertMain)
+    {
+      Assert(main_variable(poly) == main_variable(p));
+    }
+    std::vector<poly::Polynomial>::emplace_back(p);
   }
 }
 
-void addPolynomials(std::vector<Polynomial>& polys,
-                    const std::vector<Polynomial>& p)
+void PolyVector::reduce()
 {
-  for (const auto& q : p) addPolynomial(polys, q);
+  std::sort(begin(), end());
+  erase(std::unique(begin(), end()), end());
 }
 
-void makeFinestSquareFreeBasis(std::vector<Polynomial>& polys)
+void PolyVector::makeFinestSquareFreeBasis()
 {
-  for (std::size_t i = 0, n = polys.size(); i < n; ++i)
+  for (std::size_t i = 0, n = size(); i < n; ++i)
   {
     for (std::size_t j = i + 1; j < n; ++j)
     {
-      Polynomial g = gcd(polys[i], polys[j]);
+      Polynomial g = gcd((*this)[i], (*this)[j]);
       if (!is_constant(g))
       {
-        polys[i] = div(polys[i], g);
-        polys[j] = div(polys[j], g);
-        polys.emplace_back(g);
+        (*this)[i] = div((*this)[i], g);
+        (*this)[j] = div((*this)[j], g);
+        add(g);
       }
     }
   }
-  auto it = std::remove_if(polys.begin(), polys.end(), [](const Polynomial& p) {
-    return is_constant(p);
-  });
-  polys.erase(it, polys.end());
-  reduceProjectionPolynomials(polys);
+  auto it = std::remove_if(
+      begin(), end(), [](const Polynomial& p) { return is_constant(p); });
+  erase(it, end());
+  reduce();
+}
+void PolyVector::pushDownPolys(PolyVector& down, poly::Variable var)
+{
+  auto it =
+      std::remove_if(begin(), end(), [&down, &var](const poly::Polynomial& p) {
+        if (main_variable(p) == var) return false;
+        down.add(p);
+        return true;
+      });
+  erase(it, end());
 }
 
-std::vector<Polynomial> projection_mccallum(
-    const std::vector<Polynomial>& polys)
+PolyVector projectionMcCallum(const std::vector<Polynomial>& polys)
 {
-  std::vector<Polynomial> res;
+  PolyVector res;
 
   for (const auto& p : polys)
   {
     for (const auto& coeff : coefficients(p))
     {
-      addPolynomial(res, coeff);
+      res.add(coeff);
     }
-    addPolynomial(res, discriminant(p));
+    res.add(discriminant(p));
   }
   for (std::size_t i = 0, n = polys.size(); i < n; ++i)
   {
     for (std::size_t j = i + 1; j < n; ++j)
     {
-      addPolynomial(res, resultant(polys[i], polys[j]));
+      res.add(resultant(polys[i], polys[j]));
     }
   }
 
-  reduceProjectionPolynomials(res);
+  res.reduce();
   return res;
 }
 
@@ -99,6 +105,6 @@ std::vector<Polynomial> projection_mccallum(
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

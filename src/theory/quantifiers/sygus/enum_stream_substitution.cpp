@@ -1,20 +1,22 @@
-/*********************                                                        */
-/*! \file enum_stream_substitution.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief class for streaming concrete values (through substitutions) from
- ** enumerated abstract ones
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Class for streaming concrete values (through substitutions) from
+ * enumerated abstract ones.
+ */
 
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
 
+#include "expr/dtype_cons.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -23,9 +25,9 @@
 
 #include <numeric>  // for std::iota
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -72,12 +74,12 @@ void EnumStreamPermutation::reset(Node value)
   }
   // collect variables occurring in value
   std::vector<Node> vars;
-  std::unordered_set<Node, NodeHashFunction> visited;
+  std::unordered_set<Node> visited;
   collectVars(value, vars, visited);
   // partition permutation variables
   d_curr_ind = 0;
   Trace("synth-stream-concrete") << " ..permutting vars :";
-  std::unordered_set<Node, NodeHashFunction> seen_vars;
+  std::unordered_set<Node> seen_vars;
   for (const Node& v_cons : vars)
   {
     Assert(cons_var.find(v_cons) != cons_var.end());
@@ -88,7 +90,7 @@ void EnumStreamPermutation::reset(Node value)
       d_var_classes[ti.getSubclassForVar(var)].push_back(var);
     }
   }
-  for (const std::pair<unsigned, std::vector<Node>>& p : d_var_classes)
+  for (const std::pair<const unsigned, std::vector<Node>>& p : d_var_classes)
   {
     d_perm_state_class.push_back(PermutationState(p.second));
     if (Trace.isOn("synth-stream-concrete"))
@@ -229,10 +231,9 @@ unsigned EnumStreamPermutation::getVarClassSize(unsigned id) const
   return it->second.size();
 }
 
-void EnumStreamPermutation::collectVars(
-    Node n,
-    std::vector<Node>& vars,
-    std::unordered_set<Node, NodeHashFunction>& visited)
+void EnumStreamPermutation::collectVars(Node n,
+                                        std::vector<Node>& vars,
+                                        std::unordered_set<Node>& visited)
 {
   if (visited.find(n) != visited.end())
   {
@@ -383,7 +384,7 @@ void EnumStreamSubstitution::resetValue(Node value)
   d_curr_ind = 0;
   d_comb_state_class.clear();
   Trace("synth-stream-concrete") << " ..combining vars  :";
-  for (const std::pair<unsigned, std::vector<Node>>& p : d_var_classes)
+  for (const std::pair<const unsigned, std::vector<Node>>& p : d_var_classes)
   {
     // ignore classes without variables being permuted
     unsigned perm_var_class_sz = d_stream_permutations.getVarClassSize(p.first);
@@ -620,4 +621,4 @@ bool EnumStreamConcrete::increment()
 Node EnumStreamConcrete::getCurrent() { return d_currTerm; }
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

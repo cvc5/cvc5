@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file shared_terms_database.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/shared_terms_database.h"
 
@@ -19,16 +20,17 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 
 SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
                                          context::Context* context,
                                          context::UserContext* userContext,
                                          ProofNodeManager* pnm)
     : ContextNotifyObj(context),
-      d_statSharedTerms("theory::shared_terms", 0),
+      d_statSharedTerms(
+          smtStatisticsRegistry().registerInt("theory::shared_terms")),
       d_addedSharedTermsSize(context, 0),
       d_termsToTheories(context),
       d_alreadyNotifiedMap(context),
@@ -43,12 +45,6 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
       d_pfee(nullptr),
       d_pnm(pnm)
 {
-  smtStatisticsRegistry()->registerStat(&d_statSharedTerms);
-}
-
-SharedTermsDatabase::~SharedTermsDatabase()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_statSharedTerms);
 }
 
 void SharedTermsDatabase::setEqualityEngine(eq::EqualityEngine* ee)
@@ -304,7 +300,7 @@ bool SharedTermsDatabase::isKnown(TNode literal) const {
   }
 }
 
-theory::TrustNode SharedTermsDatabase::explain(TNode literal) const
+TrustNode SharedTermsDatabase::explain(TNode literal) const
 {
   if (d_pfee != nullptr)
   {
@@ -317,4 +313,4 @@ theory::TrustNode SharedTermsDatabase::explain(TNode literal) const
   return TrustNode::mkTrustPropExp(literal, exp, nullptr);
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5

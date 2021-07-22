@@ -1,33 +1,40 @@
-/*********************                                                        */
-/*! \file model_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Abstract management of models for TheoryEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Abstract management of models for TheoryEngine.
+ */
 
 #include "theory/model_manager.h"
 
+#include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "prop/prop_engine.h"
+#include "smt/env.h"
+#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
-ModelManager::ModelManager(TheoryEngine& te, EqEngineManager& eem)
+ModelManager::ModelManager(TheoryEngine& te, Env& env, EqEngineManager& eem)
     : d_te(te),
-      d_logicInfo(te.getLogicInfo()),
+      d_env(env),
       d_eem(eem),
       d_modelEqualityEngine(nullptr),
       d_modelEqualityEngineAlloc(nullptr),
-      d_model(nullptr),
+      d_model(new TheoryModel(
+          env, "DefaultModel", options::assignFunctionValues())),
       d_modelBuilder(nullptr),
       d_modelBuilt(false),
       d_modelBuiltSuccess(false)
@@ -39,28 +46,20 @@ ModelManager::~ModelManager() {}
 void ModelManager::finishInit(eq::EqualityEngineNotify* notify)
 {
   // construct the model
-  const LogicInfo& logicInfo = d_te.getLogicInfo();
+  const LogicInfo& logicInfo = d_env.getLogicInfo();
   // Initialize the model and model builder.
   if (logicInfo.isQuantified())
   {
     QuantifiersEngine* qe = d_te.getQuantifiersEngine();
     Assert(qe != nullptr);
     d_modelBuilder = qe->getModelBuilder();
-    d_model = qe->getModel();
-  }
-  else
-  {
-    context::Context* u = d_te.getUserContext();
-    d_alocModel.reset(
-        new TheoryModel(u, "DefaultModel", options::assignFunctionValues()));
-    d_model = d_alocModel.get();
   }
 
   // make the default builder, e.g. in the case that the quantifiers engine does
   // not have a model builder
   if (d_modelBuilder == nullptr)
   {
-    d_alocModelBuilder.reset(new TheoryEngineModelBuilder(&d_te));
+    d_alocModelBuilder.reset(new TheoryEngineModelBuilder);
     d_modelBuilder = d_alocModelBuilder.get();
   }
   // notice that the equality engine of the model has yet to be assigned.
@@ -95,6 +94,16 @@ bool ModelManager::buildModel()
 
   // now, finish building the model
   d_modelBuiltSuccess = finishBuildModel();
+
+  if (Trace.isOn("model-final"))
+  {
+    Trace("model-final") << "Final model:" << std::endl;
+    Trace("model-final") << d_model->debugPrintModelEqc() << std::endl;
+  }
+
+  Trace("model-builder") << "ModelManager: model built success is "
+                         << d_modelBuiltSuccess << std::endl;
+
   return d_modelBuiltSuccess;
 }
 
@@ -127,13 +136,13 @@ void ModelManager::postProcessModel(bool incomplete)
     }
     Trace("model-builder-debug")
         << "  PostProcessModel on theory: " << theoryId << std::endl;
-    t->postProcessModel(d_model);
+    t->postProcessModel(d_model.get());
   }
   // also call the model builder's post-process model
-  d_modelBuilder->postProcessModel(incomplete, d_model);
+  d_modelBuilder->postProcessModel(incomplete, d_model.get());
 }
 
-theory::TheoryModel* ModelManager::getModel() { return d_model; }
+theory::TheoryModel* ModelManager::getModel() { return d_model.get(); }
 
 bool ModelManager::collectModelBooleanVariables()
 {
@@ -225,4 +234,4 @@ void ModelManager::collectTerms(TheoryId tid,
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

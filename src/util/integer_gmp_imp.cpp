@@ -1,37 +1,34 @@
-/*********************                                                        */
-/*! \file integer_gmp_imp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Aina Niemetz, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A multi-precision rational constant.
- **
- ** A multi-precision rational constant.
- **/
-
-#include "util/integer.h"
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Tim King, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A multi-precision rational constant.
+ */
 
 #include <cmath>
 #include <sstream>
 #include <string>
 
-#include "cvc4autoconfig.h"
-
 #include "base/check.h"
+#include "base/cvc5config.h"
+#include "util/integer.h"
 #include "util/rational.h"
 
-#ifndef CVC4_GMP_IMP
-#  error "This source should only ever be built if CVC4_GMP_IMP is on !"
+#ifndef CVC5_GMP_IMP
+#error "This source should only ever be built if CVC5_GMP_IMP is on !"
 #endif
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 Integer::Integer(const char* s, unsigned base)
   : d_value(s, base)
@@ -142,18 +139,16 @@ Integer Integer::multiplyByPow2(uint32_t pow) const
   return Integer(result);
 }
 
-Integer Integer::setBit(uint32_t i, bool value) const
+void Integer::setBit(uint32_t i, bool value)
 {
-  mpz_class res = d_value;
   if (value)
   {
-    mpz_setbit(res.get_mpz_t(), i);
+    mpz_setbit(d_value.get_mpz_t(), i);
   }
   else
   {
-    mpz_clrbit(res.get_mpz_t(), i);
+    mpz_clrbit(d_value.get_mpz_t(), i);
   }
-  return Integer(res);
 }
 
 bool Integer::isBitSet(uint32_t i) const
@@ -184,7 +179,7 @@ Integer Integer::extractBitRange(uint32_t bitCount, uint32_t low) const
 {
   // bitCount = high-low+1
   uint32_t high = low + bitCount - 1;
-  //— Function: void mpz_fdiv_r_2exp (mpz_t r, mpz_t n, mp_bitcnt_t b)
+  //- Function: void mpz_fdiv_r_2exp (mpz_t r, mpz_t n, mp_bitcnt_t b)
   mpz_class rem, div;
   mpz_fdiv_r_2exp(rem.get_mpz_t(), d_value.get_mpz_t(), high + 1);
   mpz_fdiv_q_2exp(div.get_mpz_t(), rem.get_mpz_t(), low);
@@ -403,7 +398,7 @@ unsigned int Integer::getUnsignedInt() const
                 this,
                 "Overflow detected in Integer::getUnsignedInt()");
   CheckArgument(
-      fitsSignedInt(), this, "Overflow detected in Integer::getUnsignedInt()");
+      fitsUnsignedInt(), this, "Overflow detected in Integer::getUnsignedInt()");
   return (unsigned int)d_value.get_ui();
 }
 
@@ -485,4 +480,4 @@ const Integer& Integer::max(const Integer& a, const Integer& b)
   return (a >= b) ? a : b;
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5

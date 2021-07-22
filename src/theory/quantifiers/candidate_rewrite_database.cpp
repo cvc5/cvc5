@@ -1,20 +1,20 @@
-/*********************                                                        */
-/*! \file candidate_rewrite_database.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of candidate_rewrite_database
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of candidate_rewrite_database.
+ */
 
 #include "theory/quantifiers/candidate_rewrite_database.h"
 
-#include "api/cvc4cpp.h"
 #include "options/base_options.h"
 #include "printer/printer.h"
 #include "smt/smt_engine.h"
@@ -22,25 +22,26 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
 CandidateRewriteDatabase::CandidateRewriteDatabase(bool doCheck,
                                                    bool rewAccel,
-                                                   bool silent)
-    : d_qe(nullptr),
-      d_tds(nullptr),
+                                                   bool silent,
+                                                   bool filterPairs)
+    : d_tds(nullptr),
       d_ext_rewrite(nullptr),
       d_doCheck(doCheck),
       d_rewAccel(rewAccel),
       d_silent(silent),
+      d_filterPairs(filterPairs),
       d_using_sygus(false)
 {
 }
@@ -50,25 +51,29 @@ void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
   Assert(ss != nullptr);
   d_candidate = Node::null();
   d_using_sygus = false;
-  d_qe = nullptr;
   d_tds = nullptr;
   d_ext_rewrite = nullptr;
-  d_crewrite_filter.initialize(ss, nullptr, false);
+  if (d_filterPairs)
+  {
+    d_crewrite_filter.initialize(ss, nullptr, false);
+  }
   ExprMiner::initialize(vars, ss);
 }
 
 void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
-                                               QuantifiersEngine* qe,
+                                               TermDbSygus* tds,
                                                Node f,
                                                SygusSampler* ss)
 {
   Assert(ss != nullptr);
   d_candidate = f;
   d_using_sygus = true;
-  d_qe = qe;
-  d_tds = d_qe->getTermDatabaseSygus();
+  d_tds = tds;
   d_ext_rewrite = nullptr;
-  d_crewrite_filter.initialize(ss, d_tds, d_using_sygus);
+  if (d_filterPairs)
+  {
+    d_crewrite_filter.initialize(ss, d_tds, d_using_sygus);
+  }
   ExprMiner::initialize(vars, ss);
 }
 
@@ -78,8 +83,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
                                        bool& rew_print)
 {
   // have we added this term before?
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator itac =
-      d_add_term_cache.find(sol);
+  std::unordered_map<Node, Node>::iterator itac = d_add_term_cache.find(sol);
   if (itac != d_add_term_cache.end())
   {
     return itac->second;
@@ -103,7 +107,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
   {
     is_unique_term = false;
     // should we filter the pair?
-    if (!d_crewrite_filter.filterPair(sol, eq_sol))
+    if (!d_filterPairs || !d_crewrite_filter.filterPair(sol, eq_sol))
     {
       // get the actual term
       Node solb = sol;
@@ -200,7 +204,10 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
       if (!is_unique_term)
       {
         // register this as a relevant pair (helps filtering)
-        d_crewrite_filter.registerRelevantPair(sol, eq_sol);
+        if (d_filterPairs)
+        {
+          d_crewrite_filter.registerRelevantPair(sol, eq_sol);
+        }
         // The analog of terms sol and eq_sol are equivalent under
         // sample points but do not rewrite to the same term. Hence,
         // this indicates a candidate rewrite.
@@ -287,6 +294,6 @@ void CandidateRewriteDatabase::setExtendedRewriter(ExtendedRewriter* er)
   d_ext_rewrite = er;
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

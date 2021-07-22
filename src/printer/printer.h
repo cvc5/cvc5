@@ -1,39 +1,37 @@
-/*********************                                                        */
-/*! \file printer.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Abdalrhman Mohamed, Tim King, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Base of the pretty-printer interface
- **
- ** Base of the pretty-printer interface.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Abdalrhman Mohamed, Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Base of the pretty-printer interface.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PRINTER__PRINTER_H
-#define CVC4__PRINTER__PRINTER_H
+#ifndef CVC5__PRINTER__PRINTER_H
+#define CVC5__PRINTER__PRINTER_H
 
-#include <map>
 #include <string>
 
 #include "expr/node.h"
 #include "options/language.h"
 #include "smt/model.h"
 #include "util/result.h"
-#include "util/sexpr.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 class CommandStatus;
-class NodeCommand;
 class UnsatCore;
+struct InstantiationList;
+struct SkolemList;
 
 class Printer
 {
@@ -62,6 +60,12 @@ class Printer
   /** Write an UnsatCore out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const UnsatCore& core) const;
 
+  /** Write an instantiation list out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, const InstantiationList& is) const;
+
+  /** Write a skolem list out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, const SkolemList& sks) const;
+
   /** Print empty command */
   virtual void toStreamCmdEmpty(std::ostream& out,
                                 const std::string& name) const;
@@ -83,6 +87,11 @@ class Printer
   virtual void toStreamCmdDeclareFunction(std::ostream& out,
                                           const std::string& id,
                                           TypeNode type) const;
+  /** Print declare-pool command */
+  virtual void toStreamCmdDeclarePool(std::ostream& out,
+                                      const std::string& id,
+                                      TypeNode type,
+                                      const std::vector<Node>& initValue) const;
 
   /** Print declare-sort command */
   virtual void toStreamCmdDeclareType(std::ostream& out,
@@ -131,11 +140,10 @@ class Printer
 
   /** Print synth-fun command */
   virtual void toStreamCmdSynthFun(std::ostream& out,
-                                   const std::string& sym,
+                                   Node f,
                                    const std::vector<Node>& vars,
-                                   TypeNode range,
                                    bool isInv,
-                                   TypeNode sygusType) const;
+                                   TypeNode sygusType = TypeNode::null()) const;
 
   /** Print constraint command */
   virtual void toStreamCmdConstraint(std::ostream& out, Node n) const;
@@ -173,9 +181,6 @@ class Printer
   /** Print get-instantiations command */
   void toStreamCmdGetInstantiations(std::ostream& out) const;
 
-  /** Print get-synth-solution command */
-  void toStreamCmdGetSynthSolution(std::ostream& out) const;
-
   /** Print get-interpol command */
   void toStreamCmdGetInterpol(std::ostream& out,
                               const std::string& name,
@@ -211,7 +216,7 @@ class Printer
   /** Print set-info command */
   virtual void toStreamCmdSetInfo(std::ostream& out,
                                   const std::string& flag,
-                                  SExpr sexpr) const;
+                                  const std::string& value) const;
 
   /** Print get-info command */
   virtual void toStreamCmdGetInfo(std::ostream& out,
@@ -220,7 +225,7 @@ class Printer
   /** Print set-option command */
   virtual void toStreamCmdSetOption(std::ostream& out,
                                     const std::string& flag,
-                                    SExpr sexpr) const;
+                                    const std::string& value) const;
 
   /** Print get-option command */
   virtual void toStreamCmdGetOption(std::ostream& out,
@@ -304,6 +309,6 @@ class Printer
 
 }; /* class Printer */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PRINTER__PRINTER_H */
+#endif /* CVC5__PRINTER__PRINTER_H */

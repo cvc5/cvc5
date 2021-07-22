@@ -1,32 +1,31 @@
-/*********************                                                        */
-/*! \file symbol_table.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Convenience class for scoping variable and type declarations.
- **
- ** Convenience class for scoping variable and type declarations.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Christopher L. Conway
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Convenience class for scoping variable and type declarations.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__SYMBOL_TABLE_H
-#define CVC4__SYMBOL_TABLE_H
+#ifndef CVC5__SYMBOL_TABLE_H
+#define CVC5__SYMBOL_TABLE_H
 
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "base/exception.h"
-#include "expr/type.h"
+#include "cvc5_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace api {
 class Solver;
@@ -34,14 +33,17 @@ class Sort;
 class Term;
 }  // namespace api
 
-class CVC4_PUBLIC ScopeException : public Exception {};
+class CVC5_EXPORT ScopeException : public Exception
+{
+};
 
 /**
  * A convenience class for handling scoped declarations. Implements the usual
  * nested scoping rules for declarations, with separate bindings for expressions
  * and types.
  */
-class CVC4_PUBLIC SymbolTable {
+class CVC5_EXPORT SymbolTable
+{
  public:
   /** Create a symbol table. */
   SymbolTable();
@@ -172,6 +174,8 @@ class CVC4_PUBLIC SymbolTable {
 
   /** Reset everything. */
   void reset();
+  /** Reset assertions. */
+  void resetAssertions();
 
   //------------------------ operator overloading
   /** is this function overloaded? */
@@ -205,6 +209,6 @@ class CVC4_PUBLIC SymbolTable {
   std::unique_ptr<Implementation> d_implementation;
 }; /* class SymbolTable */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__SYMBOL_TABLE_H */
+#endif /* CVC5__SYMBOL_TABLE_H */

@@ -1,23 +1,18 @@
 id     = "SMT"
-name   = "SMT layer"
-header = "options/smt_options.h"
+name   = "SMT Layer"
 
 [[option]]
   name       = "dumpModeString"
-  smt_name   = "dump"
   category   = "common"
   long       = "dump=MODE"
   type       = "std::string"
-  read_only  = true
   help       = "dump preprocessed assertions, etc., see --dump=help"
 
 [[option]]
   name       = "dumpToFileName"
-  smt_name   = "dump-to"
   category   = "common"
   long       = "dump-to=FILE"
   type       = "std::string"
-  read_only  = true
   help       = "all dumping goes to FILE (instead of stdout)"
 
 [[option]]
@@ -30,7 +25,7 @@ header = "options/smt_options.h"
 
 [[option]]
   name       = "simplificationMode"
-  smt_name   = "simplification-mode"
+  alias      = ["simplification-mode"]
   category   = "regular"
   long       = "simplification=MODE"
   type       = "SimplificationMode"
@@ -50,16 +45,22 @@ header = "options/smt_options.h"
   long       = "static-learning"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use static learning (on by default)"
 
 [[option]]
+  name       = "learnedRewrite"
+  category   = "regular"
+  long       = "learned-rewrite"
+  type       = "bool"
+  default    = "false"
+  help       = "rewrite the input based on learned literals"
+
+[[option]]
   name       = "expandDefinitions"
-  smt_name   = "expand-definitions"
+  long       = "expand-definitions"
   category   = "regular"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "always expand symbol definitions in output"
 
 [[option]]
@@ -84,15 +85,6 @@ header = "options/smt_options.h"
   long       = "debug-check-models"
   type       = "bool"
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user and internal assertions"
-
-[[option]]
-  name       = "dumpModels"
-  category   = "regular"
-  long       = "dump-models"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "output models after every SAT/INVALID/UNKNOWN response"
 
 [[option]]
   name       = "modelCoresMode"
@@ -131,83 +123,26 @@ header = "options/smt_options.h"
   help = "Block models based on the concrete model values for the free variables."
 
 [[option]]
-  name       = "dumpProofs"
+  name       = "produceProofs"
   category   = "regular"
-  long       = "dump-proofs"
+  long       = "produce-proofs"
   type       = "bool"
   default    = "false"
-  read_only  = true
-  help       = "output proofs after every UNSAT/VALID response"
+  help       = "produce proofs, support check-proofs and get-proof"
 
 [[option]]
-  name       = "proofNew"
+  name       = "checkProofs"
   category   = "regular"
-  long       = "proof-new"
+  long       = "check-proofs"
   type       = "bool"
-  default    = "false"
-  help       = "do proof production using the new infrastructure"
-
-[[option]]
-  name       = "proofNewPedantic"
-  category   = "regular"
-  long       = "proof-new-pedantic=N"
-  type       = "uint32_t"
-  default    = "0"
-  read_only  = true
-  help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof-new"
-
-[[option]]
-  name       = "proofNewEagerChecking"
-  category   = "regular"
-  long       = "proof-new-eager-checking"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "check proofs eagerly with proof-new for local debugging"
-
-[[option]]
-  name       = "proofGranularityMode"
-  category   = "regular"
-  long       = "proof-granularity=MODE"
-  type       = "ProofGranularityMode"
-  default    = "THEORY_REWRITE"
-  help       = "modes for proof granularity"
-  help_mode  = "Modes for proof granularity."
-[[option.mode.OFF]]
-  name = "off"
-  help = "Do not improve the granularity of proofs."
-[[option.mode.REWRITE]]
-  name = "rewrite"
-  help = "allow rewrite or substitution steps, expand macros."
-[[option.mode.THEORY_REWRITE]]
-  name = "theory-rewrite"
-  help = "allow theory rewrite steps, expand macros, rewrite and substitution steps."
-[[option.mode.DSL_REWRITE]]
-  name = "dsl-rewrite"
-  help = "Allow DSL rewrites and evaluation steps, expand macros, rewrite, substitution, and theory rewrite steps."
-
-[[option]]
-  name       = "checkProofsNew"
-  category   = "regular"
-  long       = "check-proofs-new"
-  type       = "bool"
-  help       = "after UNSAT/VALID, check the generated proof (with proof-new)"
-
-[[option]]
-  name       = "dumpInstantiations"
-  category   = "regular"
-  long       = "dump-instantiations"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "output instantiations of quantified formulas after every UNSAT/VALID response"
+  help       = "after UNSAT/VALID, check the generated proof (with proof)"
 
 [[option]]
   name       = "sygusOut"
   category   = "regular"
   long       = "sygus-out=MODE"
   type       = "SygusSolutionOutMode"
-  default    = "STATUS_AND_DEF"
+  default    = "STANDARD"
   help       = "output mode for sygus"
   help_mode  = "Modes for sygus solution output."
 [[option.mode.STATUS]]
@@ -229,24 +164,35 @@ header = "options/smt_options.h"
   long       = "sygus-print-callbacks"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use sygus print callbacks to print sygus terms in the user-provided form (disable for debugging)"
-
-[[option]]
-  name       = "dumpSynth"
-  category   = "regular"
-  long       = "dump-synth"
-  type       = "bool"
-  default    = "false"
-  help       = "output solution for synthesis conjectures after every UNSAT/VALID response"
 
 [[option]]
   name       = "unsatCores"
   category   = "regular"
   long       = "produce-unsat-cores"
   type       = "bool"
-  predicates = ["proofEnabledBuild"]
-  help       = "turn on unsat core generation"
+  help       = "turn on unsat core generation. Unless otherwise specified, cores will be produced using SAT soving under assumptions and preprocessing proofs."
+
+[[option]]
+  name       = "unsatCoresMode"
+  category   = "regular"
+  long       = "unsat-cores-mode=MODE"
+  type       = "UnsatCoresMode"
+  default    = "OFF"
+  help       = "choose unsat core mode, see --unsat-cores-mode=help"
+  help_mode  = "unsat cores modes."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not produce unsat cores."
+[[option.mode.SAT_PROOF]]
+  name = "sat-proof"
+  help = "Produce unsat cores from SAT and preprocessing proofs."
+[[option.mode.FULL_PROOF]]
+  name = "full-proof"
+  help = "Produce unsat cores from full proofs."
+[[option.mode.ASSUMPTIONS]]
+  name = "assumptions"
+  help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
 
 [[option]]
   name       = "minimalUnsatCores"
@@ -264,30 +210,11 @@ header = "options/smt_options.h"
   help       = "after UNSAT/VALID, produce and check an unsat core (expensive)"
 
 [[option]]
-  name       = "dumpUnsatCores"
-  category   = "regular"
-  long       = "dump-unsat-cores"
-  type       = "bool"
-  default    = "false"
-  help       = "output unsat cores after every UNSAT/VALID response"
-
-[[option]]
-  name       = "dumpUnsatCoresFull"
-  category   = "regular"
-  long       = "dump-unsat-cores-full"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "dump the full unsat core, including unlabeled assertions"
-
-[[option]]
   name       = "unsatAssumptions"
   category   = "regular"
   long       = "produce-unsat-assumptions"
   type       = "bool"
   default    = "false"
-  predicates = ["proofEnabledBuild"]
-  read_only  = true
   help       = "turn on unsat assumptions generation"
 
 [[option]]
@@ -308,7 +235,7 @@ header = "options/smt_options.h"
 
 [[option]]
   name       = "interactiveMode"
-  smt_name   = "interactive-mode"
+  long       = "interactive-mode"
   category   = "undocumented"
   type       = "bool"
   predicates = ["setProduceAssertions"]
@@ -370,6 +297,14 @@ header = "options/smt_options.h"
   help       = "enables compressing ites after ite simplification"
 
 [[option]]
+  name       = "earlyIteRemoval"
+  category   = "experimental"
+  long       = "early-ite-removal"
+  type       = "bool"
+  default    = "false"
+  help       = "remove ITEs early in preprocessing"
+
+[[option]]
   name       = "unconstrainedSimp"
   category   = "regular"
   long       = "unconstrained-simp"
@@ -390,7 +325,6 @@ header = "options/smt_options.h"
   long       = "simp-ite-hunt-zombies=N"
   type       = "uint32_t"
   default    = "524288"
-  read_only  = true
   help       = "post ite compression enables zombie removal while the number of nodes is above this threshold"
 
 [[option]]
@@ -402,31 +336,20 @@ header = "options/smt_options.h"
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
 
 [[option]]
-  name       = "incrementalSolving"
-  category   = "common"
-  short      = "i"
-  long       = "incremental"
-  type       = "bool"
-  default    = "true"
-  help       = "enable incremental solving"
-
-[[option]]
   name       = "abstractValues"
   category   = "regular"
   long       = "abstract-values"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "in models, output arrays (and in future, maybe others) using abstract values, as required by the SMT-LIB standard"
 
 [[option]]
   name       = "modelUninterpPrint"
-  smt_name   = "model-uninterp-print"
+  alias      = ["model-uninterp-print"]
   category   = "regular"
   long       = "model-u-print=MODE"
   type       = "ModelUninterpPrintMode"
-  default    = "DeclFun"
-  read_only  = true
+  default    = "None"
   help       = "determines how to print uninterpreted elements in models"
   help_mode  = "uninterpreted elements in models printing  modes."
 [[option.mode.DtEnum]]
@@ -437,7 +360,11 @@ header = "options/smt_options.h"
   help = "print uninterpreted elements declare-fun, and also include a declare-sort for the sort"
 [[option.mode.DeclFun]]
   name = "decl-fun"
-  help = "(default) print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
+  help = "print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
+[[option.mode.None]]
+  name = "none"
+  help = "(default) do not print declarations of uninterpreted elements in models."
+
 
 [[option]]
   name       = "modelWitnessValue"
@@ -445,244 +372,29 @@ header = "options/smt_options.h"
   long       = "model-witness-value"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "in models, use a witness constant for choice functions"
 
 [[option]]
   name       = "regularChannelName"
-  smt_name   = "regular-output-channel"
+  long       = "regular-output-channel=CHANNEL"
   category   = "regular"
   type       = "std::string"
-  read_only  = true
   help       = "set the regular output channel of the solver"
 
 [[option]]
   name       = "diagnosticChannelName"
-  smt_name   = "diagnostic-output-channel"
+  long       = "diagnostic-output-channel=CHANNEL"
   category   = "regular"
   type       = "std::string"
-  read_only  = true
   help       = "set the diagnostic output channel of the solver"
 
 [[option]]
-  name       = "cumulativeMillisecondLimit"
-  smt_name   = "tlimit"
-  category   = "common"
-  long       = "tlimit=MS"
-  type       = "unsigned long"
-  handler    = "limitHandler"
-  read_only  = true
-  help       = "enable time limiting of wall clock time (give milliseconds)"
-
-[[option]]
-  name       = "perCallMillisecondLimit"
-  smt_name   = "tlimit-per"
-  category   = "common"
-  long       = "tlimit-per=MS"
-  type       = "unsigned long"
-  handler    = "limitHandler"
-  read_only  = true
-  help       = "enable time limiting per query (give milliseconds)"
-
-[[option]]
-  name       = "cumulativeResourceLimit"
-  smt_name   = "rlimit"
-  category   = "common"
-  long       = "rlimit=N"
-  type       = "unsigned long"
-  handler    = "limitHandler"
-  read_only  = true
-  help       = "enable resource limiting (currently, roughly the number of SAT conflicts)"
-
-[[option]]
-  name       = "perCallResourceLimit"
-  smt_name   = "reproducible-resource-limit"
-  category   = "common"
-  long       = "rlimit-per=N"
-  type       = "unsigned long"
-  handler    = "limitHandler"
-  read_only  = true
-  help       = "enable resource limiting per query"
-
-[[option]]
-  name       = "arithPivotStep"
-  category   = "expert"
-  long       = "arith-pivot-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each arithmetic pivot step"
-
-[[option]]
-  name       = "arithNlLemmaStep"
-  category   = "expert"
-  long       = "arith-nl-lemma-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each arithmetic nonlinear lemma step"
-
-[[option]]
-  name       = "rewriteStep"
-  category   = "expert"
-  long       = "rewrite-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each rewrite step"
-
-[[option]]
-  name       = "theoryCheckStep"
-  category   = "expert"
-  long       = "theory-check-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each theory check call"
-
-[[option]]
-  name       = "decisionStep"
-  category   = "expert"
-  long       = "decision-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of getNext decision calls in the decision engine"
-
-[[option]]
-  name       = "bitblastStep"
-  category   = "expert"
-  long       = "bitblast-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each bitblast step"
-
-[[option]]
-  name       = "bvPropagationStep"
-  category   = "expert"
-  long       = "bv-propagation-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each BV propagation step"
-
-[[option]]
-  name       = "bvEagerAssertStep"
-  category   = "expert"
-  long       = "bv-eager-assert-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each eager BV assert step"
-
-[[option]]
-  name       = "parseStep"
-  category   = "expert"
-  long       = "parse-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each command/expression parsing"
-
-[[option]]
-  name       = "lemmaStep"
-  category   = "expert"
-  long       = "lemma-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent when adding lemmas"
-
-[[option]]
-  name       = "newSkolemStep"
-  category   = "expert"
-  long       = "new-skolem-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent when adding new skolems"
-
-[[option]]
-  name       = "restartStep"
-  category   = "expert"
-  long       = "restart-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each theory restart"
-
-[[option]]
-  name       = "cnfStep"
-  category   = "expert"
-  long       = "cnf-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each call to cnf conversion"
-
-[[option]]
-  name       = "preprocessStep"
-  category   = "expert"
-  long       = "preprocess-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each preprocessing step in SmtEngine"
-
-[[option]]
-  name       = "quantifierStep"
-  category   = "expert"
-  long       = "quantifier-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for quantifier instantiations"
-
-[[option]]
-  name       = "satConflictStep"
-  category   = "expert"
-  long       = "sat-conflict-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each sat conflict (main sat solver)"
-
-[[option]]
-  name       = "bvSatConflictStep"
-  category   = "expert"
-  long       = "bv-sat-conflict-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each sat conflict (bitvectors)"
-
-[[option]]
-  name       = "bvSatPropagateStep"
-  category   = "expert"
-  long       = "bv-sat-propagate-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each sat propagate (bitvectors)"
-
-[[option]]
-  name       = "bvSatSimplifyStep"
-  category   = "expert"
-  long       = "bv-sat-simplify-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each sat simplify (bitvectors)"
-
-[[option]]
-  name       = "forceNoLimitCpuWhileDump"
+  name       = "foreignTheoryRewrite"
   category   = "regular"
-  long       = "force-no-limit-cpu-while-dump"
+  long       = "foreign-theory-rewrite"
   type       = "bool"
   default    = "false"
-  read_only  = true
-  help       = "Force no CPU limit when dumping models and proofs"
+  help       = "Cross-theory rewrites"
 
 [[option]]
   name       = "solveBVAsInt"
@@ -711,7 +423,6 @@ header = "options/smt_options.h"
   long       = "bvand-integer-granularity=N"
   type       = "uint32_t"
   default    = "1"
-  read_only  = true
   help       = "granularity to use in --solve-bv-as-int mode and for iand operator (experimental)"
 
 [[option]]
@@ -720,7 +431,6 @@ header = "options/smt_options.h"
   long       = "iand-mode=mode"
   type       = "IandMode"
   default    = "VALUE"
-  read_only  = true
   help       = "Set the refinement scheme for integer AND"
   help_mode  = "Refinement modes for integer AND"
   [[option.mode.VALUE]]
@@ -739,7 +449,6 @@ header = "options/smt_options.h"
   long       = "solve-int-as-bv=N"
   type       = "uint32_t"
   default    = "0"
-  read_only  = true
   help       = "attempt to solve a pure integer satisfiable problem by bitblasting in sufficient bitwidth (experimental)"
 
 [[option]]
@@ -748,7 +457,6 @@ header = "options/smt_options.h"
   long       = "solve-real-as-int"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
 
 [[option]]
@@ -757,7 +465,6 @@ header = "options/smt_options.h"
   long       = "produce-interpols=MODE"
   type       = "ProduceInterpols"
   default    = "NONE"
-  read_only  = true
   help       = "support the get-interpol command"
   help_mode  = "Interpolants grammar mode"
 [[option.mode.NONE]]
@@ -785,7 +492,6 @@ header = "options/smt_options.h"
   long       = "produce-abducts"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "support the get-abduct command"
 
 [[option]]
@@ -794,7 +500,6 @@ header = "options/smt_options.h"
   long       = "check-interpols"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "checks whether produced solutions to get-interpol are correct"
 
 [[option]]
@@ -803,5 +508,4 @@ header = "options/smt_options.h"
   long       = "check-abducts"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "checks whether produced solutions to get-abduct are correct"

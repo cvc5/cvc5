@@ -1,19 +1,21 @@
-/*********************                                                        */
-/*! \file listeners.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements listener classes for SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements listener classes for SMT engine.
+ */
 
 #include "smt/listeners.h"
 
+#include "base/configuration.h"
 #include "expr/attribute.h"
 #include "expr/node_manager_attributes.h"
 #include "options/smt_options.h"
@@ -24,7 +26,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 ResourceOutListener::ResourceOutListener(SmtEngine& smt) : d_smt(smt) {}
@@ -45,9 +47,9 @@ SmtNodeManagerListener::SmtNodeManagerListener(DumpManager& dm,
 void SmtNodeManagerListener::nmNotifyNewSort(TypeNode tn, uint32_t flags)
 {
   DeclareTypeNodeCommand c(tn.getAttribute(expr::VarNameAttr()), 0, tn);
-  if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
+  if ((flags & NodeManager::SORT_FLAG_PLACEHOLDER) == 0)
   {
-    d_dm.addToModelCommandAndDump(c, flags);
+    d_dm.addToDump(c);
   }
 }
 
@@ -57,9 +59,9 @@ void SmtNodeManagerListener::nmNotifyNewSortConstructor(TypeNode tn,
   DeclareTypeNodeCommand c(tn.getAttribute(expr::VarNameAttr()),
                            tn.getAttribute(expr::SortArityAttr()),
                            tn);
-  if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
+  if ((flags & NodeManager::SORT_FLAG_PLACEHOLDER) == 0)
   {
-    d_dm.addToModelCommandAndDump(c);
+    d_dm.addToDump(c);
   }
 }
 
@@ -70,24 +72,21 @@ void SmtNodeManagerListener::nmNotifyNewDatatypes(
   {
     if (Configuration::isAssertionBuild())
     {
-      for (CVC4_UNUSED const TypeNode& dt : dtts)
+      for (CVC5_UNUSED const TypeNode& dt : dtts)
       {
         Assert(dt.isDatatype());
       }
     }
     DeclareDatatypeNodeCommand c(dtts);
-    d_dm.addToModelCommandAndDump(c);
+    d_dm.addToDump(c);
   }
 }
 
-void SmtNodeManagerListener::nmNotifyNewVar(TNode n, uint32_t flags)
+void SmtNodeManagerListener::nmNotifyNewVar(TNode n)
 {
   DeclareFunctionNodeCommand c(
       n.getAttribute(expr::VarNameAttr()), n, n.getType());
-  if ((flags & ExprManager::VAR_FLAG_DEFINED) == 0)
-  {
-    d_dm.addToModelCommandAndDump(c, flags);
-  }
+  d_dm.addToDump(c);
 }
 
 void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,
@@ -101,11 +100,8 @@ void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,
     d_outMgr.getPrinter().toStreamCmdComment(d_outMgr.getDumpOut(),
                                              id + " is " + comment);
   }
-  if ((flags & ExprManager::VAR_FLAG_DEFINED) == 0)
-  {
-    d_dm.addToModelCommandAndDump(c, flags, false, "skolems");
-  }
+  d_dm.addToDump(c, "skolems");
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,31 +1,43 @@
-/*********************                                                        */
-/*! \file symbol_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The symbol manager
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The symbol manager.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__EXPR__SYMBOL_MANAGER_H
-#define CVC4__EXPR__SYMBOL_MANAGER_H
+#ifndef CVC5__EXPR__SYMBOL_MANAGER_H
+#define CVC5__EXPR__SYMBOL_MANAGER_H
 
 #include <map>
 #include <memory>
-#include <set>
 #include <string>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
+#include "cvc5_export.h"
 #include "expr/symbol_table.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+/** Represents the result of a call to `setExpressionName()`. */
+enum class NamingResult
+{
+  /** The expression name was set successfully. */
+  SUCCESS,
+  /** The expression already has a name. */
+  ERROR_ALREADY_NAMED,
+  /** The expression is in a binder. */
+  ERROR_IN_BINDER
+};
 
 /**
  * Symbol manager, which manages:
@@ -35,7 +47,7 @@ namespace CVC4 {
  * Like SymbolTable, this class currently lives in src/expr/ since it uses
  * context-dependent data structures.
  */
-class CVC4_PUBLIC SymbolManager
+class CVC5_EXPORT SymbolManager
 {
  public:
   SymbolManager(api::Solver* s);
@@ -53,9 +65,9 @@ class CVC4_PUBLIC SymbolManager
    * @return true if the name was set. This method may return false if t
    * already has a name.
    */
-  bool setExpressionName(api::Term t,
-                         const std::string& name,
-                         bool isAssertion = false);
+  NamingResult setExpressionName(api::Term t,
+                                 const std::string& name,
+                                 bool isAssertion = false);
   /** Get name for term t
    *
    * @param t The term
@@ -101,6 +113,11 @@ class CVC4_PUBLIC SymbolManager
    */
   std::vector<api::Term> getModelDeclareTerms() const;
   /**
+   * @return The functions we have declared that should be printed in a response
+   * to check-synth.
+   */
+  std::vector<api::Term> getFunctionsToSynthesize() const;
+  /**
    * Add declared sort to the list of model declarations.
    */
   void addModelDeclarationSort(api::Sort s);
@@ -108,6 +125,11 @@ class CVC4_PUBLIC SymbolManager
    * Add declared term to the list of model declarations.
    */
   void addModelDeclarationTerm(api::Term t);
+  /**
+   * Add a function to synthesize. This ensures the solution for f is printed
+   * in a successful response to check-synth.
+   */
+  void addFunctionToSynthesize(api::Term f);
 
   //---------------------------- end named expressions
   /**
@@ -130,6 +152,10 @@ class CVC4_PUBLIC SymbolManager
    * Reset this symbol manager, which resets the symbol table.
    */
   void reset();
+  /**
+   * Reset assertions for this symbol manager, which resets the symbol table.
+   */
+  void resetAssertions();
   /** Set global declarations to the value flag. */
   void setGlobalDeclarations(bool flag);
   /** Get global declarations flag. */
@@ -152,6 +178,6 @@ class CVC4_PUBLIC SymbolManager
   bool d_globalDeclarations;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__SYMBOL_MANAGER_H */
+#endif /* CVC5__EXPR__SYMBOL_MANAGER_H */

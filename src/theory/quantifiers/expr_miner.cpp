@@ -1,30 +1,32 @@
-/*********************                                                        */
-/*! \file expr_miner.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of expr_miner
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of expr_miner.
+ */
 
 #include "theory/quantifiers/expr_miner.h"
 
-#include "api/cvc4cpp.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -46,6 +48,7 @@ Node ExprMiner::convertToSkolem(Node n)
   std::vector<Node> sks;
   // map to skolems
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   for (unsigned i = 0, size = fvs.size(); i < size; i++)
   {
     Node v = fvs[i];
@@ -56,7 +59,7 @@ Node ExprMiner::convertToSkolem(Node n)
       std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);
       if (itf == d_fv_to_skolem.end())
       {
-        Node sk = nm->mkSkolem("rrck", v.getType());
+        Node sk = sm->mkDummySkolem("rrck", v.getType());
         d_fv_to_skolem[v] = sk;
         sks.push_back(sk);
       }
@@ -73,9 +76,17 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
                                   Node query)
 {
   Assert (!query.isNull());
-  initializeSubsolver(checker);
+  if (Options::current().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser)
+  {
+    initializeSubsolver(
+        checker, nullptr, true, options::sygusExprMinerCheckTimeout());
+  }
+  else
+  {
+    initializeSubsolver(checker);
+  }
   // also set the options
-  checker->setOption("sygus-rr-synth-input", false);
+  checker->setOption("sygus-rr-synth-input", "false");
   checker->setOption("input-language", "smt2");
   // Convert bound variables to skolems. This ensures the satisfiability
   // check is ground.
@@ -104,4 +115,4 @@ Result ExprMiner::doCheck(Node query)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,6 +1,6 @@
 ; EXPECT: sat
 ; EXPECT: ((pos 1) (zero 0) (neg (- 6)))
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-option :produce-models true)
 (set-logic QF_LIA)
 
