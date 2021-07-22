@@ -24,7 +24,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusEnumeratorCallback::SygusEnumeratorCallback(Node e, SygusStatistics* s) : d_enum(e), d_stats(s)
+SygusEnumeratorCallback::SygusEnumeratorCallback(Node e, SygusStatistics* s)
+    : d_enum(e), d_stats(s)
 {
   d_tn = e.getType();
 }
@@ -54,8 +55,7 @@ bool SygusEnumeratorCallback::addTerm(Node n, std::unordered_set<Node>& bterms)
   if (!addTermInternal(n, bn, bnr))
   {
     Trace("sygus-enum-exc")
-        << "Exclude: " << bn << " due to callback"
-        << std::endl;
+        << "Exclude: " << bn << " due to callback" << std::endl;
     return false;
   }
   Trace("sygus-enum-terms") << "tc(" << d_tn << "): term " << bn << std::endl;
@@ -67,7 +67,9 @@ SygusEnumeratorCallbackDefault::SygusEnumeratorCallbackDefault(
     : SygusEnumeratorCallback(e, s), d_eec(eec), d_samplerRrV(ssrv)
 {
 }
-void SygusEnumeratorCallbackDefault::notifyTermInternal(Node n, Node bn, Node bnr)
+void SygusEnumeratorCallbackDefault::notifyTermInternal(Node n,
+                                                        Node bn,
+                                                        Node bnr)
 {
   if (d_samplerRrV != nullptr)
   {

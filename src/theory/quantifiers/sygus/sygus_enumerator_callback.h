@@ -55,7 +55,7 @@ class SygusEnumeratorCallback
  protected:
   /**
    * Callback-specific notification of the above
-   * 
+   *
    * @param n The SyGuS term
    * @param bn The builtin version of the enumerated term
    * @param bnr The (extended) rewritten form of bn
@@ -63,11 +63,11 @@ class SygusEnumeratorCallback
   virtual void notifyTermInternal(Node n, Node bn, Node bnr) = 0;
   /**
    * Callback-specific add term
-   * 
+   *
    * @param n The SyGuS term
    * @param bn The builtin version of the enumerated term
    * @param bnr The (extended) rewritten form of bn
-   * @return true if the term should be considered in the enumeration. 
+   * @return true if the term should be considered in the enumeration.
    */
   virtual bool addTermInternal(Node n, Node bn, Node bnr) = 0;
   /** The enumerator */
