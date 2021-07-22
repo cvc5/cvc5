@@ -195,6 +195,14 @@ name   = "SMT Layer"
   help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
 
 [[option]]
+  name       = "minimalUnsatCores"
+  category   = "regular"
+  long       = "minimal-unsat-cores"
+  type       = "bool"
+  default    = "false"
+  help       = "if an unsat core is produced, it is reduced to a minimal unsat core"
+
+[[option]]
   name       = "checkUnsatCores"
   category   = "regular"
   long       = "check-unsat-cores"

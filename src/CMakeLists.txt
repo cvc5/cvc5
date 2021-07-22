@@ -688,6 +688,8 @@ libcvc5_add_sources(
   theory/decision_strategy.h
   theory/ee_manager.cpp
   theory/ee_manager.h
+  theory/ee_manager_central.cpp
+  theory/ee_manager_central.h
   theory/ee_manager_distributed.cpp
   theory/ee_manager_distributed.h
   theory/ee_setup_info.h
