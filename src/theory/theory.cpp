@@ -598,5 +598,26 @@ eq::EqualityEngine* Theory::getEqualityEngine()
   return d_equalityEngine;
 }
 
+bool Theory::usesCentralEqualityEngine() const
+{
+  return usesCentralEqualityEngine(d_id);
+}
+
+bool Theory::usesCentralEqualityEngine(TheoryId id)
+{
+  if (id == THEORY_BUILTIN)
+  {
+    return true;
+  }
+  if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
+  {
+    return false;
+  }
+  // Below are all theories with an equality engine except id ==THEORY_ARITH
+  return id == THEORY_UF || id == THEORY_DATATYPES || id == THEORY_BAGS
+         || id == THEORY_FP || id == THEORY_SETS || id == THEORY_STRINGS
+         || id == THEORY_SEP || id == THEORY_ARRAYS || id == THEORY_BV;
+}
+
 }  // namespace theory
 }  // namespace cvc5
