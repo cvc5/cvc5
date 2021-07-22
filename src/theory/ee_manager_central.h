@@ -41,10 +41,10 @@ namespace theory {
  *
  * It also may allocate a "master" equality engine, which is intuitively the
  * equality engine of the theory of quantifiers. If all theories use the
- * central equality engine, then master equality engine is the same as the
+ * central equality engine, then the master equality engine is the same as the
  * central equality engine.
  *
- * The theories that use central equality engine is determined by
+ * The theories that use central equality engine are determined by
  * Theory::usesCentralEqualityEngine.
  *
  * The main idea behind this class is to use a notification class on the

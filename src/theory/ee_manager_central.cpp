@@ -63,7 +63,7 @@ void EqEngineManagerCentral::initializeTheories()
   }
   else
   {
-    AlwaysAssert(false) << "Expected shared solver to use equality engine";
+    Unreachable() << "Expected shared solver to use equality engine";
   }
   // whether to use master equality engine as central
   bool masterEqToCentral = true;
