@@ -85,7 +85,7 @@ void TheorySetsPrivate::eqNotifyNewClass(TNode t)
 
 void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
 {
-  if (!d_state.isInConflict())
+  if (!d_state.isInConflict() && t1.getType().isSet())
   {
     Trace("sets-prop-debug")
         << "Merge " << t1 << " and " << t2 << "..." << std::endl;
