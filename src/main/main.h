@@ -59,14 +59,11 @@ extern std::unique_ptr<TotalTimer> totalTime;
  */
 extern bool segvSpin;
 
-/** A pointer to the options in play */
-extern thread_local Options* pOptions;
-
 }  // namespace main
 }  // namespace cvc5
 
 /** Actual cvc5 driver functions **/
 int runCvc5(int argc, char* argv[], cvc5::Options&);
-void printUsage(cvc5::Options&, bool full = false);
+void printUsage(const cvc5::Options&, bool full = false);
 
 #endif /* CVC5__MAIN__MAIN_H */

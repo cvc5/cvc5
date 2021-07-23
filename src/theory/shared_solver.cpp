@@ -57,13 +57,17 @@ void SharedSolver::preRegister(TNode atom)
   // See term_registration_visitor.h for more details.
   if (d_logicInfo.isSharingEnabled())
   {
-    // register it with the shared terms database if sharing is enabled
-    preRegisterSharedInternal(atom);
     // Collect the shared terms in atom, as well as calling preregister on the
     // appropriate theories in atom.
     // This calls Theory::preRegisterTerm and Theory::addSharedTerm, possibly
     // multiple times.
     NodeVisitor<SharedTermsVisitor>::run(d_sharedTermsVisitor, atom);
+    // Register it with the shared terms database if sharing is enabled.
+    // Notice that this must come *after* the above call, since we must ensure
+    // that all subterms of atom have already been added to the central
+    // equality engine before atom is added. This avoids spurious notifications
+    // from the equality engine.
+    preRegisterSharedInternal(atom);
   }
   else
   {
@@ -135,8 +139,9 @@ bool SharedSolver::propagateSharedEquality(theory::TheoryId theory,
 
 bool SharedSolver::isShared(TNode t) const { return d_sharedTerms.isShared(t); }
 
-void SharedSolver::sendLemma(TrustNode trn, TheoryId atomsTo)
+void SharedSolver::sendLemma(TrustNode trn, TheoryId atomsTo, InferenceId id)
 {
+  Trace("im") << "(lemma " << id << " " << trn.getProven() << ")" << std::endl;
   d_te.lemma(trn, LemmaProperty::NONE, atomsTo);
 }
 

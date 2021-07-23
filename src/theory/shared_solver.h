@@ -19,6 +19,7 @@
 #define CVC5__THEORY__SHARED_SOLVER__H
 
 #include "expr/node.h"
+#include "theory/inference_id.h"
 #include "theory/shared_terms_database.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/valuation.h"
@@ -123,7 +124,7 @@ class SharedSolver
                                TNode b,
                                bool value);
   /** Send lemma to the theory engine, atomsTo is the theory to send atoms to */
-  void sendLemma(TrustNode trn, TheoryId atomsTo);
+  void sendLemma(TrustNode trn, TheoryId atomsTo, InferenceId id);
   /** Send conflict to the theory engine */
   void sendConflict(TrustNode trn);
 

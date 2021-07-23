@@ -899,7 +899,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
           Trace("theory::propagate") << "TheoryEngine::assertToTheory(" << assertion << ", " << toTheoryId << ", " << fromTheoryId << "): conflict (no sharing)" << endl;
           Trace("dtview::conflict")
               << ":THEORY-CONFLICT: " << assertion << std::endl;
-          d_inConflict = true;
+          markInConflict();
         } else {
           return;
         }
@@ -954,7 +954,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
             << endl;
         Trace("dtview::conflict")
             << ":THEORY-CONFLICT: " << assertion << std::endl;
-        d_inConflict = true;
+        markInConflict();
       }
     }
     return;

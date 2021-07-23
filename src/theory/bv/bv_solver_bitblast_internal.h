@@ -10,39 +10,37 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Simple bit-blast solver that sends bit-blast lemmas directly to MiniSat.
+ * Bit-blast solver that sends bit-blast lemmas directly to the internal
+ * MiniSat.
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__BV__BV_SOLVER_SIMPLE_H
-#define CVC5__THEORY__BV__BV_SOLVER_SIMPLE_H
+#ifndef CVC5__THEORY__BV__BV_SOLVER_BITBLAST_INTERNAL_H
+#define CVC5__THEORY__BV__BV_SOLVER_BITBLAST_INTERNAL_H
 
 #include "theory/bv/bitblast/proof_bitblaster.h"
 #include "theory/bv/bv_solver.h"
 #include "theory/bv/proof_checker.h"
 
 namespace cvc5 {
-
-class TConvProofGenerator;
-
 namespace theory {
 namespace bv {
 
 /**
- * Simple bit-blasting solver that sends bit-blasting lemmas directly to the
+ * Bit-blasting solver that sends bit-blasting lemmas directly to the
  * internal MiniSat. It is also ablo to handle atoms of kind
  * BITVECTOR_EAGER_ATOM.
  *
  * Sends lemmas atom <=> bb(atom) to MiniSat on preNotifyFact().
  */
-class BVSolverSimple : public BVSolver
+class BVSolverBitblastInternal : public BVSolver
 {
  public:
-  BVSolverSimple(TheoryState* state,
-                 TheoryInferenceManager& inferMgr,
-                 ProofNodeManager* pnm);
-  ~BVSolverSimple() = default;
+  BVSolverBitblastInternal(TheoryState* state,
+                           TheoryInferenceManager& inferMgr,
+                           ProofNodeManager* pnm);
+  ~BVSolverBitblastInternal() = default;
 
   void preRegisterTerm(TNode n) override {}
 
@@ -52,7 +50,7 @@ class BVSolverSimple : public BVSolver
                      bool isPrereg,
                      bool isInternal) override;
 
-  std::string identify() const override { return "BVSolverSimple"; };
+  std::string identify() const override { return "BVSolverBitblastInternal"; };
 
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
@@ -67,8 +65,8 @@ class BVSolverSimple : public BVSolver
    */
   void addBBLemma(TNode fact);
 
-  /** Proof generator. */
-  std::unique_ptr<TConvProofGenerator> d_tcpg;
+  /** Proof node manager. */
+  ProofNodeManager* d_pnm;
   /** Bit-blaster used to bit-blast atoms/terms. */
   std::unique_ptr<BBProof> d_bitblaster;
   /** Proof rule checker */
