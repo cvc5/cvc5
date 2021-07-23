@@ -1402,7 +1402,78 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(pepf, *d_asserts);
   std::vector<Node> core;
   d_ucManager->getUnsatCore(pfn, *d_asserts, core);
+  if (options::minimalUnsatCores())
+  {
+    core = reduceUnsatCore(core);
+  }
   return UnsatCore(core);
+}
+
+std::vector<Node> SmtEngine::reduceUnsatCore(const std::vector<Node>& core)
+{
+  Assert(options::unsatCores())
+      << "cannot reduce unsat core if unsat cores are turned off";
+
+  Notice() << "SmtEngine::reduceUnsatCore(): reducing unsat core" << endl;
+  std::unordered_set<Node> removed;
+  for (const Node& skip : core)
+  {
+    std::unique_ptr<SmtEngine> coreChecker;
+    initializeSubsolver(coreChecker);
+    coreChecker->setLogic(getLogicInfo());
+    coreChecker->getOptions().smt.checkUnsatCores = false;
+    // disable all proof options
+    coreChecker->getOptions().smt.produceProofs = false;
+    coreChecker->getOptions().smt.checkProofs = false;
+    coreChecker->getOptions().proof.proofEagerChecking = false;
+
+    for (const Node& ucAssertion : core)
+    {
+      if (ucAssertion != skip && removed.find(ucAssertion) == removed.end())
+      {
+        Node assertionAfterExpansion = expandDefinitions(ucAssertion);
+        coreChecker->assertFormula(assertionAfterExpansion);
+      }
+    }
+    Result r;
+    try
+    {
+      r = coreChecker->checkSat();
+    }
+    catch (...)
+    {
+      throw;
+    }
+
+    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
+      removed.insert(skip);
+    }
+    else if (r.asSatisfiabilityResult().isUnknown())
+    {
+      Warning() << "SmtEngine::reduceUnsatCore(): could not reduce unsat core "
+                   "due to "
+                   "unknown result.";
+    }
+  }
+
+  if (removed.empty())
+  {
+    return core;
+  }
+  else
+  {
+    std::vector<Node> newUcAssertions;
+    for (const Node& n : core)
+    {
+      if (removed.find(n) == removed.end())
+      {
+        newUcAssertions.push_back(n);
+      }
+    }
+
+    return newUcAssertions;
+  }
 }
 
 void SmtEngine::checkUnsatCore() {

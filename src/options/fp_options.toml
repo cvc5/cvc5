@@ -8,3 +8,11 @@ name   = "Floating-Point"
   type       = "bool"
   default    = "false"
   help       = "Allow floating-point sorts of all sizes, rather than only Float32 (8/24) or Float64 (11/53) (experimental)"
+
+[[option]]
+  name       = "fpLazyWb"
+  category   = "experimental"
+  long       = "fp-lazy-wb"
+  type       = "bool"
+  default    = "false"
+  help       = "Enable lazier word-blasting (on preNotifyFact instead of registerTerm)"

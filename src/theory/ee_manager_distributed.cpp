@@ -56,7 +56,7 @@ void EqEngineManagerDistributed::initializeTheories()
     Assert(d_masterEqualityEngine == nullptr);
     QuantifiersEngine* qe = d_te.getQuantifiersEngine();
     Assert(qe != nullptr);
-    d_masterEENotify.reset(new MasterNotifyClass(qe));
+    d_masterEENotify.reset(new quantifiers::MasterNotifyClass(qe));
     d_masterEqualityEngine.reset(new eq::EqualityEngine(*d_masterEENotify.get(),
                                                         d_te.getSatContext(),
                                                         "theory::master",
@@ -107,12 +107,6 @@ void EqEngineManagerDistributed::notifyModel(bool incomplete)
   {
     AlwaysAssert(d_masterEqualityEngine->consistent());
   }
-}
-
-void EqEngineManagerDistributed::MasterNotifyClass::eqNotifyNewClass(TNode t)
-{
-  // adds t to the quantifiers term database
-  d_quantEngine->eqNotifyNewClass(t);
 }
 
 }  // namespace theory
