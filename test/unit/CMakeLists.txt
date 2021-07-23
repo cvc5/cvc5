@@ -45,13 +45,11 @@ macro(cvc5_add_unit_test is_white name output_dir)
   target_link_libraries(${name} PUBLIC GTest::Main)
   target_link_libraries(${name} PUBLIC GTest::GTest)
 
-  if(USE_CLN)
-    target_link_libraries(${name} PUBLIC CLN)
-  endif()
   if(USE_POLY)
-    target_link_libraries(${name} PUBLIC Polyxx)
+    # Make libpoly headers available for tests
+    target_include_directories(${name} PRIVATE "${Poly_INCLUDE_DIR}")
   endif()
-  target_link_libraries(${name} PUBLIC GMP)
+
   if(${is_white})
     target_compile_options(${name} PRIVATE -fno-access-control)
   endif()

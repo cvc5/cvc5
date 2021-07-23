@@ -1,3 +1,4 @@
+; COMMAND-LINE: --bv-solver=bitblast-internal
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-const __ (_ BitVec 3))
