@@ -23,6 +23,7 @@ New Features:
   * Support for `str.indexof_re(s, r, n)`, which returns the index of the first
     occurrence of a regular expression `r` in a string `s` after index `n` or
     -1 if `r` does not match a substring after `n`.
+* A new option to compute minimal unsat cores (`--minimal-unsat-cores`).
 
 Improvements:
 * New API: Added functions to retrieve the heap/nil term when using separation
