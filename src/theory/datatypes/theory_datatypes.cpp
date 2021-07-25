@@ -1857,38 +1857,16 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
   Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
                   << std::endl;
 
-  //also include non-singleton equivalence classes  TODO : revisit this
+  //also include non-singleton dt equivalence classes  TODO : revisit this
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   while( !eqcs_i.isFinished() ){
     TNode r = (*eqcs_i);
-    bool addedFirst = false;
-    Node first;
-    TypeNode rtn = r.getType();
-    if (!rtn.isBoolean())
+    if (r.getType().isDatatype())
     {
       eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
       while (!eqc_i.isFinished())
       {
-        TNode n = (*eqc_i);
-        if (first.isNull())
-        {
-          first = n;
-          // always include all datatypes
-          if (rtn.isDatatype())
-          {
-            addedFirst = true;
-            termSet.insert(n);
-          }
-        }
-        else
-        {
-          if (!addedFirst)
-          {
-            addedFirst = true;
-            termSet.insert(first);
-          }
-          termSet.insert(n);
-        }
+        termSet.insert(*eqc_i);
         ++eqc_i;
       }
     }
