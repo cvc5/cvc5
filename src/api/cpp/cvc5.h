@@ -310,14 +310,7 @@ class CVC5_EXPORT OptimizationResult {
    * The interal optimization result wrapped by this result.
    * Note: This is a shared_ptr for the same reason as in Result
    */
-  std::shared_ptr<cvc5::Result> d_optResult;
-
-  /**
-   * The wrapper for the node representing the optimized value  
-   * Note: using shared_ptr instead of unique_ptr provides thread-safety
-   *   (cvc5::Node implements reference counting but it's not multithread-safe)
-   **/
-  std::shared_ptr<cvc5::Node> d_value;
+  std::shared_ptr<cvc5::OptimizationResult> d_optResult;
 };
 
 /**
