@@ -48,6 +48,8 @@ class Options;
 class Random;
 class Result;
 class StatisticsRegistry;
+class OptimizationResult;
+class OptimizationObjective;
 
 namespace main {
 class CommandExecutor;
@@ -244,6 +246,88 @@ std::ostream& operator<<(std::ostream& out, const Result& r) CVC5_EXPORT;
  */
 std::ostream& operator<<(std::ostream& out,
                          enum Result::UnknownExplanation e) CVC5_EXPORT;
+
+
+/* -------------------------------------------------------------------------- */
+/* Optimization Result                                                        */
+/* -------------------------------------------------------------------------- */
+
+class Term;
+
+/**
+ * Encapsulation of the optimization result
+ **/
+class CVC5_EXPORT OptimizationResult {
+ public: 
+  /** Denotes whether the result is +Inf, -Inf or finite **/
+  enum IsInfinity
+  {
+    FINITE = 0,
+    POSTITIVE_INF,
+    NEGATIVE_INF
+  };
+
+  /** Constructor **/
+  OptimizationResult();
+
+  /** 
+   * Gets the optimization outcome (SAT/UNSAT/UNKNOWN) 
+   * @return an instance of Result 
+   *   denoting whether the optimization is SAT/UNSAT/UNKNOWN
+   **/
+  Result getResult() const;
+
+  /** 
+   * Gets the optimization value if the result finite 
+   * @return a Term encapsulating the optimimal value
+   *   If the outcome is UNKNOWN, it may be an empty term 
+   *   or something suboptimal, 
+   *   If the outcome is UNSAT or result is +-Inf, 
+   *   it will be an empty term
+   **/
+  Term getValue() const;
+
+  /** 
+   * Whether the result is +Inf/-Inf/Finite 
+   * @return OptimizationResult::FINITE/POSITIVE_INF/NEGATIVE_INF 
+   **/
+  IsInfinity isInfinity() const;
+
+  /**
+   * @return a string representation of this optimization result.
+   **/
+  std::string toString() const;
+  
+ private:
+  /**
+   * Constructor
+   * @param optResult the internal optimization result 
+   *   that is wrapped by this result
+   **/
+  OptimizationResult(const cvc5::OptimizationResult &optResult);
+
+  /**
+   * The interal optimization result wrapped by this result.
+   * Note: This is a shared_ptr for the same reason as in Result
+   */
+  std::shared_ptr<cvc5::Result> d_optResult;
+
+  /**
+   * The wrapper for the node representing the optimized value  
+   * Note: using shared_ptr instead of unique_ptr provides thread-safety
+   *   (cvc5::Node implements reference counting but it's not multithread-safe)
+   **/
+  std::shared_ptr<cvc5::Node> d_value;
+};
+
+/**
+ * Serialize an OptimizationResult to given stream.
+ * @param out the output stream
+ * @param r the optimization result to be serialized to the given output stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out, const OptimizationResult& r) CVC5_EXPORT;
+
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
