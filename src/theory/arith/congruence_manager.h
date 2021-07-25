@@ -110,6 +110,8 @@ private:
 
   /** The equality engine being used by this class */
   eq::EqualityEngine* d_ee;
+  /** The equality engine we allocated */
+  std::unique_ptr<eq::EqualityEngine> d_allocEe;
   /** The sat context */
   context::Context* d_satContext;
   /** The user context */
@@ -143,6 +145,8 @@ private:
 
   /** Pointer to the proof equality engine of TheoryArith */
   theory::eq::ProofEqEngine* d_pfee;
+  /** The proof equality engine we allocated */
+  std::unique_ptr<eq::ProofEqEngine> d_allocPfee;
 
   /** Raise a conflict node `conflict` to the theory of arithmetic.
    *
@@ -240,9 +244,9 @@ private:
   bool needsEqualityEngine(EeSetupInfo& esi);
   /**
    * Finish initialize. This class is instructed by TheoryArithPrivate to use
-   * the equality engine ee and proof equality engine pfee.
+   * the equality engine ee.
    */
-  void finishInit(eq::EqualityEngine* ee, eq::ProofEqEngine* pfee);
+  void finishInit(eq::EqualityEngine* ee);
   //--------------------------------- end initialization
 
   /**
