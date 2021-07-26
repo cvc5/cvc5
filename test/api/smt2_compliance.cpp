@@ -42,7 +42,7 @@ int main()
   cout << language::SetLanguage(language::output::LANG_SMTLIB_V2);
 
   std::unique_ptr<api::Solver> solver =
-    std::unique_ptr<api::Solver>(new api::Solver(&opts));
+      std::unique_ptr<api::Solver>(new api::Solver(&opts));
   testGetInfo(solver.get(), ":error-behavior");
   testGetInfo(solver.get(), ":name");
   testGetInfo(solver.get(), ":authors");
