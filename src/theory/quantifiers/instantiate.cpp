@@ -102,7 +102,6 @@ bool Instantiate::addInstantiation(Node q,
                                    std::vector<Node>& terms,
                                    InferenceId id,
                                    bool mkRep,
-                                   bool modEq,
                                    bool doVts)
 {
   // For resource-limiting (also does a time check).
@@ -229,7 +228,7 @@ bool Instantiate::addInstantiation(Node q,
   }
 
   // record the instantiation
-  bool recorded = recordInstantiationInternal(q, terms, modEq);
+  bool recorded = recordInstantiationInternal(q, terms);
   if (!recorded)
   {
     Trace("inst-add-debug") << " --> Already exists (no record)." << std::endl;
@@ -395,11 +394,10 @@ bool Instantiate::addInstantiationExpFail(Node q,
                                           std::vector<bool>& failMask,
                                           InferenceId id,
                                           bool mkRep,
-                                          bool modEq,
                                           bool doVts,
                                           bool expFull)
 {
-  if (addInstantiation(q, terms, id, mkRep, modEq, doVts))
+  if (addInstantiation(q, terms, id, mkRep, doVts))
   {
     return true;
   }
@@ -568,13 +566,12 @@ Node Instantiate::getInstantiation(Node q, std::vector<Node>& terms, bool doVts)
 }
 
 bool Instantiate::recordInstantiationInternal(Node q,
-                                              std::vector<Node>& terms,
-                                              bool modEq)
+                                              std::vector<Node>& terms)
 {
   if (options::incrementalSolving())
   {
     Trace("inst-add-debug")
-        << "Adding into context-dependent inst trie, modEq = " << modEq
+        << "Adding into context-dependent inst trie"
         << std::endl;
     CDInstMatchTrie* imt;
     std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
@@ -588,10 +585,10 @@ bool Instantiate::recordInstantiationInternal(Node q,
       d_c_inst_match_trie[q] = imt;
     }
     d_c_inst_match_trie_dom.insert(q);
-    return imt->addInstMatch(d_qstate, q, terms, modEq);
+    return imt->addInstMatch(d_qstate, q, terms);
   }
   Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
-  return d_inst_match_trie[q].addInstMatch(d_qstate, q, terms, modEq);
+  return d_inst_match_trie[q].addInstMatch(d_qstate, q, terms);
 }
 
 bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)

@@ -141,8 +141,6 @@ class Instantiate : public QuantifiersUtil
    * manager
    * @param mkRep whether to take the representatives of the terms in the
    * range of the substitution m,
-   * @param modEq whether to check for duplication modulo equality in
-   * instantiation tries (for performance),
    * @param doVts whether we must apply virtual term substitution to the
    * instantiation lemma.
    *
@@ -162,7 +160,6 @@ class Instantiate : public QuantifiersUtil
                         std::vector<Node>& terms,
                         InferenceId id,
                         bool mkRep = false,
-                        bool modEq = false,
                         bool doVts = false);
   /**
    * Same as above, but we also compute a vector failMask indicating which
@@ -192,7 +189,6 @@ class Instantiate : public QuantifiersUtil
                                std::vector<bool>& failMask,
                                InferenceId id,
                                bool mkRep = false,
-                               bool modEq = false,
                                bool doVts = false,
                                bool expFull = true);
   /** record instantiation
@@ -293,14 +289,9 @@ class Instantiate : public QuantifiersUtil
   Statistics d_statistics;
 
  private:
-  /** record instantiation, return true if it was not a duplicate
-   *
-   * modEq : whether to check for duplication modulo equality in instantiation
-   *         tries (for performance),
-   */
+  /** record instantiation, return true if it was not a duplicate */
   bool recordInstantiationInternal(Node q,
-                                   std::vector<Node>& terms,
-                                   bool modEq = false);
+                                   std::vector<Node>& terms);
   /** remove instantiation from the cache */
   bool removeInstantiationInternal(Node q, std::vector<Node>& terms);
   /**
