@@ -724,7 +724,8 @@ def add_getopt_long(long_name, argument_req, getopt_long):
             'required' if argument_req else 'no', value))
 
 
-def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_cpp, tpl_options_public):
+def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_cpp,
+                        tpl_options_public):
     """
     Generate code for all option modules (options.cpp).
     """
