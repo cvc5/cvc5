@@ -1051,7 +1051,7 @@ Node EqProof::addToProof(CDProof* p,
     Kind k = d_node[0].getKind();
     std::vector<Node> cargs;
     cargs.push_back(ProofRuleChecker::mkKindNode(k));
-    if (d_node[0].getMetaKind()==kind::metakind::PARAMETERIZED)
+    if (d_node[0].getMetaKind() == kind::metakind::PARAMETERIZED)
     {
       constChildren.insert(constChildren.begin(), d_node[0].getOperator());
       cargs.push_back(d_node[0].getOperator());
@@ -1067,11 +1067,7 @@ Node EqProof::addToProof(CDProof* p,
     Trace("eqproof-conv") << "EqProof::addToProof: adding  " << PfRule::CONG
                           << " step for " << congConclusion << " from "
                           << subChildren << "\n";
-    p->addStep(congConclusion,
-               PfRule::CONG,
-               {subChildren},
-               cargs,
-               true);
+    p->addStep(congConclusion, PfRule::CONG, {subChildren}, cargs, true);
     Trace("eqproof-conv") << "EqProof::addToProof: adding  " << PfRule::TRANS
                           << " step for original conclusion " << d_node << "\n";
     std::vector<Node> transitivityChildren{congConclusion, constEquality};
