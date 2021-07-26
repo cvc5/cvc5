@@ -378,6 +378,8 @@ enum class InferenceId
 
   // ---------------------------------- sets theory
   //-------------------- sets core solver
+  // split when computing care graph
+  SETS_CG_SPLIT,
   SETS_COMPREHENSION,
   SETS_DEQ,
   SETS_DOWN_CLOSURE,

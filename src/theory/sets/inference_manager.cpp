@@ -92,7 +92,7 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
       || (atom.getKind() == EQUAL && atom[0].getType().isSet()))
   {
     // send to equality engine
-    if (assertInternalFact(atom, polarity, id, exp))
+    if (assertInternalFact(atom, polarity, id, PfRule::THEORY_INFERENCE, {exp}, {}))
     {
       // return true if this wasn't redundant
       return true;
