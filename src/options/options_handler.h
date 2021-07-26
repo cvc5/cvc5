@@ -133,6 +133,18 @@ public:
   void threadN(const std::string& option, const std::string& flag);
 
   /* options/base_options_handlers.h */
+  void applyDump(const std::string& option,
+                 const std::string& flag,
+                 const ManagedOut& mo);
+  void applyErr(const std::string& option,
+                const std::string& flag,
+                const ManagedErr& me);
+  void applyIn(const std::string& option,
+               const std::string& flag,
+               const ManagedIn& mi);
+  void applyOut(const std::string& option,
+                const std::string& flag,
+                const ManagedOut& mo);
   void setVerbosity(const std::string& option,
                     const std::string& flag,
                     int value);

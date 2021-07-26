@@ -549,6 +549,46 @@ InputLanguage OptionsHandler::stringToInputLanguage(const std::string& option,
   Unreachable();
 }
 
+void OptionsHandler::applyDump(const std::string& option,
+                               const std::string& flag, const ManagedOut& mo)
+{
+#ifdef CVC5_DUMPING
+  DumpOstreamUpdate dumpGetStream;
+  dumpGetStream.apply(mo);
+#else  /* CVC5_DUMPING */
+  throw OptionException(
+      "The dumping feature was disabled in this build of cvc5.");
+#endif /* CVC5_DUMPING */
+}
+void OptionsHandler::applyErr(const std::string& option,
+                         const std::string& flag, const ManagedErr& me)
+{
+  DebugOstreamUpdate debugOstreamUpdate;
+  debugOstreamUpdate.apply(me);
+  WarningOstreamUpdate warningOstreamUpdate;
+  warningOstreamUpdate.apply(me);
+  MessageOstreamUpdate messageOstreamUpdate;
+  messageOstreamUpdate.apply(me);
+  NoticeOstreamUpdate noticeOstreamUpdate;
+  noticeOstreamUpdate.apply(me);
+  ChatOstreamUpdate chatOstreamUpdate;
+  chatOstreamUpdate.apply(me);
+  TraceOstreamUpdate traceOstreamUpdate;
+  traceOstreamUpdate.apply(me);
+  OptionsErrOstreamUpdate optionsErrOstreamUpdate;
+  optionsErrOstreamUpdate.apply(me);
+}
+void OptionsHandler::applyIn(const std::string& option,
+                         const std::string& flag, const ManagedIn& mi)
+{
+}
+void OptionsHandler::applyOut(const std::string& option,
+                         const std::string& flag, const ManagedOut& mo)
+{
+  OptionsErrOstreamUpdate optionsErrOstreamUpdate;
+  optionsErrOstreamUpdate.apply(mo);
+}
+
 /* options/base_options_handlers.h */
 void OptionsHandler::setVerbosity(const std::string& option,
                                   const std::string& flag,
