@@ -11,7 +11,6 @@
 # directory for licensing information.
 # #############################################################################
 ##
-
 """
     Generate option handling code and documentation in one pass. The generated
     files are only written to the destination file if the contents of the file
@@ -27,7 +26,6 @@
 
     Directory <tpl-src> must contain:
         - options_template.cpp
-        - options_public_template.cpp
         - module_template.cpp
         - module_template.h
 
@@ -54,10 +52,8 @@ MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option', 'public']
 
 OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
-    'name', 'short', 'long', 'alias',
-    'default', 'alternate', 'mode',
-    'handler', 'predicates', 'includes',
-    'help', 'help_mode'
+    'name', 'short', 'long', 'alias', 'default', 'alternate', 'mode',
+    'handler', 'predicates', 'includes', 'help', 'help_mode'
 ]
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
@@ -65,7 +61,7 @@ SUPPORTED_CTYPES = ['int', 'unsigned', 'unsigned long', 'double']
 
 ### Other globals
 
-g_long_cache = dict()      # maps long options to filename/fileno
+g_long_cache = dict()  # maps long options to filename/fileno
 
 g_getopt_long_start = 256
 
@@ -179,14 +175,10 @@ TPL_MODE_HANDLER_CASE = \
     return {type}::{enum};
   }}"""
 
+
 def concat_format(s, objs):
     """Helper method to render a string for a list of object"""
     return '\n'.join([s.format(**o.__dict__) for o in objs])
-
-
-def get_module_headers(modules):
-    """Render includes for module headers"""
-    return concat_format('#include "{header}"', modules)
 
 
 def get_holder_fwd_decls(modules):
@@ -196,12 +188,15 @@ def get_holder_fwd_decls(modules):
 
 def get_holder_mem_decls(modules):
     """Render declarations of holder members of the Option class"""
-    return concat_format('    std::unique_ptr<options::Holder{id_cap}> d_{id};', modules)
+    return concat_format(
+        '    std::unique_ptr<options::Holder{id_cap}> d_{id};', modules)
 
 
 def get_holder_mem_inits(modules):
     """Render initializations of holder members of the Option class"""
-    return concat_format('        d_{id}(std::make_unique<options::Holder{id_cap}>()),', modules)
+    return concat_format(
+        '        d_{id}(std::make_unique<options::Holder{id_cap}>()),',
+        modules)
 
 
 def get_holder_ref_inits(modules):
@@ -224,13 +219,16 @@ def get_handler(option):
     optname = option.long_name if option.long else ""
     if option.handler:
         if option.type == 'void':
-            return 'opts.handler().{}("{}", option)'.format(option.handler, optname)
+            return 'opts.handler().{}("{}", option)'.format(
+                option.handler, optname)
         else:
-            return 'opts.handler().{}("{}", option, optionarg)'.format(option.handler, optname)
+            return 'opts.handler().{}("{}", option, optionarg)'.format(
+                option.handler, optname)
     elif option.mode:
         return 'stringTo{}(optionarg)'.format(option.type)
     elif option.type != 'bool':
-        return 'handleOption<{}>("{}", option, optionarg)'.format(option.type, optname)
+        return 'handleOption<{}>("{}", option, optionarg)'.format(
+            option.type, optname)
     return None
 
 
@@ -240,21 +238,11 @@ def get_predicates(option):
         return []
     optname = option.long_name if option.long else ""
     assert option.type != 'void'
-    return ['opts.handler().{}("{}", option, value);'.format(x, optname)
-            for x in option.predicates]
+    return [
+        'opts.handler().{}("{}", option, value);'.format(x, optname)
+        for x in option.predicates
+    ]
 
-
-def get_getall(module, option):
-    """Render snippet to add option to result of getAll()"""
-    if option.type == 'bool':
-        return 'res.push_back({{"{}", opts.{}.{} ? "true" : "false"}});'.format(
-            option.long_name, module.id, option.name)
-    elif is_numeric_cpp_type(option.type):
-        return 'res.push_back({{"{}", std::to_string(opts.{}.{})}});'.format(
-            option.long_name, module.id, option.name)
-    else:
-        return '{{ std::stringstream ss; ss << opts.{}.{}; res.push_back({{"{}", ss.str()}}); }}'.format(
-            module.id, option.name, option.long_name)
 
 class Module(object):
     """Options module.
@@ -281,7 +269,7 @@ class Option(object):
         self.__dict__ = dict((k, None) for k in OPTION_ATTR_ALL)
         self.includes = []
         self.predicates = []
-        self.alternate = True    # add --no- alternative long option for bool
+        self.alternate = True  # add --no- alternative long option for bool
         self.filename = None
         for (attr, val) in d.items():
             assert attr in self.__dict__
@@ -309,13 +297,16 @@ class SphinxGenerator:
         names = []
         if option.long:
             if option.long_opt:
-                names.append('--{}={}'.format(option.long_name, option.long_opt))
+                names.append('--{}={}'.format(option.long_name,
+                                              option.long_opt))
             else:
                 names.append('--{}'.format(option.long_name))
-        
+
         if option.alias:
             if option.long_opt:
-                names.extend(['--{}={}'.format(a, option.long_opt) for a in option.alias])
+                names.extend([
+                    '--{}={}'.format(a, option.long_opt) for a in option.alias
+                ])
             else:
                 names.extend(['--{}'.format(a) for a in option.alias])
 
@@ -324,7 +315,7 @@ class SphinxGenerator:
                 names.append('-{} {}'.format(option.short, option.long_opt))
             else:
                 names.append('-{}'.format(option.short))
-        
+
         modes = None
         if option.mode:
             modes = {}
@@ -348,12 +339,13 @@ class SphinxGenerator:
             if module.name not in self.others:
                 self.others[module.name] = []
             self.others[module.name].append(data)
-    
+
     def __render_option(self, res, opt):
         desc = '``{}``'
         val = '    {}'
         if opt['expert']:
-            res.append('.. admonition:: This option is intended for Experts only!')
+            res.append(
+                '.. admonition:: This option is intended for Experts only!')
             res.append('    ')
             desc = '    ' + desc
             val = '    ' + val
@@ -370,7 +362,6 @@ class SphinxGenerator:
             for k, v in opt['modes'].items():
                 res.append(val.format(':{}: {}'.format(k, v)))
         res.append('    ')
-
 
     def render(self, dstdir, filename):
         res = []
@@ -486,10 +477,11 @@ def help_format_options(option):
             opts.append('--{}={}'.format(option.long_name, option.long_opt))
         else:
             opts.append('--{}'.format(option.long_name))
-    
+
     if option.alias:
         if option.long_opt:
-            opts.extend(['--{}={}'.format(a, option.long_opt) for a in option.alias])
+            opts.extend(
+                ['--{}={}'.format(a, option.long_opt) for a in option.alias])
         else:
             opts.extend(['--{}'.format(a) for a in option.alias])
 
@@ -519,6 +511,7 @@ def help_format(help_msg, opts):
     lines.extend([' ' * width_opt + l for l in text[1:]])
     return ['"{}\\n"'.format(x) for x in lines]
 
+
 def help_mode_format(option):
     """
     Format help message for mode options.
@@ -530,8 +523,8 @@ def help_mode_format(option):
     text = ['{}'.format(x) for x in wrapper.wrap(option.help_mode)]
 
     optname, optvalue = option.long.split('=')
-    text.append('Available {}s for --{} are:'.format(
-                optvalue.lower(), optname))
+    text.append('Available {}s for --{} are:'.format(optvalue.lower(),
+                                                     optname))
 
     for value, attrib in option.mode.items():
         assert len(attrib) == 1
@@ -579,9 +572,14 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
             default = option.default
             if option.mode and option.type not in default:
                 default = '{}::{}'.format(option.type, default)
-            holder_specs.append(TPL_HOLDER_MACRO_ATTR_DEF.format(type=option.type, name=option.name, default=default))
+            holder_specs.append(
+                TPL_HOLDER_MACRO_ATTR_DEF.format(type=option.type,
+                                                 name=option.name,
+                                                 default=default))
         else:
-            holder_specs.append(TPL_HOLDER_MACRO_ATTR.format(type=option.type, name=option.name))
+            holder_specs.append(
+                TPL_HOLDER_MACRO_ATTR.format(type=option.type,
+                                             name=option.name))
 
         # Generate module declaration
         tpl_decl = TPL_OPTION_STRUCT_RW
@@ -589,13 +587,23 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
             long_name = option.long.split('=')[0]
         else:
             long_name = ""
-        decls.append(tpl_decl.format(name=option.name, type=option.type, long_name = long_name))
-        option_names.append(TPL_NAME_DECL.format(name=option.name, type=option.type, long_name = long_name))
+        decls.append(
+            tpl_decl.format(name=option.name,
+                            type=option.type,
+                            long_name=long_name))
+        option_names.append(
+            TPL_NAME_DECL.format(name=option.name,
+                                 type=option.type,
+                                 long_name=long_name))
 
         capoptionname = option.name[0].capitalize() + option.name[1:]
 
         # Generate module specialization
-        default_decl.append(TPL_DECL_SET_DEFAULT.format(module=module.id, name=option.name, funcname=capoptionname, type=option.type))
+        default_decl.append(
+            TPL_DECL_SET_DEFAULT.format(module=module.id,
+                                        name=option.name,
+                                        funcname=capoptionname,
+                                        type=option.type))
 
         if option.long and option.type not in ['bool', 'void'] and \
            '=' not in option.long:
@@ -609,50 +617,55 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
                     module.id, option.long, option.type))
 
         # Generate module inlines
-        inls.append(TPL_IMPL_OP_PAR.format(module=module.id, name=option.name, type=option.type))
-
+        inls.append(
+            TPL_IMPL_OP_PAR.format(module=module.id,
+                                   name=option.name,
+                                   type=option.type))
 
         ### Generate code for {module.name}_options.cpp
 
         # Accessors
-        default_impl.append(TPL_IMPL_SET_DEFAULT.format(module=module.id, name=option.name, funcname=capoptionname, type=option.type))
+        default_impl.append(
+            TPL_IMPL_SET_DEFAULT.format(module=module.id,
+                                        name=option.name,
+                                        funcname=capoptionname,
+                                        type=option.type))
 
         # Global definitions
-        defs.append('thread_local struct {name}__option_t {name};'.format(name=option.name))
+        defs.append('thread_local struct {name}__option_t {name};'.format(
+            name=option.name))
 
         if option.mode:
             values = option.mode.keys()
             mode_decl.append(
-                TPL_DECL_MODE_ENUM.format(
-                    type=option.type,
-                    values=',\n  '.join(values),
-                    nvalues=len(values)))
+                TPL_DECL_MODE_ENUM.format(type=option.type,
+                                          values=',\n  '.join(values),
+                                          nvalues=len(values)))
             mode_decl.append(TPL_DECL_MODE_FUNC.format(type=option.type))
-            cases = [TPL_IMPL_MODE_CASE.format(
-                        type=option.type, enum=x) for x in values]
+            cases = [
+                TPL_IMPL_MODE_CASE.format(type=option.type, enum=x)
+                for x in values
+            ]
             mode_impl.append(
-                TPL_IMPL_MODE_FUNC.format(
-                    type=option.type,
-                    cases=''.join(cases)))
+                TPL_IMPL_MODE_FUNC.format(type=option.type,
+                                          cases=''.join(cases)))
 
             # Generate str-to-enum handler
             cases = []
             for value, attrib in option.mode.items():
                 assert len(attrib) == 1
                 cases.append(
-                    TPL_MODE_HANDLER_CASE.format(
-                        name=attrib[0]['name'],
-                        type=option.type,
-                        enum=value))
+                    TPL_MODE_HANDLER_CASE.format(name=attrib[0]['name'],
+                                                 type=option.type,
+                                                 enum=value))
             assert option.long
             assert cases
             mode_decl.append(TPL_DECL_MODE_HANDLER.format(type=option.type))
             mode_impl.append(
-                TPL_IMPL_MODE_HANDLER.format(
-                    type=option.type,
-                    cases='\n  else '.join(cases),
-                    help=help_mode_format(option),
-                    long=option.long.split('=')[0]))
+                TPL_IMPL_MODE_HANDLER.format(type=option.type,
+                                             cases='\n  else '.join(cases),
+                                             help=help_mode_format(option),
+                                             long=option.long.split('=')[0]))
 
     if module.public:
         visibility_include = '#include "cvc5_public.h"'
@@ -660,26 +673,28 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         visibility_include = '#include "cvc5_private.h"'
 
     filename = os.path.splitext(os.path.split(module.header)[1])[0]
-    write_file(dst_dir, '{}.h'.format(filename), tpl_module_h.format(
-        visibility_include=visibility_include,
-        id_cap=module.id_cap,
-        id=module.id,
-        includes='\n'.join(sorted(list(includes))),
-        holder_spec='\n'.join(holder_specs),
-        decls='\n'.join(decls),
-        specs='\n'.join(specs),
-        option_names='\n'.join(option_names),
-        inls='\n'.join(inls),
-        defaults='\n'.join(default_decl),
-        modes=''.join(mode_decl)))
+    write_file(
+        dst_dir, '{}.h'.format(filename),
+        tpl_module_h.format(visibility_include=visibility_include,
+                            id_cap=module.id_cap,
+                            id=module.id,
+                            includes='\n'.join(sorted(list(includes))),
+                            holder_spec='\n'.join(holder_specs),
+                            decls='\n'.join(decls),
+                            specs='\n'.join(specs),
+                            option_names='\n'.join(option_names),
+                            inls='\n'.join(inls),
+                            defaults='\n'.join(default_decl),
+                            modes=''.join(mode_decl)))
 
-    write_file(dst_dir, '{}.cpp'.format(filename), tpl_module_cpp.format(
-        header=module.header,
-        id=module.id,
-        accs='\n'.join(accs),
-        defaults='\n'.join(default_impl),
-        defs='\n'.join(defs),
-        modes=''.join(mode_impl)))
+    write_file(
+        dst_dir, '{}.cpp'.format(filename),
+        tpl_module_cpp.format(header=module.header,
+                              id=module.id,
+                              accs='\n'.join(accs),
+                              defaults='\n'.join(default_impl),
+                              defs='\n'.join(defs),
+                              modes=''.join(mode_impl)))
 
 
 def docgen_option(option, help_common, help_others):
@@ -701,7 +716,7 @@ def docgen_option(option, help_common, help_others):
         help_cmd = help_msg
         if option.type == 'bool' and option.alternate:
             help_cmd += ' [*]'
-        
+
         res = help_format(help_cmd, opts)
 
         if option.category == 'common':
@@ -719,30 +734,29 @@ def add_getopt_long(long_name, argument_req, getopt_long):
     """
     value = g_getopt_long_start + len(getopt_long)
     getopt_long.append(
-        TPL_GETOPT_LONG.format(
-            long_get_option(long_name),
-            'required' if argument_req else 'no', value))
+        TPL_GETOPT_LONG.format(long_get_option(long_name),
+                               'required' if argument_req else 'no', value))
 
 
 def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
-                        tpl_options_cpp, tpl_options_public):
+                        tpl_options_cpp):
     """
-    Generate code for all option modules (options.cpp).
+    Generate code for all option modules (options.cpp, options_holder.h).
     """
 
-    headers_module = []      # generated *_options.h header includes
+    headers_module = []  # generated *_options.h header includes
     headers_handler = set()  # option includes (for handlers, predicates, ...)
-    getopt_short = []        # short options for getopt_long
-    getopt_long = []         # long options for getopt_long
-    options_getall = []      # options for options::getAll()
+    getopt_short = []  # short options for getopt_long
+    getopt_long = []  # long options for getopt_long
+    options_smt = []  # all options names accessible via {set,get}-option
     options_getoptions = []  # options for Options::getOptions()
-    options_handler = []     # option handler calls
-    help_common = []         # help text for all common options
-    help_others = []         # help text for all non-common options
+    options_handler = []  # option handler calls
+    defaults = []  # default values
+    custom_handlers = []  # custom handler implementations assign/assignBool
+    help_common = []  # help text for all common options
+    help_others = []  # help text for all non-common options
     setoption_handlers = []  # handlers for set-option command
     getoption_handlers = []  # handlers for get-option command
-
-    assign_impls = []
 
     sphinxgen = SphinxGenerator()
 
@@ -750,8 +764,8 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
         headers_module.append(format_include(module.header))
 
         if module.options:
-            help_others.append(
-                '"\\nFrom the {} module:\\n"'.format(module.name))
+            help_others.append('"\\nFrom the {} module:\\n"'.format(
+                module.name))
 
         for option in \
             sorted(module.options, key=lambda x: x.long if x.long else x.name):
@@ -780,41 +794,34 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
                     getopt_short.append(':')
 
             if option.long:
-                cases.append(
-                    'case {}: // --{}'.format(
-                        g_getopt_long_start + len(getopt_long),
-                        option.long))
+                cases.append('case {}: // --{}'.format(
+                    g_getopt_long_start + len(getopt_long), option.long))
                 add_getopt_long(option.long, argument_req, getopt_long)
                 if option.alias:
                     for alias in option.alias:
-                        cases.append(
-                            'case {}: // --{}'.format(
-                                g_getopt_long_start + len(getopt_long),
-                                alias))
+                        cases.append('case {}: // --{}'.format(
+                            g_getopt_long_start + len(getopt_long), alias))
                         add_getopt_long(alias, argument_req, getopt_long)
 
             if cases:
                 if option.type == 'bool' and option.name:
                     cases.append(
-                        TPL_CALL_ASSIGN_BOOL.format(
-                            module=module.id,
-                            name=option.name,
-                            option='option',
-                            value='true'))
+                        TPL_CALL_ASSIGN_BOOL.format(module=module.id,
+                                                    name=option.name,
+                                                    option='option',
+                                                    value='true'))
                 elif option.type != 'void' and option.name and not mode_handler:
                     cases.append(
-                        TPL_CALL_ASSIGN.format(
-                            module=module.id,
-                            name=option.name,
-                            option='option',
-                            value='optionarg'))
+                        TPL_CALL_ASSIGN.format(module=module.id,
+                                               name=option.name,
+                                               option='option',
+                                               value='optionarg'))
                 elif handler:
                     cases.append('{};'.format(handler))
 
                 cases.append('  break;')
 
                 options_handler.extend(cases)
-
 
             # Generate handlers for setOption/getOption
             if option.long:
@@ -829,7 +836,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
                 cond = ' || '.join(
                     ['key == "{}"'.format(x) for x in sorted(keys)])
 
-                setoption_handlers.append('  if ({}) {{'.format(cond))
+                setoption_handlers.append('if({}) {{'.format(cond))
                 if option.type == 'bool':
                     setoption_handlers.append(
                         TPL_CALL_ASSIGN_BOOL.format(
@@ -839,112 +846,142 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
                             value='optionarg == "true"'))
                 elif argument_req and option.name and not mode_handler:
                     setoption_handlers.append(
-                        TPL_CALL_ASSIGN.format(
-                            module=module.id,
-                            name=option.name,
-                            option='key'))
+                        TPL_CALL_ASSIGN.format(module=module.id,
+                                               name=option.name,
+                                               option='key'))
                 elif option.handler:
-                    h = '    opts.handler().{handler}("{smtname}", key'
+                    h = 'handler->{handler}("{smtname}", key'
                     if argument_req:
                         h += ', optionarg'
                     h += ');'
                     setoption_handlers.append(
-                        h.format(handler=option.handler, smtname=option.long_name))
+                        h.format(handler=option.handler,
+                                 smtname=option.long_name))
 
-                setoption_handlers.append('    return;')
-                setoption_handlers.append('  }')
+                setoption_handlers.append('return;')
+                setoption_handlers.append('}')
 
                 if option.name:
-                    getoption_handlers.append(
-                        'if ({}) {{'.format(cond))
+                    getoption_handlers.append('if ({}) {{'.format(cond))
                     if option.type == 'bool':
                         getoption_handlers.append(
-                            'return options.{}.{} ? "true" : "false";'.format(module.id, option.name))
+                            'return options.{}.{} ? "true" : "false";'.format(
+                                module.id, option.name))
                     elif option.type == 'std::string':
                         getoption_handlers.append(
-                            'return options.{}.{};'.format(module.id, option.name))
+                            'return options.{}.{};'.format(
+                                module.id, option.name))
                     elif is_numeric_cpp_type(option.type):
                         getoption_handlers.append(
-                            'return std::to_string(options.{}.{});'.format(module.id, option.name))
+                            'return std::to_string(options.{}.{});'.format(
+                                module.id, option.name))
                     else:
                         getoption_handlers.append('std::stringstream ss;')
                         getoption_handlers.append(
-                            'ss << options.{}.{};'.format(module.id, option.name))
+                            'ss << options.{}.{};'.format(
+                                module.id, option.name))
                         getoption_handlers.append('return ss.str();')
                     getoption_handlers.append('}')
-
 
             # Add --no- alternative options for boolean options
             if option.long and option.type == 'bool' and option.alternate:
                 cases = []
-                cases.append(
-                    'case {}:// --no-{}'.format(
-                        g_getopt_long_start + len(getopt_long),
-                        option.long))
+                cases.append('case {}:// --no-{}'.format(
+                    g_getopt_long_start + len(getopt_long), option.long))
 
                 add_getopt_long('no-{}'.format(option.long), argument_req,
                                 getopt_long)
                 if option.alias:
                     for alias in option.alias:
-                        cases.append(
-                            'case {}:// --no-{}'.format(
-                                g_getopt_long_start + len(getopt_long),
-                                alias))
+                        cases.append('case {}:// --no-{}'.format(
+                            g_getopt_long_start + len(getopt_long), alias))
                         add_getopt_long('no-{}'.format(alias), argument_req,
-                                getopt_long)
+                                        getopt_long)
 
                 cases.append(
-                    TPL_CALL_ASSIGN_BOOL.format(
-                        module=module.id,
-                        name=option.name, option='option', value='false'))
+                    TPL_CALL_ASSIGN_BOOL.format(module=module.id,
+                                                name=option.name,
+                                                option='option',
+                                                value='false'))
                 cases.append('  break;')
                 options_handler.extend(cases)
 
+            optname = option.long
+            # collect options available to the SMT-frontend
+            if optname:
+                options_smt.append('"{}",'.format(optname))
+
             if option.name:
                 # Build options for options::getOptions()
-                if option.long_name:
-                    options_getall.append(get_getall(module, option))
+                if optname:
+                    # collect SMT option names
+                    options_smt.append('"{}",'.format(optname))
 
+                    if option.type == 'bool':
+                        s = 'opts.push_back({{"{}", {}.{} ? "true" : "false"}});'.format(
+                            optname, module.id, option.name)
+                    elif is_numeric_cpp_type(option.type):
+                        s = 'opts.push_back({{"{}", std::to_string({}.{})}});'.format(
+                            optname, module.id, option.name)
+                    else:
+                        s = '{{ std::stringstream ss; ss << {}.{}; opts.push_back({{"{}", ss.str()}}); }}'.format(
+                            module.id, option.name, optname)
+                    options_getoptions.append(s)
 
                 # Define handler assign/assignBool
                 if not mode_handler:
                     if option.type == 'bool':
-                        assign_impls.append(TPL_ASSIGN_BOOL.format(
-                            module=module.id,
-                            name=option.name,
-                            handler=handler,
-                            predicates='\n'.join(predicates)
-                        ))
+                        custom_handlers.append(
+                            TPL_ASSIGN_BOOL.format(
+                                module=module.id,
+                                name=option.name,
+                                handler=handler,
+                                predicates='\n'.join(predicates)))
                     elif option.short or option.long:
-                        assign_impls.append(TPL_ASSIGN.format(
-                            module=module.id,
-                            name=option.name,
-                            handler=handler,
-                            predicates='\n'.join(predicates)
-                        ))
+                        custom_handlers.append(
+                            TPL_ASSIGN.format(
+                                module=module.id,
+                                name=option.name,
+                                handler=handler,
+                                predicates='\n'.join(predicates)))
 
-    data = {
-        'holder_fwd_decls': get_holder_fwd_decls(modules),
-        'holder_mem_decls': get_holder_mem_decls(modules),
-        'holder_ref_decls': get_holder_ref_decls(modules),
-        'headers_module': get_module_headers(modules),
-        'headers_handler': '\n'.join(sorted(list(headers_handler))),
-        'holder_mem_inits': get_holder_mem_inits(modules),
-        'holder_ref_inits': get_holder_ref_inits(modules),
-        'holder_mem_copy': get_holder_mem_copy(modules),
-        'cmdline_options': '\n  '.join(getopt_long),
-        'help_common': '\n'.join(help_common),
-        'help_others': '\n'.join(help_others),
-        'options_handler': '\n    '.join(options_handler),
-        'options_short': ''.join(getopt_short),
-        'assigns': '\n'.join(assign_impls),
-        'options_getall': '\n  '.join(options_getall),
-        'getoption_handlers': '\n'.join(getoption_handlers),
-        'setoption_handlers': '\n'.join(setoption_handlers),
-    }
-    write_file(dst_dir, 'options.h', tpl_options_h.format(**data))
-    write_file(dst_dir, 'options.cpp', tpl_options_cpp.format(**data))
-    write_file(dst_dir, 'options_public.cpp', tpl_options_public.format(**data))
+                # Default option values
+                default = option.default if option.default else ''
+                # Prepend enum name
+                if option.mode and option.type not in default:
+                    default = '{}::{}'.format(option.type, default)
+                defaults.append('{}({})'.format(option.name, default))
+                defaults.append('{}WasSetByUser(false)'.format(option.name))
+
+    write_file(
+        dst_dir, 'options.h',
+        tpl_options_h.format(
+            holder_fwd_decls=get_holder_fwd_decls(modules),
+            holder_mem_decls=get_holder_mem_decls(modules),
+            holder_ref_decls=get_holder_ref_decls(modules),
+        ))
+
+    write_file(
+        dst_dir, 'options.cpp',
+        tpl_options_cpp.format(
+            headers_module='\n'.join(headers_module),
+            headers_handler='\n'.join(sorted(list(headers_handler))),
+            holder_mem_copy=get_holder_mem_copy(modules),
+            holder_mem_inits=get_holder_mem_inits(modules),
+            holder_ref_inits=get_holder_ref_inits(modules),
+            custom_handlers='\n'.join(custom_handlers),
+            module_defaults=',\n  '.join(defaults),
+            help_common='\n'.join(help_common),
+            help_others='\n'.join(help_others),
+            cmdline_options='\n  '.join(getopt_long),
+            options_short=''.join(getopt_short),
+            options_handler='\n    '.join(options_handler),
+            option_value_begin=g_getopt_long_start,
+            option_value_end=g_getopt_long_start + len(getopt_long),
+            options_smt='\n  '.join(options_smt),
+            options_getoptions='\n  '.join(options_getoptions),
+            setoption_handlers='\n'.join(setoption_handlers),
+            getoption_handlers='\n'.join(getoption_handlers)))
 
     if os.path.isdir('{}/docs/'.format(build_dir)):
         sphinxgen.render('{}/docs/'.format(build_dir), 'options_generated.rst')
@@ -962,14 +999,14 @@ def check_attribs(filename, req_attribs, valid_attribs, attribs, ctype):
         msg_for = " for '{}'".format(attribs['long'])
     for k in req_attribs:
         if k not in attribs:
-            perr(filename,
-                 "required {} attribute '{}' not specified{}".format(
-                     ctype, k, msg_for))
+            perr(
+                filename, "required {} attribute '{}' not specified{}".format(
+                    ctype, k, msg_for))
     for k in attribs:
         if k not in valid_attribs:
-            perr(filename,
-                 "invalid {} attribute '{}' specified{}".format(
-                     ctype, k, msg_for))
+            perr(
+                filename, "invalid {} attribute '{}' specified{}".format(
+                    ctype, k, msg_for))
 
 
 def check_unique(filename, value, cache):
@@ -994,9 +1031,9 @@ def check_long(filename, option, long_name, ctype=None):
         perr(filename, 'remove -- prefix from long', option)
     r = r'^[0-9a-zA-Z\-=]+$'
     if not re.match(r, long_name):
-        perr(filename,
-             "long '{}' does not match regex criteria '{}'".format(
-                 long_name, r), option)
+        perr(
+            filename, "long '{}' does not match regex criteria '{}'".format(
+                long_name, r), option)
     name = long_get_option(long_name)
     check_unique(filename, name, g_long_cache)
 
@@ -1015,14 +1052,13 @@ def parse_module(filename, module):
     """
     # Check if parsed module attributes are valid and if all required
     # attributes are defined.
-    check_attribs(filename,
-                  MODULE_ATTR_REQ, MODULE_ATTR_ALL, module, 'module')
+    check_attribs(filename, MODULE_ATTR_REQ, MODULE_ATTR_ALL, module, 'module')
     res = Module(module, filename)
 
     if 'option' in module:
         for attribs in module['option']:
-            check_attribs(filename,
-                          OPTION_ATTR_REQ, OPTION_ATTR_ALL, attribs, 'option')
+            check_attribs(filename, OPTION_ATTR_REQ, OPTION_ATTR_ALL, attribs,
+                          'option')
             option = Option(attribs)
             if option.mode and not option.help_mode:
                 perr(filename, 'defines modes but no help_mode', option)
@@ -1032,18 +1068,18 @@ def parse_module(filename, module):
                      "invalid default value '{}'".format(option.default),
                      option)
             if option.short and not option.long:
-                perr(filename,
-                     "short option '{}' specified but no long option".format(
-                         option.short),
-                     option)
+                perr(
+                    filename,
+                    "short option '{}' specified but no long option".format(
+                        option.short), option)
             if option.type == 'bool' and option.handler:
                 perr(filename,
                      'defining handlers for bool options is not allowed',
                      option)
             if option.category != 'undocumented' and not option.help:
-                perr(filename,
-                     'help text required for {} options'.format(option.category),
-                     option)
+                perr(
+                    filename, 'help text required for {} options'.format(
+                        option.category), option)
             option.filename = filename
             res.options.append(option)
 
@@ -1084,7 +1120,6 @@ def mkoptions_main():
     # Read source code template files from source directory.
     tpl_module_h = read_tpl(src_dir, 'module_template.h')
     tpl_module_cpp = read_tpl(src_dir, 'module_template.cpp')
-    tpl_options_public = read_tpl(src_dir, 'options_public_template.cpp')
     tpl_options_h = read_tpl(src_dir, 'options_template.h')
     tpl_options_cpp = read_tpl(src_dir, 'options_template.cpp')
 
@@ -1105,7 +1140,8 @@ def mkoptions_main():
         codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp)
 
     # Create options.cpp in destination directory
-    codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_cpp, tpl_options_public)
+    codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
+                        tpl_options_cpp)
 
 
 if __name__ == "__main__":

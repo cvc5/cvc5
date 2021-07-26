@@ -300,6 +300,8 @@ class TheoryInferenceManager
    * Theory's preNotifyFact and notifyFact method have been called with
    * isInternal = true.
    *
+   * Note this method should never be used when proofs are enabled.
+   *
    * @param atom The atom of the fact to assert
    * @param pol Its polarity
    * @param exp Its explanation, i.e. ( exp => (~) atom ) is valid.
