@@ -120,7 +120,7 @@ class BVSolverBitblast : public BVSolver
   /**
    * Bit-blast queue for facts sent to this solver.
    *
-   * Get populated on preNotifyFact().
+   * Gets populated on preNotifyFact().
    */
   context::CDQueue<Node> d_bbFacts;
 
