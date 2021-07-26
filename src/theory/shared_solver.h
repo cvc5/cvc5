@@ -95,17 +95,15 @@ class SharedSolver
    */
   virtual TrustNode explain(TNode literal, TheoryId id) = 0;
   /**
-   * Assert equality to the shared terms database.
+   * Assert n to the shared terms database.
    *
    * This method is called by TheoryEngine when a fact has been marked to
    * send to THEORY_BUILTIN, meaning that shared terms database should
-   * maintain this fact. This is the case when either an equality is
-   * asserted from the SAT solver or a theory propagates an equality between
-   * shared terms.
+   * maintain this fact. In the distributed equality engine architecture,
+   * this is the case when either an equality is asserted from the SAT solver
+   * or a theory propagates an equality between shared terms.
    */
-  virtual void assertSharedEquality(TNode equality,
-                                    bool polarity,
-                                    TNode reason) = 0;
+  virtual void assertShared(TNode n, bool polarity, TNode reason) = 0;
   /** Is term t a shared term? */
   virtual bool isShared(TNode t) const;
 
