@@ -492,7 +492,6 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
                                   subs,
                                   InferenceId::QUANTIFIERS_INST_CEGQI,
                                   false,
-                                  false,
                                   usedVts))
   {
     return true;
