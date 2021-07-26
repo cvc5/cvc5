@@ -132,7 +132,7 @@ class TheoryInferenceManager
    * EqualityEngineNotify::eqNotifyTriggerPredicate and
    * EqualityEngineNotify::eqNotifyTriggerTermEquality.
    */
-  bool propagateLit(TNode lit);
+  virtual bool propagateLit(TNode lit);
   /**
    * Return an explanation for the literal represented by parameter lit
    * (which was previously propagated by this theory). By default, this
