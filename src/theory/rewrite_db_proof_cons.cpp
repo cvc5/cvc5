@@ -115,9 +115,12 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
   // Otherwise, call the get matches routine. This will call notifyMatch below
   // for each matching rewrite rule conclusion in the database
   // decrease the recursion depth
-  d_currRecLimit--;
   Assert(eqi.getKind() == EQUAL);
   Node prevTarget = d_target;
+  // TODO: first, try congruence if possible
+  
+
+  d_currRecLimit--;
   d_target = eqi;
   d_db->getMatches(eqi[0], &d_notify);
   d_target = prevTarget;

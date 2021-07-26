@@ -1429,6 +1429,7 @@ std::vector<Node> SmtEngine::reduceUnsatCore(const std::vector<Node>& core)
     // disable all proof options
     coreChecker->getOptions().smt.produceProofs = false;
     coreChecker->getOptions().smt.checkProofs = false;
+    coreChecker->getOptions().proof.proofReq = false;
     coreChecker->getOptions().proof.proofEagerChecking = false;
 
     for (const Node& ucAssertion : core)
