@@ -296,6 +296,7 @@ class CVC5_EXPORT Command
   static TypeNode grammarToTypeNode(api::Grammar* grammar);
   /** Get original options from the solver (for ResetCommand) */
   Options& getOriginalOptionsFrom(api::Solver* s);
+  static void resetSolver(api::Solver* solver);
 }; /* class Command */
 
 /**
