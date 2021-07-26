@@ -28,8 +28,8 @@ InferenceManager::InferenceManager(TheoryArith& ta,
                                    ArithState& astate,
                                    ProofNodeManager* pnm)
     : InferenceManagerBuffered(ta, astate, pnm, "theory::arith::"),
-    // currently must track propagated literals if using the equality solver
-    d_trackPropLits(options::arithEqSolver()),
+      // currently must track propagated literals if using the equality solver
+      d_trackPropLits(options::arithEqSolver()),
       d_propLits(astate.getSatContext())
 {
 }
@@ -160,7 +160,7 @@ bool InferenceManager::propagateLit(TNode lit)
 
 bool InferenceManager::hasPropagated(TNode lit) const
 {
-  Assert (d_trackPropLits);
+  Assert(d_trackPropLits);
   return d_propLits.find(lit) != d_propLits.end();
 }
 
