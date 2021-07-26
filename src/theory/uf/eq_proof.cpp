@@ -1049,6 +1049,13 @@ Node EqProof::addToProof(CDProof* p,
     }
     // build constant application (f c1 ... cn) and equality (= (f c1 ... cn) c)
     Kind k = d_node[0].getKind();
+    std::vector<Node> cargs;
+    cargs.push_back(ProofRuleChecker::mkKindNode(k));
+    if (d_node[0].getMetaKind()==kind::metakind::PARAMETERIZED)
+    {
+      constChildren.insert(constChildren.begin(), d_node[0].getOperator());
+      cargs.push_back(d_node[0].getOperator());
+    }
     Node constApp = NodeManager::currentNM()->mkNode(k, constChildren);
     Node constEquality = constApp.eqNode(d_node[1]);
     Trace("eqproof-conv") << "EqProof::addToProof: adding "
@@ -1063,7 +1070,7 @@ Node EqProof::addToProof(CDProof* p,
     p->addStep(congConclusion,
                PfRule::CONG,
                {subChildren},
-               {ProofRuleChecker::mkKindNode(k)},
+               cargs,
                true);
     Trace("eqproof-conv") << "EqProof::addToProof: adding  " << PfRule::TRANS
                           << " step for original conclusion " << d_node << "\n";
