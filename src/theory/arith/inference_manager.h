@@ -97,6 +97,10 @@ class InferenceManager : public InferenceManagerBuffered
 
   /** Checks whether the given lemma is already present in the cache. */
   virtual bool hasCachedLemma(TNode lem, LemmaProperty p) override;
+  /** overrides propagateLit to track which literals have been propagated */
+  bool propagateLit(TNode lit) override;
+  /** has propagated */
+  bool hasPropagated(TNode lit) const;
 
  protected:
   /**
@@ -114,6 +118,8 @@ class InferenceManager : public InferenceManagerBuffered
 
   /** The waiting lemmas. */
   std::vector<std::unique_ptr<SimpleTheoryLemma>> d_waitingLem;
+  /** The literals we have propagated */
+  NodeSet d_propLits;
 };
 
 }  // namespace arith
