@@ -181,14 +181,20 @@ TheoryArithPrivate::~TheoryArithPrivate(){
 
 bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
 {
+  if (!d_cmEnabled)
+  {
+    return false;
+  }
   return d_congruenceManager.needsEqualityEngine(esi);
 }
 void TheoryArithPrivate::finishInit()
 {
-  eq::EqualityEngine* ee = d_containing.getEqualityEngine();
-  eq::ProofEqEngine* pfee = d_containing.getProofEqEngine();
-  Assert(ee != nullptr);
-  d_congruenceManager.finishInit(ee, pfee);
+  if (d_cmEnabled)
+  {
+    eq::EqualityEngine* ee = d_containing.getEqualityEngine();
+    Assert(ee != nullptr);
+    d_congruenceManager.finishInit(ee);
+  }
 }
 
 static bool contains(const ConstraintCPVec& v, ConstraintP con){
