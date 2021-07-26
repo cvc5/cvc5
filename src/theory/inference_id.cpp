@@ -246,6 +246,7 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_COMPREHENSION: return "SETS_COMPREHENSION";
     case InferenceId::SETS_DEQ: return "SETS_DEQ";
     case InferenceId::SETS_DOWN_CLOSURE: return "SETS_DOWN_CLOSURE";
+    case InferenceId::SETS_EQ_CONFLICT: return "SETS_EQ_CONFLICT";
     case InferenceId::SETS_EQ_MEM: return "SETS_EQ_MEM";
     case InferenceId::SETS_EQ_MEM_CONFLICT: return "SETS_EQ_MEM_CONFLICT";
     case InferenceId::SETS_MEM_EQ: return "SETS_MEM_EQ";

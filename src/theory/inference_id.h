@@ -381,6 +381,8 @@ enum class InferenceId
   SETS_COMPREHENSION,
   SETS_DEQ,
   SETS_DOWN_CLOSURE,
+  // conflict when two singleton/emptyset terms merge
+  SETS_EQ_CONFLICT,
   SETS_EQ_MEM,
   SETS_EQ_MEM_CONFLICT,
   SETS_MEM_EQ,

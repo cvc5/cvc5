@@ -115,7 +115,8 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
             // singleton equal to emptyset, conflict
             Trace("sets-prop")
                 << "Propagate conflict : " << s1 << " == " << s2 << std::endl;
-            d_im.conflictEqConstantMerge(s1, s2);
+            Node eqs = s1.eqNode(s2);
+            d_im.conflict(eqs, InferenceId::SETS_EQ_CONFLICT);
             return;
           }
         }
