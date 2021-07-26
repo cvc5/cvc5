@@ -42,6 +42,8 @@ class BVSolverBitblastInternal : public BVSolver
                            ProofNodeManager* pnm);
   ~BVSolverBitblastInternal() = default;
 
+  bool needsEqualityEngine(EeSetupInfo& esi) override { return true; }
+
   void preRegisterTerm(TNode n) override {}
 
   bool preNotifyFact(TNode atom,
