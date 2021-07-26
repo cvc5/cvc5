@@ -50,18 +50,15 @@ void setNoLimitCPU() {
 #endif /* ! __WIN32__ */
 }
 
-CommandExecutor::CommandExecutor(const Options& options)
-    : d_solver(new api::Solver(&options)),
+CommandExecutor::CommandExecutor(std::unique_ptr<api::Solver>& solver)
+    : d_solver(solver),
       d_symman(new SymbolManager(d_solver.get())),
-      d_driverOptions(&options),
+      d_driverOptions(&solver->getOptions()),
       d_result()
 {
 }
 CommandExecutor::~CommandExecutor()
 {
-  // ensure that symbol manager is destroyed before solver
-  d_symman.reset(nullptr);
-  d_solver.reset(nullptr);
 }
 
 void CommandExecutor::printStatistics(std::ostream& out) const
@@ -120,7 +117,10 @@ void CommandExecutor::reset()
    * additional options based on the given CL options.
    * We can thus safely reuse CommandExecutor::d_driverOptions here.
    */
-  d_solver.reset(new api::Solver(d_driverOptions));
+  std::unique_ptr<Options> original = std::make_unique<Options>();
+  original->copyValues(*d_solver->d_originalOptions);
+  
+  d_solver.reset(new api::Solver(std::move(original)));
 }
 
 bool CommandExecutor::doCommandSingleton(Command* cmd)
