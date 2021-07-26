@@ -35,6 +35,7 @@
 #include "main/time_limit.h"
 #include "options/base_options.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "options/parser_options.h"
 #include "options/main_options.h"
 #include "options/set_language.h"
@@ -87,9 +88,9 @@ void printUsage(const Options& opts, bool full) {
      << endl
      << "cvc5 options:" << endl;
   if(full) {
-    Options::printUsage(ss.str(), *opts.base.out);
+    options::printUsage(ss.str(), *opts.base.out);
   } else {
-    Options::printShortUsage(ss.str(), *opts.base.out);
+    options::printShortUsage(ss.str(), *opts.base.out);
   }
 }
 
@@ -107,8 +108,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   Options& opts = solver->getOptions();
 
   // Parse the options
-  std::vector<string> filenames =
-      Options::parseOptions(&opts, argc, argv, progName);
+  std::vector<string> filenames = options::parse(opts, argc, argv, progName);
 
   auto limit = install_time_limit(opts);
 
@@ -119,7 +119,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   }
   else if (opts.base.languageHelp)
   {
-    Options::printLanguageHelp(*opts.base.out);
+    options::printLanguageHelp(*opts.base.out);
     exit(1);
   }
   else if (opts.driver.version)
