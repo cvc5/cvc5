@@ -118,7 +118,6 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
   Assert(eqi.getKind() == EQUAL);
   Node prevTarget = d_target;
   // TODO: first, try congruence if possible
-  
 
   d_currRecLimit--;
   d_target = eqi;
