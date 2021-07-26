@@ -12,8 +12,10 @@ name   = "SMT Layer"
   name       = "dumpToFileName"
   category   = "common"
   long       = "dump-to=FILE"
-  type       = "std::string"
+  type       = "ManagedOut"
   help       = "all dumping goes to FILE (instead of stdout)"
+  predicates = ["applyDump"]
+  includes   = ["<iostream>", "options/managed_streams.h"]
 
 [[option]]
   name       = "ackermann"
