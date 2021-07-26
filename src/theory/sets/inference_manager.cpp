@@ -118,7 +118,7 @@ bool InferenceManager::assertSetsFact(Node atom,
                                       Node exp)
 {
   return assertInternalFact(
-      atom, polarity, id, PfRule::THEORY_INFERENCE, {exp}, {})
+      atom, polarity, id, PfRule::THEORY_INFERENCE, {exp}, {});
 }
 
 void InferenceManager::assertInference(Node fact,
