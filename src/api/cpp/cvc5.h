@@ -2756,6 +2756,9 @@ class CVC5_EXPORT Solver
   friend class Sort;
   friend class Term;
 
+
+  Solver(std::unique_ptr<Options>&& original);
+
  public:
   /* .................................................................... */
   /* Constructors/Destructors                                             */
@@ -2766,7 +2769,7 @@ class CVC5_EXPORT Solver
    * @param opts an optional pointer to a solver options object
    * @return the Solver
    */
-  Solver(const Options* opts = nullptr);
+  Solver();
 
   /**
    * Destructor.
