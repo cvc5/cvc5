@@ -99,7 +99,10 @@ class InferenceManager : public InferenceManagerBuffered
   virtual bool hasCachedLemma(TNode lem, LemmaProperty p) override;
   /** overrides propagateLit to track which literals have been propagated */
   bool propagateLit(TNode lit) override;
-  /** has propagated */
+  /**
+   * Return true if we have propagated lit already. This call is only valid if
+   * d_trackPropLits is true.
+   */
   bool hasPropagated(TNode lit) const;
 
  protected:
