@@ -119,7 +119,7 @@ void CommandExecutor::reset()
    */
   std::unique_ptr<Options> original = std::make_unique<Options>();
   original->copyValues(*d_solver->d_originalOptions);
-  
+
   d_solver.reset(new api::Solver(std::move(original)));
 }
 

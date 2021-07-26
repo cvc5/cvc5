@@ -2756,7 +2756,11 @@ class CVC5_EXPORT Solver
   friend class Sort;
   friend class Term;
 
-
+ private:
+  /*
+   * Constructs a solver with the given original options. This should only be
+   * used internally when the Solver is reset.
+   */
   Solver(std::unique_ptr<Options>&& original);
 
  public:
@@ -2766,7 +2770,6 @@ class CVC5_EXPORT Solver
 
   /**
    * Constructor.
-   * @param opts an optional pointer to a solver options object
    * @return the Solver
    */
   Solver();

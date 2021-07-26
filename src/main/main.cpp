@@ -29,7 +29,6 @@
 #include "main/interactive_shell.h"
 #include "options/base_options.h"
 #include "options/language.h"
-#include "options/base_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
 #include "parser/parser.h"

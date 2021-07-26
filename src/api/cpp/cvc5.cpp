@@ -4956,8 +4956,7 @@ Solver::Solver(std::unique_ptr<Options>&& original)
   resetStatistics();
 }
 
-Solver::Solver(): Solver(std::make_unique<Options>())
-{}
+Solver::Solver() : Solver(std::make_unique<Options>()) {}
 
 Solver::~Solver() {}
 
