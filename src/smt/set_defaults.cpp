@@ -979,7 +979,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       options.arith.arithCongMan = false;
     }
   }
-  
+
   if (options::incrementalSolving())
   {
     // disable modes not supported by incremental
