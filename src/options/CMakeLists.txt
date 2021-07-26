@@ -22,6 +22,8 @@ libcvc5_add_sources(
   didyoumean.h
   language.cpp
   language.h
+  managed_streams.cpp
+  managed_streams.h
   open_ostream.cpp
   open_ostream.h
   option_exception.cpp
