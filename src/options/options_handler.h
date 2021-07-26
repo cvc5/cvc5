@@ -25,6 +25,7 @@
 #include "options/bv_options.h"
 #include "options/decision_options.h"
 #include "options/language.h"
+#include "options/managed_streams.h"
 #include "options/option_exception.h"
 #include "options/printer_modes.h"
 #include "options/quantifiers_options.h"
