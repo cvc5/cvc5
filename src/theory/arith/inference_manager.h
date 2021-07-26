@@ -115,9 +115,10 @@ class InferenceManager : public InferenceManagerBuffered
    * conflict.
    */
   bool isEntailedFalse(const SimpleTheoryLemma& lem);
-
   /** The waiting lemmas. */
   std::vector<std::unique_ptr<SimpleTheoryLemma>> d_waitingLem;
+  /** Whether we are tracking the set of propagated literals */
+  bool d_trackPropLits;
   /** The literals we have propagated */
   NodeSet d_propLits;
 };
