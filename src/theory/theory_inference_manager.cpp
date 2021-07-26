@@ -453,7 +453,7 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
   }
   else
   {
-    Assert (id != PfRule::UNKNOWN);
+    Assert(id != PfRule::UNKNOWN);
     Trace("infer-manager") << "...assert with proofs..." << std::endl;
     // Note that we reconstruct the original literal lit here, since both the
     // original literal is needed for bookkeeping proofs. It is possible to
@@ -474,7 +474,8 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
   // call the notify fact method with isInternal = true
   d_theory.notifyFact(atom, pol, expn, true);
   Trace("infer-manager")
-      << "TheoryInferenceManager::finished assertInternalFact, ret=" << ret << std::endl;
+      << "TheoryInferenceManager::finished assertInternalFact, ret=" << ret
+      << std::endl;
   return ret;
 }
 

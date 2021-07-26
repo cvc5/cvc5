@@ -401,7 +401,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
            || id == PfRule::THEORY_EXPAND_DEF || id == PfRule::WITNESS_AXIOM
            || id == PfRule::THEORY_LEMMA || id == PfRule::THEORY_REWRITE
            || id == PfRule::TRUST_REWRITE || id == PfRule::TRUST_SUBS
-           || id == PfRule::TRUST_SUBS_MAP || id == PfRule::TRUST_SUBS_EQ || id == PfRule::THEORY_INFERENCE)
+           || id == PfRule::TRUST_SUBS_MAP || id == PfRule::TRUST_SUBS_EQ
+           || id == PfRule::THEORY_INFERENCE)
   {
     // "trusted" rules
     Assert(!args.empty());
