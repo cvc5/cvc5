@@ -50,7 +50,7 @@ class SygusEnumeratorCallback
    * @param bterms The (rewritten, builtin) terms we have already enumerated
    * @return true if n should be considered in the enumeration.
    */
-  virtual bool addTerm(Node n, std::unordered_set<Node>& bterms) = 0;
+  virtual bool addTerm(Node n, std::unordered_set<Node>& bterms);
 
  protected:
   /**
