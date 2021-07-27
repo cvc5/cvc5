@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --bv-solver=bitblast
+; COMMAND-LINE: --incremental
 ; EXPECT: sat
 ; EXPECT: unsat
 ; EXPECT: unsat
