@@ -43,6 +43,7 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
   d_writeModel.clear();
   for (const Node& n : nthTerms)
   {
+    // (seq.nth n[0] n[1])
     Node r = d_state.getRepresentative(n[0]);
     Trace("seq-update") << "- " << r << ": " << n[1] << " -> " << n << std::endl;
     d_writeModel[r][n[1]] = n;

@@ -2047,6 +2047,9 @@ void CoreSolver::processDeq(Node ni, Node nj)
       return;
     }
     Trace("strings-solve-debug") << "...trivial" << std::endl;
+    if (options::stringSeqUpdate()) {
+      processDeqExtensionality(ni, nj);
+    }
     return;
   }
 
