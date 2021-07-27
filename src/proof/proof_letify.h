@@ -51,7 +51,7 @@ class ProofLetify
  public:
   /**
    * Stores proofs in map that require letification, mapping them to a unique
-   * identifier. For store each proof node in the domain of pletMap in the list
+   * identifier. For each proof node in the domain of pletMap in the list
    * pletList such that pletList[i] does not contain subproof pletList[j] for
    * j>i.
    *
