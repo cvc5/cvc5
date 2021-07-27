@@ -41,7 +41,7 @@ if __name__ == "__main__":
   intSort = solver.getIntegerSort();
 
   # x and y will be real variables, while a and b will be integer variables.
-  # Formally, their cpp type is Term,
+  # Formally, their python type is Term,
   # and they are called "constants" in SMT jargon:
   x = solver.mkConst(realSort, "x");
   y = solver.mkConst(realSort, "y");
@@ -64,17 +64,15 @@ if __name__ == "__main__":
   one = solver.mkReal(1);
 
   # Next, we construct the term x + y
-  xPlusY = solver.mkTerm(PLUS, x, y);
+  xPlusY = solver.mkTerm(kinds.Plus, x, y);
 
   # Now we can define the constraints.
   # They use the operators +, <=, and <.
-  # In the API, these are denoted by PLUS, LEQ, and LT.
-  # A list of available operators is available in:
-  # src/api/cpp/cvc5_kind.h
-  constraint1 = solver.mkTerm(LT, zero, x);
-  constraint2 = solver.mkTerm(LT, zero, y);
-  constraint3 = solver.mkTerm(LT, xPlusY, one);
-  constraint4 = solver.mkTerm(LEQ, x, y);
+  # In the API, these are denoted by Plus, Leq, and Lt.
+  constraint1 = solver.mkTerm(kinds.Lt, zero, x);
+  constraint2 = solver.mkTerm(kinds.Lt, zero, y);
+  constraint3 = solver.mkTerm(kinds.Lt, xPlusY, one);
+  constraint4 = solver.mkTerm(kinds.Leq, x, y);
 
   # Now we assert the constraints to the solver.
   solver.assertFormula(constraint1);
@@ -97,13 +95,13 @@ if __name__ == "__main__":
 
   # It is also possible to get values for compound terms,
   # even if those did not appear in the original formula.
-  xMinusY = solver.mkTerm(MINUS, x, y);
+  xMinusY = solver.mkTerm(kinds.Minus, x, y);
   xMinusYVal = solver.getValue(xMinusY);
   
   # We can now obtain the values as python values
   xPy = xVal.getRealValue();
   yPy = yVal.getRealValue();
-  xMinusYPy = xMinusYPy.getRealValue();
+  xMinusYPy = xMinusYVal.getRealValue();
 
   print("value for x: ", xPy)
   print("value for y: ", yPy)
@@ -114,19 +112,15 @@ if __name__ == "__main__":
   # However, for more complex terms,
   # it is easier to let the solver do the evaluation.
   xMinusYComputed = xPy - yPy;
-  if (xMinusYComputed == xMinusYPy)
-  {
-    std::cout << "computed correctly" << std::endl;
-  }
-  else
-  {
-    std::cout << "computed incorrectly" << std::endl;
-  }
+  if xMinusYComputed == xMinusYPy:
+    print("computed correctly") 
+  else:
+    print("computed incorrectly")
 
   # Further, we can convert the values to strings
-  xStr = str(xStr);
-  yStr = str(yStr);
-  xMinusYStr = str(xMinusYStr);
+  xStr = str(xPy);
+  yStr = str(yPy);
+  xMinusYStr = str(xMinusYPy);
 
 
   # Next, we will check satisfiability of the same formula,
@@ -138,14 +132,14 @@ if __name__ == "__main__":
   # Next, we assert the same assertions above with integers.
   # This time, we inline the construction of terms
   # to the assertion command.
-  solver.assertFormula(solver.mkTerm(LT, solver.mkInteger(0), a));
-  solver.assertFormula(solver.mkTerm(LT, solver.mkInteger(0), b));
+  solver.assertFormula(solver.mkTerm(kinds.Lt, solver.mkInteger(0), a));
+  solver.assertFormula(solver.mkTerm(kinds.Lt, solver.mkInteger(0), b));
   solver.assertFormula(
-      solver.mkTerm(LT, solver.mkTerm(PLUS, a, b), solver.mkInteger(1)));
-  solver.assertFormula(solver.mkTerm(LEQ, a, b));
+      solver.mkTerm(kinds.Lt, solver.mkTerm(kinds.Plus, a, b), solver.mkInteger(1)));
+  solver.assertFormula(solver.mkTerm(kinds.Leq, a, b));
 
   # We check whether the revised assertion is satisfiable.
-  Result r2 = solver.checkSat();
+  r2 = solver.checkSat();
 
   # This time the formula is unsatisfiable
   print("expected: unsat")
@@ -154,6 +148,5 @@ if __name__ == "__main__":
   # We can query the solver for an unsatisfiable core, i.e., a subset
   # of the assertions that is already unsatisfiable.
   unsatCore = solver.getUnsatCore();
-  print("unsat core size:", unsatCore.size())
+  print("unsat core size:", len(unsatCore))
   print("unsat core:", unsatCore)
-}
