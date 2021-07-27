@@ -827,10 +827,16 @@ enum class PfRule : uint32_t
   SKOLEMIZE,
   // ======== Instantiate
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
-  // Arguments: (t1 ... tn)
+  // Arguments: (t1 ... tn, (id (t)?)? )
   // ----------------------------------------
   // Conclusion: F*sigma
-  // sigma maps x1 ... xn to t1 ... tn.
+  // where sigma maps x1 ... xn to t1 ... tn.
+  //
+  // The optional argument id indicates the inference id that caused the
+  // instantiation. The term t indicates an additional term (e.g. the trigger)
+  // associated with the instantiation, which depends on the id. If the id
+  // has prefix "QUANTIFIERS_INST_E_MATCHING", then t is the trigger that
+  // generated the instantiation.
   INSTANTIATE,
   // ======== (Trusted) quantifiers preprocess
   // Children: ?
@@ -1388,6 +1394,14 @@ enum class PfRule : uint32_t
   // (in variables x1...xn-1). It generates the conclusion that no xn exists
   // that extends the Cell and satisfies all assumptions.
   ARITH_NL_CAD_RECURSIVE,
+
+  //================================================ Place holder for Lfsc rules
+  // ======== Lfsc rule
+  // Children: (P1 ... Pn)
+  // Arguments: (id, Q, A1, ..., Am)
+  // ---------------------
+  // Conclusion: (Q)
+  LFSC_RULE,
 
   //================================================= Unknown rule
   UNKNOWN,
