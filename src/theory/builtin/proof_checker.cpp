@@ -53,6 +53,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::TRUST_SUBS, this, 1);
   pc->registerTrustedChecker(PfRule::TRUST_SUBS_MAP, this, 1);
   pc->registerTrustedChecker(PfRule::TRUST_SUBS_EQ, this, 3);
+  pc->registerTrustedChecker(PfRule::THEORY_INFERENCE, this, 3);
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
@@ -400,7 +401,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
            || id == PfRule::THEORY_EXPAND_DEF || id == PfRule::WITNESS_AXIOM
            || id == PfRule::THEORY_LEMMA || id == PfRule::THEORY_REWRITE
            || id == PfRule::TRUST_REWRITE || id == PfRule::TRUST_SUBS
-           || id == PfRule::TRUST_SUBS_MAP || id == PfRule::TRUST_SUBS_EQ)
+           || id == PfRule::TRUST_SUBS_MAP || id == PfRule::TRUST_SUBS_EQ
+           || id == PfRule::THEORY_INFERENCE)
   {
     // "trusted" rules
     Assert(!args.empty());

@@ -92,6 +92,52 @@ TEST_F(TestApiBlackOp, getNumIndices)
   ASSERT_EQ(2, regexp_loop.getNumIndices());
 }
 
+TEST_F(TestApiBlackOp, subscriptOperator)
+{
+  Op plus = d_solver.mkOp(PLUS);
+  Op divisible = d_solver.mkOp(DIVISIBLE, 4);
+  Op bitvector_repeat = d_solver.mkOp(BITVECTOR_REPEAT, 4);
+  Op bitvector_zero_extend = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, 4);
+  Op bitvector_sign_extend = d_solver.mkOp(BITVECTOR_SIGN_EXTEND, 4);
+  Op bitvector_rotate_left = d_solver.mkOp(BITVECTOR_ROTATE_LEFT, 4);
+  Op bitvector_rotate_right = d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, 4);
+  Op int_to_bitvector = d_solver.mkOp(INT_TO_BITVECTOR, 4);
+  Op iand = d_solver.mkOp(IAND, 4);
+  Op floatingpoint_to_ubv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, 4);
+  Op floatingopint_to_sbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 4);
+  Op floatingpoint_to_fp_ieee_bitvector =
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_IEEE_BITVECTOR, 4, 5);
+  Op floatingpoint_to_fp_floatingpoint =
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FLOATINGPOINT, 4, 5);
+  Op floatingpoint_to_fp_real = d_solver.mkOp(FLOATINGPOINT_TO_FP_REAL, 4, 5);
+  Op floatingpoint_to_fp_signed_bitvector =
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR, 4, 5);
+  Op floatingpoint_to_fp_unsigned_bitvector =
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR, 4, 5);
+  Op floatingpoint_to_fp_generic =
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_GENERIC, 4, 5);
+  Op regexp_loop = d_solver.mkOp(REGEXP_LOOP, 4, 5);
+
+  ASSERT_THROW(plus[0], CVC5ApiException);
+  ASSERT_EQ(4, divisible[0].getUInt32Value());
+  ASSERT_EQ(4, bitvector_repeat[0].getUInt32Value());
+  ASSERT_EQ(4, bitvector_zero_extend[0].getUInt32Value());
+  ASSERT_EQ(4, bitvector_sign_extend[0].getUInt32Value());
+  ASSERT_EQ(4, bitvector_rotate_left[0].getUInt32Value());
+  ASSERT_EQ(4, bitvector_rotate_right[0].getUInt32Value());
+  ASSERT_EQ(4, int_to_bitvector[0].getUInt32Value());
+  ASSERT_EQ(4, iand[0].getUInt32Value());
+  ASSERT_EQ(4, floatingpoint_to_ubv[0].getUInt32Value());
+  ASSERT_EQ(4, floatingopint_to_sbv[0].getUInt32Value());
+  ASSERT_EQ(4, floatingpoint_to_fp_ieee_bitvector[0].getUInt32Value());
+  ASSERT_EQ(4, floatingpoint_to_fp_floatingpoint[0].getUInt32Value());
+  ASSERT_EQ(4, floatingpoint_to_fp_real[0].getUInt32Value());
+  ASSERT_EQ(4, floatingpoint_to_fp_signed_bitvector[0].getUInt32Value());
+  ASSERT_EQ(4, floatingpoint_to_fp_unsigned_bitvector[0].getUInt32Value());
+  ASSERT_EQ(4, floatingpoint_to_fp_generic[0].getUInt32Value());
+  ASSERT_EQ(4, regexp_loop[0].getUInt32Value());
+}
+
 TEST_F(TestApiBlackOp, getIndicesString)
 {
   Op x;
@@ -205,6 +251,22 @@ TEST_F(TestApiBlackOp, getIndicesPairUint)
                == std::pair<uint32_t, uint32_t>{4, 25}));
   ASSERT_THROW(floatingpoint_to_fp_generic_ot.getIndices<std::string>(),
                CVC5ApiException);
+}
+
+TEST_F(TestApiBlackOp, getIndicesVector)
+{
+  std::vector<uint32_t> indices = {0, 3, 2, 0, 1, 2};
+  Op tuple_project_op = d_solver.mkOp(TUPLE_PROJECT, indices);
+
+  ASSERT_TRUE(tuple_project_op.isIndexed());
+  std::vector<Term> tuple_project_extract_indices =
+      tuple_project_op.getIndices<std::vector<Term>>();
+  ASSERT_THROW(tuple_project_op.getIndices<std::string>(), CVC5ApiException);
+  for (size_t i = 0; i < indices.size(); i++)
+  {
+    ASSERT_EQ(indices[i], tuple_project_extract_indices[i].getUInt32Value());
+    ASSERT_EQ(indices[i], tuple_project_op[i].getUInt32Value());
+  }
 }
 
 TEST_F(TestApiBlackOp, opScopingToString)

@@ -27,7 +27,10 @@ namespace arith {
 InferenceManager::InferenceManager(TheoryArith& ta,
                                    ArithState& astate,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(ta, astate, pnm, "theory::arith::")
+    : InferenceManagerBuffered(ta, astate, pnm, "theory::arith::"),
+      // currently must track propagated literals if using the equality solver
+      d_trackPropLits(options::arithEqSolver()),
+      d_propLits(astate.getSatContext())
 {
 }
 
@@ -144,6 +147,21 @@ bool InferenceManager::isEntailedFalse(const SimpleTheoryLemma& lem)
     }
   }
   return false;
+}
+
+bool InferenceManager::propagateLit(TNode lit)
+{
+  if (d_trackPropLits)
+  {
+    d_propLits.insert(lit);
+  }
+  return TheoryInferenceManager::propagateLit(lit);
+}
+
+bool InferenceManager::hasPropagated(TNode lit) const
+{
+  Assert(d_trackPropLits);
+  return d_propLits.find(lit) != d_propLits.end();
 }
 
 }  // namespace arith

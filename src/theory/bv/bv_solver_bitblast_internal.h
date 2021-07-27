@@ -42,6 +42,8 @@ class BVSolverBitblastInternal : public BVSolver
                            ProofNodeManager* pnm);
   ~BVSolverBitblastInternal() = default;
 
+  bool needsEqualityEngine(EeSetupInfo& esi) override { return true; }
+
   void preRegisterTerm(TNode n) override {}
 
   bool preNotifyFact(TNode atom,
@@ -54,6 +56,8 @@ class BVSolverBitblastInternal : public BVSolver
 
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
+
+  Node getValue(TNode node, bool initialize) override;
 
   /** get the proof checker of this theory */
   BVProofRuleChecker* getProofChecker();

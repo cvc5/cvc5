@@ -85,7 +85,7 @@ void TheorySetsPrivate::eqNotifyNewClass(TNode t)
 
 void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
 {
-  if (!d_state.isInConflict())
+  if (!d_state.isInConflict() && t1.getType().isSet())
   {
     Trace("sets-prop-debug")
         << "Merge " << t1 << " and " << t2 << "..." << std::endl;
@@ -108,14 +108,15 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
             // infer equality between elements of singleton
             Node exp = s1.eqNode(s2);
             Node eq = s1[0].eqNode(s2[0]);
-            d_im.assertInternalFact(eq, true, InferenceId::SETS_SINGLETON_EQ, exp);
+            d_im.assertSetsFact(eq, true, InferenceId::SETS_SINGLETON_EQ, exp);
           }
           else
           {
             // singleton equal to emptyset, conflict
             Trace("sets-prop")
                 << "Propagate conflict : " << s1 << " == " << s2 << std::endl;
-            d_im.conflictEqConstantMerge(s1, s2);
+            Node eqs = s1.eqNode(s2);
+            d_im.conflict(eqs, InferenceId::SETS_EQ_CONFLICT);
             return;
           }
         }
@@ -149,7 +150,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
       Assert(f.getKind() == kind::IMPLIES);
       Trace("sets-prop") << "Propagate eq-mem eq inference : " << f[0] << " => "
                          << f[1] << std::endl;
-      d_im.assertInternalFact(f[1], true, InferenceId::SETS_EQ_MEM, f[0]);
+      d_im.assertSetsFact(f[1], true, InferenceId::SETS_EQ_MEM, f[0]);
     }
   }
 }
@@ -829,7 +830,7 @@ void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
             Trace("sets-prop") << "Propagate mem-eq : " << pexp << std::endl;
             Node eq = s[0].eqNode(atom[0]);
             // triggers an internal inference
-            d_im.assertInternalFact(eq, true, InferenceId::SETS_MEM_EQ, pexp);
+            d_im.assertSetsFact(eq, true, InferenceId::SETS_MEM_EQ, pexp);
           }
         }
         else
@@ -907,7 +908,7 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
                 {
                   Trace("sets-cg-lemma")
                       << "Should split on : " << x << "==" << y << std::endl;
-                  d_im.split(x.eqNode(y), InferenceId::UNKNOWN);
+                  d_im.split(x.eqNode(y), InferenceId::SETS_CG_SPLIT);
                 }
               }
             }

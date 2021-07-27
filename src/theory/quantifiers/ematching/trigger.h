@@ -181,6 +181,8 @@ class Trigger {
                                            std::vector<Node>& gts);
   /** The nodes comprising this trigger. */
   std::vector<Node> d_nodes;
+  /** The nodes as a single s-expression */
+  Node d_trNode;
   /**
    * The preprocessed ground terms in the nodes of the trigger, which as an
    * optimization omits variables and constant subterms. These terms are
