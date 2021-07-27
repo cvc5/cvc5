@@ -480,9 +480,9 @@ void TermDb::addTermHo(Node n)
       Node psk;
       if (itp == d_ho_fun_op_purify.end())
       {
-        psk = sm->mkDummySkolem("pfun",
-                                curr.getType(),
-                                "purify for function operator term indexing");
+        psk = sm->mkPurifySkolem(curr, 
+                                 "pfun",
+                                 "purify for function operator term indexing");
         d_ho_fun_op_purify[curr] = psk;
         // we do not add it to d_ops since it is an internal operator
       }
@@ -1035,7 +1035,8 @@ bool TermDb::reset( Theory::Effort effort ){
         }
         Trace("quant-ho") << "- assert purify equality : " << eq << std::endl;
         // Note that ee may be the central equality engine, in which case this
-        // equality is explained trivially with "true".
+        // equality is explained trivially with "true", since both sides of
+        // eq are HOL and FOL encodings of the same thing.
         ee->assertEquality(eq, true, d_true);
         if (!ee->consistent())
         {
