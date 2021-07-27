@@ -111,7 +111,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Node body = children[0][1];
     std::vector<Node> vars;
     std::vector<Node> subs;
-    for (unsigned i = 0, nc = children[0][0].getNumChildren(); i < nc; i++)
+    for (size_t i = 0, nc = children[0][0].getNumChildren(); i < nc; i++)
     {
       vars.push_back(children[0][0][i]);
       subs.push_back(args[i]);
