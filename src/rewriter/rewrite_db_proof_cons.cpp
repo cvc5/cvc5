@@ -115,14 +115,21 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
   // for each matching rewrite rule conclusion in the database
   // decrease the recursion depth
   Assert(eqi.getKind() == EQUAL);
-  Node prevTarget = d_target;
-  // TODO: first, try congruence if possible
-
-  d_currRecLimit--;
-  d_target = eqi;
-  d_db->getMatches(eqi[0], &d_notify);
-  d_target = prevTarget;
-  d_currRecLimit++;
+  // first, try congruence if possible
+  if (proveWithRule(DslPfRule::CONG, eqi, {}, {}, false, false, true))
+  {
+    Trace("rpc-debug2") << "...proved via congruence" << std::endl;
+  }
+  else
+  {
+    Trace("rpc-debug2") << "...not proved via congruence" << std::endl;
+    d_currRecLimit--;
+    Node prevTarget = d_target;
+    d_target = eqi;
+    d_db->getMatches(eqi[0], &d_notify);
+    d_target = prevTarget;
+    d_currRecLimit++;
+  }
   // if we cached it during the above call, we succeeded
   std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
   if (it != d_pcache.end())
@@ -205,82 +212,104 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
                                        bool doRecurse)
 {
   Assert(!target.isNull() && target.getKind() == EQUAL);
-  const RewriteProofRule& rpr = d_db->getRule(id);
-  // does it conclusion match what we are trying to show?
-  Node conc = rpr.getConclusion();
-  Assert(conc.getKind() == EQUAL && d_target.getKind() == EQUAL);
-  // get rule conclusion, which may incorporate fixed point semantics when
-  // doFixedPoint is true. This stores the rule for the conclusion in pic,
-  // which is either id or DslPfRule::TRANS.
-  ProvenInfo pic;
-  Node stgt = getRuleConclusion(rpr, vars, subs, pic, doFixedPoint);
-  std::vector<Node> iconds;
-  Trace("rpc-debug2") << "            RHS: " << conc[1] << std::endl;
-  Trace("rpc-debug2") << "Substituted RHS: " << stgt << std::endl;
-  Trace("rpc-debug2") << "     Target RHS: " << target[1] << std::endl;
-  // inflection substitution, used if conclusion does not exactly match
-  std::unordered_map<Node, std::pair<Node, Node>> isubs;
-  if (stgt != target[1])
-  {
-    if (!doInflectMatch)
-    {
-      Trace("rpc-debug2") << "...fail (no inflection)" << std::endl;
-      return false;
-    }
-    // if not a perfect match, infer the (conditional) rule that would have
-    // matched
-    Node irhs = inflectMatch(conc[1], target[1], vars, subs, isubs);
-    if (irhs.isNull())
-    {
-      Trace("rpc-debug2") << "...fail (inflection match)" << std::endl;
-      return false;
-    }
-    Trace("rpc-debug2") << "Would have succeeded with rule: " << std::endl;
-    // the variables / substitution we will use to generate constraints below
-    std::vector<Node> uvars;
-    std::vector<Node> usubs;
-    if (pic.isInternalRule())
-    {
-      // use the substitution of the last proven equality, which determines
-      // what the generated inflection conditions are
-      Node lastEq = pic.d_vars.back();
-      Assert (d_pcache.find(lastEq)!=d_pcache.end());
-      ProvenInfo& pile = d_pcache[lastEq];
-      Assert(pile.d_id == id);
-      uvars = pile.d_vars;
-      usubs = pile.d_subs;
-    }
-    else
-    {
-      uvars = vars;
-      usubs = subs;
-    }
-    std::vector<Node> conds;
-    for (const std::pair<const Node, std::pair<Node, Node>>& i : isubs)
-    {
-      Node eq = i.first.eqNode(i.second.first);
-      conds.push_back(eq);
-      // orient: target comes second
-      Node seq = expr::narySubstitute(i.second.first, uvars, usubs)
-                     .eqNode(i.second.second);
-      iconds.push_back(seq);
-      Trace("rpc-debug2") << eq << " ";
-    }
-    Trace("rpc-debug2") << "=> (" << irhs << " == " << conc[0] << ")"
-                        << std::endl;
-    Trace("rpc-debug2") << "Inflection conditions: " << iconds << std::endl;
-  }
-  // do its conditions hold?
-  // Get the conditions, substituted { vars -> subs } and with side conditions
-  // evaluated.
   std::vector<Node> vcs;
-  // add inflection conditions
-  vcs.insert(vcs.begin(), iconds.begin(), iconds.end());
-  if (!rpr.getObligations(vars, subs, vcs))
+  std::vector<Node> iconds;
+  ProvenInfo pic;
+  if (id==DslPfRule::CONG)
   {
-    // cannot get conditions, likely due to failed side condition
-    Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
+    size_t nchild = target[0].getNumChildren();
+    if (nchild==0 || 
+        nchild!=target[1].getNumChildren() ||
+        target[0].getOperator()!=target[1].getOperator())
+    {
+      return false;
+    }
+    for (size_t i=0; i<nchild; i++)
+    {
+      if (!target[0][i].getType().isComparableTo(target[1][i].getType()))
+      {
+        return false;
+      }
+      vcs.push_back(target[0][i].eqNode(target[1][i]));
+    }
     return false;
+  }
+  else
+  {
+    const RewriteProofRule& rpr = d_db->getRule(id);
+    // does it conclusion match what we are trying to show?
+    Node conc = rpr.getConclusion();
+    Assert(conc.getKind() == EQUAL && target.getKind() == EQUAL);
+    // get rule conclusion, which may incorporate fixed point semantics when
+    // doFixedPoint is true. This stores the rule for the conclusion in pic,
+    // which is either id or DslPfRule::TRANS.
+    Node stgt = getRuleConclusion(rpr, vars, subs, pic, doFixedPoint);
+    Trace("rpc-debug2") << "            RHS: " << conc[1] << std::endl;
+    Trace("rpc-debug2") << "Substituted RHS: " << stgt << std::endl;
+    Trace("rpc-debug2") << "     Target RHS: " << target[1] << std::endl;
+    // inflection substitution, used if conclusion does not exactly match
+    std::unordered_map<Node, std::pair<Node, Node>> isubs;
+    if (stgt != target[1])
+    {
+      if (!doInflectMatch)
+      {
+        Trace("rpc-debug2") << "...fail (no inflection)" << std::endl;
+        return false;
+      }
+      // if not a perfect match, infer the (conditional) rule that would have
+      // matched
+      Node irhs = inflectMatch(conc[1], target[1], vars, subs, isubs);
+      if (irhs.isNull())
+      {
+        Trace("rpc-debug2") << "...fail (inflection match)" << std::endl;
+        return false;
+      }
+      Trace("rpc-debug2") << "Would have succeeded with rule: " << std::endl;
+      // the variables / substitution we will use to generate constraints below
+      std::vector<Node> uvars;
+      std::vector<Node> usubs;
+      if (pic.isInternalRule())
+      {
+        // use the substitution of the last proven equality, which determines
+        // what the generated inflection conditions are
+        Node lastEq = pic.d_vars.back();
+        Assert (d_pcache.find(lastEq)!=d_pcache.end());
+        ProvenInfo& pile = d_pcache[lastEq];
+        Assert(pile.d_id == id);
+        uvars = pile.d_vars;
+        usubs = pile.d_subs;
+      }
+      else
+      {
+        uvars = vars;
+        usubs = subs;
+      }
+      std::vector<Node> conds;
+      for (const std::pair<const Node, std::pair<Node, Node>>& i : isubs)
+      {
+        Node eq = i.first.eqNode(i.second.first);
+        conds.push_back(eq);
+        // orient: target comes second
+        Node seq = expr::narySubstitute(i.second.first, uvars, usubs)
+                        .eqNode(i.second.second);
+        iconds.push_back(seq);
+        Trace("rpc-debug2") << eq << " ";
+      }
+      Trace("rpc-debug2") << "=> (" << irhs << " == " << conc[0] << ")"
+                          << std::endl;
+      Trace("rpc-debug2") << "Inflection conditions: " << iconds << std::endl;
+    }
+    // do its conditions hold?
+    // Get the conditions, substituted { vars -> subs } and with side conditions
+    // evaluated.
+    // add inflection conditions
+    vcs.insert(vcs.begin(), iconds.begin(), iconds.end());
+    if (!rpr.getObligations(vars, subs, vcs))
+    {
+      // cannot get conditions, likely due to failed side condition
+      Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
+      return false;
+    }
   }
   // First, check which premises are non-trivial, and if there is a trivial
   // failure. Those that are non-trivial are added to condToProve.
@@ -322,14 +351,14 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     {
       // print reason for failure
       Trace("rpc-infer-debug")
-          << "required: " << cond << " for " << rpr.getName() << std::endl;
+          << "required: " << cond << " for " << id << std::endl;
       return false;
     }
   }
   // successfully found instance of rule
   if (Trace.isOn("rpc-infer"))
   {
-    Trace("rpc-infer") << "INFER " << target << " by " << rpr.getName()
+    Trace("rpc-infer") << "INFER " << target << " by " << id
                        << std::endl;
   }
   // cache the success
@@ -498,16 +527,20 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
         {
           visited[cur] = false;
           std::vector<Node>& ps = premises[cur];
-          if (itd->second.d_id == DslPfRule::TRANS)
+          if (isInternalDslPfRule(itd->second.d_id))
           {
             // premises are the steps, stored in d_vars
             ps.insert(premises[cur].end(),
                       itd->second.d_vars.begin(),
                       itd->second.d_vars.end());
-          }
-          else if (itd->second.d_id == DslPfRule::CONG)
-          {
-            // TODO
+            if (itd->second.d_id == DslPfRule::CONG)
+            {
+              pfArgs[cur].push_back(ProofRuleChecker::mkKindNode(cur.getKind()));
+              if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+              {
+                pfArgs[cur].push_back(cur.getOperator());
+              }
+            }
           }
           else
           {
@@ -563,7 +596,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       }
       else if (itd->second.d_id == DslPfRule::CONG)
       {
-        // TODO
+        cdp->addStep(cur, PfRule::CONG, ps, pfArgs[cur]);
       }
       else
       {
