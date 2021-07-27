@@ -827,10 +827,12 @@ enum class PfRule : uint32_t
   SKOLEMIZE,
   // ======== Instantiate
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
-  // Arguments: (t1 ... tn)
+  // Arguments: (t1 ... tn, (id (t)?)? )
   // ----------------------------------------
   // Conclusion: F*sigma
-  // sigma maps x1 ... xn to t1 ... tn.
+  // where sigma maps x1 ... xn to t1 ... tn. The optional argument id indicates
+  // the inference id that caused the instantiation. The term t indicates an
+  // additional term (e.g. the trigger) associated with the instantiation.
   INSTANTIATE,
   // ======== (Trusted) quantifiers preprocess
   // Children: ?
