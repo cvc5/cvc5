@@ -27,6 +27,8 @@
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
+#include "options/options_public.h"
+#include "options/parser_options.h"
 #include "options/printer_options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
@@ -549,7 +551,7 @@ std::string SmtEngine::getInfo(const std::string& key) const
   }
   Assert(key == "all-options");
   // get the options, like all-statistics
-  return toSExpr(Options::current().getOptions());
+  return toSExpr(options::getAll(getOptions()));
 }
 
 void SmtEngine::debugCheckFormals(const std::vector<Node>& formals, Node func)
@@ -1978,7 +1980,7 @@ void SmtEngine::setOption(const std::string& key, const std::string& value)
   }
 
   std::string optionarg = value;
-  getOptions().setOption(key, optionarg);
+  options::set(getOptions(), key, optionarg);
 }
 
 void SmtEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
@@ -2043,7 +2045,7 @@ std::string SmtEngine::getOption(const std::string& key) const
     return nm->mkNode(Kind::SEXPR, result).toString();
   }
 
-  std::string atom = getOptions().getOption(key);
+  std::string atom = options::get(getOptions(), key);
 
   if (atom != "true" && atom != "false")
   {

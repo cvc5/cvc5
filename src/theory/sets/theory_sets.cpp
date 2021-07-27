@@ -36,7 +36,7 @@ TheorySets::TheorySets(context::Context* c,
     : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pnm),
       d_skCache(),
       d_state(c, u, valuation, d_skCache),
-      d_im(*this, d_state, nullptr),
+      d_im(*this, d_state, pnm),
       d_internal(new TheorySetsPrivate(*this, d_state, d_im, d_skCache, pnm)),
       d_notify(*d_internal.get(), d_im)
 {
