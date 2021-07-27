@@ -349,7 +349,7 @@ Node LfscNodeConverter::postConvert(Node n)
   }
   else if (k == MATCH)
   {
-    // FIXME
+    // currently unsupported
     return n;
   }
   else if (k == SEP_NIL)
@@ -715,7 +715,6 @@ void LfscNodeConverter::getCharVectorInternal(Node c, std::vector<Node>& chars)
 
 bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
 {
-  // TODO: this can be moved to a more central place
   return k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
          || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
          || k == BITVECTOR_ROTATE_LEFT || k == BITVECTOR_ROTATE_RIGHT
@@ -725,7 +724,6 @@ bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
 
 std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
 {
-  // TODO: this can be moved to a more central place
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> indices;
   switch (k)
@@ -946,7 +944,6 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     {
       ret = getSymbolInternal(k, ftype, opName.str());
     }
-    // TODO: if parametric, instantiate the parameters?
     // if indexed, apply to index
     if (!indices.empty())
     {
