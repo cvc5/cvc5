@@ -148,7 +148,6 @@ Node LfscNodeConverter::postConvert(Node n)
   }
   else if (k == APPLY_UF)
   {
-    // Assert(d_symbols.find(n.getOperator()) != d_symbols.end());
     return convert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
   else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER
@@ -415,16 +414,6 @@ Node LfscNodeConverter::postConvert(Node n)
       std::stringstream opName;
       // currently allow subtyping
       opName << "a.";
-      /*
-      if (n.getType().isInteger())
-      {
-        opName << "int.";
-      }
-      else
-      {
-        opName << "real.";
-      }
-      */
       opName << printer::smt2::Smt2Printer::smtKindString(k);
       TypeNode ftype = nm->mkFunctionType({tn, tn}, tn);
       opc = getSymbolInternal(k, ftype, opName.str());
@@ -788,31 +777,10 @@ Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
   Node nullTerm;
   switch (k)
   {
-    case OR: nullTerm = nm->mkConst(false); break;
-    case AND:
-    case SEP_STAR: nullTerm = nm->mkConst(true); break;
-    case PLUS: nullTerm = nm->mkConst(Rational(0)); break;
-    case MULT:
-    case NONLINEAR_MULT: nullTerm = nm->mkConst(Rational(1)); break;
-    case STRING_CONCAT:
-      // handles strings and sequences
-      nullTerm = theory::strings::Word::mkEmptyWord(tn);
-      break;
     case REGEXP_CONCAT:
-      // the language containing only the empty string
-      // nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
+      // the language containing only the empty string, which has special
+      // syntax in LFSC
       nullTerm = getSymbolInternal(k, tn, "re.empty");
-      break;
-    case BITVECTOR_AND:
-      nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
-      break;
-    case BITVECTOR_OR:
-    case BITVECTOR_ADD:
-    case BITVECTOR_XOR:
-      nullTerm = theory::bv::utils::mkZero(tn.getBitVectorSize());
-      break;
-    case BITVECTOR_MULT:
-      nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
       break;
     case BITVECTOR_CONCAT:
     {
@@ -824,10 +792,15 @@ Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
     }
     break;
     default:
-      // not handled as null-terminated
+      // no special handling, or not null terminated
       break;
   }
-  return nullTerm;
+  if (!nullTerm.isNull())
+  {
+    return nullTerm;
+  }
+  // otherwise, fall back to standard utility
+  return expr::getNullTerminator(k, tn);
 }
 
 Kind LfscNodeConverter::getBuiltinKindForInternalSymbol(Node op) const
@@ -982,16 +955,6 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   {
     // currently allow subtyping
     opName << "a.";
-    /*
-    if (n[0].getType().isInteger())
-    {
-      opName << "int.";
-    }
-    else
-    {
-      opName << "real.";
-    }
-    */
   }
   if (k == UMINUS)
   {
