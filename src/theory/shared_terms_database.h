@@ -272,7 +272,9 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   /** Equality engine */
   theory::eq::EqualityEngine* d_equalityEngine;
   /** Proof equality engine */
-  std::unique_ptr<theory::eq::ProofEqEngine> d_pfee;
+  std::unique_ptr<theory::eq::ProofEqEngine> d_pfeeAlloc;
+  /** The proof equality engine we are using */
+  theory::eq::ProofEqEngine* d_pfee;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
 };

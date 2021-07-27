@@ -51,11 +51,17 @@ void SharedTermsDatabase::setEqualityEngine(eq::EqualityEngine* ee)
 {
   Assert(ee != nullptr);
   d_equalityEngine = ee;
-  // if proofs are enabled, make the proof equality engine
+  // if proofs are enabled, make the proof equality engine if necessary
   if (d_pnm != nullptr)
   {
-    d_pfee.reset(
-        new eq::ProofEqEngine(d_satContext, d_userContext, *ee, d_pnm));
+    d_pfee = d_equalityEngine->getProofEqualityEngine();
+    if (d_pfee == nullptr)
+    {
+      d_pfeeAlloc.reset(
+          new eq::ProofEqEngine(d_satContext, d_userContext, *ee, d_pnm));
+      d_pfee = d_pfeeAlloc.get();
+      d_equalityEngine->setProofEqualityEngine(d_pfee);
+    }
   }
 }
 
