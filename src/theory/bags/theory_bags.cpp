@@ -35,7 +35,7 @@ TheoryBags::TheoryBags(context::Context* c,
                        ProofNodeManager* pnm)
     : Theory(THEORY_BAGS, c, u, out, valuation, logicInfo, pnm),
       d_state(c, u, valuation),
-      d_im(*this, d_state, nullptr),
+      d_im(*this, d_state, pnm),
       d_ig(&d_state, &d_im),
       d_notify(*this, d_im),
       d_statistics(),
