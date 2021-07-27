@@ -187,10 +187,7 @@ class SygusEnumerator : public EnumValGenerator
     Node d_enum;
     /** the sygus type of terms in this cache */
     TypeNode d_tn;
-    /**
-     * Pointer to the example evaluation cache utility (used for symmetry
-     * breaking).
-     */
+    /** Pointer to the callback (used for symmetry breaking). */
     SygusEnumeratorCallback* d_sec;
     //-------------------------static information about type
     /** is d_tn a sygus type? */
