@@ -2506,6 +2506,7 @@ set(regress_2_tests
   regress2/strings/issue6057-replace-re-all-simplified.smt2
   regress2/strings/issue6636-replace-re-all.smt2
   regress2/strings/issue6637-replace-re-all.smt2
+  regress2/strings/issue6639-replace-re-all.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/range-perf.smt2
