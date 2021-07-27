@@ -26,6 +26,7 @@
 #include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/cegis_core_connective.h"
 #include "theory/quantifiers/sygus/cegis_unif.h"
+#include "theory/quantifiers/sygus/enum_val_generator.h"
 #include "theory/quantifiers/sygus/example_eval_cache.h"
 #include "theory/quantifiers/sygus/example_infer.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
