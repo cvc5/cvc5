@@ -52,6 +52,10 @@ class TheoryArraysRewriter : public TheoryRewriter
   /** Normalize a constant whose index type has cardinality indexCard */
   static Node normalizeConstant(TNode node, Cardinality indexCard);
 
+  /* Expands the eqrange predicate (eqrange a b i j) to the quantified formula
+   * (forall ((x T))
+   *  (=> (and (<= i x) (<= x j)) (= (select a x) (select b x)))).
+   */
   static Node expandEqRange(TNode node);
 
   RewriteResponse postRewrite(TNode node) override;

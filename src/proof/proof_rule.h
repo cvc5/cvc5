@@ -711,14 +711,21 @@ enum class PfRule : uint32_t
   // Conclusion: (not (= (select a k) (select b k)))
   // where k is arrays::SkolemCache::getExtIndexSkolem((not (= a b))).
   ARRAYS_EXT,
+  // ======== EQ_RANGE expansion
+  // Children: none
+  // Arguments: (eqrange a b i j)
+  // ----------------------------------------
+  // Conclusion: (=
+  //              (eqrange a b i j)
+  //              (forall ((x T))
+  //               (=> (and (<= i x) (<= x j)) (= (select a x) (select b x)))))
+  ARRAYS_EQ_RANGE_EXPAND,
   // ======== Array Trust
   // Children: (P1 ... Pn)
   // Arguments: (F)
   // ---------------------
   // Conclusion: F
   ARRAYS_TRUST,
-
-  ARRAYS_EQ_RANGE_EXPAND,
 
   //================================================= Bit-Vector rules
   // Note: bitblast() represents the result of the bit-blasted term as a

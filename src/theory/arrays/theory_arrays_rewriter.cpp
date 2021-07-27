@@ -279,15 +279,6 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   return n;
 }
 
-/* Expand
- *
- *   (eqrange a b i j)
- *
- * to
- *
- *  forall k . i <= k <= j => a[k] = b[k]
- *
- */
 Node TheoryArraysRewriter::expandEqRange(TNode node)
 {
   Assert(node.getKind() == kind::EQ_RANGE);
