@@ -139,10 +139,10 @@ class Instantiate : public QuantifiersUtil
    * @param terms the terms to instantiate with
    * @param id the identifier of the instantiation lemma sent via the inference
    * manager
+   * @param pfArg an additional node to add to the arguments of the INSTANTIATE
+   * step
    * @param mkRep whether to take the representatives of the terms in the
    * range of the substitution m,
-   * @param modEq whether to check for duplication modulo equality in
-   * instantiation tries (for performance),
    * @param doVts whether we must apply virtual term substitution to the
    * instantiation lemma.
    *
@@ -161,8 +161,8 @@ class Instantiate : public QuantifiersUtil
   bool addInstantiation(Node q,
                         std::vector<Node>& terms,
                         InferenceId id,
+                        Node pfArg = Node::null(),
                         bool mkRep = false,
-                        bool modEq = false,
                         bool doVts = false);
   /**
    * Same as above, but we also compute a vector failMask indicating which
@@ -191,8 +191,8 @@ class Instantiate : public QuantifiersUtil
                                std::vector<Node>& terms,
                                std::vector<bool>& failMask,
                                InferenceId id,
+                               Node pfArg = Node::null(),
                                bool mkRep = false,
-                               bool modEq = false,
                                bool doVts = false,
                                bool expFull = true);
   /** record instantiation
@@ -226,6 +226,8 @@ class Instantiate : public QuantifiersUtil
   Node getInstantiation(Node q,
                         std::vector<Node>& vars,
                         std::vector<Node>& terms,
+                        InferenceId id = InferenceId::UNKNOWN,
+                        Node pfArg = Node::null(),
                         bool doVts = false,
                         LazyCDProof* pf = nullptr);
   /** get instantiation
@@ -293,14 +295,8 @@ class Instantiate : public QuantifiersUtil
   Statistics d_statistics;
 
  private:
-  /** record instantiation, return true if it was not a duplicate
-   *
-   * modEq : whether to check for duplication modulo equality in instantiation
-   *         tries (for performance),
-   */
-  bool recordInstantiationInternal(Node q,
-                                   std::vector<Node>& terms,
-                                   bool modEq = false);
+  /** record instantiation, return true if it was not a duplicate */
+  bool recordInstantiationInternal(Node q, std::vector<Node>& terms);
   /** remove instantiation from the cache */
   bool removeInstantiationInternal(Node q, std::vector<Node>& terms);
   /**

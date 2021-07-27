@@ -24,6 +24,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 #include <numeric>  // for std::iota
+#include <sstream>
 
 using namespace cvc5::kind;
 
