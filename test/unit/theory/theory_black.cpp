@@ -53,13 +53,12 @@ TEST_F(TestTheoryBlack, array_const)
   arr = d_nodeManager->mkNode(STORE, storeAll, zero, one);
   ASSERT_TRUE(arr.isConst());
   Node arr2 = d_nodeManager->mkNode(STORE, arr, one, zero);
-  ASSERT_FALSE(arr2.isConst());
   arr2 = Rewriter::rewrite(arr2);
   ASSERT_TRUE(arr2.isConst());
   arr2 = d_nodeManager->mkNode(STORE, arr, one, one);
+  arr2 = Rewriter::rewrite(arr2);
   ASSERT_TRUE(arr2.isConst());
   arr2 = d_nodeManager->mkNode(STORE, arr, zero, one);
-  ASSERT_FALSE(arr2.isConst());
   arr2 = Rewriter::rewrite(arr2);
   ASSERT_TRUE(arr2.isConst());
 
