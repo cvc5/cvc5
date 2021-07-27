@@ -110,10 +110,12 @@ const char* toString(InferenceId i)
     case InferenceId::BAG_DUPLICATE_REMOVAL: return "BAG_DUPLICATE_REMOVAL";
 
     case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
-    case InferenceId::BV_LAZY_CONFLICT: return "BV_LAZY_CONFLICT";
-    case InferenceId::BV_LAZY_LEMMA: return "BV_LAZY_LEMMA";
-    case InferenceId::BV_SIMPLE_LEMMA: return "BV_SIMPLE_LEMMA";
-    case InferenceId::BV_SIMPLE_BITBLAST_LEMMA: return "BV_SIMPLE_BITBLAST_LEMMA";
+    case InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA:
+      return "BV_BITBLAST_EAGER_LEMMA";
+    case InferenceId::BV_BITBLAST_INTERNAL_BITBLAST_LEMMA:
+      return "BV_BITBLAST_INTERNAL_BITBLAST_LEMMA";
+    case InferenceId::BV_LAYERED_CONFLICT: return "BV_LAYERED_CONFLICT";
+    case InferenceId::BV_LAYERED_LEMMA: return "BV_LAYERED_LEMMA";
     case InferenceId::BV_EXTF_LEMMA: return "BV_EXTF_LEMMA";
     case InferenceId::BV_EXTF_COLLAPSE: return "BV_EXTF_COLLAPSE";
 
@@ -241,9 +243,11 @@ const char* toString(InferenceId i)
     case InferenceId::SEP_DISTINCT_REF: return "SEP_DISTINCT_REF";
     case InferenceId::SEP_REF_BOUND: return "SEP_REF_BOUND";
 
+    case InferenceId::SETS_CG_SPLIT: return "SETS_CG_SPLIT";
     case InferenceId::SETS_COMPREHENSION: return "SETS_COMPREHENSION";
     case InferenceId::SETS_DEQ: return "SETS_DEQ";
     case InferenceId::SETS_DOWN_CLOSURE: return "SETS_DOWN_CLOSURE";
+    case InferenceId::SETS_EQ_CONFLICT: return "SETS_EQ_CONFLICT";
     case InferenceId::SETS_EQ_MEM: return "SETS_EQ_MEM";
     case InferenceId::SETS_EQ_MEM_CONFLICT: return "SETS_EQ_MEM_CONFLICT";
     case InferenceId::SETS_MEM_EQ: return "SETS_MEM_EQ";

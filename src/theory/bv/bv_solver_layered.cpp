@@ -10,10 +10,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Lazy bit-vector solver.
+ * Layered bit-vector solver.
  */
 
-#include "theory/bv/bv_solver_lazy.h"
+#include "theory/bv/bv_solver_layered.h"
 
 #include "expr/node_algorithm.h"
 #include "options/bv_options.h"
@@ -37,11 +37,11 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
-BVSolverLazy::BVSolverLazy(TheoryBV& bv,
-                           context::Context* c,
-                           context::UserContext* u,
-                           ProofNodeManager* pnm,
-                           std::string name)
+BVSolverLayered::BVSolverLayered(TheoryBV& bv,
+                                 context::Context* c,
+                                 context::UserContext* u,
+                                 ProofNodeManager* pnm,
+                                 std::string name)
     : BVSolver(bv.d_state, bv.d_im),
       d_bv(bv),
       d_context(c),
@@ -94,9 +94,9 @@ BVSolverLazy::BVSolverLazy(TheoryBV& bv,
   d_subtheoryMap[SUB_BITBLAST] = bb_solver;
 }
 
-BVSolverLazy::~BVSolverLazy() {}
+BVSolverLayered::~BVSolverLayered() {}
 
-bool BVSolverLazy::needsEqualityEngine(EeSetupInfo& esi)
+bool BVSolverLayered::needsEqualityEngine(EeSetupInfo& esi)
 {
   CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
   if (core)
@@ -107,7 +107,7 @@ bool BVSolverLazy::needsEqualityEngine(EeSetupInfo& esi)
   return false;
 }
 
-void BVSolverLazy::finishInit()
+void BVSolverLayered::finishInit()
 {
   CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
   if (core)
@@ -117,12 +117,9 @@ void BVSolverLazy::finishInit()
   }
 }
 
-void BVSolverLazy::spendResource(Resource r)
-{
-  d_im.spendResource(r);
-}
+void BVSolverLayered::spendResource(Resource r) { d_im.spendResource(r); }
 
-BVSolverLazy::Statistics::Statistics()
+BVSolverLayered::Statistics::Statistics()
     : d_avgConflictSize(smtStatisticsRegistry().registerAverage(
         "theory::bv::lazy::AvgBVConflictSize")),
       d_solveTimer(smtStatisticsRegistry().registerTimer(
@@ -138,11 +135,11 @@ BVSolverLazy::Statistics::Statistics()
 {
 }
 
-void BVSolverLazy::preRegisterTerm(TNode node)
+void BVSolverLayered::preRegisterTerm(TNode node)
 {
   d_calledPreregister = true;
   Debug("bitvector-preregister")
-      << "BVSolverLazy::preRegister(" << node << ")" << std::endl;
+      << "BVSolverLayered::preRegister(" << node << ")" << std::endl;
 
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
@@ -171,7 +168,7 @@ void BVSolverLazy::preRegisterTerm(TNode node)
   // d_bv.d_extTheory->registerTermRec( node );
 }
 
-void BVSolverLazy::sendConflict()
+void BVSolverLayered::sendConflict()
 {
   Assert(d_conflict);
   if (d_conflictNode.isNull())
@@ -180,15 +177,15 @@ void BVSolverLazy::sendConflict()
   }
   else
   {
-    Debug("bitvector") << indent() << "BVSolverLazy::check(): conflict "
+    Debug("bitvector") << indent() << "BVSolverLayered::check(): conflict "
                        << d_conflictNode << std::endl;
-    d_im.conflict(d_conflictNode, InferenceId::BV_LAZY_CONFLICT);
+    d_im.conflict(d_conflictNode, InferenceId::BV_LAYERED_CONFLICT);
     d_statistics.d_avgConflictSize << d_conflictNode.getNumChildren();
     d_conflictNode = Node::null();
   }
 }
 
-void BVSolverLazy::checkForLemma(TNode fact)
+void BVSolverLayered::checkForLemma(TNode fact)
 {
   if (fact.getKind() == kind::EQUAL)
   {
@@ -220,20 +217,20 @@ void BVSolverLazy::checkForLemma(TNode fact)
   }
 }
 
-bool BVSolverLazy::preCheck(Theory::Effort e)
+bool BVSolverLayered::preCheck(Theory::Effort e)
 {
   check(e);
   return true;
 }
 
-void BVSolverLazy::check(Theory::Effort e)
+void BVSolverLayered::check(Theory::Effort e)
 {
   if (done() && e < Theory::EFFORT_FULL)
   {
     return;
   }
 
-  Debug("bitvector") << "BVSolverLazy::check(" << e << ")" << std::endl;
+  Debug("bitvector") << "BVSolverLayered::check(" << e << ")" << std::endl;
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveTimer);
   // we may be getting new assertions so the model cache may not be sound
   d_invalidateModelCache.set(true);
@@ -261,11 +258,11 @@ void BVSolverLazy::check(Theory::Effort e)
     {
       if (assertions.size() == 1)
       {
-        d_im.conflict(assertions[0], InferenceId::BV_LAZY_CONFLICT);
+        d_im.conflict(assertions[0], InferenceId::BV_LAYERED_CONFLICT);
         return;
       }
       Node conflict = utils::mkAnd(assertions);
-      d_im.conflict(conflict, InferenceId::BV_LAZY_CONFLICT);
+      d_im.conflict(conflict, InferenceId::BV_LAYERED_CONFLICT);
       return;
     }
     return;
@@ -321,8 +318,8 @@ void BVSolverLazy::check(Theory::Effort e)
   }
 }
 
-bool BVSolverLazy::collectModelValues(TheoryModel* m,
-                                      const std::set<Node>& termSet)
+bool BVSolverLayered::collectModelValues(TheoryModel* m,
+                                         const std::set<Node>& termSet)
 {
   Assert(!inConflict());
   if (options::bitblastMode() == options::BitblastMode::EAGER)
@@ -342,7 +339,7 @@ bool BVSolverLazy::collectModelValues(TheoryModel* m,
   return true;
 }
 
-Node BVSolverLazy::getModelValue(TNode var)
+Node BVSolverLayered::getModelValue(TNode var)
 {
   Assert(!inConflict());
   for (unsigned i = 0; i < d_subtheories.size(); ++i)
@@ -355,9 +352,9 @@ Node BVSolverLazy::getModelValue(TNode var)
   Unreachable();
 }
 
-void BVSolverLazy::propagate(Theory::Effort e)
+void BVSolverLayered::propagate(Theory::Effort e)
 {
-  Debug("bitvector") << indent() << "BVSolverLazy::propagate()" << std::endl;
+  Debug("bitvector") << indent() << "BVSolverLayered::propagate()" << std::endl;
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
     return;
@@ -378,7 +375,7 @@ void BVSolverLazy::propagate(Theory::Effort e)
     if (d_state.isSatLiteral(literal))
     {
       Debug("bitvector::propagate")
-          << "BVSolverLazy:: propagating " << literal << "\n";
+          << "BVSolverLayered:: propagating " << literal << "\n";
       ok = d_im.propagateLit(literal);
     }
   }
@@ -386,15 +383,16 @@ void BVSolverLazy::propagate(Theory::Effort e)
   if (!ok)
   {
     Debug("bitvector::propagate")
-        << indent() << "BVSolverLazy::propagate(): conflict from theory engine"
+        << indent()
+        << "BVSolverLayered::propagate(): conflict from theory engine"
         << std::endl;
     setConflict();
   }
 }
 
-TrustNode BVSolverLazy::ppRewrite(TNode t)
+TrustNode BVSolverLayered::ppRewrite(TNode t)
 {
-  Debug("bv-pp-rewrite") << "BVSolverLazy::ppRewrite " << t << "\n";
+  Debug("bv-pp-rewrite") << "BVSolverLayered::ppRewrite " << t << "\n";
   Node res = t;
   if (options::bitwiseEq() && RewriteRule<BitwiseEq>::applies(t))
   {
@@ -489,25 +487,26 @@ TrustNode BVSolverLazy::ppRewrite(TNode t)
   return TrustNode::null();
 }
 
-void BVSolverLazy::presolve()
+void BVSolverLayered::presolve()
 {
-  Debug("bitvector") << "BVSolverLazy::presolve" << std::endl;
+  Debug("bitvector") << "BVSolverLayered::presolve" << std::endl;
 }
 
 static int prop_count = 0;
 
-bool BVSolverLazy::storePropagation(TNode literal, SubTheory subtheory)
+bool BVSolverLayered::storePropagation(TNode literal, SubTheory subtheory)
 {
-  Debug("bitvector::propagate") << indent() << d_context->getLevel() << " "
-                                << "BVSolverLazy::storePropagation(" << literal
-                                << ", " << subtheory << ")" << std::endl;
+  Debug("bitvector::propagate")
+      << indent() << d_context->getLevel() << " "
+      << "BVSolverLayered::storePropagation(" << literal << ", " << subtheory
+      << ")" << std::endl;
   prop_count++;
 
   // If already in conflict, no more propagation
   if (d_conflict)
   {
     Debug("bitvector::propagate")
-        << indent() << "BVSolverLazy::storePropagation(" << literal << ", "
+        << indent() << "BVSolverLayered::storePropagation(" << literal << ", "
         << subtheory << "): already in conflict" << std::endl;
     return false;
   }
@@ -552,19 +551,19 @@ bool BVSolverLazy::storePropagation(TNode literal, SubTheory subtheory)
   }
   return ok;
 
-} /* BVSolverLazy::propagate(TNode) */
+} /* BVSolverLayered::propagate(TNode) */
 
-void BVSolverLazy::explain(TNode literal, std::vector<TNode>& assumptions)
+void BVSolverLayered::explain(TNode literal, std::vector<TNode>& assumptions)
 {
   Assert(wasPropagatedBySubtheory(literal));
   SubTheory sub = getPropagatingSubtheory(literal);
   d_subtheoryMap[sub]->explain(literal, assumptions);
 }
 
-TrustNode BVSolverLazy::explain(TNode node)
+TrustNode BVSolverLayered::explain(TNode node)
 {
   Debug("bitvector::explain")
-      << "BVSolverLazy::explain(" << node << ")" << std::endl;
+      << "BVSolverLayered::explain(" << node << ")" << std::endl;
   std::vector<TNode> assumptions;
 
   // Ask for the explanation
@@ -580,20 +579,21 @@ TrustNode BVSolverLazy::explain(TNode node)
     // return the explanation
     explanation = utils::mkAnd(assumptions);
   }
-  Debug("bitvector::explain") << "BVSolverLazy::explain(" << node << ") => "
+  Debug("bitvector::explain") << "BVSolverLayered::explain(" << node << ") => "
                               << explanation << std::endl;
-  Debug("bitvector::explain") << "BVSolverLazy::explain done. \n";
+  Debug("bitvector::explain") << "BVSolverLayered::explain done. \n";
   return TrustNode::mkTrustPropExp(node, explanation, nullptr);
 }
 
-void BVSolverLazy::notifySharedTerm(TNode t)
+void BVSolverLayered::notifySharedTerm(TNode t)
 {
   Debug("bitvector::sharing")
-      << indent() << "BVSolverLazy::notifySharedTerm(" << t << ")" << std::endl;
+      << indent() << "BVSolverLayered::notifySharedTerm(" << t << ")"
+      << std::endl;
   d_sharedTermsSet.insert(t);
 }
 
-EqualityStatus BVSolverLazy::getEqualityStatus(TNode a, TNode b)
+EqualityStatus BVSolverLayered::getEqualityStatus(TNode a, TNode b)
 {
   if (options::bitblastMode() == options::BitblastMode::EAGER)
     return EQUALITY_UNKNOWN;
@@ -610,7 +610,7 @@ EqualityStatus BVSolverLazy::getEqualityStatus(TNode a, TNode b)
   ;
 }
 
-void BVSolverLazy::ppStaticLearn(TNode in, NodeBuilder& learned)
+void BVSolverLayered::ppStaticLearn(TNode in, NodeBuilder& learned)
 {
   if (d_staticLearnCache.find(in) != d_staticLearnCache.end())
   {
@@ -660,8 +660,8 @@ void BVSolverLazy::ppStaticLearn(TNode in, NodeBuilder& learned)
   }
 }
 
-bool BVSolverLazy::applyAbstraction(const std::vector<Node>& assertions,
-                                    std::vector<Node>& new_assertions)
+bool BVSolverLayered::applyAbstraction(const std::vector<Node>& assertions,
+                                       std::vector<Node>& new_assertions)
 {
   bool changed =
       d_abstractionModule->applyAbstraction(assertions, new_assertions);
@@ -676,7 +676,7 @@ bool BVSolverLazy::applyAbstraction(const std::vector<Node>& assertions,
   return changed;
 }
 
-void BVSolverLazy::setConflict(Node conflict)
+void BVSolverLayered::setConflict(Node conflict)
 {
   if (options::bvAbstraction())
   {

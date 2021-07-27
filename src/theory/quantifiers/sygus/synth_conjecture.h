@@ -31,6 +31,7 @@
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
+#include "theory/quantifiers/sygus/synth_verify.h"
 #include "theory/quantifiers/sygus/template_infer.h"
 
 namespace cvc5 {
@@ -216,6 +217,8 @@ class SynthConjecture
   SygusStatistics& d_stats;
   /** term database sygus of d_qe */
   TermDbSygus* d_tds;
+  /** The synthesis verify utility */
+  SynthVerify d_verify;
   /** The feasible guard. */
   Node d_feasible_guard;
   /**
@@ -423,8 +426,6 @@ class SynthConjecture
    * rewrite rules.
    */
   std::map<Node, ExpressionMinerManager> d_exprm;
-  /** The options for subsolver calls */
-  Options d_subOptions;
 };
 
 }  // namespace quantifiers

@@ -257,6 +257,8 @@ enum class PfRule : uint32_t
   // where F is a solved equality of the form (= x t) derived as the solved
   // form of F', where F' is given as a child.
   TRUST_SUBS_EQ,
+  // where F is a fact derived by a theory-specific inference
+  THEORY_INFERENCE,
   // ========= SAT Refutation for assumption-based unsat cores
   // Children: (P1, ..., Pn)
   // Arguments: none
@@ -830,6 +832,13 @@ enum class PfRule : uint32_t
   // Conclusion: F*sigma
   // sigma maps x1 ... xn to t1 ... tn.
   INSTANTIATE,
+  // ======== (Trusted) quantifiers preprocess
+  // Children: ?
+  // Arguments: (F)
+  // ---------------------------------------------------------------
+  // Conclusion: F
+  // where F is an equality of the form t = QuantifiersRewriter::preprocess(t)
+  QUANTIFIERS_PREPROCESS,
 
   //================================================= String rules
   //======================== Core solver

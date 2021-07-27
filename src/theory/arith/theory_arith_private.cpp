@@ -137,7 +137,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                           d_partialModel,
                           RaiseEqualityEngineConflict(*this),
                           d_pnm),
-      d_cmEnabled(c, true),
+      d_cmEnabled(c, options::arithCongMan()),
 
       d_dualSimplex(
           d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
@@ -181,14 +181,20 @@ TheoryArithPrivate::~TheoryArithPrivate(){
 
 bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
 {
+  if (!d_cmEnabled)
+  {
+    return false;
+  }
   return d_congruenceManager.needsEqualityEngine(esi);
 }
 void TheoryArithPrivate::finishInit()
 {
-  eq::EqualityEngine* ee = d_containing.getEqualityEngine();
-  eq::ProofEqEngine* pfee = d_containing.getProofEqEngine();
-  Assert(ee != nullptr);
-  d_congruenceManager.finishInit(ee, pfee);
+  if (d_cmEnabled)
+  {
+    eq::EqualityEngine* ee = d_containing.getEqualityEngine();
+    Assert(ee != nullptr);
+    d_congruenceManager.finishInit(ee);
+  }
 }
 
 static bool contains(const ConstraintCPVec& v, ConstraintP con){
