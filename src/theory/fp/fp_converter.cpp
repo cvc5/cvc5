@@ -1296,15 +1296,18 @@ Node FpConverter::getValue(Valuation &val, TNode var)
   if (t.isRoundingMode())
   {
     rmMap::const_iterator i(d_rmMap.find(var));
-
-    Assert(i != d_rmMap.end())
-        << "Asking for the value of an unregistered expression";
+    if (i == d_rmMap.end())
+    {
+      return Node::null();
+    }
     return rmToNode((*i).second);
   }
-  fpMap::const_iterator i(d_fpMap.find(var));
 
-  Assert(i != d_fpMap.end())
-      << "Asking for the value of an unregistered expression";
+  fpMap::const_iterator i(d_fpMap.find(var));
+  if (i == d_fpMap.end())
+  {
+    return Node::null();
+  }
   return ufToNode(fpt(t), (*i).second);
 }
 
