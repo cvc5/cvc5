@@ -27,6 +27,8 @@
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
+#include "options/options_public.h"
+#include "options/parser_options.h"
 #include "options/printer_options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
@@ -549,7 +551,7 @@ std::string SmtEngine::getInfo(const std::string& key) const
   }
   Assert(key == "all-options");
   // get the options, like all-statistics
-  return toSExpr(Options::current().getOptions());
+  return toSExpr(options::getAll(getOptions()));
 }
 
 void SmtEngine::debugCheckFormals(const std::vector<Node>& formals, Node func)
@@ -1400,7 +1402,78 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(pepf, *d_asserts);
   std::vector<Node> core;
   d_ucManager->getUnsatCore(pfn, *d_asserts, core);
+  if (options::minimalUnsatCores())
+  {
+    core = reduceUnsatCore(core);
+  }
   return UnsatCore(core);
+}
+
+std::vector<Node> SmtEngine::reduceUnsatCore(const std::vector<Node>& core)
+{
+  Assert(options::unsatCores())
+      << "cannot reduce unsat core if unsat cores are turned off";
+
+  Notice() << "SmtEngine::reduceUnsatCore(): reducing unsat core" << endl;
+  std::unordered_set<Node> removed;
+  for (const Node& skip : core)
+  {
+    std::unique_ptr<SmtEngine> coreChecker;
+    initializeSubsolver(coreChecker);
+    coreChecker->setLogic(getLogicInfo());
+    coreChecker->getOptions().smt.checkUnsatCores = false;
+    // disable all proof options
+    coreChecker->getOptions().smt.produceProofs = false;
+    coreChecker->getOptions().smt.checkProofs = false;
+    coreChecker->getOptions().proof.proofEagerChecking = false;
+
+    for (const Node& ucAssertion : core)
+    {
+      if (ucAssertion != skip && removed.find(ucAssertion) == removed.end())
+      {
+        Node assertionAfterExpansion = expandDefinitions(ucAssertion);
+        coreChecker->assertFormula(assertionAfterExpansion);
+      }
+    }
+    Result r;
+    try
+    {
+      r = coreChecker->checkSat();
+    }
+    catch (...)
+    {
+      throw;
+    }
+
+    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
+      removed.insert(skip);
+    }
+    else if (r.asSatisfiabilityResult().isUnknown())
+    {
+      Warning() << "SmtEngine::reduceUnsatCore(): could not reduce unsat core "
+                   "due to "
+                   "unknown result.";
+    }
+  }
+
+  if (removed.empty())
+  {
+    return core;
+  }
+  else
+  {
+    std::vector<Node> newUcAssertions;
+    for (const Node& n : core)
+    {
+      if (removed.find(n) == removed.end())
+      {
+        newUcAssertions.push_back(n);
+      }
+    }
+
+    return newUcAssertions;
+  }
 }
 
 void SmtEngine::checkUnsatCore() {
@@ -1907,7 +1980,7 @@ void SmtEngine::setOption(const std::string& key, const std::string& value)
   }
 
   std::string optionarg = value;
-  getOptions().setOption(key, optionarg);
+  options::set(getOptions(), key, optionarg);
 }
 
 void SmtEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
@@ -1972,7 +2045,7 @@ std::string SmtEngine::getOption(const std::string& key) const
     return nm->mkNode(Kind::SEXPR, result).toString();
   }
 
-  std::string atom = getOptions().getOption(key);
+  std::string atom = options::get(getOptions(), key);
 
   if (atom != "true" && atom != "false")
   {

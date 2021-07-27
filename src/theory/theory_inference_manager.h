@@ -132,7 +132,7 @@ class TheoryInferenceManager
    * EqualityEngineNotify::eqNotifyTriggerPredicate and
    * EqualityEngineNotify::eqNotifyTriggerTermEquality.
    */
-  bool propagateLit(TNode lit);
+  virtual bool propagateLit(TNode lit);
   /**
    * Return an explanation for the literal represented by parameter lit
    * (which was previously propagated by this theory). By default, this
@@ -299,6 +299,8 @@ class TheoryInferenceManager
    * output channel as a propagation or lemma. This method ensures that the
    * Theory's preNotifyFact and notifyFact method have been called with
    * isInternal = true.
+   *
+   * Note this method should never be used when proofs are enabled.
    *
    * @param atom The atom of the fact to assert
    * @param pol Its polarity

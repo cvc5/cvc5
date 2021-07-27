@@ -131,9 +131,15 @@ macro(print_info msg)
   message("${Blue}${msg}${ResetColor}")
 endmacro()
 
-# Helper to print the configuration of a 2-valued or 3-valued option 'var'
-# with prefix 'str'.
+# Helper to print the configuration of a 2-valued or 3-valued option 'var' with
+# prefix 'str'. Optionally takes a `FOUND_SYSTEM` argument that is used to
+# indicate when a given dependency is built as part of the cvc5 build.
 function(print_config str var)
+  set(options)
+  set(oneValueArgs FOUND_SYSTEM)
+  set(multiValueArgs)
+  cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
   if("${var}" STREQUAL "ON")
     set(OPT_VAL_STR "on")
   elseif("${var}" STREQUAL "OFF" OR "${var}" STREQUAL "IGNORE")
@@ -141,7 +147,16 @@ function(print_config str var)
   else()
     set(OPT_VAL_STR "${var}")
   endif()
-  message("${Blue}${str}: ${Green}${OPT_VAL_STR}${ResetColor}")
+
+  if("${ARGS_FOUND_SYSTEM}" STREQUAL "TRUE")
+    set(OPT_FOUND_SYSTEM_STR " (system)")
+  elseif("${ARGS_FOUND_SYSTEM}" STREQUAL "FALSE")
+    set(OPT_FOUND_SYSTEM_STR " (local)")
+  else()
+    set(OPT_FOUND_SYSTEM_STR "")
+  endif()
+
+  message("${Blue}${str}: ${Green}${OPT_VAL_STR}${OPT_FOUND_SYSTEM_STR}${ResetColor}")
 endfunction()
 
 

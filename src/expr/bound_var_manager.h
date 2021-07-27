@@ -77,7 +77,7 @@ class BoundVarManager
   Node mkBoundVar(Node n, const std::string& name, TypeNode tn)
   {
     Node v = mkBoundVar<T>(n, tn);
-    setNameAttr(n, name);
+    setNameAttr(v, name);
     return v;
   }
   //---------------------------------- utilities for computing Node hash
