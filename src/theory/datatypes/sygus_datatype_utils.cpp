@@ -725,9 +725,9 @@ unsigned getSygusTermSize(Node n)
     return 0;
   }
   unsigned sum = 0;
-  for (unsigned i = 0; i < n.getNumChildren(); i++)
+  for (const Node& nc : n)
   {
-    sum += getSygusTermSize(n[i]);
+    sum += getSygusTermSize(nc);
   }
   const DType& dt = datatypeOf(n.getOperator());
   int cindex = indexOf(n.getOperator());
