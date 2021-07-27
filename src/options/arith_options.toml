@@ -588,3 +588,18 @@ name   = "Arithmetic Theory"
   default    = "false"
   help       = "whether to use ICP-style propagations for non-linear arithmetic"
 
+[[option]]
+  name       = "arithEqSolver"
+  category   = "regular"
+  long       = "arith-eq-solver"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to use the equality solver in the theory of arithmetic"
+
+[[option]]
+  name       = "arithCongMan"
+  category   = "regular"
+  long       = "arith-cong-man"
+  type       = "bool"
+  default    = "true"
+  help       = "(experimental) whether to use the congruence manager when the equality solver is enabled"

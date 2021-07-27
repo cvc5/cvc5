@@ -69,7 +69,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     opts.driver.dumpUnsatCores = true;
   }
   if (options::checkUnsatCores() || options::dumpUnsatCores()
-      || options::unsatAssumptions()
+      || options::unsatAssumptions() || options::minimalUnsatCores()
       || options::unsatCoresMode() != options::UnsatCoresMode::OFF)
   {
     opts.smt.unsatCores = true;
@@ -402,6 +402,13 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: turning on produce-assertions to support "
              << "option requiring assertions." << std::endl;
     opts.smt.produceAssertions = true;
+  }
+
+  if (options::bvAssertInput() && options::produceProofs())
+  {
+    Notice() << "Disabling bv-assert-input since it is incompatible with proofs."
+             << std::endl;
+    opts.bv.bvAssertInput = false;
   }
 
   // whether we want to force safe unsat cores, i.e., if we are in the default
@@ -961,6 +968,18 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Trace("smt") << "setting decision mode to " << opts.decision.decisionMode
                  << std::endl;
   }
+
+  // set up of central equality engine
+  if (opts.arith.arithEqSolver)
+  {
+    if (!opts.arith.arithCongManWasSetByUser)
+    {
+      // if we are using the arithmetic equality solver, do not use the
+      // arithmetic congruence manager by default
+      opts.arith.arithCongMan = false;
+    }
+  }
+
   if (options::incrementalSolving())
   {
     // disable modes not supported by incremental

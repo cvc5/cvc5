@@ -74,7 +74,7 @@ class CoreSolver : public SubtheorySolver {
   bool d_checkCalled;
 
   /** Pointer to the parent theory solver that owns this */
-  BVSolverLazy* d_bv;
+  BVSolverLayered* d_bv;
   /** Pointer to the equality engine of the parent */
   eq::EqualityEngine* d_equalityEngine;
 
@@ -87,7 +87,7 @@ class CoreSolver : public SubtheorySolver {
   Statistics d_statistics;
 
  public:
-  CoreSolver(context::Context* c, BVSolverLazy* bv);
+  CoreSolver(context::Context* c, BVSolverLayered* bv);
   ~CoreSolver();
   bool needsEqualityEngine(EeSetupInfo& esi);
   void finishInit();
