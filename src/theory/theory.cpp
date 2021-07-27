@@ -622,6 +622,7 @@ bool Theory::usesCentralEqualityEngine(TheoryId id)
   }
   if (id == THEORY_BV)
   {
+    // the internal bitblast BV solver doesnt use an equality engine
     return options::bvSolver() != options::BVSolver::BITBLAST_INTERNAL;
   }
   return id == THEORY_UF || id == THEORY_DATATYPES || id == THEORY_BAGS
