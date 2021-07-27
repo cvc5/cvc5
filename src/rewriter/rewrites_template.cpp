@@ -40,7 +40,10 @@ ${defns}$
 ${rules}$
   // clang-format on
 }
-
+bool isInternalRule(DslPfRule drule)
+{
+  return drule==DslPfRule::FAIL || drule == DslPfRule::REFL || drule==DslPfRule::EVAL || drule == DslPfRule::TRANS || drule == DslPfRule::CONG;
+}
 const char* toString(DslPfRule drule)
 {
   switch (drule)
@@ -50,6 +53,8 @@ const char* toString(DslPfRule drule)
     case DslPfRule::EVAL: return "EVAL";
     case DslPfRule::TRANS:
       return "TRANS";
+    case DslPfRule::CONG:
+      return "CONG";
       // clang-format off
 ${printer}$
     default : Unreachable();

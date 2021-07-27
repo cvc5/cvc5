@@ -144,7 +144,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
                                      std::vector<Node>& vars,
                                      std::vector<Node>& subs)
 {
-  Assert(d_target.getKind() == EQUAL && d_target[0] == s);
+  Assert(d_target.getKind() == EQUAL);
   Assert(s.getType().isComparableTo(n.getType()));
   Assert(vars.size() == subs.size());
   Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
@@ -173,6 +173,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     // limits to first match
     return false;
   }
+  Assert(d_target[0] == s);
   bool recurse = d_currRecLimit > 0;
   // get the rule identifiers for the conclusion
   const std::vector<DslPfRule>& ids = d_db->getRuleIdsForHead(n);
@@ -239,11 +240,12 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     // the variables / substitution we will use to generate constraints below
     std::vector<Node> uvars;
     std::vector<Node> usubs;
-    if (pic.usedFixPoint())
+    if (pic.isInternalRule())
     {
       // use the substitution of the last proven equality, which determines
       // what the generated inflection conditions are
       Node lastEq = pic.d_vars.back();
+      Assert (d_pcache.find(lastEq)!=d_pcache.end());
       ProvenInfo& pile = d_pcache[lastEq];
       Assert(pile.d_id == id);
       uvars = pile.d_vars;
@@ -334,7 +336,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   // cache the success
   ProvenInfo& pi = d_pcache[target];
   pi.d_id = pic.d_id;
-  if (pic.usedFixPoint())
+  if (pic.isInternalRule())
   {
     pi.d_vars = pic.d_vars;
   }
@@ -497,12 +499,16 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
         {
           visited[cur] = false;
           std::vector<Node>& ps = premises[cur];
-          if (itd->second.usedFixPoint())
+          if (itd->second.d_id == DslPfRule::TRANS)
           {
             // premises are the steps, stored in d_vars
             ps.insert(premises[cur].end(),
                       itd->second.d_vars.begin(),
                       itd->second.d_vars.end());
+          }
+          else if (itd->second.d_id == DslPfRule::CONG)
+          {
+            // TODO
           }
           else
           {
@@ -549,16 +555,20 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       visited[cur] = true;
       Assert(premises.find(cur) != premises.end());
       std::vector<Node>& ps = premises[cur];
-      Assert(pfArgs.find(cur) != pfArgs.end());
       // get the conclusion
       Node conc;
-      if (itd->second.usedFixPoint())
+      if (itd->second.d_id == DslPfRule::TRANS)
       {
         conc = ps[0][0].eqNode(ps.back()[1]);
         cdp->addStep(conc, PfRule::TRANS, ps, {});
       }
+      else if (itd->second.d_id == DslPfRule::CONG)
+      {
+        // TODO
+      }
       else
       {
+        Assert(pfArgs.find(cur) != pfArgs.end());
         const RewriteProofRule& rpr = d_db->getRule(itd->second.d_id);
         const std::vector<Node>& args = pfArgs[cur];
         std::vector<Node> subs(args.begin() + 1, args.end());

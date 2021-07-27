@@ -34,6 +34,7 @@ enum class DslPfRule : uint32_t
   REFL,
   EVAL,
   TRANS,  // internal-only
+  CONG,   // internal-only
   // Generated rule ids
   // clang-format off
   ${rule_ids}$
@@ -41,6 +42,9 @@ enum class DslPfRule : uint32_t
 };
 
 void addRules(theory::RewriteDb& db);
+
+/** Is internal rule? */
+bool isInternalRule(DslPfRule drule);
 
 /**
  * Converts a DSL proof rule to a string.

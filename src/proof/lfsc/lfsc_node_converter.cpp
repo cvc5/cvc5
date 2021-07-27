@@ -688,6 +688,7 @@ Node LfscNodeConverter::getSymbolInternal(Kind k,
     return it->second;
   }
   Node sym = mkInternalSymbol(name, tn);
+  d_symbolToBuiltinKind[sym] = k;
   d_symbolsMap[key] = sym;
   return sym;
 }
@@ -829,6 +830,16 @@ Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
       break;
   }
   return nullTerm;
+}
+
+Kind LfscNodeConverter::getBuiltinKindForInternalSymbol(Node op) const
+{
+  std::map<Node, Kind>::const_iterator it = d_symbolToBuiltinKind.find(op);
+  if (it!=d_symbolToBuiltinKind.end())
+  {
+    return it->second;
+  }
+  return UNDEFINED_KIND;
 }
 
 Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)

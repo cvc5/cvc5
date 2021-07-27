@@ -656,11 +656,12 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     break;
     case PfRule::DSL_REWRITE:
     {
-      DslPfRule di;
+      DslPfRule di = DslPfRule::FAIL;
       if (!theory::getDslPfRule(args[0], di))
       {
         Assert(false);
       }
+      Trace("lfsc-print-debug2") << "Printing dsl rule " << di << std::endl;
       const theory::RewriteProofRule& rpr = d_rdb->getRule(di);
       const std::vector<Node>& varList = rpr.getVarList();
       Assert(as.size() == varList.size() + 1);
@@ -681,12 +682,26 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
             // expr::getNullTerminator here, which has subtle differences
             // e.g. re.empty vs (str.to_re "").
             Node null = d_tproc.getNullTerminator(k, v.getType());
-            null = d_tproc.convert(null);
             Node t;
             if (as[i].getNumChildren() == 1)
             {
-              // singleton list uses null terminator
-              t = nm->mkNode(k, as[i][0], null);
+              // Singleton list uses null terminator. We first construct an
+              // original term and convert it.
+              Node tt = nm->mkNode(k, args[i][0], null);
+              tt = d_tproc.convert(tt);
+              // Since conversion adds a null terminator, we have that
+              // tt is of the form (f t (f null null)). We reconstruct
+              // the proper term (f t null) below.
+              Assert (tt.getNumChildren()==2);
+              Assert (tt[1].getNumChildren()==2);
+              std::vector<Node> tchildren;
+              if (tt.getMetaKind()==metakind::PARAMETERIZED)
+              {
+                tchildren.push_back(tt.getOperator());
+              }
+              tchildren.push_back(tt[0]);
+              tchildren.push_back(tt[1][0]);
+              t = nm->mkNode(tt.getKind(), tchildren);
             }
             else
             {
@@ -704,8 +719,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
                 // re-convert it
                 std::vector<Node> vec(args[i].begin(), args[i].end());
                 t = nm->mkNode(k, vec);
-                t = d_tproc.convert(t);
               }
+              t = d_tproc.convert(t);
             }
             pf << t;
           }
@@ -746,8 +761,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
           pf << cs[ccounter];
           ccounter++;
         }
+        Assert(ccounter == cs.size());
       }
-      Assert(ccounter == cs.size());
     }
     break;
     default:

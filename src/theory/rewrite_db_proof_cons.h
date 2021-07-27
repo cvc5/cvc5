@@ -77,8 +77,10 @@ class RewriteDbProofCons
     uint32_t d_failMaxDepth;
     /** The inflection conditions */
     std::vector<Node> d_iconds;
-    /** used fixed point */
-    bool usedFixPoint() const { return d_id == rewriter::DslPfRule::TRANS; }
+    /** 
+     * Is internal rule? these rules store children (if any) in d_vars.
+     */
+    bool isInternalRule() const { return rewriter::isInternalRule(d_id); }
   };
   /** prove internal */
   rewriter::DslPfRule proveInternal(Node eqi);
