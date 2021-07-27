@@ -296,8 +296,7 @@ class Instantiate : public QuantifiersUtil
 
  private:
   /** record instantiation, return true if it was not a duplicate */
-  bool recordInstantiationInternal(Node q,
-                                   std::vector<Node>& terms);
+  bool recordInstantiationInternal(Node q, std::vector<Node>& terms);
   /** remove instantiation from the cache */
   bool removeInstantiationInternal(Node q, std::vector<Node>& terms);
   /**

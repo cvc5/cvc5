@@ -15,8 +15,8 @@
 
 #include "theory/inference_id.h"
 
-#include "util/rational.h"
 #include <iostream>
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace theory {

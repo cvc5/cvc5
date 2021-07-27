@@ -250,7 +250,8 @@ bool Instantiate::addInstantiation(Node q,
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
   Assert(d_qreg.d_vars[q].size() == terms.size());
   // get the instantiation
-  Node body = getInstantiation(q, d_qreg.d_vars[q], terms, id, pfArg, doVts, pfTmp.get());
+  Node body = getInstantiation(
+      q, d_qreg.d_vars[q], terms, id, pfArg, doVts, pfTmp.get());
   Node orig_body = body;
   // now preprocess, storing the trust node for the rewrite
   TrustNode tpBody = QuantifiersRewriter::preprocess(body, true);
@@ -523,8 +524,8 @@ bool Instantiate::existsInstantiation(Node q,
 Node Instantiate::getInstantiation(Node q,
                                    std::vector<Node>& vars,
                                    std::vector<Node>& terms,
-                        InferenceId id,
-                        Node pfArg,
+                                   InferenceId id,
+                                   Node pfArg,
                                    bool doVts,
                                    LazyCDProof* pf)
 {
@@ -580,17 +581,16 @@ Node Instantiate::getInstantiation(Node q,
 Node Instantiate::getInstantiation(Node q, std::vector<Node>& terms, bool doVts)
 {
   Assert(d_qreg.d_vars.find(q) != d_qreg.d_vars.end());
-  return getInstantiation(q, d_qreg.d_vars[q], terms, InferenceId::UNKNOWN, Node::null(), doVts);
+  return getInstantiation(
+      q, d_qreg.d_vars[q], terms, InferenceId::UNKNOWN, Node::null(), doVts);
 }
 
-bool Instantiate::recordInstantiationInternal(Node q,
-                                              std::vector<Node>& terms)
+bool Instantiate::recordInstantiationInternal(Node q, std::vector<Node>& terms)
 {
   if (options::incrementalSolving())
   {
     Trace("inst-add-debug")
-        << "Adding into context-dependent inst trie"
-        << std::endl;
+        << "Adding into context-dependent inst trie" << std::endl;
     CDInstMatchTrie* imt;
     std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
