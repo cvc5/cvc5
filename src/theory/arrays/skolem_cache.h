@@ -43,6 +43,8 @@ class SkolemCache
    */
   static Node getExtIndexSkolem(Node deq);
 
+  static Node getEqRangeVar(TNode eqr);
+
  private:
   /**
    * Get the bound variable x of the witness term above for disequality deq

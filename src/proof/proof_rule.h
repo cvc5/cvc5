@@ -718,6 +718,8 @@ enum class PfRule : uint32_t
   // Conclusion: F
   ARRAYS_TRUST,
 
+  ARRAYS_EQ_RANGE_EXPAND,
+
   //================================================= Bit-Vector rules
   // Note: bitblast() represents the result of the bit-blasted term as a
   //       bit-vector consisting of the output bits of the bit-blasted circuit
