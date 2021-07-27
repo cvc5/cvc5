@@ -1,0 +1,23 @@
+; COMMAND-LINE: --ee-mode=distributed
+; COMMAND-LINE: --ee-mode=central
+; EXPECT: sat
+(set-logic ALL)
+(set-info :status sat)
+(declare-datatypes ((x5 0)) (((x3) (x4))))
+(declare-sort x 0)
+(declare-sort x1 0)
+(declare-datatypes ((x22 0)) (((x2))))
+(declare-datatypes ((x2 0)) (((x2 (x2 x5) (x24 x5) (x25 Int) (x26 Int) (x27 Int)))))
+(declare-sort x30 0)
+(declare-sort x3 0)
+(declare-datatypes ((x4 0)) (((x44 (x43 x3)))))
+(declare-fun x46 (x3) x1)
+(declare-datatypes ((x54 0)) (((x49 (x48 x22)) (x5 (x5 x2)) (d (s x1)))))
+(declare-fun x5 (x22) x2)
+(declare-fun x67 () (Array x x54))
+(declare-fun x6 () (Array x x54))
+(declare-fun x7 () (Array x30 x4))
+(declare-fun x63 () x30)
+(declare-fun x () x)
+(assert (distinct x3 (ite (or (distinct x6 (store x67 x (d (x46 (x43 (select x7 x63)))))) (= x67 (store x67 x (x5 (x2 x4 x3 (x25 (x5 (x48 (select x67 x)))) (x26 (x5 (x48 (select x67 x)))) (x27 (x5 (x48 (select x6 x))))))))) x3 x4)))
+(check-sat)
