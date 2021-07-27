@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file print_expr.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for printing Lfsc proof nodes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for printing expressions in proofs
+ */
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__PRINT_EXPR_H
-#define CVC4__PROOF__PRINT_EXPR_H
+#ifndef CVC5__PROOF__PRINT_EXPR_H
+#define CVC5__PROOF__PRINT_EXPR_H
 
 #include <iostream>
 #include <map>
@@ -26,7 +27,7 @@
 namespace cvc5 {
 namespace proof {
 
-/**
+/** 
  * A term, type or a proof. This class is used for printing combinations of
  * proofs terms and types.
  */
@@ -47,15 +48,16 @@ class PExpr
 };
 
 /**
- * A stream of p-expressions
+ * A stream of p-expressions, which appends p-expressions to a reference vector.
+ * That vector can then be used when printing a proof.
  */
 class PExprStream
 {
  public:
-  /**
-   * Takes a reference to a stream (vector of p-expressions), and the
-   * representation true/false (tt/ff).
-   */
+   /** 
+    * Takes a reference to a stream (vector of p-expressions), and the
+    * representation true/false (tt/ff).
+    */
   PExprStream(std::vector<PExpr>& stream,
               Node tt = Node::null(),
               Node ff = Node::null());
@@ -73,7 +75,7 @@ class PExprStream
  private:
   /** Reference to the stream */
   std::vector<PExpr>& d_stream;
-  /** Builtin nodes */
+  /** Builtin nodes for true and false */
   Node d_tt;
   Node d_ff;
 };
