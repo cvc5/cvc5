@@ -35,6 +35,7 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "smt/update_ostream.h"
 
 namespace cvc5 {
 namespace options {
@@ -575,8 +576,6 @@ void OptionsHandler::applyErr(const std::string& option,
   chatOstreamUpdate.apply(me);
   TraceOstreamUpdate traceOstreamUpdate;
   traceOstreamUpdate.apply(me);
-  OptionsErrOstreamUpdate optionsErrOstreamUpdate;
-  optionsErrOstreamUpdate.apply(me);
 }
 void OptionsHandler::applyIn(const std::string& option,
                          const std::string& flag, const ManagedIn& mi)
@@ -585,8 +584,6 @@ void OptionsHandler::applyIn(const std::string& option,
 void OptionsHandler::applyOut(const std::string& option,
                          const std::string& flag, const ManagedOut& mo)
 {
-  OptionsErrOstreamUpdate optionsErrOstreamUpdate;
-  optionsErrOstreamUpdate.apply(mo);
 }
 
 /* options/base_options_handlers.h */

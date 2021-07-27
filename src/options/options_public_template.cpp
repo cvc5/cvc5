@@ -286,6 +286,37 @@ struct OptionHandler<T, false, false> {
   }
 };/* struct OptionHandler<T, false, false> */
 
+/** Specialization for ManagedErr */
+template <>
+struct OptionHandler<ManagedErr,false,false> {
+  static ManagedErr handle(const std::string& option, const std::string& flag, const std::string& optionarg)
+  {
+      ManagedErr res;
+      res.open(optionarg);
+      return res;
+  }
+};
+/** Specialization for ManagedIn */
+template <>
+struct OptionHandler<ManagedIn,false,false> {
+  static ManagedIn handle(const std::string& option, const std::string& flag, const std::string& optionarg)
+  {
+      ManagedIn res;
+      res.open(optionarg);
+      return res;
+  }
+};
+/** Specialization for ManagedOut */
+template <>
+struct OptionHandler<ManagedOut,false,false> {
+  static ManagedOut handle(const std::string& option, const std::string& flag, const std::string& optionarg)
+  {
+      ManagedOut res;
+      res.open(optionarg);
+      return res;
+  }
+};
+
 /** Handle an option of type T in the default way. */
 template <class T>
 T handleOption(const std::string& option, const std::string& flag, const std::string& optionarg) {

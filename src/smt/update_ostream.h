@@ -69,12 +69,6 @@ public:
   }
 }; /* class OstreamUpdate */
 
-class OptionsErrOstreamUpdate : public OstreamUpdate {
- public:
-  std::ostream& get() override { return *(options::err()); }
-  void set(std::ostream* setTo) override { Options::current().base.err = setTo; }
-};  /* class OptionsErrOstreamUpdate */
-
 class DumpOstreamUpdate : public OstreamUpdate {
  public:
   std::ostream& get() override { return Dump.getStream(); }

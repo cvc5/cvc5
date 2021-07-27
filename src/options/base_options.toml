@@ -15,6 +15,7 @@ public = true
   category   = "undocumented"
   long       = "out=output"
   type       = "ManagedOut"
+  alias      = ["regular-output-channel"]
   predicates = ["applyOut"]
   includes   = ["<iostream>", "options/managed_streams.h"]
 
@@ -23,6 +24,7 @@ public = true
   category   = "undocumented"
   long       = "err=erroutput"
   type       = "ManagedErr"
+  alias      = ["diagnostic-output-channel"]
   predicates = ["applyErr"]
   includes   = ["<iostream>", "options/managed_streams.h"]
 
