@@ -824,8 +824,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::PRODUCT:
   case kind::TRANSPOSE:
   case kind::TCLOSURE:
-    out << smtKindString(k, d_variant) << " ";
-    break;
+  case kind::IDEN:
+  case kind::JOIN_IMAGE: out << smtKindString(k, d_variant) << " "; break;
   case kind::COMPREHENSION: out << smtKindString(k, d_variant) << " "; break;
   case kind::SINGLETON:
   {
@@ -1237,6 +1237,11 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BITVECTOR_ROTATE_RIGHT: return "rotate_right";
   case kind::INT_TO_BITVECTOR: return "int2bv";
 
+  // datatypes theory
+  case kind::APPLY_TESTER: return "is";
+  case kind::APPLY_UPDATER: return "update";
+
+  // set theory
   case kind::UNION: return "union";
   case kind::INTERSECTION: return "intersection";
   case kind::SETMINUS: return "setminus";
@@ -1254,6 +1259,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::PRODUCT: return "product";
   case kind::TRANSPOSE: return "transpose";
   case kind::TCLOSURE: return "tclosure";
+  case kind::IDEN: return "iden";
+  case kind::JOIN_IMAGE: return "join_image";
 
   // bag theory
   case kind::BAG_TYPE: return "Bag";

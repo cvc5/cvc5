@@ -52,7 +52,7 @@ TheorySep::TheorySep(context::Context* c,
       d_lemmas_produced_c(u),
       d_bounds_init(false),
       d_state(c, u, valuation),
-      d_im(*this, d_state, nullptr, "theory::sep::"),
+      d_im(*this, d_state, pnm, "theory::sep::"),
       d_notify(*this),
       d_reduce(u),
       d_spatial_assertions(c)
@@ -1785,11 +1785,12 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, 
       if( conc==d_false ){
         Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << id
                            << std::endl;
-        d_im.conflictExp(id, ant, nullptr);
+        d_im.conflictExp(id, PfRule::THEORY_INFERENCE, ant, {conc});
       }else{
         Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant
                            << " by " << id << std::endl;
-        TrustNode trn = d_im.mkLemmaExp(conc, ant, {});
+        TrustNode trn =
+            d_im.mkLemmaExp(conc, PfRule::THEORY_INFERENCE, ant, {}, {conc});
         d_im.addPendingLemma(
             trn.getNode(), id, LemmaProperty::NONE, trn.getGenerator());
       }
