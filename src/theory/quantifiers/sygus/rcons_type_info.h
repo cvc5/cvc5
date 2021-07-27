@@ -20,11 +20,15 @@
 
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 
+#include "theory/quantifiers/candidate_rewrite_database.h"
+#include "theory/quantifiers/sygus_sampler.h"
+
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
 class RConsObligation;
+class CandidateRewriteDatabase;
 
 /**
  * A utility class for Sygus Reconstruct datatype types (grammar non-terminals).
