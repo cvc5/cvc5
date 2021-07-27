@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*********************                                                        */
 /*! \file proof_letify.cpp
  ** \verbatim
@@ -11,6 +12,22 @@
  **
  ** \brief Utilities for computing letification of proofs
  **/
+=======
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for computing letification of proofs.
+ */
+>>>>>>> f5d32970e5601ce0b4246cef5bca0636425fdc34
 
 #include "proof/proof_letify.h"
 
