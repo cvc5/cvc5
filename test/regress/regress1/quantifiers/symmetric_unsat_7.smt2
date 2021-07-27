@@ -1,4 +1,8 @@
 ; COMMAND-LINE: --no-check-unsat-cores --no-produce-proofs
+; EXPECT: unsat
+
+; Note we require disabling proofs/unsat cores due to timeouts in nightlies
+
 (set-logic AUFLIRA)
 (set-info :source | Example extracted from Peter Baumgartner's talk at CADE-21: Logical Engineering with Instance-Based Methods.
 
