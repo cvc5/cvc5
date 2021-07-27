@@ -713,7 +713,7 @@ enum class PfRule : uint32_t
   ARRAYS_EXT,
   // ======== EQ_RANGE expansion
   // Children: none
-  // Arguments: (eqrange a b i j)
+  // Arguments: ((eqrange a b i j))
   // ----------------------------------------
   // Conclusion: (=
   //              (eqrange a b i j)
