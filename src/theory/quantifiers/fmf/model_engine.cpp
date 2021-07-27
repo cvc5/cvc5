@@ -302,7 +302,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
           triedLemmas++;
           //add as instantiation
           if (inst->addInstantiation(
-                  f, m.d_vals, InferenceId::QUANTIFIERS_INST_FMF_EXH, true))
+                  f, m.d_vals, InferenceId::QUANTIFIERS_INST_FMF_EXH, Node::null(), true))
           {
             addedLemmas++;
             if (d_qstate.isInConflict())

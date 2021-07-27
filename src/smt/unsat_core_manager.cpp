@@ -80,7 +80,7 @@ void UnsatCoreManager::getRelevantInstantiations(
       const std::vector<Node>& instTerms = cur->getArguments();
       Assert(cs.size() == 1);
       Node q = cs[0]->getResult();
-      insts[q].push_back({instTerms.begin(), instTerms.end()});
+      insts[q].push_back({instTerms.begin(), instTerms.begin() + q[0].getNumChildren()});
     }
     for (const std::shared_ptr<ProofNode>& cp : cs)
     {

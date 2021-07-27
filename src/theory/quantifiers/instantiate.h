@@ -139,6 +139,8 @@ class Instantiate : public QuantifiersUtil
    * @param terms the terms to instantiate with
    * @param id the identifier of the instantiation lemma sent via the inference
    * manager
+   * @param pfArg an additional node to add to the arguments of the INSTANTIATE
+   * step
    * @param mkRep whether to take the representatives of the terms in the
    * range of the substitution m,
    * @param doVts whether we must apply virtual term substitution to the
@@ -159,6 +161,7 @@ class Instantiate : public QuantifiersUtil
   bool addInstantiation(Node q,
                         std::vector<Node>& terms,
                         InferenceId id,
+                        Node pfArg = Node::null(),
                         bool mkRep = false,
                         bool doVts = false);
   /**
@@ -188,6 +191,7 @@ class Instantiate : public QuantifiersUtil
                                std::vector<Node>& terms,
                                std::vector<bool>& failMask,
                                InferenceId id,
+                               Node pfArg = Node::null(),
                                bool mkRep = false,
                                bool doVts = false,
                                bool expFull = true);
@@ -222,6 +226,8 @@ class Instantiate : public QuantifiersUtil
   Node getInstantiation(Node q,
                         std::vector<Node>& vars,
                         std::vector<Node>& terms,
+                        InferenceId id = InferenceId::UNKNOWN,
+                        Node pfArg = Node::null(),
                         bool doVts = false,
                         LazyCDProof* pf = nullptr);
   /** get instantiation

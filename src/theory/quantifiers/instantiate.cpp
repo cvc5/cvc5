@@ -101,6 +101,7 @@ void Instantiate::addRewriter(InstantiationRewriter* ir)
 bool Instantiate::addInstantiation(Node q,
                                    std::vector<Node>& terms,
                                    InferenceId id,
+                                   Node pfArg,
                                    bool mkRep,
                                    bool doVts)
 {
@@ -249,7 +250,7 @@ bool Instantiate::addInstantiation(Node q,
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
   Assert(d_qreg.d_vars[q].size() == terms.size());
   // get the instantiation
-  Node body = getInstantiation(q, d_qreg.d_vars[q], terms, doVts, pfTmp.get());
+  Node body = getInstantiation(q, d_qreg.d_vars[q], terms, id, pfArg, doVts, pfTmp.get());
   Node orig_body = body;
   // now preprocess, storing the trust node for the rewrite
   TrustNode tpBody = QuantifiersRewriter::preprocess(body, true);
@@ -393,11 +394,12 @@ bool Instantiate::addInstantiationExpFail(Node q,
                                           std::vector<Node>& terms,
                                           std::vector<bool>& failMask,
                                           InferenceId id,
+                                          Node pfArg,
                                           bool mkRep,
                                           bool doVts,
                                           bool expFull)
 {
-  if (addInstantiation(q, terms, id, mkRep, doVts))
+  if (addInstantiation(q, terms, id, pfArg, mkRep, doVts))
   {
     return true;
   }
@@ -419,7 +421,9 @@ bool Instantiate::addInstantiationExpFail(Node q,
     subs[vars[i]] = terms[i];
   }
   // get the instantiation body
-  Node ibody = getInstantiation(q, vars, terms, doVts);
+  InferenceId idNone = InferenceId::UNKNOWN;
+  Node nulln;
+  Node ibody = getInstantiation(q, vars, terms, idNone, nulln, doVts);
   ibody = Rewriter::rewrite(ibody);
   for (size_t i = 0; i < tsize; i++)
   {
@@ -448,7 +452,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
     // check whether the instantiation rewrites to the same thing
     if (!success)
     {
-      Node ibodyc = getInstantiation(q, vars, terms, doVts);
+      Node ibodyc = getInstantiation(q, vars, terms, idNone, nulln, doVts);
       ibodyc = Rewriter::rewrite(ibodyc);
       success = (ibodyc == ibody);
       Trace("inst-exp-fail") << "  rewrite invariant: " << success << std::endl;
@@ -519,6 +523,8 @@ bool Instantiate::existsInstantiation(Node q,
 Node Instantiate::getInstantiation(Node q,
                                    std::vector<Node>& vars,
                                    std::vector<Node>& terms,
+                        InferenceId id,
+                        Node pfArg,
                                    bool doVts,
                                    LazyCDProof* pf)
 {
@@ -532,7 +538,17 @@ Node Instantiate::getInstantiation(Node q,
   // store the proof of the instantiated body, with (open) assumption q
   if (pf != nullptr)
   {
-    pf->addStep(body, PfRule::INSTANTIATE, {q}, terms);
+    // additional arguments
+    std::vector<Node> pfTerms = terms;
+    if (id != InferenceId::UNKNOWN)
+    {
+      pfTerms.push_back(mkInferenceIdNode(id));
+      if (!pfArg.isNull())
+      {
+        pfTerms.push_back(pfArg);
+      }
+    }
+    pf->addStep(body, PfRule::INSTANTIATE, {q}, pfTerms);
   }
 
   // run rewriters to rewrite the instantiation in sequence.
@@ -562,7 +578,7 @@ Node Instantiate::getInstantiation(Node q,
 Node Instantiate::getInstantiation(Node q, std::vector<Node>& terms, bool doVts)
 {
   Assert(d_qreg.d_vars.find(q) != d_qreg.d_vars.end());
-  return getInstantiation(q, d_qreg.d_vars[q], terms, doVts);
+  return getInstantiation(q, d_qreg.d_vars[q], terms, InferenceId::UNKNOWN, Node::null(), doVts);
 }
 
 bool Instantiate::recordInstantiationInternal(Node q,
