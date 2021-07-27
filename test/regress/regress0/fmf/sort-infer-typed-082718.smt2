@@ -3,3 +3,4 @@
 (set-logic ALL)
 (assert (not (exists ((X Int)) (not (= X 12)) )))
 (check-sat)
+

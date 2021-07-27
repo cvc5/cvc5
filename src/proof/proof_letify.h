@@ -49,7 +49,6 @@ class ProofLetifyTraverseCallback
 class ProofLetify
 {
  public:
-  //------------------- letification of proofs
   /**
    * Stores proofs in map that require letification, mapping them to a unique
    * identifier. For each proof node in the domain of pletMap in the list
