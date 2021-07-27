@@ -214,23 +214,29 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   Assert(!target.isNull() && target.getKind() == EQUAL);
   std::vector<Node> vcs;
   std::vector<Node> iconds;
+  Node transEq;
   ProvenInfo pic;
   if (id==DslPfRule::CONG)
   {
+    pic.d_id = id;
     size_t nchild = target[0].getNumChildren();
     if (nchild==0 || 
         nchild!=target[1].getNumChildren() ||
         target[0].getOperator()!=target[1].getOperator())
     {
+      // cannot show congruence between different operators
       return false;
     }
     for (size_t i=0; i<nchild; i++)
     {
       if (!target[0][i].getType().isComparableTo(target[1][i].getType()))
       {
+        // type error on children (required for certain polymorphic operators)
         return false;
       }
-      vcs.push_back(target[0][i].eqNode(target[1][i]));
+      Node eq = target[0][i].eqNode(target[1][i]);
+      vcs.push_back(eq);
+      pic.d_vars.push_back(eq);
     }
     return false;
   }
@@ -256,6 +262,10 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
         Trace("rpc-debug2") << "...fail (no inflection)" << std::endl;
         return false;
       }
+#if 0
+      transEq = stgt.eqNode(target[1]);
+      vcs.push_back(transEq);
+#else
       // if not a perfect match, infer the (conditional) rule that would have
       // matched
       Node irhs = inflectMatch(conc[1], target[1], vars, subs, isubs);
@@ -298,6 +308,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
       Trace("rpc-debug2") << "=> (" << irhs << " == " << conc[0] << ")"
                           << std::endl;
       Trace("rpc-debug2") << "Inflection conditions: " << iconds << std::endl;
+#endif
     }
     // do its conditions hold?
     // Get the conditions, substituted { vars -> subs } and with side conditions
@@ -363,6 +374,16 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   }
   // cache the success
   ProvenInfo& pi = d_pcache[target];
+  if (!transEq.isNull())
+  {
+    Node transEqStart = target[0].eqNode(transEq[0]);
+    // proves both
+    pi.d_id = DslPfRule::TRANS;
+    pi.d_vars.push_back(transEqStart);
+    pi.d_vars.push_back(transEq);
+    // we also prove the original
+    pi = d_pcache[transEq];
+  }
   pi.d_id = pic.d_id;
   if (pic.isInternalRule())
   {
