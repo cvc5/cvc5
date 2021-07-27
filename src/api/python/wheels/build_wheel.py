@@ -32,7 +32,7 @@ from setuptools.command.build_ext import build_ext
 from skbuild.cmaker import CMaker
 from distutils.version import LooseVersion
 
-WORKING_DIR="build-python-wheel"
+WORKING_DIR="build"
 
 def get_project_src_path():
     # expecting this script to be in src/api/python/wheels
