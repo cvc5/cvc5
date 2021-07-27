@@ -159,6 +159,8 @@ libcvc5_add_sources(
   proof/lazy_proof_chain.h
   proof/lazy_tree_proof_generator.cpp
   proof/lazy_tree_proof_generator.h
+  proof/lfsc/lfsc_util.cpp
+  proof/lfsc/lfsc_util.h
   proof/method_id.cpp
   proof/method_id.h
   proof/proof.cpp
