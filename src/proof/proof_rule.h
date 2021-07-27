@@ -830,9 +830,13 @@ enum class PfRule : uint32_t
   // Arguments: (t1 ... tn, (id (t)?)? )
   // ----------------------------------------
   // Conclusion: F*sigma
-  // where sigma maps x1 ... xn to t1 ... tn. The optional argument id indicates
-  // the inference id that caused the instantiation. The term t indicates an
-  // additional term (e.g. the trigger) associated with the instantiation.
+  // where sigma maps x1 ... xn to t1 ... tn.
+  //
+  // The optional argument id indicates the inference id that caused the
+  // instantiation. The term t indicates an additional term (e.g. the trigger)
+  // associated with the instantiation, which depends on the id. If the id
+  // has prefix "QUANTIFIERS_INST_E_MATCHING", then t is the trigger that
+  // generated the instantiation.
   INSTANTIATE,
   // ======== (Trusted) quantifiers preprocess
   // Children: ?
