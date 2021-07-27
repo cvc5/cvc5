@@ -102,15 +102,16 @@ Node QuantifiersProofRuleChecker::checkInternal(
   else if (id == PfRule::INSTANTIATE)
   {
     Assert(children.size() == 1);
+    // note we may have more arguments than just the term vector
     if (children[0].getKind() != FORALL
-        || args.size() != children[0][0].getNumChildren())
+        || args.size() < children[0][0].getNumChildren())
     {
       return Node::null();
     }
     Node body = children[0][1];
     std::vector<Node> vars;
     std::vector<Node> subs;
-    for (unsigned i = 0, nargs = args.size(); i < nargs; i++)
+    for (size_t i = 0, nc = children[0][0].getNumChildren(); i < nc; i++)
     {
       vars.push_back(children[0][0][i]);
       subs.push_back(args[i]);

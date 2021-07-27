@@ -456,7 +456,6 @@ class TermDbSygus {
 
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);
-  unsigned getSygusTermSize( Node n );
   /** involves div-by-zero */
   bool involvesDivByZero( Node n );
   /** get anchor */
