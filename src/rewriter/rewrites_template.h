@@ -21,12 +21,9 @@
 #include "expr/node.h"
 
 namespace cvc5 {
-
-namespace theory {
-class RewriteDb;
-}
-
 namespace rewriter {
+  
+class RewriteDb;
 
 enum class DslPfRule : uint32_t
 {
@@ -41,10 +38,10 @@ enum class DslPfRule : uint32_t
   // clang-format on
 };
 
-void addRules(theory::RewriteDb& db);
+void addRules(RewriteDb& db);
 
 /** Is internal rule? */
-bool isInternalRule(DslPfRule drule);
+bool isInternalDslPfRule(DslPfRule drule);
 
 /**
  * Converts a DSL proof rule to a string.

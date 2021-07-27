@@ -25,7 +25,7 @@
 #include "proof/proof_node_updater.h"
 #include "rewriter/rewrites.h"
 #include "smt/witness_form.h"
-#include "theory/rewrite_db_proof_cons.h"
+#include "rewriter/rewrite_db_proof_cons.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
@@ -44,7 +44,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   ProofPostprocessCallback(ProofNodeManager* pnm,
                            SmtEngine* smte,
                            ProofGenerator* pppg,
-                           theory::RewriteDb* rdb,
+                           rewriter::RewriteDb* rdb,
                            bool updateScopedAssumptions);
   ~ProofPostprocessCallback() {}
   /**
@@ -81,7 +81,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
   /** The rewrite database proof generator */
-  theory::RewriteDbProofCons d_rdbPc;
+  rewriter::RewriteDbProofCons d_rdbPc;
   /** The witness form proof generator */
   WitnessFormGenerator d_wfpm;
   /** The witness form assumptions used in the proof */
@@ -298,7 +298,7 @@ class ProofPostproccess
   ProofPostproccess(ProofNodeManager* pnm,
                     SmtEngine* smte,
                     ProofGenerator* pppg,
-                    theory::RewriteDb* rdb,
+                    rewriter::RewriteDb* rdb,
                     bool updateScopedAssumptions = true);
   ~ProofPostproccess();
   /** post-process */

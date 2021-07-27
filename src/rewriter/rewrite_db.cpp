@@ -13,17 +13,16 @@
  * Rewrite database
  */
 
-#include "theory/rewrite_db.h"
+#include "rewriter/rewrite_db.h"
 
 #include "expr/node_algorithm.h"
 #include "rewriter/rewrites.h"
-#include "theory/rewrite_db_term_process.h"
+#include "rewriter/rewrite_db_term_process.h"
 
 using namespace cvc5::kind;
-using namespace cvc5::rewriter;
 
 namespace cvc5 {
-namespace theory {
+namespace rewriter {
 
 uint32_t IsListTypeClassCallback::getTypeClass(TNode v)
 {

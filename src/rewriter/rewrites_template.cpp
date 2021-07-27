@@ -16,11 +16,10 @@
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "rewriter/rewrites.h"
-#include "theory/rewrite_db.h"
+#include "rewriter/rewrite_db.h"
 #include "util/string.h"
 
 using namespace cvc5::kind;
-using namespace cvc5::theory;
 
 namespace cvc5 {
 namespace rewriter {
@@ -40,7 +39,7 @@ ${defns}$
 ${rules}$
   // clang-format on
 }
-bool isInternalRule(DslPfRule drule)
+bool isInternalDslPfRule(DslPfRule drule)
 {
   return drule==DslPfRule::FAIL || drule == DslPfRule::REFL || drule==DslPfRule::EVAL || drule == DslPfRule::TRANS || drule == DslPfRule::CONG;
 }

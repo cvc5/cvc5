@@ -24,7 +24,7 @@
 #include "printer/let_binding.h"
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/proof_node.h"
-#include "theory/rewrite_proof_rule.h"
+#include "rewriter/rewrite_proof_rule.h"
 
 namespace cvc5 {
 namespace proof {

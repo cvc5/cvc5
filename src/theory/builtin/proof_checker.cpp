@@ -18,9 +18,9 @@
 #include "expr/skolem_manager.h"
 #include "smt/term_formula_removal.h"
 #include "theory/evaluator.h"
-#include "theory/rewrite_db.h"
-#include "theory/rewrite_db_term_process.h"
-#include "theory/rewrite_proof_rule.h"
+#include "rewriter/rewrite_db.h"
+#include "rewriter/rewrite_db_term_process.h"
+#include "rewriter/rewrite_proof_rule.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory.h"
@@ -430,7 +430,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::ENCODE_PRED_TRANSFORM)
   {
     Assert(args.size() == 1);
-    RewriteDbNodeConverter rconv;
+    rewriter::RewriteDbNodeConverter rconv;
     Node f = children[0];
     Node g = args[0];
     // equivalent up to conversion via utility
@@ -450,7 +450,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    const RewriteProofRule& rpr = d_rdb->getRule(di);
+    const rewriter::RewriteProofRule& rpr = d_rdb->getRule(di);
     const std::vector<Node>& varList = rpr.getVarList();
     const std::vector<Node>& conds = rpr.getConditions();
     std::vector<Node> subs(args.begin() + 1, args.end());

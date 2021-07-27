@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__REWRITE_DB_TERM_PROCESS__H
-#define CVC4__THEORY__REWRITE_DB_TERM_PROCESS__H
+#ifndef CVC4__REWRITER__REWRITE_DB_TERM_PROCESS__H
+#define CVC4__REWRITER__REWRITE_DB_TERM_PROCESS__H
 
 #include <map>
 #include <unordered_map>
@@ -24,7 +24,7 @@
 #include "expr/node_converter.h"
 
 namespace cvc5 {
-namespace theory {
+namespace rewriter {
 
 /**
  * The AST structure of terms in the proof checker and in CVC4 is different.
@@ -48,7 +48,7 @@ class RewriteDbNodeConverter : public NodeConverter
   Node postConvert(Node n) override;
 };
 
-}  // namespace theory
+}  // namespace rewriter
 }  // namespace cvc5
 
 #endif /* CVC4__THEORY__REWRITE_DB_TERM_PROCESS__H */

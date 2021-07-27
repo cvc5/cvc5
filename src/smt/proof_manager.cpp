@@ -31,13 +31,13 @@
 #include "smt/assertions.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
-#include "theory/rewrite_db.h"
+#include "rewriter/rewrite_db.h"
 
 namespace cvc5 {
 namespace smt {
 
 PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
-    : d_rewriteDb(new theory::RewriteDb),
+    : d_rewriteDb(new rewriter::RewriteDb),
       d_pchecker(new ProofChecker(options::proofPedantic(), d_rewriteDb.get())),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
@@ -214,7 +214,7 @@ ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
 
 ProofNodeManager* PfManager::getProofNodeManager() const { return d_pnm.get(); }
 
-theory::RewriteDb* PfManager::getRewriteDatabase() const
+rewriter::RewriteDb* PfManager::getRewriteDatabase() const
 {
   return d_rewriteDb.get();
 }

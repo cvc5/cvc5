@@ -12,7 +12,7 @@
  ** \brief Implementation of rewrite db term processor.
  **/
 
-#include "theory/rewrite_db_term_process.h"
+#include "rewriter/rewrite_db_term_process.h"
 
 #include "expr/attribute.h"
 #include "expr/nary_term_util.h"
@@ -21,7 +21,7 @@
 using namespace cvc5::kind;
 
 namespace cvc5 {
-namespace theory {
+namespace rewriter {
 
 Node RewriteDbNodeConverter::postConvert(Node n)
 {
@@ -94,5 +94,5 @@ Node RewriteDbNodeConverter::postConvert(Node n)
   return n;
 }
 
-}  // namespace theory
+}  // namespace rewriter
 }  // namespace cvc5

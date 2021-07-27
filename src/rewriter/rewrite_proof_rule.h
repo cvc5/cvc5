@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file rewrite_proof_rule.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Rewrite proof rule data structure
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Rewrite proof rule class
+ */
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__REWRITE_PROOF_RULE__H
-#define CVC4__THEORY__REWRITE_PROOF_RULE__H
+#ifndef CVC5__REWRITER__REWRITE_PROOF_RULE__H
+#define CVC5__REWRITER__REWRITE_PROOF_RULE__H
 
 #include <string>
 #include <vector>
@@ -25,10 +26,10 @@
 #include "rewriter/rewrites.h"
 
 namespace cvc5 {
-namespace theory {
+namespace rewriter {
 
 /** Get DslPfRule from node */
-bool getDslPfRule(TNode n, rewriter::DslPfRule& id);
+bool getDslPfRule(TNode n, DslPfRule& id);
 
 /**
  * The definition of a (conditional) rewrite rule.
@@ -51,14 +52,14 @@ class RewriteProofRule
    * (= t s), where t is specified as rewriting to s. This equality is
    * normalized to fvs.
    */
-  void init(rewriter::DslPfRule id,
+  void init(DslPfRule id,
             const std::vector<Node>& userFvs,
             const std::vector<Node>& fvs,
             const std::vector<Node>& cond,
             Node conc,
             bool isFixedPoint);
   /** get id */
-  rewriter::DslPfRule getId() const;
+  DslPfRule getId() const;
   /** get name */
   const char* getName() const;
   /** Get user variable list */
@@ -117,7 +118,7 @@ class RewriteProofRule
                          const std::vector<Node>& ss,
                          std::vector<Node>& vcs) const;
   /** The id of the rule */
-  rewriter::DslPfRule d_id;
+  DslPfRule d_id;
   /** The side conditions of the rule */
   std::vector<Node> d_scs;
   /** The conditions of the rule */
@@ -145,7 +146,7 @@ class RewriteProofRule
   expr::NaryMatchTrie d_mt;
 };
 
-}  // namespace theory
+}  // namespace rewriter
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__REWRITE_PROOF_RULE__H */
+#endif /* CVC4__REWRITER__REWRITE_PROOF_RULE__H */

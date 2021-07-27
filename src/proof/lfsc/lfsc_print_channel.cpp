@@ -17,7 +17,7 @@
 #include <sstream>
 
 #include "proof/lfsc/lfsc_util.h"
-#include "theory/rewrite_proof_rule.h"
+#include "rewriter/rewrite_proof_rule.h"
 
 using namespace cvc5::rewriter;
 
@@ -111,7 +111,7 @@ void LfscPrintChannelOut::printRule(std::ostream& out, const ProofNode* pn)
   {
     const std::vector<Node>& args = pn->getArguments();
     DslPfRule di;
-    if (theory::getDslPfRule(args[0], di))
+    if (rewriter::getDslPfRule(args[0], di))
     {
       printDslProofRuleId(out, di);
     }
@@ -187,7 +187,7 @@ void LfscPrintChannelPre::printOpenRule(const ProofNode* pn)
   {
     Node idn = pn->getArguments()[0];
     DslPfRule di;
-    if (theory::getDslPfRule(idn, di))
+    if (rewriter::getDslPfRule(idn, di))
     {
       d_dprs.insert(di);
     }

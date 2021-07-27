@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__REWRITE_DB_PROOF_CONS__H
-#define CVC4__THEORY__REWRITE_DB_PROOF_CONS__H
+#ifndef CVC5__THEORY__REWRITE_DB_PROOF_CONS__H
+#define CVC5__THEORY__REWRITE_DB_PROOF_CONS__H
 
 #include <map>
 
@@ -25,13 +25,14 @@
 #include "proof/proof.h"
 #include "proof/proof_generator.h"
 #include "theory/evaluator.h"
-#include "theory/rewrite_db.h"
-#include "theory/rewrite_db_term_process.h"
-#include "theory/rewrite_rcons.h"
+#include "rewriter/rewrites.h"
+#include "rewriter/rewrite_db.h"
+#include "rewriter/rewrite_db_term_process.h"
+#include "rewriter/rewrite_rcons.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
-namespace theory {
+namespace rewriter {
 
 class RewriteDbProofCons
 {
@@ -67,9 +68,9 @@ class RewriteDbProofCons
   class ProvenInfo
   {
    public:
-    ProvenInfo() : d_id(rewriter::DslPfRule::FAIL), d_failMaxDepth(0) {}
+    ProvenInfo() : d_id(DslPfRule::FAIL), d_failMaxDepth(0) {}
     /** The identifier of the proof rule */
-    rewriter::DslPfRule d_id;
+    DslPfRule d_id;
     /** The substitution */
     std::vector<Node> d_vars;
     std::vector<Node> d_subs;
@@ -80,12 +81,12 @@ class RewriteDbProofCons
     /** 
      * Is internal rule? these rules store children (if any) in d_vars.
      */
-    bool isInternalRule() const { return rewriter::isInternalRule(d_id); }
+    bool isInternalRule() const { return isInternalDslPfRule(d_id); }
   };
   /** prove internal */
-  rewriter::DslPfRule proveInternal(Node eqi);
+  DslPfRule proveInternal(Node eqi);
   /** prove internal base eqi * { vars -> subs } */
-  bool proveInternalBase(Node eqi, rewriter::DslPfRule& id);
+  bool proveInternalBase(Node eqi, DslPfRule& id);
   /** ensure proof for proven fact exists in cdp */
   bool ensureProofInternal(CDProof* cdp, Node eqi);
   /** ensure proof skeleton */
@@ -101,7 +102,7 @@ class RewriteDbProofCons
                    std::vector<Node>& vars,
                    std::vector<Node>& subs);
   /** prove with rule */
-  bool proveWithRule(rewriter::DslPfRule id,
+  bool proveWithRule(DslPfRule id,
                      Node target,
                      const std::vector<Node>& vars,
                      const std::vector<Node>& subs,
@@ -140,7 +141,7 @@ class RewriteDbProofCons
   /** Pointer to proof node manager */
   ProofNodeManager* d_pnm;
   /** the evaluator utility */
-  Evaluator d_eval;
+  theory::Evaluator d_eval;
   /** cache for exists rule */
   std::unordered_map<Node, ProvenInfo> d_pcache;
   /** the evaluation cache */
@@ -155,7 +156,7 @@ class RewriteDbProofCons
   /** current recursion limit */
   uint32_t d_currRecLimit;
   /** current rule we are applying to fixed point */
-  rewriter::DslPfRule d_currFixedPointId;
+  DslPfRule d_currFixedPointId;
   /** current conclusion from fixed point */
   Node d_currFixedPointConc;
   /** Total number of rewrites we were asked to prove */
@@ -164,7 +165,7 @@ class RewriteDbProofCons
   IntStat d_statTotalAttempts;
 };
 
-}  // namespace theory
+}  // namespace rewriter
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__REWRITE_DB_PROOF_CONS__H */
+#endif /* CVC5__THEORY__REWRITE_DB_PROOF_CONS__H */

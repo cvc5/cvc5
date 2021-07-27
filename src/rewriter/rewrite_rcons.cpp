@@ -14,14 +14,14 @@
  * THEORY_REWRITE steps.
  */
 
-#include "theory/rewrite_rcons.h"
+#include "rewriter/rewrite_rcons.h"
 
 #include "proof/proof_checker.h"
 
 using namespace cvc5::kind;
 
 namespace cvc5 {
-namespace theory {
+namespace rewriter {
 
 TheoryRewriteRCons::TheoryRewriteRCons(ProofNodeManager* pnm) : d_pnm(pnm) {}
 
@@ -65,5 +65,5 @@ bool TheoryRewriteRCons::tryRule(CDProof* cdp,
   return false;
 }
 
-}  // namespace theory
+}  // namespace rewriter
 }  // namespace cvc5

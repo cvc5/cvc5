@@ -16,8 +16,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__REWRITE_RCONS_H
-#define CVC4__THEORY__REWRITE_RCONS_H
+#ifndef CVC5__REWRITER__REWRITE_RCONS_H
+#define CVC5__REWRITER__REWRITE_RCONS_H
 
 #include <unordered_set>
 
@@ -27,7 +27,7 @@
 #include "theory/builtin/proof_checker.h"
 
 namespace cvc5 {
-namespace theory {
+namespace rewriter {
 
 /**
  */
@@ -48,7 +48,7 @@ class TheoryRewriteRCons
   ProofNodeManager* d_pnm;
 };
 
-}  // namespace theory
+}  // namespace rewriter
 }  // namespace cvc5
 
 #endif

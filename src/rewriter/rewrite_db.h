@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__REWRITE_DB__H
-#define CVC4__THEORY__REWRITE_DB__H
+#ifndef CVC5__REWRITER__REWRITE_DB__H
+#define CVC5__REWRITER__REWRITE_DB__H
 
 #include <map>
 #include <vector>
@@ -26,10 +26,10 @@
 #include "expr/node.h"
 #include "expr/term_canonize.h"
 #include "rewriter/rewrites.h"
-#include "theory/rewrite_proof_rule.h"
+#include "rewriter/rewrite_proof_rule.h"
 
 namespace cvc5 {
-namespace theory {
+namespace rewriter {
 
 /** Type class callback */
 class IsListTypeClassCallback : public expr::TypeClassCallback
@@ -51,7 +51,7 @@ class RewriteDb
   RewriteDb();
   ~RewriteDb() {}
   /** Add rule, return its identifier */
-  void addRule(rewriter::DslPfRule id,
+  void addRule(DslPfRule id,
                const std::vector<Node> fvs,
                Node a,
                Node b,
@@ -60,12 +60,12 @@ class RewriteDb
   /** get matches */
   void getMatches(Node eq, expr::NotifyMatch* ntm);
   /** get rule for id */
-  const RewriteProofRule& getRule(rewriter::DslPfRule id) const;
+  const RewriteProofRule& getRule(DslPfRule id) const;
   /** get ids for conclusion */
-  const std::vector<rewriter::DslPfRule>& getRuleIdsForConclusion(
+  const std::vector<DslPfRule>& getRuleIdsForConclusion(
       Node eq) const;
   /** get ids for head */
-  const std::vector<rewriter::DslPfRule>& getRuleIdsForHead(Node h) const;
+  const std::vector<DslPfRule>& getRuleIdsForHead(Node h) const;
 
  private:
   /** common constants */
@@ -78,16 +78,16 @@ class RewriteDb
   /** The match trie */
   expr::NaryMatchTrie d_mt;
   /** map ids to rewrite db rule information */
-  std::map<rewriter::DslPfRule, RewriteProofRule> d_rewDbRule;
+  std::map<DslPfRule, RewriteProofRule> d_rewDbRule;
   /** map conclusions to proof ids */
-  std::map<Node, std::vector<rewriter::DslPfRule> > d_concToRules;
+  std::map<Node, std::vector<DslPfRule> > d_concToRules;
   /** map head to proof ids */
-  std::map<Node, std::vector<rewriter::DslPfRule> > d_headToRules;
+  std::map<Node, std::vector<DslPfRule> > d_headToRules;
   /** dummy empty vector */
-  std::vector<rewriter::DslPfRule> d_emptyVec;
+  std::vector<DslPfRule> d_emptyVec;
 };
 
-}  // namespace theory
+}  // namespace rewriter
 }  // namespace cvc5
 
 #endif /* CVC4__THEORY__REWRITE_DB__H */

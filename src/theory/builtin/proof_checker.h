@@ -122,7 +122,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   /** extended rewriter object */
   quantifiers::ExtendedRewriter d_ext_rewriter;
   /** Pointer to the rewrite database */
-  RewriteDb* d_rdb;
+  rewriter::RewriteDb* d_rdb;
 };
 
 }  // namespace builtin

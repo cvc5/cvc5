@@ -13,21 +13,20 @@
  * Rewrite database proof reconstructor
  */
 
-#include "theory/rewrite_db_proof_cons.h"
+#include "rewriter/rewrite_db_proof_cons.h"
 
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
-#include "theory/rewrite_db_term_process.h"
+#include "rewriter/rewrite_db_term_process.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::rewriter;
 using namespace cvc5::kind;
 
 namespace cvc5 {
-namespace theory {
+namespace rewriter {
 
 struct InflectionVarAttributeId
 {
@@ -394,7 +393,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
       // rewriting is more expensive than evaluation, so we do it as a second
       // resort.
       Node lhs = i == 1 ? ev[0] : eqi[0];
-      Node eqr = Rewriter::rewrite(lhs.eqNode(eqi[1]));
+      Node eqr = theory::Rewriter::rewrite(lhs.eqNode(eqi[1]));
       if (eqr.isConst())
       {
         // definitely not true

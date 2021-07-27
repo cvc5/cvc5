@@ -37,8 +37,7 @@ namespace smt {
 ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
                                                    SmtEngine* smte,
                                                    ProofGenerator* pppg,
-
-                                                   theory::RewriteDb* rdb,
+                                                   rewriter::RewriteDb* rdb,
                                                    bool updateScopedAssumptions)
     : d_pnm(pnm),
       d_smte(smte),
@@ -1250,7 +1249,7 @@ bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   {
     const std::vector<Node>& args = pn->getArguments();
     rewriter::DslPfRule di;
-    if (theory::getDslPfRule(args[0], di))
+    if (rewriter::getDslPfRule(args[0], di))
     {
       d_dslRuleCount << di;
     }
@@ -1286,7 +1285,7 @@ bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
 ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
                                      SmtEngine* smte,
                                      ProofGenerator* pppg,
-                                     theory::RewriteDb* rdb,
+                                     rewriter::RewriteDb* rdb,
                                      bool updateScopedAssumptions)
     : d_pnm(pnm),
       d_cb(pnm, smte, pppg, rdb, updateScopedAssumptions),

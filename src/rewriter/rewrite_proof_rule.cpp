@@ -1,32 +1,32 @@
-/*********************                                                        */
-/*! \file rewrite_proof_rule.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of rewrite proof rule
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Rewrite proof rule class
+ */
 
-#include "theory/rewrite_proof_rule.h"
+#include "rewriter/rewrite_proof_rule.h"
 
 #include <sstream>
 
 #include "expr/nary_term_util.h"
 #include "expr/node_algorithm.h"
 #include "proof/proof_checker.h"
-#include "theory/rewrite_db_sc.h"
-#include "theory/rewrite_db_term_process.h"
+#include "rewriter/rewrite_db_sc.h"
+#include "rewriter/rewrite_db_term_process.h"
 
 using namespace cvc5::kind;
-using namespace cvc5::rewriter;
 
 namespace cvc5 {
-namespace theory {
+namespace rewriter {
 
 bool getDslPfRule(TNode n, DslPfRule& id)
 {
@@ -266,5 +266,5 @@ Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss) const
 }
 bool RewriteProofRule::isFixedPoint() const { return d_isFixedPoint; }
 
-}  // namespace theory
+}  // namespace rewriter
 }  // namespace cvc5

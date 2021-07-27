@@ -30,7 +30,7 @@ using namespace cvc5::rewriter;
 namespace cvc5 {
 namespace proof {
 
-LfscPrinter::LfscPrinter(LfscNodeConverter& ltp, theory::RewriteDb* rdb)
+LfscPrinter::LfscPrinter(LfscNodeConverter& ltp, rewriter::RewriteDb* rdb)
     : d_tproc(ltp), d_assumpCounter(0), d_rdb(rdb)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -657,12 +657,12 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::DSL_REWRITE:
     {
       DslPfRule di = DslPfRule::FAIL;
-      if (!theory::getDslPfRule(args[0], di))
+      if (!rewriter::getDslPfRule(args[0], di))
       {
         Assert(false);
       }
       Trace("lfsc-print-debug2") << "Printing dsl rule " << di << std::endl;
-      const theory::RewriteProofRule& rpr = d_rdb->getRule(di);
+      const rewriter::RewriteProofRule& rpr = d_rdb->getRule(di);
       const std::vector<Node>& varList = rpr.getVarList();
       Assert(as.size() == varList.size() + 1);
       // print holes/terms based on whether variables are explicit
@@ -852,7 +852,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
                                DslPfRule id,
                                std::vector<Node>& format)
 {
-  const theory::RewriteProofRule& rpr = d_rdb->getRule(id);
+  const rewriter::RewriteProofRule& rpr = d_rdb->getRule(id);
   const std::vector<Node>& varList = rpr.getVarList();
   const std::vector<Node>& uvarList = rpr.getUserVarList();
   const std::vector<Node>& conds = rpr.getConditions();
