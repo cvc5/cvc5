@@ -159,6 +159,8 @@ libcvc5_add_sources(
   proof/lazy_proof_chain.h
   proof/lazy_tree_proof_generator.cpp
   proof/lazy_tree_proof_generator.h
+  proof/lfsc/lfsc_util.cpp
+  proof/lfsc/lfsc_util.h
   proof/method_id.cpp
   proof/method_id.h
   proof/proof.cpp
@@ -169,6 +171,8 @@ libcvc5_add_sources(
   proof/proof_ensure_closed.h
   proof/proof_generator.cpp
   proof/proof_generator.h
+  proof/proof_letify.cpp
+  proof/proof_letify.h
   proof/proof_node.cpp
   proof/proof_node.h
   proof/proof_node_algorithm.cpp
@@ -857,6 +861,7 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/cegis_core_connective.h
   theory/quantifiers/sygus/cegis_unif.cpp
   theory/quantifiers/sygus/cegis_unif.h
+  theory/quantifiers/sygus/enum_val_generator.h
   theory/quantifiers/sygus/example_eval_cache.cpp
   theory/quantifiers/sygus/example_eval_cache.h
   theory/quantifiers/sygus/example_infer.cpp

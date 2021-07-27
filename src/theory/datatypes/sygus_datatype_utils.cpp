@@ -718,6 +718,24 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   return sdtS;
 }
 
+unsigned getSygusTermSize(Node n)
+{
+  if (n.getKind() != APPLY_CONSTRUCTOR)
+  {
+    return 0;
+  }
+  unsigned sum = 0;
+  for (const Node& nc : n)
+  {
+    sum += getSygusTermSize(nc);
+  }
+  const DType& dt = datatypeOf(n.getOperator());
+  int cindex = indexOf(n.getOperator());
+  Assert(cindex >= 0 && static_cast<size_t>(cindex) < dt.getNumConstructors());
+  unsigned weight = dt[cindex].getWeight();
+  return weight + sum;
+}
+
 }  // namespace utils
 }  // namespace datatypes
 }  // namespace theory

@@ -359,23 +359,6 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
   return ret;
 }
 
-unsigned TermDbSygus::getSygusTermSize( Node n ){
-  if (n.getKind() != APPLY_CONSTRUCTOR)
-  {
-    return 0;
-  }
-  unsigned sum = 0;
-  for (unsigned i = 0; i < n.getNumChildren(); i++)
-  {
-    sum += getSygusTermSize(n[i]);
-  }
-  const DType& dt = datatypes::utils::datatypeOf(n.getOperator());
-  int cindex = datatypes::utils::indexOf(n.getOperator());
-  Assert(cindex >= 0 && cindex < (int)dt.getNumConstructors());
-  unsigned weight = dt[cindex].getWeight();
-  return weight + sum;
-}
-
 bool TermDbSygus::registerSygusType(TypeNode tn)
 {
   std::map<TypeNode, bool>::iterator it = d_registerStatus.find(tn);

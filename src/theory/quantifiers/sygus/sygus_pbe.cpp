@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 
 #include "options/quantifiers_options.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/example_infer.h"
 #include "theory/quantifiers/sygus/sygus_unif_io.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
@@ -180,7 +181,7 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
       Trace("sygus-pbe-enum") << std::endl;
       if (!enum_values[i].isNull())
       {
-        unsigned sz = d_tds->getSygusTermSize(enum_values[i]);
+        unsigned sz = datatypes::utils::getSygusTermSize(enum_values[i]);
         szs.push_back(sz);
         if (i == 0 || sz < min_term_size)
         {

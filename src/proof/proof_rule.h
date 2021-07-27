@@ -1395,6 +1395,14 @@ enum class PfRule : uint32_t
   // that extends the Cell and satisfies all assumptions.
   ARITH_NL_CAD_RECURSIVE,
 
+  //================================================ Place holder for Lfsc rules
+  // ======== Lfsc rule
+  // Children: (P1 ... Pn)
+  // Arguments: (id, Q, A1, ..., Am)
+  // ---------------------
+  // Conclusion: (Q)
+  LFSC_RULE,
+
   //================================================= Unknown rule
   UNKNOWN,
 };
