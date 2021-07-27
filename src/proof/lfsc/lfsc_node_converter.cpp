@@ -21,6 +21,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"
+#include "expr/nary_term_util.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
