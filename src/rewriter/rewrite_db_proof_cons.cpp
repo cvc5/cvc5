@@ -98,7 +98,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
       cdp->addStep(eq, PfRule::ENCODE_PRED_TRANSFORM, {eqi}, {eq});
     }
     ensureProofInternal(cdp, eqi);
-    Assert(cdp->hasStep(eqi));
+    AlwaysAssert(cdp->hasStep(eqi));
     Trace("rpc-debug") << "- finish ensure proof" << std::endl;
   }
   Trace("rpc") << "..." << (success ? "success" : "fail") << std::endl;
@@ -218,6 +218,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   ProvenInfo pic;
   if (id==DslPfRule::CONG)
   {
+    Trace("rpc-debug2") << "Check rule " << id << std::endl;
     pic.d_id = id;
     size_t nchild = target[0].getNumChildren();
     if (nchild==0 || 
@@ -238,6 +239,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
       vcs.push_back(eq);
       pic.d_vars.push_back(eq);
     }
+    // FIXME
     return false;
   }
   else
@@ -263,6 +265,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
         return false;
       }
 #if 0
+      // FIXME
       transEq = stgt.eqNode(target[1]);
       vcs.push_back(transEq);
 #else
@@ -382,7 +385,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     pi.d_vars.push_back(transEqStart);
     pi.d_vars.push_back(transEq);
     // we also prove the original
-    pi = d_pcache[transEq];
+    pi = d_pcache[transEqStart];
   }
   pi.d_id = pic.d_id;
   if (pic.isInternalRule())
@@ -513,6 +516,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       {
         Assert(itd != d_pcache.end());
         Assert(itd->second.d_id != DslPfRule::FAIL);
+        Trace("rpc-debug") << "...proved via " << itd->second.d_id << std::endl;
         if (itd->second.d_id == DslPfRule::REFL)
         {
           // trivial proof
