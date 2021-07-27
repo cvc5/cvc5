@@ -30,9 +30,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/sygus/enum_stream_substitution.h"
-#include "theory/quantifiers/sygus/sygus_enumerator.h"
-#include "theory/quantifiers/sygus/sygus_enumerator_basic.h"
+#include "theory/quantifiers/sygus/enum_manager.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
@@ -391,74 +389,72 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       // on the next call
       return !activeIncomplete;
     }
-    // the waiting values are passed to the module below, clear
-    d_ev_active_gen_waiting.clear();
-
+    // determine if we had at least one value for an enumerator
     Assert(terms.size() == enum_values.size());
-    bool emptyModel = true;
+    bool modelSuccess = false;
     for (unsigned i = 0, size = terms.size(); i < size; i++)
     {
       if (!enum_values[i].isNull())
       {
-        emptyModel = false;
+        modelSuccess = true;
       }
     }
-    if (emptyModel)
+    if (modelSuccess)
+    {
+      // Must separately compute whether trace is on due to compilation of
+      // Trace.isOn.
+      bool traceIsOn = Trace.isOn("sygus-engine");
+      if (printDebug || traceIsOn)
+      {
+        Trace("sygus-engine") << "  * Value is : ";
+        std::stringstream sygusEnumOut;
+        FirstOrderModel* m = d_treg.getModel();
+        for (unsigned i = 0, size = terms.size(); i < size; i++)
+        {
+          Node nv = enum_values[i];
+          Node onv = nv.isNull() ? m->getValue(terms[i]) : nv;
+          TypeNode tn = onv.getType();
+          std::stringstream ss;
+          TermDbSygus::toStreamSygus(ss, onv);
+          if (printDebug)
+          {
+            sygusEnumOut << " " << ss.str();
+          }
+          Trace("sygus-engine") << terms[i] << " -> ";
+          if (nv.isNull())
+          {
+            Trace("sygus-engine") << "[EXC: " << ss.str() << "] ";
+          }
+          else
+          {
+            Trace("sygus-engine") << ss.str() << " ";
+            if (Trace.isOn("sygus-engine-rr"))
+            {
+              Node bv = d_tds->sygusToBuiltin(nv, tn);
+              bv = Rewriter::rewrite(bv);
+              Trace("sygus-engine-rr") << " -> " << bv << std::endl;
+            }
+          }
+        }
+        Trace("sygus-engine") << std::endl;
+        Output(options::OutputTag::SYGUS)
+            << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
+      }
+      Assert(candidate_values.empty());
+      constructed_cand = d_master->constructCandidates(
+          terms, enum_values, d_candidates, candidate_values, lems);
+    }
+    // notify the enumerator managers of the status of the candidate
+    for (std::pair<const Node, std::unique_ptr<EnumManager>>& ecp :
+         d_enumManager)
+    {
+      ecp.second->notifyCandidate(modelSuccess);
+    }
+    // if we did not generate a candidate, return now
+    if (!modelSuccess)
     {
       Trace("sygus-engine-debug") << "...empty model, fail." << std::endl;
       return !activeIncomplete;
-    }
-    // Must separately compute whether trace is on due to compilation of
-    // Trace.isOn.
-    bool traceIsOn = Trace.isOn("sygus-engine");
-    if (printDebug || traceIsOn)
-    {
-      Trace("sygus-engine") << "  * Value is : ";
-      std::stringstream sygusEnumOut;
-      FirstOrderModel* m = d_treg.getModel();
-      for (unsigned i = 0, size = terms.size(); i < size; i++)
-      {
-        Node nv = enum_values[i];
-        Node onv = nv.isNull() ? m->getValue(terms[i]) : nv;
-        TypeNode tn = onv.getType();
-        std::stringstream ss;
-        TermDbSygus::toStreamSygus(ss, onv);
-        if (printDebug)
-        {
-          sygusEnumOut << " " << ss.str();
-        }
-        Trace("sygus-engine") << terms[i] << " -> ";
-        if (nv.isNull())
-        {
-          Trace("sygus-engine") << "[EXC: " << ss.str() << "] ";
-        }
-        else
-        {
-          Trace("sygus-engine") << ss.str() << " ";
-          if (Trace.isOn("sygus-engine-rr"))
-          {
-            Node bv = d_tds->sygusToBuiltin(nv, tn);
-            bv = Rewriter::rewrite(bv);
-            Trace("sygus-engine-rr") << " -> " << bv << std::endl;
-          }
-        }
-      }
-      Trace("sygus-engine") << std::endl;
-      Output(options::OutputTag::SYGUS)
-          << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
-    }
-    Assert(candidate_values.empty());
-    constructed_cand = d_master->constructCandidates(
-        terms, enum_values, d_candidates, candidate_values, lems);
-    // now clear the evaluation caches
-    for (std::pair<const Node, std::unique_ptr<ExampleEvalCache> >& ecp :
-         d_exampleEvalCache)
-    {
-      ExampleEvalCache* eec = ecp.second.get();
-      if (eec != nullptr)
-      {
-        eec->clearEvaluationAll();
-      }
     }
   }
 
@@ -771,7 +767,8 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
         continue;
       }
     }
-    Node nv = getEnumeratedValue(e, activeIncomplete);
+    EnumManager* eman = getEnumManagerFor(e);
+    Node nv = eman->getEnumeratedValue(activeIncomplete);
     n.push_back(e);
     v.push_back(nv);
     ret = ret && !nv.isNull();
@@ -779,173 +776,34 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
   return ret;
 }
 
-Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
+EnumManager* SynthConjecture::getEnumManagerFor(Node e)
 {
-  bool isEnum = d_tds->isEnumerator(e);
-
-  if (isEnum && !e.getAttribute(SygusSymBreakOkAttribute()))
+  std::map<Node, std::unique_ptr<EnumManager>>::iterator it =
+      d_enumManager.find(e);
+  if (it != d_enumManager.end())
   {
-    // if the current model value of e was not registered by the datatypes
-    // sygus solver, or was excluded by symmetry breaking, then it does not
-    // have a proper model value that we should consider, thus we return null.
-    Trace("sygus-engine-debug")
-        << "Enumerator " << e << " does not have proper model value."
-        << std::endl;
-    return Node::null();
+    return it->second.get();
   }
-
-  if (!isEnum || d_tds->isPassiveEnumerator(e))
+  // otherwise, allocate it
+  Node f = d_tds->getSynthFunForEnumerator(e);
+  bool hasExamples = (d_exampleInfer->hasExamples(f)
+                      && d_exampleInfer->getNumExamples(f) != 0);
+  d_enumManager[e].reset(
+      new EnumManager(e, d_qim, d_treg, d_stats, hasExamples));
+  EnumManager* eman = d_enumManager[e].get();
+  // set up the examples
+  if (hasExamples)
   {
-    return getModelValue(e);
-  }
-
-  // management of actively generated enumerators goes here
-
-  // initialize the enumerated value generator for e
-  std::map<Node, std::unique_ptr<EnumValGenerator> >::iterator iteg =
-      d_evg.find(e);
-  if (iteg == d_evg.end())
-  {
-    if (d_tds->isVariableAgnosticEnumerator(e))
+    ExampleEvalCache* eec = eman->getExampleEvalCache();
+    Assert(eec != nullptr);
+    for (unsigned i = 0, nex = d_exampleInfer->getNumExamples(f); i < nex; i++)
     {
-      d_evg[e].reset(new EnumStreamConcrete(d_tds));
-    }
-    else
-    {
-      // Actively-generated enumerators are currently either variable agnostic
-      // or basic. The auto mode always prefers the optimized enumerator over
-      // the basic one.
-      Assert(d_tds->isBasicEnumerator(e));
-      if (options::sygusActiveGenMode()
-          == options::SygusActiveGenMode::ENUM_BASIC)
-      {
-        d_evg[e].reset(new EnumValGeneratorBasic(d_tds, e.getType()));
-      }
-      else
-      {
-        Assert(options::sygusActiveGenMode()
-                   == options::SygusActiveGenMode::ENUM
-               || options::sygusActiveGenMode()
-                      == options::SygusActiveGenMode::AUTO);
-        // if sygus repair const is enabled, we enumerate terms with free
-        // variables as arguments to any-constant constructors
-        d_evg[e].reset(new SygusEnumerator(
-            d_tds, this, &d_stats, false, options::sygusRepairConst()));
-      }
-    }
-    Trace("sygus-active-gen")
-        << "Active-gen: initialize for " << e << std::endl;
-    d_evg[e]->initialize(e);
-    d_ev_curr_active_gen[e] = Node::null();
-    iteg = d_evg.find(e);
-    Trace("sygus-active-gen-debug") << "...finish" << std::endl;
-  }
-  // if we have a waiting value, return it
-  std::map<Node, Node>::iterator itw = d_ev_active_gen_waiting.find(e);
-  if (itw != d_ev_active_gen_waiting.end())
-  {
-    Trace("sygus-active-gen-debug")
-        << "Active-gen: return waiting " << itw->second << std::endl;
-    return itw->second;
-  }
-  // Check if there is an (abstract) value absE we were actively generating
-  // values based on.
-  Node absE = d_ev_curr_active_gen[e];
-  bool firstTime = false;
-  if (absE.isNull())
-  {
-    // None currently exist. The next abstract value is the model value for e.
-    absE = getModelValue(e);
-    if (Trace.isOn("sygus-active-gen"))
-    {
-      Trace("sygus-active-gen") << "Active-gen: new abstract value : ";
-      TermDbSygus::toStreamSygus("sygus-active-gen", e);
-      Trace("sygus-active-gen") << " -> ";
-      TermDbSygus::toStreamSygus("sygus-active-gen", absE);
-      Trace("sygus-active-gen") << std::endl;
-    }
-    d_ev_curr_active_gen[e] = absE;
-    iteg->second->addValue(absE);
-    firstTime = true;
-  }
-  bool inc = true;
-  if (!firstTime)
-  {
-    inc = iteg->second->increment();
-  }
-  Node v;
-  if (inc)
-  {
-    v = iteg->second->getCurrent();
-  }
-  Trace("sygus-active-gen-debug") << "...generated " << v
-                                  << ", with increment success : " << inc
-                                  << std::endl;
-  if (!inc)
-  {
-    // No more concrete values generated from absE.
-    NodeManager* nm = NodeManager::currentNM();
-    d_ev_curr_active_gen[e] = Node::null();
-    std::vector<Node> exp;
-    // If we are a basic enumerator, a single abstract value maps to *all*
-    // concrete values of its type, thus we don't depend on the current
-    // solution.
-    if (!d_tds->isBasicEnumerator(e))
-    {
-      // We must block e = absE
-      d_tds->getExplain()->getExplanationForEquality(e, absE, exp);
-      for (unsigned i = 0, size = exp.size(); i < size; i++)
-      {
-        exp[i] = exp[i].negate();
-      }
-    }
-    Node g = d_tds->getActiveGuardForEnumerator(e);
-    if (!g.isNull())
-    {
-      if (d_ev_active_gen_first_val.find(e) == d_ev_active_gen_first_val.end())
-      {
-        exp.push_back(g.negate());
-        d_ev_active_gen_first_val[e] = absE;
-      }
-    }
-    else
-    {
-      Assert(false);
-    }
-    Node lem = exp.size() == 1 ? exp[0] : nm->mkNode(OR, exp);
-    Trace("cegqi-lemma") << "Cegqi::Lemma : actively-generated enumerator "
-                            "exclude current solution : "
-                         << lem << std::endl;
-    if (Trace.isOn("sygus-active-gen-debug"))
-    {
-      Trace("sygus-active-gen-debug") << "Active-gen: block ";
-      TermDbSygus::toStreamSygus("sygus-active-gen-debug", absE);
-      Trace("sygus-active-gen-debug") << std::endl;
-    }
-    d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_EXCLUDE_CURRENT);
-  }
-  else
-  {
-    // We are waiting to send e -> v to the module that requested it.
-    if (v.isNull())
-    {
-      activeIncomplete = true;
-    }
-    else
-    {
-      d_ev_active_gen_waiting[e] = v;
-    }
-    if (Trace.isOn("sygus-active-gen"))
-    {
-      Trace("sygus-active-gen") << "Active-gen : " << e << " : ";
-      TermDbSygus::toStreamSygus("sygus-active-gen", absE);
-      Trace("sygus-active-gen") << " -> ";
-      TermDbSygus::toStreamSygus("sygus-active-gen", v);
-      Trace("sygus-active-gen") << std::endl;
+      std::vector<Node> input;
+      d_exampleInfer->getExample(f, i, input);
+      eec->addExample(input);
     }
   }
-
-  return v;
+  return eman;
 }
 
 Node SynthConjecture::getModelValue(Node n)
@@ -1316,21 +1174,8 @@ Node SynthConjecture::getSymmetryBreakingPredicate(
 
 ExampleEvalCache* SynthConjecture::getExampleEvalCache(Node e)
 {
-  std::map<Node, std::unique_ptr<ExampleEvalCache> >::iterator it =
-      d_exampleEvalCache.find(e);
-  if (it != d_exampleEvalCache.end())
-  {
-    return it->second.get();
-  }
-  Node f = d_tds->getSynthFunForEnumerator(e);
-  // if f does not have examples, we don't construct the utility
-  if (!d_exampleInfer->hasExamples(f) || d_exampleInfer->getNumExamples(f) == 0)
-  {
-    d_exampleEvalCache[e].reset(nullptr);
-    return nullptr;
-  }
-  d_exampleEvalCache[e].reset(new ExampleEvalCache(d_tds, this, f, e));
-  return d_exampleEvalCache[e].get();
+  EnumManager* eman = getEnumManagerFor(e);
+  return eman->getExampleEvalCache();
 }
 
 }  // namespace quantifiers
