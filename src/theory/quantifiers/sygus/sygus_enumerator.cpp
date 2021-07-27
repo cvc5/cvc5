@@ -59,7 +59,7 @@ void SygusEnumerator::initialize(Node e)
 
   // if we don't have a term database, we don't register symmetry breaking
   // lemmas
-  if (d_tds == nullptr)
+  if (!d_tds)
   {
     return;
   }

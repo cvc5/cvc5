@@ -60,7 +60,7 @@ class SygusEnumerator : public EnumValGenerator
    * @param tds Pointer to the term database, required if enumShapes or
    * enumAnyConstHoles is true, or if we want to include symmetry breaking from
    * lemmas stored in the sygus term database,
-   * @param p Pointer to the conjecture, required if we wish to
+   * @param p Pointer to the conjecture, required if we wish to do
    * conjecture-specific symmetry breaking
    * @param s Pointer to the statistics
    * @param enumShapes If true, this enumerator will generate terms having any
