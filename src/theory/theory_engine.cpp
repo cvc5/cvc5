@@ -922,7 +922,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
       // assert to the shared solver
       bool polarity = assertion.getKind() != kind::NOT;
       TNode atom = polarity ? assertion : assertion[0];
-      d_sharedSolver->assertShared(atom, polarity, assertion);
+      d_sharedSolver->assertSharedEquality(atom, polarity, assertion);
     }
     return;
   }
