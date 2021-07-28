@@ -43,6 +43,13 @@ class SkolemCache
    */
   static Node getExtIndexSkolem(Node deq);
 
+  /**
+   * Get the bound variable for given EQ_RANGE operator. This bound variable
+   * is unique for `eqr`. Calling this method will always return the same bound
+   * variable over the lifetime of `eqr`.
+   */
+  static Node getEqRangeVar(TNode eqr);
+
  private:
   /**
    * Get the bound variable x of the witness term above for disequality deq

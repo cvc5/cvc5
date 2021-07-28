@@ -39,7 +39,7 @@ struct IntAnd
 inline std::ostream& operator<<(std::ostream& os, const IntAnd& ia);
 inline std::ostream& operator<<(std::ostream& os, const IntAnd& ia)
 {
-  return os << "[" << ia.d_size << "]";
+  return os << "(_ iand " << ia.d_size << ")";
 }
 
 }  // namespace cvc5
