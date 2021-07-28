@@ -75,7 +75,7 @@ Build limitations:
                            the parser (default: off)
 
 CMake Options (Advanced)
-  -D*                      manually add CMake options
+  -DVAR=VALUE              manually add CMake options
 
 EOF
   exit 0
