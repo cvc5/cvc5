@@ -22,6 +22,14 @@
 (define-rule arith-refl-geq ((t Int)) (>= t t) true)
 (define-rule arith-refl-gt ((t Int)) (> t t) false)
 
-(define-rule* plus-flatten ((xs Int :list) (s Int) (ys Int :list) (zs Int :list))
-  (+ xs (+ s ys) zs)
-  (+ xs s ys zs))
+(define-rule* plus-flatten ((xs Int :list) (w Int) (ys Int :list) (zs Int :list))
+  (+ xs (+ w ys) zs)
+  (+ xs w ys zs))
+
+(define-rule* mult-flatten ((xs Int :list) (w Int) (ys Int :list) (zs Int :list))
+  (* xs (* w ys) zs)
+  (* xs w ys zs))
+
+(define-rule* mult-dist ((x Int) (y Int) (z Int) (w Int :list))
+  (* x (+ y z w))
+  (+ (* x y) (* x (+ z w))))

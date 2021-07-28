@@ -37,7 +37,9 @@ RewriteDbProofCons::RewriteDbProofCons(RewriteDb* db, ProofNodeManager* pnm)
       d_statTotalInputs(smtStatisticsRegistry().registerInt(
           "RewriteDbProofCons::totalInputs")),
       d_statTotalAttempts(smtStatisticsRegistry().registerInt(
-          "RewriteDbProofCons::totalAttempts"))
+          "RewriteDbProofCons::totalAttempts")),
+      d_statTotalInputSuccess(smtStatisticsRegistry().registerInt(
+          "RewriteDbProofCons::totalInputSuccess"))
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -51,7 +53,6 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
                                MethodId mid,
                                uint32_t recLimit)
 {
-  ++d_statTotalInputs;
   // clear the proof caches? use attributes instead?
   d_pcache.clear();
   // clear the evaluate cache?
@@ -65,6 +66,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
     Trace("rpc") << "...success (basic)" << std::endl;
     return true;
   }
+  ++d_statTotalInputs;
   Trace("rpc-debug") << "- convert to internal" << std::endl;
   DslPfRule id;
   Node eq = a.eqNode(b);
@@ -84,6 +86,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   // if a proof was provided, fill it in
   if (success && cdp != nullptr)
   {
+    ++d_statTotalInputSuccess;
     Trace("rpc-debug") << "- ensure proof" << std::endl;
     // if it changed encoding, account for this
     if (eq != eqi)
@@ -377,6 +380,15 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
   {
     ProvenInfo& pi = d_pcache[eqi];
     idb = DslPfRule::REFL;
+    pi.d_id = idb;
+    return true;
+  }
+  // variables and constants cannot be rewritten
+  if (eqi[0].isVar() || eqi[0].isConst())
+  {
+    ProvenInfo& pi = d_pcache[eqi];
+    idb = DslPfRule::FAIL;
+    pi.d_failMaxDepth = 0;
     pi.d_id = idb;
     return true;
   }

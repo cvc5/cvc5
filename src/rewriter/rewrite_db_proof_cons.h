@@ -144,6 +144,8 @@ class RewriteDbProofCons
   IntStat d_statTotalInputs;
   /** Total number of rewrites we tried to prove internally */
   IntStat d_statTotalAttempts;
+  /** Total number of rewrites we proved successfully */
+  IntStat d_statTotalInputSuccess;
 };
 
 }  // namespace rewriter
