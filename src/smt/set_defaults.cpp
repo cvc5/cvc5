@@ -411,9 +411,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     opts.bv.bvAssertInput = false;
   }
 
-  // If proofs are required and neither the BV solver has not been set by the
-  // user, or the internal BV solver has not been set by the user to any other
-  // than Minisat, set the BV solver to the internal bitblaster
+  // If proofs are required and the user did not specify a specific BV solver,
+  // we make sure to use the proof producing BITBLAST_INTERNAL solver.
   if (options::produceProofs()
       && options::bvSolver() != options::BVSolver::BITBLAST_INTERNAL
       && !opts.bv.bvSolverWasSetByUser
