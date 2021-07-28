@@ -101,8 +101,8 @@ void Instantiate::addRewriter(InstantiationRewriter* ir)
 bool Instantiate::addInstantiation(Node q,
                                    std::vector<Node>& terms,
                                    InferenceId id,
+                                   Node pfArg,
                                    bool mkRep,
-                                   bool modEq,
                                    bool doVts)
 {
   // For resource-limiting (also does a time check).
@@ -229,7 +229,7 @@ bool Instantiate::addInstantiation(Node q,
   }
 
   // record the instantiation
-  bool recorded = recordInstantiationInternal(q, terms, modEq);
+  bool recorded = recordInstantiationInternal(q, terms);
   if (!recorded)
   {
     Trace("inst-add-debug") << " --> Already exists (no record)." << std::endl;
@@ -250,7 +250,8 @@ bool Instantiate::addInstantiation(Node q,
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
   Assert(d_qreg.d_vars[q].size() == terms.size());
   // get the instantiation
-  Node body = getInstantiation(q, d_qreg.d_vars[q], terms, doVts, pfTmp.get());
+  Node body = getInstantiation(
+      q, d_qreg.d_vars[q], terms, id, pfArg, doVts, pfTmp.get());
   Node orig_body = body;
   // now preprocess, storing the trust node for the rewrite
   TrustNode tpBody = QuantifiersRewriter::preprocess(body, true);
@@ -394,12 +395,12 @@ bool Instantiate::addInstantiationExpFail(Node q,
                                           std::vector<Node>& terms,
                                           std::vector<bool>& failMask,
                                           InferenceId id,
+                                          Node pfArg,
                                           bool mkRep,
-                                          bool modEq,
                                           bool doVts,
                                           bool expFull)
 {
-  if (addInstantiation(q, terms, id, mkRep, modEq, doVts))
+  if (addInstantiation(q, terms, id, pfArg, mkRep, doVts))
   {
     return true;
   }
@@ -421,7 +422,9 @@ bool Instantiate::addInstantiationExpFail(Node q,
     subs[vars[i]] = terms[i];
   }
   // get the instantiation body
-  Node ibody = getInstantiation(q, vars, terms, doVts);
+  InferenceId idNone = InferenceId::UNKNOWN;
+  Node nulln;
+  Node ibody = getInstantiation(q, vars, terms, idNone, nulln, doVts);
   ibody = Rewriter::rewrite(ibody);
   for (size_t i = 0; i < tsize; i++)
   {
@@ -450,7 +453,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
     // check whether the instantiation rewrites to the same thing
     if (!success)
     {
-      Node ibodyc = getInstantiation(q, vars, terms, doVts);
+      Node ibodyc = getInstantiation(q, vars, terms, idNone, nulln, doVts);
       ibodyc = Rewriter::rewrite(ibodyc);
       success = (ibodyc == ibody);
       Trace("inst-exp-fail") << "  rewrite invariant: " << success << std::endl;
@@ -521,6 +524,8 @@ bool Instantiate::existsInstantiation(Node q,
 Node Instantiate::getInstantiation(Node q,
                                    std::vector<Node>& vars,
                                    std::vector<Node>& terms,
+                                   InferenceId id,
+                                   Node pfArg,
                                    bool doVts,
                                    LazyCDProof* pf)
 {
@@ -534,7 +539,19 @@ Node Instantiate::getInstantiation(Node q,
   // store the proof of the instantiated body, with (open) assumption q
   if (pf != nullptr)
   {
-    pf->addStep(body, PfRule::INSTANTIATE, {q}, terms);
+    // additional arguments: if the inference id is not unknown, include it,
+    // followed by the proof argument if non-null. The latter is used e.g.
+    // to track which trigger caused an instantiation.
+    std::vector<Node> pfTerms = terms;
+    if (id != InferenceId::UNKNOWN)
+    {
+      pfTerms.push_back(mkInferenceIdNode(id));
+      if (!pfArg.isNull())
+      {
+        pfTerms.push_back(pfArg);
+      }
+    }
+    pf->addStep(body, PfRule::INSTANTIATE, {q}, pfTerms);
   }
 
   // run rewriters to rewrite the instantiation in sequence.
@@ -564,18 +581,16 @@ Node Instantiate::getInstantiation(Node q,
 Node Instantiate::getInstantiation(Node q, std::vector<Node>& terms, bool doVts)
 {
   Assert(d_qreg.d_vars.find(q) != d_qreg.d_vars.end());
-  return getInstantiation(q, d_qreg.d_vars[q], terms, doVts);
+  return getInstantiation(
+      q, d_qreg.d_vars[q], terms, InferenceId::UNKNOWN, Node::null(), doVts);
 }
 
-bool Instantiate::recordInstantiationInternal(Node q,
-                                              std::vector<Node>& terms,
-                                              bool modEq)
+bool Instantiate::recordInstantiationInternal(Node q, std::vector<Node>& terms)
 {
   if (options::incrementalSolving())
   {
     Trace("inst-add-debug")
-        << "Adding into context-dependent inst trie, modEq = " << modEq
-        << std::endl;
+        << "Adding into context-dependent inst trie" << std::endl;
     CDInstMatchTrie* imt;
     std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
@@ -588,10 +603,10 @@ bool Instantiate::recordInstantiationInternal(Node q,
       d_c_inst_match_trie[q] = imt;
     }
     d_c_inst_match_trie_dom.insert(q);
-    return imt->addInstMatch(d_qstate, q, terms, modEq);
+    return imt->addInstMatch(d_qstate, q, terms);
   }
   Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
-  return d_inst_match_trie[q].addInstMatch(d_qstate, q, terms, modEq);
+  return d_inst_match_trie[q].addInstMatch(d_qstate, q, terms);
 }
 
 bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)

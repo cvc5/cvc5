@@ -16,6 +16,7 @@
 #include "theory/inference_id.h"
 
 #include <iostream>
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace theory {
@@ -393,6 +394,11 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
 {
   out << toString(i);
   return out;
+}
+
+Node mkInferenceIdNode(InferenceId i)
+{
+  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(i)));
 }
 
 }  // namespace theory

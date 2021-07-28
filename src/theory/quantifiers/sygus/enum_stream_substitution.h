@@ -19,11 +19,13 @@
 #define CVC5__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_SUBSTITUTION_H
 
 #include "expr/node.h"
-#include "theory/quantifiers/sygus/synth_conjecture.h"
+#include "theory/quantifiers/sygus/enum_val_generator.h"
 
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
+
+class TermDbSygus;
 
 /** Streamer of different values according to variable permutations
  *
@@ -33,7 +35,7 @@ namespace quantifiers {
 class EnumStreamPermutation
 {
  public:
-  EnumStreamPermutation(quantifiers::TermDbSygus* tds);
+  EnumStreamPermutation(TermDbSygus* tds);
   ~EnumStreamPermutation() {}
   /** resets utility
    *
@@ -70,7 +72,7 @@ class EnumStreamPermutation
 
  private:
   /** sygus term database of current quantifiers engine */
-  quantifiers::TermDbSygus* d_tds;
+  TermDbSygus* d_tds;
   /** maps subclass ids to subset of d_vars with that subclass id */
   std::map<unsigned, std::vector<Node>> d_var_classes;
   /** maps variables to subfield types with constructors for
@@ -165,7 +167,7 @@ class EnumStreamPermutation
 class EnumStreamSubstitution
 {
  public:
-  EnumStreamSubstitution(quantifiers::TermDbSygus* tds);
+  EnumStreamSubstitution(TermDbSygus* tds);
   ~EnumStreamSubstitution() {}
   /** initializes utility
    *
@@ -211,7 +213,7 @@ class EnumStreamSubstitution
 
  private:
   /** sygus term database of current quantifiers engine */
-  quantifiers::TermDbSygus* d_tds;
+  TermDbSygus* d_tds;
   /** type this utility has been initialized for */
   TypeNode d_tn;
   /** current value */
@@ -281,7 +283,7 @@ class EnumStreamSubstitution
 class EnumStreamConcrete : public EnumValGenerator
 {
  public:
-  EnumStreamConcrete(quantifiers::TermDbSygus* tds) : d_ess(tds) {}
+  EnumStreamConcrete(TermDbSygus* tds) : d_ess(tds) {}
   /** initialize this class with enumerator e */
   void initialize(Node e) override;
   /** get that value v was enumerated */
