@@ -59,6 +59,7 @@ Trigger::Trigger(QuantifiersState& qs,
     Node np = ensureGroundTermPreprocessed(val, n, d_groundTerms);
     d_nodes.push_back(np);
   }
+  d_trNode = NodeManager::currentNM()->mkNode(SEXPR, d_nodes);
   if (Trace.isOn("trigger"))
   {
     QuantAttributes& qa = d_qreg.getQuantAttributes();
@@ -163,7 +164,7 @@ uint64_t Trigger::addInstantiations()
 
 bool Trigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
 {
-  return d_qim.getInstantiate()->addInstantiation(d_quant, m, id);
+  return d_qim.getInstantiate()->addInstantiation(d_quant, m, id, d_trNode);
 }
 
 bool Trigger::sendInstantiation(InstMatch& m, InferenceId id)
