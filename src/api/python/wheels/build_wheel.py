@@ -29,9 +29,10 @@ import shutil
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
+from skbuild.cmaker import CMaker
 from distutils.version import LooseVersion
 
-WORKING_DIR="build-python-wheel"
+WORKING_DIR="build"
 
 def get_project_src_path():
     # expecting this script to be in src/api/python/wheels
@@ -111,6 +112,17 @@ class CMakeBuild(build_ext):
                 '--auto-download',
                 '--lib-only',
                 '--name='+WORKING_DIR]
+        # find correct Python include directory and library
+        # works even for nonstandard Python installations
+        # (e.g., on pypa/manylinux)
+        args.append('-DPYTHON_VERSION_STRING:STRING=' + \
+                    sys.version.split(' ')[0])
+        python_version = CMaker.get_python_version()
+        args.append('-DPYTHON_INCLUDE_DIR:PATH=' + \
+                    CMaker.get_python_include_dir(python_version))
+        args.append('-DPYTHON_LIBRARY:FILEPATH=' + \
+                    CMaker.get_python_library(python_version))
+
         config_filename = os.path.join(project_src_path, "configure.sh")
         subprocess.check_call([config_filename] + args)
 

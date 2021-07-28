@@ -334,7 +334,10 @@ class TheoryArrays : public Theory {
       d_arrays.conflict(t1, t2);
     }
 
-    void eqNotifyNewClass(TNode t) override {}
+    void eqNotifyNewClass(TNode t) override
+    {
+      d_arrays.preRegisterTermInternal(t);
+    }
     void eqNotifyMerge(TNode t1, TNode t2) override
     {
       if (t1.getType().isArray()) {

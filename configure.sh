@@ -74,6 +74,9 @@ Build limitations:
   --lib-only               only build the library, but not the executable or
                            the parser (default: off)
 
+CMake Options (Advanced)
+  -DVAR=VALUE              manually add CMake options
+
 EOF
   exit 0
 }
@@ -145,6 +148,8 @@ glpk_dir=default
 lib_only=default
 
 #--------------------------------------------------------------------------#
+
+cmake_opts=""
 
 while [ $# -gt 0 ]
 do
@@ -290,6 +295,7 @@ do
     --dep-path=*) dep_path="${dep_path};${1##*=}" ;;
 
     --lib-only) lib_only=ON ;;
+    -D*) cmake_opts="${cmake_opts} $1" ;;
 
     -*) die "invalid option '$1' (try -h)";;
 
@@ -312,8 +318,6 @@ if [ $werror != default ]; then
   export CFLAGS=-Werror
   export CXXFLAGS=-Werror
 fi
-
-cmake_opts=""
 
 [ $buildtype != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$buildtype"
