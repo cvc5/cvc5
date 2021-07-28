@@ -69,7 +69,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     opts.driver.dumpUnsatCores = true;
   }
   if (options::checkUnsatCores() || options::dumpUnsatCores()
-      || options::unsatAssumptions()
+      || options::unsatAssumptions() || options::minimalUnsatCores()
       || options::unsatCoresMode() != options::UnsatCoresMode::OFF)
   {
     opts.smt.unsatCores = true;
@@ -968,6 +968,18 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Trace("smt") << "setting decision mode to " << opts.decision.decisionMode
                  << std::endl;
   }
+
+  // set up of central equality engine
+  if (opts.arith.arithEqSolver)
+  {
+    if (!opts.arith.arithCongManWasSetByUser)
+    {
+      // if we are using the arithmetic equality solver, do not use the
+      // arithmetic congruence manager by default
+      opts.arith.arithCongMan = false;
+    }
+  }
+
   if (options::incrementalSolving())
   {
     // disable modes not supported by incremental

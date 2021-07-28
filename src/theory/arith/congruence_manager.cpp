@@ -71,24 +71,44 @@ ArithCongruenceManager::~ArithCongruenceManager() {}
 
 bool ArithCongruenceManager::needsEqualityEngine(EeSetupInfo& esi)
 {
+  Assert(!options::arithEqSolver());
   esi.d_notify = &d_notify;
-  esi.d_name = "theory::arith::ArithCongruenceManager";
+  esi.d_name = "arithCong::ee";
   return true;
 }
 
-void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee,
-                                        eq::ProofEqEngine* pfee)
+void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
 {
-  Assert(ee != nullptr);
-  d_ee = ee;
+  if (options::arithEqSolver())
+  {
+    // use our own copy
+    d_allocEe.reset(
+        new eq::EqualityEngine(d_notify, d_satContext, "arithCong::ee", true));
+    d_ee = d_allocEe.get();
+    if (d_pnm != nullptr)
+    {
+      // allocate an internal proof equality engine
+      d_allocPfee.reset(
+          new eq::ProofEqEngine(d_satContext, d_userContext, *d_ee, d_pnm));
+      d_ee->setProofEqualityEngine(d_allocPfee.get());
+    }
+  }
+  else
+  {
+    Assert(ee != nullptr);
+    // otherwise, we use the official one
+    d_ee = ee;
+  }
+  // set the congruence kinds on the separate equality engine
   d_ee->addFunctionKind(kind::NONLINEAR_MULT);
   d_ee->addFunctionKind(kind::EXPONENTIAL);
   d_ee->addFunctionKind(kind::SINE);
   d_ee->addFunctionKind(kind::IAND);
   d_ee->addFunctionKind(kind::POW2);
+  // the proof equality engine is the one from the equality engine
+  d_pfee = d_ee->getProofEqualityEngine();
   // have proof equality engine only if proofs are enabled
-  Assert(isProofEnabled() == (pfee != nullptr));
-  d_pfee = pfee;
+  Assert(isProofEnabled() == (d_pfee != nullptr));
 }
 
 ArithCongruenceManager::Statistics::Statistics()

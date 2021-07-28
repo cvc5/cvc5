@@ -300,7 +300,10 @@ class FpConverter
   /** Adds a node to the conversion, returns the converted node */
   Node convert(TNode);
 
-  /** Gives the node representing the value of a given variable */
+  /**
+   * Gives the node representing the value of a word-blasted variable.
+   * Returns a null node if it has not been word-blasted.
+   */
   Node getValue(Valuation&, TNode);
 
   context::CDList<Node> d_additionalAssertions;
