@@ -227,6 +227,11 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
                                           const std::vector<Node>& syms,
                                           const std::vector<Node>& vars);
 
+/**
+ * Get SyGuS term size, which is based on the weight of constructor applications
+ * in n.
+ */
+unsigned getSygusTermSize(Node n);
 // ------------------------ end sygus utils
 
 }  // namespace utils

@@ -168,13 +168,17 @@ TNode TheoryDatatypes::getEqcConstructor( TNode r ) {
 
 bool TheoryDatatypes::preCheck(Effort level)
 {
+  Trace("datatypes-check") << "TheoryDatatypes::preCheck: " << level
+                           << std::endl;
+  d_im.process();
   d_im.reset();
-  d_im.clearPending();
   return false;
 }
 
 void TheoryDatatypes::postCheck(Effort level)
 {
+  Trace("datatypes-check") << "TheoryDatatypes::postCheck: " << level
+                           << std::endl;
   // Apply any last pending inferences, which may occur if the last processed
   // fact was an internal one and triggered further internal inferences.
   d_im.process();
@@ -182,7 +186,6 @@ void TheoryDatatypes::postCheck(Effort level)
   {
     Assert(d_sygusExtension != nullptr);
     d_sygusExtension->check();
-    return;
   }
   else if (level == EFFORT_FULL && !d_state.isInConflict()
            && !d_im.hasSentLemma() && !d_valuation.needCheck())
@@ -532,18 +535,19 @@ void TheoryDatatypes::eqNotifyNewClass(TNode t){
 void TheoryDatatypes::eqNotifyMerge(TNode t1, TNode t2)
 {
   if( t1.getType().isDatatype() ){
-    Trace("datatypes-debug")
+    Trace("datatypes-merge")
         << "NotifyMerge : " << t1 << " " << t2 << std::endl;
-    merge(t1,t2);
+    merge(t1, t2);
   }
 }
 
 void TheoryDatatypes::merge( Node t1, Node t2 ){
   if (!d_state.isInConflict())
   {
+    Trace("datatypes-merge") << "Merge " << t1 << " " << t2 << std::endl;
+    Assert(areEqual(t1, t2));
     TNode trep1 = t1;
     TNode trep2 = t2;
-    Trace("datatypes-debug") << "Merge " << t1 << " " << t2 << std::endl;
     EqcInfo* eqc2 = getOrMakeEqcInfo( t2 );
     if( eqc2 ){
       bool checkInst = false;
@@ -575,6 +579,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
           }
           else
           {
+            Assert(areEqual(cons1, cons2));
             //do unification
             for( int i=0; i<(int)cons1.getNumChildren(); i++ ) {
               if( !areEqual( cons1[i], cons2[i] ) ){
@@ -1852,38 +1857,16 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
   Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
                   << std::endl;
 
-  //also include non-singleton equivalence classes  TODO : revisit this
+  //also include non-singleton dt equivalence classes  TODO : revisit this
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   while( !eqcs_i.isFinished() ){
     TNode r = (*eqcs_i);
-    bool addedFirst = false;
-    Node first;
-    TypeNode rtn = r.getType();
-    if (!rtn.isBoolean())
+    if (r.getType().isDatatype())
     {
       eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
       while (!eqc_i.isFinished())
       {
-        TNode n = (*eqc_i);
-        if (first.isNull())
-        {
-          first = n;
-          // always include all datatypes
-          if (rtn.isDatatype())
-          {
-            addedFirst = true;
-            termSet.insert(n);
-          }
-        }
-        else
-        {
-          if (!addedFirst)
-          {
-            addedFirst = true;
-            termSet.insert(first);
-          }
-          termSet.insert(n);
-        }
+        termSet.insert(*eqc_i);
         ++eqc_i;
       }
     }
