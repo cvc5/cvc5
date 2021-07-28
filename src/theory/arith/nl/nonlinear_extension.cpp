@@ -325,7 +325,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
   std::vector<Node> xts;
   for (const Node& x : xtsAll)
   {
-    if (true || termSet.find(x) != termSet.end())
+    if (termSet.find(x) != termSet.end())
     {
       xts.push_back(x);
     }
