@@ -155,11 +155,11 @@ void OptionsHandler::checkBvSatSolver(const std::string& option,
     throw OptionException(ss.str());
   }
 
-  if (options::bvSolver() != options::BVSolver::BITBLAST
+  if (d_options->bv.bvSolver != options::BVSolver::BITBLAST
       && (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL
           || m == SatSolverMode::KISSAT))
   {
-    if (options::bitblastMode() == options::BitblastMode::LAZY
+    if (d_options->bv.bitblastMode == options::BitblastMode::LAZY
         && d_options->bv.bitblastModeWasSetByUser)
     {
       throwLazyBBUnsupported(m);
@@ -178,9 +178,9 @@ void OptionsHandler::checkBitblastMode(const std::string& option,
     options::bv::setDefaultBitvectorEqualitySolver(*d_options, true);
     options::bv::setDefaultBitvectorInequalitySolver(*d_options, true);
     options::bv::setDefaultBitvectorAlgebraicSolver(*d_options, true);
-    if (options::bvSatSolver() != options::SatSolverMode::MINISAT)
+    if (d_options->bv.bvSatSolver != options::SatSolverMode::MINISAT)
     {
-      throwLazyBBUnsupported(options::bvSatSolver());
+      throwLazyBBUnsupported(d_options->bv.bvSatSolver);
     }
   }
   else if (m == BitblastMode::EAGER)
@@ -195,7 +195,7 @@ void OptionsHandler::setBitblastAig(const std::string& option,
 {
   if(arg) {
     if (d_options->bv.bitblastModeWasSetByUser) {
-      if (options::bitblastMode() != options::BitblastMode::EAGER)
+      if (d_options->bv.bitblastMode != options::BitblastMode::EAGER)
       {
         throw OptionException("bitblast-aig must be used with eager bitblaster");
       }
@@ -232,14 +232,6 @@ InstFormatMode OptionsHandler::stringToInstFormatMode(const std::string& option,
     throw OptionException(std::string("unknown option for --inst-format: `") +
                           optarg + "'.  Try --inst-format help.");
   }
-}
-
-// decision/options_handlers.h
-void OptionsHandler::setDecisionModeStopOnly(const std::string& option,
-                                             const std::string& flag,
-                                             DecisionMode m)
-{
-  d_options->decision.decisionStopOnly = (m == DecisionMode::RELEVANCY);
 }
 
 void OptionsHandler::setProduceAssertions(const std::string& option,
@@ -510,6 +502,14 @@ void OptionsHandler::enableDebugTag(const std::string& option,
   }
   Debug.on(optarg);
   Trace.on(optarg);
+}
+
+void OptionsHandler::enableOutputTag(const std::string& option,
+                                     const std::string& flag,
+                                     const std::string& optarg)
+{
+  d_options->base.outputTagHolder.set(
+      static_cast<size_t>(stringToOutputTag(optarg)));
 }
 
 OutputLanguage OptionsHandler::stringToOutputLanguage(const std::string& option,

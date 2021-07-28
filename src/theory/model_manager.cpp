@@ -95,10 +95,10 @@ bool ModelManager::buildModel()
   // now, finish building the model
   d_modelBuiltSuccess = finishBuildModel();
 
-  if (Trace.isOn("model-builder"))
+  if (Trace.isOn("model-final"))
   {
-    Trace("model-builder") << "Final model:" << std::endl;
-    Trace("model-builder") << d_model->debugPrintModelEqc() << std::endl;
+    Trace("model-final") << "Final model:" << std::endl;
+    Trace("model-final") << d_model->debugPrintModelEqc() << std::endl;
   }
 
   Trace("model-builder") << "ModelManager: model built success is "

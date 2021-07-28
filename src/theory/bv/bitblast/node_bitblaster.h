@@ -10,12 +10,12 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Bitblaster for simple BV solver.
+ * Bitblaster used to bitblast to Boolean Nodes.
  */
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__BV__BITBLAST_SIMPLE_BITBLASTER_H
-#define CVC5__THEORY__BV__BITBLAST_SIMPLE_BITBLASTER_H
+#ifndef CVC5__THEORY__BV__BITBLAST_NODE_BITBLASTER_H
+#define CVC5__THEORY__BV__BITBLAST_NODE_BITBLASTER_H
 
 #include "theory/bv/bitblast/bitblaster.h"
 
@@ -28,13 +28,13 @@ namespace bv {
  *
  * Implements the bare minimum to bit-blast bit-vector atoms/terms.
  */
-class BBSimple : public TBitblaster<Node>
+class NodeBitblaster : public TBitblaster<Node>
 {
   using Bits = std::vector<Node>;
 
  public:
-  BBSimple(TheoryState* state);
-  ~BBSimple() = default;
+  NodeBitblaster(TheoryState* state);
+  ~NodeBitblaster() = default;
 
   /** Bit-blast term 'node' and return bit-blasted 'bits'. */
   void bbTerm(TNode node, Bits& bits) override;

@@ -48,6 +48,14 @@ name   = "SMT Layer"
   help       = "use static learning (on by default)"
 
 [[option]]
+  name       = "learnedRewrite"
+  category   = "regular"
+  long       = "learned-rewrite"
+  type       = "bool"
+  default    = "false"
+  help       = "rewrite the input based on learned literals"
+
+[[option]]
   name       = "expandDefinitions"
   long       = "expand-definitions"
   category   = "regular"
@@ -185,6 +193,14 @@ name   = "SMT Layer"
 [[option.mode.ASSUMPTIONS]]
   name = "assumptions"
   help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
+
+[[option]]
+  name       = "minimalUnsatCores"
+  category   = "regular"
+  long       = "minimal-unsat-cores"
+  type       = "bool"
+  default    = "false"
+  help       = "if an unsat core is produced, it is reduced to a minimal unsat core"
 
 [[option]]
   name       = "checkUnsatCores"

@@ -16,9 +16,11 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
 #include "base/configuration.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
+#include "options/outputc.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "smt/logic_exception.h"
@@ -57,6 +59,7 @@ SynthConjecture::SynthConjecture(QuantifiersState& qs,
       d_treg(tr),
       d_stats(s),
       d_tds(tr.getTermDatabaseSygus()),
+      d_verify(d_tds),
       d_hasSolution(false),
       d_ceg_si(new CegSingleInv(tr, s)),
       d_templInfer(new SygusTemplateInfer),
@@ -371,7 +374,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     }
   }
 
-  bool printDebug = options::debugSygus();
+  bool printDebug = Output.isOn(options::OutputTag::SYGUS);
   if (!constructed_cand)
   {
     // get the model value of the relevant terms from the master module
@@ -441,12 +444,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         }
       }
       Trace("sygus-engine") << std::endl;
-      if (printDebug)
-      {
-        Options& sopts = smt::currentSmtEngine()->getOptions();
-        std::ostream& out = *sopts.base.out;
-        out << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
-      }
+      Output(options::OutputTag::SYGUS)
+          << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
     }
     Assert(candidate_values.empty());
     constructed_cand = d_master->constructCandidates(
@@ -570,60 +569,31 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     return false;
   }
 
-  // simplify the lemma based on the term database sygus utility
-  query = d_tds->rewriteNode(query);
-  // eagerly unfold applications of evaluation function
-  Trace("cegqi-debug") << "pre-unfold counterexample : " << query << std::endl;
   // Record the solution, which may be falsified below. We require recording
   // here since the result of the satisfiability test may be unknown.
   recordSolution(candidate_values);
 
-  if (!query.isConst() || query.getConst<bool>())
+  Result r = d_verify.verify(query, d_ce_sk_vars, d_ce_sk_var_mvs);
+
+  if (r.asSatisfiabilityResult().isSat() == Result::SAT)
   {
-    Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
-    Result r = checkWithSubsolver(query, d_ce_sk_vars, d_ce_sk_var_mvs);
-    Trace("sygus-engine") << "  ...got " << r << std::endl;
-    if (r.asSatisfiabilityResult().isSat() == Result::SAT)
-    {
-      if (Trace.isOn("sygus-engine"))
-      {
-        Trace("sygus-engine") << "  * Verification lemma failed for:\n   ";
-        for (unsigned i = 0, size = d_ce_sk_vars.size(); i < size; i++)
-        {
-          Trace("sygus-engine")
-              << d_ce_sk_vars[i] << " -> " << d_ce_sk_var_mvs[i] << " ";
-        }
-        Trace("sygus-engine") << std::endl;
-      }
-      if (Configuration::isAssertionBuild())
-      {
-        // the values for the query should be a complete model
-        Node squery = query.substitute(d_ce_sk_vars.begin(),
-                                       d_ce_sk_vars.end(),
-                                       d_ce_sk_var_mvs.begin(),
-                                       d_ce_sk_var_mvs.end());
-        Trace("cegqi-debug") << "...squery : " << squery << std::endl;
-        squery = Rewriter::rewrite(squery);
-        Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
-        Assert(options::sygusRecFun()
-               || (squery.isConst() && squery.getConst<bool>()));
-      }
-      return false;
-    }
-    else if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
-    {
-      // In the rare case that the subcall is unknown, we simply exclude the
-      // solution, without adding a counterexample point. This should only
-      // happen if the quantifier free logic is undecidable.
-      excludeCurrentSolution(terms, candidate_values);
-      // We should set incomplete, since a "sat" answer should not be
-      // interpreted as "infeasible", which would make a difference in the rare
-      // case where e.g. we had a finite grammar and exhausted the grammar.
-      d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY);
-      return false;
-    }
-    // otherwise we are unsat, and we will process the solution below
+    // we have a counterexample
+    return false;
   }
+  else if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+  {
+    // In the rare case that the subcall is unknown, we simply exclude the
+    // solution, without adding a counterexample point. This should only
+    // happen if the quantifier free logic is undecidable.
+    excludeCurrentSolution(terms, candidate_values);
+    // We should set incomplete, since a "sat" answer should not be
+    // interpreted as "infeasible", which would make a difference in the rare
+    // case where e.g. we had a finite grammar and exhausted the grammar.
+    d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY);
+    return false;
+  }
+  // otherwise we are unsat, and we will process the solution below
+
   // now mark that we have a solution
   d_hasSolution = true;
   if (options::sygusStream())
@@ -857,7 +827,10 @@ Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
                    == options::SygusActiveGenMode::ENUM
                || options::sygusActiveGenMode()
                       == options::SygusActiveGenMode::AUTO);
-        d_evg[e].reset(new SygusEnumerator(d_tds, this, d_stats));
+        // if sygus repair const is enabled, we enumerate terms with free
+        // variables as arguments to any-constant constructors
+        d_evg[e].reset(new SygusEnumerator(
+            d_tds, this, &d_stats, false, options::sygusRepairConst()));
       }
     }
     Trace("sygus-active-gen")

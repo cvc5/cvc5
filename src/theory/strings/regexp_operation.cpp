@@ -928,7 +928,8 @@ Node RegExpOpr::reduceRegExpNeg(Node mem)
 
     conc = nm->mkNode(OR, s1r1, s2r2);
     conc = nm->mkNode(IMPLIES, g1, conc);
-    conc = nm->mkNode(FORALL, b1v, conc);
+    // must mark as an internal quantifier
+    conc = utils::mkForallInternal(b1v, conc);
     conc = nm->mkNode(AND, sne, conc);
   }
   else
@@ -999,7 +1000,8 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, size_t index)
   if (!b1v.isNull())
   {
     conc = nm->mkNode(OR, guard.negate(), conc);
-    conc = nm->mkNode(FORALL, b1v, conc);
+    // must mark as an internal quantifier
+    conc = utils::mkForallInternal(b1v, conc);
   }
   return conc;
 }

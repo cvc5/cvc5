@@ -35,6 +35,7 @@
 #include "main/time_limit.h"
 #include "options/base_options.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "options/parser_options.h"
 #include "options/main_options.h"
 #include "options/set_language.h"
@@ -51,8 +52,6 @@ using namespace cvc5::main;
 
 namespace cvc5 {
 namespace main {
-/** Global options variable */
-thread_local Options* pOptions;
 
 /** Full argv[0] */
 const char* progPath;
@@ -79,7 +78,7 @@ TotalTimer::~TotalTimer()
     }  // namespace main
     }  // namespace cvc5
 
-void printUsage(Options& opts, bool full) {
+void printUsage(const Options& opts, bool full) {
   stringstream ss;
   ss << "usage: " << progName << " [options] [input-file]"
      << endl
@@ -89,17 +88,15 @@ void printUsage(Options& opts, bool full) {
      << endl
      << "cvc5 options:" << endl;
   if(full) {
-    Options::printUsage(ss.str(), *opts.base.out);
+    options::printUsage(ss.str(), *opts.base.out);
   } else {
-    Options::printShortUsage(ss.str(), *opts.base.out);
+    options::printShortUsage(ss.str(), *opts.base.out);
   }
 }
 
 int runCvc5(int argc, char* argv[], Options& opts)
 {
   main::totalTime = std::make_unique<TotalTimer>();
-  // For the signal handlers' benefit
-  pOptions = &opts;
 
   // Initialize the signal handlers
   signal_handlers::install();
@@ -107,8 +104,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
   progPath = argv[0];
 
   // Parse the options
-  std::vector<string> filenames =
-      Options::parseOptions(&opts, argc, argv, progName);
+  std::vector<string> filenames = options::parse(opts, argc, argv, progName);
 
   auto limit = install_time_limit(opts);
 
@@ -119,7 +115,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
   }
   else if (opts.base.languageHelp)
   {
-    Options::printLanguageHelp(*opts.base.out);
+    options::printLanguageHelp(*opts.base.out);
     exit(1);
   }
   else if (opts.driver.version)

@@ -79,6 +79,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
         d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
       }
     }
+    d_pfpp->setEliminateRule(PfRule::BV_BITBLAST);
   }
   d_false = NodeManager::currentNM()->mkConst(false);
 }

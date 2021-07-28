@@ -18,6 +18,8 @@
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "omt/omt_optimizer.h"
+#include "options/base_options.h"
+#include "options/language.h"
 #include "options/smt_options.h"
 #include "smt/assertions.h"
 #include "smt/smt_engine.h"
@@ -27,6 +29,67 @@ using namespace cvc5::theory;
 using namespace cvc5::omt;
 namespace cvc5 {
 namespace smt {
+
+std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
+{
+  // check the output language first
+  OutputLanguage lang = language::SetLanguage::getLanguage(out);
+  if (!language::isOutputLang_smt2(lang))
+  {
+    Unimplemented()
+        << "Only the SMTLib2 language supports optimization right now";
+  }
+  out << "(" << result.getResult();
+  switch (result.getResult().isSat())
+  {
+    case Result::SAT:
+    case Result::SAT_UNKNOWN:
+    {
+      switch (result.isInfinity())
+      {
+        case OptimizationResult::FINITE:
+          out << "\t" << result.getValue();
+          break;
+        case OptimizationResult::POSTITIVE_INF: out << "\t+Inf"; break;
+        case OptimizationResult::NEGATIVE_INF: out << "\t-Inf"; break;
+        default: break;
+      }
+      break;
+    }
+    case Result::UNSAT: break;
+    default: Unreachable();
+  }
+  out << ")";
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out,
+                         const OptimizationObjective& objective)
+{
+  // check the output language first
+  OutputLanguage lang = language::SetLanguage::getLanguage(out);
+  if (!language::isOutputLang_smt2(lang))
+  {
+    Unimplemented()
+        << "Only the SMTLib2 language supports optimization right now";
+  }
+  out << "(";
+  switch (objective.getType())
+  {
+    case OptimizationObjective::MAXIMIZE: out << "maximize "; break;
+    case OptimizationObjective::MINIMIZE: out << "minimize "; break;
+    default: Unreachable();
+  }
+  TNode target = objective.getTarget();
+  TypeNode type = target.getType();
+  out << target;
+  if (type.isBitVector())
+  {
+    out << (objective.bvIsSigned() ? " :signed" : " :unsigned");
+  }
+  out << ")";
+  return out;
+}
 
 OptimizationSolver::OptimizationSolver(SmtEngine* parent)
     : d_parent(parent),
@@ -84,7 +147,7 @@ std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
   std::unique_ptr<SmtEngine> optChecker;
   // initializeSubSolver will copy the options and theories enabled
   // from the current solver to optChecker and adds timeout
-  theory::initializeSubsolver(optChecker, needsTimeout, timeout);
+  theory::initializeSubsolver(optChecker, nullptr, needsTimeout, timeout);
   // we need to be in incremental mode for multiple objectives since we need to
   // push pop we need to produce models to inrement on our objective
   optChecker->setOption("incremental", "true");
@@ -200,8 +263,8 @@ Result OptimizationSolver::optimizeLexicographicIterative()
     }
 
     // if the result for the current objective is unbounded
-    // then just stop
-    if (partialResult.isUnbounded()) break;
+    // (result is not finite) then just stop
+    if (partialResult.isInfinity() != OptimizationResult::FINITE) break;
   }
   // kill optChecker in case pareto misuses it
   d_optChecker.reset();
@@ -220,7 +283,7 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
 
   switch (satResult.isSat())
   {
-    case Result::Sat::UNSAT: return satResult;
+    case Result::Sat::UNSAT:
     case Result::Sat::SAT_UNKNOWN: return satResult;
     case Result::Sat::SAT:
     {

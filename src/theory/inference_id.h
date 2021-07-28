@@ -20,6 +20,8 @@
 
 #include <iosfwd>
 
+#include "expr/node.h"
+
 namespace cvc5 {
 namespace theory {
 
@@ -41,6 +43,8 @@ enum class InferenceId
   // ---------------------------------- core
   // a conflict when two constants merge in the equality engine (of any theory)
   EQ_CONSTANT_MERGE,
+  // a split from theory combination
+  COMBINATION_SPLIT,
   // ---------------------------------- arith theory
   //-------------------- linear core
   // black box conflicts. It's magic.
@@ -171,10 +175,10 @@ enum class InferenceId
 
   // ---------------------------------- bitvector theory
   BV_BITBLAST_CONFLICT,
-  BV_LAZY_CONFLICT,
-  BV_LAZY_LEMMA,
-  BV_SIMPLE_LEMMA,
-  BV_SIMPLE_BITBLAST_LEMMA,
+  BV_BITBLAST_INTERNAL_EAGER_LEMMA,
+  BV_BITBLAST_INTERNAL_BITBLAST_LEMMA,
+  BV_LAYERED_CONFLICT,
+  BV_LAYERED_LEMMA,
   BV_EXTF_LEMMA,
   BV_EXTF_COLLAPSE,
   // ---------------------------------- end bitvector theory
@@ -376,9 +380,13 @@ enum class InferenceId
 
   // ---------------------------------- sets theory
   //-------------------- sets core solver
+  // split when computing care graph
+  SETS_CG_SPLIT,
   SETS_COMPREHENSION,
   SETS_DEQ,
   SETS_DOWN_CLOSURE,
+  // conflict when two singleton/emptyset terms merge
+  SETS_EQ_CONFLICT,
   SETS_EQ_MEM,
   SETS_EQ_MEM_CONFLICT,
   SETS_MEM_EQ,
@@ -779,6 +787,9 @@ const char* toString(InferenceId i);
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, InferenceId i);
+
+/** Make node from inference id */
+Node mkInferenceIdNode(InferenceId i);
 
 }  // namespace theory
 }  // namespace cvc5

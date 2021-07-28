@@ -17,6 +17,7 @@
 
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -706,7 +707,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         d_star_insts[f].push_back(i);
         continue;
       }
-      if (options::fmfBound())
+      if (options::fmfBound() || options::stringExp())
       {
         std::vector<Node> cond;
         cond.push_back(d_quant_cond[f]);
@@ -724,8 +725,11 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       }
       // just add the instance
       d_triedLemmas++;
-      if (instq->addInstantiation(
-              f, inst, InferenceId::QUANTIFIERS_INST_FMF_FMC, true))
+      if (instq->addInstantiation(f,
+                                  inst,
+                                  InferenceId::QUANTIFIERS_INST_FMF_FMC,
+                                  Node::null(),
+                                  true))
       {
         Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
         d_addedLemmas++;
@@ -874,8 +878,11 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
       if (ev!=d_true) {
         Trace("fmc-exh-debug") << ", add!";
         //add as instantiation
-        if (ie->addInstantiation(
-                f, inst, InferenceId::QUANTIFIERS_INST_FMF_FMC_EXH, true))
+        if (ie->addInstantiation(f,
+                                 inst,
+                                 InferenceId::QUANTIFIERS_INST_FMF_FMC_EXH,
+                                 Node::null(),
+                                 true))
         {
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;

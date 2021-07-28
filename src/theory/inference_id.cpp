@@ -16,6 +16,7 @@
 #include "theory/inference_id.h"
 
 #include <iostream>
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace theory {
@@ -25,6 +26,7 @@ const char* toString(InferenceId i)
   switch (i)
   {
     case InferenceId::EQ_CONSTANT_MERGE: return "EQ_CONSTANT_MERGE";
+    case InferenceId::COMBINATION_SPLIT: return "COMBINATION_SPLIT";
     case InferenceId::ARITH_BLACK_BOX: return "ARITH_BLACK_BOX";
     case InferenceId::ARITH_CONF_EQ: return "ARITH_CONF_EQ";
     case InferenceId::ARITH_CONF_LOWER: return "ARITH_CONF_LOWER";
@@ -109,10 +111,12 @@ const char* toString(InferenceId i)
     case InferenceId::BAG_DUPLICATE_REMOVAL: return "BAG_DUPLICATE_REMOVAL";
 
     case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
-    case InferenceId::BV_LAZY_CONFLICT: return "BV_LAZY_CONFLICT";
-    case InferenceId::BV_LAZY_LEMMA: return "BV_LAZY_LEMMA";
-    case InferenceId::BV_SIMPLE_LEMMA: return "BV_SIMPLE_LEMMA";
-    case InferenceId::BV_SIMPLE_BITBLAST_LEMMA: return "BV_SIMPLE_BITBLAST_LEMMA";
+    case InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA:
+      return "BV_BITBLAST_EAGER_LEMMA";
+    case InferenceId::BV_BITBLAST_INTERNAL_BITBLAST_LEMMA:
+      return "BV_BITBLAST_INTERNAL_BITBLAST_LEMMA";
+    case InferenceId::BV_LAYERED_CONFLICT: return "BV_LAYERED_CONFLICT";
+    case InferenceId::BV_LAYERED_LEMMA: return "BV_LAYERED_LEMMA";
     case InferenceId::BV_EXTF_LEMMA: return "BV_EXTF_LEMMA";
     case InferenceId::BV_EXTF_COLLAPSE: return "BV_EXTF_COLLAPSE";
 
@@ -240,9 +244,11 @@ const char* toString(InferenceId i)
     case InferenceId::SEP_DISTINCT_REF: return "SEP_DISTINCT_REF";
     case InferenceId::SEP_REF_BOUND: return "SEP_REF_BOUND";
 
+    case InferenceId::SETS_CG_SPLIT: return "SETS_CG_SPLIT";
     case InferenceId::SETS_COMPREHENSION: return "SETS_COMPREHENSION";
     case InferenceId::SETS_DEQ: return "SETS_DEQ";
     case InferenceId::SETS_DOWN_CLOSURE: return "SETS_DOWN_CLOSURE";
+    case InferenceId::SETS_EQ_CONFLICT: return "SETS_EQ_CONFLICT";
     case InferenceId::SETS_EQ_MEM: return "SETS_EQ_MEM";
     case InferenceId::SETS_EQ_MEM_CONFLICT: return "SETS_EQ_MEM_CONFLICT";
     case InferenceId::SETS_MEM_EQ: return "SETS_MEM_EQ";
@@ -388,6 +394,11 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
 {
   out << toString(i);
   return out;
+}
+
+Node mkInferenceIdNode(InferenceId i)
+{
+  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(i)));
 }
 
 }  // namespace theory

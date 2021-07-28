@@ -21,18 +21,19 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-ArithState::ArithState(TheoryArithPrivate& parent,
-                       context::Context* c,
+ArithState::ArithState(context::Context* c,
                        context::UserContext* u,
                        Valuation val)
-    : TheoryState(c, u, val), d_parent(parent)
+    : TheoryState(c, u, val), d_parent(nullptr)
 {
 }
 
 bool ArithState::isInConflict() const
 {
-  return d_parent.anyConflict() || d_conflict;
+  return d_parent->anyConflict() || d_conflict;
 }
+
+void ArithState::setParent(TheoryArithPrivate* p) { d_parent = p; }
 
 }  // namespace arith
 }  // namespace theory

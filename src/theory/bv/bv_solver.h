@@ -102,6 +102,14 @@ class BVSolver
     return EqualityStatus::EQUALITY_UNKNOWN;
   }
 
+  /**
+   * Get the current value of `node`.
+   *
+   * The `initialize` flag indicates whether bits should be zero-initialized
+   * if they don't have a value yet.
+   */
+  virtual Node getValue(TNode node, bool initialize) { return Node::null(); }
+
   /** Called by abstraction preprocessing pass. */
   virtual bool applyAbstraction(const std::vector<Node>& assertions,
                                 std::vector<Node>& new_assertions)

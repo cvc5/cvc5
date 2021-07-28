@@ -88,6 +88,8 @@ libcvc5_add_sources(
   preprocessing/passes/ite_removal.h
   preprocessing/passes/ite_simp.cpp
   preprocessing/passes/ite_simp.h
+  preprocessing/passes/learned_rewrite.cpp
+  preprocessing/passes/learned_rewrite.h
   preprocessing/passes/miplib_trick.cpp
   preprocessing/passes/miplib_trick.h
   preprocessing/passes/nl_ext_purify.cpp
@@ -157,6 +159,8 @@ libcvc5_add_sources(
   proof/lazy_proof_chain.h
   proof/lazy_tree_proof_generator.cpp
   proof/lazy_tree_proof_generator.h
+  proof/lfsc/lfsc_util.cpp
+  proof/lfsc/lfsc_util.h
   proof/method_id.cpp
   proof/method_id.h
   proof/proof.cpp
@@ -167,6 +171,8 @@ libcvc5_add_sources(
   proof/proof_ensure_closed.h
   proof/proof_generator.cpp
   proof/proof_generator.h
+  proof/proof_letify.cpp
+  proof/proof_letify.h
   proof/proof_node.cpp
   proof/proof_node.h
   proof/proof_node_algorithm.cpp
@@ -356,6 +362,8 @@ libcvc5_add_sources(
   theory/arith/bound_counts.h
   theory/arith/bound_inference.cpp
   theory/arith/bound_inference.h
+  theory/arith/branch_and_bound.cpp
+  theory/arith/branch_and_bound.h
   theory/arith/callbacks.cpp
   theory/arith/callbacks.h
   theory/arith/congruence_manager.cpp
@@ -371,6 +379,8 @@ libcvc5_add_sources(
   theory/arith/dio_solver.h
   theory/arith/dual_simplex.cpp
   theory/arith/dual_simplex.h
+  theory/arith/equality_solver.cpp
+  theory/arith/equality_solver.h
   theory/arith/error_set.cpp
   theory/arith/error_set.h
   theory/arith/fc_simplex.cpp
@@ -465,6 +475,8 @@ libcvc5_add_sources(
   theory/arith/operator_elim.h
   theory/arith/partial_model.cpp
   theory/arith/partial_model.h
+  theory/arith/pp_rewrite_eq.cpp
+  theory/arith/pp_rewrite_eq.h
   theory/arith/proof_checker.cpp
   theory/arith/proof_checker.h
   theory/arith/proof_macros.h
@@ -570,10 +582,10 @@ libcvc5_add_sources(
   theory/bv/bitblast/eager_bitblaster.h
   theory/bv/bitblast/lazy_bitblaster.cpp
   theory/bv/bitblast/lazy_bitblaster.h
+  theory/bv/bitblast/node_bitblaster.cpp
+  theory/bv/bitblast/node_bitblaster.h
   theory/bv/bitblast/proof_bitblaster.cpp
   theory/bv/bitblast/proof_bitblaster.h
-  theory/bv/bitblast/simple_bitblaster.cpp
-  theory/bv/bitblast/simple_bitblaster.h
   theory/bv/bv_eager_solver.cpp
   theory/bv/bv_eager_solver.h
   theory/bv/bv_inequality_graph.cpp
@@ -583,10 +595,10 @@ libcvc5_add_sources(
   theory/bv/bv_solver.h
   theory/bv/bv_solver_bitblast.cpp
   theory/bv/bv_solver_bitblast.h
-  theory/bv/bv_solver_lazy.cpp
-  theory/bv/bv_solver_lazy.h
-  theory/bv/bv_solver_simple.cpp
-  theory/bv/bv_solver_simple.h
+  theory/bv/bv_solver_bitblast_internal.cpp
+  theory/bv/bv_solver_bitblast_internal.h
+  theory/bv/bv_solver_layered.cpp
+  theory/bv/bv_solver_layered.h
   theory/bv/bv_subtheory.h
   theory/bv/bv_subtheory_algebraic.cpp
   theory/bv/bv_subtheory_algebraic.h
@@ -654,6 +666,8 @@ libcvc5_add_sources(
   theory/decision_strategy.h
   theory/ee_manager.cpp
   theory/ee_manager.h
+  theory/ee_manager_central.cpp
+  theory/ee_manager_central.h
   theory/ee_manager_distributed.cpp
   theory/ee_manager_distributed.h
   theory/ee_setup_info.h
@@ -791,6 +805,8 @@ libcvc5_add_sources(
   theory/quantifiers/instantiation_list.h
   theory/quantifiers/lazy_trie.cpp
   theory/quantifiers/lazy_trie.h
+  theory/quantifiers/master_eq_notify.cpp
+  theory/quantifiers/master_eq_notify.h
   theory/quantifiers/proof_checker.cpp
   theory/quantifiers/proof_checker.h
   theory/quantifiers/quant_bound_inference.cpp
@@ -845,6 +861,7 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/cegis_core_connective.h
   theory/quantifiers/sygus/cegis_unif.cpp
   theory/quantifiers/sygus/cegis_unif.h
+  theory/quantifiers/sygus/enum_val_generator.h
   theory/quantifiers/sygus/example_eval_cache.cpp
   theory/quantifiers/sygus/example_eval_cache.h
   theory/quantifiers/sygus/example_infer.cpp
@@ -867,6 +884,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/sygus_enumerator.h
   theory/quantifiers/sygus/sygus_enumerator_basic.cpp
   theory/quantifiers/sygus/sygus_enumerator_basic.h
+  theory/quantifiers/sygus/sygus_enumerator_callback.cpp
+  theory/quantifiers/sygus/sygus_enumerator_callback.h
   theory/quantifiers/sygus/sygus_eval_unfold.cpp
   theory/quantifiers/sygus/sygus_eval_unfold.h
   theory/quantifiers/sygus/sygus_explain.cpp
@@ -909,6 +928,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/synth_conjecture.h
   theory/quantifiers/sygus/synth_engine.cpp
   theory/quantifiers/sygus/synth_engine.h
+  theory/quantifiers/sygus/synth_verify.cpp
+  theory/quantifiers/sygus/synth_verify.h
   theory/quantifiers/sygus/template_infer.cpp
   theory/quantifiers/sygus/template_infer.h
   theory/quantifiers/sygus/term_database_sygus.cpp
@@ -1204,6 +1225,9 @@ if(USE_GLPK)
 endif()
 if(USE_POLY)
   target_link_libraries(cvc5 PRIVATE Polyxx)
+endif()
+if(USE_COCOA)
+  target_link_libraries(cvc5 PRIVATE CoCoA)
 endif()
 
 target_link_libraries(cvc5 PRIVATE SymFPU)

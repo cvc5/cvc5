@@ -22,86 +22,37 @@
 namespace cvc5 {
 namespace decision {
 
-DecisionEngine::DecisionEngine(context::Context* c,
-                               context::UserContext* u,
-                               prop::SkolemDefManager* skdm,
-                               ResourceManager* rm)
-    : d_decEngineOld(new DecisionEngineOld(c, u)),
-      d_jstrat(new JustificationStrategy(c, u, skdm)),
+DecisionEngine::DecisionEngine(context::Context* c, ResourceManager* rm)
+    : d_context(c),
       d_resourceManager(rm),
-      d_useOld(options::decisionMode() != options::DecisionMode::JUSTIFICATION)
+      d_cnfStream(nullptr),
+      d_satSolver(nullptr)
 {
 }
 
-void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss,
-                                prop::CnfStream* cs)
+void DecisionEngine::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
 {
-  if (d_useOld)
-  {
-    d_decEngineOld->setSatSolver(ss);
-    d_decEngineOld->setCnfStream(cs);
-    return;
-  }
-  d_jstrat->finishInit(ss, cs);
-}
-
-void DecisionEngine::presolve()
-{
-  if (!d_useOld)
-  {
-    d_jstrat->presolve();
-  }
+  d_satSolver = ss;
+  d_cnfStream = cs;
 }
 
 prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
   d_resourceManager->spendResource(Resource::DecisionStep);
-  if (d_useOld)
-  {
-    return d_decEngineOld->getNext(stopSearch);
-  }
-  return d_jstrat->getNext(stopSearch);
+  return getNextInternal(stopSearch);
 }
 
-bool DecisionEngine::isDone()
+DecisionEngineEmpty::DecisionEngineEmpty(context::Context* sc,
+                                         ResourceManager* rm)
+    : DecisionEngine(sc, rm)
 {
-  if (d_useOld)
-  {
-    return d_decEngineOld->isDone();
-  }
-  return d_jstrat->isDone();
 }
-
-void DecisionEngine::addAssertion(TNode assertion)
+bool DecisionEngineEmpty::isDone() { return false; }
+void DecisionEngineEmpty::addAssertion(TNode assertion) {}
+void DecisionEngineEmpty::addSkolemDefinition(TNode lem, TNode skolem) {}
+prop::SatLiteral DecisionEngineEmpty::getNextInternal(bool& stopSearch)
 {
-  if (d_useOld)
-  {
-    d_decEngineOld->addAssertion(assertion);
-    return;
-  }
-  d_jstrat->addAssertion(assertion);
-}
-
-void DecisionEngine::addSkolemDefinition(TNode lem, TNode skolem)
-{
-  if (d_useOld)
-  {
-    d_decEngineOld->addSkolemDefinition(lem, skolem);
-  }
-  else
-  {
-    d_jstrat->addSkolemDefinition(lem, skolem);
-  }
-}
-
-void DecisionEngine::notifyAsserted(TNode n)
-{
-  if (d_useOld)
-  {
-    return;
-  }
-  // old implementation does not use this
-  d_jstrat->notifyAsserted(n);
+  return undefSatLiteral;
 }
 
 }  // namespace decision

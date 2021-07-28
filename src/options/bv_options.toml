@@ -66,7 +66,7 @@ name   = "Bitvector Theory"
   long       = "bv-eq-solver"
   type       = "bool"
   default    = "true"
-  help       = "use the equality engine for the bit-vector theory (only if --bitblast=lazy)"
+  help       = "use the equality engine for the bit-vector theory (only if --bv-solver=layered)"
 
 [[option]]
   name       = "bitvectorInequalitySolver"
@@ -74,7 +74,7 @@ name   = "Bitvector Theory"
   long       = "bv-inequality-solver"
   type       = "bool"
   default    = "true"
-  help       = "turn on the inequality solver for the bit-vector theory (only if --bitblast=lazy)"
+  help       = "turn on the inequality solver for the bit-vector theory (only if --bv-solver=layered)"
 
 [[option]]
   name       = "bitvectorAlgebraicSolver"
@@ -82,7 +82,7 @@ name   = "Bitvector Theory"
   long       = "bv-algebraic-solver"
   type       = "bool"
   default    = "false"
-  help       = "turn on experimental algebraic solver for the bit-vector theory (only if --bitblast=lazy)"
+  help       = "turn on experimental algebraic solver for the bit-vector theory (only if --bv-solver=layered)"
 
 [[option]]
   name       = "bitvectorAlgebraicBudget"
@@ -217,12 +217,12 @@ name   = "Bitvector Theory"
 [[option.mode.BITBLAST]]
   name = "bitblast"
   help = "Enables bitblasting solver."
-[[option.mode.LAZY]]
-  name = "lazy"
-  help = "Enables the lazy BV solver infrastructure."
-[[option.mode.SIMPLE]]
-  name = "simple"
-  help = "Enables simple bitblasting solver with proof support."
+[[option.mode.BITBLAST_INTERNAL]]
+  name = "bitblast-internal"
+  help = "Enables bitblasting to internal SAT solver with proof support."
+[[option.mode.LAYERED]]
+  name = "layered"
+  help = "Enables the layered BV solver."
 
 [[option]]
   name       = "bvAssertInput"

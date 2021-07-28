@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Andrew Reynolds
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,17 +10,25 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Definitions of public facing interface functions for Options.
- *
- * These are all one line wrappers for accessing the internal option data.
+ * Notification class for the master equality engine
  */
 
-#include "options_public.h"
+#include "theory/quantifiers/master_eq_notify.h"
 
-#include "options/uf_options.h"
+#include "theory/quantifiers_engine.h"
 
-namespace cvc5::options {
+namespace cvc5 {
+namespace theory {
+namespace quantifiers {
 
-bool getUfHo(const Options& opts) { return opts.uf.ufHo; }
+MasterNotifyClass::MasterNotifyClass(QuantifiersEngine* qe) : d_quantEngine(qe) {}
 
-}  // namespace cvc5::options
+void MasterNotifyClass::eqNotifyNewClass(TNode t)
+{
+  d_quantEngine->eqNotifyNewClass(t);
+}
+
+
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

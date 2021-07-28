@@ -102,6 +102,16 @@ const std::vector<poly::Variable>& CDCAC::getVariableOrdering() const
 std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
 {
   std::vector<CACInterval> res;
+  LazardEvaluation le;
+  if (options::nlCadLifting() == options::NlCadLiftingMode::LAZARD)
+  {
+    for (size_t vid = 0; vid < cur_variable; ++vid)
+    {
+      const auto& val = d_assignment.get(d_variableOrdering[vid]);
+      le.add(d_variableOrdering[vid], val);
+    }
+    le.addFreeVariable(d_variableOrdering[cur_variable]);
+  }
   for (const auto& c : d_constraints.getConstraints())
   {
     const poly::Polynomial& p = std::get<0>(c);
@@ -116,7 +126,21 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
 
     Trace("cdcac") << "Infeasible intervals for " << p << " " << sc
                    << " 0 over " << d_assignment << std::endl;
-    auto intervals = infeasible_regions(p, d_assignment, sc);
+    std::vector<poly::Interval> intervals;
+    if (options::nlCadLifting() == options::NlCadLiftingMode::LAZARD)
+    {
+      intervals = le.infeasibleRegions(p, sc);
+      if (Trace.isOn("cdcac"))
+      {
+        auto reference = poly::infeasible_regions(p, d_assignment, sc);
+        Trace("cdcac") << "Lazard: " << intervals << std::endl;
+        Trace("cdcac") << "Regular: " << reference << std::endl;
+      }
+    }
+    else
+    {
+      intervals = poly::infeasible_regions(p, d_assignment, sc);
+    }
     for (const auto& i : intervals)
     {
       Trace("cdcac") << "-> " << i << std::endl;
@@ -281,7 +305,19 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
                    << requiredCoefficientsOriginal(p, d_assignment)
                    << std::endl;
   }
-  return requiredCoefficientsOriginal(p, d_assignment);
+  switch (options::nlCadProjection())
+  {
+    case options::NlCadProjectionMode::MCCALLUM:
+      return requiredCoefficientsOriginal(p, d_assignment);
+    case options::NlCadProjectionMode::LAZARD:
+      return requiredCoefficientsLazard(p, d_assignment);
+    case options::NlCadProjectionMode::LAZARDMOD:
+      return requiredCoefficientsLazardModified(
+          p, d_assignment, d_constraints.varMapper());
+    default:
+      Assert(false);
+      return requiredCoefficientsOriginal(p, d_assignment);
+  }
 }
 
 PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
