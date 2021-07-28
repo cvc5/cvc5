@@ -46,7 +46,7 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
     // (seq.nth n[0] n[1])
     Node r = d_state.getRepresentative(n[0]);
     Trace("seq-update") << "- " << r << ": " << n[1] << " -> " << n << std::endl;
-    d_writeModel[r][n[1]] = n;
+//    d_writeModel[r][n[1]] = n;
   }
   for (const Node& n : updateTerms)
   {
@@ -57,16 +57,26 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
     // d_termReg.getProxyVariable
     // send lemma: (seq.nth t i) == z
     Node proxyVar = d_termReg.getProxyVariableFor(n);
+    Trace("seq-update") << "- " << proxyVar << " = " << n << std::endl;
+    Node proxyIndex = d_termReg.getProxyVariableFor(n[1]);
+    Node proxyElem = d_termReg.getProxyVariableFor(n[2][0]);
 
     // t == (seq.update x i (seq.unit z))
     // => (seq.nth t i) == z
     std::vector<Node> exp;
     d_im.addToExplanation(proxyVar, n, exp);
-    Node eq = nm->mkNode(EQUAL,
-                         nm->mkNode(SEQ_NTH, proxyVar, n[1]),
-                         n[2][0]);
-    InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
-    d_im.sendInference(exp, eq, iid);
+    std::cerr << proxyIndex << ' ' << proxyElem << std::endl;
+    Node left = nm->mkNode(SEQ_NTH, proxyVar, n[1]);
+    Node right = nm->mkNode(SEQ_NTH, n[2], nm->mkConst(Rational(0)));
+
+    if (!d_state.areEqual(left, right)) {
+        Node eq = nm->mkNode(EQUAL,
+                             left, right);
+        // if n[2] is a CONST_SEQUENCE, get t.getConst<Sequence>().nth(0)
+        InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
+        std::cerr << "send by check() in sequence_array " << left << " " << right << std::endl;
+        d_im.sendInference(exp, eq, iid);
+    }
   }
 }
 
