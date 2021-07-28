@@ -15,8 +15,6 @@
 
 #include "rewriter/rewrite_db_proof_cons.h"
 
-#include "expr/attribute.h"
-#include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
 #include "rewriter/rewrite_db_term_process.h"
 #include "smt/smt_statistics_registry.h"
@@ -27,11 +25,6 @@ using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace rewriter {
-
-struct InflectionVarAttributeId
-{
-};
-using InflectionVarAttribute = expr::Attribute<InflectionVarAttributeId, Node>;
 
 RewriteDbProofCons::RewriteDbProofCons(RewriteDb* db, ProofNodeManager* pnm)
     : d_notify(*this),
@@ -115,21 +108,20 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
   // for each matching rewrite rule conclusion in the database
   // decrease the recursion depth
   Assert(eqi.getKind() == EQUAL);
-  // first, try congruence if possible
+  // first, try congruence if possible, which does not count towards recursion
+  // limit.
   if (proveWithRule(DslPfRule::CONG, eqi, {}, {}, false, false, true))
   {
     Trace("rpc-debug2") << "...proved via congruence" << std::endl;
+    return DslPfRule::CONG;
   }
-  else
-  {
-    Trace("rpc-debug2") << "...not proved via congruence" << std::endl;
-    d_currRecLimit--;
-    Node prevTarget = d_target;
-    d_target = eqi;
-    d_db->getMatches(eqi[0], &d_notify);
-    d_target = prevTarget;
-    d_currRecLimit++;
-  }
+  Trace("rpc-debug2") << "...not proved via congruence" << std::endl;
+  d_currRecLimit--;
+  Node prevTarget = d_target;
+  d_target = eqi;
+  d_db->getMatches(eqi[0], &d_notify);
+  d_target = prevTarget;
+  d_currRecLimit++;
   // if we cached it during the above call, we succeeded
   std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
   if (it != d_pcache.end())
@@ -213,7 +205,6 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
 {
   Assert(!target.isNull() && target.getKind() == EQUAL);
   std::vector<Node> vcs;
-  std::vector<Node> iconds;
   Node transEq;
   ProvenInfo pic;
   if (id == DslPfRule::CONG)
@@ -261,61 +252,14 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
         Trace("rpc-debug2") << "...fail (no inflection)" << std::endl;
         return false;
       }
-#if 1
-      // FIXME
+      // the missing transitivity link is a subgoal to prove
       transEq = stgt.eqNode(target[1]);
       vcs.push_back(transEq);
       Trace("rpc-debug2") << "  Try transitive with " << transEq << std::endl;
-#else
-      // if not a perfect match, infer the (conditional) rule that would have
-      // matched
-      Node irhs = inflectMatch(conc[1], target[1], vars, subs, isubs);
-      if (irhs.isNull())
-      {
-        Trace("rpc-debug2") << "...fail (inflection match)" << std::endl;
-        return false;
-      }
-      Trace("rpc-debug2") << "Would have succeeded with rule: " << std::endl;
-      // the variables / substitution we will use to generate constraints below
-      std::vector<Node> uvars;
-      std::vector<Node> usubs;
-      if (pic.isInternalRule())
-      {
-        // use the substitution of the last proven equality, which determines
-        // what the generated inflection conditions are
-        Node lastEq = pic.d_vars.back();
-        Assert(d_pcache.find(lastEq) != d_pcache.end());
-        ProvenInfo& pile = d_pcache[lastEq];
-        Assert(pile.d_id == id);
-        uvars = pile.d_vars;
-        usubs = pile.d_subs;
-      }
-      else
-      {
-        uvars = vars;
-        usubs = subs;
-      }
-      std::vector<Node> conds;
-      for (const std::pair<const Node, std::pair<Node, Node>>& i : isubs)
-      {
-        Node eq = i.first.eqNode(i.second.first);
-        conds.push_back(eq);
-        // orient: target comes second
-        Node seq = expr::narySubstitute(i.second.first, uvars, usubs)
-                       .eqNode(i.second.second);
-        iconds.push_back(seq);
-        Trace("rpc-debug2") << eq << " ";
-      }
-      Trace("rpc-debug2") << "=> (" << irhs << " == " << conc[0] << ")"
-                          << std::endl;
-      Trace("rpc-debug2") << "Inflection conditions: " << iconds << std::endl;
-#endif
     }
     // do its conditions hold?
     // Get the conditions, substituted { vars -> subs } and with side conditions
     // evaluated.
-    // add inflection conditions
-    vcs.insert(vcs.begin(), iconds.begin(), iconds.end());
     if (!rpr.getObligations(vars, subs, vcs))
     {
       // cannot get conditions, likely due to failed side condition
@@ -398,7 +342,6 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     pi->d_vars = vars;
     pi->d_subs = subs;
   }
-  pi->d_iconds = iconds;
   Trace("rpc-debug2") << "...target proved by " << d_pcache[target].d_id
                       << std::endl;
   // success
@@ -603,10 +546,6 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
           }
           // recurse on premises
           visit.insert(visit.end(), ps.begin(), ps.end());
-          // recurse on inflection conditions
-          visit.insert(visit.end(),
-                       itd->second.d_iconds.begin(),
-                       itd->second.d_iconds.end());
         }
       }
     }
@@ -638,93 +577,11 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
         Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
         Trace("rpc-debug") << "Proved: " << cur << std::endl;
         Trace("rpc-debug") << "From: " << conc << std::endl;
-        Trace("rpc-debug") << "Used inflection conditions: "
-                           << itd->second.d_iconds << std::endl;
         cdp->addStep(conc, PfRule::DSL_REWRITE, ps, args);
-      }
-      // if we had inflection conditions, we need to also use a skeleton
-      if (!itd->second.d_iconds.empty())
-      {
-        Assert(cur[1] != conc[1]);
-        Node eqk = conc[1].eqNode(cur[1]);
-        Trace("rpc-debug") << "Prove skeleton: " << eqk << std::endl;
-        ensureProofSkeletonInternal(cdp, conc[1], cur[1]);
-        cdp->addStep(cur, PfRule::TRANS, {conc, eqk}, {});
       }
     }
   } while (!visit.empty());
   return true;
-}
-void RewriteDbProofCons::ensureProofSkeletonInternal(CDProof* cdp,
-                                                     Node a,
-                                                     Node b)
-{
-  std::unordered_map<std::pair<TNode, TNode>, bool, TNodePairHashFunction>
-      visited;
-  std::unordered_map<std::pair<TNode, TNode>, bool, TNodePairHashFunction>::
-      iterator it;
-  std::unordered_map<Node, Node>::iterator subsIt;
-
-  std::vector<std::pair<TNode, TNode>> stack;
-  stack.emplace_back(a, b);
-  std::pair<TNode, TNode> curr;
-
-  while (!stack.empty())
-  {
-    curr = stack.back();
-    stack.pop_back();
-    it = visited.find(curr);
-    if (it == visited.end())
-    {
-      visited[curr] = true;
-      if (curr.first == curr.second)
-      {
-        Node eq = curr.first.eqNode(curr.second);
-        Trace("rpc-debug") << "Add refl step " << eq << std::endl;
-        // holds trivially, add REFL
-        cdp->addStep(eq, PfRule::REFL, {}, {curr.first});
-      }
-      else if (curr.first.getNumChildren() > 0)
-      {
-        if (curr.first.getNumChildren() == curr.second.getNumChildren()
-            && curr.first.getOperator() == curr.second.getOperator())
-        {
-          visited[curr] = false;
-          stack.push_back(curr);
-          // recurse on children
-          for (size_t i = 0, n = curr.first.getNumChildren(); i < n; ++i)
-          {
-            stack.emplace_back(curr.first[i], curr.second[i]);
-          }
-        }
-        // otherwise, equality should be proven already
-      }
-      // otherwise the two terms do not match, and the equality should be proven
-      // already
-    }
-    else if (!it->second)
-    {
-      // we match due to children, thus, congruence
-      Assert(curr.first.getNumChildren() > 0);
-      Assert(curr.first.getOperator() == curr.second.getOperator());
-      Assert(curr.first.getNumChildren() == curr.second.getNumChildren());
-      std::vector<Node> childPf;
-      for (size_t i = 0, nchild = curr.first.getNumChildren(); i < nchild; i++)
-      {
-        childPf.push_back(curr.first[i].eqNode(curr.second[i]));
-      }
-      std::vector<Node> argsPf;
-      argsPf.push_back(ProofRuleChecker::mkKindNode(curr.first.getKind()));
-      if (curr.first.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        argsPf.push_back(curr.first.getOperator());
-      }
-      Node eq = curr.first.eqNode(curr.second);
-      Trace("rpc-debug") << "Add cong step " << eq << std::endl;
-      cdp->addStep(
-          curr.first.eqNode(curr.second), PfRule::CONG, childPf, argsPf);
-    }
-  }
 }
 
 Node RewriteDbProofCons::doEvaluate(Node n)
@@ -787,175 +644,6 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
     return stgt;
   }
   return expr::narySubstitute(conc[1], vars, subs);
-}
-
-Node RewriteDbProofCons::inflectMatch(
-    Node n,
-    Node s,
-    const std::vector<Node>& vars,
-    const std::vector<Node>& subs,
-    std::unordered_map<Node, std::pair<Node, Node>>& isubs)
-{
-  Trace("rpc-inflect") << "InflectMatch " << n << " == " << s << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
-  BoundVarManager* bvm = nm->getBoundVarManager();
-  std::unordered_map<std::pair<TNode, TNode>, Node, TNodePairHashFunction>
-      visited;
-  std::unordered_map<std::pair<TNode, TNode>, Node, TNodePairHashFunction>::
-      iterator it;
-  std::vector<Node>::const_iterator itv;
-
-  std::unordered_map<TypeNode, size_t> inflectCounter;
-
-  std::vector<std::pair<TNode, TNode>> stack;
-  std::pair<TNode, TNode> init(n, s);
-  stack.push_back(init);
-  std::pair<TNode, TNode> curr;
-
-  while (!stack.empty())
-  {
-    curr = stack.back();
-    stack.pop_back();
-    if (curr.first == curr.second)
-    {
-      visited[curr] = curr.first;
-      // holds trivially
-      continue;
-    }
-    it = visited.find(curr);
-    if (it == visited.end())
-    {
-      bool matchSuccess = true;
-      if (curr.first.getNumChildren() == 0)
-      {
-        // if the two subterms are not equal and the first one is a bound
-        // variable...
-        if (curr.first.getKind() == kind::BOUND_VARIABLE)
-        {
-          // the inflected form of n is itself
-          visited[curr] = curr.first;
-          // and we have not seen this variable before...
-          itv = std::find(vars.begin(), vars.end(), curr.first);
-          Assert(itv != vars.end());
-          size_t d = std::distance(vars.begin(), itv);
-          Assert(d < subs.size());
-          // if we saw this variable before, make sure that (now and before) it
-          // maps to the same subterm
-          if (curr.second != subs[d])
-          {
-            matchSuccess = false;
-            // visited[curr] will be overwritten below
-          }
-        }
-        else
-        {
-          // the two subterms are not equal
-          matchSuccess = false;
-        }
-      }
-      else
-      {
-        // if the two subterms are not equal, make sure that their operators are
-        // equal
-        // we compare operators instead of kinds because different terms may
-        // have the same kind (both `(id x)` and `(square x)` have kind
-        // APPLY_UF) since many builtin operators like `PLUS` allow arbitrary
-        // number of arguments, we also need to check if the two subterms have
-        // the same number of children
-        if (curr.first.getNumChildren() != curr.second.getNumChildren()
-            || curr.first.getOperator() != curr.second.getOperator())
-        {
-          // TODO: (+ a b c) could match (+ a d) with constraint (= (+ b c) d)
-          matchSuccess = false;
-        }
-        else
-        {
-          // recurse on children
-          visited[curr] = Node::null();
-          stack.push_back(curr);
-          for (size_t i = 0, nc = curr.first.getNumChildren(); i < nc; ++i)
-          {
-            // eagerly check type constraints, which is important for cases
-            // like (select A x) (select B s) where A and B are arrays with
-            // the same element type but different index types.
-            if (!curr.first[i].getType().isComparableTo(
-                    curr.second[i].getType()))
-            {
-              matchSuccess = false;
-              stack.resize(stack.size() - i - 1);
-              // visited[curr] will be overwritten below
-              break;
-            }
-            stack.emplace_back(curr.first[i], curr.second[i]);
-          }
-        }
-      }
-      if (!matchSuccess)
-      {
-        // failed to match
-        // if they are definitely equal, return null now
-        if (curr.first.isConst() && curr.second.isConst())
-        {
-          Assert(curr.first != curr.second);
-          return Node::null();
-        }
-        TypeNode tn = curr.first.getType();
-        size_t inflectId = inflectCounter[tn];
-        // variables are unique to (id, type id)
-        Node idn = nm->mkConst(Rational(inflectId));
-        size_t typeId = getOrAssignTypeId(tn);
-        Node idt = nm->mkConst(Rational(typeId));
-        Node cval = BoundVarManager::getCacheValue(idn, idt);
-        Node v = bvm->mkBoundVar<InflectionVarAttribute>(cval, tn);
-        Trace("rpc-inflect")
-            << "- inflect " << curr.first << " == " << curr.second << " via "
-            << v << std::endl;
-        inflectCounter[tn]++;
-        visited[curr] = v;
-        isubs[v] = curr;
-      }
-    }
-    else if (it->second.isNull())
-    {
-      // reconstruct
-      Node ret = curr.first;
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (curr.first.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        children.push_back(curr.first.getOperator());
-      }
-      for (size_t i = 0, nc = curr.first.getNumChildren(); i < nc; ++i)
-      {
-        std::pair<TNode, Node> key(curr.first[i], curr.second[i]);
-        it = visited.find(key);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || curr.first[i] != it->second;
-        children.push_back(it->second);
-      }
-      if (childChanged)
-      {
-        ret = nm->mkNode(curr.first.getKind(), children);
-      }
-      visited[curr] = ret;
-    }
-  }
-  AlwaysAssert(visited.find(init) != visited.end());
-  AlwaysAssert(!visited.find(init)->second.isNull());
-  return visited[init];
-}
-
-size_t RewriteDbProofCons::getOrAssignTypeId(TypeNode tn)
-{
-  std::map<TypeNode, size_t>::iterator it = d_typeId.find(tn);
-  if (it != d_typeId.end())
-  {
-    return it->second;
-  }
-  size_t id = d_typeId.size();
-  d_typeId[tn] = id;
-  return id;
 }
 
 }  // namespace rewriter

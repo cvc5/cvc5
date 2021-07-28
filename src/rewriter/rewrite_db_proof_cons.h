@@ -89,8 +89,6 @@ class RewriteDbProofCons
   bool proveInternalBase(Node eqi, DslPfRule& id);
   /** ensure proof for proven fact exists in cdp */
   bool ensureProofInternal(CDProof* cdp, Node eqi);
-  /** ensure proof skeleton */
-  void ensureProofSkeletonInternal(CDProof* cdp, Node a, Node b);
   /** do evaluate */
   Node doEvaluate(Node n);
   /**
@@ -115,21 +113,6 @@ class RewriteDbProofCons
                          const std::vector<Node>& subs,
                          ProvenInfo& pi,
                          bool doFixedPoint = false);
-  /**
-   * Inflect match, if possible, return a modified form of n that matches s
-   * with subs.
-   *
-   * In particular, for return term ret, we have:
-   * ret * isubs.first = n
-   * ret * isubs.second = s
-   */
-  Node inflectMatch(Node n,
-                    Node s,
-                    const std::vector<Node>& vars,
-                    const std::vector<Node>& subs,
-                    std::unordered_map<Node, std::pair<Node, Node>>& isubs);
-  /** get or assign type identifier */
-  size_t getOrAssignTypeId(TypeNode tn);
   /** Notify class for matches */
   RdpcMatchTrieNotify d_notify;
   /** Basic utility */
@@ -151,8 +134,6 @@ class RewriteDbProofCons
   Node d_false;
   /** current target */
   Node d_target;
-  /** Identifiers for types, for inflection variables */
-  std::map<TypeNode, size_t> d_typeId;
   /** current recursion limit */
   uint32_t d_currRecLimit;
   /** current rule we are applying to fixed point */
