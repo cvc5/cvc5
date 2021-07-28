@@ -35,7 +35,7 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
-#include "smt/update_ostream.h"
+#include "smt/dump.h"
 
 namespace cvc5 {
 namespace options {
@@ -554,8 +554,7 @@ void OptionsHandler::applyDump(const std::string& option,
                                const std::string& flag, const ManagedOut& mo)
 {
 #ifdef CVC5_DUMPING
-  DumpOstreamUpdate dumpGetStream;
-  dumpGetStream.apply(mo);
+  Dump.setStream(mo);
 #else  /* CVC5_DUMPING */
   throw OptionException(
       "The dumping feature was disabled in this build of cvc5.");
@@ -564,18 +563,12 @@ void OptionsHandler::applyDump(const std::string& option,
 void OptionsHandler::applyErr(const std::string& option,
                          const std::string& flag, const ManagedErr& me)
 {
-  DebugOstreamUpdate debugOstreamUpdate;
-  debugOstreamUpdate.apply(me);
-  WarningOstreamUpdate warningOstreamUpdate;
-  warningOstreamUpdate.apply(me);
-  MessageOstreamUpdate messageOstreamUpdate;
-  messageOstreamUpdate.apply(me);
-  NoticeOstreamUpdate noticeOstreamUpdate;
-  noticeOstreamUpdate.apply(me);
-  ChatOstreamUpdate chatOstreamUpdate;
-  chatOstreamUpdate.apply(me);
-  TraceOstreamUpdate traceOstreamUpdate;
-  traceOstreamUpdate.apply(me);
+  Debug.setStream(me);
+  Warning.setStream(me);
+  CVC5Message.setStream(me);
+  Notice.setStream(me);
+  Chat.setStream(me);
+  Trace.setStream(me);
 }
 void OptionsHandler::applyIn(const std::string& option,
                          const std::string& flag, const ManagedIn& mi)
