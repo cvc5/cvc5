@@ -239,8 +239,6 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
       vcs.push_back(eq);
       pic.d_vars.push_back(eq);
     }
-    // FIXME
-    return false;
   }
   else
   {
@@ -264,10 +262,11 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
         Trace("rpc-debug2") << "...fail (no inflection)" << std::endl;
         return false;
       }
-#if 0
+#if 1
       // FIXME
       transEq = stgt.eqNode(target[1]);
       vcs.push_back(transEq);
+      Trace("rpc-debug2") << "  Try transitive with " << transEq << std::endl;
 #else
       // if not a perfect match, infer the (conditional) rule that would have
       // matched
@@ -373,31 +372,34 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   if (Trace.isOn("rpc-infer"))
   {
     Trace("rpc-infer") << "INFER " << target << " by " << id
-                       << std::endl;
+                       << (transEq.isNull() ? "" : " + TRANS") << std::endl;
   }
   // cache the success
-  ProvenInfo& pi = d_pcache[target];
+  ProvenInfo* pi = &d_pcache[target];
   if (!transEq.isNull())
   {
+    Trace("rpc-debug2") << "..." << target << " proved by TRANS" << std::endl;
     Node transEqStart = target[0].eqNode(transEq[0]);
     // proves both
-    pi.d_id = DslPfRule::TRANS;
-    pi.d_vars.push_back(transEqStart);
-    pi.d_vars.push_back(transEq);
+    pi->d_id = DslPfRule::TRANS;
+    pi->d_vars.push_back(transEqStart);
+    pi->d_vars.push_back(transEq);
+    Trace("rpc-debug2") << "...original equality was " << transEqStart << std::endl;
     // we also prove the original
-    pi = d_pcache[transEqStart];
+    pi = &d_pcache[transEqStart];
   }
-  pi.d_id = pic.d_id;
+  pi->d_id = pic.d_id;
   if (pic.isInternalRule())
   {
-    pi.d_vars = pic.d_vars;
+    pi->d_vars = pic.d_vars;
   }
   else
   {
-    pi.d_vars = vars;
-    pi.d_subs = subs;
+    pi->d_vars = vars;
+    pi->d_subs = subs;
   }
-  pi.d_iconds = iconds;
+  pi->d_iconds = iconds;
+  Trace("rpc-debug2")  << "...target proved by " << d_pcache[target].d_id << std::endl;
   // success
   return true;
 }
@@ -511,6 +513,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       if (cdp->hasStep(cur))
       {
         visited[cur] = true;
+        Trace("rpc-debug") << "...already proven" << std::endl;
       }
       else
       {
@@ -560,7 +563,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
                       itd->second.d_vars.end());
             if (itd->second.d_id == DslPfRule::CONG)
             {
-              pfArgs[cur].push_back(ProofRuleChecker::mkKindNode(cur.getKind()));
+              pfArgs[cur].push_back(ProofRuleChecker::mkKindNode(cur[0].getKind()));
               if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
               {
                 pfArgs[cur].push_back(cur.getOperator());
