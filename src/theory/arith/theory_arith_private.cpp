@@ -113,7 +113,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_diseqQueue(c, false),
       d_currentPropagationList(),
       d_learnedBounds(c),
-      d_preregisteredNodes(u),
+      d_preregisteredNodes(c),
       d_partialModel(c, DeltaComputeCallback(*this)),
       d_errorSet(
           d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(*this)),

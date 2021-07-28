@@ -183,9 +183,17 @@ void TheoryArith::postCheck(Effort level)
     // linear solver emitted a conflict or lemma, return
     return;
   }
+  if (d_im.hasSent())
+  {
+    return;
+  }
 
   d_arithModelCache.clear();
-  d_internal->collectModelValues({}, d_arithModelCache, false);
+  std::set<Node> termSet;
+  for (const auto& n: d_internal->d_preregisteredNodes) {
+    termSet.insert(n);
+  }
+  d_internal->collectModelValues(termSet, d_arithModelCache, true);
 
   // Double check that the model from the linear solver respects integer types,
   // if it does not, add a branch and bound lemma. This typically should never

@@ -268,6 +268,7 @@ private:
 
   context::CDQueue<ConstraintP> d_learnedBounds;
 
+public:
   /**
    * Contains all nodes that have been preregistered
    */
