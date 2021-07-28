@@ -16,11 +16,11 @@
 #include "theory/builtin/proof_checker.h"
 
 #include "expr/skolem_manager.h"
-#include "smt/term_formula_removal.h"
-#include "theory/evaluator.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
 #include "rewriter/rewrite_proof_rule.h"
+#include "smt/term_formula_removal.h"
+#include "theory/evaluator.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory.h"

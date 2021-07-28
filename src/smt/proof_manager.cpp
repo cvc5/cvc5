@@ -28,10 +28,10 @@
 #include "proof/proof_node_manager.h"
 #include "proof/verit/verit_post_processor.h"
 #include "proof/verit/verit_printer.h"
+#include "rewriter/rewrite_db.h"
 #include "smt/assertions.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
-#include "rewriter/rewrite_db.h"
 
 namespace cvc5 {
 namespace smt {

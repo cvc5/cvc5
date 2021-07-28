@@ -24,11 +24,11 @@
 #include "expr/node.h"
 #include "proof/proof.h"
 #include "proof/proof_generator.h"
-#include "theory/evaluator.h"
-#include "rewriter/rewrites.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
 #include "rewriter/rewrite_rcons.h"
+#include "rewriter/rewrites.h"
+#include "theory/evaluator.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
@@ -78,7 +78,7 @@ class RewriteDbProofCons
     uint32_t d_failMaxDepth;
     /** The inflection conditions */
     std::vector<Node> d_iconds;
-    /** 
+    /**
      * Is internal rule? these rules store children (if any) in d_vars.
      */
     bool isInternalRule() const { return isInternalDslPfRule(d_id); }

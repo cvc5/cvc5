@@ -25,8 +25,8 @@
 #include "expr/nary_term_util.h"
 #include "expr/node.h"
 #include "expr/term_canonize.h"
-#include "rewriter/rewrites.h"
 #include "rewriter/rewrite_proof_rule.h"
+#include "rewriter/rewrites.h"
 
 namespace cvc5 {
 namespace rewriter {
@@ -62,8 +62,7 @@ class RewriteDb
   /** get rule for id */
   const RewriteProofRule& getRule(DslPfRule id) const;
   /** get ids for conclusion */
-  const std::vector<DslPfRule>& getRuleIdsForConclusion(
-      Node eq) const;
+  const std::vector<DslPfRule>& getRuleIdsForConclusion(Node eq) const;
   /** get ids for head */
   const std::vector<DslPfRule>& getRuleIdsForHead(Node h) const;
 

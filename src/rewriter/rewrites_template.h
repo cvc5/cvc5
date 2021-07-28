@@ -22,7 +22,7 @@
 
 namespace cvc5 {
 namespace rewriter {
-  
+
 class RewriteDb;
 
 enum class DslPfRule : uint32_t

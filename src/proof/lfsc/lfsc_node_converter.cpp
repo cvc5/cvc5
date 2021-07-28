@@ -835,7 +835,7 @@ Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
 Kind LfscNodeConverter::getBuiltinKindForInternalSymbol(Node op) const
 {
   std::map<Node, Kind>::const_iterator it = d_symbolToBuiltinKind.find(op);
-  if (it!=d_symbolToBuiltinKind.end())
+  if (it != d_symbolToBuiltinKind.end())
   {
     return it->second;
   }

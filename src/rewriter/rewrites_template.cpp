@@ -15,8 +15,8 @@
 
 #include "expr/node.h"
 #include "expr/node_manager.h"
-#include "rewriter/rewrites.h"
 #include "rewriter/rewrite_db.h"
+#include "rewriter/rewrites.h"
 #include "util/string.h"
 
 using namespace cvc5::kind;
@@ -41,7 +41,9 @@ ${rules}$
 }
 bool isInternalDslPfRule(DslPfRule drule)
 {
-  return drule==DslPfRule::FAIL || drule == DslPfRule::REFL || drule==DslPfRule::EVAL || drule == DslPfRule::TRANS || drule == DslPfRule::CONG;
+  return drule == DslPfRule::FAIL || drule == DslPfRule::REFL
+         || drule == DslPfRule::EVAL || drule == DslPfRule::TRANS
+         || drule == DslPfRule::CONG;
 }
 const char* toString(DslPfRule drule)
 {
@@ -50,8 +52,7 @@ const char* toString(DslPfRule drule)
     case DslPfRule::FAIL: return "FAIL";
     case DslPfRule::REFL: return "REFL";
     case DslPfRule::EVAL: return "EVAL";
-    case DslPfRule::TRANS:
-      return "TRANS";
+    case DslPfRule::TRANS: return "TRANS";
     case DslPfRule::CONG:
       return "CONG";
       // clang-format off

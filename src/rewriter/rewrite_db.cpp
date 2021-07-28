@@ -16,8 +16,8 @@
 #include "rewriter/rewrite_db.h"
 
 #include "expr/node_algorithm.h"
-#include "rewriter/rewrites.h"
 #include "rewriter/rewrite_db_term_process.h"
+#include "rewriter/rewrites.h"
 
 using namespace cvc5::kind;
 
@@ -175,5 +175,5 @@ const std::vector<DslPfRule>& RewriteDb::getRuleIdsForHead(Node eq) const
   return d_emptyVec;
 }
 
-}  // namespace theory
+}  // namespace rewriter
 }  // namespace cvc5

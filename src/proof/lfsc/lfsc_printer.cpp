@@ -692,10 +692,10 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
               // Since conversion adds a null terminator, we have that
               // tt is of the form (f t (f null null)). We reconstruct
               // the proper term (f t null) below.
-              Assert (tt.getNumChildren()==2);
-              Assert (tt[1].getNumChildren()==2);
+              Assert(tt.getNumChildren() == 2);
+              Assert(tt[1].getNumChildren() == 2);
               std::vector<Node> tchildren;
-              if (tt.getMetaKind()==metakind::PARAMETERIZED)
+              if (tt.getMetaKind() == metakind::PARAMETERIZED)
               {
                 tchildren.push_back(tt.getOperator());
               }

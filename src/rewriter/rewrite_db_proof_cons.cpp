@@ -18,9 +18,9 @@
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
+#include "rewriter/rewrite_db_term_process.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
-#include "rewriter/rewrite_db_term_process.h"
 #include "theory/rewriter.h"
 
 using namespace cvc5::kind;
@@ -216,19 +216,18 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   std::vector<Node> iconds;
   Node transEq;
   ProvenInfo pic;
-  if (id==DslPfRule::CONG)
+  if (id == DslPfRule::CONG)
   {
     Trace("rpc-debug2") << "Check rule " << id << std::endl;
     pic.d_id = id;
     size_t nchild = target[0].getNumChildren();
-    if (nchild==0 || 
-        nchild!=target[1].getNumChildren() ||
-        target[0].getOperator()!=target[1].getOperator())
+    if (nchild == 0 || nchild != target[1].getNumChildren()
+        || target[0].getOperator() != target[1].getOperator())
     {
       // cannot show congruence between different operators
       return false;
     }
-    for (size_t i=0; i<nchild; i++)
+    for (size_t i = 0; i < nchild; i++)
     {
       if (!target[0][i].getType().isComparableTo(target[1][i].getType()))
       {
@@ -285,7 +284,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
         // use the substitution of the last proven equality, which determines
         // what the generated inflection conditions are
         Node lastEq = pic.d_vars.back();
-        Assert (d_pcache.find(lastEq)!=d_pcache.end());
+        Assert(d_pcache.find(lastEq) != d_pcache.end());
         ProvenInfo& pile = d_pcache[lastEq];
         Assert(pile.d_id == id);
         uvars = pile.d_vars;
@@ -303,7 +302,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
         conds.push_back(eq);
         // orient: target comes second
         Node seq = expr::narySubstitute(i.second.first, uvars, usubs)
-                        .eqNode(i.second.second);
+                       .eqNode(i.second.second);
         iconds.push_back(seq);
         Trace("rpc-debug2") << eq << " ";
       }
@@ -384,7 +383,8 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     pi->d_id = DslPfRule::TRANS;
     pi->d_vars.push_back(transEqStart);
     pi->d_vars.push_back(transEq);
-    Trace("rpc-debug2") << "...original equality was " << transEqStart << std::endl;
+    Trace("rpc-debug2") << "...original equality was " << transEqStart
+                        << std::endl;
     // we also prove the original
     pi = &d_pcache[transEqStart];
   }
@@ -399,7 +399,8 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     pi->d_subs = subs;
   }
   pi->d_iconds = iconds;
-  Trace("rpc-debug2")  << "...target proved by " << d_pcache[target].d_id << std::endl;
+  Trace("rpc-debug2") << "...target proved by " << d_pcache[target].d_id
+                      << std::endl;
   // success
   return true;
 }
@@ -563,7 +564,8 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
                       itd->second.d_vars.end());
             if (itd->second.d_id == DslPfRule::CONG)
             {
-              pfArgs[cur].push_back(ProofRuleChecker::mkKindNode(cur[0].getKind()));
+              pfArgs[cur].push_back(
+                  ProofRuleChecker::mkKindNode(cur[0].getKind()));
               if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
               {
                 pfArgs[cur].push_back(cur.getOperator());
@@ -956,5 +958,5 @@ size_t RewriteDbProofCons::getOrAssignTypeId(TypeNode tn)
   return id;
 }
 
-}  // namespace theory
+}  // namespace rewriter
 }  // namespace cvc5

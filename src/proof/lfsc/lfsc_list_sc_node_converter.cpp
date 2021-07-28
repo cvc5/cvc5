@@ -66,7 +66,9 @@ Node LfscListScNodeConverter::postConvert(Node n)
     }
     return n;
   }
-  Assert(k==kind::APPLY_UF || k==kind::APPLY_CONSTRUCTOR || !NodeManager::isNAryKind(k) || n.getNumChildren() == 2) << "Cannot convert LFSC side condition for " << n;
+  Assert(k == kind::APPLY_UF || k == kind::APPLY_CONSTRUCTOR
+         || !NodeManager::isNAryKind(k) || n.getNumChildren() == 2)
+      << "Cannot convert LFSC side condition for " << n;
   // note that after converting to binary form, variables should only appear
   // as the first child of binary applications of n-ary operators
   if (n.getNumChildren() == 2 && d_listVars.find(n[0]) != d_listVars.end())
@@ -77,10 +79,10 @@ Node LfscListScNodeConverter::postConvert(Node n)
     // We are in converted form, but need to get the null terminator for the
     // original term. Hence, we convert the application back to original form
     // if we replaced with an APPLY_UF.
-    if (k==kind::APPLY_UF)
+    if (k == kind::APPLY_UF)
     {
       k = d_conv.getBuiltinKindForInternalSymbol(n.getOperator());
-      Assert (k != kind::UNDEFINED_KIND);
+      Assert(k != kind::UNDEFINED_KIND);
       // for uniformity, reconstruct in original form
       std::vector<Node> nchildren(n.begin(), n.end());
       n = nm->mkNode(k, nchildren);
