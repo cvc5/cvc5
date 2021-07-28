@@ -604,6 +604,7 @@ set(regress_0_tests
   regress0/fp/issue6164.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2
+  regress0/fp/word-blast.smt2
   regress0/fp/wrong-model.smt2
   regress0/fuzz_1.smtv1.smt2
   regress0/fuzz_3.smtv1.smt2
@@ -2505,6 +2506,7 @@ set(regress_2_tests
   regress2/strings/issue6057-replace-re-all-simplified.smt2
   regress2/strings/issue6636-replace-re-all.smt2
   regress2/strings/issue6637-replace-re-all.smt2
+  regress2/strings/issue6639-replace-re-all.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/range-perf.smt2

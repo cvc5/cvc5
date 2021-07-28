@@ -257,6 +257,8 @@ enum class PfRule : uint32_t
   // where F is a solved equality of the form (= x t) derived as the solved
   // form of F', where F' is given as a child.
   TRUST_SUBS_EQ,
+  // where F is a fact derived by a theory-specific inference
+  THEORY_INFERENCE,
   // ========= SAT Refutation for assumption-based unsat cores
   // Children: (P1, ..., Pn)
   // Arguments: none
@@ -711,6 +713,15 @@ enum class PfRule : uint32_t
   // Conclusion: (not (= (select a k) (select b k)))
   // where k is arrays::SkolemCache::getExtIndexSkolem((not (= a b))).
   ARRAYS_EXT,
+  // ======== EQ_RANGE expansion
+  // Children: none
+  // Arguments: ((eqrange a b i j))
+  // ----------------------------------------
+  // Conclusion: (=
+  //              (eqrange a b i j)
+  //              (forall ((x T))
+  //               (=> (and (<= i x) (<= x j)) (= (select a x) (select b x)))))
+  ARRAYS_EQ_RANGE_EXPAND,
   // ======== Array Trust
   // Children: (P1 ... Pn)
   // Arguments: (F)
@@ -825,10 +836,16 @@ enum class PfRule : uint32_t
   SKOLEMIZE,
   // ======== Instantiate
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
-  // Arguments: (t1 ... tn)
+  // Arguments: (t1 ... tn, (id (t)?)? )
   // ----------------------------------------
   // Conclusion: F*sigma
-  // sigma maps x1 ... xn to t1 ... tn.
+  // where sigma maps x1 ... xn to t1 ... tn.
+  //
+  // The optional argument id indicates the inference id that caused the
+  // instantiation. The term t indicates an additional term (e.g. the trigger)
+  // associated with the instantiation, which depends on the id. If the id
+  // has prefix "QUANTIFIERS_INST_E_MATCHING", then t is the trigger that
+  // generated the instantiation.
   INSTANTIATE,
   // ======== (Trusted) quantifiers preprocess
   // Children: ?
@@ -1386,6 +1403,14 @@ enum class PfRule : uint32_t
   // (in variables x1...xn-1). It generates the conclusion that no xn exists
   // that extends the Cell and satisfies all assumptions.
   ARITH_NL_CAD_RECURSIVE,
+
+  //================================================ Place holder for Lfsc rules
+  // ======== Lfsc rule
+  // Children: (P1 ... Pn)
+  // Arguments: (id, Q, A1, ..., Am)
+  // ---------------------
+  // Conclusion: (Q)
+  LFSC_RULE,
 
   //================================================= Unknown rule
   UNKNOWN,

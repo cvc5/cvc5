@@ -19,6 +19,7 @@
 #include "expr/sygus_datatype.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -205,8 +206,8 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
             if (curr_val < prev_val)
             {
               // must have the same size
-              unsigned prev_size = d_tds->getSygusTermSize(prev_val);
-              unsigned curr_size = d_tds->getSygusTermSize(curr_val);
+              unsigned prev_size = datatypes::utils::getSygusTermSize(prev_val);
+              unsigned curr_size = datatypes::utils::getSygusTermSize(curr_val);
               Assert(prev_size <= curr_size);
               if (curr_size == prev_size)
               {

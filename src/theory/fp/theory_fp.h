@@ -114,6 +114,8 @@ class TheoryFp : public Theory
   };
   friend NotifyClass;
 
+  void notifySharedTerm(TNode n) override;
+
   NotifyClass d_notification;
 
   /** General utility. */
@@ -148,18 +150,19 @@ class TheoryFp : public Theory
   Node abstractFloatToReal(Node);
 
  private:
-
   ConversionAbstractionMap d_realToFloatMap;
   ConversionAbstractionMap d_floatToRealMap;
   AbstractionMap d_abstractionMap;  // abstract -> original
 
   /** The theory rewriter for this theory. */
   TheoryFpRewriter d_rewriter;
-  /** A (default) theory state object */
+  /** A (default) theory state object. */
   TheoryState d_state;
-  /** A (default) inference manager */
+  /** A (default) inference manager. */
   TheoryInferenceManager d_im;
-}; /* class TheoryFp */
+  /** Cache of word-blasted facts. */
+  context::CDHashSet<Node> d_wbFactsCache;
+};
 
 }  // namespace fp
 }  // namespace theory
