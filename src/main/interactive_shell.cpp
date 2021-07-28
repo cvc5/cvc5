@@ -17,7 +17,7 @@
  */
 #include "main/interactive_shell.h"
 
-#include <string.h>
+#include <cstring>
 #include <unistd.h>
 
 #include <algorithm>

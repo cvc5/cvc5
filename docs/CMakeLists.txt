@@ -37,6 +37,13 @@ add_custom_target(
   COMMENT "Generating Sphinx Api docs"
 )
 
+add_custom_command(
+  TARGET docs
+  POST_BUILD
+  COMMAND
+    ${CMAKE_COMMAND} -E cmake_echo_color --cyan "Preview docs in browser: file://localhost${SPHINX_OUTPUT_DIR}/index.html"
+)
+
 set(SPHINX_GH_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx-gh)
 add_custom_target(
   docs-gh ALL
