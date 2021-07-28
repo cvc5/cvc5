@@ -166,6 +166,7 @@ bool TheoryArith::preCheck(Effort level)
 
 void TheoryArith::postCheck(Effort level)
 {
+  d_im.reset();
   Trace("arith-check") << "TheoryArith::postCheck " << level << std::endl;
   // check with the non-linear solver at last call
   if (level == Theory::EFFORT_LAST_CALL)
@@ -181,10 +182,12 @@ void TheoryArith::postCheck(Effort level)
   if (d_internal->postCheck(level))
   {
     // linear solver emitted a conflict or lemma, return
+    Trace("arith-check") << "post-check emitted something" << std::endl;
     return;
   }
   if (d_im.hasSent())
   {
+    Trace("arith-check") << "d_im has sent something" << std::endl;
     return;
   }
 
@@ -200,8 +203,10 @@ void TheoryArith::postCheck(Effort level)
   // be necessary, but is needed in rare cases.
   bool addedLemma = false;
   bool badAssignment = false;
+  Trace("arith-check") << "model:" << std::endl;
   for (const auto& p : d_arithModelCache)
   {
+    Trace("arith-check") << p.first << " -> " << p.second << std::endl;
     if (p.first.getType().isInteger() && !p.second.getType().isInteger())
     {
       Assert(false) << "TheoryArithPrivate generated a bad model value for "
