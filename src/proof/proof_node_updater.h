@@ -123,8 +123,7 @@ class ProofNodeUpdater
    * respect to the original proof. For example, if (SCOPE P :args (A B)), we
    * may call this method on P with fa = { A, B }.
    */
-  void processInternal(std::shared_ptr<ProofNode> pf,
-                      std::vector<Node>& fa);
+  void processInternal(std::shared_ptr<ProofNode> pf, std::vector<Node>& fa);
   /**
    * Update proof node cur based on the callback. This modifies curr using
    * ProofNodeManager::updateNode based on the proof node constructed to

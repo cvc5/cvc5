@@ -72,9 +72,8 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
   processInternal(pf, d_freeAssumps);
 }
 
-void ProofNodeUpdater::processInternal(
-    std::shared_ptr<ProofNode> pf,
-    std::vector<Node>& fa)
+void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
+                                       std::vector<Node>& fa)
 {
   // Note that processInternal uses a single scope; fa is updated based on
   // the current free assumptions of the proof nodes on the stack.
@@ -167,8 +166,8 @@ void ProofNodeUpdater::processInternal(
       if (cur->getRule() == PfRule::SCOPE)
       {
         const std::vector<Node>& args = cur->getArguments();
-        Assert (fa.size()>=args.size());
-        fa.resize(fa.size()-args.size());
+        Assert(fa.size() >= args.size());
+        fa.resize(fa.size() - args.size());
       }
       runFinalize(cur, fa, resCache, cfaMap);
     }

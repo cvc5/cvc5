@@ -58,7 +58,7 @@ void getFreeAssumptionsMap(
 
 /**
  * Return true if pn contains free assumptions.
- * 
+ *
  * @param pn The proof node.
  * @param cfaMap Cache of results, mapping proof nodes to whether they contain
  * free assumptions.
