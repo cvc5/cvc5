@@ -7421,9 +7421,13 @@ void Solver::setOption(const std::string& option,
                        const std::string& value) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  if (option != "diagnostic-output-channel" && option != "print-success"
-      && option != "regular-output-channel"
-      && option != "reproducible-resource-limit" && option != "verbosity")
+  static constexpr auto mutableOpts = {"diagnostic-output-channel",
+                                       "print-success",
+                                       "regular-output-channel",
+                                       "reproducible-resource-limit",
+                                       "verbosity"};
+  if (std::find(mutableOpts.begin(), mutableOpts.end(), value)
+      == mutableOpts.end())
   {
     CVC5_API_CHECK(!d_smtEngine->isFullyInited())
         << "Invalid call to 'setOption', solver is already fully initialized";
