@@ -30,7 +30,6 @@
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
-#include "theory/quantifiers/instantiation_list.h"
 
 namespace cvc5 {
 
@@ -47,6 +46,7 @@ class LogicRequest;
 class StatisticsRegistry;
 class Printer;
 class ResourceManager;
+class InstantiationList;
 
 /* -------------------------------------------------------------------------- */
 
