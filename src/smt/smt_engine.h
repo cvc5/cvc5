@@ -677,7 +677,8 @@ class CVC5_EXPORT SmtEngine
    * refutation.
    */
   void getRelevantInstantiationTermVectors(
-      std::map<Node, InstantiationList>& insts);
+      std::map<Node, InstantiationList>& insts,
+      bool getDebugInfo = false);
   /**
    * Get instantiation term vectors, which maps each instantiated quantified
    * formula to the list of instantiations for that quantified formula. This

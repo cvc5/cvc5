@@ -175,7 +175,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetProofCommand());
     }
 
-    if (d_solver->getOptions().driver.dumpInstantiations
+    if ((d_solver->getOptions().driver.dumpInstantiations || d_solver->getOptions().driver.dumpInstantiationsDebug)
         && GetInstantiationsCommand::isEnabled(d_solver.get(), res))
     {
       getterCommands.emplace_back(new GetInstantiationsCommand());
