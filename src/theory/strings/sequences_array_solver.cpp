@@ -68,6 +68,7 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
     std::cerr << proxyIndex << ' ' << proxyElem << std::endl;
     Node left = nm->mkNode(SEQ_NTH, proxyVar, n[1]);
     Node right = nm->mkNode(SEQ_NTH, n[2], nm->mkConst(Rational(0)));
+    right = Rewriter::rewrite(right);
 
     if (!d_state.areEqual(left, right)) {
         Node eq = nm->mkNode(EQUAL,

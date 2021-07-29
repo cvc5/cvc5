@@ -218,6 +218,7 @@ const char* toString(Rewrite r)
     case Rewrite::SEQ_UNIT_EVAL: return "SEQ_UNIT_EVAL";
     case Rewrite::SEQ_NTH_EVAL: return "SEQ_NTH_EVAL";
     case Rewrite::SEQ_NTH_TOTAL_OOB: return "SEQ_NTH_TOTAL_OOB";
+    case Rewrite::SEQ_NTH_UNIT: return "SEQ_NTH_UNIT";
     default: return "?";
   }
 }

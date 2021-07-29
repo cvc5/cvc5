@@ -1616,15 +1616,12 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
       Node ret = s.getType().getSequenceElementType().mkGroundValue();
       return returnRewrite(node, ret, Rewrite::SEQ_NTH_TOTAL_OOB);
     }
-    else
-    {
-      return node;
-    }
   }
-  else
-  {
-    return node;
+  if (s.getKind() == SEQ_UNIT && i.isConst() && i.getConst<Rational>().isZero()) {
+    Node ret = s[0];
+    return returnRewrite(node, ret, Rewrite::SEQ_NTH_UNIT);
   }
+  return node;
 }
 
 Node SequencesRewriter::rewriteCharAt(Node node)
