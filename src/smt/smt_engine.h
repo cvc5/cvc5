@@ -46,7 +46,7 @@ class LogicRequest;
 class StatisticsRegistry;
 class Printer;
 class ResourceManager;
-class InstantiationList;
+struct InstantiationList;
 
 /* -------------------------------------------------------------------------- */
 
