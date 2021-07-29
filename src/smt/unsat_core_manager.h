@@ -21,6 +21,7 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "proof/proof_node.h"
+#include "theory/quantifiers/instantiation_list.h"
 
 namespace cvc5 {
 
@@ -63,7 +64,7 @@ class UnsatCoreManager
    */
   void getRelevantInstantiations(
       std::shared_ptr<ProofNode> pfn,
-      std::map<Node, std::vector<std::vector<Node>>>& insts);
+      std::map<Node, InstantiationList>& insts);
 
 }; /* class UnsatCoreManager */
 

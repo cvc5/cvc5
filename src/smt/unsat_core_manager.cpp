@@ -56,12 +56,12 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
 
 void UnsatCoreManager::getRelevantInstantiations(
     std::shared_ptr<ProofNode> pfn,
-    std::map<Node, std::vector<std::vector<Node>>>& insts)
+    std::map<Node, InstantiationList>& insts)
 {
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
   std::vector<std::shared_ptr<ProofNode>> visit;
-
+  std::map<Node, InstantiationList>::iterator itq;
   std::shared_ptr<ProofNode> cur;
   visit.push_back(pfn);
   do
@@ -82,8 +82,14 @@ void UnsatCoreManager::getRelevantInstantiations(
       Node q = cs[0]->getResult();
       // the instantiation is a prefix of the arguments up to the number of
       // variables
-      insts[q].push_back(
-          {instTerms.begin(), instTerms.begin() + q[0].getNumChildren()});
+      itq = insts.find(q);
+      if (itq==insts.end())
+      {
+        insts[q].initialize(q);
+        itq = insts.find(q);
+      }
+      itq->second.d_inst.push_back(InstantiationVec(
+          {instTerms.begin(), instTerms.begin() + q[0].getNumChildren()}));
     }
     for (const std::shared_ptr<ProofNode>& cp : cs)
     {
