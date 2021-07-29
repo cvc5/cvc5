@@ -18,10 +18,10 @@
 #include "expr/node_visitor.h"
 #include "proof/eager_proof_generator.h"
 #include "theory/care_graph.h"
+#include "theory/ee_manager_central.h"
 #include "theory/ee_manager_distributed.h"
 #include "theory/model_manager.h"
 #include "theory/model_manager_distributed.h"
-#include "theory/shared_solver.h"
 #include "theory/shared_solver_distributed.h"
 #include "theory/theory_engine.h"
 
@@ -52,6 +52,18 @@ CombinationEngine::CombinationEngine(TheoryEngine& te,
     // make the distributed equality engine manager
     d_eemanager.reset(
         new EqEngineManagerDistributed(d_te, *d_sharedSolver.get()));
+    // make the distributed model manager
+    d_mmanager.reset(
+        new ModelManagerDistributed(d_te, d_env, *d_eemanager.get()));
+  }
+  else if (options::eeMode() == options::EqEngineMode::CENTRAL)
+  {
+    // for now, the shared solver is the same in both approaches; use the
+    // distributed one for now
+    d_sharedSolver.reset(new SharedSolverDistributed(d_te, d_pnm));
+    // make the central equality engine manager
+    d_eemanager.reset(
+        new EqEngineManagerCentral(d_te, *d_sharedSolver.get(), d_pnm));
     // make the distributed model manager
     d_mmanager.reset(
         new ModelManagerDistributed(d_te, d_env, *d_eemanager.get()));
