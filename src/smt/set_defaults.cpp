@@ -982,6 +982,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // set up of central equality engine
+  if (opts.theory.eeMode == options::EqEngineMode::CENTRAL)
+  {
+    if (!opts.arith.arithEqSolverWasSetByUser)
+    {
+      // use the arithmetic equality solver by default
+      opts.arith.arithEqSolver = true;
+    }
+  }
   if (opts.arith.arithEqSolver)
   {
     if (!opts.arith.arithCongManWasSetByUser)
