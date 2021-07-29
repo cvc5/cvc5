@@ -823,6 +823,9 @@ std::ostream& operator<<(std::ostream& out, InferenceId i);
 /** Make node from inference id */
 Node mkInferenceIdNode(InferenceId i);
 
+/** get a inference identifier from a node, return false if we fail */
+bool getInferenceId(TNode n, InferenceId& i);
+
 }  // namespace theory
 }  // namespace cvc5
 
