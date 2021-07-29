@@ -16,6 +16,7 @@
 #include "theory/inference_id.h"
 
 #include <iostream>
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace theory {
@@ -243,9 +244,11 @@ const char* toString(InferenceId i)
     case InferenceId::SEP_DISTINCT_REF: return "SEP_DISTINCT_REF";
     case InferenceId::SEP_REF_BOUND: return "SEP_REF_BOUND";
 
+    case InferenceId::SETS_CG_SPLIT: return "SETS_CG_SPLIT";
     case InferenceId::SETS_COMPREHENSION: return "SETS_COMPREHENSION";
     case InferenceId::SETS_DEQ: return "SETS_DEQ";
     case InferenceId::SETS_DOWN_CLOSURE: return "SETS_DOWN_CLOSURE";
+    case InferenceId::SETS_EQ_CONFLICT: return "SETS_EQ_CONFLICT";
     case InferenceId::SETS_EQ_MEM: return "SETS_EQ_MEM";
     case InferenceId::SETS_EQ_MEM_CONFLICT: return "SETS_EQ_MEM_CONFLICT";
     case InferenceId::SETS_MEM_EQ: return "SETS_MEM_EQ";
@@ -391,6 +394,11 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
 {
   out << toString(i);
   return out;
+}
+
+Node mkInferenceIdNode(InferenceId i)
+{
+  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(i)));
 }
 
 }  // namespace theory

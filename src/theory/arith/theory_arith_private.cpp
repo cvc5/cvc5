@@ -137,7 +137,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                           d_partialModel,
                           RaiseEqualityEngineConflict(*this),
                           d_pnm),
-      d_cmEnabled(c, true),
+      d_cmEnabled(c, options::arithCongMan()),
 
       d_dualSimplex(
           d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),

@@ -147,6 +147,40 @@ bool BVSolverBitblastInternal::collectModelValues(TheoryModel* m,
   return d_bitblaster->collectModelValues(m, termSet);
 }
 
+Node BVSolverBitblastInternal::getValue(TNode node, bool initialize)
+{
+  if (node.isConst())
+  {
+    return node;
+  }
+
+  if (!d_bitblaster->hasBBTerm(node))
+  {
+    return initialize ? utils::mkConst(utils::getSize(node), 0u) : Node();
+  }
+
+  Valuation& val = d_state.getValuation();
+
+  std::vector<Node> bits;
+  d_bitblaster->getBBTerm(node, bits);
+  Integer value(0), one(1), zero(0), bit;
+  for (size_t i = 0, size = bits.size(), j = size - 1; i < size; ++i, --j)
+  {
+    bool satValue;
+    if (val.hasSatValue(bits[j], satValue))
+    {
+      bit = satValue ? one : zero;
+    }
+    else
+    {
+      if (!initialize) return Node();
+      bit = zero;
+    }
+    value = value * 2 + bit;
+  }
+  return utils::mkConst(bits.size(), value);
+}
+
 BVProofRuleChecker* BVSolverBitblastInternal::getProofChecker()
 {
   return &d_checker;

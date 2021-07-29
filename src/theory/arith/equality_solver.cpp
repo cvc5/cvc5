@@ -80,6 +80,11 @@ TrustNode EqualitySolver::explain(TNode lit)
 }
 bool EqualitySolver::propagateLit(Node lit)
 {
+  // if we've already propagated, ignore
+  if (d_aim.hasPropagated(lit))
+  {
+    return true;
+  }
   // notice this is only used when ee-mode=distributed
   // remember that this was a literal we propagated
   Trace("arith-eq-solver-debug") << "propagate lit " << lit << std::endl;
