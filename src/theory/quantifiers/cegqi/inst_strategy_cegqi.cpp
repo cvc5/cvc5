@@ -491,7 +491,7 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   else if (inst->addInstantiation(d_curr_quant,
                                   subs,
                                   InferenceId::QUANTIFIERS_INST_CEGQI,
-                                  false,
+                                  Node::null(),
                                   false,
                                   usedVts))
   {

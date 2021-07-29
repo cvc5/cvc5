@@ -86,11 +86,9 @@ TrustNode SharedSolverDistributed::explain(TNode literal, TheoryId id)
   return texp;
 }
 
-void SharedSolverDistributed::assertSharedEquality(TNode equality,
-                                                   bool polarity,
-                                                   TNode reason)
+void SharedSolverDistributed::assertShared(TNode n, bool polarity, TNode reason)
 {
-  d_sharedTerms.assertEquality(equality, polarity, reason);
+  d_sharedTerms.assertShared(n, polarity, reason);
 }
 
 }  // namespace theory

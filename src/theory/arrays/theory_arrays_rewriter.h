@@ -29,6 +29,9 @@
 #include "theory/type_enumerator.h"
 
 namespace cvc5 {
+
+class EagerProofGenerator;
+
 namespace theory {
 namespace arrays {
 
@@ -43,15 +46,17 @@ static inline Node mkEqNode(Node a, Node b) {
 
 class TheoryArraysRewriter : public TheoryRewriter
 {
-  /**
-   * Puts array constant node into normal form. This is so that array constants
-   * that are distinct nodes are semantically disequal.
-   */
-  static Node normalizeConstant(TNode node);
-
  public:
+  TheoryArraysRewriter(ProofNodeManager* pnm);
+
   /** Normalize a constant whose index type has cardinality indexCard */
   static Node normalizeConstant(TNode node, Cardinality indexCard);
+
+  /* Expands the eqrange predicate (eqrange a b i j) to the quantified formula
+   * (forall ((x T))
+   *  (=> (and (<= i x) (<= x j)) (= (select a x) (select b x)))).
+   */
+  static Node expandEqRange(TNode node);
 
   RewriteResponse postRewrite(TNode node) override;
 
@@ -62,6 +67,14 @@ class TheoryArraysRewriter : public TheoryRewriter
   static inline void init() {}
   static inline void shutdown() {}
 
+ private:
+  /**
+   * Puts array constant node into normal form. This is so that array constants
+   * that are distinct nodes are semantically disequal.
+   */
+  static Node normalizeConstant(TNode node);
+
+  std::unique_ptr<EagerProofGenerator> d_epg;
 }; /* class TheoryArraysRewriter */
 
 }  // namespace arrays

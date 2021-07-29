@@ -17,11 +17,13 @@
  */
 #include "main/interactive_shell.h"
 
+#include <cstring>
+#include <unistd.h>
+
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <set>
-#include <string.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -104,7 +106,8 @@ InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
   }
 
 #if HAVE_LIBEDITLINE
-  if(&d_in == &cin) {
+  if (&d_in == &std::cin && isatty(fileno(stdin)))
+  {
     ::rl_readline_name = const_cast<char*>("cvc5");
 #if EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP
     ::rl_completion_entry_function = commandGenerator;
@@ -155,7 +158,9 @@ InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
                  << ": " << strerror(err) << std::endl;
       }
     }
-  } else {
+  }
+  else
+  {
     d_usingEditline = false;
   }
 #else  /* HAVE_LIBEDITLINE */

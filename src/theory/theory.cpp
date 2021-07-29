@@ -22,6 +22,8 @@
 
 #include "base/check.h"
 #include "expr/node_algorithm.h"
+#include "options/arith_options.h"
+#include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "smt/smt_statistics_registry.h"
@@ -368,7 +370,7 @@ std::unordered_set<TNode> Theory::currentlySharedTerms() const
 bool Theory::collectModelInfo(TheoryModel* m, const std::set<Node>& termSet)
 {
   // if we are using an equality engine, assert it to the model
-  if (d_equalityEngine != nullptr)
+  if (d_equalityEngine != nullptr && !termSet.empty())
   {
     Trace("model-builder") << "Assert Equality engine for " << d_id
                            << std::endl;
@@ -613,10 +615,24 @@ bool Theory::usesCentralEqualityEngine(TheoryId id)
   {
     return false;
   }
-  // Below are all theories with an equality engine except id ==THEORY_ARITH
+  if (id == THEORY_ARITH)
+  {
+    // conditional on whether we are using the equality solver
+    return options::arithEqSolver();
+  }
+  if (id == THEORY_BV)
+  {
+    // the internal bitblast BV solver doesnt use an equality engine
+    return options::bvSolver() != options::BVSolver::BITBLAST_INTERNAL;
+  }
   return id == THEORY_UF || id == THEORY_DATATYPES || id == THEORY_BAGS
          || id == THEORY_FP || id == THEORY_SETS || id == THEORY_STRINGS
-         || id == THEORY_SEP || id == THEORY_ARRAYS || id == THEORY_BV;
+         || id == THEORY_SEP || id == THEORY_ARRAYS;
+}
+
+bool Theory::expUsingCentralEqualityEngine(TheoryId id)
+{
+  return id != THEORY_ARITH && usesCentralEqualityEngine(id);
 }
 
 }  // namespace theory
