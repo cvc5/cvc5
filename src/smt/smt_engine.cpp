@@ -1565,7 +1565,7 @@ UnsatCore SmtEngine::getUnsatCore() {
 }
 
 void SmtEngine::getRelevantInstantiationTermVectors(
-    std::map<Node, std::vector<std::vector<Node>>>& insts)
+    std::map<Node, InstantiationList>& insts)
 {
   Assert(d_state->getMode() == SmtMode::UNSAT);
   // generate with new proofs
@@ -1639,8 +1639,31 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   }
 
   // Second, extract and print the instantiations
-  std::map<Node, std::vector<std::vector<Node>>> insts;
-  getInstantiationTermVectors(insts);
+  std::map<Node, InstantiationList> rinsts;
+  if (d_env->getOptions().smt.produceProofs
+      && (!d_env->getOptions().smt.unsatCores
+          || d_env->getOptions().smt.unsatCoresMode == options::UnsatCoresMode::FULL_PROOF)
+      && getSmtMode() == SmtMode::UNSAT)
+  {
+    // minimize instantiations based on proof manager
+    getRelevantInstantiationTermVectors(rinsts);
+  }
+  else
+  {
+    std::map<Node, std::vector<std::vector<Node>>> insts;
+    getInstantiationTermVectors(insts);
+    for (const std::pair<const Node, std::vector<std::vector<Node>>>& i : insts)
+    {
+      // convert to instantiation list
+      Node q = i.first;
+      InstantiationList& ilq = rinsts[q];
+      ilq.initialize(q);
+      for( const std::vector<Node>& ii : i.second)
+      {
+        
+      }
+    }
+  }
   for (const std::pair<const Node, std::vector<std::vector<Node>>>& i : insts)
   {
     if (i.second.empty())
@@ -1662,9 +1685,10 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
     }
     else
     {
+      // write the name
+      i.second.d_quant = name;
       Assert(d_env->getOptions().printer.printInstMode
-             == options::PrintInstMode::LIST);
-      InstantiationList ilist(name, i.second);
+            == options::PrintInstMode::LIST);
       out << ilist;
     }
     printed = true;
@@ -1672,7 +1696,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   // if we did not print anything, we indicate this
   if (!printed)
   {
-    out << "No instantiations" << std::endl;
+    out << "none" << std::endl;
   }
   if (d_env->getOptions().printer.instFormatMode == options::InstFormatMode::SZS)
   {
@@ -1685,21 +1709,11 @@ void SmtEngine::getInstantiationTermVectors(
 {
   SmtScope smts(this);
   finishInit();
-  if (d_env->getOptions().smt.produceProofs
-      && (!d_env->getOptions().smt.unsatCores
-          || d_env->getOptions().smt.unsatCoresMode == options::UnsatCoresMode::FULL_PROOF)
-      && getSmtMode() == SmtMode::UNSAT)
-  {
-    // minimize instantiations based on proof manager
-    getRelevantInstantiationTermVectors(insts);
-  }
-  else
-  {
-    QuantifiersEngine* qe =
-        getAvailableQuantifiersEngine("getInstantiationTermVectors");
-    // otherwise, just get the list of all instantiations
-    qe->getInstantiationTermVectors(insts);
-  }
+  QuantifiersEngine* qe =
+      getAvailableQuantifiersEngine("getInstantiationTermVectors");
+  // otherwise, just get the list of all instantiations
+  std::map<Node, std::vector<std::vector<Node>>> allInsts;
+  qe->getInstantiationTermVectors(allInsts);
 }
 
 bool SmtEngine::getSynthSolutions(std::map<Node, Node>& solMap)

@@ -101,10 +101,10 @@ void Printer::toStream(std::ostream& out, const UnsatCore& core) const
 void Printer::toStream(std::ostream& out, const InstantiationList& is) const
 {
   out << "(instantiations " << is.d_quant << std::endl;
-  for (const std::vector<Node>& i : is.d_inst)
+  for (const InstantiationVec& i : is.d_inst)
   {
     out << "  ( ";
-    for (const Node& n : i)
+    for (const Node& n : i.d_vec)
     {
       out << n << " ";
     }

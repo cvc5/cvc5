@@ -30,6 +30,7 @@
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
+#include "theory/quantifiers/instantiation_list.h"
 
 namespace cvc5 {
 
@@ -676,7 +677,7 @@ class CVC5_EXPORT SmtEngine
    * refutation.
    */
   void getRelevantInstantiationTermVectors(
-      std::map<Node, std::vector<std::vector<Node>>>& insts);
+      std::map<Node, InstantiationList>& insts);
   /**
    * Get instantiation term vectors, which maps each instantiated quantified
    * formula to the list of instantiations for that quantified formula. This
