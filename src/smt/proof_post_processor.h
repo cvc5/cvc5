@@ -24,8 +24,8 @@
 
 #include "proof/proof_node_updater.h"
 #include "smt/witness_form.h"
-#include "util/statistics_stats.h"
 #include "theory/inference_id.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 

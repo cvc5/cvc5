@@ -1182,9 +1182,10 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
 ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(
     ProofNodeManager* pnm)
     : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
-        "finalProof::ruleCount")),
-      d_instRuleIds(smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
-        "finalProof::instRuleId")),
+          "finalProof::ruleCount")),
+      d_instRuleIds(
+          smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
+              "finalProof::instRuleId")),
       d_totalRuleCount(
           smtStatisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
@@ -1230,11 +1231,11 @@ bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   d_ruleCount << r;
   ++d_totalRuleCount;
   // take stats on the instantiations in the proof
-  if (r==PfRule::INSTANTIATE)
+  if (r == PfRule::INSTANTIATE)
   {
     Node q = pn->getChildren()[0]->getResult();
     const std::vector<Node>& args = pn->getArguments();
-    if (args.size()>q[0].getNumChildren())
+    if (args.size() > q[0].getNumChildren())
     {
       InferenceId id;
       if (getInferenceId(args[q[0].getNumChildren()], id))
