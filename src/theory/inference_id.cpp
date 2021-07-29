@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include "util/rational.h"
+#include "proof/proof_checker.h"
 
 namespace cvc5 {
 namespace theory {
@@ -399,6 +400,17 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
 Node mkInferenceIdNode(InferenceId i)
 {
   return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(i)));
+}
+
+bool getInferenceId(TNode n, InferenceId& i)
+{
+  uint32_t index;
+  if (!ProofRuleChecker::getUInt32(n, index))
+  {
+    return false;
+  }
+  i = static_cast<InferenceId>(index);
+  return true;
 }
 
 }  // namespace theory

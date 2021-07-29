@@ -56,7 +56,7 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
 
 void UnsatCoreManager::getRelevantInstantiations(
     std::shared_ptr<ProofNode> pfn,
-    std::map<Node, InstantiationList>& insts)
+    std::map<Node, InstantiationList>& insts, bool getMetaInfo)
 {
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
@@ -90,6 +90,18 @@ void UnsatCoreManager::getRelevantInstantiations(
       }
       itq->second.d_inst.push_back(InstantiationVec(
           {instTerms.begin(), instTerms.begin() + q[0].getNumChildren()}));
+      if (getMetaInfo)
+      {
+        std::vector<Node> extraArgs(instTerms.begin() + q[0].getNumChildren(), instTerms.end());
+        if (extraArgs.size()>=1)
+        {
+          getInferenceId(extraArgs[0], itq->second.d_inst.back().d_id);
+        }
+        if (extraArgs.size()>=2)
+        {
+          itq->second.d_inst.back().d_pfArg = extraArgs[1];
+        }
+      }
     }
     for (const std::shared_ptr<ProofNode>& cp : cs)
     {

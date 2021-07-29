@@ -64,7 +64,8 @@ class UnsatCoreManager
    */
   void getRelevantInstantiations(
       std::shared_ptr<ProofNode> pfn,
-      std::map<Node, InstantiationList>& insts);
+      std::map<Node, InstantiationList>& insts,
+      bool getMetaInfo = false);
 
 }; /* class UnsatCoreManager */
 

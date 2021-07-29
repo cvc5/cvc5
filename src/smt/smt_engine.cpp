@@ -1711,9 +1711,8 @@ void SmtEngine::getInstantiationTermVectors(
   finishInit();
   QuantifiersEngine* qe =
       getAvailableQuantifiersEngine("getInstantiationTermVectors");
-  // otherwise, just get the list of all instantiations
-  std::map<Node, std::vector<std::vector<Node>>> allInsts;
-  qe->getInstantiationTermVectors(allInsts);
+  // get the list of all instantiations
+  qe->getInstantiationTermVectors(insts);
 }
 
 bool SmtEngine::getSynthSolutions(std::map<Node, Node>& solMap)
