@@ -28,8 +28,10 @@ namespace cvc5 {
 
 struct InstantiationVec
 {
-public:
-  InstantiationVec(const std::vector<Node>& vec, theory::InferenceId id = theory::InferenceId::UNKNOWN, Node pfArg = Node::null());
+ public:
+  InstantiationVec(const std::vector<Node>& vec,
+                   theory::InferenceId id = theory::InferenceId::UNKNOWN,
+                   Node pfArg = Node::null());
   /** The vector of terms */
   std::vector<Node> d_vec;
   /** The inference id */
@@ -37,7 +39,7 @@ public:
   /** The proof argument */
   Node d_pfArg;
 };
-  
+
 /** A list of instantiations for a quantified formula */
 struct InstantiationList
 {
@@ -46,7 +48,7 @@ struct InstantiationList
   /** The quantified formula */
   Node d_quant;
   /** The instantiation list */
-  std::vector<InstantiationVec > d_inst;
+  std::vector<InstantiationVec> d_inst;
 };
 
 /** Print the instantiation list to stream out */

@@ -80,8 +80,8 @@ Trigger::Trigger(QuantifiersState& qs,
   if (Output.isOn(options::OutputTag::TRIGGER))
   {
     QuantAttributes& qa = d_qreg.getQuantAttributes();
-    Output(options::OutputTag::TRIGGER)
-        << "(trigger " << qa.quantToString(q) << " " << d_trNode << ")" << std::endl;
+    Output(options::OutputTag::TRIGGER) << "(trigger " << qa.quantToString(q)
+                                        << " " << d_trNode << ")" << std::endl;
   }
   QuantifiersStatistics& stats = qs.getStats();
   if( d_nodes.size()==1 ){

@@ -56,7 +56,8 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
 
 void UnsatCoreManager::getRelevantInstantiations(
     std::shared_ptr<ProofNode> pfn,
-    std::map<Node, InstantiationList>& insts, bool getDebugInfo)
+    std::map<Node, InstantiationList>& insts,
+    bool getDebugInfo)
 {
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
@@ -83,7 +84,7 @@ void UnsatCoreManager::getRelevantInstantiations(
       // the instantiation is a prefix of the arguments up to the number of
       // variables
       itq = insts.find(q);
-      if (itq==insts.end())
+      if (itq == insts.end())
       {
         insts[q].initialize(q);
         itq = insts.find(q);
@@ -92,12 +93,13 @@ void UnsatCoreManager::getRelevantInstantiations(
           {instTerms.begin(), instTerms.begin() + q[0].getNumChildren()}));
       if (getDebugInfo)
       {
-        std::vector<Node> extraArgs(instTerms.begin() + q[0].getNumChildren(), instTerms.end());
-        if (extraArgs.size()>=1)
+        std::vector<Node> extraArgs(instTerms.begin() + q[0].getNumChildren(),
+                                    instTerms.end());
+        if (extraArgs.size() >= 1)
         {
           getInferenceId(extraArgs[0], itq->second.d_inst.back().d_id);
         }
-        if (extraArgs.size()>=2)
+        if (extraArgs.size() >= 2)
         {
           itq->second.d_inst.back().d_pfArg = extraArgs[1];
         }

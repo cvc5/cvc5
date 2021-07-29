@@ -1565,8 +1565,7 @@ UnsatCore SmtEngine::getUnsatCore() {
 }
 
 void SmtEngine::getRelevantInstantiationTermVectors(
-    std::map<Node, InstantiationList>& insts,
-      bool getDebugInfo)
+    std::map<Node, InstantiationList>& insts, bool getDebugInfo)
 {
   Assert(d_state->getMode() == SmtMode::UNSAT);
   // generate with new proofs
@@ -1643,11 +1642,13 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   std::map<Node, InstantiationList> rinsts;
   if (d_env->getOptions().smt.produceProofs
       && (!d_env->getOptions().smt.unsatCores
-          || d_env->getOptions().smt.unsatCoresMode == options::UnsatCoresMode::FULL_PROOF)
+          || d_env->getOptions().smt.unsatCoresMode
+                 == options::UnsatCoresMode::FULL_PROOF)
       && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize instantiations based on proof manager
-    getRelevantInstantiationTermVectors(rinsts, options::dumpInstantiationsDebug());
+    getRelevantInstantiationTermVectors(rinsts,
+                                        options::dumpInstantiationsDebug());
   }
   else
   {
@@ -1659,7 +1660,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
       Node q = i.first;
       InstantiationList& ilq = rinsts[q];
       ilq.initialize(q);
-      for( const std::vector<Node>& ii : i.second)
+      for (const std::vector<Node>& ii : i.second)
       {
         ilq.d_inst.push_back(InstantiationVec(ii));
       }
@@ -1681,15 +1682,15 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
     // must have a name
     if (d_env->getOptions().printer.printInstMode == options::PrintInstMode::NUM)
     {
-      out << "(num-instantiations " << name << " " << i.second.d_inst.size() << ")"
-          << std::endl;
+      out << "(num-instantiations " << name << " " << i.second.d_inst.size()
+          << ")" << std::endl;
     }
     else
     {
       // take the name
       i.second.d_quant = name;
       Assert(d_env->getOptions().printer.printInstMode
-            == options::PrintInstMode::LIST);
+             == options::PrintInstMode::LIST);
       out << i.second;
     }
     printed = true;

@@ -104,7 +104,7 @@ void Printer::toStream(std::ostream& out, const InstantiationList& is) const
   for (const InstantiationVec& i : is.d_inst)
   {
     out << "  ";
-    if (i.d_id!=theory::InferenceId::UNKNOWN)
+    if (i.d_id != theory::InferenceId::UNKNOWN)
     {
       out << "(! ";
     }
@@ -114,7 +114,7 @@ void Printer::toStream(std::ostream& out, const InstantiationList& is) const
       out << n << " ";
     }
     out << ")";
-    if (i.d_id!=theory::InferenceId::UNKNOWN)
+    if (i.d_id != theory::InferenceId::UNKNOWN)
     {
       out << " :source " << i.d_id;
       if (!i.d_pfArg.isNull())
