@@ -174,9 +174,9 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   //-------------------------------------------- end initialization
 
   /**
-   * Asserts the equality to the shared terms database,
+   * Asserts n to the shared terms database with given polarity and reason
    */
-  void assertEquality(TNode equality, bool polarity, TNode reason);
+  void assertShared(TNode n, bool polarity, TNode reason);
 
   /**
    * Return whether the equality is alreday known to the engine
@@ -271,8 +271,10 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   context::UserContext* d_userContext;
   /** Equality engine */
   theory::eq::EqualityEngine* d_equalityEngine;
-  /** Proof equality engine */
-  std::unique_ptr<theory::eq::ProofEqEngine> d_pfee;
+  /** Proof equality engine, if we allocated one */
+  std::unique_ptr<theory::eq::ProofEqEngine> d_pfeeAlloc;
+  /** The proof equality engine we are using */
+  theory::eq::ProofEqEngine* d_pfee;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
 };
