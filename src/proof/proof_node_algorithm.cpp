@@ -136,6 +136,81 @@ void getFreeAssumptionsMap(
   } while (!visit.empty());
 }
 
+bool containsFreeAssumption(
+    const ProofNode * pn,
+    std::unordered_map<const ProofNode *, bool>& cfaMap)
+{
+  std::unordered_map<const ProofNode*, bool> visited;
+  std::unordered_map<const ProofNode*, bool>::iterator it;
+  std::vector<const ProofNode*> visit;
+  visit.push_back(pn);
+  const ProofNode* cur;
+  while (!visit.empty())
+  {
+    cur = visit.back();
+    visit.pop_back();
+    // have we already computed?
+    it = cfaMap.find(cur);
+    if (it!=cfaMap.end())
+    {
+      if (it->second)
+      {
+        return true;
+      }
+      continue;
+    }
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      PfRule r = cur->getRule();
+      /*
+      if (r==PfRule::SCOPE)
+      {
+        // compute scope directly
+        visited[cur] = true;
+        std::vector<Node> assumps;
+        expr::getFreeAssumptions(cur, assumps);
+        cfaMap[cur] = !assumps.empty();
+      }
+      else 
+        */
+      if (r== PfRule::SCOPE || r == PfRule::ASSUME)
+      {
+        visited[cur] = true;
+        cfaMap[cur] = true;
+      }
+      else
+      {
+        visited[cur] = false;
+        visit.push_back(cur);
+        const std::vector<std::shared_ptr<ProofNode>>& children =
+            cur->getChildren();
+        for (const std::shared_ptr<ProofNode>& cp : children)
+        {
+          visit.push_back(cp.get());
+        }
+      }
+    }
+    else if (!it->second)
+    {
+      visited[cur] = true;
+      bool hasFa = false;
+      const std::vector<std::shared_ptr<ProofNode>>& children =
+          cur->getChildren();
+      for (const std::shared_ptr<ProofNode>& cp : children)
+      {
+        if (cfaMap[cp.get()])
+        {
+          hasFa = true;
+          break;
+        }
+      }
+      cfaMap[cur] = hasFa;
+    }
+  }
+  return cfaMap[cur];
+}
+
 bool containsSubproof(ProofNode* pn, ProofNode* pnc)
 {
   std::unordered_set<const ProofNode*> visited;

@@ -70,13 +70,15 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
     }
   }
   std::vector<std::shared_ptr<ProofNode>> traversing;
-  processInternal(pf, d_freeAssumps, traversing);
+  std::unordered_map<const ProofNode *, bool> cfaMap;
+  processInternal(pf, d_freeAssumps, traversing, cfaMap);
 }
 
 void ProofNodeUpdater::processInternal(
     std::shared_ptr<ProofNode> pf,
     const std::vector<Node>& fa,
-    std::vector<std::shared_ptr<ProofNode>>& traversing)
+    std::vector<std::shared_ptr<ProofNode>>& traversing,
+                   std::unordered_map<const ProofNode *, bool>& cfaMap)
 {
   Trace("pf-process") << "ProofNodeUpdater::process" << std::endl;
   std::unordered_map<std::shared_ptr<ProofNode>, bool> visited;
@@ -103,9 +105,14 @@ void ProofNodeUpdater::processInternal(
         itc = resCache.find(res);
         if (itc != resCache.end())
         {
+          Trace("ajr-temp") << "Update: " << *cur.get() << std::endl;
+          Trace("ajr-temp") << "New: " << *itc->second.get() << std::endl;
           // already have a proof, merge it into this one
           visited[cur] = true;
           d_pnm->updateNode(cur.get(), itc->second.get());
+          // does not contain free assumptions since the range of resCache does
+          // not contain free assumptions
+          cfaMap[cur.get()] = false;
           continue;
         }
       }
@@ -121,7 +128,7 @@ void ProofNodeUpdater::processInternal(
         // no further changes should be made to cur according to the callback
         Trace("pf-process-debug")
             << "...marked to not continue update." << std::endl;
-        runFinalize(cur, fa, resCache);
+        runFinalize(cur, fa, resCache, cfaMap);
         continue;
       }
       traversing.push_back(cur);
@@ -139,7 +146,7 @@ void ProofNodeUpdater::processInternal(
         nfa.insert(nfa.end(), args.begin(), args.end());
         Trace("pfnu-debug2") << "Process new scope with " << args << std::endl;
         // Process in new call separately
-        processInternal(cur, nfa, traversing);
+        processInternal(cur, nfa, traversing, cfaMap);
         continue;
       }
       const std::vector<std::shared_ptr<ProofNode>>& ccp = cur->getChildren();
@@ -163,7 +170,7 @@ void ProofNodeUpdater::processInternal(
       traversing.pop_back();
       visited[cur] = true;
       // finalize the node
-      runFinalize(cur, fa, resCache);
+      runFinalize(cur, fa, resCache, cfaMap);
     }
   } while (!visit.empty());
   Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
@@ -227,13 +234,18 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
 void ProofNodeUpdater::runFinalize(
     std::shared_ptr<ProofNode> cur,
     const std::vector<Node>& fa,
-    std::map<Node, std::shared_ptr<ProofNode>>& resCache)
+    std::map<Node, std::shared_ptr<ProofNode>>& resCache,
+    std::unordered_map<const ProofNode *, bool>& cfaMap)
 {
   if (d_mergeSubproofs)
   {
-    Node res = cur->getResult();
-    // cache result if we are merging subproofs
-    resCache[res] = cur;
+    // cache the result if we don't contain a free assumption
+    if (!expr::containsFreeAssumption(cur.get(), cfaMap))
+    {
+      Node res = cur->getResult();
+      // cache result if we are merging subproofs
+      resCache[res] = cur;
+    }
   }
   if (d_debugFreeAssumps)
   {

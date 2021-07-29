@@ -57,6 +57,13 @@ void getFreeAssumptionsMap(
     std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& amap);
 
 /**
+ * Contains free assumption.
+ */
+bool containsFreeAssumption(
+    const ProofNode * pn,
+    std::unordered_map<const ProofNode *, bool>& cfaMap);
+
+/**
  * @return true if pn contains pnc.
  */
 bool containsSubproof(ProofNode* pn, ProofNode* pnc);

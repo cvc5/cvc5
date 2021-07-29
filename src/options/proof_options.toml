@@ -77,6 +77,14 @@ name   = "Proof"
   help       = "debug proof node updater"
 
 [[option]]
+  name       = "proofPpMerge"
+  category   = "regular"
+  long       = "proof-pp-merge"
+  type       = "bool"
+  default    = "true"
+  help       = "merge subproofs in final proof post-processor"
+
+[[option]]
   name       = "proofGranularityMode"
   category   = "regular"
   long       = "proof-granularity=MODE"
