@@ -35,6 +35,14 @@ struct ExtIndexVarAttributeId
 };
 typedef expr::Attribute<ExtIndexVarAttributeId, Node> ExtIndexVarAttribute;
 
+/**
+ * A bound variable corresponding to the index used in the eqrange expansion.
+ */
+struct EqRangeVarAttributeId
+{
+};
+typedef expr::Attribute<EqRangeVarAttributeId, Node> EqRangeVarAttribute;
+
 SkolemCache::SkolemCache() {}
 
 Node SkolemCache::getExtIndexSkolem(Node deq)
@@ -64,6 +72,13 @@ Node SkolemCache::getExtIndexSkolem(Node deq)
       axiom,
       "array_ext_index",
       "an extensional lemma index variable from the theory of arrays");
+}
+
+Node SkolemCache::getEqRangeVar(TNode eqr)
+{
+  Assert(eqr.getKind() == kind::EQ_RANGE);
+  BoundVarManager* bvm = NodeManager::currentNM()->getBoundVarManager();
+  return bvm->mkBoundVar<EqRangeVarAttribute>(eqr, eqr[2].getType());
 }
 
 Node SkolemCache::getExtIndexVar(Node deq)

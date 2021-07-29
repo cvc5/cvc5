@@ -20,6 +20,8 @@
 
 #include <iosfwd>
 
+#include "expr/node.h"
+
 namespace cvc5 {
 namespace theory {
 
@@ -785,6 +787,9 @@ const char* toString(InferenceId i);
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, InferenceId i);
+
+/** Make node from inference id */
+Node mkInferenceIdNode(InferenceId i);
 
 }  // namespace theory
 }  // namespace cvc5

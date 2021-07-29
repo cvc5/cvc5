@@ -172,6 +172,11 @@ Node BBProof::getStoredBBAtom(TNode node)
   return d_bb->getStoredBBAtom(node);
 }
 
+void BBProof::getBBTerm(TNode node, Bits& bits) const
+{
+  d_bb->getBBTerm(node, bits);
+}
+
 bool BBProof::collectModelValues(TheoryModel* m,
                                  const std::set<Node>& relevantTerms)
 {

@@ -120,6 +120,7 @@ const char* toString(PfRule id)
     case PfRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
     case PfRule::ARRAYS_EXT: return "ARRAYS_EXT";
     case PfRule::ARRAYS_TRUST: return "ARRAYS_TRUST";
+    case PfRule::ARRAYS_EQ_RANGE_EXPAND: return "ARRAYS_EQ_RANGE_EXPAND";
     //================================================= Bit-Vector rules
     case PfRule::BV_BITBLAST: return "BV_BITBLAST";
     case PfRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
@@ -201,6 +202,8 @@ const char* toString(PfRule id)
       return "ARITH_TRANS_SINE_APPROX_BELOW_POS";
     case PfRule::ARITH_NL_CAD_DIRECT: return "ARITH_NL_CAD_DIRECT";
     case PfRule::ARITH_NL_CAD_RECURSIVE: return "ARITH_NL_CAD_RECURSIVE";
+    //================================================= External rules
+    case PfRule::LFSC_RULE: return "LFSC_RULE";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";

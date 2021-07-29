@@ -48,7 +48,7 @@ ExtendedRewriter::ExtendedRewriter(bool aggr) : d_aggr(aggr)
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-void ExtendedRewriter::setCache(Node n, Node ret)
+void ExtendedRewriter::setCache(Node n, Node ret) const
 {
   if (d_aggr)
   {
@@ -62,7 +62,7 @@ void ExtendedRewriter::setCache(Node n, Node ret)
   }
 }
 
-Node ExtendedRewriter::getCache(Node n)
+Node ExtendedRewriter::getCache(Node n) const
 {
   if (d_aggr)
   {
@@ -83,7 +83,7 @@ Node ExtendedRewriter::getCache(Node n)
 
 bool ExtendedRewriter::addToChildren(Node nc,
                                      std::vector<Node>& children,
-                                     bool dropDup)
+                                     bool dropDup) const
 {
   // If the operator is non-additive, do not consider duplicates
   if (dropDup
@@ -95,7 +95,7 @@ bool ExtendedRewriter::addToChildren(Node nc,
   return true;
 }
 
-Node ExtendedRewriter::extendedRewrite(Node n)
+Node ExtendedRewriter::extendedRewrite(Node n) const
 {
   n = Rewriter::rewrite(n);
 
@@ -280,7 +280,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   return ret;
 }
 
-Node ExtendedRewriter::extendedRewriteAggr(Node n)
+Node ExtendedRewriter::extendedRewriteAggr(Node n) const
 {
   Node new_ret;
   Trace("q-ext-rewrite-debug2")
@@ -341,7 +341,7 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n)
   return new_ret;
 }
 
-Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
+Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
 {
   Assert(n.getKind() == itek);
   Assert(n[1] != n[2]);
@@ -561,7 +561,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
   return new_ret;
 }
 
-Node ExtendedRewriter::extendedRewriteAndOr(Node n)
+Node ExtendedRewriter::extendedRewriteAndOr(Node n) const
 {
   // all the below rewrites are aggressive
   if (!d_aggr)
@@ -592,7 +592,7 @@ Node ExtendedRewriter::extendedRewriteAndOr(Node n)
   return new_ret;
 }
 
-Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
+Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
 {
   Assert(n.getKind() != ITE);
   if (n.isClosure())
@@ -715,7 +715,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
   return Node::null();
 }
 
-Node ExtendedRewriter::extendedRewriteNnf(Node ret)
+Node ExtendedRewriter::extendedRewriteNnf(Node ret) const
 {
   Assert(ret.getKind() == NOT);
 
@@ -761,8 +761,11 @@ Node ExtendedRewriter::extendedRewriteNnf(Node ret)
   return NodeManager::currentNM()->mkNode(nk, new_children);
 }
 
-Node ExtendedRewriter::extendedRewriteBcp(
-    Kind andk, Kind ork, Kind notk, std::map<Kind, bool>& bcp_kinds, Node ret)
+Node ExtendedRewriter::extendedRewriteBcp(Kind andk,
+                                          Kind ork,
+                                          Kind notk,
+                                          std::map<Kind, bool>& bcp_kinds,
+                                          Node ret) const
 {
   Kind k = ret.getKind();
   Assert(k == andk || k == ork);
@@ -926,7 +929,7 @@ Node ExtendedRewriter::extendedRewriteBcp(
 Node ExtendedRewriter::extendedRewriteFactoring(Kind andk,
                                                 Kind ork,
                                                 Kind notk,
-                                                Node n)
+                                                Node n) const
 {
   Trace("ext-rew-factoring") << "Factoring: *** INPUT: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
@@ -1019,7 +1022,7 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
                                             Kind notk,
                                             std::map<Kind, bool>& bcp_kinds,
                                             Node n,
-                                            bool isXor)
+                                            bool isXor) const
 {
   Assert(n.getKind() == andk || n.getKind() == ork);
   Trace("ext-rew-eqres") << "Eq res: **** INPUT: " << n << std::endl;
@@ -1166,7 +1169,7 @@ class SimpSubsumeTrie
 };
 
 Node ExtendedRewriter::extendedRewriteEqChain(
-    Kind eqk, Kind andk, Kind ork, Kind notk, Node ret, bool isXor)
+    Kind eqk, Kind andk, Kind ork, Kind notk, Node ret, bool isXor) const
 {
   Assert(ret.getKind() == eqk);
 
@@ -1527,9 +1530,10 @@ Node ExtendedRewriter::extendedRewriteEqChain(
   return Node::null();
 }
 
-Node ExtendedRewriter::partialSubstitute(Node n,
-                                         const std::map<Node, Node>& assign,
-                                         const std::map<Kind, bool>& rkinds)
+Node ExtendedRewriter::partialSubstitute(
+    Node n,
+    const std::map<Node, Node>& assign,
+    const std::map<Kind, bool>& rkinds) const
 {
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
@@ -1601,10 +1605,11 @@ Node ExtendedRewriter::partialSubstitute(Node n,
   return visited[n];
 }
 
-Node ExtendedRewriter::partialSubstitute(Node n,
-                                         const std::vector<Node>& vars,
-                                         const std::vector<Node>& subs,
-                                         const std::map<Kind, bool>& rkinds)
+Node ExtendedRewriter::partialSubstitute(
+    Node n,
+    const std::vector<Node>& vars,
+    const std::vector<Node>& subs,
+    const std::map<Kind, bool>& rkinds) const
 {
   Assert(vars.size() == subs.size());
   std::map<Node, Node> assign;
@@ -1615,7 +1620,7 @@ Node ExtendedRewriter::partialSubstitute(Node n,
   return partialSubstitute(n, assign, rkinds);
 }
 
-Node ExtendedRewriter::solveEquality(Node n)
+Node ExtendedRewriter::solveEquality(Node n) const
 {
   // TODO (#1706) : implement
   Assert(n.getKind() == EQUAL);
@@ -1626,7 +1631,7 @@ Node ExtendedRewriter::solveEquality(Node n)
 bool ExtendedRewriter::inferSubstitution(Node n,
                                          std::vector<Node>& vars,
                                          std::vector<Node>& subs,
-                                         bool usePred)
+                                         bool usePred) const
 {
   if (n.getKind() == AND)
   {
@@ -1696,7 +1701,7 @@ bool ExtendedRewriter::inferSubstitution(Node n,
   return false;
 }
 
-Node ExtendedRewriter::extendedRewriteStrings(Node ret)
+Node ExtendedRewriter::extendedRewriteStrings(Node ret) const
 {
   Node new_ret;
   Trace("q-ext-rewrite-debug")
