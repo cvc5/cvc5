@@ -70,7 +70,7 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
     }
   }
   std::vector<std::shared_ptr<ProofNode>> traversing;
-  std::unordered_map<const ProofNode *, bool> cfaMap;
+  std::unordered_map<const ProofNode*, bool> cfaMap;
   processInternal(pf, d_freeAssumps, traversing, cfaMap);
 }
 
@@ -78,7 +78,7 @@ void ProofNodeUpdater::processInternal(
     std::shared_ptr<ProofNode> pf,
     const std::vector<Node>& fa,
     std::vector<std::shared_ptr<ProofNode>>& traversing,
-                   std::unordered_map<const ProofNode *, bool>& cfaMap)
+    std::unordered_map<const ProofNode*, bool>& cfaMap)
 {
   Trace("pf-process") << "ProofNodeUpdater::process" << std::endl;
   std::unordered_map<std::shared_ptr<ProofNode>, bool> visited;
@@ -235,7 +235,7 @@ void ProofNodeUpdater::runFinalize(
     std::shared_ptr<ProofNode> cur,
     const std::vector<Node>& fa,
     std::map<Node, std::shared_ptr<ProofNode>>& resCache,
-    std::unordered_map<const ProofNode *, bool>& cfaMap)
+    std::unordered_map<const ProofNode*, bool>& cfaMap)
 {
   if (d_mergeSubproofs)
   {

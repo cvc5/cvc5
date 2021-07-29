@@ -136,9 +136,8 @@ void getFreeAssumptionsMap(
   } while (!visit.empty());
 }
 
-bool containsFreeAssumption(
-    const ProofNode * pn,
-    std::unordered_map<const ProofNode *, bool>& cfaMap)
+bool containsFreeAssumption(const ProofNode* pn,
+                            std::unordered_map<const ProofNode*, bool>& cfaMap)
 {
   std::unordered_map<const ProofNode*, bool> visited;
   std::unordered_map<const ProofNode*, bool>::iterator it;
@@ -151,7 +150,7 @@ bool containsFreeAssumption(
     visit.pop_back();
     // have we already computed?
     it = cfaMap.find(cur);
-    if (it!=cfaMap.end())
+    if (it != cfaMap.end())
     {
       if (it->second)
       {
@@ -172,9 +171,9 @@ bool containsFreeAssumption(
         expr::getFreeAssumptions(cur, assumps);
         cfaMap[cur] = !assumps.empty();
       }
-      else 
+      else
         */
-      if (r== PfRule::SCOPE || r == PfRule::ASSUME)
+      if (r == PfRule::SCOPE || r == PfRule::ASSUME)
       {
         visited[cur] = true;
         cfaMap[cur] = true;

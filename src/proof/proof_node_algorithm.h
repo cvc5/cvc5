@@ -59,9 +59,8 @@ void getFreeAssumptionsMap(
 /**
  * Contains free assumption.
  */
-bool containsFreeAssumption(
-    const ProofNode * pn,
-    std::unordered_map<const ProofNode *, bool>& cfaMap);
+bool containsFreeAssumption(const ProofNode* pn,
+                            std::unordered_map<const ProofNode*, bool>& cfaMap);
 
 /**
  * @return true if pn contains pnc.

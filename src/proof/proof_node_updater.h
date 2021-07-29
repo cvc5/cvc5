@@ -128,7 +128,7 @@ class ProofNodeUpdater
   void processInternal(std::shared_ptr<ProofNode> pf,
                        const std::vector<Node>& fa,
                        std::vector<std::shared_ptr<ProofNode>>& traversing,
-                   std::unordered_map<const ProofNode *, bool>& cfaMap);
+                       std::unordered_map<const ProofNode*, bool>& cfaMap);
   /**
    * Update proof node cur based on the callback. This modifies curr using
    * ProofNodeManager::updateNode based on the proof node constructed to
@@ -147,8 +147,7 @@ class ProofNodeUpdater
   void runFinalize(std::shared_ptr<ProofNode> cur,
                    const std::vector<Node>& fa,
                    std::map<Node, std::shared_ptr<ProofNode>>& resCache,
-                   std::unordered_map<const ProofNode *, bool>& cfaMap
-                  );
+                   std::unordered_map<const ProofNode*, bool>& cfaMap);
   /** Are we debugging free assumptions? */
   bool d_debugFreeAssumps;
   /** The initial free assumptions */
