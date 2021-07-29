@@ -1660,13 +1660,13 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
       ilq.initialize(q);
       for( const std::vector<Node>& ii : i.second)
       {
-        
+        ilq.d_inst.push_back(InstantiationVec(ii));
       }
     }
   }
-  for (const std::pair<const Node, std::vector<std::vector<Node>>>& i : insts)
+  for (std::pair<const Node, InstantiationList>& i : rinsts)
   {
-    if (i.second.empty())
+    if (i.second.d_inst.empty())
     {
       // no instantiations, skip
       continue;
@@ -1680,16 +1680,16 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
     // must have a name
     if (d_env->getOptions().printer.printInstMode == options::PrintInstMode::NUM)
     {
-      out << "(num-instantiations " << name << " " << i.second.size() << ")"
+      out << "(num-instantiations " << name << " " << i.second.d_inst.size() << ")"
           << std::endl;
     }
     else
     {
-      // write the name
+      // take the name
       i.second.d_quant = name;
       Assert(d_env->getOptions().printer.printInstMode
             == options::PrintInstMode::LIST);
-      out << ilist;
+      out << i.second;
     }
     printed = true;
   }
