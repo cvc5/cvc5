@@ -162,17 +162,8 @@ bool containsFreeAssumption(const ProofNode* pn,
     if (it == visited.end())
     {
       PfRule r = cur->getRule();
-      /*
-      if (r==PfRule::SCOPE)
-      {
-        // compute scope directly
-        visited[cur] = true;
-        std::vector<Node> assumps;
-        expr::getFreeAssumptions(cur, assumps);
-        cfaMap[cur] = !assumps.empty();
-      }
-      else
-        */
+      // currently overapproximate and say SCOPE always contains free
+      // assumptions
       if (r == PfRule::SCOPE || r == PfRule::ASSUME)
       {
         visited[cur] = true;
@@ -208,6 +199,12 @@ bool containsFreeAssumption(const ProofNode* pn,
     }
   }
   return cfaMap[cur];
+}
+
+bool containsFreeAssumption(const ProofNode* pn)
+{
+  std::unordered_map<const ProofNode*, bool> cfaMap;
+  return containsFreeAssumption(pn, cfaMap);
 }
 
 bool containsSubproof(ProofNode* pn, ProofNode* pnc)

@@ -2185,6 +2185,7 @@ set(regress_1_tests
   regress1/strings/norn-simp-rew-sat.smt2
   regress1/strings/nt6-dd.smt2
   regress1/strings/nterm-re-inter-sigma.smt2
+  regress1/strings/open-pf-merge.smt2
   regress1/strings/pierre150331.smt2
   regress1/strings/policy_variable.smt2
   regress1/strings/pre_ctn_no_skolem_share.smt2

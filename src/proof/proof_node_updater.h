@@ -122,13 +122,9 @@ class ProofNodeUpdater
    * @param fa The assumptions of the scope that fa is a subproof of with
    * respect to the original proof. For example, if (SCOPE P :args (A B)), we
    * may call this method on P with fa = { A, B }.
-   * @param traversing The list of proof nodes we are currently traversing
-   * beneath. This is used for checking for cycles in the overall proof.
    */
   void processInternal(std::shared_ptr<ProofNode> pf,
-                       const std::vector<Node>& fa,
-                       std::vector<std::shared_ptr<ProofNode>>& traversing,
-                       std::unordered_map<const ProofNode*, bool>& cfaMap);
+                      std::vector<Node>& fa);
   /**
    * Update proof node cur based on the callback. This modifies curr using
    * ProofNodeManager::updateNode based on the proof node constructed to
