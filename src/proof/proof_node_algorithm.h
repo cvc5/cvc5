@@ -57,17 +57,19 @@ void getFreeAssumptionsMap(
     std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& amap);
 
 /**
- * Return true if pn contains free assumptions.
+ * Return true if pn contains a subproof whose rule is ASSUME. Notice that we
+ * do *not* distinguish between free vs. non-free assumptions in this call.
+ * This call involves only a single pass over the proof node.
  *
  * @param pn The proof node.
- * @param cfaMap Cache of results, mapping proof nodes to whether they contain
- * free assumptions.
- * @return true if pn contains free assumptions
+ * @param caMap Cache of results, mapping proof nodes to whether they contain
+ * assumptions.
+ * @return true if pn contains assumptions
  */
-bool containsFreeAssumption(const ProofNode* pn,
-                            std::unordered_map<const ProofNode*, bool>& cfaMap);
+bool containsAssumption(const ProofNode* pn,
+                        std::unordered_map<const ProofNode*, bool>& caMap);
 /** Same as above, without a cache */
-bool containsFreeAssumption(const ProofNode* pn);
+bool containsAssumption(const ProofNode* pn);
 
 /**
  * @return true if pn contains pnc.

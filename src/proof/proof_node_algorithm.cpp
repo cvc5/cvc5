@@ -136,8 +136,8 @@ void getFreeAssumptionsMap(
   } while (!visit.empty());
 }
 
-bool containsFreeAssumption(const ProofNode* pn,
-                            std::unordered_map<const ProofNode*, bool>& cfaMap)
+bool containsAssumption(const ProofNode* pn,
+                            std::unordered_map<const ProofNode*, bool>& caMap)
 {
   std::unordered_map<const ProofNode*, bool> visited;
   std::unordered_map<const ProofNode*, bool>::iterator it;
@@ -149,8 +149,8 @@ bool containsFreeAssumption(const ProofNode* pn,
     cur = visit.back();
     visit.pop_back();
     // have we already computed?
-    it = cfaMap.find(cur);
-    if (it != cfaMap.end())
+    it = caMap.find(cur);
+    if (it != caMap.end())
     {
       if (it->second)
       {
@@ -162,12 +162,10 @@ bool containsFreeAssumption(const ProofNode* pn,
     if (it == visited.end())
     {
       PfRule r = cur->getRule();
-      // currently overapproximate and say SCOPE always contains free
-      // assumptions
-      if (r == PfRule::SCOPE || r == PfRule::ASSUME)
+      if (r == PfRule::ASSUME)
       {
         visited[cur] = true;
-        cfaMap[cur] = true;
+        caMap[cur] = true;
       }
       else
       {
@@ -189,22 +187,22 @@ bool containsFreeAssumption(const ProofNode* pn,
           cur->getChildren();
       for (const std::shared_ptr<ProofNode>& cp : children)
       {
-        if (cfaMap[cp.get()])
+        if (caMap[cp.get()])
         {
           hasFa = true;
           break;
         }
       }
-      cfaMap[cur] = hasFa;
+      caMap[cur] = hasFa;
     }
   }
-  return cfaMap[cur];
+  return caMap[cur];
 }
 
-bool containsFreeAssumption(const ProofNode* pn)
+bool containsAssumption(const ProofNode* pn)
 {
-  std::unordered_map<const ProofNode*, bool> cfaMap;
-  return containsFreeAssumption(pn, cfaMap);
+  std::unordered_map<const ProofNode*, bool> caMap;
+  return containsAssumption(pn, caMap);
 }
 
 bool containsSubproof(ProofNode* pn, ProofNode* pnc)

@@ -238,8 +238,8 @@ void ProofNodeUpdater::runFinalize(
 {
   if (d_mergeSubproofs)
   {
-    // cache the result if we don't contain a free assumption
-    if (!expr::containsFreeAssumption(cur.get(), cfaMap))
+    // cache the result if we don't contain an assumption
+    if (!expr::containsAssumption(cur.get(), cfaMap))
     {
       Node res = cur->getResult();
       // cache result if we are merging subproofs
