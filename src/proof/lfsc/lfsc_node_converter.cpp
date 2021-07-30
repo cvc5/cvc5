@@ -1007,7 +1007,8 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     opName << "_total";
   }
   Node ret = getSymbolInternal(k, ftype, opName.str());
-  Trace("lfsc-term-process-debug2") << "...return (simple) " << ret << std::endl;
+  Trace("lfsc-term-process-debug2")
+      << "...return (simple) " << ret << std::endl;
   return ret;
 }
 
