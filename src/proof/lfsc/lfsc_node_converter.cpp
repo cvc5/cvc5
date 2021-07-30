@@ -352,6 +352,21 @@ Node LfscNodeConverter::postConvert(Node n)
     // FIXME
     return n;
   }
+  else if (k == BITVECTOR_BB_TERM)
+  {
+    TypeNode btn = nm->booleanType();
+    // (bbT t1 ... tn) is (bbT t1 (bbT t2 ... (bbT tn emptybv)))
+    // where notice that each bbT has a different type
+    Node curr = getNullTerminator(k, tn);
+    for (size_t i=0, nchild = n.getNumChildren(); i<nchild; ++i)
+    {
+      TypeNode bvt = nm->mkBitVectorType(i+1);
+      TypeNode ftype = nm->mkFunctionType({btn, curr.getType()}, bvt);
+      Node bbt = getSymbolInternal(k, ftype, "bbT");
+      curr = nm->mkNode(APPLY_UF, bbt, n[nchild-(i+1)], curr);
+    }
+    return curr;
+  }
   else if (k == SEP_NIL)
   {
     Node tnn = typeAsNode(convertType(tn));
@@ -816,6 +831,7 @@ Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
     case BITVECTOR_MULT:
       nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
       break;
+    case BITVECTOR_BB_TERM:
     case BITVECTOR_CONCAT:
     {
       // the null terminator of bitvector concat is a dummy variable of
