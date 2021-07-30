@@ -4762,7 +4762,9 @@ struct Stat::StatData
 
 Stat::~Stat() {}
 Stat::Stat(const Stat& s)
-    : d_expert(s.d_expert), d_data(std::make_unique<StatData>(s.d_data->data))
+    : d_expert(s.d_expert),
+      d_default(s.d_default),
+      d_data(std::make_unique<StatData>(s.d_data->data))
 {
 }
 Stat& Stat::operator=(const Stat& s)
