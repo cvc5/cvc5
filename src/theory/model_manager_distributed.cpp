@@ -85,7 +85,7 @@ bool ModelManagerDistributed::prepareModel()
                            << std::endl;
     // collect the asserted terms
     std::set<Node> termSet;
-    collectAssertedTerms(theoryId, termSet);
+    t->collectAssertedTerms(termSet);
     // also get relevant terms
     t->computeRelevantTerms(termSet);
     if (!t->collectModelInfo(d_model.get(), termSet))
