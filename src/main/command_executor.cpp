@@ -29,7 +29,6 @@
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "smt/command.h"
-#include "smt/smt_engine.h"
 
 namespace cvc5 {
 namespace main {
@@ -76,7 +75,7 @@ void CommandExecutor::printStatisticsSafe(int fd) const
 {
   if (d_solver->getOptions().base.statistics)
   {
-    getSmtEngine()->printStatisticsSafe(fd);
+    d_solver->printStatisticsSafe(fd);
   }
 }
 
