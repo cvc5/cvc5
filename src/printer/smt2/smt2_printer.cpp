@@ -565,89 +565,89 @@ void Smt2Printer::toStream(std::ostream& out,
     out << '(';
   }
   switch(k) {
-  // builtin theory
-  case kind::FUNCTION_TYPE:
-    out << "->";
-    for (Node nc : n)
-    {
-      out << " ";
-      toStream(out, nc, toDepth);
-    }
-    out << ")";
-    return;
-  case kind::SEXPR: break;
-
-  // uf theory
-  case kind::APPLY_UF: break;
-  // higher-order
-  case kind::HO_APPLY:
-    if (!options::flattenHOChains())
-    {
-      break;
-    }
-    // collapse "@" chains, i.e.
-    //
-    // ((a b) c) --> (a b c)
-    //
-    // (((a b) ((c d) e)) f) --> (a b (c d e) f)
-    {
-      Node head = n;
-      std::vector<Node> args;
-      while (head.getKind() == kind::HO_APPLY)
-      {
-        args.insert(args.begin(), head[1]);
-        head = head[0];
-      }
-      toStream(out, head, toDepth, lbind);
-      for (unsigned i = 0, size = args.size(); i < size; ++i)
+    // builtin theory
+    case kind::FUNCTION_TYPE:
+      out << "->";
+      for (Node nc : n)
       {
         out << " ";
-        toStream(out, args[i], toDepth, lbind);
+        toStream(out, nc, toDepth);
       }
       out << ")";
-    }
-    return;
+      return;
+    case kind::SEXPR: break;
 
-  case kind::MATCH:
-    out << smtKindString(k, d_variant) << " ";
-    toStream(out, n[0], toDepth, lbind);
-    out << " (";
-    for (size_t i = 1, nchild = n.getNumChildren(); i < nchild; i++)
-    {
-      if (i > 1)
+    // uf theory
+    case kind::APPLY_UF: break;
+    // higher-order
+    case kind::HO_APPLY:
+      if (!options::flattenHOChains())
       {
-        out << " ";
+        break;
       }
-      toStream(out, n[i], toDepth, lbind);
-    }
-    out << "))";
-    return;
-  case kind::MATCH_BIND_CASE:
-    // ignore the binder
-    toStream(out, n[1], toDepth, lbind);
-    out << " ";
-    toStream(out, n[2], toDepth, lbind);
-    out << ")";
-    return;
-  case kind::MATCH_CASE:
-    // do nothing
-    break;
+      // collapse "@" chains, i.e.
+      //
+      // ((a b) c) --> (a b c)
+      //
+      // (((a b) ((c d) e)) f) --> (a b (c d e) f)
+      {
+        Node head = n;
+        std::vector<Node> args;
+        while (head.getKind() == kind::HO_APPLY)
+        {
+          args.insert(args.begin(), head[1]);
+          head = head[0];
+        }
+        toStream(out, head, toDepth, lbind);
+        for (unsigned i = 0, size = args.size(); i < size; ++i)
+        {
+          out << " ";
+          toStream(out, args[i], toDepth, lbind);
+        }
+        out << ")";
+      }
+      return;
 
-  // arith theory
-  case kind::IAND:
-    out << "(_ iand " << n.getOperator().getConst<IntAnd>().d_size << ") ";
-    stillNeedToPrintParams = false;
-    break;
+    case kind::MATCH:
+      out << smtKindString(k, d_variant) << " ";
+      toStream(out, n[0], toDepth, lbind);
+      out << " (";
+      for (size_t i = 1, nchild = n.getNumChildren(); i < nchild; i++)
+      {
+        if (i > 1)
+        {
+          out << " ";
+        }
+        toStream(out, n[i], toDepth, lbind);
+      }
+      out << "))";
+      return;
+    case kind::MATCH_BIND_CASE:
+      // ignore the binder
+      toStream(out, n[1], toDepth, lbind);
+      out << " ";
+      toStream(out, n[2], toDepth, lbind);
+      out << ")";
+      return;
+    case kind::MATCH_CASE:
+      // do nothing
+      break;
 
-  case kind::DIVISIBLE:
-    out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
-    stillNeedToPrintParams = false;
-    break;
-  case kind::INDEXED_ROOT_PREDICATE_OP:
-  {
-    const IndexedRootPredicate& irp = n.getConst<IndexedRootPredicate>();
-    out << "(_ root_predicate " << irp.d_index << ")";
-    break;
+    // arith theory
+    case kind::IAND:
+      out << "(_ iand " << n.getOperator().getConst<IntAnd>().d_size << ") ";
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::DIVISIBLE:
+      out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
+      stillNeedToPrintParams = false;
+      break;
+    case kind::INDEXED_ROOT_PREDICATE_OP:
+    {
+      const IndexedRootPredicate& irp = n.getConst<IndexedRootPredicate>();
+      out << "(_ root_predicate " << irp.d_index << ")";
+      break;
   }
 
   // string theory
@@ -666,11 +666,12 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::BITVECTOR_CONCAT:
   case kind::BITVECTOR_AND:
   case kind::BITVECTOR_OR:
-  case kind::BITVECTOR_XOR: 
+  case kind::BITVECTOR_XOR:
   case kind::BITVECTOR_MULT:
   case kind::BITVECTOR_ADD:
   {
-    out << smtKindString(k, d_variant) << " "; forceBinary = true; 
+    out << smtKindString(k, d_variant) << " ";
+    forceBinary = true;
   }
   break;
 
