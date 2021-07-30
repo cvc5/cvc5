@@ -81,6 +81,12 @@ bool ModelManagerDistributed::prepareModel()
       continue;
     }
     Theory* t = d_te.theoryOf(theoryId);
+    if (t->getTheoryState() == nullptr)
+    {
+      Trace("model-builder") << "  Skipping theory " << theoryId
+                             << " as it has no state" << std::endl;
+      continue;
+    }
     Trace("model-builder") << "  CollectModelInfo on theory: " << theoryId
                            << std::endl;
     // collect the asserted terms
