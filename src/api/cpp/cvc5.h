@@ -3267,7 +3267,7 @@ class CVC5_EXPORT Solver
    *
    * @param s The string representation of the constant.
    *          If the constant is negative, the negative sign is ignored for the
-   *          purposes of determining size.
+   *          purpose of determining size.
    * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
    */
