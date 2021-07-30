@@ -25,6 +25,8 @@ int main()
 {
   Solver solver;
   solver.setLogic("QF_BV");
+  // only required on proof-new
+  solver.setOption("produce-proofs", "false");
   Sort bvsort12979 = solver.mkBitVectorSort(12979);
   Term input2_1 = solver.mkConst(bvsort12979, "intpu2_1");
   Term zero = solver.mkBitVector(bvsort12979.getBVSize(), "0", 10);
