@@ -247,7 +247,6 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
 
 void NonlinearExtension::check(Theory::Effort e)
 {
-  d_im.reset();
   Trace("nl-ext") << std::endl;
   Trace("nl-ext") << "NonlinearExtension::check, effort = " << e << std::endl;
   if (e == Theory::EFFORT_FULL)
