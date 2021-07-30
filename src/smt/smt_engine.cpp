@@ -935,7 +935,7 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
         checkUnsatCore();
       }
     }
-
+    printStatisticsDiff();
     return r;
   }
   catch (UnsafeInterruptException& e)
@@ -948,6 +948,8 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
     Result::UnknownExplanation why = getResourceManager()->outOfResources()
                                          ? Result::RESOURCEOUT
                                          : Result::TIMEOUT;
+    
+    printStatisticsDiff();
     return Result(Result::SAT_UNKNOWN, why, d_state->getFilename());
   }
 }
