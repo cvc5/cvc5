@@ -935,7 +935,10 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
         checkUnsatCore();
       }
     }
-    printStatisticsDiff();
+    if (d_env->getOptions().base.statisticsEveryQuery)
+    {
+      printStatisticsDiff();
+    }
     return r;
   }
   catch (UnsafeInterruptException& e)
@@ -948,8 +951,11 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
     Result::UnknownExplanation why = getResourceManager()->outOfResources()
                                          ? Result::RESOURCEOUT
                                          : Result::TIMEOUT;
-    
-    printStatisticsDiff();
+
+    if (d_env->getOptions().base.statisticsEveryQuery)
+    {
+      printStatisticsDiff();
+    }
     return Result(Result::SAT_UNKNOWN, why, d_state->getFilename());
   }
 }
@@ -1929,11 +1935,8 @@ void SmtEngine::printStatisticsSafe(int fd) const
 
 void SmtEngine::printStatisticsDiff() const
 {
-  if (d_env->getOptions().base.statisticsEveryQuery)
-  {
-    d_env->getStatisticsRegistry().printDiff(*d_env->getOptions().base.err);
-    d_env->getStatisticsRegistry().storeSnapshot();
-  }
+  d_env->getStatisticsRegistry().printDiff(*d_env->getOptions().base.err);
+  d_env->getStatisticsRegistry().storeSnapshot();
 }
 
 void SmtEngine::setUserAttribute(const std::string& attr,
