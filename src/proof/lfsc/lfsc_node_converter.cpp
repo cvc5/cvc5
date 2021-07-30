@@ -347,7 +347,7 @@ Node LfscNodeConverter::postConvert(Node n)
     Node n2 = nm->mkConst(Rational(op.d_loopMaxOcc));
     return nm->mkNode(APPLY_UF, nm->mkNode(APPLY_UF, rop, n1, n2), n[0]);
   }
-  else if (k == MATCH || k == BITVECTOR_BB_TERM)
+  else if (k == MATCH)
   {
     // FIXME
     return n;

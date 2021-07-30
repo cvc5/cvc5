@@ -99,7 +99,7 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
     lemma = nm->mkNode(
         AND,
         nm->mkNode(
-            OR, nm->mkConst(Rational(-1)).eqNode(t), nm->mkNode(GEQ, t, t[2])),
+            OR, t.eqNode(nm->mkConst(Rational(-1))), nm->mkNode(GEQ, t, t[2])),
         nm->mkNode(LEQ, t, l));
   }
   else if (tk == STRING_STOI)
