@@ -1925,10 +1925,13 @@ void SmtEngine::printStatisticsSafe(int fd) const
   d_env->getStatisticsRegistry().printSafe(fd);
 }
 
-void SmtEngine::printStatisticsDiff(std::ostream& out) const
+void SmtEngine::printStatisticsDiff() const
 {
-  d_env->getStatisticsRegistry().printDiff(out);
-  d_env->getStatisticsRegistry().storeSnapshot();
+  if (d_env->getOptions().base.statisticsEveryQuery)
+  {
+    d_env->getStatisticsRegistry().printDiff(*d_env->getOptions().base.err);
+    d_env->getStatisticsRegistry().storeSnapshot();
+  }
 }
 
 void SmtEngine::setUserAttribute(const std::string& attr,
