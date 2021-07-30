@@ -137,7 +137,7 @@ void getFreeAssumptionsMap(
 }
 
 bool containsAssumption(const ProofNode* pn,
-                            std::unordered_map<const ProofNode*, bool>& caMap)
+                        std::unordered_map<const ProofNode*, bool>& caMap)
 {
   std::unordered_map<const ProofNode*, bool> visited;
   std::unordered_map<const ProofNode*, bool>::iterator it;
