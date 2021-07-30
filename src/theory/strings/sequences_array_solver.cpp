@@ -83,8 +83,9 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
     {
       Node eq = nm->mkNode(EQUAL, left, right);
       InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
-//      std::cerr << "send by check() in sequence_array " << left << " " << right
-//                << std::endl;
+      //      std::cerr << "send by check() in sequence_array " << left << " "
+      //      << right
+      //                << std::endl;
       d_im.sendInference(exp, eq, iid);
     }
 
@@ -99,16 +100,17 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
         std::vector<Node> indexes = nth.second;
         for (Node j : indexes)
         {
-          Node left = nm->mkNode(DISTINCT, n[1], j);
+          left = nm->mkNode(DISTINCT, n[1], j);
           Node nth1 = nm->mkNode(SEQ_NTH, proxyVar, j);
           Node nth2 = nm->mkNode(SEQ_NTH, n[0], j);
-          Node right = nm->mkNode(EQUAL, nth1, nth2);
+          right = nm->mkNode(EQUAL, nth1, nth2);
           Node lem = nm->mkNode(IMPLIES, left, right);
           if (!d_state.areEqual(nth1, nth2))
           {
             InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
-//            std::cerr << "send by check() in sequence_array " << left << " -> "
-//                      << right << std::endl;
+            //            std::cerr << "send by check() in sequence_array " <<
+            //            left << " -> "
+            //                      << right << std::endl;
             d_im.sendInference(exp, lem, iid);
           }
         }
