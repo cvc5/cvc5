@@ -194,7 +194,7 @@ void TheoryArith::postCheck(Effort level)
     std::set<Node> termSet;
     collectAssertedTerms(termSet);
     computeRelevantTerms(termSet);
-    d_internal->collectModelValues(termSet, d_arithModelCache, true);
+    d_internal->collectModelValues(termSet, d_arithModelCache);
 
     // Double check that the model from the linear solver respects integer types,
     // if it does not, add a branch and bound lemma. This typically should never
@@ -235,10 +235,7 @@ void TheoryArith::postCheck(Effort level)
 
     if (d_nonlinearExtension != nullptr)
     {
-      Trace("arith-check") << "TheoryArith::nlExt regular check" << std::endl;
       d_nonlinearExtension->check(level);
-
-      Trace("arith-check") << "TheoryArith::nlExt intercept model" << std::endl;
       d_nonlinearExtension->interceptModel(d_arithModelCache, termSet);
     }
     else if (d_internal->foundNonlinear())
@@ -370,7 +367,6 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
     return EQUALITY_TRUE_IN_MODEL;
   }
   return EQUALITY_FALSE_IN_MODEL;
-  //return d_internal->getEqualityStatus(a,b);
 }
 
 Node TheoryArith::getModelValue(TNode var) {

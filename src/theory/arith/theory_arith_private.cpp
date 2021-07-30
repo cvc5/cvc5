@@ -3879,8 +3879,7 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
 }
 
 void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
-                                            std::map<Node, Node>& arithModel,
-                                            bool respectTermSet)
+                                            std::map<Node, Node>& arithModel)
 {
   AlwaysAssert(d_qflraStatus == Result::SAT);
 
@@ -3904,7 +3903,7 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
       Node term = d_partialModel.asNode(v);
 
       if((theoryOf(term) == THEORY_ARITH || shared.find(term) != shared.end())
-         && (!respectTermSet || termSet.find(term) != termSet.end())){
+         && (termSet.find(term) != termSet.end())){
 
         const DeltaRational& mod = d_partialModel.getAssignment(v);
         Rational qmodel = mod.substituteDelta(delta);

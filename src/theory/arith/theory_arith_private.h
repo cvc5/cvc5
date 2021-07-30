@@ -465,8 +465,7 @@ public:
    * whole model.
    */
   void collectModelValues(const std::set<Node>& termSet,
-                          std::map<Node, Node>& arithModel,
-                          bool respectTermSet = true);
+                          std::map<Node, Node>& arithModel);
 
   void shutdown(){ }
 
