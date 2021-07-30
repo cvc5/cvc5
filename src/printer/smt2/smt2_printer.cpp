@@ -687,8 +687,7 @@ void Smt2Printer::toStream(std::ostream& out,
     stillNeedToPrintParams = false;
     break;
 
-    // sets
-  case kind::COMPREHENSION: out << smtKindString(k, d_variant) << " "; break;
+  // sets
   case kind::SINGLETON:
   {
     out << smtKindString(k, d_variant) << " ";
