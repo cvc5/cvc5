@@ -195,10 +195,8 @@ void TheoryArith::postCheck(Effort level)
   {
     d_arithModelCache.clear();
     std::set<Node> termSet;
-    for (const auto& n: d_internal->d_preregisteredNodes) {
-      Trace("arith-check") << "preregistered: " << n << std::endl;
-      termSet.insert(n);
-    }
+    collectAssertedTerms(termSet);
+    computeRelevantTerms(termSet);
     d_internal->collectModelValues(termSet, d_arithModelCache, true);
 
     // Double check that the model from the linear solver respects integer types,
@@ -244,7 +242,7 @@ void TheoryArith::postCheck(Effort level)
       d_nonlinearExtension->check(level);
 
       Trace("arith-check") << "TheoryArith::nlExt intercept model" << std::endl;
-      d_nonlinearExtension->interceptModel(d_arithModelCache, {});
+      d_nonlinearExtension->interceptModel(d_arithModelCache, termSet);
     }
     else if (d_internal->foundNonlinear())
     {
