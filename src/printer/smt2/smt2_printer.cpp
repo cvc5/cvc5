@@ -638,10 +638,6 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(_ iand " << n.getOperator().getConst<IntAnd>().d_size << ") ";
       stillNeedToPrintParams = false;
       break;
-    case kind::BITVECTOR_BITOF:
-      out << "(_ bitOf " << n.getOperator().getConst<BitVectorBitOf>().d_bitIndex << ") ";
-      stillNeedToPrintParams = false;
-      break;
 
     case kind::DIVISIBLE:
       out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
@@ -690,9 +686,12 @@ void Smt2Printer::toStream(std::ostream& out,
     out << ' ';
     stillNeedToPrintParams = false;
     break;
+    case kind::BITVECTOR_BITOF:
+      out << "(_ bitOf " << n.getOperator().getConst<BitVectorBitOf>().d_bitIndex << ") ";
+      stillNeedToPrintParams = false;
+      break;
 
-    // sets
-  case kind::COMPREHENSION: out << smtKindString(k, d_variant) << " "; break;
+  // sets
   case kind::SINGLETON:
   {
     out << smtKindString(k, d_variant) << " ";
