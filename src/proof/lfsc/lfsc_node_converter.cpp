@@ -347,7 +347,7 @@ Node LfscNodeConverter::postConvert(Node n)
     Node n2 = nm->mkConst(Rational(op.d_loopMaxOcc));
     return nm->mkNode(APPLY_UF, nm->mkNode(APPLY_UF, rop, n1, n2), n[0]);
   }
-  else if (k == MATCH)
+  else if (k == MATCH || k == BITVECTOR_BB_TERM)
   {
     // FIXME
     return n;
@@ -1006,7 +1006,9 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   {
     opName << "_total";
   }
-  return getSymbolInternal(k, ftype, opName.str());
+  Node ret = getSymbolInternal(k, ftype, opName.str());
+  Trace("lfsc-term-process-debug2") << "...return (simple) " << ret << std::endl;
+  return ret;
 }
 
 Node LfscNodeConverter::getOperatorOfClosure(Node q, bool macroApply)
