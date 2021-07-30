@@ -173,7 +173,6 @@ void TheoryArith::postCheck(Effort level)
   {
     if (d_nonlinearExtension != nullptr)
     {
-      Trace("arith-check") << "TheoryArith::nlExt regular check" << std::endl;
       d_nonlinearExtension->check(level);
     }
     return;
@@ -182,12 +181,10 @@ void TheoryArith::postCheck(Effort level)
   if (d_internal->postCheck(level))
   {
     // linear solver emitted a conflict or lemma, return
-    Trace("arith-check") << "post-check emitted something" << std::endl;
     return;
   }
   if (d_im.hasSent())
   {
-    Trace("arith-check") << "d_im has sent something" << std::endl;
     return;
   }
 
