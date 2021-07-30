@@ -77,7 +77,7 @@ class BitVector
    *
    * @param num The value of the bit-vector in string representation.
    *            This can be a negative value, in which case the negative sign
-   *            is ignored for the purposes of determinig size.
+   *            is ignored for the purposes of determining size.
    * @param base The base of the string representation.
    */
   BitVector(const std::string& num, unsigned base = 2)
