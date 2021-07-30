@@ -5389,6 +5389,11 @@ void Solver::resetStatistics()
   }
 }
 
+void Solver::printStatisticsSafe(int fd) const
+{
+  d_smtEngine->printStatisticsSafe(fd);
+}
+
 /* Helpers for mkTerm checks.                                                 */
 /* .......................................................................... */
 
