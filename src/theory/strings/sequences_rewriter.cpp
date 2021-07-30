@@ -1617,7 +1617,8 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
       return returnRewrite(node, ret, Rewrite::SEQ_NTH_TOTAL_OOB);
     }
   }
-  if (s.getKind() == SEQ_UNIT && i.isConst() && i.getConst<Rational>().isZero()) {
+  if (s.getKind() == SEQ_UNIT && i.isConst() && i.getConst<Rational>().isZero())
+  {
     Node ret = s[0];
     return returnRewrite(node, ret, Rewrite::SEQ_NTH_UNIT);
   }

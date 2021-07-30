@@ -135,11 +135,11 @@ void SequencesUpdateSolver::checkTerms(Kind k)
         std::vector<Node> exp;
         d_im.addToExplanation(t[0], nf.d_nf[0], exp);
         Node eq = nm->mkNode(ITE, t[1].eqNode(d_zero), t.eqNode(thenBranch), t.eqNode(elseBranch));
-        if (d_eqProc.find(eq)!=d_eqProc.end())
-            {
-              d_eqProc.insert(eq);
-              d_im.sendInference(exp, eq, iid);
-            }
+        if (d_eqProc.find(eq) != d_eqProc.end())
+        {
+          d_eqProc.insert(eq);
+          d_im.sendInference(exp, eq, iid);
+        }
         // d_im.sendInference(exp, eq, iid);
       }
       // otherwise, the equivalence class is pure wrt concatenation

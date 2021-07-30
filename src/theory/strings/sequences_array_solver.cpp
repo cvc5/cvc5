@@ -48,13 +48,16 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
     // (seq.nth n[0] n[1])
     Node r = d_state.getRepresentative(n[0]);
     Trace("seq-update") << "- " << r << ": " << n[1] << " -> " << n << std::endl;
-//    d_writeModel[r][n[1]] = n;
-    if (index_map.find(r) == index_map.end()) {
+    //    d_writeModel[r][n[1]] = n;
+    if (index_map.find(r) == index_map.end())
+    {
       std::vector<Node> indexes;
       indexes.push_back(n[1]);
       index_map[r] = indexes;
-    } else {
-	  index_map[r].push_back(n[1]);
+    }
+    else
+    {
+      index_map[r].push_back(n[1]);
     }
   }
   for (const Node& n : updateTerms)
@@ -76,35 +79,41 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
     Node right = nm->mkNode(SEQ_NTH, n[2], nm->mkConst(Rational(0)));
     right = Rewriter::rewrite(right);
 
-    if (!d_state.areEqual(left, right)) {
-        Node eq = nm->mkNode(EQUAL,
-                             left, right);
-        InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
-        std::cerr << "send by check() in sequence_array " << left << " " << right << std::endl;
-        d_im.sendInference(exp, eq, iid);
+    if (!d_state.areEqual(left, right))
+    {
+      Node eq = nm->mkNode(EQUAL, left, right);
+      InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
+      std::cerr << "send by check() in sequence_array " << left << " " << right
+                << std::endl;
+      d_im.sendInference(exp, eq, iid);
     }
 
-	// i != j => (seq.nth (seq.update a i x) j) == (seq.nth a j)
-    //std::vector<Node> exp;
-    //d_im.addToExplanation(proxyVar, n, exp);
-	for (auto nth : index_map) {
-	  Node seq = nth.first;
-	  if (d_state.areEqual(seq, n)) {
- 	    std::vector<Node> indexes = nth.second;
-		for (Node j : indexes) {
-			Node left = nm->mkNode(DISTINCT, n[1], j);
-			Node nth1 = nm->mkNode(SEQ_NTH, proxyVar, j);
-			Node nth2 = nm->mkNode(SEQ_NTH, n[0], j);
-			Node right = nm->mkNode(EQUAL, nth1, nth2);
-			Node lem = nm->mkNode(IMPLIES, left, right);
-			if (!d_state.areEqual(nth1, nth2)) {
-				InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
-				std::cerr << "send by check() in sequence_array " << left << " -> " << right << std::endl;
-				d_im.sendInference(exp, lem, iid);
-			}
-		}
-	  }
-	}
+    // i != j => (seq.nth (seq.update a i x) j) == (seq.nth a j)
+    // std::vector<Node> exp;
+    // d_im.addToExplanation(proxyVar, n, exp);
+    for (auto nth : index_map)
+    {
+      Node seq = nth.first;
+      if (d_state.areEqual(seq, n))
+      {
+        std::vector<Node> indexes = nth.second;
+        for (Node j : indexes)
+        {
+          Node left = nm->mkNode(DISTINCT, n[1], j);
+          Node nth1 = nm->mkNode(SEQ_NTH, proxyVar, j);
+          Node nth2 = nm->mkNode(SEQ_NTH, n[0], j);
+          Node right = nm->mkNode(EQUAL, nth1, nth2);
+          Node lem = nm->mkNode(IMPLIES, left, right);
+          if (!d_state.areEqual(nth1, nth2))
+          {
+            InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
+            std::cerr << "send by check() in sequence_array " << left << " -> "
+                      << right << std::endl;
+            d_im.sendInference(exp, lem, iid);
+          }
+        }
+      }
+    }
   }
 }
 
