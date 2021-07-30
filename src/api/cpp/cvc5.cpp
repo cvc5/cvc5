@@ -6647,9 +6647,7 @@ Result Solver::checkEntailed(const Term& term) const
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERM(term);
   //////// all checks before this line
-  cvc5::Result r = d_smtEngine->checkEntailed(*term.d_node);
-  d_smtEngine->printStatisticsDiff();
-  return Result(r);
+  return d_smtEngine->checkEntailed(*term.d_node);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6664,9 +6662,7 @@ Result Solver::checkEntailed(const std::vector<Term>& terms) const
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERMS(terms);
   //////// all checks before this line
-  cvc5::Result r = d_smtEngine->checkEntailed(Term::termVectorToNodes(terms));
-  d_smtEngine->printStatisticsDiff();
-  return Result(r);
+  return d_smtEngine->checkEntailed(Term::termVectorToNodes(terms));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6694,9 +6690,7 @@ Result Solver::checkSat(void) const
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   //////// all checks before this line
-  cvc5::Result r = d_smtEngine->checkSat();
-  d_smtEngine->printStatisticsDiff();
-  return Result(r);
+  return d_smtEngine->checkSat();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6711,9 +6705,7 @@ Result Solver::checkSatAssuming(const Term& assumption) const
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(assumption, getBooleanSort());
   //////// all checks before this line
-  cvc5::Result r = d_smtEngine->checkSat(*assumption.d_node);
-  d_smtEngine->printStatisticsDiff();
-  return Result(r);
+  return d_smtEngine->checkSat(*assumption.d_node);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6733,9 +6725,7 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
     CVC5_API_SOLVER_CHECK_TERM(term);
   }
   std::vector<Node> eassumptions = Term::termVectorToNodes(assumptions);
-  cvc5::Result r = d_smtEngine->checkSat(eassumptions);
-  d_smtEngine->printStatisticsDiff();
-  return Result(r);
+  return d_smtEngine->checkSat(eassumptions);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
