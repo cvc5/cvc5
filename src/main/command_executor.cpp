@@ -152,12 +152,6 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     d_result = res = q->getResult();
   }
 
-  if ((cs != nullptr || q != nullptr)
-      && d_solver->getOptions().base.statisticsEveryQuery)
-  {
-    getSmtEngine()->printStatisticsDiff(*d_solver->getOptions().base.err);
-  }
-
   bool isResultUnsat = res.isUnsat() || res.isEntailed();
 
   // dump the model/proof/unsat core if option is set
