@@ -68,7 +68,7 @@ void CommandExecutor::printStatistics(std::ostream& out) const
 {
   if (d_solver->getOptions().base.statistics)
   {
-    getSmtEngine()->printStatistics(out);
+    out << d_solver->getStatistics();
   }
 }
 
