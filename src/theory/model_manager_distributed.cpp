@@ -81,10 +81,12 @@ bool ModelManagerDistributed::prepareModel()
       continue;
     }
     Theory* t = d_te.theoryOf(theoryId);
-    if (theoryId == TheoryId::THEORY_BUILTIN || theoryId == TheoryId::THEORY_BUILTIN)
+    if (theoryId == TheoryId::THEORY_BUILTIN
+        || theoryId == TheoryId::THEORY_BUILTIN)
     {
-      Trace("model-builder") << "  Skipping theory " << theoryId
-                             << " as it does not contribute to the model anyway" << std::endl;
+      Trace("model-builder")
+          << "  Skipping theory " << theoryId
+          << " as it does not contribute to the model anyway" << std::endl;
       continue;
     }
     Trace("model-builder") << "  CollectModelInfo on theory: " << theoryId

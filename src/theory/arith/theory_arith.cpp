@@ -324,7 +324,8 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       continue;
     }
-    AlwaysAssert(false) << "A model equality could not be asserted: " << p.first << " == " << p.second << std::endl;
+    AlwaysAssert(false) << "A model equality could not be asserted: " << p.first
+                        << " == " << p.second << std::endl;
     // If we failed to assert an equality, it is likely due to theory
     // combination, namely the repaired model for non-linear changed
     // an equality status that was agreed upon by both (linear) arithmetic
@@ -363,7 +364,8 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   {
     return EQUALITY_UNKNOWN;
   }
-  if (ait->second == bit->second) {
+  if (ait->second == bit->second)
+  {
     return EQUALITY_TRUE_IN_MODEL;
   }
   return EQUALITY_FALSE_IN_MODEL;
