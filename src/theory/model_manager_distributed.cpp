@@ -81,7 +81,7 @@ bool ModelManagerDistributed::prepareModel()
       continue;
     }
     Theory* t = d_te.theoryOf(theoryId);
-    if (theoryId == TheoryId::THEORY_BUILTIN
+    if (theoryId == TheoryId::THEORY_BOOL
         || theoryId == TheoryId::THEORY_BUILTIN)
     {
       Trace("model-builder")
