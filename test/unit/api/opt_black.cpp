@@ -147,6 +147,7 @@ TEST_F(TestApiBlackOpt, pareto)
 
   rstPair = d_solver.checkOpt(Solver::PARETO);
   ASSERT_TRUE(rstPair.first.isUnsat());
+  ASSERT_EQ(possibleResults.size(), 0);
 }
 
 }  // namespace test
