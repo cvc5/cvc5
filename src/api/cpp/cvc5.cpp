@@ -62,6 +62,7 @@
 #include "options/smt_options.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
+#include "smt/optimization_solver.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_mode.h"
 #include "theory/datatypes/tuple_project_op.h"
@@ -970,6 +971,65 @@ std::ostream& operator<<(std::ostream& out, enum Result::UnknownExplanation e)
     case Result::UNKNOWN_REASON: out << "UNKNOWN_REASON"; break;
     default: Unhandled() << e;
   }
+  return out;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Optimization Result                                                        */
+/* -------------------------------------------------------------------------- */
+
+OptimizationResult::OptimizationResult(
+    const Solver* solver, const cvc5::smt::OptimizationResult& optResult)
+    : d_solver(solver),
+      d_optResult(new cvc5::smt::OptimizationResult(optResult))
+
+{
+}
+OptimizationResult::OptimizationResult()
+    : d_solver(nullptr), d_optResult(new cvc5::smt::OptimizationResult())
+{
+}
+
+Result OptimizationResult::getResult() const
+{
+  return Result(d_optResult->getResult());
+}
+
+Term OptimizationResult::getValue() const
+{
+  return Term(d_solver, d_optResult->getValue());
+}
+
+OptimizationResult::IsInfinity OptimizationResult::isInfinity() const
+{
+  switch (d_optResult->isInfinity())
+  {
+    case cvc5::smt::OptimizationResult::FINITE: return FINITE;
+    case cvc5::smt::OptimizationResult::POSTITIVE_INF: return POSTITIVE_INF;
+    case cvc5::smt::OptimizationResult::NEGATIVE_INF: return NEGATIVE_INF;
+    default:
+      CVC5_API_CHECK(false)
+          << "Unknown value: " << static_cast<int>(d_optResult->isInfinity())
+          << ", possible values are FINITE("
+          << static_cast<int>(cvc5::smt::OptimizationResult::FINITE)
+          << "), POSITIVE_INF("
+          << static_cast<int>(cvc5::smt::OptimizationResult::POSTITIVE_INF)
+          << "), NEGATIVE_INF("
+          << static_cast<int>(cvc5::smt::OptimizationResult::NEGATIVE_INF)
+          << ")";
+  }
+}
+
+std::string OptimizationResult::toString() const
+{
+  std::ostringstream oss;
+  oss << (*d_optResult);
+  return oss.str();
+}
+
+std::ostream& operator<<(std::ostream& out, const OptimizationResult& r)
+{
+  out << r.toString();
   return out;
 }
 
@@ -1910,10 +1970,7 @@ size_t Op::getNumIndicesHelper() const
   return size;
 }
 
-Term Op::operator[](size_t index) const
-{
-  return getIndexHelper(index);
-}
+Term Op::operator[](size_t index) const { return getIndexHelper(index); }
 
 Term Op::getIndexHelper(size_t index) const
 {
@@ -3311,7 +3368,7 @@ std::vector<Term> Term::getSequenceValue() const
   //////// all checks before this line
   std::vector<Term> res;
   const Sequence& seq = d_node->getConst<Sequence>();
-  for (const auto& node: seq.getVec())
+  for (const auto& node : seq.getVec())
   {
     res.emplace_back(Term(d_solver, node));
   }
@@ -4959,6 +5016,7 @@ Solver::Solver(const Options* opts)
   d_smtEngine.reset(new SmtEngine(d_nodeMgr.get(), d_originalOptions.get()));
   d_smtEngine->setSolver(this);
   d_rng.reset(new Random(d_smtEngine->getOptions().driver.seed));
+  d_optSolver.reset(new smt::OptimizationSolver(d_smtEngine.get()));
   resetStatistics();
 }
 
@@ -7646,6 +7704,71 @@ std::vector<Term> Solver::getSynthSolutions(
 
   return synthSolution;
   ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+/* .................................................................... */
+/* Optimization                                                         */
+/* .................................................................... */
+
+void Solver::addObjective(Term target, ObjectiveType objType, bool bvSigned)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_TERM(target);
+  //////// all checks before this line
+  switch (objType)
+  {
+    case MAXIMIZE:
+      d_optSolver->addObjective(
+          target.getNode(), smt::OptimizationObjective::MAXIMIZE, bvSigned);
+      break;
+    case MINIMIZE:
+      d_optSolver->addObjective(
+          target.getNode(), smt::OptimizationObjective::MINIMIZE, bvSigned);
+      break;
+    default:
+      CVC5_API_CHECK(false)
+          << "Unknown objective type, possible values are MAXIMIZE, MINIMIZE";
+  }
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::pair<Result, std::vector<OptimizationResult>> Solver::checkOpt(
+    ObjectiveCombination objCombination)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_smtEngine->getOptions().smt.produceAssertions
+                 && d_smtEngine->getOptions().base.incrementalSolving
+                 && d_smtEngine->getOptions().smt.produceModels)
+      << "Cannot make optimization queries "
+         "unless incremental solving, produce-assertions and produce-models "
+         "are enabled "
+         "(try --incremental --produce-models --produce-assertions)";
+
+  cvc5::Result r;
+  switch (objCombination)
+  {
+    case BOX: r = d_optSolver->checkOpt(smt::OptimizationSolver::BOX); break;
+    case LEXICOGRAPHIC:
+      r = d_optSolver->checkOpt(smt::OptimizationSolver::LEXICOGRAPHIC);
+      break;
+    case PARETO:
+      r = d_optSolver->checkOpt(smt::OptimizationSolver::PARETO);
+      break;
+    default:
+      CVC5_API_CHECK(false) << "Unknown objective combination, "
+                            << "possible values are BOX, LEXICOGRAPHIC, PARETO";
+  }
+  std::vector<smt::OptimizationResult> internalResults =
+      d_optSolver->getValues();
+  std::vector<OptimizationResult> optResults;
+
+  for (smt::OptimizationResult& rst : internalResults)
+  {
+    optResults.push_back(OptimizationResult(this, rst));
+  }
+  return std::make_pair(Result(r), std::move(optResults));
   CVC5_API_TRY_CATCH_END;
 }
 

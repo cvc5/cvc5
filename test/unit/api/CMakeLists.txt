@@ -16,6 +16,7 @@
 # Add unit tests.
 cvc5_add_unit_test_black(datatype_api_black api)
 cvc5_add_unit_test_black(grammar_black api)
+cvc5_add_unit_test_black(opt_black api)
 cvc5_add_unit_test_black(op_black api)
 cvc5_add_unit_test_white(op_white api)
 cvc5_add_unit_test_black(result_black api)

@@ -48,12 +48,15 @@ class Options;
 class Random;
 class Result;
 class StatisticsRegistry;
-class OptimizationResult;
-class OptimizationObjective;
 
 namespace main {
 class CommandExecutor;
 }
+
+namespace smt {
+class OptimizationResult;
+class OptimizationSolver;
+}  // namespace smt
 
 namespace api {
 
@@ -130,6 +133,7 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
 class CVC5_EXPORT Result
 {
   friend class Solver;
+  friend class OptimizationResult;
 
  public:
   enum UnknownExplanation
@@ -247,7 +251,6 @@ std::ostream& operator<<(std::ostream& out, const Result& r) CVC5_EXPORT;
 std::ostream& operator<<(std::ostream& out,
                          enum Result::UnknownExplanation e) CVC5_EXPORT;
 
-
 /* -------------------------------------------------------------------------- */
 /* Optimization Result                                                        */
 /* -------------------------------------------------------------------------- */
@@ -257,8 +260,11 @@ class Term;
 /**
  * Encapsulation of the optimization result
  **/
-class CVC5_EXPORT OptimizationResult {
- public: 
+class CVC5_EXPORT OptimizationResult
+{
+  friend class Solver;
+
+ public:
   /** Denotes whether the result is +Inf, -Inf or finite **/
   enum IsInfinity
   {
@@ -270,26 +276,26 @@ class CVC5_EXPORT OptimizationResult {
   /** Constructor **/
   OptimizationResult();
 
-  /** 
-   * Gets the optimization outcome (SAT/UNSAT/UNKNOWN) 
-   * @return an instance of Result 
+  /**
+   * Gets the optimization outcome (SAT/UNSAT/UNKNOWN)
+   * @return an instance of Result
    *   denoting whether the optimization is SAT/UNSAT/UNKNOWN
    **/
   Result getResult() const;
 
-  /** 
-   * Gets the optimization value if the result finite 
+  /**
+   * Gets the optimization value if the result finite
    * @return a Term encapsulating the optimimal value
-   *   If the outcome is UNKNOWN, it may be an empty term 
-   *   or something suboptimal, 
-   *   If the outcome is UNSAT or result is +-Inf, 
+   *   If the outcome is UNKNOWN, it may be an empty term
+   *   or something suboptimal,
+   *   If the outcome is UNSAT or result is +-Inf,
    *   it will be an empty term
    **/
   Term getValue() const;
 
-  /** 
-   * Whether the result is +Inf/-Inf/Finite 
-   * @return OptimizationResult::FINITE/POSITIVE_INF/NEGATIVE_INF 
+  /**
+   * Whether the result is +Inf/-Inf/Finite
+   * @return OptimizationResult::FINITE/POSITIVE_INF/NEGATIVE_INF
    **/
   IsInfinity isInfinity() const;
 
@@ -297,20 +303,27 @@ class CVC5_EXPORT OptimizationResult {
    * @return a string representation of this optimization result.
    **/
   std::string toString() const;
-  
+
  private:
   /**
    * Constructor
-   * @param optResult the internal optimization result 
+   * @param optResult the internal optimization result
    *   that is wrapped by this result
    **/
-  OptimizationResult(const cvc5::OptimizationResult &optResult);
+  OptimizationResult(const Solver* solver,
+                     const cvc5::smt::OptimizationResult& optResult);
+
+  /**
+   * The associated Solver object,
+   * used by the Term returned by getValue
+   **/
+  const Solver* d_solver;
 
   /**
    * The interal optimization result wrapped by this result.
    * Note: This is a shared_ptr for the same reason as in Result
    */
-  std::shared_ptr<cvc5::OptimizationResult> d_optResult;
+  std::shared_ptr<cvc5::smt::OptimizationResult> d_optResult;
 };
 
 /**
@@ -319,8 +332,8 @@ class CVC5_EXPORT OptimizationResult {
  * @param r the optimization result to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const OptimizationResult& r) CVC5_EXPORT;
-
+std::ostream& operator<<(std::ostream& out,
+                         const OptimizationResult& r) CVC5_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
@@ -1046,6 +1059,7 @@ class CVC5_EXPORT Term
   friend class Solver;
   friend class Grammar;
   friend struct std::hash<Term>;
+  friend class OptimizationResult;
 
  public:
   /**
@@ -2834,6 +2848,25 @@ class CVC5_EXPORT Solver
   friend class Term;
 
  public:
+  /**
+   * Multiple-objective combination for optimization
+   */
+  enum ObjectiveCombination
+  {
+    BOX,
+    LEXICOGRAPHIC,
+    PARETO,
+  };
+
+  /**
+   * Maximization / Minimization for optmization
+   */
+  enum ObjectiveType
+  {
+    MINIMIZE,
+    MAXIMIZE,
+  };
+
   /* .................................................................... */
   /* Constructors/Destructors                                             */
   /* .................................................................... */
@@ -4232,6 +4265,39 @@ class CVC5_EXPORT Solver
    */
   Statistics getStatistics() const;
 
+  /* .................................................................... */
+  /* Optimization                                                         */
+  /* .................................................................... */
+
+  /**
+   * Adds an optimization objective
+   * @param target the target formula to optimize
+   * @param objType whether it's MAXIMIZE or MINIMIZE
+   * @param bvSigned if the target is of sort bitvector,
+   *  indicate whether it's a signed bitvector or not, defaults to false,
+   *  for other types, it's omitted
+   */
+  void addObjective(Term target, ObjectiveType objType, bool bvSigned = false);
+
+  /**
+   * Run optimization for the objectives
+   * @param objCombination for multi-objective optimization,
+   *  indicate whether it's a BOX optimization,
+   *  a LEXICOGRAPHIC optimization or a PARETO optimization
+   * @return a pair <Result, vector<OptimizationResult>>,
+   *  where Result indicates the overall optimization result,
+   *  for BOX, if any of the objective is UNSAT or UNKNOWN,
+   *    it's UNSAT/UNKNOWN,
+   *  for LEXICOGRAPHIC, if the assertions are UNSAT/UNKNOWN,
+   *    it's UNSAT/UNKNOWN,
+   *  for PARETO, if the assertions are UNSAT
+   *  or the possible solutions are exhausted, it's UNSAT,
+   *    if the assertions are UNKNOWN, it's UNKNOWN;
+   *  vector<OptimizationResult> stores the results of individual objectives
+   */
+  std::pair<Result, std::vector<OptimizationResult>> checkOpt(
+      ObjectiveCombination objCombination = LEXICOGRAPHIC);
+
  private:
   /** @return the node manager of this solver */
   NodeManager* getNodeManager(void) const;
@@ -4239,7 +4305,8 @@ class CVC5_EXPORT Solver
   void resetStatistics();
 
   /**
-   * Print the statistics to the given file descriptor, suitable for usage in signal handlers.
+   * Print the statistics to the given file descriptor, suitable for usage in
+   * signal handlers.
    */
   void printStatisticsSafe(int fd) const;
 
@@ -4343,6 +4410,8 @@ class CVC5_EXPORT Solver
   std::unique_ptr<SmtEngine> d_smtEngine;
   /** The random number generator of this solver. */
   std::unique_ptr<Random> d_rng;
+  /** The optimization solver to handle optimization queries */
+  std::unique_ptr<smt::OptimizationSolver> d_optSolver;
 };
 
 }  // namespace cvc5::api
