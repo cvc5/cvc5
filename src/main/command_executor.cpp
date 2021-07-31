@@ -29,7 +29,6 @@
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "smt/command.h"
-#include "smt/smt_engine.h"
 
 namespace cvc5 {
 namespace main {
@@ -68,7 +67,7 @@ void CommandExecutor::printStatistics(std::ostream& out) const
 {
   if (d_solver->getOptions().base.statistics)
   {
-    getSmtEngine()->printStatistics(out);
+    out << d_solver->getStatistics();
   }
 }
 
@@ -76,7 +75,7 @@ void CommandExecutor::printStatisticsSafe(int fd) const
 {
   if (d_solver->getOptions().base.statistics)
   {
-    getSmtEngine()->printStatisticsSafe(fd);
+    d_solver->printStatisticsSafe(fd);
   }
 }
 
@@ -150,12 +149,6 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   const QueryCommand* q = dynamic_cast<const QueryCommand*>(cmd);
   if(q != nullptr) {
     d_result = res = q->getResult();
-  }
-
-  if ((cs != nullptr || q != nullptr)
-      && d_solver->getOptions().base.statisticsEveryQuery)
-  {
-    getSmtEngine()->printStatisticsDiff(*d_solver->getOptions().base.err);
   }
 
   bool isResultUnsat = res.isUnsat() || res.isEntailed();
