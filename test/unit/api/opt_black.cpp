@@ -107,14 +107,18 @@ TEST_F(TestApiBlackOpt, pareto)
   d_solver.assertFormula(
       d_solver.mkTerm(Kind::BITVECTOR_ULE, aplusb, d_solver.mkBitVector(4, 4)));
   // a U> 0
-  d_solver.assertFormula(d_solver.mkTerm(Kind::BITVECTOR_UGT, a, d_solver.mkBitVector(4, 0)));
+  d_solver.assertFormula(
+      d_solver.mkTerm(Kind::BITVECTOR_UGT, a, d_solver.mkBitVector(4, 0)));
   // b U> 0
-  d_solver.assertFormula(d_solver.mkTerm(Kind::BITVECTOR_UGT, b, d_solver.mkBitVector(4, 0)));
+  d_solver.assertFormula(
+      d_solver.mkTerm(Kind::BITVECTOR_UGT, b, d_solver.mkBitVector(4, 0)));
 
   // a U< 4
-  d_solver.assertFormula(d_solver.mkTerm(Kind::BITVECTOR_ULT, a, d_solver.mkBitVector(4, 4)));
+  d_solver.assertFormula(
+      d_solver.mkTerm(Kind::BITVECTOR_ULT, a, d_solver.mkBitVector(4, 4)));
   // b U< 4
-  d_solver.assertFormula(d_solver.mkTerm(Kind::BITVECTOR_ULT, b, d_solver.mkBitVector(4, 4)));
+  d_solver.assertFormula(
+      d_solver.mkTerm(Kind::BITVECTOR_ULT, b, d_solver.mkBitVector(4, 4)));
 
   // maximize a and maximize b
   d_solver.addObjective(a, Solver::MAXIMIZE);
@@ -133,8 +137,8 @@ TEST_F(TestApiBlackOpt, pareto)
     ASSERT_EQ(rstPair.second.size(), 2);
 
     resultValues =
-      std::make_pair(rstPair.second[0].getValue().getBitVectorValue(10),
-                     rstPair.second[1].getValue().getBitVectorValue(10));
+        std::make_pair(rstPair.second[0].getValue().getBitVectorValue(10),
+                       rstPair.second[1].getValue().getBitVectorValue(10));
 
     ASSERT_EQ(possibleResults.count(resultValues), 1);
 
@@ -143,7 +147,6 @@ TEST_F(TestApiBlackOpt, pareto)
 
   rstPair = d_solver.checkOpt(Solver::PARETO);
   ASSERT_TRUE(rstPair.first.isUnsat());
-  
 }
 
 }  // namespace test
