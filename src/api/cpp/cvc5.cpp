@@ -1017,6 +1017,8 @@ OptimizationResult::IsInfinity OptimizationResult::isInfinity() const
           << "), NEGATIVE_INF("
           << static_cast<int>(cvc5::smt::OptimizationResult::NEGATIVE_INF)
           << ")";
+      // to avoid the no-return error
+      return static_cast<OptimizationResult::IsInfinity>(0);
   }
 }
 
