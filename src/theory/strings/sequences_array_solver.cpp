@@ -25,10 +25,10 @@ namespace theory {
 namespace strings {
 
 SequencesArraySolver::SequencesArraySolver(SolverState& s,
-                                             InferenceManager& im,
-                                             TermRegistry& tr,
-                                             ExtfSolver& es)
-    : d_state(s), d_im(im), d_termReg(tr), d_esolver(es)
+                                           InferenceManager& im,
+                                           TermRegistry& tr,
+                                           ExtfSolver& es)
+    : d_state(s), d_im(im), d_termReg(tr), d_esolver(es), d_lem(s.getSatContext())
 {
 }
 
@@ -76,7 +76,7 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
     std::vector<Node> exp;
     d_im.addToExplanation(proxyVar, n, exp);
     Node left = nm->mkNode(SEQ_NTH, proxyVar, n[1]);
-    Node right = nm->mkNode(SEQ_NTH, n[2], nm->mkConst(Rational(0)));
+    Node right = nm->mkNode(SEQ_NTH, n[2], nm->mkConst(Rational(0))); // n[2][0]
     right = Rewriter::rewrite(right);
 
     if (!d_state.areEqual(left, right))
@@ -105,8 +105,9 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
           Node nth2 = nm->mkNode(SEQ_NTH, n[0], j);
           right = nm->mkNode(EQUAL, nth1, nth2);
           Node lem = nm->mkNode(IMPLIES, left, right);
-          if (!d_state.areEqual(nth1, nth2))
+          if (d_lem.find(lem) == d_lem.end())
           {
+			d_lem.insert(lem);
             InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
             //            std::cerr << "send by check() in sequence_array " <<
             //            left << " -> "

@@ -34,7 +34,7 @@ class SequencesArraySolver
   SequencesArraySolver(SolverState& s,
                         InferenceManager& im,
                         TermRegistry& tr,
-                                             ExtfSolver& es);
+                        ExtfSolver& es);
   ~SequencesArraySolver();
 
   /**
@@ -68,6 +68,7 @@ class SequencesArraySolver
   ExtfSolver& d_esolver;
   /** The write model */
   std::map< Node, std::map< Node, Node > > d_writeModel;
+  context::CDHashSet<Node> d_lem;
 };
 
 }  // namespace strings
