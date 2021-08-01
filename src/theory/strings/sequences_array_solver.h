@@ -32,9 +32,9 @@ class SequencesArraySolver
 {
  public:
   SequencesArraySolver(SolverState& s,
-                        InferenceManager& im,
-                        TermRegistry& tr,
-                        ExtfSolver& es);
+                       InferenceManager& im,
+                       TermRegistry& tr,
+                       ExtfSolver& es);
   ~SequencesArraySolver();
 
   /**
