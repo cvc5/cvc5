@@ -360,7 +360,8 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     { PARSER_STATE->clearLastNamedTerm(); }
     term[expr, expr2]
     { cmd->reset(new AssertCommand(expr));
-      if(PARSER_STATE->lastNamedTerm().first == expr) {
+      if (PARSER_STATE->lastNamedTerm().first == expr)
+      {
         // set the expression name, if there was a named term
         std::pair<api::Term, std::string> namedTerm =
             PARSER_STATE->lastNamedTerm();
