@@ -44,7 +44,7 @@ CnfStream::CnfStream(SatSolver* satSolver,
                      FormulaLitPolicy flpol,
                      std::string name)
     : d_satSolver(satSolver),
-      d_env(end),
+      d_env(env),
       d_booleanVariables(context),
       d_notifyFormulas(context),
       d_nodeToLiteralMap(context),
