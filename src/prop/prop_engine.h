@@ -31,7 +31,6 @@ namespace cvc5 {
 
 class Env;
 class ResourceManager;
-class OutputManager;
 class ProofNodeManager;
 class TheoryEngine;
 
@@ -59,7 +58,6 @@ class PropEngine
    */
   PropEngine(TheoryEngine* te,
              Env& env,
-             OutputManager& outMgr,
              ProofNodeManager* pnm);
 
   /**
@@ -387,9 +385,6 @@ class PropEngine
 
   /** Whether we were just interrupted (or not) */
   bool d_interrupted;
-
-  /** Reference to the output manager of the smt engine */
-  OutputManager& d_outMgr;
 
   /**
    * Stores assumptions added via assertInternal() if assumption-based unsat
