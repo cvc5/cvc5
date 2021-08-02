@@ -256,8 +256,7 @@ TheoryEngine::TheoryEngine(Env& env,
       d_false(),
       d_interrupted(false),
       d_inPreregister(false),
-      d_factsAsserted(d_env.getContext(), false),
-      d_attr_handle()
+      d_factsAsserted(d_env.getContext(), false)
 {
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST;
       ++ theoryId)

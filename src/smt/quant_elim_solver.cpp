@@ -48,7 +48,6 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
         "Expecting a quantified formula as argument to get-qe.");
   }
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
   // ensure the body is rewritten
   q = nm->mkNode(q.getKind(), q[0], Rewriter::rewrite(q[1]));
   // do nested quantifier elimination if necessary

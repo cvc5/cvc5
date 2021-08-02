@@ -111,10 +111,10 @@ TypeNode QuantifierAnnotationTypeRule::computeType(NodeManager* nodeManager,
     if (n.getNumChildren()>1)
     {
       // first must be a keyword
-      if (n[0].getKind()!=CONST_STRING)
+      if (n[0].getKind()!=kind::CONST_STRING)
       {
-      throw TypeCheckingExceptionPrivate(
-          n[0], "Expecting a keyword at the head of INST_ATTRIBUTE.");
+        throw TypeCheckingExceptionPrivate(
+            n[0], "Expecting a keyword at the head of INST_ATTRIBUTE.");
       }
     }
   }

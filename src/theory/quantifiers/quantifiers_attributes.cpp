@@ -184,6 +184,7 @@ void QuantAttributes::computeAttributes( Node q ) {
 void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
   Trace("quant-attr-debug") << "Compute attributes for " << q << std::endl;
   if( q.getNumChildren()==3 ){
+    NodeManager * nm = NodeManager::currentNM();
     qa.d_ipl = q[2];
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
       Kind k = q[2][i].getKind();
@@ -202,18 +203,17 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
       {
         Node avar;
         // set attribute if generated via keyword
-        if (q[2][i].getNumChildren()>1)
+        if (q[2][i][0].getKind()==CONST_STRING)
         {
           // make a dummy variable to be used below
           avar = nm->mkBoundVar(nm->booleanType());
-          std::vector<Node> nodeValues;
-          std::stringstream ss;
-          ss << q[2][i][0].getConst<String>();
           std::vector<Node> nodeValues(q[2][i].begin()+1, q[2][i].end());
-          setUserAttribute(ss.str(), avar, nodeValues);
+          // set user attribute on the dummy variable
+          setUserAttribute(q[2][i][0].getConst<String>().toString(), avar, nodeValues);
         }
         else
         {
+          // assume the dummy variable has already had its attributes set
           avar = q[2][i][0];
         }
         if( avar.getAttribute(FunDefAttribute()) ){
@@ -238,9 +238,19 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
         }
         if (avar.getAttribute(QuantNameAttribute()))
         {
-          Trace("quant-attr") << "Attribute : quantifier name : " << avar
-                              << " for " << q << std::endl;
-          qa.d_name = avar;
+          // only set the name if there is a value
+          if (q[2][i].getNumChildren()>1)
+          {
+            Trace("quant-attr") << "Attribute : quantifier name : " << q[2][i][1].getConst<String>().toString()
+                                << " for " << q << std::endl;
+            // assign the name to a variable with the given name (to avoid
+            // enclosing the name in quotes)
+            qa.d_name = nm->mkBoundVar(q[2][i][1].getConst<String>().toString(), nm->booleanType());
+          }
+          else
+          {
+            Warning() << "Missing name for qid attribute";
+          }
         }
         if( avar.hasAttribute(QuantInstLevelAttribute()) ){
           qa.d_qinstLevel = avar.getAttribute(QuantInstLevelAttribute());

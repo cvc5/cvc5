@@ -140,12 +140,6 @@ void EngineOutputChannel::spendResource(Resource r)
   d_engine->spendResource(r);
 }
 
-void EngineOutputChannel::handleUserAttribute(const char* attr,
-                                              theory::Theory* t)
-{
-  d_engine->handleUserAttribute(attr, t);
-}
-
 void EngineOutputChannel::trustedConflict(TrustNode pconf)
 {
   Assert(pconf.getKind() == TrustNodeKind::CONFLICT);
