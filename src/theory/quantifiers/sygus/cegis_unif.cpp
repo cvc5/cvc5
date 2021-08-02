@@ -219,7 +219,7 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
                     << "CegisUnif::lemma, inter-unif-enumerator "
                        "symmetry breaking lemma : "
                     << slem << "\n";
-                d_qim.lemma(slem, InferenceId::UNKNOWN);
+                d_qim.lemma(slem, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_INTER_ENUM_SB);
                 addedUnifEnumSymBreakLemma = true;
                 break;
               }
@@ -367,7 +367,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   {
     Trace("cegis-unif-lemma")
         << "CegisUnif::lemma, separation lemma : " << lem << "\n";
-    d_qim.lemma(lem, InferenceId::UNKNOWN);
+    d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_SEPARATION);
   }
   Trace("cegis-unif") << "..failed to separate heads\n---CegisUnif Engine---\n";
   return false;
@@ -510,7 +510,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       //   G_uq_i => size(ve) >= log_2( i-1 )
       // In other words, if we use i conditions, then we allow terms in our
       // solution whose size is at most log_2(i-1).
-      d_qim.lemma(fair_lemma, InferenceId::UNKNOWN);
+      d_qim.lemma(fair_lemma, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_FAIR_SIZE);
     }
   }
 
@@ -619,7 +619,7 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
     Trace("cegis-unif-enum-lemma")
         << "CegisUnifEnum::lemma, remove redundant ops of " << e << " : "
         << sym_break_red_ops << "\n";
-    d_qim.lemma(sym_break_red_ops, InferenceId::UNKNOWN);
+    d_qim.lemma(sym_break_red_ops, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_REM_OPS);
   }
   // symmetry breaking between enumerators
   if (!si.d_enums[index].empty() && index == 0)
@@ -630,7 +630,7 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
     Node sym_break = nm->mkNode(GEQ, size_e, size_e_prev);
     Trace("cegis-unif-enum-lemma")
         << "CegisUnifEnum::lemma, enum sym break:" << sym_break << "\n";
-    d_qim.lemma(sym_break, InferenceId::UNKNOWN);
+    d_qim.lemma(sym_break, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_ENUM_SB);
   }
   // register the enumerator
   si.d_enums[index].push_back(e);
@@ -686,7 +686,7 @@ void CegisUnifEnumDecisionStrategy::registerEvalPtAtSize(Node e,
   Node lem = NodeManager::currentNM()->mkNode(OR, disj);
   Trace("cegis-unif-enum-lemma")
       << "CegisUnifEnum::lemma, domain:" << lem << "\n";
-  d_qim.lemma(lem, InferenceId::UNKNOWN);
+  d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_DOMAIN);
 }
 
 }  // namespace quantifiers
