@@ -133,6 +133,14 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
         << "unexpected failure for " << eqi;
     return it->second.d_id;
   }
+  // TRUE_ELIM
+  /*
+  if (proveWithRule(DslPfRule::TRUE_ELIM, eqi, {}, {}, false, false, true))
+  {
+    Trace("rpc-debug2") << "...proved via true-elim" << std::endl;
+    return DslPfRule::TRUE_ELIM;
+  }
+  */
   // store failure, and its maximum depth
   ProvenInfo& pi = d_pcache[eqi];
   pi.d_id = DslPfRule::FAIL;
@@ -213,7 +221,6 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   if (id == DslPfRule::CONG)
   {
     Trace("rpc-debug2") << "Check rule " << id << std::endl;
-    pic.d_id = id;
     size_t nchild = target[0].getNumChildren();
     if (nchild == 0 || nchild != target[1].getNumChildren()
         || target[0].getOperator() != target[1].getOperator())
@@ -221,6 +228,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
       // cannot show congruence between different operators
       return false;
     }
+    pic.d_id = id;
     for (size_t i = 0; i < nchild; i++)
     {
       if (!target[0][i].getType().isComparableTo(target[1][i].getType()))
@@ -232,6 +240,19 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
       vcs.push_back(eq);
       pic.d_vars.push_back(eq);
     }
+  }
+  else if (id == DslPfRule::TRUE_ELIM)
+  {
+    return false;
+    if (target[0].getType().isBoolean())
+    {
+      // don't do for Boolean
+      return false;
+    }
+    pic.d_id = id;
+    Node eq = target.eqNode(d_true);
+    vcs.push_back(eq);
+    pic.d_vars.push_back(eq);
   }
   else
   {
@@ -578,6 +599,11 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       else if (itd->second.d_id == DslPfRule::CONG)
       {
         cdp->addStep(cur, PfRule::CONG, ps, pfArgs[cur]);
+      }
+      else if (itd->second.d_id == DslPfRule::TRUE_ELIM)
+      {
+        conc = ps[0][0];
+        cdp->addStep(conc, PfRule::TRUE_ELIM, ps, {});
       }
       else
       {
