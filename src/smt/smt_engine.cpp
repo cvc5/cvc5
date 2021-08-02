@@ -133,7 +133,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       new smt::Preprocessor(*this, *d_env.get(), *d_absValues.get(), *d_stats));
   // make the SMT solver
   d_smtSolver.reset(
-      new SmtSolver(*this, *d_env.get(), *d_state, *d_pp, *d_stats));
+      new SmtSolver(*d_env.get(), *d_state, *d_pp, *d_stats));
   // make the SyGuS solver
   d_sygusSolver.reset(
       new SygusSolver(*d_smtSolver, *d_pp, getUserContext(), d_outMgr));

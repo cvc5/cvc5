@@ -44,7 +44,6 @@ namespace cvc5 {
 
 class Env;
 class ResourceManager;
-class OutputManager;
 class TheoryEngineProofGenerator;
 class ProofChecker;
 
@@ -131,9 +130,6 @@ class TheoryEngine {
   /** The separation logic location and data types */
   TypeNode d_sepLocType;
   TypeNode d_sepDataType;
-
-  /** Reference to the output manager of the smt engine */
-  OutputManager& d_outMgr;
 
   //--------------------------------- new proofs
   /** Proof node manager used by this theory engine, if proofs are enabled */
@@ -297,7 +293,7 @@ class TheoryEngine {
 
  public:
   /** Constructs a theory engine */
-  TheoryEngine(Env& env, OutputManager& outMgr, ProofNodeManager* pnm);
+  TheoryEngine(Env& env, ProofNodeManager* pnm);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
