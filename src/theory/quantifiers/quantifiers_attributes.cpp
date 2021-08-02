@@ -205,7 +205,13 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
       else if (k == INST_ATTRIBUTE)
       {
         Node avar;
-        // set attribute if generated via keyword
+        // We support two use cases of INST_ATTRIBUTE:
+        // (1) where the user constructs a term of the form
+        // (INST_ATTRIBUTE "keyword" [node_values])
+        // (2) where we internally generate nodes of the form
+        // (INST_ATTRIBUTE v) where v has an internal attribute set on it.
+        // We distinguish these two cases by checking the kind of the first
+        // child.
         if (q[2][i][0].getKind() == CONST_STRING)
         {
           // make a dummy variable to be used below
