@@ -82,10 +82,6 @@ class TheoryQuantifiers : public Theory {
   {
     return std::string("TheoryQuantifiers");
   }
-  void setUserAttribute(const std::string& attr,
-                        Node n,
-                        std::vector<Node> node_values,
-                        std::string str_value) override;
 
  private:
   /** The theory rewriter for this theory. */

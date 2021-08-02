@@ -830,16 +830,6 @@ class CVC5_EXPORT SmtEngine
    */
   void printStatisticsDiff() const;
 
-  /**
-   * Set user attribute.
-   * This function is called when an attribute is set by a user.
-   * In SMT-LIBv2 this is done via the syntax (! expr :attr)
-   */
-  void setUserAttribute(const std::string& attr,
-                        Node expr,
-                        const std::vector<Node>& expr_values,
-                        const std::string& str_value);
-
   /** Get the options object (const and non-const versions) */
   Options& getOptions();
   const Options& getOptions() const;

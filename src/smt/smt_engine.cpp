@@ -1939,18 +1939,6 @@ void SmtEngine::printStatisticsDiff() const
   d_env->getStatisticsRegistry().storeSnapshot();
 }
 
-void SmtEngine::setUserAttribute(const std::string& attr,
-                                 Node expr,
-                                 const std::vector<Node>& expr_values,
-                                 const std::string& str_value)
-{
-  SmtScope smts(this);
-  finishInit();
-  TheoryEngine* te = getTheoryEngine();
-  Assert(te != nullptr);
-  te->setUserAttribute(attr, expr, expr_values, str_value);
-}
-
 void SmtEngine::setOption(const std::string& key, const std::string& value)
 {
   NodeManagerScope nms(getNodeManager());

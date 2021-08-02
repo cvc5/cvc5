@@ -36,7 +36,7 @@ bool QAttributes::isStandard() const
 
 QuantAttributes::QuantAttributes() {}
 
-void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::vector< Node >& node_values, std::string str_value ){
+void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::vector< Node >& node_values ){
   Trace("quant-attr-debug") << "Set " << attr << " " << n << std::endl;
   if (attr == "fun-def")
   {
@@ -200,7 +200,22 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
       }
       else if (k == INST_ATTRIBUTE)
       {
-        Node avar = q[2][i][0];
+        Node avar;
+        // set attribute if generated via keyword
+        if (q[2][i].getNumChildren()>1)
+        {
+          // make a dummy variable to be used below
+          avar = nm->mkBoundVar(nm->booleanType());
+          std::vector<Node> nodeValues;
+          std::stringstream ss;
+          ss << q[2][i][0].getConst<String>();
+          std::vector<Node> nodeValues(q[2][i].begin()+1, q[2][i].end());
+          setUserAttribute(ss.str(), avar, nodeValues);
+        }
+        else
+        {
+          avar = q[2][i][0];
+        }
         if( avar.getAttribute(FunDefAttribute()) ){
           Trace("quant-attr") << "Attribute : function definition : " << q << std::endl;
           //get operator directly from pattern

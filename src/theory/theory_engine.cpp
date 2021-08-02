@@ -1832,27 +1832,6 @@ TrustNode TheoryEngine::getExplanation(
 
 bool TheoryEngine::isProofEnabled() const { return d_pnm != nullptr; }
 
-void TheoryEngine::setUserAttribute(const std::string& attr,
-                                    Node n,
-                                    const std::vector<Node>& node_values,
-                                    const std::string& str_value)
-{
-  Trace("te-attr") << "set user attribute " << attr << " " << n << endl;
-  if( d_attr_handle.find( attr )!=d_attr_handle.end() ){
-    for( size_t i=0; i<d_attr_handle[attr].size(); i++ ){
-      d_attr_handle[attr][i]->setUserAttribute(attr, n, node_values, str_value);
-    }
-  } else {
-    //unhandled exception?
-  }
-}
-
-void TheoryEngine::handleUserAttribute(const char* attr, Theory* t) {
-  Trace("te-attr") << "Handle user attribute " << attr << " " << t << endl;
-  std::string str( attr );
-  d_attr_handle[ str ].push_back( t );
-}
-
 void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
