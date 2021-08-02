@@ -23,7 +23,6 @@
 #include "base/check.h"
 #include "expr/node_algorithm.h"
 #include "options/arith_options.h"
-#include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "smt/smt_statistics_registry.h"
