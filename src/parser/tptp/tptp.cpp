@@ -573,9 +573,7 @@ api::Term Tptp::getAssertionDistinctConstants()
   return d_nullExpr;
 }
 
-Command* Tptp::makeAssertCommand(FormulaRole fr,
-                                 api::Term expr,
-                                 bool cnf)
+Command* Tptp::makeAssertCommand(FormulaRole fr, api::Term expr, bool cnf)
 {
   // For SZS ontology compliance.
   // if we're in cnf() though, conjectures don't result in "Theorem" or
