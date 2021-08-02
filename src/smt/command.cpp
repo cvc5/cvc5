@@ -343,10 +343,7 @@ void EchoCommand::toStream(std::ostream& out,
 /* class AssertCommand                                                        */
 /* -------------------------------------------------------------------------- */
 
-AssertCommand::AssertCommand(const api::Term& t)
-    : d_term(t)
-{
-}
+AssertCommand::AssertCommand(const api::Term& t) : d_term(t) {}
 
 api::Term AssertCommand::getTerm() const { return d_term; }
 void AssertCommand::invoke(api::Solver* solver, SymbolManager* sm)
@@ -366,10 +363,7 @@ void AssertCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-Command* AssertCommand::clone() const
-{
-  return new AssertCommand(d_term);
-}
+Command* AssertCommand::clone() const { return new AssertCommand(d_term); }
 
 std::string AssertCommand::getCommandName() const { return "assert"; }
 
@@ -581,10 +575,7 @@ void CheckSatAssumingCommand::toStream(std::ostream& out,
 /* class QueryCommand                                                         */
 /* -------------------------------------------------------------------------- */
 
-QueryCommand::QueryCommand(const api::Term& t)
-    : d_term(t)
-{
-}
+QueryCommand::QueryCommand(const api::Term& t) : d_term(t) {}
 
 api::Term QueryCommand::getTerm() const { return d_term; }
 void QueryCommand::invoke(api::Solver* solver, SymbolManager* sm)
