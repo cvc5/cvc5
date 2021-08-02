@@ -193,7 +193,6 @@ void TheoryArith::postCheck(Effort level)
     d_arithModelCache.clear();
     std::set<Node> termSet;
     collectAssertedTerms(termSet);
-    computeRelevantTerms(termSet);
     d_internal->collectModelValues(termSet, d_arithModelCache);
 
     // Double check that the model from the linear solver respects integer types,
