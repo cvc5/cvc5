@@ -1,3 +1,4 @@
+; COMMAND-LINE: --bv-solver=bitblast
 ; EXPECT: unsat
 (set-logic QF_FP)
 (declare-fun fpv5 () Float32)

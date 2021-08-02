@@ -51,18 +51,24 @@ void SharedTermsDatabase::setEqualityEngine(eq::EqualityEngine* ee)
 {
   Assert(ee != nullptr);
   d_equalityEngine = ee;
-  // if proofs are enabled, make the proof equality engine
+  // if proofs are enabled, make the proof equality engine if necessary
   if (d_pnm != nullptr)
   {
-    d_pfee.reset(
-        new eq::ProofEqEngine(d_satContext, d_userContext, *ee, d_pnm));
+    d_pfee = d_equalityEngine->getProofEqualityEngine();
+    if (d_pfee == nullptr)
+    {
+      d_pfeeAlloc.reset(
+          new eq::ProofEqEngine(d_satContext, d_userContext, *ee, d_pnm));
+      d_pfee = d_pfeeAlloc.get();
+      d_equalityEngine->setProofEqualityEngine(d_pfee);
+    }
   }
 }
 
 bool SharedTermsDatabase::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_EENotify;
-  esi.d_name = "SharedTermsDatabase";
+  esi.d_name = "shared::ee";
   return true;
 }
 
@@ -243,12 +249,21 @@ theory::eq::EqualityEngine* SharedTermsDatabase::getEqualityEngine()
   return d_equalityEngine;
 }
 
-void SharedTermsDatabase::assertEquality(TNode equality, bool polarity, TNode reason)
+void SharedTermsDatabase::assertShared(TNode n, bool polarity, TNode reason)
 {
   Assert(d_equalityEngine != nullptr);
-  Debug("shared-terms-database::assert") << "SharedTermsDatabase::assertEquality(" << equality << ", " << (polarity ? "true" : "false") << ", " << reason << ")" << endl;
+  Debug("shared-terms-database::assert")
+      << "SharedTermsDatabase::assertShared(" << n << ", "
+      << (polarity ? "true" : "false") << ", " << reason << ")" << endl;
   // Add it to the equality engine
-  d_equalityEngine->assertEquality(equality, polarity, reason);
+  if (n.getKind() == kind::EQUAL)
+  {
+    d_equalityEngine->assertEquality(n, polarity, reason);
+  }
+  else
+  {
+    d_equalityEngine->assertPredicate(n, polarity, reason);
+  }
   // Check for conflict
   checkForConflict();
 }

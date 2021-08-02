@@ -828,7 +828,7 @@ class CVC5_EXPORT SmtEngine
    * time. Internally prints the diff and then stores a snapshot for the next
    * call.
    */
-  void printStatisticsDiff(std::ostream&) const;
+  void printStatisticsDiff() const;
 
   /**
    * Set user attribute.
