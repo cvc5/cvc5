@@ -219,7 +219,8 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
                     << "CegisUnif::lemma, inter-unif-enumerator "
                        "symmetry breaking lemma : "
                     << slem << "\n";
-                d_qim.lemma(slem, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_INTER_ENUM_SB);
+                d_qim.lemma(
+                    slem, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_INTER_ENUM_SB);
                 addedUnifEnumSymBreakLemma = true;
                 break;
               }
@@ -619,7 +620,8 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
     Trace("cegis-unif-enum-lemma")
         << "CegisUnifEnum::lemma, remove redundant ops of " << e << " : "
         << sym_break_red_ops << "\n";
-    d_qim.lemma(sym_break_red_ops, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_REM_OPS);
+    d_qim.lemma(sym_break_red_ops,
+                InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_REM_OPS);
   }
   // symmetry breaking between enumerators
   if (!si.d_enums[index].empty() && index == 0)

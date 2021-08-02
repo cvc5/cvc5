@@ -794,7 +794,8 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               Trace("sets-nf") << "Actual Split : ";
               d_treg.debugPrintSet(r, "sets-nf");
               Trace("sets-nf") << std::endl;
-              d_im.split(r.eqNode(emp_set), InferenceId::SETS_CARD_SPLIT_EMPTY, 1);
+              d_im.split(
+                  r.eqNode(emp_set), InferenceId::SETS_CARD_SPLIT_EMPTY, 1);
               Assert(d_im.hasSent());
               return;
             }
