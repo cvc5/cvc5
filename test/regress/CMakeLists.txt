@@ -2745,6 +2745,21 @@ set(regression_disabled_tests
 )
 
 #-----------------------------------------------------------------------------#
+# Tests to exercise '--use-approx'
+set(use_appox_tests
+  regress0/use_approx/bug812_approx.smt2
+  regress0/use_approx/error0_approx.smt2
+  regress0/use_approx/issue2429_approx.smt2
+  regress0/use_approx/issue4714_approx.smt2
+  regress0/use_approx/siegel-nl-bases_approx.smt2
+  regress0/use_approx/specsharp-WindowsCard.15.RTE.Terminate_System.Int32_approx.smt2
+)
+
+if(USE_GLPK)
+  set(regress_0_tests ${regress_0_tests} ${use_appox_tests})
+endif()
+
+#-----------------------------------------------------------------------------#
 # Add target 'regress', builds and runs
 # > regression tests of levels 0 and 1
 
