@@ -132,8 +132,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   d_pp.reset(
       new smt::Preprocessor(*this, *d_env.get(), *d_absValues.get(), *d_stats));
   // make the SMT solver
-  d_smtSolver.reset(
-      new SmtSolver(*d_env.get(), *d_state, *d_pp, *d_stats));
+  d_smtSolver.reset(new SmtSolver(*d_env.get(), *d_state, *d_pp, *d_stats));
   // make the SyGuS solver
   d_sygusSolver.reset(
       new SygusSolver(*d_smtSolver, *d_pp, getUserContext(), d_outMgr));
@@ -431,13 +430,11 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
           (value == "sat")
               ? Result::SAT
               : ((value == "unsat") ? Result::UNSAT : Result::SAT_UNKNOWN);
-      getPrinter().toStreamCmdSetBenchmarkStatus(
-          d_env->getDumpOut(), status);
+      getPrinter().toStreamCmdSetBenchmarkStatus(d_env->getDumpOut(), status);
     }
     else
     {
-      getPrinter().toStreamCmdSetInfo(
-          d_env->getDumpOut(), key, value);
+      getPrinter().toStreamCmdSetInfo(d_env->getDumpOut(), key, value);
     }
   }
 
@@ -835,8 +832,7 @@ Result SmtEngine::checkSat(const Node& assumption, bool inUnsatCore)
 {
   if (Dump.isOn("benchmark"))
   {
-    getPrinter().toStreamCmdCheckSat(d_env->getDumpOut(),
-                                     assumption);
+    getPrinter().toStreamCmdCheckSat(d_env->getDumpOut(), assumption);
   }
   std::vector<Node> assump;
   if (!assumption.isNull())
@@ -979,8 +975,7 @@ std::vector<Node> SmtEngine::getUnsatAssumptions(void)
   finishInit();
   if (Dump.isOn("benchmark"))
   {
-    getPrinter().toStreamCmdGetUnsatAssumptions(
-        d_env->getDumpOut());
+    getPrinter().toStreamCmdGetUnsatAssumptions(d_env->getDumpOut());
   }
   UnsatCore core = getUnsatCoreInternal();
   std::vector<Node> res;
@@ -1027,8 +1022,7 @@ void SmtEngine::declareSygusVar(Node var)
   d_sygusSolver->declareSygusVar(var);
   if (Dump.isOn("raw-benchmark"))
   {
-    getPrinter().toStreamCmdDeclareVar(
-        d_env->getDumpOut(), var, var.getType());
+    getPrinter().toStreamCmdDeclareVar(d_env->getDumpOut(), var, var.getType());
   }
   // don't need to set that the conjecture is stale
 }
@@ -1068,8 +1062,7 @@ void SmtEngine::assertSygusConstraint(Node constraint)
   d_sygusSolver->assertSygusConstraint(constraint);
   if (Dump.isOn("raw-benchmark"))
   {
-    getPrinter().toStreamCmdConstraint(d_env->getDumpOut(),
-                                       constraint);
+    getPrinter().toStreamCmdConstraint(d_env->getDumpOut(), constraint);
   }
 }
 
@@ -1274,8 +1267,7 @@ Result SmtEngine::blockModelValues(const std::vector<Node>& exprs)
 
   if (Dump.isOn("benchmark"))
   {
-    getPrinter().toStreamCmdBlockModelValues(d_env->getDumpOut(),
-                                             exprs);
+    getPrinter().toStreamCmdBlockModelValues(d_env->getDumpOut(), exprs);
   }
 
   Model* m = getAvailableModel("block model values");
@@ -1958,8 +1950,7 @@ void SmtEngine::setOption(const std::string& key, const std::string& value)
 
   if (Dump.isOn("benchmark"))
   {
-    getPrinter().toStreamCmdSetOption(
-        d_env->getDumpOut(), key, value);
+    getPrinter().toStreamCmdSetOption(d_env->getDumpOut(), key, value);
   }
 
   if (key == "command-verbosity")
