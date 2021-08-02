@@ -52,6 +52,8 @@ class BVSolverBitblastInternal : public BVSolver
                      bool isPrereg,
                      bool isInternal) override;
 
+  TrustNode explain(TNode n) override;
+
   std::string identify() const override { return "BVSolverBitblastInternal"; };
 
   bool collectModelValues(TheoryModel* m,
