@@ -4162,7 +4162,8 @@ class CVC5_EXPORT Solver
   void resetStatistics();
 
   /**
-   * Print the statistics to the given file descriptor, suitable for usage in signal handlers.
+   * Print the statistics to the given file descriptor, suitable for usage in
+   * signal handlers.
    */
   void printStatisticsSafe(int fd) const;
 

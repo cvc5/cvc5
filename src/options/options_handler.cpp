@@ -551,7 +551,8 @@ InputLanguage OptionsHandler::stringToInputLanguage(const std::string& option,
 }
 
 void OptionsHandler::setDumpStream(const std::string& option,
-                               const std::string& flag, const ManagedOut& mo)
+                                   const std::string& flag,
+                                   const ManagedOut& mo)
 {
 #ifdef CVC5_DUMPING
   Dump.setStream(mo);
@@ -561,7 +562,8 @@ void OptionsHandler::setDumpStream(const std::string& option,
 #endif /* CVC5_DUMPING */
 }
 void OptionsHandler::setErrStream(const std::string& option,
-                         const std::string& flag, const ManagedErr& me)
+                                  const std::string& flag,
+                                  const ManagedErr& me)
 {
   Debug.setStream(me);
   Warning.setStream(me);
@@ -571,11 +573,13 @@ void OptionsHandler::setErrStream(const std::string& option,
   Trace.setStream(me);
 }
 void OptionsHandler::setInStream(const std::string& option,
-                         const std::string& flag, const ManagedIn& mi)
+                                 const std::string& flag,
+                                 const ManagedIn& mi)
 {
 }
 void OptionsHandler::setOutStream(const std::string& option,
-                         const std::string& flag, const ManagedOut& mo)
+                                  const std::string& flag,
+                                  const ManagedOut& mo)
 {
 }
 

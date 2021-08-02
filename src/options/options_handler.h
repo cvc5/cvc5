@@ -135,17 +135,17 @@ public:
 
   /* options/base_options_handlers.h */
   void setDumpStream(const std::string& option,
-                 const std::string& flag,
-                 const ManagedOut& mo);
+                     const std::string& flag,
+                     const ManagedOut& mo);
   void setErrStream(const std::string& option,
-                const std::string& flag,
-                const ManagedErr& me);
+                    const std::string& flag,
+                    const ManagedErr& me);
   void setInStream(const std::string& option,
-               const std::string& flag,
-               const ManagedIn& mi);
+                   const std::string& flag,
+                   const ManagedIn& mi);
   void setOutStream(const std::string& option,
-                const std::string& flag,
-                const ManagedOut& mo);
+                    const std::string& flag,
+                    const ManagedOut& mo);
   void setVerbosity(const std::string& option,
                     const std::string& flag,
                     int value);

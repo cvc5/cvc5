@@ -288,32 +288,41 @@ struct OptionHandler<T, false, false> {
 
 /** Specialization for ManagedErr */
 template <>
-struct OptionHandler<ManagedErr,false,false> {
-  static ManagedErr handle(const std::string& option, const std::string& flag, const std::string& optionarg)
+struct OptionHandler<ManagedErr, false, false>
+{
+  static ManagedErr handle(const std::string& option,
+                           const std::string& flag,
+                           const std::string& optionarg)
   {
-      ManagedErr res;
-      res.open(optionarg);
-      return res;
+    ManagedErr res;
+    res.open(optionarg);
+    return res;
   }
 };
 /** Specialization for ManagedIn */
 template <>
-struct OptionHandler<ManagedIn,false,false> {
-  static ManagedIn handle(const std::string& option, const std::string& flag, const std::string& optionarg)
+struct OptionHandler<ManagedIn, false, false>
+{
+  static ManagedIn handle(const std::string& option,
+                          const std::string& flag,
+                          const std::string& optionarg)
   {
-      ManagedIn res;
-      res.open(optionarg);
-      return res;
+    ManagedIn res;
+    res.open(optionarg);
+    return res;
   }
 };
 /** Specialization for ManagedOut */
 template <>
-struct OptionHandler<ManagedOut,false,false> {
-  static ManagedOut handle(const std::string& option, const std::string& flag, const std::string& optionarg)
+struct OptionHandler<ManagedOut, false, false>
+{
+  static ManagedOut handle(const std::string& option,
+                           const std::string& flag,
+                           const std::string& optionarg)
   {
-      ManagedOut res;
-      res.open(optionarg);
-      return res;
+    ManagedOut res;
+    res.open(optionarg);
+    return res;
   }
 };
 
