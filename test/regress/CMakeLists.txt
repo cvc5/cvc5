@@ -1426,6 +1426,12 @@ set(regress_0_tests
   regress0/unconstrained/mult1.smt2
   regress0/unconstrained/uf1.smt2
   regress0/unconstrained/xor.smt2
+  regress0/use_approx/bug812_approx.smt2
+  regress0/use_approx/error0_approx.smt2
+  regress0/use_approx/issue2429_approx.smt2
+  regress0/use_approx/issue4714_approx.smt2
+  regress0/use_approx/siegel-nl-bases_approx.smt2
+  regress0/use_approx/specsharp-WindowsCard.15.RTE.Terminate_System.Int32_approx.smt2
   regress0/wiki.01.cvc
   regress0/wiki.02.cvc
   regress0/wiki.03.cvc
@@ -2743,21 +2749,6 @@ set(regression_disabled_tests
   regress3/unifpi-solve-car_1.lus.sy
   regress3/issue4476-ext-rew.smt2
 )
-
-#-----------------------------------------------------------------------------#
-# Tests to exercise '--use-approx'
-set(use_appox_tests
-  regress0/use_approx/bug812_approx.smt2
-  regress0/use_approx/error0_approx.smt2
-  regress0/use_approx/issue2429_approx.smt2
-  regress0/use_approx/issue4714_approx.smt2
-  regress0/use_approx/siegel-nl-bases_approx.smt2
-  regress0/use_approx/specsharp-WindowsCard.15.RTE.Terminate_System.Int32_approx.smt2
-)
-
-if(USE_GLPK)
-  set(regress_0_tests ${regress_0_tests} ${use_appox_tests})
-endif()
 
 #-----------------------------------------------------------------------------#
 # Add target 'regress', builds and runs

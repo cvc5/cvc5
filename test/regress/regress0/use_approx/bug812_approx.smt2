@@ -1,3 +1,4 @@
+; REQUIRES: glpk
 ; COMMAND-LINE: --use-approx
 ; EXPECT: unknown
 (set-logic UFNIA)

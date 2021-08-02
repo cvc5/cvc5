@@ -1,3 +1,4 @@
+; REQUIRES: glpk
 ; COMMAND-LINE: --use-approx
 ; EXPECT: sat
 (set-logic QF_NIA)
