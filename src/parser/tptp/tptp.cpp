@@ -575,8 +575,7 @@ api::Term Tptp::getAssertionDistinctConstants()
 
 Command* Tptp::makeAssertCommand(FormulaRole fr,
                                  api::Term expr,
-                                 bool cnf,
-                                 bool inUnsatCore)
+                                 bool cnf)
 {
   // For SZS ontology compliance.
   // if we're in cnf() though, conjectures don't result in "Theorem" or
@@ -588,7 +587,7 @@ Command* Tptp::makeAssertCommand(FormulaRole fr,
   if( expr.isNull() ){
     return new EmptyCommand("Untreated role for expression");
   }else{
-    return new AssertCommand(expr, inUnsatCore);
+    return new AssertCommand(expr);
   }
 }
 

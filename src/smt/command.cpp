@@ -343,8 +343,8 @@ void EchoCommand::toStream(std::ostream& out,
 /* class AssertCommand                                                        */
 /* -------------------------------------------------------------------------- */
 
-AssertCommand::AssertCommand(const api::Term& t, bool inUnsatCore)
-    : d_term(t), d_inUnsatCore(inUnsatCore)
+AssertCommand::AssertCommand(const api::Term& t)
+    : d_term(t)
 {
 }
 
@@ -353,7 +353,7 @@ void AssertCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->getSmtEngine()->assertFormula(termToNode(d_term), d_inUnsatCore);
+    solver->assertFormula(d_term);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnsafeInterruptException& e)
@@ -368,7 +368,7 @@ void AssertCommand::invoke(api::Solver* solver, SymbolManager* sm)
 
 Command* AssertCommand::clone() const
 {
-  return new AssertCommand(d_term, d_inUnsatCore);
+  return new AssertCommand(d_term);
 }
 
 std::string AssertCommand::getCommandName() const { return "assert"; }
@@ -581,8 +581,8 @@ void CheckSatAssumingCommand::toStream(std::ostream& out,
 /* class QueryCommand                                                         */
 /* -------------------------------------------------------------------------- */
 
-QueryCommand::QueryCommand(const api::Term& t, bool inUnsatCore)
-    : d_term(t), d_inUnsatCore(inUnsatCore)
+QueryCommand::QueryCommand(const api::Term& t)
+    : d_term(t)
 {
 }
 
@@ -615,7 +615,7 @@ void QueryCommand::printResult(std::ostream& out, uint32_t verbosity) const
 
 Command* QueryCommand::clone() const
 {
-  QueryCommand* c = new QueryCommand(d_term, d_inUnsatCore);
+  QueryCommand* c = new QueryCommand(d_term);
   c->d_result = d_result;
   return c;
 }
