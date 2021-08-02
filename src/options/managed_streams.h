@@ -51,22 +51,6 @@ std::istream* openIStream(const std::string& filename);
 template <typename Stream>
 class ManagedStream
 {
-  /** Returns the value to be used if d_stream is not set. */
-  virtual Stream* defaultValue() const = 0;
-  /**
-   * Check if there is a special case for this value. If so, the implementation
-   * should set d_stream appropriately and return true to skip the default
-   * methods for opening a stream.
-   */
-  virtual bool specialCases(const std::string& value) = 0;
-
-  /** Return the pointer, either from d_stream of from defaultValue(). */
-  Stream* getPtr() const
-  {
-    if (d_stream) return d_stream.get();
-    return defaultValue();
-  }
-
  public:
   ManagedStream() {}
   virtual ~ManagedStream() {}
@@ -95,6 +79,23 @@ class ManagedStream
 
  protected:
   std::shared_ptr<Stream> d_stream;
+
+ private:
+  /** Returns the value to be used if d_stream is not set. */
+  virtual Stream* defaultValue() const = 0;
+  /**
+   * Check if there is a special case for this value. If so, the implementation
+   * should set d_stream appropriately and return true to skip the default
+   * methods for opening a stream.
+   */
+  virtual bool specialCases(const std::string& value) = 0;
+
+  /** Return the pointer, either from d_stream of from defaultValue(). */
+  Stream* getPtr() const
+  {
+    if (d_stream) return d_stream.get();
+    return defaultValue();
+  }
 };
 
 template <typename Stream>
