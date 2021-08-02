@@ -36,7 +36,10 @@ bool QAttributes::isStandard() const
 
 QuantAttributes::QuantAttributes() {}
 
-void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::vector< Node >& node_values ){
+void QuantAttributes::setUserAttribute(const std::string& attr,
+                                       Node n,
+                                       std::vector<Node>& node_values)
+{
   Trace("quant-attr-debug") << "Set " << attr << " " << n << std::endl;
   if (attr == "fun-def")
   {
@@ -184,7 +187,7 @@ void QuantAttributes::computeAttributes( Node q ) {
 void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
   Trace("quant-attr-debug") << "Compute attributes for " << q << std::endl;
   if( q.getNumChildren()==3 ){
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     qa.d_ipl = q[2];
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
       Kind k = q[2][i].getKind();
@@ -203,13 +206,14 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
       {
         Node avar;
         // set attribute if generated via keyword
-        if (q[2][i][0].getKind()==CONST_STRING)
+        if (q[2][i][0].getKind() == CONST_STRING)
         {
           // make a dummy variable to be used below
           avar = nm->mkBoundVar(nm->booleanType());
-          std::vector<Node> nodeValues(q[2][i].begin()+1, q[2][i].end());
+          std::vector<Node> nodeValues(q[2][i].begin() + 1, q[2][i].end());
           // set user attribute on the dummy variable
-          setUserAttribute(q[2][i][0].getConst<String>().toString(), avar, nodeValues);
+          setUserAttribute(
+              q[2][i][0].getConst<String>().toString(), avar, nodeValues);
         }
         else
         {
@@ -239,13 +243,15 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
         if (avar.getAttribute(QuantNameAttribute()))
         {
           // only set the name if there is a value
-          if (q[2][i].getNumChildren()>1)
+          if (q[2][i].getNumChildren() > 1)
           {
-            Trace("quant-attr") << "Attribute : quantifier name : " << q[2][i][1].getConst<String>().toString()
+            Trace("quant-attr") << "Attribute : quantifier name : "
+                                << q[2][i][1].getConst<String>().toString()
                                 << " for " << q << std::endl;
             // assign the name to a variable with the given name (to avoid
             // enclosing the name in quotes)
-            qa.d_name = nm->mkBoundVar(q[2][i][1].getConst<String>().toString(), nm->booleanType());
+            qa.d_name = nm->mkBoundVar(q[2][i][1].getConst<String>().toString(),
+                                       nm->booleanType());
           }
           else
           {

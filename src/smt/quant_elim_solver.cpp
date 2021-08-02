@@ -58,7 +58,8 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
   TypeNode t = nm->booleanType();
   TheoryEngine* te = d_smtSolver.getTheoryEngine();
   Assert(te != nullptr);
-  Node keyword = nm->mkConst(String(doFull ? "quant-elim" : "quant-elim-partial"));
+  Node keyword =
+      nm->mkConst(String(doFull ? "quant-elim" : "quant-elim-partial"));
   Node n_attr = nm->mkNode(INST_ATTRIBUTE, keyword);
   n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
   std::vector<Node> children;
