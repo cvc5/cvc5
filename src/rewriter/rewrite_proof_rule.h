@@ -51,13 +51,18 @@ class RewriteProofRule
    * @param conc The conclusion of the rule, which is an equality of the form
    * (= t s), where t is specified as rewriting to s. This equality is
    * normalized to fvs.
+   * @param isFixedPoint Whether the rule should be applied to fixed point in
+   * the strategy
+   * @param isFlatForm Whether the rule is the flat form of the actual rule
+   * with the given id.
    */
   void init(DslPfRule id,
             const std::vector<Node>& userFvs,
             const std::vector<Node>& fvs,
             const std::vector<Node>& cond,
             Node conc,
-            bool isFixedPoint);
+            bool isFixedPoint,
+            bool isFlatForm);
   /** get id */
   DslPfRule getId() const;
   /** get name */
@@ -103,6 +108,8 @@ class RewriteProofRule
   Kind getListContext(Node v) const;
   /** Was this rule marked as being applied to fixed point? */
   bool isFixedPoint() const;
+  /** Is this rule in flat form? */
+  bool isFlatForm() const;
 
  private:
   /**
@@ -129,6 +136,8 @@ class RewriteProofRule
   Node d_conc;
   /** Is the rule applied until a fixed point is reached? */
   bool d_isFixedPoint;
+  /** Whether the rule is in flat form */
+  bool d_isFlatForm;
   /** the ordered list of free variables, provided by the user */
   std::vector<Node> d_userFvs;
   /** the ordered list of free variables */

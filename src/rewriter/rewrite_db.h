@@ -56,7 +56,8 @@ class RewriteDb
                Node a,
                Node b,
                Node cond,
-               bool isFixedPoint);
+               bool isFixedPoint,
+               bool isFlatForm = false);
   /** get matches */
   void getMatches(Node eq, expr::NotifyMatch* ntm);
   /** get rule for id */

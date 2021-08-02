@@ -40,7 +40,7 @@ bool getDslPfRule(TNode n, DslPfRule& id)
 }
 
 RewriteProofRule::RewriteProofRule()
-    : d_id(DslPfRule::FAIL), d_isFixedPoint(false)
+    : d_id(DslPfRule::FAIL), d_isFixedPoint(false), d_isFlatForm(false)
 {
 }
 
@@ -49,7 +49,8 @@ void RewriteProofRule::init(DslPfRule id,
                             const std::vector<Node>& fvs,
                             const std::vector<Node>& cond,
                             Node conc,
-                            bool isFixedPoint)
+                            bool isFixedPoint,
+            bool isFlatForm)
 {
   // not initialized yet
   Assert(d_cond.empty() && d_obGen.empty() && d_fvs.empty());
@@ -73,6 +74,7 @@ void RewriteProofRule::init(DslPfRule id,
   }
   d_conc = conc;
   d_isFixedPoint = isFixedPoint;
+  d_isFlatForm = isFlatForm;
   if (!expr::getListVarContext(conc, d_listVarCtx))
   {
     Unhandled() << "Ambiguous context for list variables in conclusion of rule "
@@ -265,6 +267,6 @@ Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss) const
   return expr::narySubstitute(d_conc, d_fvs, ss);
 }
 bool RewriteProofRule::isFixedPoint() const { return d_isFixedPoint; }
-
+bool RewriteProofRule::isFlatForm() const { return d_isFlatForm; }
 }  // namespace rewriter
 }  // namespace cvc5

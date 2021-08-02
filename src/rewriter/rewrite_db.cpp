@@ -47,7 +47,8 @@ void RewriteDb::addRule(DslPfRule id,
                         Node a,
                         Node b,
                         Node cond,
-                        bool isFixedPoint)
+                        bool isFixedPoint,
+               bool isFlatForm)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node eq = a.eqNode(b);
@@ -135,9 +136,12 @@ void RewriteDb::addRule(DslPfRule id,
   }
 
   // initialize rule
-  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC, isFixedPoint);
+  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC, isFixedPoint, isFlatForm);
   d_concToRules[eqC].push_back(id);
   d_headToRules[eqC[0]].push_back(id);
+  
+  // if not flattened, add flattened form
+  
 }
 
 void RewriteDb::getMatches(Node eq, expr::NotifyMatch* ntm)

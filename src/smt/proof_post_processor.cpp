@@ -1266,7 +1266,7 @@ bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       TheoryId tid = THEORY_BUILTIN;
       builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
       Trace("final-pf-hole")
-          << "hole " << r << " " << tid << " : " << eq << std::endl;
+          << "hole " << r << " " << tid << " : " << eq[0] << " ---> " << eq[1] << std::endl;
     }
   }
   return false;
