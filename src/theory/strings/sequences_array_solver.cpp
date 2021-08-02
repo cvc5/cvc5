@@ -43,25 +43,46 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
 {
   NodeManager * nm = NodeManager::currentNM();
 
-  std::map<Node, std::vector<Node>> index_map;
+  std::map<Node, std::set<Node>> index_map;
 
   Trace("seq-update") << "SequencesArraySolver::check..." << std::endl;
   d_writeModel.clear();
   for (const Node& n : nthTerms)
   {
+	  std::cerr << "nth Term: " << n << std::endl;
     // (seq.nth n[0] n[1])
     Node r = d_state.getRepresentative(n[0]);
-    Trace("seq-update") << "- " << r << ": " << n[1] << " -> " << n << std::endl;
+    //Trace("seq-update") << "- " << r << ": " << n[1] << " -> " << n << std::endl;
     //    d_writeModel[r][n[1]] = n;
     if (index_map.find(r) == index_map.end())
     {
-      std::vector<Node> indexes;
-      indexes.push_back(n[1]);
+      std::set<Node> indexes;
+      indexes.insert(n[1]);
       index_map[r] = indexes;
     }
     else
-    {
-      index_map[r].push_back(n[1]);
+	{
+		Node proxyVar = d_termReg.getProxyVariableFor(n);
+//		std::cerr << d_state.areEqual(proxyVar, n) << std::endl;
+		// TODO: why the above returns false???
+		std::vector<Node> exp;
+//		d_im.addToExplanation(proxyVar, n, exp);
+
+		for (Node i : index_map[r]) {
+			// i == n[1] => n == (seq.nth n[0] i)
+			Node left = nm->mkNode(EQUAL, i, n[1]);
+			Node right = nm->mkNode(EQUAL, n, nm->mkNode(SEQ_NTH, r, i));
+			Node lem = nm->mkNode(IMPLIES, left, right);
+			//if (d_lem.find(lem) == d_lem.end())
+			//{
+			//	d_lem.insert(lem);
+			//	InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
+			//	Trace("seq-update") << "send lemma - " << lem << std::endl;
+			//	d_im.sendInference(exp, lem, iid);
+			//}
+		}
+		index_map[r].insert(n[1]);
+		std::cerr << "map pair: " << r << ' ' << n[1] << std::endl;
     }
   }
   for (const Node& n : updateTerms)
@@ -91,6 +112,7 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
       //      std::cerr << "send by check() in sequence_array " << left << " "
       //      << right
       //                << std::endl;
+	  Trace("seq-update") << "send lemma - " << eq << std::endl;
       d_im.sendInference(exp, eq, iid);
     }
 
@@ -100,11 +122,12 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
     for (auto nth : index_map)
     {
       Node seq = nth.first;
-      if (d_state.areEqual(seq, n))
+      if (d_state.areEqual(seq, n) || d_state.areEqual(seq, n[0]))
       {
-        std::vector<Node> indexes = nth.second;
+        std::set<Node> indexes = nth.second;
         for (Node j : indexes)
         {
+			std::cerr << "seq: " << seq << " j: " << j << std::endl;
           left = nm->mkNode(DISTINCT, n[1], j);
           Node nth1 = nm->mkNode(SEQ_NTH, proxyVar, j);
           Node nth2 = nm->mkNode(SEQ_NTH, n[0], j);
@@ -117,6 +140,7 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
             //            std::cerr << "send by check() in sequence_array " <<
             //            left << " -> "
             //                      << right << std::endl;
+			Trace("seq-update") << "send lemma - " << lem << std::endl;
             d_im.sendInference(exp, lem, iid);
           }
         }
