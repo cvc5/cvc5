@@ -1,5 +1,4 @@
-; COMMAND-LINE: --no-produce-proofs --no-check-unsat-cores
-; EXPECT: unsat
+; COMMAND-LINE: --bv-solver=bitblast
 (set-option :incremental false)
 (set-info :status unsat)
 (set-logic QF_AUFBV)

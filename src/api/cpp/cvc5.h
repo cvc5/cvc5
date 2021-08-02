@@ -4170,6 +4170,11 @@ class CVC5_EXPORT Solver
   /** Reset the API statistics */
   void resetStatistics();
 
+  /**
+   * Print the statistics to the given file descriptor, suitable for usage in signal handlers.
+   */
+  void printStatisticsSafe(int fd) const;
+
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
   /** Helper for mk-functions that call d_nodeMgr->mkConst(). */
