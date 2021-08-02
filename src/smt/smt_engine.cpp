@@ -1923,11 +1923,6 @@ NodeManager* SmtEngine::getNodeManager() const
   return d_env->getNodeManager();
 }
 
-void SmtEngine::printStatistics(std::ostream& out) const
-{
-  d_env->getStatisticsRegistry().print(out);
-}
-
 void SmtEngine::printStatisticsSafe(int fd) const
 {
   d_env->getStatisticsRegistry().printSafe(fd);

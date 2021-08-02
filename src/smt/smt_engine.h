@@ -812,12 +812,6 @@ class CVC5_EXPORT SmtEngine
 
   /**
    * Print statistics from the statistics registry in the env object owned by
-   * this SmtEngine.
-   */
-  void printStatistics(std::ostream& out) const;
-
-  /**
-   * Print statistics from the statistics registry in the env object owned by
    * this SmtEngine. Safe to use in a signal handler.
    */
   void printStatisticsSafe(int fd) const;
