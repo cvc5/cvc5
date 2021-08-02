@@ -14,7 +14,7 @@ name   = "SMT Layer"
   long       = "dump-to=FILE"
   type       = "ManagedOut"
   help       = "all dumping goes to FILE (instead of stdout)"
-  predicates = ["applyDump"]
+  predicates = ["setDumpStream"]
   includes   = ["<iostream>", "options/managed_streams.h"]
 
 [[option]]

@@ -550,7 +550,7 @@ InputLanguage OptionsHandler::stringToInputLanguage(const std::string& option,
   Unreachable();
 }
 
-void OptionsHandler::applyDump(const std::string& option,
+void OptionsHandler::setDumpStream(const std::string& option,
                                const std::string& flag, const ManagedOut& mo)
 {
 #ifdef CVC5_DUMPING
@@ -560,7 +560,7 @@ void OptionsHandler::applyDump(const std::string& option,
       "The dumping feature was disabled in this build of cvc5.");
 #endif /* CVC5_DUMPING */
 }
-void OptionsHandler::applyErr(const std::string& option,
+void OptionsHandler::setErrStream(const std::string& option,
                          const std::string& flag, const ManagedErr& me)
 {
   Debug.setStream(me);
@@ -570,11 +570,11 @@ void OptionsHandler::applyErr(const std::string& option,
   Chat.setStream(me);
   Trace.setStream(me);
 }
-void OptionsHandler::applyIn(const std::string& option,
+void OptionsHandler::setInStream(const std::string& option,
                          const std::string& flag, const ManagedIn& mi)
 {
 }
-void OptionsHandler::applyOut(const std::string& option,
+void OptionsHandler::setOutStream(const std::string& option,
                          const std::string& flag, const ManagedOut& mo)
 {
 }

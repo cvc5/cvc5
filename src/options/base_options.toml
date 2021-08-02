@@ -7,7 +7,7 @@ public = true
   category   = "undocumented"
   long       = "in=input"
   type       = "ManagedIn"
-  predicates = ["applyIn"]
+  predicates = ["setInStream"]
   includes   = ["<iostream>", "options/managed_streams.h"]
 
 [[option]]
@@ -16,7 +16,7 @@ public = true
   long       = "out=output"
   type       = "ManagedOut"
   alias      = ["regular-output-channel"]
-  predicates = ["applyOut"]
+  predicates = ["setOutStream"]
   includes   = ["<iostream>", "options/managed_streams.h"]
 
 [[option]]
@@ -25,7 +25,7 @@ public = true
   long       = "err=erroutput"
   type       = "ManagedErr"
   alias      = ["diagnostic-output-channel"]
-  predicates = ["applyErr"]
+  predicates = ["setErrStream"]
   includes   = ["<iostream>", "options/managed_streams.h"]
 
 [[option]]
