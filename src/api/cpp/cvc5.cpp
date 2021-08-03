@@ -4762,7 +4762,9 @@ struct Stat::StatData
 
 Stat::~Stat() {}
 Stat::Stat(const Stat& s)
-    : d_expert(s.d_expert), d_data(std::make_unique<StatData>(s.d_data->data))
+    : d_expert(s.d_expert),
+      d_default(s.d_default),
+      d_data(std::make_unique<StatData>(s.d_data->data))
 {
 }
 Stat& Stat::operator=(const Stat& s)
@@ -5383,6 +5385,11 @@ void Solver::resetStatistics()
             "api::TERM"),
     });
   }
+}
+
+void Solver::printStatisticsSafe(int fd) const
+{
+  d_smtEngine->printStatisticsSafe(fd);
 }
 
 /* Helpers for mkTerm checks.                                                 */
@@ -6638,8 +6645,7 @@ Result Solver::checkEntailed(const Term& term) const
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERM(term);
   //////// all checks before this line
-  cvc5::Result r = d_smtEngine->checkEntailed(*term.d_node);
-  return Result(r);
+  return d_smtEngine->checkEntailed(*term.d_node);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6682,8 +6688,7 @@ Result Solver::checkSat(void) const
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   //////// all checks before this line
-  cvc5::Result r = d_smtEngine->checkSat();
-  return Result(r);
+  return d_smtEngine->checkSat();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6698,8 +6703,7 @@ Result Solver::checkSatAssuming(const Term& assumption) const
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(assumption, getBooleanSort());
   //////// all checks before this line
-  cvc5::Result r = d_smtEngine->checkSat(*assumption.d_node);
-  return Result(r);
+  return d_smtEngine->checkSat(*assumption.d_node);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6719,8 +6723,7 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
     CVC5_API_SOLVER_CHECK_TERM(term);
   }
   std::vector<Node> eassumptions = Term::termVectorToNodes(assumptions);
-  cvc5::Result r = d_smtEngine->checkSat(eassumptions);
-  return Result(r);
+  return d_smtEngine->checkSat(eassumptions);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7419,8 +7422,18 @@ void Solver::setOption(const std::string& option,
                        const std::string& value) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(!d_smtEngine->isFullyInited())
-      << "Invalid call to 'setOption', solver is already fully initialized";
+  static constexpr auto mutableOpts = {"diagnostic-output-channel",
+                                       "print-success",
+                                       "regular-output-channel",
+                                       "reproducible-resource-limit",
+                                       "verbosity"};
+  if (std::find(mutableOpts.begin(), mutableOpts.end(), option)
+      == mutableOpts.end())
+  {
+    CVC5_API_CHECK(!d_smtEngine->isFullyInited())
+        << "Invalid call to 'setOption' for option '" << option
+        << "', solver is already fully initialized";
+  }
   //////// all checks before this line
   d_smtEngine->setOption(option, value);
   ////////
