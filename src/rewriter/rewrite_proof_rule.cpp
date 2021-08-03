@@ -50,7 +50,7 @@ void RewriteProofRule::init(DslPfRule id,
                             const std::vector<Node>& cond,
                             Node conc,
                             bool isFixedPoint,
-            bool isFlatForm)
+                            bool isFlatForm)
 {
   // not initialized yet
   Assert(d_cond.empty() && d_obGen.empty() && d_fvs.empty());

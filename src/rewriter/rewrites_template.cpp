@@ -53,9 +53,9 @@ const char* toString(DslPfRule drule)
     case DslPfRule::REFL: return "REFL";
     case DslPfRule::EVAL: return "EVAL";
     case DslPfRule::TRANS: return "TRANS";
-    case DslPfRule::CONG:
-      return "CONG";
-    case DslPfRule::TRUE_ELIM: return "TRUE_ELIM";
+    case DslPfRule::CONG: return "CONG";
+    case DslPfRule::TRUE_ELIM:
+      return "TRUE_ELIM";
       // clang-format off
 ${printer}$
     default : Unreachable();

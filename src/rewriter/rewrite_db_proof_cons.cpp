@@ -137,7 +137,8 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
           << "unexpected failure for " << eqi;
       retId = it->second.d_id;
     }
-    else if (proveWithRule(DslPfRule::TRUE_ELIM, eqi, {}, {}, false, false, true))
+    else if (proveWithRule(
+                 DslPfRule::TRUE_ELIM, eqi, {}, {}, false, false, true))
     {
       Trace("rpc-debug2") << "...proved via true-elim" << std::endl;
       retId = DslPfRule::TRUE_ELIM;
@@ -382,7 +383,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
 {
   Assert(eqi.getKind() == kind::EQUAL);
   // if we are currently trying to prove this, fail
-  if (d_currProving.find(eqi)!=d_currProving.end())
+  if (d_currProving.find(eqi) != d_currProving.end())
   {
     idb = DslPfRule::FAIL;
     return true;

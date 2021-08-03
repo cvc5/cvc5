@@ -358,12 +358,12 @@ Node LfscNodeConverter::postConvert(Node n)
     // (bbT t1 ... tn) is (bbT t1 (bbT t2 ... (bbT tn emptybv)))
     // where notice that each bbT has a different type
     Node curr = getNullTerminator(k, tn);
-    for (size_t i=0, nchild = n.getNumChildren(); i<nchild; ++i)
+    for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
     {
-      TypeNode bvt = nm->mkBitVectorType(i+1);
+      TypeNode bvt = nm->mkBitVectorType(i + 1);
       TypeNode ftype = nm->mkFunctionType({btn, curr.getType()}, bvt);
       Node bbt = getSymbolInternal(k, ftype, "bbT");
-      curr = nm->mkNode(APPLY_UF, bbt, n[nchild-(i+1)], curr);
+      curr = nm->mkNode(APPLY_UF, bbt, n[nchild - (i + 1)], curr);
     }
     return curr;
   }
