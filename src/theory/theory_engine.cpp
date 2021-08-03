@@ -950,7 +950,8 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
     Assert(toTheoryIdProp == toTheoryId);
     // First check if we already have a value
     bool value;
-    if (d_propEngine->hasValue(assertion, value)) {
+    if (d_propEngine->hasValue(assertion, value))
+    {
       if (!value)
       {
         // mark conflict
@@ -969,7 +970,8 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
       }
     }
     // mark propagation to ensure we can explain
-    if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
+    if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId))
+    {
       // Enqueue for propagation to the SAT solver
       d_propagatedLiterals.push_back(assertion);
     }
