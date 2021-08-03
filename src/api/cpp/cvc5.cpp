@@ -59,6 +59,7 @@
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "options/smt_options.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
@@ -7041,6 +7042,15 @@ std::string Solver::getOption(const std::string& option) const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_smtEngine->getOption(option);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<std::string> Solver::getOptionNames() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return options::getNames();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
