@@ -15,24 +15,20 @@
 
 package cvc5;
 
-public class Op extends AbstractPointer
-{
+public class Op extends AbstractPointer {
   // region construction and destruction
-  Op(Solver solver, long pointer)
-  {
+  Op(Solver solver, long pointer) {
     super(solver, pointer);
   }
 
   protected static native void deletePointer(long pointer);
 
-  public long getPointer()
-  {
+  public long getPointer() {
     return pointer;
   }
 
   @Override
-  public void finalize()
-  {
+  public void finalize() {
     deletePointer(pointer);
   }
 
@@ -45,8 +41,8 @@ public class Op extends AbstractPointer
    * @param t the operator to compare to for equality
    * @return true if the operators are equal
    */
-  @Override public boolean equals(Object t)
-  {
+  @Override
+  public boolean equals(Object t) {
     if (this == t)
       return true;
     if (t == null || getClass() != t.getClass())
@@ -59,15 +55,11 @@ public class Op extends AbstractPointer
   /**
    * @return the kind of this operator
    */
-  Kind getKind()
-  {
-    try
-    {
+  Kind getKind() {
+    try {
       int value = getKind(pointer);
       return Kind.fromInt(value);
-    }
-    catch (CVC5ApiException e)
-    {
+    } catch (CVC5ApiException e) {
       e.printStackTrace();
       throw new RuntimeException(e.getMessage());
     }
@@ -78,8 +70,7 @@ public class Op extends AbstractPointer
   /**
    * @return true if this operator is a null term
    */
-  public boolean isNull()
-  {
+  public boolean isNull() {
     return isNull(pointer);
   }
 
@@ -88,8 +79,7 @@ public class Op extends AbstractPointer
   /**
    * @return true iff this operator is indexed
    */
-  public boolean isIndexed()
-  {
+  public boolean isIndexed() {
     return isIndexed(pointer);
   }
 
@@ -98,8 +88,7 @@ public class Op extends AbstractPointer
   /**
    * @return the number of indices of this op
    */
-  public int getNumIndices()
-  {
+  public int getNumIndices() {
     return getNumIndices(pointer);
   }
 
@@ -111,8 +100,7 @@ public class Op extends AbstractPointer
    *
    * @return the indices used to create this Op
    */
-  public int[] getIntegerIndices()
-  {
+  public int[] getIntegerIndices() {
     return getIntegerIndices(pointer);
   }
 
@@ -124,8 +112,7 @@ public class Op extends AbstractPointer
    *
    * @return the indices used to create this Op
    */
-  public String[] getStringIndices()
-  {
+  public String[] getStringIndices() {
     return getStringIndices(pointer);
   }
 

@@ -29,7 +29,7 @@ JNIEXPORT void JNICALL Java_cvc5_Op_deletePointer(JNIEnv*,
                                                   jclass,
                                                   jlong pointer)
 {
-  delete ((Op*)pointer);
+  delete reinterpret_cast<Op*>(pointer);
 }
 
 /*
@@ -43,10 +43,10 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Op_equals(JNIEnv* env,
                                                jlong pointer2)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Op* op1 = (Op*)pointer1;
-  Op* op2 = (Op*)pointer2;
+  Op* op1 = reinterpret_cast<Op*>(pointer1);
+  Op* op2 = reinterpret_cast<Op*>(pointer2);
   // We compare the actual operators, not their pointers.
-  return (jboolean)(*op1 == *op2);
+  return static_cast<jboolean>(*op1 == *op2);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
 }
 
@@ -58,8 +58,8 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Op_equals(JNIEnv* env,
 JNIEXPORT jint JNICALL Java_cvc5_Op_getKind(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Op* current = (Op*)pointer;
-  return (jboolean)current->getKind();
+  Op* current = reinterpret_cast<Op*>(pointer);
+  return static_cast<jboolean>(current->getKind());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -73,8 +73,8 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Op_isNull(JNIEnv* env,
                                                jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Op* current = (Op*)pointer;
-  return (jboolean)current->isNull();
+  Op* current = reinterpret_cast<Op*>(pointer);
+  return static_cast<jboolean>(current->isNull());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
 }
 
@@ -88,8 +88,8 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Op_isIndexed(JNIEnv* env,
                                                   jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Op* current = (Op*)pointer;
-  return (jboolean)current->isIndexed();
+  Op* current = reinterpret_cast<Op*>(pointer);
+  return static_cast<jboolean>(current->isIndexed());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, false);
 }
 
@@ -103,8 +103,8 @@ JNIEXPORT jint JNICALL Java_cvc5_Op_getNumIndices(JNIEnv* env,
                                                   jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Op* current = (Op*)pointer;
-  return (jint)current->getNumIndices();
+  Op* current = reinterpret_cast<Op*>(pointer);
+  return static_cast<jint>(current->getNumIndices());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -118,7 +118,7 @@ JNIEXPORT jintArray JNICALL Java_cvc5_Op_getIntegerIndices(JNIEnv* env,
                                                            jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Op* current = (Op*)pointer;
+  Op* current = reinterpret_cast<Op*>(pointer);
   size_t size = current->getNumIndices();
   std::vector<jint> indices(size);
   if (size == 1)
@@ -157,7 +157,7 @@ JNIEXPORT jobjectArray JNICALL Java_cvc5_Op_getStringIndices(JNIEnv* env,
                                                              jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Op* current = (Op*)pointer;
+  Op* current = reinterpret_cast<Op*>(pointer);
   size_t size = current->getNumIndices();
   std::vector<jstring> indices(size);
   if (size == 1)
@@ -194,7 +194,7 @@ JNIEXPORT jstring JNICALL Java_cvc5_Op_toString(JNIEnv* env,
                                                 jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Op* current = (Op*)pointer;
+  Op* current = reinterpret_cast<Op*>(pointer);
   return env->NewStringUTF(current->toString().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
