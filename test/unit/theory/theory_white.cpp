@@ -100,7 +100,7 @@ TEST_F(TestTheoryWhite, outputChannel)
 {
   Node n = d_atom0.orNode(d_atom1);
   d_outputChannel.lemma(n);
-  d_outputChannel.split(d_atom0);
+  d_outputChannel.lemma(d_atom0.orNode(d_atom0.notNode()));
   Node s = d_atom0.orNode(d_atom0.notNode());
   ASSERT_EQ(d_outputChannel.d_callHistory.size(), 2u);
   ASSERT_EQ(d_outputChannel.d_callHistory[0], std::make_pair(LEMMA, n));
