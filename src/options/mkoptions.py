@@ -737,6 +737,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
     options_getall = []      # options for options::getAll()
     options_getoptions = []  # options for Options::getOptions()
     options_handler = []     # option handler calls
+    options_names = set()    # option names
     help_common = []         # help text for all common options
     help_others = []         # help text for all non-common options
     setoption_handlers = []  # handlers for set-option command
@@ -819,15 +820,16 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
             # Generate handlers for setOption/getOption
             if option.long:
                 # Make long and alias names available via set/get-option
-                keys = set()
+                names = set()
                 if option.long:
-                    keys.add(long_get_option(option.long))
+                    names.add(long_get_option(option.long))
                 if option.alias:
-                    keys.update(option.alias)
-                assert keys
+                    names.update(option.alias)
+                assert names
+                options_names.update(names)
 
                 cond = ' || '.join(
-                    ['key == "{}"'.format(x) for x in sorted(keys)])
+                    ['name == "{}"'.format(x) for x in sorted(names)])
 
                 setoption_handlers.append('  if ({}) {{'.format(cond))
                 if option.type == 'bool':
@@ -835,16 +837,16 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
                         TPL_CALL_ASSIGN_BOOL.format(
                             module=module.id,
                             name=option.name,
-                            option='key',
+                            option='name',
                             value='optionarg == "true"'))
                 elif argument_req and option.name and not mode_handler:
                     setoption_handlers.append(
                         TPL_CALL_ASSIGN.format(
                             module=module.id,
                             name=option.name,
-                            option='key'))
+                            option='name'))
                 elif option.handler:
-                    h = '    opts.handler().{handler}("{smtname}", key'
+                    h = '    opts.handler().{handler}("{smtname}", name'
                     if argument_req:
                         h += ', optionarg'
                     h += ');'
@@ -923,6 +925,9 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
                             predicates='\n'.join(predicates)
                         ))
 
+    options_all_names = ', '.join(map(lambda s: '"' + s + '"', sorted(options_names)))
+    options_all_names = '\n'.join(textwrap.wrap(options_all_names, width=80, break_on_hyphens=False))
+
     data = {
         'holder_fwd_decls': get_holder_fwd_decls(modules),
         'holder_mem_decls': get_holder_mem_decls(modules),
@@ -939,6 +944,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
         'options_short': ''.join(getopt_short),
         'assigns': '\n'.join(assign_impls),
         'options_getall': '\n  '.join(options_getall),
+        'options_all_names': options_all_names,
         'getoption_handlers': '\n'.join(getoption_handlers),
         'setoption_handlers': '\n'.join(setoption_handlers),
     }
