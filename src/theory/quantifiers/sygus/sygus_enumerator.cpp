@@ -20,6 +20,7 @@
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "smt/logic_exception.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/type_node_id_trie.h"
@@ -33,12 +34,14 @@ namespace quantifiers {
 
 SygusEnumerator::SygusEnumerator(TermDbSygus* tds,
                                  SynthConjecture* p,
-                                 SygusStatistics& s,
-                                 bool enumShapes)
+                                 SygusStatistics* s,
+                                 bool enumShapes,
+                                 bool enumAnyConstHoles)
     : d_tds(tds),
       d_parent(p),
       d_stats(s),
       d_enumShapes(enumShapes),
+      d_enumAnyConstHoles(enumAnyConstHoles),
       d_tlEnum(nullptr),
       d_abortSize(-1)
 {
@@ -54,6 +57,12 @@ void SygusEnumerator::initialize(Node e)
   d_tlEnum = getMasterEnumForType(d_etype);
   d_abortSize = options::sygusAbortSize();
 
+  // if we don't have a term database, we don't register symmetry breaking
+  // lemmas
+  if (!d_tds)
+  {
+    return;
+  }
   // Get the statically registered symmetry breaking clauses for e, see if they
   // can be used for speeding up the enumeration.
   NodeManager* nm = NodeManager::currentNM();
@@ -141,7 +150,8 @@ Node SygusEnumerator::getCurrent()
     if (d_sbExcTlCons.find(ret.getOperator()) != d_sbExcTlCons.end())
     {
       Trace("sygus-enum-exc")
-          << "Exclude (external) : " << d_tds->sygusToBuiltin(ret) << std::endl;
+          << "Exclude (external) : " << datatypes::utils::sygusToBuiltin(ret)
+          << std::endl;
       ret = Node::null();
     }
   }
@@ -330,9 +340,12 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
   Assert(!n.isNull());
   if (options::sygusSymBreakDynamic())
   {
-    Node bn = d_tds->sygusToBuiltin(n);
-    Node bnr = d_tds->getExtRewriter()->extendedRewrite(bn);
-    ++(d_stats->d_enumTermsRewrite);
+    Node bn = datatypes::utils::sygusToBuiltin(n);
+    Node bnr = d_extr.extendedRewrite(bn);
+    if (d_stats != nullptr)
+    {
+      ++(d_stats->d_enumTermsRewrite);
+    }
     if (options::sygusRewVerify())
     {
       if (bn != bnr)
@@ -358,7 +371,10 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
     // if we are doing PBE symmetry breaking
     if (d_eec != nullptr)
     {
-      ++(d_stats->d_enumTermsExampleEval);
+      if (d_stats != nullptr)
+      {
+        ++(d_stats->d_enumTermsExampleEval);
+      }
       // Is it equivalent under examples?
       Node bne = d_eec->addSearchVal(d_tn, bnr);
       if (!bne.isNull())
@@ -374,7 +390,10 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
     }
     Trace("sygus-enum-terms") << "tc(" << d_tn << "): term " << bn << std::endl;
   }
-  ++(d_stats->d_enumTerms);
+  if (d_stats != nullptr)
+  {
+    ++(d_stats->d_enumTerms);
+  }
   d_terms.push_back(n);
   return true;
 }
@@ -474,8 +493,8 @@ Node SygusEnumerator::TermEnumSlave::getCurrent()
   Node curr = tc.getTerm(d_index);
   Trace("sygus-enum-debug2")
       << "slave(" << d_tn
-      << "): current : " << d_se->d_tds->sygusToBuiltin(curr)
-      << ", sizes = " << d_se->d_tds->getSygusTermSize(curr) << " "
+      << "): current : " << datatypes::utils::sygusToBuiltin(curr)
+      << ", sizes = " << datatypes::utils::getSygusTermSize(curr) << " "
       << getCurrentSize() << std::endl;
   Trace("sygus-enum-debug2") << "slave(" << d_tn
                              << "): indices : " << d_hasIndexNextEnd << " "
@@ -560,7 +579,7 @@ void SygusEnumerator::initializeTermCache(TypeNode tn)
   {
     eec = d_parent->getExampleEvalCache(d_enum);
   }
-  d_tcache[tn].initialize(&d_stats, d_enum, tn, d_tds, eec);
+  d_tcache[tn].initialize(d_stats, d_enum, tn, d_tds, eec);
 }
 
 SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
@@ -578,7 +597,7 @@ SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
     AlwaysAssert(ret);
     return &d_masterEnum[tn];
   }
-  if (options::sygusRepairConst())
+  if (d_enumAnyConstHoles)
   {
     std::map<TypeNode, TermEnumMasterFv>::iterator it = d_masterEnumFv.find(tn);
     if (it != d_masterEnumFv.end())
@@ -720,6 +739,7 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   // If we are enumerating shapes, the first enumerated term is a free variable.
   if (d_enumShapes && !d_enumShapesInit)
   {
+    Assert(d_tds != nullptr);
     Node fv = d_tds->getFreeVar(d_tn, 0);
     d_enumShapesInit = true;
     d_currTermSet = true;
@@ -1083,6 +1103,7 @@ void SygusEnumerator::TermEnumMaster::childrenToShape(
 Node SygusEnumerator::TermEnumMaster::convertShape(
     Node n, std::map<TypeNode, int>& vcounter)
 {
+  Assert(d_tds != nullptr);
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
@@ -1195,6 +1216,7 @@ bool SygusEnumerator::TermEnumMasterFv::initialize(SygusEnumerator* se,
 
 Node SygusEnumerator::TermEnumMasterFv::getCurrent()
 {
+  Assert(d_se->d_tds != nullptr);
   Node ret = d_se->d_tds->getFreeVar(d_tn, d_currSize);
   Trace("sygus-enum-debug2") << "master_fv(" << d_tn << "): mk " << ret
                              << std::endl;

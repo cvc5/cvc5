@@ -138,13 +138,53 @@ bool BVSolverBitblastInternal::preNotifyFact(
     }
   }
 
-  return true;
+  return false;  // Return false to enable equality engine reasoning in Theory.
+}
+
+TrustNode BVSolverBitblastInternal::explain(TNode n)
+{
+  Debug("bv-bitblast-internal") << "explain called on " << n << std::endl;
+  return d_im.explainLit(n);
 }
 
 bool BVSolverBitblastInternal::collectModelValues(TheoryModel* m,
                                                   const std::set<Node>& termSet)
 {
   return d_bitblaster->collectModelValues(m, termSet);
+}
+
+Node BVSolverBitblastInternal::getValue(TNode node, bool initialize)
+{
+  if (node.isConst())
+  {
+    return node;
+  }
+
+  if (!d_bitblaster->hasBBTerm(node))
+  {
+    return initialize ? utils::mkConst(utils::getSize(node), 0u) : Node();
+  }
+
+  Valuation& val = d_state.getValuation();
+
+  std::vector<Node> bits;
+  d_bitblaster->getBBTerm(node, bits);
+  Integer value(0), one(1), zero(0), bit;
+  for (size_t i = 0, size = bits.size(), j = size - 1; i < size; ++i, --j)
+  {
+    bool satValue;
+    if (val.hasSatValue(bits[j], satValue))
+    {
+      bit = satValue ? one : zero;
+    }
+    else
+    {
+      if (!initialize) return Node();
+      bit = zero;
+    }
+    value = value * 2 + bit;
+  }
+  return utils::mkConst(bits.size(), value);
 }
 
 BVProofRuleChecker* BVSolverBitblastInternal::getProofChecker()

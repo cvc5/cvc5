@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+
  *
  * This file is part of the cvc5 project.
  *
@@ -359,13 +359,17 @@ class CVC5_EXPORT SmtEngine
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
    * literals and conjunction of literals.  Returns false if
-   * immediately determined to be inconsistent.  This version
-   * takes a Boolean flag to determine whether to include this asserted
-   * formula in an unsat core (if one is later requested).
+   * immediately determined to be inconsistent. Note this formula will
+   * be included in the unsat core when applicable.
    *
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
-  Result assertFormula(const Node& formula, bool inUnsatCore = true);
+  Result assertFormula(const Node& formula);
+
+  /**
+   * Reduce an unsatisfiable core to make it minimal.
+   */
+  std::vector<Node> reduceUnsatCore(const std::vector<Node>& core);
 
   /**
    * Check if a given (set of) expression(s) is entailed with respect to the
@@ -375,9 +379,8 @@ class CVC5_EXPORT SmtEngine
    *
    * @throw Exception
    */
-  Result checkEntailed(const Node& assumption, bool inUnsatCore = true);
-  Result checkEntailed(const std::vector<Node>& assumptions,
-                       bool inUnsatCore = true);
+  Result checkEntailed(const Node& assumption);
+  Result checkEntailed(const std::vector<Node>& assumptions);
 
   /**
    * Assert a formula (if provided) to the current context and call
@@ -386,9 +389,8 @@ class CVC5_EXPORT SmtEngine
    * @throw Exception
    */
   Result checkSat();
-  Result checkSat(const Node& assumption, bool inUnsatCore = true);
-  Result checkSat(const std::vector<Node>& assumptions,
-                  bool inUnsatCore = true);
+  Result checkSat(const Node& assumption);
+  Result checkSat(const std::vector<Node>& assumptions);
 
   /**
    * Returns a set of so-called "failed" assumptions.
@@ -807,12 +809,6 @@ class CVC5_EXPORT SmtEngine
 
   /**
    * Print statistics from the statistics registry in the env object owned by
-   * this SmtEngine.
-   */
-  void printStatistics(std::ostream& out) const;
-
-  /**
-   * Print statistics from the statistics registry in the env object owned by
    * this SmtEngine. Safe to use in a signal handler.
    */
   void printStatisticsSafe(int fd) const;
@@ -823,7 +819,7 @@ class CVC5_EXPORT SmtEngine
    * time. Internally prints the diff and then stores a snapshot for the next
    * call.
    */
-  void printStatisticsDiff(std::ostream&) const;
+  void printStatisticsDiff() const;
 
   /**
    * Set user attribute.
@@ -1009,7 +1005,6 @@ class CVC5_EXPORT SmtEngine
    * Check satisfiability (used to check satisfiability and entailment).
    */
   Result checkSatInternal(const std::vector<Node>& assumptions,
-                          bool inUnsatCore,
                           bool isEntailmentCheck);
 
   /**

@@ -277,11 +277,13 @@ class TheoryEngine {
    */
   void lemma(TrustNode node,
              theory::LemmaProperty p,
-             theory::TheoryId atomsTo = theory::THEORY_LAST,
              theory::TheoryId from = theory::THEORY_LAST);
 
-  /** Enusre that the given atoms are send to the given theory */
-  void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
+  /** Ensure atoms from the given node are sent to the given theory */
+  void ensureLemmaAtoms(TNode n, theory::TheoryId atomsTo);
+  /** Ensure that the given atoms are sent to the given theory */
+  void ensureLemmaAtoms(const std::vector<TNode>& atoms,
+                        theory::TheoryId atomsTo);
 
   /** sort inference module */
   std::unique_ptr<theory::SortInference> d_sortInfer;
