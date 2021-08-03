@@ -137,19 +137,25 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
           << "unexpected failure for " << eqi;
       retId = it->second.d_id;
     }
-    else if (proveWithRule(
-                 DslPfRule::TRUE_ELIM, eqi, {}, {}, false, false, true))
-    {
-      Trace("rpc-debug2") << "...proved via true-elim" << std::endl;
-      retId = DslPfRule::TRUE_ELIM;
-    }
     else
     {
-      // store failure, and its maximum depth
-      ProvenInfo& pi = d_pcache[eqi];
-      pi.d_id = DslPfRule::FAIL;
-      pi.d_failMaxDepth = d_currRecLimit;
-      retId = DslPfRule::FAIL;
+      // if target is (= (= t1 t2) true), maybe try showing (= t1 t2); otherwise
+      // try showing (= target true)
+      DslPfRule eqTrueId = eqi[1]==d_true ? DslPfRule::TRUE_INTRO : DslPfRule::TRUE_ELIM;
+      if (proveWithRule(
+                 eqTrueId, eqi, {}, {}, false, false, true))
+      {
+        Trace("rpc-debug2") << "...proved via " << eqTrueId << std::endl;
+        retId = eqTrueId;
+      }
+      else
+      {
+        // store failure, and its maximum depth
+        ProvenInfo& pi = d_pcache[eqi];
+        pi.d_id = DslPfRule::FAIL;
+        pi.d_failMaxDepth = d_currRecLimit;
+        retId = DslPfRule::FAIL;
+      }
     }
   }
   d_currProving.erase(eqi);
@@ -251,13 +257,25 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   }
   else if (id == DslPfRule::TRUE_ELIM)
   {
-    if (target[0].getType().isBoolean())
+    if (target[1]==d_true)
     {
-      // don't do for Boolean
+      // don't do for equals true, avoids unbounded recursion
       return false;
     }
     pic.d_id = id;
     Node eq = target.eqNode(d_true);
+    vcs.push_back(eq);
+    pic.d_vars.push_back(eq);
+  }
+  else if (id == DslPfRule::TRUE_INTRO)
+  {
+    if (target[1]!=d_true || target[0].getKind()!=EQUAL)
+    {
+      // only works for (= (= t1 t2) true)
+      return false;
+    }
+    pic.d_id = id;
+    Node eq = target[0];
     vcs.push_back(eq);
     pic.d_vars.push_back(eq);
   }
@@ -617,6 +635,11 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       {
         conc = ps[0][0];
         cdp->addStep(conc, PfRule::TRUE_ELIM, ps, {});
+      }
+      else if (itd->second.d_id == DslPfRule::TRUE_INTRO)
+      {
+        conc = ps[0].eqNode(d_true);
+        cdp->addStep(conc, PfRule::TRUE_INTRO, ps, {});
       }
       else
       {

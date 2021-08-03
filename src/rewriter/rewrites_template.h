@@ -33,6 +33,7 @@ enum class DslPfRule : uint32_t
   TRANS,      // internal-only
   CONG,       // internal-only
   TRUE_ELIM,  // internal-only
+  TRUE_INTRO,  // internal-only
   // Generated rule ids
   // clang-format off
   ${rule_ids}$

@@ -42,6 +42,8 @@
 ; TEMPORARY
 
 
+(define-rule arith-eq-equiv ((t Int) (s Int) (r Int) (q Int)) (= (= t s) (= r q)) (= (+ t (* (- 1) s)) (+ r (* (- 1) q))))
 
 (define-rule* arith-plus-cancel1 ((t Int :list) (x Int) (s Int :list) (r Int :list)) (+ t x s (* (- 1) x) r) (+ t s r))
 (define-rule* arith-plus-cancel2 ((t Int :list) (x Int) (s Int :list) (r Int :list)) (+ t (* (- 1) x) s x r) (+ t s r))
+
