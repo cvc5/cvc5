@@ -33,7 +33,7 @@ class TheoryEngine;
 namespace theory {
 
 struct EeSetupInfo;
-class OutputChannel;
+class TheoryInferenceManager;
 
 /**
  * A base class for shared solver. The shared solver is the component of theory
@@ -95,17 +95,15 @@ class SharedSolver
    */
   virtual TrustNode explain(TNode literal, TheoryId id) = 0;
   /**
-   * Assert equality to the shared terms database.
+   * Assert n to the shared terms database.
    *
    * This method is called by TheoryEngine when a fact has been marked to
    * send to THEORY_BUILTIN, meaning that shared terms database should
-   * maintain this fact. This is the case when either an equality is
-   * asserted from the SAT solver or a theory propagates an equality between
-   * shared terms.
+   * maintain this fact. In the distributed equality engine architecture,
+   * this is the case when either an equality is asserted from the SAT solver
+   * or a theory propagates an equality between shared terms.
    */
-  virtual void assertSharedEquality(TNode equality,
-                                    bool polarity,
-                                    TNode reason) = 0;
+  virtual void assertShared(TNode n, bool polarity, TNode reason) = 0;
   /** Is term t a shared term? */
   virtual bool isShared(TNode t) const;
 
@@ -126,7 +124,7 @@ class SharedSolver
   /** Send lemma to the theory engine, atomsTo is the theory to send atoms to */
   void sendLemma(TrustNode trn, TheoryId atomsTo, InferenceId id);
   /** Send conflict to the theory engine */
-  void sendConflict(TrustNode trn);
+  void sendConflict(TrustNode trn, InferenceId id);
 
  protected:
   /** Solver-specific pre-register shared */
@@ -141,8 +139,8 @@ class SharedSolver
   PreRegisterVisitor d_preRegistrationVisitor;
   /** Visitor for collecting shared terms */
   SharedTermsVisitor d_sharedTermsVisitor;
-  /** Output channel of theory builtin */
-  OutputChannel& d_out;
+  /** Theory inference manager of theory builtin */
+  TheoryInferenceManager* d_im;
 };
 
 }  // namespace theory
