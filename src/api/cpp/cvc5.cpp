@@ -7713,24 +7713,38 @@ std::vector<Term> Solver::getSynthSolutions(
 /* Optimization                                                         */
 /* .................................................................... */
 
-void Solver::addObjective(Term target, ObjectiveType objType, bool bvSigned)
+void Solver::addObjective(Term target, ObjectiveType objType)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(target);
+  if (objType == BV_SIGNED_MINIMIZE || objType == BV_SIGNED_MAXIMIZE)
+  {
+    CVC5_API_CHECK(target.getSort().isBitVector())
+        << "Using BV_SIGNED_MINIMIZE/BV_SIGNED_MAXIMIZE on non-BitVector types";
+  }
   //////// all checks before this line
   switch (objType)
   {
     case MAXIMIZE:
       d_optSolver->addObjective(
-          target.getNode(), smt::OptimizationObjective::MAXIMIZE, bvSigned);
+          target.getNode(), smt::OptimizationObjective::MAXIMIZE, false);
+      break;
+    case BV_SIGNED_MAXIMIZE:
+      d_optSolver->addObjective(
+          target.getNode(), smt::OptimizationObjective::MAXIMIZE, true);
       break;
     case MINIMIZE:
       d_optSolver->addObjective(
-          target.getNode(), smt::OptimizationObjective::MINIMIZE, bvSigned);
+          target.getNode(), smt::OptimizationObjective::MINIMIZE, false);
+      break;
+    case BV_SIGNED_MINIMIZE:
+      d_optSolver->addObjective(
+          target.getNode(), smt::OptimizationObjective::MINIMIZE, true);
       break;
     default:
       CVC5_API_CHECK(false)
-          << "Unknown objective type, possible values are MAXIMIZE, MINIMIZE";
+          << "Unknown objective type, possible values are "
+             "MAXIMIZE/MINIMIZE/BV_SIGNED_MAXIMIZE/BV_SIGNED_MINIMIZE";
   }
   ////////
   CVC5_API_TRY_CATCH_END;

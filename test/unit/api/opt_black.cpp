@@ -43,15 +43,15 @@ TEST_F(TestApiBlackOpt, pushpoplexico)
   d_solver.assertFormula(d_solver.mkTerm(Kind::BITVECTOR_SLE, y, x));
 
   // minimize x unsigned
-  d_solver.addObjective(x, Solver::MINIMIZE, false);
+  d_solver.addObjective(x, Solver::MINIMIZE);
 
   // push
   d_solver.push();
 
   // maximize y signed
-  d_solver.addObjective(y, Solver::MAXIMIZE, true);
+  d_solver.addObjective(y, Solver::BV_SIGNED_MAXIMIZE);
   // maximize z unsigned
-  d_solver.addObjective(z, Solver::MAXIMIZE, false);
+  d_solver.addObjective(z, Solver::MAXIMIZE);
 
   // check-opt
   std::pair<api::Result, std::vector<OptimizationResult>> rstPair =

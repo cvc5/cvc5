@@ -2865,6 +2865,8 @@ class CVC5_EXPORT Solver
   {
     MINIMIZE,
     MAXIMIZE,
+    BV_SIGNED_MINIMIZE,
+    BV_SIGNED_MAXIMIZE,
   };
 
   /* .................................................................... */
@@ -4272,12 +4274,14 @@ class CVC5_EXPORT Solver
   /**
    * Adds an optimization objective
    * @param target the target formula to optimize
-   * @param objType whether it's MAXIMIZE or MINIMIZE
-   * @param bvSigned if the target is of sort bitvector,
-   *  indicate whether it's a signed bitvector or not, defaults to false,
-   *  for other types, it's omitted
+   * @param objType whether it's MAXIMIZE / MINIMIZE,
+   *   or BV_SIGNED_MAXIMIZE / BV_SIGNED_MINIMIZE
+   * Note: using MAXIMIZE/MINIMIZE on BitVector type implies
+   *   an **unsigned** optimization.
+   * Please use BV_SIGNED_MAXIMIZE / BV_SIGNED_MINIMIZE
+   *   for signed optimization.
    */
-  void addObjective(Term target, ObjectiveType objType, bool bvSigned = false);
+  void addObjective(Term target, ObjectiveType objType);
 
   /**
    * Run optimization for the objectives
