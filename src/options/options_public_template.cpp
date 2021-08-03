@@ -493,4 +493,11 @@ ${options_getall}$
   return res;
 }
 
+std::vector<std::string> getNames()
+{
+  return {
+${options_all_names}$
+  };
+}
+
 }  // namespace cvc5::options

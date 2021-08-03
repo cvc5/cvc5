@@ -89,6 +89,11 @@ void set(Options& opts,
  */
 std::vector<std::vector<std::string> > getAll(const Options& opts) CVC5_EXPORT;
 
+/**
+ * Get a (sorted) list of all option names that are available.
+ */
+std::vector<std::string> getNames() CVC5_EXPORT;
+
 }  // namespace cvc5::options
 
 #endif
