@@ -280,8 +280,8 @@ class TheoryEngine {
              theory::TheoryId from = theory::THEORY_LAST);
 
   /** Ensure atoms from the given node are sent to the given theory */
-  void ensureLemmaAtoms(Node n, theory::TheoryId atomsTo);
-  /** Ensure that the given atoms are send to the given theory */
+  void ensureLemmaAtoms(TNode n, theory::TheoryId atomsTo);
+  /** Ensure that the given atoms are sent to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms,
                         theory::TheoryId atomsTo);
 
