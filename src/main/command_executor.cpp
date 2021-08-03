@@ -65,9 +65,15 @@ CommandExecutor::~CommandExecutor()
 
 void CommandExecutor::printStatistics(std::ostream& out) const
 {
-  if (d_solver->getOptions().base.statistics)
+  const auto& baseopts = d_solver->getOptions().base;
+  if (baseopts.statistics)
   {
-    out << d_solver->getStatistics();
+    const auto& stats = d_solver->getStatistics();
+    auto it = stats.begin(baseopts.statisticsExpert, baseopts.statisticsAll);
+    for (; it != stats.end(); ++it)
+    {
+      out << it->first << " = " << it->second << std::endl;
+    }
   }
 }
 
