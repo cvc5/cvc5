@@ -103,6 +103,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
 
 DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
 {
+  d_currProving.insert(eqi);
   ++d_statTotalAttempts;
   // eqi should not hold trivially and should not be cached
   Assert(d_currRecLimit > 0);
@@ -113,39 +114,45 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
   Assert(eqi.getKind() == EQUAL);
   // first, try congruence if possible, which does not count towards recursion
   // limit.
+  DslPfRule retId;
   if (proveWithRule(DslPfRule::CONG, eqi, {}, {}, false, false, true))
   {
     Trace("rpc-debug2") << "...proved via congruence" << std::endl;
-    return DslPfRule::CONG;
+    retId = DslPfRule::CONG;
   }
-  Trace("rpc-debug2") << "...not proved via congruence" << std::endl;
-  d_currRecLimit--;
-  Node prevTarget = d_target;
-  d_target = eqi;
-  d_db->getMatches(eqi[0], &d_notify);
-  d_target = prevTarget;
-  d_currRecLimit++;
-  // if we cached it during the above call, we succeeded
-  std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
-  if (it != d_pcache.end())
+  else
   {
-    Assert(it->second.d_id != DslPfRule::FAIL)
-        << "unexpected failure for " << eqi;
-    return it->second.d_id;
+    Trace("rpc-debug2") << "...not proved via congruence" << std::endl;
+    d_currRecLimit--;
+    Node prevTarget = d_target;
+    d_target = eqi;
+    d_db->getMatches(eqi[0], &d_notify);
+    d_target = prevTarget;
+    d_currRecLimit++;
+    // if we cached it during the above call, we succeeded
+    std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
+    if (it != d_pcache.end())
+    {
+      Assert(it->second.d_id != DslPfRule::FAIL)
+          << "unexpected failure for " << eqi;
+      retId = it->second.d_id;
+    }
+    else if (proveWithRule(DslPfRule::TRUE_ELIM, eqi, {}, {}, false, false, true))
+    {
+      Trace("rpc-debug2") << "...proved via true-elim" << std::endl;
+      retId = DslPfRule::TRUE_ELIM;
+    }
+    else
+    {
+      // store failure, and its maximum depth
+      ProvenInfo& pi = d_pcache[eqi];
+      pi.d_id = DslPfRule::FAIL;
+      pi.d_failMaxDepth = d_currRecLimit;
+      retId = DslPfRule::FAIL;
+    }
   }
-  // TRUE_ELIM
-  /*
-  if (proveWithRule(DslPfRule::TRUE_ELIM, eqi, {}, {}, false, false, true))
-  {
-    Trace("rpc-debug2") << "...proved via true-elim" << std::endl;
-    return DslPfRule::TRUE_ELIM;
-  }
-  */
-  // store failure, and its maximum depth
-  ProvenInfo& pi = d_pcache[eqi];
-  pi.d_id = DslPfRule::FAIL;
-  pi.d_failMaxDepth = d_currRecLimit;
-  return DslPfRule::FAIL;
+  d_currProving.erase(eqi);
+  return retId;
 }
 
 bool RewriteDbProofCons::notifyMatch(Node s,
@@ -243,7 +250,6 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   }
   else if (id == DslPfRule::TRUE_ELIM)
   {
-    return false;
     if (target[0].getType().isBoolean())
     {
       // don't do for Boolean
@@ -375,6 +381,12 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
 bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
 {
   Assert(eqi.getKind() == kind::EQUAL);
+  // if we are currently trying to prove this, fail
+  if (d_currProving.find(eqi)!=d_currProving.end())
+  {
+    idb = DslPfRule::FAIL;
+    return true;
+  }
   // already cached?
   std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
   if (it != d_pcache.end())

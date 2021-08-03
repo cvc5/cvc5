@@ -125,6 +125,8 @@ class RewriteDbProofCons
   ProofNodeManager* d_pnm;
   /** the evaluator utility */
   theory::Evaluator d_eval;
+  /** currently proving */
+  std::unordered_set<Node> d_currProving;
   /** cache for exists rule */
   std::unordered_map<Node, ProvenInfo> d_pcache;
   /** the evaluation cache */
