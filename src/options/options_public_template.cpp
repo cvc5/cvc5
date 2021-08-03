@@ -458,30 +458,30 @@ std::vector<std::string> parse(
   return nonoptions;
 }
 
-std::string get(const Options& options, const std::string& key)
+std::string get(const Options& options, const std::string& name)
 {
-  Trace("options") << "Options::getOption(" << key << ")" << std::endl;
+  Trace("options") << "Options::getOption(" << name << ")" << std::endl;
   ${getoption_handlers}$
 
-  throw UnrecognizedOptionException(key);
+  throw UnrecognizedOptionException(name);
 }
 
-void setInternal(Options& opts, const std::string& key,
+void setInternal(Options& opts, const std::string& name,
                                 const std::string& optionarg)
                                 {
-  ${setoption_handlers}$
-  throw UnrecognizedOptionException(key);
+${setoption_handlers}$
+  throw UnrecognizedOptionException(name);
 }
 
-void set(Options& opts, const std::string& key, const std::string& optionarg)
+void set(Options& opts, const std::string& name, const std::string& optionarg)
 {
 
-  Trace("options") << "setOption(" << key << ", " << optionarg << ")"
+  Trace("options") << "setOption(" << name << ", " << optionarg << ")"
                    << std::endl;
   // first update this object
-  setInternal(opts, key, optionarg);
+  setInternal(opts, name, optionarg);
   // then, notify the provided listener
-  opts.notifyListener(key);
+  opts.notifyListener(name);
 }
 
 std::vector<std::vector<std::string> > getAll(const Options& opts)

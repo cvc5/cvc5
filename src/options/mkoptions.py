@@ -819,15 +819,15 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
             # Generate handlers for setOption/getOption
             if option.long:
                 # Make long and alias names available via set/get-option
-                keys = set()
+                names = set()
                 if option.long:
-                    keys.add(long_get_option(option.long))
+                    names.add(long_get_option(option.long))
                 if option.alias:
-                    keys.update(option.alias)
-                assert keys
+                    names.update(option.alias)
+                assert names
 
                 cond = ' || '.join(
-                    ['key == "{}"'.format(x) for x in sorted(keys)])
+                    ['name == "{}"'.format(x) for x in sorted(keys)])
 
                 setoption_handlers.append('  if ({}) {{'.format(cond))
                 if option.type == 'bool':
@@ -835,16 +835,16 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
                         TPL_CALL_ASSIGN_BOOL.format(
                             module=module.id,
                             name=option.name,
-                            option='key',
+                            option='name',
                             value='optionarg == "true"'))
                 elif argument_req and option.name and not mode_handler:
                     setoption_handlers.append(
                         TPL_CALL_ASSIGN.format(
                             module=module.id,
                             name=option.name,
-                            option='key'))
+                            option='name'))
                 elif option.handler:
-                    h = '    opts.handler().{handler}("{smtname}", key'
+                    h = '    opts.handler().{handler}("{smtname}", name'
                     if argument_req:
                         h += ', optionarg'
                     h += ');'
