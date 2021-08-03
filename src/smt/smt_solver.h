@@ -102,13 +102,11 @@ class SmtSolver
    * during this call.
    * @param assumptions The assumptions for this check-sat call, which are
    * temporary assertions.
-   * @param inUnsatCore Whether assumptions are in the unsat core.
    * @param isEntailmentCheck Whether this is an entailment check (assumptions
    * are negated in this case).
    */
   Result checkSatisfiability(Assertions& as,
                              const std::vector<Node>& assumptions,
-                             bool inUnsatCore,
                              bool isEntailmentCheck);
   /**
    * Process the assertions that have been asserted in as. This moves the set of

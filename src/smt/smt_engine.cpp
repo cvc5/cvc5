@@ -828,7 +828,7 @@ Result SmtEngine::checkSat()
   return checkSat(nullNode);
 }
 
-Result SmtEngine::checkSat(const Node& assumption, bool inUnsatCore)
+Result SmtEngine::checkSat(const Node& assumption)
 {
   if (Dump.isOn("benchmark"))
   {
@@ -839,11 +839,10 @@ Result SmtEngine::checkSat(const Node& assumption, bool inUnsatCore)
   {
     assump.push_back(assumption);
   }
-  return checkSatInternal(assump, inUnsatCore, false);
+  return checkSatInternal(assump, false);
 }
 
-Result SmtEngine::checkSat(const std::vector<Node>& assumptions,
-                           bool inUnsatCore)
+Result SmtEngine::checkSat(const std::vector<Node>& assumptions)
 {
   if (Dump.isOn("benchmark"))
   {
@@ -857,10 +856,10 @@ Result SmtEngine::checkSat(const std::vector<Node>& assumptions,
                                                assumptions);
     }
   }
-  return checkSatInternal(assumptions, inUnsatCore, false);
+  return checkSatInternal(assumptions, false);
 }
 
-Result SmtEngine::checkEntailed(const Node& node, bool inUnsatCore)
+Result SmtEngine::checkEntailed(const Node& node)
 {
   if (Dump.isOn("benchmark"))
   {
@@ -868,19 +867,16 @@ Result SmtEngine::checkEntailed(const Node& node, bool inUnsatCore)
   }
   return checkSatInternal(
              node.isNull() ? std::vector<Node>() : std::vector<Node>{node},
-             inUnsatCore,
              true)
       .asEntailmentResult();
 }
 
-Result SmtEngine::checkEntailed(const std::vector<Node>& nodes,
-                                bool inUnsatCore)
+Result SmtEngine::checkEntailed(const std::vector<Node>& nodes)
 {
-  return checkSatInternal(nodes, inUnsatCore, true).asEntailmentResult();
+  return checkSatInternal(nodes, true).asEntailmentResult();
 }
 
 Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
-                                   bool inUnsatCore,
                                    bool isEntailmentCheck)
 {
   try
@@ -893,7 +889,7 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
                  << assumptions << ")" << endl;
     // check the satisfiability with the solver object
     Result r = d_smtSolver->checkSatisfiability(
-        *d_asserts.get(), assumptions, inUnsatCore, isEntailmentCheck);
+        *d_asserts.get(), assumptions, isEntailmentCheck);
 
     Trace("smt") << "SmtEngine::" << (isEntailmentCheck ? "query" : "checkSat")
                  << "(" << assumptions << ") => " << r << endl;
@@ -990,7 +986,7 @@ std::vector<Node> SmtEngine::getUnsatAssumptions(void)
   return res;
 }
 
-Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
+Result SmtEngine::assertFormula(const Node& formula)
 {
   SmtScope smts(this);
   finishInit();
@@ -1006,7 +1002,7 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
   // Substitute out any abstract values in ex
   Node n = d_absValues->substituteAbstractValues(formula);
 
-  d_asserts->assertFormula(n, inUnsatCore);
+  d_asserts->assertFormula(n);
   return quickCheck().asEntailmentResult();
 }/* SmtEngine::assertFormula() */
 
@@ -1913,11 +1909,6 @@ unsigned long SmtEngine::getResourceRemaining() const
 NodeManager* SmtEngine::getNodeManager() const
 {
   return d_env->getNodeManager();
-}
-
-void SmtEngine::printStatistics(std::ostream& out) const
-{
-  d_env->getStatisticsRegistry().print(out);
 }
 
 void SmtEngine::printStatisticsSafe(int fd) const
