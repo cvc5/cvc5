@@ -56,7 +56,7 @@ OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
     'name', 'short', 'long', 'alias',
     'default', 'alternate', 'mode',
-    'handler', 'predicates', 'includes',
+    'handler', 'predicates', 'includes', 'minimum', 'maximum',
     'help', 'help_mode'
 ]
 
@@ -735,7 +735,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
     getopt_short = []        # short options for getopt_long
     getopt_long = []         # long options for getopt_long
     options_getall = []      # options for options::getAll()
-    options_getoptions = []  # options for Options::getOptions()
+    options_get_info = []    # code for getOptionInfo()
     options_handler = []     # option handler calls
     options_names = set()    # option names
     help_common = []         # help text for all common options
@@ -830,6 +830,33 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
 
                 cond = ' || '.join(
                     ['name == "{}"'.format(x) for x in sorted(names)])
+
+                # Generate code for getOptionInfo
+                if option.name:
+                    constr = None
+                    fmt = {
+                        'type': option.type,
+                        'value': 'opts.{}.{}'.format(module.id, option.name),
+                        'default': option.default if option.default else '{}()'.format(option.type),
+                        'minimum': option.minimum if option.minimum else '{}',
+                        'maximum': option.maximum if option.maximum else '{}',
+                    }
+                    if option.type in ['bool', 'std::string']:
+                        constr = 'OptionInfo::ValueInfo<{type}>{{{default}, {value}}}'.format(**fmt)
+                    elif option.type == 'double' or is_numeric_cpp_type(option.type):
+                        constr = 'OptionInfo::NumberInfo<{type}>{{{default}, {value}, {minimum}, {maximum}}}'.format(**fmt)
+                    elif option.mode:
+                        values = ', '.join(map(lambda s: '"{}"'.format(s), option.mode.keys()))
+                        if not option.default:
+                            fmt['default'] = '???'
+                        constr = 'OptionInfo::ModeInfo{{"{default}", {value}, {{ {modes} }}}}'.format(**fmt, modes=values)
+                    else:
+                        constr = 'OptionInfo::VoidInfo{}'
+                    if option.alias:
+                        alias = ', '.join(map(lambda s: '"{}"'.format(s), option.alias))
+                    else:
+                        alias = ''
+                    options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, {}}};'.format(cond, long_get_option(option.long), constr, alias=alias))
 
                 setoption_handlers.append('  if ({}) {{'.format(cond))
                 if option.type == 'bool':
@@ -945,6 +972,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
         'assigns': '\n'.join(assign_impls),
         'options_getall': '\n  '.join(options_getall),
         'options_all_names': options_all_names,
+        'options_get_info': '\n  '.join(sorted(options_get_info)),
         'getoption_handlers': '\n'.join(getoption_handlers),
         'setoption_handlers': '\n'.join(setoption_handlers),
     }
