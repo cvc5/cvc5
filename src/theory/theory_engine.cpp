@@ -1246,7 +1246,7 @@ struct AtomsCollect {
   }
 };
 
-void TheoryEngine::ensureLemmaAtoms(Node n, theory::TheoryId atomsTo)
+void TheoryEngine::ensureLemmaAtoms(TNode n, theory::TheoryId atomsTo)
 {
   Assert(atomsTo != THEORY_LAST);
   Debug("theory::atoms") << "TheoryEngine::ensureLemmaAtoms(" << n << ", "
