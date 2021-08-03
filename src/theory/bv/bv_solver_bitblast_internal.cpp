@@ -138,7 +138,13 @@ bool BVSolverBitblastInternal::preNotifyFact(
     }
   }
 
-  return true;
+  return false;  // Return false to enable equality engine reasoning in Theory.
+}
+
+TrustNode BVSolverBitblastInternal::explain(TNode n)
+{
+  Debug("bv-bitblast-internal") << "explain called on " << n << std::endl;
+  return d_im.explainLit(n);
 }
 
 bool BVSolverBitblastInternal::collectModelValues(TheoryModel* m,
