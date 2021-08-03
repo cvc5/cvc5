@@ -359,9 +359,9 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     ASSERT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { PARSER_STATE->clearLastNamedTerm(); }
     term[expr, expr2]
-    { bool inUnsatCore = PARSER_STATE->lastNamedTerm().first == expr;
-      cmd->reset(new AssertCommand(expr, inUnsatCore));
-      if(inUnsatCore) {
+    { cmd->reset(new AssertCommand(expr));
+      if (PARSER_STATE->lastNamedTerm().first == expr)
+      {
         // set the expression name, if there was a named term
         std::pair<api::Term, std::string> namedTerm =
             PARSER_STATE->lastNamedTerm();
