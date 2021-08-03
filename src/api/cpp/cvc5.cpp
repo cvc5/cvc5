@@ -6737,6 +6737,7 @@ void Solver::assertFormula(const Term& term) const
   CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(term, getBooleanSort());
   //////// all checks before this line
   d_smtEngine->assertFormula(*term.d_node);
+  resetParetoOptimization();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7713,7 +7714,7 @@ std::vector<Term> Solver::getSynthSolutions(
 /* Optimization                                                         */
 /* .................................................................... */
 
-void Solver::addObjective(Term target, ObjectiveType objType)
+void Solver::addObjective(Term target, ObjectiveType objType) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(target);
@@ -7751,7 +7752,7 @@ void Solver::addObjective(Term target, ObjectiveType objType)
 }
 
 std::pair<Result, std::vector<OptimizationResult>> Solver::checkOpt(
-    ObjectiveCombination objCombination)
+    ObjectiveCombination objCombination) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_smtEngine->getOptions().smt.produceAssertions
@@ -7786,6 +7787,11 @@ std::pair<Result, std::vector<OptimizationResult>> Solver::checkOpt(
   }
   return std::make_pair(Result(r), std::move(optResults));
   CVC5_API_TRY_CATCH_END;
+}
+
+void Solver::resetParetoOptimization() const
+{
+  d_optSolver->resetParetoOptimization();
 }
 
 /*

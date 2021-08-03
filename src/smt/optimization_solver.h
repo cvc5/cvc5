@@ -251,6 +251,11 @@ class OptimizationSolver
    **/
   std::vector<OptimizationResult> getValues();
 
+  /**
+   * Resets / clears the Pareto optimization state.
+   **/
+  void resetParetoOptimization();
+
  private:
   /**
    * Initialize an SMT subsolver for offline optimization purpose

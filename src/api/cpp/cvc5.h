@@ -4281,7 +4281,7 @@ class CVC5_EXPORT Solver
    * Please use BV_SIGNED_MAXIMIZE / BV_SIGNED_MINIMIZE
    *   for signed optimization.
    */
-  void addObjective(Term target, ObjectiveType objType);
+  void addObjective(Term target, ObjectiveType objType) const;
 
   /**
    * Run optimization for the objectives
@@ -4300,7 +4300,12 @@ class CVC5_EXPORT Solver
    *  vector<OptimizationResult> stores the results of individual objectives
    */
   std::pair<Result, std::vector<OptimizationResult>> checkOpt(
-      ObjectiveCombination objCombination = LEXICOGRAPHIC);
+      ObjectiveCombination objCombination = LEXICOGRAPHIC) const;
+
+  /**
+   * Resets / clears the Pareto optimization state.
+   */
+  void resetParetoOptimization() const;
 
  private:
   /** @return the node manager of this solver */

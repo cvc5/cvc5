@@ -141,6 +141,8 @@ std::vector<OptimizationResult> OptimizationSolver::getValues()
   return d_results;
 }
 
+void OptimizationSolver::resetParetoOptimization() { d_optChecker.reset(); }
+
 std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
     SmtEngine* parentSMTSolver, bool needsTimeout, unsigned long timeout)
 {
