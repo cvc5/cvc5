@@ -221,7 +221,7 @@ Result SygusSolver::checkSynth(Assertions& as)
     query.push_back(body);
   }
 
-  Result r = d_smtSolver.checkSatisfiability(as, query, false, false);
+  Result r = d_smtSolver.checkSatisfiability(as, query, false);
 
   // Check that synthesis solutions satisfy the conjecture
   if (options::checkSynthSol()
