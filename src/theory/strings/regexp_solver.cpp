@@ -125,11 +125,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
     {
       for (const Node& m : mr.second)
       {
-        bool polarity = m.getKind() != NOT;
-        if (polarity || !options::stringIgnNegMembership())
-        {
-          allMems[m] = mr.first;
-        }
+        allMems[m] = mr.first;
       }
     }
 

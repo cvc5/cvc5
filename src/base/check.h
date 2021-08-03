@@ -185,13 +185,13 @@ class AssertArgumentException : public Exception
 
 }; /* class AssertArgumentException */
 
-#define Unreachable() CVC5_FATAL() << "Unreachable code reached"
+#define Unreachable() CVC5_FATAL() << "Unreachable code reached "
 
-#define Unhandled() CVC5_FATAL() << "Unhandled case encountered"
+#define Unhandled() CVC5_FATAL() << "Unhandled case encountered "
 
-#define Unimplemented() CVC5_FATAL() << "Unimplemented code encountered"
+#define Unimplemented() CVC5_FATAL() << "Unimplemented code encountered "
 
-#define InternalError() CVC5_FATAL() << "Internal error detected"
+#define InternalError() CVC5_FATAL() << "Internal error detected "
 
 #define IllegalArgument(arg, msg...)      \
   throw ::cvc5::IllegalArgumentException( \

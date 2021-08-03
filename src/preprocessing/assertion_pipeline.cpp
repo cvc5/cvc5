@@ -82,9 +82,9 @@ void AssertionPipeline::push_back(Node n,
   }
 }
 
-void AssertionPipeline::pushBackTrusted(theory::TrustNode trn)
+void AssertionPipeline::pushBackTrusted(TrustNode trn)
 {
-  Assert(trn.getKind() == theory::TrustNodeKind::LEMMA);
+  Assert(trn.getKind() == TrustNodeKind::LEMMA);
   // push back what was proven
   push_back(trn.getProven(), false, false, trn.getGenerator());
 }
@@ -105,14 +105,14 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
   d_nodes[i] = n;
 }
 
-void AssertionPipeline::replaceTrusted(size_t i, theory::TrustNode trn)
+void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn)
 {
   if (trn.isNull())
   {
     // null trust node denotes no change, nothing to do
     return;
   }
-  Assert(trn.getKind() == theory::TrustNodeKind::REWRITE);
+  Assert(trn.getKind() == TrustNodeKind::REWRITE);
   Assert(trn.getProven()[0] == d_nodes[i]);
   replace(i, trn.getNode(), trn.getGenerator());
 }

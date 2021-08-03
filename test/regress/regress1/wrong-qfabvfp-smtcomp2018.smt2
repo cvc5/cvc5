@@ -1,4 +1,3 @@
-; REQUIRES: symfpu
 ; COMMAND-LINE: --decision=internal -q
 ; COMMAND-LINE: --decision=justification -q
 ; EXPECT: sat

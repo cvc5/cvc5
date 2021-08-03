@@ -36,7 +36,7 @@ TheorySets::TheorySets(context::Context* c,
     : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pnm),
       d_skCache(),
       d_state(c, u, valuation, d_skCache),
-      d_im(*this, d_state, nullptr),
+      d_im(*this, d_state, pnm),
       d_internal(new TheorySetsPrivate(*this, d_state, d_im, d_skCache, pnm)),
       d_notify(*d_internal.get(), d_im)
 {
@@ -60,6 +60,9 @@ bool TheorySets::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
   esi.d_name = "theory::sets::ee";
+  esi.d_notifyNewClass = true;
+  esi.d_notifyMerge = true;
+  esi.d_notifyDisequal = true;
   return true;
 }
 

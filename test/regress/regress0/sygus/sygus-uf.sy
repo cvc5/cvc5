@@ -1,6 +1,6 @@
-; COMMAND-LINE: --lang=sygus2 --sygus-out=status --uf-ho
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 ; EXPECT: unsat
-(set-logic ALL)
+(set-logic HO_ALL)
 
 (declare-var uf (-> Int Int))
 

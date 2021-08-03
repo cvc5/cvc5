@@ -115,11 +115,11 @@ configurations. The `REQUIRES` directive can be used to only run
 a given benchmark when a feature is supported. For example:
 
 ```
-; REQUIRES: symfpu
+; REQUIRES: cryptominisat
 ```
 
-This benchmark is only run when symfpu has been configured.  Multiple
+This benchmark is only run when CryptoMiniSat has been configured.  Multiple
 `REQUIRES` directives are supported. For a list of features that can be listed
 as a requirement, refer to cvc5's `--show-config` output. Features can also be
-excluded by adding the `no-` prefix, e.g. `no-symfpu` means that the test is
-not valid for builds that include symfpu support.
+excluded by adding the `no-` prefix, e.g. `no-cryptominisat` means that the
+test is not valid for builds that include CryptoMiniSat support.

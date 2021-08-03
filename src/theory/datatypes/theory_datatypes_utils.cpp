@@ -15,6 +15,7 @@
 
 #include "theory/datatypes/theory_datatypes_utils.h"
 
+#include "expr/ascription_type.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 

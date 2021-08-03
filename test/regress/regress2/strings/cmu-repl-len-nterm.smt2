@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --strings-exp
 ; EXPECT: sat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 
 (declare-fun url () String)

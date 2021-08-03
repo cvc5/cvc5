@@ -14,8 +14,10 @@
  */
 #include "normal_form.h"
 
+#include "expr/emptybag.h"
 #include "theory/sets/normal_form.h"
 #include "theory/type_enumerator.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 

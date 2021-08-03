@@ -22,6 +22,7 @@
 
 #include "base/check.h"
 #include "expr/node_algorithm.h"
+#include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "smt/smt_statistics_registry.h"
@@ -275,6 +276,14 @@ void Theory::notifySharedTerm(TNode n)
   // do nothing
 }
 
+void Theory::notifyInConflict()
+{
+  if (d_inferManager != nullptr)
+  {
+    d_inferManager->notifyInConflict();
+  }
+}
+
 void Theory::computeCareGraph() {
   Debug("sharing") << "Theory::computeCareGraph<" << getId() << ">()" << endl;
   for (unsigned i = 0; i < d_sharedTerms.size(); ++ i) {
@@ -330,12 +339,18 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!options::produceModels())
+  if (!options::produceModels() && !d_logicInfo.isQuantified())
   {
-    // don't care about the model, we are fine
+    // Don't care about the model and logic is not quantified, we can eliminate.
     return true;
   }
-  // if there is a model object
+  // If models are enabled, then it depends on whether the term contains any
+  // unevaluable operators like FORALL, SINE, etc. Having such operators makes
+  // model construction contain non-constant values for variables, which is
+  // not ideal from a user perspective.
+  // We also insist on this check since the term to eliminate should never
+  // contain quantifiers, or else variable shadowing issues may arise.
+  // there should be a model object
   TheoryModel* tm = d_valuation.getModel();
   Assert(tm != nullptr);
   return tm->isLegalElimination(x, val);
@@ -354,13 +369,16 @@ std::unordered_set<TNode> Theory::currentlySharedTerms() const
 bool Theory::collectModelInfo(TheoryModel* m, const std::set<Node>& termSet)
 {
   // if we are using an equality engine, assert it to the model
-  if (d_equalityEngine != nullptr)
+  if (d_equalityEngine != nullptr && !termSet.empty())
   {
+    Trace("model-builder") << "Assert Equality engine for " << d_id
+                           << std::endl;
     if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
     {
       return false;
     }
   }
+  Trace("model-builder") << "Collect Model values for " << d_id << std::endl;
   // now, collect theory-specific value assigments
   return collectModelValues(m, termSet);
 }
@@ -579,6 +597,36 @@ eq::EqualityEngine* Theory::getEqualityEngine()
 {
   // get the assigned equality engine, which is a pointer stored in this class
   return d_equalityEngine;
+}
+
+bool Theory::usesCentralEqualityEngine() const
+{
+  return usesCentralEqualityEngine(d_id);
+}
+
+bool Theory::usesCentralEqualityEngine(TheoryId id)
+{
+  if (id == THEORY_BUILTIN)
+  {
+    return true;
+  }
+  if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
+  {
+    return false;
+  }
+  if (id == THEORY_ARITH)
+  {
+    // conditional on whether we are using the equality solver
+    return options::arithEqSolver();
+  }
+  return id == THEORY_UF || id == THEORY_DATATYPES || id == THEORY_BAGS
+         || id == THEORY_FP || id == THEORY_SETS || id == THEORY_STRINGS
+         || id == THEORY_SEP || id == THEORY_ARRAYS;
+}
+
+bool Theory::expUsingCentralEqualityEngine(TheoryId id)
+{
+  return id != THEORY_ARITH && usesCentralEqualityEngine(id);
 }
 
 }  // namespace theory

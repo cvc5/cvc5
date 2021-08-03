@@ -13,7 +13,7 @@
 (set-option :print-success false)
 (set-info :smt-lib-version 2.6)
 ;(set-option :produce-models true)
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 ; done setting options
 
 ; Boogie universal background predicate

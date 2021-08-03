@@ -764,12 +764,12 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
             deq_child[1].push_back(1);
           }
         }
-        if (nk == ITE || nk == STRING_STRREPL || nk == STRING_STRREPLALL)
+        if (nk == ITE || nk == STRING_REPLACE || nk == STRING_REPLACE_ALL)
         {
           deq_child[0].push_back(1);
           deq_child[1].push_back(2);
         }
-        if (nk == STRING_STRREPL || nk == STRING_STRREPLALL)
+        if (nk == STRING_REPLACE || nk == STRING_REPLACE_ALL)
         {
           deq_child[0].push_back(0);
           deq_child[1].push_back(1);
@@ -1040,7 +1040,7 @@ Node SygusExtension::registerSearchValue(Node a,
     Node bvr = d_tds->getExtRewriter()->extendedRewrite(bv);
     Trace("sygus-sb-debug") << "  ......search value rewrites to " << bvr << std::endl;
     Trace("dt-sygus") << "  * DT builtin : " << n << " -> " << bvr << std::endl;
-    unsigned sz = d_tds->getSygusTermSize( nv );      
+    unsigned sz = utils::getSygusTermSize(nv);
     if( d_tds->involvesDivByZero( bvr ) ){
       quantifiers::DivByZeroSygusInvarianceTest dbzet;
       Trace("sygus-sb-mexp-debug") << "Minimize explanation for div-by-zero in "
@@ -1143,7 +1143,7 @@ Node SygusExtension::registerSearchValue(Node a,
           }
           Trace("sygus-sb-exc") << std::endl;
         }
-        Assert(d_tds->getSygusTermSize(bad_val) == sz);
+        Assert(utils::getSygusTermSize(bad_val) == sz);
 
         // generalize the explanation for why the analog of bad_val
         // is equivalent to bvr
@@ -1177,7 +1177,7 @@ void SygusExtension::registerSymBreakLemmaForValue(
 {
   TypeNode tn = val.getType();
   Node x = getFreeVar(tn);
-  unsigned sz = d_tds->getSygusTermSize(val);
+  unsigned sz = utils::getSygusTermSize(val);
   std::vector<Node> exp;
   d_tds->getExplain()->getExplanationFor(x, val, exp, et, valr, var_count, sz);
   Node lem =

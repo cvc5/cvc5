@@ -133,7 +133,6 @@ void SmtSolver::shutdown()
 
 Result SmtSolver::checkSatisfiability(Assertions& as,
                                       const std::vector<Node>& assumptions,
-                                      bool inUnsatCore,
                                       bool isEntailmentCheck)
 {
   // update the state to indicate we are about to run a check-sat
@@ -141,7 +140,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   d_state.notifyCheckSat(hasAssumptions);
 
   // then, initialize the assertions
-  as.initializeCheckSat(assumptions, inUnsatCore, isEntailmentCheck);
+  as.initializeCheckSat(assumptions, isEntailmentCheck);
 
   // make the check
   Assert(d_smt.isFullyInited());
@@ -239,7 +238,6 @@ void SmtSolver::processAssertions(Assertions& as)
   // Push the formula to SAT
   {
     Chat() << "converting to CNF..." << endl;
-    TimerStat::CodeTimer codeTimer(d_stats.d_cnfConversionTime);
     const std::vector<Node>& assertions = ap.ref();
     // It is important to distinguish the input assertions from the skolem
     // definitions, as the decision justification heuristic treates the latter

@@ -44,7 +44,15 @@ enum class InferStep
   /** An initial IAND check */
   IAND_INITIAL,
 
+  /** Initialize the POW2 solver */
+  POW2_INIT,
+  /** A full POW2 check */
+  POW2_FULL,
+  /** An initial POW2 check */
+  POW2_INITIAL,
+
   /** An ICP check */
+
   ICP,
 
   /** Initialize the NL solver */

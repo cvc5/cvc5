@@ -31,6 +31,8 @@
 #include "expr/symbol_manager.h"
 #include "expr/type_node.h"
 #include "options/options.h"
+#include "options/main_options.h"
+#include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
@@ -341,17 +343,14 @@ void EchoCommand::toStream(std::ostream& out,
 /* class AssertCommand                                                        */
 /* -------------------------------------------------------------------------- */
 
-AssertCommand::AssertCommand(const api::Term& t, bool inUnsatCore)
-    : d_term(t), d_inUnsatCore(inUnsatCore)
-{
-}
+AssertCommand::AssertCommand(const api::Term& t) : d_term(t) {}
 
 api::Term AssertCommand::getTerm() const { return d_term; }
 void AssertCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->getSmtEngine()->assertFormula(termToNode(d_term), d_inUnsatCore);
+    solver->assertFormula(d_term);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnsafeInterruptException& e)
@@ -364,10 +363,7 @@ void AssertCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-Command* AssertCommand::clone() const
-{
-  return new AssertCommand(d_term, d_inUnsatCore);
-}
+Command* AssertCommand::clone() const { return new AssertCommand(d_term); }
 
 std::string AssertCommand::getCommandName() const { return "assert"; }
 
@@ -579,10 +575,7 @@ void CheckSatAssumingCommand::toStream(std::ostream& out,
 /* class QueryCommand                                                         */
 /* -------------------------------------------------------------------------- */
 
-QueryCommand::QueryCommand(const api::Term& t, bool inUnsatCore)
-    : d_term(t), d_inUnsatCore(inUnsatCore)
-{
-}
+QueryCommand::QueryCommand(const api::Term& t) : d_term(t) {}
 
 api::Term QueryCommand::getTerm() const { return d_term; }
 void QueryCommand::invoke(api::Solver* solver, SymbolManager* sm)
@@ -613,7 +606,7 @@ void QueryCommand::printResult(std::ostream& out, uint32_t verbosity) const
 
 Command* QueryCommand::clone() const
 {
-  QueryCommand* c = new QueryCommand(d_term, d_inUnsatCore);
+  QueryCommand* c = new QueryCommand(d_term);
   c->d_result = d_result;
   return c;
 }
@@ -1403,11 +1396,16 @@ void DefineFunctionCommand::toStream(std::ostream& out,
                                      size_t dag,
                                      OutputLanguage language) const
 {
+  TypeNode rangeType = termToNode(d_func).getType();
+  if (rangeType.isFunction())
+  {
+    rangeType = rangeType.getRangeType();
+  }
   Printer::getPrinter(language)->toStreamCmdDefineFunction(
       out,
       d_func.toString(),
       termVectorToNodes(d_formals),
-      termToNode(d_func).getType().getRangeType(),
+      rangeType,
       termToNode(d_formula));
 }
 
@@ -2041,6 +2039,16 @@ void GetProofCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 GetInstantiationsCommand::GetInstantiationsCommand() : d_solver(nullptr) {}
+bool GetInstantiationsCommand::isEnabled(api::Solver* solver,
+                                         const api::Result& res)
+{
+  return (solver->getOptions().printer.instFormatMode
+              != options::InstFormatMode::SZS
+          && (res.isSat()
+              || (res.isSatUnknown()
+                  && res.getUnknownExplanation() == api::Result::INCOMPLETE)))
+         || res.isUnsat() || res.isEntailed();
+}
 void GetInstantiationsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try

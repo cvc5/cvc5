@@ -1,4 +1,4 @@
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status unsat)
 
 (declare-datatypes ((Lst 0)) (((cons (head Int) (tail Lst)) (nil))))

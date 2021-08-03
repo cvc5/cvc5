@@ -69,6 +69,13 @@ void InferenceManager::addPendingInference(Node conc,
 
 void InferenceManager::process()
 {
+  // if we are in conflict, immediately reset and clear pending
+  if (d_theoryState.isInConflict())
+  {
+    reset();
+    clearPending();
+    return;
+  }
   // process pending lemmas, used infrequently, only for definitional lemmas
   doPendingLemmas();
   // now process the pending facts

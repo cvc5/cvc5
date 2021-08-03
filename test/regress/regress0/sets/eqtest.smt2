@@ -1,4 +1,4 @@
-(set-logic QF_ALL_SUPPORTED)
+(set-logic QF_ALL)
 (set-info :status unsat)
 (declare-fun A () (Set Int) )
 (declare-fun B () (Set Int) )

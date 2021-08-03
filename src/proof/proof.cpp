@@ -25,7 +25,7 @@ namespace cvc5 {
 
 CDProof::CDProof(ProofNodeManager* pnm,
                  context::Context* c,
-                 std::string name,
+                 const std::string& name,
                  bool autoSymm)
     : d_manager(pnm),
       d_context(),

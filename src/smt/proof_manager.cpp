@@ -79,6 +79,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
         d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
       }
     }
+    d_pfpp->setEliminateRule(PfRule::BV_BITBLAST);
   }
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -130,9 +131,8 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   Trace("smt-proof") << "SmtEngine::setFinalProof(): make scope...\n";
 
   // Now make the final scope, which ensures that the only open leaves of the
-  // proof are the assertions, unless we are doing proofs to generate unsat
-  // cores, in which case we do not care.
-  d_finalProof = d_pnm->mkScope(pfn, assertions, !options::unsatCores());
+  // proof are the assertions.
+  d_finalProof = d_pnm->mkScope(pfn, assertions);
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 
@@ -154,7 +154,8 @@ void PfManager::printProof(std::ostream& out,
 
   if (options::proofFormatMode() == options::ProofFormatMode::DOT)
   {
-    proof::DotPrinter::print(out, fp.get());
+    proof::DotPrinter dotPrinter;
+    dotPrinter.print(out, fp.get());
   }
   else
   {
