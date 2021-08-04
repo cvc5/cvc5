@@ -61,6 +61,10 @@ void getFreeAssumptionsMap(
  * do *not* distinguish between free vs. non-free assumptions in this call.
  * This call involves at most a single dag traversal over the proof node.
  *
+ * This call will partially populate caMap. In particular, it will only fill
+ * caMap for the proof nodes that were traversed up to where the first
+ * assumption in pn was found.
+ *
  * @param pn The proof node.
  * @param caMap Cache of results, mapping proof nodes to whether they contain
  * assumptions.
