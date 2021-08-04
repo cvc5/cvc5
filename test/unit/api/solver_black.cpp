@@ -1301,6 +1301,14 @@ TEST_F(TestApiBlackSolver, getOption)
   ASSERT_THROW(d_solver.getOption("asdf"), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, getOptionNames)
+{
+  std::vector<std::string> names = d_solver.getOptionNames();
+  ASSERT_TRUE(names.size() > 100);
+  ASSERT_NE(std::find(names.begin(), names.end(), "verbose"), names.end());
+  ASSERT_EQ(std::find(names.begin(), names.end(), "foobar"), names.end());
+}
+
 TEST_F(TestApiBlackSolver, getUnsatAssumptions1)
 {
   d_solver.setOption("incremental", "false");
