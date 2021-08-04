@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --decision=justification
+; REQUIRES: poly
 ; EXPECT: sat
 (set-logic QF_NRA)
 (set-info :status sat)

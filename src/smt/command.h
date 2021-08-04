@@ -348,10 +348,9 @@ class CVC5_EXPORT AssertCommand : public Command
 {
  protected:
   api::Term d_term;
-  bool d_inUnsatCore;
 
  public:
-  AssertCommand(const api::Term& t, bool inUnsatCore = true);
+  AssertCommand(const api::Term& t);
 
   api::Term getTerm() const;
 
@@ -706,10 +705,9 @@ class CVC5_EXPORT QueryCommand : public Command
  protected:
   api::Term d_term;
   api::Result d_result;
-  bool d_inUnsatCore;
 
  public:
-  QueryCommand(const api::Term& t, bool inUnsatCore = true);
+  QueryCommand(const api::Term& t);
 
   api::Term getTerm() const;
   api::Result getResult() const;
