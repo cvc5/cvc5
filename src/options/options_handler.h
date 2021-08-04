@@ -45,28 +45,32 @@ public:
   OptionsHandler(Options* options);
 
   template <typename T>
-  void geqZero(const std::string& option,
-               const std::string& flag,
-               T value) const
+  void checkMinimum(const std::string& option,
+                    const std::string& flag,
+                    T value,
+                    T minimum) const
   {
-    if (value < 0)
+    if (value < minimum)
     {
       std::stringstream ss;
-      ss << flag << ": " << value << " is not a legal setting, should be "
-         << value << " >= 0.";
+      ss << flag << " = " << value
+         << " is not a legal setting, value should be at least " << minimum
+         << ".";
       throw OptionException(ss.str());
     }
   }
   template <typename T>
-  void betweenZeroAndOne(const std::string& option,
-                         const std::string& flag,
-                         T value) const
+  void checkMaximum(const std::string& option,
+                    const std::string& flag,
+                    T value,
+                    T maximum) const
   {
-    if (value < 0 || value > 1)
+    if (value > maximum)
     {
       std::stringstream ss;
-      ss << flag << ": " << value
-         << " is not a legal setting, should be 0 <= " << flag << " <= 1.";
+      ss << flag << " = " << value
+         << " is not a legal setting, value should be at most " << maximum
+         << ".";
       throw OptionException(ss.str());
     }
   }

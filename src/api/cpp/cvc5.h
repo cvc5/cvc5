@@ -3748,6 +3748,18 @@ class CVC5_EXPORT Solver
   std::vector<Term> getUnsatCore() const;
 
   /**
+   * Get the refutation proof
+   * SMT-LIB:
+   * \verbatim
+   * ( get-proof )
+   * \endverbatim
+   * Requires to enable option 'produce-proofs'.
+   * @return a string representing the proof, according to the the value of
+   * proof-format-mode.
+   */
+  std::string getProof() const;
+
+  /**
    * Get the value of the given term.
    * SMT-LIB:
    * \verbatim
