@@ -59,6 +59,7 @@
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "options/smt_options.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
@@ -7043,6 +7044,102 @@ std::string Solver::getOption(const std::string& option) const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_smtEngine->getOption(option);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
+
+std::ostream& operator<<(std::ostream& os, const OptionInfo& oi)
+{
+  os << "OptionInfo{ " << oi.name;
+  if (!oi.aliases.empty())
+  {
+    container_to_stream(os, oi.aliases, ", ", "", ", ");
+  }
+  auto printNum = [&os](const std::string& type, const auto& vi) {
+    os << " | " << type << " | " << vi.currentValue << " | default " << vi.defaultValue;
+    if (vi.minimum || vi.maximum) {
+      os << " |";
+      if (vi.minimum) {
+        os << " " << *vi.minimum << " <=";
+      }
+      os << " x";
+      if (vi.maximum) {
+        os << " <= " << *vi.maximum;
+      }
+    }
+  };
+  std::visit(overloaded {
+    [&os](const OptionInfo::VoidInfo& vi) {
+      os << " | void";
+    },
+    [&os](const OptionInfo::ValueInfo<bool>& vi) {
+      os << " | bool | " << vi.currentValue << " | default " << vi.defaultValue;
+    },
+    [&os](const OptionInfo::ValueInfo<std::string>& vi) {
+      os << " | string | " << vi.currentValue << " | default " << vi.defaultValue;
+    },
+    [&printNum](const OptionInfo::NumberInfo<int64_t>& vi) {
+      printNum("int64_t", vi);
+    },
+    [&printNum](const OptionInfo::NumberInfo<uint64_t>& vi) {
+      printNum("uint64_t", vi);
+    },
+    [&printNum](const OptionInfo::NumberInfo<double>& vi) {
+      printNum("double", vi);
+    },
+    [&os](const OptionInfo::ModeInfo& vi) {
+      os << " | mode | " << vi.currentValue << " | default " << vi.defaultValue << " | modes: ";
+      container_to_stream(os, vi.modes, "", "", ", ");
+    },
+  }, oi.valueInfo);
+  os << " }";
+  return os;
+}
+
+OptionInfo Solver::getOptionInfo(const std::string& option) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  auto info = options::getInfo(d_smtEngine->getOptions(), option);
+  return std::visit(overloaded {
+    [&info](const options::OptionInfo::VoidInfo& vi) {
+      return OptionInfo{info.name, info.aliases, OptionInfo::VoidInfo{}};
+    },
+    [&info](const options::OptionInfo::ValueInfo<bool>& vi) {
+      return OptionInfo{info.name, info.aliases, OptionInfo::ValueInfo<bool>{
+        vi.defaultValue, vi.currentValue
+      }};
+    },
+    [&info](const options::OptionInfo::ValueInfo<std::string>& vi) {
+      return OptionInfo{info.name, info.aliases, OptionInfo::ValueInfo<std::string>{
+        vi.defaultValue, vi.currentValue
+      }};
+    },
+    [&info](const options::OptionInfo::NumberInfo<int64_t>& vi) {
+      return OptionInfo{info.name, info.aliases, OptionInfo::NumberInfo<int64_t>{
+        vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum
+      }};
+    },
+    [&info](const options::OptionInfo::NumberInfo<uint64_t>& vi) {
+      return OptionInfo{info.name, info.aliases, OptionInfo::NumberInfo<uint64_t>{
+        vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum
+      }};
+    },
+    [&info](const options::OptionInfo::NumberInfo<double>& vi) {
+      return OptionInfo{info.name, info.aliases, OptionInfo::NumberInfo<double>{
+        vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum
+      }};
+    },
+    [&info](const options::OptionInfo::ModeInfo& vi) {
+      return OptionInfo{info.name, info.aliases, OptionInfo::ModeInfo{
+        vi.defaultValue, vi.currentValue, vi.modes
+      }};
+    },
+  }, info.valueInfo);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
