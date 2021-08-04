@@ -61,7 +61,6 @@ OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
 ]
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
-SUPPORTED_CTYPES = ['int', 'unsigned', 'unsigned long', 'double']
 
 ### Other globals
 
@@ -249,12 +248,16 @@ def get_getall(module, option):
     if option.type == 'bool':
         return 'res.push_back({{"{}", opts.{}.{} ? "true" : "false"}});'.format(
             option.long_name, module.id, option.name)
+    elif option.type == 'std::string':
+        return 'res.push_back({{"{}", opts.{}.{}}});'.format(
+            option.long_name, module.id, option.name)
     elif is_numeric_cpp_type(option.type):
         return 'res.push_back({{"{}", std::to_string(opts.{}.{})}});'.format(
             option.long_name, module.id, option.name)
     else:
-        return '{{ std::stringstream ss; ss << opts.{}.{}; res.push_back({{"{}", ss.str()}}); }}'.format(
-            module.id, option.name, option.long_name)
+        return '{{ std::stringstream ss; ss << opts.{}.{}; res.push_back({{"{}", ss.str()}}); }}'.format(module.id,
+            option.name, option.long_name)
+
 
 class Module(object):
     """Options module.
@@ -459,11 +462,7 @@ def is_numeric_cpp_type(ctype):
     Check if given type is a numeric C++ type (this should cover the most
     common cases).
     """
-    if ctype in SUPPORTED_CTYPES:
-        return True
-    elif re.match('u?int[0-9]+_t', ctype):
-        return True
-    return False
+    return ctype in ['int64_t', 'uint64_t', 'double']
 
 
 def format_include(include):

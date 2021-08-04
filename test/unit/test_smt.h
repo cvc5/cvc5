@@ -138,8 +138,6 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
   void setIncomplete(theory::IncompleteId id) override {}
   void handleUserAttribute(const char* attr, theory::Theory* t) override {}
 
-  void splitLemma(TNode n, bool removable = false) override { push(LEMMA, n); }
-
   void clear() { d_callHistory.clear(); }
 
   Node getIthNode(int i) const
