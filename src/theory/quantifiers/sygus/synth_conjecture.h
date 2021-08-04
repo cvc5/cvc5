@@ -341,8 +341,6 @@ class SynthConjecture
    * not yet tried to repair.
    */
   unsigned d_repair_index;
-  /** number of times we have called doRefine */
-  unsigned d_refine_count;
   /** record solution (this is used to construct solutions later) */
   void recordSolution(std::vector<Node>& vs);
   /** get synth solutions internal

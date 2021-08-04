@@ -47,8 +47,7 @@ class Cegis : public SygusModule
   /** initialize */
   virtual bool initialize(Node conj,
                           Node n,
-                          const std::vector<Node>& candidates,
-                          std::vector<Node>& lemmas) override;
+                          const std::vector<Node>& candidates) override;
   /** get term list */
   virtual void getTermList(const std::vector<Node>& candidates,
                            std::vector<Node>& enums) override;
@@ -56,15 +55,13 @@ class Cegis : public SygusModule
   virtual bool constructCandidates(const std::vector<Node>& enums,
                                    const std::vector<Node>& enum_values,
                                    const std::vector<Node>& candidates,
-                                   std::vector<Node>& candidate_values,
-                                   std::vector<Node>& lems) override;
+                                   std::vector<Node>& candidate_values) override;
   /** register refinement lemma
    *
    * This function stores lem as a refinement lemma, and adds it to lems.
    */
   virtual void registerRefinementLemma(const std::vector<Node>& vars,
-                                       Node lem,
-                                       std::vector<Node>& lems) override;
+                                       Node lem) override;
   /** using repair const */
   virtual bool usingRepairConst() override;
 
@@ -85,8 +82,7 @@ class Cegis : public SygusModule
    */
   virtual bool processInitialize(Node conj,
                                  Node n,
-                                 const std::vector<Node>& candidates,
-                                 std::vector<Node>& lemmas);
+                                 const std::vector<Node>& candidates);
   /** do cegis-implementation-specific post-processing for construct candidate
    *
    * satisfiedRl is whether all refinement lemmas are satisfied under the
@@ -99,8 +95,7 @@ class Cegis : public SygusModule
                                           const std::vector<Node>& enum_values,
                                           const std::vector<Node>& candidates,
                                           std::vector<Node>& candidate_values,
-                                          bool satisfiedRl,
-                                          std::vector<Node>& lems);
+                                          bool satisfiedRl);
   //----------------------------------end cegis-implementation-specific
 
   //-----------------------------------refinement lemmas
@@ -169,7 +164,7 @@ class Cegis : public SygusModule
    */
   bool addEvalLemmas(const std::vector<Node>& candidates,
                      const std::vector<Node>& candidate_values,
-                     std::vector<Node>& lems);
+                     std::vector<std::pair<Node, InferenceId>>& lems);
   /** Get the node corresponding to the conjunction of all refinement lemmas. */
   Node getRefinementLemmaFormula();
   //-----------------------------------end refinement lemmas
