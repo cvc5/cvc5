@@ -246,7 +246,6 @@ Node ProofNodeToSExpr::getArgument(Node arg, ArgFormat f)
 ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
     const ProofNode* pn, size_t i)
 {
-  Assert(i < args.size());
   PfRule r = pn->getRule();
   switch (r)
   {
@@ -257,6 +256,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
         return ArgFormat::KIND;
       }
       const std::vector<Node>& args = pn->getArguments();
+      Assert(i < args.size());
       if (args[i].getNumChildren() == 0
           && NodeManager::operatorToKind(args[i]) != UNDEFINED_KIND)
       {
