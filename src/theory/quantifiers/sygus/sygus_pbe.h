@@ -92,13 +92,13 @@ class SygusPbe : public SygusModule
   ~SygusPbe();
 
   /** initialize this class
-  *
-  * This function may add lemmas via the inference manager corresponding
-  * to initial lemmas regarding static analysis of enumerators it
-  * introduced. For example, we may say that the top-level symbol
-  * of an enumerator is not ITE if it is being used to construct
-  * return values for decision trees.
-  */
+   *
+   * This function may add lemmas via the inference manager corresponding
+   * to initial lemmas regarding static analysis of enumerators it
+   * introduced. For example, we may say that the top-level symbol
+   * of an enumerator is not ITE if it is being used to construct
+   * return values for decision trees.
+   */
   bool initialize(Node conj,
                   Node n,
                   const std::vector<Node>& candidates) override;

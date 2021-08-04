@@ -233,7 +233,8 @@ bool CegisCoreConnective::processInitialize(Node conj,
       // conjunctions).
       Node tst = datatypes::utils::mkTester(d_candidate, i, gdt);
       Trace("sygus-ccore-init") << "Sym break lemma " << tst << std::endl;
-      d_qim.lemma(tst.negate(), InferenceId::QUANTIFIERS_SYGUS_CEGIS_UCL_SYM_BREAK);
+      d_qim.lemma(tst.negate(),
+                  InferenceId::QUANTIFIERS_SYGUS_CEGIS_UCL_SYM_BREAK);
     }
   }
   if (!isActive())
@@ -271,7 +272,8 @@ bool CegisCoreConnective::processConstructCandidates(
     {
       lem = nm->mkNode(OR, g.negate(), lem);
     }
-    d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_UCL_EXCLUDE);
+    d_qim.addPendingLemma(lem,
+                          InferenceId::QUANTIFIERS_SYGUS_CEGIS_UCL_EXCLUDE);
   }
   return ret;
 }

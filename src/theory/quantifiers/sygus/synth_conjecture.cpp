@@ -227,7 +227,7 @@ void SynthConjecture::assign(Node q)
   // decided on with true polariy, but also to ensure that output channel
   // has been used on this call to check.
   d_qim.requirePhase(d_feasible_guard, true);
-  
+
   // register this term with sygus database and other utilities that impact
   // the enumerative sygus search
   if (!isSingleInvocation())
@@ -235,8 +235,7 @@ void SynthConjecture::assign(Node q)
     d_ceg_proc->initialize(d_base_inst, d_candidates);
     for (unsigned i = 0, size = d_modules.size(); i < size; i++)
     {
-      if (d_modules[i]->initialize(
-              d_simp_quant, d_base_inst, d_candidates))
+      if (d_modules[i]->initialize(d_simp_quant, d_base_inst, d_candidates))
       {
         d_master = d_modules[i];
         break;
@@ -505,7 +504,8 @@ bool SynthConjecture::doCheck()
     // since we trust sampling in this mode, we assert there is no
     // counterexample to the conjecture here.
     Node qn = d_quant.negate();
-    d_qim.addPendingLemma(qn, InferenceId::QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED);
+    d_qim.addPendingLemma(qn,
+                          InferenceId::QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED);
     recordSolution(candidate_values);
     return true;
   }
@@ -696,7 +696,7 @@ bool SynthConjecture::doRefine()
   d_ce_sk_var_mvs.clear();
 
   // check if we added a lemma
-  bool addedLemma = d_qim.numPendingLemmas()>prevPending;
+  bool addedLemma = d_qim.numPendingLemmas() > prevPending;
   if (addedLemma)
   {
     Trace("sygus-engine-debug") << "  ...refine candidate." << std::endl;

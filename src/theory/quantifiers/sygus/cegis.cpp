@@ -41,9 +41,7 @@ Cegis::Cegis(QuantifiersInferenceManager& qim,
 {
 }
 
-bool Cegis::initialize(Node conj,
-                       Node n,
-                       const std::vector<Node>& candidates)
+bool Cegis::initialize(Node conj, Node n, const std::vector<Node>& candidates)
 {
   d_base_body = n;
   if (d_base_body.getKind() == NOT && d_base_body[0].getKind() == FORALL)
@@ -285,7 +283,8 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
       Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
       // must guard it
       expn = nm->mkNode(OR, d_parent->getGuard().negate(), expn.negate());
-      d_qim.addPendingLemma(expn, InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE);
+      d_qim.addPendingLemma(
+          expn, InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE);
       return ret;
     }
   }
@@ -294,16 +293,14 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
   bool addedEvalLemmas = addEvalLemmas(enums, enum_values);
 
   // try to construct candidates
-  if (!processConstructCandidates(enums,
-                                  enum_values,
-                                  candidates,
-                                  candidate_values,
-                                  !addedEvalLemmas))
+  if (!processConstructCandidates(
+          enums, enum_values, candidates, candidate_values, !addedEvalLemmas))
   {
     return false;
   }
 
-  if (options::cegisSample() != options::CegisSampleMode::NONE && !addedEvalLemmas)
+  if (options::cegisSample() != options::CegisSampleMode::NONE
+      && !addedEvalLemmas)
   {
     // if we didn't add a lemma, trying sampling to add a refinement lemma
     // that immediately refutes the candidate we just constructed
@@ -462,8 +459,7 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
   }
 }
 
-void Cegis::registerRefinementLemma(const std::vector<Node>& vars,
-                                    Node lem)
+void Cegis::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
 {
   addRefinementLemma(lem);
   // Make the refinement lemma and add it to lems.
@@ -678,7 +674,8 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
           if (options::cegisSample() != options::CegisSampleMode::TRUST)
           {
             Node lem = nm->mkNode(OR, d_parent->getGuard().negate(), rlem);
-            d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE_SAMPLE);
+            d_qim.addPendingLemma(
+                lem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE_SAMPLE);
           }
           return true;
         }

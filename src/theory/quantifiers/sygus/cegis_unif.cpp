@@ -269,7 +269,8 @@ void CegisUnif::setConditions(
                              ->getExplanationForEquality(eu, itv->second[0])
                              .negate();
           Node lem = nm->mkNode(OR, g.negate(), exp_exc);
-          d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_COND_EXCLUDE);
+          d_qim.addPendingLemma(
+              lem, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_COND_EXCLUDE);
         }
       }
     }
@@ -371,8 +372,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   return false;
 }
 
-void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
-                                        Node lem)
+void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
 {
   // Notify lemma to unification utility and get its purified form
   std::map<Node, std::vector<Node>> eval_pts;
@@ -394,9 +394,10 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
   // parent's guard, which has the semantics "this conjecture has a solution",
   // hence this lemma states: if the parent conjecture has a solution, it
   // satisfies the specification for the given concrete point.
-  Node rlem = NodeManager::currentNM()->mkNode(
-      OR, d_parent->getGuard().negate(), plem);
-  d_qim.addPendingLemma(rlem, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_REFINEMENT);
+  Node rlem =
+      NodeManager::currentNM()->mkNode(OR, d_parent->getGuard().negate(), plem);
+  d_qim.addPendingLemma(rlem,
+                        InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_REFINEMENT);
 }
 
 CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(

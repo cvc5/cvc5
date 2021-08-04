@@ -52,10 +52,11 @@ class Cegis : public SygusModule
   virtual void getTermList(const std::vector<Node>& candidates,
                            std::vector<Node>& enums) override;
   /** construct candidate */
-  virtual bool constructCandidates(const std::vector<Node>& enums,
-                                   const std::vector<Node>& enum_values,
-                                   const std::vector<Node>& candidates,
-                                   std::vector<Node>& candidate_values) override;
+  virtual bool constructCandidates(
+      const std::vector<Node>& enums,
+      const std::vector<Node>& enum_values,
+      const std::vector<Node>& candidates,
+      std::vector<Node>& candidate_values) override;
   /** register refinement lemma
    *
    * This function stores lem as a refinement lemma, and adds it to lems.
@@ -134,7 +135,8 @@ class Cegis : public SygusModule
    * This function will check if there is a sample point in d_sampler that
    * refutes the candidate solution (d_quant_vars->vals). If so, it adds a
    * refinement lemma to the lists d_refinement_lemmas that corresponds to that
-   * sample point, and adds a lemma to d_qim pending lemmas if cegisSample mode is not trust.
+   * sample point, and adds a lemma to d_qim pending lemmas if cegisSample mode
+   * is not trust.
    */
   bool sampleAddRefinementLemma(const std::vector<Node>& candidates,
                                 const std::vector<Node>& vals);

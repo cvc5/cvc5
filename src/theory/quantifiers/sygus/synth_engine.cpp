@@ -216,7 +216,7 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
     size_t prevPending = d_qim.numPendingLemmas();
     bool ret = conj->doCheck();
     // if we added a lemma, return true
-    if (d_qim.numPendingLemmas()>prevPending)
+    if (d_qim.numPendingLemmas() > prevPending)
     {
       Trace("sygus-engine-debug")
           << "  ...check for counterexample." << std::endl;

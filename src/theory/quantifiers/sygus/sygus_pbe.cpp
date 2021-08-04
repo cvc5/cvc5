@@ -233,7 +233,8 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
         for (unsigned k = 0, size = enum_lems.size(); k < size; k++)
         {
           Node lem = nm->mkNode(OR, g.negate(), enum_lems[k]);
-          d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYGUS_PBE_EXCLUDE);
+          d_qim.addPendingLemma(lem,
+                                InferenceId::QUANTIFIERS_SYGUS_PBE_EXCLUDE);
         }
       }
     }
@@ -246,7 +247,8 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
     bool solSuccess = d_sygus_unif[c]->constructSolution(sol, lems);
     for (const Node& lem : lems)
     {
-      d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL);
+      d_qim.addPendingLemma(lem,
+                            InferenceId::QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL);
     }
     if (solSuccess)
     {
