@@ -93,15 +93,15 @@ void OptionsHandler::setResourceWeight(const std::string& option,
 
 void OptionsHandler::setPrintSuccess(const std::string& option,
                                      const std::string& flag,
-                                     bool printSuccess)
+                                     bool value)
 {
-  Debug.getStream() << Command::printsuccess(printSuccess);
-  Trace.getStream() << Command::printsuccess(printSuccess);
-  Notice.getStream() << Command::printsuccess(printSuccess);
-  Chat.getStream() << Command::printsuccess(printSuccess);
-  CVC5Message.getStream() << Command::printsuccess(printSuccess);
-  Warning.getStream() << Command::printsuccess(printSuccess);
-  *options::out() << Command::printsuccess(printSuccess);
+  Debug.getStream() << Command::printsuccess(value);
+  Trace.getStream() << Command::printsuccess(value);
+  Notice.getStream() << Command::printsuccess(value);
+  Chat.getStream() << Command::printsuccess(value);
+  CVC5Message.getStream() << Command::printsuccess(value);
+  Warning.getStream() << Command::printsuccess(value);
+  *options::out() << Command::printsuccess(value);
 }
 
 // theory/quantifiers/options_handlers.h

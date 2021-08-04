@@ -79,7 +79,7 @@ public:
   // base module
   void setPrintSuccess(const std::string& option,
                        const std::string& flag,
-                       bool printSuccess);
+                       bool value);
 
   // theory/quantifiers/options_handlers.h
   void checkInstWhenMode(const std::string& option,
