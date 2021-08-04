@@ -25,6 +25,7 @@
 #include "proof/proof_node_updater.h"
 #include "rewriter/rewrites.h"
 #include "util/statistics_stats.h"
+#include "theory/inference_id.h"
 
 namespace cvc5 {
 namespace smt {
