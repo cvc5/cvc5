@@ -75,18 +75,18 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   // record stats for the rule
   d_ruleCount << r;
   ++d_totalRuleCount;
-  // print for debugging
-  if (Trace.isOn("final-pf-hole"))
+  // take stats on the instantiations in the proof
+  if (r == PfRule::INSTANTIATE)
   {
-    // currently only track theory rewrites
-    if (r == PfRule::THEORY_REWRITE)
+    Node q = pn->getChildren()[0]->getResult();
+    const std::vector<Node>& args = pn->getArguments();
+    if (args.size() > q[0].getNumChildren())
     {
-      const std::vector<Node>& args = pn->getArguments();
-      Node eq = args[0];
-      TheoryId tid = THEORY_BUILTIN;
-      builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
-      Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq[0]
-                             << " ---> " << eq[1] << std::endl;
+      InferenceId id;
+      if (getInferenceId(args[q[0].getNumChildren()], id))
+      {
+        d_instRuleIds << id;
+      }
     }
   }
   return false;
