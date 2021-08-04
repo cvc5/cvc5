@@ -282,8 +282,6 @@ libcvc5_add_sources(
   smt/logic_exception.h
   smt/interpolation_solver.cpp
   smt/interpolation_solver.h
-  smt/managed_ostreams.cpp
-  smt/managed_ostreams.h
   smt/model.cpp
   smt/model.h
   smt/model_core_builder.cpp
@@ -332,7 +330,6 @@ libcvc5_add_sources(
   smt/term_formula_removal.h
   smt/unsat_core_manager.cpp
   smt/unsat_core_manager.h
-  smt/update_ostream.h
   smt/witness_form.cpp
   smt/witness_form.h
   smt_util/boolean_simplification.cpp
