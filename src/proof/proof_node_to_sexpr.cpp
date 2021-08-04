@@ -237,6 +237,7 @@ Node ProofNodeToSExpr::getArgument(Node arg, ArgFormat f)
     case ArgFormat::KIND: return getOrMkKindVariable(arg);
     case ArgFormat::THEORY_ID: return getOrMkTheoryIdVariable(arg);
     case ArgFormat::METHOD_ID: return getOrMkMethodIdVariable(arg);
+    case ArgFormat::INFERENCE_ID: return getOrMkInferenceIdVariable(arg);
     case ArgFormat::NODE_VAR: return getOrMkNodeVariable(arg);
     default: return arg;
   }
