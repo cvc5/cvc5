@@ -18,6 +18,7 @@
 #include "options/proof_options.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
+#include "rewriter/rewrite_proof_rule.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/theory_id.h"
@@ -31,6 +32,9 @@ namespace smt {
 ProofFinalCallback::ProofFinalCallback(ProofNodeManager* pnm)
     : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
           "finalProof::ruleCount")),
+      d_dslRuleCount(
+          smtStatisticsRegistry().registerHistogram<rewriter::DslPfRule>(
+              "finalProof::dslRuleCount")),
       d_totalRuleCount(
           smtStatisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
@@ -74,17 +78,21 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   }
   // record stats for the rule
   d_ruleCount << r;
-  // if a DSL rewrite, take DSL stat
-  if (r == PfRule::DSL_REWRITE)
+  ++d_totalRuleCount;
+  // print for debugging
+  if (Trace.isOn("final-pf-hole"))
   {
-    const std::vector<Node>& args = pn->getArguments();
-    rewriter::DslPfRule di;
-    if (rewriter::getDslPfRule(args[0], di))
+    // currently only track theory rewrites
+    if (r == PfRule::THEORY_REWRITE)
     {
-      d_dslRuleCount << di;
+      const std::vector<Node>& args = pn->getArguments();
+      Node eq = args[0];
+      TheoryId tid = THEORY_BUILTIN;
+      builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
+      Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq[0]
+                             << " ---> " << eq[1] << std::endl;
     }
   }
-  ++d_totalRuleCount;
   return false;
 }
 
