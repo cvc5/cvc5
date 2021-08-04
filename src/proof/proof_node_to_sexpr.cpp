@@ -19,8 +19,8 @@
 #include <sstream>
 
 #include "options/proof_options.h"
-#include "proof/proof_node.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_node.h"
 #include "theory/builtin/proof_checker.h"
 
 using namespace cvc5::kind;
@@ -97,7 +97,7 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
         // this can be the case for CONG where d_args may contain a builtin
         // operator
         std::vector<Node> argsPrint;
-        for (size_t i=0, nargs = args.size(); i<nargs; i++)
+        for (size_t i = 0, nargs = args.size(); i < nargs; i++)
         {
           ArgFormat f = getArgumentFormat(cur, i);
           Node av = getArgument(args[i], f);
@@ -134,7 +134,7 @@ Node ProofNodeToSExpr::getOrMkKindVariable(TNode n)
   if (!ProofRuleChecker::getKind(n, k))
   {
     // just use self if we failed to get the node, throw a debug failure
-    Assert (false) << "Expected kind node, got " << n;
+    Assert(false) << "Expected kind node, got " << n;
     return n;
   }
   std::map<Kind, Node>::iterator it = d_kindMap.find(k);
@@ -156,7 +156,7 @@ Node ProofNodeToSExpr::getOrMkTheoryIdVariable(TNode n)
   if (!theory::builtin::BuiltinProofRuleChecker::getTheoryId(n, tid))
   {
     // just use self if we failed to get the node, throw a debug failure
-    Assert (false) << "Expected theory id node, got " << n;
+    Assert(false) << "Expected theory id node, got " << n;
     return n;
   }
   std::map<theory::TheoryId, Node>::iterator it = d_tidMap.find(tid);
@@ -178,7 +178,7 @@ Node ProofNodeToSExpr::getOrMkMethodIdVariable(TNode n)
   if (!getMethodId(n, mid))
   {
     // just use self if we failed to get the node, throw a debug failure
-    Assert (false) << "Expected method id node, got " << n;
+    Assert(false) << "Expected method id node, got " << n;
     return n;
   }
   std::map<MethodId, Node>::iterator it = d_midMap.find(mid);
@@ -199,7 +199,7 @@ Node ProofNodeToSExpr::getOrMkInferenceIdVariable(TNode n)
   if (!theory::getInferenceId(n, iid))
   {
     // just use self if we failed to get the node, throw a debug failure
-    Assert (false) << "Expected inference id node, got " << n;
+    Assert(false) << "Expected inference id node, got " << n;
     return n;
   }
   std::map<theory::InferenceId, Node>::iterator it = d_iidMap.find(iid);
@@ -232,7 +232,7 @@ Node ProofNodeToSExpr::getOrMkNodeVariable(TNode n)
 
 Node ProofNodeToSExpr::getArgument(Node arg, ArgFormat f)
 {
-  switch(f)
+  switch (f)
   {
     case ArgFormat::KIND: return getOrMkKindVariable(arg);
     case ArgFormat::THEORY_ID: return getOrMkTheoryIdVariable(arg);
@@ -243,15 +243,16 @@ Node ProofNodeToSExpr::getArgument(Node arg, ArgFormat f)
   }
 }
 
-ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(const ProofNode* pn, size_t i)
+ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
+    const ProofNode* pn, size_t i)
 {
-  Assert (i<args.size());
+  Assert(i < args.size());
   PfRule r = pn->getRule();
   switch (r)
   {
     case PfRule::CONG:
     {
-      if (i==0)
+      if (i == 0)
       {
         return ArgFormat::KIND;
       }
@@ -262,44 +263,41 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(const ProofNode*
         return ArgFormat::NODE_VAR;
       }
     }
-      break;
+    break;
     case PfRule::SUBS:
     case PfRule::REWRITE:
     case PfRule::MACRO_SR_EQ_INTRO:
     case PfRule::MACRO_SR_PRED_INTRO:
     case PfRule::MACRO_SR_PRED_TRANSFORM:
-      if (i>0)
+      if (i > 0)
       {
         return ArgFormat::METHOD_ID;
       }
       break;
-    case PfRule::MACRO_SR_PRED_ELIM:
-      return ArgFormat::METHOD_ID;
-      break;
+    case PfRule::MACRO_SR_PRED_ELIM: return ArgFormat::METHOD_ID; break;
     case PfRule::THEORY_LEMMA:
     case PfRule::THEORY_REWRITE:
-      if (i==1)
+      if (i == 1)
       {
         return ArgFormat::THEORY_ID;
       }
-      else if (r == PfRule::THEORY_REWRITE && i==2)
+      else if (r == PfRule::THEORY_REWRITE && i == 2)
       {
         return ArgFormat::METHOD_ID;
       }
       break;
     case PfRule::INSTANTIATE:
     {
-      Assert (!pn->getChildren().empty());
+      Assert(!pn->getChildren().empty());
       Node q = pn->getChildren()[0]->getResult();
-      Assert(q.getKind()==kind::FORALL);
-      if (i==q[0].getNumChildren())
+      Assert(q.getKind() == kind::FORALL);
+      if (i == q[0].getNumChildren())
       {
         return ArgFormat::INFERENCE_ID;
       }
     }
     break;
-    default:
-      break;
+    default: break;
   }
   return ArgFormat::DEFAULT;
 }

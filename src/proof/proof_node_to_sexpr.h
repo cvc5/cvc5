@@ -20,12 +20,12 @@
 
 #include <map>
 
-#include "expr/node.h"
-#include "proof/proof_rule.h"
-#include "proof/method_id.h"
-#include "theory/theory_id.h"
-#include "theory/inference_id.h"
 #include "expr/kind.h"
+#include "expr/node.h"
+#include "proof/method_id.h"
+#include "proof/proof_rule.h"
+#include "theory/inference_id.h"
+#include "theory/theory_id.h"
 
 namespace cvc5 {
 
@@ -51,7 +51,8 @@ class ProofNodeToSExpr
 
  private:
   /** argument format, determines how to print an argument */
-  enum class ArgFormat{
+  enum class ArgFormat
+  {
     // just use the argument itself
     DEFAULT,
     // print the argument as a kind
@@ -96,7 +97,7 @@ class ProofNodeToSExpr
   Node getOrMkMethodIdVariable(TNode n);
   /** get or make inference id variable */
   Node getOrMkInferenceIdVariable(TNode n);
-  /** 
+  /**
    * Get or make node variable that prints the same as n but has SEXPR type.
    * This is used to ensure the type checker does not complain when trying to
    * print e.g. builtin operators as first-class terms in the SEXPR.
