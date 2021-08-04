@@ -176,7 +176,7 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
       // with the scape of the delimiter of the value in the key-value map
       out << sanitizeStringDoubleQuotes(astring) << "\"";
     }
-    out << "}}\"\n";
+    out << "}}\";\n";
   }
   DotPrinter::printInternal(out, pn, ruleID, 0, false);
   out << "}\n";
