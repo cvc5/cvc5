@@ -616,8 +616,7 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
 }
 
 bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
-                                     const std::vector<Node>& vals,
-                                     std::vector<Node>& lems)
+                                     const std::vector<Node>& vals)
 {
   Trace("sygus-engine") << "  *** Do sample add refinement..." << std::endl;
   if (Trace.isOn("cegis-sample"))

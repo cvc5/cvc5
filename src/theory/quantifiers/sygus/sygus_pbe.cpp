@@ -242,7 +242,13 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
     Node c = candidates[i];
     //build decision tree for candidate
     std::vector<Node> sol;
-    if (d_sygus_unif[c]->constructSolution(sol, lems))
+    std::vector<Node> lems;
+    bool solSuccess = d_sygus_unif[c]->constructSolution(sol, lems);
+    for (const Node& lem : lems)
+    {
+      d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL);
+    }
+    if (solSuccess)
     {
       Assert(sol.size() == 1);
       candidate_values.push_back(sol[0]);
