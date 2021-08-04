@@ -109,7 +109,21 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   // Parse the options
   std::vector<string> filenames;
-  solver->parseOptions(argc, argv, progName, filenames);
+  try
+  {
+    solver->parseOptions(argc, argv, progName, filenames);
+  }
+  catch (const cvc5::api::CVC5ApiException& e)
+  {
+#ifdef CVC5_COMPETITION_MODE
+    *opts.base.out << "unknown" << endl;
+#endif
+    *opts.base.err << "(error \"" << e.getMessage() << "\")" << std::endl
+                   << std::endl
+                   << "Please use --help to get help on command-line options."
+                   << std::endl;
+    std::exit(1);
+  }
 
   auto limit = install_time_limit(opts);
 
