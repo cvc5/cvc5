@@ -215,19 +215,6 @@ void SynthConjecture::assign(Node q)
     return;
   }
 
-  // register the strategy
-  d_feasible_strategy.reset(
-      new DecisionStrategySingleton("sygus_feasible",
-                                    d_feasible_guard,
-                                    d_qstate.getSatContext(),
-                                    d_qstate.getValuation()));
-  d_qim.getDecisionManager()->registerStrategy(
-      DecisionManager::STRAT_QUANT_SYGUS_FEASIBLE, d_feasible_strategy.get());
-  // this must be called, both to ensure that the feasible guard is
-  // decided on with true polariy, but also to ensure that output channel
-  // has been used on this call to check.
-  d_qim.requirePhase(d_feasible_guard, true);
-
   // register this term with sygus database and other utilities that impact
   // the enumerative sygus search
   if (!isSingleInvocation())
@@ -254,7 +241,18 @@ void SynthConjecture::assign(Node q)
     }
   }
 
-
+  // register the strategy
+  d_feasible_strategy.reset(
+      new DecisionStrategySingleton("sygus_feasible",
+                                    d_feasible_guard,
+                                    d_qstate.getSatContext(),
+                                    d_qstate.getValuation()));
+  d_qim.getDecisionManager()->registerStrategy(
+      DecisionManager::STRAT_QUANT_SYGUS_FEASIBLE, d_feasible_strategy.get());
+  // this must be called, both to ensure that the feasible guard is
+  // decided on with true polariy, but also to ensure that output channel
+  // has been used on this call to check.
+  d_qim.requirePhase(d_feasible_guard, true);
 
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation()
                  << std::endl;
