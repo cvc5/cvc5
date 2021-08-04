@@ -27,6 +27,7 @@
 #include "rewriter/rewrites.h"
 #include "smt/proof_final_callback.h"
 #include "smt/witness_form.h"
+#include "theory/inference_id.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {

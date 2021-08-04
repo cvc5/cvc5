@@ -32,6 +32,9 @@ namespace smt {
 ProofFinalCallback::ProofFinalCallback(ProofNodeManager* pnm)
     : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
           "finalProof::ruleCount")),
+      d_instRuleIds(
+          smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
+              "finalProof::instRuleId")),
       d_dslRuleCount(
           smtStatisticsRegistry().registerHistogram<rewriter::DslPfRule>(
               "finalProof::dslRuleCount")),
@@ -89,6 +92,20 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     }
   }
   ++d_totalRuleCount;
+  // take stats on the instantiations in the proof
+  if (r == PfRule::INSTANTIATE)
+  {
+    Node q = pn->getChildren()[0]->getResult();
+    const std::vector<Node>& args = pn->getArguments();
+    if (args.size() > q[0].getNumChildren())
+    {
+      InferenceId id;
+      if (getInferenceId(args[q[0].getNumChildren()], id))
+      {
+        d_instRuleIds << id;
+      }
+    }
+  }
   // print for debugging
   if (Trace.isOn("final-pf-hole"))
   {
