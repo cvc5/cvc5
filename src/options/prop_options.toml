@@ -8,14 +8,15 @@ name   = "SAT Layer"
   long       = "random-freq=P"
   type       = "double"
   default    = "0.0"
-  predicates = ["betweenZeroAndOne"]
+  minimum    = "0.0"
+  maximum    = "1.0"
   help       = "sets the frequency of random decisions in the sat solver (P=0.0 by default)"
 
 [[option]]
   name       = "satRandomSeed"
   category   = "regular"
   long       = "random-seed=S"
-  type       = "uint32_t"
+  type       = "uint64_t"
   default    = "0"
   help       = "sets the random seed for the sat solver"
 
@@ -24,7 +25,8 @@ name   = "SAT Layer"
   category   = "regular"
   type       = "double"
   default    = "0.95"
-  predicates = ["betweenZeroAndOne"]
+  minimum    = "0.0"
+  maximum    = "1.0"
   help       = "variable activity decay factor for Minisat"
 
 [[option]]
@@ -32,14 +34,15 @@ name   = "SAT Layer"
   category   = "regular"
   type       = "double"
   default    = "0.999"
-  predicates = ["betweenZeroAndOne"]
+  minimum    = "0.0"
+  maximum    = "1.0"
   help       = "clause activity decay factor for Minisat"
 
 [[option]]
   name       = "satRestartFirst"
   category   = "regular"
   long       = "restart-int-base=N"
-  type       = "unsigned"
+  type       = "uint64_t"
   default    = "25"
   help       = "sets the base restart interval for the sat solver (N=25 by default)"
 
@@ -49,7 +52,7 @@ name   = "SAT Layer"
   long       = "restart-int-inc=F"
   type       = "double"
   default    = "3.0"
-  predicates = ["geqZero"]
+  minimum    = "0.0"
   help       = "sets the restart interval increase factor for the sat solver (F=3.0 by default)"
 
 [[option]]
