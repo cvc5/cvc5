@@ -70,7 +70,9 @@ class SygusModule
    * synthesis conjecture under candidates (see SynthConjecture::d_base_inst).
    *
    * This function may also sends lemmas during this call via the quantifiers
-   * inference manager. 
+   * inference manager. Note that lemmas should be sent immediately via
+   * d_qim.lemma in this call. This is in contrast to other methods which
+   * add pending lemmas to d_qim.
    */
   virtual bool initialize(Node conj,
                           Node n,
@@ -109,8 +111,8 @@ class SygusModule
    * tested by testing the (un)satisfiablity of P( v, cex ) for fresh cex by the
    * caller.
    *
-   * This function may also sends lemmas during this call via the quantifiers
-   * inference manager. For an example of such lemmas, see SygusPbe::constructCandidates..
+   * This function may also add pending lemmas during this call via the quantifiers
+   * inference manager d_qim. For an example of such lemmas, see SygusPbe::constructCandidates..
    *
    * This function may return false if it does not have a candidate it wants
    * to test on this iteration. In this case, the module should have sent
@@ -129,8 +131,8 @@ class SygusModule
    * is called when the refinement lemma P( v, cex ) has a model M. In calls to
    * this function, the argument vars is cex and lem is P( k, cex^M ).
    *
-   * This function may also sends lemmas during this call via the quantifiers
-   * inference manager. For an example of such lemmas, see Cegis::registerRefinementLemma.
+   * This function may also add pending lemmas during this call via the quantifiers
+   * inference manager d_qim. For an example of such lemmas, see Cegis::registerRefinementLemma.
    */
   virtual void registerRefinementLemma(const std::vector<Node>& vars,
                                        Node lem)
