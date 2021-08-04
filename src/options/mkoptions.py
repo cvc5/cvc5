@@ -235,12 +235,17 @@ def get_handler(option):
 
 def get_predicates(option):
     """Render predicate calls for assignment functions"""
-    if not option.predicates:
+    if option.type == 'void':
         return []
     optname = option.long_name if option.long else ""
     assert option.type != 'void'
-    return ['opts.handler().{}("{}", option, value);'.format(x, optname)
+    res = ['opts.handler().{}("{}", option, value);'.format(x, optname)
             for x in option.predicates]
+    if option.minimum:
+        res.append('opts.handler().checkMinimum("{}", option, value, {});'.format(optname, option.minimum))
+    if option.maximum:
+        res.append('opts.handler().checkMaximum("{}", option, value, {});'.format(optname, option.maximum))
+    return res
 
 
 def get_getall(module, option):

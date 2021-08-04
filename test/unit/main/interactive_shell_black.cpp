@@ -44,8 +44,8 @@ class TestMainBlackInteractiveShell : public TestInternal
     d_stdout = std::cout.rdbuf();
     std::cout.rdbuf(d_sout->rdbuf());
 
-    d_options.base.inputLanguage = language::input::LANG_CVC;
-    d_solver.reset(new cvc5::api::Solver(&d_options));
+    d_solver.reset(new cvc5::api::Solver());
+    d_solver->setOption("input-language", "cvc");
     d_symman.reset(new SymbolManager(d_solver.get()));
   }
 
@@ -87,7 +87,6 @@ class TestMainBlackInteractiveShell : public TestInternal
   std::unique_ptr<std::stringstream> d_sout;
   std::unique_ptr<SymbolManager> d_symman;
   std::unique_ptr<cvc5::api::Solver> d_solver;
-  Options d_options;
 
   std::streambuf* d_stdin;
   std::streambuf* d_stdout;

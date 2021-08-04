@@ -7100,6 +7100,15 @@ std::ostream& operator<<(std::ostream& os, const OptionInfo& oi)
   return os;
 }
 
+std::vector<std::string> Solver::getOptionNames() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return options::getNames();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 OptionInfo Solver::getOptionInfo(const std::string& option) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
