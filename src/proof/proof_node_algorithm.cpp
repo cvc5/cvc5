@@ -143,6 +143,7 @@ bool containsAssumption(const ProofNode* pn,
   std::unordered_map<const ProofNode*, bool>::iterator it;
   std::vector<const ProofNode*> visit;
   visit.push_back(pn);
+  bool foundAssumption = false;
   const ProofNode* cur;
   while (!visit.empty())
   {
@@ -152,9 +153,10 @@ bool containsAssumption(const ProofNode* pn,
     it = caMap.find(cur);
     if (it != caMap.end())
     {
+      // if cached, we set found assumption to true if applicable and continue
       if (it->second)
       {
-        return true;
+        foundAssumption = true;
       }
       continue;
     }
@@ -166,9 +168,13 @@ bool containsAssumption(const ProofNode* pn,
       {
         visited[cur] = true;
         caMap[cur] = true;
+        foundAssumption = true;
       }
-      else
+      else if (!foundAssumption)
       {
+        // if we haven't found an assumption yet, recurse. Otherwise, we will
+        // not bother computing whether this subproof contains an assumption
+        // since we know its parent already contains one by another child.
         visited[cur] = false;
         visit.push_back(cur);
         const std::vector<std::shared_ptr<ProofNode>>& children =
@@ -182,18 +188,8 @@ bool containsAssumption(const ProofNode* pn,
     else if (!it->second)
     {
       visited[cur] = true;
-      bool hasFa = false;
-      const std::vector<std::shared_ptr<ProofNode>>& children =
-          cur->getChildren();
-      for (const std::shared_ptr<ProofNode>& cp : children)
-      {
-        if (caMap[cp.get()])
-        {
-          hasFa = true;
-          break;
-        }
-      }
-      caMap[cur] = hasFa;
+      // we contain an assumption if we've found an assumption in a child
+      caMap[cur] = foundAssumption;
     }
   }
   return caMap[cur];

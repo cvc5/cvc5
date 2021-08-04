@@ -59,6 +59,7 @@
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "options/smt_options.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
@@ -7047,6 +7048,15 @@ std::string Solver::getOption(const std::string& option) const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::vector<std::string> Solver::getOptionNames() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return options::getNames();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 std::vector<Term> Solver::getUnsatAssumptions(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7099,9 +7109,6 @@ std::vector<Term> Solver::getUnsatCore(void) const
   CVC5_API_TRY_CATCH_END;
 }
 
-/**
- *  ( get-proof )
- */
 std::string Solver::getProof(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7114,9 +7121,6 @@ std::string Solver::getProof(void) const
   CVC5_API_TRY_CATCH_END;
 }
 
-/**
- *  ( get-value ( <term> ) )
- */
 Term Solver::getValue(const Term& term) const
 {
   CVC5_API_TRY_CATCH_BEGIN;

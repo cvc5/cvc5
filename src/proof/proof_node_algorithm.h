@@ -59,7 +59,11 @@ void getFreeAssumptionsMap(
 /**
  * Return true if pn contains a subproof whose rule is ASSUME. Notice that we
  * do *not* distinguish between free vs. non-free assumptions in this call.
- * This call involves only a single pass over the proof node.
+ * This call involves at most a single dag traversal over the proof node.
+ *
+ * This call will partially populate caMap. In particular, it will only fill
+ * caMap for the proof nodes that were traversed up to where the first
+ * assumption in pn was found.
  *
  * @param pn The proof node.
  * @param caMap Cache of results, mapping proof nodes to whether they contain
@@ -68,7 +72,9 @@ void getFreeAssumptionsMap(
  */
 bool containsAssumption(const ProofNode* pn,
                         std::unordered_map<const ProofNode*, bool>& caMap);
-/** Same as above, without a cache */
+/**
+ * Same as above, with an empty cache as the initial value of caMap.
+ */
 bool containsAssumption(const ProofNode* pn);
 
 /**

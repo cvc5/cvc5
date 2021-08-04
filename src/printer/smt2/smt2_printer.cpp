@@ -648,7 +648,7 @@ void Smt2Printer::toStream(std::ostream& out,
       const IndexedRootPredicate& irp = n.getConst<IndexedRootPredicate>();
       out << "(_ root_predicate " << irp.d_index << ")";
       break;
-  }
+    }
 
   // string theory
   case kind::REGEXP_REPEAT:

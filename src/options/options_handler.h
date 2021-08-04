@@ -25,6 +25,7 @@
 #include "options/bv_options.h"
 #include "options/decision_options.h"
 #include "options/language.h"
+#include "options/managed_streams.h"
 #include "options/option_exception.h"
 #include "options/printer_modes.h"
 #include "options/quantifiers_options.h"
@@ -45,28 +46,32 @@ public:
   OptionsHandler(Options* options);
 
   template <typename T>
-  void geqZero(const std::string& option,
-               const std::string& flag,
-               T value) const
+  void checkMinimum(const std::string& option,
+                    const std::string& flag,
+                    T value,
+                    T minimum) const
   {
-    if (value < 0)
+    if (value < minimum)
     {
       std::stringstream ss;
-      ss << flag << ": " << value << " is not a legal setting, should be "
-         << value << " >= 0.";
+      ss << flag << " = " << value
+         << " is not a legal setting, value should be at least " << minimum
+         << ".";
       throw OptionException(ss.str());
     }
   }
   template <typename T>
-  void betweenZeroAndOne(const std::string& option,
-                         const std::string& flag,
-                         T value) const
+  void checkMaximum(const std::string& option,
+                    const std::string& flag,
+                    T value,
+                    T maximum) const
   {
-    if (value < 0 || value > 1)
+    if (value > maximum)
     {
       std::stringstream ss;
-      ss << flag << ": " << value
-         << " is not a legal setting, should be 0 <= " << flag << " <= 1.";
+      ss << flag << " = " << value
+         << " is not a legal setting, value should be at most " << maximum
+         << ".";
       throw OptionException(ss.str());
     }
   }
@@ -133,6 +138,18 @@ public:
   void threadN(const std::string& option, const std::string& flag);
 
   /* options/base_options_handlers.h */
+  void setDumpStream(const std::string& option,
+                     const std::string& flag,
+                     const ManagedOut& mo);
+  void setErrStream(const std::string& option,
+                    const std::string& flag,
+                    const ManagedErr& me);
+  void setInStream(const std::string& option,
+                   const std::string& flag,
+                   const ManagedIn& mi);
+  void setOutStream(const std::string& option,
+                    const std::string& flag,
+                    const ManagedOut& mo);
   void setVerbosity(const std::string& option,
                     const std::string& flag,
                     int value);

@@ -794,7 +794,8 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               Trace("sets-nf") << "Actual Split : ";
               d_treg.debugPrintSet(r, "sets-nf");
               Trace("sets-nf") << std::endl;
-              d_im.split(r.eqNode(emp_set), InferenceId::UNKNOWN, 1);
+              d_im.split(
+                  r.eqNode(emp_set), InferenceId::SETS_CARD_SPLIT_EMPTY, 1);
               Assert(d_im.hasSent());
               return;
             }
@@ -866,7 +867,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
         && !d_state.hasMembers(eqc))
     {
       Trace("sets-nf-debug") << "Split on leaf " << eqc << std::endl;
-      d_im.split(eqc.eqNode(emp_set), InferenceId::UNKNOWN);
+      d_im.split(eqc.eqNode(emp_set), InferenceId::SETS_CARD_SPLIT_EMPTY);
       success = false;
     }
     else
