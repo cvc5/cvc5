@@ -43,7 +43,8 @@ bool isInternalDslPfRule(DslPfRule drule)
 {
   return drule == DslPfRule::FAIL || drule == DslPfRule::REFL
          || drule == DslPfRule::EVAL || drule == DslPfRule::TRANS
-         || drule == DslPfRule::CONG || drule == DslPfRule::TRUE_ELIM || drule == DslPfRule::TRUE_INTRO;
+         || drule == DslPfRule::CONG || drule == DslPfRule::TRUE_ELIM
+         || drule == DslPfRule::TRUE_INTRO;
 }
 const char* toString(DslPfRule drule)
 {
@@ -54,8 +55,7 @@ const char* toString(DslPfRule drule)
     case DslPfRule::EVAL: return "EVAL";
     case DslPfRule::TRANS: return "TRANS";
     case DslPfRule::CONG: return "CONG";
-    case DslPfRule::TRUE_ELIM:
-      return "TRUE_ELIM";
+    case DslPfRule::TRUE_ELIM: return "TRUE_ELIM";
     case DslPfRule::TRUE_INTRO:
       return "TRUE_INTRO";
       // clang-format off

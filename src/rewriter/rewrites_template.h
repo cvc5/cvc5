@@ -30,9 +30,9 @@ enum class DslPfRule : uint32_t
   FAIL = 0,
   REFL,
   EVAL,
-  TRANS,      // internal-only
-  CONG,       // internal-only
-  TRUE_ELIM,  // internal-only
+  TRANS,       // internal-only
+  CONG,        // internal-only
+  TRUE_ELIM,   // internal-only
   TRUE_INTRO,  // internal-only
   // Generated rule ids
   // clang-format off

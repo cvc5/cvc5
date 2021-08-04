@@ -84,7 +84,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
   std::map<Node, std::shared_ptr<ProofNode>> resCache;
   // Map from formulas to non-closed proof nodes that prove that fact. These
   // are replaced by proofs in the above map when applicable.
-  std::map<Node, std::vector<std::shared_ptr<ProofNode>> > resCacheNcWaiting;
+  std::map<Node, std::vector<std::shared_ptr<ProofNode>>> resCacheNcWaiting;
   std::unordered_map<const ProofNode*, bool> cfaMap;
   Trace("pf-process") << "ProofNodeUpdater::process" << std::endl;
   std::unordered_map<std::shared_ptr<ProofNode>, bool> visited;
@@ -237,7 +237,7 @@ void ProofNodeUpdater::runFinalize(
     std::shared_ptr<ProofNode> cur,
     const std::vector<Node>& fa,
     std::map<Node, std::shared_ptr<ProofNode>>& resCache,
-                   std::map<Node, std::vector<std::shared_ptr<ProofNode>> >& resCacheNcWaiting,
+    std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& resCacheNcWaiting,
     std::unordered_map<const ProofNode*, bool>& cfaMap)
 {
   if (d_mergeSubproofs)
@@ -249,8 +249,9 @@ void ProofNodeUpdater::runFinalize(
       // cache result if we are merging subproofs
       resCache[res] = cur;
       // go back and merge into the non-closed proofs of the same fact
-      std::map<Node, std::vector<std::shared_ptr<ProofNode>> >::iterator itnw = resCacheNcWaiting.find(res);
-      if (itnw!=resCacheNcWaiting.end())
+      std::map<Node, std::vector<std::shared_ptr<ProofNode>>>::iterator itnw =
+          resCacheNcWaiting.find(res);
+      if (itnw != resCacheNcWaiting.end())
       {
         for (std::shared_ptr<ProofNode>& ncp : itnw->second)
         {

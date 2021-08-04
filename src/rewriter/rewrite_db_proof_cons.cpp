@@ -141,9 +141,9 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
     {
       // if target is (= (= t1 t2) true), maybe try showing (= t1 t2); otherwise
       // try showing (= target true)
-      DslPfRule eqTrueId = eqi[1]==d_true ? DslPfRule::TRUE_INTRO : DslPfRule::TRUE_ELIM;
-      if (proveWithRule(
-                 eqTrueId, eqi, {}, {}, false, false, true))
+      DslPfRule eqTrueId =
+          eqi[1] == d_true ? DslPfRule::TRUE_INTRO : DslPfRule::TRUE_ELIM;
+      if (proveWithRule(eqTrueId, eqi, {}, {}, false, false, true))
       {
         Trace("rpc-debug2") << "...proved via " << eqTrueId << std::endl;
         retId = eqTrueId;
@@ -257,7 +257,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   }
   else if (id == DslPfRule::TRUE_ELIM)
   {
-    if (target[1]==d_true)
+    if (target[1] == d_true)
     {
       // don't do for equals true, avoids unbounded recursion
       return false;
@@ -269,7 +269,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   }
   else if (id == DslPfRule::TRUE_INTRO)
   {
-    if (target[1]!=d_true || target[0].getKind()!=EQUAL)
+    if (target[1] != d_true || target[0].getKind() != EQUAL)
     {
       // only works for (= (= t1 t2) true)
       return false;
