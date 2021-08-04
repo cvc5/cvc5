@@ -46,25 +46,31 @@ public:
 
   template <typename T>
   void checkMinimum(const std::string& option,
-               const std::string& flag,
-               T value, T minimum) const
+                    const std::string& flag,
+                    T value,
+                    T minimum) const
   {
     if (value < minimum)
     {
       std::stringstream ss;
-      ss << flag << " = " << value << " is not a legal setting, value should be at least " << minimum << ".";
+      ss << flag << " = " << value
+         << " is not a legal setting, value should be at least " << minimum
+         << ".";
       throw OptionException(ss.str());
     }
   }
   template <typename T>
   void checkMaximum(const std::string& option,
-               const std::string& flag,
-               T value, T maximum) const
+                    const std::string& flag,
+                    T value,
+                    T maximum) const
   {
     if (value > maximum)
     {
       std::stringstream ss;
-      ss << flag << " = " << value << " is not a legal setting, value should be at most " << maximum << ".";
+      ss << flag << " = " << value
+         << " is not a legal setting, value should be at most " << maximum
+         << ".";
       throw OptionException(ss.str());
     }
   }
