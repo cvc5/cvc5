@@ -107,8 +107,6 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
         itc = resCache.find(res);
         if (itc != resCache.end())
         {
-          Trace("ajr-temp") << "Update: " << *cur.get() << std::endl;
-          Trace("ajr-temp") << "New: " << *itc->second.get() << std::endl;
           // already have a proof, merge it into this one
           visited[cur] = true;
           d_pnm->updateNode(cur.get(), itc->second.get());
