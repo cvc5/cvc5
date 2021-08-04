@@ -3714,6 +3714,21 @@ class CVC5_EXPORT Solver
   std::string getInfo(const std::string& flag) const;
 
   /**
+   * Parse the solver options from the given command line. Writes the name of
+   * the binary and a list of input file names into the `binaryName` and the
+   * `filenames` arguments. After parsing is done, the "original options"
+   * (which are restored after a reset) are updated.
+   * @param argc number of command line arguments
+   * @param argv command line arguments
+   * @param binaryName name of the binary (output)
+   * @param filenames input file names (output)
+   */
+  void parseOptions(int argc,
+                    char* argv[],
+                    std::string& binaryName,
+                    std::vector<std::string>& filenames);
+
+  /**
    * Get the value of a given option.
    * SMT-LIB:
    * \verbatim

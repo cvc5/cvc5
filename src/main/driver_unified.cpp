@@ -108,7 +108,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   Options& opts = solver->getOptions();
 
   // Parse the options
-  std::vector<string> filenames = options::parse(opts, argc, argv, progName);
+  std::vector<string> filenames;
+  solver->parseOptions(argc, argv, progName, filenames);
 
   auto limit = install_time_limit(opts);
 
