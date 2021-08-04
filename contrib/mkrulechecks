@@ -1,19 +1,6 @@
 #!/bin/bash
 
-function do_mkrulechecks()
-{
-  echo "Do grep for rule checks..."
-  cat $1 | grep ruleChecks > temp-rc.txt
-  echo "Clean..."
-  sed -i $'s/[^[:print:]\t]//g' temp-rc.txt
-  sed -i 's/\[92m+ProofCheckerStatistics::ruleChecks, \[//g; s/)/\n/g; s/,//g; s/ (//g; s/(//g; s/]\[0m//g; s/ : /,/g' temp-rc.txt
-  sed -i '/^$/d' temp-rc.txt
-  echo "Aggregate..."
-  awk -F, '{a[$1]+=$2;}END{for(i in a)print i", "a[i];}' temp-rc.txt
-  rm temp-rc.txt
-}
-
-echo "Make regress with stats..."
-make regress $@ CVC4_REGRESSION_ARGS=--stats >& temp.txt
-do_mkrulechecks temp.txt
+echo "Make regress with stats, regression arguments=$@ ..."
+make regress -j8 CVC5_REGRESSION_ARGS="--stats $@" >& temp.txt
+getrulechecks temp.txt
 rm temp.txt
