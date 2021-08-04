@@ -19,6 +19,7 @@
 #include "theory/ee_setup_info.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
+#include "theory/theory_inference_manager.h"
 
 namespace cvc5 {
 namespace theory {
@@ -35,7 +36,7 @@ SharedSolver::SharedSolver(TheoryEngine& te, ProofNodeManager* pnm)
       d_sharedTerms(&d_te, d_te.getSatContext(), d_te.getUserContext(), pnm),
       d_preRegistrationVisitor(&te, d_te.getSatContext()),
       d_sharedTermsVisitor(&te, d_sharedTerms, d_te.getSatContext()),
-      d_out(te.theoryOf(THEORY_BUILTIN)->getOutputChannel())
+      d_im(te.theoryOf(THEORY_BUILTIN)->getInferenceManager())
 {
 }
 
@@ -113,9 +114,9 @@ bool SharedSolver::propagateLit(TNode predicate, bool value)
 {
   if (value)
   {
-    return d_out.propagate(predicate);
+    return d_im->propagateLit(predicate);
   }
-  return d_out.propagate(predicate.notNode());
+  return d_im->propagateLit(predicate.notNode());
 }
 
 bool SharedSolver::propagateSharedEquality(theory::TheoryId theory,
@@ -141,11 +142,18 @@ bool SharedSolver::isShared(TNode t) const { return d_sharedTerms.isShared(t); }
 
 void SharedSolver::sendLemma(TrustNode trn, TheoryId atomsTo, InferenceId id)
 {
-  Trace("im") << "(lemma " << id << " " << trn.getProven() << ")" << std::endl;
-  d_te.lemma(trn, LemmaProperty::NONE, atomsTo);
+  // Do we need to check atoms
+  if (atomsTo != theory::THEORY_LAST)
+  {
+    d_te.ensureLemmaAtoms(trn.getNode(), atomsTo);
+  }
+  d_im->trustedLemma(trn, id);
 }
 
-void SharedSolver::sendConflict(TrustNode trn) { d_out.trustedConflict(trn); }
+void SharedSolver::sendConflict(TrustNode trn, InferenceId id)
+{
+  d_im->trustedConflict(trn, id);
+}
 
 }  // namespace theory
 }  // namespace cvc5

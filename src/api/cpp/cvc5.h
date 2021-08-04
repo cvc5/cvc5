@@ -3741,6 +3741,18 @@ class CVC5_EXPORT Solver
   std::vector<Term> getUnsatCore() const;
 
   /**
+   * Get the refutation proof
+   * SMT-LIB:
+   * \verbatim
+   * ( get-proof )
+   * \endverbatim
+   * Requires to enable option 'produce-proofs'.
+   * @return a string representing the proof, according to the the value of
+   * proof-format-mode.
+   */
+  std::string getProof() const;
+
+  /**
    * Get the value of the given term.
    * SMT-LIB:
    * \verbatim
@@ -4160,6 +4172,11 @@ class CVC5_EXPORT Solver
   NodeManager* getNodeManager(void) const;
   /** Reset the API statistics */
   void resetStatistics();
+
+  /**
+   * Print the statistics to the given file descriptor, suitable for usage in signal handlers.
+   */
+  void printStatisticsSafe(int fd) const;
 
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
