@@ -338,11 +338,11 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_EXCLUDE_CURRENT,
   // manual exclusion of a current solution for sygus-stream
   QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
-  // conjecture solved by a subcall to the single invocation module
+  // Q where Q was solved by a subcall to the single invocation module
   QUANTIFIERS_SYGUS_SI_SOLVED,
-  // conjecture was (trusted) solved by sampling
+  // Q where Q was (trusted) solved by sampling
   QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED,
-  // conjecture was solved by a verification subcall
+  // Q where Q was solved by a verification subcall
   QUANTIFIERS_SYGUS_VERIFY_SOLVED,
   // ~Q where Q is a PBE conjecture with conflicting examples
   QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
