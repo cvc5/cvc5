@@ -1343,10 +1343,11 @@ TEST_F(TestApiBlackSolver, getUnsatCore2)
   ASSERT_THROW(d_solver.getUnsatCore(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, getUnsatCore3)
+TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
 {
   d_solver.setOption("incremental", "true");
   d_solver.setOption("produce-unsat-cores", "true");
+  d_solver.setOption("produce-proofs", "true");
 
   Sort uSort = d_solver.mkUninterpretedSort("u");
   Sort intSort = d_solver.getIntegerSort();
@@ -1375,6 +1376,8 @@ TEST_F(TestApiBlackSolver, getUnsatCore3)
 
   ASSERT_NO_THROW(unsat_core = d_solver.getUnsatCore());
 
+  ASSERT_NO_THROW(d_solver.getProof());
+
   d_solver.resetAssertions();
   for (const auto& t : unsat_core)
   {
@@ -1382,6 +1385,7 @@ TEST_F(TestApiBlackSolver, getUnsatCore3)
   }
   cvc5::api::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isUnsat());
+  ASSERT_NO_THROW(d_solver.getProof());
 }
 
 TEST_F(TestApiBlackSolver, getValue1)
