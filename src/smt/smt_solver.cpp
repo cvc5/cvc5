@@ -32,13 +32,11 @@ using namespace std;
 namespace cvc5 {
 namespace smt {
 
-SmtSolver::SmtSolver(SmtEngine& smt,
-                     Env& env,
+SmtSolver::SmtSolver(Env& env,
                      SmtEngineState& state,
                      Preprocessor& pp,
                      SmtEngineStatistics& stats)
-    : d_smt(smt),
-      d_env(env),
+    : d_env(env),
       d_state(state),
       d_pp(pp),
       d_stats(stats),
@@ -56,7 +54,6 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
   // engine later (it is non-essential there)
   d_theoryEngine.reset(new TheoryEngine(
       d_env,
-      d_smt.getOutputManager(),
       // Other than whether d_pm is set, theory engine proofs are conditioned on
       // the relationshup between proofs and unsat cores: the unsat cores are in
       // FULL_PROOF mode, no proofs are generated on theory engine.
@@ -81,8 +78,7 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
    * are unregistered by the obsolete PropEngine object before registered
    * again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new prop::PropEngine(
-      d_theoryEngine.get(), d_env, d_smt.getOutputManager(), d_pnm));
+  d_propEngine.reset(new prop::PropEngine(d_theoryEngine.get(), d_env, d_pnm));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(getPropEngine());
@@ -98,8 +94,7 @@ void SmtSolver::resetAssertions()
    * statistics are unregistered by the obsolete PropEngine object before
    * registered again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new prop::PropEngine(
-      d_theoryEngine.get(), d_env, d_smt.getOutputManager(), d_pnm));
+  d_propEngine.reset(new prop::PropEngine(d_theoryEngine.get(), d_env, d_pnm));
   d_theoryEngine->setPropEngine(getPropEngine());
   // Notice that we do not reset TheoryEngine, nor does it require calling
   // finishInit again. In particular, TheoryEngine::finishInit does not
@@ -133,7 +128,6 @@ void SmtSolver::shutdown()
 
 Result SmtSolver::checkSatisfiability(Assertions& as,
                                       const std::vector<Node>& assumptions,
-                                      bool inUnsatCore,
                                       bool isEntailmentCheck)
 {
   // update the state to indicate we are about to run a check-sat
@@ -141,10 +135,9 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   d_state.notifyCheckSat(hasAssumptions);
 
   // then, initialize the assertions
-  as.initializeCheckSat(assumptions, inUnsatCore, isEntailmentCheck);
+  as.initializeCheckSat(assumptions, isEntailmentCheck);
 
-  // make the check
-  Assert(d_smt.isFullyInited());
+  // make the check, where notice smt engine should be fully inited by now
 
   Trace("smt") << "SmtSolver::check()" << endl;
 

@@ -60,7 +60,7 @@ public = true
   name       = "verbosity"
   long       = "verbosity=N"
   category   = "regular"
-  type       = "int"
+  type       = "int64_t"
   default    = "0"
   predicates = ["setVerbosity"]
   help       = "the verbosity level of cvc5"
