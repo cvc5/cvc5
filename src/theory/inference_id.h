@@ -352,6 +352,26 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_UNIF_PI_ENUM_SB,
   // constraining terms to be in the domain of output
   QUANTIFIERS_SYGUS_UNIF_PI_DOMAIN,
+  // condition exclusion from sygus unif
+  QUANTIFIERS_SYGUS_UNIF_PI_COND_EXCLUDE,
+  // refinement lemma from sygus unif
+  QUANTIFIERS_SYGUS_UNIF_PI_REFINEMENT,
+  // symmetry breaking lemma from unsat core learning algorithm initialization
+  QUANTIFIERS_SYGUS_CEGIS_UCL_SYM_BREAK,
+  // candidate exclusion lemma from unsat core learning algorithm
+  QUANTIFIERS_SYGUS_CEGIS_UCL_EXCLUDE,
+  // candidate exclusion lemma from repair constants algorithm
+  QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE,
+  // a counterexample-guided inductive synthesis refinement lemma
+  QUANTIFIERS_SYGUS_CEGIS_REFINE,
+  // a cegis refinement lemma found by sampling
+  QUANTIFIERS_SYGUS_CEGIS_REFINE_SAMPLE,
+  // a lemma based on refinement lemma evaluation
+  QUANTIFIERS_SYGUS_REFINE_EVAL,
+  // an evaluation unfolding lemma
+  QUANTIFIERS_SYGUS_EVAL_UNFOLD,
+  // candidate exclusion lemma from programming-by-examples
+  QUANTIFIERS_SYGUS_PBE_EXCLUDE,
   //-------------------- dynamic splitting
   // a dynamic split from quantifiers
   QUANTIFIERS_DSPLIT,

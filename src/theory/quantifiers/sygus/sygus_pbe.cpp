@@ -44,8 +44,7 @@ SygusPbe::~SygusPbe() {}
 
 bool SygusPbe::initialize(Node conj,
                           Node n,
-                          const std::vector<Node>& candidates,
-                          std::vector<Node>& lemmas)
+                          const std::vector<Node>& candidates)
 {
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
@@ -166,8 +165,7 @@ bool SygusPbe::allowPartialModel() { return !options::sygusPbeMultiFair(); }
 bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
                                    const std::vector<Node>& enum_values,
                                    const std::vector<Node>& candidates,
-                                   std::vector<Node>& candidate_values,
-                                   std::vector<Node>& lems)
+                                   std::vector<Node>& candidate_values)
 {
   Assert(enums.size() == enum_values.size());
   if( !enums.empty() ){
@@ -234,9 +232,9 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
         Assert(!g.isNull());
         for (unsigned k = 0, size = enum_lems.size(); k < size; k++)
         {
-          enum_lems[k] = nm->mkNode(OR, g.negate(), enum_lems[k]);
+          Node lem = nm->mkNode(OR, g.negate(), enum_lems[k]);
+          d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYGUS_PBE_EXCLUDE);
         }
-        lems.insert(lems.end(), enum_lems.begin(), enum_lems.end());
       }
     }
   }

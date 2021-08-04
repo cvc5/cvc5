@@ -134,11 +134,10 @@ class Cegis : public SygusModule
    * This function will check if there is a sample point in d_sampler that
    * refutes the candidate solution (d_quant_vars->vals). If so, it adds a
    * refinement lemma to the lists d_refinement_lemmas that corresponds to that
-   * sample point, and adds a lemma to lems if cegisSample mode is not trust.
+   * sample point, and adds a lemma to d_qim pending lemmas if cegisSample mode is not trust.
    */
   bool sampleAddRefinementLemma(const std::vector<Node>& candidates,
-                                const std::vector<Node>& vals,
-                                std::vector<Node>& lems);
+                                const std::vector<Node>& vals);
 
   /** evaluates candidate values on current refinement lemmas
    *
@@ -163,8 +162,7 @@ class Cegis : public SygusModule
    * blocking the current value of candidates.
    */
   bool addEvalLemmas(const std::vector<Node>& candidates,
-                     const std::vector<Node>& candidate_values,
-                     std::vector<std::pair<Node, InferenceId>>& lems);
+                     const std::vector<Node>& candidate_values);
   /** Get the node corresponding to the conjunction of all refinement lemmas. */
   Node getRefinementLemmaFormula();
   //-----------------------------------end refinement lemmas

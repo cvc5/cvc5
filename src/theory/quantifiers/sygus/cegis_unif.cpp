@@ -41,8 +41,7 @@ CegisUnif::CegisUnif(QuantifiersState& qs,
 CegisUnif::~CegisUnif() {}
 bool CegisUnif::processInitialize(Node conj,
                                   Node n,
-                                  const std::vector<Node>& candidates,
-                                  std::vector<Node>& lemmas)
+                                  const std::vector<Node>& candidates)
 {
   // list of strategy points for unification candidates
   std::vector<Node> unif_candidate_pts;
@@ -124,8 +123,7 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
 bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
                               const std::vector<Node>& enum_values,
                               std::map<Node, std::vector<Node>>& unif_cenums,
-                              std::map<Node, std::vector<Node>>& unif_cvalues,
-                              std::vector<Node>& lems)
+                              std::map<Node, std::vector<Node>>& unif_cvalues)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node cost_lit = d_u_enum_manager.getAssertedLiteral();
@@ -240,8 +238,7 @@ bool CegisUnif::usingConditionPool() const
 
 void CegisUnif::setConditions(
     const std::map<Node, std::vector<Node>>& unif_cenums,
-    const std::map<Node, std::vector<Node>>& unif_cvalues,
-    std::vector<Node>& lems)
+    const std::map<Node, std::vector<Node>>& unif_cvalues)
 {
   Node cost_lit = d_u_enum_manager.getAssertedLiteral();
   NodeManager* nm = NodeManager::currentNM();
@@ -271,7 +268,8 @@ void CegisUnif::setConditions(
           Node exp_exc = d_tds->getExplain()
                              ->getExplanationForEquality(eu, itv->second[0])
                              .negate();
-          lems.push_back(nm->mkNode(OR, g.negate(), exp_exc));
+          Node lem = nm->mkNode(OR, g.negate(), exp_exc);
+          d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_COND_EXCLUDE);
         }
       }
     }
@@ -282,14 +280,13 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
                                            const std::vector<Node>& enum_values,
                                            const std::vector<Node>& candidates,
                                            std::vector<Node>& candidate_values,
-                                           bool satisfiedRl,
-                                           std::vector<Node>& lems)
+                                           bool satisfiedRl)
 {
   if (d_unif_candidates.empty())
   {
     Assert(d_non_unif_candidates.size() == candidates.size());
     return Cegis::processConstructCandidates(
-        enums, enum_values, candidates, candidate_values, satisfiedRl, lems);
+        enums, enum_values, candidates, candidate_values, satisfiedRl);
   }
   if (Trace.isOn("cegis-unif"))
   {
@@ -325,7 +322,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   // we only proceed to solution building if we are not introducing symmetry
   // breaking lemmas between return values and if we have not previously
   // introduced return values refinement lemmas
-  if (!getEnumValues(enums, enum_values, unif_cenums, unif_cvalues, lems)
+  if (!getEnumValues(enums, enum_values, unif_cenums, unif_cvalues)
       || !satisfiedRl)
   {
     // if condition values are being indepedently enumerated, they should be
@@ -333,7 +330,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
     // proceeding to attempt solution building
     if (usingConditionPool())
     {
-      setConditions(unif_cenums, unif_cvalues, lems);
+      setConditions(unif_cenums, unif_cvalues);
     }
     Trace("cegis-unif") << (!satisfiedRl
                                 ? "..added refinement lemmas"
@@ -342,7 +339,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
     // if we didn't satisfy the specification, there is no way to repair
     return false;
   }
-  setConditions(unif_cenums, unif_cvalues, lems);
+  setConditions(unif_cenums, unif_cvalues);
   // build solutions (for unif candidates a divide-and-conquer approach is used)
   std::vector<Node> sols;
   std::vector<Node> lemmas;
@@ -375,8 +372,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
 }
 
 void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
-                                        Node lem,
-                                        std::vector<Node>& lems)
+                                        Node lem)
 {
   // Notify lemma to unification utility and get its purified form
   std::map<Node, std::vector<Node>> eval_pts;
@@ -398,8 +394,9 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
   // parent's guard, which has the semantics "this conjecture has a solution",
   // hence this lemma states: if the parent conjecture has a solution, it
   // satisfies the specification for the given concrete point.
-  lems.push_back(NodeManager::currentNM()->mkNode(
-      OR, d_parent->getGuard().negate(), plem));
+  Node rlem = NodeManager::currentNM()->mkNode(
+      OR, d_parent->getGuard().negate(), plem);
+  d_qim.addPendingLemma(rlem, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_REFINEMENT);
 }
 
 CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
