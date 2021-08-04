@@ -3784,7 +3784,7 @@ class CVC5_EXPORT Solver
    */
   std::string getOption(const std::string& option) const;
 
-  /*
+  /**
    * Get all option names that can be used with `setOption`, `getOption` and
    * `getOptionInfo`.
    * @return all option names
