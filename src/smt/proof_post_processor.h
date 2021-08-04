@@ -23,9 +23,9 @@
 #include <unordered_set>
 
 #include "proof/proof_node_updater.h"
-#include "smt/proof_final_callback.h"
 #include "rewriter/rewrite_db_proof_cons.h"
 #include "rewriter/rewrites.h"
+#include "smt/proof_final_callback.h"
 #include "smt/witness_form.h"
 #include "util/statistics_stats.h"
 

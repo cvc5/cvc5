@@ -15,13 +15,13 @@
 
 #include "smt/proof_final_callback.h"
 
-#include "smt/smt_statistics_registry.h"
-#include "proof/proof_node_manager.h"
-#include "proof/proof_checker.h"
 #include "options/proof_options.h"
-#include "theory/theory_id.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_node_manager.h"
 #include "rewriter/rewrite_proof_rule.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/theory_id.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::theory;
@@ -29,8 +29,7 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-ProofFinalCallback::ProofFinalCallback(
-    ProofNodeManager* pnm)
+ProofFinalCallback::ProofFinalCallback(ProofNodeManager* pnm)
     : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
           "finalProof::ruleCount")),
       d_dslRuleCount(
@@ -56,8 +55,8 @@ void ProofFinalCallback::initializeUpdate()
 }
 
 bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                                 const std::vector<Node>& fa,
-                                                 bool& continueUpdate)
+                                      const std::vector<Node>& fa,
+                                      bool& continueUpdate)
 {
   PfRule r = pn->getRule();
   // if not doing eager pedantic checking, fail if below threshold
@@ -116,7 +115,6 @@ bool ProofFinalCallback::wasPedanticFailure(std::ostream& out) const
   }
   return false;
 }
-
 
 }  // namespace smt
 }  // namespace cvc5

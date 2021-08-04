@@ -1194,7 +1194,6 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
   return true;
 }
 
-
 ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
                                      SmtEngine* smte,
                                      ProofGenerator* pppg,
