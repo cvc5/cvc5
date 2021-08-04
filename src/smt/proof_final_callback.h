@@ -48,6 +48,11 @@ class ProofFinalCallback : public ProofNodeUpdaterCallback
  private:
   /** Counts number of postprocessed proof nodes for each kind of proof rule */
   HistogramStat<PfRule> d_ruleCount;
+  /**
+   * Counts number of postprocessed proof nodes of rule INSTANTIATE that were
+   * marked with the given inference id.
+   */
+  HistogramStat<theory::InferenceId> d_instRuleIds;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
   /** The minimum pedantic level of any rule encountered */

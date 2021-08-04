@@ -31,6 +31,9 @@ namespace smt {
 ProofFinalCallback::ProofFinalCallback(ProofNodeManager* pnm)
     : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
           "finalProof::ruleCount")),
+      d_instRuleIds(
+          smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
+              "finalProof::instRuleId")),
       d_totalRuleCount(
           smtStatisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
