@@ -137,7 +137,9 @@ class ProofNodeUpdater
   /**
    * Finalize the node cur. This is called at the moment that it is established
    * that cur will appear in the final proof. We do any final debug checking
-   * and add it to the results cache resCache if we are merging subproofs.
+   * and add it to the results cache resCache and resCacheNcWaiting
+   * if we are merging subproofs, where these map result formulas to proof
+   * nodes with/without assumptions.
    */
   void runFinalize(std::shared_ptr<ProofNode> cur,
                    const std::vector<Node>& fa,
