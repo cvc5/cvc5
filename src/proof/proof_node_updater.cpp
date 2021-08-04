@@ -77,6 +77,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
 {
   // Note that processInternal uses a single scope; fa is updated based on
   // the current free assumptions of the proof nodes on the stack.
+
   // The list of proof nodes we are currently traversing beneath. This is used
   // for checking for cycles in the overall proof.
   std::vector<std::shared_ptr<ProofNode>> traversing;
@@ -85,6 +86,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
   // Map from formulas to non-closed proof nodes that prove that fact. These
   // are replaced by proofs in the above map when applicable.
   std::map<Node, std::vector<std::shared_ptr<ProofNode>>> resCacheNcWaiting;
+  // Map from proof nodes to whether they contain assumptions
   std::unordered_map<const ProofNode*, bool> cfaMap;
   Trace("pf-process") << "ProofNodeUpdater::process" << std::endl;
   std::unordered_map<std::shared_ptr<ProofNode>, bool> visited;
