@@ -26,6 +26,7 @@
 #include "base/exception.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
+#include "expr/expr_iomanip.h"
 #include "lib/strtok_r.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
@@ -35,6 +36,7 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "smt/command.h"
 #include "smt/dump.h"
 
 namespace cvc5 {
@@ -87,6 +89,19 @@ void OptionsHandler::setResourceWeight(const std::string& option,
                                        const std::string& optarg)
 {
   d_options->base.resourceWeightHolder.emplace_back(optarg);
+}
+
+void OptionsHandler::setPrintSuccess(const std::string& option,
+                                     const std::string& flag,
+                                     bool printSuccess)
+{
+  Debug.getStream() << Command::printsuccess(printSuccess);
+  Trace.getStream() << Command::printsuccess(printSuccess);
+  Notice.getStream() << Command::printsuccess(printSuccess);
+  Chat.getStream() << Command::printsuccess(printSuccess);
+  CVC5Message.getStream() << Command::printsuccess(printSuccess);
+  Warning.getStream() << Command::printsuccess(printSuccess);
+  *options::out() << Command::printsuccess(printSuccess);
 }
 
 // theory/quantifiers/options_handlers.h
@@ -235,6 +250,13 @@ InstFormatMode OptionsHandler::stringToInstFormatMode(const std::string& option,
   }
 }
 
+void OptionsHandler::setDumpModeString(const std::string& option,
+                                       const std::string& flag,
+                                       const std::string& mode)
+{
+  Dump.setDumpFromString(mode);
+}
+
 void OptionsHandler::setProduceAssertions(const std::string& option,
                                           const std::string& flag,
                                           bool value)
@@ -301,6 +323,13 @@ void OptionsHandler::setDefaultExprDepthPredicate(const std::string& option,
   if(depth < -1) {
     throw OptionException("--expr-depth requires a positive argument, or -1.");
   }
+  Debug.getStream() << expr::ExprSetDepth(depth);
+  Trace.getStream() << expr::ExprSetDepth(depth);
+  Notice.getStream() << expr::ExprSetDepth(depth);
+  Chat.getStream() << expr::ExprSetDepth(depth);
+  CVC5Message.getStream() << expr::ExprSetDepth(depth);
+  Warning.getStream() << expr::ExprSetDepth(depth);
+  // intentionally exclude Dump stream from this list
 }
 
 void OptionsHandler::setDefaultDagThreshPredicate(const std::string& option,
@@ -310,6 +339,13 @@ void OptionsHandler::setDefaultDagThreshPredicate(const std::string& option,
   if(dag < 0) {
     throw OptionException("--dag-thresh requires a nonnegative argument.");
   }
+  Debug.getStream() << expr::ExprDag(dag);
+  Trace.getStream() << expr::ExprDag(dag);
+  Notice.getStream() << expr::ExprDag(dag);
+  Chat.getStream() << expr::ExprDag(dag);
+  CVC5Message.getStream() << expr::ExprDag(dag);
+  Warning.getStream() << expr::ExprDag(dag);
+  Dump.getStream() << expr::ExprDag(dag);
 }
 
 // main/options_handlers.h

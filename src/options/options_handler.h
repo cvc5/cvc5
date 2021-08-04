@@ -76,6 +76,11 @@ public:
     }
   }
 
+  // base module
+  void setPrintSuccess(const std::string& option,
+                       const std::string& flag,
+                       bool printSuccess);
+
   // theory/quantifiers/options_handlers.h
   void checkInstWhenMode(const std::string& option,
                          const std::string& flag,
@@ -104,6 +109,11 @@ public:
   InstFormatMode stringToInstFormatMode(const std::string& option,
                                         const std::string& flag,
                                         const std::string& optarg);
+
+  // smt module
+  void setDumpModeString(const std::string& option,
+                         const std::string& flag,
+                         const std::string& mode);
 
   /**
    * Throws a ModalException if this option is being set after final
