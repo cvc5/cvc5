@@ -17,9 +17,14 @@
 
 #include "smt/smt_statistics_registry.h"
 #include "proof/proof_node_manager.h"
-#include "util/rational.h"
+#include "proof/proof_checker.h"
+#include "options/proof_options.h"
+#include "theory/theory_id.h"
+#include "rewriter/rewrite_proof_rule.h"
+#include "theory/builtin/proof_checker.h"
 
 using namespace cvc5::kind;
+using namespace cvc5::theory;
 
 namespace cvc5 {
 namespace smt {
