@@ -7037,19 +7037,6 @@ std::string Solver::getInfo(const std::string& flag) const
   CVC5_API_TRY_CATCH_END;
 }
 
-void Solver::parseOptions(int argc,
-                          char* argv[],
-                          std::string& binaryName,
-                          std::vector<std::string>& filenames)
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  filenames = options::parse(d_smtEngine->getOptions(), argc, argv, binaryName);
-  d_originalOptions->copyValues(d_smtEngine->getOptions());
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 std::string Solver::getOption(const std::string& option) const
 {
   CVC5_API_TRY_CATCH_BEGIN;

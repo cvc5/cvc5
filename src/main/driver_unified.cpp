@@ -105,25 +105,10 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   // Create the command executor to execute the parsed commands
   pExecutor = std::make_unique<CommandExecutor>(solver);
-  Options& opts = solver->getOptions();
+  Options& opts = pExecutor->getOptions();
 
   // Parse the options
-  std::vector<string> filenames;
-  try
-  {
-    solver->parseOptions(argc, argv, progName, filenames);
-  }
-  catch (const cvc5::api::CVC5ApiException& e)
-  {
-#ifdef CVC5_COMPETITION_MODE
-    *opts.base.out << "unknown" << endl;
-#endif
-    *opts.base.err << "(error \"" << e.getMessage() << "\")" << std::endl
-                   << std::endl
-                   << "Please use --help to get help on command-line options."
-                   << std::endl;
-    std::exit(1);
-  }
+  std::vector<string> filenames = options::parse(opts, argc, argv, progName);
 
   auto limit = install_time_limit(opts);
 
@@ -200,6 +185,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   {
     opts.base.outputLanguage = language::toOutputLanguage(opts.base.inputLanguage);
   }
+  pExecutor->storeOptionsAsOriginal();
 
   // Determine which messages to show based on smtcomp_mode and verbosity
   if(Configuration::isMuzzledBuild()) {

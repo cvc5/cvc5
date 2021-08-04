@@ -83,6 +83,11 @@ class CommandExecutor
 
   SmtEngine* getSmtEngine() const { return d_solver->getSmtEngine(); }
 
+  /** Get the current options from the solver */
+  Options& getOptions();
+  /** Store the current options as the original options */
+  void storeOptionsAsOriginal();
+
   /**
    * Prints statistics to an output stream.
    * Checks whether statistics should be printed according to the options.

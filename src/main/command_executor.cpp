@@ -29,6 +29,7 @@
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "smt/command.h"
+#include "smt/smt_engine.h"
 
 namespace cvc5 {
 namespace main {
@@ -57,6 +58,15 @@ CommandExecutor::CommandExecutor(std::unique_ptr<api::Solver>& solver)
 }
 CommandExecutor::~CommandExecutor()
 {
+}
+
+Options& CommandExecutor::getOptions()
+{
+  return d_solver->d_smtEngine->getOptions();
+}
+void CommandExecutor::storeOptionsAsOriginal()
+{
+  d_solver->d_originalOptions->copyValues(getOptions());
 }
 
 void CommandExecutor::printStatistics(std::ostream& out) const
