@@ -1993,7 +1993,7 @@ void GetProofCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = solver->getSmtEngine()->getProof();
+    d_result = solver->getProof();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC5ApiRecoverableException& e)
