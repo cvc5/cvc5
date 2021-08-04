@@ -105,7 +105,7 @@ class ProofNodeToSExpr
   /** get argument based on the provided format */
   Node getArgument(Node arg, ArgFormat f);
   /** get argument format for proof node */
-  ArgFormat getArgumentFormat(PfRule r, const std::vector<Node>& args, size_t i);
+  ArgFormat getArgumentFormat(const ProofNode* pn, size_t i);
 };
 
 }  // namespace cvc5

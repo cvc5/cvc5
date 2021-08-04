@@ -99,7 +99,7 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
         std::vector<Node> argsPrint;
         for (size_t i=0, nargs = args.size(); i<nargs; i++)
         {
-          ArgFormat f = getArgumentFormat(r, args, i);
+          ArgFormat f = getArgumentFormat(cur, i);
           Node av = getArgument(args[i], f);
           argsPrint.push_back(av);
         }
@@ -196,22 +196,22 @@ Node ProofNodeToSExpr::getOrMkMethodIdVariable(TNode n)
 Node ProofNodeToSExpr::getOrMkInferenceIdVariable(TNode n)
 {
   theory::InferenceId iid;
-  if (!getMethodId(n, iid))
+  if (!theory::getInferenceId(n, iid))
   {
     // just use self if we failed to get the node, throw a debug failure
     Assert (false) << "Expected inference id node, got " << n;
     return n;
   }
-  std::map<MethodId, Node>::iterator it = d_midMap.find(mid);
-  if (it != d_midMap.end())
+  std::map<theory::InferenceId, Node>::iterator it = d_iidMap.find(iid);
+  if (it != d_iidMap.end())
   {
     return it->second;
   }
   std::stringstream ss;
-  ss << mid;
+  ss << iid;
   NodeManager* nm = NodeManager::currentNM();
   Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
-  d_midMap[mid] = var;
+  d_iidMap[iid] = var;
   return var;
 }
 
@@ -242,21 +242,25 @@ Node ProofNodeToSExpr::getArgument(Node arg, ArgFormat f)
   }
 }
 
-ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(PfRule r, const std::vector<Node>& args, size_t i)
+ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(const ProofNode* pn, size_t i)
 {
   Assert (i<args.size());
+  PfRule r = pn->getRule();
   switch (r)
   {
     case PfRule::CONG:
+    {
       if (i==0)
       {
         return ArgFormat::KIND;
       }
+      const std::vector<Node>& args = pn->getArguments();
       if (args[i].getNumChildren() == 0
           && NodeManager::operatorToKind(args[i]) != UNDEFINED_KIND)
       {
         return ArgFormat::NODE_VAR;
       }
+    }
       break;
     case PfRule::SUBS:
     case PfRule::REWRITE:
@@ -282,6 +286,17 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(PfRule r, const 
         return ArgFormat::METHOD_ID;
       }
       break;
+    case PfRule::INSTANTIATE:
+    {
+      Assert (!pn->getChildren().empty());
+      Node q = pn->getChildren()[0]->getResult();
+      Assert(q.getKind()==kind::FORALL);
+      if (i==q[0].getNumChildren())
+      {
+        return ArgFormat::INFERENCE_ID;
+      }
+    }
+    break;
     default:
       break;
   }
