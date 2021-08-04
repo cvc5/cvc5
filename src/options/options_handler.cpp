@@ -35,6 +35,7 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "smt/dump.h"
 
 namespace cvc5 {
 namespace options {
@@ -547,6 +548,39 @@ InputLanguage OptionsHandler::stringToInputLanguage(const std::string& option,
   }
 
   Unreachable();
+}
+
+void OptionsHandler::setDumpStream(const std::string& option,
+                                   const std::string& flag,
+                                   const ManagedOut& mo)
+{
+#ifdef CVC5_DUMPING
+  Dump.setStream(mo);
+#else  /* CVC5_DUMPING */
+  throw OptionException(
+      "The dumping feature was disabled in this build of cvc5.");
+#endif /* CVC5_DUMPING */
+}
+void OptionsHandler::setErrStream(const std::string& option,
+                                  const std::string& flag,
+                                  const ManagedErr& me)
+{
+  Debug.setStream(me);
+  Warning.setStream(me);
+  CVC5Message.setStream(me);
+  Notice.setStream(me);
+  Chat.setStream(me);
+  Trace.setStream(me);
+}
+void OptionsHandler::setInStream(const std::string& option,
+                                 const std::string& flag,
+                                 const ManagedIn& mi)
+{
+}
+void OptionsHandler::setOutStream(const std::string& option,
+                                  const std::string& flag,
+                                  const ManagedOut& mo)
+{
 }
 
 /* options/base_options_handlers.h */

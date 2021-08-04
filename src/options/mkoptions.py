@@ -56,12 +56,11 @@ OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
     'name', 'short', 'long', 'alias',
     'default', 'alternate', 'mode',
-    'handler', 'predicates', 'includes',
+    'handler', 'predicates', 'includes', 'minimum', 'maximum',
     'help', 'help_mode'
 ]
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
-SUPPORTED_CTYPES = ['int', 'unsigned', 'unsigned long', 'double']
 
 ### Other globals
 
@@ -236,12 +235,17 @@ def get_handler(option):
 
 def get_predicates(option):
     """Render predicate calls for assignment functions"""
-    if not option.predicates:
+    if option.type == 'void':
         return []
     optname = option.long_name if option.long else ""
     assert option.type != 'void'
-    return ['opts.handler().{}("{}", option, value);'.format(x, optname)
+    res = ['opts.handler().{}("{}", option, value);'.format(x, optname)
             for x in option.predicates]
+    if option.minimum:
+        res.append('opts.handler().checkMinimum("{}", option, value, {});'.format(optname, option.minimum))
+    if option.maximum:
+        res.append('opts.handler().checkMaximum("{}", option, value, {});'.format(optname, option.maximum))
+    return res
 
 
 def get_getall(module, option):
@@ -249,12 +253,16 @@ def get_getall(module, option):
     if option.type == 'bool':
         return 'res.push_back({{"{}", opts.{}.{} ? "true" : "false"}});'.format(
             option.long_name, module.id, option.name)
+    elif option.type == 'std::string':
+        return 'res.push_back({{"{}", opts.{}.{}}});'.format(
+            option.long_name, module.id, option.name)
     elif is_numeric_cpp_type(option.type):
         return 'res.push_back({{"{}", std::to_string(opts.{}.{})}});'.format(
             option.long_name, module.id, option.name)
     else:
-        return '{{ std::stringstream ss; ss << opts.{}.{}; res.push_back({{"{}", ss.str()}}); }}'.format(
-            module.id, option.name, option.long_name)
+        return '{{ std::stringstream ss; ss << opts.{}.{}; res.push_back({{"{}", ss.str()}}); }}'.format(module.id,
+            option.name, option.long_name)
+
 
 class Module(object):
     """Options module.
@@ -459,11 +467,7 @@ def is_numeric_cpp_type(ctype):
     Check if given type is a numeric C++ type (this should cover the most
     common cases).
     """
-    if ctype in SUPPORTED_CTYPES:
-        return True
-    elif re.match('u?int[0-9]+_t', ctype):
-        return True
-    return False
+    return ctype in ['int64_t', 'uint64_t', 'double']
 
 
 def format_include(include):
@@ -737,6 +741,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
     options_getall = []      # options for options::getAll()
     options_getoptions = []  # options for Options::getOptions()
     options_handler = []     # option handler calls
+    options_names = set()    # option names
     help_common = []         # help text for all common options
     help_others = []         # help text for all non-common options
     setoption_handlers = []  # handlers for set-option command
@@ -819,15 +824,16 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
             # Generate handlers for setOption/getOption
             if option.long:
                 # Make long and alias names available via set/get-option
-                keys = set()
+                names = set()
                 if option.long:
-                    keys.add(long_get_option(option.long))
+                    names.add(long_get_option(option.long))
                 if option.alias:
-                    keys.update(option.alias)
-                assert keys
+                    names.update(option.alias)
+                assert names
+                options_names.update(names)
 
                 cond = ' || '.join(
-                    ['key == "{}"'.format(x) for x in sorted(keys)])
+                    ['name == "{}"'.format(x) for x in sorted(names)])
 
                 setoption_handlers.append('  if ({}) {{'.format(cond))
                 if option.type == 'bool':
@@ -835,16 +841,16 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
                         TPL_CALL_ASSIGN_BOOL.format(
                             module=module.id,
                             name=option.name,
-                            option='key',
+                            option='name',
                             value='optionarg == "true"'))
                 elif argument_req and option.name and not mode_handler:
                     setoption_handlers.append(
                         TPL_CALL_ASSIGN.format(
                             module=module.id,
                             name=option.name,
-                            option='key'))
+                            option='name'))
                 elif option.handler:
-                    h = '    opts.handler().{handler}("{smtname}", key'
+                    h = '    opts.handler().{handler}("{smtname}", name'
                     if argument_req:
                         h += ', optionarg'
                     h += ');'
@@ -923,6 +929,9 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
                             predicates='\n'.join(predicates)
                         ))
 
+    options_all_names = ', '.join(map(lambda s: '"' + s + '"', sorted(options_names)))
+    options_all_names = '\n'.join(textwrap.wrap(options_all_names, width=80, break_on_hyphens=False))
+
     data = {
         'holder_fwd_decls': get_holder_fwd_decls(modules),
         'holder_mem_decls': get_holder_mem_decls(modules),
@@ -939,6 +948,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
         'options_short': ''.join(getopt_short),
         'assigns': '\n'.join(assign_impls),
         'options_getall': '\n  '.join(options_getall),
+        'options_all_names': options_all_names,
         'getoption_handlers': '\n'.join(getoption_handlers),
         'setoption_handlers': '\n'.join(setoption_handlers),
     }

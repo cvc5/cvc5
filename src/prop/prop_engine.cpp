@@ -67,7 +67,6 @@ public:
 
 PropEngine::PropEngine(TheoryEngine* te,
                        Env& env,
-                       OutputManager& outMgr,
                        ProofNodeManager* pnm)
     : d_inCheckSat(false),
       d_theoryEngine(te),
@@ -80,7 +79,6 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_pfCnfStream(nullptr),
       d_ppm(nullptr),
       d_interrupted(false),
-      d_outMgr(outMgr),
       d_assumptions(d_env.getUserContext())
 {
   Debug("prop") << "Constructing the PropEngine" << std::endl;
@@ -119,7 +117,7 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_cnfStream = new CnfStream(d_satSolver,
                               d_theoryProxy,
                               userContext,
-                              &d_outMgr,
+                              &d_env,
                               rm,
                               FormulaLitPolicy::TRACK,
                               "prop");

@@ -59,6 +59,7 @@
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "options/smt_options.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
@@ -241,6 +242,8 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {FLOATINGPOINT_ISPOS, cvc5::Kind::FLOATINGPOINT_ISPOS},
     {FLOATINGPOINT_TO_FP_FLOATINGPOINT,
      cvc5::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT},
+    {FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
+     cvc5::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR},
     {FLOATINGPOINT_TO_FP_REAL, cvc5::Kind::FLOATINGPOINT_TO_FP_REAL},
     {FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
      cvc5::Kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR},
@@ -7043,6 +7046,15 @@ std::string Solver::getOption(const std::string& option) const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::vector<std::string> Solver::getOptionNames() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return options::getNames();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 std::vector<Term> Solver::getUnsatAssumptions(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7092,6 +7104,18 @@ std::vector<Term> Solver::getUnsatCore(void) const
   }
   return res;
   ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::string Solver::getProof(void) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_CHECK(d_smtEngine->getOptions().smt.produceProofs)
+      << "Cannot get proof explicitly enabled (try --prooduce-proofs)";
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
+      << "Cannot get proof unless in unsat mode.";
+  return d_smtEngine->getProof();
   CVC5_API_TRY_CATCH_END;
 }
 
