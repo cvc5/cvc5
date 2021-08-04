@@ -76,27 +76,22 @@ class BitVector
    *            bit-vector (4 * size of the given value string)
    *
    * @param num The value of the bit-vector in string representation.
-   *            This can be a negative value, in which case the negative sign
-   *            is ignored for the purposes of determining size.
+   *            This cannot be a negative value.
    * @param base The base of the string representation.
    */
   BitVector(const std::string& num, unsigned base = 2)
   {
     CheckArgument(base == 2 || base == 10 || base == 16, base);
+    CheckArgument(num[0] != '-', num);
     d_value = Integer(num, base);
+    CheckArgument(d_value == d_value.abs(), num);
     // Compute the length, *without* any negative sign.
-    bool neg_sign = num[0] == '-';
-    size_t size_without_neg_sign = num.size() - (neg_sign ? 1 : 0);
     switch (base)
     {
       case 10: d_size = d_value.length(); break;
-      case 16: d_size = size_without_neg_sign * 4; break;
-      default: d_size = size_without_neg_sign;
+      case 16: d_size = num.size() * 4; break;
+      default: d_size = num.size();
     }
-    // Normalize d_value, allowing this constructor to be called with
-    // out-of-range values (e.g., negative values).
-    // (assumes modByPow2 uses *floor* division)
-    d_value = d_value.modByPow2(d_size);
   }
 
   ~BitVector() {}
