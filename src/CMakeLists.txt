@@ -1211,6 +1211,8 @@ add_custom_command(
       ${options_gen_cpp_files} ${options_gen_h_files}
       ${options_gen_doc_files}
     COMMAND
+      ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/options
+    COMMAND
       ${PYTHON_EXECUTABLE}
       ${CMAKE_CURRENT_LIST_DIR}/options/mkoptions.py
       ${CMAKE_CURRENT_LIST_DIR}
