@@ -117,9 +117,8 @@ class SequencesRewriter : public TheoryRewriter
    * The rewrite r indicates the justification for the rewrite, which is printed
    * by this function for debugging.
    */
-  Node returnRewrite(Node node,
-                     Node ret,
-                     Rewrite r);
+  Node returnRewrite(Node node, Node ret, Rewrite r);
+
  public:
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
@@ -291,7 +290,7 @@ class SequencesRewriter : public TheoryRewriter
    */
   static Node canonicalStrForSymbolicLength(Node n, TypeNode stype);
 
-  /** 
+  /**
    * post-process rewrite
    *
    * If node is not an equality and ret is an equality,

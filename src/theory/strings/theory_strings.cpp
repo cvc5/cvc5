@@ -997,7 +997,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   {
     // always apply aggressive equality rewrites here
     Node ret = d_rewriter.rewriteEqualityExt(atom);
-    if (ret!=atom)
+    if (ret != atom)
     {
       return TrustNode::mkTrustRewrite(atom, ret, nullptr);
     }

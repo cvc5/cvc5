@@ -66,7 +66,7 @@ Node SequencesRewriter::rewriteEquality(Node node)
 
 Node SequencesRewriter::rewriteEqualityExt(Node node)
 {
-  Assert (node.getKind()==EQUAL);
+  Assert(node.getKind() == EQUAL);
   TypeNode tn = node[0].getType();
   if (tn.isInteger())
   {
@@ -89,9 +89,9 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
   for (unsigned r = 0; r < 2; r++)
   {
     // must call rewrite contains directly to avoid infinite loop
-    Node ctn = nm->mkNode(STRING_CONTAINS, node[r], node[1-r]);
+    Node ctn = nm->mkNode(STRING_CONTAINS, node[r], node[1 - r]);
     ctn = rewriteContains(ctn);
-    Assert (!ctn.isNull());
+    Assert(!ctn.isNull());
     if (ctn.isConst())
     {
       if (!ctn.getConst<bool>())
@@ -154,7 +154,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
       }
     }
   }
-  
+
   Node new_ret;
   // ------- equality unification
   bool changed = false;
@@ -3481,9 +3481,7 @@ Node SequencesRewriter::rewriteSeqUnit(Node node)
   return node;
 }
 
-Node SequencesRewriter::returnRewrite(Node node,
-                                      Node ret,
-                                      Rewrite r)
+Node SequencesRewriter::returnRewrite(Node node, Node ret, Rewrite r)
 {
   Trace("strings-rewrite") << "Rewrite " << node << " to " << ret << " by " << r
                            << "." << std::endl;
