@@ -74,7 +74,6 @@ SynthConjecture::SynthConjecture(QuantifiersState& qs,
       d_master(nullptr),
       d_set_ce_sk_vars(false),
       d_repair_index(0),
-      d_refine_count(0),
       d_guarded_stream_exc(false)
 {
   if (options::sygusSymBreakPbe() || options::sygusUnifPbe())
@@ -218,14 +217,12 @@ void SynthConjecture::assign(Node q)
 
   // register this term with sygus database and other utilities that impact
   // the enumerative sygus search
-  std::vector<Node> guarded_lemmas;
   if (!isSingleInvocation())
   {
     d_ceg_proc->initialize(d_base_inst, d_candidates);
     for (unsigned i = 0, size = d_modules.size(); i < size; i++)
     {
-      if (d_modules[i]->initialize(
-              d_simp_quant, d_base_inst, d_candidates, guarded_lemmas))
+      if (d_modules[i]->initialize(d_simp_quant, d_base_inst, d_candidates))
       {
         d_master = d_modules[i];
         break;
@@ -256,15 +253,6 @@ void SynthConjecture::assign(Node q)
   // decided on with true polariy, but also to ensure that output channel
   // has been used on this call to check.
   d_qim.requirePhase(d_feasible_guard, true);
-
-  Node gneg = d_feasible_guard.negate();
-  for (unsigned i = 0; i < guarded_lemmas.size(); i++)
-  {
-    Node lem = nm->mkNode(OR, gneg, guarded_lemmas[i]);
-    Trace("cegqi-lemma") << "Cegqi::Lemma : initial (guarded) lemma : " << lem
-                         << std::endl;
-    d_qim.lemma(lem, InferenceId::UNKNOWN);
-  }
 
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation()
                  << std::endl;
@@ -307,7 +295,7 @@ bool SynthConjecture::needsCheck()
 }
 
 bool SynthConjecture::needsRefinement() const { return d_set_ce_sk_vars; }
-bool SynthConjecture::doCheck(std::vector<Node>& lems)
+bool SynthConjecture::doCheck()
 {
   if (isSingleInvocation())
   {
@@ -318,7 +306,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     {
       d_hasSolution = true;
       // the conjecture has a solution, so its negation holds
-      lems.push_back(d_quant.negate());
+      Node qn = d_quant.negate();
+      d_qim.addPendingLemma(qn, InferenceId::QUANTIFIERS_SYGUS_SI_SOLVED);
     }
     return true;
   }
@@ -449,7 +438,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     }
     Assert(candidate_values.empty());
     constructed_cand = d_master->constructCandidates(
-        terms, enum_values, d_candidates, candidate_values, lems);
+        terms, enum_values, d_candidates, candidate_values);
     // now clear the evaluation caches
     for (std::pair<const Node, std::unique_ptr<ExampleEvalCache> >& ecp :
          d_exampleEvalCache)
@@ -512,7 +501,9 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     // we have that the current candidate passed a sample test
     // since we trust sampling in this mode, we assert there is no
     // counterexample to the conjecture here.
-    lems.push_back(d_quant.negate());
+    Node qn = d_quant.negate();
+    d_qim.addPendingLemma(qn,
+                          InferenceId::QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED);
     recordSolution(candidate_values);
     return true;
   }
@@ -606,7 +597,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   }
   // Use lemma to terminate with "unsat", this is justified by the verification
   // check above, which confirms the synthesis conjecture is solved.
-  lems.push_back(d_quant.negate());
+  Node qn = d_quant.negate();
+  d_qim.addPendingLemma(qn, InferenceId::QUANTIFIERS_SYGUS_VERIFY_SOLVED);
   return true;
 }
 
@@ -635,7 +627,6 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
 
 bool SynthConjecture::doRefine()
 {
-  std::vector<Node> lems;
   Assert(d_set_ce_sk_vars);
 
   // first, make skolem substitution
@@ -672,7 +663,6 @@ bool SynthConjecture::doRefine()
     Assert(d_inner_vars.empty());
   }
 
-  std::vector<Node> lem_c;
   Trace("cegqi-refine") << "doRefine : Construct refinement lemma..."
                         << std::endl;
   Trace("cegqi-refine-debug")
@@ -696,30 +686,15 @@ bool SynthConjecture::doRefine()
   base_lem = d_tds->rewriteNode(base_lem);
   Trace("cegqi-refine") << "doRefine : register refinement lemma " << base_lem
                         << "..." << std::endl;
-  d_master->registerRefinementLemma(sk_vars, base_lem, lems);
+  size_t prevPending = d_qim.numPendingLemmas();
+  d_master->registerRefinementLemma(sk_vars, base_lem);
   Trace("cegqi-refine") << "doRefine : finished" << std::endl;
   d_set_ce_sk_vars = false;
   d_ce_sk_vars.clear();
   d_ce_sk_var_mvs.clear();
 
-  // now send the lemmas
-  bool addedLemma = false;
-  for (const Node& lem : lems)
-  {
-    Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
-                         << std::endl;
-    bool res = d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
-    if (res)
-    {
-      ++(d_stats.d_cegqi_lemmas_refine);
-      d_refine_count++;
-      addedLemma = true;
-    }
-    else
-    {
-      Trace("cegqi-warn") << "  ...FAILED to add refinement!" << std::endl;
-    }
-  }
+  // check if we added a lemma
+  bool addedLemma = d_qim.numPendingLemmas() > prevPending;
   if (addedLemma)
   {
     Trace("sygus-engine-debug") << "  ...refine candidate." << std::endl;

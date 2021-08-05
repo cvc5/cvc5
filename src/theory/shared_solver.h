@@ -33,7 +33,7 @@ class TheoryEngine;
 namespace theory {
 
 struct EeSetupInfo;
-class OutputChannel;
+class TheoryInferenceManager;
 
 /**
  * A base class for shared solver. The shared solver is the component of theory
@@ -124,7 +124,7 @@ class SharedSolver
   /** Send lemma to the theory engine, atomsTo is the theory to send atoms to */
   void sendLemma(TrustNode trn, TheoryId atomsTo, InferenceId id);
   /** Send conflict to the theory engine */
-  void sendConflict(TrustNode trn);
+  void sendConflict(TrustNode trn, InferenceId id);
 
  protected:
   /** Solver-specific pre-register shared */
@@ -139,8 +139,8 @@ class SharedSolver
   PreRegisterVisitor d_preRegistrationVisitor;
   /** Visitor for collecting shared terms */
   SharedTermsVisitor d_sharedTermsVisitor;
-  /** Output channel of theory builtin */
-  OutputChannel& d_out;
+  /** Theory inference manager of theory builtin */
+  TheoryInferenceManager* d_im;
 };
 
 }  // namespace theory

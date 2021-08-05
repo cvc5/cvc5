@@ -113,6 +113,14 @@ public = true
   help       = "output instantiations of quantified formulas after every UNSAT/VALID response"
 
 [[option]]
+  name       = "dumpInstantiationsDebug"
+  category   = "regular"
+  long       = "dump-instantiations-debug"
+  type       = "bool"
+  default    = "false"
+  help       = "output instantiations of quantified formulas after every UNSAT/VALID response, with debug information"
+
+[[option]]
   name       = "dumpUnsatCores"
   category   = "regular"
   long       = "dump-unsat-cores"
