@@ -13,6 +13,8 @@
  * Black box testing of the Solver class of the  C++ API.
  */
 
+#include <algorithm>
+
 #include "test_api.h"
 
 namespace cvc5 {
