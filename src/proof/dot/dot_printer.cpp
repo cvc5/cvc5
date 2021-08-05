@@ -154,7 +154,7 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
   d_lbind.letify(letList);
   if (!letList.empty())
   {
-    out << "\tcomment=\"{\"letMap\" : {";
+    out << "\tcomment=\"{\\\"letMap\\\" : {";
     bool first = true;
     for (TNode n : letList)
     {
@@ -168,15 +168,15 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
       {
         first = false;
       }
-      out << "\"let" << id << "\" : \"";
+      out << "\\\"let" << id << "\\\" : \\\"";
       std::ostringstream nStr;
       nStr << d_lbind.convert(n, "let", false);
       std::string astring = nStr.str();
       // we double the scaping of quotes because "simple scape" is ambiguous
       // with the scape of the delimiter of the value in the key-value map
-      out << sanitizeStringDoubleQuotes(astring) << "\"";
+      out << sanitizeStringDoubleQuotes(astring) << "\\\"";
     }
-    out << "}}\"\n";
+    out << "}}\";\n";
   }
   DotPrinter::printInternal(out, pn, ruleID, 0, false);
   out << "}\n";
@@ -247,7 +247,7 @@ void DotPrinter::printInternal(std::ostream& out,
   // add number of subchildren
   std::map<const ProofNode*, size_t>::const_iterator it =
       d_subpfCounter.find(pn);
-  out << ", comment = \"\{\"subProofQty\":" << it->second << "}\"";
+  out << ", comment = \"{\\\"subProofQty\\\":" << it->second << "}\"";
   out << " ];\n";
 
   for (const std::shared_ptr<ProofNode>& c : children)

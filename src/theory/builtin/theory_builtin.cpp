@@ -31,8 +31,13 @@ TheoryBuiltin::TheoryBuiltin(context::Context* c,
                              Valuation valuation,
                              const LogicInfo& logicInfo,
                              ProofNodeManager* pnm)
-    : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo, pnm)
+    : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo, pnm),
+      d_state(c, u, valuation),
+      d_im(*this, d_state, pnm, "theory::builtin::")
 {
+  // indicate we are using the default theory state and inference managers
+  d_theoryState = &d_state;
+  d_inferManager = &d_im;
 }
 
 TheoryRewriter* TheoryBuiltin::getTheoryRewriter() { return &d_rewriter; }

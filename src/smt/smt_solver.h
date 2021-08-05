@@ -64,8 +64,7 @@ struct SmtEngineStatistics;
 class SmtSolver
 {
  public:
-  SmtSolver(SmtEngine& smt,
-            Env& env,
+  SmtSolver(Env& env,
             SmtEngineState& state,
             Preprocessor& pp,
             SmtEngineStatistics& stats);
@@ -103,13 +102,11 @@ class SmtSolver
    * during this call.
    * @param assumptions The assumptions for this check-sat call, which are
    * temporary assertions.
-   * @param inUnsatCore Whether assumptions are in the unsat core.
    * @param isEntailmentCheck Whether this is an entailment check (assumptions
    * are negated in this case).
    */
   Result checkSatisfiability(Assertions& as,
                              const std::vector<Node>& assumptions,
-                             bool inUnsatCore,
                              bool isEntailmentCheck);
   /**
    * Process the assertions that have been asserted in as. This moves the set of
@@ -134,8 +131,6 @@ class SmtSolver
   //------------------------------------------ end access methods
 
  private:
-  /** Reference to the parent SMT engine */
-  SmtEngine& d_smt;
   /** Reference to the environment */
   Env& d_env;
   /** Reference to the state of the SmtEngine */

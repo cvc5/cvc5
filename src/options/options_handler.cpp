@@ -35,6 +35,7 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "smt/dump.h"
 
 namespace cvc5 {
 namespace options {
@@ -155,11 +156,11 @@ void OptionsHandler::checkBvSatSolver(const std::string& option,
     throw OptionException(ss.str());
   }
 
-  if (options::bvSolver() != options::BVSolver::BITBLAST
+  if (d_options->bv.bvSolver != options::BVSolver::BITBLAST
       && (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL
           || m == SatSolverMode::KISSAT))
   {
-    if (options::bitblastMode() == options::BitblastMode::LAZY
+    if (d_options->bv.bitblastMode == options::BitblastMode::LAZY
         && d_options->bv.bitblastModeWasSetByUser)
     {
       throwLazyBBUnsupported(m);
@@ -178,9 +179,9 @@ void OptionsHandler::checkBitblastMode(const std::string& option,
     options::bv::setDefaultBitvectorEqualitySolver(*d_options, true);
     options::bv::setDefaultBitvectorInequalitySolver(*d_options, true);
     options::bv::setDefaultBitvectorAlgebraicSolver(*d_options, true);
-    if (options::bvSatSolver() != options::SatSolverMode::MINISAT)
+    if (d_options->bv.bvSatSolver != options::SatSolverMode::MINISAT)
     {
-      throwLazyBBUnsupported(options::bvSatSolver());
+      throwLazyBBUnsupported(d_options->bv.bvSatSolver);
     }
   }
   else if (m == BitblastMode::EAGER)
@@ -195,7 +196,7 @@ void OptionsHandler::setBitblastAig(const std::string& option,
 {
   if(arg) {
     if (d_options->bv.bitblastModeWasSetByUser) {
-      if (options::bitblastMode() != options::BitblastMode::EAGER)
+      if (d_options->bv.bitblastMode != options::BitblastMode::EAGER)
       {
         throw OptionException("bitblast-aig must be used with eager bitblaster");
       }
@@ -547,6 +548,39 @@ InputLanguage OptionsHandler::stringToInputLanguage(const std::string& option,
   }
 
   Unreachable();
+}
+
+void OptionsHandler::setDumpStream(const std::string& option,
+                                   const std::string& flag,
+                                   const ManagedOut& mo)
+{
+#ifdef CVC5_DUMPING
+  Dump.setStream(mo);
+#else  /* CVC5_DUMPING */
+  throw OptionException(
+      "The dumping feature was disabled in this build of cvc5.");
+#endif /* CVC5_DUMPING */
+}
+void OptionsHandler::setErrStream(const std::string& option,
+                                  const std::string& flag,
+                                  const ManagedErr& me)
+{
+  Debug.setStream(me);
+  Warning.setStream(me);
+  CVC5Message.setStream(me);
+  Notice.setStream(me);
+  Chat.setStream(me);
+  Trace.setStream(me);
+}
+void OptionsHandler::setInStream(const std::string& option,
+                                 const std::string& flag,
+                                 const ManagedIn& mi)
+{
+}
+void OptionsHandler::setOutStream(const std::string& option,
+                                  const std::string& flag,
+                                  const ManagedOut& mo)
+{
 }
 
 /* options/base_options_handlers.h */
