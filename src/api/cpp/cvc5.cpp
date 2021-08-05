@@ -4864,9 +4864,6 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
         << "Overflow in bitvector construction (specified bitvector size "
         << size << " too small to hold value " << s << ")";
   }
-  // Doesn't happen automatically.
-  val = val.modByPow2(size);
-
   return mkValHelper<cvc5::BitVector>(cvc5::BitVector(size, val));
 }
 
