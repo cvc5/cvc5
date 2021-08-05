@@ -23,6 +23,8 @@
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
+#include "proof/annotation_proof_generator.h"
+#include "options/proof_options.h"
 
 using namespace cvc5::kind;
 
@@ -57,6 +59,14 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
   // don't add true lemma
   Node truen = NodeManager::currentNM()->mkConst(true);
   d_lemmasSent.insert(truen);
+  
+  if (d_pnm!=nullptr)
+  {
+    if (options::proofAnnotate())
+    {
+      d_apg.reset(new AnnotationProofGenerator(d_pnm, state.getUserContext(), statsName + "AnnotationProofGenerator"));
+    }
+  }
 }
 
 TheoryInferenceManager::~TheoryInferenceManager()

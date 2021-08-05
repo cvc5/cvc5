@@ -45,6 +45,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::THEORY_REWRITE, this);
   pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
   pc->registerChecker(PfRule::ENCODE_PRED_TRANSFORM, this);
+  pc->registerChecker(PfRule::ANNOTATION, this);
   pc->registerChecker(PfRule::DSL_REWRITE, this);
   // trusted rules
   pc->registerTrustedChecker(PfRule::THEORY_LEMMA, this, 1);
@@ -429,6 +430,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::ENCODE_PRED_TRANSFORM)
   {
+    Assert(children.size() == 1);
     Assert(args.size() == 1);
     rewriter::RewriteDbNodeConverter rconv;
     Node f = children[0];
@@ -439,6 +441,11 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     return g;
+  }
+  else if (id == PfRule::ANNOTATION)
+  {
+    Assert(children.size() == 1);
+    return children[0];
   }
   else if (id == PfRule::DSL_REWRITE)
   {

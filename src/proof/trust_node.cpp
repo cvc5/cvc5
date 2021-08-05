@@ -68,6 +68,11 @@ TrustNode TrustNode::mkTrustRewrite(TNode n, Node nr, ProofGenerator* g)
   return TrustNode(TrustNodeKind::REWRITE, rkey, g);
 }
 
+TrustNode TrustNode::mkReplaceGenTrustNode(TrustNode orig, ProofGenerator* g)
+{
+  return TrustNode(orig.getKind(), orig.getProven(), g);
+}
+
 TrustNode TrustNode::null()
 {
   return TrustNode(TrustNodeKind::INVALID, Node::null());

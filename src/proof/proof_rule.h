@@ -196,6 +196,12 @@ enum class PfRule : uint32_t
   // This rule can be treated as a no-op when appropriate in external proof
   // formats.
   ENCODE_PRED_TRANSFORM,
+  // ======== Annotation
+  // Children: (P1:F)
+  // Arguments: (a1 ... an)
+  // ----------------------------------------
+  // Conclusion: F
+  ANNOTATION,
   // ======== DSL Rewrite
   // Children: (P1:F1 ... Pn:Fn)
   // Arguments: (id, F)

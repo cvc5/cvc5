@@ -55,6 +55,11 @@ class ProofFinalCallback : public ProofNodeUpdaterCallback
    * marked with the given inference id.
    */
   HistogramStat<theory::InferenceId> d_instRuleIds;
+  /**
+   * Counts number of postprocessed proof nodes of rule ANNOTATION that were
+   * marked with the given inference id.
+   */
+  HistogramStat<theory::InferenceId> d_annotationRuleIds;
   /** Counts number of postprocessed proof nodes for each kind of DSL proof rule
    */
   HistogramStat<rewriter::DslPfRule> d_dslRuleCount;

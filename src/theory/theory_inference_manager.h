@@ -31,6 +31,7 @@
 namespace cvc5 {
 
 class ProofNodeManager;
+class AnnotationProofGenerator;
 
 namespace theory {
 
@@ -441,6 +442,8 @@ class TheoryInferenceManager
   std::unique_ptr<eq::ProofEqEngine> d_pfeeAlloc;
   /** The proof node manager of the theory */
   ProofNodeManager* d_pnm;
+  /** The annotation proof generator */
+  std::unique_ptr<AnnotationProofGenerator> d_apg;
   /** Whether this manager caches lemmas */
   bool d_cacheLemmas;
   /**

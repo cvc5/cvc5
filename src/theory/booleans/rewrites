@@ -20,5 +20,5 @@
 (define-rule bool-ite-true-cond ((x Bool) (y Bool)) (ite true x y) x)
 (define-rule bool-ite-false-cond ((x Bool) (y Bool)) (ite false x y) y)
 
-
+(define-rule bool-and-conf ((xs Bool :list) (w Bool) (ys Bool :list) (zs Bool :list)) (and xs w ys (not w) zs) false)
 (define-rule bool-or-taut ((xs Bool :list) (w Bool) (ys Bool :list) (zs Bool :list)) (or xs w ys (not w) zs) true)

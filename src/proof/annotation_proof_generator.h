@@ -21,10 +21,10 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "proof/proof_generator.h"
+#include "proof/trust_node.h"
 
 namespace cvc5 {
 
-class ProofNode;
 class ProofNodeManager;
 
 /** Base class for annotations */
@@ -67,6 +67,11 @@ class AnnotationProofGenerator : public ProofGenerator
    * @param a The annotator that will annotate the proof of f, if necessary.
    */
   void setExplanationFor(Node f, ProofGenerator* pg, Annotator* a);
+  /**
+   * Transform trust node, will be annotated by the given annotator.
+   */
+  TrustNode transform(TrustNode trn,
+                                                 Annotator* a);
   /** identify */
   std::string identify() const override;
 
@@ -91,4 +96,4 @@ class AnnotationProofGenerator : public ProofGenerator
 
 }  // namespace cvc5
 
-#endif /* CVC5__PROOF__PROOF_GENERATOR_H */
+#endif /* CVC5__PROOF__ANNOTATION_PROOF_GENERATOR_H */

@@ -112,3 +112,11 @@ name   = "Proof"
   type       = "int32_t"
   default    = "5"
   help       = "the matching recursion limit for reconstructing proofs of theory rewrites"
+
+[[option]]
+  name       = "proofAnnotate"
+  category   = "regular"
+  long       = "proof-annotate"
+  type       = "bool"
+  default    = "false"
+  help       = "add optional annotations to proofs"

@@ -35,6 +35,9 @@ ProofFinalCallback::ProofFinalCallback(ProofNodeManager* pnm)
       d_instRuleIds(
           smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
               "finalProof::instRuleId")),
+      d_annotationRuleIds(
+          smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
+              "finalProof::annotationRuleId")),
       d_dslRuleCount(
           smtStatisticsRegistry().registerHistogram<rewriter::DslPfRule>(
               "finalProof::dslRuleCount")),
@@ -104,6 +107,15 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       {
         d_instRuleIds << id;
       }
+    }
+  }
+  else if (r== PfRule::ANNOTATION)
+  {
+    const std::vector<Node>& args = pn->getArguments();
+    InferenceId id;
+    if (getInferenceId(args[0], id))
+    {
+      d_annotationRuleIds << id;
     }
   }
   // print for debugging
