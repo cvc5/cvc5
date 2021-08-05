@@ -124,11 +124,11 @@ public:
 
   /* expr/options_handlers.h */
   void setDefaultExprDepth(const std::string& option,
-                                    const std::string& flag,
-                                    int depth);
+                           const std::string& flag,
+                           int depth);
   void setDefaultDagThresh(const std::string& option,
-                                    const std::string& flag,
-                                    int dag);
+                           const std::string& flag,
+                           int dag);
 
   /* main/options_handlers.h */
   void copyright(const std::string& option, const std::string& flag);
@@ -173,8 +173,8 @@ public:
                        const std::string& optarg);
 
   void setDumpMode(const std::string& option,
-                       const std::string& flag,
-                       const std::string& optarg);
+                   const std::string& flag,
+                   const std::string& optarg);
   void setPrintSuccess(const std::string& option,
                        const std::string& flag,
                        bool value);

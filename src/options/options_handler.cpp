@@ -295,8 +295,8 @@ void OptionsHandler::threadN(const std::string& option, const std::string& flag)
 
 // expr/options_handlers.h
 void OptionsHandler::setDefaultExprDepth(const std::string& option,
-                                                  const std::string& flag,
-                                                  int depth)
+                                         const std::string& flag,
+                                         int depth)
 {
   Debug.getStream() << expr::ExprSetDepth(depth);
   Trace.getStream() << expr::ExprSetDepth(depth);
@@ -307,8 +307,8 @@ void OptionsHandler::setDefaultExprDepth(const std::string& option,
 }
 
 void OptionsHandler::setDefaultDagThresh(const std::string& option,
-                                                  const std::string& flag,
-                                                  int dag)
+                                         const std::string& flag,
+                                         int dag)
 {
   Debug.getStream() << expr::ExprDag(dag);
   Trace.getStream() << expr::ExprDag(dag);
@@ -638,23 +638,23 @@ void OptionsHandler::decreaseVerbosity(const std::string& option,
 }
 
 void OptionsHandler::setDumpMode(const std::string& option,
-                       const std::string& flag,
-                       const std::string& optarg)
+                                 const std::string& flag,
+                                 const std::string& optarg)
 {
-    Dump.setDumpFromString(optarg);
+  Dump.setDumpFromString(optarg);
 }
 
 void OptionsHandler::setPrintSuccess(const std::string& option,
                                      const std::string& flag,
                                      bool value)
 {
-    Debug.getStream() << Command::printsuccess(value);
-    Trace.getStream() << Command::printsuccess(value);
-    Notice.getStream() << Command::printsuccess(value);
-    Chat.getStream() << Command::printsuccess(value);
-    CVC5Message.getStream() << Command::printsuccess(value);
-    Warning.getStream() << Command::printsuccess(value);
-    *options::out() << Command::printsuccess(value);
+  Debug.getStream() << Command::printsuccess(value);
+  Trace.getStream() << Command::printsuccess(value);
+  Notice.getStream() << Command::printsuccess(value);
+  Chat.getStream() << Command::printsuccess(value);
+  CVC5Message.getStream() << Command::printsuccess(value);
+  Warning.getStream() << Command::printsuccess(value);
+  *options::out() << Command::printsuccess(value);
 }
 
 }  // namespace options
