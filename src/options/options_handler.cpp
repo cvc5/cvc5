@@ -26,6 +26,7 @@
 #include "base/exception.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
+#include "expr/expr_iomanip.h"
 #include "lib/strtok_r.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
@@ -35,6 +36,7 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "smt/command.h"
 #include "smt/dump.h"
 
 namespace cvc5 {
