@@ -321,6 +321,15 @@ TEST_F(TestApiBlackSolver, mkBitVector)
   ASSERT_THROW(d_solver.mkBitVector("20", 2), CVC5ApiException);
   ASSERT_THROW(d_solver.mkBitVector(8, "101010101", 2), CVC5ApiException);
   ASSERT_THROW(d_solver.mkBitVector(8, "-256", 10), CVC5ApiException);
+  // No size and negative string -> error
+  ASSERT_THROW(d_solver.mkBitVector("-1", 2), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkBitVector("-1", 10), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkBitVector("-f", 16), CVC5ApiException);
+  // size and negative string -> ok
+  ASSERT_EQ(d_solver.mkBitVector(4, "-1", 2), d_solver.mkBitVector(4, "1111", 2));
+  ASSERT_EQ(d_solver.mkBitVector(4, "-1", 16), d_solver.mkBitVector(4, "1111", 2));
+  ASSERT_EQ(d_solver.mkBitVector(4, "-1", 10), d_solver.mkBitVector(4, "1111", 2));
+  ASSERT_EQ(d_solver.mkBitVector("1010", 2), d_solver.mkBitVector("10", 10));
   ASSERT_EQ(d_solver.mkBitVector("1010", 2), d_solver.mkBitVector("10", 10));
   ASSERT_EQ(d_solver.mkBitVector("1010", 2), d_solver.mkBitVector("a", 16));
   ASSERT_EQ(d_solver.mkBitVector(8, "01010101", 2).toString(), "#b01010101");
