@@ -16,6 +16,7 @@
 #include "theory/inference_id_proof_annotator.h"
 
 #include "proof/proof_node_manager.h"
+#include "proof/proof_node.h"
 
 namespace cvc5 {
 namespace theory {

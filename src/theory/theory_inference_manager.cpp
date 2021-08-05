@@ -24,6 +24,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
 #include "proof/annotation_proof_generator.h"
+#include "theory/inference_id_proof_annotator.h"
 #include "options/proof_options.h"
 
 using namespace cvc5::kind;
@@ -64,7 +65,9 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
   {
     if (options::proofAnnotate())
     {
-      d_apg.reset(new AnnotationProofGenerator(d_pnm, state.getUserContext(), statsName + "AnnotationProofGenerator"));
+      context::UserContext * u = state.getUserContext();
+      d_iipa.reset(new InferenceIdProofAnnotator(d_pnm, u));
+      d_apg.reset(new AnnotationProofGenerator(d_pnm, u, statsName + "AnnotationProofGenerator"));
     }
   }
 }
@@ -138,6 +141,11 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
   smt::currentResourceManager()->spendResource(id);
   Trace("im") << "(conflict " << id << " " << tconf.getProven() << ")"
               << std::endl;
+  // annotate if the annotation proof generator is active
+  if (d_apg!=nullptr)
+  {
+    tconf = annotateId(tconf, id);
+  }
   d_out.trustedConflict(tconf);
   ++d_numConflicts;
 }
@@ -270,7 +278,16 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
   smt::currentResourceManager()->spendResource(id);
   Trace("im") << "(lemma " << id << " " << tlem.getProven() << ")" << std::endl;
   d_numCurrentLemmas++;
-  d_out.trustedLemma(tlem, p);
+  // annotate if the annotation proof generator is active
+  if (d_apg!=nullptr)
+  {
+    TrustNode tlema = annotateId(tlem, id);
+    d_out.trustedLemma(tlema, p);
+  }
+  else
+  {
+    d_out.trustedLemma(tlem, p);
+  }
   return true;
 }
 
@@ -551,6 +568,13 @@ bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
   }
   d_lemmasSent.insert(rewritten);
   return true;
+}
+
+TrustNode TheoryInferenceManager::annotateId(const TrustNode& trn, InferenceId id)
+{
+  Assert (d_iipa!=nullptr && d_apg!=nullptr);
+  d_iipa->setAnnotation(trn.getProven(), id);
+  return d_apg->transform(trn, d_iipa.get());
 }
 
 DecisionManager* TheoryInferenceManager::getDecisionManager()

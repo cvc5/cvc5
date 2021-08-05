@@ -70,7 +70,7 @@ class AnnotationProofGenerator : public ProofGenerator
   /**
    * Transform trust node, will be annotated by the given annotator.
    */
-  TrustNode transform(TrustNode trn,
+  TrustNode transform(const TrustNode& trn,
                                                  Annotator* a);
   /** identify */
   std::string identify() const override;

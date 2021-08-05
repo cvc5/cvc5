@@ -22,6 +22,7 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "proof/annotation_proof_generator.h"
+#include "theory/inference_id.h"
 
 namespace cvc5 {
 namespace theory {
