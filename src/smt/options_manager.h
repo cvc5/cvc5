@@ -17,7 +17,6 @@
 #define CVC5__SMT__OPTIONS_MANAGER_H
 
 #include "options/options_listener.h"
-#include "smt/managed_ostreams.h"
 
 namespace cvc5 {
 
@@ -65,12 +64,6 @@ class OptionsManager : public OptionsListener
  private:
   /** Reference to the options object */
   Options* d_options;
-  /** Manager for the memory of regular-output-channel. */
-  ManagedRegularOutputChannel d_managedRegularChannel;
-  /** Manager for the memory of diagnostic-output-channel. */
-  ManagedDiagnosticOutputChannel d_managedDiagnosticChannel;
-  /** Manager for the memory of --dump-to. */
-  ManagedDumpOStream d_managedDumpChannel;
 };
 
 }  // namespace smt

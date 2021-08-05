@@ -47,18 +47,6 @@ OptionsManager::OptionsManager(Options* opts) : d_options(opts)
   {
     notifySetOption(options::base::printSuccess__name);
   }
-  if (opts->smt.diagnosticChannelNameWasSetByUser)
-  {
-    notifySetOption(options::smt::diagnosticChannelName__name);
-  }
-  if (opts->smt.regularChannelNameWasSetByUser)
-  {
-    notifySetOption(options::smt::regularChannelName__name);
-  }
-  if (opts->smt.dumpToFileNameWasSetByUser)
-  {
-    notifySetOption(options::smt::dumpToFileName__name);
-  }
   // set this as a listener to be notified of options changes from now on
   opts->setListener(this);
 }
@@ -106,18 +94,6 @@ void OptionsManager::notifySetOption(const std::string& key)
     CVC5Message.getStream() << Command::printsuccess(value);
     Warning.getStream() << Command::printsuccess(value);
     *options::out() << Command::printsuccess(value);
-  }
-  else if (key == options::smt::regularChannelName__name)
-  {
-    d_managedRegularChannel.set(options::regularChannelName());
-  }
-  else if (key == options::smt::diagnosticChannelName__name)
-  {
-    d_managedDiagnosticChannel.set(options::diagnosticChannelName());
-  }
-  else if (key == options::smt::dumpToFileName__name)
-  {
-    d_managedDumpChannel.set(options::dumpToFileName());
   }
   // otherwise, no action is necessary
 }

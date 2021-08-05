@@ -782,6 +782,8 @@ namespace cvc5::api {
 /* Op                                                                     */
 /* -------------------------------------------------------------------------- */
 
+class Term;
+
 /**
  * A cvc5 operator.
  * An operator is a term that represents certain operators, instantiated
@@ -843,6 +845,14 @@ class CVC5_EXPORT Op
   size_t getNumIndices() const;
 
   /**
+   * Get the index at position i.
+   * @param i the position of the index to return
+   * @return the index at position i
+   */
+
+  Term operator[](size_t i) const;
+
+  /**
    * Get the indices used to create this Op.
    * Supports the following template arguments:
    *   - string
@@ -890,6 +900,19 @@ class CVC5_EXPORT Op
    * @return true iff this Op is indexed
    */
   bool isIndexedHelper() const;
+
+  /**
+   * Helper for getNumIndices
+   * @return the number of indices of this op
+   */
+  size_t getNumIndicesHelper() const;
+
+  /**
+   * Helper for operator[](size_t i).
+   * @param i position of the index. Should be less than getNumIndicesHelper().
+   * @return the index at position i
+   */
+  Term getIndexHelper(size_t index) const;
 
   /**
    * The associated solver object.
@@ -3697,6 +3720,13 @@ class CVC5_EXPORT Solver
   std::string getOption(const std::string& option) const;
 
   /**
+   * Get all option names that can be used with `setOption`, `getOption` and
+   * `getOptionInfo`.
+   * @return all option names
+   */
+  std::vector<std::string> getOptionNames() const;
+
+  /**
    * Get the set of unsat ("failed") assumptions.
    * SMT-LIB:
    * \verbatim
@@ -3717,6 +3747,18 @@ class CVC5_EXPORT Solver
    * @return a set of terms representing the unsatisfiable core
    */
   std::vector<Term> getUnsatCore() const;
+
+  /**
+   * Get the refutation proof
+   * SMT-LIB:
+   * \verbatim
+   * ( get-proof )
+   * \endverbatim
+   * Requires to enable option 'produce-proofs'.
+   * @return a string representing the proof, according to the the value of
+   * proof-format-mode.
+   */
+  std::string getProof() const;
 
   /**
    * Get the value of the given term.
@@ -4138,6 +4180,12 @@ class CVC5_EXPORT Solver
   NodeManager* getNodeManager(void) const;
   /** Reset the API statistics */
   void resetStatistics();
+
+  /**
+   * Print the statistics to the given file descriptor, suitable for usage in
+   * signal handlers.
+   */
+  void printStatisticsSafe(int fd) const;
 
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;

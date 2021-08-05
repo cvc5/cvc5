@@ -85,6 +85,7 @@ TheoryArrays::TheoryArrays(context::Context* c,
           name + "number of setModelVal conflicts")),
       d_ppEqualityEngine(u, name + "pp", true),
       d_ppFacts(u),
+      d_rewriter(pnm),
       d_state(c, u, valuation),
       d_im(*this, d_state, pnm),
       d_literalsToPropagate(c),
@@ -645,20 +646,15 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
   {
     return;
   }
-  Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::preRegisterTerm(" << node << ")" << std::endl;
+  Debug("arrays") << spaces(getSatContext()->getLevel())
+                  << "TheoryArrays::preRegisterTerm(" << node << ")"
+                  << std::endl;
   Kind nk = node.getKind();
   if (nk == kind::EQUAL)
   {
     // Add the trigger for equality
     // NOTE: note that if the equality is true or false already, it might not be added
     d_equalityEngine->addTriggerPredicate(node);
-    return;
-  }
-  else if (d_equalityEngine->hasTerm(node))
-  {
-    // Invariant: array terms should be preregistered before being added to the equality engine
-    Assert(nk != kind::SELECT
-           || d_isPreRegistered.find(node) != d_isPreRegistered.end());
     return;
   }
   // add to equality engine and the may equality engine
@@ -674,6 +670,15 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       throw LogicException(ss.str());
     }
     d_mayEqualEqualityEngine.addTerm(node);
+  }
+  if (d_equalityEngine->hasTerm(node))
+  {
+    // Notice that array terms may be added to its equality engine before
+    // being preregistered in the central equality engine architecture.
+    // Prior to this, an assertion in this case was:
+    // Assert(nk != kind::SELECT
+    //         || d_isPreRegistered.find(node) != d_isPreRegistered.end());
+    return;
   }
   d_equalityEngine->addTerm(node);
 
@@ -1671,7 +1676,7 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
     }
     d_im.assertInference(selConst.eqNode(defValue),
                          true,
-                         InferenceId::UNKNOWN,
+                         InferenceId::ARRAYS_CONST_ARRAY_DEFAULT,
                          d_true,
                          PfRule::ARRAYS_TRUST);
   }
@@ -1887,8 +1892,11 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       {
         preRegisterTermInternal(aj2);
       }
-      d_im.assertInference(
-          aj.eqNode(aj2), true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(aj.eqNode(aj2),
+                           true,
+                           InferenceId::ARRAYS_EQ_TAUTOLOGY,
+                           d_true,
+                           PfRule::MACRO_SR_PRED_INTRO);
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
@@ -1899,8 +1907,11 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       {
         preRegisterTermInternal(bj2);
       }
-      d_im.assertInference(
-          bj.eqNode(bj2), true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(bj.eqNode(bj2),
+                           true,
+                           InferenceId::ARRAYS_EQ_TAUTOLOGY,
+                           d_true,
+                           PfRule::MACRO_SR_PRED_INTRO);
     }
     if (aj2 == bj2) {
       return;
@@ -1918,14 +1929,22 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       {
         preRegisterTermInternal(bj2);
       }
-      d_im.assertInference(eq1, true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(eq1,
+                           true,
+                           InferenceId::ARRAYS_EQ_TAUTOLOGY,
+                           d_true,
+                           PfRule::MACRO_SR_PRED_INTRO);
       return;
     }
 
     Node eq2 = i.eqNode(j);
     Node eq2_r = Rewriter::rewrite(eq2);
     if (eq2_r == d_true) {
-      d_im.assertInference(eq2, true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(eq2,
+                           true,
+                           InferenceId::ARRAYS_EQ_TAUTOLOGY,
+                           d_true,
+                           PfRule::MACRO_SR_PRED_INTRO);
       return;
     }
 
@@ -2004,8 +2023,11 @@ bool TheoryArrays::dischargeLemmas()
       {
         preRegisterTermInternal(aj2);
       }
-      d_im.assertInference(
-          aj.eqNode(aj2), true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(aj.eqNode(aj2),
+                           true,
+                           InferenceId::ARRAYS_EQ_TAUTOLOGY,
+                           d_true,
+                           PfRule::MACRO_SR_PRED_INTRO);
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
@@ -2016,8 +2038,11 @@ bool TheoryArrays::dischargeLemmas()
       {
         preRegisterTermInternal(bj2);
       }
-      d_im.assertInference(
-          bj.eqNode(bj2), true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(bj.eqNode(bj2),
+                           true,
+                           InferenceId::ARRAYS_EQ_TAUTOLOGY,
+                           d_true,
+                           PfRule::MACRO_SR_PRED_INTRO);
     }
     if (aj2 == bj2) {
       continue;
@@ -2035,14 +2060,22 @@ bool TheoryArrays::dischargeLemmas()
       {
         preRegisterTermInternal(bj2);
       }
-      d_im.assertInference(eq1, true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(eq1,
+                           true,
+                           InferenceId::ARRAYS_EQ_TAUTOLOGY,
+                           d_true,
+                           PfRule::MACRO_SR_PRED_INTRO);
       continue;
     }
 
     Node eq2 = i.eqNode(j);
     Node eq2_r = Rewriter::rewrite(eq2);
     if (eq2_r == d_true) {
-      d_im.assertInference(eq2, true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(eq2,
+                           true,
+                           InferenceId::ARRAYS_EQ_TAUTOLOGY,
+                           d_true,
+                           PfRule::MACRO_SR_PRED_INTRO);
       continue;
     }
 

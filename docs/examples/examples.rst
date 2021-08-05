@@ -18,6 +18,7 @@ input mechanisms.
     datatypes
     floatingpoint
     lineararith
+    quickstart
     relations
     sequences
     sets
