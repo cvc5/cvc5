@@ -113,10 +113,13 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   {
     // we currently assume the annotation is a single inference id
     const std::vector<Node>& args = pn->getArguments();
-    InferenceId id;
-    if (getInferenceId(args[0], id))
+    if (args.size()>0)
     {
-      d_annotationRuleIds << id;
+      InferenceId id;
+      if (getInferenceId(args[0], id))
+      {
+        d_annotationRuleIds << id;
+      }
     }
   }
   // print for debugging
