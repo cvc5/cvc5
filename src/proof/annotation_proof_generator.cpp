@@ -28,17 +28,19 @@ AnnotationProofGenerator::AnnotationProofGenerator(ProofNodeManager* pnm,
 {
 }
 
-void AnnotationProofGenerator::setProofFor(Node f, ProofGenerator * pg, Annotator * a)
+void AnnotationProofGenerator::setExplanationFor(Node f, ProofGenerator * pg, Annotator * a)
 {
-  d_proofs[f] = std::pair<ProofGenerator *, Annotator *>(pg,a);
+  Assert (pg!=nullptr);
+  d_exps[f] = std::pair<ProofGenerator *, Annotator *>(pg,a);
 }
 
 std::shared_ptr<ProofNode> AnnotationProofGenerator::getProofFor(Node f)
 {
-  NodeExpMap::iterator it = d_proofs.find(f);
+  // is the proof already cached?
+  NodeProofNodeMap::iterator it = d_proofs.find(f);
   if (it != d_proofs.end())
   {
-    return (*it).second
+    return (*it).second;
   }
   // make it into an actual proof now
   NodeExpMap::iterator itx = d_exps.find(f);
@@ -47,14 +49,18 @@ std::shared_ptr<ProofNode> AnnotationProofGenerator::getProofFor(Node f)
     return nullptr;
   }
   // get the proof from the proof generator
-  std::shared_ptr<ProofNode> pf = itx->second.first.getProofFor(f);
+  std::shared_ptr<ProofNode> pf = itx->second.first->getProofFor(f);
   if (pf==nullptr)
   {
     d_proofs[f] = nullptr;
     return nullptr;
   }
-  // now anntoate it
-  std::shared_ptr<ProofNode> pfa = itx->second.second.annotate(pf);
+  // now anntoate it if an annotator was provided
+  std::shared_ptr<ProofNode> pfa = pf;
+  if (itx->second.second!=nullptr)
+  {
+    pfa = itx->second.second->annotate(pf);
+  }
   d_proofs[f] = pfa;
   return pfa;
 }

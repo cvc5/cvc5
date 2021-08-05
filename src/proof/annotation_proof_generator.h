@@ -59,13 +59,13 @@ class AnnotationProofGenerator : public ProofGenerator
   /** Can we give the proof for formula f? */
   bool hasProofFor(Node f) override;
   /**
-   * Set proof for fact f, called when pf is a proof of f.
+   * Set explanation for fact f, called when pg has a proof for f.
    *
    * @param f The fact proven by pf,
    * @param pg The proof generator that can prove f.
    * @param a The annotator that will annotate the proof of f, if necessary.
    */
-  void setProofFor(Node f, ProofGenerator * pg, Annotator * a);
+  void setExplanationFor(Node f, ProofGenerator * pg, Annotator * a);
   /** identify */
   std::string identify() const override;
  protected:
