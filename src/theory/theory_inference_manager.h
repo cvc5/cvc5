@@ -32,6 +32,7 @@ namespace cvc5 {
 
 class ProofNodeManager;
 class AnnotationProofGenerator;
+class EagerProofGenerator;
 
 namespace theory {
 
@@ -448,6 +449,8 @@ class TheoryInferenceManager
   std::unique_ptr<eq::ProofEqEngine> d_pfeeAlloc;
   /** The proof node manager of the theory */
   ProofNodeManager* d_pnm;
+  /** Proof generator for trusted THEORY_LEMMA steps */
+  std::unique_ptr<EagerProofGenerator> d_defaultPg;
   /** The inference id proof annotator */
   std::unique_ptr<InferenceIdProofAnnotator> d_iipa;
   /** The annotation proof generator */

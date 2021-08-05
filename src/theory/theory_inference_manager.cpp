@@ -17,6 +17,7 @@
 
 #include "options/proof_options.h"
 #include "proof/annotation_proof_generator.h"
+#include "proof/eager_proof_generator.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/inference_id_proof_annotator.h"
@@ -26,6 +27,7 @@
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
+#include "theory/builtin/proof_checker.h"
 
 using namespace cvc5::kind;
 
@@ -63,9 +65,10 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
 
   if (d_pnm != nullptr)
   {
+    context::UserContext* u = state.getUserContext();
+    d_defaultPg.reset(new EagerProofGenerator(d_pnm, u, statsName + "EagerProofGenerator"));
     if (options::proofAnnotate())
     {
-      context::UserContext* u = state.getUserContext();
       d_iipa.reset(new InferenceIdProofAnnotator(d_pnm, u));
       d_apg.reset(new AnnotationProofGenerator(
           d_pnm, u, statsName + "AnnotationProofGenerator"));
@@ -575,8 +578,16 @@ TrustNode TheoryInferenceManager::annotateId(const TrustNode& trn,
                                              InferenceId id)
 {
   Assert(d_iipa != nullptr && d_apg != nullptr);
-  d_iipa->setAnnotation(trn.getProven(), id);
-  return d_apg->transform(trn, d_iipa.get());
+  Node lemma = trn.getProven();
+  TrustNode trna = trn;
+  // ensure we have a proof generator, make trusted theory lemma if not
+  if (trn.getGenerator()==nullptr)
+  {
+    Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(d_theory.getId());
+    trna = d_defaultPg->mkTrustNode(lemma, PfRule::THEORY_LEMMA, {}, {lemma, tidn});
+  }
+  d_iipa->setAnnotation(lemma, id);
+  return d_apg->transform(trna, d_iipa.get());
 }
 
 DecisionManager* TheoryInferenceManager::getDecisionManager()
