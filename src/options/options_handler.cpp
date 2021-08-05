@@ -294,22 +294,29 @@ void OptionsHandler::threadN(const std::string& option, const std::string& flag)
 }
 
 // expr/options_handlers.h
-void OptionsHandler::setDefaultExprDepthPredicate(const std::string& option,
+void OptionsHandler::setDefaultExprDepth(const std::string& option,
                                                   const std::string& flag,
                                                   int depth)
 {
-  if(depth < -1) {
-    throw OptionException("--expr-depth requires a positive argument, or -1.");
-  }
+  Debug.getStream() << expr::ExprSetDepth(depth);
+  Trace.getStream() << expr::ExprSetDepth(depth);
+  Notice.getStream() << expr::ExprSetDepth(depth);
+  Chat.getStream() << expr::ExprSetDepth(depth);
+  CVC5Message.getStream() << expr::ExprSetDepth(depth);
+  Warning.getStream() << expr::ExprSetDepth(depth);
 }
 
-void OptionsHandler::setDefaultDagThreshPredicate(const std::string& option,
+void OptionsHandler::setDefaultDagThresh(const std::string& option,
                                                   const std::string& flag,
                                                   int dag)
 {
-  if(dag < 0) {
-    throw OptionException("--dag-thresh requires a nonnegative argument.");
-  }
+  Debug.getStream() << expr::ExprDag(dag);
+  Trace.getStream() << expr::ExprDag(dag);
+  Notice.getStream() << expr::ExprDag(dag);
+  Chat.getStream() << expr::ExprDag(dag);
+  CVC5Message.getStream() << expr::ExprDag(dag);
+  Warning.getStream() << expr::ExprDag(dag);
+  Dump.getStream() << expr::ExprDag(dag);
 }
 
 // main/options_handlers.h

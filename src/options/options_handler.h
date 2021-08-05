@@ -123,10 +123,10 @@ public:
                          const std::string& optarg);
 
   /* expr/options_handlers.h */
-  void setDefaultExprDepthPredicate(const std::string& option,
+  void setDefaultExprDepth(const std::string& option,
                                     const std::string& flag,
                                     int depth);
-  void setDefaultDagThreshPredicate(const std::string& option,
+  void setDefaultDagThresh(const std::string& option,
                                     const std::string& flag,
                                     int dag);
 
