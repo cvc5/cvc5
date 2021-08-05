@@ -109,7 +109,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       }
     }
   }
-  else if (r== PfRule::ANNOTATION)
+  else if (r == PfRule::ANNOTATION)
   {
     // we currently assume the annotation is a single inference id
     const std::vector<Node>& args = pn->getArguments();

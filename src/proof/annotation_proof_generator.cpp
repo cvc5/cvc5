@@ -71,7 +71,7 @@ std::shared_ptr<ProofNode> AnnotationProofGenerator::getProofFor(Node f)
 }
 
 TrustNode AnnotationProofGenerator::transform(const TrustNode& trn,
-                                                 Annotator* a)
+                                              Annotator* a)
 {
   setExplanationFor(trn.getProven(), trn.getGenerator(), a);
   return TrustNode::mkReplaceGenTrustNode(trn, this);

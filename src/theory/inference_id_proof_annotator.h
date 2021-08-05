@@ -32,14 +32,15 @@ class InferenceIdProofAnnotator : public Annotator
 {
   typedef context::CDHashMap<Node, InferenceId> NodeInferenceIdMap;
   typedef context::CDList<std::shared_ptr<ProofNode>> ProofNodeList;
+
  public:
-  InferenceIdProofAnnotator(ProofNodeManager* pnm,
-                           context::Context* c);
+  InferenceIdProofAnnotator(ProofNodeManager* pnm, context::Context* c);
   /** Set annotation, that formula f should be annotated by id */
   void setAnnotation(Node f, InferenceId id);
   /** Annotate the proof node with the appropriate inference ID. */
   std::shared_ptr<ProofNode> annotate(std::shared_ptr<ProofNode> p) override;
-private:
+
+ private:
   /** The proof node manager of the theory */
   ProofNodeManager* d_pnm;
   /** The inference id for each formula */

@@ -15,17 +15,17 @@
 
 #include "theory/theory_inference_manager.h"
 
+#include "options/proof_options.h"
+#include "proof/annotation_proof_generator.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/inference_id_proof_annotator.h"
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
-#include "proof/annotation_proof_generator.h"
-#include "theory/inference_id_proof_annotator.h"
-#include "options/proof_options.h"
 
 using namespace cvc5::kind;
 
@@ -60,14 +60,15 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
   // don't add true lemma
   Node truen = NodeManager::currentNM()->mkConst(true);
   d_lemmasSent.insert(truen);
-  
-  if (d_pnm!=nullptr)
+
+  if (d_pnm != nullptr)
   {
     if (options::proofAnnotate())
     {
-      context::UserContext * u = state.getUserContext();
+      context::UserContext* u = state.getUserContext();
       d_iipa.reset(new InferenceIdProofAnnotator(d_pnm, u));
-      d_apg.reset(new AnnotationProofGenerator(d_pnm, u, statsName + "AnnotationProofGenerator"));
+      d_apg.reset(new AnnotationProofGenerator(
+          d_pnm, u, statsName + "AnnotationProofGenerator"));
     }
   }
 }
@@ -142,7 +143,7 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
   Trace("im") << "(conflict " << id << " " << tconf.getProven() << ")"
               << std::endl;
   // annotate if the annotation proof generator is active
-  if (d_apg!=nullptr)
+  if (d_apg != nullptr)
   {
     tconf = annotateId(tconf, id);
   }
@@ -279,7 +280,7 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
   Trace("im") << "(lemma " << id << " " << tlem.getProven() << ")" << std::endl;
   d_numCurrentLemmas++;
   // annotate if the annotation proof generator is active
-  if (d_apg!=nullptr)
+  if (d_apg != nullptr)
   {
     TrustNode tlema = annotateId(tlem, id);
     d_out.trustedLemma(tlema, p);
@@ -570,9 +571,10 @@ bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
   return true;
 }
 
-TrustNode TheoryInferenceManager::annotateId(const TrustNode& trn, InferenceId id)
+TrustNode TheoryInferenceManager::annotateId(const TrustNode& trn,
+                                             InferenceId id)
 {
-  Assert (d_iipa!=nullptr && d_apg!=nullptr);
+  Assert(d_iipa != nullptr && d_apg != nullptr);
   d_iipa->setAnnotation(trn.getProven(), id);
   return d_apg->transform(trn, d_iipa.get());
 }

@@ -15,22 +15,24 @@
 
 #include "theory/inference_id_proof_annotator.h"
 
-#include "proof/proof_node_manager.h"
 #include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
 
 namespace cvc5 {
 namespace theory {
 
 InferenceIdProofAnnotator::InferenceIdProofAnnotator(ProofNodeManager* pnm,
-                          context::Context* c) : d_pnm(pnm), d_ids(c), d_list(c){
-                          
+                                                     context::Context* c)
+    : d_pnm(pnm), d_ids(c), d_list(c)
+{
 }
 void InferenceIdProofAnnotator::setAnnotation(Node f, InferenceId id)
 {
   d_ids[f] = id;
 }
 
-std::shared_ptr<ProofNode> InferenceIdProofAnnotator::annotate(std::shared_ptr<ProofNode> p) 
+std::shared_ptr<ProofNode> InferenceIdProofAnnotator::annotate(
+    std::shared_ptr<ProofNode> p)
 {
   Node f = p->getResult();
   NodeInferenceIdMap::iterator it = d_ids.find(f);
@@ -38,7 +40,8 @@ std::shared_ptr<ProofNode> InferenceIdProofAnnotator::annotate(std::shared_ptr<P
   {
     std::vector<Node> pfArgs;
     pfArgs.push_back(mkInferenceIdNode(it->second));
-    std::shared_ptr<ProofNode> pa = d_pnm->mkNode(PfRule::ANNOTATION, {p}, pfArgs);
+    std::shared_ptr<ProofNode> pa =
+        d_pnm->mkNode(PfRule::ANNOTATION, {p}, pfArgs);
     d_list.push_back(pa);
     return pa;
   }
