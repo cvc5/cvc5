@@ -104,7 +104,7 @@ void SequencesUpdateSolver::checkTerms(Kind k)
     if (nf.d_nf.empty())
     {
       // should have been reduced (UPD_EMPTYSTR)
-      Assert (false);
+      if (k==STRING_UPDATE) Assert (false);
       continue;
     }
     else if (nf.d_nf.size() == 1)

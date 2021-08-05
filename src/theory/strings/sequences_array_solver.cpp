@@ -62,29 +62,13 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
     }
     else
     {
-      Node proxyVar = d_termReg.getProxyVariableFor(n);
-      std::vector<Node> exp;
-      //		d_im.addToExplanation(proxyVar, n, exp);
-
-      for (Node i : index_map[r])
-      {
-        // i == n[1] => n == (seq.nth n[0] i)
-        Node left = nm->mkNode(EQUAL, i, n[1]);
-        Node right = nm->mkNode(EQUAL, n, nm->mkNode(SEQ_NTH, r, i));
-        Node lem = nm->mkNode(IMPLIES, left, right);
-        // if (d_lem.find(lem) == d_lem.end())
-        //{
-        //	d_lem.insert(lem);
-        //	InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
-        //	Trace("seq-update") << "send lemma - " << lem << std::endl;
-        //	d_im.sendInference(exp, lem, iid);
-        //}
-      }
       index_map[r].insert(n[1]);
     }
   }
   for (const Node& n : updateTerms)
   {
+	// TODO:if n[2].kind == SEQ_UNIT
+
     // (seq.update x i (seq.unit z))
     // possible lemma: (seq.nth (seq.update x, i, (seq.unit z)) i) == z
     // note the left side could rewrites to z
@@ -94,10 +78,15 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
     Node proxyVar = d_termReg.getProxyVariableFor(n);
     Trace("seq-update") << "- " << proxyVar << " = " << n << std::endl;
 
-    // t == (seq.update x i (seq.unit z))
+    // t == (seq.update x i (seq.unit z)) ^ i\in range(x)
     // => (seq.nth t i) == z
     std::vector<Node> exp;
     d_im.addToExplanation(proxyVar, n, exp);
+	Node lb = Rewriter::rewrite(nm->mkNode(LEQ, nm->mkConst(Rational(0)), n[1])); // 0 <= i
+	Node ub = Rewriter::rewrite(nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0]))); // i < len(proxyVar)
+	Node range = nm->mkNode(AND, lb, ub);
+	std::cerr << range << std::endl;
+	exp.push_back(range); // 0 <= i ^ i < len(t)
     Node left = nm->mkNode(SEQ_NTH, proxyVar, n[1]);
     Node right =
         nm->mkNode(SEQ_NTH, n[2], nm->mkConst(Rational(0)));  // n[2][0]
@@ -111,7 +100,8 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
       d_im.sendInference(exp, eq, iid);
     }
 
-    // i != j => (seq.nth (seq.update a i x) j) == (seq.nth a j)
+    // i != j ^ i, j \in range(a)
+	// => (seq.nth (seq.update a i x) j) == (seq.nth a j)
     // std::vector<Node> exp;
     // d_im.addToExplanation(proxyVar, n, exp);
     for (auto nth : index_map)
@@ -126,12 +116,14 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
           Node nth1 = nm->mkNode(SEQ_NTH, proxyVar, j);
           Node nth2 = nm->mkNode(SEQ_NTH, n[0], j);
           right = nm->mkNode(EQUAL, nth1, nth2);
+		  // exp.push_back(left)
           Node lem = nm->mkNode(IMPLIES, left, right);
           if (d_lem.find(lem) == d_lem.end())
           {
             d_lem.insert(lem);
             InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
             Trace("seq-update") << "send lemma - " << lem << std::endl;
+			// d_im.sendInference(exp, right, iid);
             d_im.sendInference(exp, lem, iid);
           }
         }
