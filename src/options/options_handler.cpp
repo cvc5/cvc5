@@ -656,7 +656,7 @@ void OptionsHandler::setPrintSuccess(const std::string& option,
   Chat.getStream() << Command::printsuccess(value);
   CVC5Message.getStream() << Command::printsuccess(value);
   Warning.getStream() << Command::printsuccess(value);
-  *options::out() << Command::printsuccess(value);
+  *d_options->base.out << Command::printsuccess(value);
 }
 
 }  // namespace options
