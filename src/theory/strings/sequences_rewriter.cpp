@@ -55,15 +55,44 @@ Node SequencesRewriter::rewriteEquality(Node node)
     Node ret = NodeManager::currentNM()->mkConst(false);
     return returnRewrite(node, ret, Rewrite::EQ_CONST_FALSE);
   }
+  // standard ordering
+  if (node[0] > node[1])
+  {
+    Node ret = NodeManager::currentNM()->mkNode(kind::EQUAL, node[1], node[0]);
+    return returnRewrite(node, ret, Rewrite::EQ_SYM);
+  }
+  return node;
+}
 
+Node SequencesRewriter::rewriteEqualityExt(Node node)
+{
+  Assert(node.getKind() == EQUAL);
+  TypeNode tn = node[0].getType();
+  if (tn.isInteger())
+  {
+    return rewriteArithEqualityExt(node);
+  }
+  if (tn.isStringLike())
+  {
+    return rewriteStrEqualityExt(node);
+  }
+  return node;
+}
+
+Node SequencesRewriter::rewriteStrEqualityExt(Node node)
+{
+  Assert(node.getKind() == EQUAL && node[0].getType().isStringLike());
+  TypeNode stype = node[0].getType();
+
+  NodeManager* nm = NodeManager::currentNM();
   // ( ~contains( s, t ) V ~contains( t, s ) ) => ( s == t ---> false )
   for (unsigned r = 0; r < 2; r++)
   {
     // must call rewrite contains directly to avoid infinite loop
-    // we do a fix point since we may rewrite contains terms to simpler
-    // contains terms.
-    Node ctn = d_stringsEntail.checkContains(node[r], node[1 - r], false);
-    if (!ctn.isNull())
+    Node ctn = nm->mkNode(STRING_CONTAINS, node[r], node[1 - r]);
+    ctn = rewriteContains(ctn);
+    Assert(!ctn.isNull());
+    if (ctn.isConst())
     {
       if (!ctn.getConst<bool>())
       {
@@ -126,41 +155,7 @@ Node SequencesRewriter::rewriteEquality(Node node)
     }
   }
 
-  // standard ordering
-  if (node[0] > node[1])
-  {
-    Node ret = NodeManager::currentNM()->mkNode(kind::EQUAL, node[1], node[0]);
-    return returnRewrite(node, ret, Rewrite::EQ_SYM);
-  }
-  return node;
-}
-
-Node SequencesRewriter::rewriteEqualityExt(Node node)
-{
-  Assert(node.getKind() == EQUAL);
-  if (node[0].getType().isInteger())
-  {
-    return rewriteArithEqualityExt(node);
-  }
-  if (node[0].getType().isStringLike())
-  {
-    return rewriteStrEqualityExt(node);
-  }
-  return node;
-}
-
-Node SequencesRewriter::rewriteStrEqualityExt(Node node)
-{
-  Assert(node.getKind() == EQUAL && node[0].getType().isStringLike());
-  TypeNode stype = node[0].getType();
-
-  NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> c[2];
   Node new_ret;
-  for (unsigned i = 0; i < 2; i++)
-  {
-    utils::getConcat(node[i], c[i]);
-  }
   // ------- equality unification
   bool changed = false;
   for (unsigned i = 0; i < 2; i++)
@@ -213,7 +208,8 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
       // original node was an equality but we may be able to do additional
       // rewriting here, e.g.,
       // x++y = "" --> x = "" and y = ""
-      return returnRewrite(node, new_ret, Rewrite::STR_EQ_UNIFY, true);
+      new_ret = returnRewrite(node, new_ret, Rewrite::STR_EQ_UNIFY);
+      return rewriteStrEqualityExt(new_ret);
     }
   }
 
@@ -292,7 +288,8 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
         // original node was an equality but we may be able to do additional
         // rewriting here.
         new_ret = lhs.eqNode(ss);
-        return returnRewrite(node, new_ret, Rewrite::STR_EQ_HOMOG_CONST, true);
+        new_ret = returnRewrite(node, new_ret, Rewrite::STR_EQ_HOMOG_CONST);
+        return rewriteStrEqualityExt(new_ret);
       }
     }
   }
@@ -544,7 +541,6 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
       }
     }
   }
-
   return node;
 }
 
@@ -1555,6 +1551,9 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
       << std::endl;
   if (node != retNode)
   {
+    // also post process the rewrite, which may apply extended rewriting to
+    // equalities, if we rewrite to an equality from a non-equality
+    retNode = postProcessRewrite(node, retNode);
     Trace("strings-rewrite-debug") << "Strings::SequencesRewriter::postRewrite "
                                    << node << " to " << retNode << std::endl;
     return RewriteResponse(REWRITE_AGAIN_FULL, retNode);
@@ -3482,21 +3481,20 @@ Node SequencesRewriter::rewriteSeqUnit(Node node)
   return node;
 }
 
-Node SequencesRewriter::returnRewrite(Node node,
-                                      Node ret,
-                                      Rewrite r,
-                                      bool rewriteEqAgain)
+Node SequencesRewriter::returnRewrite(Node node, Node ret, Rewrite r)
 {
   Trace("strings-rewrite") << "Rewrite " << node << " to " << ret << " by " << r
                            << "." << std::endl;
-
-  NodeManager* nm = NodeManager::currentNM();
-
   if (d_statistics != nullptr)
   {
     (*d_statistics) << r;
   }
+  return ret;
+}
 
+Node SequencesRewriter::postProcessRewrite(Node node, Node ret)
+{
+  NodeManager* nm = NodeManager::currentNM();
   // standard post-processing
   // We rewrite (string) equalities immediately here. This allows us to forego
   // the standard invariant on equality rewrites (that s=t must rewrite to one
@@ -3529,7 +3527,7 @@ Node SequencesRewriter::returnRewrite(Node node,
   {
     ret = nm->mkNode(NOT, rewriteEqualityExt(ret[0]));
   }
-  else if (retk == EQUAL && (rewriteEqAgain || node.getKind() != EQUAL))
+  else if (retk == EQUAL && node.getKind() != EQUAL)
   {
     Trace("strings-rewrite")
         << "Apply extended equality rewrite on " << ret << std::endl;
