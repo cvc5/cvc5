@@ -172,6 +172,13 @@ public:
                        const std::string& flag,
                        const std::string& optarg);
 
+  void setDumpMode(const std::string& option,
+                       const std::string& flag,
+                       const std::string& optarg);
+  void setPrintSuccess(const std::string& option,
+                       const std::string& flag,
+                       bool value);
+
  private:
 
   /** Pointer to the containing Options object.*/
