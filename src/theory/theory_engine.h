@@ -44,7 +44,6 @@ namespace cvc5 {
 
 class Env;
 class ResourceManager;
-class OutputManager;
 class TheoryEngineProofGenerator;
 class ProofChecker;
 
@@ -131,9 +130,6 @@ class TheoryEngine {
   /** The separation logic location and data types */
   TypeNode d_sepLocType;
   TypeNode d_sepDataType;
-
-  /** Reference to the output manager of the smt engine */
-  OutputManager& d_outMgr;
 
   //--------------------------------- new proofs
   /** Proof node manager used by this theory engine, if proofs are enabled */
@@ -277,11 +273,13 @@ class TheoryEngine {
    */
   void lemma(TrustNode node,
              theory::LemmaProperty p,
-             theory::TheoryId atomsTo = theory::THEORY_LAST,
              theory::TheoryId from = theory::THEORY_LAST);
 
-  /** Enusre that the given atoms are send to the given theory */
-  void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
+  /** Ensure atoms from the given node are sent to the given theory */
+  void ensureLemmaAtoms(TNode n, theory::TheoryId atomsTo);
+  /** Ensure that the given atoms are sent to the given theory */
+  void ensureLemmaAtoms(const std::vector<TNode>& atoms,
+                        theory::TheoryId atomsTo);
 
   /** sort inference module */
   std::unique_ptr<theory::SortInference> d_sortInfer;
@@ -297,7 +295,7 @@ class TheoryEngine {
 
  public:
   /** Constructs a theory engine */
-  TheoryEngine(Env& env, OutputManager& outMgr, ProofNodeManager* pnm);
+  TheoryEngine(Env& env, ProofNodeManager* pnm);
 
   /** Destroys a theory engine */
   ~TheoryEngine();

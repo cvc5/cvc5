@@ -219,12 +219,10 @@ context::UserContext* TheoryEngine::getUserContext() const
 }
 
 TheoryEngine::TheoryEngine(Env& env,
-                           OutputManager& outMgr,
                            ProofNodeManager* pnm)
     : d_propEngine(nullptr),
       d_env(env),
       d_logicInfo(env.getLogicInfo()),
-      d_outMgr(outMgr),
       d_pnm(pnm),
       d_lazyProof(d_pnm != nullptr
                       ? new LazyCDProof(d_pnm,
@@ -361,8 +359,8 @@ void TheoryEngine::printAssertions(const char* tag) {
 
 void TheoryEngine::dumpAssertions(const char* tag) {
   if (Dump.isOn(tag)) {
-    const Printer& printer = d_outMgr.getPrinter();
-    std::ostream& out = d_outMgr.getDumpOut();
+    const Printer& printer = d_env.getPrinter();
+    std::ostream& out = d_env.getDumpOut();
     printer.toStreamCmdComment(out, "Starting completeness check");
     for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
       Theory* theory = d_theoryTable[theoryId];
@@ -909,17 +907,20 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
     return;
   }
 
-  // If sending to the shared terms database, it's also simple
+  // determine the actual theory that will process/explain the fact, which is
+  // THEORY_BUILTIN if the theory uses the central equality engine
+  TheoryId toTheoryIdProp = (Theory::expUsingCentralEqualityEngine(toTheoryId))
+                                ? THEORY_BUILTIN
+                                : toTheoryId;
+  // If sending to the shared solver, it's also simple
   if (toTheoryId == THEORY_BUILTIN) {
-    Assert(assertion.getKind() == kind::EQUAL
-           || (assertion.getKind() == kind::NOT
-               && assertion[0].getKind() == kind::EQUAL))
-        << "atom should be an EQUALity, not `" << assertion << "'";
-    if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
+    if (markPropagation(
+            assertion, originalAssertion, toTheoryIdProp, fromTheoryId))
+    {
       // assert to the shared solver
       bool polarity = assertion.getKind() != kind::NOT;
       TNode atom = polarity ? assertion : assertion[0];
-      d_sharedSolver->assertSharedEquality(atom, polarity, assertion);
+      d_sharedSolver->assertShared(atom, polarity, assertion);
     }
     return;
   }
@@ -928,7 +929,9 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
   // directly to the apropriate theory
   if (fromTheoryId == THEORY_SAT_SOLVER) {
     // We know that this is normalized, so just send it off to the theory
-    if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
+    if (markPropagation(
+            assertion, originalAssertion, toTheoryIdProp, fromTheoryId))
+    {
       // Is it preregistered
       bool preregistered = d_propEngine->isSatLiteral(assertion) && Theory::theoryOf(assertion) == toTheoryId;
       // We assert it
@@ -942,6 +945,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
   // Propagations to the SAT solver are just enqueued for pickup by
   // the SAT solver later
   if (toTheoryId == THEORY_SAT_SOLVER) {
+    Assert(toTheoryIdProp == toTheoryId);
     if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
       // Enqueue for propagation to the SAT solver
       d_propagatedLiterals.push_back(assertion);
@@ -971,7 +975,11 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
   if (normalizedLiteral.isConst()) {
     if (!normalizedLiteral.getConst<bool>()) {
       // Mark the propagation for explanations
-      if (markPropagation(normalizedLiteral, originalAssertion, toTheoryId, fromTheoryId)) {
+      if (markPropagation(normalizedLiteral,
+                          originalAssertion,
+                          toTheoryIdProp,
+                          fromTheoryId))
+      {
         // special case, trust node has no proof generator
         TrustNode trnn = TrustNode::mkTrustConflict(normalizedLiteral);
         // Get the explanation (conflict will figure out where it came from)
@@ -984,7 +992,9 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
   }
 
   // Try and assert (note that we assert the non-normalized one)
-  if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
+  if (markPropagation(
+          assertion, originalAssertion, toTheoryIdProp, fromTheoryId))
+  {
     // Check if has been pre-registered with the theory
     bool preregistered = d_propEngine->isSatLiteral(assertion) && Theory::theoryOf(assertion) == toTheoryId;
     // Assert away
@@ -1234,6 +1244,16 @@ struct AtomsCollect {
   }
 };
 
+void TheoryEngine::ensureLemmaAtoms(TNode n, theory::TheoryId atomsTo)
+{
+  Assert(atomsTo != THEORY_LAST);
+  Debug("theory::atoms") << "TheoryEngine::ensureLemmaAtoms(" << n << ", "
+                         << atomsTo << ")" << endl;
+  AtomsCollect collectAtoms;
+  NodeVisitor<AtomsCollect>::run(collectAtoms, n);
+  ensureLemmaAtoms(collectAtoms.getAtoms(), atomsTo);
+}
+
 void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId atomsTo) {
   for (unsigned i = 0; i < atoms.size(); ++ i) {
 
@@ -1302,7 +1322,6 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
 
 void TheoryEngine::lemma(TrustNode tlemma,
                          theory::LemmaProperty p,
-                         theory::TheoryId atomsTo,
                          theory::TheoryId from)
 {
   // For resource-limiting (also does a time check).
@@ -1334,20 +1353,11 @@ void TheoryEngine::lemma(TrustNode tlemma,
     tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_initial");
   }
 
-  // Do we need to check atoms
-  if (atomsTo != theory::THEORY_LAST) {
-    Debug("theory::atoms") << "TheoryEngine::lemma(" << node << ", " << atomsTo
-                           << ")" << endl;
-    AtomsCollect collectAtoms;
-    NodeVisitor<AtomsCollect>::run(collectAtoms, node);
-    ensureLemmaAtoms(collectAtoms.getAtoms(), atomsTo);
-  }
-
   if(Dump.isOn("t-lemmas")) {
     // we dump the negation of the lemma, to show validity of the lemma
     Node n = lemma.negate();
-    const Printer& printer = d_outMgr.getPrinter();
-    std::ostream& out = d_outMgr.getDumpOut();
+    const Printer& printer = d_env.getPrinter();
+    std::ostream& out = d_env.getDumpOut();
     printer.toStreamCmdComment(out, "theory lemma: expect valid");
     printer.toStreamCmdCheckSat(out, n);
   }
@@ -1401,8 +1411,8 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
   markInConflict();
 
   if(Dump.isOn("t-conflicts")) {
-    const Printer& printer = d_outMgr.getPrinter();
-    std::ostream& out = d_outMgr.getDumpOut();
+    const Printer& printer = d_env.getPrinter();
+    std::ostream& out = d_env.getDumpOut();
     printer.toStreamCmdComment(out, "theory conflict: expect unsat");
     printer.toStreamCmdCheckSat(out, conflict);
   }
@@ -1492,7 +1502,7 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
     // pass the trust node that was sent from the theory
-    lemma(tconflict, LemmaProperty::REMOVABLE, THEORY_LAST, theoryId);
+    lemma(tconflict, LemmaProperty::REMOVABLE, theoryId);
   }
 }
 
@@ -1509,6 +1519,12 @@ TrustNode TheoryEngine::getExplanation(
 {
   Assert(explanationVector.size() == 1);
   Node conclusion = explanationVector[0].d_node;
+  // if the theory explains using the central equality engine, we always start
+  // with THEORY_BUILTIN.
+  if (Theory::expUsingCentralEqualityEngine(explanationVector[0].d_theory))
+  {
+    explanationVector[0].d_theory = THEORY_BUILTIN;
+  }
   std::shared_ptr<LazyCDProof> lcp;
   if (isProofEnabled())
   {
@@ -1668,7 +1684,9 @@ TrustNode TheoryEngine::getExplanation(
         << "TheoryEngine::explain(): got explanation " << explanation
         << " got from " << toExplain.d_theory << endl;
     Assert(explanation != toExplain.d_node)
-        << "wasn't sent to you, so why are you explaining it trivially";
+        << "wasn't sent to you, so why are you explaining it trivially, for "
+           "fact "
+        << explanation;
     // Mark the explanation
     NodeTheoryPair newExplain(
         explanation, toExplain.d_theory, toExplain.d_timestamp);

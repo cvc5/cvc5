@@ -27,7 +27,6 @@
 #include "options/decision_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
-#include "options/open_ostream.h"
 #include "options/option_exception.h"
 #include "options/printer_options.h"
 #include "options/proof_options.h"
@@ -409,6 +408,18 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "Disabling bv-assert-input since it is incompatible with proofs."
              << std::endl;
     opts.bv.bvAssertInput = false;
+  }
+
+  // If proofs are required and the user did not specify a specific BV solver,
+  // we make sure to use the proof producing BITBLAST_INTERNAL solver.
+  if (options::produceProofs()
+      && options::bvSolver() != options::BVSolver::BITBLAST_INTERNAL
+      && !opts.bv.bvSolverWasSetByUser
+      && opts.bv.bvSatSolver == options::SatSolverMode::MINISAT)
+  {
+    Notice() << "Forcing internal bit-vector solver due to proof production."
+             << std::endl;
+    opts.bv.bvSolver = options::BVSolver::BITBLAST_INTERNAL;
   }
 
   // whether we want to force safe unsat cores, i.e., if we are in the default
@@ -970,6 +981,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // set up of central equality engine
+  if (opts.theory.eeMode == options::EqEngineMode::CENTRAL)
+  {
+    if (!opts.arith.arithEqSolverWasSetByUser)
+    {
+      // use the arithmetic equality solver by default
+      opts.arith.arithEqSolver = true;
+    }
+  }
   if (opts.arith.arithEqSolver)
   {
     if (!opts.arith.arithCongManWasSetByUser)

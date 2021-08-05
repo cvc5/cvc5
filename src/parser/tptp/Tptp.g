@@ -165,7 +165,7 @@ parseCommand returns [cvc5::Command* cmd = NULL]
         SYM_MAN->setExpressionName(aexpr, name, true);
       }
       // make the command to assert the formula
-      cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ true, true);
+      cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, true);
     }
   | FOF_TOK LPAREN_TOK nameN[name] COMMA_TOK formulaRole[fr] COMMA_TOK
     { PARSER_STATE->setCnf(false); PARSER_STATE->setFof(true); }
@@ -177,7 +177,7 @@ parseCommand returns [cvc5::Command* cmd = NULL]
         SYM_MAN->setExpressionName(aexpr, name, true);
       }
       // make the command to assert the formula
-      cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ false, true);
+      cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, false);
     }
   | TFF_TOK LPAREN_TOK nameN[name] COMMA_TOK
     ( TYPE_TOK COMMA_TOK tffTypedAtom[cmd]
@@ -191,7 +191,7 @@ parseCommand returns [cvc5::Command* cmd = NULL]
           SYM_MAN->setExpressionName(aexpr, name, true);
         }
         // make the command to assert the formula
-        cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ false, true);
+        cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, false);
       }
     ) RPAREN_TOK DOT_TOK
   | THF_TOK
@@ -218,8 +218,7 @@ parseCommand returns [cvc5::Command* cmd = NULL]
           SYM_MAN->setExpressionName(aexpr, name, true);
         }
         // make the command to assert the formula
-        cmd = PARSER_STATE->makeAssertCommand(
-            fr, aexpr, /* cnf == */ false, true);
+        cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, false);
       }
     ) RPAREN_TOK DOT_TOK
   | INCLUDE_TOK LPAREN_TOK unquotedFileName[name]
@@ -249,7 +248,7 @@ parseCommand returns [cvc5::Command* cmd = NULL]
       cvc5::api::Term aexpr = PARSER_STATE->getAssertionDistinctConstants();
       if( !aexpr.isNull() )
       {
-        seq->addCommand(new AssertCommand(aexpr, false));
+        seq->addCommand(new AssertCommand(aexpr));
       }
 
       std::string filename = PARSER_STATE->getInput()->getInputStreamName();

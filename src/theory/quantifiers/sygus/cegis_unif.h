@@ -241,15 +241,13 @@ class CegisUnif : public Cegis
    * in which d is the deep embedding of the function-to-synthesize f
    */
   void registerRefinementLemma(const std::vector<Node>& vars,
-                               Node lem,
-                               std::vector<Node>& lems) override;
+                               Node lem) override;
 
  private:
   /** do cegis-implementation-specific initialization for this class */
   bool processInitialize(Node conj,
                          Node n,
-                         const std::vector<Node>& candidates,
-                         std::vector<Node>& lemmas) override;
+                         const std::vector<Node>& candidates) override;
   /** Tries to build new candidate solutions with new enumerated expressions
    *
    * This function relies on a data-driven unification-based approach for
@@ -263,11 +261,11 @@ class CegisUnif : public Cegis
    * for constructing candidate solutions when possible.
    *
    * This function also excludes models where (terms = terms_values) by adding
-   * blocking clauses to lems. For example, for grammar:
+   * blocking clauses to d_qim pending lemmas. For example, for grammar:
    *   A -> A+A | x | 1 | 0
    * and a call where terms = { d } and term_values = { +( x, 1 ) }, it adds:
    *   ~G V ~is_+( d ) V ~is_x( d.1 ) V ~is_1( d.2 )
-   * to lems, where G is active guard of the enumerator d (see
+   * to d_qim pending lemmas, where G is active guard of the enumerator d (see
    * TermDatabaseSygus::getActiveGuardForEnumerator). This blocking clause
    * indicates that d should not be given the model value +( x, 1 ) anymore,
    * since { d -> +( x, 1 ) } has now been added to the database of this class.
@@ -276,8 +274,7 @@ class CegisUnif : public Cegis
                                   const std::vector<Node>& enum_values,
                                   const std::vector<Node>& candidates,
                                   std::vector<Node>& candidate_values,
-                                  bool satisfiedRl,
-                                  std::vector<Node>& lems) override;
+                                  bool satisfiedRl) override;
   /** communicate condition values to solution building utility
    *
    * for each unification candidate and for each strategy point associated with
@@ -285,8 +282,7 @@ class CegisUnif : public Cegis
    * condition enumerators (unif_cenums)
    */
   void setConditions(const std::map<Node, std::vector<Node>>& unif_cenums,
-                     const std::map<Node, std::vector<Node>>& unif_cvalues,
-                     std::vector<Node>& lems);
+                     const std::map<Node, std::vector<Node>>& unif_cvalues);
   /** set values of condition enumerators based on current enumerator assignment
    *
    * enums and enum_values are the enumerators registered in getTermList and
@@ -305,8 +301,7 @@ class CegisUnif : public Cegis
   bool getEnumValues(const std::vector<Node>& enums,
                      const std::vector<Node>& enum_values,
                      std::map<Node, std::vector<Node>>& unif_cenums,
-                     std::map<Node, std::vector<Node>>& unif_cvalues,
-                     std::vector<Node>& lems);
+                     std::map<Node, std::vector<Node>>& unif_cvalues);
 
   /**
    * Whether we are using condition pool enumeration (Section 4 of Barbosa et al

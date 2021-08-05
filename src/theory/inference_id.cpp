@@ -16,6 +16,7 @@
 #include "theory/inference_id.h"
 
 #include <iostream>
+#include "proof/proof_checker.h"
 #include "util/rational.h"
 
 namespace cvc5 {
@@ -34,6 +35,7 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_CONF_UPPER: return "ARITH_CONF_UPPER";
     case InferenceId::ARITH_CONF_SIMPLEX: return "ARITH_CONF_SIMPLEX";
     case InferenceId::ARITH_CONF_SOI_SIMPLEX: return "ARITH_CONF_SOI_SIMPLEX";
+    case InferenceId::ARITH_CONF_FACT_QUEUE: return "ARITH_CONF_FACT_QUEUE";
     case InferenceId::ARITH_SPLIT_DEQ: return "ARITH_SPLIT_DEQ";
     case InferenceId::ARITH_TIGHTEN_CEIL: return "ARITH_TIGHTEN_CEIL";
     case InferenceId::ARITH_TIGHTEN_FLOOR: return "ARITH_TIGHTEN_FLOOR";
@@ -96,6 +98,9 @@ const char* toString(InferenceId i)
     case InferenceId::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
     case InferenceId::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
     case InferenceId::ARRAYS_READ_OVER_WRITE_CONTRA: return "ARRAYS_READ_OVER_WRITE_CONTRA";
+    case InferenceId::ARRAYS_CONST_ARRAY_DEFAULT:
+      return "ARRAYS_CONST_ARRAY_DEFAULT";
+    case InferenceId::ARRAYS_EQ_TAUTOLOGY: return "ARRAYS_EQ_TAUTOLOGY";
 
     case InferenceId::BAG_NON_NEGATIVE_COUNT: return "BAG_NON_NEGATIVE_COUNT";
     case InferenceId::BAG_MK_BAG_SAME_ELEMENT: return "BAG_MK_BAG_SAME_ELEMENT";
@@ -219,16 +224,64 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_SYGUS_EXCLUDE_CURRENT";
     case InferenceId::QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT:
       return "QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT";
+    case InferenceId::QUANTIFIERS_SYGUS_SI_SOLVED:
+      return "QUANTIFIERS_SYGUS_SI_SOLVED";
+    case InferenceId::QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED:
+      return "QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED";
+    case InferenceId::QUANTIFIERS_SYGUS_VERIFY_SOLVED:
+      return "QUANTIFIERS_SYGUS_VERIFY_SOLVED";
     case InferenceId::QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA:
       return "QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA";
+    case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_INTER_ENUM_SB:
+      return "QUANTIFIERS_SYGUS_UNIF_PI_INTER_ENUM_SB";
+    case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_SEPARATION:
+      return "QUANTIFIERS_SYGUS_UNIF_PI_SEPARATION";
+    case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_FAIR_SIZE:
+      return "QUANTIFIERS_SYGUS_UNIF_PI_FAIR_SIZE";
+    case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_REM_OPS:
+      return "QUANTIFIERS_SYGUS_UNIF_PI_REM_OPS";
+    case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_ENUM_SB:
+      return "QUANTIFIERS_SYGUS_UNIF_PI_ENUM_SB";
+    case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_DOMAIN:
+      return "QUANTIFIERS_SYGUS_UNIF_PI_DOMAIN";
+    case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_COND_EXCLUDE:
+      return "QUANTIFIERS_SYGUS_UNIF_PI_COND_EXCLUDE";
+    case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_REFINEMENT:
+      return "QUANTIFIERS_SYGUS_UNIF_PI_REFINEMENT";
+    case InferenceId::QUANTIFIERS_SYGUS_CEGIS_UCL_SYM_BREAK:
+      return "QUANTIFIERS_SYGUS_CEGIS_UCL_SYM_BREAK";
+    case InferenceId::QUANTIFIERS_SYGUS_CEGIS_UCL_EXCLUDE:
+      return "QUANTIFIERS_SYGUS_CEGIS_UCL_EXCLUDE";
+    case InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE:
+      return "QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE";
+    case InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE:
+      return "QUANTIFIERS_SYGUS_CEGIS_REFINE";
+    case InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE_SAMPLE:
+      return "QUANTIFIERS_SYGUS_CEGIS_REFINE_SAMPLE";
+    case InferenceId::QUANTIFIERS_SYGUS_REFINE_EVAL:
+      return "QUANTIFIERS_SYGUS_REFINE_EVAL";
+    case InferenceId::QUANTIFIERS_SYGUS_EVAL_UNFOLD:
+      return "QUANTIFIERS_SYGUS_EVAL_UNFOLD";
+    case InferenceId::QUANTIFIERS_SYGUS_PBE_EXCLUDE:
+      return "QUANTIFIERS_SYGUS_PBE_EXCLUDE";
+    case InferenceId::QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL:
+      return "QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL";
     case InferenceId::QUANTIFIERS_DSPLIT: return "QUANTIFIERS_DSPLIT";
+    case InferenceId::QUANTIFIERS_CONJ_GEN_SPLIT:
+      return "QUANTIFIERS_CONJ_GEN_SPLIT";
+    case InferenceId::QUANTIFIERS_CONJ_GEN_GT_ENUM:
+      return "QUANTIFIERS_CONJ_GEN_GT_ENUM";
     case InferenceId::QUANTIFIERS_SKOLEMIZE: return "QUANTIFIERS_SKOLEMIZE";
     case InferenceId::QUANTIFIERS_REDUCE_ALPHA_EQ:
       return "QUANTIFIERS_REDUCE_ALPHA_EQ";
     case InferenceId::QUANTIFIERS_HO_MATCH_PRED:
       return "QUANTIFIERS_HO_MATCH_PRED";
+    case InferenceId::QUANTIFIERS_HO_PURIFY: return "QUANTIFIERS_HO_PURIFY";
     case InferenceId::QUANTIFIERS_PARTIAL_TRIGGER_REDUCE:
       return "QUANTIFIERS_PARTIAL_TRIGGER_REDUCE";
+    case InferenceId::QUANTIFIERS_GT_PURIFY: return "QUANTIFIERS_GT_PURIFY";
+    case InferenceId::QUANTIFIERS_TDB_DEQ_CONG:
+      return "QUANTIFIERS_TDB_DEQ_CONG";
 
     case InferenceId::SEP_PTO_NEG_PROP: return "SEP_PTO_NEG_PROP";
     case InferenceId::SEP_PTO_PROP: return "SEP_PTO_PROP";
@@ -283,6 +336,7 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_RELS_JOIN_COMPOSE: return "SETS_RELS_JOIN_COMPOSE";
     case InferenceId::SETS_RELS_JOIN_IMAGE_DOWN:
       return "SETS_RELS_JOIN_IMAGE_DOWN";
+    case InferenceId::SETS_RELS_JOIN_IMAGE_UP: return "SETS_RELS_JOIN_IMAGE_UP";
     case InferenceId::SETS_RELS_JOIN_SPLIT_1: return "SETS_RELS_JOIN_SPLIT_1";
     case InferenceId::SETS_RELS_JOIN_SPLIT_2: return "SETS_RELS_JOIN_SPLIT_2";
     case InferenceId::SETS_RELS_PRODUCE_COMPOSE:
@@ -399,6 +453,17 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
 Node mkInferenceIdNode(InferenceId i)
 {
   return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(i)));
+}
+
+bool getInferenceId(TNode n, InferenceId& i)
+{
+  uint32_t index;
+  if (!ProofRuleChecker::getUInt32(n, index))
+  {
+    return false;
+  }
+  i = static_cast<InferenceId>(index);
+  return true;
 }
 
 }  // namespace theory
