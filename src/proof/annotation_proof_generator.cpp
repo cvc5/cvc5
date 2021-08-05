@@ -22,16 +22,21 @@
 namespace cvc5 {
 
 AnnotationProofGenerator::AnnotationProofGenerator(ProofNodeManager* pnm,
-                                         context::Context* c,
-                                         std::string name)
-    : d_pnm(pnm), d_name(name), d_exps(c == nullptr ? &d_context : c), d_proofs(c == nullptr ? &d_context : c)
+                                                   context::Context* c,
+                                                   std::string name)
+    : d_pnm(pnm),
+      d_name(name),
+      d_exps(c == nullptr ? &d_context : c),
+      d_proofs(c == nullptr ? &d_context : c)
 {
 }
 
-void AnnotationProofGenerator::setExplanationFor(Node f, ProofGenerator * pg, Annotator * a)
+void AnnotationProofGenerator::setExplanationFor(Node f,
+                                                 ProofGenerator* pg,
+                                                 Annotator* a)
 {
-  Assert (pg!=nullptr);
-  d_exps[f] = std::pair<ProofGenerator *, Annotator *>(pg,a);
+  Assert(pg != nullptr);
+  d_exps[f] = std::pair<ProofGenerator*, Annotator*>(pg, a);
 }
 
 std::shared_ptr<ProofNode> AnnotationProofGenerator::getProofFor(Node f)
@@ -44,20 +49,20 @@ std::shared_ptr<ProofNode> AnnotationProofGenerator::getProofFor(Node f)
   }
   // make it into an actual proof now
   NodeExpMap::iterator itx = d_exps.find(f);
-  if (itx==d_exps.end())
+  if (itx == d_exps.end())
   {
     return nullptr;
   }
   // get the proof from the proof generator
   std::shared_ptr<ProofNode> pf = itx->second.first->getProofFor(f);
-  if (pf==nullptr)
+  if (pf == nullptr)
   {
     d_proofs[f] = nullptr;
     return nullptr;
   }
   // now anntoate it if an annotator was provided
   std::shared_ptr<ProofNode> pfa = pf;
-  if (itx->second.second!=nullptr)
+  if (itx->second.second != nullptr)
   {
     pfa = itx->second.second->annotate(pf);
   }

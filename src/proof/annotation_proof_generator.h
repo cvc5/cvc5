@@ -30,9 +30,9 @@ class ProofNodeManager;
 /** Base class for annotations */
 class Annotator
 {
-public:
-  Annotator(){}
-  virtual ~Annotator(){}
+ public:
+  Annotator() {}
+  virtual ~Annotator() {}
   /**
    * Annotate the proof node. This must return a proof node that returns the
    * same thing as p.
@@ -46,13 +46,14 @@ public:
  */
 class AnnotationProofGenerator : public ProofGenerator
 {
-  typedef context::CDHashMap<Node, std::pair<ProofGenerator *, Annotator *>> NodeExpMap;
+  typedef context::CDHashMap<Node, std::pair<ProofGenerator*, Annotator*>>
+      NodeExpMap;
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofNodeMap;
 
  public:
   AnnotationProofGenerator(ProofNodeManager* pnm,
-                      context::Context* c = nullptr,
-                      std::string name = "AnnotationProofGenerator");
+                           context::Context* c = nullptr,
+                           std::string name = "AnnotationProofGenerator");
   ~AnnotationProofGenerator() {}
   /** Get the proof for formula f. */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
@@ -65,9 +66,10 @@ class AnnotationProofGenerator : public ProofGenerator
    * @param pg The proof generator that can prove f.
    * @param a The annotator that will annotate the proof of f, if necessary.
    */
-  void setExplanationFor(Node f, ProofGenerator * pg, Annotator * a);
+  void setExplanationFor(Node f, ProofGenerator* pg, Annotator* a);
   /** identify */
   std::string identify() const override;
+
  protected:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
