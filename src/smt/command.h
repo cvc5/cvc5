@@ -278,6 +278,12 @@ class CVC5_EXPORT Command
    */
   bool d_muted;
 
+  /**
+   * Reset the given solver in-place (keep the object at the same memory
+   * location).
+   */
+  static void resetSolver(api::Solver* solver);
+
  protected:
   // These methods rely on Command being a friend of classes in the API.
   // Subclasses of command should use these methods for conversions,
