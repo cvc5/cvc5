@@ -34,6 +34,10 @@ OptionsManager::OptionsManager(Options* opts) : d_options(opts)
 
 OptionsManager::~OptionsManager() {}
 
+void OptionsManager::notifySetOption(const std::string& key)
+{
+}
+
 void OptionsManager::finishInit(LogicInfo& logic, bool isInternalSubsolver)
 {
   // ensure that our heuristics are properly set up

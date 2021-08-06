@@ -53,7 +53,7 @@ class OptionsManager : public OptionsListener
    * that the value of the option can be queried in the options object that
    * this class is listening to.
    */
-  void notifySetOption(const std::string& key) override {}
+  void notifySetOption(const std::string& key) override;
   /**
    * Finish init, which is called at the beginning of SmtEngine::finishInit,
    * just before solving begins. This initializes the options pertaining to
