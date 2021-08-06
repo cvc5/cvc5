@@ -61,6 +61,15 @@ int main(int argc, char* argv[]) {
          << endl
          << "Please use --help to get help on command-line options." << endl;
   }
+  catch (cvc5::OptionException& e)
+  {
+#ifdef CVC5_COMPETITION_MODE
+    *opts.base.out << "unknown" << endl;
+#endif
+    cerr << "(error \"" << e.getMessage() << "\")" << endl
+         << endl
+         << "Please use --help to get help on command-line options." << endl;
+  }
   catch (Exception& e)
   {
 #ifdef CVC5_COMPETITION_MODE
