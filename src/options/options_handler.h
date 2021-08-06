@@ -110,11 +110,6 @@ public:
                                         const std::string& flag,
                                         const std::string& optarg);
 
-  // smt module
-  void setDumpModeString(const std::string& option,
-                         const std::string& flag,
-                         const std::string& mode);
-
   /**
    * Throws a ModalException if this option is being set after final
    * initialization.

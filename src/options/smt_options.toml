@@ -6,9 +6,8 @@ name   = "SMT Layer"
   category   = "common"
   long       = "dump=MODE"
   type       = "std::string"
-  predicates = ["setDumpModeString"]
-  help       = "dump preprocessed assertions, etc., see --dump=help"
   predicates = ["setDumpMode"]
+  help       = "dump preprocessed assertions, etc., see --dump=help"
 
 [[option]]
   name       = "dumpToFileName"
