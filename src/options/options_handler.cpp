@@ -26,6 +26,7 @@
 #include "base/exception.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
+#include "expr/expr_iomanip.h"
 #include "lib/strtok_r.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
@@ -35,6 +36,7 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "smt/command.h"
 #include "smt/dump.h"
 
 namespace cvc5 {
@@ -294,22 +296,29 @@ void OptionsHandler::threadN(const std::string& option, const std::string& flag)
 }
 
 // expr/options_handlers.h
-void OptionsHandler::setDefaultExprDepthPredicate(const std::string& option,
-                                                  const std::string& flag,
-                                                  int depth)
+void OptionsHandler::setDefaultExprDepth(const std::string& option,
+                                         const std::string& flag,
+                                         int depth)
 {
-  if(depth < -1) {
-    throw OptionException("--expr-depth requires a positive argument, or -1.");
-  }
+  Debug.getStream() << expr::ExprSetDepth(depth);
+  Trace.getStream() << expr::ExprSetDepth(depth);
+  Notice.getStream() << expr::ExprSetDepth(depth);
+  Chat.getStream() << expr::ExprSetDepth(depth);
+  CVC5Message.getStream() << expr::ExprSetDepth(depth);
+  Warning.getStream() << expr::ExprSetDepth(depth);
 }
 
-void OptionsHandler::setDefaultDagThreshPredicate(const std::string& option,
-                                                  const std::string& flag,
-                                                  int dag)
+void OptionsHandler::setDefaultDagThresh(const std::string& option,
+                                         const std::string& flag,
+                                         int dag)
 {
-  if(dag < 0) {
-    throw OptionException("--dag-thresh requires a nonnegative argument.");
-  }
+  Debug.getStream() << expr::ExprDag(dag);
+  Trace.getStream() << expr::ExprDag(dag);
+  Notice.getStream() << expr::ExprDag(dag);
+  Chat.getStream() << expr::ExprDag(dag);
+  CVC5Message.getStream() << expr::ExprDag(dag);
+  Warning.getStream() << expr::ExprDag(dag);
+  Dump.getStream() << expr::ExprDag(dag);
 }
 
 // main/options_handlers.h
@@ -628,6 +637,26 @@ void OptionsHandler::decreaseVerbosity(const std::string& option,
 {
   d_options->base.verbosity -= 1;
   setVerbosity(option, flag, d_options->base.verbosity);
+}
+
+void OptionsHandler::setDumpMode(const std::string& option,
+                                 const std::string& flag,
+                                 const std::string& optarg)
+{
+  Dump.setDumpFromString(optarg);
+}
+
+void OptionsHandler::setPrintSuccess(const std::string& option,
+                                     const std::string& flag,
+                                     bool value)
+{
+  Debug.getStream() << Command::printsuccess(value);
+  Trace.getStream() << Command::printsuccess(value);
+  Notice.getStream() << Command::printsuccess(value);
+  Chat.getStream() << Command::printsuccess(value);
+  CVC5Message.getStream() << Command::printsuccess(value);
+  Warning.getStream() << Command::printsuccess(value);
+  *d_options->base.out << Command::printsuccess(value);
 }
 
 }  // namespace options
