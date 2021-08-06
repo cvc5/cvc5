@@ -51,14 +51,18 @@ int main(int argc, char* argv[]) {
   Options opts;
   try {
     return runCvc5(argc, argv, opts);
-  } catch (cvc5::api::CVC5ApiOptionException& e) {
+  }
+  catch (cvc5::api::CVC5ApiOptionException& e)
+  {
 #ifdef CVC5_COMPETITION_MODE
     *opts.base.out << "unknown" << endl;
 #endif
     cerr << "(error \"" << e.getMessage() << "\")" << endl
          << endl
          << "Please use --help to get help on command-line options." << endl;
-  } catch(Exception& e) {
+  }
+  catch (Exception& e)
+  {
 #ifdef CVC5_COMPETITION_MODE
     *opts.base.out << "unknown" << endl;
 #endif

@@ -129,7 +129,10 @@ class CVC5_EXPORT CVC5ApiOptionException : public CVC5ApiRecoverableException
    * Construct with message from a string.
    * @param str The error message.
    */
-  CVC5ApiOptionException(const std::string& str) : CVC5ApiRecoverableException(str) {}
+  CVC5ApiOptionException(const std::string& str)
+      : CVC5ApiRecoverableException(str)
+  {
+  }
   /**
    * Construct with message from a string stream.
    * @param stream The error message.
