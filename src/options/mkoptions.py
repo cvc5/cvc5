@@ -551,7 +551,7 @@ def help_mode_format(option):
     return '\n         '.join('"{}\\n"'.format(x) for x in text)
 
 
-def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
+def codegen_module(module, dst_dir, tpls):
     """
     Generate code for each option module (*_options.{h,cpp})
     """
@@ -663,28 +663,29 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         visibility_include = '#include "cvc5_public.h"'
     else:
         visibility_include = '#include "cvc5_private.h"'
+    
+    data = {
+        'visibility_include': visibility_include,
+        'id_cap': module.id_cap,
+        'id': module.id,
+        'includes': '\n'.join(sorted(list(includes))),
+        'holder_spec': '\n'.join(holder_specs),
+        'decls': '\n'.join(decls),
+        'specs': '\n'.join(specs),
+        'option_names': '\n'.join(option_names),
+        'inls': '\n'.join(inls),
+        'defaults_decl': '\n'.join(default_decl),
+        'modes_decl': '\n'.join(mode_decl),
+        'header': module.header,
+        'accs': '\n'.join(accs),
+        'defaults_impl': '\n'.join(default_impl),
+        'defs': '\n'.join(defs),
+        'modes_impl': '\n'.join(mode_impl),
+    }
 
-    filename = os.path.splitext(os.path.split(module.header)[1])[0]
-    write_file(dst_dir, '{}.h'.format(filename), tpl_module_h.format(
-        visibility_include=visibility_include,
-        id_cap=module.id_cap,
-        id=module.id,
-        includes='\n'.join(sorted(list(includes))),
-        holder_spec='\n'.join(holder_specs),
-        decls='\n'.join(decls),
-        specs='\n'.join(specs),
-        option_names='\n'.join(option_names),
-        inls='\n'.join(inls),
-        defaults='\n'.join(default_decl),
-        modes=''.join(mode_decl)))
-
-    write_file(dst_dir, '{}.cpp'.format(filename), tpl_module_cpp.format(
-        header=module.header,
-        id=module.id,
-        accs='\n'.join(accs),
-        defaults='\n'.join(default_impl),
-        defs='\n'.join(defs),
-        modes=''.join(mode_impl)))
+    for tpl in tpls:
+        filename = tpl['output'].replace('module', module.filename)
+        write_file(dst_dir, filename, tpl['content'].format(**data))
 
 
 def docgen_option(option, help_common, help_others):
@@ -729,8 +730,7 @@ def add_getopt_long(long_name, argument_req, getopt_long):
             'required' if argument_req else 'no', value))
 
 
-def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
-                        tpl_options_cpp, tpl_options_public):
+def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     """
     Generate code for all option modules (options.cpp).
     """
@@ -953,9 +953,9 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
         'getoption_handlers': '\n'.join(getoption_handlers),
         'setoption_handlers': '\n'.join(setoption_handlers),
     }
-    write_file(dst_dir, 'options.h', tpl_options_h.format(**data))
-    write_file(dst_dir, 'options.cpp', tpl_options_cpp.format(**data))
-    write_file(dst_dir, 'options_public.cpp', tpl_options_public.format(**data))
+    for tpl in tpls:
+        write_file(dst_dir, tpl['output'], tpl['content'].format(**data))
+
 
     if os.path.isdir('{}/docs/'.format(build_dir)):
         sphinxgen.render('{}/docs/'.format(build_dir), 'options_generated.rst')
@@ -1091,13 +1091,21 @@ def mkoptions_main():
     for file in filenames:
         if not os.path.exists(file):
             die("configuration file '{}' does not exist".format(file))
+    
+    module_tpls = [
+        {'input': 'options/module_template.h'},
+        {'input': 'options/module_template.cpp'},
+    ]
+    global_tpls = [
+        {'input': 'options/options_template.h'},
+        {'input': 'options/options_template.cpp'},
+        {'input': 'options/options_public_template.cpp'},
+    ]
 
-    # Read source code template files from source directory.
-    tpl_module_h = read_tpl(src_dir, 'module_template.h')
-    tpl_module_cpp = read_tpl(src_dir, 'module_template.cpp')
-    tpl_options_public = read_tpl(src_dir, 'options_public_template.cpp')
-    tpl_options_h = read_tpl(src_dir, 'options_template.h')
-    tpl_options_cpp = read_tpl(src_dir, 'options_template.cpp')
+    for tpl in module_tpls + global_tpls:
+        tpl['output'] = tpl['input'].replace('_template', '')
+        tpl['content'] = read_tpl(src_dir, tpl['input'])
+
 
     # Parse files, check attributes and create module/option objects
     modules = []
@@ -1113,10 +1121,10 @@ def mkoptions_main():
 
     # Create *_options.{h,cpp} in destination directory
     for module in modules:
-        codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp)
+        codegen_module(module, dst_dir, module_tpls)
 
     # Create options.cpp in destination directory
-    codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h, tpl_options_cpp, tpl_options_public)
+    codegen_all_modules(modules, build_dir, dst_dir, global_tpls)
 
 
 if __name__ == "__main__":
