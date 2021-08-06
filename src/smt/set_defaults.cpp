@@ -48,7 +48,6 @@ namespace smt {
 
 void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
 {
-  //Options& opts = Options::current();
   // implied options
   if (opts.smt.debugCheckModels)
   {
@@ -338,7 +337,8 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
   {
     if (opts.smt.produceAbducts
         || opts.smt.produceInterpols != options::ProduceInterpols::NONE
-        || opts.quantifiers.sygusInference || opts.quantifiers.sygusRewSynthInput)
+        || opts.quantifiers.sygusInference
+        || opts.quantifiers.sygusRewSynthInput)
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       isSygus = true;
@@ -390,8 +390,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
     }
   }
 
-  if ((opts.smt.checkModels || opts.smt.checkSynthSol
-       || opts.smt.produceAbducts
+  if ((opts.smt.checkModels || opts.smt.checkSynthSol || opts.smt.produceAbducts
        || opts.smt.produceInterpols != options::ProduceInterpols::NONE
        || opts.smt.modelCoresMode != options::ModelCoresMode::NONE
        || opts.smt.blockModelsMode != options::BlockModelsMode::NONE
@@ -452,8 +451,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
     if (!opts.smt.unconstrainedSimpWasSetByUser)
     {
       bool uncSimp = !logic.isQuantified() && !opts.smt.produceModels
-                     && !opts.smt.produceAssignments
-                     && !opts.smt.checkModels
+                     && !opts.smt.produceAssignments && !opts.smt.checkModels
                      && logic.isTheoryEnabled(THEORY_ARRAYS)
                      && logic.isTheoryEnabled(THEORY_BV)
                      && !logic.isTheoryEnabled(THEORY_ARITH);
@@ -1430,11 +1428,9 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
     // introduces new literals into the search. This includes quantifiers
     // (quantifier instantiation), and the lemma schemas used in non-linear
     // and sets. We also can't use it if models are enabled.
-    if (logic.isTheoryEnabled(THEORY_SETS)
-        || logic.isTheoryEnabled(THEORY_BAGS)
-        || logic.isQuantified()
-        || opts.smt.produceModels || opts.smt.produceAssignments
-        || opts.smt.checkModels
+    if (logic.isTheoryEnabled(THEORY_SETS) || logic.isTheoryEnabled(THEORY_BAGS)
+        || logic.isQuantified() || opts.smt.produceModels
+        || opts.smt.produceAssignments || opts.smt.checkModels
         || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
     {
       opts.prop.minisatUseElim = false;
