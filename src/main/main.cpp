@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
   Options opts;
   try {
     return runCvc5(argc, argv, opts);
-  } catch(OptionException& e) {
+  } catch (cvc5::api::CVC5ApiOptionException& e) {
 #ifdef CVC5_COMPETITION_MODE
     *opts.base.out << "unknown" << endl;
 #endif
