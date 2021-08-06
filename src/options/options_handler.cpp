@@ -91,19 +91,6 @@ void OptionsHandler::setResourceWeight(const std::string& option,
   d_options->base.resourceWeightHolder.emplace_back(optarg);
 }
 
-void OptionsHandler::setPrintSuccess(const std::string& option,
-                                     const std::string& flag,
-                                     bool value)
-{
-  Debug.getStream() << Command::printsuccess(value);
-  Trace.getStream() << Command::printsuccess(value);
-  Notice.getStream() << Command::printsuccess(value);
-  Chat.getStream() << Command::printsuccess(value);
-  CVC5Message.getStream() << Command::printsuccess(value);
-  Warning.getStream() << Command::printsuccess(value);
-  *options::out() << Command::printsuccess(value);
-}
-
 // theory/quantifiers/options_handlers.h
 
 void OptionsHandler::checkInstWhenMode(const std::string& option,
@@ -248,13 +235,6 @@ InstFormatMode OptionsHandler::stringToInstFormatMode(const std::string& option,
     throw OptionException(std::string("unknown option for --inst-format: `") +
                           optarg + "'.  Try --inst-format help.");
   }
-}
-
-void OptionsHandler::setDumpModeString(const std::string& option,
-                                       const std::string& flag,
-                                       const std::string& mode)
-{
-  Dump.setDumpFromString(mode);
 }
 
 void OptionsHandler::setProduceAssertions(const std::string& option,
