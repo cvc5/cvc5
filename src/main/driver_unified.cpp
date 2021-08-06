@@ -245,6 +245,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
         if (cmd == nullptr)
           break;
         status = pExecutor->doCommand(cmd) && status;
+        opts = &pExecutor->getOptions();
         if (cmd->interrupted()) {
           break;
         }
@@ -280,6 +281,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
         if (interrupted) {
           *opts->base.out << CommandInterrupted();
           pExecutor->reset();
+          opts = &pExecutor->getOptions();
           break;
         }
         try {
@@ -291,6 +293,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
         }
 
         status = pExecutor->doCommand(cmd);
+        opts = &pExecutor->getOptions();
         if (cmd->interrupted() && status == 0) {
           interrupted = true;
           break;
@@ -310,9 +313,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
       // there was some kind of error
       returnValue = 1;
     }
-
-    // opts may be invalid now after a reset.
-    opts = &pExecutor->getOptions();
 
 #ifdef CVC5_COMPETITION_MODE
     if (opts->base.out != nullptr)
