@@ -502,15 +502,14 @@ std::string get(const Options& options, const std::string& name)
 {
   Trace("options") << "Options::getOption(" << name << ")" << std::endl;
   ${getoption_handlers}$
-
-  throw UnrecognizedOptionException(name);
+  throw OptionException("Unrecognized informational or option key or setting: " + name);
 }
 
 void setInternal(Options& opts, const std::string& name,
                                 const std::string& optionarg)
                                 {
 ${setoption_handlers}$
-  throw UnrecognizedOptionException(name);
+  throw OptionException("Unrecognized informational or option key or setting: " + name);
 }
 
 void set(Options& opts, const std::string& name, const std::string& optionarg)
