@@ -110,56 +110,37 @@ TPL_IMPL_SET_DEFAULT = TPL_DECL_SET_DEFAULT[:-1] + '''
 
 TPL_NAME_DECL = 'static constexpr const char* {name}__name = "{long_name}";'
 
-TPL_OPTION_STRUCT_RW = \
-"""extern struct {name}__option_t
-{{
-  typedef {type} type;
-  type operator()() const;
-}} thread_local {name};"""
-
 # Option specific methods
 
-TPL_IMPL_OP_PAR = \
-"""inline {type} {name}__option_t::operator()() const
-{{ return Options::current().{module}.{name}; }}"""
+TPL_IMPL_OP_PAR = 'inline {type} {name}() {{ return Options::current().{module}.{name}; }}'
 
 # Mode templates
-TPL_DECL_MODE_ENUM = \
-"""
+TPL_DECL_MODE_ENUM = '''
 enum class {type}
 {{
   {values}
 }};
 
 static constexpr size_t {type}__numValues = {nvalues};
-"""
+'''
 
-TPL_DECL_MODE_FUNC = \
-"""
-std::ostream& operator<<(std::ostream& os, {type} mode);"""
-
-TPL_IMPL_MODE_FUNC = TPL_DECL_MODE_FUNC[:-len(";")] + \
-"""
+TPL_DECL_MODE_FUNC = 'std::ostream& operator<<(std::ostream& os, {type} mode);'
+TPL_IMPL_MODE_FUNC = TPL_DECL_MODE_FUNC[:-1] + '''
 {{
   switch(mode) {{{cases}
     default:
       Unreachable();
   }}
   return os;
-}}
-"""
+}}'''
 
 TPL_IMPL_MODE_CASE = \
 """
     case {type}::{enum}:
       return os << "{type}::{enum}";"""
 
-TPL_DECL_MODE_HANDLER = \
-"""
-{type} stringTo{type}(const std::string& optarg);"""
-
-TPL_IMPL_MODE_HANDLER = TPL_DECL_MODE_HANDLER[:-1] + \
-"""
+TPL_DECL_MODE_HANDLER = '{type} stringTo{type}(const std::string& optarg);'
+TPL_IMPL_MODE_HANDLER = TPL_DECL_MODE_HANDLER[:-1] + '''
 {{
   {cases}
   else if (optarg == "help")
@@ -169,8 +150,7 @@ TPL_IMPL_MODE_HANDLER = TPL_DECL_MODE_HANDLER[:-1] + \
   }}
   throw OptionException(std::string("unknown option for --{long}: `") +
                         optarg + "'.  Try --{long}=help.");
-}}
-"""
+}}'''
 
 TPL_MODE_HANDLER_CASE = \
 """if (optarg == "{name}")
@@ -559,17 +539,11 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
     includes = set()
     holder_specs = []
     option_names = []
-    decls = []
-    specs = []
-    inls = []
+    wrap_funs = []
     default_decl = []
     default_impl = []
     mode_decl = []
     mode_impl = []
-
-    # *_options_.cpp
-    accs = []
-    defs = []
 
     for option in \
         sorted(module.options, key=lambda x: x.long if x.long else x.name):
@@ -589,12 +563,10 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
             holder_specs.append(TPL_HOLDER_MACRO_ATTR.format(type=option.type, name=option.name))
 
         # Generate module declaration
-        tpl_decl = TPL_OPTION_STRUCT_RW
         if option.long:
             long_name = option.long.split('=')[0]
         else:
             long_name = ""
-        decls.append(tpl_decl.format(name=option.name, type=option.type, long_name = long_name))
         option_names.append(TPL_NAME_DECL.format(name=option.name, type=option.type, long_name = long_name))
 
         capoptionname = option.name[0].capitalize() + option.name[1:]
@@ -614,16 +586,13 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
                     module.id, option.long, option.type))
 
         # Generate module inlines
-        inls.append(TPL_IMPL_OP_PAR.format(module=module.id, name=option.name, type=option.type))
+        wrap_funs.append(TPL_IMPL_OP_PAR.format(module=module.id, name=option.name, type=option.type))
 
 
         ### Generate code for {module.name}_options.cpp
 
         # Accessors
         default_impl.append(TPL_IMPL_SET_DEFAULT.format(module=module.id, name=option.name, funcname=capoptionname, type=option.type))
-
-        # Global definitions
-        defs.append('thread_local struct {name}__option_t {name};'.format(name=option.name))
 
         if option.mode:
             values = option.mode.keys()
@@ -664,27 +633,24 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
     else:
         visibility_include = '#include "cvc5_private.h"'
 
-    filename = os.path.splitext(os.path.split(module.header)[1])[0]
-    write_file(dst_dir, '{}.h'.format(filename), tpl_module_h.format(
-        visibility_include=visibility_include,
-        id_cap=module.id_cap,
-        id=module.id,
-        includes='\n'.join(sorted(list(includes))),
-        holder_spec='\n'.join(holder_specs),
-        decls='\n'.join(decls),
-        specs='\n'.join(specs),
-        option_names='\n'.join(option_names),
-        inls='\n'.join(inls),
-        defaults='\n'.join(default_decl),
-        modes=''.join(mode_decl)))
+    data = {
+        'visibility_include': visibility_include,
+        'id_cap': module.id_cap,
+        'id': module.id,
+        'includes': '\n'.join(sorted(list(includes))),
+        'holder_spec': '\n'.join(holder_specs),
+        'option_names': '\n'.join(option_names),
+        'wrap_funs': '\n'.join(wrap_funs),
+        'defaults_decl': ''.join(default_decl),
+        'modes_decl': '\n'.join(mode_decl),
+        'header': module.header,
+        'defaults_impl': '\n'.join(default_impl),
+        'modes_impl': '\n'.join(mode_impl),
+    }
 
-    write_file(dst_dir, '{}.cpp'.format(filename), tpl_module_cpp.format(
-        header=module.header,
-        id=module.id,
-        accs='\n'.join(accs),
-        defaults='\n'.join(default_impl),
-        defs='\n'.join(defs),
-        modes=''.join(mode_impl)))
+    filename = os.path.splitext(os.path.split(module.header)[1])[0]
+    write_file(dst_dir, '{}.h'.format(filename), tpl_module_h.format(**data))
+    write_file(dst_dir, '{}.cpp'.format(filename), tpl_module_cpp.format(**data))
 
 
 def docgen_option(option, help_common, help_others):
