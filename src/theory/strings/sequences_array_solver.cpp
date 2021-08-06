@@ -91,7 +91,7 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
   }
   for (const Node& n : updateTerms)
   {
-	// TODO:if n[2].kind == SEQ_UNIT
+	// TODO: if n[2].kind == SEQ_UNIT
 
     // (seq.update x i (seq.unit z))
     // possible lemma: (seq.nth (seq.update x, i, (seq.unit z)) i) == z
@@ -106,9 +106,9 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
     // => (seq.nth t i) == z
     std::vector<Node> exp;
     d_im.addToExplanation(proxyVar, n, exp);
-	Node lb = (nm->mkNode(LEQ, nm->mkConst(Rational(0)), n[1])); // 0 <= i
-	Node ub = (nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0]))); // i < len(proxyVar)
-	Node range = nm->mkNode(AND, lb, ub);
+//	Node lb = (nm->mkNode(LEQ, nm->mkConst(Rational(0)), n[1])); // 0 <= i
+//	Node ub = (nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0]))); // i < len(proxyVar)
+//	Node range = nm->mkNode(AND, lb, ub);
 //	std::cerr << range << std::endl;
 //	exp.push_back(range); // 0 <= i ^ i < len(t)
     Node left = nm->mkNode(SEQ_NTH, proxyVar, n[1]);
@@ -126,8 +126,6 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
 
     // i != j ^ i, j \in range(a)
 	// => (seq.nth (seq.update a i x) j) == (seq.nth a j)
-    // std::vector<Node> exp;
-    // d_im.addToExplanation(proxyVar, n, exp);
     for (auto nth : index_map)
     {
       Node seq = nth.first;
