@@ -50,6 +50,25 @@ libcvc5_add_sources(
   omt/integer_optimizer.h
   omt/omt_optimizer.cpp
   omt/omt_optimizer.h
+  options/decision_weight.h
+  options/didyoumean.cpp
+  options/didyoumean.h
+  options/language.cpp
+  options/language.h
+  options/managed_streams.cpp
+  options/managed_streams.h
+  options/option_exception.cpp
+  options/option_exception.h
+  options/options_handler.cpp
+  options/options_handler.h
+  options/options_listener.h
+  options/options_public.h
+  options/outputc.cpp
+  options/outputc.h
+  options/printer_modes.cpp
+  options/printer_modes.h
+  options/set_language.cpp
+  options/set_language.h
   preprocessing/assertion_pipeline.cpp
   preprocessing/assertion_pipeline.h
   preprocessing/learned_literal_manager.cpp
@@ -1141,6 +1160,83 @@ include_directories(include)
 include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
+# Take care of options
+
+check_python_module("toml")
+
+set(options_toml_files
+  options/arith_options.toml
+  options/arrays_options.toml
+  options/base_options.toml
+  options/booleans_options.toml
+  options/builtin_options.toml
+  options/bv_options.toml
+  options/datatypes_options.toml
+  options/decision_options.toml
+  options/expr_options.toml
+  options/fp_options.toml
+  options/main_options.toml
+  options/parser_options.toml
+  options/printer_options.toml
+  options/proof_options.toml
+  options/prop_options.toml
+  options/quantifiers_options.toml
+  options/sep_options.toml
+  options/sets_options.toml
+  options/smt_options.toml
+  options/strings_options.toml
+  options/theory_options.toml
+  options/uf_options.toml
+)
+string(REPLACE "toml" "cpp;" options_gen_cpp_files ${options_toml_files})
+string(REPLACE "toml" "h;"   options_gen_h_files ${options_toml_files})
+list(PREPEND options_gen_cpp_files "options/options.cpp" "options/options_public.cpp")
+list(PREPEND options_gen_h_files "options/options.h")
+
+libcvc5_add_sources(GENERATED ${options_gen_cpp_files} ${options_gen_h_files})
+
+list_prepend(options_toml_files "${CMAKE_CURRENT_LIST_DIR}/" abs_toml_files)
+
+set(options_gen_doc_files "")
+if (BUILD_DOCS)
+  list(
+    APPEND
+      options_gen_doc_files
+      "${CMAKE_BINARY_DIR}/docs/options_generated.rst"
+  )
+endif()
+
+add_custom_command(
+    OUTPUT
+      ${options_gen_cpp_files} ${options_gen_h_files}
+      ${options_gen_doc_files}
+    COMMAND
+      ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/options
+    COMMAND
+      ${PYTHON_EXECUTABLE}
+      ${CMAKE_CURRENT_LIST_DIR}/options/mkoptions.py
+      ${CMAKE_CURRENT_LIST_DIR}
+      ${CMAKE_BINARY_DIR}
+      ${CMAKE_CURRENT_BINARY_DIR}
+      ${abs_toml_files}
+    DEPENDS
+      options/mkoptions.py
+      ${options_toml_files}
+      options/module_template.h
+      options/module_template.cpp
+      options/options_public_template.cpp
+      options/options_template.h
+      options/options_template.cpp
+)
+
+add_custom_target(gen-options
+  DEPENDS
+    ${options_gen_cpp_files}
+    ${options_gen_h_files}
+)
+
+
+#-----------------------------------------------------------------------------#
 
 set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/builtin/kinds
@@ -1163,7 +1259,6 @@ set(KINDS_FILES
 add_subdirectory(base)
 add_subdirectory(context)
 add_subdirectory(expr)
-add_subdirectory(options)
 if (NOT BUILD_LIB_ONLY)
   add_subdirectory(parser)
 endif()
