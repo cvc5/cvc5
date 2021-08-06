@@ -309,7 +309,8 @@ void TheoryEngine::preRegister(TNode preprocessed) {
         expr::getFreeVariables(preprocessed, fvs);
         if (!fvs.empty())
         {
-          Unhandled() << "Preregistered term with free variable: " << preprocessed << ", fv=" << *fvs.begin();
+          Unhandled() << "Preregistered term with free variable: "
+                      << preprocessed << ", fv=" << *fvs.begin();
         }
       }
       // should not have witness
