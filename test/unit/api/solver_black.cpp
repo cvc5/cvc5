@@ -308,10 +308,12 @@ TEST_F(TestApiBlackSolver, mkBitVector)
 {
   ASSERT_NO_THROW(d_solver.mkBitVector(8, 2));
   ASSERT_NO_THROW(d_solver.mkBitVector(32, 2));
+  ASSERT_NO_THROW(d_solver.mkBitVector(8, "-1111111", 2));
   ASSERT_NO_THROW(d_solver.mkBitVector(8, "0101", 2));
   ASSERT_NO_THROW(d_solver.mkBitVector(8, "00000101", 2));
   ASSERT_NO_THROW(d_solver.mkBitVector(8, "-127", 10));
-  ASSERT_NO_THROW(d_solver.mkBitVector(8, "128", 10));
+  ASSERT_NO_THROW(d_solver.mkBitVector(8, "255", 10));
+  ASSERT_NO_THROW(d_solver.mkBitVector(8, "-7f", 16));
   ASSERT_NO_THROW(d_solver.mkBitVector(8, "a0", 16));
 
   ASSERT_THROW(d_solver.mkBitVector(0, 2), CVC5ApiException);
@@ -324,9 +326,11 @@ TEST_F(TestApiBlackSolver, mkBitVector)
   ASSERT_THROW(d_solver.mkBitVector(8, "128", 11), CVC5ApiException);
   ASSERT_THROW(d_solver.mkBitVector(8, "a0", 21), CVC5ApiException);
 
+  ASSERT_THROW(d_solver.mkBitVector(8, "-11111111", 2), CVC5ApiException);
   ASSERT_THROW(d_solver.mkBitVector(8, "101010101", 2), CVC5ApiException);
   ASSERT_THROW(d_solver.mkBitVector(8, "-256", 10), CVC5ApiException);
   ASSERT_THROW(d_solver.mkBitVector(8, "257", 10), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkBitVector(8, "-a0", 16), CVC5ApiException);
   ASSERT_THROW(d_solver.mkBitVector(8, "fffff", 16), CVC5ApiException);
 
   ASSERT_THROW(d_solver.mkBitVector(8, "10201010", 2), CVC5ApiException);

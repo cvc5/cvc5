@@ -296,11 +296,13 @@ def test_mk_bit_vector(solver):
 
     solver.mkBitVector(4, "1010", 2)
     solver.mkBitVector(8, "0101", 2)
+    solver.mkBitVector(8, "-1111111", 2)
     solver.mkBitVector(8, "00000101", 2)
     solver.mkBitVector(8, "-127", 10)
-    solver.mkBitVector(8, "128", 10)
+    solver.mkBitVector(8, "255", 10)
     solver.mkBitVector(10, "1010", 10)
     solver.mkBitVector(11, "1234", 10)
+    solver.mkBitVector(8, "-7f", 16)
     solver.mkBitVector(8, "a0", 16)
     solver.mkBitVector(16, "1010", 16)
     solver.mkBitVector(16, "a09f", 16)
@@ -325,9 +327,13 @@ def test_mk_bit_vector(solver):
     with pytest.raises(RuntimeError):
         solver.mkBitVector(8, "101010101", 2)
     with pytest.raises(RuntimeError):
+        solver.mkBitVector(8, "-11111111", 2)
+    with pytest.raises(RuntimeError):
         solver.mkBitVector(8, "-256", 10)
     with pytest.raises(RuntimeError):
         solver.mkBitVector(8, "257", 10)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(8, "-a0", 16)
     with pytest.raises(RuntimeError):
         solver.mkBitVector(8, "fffff", 16)
 
