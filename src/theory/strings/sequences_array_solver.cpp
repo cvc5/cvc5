@@ -27,11 +27,15 @@ namespace strings {
 SequencesArraySolver::SequencesArraySolver(SolverState& s,
                                            InferenceManager& im,
                                            TermRegistry& tr,
-                                           ExtfSolver& es)
+                                           CoreSolver& cs,
+                                           ExtfSolver& es,
+                                           ExtTheory& extt)
     : d_state(s),
       d_im(im),
       d_termReg(tr),
+      d_csolver(cs),
       d_esolver(es),
+      d_extt(extt),
       d_lem(s.getSatContext())
 {
 }
@@ -63,6 +67,26 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
     else
     {
       index_map[r].insert(n[1]);
+    }
+
+    if (n[0].getKind() == STRING_REV)
+    {
+      Node s = n[0][0];
+      Node i = n[1];
+      Node sLen = nm->mkNode(STRING_LENGTH, s);
+      Node iRev = nm->mkNode(
+          MINUS, sLen, nm->mkNode(PLUS, i, nm->mkConst(Rational(1))));
+
+      std::vector<Node> nexp;
+      nexp.push_back(nm->mkNode(LEQ, nm->mkConst(Rational(0)), i));
+      nexp.push_back(nm->mkNode(LT, i, sLen));
+
+      // 0 <= i ^ i < len(s) => seq.nth(seq.rev(s), i) = seq.nth(s, len(s) - i -
+      // 1)
+      Node ret = nm->mkNode(SEQ_NTH, s, iRev);
+      d_im.sendInference(
+          {}, nexp, n.eqNode(ret), InferenceId::STRINGS_SU_NTH_REV);
+      d_extt.markReduced(n, ExtReducedId::STRINGS_NTH_REV);
     }
   }
   for (const Node& n : updateTerms)

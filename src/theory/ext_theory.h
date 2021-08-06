@@ -75,6 +75,8 @@ enum class ExtReducedId
   STRINGS_REGEXP_INCLUDE,
   // subsumed due to RE inclusion reasoning for negative memberships
   STRINGS_REGEXP_INCLUDE_NEG,
+
+  STRINGS_NTH_REV,
 };
 /**
  * Converts an ext reduced identifier to a string.

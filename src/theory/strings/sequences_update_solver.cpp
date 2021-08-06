@@ -29,8 +29,15 @@ SequencesUpdateSolver::SequencesUpdateSolver(SolverState& s,
                                              InferenceManager& im,
                                              TermRegistry& tr,
                                              CoreSolver& cs,
-                                             ExtfSolver& es)
-    : d_state(s), d_im(im), d_termReg(tr), d_csolver(cs), d_esolver(es), d_sasolver(s, im, tr, es), d_eqProc(s.getSatContext())
+                                             ExtfSolver& es,
+                                             ExtTheory& extt)
+    : d_state(s),
+      d_im(im),
+      d_termReg(tr),
+      d_csolver(cs),
+      d_esolver(es),
+      d_sasolver(s, im, tr, cs, es, extt),
+      d_eqProc(s.getSatContext())
 {
   NodeManager * nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));

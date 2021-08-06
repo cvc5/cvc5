@@ -44,7 +44,8 @@ class SequencesUpdateSolver
                         InferenceManager& im,
                         TermRegistry& tr,
                         CoreSolver& cs,
-                        ExtfSolver& es);
+                        ExtfSolver& es,
+                        ExtTheory& extt);
   ~SequencesUpdateSolver();
 
   /**
