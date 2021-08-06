@@ -316,29 +316,22 @@ void OptionsHandler::threadN(const std::string& option, const std::string& flag)
 }
 
 // expr/options_handlers.h
-void OptionsHandler::setDefaultExprDepthPredicate(const std::string& option,
-                                                  const std::string& flag,
-                                                  int depth)
+void OptionsHandler::setDefaultExprDepth(const std::string& option,
+                                         const std::string& flag,
+                                         int depth)
 {
-  if(depth < -1) {
-    throw OptionException("--expr-depth requires a positive argument, or -1.");
-  }
   Debug.getStream() << expr::ExprSetDepth(depth);
   Trace.getStream() << expr::ExprSetDepth(depth);
   Notice.getStream() << expr::ExprSetDepth(depth);
   Chat.getStream() << expr::ExprSetDepth(depth);
   CVC5Message.getStream() << expr::ExprSetDepth(depth);
   Warning.getStream() << expr::ExprSetDepth(depth);
-  // intentionally exclude Dump stream from this list
 }
 
-void OptionsHandler::setDefaultDagThreshPredicate(const std::string& option,
-                                                  const std::string& flag,
-                                                  int dag)
+void OptionsHandler::setDefaultDagThresh(const std::string& option,
+                                         const std::string& flag,
+                                         int dag)
 {
-  if(dag < 0) {
-    throw OptionException("--dag-thresh requires a nonnegative argument.");
-  }
   Debug.getStream() << expr::ExprDag(dag);
   Trace.getStream() << expr::ExprDag(dag);
   Notice.getStream() << expr::ExprDag(dag);
@@ -664,6 +657,26 @@ void OptionsHandler::decreaseVerbosity(const std::string& option,
 {
   d_options->base.verbosity -= 1;
   setVerbosity(option, flag, d_options->base.verbosity);
+}
+
+void OptionsHandler::setDumpMode(const std::string& option,
+                                 const std::string& flag,
+                                 const std::string& optarg)
+{
+  Dump.setDumpFromString(optarg);
+}
+
+void OptionsHandler::setPrintSuccess(const std::string& option,
+                                     const std::string& flag,
+                                     bool value)
+{
+  Debug.getStream() << Command::printsuccess(value);
+  Trace.getStream() << Command::printsuccess(value);
+  Notice.getStream() << Command::printsuccess(value);
+  Chat.getStream() << Command::printsuccess(value);
+  CVC5Message.getStream() << Command::printsuccess(value);
+  Warning.getStream() << Command::printsuccess(value);
+  *d_options->base.out << Command::printsuccess(value);
 }
 
 }  // namespace options

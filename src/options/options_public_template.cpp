@@ -520,8 +520,6 @@ void set(Options& opts, const std::string& name, const std::string& optionarg)
                    << std::endl;
   // first update this object
   setInternal(opts, name, optionarg);
-  // then, notify the provided listener
-  opts.notifyListener(name);
 }
 
 std::vector<std::vector<std::string> > getAll(const Options& opts)

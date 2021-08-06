@@ -30,11 +30,13 @@ namespace smt {
 
 OptionsManager::OptionsManager(Options* opts) : d_options(opts)
 {
-  // set this as a listener to be notified of options changes from now on
-  opts->setListener(this);
 }
 
 OptionsManager::~OptionsManager() {}
+
+void OptionsManager::notifySetOption(const std::string& key)
+{
+}
 
 void OptionsManager::finishInit(LogicInfo& logic, bool isInternalSubsolver)
 {
