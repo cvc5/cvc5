@@ -205,9 +205,11 @@ void Assertions::addDefineFunDefinition(Node n, bool global)
   }
   else
   {
-    // we don't check for free variables here, since even if we are sygus,
-    // we could contain functions-to-synthesize within definitions.
-    addFormula(n, true, false, true, false);
+    // We don't permit functions-to-synthesize within recursive function
+    // definitions currently. Thus, we should check for free variables if the
+    // input language is SyGuS.
+    bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
+    addFormula(n, true, false, true, maybeHasFv);
   }
 }
 

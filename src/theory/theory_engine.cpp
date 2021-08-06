@@ -303,7 +303,15 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       // the atom should not have free variables
       Debug("theory") << "TheoryEngine::preRegister: " << preprocessed
                       << std::endl;
-      Assert(!expr::hasFreeVar(preprocessed));
+      if (Configuration::isAssertionBuild())
+      {
+        std::unordered_set<Node> fvs;
+        expr::getFreeVariables(preprocessed, fvs);
+        if (!fvs.empty())
+        {
+          Unhandled() << "Preregistered term with free variable: " << preprocessed << ", fv=" << *fvs.begin();
+        }
+      }
       // should not have witness
       Assert(!expr::hasSubtermKind(kind::WITNESS, preprocessed));
 
