@@ -3288,7 +3288,8 @@ class CVC5_EXPORT Solver
    * - base 16: the max. size required to represent the hexadecimal as a
    *            bit-vector (4 * size of the given value string)
    *
-   * @param s the string representation of the constant
+   * @param s The string representation of the constant.
+   *          This cannot be negative.
    * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
    */

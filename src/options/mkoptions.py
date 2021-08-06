@@ -239,12 +239,13 @@ def get_predicates(option):
         return []
     optname = option.long_name if option.long else ""
     assert option.type != 'void'
-    res = ['opts.handler().{}("{}", option, value);'.format(x, optname)
-            for x in option.predicates]
+    res = []
     if option.minimum:
-        res.append('opts.handler().checkMinimum("{}", option, value, {});'.format(optname, option.minimum))
+        res.append('opts.handler().checkMinimum("{}", option, value, static_cast<{}>({}));'.format(optname, option.type, option.minimum))
     if option.maximum:
-        res.append('opts.handler().checkMaximum("{}", option, value, {});'.format(optname, option.maximum))
+        res.append('opts.handler().checkMaximum("{}", option, value, static_cast<{}>({}));'.format(optname, option.type, option.maximum))
+    res += ['opts.handler().{}("{}", option, value);'.format(x, optname)
+            for x in option.predicates]
     return res
 
 
