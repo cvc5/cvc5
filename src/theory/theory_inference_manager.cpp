@@ -424,7 +424,7 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
       }
       else
       {
-        Assert(d_ee->hasTerm(eatom));
+        Assert(d_ee->hasTerm(eatom)) << eatom;
         Assert(d_ee->areEqual(eatom, NodeManager::currentNM()->mkConst(epol)));
       }
     }

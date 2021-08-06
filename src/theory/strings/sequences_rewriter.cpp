@@ -1617,11 +1617,13 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
       return returnRewrite(node, ret, Rewrite::SEQ_NTH_TOTAL_OOB);
     }
   }
+
   if (s.getKind() == SEQ_UNIT && i.isConst() && i.getConst<Rational>().isZero())
   {
     Node ret = s[0];
     return returnRewrite(node, ret, Rewrite::SEQ_NTH_UNIT);
   }
+
   return node;
 }
 
@@ -1928,6 +1930,8 @@ Node SequencesRewriter::rewriteUpdate(Node node)
 {
   Assert(node.getKind() == kind::STRING_UPDATE);
   Node s = node[0];
+  Node i = node[1];
+  Node x = node[2];
   if (s.isConst())
   {
     if (Word::isEmpty(s))
@@ -1963,6 +1967,16 @@ Node SequencesRewriter::rewriteUpdate(Node node)
         return returnRewrite(node, ret, Rewrite::UPD_EVAL);
       }
     }
+  }
+
+  if (s.getKind() == STRING_REV)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node idx = nm->mkNode(MINUS,
+                          nm->mkNode(STRING_LENGTH, s),
+                          nm->mkNode(PLUS, i, nm->mkConst(Rational(1))));
+    Node ret = nm->mkNode(STRING_REV, nm->mkNode(STRING_UPDATE, s, idx, x));
+    return returnRewrite(node, ret, Rewrite::UPD_REV);
   }
 
   return node;

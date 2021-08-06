@@ -623,6 +623,7 @@ enum class InferenceId
   STRINGS_SU_UPDATE_CONCAT,
   STRINGS_SU_NTH_UNIT,
   STRINGS_SU_NTH_CONCAT,
+  STRINGS_SU_NTH_REV,
   //-------------------- regexp solver
   // regular expression normal form conflict
   //   ( x in R ^ x = y ^ rewrite((str.in_re y R)) = false ) => false
