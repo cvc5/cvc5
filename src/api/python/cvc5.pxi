@@ -853,62 +853,32 @@ cdef class Solver:
         '''
             Supports the following arguments:
             Term mkBitVector(int size, int val=0)
-            Term mkBitVector(string val, int base = 2)
             Term mkBitVector(int size, string val, int base)
          '''
         cdef Term term = Term(self)
+        if len(args) == 0:
+            raise ValueError("Missing arguments to mkBitVector")
+        size = args[0]
+        if not isinstance(size, int):
+            raise ValueError("Invalid first argument to mkBitVector '{}', expected bit-vector size".format(size))
         if len(args) == 1:
-            size_or_val = args[0]
-            if isinstance(args[0], int):
-                size = args[0]
-                term.cterm = self.csolver.mkBitVector(<uint32_t> size)
-            else:
-                assert isinstance(args[0], str)
-                val = args[0]
-                term.cterm = self.csolver.mkBitVector(<const string&> str(val).encode())
+            term.cterm = self.csolver.mkBitVector(<uint32_t> size)
         elif len(args) == 2:
-            if isinstance(args[0], int):
-                size = args[0]
-                assert isinstance(args[1], int)
-                val = args[1]
-                term.cterm = self.csolver.mkBitVector(<uint32_t> size, <uint32_t> val)
-            else:
-                assert isinstance(args[0], str)
-                assert isinstance(args[1], int)
-                val = args[0]
-                base = args[1]
-                term.cterm = self.csolver.mkBitVector(<const string&> str(val).encode(), <uint32_t> base)
+            val = args[1]
+            assert(isinstance(val, int))
+            if not isinstance(val, int):
+                raise ValueError("Invalid second argument to mkBitVector '{}', expected integer value".format(size))
+            term.cterm = self.csolver.mkBitVector(<uint32_t> size, <uint32_t> val)
         elif len(args) == 3:
-                assert isinstance(args[0], int)
-                assert isinstance(args[1], str)
-                assert isinstance(args[2], int)
-                size = args[0]
-                val = args[1]
-                base = args[2]
-                term.cterm = self.csolver.mkBitVector(<uint32_t> size, <const string&> str(val).encode(), <uint32_t> base)
-        return term
-
-
-    def mkBitVector(self, size_or_str, val = None):
-        cdef Term term = Term(self)
-        if isinstance(size_or_str, int):
-            if val is None:
-                term.cterm = self.csolver.mkBitVector(<uint32_t> size_or_str)
-            else:
-                term.cterm = self.csolver.mkBitVector(<uint32_t> size_or_str,
-                                                      <const string &> str(val).encode(),
-                                                      10)
-        elif isinstance(size_or_str, str):
-            # handle default value
-            if val is None:
-                term.cterm = self.csolver.mkBitVector(
-                    <const string &> size_or_str.encode())
-            else:
-                term.cterm = self.csolver.mkBitVector(
-                    <const string &> size_or_str.encode(), <uint32_t> val)
+            val = args[1]
+            base = args[2]
+            if not isinstance(val, str):
+                raise ValueError("Invalid second argument to mkBitVector '{}', expected value string".format(size))
+            if not isinstance(base, int):
+                raise ValueError("Invalid third argument to mkBitVector '{}', expected base given as integer".format(size))
+            term.cterm = self.csolver.mkBitVector(<uint32_t> size, <const string&> str(val).encode(), <uint32_t> base)
         else:
-            raise ValueError("Unexpected inputs {} to"
-                             " mkBitVector".format((size_or_str, val)))
+            raise ValueError("Unexpected inputs to mkBitVector")
         return term
 
     def mkConstArray(self, Sort sort, Term val):
