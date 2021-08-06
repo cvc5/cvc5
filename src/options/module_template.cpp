@@ -31,13 +31,13 @@ namespace options {
 
 ${defs}$
 
-${modes}$
+${modes_impl}$
 
 
 namespace ${id}$
 {
 // clang-format off
-${defaults}$
+${defaults_impl}$
 // clang-format on
 }
 

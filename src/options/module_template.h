@@ -31,7 +31,7 @@ namespace cvc5 {
 namespace options {
 
 // clang-format off
-${modes}$
+${modes_decl}$
 // clang-format on
 
 #if defined(CVC5_MUZZLED) || defined(CVC5_COMPETITION_MODE)
@@ -74,7 +74,7 @@ ${inls}$
 namespace ${id}$
 {
 // clang-format off
-${defaults}$
+${defaults_decl}$
 // clang-format on
 }
 
