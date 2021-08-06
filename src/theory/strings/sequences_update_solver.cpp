@@ -217,7 +217,7 @@ void SequencesUpdateSolver::checkTerms(Kind k)
         eq = nm->mkNode(ITE, cond[i], t.eqNode(cchildren[i]), eq);
       }
       Node ufa = nm->mkNode(APPLY_UF, uf, t[0], t[1]);
-      Node oobCond = nm->mkNode(OR, nm->mkNode(LT, t[0], d_zero), cond[0].notNode());
+      Node oobCond = nm->mkNode(OR, nm->mkNode(LT, t[1], d_zero), cond[0].notNode());
       eq = nm->mkNode(ITE, oobCond, t.eqNode(ufa), eq);
       iid = InferenceId::STRINGS_SU_NTH_CONCAT;
     }
