@@ -98,7 +98,7 @@ std::vector<std::vector<std::string> > getAll(const Options& opts) CVC5_EXPORT;
 std::vector<std::string> getNames() CVC5_EXPORT;
 
 /**
- * Represents information we can provide about a particular option. it contains
+ * Represents information we can provide about a particular option. It contains
  * its name and aliases, the current value and the default value as well as
  * type-specific information like its range (if it is a number) or the choices
  * (if it is a mode option).
