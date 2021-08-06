@@ -118,6 +118,28 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
   }
 };
 
+/**
+ * A option-related API exception.
+ * If thrown, API objects can still be used.
+ */
+class CVC5_EXPORT CVC5ApiOptionException : public CVC5ApiRecoverableException
+{
+ public:
+  /**
+   * Construct with message from a string.
+   * @param str The error message.
+   */
+  CVC5ApiOptionException(const std::string& str) : CVC5ApiRecoverableException(str) {}
+  /**
+   * Construct with message from a string stream.
+   * @param stream The error message.
+   */
+  CVC5ApiOptionException(const std::stringstream& stream)
+      : CVC5ApiRecoverableException(stream.str())
+  {
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 /* Result                                                                     */
 /* -------------------------------------------------------------------------- */
