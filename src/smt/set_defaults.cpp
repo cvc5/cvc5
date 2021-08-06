@@ -46,9 +46,9 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
+void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
 {
-  Options& opts = Options::current();
+  //Options& opts = Options::current();
   // implied options
   if (options::debugCheckModels())
   {
