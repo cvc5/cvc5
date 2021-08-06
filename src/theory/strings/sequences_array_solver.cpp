@@ -82,11 +82,11 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
     // => (seq.nth t i) == z
     std::vector<Node> exp;
     d_im.addToExplanation(proxyVar, n, exp);
-	Node lb = Rewriter::rewrite(nm->mkNode(LEQ, nm->mkConst(Rational(0)), n[1])); // 0 <= i
-	Node ub = Rewriter::rewrite(nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0]))); // i < len(proxyVar)
+	Node lb = (nm->mkNode(LEQ, nm->mkConst(Rational(0)), n[1])); // 0 <= i
+	Node ub = (nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0]))); // i < len(proxyVar)
 	Node range = nm->mkNode(AND, lb, ub);
-	std::cerr << range << std::endl;
-	exp.push_back(range); // 0 <= i ^ i < len(t)
+//	std::cerr << range << std::endl;
+//	exp.push_back(range); // 0 <= i ^ i < len(t)
     Node left = nm->mkNode(SEQ_NTH, proxyVar, n[1]);
     Node right =
         nm->mkNode(SEQ_NTH, n[2], nm->mkConst(Rational(0)));  // n[2][0]
