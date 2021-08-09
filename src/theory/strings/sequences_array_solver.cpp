@@ -59,8 +59,6 @@ void SequencesArraySolver::checkUpdate(const std::vector<Node>& updateTerms)
     Node termProxy = d_termReg.getProxyVariableFor(n);
     Trace("seq-update") << "- " << termProxy << " = " << n << std::endl;
 
-    // t == (seq.update x i (seq.unit z)) ^ i\in range(x)
-    // => (seq.nth t i) == z
     std::vector<Node> exp;
     d_im.addToExplanation(termProxy, n, exp);
     //	Node lb = (nm->mkNode(LEQ, nm->mkConst(Rational(0)), n[1])); // 0 <= i
@@ -71,13 +69,13 @@ void SequencesArraySolver::checkUpdate(const std::vector<Node>& updateTerms)
     Node right =
         nm->mkNode(SEQ_NTH, n[2], nm->mkConst(Rational(0)));  // n[2][0]
     right = Rewriter::rewrite(right);
-
-    if (!d_state.areEqual(left, right))
+    Node lem = nm->mkNode(EQUAL, left, right);
+    if (d_lem.find(lem) == d_lem.end())
     {
-      Node eq = nm->mkNode(EQUAL, left, right);
+	  d_lem.insert(lem);
       InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
-      Trace("seq-update") << "send lemma - " << eq << std::endl;
-      d_im.sendInference(exp, eq, iid);
+      Trace("seq-update") << "- send lemma - " << lem << std::endl;
+      d_im.sendInference(exp, lem, iid);
     }
 
     // i != j ^ i, j \in range(a)
@@ -95,12 +93,12 @@ void SequencesArraySolver::checkUpdate(const std::vector<Node>& updateTerms)
           Node nth2 = nm->mkNode(SEQ_NTH, n[0], j);
           right = nm->mkNode(EQUAL, nth1, nth2);
 		  // exp.push_back(left)
-          Node lem = nm->mkNode(IMPLIES, left, right);
+          lem = nm->mkNode(IMPLIES, left, right);
           if (d_lem.find(lem) == d_lem.end())
           {
             d_lem.insert(lem);
             InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
-            Trace("seq-update") << "send lemma - " << lem << std::endl;
+            Trace("seq-update") << "- send lemma - " << lem << std::endl;
 			// d_im.sendInference(exp, right, iid);
             d_im.sendInference(exp, lem, iid);
           }
