@@ -155,19 +155,19 @@ bool ExtfSolver::doReduction(int effort, Node n)
     // never necessary to reduce seq.unit
     return false;
   }
-//  else if (options::stringSeqUpdate())
-//  {
-//    if (k==SEQ_NTH)
-//    {
-//      // don't need to reduce seq.nth when sequence update solver is used
-//      return false;
-//    }
-//    else if (k==STRING_UPDATE && SequencesUpdateSolver::isHandledUpdate(n))
-//    {
-//      // don't need to reduce certain seq.update
-//      return false;
-//    }
-//  }
+  //  else if (options::stringSeqUpdate())
+  //  {
+  //    if (k==SEQ_NTH)
+  //    {
+  //      // don't need to reduce seq.nth when sequence update solver is used
+  //      return false;
+  //    }
+  //    else if (k==STRING_UPDATE && SequencesUpdateSolver::isHandledUpdate(n))
+  //    {
+  //      // don't need to reduce certain seq.update
+  //      return false;
+  //    }
+  //  }
   else if (k != STRING_IN_REGEXP)
   {
     r_effort = 2;

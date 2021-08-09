@@ -42,12 +42,13 @@ SequencesArraySolver::SequencesArraySolver(SolverState& s,
 
 SequencesArraySolver::~SequencesArraySolver() {}
 
-void SequencesArraySolver::checkUpdate(const std::vector<Node>& updateTerms) {
+void SequencesArraySolver::checkUpdate(const std::vector<Node>& updateTerms)
+{
   NodeManager * nm = NodeManager::currentNM();
 
   for (const Node& n : updateTerms)
   {
-	// TODO: if n[2].kind == SEQ_UNIT
+    // TODO: if n[2].kind == SEQ_UNIT
 
     // (seq.update x i (seq.unit z))
     // possible lemma: (seq.nth (seq.update x, i, (seq.unit z)) i) == z
@@ -62,11 +63,10 @@ void SequencesArraySolver::checkUpdate(const std::vector<Node>& updateTerms) {
     // => (seq.nth t i) == z
     std::vector<Node> exp;
     d_im.addToExplanation(termProxy, n, exp);
-//	Node lb = (nm->mkNode(LEQ, nm->mkConst(Rational(0)), n[1])); // 0 <= i
-//	Node ub = (nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0]))); // i < len(termProxy)
-//	Node range = nm->mkNode(AND, lb, ub);
-//	std::cerr << range << std::endl;
-//	exp.push_back(range); // 0 <= i ^ i < len(t)
+    //	Node lb = (nm->mkNode(LEQ, nm->mkConst(Rational(0)), n[1])); // 0 <= i
+    //	Node ub = (nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0]))); // i
+    //< len(termProxy) 	Node range = nm->mkNode(AND, lb, ub); 	std::cerr << range
+    //<< std::endl; 	exp.push_back(range); // 0 <= i ^ i < len(t)
     Node left = nm->mkNode(SEQ_NTH, termProxy, n[1]);
     Node right =
         nm->mkNode(SEQ_NTH, n[2], nm->mkConst(Rational(0)));  // n[2][0]
@@ -111,9 +111,9 @@ void SequencesArraySolver::checkUpdate(const std::vector<Node>& updateTerms) {
 }
 
 void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
-             const std::vector<Node>& updateTerms)
+                                 const std::vector<Node>& updateTerms)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
 
   Trace("seq-update") << "SequencesArraySolver::check..." << std::endl;
   d_writeModel.clear();
