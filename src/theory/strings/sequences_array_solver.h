@@ -75,6 +75,11 @@ class SequencesArraySolver
   /** The write model */
   std::map< Node, std::map< Node, Node > > d_writeModel;
   context::CDHashSet<Node> d_lem;
+
+  // ========= data structure =========
+  std::map<Node, std::set<Node>> d_index_map;
+
+  void checkUpdate(const std::vector<Node>& updateTerms);
 };
 
 }  // namespace strings
