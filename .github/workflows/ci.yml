@@ -26,7 +26,7 @@ jobs:
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
           - name: ubuntu:production-clang
-            os: ubuntu-latest
+            os: ubuntu-18.04
             env: CC=clang CXX=clang++
             config: production --auto-download
             cache-key: productionclang
@@ -35,7 +35,7 @@ jobs:
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
           - name: ubuntu:production-dbg
-            os: ubuntu-latest
+            os: ubuntu-18.04
             config: production --auto-download --assertions --tracing --unit-testing --editline
             cache-key: dbg
             exclude_regress: 3-4

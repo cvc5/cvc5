@@ -134,10 +134,7 @@ class Tptp : public Parser {
    * getAssertionExpr above). This may set a flag in the parser to mark
    * that we have asserted a conjecture.
    */
-  Command* makeAssertCommand(FormulaRole fr,
-                             api::Term expr,
-                             bool cnf,
-                             bool inUnsatCore);
+  Command* makeAssertCommand(FormulaRole fr, api::Term expr, bool cnf);
 
   /** Ugly hack because I don't know how to return an expression from a
       token */

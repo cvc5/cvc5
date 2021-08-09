@@ -23,7 +23,6 @@
 #include <string>
 #include <vector>
 
-#include "base/listener.h"
 #include "cvc5_export.h"
 
 namespace cvc5 {
@@ -77,7 +76,7 @@ class CVC5_EXPORT Options
     return *s_current;
   }
 
-  Options(OptionsListener* ol = nullptr);
+  Options();
   ~Options();
 
   options::OptionsHandler& handler() const {
@@ -87,18 +86,10 @@ class CVC5_EXPORT Options
   /**
    * Copies the value of the options stored in OptionsHolder into the current
    * Options object.
-   * This does not copy the listeners in the Options object.
    */
   void copyValues(const Options& options);
 
-  /** Set the generic listener associated with this class to ol */
-  void setListener(OptionsListener* ol);
-
-  void notifyListener(const std::string& key);
-
  private:
-  /** Pointer to the options listener, if one exists */
-  OptionsListener* d_olisten = nullptr;
 
 // clang-format off
 ${holder_mem_decls}$

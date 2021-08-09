@@ -59,6 +59,7 @@
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "options/smt_options.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
@@ -241,6 +242,8 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {FLOATINGPOINT_ISPOS, cvc5::Kind::FLOATINGPOINT_ISPOS},
     {FLOATINGPOINT_TO_FP_FLOATINGPOINT,
      cvc5::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT},
+    {FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
+     cvc5::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR},
     {FLOATINGPOINT_TO_FP_REAL, cvc5::Kind::FLOATINGPOINT_TO_FP_REAL},
     {FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
      cvc5::Kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR},
@@ -5041,6 +5044,8 @@ Term Solver::mkBVFromStrHelper(const std::string& s, uint32_t base) const
   CVC5_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
   CVC5_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, base)
       << "base 2, 10, or 16";
+  CVC5_API_ARG_CHECK_EXPECTED(s[0] != '-', s)
+      << "a positive value (since no size is specified)";
   //////// all checks before this line
   return mkValHelper<cvc5::BitVector>(cvc5::BitVector(s, base));
 }
@@ -5068,7 +5073,6 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
         << "Overflow in bitvector construction (specified bitvector size "
         << size << " too small to hold value " << s << ")";
   }
-
   return mkValHelper<cvc5::BitVector>(cvc5::BitVector(size, val));
 }
 
@@ -7045,6 +7049,15 @@ std::string Solver::getOption(const std::string& option) const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::vector<std::string> Solver::getOptionNames() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return options::getNames();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 std::vector<Term> Solver::getUnsatAssumptions(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7094,6 +7107,18 @@ std::vector<Term> Solver::getUnsatCore(void) const
   }
   return res;
   ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::string Solver::getProof(void) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_CHECK(d_smtEngine->getOptions().smt.produceProofs)
+      << "Cannot get proof explicitly enabled (try --prooduce-proofs)";
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
+      << "Cannot get proof unless in unsat mode.";
+  return d_smtEngine->getProof();
   CVC5_API_TRY_CATCH_END;
 }
 

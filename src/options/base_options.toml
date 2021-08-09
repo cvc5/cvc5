@@ -5,23 +5,28 @@ public = true
 [[option]]
   name       = "in"
   category   = "undocumented"
-  type       = "std::istream*"
-  default    = "&std::cin"
-  includes   = ["<iostream>"]
+  long       = "in=input"
+  type       = "ManagedIn"
+  predicates = ["setInStream"]
+  includes   = ["<iostream>", "options/managed_streams.h"]
 
 [[option]]
   name       = "out"
   category   = "undocumented"
-  type       = "std::ostream*"
-  default    = "&std::cout"
-  includes   = ["<iostream>"]
+  long       = "out=output"
+  type       = "ManagedOut"
+  alias      = ["regular-output-channel"]
+  predicates = ["setOutStream"]
+  includes   = ["<iostream>", "options/managed_streams.h"]
 
 [[option]]
   name       = "err"
   category   = "undocumented"
-  type       = "std::ostream*"
-  default    = "&std::cerr"
-  includes   = ["<iostream>"]
+  long       = "err=erroutput"
+  type       = "ManagedErr"
+  alias      = ["diagnostic-output-channel"]
+  predicates = ["setErrStream"]
+  includes   = ["<iostream>", "options/managed_streams.h"]
 
 [[option]]
   name       = "inputLanguage"
@@ -55,7 +60,7 @@ public = true
   name       = "verbosity"
   long       = "verbosity=N"
   category   = "regular"
-  type       = "int"
+  type       = "int64_t"
   default    = "0"
   predicates = ["setVerbosity"]
   help       = "the verbosity level of cvc5"
@@ -153,6 +158,7 @@ public = true
   category   = "regular"
   long       = "print-success"
   type       = "bool"
+  predicates = ["setPrintSuccess"]
   help       = "print the \"success\" output required of SMT-LIBv2"
 
 [[option]]

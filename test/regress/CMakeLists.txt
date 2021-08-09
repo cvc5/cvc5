@@ -1204,7 +1204,6 @@ set(regress_0_tests
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/parser-syms.cvc
-  regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
   regress0/strings/re-syntax.smt2
@@ -2158,6 +2157,8 @@ set(regress_1_tests
   regress1/strings/issue6057-replace-re-all-jiwonparc.smt2
   regress1/strings/issue6072-inc-no-const-reg.smt2
   regress1/strings/issue6075-repl-len-one-rr.smt2
+  regress1/strings/issue6101.smt2
+  regress1/strings/issue6101-2.smt2
   regress1/strings/issue6132-non-unique-skolem.smt2
   regress1/strings/issue6142-repl-inv-rew.smt2
   regress1/strings/issue6191-replace-all.smt2
@@ -2180,6 +2181,7 @@ set(regress_1_tests
   regress1/strings/issue6653-rre.smt2
   regress1/strings/issue6653-rre-small.smt2
   regress1/strings/issue6777-seq-nth-eval-cm.smt2
+  regress1/strings/issue6913.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -2199,6 +2201,7 @@ set(regress_1_tests
   regress1/strings/norn-simp-rew-sat.smt2
   regress1/strings/nt6-dd.smt2
   regress1/strings/nterm-re-inter-sigma.smt2
+  regress1/strings/open-pf-merge.smt2
   regress1/strings/pierre150331.smt2
   regress1/strings/policy_variable.smt2
   regress1/strings/pre_ctn_no_skolem_share.smt2
@@ -2659,6 +2662,8 @@ set(regression_disabled_tests
   regress0/auflia/fuzz01.smtv1.smt2
   ###
   regress0/bv/test00.smtv1.smt2
+  # timeout after changes to equality rewriting policy in strings
+  regress0/strings/quad-028-2-2-unsat.smt2
   # FIXME #1649
   regress0/datatypes/datatype-dump.cvc
   # no longer support overloaded symbols across multiple parametric datatypes

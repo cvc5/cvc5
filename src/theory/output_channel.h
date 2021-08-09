@@ -122,16 +122,6 @@ class OutputChannel {
   virtual void lemma(TNode n, LemmaProperty p = LemmaProperty::NONE) = 0;
 
   /**
-   * Request a split on a new theory atom.  This is equivalent to
-   * calling lemma({OR n (NOT n)}).
-   *
-   * @param n - a theory atom; must be of Boolean type
-   */
-  void split(TNode n);
-
-  virtual void splitLemma(TNode n, bool removable = false) = 0;
-
-  /**
    * If a decision is made on n, it must be in the phase specified.
    * Note that this is enforced *globally*, i.e., it is completely
    * context-INdependent.  If you ever requirePhase() on a literal,

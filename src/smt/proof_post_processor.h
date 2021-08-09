@@ -24,6 +24,7 @@
 
 #include "proof/proof_node_updater.h"
 #include "smt/witness_form.h"
+#include "theory/inference_id.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
@@ -256,6 +257,11 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
  private:
   /** Counts number of postprocessed proof nodes for each kind of proof rule */
   HistogramStat<PfRule> d_ruleCount;
+  /**
+   * Counts number of postprocessed proof nodes of rule INSTANTIATE that were
+   * marked with the given inference id.
+   */
+  HistogramStat<theory::InferenceId> d_instRuleIds;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
   /** The minimum pedantic level of any rule encountered */

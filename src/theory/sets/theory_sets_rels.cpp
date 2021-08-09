@@ -349,7 +349,7 @@ void TheorySetsRels::check(Theory::Effort level)
               Assert(reasons.size() >= 1);
               sendInfer(
                   new_membership,
-                  InferenceId::UNKNOWN,
+                  InferenceId::SETS_RELS_JOIN_IMAGE_UP,
                   reasons.size() > 1 ? nm->mkNode(AND, reasons) : reasons[0]);
               break;
             }

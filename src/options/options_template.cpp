@@ -37,9 +37,8 @@ namespace cvc5
 {
   thread_local Options* Options::s_current = nullptr;
 
-  Options::Options(OptionsListener * ol)
+  Options::Options()
       :
-        d_olisten(ol),
 // clang-format off
 ${holder_mem_inits}$
 ${holder_ref_inits}$
@@ -57,16 +56,6 @@ ${holder_mem_copy}$
 // clang-format on
   }
 }
-
-void Options::setListener(OptionsListener* ol) { d_olisten = ol; }
-  
-void Options::notifyListener(const std::string& key)
-  {
-    if (d_olisten != nullptr)
-    {
-      d_olisten->notifySetOption(key);
-    }
-  }
 
 }  // namespace cvc5
 
