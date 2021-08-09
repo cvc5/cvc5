@@ -72,7 +72,7 @@ void SequencesArraySolver::checkUpdate(const std::vector<Node>& updateTerms)
     Node lem = nm->mkNode(EQUAL, left, right);
     if (d_lem.find(lem) == d_lem.end())
     {
-	  d_lem.insert(lem);
+      d_lem.insert(lem);
       InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
       Trace("seq-update") << "- send lemma - " << lem << std::endl;
       d_im.sendInference(exp, lem, iid);
@@ -99,7 +99,7 @@ void SequencesArraySolver::checkUpdate(const std::vector<Node>& updateTerms)
             d_lem.insert(lem);
             InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
             Trace("seq-update") << "- send lemma - " << lem << std::endl;
-			// d_im.sendInference(exp, right, iid);
+            // d_im.sendInference(exp, right, iid);
             d_im.sendInference(exp, lem, iid);
           }
         }
