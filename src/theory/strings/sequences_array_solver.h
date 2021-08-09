@@ -79,6 +79,8 @@ class SequencesArraySolver
   // ========= data structure =========
   std::map<Node, std::set<Node>> d_index_map;
 
+  void sendInference(const std::vector<Node>& exp, const Node& lem);
+
   void checkUpdate(const std::vector<Node>& updateTerms);
 };
 

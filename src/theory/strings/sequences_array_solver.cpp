@@ -42,44 +42,42 @@ SequencesArraySolver::SequencesArraySolver(SolverState& s,
 
 SequencesArraySolver::~SequencesArraySolver() {}
 
+void SequencesArraySolver::sendInference(const std::vector<Node>& exp, const Node& lem) {
+	if (d_lem.find(lem) == d_lem.end())
+	{
+		d_lem.insert(lem);
+		InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
+		Trace("seq-update") << "- send lemma - " << lem << std::endl;
+		d_im.sendInference(exp, lem, iid);
+	}
+}
+
 void SequencesArraySolver::checkUpdate(const std::vector<Node>& updateTerms)
 {
   NodeManager * nm = NodeManager::currentNM();
 
   for (const Node& n : updateTerms)
   {
-    // TODO: if n[2].kind == SEQ_UNIT
-
-    // (seq.update x i (seq.unit z))
-    // possible lemma: (seq.nth (seq.update x, i, (seq.unit z)) i) == z
-    // note the left side could rewrites to z
+    // current term (seq.update x i a)
+    // t == (seq.update x i a) =>
+    // (seq.nth t j) = (ITE, j in range(i, i+len(a)), (seq.nth a (j - i)), (seq.nth x j))
+ 
+    // note that the term could rewrites to a skolem
     // get proxy variable for the update term as t
-    // d_termReg.getProxyVariable
-    // send lemma: (seq.nth t i) == z
     Node termProxy = d_termReg.getProxyVariableFor(n);
     Trace("seq-update") << "- " << termProxy << " = " << n << std::endl;
-
     std::vector<Node> exp;
     d_im.addToExplanation(termProxy, n, exp);
-    //	Node lb = (nm->mkNode(LEQ, nm->mkConst(Rational(0)), n[1])); // 0 <= i
-    //	Node ub = (nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0]))); // i
-    //< len(termProxy) 	Node range = nm->mkNode(AND, lb, ub); 	std::cerr << range
-    //<< std::endl; 	exp.push_back(range); // 0 <= i ^ i < len(t)
-    Node left = nm->mkNode(SEQ_NTH, termProxy, n[1]);
+
+	// optimization: add a short cut t == (seq.update n[0] n[1] n[2]) => t[i] == n[2][0]
+	Node left = nm->mkNode(SEQ_NTH, termProxy, n[1]);
     Node right =
         nm->mkNode(SEQ_NTH, n[2], nm->mkConst(Rational(0)));  // n[2][0]
     right = Rewriter::rewrite(right);
     Node lem = nm->mkNode(EQUAL, left, right);
-    if (d_lem.find(lem) == d_lem.end())
-    {
-      d_lem.insert(lem);
-      InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
-      Trace("seq-update") << "- send lemma - " << lem << std::endl;
-      d_im.sendInference(exp, lem, iid);
-    }
+	sendInference(exp, lem);
 
-    // i != j ^ i, j \in range(a)
-	// => (seq.nth (seq.update a i x) j) == (seq.nth a j)
+	// enumerate possible index
     for (auto nth : d_index_map)
     {
       Node seq = nth.first;
@@ -88,20 +86,25 @@ void SequencesArraySolver::checkUpdate(const std::vector<Node>& updateTerms)
         std::set<Node> indexes = nth.second;
         for (Node j : indexes)
         {
-          left = nm->mkNode(DISTINCT, n[1], j);
-          Node nth1 = nm->mkNode(SEQ_NTH, termProxy, j);
-          Node nth2 = nm->mkNode(SEQ_NTH, n[0], j);
-          right = nm->mkNode(EQUAL, nth1, nth2);
-		  // exp.push_back(left)
-          lem = nm->mkNode(IMPLIES, left, right);
-          if (d_lem.find(lem) == d_lem.end())
-          {
-            d_lem.insert(lem);
-            InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
-            Trace("seq-update") << "- send lemma - " << lem << std::endl;
-            // d_im.sendInference(exp, right, iid);
-            d_im.sendInference(exp, lem, iid);
-          }
+	      // optimization: add a short cut for special case (seq.update n[0] n[1] (seq.unit e))
+		  if (n[2].getKind() == SEQ_UNIT) {
+			  left = nm->mkNode(DISTINCT, n[1], j);
+			  Node nth1 = nm->mkNode(SEQ_NTH, termProxy, j);
+			  Node nth2 = nm->mkNode(SEQ_NTH, n[0], j);
+			  right = nm->mkNode(EQUAL, nth1, nth2);
+			  lem = nm->mkNode(IMPLIES, left, right);
+			  sendInference(exp, lem);
+		  }
+
+		  // normal cases
+		  left = nm->mkNode(SEQ_NTH, termProxy, j);
+		  Node cond = nm->mkNode(AND, nm->mkNode(LEQ, n[1], j),
+		                         nm->mkNode(LT, j, nm->mkNode(PLUS, n[1], nm->mkNode(STRING_LENGTH, n[2]))));
+		  Node body1 = nm->mkNode(SEQ_NTH, n[2], nm->mkNode(MINUS, j, n[1]));
+		  Node body2 = nm->mkNode(SEQ_NTH, n[0], j);
+          right = nm->mkNode(ITE, cond, body1, body2);
+          lem = nm->mkNode(EQUAL, left, right);
+		  sendInference(exp, lem);
         }
       }
     }
