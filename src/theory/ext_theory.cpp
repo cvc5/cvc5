@@ -84,9 +84,11 @@ bool ExtTheoryCallback::getReduction(int effort,
 ExtTheory::ExtTheory(ExtTheoryCallback& p,
                      context::Context* c,
                      context::UserContext* u,
-                     OutputChannel& out)
+                     OutputChannel& out,
+                     InferenceManagerBuffered& im)
     : d_parent(p),
       d_out(out),
+      d_im(im),
       d_ext_func_terms(c),
       d_extfExtReducedIdMap(c),
       d_ci_inactive(u),
@@ -366,7 +368,7 @@ bool ExtTheory::sendLemma(Node lem, bool preprocess)
     if (d_pp_lemmas.find(lem) == d_pp_lemmas.end())
     {
       d_pp_lemmas.insert(lem);
-      d_out.lemma(lem);
+      d_im.lemma(lem, InferenceId::UNKNOWN);
       return true;
     }
   }
@@ -375,7 +377,7 @@ bool ExtTheory::sendLemma(Node lem, bool preprocess)
     if (d_lemmas.find(lem) == d_lemmas.end())
     {
       d_lemmas.insert(lem);
-      d_out.lemma(lem);
+      d_im.lemma(lem, InferenceId::UNKNOWN);
       return true;
     }
   }

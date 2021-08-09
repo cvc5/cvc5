@@ -41,6 +41,7 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "theory/inference_manager_buffered.h"
 
 namespace cvc5 {
 namespace theory {
@@ -176,7 +177,8 @@ class ExtTheory
   ExtTheory(ExtTheoryCallback& p,
             context::Context* c,
             context::UserContext* u,
-            OutputChannel& out);
+            OutputChannel& out,
+            InferenceManagerBuffered& im);
   virtual ~ExtTheory() {}
   /** Tells this class to treat terms with Kind k as extended functions */
   void addFunctionKind(Kind k) { d_extf_kind[k] = true; }
@@ -296,6 +298,8 @@ class ExtTheory
   ExtTheoryCallback& d_parent;
   /** Reference to the output channel we are using */
   OutputChannel& d_out;
+  /** inference manager used to send lemmas */
+  InferenceManagerBuffered& d_im;
   /** the true node */
   Node d_true;
   /** extended function terms, map to whether they are active */
