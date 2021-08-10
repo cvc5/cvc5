@@ -357,13 +357,33 @@ void TheoryArith::presolve(){
 }
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
-  auto ait = d_arithModelCache.find(a);
-  auto bit = d_arithModelCache.find(b);
-  if (ait == d_arithModelCache.end() || bit == d_arithModelCache.end())
-  {
-    return EQUALITY_UNKNOWN;
+  Debug("arith") << "TheoryArith::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
+  Node aval, bval;
+  if (a.isConst()) {
+    aval = a;
+  } else {
+    auto ait = d_arithModelCache.find(a);
+    if (ait == d_arithModelCache.end())
+    {
+      Debug("arith") << "not in cache: " << a << std::endl;
+      return EQUALITY_UNKNOWN;
+    }
+    aval = ait->second;
   }
-  if (ait->second == bit->second)
+  if (b.isConst()) {
+    bval = b;
+  } else {
+    auto bit = d_arithModelCache.find(b);
+    if (bit == d_arithModelCache.end())
+    {
+      Debug("arith") << "not in cache: " << b << std::endl;
+      return EQUALITY_UNKNOWN;
+    }
+    bval = bit->second;
+  }
+  Debug("arith") << a << " = " << aval << std::endl;
+  Debug("arith") << b << " = " << bval << std::endl;
+  if (aval == bval)
   {
     return EQUALITY_TRUE_IN_MODEL;
   }
