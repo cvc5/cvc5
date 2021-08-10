@@ -23,16 +23,9 @@
 #include "options/option_exception.h"
 
 // clang-format off
-namespace cvc5 {
-
-${accs}$
-
-namespace options {
-
-${defs}$
+namespace cvc5::options {
 
 ${modes_impl}$
-
 
 namespace ${id}$
 {
@@ -41,6 +34,5 @@ ${defaults_impl}$
 // clang-format on
 }
 
-}  // namespace options
-}  // namespace cvc5
+}  // namespace cvc5::options
 // clang-format on
