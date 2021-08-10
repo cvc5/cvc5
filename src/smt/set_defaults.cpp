@@ -67,7 +67,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
     opts.driver.dumpUnsatCores = true;
   }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
-      || opts.smt.unsatAssumptions || options::minimalUnsatCores()
+      || opts.smt.unsatAssumptions || opts.smt.minimalUnsatCores
       || opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
   {
     opts.smt.unsatCores = true;
