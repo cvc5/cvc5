@@ -192,7 +192,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
       throw OptionException(
           "solving bitvectors as integers is incompatible with --bool-to-bv.");
     }
-    if (opts.bv.BVAndIntegerGranularity > 8)
+    if (opts.smt.BVAndIntegerGranularity > 8)
     {
       /**
        * The granularity sets the size of the ITE in each element
