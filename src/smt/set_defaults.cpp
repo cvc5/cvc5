@@ -127,7 +127,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
     opts.bv.bitvectorAlgebraicSolver = true;
   }
 
-  bool isSygus = language::isInputLangSygus(options::inputLanguage());
+  bool isSygus = language::isInputLangSygus(opts.base.inputLanguage);
   bool usesSygus = isSygus;
 
   if (opts.bv.bitblastMode == options::BitblastMode::EAGER)
@@ -192,7 +192,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
       throw OptionException(
           "solving bitvectors as integers is incompatible with --bool-to-bv.");
     }
-    if (options::BVAndIntegerGranularity() > 8)
+    if (opts.bv.BVAndIntegerGranularity > 8)
     {
       /**
        * The granularity sets the size of the ITE in each element
@@ -279,7 +279,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
     Trace("smt") << "Turning stringExp on since logic does not have everything "
                     "and string theory is enabled\n";
   }
-  if (options::stringExp() || !options::stringLazyPreproc())
+  if (opts.strings.stringExp || !opts.strings.stringLazyPreproc)
   {
     // We require quantifiers since extended functions reduce using them.
     if (!logic.isQuantified())
@@ -316,7 +316,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
     }
   }
 
-  if (options::arraysExp())
+  if (opts.arrays.arraysExp)
   {
     if (!logic.isQuantified())
     {
@@ -344,7 +344,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
       isSygus = true;
       usesSygus = true;
     }
-    else if (options::sygusInst())
+    else if (opts.quantifiers.sygusInst)
     {
       // sygus instantiation uses sygus, but it is not a sygus problem
       usesSygus = true;
@@ -431,7 +431,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
   // with arithmetic, force the option off.
   if (opts.base.incrementalSolving || safeUnsatCores)
   {
-    if (options::unconstrainedSimp())
+    if (opts.smt.unconstrainedSimp)
     {
       if (opts.smt.unconstrainedSimpWasSetByUser)
       {
@@ -552,7 +552,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
       opts.quantifiers.preSkolemQuant = false;
     }
 
-    if (options::bitvectorToBool())
+    if (opts.bv.bitvectorToBool)
     {
       if (opts.bv.bitvectorToBoolWasSetByUser)
       {
@@ -651,7 +651,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
 
   // cases where we need produce models
   if (!opts.smt.produceModels
-      && (opts.smt.produceAssignments || options::sygusRewSynthCheck()
+      && (opts.smt.produceAssignments || opts.quantifiers.sygusRewSynthCheck
           || usesSygus))
   {
     Notice() << "SmtEngine: turning on produce-models" << std::endl;
@@ -689,7 +689,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
     logic = log;
     logic.lock();
   }
-  if (options::bvAbstraction())
+  if (opts.bv.bvAbstraction)
   {
     // bv abstraction may require UF
     Notice() << "Enabling UF because bvAbstraction requires it." << std::endl;
@@ -1019,8 +1019,8 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
     opts.quantifiers.cegqi = false;
   }
 
-  if ((opts.quantifiers.fmfBoundLazyWasSetByUser && options::fmfBoundLazy())
-      || (opts.quantifiers.fmfBoundIntWasSetByUser && options::fmfBoundInt()))
+  if ((opts.quantifiers.fmfBoundLazyWasSetByUser && opts.quantifiers.fmfBoundLazy)
+      || (opts.quantifiers.fmfBoundIntWasSetByUser && opts.quantifiers.fmfBoundInt))
   {
     opts.quantifiers.fmfBound = true;
     Trace("smt")
@@ -1054,7 +1054,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
     if (!opts.quantifiers.hoElimStoreAxWasSetByUser)
     {
       // by default, use store axioms only if --ho-elim is set
-      opts.quantifiers.hoElimStoreAx = options::hoElim();
+      opts.quantifiers.hoElimStoreAx = opts.quantifiers.hoElim;
     }
     if (!opts.theory.assignFunctionValues)
     {
@@ -1108,12 +1108,12 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
     }
     if (!opts.quantifiers.eMatchingWasSetByUser)
     {
-      opts.quantifiers.eMatching = options::fmfInstEngine();
+      opts.quantifiers.eMatching = opts.quantifiers.fmfInstEngine;
     }
     if (!opts.quantifiers.instWhenModeWasSetByUser)
     {
       // instantiate only on last call
-      if (options::eMatching())
+      if (opts.quantifiers.eMatching)
       {
         opts.quantifiers.instWhenMode = options::InstWhenMode::LAST_CALL;
       }
