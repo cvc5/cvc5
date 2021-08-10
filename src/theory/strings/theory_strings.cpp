@@ -993,6 +993,15 @@ void TheoryStrings::checkRegisterTermsNormalForms()
 TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
+  if (atom.getKind() == EQUAL)
+  {
+    // always apply aggressive equality rewrites here
+    Node ret = d_rewriter.rewriteEqualityExt(atom);
+    if (ret != atom)
+    {
+      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+    }
+  }
   if (atom.getKind() == STRING_FROM_CODE)
   {
     // str.from_code(t) --->

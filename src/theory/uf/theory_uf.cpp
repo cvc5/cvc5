@@ -217,7 +217,8 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
   {
     if( !options::ufHo() ){
       std::stringstream ss;
-      ss << "Partial function applications are not supported in default mode, try --uf-ho.";
+      ss << "Partial function applications are only supported with "
+            "higher-order logic. Try adding the logic prefix HO_.";
       throw LogicException(ss.str());
     }
     Node ret = d_ho->ppRewrite(node);
@@ -236,7 +237,9 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
     {
       std::stringstream ss;
       ss << "UF received an application whose operator has higher-order type "
-         << node << ", which is not supported by default, try --uf-ho";
+         << node
+         << ", which is only supported with higher-order logic. Try adding the "
+            "logic prefix HO_.";
       throw LogicException(ss.str());
     }
   }

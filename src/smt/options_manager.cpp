@@ -30,96 +30,12 @@ namespace smt {
 
 OptionsManager::OptionsManager(Options* opts) : d_options(opts)
 {
-  // set options that must take effect immediately
-  if (opts->expr.defaultExprDepthWasSetByUser)
-  {
-    notifySetOption(options::expr::defaultExprDepth__name);
-  }
-  if (opts->expr.defaultDagThreshWasSetByUser)
-  {
-    notifySetOption(options::expr::defaultDagThresh__name);
-  }
-  if (opts->smt.dumpModeStringWasSetByUser)
-  {
-    notifySetOption(options::smt::dumpModeString__name);
-  }
-  if (opts->base.printSuccessWasSetByUser)
-  {
-    notifySetOption(options::base::printSuccess__name);
-  }
-  if (opts->smt.diagnosticChannelNameWasSetByUser)
-  {
-    notifySetOption(options::smt::diagnosticChannelName__name);
-  }
-  if (opts->smt.regularChannelNameWasSetByUser)
-  {
-    notifySetOption(options::smt::regularChannelName__name);
-  }
-  if (opts->smt.dumpToFileNameWasSetByUser)
-  {
-    notifySetOption(options::smt::dumpToFileName__name);
-  }
-  // set this as a listener to be notified of options changes from now on
-  opts->setListener(this);
 }
 
 OptionsManager::~OptionsManager() {}
 
 void OptionsManager::notifySetOption(const std::string& key)
 {
-  Trace("smt") << "SmtEnginePrivate::notifySetOption(" << key << ")"
-               << std::endl;
-  if (key == options::expr::defaultExprDepth__name)
-  {
-    int depth = d_options->expr.defaultExprDepth;
-    Debug.getStream() << expr::ExprSetDepth(depth);
-    Trace.getStream() << expr::ExprSetDepth(depth);
-    Notice.getStream() << expr::ExprSetDepth(depth);
-    Chat.getStream() << expr::ExprSetDepth(depth);
-    CVC5Message.getStream() << expr::ExprSetDepth(depth);
-    Warning.getStream() << expr::ExprSetDepth(depth);
-    // intentionally exclude Dump stream from this list
-  }
-  else if (key == options::expr::defaultDagThresh__name)
-  {
-    int dag = d_options->expr.defaultDagThresh;
-    Debug.getStream() << expr::ExprDag(dag);
-    Trace.getStream() << expr::ExprDag(dag);
-    Notice.getStream() << expr::ExprDag(dag);
-    Chat.getStream() << expr::ExprDag(dag);
-    CVC5Message.getStream() << expr::ExprDag(dag);
-    Warning.getStream() << expr::ExprDag(dag);
-    Dump.getStream() << expr::ExprDag(dag);
-  }
-  else if (key == options::smt::dumpModeString__name)
-  {
-    const std::string& value = d_options->smt.dumpModeString;
-    Dump.setDumpFromString(value);
-  }
-  else if (key == options::base::printSuccess__name)
-  {
-    bool value = d_options->base.printSuccess;
-    Debug.getStream() << Command::printsuccess(value);
-    Trace.getStream() << Command::printsuccess(value);
-    Notice.getStream() << Command::printsuccess(value);
-    Chat.getStream() << Command::printsuccess(value);
-    CVC5Message.getStream() << Command::printsuccess(value);
-    Warning.getStream() << Command::printsuccess(value);
-    *options::out() << Command::printsuccess(value);
-  }
-  else if (key == options::smt::regularChannelName__name)
-  {
-    d_managedRegularChannel.set(options::regularChannelName());
-  }
-  else if (key == options::smt::diagnosticChannelName__name)
-  {
-    d_managedDiagnosticChannel.set(options::diagnosticChannelName());
-  }
-  else if (key == options::smt::dumpToFileName__name)
-  {
-    d_managedDumpChannel.set(options::dumpToFileName());
-  }
-  // otherwise, no action is necessary
 }
 
 void OptionsManager::finishInit(LogicInfo& logic, bool isInternalSubsolver)

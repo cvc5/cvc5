@@ -25,7 +25,10 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace expr {
 
-TermCanonize::TermCanonize() : d_op_id_count(0), d_typ_id_count(0) {}
+TermCanonize::TermCanonize(TypeClassCallback* tcc)
+    : d_tcc(tcc), d_op_id_count(0), d_typ_id_count(0)
+{
+}
 
 int TermCanonize::getIdForOperator(Node op)
 {
@@ -93,11 +96,13 @@ bool TermCanonize::getTermOrder(Node a, Node b)
   return false;
 }
 
-Node TermCanonize::getCanonicalFreeVar(TypeNode tn, unsigned i)
+Node TermCanonize::getCanonicalFreeVar(TypeNode tn, unsigned i, uint32_t tc)
 {
   Assert(!tn.isNull());
   NodeManager* nm = NodeManager::currentNM();
-  while (d_cn_free_var[tn].size() <= i)
+  std::pair<TypeNode, uint32_t> key(tn, tc);
+  std::vector<Node>& tvars = d_cn_free_var[key];
+  while (tvars.size() <= i)
   {
     std::stringstream oss;
     oss << tn;
@@ -109,10 +114,15 @@ Node TermCanonize::getCanonicalFreeVar(TypeNode tn, unsigned i)
     std::stringstream os;
     os << typ_name[0] << i;
     Node x = nm->mkBoundVar(os.str().c_str(), tn);
-    d_fvIndex[x] = d_cn_free_var[tn].size();
-    d_cn_free_var[tn].push_back(x);
+    d_fvIndex[x] = tvars.size();
+    tvars.push_back(x);
   }
-  return d_cn_free_var[tn][i];
+  return tvars[i];
+}
+
+uint32_t TermCanonize::getTypeClass(TNode v)
+{
+  return d_tcc == nullptr ? 0 : d_tcc->getTypeClass(v);
 }
 
 size_t TermCanonize::getIndexForFreeVariable(Node v) const
@@ -131,11 +141,12 @@ struct sortTermOrder
   bool operator()(Node i, Node j) { return d_tu->getTermOrder(i, j); }
 };
 
-Node TermCanonize::getCanonicalTerm(TNode n,
-                                    bool apply_torder,
-                                    bool doHoVar,
-                                    std::map<TypeNode, unsigned>& var_count,
-                                    std::map<TNode, Node>& visited)
+Node TermCanonize::getCanonicalTerm(
+    TNode n,
+    bool apply_torder,
+    bool doHoVar,
+    std::map<std::pair<TypeNode, uint32_t>, unsigned>& var_count,
+    std::map<TNode, Node>& visited)
 {
   std::map<TNode, Node>::iterator it = visited.find(n);
   if (it != visited.end())
@@ -146,11 +157,13 @@ Node TermCanonize::getCanonicalTerm(TNode n,
   Trace("canon-term-debug") << "Get canonical term for " << n << std::endl;
   if (n.getKind() == BOUND_VARIABLE)
   {
+    uint32_t tc = getTypeClass(n);
     TypeNode tn = n.getType();
+    std::pair<TypeNode, uint32_t> key(tn, tc);
     // allocate variable
-    unsigned vn = var_count[tn];
-    var_count[tn]++;
-    Node fv = getCanonicalFreeVar(tn, vn);
+    unsigned vn = var_count[key];
+    var_count[key]++;
+    Node fv = getCanonicalFreeVar(tn, vn, tc);
     visited[n] = fv;
     Trace("canon-term-debug") << "...allocate variable." << std::endl;
     return fv;
@@ -204,7 +217,7 @@ Node TermCanonize::getCanonicalTerm(TNode n,
 
 Node TermCanonize::getCanonicalTerm(TNode n, bool apply_torder, bool doHoVar)
 {
-  std::map<TypeNode, unsigned> var_count;
+  std::map<std::pair<TypeNode, uint32_t>, unsigned> var_count;
   std::map<TNode, Node> visited;
   return getCanonicalTerm(n, apply_torder, doHoVar, var_count, visited);
 }

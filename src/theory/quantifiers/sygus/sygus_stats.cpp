@@ -22,13 +22,7 @@ namespace theory {
 namespace quantifiers {
 
 SygusStatistics::SygusStatistics()
-    : d_cegqi_lemmas_ce(
-        smtStatisticsRegistry().registerInt("SynthEngine::cegqi_lemmas_ce")),
-      d_cegqi_lemmas_refine(smtStatisticsRegistry().registerInt(
-          "SynthEngine::cegqi_lemmas_refine")),
-      d_cegqi_si_lemmas(
-          smtStatisticsRegistry().registerInt("SynthEngine::cegqi_lemmas_si")),
-      d_solutions(
+    : d_solutions(
           smtStatisticsRegistry().registerInt("SynthConjecture::solutions")),
       d_filtered_solutions(smtStatisticsRegistry().registerInt(
           "SynthConjecture::filtered_solutions")),

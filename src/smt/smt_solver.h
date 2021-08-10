@@ -64,8 +64,7 @@ struct SmtEngineStatistics;
 class SmtSolver
 {
  public:
-  SmtSolver(SmtEngine& smt,
-            Env& env,
+  SmtSolver(Env& env,
             SmtEngineState& state,
             Preprocessor& pp,
             SmtEngineStatistics& stats);
@@ -132,8 +131,6 @@ class SmtSolver
   //------------------------------------------ end access methods
 
  private:
-  /** Reference to the parent SMT engine */
-  SmtEngine& d_smt;
   /** Reference to the environment */
   Env& d_env;
   /** Reference to the state of the SmtEngine */

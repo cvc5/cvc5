@@ -1613,7 +1613,7 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
     Debug("arith::eq") << "negation has proof" << endl;
     Debug("arith::eq") << constraint << endl;
     Debug("arith::eq") << negation << endl;
-    raiseConflict(negation, InferenceId::UNKNOWN);
+    raiseConflict(negation, InferenceId::ARITH_CONF_FACT_QUEUE);
     return NullConstraint;
   }else{
     return constraint;
