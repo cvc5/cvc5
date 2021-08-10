@@ -1177,7 +1177,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
       // should use full effort cbqi for single invocation and repair const
       opts.quantifiers.cegqiFullEffort = true;
     }
-    if (options::sygusRew())
+    if (opts.quantifiers.sygusRew)
     {
       opts.quantifiers.sygusRewSynth = true;
       opts.quantifiers.sygusRewVerify = true;
@@ -1212,13 +1212,13 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
       // a sygus side condition for consistency with axioms.
       reqBasicSygus = true;
     }
-    if (options::sygusRewSynth() || options::sygusRewVerify()
-        || options::sygusQueryGen())
+    if (opts.quantifiers.sygusRewSynth || opts.quantifiers.sygusRewVerify
+        || opts.quantifiers.sygusQueryGen)
     {
       // rewrite rule synthesis implies that sygus stream must be true
       opts.quantifiers.sygusStream = true;
     }
-    if (options::sygusStream() || opts.base.incrementalSolving)
+    if (opts.quantifiers.sygusStream || opts.base.incrementalSolving)
     {
       // Streaming and incremental mode are incompatible with techniques that
       // focus the search towards finding a single solution.
@@ -1280,7 +1280,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
            || logic.isTheoryEnabled(THEORY_DATATYPES)
            || logic.isTheoryEnabled(THEORY_BV)
            || logic.isTheoryEnabled(THEORY_FP)))
-      || options::cegqiAll())
+      || opts.quantifiers.cegqiAll)
   {
     if (!opts.quantifiers.cegqiWasSetByUser)
     {
@@ -1312,7 +1312,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
       {
         opts.quantifiers.instNoEntail = false;
       }
-      if (!opts.quantifiers.instWhenModeWasSetByUser && options::cegqiModel())
+      if (!opts.quantifiers.instWhenModeWasSetByUser && opts.quantifiers.cegqiModel)
       {
         // only instantiation should happen at last call when model is avaiable
         opts.quantifiers.instWhenMode = options::InstWhenMode::LAST_CALL;
@@ -1339,7 +1339,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
       opts.quantifiers.userPatternsQuant = options::UserPatMode::TRUST;
     }
   }
-  if (opts.quantifiers.qcfModeWasSetByUser || options::qcfTConstraint())
+  if (opts.quantifiers.qcfModeWasSetByUser || opts.quantifiers.qcfTConstraint)
   {
     opts.quantifiers.quantConflictFind = true;
   }
@@ -1471,7 +1471,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
   // !!! All options that require disabling models go here
   bool disableModels = false;
   std::string sOptNoModel;
-  if (opts.smt.unconstrainedSimpWasSetByUser && options::unconstrainedSimp())
+  if (opts.smt.unconstrainedSimpWasSetByUser && opts.smt.unconstrainedSimp)
   {
     disableModels = true;
     sOptNoModel = "unconstrained-simp";
