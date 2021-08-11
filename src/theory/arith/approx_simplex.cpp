@@ -308,16 +308,17 @@ Rational ApproximateSimplex::estimateWithCFE(const Rational& r, const Integer& K
   }
 }
 
-Maybe<Rational> ApproximateSimplex::estimateWithCFE(double d, const Integer& D)
+std::optional<Rational> ApproximateSimplex::estimateWithCFE(double d,
+                                                            const Integer& D)
 {
-  if (Maybe<Rational> from_double = Rational::fromDouble(d))
+  if (std::optional<Rational> from_double = Rational::fromDouble(d))
   {
     return estimateWithCFE(from_double.value(), D);
   }
-  return Maybe<Rational>();
+  return std::optional<Rational>();
 }
 
-Maybe<Rational> ApproximateSimplex::estimateWithCFE(double d)
+std::optional<Rational> ApproximateSimplex::estimateWithCFE(double d)
 {
   return estimateWithCFE(d, s_defaultMaxDenom);
 }

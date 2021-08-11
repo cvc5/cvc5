@@ -27,6 +27,7 @@
 #include <cln/rational_io.h>
 #include <cln/real.h>
 
+#include <optional>
 #include <sstream>
 #include <string>
 
@@ -190,7 +191,7 @@ class CVC5_EXPORT Rational
   Integer getDenominator() const { return Integer(cln::denominator(d_value)); }
 
   /** Return an exact rational for a double d. */
-  static Maybe<Rational> fromDouble(double d);
+  static std::optional<Rational> fromDouble(double d);
 
   /**
    * Get a double representation of this Rational, which is

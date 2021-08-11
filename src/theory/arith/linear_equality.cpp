@@ -1054,14 +1054,12 @@ bool LinearEqualityModule::willBeInConflictAfterPivot(const Tableau::Entry& entr
   Assert(nbSgn != 0);
 
   if(nbSgn > 0){
-    if (d_upperBoundDifference.nothing()
-        || nbDiff <= d_upperBoundDifference.value())
+    if (!d_upperBoundDifference || nbDiff <= d_upperBoundDifference.value())
     {
       return false;
     }
   }else{
-    if (d_lowerBoundDifference.nothing()
-        || nbDiff >= d_lowerBoundDifference.value())
+    if (!d_lowerBoundDifference || nbDiff >= d_lowerBoundDifference.value())
     {
       return false;
     }
@@ -1132,8 +1130,8 @@ UpdateInfo LinearEqualityModule::mkConflictUpdate(const Tableau::Entry& entry, b
 UpdateInfo LinearEqualityModule::speculativeUpdate(ArithVar nb, const Rational& focusCoeff, UpdatePreferenceFunction pref){
   Assert(d_increasing.empty());
   Assert(d_decreasing.empty());
-  Assert(d_lowerBoundDifference.nothing());
-  Assert(d_upperBoundDifference.nothing());
+  Assert(!d_lowerBoundDifference);
+  Assert(!d_upperBoundDifference);
 
   int focusCoeffSgn = focusCoeff.sgn();
 
@@ -1189,8 +1187,8 @@ void LinearEqualityModule::clearSpeculative(){
   // clear everything away
   d_increasing.clear();
   d_decreasing.clear();
-  d_lowerBoundDifference.clear();
-  d_upperBoundDifference.clear();
+  d_lowerBoundDifference.reset();
+  d_upperBoundDifference.reset();
 }
 
 void LinearEqualityModule::handleBorders(UpdateInfo& selected, ArithVar nb, const Rational& focusCoeff, BorderHeap& heap, int minimumFixes, UpdatePreferenceFunction pref){

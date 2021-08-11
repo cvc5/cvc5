@@ -19,12 +19,13 @@
 #include "cvc5_private.h"
 
 #pragma once
+
+#include <optional>
 #include <vector>
 
 #include "theory/arith/arithvar.h"
 #include "theory/arith/delta_rational.h"
 #include "util/dense_map.h"
-#include "util/maybe.h"
 #include "util/rational.h"
 #include "util/statistics_stats.h"
 
@@ -126,8 +127,8 @@ class ApproximateSimplex{
    * cuts off the estimate once the value is approximately zero.
    * This is designed for removing rounding artifacts.
    */
-  static Maybe<Rational> estimateWithCFE(double d);
-  static Maybe<Rational> estimateWithCFE(double d, const Integer& D);
+  static std::optional<Rational> estimateWithCFE(double d);
+  static std::optional<Rational> estimateWithCFE(double d, const Integer& D);
 
   /**
    * Converts a rational to a continued fraction expansion representation
