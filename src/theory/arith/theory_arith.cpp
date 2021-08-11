@@ -24,6 +24,7 @@
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/theory_arith_private.h"
+#include "theory/evaluator.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -194,8 +195,6 @@ void TheoryArith::postCheck(Effort level)
     std::set<Node> termSet;
     collectAssertedTerms(termSet);
     d_internal->collectModelValues(termSet, d_arithModelCache);
-    d_nlModelCache = std::make_unique<nl::NlModel>(nullptr);
-    d_nlModelCache->reset(nullptr, d_arithModelCache);
 
     // Double check that the model from the linear solver respects integer types,
     // if it does not, add a branch and bound lemma. This typically should never
@@ -360,8 +359,8 @@ void TheoryArith::presolve(){
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   Debug("arith") << "TheoryArith::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
-  Node aval = d_nlModelCache->computeConcreteModelValue(a);
-  Node bval = d_nlModelCache->computeConcreteModelValue(b);
+  Node aval = Rewriter::rewrite(a.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
+  Node bval = Rewriter::rewrite(b.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
   if (aval == bval)
   {
     return EQUALITY_TRUE_IN_MODEL;

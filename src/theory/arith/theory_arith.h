@@ -23,7 +23,6 @@
 #include "theory/arith/arith_state.h"
 #include "theory/arith/branch_and_bound.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nl_model.h"
 #include "theory/arith/pp_rewrite_eq.h"
 #include "theory/theory.h"
 
@@ -169,8 +168,6 @@ class TheoryArith : public Theory {
    * used to augment the TheoryModel.
    */
   std::map<Node, Node> d_arithModelCache;
-
-  std::unique_ptr<nl::NlModel> d_nlModelCache;
 
 };/* class TheoryArith */
 
