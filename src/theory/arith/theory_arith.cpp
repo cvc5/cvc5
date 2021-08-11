@@ -194,6 +194,8 @@ void TheoryArith::postCheck(Effort level)
     std::set<Node> termSet;
     collectAssertedTerms(termSet);
     d_internal->collectModelValues(termSet, d_arithModelCache);
+    d_nlModelCache = std::make_unique<nl::NlModel>(nullptr);
+    d_nlModelCache->reset(nullptr, d_arithModelCache);
 
     // Double check that the model from the linear solver respects integer types,
     // if it does not, add a branch and bound lemma. This typically should never
@@ -358,31 +360,8 @@ void TheoryArith::presolve(){
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   Debug("arith") << "TheoryArith::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
-  Node aval, bval;
-  if (a.isConst()) {
-    aval = a;
-  } else {
-    auto ait = d_arithModelCache.find(a);
-    if (ait == d_arithModelCache.end())
-    {
-      Debug("arith") << "not in cache: " << a << std::endl;
-      return EQUALITY_UNKNOWN;
-    }
-    aval = ait->second;
-  }
-  if (b.isConst()) {
-    bval = b;
-  } else {
-    auto bit = d_arithModelCache.find(b);
-    if (bit == d_arithModelCache.end())
-    {
-      Debug("arith") << "not in cache: " << b << std::endl;
-      return EQUALITY_UNKNOWN;
-    }
-    bval = bit->second;
-  }
-  Debug("arith") << a << " = " << aval << std::endl;
-  Debug("arith") << b << " = " << bval << std::endl;
+  Node aval = d_nlModelCache->computeConcreteModelValue(a);
+  Node bval = d_nlModelCache->computeConcreteModelValue(b);
   if (aval == bval)
   {
     return EQUALITY_TRUE_IN_MODEL;
