@@ -292,7 +292,7 @@ class ExtTheory
                             bool batch,
                             bool isRed);
   /** send lemma on the output channel */
-  bool sendLemma(Node lem, bool preprocess = false);
+  bool sendLemma(Node lem, InferenceId id, bool preprocess = false);
   /** reference to the callback */
   ExtTheoryCallback& d_parent;
   /** inference manager used to send lemmas */
