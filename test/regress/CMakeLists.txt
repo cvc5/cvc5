@@ -1046,6 +1046,7 @@ set(regress_0_tests
   regress0/seq/seqArraySolver/array2.smt2
   regress0/seq/seqArraySolver/array3.smt2
   regress0/seq/seqArraySolver/array4.smt2
+  regress0/seq/seqArraySolver/array5.smt2
   regress0/seq/seq-expand-defs.smt2
   regress0/seq/seq-nemp.smt2
   regress0/seq/seq-nth-uf-z.smt2
