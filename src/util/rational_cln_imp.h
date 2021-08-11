@@ -34,7 +34,6 @@
 #include "base/exception.h"
 #include "cvc5_export.h"  // remove when Cvc language support is removed
 #include "util/integer.h"
-#include "util/maybe.h"
 
 namespace cvc5 {
 
