@@ -54,36 +54,10 @@ void SequencesArraySolver::sendInference(const std::vector<Node>& exp,
   }
 }
 
-void SequencesArraySolver::checkNth(const std::vector<Node>& nthTerms)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  for (const Node& n1 : nthTerms)
-  {
-	  for (const Node& n2 : nthTerms)
-	  {
-		  if (n1 == n2) continue;
-		  if (!d_state.areEqual(n1, n2) && d_state.areEqual(n1[0], n2[0]) && d_state.areEqual(n1[1], n2[1]))
-		  {
-//			  if (d_state.areDisequal(n1, n2))
-//			  {
-//				  sendConflict()
-//			  } else {
-				  std::vector<Node> exp;
-				  exp.push_back(nm->mkNode(EQUAL, n1[0], n2[0]));
-				  exp.push_back(nm->mkNode(EQUAL, n1[1], n2[1]));
-				  Node lem = nm->mkNode(EQUAL, n1, n2);
-				  sendInference(exp, lem);
-//			  }
-		  }
-	  }
-  }
-}
-
 void SequencesArraySolver::checkUpdate(const std::vector<Node>& updateTerms)
 {
   NodeManager * nm = NodeManager::currentNM();
 
-  std::cerr << "updateTerms number: " <<  updateTerms.size() << std::endl;
   for (const Node& n : updateTerms)
   {
     // current term (seq.update x i a)
@@ -105,7 +79,6 @@ void SequencesArraySolver::checkUpdate(const std::vector<Node>& updateTerms)
         nm->mkNode(SEQ_NTH, n[2], nm->mkConst(Rational(0)));  // n[2][0]
     right = Rewriter::rewrite(right);
     Node lem = nm->mkNode(EQUAL, left, right);
-	std::cerr << "enter" << std::endl;
     sendInference(exp, lem);
 
     // enumerate possible index
@@ -154,8 +127,6 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
 {
   NodeManager* nm = NodeManager::currentNM();
 
-  std::cerr << "NTH SIZE: " << nthTerms.size() << std::endl;
-  std::cerr << "UPDATE SIZE: " << updateTerms.size() << std::endl;
   Trace("seq-update") << "SequencesArraySolver::check..." << std::endl;
   d_writeModel.clear();
   for (const Node& n : nthTerms)
@@ -196,7 +167,6 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
       d_extt.markReduced(n, ExtReducedId::STRINGS_NTH_REV);
     }
   }
-  checkNth(nthTerms);
   checkUpdate(updateTerms);
 }
 
