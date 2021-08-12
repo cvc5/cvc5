@@ -133,8 +133,8 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
   {
     // (seq.nth n[0] n[1])
     Node r = d_state.getRepresentative(n[0]);
-    // Trace("seq-update") << "- " << r << ": " << n[1] << " -> " << n <<
-    // std::endl;
+    Trace("seq-update") << "- " << r << ": " << n[1] << " -> " << n
+                        << std::endl;
     //    d_writeModel[r][n[1]] = n;
     if (d_index_map.find(r) == d_index_map.end())
     {
