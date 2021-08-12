@@ -142,7 +142,7 @@ void SequencesUpdateSolver::checkTerms(Kind k)
         std::vector<Node> exp;
         d_im.addToExplanation(t[0], nf.d_nf[0], exp);
         Node eq = nm->mkNode(ITE, t[1].eqNode(d_zero), t.eqNode(thenBranch), t.eqNode(elseBranch));
-        if (d_eqProc.find(eq) != d_eqProc.end())
+        if (d_eqProc.find(eq) == d_eqProc.end())
         {
           d_eqProc.insert(eq);
           d_im.sendInference(exp, eq, iid);
@@ -225,8 +225,7 @@ void SequencesUpdateSolver::checkTerms(Kind k)
     std::vector<Node> exp;
     exp.insert(exp.end(), nf.d_exp.begin(), nf.d_exp.end());
     exp.push_back(t[0].eqNode(nf.d_base));
-	Trace("seq-update") << "- send lemm - " << eq << std::endl;
-    if (d_eqProc.find(eq)!=d_eqProc.end())
+    if (d_eqProc.find(eq)==d_eqProc.end())
     {
       d_eqProc.insert(eq);
 	  Trace("seq-update") << "- send lemm - " << eq << std::endl;

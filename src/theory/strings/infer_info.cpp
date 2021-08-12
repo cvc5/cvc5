@@ -61,7 +61,7 @@ bool InferInfo::isFact() const
   // the explanation is copied. However, for simplicity, we always send these
   // as lemmas. This case happens very infrequently.
   return !atom.isConst() && atom.getKind() != kind::OR
-         && atom.getKind() != kind::AND && d_noExplain.empty();
+         && atom.getKind() != kind::AND && atom.getKind() != kind::ITE && d_noExplain.empty();
 }
 
 Node InferInfo::getPremises() const
