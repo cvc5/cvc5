@@ -167,6 +167,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
       // don't need to reduce certain seq.update
       return false;
     }
+    r_effort = 2;
   }
   else if (k != STRING_IN_REGEXP)
   {
