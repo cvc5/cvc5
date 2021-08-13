@@ -48,8 +48,7 @@ TheoryUF::TheoryUF(Env& env,
                    const LogicInfo& logicInfo,
                    ProofNodeManager* pnm,
                    std::string instanceName)
-    : Theory(
-        THEORY_UF, env, c, u, out, valuation, logicInfo, pnm, instanceName),
+    : Theory(THEORY_UF, env, out, valuation, instanceName),
       d_thss(nullptr),
       d_ho(nullptr),
       d_functionsTerms(c),

@@ -54,7 +54,7 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
                                  Valuation valuation,
                                  const LogicInfo& logicInfo,
                                  ProofNodeManager* pnm)
-    : Theory(THEORY_DATATYPES, env, c, u, out, valuation, logicInfo, pnm),
+    : Theory(THEORY_DATATYPES, env, out, valuation),
       d_term_sk(u),
       d_labels(c),
       d_selector_apps(c),

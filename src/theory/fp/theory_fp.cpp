@@ -67,7 +67,7 @@ TheoryFp::TheoryFp(Env& env,
                    Valuation valuation,
                    const LogicInfo& logicInfo,
                    ProofNodeManager* pnm)
-    : Theory(THEORY_FP, env, c, u, out, valuation, logicInfo, pnm),
+    : Theory(THEORY_FP, env, out, valuation),
       d_notification(*this),
       d_registeredTerms(u),
       d_conv(new FpConverter(u)),

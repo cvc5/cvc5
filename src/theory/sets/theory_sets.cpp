@@ -34,7 +34,7 @@ TheorySets::TheorySets(Env& env,
                        Valuation valuation,
                        const LogicInfo& logicInfo,
                        ProofNodeManager* pnm)
-    : Theory(THEORY_SETS, env, c, u, out, valuation, logicInfo, pnm),
+    : Theory(THEORY_SETS, env, out, valuation),
       d_skCache(),
       d_state(c, u, valuation, d_skCache),
       d_im(*this, d_state, pnm),

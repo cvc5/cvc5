@@ -42,7 +42,7 @@ TheoryArith::TheoryArith(Env& env,
                          Valuation valuation,
                          const LogicInfo& logicInfo,
                          ProofNodeManager* pnm)
-    : Theory(THEORY_ARITH, env, c, u, out, valuation, logicInfo, pnm),
+    : Theory(THEORY_ARITH, env, out, valuation),
       d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
           "theory::arith::ppRewriteTimer")),
       d_astate(c, u, valuation),

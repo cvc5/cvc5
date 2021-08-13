@@ -61,12 +61,8 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level){
 
 Theory::Theory(TheoryId id,
                Env& env,
-               context::Context* satContext,
-               context::UserContext* userContext,
                OutputChannel& out,
                Valuation valuation,
-               const LogicInfo& logicInfo,
-               ProofNodeManager* pnm,
                std::string name)
     : d_id(id),
       d_env(env),

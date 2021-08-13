@@ -34,7 +34,7 @@ TheoryBags::TheoryBags(Env& env,
                        Valuation valuation,
                        const LogicInfo& logicInfo,
                        ProofNodeManager* pnm)
-    : Theory(THEORY_BAGS, env, c, u, out, valuation, logicInfo, pnm),
+    : Theory(THEORY_BAGS, env, out, valuation),
       d_state(c, u, valuation),
       d_im(*this, d_state, pnm),
       d_ig(&d_state, &d_im),

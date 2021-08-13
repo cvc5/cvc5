@@ -39,7 +39,7 @@ TheoryBool::TheoryBool(Env& env,
                        Valuation valuation,
                        const LogicInfo& logicInfo,
                        ProofNodeManager* pnm)
-    : Theory(THEORY_BOOL, env, c, u, out, valuation, logicInfo, pnm)
+    : Theory(THEORY_BOOL, env, out, valuation)
 {
 }
 

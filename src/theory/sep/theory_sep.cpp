@@ -49,7 +49,7 @@ TheorySep::TheorySep(Env& env,
                      Valuation valuation,
                      const LogicInfo& logicInfo,
                      ProofNodeManager* pnm)
-    : Theory(THEORY_SEP, env, c, u, out, valuation, logicInfo, pnm),
+    : Theory(THEORY_SEP, env, out, valuation),
       d_lemmas_produced_c(u),
       d_bounds_init(false),
       d_state(c, u, valuation),

@@ -32,7 +32,7 @@ TheoryBuiltin::TheoryBuiltin(Env& env,
                              Valuation valuation,
                              const LogicInfo& logicInfo,
                              ProofNodeManager* pnm)
-    : Theory(THEORY_BUILTIN, env, c, u, out, valuation, logicInfo, pnm),
+    : Theory(THEORY_BUILTIN, env, out, valuation),
       d_state(c, u, valuation),
       d_im(*this, d_state, pnm, "theory::builtin::")
 {

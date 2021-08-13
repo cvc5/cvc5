@@ -57,7 +57,7 @@ TheoryStrings::TheoryStrings(Env& env,
                              Valuation valuation,
                              const LogicInfo& logicInfo,
                              ProofNodeManager* pnm)
-    : Theory(THEORY_STRINGS, env, c, u, out, valuation, logicInfo, pnm),
+    : Theory(THEORY_STRINGS, env, out, valuation),
       d_notify(*this),
       d_statistics(),
       d_state(c, u, d_valuation),

@@ -38,7 +38,7 @@ TheoryBV::TheoryBV(Env& env,
                    const LogicInfo& logicInfo,
                    ProofNodeManager* pnm,
                    std::string name)
-    : Theory(THEORY_BV, env, c, u, out, valuation, logicInfo, pnm, name),
+    : Theory(THEORY_BV, env, out, valuation, name),
       d_internal(nullptr),
       d_rewriter(),
       d_state(c, u, valuation),

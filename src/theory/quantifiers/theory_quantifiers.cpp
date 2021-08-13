@@ -37,7 +37,7 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
                                      Valuation valuation,
                                      const LogicInfo& logicInfo,
                                      ProofNodeManager* pnm)
-    : Theory(THEORY_QUANTIFIERS, env, c, u, out, valuation, logicInfo, pnm),
+    : Theory(THEORY_QUANTIFIERS, env, out, valuation),
       d_qstate(c, u, valuation, logicInfo),
       d_qreg(),
       d_treg(d_qstate, d_qreg),

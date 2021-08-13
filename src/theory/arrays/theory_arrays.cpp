@@ -63,7 +63,7 @@ TheoryArrays::TheoryArrays(Env& env,
                            const LogicInfo& logicInfo,
                            ProofNodeManager* pnm,
                            std::string name)
-    : Theory(THEORY_ARRAYS, env, c, u, out, valuation, logicInfo, pnm, name),
+    : Theory(THEORY_ARRAYS, env, out, valuation, name),
       d_numRow(
           smtStatisticsRegistry().registerInt(name + "number of Row lemmas")),
       d_numExt(
