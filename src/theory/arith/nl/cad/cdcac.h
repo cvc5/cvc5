@@ -184,6 +184,9 @@ class CDCAC
    */
   void pruneRedundantIntervals(std::vector<CACInterval>& intervals);
 
+  /** A reference to the options */
+  const Options& d_options;
+
   /**
    * The current assignment. When the method terminates with SAT, it contains a
    * model for the input constraints.
