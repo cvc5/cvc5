@@ -145,6 +145,8 @@ class NonlinearExtension
   /** Process side effect se */
   void processSideEffect(const NlLemma& se);
 
+  const Options& options() const;
+
  private:
   /** Model-based refinement
    *
