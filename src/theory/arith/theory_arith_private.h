@@ -89,6 +89,10 @@ private:
 
   TheoryArith& d_containing;
 
+  const Options& options() const {
+    return d_containing.options();
+  }
+
   /**
    * Whether we encountered non-linear arithmetic at any time during solving.
    */
