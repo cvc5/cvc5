@@ -82,6 +82,14 @@ class Env
    */
   ProofNodeManager* getProofNodeManager();
 
+  /**
+   * Check whether theories should produce proofs as well. Other than whether
+   * the proof node manager is set, theory engine proofs are conditioned on the
+   * relationship between proofs and unsat cores: the unsat cores are in
+   * FULL_PROOF mode, no proofs are generated on theory engine.
+   */
+  bool isTheoryProofProducing() const;
+
   /** Get a pointer to the Rewriter owned by this Env. */
   theory::Rewriter* getRewriter();
 

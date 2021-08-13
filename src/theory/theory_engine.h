@@ -295,7 +295,7 @@ class TheoryEngine {
 
  public:
   /** Constructs a theory engine */
-  TheoryEngine(Env& env, ProofNodeManager* pnm);
+  TheoryEngine(Env& env);
 
   /** Destroys a theory engine */
   ~TheoryEngine();

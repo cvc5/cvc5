@@ -83,7 +83,8 @@ Theory::Theory(TheoryId id,
       d_theoryState(nullptr),
       d_inferManager(nullptr),
       d_quantEngine(nullptr),
-      d_pnm(d_env.getProofNodeManager())
+      d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
+                                           : nullptr)
 {
 }
 
