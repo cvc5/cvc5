@@ -25,13 +25,14 @@ namespace cvc5 {
 namespace theory {
 namespace builtin {
 
-TheoryBuiltin::TheoryBuiltin(context::Context* c,
+TheoryBuiltin::TheoryBuiltin(Env& env,
+                             context::Context* c,
                              context::UserContext* u,
                              OutputChannel& out,
                              Valuation valuation,
                              const LogicInfo& logicInfo,
                              ProofNodeManager* pnm)
-    : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo, pnm),
+    : Theory(THEORY_BUILTIN, env, c, u, out, valuation, logicInfo, pnm),
       d_state(c, u, valuation),
       d_im(*this, d_state, pnm, "theory::builtin::")
 {

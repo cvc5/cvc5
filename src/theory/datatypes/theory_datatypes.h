@@ -183,7 +183,8 @@ private:
   void computeCareGraph() override;
 
  public:
-  TheoryDatatypes(context::Context* c,
+  TheoryDatatypes(Env& env,
+                  context::Context* c,
                   context::UserContext* u,
                   OutputChannel& out,
                   Valuation valuation,

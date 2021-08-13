@@ -27,13 +27,14 @@ namespace cvc5 {
 namespace theory {
 namespace sets {
 
-TheorySets::TheorySets(context::Context* c,
+TheorySets::TheorySets(Env& env,
+                       context::Context* c,
                        context::UserContext* u,
                        OutputChannel& out,
                        Valuation valuation,
                        const LogicInfo& logicInfo,
                        ProofNodeManager* pnm)
-    : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pnm),
+    : Theory(THEORY_SETS, env, c, u, out, valuation, logicInfo, pnm),
       d_skCache(),
       d_state(c, u, valuation, d_skCache),
       d_im(*this, d_state, pnm),

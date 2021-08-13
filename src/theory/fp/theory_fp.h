@@ -39,7 +39,8 @@ class TheoryFp : public Theory
 {
  public:
   /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-  TheoryFp(context::Context* c,
+  TheoryFp(Env& env,
+           context::Context* c,
            context::UserContext* u,
            OutputChannel& out,
            Valuation valuation,

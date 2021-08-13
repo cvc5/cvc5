@@ -42,13 +42,14 @@ namespace cvc5 {
 namespace theory {
 namespace sep {
 
-TheorySep::TheorySep(context::Context* c,
+TheorySep::TheorySep(Env& env,
+                     context::Context* c,
                      context::UserContext* u,
                      OutputChannel& out,
                      Valuation valuation,
                      const LogicInfo& logicInfo,
                      ProofNodeManager* pnm)
-    : Theory(THEORY_SEP, c, u, out, valuation, logicInfo, pnm),
+    : Theory(THEORY_SEP, env, c, u, out, valuation, logicInfo, pnm),
       d_lemmas_produced_c(u),
       d_bounds_init(false),
       d_state(c, u, valuation),

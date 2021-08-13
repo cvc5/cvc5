@@ -37,7 +37,8 @@ class QuantifiersMacros;
 
 class TheoryQuantifiers : public Theory {
  public:
-  TheoryQuantifiers(context::Context* c,
+  TheoryQuantifiers(Env& env,
+                    context::Context* c,
                     context::UserContext* u,
                     OutputChannel& out,
                     Valuation valuation,

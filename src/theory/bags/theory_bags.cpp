@@ -27,13 +27,14 @@ namespace cvc5 {
 namespace theory {
 namespace bags {
 
-TheoryBags::TheoryBags(context::Context* c,
+TheoryBags::TheoryBags(Env& env,
+                       context::Context* c,
                        context::UserContext* u,
                        OutputChannel& out,
                        Valuation valuation,
                        const LogicInfo& logicInfo,
                        ProofNodeManager* pnm)
-    : Theory(THEORY_BAGS, c, u, out, valuation, logicInfo, pnm),
+    : Theory(THEORY_BAGS, env, c, u, out, valuation, logicInfo, pnm),
       d_state(c, u, valuation),
       d_im(*this, d_state, pnm),
       d_ig(&d_state, &d_im),

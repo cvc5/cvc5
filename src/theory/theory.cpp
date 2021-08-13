@@ -60,6 +60,7 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level){
 }/* ostream& operator<<(ostream&, Theory::Effort) */
 
 Theory::Theory(TheoryId id,
+               Env& env,
                context::Context* satContext,
                context::UserContext* userContext,
                OutputChannel& out,
@@ -81,6 +82,7 @@ Theory::Theory(TheoryId id,
       d_computeCareGraphTime(smtStatisticsRegistry().registerTimer(
           getStatsPrefix(id) + name + "computeCareGraphTime")),
       d_sharedTerms(satContext),
+      d_env(env),
       d_out(&out),
       d_valuation(valuation),
       d_equalityEngine(nullptr),

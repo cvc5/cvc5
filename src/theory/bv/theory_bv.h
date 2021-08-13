@@ -39,7 +39,8 @@ class TheoryBV : public Theory
   friend class BVSolverLayered;
 
  public:
-  TheoryBV(context::Context* c,
+  TheoryBV(Env& env,
+           context::Context* c,
            context::UserContext* u,
            OutputChannel& out,
            Valuation valuation,

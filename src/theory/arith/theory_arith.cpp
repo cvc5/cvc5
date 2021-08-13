@@ -35,13 +35,14 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-TheoryArith::TheoryArith(context::Context* c,
+TheoryArith::TheoryArith(Env& env,
+                         context::Context* c,
                          context::UserContext* u,
                          OutputChannel& out,
                          Valuation valuation,
                          const LogicInfo& logicInfo,
                          ProofNodeManager* pnm)
-    : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
+    : Theory(THEORY_ARITH, env, c, u, out, valuation, logicInfo, pnm),
       d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
           "theory::arith::ppRewriteTimer")),
       d_astate(c, u, valuation),

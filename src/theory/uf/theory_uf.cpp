@@ -40,14 +40,16 @@ namespace theory {
 namespace uf {
 
 /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-TheoryUF::TheoryUF(context::Context* c,
+TheoryUF::TheoryUF(Env& env,
+                   context::Context* c,
                    context::UserContext* u,
                    OutputChannel& out,
                    Valuation valuation,
                    const LogicInfo& logicInfo,
                    ProofNodeManager* pnm,
                    std::string instanceName)
-    : Theory(THEORY_UF, c, u, out, valuation, logicInfo, pnm, instanceName),
+    : Theory(
+        THEORY_UF, env, c, u, out, valuation, logicInfo, pnm, instanceName),
       d_thss(nullptr),
       d_ho(nullptr),
       d_functionsTerms(c),

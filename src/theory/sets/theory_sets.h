@@ -41,7 +41,8 @@ class TheorySets : public Theory
   friend class TheorySetsRels;
  public:
   /** Constructs a new instance of TheorySets w.r.t. the provided contexts. */
-  TheorySets(context::Context* c,
+  TheorySets(Env& env,
+             context::Context* c,
              context::UserContext* u,
              OutputChannel& out,
              Valuation valuation,

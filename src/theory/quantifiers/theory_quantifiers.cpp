@@ -30,13 +30,14 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-TheoryQuantifiers::TheoryQuantifiers(Context* c,
+TheoryQuantifiers::TheoryQuantifiers(Env& env,
+                                     Context* c,
                                      context::UserContext* u,
                                      OutputChannel& out,
                                      Valuation valuation,
                                      const LogicInfo& logicInfo,
                                      ProofNodeManager* pnm)
-    : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pnm),
+    : Theory(THEORY_QUANTIFIERS, env, c, u, out, valuation, logicInfo, pnm),
       d_qstate(c, u, valuation, logicInfo),
       d_qreg(),
       d_treg(d_qstate, d_qreg),

@@ -132,7 +132,8 @@ class TheoryArrays : public Theory {
   IntStat d_numSetModelValConflicts;
 
  public:
-  TheoryArrays(context::Context* c,
+  TheoryArrays(Env& env,
+               context::Context* c,
                context::UserContext* u,
                OutputChannel& out,
                Valuation valuation,

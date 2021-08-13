@@ -31,7 +31,8 @@ namespace builtin {
 class TheoryBuiltin : public Theory
 {
  public:
-  TheoryBuiltin(context::Context* c,
+  TheoryBuiltin(Env& env,
+                context::Context* c,
                 context::UserContext* u,
                 OutputChannel& out,
                 Valuation valuation,

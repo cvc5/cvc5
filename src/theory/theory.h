@@ -29,6 +29,7 @@
 #include "expr/node.h"
 #include "options/theory_options.h"
 #include "proof/trust_node.h"
+#include "smt/env.h"
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
 #include "theory/logic_info.h"
@@ -169,6 +170,7 @@ class Theory {
    * w.r.t. the SmtEngine.
    */
   Theory(TheoryId id,
+         Env& env,
          context::Context* satContext,
          context::UserContext* userContext,
          OutputChannel& out,
@@ -187,6 +189,8 @@ class Theory {
    * too.
    */
   virtual void shutdown() { }
+
+  Env& d_env;
 
   /**
    * The output channel for the Theory.

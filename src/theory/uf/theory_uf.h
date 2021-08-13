@@ -98,7 +98,8 @@ private:
  public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUF(context::Context* c,
+  TheoryUF(Env& env,
+           context::Context* c,
            context::UserContext* u,
            OutputChannel& out,
            Valuation valuation,

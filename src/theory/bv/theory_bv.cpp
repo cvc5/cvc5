@@ -30,14 +30,15 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
-TheoryBV::TheoryBV(context::Context* c,
+TheoryBV::TheoryBV(Env& env,
+                   context::Context* c,
                    context::UserContext* u,
                    OutputChannel& out,
                    Valuation valuation,
                    const LogicInfo& logicInfo,
                    ProofNodeManager* pnm,
                    std::string name)
-    : Theory(THEORY_BV, c, u, out, valuation, logicInfo, pnm, name),
+    : Theory(THEORY_BV, env, c, u, out, valuation, logicInfo, pnm, name),
       d_internal(nullptr),
       d_rewriter(),
       d_state(c, u, valuation),

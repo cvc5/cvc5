@@ -47,13 +47,14 @@ namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
-TheoryDatatypes::TheoryDatatypes(Context* c,
+TheoryDatatypes::TheoryDatatypes(Env& env,
+                                 Context* c,
                                  UserContext* u,
                                  OutputChannel& out,
                                  Valuation valuation,
                                  const LogicInfo& logicInfo,
                                  ProofNodeManager* pnm)
-    : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo, pnm),
+    : Theory(THEORY_DATATYPES, env, c, u, out, valuation, logicInfo, pnm),
       d_term_sk(u),
       d_labels(c),
       d_selector_apps(c),

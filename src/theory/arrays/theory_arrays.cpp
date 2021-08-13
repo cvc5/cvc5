@@ -55,14 +55,15 @@ const bool d_solveWrite2 = false;
   //bool d_useNonLinearOpt = true;
   //bool d_eagerIndexSplitting = false;
 
-TheoryArrays::TheoryArrays(context::Context* c,
+TheoryArrays::TheoryArrays(Env& env,
+                           context::Context* c,
                            context::UserContext* u,
                            OutputChannel& out,
                            Valuation valuation,
                            const LogicInfo& logicInfo,
                            ProofNodeManager* pnm,
                            std::string name)
-    : Theory(THEORY_ARRAYS, c, u, out, valuation, logicInfo, pnm, name),
+    : Theory(THEORY_ARRAYS, env, c, u, out, valuation, logicInfo, pnm, name),
       d_numRow(
           smtStatisticsRegistry().registerInt(name + "number of Row lemmas")),
       d_numExt(

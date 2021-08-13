@@ -29,7 +29,8 @@ namespace booleans {
 
 class TheoryBool : public Theory {
  public:
-  TheoryBool(context::Context* c,
+  TheoryBool(Env& env,
+             context::Context* c,
              context::UserContext* u,
              OutputChannel& out,
              Valuation valuation,

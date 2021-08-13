@@ -44,7 +44,8 @@ class TheoryArithPrivate;
 class TheoryArith : public Theory {
   friend class TheoryArithPrivate;
  public:
-  TheoryArith(context::Context* c,
+  TheoryArith(Env& env,
+              context::Context* c,
               context::UserContext* u,
               OutputChannel& out,
               Valuation valuation,

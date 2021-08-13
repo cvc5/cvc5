@@ -36,7 +36,8 @@ class TheoryBags : public Theory
 {
  public:
   /** Constructs a new instance of TheoryBags w.r.t. the provided contexts. */
-  TheoryBags(context::Context* c,
+  TheoryBags(Env& env,
+             context::Context* c,
              context::UserContext* u,
              OutputChannel& out,
              Valuation valuation,

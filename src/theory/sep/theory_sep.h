@@ -77,7 +77,8 @@ class TheorySep : public Theory {
       bool underSpatial);
 
  public:
-  TheorySep(context::Context* c,
+  TheorySep(Env& env,
+            context::Context* c,
             context::UserContext* u,
             OutputChannel& out,
             Valuation valuation,
