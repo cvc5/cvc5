@@ -77,9 +77,7 @@ class TheorySep : public Theory {
       bool underSpatial);
 
  public:
-  TheorySep(Env& env,
-            OutputChannel& out,
-            Valuation valuation);
+  TheorySep(Env& env, OutputChannel& out, Valuation valuation);
   ~TheorySep();
 
   /**

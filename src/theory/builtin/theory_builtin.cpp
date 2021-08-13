@@ -25,9 +25,7 @@ namespace cvc5 {
 namespace theory {
 namespace builtin {
 
-TheoryBuiltin::TheoryBuiltin(Env& env,
-                             OutputChannel& out,
-                             Valuation valuation)
+TheoryBuiltin::TheoryBuiltin(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_BUILTIN, env, out, valuation),
       d_state(getSatContext(), getUserContext(), valuation),
       d_im(*this, d_state, d_pnm, "theory::builtin::")

@@ -37,9 +37,7 @@ class QuantifiersMacros;
 
 class TheoryQuantifiers : public Theory {
  public:
-  TheoryQuantifiers(Env& env,
-                    OutputChannel& out,
-                    Valuation valuation);
+  TheoryQuantifiers(Env& env, OutputChannel& out, Valuation valuation);
   ~TheoryQuantifiers();
 
   //--------------------------------- initialization

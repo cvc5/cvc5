@@ -42,9 +42,7 @@ namespace cvc5 {
 namespace theory {
 namespace sep {
 
-TheorySep::TheorySep(Env& env,
-                     OutputChannel& out,
-                     Valuation valuation)
+TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SEP, env, out, valuation),
       d_lemmas_produced_c(getUserContext()),
       d_bounds_init(false),

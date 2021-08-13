@@ -47,7 +47,8 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
   out.handleUserAttribute( "quant-elim-partial", this );
 
   // construct the quantifiers engine
-  d_qengine.reset(new QuantifiersEngine(d_qstate, d_qreg, d_treg, d_qim, d_pnm));
+  d_qengine.reset(
+      new QuantifiersEngine(d_qstate, d_qreg, d_treg, d_qim, d_pnm));
 
   // indicate we are using the quantifiers theory state object
   d_theoryState = &d_qstate;

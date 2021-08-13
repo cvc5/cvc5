@@ -27,9 +27,7 @@ namespace cvc5 {
 namespace theory {
 namespace bags {
 
-TheoryBags::TheoryBags(Env& env,
-                       OutputChannel& out,
-                       Valuation valuation)
+TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_BAGS, env, out, valuation),
       d_state(getSatContext(), getUserContext(), valuation),
       d_im(*this, d_state, d_pnm),

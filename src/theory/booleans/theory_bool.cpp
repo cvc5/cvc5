@@ -32,9 +32,7 @@ namespace cvc5 {
 namespace theory {
 namespace booleans {
 
-TheoryBool::TheoryBool(Env& env,
-                       OutputChannel& out,
-                       Valuation valuation)
+TheoryBool::TheoryBool(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_BOOL, env, out, valuation)
 {
 }

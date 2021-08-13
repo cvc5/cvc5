@@ -44,9 +44,7 @@ class TheoryArithPrivate;
 class TheoryArith : public Theory {
   friend class TheoryArithPrivate;
  public:
-  TheoryArith(Env& env,
-              OutputChannel& out,
-              Valuation valuation);
+  TheoryArith(Env& env, OutputChannel& out, Valuation valuation);
   virtual ~TheoryArith();
 
   //--------------------------------- initialization

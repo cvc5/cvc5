@@ -29,9 +29,7 @@ namespace booleans {
 
 class TheoryBool : public Theory {
  public:
-  TheoryBool(Env& env,
-             OutputChannel& out,
-             Valuation valuation);
+  TheoryBool(Env& env, OutputChannel& out, Valuation valuation);
 
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;

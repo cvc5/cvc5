@@ -43,9 +43,8 @@ class TestTheoryWhite : public TestSmtNoFinishInit
     d_smtEngine->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN] = nullptr;
     d_smtEngine->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN] = nullptr;
 
-    d_dummy_theory.reset(new DummyTheory<THEORY_BUILTIN>(d_smtEngine->getEnv(),
-                                                         d_outputChannel,
-                                                         Valuation(nullptr)));
+    d_dummy_theory.reset(new DummyTheory<THEORY_BUILTIN>(
+        d_smtEngine->getEnv(), d_outputChannel, Valuation(nullptr)));
     d_outputChannel.clear();
     d_atom0 = d_nodeManager->mkConst(true);
     d_atom1 = d_nodeManager->mkConst(false);

@@ -60,9 +60,7 @@ Node buildConjunct(const std::vector<TNode> &assumptions) {
 }  // namespace helper
 
 /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-TheoryFp::TheoryFp(Env& env,
-                   OutputChannel& out,
-                   Valuation valuation)
+TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_FP, env, out, valuation),
       d_notification(*this),
       d_registeredTerms(getUserContext()),

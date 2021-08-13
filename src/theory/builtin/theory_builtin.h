@@ -31,9 +31,7 @@ namespace builtin {
 class TheoryBuiltin : public Theory
 {
  public:
-  TheoryBuiltin(Env& env,
-                OutputChannel& out,
-                Valuation valuation);
+  TheoryBuiltin(Env& env, OutputChannel& out, Valuation valuation);
 
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;

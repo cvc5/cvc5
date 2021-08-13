@@ -50,7 +50,8 @@ TheoryBV::TheoryBV(Env& env,
       break;
 
     case options::BVSolver::LAYERED:
-      d_internal.reset(new BVSolverLayered(*this, getSatContext(), getUserContext(), d_pnm, name));
+      d_internal.reset(new BVSolverLayered(
+          *this, getSatContext(), getUserContext(), d_pnm, name));
       break;
 
     default:

@@ -314,9 +314,8 @@ class TheoryEngine {
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new theory::EngineOutputChannel(this, theoryId);
-    d_theoryTable[theoryId] = new TheoryClass(d_env,
-                                              *d_theoryOut[theoryId],
-                                              theory::Valuation(this));
+    d_theoryTable[theoryId] =
+        new TheoryClass(d_env, *d_theoryOut[theoryId], theory::Valuation(this));
     theory::Rewriter::registerTheoryRewriter(
         theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }

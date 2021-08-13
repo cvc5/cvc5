@@ -39,9 +39,7 @@ class TheoryFp : public Theory
 {
  public:
   /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-  TheoryFp(Env& env,
-           OutputChannel& out,
-           Valuation valuation);
+  TheoryFp(Env& env, OutputChannel& out, Valuation valuation);
 
   //--------------------------------- initialization
   /** Get the official theory rewriter of this theory. */

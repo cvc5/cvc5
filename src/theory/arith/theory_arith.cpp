@@ -35,9 +35,7 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-TheoryArith::TheoryArith(Env& env,
-                         OutputChannel& out,
-                         Valuation valuation)
+TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_ARITH, env, out, valuation),
       d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
           "theory::arith::ppRewriteTimer")),
@@ -46,7 +44,8 @@ TheoryArith::TheoryArith(Env& env,
       d_ppre(getSatContext(), d_pnm),
       d_bab(d_astate, d_im, d_ppre, d_pnm),
       d_eqSolver(nullptr),
-      d_internal(new TheoryArithPrivate(*this, getSatContext(), getUserContext(), d_bab, d_pnm)),
+      d_internal(new TheoryArithPrivate(
+          *this, getSatContext(), getUserContext(), d_bab, d_pnm)),
       d_nonlinearExtension(nullptr),
       d_opElim(d_pnm, getLogicInfo()),
       d_arithPreproc(d_astate, d_im, d_pnm, d_opElim),

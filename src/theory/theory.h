@@ -233,9 +233,7 @@ class Theory {
    */
   inline Assertion get();
 
-  const LogicInfo& getLogicInfo() const {
-    return d_env.getLogicInfo();
-  }
+  const LogicInfo& getLogicInfo() const { return d_env.getLogicInfo(); }
 
   /**
    * Set separation logic heap. This is called when the location and data
@@ -449,16 +447,12 @@ class Theory {
   /**
    * Get a reference to the environment.
    */
-  Env& getEnv() const {
-    return d_env;
-  }
+  Env& getEnv() const { return d_env; }
 
   /**
    * Get the SAT context associated to this Theory.
    */
-  context::Context* getSatContext() const {
-    return d_env.getContext();
-  }
+  context::Context* getSatContext() const { return d_env.getContext(); }
 
   /**
    * Get the context associated to this Theory.

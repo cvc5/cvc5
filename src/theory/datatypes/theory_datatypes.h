@@ -183,9 +183,7 @@ private:
   void computeCareGraph() override;
 
  public:
-  TheoryDatatypes(Env& env,
-                  OutputChannel& out,
-                  Valuation valuation);
+  TheoryDatatypes(Env& env, OutputChannel& out, Valuation valuation);
   ~TheoryDatatypes();
 
   //--------------------------------- initialization

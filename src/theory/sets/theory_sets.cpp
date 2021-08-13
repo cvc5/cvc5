@@ -27,9 +27,7 @@ namespace cvc5 {
 namespace theory {
 namespace sets {
 
-TheorySets::TheorySets(Env& env,
-                       OutputChannel& out,
-                       Valuation valuation)
+TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SETS, env, out, valuation),
       d_skCache(),
       d_state(getSatContext(), getUserContext(), valuation, d_skCache),

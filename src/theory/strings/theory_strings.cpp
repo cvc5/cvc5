@@ -50,9 +50,7 @@ struct SeqModelVarAttributeId
 };
 using SeqModelVarAttribute = expr::Attribute<SeqModelVarAttributeId, Node>;
 
-TheoryStrings::TheoryStrings(Env& env,
-                             OutputChannel& out,
-                             Valuation valuation)
+TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_STRINGS, env, out, valuation),
       d_notify(*this),
       d_statistics(),

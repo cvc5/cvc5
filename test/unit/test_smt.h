@@ -206,10 +206,9 @@ template <theory::TheoryId theoryId>
 class DummyTheory : public theory::Theory
 {
  public:
-  DummyTheory(Env& env,
-              theory::OutputChannel& out,
-              theory::Valuation valuation)
-      : Theory(theoryId, env, out, valuation), d_state(getSatContext(), getUserContext(), valuation)
+  DummyTheory(Env& env, theory::OutputChannel& out, theory::Valuation valuation)
+      : Theory(theoryId, env, out, valuation),
+        d_state(getSatContext(), getUserContext(), valuation)
   {
     // use a default theory state object
     d_theoryState = &d_state;

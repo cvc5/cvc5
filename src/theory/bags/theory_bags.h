@@ -36,9 +36,7 @@ class TheoryBags : public Theory
 {
  public:
   /** Constructs a new instance of TheoryBags w.r.t. the provided contexts. */
-  TheoryBags(Env& env,
-             OutputChannel& out,
-             Valuation valuation);
+  TheoryBags(Env& env, OutputChannel& out, Valuation valuation);
   ~TheoryBags() override;
 
   //--------------------------------- initialization
