@@ -106,10 +106,9 @@ class Theory {
   /** An integer identifying the type of the theory. */
   TheoryId d_id;
 
-protected:
+  /** The environment class */
   Env& d_env;
 
-private:
   /**
    * The assertFact() queue.
    *
@@ -445,6 +444,13 @@ private:
    */
   TheoryId getId() const {
     return d_id;
+  }
+
+  /**
+   * Get a reference to the environment.
+   */
+  Env& getEnv() const {
+    return d_env;
   }
 
   /**
