@@ -57,7 +57,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
   d_theoryState = &d_astate;
   d_inferManager = &d_im;
 
-  if (options::arithEqSolver())
+  if (options().arith.arithEqSolver)
   {
     d_eqSolver.reset(new EqualitySolver(d_astate, d_im));
   }
