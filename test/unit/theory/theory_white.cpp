@@ -37,10 +37,6 @@ class TestTheoryWhite : public TestSmtNoFinishInit
   void SetUp() override
   {
     TestSmtNoFinishInit::SetUp();
-    d_context = d_smtEngine->getContext();
-    d_user_context = d_smtEngine->getUserContext();
-    d_logicInfo.reset(new LogicInfo());
-    d_logicInfo->lock();
     d_smtEngine->finishInit();
     delete d_smtEngine->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN];
     delete d_smtEngine->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN];
@@ -48,20 +44,13 @@ class TestTheoryWhite : public TestSmtNoFinishInit
     d_smtEngine->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN] = nullptr;
 
     d_dummy_theory.reset(new DummyTheory<THEORY_BUILTIN>(d_smtEngine->getEnv(),
-                                                         d_context,
-                                                         d_user_context,
                                                          d_outputChannel,
-                                                         Valuation(nullptr),
-                                                         *d_logicInfo,
-                                                         nullptr));
+                                                         Valuation(nullptr)));
     d_outputChannel.clear();
     d_atom0 = d_nodeManager->mkConst(true);
     d_atom1 = d_nodeManager->mkConst(false);
   }
 
-  Context* d_context;
-  UserContext* d_user_context;
-  std::unique_ptr<LogicInfo> d_logicInfo;
   DummyOutputChannel d_outputChannel;
   std::unique_ptr<DummyTheory<THEORY_BUILTIN>> d_dummy_theory;
   Node d_atom0;

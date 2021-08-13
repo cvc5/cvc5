@@ -207,13 +207,9 @@ class DummyTheory : public theory::Theory
 {
  public:
   DummyTheory(Env& env,
-              context::Context* ctxt,
-              context::UserContext* uctxt,
               theory::OutputChannel& out,
-              theory::Valuation valuation,
-              const LogicInfo& logicInfo,
-              ProofNodeManager* pnm)
-      : Theory(theoryId, env, out, valuation), d_state(ctxt, uctxt, valuation)
+              theory::Valuation valuation)
+      : Theory(theoryId, env, out, valuation), d_state(getSatContext(), getUserContext(), valuation)
   {
     // use a default theory state object
     d_theoryState = &d_state;
