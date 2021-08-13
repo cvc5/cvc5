@@ -450,6 +450,11 @@ class Theory {
   Env& getEnv() const { return d_env; }
 
   /**
+   * Shorthand to access the options object.
+   */
+  const Options& options() const { return getEnv().getOptions(); }
+
+  /**
    * Get the SAT context associated to this Theory.
    */
   context::Context* getSatContext() const { return d_env.getContext(); }
