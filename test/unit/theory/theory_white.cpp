@@ -47,7 +47,8 @@ class TestTheoryWhite : public TestSmtNoFinishInit
     d_smtEngine->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN] = nullptr;
     d_smtEngine->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN] = nullptr;
 
-    d_dummy_theory.reset(new DummyTheory<THEORY_BUILTIN>(d_context,
+    d_dummy_theory.reset(new DummyTheory<THEORY_BUILTIN>(d_smtEngine->getEnv(),
+                                                         d_context,
                                                          d_user_context,
                                                          d_outputChannel,
                                                          Valuation(nullptr),

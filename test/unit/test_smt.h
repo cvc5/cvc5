@@ -206,14 +206,14 @@ template <theory::TheoryId theoryId>
 class DummyTheory : public theory::Theory
 {
  public:
-  DummyTheory(context::Context* ctxt,
+  DummyTheory(Env& env,
+              context::Context* ctxt,
               context::UserContext* uctxt,
               theory::OutputChannel& out,
               theory::Valuation valuation,
               const LogicInfo& logicInfo,
               ProofNodeManager* pnm)
-      : Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo, pnm),
-        d_state(ctxt, uctxt, valuation)
+      : Theory(theoryId, env, out, valuation), d_state(ctxt, uctxt, valuation)
   {
     // use a default theory state object
     d_theoryState = &d_state;
