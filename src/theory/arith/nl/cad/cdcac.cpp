@@ -41,14 +41,13 @@ namespace arith {
 namespace nl {
 namespace cad {
 
-CDCAC::CDCAC(context::Context* ctx,
-             ProofNodeManager* pnm,
+CDCAC::CDCAC(Env& env,
              const std::vector<poly::Variable>& ordering)
     : d_variableOrdering(ordering)
 {
-  if (pnm != nullptr)
+  if (env.isTheoryProofProducing())
   {
-    d_proof.reset(new CADProofGenerator(ctx, pnm));
+    d_proof.reset(new CADProofGenerator(env.getContext(), env.getProofNodeManager()));
   }
 }
 
