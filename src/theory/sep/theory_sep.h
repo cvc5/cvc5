@@ -78,12 +78,8 @@ class TheorySep : public Theory {
 
  public:
   TheorySep(Env& env,
-            context::Context* c,
-            context::UserContext* u,
             OutputChannel& out,
-            Valuation valuation,
-            const LogicInfo& logicInfo,
-            ProofNodeManager* pnm = nullptr);
+            Valuation valuation);
   ~TheorySep();
 
   /**

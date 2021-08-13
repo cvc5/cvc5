@@ -61,24 +61,20 @@ Node buildConjunct(const std::vector<TNode> &assumptions) {
 
 /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
 TheoryFp::TheoryFp(Env& env,
-                   context::Context* c,
-                   context::UserContext* u,
                    OutputChannel& out,
-                   Valuation valuation,
-                   const LogicInfo& logicInfo,
-                   ProofNodeManager* pnm)
+                   Valuation valuation)
     : Theory(THEORY_FP, env, out, valuation),
       d_notification(*this),
-      d_registeredTerms(u),
-      d_conv(new FpConverter(u)),
+      d_registeredTerms(getUserContext()),
+      d_conv(new FpConverter(getUserContext())),
       d_expansionRequested(false),
-      d_realToFloatMap(u),
-      d_floatToRealMap(u),
-      d_abstractionMap(u),
-      d_rewriter(u),
-      d_state(c, u, valuation),
-      d_im(*this, d_state, pnm, "theory::fp::", false),
-      d_wbFactsCache(u)
+      d_realToFloatMap(getUserContext()),
+      d_floatToRealMap(getUserContext()),
+      d_abstractionMap(getUserContext()),
+      d_rewriter(getUserContext()),
+      d_state(getSatContext(), getUserContext(), valuation),
+      d_im(*this, d_state, d_pnm, "theory::fp::", false),
+      d_wbFactsCache(getUserContext())
 {
   // indicate we are using the default theory state and inference manager
   d_theoryState = &d_state;

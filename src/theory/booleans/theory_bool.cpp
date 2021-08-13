@@ -33,12 +33,8 @@ namespace theory {
 namespace booleans {
 
 TheoryBool::TheoryBool(Env& env,
-                       context::Context* c,
-                       context::UserContext* u,
                        OutputChannel& out,
-                       Valuation valuation,
-                       const LogicInfo& logicInfo,
-                       ProofNodeManager* pnm)
+                       Valuation valuation)
     : Theory(THEORY_BOOL, env, out, valuation)
 {
 }

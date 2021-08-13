@@ -28,15 +28,11 @@ namespace theory {
 namespace bags {
 
 TheoryBags::TheoryBags(Env& env,
-                       context::Context* c,
-                       context::UserContext* u,
                        OutputChannel& out,
-                       Valuation valuation,
-                       const LogicInfo& logicInfo,
-                       ProofNodeManager* pnm)
+                       Valuation valuation)
     : Theory(THEORY_BAGS, env, out, valuation),
-      d_state(c, u, valuation),
-      d_im(*this, d_state, pnm),
+      d_state(getSatContext(), getUserContext(), valuation),
+      d_im(*this, d_state, d_pnm),
       d_ig(&d_state, &d_im),
       d_notify(*this, d_im),
       d_statistics(),

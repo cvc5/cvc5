@@ -31,35 +31,31 @@ namespace theory {
 namespace bv {
 
 TheoryBV::TheoryBV(Env& env,
-                   context::Context* c,
-                   context::UserContext* u,
                    OutputChannel& out,
                    Valuation valuation,
-                   const LogicInfo& logicInfo,
-                   ProofNodeManager* pnm,
                    std::string name)
     : Theory(THEORY_BV, env, out, valuation, name),
       d_internal(nullptr),
       d_rewriter(),
-      d_state(c, u, valuation),
+      d_state(getSatContext(), getUserContext(), valuation),
       d_im(*this, d_state, nullptr, "theory::bv::"),
       d_notify(d_im),
-      d_invalidateModelCache(c, true),
+      d_invalidateModelCache(getSatContext(), true),
       d_stats("theory::bv::")
 {
   switch (options::bvSolver())
   {
     case options::BVSolver::BITBLAST:
-      d_internal.reset(new BVSolverBitblast(&d_state, d_im, pnm));
+      d_internal.reset(new BVSolverBitblast(&d_state, d_im, d_pnm));
       break;
 
     case options::BVSolver::LAYERED:
-      d_internal.reset(new BVSolverLayered(*this, c, u, pnm, name));
+      d_internal.reset(new BVSolverLayered(*this, getSatContext(), getUserContext(), d_pnm, name));
       break;
 
     default:
       AlwaysAssert(options::bvSolver() == options::BVSolver::BITBLAST_INTERNAL);
-      d_internal.reset(new BVSolverBitblastInternal(&d_state, d_im, pnm));
+      d_internal.reset(new BVSolverBitblastInternal(&d_state, d_im, d_pnm));
   }
   d_theoryState = &d_state;
   d_inferManager = &d_im;

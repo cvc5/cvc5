@@ -43,20 +43,16 @@ namespace theory {
 namespace sep {
 
 TheorySep::TheorySep(Env& env,
-                     context::Context* c,
-                     context::UserContext* u,
                      OutputChannel& out,
-                     Valuation valuation,
-                     const LogicInfo& logicInfo,
-                     ProofNodeManager* pnm)
+                     Valuation valuation)
     : Theory(THEORY_SEP, env, out, valuation),
-      d_lemmas_produced_c(u),
+      d_lemmas_produced_c(getUserContext()),
       d_bounds_init(false),
-      d_state(c, u, valuation),
-      d_im(*this, d_state, pnm, "theory::sep::"),
+      d_state(getSatContext(), getUserContext(), valuation),
+      d_im(*this, d_state, d_pnm, "theory::sep::"),
       d_notify(*this),
-      d_reduce(u),
-      d_spatial_assertions(c)
+      d_reduce(getUserContext()),
+      d_spatial_assertions(getSatContext())
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);

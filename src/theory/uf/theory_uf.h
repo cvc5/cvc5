@@ -99,12 +99,8 @@ private:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
   TheoryUF(Env& env,
-           context::Context* c,
-           context::UserContext* u,
            OutputChannel& out,
            Valuation valuation,
-           const LogicInfo& logicInfo,
-           ProofNodeManager* pnm = nullptr,
            std::string instanceName = "");
 
   ~TheoryUF();

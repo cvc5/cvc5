@@ -65,12 +65,8 @@ class TheoryStrings : public Theory {
 
  public:
   TheoryStrings(Env& env,
-                context::Context* c,
-                context::UserContext* u,
                 OutputChannel& out,
-                Valuation valuation,
-                const LogicInfo& logicInfo,
-                ProofNodeManager* pnm);
+                Valuation valuation);
   ~TheoryStrings();
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */

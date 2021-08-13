@@ -45,12 +45,8 @@ class TheoryArith : public Theory {
   friend class TheoryArithPrivate;
  public:
   TheoryArith(Env& env,
-              context::Context* c,
-              context::UserContext* u,
               OutputChannel& out,
-              Valuation valuation,
-              const LogicInfo& logicInfo,
-              ProofNodeManager* pnm = nullptr);
+              Valuation valuation);
   virtual ~TheoryArith();
 
   //--------------------------------- initialization

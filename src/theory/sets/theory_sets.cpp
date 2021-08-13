@@ -28,17 +28,13 @@ namespace theory {
 namespace sets {
 
 TheorySets::TheorySets(Env& env,
-                       context::Context* c,
-                       context::UserContext* u,
                        OutputChannel& out,
-                       Valuation valuation,
-                       const LogicInfo& logicInfo,
-                       ProofNodeManager* pnm)
+                       Valuation valuation)
     : Theory(THEORY_SETS, env, out, valuation),
       d_skCache(),
-      d_state(c, u, valuation, d_skCache),
-      d_im(*this, d_state, pnm),
-      d_internal(new TheorySetsPrivate(*this, d_state, d_im, d_skCache, pnm)),
+      d_state(getSatContext(), getUserContext(), valuation, d_skCache),
+      d_im(*this, d_state, d_pnm),
+      d_internal(new TheorySetsPrivate(*this, d_state, d_im, d_skCache, d_pnm)),
       d_notify(*d_internal.get(), d_im)
 {
   // use the official theory state and inference manager objects

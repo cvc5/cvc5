@@ -42,12 +42,8 @@ class TheorySets : public Theory
  public:
   /** Constructs a new instance of TheorySets w.r.t. the provided contexts. */
   TheorySets(Env& env,
-             context::Context* c,
-             context::UserContext* u,
              OutputChannel& out,
-             Valuation valuation,
-             const LogicInfo& logicInfo,
-             ProofNodeManager* pnm);
+             Valuation valuation);
   ~TheorySets() override;
 
   //--------------------------------- initialization
