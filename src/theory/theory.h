@@ -106,15 +106,10 @@ class Theory {
   /** An integer identifying the type of the theory. */
   TheoryId d_id;
 
-  /** The SAT search context for the Theory. */
-  context::Context* d_satContext;
+protected:
+  Env& d_env;
 
-  /** The user level assertion context for the Theory. */
-  context::UserContext* d_userContext;
-
-  /** Information about the logic we're operating within. */
-  const LogicInfo& d_logicInfo;
-
+private:
   /**
    * The assertFact() queue.
    *
@@ -171,12 +166,8 @@ class Theory {
    */
   Theory(TheoryId id,
          Env& env,
-         context::Context* satContext,
-         context::UserContext* userContext,
          OutputChannel& out,
          Valuation valuation,
-         const LogicInfo& logicInfo,
-         ProofNodeManager* pnm,
          std::string instance = "");  // taking : No default.
 
   /**
@@ -189,8 +180,6 @@ class Theory {
    * too.
    */
   virtual void shutdown() { }
-
-  Env& d_env;
 
   /**
    * The output channel for the Theory.
@@ -246,7 +235,7 @@ class Theory {
   inline Assertion get();
 
   const LogicInfo& getLogicInfo() const {
-    return d_logicInfo;
+    return d_env.getLogicInfo();
   }
 
   /**
@@ -462,14 +451,14 @@ class Theory {
    * Get the SAT context associated to this Theory.
    */
   context::Context* getSatContext() const {
-    return d_satContext;
+    return d_env.getContext();
   }
 
   /**
    * Get the context associated to this Theory.
    */
   context::UserContext* getUserContext() const {
-    return d_userContext;
+    return d_env.getUserContext();
   }
 
   /**
@@ -516,7 +505,7 @@ class Theory {
    */
   void assertFact(TNode assertion, bool isPreregistered) {
     Trace("theory") << "Theory<" << getId() << ">::assertFact["
-                    << d_satContext->getLevel() << "](" << assertion << ", "
+                    << getSatContext()->getLevel() << "](" << assertion << ", "
                     << (isPreregistered ? "true" : "false") << ")" << std::endl;
     d_facts.push_back(Assertion(assertion, isPreregistered));
   }
