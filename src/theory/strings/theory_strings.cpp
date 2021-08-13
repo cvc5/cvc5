@@ -54,7 +54,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_STRINGS, env, out, valuation),
       d_notify(*this),
       d_statistics(),
-      d_state(getSatContext(), getUserContext(), d_valuation),
+      d_state(env, getSatContext(), getUserContext(), d_valuation),
       d_eagerSolver(d_state),
       d_termReg(d_state, d_statistics, d_pnm),
       d_extTheoryCb(),

@@ -46,7 +46,8 @@ class SolverState : public TheoryState
   typedef context::CDHashMap<Node, size_t> NodeIntMap;
 
  public:
-  SolverState(context::Context* c,
+  SolverState(Env& env,
+              context::Context* c,
               context::UserContext* u,
               Valuation val,
               SkolemCache& skc);

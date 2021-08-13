@@ -28,10 +28,14 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-SolverState::SolverState(context::Context* c,
+SolverState::SolverState(Env& env,
+                         context::Context* c,
                          context::UserContext* u,
                          Valuation& v)
-    : TheoryState(c, u, v), d_eeDisequalities(c), d_pendingConflictSet(c, false), d_pendingConflict(InferenceId::UNKNOWN)
+    : TheoryState(env, c, u, v),
+      d_eeDisequalities(c),
+      d_pendingConflictSet(c, false),
+      d_pendingConflict(InferenceId::UNKNOWN)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_false = NodeManager::currentNM()->mkConst(false);

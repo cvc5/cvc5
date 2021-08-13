@@ -30,7 +30,7 @@ namespace sets {
 TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SETS, env, out, valuation),
       d_skCache(),
-      d_state(getSatContext(), getUserContext(), valuation, d_skCache),
+      d_state(env, getSatContext(), getUserContext(), valuation, d_skCache),
       d_im(*this, d_state, d_pnm),
       d_internal(new TheorySetsPrivate(*this, d_state, d_im, d_skCache, d_pnm)),
       d_notify(*d_internal.get(), d_im)

@@ -70,7 +70,7 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
       d_floatToRealMap(getUserContext()),
       d_abstractionMap(getUserContext()),
       d_rewriter(getUserContext()),
-      d_state(getSatContext(), getUserContext(), valuation),
+      d_state(env, getSatContext(), getUserContext(), valuation),
       d_im(*this, d_state, d_pnm, "theory::fp::", false),
       d_wbFactsCache(getUserContext())
 {

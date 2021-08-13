@@ -48,7 +48,8 @@ class SolverState : public TheoryState
   typedef context::CDList<Node> NodeList;
 
  public:
-  SolverState(context::Context* c,
+  SolverState(Env& env,
+              context::Context* c,
               context::UserContext* u,
               Valuation& v);
   ~SolverState();

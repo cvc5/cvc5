@@ -26,11 +26,12 @@ namespace cvc5 {
 namespace theory {
 namespace sets {
 
-SolverState::SolverState(context::Context* c,
+SolverState::SolverState(Env& env,
+                         context::Context* c,
                          context::UserContext* u,
                          Valuation val,
                          SkolemCache& skc)
-    : TheoryState(c, u, val), d_skCache(skc), d_members(c)
+    : TheoryState(env, c, u, val), d_skCache(skc), d_members(c)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);

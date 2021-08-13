@@ -49,7 +49,7 @@ TheoryUF::TheoryUF(Env& env,
       d_ho(nullptr),
       d_functionsTerms(getSatContext()),
       d_symb(getUserContext(), instanceName),
-      d_state(getSatContext(), getUserContext(), valuation),
+      d_state(env, getSatContext(), getUserContext(), valuation),
       d_im(*this, d_state, d_pnm, "theory::uf::" + instanceName, false),
       d_notify(d_im, *this)
 {

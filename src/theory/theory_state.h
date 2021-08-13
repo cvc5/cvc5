@@ -20,6 +20,7 @@
 
 #include "context/cdo.h"
 #include "expr/node.h"
+#include "smt/env.h"
 #include "theory/valuation.h"
 
 namespace cvc5 {
@@ -32,7 +33,10 @@ class EqualityEngine;
 class TheoryState
 {
  public:
-  TheoryState(context::Context* c, context::UserContext* u, Valuation val);
+  TheoryState(Env& env,
+              context::Context* c,
+              context::UserContext* u,
+              Valuation val);
   virtual ~TheoryState() {}
   /**
    * Set equality engine, where ee is a pointer to the official equality engine
@@ -111,6 +115,8 @@ class TheoryState
   Valuation& getValuation();
 
  protected:
+  /** Reference to the environment. */
+  Env& d_env;
   /** Pointer to the SAT context object used by the theory. */
   context::Context* d_context;
   /** Pointer to the user context object used by the theory. */

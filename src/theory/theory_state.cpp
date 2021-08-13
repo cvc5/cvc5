@@ -20,10 +20,12 @@
 namespace cvc5 {
 namespace theory {
 
-TheoryState::TheoryState(context::Context* c,
+TheoryState::TheoryState(Env& env,
+                         context::Context* c,
                          context::UserContext* u,
                          Valuation val)
-    : d_context(c),
+    : d_env(env),
+      d_context(c),
       d_ucontext(u),
       d_valuation(val),
       d_ee(nullptr),

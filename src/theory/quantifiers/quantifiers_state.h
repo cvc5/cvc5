@@ -32,7 +32,8 @@ namespace quantifiers {
 class QuantifiersState : public TheoryState
 {
  public:
-  QuantifiersState(context::Context* c,
+  QuantifiersState(Env& env,
+                   context::Context* c,
                    context::UserContext* u,
                    Valuation val,
                    const LogicInfo& logicInfo);

@@ -22,11 +22,12 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-QuantifiersState::QuantifiersState(context::Context* c,
+QuantifiersState::QuantifiersState(Env& env,
+                                   context::Context* c,
                                    context::UserContext* u,
                                    Valuation val,
                                    const LogicInfo& logicInfo)
-    : TheoryState(c, u, val), d_ierCounterc(c), d_logicInfo(logicInfo)
+    : TheoryState(env, c, u, val), d_ierCounterc(c), d_logicInfo(logicInfo)
 {
   // allow theory combination to go first, once initially
   d_ierCounter = options::instWhenTcFirst() ? 0 : 1;
