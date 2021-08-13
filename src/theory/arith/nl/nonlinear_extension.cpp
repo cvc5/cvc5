@@ -94,9 +94,10 @@ void NonlinearExtension::processSideEffect(const NlLemma& se)
   d_trSlv.processSideEffect(se);
 }
 
-const Options& NonlinearExtension::options() const {
-    return d_containing.options();
-  }
+const Options& NonlinearExtension::options() const
+{
+  return d_containing.options();
+}
 
 void NonlinearExtension::computeRelevantAssertions(
     const std::vector<Node>& assertions, std::vector<Node>& keep)

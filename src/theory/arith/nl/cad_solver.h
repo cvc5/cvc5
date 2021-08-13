@@ -43,8 +43,7 @@ class NlModel;
 class CadSolver
 {
  public:
-  CadSolver(Env& env, InferenceManager& im,
-            NlModel& model);
+  CadSolver(Env& env, InferenceManager& im, NlModel& model);
   ~CadSolver();
 
   /**

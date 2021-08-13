@@ -25,11 +25,11 @@
 
 #include <vector>
 
+#include "smt/env.h"
 #include "theory/arith/nl/cad/cdcac_utils.h"
 #include "theory/arith/nl/cad/constraints.h"
 #include "theory/arith/nl/cad/proof_generator.h"
 #include "theory/arith/nl/cad/variable_ordering.h"
-#include "smt/env.h"
 
 namespace cvc5 {
 namespace theory {
@@ -48,8 +48,7 @@ class CDCAC
 {
  public:
   /** Initialize this method with the given variable ordering. */
-  CDCAC(Env& env,
-        const std::vector<poly::Variable>& ordering = {});
+  CDCAC(Env& env, const std::vector<poly::Variable>& ordering = {});
 
   /** Reset this instance. */
   void reset();

@@ -27,8 +27,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-CadSolver::CadSolver(Env& env, InferenceManager& im,
-                     NlModel& model)
+CadSolver::CadSolver(Env& env, InferenceManager& im, NlModel& model)
     :
 #ifdef CVC5_POLY_IMP
       d_CAC(env),
@@ -37,7 +36,6 @@ CadSolver::CadSolver(Env& env, InferenceManager& im,
       d_im(im),
       d_model(model)
 {
-  
   NodeManager* nm = env.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   d_ranVariable = sm->mkDummySkolem(
