@@ -83,8 +83,8 @@ ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 
 bool Env::isTheoryProofProducing() const
 {
-  return !d_options.smt.unsatCores
-         || d_options.smt.unsatCoresMode == options::UnsatCoresMode::FULL_PROOF;
+  return d_proofNodeManager != nullptr && (!d_options.smt.unsatCores
+         || d_options.smt.unsatCoresMode == options::UnsatCoresMode::FULL_PROOF);
 }
 
 theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
