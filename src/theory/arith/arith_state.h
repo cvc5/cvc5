@@ -39,8 +39,6 @@ class ArithState : public TheoryState
 {
  public:
   ArithState(Env& env,
-             context::Context* c,
-             context::UserContext* u,
              Valuation val);
   ~ArithState() {}
   /** Are we currently in conflict? */

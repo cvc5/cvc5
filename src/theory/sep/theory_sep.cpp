@@ -46,7 +46,7 @@ TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SEP, env, out, valuation),
       d_lemmas_produced_c(getUserContext()),
       d_bounds_init(false),
-      d_state(env, getSatContext(), getUserContext(), valuation),
+      d_state(env, valuation),
       d_im(*this, d_state, d_pnm, "theory::sep::"),
       d_notify(*this),
       d_reduce(getUserContext()),

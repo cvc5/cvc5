@@ -23,11 +23,11 @@ namespace theory {
 namespace quantifiers {
 
 QuantifiersState::QuantifiersState(Env& env,
-                                   context::Context* c,
-                                   context::UserContext* u,
                                    Valuation val,
                                    const LogicInfo& logicInfo)
-    : TheoryState(env, c, u, val), d_ierCounterc(c), d_logicInfo(logicInfo)
+    : TheoryState(env, val),
+      d_ierCounterc(env.getContext()),
+      d_logicInfo(logicInfo)
 {
   // allow theory combination to go first, once initially
   d_ierCounter = options::instWhenTcFirst() ? 0 : 1;

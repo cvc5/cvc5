@@ -28,13 +28,10 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-SolverState::SolverState(Env& env,
-                         context::Context* c,
-                         context::UserContext* u,
-                         Valuation& v)
-    : TheoryState(env, c, u, v),
-      d_eeDisequalities(c),
-      d_pendingConflictSet(c, false),
+SolverState::SolverState(Env& env, Valuation& v)
+    : TheoryState(env, v),
+      d_eeDisequalities(env.getContext()),
+      d_pendingConflictSet(env.getContext(), false),
       d_pendingConflict(InferenceId::UNKNOWN)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
@@ -68,7 +65,7 @@ EqcInfo* SolverState::getOrMakeEqcInfo(Node eqc, bool doMake)
   }
   if (doMake)
   {
-    EqcInfo* ei = new EqcInfo(d_context);
+    EqcInfo* ei = new EqcInfo(d_env.getContext());
     d_eqcInfo[eqc] = ei;
     return ei;
   }

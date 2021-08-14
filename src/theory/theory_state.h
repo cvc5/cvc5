@@ -34,8 +34,6 @@ class TheoryState
 {
  public:
   TheoryState(Env& env,
-              context::Context* c,
-              context::UserContext* u,
               Valuation val);
   virtual ~TheoryState() {}
   /**
@@ -47,6 +45,8 @@ class TheoryState
   context::Context* getSatContext() const;
   /** Get the user context */
   context::UserContext* getUserContext() const;
+  /** Get the environment */
+  Env& getEnv() const { return d_env; }
   //-------------------------------------- equality information
   /** Is t registered as a term in the equality engine of this class? */
   virtual bool hasTerm(TNode a) const;
@@ -117,10 +117,6 @@ class TheoryState
  protected:
   /** Reference to the environment. */
   Env& d_env;
-  /** Pointer to the SAT context object used by the theory. */
-  context::Context* d_context;
-  /** Pointer to the user context object used by the theory. */
-  context::UserContext* d_ucontext;
   /**
    * The valuation proxy for the Theory to communicate back with the
    * theory engine (and other theories).

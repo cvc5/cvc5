@@ -49,8 +49,6 @@ class SolverState : public TheoryState
 
  public:
   SolverState(Env& env,
-              context::Context* c,
-              context::UserContext* u,
               Valuation& v);
   ~SolverState();
   //-------------------------------------- disequality information
