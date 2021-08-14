@@ -1190,8 +1190,8 @@ set(options_toml_files
 )
 string(REPLACE "toml" "cpp;" options_gen_cpp_files ${options_toml_files})
 string(REPLACE "toml" "h;"   options_gen_h_files ${options_toml_files})
-list(PREPEND options_gen_cpp_files "options/options.cpp" "options/options_public.cpp")
-list(PREPEND options_gen_h_files "options/options.h")
+list(APPEND options_gen_cpp_files "options/options.cpp" "options/options_public.cpp")
+list(APPEND options_gen_h_files "options/options.h")
 
 libcvc5_add_sources(GENERATED ${options_gen_cpp_files} ${options_gen_h_files})
 
