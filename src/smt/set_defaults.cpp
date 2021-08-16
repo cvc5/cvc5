@@ -45,10 +45,10 @@ using namespace cvc5::theory;
 
 namespace cvc5 {
 namespace smt {
-  
-SetDefaults::SetDefaults(bool isInternalSubsolver) : d_isInternalSubsolver(isInternalSubsolver)
+
+SetDefaults::SetDefaults(bool isInternalSubsolver)
+    : d_isInternalSubsolver(isInternalSubsolver)
 {
-  
 }
 
 void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)

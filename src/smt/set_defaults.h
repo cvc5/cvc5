@@ -25,25 +25,26 @@ namespace smt {
 class SetDefaults
 {
  public:
-   /**
-    * 
-  * @param isInternalSubsolver Whether we are setting the options for an
-  * internal subsolver (see SmtEngine::isInternalSubsolver).
-  */
-   SetDefaults(bool isInternalSubsolver);
   /**
-  * The purpose of this method is to set the default options and update the logic
-  * info for an SMT engine.
-  *
-  * @param logic A reference to the logic of SmtEngine, which can be
-  * updated by this method based on the current options and the logic itself.
-  *
-  * NOTE: we currently modify the current options in scope. This method
-  * can be further refactored to modify an options object provided as an
-  * explicit argument.
-  */
+   *
+   * @param isInternalSubsolver Whether we are setting the options for an
+   * internal subsolver (see SmtEngine::isInternalSubsolver).
+   */
+  SetDefaults(bool isInternalSubsolver);
+  /**
+   * The purpose of this method is to set the default options and update the
+   * logic info for an SMT engine.
+   *
+   * @param logic A reference to the logic of SmtEngine, which can be
+   * updated by this method based on the current options and the logic itself.
+   *
+   * NOTE: we currently modify the current options in scope. This method
+   * can be further refactored to modify an options object provided as an
+   * explicit argument.
+   */
   void setDefaults(LogicInfo& logic, Options& opts);
-private:
+
+ private:
   /** Are we an internal subsolver? */
   bool d_isInternalSubsolver;
 };
