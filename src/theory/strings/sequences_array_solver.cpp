@@ -58,6 +58,7 @@ void SequencesArraySolver::checkUpdate(const std::vector<Node>& updateTerms)
 {
   NodeManager * nm = NodeManager::currentNM();
 
+  Trace("seq-array-debug") << "updateTerms number: " <<  updateTerms.size() << std::endl;
   for (const Node& n : updateTerms)
   {
     // current term (seq.update x i a)
@@ -79,6 +80,7 @@ void SequencesArraySolver::checkUpdate(const std::vector<Node>& updateTerms)
         nm->mkNode(SEQ_NTH, n[2], nm->mkConst(Rational(0)));  // n[2][0]
     right = Rewriter::rewrite(right);
     Node lem = nm->mkNode(EQUAL, left, right);
+    Trace("seq-array-debug") << "enter" << std::endl;
     sendInference(exp, lem);
 
     // enumerate possible index
@@ -127,6 +129,8 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
 {
   NodeManager* nm = NodeManager::currentNM();
 
+  Trace("seq-array-debug") << "NTH SIZE: " << nthTerms.size() << std::endl;
+  Trace("seq-array-debug") << "UPDATE SIZE: " << updateTerms.size() << std::endl;
   Trace("seq-update") << "SequencesArraySolver::check..." << std::endl;
   d_writeModel.clear();
   for (const Node& n : nthTerms)
