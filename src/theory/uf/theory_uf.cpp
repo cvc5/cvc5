@@ -49,7 +49,11 @@ TheoryUF::TheoryUF(Env& env,
       d_ho(nullptr),
       d_functionsTerms(getSatContext()),
       d_symb(getUserContext(), instanceName),
+      d_state(env, valuation),
+      d_im(*this, d_state, d_pnm, "theory::uf::" + instanceName, false),
+      d_notify(d_im, *this)
 {
+  d_true = NodeManager::currentNM()->mkConst( true );
   // indicate we are using the default theory state and inference managers
   d_theoryState = &d_state;
   d_inferManager = &d_im;
