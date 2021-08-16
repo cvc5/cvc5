@@ -37,12 +37,7 @@ class QuantifiersMacros;
 
 class TheoryQuantifiers : public Theory {
  public:
-  TheoryQuantifiers(context::Context* c,
-                    context::UserContext* u,
-                    OutputChannel& out,
-                    Valuation valuation,
-                    const LogicInfo& logicInfo,
-                    ProofNodeManager* pnm = nullptr);
+  TheoryQuantifiers(Env& env, OutputChannel& out, Valuation valuation);
   ~TheoryQuantifiers();
 
   //--------------------------------- initialization

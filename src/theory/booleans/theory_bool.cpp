@@ -32,13 +32,8 @@ namespace cvc5 {
 namespace theory {
 namespace booleans {
 
-TheoryBool::TheoryBool(context::Context* c,
-                       context::UserContext* u,
-                       OutputChannel& out,
-                       Valuation valuation,
-                       const LogicInfo& logicInfo,
-                       ProofNodeManager* pnm)
-    : Theory(THEORY_BOOL, c, u, out, valuation, logicInfo, pnm)
+TheoryBool::TheoryBool(Env& env, OutputChannel& out, Valuation valuation)
+    : Theory(THEORY_BOOL, env, out, valuation)
 {
 }
 
