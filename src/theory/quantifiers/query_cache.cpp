@@ -26,7 +26,7 @@ namespace quantifiers {
 QueryCache::QueryCache(Options* optr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
-  if (optr!=nullptr)
+  if (optr != nullptr)
   {
     d_subOptions.copyValues(optr);
   }
@@ -34,7 +34,7 @@ QueryCache::QueryCache(Options* optr)
 
 void QueryCache::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   TypeNode boolType = nm->booleanType();
   d_sampler.initialize(boolType, vars, 0);
 }
@@ -47,10 +47,10 @@ bool QueryCache::addTerm(Node sol, std::ostream& out)
     return !sol.getConst<bool>();
   }
   size_t npoints = d_sampler.getNumSamplePoints();
-  for (size_t i=0; i<npoints; i++)
+  for (size_t i = 0; i < npoints; i++)
   {
     Node ev = d_sampler.evaluate(sol, i);
-    if (ev==d_true)
+    if (ev == d_true)
     {
       // already satisfied by a point
       return false;

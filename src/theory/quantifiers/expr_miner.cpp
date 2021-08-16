@@ -49,7 +49,8 @@ Node ExprMiner::convertToSkolem(Node n)
       d_fv_to_skolem[v] = sk;
     }
   }
-  return n.substitute(d_vars.begin(), d_vars.end(), d_skolems.begin(), d_skolems.end());
+  return n.substitute(
+      d_vars.begin(), d_vars.end(), d_skolems.begin(), d_skolems.end());
 }
 
 void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,

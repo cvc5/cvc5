@@ -298,7 +298,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
     }
     break;
     case PfRule::ANNOTATION:
-      if (i==0)
+      if (i == 0)
       {
         return ArgFormat::INFERENCE_ID;
       }

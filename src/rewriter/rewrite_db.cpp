@@ -51,11 +51,11 @@ Node flattenHead(Node a, std::vector<Node>& cond, std::vector<Node>& fvs)
   // flatten if necessary, and if possible
   std::unordered_set<Node> fvNonFlat;
   std::unordered_set<Node> fvFlat;
-  Assert (a.getNumChildren()>0);
+  Assert(a.getNumChildren() > 0);
   bool isFlat = true;
   for (const Node& ac : a)
   {
-    if (ac.getKind()==BOUND_VARIABLE)
+    if (ac.getKind() == BOUND_VARIABLE)
     {
       fvFlat.insert(ac);
     }
@@ -76,7 +76,7 @@ Node flattenHead(Node a, std::vector<Node>& cond, std::vector<Node>& fvs)
   bool canFlatten = true;
   for (const Node& nfv : fvNonFlat)
   {
-    if (fvFlat.find(nfv)==fvFlat.end())
+    if (fvFlat.find(nfv) == fvFlat.end())
     {
       canFlatten = false;
       break;
@@ -94,7 +94,7 @@ Node flattenHead(Node a, std::vector<Node>& cond, std::vector<Node>& fvs)
   }
   for (const Node& ac : a)
   {
-    if (ac.getKind()==BOUND_VARIABLE)
+    if (ac.getKind() == BOUND_VARIABLE)
     {
       acn.push_back(ac);
     }
@@ -109,7 +109,7 @@ Node flattenHead(Node a, std::vector<Node>& cond, std::vector<Node>& fvs)
     }
   }
   // remake the head and condition
-  Assert (!cond.empty());
+  Assert(!cond.empty());
   return nm->mkNode(a.getKind(), acn);
 }
 
@@ -125,11 +125,12 @@ void RewriteDb::addRule(DslPfRule id,
   // flatten if necessary, and if possible
   std::vector<Node> fvsf = fvs;
   std::vector<Node> condsn;
-  Node af;// = flattenHead(a, condsn, fvsf);
+  Node af;  // = flattenHead(a, condsn, fvsf);
   if (!af.isNull())
   {
-    Trace("ajr-temp") << "Flatten " << id << " " << a << " to " << af << std::endl;
-    if (cond.getKind()==AND)
+    Trace("ajr-temp") << "Flatten " << id << " " << a << " to " << af
+                      << std::endl;
+    if (cond.getKind() == AND)
     {
       condsn.insert(condsn.begin(), cond.begin(), cond.end());
     }
@@ -265,7 +266,6 @@ const std::vector<DslPfRule>& RewriteDb::getRuleIdsForHead(Node eq) const
   }
   return d_emptyVec;
 }
-
 
 }  // namespace rewriter
 }  // namespace cvc5

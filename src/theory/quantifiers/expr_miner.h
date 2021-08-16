@@ -62,7 +62,7 @@ class ExprMiner
  protected:
   /** the set of variables used by this class */
   std::vector<Node> d_vars;
-  /** 
+  /**
    * The set of skolems corresponding to the above variables. These are
    * used during initializeChecker so that query (which may contain free
    * variables) is converted to a formula without free variables.

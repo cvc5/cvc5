@@ -20,16 +20,16 @@
 
 #include <vector>
 
-#include "theory/quantifiers/expr_miner.h"
-#include "theory/quantifiers/sygus_sampler.h"
-#include "theory/quantifiers/extended_rewrite.h"
 #include "options/options.h"
+#include "theory/quantifiers/expr_miner.h"
+#include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-/** 
+/**
  */
 class QueryCache : public ExprMiner
 {
@@ -47,13 +47,14 @@ class QueryCache : public ExprMiner
    * sample tuples of valuations of these variables.
    */
   void initialize(const std::vector<Node>& vars,
-                          SygusSampler* ss = nullptr) override;
+                  SygusSampler* ss = nullptr) override;
   /**
    * Return true if sol is unsatisfiable, where sol is a formula whose free
    * variables are contained in those used to initialize this class.
    */
   bool addTerm(Node sol, std::ostream& out) override;
-private:
+
+ private:
   /** True node */
   Node d_true;
   /** Sampler, caches points that satisfy queries */
