@@ -62,13 +62,15 @@ class ExprMiner
  protected:
   /** the set of variables used by this class */
   std::vector<Node> d_vars;
-  /** pointer to the sygus sampler object we are using */
-  SygusSampler* d_sampler;
-  /**
-   * Maps to skolems for each free variable that appears in a check. This is
+  /** 
+   * The set of skolems corresponding to the above variables. These are
    * used during initializeChecker so that query (which may contain free
    * variables) is converted to a formula without free variables.
    */
+  std::vector<Node> d_skolems;
+  /** pointer to the sygus sampler object we are using */
+  SygusSampler* d_sampler;
+  /** Maps to skolems for each free variable based on d_vars/d_skolems. */
   std::map<Node, Node> d_fv_to_skolem;
   /** convert */
   Node convertToSkolem(Node n);
