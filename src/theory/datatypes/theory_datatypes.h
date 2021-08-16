@@ -158,8 +158,6 @@ private:
   std::map< TypeNode, Node > d_singleton_lemma[2];
   /** Cache for singleton equalities processed */
   BoolMap d_singleton_eq;
-  /** list of all lemmas produced */
-  BoolMap d_lemmas_produced_c;
 private:
   /** assert fact */
   void assertFact( Node fact, Node exp );
@@ -269,8 +267,9 @@ private:
   /** get instantiate cons */
   Node getInstantiateCons(Node n, const DType& dt, int index);
   /** check instantiate */
-  void instantiate( EqcInfo* eqc, Node n );
-private:
+  bool instantiate(EqcInfo* eqc, Node n);
+
+ private:
   //equality queries
   bool hasTerm( TNode a );
   bool areEqual( TNode a, TNode b );
