@@ -77,12 +77,7 @@ class TheorySep : public Theory {
       bool underSpatial);
 
  public:
-  TheorySep(context::Context* c,
-            context::UserContext* u,
-            OutputChannel& out,
-            Valuation valuation,
-            const LogicInfo& logicInfo,
-            ProofNodeManager* pnm = nullptr);
+  TheorySep(Env& env, OutputChannel& out, Valuation valuation);
   ~TheorySep();
 
   /**
