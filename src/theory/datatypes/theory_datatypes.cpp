@@ -47,24 +47,21 @@ namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
-TheoryDatatypes::TheoryDatatypes(Context* c,
-                                 UserContext* u,
+TheoryDatatypes::TheoryDatatypes(Env& env,
                                  OutputChannel& out,
-                                 Valuation valuation,
-                                 const LogicInfo& logicInfo,
-                                 ProofNodeManager* pnm)
-    : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo, pnm),
-      d_term_sk(u),
-      d_labels(c),
-      d_selector_apps(c),
-      d_collectTermsCache(c),
-      d_collectTermsCacheU(u),
-      d_functionTerms(c),
-      d_singleton_eq(u),
-      d_lemmas_produced_c(u),
+                                 Valuation valuation)
+    : Theory(THEORY_DATATYPES, env, out, valuation),
+      d_term_sk(getUserContext()),
+      d_labels(getSatContext()),
+      d_selector_apps(getSatContext()),
+      d_collectTermsCache(getSatContext()),
+      d_collectTermsCacheU(getUserContext()),
+      d_functionTerms(getSatContext()),
+      d_singleton_eq(getUserContext()),
+      d_lemmas_produced_c(getUserContext()),
       d_sygusExtension(nullptr),
-      d_state(c, u, valuation),
-      d_im(*this, d_state, pnm),
+      d_state(getSatContext(), getUserContext(), valuation),
+      d_im(*this, d_state, d_pnm),
       d_notify(d_im, *this)
 {
 

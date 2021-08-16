@@ -36,12 +36,7 @@ class TheoryBags : public Theory
 {
  public:
   /** Constructs a new instance of TheoryBags w.r.t. the provided contexts. */
-  TheoryBags(context::Context* c,
-             context::UserContext* u,
-             OutputChannel& out,
-             Valuation valuation,
-             const LogicInfo& logicInfo,
-             ProofNodeManager* pnm);
+  TheoryBags(Env& env, OutputChannel& out, Valuation valuation);
   ~TheoryBags() override;
 
   //--------------------------------- initialization

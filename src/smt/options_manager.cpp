@@ -41,7 +41,7 @@ void OptionsManager::notifySetOption(const std::string& key)
 void OptionsManager::finishInit(LogicInfo& logic, bool isInternalSubsolver)
 {
   // ensure that our heuristics are properly set up
-  setDefaults(logic, isInternalSubsolver);
+  setDefaults(logic, *d_options, isInternalSubsolver);
 }
 
 }  // namespace smt
