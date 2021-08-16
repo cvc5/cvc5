@@ -39,12 +39,7 @@ class TheoryFp : public Theory
 {
  public:
   /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-  TheoryFp(context::Context* c,
-           context::UserContext* u,
-           OutputChannel& out,
-           Valuation valuation,
-           const LogicInfo& logicInfo,
-           ProofNodeManager* pnm = nullptr);
+  TheoryFp(Env& env, OutputChannel& out, Valuation valuation);
 
   //--------------------------------- initialization
   /** Get the official theory rewriter of this theory. */

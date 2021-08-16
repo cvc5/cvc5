@@ -64,12 +64,7 @@ class TheoryStrings : public Theory {
   typedef context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
 
  public:
-  TheoryStrings(context::Context* c,
-                context::UserContext* u,
-                OutputChannel& out,
-                Valuation valuation,
-                const LogicInfo& logicInfo,
-                ProofNodeManager* pnm);
+  TheoryStrings(Env& env, OutputChannel& out, Valuation valuation);
   ~TheoryStrings();
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
