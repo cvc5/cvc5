@@ -237,7 +237,7 @@ bool ExtTheory::doInferencesInternal(int effort,
           if (!nr.isNull() && n != nr)
           {
             Node lem = NodeManager::currentNM()->mkNode(kind::EQUAL, n, nr);
-            if (sendLemma(lem, InferenceId::UNKNOWN, true))
+            if (sendLemma(lem, InferenceId::EXTT_SIMPLIFY, true))
             {
               Trace("extt-lemma")
                   << "ExtTheory : reduction lemma : " << lem << std::endl;
@@ -287,7 +287,7 @@ bool ExtTheory::doInferencesInternal(int effort,
             Trace("extt-debug") << "ExtTheory::doInferences : infer : " << eq
                                 << " by " << exp[i] << std::endl;
             Trace("extt-debug") << "...send lemma " << lem << std::endl;
-            if (sendLemma(lem, InferenceId::UNKNOWN))
+            if (sendLemma(lem, InferenceId::EXTT_SIMPLIFY))
             {
               Trace("extt-lemma")
                   << "ExtTheory : substitution + rewrite lemma : " << lem
