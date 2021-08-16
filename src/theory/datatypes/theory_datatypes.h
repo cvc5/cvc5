@@ -266,7 +266,7 @@ private:
   void collectTerms( Node n );
   /** get instantiate cons */
   Node getInstantiateCons(Node n, const DType& dt, int index);
-  /** check instantiate */
+  /** check instantiate, return true if an inference was generated. */
   bool instantiate(EqcInfo* eqc, Node n);
 
  private:
