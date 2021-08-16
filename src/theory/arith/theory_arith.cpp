@@ -24,7 +24,6 @@
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/theory_arith_private.h"
-#include "theory/evaluator.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
