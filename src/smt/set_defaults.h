@@ -16,6 +16,7 @@
 #ifndef CVC5__SMT__SET_DEFAULTS_H
 #define CVC5__SMT__SET_DEFAULTS_H
 
+#include "options/options.h"
 #include "theory/logic_info.h"
 
 namespace cvc5 {
@@ -34,7 +35,7 @@ namespace smt {
  * can be further refactored to modify an options object provided as an
  * explicit argument.
  */
-void setDefaults(LogicInfo& logic, bool isInternalSubsolver);
+void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver);
 
 }  // namespace smt
 }  // namespace cvc5
