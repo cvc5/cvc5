@@ -81,8 +81,6 @@ class SequencesArraySolver
 
   void sendInference(const std::vector<Node>& exp, const Node& lem);
 
-  void checkNth(const std::vector<Node>& nthTerms);
-
   void checkUpdate(const std::vector<Node>& updateTerms);
 };
 
