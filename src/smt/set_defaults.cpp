@@ -1332,13 +1332,6 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
     }
   }
   // implied options...
-  if (opts.quantifiers.strictTriggers)
-  {
-    if (!opts.quantifiers.userPatternsQuantWasSetByUser)
-    {
-      opts.quantifiers.userPatternsQuant = options::UserPatMode::TRUST;
-    }
-  }
   if (opts.quantifiers.qcfModeWasSetByUser || opts.quantifiers.qcfTConstraint)
   {
     opts.quantifiers.quantConflictFind = true;
