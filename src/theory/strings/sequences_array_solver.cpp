@@ -156,7 +156,7 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
     Node r = d_state.getRepresentative(n[0]);
     Trace("seq-update") << "- " << r << ": " << n[1] << " -> " << n
                         << std::endl;
-    //    d_writeModel[r][n[1]] = n;
+    d_writeModel[r][n[1]] = n;
     if (d_index_map.find(r) == d_index_map.end())
     {
       std::set<Node> indexes;

@@ -1982,6 +1982,10 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
 
 void CoreSolver::processDeq(Node ni, Node nj)
 {
+  if (options::stringSeqUpdate()) 
+  {
+    processDeqExtensionality(ni, nj);
+  }
   NodeManager* nm = NodeManager::currentNM();
   NormalForm& nfni = getNormalForm(ni);
   NormalForm& nfnj = getNormalForm(nj);
@@ -2047,9 +2051,6 @@ void CoreSolver::processDeq(Node ni, Node nj)
       return;
     }
     Trace("strings-solve-debug") << "...trivial" << std::endl;
-    if (options::stringSeqUpdate()) {
-      processDeqExtensionality(ni, nj);
-    }
     return;
   }
 
@@ -2488,12 +2489,13 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   Node len1 = nm->mkNode(STRING_LENGTH, n1);
   Node len2 = nm->mkNode(STRING_LENGTH, n2);
   Node conc2 = nm->mkNode(LEQ, d_zero, k);
-  Node disj1 = nm->mkNode(LT, k, len1);
-  Node disj2 = nm->mkNode(LT, k, len2);
-  Node conc3 = nm->mkNode(OR, disj1, disj2);
+  Node conc3 = nm->mkNode(LT, k, len1);
+  Node lenDeq = nm->mkNode(EQUAL, len1, len2).negate();
 
-  vector<Node> concs = {conc1, conc2, conc3};
-  Node conc = nm->mkAnd(concs);
+  std::vector<Node> concs = {conc1, conc2, conc3};
+  Node conc = nm->mkNode(OR, lenDeq, nm->mkAnd(concs));
+  // A != B => ( seq.len(A) != seq.len(B) or
+  //             ( seq.nth(A, d) != seq.nth(B, d) ^ 0 <= d < seq.len(A) ) )
   d_im.sendInference(
       {deq}, conc, InferenceId::STRINGS_DEQ_EXTENSIONALITY, false, true);
 }
