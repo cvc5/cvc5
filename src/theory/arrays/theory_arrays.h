@@ -132,12 +132,9 @@ class TheoryArrays : public Theory {
   IntStat d_numSetModelValConflicts;
 
  public:
-  TheoryArrays(context::Context* c,
-               context::UserContext* u,
+  TheoryArrays(Env& env,
                OutputChannel& out,
                Valuation valuation,
-               const LogicInfo& logicInfo,
-               ProofNodeManager* pnm = nullptr,
                std::string name = "theory::arrays::");
   ~TheoryArrays();
 
@@ -334,7 +331,10 @@ class TheoryArrays : public Theory {
       d_arrays.conflict(t1, t2);
     }
 
-    void eqNotifyNewClass(TNode t) override {}
+    void eqNotifyNewClass(TNode t) override
+    {
+      d_arrays.preRegisterTermInternal(t);
+    }
     void eqNotifyMerge(TNode t1, TNode t2) override
     {
       if (t1.getType().isArray()) {

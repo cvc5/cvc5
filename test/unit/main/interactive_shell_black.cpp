@@ -35,18 +35,25 @@ class TestMainBlackInteractiveShell : public TestInternal
   void SetUp() override
   {
     TestInternal::SetUp();
-    d_sin.reset(new std::stringstream);
-    d_sout.reset(new std::stringstream);
-    d_options.base.in = d_sin.get();
-    d_options.base.out = d_sout.get();
-    d_options.base.inputLanguage = language::input::LANG_CVC;
-    d_solver.reset(new cvc5::api::Solver(&d_options));
+
+    d_sin = std::make_unique<std::stringstream>();
+    d_stdin = std::cin.rdbuf();
+    std::cin.rdbuf(d_sin->rdbuf());
+
+    d_sout = std::make_unique<std::stringstream>();
+    d_stdout = std::cout.rdbuf();
+    std::cout.rdbuf(d_sout->rdbuf());
+
+    d_solver.reset(new cvc5::api::Solver());
+    d_solver->setOption("input-language", "cvc");
     d_symman.reset(new SymbolManager(d_solver.get()));
   }
 
   void TearDown() override
   {
+    std::cin.rdbuf(d_stdin);
     d_sin.reset(nullptr);
+    std::cout.rdbuf(d_stdout);
     d_sout.reset(nullptr);
     // ensure that symbol manager is destroyed before solver
     d_symman.reset(nullptr);
@@ -80,7 +87,9 @@ class TestMainBlackInteractiveShell : public TestInternal
   std::unique_ptr<std::stringstream> d_sout;
   std::unique_ptr<SymbolManager> d_symman;
   std::unique_ptr<cvc5::api::Solver> d_solver;
-  Options d_options;
+
+  std::streambuf* d_stdin;
+  std::streambuf* d_stdout;
 };
 
 TEST_F(TestMainBlackInteractiveShell, assert_true)

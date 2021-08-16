@@ -22,6 +22,7 @@
 
 #include "base/check.h"
 #include "expr/node_algorithm.h"
+#include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "smt/smt_statistics_registry.h"
@@ -59,27 +60,22 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level){
 }/* ostream& operator<<(ostream&, Theory::Effort) */
 
 Theory::Theory(TheoryId id,
-               context::Context* satContext,
-               context::UserContext* userContext,
+               Env& env,
                OutputChannel& out,
                Valuation valuation,
-               const LogicInfo& logicInfo,
-               ProofNodeManager* pnm,
                std::string name)
     : d_id(id),
-      d_satContext(satContext),
-      d_userContext(userContext),
-      d_logicInfo(logicInfo),
-      d_facts(satContext),
-      d_factsHead(satContext, 0),
-      d_sharedTermsIndex(satContext, 0),
+      d_env(env),
+      d_facts(d_env.getContext()),
+      d_factsHead(d_env.getContext(), 0),
+      d_sharedTermsIndex(d_env.getContext(), 0),
       d_careGraph(nullptr),
       d_instanceName(name),
       d_checkTime(smtStatisticsRegistry().registerTimer(getStatsPrefix(id)
                                                         + name + "checkTime")),
       d_computeCareGraphTime(smtStatisticsRegistry().registerTimer(
           getStatsPrefix(id) + name + "computeCareGraphTime")),
-      d_sharedTerms(satContext),
+      d_sharedTerms(d_env.getContext()),
       d_out(&out),
       d_valuation(valuation),
       d_equalityEngine(nullptr),
@@ -87,7 +83,8 @@ Theory::Theory(TheoryId id,
       d_theoryState(nullptr),
       d_inferManager(nullptr),
       d_quantEngine(nullptr),
-      d_pnm(pnm)
+      d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
+                                           : nullptr)
 {
 }
 
@@ -134,9 +131,12 @@ void Theory::finishInitStandalone()
   EeSetupInfo esi;
   if (needsEqualityEngine(esi))
   {
-    // always associated with the same SAT context as the theory (d_satContext)
-    d_allocEqualityEngine.reset(new eq::EqualityEngine(
-        *esi.d_notify, d_satContext, esi.d_name, esi.d_constantsAreTriggers));
+    // always associated with the same SAT context as the theory
+    d_allocEqualityEngine.reset(
+        new eq::EqualityEngine(*esi.d_notify,
+                               getSatContext(),
+                               esi.d_name,
+                               esi.d_constantsAreTriggers));
     // use it as the official equality engine
     setEqualityEngine(d_allocEqualityEngine.get());
   }
@@ -338,7 +338,7 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!options::produceModels() && !d_logicInfo.isQuantified())
+  if (!options::produceModels() && !getLogicInfo().isQuantified())
   {
     // Don't care about the model and logic is not quantified, we can eliminate.
     return true;
@@ -368,7 +368,7 @@ std::unordered_set<TNode> Theory::currentlySharedTerms() const
 bool Theory::collectModelInfo(TheoryModel* m, const std::set<Node>& termSet)
 {
   // if we are using an equality engine, assert it to the model
-  if (d_equalityEngine != nullptr)
+  if (d_equalityEngine != nullptr && !termSet.empty())
   {
     Trace("model-builder") << "Assert Equality engine for " << d_id
                            << std::endl;
@@ -466,7 +466,7 @@ void Theory::getCareGraph(CareGraph* careGraph) {
 
 bool Theory::proofsEnabled() const
 {
-  return d_pnm != nullptr;
+  return d_env.getProofNodeManager() != nullptr;
 }
 
 EqualityStatus Theory::getEqualityStatus(TNode a, TNode b)
@@ -613,10 +613,19 @@ bool Theory::usesCentralEqualityEngine(TheoryId id)
   {
     return false;
   }
-  // Below are all theories with an equality engine except id ==THEORY_ARITH
+  if (id == THEORY_ARITH)
+  {
+    // conditional on whether we are using the equality solver
+    return options::arithEqSolver();
+  }
   return id == THEORY_UF || id == THEORY_DATATYPES || id == THEORY_BAGS
          || id == THEORY_FP || id == THEORY_SETS || id == THEORY_STRINGS
-         || id == THEORY_SEP || id == THEORY_ARRAYS || id == THEORY_BV;
+         || id == THEORY_SEP || id == THEORY_ARRAYS;
+}
+
+bool Theory::expUsingCentralEqualityEngine(TheoryId id)
+{
+  return id != THEORY_ARITH && usesCentralEqualityEngine(id);
 }
 
 }  // namespace theory

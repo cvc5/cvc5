@@ -83,7 +83,7 @@ class SynthConjecture
    * concrete terms t1, ..., tn to check, where we make up to n calls to doCheck
    * when each of t1, ..., tn fails to satisfy the current refinement lemmas.
    */
-  bool doCheck(std::vector<Node>& lems);
+  bool doCheck();
   /** do refinement
    *
    * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
@@ -341,8 +341,6 @@ class SynthConjecture
    * not yet tried to repair.
    */
   unsigned d_repair_index;
-  /** number of times we have called doRefine */
-  unsigned d_refine_count;
   /** record solution (this is used to construct solutions later) */
   void recordSolution(std::vector<Node>& vs);
   /** get synth solutions internal

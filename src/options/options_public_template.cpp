@@ -286,6 +286,46 @@ struct OptionHandler<T, false, false> {
   }
 };/* struct OptionHandler<T, false, false> */
 
+/** Specialization for ManagedErr */
+template <>
+struct OptionHandler<ManagedErr, false, false>
+{
+  static ManagedErr handle(const std::string& option,
+                           const std::string& flag,
+                           const std::string& optionarg)
+  {
+    ManagedErr res;
+    res.open(optionarg);
+    return res;
+  }
+};
+/** Specialization for ManagedIn */
+template <>
+struct OptionHandler<ManagedIn, false, false>
+{
+  static ManagedIn handle(const std::string& option,
+                          const std::string& flag,
+                          const std::string& optionarg)
+  {
+    ManagedIn res;
+    res.open(optionarg);
+    return res;
+  }
+};
+/** Specialization for ManagedOut */
+template <>
+struct OptionHandler<ManagedOut, false, false>
+{
+  static ManagedOut handle(const std::string& option,
+                           const std::string& flag,
+                           const std::string& optionarg)
+  {
+    ManagedOut res;
+    res.open(optionarg);
+    return res;
+  }
+};
+
 /** Handle an option of type T in the default way. */
 template <class T>
 T handleOption(const std::string& option, const std::string& flag, const std::string& optionarg) {
@@ -458,30 +498,28 @@ std::vector<std::string> parse(
   return nonoptions;
 }
 
-std::string get(const Options& options, const std::string& key)
+std::string get(const Options& options, const std::string& name)
 {
-  Trace("options") << "Options::getOption(" << key << ")" << std::endl;
+  Trace("options") << "Options::getOption(" << name << ")" << std::endl;
   ${getoption_handlers}$
 
-  throw UnrecognizedOptionException(key);
+  throw UnrecognizedOptionException(name);
 }
 
-void setInternal(Options& opts, const std::string& key,
+void setInternal(Options& opts, const std::string& name,
                                 const std::string& optionarg)
                                 {
-  ${setoption_handlers}$
-  throw UnrecognizedOptionException(key);
+${setoption_handlers}$
+  throw UnrecognizedOptionException(name);
 }
 
-void set(Options& opts, const std::string& key, const std::string& optionarg)
+void set(Options& opts, const std::string& name, const std::string& optionarg)
 {
 
-  Trace("options") << "setOption(" << key << ", " << optionarg << ")"
+  Trace("options") << "setOption(" << name << ", " << optionarg << ")"
                    << std::endl;
   // first update this object
-  setInternal(opts, key, optionarg);
-  // then, notify the provided listener
-  opts.notifyListener(key);
+  setInternal(opts, name, optionarg);
 }
 
 std::vector<std::vector<std::string> > getAll(const Options& opts)
@@ -491,6 +529,13 @@ std::vector<std::vector<std::string> > getAll(const Options& opts)
 ${options_getall}$
 
   return res;
+}
+
+std::vector<std::string> getNames()
+{
+  return {
+${options_all_names}$
+  };
 }
 
 }  // namespace cvc5::options
