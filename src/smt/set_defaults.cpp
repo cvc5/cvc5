@@ -48,9 +48,8 @@ namespace smt {
 
 void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
 {
-  Options& opts = Options::current();
   // TEMPORARY for testing
-  if (opts.proof.proofReq() && !opts.smt.produceProofs)
+  if (opts.proof.proofReq && !opts.smt.produceProofs)
   {
     AlwaysAssert(false) << "Fail due to --proof-req "
                         << opts.smt.produceProofsWasSetByUser;
