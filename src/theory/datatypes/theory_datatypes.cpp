@@ -337,7 +337,7 @@ void TheoryDatatypes::postCheck(Effort level)
                     Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
                     d_im.sendDtLemma(lemma,
                                      InferenceId::DATATYPES_SPLIT,
--                                    LemmaProperty::SEND_ATOMS);
+                                     LemmaProperty::SEND_ATOMS);
                   }
                   if( !options::dtBlastSplits() ){
                     break;
@@ -680,8 +680,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
 }
 
 TheoryDatatypes::EqcInfo::EqcInfo(context::Context* c)
-    : d_checkInst(c, false),
-      d_inst(c, false),
+    : d_inst(c, false),
       d_constructor(c, Node::null()),
       d_selectors(c, false)
 {}
