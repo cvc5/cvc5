@@ -84,7 +84,7 @@ bool ExtTheoryCallback::getReduction(int effort,
 ExtTheory::ExtTheory(ExtTheoryCallback& p,
                      context::Context* c,
                      context::UserContext* u,
-                     InferenceManagerBuffered& im)
+                     TheoryInferenceManager& im)
     : d_parent(p),
       d_im(im),
       d_ext_func_terms(c),
