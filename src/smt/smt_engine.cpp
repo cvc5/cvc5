@@ -103,7 +103,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       d_isInternalSubsolver(false),
       d_stats(nullptr),
       d_outMgr(this),
-      d_optm(nullptr),
       d_pp(nullptr),
       d_scope(nullptr)
 {
@@ -120,8 +119,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // On the other hand, this hack breaks use cases where multiple SmtEngine
   // objects are created by the user.
   d_scope.reset(new SmtScope(this));
-  // set the options manager
-  d_optm.reset(new smt::OptionsManager(&getOptions()));
   // listen to node manager events
   getNodeManager()->subscribeEvents(d_snmListener.get());
   // listen to resource out
@@ -195,10 +192,10 @@ void SmtEngine::finishInit()
   // set the random seed
   Random::getRandom().setSeed(d_env->getOptions().driver.seed);
 
-  // Call finish init on the options manager. This inializes the resource
-  // manager based on the options, and sets up the best default options
-  // based on our heuristics.
-  d_optm->finishInit(d_env->d_logic, d_isInternalSubsolver);
+  // Call finish init on the options manager. This inializes the logic
+  // and the best default options based on our heuristics.
+  SetDefaults sdefaults(d_isInternalSubsolver);
+  sdefaults.setDefaults(d_env->d_logic, d_env->getOptions());
 
   ProofNodeManager* pnm = nullptr;
   if (d_env->getOptions().smt.produceProofs)
@@ -324,7 +321,6 @@ SmtEngine::~SmtEngine()
     getNodeManager()->unsubscribeEvents(d_snmListener.get());
     d_snmListener.reset(nullptr);
     d_routListener.reset(nullptr);
-    d_optm.reset(nullptr);
     d_pp.reset(nullptr);
     // destroy the state
     d_state.reset(nullptr);
