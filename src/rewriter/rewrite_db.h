@@ -68,6 +68,7 @@ class RewriteDb
   const std::vector<DslPfRule>& getRuleIdsForHead(Node h) const;
   /** the union of free variables in all rules */
   const std::unordered_set<Node>& getAllFreeVariables() const;
+
  private:
   /** common constants */
   Node d_true;

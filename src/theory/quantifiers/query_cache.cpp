@@ -26,7 +26,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-QueryCache::QueryCache(bool checkUnsat, Options* optr) : d_checkUnsat(checkUnsat)
+QueryCache::QueryCache(bool checkUnsat, Options* optr)
+    : d_checkUnsat(checkUnsat)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   if (optr != nullptr)
@@ -47,10 +48,7 @@ void QueryCache::initialize(const std::vector<Node>& vars, SygusSampler* ss)
   d_sampler.initialize(boolType, vars, 0);
 }
 
-bool QueryCache::addTerm(Node sol, std::ostream& out)
-{
-  return false;
-}
+bool QueryCache::addTerm(Node sol, std::ostream& out) { return false; }
 
 bool QueryCache::addTerm(Node sol)
 {
@@ -62,6 +60,8 @@ bool QueryCache::addTerm(Node sol)
   }
   else
   {
+    // FIXME
+    return false;
     size_t npoints = d_sampler.getNumSamplePoints();
     for (size_t i = 0; i < npoints; i++)
     {
@@ -91,7 +91,7 @@ bool QueryCache::addTerm(Node sol)
       }
     }
   }
-  return isSat!=d_checkUnsat;
+  return isSat != d_checkUnsat;
 }
 
 }  // namespace quantifiers

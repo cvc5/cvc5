@@ -17,9 +17,9 @@
 
 #include "expr/node_algorithm.h"
 #include "rewriter/rewrite_db_term_process.h"
-#include "smt/smt_statistics_registry.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 
@@ -41,7 +41,10 @@ RewriteDbProofCons::RewriteDbProofCons(RewriteDb* db, ProofNodeManager* pnm)
       d_statTotalAttempts(smtStatisticsRegistry().registerInt(
           "RewriteDbProofCons::totalAttempts")),
       d_statTotalInputSuccess(smtStatisticsRegistry().registerInt(
-          "RewriteDbProofCons::totalInputSuccess")), d_qcache(false, &smt::currentSmtEngine()->getOptions()) // check for satisfiability
+          "RewriteDbProofCons::totalInputSuccess")),
+      d_qcache(
+          false,
+          &smt::currentSmtEngine()->getOptions())  // check for satisfiability
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);

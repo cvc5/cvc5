@@ -29,8 +29,8 @@
 #include "rewriter/rewrite_rcons.h"
 #include "rewriter/rewrites.h"
 #include "theory/evaluator.h"
-#include "util/statistics_stats.h"
 #include "theory/quantifiers/query_cache.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace rewriter {

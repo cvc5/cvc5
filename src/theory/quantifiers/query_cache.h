@@ -56,8 +56,8 @@ class QueryCache : public ExprMiner
   bool addTerm(Node sol);
 
  private:
-   /** Are we checking for unsatisfiability? */
-   bool d_checkUnsat;
+  /** Are we checking for unsatisfiability? */
+  bool d_checkUnsat;
   /** True node */
   Node d_true;
   /** Sampler, caches points that satisfy queries */
