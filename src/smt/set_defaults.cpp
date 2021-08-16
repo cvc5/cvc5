@@ -1544,7 +1544,7 @@ void setDefaults(LogicInfo& logic, Options& opts, bool isInternalSubsolver)
         "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
 
-  //if (logic == LogicInfo("QF_UFNRA"))
+  if (logic == LogicInfo("QF_UFNRA"))
   {
 #ifdef CVC5_USE_POLY
     if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
