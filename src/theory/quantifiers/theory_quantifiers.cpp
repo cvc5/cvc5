@@ -30,17 +30,14 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-TheoryQuantifiers::TheoryQuantifiers(Context* c,
-                                     context::UserContext* u,
+TheoryQuantifiers::TheoryQuantifiers(Env& env,
                                      OutputChannel& out,
-                                     Valuation valuation,
-                                     const LogicInfo& logicInfo,
-                                     ProofNodeManager* pnm)
-    : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pnm),
-      d_qstate(c, u, valuation, logicInfo),
+                                     Valuation valuation)
+    : Theory(THEORY_QUANTIFIERS, env, out, valuation),
+      d_qstate(getSatContext(), getUserContext(), valuation, getLogicInfo()),
       d_qreg(),
       d_treg(d_qstate, d_qreg),
-      d_qim(*this, d_qstate, d_qreg, d_treg, pnm),
+      d_qim(*this, d_qstate, d_qreg, d_treg, d_pnm),
       d_qengine(nullptr)
 {
   out.handleUserAttribute( "fun-def", this );
@@ -50,7 +47,8 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   out.handleUserAttribute( "quant-elim-partial", this );
 
   // construct the quantifiers engine
-  d_qengine.reset(new QuantifiersEngine(d_qstate, d_qreg, d_treg, d_qim, pnm));
+  d_qengine.reset(
+      new QuantifiersEngine(d_qstate, d_qreg, d_treg, d_qim, d_pnm));
 
   // indicate we are using the quantifiers theory state object
   d_theoryState = &d_qstate;

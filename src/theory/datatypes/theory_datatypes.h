@@ -183,12 +183,7 @@ private:
   void computeCareGraph() override;
 
  public:
-  TheoryDatatypes(context::Context* c,
-                  context::UserContext* u,
-                  OutputChannel& out,
-                  Valuation valuation,
-                  const LogicInfo& logicInfo,
-                  ProofNodeManager* pnm = nullptr);
+  TheoryDatatypes(Env& env, OutputChannel& out, Valuation valuation);
   ~TheoryDatatypes();
 
   //--------------------------------- initialization

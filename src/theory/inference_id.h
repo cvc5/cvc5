@@ -45,6 +45,9 @@ enum class InferenceId
   EQ_CONSTANT_MERGE,
   // a split from theory combination
   COMBINATION_SPLIT,
+  // ---------------------------------- ext theory
+  // a simplification from the extended theory utility
+  EXTT_SIMPLIFY,
   // ---------------------------------- arith theory
   //-------------------- linear core
   // black box conflicts. It's magic.

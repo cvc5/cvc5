@@ -35,24 +35,20 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-TheoryArith::TheoryArith(context::Context* c,
-                         context::UserContext* u,
-                         OutputChannel& out,
-                         Valuation valuation,
-                         const LogicInfo& logicInfo,
-                         ProofNodeManager* pnm)
-    : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
+TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
+    : Theory(THEORY_ARITH, env, out, valuation),
       d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
           "theory::arith::ppRewriteTimer")),
-      d_astate(c, u, valuation),
-      d_im(*this, d_astate, pnm),
-      d_ppre(c, pnm),
-      d_bab(d_astate, d_im, d_ppre, pnm),
+      d_astate(getSatContext(), getUserContext(), valuation),
+      d_im(*this, d_astate, d_pnm),
+      d_ppre(getSatContext(), d_pnm),
+      d_bab(d_astate, d_im, d_ppre, d_pnm),
       d_eqSolver(nullptr),
-      d_internal(new TheoryArithPrivate(*this, c, u, d_bab, pnm)),
+      d_internal(new TheoryArithPrivate(
+          *this, getSatContext(), getUserContext(), d_bab, d_pnm)),
       d_nonlinearExtension(nullptr),
-      d_opElim(pnm, logicInfo),
-      d_arithPreproc(d_astate, d_im, pnm, d_opElim),
+      d_opElim(d_pnm, getLogicInfo()),
+      d_arithPreproc(d_astate, d_im, d_pnm, d_opElim),
       d_rewriter(d_opElim)
 {
   // currently a cyclic dependency to TheoryArithPrivate

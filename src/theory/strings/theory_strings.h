@@ -64,12 +64,7 @@ class TheoryStrings : public Theory {
   typedef context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
 
  public:
-  TheoryStrings(context::Context* c,
-                context::UserContext* u,
-                OutputChannel& out,
-                Valuation valuation,
-                const LogicInfo& logicInfo,
-                ProofNodeManager* pnm);
+  TheoryStrings(Env& env, OutputChannel& out, Valuation valuation);
   ~TheoryStrings();
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
@@ -267,10 +262,10 @@ class TheoryStrings : public Theory {
   TermRegistry d_termReg;
   /** The extended theory callback */
   StringsExtfCallback d_extTheoryCb;
-  /** Extended theory, responsible for context-dependent simplification. */
-  ExtTheory d_extTheory;
   /** The (custom) output channel of the theory of strings */
   InferenceManager d_im;
+  /** Extended theory, responsible for context-dependent simplification. */
+  ExtTheory d_extTheory;
   /** The theory rewriter for this theory. */
   StringsRewriter d_rewriter;
   /** The proof rule checker */
