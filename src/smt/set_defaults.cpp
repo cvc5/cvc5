@@ -338,7 +338,7 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
   }
 
   // sygus inference may require datatypes
-  if (!isInternalSubsolver)
+  if (!d_isInternalSubsolver)
   {
     if (opts.smt.produceAbducts
         || opts.smt.produceInterpols != options::ProduceInterpols::NONE
