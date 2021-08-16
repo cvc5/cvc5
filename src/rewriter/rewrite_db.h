@@ -66,7 +66,8 @@ class RewriteDb
   const std::vector<DslPfRule>& getRuleIdsForConclusion(Node eq) const;
   /** get ids for head */
   const std::vector<DslPfRule>& getRuleIdsForHead(Node h) const;
-
+  /** the union of free variables in all rules */
+  const std::unordered_set<Node>& getAllFreeVariables() const;
  private:
   /** common constants */
   Node d_true;
@@ -85,6 +86,8 @@ class RewriteDb
   std::map<Node, std::vector<DslPfRule> > d_headToRules;
   /** dummy empty vector */
   std::vector<DslPfRule> d_emptyVec;
+  /** All free variables in all rules */
+  std::unordered_set<Node> d_allFv;
 };
 
 }  // namespace rewriter

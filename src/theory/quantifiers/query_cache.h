@@ -37,7 +37,7 @@ class QueryCache : public ExprMiner
   /**
    * Constructor
    */
-  QueryCache(Options* optr);
+  QueryCache(bool checkUnsat, Options* optr = nullptr);
   ~QueryCache() {}
   /** initialize
    *
@@ -49,12 +49,15 @@ class QueryCache : public ExprMiner
   void initialize(const std::vector<Node>& vars,
                   SygusSampler* ss = nullptr) override;
   /**
-   * Return true if sol is unsatisfiable, where sol is a formula whose free
+   * Return true if sol is (un)satisfiable, where sol is a formula whose free
    * variables are contained in those used to initialize this class.
    */
   bool addTerm(Node sol, std::ostream& out) override;
+  bool addTerm(Node sol);
 
  private:
+   /** Are we checking for unsatisfiability? */
+   bool d_checkUnsat;
   /** True node */
   Node d_true;
   /** Sampler, caches points that satisfy queries */

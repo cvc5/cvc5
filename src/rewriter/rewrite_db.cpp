@@ -224,6 +224,8 @@ void RewriteDb::addRule(DslPfRule id,
       Unhandled() << "In DSL rule " << id << ", variable " << v
                   << " is unused, dropping it" << std::endl;
     }
+    // remember the free variables
+    d_allFv.insert(v);
   }
 
   // initialize rule
@@ -265,6 +267,10 @@ const std::vector<DslPfRule>& RewriteDb::getRuleIdsForHead(Node eq) const
     return it->second;
   }
   return d_emptyVec;
+}
+const std::unordered_set<Node>& RewriteDb::getAllFreeVariables() const
+{
+  return d_allFv;
 }
 
 }  // namespace rewriter

@@ -15,6 +15,9 @@
 
 #include "theory/quantifiers/query_cache.h"
 
+#include "options/smt_options.h"
+#include "theory/smt_engine_subsolver.h"
+
 using namespace std;
 using namespace cvc5::kind;
 using namespace cvc5::context;
@@ -23,13 +26,18 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-QueryCache::QueryCache(Options* optr)
+QueryCache::QueryCache(bool checkUnsat, Options* optr) : d_checkUnsat(checkUnsat)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   if (optr != nullptr)
   {
-    d_subOptions.copyValues(optr);
+    d_subOptions.copyValues(*optr);
   }
+  // disable proofs no matter what
+  d_subOptions.smt.produceProofs = false;
+  d_subOptions.smt.checkProofs = false;
+  d_subOptions.smt.unsatCores = false;
+  d_subOptions.smt.checkUnsatCores = false;
 }
 
 void QueryCache::initialize(const std::vector<Node>& vars, SygusSampler* ss)
@@ -41,30 +49,49 @@ void QueryCache::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 
 bool QueryCache::addTerm(Node sol, std::ostream& out)
 {
+  return false;
+}
+
+bool QueryCache::addTerm(Node sol)
+{
+  bool isSat = false;
   sol = d_extr.extendedRewrite(sol);
   if (sol.isConst())
   {
-    return !sol.getConst<bool>();
+    isSat = sol.getConst<bool>();
   }
-  size_t npoints = d_sampler.getNumSamplePoints();
-  for (size_t i = 0; i < npoints; i++)
+  else
   {
-    Node ev = d_sampler.evaluate(sol, i);
-    if (ev == d_true)
+    size_t npoints = d_sampler.getNumSamplePoints();
+    for (size_t i = 0; i < npoints; i++)
     {
-      // already satisfied by a point
-      return false;
+      Node ev = d_sampler.evaluate(sol, i);
+      if (ev == d_true)
+      {
+        // already satisfied by a point
+        isSat = true;
+        break;
+      }
+    }
+    if (!isSat)
+    {
+      sol = convertToSkolem(sol);
+      std::vector<Node> modelVals;
+      Result r = checkWithSubsolver(sol, d_skolems, modelVals, &d_subOptions);
+      if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+      {
+        // check the sample point
+        d_sampler.addSamplePoint(modelVals);
+        if (r.asSatisfiabilityResult().isSat() == Result::SAT_UNKNOWN)
+        {
+          // always a failure if unknown
+          return false;
+        }
+        isSat = true;
+      }
     }
   }
-  sol = convertToSkolem(sol);
-  std::vector<Node> modelVals;
-  Result r = checkWithSubsolver(sol, d_skolems, modelVals, &d_subOptions);
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-  {
-    return true;
-  }
-  d_sampler.addPoint(modelVals);
-  return false;
+  return isSat!=d_checkUnsat;
 }
 
 }  // namespace quantifiers

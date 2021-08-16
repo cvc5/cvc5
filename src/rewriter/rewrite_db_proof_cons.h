@@ -30,6 +30,7 @@
 #include "rewriter/rewrites.h"
 #include "theory/evaluator.h"
 #include "util/statistics_stats.h"
+#include "theory/quantifiers/query_cache.h"
 
 namespace cvc5 {
 namespace rewriter {
@@ -148,6 +149,8 @@ class RewriteDbProofCons
   IntStat d_statTotalAttempts;
   /** Total number of rewrites we proved successfully */
   IntStat d_statTotalInputSuccess;
+  /** query cache, for simple disproving of goals */
+  theory::quantifiers::QueryCache d_qcache;
 };
 
 }  // namespace rewriter

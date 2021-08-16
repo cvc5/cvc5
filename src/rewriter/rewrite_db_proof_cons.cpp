@@ -18,6 +18,8 @@
 #include "expr/node_algorithm.h"
 #include "rewriter/rewrite_db_term_process.h"
 #include "smt/smt_statistics_registry.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 
@@ -39,11 +41,15 @@ RewriteDbProofCons::RewriteDbProofCons(RewriteDb* db, ProofNodeManager* pnm)
       d_statTotalAttempts(smtStatisticsRegistry().registerInt(
           "RewriteDbProofCons::totalAttempts")),
       d_statTotalInputSuccess(smtStatisticsRegistry().registerInt(
-          "RewriteDbProofCons::totalInputSuccess"))
+          "RewriteDbProofCons::totalInputSuccess")), d_qcache(false, &smt::currentSmtEngine()->getOptions()) // check for satisfiability
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
+  // initialize the query cache
+  const std::unordered_set<Node>& fvs = db->getAllFreeVariables();
+  std::vector<Node> qcvars(fvs.begin(), fvs.end());
+  d_qcache.initialize(qcvars);
 }
 
 bool RewriteDbProofCons::prove(CDProof* cdp,
@@ -446,6 +452,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
   }
   // evaluate the two sides of the equality, without help of the rewriter
   Node ev[2];
+  bool evalSuccess = true;
   for (size_t i = 0; i < 2; i++)
   {
     ev[i] = doEvaluate(eqi[i]);
@@ -473,24 +480,42 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
         // NOTE: if does not rewrite to true, it still could be true, hence we
         // fail
       }
-      return false;
+      evalSuccess = false;
+      break;
     }
   }
-  ProvenInfo& pi = d_pcache[eqi];
-  // we can evaluate both sides, check to see if the values are the same
-  if (ev[0] == ev[1])
+  if (evalSuccess)
   {
-    idb = DslPfRule::EVAL;
+    ProvenInfo& pi = d_pcache[eqi];
+    // we can evaluate both sides, check to see if the values are the same
+    if (ev[0] == ev[1])
+    {
+      idb = DslPfRule::EVAL;
+    }
+    else
+    {
+      idb = DslPfRule::FAIL;
+      // failure relies on nothing, depth is 0
+      pi.d_failMaxDepth = 0;
+    }
+    // cache it
+    pi.d_id = idb;
+    return true;
   }
-  else
+  // see if a != b is satisfiable
+  Node query = eqi.notNode();
+  if (d_qcache.addTerm(query))
   {
+    Trace("rpc-debug2") << "Infeasible due to query cache: " << eqi[0]
+                        << " == " << eqi[1] << std::endl;
+    ProvenInfo& pi = d_pcache[eqi];
     idb = DslPfRule::FAIL;
-    // failure relies on nothing, depth is 0
     pi.d_failMaxDepth = 0;
+    pi.d_id = idb;
+    return true;
   }
-  // cache it
-  pi.d_id = idb;
-  return true;
+  // otherwise, we fail to either prove or disprove the equality
+  return false;
 }
 
 bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
