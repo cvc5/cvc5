@@ -100,7 +100,7 @@ cdef class Datatype:
         self.solver = solver
 
     def __getitem__(self, index):
-        """Return a constructor by index or by name."""
+        # Return a constructor by index or by name.
         cdef DatatypeConstructor dc = DatatypeConstructor(self.solver)
         if isinstance(index, int) and index >= 0:
             dc.cdc = self.cd[(<int?> index)]
@@ -113,7 +113,7 @@ cdef class Datatype:
     def getConstructor(self, str name):
         """
 	    :param name: the name of the constructor.
-	    :return: a constructor by name (see :cpp:func:'Datatype::getConstructor() <cvc5::api::Datatype::getConstructor>'). 
+	    :return: a constructor by name. 
 	"""
         cdef DatatypeConstructor dc = DatatypeConstructor(self.solver)
         dc.cdc = self.cd.getConstructor(name.encode())
@@ -131,7 +131,7 @@ cdef class Datatype:
     def getSelector(self, str name):
         """
 	    :param name: the name of the selector..
-	    :return: a selector by name (see :cpp:func:'Datatype::getSelector() <cvc5::api::Datatype::getSelector>'). 
+	    :return: a selector by name.
 	"""
         cdef DatatypeSelector ds = DatatypeSelector(self.solver)
         ds.cds = self.cd.getSelector(name.encode())
