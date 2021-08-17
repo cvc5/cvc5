@@ -336,13 +336,13 @@ private:
     }
     else if (d_errorsChange.value_or(0) == 0)
     {
-      if (d_focusDirection.has_value())
+      if (d_focusDirection)
       {
-        if (d_focusDirection.value() > 0)
+        if (*d_focusDirection > 0)
         {
           return FocusImproved;
         }
-        else if (d_focusDirection.value() == 0)
+        else if (*d_focusDirection == 0)
         {
           return Degenerate;
         }

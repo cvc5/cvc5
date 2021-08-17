@@ -23,32 +23,21 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-/**
+/*
  * Generates a string representation of std::optional and inserts it into a
- * stream. Note: We define this function here in the cvc5::theory::arith
- * namespace, because it would otherwise not be found for std::optional<int> if
- * we defined it in, say, cvc5. This is due to the argument-dependent lookup
- * rules.
+ * stream.
+ *
+ * Note: We define this function here in the cvc5::theory::arith namespace,
+ * because it would otherwise not be found for std::optional<int>. This is due
+ * to the argument-dependent lookup rules.
  *
  * @param out The stream
  * @param m The value
  * @return The stream
  */
-template <class T>
-std::ostream& operator<<(std::ostream& out, const std::optional<T>& m)
+std::ostream& operator<<(std::ostream& out, const std::optional<int>& m)
 {
-  out << "{";
-  if (m)
-  {
-    out << "Just ";
-    out << m.value();
-  }
-  else
-  {
-    out << "Nothing";
-  }
-  out << "}";
-  return out;
+  return cvc5::operator<<(out, m);
 }
 
 UpdateInfo::UpdateInfo():
