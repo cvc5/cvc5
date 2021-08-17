@@ -183,10 +183,6 @@ public:
 
   /** Pointer to the containing Options object.*/
   Options* d_options;
-
-  /* Help strings */
-  static const std::string s_instFormatHelp;
-
 }; /* class OptionHandler */
 
 }  // namespace options

@@ -29,11 +29,11 @@
 namespace cvc5 {
 namespace smt {
 
-PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
+PfManager::PfManager(Env& env, SmtEngine* smte)
     : d_pchecker(new ProofChecker(options::proofPedantic())),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
-          d_pnm.get(), u, "smt::PreprocessProofGenerator")),
+          d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
       d_pfpp(new ProofPostproccess(
           d_pnm.get(),
           smte,
@@ -156,6 +156,14 @@ void PfManager::printProof(std::ostream& out,
   {
     proof::DotPrinter dotPrinter;
     dotPrinter.print(out, fp.get());
+  }
+  else if (options::proofFormatMode() == options::ProofFormatMode::TPTP)
+  {
+    ss << "% SZS output start Proof for " << d_state->getFilename()
+        << std::endl;
+    // TODO (proj #37) print in TPTP compliant format
+    out << *fp;
+    ss << "% SZS output end Proof for " << d_state->getFilename() << std::endl;
   }
   else
   {

@@ -203,7 +203,7 @@ void SmtEngine::finishInit()
     // ensure bound variable uses canonical bound variables
     getNodeManager()->getBoundVarManager()->enableKeepCacheValues();
     // make the proof manager
-    d_pfManager.reset(new PfManager(getUserContext(), this));
+    d_pfManager.reset(new PfManager(*d_env.get(), this));
     PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager());
@@ -1601,11 +1601,6 @@ std::string SmtEngine::getProof()
 void SmtEngine::printInstantiations( std::ostream& out ) {
   SmtScope smts(this);
   finishInit();
-  if (d_env->getOptions().printer.instFormatMode == options::InstFormatMode::SZS)
-  {
-    out << "% SZS output start Proof for " << d_state->getFilename()
-        << std::endl;
-  }
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("printInstantiations");
 
   // First, extract and print the skolemizations
@@ -1691,10 +1686,6 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   if (!printed)
   {
     out << "none" << std::endl;
-  }
-  if (d_env->getOptions().printer.instFormatMode == options::InstFormatMode::SZS)
-  {
-    out << "% SZS output end Proof for " << d_state->getFilename() << std::endl;
   }
 }
 
