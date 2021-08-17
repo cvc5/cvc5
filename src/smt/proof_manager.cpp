@@ -23,6 +23,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "smt/assertions.h"
+#include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
 
@@ -159,11 +160,11 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::TPTP)
   {
-    ss << "% SZS output start Proof for " << d_state->getFilename()
+    out << "% SZS output start Proof for " << d_state->getFilename()
         << std::endl;
     // TODO (proj #37) print in TPTP compliant format
     out << *fp;
-    ss << "% SZS output end Proof for " << d_state->getFilename() << std::endl;
+    out << "% SZS output end Proof for " << d_state->getFilename() << std::endl;
   }
   else
   {
