@@ -19,6 +19,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "options/base_options.h"
+#include "options/smt_options.h"
 #include "printer/printer.h"
 #include "proof/conv_proof_generator.h"
 #include "smt/dump_manager.h"
@@ -64,6 +65,8 @@ void Env::setProofNodeManager(ProofNodeManager* pnm)
   d_topLevelSubs->setProofNodeManager(pnm);
 }
 
+void Env::setFilename(const std::string& filename) { d_filename = filename; }
+
 void Env::shutdown()
 {
   d_rewriter.reset(nullptr);
@@ -79,6 +82,16 @@ context::Context* Env::getContext() { return d_context.get(); }
 NodeManager* Env::getNodeManager() const { return d_nodeManager; }
 
 ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
+
+const std::string& Env::getFilename() const { return d_filename; }
+
+bool Env::isTheoryProofProducing() const
+{
+  return d_proofNodeManager != nullptr
+         && (!d_options.smt.unsatCores
+             || d_options.smt.unsatCoresMode
+                    == options::UnsatCoresMode::FULL_PROOF);
+}
 
 theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
 
