@@ -702,22 +702,26 @@ bool QuantifiersRewriter::isVarElim(Node v, Node s)
 }
 
 Node QuantifiersRewriter::getVarElimLitReal(Node lit,
-                              const std::vector<Node>& args,
-                              Node& var)
+                                            const std::vector<Node>& args,
+                                            Node& var)
 {
   // for arithmetic, solve the equality
-  std::map< Node, Node > msum;
+  std::map<Node, Node> msum;
   if (!ArithMSum::getMonomialSumLit(lit, msum))
   {
     return Node::null();
   }
-  std::vector< Node >::iterator ita;
-  for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
-    if( itm->first.isNull() ){
+  std::vector<Node>::iterator ita;
+  for (std::map<Node, Node>::iterator itm = msum.begin(); itm != msum.end();
+       ++itm)
+  {
+    if (itm->first.isNull())
+    {
       continue;
     }
-    ita = std::find( args.begin(), args.end(), itm->first );
-    if( ita!=args.end() ){
+    ita = std::find(args.begin(), args.end(), itm->first);
+    if (ita != args.end())
+    {
       Node veq_c;
       Node val;
       int ires = ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
