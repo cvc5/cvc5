@@ -1021,7 +1021,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
                                          std::vector<Node>& subs,
                                          QAttributes& qa)
 {
-  Trace("var-elim-quant-debug")  << "getVarElimIneq " << body << std::endl;
+  Trace("var-elim-quant-debug") << "getVarElimIneq " << body << std::endl;
   // For each variable v, we compute a set of implied bounds in the body
   // of the quantified formula.
   //   num_bounds[x][-1] stores the entailed lower bounds for x
@@ -1038,7 +1038,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
   // above quantified formula, which can be rewritten to false. The reason
   // is that we can always chose a value for x that is arbitrarily large (resp.
   // small) to satisfy all disequalities and inequalities for x.
-  std::map<Node, std::map<int, std::map<Node, bool> > > num_bounds;
+  std::map<Node, std::map<int, std::map<Node, bool>>> num_bounds;
   // The set of variables that we know we can not eliminate
   std::unordered_set<Node> ineligVars;
   // compute the entailed literals
@@ -1053,7 +1053,9 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
     bool pol = pr.second;
     Trace("var-elim-quant-debug") << "Process inequality bounds : " << lit
                                   << ", pol = " << pol << "..." << std::endl;
-    bool canSolve = lit.getKind()==GEQ || (lit.getKind()==EQUAL && lit[0].getType().isReal() && !pol);
+    bool canSolve =
+        lit.getKind() == GEQ
+        || (lit.getKind() == EQUAL && lit[0].getType().isReal() && !pol);
     if (!canSolve)
     {
       continue;
@@ -1068,7 +1070,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
     processed[lit] = pol ? -1 : 1;
     for (const std::pair<const Node, Node>& m : msum)
     {
-      if (!m.first.isNull() && ineligVars.find(m.first)==ineligVars.end())
+      if (!m.first.isNull() && ineligVars.find(m.first) == ineligVars.end())
       {
         std::vector<Node>::iterator ita =
             std::find(args.begin(), args.end(), m.first);
@@ -1081,7 +1083,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
               ArithMSum::isolate(m.first, msum, veq_c, val, lit.getKind());
           if (ires != 0 && veq_c.isNull())
           {
-            if (lit.getKind()==GEQ)
+            if (lit.getKind() == GEQ)
             {
               bool is_upper = pol != (ires == 1);
               Trace("var-elim-ineq-debug")
@@ -1129,7 +1131,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
 
   // collect all variables that have only upper/lower bounds
   std::map<Node, bool> elig_vars;
-  for (const std::pair<const Node, std::map<int, std::map<Node, bool> > >& nb :
+  for (const std::pair<const Node, std::map<int, std::map<Node, bool>>>& nb :
        num_bounds)
   {
     if (nb.second.find(1) == nb.second.end())
@@ -1214,7 +1216,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
   } while (!evisit.empty() && !elig_vars.empty());
 
   bool ret = false;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, bool>& ev : elig_vars)
   {
     Node v = ev.first;
@@ -1222,7 +1224,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
         << v << " is eligible for elimination." << std::endl;
     // do substitution corresponding to infinite projection, all literals
     // involving unbounded variable go to true/false
-    std::map<int, std::map<Node, bool> >& nbv = num_bounds[v];
+    std::map<int, std::map<Node, bool>>& nbv = num_bounds[v];
     for (const std::pair<const Node, bool>& nb : nbv[elig_vars[v] ? 1 : -1])
     {
       Trace("var-elim-ineq-debug")
@@ -1253,7 +1255,8 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
   {
     return body;
   }
-  Trace("var-elim-quant-debug") << "computeVarElimination " << body << std::endl;
+  Trace("var-elim-quant-debug")
+      << "computeVarElimination " << body << std::endl;
   Node prev;
   while (prev != body && !args.empty())
   {
