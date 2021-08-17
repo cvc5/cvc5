@@ -701,6 +701,35 @@ bool QuantifiersRewriter::isVarElim(Node v, Node s)
   return !expr::hasSubterm(s, v) && s.getType().isSubtypeOf(v.getType());
 }
 
+Node QuantifiersRewriter::getVarElimLitReal(Node lit,
+                              const std::vector<Node>& args,
+                              Node& var)
+{
+  // for arithmetic, solve the equality
+  std::map< Node, Node > msum;
+  if (!ArithMSum::getMonomialSumLit(lit, msum))
+  {
+    return Node::null();
+  }
+  std::vector< Node >::iterator ita;
+  for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
+    if( itm->first.isNull() ){
+      continue;
+    }
+    ita = std::find( args.begin(), args.end(), itm->first );
+    if( ita!=args.end() ){
+      Node veq_c;
+      Node val;
+      int ires = ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
+      if (ires != 0 && veq_c.isNull() && isVarElim(itm->first, val))
+      {
+        var = itm->first;
+        return val;
+      }
+    }
+  }
+  return Node::null();
+}
 Node QuantifiersRewriter::getVarElimLitBv(Node lit,
                                           const std::vector<Node>& args,
                                           Node& var)
@@ -900,40 +929,15 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
       return true;
     }
   }
-  if (lit.getKind() == EQUAL && lit[0].getType().isReal() && pol)
-  {
-    // for arithmetic, solve the equality
-    std::map< Node, Node > msum;
-    if (ArithMSum::getMonomialSumLit(lit, msum))
-    {
-      for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
-        if( !itm->first.isNull() ){
-          std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), itm->first );
-          if( ita!=args.end() ){
-            Assert(pol);
-            Node veq_c;
-            Node val;
-            int ires = ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
-            if (ires != 0 && veq_c.isNull() && isVarElim(itm->first, val))
-            {
-              Trace("var-elim-quant")
-                  << "Variable eliminate based on solved equality : "
-                  << itm->first << " -> " << val << std::endl;
-              vars.push_back(itm->first);
-              subs.push_back(val);
-              args.erase(ita);
-              return true;
-            }
-          }
-        }
-      }
-    }
-  }
   if (lit.getKind() == EQUAL && pol)
   {
     Node var;
     Node slv;
     TypeNode tt = lit[0].getType();
+    if (tt.isReal())
+    {
+      slv = getVarElimLitReal(lit, args, var);
+    }
     if (tt.isBitVector())
     {
       slv = getVarElimLitBv(lit, args, var);

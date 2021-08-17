@@ -80,6 +80,14 @@ class QuantifiersRewriter : public TheoryRewriter
                             std::vector<Node>& args,
                             std::vector<Node>& vars,
                             std::vector<Node>& subs);
+  /** variable eliminate for real equalities
+   *
+   * If this returns a non-null value ret, then var is updated to a member of
+   * args, lit is equivalent to ( var = ret ).
+   */
+  static Node getVarElimLitReal(Node lit,
+                              const std::vector<Node>& args,
+                              Node& var);
   /** variable eliminate for bit-vector equalities
    *
    * If this returns a non-null value ret, then var is updated to a member of
