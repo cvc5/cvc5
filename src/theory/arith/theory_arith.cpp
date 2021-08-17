@@ -39,7 +39,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_ARITH, env, out, valuation),
       d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
           "theory::arith::ppRewriteTimer")),
-      d_astate(getSatContext(), getUserContext(), valuation),
+      d_astate(env, valuation),
       d_im(*this, d_astate, d_pnm),
       d_ppre(getSatContext(), d_pnm),
       d_bab(d_astate, d_im, d_ppre, d_pnm),

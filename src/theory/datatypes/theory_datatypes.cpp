@@ -59,7 +59,7 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
       d_functionTerms(getSatContext()),
       d_singleton_eq(getUserContext()),
       d_sygusExtension(nullptr),
-      d_state(getSatContext(), getUserContext(), valuation),
+      d_state(env, valuation),
       d_im(*this, d_state, d_pnm),
       d_notify(d_im, *this)
 {
