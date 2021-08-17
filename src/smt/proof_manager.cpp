@@ -31,7 +31,8 @@ namespace cvc5 {
 namespace smt {
 
 PfManager::PfManager(Env& env, SmtEngine* smte)
-    : d_pchecker(new ProofChecker(options::proofPedantic())),
+    : d_env(env),
+      d_pchecker(new ProofChecker(options::proofPedantic())),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
