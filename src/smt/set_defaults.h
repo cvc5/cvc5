@@ -40,10 +40,8 @@ class SetDefaults
    *
    * @param logic A reference to the logic of SmtEngine, which can be
    * updated by this method based on the current options and the logic itself.
-   *
-   * NOTE: we currently modify the current options in scope. This method
-   * can be further refactored to modify an options object provided as an
-   * explicit argument.
+   * @param opts The options to modify, typically the main options of the
+   * SmtEngine in scope.
    */
   void setDefaults(LogicInfo& logic, Options& opts);
 
