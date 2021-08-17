@@ -160,11 +160,11 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::TPTP)
   {
-    out << "% SZS output start Proof for " << d_state->getFilename()
+    out << "% SZS output start Proof for " << d_env.getFilename()
         << std::endl;
     // TODO (proj #37) print in TPTP compliant format
     out << *fp;
-    out << "% SZS output end Proof for " << d_state->getFilename() << std::endl;
+    out << "% SZS output end Proof for " << d_env.getFilename() << std::endl;
   }
   else
   {
