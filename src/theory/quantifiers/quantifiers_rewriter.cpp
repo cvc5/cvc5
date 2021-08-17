@@ -711,7 +711,7 @@ Node QuantifiersRewriter::getVarElimLitReal(Node lit,
   {
     return Node::null();
   }
-  std::vector<Node>::iterator ita;
+  std::vector<Node>::const_iterator ita;
   for (std::map<Node, Node>::iterator itm = msum.begin(); itm != msum.end();
        ++itm)
   {
@@ -734,6 +734,7 @@ Node QuantifiersRewriter::getVarElimLitReal(Node lit,
   }
   return Node::null();
 }
+
 Node QuantifiersRewriter::getVarElimLitBv(Node lit,
                                           const std::vector<Node>& args,
                                           Node& var)
@@ -942,7 +943,7 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
     {
       slv = getVarElimLitReal(lit, args, var);
     }
-    if (tt.isBitVector())
+    else if (tt.isBitVector())
     {
       slv = getVarElimLitBv(lit, args, var);
     }
