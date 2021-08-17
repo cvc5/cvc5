@@ -1815,7 +1815,7 @@ bool QuantifiersRewriter::doOperation(Node q,
 {
   bool is_strict_trigger =
       qa.d_hasPattern
-      && options::userPatternsQuant() == options::UserPatMode::TRUST;
+      && options::userPatternsQuant() == options::UserPatMode::STRICT;
   bool is_std = qa.isStandard() && !is_strict_trigger;
   if (computeOption == COMPUTE_ELIM_SYMBOLS)
   {
