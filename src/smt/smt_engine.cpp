@@ -86,7 +86,7 @@ namespace cvc5 {
 
 SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
     : d_env(new Env(nm, optr)),
-      d_state(new SmtEngineState(getContext(), getUserContext(), *this)),
+      d_state(new SmtEngineState(*d_env.get(), *this)),
       d_absValues(new AbstractValues(getNodeManager())),
       d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
       d_routListener(new ResourceOutListener(*this)),
@@ -381,7 +381,7 @@ LogicInfo SmtEngine::getUserLogicInfo() const
 
 void SmtEngine::notifyStartParsing(const std::string& filename)
 {
-  d_state->setFilename(filename);
+  d_env->setFilename(filename);
   d_env->getStatisticsRegistry().registerValue<std::string>("driver::filename",
                                                             filename);
   // Copy the original options. This is called prior to beginning parsing.
@@ -391,7 +391,7 @@ void SmtEngine::notifyStartParsing(const std::string& filename)
 
 const std::string& SmtEngine::getFilename() const
 {
-  return d_state->getFilename();
+  return d_env->getFilename();
 }
 
 void SmtEngine::setResultStatistic(const std::string& result) {
@@ -728,7 +728,7 @@ void SmtEngine::defineFunctionRec(Node func,
 Result SmtEngine::quickCheck() {
   Assert(d_state->isFullyInited());
   Trace("smt") << "SMT quickCheck()" << endl;
-  const std::string& filename = d_state->getFilename();
+  const std::string& filename = d_env->getFilename();
   return Result(
       Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, filename);
 }
@@ -1603,7 +1603,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   finishInit();
   if (d_env->getOptions().printer.instFormatMode == options::InstFormatMode::SZS)
   {
-    out << "% SZS output start Proof for " << d_state->getFilename()
+    out << "% SZS output start Proof for " << d_env->getFilename()
         << std::endl;
   }
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("printInstantiations");
@@ -1694,7 +1694,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   }
   if (d_env->getOptions().printer.instFormatMode == options::InstFormatMode::SZS)
   {
-    out << "% SZS output end Proof for " << d_state->getFilename() << std::endl;
+    out << "% SZS output end Proof for " << d_env->getFilename() << std::endl;
   }
 }
 
