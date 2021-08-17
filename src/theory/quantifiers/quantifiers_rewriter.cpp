@@ -702,10 +702,10 @@ bool QuantifiersRewriter::isVarElim(Node v, Node s)
 }
 
 Node QuantifiersRewriter::getVarElimEq(Node lit,
-                              const std::vector<Node>& args,
-                              Node& var)
+                                       const std::vector<Node>& args,
+                                       Node& var)
 {
-  Assert (lit.getKind()==EQUAL);
+  Assert(lit.getKind() == EQUAL);
   Node slv;
   TypeNode tt = lit[0].getType();
   if (tt.isReal())
@@ -724,8 +724,8 @@ Node QuantifiersRewriter::getVarElimEq(Node lit,
 }
 
 Node QuantifiersRewriter::getVarElimEqReal(Node lit,
-                                            const std::vector<Node>& args,
-                                            Node& var)
+                                           const std::vector<Node>& args,
+                                           Node& var)
 {
   // for arithmetic, solve the equality
   std::map<Node, Node> msum;
@@ -758,8 +758,8 @@ Node QuantifiersRewriter::getVarElimEqReal(Node lit,
 }
 
 Node QuantifiersRewriter::getVarElimEqBv(Node lit,
-                                          const std::vector<Node>& args,
-                                          Node& var)
+                                         const std::vector<Node>& args,
+                                         Node& var)
 {
   if (Trace.isOn("quant-velim-bv"))
   {
@@ -809,8 +809,8 @@ Node QuantifiersRewriter::getVarElimEqBv(Node lit,
 }
 
 Node QuantifiersRewriter::getVarElimEqString(Node lit,
-                                              const std::vector<Node>& args,
-                                              Node& var)
+                                             const std::vector<Node>& args,
+                                             Node& var)
 {
   Assert(lit.getKind() == EQUAL);
   NodeManager* nm = NodeManager::currentNM();
