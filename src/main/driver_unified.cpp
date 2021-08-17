@@ -148,9 +148,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
   // Auto-detect input language by filename extension
   std::string filenameStr("<stdin>");
   if (!inputFromStdin) {
-    // Use swap to avoid copying the string
-    // TODO: use std::move() when switching to c++11
-    filenameStr.swap(filenames[0]);
+    filenameStr = std::move(filenames[0]);
   }
   const char* filename = filenameStr.c_str();
 
@@ -217,20 +215,19 @@ int runCvc5(int argc, char* argv[], Options& opts)
       }
       InteractiveShell shell(pExecutor->getSolver(),
                              pExecutor->getSymbolManager());
-      if (opts.driver.interactivePrompt)
+
+      CVC5Message() << Configuration::getPackageName() << " "
+                    << Configuration::getVersionString();
+      if (Configuration::isGitBuild())
       {
-        CVC5Message() << Configuration::getPackageName() << " "
-                      << Configuration::getVersionString();
-        if(Configuration::isGitBuild()) {
-          CVC5Message() << " [" << Configuration::getGitId() << "]";
-        }
-        CVC5Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
-                      << " assertions:"
-                      << (Configuration::isAssertionBuild() ? "on" : "off")
-                      << endl
-                      << endl;
-        CVC5Message() << Configuration::copyright() << endl;
+        CVC5Message() << " [" << Configuration::getGitId() << "]";
       }
+      CVC5Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
+                    << " assertions:"
+                    << (Configuration::isAssertionBuild() ? "on" : "off")
+                    << endl
+                    << endl;
+      CVC5Message() << Configuration::copyright() << endl;
 
       while(true) {
         try {
