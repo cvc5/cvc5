@@ -65,6 +65,8 @@ void Env::setProofNodeManager(ProofNodeManager* pnm)
   d_topLevelSubs->setProofNodeManager(pnm);
 }
 
+void Env::setFilename(const std::string& filename) { d_filename = filename; }
+
 void Env::shutdown()
 {
   d_rewriter.reset(nullptr);
@@ -80,6 +82,8 @@ context::Context* Env::getContext() { return d_context.get(); }
 NodeManager* Env::getNodeManager() const { return d_nodeManager; }
 
 ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
+
+const std::string& Env::getFilename() const { return d_filename; }
 
 bool Env::isTheoryProofProducing() const
 {
