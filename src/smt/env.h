@@ -81,7 +81,7 @@ class Env
    * environment is initialized, and only non-null if proofs are enabled.
    */
   ProofNodeManager* getProofNodeManager();
-  
+
   /** Return the input name, or the empty string if not set */
   const std::string& getFilename() const;
 

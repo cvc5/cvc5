@@ -1603,8 +1603,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   finishInit();
   if (d_env->getOptions().printer.instFormatMode == options::InstFormatMode::SZS)
   {
-    out << "% SZS output start Proof for " << d_env->getFilename()
-        << std::endl;
+    out << "% SZS output start Proof for " << d_env->getFilename() << std::endl;
   }
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("printInstantiations");
 

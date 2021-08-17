@@ -25,8 +25,7 @@
 namespace cvc5 {
 namespace smt {
 
-SmtEngineState::SmtEngineState(Env& env,
-                               SmtEngine& smt)
+SmtEngineState::SmtEngineState(Env& env, SmtEngine& smt)
     : d_smt(smt),
       d_env(env),
       d_pendingPops(0),
@@ -214,10 +213,7 @@ void SmtEngineState::userPop()
   }
   d_userLevels.pop_back();
 }
-context::Context* SmtEngineState::getContext()
-{
-  return d_env.getContext();
-}
+context::Context* SmtEngineState::getContext() { return d_env.getContext(); }
 context::UserContext* SmtEngineState::getUserContext()
 {
   return d_env.getUserContext();

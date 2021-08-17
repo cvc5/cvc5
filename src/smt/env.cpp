@@ -65,10 +65,7 @@ void Env::setProofNodeManager(ProofNodeManager* pnm)
   d_topLevelSubs->setProofNodeManager(pnm);
 }
 
-void Env::setFilename(const std::string& filename)
-{
-  d_filename = filename;
-}
+void Env::setFilename(const std::string& filename) { d_filename = filename; }
 
 void Env::shutdown()
 {
