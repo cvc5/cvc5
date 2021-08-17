@@ -2048,8 +2048,8 @@ bool GetInstantiationsCommand::isEnabled(api::Solver* solver,
                                          const api::Result& res)
 {
   return (res.isSat()
-              || (res.isSatUnknown()
-                  && res.getUnknownExplanation() == api::Result::INCOMPLETE))
+          || (res.isSatUnknown()
+              && res.getUnknownExplanation() == api::Result::INCOMPLETE))
          || res.isUnsat() || res.isEntailed();
 }
 void GetInstantiationsCommand::invoke(api::Solver* solver, SymbolManager* sm)
