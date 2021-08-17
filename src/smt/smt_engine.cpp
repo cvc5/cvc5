@@ -192,7 +192,7 @@ void SmtEngine::finishInit()
   // set the random seed
   Random::getRandom().setSeed(d_env->getOptions().driver.seed);
 
-  // Call finish init on the options manager. This inializes the logic
+  // Call finish init on the set defaults module. This inializes the logic
   // and the best default options based on our heuristics.
   SetDefaults sdefaults(d_isInternalSubsolver);
   sdefaults.setDefaults(d_env->d_logic, getOptions());
