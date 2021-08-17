@@ -169,6 +169,6 @@ Example
 | The source code for this example can be found at `examples/api/python/quickstart.py <https://github.com/cvc5/cvc5/blob/master/examples/api/python/quickstart.cpp>`_.
 
 .. api-examples::
-    ../../../examples/api/python/quickstart.cpp
+    ../../../examples/api/cpp/quickstart.cpp
     ../../../examples/api/python/quickstart.py
     ../../../examples/api/smtlib/quickstart.smt2
