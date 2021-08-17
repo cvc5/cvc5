@@ -13,3 +13,4 @@ Python API Documentation
     :maxdepth: 2
 
     datatype
+    quickstart
