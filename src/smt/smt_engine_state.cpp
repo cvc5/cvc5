@@ -19,6 +19,7 @@
 #include "options/base_options.h"
 #include "options/option_exception.h"
 #include "options/smt_options.h"
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 
 namespace cvc5 {
@@ -43,7 +44,7 @@ void SmtEngineState::notifyExpectedStatus(const std::string& status)
   Assert(status == "sat" || status == "unsat" || status == "unknown")
       << "SmtEngineState::notifyExpectedStatus: unexpected status string "
       << status;
-  d_expectedStatus = Result(status, d_filename);
+  d_expectedStatus = Result(status, d_env.getFilename());
 }
 
 void SmtEngineState::notifyResetAssertions()
@@ -168,11 +169,6 @@ void SmtEngineState::cleanup()
   popto(0);
 }
 
-void SmtEngineState::setFilename(const std::string& filename)
-{
-  d_filename = filename;
-}
-
 void SmtEngineState::userPush()
 {
   if (!options::incrementalSolving())
@@ -255,8 +251,6 @@ bool SmtEngineState::isQueryMade() const { return d_queryMade; }
 size_t SmtEngineState::getNumUserLevels() const { return d_userLevels.size(); }
 
 SmtMode SmtEngineState::getMode() const { return d_smtMode; }
-
-const std::string& SmtEngineState::getFilename() const { return d_filename; }
 
 void SmtEngineState::internalPush()
 {

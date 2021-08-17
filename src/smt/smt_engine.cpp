@@ -436,7 +436,7 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
 
   if (key == "filename")
   {
-    d_state->setFilename(value);
+    d_env->setFilename(value);
   }
   else if (key == "smt-lib-version" && !getOptions().base.inputLanguageWasSetByUser)
   {
@@ -944,7 +944,7 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
     {
       printStatisticsDiff();
     }
-    return Result(Result::SAT_UNKNOWN, why, d_state->getFilename());
+    return Result(Result::SAT_UNKNOWN, why, d_env->getFilename());
   }
 }
 
@@ -1213,7 +1213,7 @@ Model* SmtEngine::getModel() {
   }
   // set the information on the SMT-level model
   Assert(m != nullptr);
-  m->d_inputName = d_state->getFilename();
+  m->d_inputName = d_env->getFilename();
   m->d_isKnownSat = (d_state->getMode() == SmtMode::SAT);
   return m;
 }

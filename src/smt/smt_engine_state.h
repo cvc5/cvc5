@@ -171,8 +171,6 @@ class SmtEngineState
   Result getStatus() const;
   /** Get the SMT mode we are in */
   SmtMode getMode() const;
-  /** return the input name (if any) */
-  const std::string& getFilename() const;
   //---------------------------- end queries
 
  private:
