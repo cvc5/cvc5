@@ -1224,21 +1224,18 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
         << v << " is eligible for elimination." << std::endl;
     // do substitution corresponding to infinite projection, all literals
     // involving unbounded variable go to true/false
-    std::map<int, std::map<Node, bool>>& nbv = num_bounds[v];
-    for (const std::pair<const Node, bool>& nb : nbv[elig_vars[v] ? 1 : -1])
-    {
-      Trace("var-elim-ineq-debug")
-          << "  subs : " << nb.first << " -> " << nb.second << std::endl;
-      bounds.push_back(nb.first);
-      subs.push_back(nm->mkConst(nb.second));
-    }
     // disequalities of eligible variables are also eliminated
-    for (const std::pair<const Node, bool>& nb : nbv[0])
+    std::map<int, std::map<Node, bool>>& nbv = num_bounds[v];
+    for (size_t i=0; i<2; i++)
     {
-      Trace("var-elim-ineq-debug")
-          << "  subs (deq) : " << nb.first << " -> " << nb.second << std::endl;
-      bounds.push_back(nb.first);
-      subs.push_back(nm->mkConst(nb.second));
+      size_t nindex = i==0 ? (elig_vars[v] ? 1 : -1) : 0;
+      for (const std::pair<const Node, bool>& nb : nbv[nindex])
+      {
+        Trace("var-elim-ineq-debug")
+            << "  subs : " << nb.first << " -> " << nb.second << std::endl;
+        bounds.push_back(nb.first);
+        subs.push_back(nm->mkConst(nb.second));
+      }
     }
     // eliminate from args
     std::vector<Node>::iterator ita = std::find(args.begin(), args.end(), v);
