@@ -664,95 +664,9 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Theory widening
-  //
-  // Some theories imply the use of other theories to handle certain operators,
-  // e.g. UF to handle partial functions.
+  // Widen logic
   /////////////////////////////////////////////////////////////////////////////
-  bool needsUf = false;
-  // strings require LIA, UF; widen the logic
-  if (logic.isTheoryEnabled(THEORY_STRINGS))
-  {
-    LogicInfo log(logic.getUnlockedCopy());
-    // Strings requires arith for length constraints, and also UF
-    needsUf = true;
-    if (!logic.isTheoryEnabled(THEORY_ARITH) || logic.isDifferenceLogic())
-    {
-      Notice()
-          << "Enabling linear integer arithmetic because strings are enabled"
-          << std::endl;
-      log.enableTheory(THEORY_ARITH);
-      log.enableIntegers();
-      log.arithOnlyLinear();
-    }
-    else if (!logic.areIntegersUsed())
-    {
-      Notice() << "Enabling integer arithmetic because strings are enabled"
-               << std::endl;
-      log.enableIntegers();
-    }
-    logic = log;
-    logic.lock();
-  }
-  if (opts.bv.bvAbstraction)
-  {
-    // bv abstraction may require UF
-    Notice() << "Enabling UF because bvAbstraction requires it." << std::endl;
-    needsUf = true;
-  }
-  else if (opts.quantifiers.preSkolemQuantNested
-           && opts.quantifiers.preSkolemQuantNestedWasSetByUser)
-  {
-    // if pre-skolem nested is explictly set, then we require UF. If it is
-    // not explicitly set, it is disabled below if UF is not present.
-    Notice() << "Enabling UF because preSkolemQuantNested requires it."
-             << std::endl;
-    needsUf = true;
-  }
-  if (needsUf
-      // Arrays, datatypes and sets permit Boolean terms and thus require UF
-      || logic.isTheoryEnabled(THEORY_ARRAYS)
-      || logic.isTheoryEnabled(THEORY_DATATYPES)
-      || logic.isTheoryEnabled(THEORY_SETS)
-      || logic.isTheoryEnabled(THEORY_BAGS)
-      // Non-linear arithmetic requires UF to deal with division/mod because
-      // their expansion introduces UFs for the division/mod-by-zero case.
-      // If we are eliminating non-linear arithmetic via solve-int-as-bv,
-      // then this is not required, since non-linear arithmetic will be
-      // eliminated altogether (or otherwise fail at preprocessing).
-      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
-          && opts.smt.solveIntAsBV == 0)
-      // FP requires UF since there are multiple operators that are partially
-      // defined (see http://smtlib.cs.uiowa.edu/papers/BTRW15.pdf for more
-      // details).
-      || logic.isTheoryEnabled(THEORY_FP))
-  {
-    if (!logic.isTheoryEnabled(THEORY_UF))
-    {
-      LogicInfo log(logic.getUnlockedCopy());
-      if (!needsUf)
-      {
-        Notice() << "Enabling UF because " << logic << " requires it."
-                 << std::endl;
-      }
-      log.enableTheory(THEORY_UF);
-      logic = log;
-      logic.lock();
-    }
-  }
-  if (opts.arith.arithMLTrick)
-  {
-    if (!logic.areIntegersUsed())
-    {
-      // enable integers
-      LogicInfo log(logic.getUnlockedCopy());
-      Notice() << "Enabling integers because arithMLTrick requires it."
-               << std::endl;
-      log.enableIntegers();
-      logic = log;
-      logic.lock();
-    }
-  }
+  widenLogic(logic, opts);
   /////////////////////////////////////////////////////////////////////////////
 
   // Set the options for the theoryOf
@@ -1129,154 +1043,7 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
   // if we are attempting to rewrite everything to SyGuS, use sygus()
   if (usesSygus)
   {
-    if (!opts.quantifiers.sygus)
-    {
-      Trace("smt") << "turning on sygus" << std::endl;
-    }
-    opts.quantifiers.sygus = true;
-    // must use Ferrante/Rackoff for real arithmetic
-    if (!opts.quantifiers.cegqiMidpointWasSetByUser)
-    {
-      opts.quantifiers.cegqiMidpoint = true;
-    }
-    // must disable cegqi-bv since it may introduce witness terms, which
-    // cannot appear in synthesis solutions
-    if (!opts.quantifiers.cegqiBvWasSetByUser)
-    {
-      opts.quantifiers.cegqiBv = false;
-    }
-    if (opts.quantifiers.sygusRepairConst)
-    {
-      if (!opts.quantifiers.cegqiWasSetByUser)
-      {
-        opts.quantifiers.cegqi = true;
-      }
-    }
-    if (opts.quantifiers.sygusInference)
-    {
-      // optimization: apply preskolemization, makes it succeed more often
-      if (!opts.quantifiers.preSkolemQuantWasSetByUser)
-      {
-        opts.quantifiers.preSkolemQuant = true;
-      }
-      if (!opts.quantifiers.preSkolemQuantNestedWasSetByUser)
-      {
-        opts.quantifiers.preSkolemQuantNested = true;
-      }
-    }
-    // counterexample-guided instantiation for sygus
-    if (!opts.quantifiers.cegqiSingleInvModeWasSetByUser)
-    {
-      opts.quantifiers.cegqiSingleInvMode = options::CegqiSingleInvMode::USE;
-    }
-    if (!opts.quantifiers.quantConflictFindWasSetByUser)
-    {
-      opts.quantifiers.quantConflictFind = false;
-    }
-    if (!opts.quantifiers.instNoEntailWasSetByUser)
-    {
-      opts.quantifiers.instNoEntail = false;
-    }
-    if (!opts.quantifiers.cegqiFullEffortWasSetByUser)
-    {
-      // should use full effort cbqi for single invocation and repair const
-      opts.quantifiers.cegqiFullEffort = true;
-    }
-    if (opts.quantifiers.sygusRew)
-    {
-      opts.quantifiers.sygusRewSynth = true;
-      opts.quantifiers.sygusRewVerify = true;
-    }
-    if (opts.quantifiers.sygusRewSynthInput)
-    {
-      // If we are using synthesis rewrite rules from input, we use
-      // sygusRewSynth after preprocessing. See passes/synth_rew_rules.h for
-      // details on this technique.
-      opts.quantifiers.sygusRewSynth = true;
-      // we should not use the extended rewriter, since we are interested
-      // in rewrites that are not in the main rewriter
-      if (!opts.quantifiers.sygusExtRewWasSetByUser)
-      {
-        opts.quantifiers.sygusExtRew = false;
-      }
-    }
-    // Whether we must use "basic" sygus algorithms. A non-basic sygus algorithm
-    // is one that is specialized for returning a single solution. Non-basic
-    // sygus algorithms currently include the PBE solver, UNIF+PI, static
-    // template inference for invariant synthesis, and single invocation
-    // techniques.
-    bool reqBasicSygus = false;
-    if (opts.smt.produceAbducts)
-    {
-      // if doing abduction, we should filter strong solutions
-      if (!opts.quantifiers.sygusFilterSolModeWasSetByUser)
-      {
-        opts.quantifiers.sygusFilterSolMode = options::SygusFilterSolMode::STRONG;
-      }
-      // we must use basic sygus algorithms, since e.g. we require checking
-      // a sygus side condition for consistency with axioms.
-      reqBasicSygus = true;
-    }
-    if (opts.quantifiers.sygusRewSynth || opts.quantifiers.sygusRewVerify
-        || opts.quantifiers.sygusQueryGen)
-    {
-      // rewrite rule synthesis implies that sygus stream must be true
-      opts.quantifiers.sygusStream = true;
-    }
-    if (opts.quantifiers.sygusStream || opts.base.incrementalSolving)
-    {
-      // Streaming and incremental mode are incompatible with techniques that
-      // focus the search towards finding a single solution.
-      reqBasicSygus = true;
-    }
-    // Now, disable options for non-basic sygus algorithms, if necessary.
-    if (reqBasicSygus)
-    {
-      if (!opts.quantifiers.sygusUnifPbeWasSetByUser)
-      {
-        opts.quantifiers.sygusUnifPbe = false;
-      }
-      if (opts.quantifiers.sygusUnifPiWasSetByUser)
-      {
-        opts.quantifiers.sygusUnifPi = options::SygusUnifPiMode::NONE;
-      }
-      if (!opts.quantifiers.sygusInvTemplModeWasSetByUser)
-      {
-        opts.quantifiers.sygusInvTemplMode = options::SygusInvTemplMode::NONE;
-      }
-      if (!opts.quantifiers.cegqiSingleInvModeWasSetByUser)
-      {
-        opts.quantifiers.cegqiSingleInvMode = options::CegqiSingleInvMode::NONE;
-      }
-    }
-    if (!opts.datatypes.dtRewriteErrorSelWasSetByUser)
-    {
-      opts.datatypes.dtRewriteErrorSel = true;
-    }
-    // do not miniscope
-    if (!opts.quantifiers.miniscopeQuantWasSetByUser)
-    {
-      opts.quantifiers.miniscopeQuant = false;
-    }
-    if (!opts.quantifiers.miniscopeQuantFreeVarWasSetByUser)
-    {
-      opts.quantifiers.miniscopeQuantFreeVar = false;
-    }
-    if (!opts.quantifiers.quantSplitWasSetByUser)
-    {
-      opts.quantifiers.quantSplit = false;
-    }
-    // do not do macros
-    if (!opts.quantifiers.macrosQuantWasSetByUser)
-    {
-      opts.quantifiers.macrosQuant = false;
-    }
-    // use tangent planes by default, since we want to put effort into
-    // the verification step for sygus queries with non-linear arithmetic
-    if (!opts.arith.nlExtTangentPlanesWasSetByUser)
-    {
-      opts.arith.nlExtTangentPlanes = true;
-    }
+    setDefaultsSygus(opts);
   }
   // counterexample-guided instantiation for non-sygus
   // enable if any possible quantifiers with arithmetic, datatypes or bitvectors
@@ -1584,6 +1351,246 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
     }
   }
 #endif
+}
+
+void SetDefaults::widenLogic(LogicInfo& logic, Options& opts)
+{
+  bool needsUf = false;
+  // strings require LIA, UF; widen the logic
+  if (logic.isTheoryEnabled(THEORY_STRINGS))
+  {
+    LogicInfo log(logic.getUnlockedCopy());
+    // Strings requires arith for length constraints, and also UF
+    needsUf = true;
+    if (!logic.isTheoryEnabled(THEORY_ARITH) || logic.isDifferenceLogic())
+    {
+      Notice()
+          << "Enabling linear integer arithmetic because strings are enabled"
+          << std::endl;
+      log.enableTheory(THEORY_ARITH);
+      log.enableIntegers();
+      log.arithOnlyLinear();
+    }
+    else if (!logic.areIntegersUsed())
+    {
+      Notice() << "Enabling integer arithmetic because strings are enabled"
+               << std::endl;
+      log.enableIntegers();
+    }
+    logic = log;
+    logic.lock();
+  }
+  if (opts.bv.bvAbstraction)
+  {
+    // bv abstraction may require UF
+    Notice() << "Enabling UF because bvAbstraction requires it." << std::endl;
+    needsUf = true;
+  }
+  else if (opts.quantifiers.preSkolemQuantNested
+           && opts.quantifiers.preSkolemQuantNestedWasSetByUser)
+  {
+    // if pre-skolem nested is explictly set, then we require UF. If it is
+    // not explicitly set, it is disabled below if UF is not present.
+    Notice() << "Enabling UF because preSkolemQuantNested requires it."
+             << std::endl;
+    needsUf = true;
+  }
+  if (needsUf
+      // Arrays, datatypes and sets permit Boolean terms and thus require UF
+      || logic.isTheoryEnabled(THEORY_ARRAYS)
+      || logic.isTheoryEnabled(THEORY_DATATYPES)
+      || logic.isTheoryEnabled(THEORY_SETS)
+      || logic.isTheoryEnabled(THEORY_BAGS)
+      // Non-linear arithmetic requires UF to deal with division/mod because
+      // their expansion introduces UFs for the division/mod-by-zero case.
+      // If we are eliminating non-linear arithmetic via solve-int-as-bv,
+      // then this is not required, since non-linear arithmetic will be
+      // eliminated altogether (or otherwise fail at preprocessing).
+      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
+          && opts.smt.solveIntAsBV == 0)
+      // FP requires UF since there are multiple operators that are partially
+      // defined (see http://smtlib.cs.uiowa.edu/papers/BTRW15.pdf for more
+      // details).
+      || logic.isTheoryEnabled(THEORY_FP))
+  {
+    if (!logic.isTheoryEnabled(THEORY_UF))
+    {
+      LogicInfo log(logic.getUnlockedCopy());
+      if (!needsUf)
+      {
+        Notice() << "Enabling UF because " << logic << " requires it."
+                 << std::endl;
+      }
+      log.enableTheory(THEORY_UF);
+      logic = log;
+      logic.lock();
+    }
+  }
+  if (opts.arith.arithMLTrick)
+  {
+    if (!logic.areIntegersUsed())
+    {
+      // enable integers
+      LogicInfo log(logic.getUnlockedCopy());
+      Notice() << "Enabling integers because arithMLTrick requires it."
+               << std::endl;
+      log.enableIntegers();
+      logic = log;
+      logic.lock();
+    }
+  }
+}
+
+void SetDefaults::setDefaultsSygus(Options& opts)
+{
+  if (!opts.quantifiers.sygus)
+  {
+    Trace("smt") << "turning on sygus" << std::endl;
+  }
+  opts.quantifiers.sygus = true;
+  // must use Ferrante/Rackoff for real arithmetic
+  if (!opts.quantifiers.cegqiMidpointWasSetByUser)
+  {
+    opts.quantifiers.cegqiMidpoint = true;
+  }
+  // must disable cegqi-bv since it may introduce witness terms, which
+  // cannot appear in synthesis solutions
+  if (!opts.quantifiers.cegqiBvWasSetByUser)
+  {
+    opts.quantifiers.cegqiBv = false;
+  }
+  if (opts.quantifiers.sygusRepairConst)
+  {
+    if (!opts.quantifiers.cegqiWasSetByUser)
+    {
+      opts.quantifiers.cegqi = true;
+    }
+  }
+  if (opts.quantifiers.sygusInference)
+  {
+    // optimization: apply preskolemization, makes it succeed more often
+    if (!opts.quantifiers.preSkolemQuantWasSetByUser)
+    {
+      opts.quantifiers.preSkolemQuant = true;
+    }
+    if (!opts.quantifiers.preSkolemQuantNestedWasSetByUser)
+    {
+      opts.quantifiers.preSkolemQuantNested = true;
+    }
+  }
+  // counterexample-guided instantiation for sygus
+  if (!opts.quantifiers.cegqiSingleInvModeWasSetByUser)
+  {
+    opts.quantifiers.cegqiSingleInvMode = options::CegqiSingleInvMode::USE;
+  }
+  if (!opts.quantifiers.quantConflictFindWasSetByUser)
+  {
+    opts.quantifiers.quantConflictFind = false;
+  }
+  if (!opts.quantifiers.instNoEntailWasSetByUser)
+  {
+    opts.quantifiers.instNoEntail = false;
+  }
+  if (!opts.quantifiers.cegqiFullEffortWasSetByUser)
+  {
+    // should use full effort cbqi for single invocation and repair const
+    opts.quantifiers.cegqiFullEffort = true;
+  }
+  if (opts.quantifiers.sygusRew)
+  {
+    opts.quantifiers.sygusRewSynth = true;
+    opts.quantifiers.sygusRewVerify = true;
+  }
+  if (opts.quantifiers.sygusRewSynthInput)
+  {
+    // If we are using synthesis rewrite rules from input, we use
+    // sygusRewSynth after preprocessing. See passes/synth_rew_rules.h for
+    // details on this technique.
+    opts.quantifiers.sygusRewSynth = true;
+    // we should not use the extended rewriter, since we are interested
+    // in rewrites that are not in the main rewriter
+    if (!opts.quantifiers.sygusExtRewWasSetByUser)
+    {
+      opts.quantifiers.sygusExtRew = false;
+    }
+  }
+  // Whether we must use "basic" sygus algorithms. A non-basic sygus algorithm
+  // is one that is specialized for returning a single solution. Non-basic
+  // sygus algorithms currently include the PBE solver, UNIF+PI, static
+  // template inference for invariant synthesis, and single invocation
+  // techniques.
+  bool reqBasicSygus = false;
+  if (opts.smt.produceAbducts)
+  {
+    // if doing abduction, we should filter strong solutions
+    if (!opts.quantifiers.sygusFilterSolModeWasSetByUser)
+    {
+      opts.quantifiers.sygusFilterSolMode = options::SygusFilterSolMode::STRONG;
+    }
+    // we must use basic sygus algorithms, since e.g. we require checking
+    // a sygus side condition for consistency with axioms.
+    reqBasicSygus = true;
+  }
+  if (opts.quantifiers.sygusRewSynth || opts.quantifiers.sygusRewVerify
+      || opts.quantifiers.sygusQueryGen)
+  {
+    // rewrite rule synthesis implies that sygus stream must be true
+    opts.quantifiers.sygusStream = true;
+  }
+  if (opts.quantifiers.sygusStream || opts.base.incrementalSolving)
+  {
+    // Streaming and incremental mode are incompatible with techniques that
+    // focus the search towards finding a single solution.
+    reqBasicSygus = true;
+  }
+  // Now, disable options for non-basic sygus algorithms, if necessary.
+  if (reqBasicSygus)
+  {
+    if (!opts.quantifiers.sygusUnifPbeWasSetByUser)
+    {
+      opts.quantifiers.sygusUnifPbe = false;
+    }
+    if (opts.quantifiers.sygusUnifPiWasSetByUser)
+    {
+      opts.quantifiers.sygusUnifPi = options::SygusUnifPiMode::NONE;
+    }
+    if (!opts.quantifiers.sygusInvTemplModeWasSetByUser)
+    {
+      opts.quantifiers.sygusInvTemplMode = options::SygusInvTemplMode::NONE;
+    }
+    if (!opts.quantifiers.cegqiSingleInvModeWasSetByUser)
+    {
+      opts.quantifiers.cegqiSingleInvMode = options::CegqiSingleInvMode::NONE;
+    }
+  }
+  if (!opts.datatypes.dtRewriteErrorSelWasSetByUser)
+  {
+    opts.datatypes.dtRewriteErrorSel = true;
+  }
+  // do not miniscope
+  if (!opts.quantifiers.miniscopeQuantWasSetByUser)
+  {
+    opts.quantifiers.miniscopeQuant = false;
+  }
+  if (!opts.quantifiers.miniscopeQuantFreeVarWasSetByUser)
+  {
+    opts.quantifiers.miniscopeQuantFreeVar = false;
+  }
+  if (!opts.quantifiers.quantSplitWasSetByUser)
+  {
+    opts.quantifiers.quantSplit = false;
+  }
+  // do not do macros
+  if (!opts.quantifiers.macrosQuantWasSetByUser)
+  {
+    opts.quantifiers.macrosQuant = false;
+  }
+  // use tangent planes by default, since we want to put effort into
+  // the verification step for sygus queries with non-linear arithmetic
+  if (!opts.arith.nlExtTangentPlanesWasSetByUser)
+  {
+    opts.arith.nlExtTangentPlanes = true;
+  }
 }
 
 }  // namespace smt

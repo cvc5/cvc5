@@ -49,7 +49,7 @@
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/node_command.h"
-#include "smt/options_manager.h"
+#include "smt/set_defaults.h"
 #include "smt/preprocessor.h"
 #include "smt/proof_manager.h"
 #include "smt/quant_elim_solver.h"
@@ -195,7 +195,7 @@ void SmtEngine::finishInit()
   // Call finish init on the options manager. This inializes the logic
   // and the best default options based on our heuristics.
   SetDefaults sdefaults(d_isInternalSubsolver);
-  sdefaults.setDefaults(d_env->d_logic, d_env->getOptions());
+  sdefaults.setDefaults(d_env->d_logic, getOptions());
 
   ProofNodeManager* pnm = nullptr;
   if (d_env->getOptions().smt.produceProofs)
