@@ -123,7 +123,7 @@ cdef class Datatype:
         """
 	    :param name: the name of the constructor.
             :return: the term representing the datatype constructor with the given name (see :cpp:func:`Datatype::getConstructorTerm() <cvc5::api::Datatype::getConstructorTerm>`).
-	""""
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cd.getConstructorTerm(name.encode())
         return term
@@ -138,9 +138,9 @@ cdef class Datatype:
         return ds
 
     def getName(self):
-    """
-        :return: the name of the datatype.
-    """
+        """
+            :return: the name of the datatype.
+        """
         return self.cd.getName().decode()
 
     def getNumConstructors(self):
