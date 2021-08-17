@@ -24,7 +24,6 @@ set(EXAMPLES_API_PYTHON
   helloworld
   id
   linear_arith
-  quickstart
   sequences
   sets
   strings
