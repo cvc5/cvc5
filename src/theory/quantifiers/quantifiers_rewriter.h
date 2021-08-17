@@ -80,12 +80,18 @@ class QuantifiersRewriter : public TheoryRewriter
                             std::vector<Node>& args,
                             std::vector<Node>& vars,
                             std::vector<Node>& subs);
+  /** 
+   * Get variable eliminate for an equality based on theory-specific reasoning.
+   */
+  static Node getVarElimEq(Node lit,
+                                const std::vector<Node>& args,
+                                Node& var);
   /** variable eliminate for real equalities
    *
    * If this returns a non-null value ret, then var is updated to a member of
    * args, lit is equivalent to ( var = ret ).
    */
-  static Node getVarElimLitReal(Node lit,
+  static Node getVarElimEqReal(Node lit,
                                 const std::vector<Node>& args,
                                 Node& var);
   /** variable eliminate for bit-vector equalities
@@ -93,7 +99,7 @@ class QuantifiersRewriter : public TheoryRewriter
    * If this returns a non-null value ret, then var is updated to a member of
    * args, lit is equivalent to ( var = ret ).
    */
-  static Node getVarElimLitBv(Node lit,
+  static Node getVarElimEqBv(Node lit,
                               const std::vector<Node>& args,
                               Node& var);
   /** variable eliminate for string equalities
@@ -101,7 +107,7 @@ class QuantifiersRewriter : public TheoryRewriter
    * If this returns a non-null value ret, then var is updated to a member of
    * args, lit is equivalent to ( var = ret ).
    */
-  static Node getVarElimLitString(Node lit,
+  static Node getVarElimEqString(Node lit,
                                   const std::vector<Node>& args,
                                   Node& var);
   /** get variable elimination

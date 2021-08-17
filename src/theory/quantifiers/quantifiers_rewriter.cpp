@@ -701,7 +701,29 @@ bool QuantifiersRewriter::isVarElim(Node v, Node s)
   return !expr::hasSubterm(s, v) && s.getType().isSubtypeOf(v.getType());
 }
 
-Node QuantifiersRewriter::getVarElimLitReal(Node lit,
+Node QuantifiersRewriter::getVarElimEq(Node lit,
+                              const std::vector<Node>& args,
+                              Node& var)
+{
+  Assert (lit.getKind()==EQUAL);
+  Node slv;
+  TypeNode tt = lit[0].getType();
+  if (tt.isReal())
+  {
+    slv = getVarElimEqReal(lit, args, var);
+  }
+  else if (tt.isBitVector())
+  {
+    slv = getVarElimEqBv(lit, args, var);
+  }
+  else if (tt.isStringLike())
+  {
+    slv = getVarElimEqString(lit, args, var);
+  }
+  return slv;
+}
+
+Node QuantifiersRewriter::getVarElimEqReal(Node lit,
                                             const std::vector<Node>& args,
                                             Node& var)
 {
@@ -735,7 +757,7 @@ Node QuantifiersRewriter::getVarElimLitReal(Node lit,
   return Node::null();
 }
 
-Node QuantifiersRewriter::getVarElimLitBv(Node lit,
+Node QuantifiersRewriter::getVarElimEqBv(Node lit,
                                           const std::vector<Node>& args,
                                           Node& var)
 {
@@ -786,7 +808,7 @@ Node QuantifiersRewriter::getVarElimLitBv(Node lit,
   return Node::null();
 }
 
-Node QuantifiersRewriter::getVarElimLitString(Node lit,
+Node QuantifiersRewriter::getVarElimEqString(Node lit,
                                               const std::vector<Node>& args,
                                               Node& var)
 {
@@ -937,20 +959,7 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
   if (lit.getKind() == EQUAL && pol)
   {
     Node var;
-    Node slv;
-    TypeNode tt = lit[0].getType();
-    if (tt.isReal())
-    {
-      slv = getVarElimLitReal(lit, args, var);
-    }
-    else if (tt.isBitVector())
-    {
-      slv = getVarElimLitBv(lit, args, var);
-    }
-    else if (tt.isStringLike())
-    {
-      slv = getVarElimLitString(lit, args, var);
-    }
+    Node slv = getVarElimEq(lit, args, var);
     if (!slv.isNull())
     {
       Assert(!var.isNull());
