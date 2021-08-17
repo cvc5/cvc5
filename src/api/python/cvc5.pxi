@@ -111,28 +111,42 @@ cdef class Datatype:
         return dc
 
     def getConstructor(self, str name):
-        """Return a constructor by name."""
+        """
+	    :param name: the name of the constructor.
+	    :return: a constructor by name (see :cpp:func:'Datatype::getConstructor() <cvc5::api::Datatype::getConstructor>'). 
+	"""
         cdef DatatypeConstructor dc = DatatypeConstructor(self.solver)
         dc.cdc = self.cd.getConstructor(name.encode())
         return dc
 
     def getConstructorTerm(self, str name):
-        """:return: the term representing the datatype constructor with the given name (see :cpp:func:`Datatype::getConstructorTerm() <cvc5::api::Datatype::getConstructorTerm>`)."""
+        """
+	    :param name: the name of the constructor.
+            :return: the term representing the datatype constructor with the given name (see :cpp:func:`Datatype::getConstructorTerm() <cvc5::api::Datatype::getConstructorTerm>`).
+	""""
         cdef Term term = Term(self.solver)
         term.cterm = self.cd.getConstructorTerm(name.encode())
         return term
 
     def getSelector(self, str name):
-        """Return a selector by name."""
+        """
+	    :param name: the name of the selector..
+	    :return: a selector by name (see :cpp:func:'Datatype::getSelector() <cvc5::api::Datatype::getSelector>'). 
+	"""
         cdef DatatypeSelector ds = DatatypeSelector(self.solver)
         ds.cds = self.cd.getSelector(name.encode())
         return ds
 
     def getName(self):
+    """
+        :return: the name of the datatype.
+    """
         return self.cd.getName().decode()
 
     def getNumConstructors(self):
-        """:return: number of constructors."""
+        """
+            :return: number of constructors in this datatype.
+        """
         return self.cd.getNumConstructors()
 
     def isParametric(self):
