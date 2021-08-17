@@ -48,13 +48,13 @@ class SetDefaults
   void setDefaults(LogicInfo& logic, Options& opts);
 
  private:
-  /** 
+  /**
    * Widen logic to theories that are required, since some theories imply the
    * use of other theories to handle certain operators, e.g. UF to handle
    * partial functions.
-  */
+   */
   void widenLogic(LogicInfo& logic, Options& opts);
-  /** 
+  /**
    * Set defaults related to SyGuS, called when SyGuS is enabled.
    */
   void setDefaultsSygus(Options& opts);
