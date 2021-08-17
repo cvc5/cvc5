@@ -701,9 +701,65 @@ bool QuantifiersRewriter::isVarElim(Node v, Node s)
   return !expr::hasSubterm(s, v) && s.getType().isSubtypeOf(v.getType());
 }
 
-Node QuantifiersRewriter::getVarElimLitBv(Node lit,
-                                          const std::vector<Node>& args,
-                                          Node& var)
+Node QuantifiersRewriter::getVarElimEq(Node lit,
+                                       const std::vector<Node>& args,
+                                       Node& var)
+{
+  Assert(lit.getKind() == EQUAL);
+  Node slv;
+  TypeNode tt = lit[0].getType();
+  if (tt.isReal())
+  {
+    slv = getVarElimEqReal(lit, args, var);
+  }
+  else if (tt.isBitVector())
+  {
+    slv = getVarElimEqBv(lit, args, var);
+  }
+  else if (tt.isStringLike())
+  {
+    slv = getVarElimEqString(lit, args, var);
+  }
+  return slv;
+}
+
+Node QuantifiersRewriter::getVarElimEqReal(Node lit,
+                                           const std::vector<Node>& args,
+                                           Node& var)
+{
+  // for arithmetic, solve the equality
+  std::map<Node, Node> msum;
+  if (!ArithMSum::getMonomialSumLit(lit, msum))
+  {
+    return Node::null();
+  }
+  std::vector<Node>::const_iterator ita;
+  for (std::map<Node, Node>::iterator itm = msum.begin(); itm != msum.end();
+       ++itm)
+  {
+    if (itm->first.isNull())
+    {
+      continue;
+    }
+    ita = std::find(args.begin(), args.end(), itm->first);
+    if (ita != args.end())
+    {
+      Node veq_c;
+      Node val;
+      int ires = ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
+      if (ires != 0 && veq_c.isNull() && isVarElim(itm->first, val))
+      {
+        var = itm->first;
+        return val;
+      }
+    }
+  }
+  return Node::null();
+}
+
+Node QuantifiersRewriter::getVarElimEqBv(Node lit,
+                                         const std::vector<Node>& args,
+                                         Node& var)
 {
   if (Trace.isOn("quant-velim-bv"))
   {
@@ -752,9 +808,9 @@ Node QuantifiersRewriter::getVarElimLitBv(Node lit,
   return Node::null();
 }
 
-Node QuantifiersRewriter::getVarElimLitString(Node lit,
-                                              const std::vector<Node>& args,
-                                              Node& var)
+Node QuantifiersRewriter::getVarElimEqString(Node lit,
+                                             const std::vector<Node>& args,
+                                             Node& var)
 {
   Assert(lit.getKind() == EQUAL);
   NodeManager* nm = NodeManager::currentNM();
@@ -900,48 +956,10 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
       return true;
     }
   }
-  if (lit.getKind() == EQUAL && lit[0].getType().isReal() && pol)
-  {
-    // for arithmetic, solve the equality
-    std::map< Node, Node > msum;
-    if (ArithMSum::getMonomialSumLit(lit, msum))
-    {
-      for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
-        if( !itm->first.isNull() ){
-          std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), itm->first );
-          if( ita!=args.end() ){
-            Assert(pol);
-            Node veq_c;
-            Node val;
-            int ires = ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
-            if (ires != 0 && veq_c.isNull() && isVarElim(itm->first, val))
-            {
-              Trace("var-elim-quant")
-                  << "Variable eliminate based on solved equality : "
-                  << itm->first << " -> " << val << std::endl;
-              vars.push_back(itm->first);
-              subs.push_back(val);
-              args.erase(ita);
-              return true;
-            }
-          }
-        }
-      }
-    }
-  }
   if (lit.getKind() == EQUAL && pol)
   {
     Node var;
-    Node slv;
-    TypeNode tt = lit[0].getType();
-    if (tt.isBitVector())
-    {
-      slv = getVarElimLitBv(lit, args, var);
-    }
-    else if (tt.isStringLike())
-    {
-      slv = getVarElimLitString(lit, args, var);
-    }
+    Node slv = getVarElimEq(lit, args, var);
     if (!slv.isNull())
     {
       Assert(!var.isNull());
@@ -1797,7 +1815,7 @@ bool QuantifiersRewriter::doOperation(Node q,
 {
   bool is_strict_trigger =
       qa.d_hasPattern
-      && options::userPatternsQuant() == options::UserPatMode::TRUST;
+      && options::userPatternsQuant() == options::UserPatMode::STRICT;
   bool is_std = qa.isStandard() && !is_strict_trigger;
   if (computeOption == COMPUTE_ELIM_SYMBOLS)
   {

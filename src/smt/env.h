@@ -82,6 +82,9 @@ class Env
    */
   ProofNodeManager* getProofNodeManager();
 
+  /** Return the input name, or the empty string if not set */
+  const std::string& getFilename() const;
+
   /**
    * Check whether theories should produce proofs as well. Other than whether
    * the proof node manager is set, theory engine proofs are conditioned on the
@@ -133,6 +136,11 @@ class Env
 
   /** Set proof node manager if it exists */
   void setProofNodeManager(ProofNodeManager* pnm);
+  /**
+   * Set that the file name of the current instance is the given string. This
+   * is used for various purposes (e.g. get-info, SZS status).
+   */
+  void setFilename(const std::string& filename);
 
   /* Private shutdown ------------------------------------------------------- */
   /**
@@ -199,6 +207,12 @@ class Env
   const Options* d_originalOptions;
   /** Manager for limiting time and abstract resource usage. */
   std::unique_ptr<ResourceManager> d_resourceManager;
+
+  /**
+   * The input file name or the name set through (set-info :filename ...), if
+   * any.
+   */
+  std::string d_filename;
 }; /* class Env */
 
 }  // namespace cvc5

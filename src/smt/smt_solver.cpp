@@ -133,7 +133,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
 
   Trace("smt") << "SmtSolver::check()" << endl;
 
-  const std::string& filename = d_state.getFilename();
+  const std::string& filename = d_env.getFilename();
   ResourceManager* rm = d_env.getResourceManager();
   if (rm->out())
   {
