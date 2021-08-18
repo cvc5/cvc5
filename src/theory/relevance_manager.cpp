@@ -22,10 +22,14 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 
-RelevanceManager::RelevanceManager(context::UserContext* userContext,
+RelevanceManager::RelevanceManager(Env& env,
                                    Valuation val)
-    : d_val(val), d_input(userContext), d_computed(false), d_success(false)
+    : d_val(val), d_input(d_env.getUserContext()), d_computed(false), d_success(false)
 {
+  if (options::produceDifficulty())
+  {
+    d_dman.reset(new DifficultyManager);
+  }
 }
 
 void RelevanceManager::notifyPreprocessedAssertions(
@@ -324,6 +328,14 @@ const std::unordered_set<TNode>& RelevanceManager::getRelevantAssertions(
   // update success flag
   success = d_success;
   return d_rset;
+}
+
+void RelevanceManager::getDifficultyMap(std::map<Node, Node>& dmap)
+{
+  if (d_dman!=nullptr)
+  {
+    d_dman->getDifficultyMap(dmap);
+  }
 }
 
 }  // namespace theory

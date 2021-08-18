@@ -155,10 +155,10 @@ void TheoryEngine::finishInit()
                     << options::tcMode() << " not supported";
   }
   // create the relevance filter if any option requires it
-  if (options::relevanceFilter())
+  if (options::relevanceFilter() || options::produceDifficulty())
   {
     d_relManager.reset(
-        new RelevanceManager(d_env.getUserContext(), theory::Valuation(this)));
+        new RelevanceManager(d_env, theory::Valuation(this)));
   }
 
   // initialize the quantifiers engine
@@ -1145,7 +1145,8 @@ const std::unordered_set<TNode>& TheoryEngine::getRelevantAssertions(
 
 void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap)
 {
-  // TODO
+  Assert (d_relManager!=nullptr);
+  d_relManager->getDifficultyMap(dmap);
 }
 
 Node TheoryEngine::getModelValue(TNode var) {

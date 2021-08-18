@@ -28,6 +28,8 @@
 namespace cvc5 {
 namespace theory {
 
+class DifficultyManager;
+
 /**
  * This class manages queries related to relevance of asserted literals.
  * In particular, note the following definition:
@@ -73,7 +75,7 @@ class RelevanceManager
   typedef context::CDList<Node> NodeList;
 
  public:
-  RelevanceManager(context::UserContext* userContext, Valuation val);
+  RelevanceManager(Env& env, Valuation val);
   /**
    * Notify (preprocessed) assertions. This is called for input formulas or
    * lemmas that need justification that have been fully processed, just before
@@ -105,7 +107,10 @@ class RelevanceManager
    * The value of this return is only valid if success was not updated to false.
    */
   const std::unordered_set<TNode>& getRelevantAssertions(bool& success);
-
+  /**
+   * Get difficulty map
+   */
+  void getDifficultyMap(std::map<Node, Node>& dmap);
  private:
   /**
    * Add the set of assertions to the formulas known to this class. This
@@ -157,6 +162,8 @@ class RelevanceManager
    * aborts and indicates that all literals are relevant.
    */
   bool d_success;
+  /** Difficulty module */
+  std::unique_ptr<DifficultyManager> d_dman;
 };
 
 }  // namespace theory
