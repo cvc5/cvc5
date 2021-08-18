@@ -108,7 +108,7 @@ void InferProofCons::convert(InferenceId infer,
       Node pconc = conc;
       // purify core substitution proves conc from pconc if necessary,
       // we apply MACRO_SR_PRED_INTRO to prove pconc
-      if (true)  // purifyCoreSubstitution(pconc, pcs, psb, false))
+      if (purifyCoreSubstitution(pconc, pcs, psb, false))
       {
         if (psb.applyPredIntro(pconc, pcs))
         {
@@ -1076,12 +1076,14 @@ bool InferProofCons::purifyCoreSubstitution(Node& tgt,
                                             TheoryProofStepBuffer& psb,
                                             bool concludeTgtNew) const
 {
+  // collect the terms to purify, which are the LHS of the substitution
   std::unordered_set<Node> termsToPurify;
   for (const Node& nc : children)
   {
-    Assert(nc.getKind() == EQUAL && nc[0].getType().isString());
+    Assert(nc.getKind() == EQUAL && nc[0].getType().isStringLike());
     termsToPurify.insert(nc[0]);
   }
+  // now, purify each of the children of the substitution
   for (size_t i = 0, nchild = children.size(); i < nchild; i++)
   {
     Node pnc = purifyCorePredicate(children[i], true, psb, termsToPurify);
@@ -1095,8 +1097,10 @@ bool InferProofCons::purifyCoreSubstitution(Node& tgt,
           << "Converted: " << children[i] << " to " << pnc << std::endl;
       children[i] = pnc;
     }
+    // we now should have a substitution with only atomic terms
+    Assert (children[i][0].getNumChildren()==0);
   }
-  // prove the original conclusion
+  // now, purify the target predicate
   tgt = purifyCorePredicate(tgt, concludeTgtNew, psb, termsToPurify);
   return !tgt.isNull();
 }
@@ -1107,13 +1111,14 @@ Node InferProofCons::purifyCorePredicate(
     TheoryProofStepBuffer& psb,
     std::unordered_set<Node>& termsToPurify) const
 {
-  // purify string (dis)equalities
   bool pol = lit.getKind() != NOT;
   Node atom = pol ? lit : lit[0];
-  if (atom.getKind() != EQUAL || !atom[0].getType().isString())
+  if (atom.getKind() != EQUAL || !atom[0].getType().isStringLike())
   {
+    // we only purify string (dis)equalities
     return lit;
   }
+  // purify both sides of the equality
   std::vector<Node> pcs;
   bool childChanged = false;
   for (const Node& lc : atom)
@@ -1146,7 +1151,7 @@ Node InferProofCons::purifyCorePredicate(
 Node InferProofCons::purifyCoreTerm(
     Node n, std::unordered_set<Node>& termsToPurify) const
 {
-  Assert(n.getType().isString());
+  Assert(n.getType().isStringLike());
   if (n.getNumChildren() == 0)
   {
     return n;
