@@ -1098,7 +1098,7 @@ bool InferProofCons::purifyCoreSubstitution(Node& tgt,
       children[i] = pnc;
     }
     // we now should have a substitution with only atomic terms
-    Assert (children[i][0].getNumChildren()==0);
+    Assert(children[i][0].getNumChildren() == 0);
   }
   // now, purify the target predicate
   tgt = purifyCorePredicate(tgt, concludeTgtNew, psb, termsToPurify);
