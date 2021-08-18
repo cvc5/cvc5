@@ -107,11 +107,8 @@ PropEngine::PropEngine(TheoryEngine* te,
 
   // CNF stream and theory proxy required pointers to each other, make the
   // theory proxy first
-  d_theoryProxy = new TheoryProxy(this,
-                                  d_theoryEngine,
-                                  d_decisionEngine.get(),
-                                  d_skdm.get(),
-                                  d_env);
+  d_theoryProxy = new TheoryProxy(
+      this, d_theoryEngine, d_decisionEngine.get(), d_skdm.get(), d_env);
   d_cnfStream = new CnfStream(d_satSolver,
                               d_theoryProxy,
                               userContext,

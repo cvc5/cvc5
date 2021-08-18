@@ -34,7 +34,7 @@
 #include "util/resource_manager.h"
 
 namespace cvc5 {
-  
+
 class Env;
 class TheoryEngine;
 
@@ -162,7 +162,7 @@ class TheoryProxy : public Registrar
 
   /** The skolem definition manager */
   SkolemDefManager* d_skdm;
-  
+
   /** Reference to the environment */
   Env& d_env;
 }; /* class TheoryProxy */

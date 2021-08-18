@@ -24,11 +24,11 @@
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/skolem_def_manager.h"
+#include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_stats.h"
-#include "smt/env.h"
 
 namespace cvc5 {
 namespace prop {
