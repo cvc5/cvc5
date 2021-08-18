@@ -34,7 +34,7 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
                                      OutputChannel& out,
                                      Valuation valuation)
     : Theory(THEORY_QUANTIFIERS, env, out, valuation),
-      d_qstate(getSatContext(), getUserContext(), valuation, getLogicInfo()),
+      d_qstate(env, valuation, getLogicInfo()),
       d_qreg(),
       d_treg(d_qstate, d_qreg),
       d_qim(*this, d_qstate, d_qreg, d_treg, d_pnm),

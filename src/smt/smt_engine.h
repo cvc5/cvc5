@@ -1112,12 +1112,6 @@ class CVC5_EXPORT SmtEngine
   /** the output manager for commands */
   mutable OutputManager d_outMgr;
   /**
-   * The options manager, which is responsible for implementing core options
-   * such as those related to time outs and printing. It is also responsible
-   * for set default options based on the logic.
-   */
-  std::unique_ptr<smt::OptionsManager> d_optm;
-  /**
    * The preprocessor.
    */
   std::unique_ptr<smt::Preprocessor> d_pp;
