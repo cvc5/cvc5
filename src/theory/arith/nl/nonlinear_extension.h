@@ -85,8 +85,7 @@ class NonlinearExtension
 
  public:
   NonlinearExtension(TheoryArith& containing,
-                     ArithState& state,
-                     eq::EqualityEngine* ee);
+                     ArithState& state);
   ~NonlinearExtension();
   /**
    * Does non-context dependent setup for a node connected to a theory.

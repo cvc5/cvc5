@@ -37,14 +37,13 @@ namespace arith {
 namespace nl {
 
 NonlinearExtension::NonlinearExtension(TheoryArith& containing,
-                                       ArithState& state,
-                                       eq::EqualityEngine* ee)
+                                       ArithState& state)
     : d_containing(containing),
       d_astate(state),
       d_im(containing.getInferenceManager()),
       d_needsLastCall(false),
       d_checkCounter(0),
-      d_extTheoryCb(ee),
+      d_extTheoryCb(state.getEqualityEngine()),
       d_extTheory(d_extTheoryCb,
                   containing.getSatContext(),
                   containing.getUserContext(),
