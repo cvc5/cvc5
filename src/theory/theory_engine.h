@@ -635,6 +635,11 @@ class TheoryEngine {
   const std::unordered_set<TNode>& getRelevantAssertions(bool& success);
 
   /**
+   * Get difficulty map
+   */
+  void getDifficultyMap(std::map<Node, Node>& dmap);
+  
+  /**
    * Forwards an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
    */

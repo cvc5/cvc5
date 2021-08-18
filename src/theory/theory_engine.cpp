@@ -1143,6 +1143,11 @@ const std::unordered_set<TNode>& TheoryEngine::getRelevantAssertions(
   return d_relManager->getRelevantAssertions(success);
 }
 
+void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap)
+{
+  // TODO
+}
+
 Node TheoryEngine::getModelValue(TNode var) {
   if (var.isConst())
   {

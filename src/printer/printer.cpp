@@ -380,6 +380,11 @@ void Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
   printUnknownCommand(out, "get-unsat-core");
 }
 
+void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-difficulty");
+}
+
 void Printer::toStreamCmdGetAssertions(std::ostream& out) const
 {
   printUnknownCommand(out, "get-assertions");

@@ -2500,8 +2500,7 @@ void GetDifficultyCommand::invoke(api::Solver* solver, SymbolManager* sm)
   try
   {
     d_sm = sm;
-    const vector<api::Term> v = solver->getAssertions();
-    // d_result = solver->getUnsatCore();
+    d_result = solver->getDifficultyMap();
 
     d_commandStatus = CommandSuccess::instance();
   }

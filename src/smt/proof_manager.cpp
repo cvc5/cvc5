@@ -172,6 +172,24 @@ void PfManager::checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
                            << std::endl;
 }
 
+void PfManager::getDifficultyMap(std::map<Node, Node>& dmap, Assertions& as)
+{
+  std::vector<Node> ppAsserts;
+  for (const std::pair<const Node, Node>& ppa : dmap)
+  {
+    ppAsserts.push_back(ppa.first);
+  }
+  // assume a SAT refutation from all input assertions that were marked
+  // as having a difficulty
+  CDProof cdp(d_pnm.get());
+  Node fnode = NodeManager::currentNM()->mkConst(false);
+  cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppAsserts, {});
+  std::shared_ptr<ProofNode> pf =  cdp.getProofFor(fnode);
+  std::shared_ptr<ProofNode> fpf = getFinalProof(pfn, as);
+  
+  // TODO: analyze proof
+}
+
 ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
 
 ProofNodeManager* PfManager::getProofNodeManager() const { return d_pnm.get(); }

@@ -89,6 +89,11 @@ class PfManager
    * Check proof, same as above, without printing.
    */
   void checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as);
+  
+  /**
+   * Get difficulty map
+   */
+  void getDifficultyMap(std::map<Node, Node>& dmap, Assertions& as);
 
   /**
    * Get final proof.
