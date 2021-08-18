@@ -190,12 +190,12 @@ void PfManager::getDifficultyMap(std::map<Node, Node>& dmap, Assertions& as)
   std::shared_ptr<ProofNode> fpf = getFinalProof(pf, as);
 
   // analyze proof
-  Assert (fpf->getRule()==PfRule::SAT_REFUTATION);
+  Assert(fpf->getRule() == PfRule::SAT_REFUTATION);
   const std::vector<std::shared_ptr<ProofNode>>& children = fpf->getChildren();
   for (const std::shared_ptr<ProofNode>& c : children)
   {
     Node res = c->getResult();
-    Assert (dmapp.find(res)!=dmapp.end());
+    Assert(dmapp.find(res) != dmapp.end());
     // TODO
   }
 }

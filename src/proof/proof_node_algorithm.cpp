@@ -237,10 +237,7 @@ bool containsSubproof(ProofNode* pn,
   return false;
 }
 
-void getCausalFreeAssumptions(ProofNode* pn, std::vector<Node>& assump)
-{
-  
-}
+void getCausalFreeAssumptions(ProofNode* pn, std::vector<Node>& assump) {}
 
 }  // namespace expr
 }  // namespace cvc5

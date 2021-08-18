@@ -91,7 +91,6 @@ bool containsSubproof(ProofNode* pn,
                       ProofNode* pnc,
                       std::unordered_set<const ProofNode*>& visited);
 
-
 /**
  * This traverses the structure of the dag represented by this ProofNode.
  * Its implementation is analogous to expr::getFreeVariables.
