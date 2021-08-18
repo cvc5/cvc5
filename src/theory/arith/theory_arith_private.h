@@ -91,7 +91,7 @@ private:
 
   const Options& options() const
   {
-    return d_containing.d_theoryState->getEnv().getOptions();
+    return d_containing.d_astate.getEnv().getOptions();
   }
 
   /**
