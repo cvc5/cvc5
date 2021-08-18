@@ -108,7 +108,7 @@ void InferProofCons::convert(InferenceId infer,
       Node pconc = conc;
       // purify core substitution proves conc from pconc if necessary,
       // we apply MACRO_SR_PRED_INTRO to prove pconc
-      if (true)//purifyCoreSubstitution(pconc, pcs, psb, false))
+      if (true)  // purifyCoreSubstitution(pconc, pcs, psb, false))
       {
         if (psb.applyPredIntro(pconc, pcs))
         {
@@ -130,7 +130,7 @@ void InferProofCons::convert(InferenceId infer,
       {
         std::vector<Node> exps(ps.d_children.begin(), ps.d_children.end() - 1);
         Node psrc = ps.d_children[ps.d_children.size() - 1];
-        if (true)//purifyCoreSubstitution(psrc, exps, psb, true))
+        if (true)  // purifyCoreSubstitution(psrc, exps, psb, true))
         {
           // we apply the substitution on the purified form to get the
           // original conclusion
@@ -1071,16 +1071,15 @@ std::string InferProofCons::identify() const
   return "strings::InferProofCons";
 }
 
-bool InferProofCons::purifyCoreSubstitution(Node& tgt, 
+bool InferProofCons::purifyCoreSubstitution(Node& tgt,
                                             std::vector<Node>& children,
                                             TheoryProofStepBuffer& psb,
-                                            bool concludeTgtNew
-                                            ) const
+                                            bool concludeTgtNew) const
 {
   std::unordered_set<Node> termsToPurify;
   for (const Node& nc : children)
   {
-    Assert (nc.getKind()==EQUAL && nc[0].getType().isString());
+    Assert(nc.getKind() == EQUAL && nc[0].getType().isString());
     termsToPurify.insert(nc[0]);
   }
   for (size_t i = 0, nchild = children.size(); i < nchild; i++)
@@ -1092,7 +1091,8 @@ bool InferProofCons::purifyCoreSubstitution(Node& tgt,
     }
     if (children[i] != pnc)
     {
-      Trace("strings-ipc-pure-subs") << "Converted: " << children[i] << " to " << pnc << std::endl;
+      Trace("strings-ipc-pure-subs")
+          << "Converted: " << children[i] << " to " << pnc << std::endl;
       children[i] = pnc;
     }
   }
@@ -1101,10 +1101,11 @@ bool InferProofCons::purifyCoreSubstitution(Node& tgt,
   return !tgt.isNull();
 }
 
-Node InferProofCons::purifyCorePredicate(Node lit,
-                                         bool concludeNew,
-                                         TheoryProofStepBuffer& psb,
-                           std::unordered_set<Node>& termsToPurify) const
+Node InferProofCons::purifyCorePredicate(
+    Node lit,
+    bool concludeNew,
+    TheoryProofStepBuffer& psb,
+    std::unordered_set<Node>& termsToPurify) const
 {
   // purify string (dis)equalities
   bool pol = lit.getKind() != NOT;
@@ -1131,7 +1132,7 @@ Node InferProofCons::purifyCorePredicate(Node lit,
   {
     newLit = newLit.notNode();
   }
-  Assert (lit!=newLit);
+  Assert(lit != newLit);
   // prove by transformation, should always succeed
   if (!psb.applyPredTransform(
           concludeNew ? lit : newLit, concludeNew ? newLit : lit, {}))
@@ -1142,8 +1143,8 @@ Node InferProofCons::purifyCorePredicate(Node lit,
   return newLit;
 }
 
-Node InferProofCons::purifyCoreTerm(Node n,
-                           std::unordered_set<Node>& termsToPurify) const
+Node InferProofCons::purifyCoreTerm(
+    Node n, std::unordered_set<Node>& termsToPurify) const
 {
   Assert(n.getType().isString());
   if (n.getNumChildren() == 0)
@@ -1160,7 +1161,7 @@ Node InferProofCons::purifyCoreTerm(Node n,
     }
     return nm->mkNode(STRING_CONCAT, pcs);
   }
-  if (termsToPurify.find(n)==termsToPurify.end())
+  if (termsToPurify.find(n) == termsToPurify.end())
   {
     // did not need to purify
     return n;

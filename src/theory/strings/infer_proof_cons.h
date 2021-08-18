@@ -130,7 +130,7 @@ class InferProofCons : public ProofGenerator
    * and a substitution applied over (str.replace x a b) -> c, x -> d.
    * This can lead to the term (str.replace d a b) being generated instead of
    * c.
-   * 
+   *
    * @param tgt The term we were originally going to apply the substitution to.
    * @param children The premises corresponding to the substitution.
    * @param psb The proof step buffer
@@ -143,9 +143,8 @@ class InferProofCons : public ProofGenerator
    */
   bool purifyCoreSubstitution(Node& tgt,
                               std::vector<Node>& children,
-                                            TheoryProofStepBuffer& psb,
-                                            bool concludeTgtNew = false
-                             ) const;
+                              TheoryProofStepBuffer& psb,
+                              bool concludeTgtNew = false) const;
   /**
    * Return the purified form of the predicate lit with respect to a set of
    * terms to purify, call the returned literal lit'.
@@ -157,16 +156,14 @@ class InferProofCons : public ProofGenerator
   Node purifyCorePredicate(Node lit,
                            bool concludeNew,
                            TheoryProofStepBuffer& psb,
-                           std::unordered_set<Node>& termsToPurify
-                          ) const;
+                           std::unordered_set<Node>& termsToPurify) const;
   /**
    * Purify term with respect to a set of terms to purify. This replaces
    * all terms to purify with their purification variables that occur in
    * positions that are relevant for the core calculus of strings (direct
    * children of concat or equal).
    */
-  Node purifyCoreTerm(Node n,
-                           std::unordered_set<Node>& termsToPurify) const;
+  Node purifyCoreTerm(Node n, std::unordered_set<Node>& termsToPurify) const;
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The lazy fact map */
