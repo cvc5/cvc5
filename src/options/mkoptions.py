@@ -623,7 +623,7 @@ def codegen_module(module, dst_dir, tpls):
 
                 cases.append(
                     TPL_MODE_HANDLER_CASE.format(
-                        name=attrib[0]['name'],
+                        name=name,
                         type=option.type,
                         enum=value))
             assert option.long
