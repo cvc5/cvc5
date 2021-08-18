@@ -57,8 +57,7 @@ class PropEngine
    * Create a PropEngine with a particular decision and theory engine.
    */
   PropEngine(TheoryEngine* te,
-             Env& env,
-             ProofNodeManager* pnm);
+             Env& env);
 
   /**
    * Destructor.
@@ -371,9 +370,6 @@ class PropEngine
 
   /** List of all of the assertions that need to be made */
   std::vector<Node> d_assertionList;
-
-  /** A pointer to the proof node maneger to be used by this engine. */
-  ProofNodeManager* d_pnm;
 
   /** The CNF converter in use */
   CnfStream* d_cnfStream;
