@@ -90,9 +90,9 @@ bool Env::isSatProofProducing() const
   return d_proofNodeManager != nullptr
          && (!d_options.smt.unsatCores
              || (d_options.smt.unsatCoresMode
-                    != options::UnsatCoresMode::ASSUMPTIONS
-             && d_options.smt.unsatCoresMode
-                    != options::UnsatCoresMode::PP_ONLY));
+                     != options::UnsatCoresMode::ASSUMPTIONS
+                 && d_options.smt.unsatCoresMode
+                        != options::UnsatCoresMode::PP_ONLY));
 }
 
 bool Env::isTheoryProofProducing() const
