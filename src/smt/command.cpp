@@ -2490,9 +2490,8 @@ void GetUnsatCoreCommand::toStream(std::ostream& out,
   Printer::getPrinter(language)->toStreamCmdGetUnsatCore(out);
 }
 
-
 /* -------------------------------------------------------------------------- */
-/* class GetDifficultyCommand                                                  */
+/* class GetDifficultyCommand */
 /* -------------------------------------------------------------------------- */
 
 GetDifficultyCommand::GetDifficultyCommand() : d_sm(nullptr) {}
@@ -2502,7 +2501,7 @@ void GetDifficultyCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     d_sm = sm;
     const vector<api::Term> v = solver->getAssertions();
-    //d_result = solver->getUnsatCore();
+    // d_result = solver->getUnsatCore();
 
     d_commandStatus = CommandSuccess::instance();
   }
@@ -2517,7 +2516,7 @@ void GetDifficultyCommand::invoke(api::Solver* solver, SymbolManager* sm)
 }
 
 void GetDifficultyCommand::printResult(std::ostream& out,
-                                      uint32_t verbosity) const
+                                       uint32_t verbosity) const
 {
   if (!ok())
   {
@@ -2544,7 +2543,8 @@ void GetDifficultyCommand::printResult(std::ostream& out,
   }
 }
 
-const std::map<api::Term, api::Term>& GetDifficultyCommand::getDifficultyMap() const
+const std::map<api::Term, api::Term>& GetDifficultyCommand::getDifficultyMap()
+    const
 {
   // of course, this will be empty if the command hasn't been invoked yet
   return d_result;
@@ -2564,9 +2564,9 @@ std::string GetDifficultyCommand::getCommandName() const
 }
 
 void GetDifficultyCommand::toStream(std::ostream& out,
-                                   int toDepth,
-                                   size_t dag,
-                                   OutputLanguage language) const
+                                    int toDepth,
+                                    size_t dag,
+                                    OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetDifficulty(out);
 }
