@@ -86,8 +86,7 @@ class NonlinearExtension
  public:
   NonlinearExtension(TheoryArith& containing,
                      ArithState& state,
-                     eq::EqualityEngine* ee,
-                     ProofNodeManager* pnm);
+                     eq::EqualityEngine* ee);
   ~NonlinearExtension();
   /**
    * Does non-context dependent setup for a node connected to a theory.
@@ -225,6 +224,7 @@ class NonlinearExtension
   Node d_true;
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
+  ArithState& d_astate;
   InferenceManager& d_im;
   /** The statistics class */
   NlStats d_stats;
