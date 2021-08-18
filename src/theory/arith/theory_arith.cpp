@@ -45,7 +45,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_bab(d_astate, d_im, d_ppre, d_pnm),
       d_eqSolver(nullptr),
       d_internal(new TheoryArithPrivate(
-          *this, getSatContext(), getUserContext(), d_bab, d_pnm)),
+          *this, env, d_bab)),
       d_nonlinearExtension(nullptr),
       d_opElim(d_pnm, getLogicInfo()),
       d_arithPreproc(d_astate, d_im, d_pnm, d_opElim),

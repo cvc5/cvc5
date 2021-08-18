@@ -88,6 +88,7 @@ private:
   static const uint32_t RESET_START = 2;
 
   TheoryArith& d_containing;
+  Env& d_env;
 
   const Options& options() const
   {
@@ -429,10 +430,8 @@ private:
       /* throw(DeltaRationalException, ModelException) */;
  public:
   TheoryArithPrivate(TheoryArith& containing,
-                     context::Context* c,
-                     context::UserContext* u,
-                     BranchAndBound& bab,
-                     ProofNodeManager* pnm);
+                     Env& env,
+                     BranchAndBound& bab);
   ~TheoryArithPrivate();
 
   //--------------------------------- initialization
