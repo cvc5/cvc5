@@ -89,6 +89,11 @@ private:
 
   TheoryArith& d_containing;
 
+  const Options& options() const
+  {
+    return d_containing.d_theoryState->getEnv().getOptions();
+  }
+
   /**
    * Whether we encountered non-linear arithmetic at any time during solving.
    */
