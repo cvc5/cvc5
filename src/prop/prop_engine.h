@@ -56,8 +56,7 @@ class PropEngine
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(TheoryEngine* te,
-             Env& env);
+  PropEngine(TheoryEngine* te, Env& env);
 
   /**
    * Destructor.

@@ -91,7 +91,7 @@ class Env
    * unsat core mode is not ASSUMPTIONS.
    */
   bool isSatProofProducing() const;
-  
+
   /**
    * Check whether theories should produce proofs as well. Other than whether
    * the proof node manager is set, theory engine proofs are conditioned on the

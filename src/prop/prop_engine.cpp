@@ -65,8 +65,7 @@ public:
   }
 };
 
-PropEngine::PropEngine(TheoryEngine* te,
-                       Env& env)
+PropEngine::PropEngine(TheoryEngine* te, Env& env)
     : d_inCheckSat(false),
       d_theoryEngine(te),
       d_env(env),
@@ -120,13 +119,10 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_theoryProxy->finishInit(d_cnfStream);
   bool satProofs = d_env.isSatProofProducing();
   // connect SAT solver
-  d_satSolver->initialize(
-      d_env.getContext(),
-      d_theoryProxy,
-      d_env.getUserContext(),
-      satProofs
-          ? pnm
-          : nullptr);
+  d_satSolver->initialize(d_env.getContext(),
+                          d_theoryProxy,
+                          d_env.getUserContext(),
+                          satProofs ? pnm : nullptr);
 
   d_decisionEngine->finishInit(d_satSolver, d_cnfStream);
   if (satProofs)
