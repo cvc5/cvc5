@@ -42,7 +42,7 @@ TranscendentalSolver::TranscendentalSolver(InferenceManager& im,
                                            Env& env)
     : d_tstate(im, m, env), d_expSlv(&d_tstate), d_sineSlv(&d_tstate)
 {
-  d_taylor_degree = options::nlExtTfTaylorDegree();
+  d_taylor_degree = d_tstate.d_env.getOptions().arith.nlExtTfTaylorDegree;
 }
 
 TranscendentalSolver::~TranscendentalSolver() {}
