@@ -25,7 +25,7 @@
 #include "expr/node.h"
 
 namespace cvc5 {
-  
+
 class Env;
 
 namespace theory {
@@ -48,7 +48,8 @@ class DifficultyManager
    * Get difficulty map
    */
   void getDifficultyMap(std::map<Node, Node>& dmap);
-private:
+
+ private:
   /** Reference to env */
   Env& d_env;
 };

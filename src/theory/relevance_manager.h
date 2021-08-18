@@ -111,6 +111,7 @@ class RelevanceManager
    * Get difficulty map
    */
   void getDifficultyMap(std::map<Node, Node>& dmap);
+
  private:
   /**
    * Add the set of assertions to the formulas known to this class. This
