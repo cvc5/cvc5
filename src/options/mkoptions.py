@@ -610,9 +610,17 @@ def codegen_module(module, dst_dir, tpls):
                     cases=''.join(cases)))
 
             # Generate str-to-enum handler
+            names = set()
             cases = []
             for value, attrib in option.mode.items():
                 assert len(attrib) == 1
+                name = attrib[0]['name']
+                if name in names:
+                    die("multiple modes with the name '{}' for option '{}'".
+                        format(name, option.long))
+                else:
+                    names.add(name)
+
                 cases.append(
                     TPL_MODE_HANDLER_CASE.format(
                         name=attrib[0]['name'],
