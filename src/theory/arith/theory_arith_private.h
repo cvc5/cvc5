@@ -90,10 +90,7 @@ private:
   TheoryArith& d_containing;
   Env& d_env;
 
-  const Options& options() const
-  {
-    return d_containing.d_astate.getEnv().getOptions();
-  }
+  const Options& options() const { return d_env.getOptions(); }
 
   /**
    * Whether we encountered non-linear arithmetic at any time during solving.
