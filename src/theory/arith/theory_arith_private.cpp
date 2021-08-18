@@ -19,6 +19,7 @@
 #include "theory/arith/theory_arith_private.h"
 
 #include <map>
+#include <optional>
 #include <queue>
 #include <vector>
 
@@ -2071,7 +2072,8 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(
     if(d_partialModel.hasNode(v)){
       d_lhsTmp.set(v, Rational(1));
       double dval = nl.branchValue();
-      Maybe<Rational> maybe_value = ApproximateSimplex::estimateWithCFE(dval);
+      std::optional<Rational> maybe_value =
+          ApproximateSimplex::estimateWithCFE(dval);
       if (!maybe_value)
       {
         return make_pair(NullConstraint, ARITHVAR_SENTINEL);
@@ -2615,7 +2617,8 @@ Node TheoryArithPrivate::branchToNode(ApproximateSimplex* approx,
     if(d_partialModel.hasNode(v)){
       Node n = d_partialModel.asNode(v);
       double dval = bn.branchValue();
-      Maybe<Rational> maybe_value = ApproximateSimplex::estimateWithCFE(dval);
+      std::optional<Rational> maybe_value =
+          ApproximateSimplex::estimateWithCFE(dval);
       if (!maybe_value)
       {
         return Node::null();

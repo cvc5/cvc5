@@ -27,6 +27,7 @@
 namespace cvc5 {
 
 class SmtEngine;
+class Env;
 
 namespace smt {
 
@@ -48,7 +49,7 @@ namespace smt {
 class SmtEngineState
 {
  public:
-  SmtEngineState(context::Context* c, context::UserContext* u, SmtEngine& smt);
+  SmtEngineState(Env& env, SmtEngine& smt);
   ~SmtEngineState() {}
   /**
    * Notify that the expected status of the next check-sat is given by the
@@ -126,11 +127,6 @@ class SmtEngineState
    * Cleanup, which pops all contexts to level zero.
    */
   void cleanup();
-  /**
-   * Set that the file name of the current instance is the given string. This
-   * is used for various purposes (e.g. get-info, SZS status).
-   */
-  void setFilename(const std::string& filename);
 
   //---------------------------- context management
   /**
@@ -149,10 +145,6 @@ class SmtEngineState
    * the SMT-LIB command pop.
    */
   void userPop();
-  /** Get a pointer to the UserContext owned by this SmtEngine. */
-  context::UserContext* getUserContext();
-  /** Get a pointer to the Context owned by this SmtEngine. */
-  context::Context* getContext();
   //---------------------------- end context management
 
   //---------------------------- queries
@@ -179,11 +171,13 @@ class SmtEngineState
   Result getStatus() const;
   /** Get the SMT mode we are in */
   SmtMode getMode() const;
-  /** return the input name (if any) */
-  const std::string& getFilename() const;
   //---------------------------- end queries
 
  private:
+  /** get the sat context we are using */
+  context::Context* getContext();
+  /** get the user context we are using */
+  context::UserContext* getUserContext();
   /** Pushes the user and SAT contexts */
   void push();
   /** Pops the user and SAT contexts */
@@ -203,10 +197,8 @@ class SmtEngineState
   void internalPop(bool immediate = false);
   /** Reference to the SmtEngine */
   SmtEngine& d_smt;
-  /** Expr manager context */
-  context::Context* d_context;
-  /** User level context */
-  context::UserContext* d_userContext;
+  /** Reference to the env of the parent SmtEngine */
+  Env& d_env;
   /** The context levels of user pushes */
   std::vector<int> d_userLevels;
 
@@ -253,12 +245,6 @@ class SmtEngineState
 
   /** The SMT mode, for details see enumeration above. */
   SmtMode d_smtMode;
-
-  /**
-   * The input file name or the name set through (set-info :filename ...), if
-   * any.
-   */
-  std::string d_filename;
 };
 
 }  // namespace smt
