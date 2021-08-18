@@ -120,6 +120,19 @@ class InferProofCons : public ProofGenerator
    * conclusion, or null if we were not able to construct a TRANS step.
    */
   Node convertTrans(Node eqa, Node eqb, TheoryProofStepBuffer& psb);
+  /**
+   * Get purified substitution,
+   * updates conc to conc', children to children'
+   * where children are proven from children', and conc from conc'.
+   */
+  bool purifyCoreSubstitution(Node& conc, std::vector<Node>& children,
+              TheoryProofStepBuffer& psb) const;
+  Node purifyCorePredicate(Node conc, bool concludeNew,
+               TheoryProofStepBuffer& psb) const;
+  /**
+   * Purify term
+   */
+  Node purifyCoreTerm(Node n) const;
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The lazy fact map */

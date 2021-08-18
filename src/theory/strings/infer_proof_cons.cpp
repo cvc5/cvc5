@@ -84,7 +84,7 @@ void InferProofCons::convert(InferenceId infer,
   {
     Trace("strings-ipc-debug") << "InferProofCons::convert: " << infer
                                << (isRev ? " :rev " : " ") << conc << std::endl;
-    for (const Node& ec : exp)
+    for (const Node& ec : ps.d_children)
     {
       Trace("strings-ipc-debug") << "    e: " << ec << std::endl;
     }
@@ -103,9 +103,15 @@ void InferProofCons::convert(InferenceId infer,
     case InferenceId::STRINGS_NORMAL_FORM:
     case InferenceId::STRINGS_CODE_PROXY:
     {
-      ps.d_args.push_back(conc);
-      // will attempt this rule
-      ps.d_rule = PfRule::MACRO_SR_PRED_INTRO;
+      // AJR-TEMP substitution here
+      std::vector<Node> pcs = ps.d_children;
+      if (true)//purifyCoreSubstitution(conc, children, psb))
+      {
+        if (psb.applyPredIntro(conc, pcs))
+        {
+          useBuffer = true;
+        }
+      }
     }
     break;
     // ========================== substitution + rewriting
@@ -119,11 +125,16 @@ void InferProofCons::convert(InferenceId infer,
     {
       if (!ps.d_children.empty())
       {
-        std::vector<Node> exps(ps.d_children.begin(), ps.d_children.end() - 1);
-        Node src = ps.d_children[ps.d_children.size() - 1];
-        if (psb.applyPredTransform(src, conc, exps))
+        std::vector<Node> pcs = ps.d_children;
+        if (true)//purifyCoreSubstitution(conc, children, psb))
         {
-          useBuffer = true;
+          // AJR-TEMP: substitution here
+          std::vector<Node> exps(pcs.begin(), pcs.end() - 1);
+          Node src = pcs[pcs.size() - 1];
+          if (psb.applyPredTransform(src, conc, exps))
+          {
+            useBuffer = true;
+          }
         }
       }
       if (!useBuffer)
@@ -237,6 +248,7 @@ void InferProofCons::convert(InferenceId infer,
       childrenSRew.insert(childrenSRew.end(),
                           ps.d_children.begin(),
                           ps.d_children.begin() + mainEqIndex);
+      // AJR-TEMP substitution here
       Node mainEqSRew =
           psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, {});
       if (CDProof::isSame(mainEqSRew, mainEq))
@@ -1046,6 +1058,82 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
 std::string InferProofCons::identify() const
 {
   return "strings::InferProofCons";
+}
+
+bool InferProofCons::purifyCoreSubstitution(Node& conc, std::vector<Node>& children,
+              TheoryProofStepBuffer& psb) const
+{
+  for (size_t i=0, nchild = children.size(); i<nchild; i++)
+  {
+    Node pnc = purifyCorePredicate(children[i], true, psb);
+    if (pnc.isNull())
+    {
+      return false;
+    }
+    children[i] = pnc;
+  }
+  // prove the original conclusion
+  conc = purifyCorePredicate(conc, false, psb);
+  return !conc.isNull();
+}
+
+Node InferProofCons::purifyCorePredicate(Node lit, bool concludeNew,
+                                     TheoryProofStepBuffer& psb) const
+{
+  // purify string (dis)equalities
+  bool pol = lit.getKind()!=NOT;
+  Node atom = pol ? lit : lit[0];
+  if (atom.getKind()!=EQUAL || !atom[0].getType().isString())
+  {
+    return lit;
+  }
+  std::vector<Node> pcs;
+  bool childChanged = false;
+  for (const Node& lc : atom)
+  {
+    Node plc = purifyCoreTerm(lc);
+    childChanged = childChanged || plc != lc;
+    pcs.push_back(plc);
+  }
+  if (!childChanged)
+  {
+    return lit;
+  }
+  NodeManager * nm = NodeManager::currentNM();
+  Node newLit = nm->mkNode(EQUAL, pcs);
+  if (!pol)
+  {
+    newLit = newLit.notNode();
+  }
+  // prove by transformation, should always succeed
+  if (!psb.applyPredTransform(concludeNew ? lit : newLit, concludeNew ? newLit : lit, {}))
+  {
+    // failed, return null
+    return Node::null();
+  }
+  return newLit;
+}
+
+Node InferProofCons::purifyCoreTerm(Node n) const
+{
+  Assert (n.getType().isString());
+  if (n.getNumChildren()==0)
+  {
+    return n;
+  }
+  NodeManager * nm = NodeManager::currentNM();
+  if (n.getKind()==STRING_CONCAT)
+  {
+    std::vector<Node> pcs;
+    for (const Node& nc : n)
+    {
+      pcs.push_back(purifyCoreTerm(nc));
+    }
+    return nm->mkNode(STRING_CONCAT, pcs);
+  }
+  SkolemManager * sm = nm->getSkolemManager();
+  Node k = sm->mkPurifySkolem(n, "k");
+  return k;
 }
 
 }  // namespace strings
