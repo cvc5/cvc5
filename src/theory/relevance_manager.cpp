@@ -15,6 +15,9 @@
 
 #include "theory/relevance_manager.h"
 
+#include "smt/env.h"
+#include "options/smt_options.h"
+
 #include <sstream>
 
 using namespace cvc5::kind;
@@ -24,19 +27,23 @@ namespace theory {
 
 RelevanceManager::RelevanceManager(Env& env, Valuation val)
     : d_val(val),
-      d_input(d_env.getUserContext()),
+      d_input(env.getUserContext()),
       d_computed(false),
       d_success(false)
 {
   if (options::produceDifficulty())
   {
-    d_dman.reset(new DifficultyManager);
+    d_dman.reset(new DifficultyManager(env));
   }
 }
 
 void RelevanceManager::notifyPreprocessedAssertions(
     const std::vector<Node>& assertions)
 {
+  if (d_dman != nullptr)
+  {
+    d_dman->notifyPreprocessedAssertions(assertions);
+  }
   // add to input list, which is user-context dependent
   std::vector<Node> toProcess;
   for (const Node& a : assertions)
@@ -59,6 +66,10 @@ void RelevanceManager::notifyPreprocessedAssertions(
 
 void RelevanceManager::notifyPreprocessedAssertion(Node n)
 {
+  if (d_dman != nullptr)
+  {
+    d_dman->notifyPreprocessedAssertion(n);
+  }
   std::vector<Node> toProcess;
   toProcess.push_back(n);
   addAssertionsInternal(toProcess);

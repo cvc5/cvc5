@@ -2523,22 +2523,23 @@ void GetDifficultyCommand::printResult(std::ostream& out,
   }
   else
   {
-    /*
-    if (options::dumpUnsatCoresFull())
+    out << "(" << std::endl;
+    for (const std::pair<const api::Term, api::Term>& d : d_result)
     {
-      // use the assertions
-      UnsatCore ucr(termVectorToNodes(d_result));
-      ucr.toStream(out);
+      out << "(";
+      // use name if it has one
+      std::string name;
+      if (d_sm->getExpressionName(d.first, name, true))
+      {
+        out << name;
+      }
+      else
+      {
+        out << d.first;
+      }
+      out << " " << d.second << ")" << std::endl;
     }
-    else
-    {
-      // otherwise, use the names
-      std::vector<std::string> names;
-      d_sm->getExpressionNames(d_result, names, true);
-      UnsatCore ucr(names);
-      ucr.toStream(out);
-    }
-    */
+    out << ")" << std::endl;
   }
 }
 
