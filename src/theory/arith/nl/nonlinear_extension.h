@@ -84,8 +84,7 @@ class NonlinearExtension
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  NonlinearExtension(TheoryArith& containing,
-                     ArithState& state);
+  NonlinearExtension(TheoryArith& containing, ArithState& state);
   ~NonlinearExtension();
   /**
    * Does non-context dependent setup for a node connected to a theory.

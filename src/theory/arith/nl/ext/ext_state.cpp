@@ -30,9 +30,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-ExtState::ExtState(InferenceManager& im,
-                   NlModel& model,
-                   Env& env)
+ExtState::ExtState(InferenceManager& im, NlModel& model, Env& env)
     : d_im(im), d_model(model), d_env(env)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -42,7 +40,8 @@ ExtState::ExtState(InferenceManager& im,
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
   if (d_env.isTheoryProofProducing())
   {
-    d_proof.reset(new CDProofSet<CDProof>(d_env.getProofNodeManager(), d_env.getUserContext(), "nl-ext"));
+    d_proof.reset(new CDProofSet<CDProof>(
+        d_env.getProofNodeManager(), d_env.getUserContext(), "nl-ext"));
   }
 }
 

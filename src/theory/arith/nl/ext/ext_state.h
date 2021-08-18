@@ -38,9 +38,7 @@ class NlModel;
 
 struct ExtState
 {
-  ExtState(InferenceManager& im,
-           NlModel& model,
-           Env& env);
+  ExtState(InferenceManager& im, NlModel& model, Env& env);
 
   void init(const std::vector<Node>& xts);
 

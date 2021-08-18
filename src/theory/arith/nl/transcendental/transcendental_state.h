@@ -62,9 +62,7 @@ inline std::ostream& operator<<(std::ostream& os, Convexity c) {
  */
 struct TranscendentalState
 {
-  TranscendentalState(InferenceManager& im,
-                      NlModel& model,
-                      Env& env);
+  TranscendentalState(InferenceManager& im, NlModel& model, Env& env);
 
   /**
    * Checks whether proofs are enabled.

@@ -50,9 +50,7 @@ namespace transcendental {
 class TranscendentalSolver
 {
  public:
-  TranscendentalSolver(InferenceManager& im,
-                       NlModel& m,
-                       Env& env);
+  TranscendentalSolver(InferenceManager& im, NlModel& m, Env& env);
   ~TranscendentalSolver();
 
   /** init last call

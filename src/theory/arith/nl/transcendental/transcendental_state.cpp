@@ -40,7 +40,8 @@ TranscendentalState::TranscendentalState(InferenceManager& im,
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
   if (d_env.isTheoryProofProducing())
   {
-    d_proof.reset(new CDProofSet<CDProof>(d_env.getProofNodeManager(), d_env.getUserContext(), "nl-trans"));
+    d_proof.reset(new CDProofSet<CDProof>(
+        d_env.getProofNodeManager(), d_env.getUserContext(), "nl-trans"));
     d_proofChecker.reset(new TranscendentalProofRuleChecker());
     d_proofChecker->registerTo(d_env.getProofNodeManager()->getChecker());
   }
