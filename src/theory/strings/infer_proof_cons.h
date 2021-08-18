@@ -125,10 +125,12 @@ class InferProofCons : public ProofGenerator
    * updates conc to conc', children to children'
    * where children are proven from children', and conc from conc'.
    */
-  bool purifyCoreSubstitution(Node& conc, std::vector<Node>& children,
-              TheoryProofStepBuffer& psb) const;
-  Node purifyCorePredicate(Node conc, bool concludeNew,
-               TheoryProofStepBuffer& psb) const;
+  bool purifyCoreSubstitution(Node& conc,
+                              std::vector<Node>& children,
+                              TheoryProofStepBuffer& psb) const;
+  Node purifyCorePredicate(Node conc,
+                           bool concludeNew,
+                           TheoryProofStepBuffer& psb) const;
   /**
    * Purify term
    */

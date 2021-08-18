@@ -105,7 +105,7 @@ void InferProofCons::convert(InferenceId infer,
     {
       // AJR-TEMP substitution here
       std::vector<Node> pcs = ps.d_children;
-      if (true)//purifyCoreSubstitution(conc, children, psb))
+      if (true)  // purifyCoreSubstitution(conc, children, psb))
       {
         if (psb.applyPredIntro(conc, pcs))
         {
@@ -126,7 +126,7 @@ void InferProofCons::convert(InferenceId infer,
       if (!ps.d_children.empty())
       {
         std::vector<Node> pcs = ps.d_children;
-        if (true)//purifyCoreSubstitution(conc, children, psb))
+        if (true)  // purifyCoreSubstitution(conc, children, psb))
         {
           // AJR-TEMP: substitution here
           std::vector<Node> exps(pcs.begin(), pcs.end() - 1);
@@ -1060,10 +1060,11 @@ std::string InferProofCons::identify() const
   return "strings::InferProofCons";
 }
 
-bool InferProofCons::purifyCoreSubstitution(Node& conc, std::vector<Node>& children,
-              TheoryProofStepBuffer& psb) const
+bool InferProofCons::purifyCoreSubstitution(Node& conc,
+                                            std::vector<Node>& children,
+                                            TheoryProofStepBuffer& psb) const
 {
-  for (size_t i=0, nchild = children.size(); i<nchild; i++)
+  for (size_t i = 0, nchild = children.size(); i < nchild; i++)
   {
     Node pnc = purifyCorePredicate(children[i], true, psb);
     if (pnc.isNull())
@@ -1077,13 +1078,14 @@ bool InferProofCons::purifyCoreSubstitution(Node& conc, std::vector<Node>& child
   return !conc.isNull();
 }
 
-Node InferProofCons::purifyCorePredicate(Node lit, bool concludeNew,
-                                     TheoryProofStepBuffer& psb) const
+Node InferProofCons::purifyCorePredicate(Node lit,
+                                         bool concludeNew,
+                                         TheoryProofStepBuffer& psb) const
 {
   // purify string (dis)equalities
-  bool pol = lit.getKind()!=NOT;
+  bool pol = lit.getKind() != NOT;
   Node atom = pol ? lit : lit[0];
-  if (atom.getKind()!=EQUAL || !atom[0].getType().isString())
+  if (atom.getKind() != EQUAL || !atom[0].getType().isString())
   {
     return lit;
   }
@@ -1099,14 +1101,15 @@ Node InferProofCons::purifyCorePredicate(Node lit, bool concludeNew,
   {
     return lit;
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node newLit = nm->mkNode(EQUAL, pcs);
   if (!pol)
   {
     newLit = newLit.notNode();
   }
   // prove by transformation, should always succeed
-  if (!psb.applyPredTransform(concludeNew ? lit : newLit, concludeNew ? newLit : lit, {}))
+  if (!psb.applyPredTransform(
+          concludeNew ? lit : newLit, concludeNew ? newLit : lit, {}))
   {
     // failed, return null
     return Node::null();
@@ -1116,13 +1119,13 @@ Node InferProofCons::purifyCorePredicate(Node lit, bool concludeNew,
 
 Node InferProofCons::purifyCoreTerm(Node n) const
 {
-  Assert (n.getType().isString());
-  if (n.getNumChildren()==0)
+  Assert(n.getType().isString());
+  if (n.getNumChildren() == 0)
   {
     return n;
   }
-  NodeManager * nm = NodeManager::currentNM();
-  if (n.getKind()==STRING_CONCAT)
+  NodeManager* nm = NodeManager::currentNM();
+  if (n.getKind() == STRING_CONCAT)
   {
     std::vector<Node> pcs;
     for (const Node& nc : n)
@@ -1131,7 +1134,7 @@ Node InferProofCons::purifyCoreTerm(Node n) const
     }
     return nm->mkNode(STRING_CONCAT, pcs);
   }
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   Node k = sm->mkPurifySkolem(n, "k");
   return k;
 }
