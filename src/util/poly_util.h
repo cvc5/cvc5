@@ -18,9 +18,9 @@
 #ifndef CVC5__POLY_UTIL_H
 #define CVC5__POLY_UTIL_H
 
+#include <optional>
 #include <vector>
 
-#include "maybe.h"
 #include "util/integer.h"
 #include "util/rational.h"
 #include "util/real_algebraic_number.h"
@@ -66,12 +66,12 @@ poly::Rational toRational(const Rational& r);
  * Converts a cvc5::Rational to a poly::DyadicRational. If the input is not
  * dyadic, no result is produced.
  */
-Maybe<poly::DyadicRational> toDyadicRational(const Rational& r);
+std::optional<poly::DyadicRational> toDyadicRational(const Rational& r);
 /**
  * Converts a poly::Rational to a poly::DyadicRational. If the input is not
  * dyadic, no result is produced.
  */
-Maybe<poly::DyadicRational> toDyadicRational(const poly::Rational& r);
+std::optional<poly::DyadicRational> toDyadicRational(const poly::Rational& r);
 
 /**
  * Iteratively approximates a poly::Rational by a dyadic poly::Rational.
