@@ -707,7 +707,7 @@ class CVC5_EXPORT SmtEngine
    * Get difficulty map
    */
   void getDifficultyMap(std::map<Node, Node>& dmap);
-  
+
   /**
    * Push a user-level context.
    * throw@ ModalException, LogicException, UnsafeInterruptException

@@ -3759,7 +3759,7 @@ class CVC5_EXPORT Solver
    * assertion was to solve.
    */
   Term getDifficulty(Term assertion) const;
-  /** 
+  /**
    * Same as above, for all input assertions
    */
   std::map<Term, Term> getDifficultyMap() const;

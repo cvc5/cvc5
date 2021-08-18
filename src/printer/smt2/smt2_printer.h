@@ -161,7 +161,7 @@ class Smt2Printer : public cvc5::Printer
 
   /** Print get-unsat-core command */
   void toStreamCmdGetUnsatCore(std::ostream& out) const override;
-  
+
   /** Print get-difficulty command */
   void toStreamCmdGetDifficulty(std::ostream& out) const override;
 

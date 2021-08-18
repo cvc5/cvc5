@@ -184,9 +184,9 @@ void PfManager::getDifficultyMap(std::map<Node, Node>& dmap, Assertions& as)
   CDProof cdp(d_pnm.get());
   Node fnode = NodeManager::currentNM()->mkConst(false);
   cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppAsserts, {});
-  std::shared_ptr<ProofNode> pf =  cdp.getProofFor(fnode);
+  std::shared_ptr<ProofNode> pf = cdp.getProofFor(fnode);
   std::shared_ptr<ProofNode> fpf = getFinalProof(pfn, as);
-  
+
   // TODO: analyze proof
 }
 
