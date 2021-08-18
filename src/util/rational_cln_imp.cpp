@@ -99,7 +99,7 @@ int Rational::absCmp(const Rational& q) const{
   }
 }
 
-Maybe<Rational> Rational::fromDouble(double d)
+std::optional<Rational> Rational::fromDouble(double d)
 {
   try{
     cln::cl_DF fromD = d;
@@ -107,11 +107,11 @@ Maybe<Rational> Rational::fromDouble(double d)
     q.d_value = cln::rationalize(fromD);
     return q;
   }catch(cln::floating_point_underflow_exception& fpue){
-    return Maybe<Rational>();
+    return std::optional<Rational>();
   }catch(cln::floating_point_nan_exception& fpne){
-    return Maybe<Rational>();
+    return std::optional<Rational>();
   }catch(cln::floating_point_overflow_exception& fpoe){
-    return Maybe<Rational>();
+    return std::optional<Rational>();
   }
 }
 

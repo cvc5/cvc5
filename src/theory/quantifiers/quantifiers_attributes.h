@@ -162,8 +162,7 @@ struct QAttributes
    * perform destructive updates (variable elimination, miniscoping, etc).
    *
    * A quantified formula is not standard if it is sygus, one for which
-   * we are performing quantifier elimination, is a function definition, or
-   * has a name.
+   * we are performing quantifier elimination, or is a function definition.
    */
   bool isStandard() const;
 };
