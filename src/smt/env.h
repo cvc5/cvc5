@@ -86,6 +86,13 @@ class Env
   const std::string& getFilename() const;
 
   /**
+   * Check whether the SAT solver should produce proofs. Other than whether
+   * the proof node manager is set, SAT proofs are only generated when the
+   * unsat core mode is not ASSUMPTIONS.
+   */
+  bool isSatProofProducing() const;
+
+  /**
    * Check whether theories should produce proofs as well. Other than whether
    * the proof node manager is set, theory engine proofs are conditioned on the
    * relationship between proofs and unsat cores: the unsat cores are in
