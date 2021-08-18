@@ -52,8 +52,7 @@ class TranscendentalSolver
  public:
   TranscendentalSolver(InferenceManager& im,
                        NlModel& m,
-                       ProofNodeManager* pnm,
-                       context::UserContext* c);
+                       Env& env);
   ~TranscendentalSolver();
 
   /** init last call

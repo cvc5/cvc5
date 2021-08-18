@@ -39,9 +39,8 @@ namespace transcendental {
 
 TranscendentalSolver::TranscendentalSolver(InferenceManager& im,
                                            NlModel& m,
-                                           ProofNodeManager* pnm,
-                                           context::UserContext* c)
-    : d_tstate(im, m, pnm, c), d_expSlv(&d_tstate), d_sineSlv(&d_tstate)
+                                           Env& env)
+    : d_tstate(im, m, env), d_expSlv(&d_tstate), d_sineSlv(&d_tstate)
 {
   d_taylor_degree = options::nlExtTfTaylorDegree();
 }
