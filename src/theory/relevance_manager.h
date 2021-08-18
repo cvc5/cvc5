@@ -23,15 +23,14 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
-#include "theory/valuation.h"
 #include "theory/difficulty_manager.h"
+#include "theory/valuation.h"
 
 namespace cvc5 {
 
 class Env;
 
 namespace theory {
-
 
 /**
  * This class manages queries related to relevance of asserted literals.

@@ -15,8 +15,8 @@
 
 #include "theory/relevance_manager.h"
 
-#include "smt/env.h"
 #include "options/smt_options.h"
+#include "smt/env.h"
 
 #include <sstream>
 
