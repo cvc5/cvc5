@@ -111,9 +111,7 @@ PropEngine::PropEngine(TheoryEngine* te,
                                   d_theoryEngine,
                                   d_decisionEngine.get(),
                                   d_skdm.get(),
-                                  satContext,
-                                  userContext,
-                                  pnm);
+                                  d_env);
   d_cnfStream = new CnfStream(d_satSolver,
                               d_theoryProxy,
                               userContext,
