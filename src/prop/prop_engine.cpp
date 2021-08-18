@@ -114,10 +114,6 @@ PropEngine::PropEngine(TheoryEngine* te, Env& env)
                               rm,
                               FormulaLitPolicy::TRACK,
                               "prop");
-
-  bool satProofs =
-      options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS
-      && options::unsatCoresMode() != options::UnsatCoresMode::PP_ONLY;
   // connect theory proxy
   d_theoryProxy->finishInit(d_cnfStream);
   bool satProofs = d_env.isSatProofProducing();
