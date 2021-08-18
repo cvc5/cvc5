@@ -122,6 +122,7 @@ PropEngine::PropEngine(TheoryEngine* te,
                               FormulaLitPolicy::TRACK,
                               "prop");
 
+  bool satProofs = options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS && options::unsatCoresMode() != options::UnsatCoresMode::PP_ONLY;
   // connect theory proxy
   d_theoryProxy->finishInit(d_cnfStream);
   // connect SAT solver
@@ -129,12 +130,12 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_env.getContext(),
       d_theoryProxy,
       d_env.getUserContext(),
-      options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS
+      satProofs
           ? pnm
           : nullptr);
 
   d_decisionEngine->finishInit(d_satSolver, d_cnfStream);
-  if (pnm && options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS)
+  if (pnm && satProofs)
   {
     d_pfCnfStream.reset(new ProofCnfStream(
         userContext,

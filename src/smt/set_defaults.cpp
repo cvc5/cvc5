@@ -71,6 +71,13 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
   {
     opts.driver.dumpUnsatCores = true;
   }
+  if (opts.smt.produceDifficulty)
+  {
+    if (opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
+    {
+      opts.smt.unsatCoresMode = options::UnsatCoresMode::PP_ONLY;
+    }
+  }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
       || opts.smt.unsatAssumptions || opts.smt.minimalUnsatCores
       || opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)

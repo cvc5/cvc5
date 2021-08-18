@@ -174,8 +174,10 @@ void PfManager::checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
 
 void PfManager::getDifficultyMap(std::map<Node, Node>& dmap, Assertions& as)
 {
+  std::map<Node, Node> dmapp = dmap;
+  dmap.clear();
   std::vector<Node> ppAsserts;
-  for (const std::pair<const Node, Node>& ppa : dmap)
+  for (const std::pair<const Node, Node>& ppa : dmapp)
   {
     ppAsserts.push_back(ppa.first);
   }
@@ -185,9 +187,17 @@ void PfManager::getDifficultyMap(std::map<Node, Node>& dmap, Assertions& as)
   Node fnode = NodeManager::currentNM()->mkConst(false);
   cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppAsserts, {});
   std::shared_ptr<ProofNode> pf = cdp.getProofFor(fnode);
-  std::shared_ptr<ProofNode> fpf = getFinalProof(pfn, as);
+  std::shared_ptr<ProofNode> fpf = getFinalProof(pf, as);
 
-  // TODO: analyze proof
+  // analyze proof
+  Assert (fpf->getRule()==PfRule::SAT_REFUTATION);
+  const std::vector<std::shared_ptr<ProofNode>>& children = fpf->getChildren();
+  for (const std::shared_ptr<ProofNode>& c : children)
+  {
+    Node res = c->getResult();
+    Assert (dmapp.find(res)!=dmapp.end());
+    // TODO
+  }
 }
 
 ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
