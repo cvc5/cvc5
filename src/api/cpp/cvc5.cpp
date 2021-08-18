@@ -7110,6 +7110,20 @@ std::vector<Term> Solver::getUnsatCore(void) const
   CVC5_API_TRY_CATCH_END;
 }
 
+Term Solver::getDifficulty(Term assertion) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::SAT_UNKNOWN)
+      << "Cannot get difficulty unless immediately after an unknown.";
+  //////// all checks before this line
+  Term res;
+  // TODO
+  return res;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 std::string Solver::getProof(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;

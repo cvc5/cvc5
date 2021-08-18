@@ -3749,6 +3749,18 @@ class CVC5_EXPORT Solver
   std::vector<Term> getUnsatCore() const;
 
   /**
+   * Get a difficulty estimate for an asserted formula. This method is
+   * intended to be called immediately after an "unknown" response from the
+   * solver.
+   *
+   * @param assertion The asserted formula, which should be one of those in
+   * the vector returned by getAssertions.
+   * @return a real-valued term that is an estimate of how difficult the
+   * assertion was to solve. 
+   */
+  Term getDifficulty(Term assertion) const;
+  
+  /**
    * Get the refutation proof
    * SMT-LIB:
    * \verbatim

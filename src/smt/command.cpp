@@ -2490,6 +2490,87 @@ void GetUnsatCoreCommand::toStream(std::ostream& out,
   Printer::getPrinter(language)->toStreamCmdGetUnsatCore(out);
 }
 
+
+/* -------------------------------------------------------------------------- */
+/* class GetDifficultyCommand                                                  */
+/* -------------------------------------------------------------------------- */
+
+GetDifficultyCommand::GetDifficultyCommand() : d_sm(nullptr) {}
+void GetDifficultyCommand::invoke(api::Solver* solver, SymbolManager* sm)
+{
+  try
+  {
+    d_sm = sm;
+    const vector<api::Term> v = solver->getAssertions();
+    //d_result = solver->getUnsatCore();
+
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (api::CVC5ApiRecoverableException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetDifficultyCommand::printResult(std::ostream& out,
+                                      uint32_t verbosity) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out, verbosity);
+  }
+  else
+  {
+    /*
+    if (options::dumpUnsatCoresFull())
+    {
+      // use the assertions
+      UnsatCore ucr(termVectorToNodes(d_result));
+      ucr.toStream(out);
+    }
+    else
+    {
+      // otherwise, use the names
+      std::vector<std::string> names;
+      d_sm->getExpressionNames(d_result, names, true);
+      UnsatCore ucr(names);
+      ucr.toStream(out);
+    }
+    */
+  }
+}
+
+const std::map<api::Term, api::Term>& GetDifficultyCommand::getDifficultyMap() const
+{
+  // of course, this will be empty if the command hasn't been invoked yet
+  return d_result;
+}
+
+Command* GetDifficultyCommand::clone() const
+{
+  GetDifficultyCommand* c = new GetDifficultyCommand;
+  c->d_sm = d_sm;
+  c->d_result = d_result;
+  return c;
+}
+
+std::string GetDifficultyCommand::getCommandName() const
+{
+  return "get-difficulty";
+}
+
+void GetDifficultyCommand::toStream(std::ostream& out,
+                                   int toDepth,
+                                   size_t dag,
+                                   OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetDifficulty(out);
+}
+
 /* -------------------------------------------------------------------------- */
 /* class GetAssertionsCommand                                                 */
 /* -------------------------------------------------------------------------- */
