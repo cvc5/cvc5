@@ -1,11 +1,10 @@
 ; REQUIRES: glpk
 ; COMMAND-LINE: --use-approx
-; EXPECT: unknown
 (set-logic UFNIA)
 (set-info :source "Reduced from regression 'bug812.smt2' using ddSMT to exercise GLPK")
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
-(set-info :status unknown)
+(set-info :status unsat)
 (declare-fun s (Int Int) Int)
 (declare-fun P (Int Int Int) Int)
 (declare-fun p (Int) Int)
