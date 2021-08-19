@@ -184,8 +184,8 @@ class CDCAC
    */
   void pruneRedundantIntervals(std::vector<CACInterval>& intervals);
 
-  /** A reference to the options */
-  const Options& d_options;
+  /** A reference to the environment */
+  Env& d_env;
 
   /**
    * The current assignment. When the method terminates with SAT, it contains a

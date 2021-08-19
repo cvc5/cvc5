@@ -42,12 +42,12 @@ namespace nl {
 namespace cad {
 
 CDCAC::CDCAC(Env& env, const std::vector<poly::Variable>& ordering)
-    : d_options(env.getOptions()), d_variableOrdering(ordering)
+    : d_env(env), d_variableOrdering(ordering)
 {
-  if (env.isTheoryProofProducing())
+  if (d_env.isTheoryProofProducing())
   {
     d_proof.reset(
-        new CADProofGenerator(env.getContext(), env.getProofNodeManager()));
+        new CADProofGenerator(d_env.getContext(), d_env.getProofNodeManager()));
   }
 }
 
@@ -76,7 +76,7 @@ void CDCAC::computeVariableOrdering()
 
 void CDCAC::retrieveInitialAssignment(NlModel& model, const Node& ran_variable)
 {
-  if (!d_options.arith.nlCadUseInitial) return;
+  if (!d_env.getOptions().arith.nlCadUseInitial) return;
   d_initialAssignment.clear();
   Trace("cdcac") << "Retrieving initial assignment:" << std::endl;
   for (const auto& var : d_variableOrdering)
@@ -102,7 +102,7 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
 {
   std::vector<CACInterval> res;
   LazardEvaluation le;
-  if (d_options.arith.nlCadLifting == options::NlCadLiftingMode::LAZARD)
+  if (d_env.getOptions().arith.nlCadLifting == options::NlCadLiftingMode::LAZARD)
   {
     for (size_t vid = 0; vid < cur_variable; ++vid)
     {
@@ -126,7 +126,7 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
     Trace("cdcac") << "Infeasible intervals for " << p << " " << sc
                    << " 0 over " << d_assignment << std::endl;
     std::vector<poly::Interval> intervals;
-    if (d_options.arith.nlCadLifting == options::NlCadLiftingMode::LAZARD)
+    if (d_env.getOptions().arith.nlCadLifting == options::NlCadLiftingMode::LAZARD)
     {
       intervals = le.infeasibleRegions(p, sc);
       if (Trace.isOn("cdcac"))
@@ -170,7 +170,7 @@ bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
                                      poly::Value& sample,
                                      std::size_t cur_variable)
 {
-  if (d_options.arith.nlCadUseInitial
+  if (d_env.getOptions().arith.nlCadUseInitial
       && cur_variable < d_initialAssignment.size())
   {
     const poly::Value& suggested = d_initialAssignment[cur_variable];
@@ -305,7 +305,7 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
                    << requiredCoefficientsOriginal(p, d_assignment)
                    << std::endl;
   }
-  switch (d_options.arith.nlCadProjection)
+  switch (d_env.getOptions().arith.nlCadProjection)
   {
     case options::NlCadProjectionMode::MCCALLUM:
       return requiredCoefficientsOriginal(p, d_assignment);
