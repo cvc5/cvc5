@@ -190,7 +190,8 @@ void PfManager::getDifficultyMap(std::map<Node, Node>& dmap, Assertions& as)
   std::vector<Node> ppAsserts;
   for (const std::pair<const Node, Node>& ppa : dmapp)
   {
-    Trace("difficulty") << "  preprocess difficulty: " << ppa.second << " for " << ppa.first << std::endl;
+    Trace("difficulty") << "  preprocess difficulty: " << ppa.second << " for "
+                        << ppa.first << std::endl;
     ppAsserts.push_back(ppa.first);
   }
   // assume a SAT refutation from all input assertions that were marked

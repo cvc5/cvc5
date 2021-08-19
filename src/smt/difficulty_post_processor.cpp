@@ -48,7 +48,8 @@ bool DifficultyPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   PfRule r = pn->getRule();
   if (r == PfRule::ASSUME)
   {
-    Trace("difficulty-debug") << "  found assume: " << pn->getResult() << std::endl;
+    Trace("difficulty-debug")
+        << "  found assume: " << pn->getResult() << std::endl;
     d_accMap[pn->getResult()] += d_currDifficulty;
   }
   else if (r == PfRule::MACRO_SR_EQ_INTRO || r == PfRule::MACRO_SR_PRED_INTRO)
