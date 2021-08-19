@@ -246,7 +246,7 @@ class IntBlaster
    * A useful utility function.
    * if n is an integer and tn is bit-vector,
    * applies the IntToBitVector operator on n.
-   * if n is a vit-vector and tn is integer,
+   * if n is a bit-vector and tn is integer,
    * applies BitVector_TO_NAT operator.
    * Otherwise, keeps n intact.
    */

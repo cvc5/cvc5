@@ -649,7 +649,9 @@ Node IntBlaster::translateNoChildren(Node original,
   Trace("int-blaster-debug")
       << "translating leaf: " << original << "; of type: " << original.getType()
       << std::endl;
+  // The result of the translation
   Node translation;
+  // The translation is done differently for variables (bound or free)  and constants (values)
   Assert(original.isVar() || original.isConst());
   if (original.isVar())
   {
@@ -672,7 +674,7 @@ Node IntBlaster::translateNoChildren(Node original,
         // In the former case, we must include range lemmas, while in the
         // latter we don't.
         // This is determined by the option bv-to-int-fresh-vars.
-        // intCast and bvCast are used for models:
+	// The variables intCast and bvCast are used for models:
         // even if we introduce a fresh variable,
         // it is associated with intCast (which is (bv2nat original)).
         // bvCast is either ( (_ nat2bv k) original) or just original.
@@ -681,17 +683,16 @@ Node IntBlaster::translateNoChildren(Node original,
         if (d_introduceFreshIntVars)
         {
           // we introduce a fresh variable, add range constraints, and save the
-          // connection between original and the new variable.
+          // connection between original and the new variable via intCast
           translation = d_nm->getSkolemManager()->mkPurifySkolem(
               intCast,
               "__intblast__var",
-              "Variable introduced in intblasting"
-              "pass instead of original variable "
+              "Variable introduced in intblasting for "
                   + original.toString());
           uint64_t bvsize = original.getType().getBitVectorSize();
           addRangeConstraint(translation, bvsize, lemmas);
           // put new definition of old variable in skolems
-          bvCast = original;
+          bvCast = castToType(translation, original.getType());
         }
         else
         {
@@ -701,7 +702,7 @@ Node IntBlaster::translateNoChildren(Node original,
           bvCast = original;
         }
 
-        // add bvCast to skolems if it is not already ther.
+        // add bvCast to skolems if it is not already there.
         if (skolems.find(original) == skolems.end())
         {
           skolems[original] = bvCast;
@@ -718,38 +719,6 @@ Node IntBlaster::translateNoChildren(Node original,
       translation = translateFunctionSymbol(original, skolems);
     }
 
-    std::vector<Node> achildren;
-    achildren.push_back(translation);
-    int i = 0;
-    for (const TypeNode& d : bvDomain)
-    {
-      // Each bit-vector argument is casted to a natural number
-      // Other arguments are left intact.
-      Node fresh_bound_var = nm->mkBoundVar(d);
-      args.push_back(fresh_bound_var);
-      Node castedArg = args[i];
-      if (d.isBitVector())
-      {
-        castedArg = castToType(castedArg, nm->integerType());
-      }
-      achildren.push_back(castedArg);
-      i++;
-    }
-    Node app = nm->mkNode(kind::APPLY_UF, achildren);
-    Node body = castToType(app, resultType);
-    Node bvlist = d_nm->mkNode(kind::BOUND_VAR_LIST, args);
-    result = d_nm->mkNode(kind::LAMBDA, bvlist, body);
-      if (skolems.find(bvUF) == skolems.end())
-      {
-        skolems[bvUF] = lambda;
-      }
-    }
-    else
-    {
-      // variables other than bit-vector variables and function symbols
-      // are left intact
-      translation = original;
-    }
   }
   else
   {
@@ -777,7 +746,6 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
   Node intUF;
   TypeNode tn = bvUF.getType();
   TypeNode bvRange = tn.getRangeType();
-  // The function symbol has not been converted yet
   std::vector<TypeNode> bvDomain = tn.getArgTypes();
   std::vector<TypeNode> intDomain;
   /**
@@ -796,7 +764,44 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
   SkolemManager* sm = d_nm->getSkolemManager();
   intUF = sm->mkDummySkolem(
       os.str(), d_nm->mkFunctionType(intDomain, intRange), "bv2int function");
-  // add definition of old function symbol to skolems
+  
+  // add definition of old function symbol to skolems.
+  // create the application of the translated function.
+  // The application will be used inside a lambda
+  // expression.
+  
+  // formal arguments of the lambda expression.
+  std::vector<Node> args;
+
+  // arguments to be passed in the application.
+  // They will be casted versions of the original BV
+  // arguments, with the function symbol itself
+  // on front. Non-BV arguments will stay intact.
+  std::vector<Node> achildren;
+  achildren.push_back(intUF);
+  int i = 0;
+  for (const TypeNode& d : bvDomain)
+  {
+    // Each bit-vector argument is casted to a natural number
+    // Other arguments are left intact.
+    Node fresh_bound_var = d_nm->mkBoundVar(d);
+    args.push_back(fresh_bound_var);
+    Node castedArg = args[i];
+    if (d.isBitVector())
+    {
+      castedArg = castToType(castedArg, d_nm->integerType());
+    }
+    achildren.push_back(castedArg);
+    i++;
+  }
+  Node app = d_nm->mkNode(kind::APPLY_UF, achildren);
+  Node body = castToType(app, intRange);
+  Node bvlist = d_nm->mkNode(kind::BOUND_VAR_LIST, args);
+  Node result = d_nm->mkNode(kind::LAMBDA, bvlist, body);
+  if (skolems.find(bvUF) == skolems.end())
+  {
+    skolems[bvUF] = result;
+  }
   return intUF;
 }
 
