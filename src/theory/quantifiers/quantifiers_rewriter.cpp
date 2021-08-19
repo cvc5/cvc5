@@ -32,6 +32,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -50,7 +51,11 @@ namespace quantifiers {
  * - QRewMiniscopeAttribute: cached on (v, q, i) where q is being miniscoped
  * for F_i in its body (and F_1 ... F_n), and v is one of the bound variables
  * that q binds.
- * - QRewDtExpandAttribute: cached on
+ * - QRewDtExpandAttribute: cached on (F, lit, a) where lit is the tested
+ * literal used for expanding a quantified datatype variable in quantified
+ * formula with body F, and a is the rational corresponding to the argument
+ * position of the variable, e.g. lit is ((_ is C) x) and x is
+ * replaced by (C y1 ... yn), where the argument position of yi is i.
  */
 struct QRewPrenexAttributeId
 {
@@ -644,7 +649,7 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
         std::vector<Node> tmpArgs = args;
         for (unsigned j = 0, bsize = b.getNumChildren(); j < bsize; j++)
         {
-          if (getVarElimLit(b[j], false, tmpArgs, vars, subs))
+          if (getVarElimLit(body, b[j], false, tmpArgs, vars, subs))
           {
             Trace("cond-var-split-debug") << "Variable elimination in child #"
                                           << j << " under " << i << std::endl;
@@ -855,7 +860,8 @@ Node QuantifiersRewriter::getVarElimEqString(Node lit,
   return Node::null();
 }
 
-bool QuantifiersRewriter::getVarElimLit(Node lit,
+bool QuantifiersRewriter::getVarElimLit(Node body,
+                                        Node lit,
                                         bool pol,
                                         std::vector<Node>& args,
                                         std::vector<Node>& vars,
@@ -887,10 +893,13 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
       std::vector<Node> newChildren;
       newChildren.push_back(c.getConstructor());
       std::vector<Node> newVars;
+      BoundVarManager* bvm = nm->getBoundVarManager();
       for (unsigned j = 0, nargs = c.getNumArgs(); j < nargs; j++)
       {
         TypeNode tn = c[j].getRangeType();
-        Node v = nm->mkBoundVar(tn);
+        Node rn = nm->mkConst(Rational(j));
+        Node cacheVal = BoundVarManager::getCacheValue(body, lit, rn);
+        Node v = bvm->mkBoundVar<QRewDtExpandAttribute>(cacheVal, tn);
         newChildren.push_back(v);
         newVars.push_back(v);
       }
@@ -980,11 +989,20 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
   return false;
 }
 
-bool QuantifiersRewriter::getVarElim(Node n,
-                                     bool pol,
+bool QuantifiersRewriter::getVarElim(Node body,
                                      std::vector<Node>& args,
                                      std::vector<Node>& vars,
                                      std::vector<Node>& subs)
+{
+  return getVarElimInternal(body, body, false, args, vars, subs);
+}
+
+bool QuantifiersRewriter::getVarElimInternal(Node body,
+                                             Node n,
+                                             bool pol,
+                                             std::vector<Node>& args,
+                                             std::vector<Node>& vars,
+                                             std::vector<Node>& subs)
 {
   Kind nk = n.getKind();
   if (nk == NOT)
@@ -998,21 +1016,21 @@ bool QuantifiersRewriter::getVarElim(Node n,
   {
     for (const Node& cn : n)
     {
-      if (getVarElim(cn, pol, args, vars, subs))
+      if (getVarElimInternal(body, cn, pol, args, vars, subs))
       {
         return true;
       }
     }
     return false;
   }
-  return getVarElimLit(n, pol, args, vars, subs);
+  return getVarElimLit(body, n, pol, args, vars, subs);
 }
 
 bool QuantifiersRewriter::hasVarElim(Node n, bool pol, std::vector<Node>& args)
 {
   std::vector< Node > vars;
   std::vector< Node > subs;
-  return getVarElim(n, pol, args, vars, subs);
+  return getVarElimInternal(n, n, pol, args, vars, subs);
 }
 
 bool QuantifiersRewriter::getVarElimIneq(Node body,
@@ -1231,7 +1249,7 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
     // standard variable elimination
     if (options::varElimQuant())
     {
-      getVarElim(body, false, args, vars, subs);
+      getVarElim(body, args, vars, subs);
     }
     // variable elimination based on one-direction inequalities
     if (vars.empty() && options::varIneqElimQuant())
