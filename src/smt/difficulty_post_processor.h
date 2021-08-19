@@ -45,6 +45,7 @@ class DifficultyPostprocessCallback : public ProofNodeUpdaterCallback
                     bool& continueUpdate) override;
   /** Get the (acculumated) difficulty map */
   void getDifficultyMap(std::map<Node, Node>& dmap) const;
+
  private:
   /** Reference to the env class */
   Env& d_env;

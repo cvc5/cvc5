@@ -29,7 +29,8 @@ DifficultyPostprocessCallback::DifficultyPostprocessCallback(Env& env)
 {
 }
 
-bool DifficultyPostprocessCallback::setCurrentDifficulty(Node d) {
+bool DifficultyPostprocessCallback::setCurrentDifficulty(Node d)
+{
   if (d.isConst() && d.getType().isInteger()
       && d.getConst<Rational>().sgn() >= 0
       && d.getConst<Rational>().getNumerator().fitsUnsignedInt())
@@ -51,10 +52,11 @@ bool DifficultyPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   return true;
 }
 
-void DifficultyPostprocessCallback::getDifficultyMap(std::map<Node, Node>& dmap) const
+void DifficultyPostprocessCallback::getDifficultyMap(
+    std::map<Node, Node>& dmap) const
 {
-  Assert (dmap.empty());
-  NodeManager * nm = NodeManager::currentNM();
+  Assert(dmap.empty());
+  NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, uint64_t>& d : d_accMap)
   {
     dmap[d.first] = nm->mkConst(Rational(d.second));
