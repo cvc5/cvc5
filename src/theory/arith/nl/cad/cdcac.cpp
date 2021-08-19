@@ -102,7 +102,8 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
 {
   std::vector<CACInterval> res;
   LazardEvaluation le;
-  if (d_env.getOptions().arith.nlCadLifting == options::NlCadLiftingMode::LAZARD)
+  if (d_env.getOptions().arith.nlCadLifting
+      == options::NlCadLiftingMode::LAZARD)
   {
     for (size_t vid = 0; vid < cur_variable; ++vid)
     {
@@ -126,7 +127,8 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
     Trace("cdcac") << "Infeasible intervals for " << p << " " << sc
                    << " 0 over " << d_assignment << std::endl;
     std::vector<poly::Interval> intervals;
-    if (d_env.getOptions().arith.nlCadLifting == options::NlCadLiftingMode::LAZARD)
+    if (d_env.getOptions().arith.nlCadLifting
+        == options::NlCadLiftingMode::LAZARD)
     {
       intervals = le.infeasibleRegions(p, sc);
       if (Trace.isOn("cdcac"))
