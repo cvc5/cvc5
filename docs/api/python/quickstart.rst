@@ -15,7 +15,7 @@ and for this we have to enable the following options.
      :lines: 26-27
 
 Next we set the logic.
-The simplest way to set a logic for the solver is to choose "ALL".
+The simplest way to set a logic for the solver is to choose ``"ALL"``.
 This enables all logics in the solver.
 Alternatively, ``"QF_ALL"`` enables all logics without quantifiers.
 To optimize the solver's behavior for a more specific logic,
