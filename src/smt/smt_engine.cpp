@@ -1820,7 +1820,8 @@ void SmtEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   }
   if (!d_env->getOptions().smt.produceDifficulty)
   {
-    throw ModalException("Cannot get difficulty when difficulty option is off.");
+    throw ModalException(
+        "Cannot get difficulty when difficulty option is off.");
   }
   // the prop engine has the proof of false
   Assert(pe != nullptr);
