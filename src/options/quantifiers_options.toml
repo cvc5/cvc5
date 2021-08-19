@@ -381,7 +381,7 @@ name   = "Quantifiers"
   name = "trust"
   help = "When provided, use only user-provided patterns for a quantified formula."
 [[option.mode.STRICT]]
-  name = "trust"
+  name = "strict"
   help = "When provided, use only user-provided patterns for a quantified formula, and do not use any other instantiation techniques."
 [[option.mode.RESORT]]
   name = "resort"

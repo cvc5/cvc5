@@ -213,8 +213,6 @@ void SmtEngine::finishInit()
     d_env->setProofNodeManager(pnm);
     // enable it in the assertions pipeline
     d_asserts->setProofGenerator(pppg);
-    // enable it in the SmtSolver
-    d_smtSolver->setProofNodeManager(pnm);
     // enabled proofs in the preprocessor
     d_pp->setProofGenerator(pppg);
   }
