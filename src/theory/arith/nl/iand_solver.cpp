@@ -40,7 +40,7 @@ IAndSolver::IAndSolver(InferenceManager& im, ArithState& state, NlModel& model)
       d_astate(state),
       d_initRefine(state.getUserContext())
 {
-  NodeManager* nm = d_astate.getEnv().getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   d_false = nm->mkConst(false);
   d_true = nm->mkConst(true);
   d_zero = nm->mkConst(Rational(0));
@@ -75,7 +75,7 @@ void IAndSolver::initLastCall(const std::vector<Node>& assertions,
 void IAndSolver::checkInitialRefine()
 {
   Trace("iand-check") << "IAndSolver::checkInitialRefine" << std::endl;
-  NodeManager* nm = d_astate.getEnv().getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const unsigned, std::vector<Node> >& is : d_iands)
   {
     // the reference bitwidth
@@ -191,7 +191,7 @@ void IAndSolver::checkFullRefine()
 Node IAndSolver::convertToBvK(unsigned k, Node n) const
 {
   Assert(n.isConst() && n.getType().isInteger());
-  NodeManager* nm = d_astate.getEnv().getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   Node iToBvOp = nm->mkConst(IntToBitVector(k));
   Node bn = nm->mkNode(kind::INT_TO_BITVECTOR, iToBvOp, n);
   return Rewriter::rewrite(bn);
@@ -199,7 +199,7 @@ Node IAndSolver::convertToBvK(unsigned k, Node n) const
 
 Node IAndSolver::mkIAnd(unsigned k, Node x, Node y) const
 {
-  NodeManager* nm = d_astate.getEnv().getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   Node iAndOp = nm->mkConst(IntAnd(k));
   Node ret = nm->mkNode(IAND, iAndOp, x, y);
   ret = Rewriter::rewrite(ret);
@@ -215,7 +215,7 @@ Node IAndSolver::mkIOr(unsigned k, Node x, Node y) const
 
 Node IAndSolver::mkINot(unsigned k, Node x) const
 {
-  NodeManager* nm = d_astate.getEnv().getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   Node ret = nm->mkNode(MINUS, d_iandUtils.twoToKMinusOne(k), x);
   ret = Rewriter::rewrite(ret);
   return ret;
@@ -230,7 +230,7 @@ Node IAndSolver::valueBasedLemma(Node i)
   Node valX = d_model.computeConcreteModelValue(x);
   Node valY = d_model.computeConcreteModelValue(y);
 
-  NodeManager* nm = d_astate.getEnv().getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   Node valC = nm->mkNode(IAND, i.getOperator(), valX, valY);
   valC = Rewriter::rewrite(valC);
 
@@ -246,7 +246,7 @@ Node IAndSolver::sumBasedLemma(Node i)
   Node y = i[1];
   size_t bvsize = i.getOperator().getConst<IntAnd>().d_size;
   uint64_t granularity = d_astate.options().smt.BVAndIntegerGranularity;
-  NodeManager* nm = d_astate.getEnv().getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   Node lem = nm->mkNode(
       EQUAL, i, d_iandUtils.createSumNode(x, y, bvsize, granularity));
   return lem;
@@ -270,7 +270,7 @@ Node IAndSolver::bitwiseLemma(Node i)
   BitVector bvAbsI = BitVector(bvsize, absI.getNumerator());
   BitVector bvConcI = BitVector(bvsize, concI.getNumerator());
 
-  NodeManager* nm = d_astate.getEnv().getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   Node lem = d_true;
 
   // compare each bit to bvI
