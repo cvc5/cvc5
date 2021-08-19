@@ -32,6 +32,8 @@ class Env;
 
 namespace theory {
 
+class TheoryModel;
+
 /**
  * This class manages queries related to relevance of asserted literals.
  * In particular, note the following definition:
@@ -109,11 +111,12 @@ class RelevanceManager
    * The value of this return is only valid if success was not updated to false.
    */
   const std::unordered_set<TNode>& getRelevantAssertions(bool& success);
+  /** Notify that tm is a (candidate) model */
+  void notifyCandidateModel(TheoryModel * m);
   /**
    * Get difficulty map
    */
   void getDifficultyMap(std::map<Node, Node>& dmap);
-
  private:
   /**
    * Add the set of assertions to the formulas known to this class. This

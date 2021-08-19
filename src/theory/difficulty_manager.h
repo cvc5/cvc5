@@ -22,6 +22,7 @@
 #include <unordered_set>
 
 #include "context/cdlist.h"
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 
 namespace cvc5 {
@@ -30,28 +31,26 @@ class Env;
 
 namespace theory {
 
+class TheoryModel;
+
 /**
  */
 class DifficultyManager
 {
+  typedef context::CDList<Node> NodeList;
+  typedef context::CDHashMap<Node, uint64_t> NodeUIntMap;
  public:
   DifficultyManager(Env& env);
-  /**
-   * Notify (preprocessed) assertions. This is called for input formulas or
-   * lemmas that need justification that have been fully processed, just before
-   * adding them to the PropEngine.
-   */
-  void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
-  /** Singleton version of above */
-  void notifyPreprocessedAssertion(Node n);
   /**
    * Get difficulty map
    */
   void getDifficultyMap(std::map<Node, Node>& dmap);
 
+  /** Notify that tm is a (candidate) model */
+  void notifyCandidateModel(const NodeList& input, TheoryModel * m);
  private:
-  /** Reference to env */
-  Env& d_env;
+  /** user-context dependent mapping from input assertions to difficulty measure */
+  NodeUIntMap d_dfmap;
 };
 
 }  // namespace theory

@@ -40,10 +40,6 @@ RelevanceManager::RelevanceManager(Env& env, Valuation val)
 void RelevanceManager::notifyPreprocessedAssertions(
     const std::vector<Node>& assertions)
 {
-  if (d_dman != nullptr)
-  {
-    d_dman->notifyPreprocessedAssertions(assertions);
-  }
   // add to input list, which is user-context dependent
   std::vector<Node> toProcess;
   for (const Node& a : assertions)
@@ -66,10 +62,6 @@ void RelevanceManager::notifyPreprocessedAssertions(
 
 void RelevanceManager::notifyPreprocessedAssertion(Node n)
 {
-  if (d_dman != nullptr)
-  {
-    d_dman->notifyPreprocessedAssertion(n);
-  }
   std::vector<Node> toProcess;
   toProcess.push_back(n);
   addAssertionsInternal(toProcess);
@@ -341,6 +333,14 @@ const std::unordered_set<TNode>& RelevanceManager::getRelevantAssertions(
   // update success flag
   success = d_success;
   return d_rset;
+}
+
+void RelevanceManager::notifyCandidateModel(TheoryModel * m)
+{
+  if (d_dman != nullptr)
+  {
+    d_dman->notifyCandidateModel(d_input, m);
+  }
 }
 
 void RelevanceManager::getDifficultyMap(std::map<Node, Node>& dmap)

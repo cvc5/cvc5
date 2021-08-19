@@ -527,6 +527,11 @@ void TheoryEngine::check(Theory::Effort effort) {
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
         }
       }
+      // notify the relevant manager
+      if (d_relManager!=nullptr)
+      {
+        d_relManager->notifyCandidateModel(getModel());
+      }
       if (!d_inConflict && !needCheck())
       {
         // If d_eager_model_building is false, then we only mark that we
