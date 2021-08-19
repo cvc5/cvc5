@@ -671,7 +671,7 @@ Node IntBlaster::translateNoChildren(Node original,
         // or we translate it to (bv2nat original).
         // In the former case, we must include range lemmas, while in the
         // latter we don't.
-        // This is determined by the option bv-to-int-fresh-vars
+        // This is determined by the option bv-to-int-fresh-vars.
         // intCast and bvCast are used for models:
         // even if we introduce a fresh variable,
         // it is associated with intCast (which is (bv2nat original)).
@@ -697,7 +697,7 @@ Node IntBlaster::translateNoChildren(Node original,
         {
           // we just translate original to (bv2nat original)
           translation = intCast;
-          // no need to do any casting back to bit-vector in tis case.
+          // no need to do any casting back to bit-vector in this case.
           bvCast = original;
         }
 
@@ -716,10 +716,10 @@ Node IntBlaster::translateNoChildren(Node original,
     {
       // translate function symbol
       translation = translateFunctionSymbol(original, skolems);
-
+    }
 
     std::vector<Node> achildren;
-    achildren.push_back(intUF);
+    achildren.push_back(translation);
     int i = 0;
     for (const TypeNode& d : bvDomain)
     {
