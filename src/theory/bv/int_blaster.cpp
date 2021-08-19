@@ -220,7 +220,6 @@ Node IntBlaster::intBlast(Node n,
           translation =
               translateWithChildren(current, translated_children, lemmas);
         }
-
         Assert(!translation.isNull());
         // Map the current node to its translation in the cache.
         d_intblastCache[current] = translation;
@@ -718,6 +717,10 @@ Node IntBlaster::translateNoChildren(Node original,
       // translate function symbol
       translation = translateFunctionSymbol(original, skolems);
     }
+    else {
+	// leave other variables intact
+	translation = original;
+    }
 
   }
   else
@@ -795,7 +798,7 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
     i++;
   }
   Node app = d_nm->mkNode(kind::APPLY_UF, achildren);
-  Node body = castToType(app, intRange);
+  Node body = castToType(app, bvRange);
   Node bvlist = d_nm->mkNode(kind::BOUND_VAR_LIST, args);
   Node result = d_nm->mkNode(kind::LAMBDA, bvlist, body);
   if (skolems.find(bvUF) == skolems.end())

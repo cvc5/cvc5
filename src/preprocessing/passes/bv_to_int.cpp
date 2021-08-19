@@ -89,6 +89,7 @@ void BVToInt::addSkolemDefinitions(const std::map<Node, Node>& skolems)
     {
       body = definition;
     }
+    Trace("bv-to-int-debug") << "adding substitution: " << "[" << originalSkolem  << "] ----> [" << definition << "]"  << std::endl; 
     d_preprocContext->addSubstitution(originalSkolem, definition);
   }
 }
