@@ -145,15 +145,15 @@ class QuantifiersRewriter : public TheoryRewriter
                              QAttributes& qa);
   //-------------------------------------end variable elimination utilities
  private:
-  /** 
+  /**
    * Helper method for getVarElim, called when n has polarity pol in body.
    */
   static bool getVarElimInternal(Node body,
-                         Node n,
-                         bool pol,
-                         std::vector<Node>& args,
-                         std::vector<Node>& vars,
-                         std::vector<Node>& subs);
+                                 Node n,
+                                 bool pol,
+                                 std::vector<Node>& args,
+                                 std::vector<Node>& vars,
+                                 std::vector<Node>& subs);
   static int getPurifyIdLit2(Node n, std::map<Node, int>& visited);
   static bool addCheckElimChild(std::vector<Node>& children,
                                 Node c,

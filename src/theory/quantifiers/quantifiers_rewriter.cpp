@@ -20,7 +20,6 @@
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
-#include "util/rational.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -33,6 +32,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -998,11 +998,11 @@ bool QuantifiersRewriter::getVarElim(Node body,
 }
 
 bool QuantifiersRewriter::getVarElimInternal(Node body,
-                                     Node n,
-                                     bool pol,
-                                     std::vector<Node>& args,
-                                     std::vector<Node>& vars,
-                                     std::vector<Node>& subs)
+                                             Node n,
+                                             bool pol,
+                                             std::vector<Node>& args,
+                                             std::vector<Node>& vars,
+                                             std::vector<Node>& subs)
 {
   Kind nk = n.getKind();
   if (nk == NOT)
