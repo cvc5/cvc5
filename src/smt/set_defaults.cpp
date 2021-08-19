@@ -77,6 +77,7 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
     {
       opts.smt.unsatCoresMode = options::UnsatCoresMode::PP_ONLY;
     }
+    opts.proof.proofGranularityMode = options::ProofGranularityMode::OFF;
   }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
       || opts.smt.unsatAssumptions || opts.smt.minimalUnsatCores

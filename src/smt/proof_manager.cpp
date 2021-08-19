@@ -184,11 +184,13 @@ void PfManager::checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
 
 void PfManager::getDifficultyMap(std::map<Node, Node>& dmap, Assertions& as)
 {
+  Trace("difficulty") << "PfManager::getDifficultyMap" << std::endl;
   std::map<Node, Node> dmapp = dmap;
   dmap.clear();
   std::vector<Node> ppAsserts;
   for (const std::pair<const Node, Node>& ppa : dmapp)
   {
+    Trace("difficulty") << "  preprocess difficulty: " << ppa.second << " for " << ppa.first << std::endl;
     ppAsserts.push_back(ppa.first);
   }
   // assume a SAT refutation from all input assertions that were marked
@@ -198,7 +200,9 @@ void PfManager::getDifficultyMap(std::map<Node, Node>& dmap, Assertions& as)
   cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppAsserts, {});
   std::shared_ptr<ProofNode> pf = cdp.getProofFor(fnode);
   std::shared_ptr<ProofNode> fpf = getFinalProof(pf, as);
-
+  Assert(fpf->getRule() == PfRule::SCOPE);
+  fpf = fpf->getChildren()[0];
+  Trace("difficulty-debug") << "Final proof is " << *fpf.get() << std::endl;
   // analyze proof
   Assert(fpf->getRule() == PfRule::SAT_REFUTATION);
   const std::vector<std::shared_ptr<ProofNode>>& children = fpf->getChildren();
@@ -208,12 +212,16 @@ void PfManager::getDifficultyMap(std::map<Node, Node>& dmap, Assertions& as)
   {
     Node res = c->getResult();
     Assert(dmapp.find(res) != dmapp.end());
+    Trace("difficulty-debug") << "  process: " << res << std::endl;
+    Trace("difficulty-debug") << "  .dvalue: " << dmapp[res] << std::endl;
+    Trace("difficulty-debug") << "  ..proof: " << *c.get() << std::endl;
     if (!dpc.setCurrentDifficulty(dmapp[res]))
     {
       continue;
     }
     dpnu.process(c);
   }
+  // get the accumulated difficulty map from the callback
   dpc.getDifficultyMap(dmap);
 }
 
