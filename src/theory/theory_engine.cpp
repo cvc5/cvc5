@@ -236,7 +236,6 @@ TheoryEngine::TheoryEngine(Env& env)
       d_quantEngine(nullptr),
       d_decManager(new DecisionManager(d_env.getUserContext())),
       d_relManager(nullptr),
-      d_eager_model_building(false),
       d_inConflict(d_env.getContext(), false),
       d_inSatMode(false),
       d_hasShutDown(false),
@@ -530,14 +529,9 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       if (!d_inConflict && !needCheck())
       {
-        // If d_eager_model_building is false, then we only mark that we
-        // are in "SAT mode". We build the model later only if the user asks
-        // for it via getBuiltModel.
+        // We only mark that we are in "SAT mode". We build the model later only
+        // if the user asks for it via getBuiltModel.
         d_inSatMode = true;
-        if (d_eager_model_building)
-        {
-          d_tc->buildModel();
-        }
       }
     }
 
