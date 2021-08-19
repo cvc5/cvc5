@@ -68,10 +68,10 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
   d_extTheory.addFunctionKind(kind::PI);
   d_extTheory.addFunctionKind(kind::IAND);
   d_extTheory.addFunctionKind(kind::POW2);
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+  d_true = d_astate.getEnv().getNodeManager()->mkConst(true);
+  d_zero = d_astate.getEnv().getNodeManager()->mkConst(Rational(0));
+  d_one = d_astate.getEnv().getNodeManager()->mkConst(Rational(1));
+  d_neg_one = d_astate.getEnv().getNodeManager()->mkConst(Rational(-1));
 
   if (d_astate.getEnv().isTheoryProofProducing())
   {

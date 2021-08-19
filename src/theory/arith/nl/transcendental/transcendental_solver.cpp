@@ -56,7 +56,7 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
     return;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_tstate.d_env.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   for (const Node& a : needsMaster)
   {
@@ -253,7 +253,7 @@ void TranscendentalSolver::checkTranscendentalTangentPlanes()
 
 bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_tstate.d_env.getNodeManager();
   Kind k = tf.getKind();
   // this should only be run on master applications
   Assert(d_tstate.d_trSlaves.find(tf) != d_tstate.d_trSlaves.end());

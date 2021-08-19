@@ -96,7 +96,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
   const std::map<Node, std::map<Node, ConstraintInfo> >& cim =
       d_cdb.getConstraints();
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_data->d_env.getNodeManager();
   // register constraints
   Trace("nl-ext-debug") << "Register bound constraints..." << std::endl;
   for (const Node& lit : asserts)
@@ -354,7 +354,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
 
 void MonomialBoundsCheck::checkResBounds()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_data->d_env.getNodeManager();
   Trace("nl-ext") << "Get monomial resolution inferred bound lemmas..."
                   << std::endl;
   size_t nmterms = d_data->d_mterms.size();
