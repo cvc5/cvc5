@@ -261,14 +261,14 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
   if (bounds.first.isNull())
   {
     // pick c-1
-    bounds.first = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-        Kind::MINUS, center, d_data->d_one));
+    bounds.first = Rewriter::rewrite(
+        NodeManager::currentNM()->mkNode(Kind::MINUS, center, d_data->d_one));
   }
   if (bounds.second.isNull())
   {
     // pick c+1
-    bounds.second = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-        Kind::PLUS, center, d_data->d_one));
+    bounds.second = Rewriter::rewrite(
+        NodeManager::currentNM()->mkNode(Kind::PLUS, center, d_data->d_one));
   }
   return bounds;
 }
