@@ -81,11 +81,19 @@ bool ModelManagerDistributed::prepareModel()
       continue;
     }
     Theory* t = d_te.theoryOf(theoryId);
+    if (theoryId == TheoryId::THEORY_BOOL
+        || theoryId == TheoryId::THEORY_BUILTIN)
+    {
+      Trace("model-builder")
+          << "  Skipping theory " << theoryId
+          << " as it does not contribute to the model anyway" << std::endl;
+      continue;
+    }
     Trace("model-builder") << "  CollectModelInfo on theory: " << theoryId
                            << std::endl;
     // collect the asserted terms
     std::set<Node> termSet;
-    collectAssertedTerms(theoryId, termSet);
+    t->collectAssertedTerms(termSet);
     // also get relevant terms
     t->computeRelevantTerms(termSet);
     if (!t->collectModelInfo(d_model.get(), termSet))

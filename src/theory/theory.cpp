@@ -387,6 +387,60 @@ void Theory::computeRelevantTerms(std::set<Node>& termSet)
   // by default, there are no additional relevant terms
 }
 
+void Theory::collectAssertedTerms(std::set<Node>& termSet,
+                                  bool includeShared) const
+{
+  // Collect all terms appearing in assertions
+  context::CDList<Assertion>::const_iterator assert_it = facts_begin(),
+                                             assert_it_end = facts_end();
+  for (; assert_it != assert_it_end; ++assert_it)
+  {
+    collectTerms(*assert_it, termSet);
+  }
+
+  if (includeShared)
+  {
+    // Add terms that are shared terms
+    context::CDList<TNode>::const_iterator shared_it = shared_terms_begin(),
+                                           shared_it_end = shared_terms_end();
+    for (; shared_it != shared_it_end; ++shared_it)
+    {
+      collectTerms(*shared_it, termSet);
+    }
+  }
+}
+
+void Theory::collectTerms(TNode n, std::set<Node>& termSet) const
+{
+  const std::set<Kind>& irrKinds =
+      d_theoryState->getModel()->getIrrelevantKinds();
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (termSet.find(cur) != termSet.end())
+    {
+      // already visited
+      continue;
+    }
+    Kind k = cur.getKind();
+    // only add to term set if a relevant kind
+    if (irrKinds.find(k) == irrKinds.end())
+    {
+      termSet.insert(cur);
+    }
+    // traverse owned terms, don't go under quantifiers
+    if ((k == kind::NOT || k == kind::EQUAL || Theory::theoryOf(cur) == d_id)
+        && !cur.isClosure())
+    {
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+}
+
 bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 {
   return true;
@@ -620,7 +674,7 @@ bool Theory::usesCentralEqualityEngine(TheoryId id)
   }
   return id == THEORY_UF || id == THEORY_DATATYPES || id == THEORY_BAGS
          || id == THEORY_FP || id == THEORY_SETS || id == THEORY_STRINGS
-         || id == THEORY_SEP || id == THEORY_ARRAYS;
+         || id == THEORY_SEP || id == THEORY_ARRAYS || id == THEORY_BV;
 }
 
 bool Theory::expUsingCentralEqualityEngine(TheoryId id)
