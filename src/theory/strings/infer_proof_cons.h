@@ -131,6 +131,23 @@ class InferProofCons : public ProofGenerator
    * This can lead to the term (str.replace d a b) being generated instead of
    * c.
    *
+   * As an example of this method, given input:
+   *   tgt = (= x (str.++ (f x) c))
+   *   children = { (= (f x) a), (= x (str.++ b (f x))) }
+   *   concludeTgtNew = true
+   * This method updates:
+   *   tgt = (= x (str.++ k c))
+   *   children = { (= k a), (= x (str.++ b k)) }
+   * where k is th purification skolem for (f x). Additionally, it ensures
+   * that psb has a proof of:
+   *   (= x (str.++ k c)) from (= x (str.++ (f x) c))
+   *   (= k a) from (= (f x) a)
+   *   (= x (str.++ b k)) from (= x (str.++ b (f x)))
+   * Notice that the resulting substitution can now be safely used as a
+   * sequential substution, since (f x) has be purified with k. The proofs
+   * in psb ensure that a proof step involving the purified substitution will
+   * have the same net effect as a proof step using the original substitution.
+   *
    * @param tgt The term we were originally going to apply the substitution to.
    * @param children The premises corresponding to the substitution.
    * @param psb The proof step buffer
