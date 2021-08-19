@@ -1818,15 +1818,9 @@ void SmtEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   {
     getPrinter().toStreamCmdGetDifficulty(d_env->getDumpOut());
   }
-  if (!d_env->getOptions().smt.produceProofs)
+  if (!d_env->getOptions().smt.produceDifficulty)
   {
-    throw ModalException("Cannot get a proof when proof option is off.");
-  }
-  if (d_state->getMode() != SmtMode::UNSAT)
-  {
-    throw RecoverableModalException(
-        "Cannot get a proof unless immediately preceded by "
-        "UNSAT/ENTAILED response.");
+    throw ModalException("Cannot get difficulty when difficulty option is off.");
   }
   // the prop engine has the proof of false
   Assert(pe != nullptr);
