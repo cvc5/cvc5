@@ -527,7 +527,10 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel,
     d_approximations.clear();
     d_witnesses.clear();
     // modify the model values
-    d_model.getModelValueRepair(arithModel, d_approximations, d_witnesses, options().smt.modelWitnessValue);
+    d_model.getModelValueRepair(arithModel,
+                                d_approximations,
+                                d_witnesses,
+                                options().smt.modelWitnessValue);
   }
 }
 
