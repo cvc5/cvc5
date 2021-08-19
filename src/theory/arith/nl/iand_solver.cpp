@@ -37,9 +37,10 @@ namespace nl {
 IAndSolver::IAndSolver(InferenceManager& im, ArithState& state, NlModel& model)
     : d_im(im),
       d_model(model),
+      d_astate(state),
       d_initRefine(state.getUserContext())
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_astate.getEnv().getNodeManager();
   d_false = nm->mkConst(false);
   d_true = nm->mkConst(true);
   d_zero = nm->mkConst(Rational(0));
@@ -74,7 +75,7 @@ void IAndSolver::initLastCall(const std::vector<Node>& assertions,
 void IAndSolver::checkInitialRefine()
 {
   Trace("iand-check") << "IAndSolver::checkInitialRefine" << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_astate.getEnv().getNodeManager();
   for (const std::pair<const unsigned, std::vector<Node> >& is : d_iands)
   {
     // the reference bitwidth
@@ -151,7 +152,7 @@ void IAndSolver::checkFullRefine()
       }
 
       // ************* additional lemma schemas go here
-      if (options::iandMode() == options::IandMode::SUM)
+      if (d_astate.options().smt.iandMode == options::IandMode::SUM)
       {
         Node lem = sumBasedLemma(i);  // add lemmas based on sum mode
         Trace("iand-lemma")
@@ -161,7 +162,7 @@ void IAndSolver::checkFullRefine()
         d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_IAND_SUM_REFINE, nullptr, true);
       }
-      else if (options::iandMode() == options::IandMode::BITWISE)
+      else if (d_astate.options().smt.iandMode == options::IandMode::BITWISE)
       {
         Node lem = bitwiseLemma(i);  // check for violated bitwise axioms
         Trace("iand-lemma")
@@ -190,7 +191,7 @@ void IAndSolver::checkFullRefine()
 Node IAndSolver::convertToBvK(unsigned k, Node n) const
 {
   Assert(n.isConst() && n.getType().isInteger());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_astate.getEnv().getNodeManager();
   Node iToBvOp = nm->mkConst(IntToBitVector(k));
   Node bn = nm->mkNode(kind::INT_TO_BITVECTOR, iToBvOp, n);
   return Rewriter::rewrite(bn);
@@ -198,7 +199,7 @@ Node IAndSolver::convertToBvK(unsigned k, Node n) const
 
 Node IAndSolver::mkIAnd(unsigned k, Node x, Node y) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_astate.getEnv().getNodeManager();
   Node iAndOp = nm->mkConst(IntAnd(k));
   Node ret = nm->mkNode(IAND, iAndOp, x, y);
   ret = Rewriter::rewrite(ret);
@@ -214,7 +215,7 @@ Node IAndSolver::mkIOr(unsigned k, Node x, Node y) const
 
 Node IAndSolver::mkINot(unsigned k, Node x) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_astate.getEnv().getNodeManager();
   Node ret = nm->mkNode(MINUS, d_iandUtils.twoToKMinusOne(k), x);
   ret = Rewriter::rewrite(ret);
   return ret;
@@ -229,7 +230,7 @@ Node IAndSolver::valueBasedLemma(Node i)
   Node valX = d_model.computeConcreteModelValue(x);
   Node valY = d_model.computeConcreteModelValue(y);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_astate.getEnv().getNodeManager();
   Node valC = nm->mkNode(IAND, i.getOperator(), valX, valY);
   valC = Rewriter::rewrite(valC);
 
@@ -244,8 +245,8 @@ Node IAndSolver::sumBasedLemma(Node i)
   Node x = i[0];
   Node y = i[1];
   size_t bvsize = i.getOperator().getConst<IntAnd>().d_size;
-  uint64_t granularity = options::BVAndIntegerGranularity();
-  NodeManager* nm = NodeManager::currentNM();
+  uint64_t granularity = d_astate.options().smt.BVAndIntegerGranularity;
+  NodeManager* nm = d_astate.getEnv().getNodeManager();
   Node lem = nm->mkNode(
       EQUAL, i, d_iandUtils.createSumNode(x, y, bvsize, granularity));
   return lem;
@@ -258,7 +259,7 @@ Node IAndSolver::bitwiseLemma(Node i)
   Node y = i[1];
 
   unsigned bvsize = i.getOperator().getConst<IntAnd>().d_size;
-  uint64_t granularity = options::BVAndIntegerGranularity();
+  uint64_t granularity = d_astate.options().smt.BVAndIntegerGranularity;
 
   Rational absI = d_model.computeAbstractModelValue(i).getConst<Rational>();
   Rational concI = d_model.computeConcreteModelValue(i).getConst<Rational>();
@@ -269,7 +270,7 @@ Node IAndSolver::bitwiseLemma(Node i)
   BitVector bvAbsI = BitVector(bvsize, absI.getNumerator());
   BitVector bvConcI = BitVector(bvsize, concI.getNumerator());
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_astate.getEnv().getNodeManager();
   Node lem = d_true;
 
   // compare each bit to bvI
