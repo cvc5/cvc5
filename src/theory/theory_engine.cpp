@@ -218,12 +218,12 @@ context::UserContext* TheoryEngine::getUserContext() const
   return d_env.getUserContext();
 }
 
-TheoryEngine::TheoryEngine(Env& env,
-                           ProofNodeManager* pnm)
+TheoryEngine::TheoryEngine(Env& env)
     : d_propEngine(nullptr),
       d_env(env),
       d_logicInfo(env.getLogicInfo()),
-      d_pnm(pnm),
+      d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
+                                           : nullptr),
       d_lazyProof(d_pnm != nullptr
                       ? new LazyCDProof(d_pnm,
                                         nullptr,

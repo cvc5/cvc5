@@ -158,8 +158,6 @@ private:
   std::map< TypeNode, Node > d_singleton_lemma[2];
   /** Cache for singleton equalities processed */
   BoolMap d_singleton_eq;
-  /** list of all lemmas produced */
-  BoolMap d_lemmas_produced_c;
 private:
   /** assert fact */
   void assertFact( Node fact, Node exp );
@@ -183,12 +181,7 @@ private:
   void computeCareGraph() override;
 
  public:
-  TheoryDatatypes(context::Context* c,
-                  context::UserContext* u,
-                  OutputChannel& out,
-                  Valuation valuation,
-                  const LogicInfo& logicInfo,
-                  ProofNodeManager* pnm = nullptr);
+  TheoryDatatypes(Env& env, OutputChannel& out, Valuation valuation);
   ~TheoryDatatypes();
 
   //--------------------------------- initialization
@@ -273,9 +266,10 @@ private:
   void collectTerms( Node n );
   /** get instantiate cons */
   Node getInstantiateCons(Node n, const DType& dt, int index);
-  /** check instantiate */
-  void instantiate( EqcInfo* eqc, Node n );
-private:
+  /** check instantiate, return true if an inference was generated. */
+  bool instantiate(EqcInfo* eqc, Node n);
+
+ private:
   //equality queries
   bool hasTerm( TNode a );
   bool areEqual( TNode a, TNode b );

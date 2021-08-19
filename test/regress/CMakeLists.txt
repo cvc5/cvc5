@@ -910,6 +910,7 @@ set(regress_0_tests
   regress0/quantifiers/issue5645-dt-cm-spurious.smt2
   regress0/quantifiers/issue5693-prenex.smt2
   regress0/quantifiers/issue6603-dt-bool-cegqi.smt2
+  regress0/quantifiers/issue6996-trivial-elim.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -1425,6 +1426,12 @@ set(regress_0_tests
   regress0/unconstrained/mult1.smt2
   regress0/unconstrained/uf1.smt2
   regress0/unconstrained/xor.smt2
+  regress0/use_approx/bug812_approx.smt2
+  regress0/use_approx/error0_approx.smt2
+  regress0/use_approx/issue2429_approx.smt2
+  regress0/use_approx/issue4714_approx.smt2
+  regress0/use_approx/siegel-nl-bases_approx.smt2
+  regress0/use_approx/specsharp-WindowsCard.15.RTE.Terminate_System.Int32_approx.smt2
   regress0/wiki.01.cvc
   regress0/wiki.02.cvc
   regress0/wiki.03.cvc

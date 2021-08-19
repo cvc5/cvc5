@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <fstream>
 #include <memory>
+#include <optional>
 #include <string>
 
 namespace cvc5 {
@@ -58,6 +59,31 @@ void container_to_stream(std::ostream& out,
     is_first = false;
   }
   out << postfix;
+}
+
+/**
+ * Generates a string representation of std::optional and inserts it into a
+ * stream.
+ *
+ * @param out The stream
+ * @param m The value
+ * @return The stream
+ */
+template <class T>
+std::ostream& operator<<(std::ostream& out, const std::optional<T>& m)
+{
+  out << "{";
+  if (m)
+  {
+    out << "Just ";
+    out << *m;
+  }
+  else
+  {
+    out << "Nothing";
+  }
+  out << "}";
+  return out;
 }
 
 /**
