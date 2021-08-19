@@ -36,7 +36,7 @@ CadSolver::CadSolver(Env& env, InferenceManager& im, NlModel& model)
       d_im(im),
       d_model(model)
 {
-  NodeManager* nm = env.getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   d_ranVariable = sm->mkDummySkolem(
       "__z", nm->realType(), "", NodeManager::SKOLEM_EXACT_NAME);
