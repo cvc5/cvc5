@@ -24,17 +24,19 @@
 #include "proof/proof_node_manager.h"
 #include "smt/assertions.h"
 #include "smt/difficulty_post_processor.h"
+#include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
 
 namespace cvc5 {
 namespace smt {
 
-PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
-    : d_pchecker(new ProofChecker(options::proofPedantic())),
+PfManager::PfManager(Env& env, SmtEngine* smte)
+    : d_env(env),
+      d_pchecker(new ProofChecker(options::proofPedantic())),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
-          d_pnm.get(), u, "smt::PreprocessProofGenerator")),
+          d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
       d_pfpp(new ProofPostproccess(
           d_pnm.get(),
           smte,
@@ -157,6 +159,13 @@ void PfManager::printProof(std::ostream& out,
   {
     proof::DotPrinter dotPrinter;
     dotPrinter.print(out, fp.get());
+  }
+  else if (options::proofFormatMode() == options::ProofFormatMode::TPTP)
+  {
+    out << "% SZS output start Proof for " << d_env.getFilename() << std::endl;
+    // TODO (proj #37) print in TPTP compliant format
+    out << *fp;
+    out << "% SZS output end Proof for " << d_env.getFilename() << std::endl;
   }
   else
   {
