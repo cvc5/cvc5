@@ -335,7 +335,7 @@ const std::unordered_set<TNode>& RelevanceManager::getRelevantAssertions(
   return d_rset;
 }
 
-void RelevanceManager::notifyCandidateModel(TheoryModel * m)
+void RelevanceManager::notifyCandidateModel(TheoryModel* m)
 {
   if (d_dman != nullptr)
   {

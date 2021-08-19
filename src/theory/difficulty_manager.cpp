@@ -20,15 +20,15 @@
 namespace cvc5 {
 namespace theory {
 
-DifficultyManager::DifficultyManager(Env& env) : d_dfmap(env.getUserContext()) {}
-
-void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap) {
-  
+DifficultyManager::DifficultyManager(Env& env) : d_dfmap(env.getUserContext())
+{
 }
 
-void DifficultyManager::notifyCandidateModel(const NodeList& input, TheoryModel * m)
+void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap) {}
+
+void DifficultyManager::notifyCandidateModel(const NodeList& input,
+                                             TheoryModel* m)
 {
-  
 }
 
 }  // namespace theory

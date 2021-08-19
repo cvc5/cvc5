@@ -112,11 +112,12 @@ class RelevanceManager
    */
   const std::unordered_set<TNode>& getRelevantAssertions(bool& success);
   /** Notify that tm is a (candidate) model */
-  void notifyCandidateModel(TheoryModel * m);
+  void notifyCandidateModel(TheoryModel* m);
   /**
    * Get difficulty map
    */
   void getDifficultyMap(std::map<Node, Node>& dmap);
+
  private:
   /**
    * Add the set of assertions to the formulas known to this class. This

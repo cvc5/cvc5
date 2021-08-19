@@ -528,7 +528,7 @@ void TheoryEngine::check(Theory::Effort effort) {
         }
       }
       // notify the relevant manager
-      if (d_relManager!=nullptr)
+      if (d_relManager != nullptr)
       {
         d_relManager->notifyCandidateModel(getModel());
       }

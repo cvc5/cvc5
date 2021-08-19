@@ -21,8 +21,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "context/cdlist.h"
 #include "context/cdhashmap.h"
+#include "context/cdlist.h"
 #include "expr/node.h"
 
 namespace cvc5 {
@@ -39,6 +39,7 @@ class DifficultyManager
 {
   typedef context::CDList<Node> NodeList;
   typedef context::CDHashMap<Node, uint64_t> NodeUIntMap;
+
  public:
   DifficultyManager(Env& env);
   /**
@@ -47,9 +48,11 @@ class DifficultyManager
   void getDifficultyMap(std::map<Node, Node>& dmap);
 
   /** Notify that tm is a (candidate) model */
-  void notifyCandidateModel(const NodeList& input, TheoryModel * m);
+  void notifyCandidateModel(const NodeList& input, TheoryModel* m);
+
  private:
-  /** user-context dependent mapping from input assertions to difficulty measure */
+  /** user-context dependent mapping from input assertions to difficulty measure
+   */
   NodeUIntMap d_dfmap;
 };
 
