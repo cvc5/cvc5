@@ -103,7 +103,6 @@ void InferProofCons::convert(InferenceId infer,
     case InferenceId::STRINGS_NORMAL_FORM:
     case InferenceId::STRINGS_CODE_PROXY:
     {
-      // AJR-TEMP substitution here
       std::vector<Node> pcs = ps.d_children;
       Node pconc = conc;
       // purify core substitution proves conc from pconc if necessary,
