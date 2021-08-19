@@ -16,8 +16,8 @@
 #include "theory/difficulty_manager.h"
 
 #include "smt/env.h"
-#include "util/rational.h"
 #include "theory/theory_model.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace theory {
@@ -26,8 +26,9 @@ DifficultyManager::DifficultyManager(Env& env) : d_dfmap(env.getUserContext())
 {
 }
 
-void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap) {
-  NodeManager * nm = NodeManager::currentNM();
+void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
+{
+  NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, uint64_t>& p : d_dfmap)
   {
     dmap[p.first] = nm->mkConst(Rational(p.second));
