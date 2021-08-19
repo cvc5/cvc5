@@ -38,12 +38,13 @@ class DifficultyPostprocessCallback : public ProofNodeUpdaterCallback
   DifficultyPostprocessCallback(Env& env);
   ~DifficultyPostprocessCallback() {}
   /** Set current difficulty */
-  void setCurrentDifficulty(Node d);
+  bool setCurrentDifficulty(Node d);
   /** Should proof pn be updated? */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
                     bool& continueUpdate) override;
-
+  /** Get the (acculumated) difficulty map */
+  void getDifficultyMap(std::map<Node, Node>& dmap) const;
  private:
   /** Reference to the env class */
   Env& d_env;
@@ -52,6 +53,8 @@ class DifficultyPostprocessCallback : public ProofNodeUpdaterCallback
    * we are considering.
    */
   uint64_t d_currDifficulty;
+  /** The current accumulated difficulty map */
+  std::map<Node, uint64_t> d_accMap;
 };
 
 }  // namespace smt

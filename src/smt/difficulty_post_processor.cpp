@@ -16,6 +16,7 @@
 #include "smt/difficulty_post_processor.h"
 
 #include "smt/env.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::theory;
@@ -27,15 +28,37 @@ DifficultyPostprocessCallback::DifficultyPostprocessCallback(Env& env)
     : d_env(env), d_currDifficulty(0)
 {
 }
-void DifficultyPostprocessCallback::setCurrentDifficulty(Node d) {}
+
+bool DifficultyPostprocessCallback::setCurrentDifficulty(Node d) {
+  if (d.isConst() && d.getType().isInteger()
+      && d.getConst<Rational>().sgn() >= 0
+      && d.getConst<Rational>().getNumerator().fitsUnsignedInt())
+  {
+    d_currDifficulty = d.getConst<Rational>().getNumerator().toUnsignedInt();
+    return true;
+  }
+  return false;
+}
+
 bool DifficultyPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                  const std::vector<Node>& fa,
                                                  bool& continueUpdate)
 {
   if (pn->getRule() == PfRule::ASSUME)
   {
+    d_accMap[pn->getResult()] += d_currDifficulty;
   }
   return true;
+}
+
+void DifficultyPostprocessCallback::getDifficultyMap(std::map<Node, Node>& dmap) const
+{
+  Assert (dmap.empty());
+  NodeManager * nm = NodeManager::currentNM();
+  for (const std::pair<const Node, uint64_t>& d : d_accMap)
+  {
+    dmap[d.first] = nm->mkConst(Rational(d.second));
+  }
 }
 
 }  // namespace smt
