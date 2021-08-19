@@ -70,15 +70,7 @@ public = true
   category   = "regular"
   long       = "interactive"
   type       = "bool"
-  help       = "force interactive/non-interactive mode"
-
-[[option]]
-  name       = "interactivePrompt"
-  category   = "undocumented"
-  long       = "interactive-prompt"
-  type       = "bool"
-  default    = "true"
-  help       = "interactive prompting while in interactive mode"
+  help       = "force interactive shell/non-interactive mode"
 
 [[option]]
   name       = "segvSpin"
