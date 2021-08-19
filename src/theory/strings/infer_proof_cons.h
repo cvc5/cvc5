@@ -138,7 +138,7 @@ class InferProofCons : public ProofGenerator
    * This method updates:
    *   tgt = (= x (str.++ k c))
    *   children = { (= k a), (= x (str.++ b k)) }
-   * where k is th purification skolem for (f x). Additionally, it ensures
+   * where k is the purification skolem for (f x). Additionally, it ensures
    * that psb has a proof of:
    *   (= x (str.++ k c)) from (= x (str.++ (f x) c))
    *   (= k a) from (= (f x) a)
