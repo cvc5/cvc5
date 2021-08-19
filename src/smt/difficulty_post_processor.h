@@ -37,6 +37,8 @@ class DifficultyPostprocessCallback : public ProofNodeUpdaterCallback
  public:
   DifficultyPostprocessCallback(Env& env);
   ~DifficultyPostprocessCallback() {}
+  /** Set current difficulty */
+  void setCurrentDifficulty(Node d);
   /** Should proof pn be updated? */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
@@ -45,6 +47,11 @@ class DifficultyPostprocessCallback : public ProofNodeUpdaterCallback
  private:
   /** Reference to the env class */
   Env& d_env;
+  /** 
+   * The current difficulty of the assertion whose proof of preprocessing
+   * we are considering.
+   */
+  uint64_t d_currDifficulty;
 };
 
 }  // namespace smt

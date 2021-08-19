@@ -25,6 +25,7 @@
 #include "smt/assertions.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
+#include "smt/difficulty_post_processor.h"
 
 namespace cvc5 {
 namespace smt {
@@ -192,7 +193,7 @@ void PfManager::getDifficultyMap(std::map<Node, Node>& dmap, Assertions& as)
   // analyze proof
   Assert(fpf->getRule() == PfRule::SAT_REFUTATION);
   const std::vector<std::shared_ptr<ProofNode>>& children = fpf->getChildren();
-  DifficultyPostprocessCallback dpc(env);
+  DifficultyPostprocessCallback dpc(d_env);
   ProofNodeUpdater dpnu(d_pnm, dpc);
   for (const std::shared_ptr<ProofNode>& c : children)
   {
