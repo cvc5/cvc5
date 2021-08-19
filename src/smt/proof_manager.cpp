@@ -23,9 +23,9 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "smt/assertions.h"
+#include "smt/difficulty_post_processor.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
-#include "smt/difficulty_post_processor.h"
 
 namespace cvc5 {
 namespace smt {

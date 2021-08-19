@@ -27,16 +27,13 @@ DifficultyPostprocessCallback::DifficultyPostprocessCallback(Env& env)
     : d_env(env), d_currDifficulty(0)
 {
 }
-void DifficultyPostprocessCallback::setCurrentDifficulty(Node d)
-{
-}
+void DifficultyPostprocessCallback::setCurrentDifficulty(Node d) {}
 bool DifficultyPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                  const std::vector<Node>& fa,
                                                  bool& continueUpdate)
 {
-  if (pn->getRule()==PfRule::ASSUME)
+  if (pn->getRule() == PfRule::ASSUME)
   {
-    
   }
   return true;
 }

@@ -47,7 +47,7 @@ class DifficultyPostprocessCallback : public ProofNodeUpdaterCallback
  private:
   /** Reference to the env class */
   Env& d_env;
-  /** 
+  /**
    * The current difficulty of the assertion whose proof of preprocessing
    * we are considering.
    */
