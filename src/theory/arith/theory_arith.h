@@ -33,6 +33,7 @@ namespace nl {
 class NonlinearExtension;
 }
 
+class EqualitySolver;
 class TheoryArithPrivate;
 
 /**
@@ -43,12 +44,7 @@ class TheoryArithPrivate;
 class TheoryArith : public Theory {
   friend class TheoryArithPrivate;
  public:
-  TheoryArith(context::Context* c,
-              context::UserContext* u,
-              OutputChannel& out,
-              Valuation valuation,
-              const LogicInfo& logicInfo,
-              ProofNodeManager* pnm = nullptr);
+  TheoryArith(Env& env, OutputChannel& out, Valuation valuation);
   virtual ~TheoryArith();
 
   //--------------------------------- initialization
@@ -141,6 +137,8 @@ class TheoryArith : public Theory {
   PreprocessRewriteEq d_ppre;
   /** The branch and bound utility */
   BranchAndBound d_bab;
+  /** The equality solver */
+  std::unique_ptr<EqualitySolver> d_eqSolver;
   /** The (old) linear arithmetic solver */
   TheoryArithPrivate* d_internal;
 

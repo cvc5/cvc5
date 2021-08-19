@@ -20,6 +20,8 @@
 
 #include <iosfwd>
 
+#include "expr/node.h"
+
 namespace cvc5 {
 namespace theory {
 
@@ -43,6 +45,9 @@ enum class InferenceId
   EQ_CONSTANT_MERGE,
   // a split from theory combination
   COMBINATION_SPLIT,
+  // ---------------------------------- ext theory
+  // a simplification from the extended theory utility
+  EXTT_SIMPLIFY,
   // ---------------------------------- arith theory
   //-------------------- linear core
   // black box conflicts. It's magic.
@@ -59,6 +64,8 @@ enum class InferenceId
   ARITH_CONF_SIMPLEX,
   // conflict from sum-of-infeasibility simplex
   ARITH_CONF_SOI_SIMPLEX,
+  // conflict when getting constraint from fact queue
+  ARITH_CONF_FACT_QUEUE,
   // introduces split on a disequality
   ARITH_SPLIT_DEQ,
   // tighten integer inequalities to ceiling
@@ -154,6 +161,10 @@ enum class InferenceId
   ARRAYS_READ_OVER_WRITE,
   ARRAYS_READ_OVER_WRITE_1,
   ARRAYS_READ_OVER_WRITE_CONTRA,
+  // (= (select (as const (Array T1 T2) x) y) x)
+  ARRAYS_CONST_ARRAY_DEFAULT,
+  // an internally inferred tautological equality
+  ARRAYS_EQ_TAUTOLOGY,
   // ---------------------------------- end arrays theory
 
   // ---------------------------------- bags theory
@@ -173,10 +184,10 @@ enum class InferenceId
 
   // ---------------------------------- bitvector theory
   BV_BITBLAST_CONFLICT,
-  BV_LAZY_CONFLICT,
-  BV_LAZY_LEMMA,
-  BV_SIMPLE_LEMMA,
-  BV_SIMPLE_BITBLAST_LEMMA,
+  BV_BITBLAST_INTERNAL_EAGER_LEMMA,
+  BV_BITBLAST_INTERNAL_BITBLAST_LEMMA,
+  BV_LAYERED_CONFLICT,
+  BV_LAYERED_LEMMA,
   BV_EXTF_LEMMA,
   BV_EXTF_COLLAPSE,
   // ---------------------------------- end bitvector theory
@@ -330,11 +341,56 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_EXCLUDE_CURRENT,
   // manual exclusion of a current solution for sygus-stream
   QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
+  // Q where Q was solved by a subcall to the single invocation module
+  QUANTIFIERS_SYGUS_SI_SOLVED,
+  // Q where Q was (trusted) solved by sampling
+  QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED,
+  // Q where Q was solved by a verification subcall
+  QUANTIFIERS_SYGUS_VERIFY_SOLVED,
   // ~Q where Q is a PBE conjecture with conflicting examples
   QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
+  // unif+pi symmetry breaking between multiple enumerators
+  QUANTIFIERS_SYGUS_UNIF_PI_INTER_ENUM_SB,
+  // unif+pi separation lemma
+  QUANTIFIERS_SYGUS_UNIF_PI_SEPARATION,
+  // unif+pi lemma for fairness of size of enumerators
+  QUANTIFIERS_SYGUS_UNIF_PI_FAIR_SIZE,
+  // unif+pi lemma for removing redundant operators
+  QUANTIFIERS_SYGUS_UNIF_PI_REM_OPS,
+  // symmetry breaking for enumerators
+  QUANTIFIERS_SYGUS_UNIF_PI_ENUM_SB,
+  // constraining terms to be in the domain of output
+  QUANTIFIERS_SYGUS_UNIF_PI_DOMAIN,
+  // condition exclusion from sygus unif
+  QUANTIFIERS_SYGUS_UNIF_PI_COND_EXCLUDE,
+  // refinement lemma from sygus unif
+  QUANTIFIERS_SYGUS_UNIF_PI_REFINEMENT,
+  // symmetry breaking lemma from unsat core learning algorithm initialization
+  QUANTIFIERS_SYGUS_CEGIS_UCL_SYM_BREAK,
+  // candidate exclusion lemma from unsat core learning algorithm
+  QUANTIFIERS_SYGUS_CEGIS_UCL_EXCLUDE,
+  // candidate exclusion lemma from repair constants algorithm
+  QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE,
+  // a counterexample-guided inductive synthesis refinement lemma
+  QUANTIFIERS_SYGUS_CEGIS_REFINE,
+  // a cegis refinement lemma found by sampling
+  QUANTIFIERS_SYGUS_CEGIS_REFINE_SAMPLE,
+  // a lemma based on refinement lemma evaluation
+  QUANTIFIERS_SYGUS_REFINE_EVAL,
+  // an evaluation unfolding lemma
+  QUANTIFIERS_SYGUS_EVAL_UNFOLD,
+  // candidate exclusion lemma from programming-by-examples
+  QUANTIFIERS_SYGUS_PBE_EXCLUDE,
+  // a lemma generated while constructing a candidate solution for PBE
+  QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL,
   //-------------------- dynamic splitting
   // a dynamic split from quantifiers
   QUANTIFIERS_DSPLIT,
+  //-------------------- induction / conjecture generation
+  // a split on a conjecture for inductive theorem proving
+  QUANTIFIERS_CONJ_GEN_SPLIT,
+  // enumeration of ground terms for inductive theorem proving
+  QUANTIFIERS_CONJ_GEN_GT_ENUM,
   //-------------------- miscellaneous
   // skolemization
   QUANTIFIERS_SKOLEMIZE,
@@ -342,8 +398,16 @@ enum class InferenceId
   QUANTIFIERS_REDUCE_ALPHA_EQ,
   // a higher-order match predicate lemma
   QUANTIFIERS_HO_MATCH_PRED,
+  // purification of non-variable higher-order function
+  QUANTIFIERS_HO_PURIFY,
   // reduction of quantifiers that don't have triggers that cover all variables
   QUANTIFIERS_PARTIAL_TRIGGER_REDUCE,
+  // a purification lemma for a ground term appearing in a quantified formula,
+  // used to ensure E-matching has equality information for that term
+  QUANTIFIERS_GT_PURIFY,
+  // when term indexing discovers disequal congruent terms in the master
+  // equality engine
+  QUANTIFIERS_TDB_DEQ_CONG,
   //-------------------------------------- end quantifiers theory
 
   // ---------------------------------- sep theory
@@ -378,9 +442,13 @@ enum class InferenceId
 
   // ---------------------------------- sets theory
   //-------------------- sets core solver
+  // split when computing care graph
+  SETS_CG_SPLIT,
   SETS_COMPREHENSION,
   SETS_DEQ,
   SETS_DOWN_CLOSURE,
+  // conflict when two singleton/emptyset terms merge
+  SETS_EQ_CONFLICT,
   SETS_EQ_MEM,
   SETS_EQ_MEM_CONFLICT,
   SETS_MEM_EQ,
@@ -419,6 +487,7 @@ enum class InferenceId
   SETS_RELS_IDENTITY_UP,
   SETS_RELS_JOIN_COMPOSE,
   SETS_RELS_JOIN_IMAGE_DOWN,
+  SETS_RELS_JOIN_IMAGE_UP,
   SETS_RELS_JOIN_SPLIT_1,
   SETS_RELS_JOIN_SPLIT_2,
   SETS_RELS_PRODUCE_COMPOSE,
@@ -781,6 +850,12 @@ const char* toString(InferenceId i);
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, InferenceId i);
+
+/** Make node from inference id */
+Node mkInferenceIdNode(InferenceId i);
+
+/** get an inference identifier from a node, return false if we fail */
+bool getInferenceId(TNode n, InferenceId& i);
 
 }  // namespace theory
 }  // namespace cvc5

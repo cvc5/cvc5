@@ -24,7 +24,7 @@ namespace theory {
 namespace bv {
 
 BBProof::BBProof(TheoryState* state, ProofNodeManager* pnm, bool fineGrained)
-    : d_bb(new BBSimple(state)),
+    : d_bb(new NodeBitblaster(state)),
       d_pnm(pnm),
       d_tcontext(new TheoryLeafTermContext(theory::THEORY_BV)),
       d_tcpg(pnm ? new TConvProofGenerator(
@@ -170,6 +170,11 @@ bool BBProof::hasBBTerm(TNode atom) const { return d_bb->hasBBTerm(atom); }
 Node BBProof::getStoredBBAtom(TNode node)
 {
   return d_bb->getStoredBBAtom(node);
+}
+
+void BBProof::getBBTerm(TNode node, Bits& bits) const
+{
+  d_bb->getBBTerm(node, bits);
 }
 
 bool BBProof::collectModelValues(TheoryModel* m,

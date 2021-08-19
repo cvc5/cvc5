@@ -19,6 +19,7 @@
 #include "theory/arith/theory_arith_private.h"
 
 #include <map>
+#include <optional>
 #include <queue>
 #include <vector>
 
@@ -137,7 +138,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                           d_partialModel,
                           RaiseEqualityEngineConflict(*this),
                           d_pnm),
-      d_cmEnabled(c, true),
+      d_cmEnabled(c, options::arithCongMan()),
 
       d_dualSimplex(
           d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
@@ -181,14 +182,20 @@ TheoryArithPrivate::~TheoryArithPrivate(){
 
 bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
 {
+  if (!d_cmEnabled)
+  {
+    return false;
+  }
   return d_congruenceManager.needsEqualityEngine(esi);
 }
 void TheoryArithPrivate::finishInit()
 {
-  eq::EqualityEngine* ee = d_containing.getEqualityEngine();
-  eq::ProofEqEngine* pfee = d_containing.getProofEqEngine();
-  Assert(ee != nullptr);
-  d_congruenceManager.finishInit(ee, pfee);
+  if (d_cmEnabled)
+  {
+    eq::EqualityEngine* ee = d_containing.getEqualityEngine();
+    Assert(ee != nullptr);
+    d_congruenceManager.finishInit(ee);
+  }
 }
 
 static bool contains(const ConstraintCPVec& v, ConstraintP con){
@@ -1607,7 +1614,7 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
     Debug("arith::eq") << "negation has proof" << endl;
     Debug("arith::eq") << constraint << endl;
     Debug("arith::eq") << negation << endl;
-    raiseConflict(negation, InferenceId::UNKNOWN);
+    raiseConflict(negation, InferenceId::ARITH_CONF_FACT_QUEUE);
     return NullConstraint;
   }else{
     return constraint;
@@ -2060,7 +2067,8 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(
     if(d_partialModel.hasNode(v)){
       d_lhsTmp.set(v, Rational(1));
       double dval = nl.branchValue();
-      Maybe<Rational> maybe_value = ApproximateSimplex::estimateWithCFE(dval);
+      std::optional<Rational> maybe_value =
+          ApproximateSimplex::estimateWithCFE(dval);
       if (!maybe_value)
       {
         return make_pair(NullConstraint, ARITHVAR_SENTINEL);
@@ -2603,7 +2611,8 @@ Node TheoryArithPrivate::branchToNode(ApproximateSimplex* approx,
     if(d_partialModel.hasNode(v)){
       Node n = d_partialModel.asNode(v);
       double dval = bn.branchValue();
-      Maybe<Rational> maybe_value = ApproximateSimplex::estimateWithCFE(dval);
+      std::optional<Rational> maybe_value =
+          ApproximateSimplex::estimateWithCFE(dval);
       if (!maybe_value)
       {
         return Node::null();

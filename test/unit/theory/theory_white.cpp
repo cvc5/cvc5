@@ -37,30 +37,19 @@ class TestTheoryWhite : public TestSmtNoFinishInit
   void SetUp() override
   {
     TestSmtNoFinishInit::SetUp();
-    d_context = d_smtEngine->getContext();
-    d_user_context = d_smtEngine->getUserContext();
-    d_logicInfo.reset(new LogicInfo());
-    d_logicInfo->lock();
     d_smtEngine->finishInit();
     delete d_smtEngine->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN];
     delete d_smtEngine->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN];
     d_smtEngine->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN] = nullptr;
     d_smtEngine->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN] = nullptr;
 
-    d_dummy_theory.reset(new DummyTheory<THEORY_BUILTIN>(d_context,
-                                                         d_user_context,
-                                                         d_outputChannel,
-                                                         Valuation(nullptr),
-                                                         *d_logicInfo,
-                                                         nullptr));
+    d_dummy_theory.reset(new DummyTheory<THEORY_BUILTIN>(
+        d_smtEngine->getEnv(), d_outputChannel, Valuation(nullptr)));
     d_outputChannel.clear();
     d_atom0 = d_nodeManager->mkConst(true);
     d_atom1 = d_nodeManager->mkConst(false);
   }
 
-  Context* d_context;
-  UserContext* d_user_context;
-  std::unique_ptr<LogicInfo> d_logicInfo;
   DummyOutputChannel d_outputChannel;
   std::unique_ptr<DummyTheory<THEORY_BUILTIN>> d_dummy_theory;
   Node d_atom0;
@@ -100,7 +89,7 @@ TEST_F(TestTheoryWhite, outputChannel)
 {
   Node n = d_atom0.orNode(d_atom1);
   d_outputChannel.lemma(n);
-  d_outputChannel.split(d_atom0);
+  d_outputChannel.lemma(d_atom0.orNode(d_atom0.notNode()));
   Node s = d_atom0.orNode(d_atom0.notNode());
   ASSERT_EQ(d_outputChannel.d_callHistory.size(), 2u);
   ASSERT_EQ(d_outputChannel.d_callHistory[0], std::make_pair(LEMMA, n));

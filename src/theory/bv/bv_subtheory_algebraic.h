@@ -222,7 +222,7 @@ class AlgebraicSolver : public SubtheorySolver
   bool quickCheck(std::vector<Node>& facts);
 
  public:
-  AlgebraicSolver(context::Context* c, BVSolverLazy* bv);
+  AlgebraicSolver(context::Context* c, BVSolverLayered* bv);
   ~AlgebraicSolver();
 
   void preRegister(TNode node) override {}

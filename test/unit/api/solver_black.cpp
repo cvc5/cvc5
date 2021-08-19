@@ -13,6 +13,8 @@
  * Black box testing of the Solver class of the  C++ API.
  */
 
+#include <algorithm>
+
 #include "test_api.h"
 
 namespace cvc5 {
@@ -321,6 +323,15 @@ TEST_F(TestApiBlackSolver, mkBitVector)
   ASSERT_THROW(d_solver.mkBitVector("20", 2), CVC5ApiException);
   ASSERT_THROW(d_solver.mkBitVector(8, "101010101", 2), CVC5ApiException);
   ASSERT_THROW(d_solver.mkBitVector(8, "-256", 10), CVC5ApiException);
+  // No size and negative string -> error
+  ASSERT_THROW(d_solver.mkBitVector("-1", 2), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkBitVector("-1", 10), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkBitVector("-f", 16), CVC5ApiException);
+  // size and negative string -> ok
+  ASSERT_EQ(d_solver.mkBitVector(4, "-1", 2), d_solver.mkBitVector(4, "1111", 2));
+  ASSERT_EQ(d_solver.mkBitVector(4, "-1", 16), d_solver.mkBitVector(4, "1111", 2));
+  ASSERT_EQ(d_solver.mkBitVector(4, "-1", 10), d_solver.mkBitVector(4, "1111", 2));
+  ASSERT_EQ(d_solver.mkBitVector("1010", 2), d_solver.mkBitVector("10", 10));
   ASSERT_EQ(d_solver.mkBitVector("1010", 2), d_solver.mkBitVector("10", 10));
   ASSERT_EQ(d_solver.mkBitVector("1010", 2), d_solver.mkBitVector("a", 16));
   ASSERT_EQ(d_solver.mkBitVector(8, "01010101", 2).toString(), "#b01010101");
@@ -1301,6 +1312,14 @@ TEST_F(TestApiBlackSolver, getOption)
   ASSERT_THROW(d_solver.getOption("asdf"), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, getOptionNames)
+{
+  std::vector<std::string> names = d_solver.getOptionNames();
+  ASSERT_TRUE(names.size() > 100);
+  ASSERT_NE(std::find(names.begin(), names.end(), "verbose"), names.end());
+  ASSERT_EQ(std::find(names.begin(), names.end(), "foobar"), names.end());
+}
+
 TEST_F(TestApiBlackSolver, getUnsatAssumptions1)
 {
   d_solver.setOption("incremental", "false");
@@ -1343,10 +1362,11 @@ TEST_F(TestApiBlackSolver, getUnsatCore2)
   ASSERT_THROW(d_solver.getUnsatCore(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, getUnsatCore3)
+TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
 {
   d_solver.setOption("incremental", "true");
   d_solver.setOption("produce-unsat-cores", "true");
+  d_solver.setOption("produce-proofs", "true");
 
   Sort uSort = d_solver.mkUninterpretedSort("u");
   Sort intSort = d_solver.getIntegerSort();
@@ -1375,6 +1395,8 @@ TEST_F(TestApiBlackSolver, getUnsatCore3)
 
   ASSERT_NO_THROW(unsat_core = d_solver.getUnsatCore());
 
+  ASSERT_NO_THROW(d_solver.getProof());
+
   d_solver.resetAssertions();
   for (const auto& t : unsat_core)
   {
@@ -1382,6 +1404,7 @@ TEST_F(TestApiBlackSolver, getUnsatCore3)
   }
   cvc5::api::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isUnsat());
+  ASSERT_NO_THROW(d_solver.getProof());
 }
 
 TEST_F(TestApiBlackSolver, getValue1)

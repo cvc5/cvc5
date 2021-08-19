@@ -59,6 +59,7 @@ SynthConjecture::SynthConjecture(QuantifiersState& qs,
       d_treg(tr),
       d_stats(s),
       d_tds(tr.getTermDatabaseSygus()),
+      d_verify(d_tds),
       d_hasSolution(false),
       d_ceg_si(new CegSingleInv(tr, s)),
       d_templInfer(new SygusTemplateInfer),
@@ -73,7 +74,6 @@ SynthConjecture::SynthConjecture(QuantifiersState& qs,
       d_master(nullptr),
       d_set_ce_sk_vars(false),
       d_repair_index(0),
-      d_refine_count(0),
       d_guarded_stream_exc(false)
 {
   if (options::sygusSymBreakPbe() || options::sygusUnifPbe())
@@ -89,18 +89,6 @@ SynthConjecture::SynthConjecture(QuantifiersState& qs,
     d_modules.push_back(d_sygus_ccore.get());
   }
   d_modules.push_back(d_ceg_cegis.get());
-  // determine the options to use for the verification subsolvers we spawn
-  // we start with the options of the current SmtEngine
-  SmtEngine* smtCurr = smt::currentSmtEngine();
-  d_subOptions.copyValues(smtCurr->getOptions());
-  // limit the number of instantiation rounds on subcalls
-  d_subOptions.quantifiers.instMaxRounds =
-      d_subOptions.quantifiers.sygusVerifyInstMaxRounds;
-  // Disable sygus on the subsolver. This is particularly important since it
-  // ensures that recursive function definitions have the standard ownership
-  // instead of being claimed by sygus in the subsolver.
-  d_subOptions.base.inputLanguage = language::input::LANG_SMTLIB_V2_6;
-  d_subOptions.quantifiers.sygus = false;
 }
 
 SynthConjecture::~SynthConjecture() {}
@@ -229,14 +217,12 @@ void SynthConjecture::assign(Node q)
 
   // register this term with sygus database and other utilities that impact
   // the enumerative sygus search
-  std::vector<Node> guarded_lemmas;
   if (!isSingleInvocation())
   {
     d_ceg_proc->initialize(d_base_inst, d_candidates);
     for (unsigned i = 0, size = d_modules.size(); i < size; i++)
     {
-      if (d_modules[i]->initialize(
-              d_simp_quant, d_base_inst, d_candidates, guarded_lemmas))
+      if (d_modules[i]->initialize(d_simp_quant, d_base_inst, d_candidates))
       {
         d_master = d_modules[i];
         break;
@@ -267,15 +253,6 @@ void SynthConjecture::assign(Node q)
   // decided on with true polariy, but also to ensure that output channel
   // has been used on this call to check.
   d_qim.requirePhase(d_feasible_guard, true);
-
-  Node gneg = d_feasible_guard.negate();
-  for (unsigned i = 0; i < guarded_lemmas.size(); i++)
-  {
-    Node lem = nm->mkNode(OR, gneg, guarded_lemmas[i]);
-    Trace("cegqi-lemma") << "Cegqi::Lemma : initial (guarded) lemma : " << lem
-                         << std::endl;
-    d_qim.lemma(lem, InferenceId::UNKNOWN);
-  }
 
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation()
                  << std::endl;
@@ -318,7 +295,7 @@ bool SynthConjecture::needsCheck()
 }
 
 bool SynthConjecture::needsRefinement() const { return d_set_ce_sk_vars; }
-bool SynthConjecture::doCheck(std::vector<Node>& lems)
+bool SynthConjecture::doCheck()
 {
   if (isSingleInvocation())
   {
@@ -329,7 +306,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     {
       d_hasSolution = true;
       // the conjecture has a solution, so its negation holds
-      lems.push_back(d_quant.negate());
+      Node qn = d_quant.negate();
+      d_qim.addPendingLemma(qn, InferenceId::QUANTIFIERS_SYGUS_SI_SOLVED);
     }
     return true;
   }
@@ -460,7 +438,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     }
     Assert(candidate_values.empty());
     constructed_cand = d_master->constructCandidates(
-        terms, enum_values, d_candidates, candidate_values, lems);
+        terms, enum_values, d_candidates, candidate_values);
     // now clear the evaluation caches
     for (std::pair<const Node, std::unique_ptr<ExampleEvalCache> >& ecp :
          d_exampleEvalCache)
@@ -523,7 +501,9 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     // we have that the current candidate passed a sample test
     // since we trust sampling in this mode, we assert there is no
     // counterexample to the conjecture here.
-    lems.push_back(d_quant.negate());
+    Node qn = d_quant.negate();
+    d_qim.addPendingLemma(qn,
+                          InferenceId::QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED);
     recordSolution(candidate_values);
     return true;
   }
@@ -580,86 +560,31 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     return false;
   }
 
-  // simplify the lemma based on the term database sygus utility
-  query = d_tds->rewriteNode(query);
-  // eagerly unfold applications of evaluation function
-  Trace("cegqi-debug") << "pre-unfold counterexample : " << query << std::endl;
   // Record the solution, which may be falsified below. We require recording
   // here since the result of the satisfiability test may be unknown.
   recordSolution(candidate_values);
 
-  if (!query.isConst() || query.getConst<bool>())
+  Result r = d_verify.verify(query, d_ce_sk_vars, d_ce_sk_var_mvs);
+
+  if (r.asSatisfiabilityResult().isSat() == Result::SAT)
   {
-    // add recursive function definitions
-    FunDefEvaluator* feval = d_tds->getFunDefEvaluator();
-    const std::vector<Node>& fdefs = feval->getDefinitions();
-    if (!fdefs.empty())
-    {
-      // Get the relevant definitions based on the symbols in the query.
-      // Notice in some cases, this may have the effect of making the subcall
-      // involve no recursive function definitions at all, in which case the
-      // subcall to verification may be decidable, in which case the call
-      // below is guaranteed to generate a new counterexample point.
-      std::unordered_set<Node> syms;
-      expr::getSymbols(query, syms);
-      std::vector<Node> qconj;
-      qconj.push_back(query);
-      for (const Node& f : syms)
-      {
-        Node q = feval->getDefinitionFor(f);
-        if (!q.isNull())
-        {
-          qconj.push_back(q);
-        }
-      }
-      query = nm->mkAnd(qconj);
-      Trace("cegqi-debug") << "query is " << query << std::endl;
-    }
-    Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
-    Result r =
-        checkWithSubsolver(query, d_ce_sk_vars, d_ce_sk_var_mvs, &d_subOptions);
-    Trace("sygus-engine") << "  ...got " << r << std::endl;
-    if (r.asSatisfiabilityResult().isSat() == Result::SAT)
-    {
-      if (Trace.isOn("sygus-engine"))
-      {
-        Trace("sygus-engine") << "  * Verification lemma failed for:\n   ";
-        for (unsigned i = 0, size = d_ce_sk_vars.size(); i < size; i++)
-        {
-          Trace("sygus-engine")
-              << d_ce_sk_vars[i] << " -> " << d_ce_sk_var_mvs[i] << " ";
-        }
-        Trace("sygus-engine") << std::endl;
-      }
-      if (Configuration::isAssertionBuild())
-      {
-        // the values for the query should be a complete model
-        Node squery = query.substitute(d_ce_sk_vars.begin(),
-                                       d_ce_sk_vars.end(),
-                                       d_ce_sk_var_mvs.begin(),
-                                       d_ce_sk_var_mvs.end());
-        Trace("cegqi-debug") << "...squery : " << squery << std::endl;
-        squery = Rewriter::rewrite(squery);
-        Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
-        Assert(options::sygusRecFun()
-               || (squery.isConst() && squery.getConst<bool>()));
-      }
-      return false;
-    }
-    else if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
-    {
-      // In the rare case that the subcall is unknown, we simply exclude the
-      // solution, without adding a counterexample point. This should only
-      // happen if the quantifier free logic is undecidable.
-      excludeCurrentSolution(terms, candidate_values);
-      // We should set incomplete, since a "sat" answer should not be
-      // interpreted as "infeasible", which would make a difference in the rare
-      // case where e.g. we had a finite grammar and exhausted the grammar.
-      d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY);
-      return false;
-    }
-    // otherwise we are unsat, and we will process the solution below
+    // we have a counterexample
+    return false;
   }
+  else if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+  {
+    // In the rare case that the subcall is unknown, we simply exclude the
+    // solution, without adding a counterexample point. This should only
+    // happen if the quantifier free logic is undecidable.
+    excludeCurrentSolution(terms, candidate_values);
+    // We should set incomplete, since a "sat" answer should not be
+    // interpreted as "infeasible", which would make a difference in the rare
+    // case where e.g. we had a finite grammar and exhausted the grammar.
+    d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY);
+    return false;
+  }
+  // otherwise we are unsat, and we will process the solution below
+
   // now mark that we have a solution
   d_hasSolution = true;
   if (options::sygusStream())
@@ -672,7 +597,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   }
   // Use lemma to terminate with "unsat", this is justified by the verification
   // check above, which confirms the synthesis conjecture is solved.
-  lems.push_back(d_quant.negate());
+  Node qn = d_quant.negate();
+  d_qim.addPendingLemma(qn, InferenceId::QUANTIFIERS_SYGUS_VERIFY_SOLVED);
   return true;
 }
 
@@ -701,7 +627,6 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
 
 bool SynthConjecture::doRefine()
 {
-  std::vector<Node> lems;
   Assert(d_set_ce_sk_vars);
 
   // first, make skolem substitution
@@ -738,7 +663,6 @@ bool SynthConjecture::doRefine()
     Assert(d_inner_vars.empty());
   }
 
-  std::vector<Node> lem_c;
   Trace("cegqi-refine") << "doRefine : Construct refinement lemma..."
                         << std::endl;
   Trace("cegqi-refine-debug")
@@ -762,30 +686,15 @@ bool SynthConjecture::doRefine()
   base_lem = d_tds->rewriteNode(base_lem);
   Trace("cegqi-refine") << "doRefine : register refinement lemma " << base_lem
                         << "..." << std::endl;
-  d_master->registerRefinementLemma(sk_vars, base_lem, lems);
+  size_t prevPending = d_qim.numPendingLemmas();
+  d_master->registerRefinementLemma(sk_vars, base_lem);
   Trace("cegqi-refine") << "doRefine : finished" << std::endl;
   d_set_ce_sk_vars = false;
   d_ce_sk_vars.clear();
   d_ce_sk_var_mvs.clear();
 
-  // now send the lemmas
-  bool addedLemma = false;
-  for (const Node& lem : lems)
-  {
-    Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
-                         << std::endl;
-    bool res = d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
-    if (res)
-    {
-      ++(d_stats.d_cegqi_lemmas_refine);
-      d_refine_count++;
-      addedLemma = true;
-    }
-    else
-    {
-      Trace("cegqi-warn") << "  ...FAILED to add refinement!" << std::endl;
-    }
-  }
+  // check if we added a lemma
+  bool addedLemma = d_qim.numPendingLemmas() > prevPending;
   if (addedLemma)
   {
     Trace("sygus-engine-debug") << "  ...refine candidate." << std::endl;
@@ -893,7 +802,10 @@ Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
                    == options::SygusActiveGenMode::ENUM
                || options::sygusActiveGenMode()
                       == options::SygusActiveGenMode::AUTO);
-        d_evg[e].reset(new SygusEnumerator(d_tds, this, d_stats));
+        // if sygus repair const is enabled, we enumerate terms with free
+        // variables as arguments to any-constant constructors
+        d_evg[e].reset(new SygusEnumerator(
+            d_tds, this, &d_stats, false, options::sygusRepairConst()));
       }
     }
     Trace("sygus-active-gen")

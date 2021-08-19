@@ -14,6 +14,7 @@
  */
 
 #include "theory/arith/simplex_update.h"
+
 #include "theory/arith/constraint.h"
 
 using namespace std;
@@ -22,6 +23,22 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
+/*
+ * Generates a string representation of std::optional and inserts it into a
+ * stream.
+ *
+ * Note: We define this function here in the cvc5::theory::arith namespace,
+ * because it would otherwise not be found for std::optional<int>. This is due
+ * to the argument-dependent lookup rules.
+ *
+ * @param out The stream
+ * @param m The value
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, const std::optional<int>& m)
+{
+  return cvc5::operator<<(out, m);
+}
 
 UpdateInfo::UpdateInfo():
   d_nonbasic(ARITHVAR_SENTINEL),
@@ -72,7 +89,7 @@ void UpdateInfo::updateUnbounded(const DeltaRational& delta, int ec, int f){
   d_nonbasicDelta = delta;
   d_errorsChange = ec;
   d_focusDirection = f;
-  d_tableauCoefficient.clear();
+  d_tableauCoefficient.reset();
   updateWitness();
   Assert(unbounded());
   Assert(improvement(d_witness));
@@ -82,9 +99,9 @@ void UpdateInfo::updateUnbounded(const DeltaRational& delta, int ec, int f){
 void UpdateInfo::updatePureFocus(const DeltaRational& delta, ConstraintP c){
   d_limiting = c;
   d_nonbasicDelta = delta;
-  d_errorsChange.clear();
+  d_errorsChange.reset();
   d_focusDirection = 1;
-  d_tableauCoefficient.clear();
+  d_tableauCoefficient.reset();
   updateWitness();
   Assert(!describesPivot());
   Assert(improvement(d_witness));
@@ -94,8 +111,8 @@ void UpdateInfo::updatePureFocus(const DeltaRational& delta, ConstraintP c){
 void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, ConstraintP c){
   d_limiting = c;
   d_nonbasicDelta = delta;
-  d_errorsChange.clear();
-  d_focusDirection.clear();
+  d_errorsChange.reset();
+  d_focusDirection.reset();
   updateWitness();
   Assert(describesPivot());
   Assert(debugSgnAgreement());
@@ -105,7 +122,7 @@ void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, Cons
   d_limiting = c;
   d_nonbasicDelta = delta;
   d_errorsChange = ec;
-  d_focusDirection.clear();
+  d_focusDirection.reset();
   d_tableauCoefficient = &r;
   updateWitness();
   Assert(describesPivot());
@@ -117,7 +134,7 @@ void UpdateInfo::witnessedUpdate(const DeltaRational& delta, ConstraintP c, int 
   d_nonbasicDelta = delta;
   d_errorsChange = ec;
   d_focusDirection = fd;
-  d_tableauCoefficient.clear();
+  d_tableauCoefficient.reset();
   updateWitness();
   Assert(describesPivot() || improvement(d_witness));
   Assert(debugSgnAgreement());

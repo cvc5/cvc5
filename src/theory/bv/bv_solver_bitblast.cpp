@@ -78,7 +78,7 @@ class NotifyResetAssertions : public context::ContextNotifyObj
 class BBRegistrar : public prop::Registrar
 {
  public:
-  BBRegistrar(BBSimple* bb) : d_bitblaster(bb) {}
+  BBRegistrar(NodeBitblaster* bb) : d_bitblaster(bb) {}
 
   void preRegister(Node n) override
   {
@@ -102,7 +102,7 @@ class BBRegistrar : public prop::Registrar
 
  private:
   /** The bitblaster used. */
-  BBSimple* d_bitblaster;
+  NodeBitblaster* d_bitblaster;
 
   /** Stores bit-vector atoms encounterd on preRegister(). */
   std::unordered_set<TNode> d_registeredAtoms;
@@ -112,15 +112,13 @@ BVSolverBitblast::BVSolverBitblast(TheoryState* s,
                                    TheoryInferenceManager& inferMgr,
                                    ProofNodeManager* pnm)
     : BVSolver(*s, inferMgr),
-      d_bitblaster(new BBSimple(s)),
+      d_bitblaster(new NodeBitblaster(s)),
       d_bbRegistrar(new BBRegistrar(d_bitblaster.get())),
       d_nullContext(new context::Context()),
       d_bbFacts(s->getSatContext()),
       d_bbInputFacts(s->getSatContext()),
       d_assumptions(s->getSatContext()),
       d_assertions(s->getSatContext()),
-      d_invalidateModelCache(s->getSatContext(), true),
-      d_inSatMode(s->getSatContext(), false),
       d_epg(pnm ? new EagerProofGenerator(pnm, s->getUserContext(), "")
                 : nullptr),
       d_factLiteralCache(s->getSatContext()),
@@ -208,12 +206,9 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
     d_assumptions.push_back(d_factLiteralCache[fact]);
   }
 
-  d_invalidateModelCache.set(true);
   std::vector<prop::SatLiteral> assumptions(d_assumptions.begin(),
                                             d_assumptions.end());
   prop::SatValue val = d_satSolver->solve(assumptions);
-  d_inSatMode = val == prop::SatValue::SAT_VALUE_TRUE;
-  Debug("bv-bitblast") << "d_inSatMode: " << d_inSatMode << std::endl;
 
   if (val == prop::SatValue::SAT_VALUE_FALSE)
   {
@@ -298,7 +293,7 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
       continue;
     }
 
-    Node value = getValueFromSatSolver(term, true);
+    Node value = getValue(term, true);
     Assert(value.isConst());
     if (!m->assertEquality(term, value, true))
     {
@@ -330,27 +325,6 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
   return true;
 }
 
-EqualityStatus BVSolverBitblast::getEqualityStatus(TNode a, TNode b)
-{
-  Debug("bv-bitblast") << "getEqualityStatus on " << a << " and " << b
-                       << std::endl;
-  if (!d_inSatMode)
-  {
-    Debug("bv-bitblast") << EQUALITY_UNKNOWN << std::endl;
-    return EQUALITY_UNKNOWN;
-  }
-  Node value_a = getValue(a);
-  Node value_b = getValue(b);
-
-  if (value_a == value_b)
-  {
-    Debug("bv-bitblast") << EQUALITY_TRUE_IN_MODEL << std::endl;
-    return EQUALITY_TRUE_IN_MODEL;
-  }
-  Debug("bv-bitblast") << EQUALITY_FALSE_IN_MODEL << std::endl;
-  return EQUALITY_FALSE_IN_MODEL;
-}
-
 void BVSolverBitblast::initSatSolver()
 {
   switch (options::bvSatSolver())
@@ -372,7 +346,7 @@ void BVSolverBitblast::initSatSolver()
                                         "theory::bv::BVSolverBitblast"));
 }
 
-Node BVSolverBitblast::getValueFromSatSolver(TNode node, bool initialize)
+Node BVSolverBitblast::getValue(TNode node, bool initialize)
 {
   if (node.isConst())
   {
@@ -403,76 +377,6 @@ Node BVSolverBitblast::getValueFromSatSolver(TNode node, bool initialize)
     value = value * 2 + bit;
   }
   return utils::mkConst(bits.size(), value);
-}
-
-Node BVSolverBitblast::getValue(TNode node)
-{
-  if (d_invalidateModelCache.get())
-  {
-    d_modelCache.clear();
-  }
-  d_invalidateModelCache.set(false);
-
-  std::vector<TNode> visit;
-
-  TNode cur;
-  visit.push_back(node);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-
-    auto it = d_modelCache.find(cur);
-    if (it != d_modelCache.end() && !it->second.isNull())
-    {
-      continue;
-    }
-
-    if (d_bitblaster->hasBBTerm(cur))
-    {
-      Node value = getValueFromSatSolver(cur, false);
-      if (value.isConst())
-      {
-        d_modelCache[cur] = value;
-        continue;
-      }
-    }
-    if (Theory::isLeafOf(cur, theory::THEORY_BV))
-    {
-      Node value = getValueFromSatSolver(cur, true);
-      d_modelCache[cur] = value;
-      continue;
-    }
-
-    if (it == d_modelCache.end())
-    {
-      visit.push_back(cur);
-      d_modelCache.emplace(cur, Node());
-      visit.insert(visit.end(), cur.begin(), cur.end());
-    }
-    else if (it->second.isNull())
-    {
-      NodeBuilder nb(cur.getKind());
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        nb << cur.getOperator();
-      }
-
-      std::unordered_map<Node, Node>::iterator iit;
-      for (const TNode& child : cur)
-      {
-        iit = d_modelCache.find(child);
-        Assert(iit != d_modelCache.end());
-        Assert(iit->second.isConst());
-        nb << iit->second;
-      }
-      it->second = Rewriter::rewrite(nb.constructNode());
-    }
-  } while (!visit.empty());
-
-  auto it = d_modelCache.find(node);
-  Assert(it != d_modelCache.end());
-  return it->second;
 }
 
 void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)

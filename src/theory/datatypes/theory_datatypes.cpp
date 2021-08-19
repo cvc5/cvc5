@@ -47,24 +47,20 @@ namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
-TheoryDatatypes::TheoryDatatypes(Context* c,
-                                 UserContext* u,
+TheoryDatatypes::TheoryDatatypes(Env& env,
                                  OutputChannel& out,
-                                 Valuation valuation,
-                                 const LogicInfo& logicInfo,
-                                 ProofNodeManager* pnm)
-    : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo, pnm),
-      d_term_sk(u),
-      d_labels(c),
-      d_selector_apps(c),
-      d_collectTermsCache(c),
-      d_collectTermsCacheU(u),
-      d_functionTerms(c),
-      d_singleton_eq(u),
-      d_lemmas_produced_c(u),
+                                 Valuation valuation)
+    : Theory(THEORY_DATATYPES, env, out, valuation),
+      d_term_sk(getUserContext()),
+      d_labels(getSatContext()),
+      d_selector_apps(getSatContext()),
+      d_collectTermsCache(getSatContext()),
+      d_collectTermsCacheU(getUserContext()),
+      d_functionTerms(getSatContext()),
+      d_singleton_eq(getUserContext()),
       d_sygusExtension(nullptr),
-      d_state(c, u, valuation),
-      d_im(*this, d_state, pnm),
+      d_state(env, valuation),
+      d_im(*this, d_state, d_pnm),
       d_notify(d_im, *this)
 {
 
@@ -168,13 +164,17 @@ TNode TheoryDatatypes::getEqcConstructor( TNode r ) {
 
 bool TheoryDatatypes::preCheck(Effort level)
 {
+  Trace("datatypes-check") << "TheoryDatatypes::preCheck: " << level
+                           << std::endl;
+  d_im.process();
   d_im.reset();
-  d_im.clearPending();
   return false;
 }
 
 void TheoryDatatypes::postCheck(Effort level)
 {
+  Trace("datatypes-check") << "TheoryDatatypes::postCheck: " << level
+                           << std::endl;
   // Apply any last pending inferences, which may occur if the last processed
   // fact was an internal one and triggered further internal inferences.
   d_im.process();
@@ -182,7 +182,6 @@ void TheoryDatatypes::postCheck(Effort level)
   {
     Assert(d_sygusExtension != nullptr);
     d_sygusExtension->check();
-    return;
   }
   else if (level == EFFORT_FULL && !d_state.isInConflict()
            && !d_im.hasSentLemma() && !d_valuation.needCheck())
@@ -532,134 +531,158 @@ void TheoryDatatypes::eqNotifyNewClass(TNode t){
 void TheoryDatatypes::eqNotifyMerge(TNode t1, TNode t2)
 {
   if( t1.getType().isDatatype() ){
-    Trace("datatypes-debug")
+    Trace("datatypes-merge")
         << "NotifyMerge : " << t1 << " " << t2 << std::endl;
-    merge(t1,t2);
+    merge(t1, t2);
   }
 }
 
 void TheoryDatatypes::merge( Node t1, Node t2 ){
-  if (!d_state.isInConflict())
+  if (d_state.isInConflict())
   {
-    TNode trep1 = t1;
-    TNode trep2 = t2;
-    Trace("datatypes-debug") << "Merge " << t1 << " " << t2 << std::endl;
-    EqcInfo* eqc2 = getOrMakeEqcInfo( t2 );
-    if( eqc2 ){
-      bool checkInst = false;
-      if( !eqc2->d_constructor.get().isNull() ){
-        trep2 = eqc2->d_constructor.get();
+    return;
+  }
+  Trace("datatypes-merge") << "Merge " << t1 << " " << t2 << std::endl;
+  Assert(areEqual(t1, t2));
+  TNode trep1 = t1;
+  TNode trep2 = t2;
+  EqcInfo* eqc2 = getOrMakeEqcInfo(t2);
+  if (eqc2 == nullptr)
+  {
+    return;
+  }
+  bool checkInst = false;
+  if (!eqc2->d_constructor.get().isNull())
+  {
+    trep2 = eqc2->d_constructor.get();
+  }
+  EqcInfo* eqc1 = getOrMakeEqcInfo(t1);
+  if (eqc1)
+  {
+    Trace("datatypes-debug")
+        << "  merge eqc info " << eqc2 << " into " << eqc1 << std::endl;
+    if (!eqc1->d_constructor.get().isNull())
+    {
+      trep1 = eqc1->d_constructor.get();
+    }
+    // check for clash
+    TNode cons1 = eqc1->d_constructor.get();
+    TNode cons2 = eqc2->d_constructor.get();
+    // if both have constructor, then either clash or unification
+    if (!cons1.isNull() && !cons2.isNull())
+    {
+      Trace("datatypes-debug")
+          << "  constructors : " << cons1 << " " << cons2 << std::endl;
+      Node unifEq = cons1.eqNode(cons2);
+      std::vector<Node> rew;
+      if (utils::checkClash(cons1, cons2, rew))
+      {
+        std::vector<Node> conf;
+        conf.push_back(unifEq);
+        Trace("dt-conflict")
+            << "CONFLICT: Clash conflict : " << conf << std::endl;
+        d_im.sendDtConflict(conf, InferenceId::DATATYPES_CLASH_CONFLICT);
+        return;
       }
-      EqcInfo* eqc1 = getOrMakeEqcInfo( t1 );
-      if( eqc1 ){
-        Trace("datatypes-debug") << "  merge eqc info " << eqc2 << " into " << eqc1 << std::endl;
-        if( !eqc1->d_constructor.get().isNull() ){
-          trep1 = eqc1->d_constructor.get();
-        }
-        //check for clash
-        TNode cons1 = eqc1->d_constructor.get();
-        TNode cons2 = eqc2->d_constructor.get();
-        //if both have constructor, then either clash or unification
-        if( !cons1.isNull() && !cons2.isNull() ){
-          Trace("datatypes-debug") << "  constructors : " << cons1 << " " << cons2 << std::endl;
-          Node unifEq = cons1.eqNode( cons2 );
-          std::vector< Node > rew;
-          if (utils::checkClash(cons1, cons2, rew))
-          {
-            std::vector<Node> conf;
-            conf.push_back(unifEq);
-            Trace("dt-conflict")
-                << "CONFLICT: Clash conflict : " << conf << std::endl;
-            d_im.sendDtConflict(conf, InferenceId::DATATYPES_CLASH_CONFLICT);
-            return;
-          }
-          else
-          {
-            //do unification
-            for( int i=0; i<(int)cons1.getNumChildren(); i++ ) {
-              if( !areEqual( cons1[i], cons2[i] ) ){
-                Node eq = cons1[i].eqNode( cons2[i] );
-                d_im.addPendingInference(
-                    eq, InferenceId::DATATYPES_UNIF, unifEq);
-                Trace("datatypes-infer") << "DtInfer : cons-inj : " << eq << " by " << unifEq << std::endl;
-              }
-            }
-          }
-        }
-        Trace("datatypes-debug") << "  instantiated : " << eqc1->d_inst << " " << eqc2->d_inst << std::endl;
-        eqc1->d_inst = eqc1->d_inst || eqc2->d_inst;
-        if( !cons2.isNull() ){
-          if( cons1.isNull() ){
-            Trace("datatypes-debug") << "  must check if it is okay to set the constructor." << std::endl;
-            checkInst = true;
-            addConstructor( eqc2->d_constructor.get(), eqc1, t1 );
-            if (d_state.isInConflict())
-            {
-              return;
-            }
-          }
-        }
-      }else{
-        Trace("datatypes-debug") << "  no eqc info for " << t1 << ", must create" << std::endl;
-        //just copy the equivalence class information
-        eqc1 = getOrMakeEqcInfo( t1, true );
-        eqc1->d_inst.set( eqc2->d_inst );
-        eqc1->d_constructor.set( eqc2->d_constructor );
-        eqc1->d_selectors.set( eqc2->d_selectors );
-      }
-
-
-      //merge labels
-      NodeUIntMap::iterator lbl_i = d_labels.find(t2);
-      if( lbl_i != d_labels.end() ){
-        Trace("datatypes-debug") << "  merge labels from " << eqc2 << " " << t2 << std::endl;
-        size_t n_label = (*lbl_i).second;
-        for (size_t i = 0; i < n_label; i++)
+      else
+      {
+        Assert(areEqual(cons1, cons2));
+        // do unification
+        for (size_t i = 0, nchild = cons1.getNumChildren(); i < nchild; i++)
         {
-          Assert(i < d_labels_data[t2].size());
-          Node t = d_labels_data[ t2 ][i];
-          Node t_arg = d_labels_args[t2][i];
-          unsigned tindex = d_labels_tindex[t2][i];
-          addTester( tindex, t, eqc1, t1, t_arg );
-          if (d_state.isInConflict())
+          if (!areEqual(cons1[i], cons2[i]))
           {
-            Trace("datatypes-debug") << "  conflict!" << std::endl;
-            return;
+            Node eq = cons1[i].eqNode(cons2[i]);
+            d_im.addPendingInference(eq, InferenceId::DATATYPES_UNIF, unifEq);
+            Trace("datatypes-infer") << "DtInfer : cons-inj : " << eq << " by "
+                                     << unifEq << std::endl;
           }
         }
-
       }
-      //merge selectors
-      if( !eqc1->d_selectors && eqc2->d_selectors ){
-        eqc1->d_selectors = true;
+    }
+    Trace("datatypes-debug") << "  instantiated : " << eqc1->d_inst << " "
+                             << eqc2->d_inst << std::endl;
+    eqc1->d_inst = eqc1->d_inst || eqc2->d_inst;
+    if (!cons2.isNull())
+    {
+      if (cons1.isNull())
+      {
+        Trace("datatypes-debug")
+            << "  must check if it is okay to set the constructor."
+            << std::endl;
         checkInst = true;
-      }
-      NodeUIntMap::iterator sel_i = d_selector_apps.find(t2);
-      if( sel_i != d_selector_apps.end() ){
-        Trace("datatypes-debug") << "  merge selectors from " << eqc2 << " " << t2 << std::endl;
-        size_t n_sel = (*sel_i).second;
-        for (size_t j = 0; j < n_sel; j++)
-        {
-          addSelector( d_selector_apps_data[t2][j], eqc1, t1, eqc2->d_constructor.get().isNull() );
-        }
-      }
-      if( checkInst ){
-        Trace("datatypes-debug") << "  checking instantiate" << std::endl;
-        instantiate( eqc1, t1 );
+        addConstructor(eqc2->d_constructor.get(), eqc1, t1);
         if (d_state.isInConflict())
         {
           return;
         }
       }
     }
-    Trace("datatypes-debug") << "Finished Merge " << t1 << " " << t2 << std::endl;
   }
+  else
+  {
+    Trace("datatypes-debug")
+        << "  no eqc info for " << t1 << ", must create" << std::endl;
+    // just copy the equivalence class information
+    eqc1 = getOrMakeEqcInfo(t1, true);
+    eqc1->d_inst.set(eqc2->d_inst);
+    eqc1->d_constructor.set(eqc2->d_constructor);
+    eqc1->d_selectors.set(eqc2->d_selectors);
+  }
+
+  // merge labels
+  NodeUIntMap::iterator lbl_i = d_labels.find(t2);
+  if (lbl_i != d_labels.end())
+  {
+    Trace("datatypes-debug")
+        << "  merge labels from " << eqc2 << " " << t2 << std::endl;
+    size_t n_label = (*lbl_i).second;
+    for (size_t i = 0; i < n_label; i++)
+    {
+      Assert(i < d_labels_data[t2].size());
+      Node t = d_labels_data[t2][i];
+      Node t_arg = d_labels_args[t2][i];
+      unsigned tindex = d_labels_tindex[t2][i];
+      addTester(tindex, t, eqc1, t1, t_arg);
+      if (d_state.isInConflict())
+      {
+        Trace("datatypes-debug") << "  conflict!" << std::endl;
+        return;
+      }
+    }
+  }
+  // merge selectors
+  if (!eqc1->d_selectors && eqc2->d_selectors)
+  {
+    eqc1->d_selectors = true;
+    checkInst = true;
+  }
+  NodeUIntMap::iterator sel_i = d_selector_apps.find(t2);
+  if (sel_i != d_selector_apps.end())
+  {
+    Trace("datatypes-debug")
+        << "  merge selectors from " << eqc2 << " " << t2 << std::endl;
+    size_t n_sel = (*sel_i).second;
+    for (size_t j = 0; j < n_sel; j++)
+    {
+      addSelector(d_selector_apps_data[t2][j],
+                  eqc1,
+                  t1,
+                  eqc2->d_constructor.get().isNull());
+    }
+  }
+  if (checkInst)
+  {
+    Trace("datatypes-debug") << "  checking instantiate" << std::endl;
+    instantiate(eqc1, t1);
+  }
+  Trace("datatypes-debug") << "Finished Merge " << t1 << " " << t2 << std::endl;
 }
 
-TheoryDatatypes::EqcInfo::EqcInfo( context::Context* c )
-    : d_inst( c, false )
-    , d_constructor( c, Node::null() )
-    , d_selectors( c, false )
+TheoryDatatypes::EqcInfo::EqcInfo(context::Context* c)
+    : d_inst(c, false),
+      d_constructor(c, Node::null()),
+      d_selectors(c, false)
 {}
 
 bool TheoryDatatypes::hasLabel( EqcInfo* eqc, Node n ){
@@ -821,7 +844,7 @@ void TheoryDatatypes::addTester(
       const DType& dt = t_arg.getType().getDType();
       Debug("datatypes-labels") << "Labels at " << n_lbl << " / " << dt.getNumConstructors() << std::endl;
       if( tpolarity ){
-        instantiate( eqc, n );
+        instantiate(eqc, n);
         // We could propagate is-C1(x) => not is-C2(x) here for all other
         // constructors, but empirically this hurts performance.
       }else{
@@ -1407,13 +1430,14 @@ Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
   return n_ic;
 }
 
-void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
+bool TheoryDatatypes::instantiate(EqcInfo* eqc, Node n)
+{
   Trace("datatypes-debug") << "Instantiate: " << n << std::endl;
   //add constructor to equivalence class if not done so already
   int index = getLabelIndex( eqc, n );
   if (index == -1 || eqc->d_inst)
   {
-    return;
+    return false;
   }
   Node exp;
   Node tt;
@@ -1435,7 +1459,8 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   Node eq;
   if (tt == tt_cons)
   {
-    return;
+    // not necessary
+    return false;
   }
   eq = tt.eqNode(tt_cons);
   // Determine if the equality must be sent out as a lemma. Notice that
@@ -1458,9 +1483,10 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   }
   Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
                                  << " forceLemma = " << forceLemma << std::endl;
-  d_im.addPendingInference(eq, InferenceId::DATATYPES_INST, exp, forceLemma);
   Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp
                            << std::endl;
+  d_im.addPendingInference(eq, InferenceId::DATATYPES_INST, exp, forceLemma);
+  return true;
 }
 
 void TheoryDatatypes::checkCycles() {
@@ -1852,38 +1878,16 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
   Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
                   << std::endl;
 
-  //also include non-singleton equivalence classes  TODO : revisit this
+  //also include non-singleton dt equivalence classes  TODO : revisit this
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   while( !eqcs_i.isFinished() ){
     TNode r = (*eqcs_i);
-    bool addedFirst = false;
-    Node first;
-    TypeNode rtn = r.getType();
-    if (!rtn.isBoolean())
+    if (r.getType().isDatatype())
     {
       eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
       while (!eqc_i.isFinished())
       {
-        TNode n = (*eqc_i);
-        if (first.isNull())
-        {
-          first = n;
-          // always include all datatypes
-          if (rtn.isDatatype())
-          {
-            addedFirst = true;
-            termSet.insert(n);
-          }
-        }
-        else
-        {
-          if (!addedFirst)
-          {
-            addedFirst = true;
-            termSet.insert(first);
-          }
-          termSet.insert(n);
-        }
+        termSet.insert(*eqc_i);
         ++eqc_i;
       }
     }

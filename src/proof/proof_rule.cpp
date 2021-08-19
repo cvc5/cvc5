@@ -47,6 +47,7 @@ const char* toString(PfRule id)
     case PfRule::TRUST_SUBS: return "TRUST_SUBS";
     case PfRule::TRUST_SUBS_MAP: return "TRUST_SUBS_MAP";
     case PfRule::TRUST_SUBS_EQ: return "TRUST_SUBS_EQ";
+    case PfRule::THEORY_INFERENCE: return "THEORY_INFERENCE";
     //================================================= Boolean rules
     case PfRule::RESOLUTION: return "RESOLUTION";
     case PfRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
@@ -119,6 +120,7 @@ const char* toString(PfRule id)
     case PfRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
     case PfRule::ARRAYS_EXT: return "ARRAYS_EXT";
     case PfRule::ARRAYS_TRUST: return "ARRAYS_TRUST";
+    case PfRule::ARRAYS_EQ_RANGE_EXPAND: return "ARRAYS_EQ_RANGE_EXPAND";
     //================================================= Bit-Vector rules
     case PfRule::BV_BITBLAST: return "BV_BITBLAST";
     case PfRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
@@ -135,6 +137,7 @@ const char* toString(PfRule id)
     case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
     case PfRule::SKOLEMIZE: return "SKOLEMIZE";
     case PfRule::INSTANTIATE: return "INSTANTIATE";
+    case PfRule::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
     //================================================= String rules
     case PfRule::CONCAT_EQ: return "CONCAT_EQ";
     case PfRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
@@ -199,6 +202,8 @@ const char* toString(PfRule id)
       return "ARITH_TRANS_SINE_APPROX_BELOW_POS";
     case PfRule::ARITH_NL_CAD_DIRECT: return "ARITH_NL_CAD_DIRECT";
     case PfRule::ARITH_NL_CAD_RECURSIVE: return "ARITH_NL_CAD_RECURSIVE";
+    //================================================= External rules
+    case PfRule::LFSC_RULE: return "LFSC_RULE";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";
