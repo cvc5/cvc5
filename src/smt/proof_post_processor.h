@@ -285,7 +285,6 @@ class ProofPostproccess
   ProofNodeUpdater d_updater;
   /** The post process callback for finalization */
   ProofFinalCallback d_finalCb;
-
   /**
    * The finalizer, which is responsible for taking stats and checking for
    * (lazy) pedantic failures.

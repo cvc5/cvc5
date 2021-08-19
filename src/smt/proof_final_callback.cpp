@@ -84,6 +84,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   }
   // record stats for the rule
   d_ruleCount << r;
+  ++d_totalRuleCount;
   // if a DSL rewrite, take DSL stat
   if (r == PfRule::DSL_REWRITE)
   {
@@ -94,9 +95,8 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       d_dslRuleCount << di;
     }
   }
-  ++d_totalRuleCount;
   // take stats on the instantiations in the proof
-  if (r == PfRule::INSTANTIATE)
+  else if (r == PfRule::INSTANTIATE)
   {
     Node q = pn->getChildren()[0]->getResult();
     const std::vector<Node>& args = pn->getArguments();

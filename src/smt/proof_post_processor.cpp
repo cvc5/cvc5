@@ -20,7 +20,6 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_node_manager.h"
 #include "smt/smt_engine.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/bv/bitblast/proof_bitblaster.h"
