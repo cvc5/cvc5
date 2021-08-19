@@ -17,25 +17,6 @@ name   = "Printing"
   help = "Print functional expressions over finite domains in a table format."
 
 [[option]]
-  name       = "instFormatMode"
-  category   = "regular"
-  long       = "inst-format=MODE"
-  type       = "InstFormatMode"
-  default    = "InstFormatMode::DEFAULT"
-  handler    = "stringToInstFormatMode"
-  includes   = ["options/printer_modes.h"]
-  help       = "print format mode for instantiations, see --inst-format=help"
-# InstFormatMode is currently exported as public so we can't auto genenerate
-# the enum.
-#  help_mode  = "Inst format modes."
-#[[option.mode.DEFAULT]]
-#  name = "default"
-#  help = "Print instantiations as a list in the output language format."
-#[[option.mode.SZS]]
-#  name = "szs"
-#  help = "Print instantiations as SZS compliant proof."
-
-[[option]]
   name       = "flattenHOChains"
   category   = "regular"
   long       = "flatten-ho-chains"

@@ -52,7 +52,6 @@ void setNoLimitCPU() {
 CommandExecutor::CommandExecutor(const Options& options)
     : d_solver(new api::Solver(&options)),
       d_symman(new SymbolManager(d_solver.get())),
-      d_driverOptions(&options),
       d_result()
 {
 }
@@ -118,14 +117,8 @@ bool CommandExecutor::doCommand(Command* cmd)
 void CommandExecutor::reset()
 {
   printStatistics(*d_solver->getOptions().base.err);
-  /* We have to keep options passed via CL on reset. These options are stored
-   * in CommandExecutor::d_driverOptions (populated and created in the driver),
-   * and CommandExecutor::d_driverOptions only contains *these* options since
-   * the SmtEngine copies them into its own options object before configuring
-   * additional options based on the given CL options.
-   * We can thus safely reuse CommandExecutor::d_driverOptions here.
-   */
-  d_solver.reset(new api::Solver(d_driverOptions));
+
+  Command::resetSolver(d_solver.get());
 }
 
 bool CommandExecutor::doCommandSingleton(Command* cmd)

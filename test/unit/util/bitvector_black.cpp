@@ -65,6 +65,11 @@ TEST_F(TestUtilBlackBitVector, string_constructor)
   ASSERT_EQ("000000011010", b4.toString());
   ASSERT_EQ("26", b4.toString(10));
   ASSERT_EQ("1a", b4.toString(16));
+
+  ASSERT_THROW(BitVector("-4", 10), IllegalArgumentException);
+  ASSERT_THROW(BitVector("-0010", 2), IllegalArgumentException);
+  ASSERT_THROW(BitVector("-3210", 4), IllegalArgumentException);
+  ASSERT_EQ(3, BitVector("4", 10).getSize());
 }
 
 TEST_F(TestUtilBlackBitVector, conversions)

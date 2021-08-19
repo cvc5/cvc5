@@ -603,39 +603,39 @@ Node excluding_interval_to_lemma(const Node& variable,
   return nm->mkNode(Kind::OR, lb, ub);
 }
 
-Maybe<Rational> get_lower_bound(const Node& n)
+std::optional<Rational> get_lower_bound(const Node& n)
 {
-  if (n.getNumChildren() != 2) return Maybe<Rational>();
+  if (n.getNumChildren() != 2) return std::optional<Rational>();
   if (n.getKind() == Kind::LT)
   {
-    if (!n[0].isConst()) return Maybe<Rational>();
-    if (!n[1].isVar()) return Maybe<Rational>();
+    if (!n[0].isConst()) return std::optional<Rational>();
+    if (!n[1].isVar()) return std::optional<Rational>();
     return n[0].getConst<Rational>();
   }
   else if (n.getKind() == Kind::GT)
   {
-    if (!n[0].isVar()) return Maybe<Rational>();
-    if (!n[1].isConst()) return Maybe<Rational>();
+    if (!n[0].isVar()) return std::optional<Rational>();
+    if (!n[1].isConst()) return std::optional<Rational>();
     return n[1].getConst<Rational>();
   }
-  return Maybe<Rational>();
+  return std::optional<Rational>();
 }
-Maybe<Rational> get_upper_bound(const Node& n)
+std::optional<Rational> get_upper_bound(const Node& n)
 {
-  if (n.getNumChildren() != 2) return Maybe<Rational>();
+  if (n.getNumChildren() != 2) return std::optional<Rational>();
   if (n.getKind() == Kind::LT)
   {
-    if (!n[0].isVar()) return Maybe<Rational>();
-    if (!n[1].isConst()) return Maybe<Rational>();
+    if (!n[0].isVar()) return std::optional<Rational>();
+    if (!n[1].isConst()) return std::optional<Rational>();
     return n[1].getConst<Rational>();
   }
   else if (n.getKind() == Kind::GT)
   {
-    if (!n[0].isConst()) return Maybe<Rational>();
-    if (!n[1].isVar()) return Maybe<Rational>();
+    if (!n[0].isConst()) return std::optional<Rational>();
+    if (!n[1].isVar()) return std::optional<Rational>();
     return n[0].getConst<Rational>();
   }
-  return Maybe<Rational>();
+  return std::optional<Rational>();
 }
 
 /** Returns indices of appropriate parts of ran encoding.
@@ -675,12 +675,12 @@ std::tuple<Node, Rational, Rational> detect_ran_encoding(const Node& n)
     Assert(false) << "Invalid polynomial equation.";
   }
 
-  Maybe<Rational> lower = get_lower_bound(n[0]);
+  std::optional<Rational> lower = get_lower_bound(n[0]);
   if (!lower) lower = get_lower_bound(n[1]);
   if (!lower) lower = get_lower_bound(n[2]);
   Assert(lower) << "Could not identify lower bound.";
 
-  Maybe<Rational> upper = get_upper_bound(n[0]);
+  std::optional<Rational> upper = get_upper_bound(n[0]);
   if (!upper) upper = get_upper_bound(n[1]);
   if (!upper) upper = get_upper_bound(n[2]);
   Assert(upper) << "Could not identify upper bound.";
