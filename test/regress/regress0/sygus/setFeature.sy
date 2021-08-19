@@ -1,0 +1,4 @@
+; EXPECT: setFeature.sy:4.29: SyGuS feature :recursion not currently supported
+(set-logic ALL)
+(set-feature :grammars true)
+(set-feature :recursion false)

@@ -601,6 +601,7 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
         ss << "SyGuS feature " << name << " not currently supported";
         PARSER_STATE->warning(ss.str());
       }
+      cmd.reset(new EmptyCommand());
     }
   | command[&cmd]
   ;
