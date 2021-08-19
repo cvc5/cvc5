@@ -41,11 +41,11 @@ class DifficultyPostprocessCallback : public ProofNodeUpdaterCallback
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
                     bool& continueUpdate) override;
+
  private:
   /** Reference to the env class */
   Env& d_env;
 };
-
 
 }  // namespace smt
 }  // namespace cvc5

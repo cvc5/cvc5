@@ -28,13 +28,11 @@ DifficultyPostprocessCallback::DifficultyPostprocessCallback(Env& env)
 {
 }
 bool DifficultyPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                            const std::vector<Node>& fa,
-                                            bool& continueUpdate)
+                                                 const std::vector<Node>& fa,
+                                                 bool& continueUpdate)
 {
-
   return true;
 }
-
 
 }  // namespace smt
 }  // namespace cvc5
