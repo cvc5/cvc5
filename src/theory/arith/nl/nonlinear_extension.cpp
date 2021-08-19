@@ -19,6 +19,7 @@
 #include "theory/arith/nl/nonlinear_extension.h"
 
 #include "options/arith_options.h"
+#include "options/smt_options.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/bound_inference.h"
 #include "theory/arith/inference_manager.h"
@@ -48,7 +49,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                   containing.getSatContext(),
                   containing.getUserContext(),
                   d_im),
-      d_model(containing.getSatContext()),
+      d_model(),
       d_trSlv(d_im, d_model, d_astate.getEnv()),
       d_extState(d_im, d_model, d_astate.getEnv()),
       d_factoringSlv(&d_extState),
@@ -526,7 +527,7 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel,
     d_approximations.clear();
     d_witnesses.clear();
     // modify the model values
-    d_model.getModelValueRepair(arithModel, d_approximations, d_witnesses);
+    d_model.getModelValueRepair(arithModel, d_approximations, d_witnesses, options().smt.modelWitnessValue);
   }
 }
 
