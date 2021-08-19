@@ -167,11 +167,11 @@ bool ExtfSolver::doReduction(int effort, Node n)
       // don't need to reduce certain seq.update
       return false;
     }
-    else if (k==STRING_SUBSTR && SequencesUpdateSolver::isHandledUpdate(n))
-	{
+    else if (k == STRING_SUBSTR && SequencesUpdateSolver::isHandledUpdate(n))
+    {
       // don't need to reduce certain seq.extract with length 1
-		return false;
-	}
+      return false;
+    }
     r_effort = 2;
   }
   else if (k != STRING_IN_REGEXP)
