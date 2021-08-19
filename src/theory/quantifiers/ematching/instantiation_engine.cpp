@@ -205,7 +205,7 @@ void InstantiationEngine::checkOwnership(Node q)
   {
     //if strict triggers, take ownership of this quantified formula
     bool hasPat = false;
-    for (const Node& qc : q)
+    for (const Node& qc : q[2])
     {
       if (qc.getKind() == INST_PATTERN || qc.getKind() == INST_NO_PATTERN)
       {
