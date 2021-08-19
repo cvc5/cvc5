@@ -24,6 +24,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/skolem_def_manager.h"
+#include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
@@ -36,16 +37,15 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
                          TheoryEngine* theoryEngine,
                          decision::DecisionEngine* decisionEngine,
                          SkolemDefManager* skdm,
-                         context::Context* context,
-                         context::UserContext* userContext,
-                         ProofNodeManager* pnm)
+                         Env& env)
     : d_propEngine(propEngine),
       d_cnfStream(nullptr),
       d_decisionEngine(decisionEngine),
       d_theoryEngine(theoryEngine),
-      d_queue(context),
-      d_tpp(*theoryEngine, userContext, pnm),
-      d_skdm(skdm)
+      d_queue(env.getContext()),
+      d_tpp(*theoryEngine, env.getUserContext(), env.getProofNodeManager()),
+      d_skdm(skdm),
+      d_env(env)
 {
 }
 
@@ -98,8 +98,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
-  if (options::produceProofs()
-      && options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS)
+  if (d_env.isSatProofProducing())
   {
     Assert(options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF
            || tte.getGenerator());
