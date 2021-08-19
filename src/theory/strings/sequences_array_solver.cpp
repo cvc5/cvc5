@@ -14,9 +14,11 @@
  */
 
 #include "theory/strings/sequences_array_solver.h"
+#include "theory/strings/sequences_update_solver.h"
 
 #include "util/rational.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 
 using namespace cvc5::kind;
 
@@ -51,6 +53,27 @@ void SequencesArraySolver::sendInference(const std::vector<Node>& exp,
     InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
     Trace("seq-update") << "- send lemma - " << lem << std::endl;
     d_im.sendInference(exp, lem, iid);
+  }
+}
+
+void SequencesArraySolver::checkNth(const std::vector<Node>& nthTerms) {
+  NodeManager * nm = NodeManager::currentNM();
+  std::vector<Node> extractTerms = d_esolver.getActive(STRING_SUBSTR);
+  for (const Node& n : extractTerms) {
+	  if (SequencesUpdateSolver::isHandledUpdate(n)) {
+		  // (seq.extract A i l) ^ (<= 0 i) ^ (< i (str.len A)) --> (seq.unit (seq.nth A i))
+		  Node proxy = d_termReg.getProxyVariableFor(n);
+		  Trace("seq-update") << "- " << proxy << " = " << n << std::endl;
+		  std::vector<Node> exp;
+		  d_im.addToExplanation(proxy, n, exp);
+		  Node cond1 = nm->mkNode(LEQ, nm->mkConst(Rational(0)), n[1]);
+		  Node cond2 = nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0]));
+		  Node cond = nm->mkNode(AND, cond1, cond2);
+		  Node body1 = nm->mkNode(EQUAL, proxy, nm->mkNode(SEQ_UNIT, nm->mkNode(SEQ_NTH, n[0], n[1])));
+		  Node body2 = nm->mkNode(EQUAL, proxy, Word::mkEmptyWord(n.getType()));
+		  Node lem = nm->mkNode(ITE, cond, body1, body2);
+		  sendInference(exp, lem);
+	  }
   }
 }
 
@@ -188,6 +211,7 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
       d_extt.markReduced(n, ExtReducedId::STRINGS_NTH_REV);
     }
   }
+  checkNth(nthTerms);
   checkUpdate(updateTerms);
 }
 

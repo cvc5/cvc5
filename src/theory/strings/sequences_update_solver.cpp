@@ -47,9 +47,12 @@ SequencesUpdateSolver::~SequencesUpdateSolver() {}
 
 bool SequencesUpdateSolver::isHandledUpdate(Node n)
 {
-  Assert (n.getKind()==STRING_UPDATE);
+  Assert (n.getKind()==STRING_UPDATE || n.getKind()==STRING_SUBSTR);
   NodeManager * nm = NodeManager::currentNM();
-  Node lenN = nm->mkNode(STRING_LENGTH, n[2]);
+  Node lenN = n[2];
+  if (n.getKind() == STRING_UPDATE) {
+	  lenN = nm->mkNode(STRING_LENGTH, n[2]);
+  }
   Node one = nm->mkConst(Rational(1));
   return ArithEntail::checkEq(lenN, one);
 }
@@ -117,6 +120,7 @@ void SequencesUpdateSolver::checkTerms(Kind k)
     }
     else if (nf.d_nf.size() == 1)
     {
+	  Trace("seq-update-debug") << "...norm form size 1" << std::endl;
       // TODO: split on n=0 if needed, do not introduce ITE
       if (nf.d_nf[0].getKind() == SEQ_UNIT)
       {
@@ -142,6 +146,7 @@ void SequencesUpdateSolver::checkTerms(Kind k)
         }
         std::vector<Node> exp;
         d_im.addToExplanation(t[0], nf.d_nf[0], exp);
+		d_im.addToExplanation(r, t[0], exp);
         Node eq = nm->mkNode(ITE, t[1].eqNode(d_zero), t.eqNode(thenBranch), t.eqNode(elseBranch));
         if (d_eqProc.find(eq) == d_eqProc.end())
         {
@@ -223,7 +228,8 @@ void SequencesUpdateSolver::checkTerms(Kind k)
       eq = nm->mkNode(ITE, oobCond, t.eqNode(ufa), eq);
       iid = InferenceId::STRINGS_SU_NTH_CONCAT;
     }
-    std::vector<Node> exp;
+	std::vector<Node> exp;
+	d_im.addToExplanation(r, t[0], exp);
     exp.insert(exp.end(), nf.d_exp.begin(), nf.d_exp.end());
     exp.push_back(t[0].eqNode(nf.d_base));
     if (d_eqProc.find(eq) == d_eqProc.end())
