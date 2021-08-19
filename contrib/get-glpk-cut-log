@@ -10,7 +10,7 @@ contrib_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd -P)
 patch_file=${contrib_dir}/glpk-cut-log.patch
 
 GLPK_DIR="$DEPS_DIR/glpk-cut-log"
-version="4.52"
+version="5.0"
 
 setup_dep \
   "https://ftp.gnu.org/gnu/glpk/glpk-${version}.tar.gz" \
