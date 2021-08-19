@@ -85,6 +85,14 @@ ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 
 const std::string& Env::getFilename() const { return d_filename; }
 
+bool Env::isSatProofProducing() const
+{
+  return d_proofNodeManager != nullptr
+         && (!d_options.smt.unsatCores
+             || d_options.smt.unsatCoresMode
+                    != options::UnsatCoresMode::ASSUMPTIONS);
+}
+
 bool Env::isTheoryProofProducing() const
 {
   return d_proofNodeManager != nullptr

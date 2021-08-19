@@ -644,6 +644,19 @@ class Theory {
    */
   virtual void computeRelevantTerms(std::set<Node>& termSet);
   /**
+   * Collect asserted terms for this theory and add them to  termSet.
+   *
+   * @param termSet The set to add terms to
+   * @param includeShared Whether to include the shared terms of the theory
+   */
+  void collectAssertedTerms(std::set<Node>& termSet,
+                            bool includeShared = true) const;
+  /**
+   * Helper function for collectAssertedTerms, adds all subterms
+   * belonging to this theory to termSet.
+   */
+  void collectTerms(TNode n, std::set<Node>& termSet) const;
+  /**
    * Collect model values, after equality information is added to the model.
    * The argument termSet is the set of relevant terms returned by
    * computeRelevantTerms.
