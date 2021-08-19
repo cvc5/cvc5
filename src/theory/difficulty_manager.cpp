@@ -38,6 +38,7 @@ void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
 void DifficultyManager::notifyCandidateModel(const NodeList& input,
                                              TheoryModel* m)
 {
+  Trace("diff-man") << "DifficultyManager::notifyCandidateModel, #input=" << input.size() << std::endl;
   for (const Node& a : input)
   {
     // check if each input is satisfied
@@ -46,9 +47,11 @@ void DifficultyManager::notifyCandidateModel(const NodeList& input,
     {
       continue;
     }
+    Trace("diff-man") << "  not true: " << a << std::endl;
     // not satisfied, increment counter
     d_dfmap[a] = d_dfmap[a] + 1;
   }
+  Trace("diff-man") << std::endl;
 }
 
 }  // namespace theory
