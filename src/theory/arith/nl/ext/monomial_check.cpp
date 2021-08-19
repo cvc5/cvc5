@@ -291,7 +291,7 @@ int MonomialCheck::compareSign(
 {
   Trace("nl-ext-debug") << "Process " << a << " at index " << a_index
                         << ", status is " << status << std::endl;
-  NodeManager* nm = d_data->d_env.getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   Node mvaoa = d_data->d_model.computeAbstractModelValue(oa);
   const std::vector<Node>& vla = d_data->d_mdb.getVariableList(a);
   if (a_index == vla.size())
@@ -418,7 +418,7 @@ bool MonomialCheck::compareMonomial(
           exp.push_back(vla[j].eqNode(d_data->d_zero).negate());
         }
       }
-      NodeManager* nm = d_data->d_env.getNodeManager();
+      NodeManager* nm = NodeManager::currentNM();
       Node clem = nm->mkNode(
           Kind::IMPLIES, nm->mkAnd(exp), mkLit(oa, ob, status, true));
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
@@ -716,7 +716,7 @@ Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
     {
       return a_eq_b;
     }
-    Node negate_b = d_data->d_env.getNodeManager()->mkNode(Kind::UMINUS, b);
+    Node negate_b = NodeManager::currentNM()->mkNode(Kind::UMINUS, b);
     return a_eq_b.orNode(a.eqNode(negate_b));
   }
   else if (status < 0)
@@ -724,7 +724,7 @@ Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
     return mkLit(b, a, -status);
   }
   Assert(status == 1 || status == 2);
-  NodeManager* nm = d_data->d_env.getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   Kind greater_op = status == 1 ? Kind::GEQ : Kind::GT;
   if (!isAbsolute)
   {

@@ -33,11 +33,11 @@ namespace nl {
 ExtState::ExtState(InferenceManager& im, NlModel& model, Env& env)
     : d_im(im), d_model(model), d_env(env)
 {
-  d_false = d_env.getNodeManager()->mkConst(false);
-  d_true = d_env.getNodeManager()->mkConst(true);
-  d_zero = d_env.getNodeManager()->mkConst(Rational(0));
-  d_one = d_env.getNodeManager()->mkConst(Rational(1));
-  d_neg_one = d_env.getNodeManager()->mkConst(Rational(-1));
+  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = NodeManager::currentNM()->mkConst(true);
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
   if (d_env.isTheoryProofProducing())
   {
     d_proof.reset(new CDProofSet<CDProof>(

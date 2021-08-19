@@ -44,7 +44,7 @@ ExponentialSolver::~ExponentialSolver() {}
 
 void ExponentialSolver::doPurification(TNode a, TNode new_a, TNode y)
 {
-  NodeManager* nm = d_data->d_env.getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   // do both equalities to ensure that new_a becomes a preregistered term
   Node lem = nm->mkNode(Kind::AND, a.eqNode(new_a), a[0].eqNode(y));
   // note we must do preprocess on this lemma
@@ -55,7 +55,7 @@ void ExponentialSolver::doPurification(TNode a, TNode new_a, TNode y)
 
 void ExponentialSolver::checkInitialRefine()
 {
-  NodeManager* nm = d_data->d_env.getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   for (std::pair<const Kind, std::vector<Node> >& tfl : d_data->d_funcMap)
   {
     if (tfl.first != Kind::EXPONENTIAL)
@@ -184,7 +184,7 @@ void ExponentialSolver::checkMonotonic()
 
     if (!tval.isNull() && sval.getConst<Rational>() > tval.getConst<Rational>())
     {
-      NodeManager* nm = d_data->d_env.getNodeManager();
+      NodeManager* nm = NodeManager::currentNM();
       Node mono_lem = nm->mkNode(Kind::IMPLIES,
                                  nm->mkNode(Kind::GEQ, targ, sarg),
                                  nm->mkNode(Kind::GEQ, t, s));
@@ -206,7 +206,7 @@ void ExponentialSolver::doTangentLemma(TNode e,
                                        TNode poly_approx,
                                        std::uint64_t d)
 {
-  NodeManager* nm = d_data->d_env.getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   // compute tangent plane
   // Figure 3: T( x )
   // We use zero slope tangent planes, since the concavity of the Taylor
@@ -261,13 +261,13 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
   if (bounds.first.isNull())
   {
     // pick c-1
-    bounds.first = Rewriter::rewrite(d_data->d_env.getNodeManager()->mkNode(
+    bounds.first = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
         Kind::MINUS, center, d_data->d_one));
   }
   if (bounds.second.isNull())
   {
     // pick c+1
-    bounds.second = Rewriter::rewrite(d_data->d_env.getNodeManager()->mkNode(
+    bounds.second = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
         Kind::PLUS, center, d_data->d_one));
   }
   return bounds;

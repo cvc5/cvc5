@@ -56,7 +56,7 @@ SineSolver::~SineSolver() {}
 
 void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
 {
-  NodeManager* nm = d_data->d_env.getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   Assert(a.getKind() == Kind::SINE);
   Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a << std::endl;
@@ -91,7 +91,7 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
 
 void SineSolver::checkInitialRefine()
 {
-  NodeManager* nm = d_data->d_env.getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   for (std::pair<const Kind, std::vector<Node> >& tfl : d_data->d_funcMap)
   {
     if (tfl.first != Kind::SINE)
@@ -312,7 +312,7 @@ void SineSolver::checkMonotonic()
 
     if (!tval.isNull())
     {
-      NodeManager* nm = d_data->d_env.getNodeManager();
+      NodeManager* nm = NodeManager::currentNM();
       Node mono_lem;
       if (monotonic_dir == 1
           && sval.getConst<Rational>() > tval.getConst<Rational>())
@@ -358,7 +358,7 @@ void SineSolver::checkMonotonic()
 void SineSolver::doTangentLemma(
     TNode e, TNode c, TNode poly_approx, int region, std::uint64_t d)
 {
-  NodeManager* nm = d_data->d_env.getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
 
   // compute tangent plane
   // Figure 3: T( x )

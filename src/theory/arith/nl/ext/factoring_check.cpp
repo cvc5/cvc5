@@ -32,14 +32,14 @@ namespace nl {
 
 FactoringCheck::FactoringCheck(ExtState* data) : d_data(data)
 {
-  d_zero = d_data->d_env.getNodeManager()->mkConst(Rational(0));
-  d_one = d_data->d_env.getNodeManager()->mkConst(Rational(1));
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(Rational(1));
 }
 
 void FactoringCheck::check(const std::vector<Node>& asserts,
                            const std::vector<Node>& false_asserts)
 {
-  NodeManager* nm = d_data->d_env.getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   Trace("nl-ext") << "Get factoring lemmas..." << std::endl;
   for (const Node& lit : asserts)
   {
@@ -186,7 +186,7 @@ Node FactoringCheck::getFactorSkolem(Node n, CDProof* proof)
   Node k;
   if (itf == d_factor_skolem.end())
   {
-    NodeManager* nm = d_data->d_env.getNodeManager();
+    NodeManager* nm = NodeManager::currentNM();
     k = nm->getSkolemManager()->mkPurifySkolem(n, "kf");
     Node k_eq = k.eqNode(n);
     Trace("nl-ext-factor") << "...adding factor skolem " << k << " == " << n

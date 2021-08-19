@@ -33,11 +33,11 @@ TranscendentalState::TranscendentalState(InferenceManager& im,
                                          Env& env)
     : d_im(im), d_model(model), d_env(env)
 {
-  d_true = d_env.getNodeManager()->mkConst(true);
-  d_false = d_env.getNodeManager()->mkConst(false);
-  d_zero = d_env.getNodeManager()->mkConst(Rational(0));
-  d_one = d_env.getNodeManager()->mkConst(Rational(1));
-  d_neg_one = d_env.getNodeManager()->mkConst(Rational(-1));
+  d_true = NodeManager::currentNM()->mkConst(true);
+  d_false = NodeManager::currentNM()->mkConst(false);
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
   if (d_env.isTheoryProofProducing())
   {
     d_proof.reset(new CDProofSet<CDProof>(
@@ -161,7 +161,7 @@ void TranscendentalState::init(const std::vector<Node>& xts,
 void TranscendentalState::ensureCongruence(TNode a,
                                            std::map<Kind, ArgTrie>& argTrie)
 {
-  NodeManager* nm = d_env.getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> repList;
   for (const Node& ac : a)
   {
@@ -198,7 +198,7 @@ void TranscendentalState::ensureCongruence(TNode a,
 
 void TranscendentalState::mkPi()
 {
-  NodeManager* nm = d_env.getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   if (d_pi.isNull())
   {
     d_pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
@@ -216,7 +216,7 @@ void TranscendentalState::mkPi()
 
 void TranscendentalState::getCurrentPiBounds()
 {
-  NodeManager* nm = d_env.getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   Node pi_lem = nm->mkNode(Kind::AND,
                            nm->mkNode(Kind::GEQ, d_pi, d_pi_bound[0]),
                            nm->mkNode(Kind::LEQ, d_pi, d_pi_bound[1]));
@@ -260,7 +260,7 @@ std::pair<Node, Node> TranscendentalState::getClosestSecantPoints(TNode e,
 Node TranscendentalState::mkSecantPlane(
     TNode arg, TNode lower, TNode upper, TNode lval, TNode uval)
 {
-  NodeManager* nm = d_env.getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   // Figure 3: S_l( x ), S_u( x ) for s = 0,1
   Node rcoeff_n = Rewriter::rewrite(nm->mkNode(Kind::MINUS, lower, upper));
   Assert(rcoeff_n.isConst());
@@ -293,7 +293,7 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
                                            TNode splane,
                                            unsigned actual_d)
 {
-  NodeManager* nm = d_env.getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   // With respect to Figure 3, this is slightly different.
   // In particular, we chose b to be the model value of bounds[s],
   // which is a constant although bounds[s] may not be (e.g. if it
