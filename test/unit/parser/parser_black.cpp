@@ -44,22 +44,15 @@ class TestParserBlackParser : public TestInternal
   void SetUp() override
   {
     TestInternal::SetUp();
-    d_options.base.parseOnly = true;
     d_symman.reset(nullptr);
-    d_solver.reset(new cvc5::api::Solver(&d_options));
+    d_solver.reset(new cvc5::api::Solver());
+    d_solver->setOption("parse-only", "true");
   }
 
   void TearDown() override
   {
     d_symman.reset(nullptr);
     d_solver.reset(nullptr);
-  }
-
-  void setUp()
-  {
-    /* ensure the old symbol manager is deleted */
-    d_symman.reset(nullptr);
-    d_solver.reset(new api::Solver(&d_options));
   }
 
   /* Set up declaration context for expr inputs */
@@ -87,7 +80,7 @@ class TestParserBlackParser : public TestInternal
   {
     d_symman.reset(new SymbolManager(d_solver.get()));
     std::unique_ptr<Parser> parser(ParserBuilder(d_solver.get(), d_symman.get())
-                                       .withOptions(d_options)
+                                       .withOptions(d_solver->getOptions())
                                        .withInputLanguage(d_lang)
                                        .build());
     parser->setInput(Input::newStringInput(d_lang, goodInput, "test"));
@@ -106,7 +99,7 @@ class TestParserBlackParser : public TestInternal
   {
     d_symman.reset(new SymbolManager(d_solver.get()));
     std::unique_ptr<Parser> parser(ParserBuilder(d_solver.get(), d_symman.get())
-                                       .withOptions(d_options)
+                                       .withOptions(d_solver->getOptions())
                                        .withInputLanguage(d_lang)
                                        .withStrictMode(strictMode)
                                        .build());
@@ -128,7 +121,7 @@ class TestParserBlackParser : public TestInternal
   {
     d_symman.reset(new SymbolManager(d_solver.get()));
     std::unique_ptr<Parser> parser(ParserBuilder(d_solver.get(), d_symman.get())
-                                       .withOptions(d_options)
+                                       .withOptions(d_solver->getOptions())
                                        .withInputLanguage(d_lang)
                                        .build());
     parser->setInput(Input::newStringInput(d_lang, goodExpr, "test"));
@@ -162,7 +155,7 @@ class TestParserBlackParser : public TestInternal
   {
     d_symman.reset(new SymbolManager(d_solver.get()));
     std::unique_ptr<Parser> parser(ParserBuilder(d_solver.get(), d_symman.get())
-                                       .withOptions(d_options)
+                                       .withOptions(d_solver->getOptions())
                                        .withInputLanguage(d_lang)
                                        .withStrictMode(strictMode)
                                        .build());
@@ -177,7 +170,6 @@ class TestParserBlackParser : public TestInternal
                  , ParserException);
   }
 
-  Options d_options;
   InputLanguage d_lang;
   std::unique_ptr<cvc5::api::Solver> d_solver;
   std::unique_ptr<SymbolManager> d_symman;

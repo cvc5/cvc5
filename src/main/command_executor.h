@@ -52,11 +52,6 @@ class CommandExecutor
    * symbol manager.
    */
   std::unique_ptr<SymbolManager> d_symman;
-  /**
-   * A pointer to the original options from the driver. Contain options as
-   * parsed from the command line. Used when the solver is reset.
-   */
-  const Options* d_driverOptions;
 
   api::Result d_result;
 

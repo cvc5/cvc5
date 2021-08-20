@@ -23,7 +23,9 @@
 #include <unordered_set>
 
 #include "proof/proof_node_updater.h"
+#include "smt/proof_final_callback.h"
 #include "smt/witness_form.h"
+#include "theory/inference_id.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
@@ -236,40 +238,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
                              CDProof* cdp);
 };
 
-/** Final callback class, for stats and pedantic checking */
-class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
-{
- public:
-  ProofPostprocessFinalCallback(ProofNodeManager* pnm);
-  /**
-   * Initialize, called once for each new ProofNode to process. This initializes
-   * static information to be used by successive calls to update.
-   */
-  void initializeUpdate();
-  /** Should proof pn be updated? Returns false, adds to stats. */
-  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
-                    const std::vector<Node>& fa,
-                    bool& continueUpdate) override;
-  /** was pedantic failure */
-  bool wasPedanticFailure(std::ostream& out) const;
-
- private:
-  /** Counts number of postprocessed proof nodes for each kind of proof rule */
-  HistogramStat<PfRule> d_ruleCount;
-  /** Total number of postprocessed rule applications */
-  IntStat d_totalRuleCount;
-  /** The minimum pedantic level of any rule encountered */
-  IntStat d_minPedanticLevel;
-  /** The total number of final proofs */
-  IntStat d_numFinalProofs;
-  /** Proof node manager (used for pedantic checking) */
-  ProofNodeManager* d_pnm;
-  /** Was there a pedantic failure? */
-  bool d_pedanticFailure;
-  /** The pedantic failure string for debugging */
-  std::stringstream d_pedanticFailureOut;
-};
-
 /**
  * The proof postprocessor module. This postprocesses the final proof
  * produced by an SmtEngine. Its main two tasks are to:
@@ -308,7 +276,7 @@ class ProofPostproccess
    */
   ProofNodeUpdater d_updater;
   /** The post process callback for finalization */
-  ProofPostprocessFinalCallback d_finalCb;
+  ProofFinalCallback d_finalCb;
   /**
    * The finalizer, which is responsible for taking stats and checking for
    * (lazy) pedantic failures.

@@ -53,8 +53,6 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void lemma(TNode lemma, LemmaProperty p = LemmaProperty::NONE) override;
 
-  void splitLemma(TNode lemma, bool removable = false) override;
-
   void demandRestart() override;
 
   void requirePhase(TNode n, bool phase) override;

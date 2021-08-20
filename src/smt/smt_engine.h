@@ -46,6 +46,7 @@ class LogicRequest;
 class StatisticsRegistry;
 class Printer;
 class ResourceManager;
+struct InstantiationList;
 
 /* -------------------------------------------------------------------------- */
 
@@ -249,6 +250,8 @@ class CVC5_EXPORT SmtEngine
   /**
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
    * query).  Only permitted if produce-models is on.
+   *
+   * TODO (issues#287): eliminate this method.
    */
   smt::Model* getModel();
 
@@ -359,13 +362,12 @@ class CVC5_EXPORT SmtEngine
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
    * literals and conjunction of literals.  Returns false if
-   * immediately determined to be inconsistent.  This version
-   * takes a Boolean flag to determine whether to include this asserted
-   * formula in an unsat core (if one is later requested).
+   * immediately determined to be inconsistent. Note this formula will
+   * be included in the unsat core when applicable.
    *
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
-  Result assertFormula(const Node& formula, bool inUnsatCore = true);
+  Result assertFormula(const Node& formula);
 
   /**
    * Reduce an unsatisfiable core to make it minimal.
@@ -380,9 +382,8 @@ class CVC5_EXPORT SmtEngine
    *
    * @throw Exception
    */
-  Result checkEntailed(const Node& assumption, bool inUnsatCore = true);
-  Result checkEntailed(const std::vector<Node>& assumptions,
-                       bool inUnsatCore = true);
+  Result checkEntailed(const Node& assumption);
+  Result checkEntailed(const std::vector<Node>& assumptions);
 
   /**
    * Assert a formula (if provided) to the current context and call
@@ -391,9 +392,8 @@ class CVC5_EXPORT SmtEngine
    * @throw Exception
    */
   Result checkSat();
-  Result checkSat(const Node& assumption, bool inUnsatCore = true);
-  Result checkSat(const std::vector<Node>& assumptions,
-                  bool inUnsatCore = true);
+  Result checkSat(const Node& assumption);
+  Result checkSat(const std::vector<Node>& assumptions);
 
   /**
    * Returns a set of so-called "failed" assumptions.
@@ -676,7 +676,7 @@ class CVC5_EXPORT SmtEngine
    * refutation.
    */
   void getRelevantInstantiationTermVectors(
-      std::map<Node, std::vector<std::vector<Node>>>& insts);
+      std::map<Node, InstantiationList>& insts, bool getDebugInfo = false);
   /**
    * Get instantiation term vectors, which maps each instantiated quantified
    * formula to the list of instantiations for that quantified formula. This
@@ -809,12 +809,6 @@ class CVC5_EXPORT SmtEngine
 
   /** Permit access to the underlying NodeManager. */
   NodeManager* getNodeManager() const;
-
-  /**
-   * Print statistics from the statistics registry in the env object owned by
-   * this SmtEngine.
-   */
-  void printStatistics(std::ostream& out) const;
 
   /**
    * Print statistics from the statistics registry in the env object owned by
@@ -1004,7 +998,6 @@ class CVC5_EXPORT SmtEngine
    * Check satisfiability (used to check satisfiability and entailment).
    */
   Result checkSatInternal(const std::vector<Node>& assumptions,
-                          bool inUnsatCore,
                           bool isEntailmentCheck);
 
   /**
@@ -1110,12 +1103,6 @@ class CVC5_EXPORT SmtEngine
 
   /** the output manager for commands */
   mutable OutputManager d_outMgr;
-  /**
-   * The options manager, which is responsible for implementing core options
-   * such as those related to time outs and printing. It is also responsible
-   * for set default options based on the logic.
-   */
-  std::unique_ptr<smt::OptionsManager> d_optm;
   /**
    * The preprocessor.
    */

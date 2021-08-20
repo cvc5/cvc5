@@ -27,10 +27,7 @@ namespace cvc5 {
 namespace theory {
 namespace bags {
 
-SolverState::SolverState(context::Context* c,
-                         context::UserContext* u,
-                         Valuation val)
-    : TheoryState(c, u, val)
+SolverState::SolverState(Env& env, Valuation val) : TheoryState(env, val)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);

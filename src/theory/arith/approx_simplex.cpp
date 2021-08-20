@@ -308,16 +308,17 @@ Rational ApproximateSimplex::estimateWithCFE(const Rational& r, const Integer& K
   }
 }
 
-Maybe<Rational> ApproximateSimplex::estimateWithCFE(double d, const Integer& D)
+std::optional<Rational> ApproximateSimplex::estimateWithCFE(double d,
+                                                            const Integer& D)
 {
-  if (Maybe<Rational> from_double = Rational::fromDouble(d))
+  if (std::optional<Rational> from_double = Rational::fromDouble(d))
   {
-    return estimateWithCFE(from_double.value(), D);
+    return estimateWithCFE(*from_double, D);
   }
-  return Maybe<Rational>();
+  return std::optional<Rational>();
 }
 
-Maybe<Rational> ApproximateSimplex::estimateWithCFE(double d)
+std::optional<Rational> ApproximateSimplex::estimateWithCFE(double d)
 {
   return estimateWithCFE(d, s_defaultMaxDenom);
 }
@@ -1106,9 +1107,9 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
         }
 
         DeltaRational proposal;
-        if (Maybe<Rational> maybe_new = estimateWithCFE(newAssign))
+        if (std::optional maybe_new = estimateWithCFE(newAssign))
         {
-          proposal = maybe_new.value();
+          proposal = *maybe_new;
         }
         else
         {
@@ -2055,13 +2056,13 @@ bool ApproxGLPK::attemptBranchCut(int nid, const BranchCutInfo& br_cut){
   d_pad.d_cut.lhs.set(x, Rational(1));
 
   Rational& rhs = d_pad.d_cut.rhs;
-  Maybe<Rational> br_cut_rhs = Rational::fromDouble(br_cut.getRhs());
+  std::optional<Rational> br_cut_rhs = Rational::fromDouble(br_cut.getRhs());
   if (!br_cut_rhs)
   {
     return true;
   }
 
-  rhs = estimateWithCFE(br_cut_rhs.value(), Integer(1));
+  rhs = estimateWithCFE(*br_cut_rhs, Integer(1));
   d_pad.d_failure = !rhs.isIntegral();
   if(d_pad.d_failure) { return true; }
 
@@ -2112,13 +2113,13 @@ bool ApproxGLPK::applyCMIRRule(int nid, const MirInfo& mir){
   DenseMap<Rational>& alpha = d_pad.d_alpha.lhs;
   Rational& b = d_pad.d_alpha.rhs;
 
-  Maybe<Rational> delta = estimateWithCFE(mir.delta);
+  std::optional<Rational> delta = estimateWithCFE(mir.delta);
   if (!delta)
   {
     return true;
   }
 
-  d_pad.d_failure = (delta.value().sgn() <= 0);
+  d_pad.d_failure = (delta->sgn() <= 0);
   if(d_pad.d_failure){ return true; }
 
   Debug("approx::mir") << "applyCMIRRule() " << delta << " " << mir.delta << endl;
@@ -2128,7 +2129,7 @@ bool ApproxGLPK::applyCMIRRule(int nid, const MirInfo& mir){
   for(; iter != iend; ++iter){
     ArithVar v = *iter;
     const Rational& curr = alpha[v];
-    Rational next = curr / delta.value();
+    Rational next = curr / *delta;
     if(compRanges.isKey(v)){
       b -= curr * compRanges[v];
       alpha.set(v, - next);
@@ -2136,7 +2137,7 @@ bool ApproxGLPK::applyCMIRRule(int nid, const MirInfo& mir){
       alpha.set(v, next);
     }
   }
-  b = b / delta.value();
+  b = b / *delta;
 
   Rational roundB = (b + Rational(1,2)).floor();
   d_pad.d_failure = (b - roundB).abs() < Rational(1,90);
@@ -2554,7 +2555,7 @@ bool ApproxGLPK::loadRowSumIntoAgg(int nid, int M, const PrimitiveVec& row_sum){
     double coeff = row_sum.coeffs[i];
     ArithVar x = _getArithVar(nid, M, aux_ind);
     if(x == ARITHVAR_SENTINEL){ return true; }
-    Maybe<Rational> c = estimateWithCFE(coeff);
+    std::optional<Rational> c = estimateWithCFE(coeff);
     if (!c)
     {
       return true;
@@ -2562,11 +2563,11 @@ bool ApproxGLPK::loadRowSumIntoAgg(int nid, int M, const PrimitiveVec& row_sum){
 
     if (lhs.isKey(x))
     {
-      lhs.get(x) -= c.value();
+      lhs.get(x) -= *c;
     }
     else
     {
-      lhs.set(x, -c.value());
+      lhs.set(x, -(*c));
     }
   }
 
@@ -2586,13 +2587,13 @@ bool ApproxGLPK::loadRowSumIntoAgg(int nid, int M, const PrimitiveVec& row_sum){
     double coeff = row_sum.coeffs[i];
     ArithVar x = _getArithVar(nid, M, aux_ind);
     Assert(x != ARITHVAR_SENTINEL);
-    Maybe<Rational> c = estimateWithCFE(coeff);
+    std::optional<Rational> c = estimateWithCFE(coeff);
     if (!c)
     {
       return true;
     }
     Assert(!lhs.isKey(x));
-    lhs.set(x, c.value());
+    lhs.set(x, *c);
   }
 
   if(Debug.isOn("approx::mir")){
@@ -3023,12 +3024,12 @@ bool ApproxGLPK::guessCoefficientsConstructTableRow(int nid, int M, const Primit
     }
     Debug("guessCoefficientsConstructTableRow") << "match " << ind << "," << var << "("<<d_vars.asNode(var)<<")"<<endl;
 
-    Maybe<Rational> cfe = estimateWithCFE(coeff, D);
+    std::optional<Rational> cfe = estimateWithCFE(coeff, D);
     if (!cfe)
     {
       return true;
     }
-    tab.set(var, cfe.value());
+    tab.set(var, *cfe);
     Debug("guessCoefficientsConstructTableRow") << var << " cfe " << cfe << endl;
   }
   if(!guessIsConstructable(tab)){

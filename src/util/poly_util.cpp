@@ -23,7 +23,6 @@
 #include <sstream>
 
 #include "base/check.h"
-#include "maybe.h"
 #include "util/integer.h"
 #include "util/rational.h"
 #include "util/real_algebraic_number.h"
@@ -157,7 +156,7 @@ poly::Rational toRational(const Rational& r)
 #endif
 }
 
-Maybe<poly::DyadicRational> toDyadicRational(const Rational& r)
+std::optional<poly::DyadicRational> toDyadicRational(const Rational& r)
 {
   Integer den = r.getDenominator();
   if (den.isOne())
@@ -170,10 +169,10 @@ Maybe<poly::DyadicRational> toDyadicRational(const Rational& r)
     // It's a dyadic rational.
     return div_2exp(poly::DyadicRational(toInteger(r.getNumerator())), exp - 1);
   }
-  return Maybe<poly::DyadicRational>();
+  return std::optional<poly::DyadicRational>();
 }
 
-Maybe<poly::DyadicRational> toDyadicRational(const poly::Rational& r)
+std::optional<poly::DyadicRational> toDyadicRational(const poly::Rational& r)
 {
   poly::Integer den = denominator(r);
   if (den == poly::Integer(1))
@@ -187,7 +186,7 @@ Maybe<poly::DyadicRational> toDyadicRational(const poly::Rational& r)
     // It's a dyadic rational.
     return div_2exp(poly::DyadicRational(numerator(r)), size);
   }
-  return Maybe<poly::DyadicRational>();
+  return std::optional<poly::DyadicRational>();
 }
 
 poly::Rational approximateToDyadic(const poly::Rational& r,
@@ -212,8 +211,8 @@ poly::AlgebraicNumber toPolyRanWithRefinement(poly::UPolynomial&& p,
                                               const Rational& lower,
                                               const Rational& upper)
 {
-  Maybe<poly::DyadicRational> ml = toDyadicRational(lower);
-  Maybe<poly::DyadicRational> mu = toDyadicRational(upper);
+  std::optional<poly::DyadicRational> ml = toDyadicRational(lower);
+  std::optional<poly::DyadicRational> mu = toDyadicRational(upper);
   if (ml && mu)
   {
     return poly::AlgebraicNumber(std::move(p),

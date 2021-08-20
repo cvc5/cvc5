@@ -27,11 +27,10 @@ ${visibility_include}$
 ${includes}$
 // clang-format on
 
-namespace cvc5 {
-namespace options {
+namespace cvc5::options {
 
 // clang-format off
-${modes}$
+${modes_decl}$
 // clang-format on
 
 #if defined(CVC5_MUZZLED) || defined(CVC5_COMPETITION_MODE)
@@ -50,35 +49,18 @@ ${holder_spec}$
 #undef DO_SEMANTIC_CHECKS_BY_DEFAULT
 
 // clang-format off
-${decls}$
+${wrap_funs}$
 // clang-format on
 
 namespace ${id}$
 {
 // clang-format off
 ${option_names}$
+
+${defaults_decl}$
 // clang-format on
 }
 
-}  // namespace options
-
-// clang-format off
-${specs}$
-// clang-format on
-
-namespace options {
-// clang-format off
-${inls}$
-// clang-format on
-
-namespace ${id}$
-{
-// clang-format off
-${defaults}$
-// clang-format on
-}
-
-}  // namespace options
-}  // namespace cvc5
+}  // namespace cvc5::options
 
 #endif /* CVC5__OPTIONS__${id_cap}$_H */

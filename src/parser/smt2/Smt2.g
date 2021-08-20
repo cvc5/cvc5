@@ -359,9 +359,9 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     ASSERT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { PARSER_STATE->clearLastNamedTerm(); }
     term[expr, expr2]
-    { bool inUnsatCore = PARSER_STATE->lastNamedTerm().first == expr;
-      cmd->reset(new AssertCommand(expr, inUnsatCore));
-      if(inUnsatCore) {
+    { cmd->reset(new AssertCommand(expr));
+      if (PARSER_STATE->lastNamedTerm().first == expr)
+      {
         // set the expression name, if there was a named term
         std::pair<api::Term, std::string> namedTerm =
             PARSER_STATE->lastNamedTerm();
@@ -585,9 +585,23 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
     }
   | /* check-synth */
     CHECK_SYNTH_TOK
-    { PARSER_STATE->checkThatLogicIsSet(); }
     {
+      PARSER_STATE->checkThatLogicIsSet();
       cmd.reset(new CheckSynthCommand());
+    }
+  | /* set-feature */
+    SET_FEATURE_TOK keyword[name] symbolicExpr[expr]
+    {
+      PARSER_STATE->checkThatLogicIsSet();
+      // ":grammars" is defined in the SyGuS version 2.1 standard and is by
+      // default supported, all other features are not.
+      if (name != ":grammars")
+      {
+        std::stringstream ss;
+        ss << "SyGuS feature " << name << " not currently supported";
+        PARSER_STATE->warning(ss.str());
+      }
+      cmd.reset(new EmptyCommand());
     }
   | command[&cmd]
   ;
@@ -2259,7 +2273,7 @@ CHECK_SYNTH_TOK : { PARSER_STATE->sygus()}?'check-synth';
 DECLARE_VAR_TOK : { PARSER_STATE->sygus()}?'declare-var';
 CONSTRAINT_TOK : { PARSER_STATE->sygus()}?'constraint';
 INV_CONSTRAINT_TOK : { PARSER_STATE->sygus()}?'inv-constraint';
-SET_OPTIONS_TOK : { PARSER_STATE->sygus() }? 'set-options';
+SET_FEATURE_TOK : { PARSER_STATE->sygus() }? 'set-feature';
 SYGUS_CONSTANT_TOK : { PARSER_STATE->sygus() }? 'Constant';
 SYGUS_VARIABLE_TOK : { PARSER_STATE->sygus() }? 'Variable';
 
