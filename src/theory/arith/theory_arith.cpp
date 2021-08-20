@@ -39,13 +39,12 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_ARITH, env, out, valuation),
       d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
           "theory::arith::ppRewriteTimer")),
-      d_astate(getSatContext(), getUserContext(), valuation),
+      d_astate(env, valuation),
       d_im(*this, d_astate, d_pnm),
       d_ppre(getSatContext(), d_pnm),
       d_bab(d_astate, d_im, d_ppre, d_pnm),
       d_eqSolver(nullptr),
-      d_internal(new TheoryArithPrivate(
-          *this, getSatContext(), getUserContext(), d_bab, d_pnm)),
+      d_internal(new TheoryArithPrivate(*this, env, d_bab)),
       d_nonlinearExtension(nullptr),
       d_opElim(d_pnm, getLogicInfo()),
       d_arithPreproc(d_astate, d_im, d_pnm, d_opElim),
@@ -102,8 +101,7 @@ void TheoryArith::finishInit()
   const LogicInfo& logicInfo = getLogicInfo();
   if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
   {
-    d_nonlinearExtension.reset(
-        new nl::NonlinearExtension(*this, d_astate, d_equalityEngine, d_pnm));
+    d_nonlinearExtension.reset(new nl::NonlinearExtension(*this, d_astate));
   }
   if (d_eqSolver != nullptr)
   {

@@ -111,7 +111,10 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
                                                         int e)
 {
   options::UserPatMode upMode = getInstUserPatMode();
-  if (hasUserPatterns(f) && upMode == options::UserPatMode::TRUST)
+  // we don't auto-generate triggers if the mode is trust or strict
+  if (hasUserPatterns(f)
+      && (upMode == options::UserPatMode::TRUST
+          || upMode == options::UserPatMode::STRICT))
   {
     return InstStrategyStatus::STATUS_UNKNOWN;
   }

@@ -311,8 +311,6 @@ libcvc5_add_sources(
   smt/node_command.h
   smt/optimization_solver.cpp
   smt/optimization_solver.h
-  smt/options_manager.cpp
-  smt/options_manager.h
   smt/output_manager.cpp
   smt/output_manager.h
   smt/quant_elim_solver.cpp
@@ -325,6 +323,8 @@ libcvc5_add_sources(
   smt/process_assertions.h
   smt/proof_manager.cpp
   smt/proof_manager.h
+  smt/proof_final_callback.cpp
+  smt/proof_final_callback.h
   smt/proof_post_processor.cpp
   smt/proof_post_processor.h
   smt/set_defaults.cpp
