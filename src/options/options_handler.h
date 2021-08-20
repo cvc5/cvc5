@@ -27,7 +27,6 @@
 #include "options/language.h"
 #include "options/managed_streams.h"
 #include "options/option_exception.h"
-#include "options/printer_modes.h"
 #include "options/quantifiers_options.h"
 
 namespace cvc5 {
