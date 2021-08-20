@@ -24,6 +24,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "theory/valuation.h"
 
 namespace cvc5 {
 
@@ -41,7 +42,7 @@ class DifficultyManager
   typedef context::CDHashMap<Node, uint64_t> NodeUIntMap;
 
  public:
-  DifficultyManager(Env& env);
+  DifficultyManager(Env& env, Valuation val);
   /**
    * Get difficulty map
    */
@@ -52,7 +53,12 @@ class DifficultyManager
   void notifyCandidateModel(const NodeList& input, TheoryModel* m);
 
  private:
-  /** user-context dependent mapping from input assertions to difficulty measure
+  /** Increment difficulty on assertion a */
+  void incrementDifficulty(TNode a, uint64_t amount=1);
+  /** The valuation object, used to query current value of theory literals */
+  Valuation d_val;
+  /** 
+   * user-context dependent mapping from input assertions to difficulty measure
    */
   NodeUIntMap d_dfmap;
 };
