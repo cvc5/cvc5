@@ -37,8 +37,8 @@ bool QAttributes::isStandard() const
 QuantAttributes::QuantAttributes() {}
 
 void QuantAttributes::setUserAttribute(const std::string& attr,
-                                       Node n,
-                                       std::vector<Node>& node_values)
+                                       TNode n,
+                                       const std::vector<Node>& nodeValues)
 {
   Trace("quant-attr-debug") << "Set " << attr << " " << n << std::endl;
   if (attr == "fun-def")
@@ -54,8 +54,8 @@ void QuantAttributes::setUserAttribute(const std::string& attr,
     QuantNameAttribute qna;
     n.setAttribute(qna, true);
   }else if( attr=="quant-inst-max-level" ){
-    Assert(node_values.size() == 1);
-    uint64_t lvl = node_values[0].getConst<Rational>().getNumerator().getLong();
+    Assert(nodeValues.size() == 1);
+    uint64_t lvl = nodeValues[0].getConst<Rational>().getNumerator().getLong();
     Trace("quant-attr-debug") << "Set instantiation level " << n << " to " << lvl << std::endl;
     QuantInstLevelAttribute qila;
     n.setAttribute( qila, lvl );
@@ -207,7 +207,7 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
         Node avar;
         // We support two use cases of INST_ATTRIBUTE:
         // (1) where the user constructs a term of the form
-        // (INST_ATTRIBUTE "keyword" [node_values])
+        // (INST_ATTRIBUTE "keyword" [nodeValues])
         // (2) where we internally generate nodes of the form
         // (INST_ATTRIBUTE v) where v has an internal attribute set on it.
         // We distinguish these two cases by checking the kind of the first
