@@ -2358,7 +2358,6 @@ set(regress_1_tests
   regress1/sygus/multi-fun-polynomial2.sy
   regress1/sygus/complex-no-rewrite.sy
   regress1/sygus/complex-rewrite-in-db.sy
-  regress1/sygus/nested-si.sy
   regress1/sygus/no-var-in-sol.sy
   regress1/sygus/simple-no-rewrite.sy
   regress1/sygus/simple-rewrite-in-db.sy
