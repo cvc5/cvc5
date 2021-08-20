@@ -29,7 +29,7 @@ InferenceManager::InferenceManager(TheoryArith& ta,
                                    ProofNodeManager* pnm)
     : InferenceManagerBuffered(ta, astate, pnm, "theory::arith::"),
       // currently must track propagated literals if using the equality solver
-      d_trackPropLits(options::arithEqSolver()),
+      d_trackPropLits(astate.options().arith.arithEqSolver),
       d_propLits(astate.getSatContext())
 {
 }
@@ -127,7 +127,7 @@ bool InferenceManager::cacheLemma(TNode lem, LemmaProperty p)
 
 bool InferenceManager::isEntailedFalse(const SimpleTheoryLemma& lem)
 {
-  if (options::nlExtEntailConflicts())
+  if (d_theoryState.options().arith.nlExtEntailConflicts)
   {
     Node ch_lemma = lem.d_node.negate();
     ch_lemma = Rewriter::rewrite(ch_lemma);
