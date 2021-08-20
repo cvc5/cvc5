@@ -61,7 +61,7 @@ class SetDefaults
    */
   bool mustDisableProofs(const Options& opts) const;
   //------------------------- options setting, prior finalization of logic
-  /** 
+  /**
    * Set defaults pre, which sets all options prior to finalizing the logic.
    * It is required that any options that impact the finalization of logic
    * (finalizeLogic).
