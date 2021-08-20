@@ -420,59 +420,6 @@ void TermDb::computeUfTerms( TNode f ) {
   }
 }
 
-void TermDb::addTermHo(Node n)
-{
-  if (n.getType().isFunction())
-  {
-    // nothing special to do with functions
-    return;
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node curr = n;
-  std::vector<Node> args;
-  while (curr.getKind() == HO_APPLY)
-  {
-    args.insert(args.begin(), curr[1]);
-    curr = curr[0];
-    if (!curr.isVar())
-    {
-      // purify the term
-      std::map<Node, Node>::iterator itp = d_ho_fun_op_purify.find(curr);
-      Node psk;
-      if (itp == d_ho_fun_op_purify.end())
-      {
-        psk = sm->mkPurifySkolem(
-            curr, "pfun", "purify for function operator term indexing");
-        d_ho_fun_op_purify[curr] = psk;
-        // we do not add it to d_ops since it is an internal operator
-      }
-      else
-      {
-        psk = itp->second;
-      }
-      std::vector<Node> children;
-      children.push_back(psk);
-      children.insert(children.end(), args.begin(), args.end());
-      Node p_n = nm->mkNode(APPLY_UF, children);
-      Trace("term-db") << "register term in db (via purify) " << p_n
-                       << std::endl;
-      // also add this one internally
-      DbList* dblp = getOrMkDbListForOp(psk);
-      dblp->d_list.push_back(p_n);
-      // maintain backwards mapping
-      d_ho_purify_to_term[p_n] = n;
-    }
-  }
-  if (!args.empty() && curr.isVar())
-  {
-    // also add standard application version
-    args.insert(args.begin(), curr);
-    Node uf_n = nm->mkNode(APPLY_UF, args);
-    addTerm(uf_n);
-  }
-}
-
 Node TermDb::getOperatorRepresentative(TNode op) const { return op; }
 
 bool TermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)

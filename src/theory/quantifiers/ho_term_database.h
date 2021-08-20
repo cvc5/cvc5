@@ -79,8 +79,8 @@ class HoTermDb : public TermDb
    * is added to the term index of g, assuming g is the representative of
    * the equivalence class of g and pfun.
    *
-   * Above, we set d_ho_fun_op_purify[(@ f 0)] = pfun, and
-   * d_ho_purify_to_term[(pfun 1)] = (@ (@ f 0) 1).
+   * Above, we set d_hoFunOpPurify[(@ f 0)] = pfun, and
+   * d_hoPurifyToTerm[(pfun 1)] = (@ (@ f 0) 1).
    */
   void addTermInternal(Node n) override;
   /** Get operators that we know are equivalent to f */
@@ -96,21 +96,21 @@ class HoTermDb : public TermDb
    * Map from non-variable function terms to the operator used to purify it in
    * this database. For details, see addTermHo.
    */
-  std::map<Node, Node> d_ho_fun_op_purify;
+  std::map<Node, Node> d_hoFunOpPurify;
   /**
    * Map from terms to the term that they purified. For details, see addTermHo.
    */
-  std::map<Node, Node> d_ho_purify_to_term;
+  std::map<Node, Node> d_hoPurifyToTerm;
   /**
    * Map from terms in the domain of the above map to an equality between that
    * term and its range in the above map.
    */
-  std::map<Node, Node> d_ho_purify_to_eq;
+  std::map<Node, Node> d_hoPurifyToEq;
   /** a map from matchable operators to their representative */
-  std::map<TNode, TNode> d_ho_op_rep;
+  std::map<TNode, TNode> d_hoOpRep;
   /** for each representative matchable operator, the list of other matchable
    * operators in their equivalence class */
-  std::map<TNode, std::vector<TNode> > d_ho_op_slaves;
+  std::map<TNode, std::vector<TNode> > d_hoOpSlaves;
 };
 
 }  // namespace quantifiers

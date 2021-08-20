@@ -345,7 +345,9 @@ class TermDb : public QuantifiersUtil {
   virtual void getOperatorsFor(TNode f, std::vector<TNode>& ops);
   /** get the chosen representative for operator op */
   virtual Node getOperatorRepresentative(TNode op) const;
-  /** check whether terms are disequal */
+  /**
+   * This method is called when terms a and b 
+   */
   virtual bool checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp);
   //----------------------------- end implementation-specific
   /** set has term */

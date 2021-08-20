@@ -53,13 +53,13 @@ void HoTermDb::addTermInternal(Node n)
     if (!curr.isVar())
     {
       // purify the term
-      std::map<Node, Node>::iterator itp = d_ho_fun_op_purify.find(curr);
+      std::map<Node, Node>::iterator itp = d_hoFunOpPurify.find(curr);
       Node psk;
-      if (itp == d_ho_fun_op_purify.end())
+      if (itp == d_hoFunOpPurify.end())
       {
         psk = sm->mkPurifySkolem(
             curr, "pfun", "purify for function operator term indexing");
-        d_ho_fun_op_purify[curr] = psk;
+        d_hoFunOpPurify[curr] = psk;
         // we do not add it to d_ops since it is an internal operator
       }
       else
@@ -76,7 +76,7 @@ void HoTermDb::addTermInternal(Node n)
       DbList* dblp = getOrMkDbListForOp(psk);
       dblp->d_list.push_back(p_n);
       // maintain backwards mapping
-      d_ho_purify_to_term[p_n] = n;
+      d_hoPurifyToTerm[p_n] = n;
     }
   }
   if (!args.empty() && curr.isVar())
@@ -88,10 +88,16 @@ void HoTermDb::addTermInternal(Node n)
   }
 }
 
+void HoTermDb::getOperatorsFor(TNode f, std::vector<TNode>& ops)
+{
+  ops.push_back(f);
+  ops.insert(ops.end(), d_hoOpSlaves[f].begin(), d_hoOpSlaves[f].end());
+}
+
 Node HoTermDb::getOperatorRepresentative(TNode op) const
 {
-  std::map<TNode, TNode>::const_iterator it = d_ho_op_rep.find(op);
-  if (it != d_ho_op_rep.end())
+  std::map<TNode, TNode>::const_iterator it = d_hoOpRep.find(op);
+  if (it != d_hoOpRep.end())
   {
     return it->second;
   }
@@ -104,17 +110,17 @@ bool HoTermDb::resetInternal(Theory::Effort effort)
       << "HoTermDb::reset : assert higher-order purify equalities..."
       << std::endl;
   eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
-  for (std::pair<const Node, Node>& pp : d_ho_purify_to_term)
+  for (std::pair<const Node, Node>& pp : d_hoPurifyToTerm)
   {
     if (ee->hasTerm(pp.second)
         && (!ee->hasTerm(pp.first) || !ee->areEqual(pp.second, pp.first)))
     {
       Node eq;
-      std::map<Node, Node>::iterator itpe = d_ho_purify_to_eq.find(pp.first);
-      if (itpe == d_ho_purify_to_eq.end())
+      std::map<Node, Node>::iterator itpe = d_hoPurifyToEq.find(pp.first);
+      if (itpe == d_hoPurifyToEq.end())
       {
         eq = Rewriter::rewrite(pp.first.eqNode(pp.second));
-        d_ho_purify_to_eq[pp.first] = eq;
+        d_hoPurifyToEq[pp.first] = eq;
       }
       else
       {
@@ -128,7 +134,7 @@ bool HoTermDb::resetInternal(Theory::Effort effort)
       if (!ee->consistent())
       {
         // In some rare cases, purification functions (in the domain of
-        // d_ho_purify_to_term) may escape the term database. For example,
+        // d_hoPurifyToTerm) may escape the term database. For example,
         // matching algorithms may construct instantiations involving these
         // functions. As a result, asserting these equalities internally may
         // cause a conflict. In this case, we insist that the purification
@@ -153,8 +159,9 @@ bool HoTermDb::finishResetInternal(Theory::Effort effort)
   Trace("quant-ho") << "HoTermDb::reset : compute equal functions..."
                     << std::endl;
   // build operator representative map
-  d_ho_op_rep.clear();
-  d_ho_op_slaves.clear();
+  d_hoOpRep.clear();
+  d_hoOpSlaves.clear();
+  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
   while (!eqcs_i.isFinished())
   {
@@ -175,8 +182,8 @@ bool HoTermDb::finishResetInternal(Theory::Effort effort)
         else
         {
           // use its purified variable, if it exists
-          std::map<Node, Node>::iterator itp = d_ho_fun_op_purify.find(n);
-          if (itp != d_ho_fun_op_purify.end())
+          std::map<Node, Node>::iterator itp = d_hoFunOpPurify.find(n);
+          if (itp != d_hoFunOpPurify.end())
           {
             n_use = itp->second;
           }
@@ -188,14 +195,14 @@ bool HoTermDb::finishResetInternal(Theory::Effort effort)
           if (first.isNull())
           {
             first = n_use;
-            d_ho_op_rep[n_use] = n_use;
+            d_hoOpRep[n_use] = n_use;
           }
           else
           {
             Trace("quant-ho") << "  have : " << n_use << " == " << first
                               << ", type = " << n_use.getType() << std::endl;
-            d_ho_op_rep[n_use] = first;
-            d_ho_op_slaves[first].push_back(n_use);
+            d_hoOpRep[n_use] = first;
+            d_hoOpSlaves[first].push_back(n_use);
           }
         }
         ++eqc_i;
