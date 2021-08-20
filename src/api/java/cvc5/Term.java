@@ -357,7 +357,7 @@ public class Term
 
   /**
    * @return the stored integer as a long.
-   * Note: Asserts isInt64().
+   * Note: Asserts isLong().
    */
   public long getLong() {
     return getLong(pointer);
