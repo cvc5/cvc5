@@ -29,7 +29,7 @@ JNIEXPORT void JNICALL Java_cvc5_Term_deletePointer(JNIEnv* env,
                                                     jclass,
                                                     jlong pointer)
 {
-  delete ((Term*)pointer);
+  delete reinterpret_cast<Term*>(pointer);
 }
 
 /*
@@ -43,11 +43,11 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_equals(JNIEnv* env,
                                                  jlong pointer2)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* term1 = (Term*)pointer1;
-  Term* term2 = (Term*)pointer2;
+  Term* term1 = reinterpret_cast<Term*>(pointer1);
+  Term* term2 = reinterpret_cast<Term*>(pointer2);
   // We compare the actual terms, not their pointers.
-  return (jboolean)(*term1 == *term2);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  return static_cast<jboolean>(*term1 == *term2);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -61,17 +61,17 @@ JNIEXPORT jint JNICALL Java_cvc5_Term_compareTo(JNIEnv* env,
                                                 jlong pointer2)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* term1 = (Term*)pointer1;
-  Term* term2 = (Term*)pointer2;
+  Term* term1 = reinterpret_cast<Term*>(pointer1);
+  Term* term2 = reinterpret_cast<Term*>(pointer2);
   if (*term1 < *term2)
   {
-    return (jint)-1;
+    return static_cast<jint>(-1);
   }
   if (*term1 == *term2)
   {
     return 0;
   }
-  return (jint)1;
+  return static_cast<jint>(1);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -85,8 +85,8 @@ JNIEXPORT jint JNICALL Java_cvc5_Term_getNumChildren(JNIEnv* env,
                                                      jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jint)current->getNumChildren();
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jint>(current->getNumChildren());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -101,9 +101,9 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_getChild(JNIEnv* env,
                                                 jint index)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  Term* ret = new Term((*current)[(size_t)index]);
-  return (jlong)ret;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  Term* ret = new Term((*current)[static_cast<size_t>(index)]);
+  return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -117,8 +117,8 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_getId(JNIEnv* env,
                                              jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jlong)current->getId();
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jlong>(current->getId());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -132,8 +132,8 @@ JNIEXPORT jint JNICALL Java_cvc5_Term_getKind(JNIEnv* env,
                                               jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jint)current->getKind();
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jint>(current->getKind());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -147,9 +147,9 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_getSort(JNIEnv* env,
                                                jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
+  Term* current = reinterpret_cast<Term*>(pointer);
   Sort* ret = new Sort(current->getSort());
-  return (jlong)ret;
+  return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -165,11 +165,11 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_substitute__JJJ(JNIEnv* env,
                                                        jlong replacementPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  Term* term = (Term*)termPointer;
-  Term* replacement = (Term*)replacementPointer;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  Term* term = reinterpret_cast<Term*>(termPointer);
+  Term* replacement = reinterpret_cast<Term*>(replacementPointer);
   Term* ret = new Term(current->substitute(*term, *replacement));
-  return (jlong)ret;
+  return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -186,7 +186,7 @@ Java_cvc5_Term_substitute__J_3J_3J(JNIEnv* env,
                                    jlongArray replacementPointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
+  Term* current = reinterpret_cast<Term*>(pointer);
   jsize termsSize = env->GetArrayLength(termPointers);
   jsize replacementsSize = env->GetArrayLength(replacementPointers);
   jlong* termElements = env->GetLongArrayElements(termPointers, nullptr);
@@ -211,7 +211,7 @@ Java_cvc5_Term_substitute__J_3J_3J(JNIEnv* env,
   env->ReleaseLongArrayElements(replacementPointers, replacementElements, 0);
 
   Term* ret = new Term(current->substitute(terms, replacements));
-  return (jlong)ret;
+  return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -225,9 +225,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_hasOp(JNIEnv* env,
                                                 jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jboolean)current->hasOp();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->hasOp());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -240,9 +240,9 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_getOp(JNIEnv* env,
                                              jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
+  Term* current = reinterpret_cast<Term*>(pointer);
   Op* ret = new Op(current->getOp());
-  return (jlong)ret;
+  return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -256,9 +256,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isNull(JNIEnv* env,
                                                  jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jboolean)current->isNull();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isNull());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -271,9 +271,9 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_getConstArrayBase(JNIEnv* env,
                                                          jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
+  Term* current = reinterpret_cast<Term*>(pointer);
   Term* ret = new Term(current->getConstArrayBase());
-  return (jlong)ret;
+  return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -286,12 +286,12 @@ JNIEXPORT jlongArray JNICALL
 Java_cvc5_Term_getConstSequenceElements(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  std::vector<Term> terms = current->getConstSequenceElements();
+  Term* current = reinterpret_cast<Term*>(pointer);
+  std::vector<Term> terms = current->getSequenceValue();
   std::vector<long> termPointers(terms.size());
   for (size_t i = 0; i < terms.size(); i++)
   {
-    termPointers[i] = (long)new Term(terms[i]);
+    termPointers[i] = reinterpret_cast<long>(new Term(terms[i]));
   }
 
   jlongArray ret = env->NewLongArray(terms.size());
@@ -311,9 +311,9 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_notTerm(JNIEnv* env,
                                                jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
+  Term* current = reinterpret_cast<Term*>(pointer);
   Term* ret = new Term(current->notTerm());
-  return (jlong)ret;
+  return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -328,10 +328,10 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_andTerm(JNIEnv* env,
                                                jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  Term* term = (Term*)termPointer;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  Term* term = reinterpret_cast<Term*>(termPointer);
   Term* ret = new Term(current->andTerm(*term));
-  return (jlong)ret;
+  return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -346,10 +346,10 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_orTerm(JNIEnv* env,
                                               jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  Term* term = (Term*)termPointer;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  Term* term = reinterpret_cast<Term*>(termPointer);
   Term* ret = new Term(current->orTerm(*term));
-  return (jlong)ret;
+  return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -364,10 +364,10 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_xorTerm(JNIEnv* env,
                                                jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  Term* term = (Term*)termPointer;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  Term* term = reinterpret_cast<Term*>(termPointer);
   Term* ret = new Term(current->xorTerm(*term));
-  return (jlong)ret;
+  return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -382,10 +382,10 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_eqTerm(JNIEnv* env,
                                               jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  Term* term = (Term*)termPointer;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  Term* term = reinterpret_cast<Term*>(termPointer);
   Term* ret = new Term(current->eqTerm(*term));
-  return (jlong)ret;
+  return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -400,10 +400,10 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_impTerm(JNIEnv* env,
                                                jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  Term* term = (Term*)termPointer;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  Term* term = reinterpret_cast<Term*>(termPointer);
   Term* ret = new Term(current->impTerm(*term));
-  return (jlong)ret;
+  return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -416,11 +416,11 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_iteTerm(
     JNIEnv* env, jobject, jlong pointer, jlong thenPointer, jlong elsePointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  Term* thenTerm = (Term*)thenPointer;
-  Term* elseTerm = (Term*)elsePointer;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  Term* thenTerm = reinterpret_cast<Term*>(thenPointer);
+  Term* elseTerm = reinterpret_cast<Term*>(elsePointer);
   Term* ret = new Term(current->iteTerm(*thenTerm, *elseTerm));
-  return (jlong)ret;
+  return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -434,128 +434,68 @@ JNIEXPORT jstring JNICALL Java_cvc5_Term_toString(JNIEnv* env,
                                                   jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
+  Term* current = reinterpret_cast<Term*>(pointer);
   return env->NewStringUTF(current->toString().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 
 /*
  * Class:     cvc5_Term
- * Method:    isInt32
+ * Method:    isInt
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isInt32(JNIEnv* env,
-                                                  jobject,
-                                                  jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jboolean)current->isInt32();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
-}
-
-/*
- * Class:     cvc5_Term
- * Method:    getInt32
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_cvc5_Term_getInt32(JNIEnv* env,
-                                               jobject,
-                                               jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jint)current->getInt32();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     cvc5_Term
- * Method:    isUInt32
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isUInt32(JNIEnv* env,
-                                                   jobject,
-                                                   jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jboolean)current->isUInt32();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
-}
-
-/*
- * Class:     cvc5_Term
- * Method:    getUInt32
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_cvc5_Term_getUInt32(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_cvc5_Term_isInt(JNIEnv* env,
                                                 jobject,
                                                 jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jint)current->getUInt32();
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isInt32Value());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     cvc5_Term
+ * Method:    getInt
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_cvc5_Term_getInt(JNIEnv* env,
+                                             jobject,
+                                             jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jint>(current->getInt32Value());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     cvc5_Term
- * Method:    isInt64
+ * Method:    isLong
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isInt64(JNIEnv* env,
-                                                  jobject,
-                                                  jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jboolean)current->isInt64();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
-}
-
-/*
- * Class:     cvc5_Term
- * Method:    getInt64
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_getInt64(JNIEnv* env,
-                                                jobject,
-                                                jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jlong)current->getInt64();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     cvc5_Term
- * Method:    isUInt64
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isUInt64(JNIEnv* env,
-                                                   jobject,
-                                                   jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jboolean)current->isUInt64();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
-}
-
-/*
- * Class:     cvc5_Term
- * Method:    getUInt64
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_getUInt64(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_cvc5_Term_isLong(JNIEnv* env,
                                                  jobject,
                                                  jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jlong)current->getUInt64();
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isInt64Value());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     cvc5_Term
+ * Method:    getLong
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_cvc5_Term_getLong(JNIEnv* env,
+                                               jobject,
+                                               jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jlong>(current->getInt64Value());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -569,9 +509,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isInteger(JNIEnv* env,
                                                     jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jboolean)current->isInteger();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isIntegerValue());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -584,8 +524,8 @@ JNIEXPORT jstring JNICALL Java_cvc5_Term_getInteger(JNIEnv* env,
                                                     jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return env->NewStringUTF(current->getInteger().c_str());
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return env->NewStringUTF(current->getIntegerValue().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 
@@ -599,9 +539,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isString(JNIEnv* env,
                                                    jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  return (jboolean)current->isString();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isStringValue());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -614,8 +554,8 @@ JNIEXPORT jstring JNICALL Java_cvc5_Term_getString(JNIEnv* env,
                                                    jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
-  std::wstring termString = current->getString();
+  Term* current = reinterpret_cast<Term*>(pointer);
+  std::wstring termString = current->getStringValue();
 
   size_t length = termString.length();
   jchar* unicode = new jchar[length];
@@ -640,8 +580,8 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_iterator(JNIEnv* env,
                                                 jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = (Term*)pointer;
+  Term* current = reinterpret_cast<Term*>(pointer);
   Term::const_iterator* retPointer = new Term::const_iterator(current->begin());
-  return (jlong)retPointer;
+  return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
