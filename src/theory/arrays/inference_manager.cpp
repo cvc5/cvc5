@@ -16,10 +16,10 @@
 #include "theory/arrays/inference_manager.h"
 
 #include "options/smt_options.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/builtin/proof_checker.h"
 
 using namespace cvc5::kind;
 
