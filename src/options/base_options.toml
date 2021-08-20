@@ -218,6 +218,8 @@ public = true
   category   = "regular"
   help       = "Enable output tag."
   help_mode  = "Output tags."
+[[option.mode.NONE]]
+  name = "none"
 [[option.mode.INST]]
   name = "inst"
   help = "print instantiations during solving"

@@ -376,6 +376,8 @@ class SphinxGenerator:
             res.append(val.format(opt['help_mode']))
             res.append(val.format(''))
             for k, v in opt['modes'].items():
+                if v == '':
+                    continue
                 res.append(val.format(':{}: {}'.format(k, v)))
         res.append('    ')
 
@@ -540,12 +542,13 @@ def help_mode_format(option):
     for value, attrib in option.mode.items():
         assert len(attrib) == 1
         attrib = attrib[0]
+        if 'help' not in attrib:
+            continue
         if value == option.default and attrib['name'] != "default":
             text.append('+ {} (default)'.format(attrib['name']))
         else:
             text.append('+ {}'.format(attrib['name']))
-        if 'help' in attrib:
-            text.extend('  {}'.format(x) for x in wrapper.wrap(attrib['help']))
+        text.extend('  {}'.format(x) for x in wrapper.wrap(attrib['help']))
 
     return '\n         '.join('"{}\\n"'.format(x) for x in text)
 
