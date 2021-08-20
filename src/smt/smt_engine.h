@@ -250,6 +250,8 @@ class CVC5_EXPORT SmtEngine
   /**
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
    * query).  Only permitted if produce-models is on.
+   *
+   * TODO (issues#287): eliminate this method.
    */
   smt::Model* getModel();
 
