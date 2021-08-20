@@ -1067,6 +1067,8 @@ def parse_module(filename, module):
             option = Option(attribs)
             if option.mode and not option.help_mode:
                 perr(filename, 'defines modes but no help_mode', option)
+            if option.mode and not option.default:
+                perr(filename, "mode option has no default", option)
             if option.mode and option.default and \
                     option.default not in option.mode.keys():
                 perr(filename,
