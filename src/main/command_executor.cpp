@@ -180,6 +180,11 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     {
       getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
+    
+    if (d_solver->getOptions().driver.dumpDifficulty)
+    {
+      getterCommands.emplace_back(new GetDifficultyCommand());
+    }
 
     if (!getterCommands.empty()) {
       // set no time limit during dumping if applicable
