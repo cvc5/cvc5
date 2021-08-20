@@ -54,8 +54,8 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "prenex-quant-user"
   type       = "bool"
-  default    = "true"
-  help       = "prenex quantified formulas with user patterns or annotations"
+  default    = "false"
+  help       = "prenex quantified formulas with user patterns"
 
 # Whether to variable-eliminate quantifiers.
 # For example, forall x y. ( P( x, y ) V x != c ) will be rewritten to

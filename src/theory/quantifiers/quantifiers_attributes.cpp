@@ -165,6 +165,23 @@ bool QuantAttributes::checkQuantElimAnnotation( Node ipl ) {
   return false;
 }
 
+bool QuantAttributes::hasPattern(Node q)
+{
+  Assert (q.getKind()==FORALL);
+  if (q.getNumChildren()!=3)
+  {
+    return false;
+  }
+  for (const Node& qc : q[2])
+  {
+    if (qc.getKind() == INST_PATTERN || qc.getKind() == INST_NO_PATTERN)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 void QuantAttributes::computeAttributes( Node q ) {
   computeQuantAttributes( q, d_qattr[q] );
   QAttributes& qa = d_qattr[q];

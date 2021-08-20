@@ -204,16 +204,7 @@ void InstantiationEngine::checkOwnership(Node q)
       && q.getNumChildren() == 3)
   {
     //if strict triggers, take ownership of this quantified formula
-    bool hasPat = false;
-    for (const Node& qc : q[2])
-    {
-      if (qc.getKind() == INST_PATTERN || qc.getKind() == INST_NO_PATTERN)
-      {
-        hasPat = true;
-        break;
-      }
-    }
-    if( hasPat ){
+    if( QuantAttributes::hasPattern(q) ){
       d_qreg.setOwner(q, this, 1);
     }
   }
