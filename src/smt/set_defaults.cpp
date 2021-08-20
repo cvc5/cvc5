@@ -958,9 +958,9 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
         "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
 
+#ifdef CVC5_USE_POLY
   if (logic == LogicInfo("QF_UFNRA"))
   {
-#ifdef CVC5_USE_POLY
     if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
     {
       opts.arith.nlCad = true;
@@ -973,9 +973,8 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
         opts.arith.nlRlvMode = options::NlRlvMode::INTERLEAVE;
       }
     }
-#endif
   }
-#ifndef CVC5_USE_POLY
+#else
   if (opts.arith.nlCad)
   {
     if (opts.arith.nlCadWasSetByUser)
