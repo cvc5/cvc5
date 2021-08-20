@@ -1271,7 +1271,7 @@ Node QuantifiersRewriter::computePrenex(Node q,
   if (k == FORALL)
   {
     if ((pol || prenexAgg)
-        && (options::prenexQuantUser() || !QuantAttributes::hasPattern(q)))
+        && (options::prenexQuantUser() || !QuantAttributes::hasPattern(body)))
     {
       std::vector< Node > terms;
       std::vector< Node > subs;
