@@ -911,6 +911,7 @@ set(regress_0_tests
   regress0/quantifiers/issue5693-prenex.smt2
   regress0/quantifiers/issue6603-dt-bool-cegqi.smt2
   regress0/quantifiers/issue6996-trivial-elim.smt2
+  regress0/quantifiers/issue6999-deq-elim.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -1243,6 +1244,7 @@ set(regress_0_tests
   regress0/sygus/dt-sel-parse1.sy
   regress0/sygus/General_plus10.sy
   regress0/sygus/hd-05-d1-prog-nogrammar.sy
+  regress0/sygus/ho-occ-synth-fun.sy
   regress0/sygus/inv-different-var-order.sy
   regress0/sygus/issue3356-syg-inf-usort.smt2
   regress0/sygus/issue3624.sy
@@ -1262,7 +1264,6 @@ set(regress_0_tests
   regress0/sygus/print-debug.sy
   regress0/sygus/print-define-fun.sy
   regress0/sygus/real-si-all.sy
-  regress0/sygus/setFeature.sy
   regress0/sygus/strings-unconstrained.sy
   regress0/sygus/sygus-no-wf.sy
   regress0/sygus/sygus-uf.sy
