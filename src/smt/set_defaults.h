@@ -46,11 +46,11 @@ class SetDefaults
   void setDefaults(LogicInfo& logic, Options& opts);
 
  private:
-  /** 
+  /**
    * Determine whether we will be solving a SyGuS problem.
    */
   bool isSygus(const Options& opts) const;
-  /** 
+  /**
    * Determine whether we will be using SyGuS.
    */
   bool usesSygus(const Options& opts) const;
@@ -70,7 +70,9 @@ class SetDefaults
    * The parameter isSygus indicates if we are solving a SyGuS problem.
    * This method modifies opt.quantifiers only.
    */
-  void setDefaultsQuantifiers(const LogicInfo& logic, Options& opts, bool isSygus) const;
+  void setDefaultsQuantifiers(const LogicInfo& logic,
+                              Options& opts,
+                              bool isSygus) const;
   /**
    * Set defaults related to SyGuS, called when SyGuS is enabled.
    */

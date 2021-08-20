@@ -796,7 +796,7 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
     options::DecisionMode decMode =
         // anything that uses sygus uses internal
         usesSygus(opts) ? options::DecisionMode::INTERNAL :
-                  // ALL or its supersets
+                        // ALL or its supersets
             logic.hasEverything()
                 ? options::DecisionMode::JUSTIFICATION
                 : (  // QF_BV
@@ -1044,7 +1044,8 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
     if (opts.arith.nlCadWasSetByUser)
     {
       std::stringstream ss;
-      ss << "Cannot use " << options::arith::nlCad__name << " without configuring with --poly.";
+      ss << "Cannot use " << options::arith::nlCad__name
+         << " without configuring with --poly.";
       throw OptionException(ss.str());
     }
     else
@@ -1197,7 +1198,9 @@ void SetDefaults::widenLogic(LogicInfo& logic, Options& opts) const
   }
 }
 
-void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic, Options& opts, bool isSygus) const
+void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
+                                         Options& opts,
+                                         bool isSygus) const
 {
   if (logic.hasCardinalityConstraints())
   {
@@ -1212,8 +1215,10 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic, Options& opts, 
     opts.quantifiers.cegqi = false;
   }
 
-  if ((opts.quantifiers.fmfBoundLazyWasSetByUser && opts.quantifiers.fmfBoundLazy)
-      || (opts.quantifiers.fmfBoundIntWasSetByUser && opts.quantifiers.fmfBoundInt))
+  if ((opts.quantifiers.fmfBoundLazyWasSetByUser
+       && opts.quantifiers.fmfBoundLazy)
+      || (opts.quantifiers.fmfBoundIntWasSetByUser
+          && opts.quantifiers.fmfBoundInt))
   {
     opts.quantifiers.fmfBound = true;
     Trace("smt")
@@ -1357,7 +1362,8 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic, Options& opts, 
       {
         opts.quantifiers.instNoEntail = false;
       }
-      if (!opts.quantifiers.instWhenModeWasSetByUser && opts.quantifiers.cegqiModel)
+      if (!opts.quantifiers.instWhenModeWasSetByUser
+          && opts.quantifiers.cegqiModel)
       {
         // only instantiation should happen at last call when model is avaiable
         opts.quantifiers.instWhenMode = options::InstWhenMode::LAST_CALL;
