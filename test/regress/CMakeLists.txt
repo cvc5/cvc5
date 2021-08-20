@@ -911,7 +911,6 @@ set(regress_0_tests
   regress0/quantifiers/issue5693-prenex.smt2
   regress0/quantifiers/issue6603-dt-bool-cegqi.smt2
   regress0/quantifiers/issue6996-trivial-elim.smt2
-  regress0/quantifiers/issue6999-deq-elim.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -1264,6 +1263,7 @@ set(regress_0_tests
   regress0/sygus/print-debug.sy
   regress0/sygus/print-define-fun.sy
   regress0/sygus/real-si-all.sy
+  regress0/sygus/setFeature.sy
   regress0/sygus/strings-unconstrained.sy
   regress0/sygus/sygus-no-wf.sy
   regress0/sygus/sygus-uf.sy
@@ -2358,6 +2358,7 @@ set(regress_1_tests
   regress1/sygus/multi-fun-polynomial2.sy
   regress1/sygus/complex-no-rewrite.sy
   regress1/sygus/complex-rewrite-in-db.sy
+  regress1/sygus/nested-si.sy
   regress1/sygus/no-var-in-sol.sy
   regress1/sygus/simple-no-rewrite.sy
   regress1/sygus/simple-rewrite-in-db.sy
