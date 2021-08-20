@@ -1270,7 +1270,9 @@ Node QuantifiersRewriter::computePrenex(Node q,
   Kind k = body.getKind();
   if (k == FORALL)
   {
-    if( ( pol || prenexAgg ) && ( options::prenexQuantUser() || !QuantAttributes::hasPattern(q) ) ){
+    if ((pol || prenexAgg)
+        && (options::prenexQuantUser() || !QuantAttributes::hasPattern(q)))
+    {
       std::vector< Node > terms;
       std::vector< Node > subs;
       BoundVarManager* bvm = nm->getBoundVarManager();

@@ -167,8 +167,8 @@ bool QuantAttributes::checkQuantElimAnnotation( Node ipl ) {
 
 bool QuantAttributes::hasPattern(Node q)
 {
-  Assert (q.getKind()==FORALL);
-  if (q.getNumChildren()!=3)
+  Assert(q.getKind() == FORALL);
+  if (q.getNumChildren() != 3)
   {
     return false;
   }
