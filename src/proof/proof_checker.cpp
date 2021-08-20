@@ -18,7 +18,6 @@
 #include "expr/skolem_manager.h"
 #include "options/proof_options.h"
 #include "proof/proof_node.h"
-#include "rewriter/rewrite_proof_rule.h"
 #include "smt/smt_statistics_registry.h"
 #include "util/rational.h"
 

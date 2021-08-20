@@ -345,8 +345,6 @@ libcvc5_add_sources(
   smt/preprocess_proof_generator.h
   smt/process_assertions.cpp
   smt/process_assertions.h
-  smt/proof_final_callback.cpp
-  smt/proof_final_callback.h
   smt/proof_manager.cpp
   smt/proof_manager.h
   smt/proof_final_callback.cpp
