@@ -501,14 +501,18 @@ std::vector<std::string> parse(
 std::string get(const Options& options, const std::string& name)
 {
   Trace("options") << "Options::getOption(" << name << ")" << std::endl;
+  // clang-format off
   ${getoption_handlers}$
+  // clang-format on
   throw OptionException("Unrecognized option key or setting: " + name);
 }
 
 void setInternal(Options& opts, const std::string& name,
                                 const std::string& optionarg)
-                                {
-${setoption_handlers}$
+{
+  // clang-format off
+  ${setoption_handlers}$
+  // clang-format on
   throw OptionException("Unrecognized option key or setting: " + name);
 }
 

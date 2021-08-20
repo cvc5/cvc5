@@ -47,9 +47,11 @@ using namespace cvc5::language;
  * problems.  That's why main() wraps runCvc5() in the first place.
  * Put everything in runCvc5().
  */
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
   Options opts;
-  try {
+  try
+  {
     return runCvc5(argc, argv, opts);
   }
   catch (cvc5::api::CVC5ApiOptionException& e)
@@ -78,7 +80,9 @@ int main(int argc, char* argv[]) {
     if (language::isOutputLang_smt2(opts.base.outputLanguage))
     {
       *opts.base.out << "(error \"" << e << "\")" << endl;
-    } else {
+    }
+    else
+    {
       *opts.base.err << "(error \"" << e << "\")" << endl;
     }
     if (opts.base.statistics && pExecutor != nullptr)
