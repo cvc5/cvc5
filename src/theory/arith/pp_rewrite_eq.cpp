@@ -17,6 +17,7 @@
 
 #include "options/arith_options.h"
 #include "theory/rewriter.h"
+#include "theory/builtin/proof_checker.h"
 
 namespace cvc5 {
 namespace theory {

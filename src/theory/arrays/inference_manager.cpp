@@ -19,6 +19,7 @@
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/builtin/proof_checker.h"
 
 using namespace cvc5::kind;
 

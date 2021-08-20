@@ -24,6 +24,7 @@
 #include "base/output.h"
 #include "proof/eager_proof_generator.h"
 #include "proof/proof_node_manager.h"
+#include "theory/builtin/proof_checker.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/congruence_manager.h"
