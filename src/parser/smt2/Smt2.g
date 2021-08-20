@@ -595,7 +595,7 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
       PARSER_STATE->checkThatLogicIsSet();
       // ":grammars" is defined in the SyGuS version 2.1 standard and is by
       // default supported, all other features are not.
-      if (name!=":grammars")
+      if (name != ":grammars")
       {
         std::stringstream ss;
         ss << "SyGuS feature " << name << " not currently supported";
