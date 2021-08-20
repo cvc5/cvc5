@@ -2579,11 +2579,11 @@ namespace cvc5::api {
  * any of the following alternatives:
  * - VoidInfo if the option holds no value (or the value has no native type)
  * - ValueInfo<T> if the option is of type bool or std::string, holds the
- *     current value and the default value.
+ *   current value and the default value.
  * - NumberInfo<T> if the option is of type int64_t, uint64_t or double, holds
- *     the current and default value, as well as the minimum and maximum.
+ *   the current and default value, as well as the minimum and maximum.
  * - ModeInfo if the option is a mode option, holds the current and default
- *     values, as well as a list of valid modes.
+ *   values, as well as a list of valid modes. abc
  */
 struct CVC5_EXPORT OptionInfo
 {
