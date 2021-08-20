@@ -53,7 +53,7 @@ SetDefaults::SetDefaults(bool isInternalSubsolver)
 
 void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 {
-  // initial changes based on implied options
+  // initial changes that are independent of logic, and may impact the logic
   setDefaultsPre(opts);
   // now, finalize the logic
   finalizeLogic(logic, opts);
@@ -403,15 +403,10 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     opts.bv.bvSolver = options::BVSolver::BITBLAST_INTERNAL;
   }
 
-  // whether we want to force safe unsat cores, i.e., if we are in the default
-  // ASSUMPTIONS mode, since other ones are experimental
-  bool safeUnsatCores =
-      opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS;
-
   // Disable options incompatible with incremental solving, unsat cores or
   // output an error if enabled explicitly. It is also currently incompatible
   // with arithmetic, force the option off.
-  if (opts.base.incrementalSolving || safeUnsatCores)
+  if (opts.base.incrementalSolving || safeUnsatCores(opts))
   {
     if (opts.smt.unconstrainedSimp)
     {
@@ -472,7 +467,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 
   // Disable options incompatible with unsat cores or output an error if enabled
   // explicitly
-  if (safeUnsatCores)
+  if (safeUnsatCores(opts))
   {
     if (opts.smt.simplificationMode != options::SimplificationMode::NONE)
     {
@@ -665,7 +660,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   if (!opts.uf.ufSymmetryBreakerWasSetByUser)
   {
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
-                       && !opts.base.incrementalSolving && !safeUnsatCores;
+                       && !opts.base.incrementalSolving && !safeUnsatCores(opts);
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc
                  << std::endl;
     opts.uf.ufSymmetryBreaker = qf_uf_noinc;
@@ -714,7 +709,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
                       && (logic.isTheoryEnabled(THEORY_ARRAYS)
                           && logic.isTheoryEnabled(THEORY_UF)
                           && logic.isTheoryEnabled(THEORY_BV))
-                      && !safeUnsatCores;
+                      && !safeUnsatCores(opts);
     Trace("smt") << "setting repeat simplification to " << repeatSimp
                  << std::endl;
     opts.smt.repeatSimp = repeatSimp;
@@ -1057,6 +1052,13 @@ bool SetDefaults::mustDisableProofs(const Options& opts) const
     return true;
   }
   return false;
+}
+
+bool SetDefaults::safeUnsatCores(const Options& opts) const
+{
+  // whether we want to force safe unsat cores, i.e., if we are in the default
+  // ASSUMPTIONS mode, since other ones are experimental
+  return opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS;
 }
 
 void SetDefaults::widenLogic(LogicInfo& logic, Options& opts) const

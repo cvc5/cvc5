@@ -60,14 +60,19 @@ class SetDefaults
    * that answers "unsat" without showing a proof of unsatisfiabilty.
    */
   bool mustDisableProofs(const Options& opts) const;
+  /** 
+   * Return true if we are using "safe" unsat cores, which disables all
+   * techniques that may interfere with producing correct unsat cores.
+   */
+  bool safeUnsatCores(const Options& opts) const;
   //------------------------- options setting, prior finalization of logic
-  /**
+  /** 
    * Set defaults pre, which sets all options prior to finalizing the logic.
    * It is required that any options that impact the finalization of logic
    * (finalizeLogic).
    */
   void setDefaultsPre(Options& opts);
-  //------------------------- initialize logic
+  //------------------------- finalization of the logic
   /**
    * Finalize the logic based on the options.
    */
