@@ -46,6 +46,7 @@ class SetDefaults
   void setDefaults(LogicInfo& logic, Options& opts);
 
  private:
+  //------------------------- utility methods
   /**
    * Determine whether we will be solving a SyGuS problem.
    */
@@ -59,12 +60,29 @@ class SetDefaults
    * that answers "unsat" without showing a proof of unsatisfiabilty.
    */
   bool mustDisableProofs(const Options& opts) const;
+  //------------------------- options setting, prior finalization of logic
+  /** 
+   * Set defaults pre, which sets all options prior to finalizing the logic.
+   * It is required that any options that impact the finalization of logic
+   * (finalizeLogic).
+   */
+  void setDefaultsPre(Options& opts);
+  //------------------------- initialize logic
+  /**
+   * Finalize the logic based on the options.
+   */
+  void finalizeLogic(LogicInfo& logic, Options& opts) const;
   /**
    * Widen logic to theories that are required, since some theories imply the
    * use of other theories to handle certain operators, e.g. UF to handle
    * partial functions.
    */
   void widenLogic(LogicInfo& logic, Options& opts) const;
+  //------------------------- options setting, post finalization of logic
+  /**
+   * Set all default options, after we have finalized the logic.
+   */
+  void setDefaultsPost(const LogicInfo& logic, Options& opts) const;
   /**
    * Set defaults related to quantifiers, called when quantifiers are enabled.
    * This method modifies opt.quantifiers only.

@@ -53,6 +53,16 @@ SetDefaults::SetDefaults(bool isInternalSubsolver)
 
 void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 {
+  // initial changes based on implied options
+  setDefaultsPre(opts);
+  // now, finalize the logic
+  finalizeLogic(logic, opts);
+  // further changes to options based on the logic
+  setDefaultsPost(logic, opts);
+}
+
+void SetDefaults::setDefaultsPre(Options& opts)
+{
   // implied options
   if (opts.smt.debugCheckModels)
   {
@@ -131,7 +141,10 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
     Notice() << "SmtEngine: setting bitvectorAlgebraicSolver" << std::endl;
     opts.bv.bitvectorAlgebraicSolver = true;
   }
+}
 
+void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
+{
   if (opts.bv.bitblastMode == options::BitblastMode::EAGER)
   {
     if (opts.smt.produceModels
@@ -627,12 +640,12 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
     opts.smt.produceModels = true;
   }
 
-  /////////////////////////////////////////////////////////////////////////////
-  // Widen logic
-  /////////////////////////////////////////////////////////////////////////////
+  // widen the logic
   widenLogic(logic, opts);
-  /////////////////////////////////////////////////////////////////////////////
+}
 
+void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
+{
   // Set the options for the theoryOf
   if (!opts.theory.theoryOfModeWasSetByUser)
   {
