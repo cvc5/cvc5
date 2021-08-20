@@ -45,7 +45,7 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
   TrustNode lem = TrustNode::null();
   NodeManager* nm = NodeManager::currentNM();
   Integer floor = value.floor();
-  if (options::brabTest())
+  if (d_astate.options().arith.brabTest)
   {
     Trace("integers") << "branch-round-and-bound enabled" << std::endl;
     Integer ceil = value.ceiling();

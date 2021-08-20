@@ -43,10 +43,7 @@ class NlModel;
 class CadSolver
 {
  public:
-  CadSolver(InferenceManager& im,
-            NlModel& model,
-            context::Context* ctx,
-            ProofNodeManager* pnm);
+  CadSolver(Env& env, InferenceManager& im, NlModel& model);
   ~CadSolver();
 
   /**

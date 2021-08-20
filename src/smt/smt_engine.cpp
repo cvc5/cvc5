@@ -49,10 +49,10 @@
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/node_command.h"
-#include "smt/options_manager.h"
 #include "smt/preprocessor.h"
 #include "smt/proof_manager.h"
 #include "smt/quant_elim_solver.h"
+#include "smt/set_defaults.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_engine_state.h"
 #include "smt/smt_engine_stats.h"
@@ -86,7 +86,7 @@ namespace cvc5 {
 
 SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
     : d_env(new Env(nm, optr)),
-      d_state(new SmtEngineState(getContext(), getUserContext(), *this)),
+      d_state(new SmtEngineState(*d_env.get(), *this)),
       d_absValues(new AbstractValues(getNodeManager())),
       d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
       d_routListener(new ResourceOutListener(*this)),
@@ -103,7 +103,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       d_isInternalSubsolver(false),
       d_stats(nullptr),
       d_outMgr(this),
-      d_optm(nullptr),
       d_pp(nullptr),
       d_scope(nullptr)
 {
@@ -120,8 +119,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // On the other hand, this hack breaks use cases where multiple SmtEngine
   // objects are created by the user.
   d_scope.reset(new SmtScope(this));
-  // set the options manager
-  d_optm.reset(new smt::OptionsManager(&getOptions()));
   // listen to node manager events
   getNodeManager()->subscribeEvents(d_snmListener.get());
   // listen to resource out
@@ -195,10 +192,10 @@ void SmtEngine::finishInit()
   // set the random seed
   Random::getRandom().setSeed(d_env->getOptions().driver.seed);
 
-  // Call finish init on the options manager. This inializes the resource
-  // manager based on the options, and sets up the best default options
-  // based on our heuristics.
-  d_optm->finishInit(d_env->d_logic, d_isInternalSubsolver);
+  // Call finish init on the set defaults module. This inializes the logic
+  // and the best default options based on our heuristics.
+  SetDefaults sdefaults(d_isInternalSubsolver);
+  sdefaults.setDefaults(d_env->d_logic, getOptions());
 
   ProofNodeManager* pnm = nullptr;
   if (d_env->getOptions().smt.produceProofs)
@@ -206,7 +203,7 @@ void SmtEngine::finishInit()
     // ensure bound variable uses canonical bound variables
     getNodeManager()->getBoundVarManager()->enableKeepCacheValues();
     // make the proof manager
-    d_pfManager.reset(new PfManager(getUserContext(), this));
+    d_pfManager.reset(new PfManager(*d_env.get(), this));
     PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager());
@@ -216,8 +213,6 @@ void SmtEngine::finishInit()
     d_env->setProofNodeManager(pnm);
     // enable it in the assertions pipeline
     d_asserts->setProofGenerator(pppg);
-    // enable it in the SmtSolver
-    d_smtSolver->setProofNodeManager(pnm);
     // enabled proofs in the preprocessor
     d_pp->setProofGenerator(pppg);
   }
@@ -324,7 +319,6 @@ SmtEngine::~SmtEngine()
     getNodeManager()->unsubscribeEvents(d_snmListener.get());
     d_snmListener.reset(nullptr);
     d_routListener.reset(nullptr);
-    d_optm.reset(nullptr);
     d_pp.reset(nullptr);
     // destroy the state
     d_state.reset(nullptr);
@@ -385,7 +379,7 @@ LogicInfo SmtEngine::getUserLogicInfo() const
 
 void SmtEngine::notifyStartParsing(const std::string& filename)
 {
-  d_state->setFilename(filename);
+  d_env->setFilename(filename);
   d_env->getStatisticsRegistry().registerValue<std::string>("driver::filename",
                                                             filename);
   // Copy the original options. This is called prior to beginning parsing.
@@ -395,7 +389,7 @@ void SmtEngine::notifyStartParsing(const std::string& filename)
 
 const std::string& SmtEngine::getFilename() const
 {
-  return d_state->getFilename();
+  return d_env->getFilename();
 }
 
 void SmtEngine::setResultStatistic(const std::string& result) {
@@ -440,7 +434,7 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
 
   if (key == "filename")
   {
-    d_state->setFilename(value);
+    d_env->setFilename(value);
   }
   else if (key == "smt-lib-version" && !getOptions().base.inputLanguageWasSetByUser)
   {
@@ -732,7 +726,7 @@ void SmtEngine::defineFunctionRec(Node func,
 Result SmtEngine::quickCheck() {
   Assert(d_state->isFullyInited());
   Trace("smt") << "SMT quickCheck()" << endl;
-  const std::string& filename = d_state->getFilename();
+  const std::string& filename = d_env->getFilename();
   return Result(
       Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, filename);
 }
@@ -948,7 +942,7 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
     {
       printStatisticsDiff();
     }
-    return Result(Result::SAT_UNKNOWN, why, d_state->getFilename());
+    return Result(Result::SAT_UNKNOWN, why, d_env->getFilename());
   }
 }
 
@@ -1198,12 +1192,11 @@ Model* SmtEngine::getModel() {
 
   Model* m = getAvailableModel("get model");
 
-  // Since model m is being returned to the user, we must ensure that this
-  // model object remains valid with future check-sat calls. Hence, we set
-  // the theory engine into "eager model building" mode. TODO #2648: revisit.
-  TheoryEngine* te = getTheoryEngine();
-  Assert(te != nullptr);
-  te->setEagerModelBuilding();
+  // Notice that the returned model is (currently) accessed by the
+  // GetModelCommand only, and is not returned to the user. The information
+  // in that model may become stale after it is returned. This is safe
+  // since GetModelCommand always calls this command again when it prints
+  // a model.
 
   if (d_env->getOptions().smt.modelCoresMode
       != options::ModelCoresMode::NONE)
@@ -1217,7 +1210,7 @@ Model* SmtEngine::getModel() {
   }
   // set the information on the SMT-level model
   Assert(m != nullptr);
-  m->d_inputName = d_state->getFilename();
+  m->d_inputName = d_env->getFilename();
   m->d_isKnownSat = (d_state->getMode() == SmtMode::SAT);
   return m;
 }
@@ -1605,11 +1598,6 @@ std::string SmtEngine::getProof()
 void SmtEngine::printInstantiations( std::ostream& out ) {
   SmtScope smts(this);
   finishInit();
-  if (d_env->getOptions().printer.instFormatMode == options::InstFormatMode::SZS)
-  {
-    out << "% SZS output start Proof for " << d_state->getFilename()
-        << std::endl;
-  }
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("printInstantiations");
 
   // First, extract and print the skolemizations
@@ -1695,10 +1683,6 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   if (!printed)
   {
     out << "none" << std::endl;
-  }
-  if (d_env->getOptions().printer.instFormatMode == options::InstFormatMode::SZS)
-  {
-    out << "% SZS output end Proof for " << d_state->getFilename() << std::endl;
   }
 }
 

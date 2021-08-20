@@ -411,7 +411,7 @@ void PseudoBooleanProcessor::applyReplacements(
 
 void PseudoBooleanProcessor::clear()
 {
-  d_off.clear();
+  d_off.reset();
   d_pos.clear();
   d_neg.clear();
 }

@@ -250,6 +250,8 @@ class CVC5_EXPORT SmtEngine
   /**
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
    * query).  Only permitted if produce-models is on.
+   *
+   * TODO (issues#287): eliminate this method.
    */
   smt::Model* getModel();
 
@@ -1111,12 +1113,6 @@ class CVC5_EXPORT SmtEngine
 
   /** the output manager for commands */
   mutable OutputManager d_outMgr;
-  /**
-   * The options manager, which is responsible for implementing core options
-   * such as those related to time outs and printing. It is also responsible
-   * for set default options based on the logic.
-   */
-  std::unique_ptr<smt::OptionsManager> d_optm;
   /**
    * The preprocessor.
    */

@@ -35,10 +35,12 @@
 
 namespace cvc5 {
 
+class Env;
+class TheoryEngine;
+
 namespace decision {
 class DecisionEngine;
 }
-class TheoryEngine;
 
 namespace prop {
 
@@ -56,9 +58,7 @@ class TheoryProxy : public Registrar
               TheoryEngine* theoryEngine,
               decision::DecisionEngine* decisionEngine,
               SkolemDefManager* skdm,
-              context::Context* context,
-              context::UserContext* userContext,
-              ProofNodeManager* pnm);
+              Env& env);
 
   ~TheoryProxy();
 
@@ -162,6 +162,9 @@ class TheoryProxy : public Registrar
 
   /** The skolem definition manager */
   SkolemDefManager* d_skdm;
+
+  /** Reference to the environment */
+  Env& d_env;
 }; /* class TheoryProxy */
 
 }  // namespace prop
