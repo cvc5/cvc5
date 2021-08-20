@@ -214,6 +214,7 @@ public = true
   short      = "o"
   long       = "output=TAG"
   type       = "OutputTag"
+  default    = "NONE"
   handler    = "enableOutputTag"
   category   = "regular"
   help       = "Enable output tag."

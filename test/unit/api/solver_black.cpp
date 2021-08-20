@@ -1336,9 +1336,9 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo));
     auto modeInfo = std::get<OptionInfo::ModeInfo>(info.valueInfo);
-    EXPECT_EQ("???", modeInfo.defaultValue);
-    EXPECT_EQ("OutputTag::INST", modeInfo.currentValue);
-    std::vector<std::string> modes{"INST", "SYGUS", "TRIGGER"};
+    EXPECT_EQ("NONE", modeInfo.defaultValue);
+    EXPECT_EQ("OutputTag::NONE", modeInfo.currentValue);
+    std::vector<std::string> modes{"NONE", "INST", "SYGUS", "TRIGGER"};
     EXPECT_EQ(modes, modeInfo.modes);
   }
 }
