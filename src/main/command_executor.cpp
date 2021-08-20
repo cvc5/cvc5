@@ -29,6 +29,7 @@
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "smt/command.h"
+#include "smt/smt_engine.h"
 
 namespace cvc5 {
 namespace main {
@@ -49,17 +50,23 @@ void setNoLimitCPU() {
 #endif /* ! __WIN32__ */
 }
 
-CommandExecutor::CommandExecutor(const Options& options)
-    : d_solver(new api::Solver(&options)),
+CommandExecutor::CommandExecutor(std::unique_ptr<api::Solver>& solver)
+    : d_solver(solver),
       d_symman(new SymbolManager(d_solver.get())),
       d_result()
 {
 }
 CommandExecutor::~CommandExecutor()
 {
-  // ensure that symbol manager is destroyed before solver
-  d_symman.reset(nullptr);
-  d_solver.reset(nullptr);
+}
+
+Options& CommandExecutor::getOptions()
+{
+  return d_solver->d_smtEngine->getOptions();
+}
+void CommandExecutor::storeOptionsAsOriginal()
+{
+  d_solver->d_originalOptions->copyValues(getOptions());
 }
 
 void CommandExecutor::printStatistics(std::ostream& out) const
