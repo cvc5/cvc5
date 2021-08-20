@@ -832,7 +832,8 @@ cdef class Solver:
         cdef Py_ssize_t size
         cdef wchar_t* tmp = PyUnicode_AsWideCharString(s, &size)
         if isinstance(useEscSequences, bool):
-            term.cterm = self.csolver.mkString(s.encode(), <bint> useEscSequences)
+            term.cterm = self.csolver.mkString(
+                s.encode(), <bint> useEscSequences)
         else:
             term.cterm = self.csolver.mkString(c_wstring(tmp, size))
         PyMem_Free(tmp)
@@ -860,23 +861,35 @@ cdef class Solver:
             raise ValueError("Missing arguments to mkBitVector")
         size = args[0]
         if not isinstance(size, int):
-            raise ValueError("Invalid first argument to mkBitVector '{}', expected bit-vector size".format(size))
+            raise ValueError(
+                "Invalid first argument to mkBitVector '{}', "
+                "expected bit-vector size".format(size))
         if len(args) == 1:
             term.cterm = self.csolver.mkBitVector(<uint32_t> size)
         elif len(args) == 2:
             val = args[1]
             assert(isinstance(val, int))
             if not isinstance(val, int):
-                raise ValueError("Invalid second argument to mkBitVector '{}', expected integer value".format(size))
-            term.cterm = self.csolver.mkBitVector(<uint32_t> size, <uint32_t> val)
+                raise ValueError(
+                    "Invalid second argument to mkBitVector '{}', "
+                    "expected integer value".format(size))
+            term.cterm = self.csolver.mkBitVector(
+                <uint32_t> size, <uint32_t> val)
         elif len(args) == 3:
             val = args[1]
             base = args[2]
             if not isinstance(val, str):
-                raise ValueError("Invalid second argument to mkBitVector '{}', expected value string".format(size))
+                raise ValueError(
+                    "Invalid second argument to mkBitVector '{}', "
+                    "expected value string".format(size))
             if not isinstance(base, int):
-                raise ValueError("Invalid third argument to mkBitVector '{}', expected base given as integer".format(size))
-            term.cterm = self.csolver.mkBitVector(<uint32_t> size, <const string&> str(val).encode(), <uint32_t> base)
+                raise ValueError(
+                    "Invalid third argument to mkBitVector '{}', "
+                    "expected base given as integer".format(size))
+            term.cterm = self.csolver.mkBitVector(
+                <uint32_t> size,
+                <const string&> str(val).encode(),
+                <uint32_t> base)
         else:
             raise ValueError("Unexpected inputs to mkBitVector")
         return term
@@ -926,8 +939,9 @@ cdef class Solver:
         try:
             term.cterm = self.csolver.mkAbstractValue(str(index).encode())
         except:
-            raise ValueError("mkAbstractValue expects a str representing a number"
-                             " or an int, but got{}".format(index))
+            raise ValueError(
+                "mkAbstractValue expects a str representing a number"
+                " or an int, but got{}".format(index))
         return term
 
     def mkFloatingPoint(self, int exp, int sig, Term val):
