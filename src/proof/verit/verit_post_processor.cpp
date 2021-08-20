@@ -445,11 +445,17 @@ bool VeritProofPostprocessCallback::update(Node res,
               vrule = VeritRule::EQUIV_SIMPLIFY;
               break;
             }
-            case kind::LT: { [[fallthrough]];
+            case kind::LT:
+            {
+              [[fallthrough]];
             }
-            case kind::GT: { [[fallthrough]];
+            case kind::GT:
+            {
+              [[fallthrough]];
             }
-            case kind::GEQ: { [[fallthrough]];
+            case kind::GEQ:
+            {
+              [[fallthrough]];
             }
             case kind::LEQ:
             {
@@ -477,7 +483,8 @@ bool VeritProofPostprocessCallback::update(Node res,
           vrule = VeritRule::QUANTIFIER_SIMPLIFY;
           break;
         }
-        default: {
+        default:
+        {
         };
       }
       return addVeritStep(
@@ -991,7 +998,7 @@ bool VeritProofPostprocessCallback::update(Node res,
       return addVeritStep(vp2, VeritRule::NOT_NOT, {}, {}, *cdp)
              && addVeritStep(vp1, VeritRule::NOT_NOT, {}, {}, *cdp)
              && addVeritStepFromOr(
-                    res, VeritRule::RESOLUTION, {vp1, vp2}, {}, *cdp);
+                 res, VeritRule::RESOLUTION, {vp1, vp2}, {}, *cdp);
     }
     // ======== Equality resolution
     // Children: (P1:F1, P2:(= F1 F2))
@@ -1836,7 +1843,7 @@ bool VeritProofPostprocessCallback::update(Node res,
              && addVeritStep(vp3, VeritRule::RESOLUTION, {vp1, vp2}, {}, *cdp)
              && addVeritStep(vp4, VeritRule::REORDER, {vp3}, {}, *cdp)
              && addVeritStepFromOr(
-                    res, VeritRule::DUPLICATED_LITERALS, {vp4}, {}, *cdp);
+                 res, VeritRule::DUPLICATED_LITERALS, {vp4}, {}, *cdp);
     }
     // ======== CNF ITE Neg version 1
     // Children: ()
@@ -1918,7 +1925,7 @@ bool VeritProofPostprocessCallback::update(Node res,
              && addVeritStep(vp3, VeritRule::RESOLUTION, {vp1, vp2}, {}, *cdp)
              && addVeritStep(vp4, VeritRule::REORDER, {vp3}, {}, *cdp)
              && addVeritStepFromOr(
-                    res, VeritRule::DUPLICATED_LITERALS, {vp4}, {}, *cdp);
+                 res, VeritRule::DUPLICATED_LITERALS, {vp4}, {}, *cdp);
     }
 
     //================================================= Equality rules
