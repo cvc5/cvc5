@@ -243,7 +243,8 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
   {
     // failed to reconstruct, add trust
     Trace("dt-ipc") << "...failed " << infer << std::endl;
-    cdp->addStep(conc, PfRule::DT_TRUST, expv, {conc});
+    Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_DATATYPES);
+    cdp->addStep(conc, PfRule::DT_TRUST, expv, {conc, t});
   }
   else
   {

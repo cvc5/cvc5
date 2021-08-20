@@ -78,7 +78,6 @@ const char* toString(PfRule id)
     case PfRule::ITE_ELIM2: return "ITE_ELIM2";
     case PfRule::NOT_ITE_ELIM1: return "NOT_ITE_ELIM1";
     case PfRule::NOT_ITE_ELIM2: return "NOT_ITE_ELIM2";
-    //================================================= De Morgan rules
     case PfRule::NOT_AND: return "NOT_AND";
     //================================================= CNF rules
     case PfRule::CNF_AND_POS: return "CNF_AND_POS";
@@ -119,7 +118,6 @@ const char* toString(PfRule id)
       return "ARRAYS_READ_OVER_WRITE_CONTRA";
     case PfRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
     case PfRule::ARRAYS_EXT: return "ARRAYS_EXT";
-    case PfRule::ARRAYS_TRUST: return "ARRAYS_TRUST";
     case PfRule::ARRAYS_EQ_RANGE_EXPAND: return "ARRAYS_EQ_RANGE_EXPAND";
     //================================================= Bit-Vector rules
     case PfRule::BV_BITBLAST: return "BV_BITBLAST";
@@ -131,7 +129,6 @@ const char* toString(PfRule id)
     case PfRule::DT_COLLAPSE: return "DT_COLLAPSE";
     case PfRule::DT_SPLIT: return "DT_SPLIT";
     case PfRule::DT_CLASH: return "DT_CLASH";
-    case PfRule::DT_TRUST: return "DT_TRUST";
     //================================================= Quantifiers rules
     case PfRule::SKOLEM_INTRO: return "SKOLEM_INTRO";
     case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
@@ -159,7 +156,6 @@ const char* toString(PfRule id)
     case PfRule::RE_ELIM: return "RE_ELIM";
     case PfRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
     case PfRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
-    case PfRule::STRING_TRUST: return "STRING_TRUST";
     //================================================= Arith rules
     case PfRule::MACRO_ARITH_SCALE_SUM_UB:
       return "ARITH_SCALE_SUM_UPPER_BOUNDS";
@@ -167,7 +163,6 @@ const char* toString(PfRule id)
     case PfRule::ARITH_TRICHOTOMY: return "ARITH_TRICHOTOMY";
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
-    case PfRule::INT_TRUST: return "INT_TRUST";
     case PfRule::ARITH_MULT_SIGN: return "ARITH_MULT_SIGN";
     case PfRule::ARITH_MULT_POS: return "ARITH_MULT_POS";
     case PfRule::ARITH_MULT_NEG: return "ARITH_MULT_NEG";
