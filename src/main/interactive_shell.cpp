@@ -205,9 +205,7 @@ restart:
   if (d_usingEditline)
   {
 #if HAVE_LIBEDITLINE
-    lineBuf = ::readline(d_options.driver.interactivePrompt
-                             ? (line == "" ? "cvc5> " : "... > ")
-                             : "");
+    lineBuf = ::readline(line == "" ? "cvc5> " : "... > ");
     if(lineBuf != NULL && lineBuf[0] != '\0') {
       ::add_history(lineBuf);
     }
@@ -217,13 +215,13 @@ restart:
   }
   else
   {
-    if (d_options.driver.interactivePrompt)
+    if (line == "")
     {
-      if(line == "") {
-        d_out << "cvc5> " << flush;
-      } else {
-        d_out << "... > " << flush;
-      }
+      d_out << "cvc5> " << flush;
+    }
+    else
+    {
+      d_out << "... > " << flush;
     }
 
     /* Read a line */
@@ -291,8 +289,7 @@ restart:
       if (d_usingEditline)
       {
 #if HAVE_LIBEDITLINE
-        lineBuf = ::readline(d_options.driver.interactivePrompt ? "... > "
-                                                                      : "");
+        lineBuf = ::readline("... > ");
         if(lineBuf != NULL && lineBuf[0] != '\0') {
           ::add_history(lineBuf);
         }
@@ -302,10 +299,7 @@ restart:
       }
       else
       {
-        if (d_options.driver.interactivePrompt)
-        {
-          d_out << "... > " << flush;
-        }
+        d_out << "... > " << flush;
 
         /* Read a line */
         stringbuf sb;

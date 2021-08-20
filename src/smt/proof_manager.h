@@ -23,6 +23,7 @@
 
 namespace cvc5 {
 
+class Env;
 class ProofChecker;
 class ProofNode;
 class ProofNodeManager;
@@ -70,7 +71,7 @@ class ProofPostproccess;
 class PfManager
 {
  public:
-  PfManager(context::UserContext* u, SmtEngine* smte);
+  PfManager(Env& env, SmtEngine* smte);
   ~PfManager();
   /**
    * Print the proof on the given output stream.
@@ -116,6 +117,8 @@ class PfManager
    */
   void getAssertions(Assertions& as,
                      std::vector<Node>& assertions);
+  /** Reference to the env of SmtEngine */
+  Env& d_env;
   /** The false node */
   Node d_false;
   /** For the new proofs module */
