@@ -19,6 +19,7 @@
 #include "theory/arith/nl/nonlinear_extension.h"
 
 #include "options/arith_options.h"
+#include "options/smt_options.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/bound_inference.h"
 #include "theory/arith/inference_manager.h"
@@ -48,7 +49,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                   containing.getSatContext(),
                   containing.getUserContext(),
                   d_im),
-      d_model(containing.getSatContext()),
+      d_model(),
       d_trSlv(d_im, d_model, d_astate.getEnv()),
       d_extState(d_im, d_model, d_astate.getEnv()),
       d_factoringSlv(&d_extState),
@@ -56,10 +57,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_monomialSlv(&d_extState),
       d_splitZeroSlv(&d_extState),
       d_tangentPlaneSlv(&d_extState),
-      d_cadSlv(d_im,
-               d_model,
-               state.getUserContext(),
-               d_astate.getEnv().getProofNodeManager()),
+      d_cadSlv(d_astate.getEnv(), d_im, d_model),
       d_icpSlv(d_im),
       d_iandSlv(d_im, state, d_model),
       d_pow2Slv(d_im, state, d_model)
@@ -121,11 +119,11 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("nl-ext-assert-debug") << "Getting assertions..." << std::endl;
   bool useRelevance = false;
-  if (options::nlRlvMode() == options::NlRlvMode::INTERLEAVE)
+  if (options().arith.nlRlvMode == options::NlRlvMode::INTERLEAVE)
   {
     useRelevance = (d_checkCounter % 2);
   }
-  else if (options::nlRlvMode() == options::NlRlvMode::ALWAYS)
+  else if (options().arith.nlRlvMode == options::NlRlvMode::ALWAYS)
   {
     useRelevance = true;
   }
@@ -228,7 +226,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
   // relevance here, since we may have discarded literals that are relevant
   // that are entailed based on the techniques in getAssertions.
   std::vector<Node> passertions = assertions;
-  if (options::nlExt() == options::NlExtMode::FULL)
+  if (options().arith.nlExt == options::NlExtMode::FULL)
   {
     // preprocess the assertions with the trancendental solver
     if (!d_trSlv.preprocessAssertionsCheckModel(passertions))
@@ -236,7 +234,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
       return false;
     }
   }
-  if (options::nlCad())
+  if (options().arith.nlCad)
   {
     d_cadSlv.constructModelIfAvailable(passertions);
   }
@@ -260,7 +258,7 @@ void NonlinearExtension::check(Theory::Effort e)
   if (e == Theory::EFFORT_FULL)
   {
     d_needsLastCall = true;
-    if (options::nlExtRewrites())
+    if (options().arith.nlExtRewrites)
     {
       std::vector<Node> nred;
       if (!d_extTheory.doInferences(0, nred))
@@ -484,8 +482,8 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
       }
 
       // we are incomplete
-      if (options::nlExt() == options::NlExtMode::FULL
-          && options::nlExtIncPrecision() && d_model.usedApproximate())
+      if (options().arith.nlExt == options::NlExtMode::FULL
+          && options().arith.nlExtIncPrecision && d_model.usedApproximate())
       {
         d_trSlv.incrementTaylorDegree();
         needsRecheck = true;
@@ -529,7 +527,10 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel,
     d_approximations.clear();
     d_witnesses.clear();
     // modify the model values
-    d_model.getModelValueRepair(arithModel, d_approximations, d_witnesses);
+    d_model.getModelValueRepair(arithModel,
+                                d_approximations,
+                                d_witnesses,
+                                options().smt.modelWitnessValue);
   }
 }
 
@@ -554,7 +555,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
   }
   if (!d_strategy.isStrategyInit())
   {
-    d_strategy.initializeStrategy();
+    d_strategy.initializeStrategy(options());
   }
 
   auto steps = d_strategy.getStrategy();

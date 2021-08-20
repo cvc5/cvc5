@@ -32,7 +32,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-NlModel::NlModel(context::Context* c) : d_used_approx(false)
+NlModel::NlModel() : d_used_approx(false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -1263,7 +1263,8 @@ void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
 void NlModel::getModelValueRepair(
     std::map<Node, Node>& arithModel,
     std::map<Node, std::pair<Node, Node>>& approximations,
-    std::map<Node, Node>& witnesses)
+    std::map<Node, Node>& witnesses,
+    bool witnessToValue)
 {
   Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
   // If we extended the model with entries x -> 0 for unconstrained values,
@@ -1289,7 +1290,7 @@ void NlModel::getModelValueRepair(
       pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
       Trace("nl-model") << v << " approximated as " << pred << std::endl;
       Node witness;
-      if (options::modelWitnessValue())
+      if (witnessToValue)
       {
         // witness is the midpoint
         witness = nm->mkNode(

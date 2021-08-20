@@ -250,6 +250,8 @@ class CVC5_EXPORT SmtEngine
   /**
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
    * query).  Only permitted if produce-models is on.
+   *
+   * TODO (issues#287): eliminate this method.
    */
   smt::Model* getModel();
 
@@ -826,16 +828,6 @@ class CVC5_EXPORT SmtEngine
    * call.
    */
   void printStatisticsDiff() const;
-
-  /**
-   * Set user attribute.
-   * This function is called when an attribute is set by a user.
-   * In SMT-LIBv2 this is done via the syntax (! expr :attr)
-   */
-  void setUserAttribute(const std::string& attr,
-                        Node expr,
-                        const std::vector<Node>& expr_values,
-                        const std::string& str_value);
 
   /** Get the options object (const and non-const versions) */
   Options& getOptions();

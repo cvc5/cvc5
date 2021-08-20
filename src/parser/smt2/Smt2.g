@@ -588,9 +588,23 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
     }
   | /* check-synth */
     CHECK_SYNTH_TOK
-    { PARSER_STATE->checkThatLogicIsSet(); }
     {
+      PARSER_STATE->checkThatLogicIsSet();
       cmd.reset(new CheckSynthCommand());
+    }
+  | /* set-feature */
+    SET_FEATURE_TOK keyword[name] symbolicExpr[expr]
+    {
+      PARSER_STATE->checkThatLogicIsSet();
+      // ":grammars" is defined in the SyGuS version 2.1 standard and is by
+      // default supported, all other features are not.
+      if (name != ":grammars")
+      {
+        std::stringstream ss;
+        ss << "SyGuS feature " << name << " not currently supported";
+        PARSER_STATE->warning(ss.str());
+      }
+      cmd.reset(new EmptyCommand());
     }
   | command[&cmd]
   ;
@@ -1804,26 +1818,15 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr]
     {
       std::stringstream sIntLit;
       sIntLit << $INTEGER_LITERAL;
+      api::Term keyword = SOLVER->mkString("quant-inst-max-level");
       api::Term n = SOLVER->mkInteger(sIntLit.str());
-      std::vector<api::Term> values;
-      values.push_back( n );
-      std::string attr_name(AntlrInput::tokenText($tok));
-      attr_name.erase( attr_name.begin() );
-      api::Sort boolType = SOLVER->getBooleanSort();
-      api::Term avar = PARSER_STATE->bindVar(attr_name, boolType);
-      retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
-      Command* c = new SetUserAttributeCommand(attr_name, avar, values);
-      c->setMuted(true);
-      PARSER_STATE->preemptCommand(c);
+      retExpr = MK_TERM(api::INST_ATTRIBUTE, keyword, n);
     }
   | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) symbolicExpr[sexpr]
     {
-      api::Sort boolType = SOLVER->getBooleanSort();
-      api::Term avar = SOLVER->mkConst(boolType, sexprToString(sexpr));
-      retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
-      Command* c = new SetUserAttributeCommand("qid", avar);
-      c->setMuted(true);
-      PARSER_STATE->preemptCommand(c);
+      api::Term keyword = SOLVER->mkString("qid");
+      api::Term name = SOLVER->mkString(sexprToString(sexpr));
+      retExpr = MK_TERM(api::INST_ATTRIBUTE, keyword, name);
     }
   | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
     {
@@ -2274,7 +2277,7 @@ CHECK_SYNTH_TOK : { PARSER_STATE->sygus()}?'check-synth';
 DECLARE_VAR_TOK : { PARSER_STATE->sygus()}?'declare-var';
 CONSTRAINT_TOK : { PARSER_STATE->sygus()}?'constraint';
 INV_CONSTRAINT_TOK : { PARSER_STATE->sygus()}?'inv-constraint';
-SET_OPTIONS_TOK : { PARSER_STATE->sygus() }? 'set-options';
+SET_FEATURE_TOK : { PARSER_STATE->sygus() }? 'set-feature';
 SYGUS_CONSTANT_TOK : { PARSER_STATE->sygus() }? 'Constant';
 SYGUS_VARIABLE_TOK : { PARSER_STATE->sygus() }? 'Variable';
 

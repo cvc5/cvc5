@@ -616,42 +616,6 @@ class CVC5_EXPORT DeclareHeapCommand : public Command
 };
 
 /**
- * The command when an attribute is set by a user.  In SMT-LIBv2 this is done
- *  via the syntax (! expr :attr)
- */
-class CVC5_EXPORT SetUserAttributeCommand : public Command
-{
- public:
-  SetUserAttributeCommand(const std::string& attr, api::Term term);
-  SetUserAttributeCommand(const std::string& attr,
-                          api::Term term,
-                          const std::vector<api::Term>& values);
-  SetUserAttributeCommand(const std::string& attr,
-                          api::Term term,
-                          const std::string& value);
-
-  void invoke(api::Solver* solver, SymbolManager* sm) override;
-  Command* clone() const override;
-  std::string getCommandName() const override;
-  void toStream(
-      std::ostream& out,
-      int toDepth = -1,
-      size_t dag = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const override;
-
- private:
-  SetUserAttributeCommand(const std::string& attr,
-                          api::Term term,
-                          const std::vector<api::Term>& termValues,
-                          const std::string& strValue);
-
-  const std::string d_attr;
-  const api::Term d_term;
-  const std::vector<api::Term> d_termValues;
-  const std::string d_strValue;
-}; /* class SetUserAttributeCommand */
-
-/**
  * The command when parsing check-sat.
  * This command will check satisfiability of the input formula.
  */
@@ -1000,9 +964,6 @@ class CVC5_EXPORT GetModelCommand : public Command
 {
  public:
   GetModelCommand();
-
-  // Model is private to the library -- for now
-  // Model* getResult() const ;
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
