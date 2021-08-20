@@ -1538,10 +1538,10 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     opts.quantifiers.macrosQuant = false;
   }
 }
-  void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
-                              Options& opts) const
-                              {
-// Set decision mode based on logic (if not set by user)
+void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
+                                         Options& opts) const
+{
+  // Set decision mode based on logic (if not set by user)
   if (!opts.decision.decisionModeWasSetByUser)
   {
     options::DecisionMode decMode =

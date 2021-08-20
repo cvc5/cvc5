@@ -16,9 +16,9 @@
 #include "theory/quantifiers/sygus/synth_verify.h"
 
 #include "expr/node_algorithm.h"
+#include "options/arith_options.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
-#include "options/arith_options.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/first_order_model.h"

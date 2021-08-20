@@ -69,8 +69,7 @@ class SetDefaults
    * Set defaults related to quantifiers, called when quantifiers are enabled.
    * This method modifies opt.quantifiers only.
    */
-  void setDefaultsQuantifiers(const LogicInfo& logic,
-                              Options& opts) const;
+  void setDefaultsQuantifiers(const LogicInfo& logic, Options& opts) const;
   /**
    * Set defaults related to SyGuS, called when SyGuS is enabled.
    */
@@ -78,8 +77,7 @@ class SetDefaults
   /**
    * Set default decision mode
    */
-  void setDefaultDecisionMode(const LogicInfo& logic,
-                              Options& opts) const;
+  void setDefaultDecisionMode(const LogicInfo& logic, Options& opts) const;
   /** Are we an internal subsolver? */
   bool d_isInternalSubsolver;
 };
