@@ -346,7 +346,11 @@ class TermDb : public QuantifiersUtil {
   /** get the chosen representative for operator op */
   virtual Node getOperatorRepresentative(TNode op) const;
   /**
-   * This method is called when terms a and b 
+   * This method is called when terms a and b are indexed by the same operator,
+   * and have equivalent arguments. This method checks if we are in conflict,
+   * which is the case if a and b are disequal in the equality engine.
+   * If so, it adds the set of literals that are implied but do not hold, e.g.
+   * the equality (= a b).
    */
   virtual bool checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp);
   //----------------------------- end implementation-specific

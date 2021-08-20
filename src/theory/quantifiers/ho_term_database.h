@@ -87,7 +87,7 @@ class HoTermDb : public TermDb
   void getOperatorsFor(TNode f, std::vector<TNode>& ops) override;
   /** get the chosen representative for operator op */
   Node getOperatorRepresentative(TNode op) const override;
-  /** check whether terms are disequal */
+  /** check if we are in conflict based on congruent terms a and b */
   bool checkCongruentDisequal(TNode a,
                               TNode b,
                               std::vector<Node>& exp) override;
