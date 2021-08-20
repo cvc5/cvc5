@@ -1226,9 +1226,9 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
     // involving unbounded variable go to true/false
     // disequalities of eligible variables are also eliminated
     std::map<int, std::map<Node, bool>>& nbv = num_bounds[v];
-    for (size_t i=0; i<2; i++)
+    for (size_t i = 0; i < 2; i++)
     {
-      size_t nindex = i==0 ? (elig_vars[v] ? 1 : -1) : 0;
+      size_t nindex = i == 0 ? (elig_vars[v] ? 1 : -1) : 0;
       for (const std::pair<const Node, bool>& nb : nbv[nindex])
       {
         Trace("var-elim-ineq-debug")
