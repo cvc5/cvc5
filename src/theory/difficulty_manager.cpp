@@ -22,7 +22,8 @@
 namespace cvc5 {
 namespace theory {
 
-DifficultyManager::DifficultyManager(Env& env, Valuation val) : d_val(val), d_dfmap(env.getUserContext())
+DifficultyManager::DifficultyManager(Env& env, Valuation val)
+    : d_val(val), d_dfmap(env.getUserContext())
 {
 }
 
@@ -42,7 +43,7 @@ void DifficultyManager::notifyLemma(const std::map<TNode, TNode>& rse, Node n)
   // for lemma (or a_1 ... a_n), if a_i is a literal that is not true in the
   // valuation, then we increment the difficulty of that assertion
   std::vector<TNode> litsToCheck;
-  if (nk==kind::OR)
+  if (nk == kind::OR)
   {
     litsToCheck.insert(litsToCheck.end(), n.begin(), n.end());
   }
@@ -58,10 +59,10 @@ void DifficultyManager::notifyLemma(const std::map<TNode, TNode>& rse, Node n)
   std::map<TNode, TNode>::const_iterator it;
   for (TNode nc : litsToCheck)
   {
-    bool pol = nc.getKind()!=kind::NOT;
+    bool pol = nc.getKind() != kind::NOT;
     TNode atom = pol ? nc : nc[0];
     it = rse.find(atom);
-    if (it!=rse.end())
+    if (it != rse.end())
     {
       incrementDifficulty(it->second);
     }
@@ -76,7 +77,7 @@ void DifficultyManager::notifyCandidateModel(const NodeList& input,
   for (const Node& a : input)
   {
     // should have miniscoped the assertions upstream
-    Assert (a.getKind()!=AND);
+    Assert(a.getKind() != AND);
     // check if each input is satisfied
     Node av = m->getValue(a);
     if (av.isConst() && av.getConst<bool>())
@@ -91,7 +92,7 @@ void DifficultyManager::notifyCandidateModel(const NodeList& input,
 }
 void DifficultyManager::incrementDifficulty(TNode a, uint64_t amount)
 {
-  Assert (a.getType().isBoolean());
+  Assert(a.getType().isBoolean());
   d_dfmap[a] = d_dfmap[a] + amount;
 }
 
