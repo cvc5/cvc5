@@ -7155,6 +7155,24 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
   CVC5_API_TRY_CATCH_END;
 }
 
+bool Solver::isModelCoreSymbol(api::Term) const
+{
+  return false;
+}
+
+std::vector<api::Term> Solver::getModelDomainElements(api::Sort) const
+{
+  std::vector<api::Term> res;
+  return res;
+}
+
+std::string Solver::getModelComments() const
+{
+  std::stringstream ss;
+  
+  return ss.str();
+}
+
 Term Solver::getQuantifierElimination(const Term& q) const
 {
   NodeManagerScope scope(getNodeManager());

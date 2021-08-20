@@ -3806,6 +3806,12 @@ class CVC5_EXPORT Solver
    */
   std::vector<Term> getValue(const std::vector<Term>& terms) const;
 
+
+  bool isModelCoreSymbol(api::Term) const;
+
+  std::vector<api::Term> getModelDomainElements(api::Sort) const;
+
+  std::string getModelComments() const;
   /**
    * Do quantifier elimination.
    * SMT-LIB:
