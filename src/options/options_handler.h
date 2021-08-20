@@ -99,11 +99,6 @@ public:
                       const std::string& flag,
                       bool arg);
 
-  // printer/options_handlers.h
-  InstFormatMode stringToInstFormatMode(const std::string& option,
-                                        const std::string& flag,
-                                        const std::string& optarg);
-
   /**
    * Throws a ModalException if this option is being set after final
    * initialization.
