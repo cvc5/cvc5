@@ -173,7 +173,7 @@ class RelevanceManager
   bool d_success;
   /** Are we tracking the sources of why a literal is relevant */
   bool d_trackRSetExp;
-  /** 
+  /**
    * Map from the domain of d_rset to the assertion in d_input that is the
    * reason why that literal is currently relevant.
    */
