@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "options/arith_options.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -46,6 +47,12 @@ SynthVerify::SynthVerify(TermDbSygus* tds) : d_tds(tds)
   // instead of being claimed by sygus in the subsolver.
   d_subOptions.base.inputLanguage = language::input::LANG_SMTLIB_V2_6;
   d_subOptions.quantifiers.sygus = false;
+  // use tangent planes by default, since we want to put effort into
+  // the verification step for sygus queries with non-linear arithmetic
+  if (!d_subOptions.arith.nlExtTangentPlanesWasSetByUser)
+  {
+    d_subOptions.arith.nlExtTangentPlanes = true;
+  }
 }
 
 SynthVerify::~SynthVerify() {}

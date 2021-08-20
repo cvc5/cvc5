@@ -67,16 +67,19 @@ class SetDefaults
   void widenLogic(LogicInfo& logic, Options& opts) const;
   /**
    * Set defaults related to quantifiers, called when quantifiers are enabled.
-   * The parameter isSygus indicates if we are solving a SyGuS problem.
    * This method modifies opt.quantifiers only.
    */
   void setDefaultsQuantifiers(const LogicInfo& logic,
-                              Options& opts,
-                              bool isSygus) const;
+                              Options& opts) const;
   /**
    * Set defaults related to SyGuS, called when SyGuS is enabled.
    */
   void setDefaultsSygus(Options& opts) const;
+  /**
+   * Set default decision mode
+   */
+  void setDefaultDecisionMode(const LogicInfo& logic,
+                              Options& opts) const;
   /** Are we an internal subsolver? */
   bool d_isInternalSubsolver;
 };

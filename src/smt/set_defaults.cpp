@@ -336,7 +336,7 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
   }
 
   // if we requiring disabling proofs, disable them now
-  if (mustDisableProofs() && opts.smt.produceProofs)
+  if (mustDisableProofs(opts) && opts.smt.produceProofs)
   {
     opts.smt.unsatCores = false;
     opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
@@ -790,76 +790,8 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
     }
   }
 
-  // Set decision mode based on logic (if not set by user)
-  if (!opts.decision.decisionModeWasSetByUser)
-  {
-    options::DecisionMode decMode =
-        // anything that uses sygus uses internal
-        usesSygus(opts) ? options::DecisionMode::INTERNAL :
-                        // ALL or its supersets
-            logic.hasEverything()
-                ? options::DecisionMode::JUSTIFICATION
-                : (  // QF_BV
-                      (not logic.isQuantified() && logic.isPure(THEORY_BV)) ||
-                              // QF_AUFBV or QF_ABV or QF_UFBV
-                              (not logic.isQuantified()
-                               && (logic.isTheoryEnabled(THEORY_ARRAYS)
-                                   || logic.isTheoryEnabled(THEORY_UF))
-                               && logic.isTheoryEnabled(THEORY_BV))
-                              ||
-                              // QF_AUFLIA (and may be ends up enabling
-                              // QF_AUFLRA?)
-                              (not logic.isQuantified()
-                               && logic.isTheoryEnabled(THEORY_ARRAYS)
-                               && logic.isTheoryEnabled(THEORY_UF)
-                               && logic.isTheoryEnabled(THEORY_ARITH))
-                              ||
-                              // QF_LRA
-                              (not logic.isQuantified()
-                               && logic.isPure(THEORY_ARITH) && logic.isLinear()
-                               && !logic.isDifferenceLogic()
-                               && !logic.areIntegersUsed())
-                              ||
-                              // Quantifiers
-                              logic.isQuantified() ||
-                              // Strings
-                              logic.isTheoryEnabled(THEORY_STRINGS)
-                          ? options::DecisionMode::JUSTIFICATION
-                          : options::DecisionMode::INTERNAL);
-
-    bool stoponly =
-        // ALL or its supersets
-        logic.hasEverything() || logic.isTheoryEnabled(THEORY_STRINGS)
-            ? false
-            : (  // QF_AUFLIA
-                  (not logic.isQuantified()
-                   && logic.isTheoryEnabled(THEORY_ARRAYS)
-                   && logic.isTheoryEnabled(THEORY_UF)
-                   && logic.isTheoryEnabled(THEORY_ARITH))
-                          ||
-                          // QF_LRA
-                          (not logic.isQuantified()
-                           && logic.isPure(THEORY_ARITH) && logic.isLinear()
-                           && !logic.isDifferenceLogic()
-                           && !logic.areIntegersUsed())
-                      ? true
-                      : false);
-
-    opts.decision.decisionMode = decMode;
-    if (stoponly)
-    {
-      if (opts.decision.decisionMode == options::DecisionMode::JUSTIFICATION)
-      {
-        opts.decision.decisionMode = options::DecisionMode::STOPONLY;
-      }
-      else
-      {
-        Assert(opts.decision.decisionMode == options::DecisionMode::INTERNAL);
-      }
-    }
-    Trace("smt") << "setting decision mode to " << opts.decision.decisionMode
-                 << std::endl;
-  }
+  // set the default decision mode
+  setDefaultDecisionMode(logic, opts);
 
   // set up of central equality engine
   if (opts.theory.eeMode == options::EqEngineMode::CENTRAL)
@@ -1059,7 +991,7 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 #endif
 }
 
-bool SetDefaults::isSygus(const Options& opts)
+bool SetDefaults::isSygus(const Options& opts) const
 {
   if (language::isInputLangSygus(opts.base.inputLanguage))
   {
@@ -1199,8 +1131,7 @@ void SetDefaults::widenLogic(LogicInfo& logic, Options& opts) const
 }
 
 void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
-                                         Options& opts,
-                                         bool isSygus) const
+                                         Options& opts) const
 {
   if (logic.hasCardinalityConstraints())
   {
@@ -1605,6 +1536,80 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   if (!opts.quantifiers.macrosQuantWasSetByUser)
   {
     opts.quantifiers.macrosQuant = false;
+  }
+}
+  void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
+                              Options& opts) const
+                              {
+// Set decision mode based on logic (if not set by user)
+  if (!opts.decision.decisionModeWasSetByUser)
+  {
+    options::DecisionMode decMode =
+        // anything that uses sygus uses internal
+        usesSygus(opts) ? options::DecisionMode::INTERNAL :
+                        // ALL or its supersets
+            logic.hasEverything()
+                ? options::DecisionMode::JUSTIFICATION
+                : (  // QF_BV
+                      (not logic.isQuantified() && logic.isPure(THEORY_BV)) ||
+                              // QF_AUFBV or QF_ABV or QF_UFBV
+                              (not logic.isQuantified()
+                               && (logic.isTheoryEnabled(THEORY_ARRAYS)
+                                   || logic.isTheoryEnabled(THEORY_UF))
+                               && logic.isTheoryEnabled(THEORY_BV))
+                              ||
+                              // QF_AUFLIA (and may be ends up enabling
+                              // QF_AUFLRA?)
+                              (not logic.isQuantified()
+                               && logic.isTheoryEnabled(THEORY_ARRAYS)
+                               && logic.isTheoryEnabled(THEORY_UF)
+                               && logic.isTheoryEnabled(THEORY_ARITH))
+                              ||
+                              // QF_LRA
+                              (not logic.isQuantified()
+                               && logic.isPure(THEORY_ARITH) && logic.isLinear()
+                               && !logic.isDifferenceLogic()
+                               && !logic.areIntegersUsed())
+                              ||
+                              // Quantifiers
+                              logic.isQuantified() ||
+                              // Strings
+                              logic.isTheoryEnabled(THEORY_STRINGS)
+                          ? options::DecisionMode::JUSTIFICATION
+                          : options::DecisionMode::INTERNAL);
+
+    bool stoponly =
+        // ALL or its supersets
+        logic.hasEverything() || logic.isTheoryEnabled(THEORY_STRINGS)
+            ? false
+            : (  // QF_AUFLIA
+                  (not logic.isQuantified()
+                   && logic.isTheoryEnabled(THEORY_ARRAYS)
+                   && logic.isTheoryEnabled(THEORY_UF)
+                   && logic.isTheoryEnabled(THEORY_ARITH))
+                          ||
+                          // QF_LRA
+                          (not logic.isQuantified()
+                           && logic.isPure(THEORY_ARITH) && logic.isLinear()
+                           && !logic.isDifferenceLogic()
+                           && !logic.areIntegersUsed())
+                      ? true
+                      : false);
+
+    opts.decision.decisionMode = decMode;
+    if (stoponly)
+    {
+      if (opts.decision.decisionMode == options::DecisionMode::JUSTIFICATION)
+      {
+        opts.decision.decisionMode = options::DecisionMode::STOPONLY;
+      }
+      else
+      {
+        Assert(opts.decision.decisionMode == options::DecisionMode::INTERNAL);
+      }
+    }
+    Trace("smt") << "setting decision mode to " << opts.decision.decisionMode
+                 << std::endl;
   }
 }
 
