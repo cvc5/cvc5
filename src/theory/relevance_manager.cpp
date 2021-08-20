@@ -29,11 +29,13 @@ RelevanceManager::RelevanceManager(Env& env, Valuation val)
     : d_val(val),
       d_input(env.getUserContext()),
       d_computed(false),
-      d_success(false)
+      d_success(false),
+      d_trackRSetExp(false)
 {
   if (options::produceDifficulty())
   {
     d_dman.reset(new DifficultyManager(env));
+    d_trackRSetExp = true;
   }
 }
 
@@ -104,6 +106,7 @@ void RelevanceManager::computeRelevance()
 {
   d_computed = true;
   d_rset.clear();
+  d_rsetExp.clear();
   Trace("rel-manager") << "RelevanceManager::computeRelevance..." << std::endl;
   std::unordered_map<TNode, int> cache;
   for (const Node& node: d_input)
@@ -284,6 +287,10 @@ int RelevanceManager::justify(TNode n, std::unordered_map<TNode, int>& cache)
         {
           ret = value ? 1 : -1;
           d_rset.insert(cur);
+          if (d_trackRSetExp)
+          {
+            d_rsetExp[cur] = n;
+          }
         }
         cache[cur] = ret;
       }
@@ -337,6 +344,16 @@ const std::unordered_set<TNode>& RelevanceManager::getRelevantAssertions(
   // update success flag
   success = d_success;
   return d_rset;
+}
+
+void RelevanceManager::notifyLemma(Node n)
+{
+  if (d_dman != nullptr)
+  {
+    // ensure we know which literals are relevant, and why
+    computeRelevance();
+    d_dman->notifyLemma(d_rsetExp, n);
+  }
 }
 
 void RelevanceManager::notifyCandidateModel(TheoryModel* m)

@@ -1378,14 +1378,18 @@ void TheoryEngine::lemma(TrustNode tlemma,
   // If specified, we must add this lemma to the set of those that need to be
   // justified, where note we pass all auxiliary lemmas in skAsserts as well,
   // since these by extension must be justified as well.
-  if (d_relManager != nullptr && isLemmaPropertyNeedsJustify(p))
+  if (d_relManager != nullptr)
   {
     std::vector<Node> skAsserts;
     std::vector<Node> sks;
     Node retLemma =
         d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
-    d_relManager->notifyPreprocessedAssertion(retLemma);
-    d_relManager->notifyPreprocessedAssertions(skAsserts);
+    if (isLemmaPropertyNeedsJustify(p))
+    {
+      d_relManager->notifyPreprocessedAssertion(retLemma);
+      d_relManager->notifyPreprocessedAssertions(skAsserts);
+    }
+    d_relManager->notifyLemma(retLemma);
   }
 
   // Mark that we added some lemmas

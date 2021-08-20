@@ -46,7 +46,8 @@ class DifficultyManager
    * Get difficulty map
    */
   void getDifficultyMap(std::map<Node, Node>& dmap);
-
+  /** Notify lemma, for difficulty measurements */
+  void notifyLemma(const std::map<TNode, TNode>& rse, Node n);
   /** Notify that tm is a (candidate) model */
   void notifyCandidateModel(const NodeList& input, TheoryModel* m);
 

@@ -35,6 +35,11 @@ void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
   }
 }
 
+void DifficultyManager::notifyLemma(const std::map<TNode, TNode>& rse, Node n)
+{
+  
+}
+
 void DifficultyManager::notifyCandidateModel(const NodeList& input,
                                              TheoryModel* m)
 {

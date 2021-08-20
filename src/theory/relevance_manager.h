@@ -111,6 +111,8 @@ class RelevanceManager
    * The value of this return is only valid if success was not updated to false.
    */
   const std::unordered_set<TNode>& getRelevantAssertions(bool& success);
+  /** Notify lemma, for difficulty measurements */
+  void notifyLemma(Node n);
   /** Notify that tm is a (candidate) model */
   void notifyCandidateModel(TheoryModel* m);
   /**
@@ -169,6 +171,13 @@ class RelevanceManager
    * aborts and indicates that all literals are relevant.
    */
   bool d_success;
+  /** Are we tracking the sources of why a literal is relevant */
+  bool d_trackRSetExp;
+  /** 
+   * Map from the domain of d_rset to the assertion in d_input that is the
+   * reason why that literal is currently relevant.
+   */
+  std::map<TNode, TNode> d_rsetExp;
   /** Difficulty module */
   std::unique_ptr<DifficultyManager> d_dman;
 };
