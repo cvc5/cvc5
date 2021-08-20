@@ -854,8 +854,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpl_options_h,
                         constr = 'OptionInfo::NumberInfo<{type}>{{{default}, {value}, {minimum}, {maximum}}}'.format(**fmt)
                     elif option.mode:
                         values = ', '.join(map(lambda s: '"{}"'.format(s), option.mode.keys()))
-                        if not option.default:
-                            fmt['default'] = '???'
+                        assert(option.default)
                         constr = 'OptionInfo::ModeInfo{{"{default}", {value}, {{ {modes} }}}}'.format(**fmt, modes=values)
                     else:
                         constr = 'OptionInfo::VoidInfo{}'
