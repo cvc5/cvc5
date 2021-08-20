@@ -865,7 +865,6 @@ cdef class Solver:
             term.cterm = self.csolver.mkBitVector(<uint32_t> size)
         elif len(args) == 2:
             val = args[1]
-            assert(isinstance(val, int))
             if not isinstance(val, int):
                 raise ValueError("Invalid second argument to mkBitVector '{}', expected integer value".format(size))
             term.cterm = self.csolver.mkBitVector(<uint32_t> size, <uint32_t> val)
