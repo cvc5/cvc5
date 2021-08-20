@@ -208,26 +208,6 @@ class TermTest {
     // list datatype constructor and selector operator terms
     Term consOpTerm = list.getConstructorTerm("cons");
     Term nilOpTerm = list.getConstructorTerm("nil");
-    //      Term headOpTerm = list["cons"].getSelectorTerm("head");
-    //      Term tailOpTerm = list["cons"].getSelectorTerm("tail");
-    //
-    //      Term nilTerm = d_solver.mkTerm(APPLY_CONSTRUCTOR, nilOpTerm);
-    //      Term consTerm =
-    //          d_solver.mkTerm(APPLY_CONSTRUCTOR, consOpTerm,
-    //          d_solver.mkInteger(0), nilTerm);
-    //      Term headTerm = d_solver.mkTerm(APPLY_SELECTOR, headOpTerm,
-    //      consTerm); Term tailTerm = d_solver.mkTerm(APPLY_SELECTOR,
-    //      tailOpTerm, consTerm);
-    //
-    //      assertTrue(nilTerm.hasOp());
-    //      assertTrue(consTerm.hasOp());
-    //      assertTrue(headTerm.hasOp());
-    //      assertTrue(tailTerm.hasOp());
-    //
-    //      // Test rebuilding
-    //      children.clear();
-    //      children.insert(children.begin(), headTerm.begin(), headTerm.end());
-    //      assertEquals(headTerm, d_solver.mkTerm(headTerm.getOp(), children));
   }
 
   @Test
