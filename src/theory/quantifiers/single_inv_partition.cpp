@@ -261,9 +261,10 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         for (unsigned j = 0; j < args.size(); j++)
         {
           Trace("si-prt") << args[j] << " ";
-          if (args[j].getKind() == BOUND_VARIABLE && !sb.contains(args[j]))
+          if (args[j].getKind() == BOUND_VARIABLE
+              && !sb.contains(args[j]))
           {
-            sb.add(args[j], d_si_vars[j]);
+            sb.add(args[j],d_si_vars[j]);
           }
           else
           {
@@ -271,10 +272,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
           }
         }
         Trace("si-prt") << std::endl;
-        cr = children.size() == 1
-                 ? children[0]
-                 : NodeManager::currentNM()->mkNode(OR, children);
-        Assert(terms.size() == subs.size());
+        cr = nm->mkOr(children);
         cr = sb.apply(cr);
         Trace("si-prt-debug") << "...normalized invocations to " << cr
                               << std::endl;
