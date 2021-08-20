@@ -1815,26 +1815,15 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr]
     {
       std::stringstream sIntLit;
       sIntLit << $INTEGER_LITERAL;
+      api::Term keyword = SOLVER->mkString("quant-inst-max-level");
       api::Term n = SOLVER->mkInteger(sIntLit.str());
-      std::vector<api::Term> values;
-      values.push_back( n );
-      std::string attr_name(AntlrInput::tokenText($tok));
-      attr_name.erase( attr_name.begin() );
-      api::Sort boolType = SOLVER->getBooleanSort();
-      api::Term avar = PARSER_STATE->bindVar(attr_name, boolType);
-      retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
-      Command* c = new SetUserAttributeCommand(attr_name, avar, values);
-      c->setMuted(true);
-      PARSER_STATE->preemptCommand(c);
+      retExpr = MK_TERM(api::INST_ATTRIBUTE, keyword, n);
     }
   | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) symbolicExpr[sexpr]
     {
-      api::Sort boolType = SOLVER->getBooleanSort();
-      api::Term avar = SOLVER->mkConst(boolType, sexprToString(sexpr));
-      retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
-      Command* c = new SetUserAttributeCommand("qid", avar);
-      c->setMuted(true);
-      PARSER_STATE->preemptCommand(c);
+      api::Term keyword = SOLVER->mkString("qid");
+      api::Term name = SOLVER->mkString(sexprToString(sexpr));
+      retExpr = MK_TERM(api::INST_ATTRIBUTE, keyword, name);
     }
   | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
     {

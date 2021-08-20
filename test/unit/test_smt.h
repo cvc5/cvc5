@@ -136,7 +136,6 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
 
   void requirePhase(TNode, bool) override {}
   void setIncomplete(theory::IncompleteId id) override {}
-  void handleUserAttribute(const char* attr, theory::Theory* t) override {}
 
   void clear() { d_callHistory.clear(); }
 
