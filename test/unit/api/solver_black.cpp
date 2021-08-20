@@ -1309,6 +1309,40 @@ TEST_F(TestApiBlackSolver, getOptionNames)
   ASSERT_EQ(std::find(names.begin(), names.end(), "foobar"), names.end());
 }
 
+TEST_F(TestApiBlackSolver, getOptionInfo)
+{
+  {
+    // custom type (shows as void) with alias
+    api::OptionInfo info = d_solver.getOptionInfo("input-language");
+    EXPECT_EQ("lang", info.name);
+    EXPECT_EQ(std::vector<std::string>{"input-language"}, info.aliases);
+    EXPECT_TRUE(std::holds_alternative<OptionInfo::VoidInfo>(info.valueInfo));
+  }
+  {
+    // int64 type with default
+    api::OptionInfo info = d_solver.getOptionInfo("verbosity");
+    EXPECT_EQ("verbosity", info.name);
+    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
+    EXPECT_TRUE(std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(info.valueInfo));
+    auto numInfo = std::get<OptionInfo::NumberInfo<int64_t>>(info.valueInfo);
+    EXPECT_EQ(0, numInfo.defaultValue);
+    EXPECT_EQ(0, numInfo.currentValue);
+    EXPECT_FALSE(numInfo.minimum || numInfo.maximum);
+  }
+  {
+    // mode option
+    api::OptionInfo info = d_solver.getOptionInfo("output");
+    EXPECT_EQ("output", info.name);
+    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
+    EXPECT_TRUE(std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo));
+    auto modeInfo = std::get<OptionInfo::ModeInfo>(info.valueInfo);
+    EXPECT_EQ("???", modeInfo.defaultValue);
+    EXPECT_EQ("OutputTag::INST", modeInfo.currentValue);
+    std::vector<std::string> modes{"INST", "SYGUS", "TRIGGER"};
+    EXPECT_EQ(modes, modeInfo.modes);
+  }
+}
+
 TEST_F(TestApiBlackSolver, getUnsatAssumptions1)
 {
   d_solver.setOption("incremental", "false");
