@@ -280,7 +280,7 @@ class TermDb : public QuantifiersUtil {
   /** get eligible term in equivalence class of r */
   Node getEligibleTermInEqc(TNode r);
 
- private:
+ protected:
   /** The quantifiers state object */
   QuantifiersState& d_qstate;
   /** Pointer to the quantifiers inference manager */
@@ -346,7 +346,7 @@ class TermDb : public QuantifiersUtil {
   /** get the chosen representative for operator op */
   virtual Node getOperatorRepresentative( TNode op ) const;
   /** check whether terms are disequal */
-  virtual bool checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp) const;
+  virtual bool checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp);
   //----------------------------- end implementation-specific
   /** set has term */
   void setHasTerm( Node n );

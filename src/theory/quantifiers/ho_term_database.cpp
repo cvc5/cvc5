@@ -17,6 +17,10 @@
 
 #include "expr/skolem_manager.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/rewriter.h"
+#include "options/quantifiers_options.h"
+#include "theory/uf/equality_engine.h"
 
 using namespace cvc5::kind;
 
@@ -35,7 +39,6 @@ HoTermDb::~HoTermDb(){
 
 void HoTermDb::addTermInternal(Node n)
 {
-  Assert(options::ufHo());
   if (n.getType().isFunction())
   {
     // nothing special to do with functions
@@ -99,6 +102,7 @@ bool HoTermDb::resetInternal( Theory::Effort effort ){
   Trace("quant-ho")
       << "HoTermDb::reset : assert higher-order purify equalities..."
       << std::endl;
+  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
   for (std::pair<const Node, Node>& pp : d_ho_purify_to_term)
   {
     if (ee->hasTerm(pp.second)
@@ -141,7 +145,7 @@ bool HoTermDb::resetInternal( Theory::Effort effort ){
 }
   
 bool HoTermDb::finishResetInternal( Theory::Effort effort ){
-  if( !options::hoMergeTermDb() ){
+  if( !d_qstate.options().quantifiers.hoMergeTermDb){
     return true;
   }
   Trace("quant-ho") << "HoTermDb::reset : compute equal functions..." << std::endl;
@@ -197,13 +201,13 @@ bool HoTermDb::finishResetInternal( Theory::Effort effort ){
 
   return true;
 }
-bool HoTermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp) const
+bool HoTermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
 {
   if (!d_qstate.areDisequal(a, b))
   {
     return false;
   }
-  exp.push_back(nm->mkNode(EQUAL, at, n));
+  exp.push_back(a.eqNode(b));
   // operators might be disequal
   if (true)//(ops.size() > 1)
   {
@@ -217,7 +221,6 @@ bool HoTermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp) 
       }
       else
       {
-        success = false;
         Assert(false);
         return false;
       }
@@ -233,8 +236,7 @@ Node HoTermDb::getHoTypeMatchPredicate(TypeNode tn)
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode ptn = nm->mkFunctionType(tn, nm->booleanType());
-  Node k = sm->mkSkolemFunction(SkolemFunId::HO_TYPE_MATCH_PRED, ptn);
-  return k;
+  return sm->mkSkolemFunction(SkolemFunId::HO_TYPE_MATCH_PRED, ptn);
 }
 
 }  // namespace quantifiers

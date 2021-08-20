@@ -87,7 +87,7 @@ class HoTermDb : public TermDb {
   /** get the chosen representative for operator op */
   Node getOperatorRepresentative( TNode op ) const override;
   /** check whether terms are disequal */
-  bool checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp) const override;
+  bool checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp) override;
   //------------------------------higher-order term indexing
   /**
    * Map from non-variable function terms to the operator used to purify it in

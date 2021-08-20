@@ -477,7 +477,7 @@ Node TermDb::getOperatorRepresentative( TNode op ) const {
   return op;
 }
 
-bool TermDb::checkDisequal(TNode a, TNode b, std::vector<Node>& exp) const
+bool TermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
 {
   if (d_qstate.areDisequal(a, b))
   {
