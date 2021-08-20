@@ -686,6 +686,11 @@ void Smt2Printer::toStream(std::ostream& out,
     out << ' ';
     stillNeedToPrintParams = false;
     break;
+  case kind::BITVECTOR_BITOF:
+    out << "(_ bitOf " << n.getOperator().getConst<BitVectorBitOf>().d_bitIndex
+        << ") ";
+    stillNeedToPrintParams = false;
+    break;
 
   // sets
   case kind::SINGLETON:
