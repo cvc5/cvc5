@@ -1555,22 +1555,22 @@ void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
                     (not logic.isQuantified() && logic.isPure(THEORY_BV)) ||
                             // QF_AUFBV or QF_ABV or QF_UFBV
                             (not logic.isQuantified()
-                              && (logic.isTheoryEnabled(THEORY_ARRAYS)
-                                  || logic.isTheoryEnabled(THEORY_UF))
-                              && logic.isTheoryEnabled(THEORY_BV))
+                             && (logic.isTheoryEnabled(THEORY_ARRAYS)
+                                 || logic.isTheoryEnabled(THEORY_UF))
+                             && logic.isTheoryEnabled(THEORY_BV))
                             ||
                             // QF_AUFLIA (and may be ends up enabling
                             // QF_AUFLRA?)
                             (not logic.isQuantified()
-                              && logic.isTheoryEnabled(THEORY_ARRAYS)
-                              && logic.isTheoryEnabled(THEORY_UF)
-                              && logic.isTheoryEnabled(THEORY_ARITH))
+                             && logic.isTheoryEnabled(THEORY_ARRAYS)
+                             && logic.isTheoryEnabled(THEORY_UF)
+                             && logic.isTheoryEnabled(THEORY_ARITH))
                             ||
                             // QF_LRA
                             (not logic.isQuantified()
-                              && logic.isPure(THEORY_ARITH) && logic.isLinear()
-                              && !logic.isDifferenceLogic()
-                              && !logic.areIntegersUsed())
+                             && logic.isPure(THEORY_ARITH) && logic.isLinear()
+                             && !logic.isDifferenceLogic()
+                             && !logic.areIntegersUsed())
                             ||
                             // Quantifiers
                             logic.isQuantified() ||
@@ -1585,15 +1585,14 @@ void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
           ? false
           : (  // QF_AUFLIA
                 (not logic.isQuantified()
-                  && logic.isTheoryEnabled(THEORY_ARRAYS)
-                  && logic.isTheoryEnabled(THEORY_UF)
-                  && logic.isTheoryEnabled(THEORY_ARITH))
+                 && logic.isTheoryEnabled(THEORY_ARRAYS)
+                 && logic.isTheoryEnabled(THEORY_UF)
+                 && logic.isTheoryEnabled(THEORY_ARITH))
                         ||
                         // QF_LRA
-                        (not logic.isQuantified()
-                          && logic.isPure(THEORY_ARITH) && logic.isLinear()
-                          && !logic.isDifferenceLogic()
-                          && !logic.areIntegersUsed())
+                        (not logic.isQuantified() && logic.isPure(THEORY_ARITH)
+                         && logic.isLinear() && !logic.isDifferenceLogic()
+                         && !logic.areIntegersUsed())
                     ? true
                     : false);
 
@@ -1610,7 +1609,7 @@ void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
     }
   }
   Trace("smt") << "setting decision mode to " << opts.decision.decisionMode
-                << std::endl;
+               << std::endl;
 }
 
 }  // namespace smt
