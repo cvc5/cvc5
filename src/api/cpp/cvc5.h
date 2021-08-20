@@ -119,7 +119,7 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
 };
 
 /**
- * A option-related API exception.
+ * An option-related API exception.
  * If thrown, API objects can still be used.
  */
 class CVC5_EXPORT CVC5ApiOptionException : public CVC5ApiRecoverableException
