@@ -118,6 +118,31 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
   }
 };
 
+/**
+ * An option-related API exception.
+ * If thrown, API objects can still be used.
+ */
+class CVC5_EXPORT CVC5ApiOptionException : public CVC5ApiRecoverableException
+{
+ public:
+  /**
+   * Construct with message from a string.
+   * @param str The error message.
+   */
+  CVC5ApiOptionException(const std::string& str)
+      : CVC5ApiRecoverableException(str)
+  {
+  }
+  /**
+   * Construct with message from a string stream.
+   * @param stream The error message.
+   */
+  CVC5ApiOptionException(const std::stringstream& stream)
+      : CVC5ApiRecoverableException(stream.str())
+  {
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 /* Result                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -3751,7 +3776,7 @@ class CVC5_EXPORT Solver
   /**
    * Get a difficulty estimate for an asserted formula. This method is
    * intended to be called immediately after any response to a checkSat.
-   *
+   * 
    * @return a map from (a subset of) the input assertions to a real value that
    * is an estimate of how difficult each assertion was to solve. Unmentioned
    * assertions can be assumed to have zero difficulty.
