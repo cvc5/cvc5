@@ -54,10 +54,10 @@ class DifficultyManager
 
  private:
   /** Increment difficulty on assertion a */
-  void incrementDifficulty(TNode a, uint64_t amount=1);
+  void incrementDifficulty(TNode a, uint64_t amount = 1);
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
-  /** 
+  /**
    * user-context dependent mapping from input assertions to difficulty measure
    */
   NodeUIntMap d_dfmap;

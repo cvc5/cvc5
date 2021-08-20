@@ -15,10 +15,10 @@
 
 #include "theory/relevance_manager.h"
 
+#include <sstream>
+
 #include "options/smt_options.h"
 #include "smt/env.h"
-
-#include <sstream>
 
 using namespace cvc5::kind;
 
@@ -49,7 +49,7 @@ void RelevanceManager::notifyPreprocessedAssertions(
     if (a.getKind() == AND)
     {
       // difficulty tracking requires splitting top-level AND earlier
-      Assert (d_dman==nullptr);
+      Assert(d_dman == nullptr);
       // split top-level AND
       for (const Node& ac : a)
       {
@@ -80,7 +80,7 @@ void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
     if (a.getKind() == AND)
     {
       // difficulty tracking requires splitting top-level AND earlier
-      Assert (d_dman==nullptr);
+      Assert(d_dman == nullptr);
       // split AND
       for (const Node& ac : a)
       {
