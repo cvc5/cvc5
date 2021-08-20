@@ -16,10 +16,10 @@
 #include "theory/quantifiers/ho_term_database.h"
 
 #include "expr/skolem_manager.h"
-#include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers/quantifiers_inference_manager.h"
-#include "theory/rewriter.h"
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_state.h"
+#include "theory/rewriter.h"
 #include "theory/uf/equality_engine.h"
 
 using namespace cvc5::kind;
@@ -33,9 +33,7 @@ HoTermDb::HoTermDb(QuantifiersState& qs, QuantifiersRegistry& qr)
 {
 }
 
-HoTermDb::~HoTermDb(){
-
-}
+HoTermDb::~HoTermDb() {}
 
 void HoTermDb::addTermInternal(Node n)
 {
@@ -90,15 +88,18 @@ void HoTermDb::addTermInternal(Node n)
   }
 }
 
-Node HoTermDb::getOperatorRepresentative( TNode op ) const {
-  std::map< TNode, TNode >::const_iterator it = d_ho_op_rep.find( op );
-  if( it!=d_ho_op_rep.end() ){
+Node HoTermDb::getOperatorRepresentative(TNode op) const
+{
+  std::map<TNode, TNode>::const_iterator it = d_ho_op_rep.find(op);
+  if (it != d_ho_op_rep.end())
+  {
     return it->second;
   }
   return op;
 }
 
-bool HoTermDb::resetInternal( Theory::Effort effort ){
+bool HoTermDb::resetInternal(Theory::Effort effort)
+{
   Trace("quant-ho")
       << "HoTermDb::reset : assert higher-order purify equalities..."
       << std::endl;
@@ -132,8 +133,7 @@ bool HoTermDb::resetInternal( Theory::Effort effort ){
         // functions. As a result, asserting these equalities internally may
         // cause a conflict. In this case, we insist that the purification
         // equality is sent out as a lemma here.
-        Trace("term-db-lemma")
-            << "Purify equality lemma: " << eq << std::endl;
+        Trace("term-db-lemma") << "Purify equality lemma: " << eq << std::endl;
         d_qim->addPendingLemma(eq, InferenceId::QUANTIFIERS_HO_PURIFY);
         d_qstate.notifyInConflict();
         d_consistent_ee = false;
@@ -143,23 +143,29 @@ bool HoTermDb::resetInternal( Theory::Effort effort ){
   }
   return true;
 }
-  
-bool HoTermDb::finishResetInternal( Theory::Effort effort ){
-  if( !d_qstate.options().quantifiers.hoMergeTermDb){
+
+bool HoTermDb::finishResetInternal(Theory::Effort effort)
+{
+  if (!d_qstate.options().quantifiers.hoMergeTermDb)
+  {
     return true;
   }
-  Trace("quant-ho") << "HoTermDb::reset : compute equal functions..." << std::endl;
+  Trace("quant-ho") << "HoTermDb::reset : compute equal functions..."
+                    << std::endl;
   // build operator representative map
   d_ho_op_rep.clear();
   d_ho_op_slaves.clear();
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
-  while( !eqcs_i.isFinished() ){
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
+  while (!eqcs_i.isFinished())
+  {
     TNode r = (*eqcs_i);
-    if( r.getType().isFunction() ){
+    if (r.getType().isFunction())
+    {
       Trace("quant-ho") << "  process function eqc " << r << std::endl;
       Node first;
       eq::EqClassIterator eqc_i = eq::EqClassIterator(r, ee);
-      while( !eqc_i.isFinished() ){
+      while (!eqc_i.isFinished())
+      {
         TNode n = (*eqc_i);
         Node n_use;
         if (n.isVar())
@@ -209,7 +215,7 @@ bool HoTermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
   }
   exp.push_back(a.eqNode(b));
   // operators might be disequal
-  if (true)//(ops.size() > 1)
+  if (true)  //(ops.size() > 1)
   {
     Node af = getMatchOperator(a);
     Node bf = getMatchOperator(b);
@@ -229,7 +235,6 @@ bool HoTermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
 
   return true;
 }
-      
 
 Node HoTermDb::getHoTypeMatchPredicate(TypeNode tn)
 {

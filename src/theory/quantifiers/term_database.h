@@ -329,14 +329,14 @@ class TermDb : public QuantifiersUtil {
    */
   std::map<TypeNode, Node> d_ho_type_match_pred;
   //----------------------------- implementation-specific
-  /** 
+  /**
    * Reset internal, called when reset(e) is called. Returning false will cause
    * the overall reset to terminate early, returning false.
    */
   virtual bool resetInternal(Theory::Effort e);
-  /** 
-   * Finish reset internal, called at the end of reset(e). Returning false will cause
-   * the overall reset to return false. 
+  /**
+   * Finish reset internal, called at the end of reset(e). Returning false will
+   * cause the overall reset to return false.
    */
   virtual bool finishResetInternal(Theory::Effort e);
   /** Add term internal, called when addTerm(n) is called */
@@ -344,7 +344,7 @@ class TermDb : public QuantifiersUtil {
   /** Get operators that we know are equivalent to f, typically only f itself */
   virtual void getOperatorsFor(TNode f, std::vector<TNode>& ops);
   /** get the chosen representative for operator op */
-  virtual Node getOperatorRepresentative( TNode op ) const;
+  virtual Node getOperatorRepresentative(TNode op) const;
   /** check whether terms are disequal */
   virtual bool checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp);
   //----------------------------- end implementation-specific

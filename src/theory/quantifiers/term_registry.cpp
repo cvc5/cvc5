@@ -34,7 +34,8 @@ TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
       d_presolveCache(qs.getUserContext()),
       d_termEnum(new TermEnumeration),
       d_termPools(new TermPools(qs)),
-      d_termDb(qs.getEnv().getLogicInfo().isHigherOrder() ? new HoTermDb(qs, qr) : new TermDb(qs, qr)),
+      d_termDb(qs.getEnv().getLogicInfo().isHigherOrder() ? new HoTermDb(qs, qr)
+                                                          : new TermDb(qs, qr)),
       d_sygusTdb(nullptr),
       d_qmodel(nullptr)
 {

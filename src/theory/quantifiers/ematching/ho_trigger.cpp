@@ -13,14 +13,15 @@
  * Implementation of higher-order trigger class.
  */
 
+#include "theory/quantifiers/ematching/ho_trigger.h"
+
 #include <stack>
 
-#include "theory/quantifiers/ematching/ho_trigger.h"
+#include "theory/quantifiers/ho_term_database.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers/ho_term_database.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/uf/theory_uf_rewriter.h"

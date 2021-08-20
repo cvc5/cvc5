@@ -27,14 +27,14 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-/** 
+/**
  * Higher-order term database, which extends the normal term database based on
  * techniques from Barbosa et al CADE 2019.
  */
-class HoTermDb : public TermDb {
+class HoTermDb : public TermDb
+{
  public:
-  HoTermDb(QuantifiersState& qs,
-         QuantifiersRegistry& qr);
+  HoTermDb(QuantifiersState& qs, QuantifiersRegistry& qr);
   ~HoTermDb();
   /** identify */
   std::string identify() const override { return "HoTermDb"; }
@@ -46,8 +46,9 @@ class HoTermDb : public TermDb {
    * P of type (tn -> Bool). Then, we add P( f ) as a lemma.
    */
   static Node getHoTypeMatchPredicate(TypeNode tn);
+
  private:
-  /** 
+  /**
    * Reset internal, called when reset(e) is called. Returning false will cause
    * the overall reset to terminate early, returning false.
    */
@@ -85,9 +86,11 @@ class HoTermDb : public TermDb {
   /** Get operators that we know are equivalent to f */
   void getOperatorsFor(TNode f, std::vector<TNode>& ops) override;
   /** get the chosen representative for operator op */
-  Node getOperatorRepresentative( TNode op ) const override;
+  Node getOperatorRepresentative(TNode op) const override;
   /** check whether terms are disequal */
-  bool checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp) override;
+  bool checkCongruentDisequal(TNode a,
+                              TNode b,
+                              std::vector<Node>& exp) override;
   //------------------------------higher-order term indexing
   /**
    * Map from non-variable function terms to the operator used to purify it in
@@ -104,8 +107,9 @@ class HoTermDb : public TermDb {
    */
   std::map<Node, Node> d_ho_purify_to_eq;
   /** a map from matchable operators to their representative */
-  std::map< TNode, TNode > d_ho_op_rep;
-  /** for each representative matchable operator, the list of other matchable operators in their equivalence class */
+  std::map<TNode, TNode> d_ho_op_rep;
+  /** for each representative matchable operator, the list of other matchable
+   * operators in their equivalence class */
   std::map<TNode, std::vector<TNode> > d_ho_op_slaves;
 };
 

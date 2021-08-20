@@ -389,11 +389,11 @@ void TermDb::computeUfTerms( TNode f ) {
         if (Trace.isOn("term-db-lemma"))
         {
           Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "
-                                  << n << "!!!!" << std::endl;
+                                 << n << "!!!!" << std::endl;
           if (!d_qstate.getValuation().needCheck())
           {
-            Trace("term-db-lemma") << "  all theories passed with no lemmas."
-                                    << std::endl;
+            Trace("term-db-lemma")
+                << "  all theories passed with no lemmas." << std::endl;
             // we should be a full effort check, prior to theory combination
           }
           Trace("term-db-lemma") << "  add lemma : " << lem << std::endl;
@@ -473,9 +473,7 @@ void TermDb::addTermHo(Node n)
   }
 }
 
-Node TermDb::getOperatorRepresentative( TNode op ) const {
-  return op;
-}
+Node TermDb::getOperatorRepresentative(TNode op) const { return op; }
 
 bool TermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
 {
@@ -488,7 +486,7 @@ bool TermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
 }
 
 bool TermDb::inRelevantDomain( TNode f, unsigned i, TNode r ) {
-  f = getOperatorRepresentative( f );
+  f = getOperatorRepresentative(f);
   computeUfTerms( f );
   Assert(!d_qstate.getEqualityEngine()->hasTerm(r)
          || d_qstate.getEqualityEngine()->getRepresentative(r) == r);
@@ -1053,7 +1051,7 @@ bool TermDb::reset( Theory::Effort effort ){
 
 TNodeTrie* TermDb::getTermArgTrie(Node f)
 {
-  f = getOperatorRepresentative( f );
+  f = getOperatorRepresentative(f);
   computeUfTerms( f );
   std::map<Node, TNodeTrie>::iterator itut = d_func_map_trie.find(f);
   if( itut!=d_func_map_trie.end() ){
@@ -1065,7 +1063,7 @@ TNodeTrie* TermDb::getTermArgTrie(Node f)
 
 TNodeTrie* TermDb::getTermArgTrie(Node eqc, Node f)
 {
-  f = getOperatorRepresentative( f );
+  f = getOperatorRepresentative(f);
   computeUfEqcTerms( f );
   std::map<Node, TNodeTrie>::iterator itut = d_func_map_eqc_trie.find(f);
   if( itut==d_func_map_eqc_trie.end() ){
@@ -1086,7 +1084,7 @@ TNodeTrie* TermDb::getTermArgTrie(Node eqc, Node f)
 }
 
 TNode TermDb::getCongruentTerm( Node f, Node n ) {
-  f = getOperatorRepresentative( f );
+  f = getOperatorRepresentative(f);
   computeUfTerms( f );
   std::map<Node, TNodeTrie>::iterator itut = d_func_map_trie.find(f);
   if( itut!=d_func_map_trie.end() ){
@@ -1098,7 +1096,7 @@ TNode TermDb::getCongruentTerm( Node f, Node n ) {
 }
 
 TNode TermDb::getCongruentTerm( Node f, std::vector< TNode >& args ) {
-  f = getOperatorRepresentative( f );
+  f = getOperatorRepresentative(f);
   computeUfTerms( f );
   return d_func_map_trie[f].existsTerm( args );
 }
