@@ -71,7 +71,7 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
   {
     opts.driver.dumpUnsatCores = true;
   }
-  if (opts.smt.dumpDifficulty)
+  if (opts.driver.dumpDifficulty)
   {
     opts.smt.produceDifficulty = true;
   }

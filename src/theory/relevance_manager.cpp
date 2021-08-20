@@ -30,12 +30,14 @@ RelevanceManager::RelevanceManager(Env& env, Valuation val)
       d_input(env.getUserContext()),
       d_computed(false),
       d_success(false),
-      d_trackRSetExp(false)
+      d_trackRSetExp(false),
+      d_miniscopeTopLevel(true)
 {
   if (options::produceDifficulty())
   {
     d_dman.reset(new DifficultyManager(env, val));
     d_trackRSetExp = true;
+    //d_miniscopeTopLevel = false;
   }
 }
 
@@ -46,10 +48,8 @@ void RelevanceManager::notifyPreprocessedAssertions(
   std::vector<Node> toProcess;
   for (const Node& a : assertions)
   {
-    if (a.getKind() == AND)
+    if (d_miniscopeTopLevel && a.getKind() == AND)
     {
-      // difficulty tracking requires splitting top-level AND earlier
-      Assert(d_dman == nullptr);
       // split top-level AND
       for (const Node& ac : a)
       {
@@ -77,7 +77,7 @@ void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
   while (i < toProcess.size())
   {
     Node a = toProcess[i];
-    if (a.getKind() == AND)
+    if (d_miniscopeTopLevel && a.getKind() == AND)
     {
       // difficulty tracking requires splitting top-level AND earlier
       Assert(d_dman == nullptr);
