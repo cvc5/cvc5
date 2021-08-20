@@ -825,6 +825,11 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
   if (logic.isHigherOrder())
   {
     opts.uf.ufHo = true;
+    if (!opts.theory.assignFunctionValues)
+    {
+      // must assign function values
+      opts.theory.assignFunctionValues = true;
+    }
   }
 
   // set all defaults in the quantifiers theory, which includes sygus
@@ -1183,11 +1188,6 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     {
       // by default, use store axioms only if --ho-elim is set
       opts.quantifiers.hoElimStoreAx = opts.quantifiers.hoElim;
-    }
-    if (!opts.theory.assignFunctionValues)
-    {
-      // must assign function values
-      opts.theory.assignFunctionValues = true;
     }
     // Cannot use macros, since lambda lifting and macro elimination are inverse
     // operations.
