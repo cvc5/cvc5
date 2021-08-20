@@ -52,11 +52,11 @@ class CommandExecutor
    * symbol manager.
    */
   std::unique_ptr<SymbolManager> d_symman;
-  Options& d_options;
+
   api::Result d_result;
 
  public:
-  CommandExecutor(Options& options);
+  CommandExecutor(const Options& options);
 
   virtual ~CommandExecutor();
 

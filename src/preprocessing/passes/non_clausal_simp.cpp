@@ -69,12 +69,6 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult NonClausalSimp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Assert(options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF
-         || isProofEnabled())
-      << "Unsat cores with non-clausal simp only supported with new proofs. "
-         "Cores mode is "
-      << options::unsatCoresMode() << "\n";
-
   d_preprocContext->spendResource(Resource::PreprocessStep);
 
   theory::booleans::CircuitPropagator* propagator =
@@ -255,6 +249,10 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         {
           // Keep the literal
           learned_literals[j++] = learned_literals[i];
+          // Its a literal that could not be processed as a substitution or
+          // conflict. In this case, we notify the context of the learned
+          // literal, which will process it with the learned literal manager.
+          d_preprocContext->notifyLearnedLiteral(learnedLiteral);
         }
         break;
     }
@@ -480,7 +478,7 @@ Node NonClausalSimp::processLearnedLit(Node lit,
   return lit;
 }
 
-Node NonClausalSimp::processRewrittenLearnedLit(theory::TrustNode trn)
+Node NonClausalSimp::processRewrittenLearnedLit(TrustNode trn)
 {
   if (isProofEnabled())
   {

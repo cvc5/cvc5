@@ -1,5 +1,5 @@
 id     = "STRINGS"
-name   = "Strings theory"
+name   = "Strings Theory"
 
 [[option]]
   name       = "stringExp"
@@ -24,14 +24,6 @@ name   = "Strings theory"
   type       = "bool"
   default    = "false"
   help       = "strings eager check"
-
-[[option]]
-  name       = "stringIgnNegMembership"
-  category   = "regular"
-  long       = "strings-inm"
-  type       = "bool"
-  default    = "false"
-  help       = "internal for strings: ignore negative membership constraints (fragment checking is needed, left to users for now)"
 
 [[option]]
   name       = "stringLazyPreproc"

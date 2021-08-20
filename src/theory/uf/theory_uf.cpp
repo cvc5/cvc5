@@ -21,11 +21,11 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
-#include "expr/proof_node_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
@@ -40,20 +40,17 @@ namespace theory {
 namespace uf {
 
 /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-TheoryUF::TheoryUF(context::Context* c,
-                   context::UserContext* u,
+TheoryUF::TheoryUF(Env& env,
                    OutputChannel& out,
                    Valuation valuation,
-                   const LogicInfo& logicInfo,
-                   ProofNodeManager* pnm,
                    std::string instanceName)
-    : Theory(THEORY_UF, c, u, out, valuation, logicInfo, pnm, instanceName),
+    : Theory(THEORY_UF, env, out, valuation, instanceName),
       d_thss(nullptr),
       d_ho(nullptr),
-      d_functionsTerms(c),
-      d_symb(u, instanceName),
-      d_state(c, u, valuation),
-      d_im(*this, d_state, pnm, "theory::uf::" + instanceName, false),
+      d_functionsTerms(getSatContext()),
+      d_symb(getUserContext(), instanceName),
+      d_state(env, valuation),
+      d_im(*this, d_state, d_pnm, "theory::uf::" + instanceName, false),
       d_notify(d_im, *this)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
@@ -73,6 +70,14 @@ bool TheoryUF::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
   esi.d_name = d_instanceName + "theory::uf::ee";
+  if (options::finiteModelFind()
+      && options::ufssMode() != options::UfssMode::NONE)
+  {
+    // need notifications about sorts
+    esi.d_notifyNewClass = true;
+    esi.d_notifyMerge = true;
+    esi.d_notifyDisequal = true;
+  }
   return true;
 }
 
@@ -148,56 +153,54 @@ void TheoryUF::postCheck(Effort level)
   }
 }
 
-bool TheoryUF::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
 {
+  if (d_state.isInConflict())
+  {
+    return;
+  }
   if (d_thss != nullptr)
   {
     bool isDecision =
         d_valuation.isSatLiteral(fact) && d_valuation.isDecision(fact);
     d_thss->assertNode(fact, isDecision);
-    if (d_state.isInConflict())
-    {
-      return true;
-    }
   }
-  if (atom.getKind() == kind::CARDINALITY_CONSTRAINT
-      || atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT)
+  switch (atom.getKind())
   {
-    if (d_thss == nullptr)
+    case kind::EQUAL:
     {
-      if (!getLogicInfo().hasCardinalityConstraints())
+      if (options::ufHo() && options::ufHoExt())
       {
-        std::stringstream ss;
-        ss << "Cardinality constraint " << atom
-           << " was asserted, but the logic does not allow it." << std::endl;
-        ss << "Try using a logic containing \"UFC\"." << std::endl;
-        throw Exception(ss.str());
-      }
-      else
-      {
-        // support for cardinality constraints is not enabled, set incomplete
-        d_im.setIncomplete(IncompleteId::UF_CARD_DISABLED);
+        if (!pol && !d_state.isInConflict() && atom[0].getType().isFunction())
+        {
+          // apply extensionality eagerly using the ho extension
+          d_ho->applyExtensionality(fact);
+        }
       }
     }
-    // don't need to assert cardinality constraints if not producing models
-    return !options::produceModels();
-  }
-  return false;
-}
-
-void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
-{
-  if (!d_state.isInConflict() && atom.getKind() == kind::EQUAL)
-  {
-    if (options::ufHo() && options::ufHoExt())
+    break;
+    case kind::CARDINALITY_CONSTRAINT:
+    case kind::COMBINED_CARDINALITY_CONSTRAINT:
     {
-      if (!pol && !d_state.isInConflict() && atom[0].getType().isFunction())
+      if (d_thss == nullptr)
       {
-        // apply extensionality eagerly using the ho extension
-        d_ho->applyExtensionality(fact);
+        if (!getLogicInfo().hasCardinalityConstraints())
+        {
+          std::stringstream ss;
+          ss << "Cardinality constraint " << atom
+             << " was asserted, but the logic does not allow it." << std::endl;
+          ss << "Try using a logic containing \"UFC\"." << std::endl;
+          throw Exception(ss.str());
+        }
+        else
+        {
+          // support for cardinality constraints is not enabled, set incomplete
+          d_im.setIncomplete(IncompleteId::UF_CARD_DISABLED);
+        }
       }
     }
+    break;
+    default: break;
   }
 }
 //--------------------------------- end standard check
@@ -211,7 +214,8 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
   {
     if( !options::ufHo() ){
       std::stringstream ss;
-      ss << "Partial function applications are not supported in default mode, try --uf-ho.";
+      ss << "Partial function applications are only supported with "
+            "higher-order logic. Try adding the logic prefix HO_.";
       throw LogicException(ss.str());
     }
     Node ret = d_ho->ppRewrite(node);
@@ -230,7 +234,9 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
     {
       std::stringstream ss;
       ss << "UF received an application whose operator has higher-order type "
-         << node << ", which is not supported by default, try --uf-ho";
+         << node
+         << ", which is only supported with higher-order logic. Try adding the "
+            "logic prefix HO_.";
       throw LogicException(ss.str());
     }
   }

@@ -15,9 +15,11 @@
 
 #include "theory/quantifiers_engine.h"
 
+#include "options/base_options.h"
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "options/strings_options.h"
 #include "options/uf_options.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/equality_query.h"
@@ -57,7 +59,8 @@ QuantifiersEngine::QuantifiersEngine(
       d_treg(tr),
       d_model(nullptr),
       d_quants_prereg(qs.getUserContext()),
-      d_quants_red(qs.getUserContext())
+      d_quants_red(qs.getUserContext()),
+      d_numInstRoundsLemma(0)
 {
   Trace("quant-init-debug")
       << "Initialize model engine, mbqi : " << options::mbqiMode() << " "
@@ -65,7 +68,7 @@ QuantifiersEngine::QuantifiersEngine(
   // Finite model finding requires specialized ways of building the model.
   // We require constructing the model here, since it is required for
   // initializing the CombinationEngine and the rest of quantifiers engine.
-  if (options::fmfBound()
+  if (options::fmfBound() || options::stringExp()
       || (options::finiteModelFind()
           && (options::mbqiMode() == options::MbqiMode::FMC
               || options::mbqiMode() == options::MbqiMode::TRUST)))
@@ -144,9 +147,15 @@ quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 
 void QuantifiersEngine::presolve() {
   Trace("quant-engine-proc") << "QuantifiersEngine : presolve " << std::endl;
+  d_numInstRoundsLemma = 0;
   d_qim.clearPending();
-  for( unsigned i=0; i<d_modules.size(); i++ ){
-    d_modules[i]->presolve();
+  for (QuantifiersUtil*& u : d_util)
+  {
+    u->presolve();
+  }
+  for (QuantifiersModule*& mdl : d_modules)
+  {
+    mdl->presolve();
   }
   // presolve with term registry, which populates the term database based on
   // terms registered before presolve when in incremental mode
@@ -240,6 +249,13 @@ void QuantifiersEngine::check( Theory::Effort e ){
   d_qim.reset();
   bool setIncomplete = false;
   IncompleteId setIncompleteId = IncompleteId::QUANTIFIERS;
+  if (options::instMaxRounds() >= 0
+      && d_numInstRoundsLemma >= static_cast<uint32_t>(options::instMaxRounds()))
+  {
+    needsCheck = false;
+    setIncomplete = true;
+    setIncompleteId = IncompleteId::QUANTIFIERS_MAX_INST_ROUNDS;
+  }
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
@@ -457,13 +473,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
     // debug print
     if (d_qim.hasSentLemma())
     {
-      bool debugInstTrace = Trace.isOn("inst-per-quant-round");
-      if (options::debugInst() || debugInstTrace)
-      {
-        Options& sopts = smt::currentSmtEngine()->getOptions();
-        std::ostream& out = *sopts.getOut();
-        d_qim.getInstantiate()->debugPrint(out);
-      }
+      d_qim.getInstantiate()->notifyEndRound();
+      d_numInstRoundsLemma++;
     }
     if( Trace.isOn("quant-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
@@ -649,15 +660,6 @@ void QuantifiersEngine::getInstantiationTermVectors( std::map< Node, std::vector
 void QuantifiersEngine::getInstantiations(Node q, std::vector<Node>& insts)
 {
   d_qim.getInstantiate()->getInstantiations(q, insts);
-}
-
-void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
-  if (d_qmodules->d_synth_e)
-  {
-    d_qmodules->d_synth_e->printSynthSolution(out);
-  }else{
-    out << "Internal error : module for synth solution not found." << std::endl;
-  }
 }
 
 void QuantifiersEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)

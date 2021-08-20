@@ -20,6 +20,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_matcher.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -100,7 +101,8 @@ const DType& DType::datatypeOf(Node item)
   {
     case CONSTRUCTOR_TYPE: return t[t.getNumChildren() - 1].getDType();
     case SELECTOR_TYPE:
-    case TESTER_TYPE: return t[0].getDType();
+    case TESTER_TYPE:
+    case UPDATER_TYPE: return t[0].getDType();
     default:
       Unhandled() << "arg must be a datatype constructor, selector, or tester";
   }
@@ -258,10 +260,9 @@ void DType::setSygus(TypeNode st, Node bvl, bool allowConst, bool allowAll)
   // Notice we only want to do this for sygus datatypes that are user-provided.
   // At the moment, the condition !allow_all implies the grammar is
   // user-provided and hence may require a default constant.
-  // TODO (https://github.com/CVC4/cvc4-projects/issues/38):
-  // In an API for SyGuS, it probably makes more sense for the user to
-  // explicitly add the "any constant" constructor with a call instead of
-  // passing a flag. This would make the block of code unnecessary.
+  // For the SyGuS API, we could consider requiring the user to explicitly add
+  // the "any constant" constructor with a call instead of passing a flag. This
+  // would make the block of code unnecessary.
   if (allowConst && !allowAll)
   {
     // if I don't already have a constant (0-ary constructor)
@@ -864,10 +865,12 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   std::stringstream ss;
   ss << "sel_" << index;
   SkolemManager* sm = nm->getSkolemManager();
-  s = sm->mkDummySkolem(ss.str(),
-                        nm->mkSelectorType(dtt, t),
-                        "is a shared selector",
-                        NodeManager::SKOLEM_NO_NOTIFY);
+  TypeNode stype = nm->mkSelectorType(dtt, t);
+  Node nindex = nm->mkConst(Rational(index));
+  s = sm->mkSkolemFunction(SkolemFunId::SHARED_SELECTOR,
+                           stype,
+                           nindex,
+                           NodeManager::SKOLEM_NO_NOTIFY);
   d_sharedSel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;

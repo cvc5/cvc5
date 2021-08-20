@@ -20,6 +20,7 @@
 #include "test_smt.h"
 #include "theory/bv/int_blaster.h"
 #include "util/bitvector.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 

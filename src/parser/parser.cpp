@@ -26,6 +26,7 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"
+#include "options/base_options.h"
 #include "options/options.h"
 #include "parser/input.h"
 #include "parser/parser_exception.h"
@@ -108,8 +109,8 @@ api::Term Parser::getExpressionForNameAndType(const std::string& name,
   if(expr.isNull()) {
     // the variable is overloaded, try with type if the type exists
     if(!t.isNull()) {
-      // if we decide later to support annotations for function types, this will update to 
-      // separate t into ( argument types, return type )
+      // if we decide later to support annotations for function types, this will
+      // update to separate t into ( argument types, return type )
       expr = getOverloadedConstantForType(name, t);
       if(expr.isNull()) {
         parseError("Cannot get overloaded constant for type ascription.");
@@ -548,7 +549,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
       ss << "Type ascription on empty sequence must be a sequence, got " << s;
       parseError(ss.str());
     }
-    if (!t.getConstSequenceElements().empty())
+    if (!t.getSequenceValue().empty())
     {
       std::stringstream ss;
       ss << "Cannot apply a type ascription to a non-empty sequence";
@@ -741,7 +742,7 @@ void Parser::reset() {}
 
 SymbolManager* Parser::getSymbolManager() { return d_symman; }
 
-std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
+std::wstring Parser::processAdHocStringEsc(const std::string& s)
 {
   std::wstring ws;
   {
@@ -763,7 +764,7 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
     }
   }
 
-  std::vector<unsigned> str;
+  std::wstring res;
   unsigned i = 0;
   while (i < ws.size())
   {
@@ -771,7 +772,7 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
     if (ws[i] != '\\')
     {
       // don't worry about printable here
-      str.push_back(static_cast<unsigned>(ws[i]));
+      res.push_back(ws[i]);
       ++i;
       continue;
     }
@@ -789,49 +790,49 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
     {
       case 'n':
       {
-        str.push_back(static_cast<unsigned>('\n'));
+        res.push_back('\n');
         i++;
       }
       break;
       case 't':
       {
-        str.push_back(static_cast<unsigned>('\t'));
+        res.push_back('\t');
         i++;
       }
       break;
       case 'v':
       {
-        str.push_back(static_cast<unsigned>('\v'));
+        res.push_back('\v');
         i++;
       }
       break;
       case 'b':
       {
-        str.push_back(static_cast<unsigned>('\b'));
+        res.push_back('\b');
         i++;
       }
       break;
       case 'r':
       {
-        str.push_back(static_cast<unsigned>('\r'));
+        res.push_back('\r');
         i++;
       }
       break;
       case 'f':
       {
-        str.push_back(static_cast<unsigned>('\f'));
+        res.push_back('\f');
         i++;
       }
       break;
       case 'a':
       {
-        str.push_back(static_cast<unsigned>('\a'));
+        res.push_back('\a');
         i++;
       }
       break;
       case '\\':
       {
-        str.push_back(static_cast<unsigned>('\\'));
+        res.push_back('\\');
         i++;
       }
       break;
@@ -846,7 +847,7 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
             shex << ws[i + 1] << ws[i + 2];
             unsigned val;
             shex >> std::hex >> val;
-            str.push_back(val);
+            res.push_back(val);
             i += 3;
             isValid = true;
           }
@@ -875,36 +876,46 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
                 && ws[i + 2] < '8')
             {
               num = num * 8 + static_cast<unsigned>(ws[i + 2]) - 48;
-              str.push_back(num);
+              res.push_back(num);
               i += 3;
             }
             else
             {
-              str.push_back(num);
+              res.push_back(num);
               i += 2;
             }
           }
           else
           {
-            str.push_back(num);
+            res.push_back(num);
             i++;
           }
         }
       }
     }
   }
-  return str;
+  return res;
 }
 
 api::Term Parser::mkStringConstant(const std::string& s)
 {
-  if (language::isInputLang_smt2_6(d_solver->getOptions().getInputLanguage()))
+  if (language::isInputLang_smt2_6(
+          d_solver->getOptions().base.inputLanguage))
   {
     return d_solver->mkString(s, true);
   }
   // otherwise, we must process ad-hoc escape sequences
-  std::vector<unsigned> str = processAdHocStringEsc(s);
+  std::wstring str = processAdHocStringEsc(s);
   return d_solver->mkString(str);
+}
+
+api::Term Parser::mkCharConstant(const std::string& s)
+{
+  Assert(s.find_first_not_of("0123456789abcdefABCDEF", 0) == std::string::npos
+         && s.size() <= 5 && s.size() > 0)
+      << "Unexpected string for hexadecimal character " << s;
+  wchar_t val = static_cast<wchar_t>(std::stoul(s, 0, 16));
+  return d_solver->mkString(std::wstring(1, val));
 }
 
 }  // namespace parser

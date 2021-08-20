@@ -17,6 +17,7 @@
 
 #include "expr/skolem_manager.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/sygus/rcons_obligation.h"
 
 namespace cvc5 {
 namespace theory {
@@ -30,7 +31,7 @@ void RConsTypeInfo::initialize(TermDbSygus* tds,
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
 
-  d_enumerator.reset(new SygusEnumerator(tds, nullptr, s, true));
+  d_enumerator.reset(new SygusEnumerator(tds, nullptr, &s, true));
   d_enumerator->initialize(sm->mkDummySkolem("sygus_rcons", stn));
   d_crd.reset(new CandidateRewriteDatabase(true, false, true, false));
   // since initial samples are not always useful for equivalence checks, set
@@ -63,12 +64,20 @@ Node RConsTypeInfo::addTerm(Node n)
   return d_crd->addTerm(n, false, out);
 }
 
-void RConsTypeInfo::setBuiltinToOb(Node builtin, Node ob)
+void RConsTypeInfo::setBuiltinToOb(Node t, RConsObligation* ob)
 {
-  d_ob[builtin] = ob;
+  d_ob.emplace(t, ob);
 }
 
-Node RConsTypeInfo::builtinToOb(Node builtin) { return d_ob[builtin]; }
+RConsObligation* RConsTypeInfo::builtinToOb(Node t)
+{
+  auto it = d_ob.find(t);
+  if (it != d_ob.cend())
+  {
+    return it->second;
+  }
+  return nullptr;
+}
 
 }  // namespace quantifiers
 }  // namespace theory

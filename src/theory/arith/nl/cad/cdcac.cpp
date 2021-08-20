@@ -19,9 +19,11 @@
 #ifdef CVC5_POLY_IMP
 
 #include "options/arith_options.h"
+#include "theory/arith/nl/cad/lazard_evaluation.h"
 #include "theory/arith/nl/cad/projections.h"
 #include "theory/arith/nl/cad/variable_ordering.h"
 #include "theory/arith/nl/nl_model.h"
+#include "theory/quantifiers/extended_rewrite.h"
 
 namespace std {
 /** Generic streaming operator for std::vector. */
@@ -100,6 +102,16 @@ const std::vector<poly::Variable>& CDCAC::getVariableOrdering() const
 std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
 {
   std::vector<CACInterval> res;
+  LazardEvaluation le;
+  if (options::nlCadLifting() == options::NlCadLiftingMode::LAZARD)
+  {
+    for (size_t vid = 0; vid < cur_variable; ++vid)
+    {
+      const auto& val = d_assignment.get(d_variableOrdering[vid]);
+      le.add(d_variableOrdering[vid], val);
+    }
+    le.addFreeVariable(d_variableOrdering[cur_variable]);
+  }
   for (const auto& c : d_constraints.getConstraints())
   {
     const poly::Polynomial& p = std::get<0>(c);
@@ -114,7 +126,21 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
 
     Trace("cdcac") << "Infeasible intervals for " << p << " " << sc
                    << " 0 over " << d_assignment << std::endl;
-    auto intervals = infeasible_regions(p, d_assignment, sc);
+    std::vector<poly::Interval> intervals;
+    if (options::nlCadLifting() == options::NlCadLiftingMode::LAZARD)
+    {
+      intervals = le.infeasibleRegions(p, sc);
+      if (Trace.isOn("cdcac"))
+      {
+        auto reference = poly::infeasible_regions(p, d_assignment, sc);
+        Trace("cdcac") << "Lazard: " << intervals << std::endl;
+        Trace("cdcac") << "Regular: " << reference << std::endl;
+      }
+    }
+    else
+    {
+      intervals = poly::infeasible_regions(p, d_assignment, sc);
+    }
     for (const auto& i : intervals)
     {
       Trace("cdcac") << "-> " << i << std::endl;
@@ -163,20 +189,135 @@ bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
   return sampleOutside(infeasible, sample);
 }
 
-PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p) const
+namespace {
+
+/**
+ * This method follows the projection operator as detailed in algorithm 6 of
+ * 10.1016/j.jlamp.2020.100633, which mostly follows the projection operator due
+ * to McCallum. It uses all coefficients until one is either constant or does
+ * not vanish over the current assignment.
+ */
+PolyVector requiredCoefficientsOriginal(const poly::Polynomial& p,
+                                        const poly::Assignment& assignment)
 {
   PolyVector res;
   for (long deg = degree(p); deg >= 0; --deg)
   {
     auto coeff = coefficient(p, deg);
-    if (lp_polynomial_is_constant(coeff.get_internal())) break;
+    Assert(poly::is_constant(coeff)
+           == lp_polynomial_is_constant(coeff.get_internal()));
+    if (poly::is_constant(coeff)) break;
     res.add(coeff);
-    if (evaluate_constraint(coeff, d_assignment, poly::SignCondition::NE))
+    if (evaluate_constraint(coeff, assignment, poly::SignCondition::NE))
     {
       break;
     }
   }
   return res;
+}
+
+/**
+ * This method follows the original projection operator due to Lazard from
+ * section 3 of 10.1007/978-1-4612-2628-4_29. It uses the leading and trailing
+ * coefficient, and makes some limited efforts to avoid them in certain cases:
+ * We avoid the leading coefficient if it is constant. We avoid the trailing
+ * coefficient if the leading coefficient does not vanish over the current
+ * assignment and the trailing coefficient is not constant.
+ */
+PolyVector requiredCoefficientsLazard(const poly::Polynomial& p,
+                                      const poly::Assignment& assignment)
+{
+  PolyVector res;
+  auto lc = poly::leading_coefficient(p);
+  if (poly::is_constant(lc)) return res;
+  res.add(lc);
+  if (evaluate_constraint(lc, assignment, poly::SignCondition::NE)) return res;
+  auto tc = poly::coefficient(p, 0);
+  if (poly::is_constant(tc)) return res;
+  res.add(tc);
+  return res;
+}
+
+/**
+ * This method follows the enhancements from 10.1007/978-3-030-60026-6_8 for the
+ * projection operator due to Lazard, more specifically Section 3.3 and
+ * Definition 4. In essence, we can skip the trailing coefficient if we can show
+ * that p is not nullified by any n-1 dimensional point. The statement in the
+ * paper is slightly more general, but there is no simple way to have such a
+ * procedure T here. We simply try to show that T(f) = {} by using the extended
+ * rewriter to simplify (and (= f_i 0)) (f_i being the coefficients of f) to
+ * false.
+ */
+PolyVector requiredCoefficientsLazardModified(
+    const poly::Polynomial& p,
+    const poly::Assignment& assignment,
+    VariableMapper& vm)
+{
+  PolyVector res;
+  auto lc = poly::leading_coefficient(p);
+  // if leading coefficient is constant
+  if (poly::is_constant(lc)) return res;
+  // add leading coefficient
+  res.add(lc);
+  auto tc = poly::coefficient(p, 0);
+  // if trailing coefficient is constant
+  if (poly::is_constant(tc)) return res;
+  // if leading coefficient does not vanish over the current assignment
+  if (evaluate_constraint(lc, assignment, poly::SignCondition::NE)) return res;
+
+  // construct phi := (and (= p_i 0)) with p_i the coefficients of p
+  std::vector<Node> conditions;
+  auto zero = NodeManager::currentNM()->mkConst(Rational(0));
+  for (const auto& coeff : poly::coefficients(p))
+  {
+    conditions.emplace_back(NodeManager::currentNM()->mkNode(
+        Kind::EQUAL, nl::as_cvc_polynomial(coeff, vm), zero));
+  }
+  // if phi is false (i.e. p can not vanish)
+  quantifiers::ExtendedRewriter rew;
+  Node rewritten =
+      rew.extendedRewrite(NodeManager::currentNM()->mkAnd(conditions));
+  if (rewritten.isConst())
+  {
+    Assert(rewritten.getKind() == Kind::CONST_BOOLEAN);
+    Assert(!rewritten.getConst<bool>());
+    return res;
+  }
+  // otherwise add trailing coefficient as well
+  res.add(tc);
+  return res;
+}
+
+}  // namespace
+
+PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
+{
+  if (Trace.isOn("cdcac"))
+  {
+    Trace("cdcac") << "Poly: " << p << " over " << d_assignment << std::endl;
+    Trace("cdcac") << "Lazard:   "
+                   << requiredCoefficientsLazard(p, d_assignment) << std::endl;
+    Trace("cdcac") << "LMod: "
+                   << requiredCoefficientsLazardModified(
+                          p, d_assignment, d_constraints.varMapper())
+                   << std::endl;
+    Trace("cdcac") << "Original: "
+                   << requiredCoefficientsOriginal(p, d_assignment)
+                   << std::endl;
+  }
+  switch (options::nlCadProjection())
+  {
+    case options::NlCadProjectionMode::MCCALLUM:
+      return requiredCoefficientsOriginal(p, d_assignment);
+    case options::NlCadProjectionMode::LAZARD:
+      return requiredCoefficientsLazard(p, d_assignment);
+    case options::NlCadProjectionMode::LAZARDMOD:
+      return requiredCoefficientsLazardModified(
+          p, d_assignment, d_constraints.varMapper());
+    default:
+      Assert(false);
+      return requiredCoefficientsOriginal(p, d_assignment);
+  }
 }
 
 PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)

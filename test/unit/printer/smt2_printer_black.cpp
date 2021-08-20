@@ -21,6 +21,8 @@
 #include "options/language.h"
 #include "smt/smt_engine.h"
 #include "test_smt.h"
+#include "util/regexp.h"
+#include "util/string.h"
 
 namespace cvc5 {
 

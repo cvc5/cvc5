@@ -18,7 +18,9 @@
 #include <sstream>
 
 #include "api/cpp/cvc5.h"
+#include "options/base_options.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -33,14 +35,11 @@ void testGetInfo(api::Solver* solver, const char* s);
 
 int main()
 {
-  Options opts;
-  opts.setInputLanguage(language::input::LANG_SMTLIB_V2);
-  opts.setOutputLanguage(language::output::LANG_SMTLIB_V2);
-
   cout << language::SetLanguage(language::output::LANG_SMTLIB_V2);
 
-  std::unique_ptr<api::Solver> solver =
-      std::unique_ptr<api::Solver>(new api::Solver(&opts));
+  std::unique_ptr<api::Solver> solver = std::make_unique<api::Solver>();
+  solver->setOption("input-language", "smtlib2");
+  solver->setOption("output-language", "smtlib2");
   testGetInfo(solver.get(), ":error-behavior");
   testGetInfo(solver.get(), ":name");
   testGetInfo(solver.get(), ":authors");

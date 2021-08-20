@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --no-check-models
 ; EXPECT: sat
-(set-logic QF_ALL_SUPPORTED)
+(set-logic QF_ALL)
 (declare-heap (Int Int))
 (declare-fun x () Int)
 (declare-fun y () Int)

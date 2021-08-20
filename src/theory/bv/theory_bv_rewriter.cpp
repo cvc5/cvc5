@@ -64,7 +64,16 @@ TrustNode TheoryBVRewriter::expandDefinition(Node node)
     case kind::BITVECTOR_SDIV:
     case kind::BITVECTOR_SREM:
     case kind::BITVECTOR_SMOD: ret = eliminateBVSDiv(node); break;
+    case kind::BITVECTOR_TO_NAT:
 
+        ret = utils::eliminateBv2Nat(node);
+      
+      break;
+    case kind::INT_TO_BITVECTOR:
+
+        ret = utils::eliminateInt2Bv(node);
+      
+      break;
     default: break;
   }
   if (!ret.isNull() && node != ret)
@@ -375,9 +384,13 @@ RewriteResponse TheoryBVRewriter::RewriteNor(TNode node, bool prerewrite) {
 
 RewriteResponse TheoryBVRewriter::RewriteComp(TNode node, bool prerewrite)
 {
-  Node resultNode =
-      LinearRewriteStrategy<RewriteRule<EvalComp>, RewriteRule<BvComp> >::apply(
-          node);
+  Node resultNode = LinearRewriteStrategy<RewriteRule<EvalComp>>::apply(node);
+
+  if (node == resultNode && RewriteRule<BvComp>::applies(node))
+  {
+    resultNode = RewriteRule<BvComp>::run<false>(node);
+    return RewriteResponse(REWRITE_AGAIN, resultNode);
+  }
 
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
@@ -412,7 +425,8 @@ RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
 }
 
-RewriteResponse TheoryBVRewriter::RewritePlus(TNode node, bool prerewrite) {
+RewriteResponse TheoryBVRewriter::RewriteAdd(TNode node, bool prerewrite)
+{
   Node resultNode = node;
   if (prerewrite) {
     resultNode = LinearRewriteStrategy
@@ -420,17 +434,16 @@ RewriteResponse TheoryBVRewriter::RewritePlus(TNode node, bool prerewrite) {
         >::apply(node);
     return RewriteResponse(REWRITE_DONE, resultNode);
   }
-  
-  resultNode =  LinearRewriteStrategy
-    < RewriteRule<FlattenAssocCommut>,
-      RewriteRule<PlusCombineLikeTerms>
-      >::apply(node);
+
+  resultNode =
+      LinearRewriteStrategy<RewriteRule<FlattenAssocCommut>,
+                            RewriteRule<AddCombineLikeTerms>>::apply(node);
 
   if (node != resultNode) {
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
-  
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+
+  return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteSub(TNode node, bool prerewrite){
@@ -450,12 +463,13 @@ RewriteResponse TheoryBVRewriter::RewriteNeg(TNode node, bool prerewrite) {
       RewriteRule<NegIdemp>,
       RewriteRule<NegSub>
       >::apply(node);
-  
-  if (RewriteRule<NegPlus>::applies(node)) {
-    resultNode = RewriteRule<NegPlus>::run<false>(node);
-    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+
+  if (RewriteRule<NegAdd>::applies(node))
+  {
+    resultNode = RewriteRule<NegAdd>::run<false>(node);
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
-  
+
   if(!prerewrite) {
     if (RewriteRule<NegMult>::applies(node)) {
       resultNode = RewriteRule<NegMult>::run<false>(node);
@@ -630,8 +644,8 @@ RewriteResponse TheoryBVRewriter::RewriteRedand(TNode node, bool prerewrite){
 }
 
 RewriteResponse TheoryBVRewriter::RewriteBVToNat(TNode node, bool prerewrite) {
-  //do not use lazy rewrite strategy if equality solver is disabled
-  if( node[0].isConst() || !options::bvLazyRewriteExtf() ){
+  if (node[0].isConst())
+  {
     Node resultNode = LinearRewriteStrategy
       < RewriteRule<BVToNatEliminate>
       >::apply(node);
@@ -642,8 +656,8 @@ RewriteResponse TheoryBVRewriter::RewriteBVToNat(TNode node, bool prerewrite) {
 }
 
 RewriteResponse TheoryBVRewriter::RewriteIntToBV(TNode node, bool prerewrite) {
-  //do not use lazy rewrite strategy if equality solver is disabled
-  if( node[0].isConst() || !options::bvLazyRewriteExtf() ){
+  if (node[0].isConst())
+  {
     Node resultNode = LinearRewriteStrategy
       < RewriteRule<IntToBVEliminate>
       >::apply(node);
@@ -718,7 +732,7 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_NOR ] = RewriteNor;
   d_rewriteTable [ kind::BITVECTOR_COMP ] = RewriteComp;
   d_rewriteTable [ kind::BITVECTOR_MULT ] = RewriteMult;
-  d_rewriteTable [ kind::BITVECTOR_PLUS ] = RewritePlus;
+  d_rewriteTable[kind::BITVECTOR_ADD] = RewriteAdd;
   d_rewriteTable [ kind::BITVECTOR_SUB ] = RewriteSub;
   d_rewriteTable [ kind::BITVECTOR_NEG ] = RewriteNeg;
   d_rewriteTable [ kind::BITVECTOR_UDIV ] = RewriteUdiv;

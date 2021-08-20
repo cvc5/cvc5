@@ -16,11 +16,11 @@
 #include "theory/arith/nl/ext/split_zero_check.h"
 
 #include "expr/node.h"
-#include "expr/proof.h"
+#include "proof/proof.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/ext/ext_state.h"
+#include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
 
 namespace cvc5 {
@@ -29,7 +29,7 @@ namespace arith {
 namespace nl {
 
 SplitZeroCheck::SplitZeroCheck(ExtState* data)
-    : d_data(data), d_zero_split(d_data->d_ctx)
+    : d_data(data), d_zero_split(d_data->d_env.getUserContext())
 {
 }
 

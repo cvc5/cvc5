@@ -17,8 +17,9 @@
 
 #include <sstream>
 
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
+#include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace theory {
@@ -168,11 +169,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::neqXFromY(bool y,
   {
     return nullptr;
   }
-  return mkResolution(
+  return mkNot(mkResolution(
       mkProof(y ? PfRule::NOT_EQUIV_ELIM2 : PfRule::NOT_EQUIV_ELIM1,
               {assume(parent.notNode())}),
       parent[1],
-      !y);
+      !y));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::neqYFromX(bool x,
@@ -182,11 +183,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::neqYFromX(bool x,
   {
     return nullptr;
   }
-  return mkResolution(
+  return mkNot(mkResolution(
       mkProof(x ? PfRule::NOT_EQUIV_ELIM2 : PfRule::NOT_EQUIV_ELIM1,
               {assume(parent.notNode())}),
       parent[0],
-      !x);
+      !x));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::xorXFromY(bool negated,

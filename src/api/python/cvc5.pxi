@@ -1,11 +1,12 @@
-from collections import defaultdict
+from collections import defaultdict, Set
 from fractions import Fraction
 import sys
 
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
+from libc.stddef cimport wchar_t
 
 from libcpp.pair cimport pair
-from libcpp.set cimport set
+from libcpp.set cimport set as c_set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 
@@ -17,6 +18,7 @@ from cvc5 cimport DatatypeDecl as c_DatatypeDecl
 from cvc5 cimport DatatypeSelector as c_DatatypeSelector
 from cvc5 cimport Result as c_Result
 from cvc5 cimport RoundingMode as c_RoundingMode
+from cvc5 cimport UnknownExplanation as c_UnknownExplanation
 from cvc5 cimport Op as c_Op
 from cvc5 cimport Solver as c_Solver
 from cvc5 cimport Grammar as c_Grammar
@@ -24,10 +26,21 @@ from cvc5 cimport Sort as c_Sort
 from cvc5 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
 from cvc5 cimport ROUND_TOWARD_NEGATIVE, ROUND_TOWARD_ZERO
 from cvc5 cimport ROUND_NEAREST_TIES_TO_AWAY
+from cvc5 cimport REQUIRES_FULL_CHECK, INCOMPLETE, TIMEOUT
+from cvc5 cimport RESOURCEOUT, MEMOUT, INTERRUPTED
+from cvc5 cimport NO_STATUS, UNSUPPORTED, UNKNOWN_REASON
+from cvc5 cimport OTHER
 from cvc5 cimport Term as c_Term
 from cvc5 cimport hash as c_hash
-
+from cvc5 cimport wstring as c_wstring
+from cvc5 cimport tuple as c_tuple
+from cvc5 cimport get0, get1, get2
 from cvc5kinds cimport Kind as c_Kind
+
+cdef extern from "Python.h":
+    wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *)
+    object PyUnicode_FromWideChar(const wchar_t*, Py_ssize_t)
+    void PyMem_Free(void*)
 
 ################################## DECORATORS #################################
 def expand_list_arg(num_req_args=0):
@@ -115,6 +128,9 @@ cdef class Datatype:
         ds.cds = self.cd.getSelector(name.encode())
         return ds
 
+    def getName(self):
+        return self.cd.getName().decode()
+
     def getNumConstructors(self):
         """:return: number of constructors."""
         return self.cd.getNumConstructors()
@@ -172,7 +188,7 @@ cdef class DatatypeConstructor:
         if isinstance(index, int) and index >= 0:
             ds.cds = self.cdc[(<int?> index)]
         elif isinstance(index, str):
-            ds.cds = self.cdc[(<const string &> name.encode())]
+            ds.cds = self.cdc[(<const string &> index.encode())]
         else:
             raise ValueError("Expecting a non-negative integer or string")
         return ds
@@ -183,6 +199,11 @@ cdef class DatatypeConstructor:
     def getConstructorTerm(self):
         cdef Term term = Term(self.solver)
         term.cterm = self.cdc.getConstructorTerm()
+        return term
+
+    def getSpecializedConstructorTerm(self, Sort retSort):
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cdc.getSpecializedConstructorTerm(retSort.csort)
         return term
 
     def getTesterTerm(self):
@@ -250,6 +271,9 @@ cdef class DatatypeDecl:
 
     def isParametric(self):
         return self.cdd.isParametric()
+
+    def getName(self):
+        return self.cdd.getName().decode()
 
     def __str__(self):
         return self.cdd.toString().decode()
@@ -321,10 +345,13 @@ cdef class Op:
     def isNull(self):
         return self.cop.isNull()
 
+    def getNumIndices(self):
+        return self.cop.getNumIndices()
+
     def getIndices(self):
         indices = None
         try:
-            indices = self.cop.getIndices[string]()
+            indices = self.cop.getIndices[string]().decode()
         except:
             pass
 
@@ -399,7 +426,7 @@ cdef class Result:
         return self.cr != other.cr
 
     def getUnknownExplanation(self):
-        return self.cr.getUnknownExplanation().decode()
+        return UnknownExplanation(<int> self.cr.getUnknownExplanation())
 
     def __str__(self):
         return self.cr.toString().decode()
@@ -432,6 +459,30 @@ cdef class RoundingMode:
         return self.name
 
 
+cdef class UnknownExplanation:
+    cdef c_UnknownExplanation cue
+    cdef str name
+    def __cinit__(self, int ue):
+        # crm always assigned externally
+        self.cue = <c_UnknownExplanation> ue
+        self.name = __unknown_explanations[ue]
+
+    def __eq__(self, UnknownExplanation other):
+        return (<int> self.cue) == (<int> other.cue)
+
+    def __ne__(self, UnknownExplanation other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash((<int> self.crm, self.name))
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.name
+
+
 cdef class Solver:
     cdef c_Solver* csolver
 
@@ -441,9 +492,6 @@ cdef class Solver:
     def __dealloc__(self):
         del self.csolver
 
-    def supportsFloatingPoint(self):
-        return self.csolver.supportsFloatingPoint()
-
     def getBooleanSort(self):
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.getBooleanSort()
@@ -452,6 +500,11 @@ cdef class Solver:
     def getIntegerSort(self):
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.getIntegerSort()
+        return sort
+
+    def getNullSort(self):
+        cdef Sort sort = Sort(self)
+        sort.csort = self.csolver.getNullSort()
         return sort
 
     def getRealSort(self):
@@ -494,19 +547,24 @@ cdef class Solver:
         sort.csort = self.csolver.mkDatatypeSort(dtypedecl.cdd)
         return sort
 
-    def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts):
-        sorts = []
+    def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts = None):
+        """:return: A list of datatype sorts that correspond to dtypedecls and unresolvedSorts"""
+        if unresolvedSorts == None:
+            unresolvedSorts = set([])
+        else:
+            assert isinstance(unresolvedSorts, Set)
 
+        sorts = []
         cdef vector[c_DatatypeDecl] decls
         for decl in dtypedecls:
             decls.push_back((<DatatypeDecl?> decl).cdd)
 
-        cdef set[c_Sort] usorts
+        cdef c_set[c_Sort] usorts
         for usort in unresolvedSorts:
             usorts.insert((<Sort?> usort).csort)
 
         csorts = self.csolver.mkDatatypeSorts(
-            <const vector[c_DatatypeDecl]&> decls, <const set[c_Sort]&> usorts)
+            <const vector[c_DatatypeDecl]&> decls, <const c_set[c_Sort]&> usorts)
         for csort in csorts:
           sort = Sort(self)
           sort.csort = csort
@@ -639,7 +697,20 @@ cdef class Solver:
             term.cterm = self.csolver.mkTerm((<Op?> op).cop, v)
         return term
 
-    def mkOp(self, kind k, arg0=None, arg1 = None):
+    def mkTuple(self, sorts, terms):
+        cdef vector[c_Sort] csorts
+        cdef vector[c_Term] cterms
+
+        for s in sorts:
+            csorts.push_back((<Sort?> s).csort)
+        for s in terms:
+            cterms.push_back((<Term?> s).cterm)
+        cdef Term result = Term(self)
+        result.cterm = self.csolver.mkTuple(csorts, cterms)
+        return result
+
+    @expand_list_arg(num_req_args=0)
+    def mkOp(self, kind k, *args):
         '''
         Supports the following uses:
                 Op mkOp(Kind kind)
@@ -649,28 +720,30 @@ cdef class Solver:
                 Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)
         '''
         cdef Op op = Op(self)
+        cdef vector[int] v
 
-        if arg0 is None:
+        if len(args) == 0:
             op.cop = self.csolver.mkOp(k.k)
-        elif arg1 is None:
-            if isinstance(arg0, kind):
-                op.cop = self.csolver.mkOp(k.k, (<kind?> arg0).k)
-            elif isinstance(arg0, str):
+        elif len(args) == 1:
+            if isinstance(args[0], str):
                 op.cop = self.csolver.mkOp(k.k,
                                            <const string &>
-                                           arg0.encode())
-            elif isinstance(arg0, int):
-                op.cop = self.csolver.mkOp(k.k, <int?> arg0)
+                                           args[0].encode())
+            elif isinstance(args[0], int):
+                op.cop = self.csolver.mkOp(k.k, <int?> args[0])
+            elif isinstance(args[0], list):
+                for a in args[0]:
+                    v.push_back((<int?> a))
+                op.cop = self.csolver.mkOp(k.k, <const vector[uint32_t]&> v)   
             else:
                 raise ValueError("Unsupported signature"
-                                 " mkOp: {}".format(" X ".join([str(k), str(arg0)])))
-        else:
-            if isinstance(arg0, int) and isinstance(arg1, int):
-                op.cop = self.csolver.mkOp(k.k, <int> arg0,
-                                                       <int> arg1)
+                                 " mkOp: {}".format(" X ".join([str(k), str(args[0])])))
+        elif len(args) == 2:
+            if isinstance(args[0], int) and isinstance(args[1], int):
+                op.cop = self.csolver.mkOp(k.k, <int> args[0], <int> args[1])
             else:
                 raise ValueError("Unsupported signature"
-                                 " mkOp: {}".format(" X ".join([k, arg0, arg1])))
+                                 " mkOp: {}".format(" X ".join([k, args[0], args[1]])))
         return op
 
     def mkTrue(self):
@@ -703,6 +776,21 @@ cdef class Solver:
         return term
 
     def mkReal(self, val, den=None):
+        '''
+        Make a real number term.
+
+        Really, makes a rational term.
+
+        Can be used in various forms.
+        * Given a string "N/D" constructs the corresponding rational.
+        * Given a string "W.D" constructs the reduction of (W * P + D)/P, where
+          P is the appropriate power of 10.
+        * Given a float f, constructs the rational matching f's string
+          representation. This means that mkReal(0.3) gives 3/10 and not the
+          IEEE-754 approximation of 3/10.
+        * Given a string "W" or an integer, constructs that integer.
+        * Given two strings and/or integers N and D, constructs N/D.
+        '''
         cdef Term term = Term(self)
         if den is None:
             term.cterm = self.csolver.mkReal(str(val).encode())
@@ -729,29 +817,25 @@ cdef class Solver:
         term.cterm = self.csolver.mkEmptySet(s.csort)
         return term
 
+    def mkEmptyBag(self, Sort s):
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.mkEmptyBag(s.csort)
+        return term
 
     def mkSepNil(self, Sort sort):
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkSepNil(sort.csort)
         return term
 
-    def mkString(self, str_or_vec):
+    def mkString(self, str s, useEscSequences = None):
         cdef Term term = Term(self)
-        cdef vector[unsigned] v
-        if isinstance(str_or_vec, str):
-            for u in str_or_vec:
-                v.push_back(<unsigned> ord(u))
-            term.cterm = self.csolver.mkString(<const vector[unsigned]&> v)
-        elif isinstance(str_or_vec, list):
-            for u in str_or_vec:
-                if not isinstance(u, int):
-                    raise ValueError("List should contain ints but got: {}"
-                                     .format(str_or_vec))
-                v.push_back(<unsigned> u)
-            term.cterm = self.csolver.mkString(<const vector[unsigned]&> v)
+        cdef Py_ssize_t size
+        cdef wchar_t* tmp = PyUnicode_AsWideCharString(s, &size)
+        if isinstance(useEscSequences, bool):
+            term.cterm = self.csolver.mkString(s.encode(), <bint> useEscSequences)
         else:
-            raise ValueError("Expected string or vector of ASCII codes"
-                             " but got: {}".format(str_or_vec))
+            term.cterm = self.csolver.mkString(c_wstring(tmp, size))
+        PyMem_Free(tmp)
         return term
 
     def mkEmptySequence(self, Sort sort):
@@ -763,6 +847,47 @@ cdef class Solver:
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkUniverseSet(sort.csort)
         return term
+
+    @expand_list_arg(num_req_args=0)
+    def mkBitVector(self, *args):
+        '''
+            Supports the following arguments:
+            Term mkBitVector(int size, int val=0)
+            Term mkBitVector(string val, int base = 2)
+            Term mkBitVector(int size, string val, int base)
+         '''
+        cdef Term term = Term(self)
+        if len(args) == 1:
+            size_or_val = args[0]
+            if isinstance(args[0], int):
+                size = args[0]
+                term.cterm = self.csolver.mkBitVector(<uint32_t> size)
+            else:
+                assert isinstance(args[0], str)
+                val = args[0]
+                term.cterm = self.csolver.mkBitVector(<const string&> str(val).encode())
+        elif len(args) == 2:
+            if isinstance(args[0], int):
+                size = args[0]
+                assert isinstance(args[1], int)
+                val = args[1]
+                term.cterm = self.csolver.mkBitVector(<uint32_t> size, <uint32_t> val)
+            else:
+                assert isinstance(args[0], str)
+                assert isinstance(args[1], int)
+                val = args[0]
+                base = args[1]
+                term.cterm = self.csolver.mkBitVector(<const string&> str(val).encode(), <uint32_t> base)
+        elif len(args) == 3:
+                assert isinstance(args[0], int)
+                assert isinstance(args[1], str)
+                assert isinstance(args[2], int)
+                size = args[0]
+                val = args[1]
+                base = args[2]
+                term.cterm = self.csolver.mkBitVector(<uint32_t> size, <const string&> str(val).encode(), <uint32_t> base)
+        return term
+
 
     def mkBitVector(self, size_or_str, val = None):
         cdef Term term = Term(self)
@@ -963,6 +1088,19 @@ cdef class Solver:
         t.cterm = self.csolver.getSynthSolution(term.cterm)
         return t
 
+    def getSynthSolutions(self, list terms):
+        result = []
+        cdef vector[c_Term] vec
+        for t in terms:
+            vec.push_back((<Term?> t).cterm)
+        cresult = self.csolver.getSynthSolutions(vec)
+        for s in cresult:
+            term = Term(self)
+            term.cterm = s
+            result.append(term)
+        return result
+
+
     def synthInv(self, symbol, bound_vars, Grammar grammar=None):
         cdef Term term = Term(self)
         cdef vector[c_Term] v
@@ -973,9 +1111,6 @@ cdef class Solver:
         else:
             term.cterm = self.csolver.synthInv(symbol.encode(), <const vector[c_Term]&> v, grammar.cgrammar)
         return term
-
-    def printSynthSolution(self):
-        self.csolver.printSynthSolution(cout)
 
     @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
@@ -1550,19 +1685,6 @@ cdef class Term:
     def isNull(self):
         return self.cterm.isNull()
 
-    def getConstArrayBase(self):
-        cdef Term term = Term(self.solver)
-        term.cterm = self.cterm.getConstArrayBase()
-        return term
-
-    def getConstSequenceElements(self):
-        elems = []
-        for e in self.cterm.getConstSequenceElements():
-            term = Term(self.solver)
-            term.cterm = e
-            elems.append(term)
-        return elems
-
     def notTerm(self):
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.notTerm()
@@ -1598,9 +1720,120 @@ cdef class Term:
         term.cterm = self.cterm.iteTerm(then_t.cterm, else_t.cterm)
         return term
 
-    def isInteger(self):
-        return self.cterm.isInteger()
+    def isConstArray(self):
+        return self.cterm.isConstArray()
+
+    def getConstArrayBase(self):
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cterm.getConstArrayBase()
+        return term
+
+    def isBooleanValue(self):
+        return self.cterm.isBooleanValue()
+
+    def getBooleanValue(self):
+        return self.cterm.getBooleanValue()
+
+    def isStringValue(self):
+        return self.cterm.isStringValue()
+
+    def getStringValue(self):
+        cdef Py_ssize_t size
+        cdef c_wstring s = self.cterm.getStringValue()
+        return PyUnicode_FromWideChar(s.data(), s.size())
+
+    def isIntegerValue(self):
+        return self.cterm.isIntegerValue()
+    def isAbstractValue(self):
+        return self.cterm.isAbstractValue()
+
+    def getAbstractValue(self):
+        return self.cterm.getAbstractValue().decode()
+
+    def isFloatingPointPosZero(self):
+        return self.cterm.isFloatingPointPosZero()
     
+    def isFloatingPointNegZero(self):
+        return self.cterm.isFloatingPointNegZero()
+    
+    def isFloatingPointPosInf(self):
+        return self.cterm.isFloatingPointPosInf()
+    
+    def isFloatingPointNegInf(self):
+        return self.cterm.isFloatingPointNegInf()
+    
+    def isFloatingPointNaN(self):
+        return self.cterm.isFloatingPointNaN()
+    
+    def isFloatingPointValue(self):
+        return self.cterm.isFloatingPointValue()
+
+    def getFloatingPointValue(self):
+        cdef c_tuple[uint32_t, uint32_t, c_Term] t = self.cterm.getFloatingPointValue()
+        cdef Term term = Term(self.solver)
+        term.cterm = get2(t)
+        return (get0(t), get1(t), term)
+
+    def isSetValue(self):
+        return self.cterm.isSetValue()
+
+    def getSetValue(self):
+        elems = set()
+        for e in self.cterm.getSetValue():
+            term = Term(self.solver)
+            term.cterm = e
+            elems.add(term)
+        return elems
+
+    def isSequenceValue(self):
+        return self.cterm.isSequenceValue()
+
+    def getSequenceValue(self):
+        elems = []
+        for e in self.cterm.getSequenceValue():
+            term = Term(self.solver)
+            term.cterm = e
+            elems.append(term)
+        return elems
+
+    def isUninterpretedValue(self):
+        return self.cterm.isUninterpretedValue()
+ 
+    def getUninterpretedValue(self):
+        cdef pair[c_Sort, int32_t] p = self.cterm.getUninterpretedValue()
+        cdef Sort sort = Sort(self.solver)
+        sort.csort = p.first
+        i = p.second
+        return (sort, i)
+
+    def isTupleValue(self):
+        return self.cterm.isTupleValue()
+
+    def getTupleValue(self):
+        elems = []
+        for e in self.cterm.getTupleValue():
+            term = Term(self.solver)
+            term.cterm = e
+            elems.append(term)
+        return elems
+
+    def getIntegerValue(self):
+        return int(self.cterm.getIntegerValue().decode())
+
+    def isRealValue(self):
+        return self.cterm.isRealValue()
+
+    def getRealValue(self):
+        '''Returns the value of a real term as a Fraction'''
+        return Fraction(self.cterm.getRealValue().decode())
+
+    def isBitVectorValue(self):
+        return self.cterm.isBitVectorValue()
+
+    def getBitVectorValue(self, base = 2):
+        '''Returns the value of a bit-vector term as a 0/1 string'''
+        return self.cterm.getBitVectorValue(base).decode()
+
     def toPythonObj(self):
         '''
         Converts a constant value Term to a Python object.
@@ -1610,61 +1843,23 @@ cdef class Term:
           Int     -- returns a Python int
           Real    -- returns a Python Fraction
           BV      -- returns a Python int (treats BV as unsigned)
+          String  -- returns a Python Unicode string
           Array   -- returns a Python dict mapping indices to values
                   -- the constant base is returned as the default value
-          String  -- returns a Python Unicode string
         '''
 
-        string_repr = self.cterm.toString().decode()
-        assert string_repr
-        sort = self.getSort()
-        res = None
-        if sort.isBoolean():
-            if string_repr == "true":
-                res = True
-            else:
-                assert string_repr == "false"
-                res = False
-
-        elif sort.isInteger():
-            updated_string_repr = string_repr.strip('()').replace(' ', '')
-            try:
-                res = int(updated_string_repr)
-            except:
-                raise ValueError("Failed to convert"
-                                 " {} to an int".format(string_repr))
-
-        elif sort.isReal():
-            updated_string_repr = string_repr
-            try:
-                # rational format (/ a b) most likely
-                # note: a or b could be negated: (- a)
-                splits = [s.strip('()/')
-                          for s in updated_string_repr.strip('()/') \
-                          .replace('(- ', '(-').split()]
-                assert len(splits) == 2
-                num = int(splits[0])
-                den = int(splits[1])
-                res = Fraction(num, den)
-            except:
-                try:
-                    # could be exact: e.g., 1.0
-                    res = Fraction(updated_string_repr)
-                except:
-                    raise ValueError("Failed to convert "
-                                     "{} to a Fraction".format(string_repr))
-
-        elif sort.isBitVector():
-            # expecting format #b<bits>
-            assert string_repr[:2] == "#b"
-            python_bin_repr = "0" + string_repr[1:]
-            try:
-                res = int(python_bin_repr, 2)
-            except:
-                raise ValueError("Failed to convert bitvector "
-                                 "{} to an int".format(string_repr))
-
-        elif sort.isArray():
+        if self.isBooleanValue():
+            return self.getBooleanValue()
+        elif self.isIntegerValue():
+            return self.getIntegerValue()
+        elif self.isRealValue():
+            return self.getRealValue()
+        elif self.isBitVectorValue():
+            return int(self.getBitVectorValue(), 2)
+        elif self.isStringValue():
+            return self.getStringValue()
+        elif self.getSort().isArray():
+            res = None
             keys = []
             values = []
             base_value = None
@@ -1691,33 +1886,7 @@ cdef class Term:
             for k, v in zip(keys, values):
                 res[k] = v
 
-        elif sort.isString():
-            # Strip leading and trailing double quotes and replace double
-            # double quotes by single quotes
-            string_repr = string_repr[1:-1].replace('""', '"')
-
-            # Convert escape sequences
-            res = ''
-            escape_prefix = '\\u{'
-            i = 0
-            while True:
-              prev_i = i
-              i = string_repr.find(escape_prefix, i)
-              if i == -1:
-                res += string_repr[prev_i:]
-                break
-
-              res += string_repr[prev_i:i]
-              val = string_repr[i + len(escape_prefix):string_repr.find('}', i)]
-              res += chr(int(val, 16))
-              i += len(escape_prefix) + len(val) + 1
-        else:
-            raise ValueError("Cannot convert term {}"
-                             " of sort {} to Python object".format(string_repr,
-                                                                   sort))
-
-        assert res is not None
-        return res
+            return res
 
 
 # Generate rounding modes
@@ -1740,4 +1909,31 @@ for rm_int, name in __rounding_modes.items():
 
 del r
 del rm_int
+del name
+
+
+# Generate unknown explanations
+cdef __unknown_explanations = {
+    <int> REQUIRES_FULL_CHECK: "RequiresFullCheck",
+    <int> INCOMPLETE: "Incomplete",
+    <int> TIMEOUT: "Timeout",
+    <int> RESOURCEOUT: "Resourceout",
+    <int> MEMOUT: "Memout",
+    <int> INTERRUPTED: "Interrupted",
+    <int> NO_STATUS: "NoStatus",
+    <int> UNSUPPORTED: "Unsupported",
+    <int> OTHER: "Other",
+    <int> UNKNOWN_REASON: "UnknownReason"
+}
+
+for ue_int, name in __unknown_explanations.items():
+    u = UnknownExplanation(ue_int)
+
+    if name in dir(mod_ref):
+        raise RuntimeError("Redefinition of Python UnknownExplanation %s."%name)
+
+    setattr(mod_ref, name, u)
+
+del u
+del ue_int
 del name

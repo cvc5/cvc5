@@ -15,6 +15,7 @@
 
 #include "theory/strings/type_enumerator.h"
 
+#include "expr/sequence.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "util/string.h"
 

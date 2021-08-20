@@ -22,7 +22,6 @@
 #include "options/prop_options.h"
 #include "options/smt_options.h"
 #include "proof/clause_id.h"
-#include "proof/sat_proof.h"
 #include "prop/minisat/simp/SimpSolver.h"
 #include "util/statistics_stats.h"
 
@@ -261,7 +260,7 @@ bool MinisatSatSolver::isDecision(SatVariable decn) const {
 
 int32_t MinisatSatSolver::getDecisionLevel(SatVariable v) const
 {
-  return d_minisat->level(v);
+  return d_minisat->level(v) + d_minisat->user_level(v);
 }
 
 int32_t MinisatSatSolver::getIntroLevel(SatVariable v) const

@@ -15,25 +15,27 @@
 
 #include "smt/proof_manager.h"
 
-#include "expr/proof_checker.h"
-#include "expr/proof_node_algorithm.h"
-#include "expr/proof_node_manager.h"
 #include "options/base_options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "proof/dot/dot_printer.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
+#include "proof/proof_node_manager.h"
 #include "smt/assertions.h"
+#include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
 
 namespace cvc5 {
 namespace smt {
 
-PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
-    : d_pchecker(new ProofChecker(options::proofPedantic())),
+PfManager::PfManager(Env& env, SmtEngine* smte)
+    : d_env(env),
+      d_pchecker(new ProofChecker(options::proofPedantic())),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
-          d_pnm.get(), u, "smt::PreprocessProofGenerator")),
+          d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
       d_pfpp(new ProofPostproccess(
           d_pnm.get(),
           smte,
@@ -66,6 +68,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
     d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION_TRUST);
     d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION);
+    d_pfpp->setEliminateRule(PfRule::MACRO_ARITH_SCALE_SUM_UB);
     if (options::proofGranularityMode()
         != options::ProofGranularityMode::REWRITE)
     {
@@ -78,6 +81,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
         d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
       }
     }
+    d_pfpp->setEliminateRule(PfRule::BV_BITBLAST);
   }
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -129,9 +133,8 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   Trace("smt-proof") << "SmtEngine::setFinalProof(): make scope...\n";
 
   // Now make the final scope, which ensures that the only open leaves of the
-  // proof are the assertions, unless we are doing proofs to generate unsat
-  // cores, in which case we do not care.
-  d_finalProof = d_pnm->mkScope(pfn, assertions, !options::unsatCores());
+  // proof are the assertions.
+  d_finalProof = d_pnm->mkScope(pfn, assertions);
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 
@@ -153,7 +156,15 @@ void PfManager::printProof(std::ostream& out,
 
   if (options::proofFormatMode() == options::ProofFormatMode::DOT)
   {
-    proof::DotPrinter::print(out, fp.get());
+    proof::DotPrinter dotPrinter;
+    dotPrinter.print(out, fp.get());
+  }
+  else if (options::proofFormatMode() == options::ProofFormatMode::TPTP)
+  {
+    out << "% SZS output start Proof for " << d_env.getFilename() << std::endl;
+    // TODO (proj #37) print in TPTP compliant format
+    out << *fp;
+    out << "% SZS output end Proof for " << d_env.getFilename() << std::endl;
   }
   else
   {

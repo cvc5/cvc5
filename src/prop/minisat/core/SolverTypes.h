@@ -33,14 +33,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 namespace cvc5 {
 namespace Minisat {
-class Solver;
-}
-template <class Solver>
-class TSatProof;
-}  // namespace cvc5
 
-namespace cvc5 {
-namespace Minisat {
+class Solver;
 
 //=================================================================================================
 // Variables, literals, lifted booleans, clauses:
@@ -320,9 +314,7 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
         RegionAllocator<uint32_t>::free(clauseWord32Size(c.size(), c.has_extra()));
     }
 
-    void reloc(CRef& cr,
-               ClauseAllocator& to,
-               cvc5::TSatProof<Solver>* proof = NULL);
+    void reloc(CRef& cr, ClauseAllocator& to);
     // Implementation moved to Solver.cc.
 };
 

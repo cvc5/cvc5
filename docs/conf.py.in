@@ -12,6 +12,7 @@
 #
 
 import sys
+
 # add path to enable extensions
 sys.path.insert(0, '${CMAKE_CURRENT_SOURCE_DIR}/ext/')
 
@@ -27,8 +28,8 @@ if("${BUILD_BINDINGS_JAVA}" == "ON"):
 # -- Project information -----------------------------------------------------
 
 project = 'cvc5'
-copyright = '2021, The Authors of cvc5'
-author = 'The Authors of cvc5'
+copyright = '2021, the authors of cvc5'
+author = 'The authors of cvc5'
 
 
 # -- General configuration ---------------------------------------------------
@@ -43,9 +44,13 @@ extensions = [
         'sphinxcontrib.bibtex',
         'sphinx_tabs.tabs',
         'examples',
+        'include_build_file',
 ]
 
 bibtex_bibfiles = ['references.bib']
+
+# Make sure the target is unique
+autosectionlabel_prefix_document = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -65,7 +70,17 @@ html_theme = 'sphinx_rtd_theme'
 html_theme_options = {}
 html_static_path = ['${CMAKE_CURRENT_SOURCE_DIR}/_static/']
 html_css_files = ['custom.css']
+html_show_sourcelink = False
 
 # -- Breathe configuration ---------------------------------------------------
 breathe_default_project = "cvc5"
 breathe_domain_by_extension = {"h" : "cpp"}
+cpp_index_common_prefix = ["cvc5::api::"]
+
+# where to look for include-build-file
+ibf_folders = ['${CMAKE_CURRENT_BINARY_DIR}']
+
+# -- SMT-LIB syntax highlighting ---------------------------------------------
+from smtliblexer import SmtLibLexer
+from sphinx.highlighting import lexers
+lexers['smtlib'] = SmtLibLexer()

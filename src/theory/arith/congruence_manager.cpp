@@ -19,8 +19,9 @@
 #include "theory/arith/congruence_manager.h"
 
 #include "base/output.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
+#include "options/arith_options.h"
+#include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/constraint.h"
@@ -29,7 +30,6 @@
 #include "theory/rewriter.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
-#include "options/arith_options.h"
 
 namespace cvc5 {
 namespace theory {
@@ -71,23 +71,44 @@ ArithCongruenceManager::~ArithCongruenceManager() {}
 
 bool ArithCongruenceManager::needsEqualityEngine(EeSetupInfo& esi)
 {
+  Assert(!options::arithEqSolver());
   esi.d_notify = &d_notify;
-  esi.d_name = "theory::arith::ArithCongruenceManager";
+  esi.d_name = "arithCong::ee";
   return true;
 }
 
-void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee,
-                                        eq::ProofEqEngine* pfee)
+void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
 {
-  Assert(ee != nullptr);
-  d_ee = ee;
+  if (options::arithEqSolver())
+  {
+    // use our own copy
+    d_allocEe.reset(
+        new eq::EqualityEngine(d_notify, d_satContext, "arithCong::ee", true));
+    d_ee = d_allocEe.get();
+    if (d_pnm != nullptr)
+    {
+      // allocate an internal proof equality engine
+      d_allocPfee.reset(
+          new eq::ProofEqEngine(d_satContext, d_userContext, *d_ee, d_pnm));
+      d_ee->setProofEqualityEngine(d_allocPfee.get());
+    }
+  }
+  else
+  {
+    Assert(ee != nullptr);
+    // otherwise, we use the official one
+    d_ee = ee;
+  }
+  // set the congruence kinds on the separate equality engine
   d_ee->addFunctionKind(kind::NONLINEAR_MULT);
   d_ee->addFunctionKind(kind::EXPONENTIAL);
   d_ee->addFunctionKind(kind::SINE);
   d_ee->addFunctionKind(kind::IAND);
+  d_ee->addFunctionKind(kind::POW2);
+  // the proof equality engine is the one from the equality engine
+  d_pfee = d_ee->getProofEqualityEngine();
   // have proof equality engine only if proofs are enabled
-  Assert(isProofEnabled() == (pfee != nullptr));
-  d_pfee = pfee;
+  Assert(isProofEnabled() == (d_pfee != nullptr));
 }
 
 ArithCongruenceManager::Statistics::Statistics()
@@ -311,7 +332,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
       const auto isZeroPf = d_pnm->mkAssume(isZero);
       const auto nm = NodeManager::currentNM();
       const auto sumPf = d_pnm->mkNode(
-          PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
+          PfRule::MACRO_ARITH_SCALE_SUM_UB,
           {isZeroPf, pf},
           // Trick for getting correct, opposing signs.
           {nm->mkConst(Rational(-1 * cSign)), nm->mkConst(Rational(cSign))});

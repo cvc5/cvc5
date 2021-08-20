@@ -18,8 +18,8 @@
 #ifndef CVC5__THEORY__OUTPUT_CHANNEL_H
 #define CVC5__THEORY__OUTPUT_CHANNEL_H
 
+#include "proof/trust_node.h"
 #include "theory/incomplete_id.h"
-#include "theory/trust_node.h"
 #include "util/resource_manager.h"
 
 namespace cvc5 {
@@ -120,16 +120,6 @@ class OutputChannel {
    * @param p The properties of the lemma
    */
   virtual void lemma(TNode n, LemmaProperty p = LemmaProperty::NONE) = 0;
-
-  /**
-   * Request a split on a new theory atom.  This is equivalent to
-   * calling lemma({OR n (NOT n)}).
-   *
-   * @param n - a theory atom; must be of Boolean type
-   */
-  void split(TNode n);
-
-  virtual void splitLemma(TNode n, bool removable = false) = 0;
 
   /**
    * If a decision is made on n, it must be in the phase specified.

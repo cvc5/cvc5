@@ -20,8 +20,10 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
-#include "theory/strings/word.h"
 #include "theory/rewriter.h"
+#include "theory/strings/word.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -287,7 +289,7 @@ bool TermUtil::isAssoc(Kind k, bool reqNAry)
     }
   }
   return k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND || k == OR
-         || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
+         || k == XOR || k == BITVECTOR_ADD || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
          || k == BITVECTOR_XNOR || k == BITVECTOR_CONCAT || k == STRING_CONCAT
          || k == UNION || k == INTERSECTION || k == JOIN || k == PRODUCT
@@ -304,7 +306,7 @@ bool TermUtil::isComm(Kind k, bool reqNAry)
     }
   }
   return k == EQUAL || k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND
-         || k == OR || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
+         || k == OR || k == XOR || k == BITVECTOR_ADD || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
          || k == BITVECTOR_XNOR || k == UNION || k == INTERSECTION
          || k == SEP_STAR;
@@ -389,7 +391,7 @@ Node TermUtil::mkTypeValueOffset(TypeNode tn,
     else if (tn.isBitVector())
     {
       val_o = Rewriter::rewrite(
-          NodeManager::currentNM()->mkNode(BITVECTOR_PLUS, val, offset_val));
+          NodeManager::currentNM()->mkNode(BITVECTOR_ADD, val, offset_val));
     }
   }
   return val_o;
@@ -443,10 +445,8 @@ bool TermUtil::isIdempotentArg(Node n, Kind ik, int arg)
   TypeNode tn = n.getType();
   if (n == mkTypeValue(tn, 0))
   {
-    if (ik == PLUS || ik == OR || ik == XOR || ik == BITVECTOR_PLUS
-        || ik == BITVECTOR_OR
-        || ik == BITVECTOR_XOR
-        || ik == STRING_CONCAT)
+    if (ik == PLUS || ik == OR || ik == XOR || ik == BITVECTOR_ADD
+        || ik == BITVECTOR_OR || ik == BITVECTOR_XOR || ik == STRING_CONCAT)
     {
       return true;
     }
@@ -533,7 +533,7 @@ Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
         return mkTypeValue(NodeManager::currentNM()->stringType(), 0);
       }
     }
-    else if (ik == STRING_STRIDOF)
+    else if (ik == STRING_INDEXOF)
     {
       if (arg == 0 || arg == 1)
       {
@@ -564,7 +564,7 @@ Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
       {
         return mkTypeValue(NodeManager::currentNM()->stringType(), 0);
       }
-      else if (ik == STRING_STRIDOF)
+      else if (ik == STRING_INDEXOF)
       {
         Assert(arg == 2);
         return mkTypeValue(NodeManager::currentNM()->integerType(), -1);

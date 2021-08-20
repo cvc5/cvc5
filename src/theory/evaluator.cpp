@@ -572,7 +572,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::STRING_STRCTN:
+        case kind::STRING_CONTAINS:
         {
           const String& s = results[currNode[0]].d_str;
           const String& t = results[currNode[1]].d_str;
@@ -580,7 +580,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::STRING_STRIDOF:
+        case kind::STRING_INDEXOF:
         {
           const String& s = results[currNode[0]].d_str;
           Integer s_len(s.size());
@@ -606,7 +606,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::STRING_STRREPL:
+        case kind::STRING_REPLACE:
         {
           const String& s = results[currNode[0]].d_str;
           const String& x = results[currNode[1]].d_str;
@@ -734,7 +734,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::BITVECTOR_PLUS:
+        case kind::BITVECTOR_ADD:
         {
           BitVector res = results[currNode[0]].d_bv;
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)

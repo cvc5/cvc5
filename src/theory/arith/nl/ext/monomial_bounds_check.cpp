@@ -16,8 +16,8 @@
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
 
 #include "expr/node.h"
-#include "expr/proof.h"
 #include "options/arith_options.h"
+#include "proof/proof.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
@@ -207,7 +207,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
       }
       // compute if bound is not satisfied, and store what is required
       // for a possible refinement
-      if (options::nlExtTangentPlanes())
+      if (d_data->d_env.getOptions().arith.nlExtTangentPlanes)
       {
         if (is_false_lit)
         {

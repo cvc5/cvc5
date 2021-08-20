@@ -22,6 +22,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "theory/theory.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -434,7 +435,7 @@ void ArithEntail::getArithApproximations(Node a,
         }
       }
     }
-    else if (aak == STRING_STRREPL)
+    else if (aak == STRING_REPLACE)
     {
       // over,under-approximations for len( replace( x, y, z ) )
       // notice this is either len( x ) or ( len( x ) + len( z ) - len( y ) )
@@ -505,7 +506,7 @@ void ArithEntail::getArithApproximations(Node a,
       }
     }
   }
-  else if (ak == STRING_STRIDOF)
+  else if (ak == STRING_INDEXOF)
   {
     // over,under-approximations for indexof( x, y, n )
     if (isOverApprox)

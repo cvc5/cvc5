@@ -15,6 +15,8 @@
 
 #include "expr/term_context.h"
 
+#include "theory/theory.h"
+
 namespace cvc5 {
 
 uint32_t TermContext::computeValueOp(TNode t, uint32_t tval) const
@@ -131,6 +133,15 @@ void PolarityTermContext::getFlags(uint32_t val, bool& hasPol, bool& pol)
 {
   hasPol = val == 0;
   pol = val == 2;
+}
+
+uint32_t TheoryLeafTermContext::initialValue() const { return 0; }
+
+uint32_t TheoryLeafTermContext::computeValue(TNode t,
+                                             uint32_t tval,
+                                             size_t index) const
+{
+  return theory::Theory::isLeafOf(t, d_theoryId) ? 1 : tval;
 }
 
 }  // namespace cvc5

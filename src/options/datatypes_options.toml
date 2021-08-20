@@ -1,5 +1,5 @@
 id     = "DATATYPES"
-name   = "Datatypes theory"
+name   = "Datatypes Theory"
 
 # How to handle selectors applied to incorrect constructors.  If this option is set,
 # then we do not rewrite such a selector term to an arbitrary ground term.  
@@ -169,6 +169,6 @@ name   = "Datatypes theory"
   name       = "sygusAbortSize"
   category   = "regular"
   long       = "sygus-abort-size=N"
-  type       = "int"
+  type       = "int64_t"
   default    = "-1"
   help       = "tells enumerative sygus to only consider solutions up to term size N (-1 == no limit, default)"

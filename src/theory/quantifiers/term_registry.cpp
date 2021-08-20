@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/term_registry.h"
 
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -59,7 +60,6 @@ void TermRegistry::finishInit(FirstOrderModel* fm,
 
 void TermRegistry::presolve()
 {
-  d_termDb->presolve();
   d_presolve = false;
   // add all terms to database
   if (options::incrementalSolving() && !options::termDbCd())

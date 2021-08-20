@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --incremental
-; COMMAND-LINE: --incremental --bv-solver=simple
+; COMMAND-LINE: --incremental --bv-solver=bitblast-internal
 ; EXPECT: sat
 ; EXPECT: sat
 (set-logic ALL)

@@ -49,8 +49,7 @@ RegExpSolver::RegExpSolver(SolverState& s,
       d_regexp_opr(skc)
 {
   d_emptyString = NodeManager::currentNM()->mkConst(::cvc5::String(""));
-  std::vector<Node> nvec;
-  d_emptyRegexp = NodeManager::currentNM()->mkNode(REGEXP_EMPTY, nvec);
+  d_emptyRegexp = NodeManager::currentNM()->mkNode(REGEXP_EMPTY);
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -126,11 +125,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
     {
       for (const Node& m : mr.second)
       {
-        bool polarity = m.getKind() != NOT;
-        if (polarity || !options::stringIgnNegMembership())
-        {
-          allMems[m] = mr.first;
-        }
+        allMems[m] = mr.first;
       }
     }
 

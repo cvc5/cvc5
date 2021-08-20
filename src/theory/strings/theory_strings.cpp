@@ -15,7 +15,10 @@
 
 #include "theory/strings/theory_strings.h"
 
+#include "expr/attribute.h"
+#include "expr/bound_var_manager.h"
 #include "expr/kind.h"
+#include "expr/sequence.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
@@ -37,21 +40,26 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-TheoryStrings::TheoryStrings(context::Context* c,
-                             context::UserContext* u,
-                             OutputChannel& out,
-                             Valuation valuation,
-                             const LogicInfo& logicInfo,
-                             ProofNodeManager* pnm)
-    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo, pnm),
+/**
+ * Attribute used for making unique (bound variables) which correspond to
+ * unique element values used in sequence models. See use in collectModelValues
+ * below.
+ */
+struct SeqModelVarAttributeId
+{
+};
+using SeqModelVarAttribute = expr::Attribute<SeqModelVarAttributeId, Node>;
+
+TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
+    : Theory(THEORY_STRINGS, env, out, valuation),
       d_notify(*this),
       d_statistics(),
-      d_state(c, u, d_valuation),
+      d_state(env, d_valuation),
       d_eagerSolver(d_state),
-      d_termReg(d_state, d_statistics, pnm),
+      d_termReg(d_state, d_statistics, d_pnm),
       d_extTheoryCb(),
-      d_extTheory(d_extTheoryCb, c, u, out),
-      d_im(*this, d_state, d_termReg, d_extTheory, d_statistics, pnm),
+      d_im(*this, d_state, d_termReg, d_extTheory, d_statistics, d_pnm),
+      d_extTheory(d_extTheoryCb, getSatContext(), getUserContext(), d_im),
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(d_state, d_im),
       d_csolver(d_state, d_im, d_termReg, d_bsolver),
@@ -69,8 +77,8 @@ TheoryStrings::TheoryStrings(context::Context* c,
                 d_csolver,
                 d_esolver,
                 d_statistics),
-      d_regexp_elim(options::regExpElimAgg(), pnm, u),
-      d_stringsFmf(c, u, valuation, d_termReg)
+      d_regexp_elim(options::regExpElimAgg(), d_pnm, getUserContext()),
+      d_stringsFmf(getSatContext(), getUserContext(), valuation, d_termReg)
 {
   d_termReg.finishInit(&d_im);
 
@@ -103,6 +111,9 @@ bool TheoryStrings::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
   esi.d_name = "theory::strings::ee";
+  esi.d_notifyNewClass = true;
+  esi.d_notifyMerge = true;
+  esi.d_notifyDisequal = true;
   return true;
 }
 
@@ -123,18 +134,19 @@ void TheoryStrings::finishInit()
   // `seq.nth` is not always defined, and so we do not evaluate it eagerly.
   d_equalityEngine->addFunctionKind(kind::SEQ_NTH, false);
   // extended functions
-  d_equalityEngine->addFunctionKind(kind::STRING_STRCTN, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_CONTAINS, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_LEQ, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_SUBSTR, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_UPDATE, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_ITOS, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_STOI, eagerEval);
-  d_equalityEngine->addFunctionKind(kind::STRING_STRIDOF, eagerEval);
-  d_equalityEngine->addFunctionKind(kind::STRING_STRREPL, eagerEval);
-  d_equalityEngine->addFunctionKind(kind::STRING_STRREPLALL, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_INDEXOF, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_INDEXOF_RE, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_REPLACE, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_ALL, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_RE, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_RE_ALL, eagerEval);
-  d_equalityEngine->addFunctionKind(kind::STRING_STRREPLALL, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_ALL, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TOLOWER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TOUPPER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REV, eagerEval);
@@ -210,7 +222,10 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
     Trace("strings-debug-model") << d_esolver.debugPrintModel() << std::endl;
   }
   Trace("strings-model") << "TheoryStrings::collectModelValues" << std::endl;
+  // Collects representatives by types and orders sequence types by how nested
+  // they are
   std::map<TypeNode, std::unordered_set<Node> > repSet;
+  std::unordered_set<TypeNode> toProcess;
   // Generate model
   // get the relevant string equivalence classes
   for (const Node& s : termSet)
@@ -220,31 +235,51 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
     {
       Node r = d_state.getRepresentative(s);
       repSet[tn].insert(r);
+      toProcess.insert(tn);
     }
   }
-  for (const std::pair<const TypeNode, std::unordered_set<Node> >& rst : repSet)
+
+  while (!toProcess.empty())
   {
-    // get partition of strings of equal lengths, per type
-    std::map<TypeNode, std::vector<std::vector<Node> > > colT;
-    std::map<TypeNode, std::vector<Node> > ltsT;
-    std::vector<Node> repVec(rst.second.begin(), rst.second.end());
-    d_state.separateByLength(repVec, colT, ltsT);
-    // now collect model info for the type
-    TypeNode st = rst.first;
-    if (!collectModelInfoType(st, rst.second, colT[st], ltsT[st], m))
+    // Pick one of the remaining types to collect model values for
+    TypeNode tn = *toProcess.begin();
+    if (!collectModelInfoType(tn, toProcess, repSet, m))
     {
       return false;
     }
   }
+
   return true;
 }
 
-bool TheoryStrings::collectModelInfoType(TypeNode tn,
-                                         const std::unordered_set<Node>& repSet,
-                                         std::vector<std::vector<Node> >& col,
-                                         std::vector<Node>& lts,
-                                         TheoryModel* m)
+bool TheoryStrings::collectModelInfoType(
+    TypeNode tn,
+    std::unordered_set<TypeNode>& toProcess,
+    const std::map<TypeNode, std::unordered_set<Node> >& repSet,
+    TheoryModel* m)
 {
+  // Make sure that the model values for the element type of sequences are
+  // computed first
+  if (tn.isSequence() && tn.getSequenceElementType().isSequence())
+  {
+    TypeNode tnElem = tn.getSequenceElementType();
+    if (toProcess.find(tnElem) != toProcess.end()
+        && !collectModelInfoType(tnElem, toProcess, repSet, m))
+    {
+      return false;
+    }
+  }
+  toProcess.erase(tn);
+
+  // get partition of strings of equal lengths for the representatives of the
+  // current type
+  std::map<TypeNode, std::vector<std::vector<Node> > > colT;
+  std::map<TypeNode, std::vector<Node> > ltsT;
+  const std::vector<Node> repVec(repSet.at(tn).begin(), repSet.at(tn).end());
+  d_state.separateByLength(repVec, colT, ltsT);
+  const std::vector<std::vector<Node> >& col = colT[tn];
+  const std::vector<Node>& lts = ltsT[tn];
+
   NodeManager* nm = NodeManager::currentNM();
   std::map< Node, Node > processed;
   //step 1 : get all values for known lengths
@@ -321,14 +356,20 @@ bool TheoryStrings::collectModelInfoType(TypeNode tn,
             Node argVal;
             if (nfe.d_nf[0][0].getType().isStringLike())
             {
-              argVal = d_state.getRepresentative(nfe.d_nf[0][0]);
+              // By this point, we should have assigned model values for the
+              // elements of this sequence type because of the check in the
+              // beginning of this method
+              argVal = m->getRepresentative(nfe.d_nf[0][0]);
             }
             else
             {
-              // otherwise, it is a shared term
-              argVal = d_valuation.getModelValue(nfe.d_nf[0][0]);
+              // Otherwise, we use the term itself. We cannot get the model
+              // value of this term, since it might not be available yet, as
+              // it may belong to a theory that has not built its model yet.
+              // Hence, we assign a (non-constant) skeleton (seq.unit argVal).
+              argVal = nfe.d_nf[0][0];
             }
-            Assert(!argVal.isNull());
+            Assert(!argVal.isNull()) << "No value for " << nfe.d_nf[0][0];
             Node c = Rewriter::rewrite(nm->mkNode(SEQ_UNIT, argVal));
             pure_eq_assign[eqc] = c;
             Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
@@ -453,6 +494,38 @@ bool TheoryStrings::collectModelInfoType(TypeNode tn,
               return false;
             }
             c = sel->getCurrent();
+            // if we are a sequence with infinite element type
+            if (tn.isSequence()
+                && !d_state.isFiniteType(tn.getSequenceElementType()))
+            {
+              // Make a skeleton instead. In particular, this means that
+              // a value:
+              //   (seq.++ (seq.unit 0) (seq.unit 1) (seq.unit 2))
+              // becomes:
+              //   (seq.++ (seq.unit k_0) (seq.unit k_1) (seq.unit k_2))
+              // where k_0, k_1, k_2 are fresh integer variables. These
+              // variables will be assigned values in the standard way by the
+              // model. This construction is necessary since the strings solver
+              // must constrain the length of the model of an equivalence class
+              // (e.g. in this case to length 3); moreover we cannot assign a
+              // concrete value since it may conflict with other skeletons we
+              // have assigned, e.g. for the case of (seq.unit argVal) above.
+              SkolemManager* sm = nm->getSkolemManager();
+              BoundVarManager* bvm = nm->getBoundVarManager();
+              Assert(c.getKind() == CONST_SEQUENCE);
+              const Sequence& sn = c.getConst<Sequence>();
+              const std::vector<Node>& snvec = sn.getVec();
+              std::vector<Node> skChildren;
+              for (const Node& snv : snvec)
+              {
+                TypeNode etn = snv.getType();
+                Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
+                // use a skolem, not a bound variable
+                Node kv = sm->mkPurifySkolem(v, "smv");
+                skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
+              }
+              c = utils::mkConcat(skChildren, tn);
+            }
             // increment
             sel->increment();
           } while (m->hasTerm(c));
@@ -478,7 +551,7 @@ bool TheoryStrings::collectModelInfoType(TypeNode tn,
   }
   Trace("strings-model") << "String Model : Pure Assigned." << std::endl;
   //step 4 : assign constants to all other equivalence classes
-  for (const Node& rn : repSet)
+  for (const Node& rn : repVec)
   {
     if (processed.find(rn) == processed.end())
     {
@@ -915,6 +988,15 @@ void TheoryStrings::checkRegisterTermsNormalForms()
 TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
+  if (atom.getKind() == EQUAL)
+  {
+    // always apply aggressive equality rewrites here
+    Node ret = d_rewriter.rewriteEqualityExt(atom);
+    if (ret != atom)
+    {
+      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+    }
+  }
   if (atom.getKind() == STRING_FROM_CODE)
   {
     // str.from_code(t) --->

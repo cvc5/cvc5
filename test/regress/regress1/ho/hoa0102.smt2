@@ -1,6 +1,6 @@
-; COMMAND-LINE: --uf-ho --full-saturate-quant
+; COMMAND-LINE:  --full-saturate-quant
 ; EXPECT: unsat
-(set-logic ALL)
+(set-logic HO_ALL)
 (set-info :status unsat)
 (declare-sort Com$ 0)
 (declare-sort Glb$ 0)

@@ -1,5 +1,5 @@
 % EXPECT: unsat
-OPTION "logic" "ALL_SUPPORTED";
+OPTION "logic" "ALL";
 DATATYPE unitb = ub(data : BITVECTOR(1)) END;
 BvPair: TYPE = [BITVECTOR(1), unitb, BITVECTOR(1)];
 x : SET OF BvPair;

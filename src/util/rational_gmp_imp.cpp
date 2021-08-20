@@ -85,7 +85,7 @@ int Rational::absCmp(const Rational& q) const{
 
 
 /** Return an exact rational for a double d. */
-Maybe<Rational> Rational::fromDouble(double d)
+std::optional<Rational> Rational::fromDouble(double d)
 {
   using namespace std;
   if(isfinite(d)){
@@ -93,7 +93,7 @@ Maybe<Rational> Rational::fromDouble(double d)
     mpq_set_d(q.d_value.get_mpq_t(), d);
     return q;
   }
-  return Maybe<Rational>();
+  return std::optional<Rational>();
 }
 
 }  // namespace cvc5

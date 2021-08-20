@@ -134,8 +134,6 @@ public:
 
 public:
  //----------user interface for instantiations (see quantifiers/instantiate.h)
- /** print solution for synthesis conjectures */
- void printSynthSolution(std::ostream& out);
  /** get list of quantified formulas that were instantiated */
  void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs);
  /** get instantiation term vectors */
@@ -208,6 +206,8 @@ public:
   /** quantifiers reduced */
   BoolMap d_quants_red;
   std::map<Node, Node> d_quants_red_lem;
+  /** Number of rounds we have instantiated */
+  uint32_t d_numInstRoundsLemma;
 };/* class QuantifiersEngine */
 
 }  // namespace theory

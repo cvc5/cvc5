@@ -16,6 +16,7 @@
 #include "theory/quantifiers/sygus/sygus_unif_io.h"
 
 #include "options/quantifiers_options.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/sygus/example_infer.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
@@ -835,7 +836,8 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
       if (!vcc.isNull()
           && (d_solution.isNull()
               || (!d_solution.isNull()
-                  && d_tds->getSygusTermSize(vcc) < d_sol_term_size)))
+                  && datatypes::utils::getSygusTermSize(vcc)
+                         < d_sol_term_size)))
       {
         if (Trace.isOn("sygus-pbe"))
         {
@@ -846,7 +848,7 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
         }
         d_solution = vcc;
         newSolution = vcc;
-        d_sol_term_size = d_tds->getSygusTermSize(vcc);
+        d_sol_term_size = datatypes::utils::getSygusTermSize(vcc);
         Trace("sygus-pbe-sol")
             << "PBE solution size: " << d_sol_term_size << std::endl;
         // We've determined its feasible, now, enable information gain and
@@ -952,7 +954,7 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
         Assert(d_examples_out[i].isConst());
         Trace("sygus-sui-cterm-debug")
             << "  " << results[i] << " <> " << d_examples_out[i];
-        Node cont = nm->mkNode(STRING_STRCTN, d_examples_out[i], results[i]);
+        Node cont = nm->mkNode(STRING_CONTAINS, d_examples_out[i], results[i]);
         Node contr = Rewriter::rewrite(cont);
         if (contr == d_false)
         {

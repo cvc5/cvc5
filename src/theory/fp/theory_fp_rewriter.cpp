@@ -39,6 +39,7 @@
 #include "base/check.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/fp/fp_converter.h"
+#include "util/floatingpoint.h"
 
 namespace cvc5 {
 namespace theory {
@@ -145,7 +146,8 @@ namespace rewrite {
   {
     Assert(node.getKind() == kind::FLOATINGPOINT_SUB);
     Node negation = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_NEG,node[2]);
-    Node addition = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_PLUS,node[0],node[1],negation);
+    Node addition = NodeManager::currentNM()->mkNode(
+        kind::FLOATINGPOINT_ADD, node[0], node[1], negation);
     return RewriteResponse(REWRITE_DONE, addition);
   }
 
@@ -274,7 +276,7 @@ namespace rewrite {
 
   RewriteResponse reorderBinaryOperation (TNode node, bool isPreRewrite) {
     Kind k = node.getKind();
-    Assert((k == kind::FLOATINGPOINT_PLUS) || (k == kind::FLOATINGPOINT_MULT));
+    Assert((k == kind::FLOATINGPOINT_ADD) || (k == kind::FLOATINGPOINT_MULT));
     Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
 
     if (node[1] > node[2]) {
@@ -290,7 +292,8 @@ namespace rewrite {
     Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
 
     if (node[1] > node[2]) {
-      Node normal = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_FMA,node[0],node[2],node[1],node[3]);
+      Node normal = NodeManager::currentNM()->mkNode(
+          kind::FLOATINGPOINT_FMA, {node[0], node[2], node[1], node[3]});
       return RewriteResponse(REWRITE_DONE, normal);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
@@ -438,9 +441,9 @@ RewriteResponse neg(TNode node, bool isPreRewrite)
                              node[0].getConst<FloatingPoint>().negate()));
 }
 
-RewriteResponse plus(TNode node, bool isPreRewrite)
+RewriteResponse add(TNode node, bool isPreRewrite)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_PLUS);
+  Assert(node.getKind() == kind::FLOATINGPOINT_ADD);
   Assert(node.getNumChildren() == 3);
 
   RoundingMode rm(node[0].getConst<RoundingMode>());
@@ -449,8 +452,8 @@ RewriteResponse plus(TNode node, bool isPreRewrite)
 
   Assert(arg1.getSize() == arg2.getSize());
 
-  return RewriteResponse(
-      REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.plus(rm, arg2)));
+  return RewriteResponse(REWRITE_DONE,
+                         NodeManager::currentNM()->mkConst(arg1.add(rm, arg2)));
 }
 
 RewriteResponse mult(TNode node, bool isPreRewrite)
@@ -1023,12 +1026,10 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     bool result;
     switch (k)
     {
-#ifdef CVC5_USE_SYMFPU
       case kind::FLOATINGPOINT_COMPONENT_NAN: result = arg0.isNaN(); break;
       case kind::FLOATINGPOINT_COMPONENT_INF: result = arg0.isInfinite(); break;
       case kind::FLOATINGPOINT_COMPONENT_ZERO: result = arg0.isZero(); break;
       case kind::FLOATINGPOINT_COMPONENT_SIGN: result = arg0.getSign(); break;
-#endif
       default: Unreachable() << "Unknown kind used in componentFlag"; break;
     }
 
@@ -1047,11 +1048,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     // \todo Add a proper interface for this sort of thing to FloatingPoint #1915
     return RewriteResponse(
         REWRITE_DONE,
-#ifdef CVC5_USE_SYMFPU
         NodeManager::currentNM()->mkConst((BitVector)arg0.getExponent())
-#else
-        node
-#endif
     );
   }
 
@@ -1063,11 +1060,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
     return RewriteResponse(
         REWRITE_DONE,
-#ifdef CVC5_USE_SYMFPU
         NodeManager::currentNM()->mkConst((BitVector)arg0.getSignificand())
-#else
-        node
-#endif
     );
   }
 
@@ -1077,29 +1070,28 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
     BitVector value;
 
-#ifdef CVC5_USE_SYMFPU
     /* \todo fix the numbering of rounding modes so this doesn't need
      * to call symfpu at all and remove the dependency on fp_converter.h #1915 */
     RoundingMode arg0(node[0].getConst<RoundingMode>());
     switch (arg0)
     {
-      case ROUND_NEAREST_TIES_TO_EVEN:
+      case RoundingMode::ROUND_NEAREST_TIES_TO_EVEN:
         value = symfpuSymbolic::traits::RNE().getConst<BitVector>();
         break;
 
-      case ROUND_NEAREST_TIES_TO_AWAY:
+      case RoundingMode::ROUND_NEAREST_TIES_TO_AWAY:
         value = symfpuSymbolic::traits::RNA().getConst<BitVector>();
         break;
 
-      case ROUND_TOWARD_POSITIVE:
+      case RoundingMode::ROUND_TOWARD_POSITIVE:
         value = symfpuSymbolic::traits::RTP().getConst<BitVector>();
         break;
 
-      case ROUND_TOWARD_NEGATIVE:
+      case RoundingMode::ROUND_TOWARD_NEGATIVE:
         value = symfpuSymbolic::traits::RTN().getConst<BitVector>();
         break;
 
-      case ROUND_TOWARD_ZERO:
+      case RoundingMode::ROUND_TOWARD_ZERO:
         value = symfpuSymbolic::traits::RTZ().getConst<BitVector>();
         break;
 
@@ -1107,9 +1099,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
         Unreachable() << "Unknown rounding mode in roundingModeBitBlast";
         break;
     }
-#else
-    value = BitVector(5U, 0U);
-#endif
     return RewriteResponse(REWRITE_DONE,
                            NodeManager::currentNM()->mkConst(value));
   }
@@ -1141,7 +1130,7 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
   d_preRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::compactAbs;
   d_preRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
-  d_preRewriteTable[kind::FLOATINGPOINT_PLUS] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_ADD] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_SUB] =
       rewrite::convertSubtractionToAddition;
   d_preRewriteTable[kind::FLOATINGPOINT_MULT] = rewrite::identity;
@@ -1232,8 +1221,7 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
   d_postRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::compactAbs;
   d_postRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
-  d_postRewriteTable[kind::FLOATINGPOINT_PLUS] =
-      rewrite::reorderBinaryOperation;
+  d_postRewriteTable[kind::FLOATINGPOINT_ADD] = rewrite::reorderBinaryOperation;
   d_postRewriteTable[kind::FLOATINGPOINT_SUB] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_MULT] =
       rewrite::reorderBinaryOperation;
@@ -1324,7 +1312,7 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
   d_constantFoldTable[kind::FLOATINGPOINT_FP] = constantFold::fpLiteral;
   d_constantFoldTable[kind::FLOATINGPOINT_ABS] = constantFold::abs;
   d_constantFoldTable[kind::FLOATINGPOINT_NEG] = constantFold::neg;
-  d_constantFoldTable[kind::FLOATINGPOINT_PLUS] = constantFold::plus;
+  d_constantFoldTable[kind::FLOATINGPOINT_ADD] = constantFold::add;
   d_constantFoldTable[kind::FLOATINGPOINT_MULT] = constantFold::mult;
   d_constantFoldTable[kind::FLOATINGPOINT_DIV] = constantFold::div;
   d_constantFoldTable[kind::FLOATINGPOINT_FMA] = constantFold::fma;
@@ -1498,11 +1486,11 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
 
             NodeManager* nm = NodeManager::currentNM();
 
-            Node rne(nm->mkConst(ROUND_NEAREST_TIES_TO_EVEN));
-            Node rna(nm->mkConst(ROUND_NEAREST_TIES_TO_AWAY));
-            Node rtz(nm->mkConst(ROUND_TOWARD_POSITIVE));
-            Node rtn(nm->mkConst(ROUND_TOWARD_NEGATIVE));
-            Node rtp(nm->mkConst(ROUND_TOWARD_ZERO));
+            Node rne(nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
+            Node rna(nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY));
+            Node rtz(nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE));
+            Node rtn(nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE));
+            Node rtp(nm->mkConst(RoundingMode::ROUND_TOWARD_ZERO));
 
             TNode rm(res.d_node[0]);
 

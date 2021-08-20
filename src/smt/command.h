@@ -278,6 +278,12 @@ class CVC5_EXPORT Command
    */
   bool d_muted;
 
+  /**
+   * Reset the given solver in-place (keep the object at the same memory
+   * location).
+   */
+  static void resetSolver(api::Solver* solver);
+
  protected:
   // These methods rely on Command being a friend of classes in the API.
   // Subclasses of command should use these methods for conversions,
@@ -348,10 +354,9 @@ class CVC5_EXPORT AssertCommand : public Command
 {
  protected:
   api::Term d_term;
-  bool d_inUnsatCore;
 
  public:
-  AssertCommand(const api::Term& t, bool inUnsatCore = true);
+  AssertCommand(const api::Term& t);
 
   api::Term getTerm() const;
 
@@ -706,10 +711,9 @@ class CVC5_EXPORT QueryCommand : public Command
  protected:
   api::Term d_term;
   api::Result d_result;
-  bool d_inUnsatCore;
 
  public:
-  QueryCommand(const api::Term& t, bool inUnsatCore = true);
+  QueryCommand(const api::Term& t);
 
   api::Term getTerm() const;
   api::Result getResult() const;
@@ -1077,6 +1081,7 @@ class CVC5_EXPORT GetInstantiationsCommand : public Command
  public:
   GetInstantiationsCommand();
 
+  static bool isEnabled(api::Solver* solver, const api::Result& res);
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
@@ -1090,25 +1095,6 @@ class CVC5_EXPORT GetInstantiationsCommand : public Command
  protected:
   api::Solver* d_solver;
 }; /* class GetInstantiationsCommand */
-
-class CVC5_EXPORT GetSynthSolutionCommand : public Command
-{
- public:
-  GetSynthSolutionCommand();
-
-  void invoke(api::Solver* solver, SymbolManager* sm) override;
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* clone() const override;
-  std::string getCommandName() const override;
-  void toStream(
-      std::ostream& out,
-      int toDepth = -1,
-      size_t dag = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const override;
-
- protected:
-  api::Solver* d_solver;
-}; /* class GetSynthSolutionCommand */
 
 /** The command (get-interpol s B (G)?)
  *

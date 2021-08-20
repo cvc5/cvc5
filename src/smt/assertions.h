@@ -65,24 +65,20 @@ class Assertions
    * upcoming check-sat call.
    *
    * @param assumptions The assumptions of the upcoming check-sat call.
-   * @param inUnsatCore Whether assumptions are in the unsat core.
    * @param isEntailmentCheck Whether we are checking entailment of assumptions
    * in the upcoming check-sat call.
    */
   void initializeCheckSat(const std::vector<Node>& assumptions,
-                          bool inUnsatCore,
                           bool isEntailmentCheck);
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
    * literals and conjunction of literals.  Returns false if
-   * immediately determined to be inconsistent.  This version
-   * takes a Boolean flag to determine whether to include this asserted
-   * formula in an unsat core (if one is later requested).
+   * immediately determined to be inconsistent.
    *
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
-  void assertFormula(const Node& n, bool inUnsatCore = true);
+  void assertFormula(const Node& n);
   /**
    * Assert that n corresponds to an assertion from a define-fun or
    * define-fun-rec command.
@@ -145,7 +141,6 @@ class Assertions
    * (this is used to distinguish assertions and assumptions)
    */
   void addFormula(TNode n,
-                  bool inUnsatCore,
                   bool inInput,
                   bool isAssumption,
                   bool isFunDef,

@@ -1,3 +1,5 @@
+; COMMAND-LINE:
+; EXPECT: unsat
 (set-option :incremental false)
 (set-info :source "Hand-crafted bit-vector benchmarks.  Some are from the SVC benchmark suite.
 Contributed by Vijay Ganesh (vganesh@stanford.edu).  Translated into SMT-LIB

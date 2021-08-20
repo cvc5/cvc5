@@ -20,10 +20,10 @@
 #include <vector>
 
 #include "expr/node_algorithm.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
+#include "proof/eager_proof_generator.h"
+#include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
 #include "theory/booleans/proof_circuit_propagator.h"
-#include "theory/eager_proof_generator.h"
 #include "theory/theory.h"
 #include "util/hash.h"
 #include "util/utility.h"
@@ -777,15 +777,15 @@ void CircuitPropagator::setProof(ProofNodeManager* pnm,
 {
   d_pnm = pnm;
   d_epg.reset(new EagerProofGenerator(pnm, ctx));
-  d_proofInternal.reset(
-      new LazyCDProofChain(pnm, true, ctx, d_epg.get(), true));
+  d_proofInternal.reset(new LazyCDProofChain(
+      pnm, true, ctx, d_epg.get(), true, "CircuitPropInternalLazyChain"));
   if (defParent != nullptr)
   {
     // If we provide a parent proof generator (defParent), we want the ASSUME
     // leafs of proofs provided by this class to call the getProofFor method on
     // the parent. To do this, we use a LazyCDProofChain.
-    d_proofExternal.reset(
-        new LazyCDProofChain(pnm, true, ctx, defParent, false));
+    d_proofExternal.reset(new LazyCDProofChain(
+        pnm, true, ctx, defParent, false, "CircuitPropExternalLazyChain"));
   }
 }
 

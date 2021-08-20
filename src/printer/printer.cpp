@@ -101,14 +101,29 @@ void Printer::toStream(std::ostream& out, const UnsatCore& core) const
 void Printer::toStream(std::ostream& out, const InstantiationList& is) const
 {
   out << "(instantiations " << is.d_quant << std::endl;
-  for (const std::vector<Node>& i : is.d_inst)
+  for (const InstantiationVec& i : is.d_inst)
   {
-    out << "  ( ";
-    for (const Node& n : i)
+    out << "  ";
+    if (i.d_id != theory::InferenceId::UNKNOWN)
+    {
+      out << "(! ";
+    }
+    out << "( ";
+    for (const Node& n : i.d_vec)
     {
       out << n << " ";
     }
-    out << ")" << std::endl;
+    out << ")";
+    if (i.d_id != theory::InferenceId::UNKNOWN)
+    {
+      out << " :source " << i.d_id;
+      if (!i.d_pfArg.isNull())
+      {
+        out << " " << i.d_pfArg;
+      }
+      out << ")";
+    }
+    out << std::endl;
   }
   out << ")" << std::endl;
 }
@@ -135,12 +150,12 @@ Printer* Printer::getPrinter(OutputLanguage lang)
     // the singleton "null" expr.  So we guard against segfault
     if (not Options::isCurrentNull())
     {
-      if (Options::current().wasSetByUser(options::outputLanguage))
+      if (Options::current().base.outputLanguageWasSetByUser)
       {
         lang = options::outputLanguage();
       }
       if (lang == language::output::LANG_AUTO
-          && Options::current().wasSetByUser(options::inputLanguage))
+          && Options::current().base.inputLanguageWasSetByUser)
       {
         lang = language::toOutputLanguage(options::inputLanguage());
       }
@@ -331,11 +346,6 @@ void Printer::toStreamCmdGetProof(std::ostream& out) const
 void Printer::toStreamCmdGetInstantiations(std::ostream& out) const
 {
   printUnknownCommand(out, "get-instantiations");
-}
-
-void Printer::toStreamCmdGetSynthSolution(std::ostream& out) const
-{
-  printUnknownCommand(out, "get-synth-solution");
 }
 
 void Printer::toStreamCmdGetInterpol(std::ostream& out,

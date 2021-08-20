@@ -28,10 +28,12 @@
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
+#include "proof/trust_node.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/attempt_solution_simplex.h"
+#include "theory/arith/branch_and_bound.h"
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint.h"
 #include "theory/arith/delta_rational.h"
@@ -47,7 +49,6 @@
 #include "theory/arith/proof_checker.h"
 #include "theory/arith/soi_simplex.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
@@ -56,9 +57,11 @@
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
-namespace theory {
 
 class EagerProofGenerator;
+
+namespace theory {
+
 class TheoryModel;
 
 namespace arith {
@@ -85,6 +88,9 @@ private:
   static const uint32_t RESET_START = 2;
 
   TheoryArith& d_containing;
+  Env& d_env;
+
+  const Options& options() const { return d_env.getOptions(); }
 
   /**
    * Whether we encountered non-linear arithmetic at any time during solving.
@@ -92,7 +98,8 @@ private:
   bool d_foundNl;
 
   BoundInfoMap d_rowTracking;
-
+  /** Branch and bound utility */
+  BranchAndBound& d_bab;
   // For proofs
   /** Manages the proof nodes of this theory. */
   ProofNodeManager* d_pnm;
@@ -419,13 +426,7 @@ private:
   DeltaRational getDeltaValue(TNode term) const
       /* throw(DeltaRationalException, ModelException) */;
  public:
-  TheoryArithPrivate(TheoryArith& containing,
-                     context::Context* c,
-                     context::UserContext* u,
-                     OutputChannel& out,
-                     Valuation valuation,
-                     const LogicInfo& logicInfo,
-                     ProofNodeManager* pnm);
+  TheoryArithPrivate(TheoryArith& containing, Env& env, BranchAndBound& bab);
   ~TheoryArithPrivate();
 
   //--------------------------------- initialization
@@ -693,8 +694,8 @@ private:
   inline TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
   inline void debugPrintFacts() const { d_containing.debugPrintFacts(); }
   inline context::Context* getSatContext() const { return d_containing.getSatContext(); }
-  void outputTrustedLemma(TrustNode lem, InferenceId id);
-  void outputLemma(TNode lem, InferenceId id);
+  bool outputTrustedLemma(TrustNode lem, InferenceId id);
+  bool outputLemma(TNode lem, InferenceId id);
   void outputTrustedConflict(TrustNode conf, InferenceId id);
   void outputConflict(TNode lit, InferenceId id);
   void outputPropagate(TNode lit);

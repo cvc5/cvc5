@@ -20,7 +20,7 @@
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -47,7 +47,7 @@ class TheoryRewriteEq : public PreprocessingPass
    *   (= x y) ---> (and (>= x y) (<= x y))
    * Returns the trust node corresponding to the rewrite.
    */
-  theory::TrustNode rewriteAssertion(TNode assertion);
+  TrustNode rewriteAssertion(TNode assertion);
 };
 
 }  // namespace passes

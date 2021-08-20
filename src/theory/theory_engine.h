@@ -25,6 +25,7 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "options/theory_options.h"
+#include "proof/trust_node.h"
 #include "theory/atom_requests.h"
 #include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
@@ -32,7 +33,6 @@
 #include "theory/sort_inference.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
-#include "theory/trust_node.h"
 #include "theory/trust_substitutions.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
@@ -44,7 +44,6 @@ namespace cvc5 {
 
 class Env;
 class ResourceManager;
-class OutputManager;
 class TheoryEngineProofGenerator;
 class ProofChecker;
 
@@ -132,9 +131,6 @@ class TheoryEngine {
   TypeNode d_sepLocType;
   TypeNode d_sepDataType;
 
-  /** Reference to the output manager of the smt engine */
-  OutputManager& d_outMgr;
-
   //--------------------------------- new proofs
   /** Proof node manager used by this theory engine, if proofs are enabled */
   ProofNodeManager* d_pnm;
@@ -191,7 +187,10 @@ class TheoryEngine {
    * generator (if it exists),
    * @param theoryId The theory that sent the conflict
    */
-  void conflict(theory::TrustNode conflict, theory::TheoryId theoryId);
+  void conflict(TrustNode conflict, theory::TheoryId theoryId);
+
+  /** set in conflict */
+  void markInConflict();
 
   /**
    * Debugging flag to ensure that shutdown() is called before the
@@ -272,13 +271,15 @@ class TheoryEngine {
    * @param atomsTo the theory that atoms of the lemma should be sent to
    * @param from the theory that sent the lemma
    */
-  void lemma(theory::TrustNode node,
+  void lemma(TrustNode node,
              theory::LemmaProperty p,
-             theory::TheoryId atomsTo = theory::THEORY_LAST,
              theory::TheoryId from = theory::THEORY_LAST);
 
-  /** Enusre that the given atoms are send to the given theory */
-  void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
+  /** Ensure atoms from the given node are sent to the given theory */
+  void ensureLemmaAtoms(TNode n, theory::TheoryId atomsTo);
+  /** Ensure that the given atoms are sent to the given theory */
+  void ensureLemmaAtoms(const std::vector<TNode>& atoms,
+                        theory::TheoryId atomsTo);
 
   /** sort inference module */
   std::unique_ptr<theory::SortInference> d_sortInfer;
@@ -294,7 +295,7 @@ class TheoryEngine {
 
  public:
   /** Constructs a theory engine */
-  TheoryEngine(Env& env, OutputManager& outMgr, ProofNodeManager* pnm);
+  TheoryEngine(Env& env);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -313,12 +314,8 @@ class TheoryEngine {
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new theory::EngineOutputChannel(this, theoryId);
-    d_theoryTable[theoryId] = new TheoryClass(getSatContext(),
-                                              getUserContext(),
-                                              *d_theoryOut[theoryId],
-                                              theory::Valuation(this),
-                                              d_logicInfo,
-                                              d_pnm);
+    d_theoryTable[theoryId] =
+        new TheoryClass(d_env, *d_theoryOut[theoryId], theory::Valuation(this));
     theory::Rewriter::registerTheoryRewriter(
         theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }
@@ -422,8 +419,7 @@ class TheoryEngine {
    * where the node is the one to be explained, and the theory is the
    * theory that sent the literal.
    */
-  theory::TrustNode getExplanation(
-      std::vector<NodeTheoryPair>& explanationVector);
+  TrustNode getExplanation(std::vector<NodeTheoryPair>& explanationVector);
 
   /** Are proofs enabled? */
   bool isProofEnabled() const;
@@ -433,7 +429,7 @@ class TheoryEngine {
    * Preprocess rewrite equality, called by the preprocessor to rewrite
    * equalities appearing in the input.
    */
-  theory::TrustNode ppRewriteEquality(TNode eq);
+  TrustNode ppRewriteEquality(TNode eq);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
@@ -477,8 +473,7 @@ class TheoryEngine {
    * take this proof into account (when proofs are enabled).
    */
   theory::Theory::PPAssertStatus solve(
-      theory::TrustNode tliteral,
-      theory::TrustSubstitutionMap& substitutionOut);
+      TrustNode tliteral, theory::TrustSubstitutionMap& substitutionOut);
 
   /**
    * Preregister a Theory atom with the responsible theory (or
@@ -540,7 +535,7 @@ class TheoryEngine {
   /**
    * Returns an explanation of the node propagated to the SAT solver.
    */
-  theory::TrustNode getExplanation(TNode node);
+  TrustNode getExplanation(TNode node);
 
   /**
    * Get the pointer to the model object used by this theory engine.

@@ -27,13 +27,21 @@ namespace api {
 /* Kind                                                                       */
 /* -------------------------------------------------------------------------- */
 
-// TODO(Gereon): Fix links that involve std::vector. See https://github.com/doxygen/doxygen/issues/8503
+// TODO(Gereon): Fix links that involve std::vector. See
+// https://github.com/doxygen/doxygen/issues/8503
+// clang-format off
 /**
  * The kind of a cvc5 term.
  *
- * Note that the underlying type of Kind must be signed (to enable range
- * checks for validity). The size of this type depends on the size of
- * cvc5::Kind (NodeValue::NBITS_KIND, currently 10 bits, see expr/node_value.h).
+ * \internal
+ *
+ * Note that the API type `cvc5::api::Kind` roughly corresponds to
+ * `cvc5::Kind`, but is a different type. It hides internal kinds that should
+ * not be exported to the API, and maps all kinds that we want to export to its
+ * corresponding internal kinds. The underlying type of `cvc5::api::Kind` must
+ * be signed (to enable range checks for validity). The size of this type
+ * depends on the size of `cvc5::Kind` (`NodeValue::NBITS_KIND`, currently 10
+ * bits, see expr/node_value.h).
  */
 enum CVC5_EXPORT Kind : int32_t
 {
@@ -404,6 +412,22 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
   IAND,
+  /**
+   * Operator for raising 2 to a non-negative integer  power
+   *
+   * Create with:
+   *   - `Solver::mkOp(Kind kind) const`
+   *
+
+   * Parameters:
+   *   - 1: Op of kind IAND
+   *   - 2: Integer term
+   *
+   * Create with:
+   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
+   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   */
+  POW2,
 #if 0
   /* Synonym for MULT.  */
   NONLINEAR_MULT,
@@ -888,7 +912,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  BITVECTOR_PLUS,
+  BITVECTOR_ADD,
   /**
    * Subtraction of two bit-vectors.
    *
@@ -911,12 +935,8 @@ enum CVC5_EXPORT Kind : int32_t
    */
   BITVECTOR_NEG,
   /**
-   * Unsigned division of two bit-vectors, truncating towards 0.
-   *
-   * Note: The semantics of this operator depends on `bv-div-zero-const`
-   * (default is true).  Depending on the setting, a division by zero is
-   * treated as all ones (default, corresponds to SMT-LIB >=2.6) or an
-   * uninterpreted value (corresponds to SMT-LIB <2.6).
+   * Unsigned division of two bit-vectors, truncating towards 0. If the divisor
+   * is zero, the result is all ones.
    *
    * Parameters:
    *   - 1..2: Terms of bit-vector sort (sorts must match)
@@ -927,12 +947,8 @@ enum CVC5_EXPORT Kind : int32_t
    */
   BITVECTOR_UDIV,
   /**
-   * Unsigned remainder from truncating division of two bit-vectors.
-   *
-   * Note: The semantics of this operator depends on `bv-div-zero-const`
-   * (default is true). Depending on the setting, if the modulus is zero, the
-   * result is either the dividend (default, corresponds to SMT-LIB >=2.6) or
-   * an uninterpreted value (corresponds to SMT-LIB <2.6).
+   * Unsigned remainder from truncating division of two bit-vectors. If the
+   * modulus is zero, the result is the dividend.
    *
    * Parameters:
    *   - 1..2: Terms of bit-vector sort (sorts must match)
@@ -943,13 +959,9 @@ enum CVC5_EXPORT Kind : int32_t
    */
   BITVECTOR_UREM,
   /**
-   * Two's complement signed division of two bit-vectors.
-   *
-   * Note: The semantics of this operator depends on `bv-div-zero-const`
-   * (default is true). By default, the function returns all ones if the
-   * dividend is positive and one if the dividend is negative (corresponds to
-   * SMT-LIB >=2.6). If the option is disabled, a division by zero is treated
-   * as an uninterpreted value (corresponds to SMT-LIB <2.6).
+   * Two's complement signed division of two bit-vectors. If the divisor is
+   * zero and the dividend is positive, the result is all ones. If the divisor
+   * is zero and the dividend is negative, the result is one.
    *
    * Parameters:
    *   - 1..2: Terms of bit-vector sort (sorts must match)
@@ -960,13 +972,8 @@ enum CVC5_EXPORT Kind : int32_t
    */
   BITVECTOR_SDIV,
   /**
-   * Two's complement signed remainder of two bit-vectors
-   * (sign follows dividend).
-   *
-   * Note: The semantics of this operator depends on `bv-div-zero-const`
-   * (default is true, corresponds to SMT-LIB >=2.6). Depending on the setting,
-   * if the modulus is zero, the result is either the dividend (default) or an
-   * uninterpreted value (corresponds to SMT-LIB <2.6).
+   * Two's complement signed remainder of two bit-vectors (sign follows
+   * dividend). If the modulus is zero, the result is the dividend.
    *
    * Parameters:
    *   - 1..2: Terms of bit-vector sort (sorts must match)
@@ -977,13 +984,8 @@ enum CVC5_EXPORT Kind : int32_t
    */
   BITVECTOR_SREM,
   /**
-   * Two's complement signed remainder
-   * (sign follows divisor).
-   *
-   * Note: The semantics of this operator depends on `bv-div-zero-const`
-   * (default is on). Depending on the setting, if the modulus is zero, the
-   * result is either the dividend (default, corresponds to SMT-LIB >=2.6) or
-   * an uninterpreted value (corresponds to SMT-LIB <2.6).
+   * Two's complement signed remainder (sign follows divisor). If the modulus
+   * is zero, the result is the dividend.
    *
    * Parameters:
    *   - 1..2: Terms of bit-vector sort (sorts must match)
@@ -1426,7 +1428,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  FLOATINGPOINT_PLUS,
+  FLOATINGPOINT_ADD,
   /**
    * Floating-point sutraction.
    *
@@ -1864,9 +1866,10 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    *
-   * Note: We currently support the creation of constant arrays, but under some
+   * @note We currently support the creation of constant arrays, but under some
    * conditions when there is a chain of equalities connecting two constant
-   * arrays, the solver doesn't know what to do and aborts (Issue <a href="https://github.com/CVC4/CVC4/issues/1667">#1667</a>).
+   * arrays, the solver doesn't know what to do and aborts (Issue <a
+   * href="https://github.com/cvc5/cvc5/issues/1667">#1667</a>).
    */
   CONST_ARRAY,
   /**
@@ -2629,6 +2632,22 @@ enum CVC5_EXPORT Kind : int32_t
    */
   STRING_INDEXOF,
   /**
+   * String index-of regular expression match.
+   * Returns the first match of a regular expression r in a string s. If the
+   * index is negative or greater than the length of string s1, or r does not
+   * match a substring in s after index i, the result is -1.
+   *
+   * Parameters:
+   *   - 1: Term of sort String (string s)
+   *   - 2: Term of sort RegLan (regular expression r)
+   *   - 3: Term of sort Integer (index i)
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  STRING_INDEXOF_RE,
+  /**
    * String replace.
    * Replaces a string s2 in a string s1 with string s3. If s2 does not appear
    * in s1, s1 is returned unmodified.
@@ -3200,7 +3219,7 @@ enum CVC5_EXPORT Kind : int32_t
    *     (seq.++ (seq.unit c1) ... (seq.unit cn))
    *
    * where n>=0 and c1, ..., cn are constants of some sort. The elements
-   * can be extracted by `Term::getConstSequenceElements()`.
+   * can be extracted by `Term::getSequenceValue()`.
    */
   CONST_SEQUENCE,
   /**
@@ -3389,6 +3408,7 @@ enum CVC5_EXPORT Kind : int32_t
   /** Marks the upper-bound of this enumeration. */
   LAST_KIND
 };
+// clang-format on
 
 /**
  * Get the string representation of a given kind.

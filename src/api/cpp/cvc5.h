@@ -49,6 +49,10 @@ class Random;
 class Result;
 class StatisticsRegistry;
 
+namespace main {
+class CommandExecutor;
+}
+
 namespace api {
 
 class Solver;
@@ -179,8 +183,8 @@ class CVC5_EXPORT Result
   bool isNotEntailed() const;
 
   /**
-   * Return true if query was a checkEntailed() () query and cvc5 was not able
-   * to determine if it is entailed.
+   * Return true if query was a checkEntailed() query and cvc5 was not able to
+   * determine if it is entailed.
    */
   bool isEntailmentUnknown() const;
 
@@ -778,6 +782,8 @@ namespace cvc5::api {
 /* Op                                                                     */
 /* -------------------------------------------------------------------------- */
 
+class Term;
+
 /**
  * A cvc5 operator.
  * An operator is a term that represents certain operators, instantiated
@@ -839,6 +845,14 @@ class CVC5_EXPORT Op
   size_t getNumIndices() const;
 
   /**
+   * Get the index at position i.
+   * @param i the position of the index to return
+   * @return the index at position i
+   */
+
+  Term operator[](size_t i) const;
+
+  /**
    * Get the indices used to create this Op.
    * Supports the following template arguments:
    *   - string
@@ -886,6 +900,19 @@ class CVC5_EXPORT Op
    * @return true iff this Op is indexed
    */
   bool isIndexedHelper() const;
+
+  /**
+   * Helper for getNumIndices
+   * @return the number of indices of this op
+   */
+  size_t getNumIndicesHelper() const;
+
+  /**
+   * Helper for operator[](size_t i).
+   * @param i position of the index. Should be less than getNumIndicesHelper().
+   * @return the index at position i
+   */
+  Term getIndexHelper(size_t index) const;
 
   /**
    * The associated solver object.
@@ -945,7 +972,7 @@ class CVC5_EXPORT Term
 
  public:
   /**
-   * Constructor.
+   * Constructor for a null term.
    */
   Term();
 
@@ -973,28 +1000,28 @@ class CVC5_EXPORT Term
   bool operator!=(const Term& t) const;
 
   /**
-   * Comparison for ordering on terms.
+   * Comparison for ordering on terms by their id.
    * @param t the term to compare to
    * @return true if this term is less than t
    */
   bool operator<(const Term& t) const;
 
   /**
-   * Comparison for ordering on terms.
+   * Comparison for ordering on terms by their id.
    * @param t the term to compare to
    * @return true if this term is greater than t
    */
   bool operator>(const Term& t) const;
 
   /**
-   * Comparison for ordering on terms.
+   * Comparison for ordering on terms by their id.
    * @param t the term to compare to
    * @return true if this term is less than or equal to t
    */
   bool operator<=(const Term& t) const;
 
   /**
-   * Comparison for ordering on terms.
+   * Comparison for ordering on terms by their id.
    * @param t the term to compare to
    * @return true if this term is greater than or equal to t
    */
@@ -1052,20 +1079,6 @@ class CVC5_EXPORT Term
    * @return true if this Term is a null term
    */
   bool isNull() const;
-
-  /**
-   *  Return the base (element stored at all indices) of a constant array
-   *  throws an exception if the kind is not CONST_ARRAY
-   *  @return the base value
-   */
-  Term getConstArrayBase() const;
-
-  /**
-   *  Return the elements of a constant sequence
-   *  throws an exception if the kind is not CONST_SEQUENCE
-   *  @return the elements of the constant sequence.
-   */
-  std::vector<Term> getConstSequenceElements() const;
 
   /**
    * Boolean negation.
@@ -1213,63 +1226,215 @@ class CVC5_EXPORT Term
   const_iterator end() const;
 
   /**
-   * @return true if the term is an integer that fits within std::int32_t.
+   * @return true if the term is an integer value that fits within int32_t.
    */
-  bool isInt32() const;
+  bool isInt32Value() const;
   /**
-   * @return the stored integer as a std::int32_t.
-   * Note: Asserts isInt32().
+   * Asserts isInt32Value().
+   * @return the integer term as a int32_t.
    */
-  std::int32_t getInt32() const;
+  int32_t getInt32Value() const;
   /**
-   * @return true if the term is an integer that fits within std::uint32_t.
+   * @return true if the term is an integer value that fits within uint32_t.
    */
-  bool isUInt32() const;
+  bool isUInt32Value() const;
   /**
-   * @return the stored integer as a std::uint32_t.
-   * Note: Asserts isUInt32().
+   * Asserts isUInt32Value().
+   * @return the integer term as a uint32_t.
    */
-  std::uint32_t getUInt32() const;
+  uint32_t getUInt32Value() const;
   /**
-   * @return true if the term is an integer that fits within std::int64_t.
+   * @return true if the term is an integer value that fits within int64_t.
    */
-  bool isInt64() const;
+  bool isInt64Value() const;
   /**
-   * @return the stored integer as a std::int64_t.
-   * Note: Asserts isInt64().
+   * Asserts isInt64Value().
+   * @return the integer term as a int64_t.
    */
-  std::int64_t getInt64() const;
+  int64_t getInt64Value() const;
   /**
-   * @return true if the term is an integer that fits within std::uint64_t.
+   * @return true if the term is an integer value that fits within uint64_t.
    */
-  bool isUInt64() const;
+  bool isUInt64Value() const;
   /**
-   * @return the stored integer as a std::uint64_t.
-   * Note: Asserts isUInt64().
+   * Asserts isUInt64Value().
+   * @return the integer term as a uint64_t.
    */
-  std::uint64_t getUInt64() const;
+  uint64_t getUInt64Value() const;
   /**
-   * @return true if the term is an integer.
+   * @return true if the term is an integer value.
    */
-  bool isInteger() const;
+  bool isIntegerValue() const;
   /**
-   * @return the stored integer in (decimal) string representation.
-   * Note: Asserts isInteger().
+   * Asserts isIntegerValue().
+   * @return the integer term in (decimal) string representation.
    */
-  std::string getInteger() const;
+  std::string getIntegerValue() const;
 
   /**
-   * @return true if the term is a string constant.
+   * @return true if the term is a string value.
    */
-  bool isString() const;
+  bool isStringValue() const;
   /**
-   * @return the stored string constant.
-   *
-   * Note: This method is not to be confused with toString() which returns the
-   *       term in some string representation, whatever data it may hold.
-   *       Asserts isString().
+   * Note: This method is not to be confused with toString() which returns
+   * the term in some string representation, whatever data it may hold. Asserts
+   * isStringValue().
+   * @return the string term as a native string value.
    */
-  std::wstring getString() const;
+  std::wstring getStringValue() const;
+
+  /**
+   * @return true if the term is a rational value whose numerator and
+   * denominator fit within int32_t and uint32_t, respectively.
+   */
+  bool isReal32Value() const;
+  /**
+   * Asserts isReal32Value().
+   * @return the representation of a rational value as a pair of its numerator
+   * and denominator.
+   */
+  std::pair<int32_t, uint32_t> getReal32Value() const;
+  /**
+   * @return true if the term is a rational value whose numerator and
+   * denominator fit within int64_t and uint64_t, respectively.
+   */
+  bool isReal64Value() const;
+  /**
+   * Asserts isReal64Value().
+   * @return the representation of a rational value as a pair of its numerator
+   * and denominator.
+   */
+  std::pair<int64_t, uint64_t> getReal64Value() const;
+  /**
+   * @return true if the term is a rational value.
+   */
+  bool isRealValue() const;
+  /**
+   * Asserts isRealValue().
+   * @return the representation of a rational value as a (decimal) string.
+   */
+  std::string getRealValue() const;
+
+  /**
+   * @return true if the term is a constant array.
+   */
+  bool isConstArray() const;
+  /**
+   * Asserts isConstArray().
+   * @return the base (element stored at all indices) of a constant array
+   */
+  Term getConstArrayBase() const;
+
+  /**
+   * @return true if the term is a Boolean value.
+   */
+  bool isBooleanValue() const;
+  /**
+   * Asserts isBooleanValue().
+   * @return the representation of a Boolean value as a native Boolean value.
+   */
+  bool getBooleanValue() const;
+
+  /**
+   * @return true if the term is a bit-vector value.
+   */
+  bool isBitVectorValue() const;
+  /**
+   * Asserts isBitVectorValue().
+   * @return the representation of a bit-vector value in string representation.
+   * Supported bases are 2 (bit string), 10 (decimal string) or 16 (hexadecimal
+   * string).
+   */
+  std::string getBitVectorValue(uint32_t base = 2) const;
+
+  /**
+   * @return true if the term is an abstract value.
+   */
+  bool isAbstractValue() const;
+  /**
+   * Asserts isAbstractValue().
+   * @return the representation of an abstract value as a string.
+   */
+  std::string getAbstractValue() const;
+
+  /**
+   * @return true if the term is a tuple value.
+   */
+  bool isTupleValue() const;
+  /**
+   * Asserts isTupleValue().
+   * @return the representation of a tuple value as a vector of terms.
+   */
+  std::vector<Term> getTupleValue() const;
+
+  /**
+   * @return true if the term is the floating-point value for positive zero.
+   */
+  bool isFloatingPointPosZero() const;
+  /**
+   * @return true if the term is the floating-point value for negative zero.
+   */
+  bool isFloatingPointNegZero() const;
+  /**
+   * @return true if the term is the floating-point value for positive
+   * infinity.
+   */
+  bool isFloatingPointPosInf() const;
+  /**
+   * @return true if the term is the floating-point value for negative
+   * infinity.
+   */
+  bool isFloatingPointNegInf() const;
+  /**
+   * @return true if the term is the floating-point value for not a number.
+   */
+  bool isFloatingPointNaN() const;
+  /**
+   * @return true if the term is a floating-point value.
+   */
+  bool isFloatingPointValue() const;
+  /**
+   * Asserts isFloatingPointValue().
+   * @return the representation of a floating-point value as a tuple of the
+   * exponent width, the significand width and a bit-vector value.
+   */
+  std::tuple<uint32_t, uint32_t, Term> getFloatingPointValue() const;
+
+  /**
+   * @return true if the term is a set value.
+   */
+  bool isSetValue() const;
+  /**
+   * Asserts isSetValue().
+   * @return the representation of a set value as a set of terms.
+   */
+  std::set<Term> getSetValue() const;
+
+  /**
+   * @return true if the term is a sequence value.
+   */
+  bool isSequenceValue() const;
+  /**
+   * Asserts isSequenceValue().
+   * Note that it is usually necessary for sequences to call
+   * `Solver::simplify()` to turn a sequence that is constructed by, e.g.,
+   * concatenation of unit sequences, into a sequence value.
+   * @return the representation of a sequence value as a vector of terms.
+   */
+  std::vector<Term> getSequenceValue() const;
+
+  /**
+   * @return true if the term is a value from an uninterpreted sort.
+   */
+  bool isUninterpretedValue() const;
+  /**
+  bool @return() const;
+   * Asserts isUninterpretedValue().
+   * @return the representation of an uninterpreted value as a pair of its
+  sort and its
+   * index.
+   */
+  std::pair<Sort, int32_t> getUninterpretedValue() const;
 
  protected:
   /**
@@ -1280,6 +1445,15 @@ class CVC5_EXPORT Term
  private:
   /** Helper to convert a vector of Terms to internal Nodes. */
   std::vector<Node> static termVectorToNodes(const std::vector<Term>& terms);
+
+  /** Helper method to collect all elements of a set. */
+  static void collectSet(std::set<Term>& set,
+                         const cvc5::Node& node,
+                         const Solver* slv);
+  /** Helper method to collect all elements of a sequence. */
+  static void collectSequence(std::vector<Term>& seq,
+                              const cvc5::Node& node,
+                              const Solver* slv);
 
   /**
    * Constructor.
@@ -2536,7 +2710,7 @@ class CVC5_EXPORT Statistics
   /**
    * Retrieve the statistic with the given name.
    * Asserts that a statistic with the given name actually exists and throws
-   * a `CVC4ApiRecoverableException` if it does not.
+   * a `CVC5ApiRecoverableException` if it does not.
    * @param name Name of the statistic.
    * @return The statistic with the given name.
    */
@@ -2578,6 +2752,7 @@ class CVC5_EXPORT Solver
   friend class Grammar;
   friend class Op;
   friend class cvc5::Command;
+  friend class cvc5::main::CommandExecutor;
   friend class Sort;
   friend class Term;
 
@@ -2591,7 +2766,7 @@ class CVC5_EXPORT Solver
    * @param opts an optional pointer to a solver options object
    * @return the Solver
    */
-  Solver(Options* opts = nullptr);
+  Solver(const Options* opts = nullptr);
 
   /**
    * Destructor.
@@ -2603,12 +2778,6 @@ class CVC5_EXPORT Solver
    */
   Solver(const Solver&) = delete;
   Solver& operator=(const Solver&) = delete;
-
-  /* .................................................................... */
-  /* Solver Configuration                                                 */
-  /* .................................................................... */
-
-  bool supportsFloatingPoint() const;
 
   /* .................................................................... */
   /* Sorts Handling                                                       */
@@ -3070,35 +3239,23 @@ class CVC5_EXPORT Solver
   Term mkSepNil(const Sort& sort) const;
 
   /**
-   * Create a String constant.
+   * Create a String constant from a `std::string` which may contain SMT-LIB
+   * compatible escape sequences like `\u1234` to encode unicode characters.
    * @param s the string this constant represents
-   * @param useEscSequences determines whether escape sequences in \p s should
-   * be converted to the corresponding character
+   * @param useEscSequences determines whether escape sequences in `s` should
+   * be converted to the corresponding unicode character
    * @return the String constant
    */
   Term mkString(const std::string& s, bool useEscSequences = false) const;
 
   /**
-   * Create a String constant.
-   * @param c the character this constant represents
+   * Create a String constant from a `std::wstring`.
+   * This method does not support escape sequences as `std::wstring` already
+   * supports unicode characters.
+   * @param s the string this constant represents
    * @return the String constant
    */
-  Term mkString(const unsigned char c) const;
-
-  /**
-   * Create a String constant.
-   * @param s a list of unsigned (unicode) values this constant represents as
-   * string
-   * @return the String constant
-   */
-  Term mkString(const std::vector<uint32_t>& s) const;
-
-  /**
-   * Create a character constant from a given string.
-   * @param s the string denoting the code point of the character (in base 16)
-   * @return the character constant
-   */
-  Term mkChar(const std::string& s) const;
+  Term mkString(const std::wstring& s) const;
 
   /**
    * Create an empty sequence of the given element sort.
@@ -3131,7 +3288,8 @@ class CVC5_EXPORT Solver
    * - base 16: the max. size required to represent the hexadecimal as a
    *            bit-vector (4 * size of the given value string)
    *
-   * @param s the string representation of the constant
+   * @param s The string representation of the constant.
+   *          This cannot be negative.
    * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
    */
@@ -3216,12 +3374,14 @@ class CVC5_EXPORT Solver
 
   /**
    * Create an abstract value constant.
+   * The given index needs to be a positive integer in base 10.
    * @param index Index of the abstract value
    */
   Term mkAbstractValue(const std::string& index) const;
 
   /**
    * Create an abstract value constant.
+   * The given index needs to be positive.
    * @param index Index of the abstract value
    */
   Term mkAbstractValue(uint64_t index) const;
@@ -3560,6 +3720,13 @@ class CVC5_EXPORT Solver
   std::string getOption(const std::string& option) const;
 
   /**
+   * Get all option names that can be used with `setOption`, `getOption` and
+   * `getOptionInfo`.
+   * @return all option names
+   */
+  std::vector<std::string> getOptionNames() const;
+
+  /**
    * Get the set of unsat ("failed") assumptions.
    * SMT-LIB:
    * \verbatim
@@ -3580,6 +3747,18 @@ class CVC5_EXPORT Solver
    * @return a set of terms representing the unsatisfiable core
    */
   std::vector<Term> getUnsatCore() const;
+
+  /**
+   * Get the refutation proof
+   * SMT-LIB:
+   * \verbatim
+   * ( get-proof )
+   * \endverbatim
+   * Requires to enable option 'produce-proofs'.
+   * @return a string representing the proof, according to the the value of
+   * proof-format-mode.
+   */
+  std::string getProof() const;
 
   /**
    * Get the value of the given term.
@@ -3981,12 +4160,6 @@ class CVC5_EXPORT Solver
    */
   std::vector<Term> getSynthSolutions(const std::vector<Term>& terms) const;
 
-  /**
-   * Print solution for synthesis conjecture to the given output stream.
-   * @param out the output stream
-   */
-  void printSynthSolution(std::ostream& out) const;
-
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
   SmtEngine* getSmtEngine(void) const;
@@ -4007,6 +4180,12 @@ class CVC5_EXPORT Solver
   NodeManager* getNodeManager(void) const;
   /** Reset the API statistics */
   void resetStatistics();
+
+  /**
+   * Print the statistics to the given file descriptor, suitable for usage in
+   * signal handlers.
+   */
+  void printStatisticsSafe(int fd) const;
 
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;

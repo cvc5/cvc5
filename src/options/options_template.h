@@ -23,49 +23,21 @@
 #include <string>
 #include <vector>
 
-#include "base/listener.h"
 #include "cvc5_export.h"
-#include "options/language.h"
-#include "options/printer_modes.h"
 
 namespace cvc5 {
-
-namespace api {
-class Solver;
-}
 namespace options {
-  struct OptionsHolder;
   class OptionsHandler;
 // clang-format off
 ${holder_fwd_decls}$
 // clang-format on
-  }  // namespace options
+}  // namespace options
 
 class OptionsListener;
 
 class CVC5_EXPORT Options
 {
-  friend api::Solver;
-
-  /** The handler for the options of the theory. */
-  options::OptionsHandler* d_handler;
-
-// clang-format off
-${holder_mem_decls}$
-// clang-format on
-
-  /** The current Options in effect */
-  static thread_local Options* s_current;
-
-  /** Low-level assignment function for options */
-  template <class T>
-  void assign(T, std::string option, std::string value);
-  /** Low-level assignment function for bool-valued options */
-  template <class T>
-  void assignBool(T, std::string option, bool value);
-
-  friend class options::OptionsHandler;
-
+  public:
   /**
    * Options cannot be copied as they are given an explicit list of
    * Listeners to respond to.
@@ -78,27 +50,25 @@ ${holder_mem_decls}$
    */
   Options& operator=(const Options& options) = delete;
 
-  static std::string formatThreadOptionException(const std::string& option);
-
-public:
- class OptionsScope
- {
-  private:
-    Options* d_oldOptions;
-  public:
-    OptionsScope(Options* newOptions) :
-        d_oldOptions(Options::s_current)
-    {
-      Options::s_current = newOptions;
-    }
-    ~OptionsScope(){
-      Options::s_current = d_oldOptions;
-    }
- };
+  class OptionsScope
+  {
+   private:
+     Options* d_oldOptions;
+   public:
+     OptionsScope(Options* newOptions) :
+         d_oldOptions(Options::s_current)
+     {
+       Options::s_current = newOptions;
+     }
+     ~OptionsScope(){
+       Options::s_current = d_oldOptions;
+     }
+  };
+  friend class OptionsScope;
 
   /** Return true if current Options are null */
   static inline bool isCurrentNull() {
-    return s_current == NULL;
+    return s_current == nullptr;
   }
 
   /** Get the current Options in effect */
@@ -106,212 +76,37 @@ public:
     return *s_current;
   }
 
-  Options(OptionsListener* ol = nullptr);
+  Options();
   ~Options();
 
-// clang-format off
-${holder_getter_decls}$
-// clang-format on
+  options::OptionsHandler& handler() const {
+    return *d_handler;
+  }
 
   /**
    * Copies the value of the options stored in OptionsHolder into the current
    * Options object.
-   * This does not copy the listeners in the Options object.
    */
   void copyValues(const Options& options);
 
-  /**
-   * Set the value of the given option.  Uses `ref()`, which causes a
-   * compile-time error if the given option is read-only.
-   */
-  template <class T>
-  void set(T t, const typename T::type& val) {
-    ref(t) = val;
-  }
-
-  /**
-   * Set the default value of the given option. Is equivalent to calling `set()`
-   * if `wasSetByUser()` returns false. Uses `ref()`, which causes a compile-time
-   * error if the given option is read-only.
-   */
-  template <class T>
-  void setDefault(T t, const typename T::type& val)
-  {
-    if (!wasSetByUser(t))
-    {
-      ref(t) = val;
-    }
-  }
-
-  /**
-   * Get a non-const reference to the value of the given option. Causes a
-   * compile-time error if the given option is read-only. Writeable options
-   * specialize this template with a real implementation.
-   */
-  template <class T>
-  typename T::type& ref(T) {
-    // Flag a compile-time error.
-    T::you_are_trying_to_get_nonconst_access_to_a_read_only_option;
-    // Ensure the compiler does not complain about the return value.
-    return *static_cast<typename T::type*>(nullptr);
-  }
-
-  /**
-   * Set the value of the given option by key.
-   *
-   * Throws OptionException or ModalException on failures.
-   */
-  void setOption(const std::string& key, const std::string& optionarg);
-
-  /** Get the value of the given option.  Const access only. */
-  template <class T>
-  const typename T::type& operator[](T) const;
-
-  /**
-   * Gets the value of the given option by key and returns value as a string.
-   *
-   * Throws OptionException on failures, such as key not being the name of an
-   * option.
-   */
-  std::string getOption(const std::string& key) const;
-
-  // Get accessor functions.
-  InputLanguage getInputLanguage() const;
-  options::InstFormatMode getInstFormatMode() const;
-  OutputLanguage getOutputLanguage() const;
-  bool getUfHo() const;
-  bool getDumpInstantiations() const;
-  bool getDumpModels() const;
-  bool getDumpProofs() const;
-  bool getDumpUnsatCores() const;
-  bool getEarlyExit() const;
-  bool getFilesystemAccess() const;
-  bool getForceNoLimitCpuWhileDump() const;
-  bool getHelp() const;
-  bool getIncrementalSolving() const;
-  bool getInteractive() const;
-  bool getInteractivePrompt() const;
-  bool getLanguageHelp() const;
-  bool getMemoryMap() const;
-  bool getParseOnly() const;
-  bool getProduceModels() const;
-  bool getSegvSpin() const;
-  bool getSemanticChecks() const;
-  bool getStatistics() const;
-  bool getStatsEveryQuery() const;
-  bool getStrictParsing() const;
-  int getTearDownIncremental() const;
-  uint64_t getCumulativeTimeLimit() const;
-  bool getVersion() const;
-  const std::string& getForceLogicString() const;
-  int getVerbosity() const;
-  std::istream* getIn() const;
-  std::ostream* getErr();
-  std::ostream* getOut();
-  std::ostream* getOutConst() const; // TODO: Remove this.
-  std::string getBinaryName() const;
-
-  // TODO: Document these.
-  void setInputLanguage(InputLanguage);
-  void setInteractive(bool);
-  void setOut(std::ostream*);
-  void setOutputLanguage(OutputLanguage);
-
-  bool wasSetByUserEarlyExit() const;
-  bool wasSetByUserForceLogicString() const;
-  bool wasSetByUserIncrementalSolving() const;
-  bool wasSetByUserInteractive() const;
-
-  // Static accessor functions.
-  // TODO: Document these.
-  static std::ostream* currentGetOut();
-
-  /**
-   * Returns true iff the value of the given option was set
-   * by the user via a command-line option or SmtEngine::setOption().
-   * (Options::set() is low-level and doesn't count.)  Returns false
-   * otherwise.
-   */
-  template <class T>
-  bool wasSetByUser(T) const;
-
-  /**
-   * Get a description of the command-line flags accepted by
-   * parseOptions.  The returned string will be escaped so that it is
-   * suitable as an argument to printf. */
-  std::string getDescription() const;
-
-  /**
-   * Print overall command-line option usage message, prefixed by
-   * "msg"---which could be an error message causing the usage
-   * output in the first place, e.g. "no such option --foo"
-   */
-  static void printUsage(const std::string msg, std::ostream& out);
-
-  /**
-   * Print command-line option usage message for only the most-commonly
-   * used options.  The message is prefixed by "msg"---which could be
-   * an error message causing the usage output in the first place, e.g.
-   * "no such option --foo"
-   */
-  static void printShortUsage(const std::string msg, std::ostream& out);
-
-  /** Print help for the --lang command line option */
-  static void printLanguageHelp(std::ostream& out);
-
-  /**
-   * Initialize the Options object options based on the given
-   * command-line arguments given in argc and argv.  The return value
-   * is what's left of the command line (that is, the non-option
-   * arguments).
-   *
-   * This function uses getopt_long() and is not thread safe.
-   *
-   * Throws OptionException on failures.
-   *
-   * Preconditions: options and argv must be non-null.
-   */
-  static std::vector<std::string> parseOptions(Options* options,
-                                               int argc,
-                                               char* argv[]);
-
-  /**
-   * Get the setting for all options.
-   */
-  std::vector<std::vector<std::string> > getOptions() const;
-
-  /** Set the generic listener associated with this class to ol */
-  void setListener(OptionsListener* ol);
-
-  /** Sends a std::flush to getErr(). */
-  void flushErr();
-
-  /** Sends a std::flush to getOut(). */
-  void flushOut();
-
  private:
-  /** Pointer to the options listener, if one exists */
-  OptionsListener* d_olisten;
-  /**
-   * Helper method for setOption, updates this object for setting the given
-   * option.
-   */
-  void setOptionInternal(const std::string& key, const std::string& optionarg);
-  /**
-   * Internal procedure for implementing the parseOptions function.
-   * Initializes the options object based on the given command-line
-   * arguments. The command line arguments are stored in argc/argv.
-   * Nonoptions are stored into nonoptions.
-   *
-   * This is not thread safe.
-   *
-   * Throws OptionException on failures.
-   *
-   * Preconditions: options, extender and nonoptions are non-null.
-   */
-  void parseOptionsRecursive(int argc,
-                                    char* argv[],
-                                    std::vector<std::string>* nonoptions);
+
+// clang-format off
+${holder_mem_decls}$
+// clang-format on
+ public:
+// clang-format off
+${holder_ref_decls}$
+// clang-format on
+  
+ private:
+  /** The handler for the options of the theory. */
+  std::unique_ptr<options::OptionsHandler> d_handler;
+
+  /** The current Options in effect */
+  static thread_local Options* s_current;
+
+
 }; /* class Options */
 
 }  // namespace cvc5

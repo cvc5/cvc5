@@ -23,6 +23,8 @@
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/rational.h"
+#include "util/string.h"
 
 using namespace std;
 using namespace cvc5::context;
@@ -86,21 +88,26 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
             LT, t, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
     lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
   }
-  else if (tk == STRING_STRIDOF)
+  else if (tk == STRING_INDEXOF || tk == STRING_INDEXOF_RE)
   {
-    // (and (>= (str.indexof x y n) (- 1)) (<= (str.indexof x y n) (str.len
-    // x)))
-    Node l = utils::mkNLength(t[0]);
-    lemma = nm->mkNode(AND,
-                       nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
-                       nm->mkNode(LEQ, t, l));
+    // (and
+    //   (or (= (f x y n) (- 1)) (>= (f x y n) n))
+    //   (<= (f x y n) (str.len x)))
+    //
+    // where f in { str.indexof, str.indexof_re }
+    Node l = nm->mkNode(STRING_LENGTH, t[0]);
+    lemma = nm->mkNode(
+        AND,
+        nm->mkNode(
+            OR, nm->mkConst(Rational(-1)).eqNode(t), nm->mkNode(GEQ, t, t[2])),
+        nm->mkNode(LEQ, t, l));
   }
   else if (tk == STRING_STOI)
   {
     // (>= (str.to_int x) (- 1))
     lemma = nm->mkNode(GEQ, t, nm->mkConst(Rational(-1)));
   }
-  else if (tk == STRING_STRCTN)
+  else if (tk == STRING_CONTAINS)
   {
     // ite( (str.contains s r), (= s (str.++ sk1 r sk2)), (not (= s r)))
     Node sk1 =
@@ -141,11 +148,12 @@ void TermRegistry::preRegisterTerm(TNode n)
   Kind k = n.getKind();
   if (!options::stringExp())
   {
-    if (k == STRING_STRIDOF || k == STRING_ITOS || k == STRING_STOI
-        || k == STRING_STRREPL || k == STRING_SUBSTR || k == STRING_STRREPLALL
-        || k == SEQ_NTH || k == STRING_REPLACE_RE || k == STRING_REPLACE_RE_ALL
-        || k == STRING_STRCTN || k == STRING_LEQ || k == STRING_TOLOWER
-        || k == STRING_TOUPPER || k == STRING_REV || k == STRING_UPDATE)
+    if (k == STRING_INDEXOF || k == STRING_INDEXOF_RE || k == STRING_ITOS
+        || k == STRING_STOI || k == STRING_REPLACE || k == STRING_SUBSTR
+        || k == STRING_REPLACE_ALL || k == SEQ_NTH || k == STRING_REPLACE_RE
+        || k == STRING_REPLACE_RE_ALL || k == STRING_CONTAINS || k == STRING_LEQ
+        || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV
+        || k == STRING_UPDATE)
     {
       std::stringstream ss;
       ss << "Term of kind " << k
@@ -175,6 +183,22 @@ void TermRegistry::preRegisterTerm(TNode n)
   else if (k == STRING_TO_CODE)
   {
     d_hasStrCode = true;
+  }
+  else if (k == REGEXP_RANGE)
+  {
+    for (const Node& nc : n)
+    {
+      if (!nc.isConst())
+      {
+        throw LogicException(
+            "expecting a constant string term in regexp range");
+      }
+      if (nc.getConst<String>().size() != 1)
+      {
+        throw LogicException(
+            "expecting a single constant string term in regexp range");
+      }
+    }
   }
   registerTerm(n, 0);
   TypeNode tn = n.getType();
@@ -206,7 +230,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   else if (tn.isBoolean())
   {
     // All kinds that we do congruence over that may return a Boolean go here
-    if (k==STRING_STRCTN || k == STRING_LEQ || k == SEQ_NTH)
+    if (k == STRING_CONTAINS || k == STRING_LEQ || k == SEQ_NTH)
     {
       // Get triggered for both equal and dis-equal
       ee->addTriggerPredicate(n);
@@ -225,7 +249,8 @@ void TermRegistry::preRegisterTerm(TNode n)
   // Concatenation terms do not need to be considered here because
   // their arguments have string type and do not introduce any shared
   // terms.
-  if (n.hasOperator() && ee->isFunctionKind(k) && k != STRING_CONCAT)
+  if (n.hasOperator() && ee->isFunctionKind(k)
+      && kindToTheoryId(k) == THEORY_STRINGS && k != STRING_CONCAT)
   {
     d_functionsTerms.push_back(n);
   }
@@ -285,7 +310,7 @@ void TermRegistry::registerTerm(Node n, int effort)
     //  for concat/const/replace, introduce proxy var and state length relation
     regTermLem = getRegisterTermLemma(n);
   }
-  else if (n.getKind() != STRING_STRCTN)
+  else if (n.getKind() != STRING_CONTAINS)
   {
     // we don't send out eager reduction lemma for str.contains currently
     Node eagerRedLemma = eagerReduce(n, &d_skCache);

@@ -1,6 +1,7 @@
 # import dereference and increment operators
 from cython.operator cimport dereference as deref, preincrement as inc
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
+from libc.stddef cimport wchar_t
 from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
@@ -19,6 +20,21 @@ cdef extern from "<functional>" namespace "std" nogil:
         hash()
         size_t operator()(T t)
 
+cdef extern from "<string>" namespace "std":
+    cdef cppclass wstring:
+        wstring() except +
+        wstring(const wchar_t*, size_t) except +
+        const wchar_t* data() except +
+        size_t size() except +
+
+cdef extern from "<tuple>" namespace "std" nogil:
+    cdef cppclass tuple[T, U, S]:
+        pass
+
+cdef extern from "<tuple>" namespace "std":
+    uint32_t get0 "std::get<0>"(tuple[uint32_t,uint32_t,Term]) except +
+    uint32_t get1 "std::get<1>"(tuple[uint32_t,uint32_t,Term]) except +
+    Term get2 "std::get<2>"(tuple[uint32_t,uint32_t,Term]) except +
 
 cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass Options:
@@ -33,6 +49,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         DatatypeConstructor getConstructor(const string& name) except +
         Term getConstructorTerm(const string& name) except +
         DatatypeSelector getSelector(const string& name) except +
+        string getName() except +
         size_t getNumConstructors() except +
         bint isParametric() except +
         bint isCodatatype() except +
@@ -58,6 +75,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         DatatypeSelector operator[](const string& name) except +
         string getName() except +
         Term getConstructorTerm() except +
+        Term getSpecializedConstructorTerm(const Sort& retSort) except +
         Term getTesterTerm() except +
         size_t getNumSelectors() except +
         DatatypeSelector getSelector(const string& name) except +
@@ -84,6 +102,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         size_t getNumConstructors() except +
         bint isParametric() except +
         string toString() except +
+        string getName() except +
 
 
     cdef cppclass DatatypeSelector:
@@ -103,6 +122,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort getSort() except +
         bint isNull() except +
         bint isIndexed() except +
+        size_t getNumIndices() except +
         T getIndices[T]() except +
         string toString() except +
 
@@ -122,19 +142,23 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isEntailmentUnknown() except +
         bint operator==(const Result& r) except +
         bint operator!=(const Result& r) except +
-        string getUnknownExplanation() except +
+        UnknownExplanation getUnknownExplanation() except +
         string toString() except +
 
 
     cdef cppclass RoundingMode:
         pass
 
+    cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::Result":
+        cdef cppclass UnknownExplanation:
+            pass
+
 
     cdef cppclass Solver:
         Solver(Options*) except +
-        bint supportsFloatingPoint() except +
         Sort getBooleanSort() except +
         Sort getIntegerSort() except +
+        Sort getNullSort() except +
         Sort getRealSort() except +
         Sort getRegExpSort() except +
         Sort getRoundingModeSort() except +
@@ -158,11 +182,12 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort mkTupleSort(const vector[Sort]& sorts) except +
         Term mkTerm(Op op) except +
         Term mkTerm(Op op, const vector[Term]& children) except +
+        Term mkTuple(const vector[Sort]& sorts, const vector[Term]& terms) except +
         Op mkOp(Kind kind) except +
-        Op mkOp(Kind kind, Kind k) except +
         Op mkOp(Kind kind, const string& arg) except +
         Op mkOp(Kind kind, uint32_t arg) except +
         Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) except +
+        Op mkOp(Kind kind, const vector[uint32_t]& args) except +
         # Sygus related functions
         Grammar mkSygusGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
         Term mkSygusVar(Sort sort, const string& symbol) except +
@@ -176,7 +201,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Term] getSynthSolutions(const vector[Term]& terms) except +
         Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +
         Term synthInv(const string& symbol, const vector[Term]& bound_vars, Grammar grammar) except +
-        void printSynthSolution(ostream& out) except +
         # End of sygus related functions
 
         Term mkTrue() except +
@@ -189,9 +213,11 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkRegexpEmpty() except +
         Term mkRegexpSigma() except +
         Term mkEmptySet(Sort s) except +
+        Term mkEmptyBag(Sort s) except +
         Term mkSepNil(Sort sort) except +
         Term mkString(const string& s) except +
-        Term mkString(const vector[unsigned]& s) except +
+        Term mkString(const wstring& s) except +
+        Term mkString(const string& s, bint useEscSequences) except +
         Term mkEmptySequence(Sort sort) except +
         Term mkUniverseSet(Sort sort) except +
         Term mkBitVector(uint32_t size) except +
@@ -355,7 +381,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Op getOp() except +
         bint isNull() except +
         Term getConstArrayBase() except +
-        vector[Term] getConstSequenceElements() except +
         Term notTerm() except +
         Term andTerm(const Term& t) except +
         Term orTerm(const Term& t) except +
@@ -372,7 +397,37 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
             Term operator*() except +
         const_iterator begin() except +
         const_iterator end() except +
-        bint isInteger() except +
+
+        bint isConstArray() except +
+        bint isBooleanValue() except +
+        bint getBooleanValue() except +
+        bint isStringValue() except +
+        wstring getStringValue() except +
+        bint isIntegerValue() except +
+        string getIntegerValue() except +
+        bint isRealValue() except +
+        string getRealValue() except +
+        bint isBitVectorValue() except +
+        string getBitVectorValue(uint32_t base) except +
+        bint isAbstractValue() except +
+        string getAbstractValue() except +
+        bint isFloatingPointPosZero() except +
+        bint isFloatingPointNegZero() except +
+        bint isFloatingPointPosInf() except +
+        bint isFloatingPointNegInf() except +
+        bint isFloatingPointNaN() except +
+        bint isFloatingPointValue() except +
+
+        tuple[uint32_t, uint32_t, Term] getFloatingPointValue() except +
+        bint isSetValue() except +
+        set[Term] getSetValue() except +
+        bint isSequenceValue() except +
+        vector[Term] getSequenceValue() except +
+        bint isUninterpretedValue() except +
+        pair[Sort, int32_t] getUninterpretedValue() except +
+        bint isTupleValue() except +
+        vector[Term] getTupleValue() except +
+
 
     cdef cppclass TermHashFunction:
         TermHashFunction() except +
@@ -385,3 +440,16 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::RoundingMode":
     cdef RoundingMode ROUND_TOWARD_NEGATIVE,
     cdef RoundingMode ROUND_TOWARD_ZERO,
     cdef RoundingMode ROUND_NEAREST_TIES_TO_AWAY
+
+
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::Result::UnknownExplanation":
+    cdef UnknownExplanation REQUIRES_FULL_CHECK
+    cdef UnknownExplanation INCOMPLETE
+    cdef UnknownExplanation TIMEOUT
+    cdef UnknownExplanation RESOURCEOUT
+    cdef UnknownExplanation MEMOUT
+    cdef UnknownExplanation INTERRUPTED
+    cdef UnknownExplanation NO_STATUS
+    cdef UnknownExplanation UNSUPPORTED
+    cdef UnknownExplanation OTHER
+    cdef UnknownExplanation UNKNOWN_REASON

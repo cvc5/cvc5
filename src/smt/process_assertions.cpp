@@ -288,6 +288,11 @@ bool ProcessAssertions::apply(Assertions& as)
   }
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
+  if (options::learnedRewrite())
+  {
+    d_passes["learned-rewrite"]->apply(&assertions);
+  }
+
   if (options::earlyIteRemoval())
   {
     d_smtStats.d_numAssertionsPre += assertions.size();

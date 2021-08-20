@@ -22,6 +22,14 @@
 #include "util/statistics_registry.h"
 
 namespace cvc5 {
+
+template <class Solver>
+prop::SatLiteral toSatLiteral(typename Solver::TLit lit);
+
+template <class Solver>
+void toSatClause(const typename Solver::TClause& minisat_cl,
+                 prop::SatClause& sat_cl);
+
 namespace prop {
 
 class MinisatSatSolver : public CDCLTSatSolverInterface
@@ -85,11 +93,20 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
 
   bool isDecision(SatVariable decn) const override;
 
+  /** Return decision level at which `lit` was decided on. */
   int32_t getDecisionLevel(SatVariable v) const override;
 
+  /**
+   * Return user level at which `lit` was introduced.
+   *
+   * Note: The user level is tracked independently in the SAT solver and does
+   * not query the user-context for the user level. The user level in the SAT
+   * solver starts at level 0 and does not include the global push/pop in
+   * the SMT engine.
+   */
   int32_t getIntroLevel(SatVariable v) const override;
 
-  /** Retrieve a pointer to the unerlying solver. */
+  /** Retrieve a pointer to the underlying solver. */
   Minisat::SimpSolver* getSolver() { return d_minisat; }
 
   /** Retrieve the proof manager of this SAT solver. */

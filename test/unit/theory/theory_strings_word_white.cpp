@@ -20,6 +20,7 @@
 #include "expr/node.h"
 #include "test_node.h"
 #include "theory/strings/word.h"
+#include "util/string.h"
 
 namespace cvc5 {
 

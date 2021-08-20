@@ -22,6 +22,7 @@
 #include "base/exception.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "util/integer.h"
 
 namespace cvc5 {
 namespace theory {
