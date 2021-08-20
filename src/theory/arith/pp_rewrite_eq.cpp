@@ -48,7 +48,8 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
     return d_ppPfGen.mkTrustedRewrite(
         atom,
         rewritten,
-        d_pnm->mkNode(PfRule::THEORY_INFERENCE, {}, {atom.eqNode(rewritten), t}));
+        d_pnm->mkNode(
+            PfRule::THEORY_INFERENCE, {}, {atom.eqNode(rewritten), t}));
   }
   return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
 }

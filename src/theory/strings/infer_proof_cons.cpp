@@ -908,7 +908,8 @@ void InferProofCons::convert(InferenceId infer,
         Trace("strings-ipc-fail") << "    e: " << ec << std::endl;
       }
     }
-    // untrustworthy conversion, the argument of THEORY_INFERENCE is its conclusion
+    // untrustworthy conversion, the argument of THEORY_INFERENCE is its
+    // conclusion
     ps.d_args.clear();
     ps.d_args.push_back(conc);
     Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_STRINGS);

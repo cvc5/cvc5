@@ -122,7 +122,8 @@ void InferenceManager::convert(PfRule& id,
       }
       children.push_back(exp);
       args.push_back(conc);
-      args.push_back(builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARRAYS));
+      args.push_back(
+          builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARRAYS));
       id = PfRule::THEORY_INFERENCE;
       break;
   }

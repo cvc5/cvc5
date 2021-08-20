@@ -1820,7 +1820,8 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
         }
         case ArithProofType::IntHoleAP:
         {
-          Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARITH);
+          Node t =
+              builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARITH);
           pf = pnm->mkNode(PfRule::THEORY_INFERENCE,
                            children,
                            {getProofLiteral(), t},
