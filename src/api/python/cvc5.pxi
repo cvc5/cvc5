@@ -1288,9 +1288,9 @@ cdef class Solver:
     def getModelDomainElements(self, Sort s):
         result = []
         cresult = self.csolver.getModelDomainElements(s.csort)
-        for s in cresult:
+        for e in cresult:
             term = Term(self)
-            term.cterm = s
+            term.cterm = e
             result.append(term)
         return result
 
