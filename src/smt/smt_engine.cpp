@@ -1180,14 +1180,14 @@ std::vector<Node> SmtEngine::getValues(const std::vector<Node>& exprs) const
 
 std::vector<Node> SmtEngine::getModelDomainElements(TypeNode tn) const
 {
-  Assert (tn.isSort());
+  Assert(tn.isSort());
   Model* m = getAvailableModel("getModelDomainElements");
   return m->getTheoryModel()->getDomainElements(tn);
 }
 
 bool SmtEngine::isModelCoreSymbol(Node n) const
 {
-  Assert (n.isVar());
+  Assert(n.isVar());
   Model* m = getAvailableModel("isModelCoreSymbol");
   return m->isModelCoreSymbol(n);
 }

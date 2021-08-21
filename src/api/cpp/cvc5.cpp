@@ -7177,10 +7177,12 @@ std::vector<Term> Solver::getModelDomainElements(const Sort& s) const
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
       << "Cannot get value unless after a SAT or unknown response.";
-  CVC5_API_RECOVERABLE_CHECK(s.isUninterpretedSort()) << "Expecting uninterpreted sort as argument to getModelDomainElements.";
+  CVC5_API_RECOVERABLE_CHECK(s.isUninterpretedSort())
+      << "Expecting uninterpreted sort as argument to getModelDomainElements.";
   //////// all checks before this line
   std::vector<Term> res;
-  std::vector<Node> elements = d_smtEngine->getModelDomainElements(s.getTypeNode());
+  std::vector<Node> elements =
+      d_smtEngine->getModelDomainElements(s.getTypeNode());
   for (const Node& n : elements)
   {
     res.push_back(Term(this, n));
@@ -7193,7 +7195,7 @@ std::vector<Term> Solver::getModelDomainElements(const Sort& s) const
 std::string Solver::getModelComments() const
 {
   std::stringstream ss;
-  
+
   return ss.str();
 }
 

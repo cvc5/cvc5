@@ -3821,17 +3821,17 @@ class CVC5_EXPORT Solver
    */
   std::vector<Term> getModelDomainElements(const Sort& s) const;
   /**
-  * If the model cores option is enabled, this returns true if and only if
-  * the model value of variable n was essential for showing the satisfiability
-  * of the last call to checkSat.
-  * 
-  * @param v The variable in question
-  * @return true if v is a model core symbol
-  */
+   * If the model cores option is enabled, this returns true if and only if
+   * the model value of variable n was essential for showing the satisfiability
+   * of the last call to checkSat.
+   *
+   * @param v The variable in question
+   * @return true if v is a model core symbol
+   */
 
   bool isModelCoreSymbol(const Term& v) const;
   /**
-   * Returns any 
+   * Returns any
    */
   std::string getModelComments() const;
   /**
