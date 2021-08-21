@@ -1482,6 +1482,7 @@ TEST_F(TestApiBlackSolver, getModelDomainElements)
 
 TEST_F(TestApiBlackSolver, isModelCoreSymbol)
 {
+  d_solver.setOption("produce-models", "true");
   d_solver.setOption("model-cores", "simple");
   Sort uSort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkConst(uSort, "x");
