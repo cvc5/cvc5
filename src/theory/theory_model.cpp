@@ -604,10 +604,7 @@ void TheoryModel::recordApproximation(TNode n, TNode pred, Node witness)
   Node predDisj = NodeManager::currentNM()->mkNode(OR, n.eqNode(witness), pred);
   recordApproximation(n, predDisj);
 }
-bool TheoryModel::isUsingModelCore() const
-{
-  return d_using_model_core;
-}
+bool TheoryModel::isUsingModelCore() const { return d_using_model_core; }
 void TheoryModel::setUsingModelCore()
 {
   d_using_model_core = true;
