@@ -1285,6 +1285,18 @@ cdef class Solver:
         term.cterm = self.csolver.getValue(t.cterm)
         return term
 
+    def getModelDomainElements(self, Sort s):
+        result = []
+        cresult = self.csolver.getModelDomainElements(s.csort)
+        for s in cresult:
+            term = Term(self)
+            term.cterm = s
+            result.append(term)
+        return result
+
+    def isModelCoreSymbol(self, Term v)
+        return self.csolver.isModelCoreSymbol(v.cterm)
+
     def getSeparationHeap(self):
         cdef Term term = Term(self)
         term.cterm = self.csolver.getSeparationHeap()
