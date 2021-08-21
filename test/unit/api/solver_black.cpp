@@ -1464,6 +1464,22 @@ TEST_F(TestApiBlackSolver, getValue3)
   ASSERT_THROW(slv.getValue(x), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, getModelDomainElements)
+{
+  d_solver.setOption("produce-models", "true");
+  Sort uSort = d_solver.mkUninterpretedSort("u");
+  Sort intSort = d_solver.getIntegerSort();
+  Term x = d_solver.mkConst(uSort, "x");
+  Term y = d_solver.mkConst(uSort, "y");
+  Term z = d_solver.mkConst(uSort, "z");
+  Term f = d_solver.mkTerm(DISTINCT, x, y, z);
+  d_solver.assertFormula(f);
+  d_solver.checkSat();
+  ASSERT_NO_THROW(d_solver.getModelDomainElements(uSort));
+  ASSERT_TRUE(d_solver.getModelDomainElements(uSort).size()>=3);
+  ASSERT_THROW(d_solver.getModelDomainElements(intSort), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, getQuantifierElimination)
 {
   Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
