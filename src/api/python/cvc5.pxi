@@ -1294,7 +1294,7 @@ cdef class Solver:
             result.append(term)
         return result
 
-    def isModelCoreSymbol(self, Term v)
+    def isModelCoreSymbol(self, Term v):
         return self.csolver.isModelCoreSymbol(v.cterm)
 
     def getSeparationHeap(self):
