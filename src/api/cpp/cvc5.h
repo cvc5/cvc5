@@ -3824,8 +3824,8 @@ class CVC5_EXPORT Solver
   std::vector<Term> getModelDomainElements(const Sort& s) const;
 
   /**
-   * This returns false if the model value of free constant v was not essential for
-   * showing the satisfiability of the last call to checkSat using the
+   * This returns false if the model value of free constant v was not essential
+   * for showing the satisfiability of the last call to checkSat using the
    * current model. This method will only return false (for any v) if
    * the model-cores option has been set.
    *

@@ -1476,7 +1476,7 @@ TEST_F(TestApiBlackSolver, getModelDomainElements)
   d_solver.assertFormula(f);
   d_solver.checkSat();
   ASSERT_NO_THROW(d_solver.getModelDomainElements(uSort));
-  ASSERT_TRUE(d_solver.getModelDomainElements(uSort).size()>=3);
+  ASSERT_TRUE(d_solver.getModelDomainElements(uSort).size() >= 3);
   ASSERT_THROW(d_solver.getModelDomainElements(intSort), CVC5ApiException);
 }
 

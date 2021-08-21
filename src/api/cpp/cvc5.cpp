@@ -7164,7 +7164,8 @@ std::vector<Term> Solver::getModelDomainElements(const Sort& s) const
       << "Cannot get value unless after a SAT or unknown response.";
   CVC5_API_SOLVER_CHECK_SORT(s);
   CVC5_API_RECOVERABLE_CHECK(s.isUninterpretedSort())
-      << "Expecting an uninterpreted sort as argument to getModelDomainElements.";
+      << "Expecting an uninterpreted sort as argument to "
+         "getModelDomainElements.";
   //////// all checks before this line
   std::vector<Term> res;
   std::vector<Node> elements =
@@ -7188,7 +7189,7 @@ bool Solver::isModelCoreSymbol(const Term& v) const
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
       << "Cannot get value unless after a SAT or unknown response.";
   CVC5_API_SOLVER_CHECK_TERM(v);
-  CVC5_API_RECOVERABLE_CHECK(v.getKind()==CONSTANT)
+  CVC5_API_RECOVERABLE_CHECK(v.getKind() == CONSTANT)
       << "Expecting a free constant as argument to isModelCoreSymbol.";
   //////// all checks before this line
   return d_smtEngine->isModelCoreSymbol(v.getNode());
