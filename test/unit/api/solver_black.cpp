@@ -1480,6 +1480,23 @@ TEST_F(TestApiBlackSolver, getModelDomainElements)
   ASSERT_THROW(d_solver.getModelDomainElements(intSort), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, isModelCoreSymbol)
+{
+  d_solver.setOption("model-cores", "simple");
+  Sort uSort = d_solver.mkUninterpretedSort("u");
+  Term x = d_solver.mkConst(uSort, "x");
+  Term y = d_solver.mkConst(uSort, "y");
+  Term z = d_solver.mkConst(uSort, "z");
+  Term zero = d_solver.mkInteger(0);
+  Term f = d_solver.mkTerm(EQUAL, x, y);
+  d_solver.assertFormula(f);
+  d_solver.checkSat();
+  ASSERT_TRUE(d_solver.isModelCoreSymbol(x));
+  ASSERT_TRUE(d_solver.isModelCoreSymbol(y));
+  ASSERT_TRUE(!d_solver.isModelCoreSymbol(z));
+  ASSERT_THROW(d_solver.isModelCoreSymbol(zero), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, getQuantifierElimination)
 {
   Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");

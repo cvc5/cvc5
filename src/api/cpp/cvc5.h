@@ -3824,12 +3824,12 @@ class CVC5_EXPORT Solver
   std::vector<Term> getModelDomainElements(const Sort& s) const;
 
   /**
-   * This returns false if the model value of variable v was not essential for
+   * This returns false if the model value of free constant v was not essential for
    * showing the satisfiability of the last call to checkSat using the
-   * current model. This method will only return false (for any variable) if
+   * current model. This method will only return false (for any v) if
    * the model-cores option has been set.
    *
-   * @param v The variable in question
+   * @param v The term in question
    * @return true if v is a model core symbol
    */
   bool isModelCoreSymbol(const Term& v) const;
