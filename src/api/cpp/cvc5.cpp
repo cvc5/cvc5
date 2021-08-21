@@ -7153,21 +7153,6 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::isModelCoreSymbol(const Term& v) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  NodeManagerScope scope(getNodeManager());
-  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions().smt.produceModels)
-      << "Cannot get value unless model generation is enabled "
-         "(try --produce-models)";
-  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
-      << "Cannot get value unless after a SAT or unknown response.";
-  //////// all checks before this line
-  return d_smtEngine->isModelCoreSymbol(v.getNode());
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 std::vector<Term> Solver::getModelDomainElements(const Sort& s) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7188,6 +7173,21 @@ std::vector<Term> Solver::getModelDomainElements(const Sort& s) const
     res.push_back(Term(this, n));
   }
   return res;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Solver::isModelCoreSymbol(const Term& v) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions().smt.produceModels)
+      << "Cannot get value unless model generation is enabled "
+         "(try --produce-models)";
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
+      << "Cannot get value unless after a SAT or unknown response.";
+  //////// all checks before this line
+  return d_smtEngine->isModelCoreSymbol(v.getNode());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
