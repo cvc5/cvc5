@@ -1168,7 +1168,7 @@ Node SmtEngine::getValue(const Node& ex) const
   return resultNode;
 }
 
-std::vector<Node> SmtEngine::getValues(const std::vector<Node>& exprs)
+std::vector<Node> SmtEngine::getValues(const std::vector<Node>& exprs) const
 {
   std::vector<Node> result;
   for (const Node& e : exprs)
@@ -1176,6 +1176,20 @@ std::vector<Node> SmtEngine::getValues(const std::vector<Node>& exprs)
     result.push_back(getValue(e));
   }
   return result;
+}
+
+std::vector<Node> SmtEngine::getModelDomainElements(TypeNode tn) const
+{
+  Assert (tn.isSort());
+  Model* m = getAvailableModel("getModelDomainElements");
+  return m->getTheoryModel()->getDomainElements(tn);
+}
+
+bool SmtEngine::isModelCoreSymbol(Node n) const
+{
+  Assert (n.isVar());
+  Model* m = getAvailableModel("isModelCoreSymbol");
+  return m->isModelCoreSymbol(n);
 }
 
 // TODO(#1108): Simplify the error reporting of this method.

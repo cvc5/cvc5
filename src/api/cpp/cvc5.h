@@ -3786,7 +3786,7 @@ class CVC5_EXPORT Solver
   std::string getProof() const;
 
   /**
-   * Get the value of the given term.
+   * Get the value of the given term in the current model.
    * SMT-LIB:
    * \verbatim
    * ( get-value ( <term> ) )
@@ -3796,7 +3796,7 @@ class CVC5_EXPORT Solver
    */
   Term getValue(const Term& term) const;
   /**
-   * Get the values of the given terms.
+   * Get the values of the given terms in the current model.
    * SMT-LIB:
    * \verbatim
    * ( get-value ( <term>+ ) )
@@ -3805,12 +3805,28 @@ class CVC5_EXPORT Solver
    * @return the values of the given terms
    */
   std::vector<Term> getValue(const std::vector<Term>& terms) const;
+  /**
+   * Get the domain elements of uninterpreted sort s in the current model. The
+   * current model interprets s as the finite sort whose domain elements are
+   * given in the return value of this method.
+   *
+   * @param s The uninterpreted sort in question
+   * @return the domain elements of s in the current model
+   */
+  std::vector<Term> getModelDomainElements(const Sort& s) const;
+  /**
+  * If the model cores option is enabled, this returns true if and only if
+  * the model value of variable n was essential for showing the satisfiability
+  * of the last call to checkSat.
+  * 
+  * @param v The variable in question
+  * @return true if v is a model core symbol
+  */
 
-
-  bool isModelCoreSymbol(api::Term) const;
-
-  std::vector<api::Term> getModelDomainElements(api::Sort) const;
-
+  bool isModelCoreSymbol(const Term& v) const;
+  /**
+   * Returns any 
+   */
   std::string getModelComments() const;
   /**
    * Do quantifier elimination.

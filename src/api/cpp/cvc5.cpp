@@ -7155,15 +7155,41 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::isModelCoreSymbol(api::Term) const
+bool Solver::isModelCoreSymbol(const Term& v) const
 {
-  return false;
+  CVC5_API_TRY_CATCH_BEGIN;
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions().smt.produceModels)
+      << "Cannot get value unless model generation is enabled "
+         "(try --produce-models)";
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
+      << "Cannot get value unless after a SAT or unknown response.";
+  //////// all checks before this line
+  return d_smtEngine->isModelCoreSymbol(v.getNode());
+  ////////
+  CVC5_API_TRY_CATCH_END;
 }
 
-std::vector<api::Term> Solver::getModelDomainElements(api::Sort) const
+std::vector<Term> Solver::getModelDomainElements(const Sort& s) const
 {
-  std::vector<api::Term> res;
+  CVC5_API_TRY_CATCH_BEGIN;
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions().smt.produceModels)
+      << "Cannot get value unless model generation is enabled "
+         "(try --produce-models)";
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
+      << "Cannot get value unless after a SAT or unknown response.";
+  CVC5_API_RECOVERABLE_CHECK(s.isUninterpretedSort()) << "Expecting uninterpreted sort as argument to getModelDomainElements.";
+  //////// all checks before this line
+  std::vector<Term> res;
+  std::vector<Node> elements = d_smtEngine->getModelDomainElements(s.getTypeNode());
+  for (const Node& n : elements)
+  {
+    res.push_back(Term(this, n));
+  }
   return res;
+  ////////
+  CVC5_API_TRY_CATCH_END;
 }
 
 std::string Solver::getModelComments() const

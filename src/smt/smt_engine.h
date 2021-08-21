@@ -532,7 +532,17 @@ class CVC5_EXPORT SmtEngine
   /**
    * Same as getValue but for a vector of expressions
    */
-  std::vector<Node> getValues(const std::vector<Node>& exprs);
+  std::vector<Node> getValues(const std::vector<Node>& exprs) const;
+  
+  /** 
+   * @return the domain elements for uninterpreted sort tn.
+   */
+  std::vector<Node> getModelDomainElements(TypeNode tn) const;
+  
+  /**
+   * @return true if v is a model core symbol
+   */
+  bool isModelCoreSymbol(Node v) const;
 
   /** print instantiations
    *
