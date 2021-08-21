@@ -7192,13 +7192,6 @@ std::vector<Term> Solver::getModelDomainElements(const Sort& s) const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::string Solver::getModelComments() const
-{
-  std::stringstream ss;
-
-  return ss.str();
-}
-
 Term Solver::getQuantifierElimination(const Term& q) const
 {
   NodeManagerScope scope(getNodeManager());

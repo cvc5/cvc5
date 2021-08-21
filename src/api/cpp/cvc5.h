@@ -3828,12 +3828,7 @@ class CVC5_EXPORT Solver
    * @param v The variable in question
    * @return true if v is a model core symbol
    */
-
   bool isModelCoreSymbol(const Term& v) const;
-  /**
-   * Returns any
-   */
-  std::string getModelComments() const;
   /**
    * Do quantifier elimination.
    * SMT-LIB:

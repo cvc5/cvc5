@@ -74,7 +74,6 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
 
 void TheoryModel::reset(){
   d_modelCache.clear();
-  d_comment_str.clear();
   d_sep_heap = Node::null();
   d_sep_nil_eq = Node::null();
   d_approximations.clear();
@@ -89,11 +88,6 @@ void TheoryModel::reset(){
   d_uf_models.clear();
   d_using_model_core = false;
   d_model_core.clear();
-}
-
-void TheoryModel::getComments(std::ostream& out) const {
-  Trace("model-builder") << "get comments..." << std::endl;
-  out << d_comment_str.str();
 }
 
 void TheoryModel::setHeapModel( Node h, Node neq ) { 

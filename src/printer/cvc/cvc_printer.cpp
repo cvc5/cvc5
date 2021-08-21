@@ -1126,16 +1126,6 @@ void CvcPrinter::toStreamModelTerm(std::ostream& out,
 
 void CvcPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
-  const theory::TheoryModel* tm = m.getTheoryModel();
-  // print the model comments
-  std::stringstream c;
-  tm->getComments(c);
-  std::string ln;
-  while (std::getline(c, ln))
-  {
-    out << "; " << ln << std::endl;
-  }
-
   // print the model
   out << "MODEL BEGIN" << std::endl;
   this->Printer::toStream(out, m);
