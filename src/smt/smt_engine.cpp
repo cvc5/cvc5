@@ -1185,11 +1185,29 @@ std::vector<Node> SmtEngine::getModelDomainElements(TypeNode tn) const
   return m->getTheoryModel()->getDomainElements(tn);
 }
 
-bool SmtEngine::isModelCoreSymbol(Node n) const
+bool SmtEngine::isModelCoreSymbol(Node n)
 {
   Assert(n.isVar());
+  const Options& opts = d_env->getOptions();
+  if (opts.smt.modelCoresMode
+      != options::ModelCoresMode::NONE)
+  {
+    // if the model core mode is none, we are always a model core symbol
+    return true;
+  }
   Model* m = getAvailableModel("isModelCoreSymbol");
-  return m->isModelCoreSymbol(n);
+  TheoryModel * tm = m->getTheoryModel();
+  // compute the model core if not done so already
+  if (!tm->isUsingModelCore())
+  {
+    // If we enabled model cores, we compute a model core for m based on our
+    // (expanded) assertions using the model core builder utility
+    std::vector<Node> eassertsProc = getExpandedAssertions();
+    ModelCoreBuilder::setModelCore(eassertsProc,
+                                   tm,
+                                   opts.smt.modelCoresMode);
+  }
+  return tm->isModelCoreSymbol(n);
 }
 
 // TODO(#1108): Simplify the error reporting of this method.

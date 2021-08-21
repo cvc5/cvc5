@@ -542,7 +542,7 @@ class CVC5_EXPORT SmtEngine
   /**
    * @return true if v is a model core symbol
    */
-  bool isModelCoreSymbol(Node v) const;
+  bool isModelCoreSymbol(Node v);
 
   /** print instantiations
    *
