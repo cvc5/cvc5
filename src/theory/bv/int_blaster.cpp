@@ -328,7 +328,7 @@ Node IntBlaster::translateWithChildren(
       // In this case we take the original integer,
       // modulo 2 to the power of the bit-width
       returnNode =
-          modpow2(original[0],
+          modpow2(translated_children[0],
                   original.getOperator().getConst<IntToBitVector>().d_size);
       break;
     }
@@ -628,8 +628,8 @@ Node IntBlaster::translateWithChildren(
       break;
     }
   }
-  Trace("bv-to-int-debug") << "original: " << original << std::endl;
-  Trace("bv-to-int-debug") << "returnNode: " << returnNode << std::endl;
+  Trace("int-blaster-debug") << "original: " << original << std::endl;
+  Trace("int-blaster-debug") << "returnNode: " << returnNode << std::endl;
   return returnNode;
 }
 
