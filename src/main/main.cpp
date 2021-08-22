@@ -22,6 +22,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "api/cpp/cvc5.h"
 #include "base/configuration.h"
 #include "base/output.h"
 #include "main/command_executor.h"
@@ -49,10 +50,11 @@ using namespace cvc5::language;
  */
 int main(int argc, char* argv[])
 {
-  Options opts;
+  std::unique_ptr<api::Solver> solver;
   try
   {
-    return runCvc5(argc, argv, opts);
+    solver = std::make_unique<api::Solver>();
+    return runCvc5(argc, argv, solver);
   }
   catch (cvc5::api::CVC5ApiOptionException& e)
   {
@@ -63,10 +65,10 @@ int main(int argc, char* argv[])
          << endl
          << "Please use --help to get help on command-line options." << endl;
   }
-  catch (cvc5::OptionException& e)
+  catch (OptionException& e)
   {
 #ifdef CVC5_COMPETITION_MODE
-    *opts.base.out << "unknown" << endl;
+    *solver->getOptions().base.out << "unknown" << endl;
 #endif
     cerr << "(error \"" << e.getMessage() << "\")" << endl
          << endl
@@ -75,20 +77,20 @@ int main(int argc, char* argv[])
   catch (Exception& e)
   {
 #ifdef CVC5_COMPETITION_MODE
-    *opts.base.out << "unknown" << endl;
+    *solver->getOptions().base.out << "unknown" << endl;
 #endif
-    if (language::isOutputLang_smt2(opts.base.outputLanguage))
+    if (language::isOutputLang_smt2(solver->getOptions().base.outputLanguage))
     {
-      *opts.base.out << "(error \"" << e << "\")" << endl;
+      *solver->getOptions().base.out << "(error \"" << e << "\")" << endl;
     }
     else
     {
-      *opts.base.err << "(error \"" << e << "\")" << endl;
+      *solver->getOptions().base.err << "(error \"" << e << "\")" << endl;
     }
-    if (opts.base.statistics && pExecutor != nullptr)
+    if (solver->getOptions().base.statistics && pExecutor != nullptr)
     {
       totalTime.reset();
-      pExecutor->printStatistics(*opts.base.err);
+      pExecutor->printStatistics(*solver->getOptions().base.err);
     }
   }
   exit(1);

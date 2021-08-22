@@ -249,7 +249,7 @@ void Command::resetSolver(api::Solver* solver)
   // CommandExecutor such that this reconstruction can be done within the
   // CommandExecutor, who actually owns the solver.
   solver->~Solver();
-  new (solver) api::Solver(opts.get());
+  new (solver) api::Solver(std::move(opts));
 }
 
 Node Command::termToNode(const api::Term& term) { return term.getNode(); }
