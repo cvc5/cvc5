@@ -203,7 +203,7 @@ void SmtEngine::finishInit()
     // ensure bound variable uses canonical bound variables
     getNodeManager()->getBoundVarManager()->enableKeepCacheValues();
     // make the proof manager
-    d_pfManager.reset(new PfManager(getUserContext(), this));
+    d_pfManager.reset(new PfManager(*d_env.get(), this));
     PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager());
@@ -1192,12 +1192,11 @@ Model* SmtEngine::getModel() {
 
   Model* m = getAvailableModel("get model");
 
-  // Since model m is being returned to the user, we must ensure that this
-  // model object remains valid with future check-sat calls. Hence, we set
-  // the theory engine into "eager model building" mode. TODO #2648: revisit.
-  TheoryEngine* te = getTheoryEngine();
-  Assert(te != nullptr);
-  te->setEagerModelBuilding();
+  // Notice that the returned model is (currently) accessed by the
+  // GetModelCommand only, and is not returned to the user. The information
+  // in that model may become stale after it is returned. This is safe
+  // since GetModelCommand always calls this command again when it prints
+  // a model.
 
   if (d_env->getOptions().smt.modelCoresMode
       != options::ModelCoresMode::NONE)
@@ -1599,10 +1598,6 @@ std::string SmtEngine::getProof()
 void SmtEngine::printInstantiations( std::ostream& out ) {
   SmtScope smts(this);
   finishInit();
-  if (d_env->getOptions().printer.instFormatMode == options::InstFormatMode::SZS)
-  {
-    out << "% SZS output start Proof for " << d_env->getFilename() << std::endl;
-  }
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("printInstantiations");
 
   // First, extract and print the skolemizations
@@ -1688,10 +1683,6 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   if (!printed)
   {
     out << "none" << std::endl;
-  }
-  if (d_env->getOptions().printer.instFormatMode == options::InstFormatMode::SZS)
-  {
-    out << "% SZS output end Proof for " << d_env->getFilename() << std::endl;
   }
 }
 
@@ -1928,18 +1919,6 @@ void SmtEngine::printStatisticsDiff() const
 {
   d_env->getStatisticsRegistry().printDiff(*d_env->getOptions().base.err);
   d_env->getStatisticsRegistry().storeSnapshot();
-}
-
-void SmtEngine::setUserAttribute(const std::string& attr,
-                                 Node expr,
-                                 const std::vector<Node>& expr_values,
-                                 const std::string& str_value)
-{
-  SmtScope smts(this);
-  finishInit();
-  TheoryEngine* te = getTheoryEngine();
-  Assert(te != nullptr);
-  te->setUserAttribute(attr, expr, expr_values, str_value);
 }
 
 void SmtEngine::setOption(const std::string& key, const std::string& value)

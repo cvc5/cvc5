@@ -178,12 +178,19 @@ void Assertions::addFormula(TNode n,
     if (expr::hasFreeVar(n))
     {
       std::stringstream se;
-      se << "Cannot process assertion with free variable.";
-      if (language::isInputLangSygus(options::inputLanguage()))
+      if (isFunDef)
       {
-        // Common misuse of SyGuS is to use top-level assert instead of
-        // constraint when defining the synthesis conjecture.
-        se << " Perhaps you meant `constraint` instead of `assert`?";
+        se << "Cannot process function definition with free variable.";
+      }
+      else
+      {
+        se << "Cannot process assertion with free variable.";
+        if (language::isInputLangSygus(options::inputLanguage()))
+        {
+          // Common misuse of SyGuS is to use top-level assert instead of
+          // constraint when defining the synthesis conjecture.
+          se << " Perhaps you meant `constraint` instead of `assert`?";
+        }
       }
       throw ModalException(se.str().c_str());
     }
@@ -205,9 +212,11 @@ void Assertions::addDefineFunDefinition(Node n, bool global)
   }
   else
   {
-    // we don't check for free variables here, since even if we are sygus,
-    // we could contain functions-to-synthesize within definitions.
-    addFormula(n, true, false, true, false);
+    // We don't permit functions-to-synthesize within recursive function
+    // definitions currently. Thus, we should check for free variables if the
+    // input language is SyGuS.
+    bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
+    addFormula(n, true, false, true, maybeHasFv);
   }
 }
 

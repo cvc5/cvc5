@@ -450,6 +450,11 @@ class Theory {
   Env& getEnv() const { return d_env; }
 
   /**
+   * Shorthand to access the options object.
+   */
+  const Options& options() const { return getEnv().getOptions(); }
+
+  /**
    * Get the SAT context associated to this Theory.
    */
   context::Context* getSatContext() const { return d_env.getContext(); }
@@ -769,15 +774,6 @@ class Theory {
    * etc..)
    */
   virtual std::string identify() const = 0;
-
-  /** Set user attribute
-    * This function is called when an attribute is set by a user.  In SMT-LIBv2 this is done
-    *  via the syntax (! n :attr)
-    */
-  virtual void setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value) {
-    Unimplemented() << "Theory " << identify()
-                    << " doesn't support Theory::setUserAttribute interface";
-  }
 
   typedef context::CDList<Assertion>::const_iterator assertions_iterator;
 
