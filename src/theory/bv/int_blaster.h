@@ -153,6 +153,12 @@ class IntBlaster
 
   /** Returns a node that represents the bitwise negation of n. */
   Node createBVNotNode(Node n, uint64_t bvsize);
+  Node createBVNegNode(Node n, uint64_t bvsize);
+  Node createBVAndNode(Node x, Node y, uint64_t bvsize, std::vector<Node>& lemmas);
+  Node createBVAddNode(Node x, Node y, uint64_t bvsize);
+  Node createBVOrNode(Node x, Node y, uint64_t bvsize, std::vector<Node>& lemmas);
+  Node createBVSubNode(Node x, Node y, uint64_t bvsize);
+  Node uts(Node x, uint64_t bvsize);
 
   /**
    * Whenever we introduce an integer variable that represents a bit-vector
@@ -240,7 +246,7 @@ class IntBlaster
    * A useful utility function.
    * if n is an integer and tn is bit-vector,
    * applies the IntToBitVector operator on n.
-   * if n is a vit-vector and tn is integer,
+   * if n is a bit-vector and tn is integer,
    * applies BitVector_TO_NAT operator.
    * Otherwise, keeps n intact.
    */
