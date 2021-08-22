@@ -16,6 +16,7 @@
 #include "theory/bv/int_blaster.h"
 
 #include <cmath>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -26,6 +27,7 @@
 #include "options/option_exception.h"
 #include "options/uf_options.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
 #include "util/iand.h"
 #include "util/rational.h"
 
@@ -206,7 +208,8 @@ Node IntBlaster::translateNoChildren(Node original,
       << std::endl;
   // The result of the translation
   Node translation;
-  // The translation is done differently for variables (bound or free)  and constants (values)
+  // The translation is done differently for variables (bound or free)  and
+  // constants (values)
   Assert(original.isVar() || original.isConst());
   if (original.isVar())
   {
@@ -229,7 +232,7 @@ Node IntBlaster::translateNoChildren(Node original,
         // In the former case, we must include range lemmas, while in the
         // latter we don't.
         // This is determined by the option bv-to-int-fresh-vars.
-	// The variables intCast and bvCast are used for models:
+        // The variables intCast and bvCast are used for models:
         // even if we introduce a fresh variable,
         // it is associated with intCast (which is (bv2nat original)).
         // bvCast is either ( (_ nat2bv k) original) or just original.
@@ -242,8 +245,7 @@ Node IntBlaster::translateNoChildren(Node original,
           translation = d_nm->getSkolemManager()->mkPurifySkolem(
               intCast,
               "__intblast__var",
-              "Variable introduced in intblasting for "
-                  + original.toString());
+              "Variable introduced in intblasting for " + original.toString());
           uint64_t bvsize = original.getType().getBitVectorSize();
           addRangeConstraint(translation, bvsize, lemmas);
           // put new definition of old variable in skolems
@@ -273,11 +275,11 @@ Node IntBlaster::translateNoChildren(Node original,
       // translate function symbol
       translation = translateFunctionSymbol(original, skolems);
     }
-    else {
-	// leave other variables intact
-	translation = original;
+    else
+    {
+      // leave other variables intact
+      translation = original;
     }
-
   }
   else
   {
@@ -323,12 +325,12 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
   SkolemManager* sm = d_nm->getSkolemManager();
   intUF = sm->mkDummySkolem(
       os.str(), d_nm->mkFunctionType(intDomain, intRange), "bv2int function");
-  
+
   // add definition of old function symbol to skolems.
   // create the application of the translated function.
   // The application will be used inside a lambda
   // expression.
-  
+
   // formal arguments of the lambda expression.
   std::vector<Node> args;
 

@@ -51,14 +51,10 @@ void setNoLimitCPU() {
 }
 
 CommandExecutor::CommandExecutor(std::unique_ptr<api::Solver>& solver)
-    : d_solver(solver),
-      d_symman(new SymbolManager(d_solver.get())),
-      d_result()
+    : d_solver(solver), d_symman(new SymbolManager(d_solver.get())), d_result()
 {
 }
-CommandExecutor::~CommandExecutor()
-{
-}
+CommandExecutor::~CommandExecutor() {}
 
 Options& CommandExecutor::getOptions()
 {
