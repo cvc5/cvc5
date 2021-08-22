@@ -19,17 +19,14 @@
 #define CVC5__OPTION_EXCEPTION_H
 
 #include "base/exception.h"
-#include "cvc5_export.h"
 
 namespace cvc5 {
 
 /**
  * Class representing an option-parsing exception such as badly-typed
- * or missing arguments, arguments out of bounds, etc.  If an option
- * name is itself unrecognized, a UnrecognizedOptionException (a derived
- * class, below) should be used instead.
+ * or missing arguments, arguments out of bounds, etc.
  */
-class CVC5_EXPORT OptionException : public cvc5::Exception
+class OptionException : public cvc5::Exception
 {
  public:
   OptionException(const std::string& s) : cvc5::Exception(s_errPrefix + s) {}
@@ -47,26 +44,6 @@ class CVC5_EXPORT OptionException : public cvc5::Exception
   /** The string to be added in front of the actual error message */
   static const std::string s_errPrefix;
 }; /* class OptionException */
-
-/**
- * Class representing an exception in option processing due to an
- * unrecognized or unsupported option key.
- */
-class UnrecognizedOptionException : public cvc5::OptionException
-{
- public:
-  UnrecognizedOptionException()
-      : cvc5::OptionException(
-          "Unrecognized informational or option key or setting")
-  {
-  }
-
-  UnrecognizedOptionException(const std::string& msg)
-      : cvc5::OptionException(
-          "Unrecognized informational or option key or setting: " + msg)
-  {
-  }
-}; /* class UnrecognizedOptionException */
 
 }  // namespace cvc5
 

@@ -19,6 +19,8 @@
 #include <iosfwd>
 #include <vector>
 
+#include "options/options.h"
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
@@ -170,7 +172,7 @@ class Strategy
   /** Is this strategy initialized? */
   bool isStrategyInit() const;
   /** Initialize this strategy */
-  void initializeStrategy();
+  void initializeStrategy(const Options& options);
   /** Retrieve the strategy for the given effort e */
   StepGenerator getStrategy();
 

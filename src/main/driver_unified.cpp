@@ -34,10 +34,11 @@
 #include "main/signal_handlers.h"
 #include "main/time_limit.h"
 #include "options/base_options.h"
+#include "options/main_options.h"
+#include "options/option_exception.h"
 #include "options/options.h"
 #include "options/options_public.h"
 #include "options/parser_options.h"
-#include "options/main_options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -94,7 +95,7 @@ void printUsage(const Options& opts, bool full) {
   }
 }
 
-int runCvc5(int argc, char* argv[], Options& opts)
+int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 {
   main::totalTime = std::make_unique<TotalTimer>();
 
@@ -103,32 +104,36 @@ int runCvc5(int argc, char* argv[], Options& opts)
 
   progPath = argv[0];
 
+  // Create the command executor to execute the parsed commands
+  pExecutor = std::make_unique<CommandExecutor>(solver);
+  Options* opts = &pExecutor->getOptions();
+
   // Parse the options
-  std::vector<string> filenames = options::parse(opts, argc, argv, progName);
+  std::vector<string> filenames = options::parse(*opts, argc, argv, progName);
 
-  auto limit = install_time_limit(opts);
+  auto limit = install_time_limit(*opts);
 
-  if (opts.driver.help)
+  if (opts->driver.help)
   {
-    printUsage(opts, true);
+    printUsage(*opts, true);
     exit(1);
   }
-  else if (opts.base.languageHelp)
+  else if (opts->base.languageHelp)
   {
-    options::printLanguageHelp(*opts.base.out);
+    options::printLanguageHelp(*opts->base.out);
     exit(1);
   }
-  else if (opts.driver.version)
+  else if (opts->driver.version)
   {
-    *opts.base.out << Configuration::about().c_str() << flush;
+    *opts->base.out << Configuration::about().c_str() << flush;
     exit(0);
   }
 
-  segvSpin = opts.driver.segvSpin;
+  segvSpin = opts->driver.segvSpin;
 
   // If in competition mode, set output stream option to flush immediately
 #ifdef CVC5_COMPETITION_MODE
-  *opts.base.out << unitbuf;
+  *opts->base.out << unitbuf;
 #endif /* CVC5_COMPETITION_MODE */
 
   // We only accept one input file
@@ -140,47 +145,46 @@ int runCvc5(int argc, char* argv[], Options& opts)
   const bool inputFromStdin = filenames.empty() || filenames[0] == "-";
 
   // if we're reading from stdin on a TTY, default to interactive mode
-  if (!opts.driver.interactiveWasSetByUser)
+  if (!opts->driver.interactiveWasSetByUser)
   {
-    opts.driver.interactive = inputFromStdin && isatty(fileno(stdin));
+    opts->driver.interactive = inputFromStdin && isatty(fileno(stdin));
   }
 
   // Auto-detect input language by filename extension
   std::string filenameStr("<stdin>");
   if (!inputFromStdin) {
-    // Use swap to avoid copying the string
-    // TODO: use std::move() when switching to c++11
-    filenameStr.swap(filenames[0]);
+    filenameStr = std::move(filenames[0]);
   }
   const char* filename = filenameStr.c_str();
 
-  if (opts.base.inputLanguage == language::input::LANG_AUTO)
+  if (opts->base.inputLanguage == language::input::LANG_AUTO)
   {
     if( inputFromStdin ) {
       // We can't do any fancy detection on stdin
-      opts.base.inputLanguage = language::input::LANG_CVC;
+      opts->base.inputLanguage = language::input::LANG_CVC;
     } else {
       size_t len = filenameStr.size();
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
-        opts.base.inputLanguage = language::input::LANG_SMTLIB_V2_6;
+        opts->base.inputLanguage = language::input::LANG_SMTLIB_V2_6;
       } else if((len >= 2 && !strcmp(".p", filename + len - 2))
                 || (len >= 5 && !strcmp(".tptp", filename + len - 5))) {
-        opts.base.inputLanguage = language::input::LANG_TPTP;
+        opts->base.inputLanguage = language::input::LANG_TPTP;
       } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
                 || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
-        opts.base.inputLanguage = language::input::LANG_CVC;
+        opts->base.inputLanguage = language::input::LANG_CVC;
       } else if((len >= 3 && !strcmp(".sy", filename + len - 3))
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
         // version 2 sygus is the default
-        opts.base.inputLanguage = language::input::LANG_SYGUS_V2;
+        opts->base.inputLanguage = language::input::LANG_SYGUS_V2;
       }
     }
   }
 
-  if (opts.base.outputLanguage == language::output::LANG_AUTO)
+  if (opts->base.outputLanguage == language::output::LANG_AUTO)
   {
-    opts.base.outputLanguage = language::toOutputLanguage(opts.base.inputLanguage);
+    opts->base.outputLanguage = language::toOutputLanguage(opts->base.inputLanguage);
   }
+  pExecutor->storeOptionsAsOriginal();
 
   // Determine which messages to show based on smtcomp_mode and verbosity
   if(Configuration::isMuzzledBuild()) {
@@ -193,11 +197,9 @@ int runCvc5(int argc, char* argv[], Options& opts)
   }
 
   // important even for muzzled builds (to get result output right)
-  (*opts.base.out)
-      << language::SetLanguage(opts.base.outputLanguage);
+  (*opts->base.out)
+      << language::SetLanguage(opts->base.outputLanguage);
 
-  // Create the command executor to execute the parsed commands
-  pExecutor = std::make_unique<CommandExecutor>(opts);
 
   int returnValue = 0;
   {
@@ -207,9 +209,9 @@ int runCvc5(int argc, char* argv[], Options& opts)
     // Parse and execute commands until we are done
     std::unique_ptr<Command> cmd;
     bool status = true;
-    if (opts.driver.interactive && inputFromStdin)
+    if (opts->driver.interactive && inputFromStdin)
     {
-      if (!opts.base.incrementalSolvingWasSetByUser)
+      if (!opts->base.incrementalSolvingWasSetByUser)
       {
         cmd.reset(new SetOptionCommand("incremental", "true"));
         cmd->setMuted(true);
@@ -217,31 +219,31 @@ int runCvc5(int argc, char* argv[], Options& opts)
       }
       InteractiveShell shell(pExecutor->getSolver(),
                              pExecutor->getSymbolManager());
-      if (opts.driver.interactivePrompt)
+
+      CVC5Message() << Configuration::getPackageName() << " "
+                    << Configuration::getVersionString();
+      if (Configuration::isGitBuild())
       {
-        CVC5Message() << Configuration::getPackageName() << " "
-                      << Configuration::getVersionString();
-        if(Configuration::isGitBuild()) {
-          CVC5Message() << " [" << Configuration::getGitId() << "]";
-        }
-        CVC5Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
-                      << " assertions:"
-                      << (Configuration::isAssertionBuild() ? "on" : "off")
-                      << endl
-                      << endl;
-        CVC5Message() << Configuration::copyright() << endl;
+        CVC5Message() << " [" << Configuration::getGitId() << "]";
       }
+      CVC5Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
+                    << " assertions:"
+                    << (Configuration::isAssertionBuild() ? "on" : "off")
+                    << endl
+                    << endl;
+      CVC5Message() << Configuration::copyright() << endl;
 
       while(true) {
         try {
           cmd.reset(shell.readCommand());
         } catch(UnsafeInterruptException& e) {
-          *opts.base.out << CommandInterrupted();
+          *opts->base.out << CommandInterrupted();
           break;
         }
         if (cmd == nullptr)
           break;
         status = pExecutor->doCommand(cmd) && status;
+        opts = &pExecutor->getOptions();
         if (cmd->interrupted()) {
           break;
         }
@@ -249,7 +251,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
     }
     else
     {
-      if (!opts.base.incrementalSolvingWasSetByUser)
+      if (!opts->base.incrementalSolvingWasSetByUser)
       {
         cmd.reset(new SetOptionCommand("incremental", "false"));
         cmd->setMuted(true);
@@ -258,25 +260,26 @@ int runCvc5(int argc, char* argv[], Options& opts)
 
       ParserBuilder parserBuilder(pExecutor->getSolver(),
                                   pExecutor->getSymbolManager(),
-                                  opts);
+                                  *opts);
       std::unique_ptr<Parser> parser(parserBuilder.build());
       if( inputFromStdin ) {
         parser->setInput(Input::newStreamInput(
-            opts.base.inputLanguage, cin, filename));
+            opts->base.inputLanguage, cin, filename));
       }
       else
       {
-        parser->setInput(Input::newFileInput(opts.base.inputLanguage,
+        parser->setInput(Input::newFileInput(opts->base.inputLanguage,
                                              filename,
-                                             opts.parser.memoryMap));
+                                             opts->parser.memoryMap));
       }
 
       bool interrupted = false;
       while (status)
       {
         if (interrupted) {
-          *opts.base.out << CommandInterrupted();
+          *opts->base.out << CommandInterrupted();
           pExecutor->reset();
+          opts = &pExecutor->getOptions();
           break;
         }
         try {
@@ -288,6 +291,7 @@ int runCvc5(int argc, char* argv[], Options& opts)
         }
 
         status = pExecutor->doCommand(cmd);
+        opts = &pExecutor->getOptions();
         if (cmd->interrupted() && status == 0) {
           interrupted = true;
           break;
@@ -309,9 +313,9 @@ int runCvc5(int argc, char* argv[], Options& opts)
     }
 
 #ifdef CVC5_COMPETITION_MODE
-    if (opts.base.out != nullptr)
+    if (opts->base.out != nullptr)
     {
-      *opts.base.out << std::flush;
+      *opts->base.out << std::flush;
     }
     // exit, don't return (don't want destructors to run)
     // _exit() from unistd.h doesn't run global destructors
@@ -323,12 +327,12 @@ int runCvc5(int argc, char* argv[], Options& opts)
     pExecutor->flushOutputStreams();
 
 #ifdef CVC5_DEBUG
-    if (opts.driver.earlyExit && opts.driver.earlyExitWasSetByUser)
+    if (opts->driver.earlyExit && opts->driver.earlyExitWasSetByUser)
     {
       _exit(returnValue);
     }
 #else  /* CVC5_DEBUG */
-    if (opts.driver.earlyExit)
+    if (opts->driver.earlyExit)
     {
       _exit(returnValue);
     }

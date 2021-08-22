@@ -858,9 +858,9 @@ class CVC5ApiRecoverableExceptionStream
   {
 #define CVC5_API_TRY_CATCH_END                                                 \
   }                                                                            \
-  catch (const UnrecognizedOptionException& e)                                 \
+  catch (const OptionException& e)                                             \
   {                                                                            \
-    throw CVC5ApiRecoverableException(e.getMessage());                         \
+    throw CVC5ApiOptionException(e.getMessage());                              \
   }                                                                            \
   catch (const cvc5::RecoverableModalException& e)                             \
   {                                                                            \
@@ -4951,19 +4951,17 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats)
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Solver::Solver(const Options* opts)
+Solver::Solver(std::unique_ptr<Options>&& original)
 {
   d_nodeMgr.reset(new NodeManager());
-  d_originalOptions.reset(new Options());
-  if (opts != nullptr)
-  {
-    d_originalOptions->copyValues(*opts);
-  }
+  d_originalOptions = std::move(original);
   d_smtEngine.reset(new SmtEngine(d_nodeMgr.get(), d_originalOptions.get()));
   d_smtEngine->setSolver(this);
   d_rng.reset(new Random(d_smtEngine->getOptions().driver.seed));
   resetStatistics();
 }
+
+Solver::Solver() : Solver(std::make_unique<Options>()) {}
 
 Solver::~Solver() {}
 
