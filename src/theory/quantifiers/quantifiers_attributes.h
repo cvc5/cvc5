@@ -179,16 +179,15 @@ class QuantAttributes
   QuantAttributes();
   ~QuantAttributes(){}
   /** set user attribute
-  * This function applies an attribute
-  * This can be called when we mark expressions with attributes, e.g. (! q
-  * :attribute attr [node_values, str_value...]),
-  * It can also be called internally in various ways (for SyGus, quantifier
-  * elimination, etc.)
-  */
+   * This function applies an attribute
+   * This can be called when we mark expressions with attributes, e.g. (! q
+   * :attribute attr [nodeValues]),
+   * It can also be called internally in various ways (for SyGus, quantifier
+   * elimination, etc.)
+   */
   static void setUserAttribute(const std::string& attr,
-                               Node q,
-                               std::vector<Node>& node_values,
-                               std::string str_value);
+                               TNode q,
+                               const std::vector<Node>& nodeValues);
 
   /** compute quantifier attributes */
   static void computeQuantAttributes(Node q, QAttributes& qa);
