@@ -182,8 +182,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   if (opts->base.outputLanguage == language::output::LANG_AUTO)
   {
-    opts->base.outputLanguage =
-        language::toOutputLanguage(opts->base.inputLanguage);
+    opts->base.outputLanguage = language::toOutputLanguage(opts->base.inputLanguage);
   }
   pExecutor->storeOptionsAsOriginal();
 
@@ -198,7 +197,9 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   }
 
   // important even for muzzled builds (to get result output right)
-  (*opts->base.out) << language::SetLanguage(opts->base.outputLanguage);
+  (*opts->base.out)
+      << language::SetLanguage(opts->base.outputLanguage);
+
 
   int returnValue = 0;
   {
@@ -257,17 +258,19 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
         pExecutor->doCommand(cmd);
       }
 
-      ParserBuilder parserBuilder(
-          pExecutor->getSolver(), pExecutor->getSymbolManager(), *opts);
+      ParserBuilder parserBuilder(pExecutor->getSolver(),
+                                  pExecutor->getSymbolManager(),
+                                  *opts);
       std::unique_ptr<Parser> parser(parserBuilder.build());
       if( inputFromStdin ) {
-        parser->setInput(
-            Input::newStreamInput(opts->base.inputLanguage, cin, filename));
+        parser->setInput(Input::newStreamInput(
+            opts->base.inputLanguage, cin, filename));
       }
       else
       {
-        parser->setInput(Input::newFileInput(
-            opts->base.inputLanguage, filename, opts->parser.memoryMap));
+        parser->setInput(Input::newFileInput(opts->base.inputLanguage,
+                                             filename,
+                                             opts->parser.memoryMap));
       }
 
       bool interrupted = false;

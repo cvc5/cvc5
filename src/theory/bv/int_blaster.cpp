@@ -187,7 +187,7 @@ Node IntBlaster::intBlast(Node n,
   return d_intblastCache[n].get();
 }
 
-Node IntBlaster::unsignedToSigned(Node n, uint64_t bw) { return Node(); }
+Node IntBlaster::uts(Node n, uint64_t bw) { return Node(); }
 
 Node IntBlaster::translateWithChildren(
     Node original,
@@ -206,8 +206,10 @@ Node IntBlaster::translateNoChildren(Node original,
   Trace("int-blaster-debug")
       << "translating leaf: " << original << "; of type: " << original.getType()
       << std::endl;
+
   // The result of the translation
   Node translation;
+
   // The translation is done differently for variables (bound or free)  and
   // constants (values)
   Assert(original.isVar() || original.isConst());
@@ -283,7 +285,7 @@ Node IntBlaster::translateNoChildren(Node original,
   }
   else
   {
-    // original is a const
+    // original is a constant (value)
     if (original.getKind() == kind::CONST_BITVECTOR)
     {
       // Bit-vector constants are transformed into their integer value.
@@ -305,21 +307,24 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
 {
   // construct the new function symbol.
   Node intUF;
+
+  // old and new types of domain and result
   TypeNode tn = bvUF.getType();
   TypeNode bvRange = tn.getRangeType();
   std::vector<TypeNode> bvDomain = tn.getArgTypes();
   std::vector<TypeNode> intDomain;
-  /**
-   * if the original range is a bit-vector sort,
-   * the new range should be an integer sort.
-   * Otherwise, we keep the original range.
-   * Similarly for the domains.
-   */
+
+  // if the original range is a bit-vector sort,
+  // the new range should be an integer sort.
+  // Otherwise, we keep the original range.
+  // Similarly for the domain sorts.
   TypeNode intRange = bvRange.isBitVector() ? d_nm->integerType() : bvRange;
   for (const TypeNode& d : bvDomain)
   {
     intDomain.push_back(d.isBitVector() ? d_nm->integerType() : d);
   }
+
+  // create the new function symbol as a skolem
   std::ostringstream os;
   os << "__intblast_fun_" << bvUF << "_int";
   SkolemManager* sm = d_nm->getSkolemManager();
@@ -327,19 +332,15 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
       os.str(), d_nm->mkFunctionType(intDomain, intRange), "bv2int function");
 
   // add definition of old function symbol to skolems.
-  // create the application of the translated function.
-  // The application will be used inside a lambda
-  // expression.
 
   // formal arguments of the lambda expression.
   std::vector<Node> args;
 
   // arguments to be passed in the application.
-  // They will be casted versions of the original BV
-  // arguments, with the function symbol itself
-  // on front. Non-BV arguments will stay intact.
   std::vector<Node> achildren;
   achildren.push_back(intUF);
+
+  // iterate the arguments, cast BV arguments to integers
   int i = 0;
   for (const TypeNode& d : bvDomain)
   {
@@ -355,6 +356,8 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
     achildren.push_back(castedArg);
     i++;
   }
+
+  // create the lambda expression, and add it to skolems
   Node app = d_nm->mkNode(kind::APPLY_UF, achildren);
   Node body = castToType(app, bvRange);
   Node bvlist = d_nm->mkNode(kind::BOUND_VAR_LIST, args);
@@ -377,10 +380,12 @@ Node IntBlaster::castToType(Node n, TypeNode tn)
     return n;
   }
   // We only case int to bv or vice verse.
-  Trace("int-blaster") << "castToType from " << n.getType() << " to " << tn
-                       << std::endl;
   Assert((n.getType().isBitVector() && tn.isInteger())
          || (n.getType().isInteger() && tn.isBitVector()));
+  Trace("int-blaster") << "castToType from " << n.getType() << " to " << tn
+                       << std::endl;
+
+  // casting integers to bit-vectors
   if (n.getType().isInteger())
   {
     Assert(tn.isBitVector());
@@ -388,6 +393,8 @@ Node IntBlaster::castToType(Node n, TypeNode tn)
     Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
     return d_nm->mkNode(intToBVOp, n);
   }
+
+  // casting bit-vectors to ingers
   Assert(n.getType().isBitVector());
   Assert(tn.isInteger());
   return d_nm->mkNode(kind::BITVECTOR_TO_NAT, n);
