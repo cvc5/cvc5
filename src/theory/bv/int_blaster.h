@@ -334,8 +334,7 @@ class IntBlaster
    */
   context::CDHashSet<Node> d_bitwiseAssertions;
 
-  /** Useful constants */
-  Node d_zero;
+  /** Useful constants */ Node d_zero;
   Node d_one;
 
   /** helper class for handeling bvand translation */
