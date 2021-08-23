@@ -319,7 +319,7 @@ class IntBlaster
    */
   context::CDHashSet<Node> d_bitwiseAssertions;
 
-  /** Useful constants */ 
+  /** Useful constants */
   Node d_zero;
   Node d_one;
 
