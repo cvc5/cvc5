@@ -1189,7 +1189,7 @@ bool SmtEngine::isModelCoreSymbol(Node n)
 {
   Assert(n.isVar());
   const Options& opts = d_env->getOptions();
-  if (opts.smt.modelCoresMode != options::ModelCoresMode::NONE)
+  if (opts.smt.modelCoresMode == options::ModelCoresMode::NONE)
   {
     // if the model core mode is none, we are always a model core symbol
     return true;
