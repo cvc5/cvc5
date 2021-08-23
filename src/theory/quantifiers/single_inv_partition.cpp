@@ -438,6 +438,7 @@ bool SingleInvocationPartition::processConjunct(Node n,
         {
           // n must be fully applied. This catches cases where n is
           // a function-to-synthesize that occurs in a higher-order context.
+          // If the type of n is functional, then it is not fully applied.
           if (n.getType().isFunction())
           {
             ret = false;
