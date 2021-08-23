@@ -18,6 +18,7 @@
 #include <memory>
 #include <string>
 
+#include "api/cpp/cvc5.h"
 #include "base/cvc5config.h"
 #include "base/exception.h"
 #include "options/options.h"
@@ -63,7 +64,6 @@ extern bool segvSpin;
 }  // namespace cvc5
 
 /** Actual cvc5 driver functions **/
-int runCvc5(int argc, char* argv[], cvc5::Options&);
-void printUsage(const cvc5::Options&, bool full = false);
+int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::api::Solver>&);
 
 #endif /* CVC5__MAIN__MAIN_H */

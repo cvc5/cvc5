@@ -858,9 +858,9 @@ class CVC5ApiRecoverableExceptionStream
   {
 #define CVC5_API_TRY_CATCH_END                                                 \
   }                                                                            \
-  catch (const UnrecognizedOptionException& e)                                 \
+  catch (const OptionException& e)                                             \
   {                                                                            \
-    throw CVC5ApiRecoverableException(e.getMessage());                         \
+    throw CVC5ApiOptionException(e.getMessage());                              \
   }                                                                            \
   catch (const cvc5::RecoverableModalException& e)                             \
   {                                                                            \
@@ -4951,19 +4951,17 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats)
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Solver::Solver(const Options* opts)
+Solver::Solver(std::unique_ptr<Options>&& original)
 {
   d_nodeMgr.reset(new NodeManager());
-  d_originalOptions.reset(new Options());
-  if (opts != nullptr)
-  {
-    d_originalOptions->copyValues(*opts);
-  }
+  d_originalOptions = std::move(original);
   d_smtEngine.reset(new SmtEngine(d_nodeMgr.get(), d_originalOptions.get()));
   d_smtEngine->setSolver(this);
   d_rng.reset(new Random(d_smtEngine->getOptions().driver.seed));
   resetStatistics();
 }
+
+Solver::Solver() : Solver(std::make_unique<Options>()) {}
 
 Solver::~Solver() {}
 
@@ -5037,17 +5035,6 @@ Term Solver::mkBVFromIntHelper(uint32_t size, uint64_t val) const
   CVC5_API_ARG_CHECK_EXPECTED(size > 0, size) << "a bit-width > 0";
   //////// all checks before this line
   return mkValHelper<cvc5::BitVector>(cvc5::BitVector(size, val));
-}
-
-Term Solver::mkBVFromStrHelper(const std::string& s, uint32_t base) const
-{
-  CVC5_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
-  CVC5_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, base)
-      << "base 2, 10, or 16";
-  CVC5_API_ARG_CHECK_EXPECTED(s[0] != '-', s)
-      << "a positive value (since no size is specified)";
-  //////// all checks before this line
-  return mkValHelper<cvc5::BitVector>(cvc5::BitVector(s, base));
 }
 
 Term Solver::mkBVFromStrHelper(uint32_t size,
@@ -5946,16 +5933,6 @@ Term Solver::mkBitVector(uint32_t size, uint64_t val) const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkBVFromIntHelper(size, val);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkBitVector(const std::string& s, uint32_t base) const
-{
-  NodeManagerScope scope(getNodeManager());
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return mkBVFromStrHelper(s, base);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

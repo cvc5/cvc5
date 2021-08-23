@@ -84,10 +84,7 @@ class NonlinearExtension
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  NonlinearExtension(TheoryArith& containing,
-                     ArithState& state,
-                     eq::EqualityEngine* ee,
-                     ProofNodeManager* pnm);
+  NonlinearExtension(TheoryArith& containing, ArithState& state);
   ~NonlinearExtension();
   /**
    * Does non-context dependent setup for a node connected to a theory.
@@ -144,6 +141,9 @@ class NonlinearExtension
 
   /** Process side effect se */
   void processSideEffect(const NlLemma& se);
+
+  /** Obtain options object */
+  const Options& options() const;
 
  private:
   /** Model-based refinement
@@ -223,6 +223,8 @@ class NonlinearExtension
   Node d_true;
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
+  /** A reference to the arithmetic state object */
+  ArithState& d_astate;
   InferenceManager& d_im;
   /** The statistics class */
   NlStats d_stats;

@@ -65,8 +65,6 @@ libcvc5_add_sources(
   options/options_public.h
   options/outputc.cpp
   options/outputc.h
-  options/printer_modes.cpp
-  options/printer_modes.h
   options/set_language.cpp
   options/set_language.h
   preprocessing/assertion_pipeline.cpp
@@ -323,6 +321,8 @@ libcvc5_add_sources(
   smt/process_assertions.h
   smt/proof_manager.cpp
   smt/proof_manager.h
+  smt/proof_final_callback.cpp
+  smt/proof_final_callback.h
   smt/proof_post_processor.cpp
   smt/proof_post_processor.h
   smt/set_defaults.cpp

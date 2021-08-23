@@ -845,12 +845,12 @@ TEST_F(TestApiBlackTerm, getBoolean)
 TEST_F(TestApiBlackTerm, getBitVector)
 {
   Term b1 = d_solver.mkBitVector(8, 15);
-  Term b2 = d_solver.mkBitVector("00001111", 2);
-  Term b3 = d_solver.mkBitVector("15", 10);
-  Term b4 = d_solver.mkBitVector("0f", 16);
-  Term b5 = d_solver.mkBitVector(8, "00001111", 2);
-  Term b6 = d_solver.mkBitVector(8, "15", 10);
-  Term b7 = d_solver.mkBitVector(8, "0f", 16);
+  Term b2 = d_solver.mkBitVector(8, "00001111", 2);
+  Term b3 = d_solver.mkBitVector(8, "15", 10);
+  Term b4 = d_solver.mkBitVector(8, "0f", 16);
+  Term b5 = d_solver.mkBitVector(9, "00001111", 2);
+  Term b6 = d_solver.mkBitVector(9, "15", 10);
+  Term b7 = d_solver.mkBitVector(9, "0f", 16);
 
   ASSERT_TRUE(b1.isBitVectorValue());
   ASSERT_TRUE(b2.isBitVectorValue());
@@ -866,19 +866,19 @@ TEST_F(TestApiBlackTerm, getBitVector)
   ASSERT_EQ("00001111", b2.getBitVectorValue(2));
   ASSERT_EQ("15", b2.getBitVectorValue(10));
   ASSERT_EQ("f", b2.getBitVectorValue(16));
-  ASSERT_EQ("1111", b3.getBitVectorValue(2));
+  ASSERT_EQ("00001111", b3.getBitVectorValue(2));
   ASSERT_EQ("15", b3.getBitVectorValue(10));
   ASSERT_EQ("f", b3.getBitVectorValue(16));
   ASSERT_EQ("00001111", b4.getBitVectorValue(2));
   ASSERT_EQ("15", b4.getBitVectorValue(10));
   ASSERT_EQ("f", b4.getBitVectorValue(16));
-  ASSERT_EQ("00001111", b5.getBitVectorValue(2));
+  ASSERT_EQ("000001111", b5.getBitVectorValue(2));
   ASSERT_EQ("15", b5.getBitVectorValue(10));
   ASSERT_EQ("f", b5.getBitVectorValue(16));
-  ASSERT_EQ("00001111", b6.getBitVectorValue(2));
+  ASSERT_EQ("000001111", b6.getBitVectorValue(2));
   ASSERT_EQ("15", b6.getBitVectorValue(10));
   ASSERT_EQ("f", b6.getBitVectorValue(16));
-  ASSERT_EQ("00001111", b7.getBitVectorValue(2));
+  ASSERT_EQ("000001111", b7.getBitVectorValue(2));
   ASSERT_EQ("15", b7.getBitVectorValue(10));
   ASSERT_EQ("f", b7.getBitVectorValue(16));
 }
@@ -915,7 +915,7 @@ TEST_F(TestApiBlackTerm, getTuple)
 
 TEST_F(TestApiBlackTerm, getFloatingPoint)
 {
-  Term bvval = d_solver.mkBitVector("0000110000000011");
+  Term bvval = d_solver.mkBitVector(16, "0000110000000011", 2);
   Term fp = d_solver.mkFloatingPoint(5, 11, bvval);
 
   ASSERT_TRUE(fp.isFloatingPointValue());
