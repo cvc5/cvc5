@@ -48,6 +48,7 @@ RelationalMatchGenerator::RelationalMatchGenerator(Trigger* tparent,
       d_var = rtrigger[i];
       d_vindex = d_var.getAttribute(InstVarNumAttribute());
       d_rhs = rtrigger[1 - i];
+      Assert(!quantifiers::TermUtil::hasInstConstAttr(d_rhs));
       Kind k = rtrigger.getKind();
       d_rel = (i == 0 ? k : (k == GEQ ? LEQ : k));
       break;
