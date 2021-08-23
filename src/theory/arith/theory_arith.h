@@ -125,6 +125,25 @@ class TheoryArith : public Theory {
   }
 
  private:
+  /**
+   * Update d_arithModelCache (if it is empty right now) and compute the termSet
+   * by calling collectAssertedTerms.
+   */
+  void updateModelCache(std::set<Node>& termSet);
+  /**
+   * Update d_arithModelCache (if it is empty right now) using the given
+   * termSet.
+   */
+  void updateModelCache(const std::set<Node>& termSet);
+  /**
+   * Perform a sanity check on the model that all integer variables are assigned
+   * to integer values. If an integer variables is assigned to a non-integer
+   * value, but the respective lemma can not be added (i.e. it has already been
+   * added) an assertion triggers. Otherwise teturns true if a lemma was added,
+   * false otherwise.
+   */
+  bool sanityCheckIntegerModel();
+
   /** Get the proof equality engine */
   eq::ProofEqEngine* getProofEqEngine();
   /** Timer for ppRewrite */
