@@ -239,9 +239,14 @@ void setInternal(Options& opts, const std::string& name,
                                 const std::string& optionarg)
 {
   // clang-format off
-  ${setoption_handlers}$
+${setoption_handlers}$
   // clang-format on
-  throw OptionException("Unrecognized option key or setting: " + name);
+  }
+  else
+  {
+    throw OptionException("Unrecognized informational or option key or setting: " + name);
+  }
+  Trace("options") << "user assigned option " << name << " = " << optionarg << std::endl;
 }
 
 void set(Options& opts, const std::string& name, const std::string& optionarg)
