@@ -141,6 +141,7 @@ class InferProofCons : public ProofGenerator
    * where k is the purification skolem for (f x). Additionally, it ensures
    * that psb has a proof of:
    *   (= x (str.++ k c)) from (= x (str.++ (f x) c))
+   *      ...note the direction, since concludeTgtNew = true
    *   (= k a) from (= (f x) a)
    *   (= x (str.++ b k)) from (= x (str.++ b (f x)))
    * Notice that the resulting substitution can now be safely used as a
