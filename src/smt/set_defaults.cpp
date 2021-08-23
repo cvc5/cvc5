@@ -405,7 +405,8 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
   // whether we want to force safe unsat cores, i.e., if we are in the default
   // ASSUMPTIONS mode, since other ones are experimental
   bool safeUnsatCores =
-      opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS;
+      opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS ||
+      opts.smt.unsatCoresMode == options::UnsatCoresMode::PP_ONLY;
 
   // Disable options incompatible with incremental solving, unsat cores or
   // output an error if enabled explicitly. It is also currently incompatible
