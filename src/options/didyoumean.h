@@ -20,13 +20,15 @@
 
 #pragma once
 
+#include "cvc5_export.h"
+
 #include <set>
 #include <string>
 #include <vector>
 
 namespace cvc5 {
 
-class DidYouMean {
+class CVC5_EXPORT DidYouMean {
  public:
   using Words = std::set<std::string>;
 
