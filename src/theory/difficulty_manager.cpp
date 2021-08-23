@@ -77,7 +77,7 @@ void DifficultyManager::notifyCandidateModel(const NodeList& input,
   for (const Node& a : input)
   {
     // should have miniscoped the assertions upstream
-    Assert(a.getKind() != AND);
+    Assert(a.getKind() != kind::AND);
     // check if each input is satisfied
     Node av = m->getValue(a);
     if (av.isConst() && av.getConst<bool>())

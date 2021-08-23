@@ -1815,8 +1815,6 @@ void SmtEngine::getDifficultyMap(std::map<Node, Node>& dmap)
         "Cannot get difficulty when difficulty option is off.");
   }
   // the prop engine has the proof of false
-  Assert(pe != nullptr);
-  Assert(pe->getProof() != nullptr);
   Assert(d_pfManager);
   // get difficulty map from theory engine first
   TheoryEngine* te = getTheoryEngine();

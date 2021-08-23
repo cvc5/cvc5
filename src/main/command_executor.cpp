@@ -181,7 +181,9 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
 
-    if (d_solver->getOptions().driver.dumpDifficulty)
+    if (d_solver->getOptions().driver.dumpDifficulty
+        && (isResultUnsat || res.isSat()
+            || res.isSatUnknown()))
     {
       getterCommands.emplace_back(new GetDifficultyCommand());
     }
