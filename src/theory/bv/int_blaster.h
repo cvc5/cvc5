@@ -151,21 +151,6 @@ class IntBlaster
   /** Adds a constraint that encodes bitwise and */
   void addBitwiseConstraint(Node bitwiseConstraint, std::vector<Node>& lemmas);
 
-  /** Helper functions for constructing nodes that represent bitwise operations
-   */
-  Node createBVNotNode(Node n, uint64_t bvsize);
-  Node createBVNegNode(Node n, uint64_t bvsize);
-  Node createBVAndNode(Node x,
-                       Node y,
-                       uint64_t bvsize,
-                       std::vector<Node>& lemmas);
-  Node createBVAddNode(Node x, Node y, uint64_t bvsize);
-  Node createBVOrNode(Node x,
-                      Node y,
-                      uint64_t bvsize,
-                      std::vector<Node>& lemmas);
-  Node createBVSubNode(Node x, Node y, uint64_t bvsize);
-
   /**
    * Whenever we introduce an integer variable that represents a bit-vector
    * variable, we need to guard the range of the newly introduced variable.

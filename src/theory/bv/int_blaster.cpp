@@ -419,6 +419,4 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   return Node();
 }
 
-Node IntBlaster::createBVNotNode(Node n, uint64_t bvsize) { return Node(); }
-
 }  // namespace cvc5
