@@ -98,7 +98,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
-  if (d_env.isTheoryProofProducing())
+  if (d_env.isSatProofProducing())
   {
     Assert(options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF
            || tte.getGenerator());
