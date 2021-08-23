@@ -66,16 +66,13 @@ void SequencesArraySolver::checkNth(const std::vector<Node>& nthTerms)
     {
       // (seq.extract A i l) ^ (<= 0 i) ^ (< i (str.len A)) --> (seq.unit
       // (seq.nth A i))
-      Node proxy = d_termReg.getProxyVariableFor(n);
-      Trace("seq-update") << "- " << proxy << " = " << n << std::endl;
       std::vector<Node> exp;
-      d_im.addToExplanation(proxy, n, exp);
       Node cond1 = nm->mkNode(LEQ, nm->mkConst(Rational(0)), n[1]);
       Node cond2 = nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0]));
       Node cond = nm->mkNode(AND, cond1, cond2);
       Node body1 = nm->mkNode(
-          EQUAL, proxy, nm->mkNode(SEQ_UNIT, nm->mkNode(SEQ_NTH, n[0], n[1])));
-      Node body2 = nm->mkNode(EQUAL, proxy, Word::mkEmptyWord(n.getType()));
+          EQUAL, n, nm->mkNode(SEQ_UNIT, nm->mkNode(SEQ_NTH, n[0], n[1])));
+      Node body2 = nm->mkNode(EQUAL, n, Word::mkEmptyWord(n.getType()));
       Node lem = nm->mkNode(ITE, cond, body1, body2);
       sendInference(exp, lem);
     }
