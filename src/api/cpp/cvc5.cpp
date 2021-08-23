@@ -7033,6 +7033,10 @@ template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 std::ostream& operator<<(std::ostream& os, const OptionInfo& oi)
 {
   os << "OptionInfo{ " << oi.name;
+  if (oi.setByUser)
+  {
+    os << " | set by user";
+  }
   if (!oi.aliases.empty())
   {
     container_to_stream(os, oi.aliases, ", ", "", ", ");
@@ -7101,17 +7105,22 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
   return std::visit(
       overloaded{
           [&info](const options::OptionInfo::VoidInfo& vi) {
-            return OptionInfo{info.name, info.aliases, OptionInfo::VoidInfo{}};
+            return OptionInfo{info.name,
+                              info.aliases,
+                              info.setByUser,
+                              OptionInfo::VoidInfo{}};
           },
           [&info](const options::OptionInfo::ValueInfo<bool>& vi) {
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.setByUser,
                 OptionInfo::ValueInfo<bool>{vi.defaultValue, vi.currentValue}};
           },
           [&info](const options::OptionInfo::ValueInfo<std::string>& vi) {
             return OptionInfo{info.name,
                               info.aliases,
+                              info.setByUser,
                               OptionInfo::ValueInfo<std::string>{
                                   vi.defaultValue, vi.currentValue}};
           },
@@ -7119,6 +7128,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.setByUser,
                 OptionInfo::NumberInfo<int64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7126,6 +7136,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.setByUser,
                 OptionInfo::NumberInfo<uint64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7133,12 +7144,14 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.setByUser,
                 OptionInfo::NumberInfo<double>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
           [&info](const options::OptionInfo::ModeInfo& vi) {
             return OptionInfo{info.name,
                               info.aliases,
+                              info.setByUser,
                               OptionInfo::ModeInfo{
                                   vi.defaultValue, vi.currentValue, vi.modes}};
           },

@@ -815,7 +815,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                         alias = ', '.join(map(lambda s: '"{}"'.format(s), option.alias))
                     else:
                         alias = ''
-                    options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, {}}};'.format(cond, long_get_option(option.long), constr, alias=alias))
+                    options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, opts.{}.{}WasSetByUser, {}}};'.format(cond, long_get_option(option.long), module.id, option.name, constr, alias=alias))
 
                 if setoption_handlers:
                     setoption_handlers.append('  }} else if ({}) {{'.format(cond))

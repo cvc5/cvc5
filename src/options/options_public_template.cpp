@@ -281,8 +281,8 @@ ${options_all_names}$
 
 OptionInfo getInfo(const Options& opts, const std::string& name)
 {
-  ${options_get_info}$
-  return OptionInfo{name, {}, OptionInfo::VoidInfo{}};
+  ${options_get_info} $ return OptionInfo{
+      name, {}, false, OptionInfo::VoidInfo{}};
 }
 
 #undef DO_SEMANTIC_CHECKS_BY_DEFAULT

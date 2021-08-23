@@ -2644,6 +2644,8 @@ struct CVC5_EXPORT OptionInfo
   std::string name;
   /** The option name aliases */
   std::vector<std::string> aliases;
+  /** Whether the option was explicitly set by the user */
+  bool setByUser;
   /** The option value information */
   std::variant<VoidInfo,
                ValueInfo<bool>,

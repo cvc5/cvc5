@@ -66,6 +66,7 @@ struct CVC5_EXPORT OptionInfo
 {
   std::string name;
   std::vector<std::string> aliases;
+  bool setByUser;
 
   /** No information about the options value */
   struct VoidInfo
