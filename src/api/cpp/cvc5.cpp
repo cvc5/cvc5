@@ -7158,10 +7158,10 @@ std::vector<Term> Solver::getModelDomainElements(const Sort& s) const
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions().smt.produceModels)
-      << "Cannot get value unless model generation is enabled "
+      << "Cannot get domain elements unless model generation is enabled "
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
-      << "Cannot get value unless after a SAT or unknown response.";
+      << "Cannot get domain elements unless after a SAT or unknown response.";
   CVC5_API_SOLVER_CHECK_SORT(s);
   CVC5_API_RECOVERABLE_CHECK(s.isUninterpretedSort())
       << "Expecting an uninterpreted sort as argument to "
@@ -7184,10 +7184,10 @@ bool Solver::isModelCoreSymbol(const Term& v) const
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions().smt.produceModels)
-      << "Cannot get value unless model generation is enabled "
+      << "Cannot check if model core symbol unless model generation is enabled "
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
-      << "Cannot get value unless after a SAT or unknown response.";
+      << "Cannot check if model core symbol unless after a SAT or unknown response.";
   CVC5_API_SOLVER_CHECK_TERM(v);
   CVC5_API_RECOVERABLE_CHECK(v.getKind() == CONSTANT)
       << "Expecting a free constant as argument to isModelCoreSymbol.";
