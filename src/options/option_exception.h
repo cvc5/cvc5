@@ -18,6 +18,7 @@
 #ifndef CVC5__OPTION_EXCEPTION_H
 #define CVC5__OPTION_EXCEPTION_H
 
+#include "cvc5_export.h"
 #include "base/exception.h"
 
 namespace cvc5 {
@@ -26,7 +27,7 @@ namespace cvc5 {
  * Class representing an option-parsing exception such as badly-typed
  * or missing arguments, arguments out of bounds, etc.
  */
-class OptionException : public cvc5::Exception
+class CVC5_EXPORT OptionException : public cvc5::Exception
 {
  public:
   OptionException(const std::string& s) : cvc5::Exception(s_errPrefix + s) {}
