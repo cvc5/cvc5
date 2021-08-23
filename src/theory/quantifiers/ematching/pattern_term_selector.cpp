@@ -43,7 +43,7 @@ bool PatternTermSelector::isUsable(Node n, Node q)
 {
   if (quantifiers::TermUtil::getInstConstAttr(n) != q)
   {
-    return true;
+    return false;
   }
   if (TriggerTermInfo::isAtomicTrigger(n))
   {
@@ -60,7 +60,6 @@ bool PatternTermSelector::isUsable(Node n, Node q)
   {
     return true;
   }
-  std::map<Node, Node> coeffs;
   if (options::purifyTriggers())
   {
     Node x = getInversionVariable(n);
@@ -82,7 +81,7 @@ Node PatternTermSelector::getIsUsableEq(Node q, Node n)
       if (i == 1 && n.getKind() == EQUAL
           && !quantifiers::TermUtil::hasInstConstAttr(n[0]))
       {
-        return NodeManager::currentNM()->mkNode(n.getKind(), n[1], n[0]);
+        return NodeManager::currentNM()->mkNode(EQUAL, n[1], n[0]);
       }
       else
       {
