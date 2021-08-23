@@ -528,8 +528,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
         {
           pat = pat.eqNode(nm->mkConst(rpol == -1)).negate();
         }
-        else if (options::literalMatchMode()
-                  != options::LiteralMatchMode::NONE)
+        else if (options::literalMatchMode() != options::LiteralMatchMode::NONE)
         {
           pat = pat.eqNode(nm->mkConst(rpol == 1));
         }

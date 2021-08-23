@@ -31,7 +31,10 @@ namespace inst {
 class RelationalMatchGenerator : public InstMatchGenerator
 {
  public:
-  RelationalMatchGenerator(Trigger* tparent, Node rtrigger, bool hasPol, bool pol);
+  RelationalMatchGenerator(Trigger* tparent,
+                           Node rtrigger,
+                           bool hasPol,
+                           bool pol);
 
   /** Reset */
   bool reset(Node eqc) override;
@@ -49,7 +52,8 @@ class RelationalMatchGenerator : public InstMatchGenerator
   bool d_hasPol;
   /** the required polarity, if it exists */
   bool d_pol;
-  /** the current number of terms we have generated since the last call to reset */
+  /** the current number of terms we have generated since the last call to reset
+   */
   size_t d_counter;
 };
 
