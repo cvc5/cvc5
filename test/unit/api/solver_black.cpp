@@ -1489,7 +1489,7 @@ TEST_F(TestApiBlackSolver, isModelCoreSymbol)
   Term y = d_solver.mkConst(uSort, "y");
   Term z = d_solver.mkConst(uSort, "z");
   Term zero = d_solver.mkInteger(0);
-  Term f = d_solver.mkTerm(EQUAL, x, y);
+  Term f = d_solver.mkTerm(NOT, d_solver.mkTerm(EQUAL, x, y));
   d_solver.assertFormula(f);
   d_solver.checkSat();
   ASSERT_TRUE(d_solver.isModelCoreSymbol(x));
