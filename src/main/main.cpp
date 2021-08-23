@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
   catch (cvc5::api::CVC5ApiOptionException& e)
   {
 #ifdef CVC5_COMPETITION_MODE
-    *opts.base.out << "unknown" << endl;
+    *solver->getOptions().base.out << "unknown" << endl;
 #endif
     cerr << "(error \"" << e.getMessage() << "\")" << endl
          << endl
