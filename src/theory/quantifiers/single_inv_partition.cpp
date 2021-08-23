@@ -261,10 +261,9 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         for (unsigned j = 0; j < args.size(); j++)
         {
           Trace("si-prt") << args[j] << " ";
-          if (args[j].getKind() == BOUND_VARIABLE
-              && !sb.contains(args[j]))
+          if (args[j].getKind() == BOUND_VARIABLE && !sb.contains(args[j]))
           {
-            sb.add(args[j],d_si_vars[j]);
+            sb.add(args[j], d_si_vars[j]);
           }
           else
           {
