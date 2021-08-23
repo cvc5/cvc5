@@ -1073,6 +1073,7 @@ def mkoptions_main():
         {'input': 'options/options_template.h'},
         {'input': 'options/options_template.cpp'},
         {'input': 'options/options_public_template.cpp'},
+        {'input': 'main/options_template.cpp'},
     ]
 
     for tpl in module_tpls + global_tpls:
