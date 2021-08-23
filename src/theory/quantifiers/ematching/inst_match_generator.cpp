@@ -690,10 +690,12 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
   if ((lit.getKind() == EQUAL && lit[0].getType().isReal())
       || lit.getKind() == GEQ)
   {
-    // if one side of the relation is a variable and the other side is a ground term, we can treat this using the relational match generator
-    for (size_t i=0; i<2; i++)
+    // if one side of the relation is a variable and the other side is a ground
+    // term, we can treat this using the relational match generator
+    for (size_t i = 0; i < 2; i++)
     {
-      if (lit[i].getKind() == INST_CONSTANT && !quantifiers::TermUtil::hasInstConstAttr(lit[1-i]))
+      if (lit[i].getKind() == INST_CONSTANT
+          && !quantifiers::TermUtil::hasInstConstAttr(lit[1 - i]))
       {
         Trace("relational-trigger")
             << "...yes, for variable " << lit[i] << std::endl;
