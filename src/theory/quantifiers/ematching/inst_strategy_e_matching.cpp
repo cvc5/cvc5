@@ -521,55 +521,40 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
     if (rpol != 0)
     {
       Assert(rpol == 1 || rpol == -1);
-      if (TriggerTermInfo::isRelationalTrigger(pat))
+      Assert(TriggerTermInfo::isAtomicTrigger(pat));
+      if (pat.getType().isBoolean() && rpoleq.isNull())
       {
-        pat = rpol == -1 ? pat.negate() : pat;
+        if (options::literalMatchMode() == options::LiteralMatchMode::USE)
+        {
+          pat = pat.eqNode(nm->mkConst(rpol == -1)).negate();
+        }
+        else if (options::literalMatchMode()
+                  != options::LiteralMatchMode::NONE)
+        {
+          pat = pat.eqNode(nm->mkConst(rpol == 1));
+        }
       }
       else
       {
-        Assert(TriggerTermInfo::isAtomicTrigger(pat));
-        if (pat.getType().isBoolean() && rpoleq.isNull())
+        Assert(!rpoleq.isNull());
+        if (rpol == -1)
         {
-          if (options::literalMatchMode() == options::LiteralMatchMode::USE)
+          if (options::literalMatchMode() != options::LiteralMatchMode::NONE)
           {
-            pat = pat.eqNode(nm->mkConst(rpol == -1)).negate();
-          }
-          else if (options::literalMatchMode()
-                   != options::LiteralMatchMode::NONE)
-          {
-            pat = pat.eqNode(nm->mkConst(rpol == 1));
+            // all equivalence classes except rpoleq
+            pat = pat.eqNode(rpoleq).negate();
           }
         }
-        else
+        else if (rpol == 1)
         {
-          Assert(!rpoleq.isNull());
-          if (rpol == -1)
+          if (options::literalMatchMode() == options::LiteralMatchMode::AGG)
           {
-            if (options::literalMatchMode() != options::LiteralMatchMode::NONE)
-            {
-              // all equivalence classes except rpoleq
-              pat = pat.eqNode(rpoleq).negate();
-            }
-          }
-          else if (rpol == 1)
-          {
-            if (options::literalMatchMode() == options::LiteralMatchMode::AGG)
-            {
-              // only equivalence class rpoleq
-              pat = pat.eqNode(rpoleq);
-            }
+            // only equivalence class rpoleq
+            pat = pat.eqNode(rpoleq);
           }
         }
       }
       Trace("auto-gen-trigger-debug") << "...got : " << pat << std::endl;
-    }
-    else
-    {
-      if (TriggerTermInfo::isRelationalTrigger(pat))
-      {
-        // consider both polarities
-        addPatternToPool(f, pat.negate(), num_fv, mpat);
-      }
     }
     addPatternToPool(f, pat, num_fv, mpat);
   }

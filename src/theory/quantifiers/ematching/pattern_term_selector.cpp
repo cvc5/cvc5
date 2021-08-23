@@ -43,7 +43,7 @@ bool PatternTermSelector::isUsable(Node n, Node q)
 {
   if (quantifiers::TermUtil::getInstConstAttr(n) != q)
   {
-    return false;
+    return true;
   }
   if (TriggerTermInfo::isAtomicTrigger(n))
   {

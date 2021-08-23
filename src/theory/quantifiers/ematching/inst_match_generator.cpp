@@ -642,6 +642,7 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
                                                               Node q,
                                                               Node n)
 {
+  // maybe variable match generator
   if (n.getKind() != INST_CONSTANT)
   {
     Trace("var-trigger-debug")
@@ -669,6 +670,30 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
       return vmg;
     }
   }
+  /*
+  // relational triggers
+  bool hasPol = false;
+  bool pol = true;
+  Node lit = n;
+  if (n.getKind()==EQUAL && n[1].getType().isBoolean() && n[1].isConst())
+  {
+    hasPol = true;
+    pol = n[1].getConst<bool>();
+    lit = n[0];
+  }
+  // is it a relational trigger?
+  if ((lit.getKind()==EQUAL && lit[0].getType().isReal()) || lit.getKind()==GEQ)
+  {
+    // if one side of the relation is a variable, it is a relatinal trigger
+    for (const Node& lc : lit)
+    {
+      if (lc.getKind()==INST_CONSTANT)
+      {
+        return new RelationalTrigger(tparent, lit, hasPol, pol);
+      }
+    }
+  }
+  */
   return new InstMatchGenerator(tparent, n);
 }
 

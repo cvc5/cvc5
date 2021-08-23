@@ -771,6 +771,8 @@ libcvc5_add_sources(
   theory/quantifiers/ematching/instantiation_engine.h
   theory/quantifiers/ematching/pattern_term_selector.cpp
   theory/quantifiers/ematching/pattern_term_selector.h
+  theory/quantifiers/ematching/relational_match_generator.cpp
+  theory/quantifiers/ematching/relational_match_generator.h
   theory/quantifiers/ematching/trigger.cpp
   theory/quantifiers/ematching/trigger.h
   theory/quantifiers/ematching/trigger_database.cpp

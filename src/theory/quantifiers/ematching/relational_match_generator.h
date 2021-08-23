@@ -39,8 +39,12 @@ class RelationalMatchGenerator : public InstMatchGenerator
   int getNextMatch(Node q, InstMatch& m) override;
 
  private:
-  /** the relational trigger */
-  Node d_relTrigger;
+  /** the variable */
+  Node d_var;
+  /** the relation kind */
+  Kind d_rel;
+  /** the right hand side */
+  Node d_rhs;
   /** whether we have a required polarity */
   bool d_hasPol;
   /** the required polarity, if it exists */
