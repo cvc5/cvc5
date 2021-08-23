@@ -40,6 +40,7 @@ class RelationalMatchGenerator : public InstMatchGenerator
   bool reset(Node eqc) override;
   /** Get the next match. */
   int getNextMatch(Node q, InstMatch& m) override;
+
  private:
   /** the variable */
   Node d_var;

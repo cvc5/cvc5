@@ -22,8 +22,8 @@
 #include "theory/quantifiers/ematching/inst_match_generator_multi.h"
 #include "theory/quantifiers/ematching/inst_match_generator_multi_linear.h"
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
-#include "theory/quantifiers/ematching/relational_match_generator.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
+#include "theory/quantifiers/ematching/relational_match_generator.h"
 #include "theory/quantifiers/ematching/var_match_generator.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_state.h"
@@ -673,27 +673,30 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
       return vmg;
     }
   }
-    Trace("relational-trigger")
-        << "Is " << n << " a relational trigger?" << std::endl;
+  Trace("relational-trigger")
+      << "Is " << n << " a relational trigger?" << std::endl;
   // relational triggers
   bool hasPol = false;
-  bool pol = n.getKind()!=NOT;
+  bool pol = n.getKind() != NOT;
   Node lit = pol ? n : n[0];
-  if (lit.getKind()==EQUAL && lit[1].getType().isBoolean() && lit[1].isConst())
+  if (lit.getKind() == EQUAL && lit[1].getType().isBoolean()
+      && lit[1].isConst())
   {
     hasPol = true;
     pol = lit[1].getConst<bool>() ? pol : !pol;
     lit = lit[0];
   }
   // is it a relational trigger?
-  if ((lit.getKind()==EQUAL && lit[0].getType().isReal()) || lit.getKind()==GEQ)
+  if ((lit.getKind() == EQUAL && lit[0].getType().isReal())
+      || lit.getKind() == GEQ)
   {
     // if one side of the relation is a variable, it is a relatinal trigger
     for (const Node& lc : lit)
     {
-      if (lc.getKind()==INST_CONSTANT)
+      if (lc.getKind() == INST_CONSTANT)
       {
-        Trace("relational-trigger") << "...yes, for variable " << lc << std::endl;
+        Trace("relational-trigger")
+            << "...yes, for variable " << lc << std::endl;
         return new RelationalMatchGenerator(tparent, lit, hasPol, pol);
       }
     }
