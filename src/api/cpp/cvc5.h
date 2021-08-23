@@ -2600,8 +2600,9 @@ namespace cvc5::api {
 
 /**
  * Holds some description about a particular option, including its name, its
- * aliases and information concerning its value. The `valueInfo` member holds
- * any of the following alternatives:
+ * aliases, whether the option was explcitly set by the user, and information
+ * concerning its value. The `valueInfo` member holds any of the following
+ * alternatives:
  * - VoidInfo if the option holds no value (or the value has no native type)
  * - ValueInfo<T> if the option is of type bool or std::string, holds the
  *   current value and the default value.
