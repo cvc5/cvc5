@@ -243,7 +243,7 @@ ${setoption_handlers}$
   }
   else
   {
-    throw OptionException("Unrecognized informational or option key or setting: " + name);
+    throw OptionException("Unrecognized option key or setting: " + name);
   }
   Trace("options") << "user assigned option " << name << " = " << optionarg << std::endl;
 }
