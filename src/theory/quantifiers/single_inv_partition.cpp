@@ -435,8 +435,10 @@ bool SingleInvocationPartition::processConjunct(Node n,
         if (std::find(d_input_funcs.begin(), d_input_funcs.end(), f)
             != d_input_funcs.end())
         {
-          // n must be fully applied. This catches cases where n is
-          // a function-to-synthesize that occurs in a higher-order context.
+          // If n is an application of a function-to-synthesize f, or is
+          // itself a function-to-synthesize, then n must be fully applied.
+          // This catches cases where n is a function-to-synthesize that occurs
+          // in a higher-order context.
           // If the type of n is functional, then it is not fully applied.
           if (n.getType().isFunction())
           {
