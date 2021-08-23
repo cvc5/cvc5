@@ -354,10 +354,7 @@ name   = "SMT Layer"
   type       = "ModelUninterpPrintMode"
   default    = "None"
   help       = "determines how to print uninterpreted elements in models"
-  help_mode  = "uninterpreted elements in models printing  modes."
-[[option.mode.DtEnum]]
-  name = "dtenum"
-  help = "print uninterpreted elements as datatype enumerations, where the sort is the datatype"
+  help_mode  = "uninterpreted elements in models printing modes."
 [[option.mode.DeclSortAndFun]]
   name = "decl-sort-and-fun"
   help = "print uninterpreted elements declare-fun, and also include a declare-sort for the sort"

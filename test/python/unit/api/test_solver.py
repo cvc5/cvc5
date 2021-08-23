@@ -291,35 +291,64 @@ def test_mk_tuple_sort(solver):
 
 
 def test_mk_bit_vector(solver):
-    size0 = 0
-    size1 = 8
-    size2 = 32
-    val1 = 2
-    val2 = 2
-    solver.mkBitVector(size1, val1)
-    solver.mkBitVector(size2, val2)
-    solver.mkBitVector("1010", 2)
-    solver.mkBitVector("1010", 10)
-    solver.mkBitVector("1234", 10)
-    solver.mkBitVector("1010", 16)
-    solver.mkBitVector("a09f", 16)
+    solver.mkBitVector(8, 2)
+    solver.mkBitVector(32, 2)
+
+    solver.mkBitVector(4, "1010", 2)
+    solver.mkBitVector(8, "0101", 2)
+    solver.mkBitVector(8, "-1111111", 2)
+    solver.mkBitVector(8, "00000101", 2)
     solver.mkBitVector(8, "-127", 10)
+    solver.mkBitVector(8, "255", 10)
+    solver.mkBitVector(10, "1010", 10)
+    solver.mkBitVector(11, "1234", 10)
+    solver.mkBitVector(8, "-7f", 16)
+    solver.mkBitVector(8, "a0", 16)
+    solver.mkBitVector(16, "1010", 16)
+    solver.mkBitVector(16, "a09f", 16)
+
     with pytest.raises(RuntimeError):
-        solver.mkBitVector(size0, val1)
+        solver.mkBitVector(0, 2)
     with pytest.raises(RuntimeError):
-        solver.mkBitVector(size0, val2)
+        solver.mkBitVector(0, "-127", 10)
     with pytest.raises(RuntimeError):
-        solver.mkBitVector("", 2)
+        solver.mkBitVector(0, "a0", 16)
+
     with pytest.raises(RuntimeError):
-        solver.mkBitVector("10", 3)
+        solver.mkBitVector(2, "", 2)
+
     with pytest.raises(RuntimeError):
-        solver.mkBitVector("20", 2)
+        solver.mkBitVector(8, "101", 5)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(8, "127", 11)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(8, "a0", 21)
+
     with pytest.raises(RuntimeError):
         solver.mkBitVector(8, "101010101", 2)
     with pytest.raises(RuntimeError):
+        solver.mkBitVector(8, "-11111111", 2)
+    with pytest.raises(RuntimeError):
         solver.mkBitVector(8, "-256", 10)
-    assert solver.mkBitVector("1010", 2) == solver.mkBitVector("10", 10)
-    assert solver.mkBitVector("1010", 2) == solver.mkBitVector("a", 16)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(8, "257", 10)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(8, "-a0", 16)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(8, "fffff", 16)
+
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(8, "10201010", 2)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(8, "-25x", 10)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(8, "2x7", 10)
+    with pytest.raises(RuntimeError):
+        solver.mkBitVector(8, "fzff", 16)
+
+    assert solver.mkBitVector(8, "0101", 2) == solver.mkBitVector(8, "00000101", 2)
+    assert solver.mkBitVector(4, "1010", 2) == solver.mkBitVector(4, "10", 10)
+    assert solver.mkBitVector(4, "1010", 2) == solver.mkBitVector(4, "a", 16)
     assert str(solver.mkBitVector(8, "01010101", 2)) == "#b01010101"
     assert str(solver.mkBitVector(8, "F", 16)) == "#b00001111"
     assert solver.mkBitVector(8, "-1", 10) ==\
@@ -820,21 +849,21 @@ def test_mk_true(solver):
 
 
 def test_mk_tuple(solver):
-    solver.mkTuple([solver.mkBitVectorSort(3)], [solver.mkBitVector("101", 2)])
+    solver.mkTuple([solver.mkBitVectorSort(3)], [solver.mkBitVector(3, "101", 2)])
     solver.mkTuple([solver.getRealSort()], [solver.mkInteger("5")])
 
     with pytest.raises(RuntimeError):
-        solver.mkTuple([], [solver.mkBitVector("101", 2)])
+        solver.mkTuple([], [solver.mkBitVector(3, "101", 2)])
     with pytest.raises(RuntimeError):
         solver.mkTuple([solver.mkBitVectorSort(4)],
-                       [solver.mkBitVector("101", 2)])
+                       [solver.mkBitVector(3, "101", 2)])
     with pytest.raises(RuntimeError):
         solver.mkTuple([solver.getIntegerSort()], [solver.mkReal("5.3")])
     slv = pycvc5.Solver()
     with pytest.raises(RuntimeError):
-        slv.mkTuple([solver.mkBitVectorSort(3)], [slv.mkBitVector("101", 2)])
+        slv.mkTuple([solver.mkBitVectorSort(3)], [slv.mkBitVector(3, "101", 2)])
     with pytest.raises(RuntimeError):
-        slv.mkTuple([slv.mkBitVectorSort(3)], [solver.mkBitVector("101", 2)])
+        slv.mkTuple([slv.mkBitVectorSort(3)], [solver.mkBitVector(3, "101", 2)])
 
 
 def test_mk_universe_set(solver):

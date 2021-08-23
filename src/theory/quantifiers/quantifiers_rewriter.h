@@ -111,9 +111,10 @@ class QuantifiersRewriter : public TheoryRewriter
                                  Node& var);
   /** get variable elimination
    *
-   * If there exists an n with polarity pol in body, and entails a literal that
-   * corresponds to a variable elimination for some v via the above method, we
-   * return true. In this case, we update args/vars/subs based on eliminating v.
+   * If there exists an n with some polarity in body, and entails a literal that
+   * corresponds to a variable elimination for some v via the above method
+   * getVarElimLit, we return true. In this case, we update args/vars/subs
+   * based on eliminating v.
    */
   static bool getVarElim(Node body,
                          std::vector<Node>& args,

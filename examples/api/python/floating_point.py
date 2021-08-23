@@ -61,8 +61,14 @@ if __name__ == "__main__":
     slv.pop()
 
     # constrain x, y, z between -3.14 and 3.14 (also disallows NaN and infinity)
-    a = slv.mkFloatingPoint(8, 24, slv.mkBitVector("11000000010010001111010111000011", 2))  # -3.14
-    b = slv.mkFloatingPoint(8, 24, slv.mkBitVector("01000000010010001111010111000011", 2))  # 3.14
+    a = slv.mkFloatingPoint(
+            8,
+            24,
+            slv.mkBitVector(32, "11000000010010001111010111000011", 2)) # -3.14
+    b = slv.mkFloatingPoint(
+            8,
+            24,
+            slv.mkBitVector(32, "01000000010010001111010111000011", 2))  # 3.14
 
     bounds_x = slv.mkTerm(kinds.And, slv.mkTerm(kinds.FPLeq, a, x), slv.mkTerm(kinds.FPLeq, x, b))
     bounds_y = slv.mkTerm(kinds.And, slv.mkTerm(kinds.FPLeq, a, y), slv.mkTerm(kinds.FPLeq, y, b))
