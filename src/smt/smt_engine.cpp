@@ -1187,6 +1187,7 @@ std::vector<Node> SmtEngine::getModelDomainElements(TypeNode tn) const
 
 bool SmtEngine::isModelCoreSymbol(Node n)
 {
+  SmtScope smts(this);
   Assert(n.isVar());
   const Options& opts = d_env->getOptions();
   if (opts.smt.modelCoresMode == options::ModelCoresMode::NONE)
@@ -1200,9 +1201,12 @@ bool SmtEngine::isModelCoreSymbol(Node n)
   if (!tm->isUsingModelCore())
   {
     // If we enabled model cores, we compute a model core for m based on our
-    // (expanded) assertions using the model core builder utility
-    std::vector<Node> eassertsProc = getExpandedAssertions();
-    ModelCoreBuilder::setModelCore(eassertsProc, tm, opts.smt.modelCoresMode);
+    // (expanded) assertions using the model core builder utility. Notice that
+    // we get the assertions using the getAssertionsInternal, which does not
+    // impact whether we are in "sat" mode
+    std::vector<Node> asserts = getAssertionsInternal();
+    d_pp->expandDefinitions(asserts);
+    ModelCoreBuilder::setModelCore(asserts, tm, opts.smt.modelCoresMode);
   }
   return tm->isModelCoreSymbol(n);
 }
@@ -1232,10 +1236,10 @@ Model* SmtEngine::getModel() {
   {
     // If we enabled model cores, we compute a model core for m based on our
     // (expanded) assertions using the model core builder utility
-    std::vector<Node> eassertsProc = getExpandedAssertions();
-    ModelCoreBuilder::setModelCore(eassertsProc,
-                                   m->getTheoryModel(),
-                                   d_env->getOptions().smt.modelCoresMode);
+    std::vector<Node> asserts = getAssertionsInternal();
+    d_pp->expandDefinitions(asserts);
+    ModelCoreBuilder::setModelCore(
+        asserts, m->getTheoryModel(), d_env->getOptions().smt.modelCoresMode);
   }
   // set the information on the SMT-level model
   Assert(m != nullptr);
@@ -1325,18 +1329,25 @@ std::pair<Node, Node> SmtEngine::getSepHeapAndNilExpr(void)
   return std::make_pair(heap, nil);
 }
 
+std::vector<Node> SmtEngine::getAssertionsInternal()
+{
+  Assert(d_state->isFullyInited());
+  context::CDList<Node>* al = d_asserts->getAssertionList();
+  Assert(al != nullptr);
+  std::vector<Node> res;
+  for (const Node& n : *al)
+  {
+    res.emplace_back(n);
+  }
+  return res;
+}
+
 std::vector<Node> SmtEngine::getExpandedAssertions()
 {
   std::vector<Node> easserts = getAssertions();
   // must expand definitions
-  std::vector<Node> eassertsProc;
-  std::unordered_map<Node, Node> cache;
-  for (const Node& e : easserts)
-  {
-    Node eae = d_pp->expandDefinitions(e, cache);
-    eassertsProc.push_back(eae);
-  }
-  return eassertsProc;
+  d_pp->expandDefinitions(easserts);
+  return easserts;
 }
 Env& SmtEngine::getEnv() { return *d_env.get(); }
 
@@ -1818,15 +1829,7 @@ std::vector<Node> SmtEngine::getAssertions()
       "Cannot query the current assertion list when not in produce-assertions mode.";
     throw ModalException(msg);
   }
-  context::CDList<Node>* al = d_asserts->getAssertionList();
-  Assert(al != nullptr);
-  std::vector<Node> res;
-  for (const Node& n : *al)
-  {
-    res.emplace_back(n);
-  }
-  // copy the result out
-  return res;
+  return getAssertionsInternal();
 }
 
 void SmtEngine::push()

@@ -1032,7 +1032,13 @@ class CVC5_EXPORT SmtEngine
    * element is the nil expression.
    */
   std::pair<Node, Node> getSepHeapAndNilExpr();
-
+  /**
+   * Get assertions internal, which is only called after initialization. This
+   * should be used internally to get the assertions instead of getAssertions
+   * or getExpandedAssertions, which may trigger initialization and SMT state
+   * changes.
+   */
+  std::vector<Node> getAssertionsInternal();
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SmtEngine instance. */
