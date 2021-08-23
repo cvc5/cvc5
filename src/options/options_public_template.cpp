@@ -260,16 +260,18 @@ void set(Options& opts, const std::string& name, const std::string& optionarg)
 std::vector<std::vector<std::string> > getAll(const Options& opts)
 {
   std::vector<std::vector<std::string>> res;
-
-${options_getall}$
-
+  // clang-format off
+  ${options_getall}$
+  // clang-format on
   return res;
 }
 
 std::vector<std::string> getNames()
 {
   return {
-${options_all_names}$
+    // clang-format off
+    ${options_all_names}$
+    // clang-format on
   };
 }
 
@@ -281,8 +283,10 @@ ${options_all_names}$
 
 OptionInfo getInfo(const Options& opts, const std::string& name)
 {
-  ${options_get_info} $ return OptionInfo{
-      name, {}, false, OptionInfo::VoidInfo{}};
+  // clang-format off
+  ${options_get_info}$
+  // clang-format on
+  return OptionInfo{name, {}, false, OptionInfo::VoidInfo{}};
 }
 
 #undef DO_SEMANTIC_CHECKS_BY_DEFAULT
