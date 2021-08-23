@@ -22,6 +22,7 @@
 #include "theory/quantifiers/ematching/inst_match_generator_multi.h"
 #include "theory/quantifiers/ematching/inst_match_generator_multi_linear.h"
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
+#include "theory/quantifiers/ematching/relational_match_generator.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/ematching/var_match_generator.h"
 #include "theory/quantifiers/instantiate.h"
@@ -617,7 +618,7 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(
     InstMatchGenerator* init;
     std::map< Node, InstMatchGenerator * >::iterator iti = pat_map_init.find( pats[pCounter] );
     if( iti==pat_map_init.end() ){
-      init = new InstMatchGenerator(tparent, pats[pCounter]);
+      init = getInstMatchGenerator(tparent, q, pats[pCounter]);
     }else{
       init = iti->second;
     }
@@ -672,16 +673,17 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
       return vmg;
     }
   }
-  /*
+    Trace("relational-trigger")
+        << "Is " << n << " a relational trigger?" << std::endl;
   // relational triggers
   bool hasPol = false;
-  bool pol = true;
-  Node lit = n;
-  if (n.getKind()==EQUAL && n[1].getType().isBoolean() && n[1].isConst())
+  bool pol = n.getKind()!=NOT;
+  Node lit = pol ? n : n[0];
+  if (lit.getKind()==EQUAL && lit[1].getType().isBoolean() && lit[1].isConst())
   {
     hasPol = true;
-    pol = n[1].getConst<bool>();
-    lit = n[0];
+    pol = lit[1].getConst<bool>() ? pol : !pol;
+    lit = lit[0];
   }
   // is it a relational trigger?
   if ((lit.getKind()==EQUAL && lit[0].getType().isReal()) || lit.getKind()==GEQ)
@@ -691,11 +693,11 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
     {
       if (lc.getKind()==INST_CONSTANT)
       {
-        return new RelationalTrigger(tparent, lit, hasPol, pol);
+        Trace("relational-trigger") << "...yes, for variable " << lc << std::endl;
+        return new RelationalMatchGenerator(tparent, lit, hasPol, pol);
       }
     }
   }
-  */
   return new InstMatchGenerator(tparent, n);
 }
 

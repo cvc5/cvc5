@@ -40,10 +40,11 @@ class RelationalMatchGenerator : public InstMatchGenerator
   bool reset(Node eqc) override;
   /** Get the next match. */
   int getNextMatch(Node q, InstMatch& m) override;
-
  private:
   /** the variable */
   Node d_var;
+  /** The index of the variable */
+  int64_t d_vindex;
   /** the relation kind */
   Kind d_rel;
   /** the right hand side */
@@ -55,6 +56,8 @@ class RelationalMatchGenerator : public InstMatchGenerator
   /** the current number of terms we have generated since the last call to reset
    */
   size_t d_counter;
+  /** stores whether we have written a value for d_var in the current match. */
+  bool d_rmPrev;
 };
 
 }  // namespace inst

@@ -389,7 +389,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
   // strategy d_tr_strategy
   d_patTerms[0][f].clear();
   d_patTerms[1][f].clear();
-  bool ntrivTriggers = options::relationalTriggers();
+  bool ntrivTriggers = false;//options::relationalTriggers();
   std::vector<Node> patTermsF;
   std::map<Node, inst::TriggerTermInfo> tinfo;
   NodeManager* nm = NodeManager::currentNM();
