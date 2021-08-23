@@ -1040,7 +1040,7 @@ def test_get_uninterpreted_const(solver):
 
 
 def test_get_floating_point(solver):
-    bvval = solver.mkBitVector("0000110000000011")
+    bvval = solver.mkBitVector(16, "0000110000000011", 2)
     fp = solver.mkFloatingPoint(5, 11, bvval)
 
     assert fp.isFloatingPointValue()
@@ -1181,12 +1181,12 @@ def test_get_boolean(solver):
 
 def test_get_bit_vector(solver):
     b1 = solver.mkBitVector(8, 15)
-    b2 = solver.mkBitVector("00001111", 2)
-    b3 = solver.mkBitVector("15", 10)
-    b4 = solver.mkBitVector("0f", 16)
-    b5 = solver.mkBitVector(8, "00001111", 2)
-    b6 = solver.mkBitVector(8, "15", 10)
-    b7 = solver.mkBitVector(8, "0f", 16)
+    b2 = solver.mkBitVector(8, "00001111", 2)
+    b3 = solver.mkBitVector(8, "15", 10)
+    b4 = solver.mkBitVector(8, "0f", 16)
+    b5 = solver.mkBitVector(9, "00001111", 2);
+    b6 = solver.mkBitVector(9, "15", 10);
+    b7 = solver.mkBitVector(9, "0f", 16);
 
     assert b1.isBitVectorValue()
     assert b2.isBitVectorValue()
@@ -1202,19 +1202,19 @@ def test_get_bit_vector(solver):
     assert "00001111" == b2.getBitVectorValue(2)
     assert "15" == b2.getBitVectorValue(10)
     assert "f" == b2.getBitVectorValue(16)
-    assert "1111" == b3.getBitVectorValue(2)
+    assert "00001111" == b3.getBitVectorValue(2)
     assert "15" == b3.getBitVectorValue(10)
     assert "f" == b3.getBitVectorValue(16)
     assert "00001111" == b4.getBitVectorValue(2)
     assert "15" == b4.getBitVectorValue(10)
     assert "f" == b4.getBitVectorValue(16)
-    assert "00001111" == b5.getBitVectorValue(2)
+    assert "000001111" == b5.getBitVectorValue(2)
     assert "15" == b5.getBitVectorValue(10)
     assert "f" == b5.getBitVectorValue(16)
-    assert "00001111" == b6.getBitVectorValue(2)
+    assert "000001111" == b6.getBitVectorValue(2)
     assert "15" == b6.getBitVectorValue(10)
     assert "f" == b6.getBitVectorValue(16)
-    assert "00001111" == b7.getBitVectorValue(2)
+    assert "000001111" == b7.getBitVectorValue(2)
     assert "15" == b7.getBitVectorValue(10)
     assert "f" == b7.getBitVectorValue(16)
 

@@ -27,6 +27,8 @@
 #include "expr/node_manager.h"
 #include "expr/node_value.h"
 #include "expr/skolem_manager.h"
+#include "options/base_options.h"
+#include "options/language.h"
 #include "options/options_public.h"
 #include "smt/smt_engine.h"
 #include "test_node.h"
@@ -65,13 +67,8 @@ class TestNodeBlackNode : public TestNode
     TestNode::SetUp();
     // setup an SMT engine so that options are in scope
     Options opts;
-    char* argv[2];
-    argv[0] = strdup("");
-    argv[1] = strdup("--output-lang=ast");
-    std::string progName;
-    options::parse(opts, 2, argv, progName);
-    free(argv[0]);
-    free(argv[1]);
+    opts.base.outputLanguage = OutputLanguage::LANG_AST;
+    opts.base.outputLanguageWasSetByUser = true;
     d_smt.reset(new SmtEngine(d_nodeManager.get(), &opts));
   }
 

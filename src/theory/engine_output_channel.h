@@ -61,8 +61,6 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void spendResource(Resource r) override;
 
-  void handleUserAttribute(const char* attr, theory::Theory* t) override;
-
   /**
    * Let pconf be the pair (Node conf, ProofGenerator * pfg). This method
    * sends conf on the output channel of this class whose proof can be generated

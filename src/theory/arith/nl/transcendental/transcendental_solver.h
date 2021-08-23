@@ -50,10 +50,7 @@ namespace transcendental {
 class TranscendentalSolver
 {
  public:
-  TranscendentalSolver(InferenceManager& im,
-                       NlModel& m,
-                       ProofNodeManager* pnm,
-                       context::UserContext* c);
+  TranscendentalSolver(InferenceManager& im, NlModel& m, Env& env);
   ~TranscendentalSolver();
 
   /** init last call
@@ -187,7 +184,7 @@ class TranscendentalSolver
    * initially to options::nlExtTfTaylorDegree() and may be incremented
    * if the option options::nlExtTfIncPrecision() is enabled.
    */
-  unsigned d_taylor_degree;
+  uint64_t d_taylor_degree;
 
   /** Common state for transcendental solver */
   transcendental::TranscendentalState d_tstate;
