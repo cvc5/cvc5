@@ -208,6 +208,8 @@ class QuantAttributes
   static Node getFunDefBody( Node q );
   /** is quant elim annotation */
   static bool checkQuantElimAnnotation( Node ipl );
+  /** does q have a user-provided pattern? */
+  static bool hasPattern(Node q);
 
   /** is function definition */
   bool isFunDef( Node q );
