@@ -40,20 +40,17 @@ namespace theory {
 namespace uf {
 
 /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-TheoryUF::TheoryUF(context::Context* c,
-                   context::UserContext* u,
+TheoryUF::TheoryUF(Env& env,
                    OutputChannel& out,
                    Valuation valuation,
-                   const LogicInfo& logicInfo,
-                   ProofNodeManager* pnm,
                    std::string instanceName)
-    : Theory(THEORY_UF, c, u, out, valuation, logicInfo, pnm, instanceName),
+    : Theory(THEORY_UF, env, out, valuation, instanceName),
       d_thss(nullptr),
       d_ho(nullptr),
-      d_functionsTerms(c),
-      d_symb(u, instanceName),
-      d_state(c, u, valuation),
-      d_im(*this, d_state, pnm, "theory::uf::" + instanceName, false),
+      d_functionsTerms(getSatContext()),
+      d_symb(getUserContext(), instanceName),
+      d_state(env, valuation),
+      d_im(*this, d_state, d_pnm, "theory::uf::" + instanceName, false),
       d_notify(d_im, *this)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
@@ -217,7 +214,8 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
   {
     if( !options::ufHo() ){
       std::stringstream ss;
-      ss << "Partial function applications are not supported in default mode, try --uf-ho.";
+      ss << "Partial function applications are only supported with "
+            "higher-order logic. Try adding the logic prefix HO_.";
       throw LogicException(ss.str());
     }
     Node ret = d_ho->ppRewrite(node);
@@ -236,7 +234,9 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
     {
       std::stringstream ss;
       ss << "UF received an application whose operator has higher-order type "
-         << node << ", which is not supported by default, try --uf-ho";
+         << node
+         << ", which is only supported with higher-order logic. Try adding the "
+            "logic prefix HO_.";
       throw LogicException(ss.str());
     }
   }

@@ -46,6 +46,7 @@ class LogicRequest;
 class StatisticsRegistry;
 class Printer;
 class ResourceManager;
+struct InstantiationList;
 
 /* -------------------------------------------------------------------------- */
 
@@ -249,6 +250,8 @@ class CVC5_EXPORT SmtEngine
   /**
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
    * query).  Only permitted if produce-models is on.
+   *
+   * TODO (issues#287): eliminate this method.
    */
   smt::Model* getModel();
 
@@ -673,7 +676,7 @@ class CVC5_EXPORT SmtEngine
    * refutation.
    */
   void getRelevantInstantiationTermVectors(
-      std::map<Node, std::vector<std::vector<Node>>>& insts);
+      std::map<Node, InstantiationList>& insts, bool getDebugInfo = false);
   /**
    * Get instantiation term vectors, which maps each instantiated quantified
    * formula to the list of instantiations for that quantified formula. This
@@ -820,16 +823,6 @@ class CVC5_EXPORT SmtEngine
    * call.
    */
   void printStatisticsDiff() const;
-
-  /**
-   * Set user attribute.
-   * This function is called when an attribute is set by a user.
-   * In SMT-LIBv2 this is done via the syntax (! expr :attr)
-   */
-  void setUserAttribute(const std::string& attr,
-                        Node expr,
-                        const std::vector<Node>& expr_values,
-                        const std::string& str_value);
 
   /** Get the options object (const and non-const versions) */
   Options& getOptions();
@@ -1110,12 +1103,6 @@ class CVC5_EXPORT SmtEngine
 
   /** the output manager for commands */
   mutable OutputManager d_outMgr;
-  /**
-   * The options manager, which is responsible for implementing core options
-   * such as those related to time outs and printing. It is also responsible
-   * for set default options based on the logic.
-   */
-  std::unique_ptr<smt::OptionsManager> d_optm;
   /**
    * The preprocessor.
    */

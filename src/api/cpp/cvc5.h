@@ -120,6 +120,31 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
   }
 };
 
+/**
+ * An option-related API exception.
+ * If thrown, API objects can still be used.
+ */
+class CVC5_EXPORT CVC5ApiOptionException : public CVC5ApiRecoverableException
+{
+ public:
+  /**
+   * Construct with message from a string.
+   * @param str The error message.
+   */
+  CVC5ApiOptionException(const std::string& str)
+      : CVC5ApiRecoverableException(str)
+  {
+  }
+  /**
+   * Construct with message from a string stream.
+   * @param stream The error message.
+   */
+  CVC5ApiOptionException(const std::stringstream& stream)
+      : CVC5ApiRecoverableException(stream.str())
+  {
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 /* Result                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -2824,6 +2849,13 @@ class CVC5_EXPORT Solver
   friend class Sort;
   friend class Term;
 
+ private:
+  /*
+   * Constructs a solver with the given original options. This should only be
+   * used internally when the Solver is reset.
+   */
+  Solver(std::unique_ptr<Options>&& original);
+
  public:
   /* .................................................................... */
   /* Constructors/Destructors                                             */
@@ -2831,10 +2863,9 @@ class CVC5_EXPORT Solver
 
   /**
    * Constructor.
-   * @param opts an optional pointer to a solver options object
    * @return the Solver
    */
-  Solver(const Options* opts = nullptr);
+  Solver();
 
   /**
    * Destructor.
@@ -3356,7 +3387,8 @@ class CVC5_EXPORT Solver
    * - base 16: the max. size required to represent the hexadecimal as a
    *            bit-vector (4 * size of the given value string)
    *
-   * @param s the string representation of the constant
+   * @param s The string representation of the constant.
+   *          This cannot be negative.
    * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
    */

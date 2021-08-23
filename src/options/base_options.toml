@@ -158,6 +158,7 @@ public = true
   category   = "regular"
   long       = "print-success"
   type       = "bool"
+  predicates = ["setPrintSuccess"]
   help       = "print the \"success\" output required of SMT-LIBv2"
 
 [[option]]

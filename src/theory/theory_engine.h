@@ -295,7 +295,7 @@ class TheoryEngine {
 
  public:
   /** Constructs a theory engine */
-  TheoryEngine(Env& env, ProofNodeManager* pnm);
+  TheoryEngine(Env& env);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -314,12 +314,8 @@ class TheoryEngine {
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new theory::EngineOutputChannel(this, theoryId);
-    d_theoryTable[theoryId] = new TheoryClass(getSatContext(),
-                                              getUserContext(),
-                                              *d_theoryOut[theoryId],
-                                              theory::Valuation(this),
-                                              d_logicInfo,
-                                              d_pnm);
+    d_theoryTable[theoryId] =
+        new TheoryClass(d_env, *d_theoryOut[theoryId], theory::Valuation(this));
     theory::Rewriter::registerTheoryRewriter(
         theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }
@@ -566,16 +562,6 @@ class TheoryEngine {
    * call).
    */
   bool buildModel();
-  /** set eager model building
-   *
-   * If this method is called, then this TheoryEngine will henceforth build
-   * its model immediately after every satisfiability check that results
-   * in a satisfiable or unknown result. The motivation for this mode is to
-   * accomodate API users that get the model object from the TheoryEngine,
-   * where we want to ensure that this model is always valid.
-   * TODO (#2648): revisit this.
-   */
-  void setEagerModelBuilding() { d_eager_model_building = true; }
 
   /**
    * Get the theory associated to a given Node.
@@ -674,27 +660,7 @@ public:
  /** Prints the assertions to the debug stream */
  void printAssertions(const char* tag);
 
-private:
-
-  std::map< std::string, std::vector< theory::Theory* > > d_attr_handle;
-
  public:
-  /** Set user attribute.
-   *
-   * This function is called when an attribute is set by a user.  In SMT-LIBv2
-   * this is done via the syntax (! n :attr)
-   */
-  void setUserAttribute(const std::string& attr,
-                        Node n,
-                        const std::vector<Node>& node_values,
-                        const std::string& str_value);
-
-  /** Handle user attribute.
-   *
-   * Associates theory t with the attribute attr.  Theory t will be
-   * notified whenever an attribute of name attr is set.
-   */
-  void handleUserAttribute(const char* attr, theory::Theory* t);
 
   /**
    * Check that the theory assertions are satisfied in the model.

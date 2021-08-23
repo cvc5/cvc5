@@ -16,6 +16,7 @@
 #include "theory/inference_id.h"
 
 #include <iostream>
+#include "proof/proof_checker.h"
 #include "util/rational.h"
 
 namespace cvc5 {
@@ -27,6 +28,7 @@ const char* toString(InferenceId i)
   {
     case InferenceId::EQ_CONSTANT_MERGE: return "EQ_CONSTANT_MERGE";
     case InferenceId::COMBINATION_SPLIT: return "COMBINATION_SPLIT";
+    case InferenceId::EXTT_SIMPLIFY: return "EXTT_SIMPLIFY";
     case InferenceId::ARITH_BLACK_BOX: return "ARITH_BLACK_BOX";
     case InferenceId::ARITH_CONF_EQ: return "ARITH_CONF_EQ";
     case InferenceId::ARITH_CONF_LOWER: return "ARITH_CONF_LOWER";
@@ -223,6 +225,12 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_SYGUS_EXCLUDE_CURRENT";
     case InferenceId::QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT:
       return "QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT";
+    case InferenceId::QUANTIFIERS_SYGUS_SI_SOLVED:
+      return "QUANTIFIERS_SYGUS_SI_SOLVED";
+    case InferenceId::QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED:
+      return "QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED";
+    case InferenceId::QUANTIFIERS_SYGUS_VERIFY_SOLVED:
+      return "QUANTIFIERS_SYGUS_VERIFY_SOLVED";
     case InferenceId::QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA:
       return "QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA";
     case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_INTER_ENUM_SB:
@@ -237,6 +245,28 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_SYGUS_UNIF_PI_ENUM_SB";
     case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_DOMAIN:
       return "QUANTIFIERS_SYGUS_UNIF_PI_DOMAIN";
+    case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_COND_EXCLUDE:
+      return "QUANTIFIERS_SYGUS_UNIF_PI_COND_EXCLUDE";
+    case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_REFINEMENT:
+      return "QUANTIFIERS_SYGUS_UNIF_PI_REFINEMENT";
+    case InferenceId::QUANTIFIERS_SYGUS_CEGIS_UCL_SYM_BREAK:
+      return "QUANTIFIERS_SYGUS_CEGIS_UCL_SYM_BREAK";
+    case InferenceId::QUANTIFIERS_SYGUS_CEGIS_UCL_EXCLUDE:
+      return "QUANTIFIERS_SYGUS_CEGIS_UCL_EXCLUDE";
+    case InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE:
+      return "QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE";
+    case InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE:
+      return "QUANTIFIERS_SYGUS_CEGIS_REFINE";
+    case InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE_SAMPLE:
+      return "QUANTIFIERS_SYGUS_CEGIS_REFINE_SAMPLE";
+    case InferenceId::QUANTIFIERS_SYGUS_REFINE_EVAL:
+      return "QUANTIFIERS_SYGUS_REFINE_EVAL";
+    case InferenceId::QUANTIFIERS_SYGUS_EVAL_UNFOLD:
+      return "QUANTIFIERS_SYGUS_EVAL_UNFOLD";
+    case InferenceId::QUANTIFIERS_SYGUS_PBE_EXCLUDE:
+      return "QUANTIFIERS_SYGUS_PBE_EXCLUDE";
+    case InferenceId::QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL:
+      return "QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL";
     case InferenceId::QUANTIFIERS_DSPLIT: return "QUANTIFIERS_DSPLIT";
     case InferenceId::QUANTIFIERS_CONJ_GEN_SPLIT:
       return "QUANTIFIERS_CONJ_GEN_SPLIT";
@@ -424,6 +454,17 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
 Node mkInferenceIdNode(InferenceId i)
 {
   return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(i)));
+}
+
+bool getInferenceId(TNode n, InferenceId& i)
+{
+  uint32_t index;
+  if (!ProofRuleChecker::getUInt32(n, index))
+  {
+    return false;
+  }
+  i = static_cast<InferenceId>(index);
+  return true;
 }
 
 }  // namespace theory

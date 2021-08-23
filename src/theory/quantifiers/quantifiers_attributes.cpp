@@ -30,13 +30,15 @@ namespace quantifiers {
 
 bool QAttributes::isStandard() const
 {
-  return !d_sygus && !d_quant_elim && !isFunDef() && d_name.isNull()
-         && !d_isInternal;
+  return !d_sygus && !d_quant_elim && !isFunDef() && !d_isInternal;
 }
 
 QuantAttributes::QuantAttributes() {}
 
-void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::vector< Node >& node_values, std::string str_value ){
+void QuantAttributes::setUserAttribute(const std::string& attr,
+                                       TNode n,
+                                       const std::vector<Node>& nodeValues)
+{
   Trace("quant-attr-debug") << "Set " << attr << " " << n << std::endl;
   if (attr == "fun-def")
   {
@@ -51,8 +53,8 @@ void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::ve
     QuantNameAttribute qna;
     n.setAttribute(qna, true);
   }else if( attr=="quant-inst-max-level" ){
-    Assert(node_values.size() == 1);
-    uint64_t lvl = node_values[0].getConst<Rational>().getNumerator().getLong();
+    Assert(nodeValues.size() == 1);
+    uint64_t lvl = nodeValues[0].getConst<Rational>().getNumerator().getLong();
     Trace("quant-attr-debug") << "Set instantiation level " << n << " to " << lvl << std::endl;
     QuantInstLevelAttribute qila;
     n.setAttribute( qila, lvl );
@@ -166,6 +168,23 @@ bool QuantAttributes::checkQuantElimAnnotation( Node ipl ) {
   return false;
 }
 
+bool QuantAttributes::hasPattern(Node q)
+{
+  Assert(q.getKind() == FORALL);
+  if (q.getNumChildren() != 3)
+  {
+    return false;
+  }
+  for (const Node& qc : q[2])
+  {
+    if (qc.getKind() == INST_PATTERN || qc.getKind() == INST_NO_PATTERN)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 void QuantAttributes::computeAttributes( Node q ) {
   computeQuantAttributes( q, d_qattr[q] );
   QAttributes& qa = d_qattr[q];
@@ -184,6 +203,7 @@ void QuantAttributes::computeAttributes( Node q ) {
 void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
   Trace("quant-attr-debug") << "Compute attributes for " << q << std::endl;
   if( q.getNumChildren()==3 ){
+    NodeManager* nm = NodeManager::currentNM();
     qa.d_ipl = q[2];
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
       Kind k = q[2][i].getKind();
@@ -200,7 +220,28 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
       }
       else if (k == INST_ATTRIBUTE)
       {
-        Node avar = q[2][i][0];
+        Node avar;
+        // We support two use cases of INST_ATTRIBUTE:
+        // (1) where the user constructs a term of the form
+        // (INST_ATTRIBUTE "keyword" [nodeValues])
+        // (2) where we internally generate nodes of the form
+        // (INST_ATTRIBUTE v) where v has an internal attribute set on it.
+        // We distinguish these two cases by checking the kind of the first
+        // child.
+        if (q[2][i][0].getKind() == CONST_STRING)
+        {
+          // make a dummy variable to be used below
+          avar = nm->mkBoundVar(nm->booleanType());
+          std::vector<Node> nodeValues(q[2][i].begin() + 1, q[2][i].end());
+          // set user attribute on the dummy variable
+          setUserAttribute(
+              q[2][i][0].getConst<String>().toString(), avar, nodeValues);
+        }
+        else
+        {
+          // assume the dummy variable has already had its attributes set
+          avar = q[2][i][0];
+        }
         if( avar.getAttribute(FunDefAttribute()) ){
           Trace("quant-attr") << "Attribute : function definition : " << q << std::endl;
           //get operator directly from pattern
@@ -223,9 +264,21 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
         }
         if (avar.getAttribute(QuantNameAttribute()))
         {
-          Trace("quant-attr") << "Attribute : quantifier name : " << avar
-                              << " for " << q << std::endl;
-          qa.d_name = avar;
+          // only set the name if there is a value
+          if (q[2][i].getNumChildren() > 1)
+          {
+            Trace("quant-attr") << "Attribute : quantifier name : "
+                                << q[2][i][1].getConst<String>().toString()
+                                << " for " << q << std::endl;
+            // assign the name to a variable with the given name (to avoid
+            // enclosing the name in quotes)
+            qa.d_name = nm->mkBoundVar(q[2][i][1].getConst<String>().toString(),
+                                       nm->booleanType());
+          }
+          else
+          {
+            Warning() << "Missing name for qid attribute";
+          }
         }
         if( avar.hasAttribute(QuantInstLevelAttribute()) ){
           qa.d_qinstLevel = avar.getAttribute(QuantInstLevelAttribute());

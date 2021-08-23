@@ -21,7 +21,6 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_node_manager.h"
 #include "smt/smt_engine.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/bv/bitblast/proof_bitblaster.h"
 #include "theory/rewriter.h"
@@ -1177,67 +1176,6 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
              && tchildren[tchildren.size() - 1][1] == equ[0]));
   tchildren.push_back(equ);
   return true;
-}
-
-ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(
-    ProofNodeManager* pnm)
-    : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
-        "finalProof::ruleCount")),
-      d_totalRuleCount(
-          smtStatisticsRegistry().registerInt("finalProof::totalRuleCount")),
-      d_minPedanticLevel(
-          smtStatisticsRegistry().registerInt("finalProof::minPedanticLevel")),
-      d_numFinalProofs(
-          smtStatisticsRegistry().registerInt("finalProofs::numFinalProofs")),
-      d_pnm(pnm),
-      d_pedanticFailure(false)
-{
-  d_minPedanticLevel += 10;
-}
-
-void ProofPostprocessFinalCallback::initializeUpdate()
-{
-  d_pedanticFailure = false;
-  d_pedanticFailureOut.str("");
-  ++d_numFinalProofs;
-}
-
-bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                                 const std::vector<Node>& fa,
-                                                 bool& continueUpdate)
-{
-  PfRule r = pn->getRule();
-  // if not doing eager pedantic checking, fail if below threshold
-  if (!options::proofEagerChecking())
-  {
-    if (!d_pedanticFailure)
-    {
-      Assert(d_pedanticFailureOut.str().empty());
-      if (d_pnm->getChecker()->isPedanticFailure(r, d_pedanticFailureOut))
-      {
-        d_pedanticFailure = true;
-      }
-    }
-  }
-  uint32_t plevel = d_pnm->getChecker()->getPedanticLevel(r);
-  if (plevel != 0)
-  {
-    d_minPedanticLevel.minAssign(plevel);
-  }
-  // record stats for the rule
-  d_ruleCount << r;
-  ++d_totalRuleCount;
-  return false;
-}
-
-bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
-{
-  if (d_pedanticFailure)
-  {
-    out << d_pedanticFailureOut.str();
-    return true;
-  }
-  return false;
 }
 
 ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,

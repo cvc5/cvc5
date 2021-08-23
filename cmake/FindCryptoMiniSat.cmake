@@ -42,6 +42,20 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
     check_auto_download("CryptoMiniSat" "--no-cryptominisat")
   endif()
 
+  # Check for static libraries required by CryptoMiniSat
+  set(CMS_STATIC_LIBS "c;m;dl;pthread")
+  foreach(static_lib ${CMS_STATIC_LIBS})
+
+    # We can't use 'REQUIRED' here, as it needs a too-recent CMake
+    find_library(lib${static_lib}_static lib${static_lib}.a)
+
+    # Check if the static library has been found
+    if(NOT lib${static_lib}_static)
+      message(FATAL_ERROR "static lib${static_lib} not found")
+    endif()
+
+  endforeach()
+
   include(ExternalProject)
 
   ExternalProject_Add(

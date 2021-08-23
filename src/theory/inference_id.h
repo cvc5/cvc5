@@ -45,6 +45,9 @@ enum class InferenceId
   EQ_CONSTANT_MERGE,
   // a split from theory combination
   COMBINATION_SPLIT,
+  // ---------------------------------- ext theory
+  // a simplification from the extended theory utility
+  EXTT_SIMPLIFY,
   // ---------------------------------- arith theory
   //-------------------- linear core
   // black box conflicts. It's magic.
@@ -338,6 +341,12 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_EXCLUDE_CURRENT,
   // manual exclusion of a current solution for sygus-stream
   QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
+  // Q where Q was solved by a subcall to the single invocation module
+  QUANTIFIERS_SYGUS_SI_SOLVED,
+  // Q where Q was (trusted) solved by sampling
+  QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED,
+  // Q where Q was solved by a verification subcall
+  QUANTIFIERS_SYGUS_VERIFY_SOLVED,
   // ~Q where Q is a PBE conjecture with conflicting examples
   QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
   // unif+pi symmetry breaking between multiple enumerators
@@ -352,6 +361,28 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_UNIF_PI_ENUM_SB,
   // constraining terms to be in the domain of output
   QUANTIFIERS_SYGUS_UNIF_PI_DOMAIN,
+  // condition exclusion from sygus unif
+  QUANTIFIERS_SYGUS_UNIF_PI_COND_EXCLUDE,
+  // refinement lemma from sygus unif
+  QUANTIFIERS_SYGUS_UNIF_PI_REFINEMENT,
+  // symmetry breaking lemma from unsat core learning algorithm initialization
+  QUANTIFIERS_SYGUS_CEGIS_UCL_SYM_BREAK,
+  // candidate exclusion lemma from unsat core learning algorithm
+  QUANTIFIERS_SYGUS_CEGIS_UCL_EXCLUDE,
+  // candidate exclusion lemma from repair constants algorithm
+  QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE,
+  // a counterexample-guided inductive synthesis refinement lemma
+  QUANTIFIERS_SYGUS_CEGIS_REFINE,
+  // a cegis refinement lemma found by sampling
+  QUANTIFIERS_SYGUS_CEGIS_REFINE_SAMPLE,
+  // a lemma based on refinement lemma evaluation
+  QUANTIFIERS_SYGUS_REFINE_EVAL,
+  // an evaluation unfolding lemma
+  QUANTIFIERS_SYGUS_EVAL_UNFOLD,
+  // candidate exclusion lemma from programming-by-examples
+  QUANTIFIERS_SYGUS_PBE_EXCLUDE,
+  // a lemma generated while constructing a candidate solution for PBE
+  QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL,
   //-------------------- dynamic splitting
   // a dynamic split from quantifiers
   QUANTIFIERS_DSPLIT,
@@ -822,6 +853,9 @@ std::ostream& operator<<(std::ostream& out, InferenceId i);
 
 /** Make node from inference id */
 Node mkInferenceIdNode(InferenceId i);
+
+/** get an inference identifier from a node, return false if we fail */
+bool getInferenceId(TNode n, InferenceId& i);
 
 }  // namespace theory
 }  // namespace cvc5

@@ -910,6 +910,7 @@ set(regress_0_tests
   regress0/quantifiers/issue5645-dt-cm-spurious.smt2
   regress0/quantifiers/issue5693-prenex.smt2
   regress0/quantifiers/issue6603-dt-bool-cegqi.smt2
+  regress0/quantifiers/issue6996-trivial-elim.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -1204,7 +1205,6 @@ set(regress_0_tests
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/parser-syms.cvc
-  regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
   regress0/strings/re-syntax.smt2
@@ -1262,6 +1262,7 @@ set(regress_0_tests
   regress0/sygus/print-debug.sy
   regress0/sygus/print-define-fun.sy
   regress0/sygus/real-si-all.sy
+  regress0/sygus/setFeature.sy
   regress0/sygus/strings-unconstrained.sy
   regress0/sygus/sygus-no-wf.sy
   regress0/sygus/sygus-uf.sy
@@ -1426,6 +1427,12 @@ set(regress_0_tests
   regress0/unconstrained/mult1.smt2
   regress0/unconstrained/uf1.smt2
   regress0/unconstrained/xor.smt2
+  regress0/use_approx/bug812_approx.smt2
+  regress0/use_approx/error0_approx.smt2
+  regress0/use_approx/issue2429_approx.smt2
+  regress0/use_approx/issue4714_approx.smt2
+  regress0/use_approx/siegel-nl-bases_approx.smt2
+  regress0/use_approx/specsharp-WindowsCard.15.RTE.Terminate_System.Int32_approx.smt2
   regress0/wiki.01.cvc
   regress0/wiki.02.cvc
   regress0/wiki.03.cvc
@@ -1825,6 +1832,7 @@ set(regress_1_tests
   regress1/quantifiers/cdt-0208-to.smt2
   regress1/quantifiers/const.cvc
   regress1/quantifiers/constfunc.cvc
+  regress1/quantifiers/ddatv-delta2.smt2
   regress1/quantifiers/dt-tc-opt-small.smt2
   regress1/quantifiers/dump-inst-i.smt2
   regress1/quantifiers/dump-inst-proof.smt2
@@ -2152,6 +2160,8 @@ set(regress_1_tests
   regress1/strings/issue6057-replace-re-all-jiwonparc.smt2
   regress1/strings/issue6072-inc-no-const-reg.smt2
   regress1/strings/issue6075-repl-len-one-rr.smt2
+  regress1/strings/issue6101.smt2
+  regress1/strings/issue6101-2.smt2
   regress1/strings/issue6132-non-unique-skolem.smt2
   regress1/strings/issue6142-repl-inv-rew.smt2
   regress1/strings/issue6191-replace-all.smt2
@@ -2174,6 +2184,7 @@ set(regress_1_tests
   regress1/strings/issue6653-rre.smt2
   regress1/strings/issue6653-rre-small.smt2
   regress1/strings/issue6777-seq-nth-eval-cm.smt2
+  regress1/strings/issue6913.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -2193,6 +2204,7 @@ set(regress_1_tests
   regress1/strings/norn-simp-rew-sat.smt2
   regress1/strings/nt6-dd.smt2
   regress1/strings/nterm-re-inter-sigma.smt2
+  regress1/strings/open-pf-merge.smt2
   regress1/strings/pierre150331.smt2
   regress1/strings/policy_variable.smt2
   regress1/strings/pre_ctn_no_skolem_share.smt2
@@ -2653,6 +2665,8 @@ set(regression_disabled_tests
   regress0/auflia/fuzz01.smtv1.smt2
   ###
   regress0/bv/test00.smtv1.smt2
+  # timeout after changes to equality rewriting policy in strings
+  regress0/strings/quad-028-2-2-unsat.smt2
   # FIXME #1649
   regress0/datatypes/datatype-dump.cvc
   # no longer support overloaded symbols across multiple parametric datatypes

@@ -27,7 +27,6 @@
 #include "options/language.h"
 #include "options/managed_streams.h"
 #include "options/option_exception.h"
-#include "options/printer_modes.h"
 #include "options/quantifiers_options.h"
 
 namespace cvc5 {
@@ -100,11 +99,6 @@ public:
                       const std::string& flag,
                       bool arg);
 
-  // printer/options_handlers.h
-  InstFormatMode stringToInstFormatMode(const std::string& option,
-                                        const std::string& flag,
-                                        const std::string& optarg);
-
   /**
    * Throws a ModalException if this option is being set after final
    * initialization.
@@ -123,12 +117,12 @@ public:
                          const std::string& optarg);
 
   /* expr/options_handlers.h */
-  void setDefaultExprDepthPredicate(const std::string& option,
-                                    const std::string& flag,
-                                    int depth);
-  void setDefaultDagThreshPredicate(const std::string& option,
-                                    const std::string& flag,
-                                    int dag);
+  void setDefaultExprDepth(const std::string& option,
+                           const std::string& flag,
+                           int depth);
+  void setDefaultDagThresh(const std::string& option,
+                           const std::string& flag,
+                           int dag);
 
   /* main/options_handlers.h */
   void copyright(const std::string& option, const std::string& flag);
@@ -172,14 +166,17 @@ public:
                        const std::string& flag,
                        const std::string& optarg);
 
+  void setDumpMode(const std::string& option,
+                   const std::string& flag,
+                   const std::string& optarg);
+  void setPrintSuccess(const std::string& option,
+                       const std::string& flag,
+                       bool value);
+
  private:
 
   /** Pointer to the containing Options object.*/
   Options* d_options;
-
-  /* Help strings */
-  static const std::string s_instFormatHelp;
-
 }; /* class OptionHandler */
 
 }  // namespace options

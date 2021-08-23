@@ -29,6 +29,7 @@
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "smt/command.h"
+#include "smt/smt_engine.h"
 
 namespace cvc5 {
 namespace main {
@@ -49,18 +50,23 @@ void setNoLimitCPU() {
 #endif /* ! __WIN32__ */
 }
 
-CommandExecutor::CommandExecutor(const Options& options)
-    : d_solver(new api::Solver(&options)),
+CommandExecutor::CommandExecutor(std::unique_ptr<api::Solver>& solver)
+    : d_solver(solver),
       d_symman(new SymbolManager(d_solver.get())),
-      d_driverOptions(&options),
       d_result()
 {
 }
 CommandExecutor::~CommandExecutor()
 {
-  // ensure that symbol manager is destroyed before solver
-  d_symman.reset(nullptr);
-  d_solver.reset(nullptr);
+}
+
+Options& CommandExecutor::getOptions()
+{
+  return d_solver->d_smtEngine->getOptions();
+}
+void CommandExecutor::storeOptionsAsOriginal()
+{
+  d_solver->d_originalOptions->copyValues(getOptions());
 }
 
 void CommandExecutor::printStatistics(std::ostream& out) const
@@ -118,14 +124,8 @@ bool CommandExecutor::doCommand(Command* cmd)
 void CommandExecutor::reset()
 {
   printStatistics(*d_solver->getOptions().base.err);
-  /* We have to keep options passed via CL on reset. These options are stored
-   * in CommandExecutor::d_driverOptions (populated and created in the driver),
-   * and CommandExecutor::d_driverOptions only contains *these* options since
-   * the SmtEngine copies them into its own options object before configuring
-   * additional options based on the given CL options.
-   * We can thus safely reuse CommandExecutor::d_driverOptions here.
-   */
-  d_solver.reset(new api::Solver(d_driverOptions));
+
+  Command::resetSolver(d_solver.get());
 }
 
 bool CommandExecutor::doCommandSingleton(Command* cmd)
@@ -174,7 +174,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetProofCommand());
     }
 
-    if (d_solver->getOptions().driver.dumpInstantiations
+    if ((d_solver->getOptions().driver.dumpInstantiations
+         || d_solver->getOptions().driver.dumpInstantiationsDebug)
         && GetInstantiationsCommand::isEnabled(d_solver.get(), res))
     {
       getterCommands.emplace_back(new GetInstantiationsCommand());

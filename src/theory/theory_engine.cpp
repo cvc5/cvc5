@@ -218,12 +218,12 @@ context::UserContext* TheoryEngine::getUserContext() const
   return d_env.getUserContext();
 }
 
-TheoryEngine::TheoryEngine(Env& env,
-                           ProofNodeManager* pnm)
+TheoryEngine::TheoryEngine(Env& env)
     : d_propEngine(nullptr),
       d_env(env),
       d_logicInfo(env.getLogicInfo()),
-      d_pnm(pnm),
+      d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
+                                           : nullptr),
       d_lazyProof(d_pnm != nullptr
                       ? new LazyCDProof(d_pnm,
                                         nullptr,
@@ -236,7 +236,6 @@ TheoryEngine::TheoryEngine(Env& env,
       d_quantEngine(nullptr),
       d_decManager(new DecisionManager(d_env.getUserContext())),
       d_relManager(nullptr),
-      d_eager_model_building(false),
       d_inConflict(d_env.getContext(), false),
       d_inSatMode(false),
       d_hasShutDown(false),
@@ -254,8 +253,7 @@ TheoryEngine::TheoryEngine(Env& env,
       d_false(),
       d_interrupted(false),
       d_inPreregister(false),
-      d_factsAsserted(d_env.getContext(), false),
-      d_attr_handle()
+      d_factsAsserted(d_env.getContext(), false)
 {
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST;
       ++ theoryId)
@@ -303,7 +301,16 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       // the atom should not have free variables
       Debug("theory") << "TheoryEngine::preRegister: " << preprocessed
                       << std::endl;
-      Assert(!expr::hasFreeVar(preprocessed));
+      if (Configuration::isAssertionBuild())
+      {
+        std::unordered_set<Node> fvs;
+        expr::getFreeVariables(preprocessed, fvs);
+        if (!fvs.empty())
+        {
+          Unhandled() << "Preregistered term with free variable: "
+                      << preprocessed << ", fv=" << *fvs.begin();
+        }
+      }
       // should not have witness
       Assert(!expr::hasSubtermKind(kind::WITNESS, preprocessed));
 
@@ -530,14 +537,9 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       if (!d_inConflict && !needCheck())
       {
-        // If d_eager_model_building is false, then we only mark that we
-        // are in "SAT mode". We build the model later only if the user asks
-        // for it via getBuiltModel.
+        // We only mark that we are in "SAT mode". We build the model later only
+        // if the user asks for it via getBuiltModel.
         d_inSatMode = true;
-        if (d_eager_model_building)
-        {
-          d_tc->buildModel();
-        }
       }
     }
 
@@ -1829,27 +1831,6 @@ TrustNode TheoryEngine::getExplanation(
 }
 
 bool TheoryEngine::isProofEnabled() const { return d_pnm != nullptr; }
-
-void TheoryEngine::setUserAttribute(const std::string& attr,
-                                    Node n,
-                                    const std::vector<Node>& node_values,
-                                    const std::string& str_value)
-{
-  Trace("te-attr") << "set user attribute " << attr << " " << n << endl;
-  if( d_attr_handle.find( attr )!=d_attr_handle.end() ){
-    for( size_t i=0; i<d_attr_handle[attr].size(); i++ ){
-      d_attr_handle[attr][i]->setUserAttribute(attr, n, node_values, str_value);
-    }
-  } else {
-    //unhandled exception?
-  }
-}
-
-void TheoryEngine::handleUserAttribute(const char* attr, Theory* t) {
-  Trace("te-attr") << "Handle user attribute " << attr << " " << t << endl;
-  std::string str( attr );
-  d_attr_handle[ str ].push_back( t );
-}
 
 void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
