@@ -18,6 +18,7 @@
 #include "smt/env.h"
 #include "theory/theory_model.h"
 #include "util/rational.h"
+#include "options/smt_options.h"
 
 namespace cvc5 {
 namespace theory {
@@ -38,6 +39,10 @@ void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
 
 void DifficultyManager::notifyLemma(const std::map<TNode, TNode>& rse, Node n)
 {
+  if (options::difficultyMode()!=options::DifficultyMode::LEMMA_LITERAL)
+  {
+    return;
+  }
   Trace("diff-man") << "notifyLemma: " << n << std::endl;
   Kind nk = n.getKind();
   // for lemma (or a_1 ... a_n), if a_i is a literal that is not true in the
@@ -72,6 +77,10 @@ void DifficultyManager::notifyLemma(const std::map<TNode, TNode>& rse, Node n)
 void DifficultyManager::notifyCandidateModel(const NodeList& input,
                                              TheoryModel* m)
 {
+  if (options::difficultyMode()!=options::DifficultyMode::MODEL_CHECK)
+  {
+    return;
+  }
   Trace("diff-man") << "DifficultyManager::notifyCandidateModel, #input="
                     << input.size() << std::endl;
   for (const Node& a : input)
