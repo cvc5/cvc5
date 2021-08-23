@@ -521,7 +521,6 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
     if (rpol != 0)
     {
       Assert(rpol == 1 || rpol == -1);
-      Assert(TriggerTermInfo::isAtomicTrigger(pat));
       if (pat.getType().isBoolean() && rpoleq.isNull())
       {
         if (options::literalMatchMode() == options::LiteralMatchMode::USE)
