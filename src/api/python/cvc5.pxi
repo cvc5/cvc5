@@ -487,7 +487,7 @@ cdef class Solver:
     cdef c_Solver* csolver
 
     def __cinit__(self):
-        self.csolver = new c_Solver(NULL)
+        self.csolver = new c_Solver()
 
     def __dealloc__(self):
         del self.csolver

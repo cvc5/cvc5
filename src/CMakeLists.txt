@@ -65,8 +65,6 @@ libcvc5_add_sources(
   options/options_public.h
   options/outputc.cpp
   options/outputc.h
-  options/printer_modes.cpp
-  options/printer_modes.h
   options/set_language.cpp
   options/set_language.h
   preprocessing/assertion_pipeline.cpp
@@ -311,8 +309,6 @@ libcvc5_add_sources(
   smt/node_command.h
   smt/optimization_solver.cpp
   smt/optimization_solver.h
-  smt/options_manager.cpp
-  smt/options_manager.h
   smt/output_manager.cpp
   smt/output_manager.h
   smt/quant_elim_solver.cpp
@@ -325,6 +321,8 @@ libcvc5_add_sources(
   smt/process_assertions.h
   smt/proof_manager.cpp
   smt/proof_manager.h
+  smt/proof_final_callback.cpp
+  smt/proof_final_callback.h
   smt/proof_post_processor.cpp
   smt/proof_post_processor.h
   smt/set_defaults.cpp
@@ -1190,8 +1188,8 @@ set(options_toml_files
 )
 string(REPLACE "toml" "cpp;" options_gen_cpp_files ${options_toml_files})
 string(REPLACE "toml" "h;"   options_gen_h_files ${options_toml_files})
-list(PREPEND options_gen_cpp_files "options/options.cpp" "options/options_public.cpp")
-list(PREPEND options_gen_h_files "options/options.h")
+list(APPEND options_gen_cpp_files "options/options.cpp" "options/options_public.cpp")
+list(APPEND options_gen_h_files "options/options.h")
 
 libcvc5_add_sources(GENERATED ${options_gen_cpp_files} ${options_gen_h_files})
 

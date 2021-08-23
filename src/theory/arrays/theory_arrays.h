@@ -132,12 +132,9 @@ class TheoryArrays : public Theory {
   IntStat d_numSetModelValConflicts;
 
  public:
-  TheoryArrays(context::Context* c,
-               context::UserContext* u,
+  TheoryArrays(Env& env,
                OutputChannel& out,
                Valuation valuation,
-               const LogicInfo& logicInfo,
-               ProofNodeManager* pnm = nullptr,
                std::string name = "theory::arrays::");
   ~TheoryArrays();
 

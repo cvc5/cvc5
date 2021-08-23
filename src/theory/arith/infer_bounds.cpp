@@ -35,19 +35,20 @@ InferBoundAlgorithm::InferBoundAlgorithm(Algorithms a)
   Assert(a != Simplex);
 }
 
-InferBoundAlgorithm::InferBoundAlgorithm(const Maybe<int>& simplexRounds)
-  : d_alg(Simplex)
+InferBoundAlgorithm::InferBoundAlgorithm(
+    const std::optional<int>& simplexRounds)
+    : d_alg(Simplex)
 {}
 
 Algorithms InferBoundAlgorithm::getAlgorithm() const{
   return d_alg;
 }
 
-const Maybe<int>& InferBoundAlgorithm::getSimplexRounds() const{
+const std::optional<int>& InferBoundAlgorithm::getSimplexRounds() const
+{
   Assert(getAlgorithm() == Simplex);
   return d_simplexRounds;
 }
-
 
 InferBoundAlgorithm InferBoundAlgorithm::mkLookup(){
   return InferBoundAlgorithm(Lookup);
@@ -57,7 +58,9 @@ InferBoundAlgorithm InferBoundAlgorithm::mkRowSum(){
   return InferBoundAlgorithm(RowSum);
 }
 
-InferBoundAlgorithm InferBoundAlgorithm::mkSimplex(const Maybe<int>& rounds){
+InferBoundAlgorithm InferBoundAlgorithm::mkSimplex(
+    const std::optional<int>& rounds)
+{
   return InferBoundAlgorithm(rounds);
 }
 

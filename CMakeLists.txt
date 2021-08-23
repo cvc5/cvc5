@@ -208,6 +208,11 @@ add_check_cxx_flag("-Wnon-virtual-dtor")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")
 add_check_c_cxx_flag("-Wshadow")
 
+# Assume no dynamic initialization of thread-local variables in non-defining
+# translation units. This option should result in better performance and works
+# around crashing issues with our Windows build.
+add_check_cxx_flag("-fno-extern-tls-init")
+
 # Temporarily disable -Wclass-memaccess to suppress 'no trivial copy-assignment'
 # cdlist.h warnings. Remove when fixed.
 add_check_cxx_flag("-Wno-class-memaccess")

@@ -118,6 +118,31 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
   }
 };
 
+/**
+ * An option-related API exception.
+ * If thrown, API objects can still be used.
+ */
+class CVC5_EXPORT CVC5ApiOptionException : public CVC5ApiRecoverableException
+{
+ public:
+  /**
+   * Construct with message from a string.
+   * @param str The error message.
+   */
+  CVC5ApiOptionException(const std::string& str)
+      : CVC5ApiRecoverableException(str)
+  {
+  }
+  /**
+   * Construct with message from a string stream.
+   * @param stream The error message.
+   */
+  CVC5ApiOptionException(const std::stringstream& stream)
+      : CVC5ApiRecoverableException(stream.str())
+  {
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 /* Result                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -2756,6 +2781,13 @@ class CVC5_EXPORT Solver
   friend class Sort;
   friend class Term;
 
+ private:
+  /*
+   * Constructs a solver with the given original options. This should only be
+   * used internally when the Solver is reset.
+   */
+  Solver(std::unique_ptr<Options>&& original);
+
  public:
   /* .................................................................... */
   /* Constructors/Destructors                                             */
@@ -2763,10 +2795,9 @@ class CVC5_EXPORT Solver
 
   /**
    * Constructor.
-   * @param opts an optional pointer to a solver options object
    * @return the Solver
    */
-  Solver(const Options* opts = nullptr);
+  Solver();
 
   /**
    * Destructor.
