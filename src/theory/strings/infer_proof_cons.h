@@ -145,7 +145,7 @@ class InferProofCons : public ProofGenerator
    *   (= k a) from (= (f x) a)
    *   (= x (str.++ b k)) from (= x (str.++ b (f x)))
    * Notice that the resulting substitution can now be safely used as a
-   * sequential substution, since (f x) has be purified with k. The proofs
+   * sequential substution, since (f x) has been purified with k. The proofs
    * in psb ensure that a proof step involving the purified substitution will
    * have the same net effect as a proof step using the original substitution.
    *
