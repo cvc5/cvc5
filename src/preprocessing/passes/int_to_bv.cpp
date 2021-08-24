@@ -221,7 +221,6 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
           BitVector bvzero(size, Integer(0));
           Node negResult = nm->mkNode(kind::BITVECTOR_TO_NAT,
                                       nm->mkNode(kind::BITVECTOR_NEG, result));
-          Node bv2nat = nm->mkNode(kind::BITVECTOR_TO_NAT, result);
           Node bv2int = nm->mkNode(
               kind::ITE,
               nm->mkNode(kind::BITVECTOR_SLT, result, nm->mkConst(bvzero)),
