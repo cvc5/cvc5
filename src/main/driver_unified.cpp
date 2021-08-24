@@ -31,6 +31,7 @@
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
 #include "main/main.h"
+#include "main/options.h"
 #include "main/signal_handlers.h"
 #include "main/time_limit.h"
 #include "options/base_options.h"
@@ -89,9 +90,9 @@ void printUsage(const Options& opts, bool full) {
      << endl
      << "cvc5 options:" << endl;
   if(full) {
-    options::printUsage(ss.str(), *opts.base.out);
+    main::printUsage(ss.str(), *opts.base.out);
   } else {
-    options::printShortUsage(ss.str(), *opts.base.out);
+    main::printShortUsage(ss.str(), *opts.base.out);
   }
 }
 
@@ -109,7 +110,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   Options* opts = &pExecutor->getOptions();
 
   // Parse the options
-  std::vector<string> filenames = options::parse(*opts, argc, argv, progName);
+  std::vector<string> filenames = main::parse(*solver, argc, argv, progName);
 
   auto limit = install_time_limit(*opts);
 
@@ -120,7 +121,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   }
   else if (opts->base.languageHelp)
   {
-    options::printLanguageHelp(*opts->base.out);
+    main::printLanguageHelp(*opts->base.out);
     exit(1);
   }
   else if (opts->driver.version)

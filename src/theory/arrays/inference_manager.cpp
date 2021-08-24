@@ -16,6 +16,7 @@
 #include "theory/arrays/inference_manager.h"
 
 #include "options/smt_options.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
@@ -116,13 +117,15 @@ void InferenceManager::convert(PfRule& id,
       break;
     case PfRule::ARRAYS_EXT: children.push_back(exp); break;
     default:
-      if (id != PfRule::ARRAYS_TRUST)
+      if (id != PfRule::THEORY_INFERENCE)
       {
         Assert(false) << "Unknown rule " << id << "\n";
       }
       children.push_back(exp);
       args.push_back(conc);
-      id = PfRule::ARRAYS_TRUST;
+      args.push_back(
+          builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARRAYS));
+      id = PfRule::THEORY_INFERENCE;
       break;
   }
 }

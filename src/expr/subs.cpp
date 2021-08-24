@@ -173,6 +173,12 @@ std::string Subs::toString() const
   return ss.str();
 }
 
+void Subs::clear()
+{
+  d_vars.clear();
+  d_subs.clear();
+}
+
 std::ostream& operator<<(std::ostream& out, const Subs& s)
 {
   out << s.toString();
