@@ -50,25 +50,36 @@ void setNoLimitCPU() {
 #endif /* ! __WIN32__ */
 }
 
-CommandExecutor::CommandExecutor(const Options& options)
-    : d_solver(new api::Solver(&options)),
+CommandExecutor::CommandExecutor(std::unique_ptr<api::Solver>& solver)
+    : d_solver(solver),
       d_symman(new SymbolManager(d_solver.get())),
-      d_driverOptions(&options),
       d_result()
 {
 }
 CommandExecutor::~CommandExecutor()
 {
-  // ensure that symbol manager is destroyed before solver
-  d_symman.reset(nullptr);
-  d_solver.reset(nullptr);
+}
+
+Options& CommandExecutor::getOptions()
+{
+  return d_solver->d_smtEngine->getOptions();
+}
+void CommandExecutor::storeOptionsAsOriginal()
+{
+  d_solver->d_originalOptions->copyValues(getOptions());
 }
 
 void CommandExecutor::printStatistics(std::ostream& out) const
 {
-  if (d_solver->getOptions().base.statistics)
+  const auto& baseopts = d_solver->getOptions().base;
+  if (baseopts.statistics)
   {
-    getSmtEngine()->printStatistics(out);
+    const auto& stats = d_solver->getStatistics();
+    auto it = stats.begin(baseopts.statisticsExpert, baseopts.statisticsAll);
+    for (; it != stats.end(); ++it)
+    {
+      out << it->first << " = " << it->second << std::endl;
+    }
   }
 }
 
@@ -76,7 +87,7 @@ void CommandExecutor::printStatisticsSafe(int fd) const
 {
   if (d_solver->getOptions().base.statistics)
   {
-    getSmtEngine()->printStatisticsSafe(fd);
+    d_solver->printStatisticsSafe(fd);
   }
 }
 
@@ -113,14 +124,8 @@ bool CommandExecutor::doCommand(Command* cmd)
 void CommandExecutor::reset()
 {
   printStatistics(*d_solver->getOptions().base.err);
-  /* We have to keep options passed via CL on reset. These options are stored
-   * in CommandExecutor::d_driverOptions (populated and created in the driver),
-   * and CommandExecutor::d_driverOptions only contains *these* options since
-   * the SmtEngine copies them into its own options object before configuring
-   * additional options based on the given CL options.
-   * We can thus safely reuse CommandExecutor::d_driverOptions here.
-   */
-  d_solver.reset(new api::Solver(d_driverOptions));
+
+  Command::resetSolver(d_solver.get());
 }
 
 bool CommandExecutor::doCommandSingleton(Command* cmd)
@@ -152,12 +157,6 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     d_result = res = q->getResult();
   }
 
-  if ((cs != nullptr || q != nullptr)
-      && d_solver->getOptions().base.statisticsEveryQuery)
-  {
-    getSmtEngine()->printStatisticsDiff(*d_solver->getOptions().base.err);
-  }
-
   bool isResultUnsat = res.isUnsat() || res.isEntailed();
 
   // dump the model/proof/unsat core if option is set
@@ -175,7 +174,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetProofCommand());
     }
 
-    if (d_solver->getOptions().driver.dumpInstantiations
+    if ((d_solver->getOptions().driver.dumpInstantiations
+         || d_solver->getOptions().driver.dumpInstantiationsDebug)
         && GetInstantiationsCommand::isEnabled(d_solver.get(), res))
     {
       getterCommands.emplace_back(new GetInstantiationsCommand());

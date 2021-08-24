@@ -233,42 +233,37 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
       std::map<Node, bool> visited;
       // functions to arguments
       std::vector<Node> args;
-      std::vector<Node> terms;
-      std::vector<Node> subs;
+      Subs sb;
       bool singleInvocation = true;
       bool ngroundSingleInvocation = false;
-      if (processConjunct(cr, visited, args, terms, subs))
+      if (processConjunct(cr, visited, args, sb))
       {
-        for (unsigned j = 0; j < terms.size(); j++)
+        for (size_t j = 0, vsize = sb.d_vars.size(); j < vsize; j++)
         {
-          si_terms.push_back(subs[j]);
-          Node op = subs[j].hasOperator() ? subs[j].getOperator() : subs[j];
+          Node s = sb.d_subs[j];
+          si_terms.push_back(s);
+          Node op = s.hasOperator() ? s.getOperator() : s;
           Assert(d_func_fo_var.find(op) != d_func_fo_var.end());
           si_subs.push_back(d_func_fo_var[op]);
         }
         std::map<Node, Node> subs_map;
         std::map<Node, Node> subs_map_rev;
         // normalize the invocations
-        if (!terms.empty())
+        if (!sb.empty())
         {
-          Assert(terms.size() == subs.size());
-          cr = cr.substitute(
-              terms.begin(), terms.end(), subs.begin(), subs.end());
+          cr = sb.apply(cr);
         }
         std::vector<Node> children;
         children.push_back(cr);
-        terms.clear();
-        subs.clear();
+        sb.clear();
         Trace("si-prt") << "...single invocation, with arguments: "
                         << std::endl;
         for (unsigned j = 0; j < args.size(); j++)
         {
           Trace("si-prt") << args[j] << " ";
-          if (args[j].getKind() == BOUND_VARIABLE
-              && std::find(terms.begin(), terms.end(), args[j]) == terms.end())
+          if (args[j].getKind() == BOUND_VARIABLE && !sb.contains(args[j]))
           {
-            terms.push_back(args[j]);
-            subs.push_back(d_si_vars[j]);
+            sb.add(args[j], d_si_vars[j]);
           }
           else
           {
@@ -276,12 +271,8 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
           }
         }
         Trace("si-prt") << std::endl;
-        cr = children.size() == 1
-                 ? children[0]
-                 : NodeManager::currentNM()->mkNode(OR, children);
-        Assert(terms.size() == subs.size());
-        cr =
-            cr.substitute(terms.begin(), terms.end(), subs.begin(), subs.end());
+        cr = nm->mkOr(children);
+        cr = sb.apply(cr);
         Trace("si-prt-debug") << "...normalized invocations to " << cr
                               << std::endl;
         // now must check if it has other bound variables
@@ -417,8 +408,7 @@ bool SingleInvocationPartition::collectConjuncts(Node n,
 bool SingleInvocationPartition::processConjunct(Node n,
                                                 std::map<Node, bool>& visited,
                                                 std::vector<Node>& args,
-                                                std::vector<Node>& terms,
-                                                std::vector<Node>& subs)
+                                                Subs& sb)
 {
   std::map<Node, bool>::iterator it = visited.find(n);
   if (it != visited.end())
@@ -430,7 +420,7 @@ bool SingleInvocationPartition::processConjunct(Node n,
     bool ret = true;
     for (unsigned i = 0; i < n.getNumChildren(); i++)
     {
-      if (!processConjunct(n[i], visited, args, terms, subs))
+      if (!processConjunct(n[i], visited, args, sb))
       {
         ret = false;
       }
@@ -445,7 +435,20 @@ bool SingleInvocationPartition::processConjunct(Node n,
         if (std::find(d_input_funcs.begin(), d_input_funcs.end(), f)
             != d_input_funcs.end())
         {
-          success = true;
+          // If n is an application of a function-to-synthesize f, or is
+          // itself a function-to-synthesize, then n must be fully applied.
+          // This catches cases where n is a function-to-synthesize that occurs
+          // in a higher-order context.
+          // If the type of n is functional, then it is not fully applied.
+          if (n.getType().isFunction())
+          {
+            ret = false;
+            success = false;
+          }
+          else
+          {
+            success = true;
+          }
         }
       }
       else
@@ -458,7 +461,8 @@ bool SingleInvocationPartition::processConjunct(Node n,
       }
       if (success)
       {
-        if (std::find(terms.begin(), terms.end(), n) == terms.end())
+        Trace("si-prt-debug") << "Process " << n << std::endl;
+        if (!sb.contains(n))
         {
           // check if it matches the type requirement
           if (isAntiSkolemizableType(f))
@@ -487,8 +491,7 @@ bool SingleInvocationPartition::processConjunct(Node n,
             }
             if (ret)
             {
-              terms.push_back(n);
-              subs.push_back(d_func_inv[f]);
+              sb.add(n, d_func_inv[f]);
             }
           }
           else
@@ -500,7 +503,6 @@ bool SingleInvocationPartition::processConjunct(Node n,
         }
       }
     }
-    //}
     visited[n] = ret;
     return ret;
   }

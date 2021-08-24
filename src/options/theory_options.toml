@@ -51,6 +51,9 @@ name   = "Theory Layer"
 [[option.mode.DISTRIBUTED]]
   name = "distributed"
   help = "Each theory maintains its own equality engine."
+[[option.mode.CENTRAL]]
+  name = "central"
+  help = "All applicable theories use the central equality engine."
 
 [[option]]
   name       = "tcMode"

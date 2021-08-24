@@ -115,7 +115,7 @@ class TestPropWhiteCnfStream : public TestSmt
         new cvc5::prop::CnfStream(d_satSolver.get(),
                                   d_cnfRegistrar.get(),
                                   d_cnfContext.get(),
-                                  &d_smtEngine->getOutputManager(),
+                                  &d_smtEngine->getEnv(),
                                   d_smtEngine->getResourceManager()));
   }
 

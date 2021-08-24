@@ -17,11 +17,13 @@
  */
 #include "main/interactive_shell.h"
 
+#include <cstring>
+#include <unistd.h>
+
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <set>
-#include <string.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -104,7 +106,8 @@ InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
   }
 
 #if HAVE_LIBEDITLINE
-  if(&d_in == &cin) {
+  if (&d_in == &std::cin && isatty(fileno(stdin)))
+  {
     ::rl_readline_name = const_cast<char*>("cvc5");
 #if EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP
     ::rl_completion_entry_function = commandGenerator;
@@ -155,7 +158,9 @@ InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
                  << ": " << strerror(err) << std::endl;
       }
     }
-  } else {
+  }
+  else
+  {
     d_usingEditline = false;
   }
 #else  /* HAVE_LIBEDITLINE */
@@ -200,9 +205,7 @@ restart:
   if (d_usingEditline)
   {
 #if HAVE_LIBEDITLINE
-    lineBuf = ::readline(d_options.driver.interactivePrompt
-                             ? (line == "" ? "cvc5> " : "... > ")
-                             : "");
+    lineBuf = ::readline(line == "" ? "cvc5> " : "... > ");
     if(lineBuf != NULL && lineBuf[0] != '\0') {
       ::add_history(lineBuf);
     }
@@ -212,13 +215,13 @@ restart:
   }
   else
   {
-    if (d_options.driver.interactivePrompt)
+    if (line == "")
     {
-      if(line == "") {
-        d_out << "cvc5> " << flush;
-      } else {
-        d_out << "... > " << flush;
-      }
+      d_out << "cvc5> " << flush;
+    }
+    else
+    {
+      d_out << "... > " << flush;
     }
 
     /* Read a line */
@@ -286,8 +289,7 @@ restart:
       if (d_usingEditline)
       {
 #if HAVE_LIBEDITLINE
-        lineBuf = ::readline(d_options.driver.interactivePrompt ? "... > "
-                                                                      : "");
+        lineBuf = ::readline("... > ");
         if(lineBuf != NULL && lineBuf[0] != '\0') {
           ::add_history(lineBuf);
         }
@@ -297,10 +299,7 @@ restart:
       }
       else
       {
-        if (d_options.driver.interactivePrompt)
-        {
-          d_out << "... > " << flush;
-        }
+        d_out << "... > " << flush;
 
         /* Read a line */
         stringbuf sb;

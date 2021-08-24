@@ -713,12 +713,15 @@ enum class PfRule : uint32_t
   // Conclusion: (not (= (select a k) (select b k)))
   // where k is arrays::SkolemCache::getExtIndexSkolem((not (= a b))).
   ARRAYS_EXT,
-  // ======== Array Trust
-  // Children: (P1 ... Pn)
-  // Arguments: (F)
-  // ---------------------
-  // Conclusion: F
-  ARRAYS_TRUST,
+  // ======== EQ_RANGE expansion
+  // Children: none
+  // Arguments: ((eqrange a b i j))
+  // ----------------------------------------
+  // Conclusion: (=
+  //              (eqrange a b i j)
+  //              (forall ((x T))
+  //               (=> (and (<= i x) (<= x j)) (= (select a x) (select b x)))))
+  ARRAYS_EQ_RANGE_EXPAND,
 
   //================================================= Bit-Vector rules
   // Note: bitblast() represents the result of the bit-blasted term as a
@@ -791,12 +794,6 @@ enum class PfRule : uint32_t
   // Conclusion: false
   // for i != j.
   DT_CLASH,
-  // ======== Datatype Trust
-  // Children: (P1 ... Pn)
-  // Arguments: (F)
-  // ---------------------
-  // Conclusion: F
-  DT_TRUST,
 
   //================================================= Quantifiers rules
   // ======== Skolem intro
@@ -827,10 +824,16 @@ enum class PfRule : uint32_t
   SKOLEMIZE,
   // ======== Instantiate
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
-  // Arguments: (t1 ... tn)
+  // Arguments: (t1 ... tn, (id (t)?)? )
   // ----------------------------------------
   // Conclusion: F*sigma
-  // sigma maps x1 ... xn to t1 ... tn.
+  // where sigma maps x1 ... xn to t1 ... tn.
+  //
+  // The optional argument id indicates the inference id that caused the
+  // instantiation. The term t indicates an additional term (e.g. the trigger)
+  // associated with the instantiation, which depends on the id. If the id
+  // has prefix "QUANTIFIERS_INST_E_MATCHING", then t is the trigger that
+  // generated the instantiation.
   INSTANTIATE,
   // ======== (Trusted) quantifiers preprocess
   // Children: ?
@@ -1067,12 +1070,6 @@ enum class PfRule : uint32_t
   // Also applies to the case where (seq.unit y) is a constant sequence
   // of length one.
   STRING_SEQ_UNIT_INJ,
-  // ======== String Trust
-  // Children: none
-  // Arguments: (Q)
-  // ---------------------
-  // Conclusion: (Q)
-  STRING_TRUST,
 
   //================================================= Arithmetic rules
   // ======== Adding Inequalities
@@ -1137,12 +1134,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: arith::OperatorElim::getAxiomFor(t)
   ARITH_OP_ELIM_AXIOM,
-  // ======== Int Trust
-  // Children: (P1 ... Pn)
-  // Arguments: (Q)
-  // ---------------------
-  // Conclusion: (Q)
-  INT_TRUST,
 
   //======== Multiplication sign inference
   // Children: none
@@ -1388,6 +1379,14 @@ enum class PfRule : uint32_t
   // (in variables x1...xn-1). It generates the conclusion that no xn exists
   // that extends the Cell and satisfies all assumptions.
   ARITH_NL_CAD_RECURSIVE,
+
+  //================================================ Place holder for Lfsc rules
+  // ======== Lfsc rule
+  // Children: (P1 ... Pn)
+  // Arguments: (id, Q, A1, ..., Am)
+  // ---------------------
+  // Conclusion: (Q)
+  LFSC_RULE,
 
   //================================================= Unknown rule
   UNKNOWN,

@@ -88,6 +88,9 @@ private:
   static const uint32_t RESET_START = 2;
 
   TheoryArith& d_containing;
+  Env& d_env;
+
+  const Options& options() const { return d_env.getOptions(); }
 
   /**
    * Whether we encountered non-linear arithmetic at any time during solving.
@@ -423,11 +426,7 @@ private:
   DeltaRational getDeltaValue(TNode term) const
       /* throw(DeltaRationalException, ModelException) */;
  public:
-  TheoryArithPrivate(TheoryArith& containing,
-                     context::Context* c,
-                     context::UserContext* u,
-                     BranchAndBound& bab,
-                     ProofNodeManager* pnm);
+  TheoryArithPrivate(TheoryArith& containing, Env& env, BranchAndBound& bab);
   ~TheoryArithPrivate();
 
   //--------------------------------- initialization
