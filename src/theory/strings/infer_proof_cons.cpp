@@ -546,7 +546,7 @@ void InferProofCons::convert(InferenceId infer,
       if (conc.getKind() != OR)
       {
         // This should never happen. If it does, we resort to using
-        // STRING_TRUST below (in production mode).
+        // THEORY_INFERENCE below (in production mode).
         Assert(false) << "Expected OR conclusion for " << infer;
       }
       else
@@ -881,7 +881,7 @@ void InferProofCons::convert(InferenceId infer,
     case InferenceId::STRINGS_CTN_TRANS:
     case InferenceId::STRINGS_CTN_DECOMPOSE:
     default:
-      // do nothing, these will be converted to STRING_TRUST below since the
+      // do nothing, these will be converted to THEORY_INFERENCE below since the
       // rule is unknown.
       break;
   }
@@ -930,11 +930,14 @@ void InferProofCons::convert(InferenceId infer,
         Trace("strings-ipc-fail") << "    e: " << ec << std::endl;
       }
     }
-    // untrustworthy conversion, the argument of STRING_TRUST is its conclusion
+    // untrustworthy conversion, the argument of THEORY_INFERENCE is its
+    // conclusion
     ps.d_args.clear();
     ps.d_args.push_back(conc);
+    Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_STRINGS);
+    ps.d_args.push_back(t);
     // use the trust rule
-    ps.d_rule = PfRule::STRING_TRUST;
+    ps.d_rule = PfRule::THEORY_INFERENCE;
     // add to stats
     d_statistics.d_inferencesNoPf << infer;
   }

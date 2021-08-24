@@ -782,6 +782,10 @@ void SygusSampler::registerSygusType(TypeNode tn)
 
 void SygusSampler::checkEquivalent(Node bv, Node bvr)
 {
+  if (bv == bvr)
+  {
+    return;
+  }
   Trace("sygus-rr-verify") << "Testing rewrite rule " << bv << " ---> " << bvr
                            << std::endl;
 
