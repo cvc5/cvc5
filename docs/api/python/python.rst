@@ -14,3 +14,4 @@ Python API Documentation
 
     datatype
     quickstart
+    solver
