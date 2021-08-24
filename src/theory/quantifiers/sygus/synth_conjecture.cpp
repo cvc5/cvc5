@@ -764,7 +764,7 @@ EnumValueManager* SynthConjecture::getEnumValueManagerFor(Node e)
   bool hasExamples = (d_exampleInfer->hasExamples(f)
                       && d_exampleInfer->getNumExamples(f) != 0);
   d_enumManager[e].reset(
-      new EnumValueManager(e, d_qim, d_treg, d_stats, hasExamples));
+      new EnumValueManager(e, d_qstate, d_qim, d_treg, d_stats, hasExamples));
   EnumValueManager* eman = d_enumManager[e].get();
   // set up the examples
   if (hasExamples)

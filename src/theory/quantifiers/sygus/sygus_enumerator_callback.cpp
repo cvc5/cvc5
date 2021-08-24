@@ -63,8 +63,9 @@ bool SygusEnumeratorCallback::addTerm(Node n, std::unordered_set<Node>& bterms)
 }
 
 SygusEnumeratorCallbackDefault::SygusEnumeratorCallbackDefault(
-    Node e, SygusStatistics* s, ExampleEvalCache* eec, SygusSampler* ssrv)
-    : SygusEnumeratorCallback(e, s), d_eec(eec), d_samplerRrV(ssrv)
+    Node e, SygusStatistics* s, ExampleEvalCache* eec, SygusSampler* ssrv,
+                                 std::ostream* out)
+    : SygusEnumeratorCallback(e, s), d_eec(eec), d_samplerRrV(ssrv), d_out(out)
 {
 }
 void SygusEnumeratorCallbackDefault::notifyTermInternal(Node n,
@@ -73,7 +74,8 @@ void SygusEnumeratorCallbackDefault::notifyTermInternal(Node n,
 {
   if (d_samplerRrV != nullptr)
   {
-    d_samplerRrV->checkEquivalent(bn, bnr);
+    Assert (d_out != nullptr);
+    d_samplerRrV->checkEquivalent(bn, bnr, *d_out);
   }
 }
 
