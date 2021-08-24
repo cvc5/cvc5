@@ -1,4 +1,4 @@
-; COMMAND-LINE: --relational-triggers
+; COMMAND-LINE: --relational-triggers --user-pat=use
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-fun F (Int) Bool)
