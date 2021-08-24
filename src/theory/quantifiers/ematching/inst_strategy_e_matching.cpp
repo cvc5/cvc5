@@ -530,7 +530,8 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
       }
       else
       {
-        Assert(TriggerTermInfo::isAtomicTrigger(pat) || TriggerTermInfo::isUsableRelationTrigger(pat));
+        Assert(TriggerTermInfo::isAtomicTrigger(pat)
+               || TriggerTermInfo::isUsableRelationTrigger(pat));
         if (pat.getType().isBoolean() && rpoleq.isNull())
         {
           if (options::literalMatchMode() == options::LiteralMatchMode::USE)
