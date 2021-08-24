@@ -354,31 +354,31 @@ cdef class DatatypeSelector:
         self.solver = solver
 
     def getName(self):
-    """
-        :return: the name of this datatype selector.
-    """
+        """
+            :return: the name of this datatype selector.
+        """
         return self.cds.getName().decode()
 
     def getSelectorTerm(self):
-    """
-        :return: the selector opeartor of this datatype selector as a term.
-    """
+        """
+            :return: the selector opeartor of this datatype selector as a term.
+        """
         cdef Term term = Term(self.solver)
         term.cterm = self.cds.getSelectorTerm()
         return term
 
     def getUpdaterTerm(self):
-    """
-        :return: the updater opeartor of this datatype selector as a term.
-    """
+        """
+            :return: the updater opeartor of this datatype selector as a term.
+        """
         cdef Term term = Term(self.solver)
         term.cterm = self.cds.getUpdaterTerm()
         return term
 
     def getRangeSort(self):
-    """
-        :return: the range sort of this selector.
-    """
+        """
+            :return: the range sort of this selector.
+        """
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.cds.getRangeSort()
         return sort
