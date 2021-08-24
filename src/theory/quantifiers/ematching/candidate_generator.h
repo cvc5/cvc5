@@ -73,8 +73,6 @@ class CandidateGenerator {
   virtual Node getNextCandidate() = 0;
   /** is n a legal candidate? */
   bool isLegalCandidate(Node n);
-  /** Identify this generator (for debugging, etc..) */
-  virtual std::string identify() const = 0;
 
  protected:
   /** Reference to the quantifiers state */
@@ -108,9 +106,6 @@ class CandidateGeneratorQE : public CandidateGenerator
   {
     return d_exclude_eqc.find(r) != d_exclude_eqc.end();
   }
-  /** Identify this generator (for debugging, etc..) */
-  std::string identify() const override { return "CandidateGeneratorQE"; }
-
  protected:
   /** reset this class for matching operator op in equivalence class eqc */
   void resetForOperator(Node eqc, Node op);
@@ -158,8 +153,6 @@ class CandidateGeneratorQELitDeq : public CandidateGenerator
   void reset(Node eqc) override;
   /** get next candidate */
   Node getNextCandidate() override;
-  /** Identify this generator (for debugging, etc..) */
-  std::string identify() const override { return "CandidateGeneratorQELitDeq"; }
 
  private:
   /** the equality class iterator for false */
@@ -189,8 +182,6 @@ class CandidateGeneratorQEAll : public CandidateGenerator
   unsigned d_index;
   //first time
   bool d_firstTime;
-  /** Identify this generator (for debugging, etc..) */
-  std::string identify() const override { return "CandidateGeneratorQEAll"; }
 
  public:
   CandidateGeneratorQEAll(QuantifiersState& qs, TermRegistry& tr, Node mpat);
@@ -218,11 +209,6 @@ class CandidateGeneratorConsExpand : public CandidateGeneratorQE
   void reset(Node eqc) override;
   /** get next candidate */
   Node getNextCandidate() override;
-  /** Identify this generator (for debugging, etc..) */
-  std::string identify() const override
-  {
-    return "CandidateGeneratorConsExpand";
-  }
 
  protected:
   /** the (datatype) type of the input match pattern */
@@ -248,9 +234,6 @@ class CandidateGeneratorSelector : public CandidateGeneratorQE
    * application of the wrong constructor.
    */
   Node getNextCandidate() override;
-  /** Identify this generator (for debugging, etc..) */
-  std::string identify() const override { return "CandidateGeneratorSelector"; }
-
  protected:
   /** the selector operator */
   Node d_selOp;
