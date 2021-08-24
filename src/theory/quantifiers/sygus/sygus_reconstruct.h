@@ -21,6 +21,7 @@
 #include <map>
 #include <vector>
 
+#include "expr/match_trie.h"
 #include "theory/quantifiers/sygus/rcons_obligation.h"
 #include "theory/quantifiers/sygus/rcons_type_info.h"
 
@@ -30,6 +31,7 @@ namespace quantifiers {
 
 using BuiltinSet = std::unordered_set<Node>;
 using TypeBuiltinSetMap = std::unordered_map<TypeNode, BuiltinSet>;
+using NodePairMap = std::unordered_map<Node, Node>;
 
 /** SygusReconstruct
  *

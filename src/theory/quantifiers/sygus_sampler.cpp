@@ -780,6 +780,10 @@ void SygusSampler::registerSygusType(TypeNode tn)
 
 void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
 {
+  if (bv == bvr)
+  {
+    return;
+  }
   Trace("sygus-rr-verify") << "Testing rewrite rule " << bv << " ---> " << bvr
                            << std::endl;
 
