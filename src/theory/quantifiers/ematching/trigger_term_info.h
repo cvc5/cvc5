@@ -129,7 +129,8 @@ class TriggerTermInfo
    * trigger term n, where the smaller the value, the easier.
    *
    * Returns 0 for triggers that are APPLY_UF terms.
-   * Returns 1 for other triggers whose kind is atomic.
+   * Returns 1 for other triggers whose kind is atomic, or are usable
+   * relational triggers.
    * Returns 2 otherwise.
    */
   static int32_t getTriggerWeight(Node n);
