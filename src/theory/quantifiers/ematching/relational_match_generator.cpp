@@ -33,8 +33,7 @@ RelationalMatchGenerator::RelationalMatchGenerator(Trigger* tparent,
       d_vindex(-1),
       d_hasPol(hasPol),
       d_pol(pol),
-      d_counter(0),
-      d_rmPrev(false)
+      d_counter(0)
 {
   Assert((rtrigger.getKind() == EQUAL && rtrigger[0].getType().isReal())
          || rtrigger.getKind() == GEQ);

@@ -71,11 +71,10 @@ class RelationalMatchGenerator : public InstMatchGenerator
   bool d_hasPol;
   /** the required polarity, if it exists */
   bool d_pol;
-  /** the current number of terms we have generated since the last call to reset
+  /**
+   * The current number of terms we have generated since the last call to reset
    */
   size_t d_counter;
-  /** stores whether we have written a value for d_var in the current match. */
-  bool d_rmPrev;
 };
 
 }  // namespace inst
