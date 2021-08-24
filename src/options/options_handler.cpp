@@ -495,8 +495,8 @@ void OptionsHandler::enableOutputTag(const std::string& option,
 }
 
 Language OptionsHandler::stringToLanguage(const std::string& option,
-                                                    const std::string& flag,
-                                                    const std::string& optarg)
+                                          const std::string& flag,
+                                          const std::string& optarg)
 {
   if(optarg == "help") {
     d_options->base.languageHelp = true;
@@ -506,14 +506,16 @@ Language OptionsHandler::stringToLanguage(const std::string& option,
   try {
     return language::toLanguage(optarg);
   } catch(OptionException& oe) {
-    throw OptionException("Error in " + option + ": " + oe.getMessage() + "\nTry --lang help");
+    throw OptionException("Error in " + option + ": " + oe.getMessage()
+                          + "\nTry --lang help");
   }
 
   Unreachable();
 }
 
 void OptionsHandler::languageIsNotAST(const std::string& option,
-                                      const std::string& flag, Language lang)
+                                      const std::string& flag,
+                                      Language lang)
 {
   if (lang == Language::LANG_AST)
   {

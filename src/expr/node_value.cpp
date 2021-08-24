@@ -37,8 +37,8 @@ namespace expr {
 string NodeValue::toString() const {
   stringstream ss;
 
-  Language outlang = (this == &null()) ? Language::LANG_AUTO
-                                             : options::outputLanguage();
+  Language outlang =
+      (this == &null()) ? Language::LANG_AUTO : options::outputLanguage();
   toStream(ss, -1, false, outlang);
   return ss.str();
 }

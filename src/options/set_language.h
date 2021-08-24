@@ -58,7 +58,7 @@ class CVC5_EXPORT SetLanguage
 
   static void setLanguage(std::ostream& out, Language l);
 
-private:
+ private:
 
   /**
    * The allocated index in ios_base for our depth setting.

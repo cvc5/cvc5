@@ -53,13 +53,15 @@ std::ostream& operator<<(std::ostream& out, Language lang) CVC5_EXPORT;
 namespace language {
 
 /** Is the language a variant of the smtlib version 2 language? */
-inline bool isLang_smt2(Language lang) {
+inline bool isLang_smt2(Language lang)
+{
   return lang == Language::LANG_SMTLIB_V2_6;
 }
 
 /** Is the language a variant of the SyGuS input language? */
-inline bool isLangSygus(Language lang) {
-  return lang == Language::LANG_SYGUS_V2; 
+inline bool isLangSygus(Language lang)
+{
+  return lang == Language::LANG_SYGUS_V2;
 }
 
 Language toLanguage(const std::string& language) CVC5_EXPORT;

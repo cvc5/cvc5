@@ -277,7 +277,10 @@ TEST_F(TestParserBlackCvCParser, bad_exprs)
 class TestParserBlackSmt2Parser : public TestParserBlackParser
 {
  protected:
-  TestParserBlackSmt2Parser() : TestParserBlackParser(Language::LANG_SMTLIB_V2_6) {}
+  TestParserBlackSmt2Parser()
+      : TestParserBlackParser(Language::LANG_SMTLIB_V2_6)
+  {
+  }
 };
 
 TEST_F(TestParserBlackSmt2Parser, good_inputs)

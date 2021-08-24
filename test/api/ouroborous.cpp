@@ -96,8 +96,8 @@ std::string parse(std::string instr,
   }
 
   api::Solver solver;
-  Language ilang =
-      input_language == "smt2" ? Language::LANG_SMTLIB_V2_6 : Language::LANG_CVC;
+  Language ilang = input_language == "smt2" ? Language::LANG_SMTLIB_V2_6
+                                            : Language::LANG_CVC;
 
   solver.setOption("input-language", input_language);
   solver.setOption("output-language", output_language);

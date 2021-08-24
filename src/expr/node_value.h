@@ -525,17 +525,13 @@ inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
  * flushes the stream.
  */
 static void __attribute__((used)) debugPrintNodeValue(const expr::NodeValue* nv) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(true)
-            << Node::setlanguage(Language::LANG_AST)
-            << *nv << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(true)
+            << Node::setlanguage(Language::LANG_AST) << *nv << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintNodeValueNoDag(const expr::NodeValue* nv) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(false)
-            << Node::setlanguage(Language::LANG_AST)
-            << *nv << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(false)
+            << Node::setlanguage(Language::LANG_AST) << *nv << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* nv) {

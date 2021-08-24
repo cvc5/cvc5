@@ -899,8 +899,7 @@ std::wstring Parser::processAdHocStringEsc(const std::string& s)
 
 api::Term Parser::mkStringConstant(const std::string& s)
 {
-  if (language::isLang_smt2(
-          d_solver->getOptions().base.inputLanguage))
+  if (language::isLang_smt2(d_solver->getOptions().base.inputLanguage))
   {
     return d_solver->mkString(s, true);
   }

@@ -19,21 +19,16 @@
 
 namespace cvc5 {
 
-std::ostream& operator<<(std::ostream& out, Language lang) {
-  switch(lang) {
-  case Language::LANG_AUTO:
-    out << "LANG_AUTO";
-    break;
-  case Language::LANG_SMTLIB_V2_6:
-    out << "LANG_SMTLIB_V2_6";
-    break;
-  case Language::LANG_TPTP:
-    out << "LANG_TPTP";
-    break;
-  case Language::LANG_CVC: out << "LANG_CVC"; break;
-  case Language::LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
-  default:
-    out << "undefined_input_language";
+std::ostream& operator<<(std::ostream& out, Language lang)
+{
+  switch (lang)
+  {
+    case Language::LANG_AUTO: out << "LANG_AUTO"; break;
+    case Language::LANG_SMTLIB_V2_6: out << "LANG_SMTLIB_V2_6"; break;
+    case Language::LANG_TPTP: out << "LANG_TPTP"; break;
+    case Language::LANG_CVC: out << "LANG_CVC"; break;
+    case Language::LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
+    default: out << "undefined_input_language";
   }
   return out;
 }
@@ -72,10 +67,8 @@ Language toLanguage(const std::string& language)
     return Language::LANG_AUTO;
   }
 
-  throw OptionException(
-      std::string("unknown language `" + language + "'"));
+  throw OptionException(std::string("unknown language `" + language + "'"));
 }
-
 
 }  // namespace language
 }  // namespace cvc5

@@ -150,10 +150,11 @@ public:
   void increaseVerbosity(const std::string& option, const std::string& flag);
   void decreaseVerbosity(const std::string& option, const std::string& flag);
   Language stringToLanguage(const std::string& option,
-                                      const std::string& flag,
-                                      const std::string& optarg);
+                            const std::string& flag,
+                            const std::string& optarg);
   void languageIsNotAST(const std::string& option,
-                                      const std::string& flag, Language lang);
+                        const std::string& flag,
+                        Language lang);
   void enableTraceTag(const std::string& option,
                       const std::string& flag,
                       const std::string& optarg);

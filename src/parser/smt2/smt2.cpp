@@ -711,15 +711,9 @@ api::Grammar* Smt2::mkGrammar(const std::vector<api::Term>& boundVars,
   return d_allocGrammars.back().get();
 }
 
-bool Smt2::sygus() const
-{
-  return language::isLangSygus(getLanguage());
-}
+bool Smt2::sygus() const { return language::isLangSygus(getLanguage()); }
 
-bool Smt2::sygus_v2() const
-{
-  return getLanguage() == Language::LANG_SYGUS_V2;
-}
+bool Smt2::sygus_v2() const { return getLanguage() == Language::LANG_SYGUS_V2; }
 
 void Smt2::checkThatLogicIsSet()
 {

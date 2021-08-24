@@ -108,7 +108,8 @@ ParserBuilder& ParserBuilder::withChecks(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withInputLanguage(Language lang) {
+ParserBuilder& ParserBuilder::withInputLanguage(Language lang)
+{
   d_lang = lang;
   return *this;
 }
