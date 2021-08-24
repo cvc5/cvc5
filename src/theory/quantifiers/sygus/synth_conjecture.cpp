@@ -431,7 +431,7 @@ bool SynthConjecture::doCheck()
       }
       Assert(candidate_values.empty());
       constructed_cand = d_master->constructCandidates(
-          terms, enum_values, d_candidates, candidate_values, lems);
+          terms, enum_values, d_candidates, candidate_values);
     }
     // notify the enumerator managers of the status of the candidate
     for (std::pair<const Node, std::unique_ptr<EnumManager>>& ecp :
