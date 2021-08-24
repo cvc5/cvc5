@@ -40,12 +40,6 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
       d_qim(*this, d_qstate, d_qreg, d_treg, d_pnm),
       d_qengine(nullptr)
 {
-  out.handleUserAttribute( "fun-def", this );
-  out.handleUserAttribute("qid", this);
-  out.handleUserAttribute( "quant-inst-max-level", this );
-  out.handleUserAttribute( "quant-elim", this );
-  out.handleUserAttribute( "quant-elim-partial", this );
-
   // construct the quantifiers engine
   d_qengine.reset(
       new QuantifiersEngine(d_qstate, d_qreg, d_treg, d_qim, d_pnm));
@@ -186,10 +180,6 @@ bool TheoryQuantifiers::preNotifyFact(
   }
   // don't use equality engine, always return true
   return true;
-}
-
-void TheoryQuantifiers::setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value){
-  QuantAttributes::setUserAttribute( attr, n, node_values, str_value );
 }
 
 }  // namespace quantifiers
