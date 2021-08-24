@@ -73,7 +73,6 @@ int RelationalMatchGenerator::getNextMatch(Node q, InstMatch& m)
   Node s;
   Node rhs = d_rhs;
   bool rmPrev = m.get(d_vindex).isNull();
-  // TODO: substitute for the current m?
   while (d_counter < 2)
   {
     bool checkPol = false;
