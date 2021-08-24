@@ -19,7 +19,6 @@
 #define CVC5__THEORY__QUANTIFIERS__SYGUS__ENUM_VALUE_MANAGER_H
 
 #include "expr/node.h"
-
 #include "theory/quantifiers/sygus/enum_val_generator.h"
 #include "theory/quantifiers/sygus/example_eval_cache.h"
 #include "theory/quantifiers/sygus/sygus_enumerator_callback.h"
@@ -43,10 +42,10 @@ class EnumValueManager
 {
  public:
   EnumValueManager(Node e,
-              QuantifiersInferenceManager& qim,
-              TermRegistry& tr,
-              SygusStatistics& s,
-              bool hasExamples);
+                   QuantifiersInferenceManager& qim,
+                   TermRegistry& tr,
+                   SygusStatistics& s,
+                   bool hasExamples);
   ~EnumValueManager();
   /**
    * Get model value for term n. If n has a value that was excluded by

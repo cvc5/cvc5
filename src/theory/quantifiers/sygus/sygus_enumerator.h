@@ -20,6 +20,7 @@
 
 #include <map>
 #include <unordered_set>
+
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "theory/quantifiers/sygus/enum_val_generator.h"

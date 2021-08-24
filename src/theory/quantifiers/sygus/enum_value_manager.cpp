@@ -33,10 +33,10 @@ namespace theory {
 namespace quantifiers {
 
 EnumValueManager::EnumValueManager(Node e,
-                         QuantifiersInferenceManager& qim,
-                         TermRegistry& tr,
-                         SygusStatistics& s,
-                         bool hasExamples)
+                                   QuantifiersInferenceManager& qim,
+                                   TermRegistry& tr,
+                                   SygusStatistics& s,
+                                   bool hasExamples)
     : d_enum(e),
       d_qim(qim),
       d_treg(tr),
@@ -122,8 +122,8 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
   // if we have a waiting value, return it
   if (!d_evActiveGenWaiting.isNull())
   {
-    Trace("sygus-active-gen-debug") << "Active-gen: return waiting "
-                                    << d_evActiveGenWaiting << std::endl;
+    Trace("sygus-active-gen-debug")
+        << "Active-gen: return waiting " << d_evActiveGenWaiting << std::endl;
     return d_evActiveGenWaiting;
   }
   // Check if there is an (abstract) value absE we were actively generating
@@ -236,7 +236,10 @@ void EnumValueManager::notifyCandidate(bool modelSuccess)
   }
 }
 
-ExampleEvalCache* EnumValueManager::getExampleEvalCache() { return d_eec.get(); }
+ExampleEvalCache* EnumValueManager::getExampleEvalCache()
+{
+  return d_eec.get();
+}
 
 Node EnumValueManager::getModelValue(Node n)
 {

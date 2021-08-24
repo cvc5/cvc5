@@ -18,9 +18,8 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__RCONS_TYPE_INFO_H
 #define CVC5__THEORY__QUANTIFIERS__RCONS_TYPE_INFO_H
 
-#include "theory/quantifiers/sygus/sygus_enumerator.h"
-
 #include "theory/quantifiers/candidate_rewrite_database.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5 {
