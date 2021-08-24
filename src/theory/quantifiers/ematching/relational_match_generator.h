@@ -26,7 +26,24 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-/** match generator for relational triggers x ~ t
+/** 
+ * Match generator for relational triggers x ~ t where t is a ground term.
+ * This match generator tries a small fixed set of terms based on the kind of
+ * relation and the required polarity of the trigger in the quantified formula.
+ * 
+ * For example, for quantified formula (forall ((x Int)) (=> (> x n) (P x))),
+ * we have that (> x n) is a relational trigger with required polarity "true".
+ * This generator will try the match `x -> n+1` only, where notice that n+1 is
+ * the canonical term chosen to satisfy x>n.
+ *
+ * If a relational trigger does not have a required polarity, then up to 2
+ * terms are tried, a term that satisfies the relation, and one that does not.
+ * If (>= x n) is a relational trigger with no polarity, then `x -> n` and
+ * `x -> n-1` will be generated.
+ *
+ * Currently this class handles only equality between real or integer valued
+ * terms, or inequalities (kind GEQ). It furthermore only considers ground terms
+ * t for the right hand side of relations. 
  */
 class RelationalMatchGenerator : public InstMatchGenerator
 {
