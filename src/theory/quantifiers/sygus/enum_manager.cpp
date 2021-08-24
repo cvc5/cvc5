@@ -120,11 +120,11 @@ Node EnumManager::getEnumeratedValue(bool& activeIncomplete)
     Trace("sygus-active-gen-debug") << "...finish" << std::endl;
   }
   // if we have a waiting value, return it
-  if (!d_ev_active_gen_waiting.isNull())
+  if (!d_evActiveGenWaiting.isNull())
   {
     Trace("sygus-active-gen-debug") << "Active-gen: return waiting "
-                                    << d_ev_active_gen_waiting << std::endl;
-    return d_ev_active_gen_waiting;
+                                    << d_evActiveGenWaiting << std::endl;
+    return d_evActiveGenWaiting;
   }
   // Check if there is an (abstract) value absE we were actively generating
   // values based on.
@@ -180,10 +180,10 @@ Node EnumManager::getEnumeratedValue(bool& activeIncomplete)
     Node g = d_tds->getActiveGuardForEnumerator(e);
     if (!g.isNull())
     {
-      if (d_ev_active_gen_first_val.isNull())
+      if (d_evActiveGenFirstVal.isNull())
       {
         exp.push_back(g.negate());
-        d_ev_active_gen_first_val = absE;
+        d_evActiveGenFirstVal = absE;
       }
     }
     else
@@ -211,7 +211,7 @@ Node EnumManager::getEnumeratedValue(bool& activeIncomplete)
     }
     else
     {
-      d_ev_active_gen_waiting = v;
+      d_evActiveGenWaiting = v;
     }
     if (Trace.isOn("sygus-active-gen"))
     {
@@ -228,7 +228,7 @@ Node EnumManager::getEnumeratedValue(bool& activeIncomplete)
 
 void EnumManager::notifyCandidate(bool modelSuccess)
 {
-  d_ev_active_gen_waiting = Node::null();
+  d_evActiveGenWaiting = Node::null();
   // clear evaluation
   if (modelSuccess && d_eec != nullptr)
   {

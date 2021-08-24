@@ -58,7 +58,7 @@ class EnumManager
   Node getEnumeratedValue(bool& activeIncomplete);
   /**
    * Notify that a synthesis candidate was tried, which clears the value
-   * of d_ev_active_gen_waiting, as well as the evaluation cache if modelSuccess
+   * of d_evActiveGenWaiting, as well as the evaluation cache if modelSuccess
    * is true
    */
   void notifyCandidate(bool modelSuccess);
@@ -107,13 +107,13 @@ class EnumManager
    * We remember that the value of e1 was v1 by storing it here, so that on
    * a future check when v2 has a proper value, it is returned.
    */
-  Node d_ev_active_gen_waiting;
+  Node d_evActiveGenWaiting;
   /** the first value enumerated for the actively-generated enumerator
    *
    * This is to implement an optimization that only guards the blocking lemma
    * for the first value of an actively-generated enumerator.
    */
-  Node d_ev_active_gen_first_val;
+  Node d_evActiveGenFirstVal;
 };
 
 }  // namespace quantifiers
