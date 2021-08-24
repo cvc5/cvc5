@@ -33,11 +33,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-CandidateRewriteDatabase::CandidateRewriteDatabase(Env& env,
-                                                   bool doCheck,
-                                                   bool rewAccel,
-                                                   bool silent,
-                                                   bool filterPairs)
+CandidateRewriteDatabase::CandidateRewriteDatabase(
+    Env& env, bool doCheck, bool rewAccel, bool silent, bool filterPairs)
     : ExprMiner(env),
       d_tds(nullptr),
       d_ext_rewrite(nullptr),

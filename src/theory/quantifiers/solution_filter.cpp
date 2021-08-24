@@ -27,7 +27,10 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SolutionFilterStrength::SolutionFilterStrength(Env& env) : ExprMiner(env), d_isStrong(true) {}
+SolutionFilterStrength::SolutionFilterStrength(Env& env)
+    : ExprMiner(env), d_isStrong(true)
+{
+}
 void SolutionFilterStrength::initialize(const std::vector<Node>& vars,
                                         SygusSampler* ss)
 {

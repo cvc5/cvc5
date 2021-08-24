@@ -28,7 +28,10 @@ ExpressionMinerManager::ExpressionMinerManager(Env& env)
       d_doFilterLogicalStrength(false),
       d_use_sygus_type(false),
       d_tds(nullptr),
-      d_crd(env, options::sygusRewSynthCheck(), options::sygusRewSynthAccel(), false),
+      d_crd(env,
+            options::sygusRewSynthCheck(),
+            options::sygusRewSynthAccel(),
+            false),
       d_qg(env),
       d_sols(env)
 {

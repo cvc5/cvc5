@@ -35,12 +35,12 @@ namespace quantifiers {
 
 EnumValueManager::EnumValueManager(Node e,
                                    QuantifiersState& qs,
-                  QuantifiersInferenceManager& qim,
+                                   QuantifiersInferenceManager& qim,
                                    TermRegistry& tr,
                                    SygusStatistics& s,
                                    bool hasExamples)
     : d_enum(e),
-    d_qstate(qs),
+      d_qstate(qs),
       d_qim(qim),
       d_treg(tr),
       d_stats(s),
@@ -101,7 +101,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
         // create the enumerator callback
         if (options::sygusSymBreakDynamic())
         {
-          std::ostream * out = nullptr;
+          std::ostream* out = nullptr;
           if (options::sygusRewVerify())
           {
             d_samplerRrV.reset(new SygusSampler);

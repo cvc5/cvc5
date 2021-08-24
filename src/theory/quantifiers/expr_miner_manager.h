@@ -28,7 +28,7 @@
 namespace cvc5 {
 
 class Env;
-  
+
 namespace theory {
 namespace quantifiers {
 

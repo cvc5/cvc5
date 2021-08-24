@@ -26,7 +26,9 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusReconstruct::SygusReconstruct(Env& env, TermDbSygus* tds, SygusStatistics& s)
+SygusReconstruct::SygusReconstruct(Env& env,
+                                   TermDbSygus* tds,
+                                   SygusStatistics& s)
     : d_env(env), d_tds(tds), d_stats(s)
 {
 }

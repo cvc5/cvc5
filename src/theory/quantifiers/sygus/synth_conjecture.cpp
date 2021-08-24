@@ -886,7 +886,7 @@ void SynthConjecture::printSynthSolutionInternal(std::ostream& out)
         if (its == d_exprm.end())
         {
           d_exprm[prog].reset(new ExpressionMinerManager(d_qstate.getEnv()));
-          ExpressionMinerManager * emm = d_exprm[prog].get();
+          ExpressionMinerManager* emm = d_exprm[prog].get();
           emm->initializeSygus(
               d_tds, d_candidates[i], options::sygusSamples(), true);
           if (options::sygusRewSynth())

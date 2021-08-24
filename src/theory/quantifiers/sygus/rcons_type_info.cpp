@@ -23,7 +23,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-void RConsTypeInfo::initialize(Env& env, TermDbSygus* tds,
+void RConsTypeInfo::initialize(Env& env,
+                               TermDbSygus* tds,
                                SygusStatistics& s,
                                TypeNode stn,
                                const std::vector<Node>& builtinVars)
