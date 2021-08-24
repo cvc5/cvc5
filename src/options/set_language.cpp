@@ -26,7 +26,7 @@ namespace language {
 
 const int SetLanguage::s_iosIndex = std::ios_base::xalloc();
 
-SetLanguage::Scope::Scope(std::ostream& out, OutputLanguage language)
+SetLanguage::Scope::Scope(std::ostream& out, Language language)
   : d_out(out)
   , d_oldLanguage(SetLanguage::getLanguage(out))
 {
@@ -38,7 +38,7 @@ SetLanguage::Scope::~Scope(){
 }
 
 
-SetLanguage::SetLanguage(OutputLanguage l)
+SetLanguage::SetLanguage(Language l)
   : d_language(l)
 {}
 
@@ -47,27 +47,27 @@ void SetLanguage::applyLanguage(std::ostream& out) {
   out.iword(s_iosIndex) = int(d_language) + 1;
 }
 
-OutputLanguage SetLanguage::getLanguage(std::ostream& out) {
+Language SetLanguage::getLanguage(std::ostream& out) {
   long& l = out.iword(s_iosIndex);
   if(l == 0) {
     // set the default language on this ostream
     // (offset by one to detect whether default has been set yet)
     if(not Options::isCurrentNull()) {
-      l = options::outputLanguage() + 1;
+      l = static_cast<long>(options::outputLanguage()) + 1;
     }
-    if(l <= 0 || l > language::output::LANG_MAX) {
+    if(l <= 0 || l > static_cast<long>(Language::LANG_MAX)) {
       // if called from outside the library, we may not have options
       // available to us at this point (or perhaps the output language
       // is not set in Options).  Default to something reasonable, but
       // don't set "l" since that would make it "sticky" for this
       // stream.
-      return OutputLanguage(s_defaultOutputLanguage);
+      return s_defaultOutputLanguage;
     }
   }
-  return OutputLanguage(l - 1);
+  return Language(l - 1);
 }
 
-void SetLanguage::setLanguage(std::ostream& out, OutputLanguage l) {
+void SetLanguage::setLanguage(std::ostream& out, Language l) {
   // (offset by one to detect whether default has been set yet)
   out.iword(s_iosIndex) = int(l) + 1;
 }
