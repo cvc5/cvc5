@@ -17,11 +17,8 @@
 
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "theory/smt_engine_subsolver.h"
 
 using namespace std;
 using namespace cvc5::kind;

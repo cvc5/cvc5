@@ -24,7 +24,6 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/first_order_model.h"
