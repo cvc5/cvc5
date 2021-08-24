@@ -680,8 +680,7 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
   Node lit;
   if (TriggerTermInfo::isUsableRelationTrigger(n, hasPol, pol, lit))
   {
-    Trace("relational-trigger")
-        << "...yes, for literal " << lit << std::endl;
+    Trace("relational-trigger") << "...yes, for literal " << lit << std::endl;
     return new RelationalMatchGenerator(tparent, lit, hasPol, pol);
   }
   return new InstMatchGenerator(tparent, n);

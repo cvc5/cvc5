@@ -518,7 +518,9 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
         << ", eq=" << rpoleq << std::endl;
     // Currently, we have ad-hoc treatment for relational triggers that
     // are not handled by RelationalMatchGen.
-    bool isAdHocRelationalTrigger = TriggerTermInfo::isRelationalTrigger(pat)  && !TriggerTermInfo::isUsableRelationTrigger(pat);
+    bool isAdHocRelationalTrigger =
+        TriggerTermInfo::isRelationalTrigger(pat)
+        && !TriggerTermInfo::isUsableRelationTrigger(pat);
     if (rpol != 0)
     {
       Assert(rpol == 1 || rpol == -1);

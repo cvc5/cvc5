@@ -76,7 +76,10 @@ bool TriggerTermInfo::isUsableRelationTrigger(Node n)
   Node lit;
   return isUsableRelationTrigger(n, hasPol, pol, lit);
 }
-bool TriggerTermInfo::isUsableRelationTrigger(Node n, bool& hasPol, bool& pol, Node& lit)
+bool TriggerTermInfo::isUsableRelationTrigger(Node n,
+                                              bool& hasPol,
+                                              bool& pol,
+                                              Node& lit)
 {
   // relational triggers (not) (= (~ x t) true|false)
   hasPol = false;
