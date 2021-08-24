@@ -33,6 +33,10 @@ def test_mk_datatype_sort(solver):
     d = listSort.getDatatype()
     consConstr = d[0]
     nilConstr = d[1]
+    assert not d.isNull()
+    assert not cons.isNull()
+    assert not consConstr.isNull()
+    assert not dtypeSpec.isNull()
     with pytest.raises(RuntimeError):
         d[2]
     consConstr.getConstructorTerm()
@@ -207,6 +211,7 @@ def test_datatype_names(solver):
 
     # get selector
     dselTail = dcons[1]
+    assert not dselTail.isNull()
     assert dselTail.getName() == "tail"
     assert dselTail.getRangeSort() == dtypeSort
 
