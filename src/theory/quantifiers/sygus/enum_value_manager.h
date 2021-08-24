@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS__ENUM_MANAGER_H
-#define CVC5__THEORY__QUANTIFIERS__SYGUS__ENUM_MANAGER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS__ENUM_VALUE_MANAGER_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS__ENUM_VALUE_MANAGER_H
 
 #include "expr/node.h"
 
@@ -39,15 +39,15 @@ class SygusStatistics;
  * not actively generated, or may be determined by the (fast) enumerator
  * when it is actively generated.
  */
-class EnumManager
+class EnumValueManager
 {
  public:
-  EnumManager(Node e,
+  EnumValueManager(Node e,
               QuantifiersInferenceManager& qim,
               TermRegistry& tr,
               SygusStatistics& s,
               bool hasExamples);
-  ~EnumManager();
+  ~EnumValueManager();
   /**
    * Get model value for term n. If n has a value that was excluded by
    * datatypes sygus symmetry breaking, this method returns null. It sets

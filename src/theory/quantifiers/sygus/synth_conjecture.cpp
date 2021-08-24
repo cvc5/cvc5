@@ -30,7 +30,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/sygus/enum_manager.h"
+#include "theory/quantifiers/sygus/enum_value_manager.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
@@ -434,7 +434,7 @@ bool SynthConjecture::doCheck()
           terms, enum_values, d_candidates, candidate_values);
     }
     // notify the enumerator managers of the status of the candidate
-    for (std::pair<const Node, std::unique_ptr<EnumManager>>& ecp :
+    for (std::pair<const Node, std::unique_ptr<EnumValueManager>>& ecp :
          d_enumManager)
     {
       ecp.second->notifyCandidate(modelSuccess);
@@ -742,7 +742,7 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
         continue;
       }
     }
-    EnumManager* eman = getEnumManagerFor(e);
+    EnumValueManager* eman = getEnumValueManagerFor(e);
     Node nv = eman->getEnumeratedValue(activeIncomplete);
     n.push_back(e);
     v.push_back(nv);
@@ -751,9 +751,9 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
   return ret;
 }
 
-EnumManager* SynthConjecture::getEnumManagerFor(Node e)
+EnumValueManager* SynthConjecture::getEnumValueManagerFor(Node e)
 {
-  std::map<Node, std::unique_ptr<EnumManager>>::iterator it =
+  std::map<Node, std::unique_ptr<EnumValueManager>>::iterator it =
       d_enumManager.find(e);
   if (it != d_enumManager.end())
   {
@@ -764,8 +764,8 @@ EnumManager* SynthConjecture::getEnumManagerFor(Node e)
   bool hasExamples = (d_exampleInfer->hasExamples(f)
                       && d_exampleInfer->getNumExamples(f) != 0);
   d_enumManager[e].reset(
-      new EnumManager(e, d_qim, d_treg, d_stats, hasExamples));
-  EnumManager* eman = d_enumManager[e].get();
+      new EnumValueManager(e, d_qim, d_treg, d_stats, hasExamples));
+  EnumValueManager* eman = d_enumManager[e].get();
   // set up the examples
   if (hasExamples)
   {
@@ -1149,7 +1149,7 @@ Node SynthConjecture::getSymmetryBreakingPredicate(
 
 ExampleEvalCache* SynthConjecture::getExampleEvalCache(Node e)
 {
-  EnumManager* eman = getEnumManagerFor(e);
+  EnumValueManager* eman = getEnumValueManagerFor(e);
   return eman->getExampleEvalCache();
 }
 

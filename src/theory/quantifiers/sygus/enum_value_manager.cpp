@@ -12,7 +12,7 @@
  *
  * Management of current value for an enumerator
  */
-#include "theory/quantifiers/sygus/enum_manager.h"
+#include "theory/quantifiers/sygus/enum_value_manager.h"
 
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -32,7 +32,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-EnumManager::EnumManager(Node e,
+EnumValueManager::EnumValueManager(Node e,
                          QuantifiersInferenceManager& qim,
                          TermRegistry& tr,
                          SygusStatistics& s,
@@ -46,9 +46,9 @@ EnumManager::EnumManager(Node e,
 {
 }
 
-EnumManager::~EnumManager() {}
+EnumValueManager::~EnumValueManager() {}
 
-Node EnumManager::getEnumeratedValue(bool& activeIncomplete)
+Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
 {
   Node e = d_enum;
   bool isEnum = d_tds->isEnumerator(e);
@@ -226,7 +226,7 @@ Node EnumManager::getEnumeratedValue(bool& activeIncomplete)
   return v;
 }
 
-void EnumManager::notifyCandidate(bool modelSuccess)
+void EnumValueManager::notifyCandidate(bool modelSuccess)
 {
   d_evActiveGenWaiting = Node::null();
   // clear evaluation
@@ -236,9 +236,9 @@ void EnumManager::notifyCandidate(bool modelSuccess)
   }
 }
 
-ExampleEvalCache* EnumManager::getExampleEvalCache() { return d_eec.get(); }
+ExampleEvalCache* EnumValueManager::getExampleEvalCache() { return d_eec.get(); }
 
-Node EnumManager::getModelValue(Node n)
+Node EnumValueManager::getModelValue(Node n)
 {
   return d_treg.getModel()->getValue(n);
 }

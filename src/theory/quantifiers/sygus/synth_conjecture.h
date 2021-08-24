@@ -42,7 +42,7 @@ namespace quantifiers {
 class CegGrammarConstructor;
 class SygusPbe;
 class SygusStatistics;
-class EnumManager;
+class EnumValueManager;
 
 /** a synthesis conjecture
  * This class implements approaches for a synthesis conjecture, given by data
@@ -212,7 +212,7 @@ class SynthConjecture
   /** example inference utility */
   std::unique_ptr<ExampleInfer> d_exampleInfer;
   /** map from enumerators to their enumerator manager */
-  std::map<Node, std::unique_ptr<EnumManager>> d_enumManager;
+  std::map<Node, std::unique_ptr<EnumValueManager>> d_enumManager;
 
   //------------------------modules
   /** program by examples module */
@@ -253,7 +253,7 @@ class SynthConjecture
   /**
    * Get or make enumerator manager for the enumerator e.
    */
-  EnumManager* getEnumManagerFor(Node e);
+  EnumValueManager* getEnumValueManagerFor(Node e);
   //------------------------end enumerators
 
   /** list of constants for quantified formula
