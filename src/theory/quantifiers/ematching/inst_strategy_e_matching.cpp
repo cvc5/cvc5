@@ -387,7 +387,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
   // strategy d_tr_strategy
   d_patTerms[0][f].clear();
   d_patTerms[1][f].clear();
-  bool ntrivTriggers = false;  // options::relationalTriggers();
+  bool ntrivTriggers = options::relationalTriggers();
   std::vector<Node> patTermsF;
   std::map<Node, inst::TriggerTermInfo> tinfo;
   NodeManager* nm = NodeManager::currentNM();
@@ -449,9 +449,10 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
       }
     }
     int32_t curr_w = TriggerTermInfo::getTriggerWeight(p);
+    bool isSingleTrigger = tip.d_fv.size()==f[0].getNumChildren();
     // triggers whose value is maximum (2) are considered expendable.
     if (ntrivTriggers && !newVar && last_weight != -1 && curr_w > last_weight
-        && curr_w >= 2)
+        && curr_w >= 2 && !isSingleTrigger)
     {
       Trace("auto-gen-trigger-debug")
           << "...exclude expendible non-trivial trigger : " << p << std::endl;
