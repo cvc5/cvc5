@@ -217,8 +217,17 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
           result = sm->mkDummySkolem("__intToBV_var",
                                      nm->mkBitVectorType(size),
                                      "Variable introduced in intToBV pass");
+          /* Correctly convert signed/unsigned BV values to Integers. */
+          BitVector bvzero(size, Integer(0));
+          Node negResult = nm->mkNode(kind::BITVECTOR_TO_NAT,
+                                      nm->mkNode(kind::BITVECTOR_NEG, result));
           Node bv2nat = nm->mkNode(kind::BITVECTOR_TO_NAT, result);
-          d_preprocContext->addSubstitution(current, bv2nat);
+          Node bv2int = nm->mkNode(
+              kind::ITE,
+              nm->mkNode(kind::BITVECTOR_SLT, result, nm->mkConst(bvzero)),
+              nm->mkNode(kind::UMINUS, negResult),
+              nm->mkNode(kind::BITVECTOR_TO_NAT, result));
+          d_preprocContext->addSubstitution(current, bv2int);
         }
       }
       else if (current.isConst())
