@@ -29,6 +29,7 @@
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/normal_form.h"
 #include "theory/arith/partial_model.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -1820,9 +1821,11 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
         }
         case ArithProofType::IntHoleAP:
         {
-          pf = pnm->mkNode(PfRule::INT_TRUST,
+          Node t =
+              builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARITH);
+          pf = pnm->mkNode(PfRule::THEORY_INFERENCE,
                            children,
-                           {getProofLiteral()},
+                           {getProofLiteral(), t},
                            getProofLiteral());
           break;
         }

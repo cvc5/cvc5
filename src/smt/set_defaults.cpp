@@ -53,6 +53,16 @@ SetDefaults::SetDefaults(bool isInternalSubsolver)
 
 void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 {
+  // initial changes that are independent of logic, and may impact the logic
+  setDefaultsPre(opts);
+  // now, finalize the logic
+  finalizeLogic(logic, opts);
+  // further changes to options based on the logic
+  setDefaultsPost(logic, opts);
+}
+
+void SetDefaults::setDefaultsPre(Options& opts)
+{
   // implied options
   if (opts.smt.debugCheckModels)
   {
@@ -131,7 +141,10 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
     Notice() << "SmtEngine: setting bitvectorAlgebraicSolver" << std::endl;
     opts.bv.bitvectorAlgebraicSolver = true;
   }
+}
 
+void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
+{
   if (opts.bv.bitblastMode == options::BitblastMode::EAGER)
   {
     if (opts.smt.produceModels
@@ -390,15 +403,10 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
     opts.bv.bvSolver = options::BVSolver::BITBLAST_INTERNAL;
   }
 
-  // whether we want to force safe unsat cores, i.e., if we are in the default
-  // ASSUMPTIONS mode, since other ones are experimental
-  bool safeUnsatCores =
-      opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS;
-
   // Disable options incompatible with incremental solving, unsat cores or
   // output an error if enabled explicitly. It is also currently incompatible
   // with arithmetic, force the option off.
-  if (opts.base.incrementalSolving || safeUnsatCores)
+  if (opts.base.incrementalSolving || safeUnsatCores(opts))
   {
     if (opts.smt.unconstrainedSimp)
     {
@@ -459,7 +467,7 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 
   // Disable options incompatible with unsat cores or output an error if enabled
   // explicitly
-  if (safeUnsatCores)
+  if (safeUnsatCores(opts))
   {
     if (opts.smt.simplificationMode != options::SimplificationMode::NONE)
     {
@@ -627,12 +635,12 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
     opts.smt.produceModels = true;
   }
 
-  /////////////////////////////////////////////////////////////////////////////
-  // Widen logic
-  /////////////////////////////////////////////////////////////////////////////
+  // widen the logic
   widenLogic(logic, opts);
-  /////////////////////////////////////////////////////////////////////////////
+}
 
+void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
+{
   // Set the options for the theoryOf
   if (!opts.theory.theoryOfModeWasSetByUser)
   {
@@ -652,7 +660,8 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
   if (!opts.uf.ufSymmetryBreakerWasSetByUser)
   {
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
-                       && !opts.base.incrementalSolving && !safeUnsatCores;
+                       && !opts.base.incrementalSolving
+                       && !safeUnsatCores(opts);
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc
                  << std::endl;
     opts.uf.ufSymmetryBreaker = qf_uf_noinc;
@@ -701,7 +710,7 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
                       && (logic.isTheoryEnabled(THEORY_ARRAYS)
                           && logic.isTheoryEnabled(THEORY_UF)
                           && logic.isTheoryEnabled(THEORY_BV))
-                      && !safeUnsatCores;
+                      && !safeUnsatCores(opts);
     Trace("smt") << "setting repeat simplification to " << repeatSimp
                  << std::endl;
     opts.smt.repeatSimp = repeatSimp;
@@ -1044,6 +1053,13 @@ bool SetDefaults::mustDisableProofs(const Options& opts) const
     return true;
   }
   return false;
+}
+
+bool SetDefaults::safeUnsatCores(const Options& opts) const
+{
+  // whether we want to force safe unsat cores, i.e., if we are in the default
+  // ASSUMPTIONS mode, since other ones are experimental
+  return opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS;
 }
 
 void SetDefaults::widenLogic(LogicInfo& logic, Options& opts) const
