@@ -433,6 +433,7 @@ bool TermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
 }
 
 bool TermDb::inRelevantDomain( TNode f, unsigned i, TNode r ) {
+  // notice if we are not higher-order, getOperatorRepresentative is a no-op
   f = getOperatorRepresentative(f);
   computeUfTerms( f );
   Assert(!d_qstate.getEqualityEngine()->hasTerm(r)
