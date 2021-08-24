@@ -27,7 +27,7 @@
 namespace cvc5 {
 namespace proof {
 
-/** 
+/**
  * A term, type or a proof. This class is used for printing combinations of
  * proofs terms and types.
  */
@@ -54,10 +54,10 @@ class PExpr
 class PExprStream
 {
  public:
-   /** 
-    * Takes a reference to a stream (vector of p-expressions), and the
-    * representation true/false (tt/ff).
-    */
+  /**
+   * Takes a reference to a stream (vector of p-expressions), and the
+   * representation true/false (tt/ff).
+   */
   PExprStream(std::vector<PExpr>& stream,
               Node tt = Node::null(),
               Node ff = Node::null());
