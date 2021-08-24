@@ -330,20 +330,18 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
                           TriggerDatabase::TR_GET_OLD,
                           d_num_trigger_vars[f]);
     }
-    if (tr == nullptr)
+    // if we generated a trigger above, add it
+    if (tr != nullptr)
     {
-      // did not generate a trigger
-      continue;
-    }
-    addTrigger(tr, f);
-    if (tr->isMultiTrigger())
-    {
-      // only add a single multi-trigger
-      continue;
+      addTrigger(tr, f);
+      if (tr->isMultiTrigger())
+      {
+        // only add a single multi-trigger
+        continue;
+      }
     }
     // if we are generating additional triggers...
-    size_t index = 0;
-    if (index < patTerms.size())
+    if (patTerms.size()>1)
     {
       // check if similar patterns exist, and if so, add them additionally
       unsigned nqfs_curr = 0;
@@ -352,7 +350,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         nqfs_curr =
             d_quant_rel->getNumQuantifiersForSymbol(patTerms[0].getOperator());
       }
-      index++;
+      size_t index = 1;
       bool success = true;
       while (success && index < patTerms.size()
              && d_is_single_trigger[patTerms[index]])
