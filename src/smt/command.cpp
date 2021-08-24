@@ -249,7 +249,7 @@ void Command::resetSolver(api::Solver* solver)
   // CommandExecutor such that this reconstruction can be done within the
   // CommandExecutor, who actually owns the solver.
   solver->~Solver();
-  new (solver) api::Solver(opts.get());
+  new (solver) api::Solver(std::move(opts));
 }
 
 Node Command::termToNode(const api::Term& term) { return term.getNode(); }
@@ -1528,78 +1528,6 @@ void DeclareHeapCommand::toStream(std::ostream& out,
 {
   Printer::getPrinter(language)->toStreamCmdDeclareHeap(
       out, sortToTypeNode(d_locSort), sortToTypeNode(d_dataSort));
-}
-
-/* -------------------------------------------------------------------------- */
-/* class SetUserAttributeCommand                                              */
-/* -------------------------------------------------------------------------- */
-
-SetUserAttributeCommand::SetUserAttributeCommand(
-    const std::string& attr,
-    api::Term term,
-    const std::vector<api::Term>& termValues,
-    const std::string& strValue)
-    : d_attr(attr), d_term(term), d_termValues(termValues), d_strValue(strValue)
-{
-}
-
-SetUserAttributeCommand::SetUserAttributeCommand(const std::string& attr,
-                                                 api::Term term)
-    : SetUserAttributeCommand(attr, term, {}, "")
-{
-}
-
-SetUserAttributeCommand::SetUserAttributeCommand(
-    const std::string& attr,
-    api::Term term,
-    const std::vector<api::Term>& values)
-    : SetUserAttributeCommand(attr, term, values, "")
-{
-}
-
-SetUserAttributeCommand::SetUserAttributeCommand(const std::string& attr,
-                                                 api::Term term,
-                                                 const std::string& value)
-    : SetUserAttributeCommand(attr, term, {}, value)
-{
-}
-
-void SetUserAttributeCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  try
-  {
-    if (!d_term.isNull())
-    {
-      solver->getSmtEngine()->setUserAttribute(d_attr,
-                                               termToNode(d_term),
-                                               termVectorToNodes(d_termValues),
-                                               d_strValue);
-    }
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-Command* SetUserAttributeCommand::clone() const
-{
-  return new SetUserAttributeCommand(d_attr, d_term, d_termValues, d_strValue);
-}
-
-std::string SetUserAttributeCommand::getCommandName() const
-{
-  return "set-user-attribute";
-}
-
-void SetUserAttributeCommand::toStream(std::ostream& out,
-                                       int toDepth,
-                                       size_t dag,
-                                       OutputLanguage language) const
-{
-  Printer::getPrinter(language)->toStreamCmdSetUserAttribute(
-      out, d_attr, termToNode(d_term));
 }
 
 /* -------------------------------------------------------------------------- */

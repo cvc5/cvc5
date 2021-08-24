@@ -31,8 +31,6 @@ void ArraysProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::ARRAYS_READ_OVER_WRITE_1, this);
   pc->registerChecker(PfRule::ARRAYS_EXT, this);
   pc->registerChecker(PfRule::ARRAYS_EQ_RANGE_EXPAND, this);
-  // trusted rules
-  pc->registerTrustedChecker(PfRule::ARRAYS_TRUST, this, 2);
 }
 
 Node ArraysProofRuleChecker::checkInternal(PfRule id,
@@ -110,13 +108,6 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
   {
     Node expandedEqRange = TheoryArraysRewriter::expandEqRange(args[0]);
     return args[0].eqNode(expandedEqRange);
-  }
-  if (id == PfRule::ARRAYS_TRUST)
-  {
-    // "trusted" rules
-    Assert(!args.empty());
-    Assert(args[0].getType().isBoolean());
-    return args[0];
   }
   // no rule
   return Node::null();

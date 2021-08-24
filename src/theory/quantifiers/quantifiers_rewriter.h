@@ -70,12 +70,13 @@ class QuantifiersRewriter : public TheoryRewriter
   static bool isVarElim(Node v, Node s);
   /** get variable elimination literal
    *
-   * If n asserted with polarity pol is equivalent to an equality of the form
-   * v = s for some v in args, where isVariableElim( v, s ) holds, then this
-   * method removes v from args, adds v to vars, adds s to subs, and returns
-   * true. Otherwise, it returns false.
+   * If n asserted with polarity pol in body, and is equivalent to an equality
+   * of the form v = s for some v in args, where isVariableElim( v, s ) holds,
+   * then this method removes v from args, adds v to vars, adds s to subs, and
+   * returns true. Otherwise, it returns false.
    */
-  static bool getVarElimLit(Node n,
+  static bool getVarElimLit(Node body,
+                            Node n,
                             bool pol,
                             std::vector<Node>& args,
                             std::vector<Node>& vars,
@@ -110,12 +111,12 @@ class QuantifiersRewriter : public TheoryRewriter
                                  Node& var);
   /** get variable elimination
    *
-   * If n asserted with polarity pol entails a literal lit that corresponds
-   * to a variable elimination for some v via the above method, we return true.
-   * In this case, we update args/vars/subs based on eliminating v.
+   * If there exists an n with some polarity in body, and entails a literal that
+   * corresponds to a variable elimination for some v via the above method
+   * getVarElimLit, we return true. In this case, we update args/vars/subs
+   * based on eliminating v.
    */
-  static bool getVarElim(Node n,
-                         bool pol,
+  static bool getVarElim(Node body,
                          std::vector<Node>& args,
                          std::vector<Node>& vars,
                          std::vector<Node>& subs);
@@ -145,6 +146,15 @@ class QuantifiersRewriter : public TheoryRewriter
                              QAttributes& qa);
   //-------------------------------------end variable elimination utilities
  private:
+  /**
+   * Helper method for getVarElim, called when n has polarity pol in body.
+   */
+  static bool getVarElimInternal(Node body,
+                                 Node n,
+                                 bool pol,
+                                 std::vector<Node>& args,
+                                 std::vector<Node>& vars,
+                                 std::vector<Node>& subs);
   static int getPurifyIdLit2(Node n, std::map<Node, int>& visited);
   static bool addCheckElimChild(std::vector<Node>& children,
                                 Node c,
