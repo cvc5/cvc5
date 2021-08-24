@@ -27,7 +27,6 @@
 #include "options/language.h"
 #include "options/managed_streams.h"
 #include "options/option_exception.h"
-#include "options/printer_modes.h"
 #include "options/quantifiers_options.h"
 
 namespace cvc5 {
@@ -99,11 +98,6 @@ public:
   void setBitblastAig(const std::string& option,
                       const std::string& flag,
                       bool arg);
-
-  // printer/options_handlers.h
-  InstFormatMode stringToInstFormatMode(const std::string& option,
-                                        const std::string& flag,
-                                        const std::string& optarg);
 
   /**
    * Throws a ModalException if this option is being set after final
