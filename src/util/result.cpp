@@ -354,14 +354,14 @@ void Result::toStreamTptp(std::ostream& out) const {
   out << " for " << getInputName();
 }
 
-void Result::toStream(std::ostream& out, OutputLanguage language) const {
+void Result::toStream(std::ostream& out, Language language) const {
   switch (language) {
-    case language::output::LANG_SYGUS_V2: toStreamSmt2(out); break;
-    case language::output::LANG_TPTP:
+    case Language::LANG_SYGUS_V2: toStreamSmt2(out); break;
+    case Language::LANG_TPTP:
       toStreamTptp(out);
       break;
     default:
-      if (language::isOutputLang_smt2(language))
+      if (language::isLang_smt2(language))
       {
         toStreamSmt2(out);
       }

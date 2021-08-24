@@ -116,23 +116,22 @@ InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
 #endif /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
     ::using_history();
 
-    OutputLanguage lang =
-        toOutputLanguage(d_options.base.inputLanguage);
+    Language lang = d_options.base.inputLanguage;
     switch(lang) {
-      case output::LANG_CVC:
+      case Language::LANG_CVC:
         d_historyFilename = string(getenv("HOME")) + "/.cvc5_history";
         commandsBegin = cvc_commands;
         commandsEnd =
             cvc_commands + sizeof(cvc_commands) / sizeof(*cvc_commands);
         break;
-      case output::LANG_TPTP:
+      case Language::LANG_TPTP:
         d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_tptp";
         commandsBegin = tptp_commands;
         commandsEnd =
             tptp_commands + sizeof(tptp_commands) / sizeof(*tptp_commands);
         break;
       default:
-        if (language::isOutputLang_smt2(lang))
+        if (language::isLang_smt2(lang))
         {
           d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_smtlib2";
           commandsBegin = smt2_commands;
@@ -365,7 +364,7 @@ restart:
   }
   catch (ParserException& pe)
   {
-    if (language::isOutputLang_smt2(d_options.base.outputLanguage))
+    if (language::isLang_smt2(d_options.base.outputLanguage))
     {
       d_out << "(error \"" << pe << "\")" << endl;
     }

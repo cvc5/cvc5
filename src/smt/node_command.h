@@ -41,7 +41,7 @@ class NodeCommand
       std::ostream& out,
       int toDepth = -1,
       size_t dag = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const = 0;
+      Language language = Language::LANG_AUTO) const = 0;
 
   /** Get a string representation of this NodeCommand */
   std::string toString() const;
@@ -64,7 +64,7 @@ class DeclareFunctionNodeCommand : public NodeCommand
       std::ostream& out,
       int toDepth = -1,
       size_t dag = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const override;
+      Language language = Language::LANG_AUTO) const override;
   NodeCommand* clone() const override;
   const Node& getFunction() const;
 
@@ -86,7 +86,7 @@ class DeclareDatatypeNodeCommand : public NodeCommand
       std::ostream& out,
       int toDepth = -1,
       size_t dag = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const override;
+      Language language = Language::LANG_AUTO) const override;
   NodeCommand* clone() const override;
 
  private:
@@ -105,7 +105,7 @@ class DeclareTypeNodeCommand : public NodeCommand
       std::ostream& out,
       int toDepth = -1,
       size_t dag = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const override;
+      Language language = Language::LANG_AUTO) const override;
   NodeCommand* clone() const override;
   const std::string getSymbol() const;
   const TypeNode& getType() const;
@@ -131,7 +131,7 @@ class DefineFunctionNodeCommand : public NodeCommand
       std::ostream& out,
       int toDepth = -1,
       size_t dag = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const override;
+      Language language = Language::LANG_AUTO) const override;
   NodeCommand* clone() const override;
 
  private:

@@ -713,13 +713,12 @@ api::Grammar* Smt2::mkGrammar(const std::vector<api::Term>& boundVars,
 
 bool Smt2::sygus() const
 {
-  InputLanguage ilang = getLanguage();
-  return ilang == language::input::LANG_SYGUS_V2;
+  return language::isLangSygus(getLanguage());
 }
 
 bool Smt2::sygus_v2() const
 {
-  return getLanguage() == language::input::LANG_SYGUS_V2;
+  return getLanguage() == Language::LANG_SYGUS_V2;
 }
 
 void Smt2::checkThatLogicIsSet()
@@ -848,7 +847,7 @@ api::Term Smt2::mkAbstractValue(const std::string& name)
   return d_solver->mkAbstractValue(name.substr(1));
 }
 
-InputLanguage Smt2::getLanguage() const
+Language Smt2::getLanguage() const
 {
   return d_solver->getOptions().base.inputLanguage;
 }

@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
 #ifdef CVC5_COMPETITION_MODE
     *solver->getOptions().base.out << "unknown" << endl;
 #endif
-    if (language::isOutputLang_smt2(solver->getOptions().base.outputLanguage))
+    if (language::isLang_smt2(solver->getOptions().base.outputLanguage))
     {
       *solver->getOptions().base.out << "(error \"" << e << "\")" << endl;
     }
