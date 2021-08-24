@@ -5037,17 +5037,6 @@ Term Solver::mkBVFromIntHelper(uint32_t size, uint64_t val) const
   return mkValHelper<cvc5::BitVector>(cvc5::BitVector(size, val));
 }
 
-Term Solver::mkBVFromStrHelper(const std::string& s, uint32_t base) const
-{
-  CVC5_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
-  CVC5_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, base)
-      << "base 2, 10, or 16";
-  CVC5_API_ARG_CHECK_EXPECTED(s[0] != '-', s)
-      << "a positive value (since no size is specified)";
-  //////// all checks before this line
-  return mkValHelper<cvc5::BitVector>(cvc5::BitVector(s, base));
-}
-
 Term Solver::mkBVFromStrHelper(uint32_t size,
                                const std::string& s,
                                uint32_t base) const
@@ -5944,16 +5933,6 @@ Term Solver::mkBitVector(uint32_t size, uint64_t val) const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkBVFromIntHelper(size, val);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkBitVector(const std::string& s, uint32_t base) const
-{
-  NodeManagerScope scope(getNodeManager());
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return mkBVFromStrHelper(s, base);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

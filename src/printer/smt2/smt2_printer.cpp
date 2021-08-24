@@ -686,6 +686,11 @@ void Smt2Printer::toStream(std::ostream& out,
     out << ' ';
     stillNeedToPrintParams = false;
     break;
+  case kind::BITVECTOR_BITOF:
+    out << "(_ bitOf " << n.getOperator().getConst<BitVectorBitOf>().d_bitIndex
+        << ") ";
+    stillNeedToPrintParams = false;
+    break;
 
   // sets
   case kind::SINGLETON:
@@ -1294,16 +1299,6 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
   }
   const theory::TheoryModel* tm = m.getTheoryModel();
   std::vector<Node> elements = tm->getDomainElements(tn);
-  if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum)
-  {
-    out << "(declare-datatypes ((" << tn << " 0)) (";
-    for (const Node& type_ref : elements)
-    {
-      out << "(" << type_ref << ")";
-    }
-    out << ")))" << endl;
-    return;
-  }
   // print the cardinality
   out << "; cardinality of " << tn << " is " << elements.size() << endl;
   if (options::modelUninterpPrint()
@@ -1350,19 +1345,6 @@ void Smt2Printer::toStreamModelTerm(std::ostream& out,
   }
   else
   {
-    if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum
-        && val.getKind() == kind::STORE)
-    {
-      TypeNode tn = val[1].getType();
-      const std::vector<Node>* type_refs =
-          tm->getRepSet()->getTypeRepsOrNull(tn);
-      if (tn.isSort() && type_refs != nullptr)
-      {
-        Cardinality indexCard(type_refs->size());
-        val = theory::arrays::TheoryArraysRewriter::normalizeConstant(
-            val, indexCard);
-      }
-    }
     out << "(define-fun " << n << " () " << n.getType() << " ";
     // call toStream and force its type to be proper
     toStreamCastToType(out, val, -1, n.getType());

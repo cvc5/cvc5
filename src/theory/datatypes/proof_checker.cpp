@@ -30,8 +30,6 @@ void DatatypesProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::DT_COLLAPSE, this);
   pc->registerChecker(PfRule::DT_SPLIT, this);
   pc->registerChecker(PfRule::DT_CLASH, this);
-  // trusted rules
-  pc->registerTrustedChecker(PfRule::DT_TRUST, this, 2);
 }
 
 Node DatatypesProofRuleChecker::checkInternal(PfRule id,
@@ -121,12 +119,6 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     return nm->mkConst(false);
-  }
-  else if (id == PfRule::DT_TRUST)
-  {
-    Assert(!args.empty());
-    Assert(args[0].getType().isBoolean());
-    return args[0];
   }
   // no rule
   return Node::null();

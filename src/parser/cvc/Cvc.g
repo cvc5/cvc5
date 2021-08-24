@@ -2196,12 +2196,12 @@ simpleTerm[cvc5::api::Term& f]
   | HEX_LITERAL
     { Assert( AntlrInput::tokenText($HEX_LITERAL).find("0hex") == 0 );
       std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 4);
-      f = SOLVER->mkBitVector(hexString, 16);
+      f = SOLVER->mkBitVector(hexString.size() * 4, hexString, 16);
     }
   | BINARY_LITERAL
     { Assert( AntlrInput::tokenText($BINARY_LITERAL).find("0bin") == 0 );
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 4);
-      f = SOLVER->mkBitVector(binString, 2);
+      f = SOLVER->mkBitVector(binString.size(), binString, 2);
     }
     /* record literals */
   | PARENHASH recordEntry[name,e] { names.push_back(name); args.push_back(e); }
