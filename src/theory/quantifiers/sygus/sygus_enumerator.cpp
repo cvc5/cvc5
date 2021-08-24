@@ -356,7 +356,8 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
           d_samplerRrV.initializeSygus(
               d_tds, d_enum, options::sygusSamples(), false);
         }
-        d_samplerRrV.checkEquivalent(bn, bnr);
+        //FIXME
+        //d_samplerRrV.checkEquivalent(bn, bnr);
       }
     }
     // must be unique up to rewriting
