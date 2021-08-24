@@ -176,6 +176,9 @@ cdef class Datatype:
         """:return: whether this datatype has nested recursion (see :cpp:func:`Datatype::hasNestedRecursion() <cvc5::api::Datatype::hasNestedRecursion>`)."""
         return self.cd.hasNestedRecursion()
 
+    def isNull(self):
+        return self.cd.isNull()
+
     def __str__(self):
         return self.cd.toString().decode()
 
@@ -237,6 +240,9 @@ cdef class DatatypeConstructor:
         term.cterm = self.cdc.getSelectorTerm(name.encode())
         return term
 
+    def isNull(self):
+        return self.cdc.isNull()
+
     def __str__(self):
         return self.cdc.toString().decode()
 
@@ -263,6 +269,9 @@ cdef class DatatypeConstructorDecl:
     def addSelectorSelf(self, str name):
         self.cddc.addSelectorSelf(name.encode())
 
+    def isNull(self):
+        self.cddc.isNull()
+
     def __str__(self):
         return self.cddc.toString().decode()
 
@@ -287,6 +296,9 @@ cdef class DatatypeDecl:
 
     def getName(self):
         return self.cdd.getName().decode()
+
+    def isNull(self):
+        return self.cdd.isNull()
 
     def __str__(self):
         return self.cdd.toString().decode()
@@ -319,6 +331,9 @@ cdef class DatatypeSelector:
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.cds.getRangeSort()
         return sort
+
+    def isNull(self):
+        return self.cds.isNull()
 
     def __str__(self):
         return self.cds.toString().decode()
