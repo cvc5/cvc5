@@ -40,7 +40,7 @@ namespace quantifiers {
 class SolutionFilterStrength : public ExprMiner
 {
  public:
-  SolutionFilterStrength();
+  SolutionFilterStrength(Env& d_env);
   ~SolutionFilterStrength() {}
   /** initialize */
   void initialize(const std::vector<Node>& vars,

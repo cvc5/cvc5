@@ -39,9 +39,9 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-CegSingleInv::CegSingleInv(TermRegistry& tr, SygusStatistics& s)
+CegSingleInv::CegSingleInv(Env& env, TermRegistry& tr, SygusStatistics& s)
     : d_sip(new SingleInvocationPartition),
-      d_srcons(new SygusReconstruct(tr.getTermDatabaseSygus(), s)),
+      d_srcons(new SygusReconstruct(env, tr.getTermDatabaseSygus(), s)),
       d_isSolved(false),
       d_single_invocation(false),
       d_treg(tr)

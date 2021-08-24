@@ -142,10 +142,11 @@ class SygusReconstruct : public expr::NotifyMatch
   /**
    * Constructor.
    *
+   * @param env reference to the environment
    * @param tds database for sygus terms
    * @param s statistics managed for the synth engine
    */
-  SygusReconstruct(TermDbSygus* tds, SygusStatistics& s);
+  SygusReconstruct(Env& env, TermDbSygus* tds, SygusStatistics& s);
 
   /** Reconstruct solution.
    *
@@ -295,6 +296,8 @@ class SygusReconstruct : public expr::NotifyMatch
   void printPool(
       const std::unordered_map<TypeNode, std::vector<Node>>& pool) const;
 
+  /** Reference to the env */
+  Env& d_env;
   /** pointer to the sygus term database */
   TermDbSygus* d_tds;
   /** reference to the statistics of parent */

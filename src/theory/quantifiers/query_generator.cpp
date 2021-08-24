@@ -31,7 +31,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-QueryGenerator::QueryGenerator() : d_queryCount(0) {}
+QueryGenerator::QueryGenerator(Env& env) : ExprMiner(env), d_queryCount(0) {}
 void QueryGenerator::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 {
   Assert(ss != nullptr);

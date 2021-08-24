@@ -91,7 +91,7 @@ class CegSingleInv
   Node d_single_inv;
   
  public:
-  CegSingleInv(TermRegistry& tr, SygusStatistics& s);
+  CegSingleInv(Env& env, TermRegistry& tr, SygusStatistics& s);
   ~CegSingleInv();
 
   // get simplified conjecture

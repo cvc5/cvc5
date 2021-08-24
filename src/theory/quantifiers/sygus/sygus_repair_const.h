@@ -23,6 +23,7 @@
 
 namespace cvc5 {
 
+class Env;
 class LogicInfo;
 
 namespace theory {
@@ -48,7 +49,7 @@ class TermDbSygus;
 class SygusRepairConst
 {
  public:
-  SygusRepairConst(TermDbSygus* tds);
+  SygusRepairConst(Env& env, TermDbSygus* tds);
   ~SygusRepairConst() {}
   /** initialize
    *
@@ -105,6 +106,8 @@ class SygusRepairConst
   static bool mustRepair(Node n);
 
  private:
+  /** Reference to the env */
+  Env& d_env;
   /** pointer to the sygus term database of d_qe */
   TermDbSygus* d_tds;
   /**
@@ -188,7 +191,7 @@ class SygusRepairConst
    * sk_vars.
    */
   Node fitToLogic(Node body,
-                  LogicInfo& logic,
+                  const LogicInfo& logic,
                   Node n,
                   const std::vector<Node>& candidates,
                   std::vector<Node>& candidate_skeletons,
@@ -205,7 +208,7 @@ class SygusRepairConst
    * exvar to x.
    * If n is in the given logic, this method returns true.
    */
-  bool getFitToLogicExcludeVar(LogicInfo& logic, Node n, Node& exvar);
+  bool getFitToLogicExcludeVar(const LogicInfo& logic, Node n, Node& exvar);
 };
 
 }  // namespace quantifiers

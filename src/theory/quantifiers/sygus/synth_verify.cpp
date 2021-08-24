@@ -33,12 +33,11 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SynthVerify::SynthVerify(TermDbSygus* tds) : d_tds(tds)
+SynthVerify::SynthVerify(const Options& opts, TermDbSygus* tds) : d_tds(tds)
 {
   // determine the options to use for the verification subsolvers we spawn
-  // we start with the options of the current SmtEngine
-  SmtEngine* smtCurr = smt::currentSmtEngine();
-  d_subOptions.copyValues(smtCurr->getOptions());
+  // we start with the provided options
+  d_subOptions.copyValues(opts);
   // limit the number of instantiation rounds on subcalls
   d_subOptions.quantifiers.instMaxRounds =
       d_subOptions.quantifiers.sygusVerifyInstMaxRounds;

@@ -27,6 +27,9 @@
 #include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace theory {
 namespace quantifiers {
 
@@ -39,7 +42,7 @@ namespace quantifiers {
 class ExprMiner
 {
  public:
-  ExprMiner() : d_sampler(nullptr) {}
+  ExprMiner(Env& env) : d_env(env), d_sampler(nullptr) {}
   virtual ~ExprMiner() {}
   /** initialize
    *
@@ -60,6 +63,8 @@ class ExprMiner
   virtual bool addTerm(Node n, std::ostream& out) = 0;
 
  protected:
+  /** Reference to the env */
+  Env& d_env;
   /** the set of variables used by this class */
   std::vector<Node> d_vars;
   /**
