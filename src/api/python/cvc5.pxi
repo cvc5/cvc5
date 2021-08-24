@@ -223,9 +223,9 @@ cdef class DatatypeConstructor:
 
     def getSpecializedConstructorTerm(self, Sort retSort):
         """
-	    Specialized method for parametric datatypes (see :cpp:func:`DatatypeConstructor::getSpecializedConstructorTerm() <cvc5::api::Datatype::getSpecializedConstructorTerm>`).
-	    :param retSort: the desired return sort of the constructor
-            :return: the constructor operator as a term.
+            Specialized method for parametric datatypes (see :cpp:func:`DatatypeConstructor::getSpecializedConstructorTerm() <cvc5::api::Datatype::getSpecializedConstructorTerm>`).
+            :param retSort: the desired return sort of the constructor
+                :return: the constructor operator as a term.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cdc.getSpecializedConstructorTerm(retSort.csort)
@@ -286,7 +286,7 @@ cdef class DatatypeConstructorDecl:
 
     def addSelector(self, str name, Sort sort):
         """
-	    Add datatype selector declaration.
+            Add datatype selector declaration.
             :param name: the name of the datatype selector declaration to add.
             :param sort: the range sort of the datatype selector declaration to add.
         """
@@ -294,7 +294,7 @@ cdef class DatatypeConstructorDecl:
 
     def addSelectorSelf(self, str name):
         """
-	    Add datatype selector declaration whose range sort is the datatype itself.
+            Add datatype selector declaration whose range sort is the datatype itself.
             :param name: the name of the datatype selector declaration to add.
         """
         self.cddc.addSelectorSelf(name.encode())
@@ -315,27 +315,27 @@ cdef class DatatypeDecl:
 
     def addConstructor(self, DatatypeConstructorDecl ctor):
         """
-	    Add a datatype constructor declaration.
+            Add a datatype constructor declaration.
             :param ctor: the datatype constructor declaration to add.
         """
         self.cdd.addConstructor(ctor.cddc)
 
     def getNumConstructors(self):
         """
-	    :return: number of constructors (so far) for this datatype declaration.
-	"""
+            :return: number of constructors (so far) for this datatype declaration.
+        """
         return self.cdd.getNumConstructors()
 
     def isParametric(self):
         """
-	    :return: is this datatype declaration parametric?
-	"""
+            :return: is this datatype declaration parametric?
+        """
         return self.cdd.isParametric()
 
     def getName(self):
         """
-	    :return the name of this datatype declaration.
-	"""
+            :return the name of this datatype declaration.
+        """
         return self.cdd.getName().decode()
 
     def __str__(self):
