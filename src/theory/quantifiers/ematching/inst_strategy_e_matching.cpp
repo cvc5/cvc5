@@ -341,7 +341,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       }
     }
     // if we are generating additional triggers...
-    if (patTerms.size()>1)
+    if (patTerms.size() > 1)
     {
       // check if similar patterns exist, and if so, add them additionally
       unsigned nqfs_curr = 0;
