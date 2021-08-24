@@ -108,6 +108,16 @@ class TriggerTermInfo
   static bool isRelationalTrigger(Node n);
   /** Is k a relational trigger kind? */
   static bool isRelationalTriggerKind(Kind k);
+  /** 
+   * Is n a usable relational trigger, which is true if RelationalMatchGen
+   * can process n.
+   */
+  static bool isUsableRelationTrigger(Node n);
+  /** 
+   * Same as above, but lit / hasPol / pol are updated to the required
+   * constructor arguments for RelationalMatchGen.
+   */
+  static bool isUsableRelationTrigger(Node n, bool& hasPol, bool& pol, Node& lit);
   /** is n a simple trigger (see inst_match_generator.h)? */
   static bool isSimpleTrigger(Node n);
   /** get trigger weight

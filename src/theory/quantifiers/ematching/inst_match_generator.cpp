@@ -676,32 +676,13 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
   Trace("relational-trigger")
       << "Is " << n << " a relational trigger?" << std::endl;
   // relational triggers
-  bool hasPol = false;
-  bool pol = n.getKind() != NOT;
-  Node lit = pol ? n : n[0];
-  if (lit.getKind() == EQUAL && lit[1].getType().isBoolean()
-      && lit[1].isConst())
+  bool hasPol, pol;
+  Node lit;
+  if (TriggerTermInfo::isUsableRelationTrigger(n, hasPol, pol, lit))
   {
-    hasPol = true;
-    pol = lit[1].getConst<bool>() ? pol : !pol;
-    lit = lit[0];
-  }
-  // is it a relational trigger?
-  if ((lit.getKind() == EQUAL && lit[0].getType().isReal())
-      || lit.getKind() == GEQ)
-  {
-    // if one side of the relation is a variable and the other side is a ground
-    // term, we can treat this using the relational match generator
-    for (size_t i = 0; i < 2; i++)
-    {
-      if (lit[i].getKind() == INST_CONSTANT
-          && !quantifiers::TermUtil::hasInstConstAttr(lit[1 - i]))
-      {
-        Trace("relational-trigger")
-            << "...yes, for variable " << lit[i] << std::endl;
-        return new RelationalMatchGenerator(tparent, lit, hasPol, pol);
-      }
-    }
+    Trace("relational-trigger")
+        << "...yes, for literal " << lit << std::endl;
+    return new RelationalMatchGenerator(tparent, lit, hasPol, pol);
   }
   return new InstMatchGenerator(tparent, n);
 }

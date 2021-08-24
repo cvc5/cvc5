@@ -449,10 +449,9 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
       }
     }
     int32_t curr_w = TriggerTermInfo::getTriggerWeight(p);
-    bool isSingleTrigger = tip.d_fv.size()==f[0].getNumChildren();
     // triggers whose value is maximum (2) are considered expendable.
     if (ntrivTriggers && !newVar && last_weight != -1 && curr_w > last_weight
-        && curr_w >= 2 && !isSingleTrigger)
+        && curr_w >= 2)
     {
       Trace("auto-gen-trigger-debug")
           << "...exclude expendible non-trivial trigger : " << p << std::endl;
@@ -517,41 +516,58 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
     Trace("auto-gen-trigger-debug")
         << "...required polarity for " << pat << " is " << rpol
         << ", eq=" << rpoleq << std::endl;
+    // Currently, we have ad-hoc treatment for relational triggers that
+    // are not handled by RelationalMatchGen.
+    bool isAdHocRelationalTrigger = TriggerTermInfo::isRelationalTrigger(pat)  && !TriggerTermInfo::isUsableRelationTrigger(pat);
     if (rpol != 0)
     {
       Assert(rpol == 1 || rpol == -1);
-      if (pat.getType().isBoolean() && rpoleq.isNull())
+      if (isAdHocRelationalTrigger)
       {
-        if (options::literalMatchMode() == options::LiteralMatchMode::USE)
-        {
-          pat = pat.eqNode(nm->mkConst(rpol == -1)).negate();
-        }
-        else if (options::literalMatchMode() != options::LiteralMatchMode::NONE)
-        {
-          pat = pat.eqNode(nm->mkConst(rpol == 1));
-        }
+        pat = rpol == -1 ? pat.negate() : pat;
       }
       else
       {
-        Assert(!rpoleq.isNull());
-        if (rpol == -1)
+        Assert(TriggerTermInfo::isAtomicTrigger(pat));
+        if (pat.getType().isBoolean() && rpoleq.isNull())
         {
-          if (options::literalMatchMode() != options::LiteralMatchMode::NONE)
+          if (options::literalMatchMode() == options::LiteralMatchMode::USE)
           {
-            // all equivalence classes except rpoleq
-            pat = pat.eqNode(rpoleq).negate();
+            pat = pat.eqNode(nm->mkConst(rpol == -1)).negate();
+          }
+          else if (options::literalMatchMode()
+                   != options::LiteralMatchMode::NONE)
+          {
+            pat = pat.eqNode(nm->mkConst(rpol == 1));
           }
         }
-        else if (rpol == 1)
+        else
         {
-          if (options::literalMatchMode() == options::LiteralMatchMode::AGG)
+          Assert(!rpoleq.isNull());
+          if (rpol == -1)
           {
-            // only equivalence class rpoleq
-            pat = pat.eqNode(rpoleq);
+            if (options::literalMatchMode() != options::LiteralMatchMode::NONE)
+            {
+              // all equivalence classes except rpoleq
+              pat = pat.eqNode(rpoleq).negate();
+            }
+          }
+          else if (rpol == 1)
+          {
+            if (options::literalMatchMode() == options::LiteralMatchMode::AGG)
+            {
+              // only equivalence class rpoleq
+              pat = pat.eqNode(rpoleq);
+            }
           }
         }
       }
       Trace("auto-gen-trigger-debug") << "...got : " << pat << std::endl;
+    }
+    else if (isAdHocRelationalTrigger)
+    {
+      // consider both polarities
+      addPatternToPool(f, pat.negate(), num_fv, mpat);
     }
     addPatternToPool(f, pat, num_fv, mpat);
   }
