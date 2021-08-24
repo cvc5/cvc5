@@ -378,14 +378,14 @@ void TermDb::computeUfTerms( TNode f ) {
       if (checkCongruentDisequal(at, n, lits))
       {
         Assert(at.getNumChildren() == n.getNumChildren());
-        for (unsigned k = 0, size = at.getNumChildren(); k < size; k++)
+        for (size_t k = 0, size = at.getNumChildren(); k < size; k++)
         {
           if (at[k] != n[k])
           {
             lits.push_back(nm->mkNode(EQUAL, at[k], n[k]).negate());
           }
         }
-        Node lem = lits.size() == 1 ? lits[0] : nm->mkNode(OR, lits);
+        Node lem = nm->mkOr(lits);
         if (Trace.isOn("term-db-lemma"))
         {
           Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "
