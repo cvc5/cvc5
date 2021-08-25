@@ -49,6 +49,7 @@ public = true
   type       = "Language"
   default    = "Language::LANG_AUTO"
   handler    = "stringToLanguage"
+  predicates = ["languageIsNotTPTP"]
   includes   = ["options/language.h"]
   help       = "force output language (default is \"auto\"; see --output-lang help)"
 
