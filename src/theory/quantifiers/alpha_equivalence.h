@@ -73,8 +73,8 @@ class AlphaEquivalenceDb
   Node addTerm(Node q);
   /**
    * Add term with substitution, which additionally finds a set of terms such
-   * that q * subs is alpha-equivalent (possibly modulo rewriting) to the
-   * returned quantified formula.
+   * that q' * subs is alpha-equivalent (possibly modulo rewriting) to q, where
+   * q' is the return quantified formula.
    */
   Node addTermWithSubstitution(Node q,
                                std::vector<Node>& vars,
