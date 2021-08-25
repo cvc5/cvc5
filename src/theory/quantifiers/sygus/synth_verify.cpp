@@ -32,7 +32,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SynthVerify::SynthVerify(const Options& opts, TermDbSygus* tds) : d_tds(tds)
+SynthVerify::SynthVerify(const Options& opts, const LogicInfo& logicInfo, TermDbSygus* tds) : d_tds(tds), d_subLogicInfo(logicInfo)
 {
   // determine the options to use for the verification subsolvers we spawn
   // we start with the provided options
@@ -102,7 +102,7 @@ Result SynthVerify::verify(Node query,
     }
   }
   Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
-  Result r = checkWithSubsolver(query, vars, mvs, &d_subOptions);
+  Result r = checkWithSubsolver(query, vars, mvs, d_subOptions, d_subLogicInfo);
   Trace("sygus-engine") << "  ...got " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::SAT)
   {

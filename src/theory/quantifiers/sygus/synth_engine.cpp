@@ -30,7 +30,7 @@ SynthEngine::SynthEngine(QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr), d_conj(nullptr), d_sqp()
+    : QuantifiersModule(qs, qim, qr, tr), d_conj(nullptr), d_sqp(qs.getEnv())
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
       new SynthConjecture(qs, qim, qr, tr, d_statistics)));

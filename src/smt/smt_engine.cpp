@@ -84,7 +84,7 @@ using namespace cvc5::theory;
 
 namespace cvc5 {
 
-SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
+SmtEngine::SmtEngine(NodeManager* nm, const Options* optr)
     : d_env(new Env(nm, optr)),
       d_state(new SmtEngineState(*d_env.get(), *this)),
       d_absValues(new AbstractValues(getNodeManager())),
@@ -132,9 +132,9 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   d_smtSolver.reset(new SmtSolver(*d_env.get(), *d_state, *d_pp, *d_stats));
   // make the SyGuS solver
   d_sygusSolver.reset(
-      new SygusSolver(*d_smtSolver, *d_pp, getUserContext(), d_outMgr));
+      new SygusSolver(*d_env.get(), *d_smtSolver, *d_pp));
   // make the quantifier elimination solver
-  d_quantElimSolver.reset(new QuantElimSolver(*d_smtSolver));
+  d_quantElimSolver.reset(new QuantElimSolver(*d_env.get(), *d_smtSolver));
 
 }
 
@@ -259,12 +259,12 @@ void SmtEngine::finishInit()
   // subsolvers
   if (d_env->getOptions().smt.produceAbducts)
   {
-    d_abductSolver.reset(new AbductionSolver(this));
+    d_abductSolver.reset(new AbductionSolver(*d_env.get(), this));
   }
   if (d_env->getOptions().smt.produceInterpols
       != options::ProduceInterpols::NONE)
   {
-    d_interpolSolver.reset(new InterpolationSolver(this));
+    d_interpolSolver.reset(new InterpolationSolver(*d_env.get(), this));
   }
 
   d_pp->finishInit();
@@ -1119,7 +1119,7 @@ Node SmtEngine::getValue(const Node& ex) const
   Trace("smt") << "SMT getValue(" << ex << ")" << endl;
   if (Dump.isOn("benchmark"))
   {
-    getPrinter().toStreamCmdGetValue(d_outMgr.getDumpOut(), {ex});
+    getPrinter().toStreamCmdGetValue(d_env->getDumpOut(), {ex});
   }
   TypeNode expectedType = ex.getType();
 
@@ -1408,7 +1408,7 @@ std::vector<Node> SmtEngine::reduceUnsatCore(const std::vector<Node>& core)
   for (const Node& skip : core)
   {
     std::unique_ptr<SmtEngine> coreChecker;
-    initializeSubsolver(coreChecker);
+    initializeSubsolver(coreChecker, *d_env.get());
     coreChecker->setLogic(getLogicInfo());
     coreChecker->getOptions().smt.checkUnsatCores = false;
     // disable all proof options
@@ -1474,7 +1474,7 @@ void SmtEngine::checkUnsatCore() {
 
   // initialize the core checker
   std::unique_ptr<SmtEngine> coreChecker;
-  initializeSubsolver(coreChecker);
+  initializeSubsolver(coreChecker, *d_env.get());
   coreChecker->getOptions().smt.checkUnsatCores = false;
   // disable all proof options
   coreChecker->getOptions().smt.produceProofs = false;
@@ -1988,7 +1988,7 @@ std::string SmtEngine::getOption(const std::string& key) const
 
   if (Dump.isOn("benchmark"))
   {
-    getPrinter().toStreamCmdGetOption(d_outMgr.getDumpOut(), key);
+    getPrinter().toStreamCmdGetOption(d_env->getDumpOut(), key);
   }
 
   if (key == "command-verbosity")

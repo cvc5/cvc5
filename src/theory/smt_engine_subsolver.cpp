@@ -19,6 +19,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/rewriter.h"
+#include "smt/env.h"
 
 namespace cvc5 {
 namespace theory {
@@ -42,15 +43,13 @@ Result quickCheck(Node& query)
 }
 
 void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
-                         Options* opts,
-                         LogicInfo& logicInfo,
+                         const Options& opts,
+                         const LogicInfo& logicInfo,
                          bool needsTimeout,
                          unsigned long timeout)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SmtEngine* smtCurr = smt::currentSmtEngine();
-  Assert (opts != nullptr);
-  smte.reset(new SmtEngine(nm, opts));
+  smte.reset(new SmtEngine(nm, &opts));
   smte->setIsInternalSubsolver();
   smte->setLogic(logicInfo);
   // set the options
@@ -59,11 +58,18 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
     smte->setTimeLimit(timeout);
   }
 }
+void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
+                         const Env& env,
+                         bool needsTimeout,
+                         unsigned long timeout)
+{
+  initializeSubsolver(smte, env.getOptions(), env.getLogicInfo(), needsTimeout, timeout);
+}
 
 Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
                           Node query,
-                          Options* opts,
-                          LogicInfo& logicInfo,
+                          const Options& opts,
+                          const LogicInfo& logicInfo,
                           bool needsTimeout,
                           unsigned long timeout)
 {
@@ -79,8 +85,8 @@ Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
 }
 
 Result checkWithSubsolver(Node query,
-                          Options* opts,
-                          LogicInfo& logicInfo,
+                          const Options& opts,
+                          const LogicInfo& logicInfo,
                           bool needsTimeout,
                           unsigned long timeout)
 {
@@ -93,8 +99,8 @@ Result checkWithSubsolver(Node query,
 Result checkWithSubsolver(Node query,
                           const std::vector<Node>& vars,
                           std::vector<Node>& modelVals,
-                          Options* opts,
-                          LogicInfo& logicInfo,
+                          const Options& opts,
+                          const LogicInfo& logicInfo,
                           bool needsTimeout,
                           unsigned long timeout)
 {

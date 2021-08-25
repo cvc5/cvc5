@@ -47,10 +47,19 @@ namespace theory {
  * @param timeout The timeout (in milliseconds)
  */
 void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
-                         Options* opts,
-                         LogicInfo& logicInfo,
+                         const Options& opts,
+                         const LogicInfo& logicInfo,
                          bool needsTimeout = false,
                          unsigned long timeout = 0);
+
+/**
+ * Version that uses the options and logicInfo in an environment.
+ */
+void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
+                         const Env& env,
+                         bool needsTimeout = false,
+                         unsigned long timeout = 0);
+
 
 /**
  * This returns the result of checking the satisfiability of formula query.
@@ -60,8 +69,8 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
  */
 Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
                           Node query,
-                          Options* opts,
-                          LogicInfo& logicInfo,
+                          const Options& opts,
+                          const LogicInfo& logicInfo,
                           bool needsTimeout = false,
                           unsigned long timeout = 0);
 
@@ -78,8 +87,8 @@ Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
  * @param timeout The timeout (in milliseconds)
  */
 Result checkWithSubsolver(Node query,
-                          Options* opts,
-                          LogicInfo& logicInfo,
+                          const Options& opts,
+                          const LogicInfo& logicInfo,
                           bool needsTimeout = false,
                           unsigned long timeout = 0);
 
@@ -99,8 +108,8 @@ Result checkWithSubsolver(Node query,
 Result checkWithSubsolver(Node query,
                           const std::vector<Node>& vars,
                           std::vector<Node>& modelVals,
-                          Options* opts,
-                          LogicInfo& logicInfo,
+                          const Options& opts,
+                          const LogicInfo& logicInfo,
                           bool needsTimeout = false,
                           unsigned long timeout = 0);
 

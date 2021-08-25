@@ -57,11 +57,11 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
   if (Options::current().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser)
   {
     initializeSubsolver(
-        checker, nullptr, true, options::sygusExprMinerCheckTimeout());
+        checker, d_env.getOptions(), d_env.getLogicInfo(), true, options::sygusExprMinerCheckTimeout());
   }
   else
   {
-    initializeSubsolver(checker);
+    initializeSubsolver(checker, d_env);
   }
   // also set the options
   checker->setOption("sygus-rr-synth-input", "false");

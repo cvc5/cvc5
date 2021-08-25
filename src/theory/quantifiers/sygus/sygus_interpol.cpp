@@ -27,12 +27,13 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
+#include "smt/env.h"
 
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusInterpol::SygusInterpol() {}
+SygusInterpol::SygusInterpol(Env& env) : d_env(env) {}
 
 void SygusInterpol::collectSymbols(const std::vector<Node>& axioms,
                                    const Node& conj)
@@ -324,7 +325,7 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   mkSygusConjecture(itp, axioms, conj);
 
   std::unique_ptr<SmtEngine> subSolver;
-  initializeSubsolver(subSolver);
+  initializeSubsolver(subSolver, d_env);
   // get the logic
   LogicInfo l = subSolver->getLogicInfo().getUnlockedCopy();
   // enable everything needed for sygus

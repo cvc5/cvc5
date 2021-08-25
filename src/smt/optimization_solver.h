@@ -26,6 +26,7 @@
 
 namespace cvc5 {
 
+class Env;
 class SmtEngine;
 
 namespace smt {
@@ -221,7 +222,7 @@ class OptimizationSolver
    * Constructor
    * @param parent the smt_solver that the user added their assertions to
    **/
-  OptimizationSolver(SmtEngine* parent);
+  OptimizationSolver(Env& env, SmtEngine* parent);
   ~OptimizationSolver() = default;
 
   /**
@@ -254,6 +255,8 @@ class OptimizationSolver
  private:
   /**
    * Initialize an SMT subsolver for offline optimization purpose
+   * @param env the environment, which determines options and logic for the
+   * subsolver
    * @param parentSMTSolver the parental solver containing the assertions
    * @param needsTimeout specifies whether it needs timeout for each single
    *    query
@@ -261,6 +264,7 @@ class OptimizationSolver
    * @return a unique_pointer of SMT subsolver
    **/
   static std::unique_ptr<SmtEngine> createOptCheckerWithTimeout(
+      Env& env,
       SmtEngine* parentSMTSolver,
       bool needsTimeout = false,
       unsigned long timeout = 0);
@@ -307,6 +311,8 @@ class OptimizationSolver
    **/
   Result optimizeParetoNaiveGIA();
 
+  /** Reference to the env */
+  Env& d_env;
   /** A pointer to the parent SMT engine **/
   SmtEngine* d_parent;
 

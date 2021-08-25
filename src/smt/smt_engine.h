@@ -126,7 +126,7 @@ class CVC5_EXPORT SmtEngine
    * If provided, optr is a pointer to a set of options that should initialize the values
    * of the options object owned by this class.
    */
-  SmtEngine(NodeManager* nm, Options* optr = nullptr);
+  SmtEngine(NodeManager* nm, const Options* optr = nullptr);
   /** Destruct the SMT engine.  */
   ~SmtEngine();
 

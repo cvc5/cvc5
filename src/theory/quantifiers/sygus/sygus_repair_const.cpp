@@ -232,7 +232,8 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   // initialize the subsolver using the standard method
   initializeSubsolver(
       repcChecker,
-      nullptr,
+      d_env.getOptions(),
+                      d_env.getLogicInfo(),
       Options::current().quantifiers.sygusRepairConstTimeoutWasSetByUser,
       options::sygusRepairConstTimeout());
   // renable options disabled by sygus

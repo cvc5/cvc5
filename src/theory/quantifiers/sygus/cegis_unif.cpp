@@ -34,7 +34,7 @@ CegisUnif::CegisUnif(QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
                      TermDbSygus* tds,
                      SynthConjecture* p)
-    : Cegis(qim, tds, p), d_sygus_unif(p), d_u_enum_manager(qs, qim, tds, p)
+    : Cegis(qs, qim, tds, p), d_sygus_unif(p), d_u_enum_manager(qs, qim, tds, p)
 {
 }
 

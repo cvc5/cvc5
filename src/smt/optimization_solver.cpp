@@ -24,6 +24,7 @@
 #include "smt/assertions.h"
 #include "smt/smt_engine.h"
 #include "theory/smt_engine_subsolver.h"
+#include "smt/env.h"
 
 using namespace cvc5::theory;
 using namespace cvc5::omt;
@@ -91,8 +92,9 @@ std::ostream& operator<<(std::ostream& out,
   return out;
 }
 
-OptimizationSolver::OptimizationSolver(SmtEngine* parent)
-    : d_parent(parent),
+OptimizationSolver::OptimizationSolver(Env& env, SmtEngine* parent)
+    : d_env(env),
+      d_parent(parent),
       d_optChecker(),
       d_objectives(parent->getUserContext()),
       d_results()
@@ -142,12 +144,12 @@ std::vector<OptimizationResult> OptimizationSolver::getValues()
 }
 
 std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
-    SmtEngine* parentSMTSolver, bool needsTimeout, unsigned long timeout)
+    Env& env, SmtEngine* parentSMTSolver, bool needsTimeout, unsigned long timeout)
 {
   std::unique_ptr<SmtEngine> optChecker;
   // initializeSubSolver will copy the options and theories enabled
   // from the current solver to optChecker and adds timeout
-  theory::initializeSubsolver(optChecker, nullptr, needsTimeout, timeout);
+  theory::initializeSubsolver(optChecker, env, needsTimeout, timeout);
   // we need to be in incremental mode for multiple objectives since we need to
   // push pop we need to produce models to inrement on our objective
   optChecker->setOption("incremental", "true");
@@ -164,7 +166,7 @@ std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
 Result OptimizationSolver::optimizeBox()
 {
   // resets the optChecker
-  d_optChecker = createOptCheckerWithTimeout(d_parent);
+  d_optChecker = createOptCheckerWithTimeout(d_env, d_parent);
   OptimizationResult partialResult;
   Result aggregatedResult(Result::Sat::SAT);
   std::unique_ptr<OMTOptimizer> optimizer;
@@ -215,7 +217,7 @@ Result OptimizationSolver::optimizeBox()
 Result OptimizationSolver::optimizeLexicographicIterative()
 {
   // resets the optChecker
-  d_optChecker = createOptCheckerWithTimeout(d_parent);
+  d_optChecker = createOptCheckerWithTimeout(d_env, d_parent);
   // partialResult defaults to SAT if no objective is present
   // NOTE: the parenthesis around Result(Result::SAT) is required,
   // otherwise the compiler will report "parameter declarator cannot be
@@ -275,7 +277,7 @@ Result OptimizationSolver::optimizeLexicographicIterative()
 Result OptimizationSolver::optimizeParetoNaiveGIA()
 {
   // initial call to Pareto optimizer, create the checker
-  if (!d_optChecker) d_optChecker = createOptCheckerWithTimeout(d_parent);
+  if (!d_optChecker) d_optChecker = createOptCheckerWithTimeout(d_env, d_parent);
   NodeManager* nm = d_optChecker->getNodeManager();
 
   // checks whether the current set of assertions are satisfied or not
