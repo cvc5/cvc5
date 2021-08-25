@@ -618,6 +618,9 @@ Node LfscNodeConverter::maybeMkSkolemFun(Node k, bool macroApply)
   {
     if (sfi == SkolemFunId::SHARED_SELECTOR)
     {
+      // a skolem corresponding to shared selector should print in
+      // LFSC as (sel T n) where T is the type and n is the index of the
+      // shared selector.
       TypeNode fselt = nm->mkFunctionType(tn.getSelectorDomainType(),
                                           tn.getSelectorRangeType());
       TypeNode intType = nm->integerType();
@@ -629,6 +632,9 @@ Node LfscNodeConverter::maybeMkSkolemFun(Node k, bool macroApply)
     }
     else if (sfi == SkolemFunId::RE_UNFOLD_POS_COMPONENT)
     {
+      // a skolem corresponding to a regular expression unfolding component
+      // should print as (skolem_re_unfold_pos t R n) where the skolem is the
+      // n^th component for the unfolding of (str.in_re t R).
       TypeNode strType = nm->stringType();
       TypeNode reType = nm->regExpType();
       TypeNode intType = nm->integerType();
