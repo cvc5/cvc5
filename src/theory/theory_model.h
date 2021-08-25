@@ -316,10 +316,7 @@ class TheoryModel
   RepSet* getRepSetPtr() { return &d_rep_set; }
 
   //---------------------------- model cores
-  /**
-   * True if a model core has already been computed for this for this model.
-   * model)?
-   */
+  /** True if a model core has been computed for this model. */
   bool isUsingModelCore() const;
   /** set using model core */
   void setUsingModelCore();
