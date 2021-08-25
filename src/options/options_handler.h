@@ -153,7 +153,7 @@ public:
   Language stringToLanguage(const std::string& option,
                             const std::string& flag,
                             const std::string& optarg);
-  /** Check that lang is not LANG_AST (which is not allowed for input) */
+  /** Check that lang is not LANG_AST (which is not allowed as input language). */
   void languageIsNotAST(const std::string& option,
                         const std::string& flag,
                         Language lang);
