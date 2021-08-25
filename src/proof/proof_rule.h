@@ -863,11 +863,11 @@ enum class PfRule : uint32_t
   INSTANTIATE,
   // ======== Alpha equivalence
   // Children: none
-  // Arguments: ((forall ((x1 T1) ... (xn Tn)) F), y1 ... yn)
+  // Arguments: (F, y1 = z1, ..., yn = zn)
   // ----------------------------------------
-  // Conclusion: (= (forall ((x1 T1) ... (xn Tn)) F)
-  //                (forall ((y1 T1) ... (yn Tn)) F*sigma))
-  // sigma maps x1 ... xn to y1 ... yn.
+  // Conclusion: (= F F*sigma)
+  // sigma maps y1 ... yn to z1 ... zn, where y1 ... yn are unique bound
+  // variables, and z1 ... zn are unique bound variables.
   ALPHA_EQUIV,
   // ======== (Trusted) quantifiers preprocess
   // Children: ?
