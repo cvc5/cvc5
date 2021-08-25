@@ -201,7 +201,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     {
       theory::quantifiers::ExtendedRewriter extr(true);
       Node eq2 = sret.eqNode(q);
-      transEq.push_back(eqr);
+      transEq.push_back(eq2);
       Node eq2r = extr.extendedRewrite(eq2);
       if (eq2r.isConst() && eq2r.getConst<bool>())
       {
