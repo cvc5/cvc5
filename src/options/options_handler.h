@@ -157,11 +157,6 @@ public:
   void languageIsNotAST(const std::string& option,
                         const std::string& flag,
                         Language lang);
-  /** Check that lang is not LANG_TPTP (with is not allowed as output language).
-   */
-  void languageIsNotTPTP(const std::string& option,
-                         const std::string& flag,
-                         Language lang);
   void enableTraceTag(const std::string& option,
                       const std::string& flag,
                       const std::string& optarg);

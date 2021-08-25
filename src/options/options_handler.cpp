@@ -523,16 +523,6 @@ void OptionsHandler::languageIsNotAST(const std::string& option,
   }
 }
 
-void OptionsHandler::languageIsNotTPTP(const std::string& option,
-                                       const std::string& flag,
-                                       Language lang)
-{
-  if (lang == Language::LANG_TPTP)
-  {
-    throw OptionException("Language LANG_TPTP is not allowed for " + flag);
-  }
-}
-
 void OptionsHandler::setDumpStream(const std::string& option,
                                    const std::string& flag,
                                    const ManagedOut& mo)
