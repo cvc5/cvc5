@@ -1108,9 +1108,7 @@ Node SygusExtension::registerSearchValue(Node a,
             its = d_sampler[a].find(tn);
           }
           // check equivalent
-          const Options& sopts = d_state.options();
-          std::ostream* out = sopts.base.out;
-          its->second.checkEquivalent(bv, bvr, *out);
+          its->second.checkEquivalent(bv, bvr, *d_state.options().base.out);
         }
       }
 
