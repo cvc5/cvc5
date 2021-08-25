@@ -114,7 +114,7 @@ void QuantifiersEngine::finishInit(TheoryEngine* te)
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
   d_qmodules->initialize(
-      d_qstate, d_qim, d_qreg, d_treg, d_builder.get(), d_modules);
+      d_qstate, d_qim, d_qreg, d_treg, d_builder.get(), d_pnm, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
@@ -506,35 +506,47 @@ void QuantifiersEngine::notifyCombineTheories() {
   // in quantifiers state.
 }
 
-bool QuantifiersEngine::reduceQuantifier( Node q ) {
-  //TODO: this can be unified with preregistration: AlphaEquivalence takes ownership of reducable quants
-  BoolMap::const_iterator it = d_quants_red.find( q );
-  if( it==d_quants_red.end() ){
-    Node lem;
+bool QuantifiersEngine::reduceQuantifier(Node q)
+{
+  // TODO: this can be unified with preregistration: AlphaEquivalence takes
+  // ownership of reducable quants
+  BoolMap::const_iterator it = d_quants_red.find(q);
+  if (it == d_quants_red.end())
+  {
+    TrustNode tlem;
     InferenceId id = InferenceId::UNKNOWN;
-    std::map< Node, Node >::iterator itr = d_quants_red_lem.find( q );
-    if( itr==d_quants_red_lem.end() ){
+    std::map<Node, TrustNode>::iterator itr = d_quantsRedTrustLem.find(q);
+    if (itr == d_quantsRedTrustLem.end())
+    {
       if (d_qmodules->d_alpha_equiv)
       {
-        Trace("quant-engine-red") << "Alpha equivalence " << q << "?" << std::endl;
-        //add equivalence with another quantified formula
-        lem = d_qmodules->d_alpha_equiv->reduceQuantifier(q);
+        Trace("quant-engine-red")
+            << "Alpha equivalence " << q << "?" << std::endl;
+        // add equivalence with another quantified formula
+        tlem = d_qmodules->d_alpha_equiv->reduceQuantifier(q);
         id = InferenceId::QUANTIFIERS_REDUCE_ALPHA_EQ;
-        if( !lem.isNull() ){
-          Trace("quant-engine-red") << "...alpha equivalence success." << std::endl;
+        if (!tlem.isNull())
+        {
+          Trace("quant-engine-red")
+              << "...alpha equivalence success." << std::endl;
           ++(d_qstate.getStats().d_red_alpha_equiv);
         }
       }
-      d_quants_red_lem[q] = lem;
-    }else{
-      lem = itr->second;
+      d_quantsRedTrustLem[q] = tlem;
     }
-    if( !lem.isNull() ){
-      d_qim.lemma(lem, id);
+    else
+    {
+      tlem = itr->second;
     }
-    d_quants_red[q] = !lem.isNull();
-    return !lem.isNull();
-  }else{
+    if (!tlem.isNull())
+    {
+      d_qim.trustedLemma(tlem, id);
+    }
+    d_quants_red[q] = !tlem.isNull();
+    return !tlem.isNull();
+  }
+  else
+  {
     return (*it).second;
   }
 }
