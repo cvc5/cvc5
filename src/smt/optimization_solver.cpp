@@ -34,7 +34,7 @@ std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
 {
   // check the output language first
   Language lang = language::SetLanguage::getLanguage(out);
-  if (!language::isLang_smt2(lang))
+  if (!language::isLangSmt2(lang))
   {
     Unimplemented()
         << "Only the SMTLib2 language supports optimization right now";
@@ -68,7 +68,7 @@ std::ostream& operator<<(std::ostream& out,
 {
   // check the output language first
   Language lang = language::SetLanguage::getLanguage(out);
-  if (!language::isLang_smt2(lang))
+  if (!language::isLangSmt2(lang))
   {
     Unimplemented()
         << "Only the SMTLib2 language supports optimization right now";

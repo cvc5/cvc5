@@ -28,7 +28,7 @@ std::ostream& operator<<(std::ostream& out, Language lang)
     case Language::LANG_TPTP: out << "LANG_TPTP"; break;
     case Language::LANG_CVC: out << "LANG_CVC"; break;
     case Language::LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
-    default: out << "undefined_input_language";
+    default: out << "undefined_language";
   }
   return out;
 }

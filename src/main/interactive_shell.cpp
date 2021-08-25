@@ -131,7 +131,7 @@ InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
             tptp_commands + sizeof(tptp_commands) / sizeof(*tptp_commands);
         break;
       default:
-        if (language::isLang_smt2(lang))
+        if (language::isLangSmt2(lang))
         {
           d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_smtlib2";
           commandsBegin = smt2_commands;
@@ -364,7 +364,7 @@ restart:
   }
   catch (ParserException& pe)
   {
-    if (language::isLang_smt2(d_options.base.outputLanguage))
+    if (language::isLangSmt2(d_options.base.outputLanguage))
     {
       d_out << "(error \"" << pe << "\")" << endl;
     }

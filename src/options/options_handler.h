@@ -149,9 +149,11 @@ public:
                     int value);
   void increaseVerbosity(const std::string& option, const std::string& flag);
   void decreaseVerbosity(const std::string& option, const std::string& flag);
+  /** Convert optarg to Language enum */
   Language stringToLanguage(const std::string& option,
                             const std::string& flag,
                             const std::string& optarg);
+  /** Check that lang is not LANG_AST (which is not allowed for input) */
   void languageIsNotAST(const std::string& option,
                         const std::string& flag,
                         Language lang);

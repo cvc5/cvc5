@@ -73,7 +73,7 @@ Parser* ParserBuilder::build()
       parser = new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly);
       break;
     default:
-      if (language::isLang_smt2(d_lang))
+      if (language::isLangSmt2(d_lang))
       {
         parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
       }

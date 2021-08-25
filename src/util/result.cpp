@@ -360,7 +360,7 @@ void Result::toStream(std::ostream& out, Language language) const
     case Language::LANG_SYGUS_V2: toStreamSmt2(out); break;
     case Language::LANG_TPTP: toStreamTptp(out); break;
     default:
-      if (language::isLang_smt2(language))
+      if (language::isLangSmt2(language))
       {
         toStreamSmt2(out);
       }

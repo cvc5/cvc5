@@ -53,7 +53,7 @@ std::ostream& operator<<(std::ostream& out, Language lang) CVC5_EXPORT;
 namespace language {
 
 /** Is the language a variant of the smtlib version 2 language? */
-inline bool isLang_smt2(Language lang)
+inline bool isLangSmt2(Language lang)
 {
   return lang == Language::LANG_SMTLIB_V2_6;
 }

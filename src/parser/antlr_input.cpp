@@ -201,7 +201,7 @@ AntlrInput* AntlrInput::newInput(Language lang, AntlrInputStream& inputStream)
     case Language::LANG_TPTP: input = new TptpInput(inputStream); break;
 
     default:
-      if (language::isLang_smt2(lang))
+      if (language::isLangSmt2(lang))
       {
         input = new Smt2Input(inputStream);
       }
