@@ -826,7 +826,7 @@ Node DatatypesRewriter::replaceDebruijn(Node n,
 
 Node DatatypesRewriter::expandApplySelector(Node n)
 {
-  Assert (n.getKind()==APPLY_SELECTOR);
+  Assert(n.getKind() == APPLY_SELECTOR);
   Node selector = n.getOperator();
   // APPLY_SELECTOR always applies to an external selector, cindexOf is
   // legal here
@@ -838,8 +838,7 @@ Node DatatypesRewriter::expandApplySelector(Node n)
   if (options::dtSharedSelectors())
   {
     size_t selectorIndex = utils::indexOf(selector);
-    Trace("dt-expand") << "...selector index = " << selectorIndex
-                        << std::endl;
+    Trace("dt-expand") << "...selector index = " << selectorIndex << std::endl;
     Assert(selectorIndex < c.getNumArgs());
     selector_use = c.getSelectorInternal(ndt, selectorIndex);
   }
@@ -857,12 +856,10 @@ Node DatatypesRewriter::expandApplySelector(Node n)
   Node tst = nm->mkNode(APPLY_TESTER, tester, n[0]);
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode tnw = nm->mkFunctionType(ndt, n.getType());
-  Node f =
-      sm->mkSkolemFunction(SkolemFunId::SELECTOR_WRONG, tnw, selector);
+  Node f = sm->mkSkolemFunction(SkolemFunId::SELECTOR_WRONG, tnw, selector);
   Node sk = nm->mkNode(kind::APPLY_UF, f, n[0]);
   Node ret = nm->mkNode(kind::ITE, tst, sel, sk);
-  Trace("dt-expand") << "Expand def : " << n << " to " << ret
-                      << std::endl;
+  Trace("dt-expand") << "Expand def : " << n << " to " << ret << std::endl;
   return ret;
 }
 

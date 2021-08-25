@@ -14,17 +14,18 @@
  */
 
 #include "theory/quantifiers/ematching/candidate_generator.h"
+
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace cvc5::kind;
 
