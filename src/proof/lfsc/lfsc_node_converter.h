@@ -41,6 +41,8 @@ class LfscNodeConverter : public NodeConverter
    * omitted if applications of kind k do not have parametric type.
    *
    * The returned null terminator is *not* converted to internal form.
+   * 
+   * For examples of null terminators, see nary_term_utils.h.
    */
   Node getNullTerminator(Kind k, TypeNode tn = TypeNode::null());
   /**
@@ -50,11 +52,27 @@ class LfscNodeConverter : public NodeConverter
    * a term. An example is for the base REFL step of nested CONG.
    */
   Node getOperatorOfTerm(Node n, bool macroApply = false);
-  /** get closure operator */
+  /** 
+   * Recall that (forall ((x Int)) (P x)) is printed as:
+   *   (apply (forall N Int) (apply P (bvar N Int)))
+   * in LFSC, where N is an integer.
+   *
+   * Get closure operator. In the above example, this method returns the
+   * uninterpreted function whose name is "forall" and is used to construct
+   * higher-order operators for each bound variable in the closure.
+   */
   Node getOperatorOfClosure(Node q, bool macroApply = false);
-  /** get closure operator, cop is return  */
+  /** 
+   * Get closure operator, where cop is the term returned by
+   * getOperatorOfClosure(q), where q is the closures to which v
+   * belongs. For example, for FORALL closures, this method will return the
+   * node that prints as "(forall N Int)".
+   */
   Node getOperatorOfBoundVar(Node cop, Node v);
-  /** get or assign variable index for variable v */
+  /**
+   * Get the variable index for variable v, or assign a fresh index if it is
+   * not yet assigned.
+   */
   size_t getOrAssignIndexForVar(Node v);
   /**
    * Make an internal symbol with custom name. This is a BOUND_VARIABLE that
@@ -73,7 +91,11 @@ class LfscNodeConverter : public NodeConverter
  private:
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;
-  /** Make skolem function */
+  /** 
+   * Make skolem function, if k was constructed by a skolem function identifier
+   * (in SkolemManager::mkSkolemFunction) that is supported in the LFSC
+   * signature.
+   */
   Node maybeMkSkolemFun(Node k, bool macroApply = false);
   /** Type as node */
   Node typeAsNode(TypeNode tni) const;
