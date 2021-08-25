@@ -317,7 +317,7 @@ class TheoryModel
 
   //---------------------------- model cores
   /**
-   * Is using model core (has a model core already been computed for this
+   * True if a model core has already been computed for this for this model.
    * model)?
    */
   bool isUsingModelCore() const;
