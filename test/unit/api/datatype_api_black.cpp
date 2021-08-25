@@ -37,13 +37,25 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSort)
   Datatype d = listSort.getDatatype();
   DatatypeConstructor consConstr = d[0];
   DatatypeConstructor nilConstr = d[1];
+  ASSERT_THROW(d[2], CVC5ApiException);
+  ASSERT_NO_THROW(consConstr.getConstructorTerm());
+  ASSERT_NO_THROW(nilConstr.getConstructorTerm());
+}
+
+TEST_F(TestApiBlackDatatype, isNull)
+{
+  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
+  cons.addSelector("head", d_solver.getIntegerSort());
+  dtypeSpec.addConstructor(cons);
+  Datatype d = listSort.getDatatype();
+  DatatypeConstructor consConstr = d[0];
+  DatatypeSelector sel = consConst[0];
   ASSERT_FALSE(d.isNull());
   ASSERT_FALSE(cons.isNull());
   ASSERT_FALSE(consConstr.isNull());
   ASSERT_FALSE(dtypeSpec.isNull());
-  ASSERT_THROW(d[2], CVC5ApiException);
-  ASSERT_NO_THROW(consConstr.getConstructorTerm());
-  ASSERT_NO_THROW(nilConstr.getConstructorTerm());
+  ASSERT_FALSE(sel.isNull());
 }
 
 TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
@@ -215,7 +227,6 @@ TEST_F(TestApiBlackDatatype, datatypeNames)
 
   // get selector
   DatatypeSelector dselTail = dcons[1];
-  ASSERT_FALSE(dselTail.isNull());
   ASSERT_EQ(dselTail.getName(), std::string("tail"));
   ASSERT_EQ(dselTail.getRangeSort(), dtypeSort);
 
