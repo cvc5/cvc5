@@ -75,7 +75,7 @@ class TermDb : public QuantifiersUtil {
  public:
   TermDb(QuantifiersState& qs,
          QuantifiersRegistry& qr);
-  ~TermDb();
+  virtual ~TermDb();
   /** Finish init, which sets the inference manager */
   void finishInit(QuantifiersInferenceManager* qim);
   /** presolve (called once per user check-sat) */
@@ -279,16 +279,8 @@ class TermDb : public QuantifiersUtil {
   bool isTermEligibleForInstantiation(TNode n, TNode f);
   /** get eligible term in equivalence class of r */
   Node getEligibleTermInEqc(TNode r);
-  /** get higher-order type match predicate
-   *
-   * This predicate is used to force certain functions f of type tn to appear as
-   * first-class representatives in the quantifier-free UF solver. For a typical
-   * use case, we call getHoTypeMatchPredicate which returns a fresh predicate
-   * P of type (tn -> Bool). Then, we add P( f ) as a lemma.
-   */
-  Node getHoTypeMatchPredicate(TypeNode tn);
 
- private:
+ protected:
   /** The quantifiers state object */
   QuantifiersState& d_qstate;
   /** Pointer to the quantifiers inference manager */
@@ -336,6 +328,32 @@ class TermDb : public QuantifiersUtil {
    * of equality engine (for higher-order).
    */
   std::map<TypeNode, Node> d_ho_type_match_pred;
+  //----------------------------- implementation-specific
+  /**
+   * Reset internal, called when reset(e) is called. Returning false will cause
+   * the overall reset to terminate early, returning false.
+   */
+  virtual bool resetInternal(Theory::Effort e);
+  /**
+   * Finish reset internal, called at the end of reset(e). Returning false will
+   * cause the overall reset to return false.
+   */
+  virtual bool finishResetInternal(Theory::Effort e);
+  /** Add term internal, called when addTerm(n) is called */
+  virtual void addTermInternal(Node n);
+  /** Get operators that we know are equivalent to f, typically only f itself */
+  virtual void getOperatorsFor(TNode f, std::vector<TNode>& ops);
+  /** get the chosen representative for operator op */
+  virtual Node getOperatorRepresentative(TNode op) const;
+  /**
+   * This method is called when terms a and b are indexed by the same operator,
+   * and have equivalent arguments. This method checks if we are in conflict,
+   * which is the case if a and b are disequal in the equality engine.
+   * If so, it adds the set of literals that are implied but do not hold, e.g.
+   * the equality (= a b).
+   */
+  virtual bool checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp);
+  //----------------------------- end implementation-specific
   /** set has term */
   void setHasTerm( Node n );
   /** helper for evaluate term */
@@ -368,56 +386,6 @@ class TermDb : public QuantifiersUtil {
   * Ensure that an entry for n is in d_arg_reps
   */
   void computeArgReps(TNode n);
-  //------------------------------higher-order term indexing
-  /**
-   * Map from non-variable function terms to the operator used to purify it in
-   * this database. For details, see addTermHo.
-   */
-  std::map<Node, Node> d_ho_fun_op_purify;
-  /**
-   * Map from terms to the term that they purified. For details, see addTermHo.
-   */
-  std::map<Node, Node> d_ho_purify_to_term;
-  /**
-   * Map from terms in the domain of the above map to an equality between that
-   * term and its range in the above map.
-   */
-  std::map<Node, Node> d_ho_purify_to_eq;
-  /** a map from matchable operators to their representative */
-  std::map< TNode, TNode > d_ho_op_rep;
-  /** for each representative matchable operator, the list of other matchable operators in their equivalence class */
-  std::map<TNode, std::vector<TNode> > d_ho_op_slaves;
-  /** add term higher-order
-   *
-   * This registers additional terms corresponding to (possibly multiple)
-   * purifications of a higher-order term n.
-   *
-   * Consider the example:
-   *    g : Int -> Int, f : Int x Int -> Int
-   *    constraints: (@ f 0) = g, (f 0 1) = (@ (@ f 0) 1) = 3
-   *    pattern: (g x)
-   * where @ is HO_APPLY.
-   * We have that (g x){ x -> 1 } is an E-match for (@ (@ f 0) 1).
-   * With the standard registration in addTerm, we construct term indices for
-   *   f, g, @ : Int x Int -> Int, @ : Int -> Int.
-   * However, to match (g x) with (@ (@ f 0) 1), we require that
-   *   [1] -> (@ (@ f 0) 1)
-   * is an entry in the term index of g. To do this, we maintain a term
-   * index for a fresh variable pfun, the purification variable for
-   * (@ f 0). Thus, we register the term (pfun 1) in the call to this function
-   * for (@ (@ f 0) 1). This ensures that, when processing the equality
-   * (@ f 0) = g, we merge the term indices of g and pfun. Hence, the entry
-   *   [1] -> (@ (@ f 0) 1)
-   * is added to the term index of g, assuming g is the representative of
-   * the equivalence class of g and pfun.
-   *
-   * Above, we set d_ho_fun_op_purify[(@ f 0)] = pfun, and
-   * d_ho_purify_to_term[(pfun 1)] = (@ (@ f 0) 1).
-   */
-  void addTermHo(Node n);
-  /** get operator representative */
-  Node getOperatorRepresentative( TNode op ) const;
-  //------------------------------end higher-order term indexing
 };/* class TermDb */
 
 }  // namespace quantifiers
