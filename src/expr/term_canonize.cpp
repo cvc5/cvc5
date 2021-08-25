@@ -223,9 +223,9 @@ Node TermCanonize::getCanonicalTerm(TNode n, bool apply_torder, bool doHoVar)
 }
 
 Node TermCanonize::getCanonicalTerm(TNode n,
-                      std::map<TNode, Node>& visited,
-                      bool apply_torder,
-                      bool doHoVar)
+                                    std::map<TNode, Node>& visited,
+                                    bool apply_torder,
+                                    bool doHoVar)
 {
   std::map<std::pair<TypeNode, uint32_t>, unsigned> var_count;
   return getCanonicalTerm(n, apply_torder, doHoVar, var_count, visited);

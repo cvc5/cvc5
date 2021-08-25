@@ -92,6 +92,7 @@ class TermCanonize
                         std::map<TNode, Node>& visited,
                         bool apply_torder = false,
                         bool doHoVar = true);
+
  private:
   /** The (optional) type class callback */
   TypeClassCallback* d_tcc;
