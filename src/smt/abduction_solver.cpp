@@ -32,7 +32,10 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-AbductionSolver::AbductionSolver(Env& env, SmtEngine* parent) : d_env(env), d_parent(parent) {}
+AbductionSolver::AbductionSolver(Env& env, SmtEngine* parent)
+    : d_env(env), d_parent(parent)
+{
+}
 
 AbductionSolver::~AbductionSolver() {}
 bool AbductionSolver::getAbduct(const Node& goal,

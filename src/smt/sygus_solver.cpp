@@ -41,9 +41,7 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-SygusSolver::SygusSolver(Env& env,
-                         SmtSolver& sms,
-                         Preprocessor& pp)
+SygusSolver::SygusSolver(Env& env, SmtSolver& sms, Preprocessor& pp)
     : d_env(env),
       d_smtSolver(sms),
       d_pp(pp),

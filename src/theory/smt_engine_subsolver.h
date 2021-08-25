@@ -60,7 +60,6 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
                          bool needsTimeout = false,
                          unsigned long timeout = 0);
 
-
 /**
  * This returns the result of checking the satisfiability of formula query.
  *

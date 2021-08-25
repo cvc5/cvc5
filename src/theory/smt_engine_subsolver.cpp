@@ -16,10 +16,10 @@
 
 #include "theory/smt_engine_subsolver.h"
 
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/rewriter.h"
-#include "smt/env.h"
 
 namespace cvc5 {
 namespace theory {
@@ -63,7 +63,8 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
                          bool needsTimeout,
                          unsigned long timeout)
 {
-  initializeSubsolver(smte, env.getOptions(), env.getLogicInfo(), needsTimeout, timeout);
+  initializeSubsolver(
+      smte, env.getOptions(), env.getLogicInfo(), needsTimeout, timeout);
 }
 
 Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,

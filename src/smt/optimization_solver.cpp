@@ -22,9 +22,9 @@
 #include "options/language.h"
 #include "options/smt_options.h"
 #include "smt/assertions.h"
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "theory/smt_engine_subsolver.h"
-#include "smt/env.h"
 
 using namespace cvc5::theory;
 using namespace cvc5::omt;
@@ -144,7 +144,10 @@ std::vector<OptimizationResult> OptimizationSolver::getValues()
 }
 
 std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
-    Env& env, SmtEngine* parentSMTSolver, bool needsTimeout, unsigned long timeout)
+    Env& env,
+    SmtEngine* parentSMTSolver,
+    bool needsTimeout,
+    unsigned long timeout)
 {
   std::unique_ptr<SmtEngine> optChecker;
   // initializeSubSolver will copy the options and theories enabled
@@ -277,7 +280,8 @@ Result OptimizationSolver::optimizeLexicographicIterative()
 Result OptimizationSolver::optimizeParetoNaiveGIA()
 {
   // initial call to Pareto optimizer, create the checker
-  if (!d_optChecker) d_optChecker = createOptCheckerWithTimeout(d_env, d_parent);
+  if (!d_optChecker)
+    d_optChecker = createOptCheckerWithTimeout(d_env, d_parent);
   NodeManager* nm = d_optChecker->getNodeManager();
 
   // checks whether the current set of assertions are satisfied or not

@@ -32,7 +32,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-Cegis::Cegis(QuantifiersState& qs, QuantifiersInferenceManager& qim,
+Cegis::Cegis(QuantifiersState& qs,
+             QuantifiersInferenceManager& qim,
              TermDbSygus* tds,
              SynthConjecture* p)
     : SygusModule(qs, qim, tds, p),

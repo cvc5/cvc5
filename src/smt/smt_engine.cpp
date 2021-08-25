@@ -131,11 +131,9 @@ SmtEngine::SmtEngine(NodeManager* nm, const Options* optr)
   // make the SMT solver
   d_smtSolver.reset(new SmtSolver(*d_env.get(), *d_state, *d_pp, *d_stats));
   // make the SyGuS solver
-  d_sygusSolver.reset(
-      new SygusSolver(*d_env.get(), *d_smtSolver, *d_pp));
+  d_sygusSolver.reset(new SygusSolver(*d_env.get(), *d_smtSolver, *d_pp));
   // make the quantifier elimination solver
   d_quantElimSolver.reset(new QuantElimSolver(*d_env.get(), *d_smtSolver));
-
 }
 
 bool SmtEngine::isFullyInited() const { return d_state->isFullyInited(); }

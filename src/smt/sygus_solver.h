@@ -45,9 +45,7 @@ class SmtSolver;
 class SygusSolver
 {
  public:
-  SygusSolver(Env& env,
-              SmtSolver& sms,
-              Preprocessor& pp);
+  SygusSolver(Env& env, SmtSolver& sms, Preprocessor& pp);
   ~SygusSolver();
 
   /**

@@ -32,7 +32,10 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-QuantElimSolver::QuantElimSolver(Env& env, SmtSolver& sms) : d_env(env), d_smtSolver(sms) {}
+QuantElimSolver::QuantElimSolver(Env& env, SmtSolver& sms)
+    : d_env(env), d_smtSolver(sms)
+{
+}
 
 QuantElimSolver::~QuantElimSolver() {}
 

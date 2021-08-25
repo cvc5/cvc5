@@ -233,7 +233,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   initializeSubsolver(
       repcChecker,
       d_env.getOptions(),
-                      d_env.getLogicInfo(),
+      d_env.getLogicInfo(),
       Options::current().quantifiers.sygusRepairConstTimeoutWasSetByUser,
       options::sygusRepairConstTimeout());
   // renable options disabled by sygus

@@ -76,8 +76,8 @@ class NestedQe
   static Node doQe(Env& env, Node q);
 
  private:
-   /** Reference to the env */
-   Env& d_env;
+  /** Reference to the env */
+  Env& d_env;
   /**
    * Mapping from quantified formulas q to the result of doNestedQe(q, true).
    */

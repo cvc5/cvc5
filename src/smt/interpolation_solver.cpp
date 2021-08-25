@@ -32,7 +32,8 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-InterpolationSolver::InterpolationSolver(Env& env, SmtEngine* parent) : d_env(env), d_parent(parent)
+InterpolationSolver::InterpolationSolver(Env& env, SmtEngine* parent)
+    : d_env(env), d_parent(parent)
 {
 }
 

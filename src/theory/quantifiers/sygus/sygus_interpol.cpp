@@ -22,12 +22,12 @@
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "options/smt_options.h"
+#include "smt/env.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
-#include "smt/env.h"
 
 namespace cvc5 {
 namespace theory {

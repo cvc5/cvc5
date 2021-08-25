@@ -19,7 +19,7 @@
 #include "expr/node.h"
 
 namespace cvc5 {
-  
+
 class Env;
 
 namespace theory {
@@ -45,7 +45,8 @@ class SygusQePreproc
    * by the quantifier elimination technique outlined above.
    */
   Node preprocess(Node q);
-private:
+
+ private:
   /** Reference to the env */
   Env& d_env;
 };
