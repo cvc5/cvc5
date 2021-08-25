@@ -123,9 +123,7 @@ class AlphaEquivalence
   AlphaEquivalenceDb d_aedb;
   /** Pointer to the proof node manager */
   ProofNodeManager* d_pnm;
-  /**
-   * A CDProof storing alpha equivalence steps.
-   */
+  /** An eager proof generator storing alpha equivalence proofs.*/
   std::unique_ptr<EagerProofGenerator> d_pfAlpha;
   /** Are proofs enabled for this object? */
   bool isProofEnabled() const;
