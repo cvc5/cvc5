@@ -41,9 +41,9 @@ bool hasListVar(TNode n);
  */
 bool getListVarContext(TNode n, std::map<Node, Kind>& context);
 
-/** 
+/**
  * Get the null terminator for kind k and type node tn.
- * 
+ *
  * Examples of null terminators:
  *   false for (OR, bool)
  *   true for (AND, bool)
