@@ -32,6 +32,7 @@ void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::EXISTS_INTRO, this);
   pc->registerChecker(PfRule::SKOLEMIZE, this);
   pc->registerChecker(PfRule::INSTANTIATE, this);
+  pc->registerChecker(PfRule::ALPHA_EQUIV, this);
   // trusted rules
   pc->registerTrustedChecker(PfRule::QUANTIFIERS_PREPROCESS, this, 3);
 }
@@ -119,6 +120,40 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Node inst =
         body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     return inst;
+  }
+  else if (id == PfRule::ALPHA_EQUIV)
+  {
+    Assert(children.empty());
+    if (args[0].getKind() != kind::FORALL)
+    {
+      return Node::null();
+    }
+    // arguments must be equalities that are bound variables that are
+    // pairwise unique
+    std::unordered_set<Node> allVars[2];
+    std::vector<Node> vars;
+    std::vector<Node> newVars;
+    for (size_t i=1, nargs = args.size(); i<nargs; i++)
+    {
+      if (args[i].getKind()!=kind::EQUAL)
+      {
+        return Node::null();
+      }
+      for (size_t j=0; j<2; j++)
+      {
+        Node v = args[i][j];
+        if (v.getKind()!=kind::BOUND_VARIABLE || allVars[j].find(v)!=allVars[j].end())
+        {
+          return Node::null();
+        }
+        allVars[j].insert(v);
+      }
+      vars.push_back(args[i][0]);
+      newVars.push_back(args[i][1]);
+    }
+    Node renamedBody = args[0].substitute(
+        vars.begin(), vars.end(), newVars.begin(), newVars.end());
+    return args[0].eqNode(renamedBody);
   }
   else if (id == PfRule::QUANTIFIERS_PREPROCESS)
   {

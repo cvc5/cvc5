@@ -15,6 +15,11 @@
 
 #include "theory/quantifiers/alpha_equivalence.h"
 
+#include "proof/proof.h"
+#include "proof/proof_node.h"
+#include "proof/method_id.h"
+#include "theory/quantifiers/extended_rewrite.h"
+
 using namespace cvc5::kind;
 
 namespace cvc5 {
@@ -60,13 +65,59 @@ Node AlphaEquivalenceDb::addTerm(Node q)
   Assert(q.getKind() == FORALL);
   Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
   //construct canonical quantified formula
-  Node t = d_tc->getCanonicalTerm(q[1], true);
+  Node t = d_tc->getCanonicalTerm(q[1], d_sortCommutativeOpChildren);
   Trace("aeq") << "  canonical form: " << t << std::endl;
+  return addTermToTypeTrie(t, q);
+}
+
+Node AlphaEquivalenceDb::addTermWithSubstitution(Node q, std::vector<Node>& vars, std::vector<Node>& subs)
+{
+  Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
+  //construct canonical quantified formula with visited cache
+  std::map<TNode, Node> visited;
+  Node t = d_tc->getCanonicalTerm(q[1], visited, d_sortCommutativeOpChildren);
+  // only need to store BOUND_VARIABLE in substitution
+  std::map<Node, TNode>& bm = d_bvmap[q];
+  for (const std::pair<const TNode, Node>& b : visited)
+  {
+    if (b.first.getKind()==BOUND_VARIABLE)
+    {
+      Assert (b.second.getKind()==BOUND_VARIABLE);
+      bm[b.second] = b.first;
+    }
+  }
+  Node qret = addTermToTypeTrie(t, q);
+  if (qret!=q)
+  {
+    Assert (d_bvmap.find(qret)!=d_bvmap.end());
+    std::map<Node, TNode>& bmr = d_bvmap[qret];
+    std::map<Node, TNode>::iterator itb;
+    for (const std::pair<const Node, TNode>& b : bmr)
+    {
+      itb = bm.find(b.first);
+      if (itb==bm.end())
+      {
+        // didn't use the same variables, fail
+        vars.clear();
+        subs.clear();
+        break;
+      }
+      // otherwise, we map the variable in the returned quantified formula
+      // to the variable that used the same canonical variable
+      vars.push_back(b.second);
+      subs.push_back(itb->second);
+    }
+  }
+  return qret;
+}
+
+Node AlphaEquivalenceDb::addTermToTypeTrie(Node t, Node q)
+{
   //compute variable type counts
   std::map<TypeNode, size_t> typCount;
   std::vector< TypeNode > typs;
-  for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-    TypeNode tn = q[0][i].getType();
+  for (const Node& v : q[0]){
+    TypeNode tn = v.getType();
     typCount[tn]++;
     if( std::find( typs.begin(), typs.end(), tn )==typs.end() ){
       typs.push_back( tn );
@@ -81,32 +132,104 @@ Node AlphaEquivalenceDb::addTerm(Node q)
   return ret;
 }
 
-AlphaEquivalence::AlphaEquivalence() : d_termCanon(), d_aedb(&d_termCanon) {}
+AlphaEquivalence::AlphaEquivalence(ProofNodeManager* pnm)
+    : d_termCanon(),
+      d_aedb(&d_termCanon, true),
+      d_pnm(pnm),
+      d_pfAlpha(pnm ? new EagerProofGenerator(pnm) : nullptr)
+{
+}
 
-Node AlphaEquivalence::reduceQuantifier(Node q)
+TrustNode AlphaEquivalence::reduceQuantifier(Node q)
 {
   Assert(q.getKind() == FORALL);
-  Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
-  Node ret = d_aedb.addTerm(q);
-  Node lem;
-  if (ret != q)
+  Node ret;
+  std::vector<Node> vars;
+  std::vector<Node> subs;
+  if (isProofEnabled())
   {
-    // lemma ( q <=> d_quant )
-    // Notice that we infer this equivalence regardless of whether q or ret
-    // have annotations (e.g. user patterns, names, etc.).
-    Trace("alpha-eq") << "Alpha equivalent : " << std::endl;
-    Trace("alpha-eq") << "  " << q << std::endl;
-    Trace("alpha-eq") << "  " << ret << std::endl;
-    lem = q.eqNode(ret);
-    if (q.getNumChildren() == 3)
+    ret = d_aedb.addTermWithSubstitution(q, vars, subs);
+  }
+  else
+  {
+    ret = d_aedb.addTerm(q);
+  }
+  if (ret == q)
+  {
+    return TrustNode::null();
+  }
+  Node lem;
+  ProofGenerator* pg = nullptr;
+  // lemma ( q <=> d_quant )
+  // Notice that we infer this equivalence regardless of whether q or ret
+  // have annotations (e.g. user patterns, names, etc.).
+  Trace("alpha-eq") << "Alpha equivalent : " << std::endl;
+  Trace("alpha-eq") << "  " << q << std::endl;
+  Trace("alpha-eq") << "  " << ret << std::endl;
+  lem = ret.eqNode(q);
+  if (q.getNumChildren() == 3)
+  {
+    Notice() << "Ignoring annotated quantified formula based on alpha "
+                "equivalence: "
+             << q << std::endl;
+  }
+  // if successfully computed the substitution above
+  if (isProofEnabled() && !vars.empty())
+  {
+    std::vector<Node> pfArgs;
+    pfArgs.push_back(ret);
+    for (size_t i=0, nvars = vars.size(); i<nvars; i++)
     {
-      Notice() << "Ignoring annotated quantified formula based on alpha "
-                  "equivalence: "
-               << q << std::endl;
+      pfArgs.push_back(vars[i].eqNode(subs[i]));
+      Trace("alpha-eq")  << "subs: " << vars[i] << " -> " << subs[i] << std::endl;
+    }
+    CDProof cdp(d_pnm);
+    Node sret = ret.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+    std::vector<Node> transEq;
+    Node eq = ret.eqNode(sret);
+    transEq.push_back(eq);
+    // ---------- ALPHA_EQUIV
+    // ret = sret
+    cdp.addStep(eq, PfRule::ALPHA_EQUIV, {}, pfArgs);
+    // if not syntactically equal, maybe it can be transformed
+    bool success = false;
+    if (sret==q)
+    {
+      success = true;
+    }
+    else
+    {
+      theory::quantifiers::ExtendedRewriter extr(true);
+      Node eqr = sret.eqNode(q);
+      transEq.push_back(eqr);
+      Node eqrr = extr.extendedRewrite(eqr);
+      if (eqrr.isConst() && eqrr.getConst<bool>())
+      {
+        // ---------- MACRO_SR_PRED_INTRO
+        // sret = q
+        Node idr = mkMethodId(MethodId::RW_EXT_REWRITE);
+        cdp.addStep(eqr, PfRule::MACRO_SR_PRED_INTRO, {}, {eqr, idr});
+        success = true;
+      }
+    }
+    // if successful, store the proof and remember the proof generator
+    if (success)
+    {
+      if (transEq.size()>1)
+      {
+        // TRANS of ALPHA_EQ and MACRO_SR_PRED_INTRO steps from above
+        cdp.addStep(lem, PfRule::TRANS, transEq, {});
+      }
+      std::shared_ptr<ProofNode> pn = cdp.getProofFor(lem);
+      Trace("alpha-eq") << "Proof is " << *pn.get() << std::endl;
+      d_pfAlpha->setProofFor(lem, pn);
+      pg = d_pfAlpha.get();
     }
   }
-  return lem;
+  return TrustNode::mkTrustLemma(lem, pg);
 }
+
+bool AlphaEquivalence::isProofEnabled() const { return d_pfAlpha != nullptr; }
 
 }  // namespace quantifiers
 }  // namespace theory
