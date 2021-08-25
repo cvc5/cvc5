@@ -200,15 +200,17 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     else
     {
       theory::quantifiers::ExtendedRewriter extr(true);
-      Node eqr = sret.eqNode(q);
+      Node eq2 = sret.eqNode(q);
       transEq.push_back(eqr);
-      Node eqrr = extr.extendedRewrite(eqr);
-      if (eqrr.isConst() && eqrr.getConst<bool>())
+      Node eq2r = extr.extendedRewrite(eq2);
+      if (eq2r.isConst() && eq2r.getConst<bool>())
       {
         // ---------- MACRO_SR_PRED_INTRO
         // sret = q
-        Node idr = mkMethodId(MethodId::RW_EXT_REWRITE);
-        cdp.addStep(eqr, PfRule::MACRO_SR_PRED_INTRO, {}, {eqr, idr});
+        std::vector<Node> pfArgs2;
+        pfArgs2.push_back(eq2);
+        addMethodIds(pfArgs2, MethodId::SB_DEFAULT, MethodId::SBA_SEQUENTIAL, MethodId::RW_EXT_REWRITE);
+        cdp.addStep(eq2, PfRule::MACRO_SR_PRED_INTRO, {}, pfArgs2);
         success = true;
       }
     }
