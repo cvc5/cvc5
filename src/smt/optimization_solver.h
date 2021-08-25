@@ -310,8 +310,6 @@ class OptimizationSolver
    **/
   Result optimizeParetoNaiveGIA();
 
-  /** Reference to the env */
-  Env& d_env;
   /** A pointer to the parent SMT engine **/
   SmtEngine* d_parent;
 
