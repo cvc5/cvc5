@@ -143,14 +143,13 @@ std::vector<OptimizationResult> OptimizationSolver::getValues()
 }
 
 std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
-    SmtEngine* parentSMTSolver,
-    bool needsTimeout,
-    unsigned long timeout)
+    SmtEngine* parentSMTSolver, bool needsTimeout, unsigned long timeout)
 {
   std::unique_ptr<SmtEngine> optChecker;
   // initializeSubSolver will copy the options and theories enabled
   // from the current solver to optChecker and adds timeout
-  theory::initializeSubsolver(optChecker, parentSMTSolver->getEnv(), needsTimeout, timeout);
+  theory::initializeSubsolver(
+      optChecker, parentSMTSolver->getEnv(), needsTimeout, timeout);
   // we need to be in incremental mode for multiple objectives since we need to
   // push pop we need to produce models to inrement on our objective
   optChecker->setOption("incremental", "true");
