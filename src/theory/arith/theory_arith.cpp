@@ -35,24 +35,19 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-TheoryArith::TheoryArith(context::Context* c,
-                         context::UserContext* u,
-                         OutputChannel& out,
-                         Valuation valuation,
-                         const LogicInfo& logicInfo,
-                         ProofNodeManager* pnm)
-    : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
+TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
+    : Theory(THEORY_ARITH, env, out, valuation),
       d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
           "theory::arith::ppRewriteTimer")),
-      d_astate(c, u, valuation),
-      d_im(*this, d_astate, pnm),
-      d_ppre(c, pnm),
-      d_bab(d_astate, d_im, d_ppre, pnm),
+      d_astate(env, valuation),
+      d_im(*this, d_astate, d_pnm),
+      d_ppre(getSatContext(), d_pnm),
+      d_bab(d_astate, d_im, d_ppre, d_pnm),
       d_eqSolver(nullptr),
-      d_internal(new TheoryArithPrivate(*this, c, u, d_bab, pnm)),
+      d_internal(new TheoryArithPrivate(*this, env, d_bab)),
       d_nonlinearExtension(nullptr),
-      d_opElim(pnm, logicInfo),
-      d_arithPreproc(d_astate, d_im, pnm, d_opElim),
+      d_opElim(d_pnm, getLogicInfo()),
+      d_arithPreproc(d_astate, d_im, d_pnm, d_opElim),
       d_rewriter(d_opElim)
 {
   // currently a cyclic dependency to TheoryArithPrivate
@@ -61,7 +56,7 @@ TheoryArith::TheoryArith(context::Context* c,
   d_theoryState = &d_astate;
   d_inferManager = &d_im;
 
-  if (options::arithEqSolver())
+  if (options().arith.arithEqSolver)
   {
     d_eqSolver.reset(new EqualitySolver(d_astate, d_im));
   }
@@ -106,8 +101,7 @@ void TheoryArith::finishInit()
   const LogicInfo& logicInfo = getLogicInfo();
   if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
   {
-    d_nonlinearExtension.reset(
-        new nl::NonlinearExtension(*this, d_astate, d_equalityEngine, d_pnm));
+    d_nonlinearExtension.reset(new nl::NonlinearExtension(*this, d_astate));
   }
   if (d_eqSolver != nullptr)
   {

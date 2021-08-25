@@ -21,6 +21,7 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "proof/proof_node.h"
+#include "theory/quantifiers/instantiation_list.h"
 
 namespace cvc5 {
 
@@ -61,9 +62,9 @@ class UnsatCoreManager
    * matrix with each row corresponding to the terms with which the respective
    * quantified formula is instiated.
    */
-  void getRelevantInstantiations(
-      std::shared_ptr<ProofNode> pfn,
-      std::map<Node, std::vector<std::vector<Node>>>& insts);
+  void getRelevantInstantiations(std::shared_ptr<ProofNode> pfn,
+                                 std::map<Node, InstantiationList>& insts,
+                                 bool getDebugInfo = false);
 
 }; /* class UnsatCoreManager */
 

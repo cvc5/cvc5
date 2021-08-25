@@ -1054,14 +1054,12 @@ bool LinearEqualityModule::willBeInConflictAfterPivot(const Tableau::Entry& entr
   Assert(nbSgn != 0);
 
   if(nbSgn > 0){
-    if (d_upperBoundDifference.nothing()
-        || nbDiff <= d_upperBoundDifference.value())
+    if (!d_upperBoundDifference || nbDiff <= *d_upperBoundDifference)
     {
       return false;
     }
   }else{
-    if (d_lowerBoundDifference.nothing()
-        || nbDiff >= d_lowerBoundDifference.value())
+    if (!d_lowerBoundDifference || nbDiff >= *d_lowerBoundDifference)
     {
       return false;
     }
@@ -1132,8 +1130,8 @@ UpdateInfo LinearEqualityModule::mkConflictUpdate(const Tableau::Entry& entry, b
 UpdateInfo LinearEqualityModule::speculativeUpdate(ArithVar nb, const Rational& focusCoeff, UpdatePreferenceFunction pref){
   Assert(d_increasing.empty());
   Assert(d_decreasing.empty());
-  Assert(d_lowerBoundDifference.nothing());
-  Assert(d_upperBoundDifference.nothing());
+  Assert(!d_lowerBoundDifference);
+  Assert(!d_upperBoundDifference);
 
   int focusCoeffSgn = focusCoeff.sgn();
 
@@ -1146,14 +1144,14 @@ UpdateInfo LinearEqualityModule::speculativeUpdate(ArithVar nb, const Rational& 
   if(d_variables.hasUpperBound(nb)){
     ConstraintP ub = d_variables.getUpperBoundConstraint(nb);
     d_upperBoundDifference = ub->getValue() - d_variables.getAssignment(nb);
-    Border border(ub, d_upperBoundDifference.value(), false, NULL, true);
+    Border border(ub, *d_upperBoundDifference, false, NULL, true);
     Debug("handleBorders") << "push back increasing " << border << endl;
     d_increasing.push_back(border);
   }
   if(d_variables.hasLowerBound(nb)){
     ConstraintP lb = d_variables.getLowerBoundConstraint(nb);
     d_lowerBoundDifference = lb->getValue() - d_variables.getAssignment(nb);
-    Border border(lb, d_lowerBoundDifference.value(), false, NULL, false);
+    Border border(lb, *d_lowerBoundDifference, false, NULL, false);
     Debug("handleBorders") << "push back decreasing " << border << endl;
     d_decreasing.push_back(border);
   }
@@ -1189,8 +1187,8 @@ void LinearEqualityModule::clearSpeculative(){
   // clear everything away
   d_increasing.clear();
   d_decreasing.clear();
-  d_lowerBoundDifference.clear();
-  d_upperBoundDifference.clear();
+  d_lowerBoundDifference.reset();
+  d_upperBoundDifference.reset();
 }
 
 void LinearEqualityModule::handleBorders(UpdateInfo& selected, ArithVar nb, const Rational& focusCoeff, BorderHeap& heap, int minimumFixes, UpdatePreferenceFunction pref){

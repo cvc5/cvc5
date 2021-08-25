@@ -136,9 +136,6 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
 
   void requirePhase(TNode, bool) override {}
   void setIncomplete(theory::IncompleteId id) override {}
-  void handleUserAttribute(const char* attr, theory::Theory* t) override {}
-
-  void splitLemma(TNode n, bool removable = false) override { push(LEMMA, n); }
 
   void clear() { d_callHistory.clear(); }
 
@@ -208,14 +205,9 @@ template <theory::TheoryId theoryId>
 class DummyTheory : public theory::Theory
 {
  public:
-  DummyTheory(context::Context* ctxt,
-              context::UserContext* uctxt,
-              theory::OutputChannel& out,
-              theory::Valuation valuation,
-              const LogicInfo& logicInfo,
-              ProofNodeManager* pnm)
-      : Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo, pnm),
-        d_state(ctxt, uctxt, valuation)
+  DummyTheory(Env& env, theory::OutputChannel& out, theory::Valuation valuation)
+      : Theory(theoryId, env, out, valuation),
+        d_state(env, valuation)
   {
     // use a default theory state object
     d_theoryState = &d_state;

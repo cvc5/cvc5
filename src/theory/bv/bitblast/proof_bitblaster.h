@@ -43,6 +43,8 @@ class BBProof
   bool hasBBTerm(TNode node) const;
   /** Get bit-blasted node stored for atom. */
   Node getStoredBBAtom(TNode node);
+  /** Get bit-blasted bits stored for node. */
+  void getBBTerm(TNode node, Bits& bits) const;
   /** Collect model values for all relevant terms given in 'relevantTerms'. */
   bool collectModelValues(TheoryModel* m, const std::set<Node>& relevantTerms);
 

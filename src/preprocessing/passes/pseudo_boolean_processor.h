@@ -21,6 +21,7 @@
 #ifndef CVC5__PREPROCESSING__PASSES__PSEUDO_BOOLEAN_PROCESSOR_H
 #define CVC5__PREPROCESSING__PASSES__PSEUDO_BOOLEAN_PROCESSOR_H
 
+#include <optional>
 #include <unordered_set>
 #include <vector>
 
@@ -29,7 +30,6 @@
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "theory/substitutions.h"
-#include "util/maybe.h"
 #include "util/rational.h"
 
 namespace cvc5 {
@@ -100,7 +100,7 @@ class PseudoBooleanProcessor : public PreprocessingPass
   context::CDO<unsigned> d_pbs;
 
   // decompose into \sum pos >= neg + off
-  Maybe<Rational> d_off;
+  std::optional<Rational> d_off;
   std::vector<Node> d_pos;
   std::vector<Node> d_neg;
 

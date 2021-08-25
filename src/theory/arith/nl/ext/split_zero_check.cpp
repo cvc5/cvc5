@@ -29,7 +29,7 @@ namespace arith {
 namespace nl {
 
 SplitZeroCheck::SplitZeroCheck(ExtState* data)
-    : d_data(data), d_zero_split(d_data->d_ctx)
+    : d_data(data), d_zero_split(d_data->d_env.getUserContext())
 {
 }
 

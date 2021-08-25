@@ -21,7 +21,6 @@
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "options/uf_options.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"

@@ -19,8 +19,6 @@
 #include "options/base_options.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/transition_inference.h"
@@ -81,8 +79,7 @@ CegisCoreConnective::CegisCoreConnective(QuantifiersInferenceManager& qim,
 
 bool CegisCoreConnective::processInitialize(Node conj,
                                             Node n,
-                                            const std::vector<Node>& candidates,
-                                            std::vector<Node>& lemmas)
+                                            const std::vector<Node>& candidates)
 {
   Trace("sygus-ccore-init") << "CegisCoreConnective::initialize" << std::endl;
   Trace("sygus-ccore-init") << "  conjecture : " << conj << std::endl;
@@ -234,7 +231,8 @@ bool CegisCoreConnective::processInitialize(Node conj,
       // conjunctions).
       Node tst = datatypes::utils::mkTester(d_candidate, i, gdt);
       Trace("sygus-ccore-init") << "Sym break lemma " << tst << std::endl;
-      lemmas.push_back(tst.negate());
+      d_qim.lemma(tst.negate(),
+                  InferenceId::QUANTIFIERS_SYGUS_CEGIS_UCL_SYM_BREAK);
     }
   }
   if (!isActive())
@@ -242,7 +240,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
     return false;
   }
   // initialize the enumerator
-  return Cegis::processInitialize(conj, n, candidates, lemmas);
+  return Cegis::processInitialize(conj, n, candidates);
 }
 
 bool CegisCoreConnective::processConstructCandidates(
@@ -250,8 +248,7 @@ bool CegisCoreConnective::processConstructCandidates(
     const std::vector<Node>& enum_values,
     const std::vector<Node>& candidates,
     std::vector<Node>& candidate_values,
-    bool satisfiedRl,
-    std::vector<Node>& lems)
+    bool satisfiedRl)
 {
   Assert(isActive());
   bool ret = constructSolution(enums, enum_values, candidate_values);
@@ -273,7 +270,8 @@ bool CegisCoreConnective::processConstructCandidates(
     {
       lem = nm->mkNode(OR, g.negate(), lem);
     }
-    lems.push_back(lem);
+    d_qim.addPendingLemma(lem,
+                          InferenceId::QUANTIFIERS_SYGUS_CEGIS_UCL_EXCLUDE);
   }
   return ret;
 }

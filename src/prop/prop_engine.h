@@ -31,7 +31,6 @@ namespace cvc5 {
 
 class Env;
 class ResourceManager;
-class OutputManager;
 class ProofNodeManager;
 class TheoryEngine;
 
@@ -57,10 +56,7 @@ class PropEngine
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(TheoryEngine* te,
-             Env& env,
-             OutputManager& outMgr,
-             ProofNodeManager* pnm);
+  PropEngine(TheoryEngine* te, Env& env);
 
   /**
    * Destructor.
@@ -374,9 +370,6 @@ class PropEngine
   /** List of all of the assertions that need to be made */
   std::vector<Node> d_assertionList;
 
-  /** A pointer to the proof node maneger to be used by this engine. */
-  ProofNodeManager* d_pnm;
-
   /** The CNF converter in use */
   CnfStream* d_cnfStream;
   /** Proof-producing CNF converter */
@@ -387,9 +380,6 @@ class PropEngine
 
   /** Whether we were just interrupted (or not) */
   bool d_interrupted;
-
-  /** Reference to the output manager of the smt engine */
-  OutputManager& d_outMgr;
 
   /**
    * Stores assumptions added via assertInternal() if assumption-based unsat

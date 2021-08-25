@@ -239,6 +239,19 @@ void Command::printResult(std::ostream& out, uint32_t verbosity) const
   }
 }
 
+void Command::resetSolver(api::Solver* solver)
+{
+  std::unique_ptr<Options> opts = std::make_unique<Options>();
+  opts->copyValues(*solver->d_originalOptions);
+  // This reconstructs a new solver object at the same memory location as the
+  // current one. Note that this command does not own the solver object!
+  // It may be safer to instead make the ResetCommand a special case in the
+  // CommandExecutor such that this reconstruction can be done within the
+  // CommandExecutor, who actually owns the solver.
+  solver->~Solver();
+  new (solver) api::Solver(std::move(opts));
+}
+
 Node Command::termToNode(const api::Term& term) { return term.getNode(); }
 
 std::vector<Node> Command::termVectorToNodes(
@@ -343,17 +356,14 @@ void EchoCommand::toStream(std::ostream& out,
 /* class AssertCommand                                                        */
 /* -------------------------------------------------------------------------- */
 
-AssertCommand::AssertCommand(const api::Term& t, bool inUnsatCore)
-    : d_term(t), d_inUnsatCore(inUnsatCore)
-{
-}
+AssertCommand::AssertCommand(const api::Term& t) : d_term(t) {}
 
 api::Term AssertCommand::getTerm() const { return d_term; }
 void AssertCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->getSmtEngine()->assertFormula(termToNode(d_term), d_inUnsatCore);
+    solver->assertFormula(d_term);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnsafeInterruptException& e)
@@ -366,10 +376,7 @@ void AssertCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-Command* AssertCommand::clone() const
-{
-  return new AssertCommand(d_term, d_inUnsatCore);
-}
+Command* AssertCommand::clone() const { return new AssertCommand(d_term); }
 
 std::string AssertCommand::getCommandName() const { return "assert"; }
 
@@ -581,10 +588,7 @@ void CheckSatAssumingCommand::toStream(std::ostream& out,
 /* class QueryCommand                                                         */
 /* -------------------------------------------------------------------------- */
 
-QueryCommand::QueryCommand(const api::Term& t, bool inUnsatCore)
-    : d_term(t), d_inUnsatCore(inUnsatCore)
-{
-}
+QueryCommand::QueryCommand(const api::Term& t) : d_term(t) {}
 
 api::Term QueryCommand::getTerm() const { return d_term; }
 void QueryCommand::invoke(api::Solver* solver, SymbolManager* sm)
@@ -615,7 +619,7 @@ void QueryCommand::printResult(std::ostream& out, uint32_t verbosity) const
 
 Command* QueryCommand::clone() const
 {
-  QueryCommand* c = new QueryCommand(d_term, d_inUnsatCore);
+  QueryCommand* c = new QueryCommand(d_term);
   c->d_result = d_result;
   return c;
 }
@@ -926,15 +930,7 @@ void ResetCommand::invoke(api::Solver* solver, SymbolManager* sm)
   try
   {
     sm->reset();
-    Options opts;
-    opts.copyValues(getOriginalOptionsFrom(solver));
-    // This reconstructs a new solver object at the same memory location as the
-    // current one. Note that this command does not own the solver object!
-    // It may be safer to instead make the ResetCommand a special case in the
-    // CommandExecutor such that this reconstruction can be done within the
-    // CommandExecutor, who actually owns the solver.
-    solver->~Solver();
-    new (solver) api::Solver(&opts);
+    resetSolver(solver);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1535,78 +1531,6 @@ void DeclareHeapCommand::toStream(std::ostream& out,
 }
 
 /* -------------------------------------------------------------------------- */
-/* class SetUserAttributeCommand                                              */
-/* -------------------------------------------------------------------------- */
-
-SetUserAttributeCommand::SetUserAttributeCommand(
-    const std::string& attr,
-    api::Term term,
-    const std::vector<api::Term>& termValues,
-    const std::string& strValue)
-    : d_attr(attr), d_term(term), d_termValues(termValues), d_strValue(strValue)
-{
-}
-
-SetUserAttributeCommand::SetUserAttributeCommand(const std::string& attr,
-                                                 api::Term term)
-    : SetUserAttributeCommand(attr, term, {}, "")
-{
-}
-
-SetUserAttributeCommand::SetUserAttributeCommand(
-    const std::string& attr,
-    api::Term term,
-    const std::vector<api::Term>& values)
-    : SetUserAttributeCommand(attr, term, values, "")
-{
-}
-
-SetUserAttributeCommand::SetUserAttributeCommand(const std::string& attr,
-                                                 api::Term term,
-                                                 const std::string& value)
-    : SetUserAttributeCommand(attr, term, {}, value)
-{
-}
-
-void SetUserAttributeCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  try
-  {
-    if (!d_term.isNull())
-    {
-      solver->getSmtEngine()->setUserAttribute(d_attr,
-                                               termToNode(d_term),
-                                               termVectorToNodes(d_termValues),
-                                               d_strValue);
-    }
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-Command* SetUserAttributeCommand::clone() const
-{
-  return new SetUserAttributeCommand(d_attr, d_term, d_termValues, d_strValue);
-}
-
-std::string SetUserAttributeCommand::getCommandName() const
-{
-  return "set-user-attribute";
-}
-
-void SetUserAttributeCommand::toStream(std::ostream& out,
-                                       int toDepth,
-                                       size_t dag,
-                                       OutputLanguage language) const
-{
-  Printer::getPrinter(language)->toStreamCmdSetUserAttribute(
-      out, d_attr, termToNode(d_term));
-}
-
-/* -------------------------------------------------------------------------- */
 /* class SimplifyCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
@@ -2002,7 +1926,7 @@ void GetProofCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = solver->getSmtEngine()->getProof();
+    d_result = solver->getProof();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC5ApiRecoverableException& e)
@@ -2051,11 +1975,9 @@ GetInstantiationsCommand::GetInstantiationsCommand() : d_solver(nullptr) {}
 bool GetInstantiationsCommand::isEnabled(api::Solver* solver,
                                          const api::Result& res)
 {
-  return (solver->getOptions().printer.instFormatMode
-              != options::InstFormatMode::SZS
-          && (res.isSat()
-              || (res.isSatUnknown()
-                  && res.getUnknownExplanation() == api::Result::INCOMPLETE)))
+  return (res.isSat()
+          || (res.isSatUnknown()
+              && res.getUnknownExplanation() == api::Result::INCOMPLETE))
          || res.isUnsat() || res.isEntailed();
 }
 void GetInstantiationsCommand::invoke(api::Solver* solver, SymbolManager* sm)

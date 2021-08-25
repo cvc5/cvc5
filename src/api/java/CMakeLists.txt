@@ -91,7 +91,9 @@ message(STATUS "JAVA_INCLUDE_PATH    : ${JAVA_INCLUDE_PATH}")
 message(STATUS "JAVA_INCLUDE_PATH2   : ${JAVA_INCLUDE_PATH2}")
 message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
-add_library(cvc5jni SHARED jni/cvc5_Solver.cpp)
+add_library(cvc5jni SHARED
+  jni/cvc5_Solver.cpp
+)
 add_dependencies(cvc5jni generate-jni-headers)
 
 target_include_directories(cvc5jni PUBLIC ${JNI_INCLUDE_DIRS})

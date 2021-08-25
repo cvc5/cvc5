@@ -50,6 +50,23 @@ libcvc5_add_sources(
   omt/integer_optimizer.h
   omt/omt_optimizer.cpp
   omt/omt_optimizer.h
+  options/decision_weight.h
+  options/didyoumean.cpp
+  options/didyoumean.h
+  options/language.cpp
+  options/language.h
+  options/managed_streams.cpp
+  options/managed_streams.h
+  options/option_exception.cpp
+  options/option_exception.h
+  options/options_handler.cpp
+  options/options_handler.h
+  options/options_listener.h
+  options/options_public.h
+  options/outputc.cpp
+  options/outputc.h
+  options/set_language.cpp
+  options/set_language.h
   preprocessing/assertion_pipeline.cpp
   preprocessing/assertion_pipeline.h
   preprocessing/learned_literal_manager.cpp
@@ -284,8 +301,6 @@ libcvc5_add_sources(
   smt/logic_exception.h
   smt/interpolation_solver.cpp
   smt/interpolation_solver.h
-  smt/managed_ostreams.cpp
-  smt/managed_ostreams.h
   smt/model.cpp
   smt/model.h
   smt/model_core_builder.cpp
@@ -296,8 +311,6 @@ libcvc5_add_sources(
   smt/node_command.h
   smt/optimization_solver.cpp
   smt/optimization_solver.h
-  smt/options_manager.cpp
-  smt/options_manager.h
   smt/output_manager.cpp
   smt/output_manager.h
   smt/quant_elim_solver.cpp
@@ -310,6 +323,8 @@ libcvc5_add_sources(
   smt/process_assertions.h
   smt/proof_manager.cpp
   smt/proof_manager.h
+  smt/proof_final_callback.cpp
+  smt/proof_final_callback.h
   smt/proof_post_processor.cpp
   smt/proof_post_processor.h
   smt/set_defaults.cpp
@@ -334,7 +349,6 @@ libcvc5_add_sources(
   smt/term_formula_removal.h
   smt/unsat_core_manager.cpp
   smt/unsat_core_manager.h
-  smt/update_ostream.h
   smt/witness_form.cpp
   smt/witness_form.h
   smt_util/boolean_simplification.cpp
@@ -791,6 +805,8 @@ libcvc5_add_sources(
   theory/quantifiers/fmf/model_engine.h
   theory/quantifiers/fun_def_evaluator.cpp
   theory/quantifiers/fun_def_evaluator.h
+  theory/quantifiers/ho_term_database.cpp
+  theory/quantifiers/ho_term_database.h
   theory/quantifiers/index_trie.cpp
   theory/quantifiers/index_trie.h
   theory/quantifiers/inst_match.cpp
@@ -872,6 +888,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/example_min_eval.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
   theory/quantifiers/sygus/enum_stream_substitution.h
+  theory/quantifiers/sygus/enum_value_manager.cpp
+  theory/quantifiers/sygus/enum_value_manager.h
   theory/quantifiers/sygus/example_infer.cpp
   theory/quantifiers/sygus/example_infer.h
   theory/quantifiers/sygus/example_min_eval.cpp
@@ -1146,6 +1164,83 @@ include_directories(include)
 include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
+# Take care of options
+
+check_python_module("toml")
+
+set(options_toml_files
+  options/arith_options.toml
+  options/arrays_options.toml
+  options/base_options.toml
+  options/booleans_options.toml
+  options/builtin_options.toml
+  options/bv_options.toml
+  options/datatypes_options.toml
+  options/decision_options.toml
+  options/expr_options.toml
+  options/fp_options.toml
+  options/main_options.toml
+  options/parser_options.toml
+  options/printer_options.toml
+  options/proof_options.toml
+  options/prop_options.toml
+  options/quantifiers_options.toml
+  options/sep_options.toml
+  options/sets_options.toml
+  options/smt_options.toml
+  options/strings_options.toml
+  options/theory_options.toml
+  options/uf_options.toml
+)
+string(REPLACE "toml" "cpp;" options_gen_cpp_files ${options_toml_files})
+string(REPLACE "toml" "h;"   options_gen_h_files ${options_toml_files})
+list(APPEND options_gen_cpp_files "options/options.cpp" "options/options_public.cpp")
+list(APPEND options_gen_h_files "options/options.h")
+
+libcvc5_add_sources(GENERATED ${options_gen_cpp_files} ${options_gen_h_files})
+
+list_prepend(options_toml_files "${CMAKE_CURRENT_LIST_DIR}/" abs_toml_files)
+
+set(options_gen_doc_files "")
+if (BUILD_DOCS)
+  list(
+    APPEND
+      options_gen_doc_files
+      "${CMAKE_BINARY_DIR}/docs/options_generated.rst"
+  )
+endif()
+
+add_custom_command(
+    OUTPUT
+      ${options_gen_cpp_files} ${options_gen_h_files}
+      ${options_gen_doc_files}
+    COMMAND
+      ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/options
+    COMMAND
+      ${PYTHON_EXECUTABLE}
+      ${CMAKE_CURRENT_LIST_DIR}/options/mkoptions.py
+      ${CMAKE_CURRENT_LIST_DIR}
+      ${CMAKE_BINARY_DIR}
+      ${CMAKE_CURRENT_BINARY_DIR}
+      ${abs_toml_files}
+    DEPENDS
+      options/mkoptions.py
+      ${options_toml_files}
+      options/module_template.h
+      options/module_template.cpp
+      options/options_public_template.cpp
+      options/options_template.h
+      options/options_template.cpp
+)
+
+add_custom_target(gen-options
+  DEPENDS
+    ${options_gen_cpp_files}
+    ${options_gen_h_files}
+)
+
+
+#-----------------------------------------------------------------------------#
 
 set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/builtin/kinds
@@ -1168,7 +1263,6 @@ set(KINDS_FILES
 add_subdirectory(base)
 add_subdirectory(context)
 add_subdirectory(expr)
-add_subdirectory(options)
 if (NOT BUILD_LIB_ONLY)
   add_subdirectory(parser)
 endif()

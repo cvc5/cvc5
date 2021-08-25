@@ -34,7 +34,7 @@ sort INST_PATTERN_TYPE \
 # An instantiation pattern may have more than 1 child, in which case it specifies a multi-trigger.
 operator INST_PATTERN 1: "instantiation pattern"
 operator INST_NO_PATTERN 1 "instantiation no-pattern"
-operator INST_ATTRIBUTE 1 "instantiation attribute"
+operator INST_ATTRIBUTE 1: "instantiation attribute"
 operator INST_POOL 1: "instantiation pool"
 operator INST_ADD_TO_POOL 2 "instantiation add to pool"
 operator SKOLEM_ADD_TO_POOL 2 "skolemization add to pool"

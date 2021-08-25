@@ -59,6 +59,7 @@
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "options/smt_options.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
@@ -241,6 +242,8 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {FLOATINGPOINT_ISPOS, cvc5::Kind::FLOATINGPOINT_ISPOS},
     {FLOATINGPOINT_TO_FP_FLOATINGPOINT,
      cvc5::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT},
+    {FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
+     cvc5::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR},
     {FLOATINGPOINT_TO_FP_REAL, cvc5::Kind::FLOATINGPOINT_TO_FP_REAL},
     {FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
      cvc5::Kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR},
@@ -855,9 +858,9 @@ class CVC5ApiRecoverableExceptionStream
   {
 #define CVC5_API_TRY_CATCH_END                                                 \
   }                                                                            \
-  catch (const UnrecognizedOptionException& e)                                 \
+  catch (const OptionException& e)                                             \
   {                                                                            \
-    throw CVC5ApiRecoverableException(e.getMessage());                         \
+    throw CVC5ApiOptionException(e.getMessage());                              \
   }                                                                            \
   catch (const cvc5::RecoverableModalException& e)                             \
   {                                                                            \
@@ -4762,7 +4765,9 @@ struct Stat::StatData
 
 Stat::~Stat() {}
 Stat::Stat(const Stat& s)
-    : d_expert(s.d_expert), d_data(std::make_unique<StatData>(s.d_data->data))
+    : d_expert(s.d_expert),
+      d_default(s.d_default),
+      d_data(std::make_unique<StatData>(s.d_data->data))
 {
 }
 Stat& Stat::operator=(const Stat& s)
@@ -4946,19 +4951,17 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats)
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Solver::Solver(const Options* opts)
+Solver::Solver(std::unique_ptr<Options>&& original)
 {
   d_nodeMgr.reset(new NodeManager());
-  d_originalOptions.reset(new Options());
-  if (opts != nullptr)
-  {
-    d_originalOptions->copyValues(*opts);
-  }
+  d_originalOptions = std::move(original);
   d_smtEngine.reset(new SmtEngine(d_nodeMgr.get(), d_originalOptions.get()));
   d_smtEngine->setSolver(this);
   d_rng.reset(new Random(d_smtEngine->getOptions().driver.seed));
   resetStatistics();
 }
+
+Solver::Solver() : Solver(std::make_unique<Options>()) {}
 
 Solver::~Solver() {}
 
@@ -5034,15 +5037,6 @@ Term Solver::mkBVFromIntHelper(uint32_t size, uint64_t val) const
   return mkValHelper<cvc5::BitVector>(cvc5::BitVector(size, val));
 }
 
-Term Solver::mkBVFromStrHelper(const std::string& s, uint32_t base) const
-{
-  CVC5_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
-  CVC5_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, base)
-      << "base 2, 10, or 16";
-  //////// all checks before this line
-  return mkValHelper<cvc5::BitVector>(cvc5::BitVector(s, base));
-}
-
 Term Solver::mkBVFromStrHelper(uint32_t size,
                                const std::string& s,
                                uint32_t base) const
@@ -5066,7 +5060,6 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
         << "Overflow in bitvector construction (specified bitvector size "
         << size << " too small to hold value " << s << ")";
   }
-
   return mkValHelper<cvc5::BitVector>(cvc5::BitVector(size, val));
 }
 
@@ -5385,6 +5378,11 @@ void Solver::resetStatistics()
             "api::TERM"),
     });
   }
+}
+
+void Solver::printStatisticsSafe(int fd) const
+{
+  d_smtEngine->printStatisticsSafe(fd);
 }
 
 /* Helpers for mkTerm checks.                                                 */
@@ -5935,16 +5933,6 @@ Term Solver::mkBitVector(uint32_t size, uint64_t val) const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkBVFromIntHelper(size, val);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkBitVector(const std::string& s, uint32_t base) const
-{
-  NodeManagerScope scope(getNodeManager());
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return mkBVFromStrHelper(s, base);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6640,8 +6628,7 @@ Result Solver::checkEntailed(const Term& term) const
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERM(term);
   //////// all checks before this line
-  cvc5::Result r = d_smtEngine->checkEntailed(*term.d_node);
-  return Result(r);
+  return d_smtEngine->checkEntailed(*term.d_node);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6684,8 +6671,7 @@ Result Solver::checkSat(void) const
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   //////// all checks before this line
-  cvc5::Result r = d_smtEngine->checkSat();
-  return Result(r);
+  return d_smtEngine->checkSat();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6700,8 +6686,7 @@ Result Solver::checkSatAssuming(const Term& assumption) const
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(assumption, getBooleanSort());
   //////// all checks before this line
-  cvc5::Result r = d_smtEngine->checkSat(*assumption.d_node);
-  return Result(r);
+  return d_smtEngine->checkSat(*assumption.d_node);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6721,8 +6706,7 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
     CVC5_API_SOLVER_CHECK_TERM(term);
   }
   std::vector<Node> eassumptions = Term::termVectorToNodes(assumptions);
-  cvc5::Result r = d_smtEngine->checkSat(eassumptions);
-  return Result(r);
+  return d_smtEngine->checkSat(eassumptions);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7042,6 +7026,15 @@ std::string Solver::getOption(const std::string& option) const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::vector<std::string> Solver::getOptionNames() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return options::getNames();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 std::vector<Term> Solver::getUnsatAssumptions(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7091,6 +7084,18 @@ std::vector<Term> Solver::getUnsatCore(void) const
   }
   return res;
   ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::string Solver::getProof(void) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_CHECK(d_smtEngine->getOptions().smt.produceProofs)
+      << "Cannot get proof explicitly enabled (try --prooduce-proofs)";
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
+      << "Cannot get proof unless in unsat mode.";
+  return d_smtEngine->getProof();
   CVC5_API_TRY_CATCH_END;
 }
 
@@ -7421,8 +7426,18 @@ void Solver::setOption(const std::string& option,
                        const std::string& value) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(!d_smtEngine->isFullyInited())
-      << "Invalid call to 'setOption', solver is already fully initialized";
+  static constexpr auto mutableOpts = {"diagnostic-output-channel",
+                                       "print-success",
+                                       "regular-output-channel",
+                                       "reproducible-resource-limit",
+                                       "verbosity"};
+  if (std::find(mutableOpts.begin(), mutableOpts.end(), option)
+      == mutableOpts.end())
+  {
+    CVC5_API_CHECK(!d_smtEngine->isFullyInited())
+        << "Invalid call to 'setOption' for option '" << option
+        << "', solver is already fully initialized";
+  }
   //////// all checks before this line
   d_smtEngine->setOption(option, value);
   ////////

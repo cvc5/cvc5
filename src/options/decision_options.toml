@@ -48,7 +48,7 @@ name   = "Decision Heuristics"
   name       = "decisionRandomWeight"
   category   = "expert"
   long       = "decision-random-weight=N"
-  type       = "int"
+  type       = "int64_t"
   default    = "0"
   help       = "assign random weights to nodes between 0 and N-1 (0: disable)"
 
