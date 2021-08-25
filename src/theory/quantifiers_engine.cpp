@@ -515,28 +515,19 @@ bool QuantifiersEngine::reduceQuantifier(Node q)
   {
     TrustNode tlem;
     InferenceId id = InferenceId::UNKNOWN;
-    std::map<Node, TrustNode>::iterator itr = d_quantsRedTrustLem.find(q);
-    if (itr == d_quantsRedTrustLem.end())
+    if (d_qmodules->d_alpha_equiv)
     {
-      if (d_qmodules->d_alpha_equiv)
+      Trace("quant-engine-red")
+          << "Alpha equivalence " << q << "?" << std::endl;
+      // add equivalence with another quantified formula
+      tlem = d_qmodules->d_alpha_equiv->reduceQuantifier(q);
+      id = InferenceId::QUANTIFIERS_REDUCE_ALPHA_EQ;
+      if (!tlem.isNull())
       {
         Trace("quant-engine-red")
-            << "Alpha equivalence " << q << "?" << std::endl;
-        // add equivalence with another quantified formula
-        tlem = d_qmodules->d_alpha_equiv->reduceQuantifier(q);
-        id = InferenceId::QUANTIFIERS_REDUCE_ALPHA_EQ;
-        if (!tlem.isNull())
-        {
-          Trace("quant-engine-red")
-              << "...alpha equivalence success." << std::endl;
-          ++(d_qstate.getStats().d_red_alpha_equiv);
-        }
+            << "...alpha equivalence success." << std::endl;
+        ++(d_qstate.getStats().d_red_alpha_equiv);
       }
-      d_quantsRedTrustLem[q] = tlem;
-    }
-    else
-    {
-      tlem = itr->second;
     }
     if (!tlem.isNull())
     {
@@ -545,10 +536,7 @@ bool QuantifiersEngine::reduceQuantifier(Node q)
     d_quants_red[q] = !tlem.isNull();
     return !tlem.isNull();
   }
-  else
-  {
-    return (*it).second;
-  }
+  return (*it).second;
 }
 
 void QuantifiersEngine::registerQuantifierInternal(Node f)
