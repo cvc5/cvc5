@@ -22,9 +22,11 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "smt/smt_engine.h"
 
 namespace cvc5 {
+
+class SmtEngine;
+
 namespace theory {
 namespace quantifiers {
 /**

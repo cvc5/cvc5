@@ -17,8 +17,6 @@
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -39,9 +37,9 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-CegSingleInv::CegSingleInv(TermRegistry& tr, SygusStatistics& s)
+CegSingleInv::CegSingleInv(Env& env, TermRegistry& tr, SygusStatistics& s)
     : d_sip(new SingleInvocationPartition),
-      d_srcons(new SygusReconstruct(tr.getTermDatabaseSygus(), s)),
+      d_srcons(new SygusReconstruct(env, tr.getTermDatabaseSygus(), s)),
       d_isSolved(false),
       d_single_invocation(false),
       d_treg(tr)

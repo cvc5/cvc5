@@ -45,6 +45,7 @@ class CandidateRewriteDatabase : public ExprMiner
  public:
   /**
    * Constructor
+   * @param env Reference to the environment
    * @param doCheck Whether to check rewrite rules using subsolvers.
    * @param rewAccel Whether to construct symmetry breaking lemmas based on
    * discovered rewrites (see option sygusRewSynthAccel()).
@@ -53,7 +54,8 @@ class CandidateRewriteDatabase : public ExprMiner
    * @param filterPairs Whether to filter rewrite pairs using filtering
    * techniques from the SAT 2019 paper above.
    */
-  CandidateRewriteDatabase(bool doCheck,
+  CandidateRewriteDatabase(Env& env,
+                           bool doCheck,
                            bool rewAccel = false,
                            bool silent = false,
                            bool filterPairs = true);
