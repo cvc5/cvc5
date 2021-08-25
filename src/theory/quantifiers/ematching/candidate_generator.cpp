@@ -24,6 +24,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace cvc5::kind;
 
@@ -292,7 +293,7 @@ CandidateGeneratorSelector::CandidateGeneratorSelector(QuantifiersState& qs,
   // NOTE: could use qs.getValuation().getPreprocessedTerm(mpat); when
   // expand definitions is eliminated, however, this also requires avoiding
   // term formula removal.
-  Node mpatExp = smt::currentSmtEngine()->expandDefinitions(mpat);
+  Node mpatExp = datatypes::DatatypesRewriter::expandApplySelector(mpat);
   Trace("sel-trigger") << "Expands to: " << mpatExp << std::endl;
   if (mpatExp.getKind() == ITE)
   {

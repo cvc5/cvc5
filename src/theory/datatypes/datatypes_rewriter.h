@@ -48,6 +48,10 @@ class DatatypesRewriter : public TheoryRewriter
    * on all top-level codatatype subterms of n.
    */
   static Node normalizeConstant(Node n);
+  /** 
+   * Expand an APPLY_SELECTOR term n, return its expanded form.
+   */
+  static Node expandApplySelector(Node n);
   /** expand defintions */
   TrustNode expandDefinition(Node n) override;
 
