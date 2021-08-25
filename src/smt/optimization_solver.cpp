@@ -92,9 +92,8 @@ std::ostream& operator<<(std::ostream& out,
   return out;
 }
 
-OptimizationSolver::OptimizationSolver(Env& env, SmtEngine* parent)
-    : d_env(env),
-      d_parent(parent),
+OptimizationSolver::OptimizationSolver(SmtEngine* parent)
+    : d_parent(parent),
       d_optChecker(),
       d_objectives(parent->getUserContext()),
       d_results()
@@ -144,7 +143,6 @@ std::vector<OptimizationResult> OptimizationSolver::getValues()
 }
 
 std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
-    Env& env,
     SmtEngine* parentSMTSolver,
     bool needsTimeout,
     unsigned long timeout)
@@ -152,7 +150,7 @@ std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
   std::unique_ptr<SmtEngine> optChecker;
   // initializeSubSolver will copy the options and theories enabled
   // from the current solver to optChecker and adds timeout
-  theory::initializeSubsolver(optChecker, env, needsTimeout, timeout);
+  theory::initializeSubsolver(optChecker, parentSMTSolver->getEnv(), needsTimeout, timeout);
   // we need to be in incremental mode for multiple objectives since we need to
   // push pop we need to produce models to inrement on our objective
   optChecker->setOption("incremental", "true");
@@ -169,7 +167,7 @@ std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
 Result OptimizationSolver::optimizeBox()
 {
   // resets the optChecker
-  d_optChecker = createOptCheckerWithTimeout(d_env, d_parent);
+  d_optChecker = createOptCheckerWithTimeout(d_parent);
   OptimizationResult partialResult;
   Result aggregatedResult(Result::Sat::SAT);
   std::unique_ptr<OMTOptimizer> optimizer;

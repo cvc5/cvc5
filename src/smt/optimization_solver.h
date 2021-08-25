@@ -222,7 +222,7 @@ class OptimizationSolver
    * Constructor
    * @param parent the smt_solver that the user added their assertions to
    **/
-  OptimizationSolver(Env& env, SmtEngine* parent);
+  OptimizationSolver(SmtEngine* parent);
   ~OptimizationSolver() = default;
 
   /**
@@ -264,7 +264,6 @@ class OptimizationSolver
    * @return a unique_pointer of SMT subsolver
    **/
   static std::unique_ptr<SmtEngine> createOptCheckerWithTimeout(
-      Env& env,
       SmtEngine* parentSMTSolver,
       bool needsTimeout = false,
       unsigned long timeout = 0);
