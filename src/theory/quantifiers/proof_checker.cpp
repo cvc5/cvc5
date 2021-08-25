@@ -133,16 +133,17 @@ Node QuantifiersProofRuleChecker::checkInternal(
     std::unordered_set<Node> allVars[2];
     std::vector<Node> vars;
     std::vector<Node> newVars;
-    for (size_t i=1, nargs = args.size(); i<nargs; i++)
+    for (size_t i = 1, nargs = args.size(); i < nargs; i++)
     {
-      if (args[i].getKind()!=kind::EQUAL)
+      if (args[i].getKind() != kind::EQUAL)
       {
         return Node::null();
       }
-      for (size_t j=0; j<2; j++)
+      for (size_t j = 0; j < 2; j++)
       {
         Node v = args[i][j];
-        if (v.getKind()!=kind::BOUND_VARIABLE || allVars[j].find(v)!=allVars[j].end())
+        if (v.getKind() != kind::BOUND_VARIABLE
+            || allVars[j].find(v) != allVars[j].end())
         {
           return Node::null();
         }

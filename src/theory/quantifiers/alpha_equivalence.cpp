@@ -15,9 +15,9 @@
 
 #include "theory/quantifiers/alpha_equivalence.h"
 
+#include "proof/method_id.h"
 #include "proof/proof.h"
 #include "proof/proof_node.h"
-#include "proof/method_id.h"
 #include "theory/quantifiers/extended_rewrite.h"
 
 using namespace cvc5::kind;
@@ -70,32 +70,34 @@ Node AlphaEquivalenceDb::addTerm(Node q)
   return addTermToTypeTrie(t, q);
 }
 
-Node AlphaEquivalenceDb::addTermWithSubstitution(Node q, std::vector<Node>& vars, std::vector<Node>& subs)
+Node AlphaEquivalenceDb::addTermWithSubstitution(Node q,
+                                                 std::vector<Node>& vars,
+                                                 std::vector<Node>& subs)
 {
   Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
-  //construct canonical quantified formula with visited cache
+  // construct canonical quantified formula with visited cache
   std::map<TNode, Node> visited;
   Node t = d_tc->getCanonicalTerm(q[1], visited, d_sortCommutativeOpChildren);
   // only need to store BOUND_VARIABLE in substitution
   std::map<Node, TNode>& bm = d_bvmap[q];
   for (const std::pair<const TNode, Node>& b : visited)
   {
-    if (b.first.getKind()==BOUND_VARIABLE)
+    if (b.first.getKind() == BOUND_VARIABLE)
     {
-      Assert (b.second.getKind()==BOUND_VARIABLE);
+      Assert(b.second.getKind() == BOUND_VARIABLE);
       bm[b.second] = b.first;
     }
   }
   Node qret = addTermToTypeTrie(t, q);
-  if (qret!=q)
+  if (qret != q)
   {
-    Assert (d_bvmap.find(qret)!=d_bvmap.end());
+    Assert(d_bvmap.find(qret) != d_bvmap.end());
     std::map<Node, TNode>& bmr = d_bvmap[qret];
     std::map<Node, TNode>::iterator itb;
     for (const std::pair<const Node, TNode>& b : bmr)
     {
       itb = bm.find(b.first);
-      if (itb==bm.end())
+      if (itb == bm.end())
       {
         // didn't use the same variables, fail
         vars.clear();
@@ -116,7 +118,8 @@ Node AlphaEquivalenceDb::addTermToTypeTrie(Node t, Node q)
   //compute variable type counts
   std::map<TypeNode, size_t> typCount;
   std::vector< TypeNode > typs;
-  for (const Node& v : q[0]){
+  for (const Node& v : q[0])
+  {
     TypeNode tn = v.getType();
     typCount[tn]++;
     if( std::find( typs.begin(), typs.end(), tn )==typs.end() ){
@@ -178,13 +181,15 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
   {
     std::vector<Node> pfArgs;
     pfArgs.push_back(ret);
-    for (size_t i=0, nvars = vars.size(); i<nvars; i++)
+    for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
     {
       pfArgs.push_back(vars[i].eqNode(subs[i]));
-      Trace("alpha-eq")  << "subs: " << vars[i] << " -> " << subs[i] << std::endl;
+      Trace("alpha-eq") << "subs: " << vars[i] << " -> " << subs[i]
+                        << std::endl;
     }
     CDProof cdp(d_pnm);
-    Node sret = ret.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+    Node sret =
+        ret.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     std::vector<Node> transEq;
     Node eq = ret.eqNode(sret);
     transEq.push_back(eq);
@@ -193,7 +198,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     cdp.addStep(eq, PfRule::ALPHA_EQUIV, {}, pfArgs);
     // if not syntactically equal, maybe it can be transformed
     bool success = false;
-    if (sret==q)
+    if (sret == q)
     {
       success = true;
     }
@@ -209,7 +214,10 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
         // sret = q
         std::vector<Node> pfArgs2;
         pfArgs2.push_back(eq2);
-        addMethodIds(pfArgs2, MethodId::SB_DEFAULT, MethodId::SBA_SEQUENTIAL, MethodId::RW_EXT_REWRITE);
+        addMethodIds(pfArgs2,
+                     MethodId::SB_DEFAULT,
+                     MethodId::SBA_SEQUENTIAL,
+                     MethodId::RW_EXT_REWRITE);
         cdp.addStep(eq2, PfRule::MACRO_SR_PRED_INTRO, {}, pfArgs2);
         success = true;
       }
@@ -217,7 +225,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     // if successful, store the proof and remember the proof generator
     if (success)
     {
-      if (transEq.size()>1)
+      if (transEq.size() > 1)
       {
         // TRANS of ALPHA_EQ and MACRO_SR_PRED_INTRO steps from above
         cdp.addStep(lem, PfRule::TRANS, transEq, {});

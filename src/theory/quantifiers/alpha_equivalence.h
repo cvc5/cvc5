@@ -18,10 +18,9 @@
 #ifndef CVC5__ALPHA_EQUIVALENCE_H
 #define CVC5__ALPHA_EQUIVALENCE_H
 
-#include "theory/quantifiers/quant_util.h"
-
 #include "expr/term_canonize.h"
 #include "proof/eager_proof_generator.h"
+#include "theory/quantifiers/quant_util.h"
 
 namespace cvc5 {
 namespace theory {
@@ -76,9 +75,12 @@ class AlphaEquivalenceDb
    * that q * subs is alpha-equivalent (possibly modulo rewriting) to the
    * returned quantified formula.
    */
-  Node addTermWithSubstitution(Node q, std::vector<Node>& vars, std::vector<Node>& subs);
+  Node addTermWithSubstitution(Node q,
+                               std::vector<Node>& vars,
+                               std::vector<Node>& subs);
+
  private:
-  /** 
+  /**
    * Add term to the trie, where t is the canonized form of the body of
    * quantified formula q. Returns the quantified formula, if any, that already
    * had been added to this class, or q otherwise.
@@ -90,7 +92,7 @@ class AlphaEquivalenceDb
   expr::TermCanonize* d_tc;
   /** whether to sort children of commutative operators during canonization. */
   bool d_sortCommutativeOpChildren;
-  /** 
+  /**
    * Maps quantified formulas to variables map, used for tracking substitutions
    * in addTermWithSubstitution. The range in d_bvmap[q] contains the mapping
    * from canonical free variables to variables in q.
