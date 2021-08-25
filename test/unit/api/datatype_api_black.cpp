@@ -44,17 +44,30 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSort)
 
 TEST_F(TestApiBlackDatatype, isNull)
 {
-  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
+  DatatypeDecl dtypeSpec;
+  DatatypeConstructorDecl cons;
+  Datatype d;
+  DatatypeConstructor consConstr;
+  DatatypeSelector sel;
+  ASSERT_TRUE(dtypeSpec.isNull());
+  ASSERT_TRUE(cons.isNull());
+  ASSERT_TRUE(d.isNull());
+  ASSERT_TRUE(consConstr.isNull());
+  ASSERT_TRUE(sel.isNull());
+
+  dtypeSpec = d_solver.mkDatatypeDecl("list");
+  cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver.getIntegerSort());
   dtypeSpec.addConstructor(cons);
-  Datatype d = listSort.getDatatype();
-  DatatypeConstructor consConstr = d[0];
-  DatatypeSelector sel = consConst[0];
-  ASSERT_FALSE(d.isNull());
-  ASSERT_FALSE(cons.isNull());
-  ASSERT_FALSE(consConstr.isNull());
+  Sort listSort = d_solver.mkDatatypeSort(dtypeSpec);
+  d = listSort.getDatatype();
+  consConstr = d[0];
+  sel = consConstr[0];
+
   ASSERT_FALSE(dtypeSpec.isNull());
+  ASSERT_FALSE(cons.isNull());
+  ASSERT_FALSE(d.isNull());
+  ASSERT_FALSE(consConstr.isNull());
   ASSERT_FALSE(sel.isNull());
 }
 
