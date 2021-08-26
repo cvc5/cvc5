@@ -1332,11 +1332,10 @@ TEST_F(TestApiBlackSolver, getOptionNames)
 TEST_F(TestApiBlackSolver, getOptionInfo)
 {
   {
-    // custom type (shows as void) with alias
-    api::OptionInfo info = d_solver.getOptionInfo("input-language");
-    EXPECT_EQ("lang", info.name);
-    EXPECT_EQ(std::vector<std::string>{"input-language"}, info.aliases);
-    EXPECT_TRUE(std::holds_alternative<OptionInfo::VoidInfo>(info.valueInfo));
+    auto info = d_solver.getOptionInfo("verbose");
+    ASSERT_EQ(info.name, "verbose");
+    ASSERT_EQ(info.aliases, std::vector<std::string>{});
+    ASSERT_TRUE(std::holds_alternative<api::OptionInfo::VoidInfo>(info.valueInfo));
   }
   {
     // int64 type with default
@@ -1348,6 +1347,20 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     EXPECT_EQ(0, numInfo.defaultValue);
     EXPECT_EQ(0, numInfo.currentValue);
     EXPECT_FALSE(numInfo.minimum || numInfo.maximum);
+    ASSERT_EQ(info.intValue(), 0);
+  }
+  {
+    auto info = d_solver.getOptionInfo("random-freq");
+    ASSERT_EQ(info.name, "random-freq");
+    ASSERT_EQ(info.aliases, std::vector<std::string>{"random-frequency"});
+    ASSERT_TRUE(std::holds_alternative<api::OptionInfo::NumberInfo<double>>(info.valueInfo));
+    auto ni = std::get<api::OptionInfo::NumberInfo<double>>(info.valueInfo);
+    ASSERT_EQ(ni.currentValue, 0.0);
+    ASSERT_EQ(ni.defaultValue, 0.0);
+    ASSERT_TRUE(ni.minimum && ni.maximum);
+    ASSERT_EQ(*ni.minimum, 0.0);
+    ASSERT_EQ(*ni.maximum, 1.0);
+    ASSERT_EQ(info.doubleValue(), 0.0);
   }
   {
     // mode option
