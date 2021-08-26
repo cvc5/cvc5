@@ -67,7 +67,9 @@ class SetDefaults
   /**
    * Check incompatible with incremental mode.
    */
-  bool incompatibleWithIncrementalMode(Options& opts) const;
+  bool incompatibleWithIncremental(Options& opts,
+                                             std::ostream& reason,
+                                             std::ostream& suggest) const;
   /**
    * Check incompatible with unsat cores.
    */
