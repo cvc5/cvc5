@@ -344,13 +344,13 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   // if we requiring disabling proofs, disable them now
   if (opts.smt.produceProofs)
   {
-    std::stringstream ssIncProofs;
-    if (incompatibleWithProofs(opts, ssIncProofs))
+    std::stringstream reasonNoProofs;
+    if (incompatibleWithProofs(opts, reasonNoProofs))
     {
       opts.smt.unsatCores = false;
       opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
       Notice() << "SmtEngine: turning off produce-proofs due to "
-               << ssIncProofs.str() << "." << std::endl;
+               << reasonNoProofs.str() << "." << std::endl;
       opts.smt.produceProofs = false;
       opts.smt.checkProofs = false;
       opts.proof.proofEagerChecking = false;
@@ -409,13 +409,13 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     opts.bv.bitvectorToBool = true;
   }
 
-  // Disable options incompatible with incremental solving, unsat cores or
-  // output an error if enabled explicitly.
+  // Disable options incompatible with incremental solving, or output an error
+  // if enabled explicitly.
   if (opts.base.incrementalSolving)
   {
     std::stringstream reasonNoInc;
     std::stringstream suggestNoInc;
-    if (incompatibleWithIncremental(opts, reasonNoInc, suggestNoInc))
+    if (incompatibleWithIncremental(logic, opts, reasonNoInc, suggestNoInc))
     {
       std::stringstream ss;
       ss << reasonNoInc.str() << " not supported with incremental solving. " << suggestNoInc.str();
@@ -922,7 +922,8 @@ bool SetDefaults::incompatibleWithModels(const Options& opts,
   return false;
 }
 
-bool SetDefaults::incompatibleWithIncremental(Options& opts,
+bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic, 
+                                              Options& opts,
                                              std::ostream& reason,
                                              std::ostream& suggest) const
 {

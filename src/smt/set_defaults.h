@@ -67,7 +67,8 @@ class SetDefaults
   /**
    * Check incompatible with incremental mode.
    */
-  bool incompatibleWithIncremental(Options& opts,
+  bool incompatibleWithIncremental(const LogicInfo& logic, 
+                                   Options& opts,
                                              std::ostream& reason,
                                              std::ostream& suggest) const;
   /**
