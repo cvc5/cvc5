@@ -96,14 +96,16 @@ std::string parse(std::string instr,
   }
 
   api::Solver solver;
-  Language ilang = input_language == "smt2" ? Language::LANG_SMTLIB_V2_6
-                                            : Language::LANG_CVC;
+  std::string ilang =
+      input_language == "smt2" ? "LANG_SMTLIB_V2_6" : "LANG_CVC";
 
   solver.setOption("input-language", input_language);
   solver.setOption("output-language", output_language);
   SymbolManager symman(&solver);
   std::unique_ptr<Parser> parser(
-      ParserBuilder(&solver, &symman).withInputLanguage(ilang).build());
+      ParserBuilder(&solver, &symman, false)
+          .withInputLanguage(solver.getOption("input-language"))
+          .build());
   parser->setInput(
       Input::newStringInput(ilang, declarations, "internal-buffer"));
   // we don't need to execute the commands, but we DO need to parse them to

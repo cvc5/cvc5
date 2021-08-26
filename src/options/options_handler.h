@@ -153,6 +153,10 @@ public:
   Language stringToLanguage(const std::string& option,
                             const std::string& flag,
                             const std::string& optarg);
+  /** Apply the output language to the default output stream */
+  void applyOutputLanguage(const std::string& option,
+                           const std::string& flag,
+                           Language lang);
   /** Check that lang is not LANG_AST (which is not allowed as input language). */
   void languageIsNotAST(const std::string& option,
                         const std::string& flag,

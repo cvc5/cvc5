@@ -230,7 +230,7 @@ class Smt2 : public Parser
    */
   bool v2_6(bool exact = false) const
   {
-    return language::isLangSmt2(getLanguage());
+    return d_solver->getOption("input-language") == "LANG_SMTLIB_V2_6";
   }
   /** Are we using a sygus language? */
   bool sygus() const;

@@ -158,32 +158,32 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   }
   const char* filename = filenameStr.c_str();
 
-  if (opts->base.inputLanguage == Language::LANG_AUTO)
+  if (solver->getOption("input-language") == "LANG_AUTO")
   {
     if( inputFromStdin ) {
       // We can't do any fancy detection on stdin
-      opts->base.inputLanguage = Language::LANG_CVC;
+      solver->setOption("input-language", "cvc");
     } else {
       size_t len = filenameStr.size();
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
-        opts->base.inputLanguage = Language::LANG_SMTLIB_V2_6;
+        solver->setOption("input-language", "smt2");
       } else if((len >= 2 && !strcmp(".p", filename + len - 2))
                 || (len >= 5 && !strcmp(".tptp", filename + len - 5))) {
-        opts->base.inputLanguage = Language::LANG_TPTP;
+        solver->setOption("input-language", "tptp");
       } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
                 || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
-        opts->base.inputLanguage = Language::LANG_CVC;
+        solver->setOption("input-language", "cvc");
       } else if((len >= 3 && !strcmp(".sy", filename + len - 3))
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
         // version 2 sygus is the default
-        opts->base.inputLanguage = Language::LANG_SYGUS_V2;
+        solver->setOption("input-language", "sygus2");
       }
     }
   }
 
-  if (opts->base.outputLanguage == Language::LANG_AUTO)
+  if (solver->getOption("output-language") == "LANG_AUTO")
   {
-    opts->base.outputLanguage = opts->base.inputLanguage;
+    solver->setOption("output-language", solver->getOption("input-language"));
   }
   pExecutor->storeOptionsAsOriginal();
 
@@ -196,11 +196,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
     MessageChannel.setStream(&cvc5::null_os);
     WarningChannel.setStream(&cvc5::null_os);
   }
-
-  // important even for muzzled builds (to get result output right)
-  (*opts->base.out)
-      << language::SetLanguage(opts->base.outputLanguage);
-
 
   int returnValue = 0;
   {
@@ -259,19 +254,19 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
         pExecutor->doCommand(cmd);
       }
 
-      ParserBuilder parserBuilder(pExecutor->getSolver(),
-                                  pExecutor->getSymbolManager(),
-                                  *opts);
+      ParserBuilder parserBuilder(
+          pExecutor->getSolver(), pExecutor->getSymbolManager(), true);
       std::unique_ptr<Parser> parser(parserBuilder.build());
       if( inputFromStdin ) {
         parser->setInput(Input::newStreamInput(
-            opts->base.inputLanguage, cin, filename));
+            solver->getOption("input-language"), cin, filename));
       }
       else
       {
-        parser->setInput(Input::newFileInput(opts->base.inputLanguage,
-                                             filename,
-                                             opts->parser.memoryMap));
+        parser->setInput(
+            Input::newFileInput(solver->getOption("input-language"),
+                                filename,
+                                solver->getOption("mmap") == "true"));
       }
 
       bool interrupted = false;
