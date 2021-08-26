@@ -44,7 +44,7 @@ def test_is_null(solver):
   d = Datatype(solver)
   consConstr = DatatypeConstructor(solver)
   sel = DatatypeSelector(solver)
-  # assert dtypeSpec.isNull()
+  assert dtypeSpec.isNull()
   assert cons.isNull()
   assert d.isNull()
   assert consConstr.isNull()
