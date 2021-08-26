@@ -356,7 +356,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     {
       opts.smt.unsatCores = false;
       opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
-      Notice() << "SmtEngine: turning off produce-proofs due to " << ssIncProofs.str() << "." << std::endl;
+      Notice() << "SmtEngine: turning off produce-proofs due to "
+               << ssIncProofs.str() << "." << std::endl;
       opts.smt.produceProofs = false;
       opts.smt.checkProofs = false;
       opts.proof.proofEagerChecking = false;
@@ -907,7 +908,8 @@ bool SetDefaults::usesSygus(const Options& opts) const
   return false;
 }
 
-bool SetDefaults::incompatibleWithProofs(const Options& opts, std::ostream& reason) const
+bool SetDefaults::incompatibleWithProofs(const Options& opts,
+                                         std::ostream& reason) const
 {
   if (opts.quantifiers.globalNegate)
   {
@@ -926,7 +928,8 @@ bool SetDefaults::incompatibleWithProofs(const Options& opts, std::ostream& reas
   return false;
 }
 
-bool SetDefaults::incompatibleWithModels(const Options& opts, std::ostream& reason) const
+bool SetDefaults::incompatibleWithModels(const Options& opts,
+                                         std::ostream& reason) const
 {
   if (opts.smt.unconstrainedSimpWasSetByUser && opts.smt.unconstrainedSimp)
   {
@@ -956,7 +959,8 @@ bool SetDefaults::incompatibleWithIncrementalMode(Options& opts) const
   return false;
 }
 
-bool SetDefaults::incompatibleWithUnsatCores(Options& opts, std::ostream& reason) const
+bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
+                                             std::ostream& reason) const
 {
   if (opts.smt.simplificationMode != options::SimplificationMode::NONE)
   {
@@ -967,7 +971,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts, std::ostream& reason
     }
     Notice() << "SmtEngine: turning off simplification to support unsat "
                 "cores"
-              << std::endl;
+             << std::endl;
     opts.smt.simplificationMode = options::SimplificationMode::NONE;
   }
 
@@ -1094,8 +1098,9 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts, std::ostream& reason
       reason << "unconstrained simplification";
       return true;
     }
-    Notice() << "SmtEngine: turning off unconstrained simplification to support unsat cores"
-              << std::endl;
+    Notice() << "SmtEngine: turning off unconstrained simplification to "
+                "support unsat cores"
+             << std::endl;
     opts.smt.unconstrainedSimp = false;
   }
   return false;

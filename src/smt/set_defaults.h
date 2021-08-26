@@ -60,7 +60,7 @@ class SetDefaults
    * that answers "unsat" without showing a proof of unsatisfiabilty.
    */
   bool incompatibleWithProofs(const Options& opts, std::ostream& reason) const;
-  /** 
+  /**
    * Check whether we should disable models.
    */
   bool incompatibleWithModels(const Options& opts, std::ostream& reason) const;
