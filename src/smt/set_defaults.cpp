@@ -349,17 +349,18 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   }
 
   // if we requiring disabling proofs, disable them now
-  if (mustDisableProofs(opts) && opts.smt.produceProofs)
+  if (opts.smt.produceProofs)
   {
-    opts.smt.unsatCores = false;
-    opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
-    if (opts.smt.produceProofs)
+    std::stringstream ssIncProofs;
+    if (incompatibleWithProofs(opts, ssIncProofs))
     {
-      Notice() << "SmtEngine: turning off produce-proofs." << std::endl;
+      opts.smt.unsatCores = false;
+      opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
+      Notice() << "SmtEngine: turning off produce-proofs due to " << ssIncProofs.str() << "." << std::endl;
+      opts.smt.produceProofs = false;
+      opts.smt.checkProofs = false;
+      opts.proof.proofEagerChecking = false;
     }
-    opts.smt.produceProofs = false;
-    opts.smt.checkProofs = false;
-    opts.proof.proofEagerChecking = false;
   }
 
   // sygus core connective requires unsat cores
@@ -417,7 +418,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
             "cores/incremental solving");
       }
       Notice() << "SmtEngine: turning off unconstrained simplification to "
-                  "support old unsat cores/incremental solving"
+                  "support unsat cores/incremental solving"
                << std::endl;
       opts.smt.unconstrainedSimp = false;
     }
@@ -469,127 +470,14 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   // explicitly
   if (safeUnsatCores(opts))
   {
-    if (opts.smt.simplificationMode != options::SimplificationMode::NONE)
+    // check if the options are not compatible with unsat cores
+    std::stringstream ssIncUc;
+    if (incompatibleWithUnsatCores(opts, ssIncUc))
     {
-      if (opts.smt.simplificationModeWasSetByUser)
-      {
-        throw OptionException(
-            "simplification not supported with old unsat cores");
-      }
-      Notice() << "SmtEngine: turning off simplification to support unsat "
-                  "cores"
-               << std::endl;
-      opts.smt.simplificationMode = options::SimplificationMode::NONE;
-    }
-
-    if (opts.smt.learnedRewrite)
-    {
-      if (opts.smt.learnedRewriteWasSetByUser)
-      {
-        throw OptionException(
-            "learned rewrites not supported with unsat cores");
-      }
-      Notice() << "SmtEngine: turning off learned rewrites to support "
-                  "unsat cores\n";
-      opts.smt.learnedRewrite = false;
-    }
-
-    if (opts.arith.pbRewrites)
-    {
-      if (opts.arith.pbRewritesWasSetByUser)
-      {
-        throw OptionException(
-            "pseudoboolean rewrites not supported with unsat cores");
-      }
-      Notice() << "SmtEngine: turning off pseudoboolean rewrites to support "
-                  "unsat cores\n";
-      opts.arith.pbRewrites = false;
-    }
-
-    if (opts.smt.sortInference)
-    {
-      if (opts.smt.sortInferenceWasSetByUser)
-      {
-        throw OptionException("sort inference not supported with unsat cores");
-      }
-      Notice() << "SmtEngine: turning off sort inference to support unsat "
-                  "cores\n";
-      opts.smt.sortInference = false;
-    }
-
-    if (opts.quantifiers.preSkolemQuant)
-    {
-      if (opts.quantifiers.preSkolemQuantWasSetByUser)
-      {
-        throw OptionException(
-            "pre-skolemization not supported with unsat cores");
-      }
-      Notice() << "SmtEngine: turning off pre-skolemization to support "
-                  "unsat cores\n";
-      opts.quantifiers.preSkolemQuant = false;
-    }
-
-    if (opts.bv.bitvectorToBool)
-    {
-      if (opts.bv.bitvectorToBoolWasSetByUser)
-      {
-        throw OptionException("bv-to-bool not supported with unsat cores");
-      }
-      Notice() << "SmtEngine: turning off bitvector-to-bool to support "
-                  "unsat cores\n";
-      opts.bv.bitvectorToBool = false;
-    }
-
-    if (opts.bv.boolToBitvector != options::BoolToBVMode::OFF)
-    {
-      if (opts.bv.boolToBitvectorWasSetByUser)
-      {
-        throw OptionException(
-            "bool-to-bv != off not supported with unsat cores");
-      }
-      Notice() << "SmtEngine: turning off bool-to-bv to support unsat cores\n";
-      opts.bv.boolToBitvector = options::BoolToBVMode::OFF;
-    }
-
-    if (opts.bv.bvIntroducePow2)
-    {
-      if (opts.bv.bvIntroducePow2WasSetByUser)
-      {
-        throw OptionException("bv-intro-pow2 not supported with unsat cores");
-      }
-      Notice() << "SmtEngine: turning off bv-intro-pow2 to support unsat cores";
-      opts.bv.bvIntroducePow2 = false;
-    }
-
-    if (opts.smt.repeatSimp)
-    {
-      if (opts.smt.repeatSimpWasSetByUser)
-      {
-        throw OptionException("repeat-simp not supported with unsat cores");
-      }
-      Notice() << "SmtEngine: turning off repeat-simp to support unsat cores\n";
-      opts.smt.repeatSimp = false;
-    }
-
-    if (opts.quantifiers.globalNegate)
-    {
-      if (opts.quantifiers.globalNegateWasSetByUser)
-      {
-        throw OptionException("global-negate not supported with unsat cores");
-      }
-      Notice() << "SmtEngine: turning off global-negate to support unsat "
-                  "cores\n";
-      opts.quantifiers.globalNegate = false;
-    }
-
-    if (opts.bv.bitvectorAig)
-    {
-      throw OptionException("bitblast-aig not supported with unsat cores");
-    }
-
-    if (opts.smt.doITESimp)
-    {
-      throw OptionException("ITE simp not supported with unsat cores");
+      // option exception
+      std::stringstream ss;
+      ss << ssIncUc.str() << " not supported with unsat cores";
+      throw OptionException(ss.str());
     }
   }
   else
@@ -827,6 +715,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     opts.smt.sortInference = false;
     opts.uf.ufssFairnessMonotone = false;
     opts.quantifiers.globalNegate = false;
+    opts.quantifiers.cegqiNestedQE = false;
     opts.bv.bvAbstraction = false;
     opts.arith.arithMLTrick = false;
   }
@@ -892,30 +781,10 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   }
 
   // !!! All options that require disabling models go here
-  bool disableModels = false;
-  std::string sOptNoModel;
-  if (opts.smt.unconstrainedSimpWasSetByUser && opts.smt.unconstrainedSimp)
+  std::stringstream ssOptNoModel;
+  if (incompatibleWithModels(opts, ssOptNoModel)
   {
-    disableModels = true;
-    sOptNoModel = "unconstrained-simp";
-  }
-  else if (opts.smt.sortInference)
-  {
-    disableModels = true;
-    sOptNoModel = "sort-inference";
-  }
-  else if (opts.prop.minisatUseElim)
-  {
-    disableModels = true;
-    sOptNoModel = "minisat-elimination";
-  }
-  else if (opts.quantifiers.globalNegate)
-  {
-    disableModels = true;
-    sOptNoModel = "global-negate";
-  }
-  if (disableModels)
-  {
+    std::string sOptNoModel = ssOptNoModel.str();
     if (opts.smt.produceModels)
     {
       if (opts.smt.produceModelsWasSetByUser)
@@ -1038,19 +907,196 @@ bool SetDefaults::usesSygus(const Options& opts) const
   return false;
 }
 
-bool SetDefaults::mustDisableProofs(const Options& opts) const
+bool SetDefaults::incompatibleWithProofs(const Options& opts, std::ostream& reason) const
 {
   if (opts.quantifiers.globalNegate)
   {
     // When global negate answers "unsat", it is not due to showing a set of
     // formulas is unsat. Thus, proofs do not apply.
+    reason << "global-negate";
     return true;
   }
   if (isSygus(opts))
   {
     // When sygus answers "unsat", it is not due to showing a set of
     // formulas is unsat in the standard way. Thus, proofs do not apply.
+    reason << "sygus";
     return true;
+  }
+  return false;
+}
+
+bool SetDefaults::incompatibleWithModels(const Options& opts, std::ostream& reason) const
+{
+  if (opts.smt.unconstrainedSimpWasSetByUser && opts.smt.unconstrainedSimp)
+  {
+    reason << "unconstrained-simp";
+    return true;
+  }
+  else if (opts.smt.sortInference)
+  {
+    reason << "sort-inference";
+    return true;
+  }
+  else if (opts.prop.minisatUseElim)
+  {
+    reason << "minisat-elimination";
+    return true;
+  }
+  else if (opts.quantifiers.globalNegate)
+  {
+    reason << "global-negate";
+    return true;
+  }
+  return false;
+}
+
+bool SetDefaults::incompatibleWithIncrementalMode(Options& opts) const
+{
+  return false;
+}
+
+bool SetDefaults::incompatibleWithUnsatCores(Options& opts, std::ostream& reason) const
+{
+  if (opts.smt.simplificationMode != options::SimplificationMode::NONE)
+  {
+    if (opts.smt.simplificationModeWasSetByUser)
+    {
+      reason << "simplification";
+      return true;
+    }
+    Notice() << "SmtEngine: turning off simplification to support unsat "
+                "cores"
+              << std::endl;
+    opts.smt.simplificationMode = options::SimplificationMode::NONE;
+  }
+
+  if (opts.smt.learnedRewrite)
+  {
+    if (opts.smt.learnedRewriteWasSetByUser)
+    {
+      reason << "learned rewrites";
+      return true;
+    }
+    Notice() << "SmtEngine: turning off learned rewrites to support "
+                "unsat cores\n";
+    opts.smt.learnedRewrite = false;
+  }
+
+  if (opts.arith.pbRewrites)
+  {
+    if (opts.arith.pbRewritesWasSetByUser)
+    {
+      reason << "pseudoboolean rewrites";
+      return true;
+    }
+    Notice() << "SmtEngine: turning off pseudoboolean rewrites to support "
+                "unsat cores\n";
+    opts.arith.pbRewrites = false;
+  }
+
+  if (opts.smt.sortInference)
+  {
+    if (opts.smt.sortInferenceWasSetByUser)
+    {
+      reason << "sort inference";
+      return true;
+    }
+    Notice() << "SmtEngine: turning off sort inference to support unsat "
+                "cores\n";
+    opts.smt.sortInference = false;
+  }
+
+  if (opts.quantifiers.preSkolemQuant)
+  {
+    if (opts.quantifiers.preSkolemQuantWasSetByUser)
+    {
+      reason << "pre-skolemization";
+      return true;
+    }
+    Notice() << "SmtEngine: turning off pre-skolemization to support "
+                "unsat cores\n";
+    opts.quantifiers.preSkolemQuant = false;
+  }
+
+  if (opts.bv.bitvectorToBool)
+  {
+    if (opts.bv.bitvectorToBoolWasSetByUser)
+    {
+      reason << "bv-to-bool";
+      return true;
+    }
+    Notice() << "SmtEngine: turning off bitvector-to-bool to support "
+                "unsat cores\n";
+    opts.bv.bitvectorToBool = false;
+  }
+
+  if (opts.bv.boolToBitvector != options::BoolToBVMode::OFF)
+  {
+    if (opts.bv.boolToBitvectorWasSetByUser)
+    {
+      reason << "bool-to-bv != off";
+      return true;
+    }
+    Notice() << "SmtEngine: turning off bool-to-bv to support unsat cores\n";
+    opts.bv.boolToBitvector = options::BoolToBVMode::OFF;
+  }
+
+  if (opts.bv.bvIntroducePow2)
+  {
+    if (opts.bv.bvIntroducePow2WasSetByUser)
+    {
+      reason << "bv-intro-pow2";
+      return true;
+    }
+    Notice() << "SmtEngine: turning off bv-intro-pow2 to support unsat cores";
+    opts.bv.bvIntroducePow2 = false;
+  }
+
+  if (opts.smt.repeatSimp)
+  {
+    if (opts.smt.repeatSimpWasSetByUser)
+    {
+      reason << "repeat-simp";
+      return true;
+    }
+    Notice() << "SmtEngine: turning off repeat-simp to support unsat cores\n";
+    opts.smt.repeatSimp = false;
+  }
+
+  if (opts.quantifiers.globalNegate)
+  {
+    if (opts.quantifiers.globalNegateWasSetByUser)
+    {
+      reason << "global-negate";
+      return true;
+    }
+    Notice() << "SmtEngine: turning off global-negate to support unsat "
+                "cores\n";
+    opts.quantifiers.globalNegate = false;
+  }
+
+  if (opts.bv.bitvectorAig)
+  {
+    reason << "bitblast-aig";
+    return true;
+  }
+
+  if (opts.smt.doITESimp)
+  {
+    reason << "ITE simp";
+    return true;
+  }
+  if (opts.smt.unconstrainedSimp)
+  {
+    if (opts.smt.unconstrainedSimpWasSetByUser)
+    {
+      reason << "unconstrained simplification";
+      return true;
+    }
+    Notice() << "SmtEngine: turning off unconstrained simplification to support unsat cores"
+              << std::endl;
+    opts.smt.unconstrainedSimp = false;
   }
   return false;
 }
@@ -1293,11 +1339,6 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   }
   if (opts.quantifiers.cegqi)
   {
-    if (opts.base.incrementalSolving)
-    {
-      // cannot do nested quantifier elimination in incremental mode
-      opts.quantifiers.cegqiNestedQE = false;
-    }
     if (logic.isPure(THEORY_ARITH) || logic.isPure(THEORY_BV))
     {
       if (!opts.quantifiers.quantConflictFindWasSetByUser)

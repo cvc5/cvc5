@@ -59,7 +59,19 @@ class SetDefaults
    * Return true if proofs must be disabled. This is the case for any technique
    * that answers "unsat" without showing a proof of unsatisfiabilty.
    */
-  bool mustDisableProofs(const Options& opts) const;
+  bool incompatibleWithProofs(const Options& opts, std::ostream& reason) const;
+  /** 
+   * Check whether we should disable models.
+   */
+  bool incompatibleWithModels(const Options& opts, std::ostream& reason) const;
+  /**
+   * Check incompatible with incremental mode.
+   */
+  bool incompatibleWithIncrementalMode(Options& opts) const;
+  /**
+   * Check incompatible with unsat cores.
+   */
+  bool incompatibleWithUnsatCores(Options& opts, std::ostream& reason) const;
   /**
    * Return true if we are using "safe" unsat cores, which disables all
    * techniques that may interfere with producing correct unsat cores.
