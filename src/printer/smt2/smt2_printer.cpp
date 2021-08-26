@@ -686,6 +686,11 @@ void Smt2Printer::toStream(std::ostream& out,
     out << ' ';
     stillNeedToPrintParams = false;
     break;
+  case kind::BITVECTOR_BITOF:
+    out << "(_ bitOf " << n.getOperator().getConst<BitVectorBitOf>().d_bitIndex
+        << ") ";
+    stillNeedToPrintParams = false;
+    break;
 
   // sets
   case kind::SINGLETON:
@@ -1199,7 +1204,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
 void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
 {
   // we currently must call TypeNode::toStream here.
-  tn.toStream(out, language::output::LANG_SMTLIB_V2_6);
+  tn.toStream(out, Language::LANG_SMTLIB_V2_6);
 }
 
 template <class T>

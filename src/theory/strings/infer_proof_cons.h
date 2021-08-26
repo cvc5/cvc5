@@ -120,6 +120,68 @@ class InferProofCons : public ProofGenerator
    * conclusion, or null if we were not able to construct a TRANS step.
    */
   Node convertTrans(Node eqa, Node eqb, TheoryProofStepBuffer& psb);
+  /**
+   * Purify core substitution.
+   *
+   * When reconstructing proofs for the core strings calculus, we rely on
+   * sequential substitutions for constructing proofs involving recursive
+   * computation of normal forms. However, this can be incorrect in cases where
+   * a term like (str.replace x a b) is being treated as an atomic term,
+   * and a substitution applied over (str.replace x a b) -> c, x -> d.
+   * This can lead to the term (str.replace d a b) being generated instead of
+   * c.
+   *
+   * As an example of this method, given input:
+   *   tgt = (= x (str.++ (f x) c))
+   *   children = { (= (f x) a), (= x (str.++ b (f x))) }
+   *   concludeTgtNew = true
+   * This method updates:
+   *   tgt = (= x (str.++ k c))
+   *   children = { (= k a), (= x (str.++ b k)) }
+   * where k is the purification skolem for (f x). Additionally, it ensures
+   * that psb has a proof of:
+   *   (= x (str.++ k c)) from (= x (str.++ (f x) c))
+   *      ...note the direction, since concludeTgtNew = true
+   *   (= k a) from (= (f x) a)
+   *   (= x (str.++ b k)) from (= x (str.++ b (f x)))
+   * Notice that the resulting substitution can now be safely used as a
+   * sequential substution, since (f x) has been purified with k. The proofs
+   * in psb ensure that a proof step involving the purified substitution will
+   * have the same net effect as a proof step using the original substitution.
+   *
+   * @param tgt The term we were originally going to apply the substitution to.
+   * @param children The premises corresponding to the substitution.
+   * @param psb The proof step buffer
+   * @param concludeTgtNew Whether we require proving the purified form of
+   * tgt from tgt or vice versa.
+   * @return true if we successfully purified the substitution and the target
+   * term. Additionally, if successful, we ensure psb contains proofs of
+   * children'[i] from children[i] for all i, and tgt' from tgt (or vice versa
+   * based on concludeTgtNew).
+   */
+  bool purifyCoreSubstitution(Node& tgt,
+                              std::vector<Node>& children,
+                              TheoryProofStepBuffer& psb,
+                              bool concludeTgtNew = false) const;
+  /**
+   * Return the purified form of the predicate lit with respect to a set of
+   * terms to purify, call the returned literal lit'.
+   * If concludeNew is true, then we add a proof of lit' from lit in psb;
+   * otherwise we add a proof of lit from lit'.
+   * Note that string predicates that require purification are string
+   * (dis)equalities only.
+   */
+  Node purifyCorePredicate(Node lit,
+                           bool concludeNew,
+                           TheoryProofStepBuffer& psb,
+                           std::unordered_set<Node>& termsToPurify) const;
+  /**
+   * Purify term with respect to a set of terms to purify. This replaces
+   * all terms to purify with their purification variables that occur in
+   * positions that are relevant for the core calculus of strings (direct
+   * children of concat or equal).
+   */
+  Node purifyCoreTerm(Node n, std::unordered_set<Node>& termsToPurify) const;
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The lazy fact map */

@@ -929,7 +929,7 @@ void CvcPrinter::toStreamNode(std::ostream& out,
         }
         toStreamNode(out, n[i], -1, false, lbind);
         out << ":";
-        n[i].getType().toStream(out, language::output::LANG_CVC);
+        n[i].getType().toStream(out, Language::LANG_CVC);
       }
       out << ')';
       return;
