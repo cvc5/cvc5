@@ -38,7 +38,7 @@ ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
                                                    rewriter::RewriteDb* rdb,
                                                    bool updateScopedAssumptions)
     : d_env(env),
-    d_pnm(env.getProofNodeManager()),
+      d_pnm(env.getProofNodeManager()),
       d_pppg(pppg),
       d_rdbPc(env, rdb),
       d_wfpm(env.getProofNodeManager()),

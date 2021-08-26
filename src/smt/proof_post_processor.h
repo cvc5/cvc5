@@ -78,7 +78,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** Reference to the env */
   Env& d_env;
   /** Pointer to the proof node manager */
-  ProofNodeManager * d_pnm;
+  ProofNodeManager* d_pnm;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
   /** The rewrite database proof generator */
