@@ -616,8 +616,8 @@ std::string LfscNodeConverter::getNameForUserName(const std::string& name)
 bool LfscNodeConverter::shouldTraverse(Node n)
 {
   Kind k = n.getKind();
-  // don't convert bound variable list directly
-  if (k == BOUND_VAR_LIST)
+  // don't convert bound variable or instantiation pattern list directly
+  if (k == BOUND_VAR_LIST || k == INST_PATTERN_LIST)
   {
     return false;
   }
