@@ -92,6 +92,9 @@ class TrustNode
   static TrustNode mkTrustRewrite(TNode n,
                                   Node nr,
                                   ProofGenerator* g = nullptr);
+  /** Make a trust node, replacing the original generator */
+  static TrustNode mkReplaceGenTrustNode(const TrustNode& orig,
+                                         ProofGenerator* g);
   /** The null proven node */
   static TrustNode null();
   ~TrustNode() {}

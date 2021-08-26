@@ -19,7 +19,6 @@
 #include "options/arith_options.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -33,19 +32,18 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SynthVerify::SynthVerify(TermDbSygus* tds) : d_tds(tds)
+SynthVerify::SynthVerify(const Options& opts, TermDbSygus* tds) : d_tds(tds)
 {
   // determine the options to use for the verification subsolvers we spawn
-  // we start with the options of the current SmtEngine
-  SmtEngine* smtCurr = smt::currentSmtEngine();
-  d_subOptions.copyValues(smtCurr->getOptions());
+  // we start with the provided options
+  d_subOptions.copyValues(opts);
   // limit the number of instantiation rounds on subcalls
   d_subOptions.quantifiers.instMaxRounds =
       d_subOptions.quantifiers.sygusVerifyInstMaxRounds;
   // Disable sygus on the subsolver. This is particularly important since it
   // ensures that recursive function definitions have the standard ownership
   // instead of being claimed by sygus in the subsolver.
-  d_subOptions.base.inputLanguage = language::input::LANG_SMTLIB_V2_6;
+  d_subOptions.base.inputLanguage = Language::LANG_SMTLIB_V2_6;
   d_subOptions.quantifiers.sygus = false;
   // use tangent planes by default, since we want to put effort into
   // the verification step for sygus queries with non-linear arithmetic

@@ -33,8 +33,8 @@ namespace smt {
 std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
 {
   // check the output language first
-  OutputLanguage lang = language::SetLanguage::getLanguage(out);
-  if (!language::isOutputLang_smt2(lang))
+  Language lang = language::SetLanguage::getLanguage(out);
+  if (!language::isLangSmt2(lang))
   {
     Unimplemented()
         << "Only the SMTLib2 language supports optimization right now";
@@ -67,8 +67,8 @@ std::ostream& operator<<(std::ostream& out,
                          const OptimizationObjective& objective)
 {
   // check the output language first
-  OutputLanguage lang = language::SetLanguage::getLanguage(out);
-  if (!language::isOutputLang_smt2(lang))
+  Language lang = language::SetLanguage::getLanguage(out);
+  if (!language::isLangSmt2(lang))
   {
     Unimplemented()
         << "Only the SMTLib2 language supports optimization right now";
