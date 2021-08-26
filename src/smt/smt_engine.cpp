@@ -438,7 +438,7 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
   }
   else if (key == "smt-lib-version" && !getOptions().base.inputLanguageWasSetByUser)
   {
-    language::input::Language ilang = language::input::LANG_SMTLIB_V2_6;
+    Language ilang = Language::LANG_SMTLIB_V2_6;
 
     if (value != "2" && value != "2.6")
     {
@@ -450,7 +450,7 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
     // also update the output language
     if (!getOptions().base.outputLanguageWasSetByUser)
     {
-      language::output::Language olang = language::toOutputLanguage(ilang);
+      Language olang = ilang;
       if (d_env->getOptions().base.outputLanguage != olang)
       {
         getOptions().base.outputLanguage = olang;
@@ -2022,21 +2022,7 @@ std::string SmtEngine::getOption(const std::string& key) const
     return nm->mkNode(Kind::SEXPR, result).toString();
   }
 
-  std::string atom = options::get(getOptions(), key);
-
-  if (atom != "true" && atom != "false")
-  {
-    try
-    {
-      Integer z(atom);
-    }
-    catch (std::invalid_argument&)
-    {
-      atom = "\"" + atom + "\"";
-    }
-  }
-
-  return atom;
+  return options::get(getOptions(), key);
 }
 
 Options& SmtEngine::getOptions() { return d_env->d_options; }
