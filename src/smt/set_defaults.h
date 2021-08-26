@@ -67,10 +67,10 @@ class SetDefaults
   /**
    * Check incompatible with incremental mode.
    */
-  bool incompatibleWithIncremental(const LogicInfo& logic, 
+  bool incompatibleWithIncremental(const LogicInfo& logic,
                                    Options& opts,
-                                             std::ostream& reason,
-                                             std::ostream& suggest) const;
+                                   std::ostream& reason,
+                                   std::ostream& suggest) const;
   /**
    * Check incompatible with unsat cores.
    */

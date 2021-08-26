@@ -397,7 +397,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
              << std::endl;
     opts.bv.bvSolver = options::BVSolver::BITBLAST_INTERNAL;
   }
-  
+
   if (opts.smt.solveBVAsInt != options::SolveBVAsIntMode::OFF)
   {
     /**
@@ -418,11 +418,12 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     if (incompatibleWithIncremental(logic, opts, reasonNoInc, suggestNoInc))
     {
       std::stringstream ss;
-      ss << reasonNoInc.str() << " not supported with incremental solving. " << suggestNoInc.str();
+      ss << reasonNoInc.str() << " not supported with incremental solving. "
+         << suggestNoInc.str();
       throw OptionException(ss.str());
     }
   }
-  
+
   // Disable options incompatible with unsat cores or output an error if enabled
   // explicitly
   if (safeUnsatCores(opts))
@@ -441,13 +442,14 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   if (!opts.smt.unconstrainedSimpWasSetByUser)
   {
     // It is also currently incompatible with arithmetic, force the option off.
-    bool uncSimp = !opts.base.incrementalSolving && !logic.isQuantified() && !opts.smt.produceModels
-                    && !opts.smt.produceAssignments && !opts.smt.checkModels
-                    && logic.isTheoryEnabled(THEORY_ARRAYS)
-                    && logic.isTheoryEnabled(THEORY_BV)
-                    && !logic.isTheoryEnabled(THEORY_ARITH);
+    bool uncSimp = !opts.base.incrementalSolving && !logic.isQuantified()
+                   && !opts.smt.produceModels && !opts.smt.produceAssignments
+                   && !opts.smt.checkModels
+                   && logic.isTheoryEnabled(THEORY_ARRAYS)
+                   && logic.isTheoryEnabled(THEORY_BV)
+                   && !logic.isTheoryEnabled(THEORY_ARITH);
     Trace("smt") << "setting unconstrained simplification to " << uncSimp
-                  << std::endl;
+                 << std::endl;
     opts.smt.unconstrainedSimp = uncSimp;
   }
 
@@ -455,17 +457,15 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   if (!opts.smt.simplificationModeWasSetByUser)
   {
     bool qf_sat = logic.isPure(THEORY_BOOL) && !logic.isQuantified();
-    Trace("smt") << "setting simplification mode to <"
-                  << logic.getLogicString() << "> " << (!qf_sat) << std::endl;
+    Trace("smt") << "setting simplification mode to <" << logic.getLogicString()
+                 << "> " << (!qf_sat) << std::endl;
     // simplification=none works better for SMT LIB benchmarks with
     // quantifiers, not others opts.set(options::simplificationMode, qf_sat ||
     // quantifiers ? options::SimplificationMode::NONE :
     // options::SimplificationMode::BATCH);
-    opts.smt.simplificationMode = qf_sat
-                                        ? options::SimplificationMode::NONE
-                                        : options::SimplificationMode::BATCH;
+    opts.smt.simplificationMode = qf_sat ? options::SimplificationMode::NONE
+                                         : options::SimplificationMode::BATCH;
   }
-
 
   if (opts.quantifiers.cegqiBv && logic.isQuantified())
   {
@@ -922,17 +922,17 @@ bool SetDefaults::incompatibleWithModels(const Options& opts,
   return false;
 }
 
-bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic, 
+bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
                                               Options& opts,
-                                             std::ostream& reason,
-                                             std::ostream& suggest) const
+                                              std::ostream& reason,
+                                              std::ostream& suggest) const
 {
-  if (opts.bv.bitblastMode == options::BitblastMode::EAGER && !logic.isPure(THEORY_BV))
+  if (opts.bv.bitblastMode == options::BitblastMode::EAGER
+      && !logic.isPure(THEORY_BV))
   {
     reason << "eager bit-blasting in non-QF_BV logic";
     suggest << "Try --bitblast=lazy.";
     return true;
-  
   }
   if (opts.quantifiers.sygusInference)
   {
@@ -943,7 +943,7 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
     }
     Notice() << "SmtEngine: turning off sygus inference to support "
                 "incremental solving"
-              << std::endl;
+             << std::endl;
     opts.quantifiers.sygusInference = false;
   }
   return false;
