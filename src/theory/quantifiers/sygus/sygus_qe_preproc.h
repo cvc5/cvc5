@@ -19,6 +19,9 @@
 #include "expr/node.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace theory {
 namespace quantifiers {
 
@@ -35,13 +38,17 @@ namespace quantifiers {
 class SygusQePreproc
 {
  public:
-  SygusQePreproc();
+  SygusQePreproc(Env& env);
   ~SygusQePreproc() {}
   /**
    * Preprocess. Returns a lemma of the form q = nq where nq is obtained
    * by the quantifier elimination technique outlined above.
    */
   Node preprocess(Node q);
+
+ private:
+  /** Reference to the env */
+  Env& d_env;
 };
 
 }  // namespace quantifiers

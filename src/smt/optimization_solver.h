@@ -26,6 +26,7 @@
 
 namespace cvc5 {
 
+class Env;
 class SmtEngine;
 
 namespace smt {
@@ -254,6 +255,8 @@ class OptimizationSolver
  private:
   /**
    * Initialize an SMT subsolver for offline optimization purpose
+   * @param env the environment, which determines options and logic for the
+   * subsolver
    * @param parentSMTSolver the parental solver containing the assertions
    * @param needsTimeout specifies whether it needs timeout for each single
    *    query
