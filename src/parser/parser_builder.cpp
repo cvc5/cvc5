@@ -50,7 +50,7 @@ ParserBuilder::ParserBuilder(api::Solver* solver,
 
 void ParserBuilder::init(api::Solver* solver, SymbolManager* sm)
 {
-  d_lang = language::input::LANG_AUTO;
+  d_lang = Language::LANG_AUTO;
   d_solver = solver;
   d_symman = sm;
   d_checksEnabled = true;
@@ -66,14 +66,14 @@ Parser* ParserBuilder::build()
   Parser* parser = NULL;
   switch (d_lang)
   {
-    case language::input::LANG_SYGUS_V2:
+    case Language::LANG_SYGUS_V2:
       parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
       break;
-    case language::input::LANG_TPTP:
+    case Language::LANG_TPTP:
       parser = new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly);
       break;
     default:
-      if (language::isInputLang_smt2(d_lang))
+      if (language::isLangSmt2(d_lang))
       {
         parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
       }
@@ -108,7 +108,8 @@ ParserBuilder& ParserBuilder::withChecks(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withInputLanguage(InputLanguage lang) {
+ParserBuilder& ParserBuilder::withInputLanguage(Language lang)
+{
   d_lang = lang;
   return *this;
 }
