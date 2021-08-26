@@ -278,7 +278,9 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
 {
   // initial call to Pareto optimizer, create the checker
   if (!d_optChecker)
+  {
     d_optChecker = createOptCheckerWithTimeout(d_parent);
+  }
   NodeManager* nm = d_optChecker->getNodeManager();
 
   // checks whether the current set of assertions are satisfied or not
