@@ -62,7 +62,7 @@ PfManager::PfManager(Env& env)
       env,
       d_pppg.get(),
       nullptr,
-      options::proofFormatMode() != options::ProofFormatMode::VERIT_EXTENDED));
+      options::proofFormatMode() != options::ProofFormatMode::VERIT));
 
   // add rules to eliminate here
   if (options::proofGranularityMode() != options::ProofGranularityMode::OFF)
