@@ -32,7 +32,7 @@
 
 namespace cvc5 {
 
-class SmtEngine;
+class Env;
 
 namespace smt {
 
@@ -43,8 +43,7 @@ namespace smt {
 class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  ProofPostprocessCallback(ProofNodeManager* pnm,
-                           SmtEngine* smte,
+  ProofPostprocessCallback(Env& env,
                            ProofGenerator* pppg,
                            rewriter::RewriteDb* rdb,
                            bool updateScopedAssumptions);
@@ -76,10 +75,10 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
  private:
   /** Common constants */
   Node d_true;
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
-  /** Pointer to the SmtEngine, which should have proofs enabled */
-  SmtEngine* d_smte;
+  /** Reference to the env */
+  Env& d_env;
+  /** Pointer to the proof node manager */
+  ProofNodeManager * d_pnm;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
   /** The rewrite database proof generator */
@@ -253,15 +252,13 @@ class ProofPostproccess
 {
  public:
   /**
-   * @param pnm The proof node manager we are using
-   * @param smte The SMT engine whose proofs are being post-processed
+   * @param env The environment we are using
    * @param pppg The proof generator for pre-processing proofs
    * @param updateScopedAssumptions Whether we post-process assumptions in
    * scope. Since doing so is sound and only problematic depending on who is
    * consuming the proof, it's true by default.
    */
-  ProofPostproccess(ProofNodeManager* pnm,
-                    SmtEngine* smte,
+  ProofPostproccess(Env& env,
                     ProofGenerator* pppg,
                     rewriter::RewriteDb* rdb,
                     bool updateScopedAssumptions = true);
@@ -274,8 +271,6 @@ class ProofPostproccess
   void setAssertions(const std::vector<Node>& assertions);
 
  private:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** The post process callback */
   ProofPostprocessCallback d_cb;
   /**

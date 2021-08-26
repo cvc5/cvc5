@@ -38,7 +38,7 @@ namespace rewriter {
 class RewriteDbProofCons
 {
  public:
-  RewriteDbProofCons(RewriteDb* db, ProofNodeManager* pnm);
+  RewriteDbProofCons(Env& env, RewriteDb* db);
   /**
    * Prove (= a b) with recursion limit recLimit. If cdp is provided, we add
    * a proove for this fact on it.

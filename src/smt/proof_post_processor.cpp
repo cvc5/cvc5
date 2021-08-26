@@ -33,16 +33,15 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
-                                                   SmtEngine* smte,
+ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
                                                    ProofGenerator* pppg,
                                                    rewriter::RewriteDb* rdb,
                                                    bool updateScopedAssumptions)
-    : d_pnm(pnm),
-      d_smte(smte),
+    : d_env(env),
+    d_pnm(env.getProofNodeManager()),
       d_pppg(pppg),
-      d_rdbPc(rdb, pnm),
-      d_wfpm(pnm),
+      d_rdbPc(env, rdb),
+      d_wfpm(env.getProofNodeManager()),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -965,7 +964,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       // rewrites from theory::Rewriter
       bool isExtEq = (idr == MethodId::RW_REWRITE_EQ_EXT);
       // use rewrite with proof interface
-      Rewriter* rr = d_smte->getRewriter();
+      Rewriter* rr = d_env.getRewriter();
       TrustNode trn = rr->rewriteWithProof(args[0], isExtEq);
       std::shared_ptr<ProofNode> pfn = trn.toProofNode();
       if (pfn == nullptr)
@@ -1193,17 +1192,15 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
   return true;
 }
 
-ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
-                                     SmtEngine* smte,
+ProofPostproccess::ProofPostproccess(Env& env,
                                      ProofGenerator* pppg,
                                      rewriter::RewriteDb* rdb,
                                      bool updateScopedAssumptions)
-    : d_pnm(pnm),
-      d_cb(pnm, smte, pppg, rdb, updateScopedAssumptions),
+    : d_cb(env, pppg, rdb, updateScopedAssumptions),
       // the update merges subproofs
-      d_updater(d_pnm, d_cb, options::proofPpMerge()),
-      d_finalCb(pnm),
-      d_finalizer(d_pnm, d_finalCb)
+      d_updater(env.getProofNodeManager(), d_cb, options::proofPpMerge()),
+      d_finalCb(env.getProofNodeManager()),
+      d_finalizer(env.getProofNodeManager(), d_finalCb)
 {
 }
 

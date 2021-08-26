@@ -26,8 +26,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-QueryCache::QueryCache(bool checkUnsat, Options* optr)
-    : d_checkUnsat(checkUnsat)
+QueryCache::QueryCache(Env& env, bool checkUnsat, Options* optr)
+    : ExprMiner(env), d_checkUnsat(checkUnsat)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   if (optr != nullptr)

@@ -37,38 +37,43 @@
 namespace cvc5 {
 namespace smt {
 
-PfManager::PfManager(Env& env, SmtEngine* smte)
+PfManager::PfManager(Env& env)
     : d_env(env),
       d_rewriteDb(new rewriter::RewriteDb),
       d_pchecker(new ProofChecker(options::proofPedantic(), d_rewriteDb.get())),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
-      d_pfpp(new ProofPostproccess(
-          d_pnm.get(),
-          smte,
-          d_pppg.get(),
-          d_rewriteDb.get(),
-          // by default the post-processor will update all assumptions, which
-          // can lead to SCOPE subproofs of the form
-          //   A
-          //  ...
-          //   B1    B2
-          //  ...   ...
-          // ------------
-          //      C
-          // ------------- SCOPE [B1, B2]
-          // B1 ^ B2 => C
-          //
-          // where A is an available assumption from outside the scope (note
-          // that B1 was an assumption of this SCOPE subproof but since it could
-          // be inferred from A, it was updated). This shape is problematic for
-          // the veriT reconstruction, so we disable the update of scoped
-          // assumptions (which would disable the update of B1 in this case).
-          options::proofFormatMode()
-              != options::ProofFormatMode::VERIT_EXTENDED)),
+      d_pfpp(nullptr),
       d_finalProof(nullptr)
 {
+  // enable proof support in the environment/rewriter
+  d_env.setProofNodeManager(d_pnm.get());
+  // Now, initialize the proof postprocessor with the environment.
+  // By default the post-processor will update all assumptions, which
+  // can lead to SCOPE subproofs of the form
+  //   A
+  //  ...
+  //   B1    B2
+  //  ...   ...
+  // ------------
+  //      C
+  // ------------- SCOPE [B1, B2]
+  // B1 ^ B2 => C
+  //
+  // where A is an available assumption from outside the scope (note
+  // that B1 was an assumption of this SCOPE subproof but since it could
+  // be inferred from A, it was updated). This shape is problematic for
+  // the veriT reconstruction, so we disable the update of scoped
+  // assumptions (which would disable the update of B1 in this case).
+  d_pfpp.reset(
+  new ProofPostproccess(
+          env,
+          d_pppg.get(),
+          d_rewriteDb.get(),
+          options::proofFormatMode()
+              != options::ProofFormatMode::VERIT_EXTENDED));
+  
   // add rules to eliminate here
   if (options::proofGranularityMode() != options::ProofGranularityMode::OFF)
   {

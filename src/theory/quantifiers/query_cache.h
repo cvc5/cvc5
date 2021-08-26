@@ -37,7 +37,7 @@ class QueryCache : public ExprMiner
   /**
    * Constructor
    */
-  QueryCache(bool checkUnsat, Options* optr = nullptr);
+  QueryCache(Env& env, bool checkUnsat, Options* optr = nullptr);
   ~QueryCache() {}
   /** initialize
    *

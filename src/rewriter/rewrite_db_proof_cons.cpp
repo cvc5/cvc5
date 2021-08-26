@@ -28,11 +28,11 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace rewriter {
 
-RewriteDbProofCons::RewriteDbProofCons(RewriteDb* db, ProofNodeManager* pnm)
+RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
     : d_notify(*this),
-      d_trrc(pnm),
+      d_trrc(env.getProofNodeManager()),
       d_db(db),
-      d_pnm(pnm),
+      d_pnm(env.getProofNodeManager()),
       d_eval(),
       d_currRecLimit(0),
       d_currFixedPointId(DslPfRule::FAIL),
@@ -43,6 +43,7 @@ RewriteDbProofCons::RewriteDbProofCons(RewriteDb* db, ProofNodeManager* pnm)
       d_statTotalInputSuccess(smtStatisticsRegistry().registerInt(
           "RewriteDbProofCons::totalInputSuccess")),
       d_qcache(
+          env,
           false,
           &smt::currentSmtEngine()->getOptions())  // check for satisfiability
 {

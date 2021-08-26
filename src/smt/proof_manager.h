@@ -75,7 +75,7 @@ class ProofPostproccess;
 class PfManager
 {
  public:
-  PfManager(Env& env, SmtEngine* smte);
+  PfManager(Env& env);
   ~PfManager();
   /**
    * Print the proof on the given output stream.

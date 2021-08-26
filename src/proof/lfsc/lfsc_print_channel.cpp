@@ -83,7 +83,7 @@ void LfscPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 {
   // must clean indexed symbols
   std::stringstream ss;
-  n.toStream(ss, -1, 0, language::output::LANG_SMTLIB_V2_6);
+  n.toStream(ss, -1, 0, Language::LANG_SMTLIB_V2_6);
   std::string s = ss.str();
   cleanSymbols(s);
   out << s;
@@ -93,7 +93,7 @@ void LfscPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
 {
   // must clean indexed symbols
   std::stringstream ss;
-  tn.toStream(ss, language::output::LANG_SMTLIB_V2_6);
+  tn.toStream(ss, Language::LANG_SMTLIB_V2_6);
   std::string s = ss.str();
   cleanSymbols(s);
   out << s;
