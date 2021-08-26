@@ -440,17 +440,19 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   else
   {
     // Turn on unconstrained simplification for QF_AUFBV
-    if (!opts.smt.unconstrainedSimpWasSetByUser && !opts.base.incrementalSolving)
+    if (!opts.smt.unconstrainedSimpWasSetByUser
+        && !opts.base.incrementalSolving)
     {
-      // It is also currently incompatible with arithmetic, force the option off.
+      // It is also currently incompatible with arithmetic, force the option
+      // off.
       bool uncSimp = !opts.base.incrementalSolving && !logic.isQuantified()
-                    && !opts.smt.produceModels && !opts.smt.produceAssignments
-                    && !opts.smt.checkModels
-                    && logic.isTheoryEnabled(THEORY_ARRAYS)
-                    && logic.isTheoryEnabled(THEORY_BV)
-                    && !logic.isTheoryEnabled(THEORY_ARITH);
+                     && !opts.smt.produceModels && !opts.smt.produceAssignments
+                     && !opts.smt.checkModels
+                     && logic.isTheoryEnabled(THEORY_ARRAYS)
+                     && logic.isTheoryEnabled(THEORY_BV)
+                     && !logic.isTheoryEnabled(THEORY_ARITH);
       Trace("smt") << "setting unconstrained simplification to " << uncSimp
-                  << std::endl;
+                   << std::endl;
       opts.smt.unconstrainedSimp = uncSimp;
     }
 
@@ -458,14 +460,14 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     if (!opts.smt.simplificationModeWasSetByUser)
     {
       bool qf_sat = logic.isPure(THEORY_BOOL) && !logic.isQuantified();
-      Trace("smt") << "setting simplification mode to <" << logic.getLogicString()
-                  << "> " << (!qf_sat) << std::endl;
+      Trace("smt") << "setting simplification mode to <"
+                   << logic.getLogicString() << "> " << (!qf_sat) << std::endl;
       // simplification=none works better for SMT LIB benchmarks with
       // quantifiers, not others opts.set(options::simplificationMode, qf_sat ||
       // quantifiers ? options::SimplificationMode::NONE :
       // options::SimplificationMode::BATCH);
       opts.smt.simplificationMode = qf_sat ? options::SimplificationMode::NONE
-                                          : options::SimplificationMode::BATCH;
+                                           : options::SimplificationMode::BATCH;
     }
   }
 
