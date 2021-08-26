@@ -34,7 +34,7 @@ namespace quantifiers {
 class SynthVerify
 {
  public:
-  SynthVerify(TermDbSygus* tds);
+  SynthVerify(const Options& opts, TermDbSygus* tds);
   ~SynthVerify();
   /**
    * Verification call, which takes into account specific aspects of the

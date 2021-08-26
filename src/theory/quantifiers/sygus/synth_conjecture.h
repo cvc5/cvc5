@@ -363,7 +363,7 @@ class SynthConjecture
    * This is used for the sygusRewSynth() option to synthesize new candidate
    * rewrite rules.
    */
-  std::map<Node, ExpressionMinerManager> d_exprm;
+  std::map<Node, std::unique_ptr<ExpressionMinerManager>> d_exprm;
 };
 
 }  // namespace quantifiers
