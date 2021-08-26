@@ -437,34 +437,36 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
       throw OptionException(ss.str());
     }
   }
-
-  // Turn on unconstrained simplification for QF_AUFBV
-  if (!opts.smt.unconstrainedSimpWasSetByUser)
+  else
   {
-    // It is also currently incompatible with arithmetic, force the option off.
-    bool uncSimp = !opts.base.incrementalSolving && !logic.isQuantified()
-                   && !opts.smt.produceModels && !opts.smt.produceAssignments
-                   && !opts.smt.checkModels
-                   && logic.isTheoryEnabled(THEORY_ARRAYS)
-                   && logic.isTheoryEnabled(THEORY_BV)
-                   && !logic.isTheoryEnabled(THEORY_ARITH);
-    Trace("smt") << "setting unconstrained simplification to " << uncSimp
-                 << std::endl;
-    opts.smt.unconstrainedSimp = uncSimp;
-  }
+    // Turn on unconstrained simplification for QF_AUFBV
+    if (!opts.smt.unconstrainedSimpWasSetByUser && !opts.base.incrementalSolving)
+    {
+      // It is also currently incompatible with arithmetic, force the option off.
+      bool uncSimp = !opts.base.incrementalSolving && !logic.isQuantified()
+                    && !opts.smt.produceModels && !opts.smt.produceAssignments
+                    && !opts.smt.checkModels
+                    && logic.isTheoryEnabled(THEORY_ARRAYS)
+                    && logic.isTheoryEnabled(THEORY_BV)
+                    && !logic.isTheoryEnabled(THEORY_ARITH);
+      Trace("smt") << "setting unconstrained simplification to " << uncSimp
+                  << std::endl;
+      opts.smt.unconstrainedSimp = uncSimp;
+    }
 
-  // by default, nonclausal simplification is off for QF_SAT
-  if (!opts.smt.simplificationModeWasSetByUser)
-  {
-    bool qf_sat = logic.isPure(THEORY_BOOL) && !logic.isQuantified();
-    Trace("smt") << "setting simplification mode to <" << logic.getLogicString()
-                 << "> " << (!qf_sat) << std::endl;
-    // simplification=none works better for SMT LIB benchmarks with
-    // quantifiers, not others opts.set(options::simplificationMode, qf_sat ||
-    // quantifiers ? options::SimplificationMode::NONE :
-    // options::SimplificationMode::BATCH);
-    opts.smt.simplificationMode = qf_sat ? options::SimplificationMode::NONE
-                                         : options::SimplificationMode::BATCH;
+    // by default, nonclausal simplification is off for QF_SAT
+    if (!opts.smt.simplificationModeWasSetByUser)
+    {
+      bool qf_sat = logic.isPure(THEORY_BOOL) && !logic.isQuantified();
+      Trace("smt") << "setting simplification mode to <" << logic.getLogicString()
+                  << "> " << (!qf_sat) << std::endl;
+      // simplification=none works better for SMT LIB benchmarks with
+      // quantifiers, not others opts.set(options::simplificationMode, qf_sat ||
+      // quantifiers ? options::SimplificationMode::NONE :
+      // options::SimplificationMode::BATCH);
+      opts.smt.simplificationMode = qf_sat ? options::SimplificationMode::NONE
+                                          : options::SimplificationMode::BATCH;
+    }
   }
 
   if (opts.quantifiers.cegqiBv && logic.isQuantified())
@@ -927,6 +929,18 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
                                               std::ostream& reason,
                                               std::ostream& suggest) const
 {
+  if (opts.smt.unconstrainedSimp)
+  {
+    if (opts.smt.unconstrainedSimpWasSetByUser)
+    {
+      reason << "unconstrained simplification";
+      return true;
+    }
+    Notice() << "SmtEngine: turning off unconstrained simplification to "
+                "support incremental solving"
+             << std::endl;
+    opts.smt.unconstrainedSimp = false;
+  }
   if (opts.bv.bitblastMode == options::BitblastMode::EAGER
       && !logic.isPure(THEORY_BV))
   {
