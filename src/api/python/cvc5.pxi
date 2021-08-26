@@ -270,7 +270,7 @@ cdef class DatatypeConstructorDecl:
         self.cddc.addSelectorSelf(name.encode())
 
     def isNull(self):
-        self.cddc.isNull()
+        return self.cddc.isNull()
 
     def __str__(self):
         return self.cddc.toString().decode()
