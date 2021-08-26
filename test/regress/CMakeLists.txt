@@ -1646,7 +1646,6 @@ set(regress_1_tests
   regress1/fmf/sort-inf-int.smt2
   regress1/fmf/with-ind-104-core.smt2
   regress1/gensys_brn001.smt2
-  regress1/ho/bug_freevar_PHI004^4-delta.smt2
   regress1/ho/bug_freeVar_BDD_General_data_270.p
   regress1/ho/bound_var_bug.p
   regress1/ho/fta0328.lfho.p
@@ -2692,6 +2691,8 @@ set(regression_disabled_tests
   regress1/fmf/ko-bound-set.cvc
   # results in an assertion failure (see issue #1650).
   regress1/ho/hoa0102.smt2
+  # benchmark can be "unknown"
+  regress1/ho/bug_freevar_PHI004^4-delta.smt2
   # after disallowing solving for terms with quantifiers
   regress1/ho/nested_lambdas-AGT034^2.smt2
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
