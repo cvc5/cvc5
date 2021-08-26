@@ -46,7 +46,7 @@ SynthVerify::SynthVerify(const Options& opts,
   // Disable sygus on the subsolver. This is particularly important since it
   // ensures that recursive function definitions have the standard ownership
   // instead of being claimed by sygus in the subsolver.
-  d_subOptions.base.inputLanguage = language::input::LANG_SMTLIB_V2_6;
+  d_subOptions.base.inputLanguage = Language::LANG_SMTLIB_V2_6;
   d_subOptions.quantifiers.sygus = false;
   // use tangent planes by default, since we want to put effort into
   // the verification step for sygus queries with non-linear arithmetic

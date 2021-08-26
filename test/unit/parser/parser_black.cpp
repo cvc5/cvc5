@@ -30,14 +30,13 @@
 namespace cvc5 {
 
 using namespace parser;
-using namespace language::input;
 
 namespace test {
 
 class TestParserBlackParser : public TestInternal
 {
  protected:
-  TestParserBlackParser(InputLanguage lang) : d_lang(lang) {}
+  TestParserBlackParser(Language lang) : d_lang(lang) {}
 
   virtual ~TestParserBlackParser() {}
 
@@ -125,7 +124,7 @@ class TestParserBlackParser : public TestInternal
                                        .withInputLanguage(d_lang)
                                        .build());
     parser->setInput(Input::newStringInput(d_lang, goodExpr, "test"));
-    if (d_lang == LANG_SMTLIB_V2)
+    if (d_lang == Language::LANG_SMTLIB_V2_6)
     {
       /* Use QF_LIA to make multiplication ("*") available */
       std::unique_ptr<Command> cmd(
@@ -170,7 +169,7 @@ class TestParserBlackParser : public TestInternal
                  , ParserException);
   }
 
-  InputLanguage d_lang;
+  Language d_lang;
   std::unique_ptr<cvc5::api::Solver> d_solver;
   std::unique_ptr<SymbolManager> d_symman;
 };
@@ -180,7 +179,7 @@ class TestParserBlackParser : public TestInternal
 class TestParserBlackCvCParser : public TestParserBlackParser
 {
  protected:
-  TestParserBlackCvCParser() : TestParserBlackParser(LANG_CVC) {}
+  TestParserBlackCvCParser() : TestParserBlackParser(Language::LANG_CVC) {}
 };
 
 TEST_F(TestParserBlackCvCParser, good_inputs)
@@ -278,7 +277,10 @@ TEST_F(TestParserBlackCvCParser, bad_exprs)
 class TestParserBlackSmt2Parser : public TestParserBlackParser
 {
  protected:
-  TestParserBlackSmt2Parser() : TestParserBlackParser(LANG_SMTLIB_V2) {}
+  TestParserBlackSmt2Parser()
+      : TestParserBlackParser(Language::LANG_SMTLIB_V2_6)
+  {
+  }
 };
 
 TEST_F(TestParserBlackSmt2Parser, good_inputs)

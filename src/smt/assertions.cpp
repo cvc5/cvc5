@@ -121,7 +121,7 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
 void Assertions::assertFormula(const Node& n)
 {
   ensureBoolean(n);
-  bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
+  bool maybeHasFv = language::isLangSygus(options::inputLanguage());
   addFormula(n, true, false, false, maybeHasFv);
 }
 
@@ -185,7 +185,7 @@ void Assertions::addFormula(TNode n,
       else
       {
         se << "Cannot process assertion with free variable.";
-        if (language::isInputLangSygus(options::inputLanguage()))
+        if (language::isLangSygus(options::inputLanguage()))
         {
           // Common misuse of SyGuS is to use top-level assert instead of
           // constraint when defining the synthesis conjecture.
@@ -207,7 +207,7 @@ void Assertions::addDefineFunDefinition(Node n, bool global)
   {
     // Global definitions are asserted at check-sat-time because we have to
     // make sure that they are always present
-    Assert(!language::isInputLangSygus(options::inputLanguage()));
+    Assert(!language::isLangSygus(options::inputLanguage()));
     d_globalDefineFunLemmas->emplace_back(n);
   }
   else
@@ -215,7 +215,7 @@ void Assertions::addDefineFunDefinition(Node n, bool global)
     // We don't permit functions-to-synthesize within recursive function
     // definitions currently. Thus, we should check for free variables if the
     // input language is SyGuS.
-    bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
+    bool maybeHasFv = language::isLangSygus(options::inputLanguage());
     addFormula(n, true, false, true, maybeHasFv);
   }
 }

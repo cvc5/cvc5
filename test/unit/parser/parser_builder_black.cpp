@@ -31,7 +31,6 @@
 namespace cvc5 {
 
 using namespace parser;
-using namespace language::input;
 
 namespace test {
 
@@ -72,9 +71,9 @@ TEST_F(TestParseBlackParserBuilder, empty_file_input)
   ASSERT_NE(filename, nullptr);
 
   std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get())
-                                     .withInputLanguage(LANG_CVC)
+                                     .withInputLanguage(Language::LANG_CVC)
                                      .build());
-  parser->setInput(Input::newFileInput(LANG_CVC, filename, false));
+  parser->setInput(Input::newFileInput(Language::LANG_CVC, filename, false));
   checkEmptyInput(parser.get());
 
   remove(filename);
@@ -90,9 +89,9 @@ TEST_F(TestParseBlackParserBuilder, simple_file_input)
   fs.close();
 
   std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get())
-                                     .withInputLanguage(LANG_CVC)
+                                     .withInputLanguage(Language::LANG_CVC)
                                      .build());
-  parser->setInput(Input::newFileInput(LANG_CVC, filename, false));
+  parser->setInput(Input::newFileInput(Language::LANG_CVC, filename, false));
   checkTrueInput(parser.get());
 
   remove(filename);
@@ -102,18 +101,18 @@ TEST_F(TestParseBlackParserBuilder, simple_file_input)
 TEST_F(TestParseBlackParserBuilder, empty_string_input)
 {
   std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get())
-                                     .withInputLanguage(LANG_CVC)
+                                     .withInputLanguage(Language::LANG_CVC)
                                      .build());
-  parser->setInput(Input::newStringInput(LANG_CVC, "", "foo"));
+  parser->setInput(Input::newStringInput(Language::LANG_CVC, "", "foo"));
   checkEmptyInput(parser.get());
 }
 
 TEST_F(TestParseBlackParserBuilder, true_string_input)
 {
   std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get())
-                                     .withInputLanguage(LANG_CVC)
+                                     .withInputLanguage(Language::LANG_CVC)
                                      .build());
-  parser->setInput(Input::newStringInput(LANG_CVC, "TRUE", "foo"));
+  parser->setInput(Input::newStringInput(Language::LANG_CVC, "TRUE", "foo"));
   checkTrueInput(parser.get());
 }
 
@@ -121,9 +120,9 @@ TEST_F(TestParseBlackParserBuilder, empty_stream_input)
 {
   std::stringstream ss("", std::ios_base::in);
   std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get())
-                                     .withInputLanguage(LANG_CVC)
+                                     .withInputLanguage(Language::LANG_CVC)
                                      .build());
-  parser->setInput(Input::newStreamInput(LANG_CVC, ss, "foo"));
+  parser->setInput(Input::newStreamInput(Language::LANG_CVC, ss, "foo"));
   checkEmptyInput(parser.get());
 }
 
@@ -131,9 +130,9 @@ TEST_F(TestParseBlackParserBuilder, true_stream_input)
 {
   std::stringstream ss("TRUE", std::ios_base::in);
   std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get())
-                                     .withInputLanguage(LANG_CVC)
+                                     .withInputLanguage(Language::LANG_CVC)
                                      .build());
-  parser->setInput(Input::newStreamInput(LANG_CVC, ss, "foo"));
+  parser->setInput(Input::newStreamInput(Language::LANG_CVC, ss, "foo"));
   checkTrueInput(parser.get());
 }
 

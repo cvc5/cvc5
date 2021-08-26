@@ -494,41 +494,33 @@ void OptionsHandler::enableOutputTag(const std::string& option,
       static_cast<size_t>(stringToOutputTag(optarg)));
 }
 
-OutputLanguage OptionsHandler::stringToOutputLanguage(const std::string& option,
-                                                      const std::string& flag,
-                                                      const std::string& optarg)
+Language OptionsHandler::stringToLanguage(const std::string& option,
+                                          const std::string& flag,
+                                          const std::string& optarg)
 {
   if(optarg == "help") {
     d_options->base.languageHelp = true;
-    return language::output::LANG_AUTO;
+    return Language::LANG_AUTO;
   }
 
   try {
-    return language::toOutputLanguage(optarg);
+    return language::toLanguage(optarg);
   } catch(OptionException& oe) {
-    throw OptionException("Error in " + option + ": " + oe.getMessage() +
-                          "\nTry --output-language help");
+    throw OptionException("Error in " + option + ": " + oe.getMessage()
+                          + "\nTry --lang help");
   }
 
   Unreachable();
 }
 
-InputLanguage OptionsHandler::stringToInputLanguage(const std::string& option,
-                                                    const std::string& flag,
-                                                    const std::string& optarg)
+void OptionsHandler::languageIsNotAST(const std::string& option,
+                                      const std::string& flag,
+                                      Language lang)
 {
-  if(optarg == "help") {
-    d_options->base.languageHelp = true;
-    return language::input::LANG_AUTO;
+  if (lang == Language::LANG_AST)
+  {
+    throw OptionException("Language LANG_AST is not allowed for " + flag);
   }
-
-  try {
-    return language::toInputLanguage(optarg);
-  } catch(OptionException& oe) {
-    throw OptionException("Error in " + option + ": " + oe.getMessage() + "\nTry --lang help");
-  }
-
-  Unreachable();
 }
 
 void OptionsHandler::setDumpStream(const std::string& option,
