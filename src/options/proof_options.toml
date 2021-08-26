@@ -47,6 +47,14 @@ name   = "Proof"
   help       = "check proofs eagerly with proof for local debugging"
 
 [[option]]
+  name       = "proofPpMerge"
+  category   = "regular"
+  long       = "proof-pp-merge"
+  type       = "bool"
+  default    = "true"
+  help       = "merge subproofs in final proof post-processor"
+
+[[option]]
   name       = "proofGranularityMode"
   category   = "regular"
   long       = "proof-granularity=MODE"
