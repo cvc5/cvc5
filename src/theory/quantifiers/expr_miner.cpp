@@ -57,8 +57,7 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
   if (Options::current().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser)
   {
     initializeSubsolver(checker,
-                        d_env.getOptions(),
-                        d_env.getLogicInfo(),
+                        d_env,
                         true,
                         options::sygusExprMinerCheckTimeout());
   }
