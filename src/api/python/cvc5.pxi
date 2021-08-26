@@ -319,6 +319,7 @@ cdef class DatatypeDecl:
     def addConstructor(self, DatatypeConstructorDecl ctor):
         """
             Add a datatype constructor declaration.
+
             :param ctor: the datatype constructor declaration to add.
         """
         self.cdd.addConstructor(ctor.cddc)
