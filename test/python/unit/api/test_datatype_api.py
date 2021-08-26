@@ -44,17 +44,21 @@ def test_mk_datatype_sort(solver):
     nilConstr.getConstructorTerm()
 
 def test_is_null(solver):
+  # creating empty (null) objects.
   dtypeSpec = DatatypeDecl(solver)
   cons = DatatypeConstructorDecl(solver)
   d = Datatype(solver)
   consConstr = DatatypeConstructor(solver)
   sel = DatatypeSelector(solver)
+
+  # verifying that the objects are considered null.
   assert dtypeSpec.isNull()
   assert cons.isNull()
   assert d.isNull()
   assert consConstr.isNull()
   assert sel.isNull()
 
+  # changing the objects to be non-null
   dtypeSpec = solver.mkDatatypeDecl("list");
   cons = solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", solver.getIntegerSort());
@@ -64,6 +68,7 @@ def test_is_null(solver):
   consConstr = d[0];
   sel = consConstr[0];
 
+  # verifying that the new objects are non-null
   assert not dtypeSpec.isNull()
   assert not cons.isNull()
   assert not d.isNull()

@@ -44,17 +44,21 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSort)
 
 TEST_F(TestApiBlackDatatype, isNull)
 {
+  // creating empty (null) objects.
   DatatypeDecl dtypeSpec;
   DatatypeConstructorDecl cons;
   Datatype d;
   DatatypeConstructor consConstr;
   DatatypeSelector sel;
+
+  // verifying that the objects are considered null.
   ASSERT_TRUE(dtypeSpec.isNull());
   ASSERT_TRUE(cons.isNull());
   ASSERT_TRUE(d.isNull());
   ASSERT_TRUE(consConstr.isNull());
   ASSERT_TRUE(sel.isNull());
 
+  // changing the objects to be non-null
   dtypeSpec = d_solver.mkDatatypeDecl("list");
   cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver.getIntegerSort());
@@ -64,6 +68,7 @@ TEST_F(TestApiBlackDatatype, isNull)
   consConstr = d[0];
   sel = consConstr[0];
 
+  // verifying that the new objects are non-null
   ASSERT_FALSE(dtypeSpec.isNull());
   ASSERT_FALSE(cons.isNull());
   ASSERT_FALSE(d.isNull());
