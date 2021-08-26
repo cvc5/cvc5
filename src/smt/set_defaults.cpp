@@ -1024,7 +1024,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
 bool SetDefaults::isSygus(const Options& opts) const
 {
-  if (language::isInputLangSygus(opts.base.inputLanguage))
+  if (language::isLangSygus(opts.base.inputLanguage))
   {
     return true;
   }

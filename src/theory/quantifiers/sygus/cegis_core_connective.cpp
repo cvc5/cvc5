@@ -19,8 +19,6 @@
 #include "options/base_options.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/transition_inference.h"

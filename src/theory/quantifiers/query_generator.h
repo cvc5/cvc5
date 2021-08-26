@@ -52,7 +52,7 @@ namespace quantifiers {
 class QueryGenerator : public ExprMiner
 {
  public:
-  QueryGenerator();
+  QueryGenerator(Env& env);
   ~QueryGenerator() {}
   /** initialize */
   void initialize(const std::vector<Node>& vars,

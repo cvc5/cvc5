@@ -125,6 +125,25 @@ class TheoryArith : public Theory {
   }
 
  private:
+  /**
+   * Update d_arithModelCache (if it is empty right now) and compute the termSet
+   * by calling collectAssertedTerms.
+   */
+  void updateModelCache(std::set<Node>& termSet);
+  /**
+   * Update d_arithModelCache (if it is empty right now) using the given
+   * termSet.
+   */
+  void updateModelCache(const std::set<Node>& termSet);
+  /**
+   * Perform a sanity check on the model that all integer variables are assigned
+   * to integer values. If an integer variables is assigned to a non-integer
+   * value, but the respective lemma can not be added (i.e. it has already been
+   * added) an assertion triggers. Otherwise teturns true if a lemma was added,
+   * false otherwise.
+   */
+  bool sanityCheckIntegerModel();
+
   /** Get the proof equality engine */
   eq::ProofEqEngine* getProofEqEngine();
   /** Timer for ppRewrite */
@@ -153,6 +172,17 @@ class TheoryArith : public Theory {
   ArithPreprocess d_arithPreproc;
   /** The theory rewriter for this theory. */
   ArithRewriter d_rewriter;
+
+  /**
+   * Caches the current arithmetic model with the following life cycle:
+   * postCheck retrieves the model from arith_private and puts it into the
+   * cache. If nonlinear reasoning is enabled, the cache is used for (and
+   * possibly updated by) model-based refinement in postCheck.
+   * In collectModelValues, the cache is filtered for the termSet and then
+   * used to augment the TheoryModel.
+   */
+  std::map<Node, Node> d_arithModelCache;
+
 };/* class TheoryArith */
 
 }  // namespace arith

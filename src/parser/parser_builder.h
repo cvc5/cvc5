@@ -45,7 +45,7 @@ class Parser;
 class CVC5_EXPORT ParserBuilder
 {
   /** The input language */
-  InputLanguage d_lang;
+  Language d_lang;
 
   /** The API Solver object. */
   api::Solver* d_solver;
@@ -93,7 +93,7 @@ class CVC5_EXPORT ParserBuilder
    *
    * (Default: LANG_AUTO)
    */
-  ParserBuilder& withInputLanguage(InputLanguage lang);
+  ParserBuilder& withInputLanguage(Language lang);
 
   /**
    * Are we only parsing, or doing something with the resulting
