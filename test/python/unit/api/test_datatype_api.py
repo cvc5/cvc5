@@ -14,7 +14,12 @@
 import pytest
 import pycvc5
 from pycvc5 import kinds
-from pycvc5 import Sort, Term, DatatypeDecl, DatatypeConstructorDecl, Datatype, DatatypeConstructor, DatatypeSelector
+from pycvc5 import Sort, Term 
+from pycvc5 import DatatypeDecl
+from pycvc5 import Datatype
+from pycvc5 import DatatypeConstructorDecl
+from pycvc5 import DatatypeConstructor
+from pycvc5 import DatatypeSelector
 
 
 @pytest.fixture
