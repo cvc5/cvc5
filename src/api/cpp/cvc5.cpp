@@ -7029,6 +7029,60 @@ std::string Solver::getOption(const std::string& option) const
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
+bool OptionInfo::boolValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(std::holds_alternative<ValueInfo<bool>>(valueInfo))
+      << name << " is not a bool option";
+  //////// all checks before this line
+  return std::get<ValueInfo<bool>>(valueInfo).currentValue;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+std::string OptionInfo::stringValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(
+      std::holds_alternative<ValueInfo<std::string>>(valueInfo))
+      << name << " is not a string option";
+  //////// all checks before this line
+  return std::get<ValueInfo<std::string>>(valueInfo).currentValue;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+int64_t OptionInfo::intValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(
+      std::holds_alternative<NumberInfo<int64_t>>(valueInfo))
+      << name << " is not an int option";
+  //////// all checks before this line
+  return std::get<NumberInfo<int64_t>>(valueInfo).currentValue;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+uint64_t OptionInfo::uintValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(
+      std::holds_alternative<NumberInfo<uint64_t>>(valueInfo))
+      << name << " is not a uint option";
+  //////// all checks before this line
+  return std::get<NumberInfo<uint64_t>>(valueInfo).currentValue;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+double OptionInfo::doubleValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(
+      std::holds_alternative<NumberInfo<double>>(valueInfo))
+      << name << " is not a double option";
+  //////// all checks before this line
+  return std::get<NumberInfo<double>>(valueInfo).currentValue;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
 
 std::ostream& operator<<(std::ostream& os, const OptionInfo& oi)
 {

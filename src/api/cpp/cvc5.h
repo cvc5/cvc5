@@ -2609,7 +2609,11 @@ namespace cvc5::api {
  * - NumberInfo<T> if the option is of type int64_t, uint64_t or double, holds
  *   the current and default value, as well as the minimum and maximum.
  * - ModeInfo if the option is a mode option, holds the current and default
- *   values, as well as a list of valid modes. abc
+ *   values, as well as a list of valid modes.
+ * Additionally, this class provides convenience functions to obtain the
+ * current value of an option in a type-safe manner using boolValue(),
+ * stringValue(), intValue(), uintValue() and doubleValue(). They assert that
+ * the option has the respective type and return the current value.
  */
 struct CVC5_EXPORT OptionInfo
 {
@@ -2654,6 +2658,21 @@ struct CVC5_EXPORT OptionInfo
                NumberInfo<double>,
                ModeInfo>
       valueInfo;
+  /** Obtain the current value as a bool. Asserts that valueInfo holds a bool.
+   */
+  bool boolValue() const;
+  /** Obtain the current value as a string. Asserts that valueInfo holds a
+   * string. */
+  std::string stringValue() const;
+  /** Obtain the current value as as int. Asserts that valueInfo holds an int.
+   */
+  int64_t intValue() const;
+  /** Obtain the current value as a uint. Asserts that valueInfo holds a uint.
+   */
+  uint64_t uintValue() const;
+  /** Obtain the current value as a double. Asserts that valueInfo holds a
+   * double. */
+  double doubleValue() const;
 };
 
 /**
