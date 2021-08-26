@@ -193,10 +193,7 @@ ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
 
 ProofNodeManager* PfManager::getProofNodeManager() const { return d_pnm.get(); }
 
-rewriter::RewriteDb* PfManager::getRewriteDatabase() const
-{
-  return nullptr;
-}
+rewriter::RewriteDb* PfManager::getRewriteDatabase() const { return nullptr; }
 
 smt::PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const
 {
