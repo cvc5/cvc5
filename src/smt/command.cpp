@@ -38,8 +38,6 @@
 #include "proof/unsat_core.h"
 #include "smt/dump.h"
 #include "smt/model.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "util/unsafe_interrupt_exception.h"
 #include "util/utility.h"
 
@@ -1753,13 +1751,14 @@ void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
+    // use the smt::Model model utility for printing
+    smt::Model m;
     // set the model declarations, which determines what is printed in the model
-    d_result.clearModelDeclarations();
     std::vector<api::Sort> declareSorts = sm->getModelDeclareSorts();
     for (const api::Sort& s : declareSorts)
     {
       std::vector<api::Term> elements = solver->getModelDomainElements(s);
-      d_result.addDeclarationSort(sortToTypeNode(s), termVectorToNodes(elements));
+      m.addDeclarationSort(sortToTypeNode(s), termVectorToNodes(elements));
     }
     std::vector<api::Term> declareTerms = sm->getModelDeclareTerms();
     for (const api::Term& t : declareTerms)
@@ -1770,9 +1769,17 @@ void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
         continue;
       }
       api::Term value = solver->getValue(t);
-      d_result.addDeclarationTerm(termToNode(t), termToNode(value));
+      m.addDeclarationTerm(termToNode(t), termToNode(value));
     }
+    // for separation logic
+    api::Term h = solver->getSeparationHeap();
+    api::Term neq = solver->getSeparationNilTerm();
+    m.setHeapModel(termToNode(h), termToNode(neq));
     d_commandStatus = CommandSuccess::instance();
+    // print the model as a string and remember the result
+    std::stringstream ssm;
+    ssm << m;
+    d_result = ssm.str();
   }
   catch (RecoverableModalException& e)
   {

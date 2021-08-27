@@ -42,7 +42,6 @@ class Env;
 class NodeManager;
 class TheoryEngine;
 class UnsatCore;
-class LogicRequest;
 class StatisticsRegistry;
 class Printer;
 class ResourceManager;
@@ -77,7 +76,6 @@ namespace prop {
 
 namespace smt {
 /** Utilities */
-class Model;
 class SmtEngineState;
 class AbstractValues;
 class Assertions;
@@ -104,9 +102,10 @@ class UnsatCoreManager;
 /* -------------------------------------------------------------------------- */
 
 namespace theory {
-  class Rewriter;
-  class QuantifiersEngine;
-  }  // namespace theory
+class TheoryModel;
+class Rewriter;
+class QuantifiersEngine;
+}  // namespace theory
 
 /* -------------------------------------------------------------------------- */
 
@@ -115,7 +114,6 @@ class CVC5_EXPORT SmtEngine
   friend class ::cvc5::api::Solver;
   friend class ::cvc5::smt::SmtEngineState;
   friend class ::cvc5::smt::SmtScope;
-  friend class ::cvc5::LogicRequest;
 
   /* .......................................................................  */
  public:
@@ -246,14 +244,6 @@ class CVC5_EXPORT SmtEngine
    * Helper method for the API to put the total runtime into the statistics.
    */
   void setTotalTimeStatistic(double seconds) CVC5_EXPORT;
-
-  /**
-   * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
-   * query).  Only permitted if produce-models is on.
-   *
-   * TODO (issues#287): eliminate this method.
-   */
-  smt::Model* getModel();
 
   /**
    * Block the current model. Can be called only if immediately preceded by
@@ -957,7 +947,7 @@ class CVC5_EXPORT SmtEngine
    * @param c used for giving an error message to indicate the context
    * this method was called.
    */
-  smt::Model* getAvailableModel(const char* c) const;
+  theory::TheoryModel* getAvailableModel(const char* c) const;
   /**
    * Get available quantifiers engine, which throws a modal exception if it
    * does not exist. This can happen if a quantifiers-specific call (e.g.
@@ -1066,13 +1056,6 @@ class CVC5_EXPORT SmtEngine
 
   /** The SMT solver */
   std::unique_ptr<smt::SmtSolver> d_smtSolver;
-
-  /**
-   * The SMT-level model object, which contains information about how to
-   * print the model, as well as a pointer to the underlying TheoryModel
-   * implementation maintained by the SmtSolver.
-   */
-  std::unique_ptr<smt::Model> d_model;
 
   /**
    * The utility used for checking models

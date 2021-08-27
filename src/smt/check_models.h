@@ -25,9 +25,11 @@ namespace cvc5 {
 
 class Env;
 
-namespace smt {
+namespace theory {
+class TheoryModel;
+}
 
-class Model;
+namespace smt {
 
 /**
  * This utility is responsible for checking the current model.
@@ -43,7 +45,7 @@ class CheckModels
    * This throws an exception if we fail to verify that m is a proper model
    * given assertion list al based on the model checking policy.
    */
-  void checkModel(Model* m, context::CDList<Node>* al, bool hardFailure);
+  void checkModel(theory::TheoryModel* m, context::CDList<Node>* al, bool hardFailure);
 
  private:
   /** Reference to the environment */

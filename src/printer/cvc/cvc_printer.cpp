@@ -1038,7 +1038,7 @@ void CvcPrinter::toStreamModelSort(std::ostream& out,
         << tn << std::endl;
     return;
   }
-  out << "% cardinality of " << tn << " is " << type_reps->size() << std::endl;
+  out << "% cardinality of " << tn << " is " << elements.size() << std::endl;
   toStreamCmdDeclareType(out, tn);
   for (const Node& type_rep : elements)
   {

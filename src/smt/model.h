@@ -34,14 +34,9 @@ std::ostream& operator<<(std::ostream&, const Model&);
  * A utility for representing a model for pretty printing.
  */
 class Model {
-  friend std::ostream& operator<<(std::ostream&, const Model&);
-  friend class ::cvc5::SmtEngine;
-
  public:
   /** construct */
-  Model(theory::TheoryModel* tm);
-  /** virtual destructor */
-  ~Model() {}
+  Model();
   /** get the input name (file name, etc.) this model is associated to */
   std::string getInputName() const { return d_inputName; }
   /**
@@ -51,15 +46,13 @@ class Model {
    * only a candidate solution.
    */
   bool isKnownSat() const { return d_isKnownSat; }
-  //----------------------- helper methods in the underlying theory model
   /** Get domain elements */
   const std::vector<Node>& getDomainElements(TypeNode tn) const;
   /** Get value */
   Node getValue(TNode n) const;
-  //----------------------- end helper methods
+  /** Get separation logic heap and nil, return true if they have been set */
+  bool getHeapModel(Node& h, Node& nilEq) const;
   //----------------------- model declarations
-  /** Clear the current model declarations. */
-  void clearModelDeclarations();
   /**
    * Set that tn is a sort that should be printed in the model, when applicable,
    * based on the output language.
@@ -70,6 +63,11 @@ class Model {
    * applicable, based on the output language.
    */
   void addDeclarationTerm(Node n, Node value);
+  /**
+   * Set the separation logic model information where h is the heap and nilEq
+   * is the value of sep.nil.
+   */
+  void setHeapModel(Node h, Node nilEq);
   /** get declared sorts */
   const std::vector<TypeNode>& getDeclaredSorts() const;
   /** get declared terms */
@@ -99,6 +97,9 @@ class Model {
   std::vector<Node> d_declareTerms;
   /** Mapping terms to values */
   std::map<Node, Node> d_declareTermValues;
+  /** Separation logic heap and nil */
+  Node d_sepHeap;
+  Node d_sepNilEq;
 };
 
 }  // namespace smt

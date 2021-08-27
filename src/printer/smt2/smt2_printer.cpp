@@ -1261,7 +1261,6 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
 
 void Smt2Printer::toStream(std::ostream& out, const smt::Model& m) const
 {
-  const theory::TheoryModel* tm = m.getTheoryModel();
   //print the model
   out << "(" << endl;
   // don't need to print approximations since they are built into choice
@@ -1270,7 +1269,7 @@ void Smt2Printer::toStream(std::ostream& out, const smt::Model& m) const
   out << ")" << endl;
   //print the heap model, if it exists
   Node h, neq;
-  if (tm->getHeapModel(h, neq))
+  if (m.getHeapModel(h, neq))
   {
     // description of the heap+what nil is equal to fully describes model
     out << "(heap" << endl;

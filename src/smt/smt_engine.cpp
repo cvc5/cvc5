@@ -92,7 +92,6 @@ SmtEngine::SmtEngine(NodeManager* nm, const Options* optr)
       d_routListener(new ResourceOutListener(*this)),
       d_snmListener(new SmtNodeManagerListener(*getDumpManager(), d_outMgr)),
       d_smtSolver(nullptr),
-      d_model(nullptr),
       d_checkModels(nullptr),
       d_pfManager(nullptr),
       d_ucManager(nullptr),
@@ -224,7 +223,6 @@ void SmtEngine::finishInit()
   TheoryModel* tm = te->getModel();
   if (tm != nullptr)
   {
-    d_model.reset(new Model(tm));
     // make the check models utility
     d_checkModels.reset(new CheckModels(*d_env.get()));
   }
@@ -305,7 +303,6 @@ SmtEngine::~SmtEngine()
 
     d_absValues.reset(nullptr);
     d_asserts.reset(nullptr);
-    d_model.reset(nullptr);
 
     d_abductSolver.reset(nullptr);
     d_interpolSolver.reset(nullptr);
@@ -729,7 +726,7 @@ Result SmtEngine::quickCheck() {
       Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, filename);
 }
 
-Model* SmtEngine::getAvailableModel(const char* c) const
+TheoryModel* SmtEngine::getAvailableModel(const char* c) const
 {
   if (!d_env->getOptions().theory.assignFunctionValues)
   {
@@ -768,7 +765,7 @@ Model* SmtEngine::getAvailableModel(const char* c) const
     throw RecoverableModalException(ss.str().c_str());
   }
 
-  return d_model.get();
+  return m;
 }
 
 QuantifiersEngine* SmtEngine::getAvailableQuantifiersEngine(const char* c) const
@@ -1137,7 +1134,7 @@ Node SmtEngine::getValue(const Node& ex) const
   }
 
   Trace("smt") << "--- getting value of " << n << endl;
-  Model* m = getAvailableModel("get-value");
+  TheoryModel* m = getAvailableModel("get-value");
   Assert(m != nullptr);
   Node resultNode = m->getValue(n);
   Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
@@ -1179,8 +1176,8 @@ std::vector<Node> SmtEngine::getValues(const std::vector<Node>& exprs) const
 std::vector<Node> SmtEngine::getModelDomainElements(TypeNode tn) const
 {
   Assert(tn.isSort());
-  Model* m = getAvailableModel("getModelDomainElements");
-  return m->getTheoryModel()->getDomainElements(tn);
+  TheoryModel* m = getAvailableModel("getModelDomainElements");
+  return m->getDomainElements(tn);
 }
 
 bool SmtEngine::isModelCoreSymbol(Node n)
@@ -1193,8 +1190,7 @@ bool SmtEngine::isModelCoreSymbol(Node n)
     // if the model core mode is none, we are always a model core symbol
     return true;
   }
-  Model* m = getAvailableModel("isModelCoreSymbol");
-  TheoryModel* tm = m->getTheoryModel();
+  TheoryModel* tm = getAvailableModel("isModelCoreSymbol");
   // compute the model core if not done so already
   if (!tm->isUsingModelCore())
   {
@@ -1209,43 +1205,6 @@ bool SmtEngine::isModelCoreSymbol(Node n)
   return tm->isModelCoreSymbol(n);
 }
 
-// TODO(#1108): Simplify the error reporting of this method.
-Model* SmtEngine::getModel() {
-  Trace("smt") << "SMT getModel()" << endl;
-  SmtScope smts(this);
-
-  finishInit();
-
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdGetModel(d_env->getDumpOut());
-  }
-
-  Model* m = getAvailableModel("get model");
-
-  // Notice that the returned model is (currently) accessed by the
-  // GetModelCommand only, and is not returned to the user. The information
-  // in that model may become stale after it is returned. This is safe
-  // since GetModelCommand always calls this command again when it prints
-  // a model.
-
-  if (d_env->getOptions().smt.modelCoresMode
-      != options::ModelCoresMode::NONE)
-  {
-    // If we enabled model cores, we compute a model core for m based on our
-    // (expanded) assertions using the model core builder utility
-    std::vector<Node> asserts = getAssertionsInternal();
-    d_pp->expandDefinitions(asserts);
-    ModelCoreBuilder::setModelCore(
-        asserts, m->getTheoryModel(), d_env->getOptions().smt.modelCoresMode);
-  }
-  // set the information on the SMT-level model
-  Assert(m != nullptr);
-  m->d_inputName = d_env->getFilename();
-  m->d_isKnownSat = (d_state->getMode() == SmtMode::SAT);
-  return m;
-}
-
 Result SmtEngine::blockModel()
 {
   Trace("smt") << "SMT blockModel()" << endl;
@@ -1258,7 +1217,7 @@ Result SmtEngine::blockModel()
     getPrinter().toStreamCmdBlockModel(d_env->getDumpOut());
   }
 
-  Model* m = getAvailableModel("block model");
+  TheoryModel * m = getAvailableModel("block model");
 
   if (d_env->getOptions().smt.blockModelsMode
       == options::BlockModelsMode::NONE)
@@ -1272,7 +1231,7 @@ Result SmtEngine::blockModel()
   std::vector<Node> eassertsProc = getExpandedAssertions();
   Node eblocker =
       ModelBlocker::getModelBlocker(eassertsProc,
-                                    m->getTheoryModel(),
+                                    m,
                                     d_env->getOptions().smt.blockModelsMode);
   Trace("smt") << "Block formula: " << eblocker << std::endl;
   return assertFormula(eblocker);
@@ -1290,14 +1249,14 @@ Result SmtEngine::blockModelValues(const std::vector<Node>& exprs)
     getPrinter().toStreamCmdBlockModelValues(d_env->getDumpOut(), exprs);
   }
 
-  Model* m = getAvailableModel("block model values");
+  TheoryModel* m = getAvailableModel("block model values");
 
   // get expanded assertions
   std::vector<Node> eassertsProc = getExpandedAssertions();
   // we always do block model values mode here
   Node eblocker =
       ModelBlocker::getModelBlocker(eassertsProc,
-                                    m->getTheoryModel(),
+                                    m,
                                     options::BlockModelsMode::VALUES,
                                     exprs);
   return assertFormula(eblocker);
@@ -1315,8 +1274,7 @@ std::pair<Node, Node> SmtEngine::getSepHeapAndNilExpr(void)
   NodeManagerScope nms(getNodeManager());
   Node heap;
   Node nil;
-  Model* m = getAvailableModel("get separation logic heap and nil");
-  TheoryModel* tm = m->getTheoryModel();
+  TheoryModel* tm = getAvailableModel("get separation logic heap and nil");
   if (!tm->getHeapModel(heap, nil))
   {
     const char* msg =
@@ -1564,7 +1522,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
 
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
-  Model* m = getAvailableModel("check model");
+  TheoryModel* m = getAvailableModel("check model");
   Assert(m != nullptr);
 
   // check the model with the theory engine for debugging

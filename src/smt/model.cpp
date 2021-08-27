@@ -15,6 +15,10 @@
 
 #include "smt/model.h"
 
+#include "expr/expr_iomanip.h"
+#include "options/base_options.h"
+#include "printer/printer.h"
+
 namespace cvc5 {
 namespace smt {
 
@@ -41,10 +45,15 @@ Node Model::getValue(TNode n) const {
   return it->second;
 }
 
-void Model::clearModelDeclarations()
+bool Model::getHeapModel(Node& h, Node& nilEq) const
 {
-  d_declareTerms.clear();
-  d_declareSorts.clear();
+  if (d_sepHeap.isNull() || d_sepNilEq.isNull())
+  {
+    return false;
+  }
+  h = d_sepHeap;
+  nilEq = d_sepNilEq;
+  return true;
 }
 
 void Model::addDeclarationSort(TypeNode tn, const std::vector<Node>& elements) { 
@@ -56,10 +65,18 @@ void Model::addDeclarationTerm(Node n, Node value) {
   d_declareTerms.push_back(n); 
   d_declareTermValues[n] = value;
 }
+
+void Model::setHeapModel(Node h, Node nilEq)
+{
+  d_sepHeap = h;
+  d_sepNilEq = nilEq;
+}
+
 const std::vector<TypeNode>& Model::getDeclaredSorts() const
 {
   return d_declareSorts;
 }
+
 const std::vector<Node>& Model::getDeclaredTerms() const
 {
   return d_declareTerms;
