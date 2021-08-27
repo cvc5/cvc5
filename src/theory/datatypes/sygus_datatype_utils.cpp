@@ -35,16 +35,6 @@ namespace theory {
 namespace datatypes {
 namespace utils {
 
-/**
- * Map terms to the result of expand definitions calling smt::expandDefinitions
- * on it.
- */
-struct SygusExpDefFormAttributeId
-{
-};
-typedef expr::Attribute<SygusExpDefFormAttributeId, Node>
-    SygusExpDefFormAttribute;
-
 Node applySygusArgs(const DType& dt,
                     Node op,
                     Node n,
@@ -185,16 +175,9 @@ Node mkSygusTerm(const DType& dt,
       }
       else
       {
-        // Only expand definitions if the operator is not constant, since
-        // calling expandDefinitions on them should be a no-op. This check
-        // ensures we don't try to expand e.g. bitvector extract operators,
-        // whose type is undefined, and thus should not be passed to
-        // expandDefinitions.
-        SygusExpDefFormAttribute sedfa;
-        if (op.hasAttribute(sedfa))
-        {
-          opn = op.getAttribute(sedfa);
-        }
+        opn = getExpandedDefinitionForm(op);
+        Node opne = smt::currentSmtEngine()->expandDefinitions(op);
+        AlwaysAssert(opn==opne) << "Not equivalent expanded:\n" << opn << "\n" << opne << "\n";
         opn = Rewriter::rewrite(opn);
         SygusOpRewrittenAttribute sora;
         op.setAttribute(sora, opn);
@@ -750,9 +733,26 @@ unsigned getSygusTermSize(Node n)
   return weight + sum;
 }
 
+/**
+ * Map terms to the result of expand definitions calling smt::expandDefinitions
+ * on it.
+ */
+struct SygusExpDefFormAttributeId
+{
+};
+typedef expr::Attribute<SygusExpDefFormAttributeId, Node>
+    SygusExpDefFormAttribute;
+
 void setExpandedDefinitionForm(Node op, Node eop)
 {
   op.setAttribute(SygusExpDefFormAttribute(), eop);
+}
+
+Node getExpandedDefinitionForm(Node op)
+{
+  Node eop = op.getAttribute(SygusExpDefFormAttribute());
+  // if not set, assume original
+  return eop.isNull() ? op : eop;
 }
 
 }  // namespace utils

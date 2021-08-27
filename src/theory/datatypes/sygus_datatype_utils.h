@@ -233,8 +233,14 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
  */
 unsigned getSygusTermSize(Node n);
 
-/** Set expanded definition form */
+/** 
+ * Set expanded definition form of sygus op to eop
+ */
 void setExpandedDefinitionForm(Node op, Node eop);
+/**
+ * Get the expanded definition form of sygus operator op.
+ */
+Node getExpandedDefinitionForm(Node op);
 // ------------------------ end sygus utils
 
 }  // namespace utils
