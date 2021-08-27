@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
   catch (cvc5::api::CVC5ApiOptionException& e)
   {
 #ifdef CVC5_COMPETITION_MODE
-    *solver->getOptions().base.out << "unknown" << endl;
+    solver->getDriverOptions().out() << "unknown" << std::endl;
 #endif
     cerr << "(error \"" << e.getMessage() << "\")" << endl
          << endl
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
   catch (OptionException& e)
   {
 #ifdef CVC5_COMPETITION_MODE
-    *solver->getOptions().base.out << "unknown" << endl;
+    solver->getDriverOptions().out() << "unknown" << std::endl;
 #endif
     cerr << "(error \"" << e.getMessage() << "\")" << endl
          << endl
@@ -77,20 +77,22 @@ int main(int argc, char* argv[])
   catch (Exception& e)
   {
 #ifdef CVC5_COMPETITION_MODE
-    *solver->getOptions().base.out << "unknown" << endl;
+    solver->getDriverOptions().out() << "unknown" << std::endl;
 #endif
     if (language::isLangSmt2(solver->getOptions().base.outputLanguage))
     {
-      *solver->getOptions().base.out << "(error \"" << e << "\")" << endl;
+      solver->getDriverOptions().out()
+          << "(error \"" << e << "\")" << std::endl;
     }
     else
     {
-      *solver->getOptions().base.err << "(error \"" << e << "\")" << endl;
+      solver->getDriverOptions().err()
+          << "(error \"" << e << "\")" << std::endl;
     }
     if (solver->getOptions().base.statistics && pExecutor != nullptr)
     {
       totalTime.reset();
-      pExecutor->printStatistics(*solver->getOptions().base.err);
+      pExecutor->printStatistics(solver->getDriverOptions().err());
     }
   }
   exit(1);

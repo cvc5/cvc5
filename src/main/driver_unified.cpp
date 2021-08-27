@@ -80,21 +80,25 @@ TotalTimer::~TotalTimer()
     }  // namespace main
     }  // namespace cvc5
 
-void printUsage(const Options& opts, bool full) {
-  stringstream ss;
-  ss << "usage: " << progName << " [options] [input-file]"
-     << endl
-     << endl
-     << "Without an input file, or with `-', cvc5 reads from standard input."
-     << endl
-     << endl
-     << "cvc5 options:" << endl;
-  if(full) {
-    main::printUsage(ss.str(), *opts.base.out);
-  } else {
-    main::printShortUsage(ss.str(), *opts.base.out);
-  }
-}
+    void printUsage(const api::DriverOptions& dopts, bool full)
+    {
+      std::stringstream ss;
+      ss << "usage: " << progName << " [options] [input-file]" << std::endl
+         << std::endl
+         << "Without an input file, or with `-', cvc5 reads from standard "
+            "input."
+         << std::endl
+         << std::endl
+         << "cvc5 options:" << std::endl;
+      if (full)
+      {
+        main::printUsage(ss.str(), dopts.out());
+      }
+      else
+      {
+        main::printShortUsage(ss.str(), dopts.out());
+      }
+    }
 
 int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 {
@@ -107,6 +111,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   // Create the command executor to execute the parsed commands
   pExecutor = std::make_unique<CommandExecutor>(solver);
+  api::DriverOptions dopts = solver->getDriverOptions();
   Options* opts = &pExecutor->getOptions();
 
   // Parse the options
@@ -116,17 +121,17 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   if (opts->driver.help)
   {
-    printUsage(*opts, true);
+    printUsage(dopts, true);
     exit(1);
   }
   else if (opts->base.languageHelp)
   {
-    main::printLanguageHelp(*opts->base.out);
+    main::printLanguageHelp(dopts.out());
     exit(1);
   }
   else if (opts->driver.version)
   {
-    *opts->base.out << Configuration::about().c_str() << flush;
+    dopts.out() << Configuration::about().c_str() << flush;
     exit(0);
   }
 
@@ -134,7 +139,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   // If in competition mode, set output stream option to flush immediately
 #ifdef CVC5_COMPETITION_MODE
-  *opts->base.out << unitbuf;
+  dopts.out() << unitbuf;
 #endif /* CVC5_COMPETITION_MODE */
 
   // We only accept one input file
@@ -233,7 +238,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
         try {
           cmd.reset(shell.readCommand());
         } catch(UnsafeInterruptException& e) {
-          *opts->base.out << CommandInterrupted();
+          dopts.out() << CommandInterrupted();
           break;
         }
         if (cmd == nullptr)
@@ -273,7 +278,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
       while (status)
       {
         if (interrupted) {
-          *opts->base.out << CommandInterrupted();
+          dopts.out() << CommandInterrupted();
           pExecutor->reset();
           opts = &pExecutor->getOptions();
           break;
@@ -309,10 +314,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
     }
 
 #ifdef CVC5_COMPETITION_MODE
-    if (opts->base.out != nullptr)
-    {
-      *opts->base.out << std::flush;
-    }
+    dopts.out() << std::flush;
     // exit, don't return (don't want destructors to run)
     // _exit() from unistd.h doesn't run global destructors
     // or other on_exit/atexit stuff.

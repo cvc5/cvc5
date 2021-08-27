@@ -92,8 +92,8 @@ static set<string> s_declarations;
 
 InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
     : d_solver(solver),
-      d_in(*solver->getOptions().base.in),
-      d_out(*solver->getOptions().base.out),
+      d_in(solver->getDriverOptions().in()),
+      d_out(solver->getDriverOptions().out()),
       d_quit(false)
 {
   ParserBuilder parserBuilder(solver, sm, true);
