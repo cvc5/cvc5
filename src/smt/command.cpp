@@ -1753,18 +1753,24 @@ void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = solver->getSmtEngine()->getModel();
     // set the model declarations, which determines what is printed in the model
-    d_result->clearModelDeclarations();
+    d_result.clearModelDeclarations();
     std::vector<api::Sort> declareSorts = sm->getModelDeclareSorts();
     for (const api::Sort& s : declareSorts)
     {
-      d_result->addDeclarationSort(sortToTypeNode(s));
+      std::vector<api::Term> elements = solver->getModelDomainElements(s);
+      d_result.addDeclarationSort(sortToTypeNode(s), termVectorToNodes(elements));
     }
     std::vector<api::Term> declareTerms = sm->getModelDeclareTerms();
     for (const api::Term& t : declareTerms)
     {
-      d_result->addDeclarationTerm(termToNode(t));
+      if (!solver->isModelCoreSymbol(t))
+      {
+        // skip if not in model core
+        continue;
+      }
+      api::Term value = solver->getValue(t);
+      d_result.addDeclarationTerm(termToNode(t), termToNode(value));
     }
     d_commandStatus = CommandSuccess::instance();
   }
@@ -1796,7 +1802,7 @@ void GetModelCommand::printResult(std::ostream& out, uint32_t verbosity) const
   }
   else
   {
-    out << *d_result;
+    out << d_result;
   }
 }
 
