@@ -22,7 +22,7 @@
 namespace cvc5 {
 namespace smt {
 
-Model::Model(const std::string& inputName, bool isKnownSat) : d_inputName(inputName, d_isKnownSat(isKnownSat) {}
+Model::Model(bool isKnownSat) : d_isKnownSat(isKnownSat) {}
 
 std::ostream& operator<<(std::ostream& out, const Model& m) {
   expr::ExprDag::Scope scope(out, false);
