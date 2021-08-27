@@ -234,8 +234,6 @@ class Smt2 : public Parser
   }
   /** Are we using a sygus language? */
   bool sygus() const;
-  /** Are we using the sygus version 2.0 format? */
-  bool sygus_v2() const;
 
   /**
    * Returns true if the language that we are parsing (SMT-LIB version >=2.5
