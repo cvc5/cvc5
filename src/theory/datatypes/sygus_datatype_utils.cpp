@@ -22,8 +22,6 @@
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
 #include "smt/env.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
 
@@ -175,9 +173,9 @@ Node mkSygusTerm(const DType& dt,
       }
       else
       {
+        // Get the expanded definition form, if it has been marked. This ensures
+        // that user-defined functions have been eliminated from op.
         opn = getExpandedDefinitionForm(op);
-        Node opne = smt::currentSmtEngine()->expandDefinitions(op);
-        AlwaysAssert(opn==opne) << "Not equivalent expanded:\n" << opn << "\n" << opne << "\n";
         opn = Rewriter::rewrite(opn);
         SygusOpRewrittenAttribute sora;
         op.setAttribute(sora, opn);
