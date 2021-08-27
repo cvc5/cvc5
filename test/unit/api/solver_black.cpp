@@ -1522,7 +1522,7 @@ TEST_F(TestApiBlackSolver, isModelCoreSymbol)
   d_solver.checkSat();
   ASSERT_TRUE(d_solver.isModelCoreSymbol(x));
   ASSERT_TRUE(d_solver.isModelCoreSymbol(y));
-  ASSERT_TRUE(!d_solver.isModelCoreSymbol(z));
+  ASSERT_FALSE(d_solver.isModelCoreSymbol(z));
   ASSERT_THROW(d_solver.isModelCoreSymbol(zero), CVC5ApiException);
 }
 
