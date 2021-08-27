@@ -168,7 +168,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
             || (res.isSatUnknown()
                 && res.getUnknownExplanation() == api::Result::INCOMPLETE)))
     {
-      getterCommands.emplace_back(new GetModelCommand());
+      getterCommands.emplace_back(new GetModelCommand);
     }
     if (d_solver->getOptions().driver.dumpProofs && isResultUnsat)
     {

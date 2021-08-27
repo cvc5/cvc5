@@ -35,8 +35,12 @@ std::ostream& operator<<(std::ostream&, const Model&);
  */
 class Model {
  public:
-  /** construct */
-  Model();
+  /** Constructor
+   * @param inputName The input file name
+   * @param isKnownSat True if this model is associated with a "sat" response,
+   * or false if it is associated with an "unknown" response.
+  */
+  Model(const std::string& inputName = "", bool isKnownSat = true);
   /** get the input name (file name, etc.) this model is associated to */
   std::string getInputName() const { return d_inputName; }
   /**

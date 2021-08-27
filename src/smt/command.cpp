@@ -1746,7 +1746,7 @@ void GetAssignmentCommand::toStream(std::ostream& out,
 /* class GetModelCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-GetModelCommand::GetModelCommand() : d_result(nullptr) {}
+GetModelCommand::GetModelCommand() {}
 void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
