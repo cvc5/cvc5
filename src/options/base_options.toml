@@ -34,9 +34,10 @@ public = true
   category   = "common"
   short      = "L"
   long       = "lang=LANG"
-  type       = "InputLanguage"
-  default    = "language::input::LANG_AUTO"
-  handler    = "stringToInputLanguage"
+  type       = "Language"
+  default    = "Language::LANG_AUTO"
+  handler    = "stringToLanguage"
+  predicates = ["languageIsNotAST"]
   includes   = ["options/language.h"]
   help       = "force input language (default is \"auto\"; see --lang help)"
 
@@ -45,9 +46,9 @@ public = true
   alias      = ["output-language"]
   category   = "common"
   long       = "output-lang=LANG"
-  type       = "OutputLanguage"
-  default    = "language::output::LANG_AUTO"
-  handler    = "stringToOutputLanguage"
+  type       = "Language"
+  default    = "Language::LANG_AUTO"
+  handler    = "stringToLanguage"
   includes   = ["options/language.h"]
   help       = "force output language (default is \"auto\"; see --output-lang help)"
 

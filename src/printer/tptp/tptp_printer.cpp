@@ -38,12 +38,12 @@ void TptpPrinter::toStream(std::ostream& out,
                            int toDepth,
                            size_t dag) const
 {
-  n.toStream(out, toDepth, dag, language::output::LANG_SMTLIB_V2_6);
+  n.toStream(out, toDepth, dag, Language::LANG_SMTLIB_V2_6);
 }/* TptpPrinter::toStream() */
 
 void TptpPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 {
-  s->toStream(out, language::output::LANG_SMTLIB_V2_6);
+  s->toStream(out, Language::LANG_SMTLIB_V2_6);
 }/* TptpPrinter::toStream() */
 
 void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
@@ -52,7 +52,7 @@ void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
                                         : "CandidateFiniteModel");
   out << "% SZS output start " << statusName << " for " << m.getInputName()
       << endl;
-  this->Printer::toStreamUsing(language::output::LANG_SMTLIB_V2_6, out, m);
+  this->Printer::toStreamUsing(Language::LANG_SMTLIB_V2_6, out, m);
   out << "% SZS output end " << statusName << " for " << m.getInputName()
       << endl;
 }

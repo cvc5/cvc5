@@ -67,7 +67,7 @@ class TestNodeBlackNode : public TestNode
     TestNode::SetUp();
     // setup an SMT engine so that options are in scope
     Options opts;
-    opts.base.outputLanguage = OutputLanguage::LANG_AST;
+    opts.base.outputLanguage = Language::LANG_AST;
     opts.base.outputLanguageWasSetByUser = true;
     d_smt.reset(new SmtEngine(d_nodeManager.get(), &opts));
   }
@@ -643,7 +643,7 @@ TEST_F(TestNodeBlackNode, dagifier)
       OR, {fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy});
 
   std::stringstream sstr;
-  sstr << Node::setdepth(-1) << Node::setlanguage(language::output::LANG_CVC);
+  sstr << Node::setdepth(-1) << Node::setlanguage(Language::LANG_CVC);
   sstr << Node::dag(false) << n;  // never dagify
   ASSERT_EQ(sstr.str(),
             "(f(f(f(x))) = x) OR (f(f(f(x))) = y) OR (f(x) = g(x)) OR (x = "

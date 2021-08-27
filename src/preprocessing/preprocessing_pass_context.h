@@ -61,8 +61,10 @@ class PreprocessingPassContext
 
   void spendResource(Resource r);
 
-  /** Get the current logic info of the SmtEngine */
-  const LogicInfo& getLogicInfo() { return d_smt->getLogicInfo(); }
+  /** Get the options of the environment */
+  const Options& getOptions();
+  /** Get the current logic info of the environment */
+  const LogicInfo& getLogicInfo();
 
   /** Gets a reference to the top-level substitution map */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions();
