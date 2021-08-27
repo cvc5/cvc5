@@ -56,7 +56,7 @@ class Model {
   /**
    * Set that tn is a sort that should be printed in the model, when applicable,
    * based on the output language.
-   * 
+   *
    * @param tn The uninterpreted sort
    * @param elements The domain elements of tn in the model
    */
@@ -64,7 +64,7 @@ class Model {
   /**
    * Set that n is a variable that should be printed in the model, when
    * applicable, based on the output language.
-   * 
+   *
    * @param n The variable
    * @param value The value of the variable in the model
    */
@@ -72,7 +72,7 @@ class Model {
   /**
    * Set the separation logic model information where h is the heap and nilEq
    * is the value of sep.nil.
-   * 
+   *
    * @param h The value of heap in the heap model
    * @param nilEq The value of sep.nil in the heap model
    */
