@@ -17,11 +17,8 @@
 
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "theory/smt_engine_subsolver.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -59,12 +56,14 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
   Assert (!query.isNull());
   if (Options::current().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser)
   {
-    initializeSubsolver(
-        checker, nullptr, true, options::sygusExprMinerCheckTimeout());
+    initializeSubsolver(checker,
+                        d_env,
+                        true,
+                        options::sygusExprMinerCheckTimeout());
   }
   else
   {
-    initializeSubsolver(checker);
+    initializeSubsolver(checker, d_env);
   }
   // also set the options
   checker->setOption("sygus-rr-synth-input", "false");

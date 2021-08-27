@@ -48,6 +48,17 @@ class DatatypesRewriter : public TheoryRewriter
    * on all top-level codatatype subterms of n.
    */
   static Node normalizeConstant(Node n);
+  /**
+   * Expand an APPLY_SELECTOR term n, return its expanded form. If n is
+   *   (APPLY_SELECTOR selC x)
+   * its expanded form is
+   *   (ITE (APPLY_TESTER is-C x)
+   *     (APPLY_SELECTOR_TOTAL selC' x)
+   *     (f x))
+   * where f is a skolem function with id SELECTOR_WRONG, and selC' is the
+   * internal selector function for selC (possibly a shared selector).
+   */
+  static Node expandApplySelector(Node n);
   /** expand defintions */
   TrustNode expandDefinition(Node n) override;
 

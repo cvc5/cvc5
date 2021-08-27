@@ -17,8 +17,6 @@
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -39,9 +37,10 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-CegSingleInv::CegSingleInv(TermRegistry& tr, SygusStatistics& s)
-    : d_sip(new SingleInvocationPartition),
-      d_srcons(new SygusReconstruct(tr.getTermDatabaseSygus(), s)),
+CegSingleInv::CegSingleInv(Env& env, TermRegistry& tr, SygusStatistics& s)
+    : d_env(env),
+      d_sip(new SingleInvocationPartition),
+      d_srcons(new SygusReconstruct(env, tr.getTermDatabaseSygus(), s)),
       d_isSolved(false),
       d_single_invocation(false),
       d_treg(tr)
@@ -229,7 +228,7 @@ bool CegSingleInv::solve()
   }
   // solve the single invocation conjecture using a fresh copy of SMT engine
   std::unique_ptr<SmtEngine> siSmt;
-  initializeSubsolver(siSmt);
+  initializeSubsolver(siSmt, d_env);
   siSmt->assertFormula(siq);
   Result r = siSmt->checkSat();
   Trace("sygus-si") << "Result: " << r << std::endl;
@@ -505,7 +504,7 @@ bool CegSingleInv::solveTrivial(Node q)
 
     std::vector<Node> varsTmp;
     std::vector<Node> subsTmp;
-    QuantifiersRewriter::getVarElim(body, false, args, varsTmp, subsTmp);
+    QuantifiersRewriter::getVarElim(body, args, varsTmp, subsTmp);
     // if we eliminated a variable, update body and reprocess
     if (!varsTmp.empty())
     {

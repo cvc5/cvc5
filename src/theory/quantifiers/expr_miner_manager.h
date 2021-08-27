@@ -26,10 +26,10 @@
 #include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 /** ExpressionMinerManager
@@ -42,7 +42,7 @@ namespace quantifiers {
 class ExpressionMinerManager
 {
  public:
-  ExpressionMinerManager();
+  ExpressionMinerManager(Env& env);
   ~ExpressionMinerManager() {}
   /**  Initialize this class
    *
@@ -93,6 +93,8 @@ class ExpressionMinerManager
   bool addTerm(Node sol, std::ostream& out, bool& rew_print);
 
  private:
+  /** Reference to the env */
+  Env& d_env;
   /** whether we are doing rewrite synthesis */
   bool d_doRewSynth;
   /** whether we are doing query generation */

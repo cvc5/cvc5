@@ -151,9 +151,6 @@ class IntBlaster
   /** Adds a constraint that encodes bitwise and */
   void addBitwiseConstraint(Node bitwiseConstraint, std::vector<Node>& lemmas);
 
-  /** Returns a node that represents the bitwise negation of n. */
-  Node createBVNotNode(Node n, uint64_t bvsize);
-
   /**
    * Whenever we introduce an integer variable that represents a bit-vector
    * variable, we need to guard the range of the newly introduced variable.
@@ -240,7 +237,7 @@ class IntBlaster
    * A useful utility function.
    * if n is an integer and tn is bit-vector,
    * applies the IntToBitVector operator on n.
-   * if n is a vit-vector and tn is integer,
+   * if n is a bit-vector and tn is integer,
    * applies BitVector_TO_NAT operator.
    * Otherwise, keeps n intact.
    */
@@ -284,7 +281,7 @@ class IntBlaster
    * binary representation of n is the same as the
    * signed binary representation of m.
    */
-  Node unsignedToSigned(Node n, uint64_t bvsize);
+  Node uts(Node n, uint64_t bvsize);
 
   /**
    * Performs the actual translation to integers for nodes
