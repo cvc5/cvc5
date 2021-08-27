@@ -19,7 +19,6 @@
 
 #include "base/modal_exception.h"
 #include "expr/dtype.h"
-#include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/option_exception.h"
@@ -29,7 +28,6 @@
 #include "smt/dump.h"
 #include "smt/preprocessor.h"
 #include "smt/smt_solver.h"
-#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
@@ -84,19 +82,23 @@ void SygusSolver::declareSynthFun(Node fn,
     // use an attribute to mark its grammar
     SygusSynthGrammarAttribute ssfga;
     fn.setAttribute(ssfga, sym);
-    // we must expand definitions for sygus operators in the block
-    expandDefinitionsSygusDt(sygusType);
   }
 
   // sygus conjecture is now stale
   setSygusConjectureStale();
 }
 
-void SygusSolver::assertSygusConstraint(Node constraint)
+void SygusSolver::assertSygusConstraint(Node n, bool isAssume)
 {
-  Trace("smt") << "SygusSolver::assertSygusConstrant: " << constraint << "\n";
-  d_sygusConstraints.push_back(constraint);
-
+  Trace("smt") << "SygusSolver::assertSygusConstrant: " << n << "\n";
+  if (isAssume)
+  {
+    d_sygusAssumps.push_back(n);
+  }
+  else
+  {
+    d_sygusConstraints.push_back(n);
+  }
   // sygus conjecture is now stale
   setSygusConjectureStale();
 }
@@ -190,11 +192,13 @@ Result SygusSolver::checkSynth(Assertions& as)
     // variables/functions
     std::vector<Node> bodyv;
     Trace("smt") << "Sygus : Constructing sygus constraint...\n";
-    size_t nconstraints = d_sygusConstraints.size();
-    Node body = nconstraints == 0
-                    ? nm->mkConst(true)
-                    : (nconstraints == 1 ? d_sygusConstraints[0]
-                                         : nm->mkNode(AND, d_sygusConstraints));
+    Node body = nm->mkAnd(d_sygusConstraints);
+    // note that if there are no constraints, then assumptions are irrelevant
+    if (!d_sygusConstraints.empty() && !d_sygusAssumps.empty())
+    {
+      Node bodyAssump = nm->mkAnd(d_sygusAssumps);
+      body = nm->mkNode(IMPLIES, bodyAssump, body);
+    }
     body = body.notNode();
     Trace("smt") << "...constructed sygus constraint " << body << std::endl;
     if (!d_sygusVars.empty())
@@ -410,45 +414,6 @@ void SygusSolver::setSygusConjectureStale()
   }
   d_sygusConjectureStale = true;
   // TODO (project #7): if incremental, we should pop a context
-}
-
-void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
-{
-  std::unordered_set<TypeNode> processed;
-  std::vector<TypeNode> toProcess;
-  toProcess.push_back(tn);
-  size_t index = 0;
-  while (index < toProcess.size())
-  {
-    TypeNode tnp = toProcess[index];
-    index++;
-    Assert(tnp.isDatatype());
-    Assert(tnp.getDType().isSygus());
-    const std::vector<std::shared_ptr<DTypeConstructor>>& cons =
-        tnp.getDType().getConstructors();
-    for (const std::shared_ptr<DTypeConstructor>& c : cons)
-    {
-      Node op = c->getSygusOp();
-      // Only expand definitions if the operator is not constant, since
-      // calling expandDefinitions on them should be a no-op. This check
-      // ensures we don't try to expand e.g. bitvector extract operators,
-      // whose type is undefined, and thus should not be passed to
-      // expandDefinitions.
-      Node eop = op.isConst() ? op : d_pp.expandDefinitions(op);
-      datatypes::utils::setExpandedDefinitionForm(op, eop);
-      // also must consider the arguments
-      for (unsigned j = 0, nargs = c->getNumArgs(); j < nargs; ++j)
-      {
-        TypeNode tnc = c->getArgType(j);
-        if (tnc.isDatatype() && tnc.getDType().isSygus()
-            && processed.find(tnc) == processed.end())
-        {
-          toProcess.push_back(tnc);
-          processed.insert(tnc);
-        }
-      }
-    }
-  }
 }
 
 }  // namespace smt

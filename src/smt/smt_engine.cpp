@@ -1021,7 +1021,6 @@ void SmtEngine::declareSynthFun(Node func,
                                 const std::vector<Node>& vars)
 {
   SmtScope smts(this);
-  finishInit();
   d_state->doPendingPops();
   d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
 
@@ -1044,14 +1043,21 @@ void SmtEngine::declareSynthFun(Node func,
   declareSynthFun(func, sygusType, isInv, vars);
 }
 
-void SmtEngine::assertSygusConstraint(Node constraint)
+void SmtEngine::assertSygusConstraint(Node n, bool isAssume)
 {
   SmtScope smts(this);
   finishInit();
-  d_sygusSolver->assertSygusConstraint(constraint);
+  d_sygusSolver->assertSygusConstraint(n, isAssume);
   if (Dump.isOn("raw-benchmark"))
   {
-    getPrinter().toStreamCmdConstraint(d_env->getDumpOut(), constraint);
+    if (isAssume)
+    {
+      getPrinter().toStreamCmdConstraint(d_env->getDumpOut(), n);
+    }
+    else
+    {
+      getPrinter().toStreamCmdAssume(d_env->getDumpOut(), n);
+    }
   }
 }
 

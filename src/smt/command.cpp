@@ -738,7 +738,7 @@ void SynthFunCommand::toStream(std::ostream& out,
 /* class SygusConstraintCommand */
 /* -------------------------------------------------------------------------- */
 
-SygusConstraintCommand::SygusConstraintCommand(const api::Term& t) : d_term(t)
+SygusConstraintCommand::SygusConstraintCommand(const api::Term& t, bool isAssume) : d_term(t), d_isAssume(isAssume)
 {
 }
 
@@ -746,7 +746,14 @@ void SygusConstraintCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->addSygusConstraint(d_term);
+    if (d_isAssume)
+    {
+      solver->addSygusAssume(d_term);
+    }
+    else
+    {
+      solver->addSygusConstraint(d_term);
+    }
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)

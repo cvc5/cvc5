@@ -82,8 +82,8 @@ class SygusSolver
                        bool isInv,
                        const std::vector<Node>& vars);
 
-  /** Add a regular sygus constraint.*/
-  void assertSygusConstraint(Node constraint);
+  /** Add a regular sygus constraint or assumption.*/
+  void assertSygusConstraint(Node n, bool isAssume);
 
   /**
    * Add an invariant constraint.
@@ -158,18 +158,6 @@ class SygusSolver
    * previously not stale.
    */
   void setSygusConjectureStale();
-  /**
-   * Expand definitions in sygus datatype tn, which ensures that all
-   * sygus constructors that are used to build values of sygus datatype
-   * tn are associated with their expanded definition form.
-   *
-   * This method is required at this level since sygus grammars may include
-   * user-defined functions. Thus, we must use the preprocessor here to
-   * associate the use of those functions with their expanded form, since
-   * the internal sygus solver must reason about sygus operators after
-   * expansion.
-   */
-  void expandDefinitionsSygusDt(TypeNode tn) const;
   /** Reference to the env class */
   Env& d_env;
   /** The SMT solver, which is used during checkSynth. */
@@ -185,6 +173,8 @@ class SygusSolver
   std::vector<Node> d_sygusVars;
   /** sygus constraints */
   std::vector<Node> d_sygusConstraints;
+  /** sygus assumptions */
+  std::vector<Node> d_sygusAssumps;
   /** functions-to-synthesize */
   std::vector<Node> d_sygusFunSymbols;
   /**
