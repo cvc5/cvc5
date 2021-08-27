@@ -7220,7 +7220,9 @@ bool Solver::hasSeparationHeap() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return false;//d_smtEngine->hasSepHeap();
+  // true if we have separation heap types
+  TypeNode loc, data;
+  return d_smtEngine->getSepHeapTypes(loc, data);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

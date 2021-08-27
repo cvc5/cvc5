@@ -1562,6 +1562,20 @@ TEST_F(TestApiBlackSolver, declareSeparationHeap)
                CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, hasSeparationHeap)
+{
+  d_solver.setLogic("ALL");
+  Sort integer = d_solver.getIntegerSort();
+  ASSERT_NO_THROW(d_solver.declareSeparationHeap(integer, integer));
+  ASSERT_TRUE(d_solver.hasSeparationHeap());
+}
+
+TEST_F(TestApiBlackSolver, hasSeparationHeap2)
+{
+  d_solver.setLogic("ALL");
+  ASSERT_FALSE(d_solver.hasSeparationHeap());
+}
+
 namespace {
 /**
  * Helper function for testGetSeparation{Heap,Nil}TermX. Asserts and checks
