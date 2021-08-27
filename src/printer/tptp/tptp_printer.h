@@ -55,9 +55,7 @@ class TptpPrinter : public cvc5::Printer
    * To stream model term. This prints the appropriate output for term
    * n declared via declare-fun.
    */
-  void toStreamModelTerm(std::ostream& out,
-                         Node n,
-                         Node value) const override;
+  void toStreamModelTerm(std::ostream& out, Node n, Node value) const override;
 
 }; /* class TptpPrinter */
 

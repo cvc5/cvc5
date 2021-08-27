@@ -22,9 +22,7 @@
 namespace cvc5 {
 namespace smt {
 
-Model::Model() : d_isKnownSat(false)
-{
-}
+Model::Model() : d_isKnownSat(false) {}
 
 std::ostream& operator<<(std::ostream& out, const Model& m) {
   expr::ExprDag::Scope scope(out, false);
@@ -34,14 +32,16 @@ std::ostream& operator<<(std::ostream& out, const Model& m) {
 
 const std::vector<Node>& Model::getDomainElements(TypeNode tn) const
 {
-  std::map<TypeNode, std::vector<Node>>::const_iterator it =  d_domainElements.find(tn);
-  Assert (it!=d_domainElements.end());
+  std::map<TypeNode, std::vector<Node>>::const_iterator it =
+      d_domainElements.find(tn);
+  Assert(it != d_domainElements.end());
   return it->second;
 }
 
-Node Model::getValue(TNode n) const { 
-  std::map<Node,Node>::const_iterator it = d_declareTermValues.find(n);
-  Assert (it!=d_declareTermValues.end());
+Node Model::getValue(TNode n) const
+{
+  std::map<Node, Node>::const_iterator it = d_declareTermValues.find(n);
+  Assert(it != d_declareTermValues.end());
   return it->second;
 }
 
@@ -56,13 +56,15 @@ bool Model::getHeapModel(Node& h, Node& nilEq) const
   return true;
 }
 
-void Model::addDeclarationSort(TypeNode tn, const std::vector<Node>& elements) { 
+void Model::addDeclarationSort(TypeNode tn, const std::vector<Node>& elements)
+{
   d_declareSorts.push_back(tn);
   d_domainElements[tn] = elements;
 }
 
-void Model::addDeclarationTerm(Node n, Node value) { 
-  d_declareTerms.push_back(n); 
+void Model::addDeclarationTerm(Node n, Node value)
+{
+  d_declareTerms.push_back(n);
   d_declareTermValues[n] = value;
 }
 

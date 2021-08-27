@@ -1217,7 +1217,7 @@ Result SmtEngine::blockModel()
     getPrinter().toStreamCmdBlockModel(d_env->getDumpOut());
   }
 
-  TheoryModel * m = getAvailableModel("block model");
+  TheoryModel* m = getAvailableModel("block model");
 
   if (d_env->getOptions().smt.blockModelsMode
       == options::BlockModelsMode::NONE)
@@ -1229,10 +1229,8 @@ Result SmtEngine::blockModel()
 
   // get expanded assertions
   std::vector<Node> eassertsProc = getExpandedAssertions();
-  Node eblocker =
-      ModelBlocker::getModelBlocker(eassertsProc,
-                                    m,
-                                    d_env->getOptions().smt.blockModelsMode);
+  Node eblocker = ModelBlocker::getModelBlocker(
+      eassertsProc, m, d_env->getOptions().smt.blockModelsMode);
   Trace("smt") << "Block formula: " << eblocker << std::endl;
   return assertFormula(eblocker);
 }
@@ -1254,11 +1252,8 @@ Result SmtEngine::blockModelValues(const std::vector<Node>& exprs)
   // get expanded assertions
   std::vector<Node> eassertsProc = getExpandedAssertions();
   // we always do block model values mode here
-  Node eblocker =
-      ModelBlocker::getModelBlocker(eassertsProc,
-                                    m,
-                                    options::BlockModelsMode::VALUES,
-                                    exprs);
+  Node eblocker = ModelBlocker::getModelBlocker(
+      eassertsProc, m, options::BlockModelsMode::VALUES, exprs);
   return assertFormula(eblocker);
 }
 
