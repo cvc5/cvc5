@@ -197,11 +197,13 @@ Result SygusSolver::checkSynth(Assertions& as)
     Trace("smt") << "Sygus : Constructing sygus constraint...\n";
     Node body = nm->mkAnd(d_sygusConstraints);
     // note that if there are no constraints, then assumptions are irrelevant
+    /*
     if (!d_sygusConstraints.empty() && !d_sygusAssumps.empty())
     {
       Node bodyAssump = nm->mkAnd(d_sygusAssumps);
       body = nm->mkNode(IMPLIES, bodyAssump, body);
     }
+    */
     body = body.notNode();
     Trace("smt") << "...constructed sygus constraint " << body << std::endl;
     if (!d_sygusVars.empty())
