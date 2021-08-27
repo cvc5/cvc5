@@ -768,7 +768,7 @@ api::Term SygusConstraintCommand::getTerm() const { return d_term; }
 
 Command* SygusConstraintCommand::clone() const
 {
-  return new SygusConstraintCommand(d_term);
+  return new SygusConstraintCommand(d_term, d_isAssume);
 }
 
 std::string SygusConstraintCommand::getCommandName() const

@@ -1052,11 +1052,11 @@ void SmtEngine::assertSygusConstraint(Node n, bool isAssume)
   {
     if (isAssume)
     {
-      getPrinter().toStreamCmdConstraint(d_env->getDumpOut(), n);
+      getPrinter().toStreamCmdAssume(d_env->getDumpOut(), n);
     }
     else
     {
-      getPrinter().toStreamCmdAssume(d_env->getDumpOut(), n);
+      getPrinter().toStreamCmdConstraint(d_env->getDumpOut(), n);
     }
   }
 }
