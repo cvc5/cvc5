@@ -77,7 +77,8 @@ void SygusSolver::declareSynthFun(Node fn,
     fn.setAttribute(ssfvla, bvl);
   }
   // whether sygus type encodes syntax restrictions
-  if (!sygusType.isNull() && sygusType.isDatatype() && sygusType.getDType().isSygus())
+  if (!sygusType.isNull() && sygusType.isDatatype()
+      && sygusType.getDType().isSygus())
   {
     Node sym = nm->mkBoundVar("sfproxy", sygusType);
     // use an attribute to mark its grammar
@@ -417,12 +418,12 @@ void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
   std::vector<TypeNode> toProcess;
   toProcess.push_back(tn);
   size_t index = 0;
-  while (index<toProcess.size())
+  while (index < toProcess.size())
   {
     TypeNode tnp = toProcess[index];
     index++;
-    Assert (tnp.isDatatype());
-    Assert (tnp.getDType().isSygus());
+    Assert(tnp.isDatatype());
+    Assert(tnp.getDType().isSygus());
     const std::vector<std::shared_ptr<DTypeConstructor>>& cons =
         tnp.getDType().getConstructors();
     for (const std::shared_ptr<DTypeConstructor>& c : cons)
@@ -439,7 +440,8 @@ void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
       for (unsigned j = 0, nargs = c->getNumArgs(); j < nargs; ++j)
       {
         TypeNode tnc = c->getArgType(j);
-        if (tnc.isDatatype() && tnc.getDType().isSygus()&& processed.find(tnc)==processed.end())
+        if (tnc.isDatatype() && tnc.getDType().isSygus()
+            && processed.find(tnc) == processed.end())
         {
           toProcess.push_back(tnc);
           processed.insert(tnc);

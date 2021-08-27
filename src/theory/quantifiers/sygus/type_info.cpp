@@ -194,7 +194,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     if (Trace.isOn("sygus-db"))
     {
       Trace("sygus-db") << "Expanded form: ";
-      if (eop==sop)
+      if (eop == sop)
       {
         Trace("sygus-db") << "same";
       }
