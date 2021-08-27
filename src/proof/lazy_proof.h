@@ -84,10 +84,6 @@ class LazyCDProof : public CDProof
                    const char* ctx = "LazyCDProof::addLazyStep",
                    bool forceOverwrite = false);
   /**
-   * Erase lazy step.
-   */
-  void eraseLazyStep(Node expected);
-  /**
    * Does this have any proof generators? This method always returns true
    * if the default is non-null.
    */
