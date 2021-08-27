@@ -738,7 +738,9 @@ void SynthFunCommand::toStream(std::ostream& out,
 /* class SygusConstraintCommand */
 /* -------------------------------------------------------------------------- */
 
-SygusConstraintCommand::SygusConstraintCommand(const api::Term& t, bool isAssume) : d_term(t), d_isAssume(isAssume)
+SygusConstraintCommand::SygusConstraintCommand(const api::Term& t,
+                                               bool isAssume)
+    : d_term(t), d_isAssume(isAssume)
 {
 }
 
