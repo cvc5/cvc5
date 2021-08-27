@@ -35,6 +35,16 @@ namespace theory {
 namespace datatypes {
 namespace utils {
 
+/**
+ * Map terms to the result of expand definitions calling smt::expandDefinitions
+ * on it.
+ */
+struct SygusExpDefFormAttributeId
+{
+};
+typedef expr::Attribute<SygusExpDefFormAttributeId, Node>
+    SygusExpDefFormAttribute;
+  
 Node applySygusArgs(const DType& dt,
                     Node op,
                     Node n,
@@ -180,7 +190,11 @@ Node mkSygusTerm(const DType& dt,
         // ensures we don't try to expand e.g. bitvector extract operators,
         // whose type is undefined, and thus should not be passed to
         // expandDefinitions.
-        opn = smt::currentSmtEngine()->expandDefinitions(op);
+        SygusExpDefFormAttribute sedfa;
+        if (op.hasAttribute(sedfa))
+        {
+          opn = op.getAttribute(sedfa);
+        }
         opn = Rewriter::rewrite(opn);
         SygusOpRewrittenAttribute sora;
         op.setAttribute(sora, opn);
@@ -734,6 +748,11 @@ unsigned getSygusTermSize(Node n)
   Assert(cindex >= 0 && static_cast<size_t>(cindex) < dt.getNumConstructors());
   unsigned weight = dt[cindex].getWeight();
   return weight + sum;
+}
+
+void setExpandedDefinitionForm(Node op, Node eop)
+{
+  op.setAttribute(SygusExpDefFormAttribute(), eop);
 }
 
 }  // namespace utils

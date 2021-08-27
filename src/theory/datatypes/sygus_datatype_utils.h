@@ -232,6 +232,9 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
  * in n.
  */
 unsigned getSygusTermSize(Node n);
+
+/** Set expanded definition form */
+void setExpandedDefinitionForm(Node op, Node eop);
 // ------------------------ end sygus utils
 
 }  // namespace utils

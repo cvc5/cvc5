@@ -19,6 +19,7 @@
 
 #include "base/modal_exception.h"
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/option_exception.h"
@@ -31,6 +32,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
@@ -78,13 +80,24 @@ void SygusSolver::declareSynthFun(Node fn,
     fn.setAttribute(ssfvla, bvl);
   }
   // whether sygus type encodes syntax restrictions
-  if (!sygusType.isNull() && sygusType.isDatatype()
-      && sygusType.getDType().isSygus())
+  if (!sygusType.isNull() && sygusType.isDatatype())
   {
-    Node sym = nm->mkBoundVar("sfproxy", sygusType);
-    // use an attribute to mark its grammar
-    SygusSynthGrammarAttribute ssfga;
-    fn.setAttribute(ssfga, sym);
+    const DType&  dt = sygusType.getDType();
+    if (dt.isSygus())
+    {
+      Node sym = nm->mkBoundVar("sfproxy", sygusType);
+      // use an attribute to mark its grammar
+      SygusSynthGrammarAttribute ssfga;
+      fn.setAttribute(ssfga, sym);
+      // we must expand definitions for sygus operators here
+      const std::vector<std::shared_ptr<DTypeConstructor> >& cons = dt.getConstructors();
+      for (const std::shared_ptr<DTypeConstructor>& c : cons)
+      {
+        Node op = c->getSygusOp();
+        Node eop = op.isConst() ? op : d_pp.expandDefinitions(op);
+        datatypes::utils::setExpandedDefinitionForm(op, eop);
+      }
+    }
   }
 
   // sygus conjecture is now stale
