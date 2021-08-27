@@ -93,9 +93,7 @@ class SExprTypeRule {
 
 class UninterpretedConstantTypeRule {
  public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    return n.getConst<UninterpretedConstant>().getType();
-  }
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };/* class UninterpretedConstantTypeRule */
 
 class AbstractValueTypeRule {
@@ -202,22 +200,8 @@ class SortProperties {
 
 class FunctionProperties {
  public:
-  inline static Cardinality computeCardinality(TypeNode type) {
-    // Don't assert this; allow other theories to use this cardinality
-    // computation.
-    //
-    // Assert(type.getKind() == kind::FUNCTION_TYPE);
+  static Cardinality computeCardinality(TypeNode type);
 
-    Cardinality argsCard(1);
-    // get the largest cardinality of function arguments/return type
-    for(unsigned i = 0, i_end = type.getNumChildren() - 1; i < i_end; ++i) {
-      argsCard *= type[i].getCardinality();
-    }
-
-    Cardinality valueCard = type[type.getNumChildren() - 1].getCardinality();
-
-    return valueCard ^ argsCard;
-  }
   /** Function type is well-founded if its component sorts are */
   static bool isWellFounded(TypeNode type)
   {

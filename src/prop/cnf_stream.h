@@ -36,7 +36,7 @@
 
 namespace cvc5 {
 
-class OutputManager;
+class Env;
 
 namespace prop {
 
@@ -84,8 +84,8 @@ class CnfStream {
    * @param satSolver the sat solver to use.
    * @param registrar the entity that takes care of preregistration of Nodes.
    * @param context the context that the CNF should respect.
-   * @param outMgr Reference to the output manager of the smt engine. Assertions
-   * will not be dumped if outMgr == nullptr.
+   * @param env Reference to the environment of the smt engine. Assertions
+   * will not be dumped if env == nullptr.
    * @param rm the resource manager of the CNF stream
    * @param flpol policy for literals corresponding to formulas (those that are
    * not-theory literals).
@@ -95,7 +95,7 @@ class CnfStream {
   CnfStream(SatSolver* satSolver,
             Registrar* registrar,
             context::Context* context,
-            OutputManager* outMgr,
+            Env* env,
             ResourceManager* rm,
             FormulaLitPolicy flpol = FormulaLitPolicy::INTERNAL,
             std::string name = "");
@@ -191,16 +191,16 @@ class CnfStream {
    */
   SatLiteral toCNF(TNode node, bool negated = false);
 
-  /** Specific clausifiers, based on the formula kinds, that clausify a formula,
-   * by calling toCNF into each of the formula's children under the respective
-   * kind, and introduce a literal definitionally equal to it. */
-  SatLiteral handleNot(TNode node);
-  SatLiteral handleXor(TNode node);
-  SatLiteral handleImplies(TNode node);
-  SatLiteral handleIff(TNode node);
-  SatLiteral handleIte(TNode node);
-  SatLiteral handleAnd(TNode node);
-  SatLiteral handleOr(TNode node);
+  /**
+   * Specific clausifiers that clausify a formula based on the given formula
+   * kind and introduce a literal definitionally equal to it.
+   */
+  void handleXor(TNode node);
+  void handleImplies(TNode node);
+  void handleIff(TNode node);
+  void handleIte(TNode node);
+  void handleAnd(TNode node);
+  void handleOr(TNode node);
 
   /** Stores the literal of the given node in d_literalToNodeMap.
    *
@@ -212,8 +212,8 @@ class CnfStream {
   /** The SAT solver we will be using */
   SatSolver* d_satSolver;
 
-  /** Reference to the output manager of the smt engine */
-  OutputManager* d_outMgr;
+  /** Pointer to the env of the smt engine */
+  Env* d_env;
 
   /** Boolean variables that we translated */
   context::CDList<TNode> d_booleanVariables;
@@ -309,6 +309,14 @@ class CnfStream {
 
   /** Pointer to resource manager for associated SmtEngine */
   ResourceManager* d_resourceManager;
+
+ private:
+  struct Statistics
+  {
+    Statistics(const std::string& name);
+    TimerStat d_cnfConversionTime;
+  } d_stats;
+
 }; /* class CnfStream */
 
 }  // namespace prop

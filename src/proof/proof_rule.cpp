@@ -46,6 +46,9 @@ const char* toString(PfRule id)
     case PfRule::TRUST_REWRITE: return "TRUST_REWRITE";
     case PfRule::TRUST_SUBS: return "TRUST_SUBS";
     case PfRule::TRUST_SUBS_MAP: return "TRUST_SUBS_MAP";
+    case PfRule::TRUST_SUBS_EQ: return "TRUST_SUBS_EQ";
+    case PfRule::THEORY_INFERENCE: return "THEORY_INFERENCE";
+    case PfRule::SAT_REFUTATION: return "SAT_REFUTATION";
     //================================================= Boolean rules
     case PfRule::RESOLUTION: return "RESOLUTION";
     case PfRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
@@ -76,7 +79,6 @@ const char* toString(PfRule id)
     case PfRule::ITE_ELIM2: return "ITE_ELIM2";
     case PfRule::NOT_ITE_ELIM1: return "NOT_ITE_ELIM1";
     case PfRule::NOT_ITE_ELIM2: return "NOT_ITE_ELIM2";
-    //================================================= De Morgan rules
     case PfRule::NOT_AND: return "NOT_AND";
     //================================================= CNF rules
     case PfRule::CNF_AND_POS: return "CNF_AND_POS";
@@ -117,50 +119,10 @@ const char* toString(PfRule id)
       return "ARRAYS_READ_OVER_WRITE_CONTRA";
     case PfRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
     case PfRule::ARRAYS_EXT: return "ARRAYS_EXT";
-    case PfRule::ARRAYS_TRUST: return "ARRAYS_TRUST";
+    case PfRule::ARRAYS_EQ_RANGE_EXPAND: return "ARRAYS_EQ_RANGE_EXPAND";
     //================================================= Bit-Vector rules
     case PfRule::BV_BITBLAST: return "BV_BITBLAST";
-    case PfRule::BV_BITBLAST_CONST: return "BV_BITBLAST_CONST";
-    case PfRule::BV_BITBLAST_VAR: return "BV_BITBLAST_VAR";
-    case PfRule::BV_BITBLAST_EQUAL: return "BV_BITBLAST_EQUAL";
-    case PfRule::BV_BITBLAST_ULT: return "BV_BITBLAST_ULT";
-    case PfRule::BV_BITBLAST_ULE: return "BV_BITBLAST_ULE";
-    case PfRule::BV_BITBLAST_UGT: return "BV_BITBLAST_UGT";
-    case PfRule::BV_BITBLAST_UGE: return "BV_BITBLAST_UGE";
-    case PfRule::BV_BITBLAST_SLT: return "BV_BITBLAST_SLT";
-    case PfRule::BV_BITBLAST_SLE: return "BV_BITBLAST_SLE";
-    case PfRule::BV_BITBLAST_SGT: return "BV_BITBLAST_SGT";
-    case PfRule::BV_BITBLAST_SGE: return "BV_BITBLAST_SGE";
-    case PfRule::BV_BITBLAST_NOT: return "BV_BITBLAST_NOT";
-    case PfRule::BV_BITBLAST_CONCAT: return "BV_BITBLAST_CONCAT";
-    case PfRule::BV_BITBLAST_AND: return "BV_BITBLAST_AND";
-    case PfRule::BV_BITBLAST_OR: return "BV_BITBLAST_OR";
-    case PfRule::BV_BITBLAST_XOR: return "BV_BITBLAST_XOR";
-    case PfRule::BV_BITBLAST_XNOR: return "BV_BITBLAST_XNOR";
-    case PfRule::BV_BITBLAST_NAND: return "BV_BITBLAST_NAND";
-    case PfRule::BV_BITBLAST_NOR: return "BV_BITBLAST_NOR";
-    case PfRule::BV_BITBLAST_COMP: return "BV_BITBLAST_COMP";
-    case PfRule::BV_BITBLAST_MULT: return "BV_BITBLAST_MULT";
-    case PfRule::BV_BITBLAST_ADD: return "BV_BITBLAST_ADD";
-    case PfRule::BV_BITBLAST_SUB: return "BV_BITBLAST_SUB";
-    case PfRule::BV_BITBLAST_NEG: return "BV_BITBLAST_NEG";
-    case PfRule::BV_BITBLAST_UDIV: return "BV_BITBLAST_UDIV";
-    case PfRule::BV_BITBLAST_UREM: return "BV_BITBLAST_UREM";
-    case PfRule::BV_BITBLAST_SDIV: return "BV_BITBLAST_SDIV";
-    case PfRule::BV_BITBLAST_SREM: return "BV_BITBLAST_SREM";
-    case PfRule::BV_BITBLAST_SMOD: return "BV_BITBLAST_SMOD";
-    case PfRule::BV_BITBLAST_SHL: return "BV_BITBLAST_SHL";
-    case PfRule::BV_BITBLAST_LSHR: return "BV_BITBLAST_LSHR";
-    case PfRule::BV_BITBLAST_ASHR: return "BV_BITBLAST_ASHR";
-    case PfRule::BV_BITBLAST_ULTBV: return "BV_BITBLAST_ULTBV";
-    case PfRule::BV_BITBLAST_SLTBV: return "BV_BITBLAST_SLTBV";
-    case PfRule::BV_BITBLAST_ITE: return "BV_BITBLAST_ITE";
-    case PfRule::BV_BITBLAST_EXTRACT: return "BV_BITBLAST_EXTRACT";
-    case PfRule::BV_BITBLAST_REPEAT: return "BV_BITBLAST_REPEAT";
-    case PfRule::BV_BITBLAST_ZERO_EXTEND: return "BV_BITBLAST_ZERO_EXTEND";
-    case PfRule::BV_BITBLAST_SIGN_EXTEND: return "BV_BITBLAST_SIGN_EXTEND";
-    case PfRule::BV_BITBLAST_ROTATE_RIGHT: return "BV_BITBLAST_ROTATE_RIGHT";
-    case PfRule::BV_BITBLAST_ROTATE_LEFT: return "BV_BITBLAST_ROTATE_LEFT";
+    case PfRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
     case PfRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
     //================================================= Datatype rules
     case PfRule::DT_UNIF: return "DT_UNIF";
@@ -168,12 +130,12 @@ const char* toString(PfRule id)
     case PfRule::DT_COLLAPSE: return "DT_COLLAPSE";
     case PfRule::DT_SPLIT: return "DT_SPLIT";
     case PfRule::DT_CLASH: return "DT_CLASH";
-    case PfRule::DT_TRUST: return "DT_TRUST";
     //================================================= Quantifiers rules
     case PfRule::SKOLEM_INTRO: return "SKOLEM_INTRO";
     case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
     case PfRule::SKOLEMIZE: return "SKOLEMIZE";
     case PfRule::INSTANTIATE: return "INSTANTIATE";
+    case PfRule::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
     //================================================= String rules
     case PfRule::CONCAT_EQ: return "CONCAT_EQ";
     case PfRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
@@ -195,7 +157,6 @@ const char* toString(PfRule id)
     case PfRule::RE_ELIM: return "RE_ELIM";
     case PfRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
     case PfRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
-    case PfRule::STRING_TRUST: return "STRING_TRUST";
     //================================================= Arith rules
     case PfRule::MACRO_ARITH_SCALE_SUM_UB:
       return "ARITH_SCALE_SUM_UPPER_BOUNDS";
@@ -203,7 +164,6 @@ const char* toString(PfRule id)
     case PfRule::ARITH_TRICHOTOMY: return "ARITH_TRICHOTOMY";
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
-    case PfRule::INT_TRUST: return "INT_TRUST";
     case PfRule::ARITH_MULT_SIGN: return "ARITH_MULT_SIGN";
     case PfRule::ARITH_MULT_POS: return "ARITH_MULT_POS";
     case PfRule::ARITH_MULT_NEG: return "ARITH_MULT_NEG";
@@ -238,6 +198,8 @@ const char* toString(PfRule id)
       return "ARITH_TRANS_SINE_APPROX_BELOW_POS";
     case PfRule::ARITH_NL_CAD_DIRECT: return "ARITH_NL_CAD_DIRECT";
     case PfRule::ARITH_NL_CAD_RECURSIVE: return "ARITH_NL_CAD_RECURSIVE";
+    //================================================= External rules
+    case PfRule::LFSC_RULE: return "LFSC_RULE";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";

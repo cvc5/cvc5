@@ -115,10 +115,7 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
   void safePoint(Resource r) override {}
   void conflict(TNode n) override { push(CONFLICT, n); }
 
-  void trustedConflict(theory::TrustNode n) override
-  {
-    push(CONFLICT, n.getNode());
-  }
+  void trustedConflict(TrustNode n) override { push(CONFLICT, n.getNode()); }
 
   bool propagate(TNode n) override
   {
@@ -132,16 +129,13 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
     push(LEMMA, n);
   }
 
-  void trustedLemma(theory::TrustNode n, theory::LemmaProperty p) override
+  void trustedLemma(TrustNode n, theory::LemmaProperty p) override
   {
     push(LEMMA, n.getNode());
   }
 
   void requirePhase(TNode, bool) override {}
   void setIncomplete(theory::IncompleteId id) override {}
-  void handleUserAttribute(const char* attr, theory::Theory* t) override {}
-
-  void splitLemma(TNode n, bool removable = false) override { push(LEMMA, n); }
 
   void clear() { d_callHistory.clear(); }
 
@@ -211,14 +205,9 @@ template <theory::TheoryId theoryId>
 class DummyTheory : public theory::Theory
 {
  public:
-  DummyTheory(context::Context* ctxt,
-              context::UserContext* uctxt,
-              theory::OutputChannel& out,
-              theory::Valuation valuation,
-              const LogicInfo& logicInfo,
-              ProofNodeManager* pnm)
-      : Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo, pnm),
-        d_state(ctxt, uctxt, valuation)
+  DummyTheory(Env& env, theory::OutputChannel& out, theory::Valuation valuation)
+      : Theory(theoryId, env, out, valuation),
+        d_state(env, valuation)
   {
     // use a default theory state object
     d_theoryState = &d_state;
@@ -250,10 +239,7 @@ class DummyTheory : public theory::Theory
     // do not assert to equality engine, since this theory does not use one
     return true;
   }
-  theory::TrustNode explain(TNode n) override
-  {
-    return theory::TrustNode::null();
-  }
+  TrustNode explain(TNode n) override { return TrustNode::null(); }
   Node getValue(TNode n) { return Node::null(); }
   std::string identify() const override { return "DummyTheory" + d_id; }
 

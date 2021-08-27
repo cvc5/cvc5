@@ -18,7 +18,11 @@
 #include <sstream>
 
 #include "base/check.h"
+#include "expr/emptybag.h"
+#include "theory/bags/make_bag_op.h"
 #include "theory/bags/normal_form.h"
+#include "util/cardinality.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace theory {
@@ -319,6 +323,11 @@ TypeNode BagMapTypeRule::computeType(NodeManager* nodeManager,
   TypeNode rangeType = n[0].getType().getRangeType();
   TypeNode retType = nodeManager->mkBagType(rangeType);
   return retType;
+}
+
+Cardinality BagsProperties::computeCardinality(TypeNode type)
+{
+  return Cardinality::INTEGERS;
 }
 
 bool BagsProperties::isWellFounded(TypeNode type)

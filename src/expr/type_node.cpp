@@ -16,12 +16,15 @@
 
 #include <vector>
 
+#include "expr/datatype_index.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/type_properties.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/type_enumerator.h"
+#include "util/bitvector.h"
+#include "util/cardinality.h"
 
 using namespace std;
 
@@ -657,7 +660,8 @@ bool TypeNode::isSygusDatatype() const
 
 std::string TypeNode::toString() const {
   std::stringstream ss;
-  OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AUTO : options::outputLanguage();
+  Language outlang =
+      (this == &s_null) ? Language::LANG_AUTO : options::outputLanguage();
   d_nv->toStream(ss, -1, 0, outlang);
   return ss.str();
 }
@@ -682,6 +686,18 @@ TypeNode TypeNode::getBagElementType() const
 {
   Assert(isBag());
   return (*this)[0];
+}
+
+bool TypeNode::isBitVector(unsigned size) const
+{
+  return (getKind() == kind::BITVECTOR_TYPE
+          && getConst<BitVectorSize>() == size);
+}
+
+uint32_t TypeNode::getBitVectorSize() const
+{
+  Assert(isBitVector());
+  return getConst<BitVectorSize>();
 }
 
 }  // namespace cvc5

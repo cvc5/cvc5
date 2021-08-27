@@ -22,12 +22,6 @@ from pycvc5 import kinds
 if __name__ == "__main__":
     slv = pycvc5.Solver()
 
-    if not slv.supportsFloatingPoint():
-        # cvc5 must be built with SymFPU to support the theory of
-        # floating-point numbers
-        print("cvc5 was not built with floating-point support.")
-        exit()
-
     slv.setOption("produce-models", "true")
     slv.setLogic("QF_FP")
 
@@ -43,7 +37,7 @@ if __name__ == "__main__":
     z = slv.mkConst(fp32, 'z')
 
     # check floating-point arithmetic is commutative, i.e. x + y == y + x
-    commutative = slv.mkTerm(kinds.FPEq, slv.mkTerm(kinds.FPPlus, rm, x, y), slv.mkTerm(kinds.FPPlus, rm, y, x))
+    commutative = slv.mkTerm(kinds.FPEq, slv.mkTerm(kinds.FPAdd, rm, x, y), slv.mkTerm(kinds.FPAdd, rm, y, x))
 
     slv.push()
     slv.assertFormula(slv.mkTerm(kinds.Not, commutative))
@@ -67,8 +61,14 @@ if __name__ == "__main__":
     slv.pop()
 
     # constrain x, y, z between -3.14 and 3.14 (also disallows NaN and infinity)
-    a = slv.mkFloatingPoint(8, 24, slv.mkBitVector("11000000010010001111010111000011", 2))  # -3.14
-    b = slv.mkFloatingPoint(8, 24, slv.mkBitVector("01000000010010001111010111000011", 2))  # 3.14
+    a = slv.mkFloatingPoint(
+            8,
+            24,
+            slv.mkBitVector(32, "11000000010010001111010111000011", 2)) # -3.14
+    b = slv.mkFloatingPoint(
+            8,
+            24,
+            slv.mkBitVector(32, "01000000010010001111010111000011", 2))  # 3.14
 
     bounds_x = slv.mkTerm(kinds.And, slv.mkTerm(kinds.FPLeq, a, x), slv.mkTerm(kinds.FPLeq, x, b))
     bounds_y = slv.mkTerm(kinds.And, slv.mkTerm(kinds.FPLeq, a, y), slv.mkTerm(kinds.FPLeq, y, b))
@@ -76,8 +76,8 @@ if __name__ == "__main__":
     slv.assertFormula(slv.mkTerm(kinds.And, slv.mkTerm(kinds.And, bounds_x, bounds_y), bounds_z))
 
     # (x + y) + z == x + (y + z)
-    lhs = slv.mkTerm(kinds.FPPlus, rm, slv.mkTerm(kinds.FPPlus, rm, x, y), z)
-    rhs = slv.mkTerm(kinds.FPPlus, rm, x, slv.mkTerm(kinds.FPPlus, rm, y, z))
+    lhs = slv.mkTerm(kinds.FPAdd, rm, slv.mkTerm(kinds.FPAdd, rm, x, y), z)
+    rhs = slv.mkTerm(kinds.FPAdd, rm, x, slv.mkTerm(kinds.FPAdd, rm, y, z))
     associative = slv.mkTerm(kinds.Not, slv.mkTerm(kinds.FPEq, lhs, rhs))
 
     slv.assertFormula(associative)

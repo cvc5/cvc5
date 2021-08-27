@@ -1,6 +1,5 @@
-; COMMAND-LINE: --uf-ho
 ; EXPECT: sat
-(set-logic UFLIA)
+(set-logic HO_UFLIA)
 (set-info :status sat)
 (declare-fun f1 (Int Int Int Int) Int)
 (declare-fun f2 (Int Int Int) Int)

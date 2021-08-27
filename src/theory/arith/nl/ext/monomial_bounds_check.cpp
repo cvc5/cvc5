@@ -207,7 +207,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
       }
       // compute if bound is not satisfied, and store what is required
       // for a possible refinement
-      if (options::nlExtTangentPlanes())
+      if (d_data->d_env.getOptions().arith.nlExtTangentPlanes)
       {
         if (is_false_lit)
         {

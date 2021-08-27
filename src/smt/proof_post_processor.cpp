@@ -21,10 +21,11 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_node_manager.h"
 #include "smt/smt_engine.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/bv/bitblast/proof_bitblaster.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::theory;
@@ -430,7 +431,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       MethodId ids = MethodId::SB_DEFAULT;
       if (args.size() >= 2)
       {
-        if (builtin::BuiltinProofRuleChecker::getMethodId(args[1], ids))
+        if (getMethodId(args[1], ids))
         {
           sargs.push_back(args[1]);
         }
@@ -438,7 +439,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       MethodId ida = MethodId::SBA_SEQUENTIAL;
       if (args.size() >= 3)
       {
-        if (builtin::BuiltinProofRuleChecker::getMethodId(args[2], ida))
+        if (getMethodId(args[2], ida))
         {
           sargs.push_back(args[2]);
         }
@@ -470,7 +471,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     MethodId idr = MethodId::RW_REWRITE;
     if (args.size() >= 4)
     {
-      if (builtin::BuiltinProofRuleChecker::getMethodId(args[3], idr))
+      if (getMethodId(args[3], idr))
       {
         rargs.push_back(args[3]);
       }
@@ -803,12 +804,12 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     MethodId ids = MethodId::SB_DEFAULT;
     if (args.size() >= 2)
     {
-      builtin::BuiltinProofRuleChecker::getMethodId(args[1], ids);
+      getMethodId(args[1], ids);
     }
     MethodId ida = MethodId::SBA_SEQUENTIAL;
     if (args.size() >= 3)
     {
-      builtin::BuiltinProofRuleChecker::getMethodId(args[2], ida);
+      getMethodId(args[2], ida);
     }
     std::vector<std::shared_ptr<CDProof>> pfs;
     std::vector<TNode> vsList;
@@ -929,13 +930,12 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     }
     // should give a proof, if not, then tcpg does not agree with the
     // substitution.
-    Assert(pfn != nullptr);
     if (pfn == nullptr)
     {
-      AlwaysAssert(false) << "resort to TRUST_SUBS" << std::endl
-                          << eq << std::endl
-                          << eqq << std::endl
-                          << "from " << children << " applied to " << t;
+      Warning() << "resort to TRUST_SUBS" << std::endl
+                << eq << std::endl
+                << eqq << std::endl
+                << "from " << children << " applied to " << t << std::endl;
       cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
     }
     else
@@ -950,7 +950,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     MethodId idr = MethodId::RW_REWRITE;
     if (args.size() >= 2)
     {
-      builtin::BuiltinProofRuleChecker::getMethodId(args[1], idr);
+      getMethodId(args[1], idr);
     }
     builtin::BuiltinProofRuleChecker* builtinPfC =
         static_cast<builtin::BuiltinProofRuleChecker*>(
@@ -1080,6 +1080,16 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
                           << std::endl;
     return sumBounds;
   }
+  else if (id == PfRule::BV_BITBLAST)
+  {
+    bv::BBProof bb(nullptr, d_pnm, true);
+    Node eq = args[0];
+    Assert(eq.getKind() == EQUAL);
+    bb.bbAtom(eq[0]);
+    Node bbAtom = bb.getStoredBBAtom(eq[0]);
+    bb.getProofGenerator()->addProofTo(eq[0].eqNode(bbAtom), cdp);
+    return eq;
+  }
 
   // TRUST, PREPROCESS, THEORY_LEMMA, THEORY_PREPROCESS?
 
@@ -1166,67 +1176,6 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
              && tchildren[tchildren.size() - 1][1] == equ[0]));
   tchildren.push_back(equ);
   return true;
-}
-
-ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(
-    ProofNodeManager* pnm)
-    : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
-        "finalProof::ruleCount")),
-      d_totalRuleCount(
-          smtStatisticsRegistry().registerInt("finalProof::totalRuleCount")),
-      d_minPedanticLevel(
-          smtStatisticsRegistry().registerInt("finalProof::minPedanticLevel")),
-      d_numFinalProofs(
-          smtStatisticsRegistry().registerInt("finalProofs::numFinalProofs")),
-      d_pnm(pnm),
-      d_pedanticFailure(false)
-{
-  d_minPedanticLevel += 10;
-}
-
-void ProofPostprocessFinalCallback::initializeUpdate()
-{
-  d_pedanticFailure = false;
-  d_pedanticFailureOut.str("");
-  ++d_numFinalProofs;
-}
-
-bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                                 const std::vector<Node>& fa,
-                                                 bool& continueUpdate)
-{
-  PfRule r = pn->getRule();
-  // if not doing eager pedantic checking, fail if below threshold
-  if (!options::proofEagerChecking())
-  {
-    if (!d_pedanticFailure)
-    {
-      Assert(d_pedanticFailureOut.str().empty());
-      if (d_pnm->getChecker()->isPedanticFailure(r, d_pedanticFailureOut))
-      {
-        d_pedanticFailure = true;
-      }
-    }
-  }
-  uint32_t plevel = d_pnm->getChecker()->getPedanticLevel(r);
-  if (plevel != 0)
-  {
-    d_minPedanticLevel.minAssign(plevel);
-  }
-  // record stats for the rule
-  d_ruleCount << r;
-  ++d_totalRuleCount;
-  return false;
-}
-
-bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
-{
-  if (d_pedanticFailure)
-  {
-    out << d_pedanticFailureOut.str();
-    return true;
-  }
-  return false;
 }
 
 ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,

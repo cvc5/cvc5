@@ -16,6 +16,7 @@
 #include "theory/quantifiers/fmf/model_builder.h"
 
 #include "options/quantifiers_options.h"
+#include "options/strings_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/instantiate.h"
@@ -52,7 +53,8 @@ void QModelBuilder::finishInit()
 }
 
 bool QModelBuilder::optUseModel() {
-  return options::mbqiMode() != options::MbqiMode::NONE || options::fmfBound();
+  return options::mbqiMode() != options::MbqiMode::NONE || options::fmfBound()
+         || options::stringExp();
 }
 
 bool QModelBuilder::preProcessBuildModel(TheoryModel* m) {

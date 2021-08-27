@@ -1,31 +1,32 @@
 id     = "BASE"
 name   = "Base"
-
-[[option]]
-  name       = "binary_name"
-  category   = "undocumented"
-  type       = "std::string"
+public = true
 
 [[option]]
   name       = "in"
   category   = "undocumented"
-  type       = "std::istream*"
-  default    = "&std::cin"
-  includes   = ["<iosfwd>"]
+  long       = "in=input"
+  type       = "ManagedIn"
+  predicates = ["setInStream"]
+  includes   = ["<iostream>", "options/managed_streams.h"]
 
 [[option]]
   name       = "out"
   category   = "undocumented"
-  type       = "std::ostream*"
-  default    = "&std::cout"
-  includes   = ["<iosfwd>"]
+  long       = "out=output"
+  type       = "ManagedOut"
+  alias      = ["regular-output-channel"]
+  predicates = ["setOutStream"]
+  includes   = ["<iostream>", "options/managed_streams.h"]
 
 [[option]]
   name       = "err"
   category   = "undocumented"
-  type       = "std::ostream*"
-  default    = "&std::cerr"
-  includes   = ["<iosfwd>"]
+  long       = "err=erroutput"
+  type       = "ManagedErr"
+  alias      = ["diagnostic-output-channel"]
+  predicates = ["setErrStream"]
+  includes   = ["<iostream>", "options/managed_streams.h"]
 
 [[option]]
   name       = "inputLanguage"
@@ -33,9 +34,10 @@ name   = "Base"
   category   = "common"
   short      = "L"
   long       = "lang=LANG"
-  type       = "InputLanguage"
-  default    = "language::input::LANG_AUTO"
-  handler    = "stringToInputLanguage"
+  type       = "Language"
+  default    = "Language::LANG_AUTO"
+  handler    = "stringToLanguage"
+  predicates = ["languageIsNotAST"]
   includes   = ["options/language.h"]
   help       = "force input language (default is \"auto\"; see --lang help)"
 
@@ -44,9 +46,10 @@ name   = "Base"
   alias      = ["output-language"]
   category   = "common"
   long       = "output-lang=LANG"
-  type       = "OutputLanguage"
-  default    = "language::output::LANG_AUTO"
-  handler    = "stringToOutputLanguage"
+  type       = "Language"
+  default    = "Language::LANG_AUTO"
+  handler    = "stringToLanguage"
+  predicates = ["applyOutputLanguage"]
   includes   = ["options/language.h"]
   help       = "force output language (default is \"auto\"; see --output-lang help)"
 
@@ -59,7 +62,7 @@ name   = "Base"
   name       = "verbosity"
   long       = "verbosity=N"
   category   = "regular"
-  type       = "int"
+  type       = "int64_t"
   default    = "0"
   predicates = ["setVerbosity"]
   help       = "the verbosity level of cvc5"
@@ -79,6 +82,15 @@ name   = "Base"
   type       = "void"
   handler    = "decreaseVerbosity"
   help       = "decrease verbosity (may be repeated)"
+
+[[option]]
+  name       = "incrementalSolving"
+  category   = "common"
+  short      = "i"
+  long       = "incremental"
+  type       = "bool"
+  default    = "true"
+  help       = "enable incremental solving"
 
 [[option]]
   name       = "statistics"
@@ -148,4 +160,80 @@ name   = "Base"
   category   = "regular"
   long       = "print-success"
   type       = "bool"
+  predicates = ["setPrintSuccess"]
   help       = "print the \"success\" output required of SMT-LIBv2"
+
+[[option]]
+  name       = "cumulativeMillisecondLimit"
+  category   = "common"
+  long       = "tlimit=MS"
+  type       = "uint64_t"
+  help       = "set time limit in milliseconds of wall clock time"
+
+[[option]]
+  name       = "perCallMillisecondLimit"
+  category   = "common"
+  long       = "tlimit-per=MS"
+  type       = "uint64_t"
+  help       = "set time limit per query in milliseconds"
+
+[[option]]
+  name       = "cumulativeResourceLimit"
+  category   = "common"
+  long       = "rlimit=N"
+  type       = "uint64_t"
+  help       = "set resource limit"
+
+[[option]]
+  name       = "perCallResourceLimit"
+  alias      = ["reproducible-resource-limit"]
+  category   = "common"
+  long       = "rlimit-per=N"
+  type       = "uint64_t"
+  help       = "set resource limit per query"
+
+# --rweight is used to override the default of one particular resource weight.
+# It can be given multiple times to override multiple weights. When options are
+# parsed, the resource manager might now be created yet, and it is not clear
+# how an option handler would access it in a reasonable way. The option handler
+# thus merely puts the data in another option that holds a vector of strings.
+# This other option "resourceWeightHolder" has the sole purpose of storing
+# this data in a way so that the resource manager can access it in its
+# constructor.
+[[option]]
+  category   = "expert"
+  long       = "rweight=VAL=N"
+  type       = "std::string"
+  handler    = "setResourceWeight"
+  help       = "set a single resource weight"
+
+[[option]]
+  name       = "resourceWeightHolder"
+  category   = "undocumented"
+  type       = "std::vector<std::string>"
+
+[[option]]
+  name       = "outputTag"
+  short      = "o"
+  long       = "output=TAG"
+  type       = "OutputTag"
+  handler    = "enableOutputTag"
+  category   = "regular"
+  help       = "Enable output tag."
+  help_mode  = "Output tags."
+[[option.mode.INST]]
+  name = "inst"
+  help = "print instantiations during solving"
+[[option.mode.SYGUS]]
+  name = "sygus"
+  help = "print enumerated terms and candidates generated by the sygus solver"
+[[option.mode.TRIGGER]]
+  name = "trigger"
+  help = "print selected triggers for quantified formulas"
+
+# Stores then enabled output tags.
+[[option]]
+  name       = "outputTagHolder"
+  category   = "undocumented"
+  includes   = ["<bitset>"]
+  type       = "std::bitset<OutputTag__numValues>"

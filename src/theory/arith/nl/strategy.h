@@ -19,6 +19,8 @@
 #include <iosfwd>
 #include <vector>
 
+#include "options/options.h"
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
@@ -44,7 +46,15 @@ enum class InferStep
   /** An initial IAND check */
   IAND_INITIAL,
 
+  /** Initialize the POW2 solver */
+  POW2_INIT,
+  /** A full POW2 check */
+  POW2_FULL,
+  /** An initial POW2 check */
+  POW2_INITIAL,
+
   /** An ICP check */
+
   ICP,
 
   /** Initialize the NL solver */
@@ -162,7 +172,7 @@ class Strategy
   /** Is this strategy initialized? */
   bool isStrategyInit() const;
   /** Initialize this strategy */
-  void initializeStrategy();
+  void initializeStrategy(const Options& options);
   /** Retrieve the strategy for the given effort e */
   StepGenerator getStrategy();
 

@@ -20,6 +20,7 @@
 
 #include "context/context.h"
 #include "expr/node.h"
+#include "smt/env.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/cad/proof_checker.h"
 
@@ -43,10 +44,7 @@ class NlModel;
 class CadSolver
 {
  public:
-  CadSolver(InferenceManager& im,
-            NlModel& model,
-            context::Context* ctx,
-            ProofNodeManager* pnm);
+  CadSolver(Env& env, InferenceManager& im, NlModel& model);
   ~CadSolver();
 
   /**

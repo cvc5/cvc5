@@ -14,6 +14,7 @@
  */
 #include "expr/dtype_cons.h"
 
+#include "expr/ascription_type.h"
 #include "expr/dtype.h"
 #include "expr/node_manager.h"
 #include "expr/skolem_manager.h"
@@ -684,7 +685,7 @@ void DTypeConstructor::toStream(std::ostream& out) const
 std::ostream& operator<<(std::ostream& os, const DTypeConstructor& ctor)
 {
   // can only output datatypes in the cvc5 native language
-  language::SetLanguage::Scope ls(os, language::output::LANG_CVC);
+  language::SetLanguage::Scope ls(os, Language::LANG_CVC);
   ctor.toStream(os);
   return os;
 }

@@ -88,24 +88,24 @@ class RemoveTermFormulas {
    * right hand side is assertion after removing term formulas, and the proof
    * generator (if provided) that can prove the equivalence.
    */
-  theory::TrustNode run(TNode assertion,
-                        std::vector<theory::TrustNode>& newAsserts,
-                        std::vector<Node>& newSkolems,
-                        bool fixedPoint = false);
+  TrustNode run(TNode assertion,
+                std::vector<TrustNode>& newAsserts,
+                std::vector<Node>& newSkolems,
+                bool fixedPoint = false);
   /**
    * Same as above, but does not track lemmas, and does not run to fixed point.
    * The relevant lemmas can be extracted by the caller later using getSkolems
    * and getLemmaForSkolem.
    */
-  theory::TrustNode run(TNode assertion);
+  TrustNode run(TNode assertion);
   /**
    * Same as above, but transforms a lemma, returning a LEMMA trust node that
    * proves the same formula as lem with term formulas removed.
    */
-  theory::TrustNode runLemma(theory::TrustNode lem,
-                             std::vector<theory::TrustNode>& newAsserts,
-                             std::vector<Node>& newSkolems,
-                             bool fixedPoint = false);
+  TrustNode runLemma(TrustNode lem,
+                     std::vector<TrustNode>& newAsserts,
+                     std::vector<Node>& newSkolems,
+                     bool fixedPoint = false);
 
   /**
    * Get proof generator that is responsible for all proofs for removing term
@@ -190,7 +190,7 @@ class RemoveTermFormulas {
    * the version of assertion with all term formulas removed.
    */
   Node runInternal(TNode assertion,
-                   std::vector<theory::TrustNode>& newAsserts,
+                   std::vector<TrustNode>& newAsserts,
                    std::vector<Node>& newSkolems);
   /**
    * This is called on curr of the form (t, val) where t is a term and val is
@@ -202,7 +202,7 @@ class RemoveTermFormulas {
    * Otherwise, if t should not be replaced in the term context, this method
    * returns the null node.
    */
-  Node runCurrent(std::pair<Node, uint32_t>& curr, theory::TrustNode& newLem);
+  Node runCurrent(std::pair<Node, uint32_t>& curr, TrustNode& newLem);
 
   /** Whether proofs are enabled */
   bool isProofEnabled() const;

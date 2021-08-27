@@ -53,8 +53,6 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void lemma(TNode lemma, LemmaProperty p = LemmaProperty::NONE) override;
 
-  void splitLemma(TNode lemma, bool removable = false) override;
-
   void demandRestart() override;
 
   void requirePhase(TNode n, bool phase) override;
@@ -62,8 +60,6 @@ class EngineOutputChannel : public theory::OutputChannel
   void setIncomplete(IncompleteId id) override;
 
   void spendResource(Resource r) override;
-
-  void handleUserAttribute(const char* attr, theory::Theory* t) override;
 
   /**
    * Let pconf be the pair (Node conf, ProofGenerator * pfg). This method

@@ -19,6 +19,7 @@
 #include "theory/arith/theory_arith_private.h"
 
 #include <map>
+#include <optional>
 #include <queue>
 #include <vector>
 
@@ -35,7 +36,7 @@
 #include "expr/node_builder.h"
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
-#include "options/smt_options.h"  // for incrementalSolving()
+#include "options/base_options.h"
 #include "preprocessing/util/ite_utilities.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
@@ -85,20 +86,19 @@ static Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum)
 static bool complexityBelow(const DenseMap<Rational>& row, uint32_t cap);
 
 TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
-                                       context::Context* c,
-                                       context::UserContext* u,
-                                       OutputChannel& out,
-                                       Valuation valuation,
-                                       const LogicInfo& logicInfo,
-                                       ProofNodeManager* pnm)
+                                       Env& env,
+                                       BranchAndBound& bab)
     : d_containing(containing),
+      d_env(env),
       d_foundNl(false),
       d_rowTracking(),
-      d_pnm(pnm),
+      d_bab(bab),
+      d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
+                                           : nullptr),
       d_checker(),
-      d_pfGen(new EagerProofGenerator(d_pnm, u)),
-      d_constraintDatabase(c,
-                           u,
+      d_pfGen(new EagerProofGenerator(d_pnm, d_env.getUserContext())),
+      d_constraintDatabase(d_env.getContext(),
+                           d_env.getUserContext(),
                            d_partialModel,
                            d_congruenceManager,
                            RaiseConflict(*this),
@@ -107,15 +107,15 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_qflraStatus(Result::SAT_UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
-      d_learner(u),
-      d_assertionsThatDoNotMatchTheirLiterals(c),
+      d_learner(d_env.getUserContext()),
+      d_assertionsThatDoNotMatchTheirLiterals(d_env.getContext()),
       d_nextIntegerCheckVar(0),
-      d_constantIntegerVariables(c),
-      d_diseqQueue(c, false),
+      d_constantIntegerVariables(d_env.getContext()),
+      d_diseqQueue(d_env.getContext(), false),
       d_currentPropagationList(),
-      d_learnedBounds(c),
-      d_preregisteredNodes(u),
-      d_partialModel(c, DeltaComputeCallback(*this)),
+      d_learnedBounds(d_env.getContext()),
+      d_preregisteredNodes(d_env.getContext()),
+      d_partialModel(d_env.getContext(), DeltaComputeCallback(*this)),
       d_errorSet(
           d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(*this)),
       d_tableau(),
@@ -123,22 +123,23 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
               d_tableau,
               d_rowTracking,
               BasicVarModelUpdateCallBack(*this)),
-      d_diosolver(c),
+      d_diosolver(d_env.getContext()),
       d_restartsCounter(0),
       d_tableauSizeHasBeenModified(false),
       d_tableauResetDensity(1.6),
       d_tableauResetPeriod(10),
-      d_conflicts(c),
-      d_blackBoxConflict(c, Node::null()),
-      d_blackBoxConflictPf(c, std::shared_ptr<ProofNode>(nullptr)),
-      d_congruenceManager(c,
-                          u,
+      d_conflicts(d_env.getContext()),
+      d_blackBoxConflict(d_env.getContext(), Node::null()),
+      d_blackBoxConflictPf(d_env.getContext(),
+                           std::shared_ptr<ProofNode>(nullptr)),
+      d_congruenceManager(d_env.getContext(),
+                          d_env.getUserContext(),
                           d_constraintDatabase,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
                           RaiseEqualityEngineConflict(*this),
                           d_pnm),
-      d_cmEnabled(c, true),
+      d_cmEnabled(d_env.getContext(), options().arith.arithCongMan),
 
       d_dualSimplex(
           d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
@@ -150,22 +151,22 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
           d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_pass1SDP(NULL),
       d_otherSDP(NULL),
-      d_lastContextIntegerAttempted(c, -1),
+      d_lastContextIntegerAttempted(d_env.getContext(), -1),
 
       d_DELTA_ZERO(0),
-      d_approxCuts(c),
+      d_approxCuts(d_env.getContext()),
       d_fullCheckCounter(0),
-      d_cutCount(c, 0),
-      d_cutInContext(c),
-      d_likelyIntegerInfeasible(c, false),
-      d_guessedCoeffSet(c, false),
+      d_cutCount(d_env.getContext(), 0),
+      d_cutInContext(d_env.getContext()),
+      d_likelyIntegerInfeasible(d_env.getContext(), false),
+      d_guessedCoeffSet(d_env.getContext(), false),
       d_guessedCoeffs(),
       d_treeLog(NULL),
       d_replayVariables(),
       d_replayConstraints(),
       d_lhsTmp(),
       d_approxStats(NULL),
-      d_attemptSolveIntTurnedOff(u, 0),
+      d_attemptSolveIntTurnedOff(d_env.getUserContext(), 0),
       d_dioSolveResources(0),
       d_solveIntMaybeHelp(0u),
       d_solveIntAttempts(0u),
@@ -182,14 +183,20 @@ TheoryArithPrivate::~TheoryArithPrivate(){
 
 bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
 {
+  if (!d_cmEnabled)
+  {
+    return false;
+  }
   return d_congruenceManager.needsEqualityEngine(esi);
 }
 void TheoryArithPrivate::finishInit()
 {
-  eq::EqualityEngine* ee = d_containing.getEqualityEngine();
-  eq::ProofEqEngine* pfee = d_containing.getProofEqEngine();
-  Assert(ee != nullptr);
-  d_congruenceManager.finishInit(ee, pfee);
+  if (d_cmEnabled)
+  {
+    eq::EqualityEngine* ee = d_containing.getEqualityEngine();
+    Assert(ee != nullptr);
+    d_congruenceManager.finishInit(ee);
+  }
 }
 
 static bool contains(const ConstraintCPVec& v, ConstraintP con){
@@ -503,13 +510,13 @@ bool TheoryArithPrivate::getDioCuttingResource(){
   if(d_dioSolveResources > 0){
     d_dioSolveResources--;
     if(d_dioSolveResources == 0){
-      d_dioSolveResources = -options::rrTurns();
+      d_dioSolveResources = -options().arith.rrTurns;
     }
     return true;
   }else{
     d_dioSolveResources++;
     if(d_dioSolveResources >= 0){
-      d_dioSolveResources = options::dioSolverTurns();
+      d_dioSolveResources = options().arith.dioSolverTurns;
     }
     return false;
   }
@@ -1041,7 +1048,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
       // Add the substitution if not recursive
       Assert(elim == Rewriter::rewrite(elim));
 
-      if (right.size() > options::ppAssertMaxSubSize())
+      if (right.size() > options().arith.ppAssertMaxSubSize)
       {
         Debug("simplify")
             << "TheoryArithPrivate::solve(): did not substitute due to the "
@@ -1608,7 +1615,7 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
     Debug("arith::eq") << "negation has proof" << endl;
     Debug("arith::eq") << constraint << endl;
     Debug("arith::eq") << negation << endl;
-    raiseConflict(negation, InferenceId::UNKNOWN);
+    raiseConflict(negation, InferenceId::ARITH_CONF_FACT_QUEUE);
     return NullConstraint;
   }else{
     return constraint;
@@ -1830,15 +1837,15 @@ void TheoryArithPrivate::outputConflicts(){
   }
 }
 
-void TheoryArithPrivate::outputTrustedLemma(TrustNode lemma, InferenceId id)
+bool TheoryArithPrivate::outputTrustedLemma(TrustNode lemma, InferenceId id)
 {
   Debug("arith::channel") << "Arith trusted lemma: " << lemma << std::endl;
-  d_containing.d_im.trustedLemma(lemma, id);
+  return d_containing.d_im.trustedLemma(lemma, id);
 }
 
-void TheoryArithPrivate::outputLemma(TNode lem, InferenceId id) {
+bool TheoryArithPrivate::outputLemma(TNode lem, InferenceId id) {
   Debug("arith::channel") << "Arith lemma: " << lem << std::endl;
-  d_containing.d_im.lemma(lem, id);
+  return d_containing.d_im.lemma(lem, id);
 }
 
 void TheoryArithPrivate::outputTrustedConflict(TrustNode conf, InferenceId id)
@@ -1876,7 +1883,10 @@ bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool em
 
   if(d_qflraStatus == Result::UNSAT){ return false; }
   if(emmmittedLemmaOrSplit){ return false; }
-  if(!options::useApprox()){ return false; }
+  if (!options().arith.useApprox)
+  {
+    return false;
+  }
   if(!ApproximateSimplex::enabled()){ return false; }
 
   if(Theory::fullEffort(effortLevel)){
@@ -1896,8 +1906,10 @@ bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool em
     }
   }
 
-
-  if(!options::trySolveIntStandardEffort()){ return false; }
+  if (!options().arith.trySolveIntStandardEffort)
+  {
+    return false;
+  }
 
   if (d_lastContextIntegerAttempted <= (level >> 2))
   {
@@ -2061,7 +2073,8 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(
     if(d_partialModel.hasNode(v)){
       d_lhsTmp.set(v, Rational(1));
       double dval = nl.branchValue();
-      Maybe<Rational> maybe_value = ApproximateSimplex::estimateWithCFE(dval);
+      std::optional<Rational> maybe_value =
+          ApproximateSimplex::estimateWithCFE(dval);
       if (!maybe_value)
       {
         return make_pair(NullConstraint, ARITHVAR_SENTINEL);
@@ -2345,7 +2358,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
 
         if(ci->reconstructed() && ci->proven()){
           const DenseMap<Rational>& row = ci->getReconstruction().lhs;
-          reject = !complexityBelow(row, options::replayRejectCutSize());
+          reject = !complexityBelow(row, options().arith.replayRejectCutSize);
         }
       }
       if(conflictQueueEmpty()){
@@ -2393,8 +2406,9 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
 
     /* check if the system is feasible under with the cuts */
     if(conflictQueueEmpty()){
-      Assert(options::replayEarlyCloseDepths() >= 1);
-      if(!nl.isBranch() || depth % options::replayEarlyCloseDepths() == 0 ){
+      Assert(options().arith.replayEarlyCloseDepths >= 1);
+      if (!nl.isBranch() || depth % options().arith.replayEarlyCloseDepths == 0)
+      {
         TimerStat::CodeTimer codeTimer(d_statistics.d_replaySimplexTimer);
         //test for linear feasibility
         d_partialModel.stopQueueingBoundCounts();
@@ -2508,8 +2522,8 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
     resolveOutPropagated(res, propagated);
     Debug("approx::replayLogRec") << "replayLogRec() ending" << std::endl;
 
-
-    if(options::replayFailureLemma()){
+    if (options().arith.replayFailureLemma)
+    {
       // must be done inside the sat context to get things
       // propagated at this level
       if(res.empty() && nid == getTreeLog().getRootId()){
@@ -2604,7 +2618,8 @@ Node TheoryArithPrivate::branchToNode(ApproximateSimplex* approx,
     if(d_partialModel.hasNode(v)){
       Node n = d_partialModel.asNode(v);
       double dval = bn.branchValue();
-      Maybe<Rational> maybe_value = ApproximateSimplex::estimateWithCFE(dval);
+      std::optional<Rational> maybe_value =
+          ApproximateSimplex::estimateWithCFE(dval);
       if (!maybe_value)
       {
         return Node::null();
@@ -2651,7 +2666,8 @@ bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
       Assert(cut->proven());
 
       const DenseMap<Rational>& row =  cut->getReconstruction().lhs;
-      if(!complexityBelow(row, options::lemmaRejectCutSize())){
+      if (!complexityBelow(row, options().arith.lemmaRejectCutSize))
+      {
         ++(d_statistics.d_cutsRejectedDuringLemmas);
         continue;
       }
@@ -2738,7 +2754,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
   }
 
   // if integers are attempted,
-  Assert(options::useApprox());
+  Assert(options().arith.useApprox);
   Assert(ApproximateSimplex::enabled());
 
   int level = getSatContext()->getLevel();
@@ -2761,8 +2777,9 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
       approx->setOptCoeffs(d_guessedCoeffs);
     }
     static const int32_t depthForLikelyInfeasible = 10;
-    int maxDepthPass1 = d_likelyIntegerInfeasible ?
-      depthForLikelyInfeasible : options::maxApproxDepth();
+    int maxDepthPass1 = d_likelyIntegerInfeasible
+                            ? depthForLikelyInfeasible
+                            : options().arith.maxApproxDepth;
     approx->setBranchingDepth(maxDepthPass1);
     approx->setBranchOnVariableLimit(100);
     LinResult relaxRes = approx->solveRelaxation();
@@ -2825,7 +2842,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
           }
         }
         if(!(anyConflict() || !d_approxCuts.empty())){
-          turnOffApproxFor(options::replayNumericFailurePenalty());
+          turnOffApproxFor(options().arith.replayNumericFailurePenalty);
         }
         break;
       case BranchesExhausted:
@@ -2865,11 +2882,16 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
 SimplexDecisionProcedure& TheoryArithPrivate::selectSimplex(bool pass1){
   if(pass1){
     if(d_pass1SDP == NULL){
-      if(options::useFC()){
+      if (options().arith.useFC)
+      {
         d_pass1SDP = (SimplexDecisionProcedure*)(&d_fcSimplex);
-      }else if(options::useSOI()){
+      }
+      else if (options().arith.useSOI)
+      {
         d_pass1SDP = (SimplexDecisionProcedure*)(&d_soiSimplex);
-      }else{
+      }
+      else
+      {
         d_pass1SDP = (SimplexDecisionProcedure*)(&d_dualSimplex);
       }
     }
@@ -2877,13 +2899,18 @@ SimplexDecisionProcedure& TheoryArithPrivate::selectSimplex(bool pass1){
     return *d_pass1SDP;
   }else{
      if(d_otherSDP == NULL){
-      if(options::useFC()){
-        d_otherSDP  = (SimplexDecisionProcedure*)(&d_fcSimplex);
-      }else if(options::useSOI()){
-        d_otherSDP = (SimplexDecisionProcedure*)(&d_soiSimplex);
-      }else{
-        d_otherSDP = (SimplexDecisionProcedure*)(&d_soiSimplex);
-      }
+       if (options().arith.useFC)
+       {
+         d_otherSDP = (SimplexDecisionProcedure*)(&d_fcSimplex);
+       }
+       else if (options().arith.useSOI)
+       {
+         d_otherSDP = (SimplexDecisionProcedure*)(&d_soiSimplex);
+       }
+       else
+       {
+         d_otherSDP = (SimplexDecisionProcedure*)(&d_soiSimplex);
+       }
     }
     Assert(d_otherSDP != NULL);
     return *d_otherSDP;
@@ -2904,12 +2931,12 @@ void TheoryArithPrivate::importSolution(const ApproximateSimplex::Solution& solu
   }
 
   if(d_qflraStatus != Result::UNSAT){
-    static const int32_t pass2Limit = 20;
-    int16_t oldCap = options::arithStandardCheckVarOrderPivots();
-    Options::current().set(options::arithStandardCheckVarOrderPivots, pass2Limit);
+    static const int64_t pass2Limit = 20;
+    int64_t oldCap = options().arith.arithStandardCheckVarOrderPivots;
+    Options::current().arith.arithStandardCheckVarOrderPivots = pass2Limit;
     SimplexDecisionProcedure& simplex = selectSimplex(false);
     d_qflraStatus = simplex.findModel(false);
-    Options::current().set(options::arithStandardCheckVarOrderPivots, oldCap);
+    Options::current().arith.arithStandardCheckVarOrderPivots = oldCap;
   }
 
   if(Debug.isOn("arith::importSolution")){
@@ -2956,20 +2983,19 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
   d_partialModel.processBoundsQueue(utcb);
   d_linEq.startTrackingBoundCounts();
 
-  bool noPivotLimit = Theory::fullEffort(effortLevel) ||
-    !options::restrictedPivots();
+  bool noPivotLimit =
+      Theory::fullEffort(effortLevel) || !options().arith.restrictedPivots;
 
   SimplexDecisionProcedure& simplex = selectSimplex(true);
 
-  bool useApprox = options::useApprox() && ApproximateSimplex::enabled() && getSolveIntegerResource();
+  bool useApprox = options().arith.useApprox && ApproximateSimplex::enabled()
+                   && getSolveIntegerResource();
 
   Debug("TheoryArithPrivate::solveRealRelaxation")
-    << "solveRealRelaxation() approx"
-    << " " <<  options::useApprox()
-    << " " << ApproximateSimplex::enabled()
-    << " " << useApprox
-    << " " << safeToCallApprox()
-    << endl;
+      << "solveRealRelaxation() approx"
+      << " " << options().arith.useApprox << " "
+      << ApproximateSimplex::enabled() << " " << useApprox << " "
+      << safeToCallApprox() << endl;
 
   bool noPivotLimitPass1 = noPivotLimit && !useApprox;
   d_qflraStatus = simplex.findModel(noPivotLimitPass1);
@@ -3128,7 +3154,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
 
   if(anyConflict()){
     d_qflraStatus = Result::UNSAT;
-    if (options::revertArithModels() && d_previousStatus == Result::SAT)
+    if (options().arith.revertArithModels && d_previousStatus == Result::SAT)
     {
       ++d_statistics.d_revertsOnConflicts;
       Debug("arith::bt") << "clearing here "
@@ -3203,10 +3229,14 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
     if(Debug.isOn("arith::consistency")){
       Assert(entireStateIsConsistent("sat comit"));
     }
-    if(useSimplex && options::collectPivots()){
-      if(options::useFC()){
+    if (useSimplex && options().arith.collectPivots)
+    {
+      if (options().arith.useFC)
+      {
         d_statistics.d_satPivots << d_fcSimplex.getPivots();
-      }else{
+      }
+      else
+      {
         d_statistics.d_satPivots << d_dualSimplex.getPivots();
       }
     }
@@ -3221,10 +3251,14 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
     d_partialModel.commitAssignmentChanges();
     d_statistics.d_maxUnknownsInARow.maxAssign(d_unknownsInARow);
 
-    if(useSimplex && options::collectPivots()){
-      if(options::useFC()){
+    if (useSimplex && options().arith.collectPivots)
+    {
+      if (options().arith.useFC)
+      {
         d_statistics.d_unknownPivots << d_fcSimplex.getPivots();
-      }else{
+      }
+      else
+      {
         d_statistics.d_unknownPivots << d_dualSimplex.getPivots();
       }
     }
@@ -3247,10 +3281,14 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
     emmittedConflictOrSplit = true;
     Debug("arith::conflict") << "simplex conflict" << endl;
 
-    if(useSimplex && options::collectPivots()){
-      if(options::useFC()){
+    if (useSimplex && options().arith.collectPivots)
+    {
+      if (options().arith.useFC)
+      {
         d_statistics.d_unsatPivots << d_fcSimplex.getPivots();
-      }else{
+      }
+      else
+      {
         d_statistics.d_unsatPivots << d_dualSimplex.getPivots();
       }
     }
@@ -3260,8 +3298,8 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
   }
   d_statistics.d_avgUnknownsInARow << d_unknownsInARow;
 
-  size_t nPivots =
-      options::useFC() ? d_fcSimplex.getPivots() : d_dualSimplex.getPivots();
+  size_t nPivots = options().arith.useFC ? d_fcSimplex.getPivots()
+                                         : d_dualSimplex.getPivots();
   for (std::size_t i = 0; i < nPivots; ++i)
   {
     d_containing.d_out->spendResource(
@@ -3290,9 +3328,9 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
 
   // This should be fine if sat or unknown
   if (!emmittedConflictOrSplit
-      && (options::arithPropagationMode()
+      && (options().arith.arithPropagationMode
               == options::ArithPropagationMode::UNATE_PROP
-          || options::arithPropagationMode()
+          || options().arith.arithPropagationMode
                  == options::ArithPropagationMode::BOTH_PROP))
   {
     TimerStat::CodeTimer codeTimer0(d_statistics.d_newPropTime);
@@ -3375,7 +3413,8 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
 
   if(!emmittedConflictOrSplit && Theory::fullEffort(effortLevel) && !hasIntegerModel()){
     Node possibleConflict = Node::null();
-    if(!emmittedConflictOrSplit && options::arithDioSolver()){
+    if (!emmittedConflictOrSplit && options().arith.arithDioSolver)
+    {
       possibleConflict = callDioSolver();
       if(possibleConflict != Node::null()){
         revertOutOfConflict();
@@ -3387,15 +3426,19 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       }
     }
 
-    if(!emmittedConflictOrSplit && d_hasDoneWorkSinceCut && options::arithDioSolver()){
+    if (!emmittedConflictOrSplit && d_hasDoneWorkSinceCut
+        && options().arith.arithDioSolver)
+    {
       if(getDioCuttingResource()){
         TrustNode possibleLemma = dioCutting();
         if(!possibleLemma.isNull()){
-          emmittedConflictOrSplit = true;
           d_hasDoneWorkSinceCut = false;
           d_cutCount = d_cutCount + 1;
           Debug("arith::lemma") << "dio cut   " << possibleLemma << endl;
-          outputTrustedLemma(possibleLemma, InferenceId::ARITH_DIO_CUT);
+          if (outputTrustedLemma(possibleLemma, InferenceId::ARITH_DIO_CUT))
+          {
+            emmittedConflictOrSplit = true;
+          }
         }
       }
     }
@@ -3406,14 +3449,17 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       {
         ++(d_statistics.d_externalBranchAndBounds);
         d_cutCount = d_cutCount + 1;
-        emmittedConflictOrSplit = true;
         Debug("arith::lemma") << "rrbranch lemma"
                               << possibleLemma << endl;
-        outputTrustedLemma(possibleLemma, InferenceId::ARITH_BB_LEMMA);
+        if (outputTrustedLemma(possibleLemma, InferenceId::ARITH_BB_LEMMA))
+        {
+          emmittedConflictOrSplit = true;
+        }
       }
     }
 
-    if(options::maxCutsInContext() <= d_cutCount){
+    if (options().arith.maxCutsInContext <= d_cutCount)
+    {
       if(d_diosolver.hasMoreDecompositionLemmas()){
         while(d_diosolver.hasMoreDecompositionLemmas()){
           Node decompositionLemma = d_diosolver.nextDecompositionLemma();
@@ -3451,102 +3497,9 @@ TrustNode TheoryArithPrivate::branchIntegerVariable(ArithVar x) const
   const Rational& r = d.getNoninfinitesimalPart();
   const Rational& i = d.getInfinitesimalPart();
   Trace("integers") << "integers: assignment to [[" << d_partialModel.asNode(x) << "]] is " << r << "[" << i << "]" << endl;
-
   Assert(!(r.getDenominator() == 1 && i.getNumerator() == 0));
-  Assert(!d.isIntegral());
   TNode var = d_partialModel.asNode(x);
-  Integer floor_d = d.floor();
-
-  TrustNode lem = TrustNode::null();
-  NodeManager* nm = NodeManager::currentNM();
-  if (options::brabTest())
-  {
-    Trace("integers") << "branch-round-and-bound enabled" << endl;
-    Integer ceil_d = d.ceiling();
-    Rational f = r - floor_d;
-    // Multiply by -1 to get abs value.
-    Rational c = (r - ceil_d) * (-1);
-    Integer nearest = (c > f) ? floor_d : ceil_d;
-
-    // Prioritize trying a simple rounding of the real solution first,
-    // it that fails, fall back on original branch and bound strategy.
-    Node ub = Rewriter::rewrite(
-        nm->mkNode(kind::LEQ, var, mkRationalNode(nearest - 1)));
-    Node lb = Rewriter::rewrite(
-        nm->mkNode(kind::GEQ, var, mkRationalNode(nearest + 1)));
-    Node right = nm->mkNode(kind::OR, ub, lb);
-    Node rawEq = nm->mkNode(kind::EQUAL, var, mkRationalNode(nearest));
-    Node eq = Rewriter::rewrite(rawEq);
-    // Also preprocess it before we send it out. This is important since
-    // arithmetic may prefer eliminating equalities.
-    TrustNode teq;
-    if (Theory::theoryOf(eq) == THEORY_ARITH)
-    {
-      teq = d_containing.ppRewriteEq(eq);
-      eq = teq.isNull() ? eq : teq.getNode();
-    }
-    Node literal = d_containing.getValuation().ensureLiteral(eq);
-    Trace("integers") << "eq: " << eq << "\nto: " << literal << endl;
-    d_containing.getOutputChannel().requirePhase(literal, true);
-    Node l = nm->mkNode(kind::OR, literal, right);
-    Trace("integers") << "l: " << l << endl;
-    if (proofsEnabled())
-    {
-      Node less = nm->mkNode(kind::LT, var, mkRationalNode(nearest));
-      Node greater = nm->mkNode(kind::GT, var, mkRationalNode(nearest));
-      // TODO (project #37): justify. Thread proofs through *ensureLiteral*.
-      Debug("integers::pf") << "less: " << less << endl;
-      Debug("integers::pf") << "greater: " << greater << endl;
-      Debug("integers::pf") << "literal: " << literal << endl;
-      Debug("integers::pf") << "eq: " << eq << endl;
-      Debug("integers::pf") << "rawEq: " << rawEq << endl;
-      Pf pfNotLit = d_pnm->mkAssume(literal.negate());
-      // rewrite notLiteral to notRawEq, using teq.
-      Pf pfNotRawEq =
-          literal == rawEq
-              ? pfNotLit
-              : d_pnm->mkNode(
-                  PfRule::MACRO_SR_PRED_TRANSFORM,
-                  {pfNotLit, teq.getGenerator()->getProofFor(teq.getProven())},
-                  {rawEq.negate()});
-      Pf pfBot =
-          d_pnm->mkNode(PfRule::CONTRA,
-                        {d_pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
-                                       {d_pnm->mkAssume(less.negate()), pfNotRawEq},
-                                       {greater}),
-                         d_pnm->mkAssume(greater.negate())},
-                        {});
-      std::vector<Node> assumptions = {
-          literal.negate(), less.negate(), greater.negate()};
-      // Proof of (not (and (not (= v i)) (not (< v i)) (not (> v i))))
-      Pf pfNotAnd = d_pnm->mkScope(pfBot, assumptions);
-      Pf pfL = d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
-                             {d_pnm->mkNode(PfRule::NOT_AND, {pfNotAnd}, {})},
-                             {l});
-      lem = d_pfGen->mkTrustNode(l, pfL);
-    }
-    else
-    {
-      lem = TrustNode::mkTrustLemma(l, nullptr);
-    }
-  }
-  else
-  {
-    Node ub =
-        Rewriter::rewrite(nm->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
-    Node lb = ub.notNode();
-    if (proofsEnabled())
-    {
-      lem = d_pfGen->mkTrustNode(
-          nm->mkNode(kind::OR, ub, lb), PfRule::SPLIT, {}, {ub});
-    }
-    else
-    {
-      lem = TrustNode::mkTrustLemma(nm->mkNode(kind::OR, ub, lb), nullptr);
-    }
-  }
-
-  Trace("integers") << "integers: branch & bound: " << lem << endl;
+  TrustNode lem = d_bab.branchIntegerVariable(var, r);
   if (Debug.isOn("integers"))
   {
     Node l = lem.getNode();
@@ -3578,7 +3531,8 @@ std::vector<ArithVar> TheoryArithPrivate::cutAllBounded() const{
   vector<ArithVar> lemmas;
   ArithVar max = d_partialModel.getNumberOfVariables();
 
-  if(options::doCutAllBounded() && max > 0){
+  if (options().arith.doCutAllBounded && max > 0)
+  {
     for(ArithVar iter = 0; iter != max; ++iter){
     //Do not include slack variables
       const DeltaRational& d = d_partialModel.getAssignment(iter);
@@ -3726,15 +3680,18 @@ TrustNode TheoryArithPrivate::explain(TNode n)
 void TheoryArithPrivate::propagate(Theory::Effort e) {
   // This uses model values for safety. Disable for now.
   if (d_qflraStatus == Result::SAT
-      && (options::arithPropagationMode()
+      && (options().arith.arithPropagationMode
               == options::ArithPropagationMode::BOUND_INFERENCE_PROP
-          || options::arithPropagationMode()
+          || options().arith.arithPropagationMode
                  == options::ArithPropagationMode::BOTH_PROP)
       && hasAnyUpdates())
   {
-    if(options::newProp()){
+    if (options().arith.newProp)
+    {
       propagateCandidatesNew();
-    }else{
+    }
+    else
+    {
       propagateCandidates();
     }
   }
@@ -4103,8 +4060,10 @@ void TheoryArithPrivate::presolve(){
   }
 
   vector<TrustNode> lemmas;
-  if(!options::incrementalSolving()) {
-    switch(options::arithUnateLemmaMode()){
+  if (!options().base.incrementalSolving)
+  {
+    switch (options().arith.arithUnateLemmaMode)
+    {
       case options::ArithUnateLemmaMode::NO: break;
       case options::ArithUnateLemmaMode::INEQUALITY:
         d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
@@ -4116,7 +4075,7 @@ void TheoryArithPrivate::presolve(){
         d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
         d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
         break;
-      default: Unhandled() << options::arithUnateLemmaMode();
+      default: Unhandled() << options().arith.arithUnateLemmaMode;
     }
   }
 
@@ -4264,10 +4223,14 @@ void TheoryArithPrivate::propagateCandidates(){
   DenseSet::const_iterator end = d_updatedBounds.end();
   for(; i != end; ++i){
     ArithVar var = *i;
-    if(d_tableau.isBasic(var) &&
-       d_tableau.basicRowLength(var) <= options::arithPropagateMaxLength()){
+    if (d_tableau.isBasic(var)
+        && d_tableau.basicRowLength(var)
+               <= options().arith.arithPropagateMaxLength)
+    {
       d_candidateBasics.softAdd(var);
-    }else{
+    }
+    else
+    {
       Tableau::ColIterator basicIter = d_tableau.colIterator(var);
       for(; !basicIter.atEnd(); ++basicIter){
         const Tableau::Entry& entry = *basicIter;
@@ -4275,7 +4238,9 @@ void TheoryArithPrivate::propagateCandidates(){
         ArithVar rowVar = d_tableau.rowIndexToBasic(ridx);
         Assert(entry.getColVar() == var);
         Assert(d_tableau.isBasic(rowVar));
-        if(d_tableau.getRowLength(ridx) <= options::arithPropagateMaxLength()){
+        if (d_tableau.getRowLength(ridx)
+            <= options().arith.arithPropagateMaxLength)
+        {
           d_candidateBasics.softAdd(rowVar);
         }
       }
@@ -4509,7 +4474,8 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
     //   * coeffs[0] is for implied
     //   * coeffs[i+1] is for explain[i]
     d_linEq.propagateRow(explain, ridx, rowUp, implied, coeffs);
-    if(d_tableau.getRowLength(ridx) <= options::arithPropAsLemmaLength()){
+    if (d_tableau.getRowLength(ridx) <= options().arith.arithPropAsLemmaLength)
+    {
       if (Debug.isOn("arith::prop::pf")) {
         for (const auto & constraint : explain) {
           Assert(constraint->hasProof());
@@ -4574,7 +4540,9 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
       {
         outputLemma(clause, InferenceId::ARITH_ROW_IMPL);
       }
-    }else{
+    }
+    else
+    {
       Assert(!implied->negationHasProof());
       implied->impliedByFarkas(explain, coeffs, false);
       implied->tryToPropagate();
@@ -4602,9 +4570,9 @@ bool TheoryArithPrivate::propagateCandidateRow(RowIndex ridx){
   Debug("arith::prop")
     << "propagateCandidateRow " << instance << " attempt " << rowLength << " " <<  hasCount << endl;
 
-  if (rowLength >= options::arithPropagateMaxLength()
+  if (rowLength >= options().arith.arithPropagateMaxLength
       && Random::getRandom().pickWithProb(
-             1.0 - double(options::arithPropagateMaxLength()) / rowLength))
+          1.0 - double(options().arith.arithPropagateMaxLength) / rowLength))
   {
     return false;
   }

@@ -19,6 +19,7 @@
 #include "expr/node_builder.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "util/rational.h"
+#include "util/string.h"
 
 using namespace cvc5::kind;
 

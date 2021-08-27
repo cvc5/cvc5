@@ -35,10 +35,12 @@
 
 namespace cvc5 {
 
+class Env;
+class TheoryEngine;
+
 namespace decision {
 class DecisionEngine;
 }
-class TheoryEngine;
 
 namespace prop {
 
@@ -56,9 +58,7 @@ class TheoryProxy : public Registrar
               TheoryEngine* theoryEngine,
               decision::DecisionEngine* decisionEngine,
               SkolemDefManager* skdm,
-              context::Context* context,
-              context::UserContext* userContext,
-              ProofNodeManager* pnm);
+              Env& env);
 
   ~TheoryProxy();
 
@@ -105,22 +105,22 @@ class TheoryProxy : public Registrar
    * Call the preprocessor on node, return trust node corresponding to the
    * rewrite.
    */
-  theory::TrustNode preprocessLemma(theory::TrustNode trn,
-                                    std::vector<theory::TrustNode>& newLemmas,
-                                    std::vector<Node>& newSkolems);
+  TrustNode preprocessLemma(TrustNode trn,
+                            std::vector<TrustNode>& newLemmas,
+                            std::vector<Node>& newSkolems);
   /**
    * Call the preprocessor on node, return trust node corresponding to the
    * rewrite.
    */
-  theory::TrustNode preprocess(TNode node,
-                               std::vector<theory::TrustNode>& newLemmas,
-                               std::vector<Node>& newSkolems);
+  TrustNode preprocess(TNode node,
+                       std::vector<TrustNode>& newLemmas,
+                       std::vector<Node>& newSkolems);
   /**
    * Remove ITEs from the node.
    */
-  theory::TrustNode removeItes(TNode node,
-                               std::vector<theory::TrustNode>& newLemmas,
-                               std::vector<Node>& newSkolems);
+  TrustNode removeItes(TNode node,
+                       std::vector<TrustNode>& newLemmas,
+                       std::vector<Node>& newSkolems);
   /**
    * Get the skolems within node and their corresponding definitions, store
    * them in sks and skAsserts respectively. Note that this method does not
@@ -162,6 +162,9 @@ class TheoryProxy : public Registrar
 
   /** The skolem definition manager */
   SkolemDefManager* d_skdm;
+
+  /** Reference to the environment */
+  Env& d_env;
 }; /* class TheoryProxy */
 
 }  // namespace prop

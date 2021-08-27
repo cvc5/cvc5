@@ -29,12 +29,12 @@
 #include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
-#include "util/cardinality.h"
 #include "util/cardinality_class.h"
 
 namespace cvc5 {
 
 class NodeManager;
+class Cardinality;
 class DType;
 
 namespace expr {
@@ -374,7 +374,9 @@ private:
    * @param out the stream to serialize this node to
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out, OutputLanguage language = language::output::LANG_AUTO) const {
+  inline void toStream(std::ostream& out,
+                       Language language = Language::LANG_AUTO) const
+  {
     d_nv->toStream(out, -1, 0, language);
   }
 
@@ -657,7 +659,7 @@ private:
   unsigned getFloatingPointSignificandSize() const;
 
   /** Get the size of this bit-vector type */
-  unsigned getBitVectorSize() const;
+  uint32_t getBitVectorSize() const;
 
   /** Is this a sort kind */
   bool isSort() const;
@@ -1000,12 +1002,6 @@ inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
           && getConst<FloatingPointSize>().significandWidth() == sig);
 }
 
-/** Is this a bit-vector type of size <code>size</code> */
-inline bool TypeNode::isBitVector(unsigned size) const {
-  return
-    ( getKind() == kind::BITVECTOR_TYPE && getConst<BitVectorSize>() == size );
-}
-
 /** Get the exponent size of this floating-point type */
 inline unsigned TypeNode::getFloatingPointExponentSize() const {
   Assert(isFloatingPoint());
@@ -1016,12 +1012,6 @@ inline unsigned TypeNode::getFloatingPointExponentSize() const {
 inline unsigned TypeNode::getFloatingPointSignificandSize() const {
   Assert(isFloatingPoint());
   return getConst<FloatingPointSize>().significandWidth();
-}
-
-/** Get the size of this bit-vector type */
-inline unsigned TypeNode::getBitVectorSize() const {
-  Assert(isBitVector());
-  return getConst<BitVectorSize>();
 }
 
 #ifdef CVC5_DEBUG
@@ -1041,17 +1031,13 @@ inline unsigned TypeNode::getBitVectorSize() const {
  * to meet. A cleaner solution is welcomed.
  */
 static void __attribute__((used)) debugPrintTypeNode(const TypeNode& n) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(true)
-            << Node::setlanguage(language::output::LANG_AST)
-            << n << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(true)
+            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintTypeNodeNoDag(const TypeNode& n) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(false)
-            << Node::setlanguage(language::output::LANG_AST)
-            << n << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(false)
+            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintRawTypeNode(const TypeNode& n) {

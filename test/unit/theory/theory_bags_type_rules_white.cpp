@@ -17,6 +17,7 @@
 #include "test_smt.h"
 #include "theory/bags/theory_bags_type_rules.h"
 #include "theory/strings/type_enumerator.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 

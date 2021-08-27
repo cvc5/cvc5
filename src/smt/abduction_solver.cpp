@@ -32,7 +32,10 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-AbductionSolver::AbductionSolver(SmtEngine* parent) : d_parent(parent) {}
+AbductionSolver::AbductionSolver(Env& env, SmtEngine* parent)
+    : d_env(env), d_parent(parent)
+{
+}
 
 AbductionSolver::~AbductionSolver() {}
 bool AbductionSolver::getAbduct(const Node& goal,
@@ -48,7 +51,7 @@ bool AbductionSolver::getAbduct(const Node& goal,
   std::vector<Node> axioms = d_parent->getExpandedAssertions();
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // must expand definitions
-  Node conjn = d_parent->getEnv().getTopLevelSubstitutions().apply(goal);
+  Node conjn = d_env.getTopLevelSubstitutions().apply(goal);
   // now negate
   conjn = conjn.negate();
   d_abdConj = conjn;
@@ -63,7 +66,7 @@ bool AbductionSolver::getAbduct(const Node& goal,
   Trace("sygus-abduct") << "SmtEngine::getAbduct: made conjecture : " << aconj
                         << ", solving for " << d_sssf << std::endl;
   // we generate a new smt engine to do the abduction query
-  initializeSubsolver(d_subsolver);
+  initializeSubsolver(d_subsolver, d_env);
   // get the logic
   LogicInfo l = d_subsolver->getLogicInfo().getUnlockedCopy();
   // enable everything needed for sygus
@@ -105,20 +108,22 @@ bool AbductionSolver::getAbductInternal(Node& abd)
       }
       // get the grammar type for the abduct
       Node agdtbv = d_sssf.getAttribute(SygusSynthFunVarListAttribute());
-      Assert(!agdtbv.isNull());
-      Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
-      // convert back to original
-      // must replace formal arguments of abd with the free variables in the
-      // input problem that they correspond to.
-      std::vector<Node> vars;
-      std::vector<Node> syms;
-      SygusVarToTermAttribute sta;
-      for (const Node& bv : agdtbv)
+      if(!agdtbv.isNull())
       {
-        vars.push_back(bv);
-        syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
+        Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
+        // convert back to original
+        // must replace formal arguments of abd with the free variables in the
+        // input problem that they correspond to.
+        std::vector<Node> vars;
+        std::vector<Node> syms;
+        SygusVarToTermAttribute sta;
+        for (const Node& bv : agdtbv)
+        {
+          vars.push_back(bv);
+          syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
+        }
+        abd = abd.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
       }
-      abd = abd.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
 
       // if check abducts option is set, we check the correctness
       if (options::checkAbducts())
@@ -151,7 +156,7 @@ void AbductionSolver::checkAbduct(Node a)
                           << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
     std::unique_ptr<SmtEngine> abdChecker;
-    initializeSubsolver(abdChecker);
+    initializeSubsolver(abdChecker, d_env);
     Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
                           << ": asserting formulas" << std::endl;
     for (const Node& e : asserts)

@@ -23,6 +23,7 @@
 
 namespace cvc5 {
 
+class Env;
 class SmtEngine;
 
 namespace smt {
@@ -37,7 +38,7 @@ namespace smt {
 class AbductionSolver
 {
  public:
-  AbductionSolver(SmtEngine* parent);
+  AbductionSolver(Env& env, SmtEngine* parent);
   ~AbductionSolver();
   /**
    * This method asks this SMT engine to find an abduct with respect to the
@@ -84,6 +85,8 @@ class AbductionSolver
    * problems.
    */
   bool getAbductInternal(Node& abd);
+  /** Reference to the env */
+  Env& d_env;
   /** The parent SMT engine */
   SmtEngine* d_parent;
   /** The SMT engine subsolver

@@ -40,7 +40,7 @@ class CommandExecutor
    * The solver object, which is allocated by this class and is used for
    * executing most commands (e.g. check-sat).
    */
-  std::unique_ptr<api::Solver> d_solver;
+  std::unique_ptr<api::Solver>& d_solver;
   /**
    * The symbol manager, which is allocated by this class. This manages
    * all things related to definitions of symbols and their impact on behaviors
@@ -52,11 +52,11 @@ class CommandExecutor
    * symbol manager.
    */
   std::unique_ptr<SymbolManager> d_symman;
-  Options& d_options;
+
   api::Result d_result;
 
  public:
-  CommandExecutor(Options& options);
+  CommandExecutor(std::unique_ptr<api::Solver>& solver);
 
   virtual ~CommandExecutor();
 
@@ -82,6 +82,11 @@ class CommandExecutor
   void reset();
 
   SmtEngine* getSmtEngine() const { return d_solver->getSmtEngine(); }
+
+  /** Get the current options from the solver */
+  Options& getOptions();
+  /** Store the current options as the original options */
+  void storeOptionsAsOriginal();
 
   /**
    * Prints statistics to an output stream.
@@ -112,7 +117,7 @@ private:
 bool solverInvoke(api::Solver* solver,
                   SymbolManager* sm,
                   Command* cmd,
-                  std::ostream* out);
+                  std::ostream& out);
 
 }  // namespace main
 }  // namespace cvc5

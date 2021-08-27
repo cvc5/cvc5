@@ -23,6 +23,7 @@
 #include "smt/smt_engine.h"
 #include "theory/rewriter.h"
 #include "theory/trust_substitutions.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -73,7 +74,6 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
 
 void TheoryModel::reset(){
   d_modelCache.clear();
-  d_comment_str.clear();
   d_sep_heap = Node::null();
   d_sep_nil_eq = Node::null();
   d_approximations.clear();
@@ -88,11 +88,6 @@ void TheoryModel::reset(){
   d_uf_models.clear();
   d_using_model_core = false;
   d_model_core.clear();
-}
-
-void TheoryModel::getComments(std::ostream& out) const {
-  Trace("model-builder") << "get comments..." << std::endl;
-  out << d_comment_str.str();
 }
 
 void TheoryModel::setHeapModel( Node h, Node neq ) { 
@@ -141,8 +136,22 @@ Node TheoryModel::getValue(TNode n) const
   Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
   nn = getModelValue(nn);
-  if (nn.isNull()) return nn;
-  if(options::condenseFunctionValues() || nn.getKind() != kind::LAMBDA) {
+  if (nn.isNull())
+  {
+    return nn;
+  }
+  else if (nn.getKind() == kind::LAMBDA)
+  {
+    if (options::condenseFunctionValues())
+    {
+      // normalize the body. Do not normalize the entire node, which
+      // involves array normalization.
+      NodeManager* nm = NodeManager::currentNM();
+      nn = nm->mkNode(kind::LAMBDA, nn[0], Rewriter::rewrite(nn[1]));
+    }
+  }
+  else
+  {
     //normalize
     nn = Rewriter::rewrite(nn);
   }
@@ -595,6 +604,7 @@ void TheoryModel::recordApproximation(TNode n, TNode pred, Node witness)
   Node predDisj = NodeManager::currentNM()->mkNode(OR, n.eqNode(witness), pred);
   recordApproximation(n, predDisj);
 }
+bool TheoryModel::isUsingModelCore() const { return d_using_model_core; }
 void TheoryModel::setUsingModelCore()
 {
   d_using_model_core = true;
