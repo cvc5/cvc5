@@ -174,7 +174,7 @@ class AstPrinter : public cvc5::Printer
    */
   void toStreamModelSort(std::ostream& out,
                          TypeNode tn,
-                                    const std::vector<Node>& elements) const override;
+                         const std::vector<Node>& elements) const override;
 
   /**
    * To stream model term. This prints the appropriate output for term

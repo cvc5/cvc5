@@ -142,7 +142,7 @@ void AstPrinter::toStream(std::ostream& out, const smt::Model& m) const
 
 void AstPrinter::toStreamModelSort(std::ostream& out,
                                    TypeNode tn,
-                                    const std::vector<Node>& elements) const
+                                   const std::vector<Node>& elements) const
 {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();
