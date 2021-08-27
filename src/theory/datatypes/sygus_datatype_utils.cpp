@@ -44,7 +44,7 @@ struct SygusExpDefFormAttributeId
 };
 typedef expr::Attribute<SygusExpDefFormAttributeId, Node>
     SygusExpDefFormAttribute;
-  
+
 Node applySygusArgs(const DType& dt,
                     Node op,
                     Node n,

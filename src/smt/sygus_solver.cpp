@@ -29,10 +29,10 @@
 #include "smt/dump.h"
 #include "smt/preprocessor.h"
 #include "smt/smt_solver.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
-#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
@@ -82,7 +82,7 @@ void SygusSolver::declareSynthFun(Node fn,
   // whether sygus type encodes syntax restrictions
   if (!sygusType.isNull() && sygusType.isDatatype())
   {
-    const DType&  dt = sygusType.getDType();
+    const DType& dt = sygusType.getDType();
     if (dt.isSygus())
     {
       Node sym = nm->mkBoundVar("sfproxy", sygusType);
@@ -90,7 +90,8 @@ void SygusSolver::declareSynthFun(Node fn,
       SygusSynthGrammarAttribute ssfga;
       fn.setAttribute(ssfga, sym);
       // we must expand definitions for sygus operators here
-      const std::vector<std::shared_ptr<DTypeConstructor> >& cons = dt.getConstructors();
+      const std::vector<std::shared_ptr<DTypeConstructor>>& cons =
+          dt.getConstructors();
       for (const std::shared_ptr<DTypeConstructor>& c : cons)
       {
         Node op = c->getSygusOp();
