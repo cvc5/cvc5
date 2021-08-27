@@ -158,6 +158,18 @@ class SygusSolver
    * previously not stale.
    */
   void setSygusConjectureStale();
+  /**
+   * Expand definitions in sygus datatype tn, which ensures that all
+   * sygus constructors that are used to build values of sygus datatype
+   * tn are associated with their expanded definition form.
+   *
+   * This method is required at this level since sygus grammars may include
+   * user-defined functions. Thus, we must use the preprocessor here to
+   * associate the use of those functions with their expanded form, since
+   * the internal sygus solver must reason about sygus operators after
+   * expansion.
+   */
+  void expandDefinitionsSygusDt(TypeNode tn) const;
   /** Reference to the env class */
   Env& d_env;
   /** The SMT solver, which is used during checkSynth. */
