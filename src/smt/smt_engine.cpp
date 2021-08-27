@@ -1021,6 +1021,7 @@ void SmtEngine::declareSynthFun(Node func,
                                 const std::vector<Node>& vars)
 {
   SmtScope smts(this);
+  finishInit();
   d_state->doPendingPops();
   d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
 

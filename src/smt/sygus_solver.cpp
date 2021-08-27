@@ -195,20 +195,13 @@ Result SygusSolver::checkSynth(Assertions& as)
     // build synthesis conjecture from asserted constraints and declared
     // variables/functions
     Trace("smt") << "Sygus : Constructing sygus constraint...\n";
-    size_t nconstraints = d_sygusConstraints.size();
-    Node body = nconstraints == 0
-                    ? nm->mkConst(true)
-                    : (nconstraints == 1 ? d_sygusConstraints[0]
-                                         : nm->mkNode(AND, d_sygusConstraints));
-                    /*
-   Node body = nm->mkAnd(d_sygusConstraints);
+    Node body = nm->mkAnd(d_sygusConstraints);
     // note that if there are no constraints, then assumptions are irrelevant
     if (!d_sygusConstraints.empty() && !d_sygusAssumps.empty())
     {
       Node bodyAssump = nm->mkAnd(d_sygusAssumps);
       body = nm->mkNode(IMPLIES, bodyAssump, body);
     }
-    */
     body = body.notNode();
     Trace("smt") << "...constructed sygus constraint " << body << std::endl;
     if (!d_sygusVars.empty())
