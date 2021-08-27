@@ -7166,7 +7166,8 @@ bool Solver::isModelCoreSymbol(const Term& v) const
       << "Cannot check if model core symbol unless model generation is enabled "
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
-      << "Cannot check if model core symbol unless after a SAT or unknown response.";
+      << "Cannot check if model core symbol unless after a SAT or unknown "
+         "response.";
   CVC5_API_SOLVER_CHECK_TERM(v);
   CVC5_API_RECOVERABLE_CHECK(v.getKind() == CONSTANT)
       << "Expecting a free constant as argument to isModelCoreSymbol.";

@@ -1489,7 +1489,6 @@ TEST_F(TestApiBlackSolver, getModelDomainElements)
   ASSERT_THROW(d_solver.getModelDomainElements(intSort), CVC5ApiException);
 }
 
-
 TEST_F(TestApiBlackSolver, getModelDomainElements2)
 {
   d_solver.setOption("produce-models", "true");
@@ -1504,9 +1503,8 @@ TEST_F(TestApiBlackSolver, getModelDomainElements2)
   d_solver.checkSat();
   ASSERT_NO_THROW(d_solver.getModelDomainElements(uSort));
   // a model for the above must interpret u as size 1
-  ASSERT_TRUE(d_solver.getModelDomainElements(uSort).size()==1);
+  ASSERT_TRUE(d_solver.getModelDomainElements(uSort).size() == 1);
 }
-
 
 TEST_F(TestApiBlackSolver, isModelCoreSymbol)
 {
