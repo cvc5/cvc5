@@ -452,7 +452,7 @@ class CVC5_EXPORT SmtEngine
    * @param n The formula
    * @param isAssume True if n is an assumption.
    */
-  void assertSygusConstraint(Node n, bool isAssume);
+  void assertSygusConstraint(Node n, bool isAssume = false);
 
   /**
    * Add an invariant constraint.

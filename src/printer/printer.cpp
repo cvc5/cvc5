@@ -295,6 +295,11 @@ void Printer::toStreamCmdConstraint(std::ostream& out, Node n) const
   printUnknownCommand(out, "constraint");
 }
 
+void Printer::toStreamCmdAssume(std::ostream& out, Node n) const
+{
+  printUnknownCommand(out, "assume");
+}
+
 void Printer::toStreamCmdInvConstraint(
     std::ostream& out, Node inv, Node pre, Node trans, Node post) const
 {

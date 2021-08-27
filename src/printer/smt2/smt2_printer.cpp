@@ -1883,6 +1883,11 @@ void Smt2Printer::toStreamCmdConstraint(std::ostream& out, Node n) const
   out << "(constraint " << n << ')' << std::endl;
 }
 
+void Smt2Printer::toStreamCmdAssume(std::ostream& out, Node n) const
+{
+  out << "(assume " << n << ')' << std::endl;
+}
+
 void Smt2Printer::toStreamCmdInvConstraint(
     std::ostream& out, Node inv, Node pre, Node trans, Node post) const
 {

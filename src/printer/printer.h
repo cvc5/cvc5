@@ -148,6 +148,9 @@ class Printer
   /** Print constraint command */
   virtual void toStreamCmdConstraint(std::ostream& out, Node n) const;
 
+  /** Print assume command */
+  virtual void toStreamCmdAssume(std::ostream& out, Node n) const;
+
   /** Print inv-constraint command */
   virtual void toStreamCmdInvConstraint(
       std::ostream& out, Node inv, Node pre, Node trans, Node post) const;
