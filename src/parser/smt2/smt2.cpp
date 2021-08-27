@@ -334,7 +334,7 @@ api::Term Smt2::getExpressionForNameAndType(const std::string& name,
 
 bool Smt2::getTesterName(api::Term cons, std::string& name)
 {
-  if ((v2_6() || sygus_v2()) && strictModeEnabled())
+  if ((v2_6() || sygus()) && strictModeEnabled())
   {
     // 2.6 or above uses indexed tester symbols, if we are in strict mode,
     // we do not automatically define is-cons for constructor cons.
@@ -711,9 +711,10 @@ api::Grammar* Smt2::mkGrammar(const std::vector<api::Term>& boundVars,
   return d_allocGrammars.back().get();
 }
 
-bool Smt2::sygus() const { return language::isLangSygus(getLanguage()); }
-
-bool Smt2::sygus_v2() const { return getLanguage() == Language::LANG_SYGUS_V2; }
+bool Smt2::sygus() const
+{
+  return d_solver->getOption("input-language") == "LANG_SYGUS_V2";
+}
 
 void Smt2::checkThatLogicIsSet()
 {
