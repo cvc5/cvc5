@@ -23,8 +23,8 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
-#include "proof/buffered_proof_generator.h"
 #include "proof/assumption_proof_generator.h"
+#include "proof/buffered_proof_generator.h"
 #include "proof/eager_proof_generator.h"
 #include "proof/lazy_proof.h"
 

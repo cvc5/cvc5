@@ -83,7 +83,7 @@ class LazyCDProof : public CDProof
                    bool isClosed = false,
                    const char* ctx = "LazyCDProof::addLazyStep",
                    bool forceOverwrite = false);
-  /** 
+  /**
    * Erase lazy step.
    */
   void eraseLazyStep(Node expected);

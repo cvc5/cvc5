@@ -30,11 +30,12 @@ class ProofNodeManager;
 class AssumptionProofGenerator : public ProofGenerator
 {
  public:
-  AssumptionProofGenerator(ProofNodeManager * pnm);
+  AssumptionProofGenerator(ProofNodeManager* pnm);
   /** Get the proof for formula f */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
+
  private:
   /** The proof manager, used for allocating new ProofNode objects */
   ProofNodeManager* d_pnm;

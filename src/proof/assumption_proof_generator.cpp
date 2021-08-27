@@ -19,12 +19,18 @@
 
 namespace cvc5 {
 
-AssumptionProofGenerator::AssumptionProofGenerator(ProofNodeManager * pnm) : d_pnm(pnm){}
+AssumptionProofGenerator::AssumptionProofGenerator(ProofNodeManager* pnm)
+    : d_pnm(pnm)
+{
+}
 
 std::shared_ptr<ProofNode> AssumptionProofGenerator::getProofFor(Node f)
 {
   return d_pnm->mkNode(PfRule::ASSUME, {}, {f});
 }
-std::string AssumptionProofGenerator::identify() const { return "AssumptionProofGenerator"; }
+std::string AssumptionProofGenerator::identify() const
+{
+  return "AssumptionProofGenerator";
+}
 
 }  // namespace cvc5
