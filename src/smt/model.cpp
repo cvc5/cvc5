@@ -15,21 +15,11 @@
 
 #include "smt/model.h"
 
-#include "expr/expr_iomanip.h"
-#include "options/base_options.h"
-#include "printer/printer.h"
-#include "smt/dump_manager.h"
-#include "smt/node_command.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
-#include "theory/theory_model.h"
-
 namespace cvc5 {
 namespace smt {
 
-Model::Model(theory::TheoryModel* tm) : d_isKnownSat(false), d_tmodel(tm)
+Model::Model() : d_isKnownSat(false)
 {
-  Assert(d_tmodel != nullptr);
 }
 
 std::ostream& operator<<(std::ostream& out, const Model& m) {
@@ -38,17 +28,18 @@ std::ostream& operator<<(std::ostream& out, const Model& m) {
   return out;
 }
 
-theory::TheoryModel* Model::getTheoryModel() { return d_tmodel; }
-
-const theory::TheoryModel* Model::getTheoryModel() const { return d_tmodel; }
-
-bool Model::isModelCoreSymbol(TNode sym) const
+const std::vector<Node>& Model::getDomainElements(TypeNode tn) const
 {
-  return d_tmodel->isModelCoreSymbol(sym);
+  std::map<TypeNode, std::vector<Node>>::const_iterator it =  d_domainElements.find(tn);
+  Assert (it!=d_domainElements.end());
+  return it->second;
 }
-Node Model::getValue(TNode n) const { return d_tmodel->getValue(n); }
 
-bool Model::hasApproximations() const { return d_tmodel->hasApproximations(); }
+Node Model::getValue(TNode n) const { 
+  std::map<Node,Node>::const_iterator it = d_declareTermValues.find(n);
+  Assert (it!=d_declareTermValues.end());
+  return it->second;
+}
 
 void Model::clearModelDeclarations()
 {
@@ -56,9 +47,15 @@ void Model::clearModelDeclarations()
   d_declareSorts.clear();
 }
 
-void Model::addDeclarationSort(TypeNode tn) { d_declareSorts.push_back(tn); }
+void Model::addDeclarationSort(TypeNode tn, const std::vector<Node>& elements) { 
+  d_declareSorts.push_back(tn);
+  d_domainElements[tn] = elements;
+}
 
-void Model::addDeclarationTerm(Node n) { d_declareTerms.push_back(n); }
+void Model::addDeclarationTerm(Node n, Node value) { 
+  d_declareTerms.push_back(n); 
+  d_declareTermValues[n] = value;
+}
 const std::vector<TypeNode>& Model::getDeclaredSorts() const
 {
   return d_declareSorts;
