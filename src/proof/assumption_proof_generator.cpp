@@ -26,7 +26,7 @@ AssumptionProofGenerator::AssumptionProofGenerator(ProofNodeManager* pnm)
 
 std::shared_ptr<ProofNode> AssumptionProofGenerator::getProofFor(Node f)
 {
-  return d_pnm->mkNode(PfRule::ASSUME, {}, {f});
+  return d_pnm->mkAssume(f);
 }
 std::string AssumptionProofGenerator::identify() const
 {
