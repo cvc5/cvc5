@@ -51,6 +51,8 @@ class CegSingleInv
                                std::map< Node, std::vector< Node > >& teq,
                                Node n, std::vector< Node >& conj );
  private:
+  /** Reference to the env */
+  Env& d_env;
   // single invocation inference utility
   SingleInvocationPartition* d_sip;
   /** solution reconstruction */
@@ -91,7 +93,7 @@ class CegSingleInv
   Node d_single_inv;
   
  public:
-  CegSingleInv(TermRegistry& tr, SygusStatistics& s);
+  CegSingleInv(Env& env, TermRegistry& tr, SygusStatistics& s);
   ~CegSingleInv();
 
   // get simplified conjecture

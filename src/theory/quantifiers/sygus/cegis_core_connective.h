@@ -160,7 +160,8 @@ class VariadicTrie
 class CegisCoreConnective : public Cegis
 {
  public:
-  CegisCoreConnective(QuantifiersInferenceManager& qim,
+  CegisCoreConnective(QuantifiersState& qs,
+                      QuantifiersInferenceManager& qim,
                       TermDbSygus* tds,
                       SynthConjecture* p);
   ~CegisCoreConnective() {}

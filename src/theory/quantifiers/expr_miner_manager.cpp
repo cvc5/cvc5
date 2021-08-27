@@ -21,13 +21,19 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-ExpressionMinerManager::ExpressionMinerManager()
-    : d_doRewSynth(false),
+ExpressionMinerManager::ExpressionMinerManager(Env& env)
+    : d_env(env),
+      d_doRewSynth(false),
       d_doQueryGen(false),
       d_doFilterLogicalStrength(false),
       d_use_sygus_type(false),
       d_tds(nullptr),
-      d_crd(options::sygusRewSynthCheck(), options::sygusRewSynthAccel(), false)
+      d_crd(env,
+            options::sygusRewSynthCheck(),
+            options::sygusRewSynthAccel(),
+            false),
+      d_qg(env),
+      d_sols(env)
 {
 }
 

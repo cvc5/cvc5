@@ -59,7 +59,7 @@ DeclareFunctionNodeCommand::DeclareFunctionNodeCommand(const std::string& id,
 void DeclareFunctionNodeCommand::toStream(std::ostream& out,
                                           int toDepth,
                                           size_t dag,
-                                          OutputLanguage language) const
+                                          Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareFunction(out, d_id, d_type);
 }
@@ -85,7 +85,7 @@ DeclareTypeNodeCommand::DeclareTypeNodeCommand(const std::string& id,
 void DeclareTypeNodeCommand::toStream(std::ostream& out,
                                       int toDepth,
                                       size_t dag,
-                                      OutputLanguage language) const
+                                      Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareType(out, d_type);
 }
@@ -112,7 +112,7 @@ DeclareDatatypeNodeCommand::DeclareDatatypeNodeCommand(
 void DeclareDatatypeNodeCommand::toStream(std::ostream& out,
                                           int toDepth,
                                           size_t dag,
-                                          OutputLanguage language) const
+                                          Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdDatatypeDeclaration(out,
                                                                 d_datatypes);
@@ -139,7 +139,7 @@ DefineFunctionNodeCommand::DefineFunctionNodeCommand(
 void DefineFunctionNodeCommand::toStream(std::ostream& out,
                                          int toDepth,
                                          size_t dag,
-                                         OutputLanguage language) const
+                                         Language language) const
 {
   TypeNode tn = d_fun.getType();
   bool hasRange =

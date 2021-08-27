@@ -32,7 +32,10 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-QuantElimSolver::QuantElimSolver(SmtSolver& sms) : d_smtSolver(sms) {}
+QuantElimSolver::QuantElimSolver(Env& env, SmtSolver& sms)
+    : d_env(env), d_smtSolver(sms)
+{
+}
 
 QuantElimSolver::~QuantElimSolver() {}
 
@@ -51,7 +54,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
   // ensure the body is rewritten
   q = nm->mkNode(q.getKind(), q[0], Rewriter::rewrite(q[1]));
   // do nested quantifier elimination if necessary
-  q = quantifiers::NestedQe::doNestedQe(q, true);
+  q = quantifiers::NestedQe::doNestedQe(d_env, q, true);
   Trace("smt-qe") << "QuantElimSolver: after nested quantifier elimination : "
                   << q << std::endl;
   // tag the quantified formula with the quant-elim attribute

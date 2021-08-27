@@ -158,12 +158,13 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   }
 
   bool isResultUnsat = res.isUnsat() || res.isEntailed();
+  bool isResultSat = res.isSat() || res.isNotEntailed();
 
   // dump the model/proof/unsat core if option is set
   if (status) {
     std::vector<std::unique_ptr<Command> > getterCommands;
     if (d_solver->getOptions().driver.dumpModels
-        && (res.isSat()
+        && (isResultSat
             || (res.isSatUnknown()
                 && res.getUnknownExplanation() == api::Result::INCOMPLETE)))
     {
