@@ -7216,6 +7216,15 @@ void Solver::declareSeparationHeap(const Sort& locSort,
   CVC5_API_TRY_CATCH_END;
 }
 
+bool Solver::hasSeparationHeap() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return false;//d_smtEngine->hasSepHeap();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Term Solver::getSeparationHeap() const
 {
   NodeManagerScope scope(getNodeManager());

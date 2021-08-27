@@ -1772,9 +1772,12 @@ void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
       m.addDeclarationTerm(termToNode(t), termToNode(value));
     }
     // for separation logic
-    api::Term h = solver->getSeparationHeap();
-    api::Term neq = solver->getSeparationNilTerm();
-    m.setHeapModel(termToNode(h), termToNode(neq));
+    if (solver->hasSeparationHeap())
+    {
+      api::Term h = solver->getSeparationHeap();
+      api::Term neq = solver->getSeparationNilTerm();
+      m.setHeapModel(termToNode(h), termToNode(neq));
+    }
     d_commandStatus = CommandSuccess::instance();
     // print the model as a string and remember the result
     std::stringstream ssm;

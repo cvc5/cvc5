@@ -3882,6 +3882,12 @@ class CVC5_EXPORT Solver
   void declareSeparationHeap(const Sort& locSort, const Sort& dataSort) const;
 
   /**
+   * @return true if the separation logic heap has been declared for this
+   * solver.
+   */
+  bool hasSeparationHeap() const;
+  
+  /**
    * When using separation logic, obtain the term for the heap.
    * @return The term for the heap
    */
