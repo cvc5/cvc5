@@ -32,7 +32,8 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-InterpolationSolver::InterpolationSolver(SmtEngine* parent) : d_parent(parent)
+InterpolationSolver::InterpolationSolver(Env& env, SmtEngine* parent)
+    : d_env(env), d_parent(parent)
 {
 }
 
@@ -52,10 +53,10 @@ bool InterpolationSolver::getInterpol(const Node& conj,
                           << std::endl;
   std::vector<Node> axioms = d_parent->getExpandedAssertions();
   // must expand definitions
-  Node conjn = d_parent->getEnv().getTopLevelSubstitutions().apply(conj);
+  Node conjn = d_env.getTopLevelSubstitutions().apply(conj);
   std::string name("A");
 
-  quantifiers::SygusInterpol interpolSolver;
+  quantifiers::SygusInterpol interpolSolver(d_env);
   if (interpolSolver.solveInterpolation(
           name, axioms, conjn, grammarType, interpol))
   {
@@ -94,7 +95,7 @@ void InterpolationSolver::checkInterpol(Node interpol,
                             << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
     std::unique_ptr<SmtEngine> itpChecker;
-    initializeSubsolver(itpChecker);
+    initializeSubsolver(itpChecker, d_env);
     Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
                             << ": asserting formulas" << std::endl;
     if (j == 0)

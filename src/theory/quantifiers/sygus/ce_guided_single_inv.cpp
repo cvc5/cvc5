@@ -38,7 +38,8 @@ namespace theory {
 namespace quantifiers {
 
 CegSingleInv::CegSingleInv(Env& env, TermRegistry& tr, SygusStatistics& s)
-    : d_sip(new SingleInvocationPartition),
+    : d_env(env),
+      d_sip(new SingleInvocationPartition),
       d_srcons(new SygusReconstruct(env, tr.getTermDatabaseSygus(), s)),
       d_isSolved(false),
       d_single_invocation(false),
@@ -227,7 +228,7 @@ bool CegSingleInv::solve()
   }
   // solve the single invocation conjecture using a fresh copy of SMT engine
   std::unique_ptr<SmtEngine> siSmt;
-  initializeSubsolver(siSmt);
+  initializeSubsolver(siSmt, d_env);
   siSmt->assertFormula(siq);
   Result r = siSmt->checkSat();
   Trace("sygus-si") << "Result: " << r << std::endl;
