@@ -4169,7 +4169,6 @@ bool Datatype::hasNestedRecursion() const
 bool Datatype::isNull() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   return isNullHelper();
   ////////
