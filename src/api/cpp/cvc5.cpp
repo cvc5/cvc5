@@ -7602,7 +7602,7 @@ void Solver::addSygusConstraint(const Term& term) const
       term.d_node->getType() == getNodeManager()->booleanType(), term)
       << "boolean term";
   //////// all checks before this line
-  d_smtEngine->assertSygusConstraint(*term.d_node, true);
+  d_smtEngine->assertSygusConstraint(*term.d_node, false);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7616,7 +7616,7 @@ void Solver::addSygusAssume(const Term& term) const
       term.d_node->getType() == getNodeManager()->booleanType(), term)
       << "boolean term";
   //////// all checks before this line
-  d_smtEngine->assertSygusConstraint(*term.d_node, false);
+  d_smtEngine->assertSygusConstraint(*term.d_node, true);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
