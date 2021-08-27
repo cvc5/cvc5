@@ -2598,7 +2598,9 @@ namespace cvc5::api {
 
 /**
  * Provides access to options that can not be communicated via the regular
- * getOption() or getOptionInfo() methods.
+ * getOption() or getOptionInfo() methods. This class does not store the options
+ * itself, but only acts as a wrapper to the solver object. It can thus no
+ * longer be used after the solver object has been destroyed.
  */
 class CVC5_EXPORT DriverOptions
 {
