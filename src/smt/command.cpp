@@ -787,7 +787,8 @@ void SygusConstraintCommand::toStream(std::ostream& out,
   }
   else
   {
-    Printer::getPrinter(language)->toStreamCmdConstraint(out, termToNode(d_term));
+    Printer::getPrinter(language)->toStreamCmdConstraint(out,
+                                                         termToNode(d_term));
   }
 }
 

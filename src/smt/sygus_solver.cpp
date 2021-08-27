@@ -94,7 +94,8 @@ void SygusSolver::declareSynthFun(Node fn,
 
 void SygusSolver::assertSygusConstraint(Node n, bool isAssume)
 {
-  Trace("smt") << "SygusSolver::assertSygusConstrant: " << n << ", isAssume=" << isAssume << "\n";
+  Trace("smt") << "SygusSolver::assertSygusConstrant: " << n
+               << ", isAssume=" << isAssume << "\n";
   if (isAssume)
   {
     d_sygusAssumps.push_back(n);
