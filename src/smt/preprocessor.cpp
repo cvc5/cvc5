@@ -128,15 +128,10 @@ Node Preprocessor::expandDefinitions(const Node& node,
     // Ensure node is type-checked at this point.
     n.getType(true);
   }
-  Trace("smt") << "Current substitutions: ";
-  std::stringstream ss;
-  d_env.getTopLevelSubstitutions().get().print(ss);
-  Trace("smt") << ss.str() << std::endl;
   // we apply substitutions here, before expanding definitions
   n = d_env.getTopLevelSubstitutions().apply(n, false);
   // now call expand definitions
   n = d_exDefs.expandDefinitions(n, cache);
-  Trace("smt") << "...return " << n << std::endl;
   return n;
 }
 
