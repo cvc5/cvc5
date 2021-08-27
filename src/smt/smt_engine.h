@@ -532,7 +532,17 @@ class CVC5_EXPORT SmtEngine
   /**
    * Same as getValue but for a vector of expressions
    */
-  std::vector<Node> getValues(const std::vector<Node>& exprs);
+  std::vector<Node> getValues(const std::vector<Node>& exprs) const;
+
+  /**
+   * @return the domain elements for uninterpreted sort tn.
+   */
+  std::vector<Node> getModelDomainElements(TypeNode tn) const;
+
+  /**
+   * @return true if v is a model core symbol
+   */
+  bool isModelCoreSymbol(Node v);
 
   /** print instantiations
    *
@@ -1022,7 +1032,13 @@ class CVC5_EXPORT SmtEngine
    * element is the nil expression.
    */
   std::pair<Node, Node> getSepHeapAndNilExpr();
-
+  /**
+   * Get assertions internal, which is only called after initialization. This
+   * should be used internally to get the assertions instead of getAssertions
+   * or getExpandedAssertions, which may trigger initialization and SMT state
+   * changes.
+   */
+  std::vector<Node> getAssertionsInternal();
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SmtEngine instance. */

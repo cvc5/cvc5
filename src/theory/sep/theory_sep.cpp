@@ -198,7 +198,6 @@ void TheorySep::postProcessModel( TheoryModel* m ){
         Trace("sep-model") << " " << l << " -> ";
         if( d_pto_model[l].isNull() ){
           Trace("sep-model") << "_";
-          //m->d_comment_str << "_";
           TypeEnumerator te_range( data_type );
           if (d_state.isFiniteType(data_type))
           {
