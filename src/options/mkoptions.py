@@ -195,7 +195,7 @@ def get_handler(option):
             return 'opts.handler().{}("{}", name, optionarg)'.format(option.handler, optname)
     elif option.mode:
         return 'stringTo{}(optionarg)'.format(option.type)
-    return 'handleOption<{}>("{}", name, optionarg)'.format(option.type, optname)
+    return 'handlers::handleOption<{}>("{}", name, optionarg)'.format(option.type, optname)
 
 
 def get_predicates(option):
