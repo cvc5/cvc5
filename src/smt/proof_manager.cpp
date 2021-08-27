@@ -163,7 +163,7 @@ void PfManager::printProof(std::ostream& out,
   {
     out << "% SZS output start Proof for " << d_env.getFilename() << std::endl;
     // TODO (proj #37) print in TPTP compliant format
-    out << *fp;
+    out << *fp << std::endl;
     out << "% SZS output end Proof for " << d_env.getFilename() << std::endl;
   }
   else

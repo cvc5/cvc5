@@ -45,10 +45,7 @@ class SmtSolver;
 class SygusSolver
 {
  public:
-  SygusSolver(SmtSolver& sms,
-              Preprocessor& pp,
-              context::UserContext* u,
-              OutputManager& outMgr);
+  SygusSolver(Env& env, SmtSolver& sms, Preprocessor& pp);
   ~SygusSolver();
 
   /**
@@ -173,6 +170,8 @@ class SygusSolver
    * expansion.
    */
   void expandDefinitionsSygusDt(TypeNode tn) const;
+  /** Reference to the env class */
+  Env& d_env;
   /** The SMT solver, which is used during checkSynth. */
   SmtSolver& d_smtSolver;
   /** The preprocessor, used for checkSynthSolution. */
@@ -192,8 +191,6 @@ class SygusSolver
    * Whether we need to reconstruct the sygus conjecture.
    */
   context::CDO<bool> d_sygusConjectureStale;
-  /** Reference to the output manager of the smt engine */
-  OutputManager& d_outMgr;
 };
 
 }  // namespace smt

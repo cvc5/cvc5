@@ -36,7 +36,14 @@ PreprocessingPassContext::PreprocessingPassContext(
       d_symsInAssertions(env.getUserContext())
 {
 }
-
+const Options& PreprocessingPassContext::getOptions()
+{
+  return d_env.getOptions();
+}
+const LogicInfo& PreprocessingPassContext::getLogicInfo()
+{
+  return d_env.getLogicInfo();
+}
 theory::TrustSubstitutionMap&
 PreprocessingPassContext::getTopLevelSubstitutions()
 {
