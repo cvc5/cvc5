@@ -2603,18 +2603,17 @@ namespace cvc5::api {
 class CVC5_EXPORT DriverOptions
 {
   friend class Solver;
+  public:
+   /** Access the solvers input stream */
+   std::istream& in() const;
+   /** Access the solvers error output stream */
+   std::ostream& err() const;
+   /** Access the solvers output stream */
+   std::ostream& out() const;
 
- public:
-  /** Access the solvers input stream */
-  std::istream& in() const;
-  /** Access the solvers error output stream */
-  std::ostream& err() const;
-  /** Access the solvers output stream */
-  std::ostream& out() const;
-
- private:
-  DriverOptions(const Solver& solver);
-  const Solver& d_solver;
+  private:
+    DriverOptions(const Solver& solver);
+    const Solver& d_solver;
 };
 
 /* -------------------------------------------------------------------------- */
