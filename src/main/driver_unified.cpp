@@ -80,21 +80,25 @@ TotalTimer::~TotalTimer()
     }  // namespace main
     }  // namespace cvc5
 
-void printUsage(const api::DriverOptions& dopts, bool full) {
-  stringstream ss;
-  ss << "usage: " << progName << " [options] [input-file]"
-     << endl
-     << endl
-     << "Without an input file, or with `-', cvc5 reads from standard input."
-     << endl
-     << endl
-     << "cvc5 options:" << endl;
-  if(full) {
-    main::printUsage(ss.str(), dopts.out());
-  } else {
-    main::printShortUsage(ss.str(), dopts.out());
-  }
-}
+    void printUsage(const api::DriverOptions& dopts, bool full)
+    {
+      std::stringstream ss;
+      ss << "usage: " << progName << " [options] [input-file]" << std::endl
+         << std::endl
+         << "Without an input file, or with `-', cvc5 reads from standard "
+            "input."
+         << std::endl
+         << std::endl
+         << "cvc5 options:" << std::endl;
+      if (full)
+      {
+        main::printUsage(ss.str(), dopts.out());
+      }
+      else
+      {
+        main::printShortUsage(ss.str(), dopts.out());
+      }
+    }
 
 int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 {
