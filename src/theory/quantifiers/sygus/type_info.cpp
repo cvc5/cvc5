@@ -190,9 +190,9 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     {
       d_hasBoolConnective = true;
     }
-    Node eop = datatypes::utils::getExpandedDefinitionForm(sop);
     if (Trace.isOn("sygus-db"))
     {
+      Node eop = datatypes::utils::getExpandedDefinitionForm(sop);
       Trace("sygus-db") << "Expanded form: ";
       if (eop == sop)
       {
