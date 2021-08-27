@@ -35,6 +35,9 @@ void NodeBitblaster::bbAtom(TNode node)
     return;
   }
 
+  /* Note: We rewrite here since it's not guaranteed (yet) that facts sent
+   * to theories are rewritten.
+   */
   Node normalized = Rewriter::rewrite(node);
   Node atom_bb =
       normalized.getKind() != kind::CONST_BOOLEAN
@@ -163,6 +166,13 @@ bool NodeBitblaster::collectModelValues(TheoryModel* m,
 bool NodeBitblaster::isVariable(TNode node)
 {
   return d_variables.find(node) != d_variables.end();
+}
+
+Node NodeBitblaster::applyAtomBBStrategy(TNode node)
+{
+  Assert(node.getKind() != kind::CONST_BOOLEAN);
+  Assert(node.getKind() != kind::BITVECTOR_BITOF);
+  return d_atomBBStrategies[node.getKind()](node, this);
 }
 
 }  // namespace bv

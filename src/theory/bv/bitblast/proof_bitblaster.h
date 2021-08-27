@@ -27,6 +27,40 @@ class TConvProofGenerator;
 namespace theory {
 namespace bv {
 
+/** Proof generator fot bit-blast proofs. */
+class BitblastProofGenerator : public ProofGenerator
+{
+ public:
+  BitblastProofGenerator(ProofNodeManager* pnm, TConvProofGenerator* tcpg);
+  ~BitblastProofGenerator(){};
+
+  /**
+   * Get proof for, which expects an equality of the form t = bb(t).
+   * This returns a proof based on the term conversion proof generator utility.
+   */
+  std::shared_ptr<ProofNode> getProofFor(Node eq) override;
+
+  std::string identify() const override { return "BitblastStepProofGenerator"; }
+
+  /** Record bit-blast step. */
+  void addBitblastStep(TNode t, TNode bbt, TNode eq);
+
+ private:
+  /** The associated proof node manager. */
+  ProofNodeManager* d_pnm;
+  /**
+   * The associated term conversion proof generator, which tracks the
+   * individual bit-blast steps.
+   */
+  TConvProofGenerator* d_tcpg;
+
+  /**
+   * Cache that maps equalities to information required to reconstruct the
+   * proof for given equality.
+   */
+  std::unordered_map<Node, std::tuple<Node, Node>> d_cache;
+};
+
 class BBProof
 {
   using Bits = std::vector<Node>;
@@ -48,11 +82,14 @@ class BBProof
   /** Collect model values for all relevant terms given in 'relevantTerms'. */
   bool collectModelValues(TheoryModel* m, const std::set<Node>& relevantTerms);
 
-  TConvProofGenerator* getProofGenerator();
+  BitblastProofGenerator* getProofGenerator();
 
  private:
   /** Return true if proofs are enabled. */
   bool isProofsEnabled() const;
+
+  /** Helper to reconstruct term `t` based on `d_bbMap`. */
+  Node reconstruct(TNode t);
 
   /** The associated simple bit-blaster. */
   std::unique_ptr<NodeBitblaster> d_bb;
@@ -60,13 +97,16 @@ class BBProof
   ProofNodeManager* d_pnm;
   /** Term context for d_tcpg to not rewrite below BV leafs. */
   std::unique_ptr<TermContext> d_tcontext;
-  /** The associated term conversion proof generator. */
+  /** Term conversion proof generator for bit-blast steps. */
   std::unique_ptr<TConvProofGenerator> d_tcpg;
+  /** Bitblast proof generator. */
+  std::unique_ptr<BitblastProofGenerator> d_bbpg;
   /** Map bit-vector nodes to bit-blasted nodes. */
   std::unordered_map<Node, Node> d_bbMap;
-
+  /** Flag to indicate whether fine-grained proofs should be recorded. */
   bool d_recordFineGrainedProofs;
 };
+
 
 }  // namespace bv
 }  // namespace theory
