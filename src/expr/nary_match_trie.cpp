@@ -104,8 +104,7 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm) const
         }
         if (next.hasOperator())
         {
-          std::vector<Node> nextc(next.begin(), next.end());
-          syms.insert(syms.end(), nextc.rbegin(), nextc.rend());
+          syms.insert(syms.end(), next.rbegin(), next.rend());
         }
         // new frame
         visit.push_back(NaryMatchFrame(syms, &itc->second));
@@ -244,8 +243,7 @@ void NaryMatchTrie::addTerm(Node n)
         visit.push_back(Node::null());
       }
       // note children are processed left to right
-      std::vector<Node> cc(cn.begin(), cn.end());
-      visit.insert(visit.end(), cc.rbegin(), cc.rend());
+      visit.insert(visit.end(), cn.rbegin(), cn.rend());
     }
     else
     {
