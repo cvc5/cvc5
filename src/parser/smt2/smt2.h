@@ -230,7 +230,7 @@ class Smt2 : public Parser
    */
   bool v2_6(bool exact = false) const
   {
-    return language::isInputLang_smt2_6(getLanguage(), exact);
+    return language::isLangSmt2(getLanguage());
   }
   /** Are we using a sygus language? */
   bool sygus() const;
@@ -415,7 +415,7 @@ class Smt2 : public Parser
 
   void addSepOperators();
 
-  InputLanguage getLanguage() const;
+  Language getLanguage() const;
 
   /**
    * Utility function to create a conjunction of expressions.

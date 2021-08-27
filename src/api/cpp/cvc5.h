@@ -118,6 +118,31 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
   }
 };
 
+/**
+ * An option-related API exception.
+ * If thrown, API objects can still be used.
+ */
+class CVC5_EXPORT CVC5ApiOptionException : public CVC5ApiRecoverableException
+{
+ public:
+  /**
+   * Construct with message from a string.
+   * @param str The error message.
+   */
+  CVC5ApiOptionException(const std::string& str)
+      : CVC5ApiRecoverableException(str)
+  {
+  }
+  /**
+   * Construct with message from a string stream.
+   * @param stream The error message.
+   */
+  CVC5ApiOptionException(const std::stringstream& stream)
+      : CVC5ApiRecoverableException(stream.str())
+  {
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 /* Result                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -782,6 +807,8 @@ namespace cvc5::api {
 /* Op                                                                     */
 /* -------------------------------------------------------------------------- */
 
+class Term;
+
 /**
  * A cvc5 operator.
  * An operator is a term that represents certain operators, instantiated
@@ -843,6 +870,14 @@ class CVC5_EXPORT Op
   size_t getNumIndices() const;
 
   /**
+   * Get the index at position i.
+   * @param i the position of the index to return
+   * @return the index at position i
+   */
+
+  Term operator[](size_t i) const;
+
+  /**
    * Get the indices used to create this Op.
    * Supports the following template arguments:
    *   - string
@@ -890,6 +925,19 @@ class CVC5_EXPORT Op
    * @return true iff this Op is indexed
    */
   bool isIndexedHelper() const;
+
+  /**
+   * Helper for getNumIndices
+   * @return the number of indices of this op
+   */
+  size_t getNumIndicesHelper() const;
+
+  /**
+   * Helper for operator[](size_t i).
+   * @param i position of the index. Should be less than getNumIndicesHelper().
+   * @return the index at position i
+   */
+  Term getIndexHelper(size_t index) const;
 
   /**
    * The associated solver object.
@@ -2733,6 +2781,13 @@ class CVC5_EXPORT Solver
   friend class Sort;
   friend class Term;
 
+ private:
+  /*
+   * Constructs a solver with the given original options. This should only be
+   * used internally when the Solver is reset.
+   */
+  Solver(std::unique_ptr<Options>&& original);
+
  public:
   /* .................................................................... */
   /* Constructors/Destructors                                             */
@@ -2740,10 +2795,9 @@ class CVC5_EXPORT Solver
 
   /**
    * Constructor.
-   * @param opts an optional pointer to a solver options object
    * @return the Solver
    */
-  Solver(const Options* opts = nullptr);
+  Solver();
 
   /**
    * Destructor.
@@ -3250,6 +3304,9 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a bit-vector constant of given size and value.
+   *
+   * Note: The given value must fit into a bit-vector of the given size.
+   *
    * @param size the bit-width of the bit-vector sort
    * @param val the value of the constant
    * @return the bit-vector constant
@@ -3257,23 +3314,11 @@ class CVC5_EXPORT Solver
   Term mkBitVector(uint32_t size, uint64_t val = 0) const;
 
   /**
-   * Create a bit-vector constant from a given string of base 2, 10 or 16.
-   *
-   * The size of resulting bit-vector is
-   * - base  2: the size of the binary string
-   * - base 10: the min. size required to represent the decimal as a bit-vector
-   * - base 16: the max. size required to represent the hexadecimal as a
-   *            bit-vector (4 * size of the given value string)
-   *
-   * @param s the string representation of the constant
-   * @param base the base of the string representation (2, 10, or 16)
-   * @return the bit-vector constant
-   */
-  Term mkBitVector(const std::string& s, uint32_t base = 2) const;
-
-  /**
    * Create a bit-vector constant of a given bit-width from a given string of
    * base 2, 10 or 16.
+   *
+   * Note: The given value must fit into a bit-vector of the given size.
+   *
    * @param size the bit-width of the constant
    * @param s the string representation of the constant
    * @param base the base of the string representation (2, 10, or 16)
@@ -3696,6 +3741,13 @@ class CVC5_EXPORT Solver
   std::string getOption(const std::string& option) const;
 
   /**
+   * Get all option names that can be used with `setOption`, `getOption` and
+   * `getOptionInfo`.
+   * @return all option names
+   */
+  std::vector<std::string> getOptionNames() const;
+
+  /**
    * Get the set of unsat ("failed") assumptions.
    * SMT-LIB:
    * \verbatim
@@ -3718,7 +3770,19 @@ class CVC5_EXPORT Solver
   std::vector<Term> getUnsatCore() const;
 
   /**
-   * Get the value of the given term.
+   * Get the refutation proof
+   * SMT-LIB:
+   * \verbatim
+   * ( get-proof )
+   * \endverbatim
+   * Requires to enable option 'produce-proofs'.
+   * @return a string representing the proof, according to the the value of
+   * proof-format-mode.
+   */
+  std::string getProof() const;
+
+  /**
+   * Get the value of the given term in the current model.
    * SMT-LIB:
    * \verbatim
    * ( get-value ( <term> ) )
@@ -3727,8 +3791,9 @@ class CVC5_EXPORT Solver
    * @return the value of the given term
    */
   Term getValue(const Term& term) const;
+
   /**
-   * Get the values of the given terms.
+   * Get the values of the given terms in the current model.
    * SMT-LIB:
    * \verbatim
    * ( get-value ( <term>+ ) )
@@ -3737,6 +3802,27 @@ class CVC5_EXPORT Solver
    * @return the values of the given terms
    */
   std::vector<Term> getValue(const std::vector<Term>& terms) const;
+
+  /**
+   * Get the domain elements of uninterpreted sort s in the current model. The
+   * current model interprets s as the finite sort whose domain elements are
+   * given in the return value of this method.
+   *
+   * @param s The uninterpreted sort in question
+   * @return the domain elements of s in the current model
+   */
+  std::vector<Term> getModelDomainElements(const Sort& s) const;
+
+  /**
+   * This returns false if the model value of free constant v was not essential
+   * for showing the satisfiability of the last call to checkSat using the
+   * current model. This method will only return false (for any v) if
+   * the model-cores option has been set.
+   *
+   * @param v The term in question
+   * @return true if v is a model core symbol
+   */
+  bool isModelCoreSymbol(const Term& v) const;
 
   /**
    * Do quantifier elimination.
@@ -4137,6 +4223,12 @@ class CVC5_EXPORT Solver
   NodeManager* getNodeManager(void) const;
   /** Reset the API statistics */
   void resetStatistics();
+
+  /**
+   * Print the statistics to the given file descriptor, suitable for usage in
+   * signal handlers.
+   */
+  void printStatisticsSafe(int fd) const;
 
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;

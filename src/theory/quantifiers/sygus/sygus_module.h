@@ -28,6 +28,7 @@ namespace quantifiers {
 
 class SynthConjecture;
 class TermDbSygus;
+class QuantifiersState;
 class QuantifiersInferenceManager;
 
 /** SygusModule
@@ -51,7 +52,8 @@ class QuantifiersInferenceManager;
 class SygusModule
 {
  public:
-  SygusModule(QuantifiersInferenceManager& qim,
+  SygusModule(QuantifiersState& qs,
+              QuantifiersInferenceManager& qim,
               TermDbSygus* tds,
               SynthConjecture* p);
   virtual ~SygusModule() {}
@@ -69,13 +71,14 @@ class SygusModule
    * n is the "base instantiation" of the deep-embedding version of the
    * synthesis conjecture under candidates (see SynthConjecture::d_base_inst).
    *
-   * This function may add lemmas to the argument lemmas, which should be
-   * sent out on the output channel of quantifiers by the caller.
+   * This function may also sends lemmas during this call via the quantifiers
+   * inference manager. Note that lemmas should be sent immediately via
+   * d_qim.lemma in this call. This is in contrast to other methods which
+   * add pending lemmas to d_qim.
    */
   virtual bool initialize(Node conj,
                           Node n,
-                          const std::vector<Node>& candidates,
-                          std::vector<Node>& lemmas) = 0;
+                          const std::vector<Node>& candidates) = 0;
   /** get term list
    *
    * This gets the list of terms that will appear as arguments to a subsequent
@@ -110,18 +113,18 @@ class SygusModule
    * tested by testing the (un)satisfiablity of P( v, cex ) for fresh cex by the
    * caller.
    *
-   * This function may also add lemmas to lems, which are sent out as lemmas
-   * on the output channel of quantifiers by the caller. For an example of
-   * such lemmas, see SygusPbe::constructCandidates.
+   * This function may also add pending lemmas during this call via the
+   * quantifiers inference manager d_qim. For an example of such lemmas, see
+   * SygusPbe::constructCandidates..
    *
    * This function may return false if it does not have a candidate it wants
-   * to test on this iteration. In this case, lems should be non-empty.
+   * to test on this iteration. In this case, the module should have sent
+   * lemmas.
    */
   virtual bool constructCandidates(const std::vector<Node>& terms,
                                    const std::vector<Node>& term_values,
                                    const std::vector<Node>& candidates,
-                                   std::vector<Node>& candidate_values,
-                                   std::vector<Node>& lems) = 0;
+                                   std::vector<Node>& candidate_values) = 0;
   /** register refinement lemma
    *
    * Assume this module, on a previous call to constructCandidates, added the
@@ -131,13 +134,11 @@ class SygusModule
    * is called when the refinement lemma P( v, cex ) has a model M. In calls to
    * this function, the argument vars is cex and lem is P( k, cex^M ).
    *
-   * This function may also add lemmas to lems, which are sent out as lemmas
-   * on the output channel of quantifiers by the caller. For an example of
-   * such lemmas, see Cegis::registerRefinementLemma.
+   * This function may also add pending lemmas during this call via the
+   * quantifiers inference manager d_qim. For an example of such lemmas, see
+   * Cegis::registerRefinementLemma.
    */
-  virtual void registerRefinementLemma(const std::vector<Node>& vars,
-                                       Node lem,
-                                       std::vector<Node>& lems)
+  virtual void registerRefinementLemma(const std::vector<Node>& vars, Node lem)
   {
   }
   /**
@@ -148,6 +149,8 @@ class SygusModule
   virtual bool usingRepairConst() { return false; }
 
  protected:
+  /** Reference to the state of the quantifiers engine */
+  QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** sygus term database of d_qe */

@@ -70,7 +70,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersState& qs,
   }
   if (options::cegqiNestedQE())
   {
-    d_nestedQe.reset(new NestedQe(qs.getUserContext()));
+    d_nestedQe.reset(new NestedQe(qs.getEnv()));
   }
 }
 
@@ -491,7 +491,7 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   else if (inst->addInstantiation(d_curr_quant,
                                   subs,
                                   InferenceId::QUANTIFIERS_INST_CEGQI,
-                                  false,
+                                  Node::null(),
                                   false,
                                   usedVts))
   {

@@ -195,10 +195,10 @@ std::string Configuration::copyright() {
          << "  See http://www.ginac.de/CLN for copyright information.\n\n";
     }
     if (Configuration::isBuiltWithGlpk()) {
-      ss << "  glpk-cut-log -  a modified version of GPLK, "
+      ss << "  glpk-cut-log - a modified version of GPLK, "
          << "the GNU Linear Programming Kit\n"
          << "  See http://github.com/timothy-king/glpk-cut-log for copyright"
-         << "information\n\n";
+         << " information\n\n";
     }
   }
 

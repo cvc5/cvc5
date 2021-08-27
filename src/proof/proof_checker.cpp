@@ -85,6 +85,11 @@ ProofCheckerStatistics::ProofCheckerStatistics()
 {
 }
 
+ProofChecker::ProofChecker(uint32_t pclevel, rewriter::RewriteDb* rdb)
+    : d_pclevel(pclevel), d_rdb(rdb)
+{
+}
+
 Node ProofChecker::check(ProofNode* pn, Node expected)
 {
   return check(pn->getRule(), pn->getChildren(), pn->getArguments(), expected);
@@ -302,6 +307,8 @@ ProofRuleChecker* ProofChecker::getCheckerFor(PfRule id)
   }
   return it->second;
 }
+
+rewriter::RewriteDb* ProofChecker::getRewriteDatabase() { return d_rdb; }
 
 uint32_t ProofChecker::getPedanticLevel(PfRule id) const
 {

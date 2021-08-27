@@ -29,6 +29,7 @@
 #include "expr/node.h"
 #include "options/theory_options.h"
 #include "proof/trust_node.h"
+#include "smt/env.h"
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
 #include "theory/logic_info.h"
@@ -105,14 +106,8 @@ class Theory {
   /** An integer identifying the type of the theory. */
   TheoryId d_id;
 
-  /** The SAT search context for the Theory. */
-  context::Context* d_satContext;
-
-  /** The user level assertion context for the Theory. */
-  context::UserContext* d_userContext;
-
-  /** Information about the logic we're operating within. */
-  const LogicInfo& d_logicInfo;
+  /** The environment class */
+  Env& d_env;
 
   /**
    * The assertFact() queue.
@@ -169,12 +164,9 @@ class Theory {
    * w.r.t. the SmtEngine.
    */
   Theory(TheoryId id,
-         context::Context* satContext,
-         context::UserContext* userContext,
+         Env& env,
          OutputChannel& out,
          Valuation valuation,
-         const LogicInfo& logicInfo,
-         ProofNodeManager* pnm,
          std::string instance = "");  // taking : No default.
 
   /**
@@ -241,9 +233,7 @@ class Theory {
    */
   inline Assertion get();
 
-  const LogicInfo& getLogicInfo() const {
-    return d_logicInfo;
-  }
+  const LogicInfo& getLogicInfo() const { return d_env.getLogicInfo(); }
 
   /**
    * Set separation logic heap. This is called when the location and data
@@ -307,13 +297,13 @@ class Theory {
    * class (see addSharedTerm).
    */
   virtual void notifySharedTerm(TNode n);
-
   /**
    * Notify in conflict, called when a conflict clause is added to TheoryEngine
    * by any theory (not necessarily this one). This signals that the theory
    * should suspend what it is currently doing and wait for backtracking.
    */
   virtual void notifyInConflict();
+
  public:
   //--------------------------------- initialization
   /**
@@ -455,17 +445,25 @@ class Theory {
   }
 
   /**
+   * Get a reference to the environment.
+   */
+  Env& getEnv() const { return d_env; }
+
+  /**
+   * Shorthand to access the options object.
+   */
+  const Options& options() const { return getEnv().getOptions(); }
+
+  /**
    * Get the SAT context associated to this Theory.
    */
-  context::Context* getSatContext() const {
-    return d_satContext;
-  }
+  context::Context* getSatContext() const { return d_env.getContext(); }
 
   /**
    * Get the context associated to this Theory.
    */
   context::UserContext* getUserContext() const {
-    return d_userContext;
+    return d_env.getUserContext();
   }
 
   /**
@@ -512,7 +510,7 @@ class Theory {
    */
   void assertFact(TNode assertion, bool isPreregistered) {
     Trace("theory") << "Theory<" << getId() << ">::assertFact["
-                    << d_satContext->getLevel() << "](" << assertion << ", "
+                    << getSatContext()->getLevel() << "](" << assertion << ", "
                     << (isPreregistered ? "true" : "false") << ")" << std::endl;
     d_facts.push_back(Assertion(assertion, isPreregistered));
   }
@@ -646,6 +644,19 @@ class Theory {
    */
   virtual void computeRelevantTerms(std::set<Node>& termSet);
   /**
+   * Collect asserted terms for this theory and add them to  termSet.
+   *
+   * @param termSet The set to add terms to
+   * @param includeShared Whether to include the shared terms of the theory
+   */
+  void collectAssertedTerms(std::set<Node>& termSet,
+                            bool includeShared = true) const;
+  /**
+   * Helper function for collectAssertedTerms, adds all subterms
+   * belonging to this theory to termSet.
+   */
+  void collectTerms(TNode n, std::set<Node>& termSet) const;
+  /**
    * Collect model values, after equality information is added to the model.
    * The argument termSet is the set of relevant terms returned by
    * computeRelevantTerms.
@@ -764,15 +775,6 @@ class Theory {
    */
   virtual std::string identify() const = 0;
 
-  /** Set user attribute
-    * This function is called when an attribute is set by a user.  In SMT-LIBv2 this is done
-    *  via the syntax (! n :attr)
-    */
-  virtual void setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value) {
-    Unimplemented() << "Theory " << identify()
-                    << " doesn't support Theory::setUserAttribute interface";
-  }
-
   typedef context::CDList<Assertion>::const_iterator assertions_iterator;
 
   /**
@@ -876,6 +878,13 @@ class Theory {
    * E |= lit in the theory.
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit);
+
+  /** Return true if this theory uses central equality engine */
+  bool usesCentralEqualityEngine() const;
+  /** uses central equality engine (static) */
+  static bool usesCentralEqualityEngine(TheoryId id);
+  /** Explains/propagates via central equality engine only */
+  static bool expUsingCentralEqualityEngine(TheoryId id);
 };/* class Theory */
 
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);

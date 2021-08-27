@@ -5,23 +5,28 @@ public = true
 [[option]]
   name       = "in"
   category   = "undocumented"
-  type       = "std::istream*"
-  default    = "&std::cin"
-  includes   = ["<iosfwd>"]
+  long       = "in=input"
+  type       = "ManagedIn"
+  predicates = ["setInStream"]
+  includes   = ["<iostream>", "options/managed_streams.h"]
 
 [[option]]
   name       = "out"
   category   = "undocumented"
-  type       = "std::ostream*"
-  default    = "&std::cout"
-  includes   = ["<iosfwd>"]
+  long       = "out=output"
+  type       = "ManagedOut"
+  alias      = ["regular-output-channel"]
+  predicates = ["setOutStream"]
+  includes   = ["<iostream>", "options/managed_streams.h"]
 
 [[option]]
   name       = "err"
   category   = "undocumented"
-  type       = "std::ostream*"
-  default    = "&std::cerr"
-  includes   = ["<iosfwd>"]
+  long       = "err=erroutput"
+  type       = "ManagedErr"
+  alias      = ["diagnostic-output-channel"]
+  predicates = ["setErrStream"]
+  includes   = ["<iostream>", "options/managed_streams.h"]
 
 [[option]]
   name       = "inputLanguage"
@@ -29,9 +34,10 @@ public = true
   category   = "common"
   short      = "L"
   long       = "lang=LANG"
-  type       = "InputLanguage"
-  default    = "language::input::LANG_AUTO"
-  handler    = "stringToInputLanguage"
+  type       = "Language"
+  default    = "Language::LANG_AUTO"
+  handler    = "stringToLanguage"
+  predicates = ["languageIsNotAST"]
   includes   = ["options/language.h"]
   help       = "force input language (default is \"auto\"; see --lang help)"
 
@@ -40,9 +46,9 @@ public = true
   alias      = ["output-language"]
   category   = "common"
   long       = "output-lang=LANG"
-  type       = "OutputLanguage"
-  default    = "language::output::LANG_AUTO"
-  handler    = "stringToOutputLanguage"
+  type       = "Language"
+  default    = "Language::LANG_AUTO"
+  handler    = "stringToLanguage"
   includes   = ["options/language.h"]
   help       = "force output language (default is \"auto\"; see --output-lang help)"
 
@@ -55,7 +61,7 @@ public = true
   name       = "verbosity"
   long       = "verbosity=N"
   category   = "regular"
-  type       = "int"
+  type       = "int64_t"
   default    = "0"
   predicates = ["setVerbosity"]
   help       = "the verbosity level of cvc5"
@@ -153,6 +159,7 @@ public = true
   category   = "regular"
   long       = "print-success"
   type       = "bool"
+  predicates = ["setPrintSuccess"]
   help       = "print the \"success\" output required of SMT-LIBv2"
 
 [[option]]

@@ -31,32 +31,32 @@ using namespace std;
 
 namespace cvc5 {
 
-unique_ptr<Printer> Printer::d_printers[language::output::LANG_MAX];
+unique_ptr<Printer>
+    Printer::d_printers[static_cast<size_t>(Language::LANG_MAX)];
 
-unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
+unique_ptr<Printer> Printer::makePrinter(Language lang)
 {
-  using namespace cvc5::language::output;
-
   switch(lang) {
-  case LANG_SMTLIB_V2_6:
-    return unique_ptr<Printer>(
-        new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
+    case Language::LANG_SMTLIB_V2_6:
+      return unique_ptr<Printer>(
+          new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
 
-  case LANG_TPTP:
-    return unique_ptr<Printer>(new printer::tptp::TptpPrinter());
+    case Language::LANG_TPTP:
+      return unique_ptr<Printer>(new printer::tptp::TptpPrinter());
 
-  case LANG_CVC: return unique_ptr<Printer>(new printer::cvc::CvcPrinter());
+    case Language::LANG_CVC:
+      return unique_ptr<Printer>(new printer::cvc::CvcPrinter());
 
-  case LANG_SYGUS_V2:
-    // sygus version 2.0 does not have discrepancies with smt2, hence we use
-    // a normal smt2 variant here.
-    return unique_ptr<Printer>(
-        new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
+    case Language::LANG_SYGUS_V2:
+      // sygus version 2.0 does not have discrepancies with smt2, hence we use
+      // a normal smt2 variant here.
+      return unique_ptr<Printer>(
+          new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
 
-  case LANG_AST:
-    return unique_ptr<Printer>(new printer::ast::AstPrinter());
+    case Language::LANG_AST:
+      return unique_ptr<Printer>(new printer::ast::AstPrinter());
 
-  default: Unhandled() << lang;
+    default: Unhandled() << lang;
   }
 }
 
@@ -83,7 +83,7 @@ void Printer::toStream(std::ostream& out, const smt::Model& m) const
 
 }/* Printer::toStream(Model) */
 
-void Printer::toStreamUsing(OutputLanguage lang,
+void Printer::toStreamUsing(Language lang,
                             std::ostream& out,
                             const smt::Model& m) const
 {
@@ -101,14 +101,29 @@ void Printer::toStream(std::ostream& out, const UnsatCore& core) const
 void Printer::toStream(std::ostream& out, const InstantiationList& is) const
 {
   out << "(instantiations " << is.d_quant << std::endl;
-  for (const std::vector<Node>& i : is.d_inst)
+  for (const InstantiationVec& i : is.d_inst)
   {
-    out << "  ( ";
-    for (const Node& n : i)
+    out << "  ";
+    if (i.d_id != theory::InferenceId::UNKNOWN)
+    {
+      out << "(! ";
+    }
+    out << "( ";
+    for (const Node& n : i.d_vec)
     {
       out << n << " ";
     }
-    out << ")" << std::endl;
+    out << ")";
+    if (i.d_id != theory::InferenceId::UNKNOWN)
+    {
+      out << " :source " << i.d_id;
+      if (!i.d_pfArg.isNull())
+      {
+        out << " " << i.d_pfArg;
+      }
+      out << ")";
+    }
+    out << std::endl;
   }
   out << ")" << std::endl;
 }
@@ -125,9 +140,9 @@ void Printer::toStream(std::ostream& out, const SkolemList& sks) const
   out << ")" << std::endl;
 }
 
-Printer* Printer::getPrinter(OutputLanguage lang)
+Printer* Printer::getPrinter(Language lang)
 {
-  if (lang == language::output::LANG_AUTO)
+  if (lang == Language::LANG_AUTO)
   {
     // Infer the language to use for output.
     //
@@ -139,22 +154,22 @@ Printer* Printer::getPrinter(OutputLanguage lang)
       {
         lang = options::outputLanguage();
       }
-      if (lang == language::output::LANG_AUTO
+      if (lang == Language::LANG_AUTO
           && Options::current().base.inputLanguageWasSetByUser)
       {
-        lang = language::toOutputLanguage(options::inputLanguage());
+        lang = options::inputLanguage();
       }
     }
-    if (lang == language::output::LANG_AUTO)
+    if (lang == Language::LANG_AUTO)
     {
-      lang = language::output::LANG_SMTLIB_V2_6;  // default
+      lang = Language::LANG_SMTLIB_V2_6;  // default
     }
   }
-  if (d_printers[lang] == nullptr)
+  if (d_printers[static_cast<size_t>(lang)] == nullptr)
   {
-    d_printers[lang] = makePrinter(lang);
+    d_printers[static_cast<size_t>(lang)] = makePrinter(lang);
   }
-  return d_printers[lang].get();
+  return d_printers[static_cast<size_t>(lang)].get();
 }
 
 void Printer::printUnknownCommand(std::ostream& out,

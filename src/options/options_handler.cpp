@@ -26,6 +26,7 @@
 #include "base/exception.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
+#include "expr/expr_iomanip.h"
 #include "lib/strtok_r.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
@@ -35,6 +36,8 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "smt/command.h"
+#include "smt/dump.h"
 
 namespace cvc5 {
 namespace options {
@@ -155,11 +158,11 @@ void OptionsHandler::checkBvSatSolver(const std::string& option,
     throw OptionException(ss.str());
   }
 
-  if (options::bvSolver() != options::BVSolver::BITBLAST
+  if (d_options->bv.bvSolver != options::BVSolver::BITBLAST
       && (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL
           || m == SatSolverMode::KISSAT))
   {
-    if (options::bitblastMode() == options::BitblastMode::LAZY
+    if (d_options->bv.bitblastMode == options::BitblastMode::LAZY
         && d_options->bv.bitblastModeWasSetByUser)
     {
       throwLazyBBUnsupported(m);
@@ -178,9 +181,9 @@ void OptionsHandler::checkBitblastMode(const std::string& option,
     options::bv::setDefaultBitvectorEqualitySolver(*d_options, true);
     options::bv::setDefaultBitvectorInequalitySolver(*d_options, true);
     options::bv::setDefaultBitvectorAlgebraicSolver(*d_options, true);
-    if (options::bvSatSolver() != options::SatSolverMode::MINISAT)
+    if (d_options->bv.bvSatSolver != options::SatSolverMode::MINISAT)
     {
-      throwLazyBBUnsupported(options::bvSatSolver());
+      throwLazyBBUnsupported(d_options->bv.bvSatSolver);
     }
   }
   else if (m == BitblastMode::EAGER)
@@ -195,7 +198,7 @@ void OptionsHandler::setBitblastAig(const std::string& option,
 {
   if(arg) {
     if (d_options->bv.bitblastModeWasSetByUser) {
-      if (options::bitblastMode() != options::BitblastMode::EAGER)
+      if (d_options->bv.bitblastMode != options::BitblastMode::EAGER)
       {
         throw OptionException("bitblast-aig must be used with eager bitblaster");
       }
@@ -203,34 +206,6 @@ void OptionsHandler::setBitblastAig(const std::string& option,
       options::BitblastMode mode = stringToBitblastMode("eager");
       d_options->bv.bitblastMode = mode;
     }
-  }
-}
-
-// printer/options_handlers.h
-const std::string OptionsHandler::s_instFormatHelp = "\
-Inst format modes currently supported by the --inst-format option:\n\
-\n\
-default \n\
-+ Print instantiations as a list in the output language format.\n\
-\n\
-szs\n\
-+ Print instantiations as SZS compliant proof.\n\
-";
-
-InstFormatMode OptionsHandler::stringToInstFormatMode(const std::string& option,
-                                                      const std::string& flag,
-                                                      const std::string& optarg)
-{
-  if(optarg == "default") {
-    return InstFormatMode::DEFAULT;
-  } else if(optarg == "szs") {
-    return InstFormatMode::SZS;
-  } else if(optarg == "help") {
-    puts(s_instFormatHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --inst-format: `") +
-                          optarg + "'.  Try --inst-format help.");
   }
 }
 
@@ -293,22 +268,29 @@ void OptionsHandler::threadN(const std::string& option, const std::string& flag)
 }
 
 // expr/options_handlers.h
-void OptionsHandler::setDefaultExprDepthPredicate(const std::string& option,
-                                                  const std::string& flag,
-                                                  int depth)
+void OptionsHandler::setDefaultExprDepth(const std::string& option,
+                                         const std::string& flag,
+                                         int depth)
 {
-  if(depth < -1) {
-    throw OptionException("--expr-depth requires a positive argument, or -1.");
-  }
+  Debug.getStream() << expr::ExprSetDepth(depth);
+  Trace.getStream() << expr::ExprSetDepth(depth);
+  Notice.getStream() << expr::ExprSetDepth(depth);
+  Chat.getStream() << expr::ExprSetDepth(depth);
+  CVC5Message.getStream() << expr::ExprSetDepth(depth);
+  Warning.getStream() << expr::ExprSetDepth(depth);
 }
 
-void OptionsHandler::setDefaultDagThreshPredicate(const std::string& option,
-                                                  const std::string& flag,
-                                                  int dag)
+void OptionsHandler::setDefaultDagThresh(const std::string& option,
+                                         const std::string& flag,
+                                         int dag)
 {
-  if(dag < 0) {
-    throw OptionException("--dag-thresh requires a nonnegative argument.");
-  }
+  Debug.getStream() << expr::ExprDag(dag);
+  Trace.getStream() << expr::ExprDag(dag);
+  Notice.getStream() << expr::ExprDag(dag);
+  Chat.getStream() << expr::ExprDag(dag);
+  CVC5Message.getStream() << expr::ExprDag(dag);
+  Warning.getStream() << expr::ExprDag(dag);
+  Dump.getStream() << expr::ExprDag(dag);
 }
 
 // main/options_handlers.h
@@ -512,41 +494,66 @@ void OptionsHandler::enableOutputTag(const std::string& option,
       static_cast<size_t>(stringToOutputTag(optarg)));
 }
 
-OutputLanguage OptionsHandler::stringToOutputLanguage(const std::string& option,
-                                                      const std::string& flag,
-                                                      const std::string& optarg)
+Language OptionsHandler::stringToLanguage(const std::string& option,
+                                          const std::string& flag,
+                                          const std::string& optarg)
 {
   if(optarg == "help") {
     d_options->base.languageHelp = true;
-    return language::output::LANG_AUTO;
+    return Language::LANG_AUTO;
   }
 
   try {
-    return language::toOutputLanguage(optarg);
+    return language::toLanguage(optarg);
   } catch(OptionException& oe) {
-    throw OptionException("Error in " + option + ": " + oe.getMessage() +
-                          "\nTry --output-language help");
+    throw OptionException("Error in " + option + ": " + oe.getMessage()
+                          + "\nTry --lang help");
   }
 
   Unreachable();
 }
 
-InputLanguage OptionsHandler::stringToInputLanguage(const std::string& option,
-                                                    const std::string& flag,
-                                                    const std::string& optarg)
+void OptionsHandler::languageIsNotAST(const std::string& option,
+                                      const std::string& flag,
+                                      Language lang)
 {
-  if(optarg == "help") {
-    d_options->base.languageHelp = true;
-    return language::input::LANG_AUTO;
+  if (lang == Language::LANG_AST)
+  {
+    throw OptionException("Language LANG_AST is not allowed for " + flag);
   }
+}
 
-  try {
-    return language::toInputLanguage(optarg);
-  } catch(OptionException& oe) {
-    throw OptionException("Error in " + option + ": " + oe.getMessage() + "\nTry --lang help");
-  }
-
-  Unreachable();
+void OptionsHandler::setDumpStream(const std::string& option,
+                                   const std::string& flag,
+                                   const ManagedOut& mo)
+{
+#ifdef CVC5_DUMPING
+  Dump.setStream(mo);
+#else  /* CVC5_DUMPING */
+  throw OptionException(
+      "The dumping feature was disabled in this build of cvc5.");
+#endif /* CVC5_DUMPING */
+}
+void OptionsHandler::setErrStream(const std::string& option,
+                                  const std::string& flag,
+                                  const ManagedErr& me)
+{
+  Debug.setStream(me);
+  Warning.setStream(me);
+  CVC5Message.setStream(me);
+  Notice.setStream(me);
+  Chat.setStream(me);
+  Trace.setStream(me);
+}
+void OptionsHandler::setInStream(const std::string& option,
+                                 const std::string& flag,
+                                 const ManagedIn& mi)
+{
+}
+void OptionsHandler::setOutStream(const std::string& option,
+                                  const std::string& flag,
+                                  const ManagedOut& mo)
+{
 }
 
 /* options/base_options_handlers.h */
@@ -594,6 +601,26 @@ void OptionsHandler::decreaseVerbosity(const std::string& option,
 {
   d_options->base.verbosity -= 1;
   setVerbosity(option, flag, d_options->base.verbosity);
+}
+
+void OptionsHandler::setDumpMode(const std::string& option,
+                                 const std::string& flag,
+                                 const std::string& optarg)
+{
+  Dump.setDumpFromString(optarg);
+}
+
+void OptionsHandler::setPrintSuccess(const std::string& option,
+                                     const std::string& flag,
+                                     bool value)
+{
+  Debug.getStream() << Command::printsuccess(value);
+  Trace.getStream() << Command::printsuccess(value);
+  Notice.getStream() << Command::printsuccess(value);
+  Chat.getStream() << Command::printsuccess(value);
+  CVC5Message.getStream() << Command::printsuccess(value);
+  Warning.getStream() << Command::printsuccess(value);
+  *d_options->base.out << Command::printsuccess(value);
 }
 
 }  // namespace options

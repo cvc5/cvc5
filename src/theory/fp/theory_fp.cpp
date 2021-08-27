@@ -60,28 +60,24 @@ Node buildConjunct(const std::vector<TNode> &assumptions) {
 }  // namespace helper
 
 /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-TheoryFp::TheoryFp(context::Context* c,
-                   context::UserContext* u,
-                   OutputChannel& out,
-                   Valuation valuation,
-                   const LogicInfo& logicInfo,
-                   ProofNodeManager* pnm)
-    : Theory(THEORY_FP, c, u, out, valuation, logicInfo, pnm),
+TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
+    : Theory(THEORY_FP, env, out, valuation),
       d_notification(*this),
-      d_registeredTerms(u),
-      d_conv(new FpConverter(u)),
+      d_registeredTerms(getUserContext()),
+      d_conv(new FpConverter(getUserContext())),
       d_expansionRequested(false),
-      d_realToFloatMap(u),
-      d_floatToRealMap(u),
-      d_abstractionMap(u),
-      d_rewriter(u),
-      d_state(c, u, valuation),
-      d_im(*this, d_state, pnm, "theory::fp::", false)
+      d_realToFloatMap(getUserContext()),
+      d_floatToRealMap(getUserContext()),
+      d_abstractionMap(getUserContext()),
+      d_rewriter(getUserContext()),
+      d_state(env, valuation),
+      d_im(*this, d_state, d_pnm, "theory::fp::", false),
+      d_wbFactsCache(getUserContext())
 {
   // indicate we are using the default theory state and inference manager
   d_theoryState = &d_state;
   d_inferManager = &d_im;
-} /* TheoryFp::TheoryFp() */
+}
 
 TheoryRewriter* TheoryFp::getTheoryRewriter() { return &d_rewriter; }
 
@@ -304,6 +300,9 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
     Node floatValue = m->getValue(concrete[0]);
     Node undefValue = m->getValue(concrete[1]);
 
+    Assert(!abstractValue.isNull());
+    Assert(!floatValue.isNull());
+    Assert(!undefValue.isNull());
     Assert(abstractValue.isConst());
     Assert(floatValue.isConst());
     Assert(undefValue.isConst());
@@ -413,6 +412,9 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
     Node rmValue = m->getValue(concrete[0]);
     Node realValue = m->getValue(concrete[1]);
 
+    Assert(!abstractValue.isNull());
+    Assert(!rmValue.isNull());
+    Assert(!realValue.isNull());
     Assert(abstractValue.isConst());
     Assert(rmValue.isConst());
     Assert(realValue.isConst());
@@ -509,11 +511,15 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
   return false;
 }
 
-void TheoryFp::convertAndEquateTerm(TNode node) {
+void TheoryFp::convertAndEquateTerm(TNode node)
+{
   Trace("fp-convertTerm") << "TheoryFp::convertTerm(): " << node << std::endl;
-  size_t oldAdditionalAssertions = d_conv->d_additionalAssertions.size();
+
+  size_t oldSize = d_conv->d_additionalAssertions.size();
 
   Node converted(d_conv->convert(node));
+
+  size_t newSize = d_conv->d_additionalAssertions.size();
 
   if (converted != node) {
     Debug("fp-convertTerm")
@@ -522,12 +528,11 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
         << "TheoryFp::convertTerm(): after  " << converted << std::endl;
   }
 
-  size_t newAdditionalAssertions = d_conv->d_additionalAssertions.size();
-  Assert(oldAdditionalAssertions <= newAdditionalAssertions);
+  Assert(oldSize <= newSize);
 
-  while (oldAdditionalAssertions < newAdditionalAssertions)
+  while (oldSize < newSize)
   {
-    Node addA = d_conv->d_additionalAssertions[oldAdditionalAssertions];
+    Node addA = d_conv->d_additionalAssertions[oldSize];
 
     Debug("fp-convertTerm") << "TheoryFp::convertTerm(): additional assertion  "
                             << addA << std::endl;
@@ -538,7 +543,7 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
         nm->mkNode(kind::EQUAL, addA, nm->mkConst(::cvc5::BitVector(1U, 1U))),
         InferenceId::FP_EQUATE_TERM);
 
-    ++oldAdditionalAssertions;
+    ++oldSize;
   }
 
   // Equate the floating-point atom and the converted one.
@@ -578,10 +583,12 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
   return;
 }
 
-void TheoryFp::registerTerm(TNode node) {
+void TheoryFp::registerTerm(TNode node)
+{
   Trace("fp-registerTerm") << "TheoryFp::registerTerm(): " << node << std::endl;
 
-  if (!isRegistered(node)) {
+  if (!isRegistered(node))
+  {
     Kind k = node.getKind();
     Assert(k != kind::FLOATINGPOINT_TO_FP_GENERIC
            && k != kind::FLOATINGPOINT_SUB && k != kind::FLOATINGPOINT_EQ
@@ -646,14 +653,19 @@ void TheoryFp::registerTerm(TNode node) {
                   InferenceId::FP_REGISTER_TERM);
     }
 
-    // Use symfpu to produce an equivalent bit-vector statement
-    convertAndEquateTerm(node);
+    /* When not word-blasting lazier, we word-blast every term on
+     * registration. */
+    if (!options::fpLazyWb())
+    {
+      convertAndEquateTerm(node);
+    }
   }
   return;
 }
 
-bool TheoryFp::isRegistered(TNode node) {
-  return !(d_registeredTerms.find(node) == d_registeredTerms.end());
+bool TheoryFp::isRegistered(TNode node)
+{
+  return d_registeredTerms.find(node) != d_registeredTerms.end();
 }
 
 void TheoryFp::preRegisterTerm(TNode node)
@@ -714,7 +726,7 @@ bool TheoryFp::needsCheckLastEffort()
 
 void TheoryFp::postCheck(Effort level)
 {
-  // Resolve the abstractions for the conversion lemmas
+  /* Resolve the abstractions for the conversion lemmas */
   if (level == EFFORT_LAST_CALL)
   {
     Trace("fp") << "TheoryFp::check(): checking abstractions" << std::endl;
@@ -739,6 +751,13 @@ void TheoryFp::postCheck(Effort level)
 bool TheoryFp::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
+  /* Word-blast lazier if configured. */
+  if (options::fpLazyWb() && d_wbFactsCache.find(atom) == d_wbFactsCache.end())
+  {
+    d_wbFactsCache.insert(atom);
+    convertAndEquateTerm(atom);
+  }
+
   if (atom.getKind() == kind::EQUAL)
   {
     Assert(!(atom[0].getType().isFloatingPoint()
@@ -761,6 +780,16 @@ bool TheoryFp::preNotifyFact(
     }
   }
   return false;
+}
+
+void TheoryFp::notifySharedTerm(TNode n)
+{
+  /* Word-blast lazier if configured. */
+  if (options::fpLazyWb() && d_wbFactsCache.find(n) == d_wbFactsCache.end())
+  {
+    d_wbFactsCache.insert(n);
+    convertAndEquateTerm(n);
+  }
 }
 
 TrustNode TheoryFp::explain(TNode n)
@@ -846,7 +875,10 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
         << "TheoryFp::collectModelInfo(): relevantVariable " << node
         << std::endl;
 
-    if (!m->assertEquality(node, d_conv->getValue(d_valuation, node), true))
+    Node converted = d_conv->getValue(d_valuation, node);
+    // We only assign the value if the FpConverter actually has one, that is,
+    // if FpConverter::getValue() does not return a null node.
+    if (!converted.isNull() && !m->assertEquality(node, converted, true))
     {
       return false;
     }

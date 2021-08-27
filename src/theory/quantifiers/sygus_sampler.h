@@ -170,8 +170,12 @@ class SygusSampler : public LazyTrieEvaluator
    *
    * Check whether bv and bvr are equivalent on all sample points, print
    * an error if not. Used with --sygus-rr-verify.
+   *
+   * @param bv The original term
+   * @param bvr The rewritten form of bvr
+   * @param out The output stream to write if the rewrite was unsound.
    */
-  void checkEquivalent(Node bv, Node bvr);
+  void checkEquivalent(Node bv, Node bvr, std::ostream& out);
 
  protected:
   /** sygus term database of d_qe */

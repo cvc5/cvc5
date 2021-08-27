@@ -20,6 +20,7 @@
 #include "options/smt_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
+#include "theory/quantifiers/ho_term_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
@@ -33,7 +34,8 @@ TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
       d_presolveCache(qs.getUserContext()),
       d_termEnum(new TermEnumeration),
       d_termPools(new TermPools(qs)),
-      d_termDb(new TermDb(qs, qr)),
+      d_termDb(qs.getEnv().getLogicInfo().isHigherOrder() ? new HoTermDb(qs, qr)
+                                                          : new TermDb(qs, qr)),
       d_sygusTdb(nullptr),
       d_qmodel(nullptr)
 {

@@ -17,11 +17,8 @@
 
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "theory/smt_engine_subsolver.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -38,38 +35,19 @@ void ExprMiner::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 
 Node ExprMiner::convertToSkolem(Node n)
 {
-  std::vector<Node> fvs;
-  TermUtil::computeVarContains(n, fvs);
-  if (fvs.empty())
+  if (d_skolems.empty())
   {
-    return n;
-  }
-  std::vector<Node> sfvs;
-  std::vector<Node> sks;
-  // map to skolems
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  for (unsigned i = 0, size = fvs.size(); i < size; i++)
-  {
-    Node v = fvs[i];
-    // only look at the sampler variables
-    if (std::find(d_vars.begin(), d_vars.end(), v) != d_vars.end())
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    for (const Node& v : d_vars)
     {
-      sfvs.push_back(v);
-      std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);
-      if (itf == d_fv_to_skolem.end())
-      {
-        Node sk = sm->mkDummySkolem("rrck", v.getType());
-        d_fv_to_skolem[v] = sk;
-        sks.push_back(sk);
-      }
-      else
-      {
-        sks.push_back(itf->second);
-      }
+      Node sk = sm->mkDummySkolem("rrck", v.getType());
+      d_skolems.push_back(sk);
+      d_fv_to_skolem[v] = sk;
     }
   }
-  return n.substitute(sfvs.begin(), sfvs.end(), sks.begin(), sks.end());
+  return n.substitute(
+      d_vars.begin(), d_vars.end(), d_skolems.begin(), d_skolems.end());
 }
 
 void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
@@ -78,12 +56,14 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
   Assert (!query.isNull());
   if (Options::current().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser)
   {
-    initializeSubsolver(
-        checker, nullptr, true, options::sygusExprMinerCheckTimeout());
+    initializeSubsolver(checker,
+                        d_env,
+                        true,
+                        options::sygusExprMinerCheckTimeout());
   }
   else
   {
-    initializeSubsolver(checker);
+    initializeSubsolver(checker, d_env);
   }
   // also set the options
   checker->setOption("sygus-rr-synth-input", "false");

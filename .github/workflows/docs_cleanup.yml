@@ -45,7 +45,8 @@ jobs:
         run: |
           cd target
           first=`git rev-list --max-parents=0 HEAD`
-          last=`git rev-list --until=1.month.ago -n1 HEAD`
+          cutoff=`date -d "-1 month" +%Y-%m-%d`
+          last=`git log --pretty='%as %H' | awk -v cutoff=$cutoff '$1 < cutoff { print $2 }' | head -n1`
           if [ -n "$last" ]; then
             git checkout $last
             ts=`git log -1 --format=%ct`

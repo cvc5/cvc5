@@ -25,6 +25,7 @@
 
 #include <vector>
 
+#include "smt/env.h"
 #include "theory/arith/nl/cad/cdcac_utils.h"
 #include "theory/arith/nl/cad/constraints.h"
 #include "theory/arith/nl/cad/proof_generator.h"
@@ -47,9 +48,7 @@ class CDCAC
 {
  public:
   /** Initialize this method with the given variable ordering. */
-  CDCAC(context::Context* ctx,
-        ProofNodeManager* pnm,
-        const std::vector<poly::Variable>& ordering = {});
+  CDCAC(Env& env, const std::vector<poly::Variable>& ordering = {});
 
   /** Reset this instance. */
   void reset();
@@ -184,6 +183,9 @@ class CDCAC
    * Additionally makes sure to prune proofs for removed intervals.
    */
   void pruneRedundantIntervals(std::vector<CACInterval>& intervals);
+
+  /** A reference to the environment */
+  Env& d_env;
 
   /**
    * The current assignment. When the method terminates with SAT, it contains a

@@ -60,31 +60,7 @@ void EngineOutputChannel::safePoint(Resource r)
 
 void EngineOutputChannel::lemma(TNode lemma, LemmaProperty p)
 {
-  Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma("
-                         << lemma << ")"
-                         << ", properties = " << p << std::endl;
-  ++d_statistics.lemmas;
-  d_engine->d_outputChannelUsed = true;
-
-  TrustNode tlem = TrustNode::mkTrustLemma(lemma);
-  d_engine->lemma(tlem,
-                  p,
-                  isLemmaPropertySendAtoms(p) ? d_theory : theory::THEORY_LAST,
-                  d_theory);
-}
-
-void EngineOutputChannel::splitLemma(TNode lemma, bool removable)
-{
-  Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma("
-                         << lemma << ")" << std::endl;
-  ++d_statistics.lemmas;
-  d_engine->d_outputChannelUsed = true;
-
-  Trace("pf::explain") << "EngineOutputChannel::splitLemma( " << lemma << " )"
-                       << std::endl;
-  TrustNode tlem = TrustNode::mkTrustLemma(lemma);
-  LemmaProperty p = removable ? LemmaProperty::REMOVABLE : LemmaProperty::NONE;
-  d_engine->lemma(tlem, p, d_theory);
+  trustedLemma(TrustNode::mkTrustLemma(lemma), p);
 }
 
 bool EngineOutputChannel::propagate(TNode literal)
@@ -140,12 +116,6 @@ void EngineOutputChannel::spendResource(Resource r)
   d_engine->spendResource(r);
 }
 
-void EngineOutputChannel::handleUserAttribute(const char* attr,
-                                              theory::Theory* t)
-{
-  d_engine->handleUserAttribute(attr, t);
-}
-
 void EngineOutputChannel::trustedConflict(TrustNode pconf)
 {
   Assert(pconf.getKind() == TrustNodeKind::CONFLICT);
@@ -172,10 +142,13 @@ void EngineOutputChannel::trustedLemma(TrustNode plem, LemmaProperty p)
   }
   ++d_statistics.lemmas;
   d_engine->d_outputChannelUsed = true;
+  if (isLemmaPropertySendAtoms(p))
+  {
+    d_engine->ensureLemmaAtoms(plem.getNode(), d_theory);
+  }
   // now, call the normal interface for lemma
   d_engine->lemma(plem,
                   p,
-                  isLemmaPropertySendAtoms(p) ? d_theory : theory::THEORY_LAST,
                   d_theory);
 }
 

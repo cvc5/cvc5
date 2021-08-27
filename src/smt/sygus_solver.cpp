@@ -41,14 +41,11 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-SygusSolver::SygusSolver(SmtSolver& sms,
-                         Preprocessor& pp,
-                         context::UserContext* u,
-                         OutputManager& outMgr)
-    : d_smtSolver(sms),
+SygusSolver::SygusSolver(Env& env, SmtSolver& sms, Preprocessor& pp)
+    : d_env(env),
+      d_smtSolver(sms),
       d_pp(pp),
-      d_sygusConjectureStale(u, true),
-      d_outMgr(outMgr)
+      d_sygusConjectureStale(env.getUserContext(), true)
 {
 }
 
@@ -212,7 +209,7 @@ Result SygusSolver::checkSynth(Assertions& as)
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
     if (Dump.isOn("raw-benchmark"))
     {
-      d_outMgr.getPrinter().toStreamCmdCheckSynth(d_outMgr.getDumpOut());
+      d_env.getPrinter().toStreamCmdCheckSynth(d_env.getDumpOut());
     }
 
     d_sygusConjectureStale = false;
@@ -221,7 +218,7 @@ Result SygusSolver::checkSynth(Assertions& as)
     query.push_back(body);
   }
 
-  Result r = d_smtSolver.checkSatisfiability(as, query, false, false);
+  Result r = d_smtSolver.checkSatisfiability(as, query, false);
 
   // Check that synthesis solutions satisfy the conjecture
   if (options::checkSynthSol()
@@ -332,7 +329,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   {
     // Start new SMT engine to check solutions
     std::unique_ptr<SmtEngine> solChecker;
-    initializeSubsolver(solChecker);
+    initializeSubsolver(solChecker, d_env);
     solChecker->getOptions().smt.checkSynthSol = false;
     solChecker->getOptions().quantifiers.sygusRecFun = false;
     // get the solution for this conjecture

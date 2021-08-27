@@ -42,20 +42,15 @@ namespace cvc5 {
 namespace theory {
 namespace sep {
 
-TheorySep::TheorySep(context::Context* c,
-                     context::UserContext* u,
-                     OutputChannel& out,
-                     Valuation valuation,
-                     const LogicInfo& logicInfo,
-                     ProofNodeManager* pnm)
-    : Theory(THEORY_SEP, c, u, out, valuation, logicInfo, pnm),
-      d_lemmas_produced_c(u),
+TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
+    : Theory(THEORY_SEP, env, out, valuation),
+      d_lemmas_produced_c(getUserContext()),
       d_bounds_init(false),
-      d_state(c, u, valuation),
-      d_im(*this, d_state, nullptr, "theory::sep::"),
+      d_state(env, valuation),
+      d_im(*this, d_state, d_pnm, "theory::sep::"),
       d_notify(*this),
-      d_reduce(u),
-      d_spatial_assertions(c)
+      d_reduce(getUserContext()),
+      d_spatial_assertions(getSatContext())
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -203,7 +198,6 @@ void TheorySep::postProcessModel( TheoryModel* m ){
         Trace("sep-model") << " " << l << " -> ";
         if( d_pto_model[l].isNull() ){
           Trace("sep-model") << "_";
-          //m->d_comment_str << "_";
           TypeEnumerator te_range( data_type );
           if (d_state.isFiniteType(data_type))
           {
@@ -1785,11 +1779,12 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, 
       if( conc==d_false ){
         Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << id
                            << std::endl;
-        d_im.conflictExp(id, ant, nullptr);
+        d_im.conflictExp(id, PfRule::THEORY_INFERENCE, ant, {conc});
       }else{
         Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant
                            << " by " << id << std::endl;
-        TrustNode trn = d_im.mkLemmaExp(conc, ant, {});
+        TrustNode trn =
+            d_im.mkLemmaExp(conc, PfRule::THEORY_INFERENCE, ant, {}, {conc});
         d_im.addPendingLemma(
             trn.getNode(), id, LemmaProperty::NONE, trn.getGenerator());
       }

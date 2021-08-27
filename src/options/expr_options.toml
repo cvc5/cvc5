@@ -5,18 +5,20 @@ name   = "Expression"
   name       = "defaultExprDepth"
   category   = "regular"
   long       = "expr-depth=N"
-  type       = "int"
+  type       = "int64_t"
   default    = "0"
-  predicates = ["setDefaultExprDepthPredicate"]
+  minimum    = "-1"
+  predicates = ["setDefaultExprDepth"]
   help       = "print exprs to depth N (0 == default, -1 == no limit)"
 
 [[option]]
   name       = "defaultDagThresh"
   category   = "regular"
   long       = "dag-thresh=N"
-  type       = "int"
+  type       = "int64_t"
   default    = "1"
-  predicates = ["setDefaultDagThreshPredicate"]
+  minimum    = "0"
+  predicates = ["setDefaultDagThresh"]
   help       = "dagify common subexprs appearing > N times (1 == default, 0 == don't dagify)"
 
 [[option]]

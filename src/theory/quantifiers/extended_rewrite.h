@@ -51,7 +51,7 @@ class ExtendedRewriter
   ExtendedRewriter(bool aggr = true);
   ~ExtendedRewriter() {}
   /** return the extended rewritten form of n */
-  Node extendedRewrite(Node n);
+  Node extendedRewrite(Node n) const;
 
  private:
   /**
@@ -69,16 +69,16 @@ class ExtendedRewriter
   Node d_true;
   Node d_false;
   /** cache that the extended rewritten form of n is ret */
-  void setCache(Node n, Node ret);
+  void setCache(Node n, Node ret) const;
   /** get the cache for n */
-  Node getCache(Node n);
+  Node getCache(Node n) const;
   /** add to children
    *
    * Adds nc to the vector of children, if dropDup is true, we do not add
    * nc if it already occurs in children. This method returns false in this
    * case, otherwise it returns true.
    */
-  bool addToChildren(Node nc, std::vector<Node>& children, bool dropDup);
+  bool addToChildren(Node nc, std::vector<Node>& children, bool dropDup) const;
 
   //--------------------------------------generic utilities
   /** Rewrite ITE, for example:
@@ -92,13 +92,13 @@ class ExtendedRewriter
    * take. If full is false, then we do only perform rewrites that
    * strictly decrease the term size of n.
    */
-  Node extendedRewriteIte(Kind itek, Node n, bool full = true);
+  Node extendedRewriteIte(Kind itek, Node n, bool full = true) const;
   /** Rewrite AND/OR
    *
    * This implements BCP, factoring, and equality resolution for the Boolean
    * term n whose top symbolic is AND/OR.
    */
-  Node extendedRewriteAndOr(Node n);
+  Node extendedRewriteAndOr(Node n) const;
   /** Pull ITE, for example:
    *
    *   D=C2 ---> false
@@ -111,7 +111,7 @@ class ExtendedRewriter
    *
    * If this function returns a non-null node ret, then n ---> ret.
    */
-  Node extendedRewritePullIte(Kind itek, Node n);
+  Node extendedRewritePullIte(Kind itek, Node n) const;
   /** Negation Normal Form (NNF), for example:
    *
    *   ~( A & B ) ---> ( ~ A | ~B )
@@ -119,7 +119,7 @@ class ExtendedRewriter
    *
    * If this function returns a non-null node ret, then n ---> ret.
    */
-  Node extendedRewriteNnf(Node n);
+  Node extendedRewriteNnf(Node n) const;
   /** (type-independent) Boolean constraint propagation, for example:
    *
    *   ~A & ( B V A ) ---> ~A & B
@@ -137,8 +137,11 @@ class ExtendedRewriter
    *
    * If this function returns a non-null node ret, then n ---> ret.
    */
-  Node extendedRewriteBcp(
-      Kind andk, Kind ork, Kind notk, std::map<Kind, bool>& bcp_kinds, Node n);
+  Node extendedRewriteBcp(Kind andk,
+                          Kind ork,
+                          Kind notk,
+                          std::map<Kind, bool>& bcp_kinds,
+                          Node n) const;
   /** (type-independent) factoring, for example:
    *
    *   ( A V B ) ^ ( A V C ) ----> A V ( B ^ C )
@@ -147,7 +150,7 @@ class ExtendedRewriter
    * This function takes as arguments the kinds that specify AND, OR, NOT.
    * We assume that the children of n do not contain duplicates.
    */
-  Node extendedRewriteFactoring(Kind andk, Kind ork, Kind notk, Node n);
+  Node extendedRewriteFactoring(Kind andk, Kind ork, Kind notk, Node n) const;
   /** (type-independent) equality resolution, for example:
    *
    *   ( A V C ) & ( A = B ) ---> ( B V C ) & ( A = B )
@@ -167,7 +170,7 @@ class ExtendedRewriter
                             Kind notk,
                             std::map<Kind, bool>& bcp_kinds,
                             Node n,
-                            bool isXor = false);
+                            bool isXor = false) const;
   /** (type-independent) Equality chain rewriting, for example:
    *
    *   A = ( A = B ) ---> B
@@ -178,26 +181,32 @@ class ExtendedRewriter
    * This function takes as arguments the kinds that specify EQUAL, AND, OR,
    * and NOT. If the flag isXor is true, the eqk is treated as XOR.
    */
-  Node extendedRewriteEqChain(
-      Kind eqk, Kind andk, Kind ork, Kind notk, Node n, bool isXor = false);
+  Node extendedRewriteEqChain(Kind eqk,
+                              Kind andk,
+                              Kind ork,
+                              Kind notk,
+                              Node n,
+                              bool isXor = false) const;
   /** extended rewrite aggressive
    *
    * All aggressive rewriting techniques (those that should be prioritized
    * at a lower level) go in this function.
    */
-  Node extendedRewriteAggr(Node n);
+  Node extendedRewriteAggr(Node n) const;
   /** Decompose right associative chain
    *
    * For term f( ... f( f( base, tn ), t{n-1} ) ... t1 ), returns term base, and
    * appends t1...tn to children.
    */
-  Node decomposeRightAssocChain(Kind k, Node n, std::vector<Node>& children);
+  Node decomposeRightAssocChain(Kind k,
+                                Node n,
+                                std::vector<Node>& children) const;
   /** Make right associative chain
    *
    * Sorts children to obtain list { tn...t1 }, and returns the term
    * f( ... f( f( base, tn ), t{n-1} ) ... t1 ).
    */
-  Node mkRightAssocChain(Kind k, Node base, std::vector<Node>& children);
+  Node mkRightAssocChain(Kind k, Node base, std::vector<Node>& children) const;
   /** Partial substitute
    *
    * Applies the substitution specified by assign to n, recursing only beneath
@@ -206,18 +215,18 @@ class ExtendedRewriter
    */
   Node partialSubstitute(Node n,
                          const std::map<Node, Node>& assign,
-                         const std::map<Kind, bool>& rkinds);
+                         const std::map<Kind, bool>& rkinds) const;
   /** same as above, with vectors */
   Node partialSubstitute(Node n,
                          const std::vector<Node>& vars,
                          const std::vector<Node>& subs,
-                         const std::map<Kind, bool>& rkinds);
+                         const std::map<Kind, bool>& rkinds) const;
   /** solve equality
    *
    * If this function returns a non-null node n', then n' is equivalent to n
    * and is of the form that can be used by inferSubstitution below.
    */
-  Node solveEquality(Node n);
+  Node solveEquality(Node n) const;
   /** infer substitution
    *
    * If n is an equality of the form x = t, where t is either:
@@ -231,12 +240,12 @@ class ExtendedRewriter
   bool inferSubstitution(Node n,
                          std::vector<Node>& vars,
                          std::vector<Node>& subs,
-                         bool usePred = false);
+                         bool usePred = false) const;
   /** extended rewrite
    *
    * Prints debug information, indicating the rewrite n ---> ret was found.
    */
-  inline void debugExtendedRewrite(Node n, Node ret, const char* c) const;
+  void debugExtendedRewrite(Node n, Node ret, const char* c) const;
   //--------------------------------------end generic utilities
 
   //--------------------------------------theory-specific top-level calls
@@ -245,7 +254,7 @@ class ExtendedRewriter
    * If this method returns a non-null node ret', then ret is equivalent to
    * ret'.
    */
-  Node extendedRewriteStrings(Node ret);
+  Node extendedRewriteStrings(Node ret) const;
   //--------------------------------------end theory-specific top-level calls
 };
 

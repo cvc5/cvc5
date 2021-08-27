@@ -24,6 +24,21 @@
 namespace cvc5 {
 namespace expr {
 
+/**
+ * Generalization of types. This class is a simple callback for giving
+ * identifiers to variables that may be a more fine-grained way of classifying
+ * the variable than its type. An example usage of type classes are for
+ * distinguishing "list variables" for rewrite rule reconstruction.
+ */
+class TypeClassCallback
+{
+ public:
+  TypeClassCallback() {}
+  virtual ~TypeClassCallback() {}
+  /** Return the type class for variable v */
+  virtual uint32_t getTypeClass(TNode v) = 0;
+};
+
 /** TermCanonize
  *
  * This class contains utilities for canonizing terms with respect to
@@ -34,7 +49,13 @@ namespace expr {
 class TermCanonize
 {
  public:
-  TermCanonize();
+  /**
+   * @param tcc The type class callback. This class will canonize variables in
+   * a way that disinguishes variables that are given different type class
+   * identifiers. Otherwise, this class will assume all variables of the
+   * same type have the same type class.
+   */
+  TermCanonize(TypeClassCallback* tcc = nullptr);
   ~TermCanonize() {}
 
   /** Maps operators to an identifier, useful for ordering. */
@@ -50,7 +71,7 @@ class TermCanonize
    */
   bool getTermOrder(Node a, Node b);
   /** get canonical free variable #i of type tn */
-  Node getCanonicalFreeVar(TypeNode tn, unsigned i);
+  Node getCanonicalFreeVar(TypeNode tn, unsigned i, uint32_t tc = 0);
   /** get canonical term
    *
    * This returns a canonical (alpha-equivalent) version of n, where
@@ -68,6 +89,8 @@ class TermCanonize
                         bool doHoVar = true);
 
  private:
+  /** The (optional) type class callback */
+  TypeClassCallback* d_tcc;
   /** the number of ids we have allocated for operators */
   int d_op_id_count;
   /** map from operators to id */
@@ -76,12 +99,14 @@ class TermCanonize
   int d_typ_id_count;
   /** map from type to id */
   std::map<TypeNode, int> d_typ_id;
-  /** free variables for each type */
-  std::map<TypeNode, std::vector<Node> > d_cn_free_var;
+  /** free variables for each type / type class pair */
+  std::map<std::pair<TypeNode, uint32_t>, std::vector<Node> > d_cn_free_var;
   /**
    * Map from each free variable above to their index in their respective vector
    */
   std::map<Node, size_t> d_fvIndex;
+  /** Get type class */
+  uint32_t getTypeClass(TNode v);
   /**
    * Return the range of the free variable in the above map, or 0 if it does not
    * exist.
@@ -93,11 +118,12 @@ class TermCanonize
    * counter of how many variables we have allocated for each type (var_count),
    * and a cache of visited nodes (visited).
    */
-  Node getCanonicalTerm(TNode n,
-                        bool apply_torder,
-                        bool doHoVar,
-                        std::map<TypeNode, unsigned>& var_count,
-                        std::map<TNode, Node>& visited);
+  Node getCanonicalTerm(
+      TNode n,
+      bool apply_torder,
+      bool doHoVar,
+      std::map<std::pair<TypeNode, uint32_t>, unsigned>& var_count,
+      std::map<TNode, Node>& visited);
 };
 
 }  // namespace expr

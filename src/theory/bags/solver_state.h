@@ -29,7 +29,8 @@ namespace bags {
 class SolverState : public TheoryState
 {
  public:
-  SolverState(context::Context* c, context::UserContext* u, Valuation val);
+  SolverState(Env& env,
+              Valuation val);
 
   /**
    * This function adds the bag representative n to the set d_bags if it is not

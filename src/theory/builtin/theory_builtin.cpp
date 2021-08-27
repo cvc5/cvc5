@@ -25,14 +25,14 @@ namespace cvc5 {
 namespace theory {
 namespace builtin {
 
-TheoryBuiltin::TheoryBuiltin(context::Context* c,
-                             context::UserContext* u,
-                             OutputChannel& out,
-                             Valuation valuation,
-                             const LogicInfo& logicInfo,
-                             ProofNodeManager* pnm)
-    : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo, pnm)
+TheoryBuiltin::TheoryBuiltin(Env& env, OutputChannel& out, Valuation valuation)
+    : Theory(THEORY_BUILTIN, env, out, valuation),
+      d_state(env, valuation),
+      d_im(*this, d_state, d_pnm, "theory::builtin::")
 {
+  // indicate we are using the default theory state and inference managers
+  d_theoryState = &d_state;
+  d_inferManager = &d_im;
 }
 
 TheoryRewriter* TheoryBuiltin::getTheoryRewriter() { return &d_rewriter; }

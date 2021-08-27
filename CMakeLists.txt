@@ -208,6 +208,11 @@ add_check_cxx_flag("-Wnon-virtual-dtor")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")
 add_check_c_cxx_flag("-Wshadow")
 
+# Assume no dynamic initialization of thread-local variables in non-defining
+# translation units. This option should result in better performance and works
+# around crashing issues with our Windows build.
+add_check_cxx_flag("-fno-extern-tls-init")
+
 # Temporarily disable -Wclass-memaccess to suppress 'no trivial copy-assignment'
 # cdlist.h warnings. Remove when fixed.
 add_check_cxx_flag("-Wno-class-memaccess")
@@ -657,18 +662,18 @@ print_config("Java bindings             " ${BUILD_BINDINGS_JAVA})
 print_config("Python2                   " ${USE_PYTHON2})
 message("")
 print_config("ABC                       " ${USE_ABC})
-print_config("CryptoMiniSat             " ${USE_CRYPTOMINISAT})
+print_config("CryptoMiniSat             " ${USE_CRYPTOMINISAT} FOUND_SYSTEM ${CryptoMiniSat_FOUND_SYSTEM})
 print_config("GLPK                      " ${USE_GLPK})
-print_config("Kissat                    " ${USE_KISSAT})
-print_config("LibPoly                   " ${USE_POLY})
-print_config("CoCoALib                  " ${USE_COCOA})
+print_config("Kissat                    " ${USE_KISSAT} FOUND_SYSTEM ${Kissat_FOUND_SYSTEM})
+print_config("LibPoly                   " ${USE_POLY} FOUND_SYSTEM ${Poly_FOUND_SYSTEM})
+print_config("CoCoALib                  " ${USE_COCOA} FOUND_SYSTEM ${CoCoA_FOUND_SYSTEM})
 message("")
 print_config("Build libcvc5 only        " ${BUILD_LIB_ONLY})
 
 if(CVC5_USE_CLN_IMP)
-  print_config("MP library                " "cln")
+  print_config("MP library                " "cln" FOUND_SYSTEM ${CLN_FOUND_SYSTEM})
 else()
-  print_config("MP library                " "gmp")
+  print_config("MP library                " "gmp" FOUND_SYSTEM ${GMP_FOUND_SYSTEM})
 endif()
 print_config("Editline                  " ${USE_EDITLINE})
 message("")

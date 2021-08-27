@@ -929,7 +929,7 @@ void CvcPrinter::toStreamNode(std::ostream& out,
         }
         toStreamNode(out, n[i], -1, false, lbind);
         out << ":";
-        n[i].getType().toStream(out, language::output::LANG_CVC);
+        n[i].getType().toStream(out, Language::LANG_CVC);
       }
       out << ')';
       return;
@@ -1040,22 +1040,7 @@ void CvcPrinter::toStreamModelSort(std::ostream& out,
   }
   const theory::TheoryModel* tm = m.getTheoryModel();
   const std::vector<Node>* type_reps = tm->getRepSet()->getTypeRepsOrNull(tn);
-  if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum
-      && type_reps != nullptr)
-  {
-    out << "DATATYPE" << std::endl;
-    out << "  " << tn << " = ";
-    for (size_t i = 0; i < type_reps->size(); i++)
-    {
-      if (i > 0)
-      {
-        out << "| ";
-      }
-      out << (*type_reps)[i] << " ";
-    }
-    out << std::endl << "END;" << std::endl;
-  }
-  else if (type_reps != nullptr)
+  if (type_reps != nullptr)
   {
     out << "% cardinality of " << tn << " is " << type_reps->size()
         << std::endl;
@@ -1105,37 +1090,11 @@ void CvcPrinter::toStreamModelTerm(std::ostream& out,
   // We get the value from the theory model directly, which notice
   // does not have to go through the standard SmtEngine::getValue interface.
   Node val = tm->getValue(n);
-  if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum
-      && val.getKind() == kind::STORE)
-  {
-    TypeNode type_node = val[1].getType();
-    if (tn.isSort())
-    {
-      const std::vector<Node>* type_reps =
-          tm->getRepSet()->getTypeRepsOrNull(type_node);
-      if (type_reps != nullptr)
-      {
-        Cardinality indexCard(type_reps->size());
-        val = theory::arrays::TheoryArraysRewriter::normalizeConstant(
-            val, indexCard);
-      }
-    }
-  }
   out << " = " << val << ";" << std::endl;
 }
 
 void CvcPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
-  const theory::TheoryModel* tm = m.getTheoryModel();
-  // print the model comments
-  std::stringstream c;
-  tm->getComments(c);
-  std::string ln;
-  while (std::getline(c, ln))
-  {
-    out << "; " << ln << std::endl;
-  }
-
   // print the model
   out << "MODEL BEGIN" << std::endl;
   this->Printer::toStream(out, m);

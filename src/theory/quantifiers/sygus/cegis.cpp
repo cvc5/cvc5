@@ -32,19 +32,17 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-Cegis::Cegis(QuantifiersInferenceManager& qim,
+Cegis::Cegis(QuantifiersState& qs,
+             QuantifiersInferenceManager& qim,
              TermDbSygus* tds,
              SynthConjecture* p)
-    : SygusModule(qim, tds, p),
+    : SygusModule(qs, qim, tds, p),
       d_eval_unfold(tds->getEvalUnfold()),
       d_usingSymCons(false)
 {
 }
 
-bool Cegis::initialize(Node conj,
-                       Node n,
-                       const std::vector<Node>& candidates,
-                       std::vector<Node>& lemmas)
+bool Cegis::initialize(Node conj, Node n, const std::vector<Node>& candidates)
 {
   d_base_body = n;
   if (d_base_body.getKind() == NOT && d_base_body[0].getKind() == FORALL)
@@ -64,13 +62,12 @@ bool Cegis::initialize(Node conj,
     TypeNode bt = d_base_body.getType();
     d_cegis_sampler.initialize(bt, d_base_vars, options::sygusSamples());
   }
-  return processInitialize(conj, n, candidates, lemmas);
+  return processInitialize(conj, n, candidates);
 }
 
 bool Cegis::processInitialize(Node conj,
                               Node n,
-                              const std::vector<Node>& candidates,
-                              std::vector<Node>& lemmas)
+                              const std::vector<Node>& candidates)
 {
   Trace("cegis") << "Initialize cegis..." << std::endl;
   unsigned csize = candidates.size();
@@ -111,8 +108,7 @@ void Cegis::getTermList(const std::vector<Node>& candidates,
 }
 
 bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
-                          const std::vector<Node>& candidate_values,
-                          std::vector<Node>& lems)
+                          const std::vector<Node>& candidate_values)
 {
   // First, decide if this call will apply "conjecture-specific refinement".
   // In other words, in some settings, the following method will identify and
@@ -153,16 +149,11 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
       getRefinementEvalLemmas(candidates, candidate_values, cre_lems);
       if (!cre_lems.empty())
       {
-        lems.insert(lems.end(), cre_lems.begin(), cre_lems.end());
-        addedEvalLemmas = true;
-        if (Trace.isOn("cegqi-lemma"))
+        for (const Node& cl : cre_lems)
         {
-          for (const Node& lem : cre_lems)
-          {
-            Trace("cegqi-lemma")
-                << "Cegqi::Lemma : ref evaluation : " << lem << std::endl;
-          }
+          d_qim.addPendingLemma(cl, InferenceId::QUANTIFIERS_SYGUS_REFINE_EVAL);
         }
+        addedEvalLemmas = true;
         /* we could, but do not return here. experimentally, it is better to
           add the lemmas below as well, in parallel. */
       }
@@ -201,7 +192,7 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
     {
       Node lem = nm->mkNode(
           OR, eager_exps[i].negate(), eager_terms[i].eqNode(eager_vals[i]));
-      lems.push_back(lem);
+      d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYGUS_EVAL_UNFOLD);
       addedEvalLemmas = true;
       Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation unfold : " << lem
                            << std::endl;
@@ -237,8 +228,7 @@ Node Cegis::getRefinementLemmaFormula()
 bool Cegis::constructCandidates(const std::vector<Node>& enums,
                                 const std::vector<Node>& enum_values,
                                 const std::vector<Node>& candidates,
-                                std::vector<Node>& candidate_values,
-                                std::vector<Node>& lems)
+                                std::vector<Node>& candidate_values)
 {
   if (Trace.isOn("cegis"))
   {
@@ -294,35 +284,33 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
       Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
       // must guard it
       expn = nm->mkNode(OR, d_parent->getGuard().negate(), expn.negate());
-      lems.push_back(expn);
+      d_qim.addPendingLemma(
+          expn, InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE);
       return ret;
     }
   }
 
   // evaluate on refinement lemmas
-  bool addedEvalLemmas = addEvalLemmas(enums, enum_values, lems);
+  bool addedEvalLemmas = addEvalLemmas(enums, enum_values);
 
   // try to construct candidates
-  if (!processConstructCandidates(enums,
-                                  enum_values,
-                                  candidates,
-                                  candidate_values,
-                                  !addedEvalLemmas,
-                                  lems))
+  if (!processConstructCandidates(
+          enums, enum_values, candidates, candidate_values, !addedEvalLemmas))
   {
     return false;
   }
 
-  if (options::cegisSample() != options::CegisSampleMode::NONE && lems.empty())
+  if (options::cegisSample() != options::CegisSampleMode::NONE
+      && !addedEvalLemmas)
   {
     // if we didn't add a lemma, trying sampling to add a refinement lemma
     // that immediately refutes the candidate we just constructed
-    if (sampleAddRefinementLemma(candidates, candidate_values, lems))
+    if (sampleAddRefinementLemma(candidates, candidate_values))
     {
       candidate_values.clear();
       // restart (should be guaranteed to add evaluation lemmas on this call)
       return constructCandidates(
-          enums, enum_values, candidates, candidate_values, lems);
+          enums, enum_values, candidates, candidate_values);
     }
   }
   return true;
@@ -332,8 +320,7 @@ bool Cegis::processConstructCandidates(const std::vector<Node>& enums,
                                        const std::vector<Node>& enum_values,
                                        const std::vector<Node>& candidates,
                                        std::vector<Node>& candidate_values,
-                                       bool satisfiedRl,
-                                       std::vector<Node>& lems)
+                                       bool satisfiedRl)
 {
   if (satisfiedRl)
   {
@@ -473,9 +460,7 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
   }
 }
 
-void Cegis::registerRefinementLemma(const std::vector<Node>& vars,
-                                    Node lem,
-                                    std::vector<Node>& lems)
+void Cegis::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
 {
   addRefinementLemma(lem);
   // Make the refinement lemma and add it to lems.
@@ -485,7 +470,7 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars,
   // for the given concrete point.
   Node rlem =
       NodeManager::currentNM()->mkNode(OR, d_parent->getGuard().negate(), lem);
-  lems.push_back(rlem);
+  d_qim.addPendingLemma(rlem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE);
 }
 
 bool Cegis::usingRepairConst() { return true; }
@@ -628,8 +613,7 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
 }
 
 bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
-                                     const std::vector<Node>& vals,
-                                     std::vector<Node>& lems)
+                                     const std::vector<Node>& vals)
 {
   Trace("sygus-engine") << "  *** Do sample add refinement..." << std::endl;
   if (Trace.isOn("cegis-sample"))
@@ -691,7 +675,8 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
           if (options::cegisSample() != options::CegisSampleMode::TRUST)
           {
             Node lem = nm->mkNode(OR, d_parent->getGuard().negate(), rlem);
-            lems.push_back(lem);
+            d_qim.addPendingLemma(
+                lem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE_SAMPLE);
           }
           return true;
         }

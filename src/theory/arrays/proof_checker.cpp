@@ -14,8 +14,10 @@
  */
 
 #include "theory/arrays/proof_checker.h"
+
 #include "expr/skolem_manager.h"
 #include "theory/arrays/skolem_cache.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 
 namespace cvc5 {
@@ -28,8 +30,7 @@ void ArraysProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::ARRAYS_READ_OVER_WRITE_CONTRA, this);
   pc->registerChecker(PfRule::ARRAYS_READ_OVER_WRITE_1, this);
   pc->registerChecker(PfRule::ARRAYS_EXT, this);
-  // trusted rules
-  pc->registerTrustedChecker(PfRule::ARRAYS_TRUST, this, 2);
+  pc->registerChecker(PfRule::ARRAYS_EQ_RANGE_EXPAND, this);
 }
 
 Node ArraysProofRuleChecker::checkInternal(PfRule id,
@@ -103,12 +104,10 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
     Node bs = nm->mkNode(kind::SELECT, b, k);
     return as.eqNode(bs).notNode();
   }
-  if (id == PfRule::ARRAYS_TRUST)
+  if (id == PfRule::ARRAYS_EQ_RANGE_EXPAND)
   {
-    // "trusted" rules
-    Assert(!args.empty());
-    Assert(args[0].getType().isBoolean());
-    return args[0];
+    Node expandedEqRange = TheoryArraysRewriter::expandEqRange(args[0]);
+    return args[0].eqNode(expandedEqRange);
   }
   // no rule
   return Node::null();

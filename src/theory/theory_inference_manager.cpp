@@ -259,6 +259,8 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
   d_lemmaIdStats << id;
   smt::currentResourceManager()->spendResource(id);
   Trace("im") << "(lemma " << id << " " << tlem.getProven() << ")" << std::endl;
+  // shouldn't send trivially true or false lemmas
+  Assert(!Rewriter::rewrite(tlem.getProven()).isConst());
   d_numCurrentLemmas++;
   d_out.trustedLemma(tlem, p);
   return true;
@@ -393,7 +395,7 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
   Assert(d_ee != nullptr);
   Trace("infer-manager") << "TheoryInferenceManager::assertInternalFact: "
                          << (pol ? Node(atom) : atom.notNode()) << " from "
-                         << expn << std::endl;
+                         << expn << " / " << iid << " " << id << std::endl;
   if (Configuration::isAssertionBuild())
   {
     // check that all facts hold in the equality engine, to ensure that we
@@ -431,10 +433,10 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
   }
   d_numCurrentFacts++;
   // Now, assert the fact. How to do so depends on whether proofs are enabled.
-  // If no proof production, or no proof rule was given
   bool ret = false;
-  if (d_pfee == nullptr || id == PfRule::UNKNOWN)
+  if (d_pfee == nullptr)
   {
+    Trace("infer-manager") << "...assert without proofs..." << std::endl;
     if (atom.getKind() == kind::EQUAL)
     {
       ret = d_ee->assertEquality(atom, pol, expn);
@@ -453,6 +455,8 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
   }
   else
   {
+    Assert(id != PfRule::UNKNOWN);
+    Trace("infer-manager") << "...assert with proofs..." << std::endl;
     // Note that we reconstruct the original literal lit here, since both the
     // original literal is needed for bookkeeping proofs. It is possible to
     // optimize this so that a few less nodes are created, but at the cost
@@ -472,7 +476,8 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
   // call the notify fact method with isInternal = true
   d_theory.notifyFact(atom, pol, expn, true);
   Trace("infer-manager")
-      << "TheoryInferenceManager::finished assertInternalFact" << std::endl;
+      << "TheoryInferenceManager::finished assertInternalFact, ret=" << ret
+      << std::endl;
   return ret;
 }
 

@@ -228,7 +228,7 @@ void ExtfSolver::checkExtfReductions(int effort)
   for (const Node& n : extf)
   {
     Assert(!d_state.isInConflict());
-    Trace("strings-process")
+    Trace("strings-extf-debug")
         << "  check " << n
         << ", active in model=" << d_extfInfoTmp[n].d_modelActive << std::endl;
     bool ret = doReduction(effort, n);

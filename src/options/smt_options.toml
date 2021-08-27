@@ -7,13 +7,16 @@ name   = "SMT Layer"
   long       = "dump=MODE"
   type       = "std::string"
   help       = "dump preprocessed assertions, etc., see --dump=help"
+  predicates = ["setDumpMode"]
 
 [[option]]
   name       = "dumpToFileName"
   category   = "common"
   long       = "dump-to=FILE"
-  type       = "std::string"
+  type       = "ManagedOut"
   help       = "all dumping goes to FILE (instead of stdout)"
+  predicates = ["setDumpStream"]
+  includes   = ["<iostream>", "options/managed_streams.h"]
 
 [[option]]
   name       = "ackermann"
@@ -195,6 +198,14 @@ name   = "SMT Layer"
   help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
 
 [[option]]
+  name       = "minimalUnsatCores"
+  category   = "regular"
+  long       = "minimal-unsat-cores"
+  type       = "bool"
+  default    = "false"
+  help       = "if an unsat core is produced, it is reduced to a minimal unsat core"
+
+[[option]]
   name       = "checkUnsatCores"
   category   = "regular"
   long       = "check-unsat-cores"
@@ -315,7 +326,7 @@ name   = "SMT Layer"
   name       = "zombieHuntThreshold"
   category   = "regular"
   long       = "simp-ite-hunt-zombies=N"
-  type       = "uint32_t"
+  type       = "uint64_t"
   default    = "524288"
   help       = "post ite compression enables zombie removal while the number of nodes is above this threshold"
 
@@ -343,10 +354,7 @@ name   = "SMT Layer"
   type       = "ModelUninterpPrintMode"
   default    = "None"
   help       = "determines how to print uninterpreted elements in models"
-  help_mode  = "uninterpreted elements in models printing  modes."
-[[option.mode.DtEnum]]
-  name = "dtenum"
-  help = "print uninterpreted elements as datatype enumerations, where the sort is the datatype"
+  help_mode  = "uninterpreted elements in models printing modes."
 [[option.mode.DeclSortAndFun]]
   name = "decl-sort-and-fun"
   help = "print uninterpreted elements declare-fun, and also include a declare-sort for the sort"
@@ -365,20 +373,6 @@ name   = "SMT Layer"
   type       = "bool"
   default    = "false"
   help       = "in models, use a witness constant for choice functions"
-
-[[option]]
-  name       = "regularChannelName"
-  long       = "regular-output-channel=CHANNEL"
-  category   = "regular"
-  type       = "std::string"
-  help       = "set the regular output channel of the solver"
-
-[[option]]
-  name       = "diagnosticChannelName"
-  long       = "diagnostic-output-channel=CHANNEL"
-  category   = "regular"
-  type       = "std::string"
-  help       = "set the diagnostic output channel of the solver"
 
 [[option]]
   name       = "foreignTheoryRewrite"
@@ -413,7 +407,7 @@ name   = "SMT Layer"
   name       = "BVAndIntegerGranularity"
   category   = "undocumented"
   long       = "bvand-integer-granularity=N"
-  type       = "uint32_t"
+  type       = "uint64_t"
   default    = "1"
   help       = "granularity to use in --solve-bv-as-int mode and for iand operator (experimental)"
 
@@ -439,7 +433,7 @@ name   = "SMT Layer"
   name       = "solveIntAsBV"
   category   = "undocumented"
   long       = "solve-int-as-bv=N"
-  type       = "uint32_t"
+  type       = "uint64_t"
   default    = "0"
   help       = "attempt to solve a pure integer satisfiable problem by bitblasting in sufficient bitwidth (experimental)"
 

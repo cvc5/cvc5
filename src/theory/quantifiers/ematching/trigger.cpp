@@ -69,18 +69,19 @@ Trigger::Trigger(QuantifiersState& qs,
       Trace("trigger") << "   " << n << std::endl;
     }
   }
+  std::vector<Node> extNodes;
+  for (const Node& nt : d_nodes)
+  {
+    // note we must display the original form, so we go back to bound vars
+    Node ns = d_qreg.substituteInstConstantsToBoundVariables(nt, q);
+    extNodes.push_back(ns);
+  }
+  d_trNode = NodeManager::currentNM()->mkNode(SEXPR, extNodes);
   if (Output.isOn(options::OutputTag::TRIGGER))
   {
     QuantAttributes& qa = d_qreg.getQuantAttributes();
-    Output(options::OutputTag::TRIGGER)
-        << "(trigger " << qa.quantToString(q) << " (";
-    for (size_t i = 0, nnodes = d_nodes.size(); i < nnodes; i++)
-    {
-      // note we must display the original form, so we go back to bound vars
-      Node ns = d_qreg.substituteInstConstantsToBoundVariables(d_nodes[i], q);
-      Output(options::OutputTag::TRIGGER) << (i > 0 ? " " : "") << ns;
-    }
-    Output(options::OutputTag::TRIGGER) << "))" << std::endl;
+    Output(options::OutputTag::TRIGGER) << "(trigger " << qa.quantToString(q)
+                                        << " " << d_trNode << ")" << std::endl;
   }
   QuantifiersStatistics& stats = qs.getStats();
   if( d_nodes.size()==1 ){
@@ -144,7 +145,7 @@ uint64_t Trigger::addInstantiations()
         Node eq = k.eqNode(gt);
         Trace("trigger-gt-lemma")
             << "Trigger: ground term purify lemma: " << eq << std::endl;
-        d_qim.addPendingLemma(eq, InferenceId::UNKNOWN);
+        d_qim.addPendingLemma(eq, InferenceId::QUANTIFIERS_GT_PURIFY);
         gtAddedLemmas++;
       }
     }
@@ -163,7 +164,7 @@ uint64_t Trigger::addInstantiations()
 
 bool Trigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
 {
-  return d_qim.getInstantiate()->addInstantiation(d_quant, m, id);
+  return d_qim.getInstantiate()->addInstantiation(d_quant, m, id, d_trNode);
 }
 
 bool Trigger::sendInstantiation(InstMatch& m, InferenceId id)

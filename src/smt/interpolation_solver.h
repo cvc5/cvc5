@@ -23,6 +23,7 @@
 
 namespace cvc5 {
 
+class Env;
 class SmtEngine;
 
 namespace smt {
@@ -37,7 +38,7 @@ namespace smt {
 class InterpolationSolver
 {
  public:
-  InterpolationSolver(SmtEngine* parent);
+  InterpolationSolver(Env& env, SmtEngine* parent);
   ~InterpolationSolver();
 
   /**
@@ -77,6 +78,8 @@ class InterpolationSolver
                      const Node& conj);
 
  private:
+  /** Reference to the env */
+  Env& d_env;
   /** The parent SMT engine */
   SmtEngine* d_parent;
 };

@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 
 #include "options/quantifiers_options.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/example_infer.h"
 #include "theory/quantifiers/sygus/sygus_unif_io.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
@@ -29,10 +30,11 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusPbe::SygusPbe(QuantifiersInferenceManager& qim,
+SygusPbe::SygusPbe(QuantifiersState& qs,
+                   QuantifiersInferenceManager& qim,
                    TermDbSygus* tds,
                    SynthConjecture* p)
-    : SygusModule(qim, tds, p)
+    : SygusModule(qs, qim, tds, p)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -43,8 +45,7 @@ SygusPbe::~SygusPbe() {}
 
 bool SygusPbe::initialize(Node conj,
                           Node n,
-                          const std::vector<Node>& candidates,
-                          std::vector<Node>& lemmas)
+                          const std::vector<Node>& candidates)
 {
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
@@ -165,8 +166,7 @@ bool SygusPbe::allowPartialModel() { return !options::sygusPbeMultiFair(); }
 bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
                                    const std::vector<Node>& enum_values,
                                    const std::vector<Node>& candidates,
-                                   std::vector<Node>& candidate_values,
-                                   std::vector<Node>& lems)
+                                   std::vector<Node>& candidate_values)
 {
   Assert(enums.size() == enum_values.size());
   if( !enums.empty() ){
@@ -180,7 +180,7 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
       Trace("sygus-pbe-enum") << std::endl;
       if (!enum_values[i].isNull())
       {
-        unsigned sz = d_tds->getSygusTermSize(enum_values[i]);
+        unsigned sz = datatypes::utils::getSygusTermSize(enum_values[i]);
         szs.push_back(sz);
         if (i == 0 || sz < min_term_size)
         {
@@ -233,9 +233,10 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
         Assert(!g.isNull());
         for (unsigned k = 0, size = enum_lems.size(); k < size; k++)
         {
-          enum_lems[k] = nm->mkNode(OR, g.negate(), enum_lems[k]);
+          Node lem = nm->mkNode(OR, g.negate(), enum_lems[k]);
+          d_qim.addPendingLemma(lem,
+                                InferenceId::QUANTIFIERS_SYGUS_PBE_EXCLUDE);
         }
-        lems.insert(lems.end(), enum_lems.begin(), enum_lems.end());
       }
     }
   }
@@ -243,7 +244,14 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
     Node c = candidates[i];
     //build decision tree for candidate
     std::vector<Node> sol;
-    if (d_sygus_unif[c]->constructSolution(sol, lems))
+    std::vector<Node> lems;
+    bool solSuccess = d_sygus_unif[c]->constructSolution(sol, lems);
+    for (const Node& lem : lems)
+    {
+      d_qim.addPendingLemma(lem,
+                            InferenceId::QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL);
+    }
+    if (solSuccess)
     {
       Assert(sol.size() == 1);
       candidate_values.push_back(sol[0]);
