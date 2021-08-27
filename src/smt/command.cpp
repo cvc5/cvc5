@@ -773,7 +773,7 @@ Command* SygusConstraintCommand::clone() const
 
 std::string SygusConstraintCommand::getCommandName() const
 {
-  return "constraint";
+  return d_isAssume ? "assume" : "constraint";
 }
 
 void SygusConstraintCommand::toStream(std::ostream& out,
@@ -781,7 +781,14 @@ void SygusConstraintCommand::toStream(std::ostream& out,
                                       size_t dag,
                                       Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdConstraint(out, termToNode(d_term));
+  if (d_isAssume)
+  {
+    Printer::getPrinter(language)->toStreamCmdAssume(out, termToNode(d_term));
+  }
+  else
+  {
+    Printer::getPrinter(language)->toStreamCmdConstraint(out, termToNode(d_term));
+  }
 }
 
 /* -------------------------------------------------------------------------- */
