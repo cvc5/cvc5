@@ -78,23 +78,24 @@ class InferProofCons : public ProofGenerator
   virtual std::string identify() const override;
 
   static std::shared_ptr<ProofNode> getProofFor(ProofNodeManager* pnm,
-                                                       Node fact,
+                                                Node fact,
                                                 InferenceId infer,
-               bool isRev,
-               Node conc,
-               const std::vector<Node>& exp);
-  static void packArgs(Node fact, 
+                                                bool isRev,
+                                                Node conc,
+                                                const std::vector<Node>& exp);
+  static void packArgs(Node fact,
                        InferenceId infer,
-               bool isRev,
-               Node conc,
-               const std::vector<Node>& exp, 
-               std::vector<Node>& args);
+                       bool isRev,
+                       Node conc,
+                       const std::vector<Node>& exp,
+                       std::vector<Node>& args);
   static void unpackArgs(const std::vector<Node>& args,
                          Node& fact,
-                     InferenceId& infer,
-               bool& isRev,
-               Node& conc,
-               std::vector<Node>& exp);
+                         InferenceId& infer,
+                         bool& isRev,
+                         Node& conc,
+                         std::vector<Node>& exp);
+
  private:
   /** convert
    *
@@ -119,19 +120,19 @@ class InferProofCons : public ProofGenerator
    * whose conclusion is ii.d_conc and whose free assumptions are ii.d_ant.
    */
   static void convert(InferenceId infer,
-               bool isRev,
-               Node conc,
-               const std::vector<Node>& exp,
-               ProofStep& ps,
-               TheoryProofStepBuffer& psb,
-               bool& useBuffer);
+                      bool isRev,
+                      Node conc,
+                      const std::vector<Node>& exp,
+                      ProofStep& ps,
+                      TheoryProofStepBuffer& psb,
+                      bool& useBuffer);
   /**
    * Convert length proof. If this method returns true, it adds proof step(s)
    * to the buffer psb that conclude lenReq from premises lenExp.
    */
   static bool convertLengthPf(Node lenReq,
-                       const std::vector<Node>& lenExp,
-                       TheoryProofStepBuffer& psb);
+                              const std::vector<Node>& lenExp,
+                              TheoryProofStepBuffer& psb);
   /**
    * Helper method, adds the proof of (TRANS eqa eqb) into the proof step
    * buffer psb, where eqa and eqb are flipped as needed. Returns the
@@ -178,9 +179,9 @@ class InferProofCons : public ProofGenerator
    * based on concludeTgtNew).
    */
   static bool purifyCoreSubstitution(Node& tgt,
-                              std::vector<Node>& children,
-                              TheoryProofStepBuffer& psb,
-                              bool concludeTgtNew = false);
+                                     std::vector<Node>& children,
+                                     TheoryProofStepBuffer& psb,
+                                     bool concludeTgtNew = false);
   /**
    * Return the purified form of the predicate lit with respect to a set of
    * terms to purify, call the returned literal lit'.
@@ -190,9 +191,9 @@ class InferProofCons : public ProofGenerator
    * (dis)equalities only.
    */
   static Node purifyCorePredicate(Node lit,
-                           bool concludeNew,
-                           TheoryProofStepBuffer& psb,
-                           std::unordered_set<Node>& termsToPurify);
+                                  bool concludeNew,
+                                  TheoryProofStepBuffer& psb,
+                                  std::unordered_set<Node>& termsToPurify);
   /**
    * Purify term with respect to a set of terms to purify. This replaces
    * all terms to purify with their purification variables that occur in

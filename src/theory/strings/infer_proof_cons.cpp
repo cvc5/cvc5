@@ -59,12 +59,13 @@ void InferProofCons::notifyFact(const InferInfo& ii)
   d_lazyFactMap.insert(ii.d_conc, iic);
 }
 
-std::shared_ptr<ProofNode> InferProofCons::getProofFor(ProofNodeManager* pnm,
-                                                       Node fact,
-                                                       InferenceId infer,
-              bool isRev,
-              Node conc,
-              const std::vector<Node>& exp)
+std::shared_ptr<ProofNode> InferProofCons::getProofFor(
+    ProofNodeManager* pnm,
+    Node fact,
+    InferenceId infer,
+    bool isRev,
+    Node conc,
+    const std::vector<Node>& exp)
 {
   // temporary proof
   CDProof pf(pnm);
@@ -94,19 +95,19 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(ProofNodeManager* pnm,
 
 void InferProofCons::packArgs(Node fact,
                               InferenceId infer,
-              bool isRev,
-              Node conc,
-              const std::vector<Node>& exp, 
-              std::vector<Node>& args)
+                              bool isRev,
+                              Node conc,
+                              const std::vector<Node>& exp,
+                              std::vector<Node>& args)
 {
 }
 
 void InferProofCons::unpackArgs(const std::vector<Node>& args,
                                 Node& fact,
-                    InferenceId& infer,
-              bool& isRev,
-              Node& conc,
-              std::vector<Node>& exp)
+                                InferenceId& infer,
+                                bool& isRev,
+                                Node& conc,
+                                std::vector<Node>& exp)
 {
 }
 
@@ -1086,7 +1087,8 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   }
   AlwaysAssert(it != d_lazyFactMap.end());
   std::shared_ptr<InferInfo> ii = (*it).second;
-  return getProofFor(d_pnm, fact, ii->getId(), ii->d_idRev, ii->d_conc, ii->d_premises);
+  return getProofFor(
+      d_pnm, fact, ii->getId(), ii->d_idRev, ii->d_conc, ii->d_premises);
 }
 
 std::string InferProofCons::identify() const
@@ -1171,8 +1173,8 @@ Node InferProofCons::purifyCorePredicate(
   return newLit;
 }
 
-Node InferProofCons::purifyCoreTerm(
-    Node n, std::unordered_set<Node>& termsToPurify)
+Node InferProofCons::purifyCoreTerm(Node n,
+                                    std::unordered_set<Node>& termsToPurify)
 {
   Assert(n.getType().isStringLike());
   if (n.getNumChildren() == 0)
