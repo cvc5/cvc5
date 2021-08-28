@@ -420,6 +420,7 @@ set(regress_0_tests
   regress0/bv/inequality05.smt2
   regress0/bv/int_to_bv_err_on_demand_1.smt2
   regress0/bv/int_to_bv_model.smt2
+  regress0/bv/int_to_bv_model2.smt2
   regress0/bv/issue-4075.smt2
   regress0/bv/issue-4076.smt2
   regress0/bv/issue-4130.smt2

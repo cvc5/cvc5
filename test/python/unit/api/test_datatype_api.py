@@ -14,7 +14,12 @@
 import pytest
 import pycvc5
 from pycvc5 import kinds
-from pycvc5 import Sort, Term, DatatypeDecl
+from pycvc5 import Sort, Term 
+from pycvc5 import DatatypeDecl
+from pycvc5 import Datatype
+from pycvc5 import DatatypeConstructorDecl
+from pycvc5 import DatatypeConstructor
+from pycvc5 import DatatypeSelector
 
 
 @pytest.fixture
@@ -38,6 +43,37 @@ def test_mk_datatype_sort(solver):
     consConstr.getConstructorTerm()
     nilConstr.getConstructorTerm()
 
+def test_is_null(solver):
+  # creating empty (null) objects.
+  dtypeSpec = DatatypeDecl(solver)
+  cons = DatatypeConstructorDecl(solver)
+  d = Datatype(solver)
+  consConstr = DatatypeConstructor(solver)
+  sel = DatatypeSelector(solver)
+
+  # verifying that the objects are considered null.
+  assert dtypeSpec.isNull()
+  assert cons.isNull()
+  assert d.isNull()
+  assert consConstr.isNull()
+  assert sel.isNull()
+
+  # changing the objects to be non-null
+  dtypeSpec = solver.mkDatatypeDecl("list");
+  cons = solver.mkDatatypeConstructorDecl("cons");
+  cons.addSelector("head", solver.getIntegerSort());
+  dtypeSpec.addConstructor(cons);
+  listSort = solver.mkDatatypeSort(dtypeSpec)
+  d = listSort.getDatatype();
+  consConstr = d[0];
+  sel = consConstr[0];
+
+  # verifying that the new objects are non-null
+  assert not dtypeSpec.isNull()
+  assert not cons.isNull()
+  assert not d.isNull()
+  assert not consConstr.isNull()
+  assert not sel.isNull()
 
 def test_mk_datatype_sorts(solver):
     # Create two mutual datatypes corresponding to this definition

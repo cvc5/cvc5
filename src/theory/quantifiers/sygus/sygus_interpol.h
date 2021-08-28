@@ -22,9 +22,12 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "smt/smt_engine.h"
 
 namespace cvc5 {
+
+class Env;
+class SmtEngine;
+
 namespace theory {
 namespace quantifiers {
 /**
@@ -59,7 +62,7 @@ namespace quantifiers {
 class SygusInterpol
 {
  public:
-  SygusInterpol();
+  SygusInterpol(Env& env);
 
   /**
    * Returns the sygus conjecture in interpol corresponding to the interpolation
@@ -171,7 +174,8 @@ class SygusInterpol
    * @param itp the interpolation predicate.
    */
   bool findInterpol(SmtEngine* subsolver, Node& interpol, Node itp);
-
+  /** Reference to the env */
+  Env& d_env;
   /**
    * symbols from axioms and conjecture.
    */

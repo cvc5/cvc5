@@ -21,9 +21,6 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
@@ -37,8 +34,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusRepairConst::SygusRepairConst(TermDbSygus* tds)
-    : d_tds(tds), d_allow_constant_grammar(false)
+SygusRepairConst::SygusRepairConst(Env& env, TermDbSygus* tds)
+    : d_env(env), d_tds(tds), d_allow_constant_grammar(false)
 {
 }
 
@@ -192,7 +189,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
 
   // check whether it is not in the current logic, e.g. non-linear arithmetic.
   // if so, undo replacements until it is in the current logic.
-  LogicInfo logic = smt::currentSmtEngine()->getLogicInfo();
+  const LogicInfo& logic = d_env.getLogicInfo();
   if (logic.isTheoryEnabled(THEORY_ARITH) && logic.isLinear())
   {
     fo_body = fitToLogic(sygusBody,
@@ -235,7 +232,8 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   // initialize the subsolver using the standard method
   initializeSubsolver(
       repcChecker,
-      nullptr,
+      d_env.getOptions(),
+      d_env.getLogicInfo(),
       Options::current().quantifiers.sygusRepairConstTimeoutWasSetByUser,
       options::sygusRepairConstTimeout());
   // renable options disabled by sygus
@@ -531,7 +529,7 @@ Node SygusRepairConst::getFoQuery(Node body,
 }
 
 Node SygusRepairConst::fitToLogic(Node body,
-                                  LogicInfo& logic,
+                                  const LogicInfo& logic,
                                   Node n,
                                   const std::vector<Node>& candidates,
                                   std::vector<Node>& candidate_skeletons,
@@ -570,7 +568,7 @@ Node SygusRepairConst::fitToLogic(Node body,
   return Node::null();
 }
 
-bool SygusRepairConst::getFitToLogicExcludeVar(LogicInfo& logic,
+bool SygusRepairConst::getFitToLogicExcludeVar(const LogicInfo& logic,
                                                Node n,
                                                Node& exvar)
 {

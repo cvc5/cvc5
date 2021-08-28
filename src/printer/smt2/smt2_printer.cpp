@@ -1204,7 +1204,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
 void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
 {
   // we currently must call TypeNode::toStream here.
-  tn.toStream(out, language::output::LANG_SMTLIB_V2_6);
+  tn.toStream(out, Language::LANG_SMTLIB_V2_6);
 }
 
 template <class T>
@@ -1262,13 +1262,6 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
 void Smt2Printer::toStream(std::ostream& out, const smt::Model& m) const
 {
   const theory::TheoryModel* tm = m.getTheoryModel();
-  //print the model comments
-  std::stringstream c;
-  tm->getComments(c);
-  std::string ln;
-  while( std::getline( c, ln ) ){
-    out << "; " << ln << std::endl;
-  }
   //print the model
   out << "(" << endl;
   // don't need to print approximations since they are built into choice

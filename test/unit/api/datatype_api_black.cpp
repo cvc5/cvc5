@@ -42,6 +42,40 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSort)
   ASSERT_NO_THROW(nilConstr.getConstructorTerm());
 }
 
+TEST_F(TestApiBlackDatatype, isNull)
+{
+  // creating empty (null) objects.
+  DatatypeDecl dtypeSpec;
+  DatatypeConstructorDecl cons;
+  Datatype d;
+  DatatypeConstructor consConstr;
+  DatatypeSelector sel;
+
+  // verifying that the objects are considered null.
+  ASSERT_TRUE(dtypeSpec.isNull());
+  ASSERT_TRUE(cons.isNull());
+  ASSERT_TRUE(d.isNull());
+  ASSERT_TRUE(consConstr.isNull());
+  ASSERT_TRUE(sel.isNull());
+
+  // changing the objects to be non-null
+  dtypeSpec = d_solver.mkDatatypeDecl("list");
+  cons = d_solver.mkDatatypeConstructorDecl("cons");
+  cons.addSelector("head", d_solver.getIntegerSort());
+  dtypeSpec.addConstructor(cons);
+  Sort listSort = d_solver.mkDatatypeSort(dtypeSpec);
+  d = listSort.getDatatype();
+  consConstr = d[0];
+  sel = consConstr[0];
+
+  // verifying that the new objects are non-null
+  ASSERT_FALSE(dtypeSpec.isNull());
+  ASSERT_FALSE(cons.isNull());
+  ASSERT_FALSE(d.isNull());
+  ASSERT_FALSE(consConstr.isNull());
+  ASSERT_FALSE(sel.isNull());
+}
+
 TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
 {
   /* Create two mutual datatypes corresponding to this definition

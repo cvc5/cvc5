@@ -40,25 +40,25 @@ class CVC5_EXPORT SetLanguage
    */
   class Scope {
    public:
-    Scope(std::ostream& out, OutputLanguage language);
+    Scope(std::ostream& out, Language language);
     ~Scope();
    private:
     std::ostream& d_out;
-    OutputLanguage d_oldLanguage;
+    Language d_oldLanguage;
   };/* class SetLanguage::Scope */
 
   /**
    * Construct a ExprSetLanguage with the given setting.
    */
-  SetLanguage(OutputLanguage l);
+  SetLanguage(Language l);
 
   void applyLanguage(std::ostream& out);
 
-  static OutputLanguage getLanguage(std::ostream& out);
+  static Language getLanguage(std::ostream& out);
 
-  static void setLanguage(std::ostream& out, OutputLanguage l);
+  static void setLanguage(std::ostream& out, Language l);
 
-private:
+ private:
 
   /**
    * The allocated index in ios_base for our depth setting.
@@ -70,12 +70,12 @@ private:
    * setlanguage() applied to them and where the current Options
    * information isn't available.
    */
-  static const int s_defaultOutputLanguage = language::output::LANG_AUTO;
+  static const Language s_defaultOutputLanguage = Language::LANG_AUTO;
 
   /**
    * When this manipulator is used, the setting is stored here.
    */
-  OutputLanguage d_language;
+  Language d_language;
 }; /* class SetLanguage */
 
 /**

@@ -42,6 +42,7 @@ class EnumValueManager
 {
  public:
   EnumValueManager(Node e,
+                   QuantifiersState& qs,
                    QuantifiersInferenceManager& qim,
                    TermRegistry& tr,
                    SygusStatistics& s,
@@ -71,6 +72,8 @@ class EnumValueManager
   Node getModelValue(Node n);
   /** The enumerator */
   Node d_enum;
+  /** Reference to the quantifiers state */
+  QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** Reference to the term registry */
