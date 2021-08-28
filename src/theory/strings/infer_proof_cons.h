@@ -100,7 +100,7 @@ class InferProofCons : public ProofGenerator
    * In particular, psb will contain a set of steps that form a proof
    * whose conclusion is ii.d_conc and whose free assumptions are ii.d_ant.
    */
-  void convert(InferenceId infer,
+  static void convert(InferenceId infer,
                bool isRev,
                Node conc,
                const std::vector<Node>& exp,
@@ -111,7 +111,7 @@ class InferProofCons : public ProofGenerator
    * Convert length proof. If this method returns true, it adds proof step(s)
    * to the buffer psb that conclude lenReq from premises lenExp.
    */
-  bool convertLengthPf(Node lenReq,
+  static bool convertLengthPf(Node lenReq,
                        const std::vector<Node>& lenExp,
                        TheoryProofStepBuffer& psb);
   /**
@@ -119,7 +119,7 @@ class InferProofCons : public ProofGenerator
    * buffer psb, where eqa and eqb are flipped as needed. Returns the
    * conclusion, or null if we were not able to construct a TRANS step.
    */
-  Node convertTrans(Node eqa, Node eqb, TheoryProofStepBuffer& psb);
+  static Node convertTrans(Node eqa, Node eqb, TheoryProofStepBuffer& psb);
   /**
    * Purify core substitution.
    *
@@ -159,10 +159,10 @@ class InferProofCons : public ProofGenerator
    * children'[i] from children[i] for all i, and tgt' from tgt (or vice versa
    * based on concludeTgtNew).
    */
-  bool purifyCoreSubstitution(Node& tgt,
+  static bool purifyCoreSubstitution(Node& tgt,
                               std::vector<Node>& children,
                               TheoryProofStepBuffer& psb,
-                              bool concludeTgtNew = false) const;
+                              bool concludeTgtNew = false);
   /**
    * Return the purified form of the predicate lit with respect to a set of
    * terms to purify, call the returned literal lit'.
@@ -171,17 +171,17 @@ class InferProofCons : public ProofGenerator
    * Note that string predicates that require purification are string
    * (dis)equalities only.
    */
-  Node purifyCorePredicate(Node lit,
+  static Node purifyCorePredicate(Node lit,
                            bool concludeNew,
                            TheoryProofStepBuffer& psb,
-                           std::unordered_set<Node>& termsToPurify) const;
+                           std::unordered_set<Node>& termsToPurify);
   /**
    * Purify term with respect to a set of terms to purify. This replaces
    * all terms to purify with their purification variables that occur in
    * positions that are relevant for the core calculus of strings (direct
    * children of concat or equal).
    */
-  Node purifyCoreTerm(Node n, std::unordered_set<Node>& termsToPurify) const;
+  static Node purifyCoreTerm(Node n, std::unordered_set<Node>& termsToPurify);
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The lazy fact map */

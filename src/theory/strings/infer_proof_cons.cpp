@@ -933,8 +933,6 @@ void InferProofCons::convert(InferenceId infer,
     ps.d_args.push_back(t);
     // use the trust rule
     ps.d_rule = PfRule::THEORY_INFERENCE;
-    // add to stats
-    d_statistics.d_inferencesNoPf << infer;
   }
   if (Trace.isOn("strings-ipc-debug"))
   {
@@ -1071,7 +1069,7 @@ std::string InferProofCons::identify() const
 bool InferProofCons::purifyCoreSubstitution(Node& tgt,
                                             std::vector<Node>& children,
                                             TheoryProofStepBuffer& psb,
-                                            bool concludeTgtNew) const
+                                            bool concludeTgtNew)
 {
   // collect the terms to purify, which are the LHS of the substitution
   std::unordered_set<Node> termsToPurify;
@@ -1106,7 +1104,7 @@ Node InferProofCons::purifyCorePredicate(
     Node lit,
     bool concludeNew,
     TheoryProofStepBuffer& psb,
-    std::unordered_set<Node>& termsToPurify) const
+    std::unordered_set<Node>& termsToPurify)
 {
   bool pol = lit.getKind() != NOT;
   Node atom = pol ? lit : lit[0];
@@ -1146,7 +1144,7 @@ Node InferProofCons::purifyCorePredicate(
 }
 
 Node InferProofCons::purifyCoreTerm(
-    Node n, std::unordered_set<Node>& termsToPurify) const
+    Node n, std::unordered_set<Node>& termsToPurify)
 {
   Assert(n.getType().isStringLike());
   if (n.getNumChildren() == 0)
