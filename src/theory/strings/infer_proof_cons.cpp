@@ -61,10 +61,9 @@ void InferProofCons::notifyFact(const InferInfo& ii)
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(
     ProofNodeManager* pnm,
-    Node fact,
+                                                Node conc,
     InferenceId infer,
     bool isRev,
-    Node conc,
     const std::vector<Node>& exp)
 {
   // temporary proof
@@ -85,36 +84,41 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(
   }
   else
   {
-    if (!pf.addStep(fact, ps))
+    if (!pf.addStep(conc, ps))
     {
       return nullptr;
     }
   }
-  return pf.getProofFor(fact);
+  return pf.getProofFor(conc);
 }
 
-void InferProofCons::packArgs(Node fact,
-                              InferenceId infer,
+void InferProofCons::packArgs(Node conc, InferenceId infer,
                               bool isRev,
-                              Node conc,
-                              const std::vector<Node>& exp,
                               std::vector<Node>& args)
 {
+  args.push_back(conc);
+  args.push_back(mkInferenceIdNode(infer));
+  args.push_back(nm->mkConst(isRev));
 }
 
-void InferProofCons::unpackArgs(const std::vector<Node>& args,
-                                Node& fact,
-                                InferenceId& infer,
-                                bool& isRev,
+bool InferProofCons::unpackArgs(const std::vector<Node>& args,
                                 Node& conc,
-                                std::vector<Node>& exp)
+                                InferenceId& infer,
+                                bool& isRev)
 {
+  Assert (args.size()==3);
+  conc = args[0];
+  if (!getInferenceId(args[1], infer))
+  {
+    return false;
+  }
+  isRev = args[2].getConst<bool>();
+  return true;
 }
 
 void InferProofCons::convert(InferenceId infer,
                              bool isRev,
                              Node conc,
-                             const std::vector<Node>& exp,
                              ProofStep& ps,
                              TheoryProofStepBuffer& psb,
                              bool& useBuffer)
@@ -1087,8 +1091,9 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   }
   AlwaysAssert(it != d_lazyFactMap.end());
   std::shared_ptr<InferInfo> ii = (*it).second;
+  Assert (ii->d_conc==fact);
   return getProofFor(
-      d_pnm, fact, ii->getId(), ii->d_idRev, ii->d_conc, ii->d_premises);
+      d_pnm, ii->d_conc, ii->getId(), ii->d_idRev, ii->d_premises);
 }
 
 std::string InferProofCons::identify() const

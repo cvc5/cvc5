@@ -1070,6 +1070,15 @@ enum class PfRule : uint32_t
   // Also applies to the case where (seq.unit y) is a constant sequence
   // of length one.
   STRING_SEQ_UNIT_INJ,
+  //======================== Trusted
+  // ======== String inference
+  // Children: ?
+  // Arguments: (F id isRev)
+  // ---------------------
+  // Conclusion: F
+  // used to bookkeep an inference that has not yet been converted via
+  // strings::InferProofCons::convert.
+  STRING_INFERENCE,
 
   //================================================= Arithmetic rules
   // ======== Adding Inequalities

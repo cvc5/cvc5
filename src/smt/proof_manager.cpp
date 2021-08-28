@@ -81,6 +81,7 @@ PfManager::PfManager(Env& env, SmtEngine* smte)
         d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
       }
     }
+    d_pfpp->setEliminateRule(PfRule::TRUST_STRING_INFERENCE);
     d_pfpp->setEliminateRule(PfRule::BV_BITBLAST);
   }
   d_false = NodeManager::currentNM()->mkConst(false);
