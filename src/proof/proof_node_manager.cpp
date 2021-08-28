@@ -333,7 +333,13 @@ std::shared_ptr<ProofNode> ProofNodeManager::clone(
       {
         it = visited.find(cp.get());
         Assert(it != visited.end());
-        Assert(it->second != nullptr);
+        // if we encounter nullptr here, then this child is currently being
+        // traversed at a higher level, hence this corresponds to a cyclic
+        // proof.
+        if (it->second == nullptr)
+        {
+          Unreachable() << "Cyclic proof encountered when cloning a proof node";
+        }
         cchildren.push_back(it->second);
       }
       cloned = std::make_shared<ProofNode>(
