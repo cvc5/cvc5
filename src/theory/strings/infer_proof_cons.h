@@ -77,6 +77,20 @@ class InferProofCons : public ProofGenerator
   /** Identify this generator (for debugging, etc..) */
   virtual std::string identify() const override;
 
+  static std::shared_ptr<ProofNode> getProofFor(InferenceId infer,
+               bool isRev,
+               Node conc,
+               const std::vector<Node>& exp);
+  static void packArgs(InferenceId infer,
+               bool isRev,
+               Node conc,
+               const std::vector<Node>& exp, 
+               std::vector<Node>& args);
+  static void unpackArgs(const std::vector<Node>& args,
+                     InferenceId& infer,
+               bool& isRev,
+               Node& conc,
+               std::vector<Node>& exp);
  private:
   /** convert
    *

@@ -59,6 +59,54 @@ void InferProofCons::notifyFact(const InferInfo& ii)
   d_lazyFactMap.insert(ii.d_conc, iic);
 }
 
+std::shared_ptr<ProofNode> InferProofCons::getProofFor(InferenceId infer,
+              bool isRev,
+              Node conc,
+              const std::vector<Node>& exp)
+{
+  // temporary proof
+  CDProof pf(d_pnm);
+  // now go back and convert it to proof steps and add to proof
+  bool useBuffer = false;
+  ProofStep ps;
+  TheoryProofStepBuffer psb(d_pnm->getChecker());
+  std::shared_ptr<InferInfo> ii = (*it).second;
+  // run the conversion
+  convert(infer, isRev, conc, exp, ps, psb, useBuffer);
+  // make the proof based on the step or the buffer
+  if (useBuffer)
+  {
+    if (!pf.addSteps(psb))
+    {
+      return nullptr;
+    }
+  }
+  else
+  {
+    if (!pf.addStep(fact, ps))
+    {
+      return nullptr;
+    }
+  }
+  return pf.getProofFor(fact);
+}
+
+void InferProofCons::packArgs(InferenceId infer,
+              bool isRev,
+              Node conc,
+              const std::vector<Node>& exp, 
+              std::vector<Node>& args)
+{
+}
+
+void InferProofCons::unpackArgs(const std::vector<Node>& args,
+                    InferenceId& infer,
+              bool& isRev,
+              Node& conc,
+              std::vector<Node>& exp)
+{
+}
+
 void InferProofCons::convert(InferenceId infer,
                              bool isRev,
                              Node conc,
@@ -1021,8 +1069,6 @@ Node InferProofCons::convertTrans(Node eqa,
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
 {
-  // temporary proof
-  CDProof pf(d_pnm);
   // get the inference
   NodeInferInfoMap::iterator it = d_lazyFactMap.find(fact);
   if (it == d_lazyFactMap.end())
@@ -1036,29 +1082,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
     }
   }
   AlwaysAssert(it != d_lazyFactMap.end());
-  // now go back and convert it to proof steps and add to proof
-  bool useBuffer = false;
-  ProofStep ps;
-  TheoryProofStepBuffer psb(d_pnm->getChecker());
-  std::shared_ptr<InferInfo> ii = (*it).second;
-  // run the conversion
-  convert(ii->getId(), ii->d_idRev, ii->d_conc, ii->d_premises, ps, psb, useBuffer);
-  // make the proof based on the step or the buffer
-  if (useBuffer)
-  {
-    if (!pf.addSteps(psb))
-    {
-      return nullptr;
-    }
-  }
-  else
-  {
-    if (!pf.addStep(fact, ps))
-    {
-      return nullptr;
-    }
-  }
-  return pf.getProofFor(fact);
+  return getProofFor(ii->getId(), ii->d_idRev, ii->d_conc, ii->d_premises);
 }
 
 std::string InferProofCons::identify() const
