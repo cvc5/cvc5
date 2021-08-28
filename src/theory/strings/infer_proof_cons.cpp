@@ -1099,7 +1099,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   CDProof pf(d_pnm);
   std::vector<Node> args;
   packArgs(ii->d_conc, ii->getId(), ii->d_idRev)
-  pf.addStep(fact, PfRule::STRINGS_INFERENCE, ii->d_premises, args);
+      pf.addStep(fact, PfRule::STRINGS_INFERENCE, ii->d_premises, args);
   return pf.getProofFor(fact);
 }
 
