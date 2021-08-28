@@ -99,7 +99,7 @@ void InferProofCons::packArgs(Node conc,
 {
   args.push_back(conc);
   args.push_back(mkInferenceIdNode(infer));
-  args.push_back(nm->mkConst(isRev));
+  args.push_back(NodeManager::currentNM()->mkConst(isRev));
 }
 
 bool InferProofCons::unpackArgs(const std::vector<Node>& args,
@@ -120,6 +120,7 @@ bool InferProofCons::unpackArgs(const std::vector<Node>& args,
 void InferProofCons::convert(InferenceId infer,
                              bool isRev,
                              Node conc,
+                             const std::vector<Node>& exp,
                              ProofStep& ps,
                              TheoryProofStepBuffer& psb,
                              bool& useBuffer)
@@ -1093,8 +1094,13 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   AlwaysAssert(it != d_lazyFactMap.end());
   std::shared_ptr<InferInfo> ii = (*it).second;
   Assert(ii->d_conc == fact);
-  return getProofFor(
-      d_pnm, ii->d_conc, ii->getId(), ii->d_idRev, ii->d_premises);
+  // make a placeholder proof using STRINGS_INFERENCE, which is reconstructed
+  // during post-process
+  CDProof pf(d_pnm);
+  std::vector<Node> args;
+  packArgs(ii->d_conc, ii->getId(), ii->d_idRev)
+  pf.addStep(fact, PfRule::STRINGS_INFERENCE, ii->d_premises, args);
+  return pf.getProofFor(fact);
 }
 
 std::string InferProofCons::identify() const

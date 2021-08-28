@@ -1087,11 +1087,13 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Node conc;
     InferenceId iid;
     bool isRev;
-    strings::InferProofCons::unpackArgs(args, conc, iid, isRev);
-    std::shared_ptr<ProofNode> pfn =
-        strings::InferProofCons::getProofFor(d_pnm, conc, iid, isRev, children);
-    cdp->addProof(pfn);
-    return conc;
+    if (strings::InferProofCons::unpackArgs(args, conc, iid, isRev))
+    {
+      std::shared_ptr<ProofNode> pfn =
+          strings::InferProofCons::getProofFor(d_pnm, conc, iid, isRev, children);
+      cdp->addProof(pfn);
+      return conc;
+    }
   }
   else if (id == PfRule::BV_BITBLAST)
   {
