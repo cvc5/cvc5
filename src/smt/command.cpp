@@ -1784,9 +1784,16 @@ void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
     ssm << m;
     d_result = ssm.str();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
-    d_commandStatus = new CommandRecoverableFailure(e.what());
+    // The above implementation of get-model relies on multiple API commands,
+    // e.g. getValue, getModelDomainElements, isModelCoreSymbol, 
+    // hasSeparationHeap, etc. On the other hand, the user requested a model
+    // via get-model. Hence, if an exception occurred above, we should report
+    // that the get model command failed.
+    std::stringstream ss;
+    ss << "Cannot get model, since an exception was raised: " << e.what();
+    d_commandStatus = new CommandRecoverableFailure(ss.str());
   }
   catch (UnsafeInterruptException& e)
   {
