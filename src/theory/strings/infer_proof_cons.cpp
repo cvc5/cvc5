@@ -61,7 +61,7 @@ void InferProofCons::notifyFact(const InferInfo& ii)
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(
     ProofNodeManager* pnm,
-                                                Node conc,
+    Node conc,
     InferenceId infer,
     bool isRev,
     const std::vector<Node>& exp)
@@ -92,7 +92,8 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(
   return pf.getProofFor(conc);
 }
 
-void InferProofCons::packArgs(Node conc, InferenceId infer,
+void InferProofCons::packArgs(Node conc,
+                              InferenceId infer,
                               bool isRev,
                               std::vector<Node>& args)
 {
@@ -106,7 +107,7 @@ bool InferProofCons::unpackArgs(const std::vector<Node>& args,
                                 InferenceId& infer,
                                 bool& isRev)
 {
-  Assert (args.size()==3);
+  Assert(args.size() == 3);
   conc = args[0];
   if (!getInferenceId(args[1], infer))
   {
@@ -1091,7 +1092,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   }
   AlwaysAssert(it != d_lazyFactMap.end());
   std::shared_ptr<InferInfo> ii = (*it).second;
-  Assert (ii->d_conc==fact);
+  Assert(ii->d_conc == fact);
   return getProofFor(
       d_pnm, ii->d_conc, ii->getId(), ii->d_idRev, ii->d_premises);
 }

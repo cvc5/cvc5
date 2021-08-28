@@ -87,7 +87,7 @@ class InferProofCons : public ProofGenerator
                        bool isRev,
                        std::vector<Node>& args);
   static void unpackArgs(const std::vector<Node>& args,
-                                Node& conc,
+                         Node& conc,
                          InferenceId& infer,
                          bool& isRev);
 

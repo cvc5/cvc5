@@ -23,8 +23,8 @@
 #include "smt/smt_engine.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/bv/bitblast/proof_bitblaster.h"
-#include "theory/strings/infer_proof_cons.h"
 #include "theory/rewriter.h"
+#include "theory/strings/infer_proof_cons.h"
 #include "theory/theory.h"
 #include "util/rational.h"
 
@@ -1088,7 +1088,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     InferenceId iid;
     bool isRev;
     strings::InferProofCons::unpackArgs(args, conc, iid, isRev);
-    std::shared_ptr<ProofNode> pfn = strings::InferProofCons::getProofFor(d_pnm, conc, iid, isRev, children);
+    std::shared_ptr<ProofNode> pfn =
+        strings::InferProofCons::getProofFor(d_pnm, conc, iid, isRev, children);
     cdp->addProof(pfn);
     return conc;
   }
