@@ -59,18 +59,19 @@ void InferProofCons::notifyFact(const InferInfo& ii)
   d_lazyFactMap.insert(ii.d_conc, iic);
 }
 
-std::shared_ptr<ProofNode> InferProofCons::getProofFor(InferenceId infer,
+std::shared_ptr<ProofNode> InferProofCons::getProofFor(ProofNodeManager* pnm,
+                                                       Node fact,
+                                                       InferenceId infer,
               bool isRev,
               Node conc,
               const std::vector<Node>& exp)
 {
   // temporary proof
-  CDProof pf(d_pnm);
+  CDProof pf(pnm);
   // now go back and convert it to proof steps and add to proof
   bool useBuffer = false;
   ProofStep ps;
-  TheoryProofStepBuffer psb(d_pnm->getChecker());
-  std::shared_ptr<InferInfo> ii = (*it).second;
+  TheoryProofStepBuffer psb(pnm->getChecker());
   // run the conversion
   convert(infer, isRev, conc, exp, ps, psb, useBuffer);
   // make the proof based on the step or the buffer
@@ -91,7 +92,8 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(InferenceId infer,
   return pf.getProofFor(fact);
 }
 
-void InferProofCons::packArgs(InferenceId infer,
+void InferProofCons::packArgs(Node fact,
+                              InferenceId infer,
               bool isRev,
               Node conc,
               const std::vector<Node>& exp, 
@@ -100,6 +102,7 @@ void InferProofCons::packArgs(InferenceId infer,
 }
 
 void InferProofCons::unpackArgs(const std::vector<Node>& args,
+                                Node& fact,
                     InferenceId& infer,
               bool& isRev,
               Node& conc,
@@ -1082,7 +1085,8 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
     }
   }
   AlwaysAssert(it != d_lazyFactMap.end());
-  return getProofFor(ii->getId(), ii->d_idRev, ii->d_conc, ii->d_premises);
+  std::shared_ptr<InferInfo> ii = (*it).second;
+  return getProofFor(d_pnm, fact, ii->getId(), ii->d_idRev, ii->d_conc, ii->d_premises);
 }
 
 std::string InferProofCons::identify() const
