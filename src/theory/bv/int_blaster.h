@@ -164,6 +164,7 @@ class IntBlaster
                       uint64_t bvsize,
                       std::vector<Node>& lemmas);
   Node createBVSubNode(Node x, Node y, uint64_t bvsize);
+  Node createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount);
 
   /**
    * Whenever we introduce an integer variable that represents a bit-vector
