@@ -114,7 +114,7 @@ bool CommandExecutor::doCommand(Command* cmd)
   } else {
     if (d_solver->getOptions().base.verbosity > 2)
     {
-      *d_solver->getOptions().base.out << "Invoking: " << *cmd << std::endl;
+      d_solver->getDriverOptions().out() << "Invoking: " << *cmd << std::endl;
     }
 
     return doCommandSingleton(cmd);
@@ -123,23 +123,14 @@ bool CommandExecutor::doCommand(Command* cmd)
 
 void CommandExecutor::reset()
 {
-  printStatistics(*d_solver->getOptions().base.err);
-
+  printStatistics(d_solver->getDriverOptions().err());
   Command::resetSolver(d_solver.get());
 }
 
 bool CommandExecutor::doCommandSingleton(Command* cmd)
 {
-  bool status = true;
-  if (d_solver->getOptions().base.verbosity >= -1)
-  {
-    status = solverInvoke(
-        d_solver.get(), d_symman.get(), cmd, d_solver->getOptions().base.out);
-  }
-  else
-  {
-    status = solverInvoke(d_solver.get(), d_symman.get(), cmd, nullptr);
-  }
+  bool status = solverInvoke(
+      d_solver.get(), d_symman.get(), cmd, d_solver->getDriverOptions().out());
 
   api::Result res;
   const CheckSatCommand* cs = dynamic_cast<const CheckSatCommand*>(cmd);
@@ -158,12 +149,13 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   }
 
   bool isResultUnsat = res.isUnsat() || res.isEntailed();
+  bool isResultSat = res.isSat() || res.isNotEntailed();
 
   // dump the model/proof/unsat core if option is set
   if (status) {
     std::vector<std::unique_ptr<Command> > getterCommands;
     if (d_solver->getOptions().driver.dumpModels
-        && (res.isSat()
+        && (isResultSat
             || (res.isSatUnknown()
                 && res.getUnknownExplanation() == api::Result::INCOMPLETE)))
     {
@@ -209,16 +201,9 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 bool solverInvoke(api::Solver* solver,
                   SymbolManager* sm,
                   Command* cmd,
-                  std::ostream* out)
+                  std::ostream& out)
 {
-  if (out == NULL)
-  {
-    cmd->invoke(solver, sm);
-  }
-  else
-  {
-    cmd->invoke(solver, sm, *out);
-  }
+  cmd->invoke(solver, sm, out);
   // ignore the error if the command-verbosity is 0 for this command
   std::string commandName =
       std::string("command-verbosity:") + cmd->getCommandName();
@@ -230,18 +215,11 @@ bool solverInvoke(api::Solver* solver,
 }
 
 void CommandExecutor::flushOutputStreams() {
-  printStatistics(*d_solver->getOptions().base.err);
+  printStatistics(d_solver->getDriverOptions().err());
 
   // make sure out and err streams are flushed too
-
-  if (d_solver->getOptions().base.out != nullptr)
-  {
-    *d_solver->getOptions().base.out << std::flush;
-  }
-  if (d_solver->getOptions().base.err != nullptr)
-  {
-    *d_solver->getOptions().base.err << std::flush;
-  }
+  d_solver->getDriverOptions().out() << std::flush;
+  d_solver->getDriverOptions().err() << std::flush;
 }
 
 }  // namespace main

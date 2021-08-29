@@ -230,12 +230,10 @@ class Smt2 : public Parser
    */
   bool v2_6(bool exact = false) const
   {
-    return language::isInputLang_smt2_6(getLanguage(), exact);
+    return d_solver->getOption("input-language") == "LANG_SMTLIB_V2_6";
   }
   /** Are we using a sygus language? */
   bool sygus() const;
-  /** Are we using the sygus version 2.0 format? */
-  bool sygus_v2() const;
 
   /**
    * Returns true if the language that we are parsing (SMT-LIB version >=2.5
@@ -415,7 +413,7 @@ class Smt2 : public Parser
 
   void addSepOperators();
 
-  InputLanguage getLanguage() const;
+  Language getLanguage() const;
 
   /**
    * Utility function to create a conjunction of expressions.

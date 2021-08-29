@@ -45,7 +45,7 @@ class Parser;
 class CVC5_EXPORT ParserBuilder
 {
   /** The input language */
-  InputLanguage d_lang;
+  std::string d_lang;
 
   /** The API Solver object. */
   api::Solver* d_solver;
@@ -76,11 +76,7 @@ class CVC5_EXPORT ParserBuilder
 
  public:
   /** Create a parser builder using the given Solver and filename. */
-  ParserBuilder(api::Solver* solver, SymbolManager* sm);
-
-  ParserBuilder(api::Solver* solver,
-                SymbolManager* sm,
-                const Options& options);
+  ParserBuilder(api::Solver* solver, SymbolManager* sm, bool useOptions);
 
   /** Build the parser, using the current settings. */
   Parser* build();
@@ -93,7 +89,7 @@ class CVC5_EXPORT ParserBuilder
    *
    * (Default: LANG_AUTO)
    */
-  ParserBuilder& withInputLanguage(InputLanguage lang);
+  ParserBuilder& withInputLanguage(const std::string& lang);
 
   /**
    * Are we only parsing, or doing something with the resulting

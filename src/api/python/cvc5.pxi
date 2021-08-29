@@ -176,6 +176,9 @@ cdef class Datatype:
         """:return: whether this datatype has nested recursion (see :cpp:func:`Datatype::hasNestedRecursion() <cvc5::api::Datatype::hasNestedRecursion>`)."""
         return self.cd.hasNestedRecursion()
 
+    def isNull(self):
+        return self.cd.isNull()
+
     def __str__(self):
         return self.cd.toString().decode()
 
@@ -264,6 +267,9 @@ cdef class DatatypeConstructor:
         term.cterm = self.cdc.getSelectorTerm(name.encode())
         return term
 
+    def isNull(self):
+        return self.cdc.isNull()
+
     def __str__(self):
         return self.cdc.toString().decode()
 
@@ -301,6 +307,9 @@ cdef class DatatypeConstructorDecl:
             :param name: the name of the datatype selector declaration to add.
         """
         self.cddc.addSelectorSelf(name.encode())
+
+    def isNull(self):
+        return self.cddc.isNull()
 
     def __str__(self):
         return self.cddc.toString().decode()
@@ -341,6 +350,9 @@ cdef class DatatypeDecl:
             :return: the name of this datatype declaration.
         """
         return self.cdd.getName().decode()
+
+    def isNull(self):
+        return self.cdd.isNull()
 
     def __str__(self):
         return self.cdd.toString().decode()
@@ -386,6 +398,9 @@ cdef class DatatypeSelector:
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.cds.getRangeSort()
         return sort
+
+    def isNull(self):
+        return self.cds.isNull()
 
     def __str__(self):
         return self.cds.toString().decode()
@@ -1347,6 +1362,18 @@ cdef class Solver:
         cdef Term term = Term(self)
         term.cterm = self.csolver.getValue(t.cterm)
         return term
+
+    def getModelDomainElements(self, Sort s):
+        result = []
+        cresult = self.csolver.getModelDomainElements(s.csort)
+        for e in cresult:
+            term = Term(self)
+            term.cterm = e
+            result.append(term)
+        return result
+
+    def isModelCoreSymbol(self, Term v):
+        return self.csolver.isModelCoreSymbol(v.cterm)
 
     def getSeparationHeap(self):
         cdef Term term = Term(self)

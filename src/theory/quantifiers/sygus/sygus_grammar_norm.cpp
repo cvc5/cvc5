@@ -21,8 +21,6 @@
 #include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "options/quantifiers_options.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
