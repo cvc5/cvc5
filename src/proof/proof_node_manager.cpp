@@ -378,13 +378,13 @@ bool ProofNodeManager::updateNodeInternal(
     const std::vector<Node>& args,
     bool needsCheck)
 {
-  /*
   if (id==PfRule::SYMM)
   {
-    AlwaysAssert(children.size()==1);
-    AlwaysAssert(children[0]->getRule()!=PfRule::SYMM);
+    if (children[0]->getRule()==PfRule::SYMM)
+    {
+      return updateNode(pn, children[0]->getChildren()[0].get());
+    }
   }
-  */
   Assert(pn != nullptr);
   // ---------------- check for cyclic
   if (options::proofEagerChecking())
