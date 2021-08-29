@@ -158,7 +158,6 @@ class IntBlaster
   Node createBVAddNode(Node x, Node y, uint64_t bvsize);
   Node createBVOrNode(Node x, Node y, uint64_t bvsize, std::vector<Node>& lemmas);
   Node createBVSubNode(Node x, Node y, uint64_t bvsize);
-  Node uts(Node x, uint64_t bvsize);
 
   /**
    * Whenever we introduce an integer variable that represents a bit-vector
@@ -290,7 +289,7 @@ class IntBlaster
    * binary representation of n is the same as the
    * signed binary representation of m.
    */
-  Node unsignedToSigned(Node n, uint64_t bvsize);
+  Node uts(Node n, uint64_t bvsize);
 
   /**
    * Performs the actual translation to integers for nodes

@@ -27,7 +27,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusQePreproc::SygusQePreproc() {}
+SygusQePreproc::SygusQePreproc(Env& env) : d_env(env) {}
 
 Node SygusQePreproc::preprocess(Node q)
 {
@@ -53,7 +53,7 @@ Node SygusQePreproc::preprocess(Node q)
   }
   // create new smt engine to do quantifier elimination
   std::unique_ptr<SmtEngine> smt_qe;
-  initializeSubsolver(smt_qe);
+  initializeSubsolver(smt_qe, d_env);
   Trace("cegqi-qep") << "Property is non-ground single invocation, run "
                         "QE to obtain single invocation."
                      << std::endl;

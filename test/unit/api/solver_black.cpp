@@ -306,34 +306,43 @@ TEST_F(TestApiBlackSolver, mkTupleSort)
 
 TEST_F(TestApiBlackSolver, mkBitVector)
 {
-  uint32_t size0 = 0, size1 = 8, size2 = 32, val1 = 2;
-  uint64_t val2 = 2;
-  ASSERT_NO_THROW(d_solver.mkBitVector(size1, val1));
-  ASSERT_NO_THROW(d_solver.mkBitVector(size2, val2));
-  ASSERT_NO_THROW(d_solver.mkBitVector("1010", 2));
-  ASSERT_NO_THROW(d_solver.mkBitVector("1010", 10));
-  ASSERT_NO_THROW(d_solver.mkBitVector("1234", 10));
-  ASSERT_NO_THROW(d_solver.mkBitVector("1010", 16));
-  ASSERT_NO_THROW(d_solver.mkBitVector("a09f", 16));
+  ASSERT_NO_THROW(d_solver.mkBitVector(8, 2));
+  ASSERT_NO_THROW(d_solver.mkBitVector(32, 2));
+  ASSERT_NO_THROW(d_solver.mkBitVector(8, "-1111111", 2));
+  ASSERT_NO_THROW(d_solver.mkBitVector(8, "0101", 2));
+  ASSERT_NO_THROW(d_solver.mkBitVector(8, "00000101", 2));
   ASSERT_NO_THROW(d_solver.mkBitVector(8, "-127", 10));
-  ASSERT_THROW(d_solver.mkBitVector(size0, val1), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkBitVector(size0, val2), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkBitVector("", 2), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkBitVector("10", 3), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkBitVector("20", 2), CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.mkBitVector(8, "255", 10));
+  ASSERT_NO_THROW(d_solver.mkBitVector(8, "-7f", 16));
+  ASSERT_NO_THROW(d_solver.mkBitVector(8, "a0", 16));
+
+  ASSERT_THROW(d_solver.mkBitVector(0, 2), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkBitVector(0, "-127", 10), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkBitVector(0, "a0", 16), CVC5ApiException);
+
+  ASSERT_THROW(d_solver.mkBitVector(8, "", 2), CVC5ApiException);
+
+  ASSERT_THROW(d_solver.mkBitVector(8, "101", 5), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkBitVector(8, "128", 11), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkBitVector(8, "a0", 21), CVC5ApiException);
+
+  ASSERT_THROW(d_solver.mkBitVector(8, "-11111111", 2), CVC5ApiException);
   ASSERT_THROW(d_solver.mkBitVector(8, "101010101", 2), CVC5ApiException);
   ASSERT_THROW(d_solver.mkBitVector(8, "-256", 10), CVC5ApiException);
-  // No size and negative string -> error
-  ASSERT_THROW(d_solver.mkBitVector("-1", 2), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkBitVector("-1", 10), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkBitVector("-f", 16), CVC5ApiException);
-  // size and negative string -> ok
+  ASSERT_THROW(d_solver.mkBitVector(8, "257", 10), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkBitVector(8, "-a0", 16), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkBitVector(8, "fffff", 16), CVC5ApiException);
+
+  ASSERT_THROW(d_solver.mkBitVector(8, "10201010", 2), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkBitVector(8, "-25x", 10), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkBitVector(8, "2x7", 10), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkBitVector(8, "fzff", 16), CVC5ApiException);
+
+  ASSERT_EQ(d_solver.mkBitVector(8, "0101", 2),
+            d_solver.mkBitVector(8, "00000101", 2));
   ASSERT_EQ(d_solver.mkBitVector(4, "-1", 2), d_solver.mkBitVector(4, "1111", 2));
   ASSERT_EQ(d_solver.mkBitVector(4, "-1", 16), d_solver.mkBitVector(4, "1111", 2));
   ASSERT_EQ(d_solver.mkBitVector(4, "-1", 10), d_solver.mkBitVector(4, "1111", 2));
-  ASSERT_EQ(d_solver.mkBitVector("1010", 2), d_solver.mkBitVector("10", 10));
-  ASSERT_EQ(d_solver.mkBitVector("1010", 2), d_solver.mkBitVector("10", 10));
-  ASSERT_EQ(d_solver.mkBitVector("1010", 2), d_solver.mkBitVector("a", 16));
   ASSERT_EQ(d_solver.mkBitVector(8, "01010101", 2).toString(), "#b01010101");
   ASSERT_EQ(d_solver.mkBitVector(8, "F", 16).toString(), "#b00001111");
   ASSERT_EQ(d_solver.mkBitVector(8, "-1", 10),
@@ -778,25 +787,25 @@ TEST_F(TestApiBlackSolver, mkTrue)
 TEST_F(TestApiBlackSolver, mkTuple)
 {
   ASSERT_NO_THROW(d_solver.mkTuple({d_solver.mkBitVectorSort(3)},
-                                   {d_solver.mkBitVector("101", 2)}));
+                                   {d_solver.mkBitVector(3, "101", 2)}));
   ASSERT_NO_THROW(
       d_solver.mkTuple({d_solver.getRealSort()}, {d_solver.mkInteger("5")}));
 
-  ASSERT_THROW(d_solver.mkTuple({}, {d_solver.mkBitVector("101", 2)}),
+  ASSERT_THROW(d_solver.mkTuple({}, {d_solver.mkBitVector(3, "101", 2)}),
                CVC5ApiException);
   ASSERT_THROW(d_solver.mkTuple({d_solver.mkBitVectorSort(4)},
-                                {d_solver.mkBitVector("101", 2)}),
+                                {d_solver.mkBitVector(3, "101", 2)}),
                CVC5ApiException);
   ASSERT_THROW(
       d_solver.mkTuple({d_solver.getIntegerSort()}, {d_solver.mkReal("5.3")}),
       CVC5ApiException);
   Solver slv;
-  ASSERT_THROW(
-      slv.mkTuple({d_solver.mkBitVectorSort(3)}, {slv.mkBitVector("101", 2)}),
-      CVC5ApiException);
-  ASSERT_THROW(
-      slv.mkTuple({slv.mkBitVectorSort(3)}, {d_solver.mkBitVector("101", 2)}),
-      CVC5ApiException);
+  ASSERT_THROW(slv.mkTuple({d_solver.mkBitVectorSort(3)},
+                           {slv.mkBitVector(3, "101", 2)}),
+               CVC5ApiException);
+  ASSERT_THROW(slv.mkTuple({slv.mkBitVectorSort(3)},
+                           {d_solver.mkBitVector(3, "101", 2)}),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkUniverseSet)
@@ -1462,6 +1471,57 @@ TEST_F(TestApiBlackSolver, getValue3)
 
   Solver slv;
   ASSERT_THROW(slv.getValue(x), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, getModelDomainElements)
+{
+  d_solver.setOption("produce-models", "true");
+  Sort uSort = d_solver.mkUninterpretedSort("u");
+  Sort intSort = d_solver.getIntegerSort();
+  Term x = d_solver.mkConst(uSort, "x");
+  Term y = d_solver.mkConst(uSort, "y");
+  Term z = d_solver.mkConst(uSort, "z");
+  Term f = d_solver.mkTerm(DISTINCT, x, y, z);
+  d_solver.assertFormula(f);
+  d_solver.checkSat();
+  ASSERT_NO_THROW(d_solver.getModelDomainElements(uSort));
+  ASSERT_TRUE(d_solver.getModelDomainElements(uSort).size() >= 3);
+  ASSERT_THROW(d_solver.getModelDomainElements(intSort), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, getModelDomainElements2)
+{
+  d_solver.setOption("produce-models", "true");
+  d_solver.setOption("finite-model-find", "true");
+  Sort uSort = d_solver.mkUninterpretedSort("u");
+  Term x = d_solver.mkVar(uSort, "x");
+  Term y = d_solver.mkVar(uSort, "y");
+  Term eq = d_solver.mkTerm(EQUAL, x, y);
+  Term bvl = d_solver.mkTerm(BOUND_VAR_LIST, x, y);
+  Term f = d_solver.mkTerm(FORALL, bvl, eq);
+  d_solver.assertFormula(f);
+  d_solver.checkSat();
+  ASSERT_NO_THROW(d_solver.getModelDomainElements(uSort));
+  // a model for the above must interpret u as size 1
+  ASSERT_TRUE(d_solver.getModelDomainElements(uSort).size() == 1);
+}
+
+TEST_F(TestApiBlackSolver, isModelCoreSymbol)
+{
+  d_solver.setOption("produce-models", "true");
+  d_solver.setOption("model-cores", "simple");
+  Sort uSort = d_solver.mkUninterpretedSort("u");
+  Term x = d_solver.mkConst(uSort, "x");
+  Term y = d_solver.mkConst(uSort, "y");
+  Term z = d_solver.mkConst(uSort, "z");
+  Term zero = d_solver.mkInteger(0);
+  Term f = d_solver.mkTerm(NOT, d_solver.mkTerm(EQUAL, x, y));
+  d_solver.assertFormula(f);
+  d_solver.checkSat();
+  ASSERT_TRUE(d_solver.isModelCoreSymbol(x));
+  ASSERT_TRUE(d_solver.isModelCoreSymbol(y));
+  ASSERT_FALSE(d_solver.isModelCoreSymbol(z));
+  ASSERT_THROW(d_solver.isModelCoreSymbol(zero), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, getQuantifierElimination)

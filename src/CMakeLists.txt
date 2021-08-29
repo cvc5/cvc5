@@ -65,8 +65,6 @@ libcvc5_add_sources(
   options/options_public.h
   options/outputc.cpp
   options/outputc.h
-  options/printer_modes.cpp
-  options/printer_modes.h
   options/set_language.cpp
   options/set_language.h
   preprocessing/assertion_pipeline.cpp
@@ -805,6 +803,8 @@ libcvc5_add_sources(
   theory/quantifiers/fmf/model_engine.h
   theory/quantifiers/fun_def_evaluator.cpp
   theory/quantifiers/fun_def_evaluator.h
+  theory/quantifiers/ho_term_database.cpp
+  theory/quantifiers/ho_term_database.h
   theory/quantifiers/index_trie.cpp
   theory/quantifiers/index_trie.h
   theory/quantifiers/inst_match.cpp
@@ -886,6 +886,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/example_min_eval.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
   theory/quantifiers/sygus/enum_stream_substitution.h
+  theory/quantifiers/sygus/enum_value_manager.cpp
+  theory/quantifiers/sygus/enum_value_manager.h
   theory/quantifiers/sygus/example_infer.cpp
   theory/quantifiers/sygus/example_infer.h
   theory/quantifiers/sygus/example_min_eval.cpp

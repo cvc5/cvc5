@@ -826,11 +826,10 @@ public:
    * print it fully
    * @param language the language in which to output
    */
-  inline void toStream(
-      std::ostream& out,
-      int toDepth = -1,
-      size_t dagThreshold = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const
+  inline void toStream(std::ostream& out,
+                       int toDepth = -1,
+                       size_t dagThreshold = 1,
+                       Language language = Language::LANG_AUTO) const
   {
     assertTNodeNotExpired();
     d_nv->toStream(out, toDepth, dagThreshold, language);
@@ -1483,17 +1482,13 @@ Node NodeTemplate<ref_count>::substitute(
  * to meet. A cleaner solution is welcomed.
  */
 static void __attribute__((used)) debugPrintNode(const NodeTemplate<true>& n) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(true)
-            << Node::setlanguage(language::output::LANG_AST)
-            << n << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(true)
+            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintNodeNoDag(const NodeTemplate<true>& n) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(false)
-            << Node::setlanguage(language::output::LANG_AST)
-            << n << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(false)
+            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintRawNode(const NodeTemplate<true>& n) {
@@ -1502,17 +1497,13 @@ static void __attribute__((used)) debugPrintRawNode(const NodeTemplate<true>& n)
 }
 
 static void __attribute__((used)) debugPrintTNode(const NodeTemplate<false>& n) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(true)
-            << Node::setlanguage(language::output::LANG_AST)
-            << n << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(true)
+            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintTNodeNoDag(const NodeTemplate<false>& n) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(false)
-            << Node::setlanguage(language::output::LANG_AST)
-            << n << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(false)
+            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& n) {

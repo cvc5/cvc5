@@ -18,13 +18,16 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__RCONS_TYPE_INFO_H
 #define CVC5__THEORY__QUANTIFIERS__RCONS_TYPE_INFO_H
 
+#include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
+#include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
 class RConsObligation;
+class CandidateRewriteDatabase;
 
 /**
  * A utility class for Sygus Reconstruct datatype types (grammar non-terminals).
@@ -38,13 +41,15 @@ class RConsTypeInfo
    * Initialize a sygus enumerator and a candidate rewrite database for this
    * class' sygus datatype type.
    *
+   * @param env Reference to the environment
    * @param tds Database for sygus terms
    * @param s Statistics managed for the synth engine
    * @param stn The sygus datatype type encoding the syntax restrictions
    * @param builtinVars A list containing the builtin analog of sygus variable
    *                    list for the sygus datatype type
    */
-  void initialize(TermDbSygus* tds,
+  void initialize(Env& env,
+                  TermDbSygus* tds,
                   SygusStatistics& s,
                   TypeNode stn,
                   const std::vector<Node>& builtinVars);

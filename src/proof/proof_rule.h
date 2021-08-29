@@ -722,12 +722,6 @@ enum class PfRule : uint32_t
   //              (forall ((x T))
   //               (=> (and (<= i x) (<= x j)) (= (select a x) (select b x)))))
   ARRAYS_EQ_RANGE_EXPAND,
-  // ======== Array Trust
-  // Children: (P1 ... Pn)
-  // Arguments: (F)
-  // ---------------------
-  // Conclusion: F
-  ARRAYS_TRUST,
 
   //================================================= Bit-Vector rules
   // Note: bitblast() represents the result of the bit-blasted term as a
@@ -800,12 +794,6 @@ enum class PfRule : uint32_t
   // Conclusion: false
   // for i != j.
   DT_CLASH,
-  // ======== Datatype Trust
-  // Children: (P1 ... Pn)
-  // Arguments: (F)
-  // ---------------------
-  // Conclusion: F
-  DT_TRUST,
 
   //================================================= Quantifiers rules
   // ======== Skolem intro
@@ -1082,12 +1070,6 @@ enum class PfRule : uint32_t
   // Also applies to the case where (seq.unit y) is a constant sequence
   // of length one.
   STRING_SEQ_UNIT_INJ,
-  // ======== String Trust
-  // Children: none
-  // Arguments: (Q)
-  // ---------------------
-  // Conclusion: (Q)
-  STRING_TRUST,
 
   //================================================= Arithmetic rules
   // ======== Adding Inequalities
@@ -1152,12 +1134,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: arith::OperatorElim::getAxiomFor(t)
   ARITH_OP_ELIM_AXIOM,
-  // ======== Int Trust
-  // Children: (P1 ... Pn)
-  // Arguments: (Q)
-  // ---------------------
-  // Conclusion: (Q)
-  INT_TRUST,
 
   //======== Multiplication sign inference
   // Children: none

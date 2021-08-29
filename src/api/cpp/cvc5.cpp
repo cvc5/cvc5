@@ -4169,7 +4169,6 @@ bool Datatype::hasNestedRecursion() const
 bool Datatype::isNull() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   return isNullHelper();
   ////////
@@ -4750,6 +4749,25 @@ const static std::unordered_map<cvc5::RoundingMode,
     };
 
 /* -------------------------------------------------------------------------- */
+/* Options                                                                    */
+/* -------------------------------------------------------------------------- */
+
+DriverOptions::DriverOptions(const Solver& solver) : d_solver(solver) {}
+
+std::istream& DriverOptions::in() const
+{
+  return *d_solver.d_smtEngine->getOptions().base.in;
+}
+std::ostream& DriverOptions::err() const
+{
+  return *d_solver.d_smtEngine->getOptions().base.err;
+}
+std::ostream& DriverOptions::out() const
+{
+  return *d_solver.d_smtEngine->getOptions().base.out;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Statistics                                                                 */
 /* -------------------------------------------------------------------------- */
 
@@ -5035,17 +5053,6 @@ Term Solver::mkBVFromIntHelper(uint32_t size, uint64_t val) const
   CVC5_API_ARG_CHECK_EXPECTED(size > 0, size) << "a bit-width > 0";
   //////// all checks before this line
   return mkValHelper<cvc5::BitVector>(cvc5::BitVector(size, val));
-}
-
-Term Solver::mkBVFromStrHelper(const std::string& s, uint32_t base) const
-{
-  CVC5_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
-  CVC5_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, base)
-      << "base 2, 10, or 16";
-  CVC5_API_ARG_CHECK_EXPECTED(s[0] != '-', s)
-      << "a positive value (since no size is specified)";
-  //////// all checks before this line
-  return mkValHelper<cvc5::BitVector>(cvc5::BitVector(s, base));
 }
 
 Term Solver::mkBVFromStrHelper(uint32_t size,
@@ -5944,16 +5951,6 @@ Term Solver::mkBitVector(uint32_t size, uint64_t val) const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkBVFromIntHelper(size, val);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkBitVector(const std::string& s, uint32_t base) const
-{
-  NodeManagerScope scope(getNodeManager());
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return mkBVFromStrHelper(s, base);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7056,6 +7053,8 @@ std::vector<std::string> Solver::getOptionNames() const
   CVC5_API_TRY_CATCH_END;
 }
 
+DriverOptions Solver::getDriverOptions() const { return DriverOptions(*this); }
+
 std::vector<Term> Solver::getUnsatAssumptions(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7149,6 +7148,51 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
     res.push_back(getValueHelper(terms[i]));
   }
   return res;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Term> Solver::getModelDomainElements(const Sort& s) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions().smt.produceModels)
+      << "Cannot get domain elements unless model generation is enabled "
+         "(try --produce-models)";
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
+      << "Cannot get domain elements unless after a SAT or unknown response.";
+  CVC5_API_SOLVER_CHECK_SORT(s);
+  CVC5_API_RECOVERABLE_CHECK(s.isUninterpretedSort())
+      << "Expecting an uninterpreted sort as argument to "
+         "getModelDomainElements.";
+  //////// all checks before this line
+  std::vector<Term> res;
+  std::vector<Node> elements =
+      d_smtEngine->getModelDomainElements(s.getTypeNode());
+  for (const Node& n : elements)
+  {
+    res.push_back(Term(this, n));
+  }
+  return res;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Solver::isModelCoreSymbol(const Term& v) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions().smt.produceModels)
+      << "Cannot check if model core symbol unless model generation is enabled "
+         "(try --produce-models)";
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
+      << "Cannot check if model core symbol unless after a SAT or unknown "
+         "response.";
+  CVC5_API_SOLVER_CHECK_TERM(v);
+  CVC5_API_RECOVERABLE_CHECK(v.getKind() == CONSTANT)
+      << "Expecting a free constant as argument to isModelCoreSymbol.";
+  //////// all checks before this line
+  return d_smtEngine->isModelCoreSymbol(v.getNode());
   ////////
   CVC5_API_TRY_CATCH_END;
 }

@@ -25,6 +25,11 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
                                     theory::TheoryModel* m,
                                     options::ModelCoresMode mode)
 {
+  if (m->isUsingModelCore())
+  {
+    // already computed
+    return true;
+  }
   if (Trace.isOn("model-core"))
   {
     Trace("model-core") << "Compute model core, assertions:" << std::endl;

@@ -28,6 +28,7 @@ namespace quantifiers {
 
 class SynthConjecture;
 class TermDbSygus;
+class QuantifiersState;
 class QuantifiersInferenceManager;
 
 /** SygusModule
@@ -51,7 +52,8 @@ class QuantifiersInferenceManager;
 class SygusModule
 {
  public:
-  SygusModule(QuantifiersInferenceManager& qim,
+  SygusModule(QuantifiersState& qs,
+              QuantifiersInferenceManager& qim,
               TermDbSygus* tds,
               SynthConjecture* p);
   virtual ~SygusModule() {}
@@ -147,6 +149,8 @@ class SygusModule
   virtual bool usingRepairConst() { return false; }
 
  protected:
+  /** Reference to the state of the quantifiers engine */
+  QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** sygus term database of d_qe */

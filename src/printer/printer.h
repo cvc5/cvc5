@@ -42,8 +42,8 @@ class Printer
    */
   virtual ~Printer() {}
 
-  /** Get the Printer for a given OutputLanguage */
-  static Printer* getPrinter(OutputLanguage lang);
+  /** Get the Printer for a given Language */
+  static Printer* getPrinter(Language lang);
 
   /** Write a Node out to a stream with this Printer. */
   virtual void toStream(std::ostream& out,
@@ -286,7 +286,7 @@ class Printer
                                  Node n) const = 0;
 
   /** write model response to command using another language printer */
-  void toStreamUsing(OutputLanguage lang,
+  void toStreamUsing(Language lang,
                      std::ostream& out,
                      const smt::Model& m) const;
 
@@ -301,11 +301,12 @@ class Printer
   Printer(const Printer&) = delete;
   Printer& operator=(const Printer&) = delete;
 
-  /** Make a Printer for a given OutputLanguage */
-  static std::unique_ptr<Printer> makePrinter(OutputLanguage lang);
+  /** Make a Printer for a given Language */
+  static std::unique_ptr<Printer> makePrinter(Language lang);
 
-  /** Printers for each OutputLanguage */
-  static std::unique_ptr<Printer> d_printers[language::output::LANG_MAX];
+  /** Printers for each Language */
+  static std::unique_ptr<Printer>
+      d_printers[static_cast<size_t>(Language::LANG_MAX)];
 
 }; /* class Printer */
 
