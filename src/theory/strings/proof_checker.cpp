@@ -508,7 +508,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::STRING_INFERENCE)
   {
-    Assert(args.size() == 3);
+    Assert(args.size() >= 3);
     return args[0];
   }
   return Node::null();

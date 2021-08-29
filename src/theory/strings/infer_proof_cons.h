@@ -85,11 +85,13 @@ class InferProofCons : public ProofGenerator
   static void packArgs(Node conc,
                        InferenceId infer,
                        bool isRev,
+                       const std::vector<Node>& exp,
                        std::vector<Node>& args);
   static bool unpackArgs(const std::vector<Node>& args,
                          Node& conc,
                          InferenceId& infer,
-                         bool& isRev);
+                         bool& isRev,
+                         std::vector<Node>& exp);
 
  private:
   /** convert

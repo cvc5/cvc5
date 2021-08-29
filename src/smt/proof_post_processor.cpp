@@ -1087,10 +1087,11 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Node conc;
     InferenceId iid;
     bool isRev;
-    if (strings::InferProofCons::unpackArgs(args, conc, iid, isRev))
+    std::vector<Node> exp;
+    if (strings::InferProofCons::unpackArgs(args, conc, iid, isRev, exp))
     {
       std::shared_ptr<ProofNode> pfn = strings::InferProofCons::getProofFor(
-          d_pnm, conc, iid, isRev, children);
+          d_pnm, conc, iid, isRev, exp);
       cdp->addProof(pfn);
       return conc;
     }
