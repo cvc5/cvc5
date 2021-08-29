@@ -34,12 +34,6 @@
 
 namespace cvc5 {
 using namespace cvc5::theory;
-namespace {
-
-// A helper function to compute 2^b as a Rational
-Rational intpow2(uint64_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
-
-}  // namespace
 
 IntBlaster::IntBlaster(context::Context* c,
                        options::SolveBVAsIntMode mode,
@@ -435,16 +429,6 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_SLT:
     {
       uint64_t bvsize = original[0].getType().getBitVectorSize();
-      Trace("int-blaster-debug") << "first arg: " << original[0] << std::endl;
-      Trace("int-blaster-debug")
-          << "translated first arg: " << translated_children[0] << std::endl;
-      Trace("int-blaster-debug") << "second arg: " << original[1] << std::endl;
-      Trace("int-blaster-debug")
-          << "translated second arg: " << translated_children[1] << std::endl;
-      Trace("int-blaster-debug")
-          << "first uts: " << uts(translated_children[0], bvsize) << std::endl;
-      Trace("int-blaster-debug")
-          << "second uts: " << uts(translated_children[1], bvsize) << std::endl;
       returnNode = d_nm->mkNode(kind::LT,
                                 uts(translated_children[0], bvsize),
                                 uts(translated_children[1], bvsize));
@@ -507,7 +491,7 @@ Node IntBlaster::translateWithChildren(
       returnNode = d_nm->mkNode(kind::APPLY_UF, translated_children);
       // Add range constraints if necessary.
       // If the original range was a BV sort, the original application of
-      // the function Must be within the range determined by the
+      // the function must be within the range determined by the
       // bitwidth.
       if (original.getType().isBitVector())
       {
@@ -558,54 +542,7 @@ Node IntBlaster::translateWithChildren(
 
 Node IntBlaster::createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount)
 {
-  Node result;
-  if (x.isConst())
-  {
-    Rational c(x.getConst<Rational>());
-    Rational twoToKMinusOne(intpow2(bvsize - 1));
-    /* if the msb is 0, this is like zero_extend.
-     *  msb is 0 <-> the value is less than 2^{bvsize-1}
-     */
-    if (c < twoToKMinusOne || amount == 0)
-    {
-      result = x;
-    }
-    else
-    {
-      /* otherwise, we add the integer equivalent of
-       * 11....1 `amount` times
-       */
-      Rational max_of_amount = intpow2(amount) - 1;
-      Rational mul = max_of_amount * intpow2(bvsize);
-      Rational sum = mul + c;
-      result = d_nm->mkConst(sum);
-    }
-  }
-  else
-  {
-    if (amount == 0)
-    {
-      result = x;
-    }
-    else
-    {
-      Rational twoToKMinusOne(intpow2(bvsize - 1));
-      Node minSigned = d_nm->mkConst(twoToKMinusOne);
-      /* condition checks whether the msb is 1.
-       * This holds when the integer value is smaller than
-       * 100...0, which is 2^{bvsize-1}.
-       */
-      Node condition = d_nm->mkNode(kind::LT, x, minSigned);
-      Node thenResult = x;
-      Node left = maxInt(amount);
-      Node mul = d_nm->mkNode(kind::MULT, left, pow2(bvsize));
-      Node sum = d_nm->mkNode(kind::PLUS, mul, x);
-      Node elseResult = sum;
-      Node ite = d_nm->mkNode(kind::ITE, condition, thenResult, elseResult);
-      result = ite;
-    }
-  }
-  return result;
+  return Node();
 }
 
 Node IntBlaster::translateNoChildren(Node original,
