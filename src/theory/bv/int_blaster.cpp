@@ -428,56 +428,9 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_SIGN_EXTEND:
     {
   uint64_t bvsize = original[0].getType().getBitVectorSize();
-      Node arg = translated_children[0];
-      if (arg.isConst())
-      {
-        Rational c(arg.getConst<Rational>());
-        Rational twoToKMinusOne(intpow2(bvsize - 1));
-        uint64_t amount = bv::utils::getSignExtendAmount(original);
-        /* if the msb is 0, this is like zero_extend.
-         *  msb is 0 <-> the value is less than 2^{bvsize-1}
-         */
-        if (c < twoToKMinusOne || amount == 0)
-        {
-          returnNode = arg;
-        }
-        else
-        {
-          /* otherwise, we add the integer equivalent of
-           * 11....1 `amount` times
-           */
-          Rational max_of_amount = intpow2(amount) - 1;
-          Rational mul = max_of_amount * intpow2(bvsize);
-          Rational sum = mul + c;
-          returnNode = d_nm->mkConst(sum);
-        }
-      }
-      else
-      {
-        uint64_t amount = bv::utils::getSignExtendAmount(original);
-        if (amount == 0)
-        {
-          returnNode = translated_children[0];
-        }
-        else
-        {
-          Rational twoToKMinusOne(intpow2(bvsize - 1));
-          Node minSigned = d_nm->mkConst(twoToKMinusOne);
-          /* condition checks whether the msb is 1.
-           * This holds when the integer value is smaller than
-           * 100...0, which is 2^{bvsize-1}.
-           */
-          Node condition = d_nm->mkNode(kind::LT, arg, minSigned);
-          Node thenResult = arg;
-          Node left = maxInt(amount);
-          Node mul = d_nm->mkNode(kind::MULT, left, pow2(bvsize));
-          Node sum = d_nm->mkNode(kind::PLUS, mul, arg);
-          Node elseResult = sum;
-          Node ite = d_nm->mkNode(kind::ITE, condition, thenResult, elseResult);
-          returnNode = ite;
-        }
-      }
-      break;
+  returnNode = createSignExtendNode(
+      translated_children[0], bvsize, bv::utils::getSignExtendAmount(original));
+  break;
     }
     case kind::BITVECTOR_CONCAT:
     {
@@ -633,6 +586,58 @@ Node IntBlaster::translateWithChildren(
   Trace("int-blaster-debug") << "original: " << original << std::endl;
   Trace("int-blaster-debug") << "returnNode: " << returnNode << std::endl;
   return returnNode;
+}
+
+Node IntBlaster::createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount)
+{
+  Node result;
+  if (x.isConst())
+  {
+    Rational c(x.getConst<Rational>());
+    Rational twoToKMinusOne(intpow2(bvsize - 1));
+    /* if the msb is 0, this is like zero_extend.
+     *  msb is 0 <-> the value is less than 2^{bvsize-1}
+     */
+    if (c < twoToKMinusOne || amount == 0)
+    {
+      result = x;
+    }
+    else
+    {
+      /* otherwise, we add the integer equivalent of
+       * 11....1 `amount` times
+       */
+      Rational max_of_amount = intpow2(amount) - 1;
+      Rational mul = max_of_amount * intpow2(bvsize);
+      Rational sum = mul + c;
+      result = d_nm->mkConst(sum);
+    }
+  }
+  else
+  {
+    if (amount == 0)
+    {
+      result = x;
+    }
+    else
+    {
+      Rational twoToKMinusOne(intpow2(bvsize - 1));
+      Node minSigned = d_nm->mkConst(twoToKMinusOne);
+      /* condition checks whether the msb is 1.
+       * This holds when the integer value is smaller than
+       * 100...0, which is 2^{bvsize-1}.
+       */
+      Node condition = d_nm->mkNode(kind::LT, x, minSigned);
+      Node thenResult = x;
+      Node left = maxInt(amount);
+      Node mul = d_nm->mkNode(kind::MULT, left, pow2(bvsize));
+      Node sum = d_nm->mkNode(kind::PLUS, mul, x);
+      Node elseResult = sum;
+      Node ite = d_nm->mkNode(kind::ITE, condition, thenResult, elseResult);
+      result = ite;
+    }
+  }
+  return result;
 }
 
 Node IntBlaster::uts(Node x, uint64_t bvsize) {
