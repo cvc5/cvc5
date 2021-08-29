@@ -41,6 +41,13 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
 {
   Trace("pnm") << "ProofNodeManager::mkNode " << id << " {" << expected.getId()
                << "} " << expected << "\n";
+               /*
+  if (id==PfRule::SYMM)
+  {
+    AlwaysAssert (children.size()==1);
+    AlwaysAssert (children[0]->getRule()!=PfRule::SYMM);
+  }
+  */
   Node res = checkInternal(id, children, args, expected);
   if (res.isNull())
   {
@@ -173,7 +180,14 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
         // use SYMM if possible
         if (aMatch == aeqSym)
         {
-          updateNode(pfs.get(), PfRule::SYMM, children, {});
+          if (pfaa->getRule()==PfRule::SYMM)
+          {
+            updateNode(pfs.get(), pfaa->getChildren()[0].get());
+          }
+          else
+          {
+            updateNode(pfs.get(), PfRule::SYMM, children, {});
+          }
         }
         else
         {
@@ -263,6 +277,10 @@ bool ProofNodeManager::updateNode(ProofNode* pn, ProofNode* pnr)
 {
   Assert(pn != nullptr);
   Assert(pnr != nullptr);
+  if (pn==pnr)
+  {
+    return true;
+  }
   if (pn->getResult() != pnr->getResult())
   {
     return false;
@@ -360,6 +378,13 @@ bool ProofNodeManager::updateNodeInternal(
     const std::vector<Node>& args,
     bool needsCheck)
 {
+  /*
+  if (id==PfRule::SYMM)
+  {
+    AlwaysAssert(children.size()==1);
+    AlwaysAssert(children[0]->getRule()!=PfRule::SYMM);
+  }
+  */
   Assert(pn != nullptr);
   // ---------------- check for cyclic
   if (options::proofEagerChecking())
