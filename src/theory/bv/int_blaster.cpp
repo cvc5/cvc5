@@ -35,6 +35,13 @@
 namespace cvc5 {
 using namespace cvc5::theory;
 
+namespace {
+
+// A helper function to compute 2^b as a Rational
+Rational intpow2(uint64_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
+
+}  // namespace
+
 IntBlaster::IntBlaster(context::Context* c,
                        options::SolveBVAsIntMode mode,
                        uint64_t granularity,
@@ -66,11 +73,24 @@ void IntBlaster::addBitwiseConstraint(Node bitwiseConstraint,
 
 Node IntBlaster::mkRangeConstraint(Node newVar, uint64_t k) { return Node(); }
 
-Node IntBlaster::maxInt(uint64_t k) { return Node(); }
+Node IntBlaster::maxInt(uint64_t k)
+{
+  Assert(k > 0);
+  Rational max_value = intpow2(k) - 1;
+  return d_nm->mkConst<Rational>(max_value);
+}
 
-Node IntBlaster::pow2(uint64_t k) { return Node(); }
+Node IntBlaster::pow2(uint64_t k)
+{
+  Assert(k >= 0);
+  return d_nm->mkConst<Rational>(intpow2(k));
+}
 
-Node IntBlaster::modpow2(Node n, uint64_t exponent) { return Node(); }
+Node IntBlaster::modpow2(Node n, uint64_t exponent)
+{
+  Node p2 = d_nm->mkConst<Rational>(intpow2(exponent));
+  return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
+}
 
 Node IntBlaster::makeBinary(Node n)
 {
@@ -227,8 +247,10 @@ Node IntBlaster::translateWithChildren(
     {
       Assert(original.getNumChildren() == 2);
       uint64_t bvsize = original[0].getType().getBitVectorSize();
+      std::cout << "panda before" << std::endl;
       returnNode = createBVAddNode(
           translated_children[0], translated_children[1], bvsize);
+      std::cout << "panda after" << std::endl;
       break;
     }
     case kind::BITVECTOR_MULT:
@@ -796,6 +818,8 @@ Node IntBlaster::createBVSubNode(Node x, Node y, uint64_t bvsize)
 
 Node IntBlaster::createBVAddNode(Node x, Node y, uint64_t bvsize)
 {
+  std::cout << "panda x " << x << std::endl;
+  std::cout << "panda y " << y << std::endl;
   Node plus = d_nm->mkNode(kind::PLUS, x, y);
   Node p2 = pow2(bvsize);
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, plus, p2);
