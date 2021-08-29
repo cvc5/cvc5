@@ -137,56 +137,64 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   Node v1 = d_nodeManager->mkVar("v1", bvType);
   Node v2 = d_nodeManager->mkVar("v2", bvType);
 
+  // translated integer variables
   Node i1 = intBlaster.translateNoChildren(v1, lemmas, skolems);
   Node i2 = intBlaster.translateNoChildren(v2, lemmas, skolems);
 
-  std::cout << "panda v1: " << v1 << std::endl;
-  std::cout << "panda v2: " << v2 << std::endl;
-  std::cout << "panda i1: " << i1 << std::endl;
-  std::cout << "panda i2: " << i2 << std::endl;
-
+  // if original is BV, result should be Int.
+  // Otherwise, they should have the same type.
   Node original;
   Node result;
 
+  // sum
   original = d_nodeManager->mkNode(BITVECTOR_ADD, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
+  // multiplication
   original = d_nodeManager->mkNode(BITVECTOR_MULT, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
+  // division 1
   original = d_nodeManager->mkNode(BITVECTOR_UDIV, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
+  // division 2
   original = d_nodeManager->mkNode(BITVECTOR_UREM, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
+  // bit-wise negation
   original = d_nodeManager->mkNode(BITVECTOR_NOT, v1);
   result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
+  // arithmetic negation
   original = d_nodeManager->mkNode(BITVECTOR_NEG, v1);
   result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
+  // bv2nat
   original = d_nodeManager->mkNode(BITVECTOR_TO_NAT, v1);
   result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
+  // int2bv
   Node intToBVOp = d_nodeManager->mkConst<IntToBitVector>(IntToBitVector(4));
   original = d_nodeManager->mkNode(intToBVOp, i1);
   result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
+  // zero extend
   Node zeroExtOp =
       d_nodeManager->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(4));
   original = d_nodeManager->mkNode(zeroExtOp, v1);
   result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
+  // extract + BV ITE
   Node extract = theory::bv::utils::mkExtract(v1, 0, 0);
   original = d_nodeManager->mkNode(BITVECTOR_ITE, extract, v2, v1);
   Node intExtract = intBlaster.translateWithChildren(extract, {i1}, lemmas);
@@ -195,10 +203,12 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   ASSERT_TRUE(result.getType().isInteger());
   ASSERT_TRUE(intExtract.getType().isInteger());
 
+  // concat
   original = d_nodeManager->mkNode(BITVECTOR_CONCAT, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
+  // predicates
   original = d_nodeManager->mkNode(EQUAL, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isBoolean());
@@ -219,10 +229,12 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isBoolean());
 
+  // BVULT with a BV result
   original = d_nodeManager->mkNode(BITVECTOR_ULTBV, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
+  // function application
   TypeNode funType = d_nodeManager->mkFunctionType({bvType}, bvType);
   Node f = d_nodeManager->mkVar("f", funType);
   Node g = intBlaster.translateNoChildren(f, lemmas, skolems);
