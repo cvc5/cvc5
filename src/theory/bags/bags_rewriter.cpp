@@ -530,9 +530,27 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
     Node ret = NormalForm::constructConstantBagFromElements(t, mappedElements);
     return BagsRewriteResponse(ret, Rewrite::MAP_EMPTY);
   }
-  return BagsRewriteResponse(n, Rewrite::NONE);
-}
+  Kind k = n[1].getKind();
+  switch (k)
+  {
+    case MK_BAG:
+    {
+      Node mappedElement = d_nm->mkNode(APPLY_UF, n[0], n[1][0]);
+      Node ret = d_nm->mkNode(MK_BAG, mappedElement, n[1][0]);
+      return BagsRewriteResponse(ret, Rewrite::MAP_MK_BAG);
+    }
 
+    case UNION_DISJOINT:
+    {
+      Node a = d_nm->mkNode(BAG_MAP, n[1][0]);
+      Node b = d_nm->mkNode(BAG_MAP, n[1][1]);
+      Node ret = d_nm->mkNode(UNION_DISJOINT, a, b);
+      return BagsRewriteResponse(ret, Rewrite::MAP_UNION_DISJOINT);
+    }
+
+    default: return BagsRewriteResponse(n, Rewrite::NONE);
+  }
+}
 }  // namespace bags
 }  // namespace theory
 }  // namespace cvc5

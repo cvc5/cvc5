@@ -727,16 +727,17 @@ TEST_F(TestTheoryWhiteBagsRewriter, map)
   Node unionDisjointAB = d_nodeManager->mkNode(UNION_DISJOINT, A, B);
 
   ASSERT_TRUE(unionDisjointAB.isConst());
-  // - (bag.map (lambda ((x U)) t) (union_disjoint (bag "a" 3) (bag "b" 4))) =
-  //     (union_disjoint
-  //        (bag ((lambda ((x U)) t) "a") 3)
-  //        (bag ((lambda ((x U)) t) "b") 4))
+  // - (bag.map (lambda ((x Int)) 1) (union_disjoint (bag "a" 3) (bag "b" 4))) =
+  //        (bag 1 7))
   Node n2 = d_nodeManager->mkNode(BAG_MAP, lambda, unionDisjointAB);
 
+  std::cout << n2 << std::endl;
+
   Node rewritten = Rewriter:: rewrite(n2);
+  std::cout << rewritten << std::endl;
 
   Node bag = d_nodeManager->mkBag(d_nodeManager->integerType(),
-                                  one,               d_nodeManager->mkConst(Rational(1)));
+                                  one,               d_nodeManager->mkConst(Rational(7)));
   ASSERT_TRUE(rewritten == bag);
 }
 
