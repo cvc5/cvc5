@@ -66,6 +66,8 @@ public:
   };
 
  private:
+  /** Reference to the env */
+  Env& d_env;
   /** the id count for all subsorts we have allocated */
   int d_sortCount;
   UnionFind d_type_union_find;

@@ -96,8 +96,8 @@ void TheoryUF::finishInit() {
   }
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(
-      kind::APPLY_UF, false, d_env.getLogicInfo().isHigherOrder());
-  if (d_env.getLogicInfo().isHigherOrder())
+      kind::APPLY_UF, false, getLogicInfo().isHigherOrder());
+  if (getLogicInfo().isHigherOrder())
   {
     d_equalityEngine->addFunctionKind(kind::HO_APPLY);
     d_ho.reset(new HoExtension(d_state, d_im));
@@ -148,7 +148,7 @@ void TheoryUF::postCheck(Effort level)
   // check with the higher-order extension at full effort
   if (!d_state.isInConflict() && fullEffort(level))
   {
-    if (d_env.getLogicInfo().isHigherOrder())
+    if (getLogicInfo().isHigherOrder())
     {
       d_ho->check();
     }
@@ -171,7 +171,7 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
   {
     case kind::EQUAL:
     {
-      if (d_env.getLogicInfo().isHigherOrder() && options::ufHoExt())
+      if (getLogicInfo().isHigherOrder() && options::ufHoExt())
       {
         if (!pol && !d_state.isInConflict() && atom[0].getType().isFunction())
         {
@@ -214,7 +214,7 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
   Kind k = node.getKind();
   if (k == kind::HO_APPLY)
   {
-    if (!d_env.getLogicInfo().isHigherOrder())
+    if (!getLogicInfo().isHigherOrder())
     {
       std::stringstream ss;
       ss << "Partial function applications are only supported with "
@@ -234,7 +234,7 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
     // check for higher-order
     // logic exception if higher-order is not enabled
     if (isHigherOrderType(node.getOperator().getType())
-        && !d_env.getLogicInfo().isHigherOrder())
+        && !getLogicInfo().isHigherOrder())
     {
       std::stringstream ss;
       ss << "UF received an application whose operator has higher-order type "
@@ -257,7 +257,7 @@ void TheoryUF::preRegisterTerm(TNode node)
 
   // we always use APPLY_UF if not higher-order, HO_APPLY if higher-order
   Assert(node.getKind() != kind::HO_APPLY
-         || d_env.getLogicInfo().isHigherOrder());
+         || getLogicInfo().isHigherOrder());
 
   Kind k = node.getKind();
   switch (k)
@@ -318,7 +318,7 @@ TrustNode TheoryUF::explain(TNode literal) { return d_im.explainLit(literal); }
 
 bool TheoryUF::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 {
-  if (d_env.getLogicInfo().isHigherOrder())
+  if (getLogicInfo().isHigherOrder())
   {
     // must add extensionality disequalities for all pairs of (non-disequal)
     // function equivalence classes.
