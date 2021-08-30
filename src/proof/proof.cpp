@@ -96,7 +96,7 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
     std::vector<Node> args;
     if (pf == nullptr)
     {
-        Trace("cdproof") << "...fresh make symm" << std::endl;
+      Trace("cdproof") << "...fresh make symm" << std::endl;
       std::shared_ptr<ProofNode> psym = d_manager->mkSymm(pfs, fact);
       Assert(psym != nullptr);
       d_nodes.insert(fact, psym);
@@ -416,7 +416,7 @@ bool CDProof::isAssumption(ProofNode* pn)
   }
   pn = ProofNodeManager::cancelDoubleSymm(pn);
   rule = pn->getRule();
-  if (rule==PfRule::ASSUME)
+  if (rule == PfRule::ASSUME)
   {
     return true;
   }

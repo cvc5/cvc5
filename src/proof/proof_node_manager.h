@@ -89,7 +89,7 @@ class ProofNodeManager
    * node, in which case we return its child.
    */
   std::shared_ptr<ProofNode> mkSymm(std::shared_ptr<ProofNode> child,
-      Node expected = Node::null());
+                                    Node expected = Node::null());
   /**
    * Make transitivity proof, where children contains one or more proofs of
    * equalities that form an ordered chain. In other words, the vector children
@@ -178,6 +178,7 @@ class ProofNodeManager
    * of SYMM, e.g. for (SYMM (SYMM (r P))), this returns (r P) where r != SYMM.
    */
   static ProofNode* cancelDoubleSymm(ProofNode* pn);
+
  private:
   /** The (optional) proof checker */
   ProofChecker* d_checker;

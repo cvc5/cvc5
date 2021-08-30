@@ -100,7 +100,7 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
 
             if (isSym)
             {
-              if (pgc->getRule()==PfRule::SYMM)
+              if (pgc->getRule() == PfRule::SYMM)
               {
                 d_manager->updateNode(cur, pgc->getChildren()[0].get());
               }

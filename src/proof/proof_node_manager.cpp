@@ -61,11 +61,13 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
   return mkNode(PfRule::ASSUME, {}, {fact}, fact);
 }
 
-std::shared_ptr<ProofNode> mkSymm(std::shared_ptr<ProofNode> child, Node expected)
+std::shared_ptr<ProofNode> mkSymm(std::shared_ptr<ProofNode> child,
+                                  Node expected)
 {
-  if (child->getRule()==PfRule::SYMM)
+  if (child->getRule() == PfRule::SYMM)
   {
-    Assert (expected.isNull() || child->getChildren()[0]->getResult()==expected);
+    Assert(expected.isNull()
+           || child->getChildren()[0]->getResult() == expected);
     return child->getChildren()[0];
   }
   return mkNode(PfRule::SYMM, {child}, {}, expected);
@@ -183,7 +185,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
         // use SYMM if possible
         if (aMatch == aeqSym)
         {
-          if (pfaa->getRule()==PfRule::SYMM)
+          if (pfaa->getRule() == PfRule::SYMM)
           {
             updateNode(pfs.get(), pfaa->getChildren()[0].get());
           }
@@ -280,7 +282,7 @@ bool ProofNodeManager::updateNode(ProofNode* pn, ProofNode* pnr)
 {
   Assert(pn != nullptr);
   Assert(pnr != nullptr);
-  if (pn==pnr)
+  if (pn == pnr)
   {
     return true;
   }
@@ -376,10 +378,10 @@ std::shared_ptr<ProofNode> ProofNodeManager::clone(
 
 ProofNode* ProofNodeManager::cancelDoubleSymm(ProofNode* pn)
 {
-  while (pn->getRule()==PfRule::SYMM)
+  while (pn->getRule() == PfRule::SYMM)
   {
     std::shared_ptr<ProofNode> pnc = pn->getChildren()[0];
-    if (pnc->getRule()==PfRule::SYMM)
+    if (pnc->getRule() == PfRule::SYMM)
     {
       pn = pnc->getChildren()[0].get();
     }
