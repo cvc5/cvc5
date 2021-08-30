@@ -189,7 +189,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   int returnValue = 0;
   {
     // notify SmtEngine that we are starting to parse
-    pExecutor->getSmtEngine()->setInfo("filename", filenameStr);
+    solver->setInfo("filename", filenameStr);
 
     // Parse and execute commands until we are done
     std::unique_ptr<Command> cmd;
