@@ -7044,6 +7044,8 @@ std::string Solver::getOption(const std::string& option) const
   CVC5_API_TRY_CATCH_END;
 }
 
+// Supports a visitor from a list of lambdas
+// Taken from https://en.cppreference.com/w/cpp/utility/variant/visit
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
