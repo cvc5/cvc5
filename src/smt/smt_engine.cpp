@@ -375,25 +375,6 @@ LogicInfo SmtEngine::getUserLogicInfo() const
   return res;
 }
 
-void SmtEngine::notifyStartParsing(const std::string& filename)
-{
-  d_env->setFilename(filename);
-  d_env->getStatisticsRegistry().registerValue<std::string>("driver::filename",
-                                                            filename);
-  // Copy the original options. This is called prior to beginning parsing.
-  // Hence reset should revert to these options, which note is after reading
-  // the command line.
-}
-
-const std::string& SmtEngine::getFilename() const
-{
-  return d_env->getFilename();
-}
-
-void SmtEngine::setResultStatistic(const std::string& result) {
-  d_env->getStatisticsRegistry().registerValue<std::string>("driver::sat/unsat",
-                                                            result);
-}
 void SmtEngine::setTotalTimeStatistic(double seconds) {
   d_env->getStatisticsRegistry().registerValue<double>("driver::totalTime",
                                                        seconds);
@@ -432,7 +413,10 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
 
   if (key == "filename")
   {
-    d_env->setFilename(value);
+  d_env->d_options.driver.filename = value;
+  d_env->d_originalOptions->driver.filename = value;
+  d_env->getStatisticsRegistry().registerValue<std::string>("driver::filename",
+                                                            value);
   }
   else if (key == "smt-lib-version" && !getOptions().base.inputLanguageWasSetByUser)
   {
