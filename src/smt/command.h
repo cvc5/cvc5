@@ -939,7 +939,7 @@ class CVC5_EXPORT GetAssignmentCommand : public Command
 class CVC5_EXPORT GetModelCommand : public Command
 {
  public:
-  GetModelCommand();
+  GetModelCommand(bool isKnownSat = true);
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
@@ -950,6 +950,8 @@ class CVC5_EXPORT GetModelCommand : public Command
                 Language language = Language::LANG_AUTO) const override;
 
  protected:
+  /** Whether this command is proceeded by a "sat" response */
+  bool d_isKnownSat;
   /** Result of printing the model */
   std::string d_result;
 }; /* class GetModelCommand */

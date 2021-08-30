@@ -1746,13 +1746,13 @@ void GetAssignmentCommand::toStream(std::ostream& out,
 /* class GetModelCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-GetModelCommand::GetModelCommand() {}
+GetModelCommand::GetModelCommand(bool isKnownSat) : d_isKnownSat(isKnownSat) {}
 void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
     // use the smt::Model model utility for printing
-    smt::Model m;
+    smt::Model m(d_isKnownSat);
     // set the model declarations, which determines what is printed in the model
     std::vector<api::Sort> declareSorts = sm->getModelDeclareSorts();
     for (const api::Sort& s : declareSorts)
@@ -1825,7 +1825,7 @@ void GetModelCommand::printResult(std::ostream& out, uint32_t verbosity) const
 
 Command* GetModelCommand::clone() const
 {
-  GetModelCommand* c = new GetModelCommand();
+  GetModelCommand* c = new GetModelCommand(d_isKnownSat);
   c->d_result = d_result;
   return c;
 }
