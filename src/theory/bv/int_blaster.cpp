@@ -240,7 +240,10 @@ Node IntBlaster::translateWithChildren(
          || !(original[1].isConst()
               && original[1].getConst<BitVector>().getValue().isZero()));
 
+  // Store the translated node
   Node returnNode;
+
+  // Translate according to the kind of the original node.
   switch (oldKind)
   {
     case kind::BITVECTOR_ADD:
@@ -347,12 +350,6 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_SHL:
     {
-      /**
-       * a << b is a*2^b.
-       * The exponentiation is simulated by an ite.
-       * Only cases where b <= bit width are considered.
-       * Otherwise, the result is 0.
-       */
       uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createShiftNode(translated_children, bvsize, true);
       break;
