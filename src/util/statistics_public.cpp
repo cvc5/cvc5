@@ -30,7 +30,6 @@ void registerPublicStatistics(StatisticsRegistry& reg)
   reg.registerHistogram<api::Kind>("api::TERM", false);
 
   reg.registerValue<std::string>("driver::filename", false);
-  reg.registerValue<std::string>("driver::sat/unsat", false);
   reg.registerValue<double>("driver::totalTime", false);
 
   for (theory::TheoryId id = theory::THEORY_FIRST; id != theory::THEORY_LAST;
