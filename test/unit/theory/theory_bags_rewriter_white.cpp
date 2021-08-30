@@ -710,8 +710,8 @@ TEST_F(TestTheoryWhiteBagsRewriter, map)
   // (bag.map (lambda ((x U))  t) emptybag) = emptybag
   Node n1 = d_nodeManager->mkNode(BAG_MAP, lambda, emptybagString);
   RewriteResponse response1 = d_rewriter->postRewrite(n1);
-  Node emptybagInteger =
-      d_nodeManager->mkConst(EmptyBag(d_nodeManager->integerType()));
+  TypeNode type = d_nodeManager->mkBagType(d_nodeManager->integerType());
+  Node emptybagInteger = d_nodeManager->mkConst(EmptyBag(type));
   ASSERT_TRUE(response1.d_node == emptybagInteger
               && response1.d_status == REWRITE_AGAIN_FULL);
 
