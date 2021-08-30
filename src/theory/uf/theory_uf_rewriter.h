@@ -34,7 +34,7 @@ namespace uf {
 class TheoryUfRewriter : public TheoryRewriter
 {
  public:
-   TheoryUfRewriter(bool isHigherOrder = false);
+  TheoryUfRewriter(bool isHigherOrder = false);
   RewriteResponse postRewrite(TNode node) override;
 
   RewriteResponse preRewrite(TNode node) override;

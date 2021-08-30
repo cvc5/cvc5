@@ -23,7 +23,10 @@ namespace cvc5 {
 namespace theory {
 namespace uf {
 
-TheoryUfRewriter::TheoryUfRewriter(bool isHigherOrder) : d_isHigherOrder(isHigherOrder){}
+TheoryUfRewriter::TheoryUfRewriter(bool isHigherOrder)
+    : d_isHigherOrder(isHigherOrder)
+{
+}
 
 RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
 {
