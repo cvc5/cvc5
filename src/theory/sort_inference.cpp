@@ -31,6 +31,7 @@
 #include "options/uf_options.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/rewriter.h"
+#include "smt/env.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;
@@ -880,7 +881,7 @@ bool SortInference::isMonotonic( TypeNode tn ) {
 
 bool SortInference::isHandledApplyUf(Kind k) const
 {
-  return k == APPLY_UF && !options::ufHo();
+  return k == APPLY_UF && !d_env.getLogicInfo().isHigherOrder();
 }
 
 }  // namespace theory

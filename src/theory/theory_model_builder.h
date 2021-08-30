@@ -207,8 +207,8 @@ class TheoryEngineModelBuilder
    * Assign all unassigned functions in the model m (those returned by
    * TheoryModel::getFunctionsToAssign),
    * using the two functions above. Currently:
-   * If ufHo is disabled, we call assignFunction for all functions.
-   * If ufHo is enabled, we call assignHoFunction.
+   * If HO logic is disabled, we call assignFunction for all functions.
+   * If HO logic is enabled, we call assignHoFunction.
    */
   void assignFunctions(TheoryModel* m);
 

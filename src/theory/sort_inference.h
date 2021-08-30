@@ -25,6 +25,9 @@
 #include "expr/type_node.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace theory {
 
 /** sort inference
@@ -106,7 +109,7 @@ private:
   void reset();
 
  public:
-  SortInference() : d_sortCount(1) {}
+  SortInference(Env& env) : d_env(env), d_sortCount(1) {}
   ~SortInference(){}
 
   /** initialize

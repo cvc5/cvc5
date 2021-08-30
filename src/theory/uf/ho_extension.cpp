@@ -436,7 +436,7 @@ bool HoExtension::collectModelInfoHo(TheoryModel* m,
   for (std::set<Node>::iterator it = termSet.begin(); it != termSet.end(); ++it)
   {
     Node n = *it;
-    // For model-building with ufHo, we require that APPLY_UF is always
+    // For model-building with higher-order, we require that APPLY_UF is always
     // expanded to HO_APPLY. That is, we always expand to a fully applicative
     // encoding during model construction.
     if (!collectModelInfoHoTerm(n, m))

@@ -992,8 +992,9 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
   if( isVar ){
     Assert(qi->d_var_num.find(n) != qi->d_var_num.end());
     // rare case where we have a free variable in an operator, we are invalid
+    bool isHigherOrder = d_qstate.getEnv().getLogicInfo().isHigherOrder();
     if (n.getKind() == ITE
-        || (options::ufHo() && n.getKind() == APPLY_UF
+        || (isHigherOrder && n.getKind() == APPLY_UF
             && expr::hasFreeVar(n.getOperator())))
     {
       d_type = typ_invalid;
