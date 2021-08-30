@@ -91,7 +91,6 @@ int main(int argc, char* argv[])
     }
     if (solver->getOptions().base.statistics && pExecutor != nullptr)
     {
-      totalTime.reset();
       pExecutor->printStatistics(solver->getDriverOptions().err());
     }
   }
