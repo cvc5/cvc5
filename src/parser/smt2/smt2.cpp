@@ -1104,7 +1104,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         if ((*i).getSort().isFunction())
         {
           parseError(
-              "Cannot apply equalty to functions unless logic is prefixed by "
+              "Cannot apply equality to functions unless logic is prefixed by "
               "HO_.");
         }
       }

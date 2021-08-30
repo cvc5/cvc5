@@ -509,14 +509,10 @@ BagsRewriteResponse BagsRewriter::postRewriteEqual(const TNode& n) const
 BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
 {
   Assert(n.getKind() == kind::BAG_MAP);
-  if (n[1].getKind() == EMPTYBAG)
-  {
-    // (bag.map (lambda ((x U))  t) emptybag) = emptybag
-    Node ret = d_nm->mkConst(EmptyBag(n[0].getType().getRangeType()));
-    return BagsRewriteResponse(ret, Rewrite::MAP_EMPTY);
-  }
   if (n[1].isConst())
   {
+    // (bag.map f emptybag) = emptybag
+    // (bag.map f (bag "a" 3) = (bag (f "a") 3)
     std::map<Node, Rational> elements = NormalForm::getBagElements(n[1]);
     std::map<Node, Rational> mappedElements;
     std::map<Node, Rational>::iterator it = elements.begin();
@@ -528,7 +524,7 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
     }
     TypeNode t = d_nm->mkBagType(n[0].getType().getRangeType());
     Node ret = NormalForm::constructConstantBagFromElements(t, mappedElements);
-    return BagsRewriteResponse(ret, Rewrite::MAP_EMPTY);
+    return BagsRewriteResponse(ret, Rewrite::MAP_CONST);
   }
   Kind k = n[1].getKind();
   switch (k)
