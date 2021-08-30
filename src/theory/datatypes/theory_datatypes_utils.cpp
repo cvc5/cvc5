@@ -52,8 +52,9 @@ Node mkApplyCons(TypeNode tn, const DType& dt, size_t index, const std::vector<N
   Assert (index<dt.getNumConstructors());
   Assert (dt[index].getNumArgs()==children.size());
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> cchildren(children.begin(), children.end());
+  std::vector<Node> cchildren;
   cchildren.push_back(dt[index].getConstructor());
+  cchildren.insert(cchildren.end(), children.begin(), children.end());
   if (dt.isParametric())
   {
     // add type ascription for ambiguous constructor types
