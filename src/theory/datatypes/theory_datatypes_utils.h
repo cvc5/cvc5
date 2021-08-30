@@ -37,6 +37,9 @@ namespace utils {
 Node getInstCons(Node n, const DType& dt, size_t index);
 /**
  * Apply constructor, taking into account whether the datatype is parametric.
+ *
+ * Return the index^th constructor of dt applied to children, where tn is the
+ * datatype type for dt, instantiated if dt is parametric.
  */
 Node mkApplyCons(TypeNode tn,
                  const DType& dt,
