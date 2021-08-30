@@ -25,7 +25,7 @@
 
 namespace cvc5 {
 
-class TheoryEngine;
+class Env;
 
 namespace theory {
 
@@ -48,7 +48,7 @@ class TheoryEngineModelBuilder
   typedef std::unordered_set<Node> NodeSet;
 
  public:
-  TheoryEngineModelBuilder();
+  TheoryEngineModelBuilder(Env& env);
   virtual ~TheoryEngineModelBuilder() {}
   /**
    * Should be called only on models m after they have been prepared
@@ -315,6 +315,8 @@ class TheoryEngineModelBuilder
                             Node v,
                             std::map<Node, bool>& visited);
   //---------------------------------end for debugging finite model finding
+  /** Reference to the env */
+  Env& d_env;
 
 }; /* class TheoryEngineModelBuilder */
 
