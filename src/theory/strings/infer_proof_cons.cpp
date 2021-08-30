@@ -193,7 +193,7 @@ void InferProofCons::convert(InferenceId infer,
           useBuffer = true;
         }
       }
-      if (!useBuffer)
+      else
       {
         // use the predicate version?
         ps.d_args.push_back(conc);
