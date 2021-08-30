@@ -30,7 +30,7 @@ namespace utils {
 /** get instantiate cons */
 Node getInstCons(Node n, const DType& dt, size_t index)
 {
-  Assert(index >= 0 && index < (int)dt.getNumConstructors());
+  Assert(index < dt.getNumConstructors());
   std::vector<Node> children;
   NodeManager* nm = NodeManager::currentNM();
   TypeNode tn = n.getType();
@@ -42,7 +42,7 @@ Node getInstCons(Node n, const DType& dt, size_t index)
   }
   Node n_ic = mkApplyCons(tn, dt, index, children);
   Assert(n_ic.getType() == tn);
-  Assert(isInstCons(n, n_ic, dt) == index);
+  Assert(static_cast<size_t>(isInstCons(n, n_ic, dt)) == index);
   return n_ic;
 }
 
