@@ -18,6 +18,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/term_util.h"
+#include "smt/logic_exception.h"
 
 namespace cvc5 {
 namespace theory {
@@ -41,6 +42,12 @@ void QuantifiersRegistry::registerQuantifier(Node q)
       << "Instantiation constants for " << q << " : " << std::endl;
   for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
   {
+    if (!q[0][i].getType().isFirstClass())
+    {
+      std::stringstream ss;
+      ss << "Cannot handle quantified formula over non-first-class sort: " << q;
+      throw LogicException(ss.str());
+    }
     d_vars[q].push_back(q[0][i]);
     // make instantiation constants
     Node ic = nm->mkInstConstant(q[0][i].getType());
