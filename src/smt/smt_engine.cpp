@@ -471,6 +471,10 @@ std::string SmtEngine::getInfo(const std::string& key) const
   {
     return "immediate-exit";
   }
+  if (key == "filename")
+  {
+    return d_env->getOptions().driver.filename;
+  }
   if (key == "name")
   {
     return toSExpr(Configuration::getName());
