@@ -28,12 +28,11 @@ namespace datatypes {
 namespace utils {
 
 /** get instantiate cons */
-Node getInstCons(Node n, const DType& dt, int index)
+Node getInstCons(Node n, const DType& dt, size_t index)
 {
   Assert(index >= 0 && index < (int)dt.getNumConstructors());
   std::vector<Node> children;
   NodeManager* nm = NodeManager::currentNM();
-  children.push_back(dt[index].getConstructor());
   TypeNode tn = n.getType();
   for (unsigned i = 0, nargs = dt[index].getNumArgs(); i < nargs; i++)
   {
@@ -41,30 +40,29 @@ Node getInstCons(Node n, const DType& dt, int index)
         APPLY_SELECTOR_TOTAL, dt[index].getSelectorInternal(tn, i), n);
     children.push_back(nc);
   }
-  Node n_ic = nm->mkNode(APPLY_CONSTRUCTOR, children);
+  Node n_ic = mkApplyCons(tn, dt, index, children);
+  Assert(n_ic.getType() == tn);
+  Assert(isInstCons(n, n_ic, dt) == index);
+  return n_ic;
+}
+
+Node mkApplyCons(TypeNode tn, const DType& dt, size_t index, const std::vector<Node>& children)
+{
+  std::vector<Node> cchildren(children.begin(), children.end());
+  cchildren.push_back(dt[index].getConstructor());
   if (dt.isParametric())
   {
     // add type ascription for ambiguous constructor types
-    if (!n_ic.getType().isComparableTo(tn))
-    {
-      Debug("datatypes-parametric")
-          << "DtInstantiate: ambiguous type for " << n_ic << ", ascribe to "
-          << n.getType() << std::endl;
-      Debug("datatypes-parametric")
-          << "Constructor is " << dt[index] << std::endl;
-      TypeNode tspec = dt[index].getSpecializedConstructorType(n.getType());
-      Debug("datatypes-parametric")
-          << "Type specification is " << tspec << std::endl;
-      children[0] = nm->mkNode(APPLY_TYPE_ASCRIPTION,
-                               nm->mkConst(AscriptionType(tspec)),
-                               children[0]);
-      n_ic = nm->mkNode(APPLY_CONSTRUCTOR, children);
-      Assert(n_ic.getType() == tn);
-    }
+    Debug("datatypes-parametric")
+        << "Constructor is " << dt[index] << std::endl;
+    TypeNode tspec = dt[index].getSpecializedConstructorType(tn);
+    Debug("datatypes-parametric")
+        << "Type specification is " << tspec << std::endl;
+    cchildren[0] = nm->mkNode(APPLY_TYPE_ASCRIPTION,
+                              nm->mkConst(AscriptionType(tspec)),
+                              cchildren[0]);
   }
-  Assert(isInstCons(n, n_ic, dt) == index);
-  // n_ic = Rewriter::rewrite( n_ic );
-  return n_ic;
+  return nm->mkNode(APPLY_CONSTRUCTOR, cchildren);
 }
 
 int isInstCons(Node t, Node n, const DType& dt)
