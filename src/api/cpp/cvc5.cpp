@@ -4749,6 +4749,25 @@ const static std::unordered_map<cvc5::RoundingMode,
     };
 
 /* -------------------------------------------------------------------------- */
+/* Options                                                                    */
+/* -------------------------------------------------------------------------- */
+
+DriverOptions::DriverOptions(const Solver& solver) : d_solver(solver) {}
+
+std::istream& DriverOptions::in() const
+{
+  return *d_solver.d_smtEngine->getOptions().base.in;
+}
+std::ostream& DriverOptions::err() const
+{
+  return *d_solver.d_smtEngine->getOptions().base.err;
+}
+std::ostream& DriverOptions::out() const
+{
+  return *d_solver.d_smtEngine->getOptions().base.out;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Statistics                                                                 */
 /* -------------------------------------------------------------------------- */
 
@@ -7033,6 +7052,8 @@ std::vector<std::string> Solver::getOptionNames() const
   ////////
   CVC5_API_TRY_CATCH_END;
 }
+
+DriverOptions Solver::getDriverOptions() const { return DriverOptions(*this); }
 
 std::vector<Term> Solver::getUnsatAssumptions(void) const
 {

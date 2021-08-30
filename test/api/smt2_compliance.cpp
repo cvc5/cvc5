@@ -59,11 +59,9 @@ void testGetInfo(api::Solver* solver, const char* s)
 {
   std::unique_ptr<SymbolManager> symman(new SymbolManager(solver));
 
-  std::unique_ptr<Parser> p(
-      ParserBuilder(solver, symman.get(), solver->getOptions()).build());
-  p->setInput(Input::newStringInput(Language::LANG_SMTLIB_V2_6,
-                                    string("(get-info ") + s + ")",
-                                    "<internal>"));
+  std::unique_ptr<Parser> p(ParserBuilder(solver, symman.get(), true).build());
+  p->setInput(Input::newStringInput(
+      "LANG_SMTLIB_V2_6", string("(get-info ") + s + ")", "<internal>"));
   assert(p != NULL);
   Command* c = p->nextCommand();
   assert(c != NULL);

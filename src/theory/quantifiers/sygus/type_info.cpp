@@ -190,6 +190,20 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     {
       d_hasBoolConnective = true;
     }
+    if (Trace.isOn("sygus-db"))
+    {
+      Node eop = datatypes::utils::getExpandedDefinitionForm(sop);
+      Trace("sygus-db") << "Expanded form: ";
+      if (eop == sop)
+      {
+        Trace("sygus-db") << "same";
+      }
+      else
+      {
+        Trace("sygus-db") << eop;
+      }
+      Trace("sygus-db") << std::endl;
+    }
   }
   // compute minimum type depth information
   computeMinTypeDepthInternal(tn, 0);

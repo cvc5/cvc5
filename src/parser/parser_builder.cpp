@@ -33,24 +33,21 @@
 namespace cvc5 {
 namespace parser {
 
-ParserBuilder::ParserBuilder(api::Solver* solver, SymbolManager* sm)
-    : d_solver(solver), d_symman(sm)
-{
-  init(solver, sm);
-}
-
 ParserBuilder::ParserBuilder(api::Solver* solver,
                              SymbolManager* sm,
-                             const Options& options)
+                             bool useOptions)
     : d_solver(solver), d_symman(sm)
 {
   init(solver, sm);
-  withOptions(options);
+  if (useOptions)
+  {
+    withOptions(solver->getOptions());
+  }
 }
 
 void ParserBuilder::init(api::Solver* solver, SymbolManager* sm)
 {
-  d_lang = Language::LANG_AUTO;
+  d_lang = "LANG_AUTO";
   d_solver = solver;
   d_symman = sm;
   d_checksEnabled = true;
@@ -64,24 +61,17 @@ void ParserBuilder::init(api::Solver* solver, SymbolManager* sm)
 Parser* ParserBuilder::build()
 {
   Parser* parser = NULL;
-  switch (d_lang)
+  if (d_lang == "LANG_SYGUS_V2" || d_lang == "LANG_SMTLIB_V2_6")
   {
-    case Language::LANG_SYGUS_V2:
-      parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
-      break;
-    case Language::LANG_TPTP:
-      parser = new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly);
-      break;
-    default:
-      if (language::isLangSmt2(d_lang))
-      {
-        parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
-      }
-      else
-      {
-        parser = new Cvc(d_solver, d_symman, d_strictMode, d_parseOnly);
-      }
-      break;
+    parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
+  }
+  else if (d_lang == "LANG_TPTP")
+  {
+    parser = new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly);
+  }
+  else
+  {
+    parser = new Cvc(d_solver, d_symman, d_strictMode, d_parseOnly);
   }
 
   if( d_checksEnabled ) {
@@ -108,7 +98,7 @@ ParserBuilder& ParserBuilder::withChecks(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withInputLanguage(Language lang)
+ParserBuilder& ParserBuilder::withInputLanguage(const std::string& lang)
 {
   d_lang = lang;
   return *this;
@@ -122,7 +112,7 @@ ParserBuilder& ParserBuilder::withParseOnly(bool flag) {
 ParserBuilder& ParserBuilder::withOptions(const Options& opts)
 {
   ParserBuilder& retval = *this;
-  retval = retval.withInputLanguage(opts.base.inputLanguage)
+  retval = retval.withInputLanguage(d_solver->getOption("input-language"))
                .withChecks(opts.parser.semanticChecks)
                .withStrictMode(opts.parser.strictParsing)
                .withParseOnly(opts.base.parseOnly)
