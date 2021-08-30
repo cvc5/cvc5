@@ -13,15 +13,11 @@
  * Header for main cvc5 driver.
  */
 
-#include <chrono>
-#include <exception>
 #include <memory>
 #include <string>
 
 #include "api/cpp/cvc5.h"
 #include "base/cvc5config.h"
-#include "base/exception.h"
-#include "options/options.h"
 
 #ifndef CVC5__MAIN__MAIN_H
 #define CVC5__MAIN__MAIN_H
