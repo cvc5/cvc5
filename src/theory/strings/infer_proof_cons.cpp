@@ -59,12 +59,11 @@ void InferProofCons::notifyFact(const InferInfo& ii)
   d_lazyFactMap.insert(ii.d_conc, iic);
 }
 
-bool InferProofCons::addProofTo(
-    CDProof* pf,
-    Node conc,
-    InferenceId infer,
-    bool isRev,
-    const std::vector<Node>& exp)
+bool InferProofCons::addProofTo(CDProof* pf,
+                                Node conc,
+                                InferenceId infer,
+                                bool isRev,
+                                const std::vector<Node>& exp)
 {
   // now go back and convert it to proof steps and add to proof
   bool useBuffer = false;
@@ -1096,7 +1095,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   AlwaysAssert(it != d_lazyFactMap.end());
   std::shared_ptr<InferInfo> ii = (*it).second;
   Assert(ii->d_conc == fact);
-  //return getProofFor(d_pnm, fact, ii->getId(), ii->d_idRev, ii->d_premises);
+  // return getProofFor(d_pnm, fact, ii->getId(), ii->d_idRev, ii->d_premises);
   // make a placeholder proof using STRINGS_INFERENCE, which is reconstructed
   // during post-process
   CDProof pf(d_pnm);

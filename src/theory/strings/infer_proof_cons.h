@@ -77,11 +77,11 @@ class InferProofCons : public ProofGenerator
   /** Identify this generator (for debugging, etc..) */
   virtual std::string identify() const override;
 
-  static bool addProofTo(CDProof * pf,
-                                                Node conc,
-                                                InferenceId infer,
-                                                bool isRev,
-                                                const std::vector<Node>& exp);
+  static bool addProofTo(CDProof* pf,
+                         Node conc,
+                         InferenceId infer,
+                         bool isRev,
+                         const std::vector<Node>& exp);
   static void packArgs(Node conc,
                        InferenceId infer,
                        bool isRev,
