@@ -173,8 +173,7 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
         std::vector<Node> bvs_cmb;
         bvs_cmb.insert(bvs_cmb.end(), bvs.begin(), bvs.end());
         bvs_cmb.insert(bvs_cmb.end(), vars.begin(), vars.end());
-        vars.insert(vars.begin(), dt[j].getConstructor());
-        Node c = nm->mkNode(kind::APPLY_CONSTRUCTOR, vars);
+        Node c = datatypes::utils::mkApplyCons(tn, dt, j, vars);
         TNode ct = c;
         Node body = q[1].substitute(svar, ct);
         if (!bvs_cmb.empty())
