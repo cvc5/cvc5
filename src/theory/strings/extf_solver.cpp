@@ -678,6 +678,7 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
     return mv;
   }
   Node nr = d_state.getRepresentative(n);
+  // if the normal form is available, use it
   if (effort >= 1 && n.getType().isStringLike())
   {
     Assert(effort < 3);
@@ -692,6 +693,7 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
     }
     return ns;
   }
+  // otherwise, we use the best content heuristic
   Node c = d_bsolver.explainBestContentEqc(n, nr, exp);
   if (!c.isNull())
   {
