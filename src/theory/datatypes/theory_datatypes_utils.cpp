@@ -46,11 +46,14 @@ Node getInstCons(Node n, const DType& dt, size_t index)
   return n_ic;
 }
 
-Node mkApplyCons(TypeNode tn, const DType& dt, size_t index, const std::vector<Node>& children)
+Node mkApplyCons(TypeNode tn,
+                 const DType& dt,
+                 size_t index,
+                 const std::vector<Node>& children)
 {
-  Assert (tn.isDatatype());
-  Assert (index<dt.getNumConstructors());
-  Assert (dt[index].getNumArgs()==children.size());
+  Assert(tn.isDatatype());
+  Assert(index < dt.getNumConstructors());
+  Assert(dt[index].getNumArgs() == children.size());
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> cchildren;
   cchildren.push_back(dt[index].getConstructor());

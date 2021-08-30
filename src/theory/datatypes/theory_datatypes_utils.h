@@ -38,7 +38,10 @@ Node getInstCons(Node n, const DType& dt, size_t index);
 /**
  * Apply constructor, taking into account whether the datatype is parametric.
  */
-Node mkApplyCons(TypeNode tn, const DType& dt, size_t index, const std::vector<Node>& children);
+Node mkApplyCons(TypeNode tn,
+                 const DType& dt,
+                 size_t index,
+                 const std::vector<Node>& children);
 /** is instantiation cons
  *
  * If this method returns a value >=0, then that value, call it index,

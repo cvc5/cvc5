@@ -17,10 +17,10 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/first_order_model.h"
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/term_database.h"
 
 using namespace cvc5::kind;
 
@@ -166,7 +166,7 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
       {
         std::vector<Node> vars;
         TypeNode dtjtn = dt[j].getSpecializedConstructorType(tn);
-        Assert (dtjtn.getNumChildren()==dt[j].getNumArgs()+1);
+        Assert(dtjtn.getNumChildren() == dt[j].getNumArgs() + 1);
         for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
         {
           TypeNode tns = dtjtn[k];
