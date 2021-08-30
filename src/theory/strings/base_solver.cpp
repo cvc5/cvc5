@@ -368,13 +368,11 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
       {
         // Add explanations for the empty children
         Node emps;
-        while (count < n.getNumChildren()
-               && d_state.isEqualEmptyWord(n[count], emps))
+        if (d_state.isEqualEmptyWord(n[count], emps))
         {
           d_im.addToExplanation(n[count], emps, exp);
-          count++;
         }
-        if (count < n.getNumChildren())
+        else
         {
           if (vecc[countc].isNull())
           {
@@ -409,8 +407,8 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
             }
             countc++;
           }
-          count++;
         }
+        count++;
       }
       // exp contains an explanation of n==c
       Assert(!isConst || countc == vecc.size());
