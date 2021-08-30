@@ -84,7 +84,7 @@ using namespace cvc5::theory;
 
 namespace cvc5 {
 
-SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
+SmtEngine::SmtEngine(NodeManager* nm, const Options* optr)
     : d_env(new Env(nm, optr)),
       d_state(new SmtEngineState(*d_env.get(), *this)),
       d_absValues(new AbstractValues(getNodeManager())),
@@ -131,11 +131,9 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // make the SMT solver
   d_smtSolver.reset(new SmtSolver(*d_env.get(), *d_state, *d_pp, *d_stats));
   // make the SyGuS solver
-  d_sygusSolver.reset(
-      new SygusSolver(*d_smtSolver, *d_pp, getUserContext(), d_outMgr));
+  d_sygusSolver.reset(new SygusSolver(*d_env.get(), *d_smtSolver, *d_pp));
   // make the quantifier elimination solver
-  d_quantElimSolver.reset(new QuantElimSolver(*d_smtSolver));
-
+  d_quantElimSolver.reset(new QuantElimSolver(*d_env.get(), *d_smtSolver));
 }
 
 bool SmtEngine::isFullyInited() const { return d_state->isFullyInited(); }
@@ -259,12 +257,12 @@ void SmtEngine::finishInit()
   // subsolvers
   if (d_env->getOptions().smt.produceAbducts)
   {
-    d_abductSolver.reset(new AbductionSolver(this));
+    d_abductSolver.reset(new AbductionSolver(*d_env.get(), this));
   }
   if (d_env->getOptions().smt.produceInterpols
       != options::ProduceInterpols::NONE)
   {
-    d_interpolSolver.reset(new InterpolationSolver(this));
+    d_interpolSolver.reset(new InterpolationSolver(*d_env.get(), this));
   }
 
   d_pp->finishInit();
@@ -377,25 +375,6 @@ LogicInfo SmtEngine::getUserLogicInfo() const
   return res;
 }
 
-void SmtEngine::notifyStartParsing(const std::string& filename)
-{
-  d_env->setFilename(filename);
-  d_env->getStatisticsRegistry().registerValue<std::string>("driver::filename",
-                                                            filename);
-  // Copy the original options. This is called prior to beginning parsing.
-  // Hence reset should revert to these options, which note is after reading
-  // the command line.
-}
-
-const std::string& SmtEngine::getFilename() const
-{
-  return d_env->getFilename();
-}
-
-void SmtEngine::setResultStatistic(const std::string& result) {
-  d_env->getStatisticsRegistry().registerValue<std::string>("driver::sat/unsat",
-                                                            result);
-}
 void SmtEngine::setTotalTimeStatistic(double seconds) {
   d_env->getStatisticsRegistry().registerValue<double>("driver::totalTime",
                                                        seconds);
@@ -434,7 +413,10 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
 
   if (key == "filename")
   {
-    d_env->setFilename(value);
+    d_env->d_options.driver.filename = value;
+    d_env->d_originalOptions->driver.filename = value;
+    d_env->getStatisticsRegistry().registerValue<std::string>(
+        "driver::filename", value);
   }
   else if (key == "smt-lib-version" && !getOptions().base.inputLanguageWasSetByUser)
   {
@@ -488,6 +470,10 @@ std::string SmtEngine::getInfo(const std::string& key) const
   if (key == "error-behavior")
   {
     return "immediate-exit";
+  }
+  if (key == "filename")
+  {
+    return d_env->getOptions().driver.filename;
   }
   if (key == "name")
   {
@@ -726,7 +712,7 @@ void SmtEngine::defineFunctionRec(Node func,
 Result SmtEngine::quickCheck() {
   Assert(d_state->isFullyInited());
   Trace("smt") << "SMT quickCheck()" << endl;
-  const std::string& filename = d_env->getFilename();
+  const std::string& filename = d_env->getOptions().driver.filename;
   return Result(
       Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, filename);
 }
@@ -942,7 +928,7 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
     {
       printStatisticsDiff();
     }
-    return Result(Result::SAT_UNKNOWN, why, d_env->getFilename());
+    return Result(Result::SAT_UNKNOWN, why, d_env->getOptions().driver.filename);
   }
 }
 
@@ -1023,6 +1009,7 @@ void SmtEngine::declareSynthFun(Node func,
                                 const std::vector<Node>& vars)
 {
   SmtScope smts(this);
+  finishInit();
   d_state->doPendingPops();
   d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
 
@@ -1119,7 +1106,7 @@ Node SmtEngine::getValue(const Node& ex) const
   Trace("smt") << "SMT getValue(" << ex << ")" << endl;
   if (Dump.isOn("benchmark"))
   {
-    getPrinter().toStreamCmdGetValue(d_outMgr.getDumpOut(), {ex});
+    getPrinter().toStreamCmdGetValue(d_env->getDumpOut(), {ex});
   }
   TypeNode expectedType = ex.getType();
 
@@ -1168,7 +1155,7 @@ Node SmtEngine::getValue(const Node& ex) const
   return resultNode;
 }
 
-std::vector<Node> SmtEngine::getValues(const std::vector<Node>& exprs)
+std::vector<Node> SmtEngine::getValues(const std::vector<Node>& exprs) const
 {
   std::vector<Node> result;
   for (const Node& e : exprs)
@@ -1176,6 +1163,39 @@ std::vector<Node> SmtEngine::getValues(const std::vector<Node>& exprs)
     result.push_back(getValue(e));
   }
   return result;
+}
+
+std::vector<Node> SmtEngine::getModelDomainElements(TypeNode tn) const
+{
+  Assert(tn.isSort());
+  Model* m = getAvailableModel("getModelDomainElements");
+  return m->getTheoryModel()->getDomainElements(tn);
+}
+
+bool SmtEngine::isModelCoreSymbol(Node n)
+{
+  SmtScope smts(this);
+  Assert(n.isVar());
+  const Options& opts = d_env->getOptions();
+  if (opts.smt.modelCoresMode == options::ModelCoresMode::NONE)
+  {
+    // if the model core mode is none, we are always a model core symbol
+    return true;
+  }
+  Model* m = getAvailableModel("isModelCoreSymbol");
+  TheoryModel* tm = m->getTheoryModel();
+  // compute the model core if not done so already
+  if (!tm->isUsingModelCore())
+  {
+    // If we enabled model cores, we compute a model core for m based on our
+    // (expanded) assertions using the model core builder utility. Notice that
+    // we get the assertions using the getAssertionsInternal, which does not
+    // impact whether we are in "sat" mode
+    std::vector<Node> asserts = getAssertionsInternal();
+    d_pp->expandDefinitions(asserts);
+    ModelCoreBuilder::setModelCore(asserts, tm, opts.smt.modelCoresMode);
+  }
+  return tm->isModelCoreSymbol(n);
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
@@ -1203,14 +1223,14 @@ Model* SmtEngine::getModel() {
   {
     // If we enabled model cores, we compute a model core for m based on our
     // (expanded) assertions using the model core builder utility
-    std::vector<Node> eassertsProc = getExpandedAssertions();
-    ModelCoreBuilder::setModelCore(eassertsProc,
-                                   m->getTheoryModel(),
-                                   d_env->getOptions().smt.modelCoresMode);
+    std::vector<Node> asserts = getAssertionsInternal();
+    d_pp->expandDefinitions(asserts);
+    ModelCoreBuilder::setModelCore(
+        asserts, m->getTheoryModel(), d_env->getOptions().smt.modelCoresMode);
   }
   // set the information on the SMT-level model
   Assert(m != nullptr);
-  m->d_inputName = d_env->getFilename();
+  m->d_inputName = d_env->getOptions().driver.filename;
   m->d_isKnownSat = (d_state->getMode() == SmtMode::SAT);
   return m;
 }
@@ -1296,18 +1316,25 @@ std::pair<Node, Node> SmtEngine::getSepHeapAndNilExpr(void)
   return std::make_pair(heap, nil);
 }
 
+std::vector<Node> SmtEngine::getAssertionsInternal()
+{
+  Assert(d_state->isFullyInited());
+  context::CDList<Node>* al = d_asserts->getAssertionList();
+  Assert(al != nullptr);
+  std::vector<Node> res;
+  for (const Node& n : *al)
+  {
+    res.emplace_back(n);
+  }
+  return res;
+}
+
 std::vector<Node> SmtEngine::getExpandedAssertions()
 {
   std::vector<Node> easserts = getAssertions();
   // must expand definitions
-  std::vector<Node> eassertsProc;
-  std::unordered_map<Node, Node> cache;
-  for (const Node& e : easserts)
-  {
-    Node eae = d_pp->expandDefinitions(e, cache);
-    eassertsProc.push_back(eae);
-  }
-  return eassertsProc;
+  d_pp->expandDefinitions(easserts);
+  return easserts;
 }
 Env& SmtEngine::getEnv() { return *d_env.get(); }
 
@@ -1408,7 +1435,7 @@ std::vector<Node> SmtEngine::reduceUnsatCore(const std::vector<Node>& core)
   for (const Node& skip : core)
   {
     std::unique_ptr<SmtEngine> coreChecker;
-    initializeSubsolver(coreChecker);
+    initializeSubsolver(coreChecker, *d_env.get());
     coreChecker->setLogic(getLogicInfo());
     coreChecker->getOptions().smt.checkUnsatCores = false;
     // disable all proof options
@@ -1474,7 +1501,7 @@ void SmtEngine::checkUnsatCore() {
 
   // initialize the core checker
   std::unique_ptr<SmtEngine> coreChecker;
-  initializeSubsolver(coreChecker);
+  initializeSubsolver(coreChecker, *d_env.get());
   coreChecker->getOptions().smt.checkUnsatCores = false;
   // disable all proof options
   coreChecker->getOptions().smt.produceProofs = false;
@@ -1789,15 +1816,7 @@ std::vector<Node> SmtEngine::getAssertions()
       "Cannot query the current assertion list when not in produce-assertions mode.";
     throw ModalException(msg);
   }
-  context::CDList<Node>* al = d_asserts->getAssertionList();
-  Assert(al != nullptr);
-  std::vector<Node> res;
-  for (const Node& n : *al)
-  {
-    res.emplace_back(n);
-  }
-  // copy the result out
-  return res;
+  return getAssertionsInternal();
 }
 
 void SmtEngine::push()
@@ -1988,7 +2007,7 @@ std::string SmtEngine::getOption(const std::string& key) const
 
   if (Dump.isOn("benchmark"))
   {
-    getPrinter().toStreamCmdGetOption(d_outMgr.getDumpOut(), key);
+    getPrinter().toStreamCmdGetOption(d_env->getDumpOut(), key);
   }
 
   if (key == "command-verbosity")

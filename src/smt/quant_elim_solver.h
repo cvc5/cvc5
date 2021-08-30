@@ -22,6 +22,8 @@
 #include "smt/assertions.h"
 
 namespace cvc5 {
+class Env;
+
 namespace smt {
 
 class SmtSolver;
@@ -37,7 +39,7 @@ class SmtSolver;
 class QuantElimSolver
 {
  public:
-  QuantElimSolver(SmtSolver& sms);
+  QuantElimSolver(Env& env, SmtSolver& sms);
   ~QuantElimSolver();
 
   /**
@@ -95,6 +97,8 @@ class QuantElimSolver
                                 bool isInternalSubsolver);
 
  private:
+  /** Reference to the env */
+  Env& d_env;
   /** The SMT solver, which is used during doQuantifierElimination. */
   SmtSolver& d_smtSolver;
 };

@@ -16,6 +16,7 @@
 #include "smt/proof_manager.h"
 
 #include "options/base_options.h"
+#include "options/main_options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "proof/dot/dot_printer.h"
@@ -161,10 +162,10 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::TPTP)
   {
-    out << "% SZS output start Proof for " << d_env.getFilename() << std::endl;
+    out << "% SZS output start Proof for " << d_env.getOptions().driver.filename << std::endl;
     // TODO (proj #37) print in TPTP compliant format
-    out << *fp;
-    out << "% SZS output end Proof for " << d_env.getFilename() << std::endl;
+    out << *fp << std::endl;
+    out << "% SZS output end Proof for " << d_env.getOptions().driver.filename << std::endl;
   }
   else
   {

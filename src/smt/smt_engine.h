@@ -126,7 +126,7 @@ class CVC5_EXPORT SmtEngine
    * If provided, optr is a pointer to a set of options that should initialize the values
    * of the options object owned by this class.
    */
-  SmtEngine(NodeManager* nm, Options* optr = nullptr);
+  SmtEngine(NodeManager* nm, const Options* optr = nullptr);
   /** Destruct the SMT engine.  */
   ~SmtEngine();
 
@@ -226,22 +226,6 @@ class CVC5_EXPORT SmtEngine
   /** Is this an internal subsolver? */
   bool isInternalSubsolver() const;
 
-  /**
-   * Notify that we are now parsing the input with the given filename.
-   * This call sets the filename maintained by this SmtEngine for bookkeeping
-   * and also makes a copy of the current options of this SmtEngine. This
-   * is required so that the SMT-LIB command (reset) returns the SmtEngine
-   * to a state where its options were prior to parsing but after e.g.
-   * reading command line options.
-   */
-  void notifyStartParsing(const std::string& filename) CVC5_EXPORT;
-  /** return the input name (if any) */
-  const std::string& getFilename() const;
-
-  /**
-   * Helper method for the API to put the last check result into the statistics.
-   */
-  void setResultStatistic(const std::string& result) CVC5_EXPORT;
   /**
    * Helper method for the API to put the total runtime into the statistics.
    */
@@ -532,7 +516,17 @@ class CVC5_EXPORT SmtEngine
   /**
    * Same as getValue but for a vector of expressions
    */
-  std::vector<Node> getValues(const std::vector<Node>& exprs);
+  std::vector<Node> getValues(const std::vector<Node>& exprs) const;
+
+  /**
+   * @return the domain elements for uninterpreted sort tn.
+   */
+  std::vector<Node> getModelDomainElements(TypeNode tn) const;
+
+  /**
+   * @return true if v is a model core symbol
+   */
+  bool isModelCoreSymbol(Node v);
 
   /** print instantiations
    *
@@ -1022,7 +1016,13 @@ class CVC5_EXPORT SmtEngine
    * element is the nil expression.
    */
   std::pair<Node, Node> getSepHeapAndNilExpr();
-
+  /**
+   * Get assertions internal, which is only called after initialization. This
+   * should be used internally to get the assertions instead of getAssertions
+   * or getExpandedAssertions, which may trigger initialization and SMT state
+   * changes.
+   */
+  std::vector<Node> getAssertionsInternal();
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SmtEngine instance. */
