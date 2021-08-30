@@ -77,7 +77,7 @@ class InferProofCons : public ProofGenerator
   /** Identify this generator (for debugging, etc..) */
   virtual std::string identify() const override;
 
-  static std::shared_ptr<ProofNode> getProofFor(ProofNodeManager* pnm,
+  static bool addProofTo(CDProof * pf,
                                                 Node conc,
                                                 InferenceId infer,
                                                 bool isRev,

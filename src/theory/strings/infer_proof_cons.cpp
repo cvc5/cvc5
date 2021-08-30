@@ -59,37 +59,35 @@ void InferProofCons::notifyFact(const InferInfo& ii)
   d_lazyFactMap.insert(ii.d_conc, iic);
 }
 
-std::shared_ptr<ProofNode> InferProofCons::getProofFor(
-    ProofNodeManager* pnm,
+bool InferProofCons::addProofTo(
+    CDProof* pf,
     Node conc,
     InferenceId infer,
     bool isRev,
     const std::vector<Node>& exp)
 {
-  // temporary proof
-  CDProof pf(pnm);
   // now go back and convert it to proof steps and add to proof
   bool useBuffer = false;
   ProofStep ps;
-  TheoryProofStepBuffer psb(pnm->getChecker());
+  TheoryProofStepBuffer psb(pf->getManager()->getChecker());
   // run the conversion
   convert(infer, isRev, conc, exp, ps, psb, useBuffer);
   // make the proof based on the step or the buffer
   if (useBuffer)
   {
-    if (!pf.addSteps(psb))
+    if (!pf->addSteps(psb))
     {
-      return nullptr;
+      return false;
     }
   }
   else
   {
-    if (!pf.addStep(conc, ps))
+    if (!pf->addStep(conc, ps))
     {
-      return nullptr;
+      return false;
     }
   }
-  return pf.getProofFor(conc);
+  return true;
 }
 
 void InferProofCons::packArgs(Node conc,
