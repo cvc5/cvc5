@@ -20,11 +20,13 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <variant>
 #include <vector>
 
 #include "api/cpp/cvc5_kind.h"
@@ -2619,6 +2621,88 @@ class CVC5_EXPORT DriverOptions
   const Solver& d_solver;
 };
 
+/**
+ * Holds some description about a particular option, including its name, its
+ * aliases, whether the option was explcitly set by the user, and information
+ * concerning its value. The `valueInfo` member holds any of the following
+ * alternatives:
+ * - VoidInfo if the option holds no value (or the value has no native type)
+ * - ValueInfo<T> if the option is of type bool or std::string, holds the
+ *   current value and the default value.
+ * - NumberInfo<T> if the option is of type int64_t, uint64_t or double, holds
+ *   the current and default value, as well as the minimum and maximum.
+ * - ModeInfo if the option is a mode option, holds the current and default
+ *   values, as well as a list of valid modes.
+ * Additionally, this class provides convenience functions to obtain the
+ * current value of an option in a type-safe manner using boolValue(),
+ * stringValue(), intValue(), uintValue() and doubleValue(). They assert that
+ * the option has the respective type and return the current value.
+ */
+struct CVC5_EXPORT OptionInfo
+{
+  /** Has no value information */
+  struct VoidInfo {};
+  /** Has the current and the default value */
+  template <typename T>
+  struct ValueInfo
+  {
+    T defaultValue;
+    T currentValue;
+  };
+  /** Default value, current value, minimum and maximum of a numeric value */
+  template <typename T>
+  struct NumberInfo
+  {
+    T defaultValue;
+    T currentValue;
+    std::optional<T> minimum;
+    std::optional<T> maximum;
+  };
+  /** Default value, current value and choices of a mode option */
+  struct ModeInfo
+  {
+    std::string defaultValue;
+    std::string currentValue;
+    std::vector<std::string> modes;
+  };
+
+  /** The option name */
+  std::string name;
+  /** The option name aliases */
+  std::vector<std::string> aliases;
+  /** Whether the option was explicitly set by the user */
+  bool setByUser;
+  /** The option value information */
+  std::variant<VoidInfo,
+               ValueInfo<bool>,
+               ValueInfo<std::string>,
+               NumberInfo<int64_t>,
+               NumberInfo<uint64_t>,
+               NumberInfo<double>,
+               ModeInfo>
+      valueInfo;
+  /** Obtain the current value as a bool. Asserts that valueInfo holds a bool.
+   */
+  bool boolValue() const;
+  /** Obtain the current value as a string. Asserts that valueInfo holds a
+   * string. */
+  std::string stringValue() const;
+  /** Obtain the current value as as int. Asserts that valueInfo holds an int.
+   */
+  int64_t intValue() const;
+  /** Obtain the current value as a uint. Asserts that valueInfo holds a uint.
+   */
+  uint64_t uintValue() const;
+  /** Obtain the current value as a double. Asserts that valueInfo holds a
+   * double. */
+  double doubleValue() const;
+};
+
+/**
+ * Print a `OptionInfo` object to an ``std::ostream``.
+ */
+std::ostream& operator<<(std::ostream& os, const OptionInfo& oi) CVC5_EXPORT;
+
 /* -------------------------------------------------------------------------- */
 /* Statistics                                                                 */
 /* -------------------------------------------------------------------------- */
@@ -3774,6 +3858,13 @@ class CVC5_EXPORT Solver
    * @return all option names
    */
   std::vector<std::string> getOptionNames() const;
+
+  /**
+   * Get some information about the given option. Check the `OptionInfo` class
+   * for more details on which information is available.
+   * @return information about the given option
+   */
+  OptionInfo getOptionInfo(const std::string& option) const;
 
   /**
    * Get the driver options, which provide access to options that can not be
