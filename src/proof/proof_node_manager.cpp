@@ -61,8 +61,8 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
   return mkNode(PfRule::ASSUME, {}, {fact}, fact);
 }
 
-std::shared_ptr<ProofNode> ProofNodeManager::mkSymm(std::shared_ptr<ProofNode> child,
-                                  Node expected)
+std::shared_ptr<ProofNode> ProofNodeManager::mkSymm(
+    std::shared_ptr<ProofNode> child, Node expected)
 {
   if (child->getRule() == PfRule::SYMM)
   {
