@@ -413,10 +413,10 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
 
   if (key == "filename")
   {
-  d_env->d_options.driver.filename = value;
-  d_env->d_originalOptions->driver.filename = value;
-  d_env->getStatisticsRegistry().registerValue<std::string>("driver::filename",
-                                                            value);
+    d_env->d_options.driver.filename = value;
+    d_env->d_originalOptions->driver.filename = value;
+    d_env->getStatisticsRegistry().registerValue<std::string>(
+        "driver::filename", value);
   }
   else if (key == "smt-lib-version" && !getOptions().base.inputLanguageWasSetByUser)
   {
