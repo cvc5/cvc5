@@ -41,13 +41,6 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
 {
   Trace("pnm") << "ProofNodeManager::mkNode " << id << " {" << expected.getId()
                << "} " << expected << "\n";
-               /*
-  if (id==PfRule::SYMM)
-  {
-    AlwaysAssert (children.size()==1);
-    AlwaysAssert (children[0]->getRule()!=PfRule::SYMM);
-  }
-  */
   Node res = checkInternal(id, children, args, expected);
   if (res.isNull())
   {
@@ -317,7 +310,7 @@ Node ProofNodeManager::checkInternal(
 ProofChecker* ProofNodeManager::getChecker() const { return d_checker; }
 
 std::shared_ptr<ProofNode> ProofNodeManager::clone(
-    std::shared_ptr<ProofNode> pn)
+    std::shared_ptr<ProofNode> pn) const
 {
   const ProofNode* orig = pn.get();
   std::unordered_map<const ProofNode*, std::shared_ptr<ProofNode>> visited;
@@ -371,6 +364,23 @@ std::shared_ptr<ProofNode> ProofNodeManager::clone(
   return visited[orig];
 }
 
+ProofNode* ProofNodeManager::cancelDoubleSymm(ProofNode* pn)
+{
+  while (pn->getRule()==PfRule::SYMM)
+  {
+    std::shared_ptr<ProofNode> pnc = pn->getChildren()[0];
+    if (pnc->getRule()==PfRule::SYMM)
+    {
+      pn = pnc->getChildren()[0].get();
+    }
+    else
+    {
+      break;
+    }
+  }
+  return pn;
+}
+
 bool ProofNodeManager::updateNodeInternal(
     ProofNode* pn,
     PfRule id,
@@ -378,13 +388,6 @@ bool ProofNodeManager::updateNodeInternal(
     const std::vector<Node>& args,
     bool needsCheck)
 {
-  if (id==PfRule::SYMM)
-  {
-    if (children[0]->getRule()==PfRule::SYMM)
-    {
-      return updateNode(pn, children[0]->getChildren()[0].get());
-    }
-  }
   Assert(pn != nullptr);
   // ---------------- check for cyclic
   if (options::proofEagerChecking())

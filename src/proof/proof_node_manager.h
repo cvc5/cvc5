@@ -166,8 +166,12 @@ class ProofNodeManager
    * @param pn The proof node to clone
    * @return the cloned proof node.
    */
-  std::shared_ptr<ProofNode> clone(std::shared_ptr<ProofNode> pn);
-
+  std::shared_ptr<ProofNode> clone(std::shared_ptr<ProofNode> pn) const;
+  /**
+   * Cancel double SYMM. Returns a proof node that is not a double application
+   * of SYMM, e.g. for (SYMM (SYMM (r P))), this returns (r P) where r != SYMM.
+   */
+  static ProofNode* cancelDoubleSymm(ProofNode* pn);
  private:
   /** The (optional) proof checker */
   ProofChecker* d_checker;

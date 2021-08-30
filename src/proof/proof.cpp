@@ -419,13 +419,23 @@ bool CDProof::isAssumption(ProofNode* pn)
   {
     return true;
   }
-  else if (rule == PfRule::SYMM)
+  else if (rule != PfRule::SYMM)
   {
-    const std::vector<std::shared_ptr<ProofNode>>& pc = pn->getChildren();
-    Assert(pc.size() == 1);
-    return pc[0]->getRule() == PfRule::ASSUME;
+    return false;
   }
-  return false;
+  pn = ProofNodeManager::cancelDoubleSymm(pn);
+  rule = pn->getRule();
+  if (rule==PfRule::ASSUME)
+  {
+    return true;
+  }
+  else if (rule != PfRule::SYMM)
+  {
+    return false;
+  }
+  const std::vector<std::shared_ptr<ProofNode>>& pc = pn->getChildren();
+  Assert(pc.size() == 1);
+  return pc[0]->getRule() == PfRule::ASSUME;
 }
 
 bool CDProof::isSame(TNode f, TNode g)
