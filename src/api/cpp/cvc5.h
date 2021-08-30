@@ -1811,7 +1811,7 @@ class CVC5_EXPORT DatatypeSelector
    */
   Term getUpdaterTerm() const;
 
-  /** @return the range sort of this argument. */
+  /** @return the range sort of this selector. */
   Sort getRangeSort() const;
 
   /**

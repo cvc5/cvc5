@@ -159,6 +159,8 @@ libcvc5_add_sources(
   printer/smt2/smt2_printer.h
   printer/tptp/tptp_printer.cpp
   printer/tptp/tptp_printer.h
+  proof/assumption_proof_generator.cpp
+  proof/assumption_proof_generator.h
   proof/buffered_proof_generator.cpp
   proof/buffered_proof_generator.h
   proof/conv_proof_generator.cpp
