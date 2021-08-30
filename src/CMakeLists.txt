@@ -161,6 +161,8 @@ libcvc5_add_sources(
   printer/tptp/tptp_printer.h
   proof/annotation_proof_generator.cpp
   proof/annotation_proof_generator.h
+  proof/assumption_proof_generator.cpp
+  proof/assumption_proof_generator.h
   proof/buffered_proof_generator.cpp
   proof/buffered_proof_generator.h
   proof/conv_proof_generator.cpp

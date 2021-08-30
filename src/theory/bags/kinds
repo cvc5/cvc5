@@ -72,6 +72,10 @@ operator BAG_TO_SET        1  "converts a bag to a set"
 # If the bag has cardinality > 1, then (choose A) will deterministically return an element in A.
 operator BAG_CHOOSE        1  "return an element in the bag given as a parameter"
 
+# The bag.map operator applies the first argument, a function of type (-> T1 T2), to every element
+# of the second argument, a bag of type (Bag T1), and returns a bag of type (Bag T2).
+operator BAG_MAP           2  "bag map function"
+
 typerule UNION_MAX           ::cvc5::theory::bags::BinaryOperatorTypeRule
 typerule UNION_DISJOINT      ::cvc5::theory::bags::BinaryOperatorTypeRule
 typerule INTERSECTION_MIN    ::cvc5::theory::bags::BinaryOperatorTypeRule
@@ -88,6 +92,7 @@ typerule BAG_CHOOSE          ::cvc5::theory::bags::ChooseTypeRule
 typerule BAG_IS_SINGLETON    ::cvc5::theory::bags::IsSingletonTypeRule
 typerule BAG_FROM_SET        ::cvc5::theory::bags::FromSetTypeRule
 typerule BAG_TO_SET          ::cvc5::theory::bags::ToSetTypeRule
+typerule BAG_MAP            ::cvc5::theory::bags::BagMapTypeRule
 
 construle UNION_DISJOINT     ::cvc5::theory::bags::BinaryOperatorTypeRule
 construle MK_BAG             ::cvc5::theory::bags::MkBagTypeRule
