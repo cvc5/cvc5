@@ -2515,6 +2515,21 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
   BAG_TO_SET,
+  /**
+   * bag.map operator applies the first argument, a function of type (-> T1 T2),
+   * to every element of the second argument, a bag of type (Bag T1),
+   * and returns a bag of type (Bag T2).
+   *
+   * Parameters:
+   *   - 1: a function of type (-> T1 T2)
+   *   - 2: a bag of type (Bag T1)
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
+   * const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  BAG_MAP,
 
   /* Strings --------------------------------------------------------------- */
 
