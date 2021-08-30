@@ -98,9 +98,7 @@ class Model {
    * commands.
    */
   std::vector<TypeNode> d_declareSorts;
-  /**
-   * The interpretation of the above sorts
-   */
+  /** The interpretation of the above sorts, as a list of domain elements. */
   std::map<TypeNode, std::vector<Node>> d_domainElements;
   /**
    * The list of terms to print, is typically one-to-one with declare-fun
