@@ -284,6 +284,7 @@ bool ProofNodeManager::updateNode(ProofNode* pn, ProofNode* pnr)
   Assert(pnr != nullptr);
   if (pn == pnr)
   {
+    // same node, no update necessary
     return true;
   }
   if (pn->getResult() != pnr->getResult())
