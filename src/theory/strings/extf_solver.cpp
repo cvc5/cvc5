@@ -678,12 +678,7 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
     return mv;
   }
   Node nr = d_state.getRepresentative(n);
-  Node c = d_bsolver.explainBestContentEqc(n, nr, exp);
-  if (!c.isNull())
-  {
-    return c;
-  }
-  else if (effort >= 1 && n.getType().isStringLike())
+  if (effort >= 1 && n.getType().isStringLike())
   {
     Assert(effort < 3);
     // normal forms
@@ -696,6 +691,11 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
       d_im.addToExplanation(n, nfnr.d_base, exp);
     }
     return ns;
+  }
+  Node c = d_bsolver.explainBestContentEqc(n, nr, exp);
+  if (!c.isNull())
+  {
+    return c;
   }
   return n;
 }
