@@ -73,6 +73,13 @@ public = true
   help       = "force interactive shell/non-interactive mode"
 
 [[option]]
+  name       = "filename"
+  category   = "undocumented"
+  long       = "filename=FILENAME"
+  type       = "std::string"
+  help       = "filename of the input"
+
+[[option]]
   name       = "segvSpin"
   category   = "regular"
   long       = "segv-spin"
