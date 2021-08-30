@@ -712,7 +712,7 @@ void SmtEngine::defineFunctionRec(Node func,
 Result SmtEngine::quickCheck() {
   Assert(d_state->isFullyInited());
   Trace("smt") << "SMT quickCheck()" << endl;
-  const std::string& filename = d_env->getFilename();
+  const std::string& filename = d_env->getOptions().driver.filename;
   return Result(
       Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, filename);
 }
@@ -928,7 +928,7 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
     {
       printStatisticsDiff();
     }
-    return Result(Result::SAT_UNKNOWN, why, d_env->getFilename());
+    return Result(Result::SAT_UNKNOWN, why, d_env->getOptions().driver.filename);
   }
 }
 
@@ -1230,7 +1230,7 @@ Model* SmtEngine::getModel() {
   }
   // set the information on the SMT-level model
   Assert(m != nullptr);
-  m->d_inputName = d_env->getFilename();
+  m->d_inputName = d_env->getOptions().driver.filename;
   m->d_isKnownSat = (d_state->getMode() == SmtMode::SAT);
   return m;
 }
