@@ -120,10 +120,11 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_uf)
   ASSERT_TRUE(resultRange.isBoolean());
 }
 
-// check all cases of the translation.
-// This is a sanity check, that noly verifies
-// the expected type, and that there were no
-// failures.
+/** Check all cases of the translation.
+ * This is a sanity check, that noly verifies
+ * the expected type, and that there were no
+ * failures.
+ */
 TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
 {
   // place holders for lemmas and skolem
