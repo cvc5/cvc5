@@ -96,17 +96,8 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
     std::vector<Node> args;
     if (pf == nullptr)
     {
-      std::shared_ptr<ProofNode> psym;
-      if (pfs->getRule()==PfRule::SYMM)
-      {
-        psym = pfs->getChildren()[0];
-      }
-      else
-      {
         Trace("cdproof") << "...fresh make symm" << std::endl;
-        psym =
-            d_manager->mkNode(PfRule::SYMM, pschild, args, fact);
-      }
+      std::shared_ptr<ProofNode> psym = d_manager->mkSymm(pfs, fact);
       Assert(psym != nullptr);
       d_nodes.insert(fact, psym);
       return psym;
