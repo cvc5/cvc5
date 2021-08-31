@@ -806,7 +806,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                     elif option.type == 'double' or is_numeric_cpp_type(option.type):
                         constr = 'OptionInfo::NumberInfo<{type}>{{{default}, {value}, {minimum}, {maximum}}}'.format(**fmt)
                     elif option.mode:
-                        values = ', '.join(map(lambda s: '"{}"'.format(s), option.mode.keys()))
+                        values = ', '.join(map(lambda s: '"{}"'.format(s), sorted(option.mode.keys())))
                         assert(option.default)
                         constr = 'OptionInfo::ModeInfo{{"{default}", {value}, {{ {modes} }}}}'.format(**fmt, modes=values)
                     else:
