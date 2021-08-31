@@ -177,6 +177,7 @@ cdef class Datatype:
         return self.cd.hasNestedRecursion()
 
     def isNull(self):
+        """:return: whther this Datatype is a null object."""
         return self.cd.isNull()
 
     def __str__(self):
@@ -241,6 +242,7 @@ cdef class DatatypeConstructor:
         return term
 
     def isNull(self):
+        """:return: whther this DatatypeConstructor is a null object."""
         return self.cdc.isNull()
 
     def __str__(self):
@@ -270,6 +272,7 @@ cdef class DatatypeConstructorDecl:
         self.cddc.addSelectorSelf(name.encode())
 
     def isNull(self):
+        """:return: whther this DatatypeConstructorDecl is a null object."""
         return self.cddc.isNull()
 
     def __str__(self):
@@ -298,6 +301,7 @@ cdef class DatatypeDecl:
         return self.cdd.getName().decode()
 
     def isNull(self):
+        """:return: whther this DatatypeDecl is a null object."""
         return self.cdd.isNull()
 
     def __str__(self):
@@ -333,6 +337,7 @@ cdef class DatatypeSelector:
         return sort
 
     def isNull(self):
+        """:return: whther this DatatypeSelector is a null object."""
         return self.cds.isNull()
 
     def __str__(self):
