@@ -21,10 +21,10 @@
 #include "rewriter/rewrite_proof_rule.h"
 #include "smt/term_formula_removal.h"
 #include "theory/evaluator.h"
+#include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory.h"
-#include "theory/quantifiers/extended_rewrite.h"
 
 using namespace cvc5::kind;
 

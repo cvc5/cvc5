@@ -998,16 +998,19 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       Node retCurr = args[0];
       std::vector<Node> transEq;
       // try to reconstruct the (extended) rewrite
-      // first, use the standard rewriter followed by the extended equality rewriter
-      for (size_t i=0; i<2; i++)
+      // first, use the standard rewriter followed by the extended equality
+      // rewriter
+      for (size_t i = 0; i < 2; i++)
       {
-        if (i==1 && retCurr.getKind()!=EQUAL)
+        if (i == 1 && retCurr.getKind() != EQUAL)
         {
           break;
         }
-        MethodId midi = i==0 ? MethodId::RW_REWRITE : MethodId::RW_REWRITE_EQ_EXT;
-        Node retDef = builtin::BuiltinProofRuleChecker::applyRewrite(retCurr, midi);
-        if (retDef!=retCurr)
+        MethodId midi =
+            i == 0 ? MethodId::RW_REWRITE : MethodId::RW_REWRITE_EQ_EXT;
+        Node retDef =
+            builtin::BuiltinProofRuleChecker::applyRewrite(retCurr, midi);
+        if (retDef != retCurr)
         {
           // will expand this as a default rewrite if needed
           Node eqd = retCurr.eqNode(retDef);
@@ -1016,15 +1019,16 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           transEq.push_back(eqd);
         }
         retCurr = retDef;
-        if (retCurr==ret)
+        if (retCurr == ret)
         {
           // already successful
           break;
         }
       }
-      if (retCurr!=ret)
+      if (retCurr != ret)
       {
-        // try to prove the rewritten form is equal to the extended rewritten form
+        // try to prove the rewritten form is equal to the extended rewritten
+        // form
         Node eqp = retCurr.eqNode(ret);
         std::vector<Node> targs;
         targs.push_back(eqp);
@@ -1041,7 +1045,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           return Node::null();
         }
       }
-      if (transEq.size()>1)
+      if (transEq.size() > 1)
       {
         // put together with transitivity
         cdp->addStep(eq, PfRule::TRANS, transEq, {});

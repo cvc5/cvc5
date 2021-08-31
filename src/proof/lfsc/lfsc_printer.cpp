@@ -584,7 +584,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       // should be robust to different orderings
       pf << h << h << h << cs[0] << cs[1];
     }
-      break;
+    break;
     // strings
     case PfRule::STRING_LENGTH_POS: pf << as[0]; break;
     case PfRule::STRING_LENGTH_NON_EMPTY: pf << h << cs[0]; break;

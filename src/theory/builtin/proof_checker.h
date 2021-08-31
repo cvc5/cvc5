@@ -100,10 +100,10 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * @return The substituted, rewritten form of n.
    */
   static Node applySubstitutionRewrite(Node n,
-                                const std::vector<Node>& exp,
-                                MethodId ids = MethodId::SB_DEFAULT,
-                                MethodId ida = MethodId::SBA_SEQUENTIAL,
-                                MethodId idr = MethodId::RW_REWRITE);
+                                       const std::vector<Node>& exp,
+                                       MethodId ids = MethodId::SB_DEFAULT,
+                                       MethodId ida = MethodId::SBA_SEQUENTIAL,
+                                       MethodId idr = MethodId::RW_REWRITE);
 
   /** get a TheoryId from a node, return false if we fail */
   static bool getTheoryId(TNode n, TheoryId& tid);
