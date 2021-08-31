@@ -1607,7 +1607,7 @@ TEST_F(TestApiBlackSolver, getModel3)
   std::vector<Term> terms;
   d_solver.checkSat();
   ASSERT_NO_THROW(d_solver.getModel(sorts, terms));
-  Sort integer = d_solver.getIntegerSort()
+  Sort integer = d_solver.getIntegerSort();
   sorts.push_back(integer);
   ASSERT_THROW(d_solver.getModel(sorts, terms), CVC5ApiException);
 }
