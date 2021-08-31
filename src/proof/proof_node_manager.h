@@ -85,12 +85,6 @@ class ProofNodeManager
    */
   std::shared_ptr<ProofNode> mkAssume(Node fact);
   /**
-   * Make symm, which accounts for whether the child is already a SYMM
-   * node, in which case we return its child.
-   */
-  std::shared_ptr<ProofNode> mkSymm(std::shared_ptr<ProofNode> child,
-                                    Node expected = Node::null());
-  /**
    * Make transitivity proof, where children contains one or more proofs of
    * equalities that form an ordered chain. In other words, the vector children
    * is a legal set of children for an application of TRANS.
@@ -172,12 +166,7 @@ class ProofNodeManager
    * @param pn The proof node to clone
    * @return the cloned proof node.
    */
-  std::shared_ptr<ProofNode> clone(std::shared_ptr<ProofNode> pn) const;
-  /**
-   * Cancel double SYMM. Returns a proof node that is not a double application
-   * of SYMM, e.g. for (SYMM (SYMM (r P))), this returns (r P) where r != SYMM.
-   */
-  static ProofNode* cancelDoubleSymm(ProofNode* pn);
+  std::shared_ptr<ProofNode> clone(std::shared_ptr<ProofNode> pn);
 
  private:
   /** The (optional) proof checker */

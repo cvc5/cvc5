@@ -97,7 +97,8 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
     if (pf == nullptr)
     {
       Trace("cdproof") << "...fresh make symm" << std::endl;
-      std::shared_ptr<ProofNode> psym = d_manager->mkSymm(pfs, fact);
+      std::shared_ptr<ProofNode> psym =
+          d_manager->mkNode(PfRule::SYMM, pschild, args, fact);
       Assert(psym != nullptr);
       d_nodes.insert(fact, psym);
       return psym;
@@ -410,23 +411,13 @@ bool CDProof::isAssumption(ProofNode* pn)
   {
     return true;
   }
-  else if (rule != PfRule::SYMM)
+  else if (rule == PfRule::SYMM)
   {
-    return false;
+    const std::vector<std::shared_ptr<ProofNode>>& pc = pn->getChildren();
+    Assert(pc.size() == 1);
+    return pc[0]->getRule() == PfRule::ASSUME;
   }
-  pn = ProofNodeManager::cancelDoubleSymm(pn);
-  rule = pn->getRule();
-  if (rule == PfRule::ASSUME)
-  {
-    return true;
-  }
-  else if (rule != PfRule::SYMM)
-  {
-    return false;
-  }
-  const std::vector<std::shared_ptr<ProofNode>>& pc = pn->getChildren();
-  Assert(pc.size() == 1);
-  return pc[0]->getRule() == PfRule::ASSUME;
+  return false;
 }
 
 bool CDProof::isSame(TNode f, TNode g)
