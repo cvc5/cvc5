@@ -1028,7 +1028,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       if (retCurr != ret)
       {
         // try to prove the rewritten form is equal to the extended rewritten
-        // form
+        // form, treated as a stand alone (theory) rewrite
         Node eqp = retCurr.eqNode(ret);
         std::vector<Node> targs;
         targs.push_back(eqp);

@@ -259,13 +259,8 @@ void InferProofCons::convert(InferenceId infer,
       childrenSRew.push_back(pmainEq);
       childrenSRew.insert(childrenSRew.end(), pcsr.begin(), pcsr.end());
       // now, conclude the proper equality
-      std::vector<Node> argsSRew;
-      addMethodIds(argsSRew,
-                   MethodId::SB_DEFAULT,
-                   MethodId::SBA_SEQUENTIAL,
-                   MethodId::RW_EXT_REWRITE);
       Node mainEqSRew =
-          psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
+          psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, {});
       if (CDProof::isSame(mainEqSRew, pmainEq))
       {
         Trace("strings-ipc-core") << "...undo step" << std::endl;
@@ -338,6 +333,24 @@ void InferProofCons::convert(InferenceId infer,
         argsC.push_back(nodeIsRev);
         Node mainEqC = psb.tryStep(PfRule::CONCAT_CONFLICT, childrenC, argsC);
         if (mainEqC == conc)
+        {
+          useBuffer = true;
+          Trace("strings-ipc-core") << "...success!" << std::endl;
+        }
+      }
+      else if (infer == InferenceId::STRINGS_F_NCTN || infer == InferenceId::STRINGS_N_NCTN)
+      {
+        // May require extended equality rewrite, applied after the rewrite
+        // above. Notice we need both in sequence since ext equality rewriting
+        // is not recursive.
+        std::vector<Node> argsERew;
+        addMethodIds(argsERew,
+                    MethodId::SB_DEFAULT,
+                    MethodId::SBA_SEQUENTIAL,
+                    MethodId::RW_REWRITE_EQ_EXT);
+        Node mainEqERew =
+              psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, {mainEqCeq}, argsERew);
+        if (mainEqERew == conc)
         {
           useBuffer = true;
           Trace("strings-ipc-core") << "...success!" << std::endl;
