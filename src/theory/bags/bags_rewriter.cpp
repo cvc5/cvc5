@@ -84,6 +84,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case BAG_IS_SINGLETON: response = rewriteIsSingleton(n); break;
       case BAG_FROM_SET: response = rewriteFromSet(n); break;
       case BAG_TO_SET: response = rewriteToSet(n); break;
+      case BAG_MAP: response = postRewriteMap(n); break;
       default: response = BagsRewriteResponse(n, Rewrite::NONE); break;
     }
   }
@@ -505,6 +506,47 @@ BagsRewriteResponse BagsRewriter::postRewriteEqual(const TNode& n) const
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 
+BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
+{
+  Assert(n.getKind() == kind::BAG_MAP);
+  if (n[1].isConst())
+  {
+    // (bag.map f emptybag) = emptybag
+    // (bag.map f (bag "a" 3) = (bag (f "a") 3)
+    std::map<Node, Rational> elements = NormalForm::getBagElements(n[1]);
+    std::map<Node, Rational> mappedElements;
+    std::map<Node, Rational>::iterator it = elements.begin();
+    while (it != elements.end())
+    {
+      Node mappedElement = d_nm->mkNode(APPLY_UF, n[0], it->first);
+      mappedElements[mappedElement] = it->second;
+      ++it;
+    }
+    TypeNode t = d_nm->mkBagType(n[0].getType().getRangeType());
+    Node ret = NormalForm::constructConstantBagFromElements(t, mappedElements);
+    return BagsRewriteResponse(ret, Rewrite::MAP_CONST);
+  }
+  Kind k = n[1].getKind();
+  switch (k)
+  {
+    case MK_BAG:
+    {
+      Node mappedElement = d_nm->mkNode(APPLY_UF, n[0], n[1][0]);
+      Node ret = d_nm->mkNode(MK_BAG, mappedElement, n[1][0]);
+      return BagsRewriteResponse(ret, Rewrite::MAP_MK_BAG);
+    }
+
+    case UNION_DISJOINT:
+    {
+      Node a = d_nm->mkNode(BAG_MAP, n[1][0]);
+      Node b = d_nm->mkNode(BAG_MAP, n[1][1]);
+      Node ret = d_nm->mkNode(UNION_DISJOINT, a, b);
+      return BagsRewriteResponse(ret, Rewrite::MAP_UNION_DISJOINT);
+    }
+
+    default: return BagsRewriteResponse(n, Rewrite::NONE);
+  }
+}
 }  // namespace bags
 }  // namespace theory
 }  // namespace cvc5

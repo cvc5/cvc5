@@ -15,6 +15,7 @@
 
 #include "smt/smt_solver.h"
 
+#include "options/main_options.h"
 #include "options/smt_options.h"
 #include "prop/prop_engine.h"
 #include "smt/assertions.h"
@@ -133,7 +134,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
 
   Trace("smt") << "SmtSolver::check()" << endl;
 
-  const std::string& filename = d_env.getFilename();
+  const std::string& filename = d_env.getOptions().driver.filename;
   ResourceManager* rm = d_env.getResourceManager();
   if (rm->out())
   {
