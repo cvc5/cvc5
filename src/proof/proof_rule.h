@@ -1073,7 +1073,7 @@ enum class PfRule : uint32_t
   //======================== Trusted
   // ======== String inference
   // Children: ?
-  // Arguments: (F id isRev)
+  // Arguments: (F id isRev exp)
   // ---------------------
   // Conclusion: F
   // used to bookkeep an inference that has not yet been converted via
