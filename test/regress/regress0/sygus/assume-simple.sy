@@ -4,7 +4,7 @@
 (set-logic LIA)
 (synth-fun f ((x Int)) Int
   ((Start Int))
-  ((Start Int (x 0 1 (+ Start Start))))
+  ((Start Int (x 0 1 (+ Start Start)))))
 (declare-var y Int)
 (assume (>= y 0))
 (constraint (>= (f y) 0))
