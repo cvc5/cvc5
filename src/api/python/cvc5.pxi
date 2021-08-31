@@ -587,22 +587,16 @@ cdef class Solver:
         sort.csort = self.csolver.mkDatatypeSort(dtypedecl.cdd)
         return sort
 
-<<<<<<< HEAD
     def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts = None):
-        """:return: A list of datatype sorts that correspond to dtypedecls and unresolvedSorts"""
-        if unresolvedSorts == None:
-            unresolvedSorts = set([])
-        else:
-            assert isinstance(unresolvedSorts, Set)
-=======
-    def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts):
         """:return: the sorts for a single datatype declaration
         :param: `dtypedecls` the list of declarations
         :param: `unresolvedSorts` the list of unresolved (uninterpreted) sorts which should be resolved to the sorts of the declared datatypes. This list must have the same length as `dtypedecls`.
         :note: this is how one declares mutually recursive datatypes
         """
-        sorts = []
->>>>>>> 0a4b03174 (Start python API Solver documentation)
+        if unresolvedSorts == None:
+            unresolvedSorts = set([])
+        else:
+            assert isinstance(unresolvedSorts, Set)
 
         sorts = []
         cdef vector[c_DatatypeDecl] decls
@@ -840,11 +834,9 @@ cdef class Solver:
         return term
 
     def mkReal(self, val, den=None):
-<<<<<<< HEAD
-        '''
-        Make a real number term.
-
-        Really, makes a rational term.
+        """ :return: a real term with literal value
+        :param: `val` the value of the term. Can be an integer, float, or string. It will be formatted as a string before the term is built.
+        :param: `den` if not None, the value is `val`/`den`
 
         Can be used in various forms.
         * Given a string "N/D" constructs the corresponding rational.
@@ -855,13 +847,7 @@ cdef class Solver:
           IEEE-754 approximation of 3/10.
         * Given a string "W" or an integer, constructs that integer.
         * Given two strings and/or integers N and D, constructs N/D.
-        '''
-=======
-        """ :return: a real term with literal value
-        :param: `val` the value of the term. Can be an integer, float, or string. It will be formatted as a string before the term is built.
-        :param: `den` if not None, the value is `val`/`den`
         """
->>>>>>> 0a4b03174 (Start python API Solver documentation)
         cdef Term term = Term(self)
         if den is None:
             term.cterm = self.csolver.mkReal(str(val).encode())
@@ -907,14 +893,11 @@ cdef class Solver:
         term.cterm = self.csolver.mkSepNil(sort.csort)
         return term
 
-<<<<<<< HEAD
     def mkString(self, str s, useEscSequences = None):
-=======
-    def mkString(self, str_or_vec):
         """ :return: a string literal term
-        :param: `str_or_vec` either a Python string or a list of integers. If the latter, their unicode value is used.
+        :param: `s` The string
+        :param: `useEscSequences` whether to decode escape sequences
         """
->>>>>>> 0a4b03174 (Start python API Solver documentation)
         cdef Term term = Term(self)
         cdef Py_ssize_t size
         cdef wchar_t* tmp = PyUnicode_AsWideCharString(s, &size)
@@ -942,21 +925,19 @@ cdef class Solver:
         term.cterm = self.csolver.mkUniverseSet(sort.csort)
         return term
 
-<<<<<<< HEAD
     @expand_list_arg(num_req_args=0)
     def mkBitVector(self, *args):
         '''
-            Supports the following arguments:
-            Term mkBitVector(int size, int val=0)
-            Term mkBitVector(int size, string val, int base)
-         '''
-=======
-    def mkBitVector(self, size_or_str, val = None):
-        """ :return: a bit-vector literal term
-        :param: `size_or_str` a zero-one string or an integer size. If a zero-one string, that value is used.
-        :param: `value` if the previous argument is a size, this should be an integer, and the value is `val % 2**size`
+        Supports the following arguments:
+
+        - Term mkBitVector(int size, int val=0)
+        - Term mkBitVector(int size, string val, int base)
+
+        :return: a bit-vector literal term
+        :param: `size` an integer size.
+        :param: `val` an integer representating the value, in the first form. In the second form, a string representing the value.
+        :param: `base` the base of the string representation (second form only)
         """
->>>>>>> 0a4b03174 (Start python API Solver documentation)
         cdef Term term = Term(self)
         if len(args) == 0:
             raise ValueError("Missing arguments to mkBitVector")
