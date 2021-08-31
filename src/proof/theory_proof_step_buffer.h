@@ -25,7 +25,6 @@
 #include "theory/builtin/proof_checker.h"
 
 namespace cvc5 {
-namespace theory {
 /**
  * Class used to speculatively try and buffer a set of proof steps before
  * sending them to a proof object, extended with theory-specfic proof rule
@@ -114,7 +113,6 @@ class TheoryProofStepBuffer : public ProofStepBuffer
   Node elimDoubleNegLit(Node n);
 };
 
-}  // namespace theory
 }  // namespace cvc5
 
 #endif /* CVC5__PROOF__THEORY_PROOF_STEP_BUFFER_H */

@@ -39,12 +39,7 @@ class TheoryFp : public Theory
 {
  public:
   /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-  TheoryFp(context::Context* c,
-           context::UserContext* u,
-           OutputChannel& out,
-           Valuation valuation,
-           const LogicInfo& logicInfo,
-           ProofNodeManager* pnm = nullptr);
+  TheoryFp(Env& env, OutputChannel& out, Valuation valuation);
 
   //--------------------------------- initialization
   /** Get the official theory rewriter of this theory. */
@@ -114,6 +109,8 @@ class TheoryFp : public Theory
   };
   friend NotifyClass;
 
+  void notifySharedTerm(TNode n) override;
+
   NotifyClass d_notification;
 
   /** General utility. */
@@ -148,18 +145,19 @@ class TheoryFp : public Theory
   Node abstractFloatToReal(Node);
 
  private:
-
   ConversionAbstractionMap d_realToFloatMap;
   ConversionAbstractionMap d_floatToRealMap;
   AbstractionMap d_abstractionMap;  // abstract -> original
 
   /** The theory rewriter for this theory. */
   TheoryFpRewriter d_rewriter;
-  /** A (default) theory state object */
+  /** A (default) theory state object. */
   TheoryState d_state;
-  /** A (default) inference manager */
+  /** A (default) inference manager. */
   TheoryInferenceManager d_im;
-}; /* class TheoryFp */
+  /** Cache of word-blasted facts. */
+  context::CDHashSet<Node> d_wbFactsCache;
+};
 
 }  // namespace fp
 }  // namespace theory

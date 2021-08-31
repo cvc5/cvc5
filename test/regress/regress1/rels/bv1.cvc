@@ -1,5 +1,5 @@
 % EXPECT: unsat
-OPTION "logic" "ALL_SUPPORTED";
+OPTION "logic" "ALL";
 BvPair: TYPE = [BITVECTOR(1), BITVECTOR(1)];
 x : SET OF BvPair;
 y : SET OF BvPair;

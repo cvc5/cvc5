@@ -130,7 +130,7 @@ int validate_getters(void)
   Solver slv;
 
   /* Setup some options for cvc5 */
-  slv.setLogic("QF_ALL_SUPPORTED");
+  slv.setLogic("QF_ALL");
   slv.setOption("produce-models", "true");
   slv.setOption("incremental", "false");
 

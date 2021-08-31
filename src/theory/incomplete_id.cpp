@@ -33,6 +33,8 @@ const char* toString(IncompleteId i)
     case IncompleteId::QUANTIFIERS_FMF: return "QUANTIFIERS_FMF";
     case IncompleteId::QUANTIFIERS_RECORDED_INST:
       return "QUANTIFIERS_RECORDED_INST";
+    case IncompleteId::QUANTIFIERS_MAX_INST_ROUNDS:
+      return "QUANTIFIERS_MAX_INST_ROUNDS";
     case IncompleteId::SEP: return "SEP";
     case IncompleteId::SETS_RELS_CARD: return "SETS_RELS_CARD";
     case IncompleteId::STRINGS_LOOP_SKIP: return "STRINGS_LOOP_SKIP";

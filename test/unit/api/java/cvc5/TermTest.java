@@ -27,17 +27,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class TermTest
-{
+class TermTest {
   private Solver d_solver;
 
-  @BeforeEach void setUp()
-  {
+  @BeforeEach
+  void setUp() {
     d_solver = new Solver();
   }
 
-  @Test void eq()
-  {
+  @Test
+  void eq() {
     Sort uSort = d_solver.mkUninterpretedSort("u");
     Term x = d_solver.mkVar(uSort, "x");
     Term y = d_solver.mkVar(uSort, "y");
@@ -51,8 +50,8 @@ class TermTest
     assertTrue(x != z);
   }
 
-  @Test void getId()
-  {
+  @Test
+  void getId() {
     Term n = d_solver.getNullTerm();
     assertThrows(CVC5ApiException.class, () -> n.getId());
     Term x = d_solver.mkVar(d_solver.getIntegerSort(), "x");
@@ -64,8 +63,8 @@ class TermTest
     assertNotEquals(x.getId(), z.getId());
   }
 
-  @Test void getKind() throws CVC5ApiException
-  {
+  @Test
+  void getKind() throws CVC5ApiException {
     Sort uSort = d_solver.mkUninterpretedSort("u");
     Sort intSort = d_solver.getIntegerSort();
     Sort boolSort = d_solver.getBooleanSort();
@@ -106,8 +105,8 @@ class TermTest
     assertEquals(ss.getKind(), SEQ_CONCAT);
   }
 
-  @Test void getSort() throws CVC5ApiException
-  {
+  @Test
+  void getSort() throws CVC5ApiException {
     Sort bvSort = d_solver.mkBitVectorSort(8);
     Sort intSort = d_solver.getIntegerSort();
     Sort boolSort = d_solver.getBooleanSort();
@@ -151,8 +150,8 @@ class TermTest
     assertEquals(p_f_y.getSort(), boolSort);
   }
 
-  @Test void getOp() throws CVC5ApiException
-  {
+  @Test
+  void getOp() throws CVC5ApiException {
     Sort intsort = d_solver.getIntegerSort();
     Sort bvsort = d_solver.mkBitVectorSort(8);
     Sort arrsort = d_solver.mkArraySort(bvsort, intsort);
@@ -185,8 +184,7 @@ class TermTest
     List<Term> children = new ArrayList();
 
     Iterator<Term> iterator = fx.iterator();
-    for (Term t : fx)
-    {
+    for (Term t : fx) {
       children.add(t);
     }
 
@@ -203,49 +201,33 @@ class TermTest
     listDecl.addConstructor(cons);
     listDecl.addConstructor(nil);
     Sort listSort = d_solver.mkDatatypeSort(listDecl);
-    Sort intListSort = listSort.instantiate(new Sort[] {d_solver.getIntegerSort()});
+    Sort intListSort =
+        listSort.instantiate(new Sort[] {d_solver.getIntegerSort()});
     Term c = d_solver.mkConst(intListSort, "c");
     Datatype list = listSort.getDatatype();
     // list datatype constructor and selector operator terms
     Term consOpTerm = list.getConstructorTerm("cons");
     Term nilOpTerm = list.getConstructorTerm("nil");
-    //      Term headOpTerm = list["cons"].getSelectorTerm("head");
-    //      Term tailOpTerm = list["cons"].getSelectorTerm("tail");
-    //
-    //      Term nilTerm = d_solver.mkTerm(APPLY_CONSTRUCTOR, nilOpTerm);
-    //      Term consTerm =
-    //          d_solver.mkTerm(APPLY_CONSTRUCTOR, consOpTerm, d_solver.mkInteger(0), nilTerm);
-    //      Term headTerm = d_solver.mkTerm(APPLY_SELECTOR, headOpTerm, consTerm);
-    //      Term tailTerm = d_solver.mkTerm(APPLY_SELECTOR, tailOpTerm, consTerm);
-    //
-    //      assertTrue(nilTerm.hasOp());
-    //      assertTrue(consTerm.hasOp());
-    //      assertTrue(headTerm.hasOp());
-    //      assertTrue(tailTerm.hasOp());
-    //
-    //      // Test rebuilding
-    //      children.clear();
-    //      children.insert(children.begin(), headTerm.begin(), headTerm.end());
-    //      assertEquals(headTerm, d_solver.mkTerm(headTerm.getOp(), children));
   }
 
-  @Test void isNull() throws CVC5ApiException
-  {
+  @Test
+  void isNull() throws CVC5ApiException {
     Term x = d_solver.getNullTerm();
     assertTrue(x.isNull());
     x = d_solver.mkVar(d_solver.mkBitVectorSort(4), "x");
     assertFalse(x.isNull());
   }
 
-  @Test void notTerm() throws CVC5ApiException
-  {
+  @Test
+  void notTerm() throws CVC5ApiException {
     Sort bvSort = d_solver.mkBitVectorSort(8);
     Sort intSort = d_solver.getIntegerSort();
     Sort boolSort = d_solver.getBooleanSort();
     Sort funSort1 = d_solver.mkFunctionSort(bvSort, intSort);
     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullTerm().notTerm());
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.getNullTerm().notTerm());
     Term b = d_solver.mkTrue();
     assertDoesNotThrow(() -> b.notTerm());
     Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
@@ -266,8 +248,8 @@ class TermTest
     assertDoesNotThrow(() -> p_f_x.notTerm());
   }
 
-  @Test void andTerm() throws CVC5ApiException
-  {
+  @Test
+  void andTerm() throws CVC5ApiException {
     Sort bvSort = d_solver.mkBitVectorSort(8);
     Sort intSort = d_solver.getIntegerSort();
     Sort boolSort = d_solver.getBooleanSort();
@@ -275,8 +257,10 @@ class TermTest
     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
     Term b = d_solver.mkTrue();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullTerm().andTerm(b));
-    assertThrows(CVC5ApiException.class, () -> b.andTerm(d_solver.getNullTerm()));
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.getNullTerm().andTerm(b));
+    assertThrows(
+        CVC5ApiException.class, () -> b.andTerm(d_solver.getNullTerm()));
     assertDoesNotThrow(() -> b.andTerm(b));
     Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
     assertThrows(CVC5ApiException.class, () -> x.andTerm(b));
@@ -332,8 +316,8 @@ class TermTest
     assertDoesNotThrow(() -> p_f_x.andTerm(p_f_x));
   }
 
-  @Test void orTerm() throws CVC5ApiException
-  {
+  @Test
+  void orTerm() throws CVC5ApiException {
     Sort bvSort = d_solver.mkBitVectorSort(8);
     Sort intSort = d_solver.getIntegerSort();
     Sort boolSort = d_solver.getBooleanSort();
@@ -341,8 +325,10 @@ class TermTest
     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
     Term b = d_solver.mkTrue();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullTerm().orTerm(b));
-    assertThrows(CVC5ApiException.class, () -> b.orTerm(d_solver.getNullTerm()));
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.getNullTerm().orTerm(b));
+    assertThrows(
+        CVC5ApiException.class, () -> b.orTerm(d_solver.getNullTerm()));
     assertDoesNotThrow(() -> b.orTerm(b));
     Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
     assertThrows(CVC5ApiException.class, () -> x.orTerm(b));
@@ -398,8 +384,8 @@ class TermTest
     assertDoesNotThrow(() -> p_f_x.orTerm(p_f_x));
   }
 
-  @Test void xorTerm() throws CVC5ApiException
-  {
+  @Test
+  void xorTerm() throws CVC5ApiException {
     Sort bvSort = d_solver.mkBitVectorSort(8);
     Sort intSort = d_solver.getIntegerSort();
     Sort boolSort = d_solver.getBooleanSort();
@@ -407,8 +393,10 @@ class TermTest
     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
     Term b = d_solver.mkTrue();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullTerm().xorTerm(b));
-    assertThrows(CVC5ApiException.class, () -> b.xorTerm(d_solver.getNullTerm()));
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.getNullTerm().xorTerm(b));
+    assertThrows(
+        CVC5ApiException.class, () -> b.xorTerm(d_solver.getNullTerm()));
     assertDoesNotThrow(() -> b.xorTerm(b));
     Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
     assertThrows(CVC5ApiException.class, () -> x.xorTerm(b));
@@ -464,8 +452,8 @@ class TermTest
     assertDoesNotThrow(() -> p_f_x.xorTerm(p_f_x));
   }
 
-  @Test void eqTerm() throws CVC5ApiException
-  {
+  @Test
+  void eqTerm() throws CVC5ApiException {
     Sort bvSort = d_solver.mkBitVectorSort(8);
     Sort intSort = d_solver.getIntegerSort();
     Sort boolSort = d_solver.getBooleanSort();
@@ -473,8 +461,10 @@ class TermTest
     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
     Term b = d_solver.mkTrue();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullTerm().eqTerm(b));
-    assertThrows(CVC5ApiException.class, () -> b.eqTerm(d_solver.getNullTerm()));
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.getNullTerm().eqTerm(b));
+    assertThrows(
+        CVC5ApiException.class, () -> b.eqTerm(d_solver.getNullTerm()));
     assertDoesNotThrow(() -> b.eqTerm(b));
     Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
     assertThrows(CVC5ApiException.class, () -> x.eqTerm(b));
@@ -530,8 +520,8 @@ class TermTest
     assertDoesNotThrow(() -> p_f_x.eqTerm(p_f_x));
   }
 
-  @Test void impTerm() throws CVC5ApiException
-  {
+  @Test
+  void impTerm() throws CVC5ApiException {
     Sort bvSort = d_solver.mkBitVectorSort(8);
     Sort intSort = d_solver.getIntegerSort();
     Sort boolSort = d_solver.getBooleanSort();
@@ -539,8 +529,10 @@ class TermTest
     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
     Term b = d_solver.mkTrue();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullTerm().impTerm(b));
-    assertThrows(CVC5ApiException.class, () -> b.impTerm(d_solver.getNullTerm()));
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.getNullTerm().impTerm(b));
+    assertThrows(
+        CVC5ApiException.class, () -> b.impTerm(d_solver.getNullTerm()));
     assertDoesNotThrow(() -> b.impTerm(b));
     Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
     assertThrows(CVC5ApiException.class, () -> x.impTerm(b));
@@ -596,8 +588,8 @@ class TermTest
     assertDoesNotThrow(() -> p_f_x.impTerm(p_f_x));
   }
 
-  @Test void iteTerm() throws CVC5ApiException
-  {
+  @Test
+  void iteTerm() throws CVC5ApiException {
     Sort bvSort = d_solver.mkBitVectorSort(8);
     Sort intSort = d_solver.getIntegerSort();
     Sort boolSort = d_solver.getBooleanSort();
@@ -605,9 +597,12 @@ class TermTest
     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
     Term b = d_solver.mkTrue();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullTerm().iteTerm(b, b));
-    assertThrows(CVC5ApiException.class, () -> b.iteTerm(d_solver.getNullTerm(), b));
-    assertThrows(CVC5ApiException.class, () -> b.iteTerm(b, d_solver.getNullTerm()));
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.getNullTerm().iteTerm(b, b));
+    assertThrows(
+        CVC5ApiException.class, () -> b.iteTerm(d_solver.getNullTerm(), b));
+    assertThrows(
+        CVC5ApiException.class, () -> b.iteTerm(b, d_solver.getNullTerm()));
     assertDoesNotThrow(() -> b.iteTerm(b, b));
     Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
     assertDoesNotThrow(() -> b.iteTerm(x, x));
@@ -640,27 +635,30 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> p_f_x.iteTerm(x, b));
   }
 
-  @Test void termAssignment()
-  {
+  @Test
+  void termAssignment() {
     Term t1 = d_solver.mkInteger(1);
     Term t2 = t1;
     t2 = d_solver.mkInteger(2);
     assertEquals(t1, d_solver.mkInteger(1));
   }
 
-  @Test void termCompare()
-  {
+  @Test
+  void termCompare() {
     Term t1 = d_solver.mkInteger(1);
-    Term t2 = d_solver.mkTerm(PLUS, d_solver.mkInteger(2), d_solver.mkInteger(2));
-    Term t3 = d_solver.mkTerm(PLUS, d_solver.mkInteger(2), d_solver.mkInteger(2));
+    Term t2 =
+        d_solver.mkTerm(PLUS, d_solver.mkInteger(2), d_solver.mkInteger(2));
+    Term t3 =
+        d_solver.mkTerm(PLUS, d_solver.mkInteger(2), d_solver.mkInteger(2));
     assertTrue(t2.compareTo(t3) >= 0);
     assertTrue(t2.compareTo(t3) <= 0);
     assertTrue((t1.compareTo(t2) > 0) != (t1.compareTo(t2) < 0));
-    assertTrue((t1.compareTo(t2) > 0 || t1.equals(t2)) == (t1.compareTo(t2) >= 0));
+    assertTrue(
+        (t1.compareTo(t2) > 0 || t1.equals(t2)) == (t1.compareTo(t2) >= 0));
   }
 
-  @Test void termChildren() throws CVC5ApiException
-  {
+  @Test
+  void termChildren() throws CVC5ApiException {
     // simple term 2+3
     Term two = d_solver.mkInteger(2);
     Term t1 = d_solver.mkTerm(PLUS, two, d_solver.mkInteger(3));
@@ -681,8 +679,8 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> tnull.getChild(0));
   }
 
-  @Test void getIntegerValue() throws CVC5ApiException
-  {
+  @Test
+  void getInteger() throws CVC5ApiException {
     Term int1 = d_solver.mkInteger("-18446744073709551616");
     Term int2 = d_solver.mkInteger("-18446744073709551615");
     Term int3 = d_solver.mkInteger("-4294967296");
@@ -706,71 +704,54 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkInteger("-01"));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkInteger("-00"));
 
-    assertTrue(!int1.isInt32Value() && !int1.isUInt32Value() && !int1.isInt64Value() && !int1.isUInt64Value()
-        && int1.isIntegerValue());
-    assertEquals(int1.getIntegerValue(), "-18446744073709551616");
-    assertTrue(!int2.isInt32Value() && !int2.isUInt32Value() && !int2.isInt64Value() && !int2.isUInt64Value()
-        && int2.isIntegerValue());
-    assertEquals(int2.getIntegerValue(), "-18446744073709551615");
-    assertTrue(!int3.isInt32Value() && !int3.isUInt32Value() && int3.isInt64Value() && !int3.isUInt64Value()
-        && int3.isIntegerValue());
-    assertEquals(int3.getInt64Value(), -4294967296L);
-    assertEquals(int3.getIntegerValue(), "-4294967296");
-    assertTrue(!int4.isInt32Value() && !int4.isUInt32Value() && int4.isInt64Value() && !int4.isUInt64Value()
-        && int4.isIntegerValue());
-    assertEquals(int4.getInt64Value(), -4294967295L);
-    assertEquals(int4.getIntegerValue(), "-4294967295");
-    assertTrue(int5.isInt32Value() && !int5.isUInt32Value() && int5.isInt64Value() && !int5.isUInt64Value()
-        && int5.isIntegerValue());
-    assertEquals(int5.getInt32Value(), -10);
-    assertEquals(int5.getInt64Value(), -10);
-    assertEquals(int5.getIntegerValue(), "-10");
-    assertTrue(
-        int6.isInt32Value() && int6.isUInt32Value() && int6.isInt64Value() && int6.isUInt64Value() && int6.isIntegerValue());
-    assertEquals(int6.getInt32Value(), 0);
-    assertEquals(int6.getUInt32Value(), 0);
-    assertEquals(int6.getInt64Value(), 0);
-    assertEquals(int6.getUInt64Value(), 0);
-    assertEquals(int6.getIntegerValue(), "0");
-    assertTrue(
-        int7.isInt32Value() && int7.isUInt32Value() && int7.isInt64Value() && int7.isUInt64Value() && int7.isIntegerValue());
-    assertEquals(int7.getInt32Value(), 10);
-    assertEquals(int7.getUInt32Value(), 10);
-    assertEquals(int7.getInt64Value(), 10);
-    assertEquals(int7.getUInt64Value(), 10);
-    assertEquals(int7.getIntegerValue(), "10");
-    assertTrue(!int8.isInt32Value() && int8.isUInt32Value() && int8.isInt64Value() && int8.isUInt64Value()
-        && int8.isIntegerValue());
-    assertEquals(Integer.toUnsignedLong(int8.getUInt32Value()), 4294967295L);
-    assertEquals(int8.getInt64Value(), 4294967295L);
-    assertEquals(int8.getUInt64Value(), 4294967295L);
-    assertEquals(int8.getIntegerValue(), "4294967295");
-    assertTrue(!int9.isInt32Value() && !int9.isUInt32Value() && int9.isInt64Value() && int9.isUInt64Value()
-        && int9.isIntegerValue());
-    assertEquals(int9.getInt64Value(), 4294967296L);
-    assertEquals(int9.getUInt64Value(), 4294967296L);
-    assertEquals(int9.getIntegerValue(), "4294967296");
-    assertTrue(!int10.isInt32Value() && !int10.isUInt32Value() && !int10.isInt64Value() && int10.isUInt64Value()
-        && int10.isIntegerValue());
+    assertTrue(!int1.isInt() && !int1.isLong() && int1.isInteger());
+    assertEquals(int1.getInteger(), "-18446744073709551616");
+    assertTrue(!int2.isInt() && !int2.isLong() && int2.isInteger());
+    assertEquals(int2.getInteger(), "-18446744073709551615");
+    assertTrue(!int3.isInt() && int3.isLong() && int3.isInteger());
+    assertEquals(int3.getLong(), -4294967296L);
+    assertEquals(int3.getInteger(), "-4294967296");
+    assertTrue(!int4.isInt() && int4.isLong() && int4.isInteger());
+    assertEquals(int4.getLong(), -4294967295L);
+    assertEquals(int4.getInteger(), "-4294967295");
+    assertTrue(int5.isInt() && int5.isLong() && int5.isInteger());
+    assertEquals(int5.getInt(), -10);
+    assertEquals(int5.getLong(), -10);
+    assertEquals(int5.getInteger(), "-10");
+    assertTrue(int6.isInt() && int6.isLong() && int6.isInteger());
+    assertEquals(int6.getInt(), 0);
+    assertEquals(int6.getLong(), 0);
+    assertEquals(int6.getInteger(), "0");
+    assertTrue(int7.isInt() && int7.isLong() && int7.isInteger());
+    assertEquals(int7.getInt(), 10);
+    assertEquals(int7.getLong(), 10);
+    assertEquals(int7.getInteger(), "10");
+    assertTrue(!int8.isInt() && int8.isLong() && int8.isInteger());
+    assertEquals(Integer.toUnsignedLong(int8.getInt()), 4294967295L);
+    assertEquals(int8.getLong(), 4294967295L);
+    assertEquals(int8.getInteger(), "4294967295");
+    assertTrue(!int9.isInt() && int9.isLong() && int9.isInteger());
+    assertEquals(int9.getLong(), 4294967296L);
+    assertEquals(int9.getInteger(), "4294967296");
+    assertTrue(!int10.isInt() && !int10.isLong() && int10.isInteger());
 
-    assertEquals(
-        Long.compareUnsigned(int10.getUInt64Value(), new BigInteger("18446744073709551615").longValue()),
+    assertEquals(Long.compareUnsigned(int10.getLong(),
+                     new BigInteger("18446744073709551615").longValue()),
         0);
-    assertEquals(int10.getIntegerValue(), "18446744073709551615");
-    assertTrue(!int11.isInt32Value() && !int11.isUInt32Value() && !int11.isInt64Value() && !int11.isUInt64Value()
-        && int11.isIntegerValue());
-    assertEquals(int11.getIntegerValue(), "18446744073709551616");
+    assertEquals(int10.getInteger(), "18446744073709551615");
+    assertTrue(!int11.isInt() && !int11.isLong() && int11.isInteger());
+    assertEquals(int11.getInteger(), "18446744073709551616");
   }
 
-  @Test void getStringValue()
-  {
+  @Test
+  void getString() {
     Term s1 = d_solver.mkString("abcde");
-    assertTrue(s1.isStringValue());
-    assertEquals(s1.getStringValue(), "abcde");
+    assertTrue(s1.isString());
+    assertEquals(s1.getString(), "abcde");
   }
 
-  @Test void substitute()
-  {
+  @Test
+  void substitute() {
     Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
     Term one = d_solver.mkInteger(1);
     Term ttrue = d_solver.mkTrue();
@@ -820,8 +801,8 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> xpx.substitute(es, rs));
   }
 
-  @Test void constArray() throws CVC5ApiException
-  {
+  @Test
+  void constArray() throws CVC5ApiException {
     Sort intsort = d_solver.getIntegerSort();
     Sort arrsort = d_solver.mkArraySort(intsort, intsort);
     Term a = d_solver.mkConst(arrsort, "a");
@@ -832,32 +813,36 @@ class TermTest
     assertEquals(constarr.getConstArrayBase(), one);
     assertThrows(CVC5ApiException.class, () -> a.getConstArrayBase());
 
-    arrsort = d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getRealSort());
+    arrsort =
+        d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getRealSort());
     Term zero_array = d_solver.mkConstArray(arrsort, d_solver.mkReal(0));
-    Term stores = d_solver.mkTerm(STORE, zero_array, d_solver.mkReal(1), d_solver.mkReal(2));
-    stores = d_solver.mkTerm(STORE, stores, d_solver.mkReal(2), d_solver.mkReal(3));
-    stores = d_solver.mkTerm(STORE, stores, d_solver.mkReal(4), d_solver.mkReal(5));
+    Term stores = d_solver.mkTerm(
+        STORE, zero_array, d_solver.mkReal(1), d_solver.mkReal(2));
+    stores =
+        d_solver.mkTerm(STORE, stores, d_solver.mkReal(2), d_solver.mkReal(3));
+    stores =
+        d_solver.mkTerm(STORE, stores, d_solver.mkReal(4), d_solver.mkReal(5));
   }
 
-  @Test void getSequenceValue() throws CVC5ApiException
-  {
+  @Test
+  void constSequenceElements() throws CVC5ApiException {
     Sort realsort = d_solver.getRealSort();
     Sort seqsort = d_solver.mkSequenceSort(realsort);
     Term s = d_solver.mkEmptySequence(seqsort);
 
     assertEquals(s.getKind(), CONST_SEQUENCE);
     // empty sequence has zero elements
-    List<Term> cs = Arrays.asList(s.getSequenceValue());
+    List<Term> cs = Arrays.asList(s.getConstSequenceElements());
     assertTrue(cs.isEmpty());
 
     // A seq.unit app is not a constant sequence (regardless of whether it is
     // applied to a constant).
     Term su = d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal(1));
-    assertThrows(CVC5ApiException.class, () -> su.getSequenceValue());
+    assertThrows(CVC5ApiException.class, () -> su.getConstSequenceElements());
   }
 
-  @Test void termScopedToString()
-  {
+  @Test
+  void termScopedToString() {
     Sort intsort = d_solver.getIntegerSort();
     Term x = d_solver.mkConst(intsort, "x");
     assertEquals(x.toString(), "x");

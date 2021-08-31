@@ -132,7 +132,7 @@ class TheoryInferenceManager
    * EqualityEngineNotify::eqNotifyTriggerPredicate and
    * EqualityEngineNotify::eqNotifyTriggerTermEquality.
    */
-  bool propagateLit(TNode lit);
+  virtual bool propagateLit(TNode lit);
   /**
    * Return an explanation for the literal represented by parameter lit
    * (which was previously propagated by this theory). By default, this
@@ -300,6 +300,8 @@ class TheoryInferenceManager
    * Theory's preNotifyFact and notifyFact method have been called with
    * isInternal = true.
    *
+   * Note this method should never be used when proofs are enabled.
+   *
    * @param atom The atom of the fact to assert
    * @param pol Its polarity
    * @param exp Its explanation, i.e. ( exp => (~) atom ) is valid.
@@ -371,6 +373,11 @@ class TheoryInferenceManager
    * this context level.
    */
   void setIncomplete(IncompleteId id);
+  /**
+   * Notify this inference manager that a conflict was sent in this SAT context.
+   * This method is called via TheoryEngine when a conflict is sent.
+   */
+  virtual void notifyInConflict();
 
  protected:
   /**
@@ -429,7 +436,9 @@ class TheoryInferenceManager
   /** Pointer to the decision manager */
   DecisionManager* d_decManager;
   /** A proof equality engine */
-  std::unique_ptr<eq::ProofEqEngine> d_pfee;
+  eq::ProofEqEngine* d_pfee;
+  /** The proof equality engine we allocated */
+  std::unique_ptr<eq::ProofEqEngine> d_pfeeAlloc;
   /** The proof node manager of the theory */
   ProofNodeManager* d_pnm;
   /** Whether this manager caches lemmas */

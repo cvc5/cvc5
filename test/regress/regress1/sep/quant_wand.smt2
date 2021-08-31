@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --full-saturate-quant
 ; EXPECT: unsat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status unsat)
 (declare-heap (Int Int))
 

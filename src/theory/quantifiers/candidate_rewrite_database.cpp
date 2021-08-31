@@ -20,6 +20,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
@@ -32,11 +33,10 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-CandidateRewriteDatabase::CandidateRewriteDatabase(bool doCheck,
-                                                   bool rewAccel,
-                                                   bool silent,
-                                                   bool filterPairs)
-    : d_tds(nullptr),
+CandidateRewriteDatabase::CandidateRewriteDatabase(
+    Env& env, bool doCheck, bool rewAccel, bool silent, bool filterPairs)
+    : ExprMiner(env),
+      d_tds(nullptr),
       d_ext_rewrite(nullptr),
       d_doCheck(doCheck),
       d_rewAccel(rewAccel),
@@ -244,8 +244,8 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
           // wish to enumerate any term that contains sol (resp. eq_sol)
           // as a subterm.
           Node exc_sol = sol;
-          unsigned sz = d_tds->getSygusTermSize(sol);
-          unsigned eqsz = d_tds->getSygusTermSize(eq_sol);
+          unsigned sz = datatypes::utils::getSygusTermSize(sol);
+          unsigned eqsz = datatypes::utils::getSygusTermSize(eq_sol);
           if (eqsz > sz)
           {
             sz = eqsz;

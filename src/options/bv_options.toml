@@ -66,7 +66,7 @@ name   = "Bitvector Theory"
   long       = "bv-eq-solver"
   type       = "bool"
   default    = "true"
-  help       = "use the equality engine for the bit-vector theory (only if --bitblast=lazy)"
+  help       = "use the equality engine for the bit-vector theory (only if --bv-solver=layered)"
 
 [[option]]
   name       = "bitvectorInequalitySolver"
@@ -74,7 +74,7 @@ name   = "Bitvector Theory"
   long       = "bv-inequality-solver"
   type       = "bool"
   default    = "true"
-  help       = "turn on the inequality solver for the bit-vector theory (only if --bitblast=lazy)"
+  help       = "turn on the inequality solver for the bit-vector theory (only if --bv-solver=layered)"
 
 [[option]]
   name       = "bitvectorAlgebraicSolver"
@@ -82,13 +82,13 @@ name   = "Bitvector Theory"
   long       = "bv-algebraic-solver"
   type       = "bool"
   default    = "false"
-  help       = "turn on experimental algebraic solver for the bit-vector theory (only if --bitblast=lazy)"
+  help       = "turn on experimental algebraic solver for the bit-vector theory (only if --bv-solver=layered)"
 
 [[option]]
   name       = "bitvectorAlgebraicBudget"
   category   = "expert"
   long       = "bv-algebraic-budget=N"
-  type       = "unsigned"
+  type       = "uint64_t"
   default    = "1500"
   help       = "the budget allowed for the algebraic solver in number of SAT conflicts"
 
@@ -154,7 +154,7 @@ name   = "Bitvector Theory"
   name       = "bvNumFunc"
   category   = "expert"
   long       = "bv-num-func=N"
-  type       = "unsigned"
+  type       = "uint64_t"
   default    = "1"
   help       = "number of function symbols in conflicts that are generalized"
 
@@ -191,22 +191,6 @@ name   = "Bitvector Theory"
   help       = "simplify formula via Gaussian Elimination if applicable"
 
 [[option]]
-  name       = "bvLazyRewriteExtf"
-  category   = "regular"
-  long       = "bv-lazy-rewrite-extf"
-  type       = "bool"
-  default    = "true"
-  help       = "lazily rewrite extended functions like bv2nat and int2bv"
-
-[[option]]
-  name       = "bvLazyReduceExtf"
-  category   = "regular"
-  long       = "bv-lazy-reduce-extf"
-  type       = "bool"
-  default    = "false"
-  help       = "reduce extended functions like bv2nat and int2bv at last call instead of full effort"
-
-[[option]]
   name       = "bvAlgExtf"
   category   = "regular"
   long       = "bv-alg-extf"
@@ -227,18 +211,18 @@ name   = "Bitvector Theory"
   category   = "regular"
   long       = "bv-solver=MODE"
   type       = "BVSolver"
-  default    = "LAZY"
+  default    = "BITBLAST"
   help       = "choose bit-vector solver, see --bv-solver=help"
   help_mode  = "Bit-vector solvers."
 [[option.mode.BITBLAST]]
   name = "bitblast"
   help = "Enables bitblasting solver."
-[[option.mode.LAZY]]
-  name = "lazy"
-  help = "Enables the lazy BV solver infrastructure."
-[[option.mode.SIMPLE]]
-  name = "simple"
-  help = "Enables simple bitblasting solver with proof support."
+[[option.mode.BITBLAST_INTERNAL]]
+  name = "bitblast-internal"
+  help = "Enables bitblasting to internal SAT solver with proof support."
+[[option.mode.LAYERED]]
+  name = "layered"
+  help = "Enables the layered BV solver."
 
 [[option]]
   name       = "bvAssertInput"

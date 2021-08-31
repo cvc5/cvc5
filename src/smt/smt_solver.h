@@ -64,8 +64,7 @@ struct SmtEngineStatistics;
 class SmtSolver
 {
  public:
-  SmtSolver(SmtEngine& smt,
-            Env& env,
+  SmtSolver(Env& env,
             SmtEngineState& state,
             Preprocessor& pp,
             SmtEngineStatistics& stats);
@@ -103,13 +102,11 @@ class SmtSolver
    * during this call.
    * @param assumptions The assumptions for this check-sat call, which are
    * temporary assertions.
-   * @param inUnsatCore Whether assumptions are in the unsat core.
    * @param isEntailmentCheck Whether this is an entailment check (assumptions
    * are negated in this case).
    */
   Result checkSatisfiability(Assertions& as,
                              const std::vector<Node>& assumptions,
-                             bool inUnsatCore,
                              bool isEntailmentCheck);
   /**
    * Process the assertions that have been asserted in as. This moves the set of
@@ -117,11 +114,6 @@ class SmtSolver
    * into the SMT solver, and clears the buffer.
    */
   void processAssertions(Assertions& as);
-  /**
-   * Set proof node manager. Enables proofs in this SmtSolver. Should be
-   * called before finishInit.
-   */
-  void setProofNodeManager(ProofNodeManager* pnm);
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine();
@@ -134,8 +126,6 @@ class SmtSolver
   //------------------------------------------ end access methods
 
  private:
-  /** Reference to the parent SMT engine */
-  SmtEngine& d_smt;
   /** Reference to the environment */
   Env& d_env;
   /** Reference to the state of the SmtEngine */
@@ -144,11 +134,6 @@ class SmtSolver
   Preprocessor& d_pp;
   /** Reference to the statistics of SmtEngine */
   SmtEngineStatistics& d_stats;
-  /**
-   * Pointer to the proof node manager used by this SmtSolver. A non-null
-   * proof node manager indicates that proofs are enabled.
-   */
-  ProofNodeManager* d_pnm;
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
   /** The propositional engine */

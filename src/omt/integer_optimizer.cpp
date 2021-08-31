@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yancheng Ou, Michael Chang
+ *   Michael Chang, Yancheng Ou
  *
  * This file is part of the cvc5 project.
  *
@@ -29,19 +29,16 @@ OptimizationResult OMTOptimizerInteger::optimize(SmtEngine* optChecker,
   // the smt engine to which we send intermediate queries
   // for the linear search.
   NodeManager* nm = optChecker->getNodeManager();
-
+  optChecker->push();
   Result intermediateSatResult = optChecker->checkSat();
   // Model-value of objective (used in optimization loop)
   Node value;
-  if (intermediateSatResult.isUnknown())
+  if (intermediateSatResult.isUnknown()
+      || intermediateSatResult.isSat() == Result::UNSAT)
   {
-    return OptimizationResult(OptimizationResult::UNKNOWN, value);
+    return OptimizationResult(intermediateSatResult, value);
   }
-  if (intermediateSatResult.isSat() == Result::UNSAT)
-  {
-    return OptimizationResult(OptimizationResult::UNSAT, value);
-  }
-  // asserts objective > old_value (used in optimization loop)
+  // node storing target > old_value (used in optimization loop)
   Node increment;
   Kind incrementalOperator = kind::NULL_EXPR;
   if (isMinimize)
@@ -56,19 +53,22 @@ OptimizationResult OMTOptimizerInteger::optimize(SmtEngine* optChecker,
     // then assert optimization_target > current_model_value
     incrementalOperator = kind::GT;
   }
+  Result lastSatResult = intermediateSatResult;
   // Workhorse of linear search:
   // This loop will keep incrmenting/decrementing the objective until unsat
   // When unsat is hit,
   // the optimized value is the model value just before the unsat call
   while (intermediateSatResult.isSat() == Result::SAT)
   {
+    lastSatResult = intermediateSatResult;
     value = optChecker->getValue(target);
     Assert(!value.isNull());
     increment = nm->mkNode(incrementalOperator, target, value);
     optChecker->assertFormula(increment);
     intermediateSatResult = optChecker->checkSat();
   }
-  return OptimizationResult(OptimizationResult::OPTIMAL, value);
+  optChecker->pop();
+  return OptimizationResult(lastSatResult, value);
 }
 
 OptimizationResult OMTOptimizerInteger::minimize(SmtEngine* optChecker,

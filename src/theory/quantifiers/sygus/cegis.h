@@ -42,29 +42,30 @@ namespace quantifiers {
 class Cegis : public SygusModule
 {
  public:
-  Cegis(QuantifiersInferenceManager& qim, TermDbSygus* tds, SynthConjecture* p);
+  Cegis(QuantifiersState& qs,
+        QuantifiersInferenceManager& qim,
+        TermDbSygus* tds,
+        SynthConjecture* p);
   ~Cegis() override {}
   /** initialize */
   virtual bool initialize(Node conj,
                           Node n,
-                          const std::vector<Node>& candidates,
-                          std::vector<Node>& lemmas) override;
+                          const std::vector<Node>& candidates) override;
   /** get term list */
   virtual void getTermList(const std::vector<Node>& candidates,
                            std::vector<Node>& enums) override;
   /** construct candidate */
-  virtual bool constructCandidates(const std::vector<Node>& enums,
-                                   const std::vector<Node>& enum_values,
-                                   const std::vector<Node>& candidates,
-                                   std::vector<Node>& candidate_values,
-                                   std::vector<Node>& lems) override;
+  virtual bool constructCandidates(
+      const std::vector<Node>& enums,
+      const std::vector<Node>& enum_values,
+      const std::vector<Node>& candidates,
+      std::vector<Node>& candidate_values) override;
   /** register refinement lemma
    *
    * This function stores lem as a refinement lemma, and adds it to lems.
    */
   virtual void registerRefinementLemma(const std::vector<Node>& vars,
-                                       Node lem,
-                                       std::vector<Node>& lems) override;
+                                       Node lem) override;
   /** using repair const */
   virtual bool usingRepairConst() override;
 
@@ -85,8 +86,7 @@ class Cegis : public SygusModule
    */
   virtual bool processInitialize(Node conj,
                                  Node n,
-                                 const std::vector<Node>& candidates,
-                                 std::vector<Node>& lemmas);
+                                 const std::vector<Node>& candidates);
   /** do cegis-implementation-specific post-processing for construct candidate
    *
    * satisfiedRl is whether all refinement lemmas are satisfied under the
@@ -99,8 +99,7 @@ class Cegis : public SygusModule
                                           const std::vector<Node>& enum_values,
                                           const std::vector<Node>& candidates,
                                           std::vector<Node>& candidate_values,
-                                          bool satisfiedRl,
-                                          std::vector<Node>& lems);
+                                          bool satisfiedRl);
   //----------------------------------end cegis-implementation-specific
 
   //-----------------------------------refinement lemmas
@@ -139,11 +138,11 @@ class Cegis : public SygusModule
    * This function will check if there is a sample point in d_sampler that
    * refutes the candidate solution (d_quant_vars->vals). If so, it adds a
    * refinement lemma to the lists d_refinement_lemmas that corresponds to that
-   * sample point, and adds a lemma to lems if cegisSample mode is not trust.
+   * sample point, and adds a lemma to d_qim pending lemmas if cegisSample mode
+   * is not trust.
    */
   bool sampleAddRefinementLemma(const std::vector<Node>& candidates,
-                                const std::vector<Node>& vals,
-                                std::vector<Node>& lems);
+                                const std::vector<Node>& vals);
 
   /** evaluates candidate values on current refinement lemmas
    *
@@ -168,8 +167,7 @@ class Cegis : public SygusModule
    * blocking the current value of candidates.
    */
   bool addEvalLemmas(const std::vector<Node>& candidates,
-                     const std::vector<Node>& candidate_values,
-                     std::vector<Node>& lems);
+                     const std::vector<Node>& candidate_values);
   /** Get the node corresponding to the conjunction of all refinement lemmas. */
   Node getRefinementLemmaFormula();
   //-----------------------------------end refinement lemmas

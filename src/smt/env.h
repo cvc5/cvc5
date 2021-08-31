@@ -61,7 +61,7 @@ class Env
   /**
    * Construct an Env with the given node manager.
    */
-  Env(NodeManager* nm, Options* opts);
+  Env(NodeManager* nm, const Options* opts);
   /** Destruct the env.  */
   ~Env();
 
@@ -82,6 +82,21 @@ class Env
    */
   ProofNodeManager* getProofNodeManager();
 
+  /**
+   * Check whether the SAT solver should produce proofs. Other than whether
+   * the proof node manager is set, SAT proofs are only generated when the
+   * unsat core mode is not ASSUMPTIONS.
+   */
+  bool isSatProofProducing() const;
+
+  /**
+   * Check whether theories should produce proofs as well. Other than whether
+   * the proof node manager is set, theory engine proofs are conditioned on the
+   * relationship between proofs and unsat cores: the unsat cores are in
+   * FULL_PROOF mode, no proofs are generated on theory engine.
+   */
+  bool isTheoryProofProducing() const;
+
   /** Get a pointer to the Rewriter owned by this Env. */
   theory::Rewriter* getRewriter();
 
@@ -91,14 +106,11 @@ class Env
   /** Get a pointer to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
 
-  template <typename Opt>
-  const auto& getOption(Opt opt) const
-  {
-    return d_options[opt];
-  }
-
   /** Get the options object (const version only) owned by this Env. */
   const Options& getOptions() const;
+
+  /** Get the original options object (const version only). */
+  const Options& getOriginalOptions() const;
 
   /** Get the resource manager owned by this Env. */
   ResourceManager* getResourceManager() const;
@@ -186,6 +198,12 @@ class Env
    * consider during solving and initialization.
    */
   Options d_options;
+  /**
+   * A pointer to the original options object as stored in the api::Solver.
+   * The referenced objects holds the options as initially parsed before being
+   * changed, e.g., by setDefaults().
+   */
+  const Options* d_originalOptions;
   /** Manager for limiting time and abstract resource usage. */
   std::unique_ptr<ResourceManager> d_resourceManager;
 }; /* class Env */

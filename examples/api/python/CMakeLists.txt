@@ -22,14 +22,16 @@ set(EXAMPLES_API_PYTHON
   extract
   floating_point
   helloworld
+  id
   linear_arith
+  quickstart
   sequences
   sets
   strings
   sygus-fun
   sygus-grammar
   sygus-inv
-  id
+  transcendentals
 )
 
 find_package(PythonInterp ${CVC5_BINDINGS_PYTHON_VERSION} REQUIRED)

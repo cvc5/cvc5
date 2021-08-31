@@ -515,7 +515,7 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
   }
 }
 
-void ProofCnfStream::convertPropagation(theory::TrustNode trn)
+void ProofCnfStream::convertPropagation(TrustNode trn)
 {
   Node proven = trn.getProven();
   Trace("cnf") << "ProofCnfStream::convertPropagation: proven explanation"

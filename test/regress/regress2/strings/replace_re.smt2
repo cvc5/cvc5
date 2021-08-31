@@ -40,3 +40,11 @@
 (set-info :status unsat)
 (check-sat)
 (pop)
+
+(push)
+(assert (= "FOO" (str.replace_re x (re.union (str.to_re "A") (str.to_re "ABC")) "FOO")))
+(assert (not (= x "FOO")))
+(assert (> (str.len x) 1))
+(set-info :status unsat)
+(check-sat)
+(pop)

@@ -19,7 +19,6 @@
 #include "proof/proof_generator.h"
 
 namespace cvc5 {
-namespace theory {
 
 const char* toString(TrustNodeKind tnk)
 {
@@ -67,6 +66,12 @@ TrustNode TrustNode::mkTrustRewrite(TNode n, Node nr, ProofGenerator* g)
   Node rkey = getRewriteProven(n, nr);
   Assert(g == nullptr || g->hasProofFor(rkey));
   return TrustNode(TrustNodeKind::REWRITE, rkey, g);
+}
+
+TrustNode TrustNode::mkReplaceGenTrustNode(const TrustNode& orig,
+                                           ProofGenerator* g)
+{
+  return TrustNode(orig.getKind(), orig.getProven(), g);
 }
 
 TrustNode TrustNode::null()
@@ -146,5 +151,4 @@ std::ostream& operator<<(std::ostream& out, TrustNode n)
   return out;
 }
 
-}  // namespace theory
 }  // namespace cvc5

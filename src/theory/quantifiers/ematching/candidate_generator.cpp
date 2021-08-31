@@ -14,11 +14,13 @@
  */
 
 #include "theory/quantifiers/ematching/candidate_generator.h"
+
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
@@ -292,7 +294,7 @@ CandidateGeneratorSelector::CandidateGeneratorSelector(QuantifiersState& qs,
   // NOTE: could use qs.getValuation().getPreprocessedTerm(mpat); when
   // expand definitions is eliminated, however, this also requires avoiding
   // term formula removal.
-  Node mpatExp = smt::currentSmtEngine()->expandDefinitions(mpat);
+  Node mpatExp = datatypes::DatatypesRewriter::expandApplySelector(mpat);
   Trace("sel-trigger") << "Expands to: " << mpatExp << std::endl;
   if (mpatExp.getKind() == ITE)
   {

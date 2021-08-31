@@ -56,23 +56,6 @@ public class Solver implements IPointer
     this.pointer = newSolver();
   }
 
-  /**
-   * Constructor.
-   * @param opts an optional pointer to a solver options object
-   * @return the Solver
-   */
-  // TODO: Solver(Options* opts = nullptr);
-
-  /* .................................................................... */
-  /* Solver Configuration                                                 */
-  /* .................................................................... */
-
-  public boolean supportsFloatingPoint()
-  {
-    return supportsFloatingPoint(pointer);
-  }
-
-  private native boolean supportsFloatingPoint(long pointer);
   /* .................................................................... */
   /* Sorts Handling                                                       */
   /* .................................................................... */
@@ -992,6 +975,9 @@ public class Solver implements IPointer
 
   /**
    * Create a bit-vector constant of given size and value.
+   *
+   * Note: The given value must fit into a bit-vector of the given size.
+   *
    * @param size the bit-width of the bit-vector sort
    * @param val the value of the constant
    * @return the bit-vector constant
@@ -1007,42 +993,11 @@ public class Solver implements IPointer
   private native long mkBitVector(long pointer, int size, long val);
 
   /**
-   * Create a bit-vector constant from a given string of base 2.
-   * The size of resulting bit-vector is the size of the binary string
-   * @param s the string representation of the constant
-   * @return the bit-vector constant
-   */
-  public Term mkBitVector(String s) throws CVC5ApiException
-  {
-    return mkBitVector(s, 2);
-  }
-
-  /**
-   * Create a bit-vector constant from a given string of base 2, 10 or 16.
+   * Create a bit-vector constant of a given bit-width from a given string of
+   * base 2, 10 or 16.
    *
-   * The size of resulting bit-vector is
-   * - base  2: the size of the binary string
-   * - base 10: the min. size required to represent the decimal as a
-   * bit-vector
-   * - base 16: the max. size required to represent the hexadecimal as a
-   *            bit-vector (4 * size of the given value string)
+   * Note: The given value must fit into a bit-vector of the given size.
    *
-   * @param s the string representation of the constant
-   * @param base the base of the string representation (2, 10, or 16)
-   * @return the bit-vector constant
-   */
-  public Term mkBitVector(String s, int base) throws CVC5ApiException
-  {
-    Utils.validateUnsigned(base, "base");
-    long termPointer = mkBitVector(pointer, s, base);
-    return new Term(this, termPointer);
-  }
-
-  private native long mkBitVector(long pointer, String s, int base);
-
-  /**
-   * Create a bit-vector constant of a given bit-width from a given string
-   * of base 2, 10 or 16.
    * @param size the bit-width of the constant
    * @param s the string representation of the constant
    * @param base the base of the string representation (2, 10, or 16)

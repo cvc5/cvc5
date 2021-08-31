@@ -1,5 +1,5 @@
 ; EXPECT: sat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 (declare-fun start!13 () Bool)
 

@@ -20,12 +20,12 @@
 
 #pragma once
 
+#include <optional>
 #include <ostream>
 
 #include "expr/node.h"
 #include "theory/arith/delta_rational.h"
 #include "util/integer.h"
-#include "util/maybe.h"
 #include "util/rational.h"
 
 namespace cvc5 {
@@ -39,19 +39,19 @@ namespace inferbounds {
 class InferBoundAlgorithm {
 private:
   Algorithms d_alg;
-  Maybe<int> d_simplexRounds;
+  std::optional<int> d_simplexRounds;
   InferBoundAlgorithm(Algorithms a);
-  InferBoundAlgorithm(const Maybe<int>& simplexRounds);
+  InferBoundAlgorithm(const std::optional<int>& simplexRounds);
 
-public:
+ public:
   InferBoundAlgorithm();
 
   Algorithms getAlgorithm() const;
-  const Maybe<int>& getSimplexRounds() const;
+  const std::optional<int>& getSimplexRounds() const;
 
   static InferBoundAlgorithm mkLookup();
   static InferBoundAlgorithm mkRowSum();
-  static InferBoundAlgorithm mkSimplex(const Maybe<int>& rounds);
+  static InferBoundAlgorithm mkSimplex(const std::optional<int>& rounds);
 };
 
 std::ostream& operator<<(std::ostream& os, const Algorithms a);

@@ -44,15 +44,7 @@ class SolverTest
 
   @Test void supportsFloatingPoint() throws CVC5ApiException
   {
-    if (d_solver.supportsFloatingPoint())
-    {
-      assertDoesNotThrow(() -> d_solver.mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN));
-    }
-    else
-    {
-      assertThrows(
-          CVC5ApiException.class, () -> d_solver.mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN));
-    }
+    assertDoesNotThrow(() -> d_solver.mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN));
   }
 
   @Test void getBooleanSort() throws CVC5ApiException
@@ -87,14 +79,7 @@ class SolverTest
 
   @Test void getRoundingModeSort() throws CVC5ApiException
   {
-    if (d_solver.supportsFloatingPoint())
-    {
-      assertDoesNotThrow(() -> d_solver.getRoundingModeSort());
-    }
-    else
-    {
-      assertThrows(CVC5ApiException.class, () -> d_solver.getRoundingModeSort());
-    }
+    assertDoesNotThrow(() -> d_solver.getRoundingModeSort());
   }
 
   @Test void mkArraySort() throws CVC5ApiException
@@ -110,12 +95,9 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkArraySort(boolSort, intSort));
     assertDoesNotThrow(() -> d_solver.mkArraySort(realSort, bvSort));
 
-    if (d_solver.supportsFloatingPoint())
-    {
-      Sort fpSort = d_solver.mkFloatingPointSort(3, 5);
-      assertDoesNotThrow(() -> d_solver.mkArraySort(fpSort, fpSort));
-      assertDoesNotThrow(() -> d_solver.mkArraySort(bvSort, fpSort));
-    }
+    Sort fpSort = d_solver.mkFloatingPointSort(3, 5);
+    assertDoesNotThrow(() -> d_solver.mkArraySort(fpSort, fpSort));
+    assertDoesNotThrow(() -> d_solver.mkArraySort(bvSort, fpSort));
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.mkArraySort(boolSort, boolSort));
@@ -129,16 +111,9 @@ class SolverTest
 
   @Test void mkFloatingPointSort() throws CVC5ApiException
   {
-    if (d_solver.supportsFloatingPoint())
-    {
-      assertDoesNotThrow(() -> d_solver.mkFloatingPointSort(4, 8));
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPointSort(0, 8));
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPointSort(4, 0));
-    }
-    else
-    {
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPointSort(4, 8));
-    }
+    assertDoesNotThrow(() -> d_solver.mkFloatingPointSort(4, 8));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPointSort(0, 8));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPointSort(4, 0));
   }
 
   @Test void mkDatatypeSort() throws CVC5ApiException
@@ -344,28 +319,47 @@ class SolverTest
 
   @Test void mkBitVector() throws CVC5ApiException
   {
-    int size0 = 0, size1 = 8, size2 = 32, val1 = 2;
-    long val2 = 2;
-    assertDoesNotThrow(() -> d_solver.mkBitVector(size1, val1));
-    assertDoesNotThrow(() -> d_solver.mkBitVector(size2, val2));
-    assertDoesNotThrow(() -> d_solver.mkBitVector("1010", 2));
-    assertDoesNotThrow(() -> d_solver.mkBitVector("1010", 10));
-    assertDoesNotThrow(() -> d_solver.mkBitVector("1234", 10));
-    assertDoesNotThrow(() -> d_solver.mkBitVector("1010", 16));
-    assertDoesNotThrow(() -> d_solver.mkBitVector("a09f", 16));
-    assertDoesNotThrow(() -> d_solver.mkBitVector(8, "-127", 10));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(size0, val1));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(size0, val2));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector("", 2));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector("10", 3));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector("20", 2));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "101010101", 2));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "-256", 10));
-    assertEquals(d_solver.mkBitVector("1010", 2), d_solver.mkBitVector("10", 10));
-    assertEquals(d_solver.mkBitVector("1010", 2), d_solver.mkBitVector("a", 16));
-    assertEquals(d_solver.mkBitVector(8, "01010101", 2).toString(), "#b01010101");
-    assertEquals(d_solver.mkBitVector(8, "F", 16).toString(), "#b00001111");
-    assertEquals(d_solver.mkBitVector(8, "-1", 10), d_solver.mkBitVector(8, "FF", 16));
+      assertDoesNotThrow(() -> d_solver.mkBitVector(8, 2));
+      assertDoesNotThrow(() -> d_solver.mkBitVector(32, 2));
+      assertDoesNotThrow(() -> d_solver.mkBitVector(8, "-1111111", 2));
+      assertDoesNotThrow(() -> d_solver.mkBitVector(8, "0101", 2));
+      assertDoesNotThrow(() -> d_solver.mkBitVector(8, "00000101", 2));
+      assertDoesNotThrow(() -> d_solver.mkBitVector(8, "-127", 10));
+      assertDoesNotThrow(() -> d_solver.mkBitVector(8, "255", 10));
+      assertDoesNotThrow(() -> d_solver.mkBitVector(8, "-7f", 16));
+      assertDoesNotThrow(() -> d_solver.mkBitVector(8, "a0", 16));
+    
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(0, 2));
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(0, "-127", 10));
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(0, "a0", 16));
+    
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "", 2));
+    
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "101", 5));
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "128", 11));
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "a0", 21));
+    
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "-11111111", 2));
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "101010101", 2));
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "-256", 10));
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "257", 10));
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "-a0", 16));
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "fffff", 16));
+    
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "10201010", 2));
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "-25x", 10));
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "2x7", 10));
+      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "fzff", 16));
+    
+      assertEquals(d_solver.mkBitVector(8, "0101", 2),
+                d_solver.mkBitVector(8, "00000101", 2));
+      assertEquals(d_solver.mkBitVector(4, "-1", 2), d_solver.mkBitVector(4, "1111", 2));
+      assertEquals(d_solver.mkBitVector(4, "-1", 16), d_solver.mkBitVector(4, "1111", 2));
+      assertEquals(d_solver.mkBitVector(4, "-1", 10), d_solver.mkBitVector(4, "1111", 2));
+      assertEquals(d_solver.mkBitVector(8, "01010101", 2).toString(), "#b01010101");
+      assertEquals(d_solver.mkBitVector(8, "F", 16).toString(), "#b00001111");
+      assertEquals(d_solver.mkBitVector(8, "-1", 10),
+                d_solver.mkBitVector(8, "FF", 16));
   }
 
   @Test void mkVar() throws CVC5ApiException
@@ -391,15 +385,7 @@ class SolverTest
 
   @Test void mkRoundingMode() throws CVC5ApiException
   {
-    if (d_solver.supportsFloatingPoint())
-    {
-      assertDoesNotThrow(() -> d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_ZERO));
-    }
-    else
-    {
-      assertThrows(
-          CVC5ApiException.class, () -> d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_ZERO));
-    }
+    assertDoesNotThrow(() -> d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_ZERO));
   }
 
   @Test void mkUninterpretedConst() throws CVC5ApiException
@@ -436,14 +422,8 @@ class SolverTest
     Term t1 = d_solver.mkBitVector(8);
     Term t2 = d_solver.mkBitVector(4);
     Term t3 = d_solver.mkInteger(2);
-    if (d_solver.supportsFloatingPoint())
-    {
-      assertDoesNotThrow(() -> d_solver.mkFloatingPoint(3, 5, t1));
-    }
-    else
-    {
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPoint(3, 5, t1));
-    }
+    assertDoesNotThrow(() -> d_solver.mkFloatingPoint(3, 5, t1));
+
     assertThrows(
         CVC5ApiException.class, () -> d_solver.mkFloatingPoint(0, 5, d_solver.getNullTerm()));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPoint(0, 5, t1));
@@ -451,11 +431,8 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPoint(3, 5, t2));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPoint(3, 5, t2));
 
-    if (d_solver.supportsFloatingPoint())
-    {
-      Solver slv = new Solver();
-      assertThrows(CVC5ApiException.class, () -> slv.mkFloatingPoint(3, 5, t1));
-    }
+    Solver slv = new Solver();
+    assertThrows(CVC5ApiException.class, () -> slv.mkFloatingPoint(3, 5, t1));
   }
 
   @Test void mkEmptySet() throws CVC5ApiException
@@ -496,62 +473,27 @@ class SolverTest
 
   @Test void mkNaN() throws CVC5ApiException
   {
-    if (d_solver.supportsFloatingPoint())
-    {
-      assertDoesNotThrow(() -> d_solver.mkNaN(3, 5));
-    }
-    else
-    {
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkNaN(3, 5));
-    }
+    assertDoesNotThrow(() -> d_solver.mkNaN(3, 5));
   }
 
   @Test void mkNegZero() throws CVC5ApiException
   {
-    if (d_solver.supportsFloatingPoint())
-    {
-      assertDoesNotThrow(() -> d_solver.mkNegZero(3, 5));
-    }
-    else
-    {
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkNegZero(3, 5));
-    }
+    assertDoesNotThrow(() -> d_solver.mkNegZero(3, 5));
   }
 
   @Test void mkNegInf()
   {
-    if (d_solver.supportsFloatingPoint())
-    {
-      assertDoesNotThrow(() -> d_solver.mkNegInf(3, 5));
-    }
-    else
-    {
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkNegInf(3, 5));
-    }
+    assertDoesNotThrow(() -> d_solver.mkNegInf(3, 5));
   }
 
   @Test void mkPosInf()
   {
-    if (d_solver.supportsFloatingPoint())
-    {
-      assertDoesNotThrow(() -> d_solver.mkPosInf(3, 5));
-    }
-    else
-    {
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkPosInf(3, 5));
-    }
+    assertDoesNotThrow(() -> d_solver.mkPosInf(3, 5));
   }
 
   @Test void mkPosZero()
   {
-    if (d_solver.supportsFloatingPoint())
-    {
-      assertDoesNotThrow(() -> d_solver.mkPosZero(3, 5));
-    }
-    else
-    {
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkPosZero(3, 5));
-    }
+    assertDoesNotThrow(() -> d_solver.mkPosZero(3, 5));
   }
 
   @Test void mkOp()
@@ -866,18 +808,18 @@ class SolverTest
   {
     assertDoesNotThrow(()
                            -> d_solver.mkTuple(new Sort[] {d_solver.mkBitVectorSort(3)},
-                               new Term[] {d_solver.mkBitVector("101", 2)}));
+                               new Term[] {d_solver.mkBitVector(3, "101", 2)}));
     assertDoesNotThrow(()
                            -> d_solver.mkTuple(new Sort[] {d_solver.getRealSort()},
                                new Term[] {d_solver.mkInteger("5")}));
 
     assertThrows(CVC5ApiException.class,
-        () -> d_solver.mkTuple(new Sort[] {}, new Term[] {d_solver.mkBitVector("101", 2)}));
+        () -> d_solver.mkTuple(new Sort[] {}, new Term[] {d_solver.mkBitVector(3, "101", 2)}));
 
     assertThrows(CVC5ApiException.class,
         ()
             -> d_solver.mkTuple(new Sort[] {d_solver.mkBitVectorSort(4)},
-                new Term[] {d_solver.mkBitVector("101", 2)}));
+                new Term[] {d_solver.mkBitVector(3, "101", 2)}));
 
     assertThrows(CVC5ApiException.class,
         ()
@@ -888,12 +830,12 @@ class SolverTest
     assertThrows(CVC5ApiException.class,
         ()
             -> slv.mkTuple(
-                new Sort[] {d_solver.mkBitVectorSort(3)}, new Term[] {slv.mkBitVector("101", 2)}));
+                new Sort[] {d_solver.mkBitVectorSort(3)}, new Term[] {slv.mkBitVector(3, "101", 2)}));
 
     assertThrows(CVC5ApiException.class,
         ()
             -> slv.mkTuple(
-                new Sort[] {slv.mkBitVectorSort(3)}, new Term[] {d_solver.mkBitVector("101", 2)}));
+                new Sort[] {slv.mkBitVectorSort(3)}, new Term[] {d_solver.mkBitVector(3, "101", 2)}));
   }
 
   @Test void mkUniverseSet()
@@ -1574,7 +1516,7 @@ class SolverTest
 
   @Test void declareSeparationHeap() throws CVC5ApiException
   {
-    d_solver.setLogic("ALL_SUPPORTED");
+    d_solver.setLogic("ALL");
     Sort integer = d_solver.getIntegerSort();
     assertDoesNotThrow(() -> d_solver.declareSeparationHeap(integer, integer));
     // cannot declare separation logic heap more than once
@@ -1612,7 +1554,7 @@ class SolverTest
 
   @Test void getSeparationHeapTerm2() throws CVC5ApiException
   {
-    d_solver.setLogic("ALL_SUPPORTED");
+    d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "false");
     checkSimpleSeparationConstraints(d_solver);
@@ -1621,7 +1563,7 @@ class SolverTest
 
   @Test void getSeparationHeapTerm3() throws CVC5ApiException
   {
-    d_solver.setLogic("ALL_SUPPORTED");
+    d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "true");
     Term t = d_solver.mkFalse();
@@ -1632,7 +1574,7 @@ class SolverTest
 
   @Test void getSeparationHeapTerm4() throws CVC5ApiException
   {
-    d_solver.setLogic("ALL_SUPPORTED");
+    d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "true");
     Term t = d_solver.mkTrue();
@@ -1643,7 +1585,7 @@ class SolverTest
 
   @Test void getSeparationHeapTerm5() throws CVC5ApiException
   {
-    d_solver.setLogic("ALL_SUPPORTED");
+    d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "true");
     checkSimpleSeparationConstraints(d_solver);
@@ -1662,7 +1604,7 @@ class SolverTest
 
   @Test void getSeparationNilTerm2() throws CVC5ApiException
   {
-    d_solver.setLogic("ALL_SUPPORTED");
+    d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "false");
     checkSimpleSeparationConstraints(d_solver);
@@ -1671,7 +1613,7 @@ class SolverTest
 
   @Test void getSeparationNilTerm3() throws CVC5ApiException
   {
-    d_solver.setLogic("ALL_SUPPORTED");
+    d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "true");
     Term t = d_solver.mkFalse();
@@ -1682,7 +1624,7 @@ class SolverTest
 
   @Test void getSeparationNilTerm4() throws CVC5ApiException
   {
-    d_solver.setLogic("ALL_SUPPORTED");
+    d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "true");
     Term t = d_solver.mkTrue();
@@ -1693,7 +1635,7 @@ class SolverTest
 
   @Test void getSeparationNilTerm5() throws CVC5ApiException
   {
-    d_solver.setLogic("ALL_SUPPORTED");
+    d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "true");
     checkSimpleSeparationConstraints(d_solver);

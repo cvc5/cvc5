@@ -1,4 +1,3 @@
-; REQUIRES: symfpu
 ; COMMAND-LINE: --strict-parsing -q
 ; EXPECT: sat
 (set-logic QF_FP)

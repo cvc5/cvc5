@@ -20,11 +20,13 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <variant>
 #include <vector>
 
 #include "api/cpp/cvc5_kind.h"
@@ -48,6 +50,10 @@ class Options;
 class Random;
 class Result;
 class StatisticsRegistry;
+
+namespace main {
+class CommandExecutor;
+}
 
 namespace api {
 
@@ -110,6 +116,31 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
    */
   CVC5ApiRecoverableException(const std::stringstream& stream)
       : CVC5ApiException(stream.str())
+  {
+  }
+};
+
+/**
+ * An option-related API exception.
+ * If thrown, API objects can still be used.
+ */
+class CVC5_EXPORT CVC5ApiOptionException : public CVC5ApiRecoverableException
+{
+ public:
+  /**
+   * Construct with message from a string.
+   * @param str The error message.
+   */
+  CVC5ApiOptionException(const std::string& str)
+      : CVC5ApiRecoverableException(str)
+  {
+  }
+  /**
+   * Construct with message from a string stream.
+   * @param stream The error message.
+   */
+  CVC5ApiOptionException(const std::stringstream& stream)
+      : CVC5ApiRecoverableException(stream.str())
   {
   }
 };
@@ -179,8 +210,8 @@ class CVC5_EXPORT Result
   bool isNotEntailed() const;
 
   /**
-   * Return true if query was a checkEntailed() () query and cvc5 was not able
-   * to determine if it is entailed.
+   * Return true if query was a checkEntailed() query and cvc5 was not able to
+   * determine if it is entailed.
    */
   bool isEntailmentUnknown() const;
 
@@ -778,6 +809,8 @@ namespace cvc5::api {
 /* Op                                                                     */
 /* -------------------------------------------------------------------------- */
 
+class Term;
+
 /**
  * A cvc5 operator.
  * An operator is a term that represents certain operators, instantiated
@@ -839,6 +872,14 @@ class CVC5_EXPORT Op
   size_t getNumIndices() const;
 
   /**
+   * Get the index at position i.
+   * @param i the position of the index to return
+   * @return the index at position i
+   */
+
+  Term operator[](size_t i) const;
+
+  /**
    * Get the indices used to create this Op.
    * Supports the following template arguments:
    *   - string
@@ -886,6 +927,19 @@ class CVC5_EXPORT Op
    * @return true iff this Op is indexed
    */
   bool isIndexedHelper() const;
+
+  /**
+   * Helper for getNumIndices
+   * @return the number of indices of this op
+   */
+  size_t getNumIndicesHelper() const;
+
+  /**
+   * Helper for operator[](size_t i).
+   * @param i position of the index. Should be less than getNumIndicesHelper().
+   * @return the index at position i
+   */
+  Term getIndexHelper(size_t index) const;
 
   /**
    * The associated solver object.
@@ -1757,7 +1811,7 @@ class CVC5_EXPORT DatatypeSelector
    */
   Term getUpdaterTerm() const;
 
-  /** @return the range sort of this argument. */
+  /** @return the range sort of this selector. */
   Sort getRangeSort() const;
 
   /**
@@ -2541,6 +2595,115 @@ struct CVC5_EXPORT hash<cvc5::api::RoundingMode>
 namespace cvc5::api {
 
 /* -------------------------------------------------------------------------- */
+/* Options                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Provides access to options that can not be communicated via the regular
+ * getOption() or getOptionInfo() methods. This class does not store the options
+ * itself, but only acts as a wrapper to the solver object. It can thus no
+ * longer be used after the solver object has been destroyed.
+ */
+class CVC5_EXPORT DriverOptions
+{
+  friend class Solver;
+
+ public:
+  /** Access the solvers input stream */
+  std::istream& in() const;
+  /** Access the solvers error output stream */
+  std::ostream& err() const;
+  /** Access the solvers output stream */
+  std::ostream& out() const;
+
+ private:
+  DriverOptions(const Solver& solver);
+  const Solver& d_solver;
+};
+
+/**
+ * Holds some description about a particular option, including its name, its
+ * aliases, whether the option was explcitly set by the user, and information
+ * concerning its value. The `valueInfo` member holds any of the following
+ * alternatives:
+ * - VoidInfo if the option holds no value (or the value has no native type)
+ * - ValueInfo<T> if the option is of type bool or std::string, holds the
+ *   current value and the default value.
+ * - NumberInfo<T> if the option is of type int64_t, uint64_t or double, holds
+ *   the current and default value, as well as the minimum and maximum.
+ * - ModeInfo if the option is a mode option, holds the current and default
+ *   values, as well as a list of valid modes.
+ * Additionally, this class provides convenience functions to obtain the
+ * current value of an option in a type-safe manner using boolValue(),
+ * stringValue(), intValue(), uintValue() and doubleValue(). They assert that
+ * the option has the respective type and return the current value.
+ */
+struct CVC5_EXPORT OptionInfo
+{
+  /** Has no value information */
+  struct VoidInfo {};
+  /** Has the current and the default value */
+  template <typename T>
+  struct ValueInfo
+  {
+    T defaultValue;
+    T currentValue;
+  };
+  /** Default value, current value, minimum and maximum of a numeric value */
+  template <typename T>
+  struct NumberInfo
+  {
+    T defaultValue;
+    T currentValue;
+    std::optional<T> minimum;
+    std::optional<T> maximum;
+  };
+  /** Default value, current value and choices of a mode option */
+  struct ModeInfo
+  {
+    std::string defaultValue;
+    std::string currentValue;
+    std::vector<std::string> modes;
+  };
+
+  /** The option name */
+  std::string name;
+  /** The option name aliases */
+  std::vector<std::string> aliases;
+  /** Whether the option was explicitly set by the user */
+  bool setByUser;
+  /** The option value information */
+  std::variant<VoidInfo,
+               ValueInfo<bool>,
+               ValueInfo<std::string>,
+               NumberInfo<int64_t>,
+               NumberInfo<uint64_t>,
+               NumberInfo<double>,
+               ModeInfo>
+      valueInfo;
+  /** Obtain the current value as a bool. Asserts that valueInfo holds a bool.
+   */
+  bool boolValue() const;
+  /** Obtain the current value as a string. Asserts that valueInfo holds a
+   * string. */
+  std::string stringValue() const;
+  /** Obtain the current value as as int. Asserts that valueInfo holds an int.
+   */
+  int64_t intValue() const;
+  /** Obtain the current value as a uint. Asserts that valueInfo holds a uint.
+   */
+  uint64_t uintValue() const;
+  /** Obtain the current value as a double. Asserts that valueInfo holds a
+   * double. */
+  double doubleValue() const;
+};
+
+/**
+ * Print a `OptionInfo` object to an ``std::ostream``.
+ */
+std::ostream& operator<<(std::ostream& os, const OptionInfo& oi) CVC5_EXPORT;
+
+/* -------------------------------------------------------------------------- */
 /* Statistics                                                                 */
 /* -------------------------------------------------------------------------- */
 
@@ -2683,7 +2846,7 @@ class CVC5_EXPORT Statistics
   /**
    * Retrieve the statistic with the given name.
    * Asserts that a statistic with the given name actually exists and throws
-   * a `CVC4ApiRecoverableException` if it does not.
+   * a `CVC5ApiRecoverableException` if it does not.
    * @param name Name of the statistic.
    * @return The statistic with the given name.
    */
@@ -2722,11 +2885,20 @@ class CVC5_EXPORT Solver
   friend class DatatypeConstructor;
   friend class DatatypeConstructorDecl;
   friend class DatatypeSelector;
+  friend class DriverOptions;
   friend class Grammar;
   friend class Op;
   friend class cvc5::Command;
+  friend class cvc5::main::CommandExecutor;
   friend class Sort;
   friend class Term;
+
+ private:
+  /*
+   * Constructs a solver with the given original options. This should only be
+   * used internally when the Solver is reset.
+   */
+  Solver(std::unique_ptr<Options>&& original);
 
  public:
   /* .................................................................... */
@@ -2735,10 +2907,9 @@ class CVC5_EXPORT Solver
 
   /**
    * Constructor.
-   * @param opts an optional pointer to a solver options object
    * @return the Solver
    */
-  Solver(Options* opts = nullptr);
+  Solver();
 
   /**
    * Destructor.
@@ -2750,12 +2921,6 @@ class CVC5_EXPORT Solver
    */
   Solver(const Solver&) = delete;
   Solver& operator=(const Solver&) = delete;
-
-  /* .................................................................... */
-  /* Solver Configuration                                                 */
-  /* .................................................................... */
-
-  bool supportsFloatingPoint() const;
 
   /* .................................................................... */
   /* Sorts Handling                                                       */
@@ -3251,6 +3416,9 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a bit-vector constant of given size and value.
+   *
+   * Note: The given value must fit into a bit-vector of the given size.
+   *
    * @param size the bit-width of the bit-vector sort
    * @param val the value of the constant
    * @return the bit-vector constant
@@ -3258,23 +3426,11 @@ class CVC5_EXPORT Solver
   Term mkBitVector(uint32_t size, uint64_t val = 0) const;
 
   /**
-   * Create a bit-vector constant from a given string of base 2, 10 or 16.
-   *
-   * The size of resulting bit-vector is
-   * - base  2: the size of the binary string
-   * - base 10: the min. size required to represent the decimal as a bit-vector
-   * - base 16: the max. size required to represent the hexadecimal as a
-   *            bit-vector (4 * size of the given value string)
-   *
-   * @param s the string representation of the constant
-   * @param base the base of the string representation (2, 10, or 16)
-   * @return the bit-vector constant
-   */
-  Term mkBitVector(const std::string& s, uint32_t base = 2) const;
-
-  /**
    * Create a bit-vector constant of a given bit-width from a given string of
    * base 2, 10 or 16.
+   *
+   * Note: The given value must fit into a bit-vector of the given size.
+   *
    * @param size the bit-width of the constant
    * @param s the string representation of the constant
    * @param base the base of the string representation (2, 10, or 16)
@@ -3697,6 +3853,27 @@ class CVC5_EXPORT Solver
   std::string getOption(const std::string& option) const;
 
   /**
+   * Get all option names that can be used with `setOption`, `getOption` and
+   * `getOptionInfo`.
+   * @return all option names
+   */
+  std::vector<std::string> getOptionNames() const;
+
+  /**
+   * Get some information about the given option. Check the `OptionInfo` class
+   * for more details on which information is available.
+   * @return information about the given option
+   */
+  OptionInfo getOptionInfo(const std::string& option) const;
+
+  /**
+   * Get the driver options, which provide access to options that can not be
+   * communicated properly via getOption() and getOptionInfo().
+   * @return a DriverOptions object.
+   */
+  DriverOptions getDriverOptions() const;
+
+  /**
    * Get the set of unsat ("failed") assumptions.
    * SMT-LIB:
    * \verbatim
@@ -3719,7 +3896,19 @@ class CVC5_EXPORT Solver
   std::vector<Term> getUnsatCore() const;
 
   /**
-   * Get the value of the given term.
+   * Get the refutation proof
+   * SMT-LIB:
+   * \verbatim
+   * ( get-proof )
+   * \endverbatim
+   * Requires to enable option 'produce-proofs'.
+   * @return a string representing the proof, according to the the value of
+   * proof-format-mode.
+   */
+  std::string getProof() const;
+
+  /**
+   * Get the value of the given term in the current model.
    * SMT-LIB:
    * \verbatim
    * ( get-value ( <term> ) )
@@ -3728,8 +3917,9 @@ class CVC5_EXPORT Solver
    * @return the value of the given term
    */
   Term getValue(const Term& term) const;
+
   /**
-   * Get the values of the given terms.
+   * Get the values of the given terms in the current model.
    * SMT-LIB:
    * \verbatim
    * ( get-value ( <term>+ ) )
@@ -3738,6 +3928,27 @@ class CVC5_EXPORT Solver
    * @return the values of the given terms
    */
   std::vector<Term> getValue(const std::vector<Term>& terms) const;
+
+  /**
+   * Get the domain elements of uninterpreted sort s in the current model. The
+   * current model interprets s as the finite sort whose domain elements are
+   * given in the return value of this method.
+   *
+   * @param s The uninterpreted sort in question
+   * @return the domain elements of s in the current model
+   */
+  std::vector<Term> getModelDomainElements(const Sort& s) const;
+
+  /**
+   * This returns false if the model value of free constant v was not essential
+   * for showing the satisfiability of the last call to checkSat using the
+   * current model. This method will only return false (for any v) if
+   * the model-cores option has been set.
+   *
+   * @param v The term in question
+   * @return true if v is a model core symbol
+   */
+  bool isModelCoreSymbol(const Term& v) const;
 
   /**
    * Do quantifier elimination.
@@ -4138,6 +4349,12 @@ class CVC5_EXPORT Solver
   NodeManager* getNodeManager(void) const;
   /** Reset the API statistics */
   void resetStatistics();
+
+  /**
+   * Print the statistics to the given file descriptor, suitable for usage in
+   * signal handlers.
+   */
+  void printStatisticsSafe(int fd) const;
 
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;

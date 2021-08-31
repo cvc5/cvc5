@@ -116,11 +116,6 @@ class SequencesRewriter : public TheoryRewriter
    *
    * The rewrite r indicates the justification for the rewrite, which is printed
    * by this function for debugging.
-   *
-   * If node is not an equality and ret is an equality, this method applies
-   * an additional rewrite step (rewriteEqualityExt) that performs
-   * additional rewrites on ret, after which we return the result of this call.
-   * Otherwise, this method simply returns ret.
    */
   Node returnRewrite(Node node, Node ret, Rewrite r);
 
@@ -194,6 +189,12 @@ class SequencesRewriter : public TheoryRewriter
    * Returns the rewritten form of node.
    */
   Node rewriteIndexof(Node node);
+  /** rewrite indexof regular expression match
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.indexof_re( s, r, n )
+   * Returns the rewritten form of node.
+   */
+  Node rewriteIndexofRe(Node node);
   /** rewrite replace
    * This is the entry point for post-rewriting terms n of the form
    *   str.replace( s, t, r )
@@ -289,6 +290,15 @@ class SequencesRewriter : public TheoryRewriter
    */
   static Node canonicalStrForSymbolicLength(Node n, TypeNode stype);
 
+  /**
+   * post-process rewrite
+   *
+   * If node is not an equality and ret is an equality,
+   * this method applies an additional rewrite step (rewriteEqualityExt) that
+   * performs additional rewrites on ret, after which we return the result of
+   * this call. Otherwise, this method simply returns ret.
+   */
+  Node postProcessRewrite(Node node, Node ret);
   /** Reference to the rewriter statistics. */
   HistogramStat<Rewrite>* d_statistics;
 

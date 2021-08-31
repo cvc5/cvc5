@@ -70,7 +70,6 @@ void Assertions::clearCurrent()
 }
 
 void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
-                                    bool inUnsatCore,
                                     bool isEntailmentCheck)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -105,7 +104,7 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
     Node n = d_absValues.substituteAbstractValues(e);
     // Ensure expr is type-checked at this point.
     ensureBoolean(n);
-    addFormula(n, inUnsatCore, true, true, false, false);
+    addFormula(n, true, true, false, false);
   }
   if (d_globalDefineFunLemmas != nullptr)
   {
@@ -114,16 +113,16 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
     // zero assertions)
     for (const Node& lemma : *d_globalDefineFunLemmas)
     {
-      addFormula(lemma, false, true, false, true, false);
+      addFormula(lemma, true, false, true, false);
     }
   }
 }
 
-void Assertions::assertFormula(const Node& n, bool inUnsatCore)
+void Assertions::assertFormula(const Node& n)
 {
   ensureBoolean(n);
-  bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
-  addFormula(n, inUnsatCore, true, false, false, maybeHasFv);
+  bool maybeHasFv = language::isLangSygus(options::inputLanguage());
+  addFormula(n, true, false, false, maybeHasFv);
 }
 
 std::vector<Node>& Assertions::getAssumptions() { return d_assumptions; }
@@ -141,7 +140,6 @@ context::CDList<Node>* Assertions::getAssertionList()
 }
 
 void Assertions::addFormula(TNode n,
-                            bool inUnsatCore,
                             bool inInput,
                             bool isAssumption,
                             bool isFunDef,
@@ -158,7 +156,6 @@ void Assertions::addFormula(TNode n,
     return;
   }
   Trace("smt") << "SmtEnginePrivate::addFormula(" << n
-               << "), inUnsatCore = " << inUnsatCore
                << ", inInput = " << inInput
                << ", isAssumption = " << isAssumption
                << ", isFunDef = " << isFunDef << std::endl;
@@ -181,12 +178,19 @@ void Assertions::addFormula(TNode n,
     if (expr::hasFreeVar(n))
     {
       std::stringstream se;
-      se << "Cannot process assertion with free variable.";
-      if (language::isInputLangSygus(options::inputLanguage()))
+      if (isFunDef)
       {
-        // Common misuse of SyGuS is to use top-level assert instead of
-        // constraint when defining the synthesis conjecture.
-        se << " Perhaps you meant `constraint` instead of `assert`?";
+        se << "Cannot process function definition with free variable.";
+      }
+      else
+      {
+        se << "Cannot process assertion with free variable.";
+        if (language::isLangSygus(options::inputLanguage()))
+        {
+          // Common misuse of SyGuS is to use top-level assert instead of
+          // constraint when defining the synthesis conjecture.
+          se << " Perhaps you meant `constraint` instead of `assert`?";
+        }
       }
       throw ModalException(se.str().c_str());
     }
@@ -203,14 +207,16 @@ void Assertions::addDefineFunDefinition(Node n, bool global)
   {
     // Global definitions are asserted at check-sat-time because we have to
     // make sure that they are always present
-    Assert(!language::isInputLangSygus(options::inputLanguage()));
+    Assert(!language::isLangSygus(options::inputLanguage()));
     d_globalDefineFunLemmas->emplace_back(n);
   }
   else
   {
-    // we don't check for free variables here, since even if we are sygus,
-    // we could contain functions-to-synthesize within definitions.
-    addFormula(n, false, true, false, true, false);
+    // We don't permit functions-to-synthesize within recursive function
+    // definitions currently. Thus, we should check for free variables if the
+    // input language is SyGuS.
+    bool maybeHasFv = language::isLangSygus(options::inputLanguage());
+    addFormula(n, true, false, true, maybeHasFv);
   }
 }
 

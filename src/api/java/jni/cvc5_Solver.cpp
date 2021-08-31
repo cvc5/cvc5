@@ -45,21 +45,6 @@ JNIEXPORT void JNICALL Java_cvc5_Solver_deletePointer(JNIEnv*,
 
 /*
  * Class:     cvc5_Solver
- * Method:    supportsFloatingPoint
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_cvc5_Solver_supportsFloatingPoint(JNIEnv* env,
-                                                                  jobject,
-                                                                  jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = (Solver*)pointer;
-  return (jboolean)solver->supportsFloatingPoint();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     cvc5_Solver
  * Method:    getNullSort
  * Signature: (J)J
  */
@@ -1158,24 +1143,6 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkBitVector__JIJ(
   Solver* solver = (Solver*)pointer;
   Term* retPointer =
       new Term(solver->mkBitVector((uint32_t)size, (uint64_t)val));
-  return ((jlong)retPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     cvc5_Solver
- * Method:    mkBitVector
- * Signature: (JLjava/lang/String;I)J
- */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkBitVector__JLjava_lang_String_2I(
-    JNIEnv* env, jobject, jlong pointer, jstring jS, jint base)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = (Solver*)pointer;
-  const char* s = env->GetStringUTFChars(jS, nullptr);
-  std::string cS(s);
-  Term* retPointer = new Term(solver->mkBitVector(cS, (uint32_t)base));
-  env->ReleaseStringUTFChars(jS, s);
   return ((jlong)retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

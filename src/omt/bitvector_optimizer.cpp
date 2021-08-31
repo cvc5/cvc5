@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yancheng Ou, Michael Chang
+ *   Yancheng Ou
  *
  * This file is part of the cvc5 project.
  *
@@ -53,15 +53,13 @@ OptimizationResult OMTOptimizerBitVector::minimize(SmtEngine* optChecker,
   Result intermediateSatResult = optChecker->checkSat();
   // Model-value of objective (used in optimization loop)
   Node value;
-  if (intermediateSatResult.isUnknown())
+  if (intermediateSatResult.isUnknown()
+      || intermediateSatResult.isSat() == Result::UNSAT)
   {
-    return OptimizationResult(OptimizationResult::UNKNOWN, value);
+    return OptimizationResult(intermediateSatResult, value);
   }
-  if (intermediateSatResult.isSat() == Result::UNSAT)
-  {
-    return OptimizationResult(OptimizationResult::UNSAT, value);
-  }
-
+  // the last result that is SAT
+  Result lastSatResult = intermediateSatResult;
   // value equals to upperBound
   value = optChecker->getValue(target);
 
@@ -104,36 +102,35 @@ OptimizationResult OMTOptimizerBitVector::minimize(SmtEngine* optChecker,
                      nm->mkNode(LTOperator, target, nm->mkConst(pivot))));
     }
     intermediateSatResult = optChecker->checkSat();
-    if (intermediateSatResult.isUnknown() || intermediateSatResult.isNull())
+    switch (intermediateSatResult.isSat())
     {
-      return OptimizationResult(OptimizationResult::UNKNOWN, value);
-    }
-    if (intermediateSatResult.isSat() == Result::SAT)
-    {
-      value = optChecker->getValue(target);
-      upperBound = value.getConst<BitVector>();
-    }
-    else if (intermediateSatResult.isSat() == Result::UNSAT)
-    {
-      if (lowerBound == pivot)
-      {
-        // lowerBound == pivot ==> upperbound = lowerbound + 1
-        // and lowerbound <= target < upperbound is UNSAT
-        // return the upperbound
-        return OptimizationResult(OptimizationResult::OPTIMAL, value);
-      }
-      else
-      {
-        lowerBound = pivot;
-      }
-    }
-    else
-    {
-      return OptimizationResult(OptimizationResult::UNKNOWN, value);
+      case Result::SAT_UNKNOWN:
+        optChecker->pop();
+        return OptimizationResult(intermediateSatResult, value);
+      case Result::SAT:
+        lastSatResult = intermediateSatResult;
+        value = optChecker->getValue(target);
+        upperBound = value.getConst<BitVector>();
+        break;
+      case Result::UNSAT:
+        if (lowerBound == pivot)
+        {
+          // lowerBound == pivot ==> upperbound = lowerbound + 1
+          // and lowerbound <= target < upperbound is UNSAT
+          // return the upperbound
+          optChecker->pop();
+          return OptimizationResult(lastSatResult, value);
+        }
+        else
+        {
+          lowerBound = pivot;
+        }
+        break;
+      default: Unreachable();
     }
     optChecker->pop();
   }
-  return OptimizationResult(OptimizationResult::OPTIMAL, value);
+  return OptimizationResult(lastSatResult, value);
 }
 
 OptimizationResult OMTOptimizerBitVector::maximize(SmtEngine* optChecker,
@@ -145,15 +142,13 @@ OptimizationResult OMTOptimizerBitVector::maximize(SmtEngine* optChecker,
   Result intermediateSatResult = optChecker->checkSat();
   // Model-value of objective (used in optimization loop)
   Node value;
-  if (intermediateSatResult.isUnknown())
+  if (intermediateSatResult.isUnknown()
+      || intermediateSatResult.isSat() == Result::UNSAT)
   {
-    return OptimizationResult(OptimizationResult::UNKNOWN, value);
+    return OptimizationResult(intermediateSatResult, value);
   }
-  if (intermediateSatResult.isSat() == Result::UNSAT)
-  {
-    return OptimizationResult(OptimizationResult::UNSAT, value);
-  }
-
+  // the last result that is SAT
+  Result lastSatResult = intermediateSatResult;
   // value equals to upperBound
   value = optChecker->getValue(target);
 
@@ -193,36 +188,35 @@ OptimizationResult OMTOptimizerBitVector::maximize(SmtEngine* optChecker,
                    nm->mkNode(GTOperator, target, nm->mkConst(pivot)),
                    nm->mkNode(LEOperator, target, nm->mkConst(upperBound))));
     intermediateSatResult = optChecker->checkSat();
-    if (intermediateSatResult.isUnknown() || intermediateSatResult.isNull())
+    switch (intermediateSatResult.isSat())
     {
-      return OptimizationResult(OptimizationResult::UNKNOWN, value);
-    }
-    if (intermediateSatResult.isSat() == Result::SAT)
-    {
-      value = optChecker->getValue(target);
-      lowerBound = value.getConst<BitVector>();
-    }
-    else if (intermediateSatResult.isSat() == Result::UNSAT)
-    {
-      if (lowerBound == pivot)
-      {
-        // upperbound = lowerbound + 1
-        // and lowerbound < target <= upperbound is UNSAT
-        // return the lowerbound
-        return OptimizationResult(OptimizationResult::OPTIMAL, value);
-      }
-      else
-      {
-        upperBound = pivot;
-      }
-    }
-    else
-    {
-      return OptimizationResult(OptimizationResult::UNKNOWN, value);
+      case Result::SAT_UNKNOWN:
+        optChecker->pop();
+        return OptimizationResult(intermediateSatResult, value);
+      case Result::SAT:
+        lastSatResult = intermediateSatResult;
+        value = optChecker->getValue(target);
+        lowerBound = value.getConst<BitVector>();
+        break;
+      case Result::UNSAT:
+        if (lowerBound == pivot)
+        {
+          // upperbound = lowerbound + 1
+          // and lowerbound < target <= upperbound is UNSAT
+          // return the lowerbound
+          optChecker->pop();
+          return OptimizationResult(lastSatResult, value);
+        }
+        else
+        {
+          upperBound = pivot;
+        }
+        break;
+      default: Unreachable();
     }
     optChecker->pop();
   }
-  return OptimizationResult(OptimizationResult::OPTIMAL, value);
+  return OptimizationResult(lastSatResult, value);
 }
 
 }  // namespace cvc5::omt

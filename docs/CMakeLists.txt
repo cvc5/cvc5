@@ -17,8 +17,7 @@ check_python_module(breathe)
 check_python_module(sphinxcontrib.bibtex sphinxcontrib-bibtex)
 check_python_module(sphinx_tabs.tabs sphinx-tabs)
 
-add_subdirectory(cpp)
-add_subdirectory(python)
+add_subdirectory(api)
 
 set(SPHINX_INPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(SPHINX_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
@@ -31,11 +30,18 @@ add_custom_target(
   COMMAND
     ${SPHINX_EXECUTABLE} -b html -c ${CMAKE_CURRENT_BINARY_DIR}
     # Tell Breathe where to find the Doxygen output
-    -Dbreathe_projects.cvc5=${CPP_DOXYGEN_XML_FOLDER}
-    -Dbreathe_projects.std=${CPP_DOXYGEN_XML_FOLDER} ${SPHINX_INPUT_DIR}
+    -Dbreathe_projects.cvc5=${CPP_DOXYGEN_XML_DIR}
+    -Dbreathe_projects.std=${CPP_DOXYGEN_XML_DIR} ${SPHINX_INPUT_DIR}
     ${SPHINX_OUTPUT_DIR}
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   COMMENT "Generating Sphinx Api docs"
+)
+
+add_custom_command(
+  TARGET docs
+  POST_BUILD
+  COMMAND
+    ${CMAKE_COMMAND} -E cmake_echo_color --cyan "Preview docs in browser: file://localhost${SPHINX_OUTPUT_DIR}/index.html"
 )
 
 set(SPHINX_GH_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx-gh)

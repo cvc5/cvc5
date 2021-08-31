@@ -33,12 +33,18 @@ libcvc5_add_sources(
   kind_map.h
   match_trie.cpp
   match_trie.h
+  nary_match_trie.cpp
+  nary_match_trie.h
+  nary_term_util.cpp
+  nary_term_util.h
   node.cpp
   node.h
   node_algorithm.cpp
   node_algorithm.h
   node_builder.cpp
   node_builder.h
+  node_converter.cpp
+  node_converter.h
   node_manager.cpp
   node_manager.h
   node_manager_attributes.h

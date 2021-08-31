@@ -471,7 +471,7 @@ bool StringsEntail::componentContainsBase(
 
       if (!computeRemainder && dir == 0)
       {
-        if (n1.getKind() == STRING_STRREPL)
+        if (n1.getKind() == STRING_REPLACE)
         {
           // (str.contains (str.replace x y z) w) ---> true
           // if (str.contains x w) --> true and (str.contains z w) ---> true
@@ -675,7 +675,7 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
 Node StringsEntail::checkContains(Node a, Node b, bool fullRewriter)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node ctn = nm->mkNode(STRING_STRCTN, a, b);
+  Node ctn = nm->mkNode(STRING_CONTAINS, a, b);
 
   if (fullRewriter)
   {
@@ -688,7 +688,11 @@ Node StringsEntail::checkContains(Node a, Node b, bool fullRewriter)
     {
       prev = ctn;
       ctn = d_rewriter.rewriteContains(ctn);
-    } while (prev != ctn && ctn.getKind() == STRING_STRCTN);
+      if (ctn != prev)
+      {
+        ctn = d_rewriter.postProcessRewrite(prev, ctn);
+      }
+    } while (prev != ctn && ctn.getKind() == STRING_CONTAINS);
   }
 
   Assert(ctn.getType().isBoolean());
@@ -839,7 +843,7 @@ Node StringsEntail::getMultisetApproximation(Node a)
   {
     return a[0];
   }
-  else if (a.getKind() == STRING_STRREPL)
+  else if (a.getKind() == STRING_REPLACE)
   {
     return getMultisetApproximation(nm->mkNode(STRING_CONCAT, a[0], a[2]));
   }
@@ -865,7 +869,7 @@ Node StringsEntail::getStringOrEmpty(Node n)
   {
     switch (n.getKind())
     {
-      case STRING_STRREPL:
+      case STRING_REPLACE:
       {
         if (Word::isEmpty(n[0]))
         {

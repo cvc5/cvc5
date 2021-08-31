@@ -32,10 +32,11 @@ jobs:
         run: |
           cd target
           for file in `find ./ -maxdepth 1 -name "docs-*"`; do
-            mod=`git log -1 HEAD --pretty="%ci" $file`
+            mod=`git log -1 HEAD --pretty="%ai" $file`
             touch -d "$mod" $file
           done
           find ./ -maxdepth 1 -name "docs-*" -mtime +7 -exec git rm -r {} +
+          find ./ -maxdepth 1 -name "docs-*" -xtype l -exec git rm {} +
           git commit -m "Prune docs" || echo "Nothing to prune"
 
       - name: Squash old commits
@@ -43,12 +44,20 @@ jobs:
             SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
           cd target
-          git log
           first=`git rev-list --max-parents=0 HEAD`
-          last=`git rev-list --until=1.month.ago -n1 HEAD`
+          cutoff=`date -d "-1 month" +%Y-%m-%d`
+          last=`git log --pretty='%as %H' | awk -v cutoff=$cutoff '$1 < cutoff { print $2 }' | head -n1`
           if [ -n "$last" ]; then
-            git rebase -Xtheirs --onto $first $last
-            git log
+            git checkout $last
+            ts=`git log -1 --format=%ct`
+            git reset --soft $first
+            if git diff --cached --exit-code
+            then
+              echo "Nothing to squash"
+            else
+              git commit -m "Squash old history" --date=$ts
+            fi
+            git cherry-pick $last..main
           fi
       
       - name: Push
@@ -66,4 +75,4 @@ jobs:
             git commit -m "Update README.md"
           fi
 
-          git push -f
+          git push -f origin HEAD:main

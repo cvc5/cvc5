@@ -29,7 +29,7 @@ JNIEXPORT void JNICALL Java_cvc5_Grammar_deletePointer(JNIEnv*,
                                                        jclass,
                                                        jlong pointer)
 {
-  delete ((Grammar*)pointer);
+  delete reinterpret_cast<Grammar*>(pointer);
 }
 
 /*
@@ -44,9 +44,9 @@ JNIEXPORT void JNICALL Java_cvc5_Grammar_addRule(JNIEnv* env,
                                                  jlong rulePointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Grammar* current = (Grammar*)pointer;
-  Term* ntSymbol = (Term*)ntSymbolPointer;
-  Term* rule = (Term*)rulePointer;
+  Grammar* current = reinterpret_cast<Grammar*>(pointer);
+  Term* ntSymbol = reinterpret_cast<Term*>(ntSymbolPointer);
+  Term* rule = reinterpret_cast<Term*>(rulePointer);
   current->addRule(*ntSymbol, *rule);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
@@ -63,8 +63,8 @@ JNIEXPORT void JNICALL Java_cvc5_Grammar_addRules(JNIEnv* env,
                                                   jlongArray rulePointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Grammar* current = (Grammar*)pointer;
-  Term* ntSymbol = (Term*)ntSymbolPointer;
+  Grammar* current = reinterpret_cast<Grammar*>(pointer);
+  Term* ntSymbol = reinterpret_cast<Term*>(ntSymbolPointer);
   std::vector<Term> rules = getObjectsFromPointers<Term>(env, rulePointers);
   current->addRules(*ntSymbol, rules);
   CVC5_JAVA_API_TRY_CATCH_END(env);
@@ -81,8 +81,8 @@ JNIEXPORT void JNICALL Java_cvc5_Grammar_addAnyConstant(JNIEnv* env,
                                                         jlong ntSymbolPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Grammar* current = (Grammar*)pointer;
-  Term* ntSymbol = (Term*)ntSymbolPointer;
+  Grammar* current = reinterpret_cast<Grammar*>(pointer);
+  Term* ntSymbol = reinterpret_cast<Term*>(ntSymbolPointer);
   current->addAnyConstant(*ntSymbol);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
@@ -98,8 +98,8 @@ JNIEXPORT void JNICALL Java_cvc5_Grammar_addAnyVariable(JNIEnv* env,
                                                         jlong ntSymbolPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Grammar* current = (Grammar*)pointer;
-  Term* ntSymbol = (Term*)ntSymbolPointer;
+  Grammar* current = reinterpret_cast<Grammar*>(pointer);
+  Term* ntSymbol = reinterpret_cast<Term*>(ntSymbolPointer);
   current->addAnyVariable(*ntSymbol);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
@@ -114,7 +114,7 @@ JNIEXPORT jstring JNICALL Java_cvc5_Grammar_toString(JNIEnv* env,
                                                      jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Grammar* current = (Grammar*)pointer;
+  Grammar* current = reinterpret_cast<Grammar*>(pointer);
   return env->NewStringUTF(current->toString().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }

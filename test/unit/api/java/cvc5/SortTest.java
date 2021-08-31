@@ -104,11 +104,8 @@ class SortTest
 
   @Test void isRoundingMode() throws CVC5ApiException
   {
-    if (d_solver.supportsFloatingPoint())
-    {
-      assertTrue(d_solver.getRoundingModeSort().isRoundingMode());
-      assertDoesNotThrow(() -> d_solver.getNullSort().isRoundingMode());
-    }
+    assertTrue(d_solver.getRoundingModeSort().isRoundingMode());
+    assertDoesNotThrow(() -> d_solver.getNullSort().isRoundingMode());
   }
 
   @Test void isBitVector() throws CVC5ApiException
@@ -119,11 +116,8 @@ class SortTest
 
   @Test void isFloatingPoint() throws CVC5ApiException
   {
-    if (d_solver.supportsFloatingPoint())
-    {
-      assertTrue(d_solver.mkFloatingPointSort(8, 24).isFloatingPoint());
-      assertDoesNotThrow(() -> d_solver.getNullSort().isFloatingPoint());
-    }
+    assertTrue(d_solver.mkFloatingPointSort(8, 24).isFloatingPoint());
+    assertDoesNotThrow(() -> d_solver.getNullSort().isFloatingPoint());
   }
 
   @Test void isDatatype() throws CVC5ApiException
@@ -477,24 +471,18 @@ class SortTest
 
   @Test void getFPExponentSize() throws CVC5ApiException
   {
-    if (d_solver.supportsFloatingPoint())
-    {
-      Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
-      assertDoesNotThrow(() -> fpSort.getFPExponentSize());
-      Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
-      assertThrows(CVC5ApiException.class, () -> setSort.getFPExponentSize());
-    }
+    Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
+    assertDoesNotThrow(() -> fpSort.getFPExponentSize());
+    Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
+    assertThrows(CVC5ApiException.class, () -> setSort.getFPExponentSize());
   }
 
   @Test void getFPSignificandSize() throws CVC5ApiException
   {
-    if (d_solver.supportsFloatingPoint())
-    {
-      Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
-      assertDoesNotThrow(() -> fpSort.getFPSignificandSize());
-      Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
-      assertThrows(CVC5ApiException.class, () -> setSort.getFPSignificandSize());
-    }
+    Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
+    assertDoesNotThrow(() -> fpSort.getFPSignificandSize());
+    Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
+    assertThrows(CVC5ApiException.class, () -> setSort.getFPSignificandSize());
   }
 
   @Test void getDatatypeParamSorts() throws CVC5ApiException

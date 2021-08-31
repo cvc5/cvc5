@@ -15,6 +15,8 @@
 
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
 
+#include "options/base_options.h"
+#include "options/outputc.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/ematching/trigger_database.h"
 #include "theory/quantifiers/quant_relevance.h"
@@ -109,7 +111,10 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
                                                         int e)
 {
   options::UserPatMode upMode = getInstUserPatMode();
-  if (hasUserPatterns(f) && upMode == options::UserPatMode::TRUST)
+  // we don't auto-generate triggers if the mode is trust or strict
+  if (hasUserPatterns(f)
+      && (upMode == options::UserPatMode::TRUST
+          || upMode == options::UserPatMode::STRICT))
   {
     return InstStrategyStatus::STATUS_UNKNOWN;
   }
@@ -142,9 +147,11 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
   {
     generateTriggers(f);
     if (d_counter[f] == 0 && d_auto_gen_trigger[0][f].empty()
-        && d_auto_gen_trigger[1][f].empty() && f.getNumChildren() == 2)
+        && d_auto_gen_trigger[1][f].empty() && !QuantAttributes::hasPattern(f))
     {
       Trace("trigger-warn") << "Could not find trigger for " << f << std::endl;
+      Output(options::OutputTag::TRIGGER)
+          << "(no-trigger " << f << ")" << std::endl;
     }
   }
   if (options::triggerActiveSelMode() != options::TriggerActiveSelMode::ALL)

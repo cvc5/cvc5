@@ -30,10 +30,20 @@ PreprocessingPassContext::PreprocessingPassContext(
     : d_smt(smt),
       d_env(env),
       d_circuitPropagator(circuitPropagator),
+      d_llm(env.getTopLevelSubstitutions(),
+            env.getUserContext(),
+            env.getProofNodeManager()),
       d_symsInAssertions(env.getUserContext())
 {
 }
-
+const Options& PreprocessingPassContext::getOptions()
+{
+  return d_env.getOptions();
+}
+const LogicInfo& PreprocessingPassContext::getLogicInfo()
+{
+  return d_env.getLogicInfo();
+}
 theory::TrustSubstitutionMap&
 PreprocessingPassContext::getTopLevelSubstitutions()
 {
@@ -65,6 +75,16 @@ void PreprocessingPassContext::recordSymbolsInAssertions(
   {
     d_symsInAssertions.insert(s);
   }
+}
+
+void PreprocessingPassContext::notifyLearnedLiteral(TNode lit)
+{
+  d_llm.notifyLearnedLiteral(lit);
+}
+
+std::vector<Node> PreprocessingPassContext::getLearnedLiterals()
+{
+  return d_llm.getLearnedLiterals();
 }
 
 void PreprocessingPassContext::addSubstitution(const Node& lhs,

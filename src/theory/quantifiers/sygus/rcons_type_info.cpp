@@ -23,7 +23,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-void RConsTypeInfo::initialize(TermDbSygus* tds,
+void RConsTypeInfo::initialize(Env& env,
+                               TermDbSygus* tds,
                                SygusStatistics& s,
                                TypeNode stn,
                                const std::vector<Node>& builtinVars)
@@ -31,9 +32,9 @@ void RConsTypeInfo::initialize(TermDbSygus* tds,
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
 
-  d_enumerator.reset(new SygusEnumerator(tds, nullptr, s, true));
+  d_enumerator.reset(new SygusEnumerator(tds, nullptr, &s, true));
   d_enumerator->initialize(sm->mkDummySkolem("sygus_rcons", stn));
-  d_crd.reset(new CandidateRewriteDatabase(true, false, true, false));
+  d_crd.reset(new CandidateRewriteDatabase(env, true, false, true, false));
   // since initial samples are not always useful for equivalence checks, set
   // their number to 0
   d_sygusSampler.initialize(stn, builtinVars, 0);

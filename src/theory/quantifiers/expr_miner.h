@@ -23,10 +23,14 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "smt/smt_engine.h"
 #include "theory/quantifiers/sygus_sampler.h"
+#include "theory/smt_engine_subsolver.h"
 
 namespace cvc5 {
+
+class Env;
+class SmtEngine;
+
 namespace theory {
 namespace quantifiers {
 
@@ -39,7 +43,7 @@ namespace quantifiers {
 class ExprMiner
 {
  public:
-  ExprMiner() : d_sampler(nullptr) {}
+  ExprMiner(Env& env) : d_env(env), d_sampler(nullptr) {}
   virtual ~ExprMiner() {}
   /** initialize
    *
@@ -60,15 +64,19 @@ class ExprMiner
   virtual bool addTerm(Node n, std::ostream& out) = 0;
 
  protected:
+  /** Reference to the env */
+  Env& d_env;
   /** the set of variables used by this class */
   std::vector<Node> d_vars;
-  /** pointer to the sygus sampler object we are using */
-  SygusSampler* d_sampler;
   /**
-   * Maps to skolems for each free variable that appears in a check. This is
+   * The set of skolems corresponding to the above variables. These are
    * used during initializeChecker so that query (which may contain free
    * variables) is converted to a formula without free variables.
    */
+  std::vector<Node> d_skolems;
+  /** pointer to the sygus sampler object we are using */
+  SygusSampler* d_sampler;
+  /** Maps to skolems for each free variable based on d_vars/d_skolems. */
   std::map<Node, Node> d_fv_to_skolem;
   /** convert */
   Node convertToSkolem(Node n);

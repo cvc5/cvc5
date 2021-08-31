@@ -37,6 +37,9 @@ std::ostream& operator<<(std::ostream& os, InferStep step)
     case InferStep::IAND_INIT: return os << "IAND_INIT";
     case InferStep::IAND_FULL: return os << "IAND_FULL";
     case InferStep::IAND_INITIAL: return os << "IAND_INITIAL";
+    case InferStep::POW2_INIT: return os << "POW2_INIT";
+    case InferStep::POW2_FULL: return os << "POW2_FULL";
+    case InferStep::POW2_INITIAL: return os << "POW2_INITIAL";
     case InferStep::ICP: return os << "ICP";
     case InferStep::NL_INIT: return os << "NL_INIT";
     case InferStep::NL_MONOMIAL_INFER_BOUNDS:
@@ -102,22 +105,22 @@ bool StepGenerator::hasNext() const { return d_next < d_steps.size(); }
 InferStep StepGenerator::next() { return d_steps[d_next++]; }
 
 bool Strategy::isStrategyInit() const { return !d_interleaving.empty(); }
-void Strategy::initializeStrategy()
+void Strategy::initializeStrategy(const Options& options)
 {
   StepSequence one;
-  if (options::nlICP())
+  if (options.arith.nlICP)
   {
     one << InferStep::ICP << InferStep::BREAK;
   }
-  if (options::nlExt() == options::NlExtMode::FULL
-      || options::nlExt() == options::NlExtMode::LIGHT)
+  if (options.arith.nlExt == options::NlExtMode::FULL
+      || options.arith.nlExt == options::NlExtMode::LIGHT)
   {
     one << InferStep::NL_INIT << InferStep::BREAK;
   }
-  if (options::nlExt() == options::NlExtMode::FULL)
+  if (options.arith.nlExt == options::NlExtMode::FULL)
   {
     one << InferStep::TRANS_INIT << InferStep::BREAK;
-    if (options::nlExtSplitZero())
+    if (options.arith.nlExtSplitZero)
     {
       one << InferStep::NL_SPLIT_ZERO << InferStep::BREAK;
     }
@@ -125,50 +128,53 @@ void Strategy::initializeStrategy()
   }
   one << InferStep::IAND_INIT;
   one << InferStep::IAND_INITIAL << InferStep::BREAK;
-  if (options::nlExt() == options::NlExtMode::FULL
-      || options::nlExt() == options::NlExtMode::LIGHT)
+  one << InferStep::POW2_INIT;
+  one << InferStep::POW2_INITIAL << InferStep::BREAK;
+  if (options.arith.nlExt == options::NlExtMode::FULL
+      || options.arith.nlExt == options::NlExtMode::LIGHT)
   {
     one << InferStep::NL_MONOMIAL_SIGN << InferStep::BREAK;
     one << InferStep::NL_MONOMIAL_MAGNITUDE0 << InferStep::BREAK;
   }
-  if (options::nlExt() == options::NlExtMode::FULL)
+  if (options.arith.nlExt == options::NlExtMode::FULL)
   {
     one << InferStep::TRANS_MONOTONIC << InferStep::BREAK;
     one << InferStep::NL_MONOMIAL_MAGNITUDE1 << InferStep::BREAK;
     one << InferStep::NL_MONOMIAL_MAGNITUDE2 << InferStep::BREAK;
     one << InferStep::NL_MONOMIAL_INFER_BOUNDS;
-    if (options::nlExtTangentPlanes()
-        && options::nlExtTangentPlanesInterleave())
+    if (options.arith.nlExtTangentPlanes
+        && options.arith.nlExtTangentPlanesInterleave)
     {
       one << InferStep::NL_TANGENT_PLANES;
     }
     one << InferStep::BREAK;
     one << InferStep::FLUSH_WAITING_LEMMAS << InferStep::BREAK;
-    if (options::nlExtFactor())
+    if (options.arith.nlExtFactor)
     {
       one << InferStep::NL_FACTORING << InferStep::BREAK;
     }
-    if (options::nlExtResBound())
+    if (options.arith.nlExtResBound)
     {
       one << InferStep::NL_MONOMIAL_INFER_BOUNDS << InferStep::BREAK;
     }
-    if (options::nlExtTangentPlanes()
-        && !options::nlExtTangentPlanesInterleave())
+    if (options.arith.nlExtTangentPlanes
+        && !options.arith.nlExtTangentPlanesInterleave)
     {
       one << InferStep::NL_TANGENT_PLANES_WAITING;
     }
-    if (options::nlExtTfTangentPlanes())
+    if (options.arith.nlExtTfTangentPlanes)
     {
       one << InferStep::TRANS_TANGENT_PLANES;
     }
     one << InferStep::BREAK;
   }
   one << InferStep::IAND_FULL << InferStep::BREAK;
-  if (options::nlCad())
+  one << InferStep::POW2_FULL << InferStep::BREAK;
+  if (options.arith.nlCad)
   {
     one << InferStep::CAD_INIT;
   }
-  if (options::nlCad())
+  if (options.arith.nlCad)
   {
     one << InferStep::CAD_FULL << InferStep::BREAK;
   }

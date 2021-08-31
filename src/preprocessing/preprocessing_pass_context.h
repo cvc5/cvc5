@@ -23,8 +23,8 @@
 #define CVC5__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 
 #include "context/cdhashset.h"
+#include "preprocessing/learned_literal_manager.h"
 #include "smt/smt_engine.h"
-#include "theory/trust_substitutions.h"
 #include "util/resource_manager.h"
 
 namespace cvc5 {
@@ -61,8 +61,10 @@ class PreprocessingPassContext
 
   void spendResource(Resource r);
 
-  /** Get the current logic info of the SmtEngine */
-  const LogicInfo& getLogicInfo() { return d_smt->getLogicInfo(); }
+  /** Get the options of the environment */
+  const Options& getOptions();
+  /** Get the current logic info of the environment */
+  const LogicInfo& getLogicInfo();
 
   /** Gets a reference to the top-level substitution map */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions();
@@ -74,6 +76,18 @@ class PreprocessingPassContext
    */
   void recordSymbolsInAssertions(const std::vector<Node>& assertions);
 
+  /**
+   * Notify learned literal. This method is called when a literal is
+   * entailed by the current set of assertions.
+   *
+   * It should be rewritten, and such that top level substitutions have
+   * been applied to it.
+   */
+  void notifyLearnedLiteral(TNode lit);
+  /**
+   * Get the learned literals
+   */
+  std::vector<Node> getLearnedLiterals();
   /**
    * Add substitution to the top-level substitutions, which also as a
    * consequence is used by the theory model.
@@ -100,6 +114,11 @@ class PreprocessingPassContext
   Env& d_env;
   /** Instance of the circuit propagator */
   theory::booleans::CircuitPropagator* d_circuitPropagator;
+  /**
+   * The learned literal manager
+   */
+  LearnedLiteralManager d_llm;
+
   /**
    * The (user-context-dependent) set of symbols that occur in at least one
    * assertion in the current user context.

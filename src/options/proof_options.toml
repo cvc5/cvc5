@@ -18,6 +18,9 @@ name   = "Proof"
 [[option.mode.VERIT]]
   name       = "verit"
   help       = "Output veriT proof"
+[[option.mode.TPTP]]
+  name       = "tptp"
+  help       = "Output TPTP proof (work in progress)"
 
 [[option]]
   name       = "proofPrintConclusion"
@@ -31,7 +34,7 @@ name   = "Proof"
   name       = "proofPedantic"
   category   = "regular"
   long       = "proof-pedantic=N"
-  type       = "uint32_t"
+  type       = "uint64_t"
   default    = "0"
   help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof"
 
