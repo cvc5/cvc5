@@ -598,6 +598,7 @@ cdef class Result:
 
 
 cdef class RoundingMode:
+    """Wrapper class for :cpp:enum:`cvc5::api::RoundingMode`."""
     cdef c_RoundingMode crm
     cdef str name
     def __cinit__(self, int rm):
