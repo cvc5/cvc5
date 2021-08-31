@@ -586,6 +586,9 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::CONCAT_EQ:
       pf << h << h << h << args[0].getConst<bool>() << cs[0];
       break;
+    case PfRule::CONCAT_UNIFY:
+      pf << h << h << h << h << args[0].getConst<bool>() << cs[0] << cs[1];
+      break;
     case PfRule::CONCAT_CSPLIT:
       pf << h << h << h << h << args[0].getConst<bool>() << cs[0] << cs[1];
       break;
