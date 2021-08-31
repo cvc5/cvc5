@@ -148,7 +148,9 @@ void AstPrinter::toStreamModelSort(std::ostream& out,
   Unreachable();
 }
 
-void AstPrinter::toStreamModelTerm(std::ostream& out, const Node& n, const Node& value) const
+void AstPrinter::toStreamModelTerm(std::ostream& out,
+                                   const Node& n,
+                                   const Node& value) const
 {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();

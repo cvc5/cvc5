@@ -4012,7 +4012,7 @@ class CVC5_EXPORT Solver
    * solver.
    */
   bool hasSeparationHeap() const;
-  
+
   /**
    * When using separation logic, obtain the term for the heap.
    * @return The term for the heap

@@ -1787,7 +1787,7 @@ void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
   catch (api::CVC5ApiRecoverableException& e)
   {
     // The above implementation of get-model relies on multiple API commands,
-    // e.g. getValue, getModelDomainElements, isModelCoreSymbol, 
+    // e.g. getValue, getModelDomainElements, isModelCoreSymbol,
     // hasSeparationHeap, etc. On the other hand, the user requested a model
     // via get-model. Hence, if an exception occurred above, we should report
     // that the get model command failed.

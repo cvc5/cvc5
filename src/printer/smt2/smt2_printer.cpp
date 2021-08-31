@@ -1318,7 +1318,9 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
   }
 }
 
-void Smt2Printer::toStreamModelTerm(std::ostream& out, const Node& n, const Node& value) const
+void Smt2Printer::toStreamModelTerm(std::ostream& out,
+                                    const Node& n,
+                                    const Node& value) const
 {
   if (value.getKind() == kind::LAMBDA)
   {
