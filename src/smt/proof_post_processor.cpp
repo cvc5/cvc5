@@ -477,10 +477,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         rargs.push_back(args[3]);
       }
     }
-    builtin::BuiltinProofRuleChecker* builtinPfC =
-        static_cast<builtin::BuiltinProofRuleChecker*>(
-            d_pnm->getChecker()->getCheckerFor(PfRule::MACRO_SR_EQ_INTRO));
-    Node tr = builtinPfC->applyRewrite(ts, idr);
+    Node tr = builtin::BuiltinProofRuleChecker::applyRewrite(ts, idr);
     Trace("smt-proof-pp-debug")
         << "...eq intro rewrite equality is " << ts << " == " << tr << ", from "
         << idr << std::endl;
@@ -954,10 +951,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     {
       getMethodId(args[1], idr);
     }
-    builtin::BuiltinProofRuleChecker* builtinPfC =
-        static_cast<builtin::BuiltinProofRuleChecker*>(
-            d_pnm->getChecker()->getCheckerFor(PfRule::REWRITE));
-    Node ret = builtinPfC->applyRewrite(args[0], idr);
+    Node ret = builtin::BuiltinProofRuleChecker::applyRewrite(args[0], idr);
     Node eq = args[0].eqNode(ret);
     if (idr == MethodId::RW_REWRITE || idr == MethodId::RW_REWRITE_EQ_EXT)
     {
@@ -1001,19 +995,56 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     }
     else
     {
-      // try to reconstruct as a standalone rewrite
-      std::vector<Node> targs;
-      targs.push_back(eq);
-      targs.push_back(
-          builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId));
-      // in this case, must be a non-standard rewrite kind
-      Assert(args.size() >= 2);
-      targs.push_back(args[1]);
-      Node eqp = expandMacros(PfRule::THEORY_REWRITE, {}, targs, cdp);
-      if (eqp.isNull())
+      Node retCurr = args[0];
+      std::vector<Node> transEq;
+      // try to reconstruct the (extended) rewrite
+      // first, use the standard rewriter followed by the extended equality rewriter
+      for (size_t i=0; i<2; i++)
       {
-        // don't know how to eliminate
-        return Node::null();
+        if (i==1 && retCurr.getKind()!=EQUAL)
+        {
+          break;
+        }
+        MethodId midi = i==0 ? MethodId::RW_REWRITE : MethodId::RW_REWRITE_EQ_EXT;
+        Node retDef = builtin::BuiltinProofRuleChecker::applyRewrite(retCurr, midi);
+        if (retDef!=retCurr)
+        {
+          // will expand this as a default rewrite if needed
+          Node eqd = retCurr.eqNode(retDef);
+          Node mid = mkMethodId(midi);
+          cdp->addStep(eqd, PfRule::REWRITE, {}, {retCurr, mid});
+          transEq.push_back(eqd);
+        }
+        retCurr = retDef;
+        if (retCurr==ret)
+        {
+          // already successful
+          break;
+        }
+      }
+      if (retCurr!=ret)
+      {
+        // try to prove the rewritten form is equal to the extended rewritten form
+        Node eqp = retCurr.eqNode(ret);
+        std::vector<Node> targs;
+        targs.push_back(eqp);
+        targs.push_back(
+            builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId));
+        // in this case, must be a non-standard rewrite kind
+        Assert(args.size() >= 2);
+        targs.push_back(args[1]);
+        Node eqpp = expandMacros(PfRule::THEORY_REWRITE, {}, targs, cdp);
+        transEq.push_back(eqp);
+        if (eqpp.isNull())
+        {
+          // don't know how to eliminate
+          return Node::null();
+        }
+      }
+      if (transEq.size()>1)
+      {
+        // put together with transitivity
+        cdp->addStep(eq, PfRule::TRANS, transEq, {});
       }
     }
     if (args[0] == ret)

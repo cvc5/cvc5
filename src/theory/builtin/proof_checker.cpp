@@ -24,6 +24,7 @@
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory.h"
+#include "theory/quantifiers/extended_rewrite.h"
 
 using namespace cvc5::kind;
 
@@ -89,7 +90,8 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
   }
   if (idr == MethodId::RW_EXT_REWRITE)
   {
-    return d_ext_rewriter.extendedRewrite(n);
+    quantifiers::ExtendedRewriter er;
+    return er.extendedRewrite(n);
   }
   if (idr == MethodId::RW_REWRITE_EQ_EXT)
   {
