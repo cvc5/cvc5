@@ -112,7 +112,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   // Create the command executor to execute the parsed commands
   pExecutor = std::make_unique<CommandExecutor>(solver);
   api::DriverOptions dopts = solver->getDriverOptions();
-  Options* opts = &pExecutor->getOptions();
 
   // Parse the options
   std::vector<string> filenames = main::parse(*solver, argc, argv, progName);
@@ -244,7 +243,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
         if (cmd == nullptr)
           break;
         status = pExecutor->doCommand(cmd) && status;
-        opts = &pExecutor->getOptions();
         if (cmd->interrupted()) {
           break;
         }
@@ -280,7 +278,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
         if (interrupted) {
           dopts.out() << CommandInterrupted();
           pExecutor->reset();
-          opts = &pExecutor->getOptions();
           break;
         }
         try {
@@ -292,7 +289,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
         }
 
         status = pExecutor->doCommand(cmd);
-        opts = &pExecutor->getOptions();
         if (cmd->interrupted() && status == 0) {
           interrupted = true;
           break;
