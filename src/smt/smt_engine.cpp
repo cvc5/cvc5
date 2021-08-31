@@ -1200,14 +1200,14 @@ std::string SmtEngine::getModel(const std::vector<TypeNode>& declaredSorts,
   SmtScope smts(this);
   TheoryModel* tm = getAvailableModel("get model");
   // use the smt::Model model utility for printing
+  const Options& opts = d_env->getOptions();
   bool isKnownSat = (d_state->getMode() == SmtMode::SAT);
-  Model m(isKnownSat);
+  Model m(isKnownSat, opts.driver.filename);
   // set the model declarations, which determines what is printed in the model
   for (const TypeNode& tn : declaredSorts)
   {
     m.addDeclarationSort(tn, getModelDomainElements(tn));
   }
-  const Options& opts = d_env->getOptions();
   bool usingModelCores =
       (opts.smt.modelCoresMode != options::ModelCoresMode::NONE);
   for (const Node& n : declaredFuns)

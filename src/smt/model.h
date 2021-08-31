@@ -39,7 +39,7 @@ class Model {
    * @param isKnownSat True if this model is associated with a "sat" response,
    * or false if it is associated with an "unknown" response.
    */
-  Model(bool isKnownSat = true);
+  Model(bool isKnownSat, const std::string& inputName);
   /** get the input name (file name, etc.) this model is associated to */
   std::string getInputName() const { return d_inputName; }
   /**
