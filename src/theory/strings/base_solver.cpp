@@ -363,7 +363,8 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
       // non-constant vector
       std::vector<Node> vecnc;
       size_t contentSize = 0;
-      for (size_t count = 0, nchild = n.getNumChildren(); count<nchild; ++count)
+      for (size_t count = 0, nchild = n.getNumChildren(); count < nchild;
+           ++count)
       {
         // Add explanations for the empty children
         Node emps;
@@ -387,13 +388,13 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
           Assert(vecc[countc].isConst());
           contentSize += Word::getLength(vecc[countc]);
         }
-        Trace("strings-debug") << "...explain " << n[count] << " "
-                                << vecc[countc] << std::endl;
+        Trace("strings-debug")
+            << "...explain " << n[count] << " " << vecc[countc] << std::endl;
         if (!d_state.areEqual(n[count], vecc[countc]))
         {
           Node nrr = d_state.getRepresentative(n[count]);
           Assert(!d_eqcInfo[nrr].d_bestContent.isNull()
-                  && d_eqcInfo[nrr].d_bestContent.isConst());
+                 && d_eqcInfo[nrr].d_bestContent.isConst());
           // must flatten to avoid nested AND in explanations
           utils::flattenOp(AND, d_eqcInfo[nrr].d_exp, exp);
           // now explain equality to base
