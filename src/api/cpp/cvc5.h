@@ -2408,7 +2408,7 @@ class CVC5_EXPORT Grammar
   /**
    * Allow \p ntSymbol to be any input variable to corresponding
    * synth-fun/synth-inv with the same sort as \p ntSymbol.
-   * @param ntSymbol the non-terminal allowed to be any input constant
+   * @param ntSymbol the non-terminal allowed to be any input variable
    */
   void addAnyVariable(const Term& ntSymbol);
 

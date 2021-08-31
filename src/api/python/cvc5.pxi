@@ -444,15 +444,27 @@ cdef class Op:
         return kind(<int> self.cop.getKind())
     
     def isIndexed(self):
+        """
+            :return: true iff this operator is indexed.
+        """
         return self.cop.isIndexed()
 
     def isNull(self):
+        """
+            :return: true iff this operator is a null term.
+        """
         return self.cop.isNull()
 
     def getNumIndices(self):
+        """
+            :return: number of indices of this op.
+        """
         return self.cop.getNumIndices()
 
     def getIndices(self):
+        """
+            :return: the indices used to create this Op (see :cpp:func:`Op::GetIndices() <cvc5::api::Op::GetIndices>`).
+        """
         indices = None
         try:
             indices = self.cop.getIndices[string]().decode()
@@ -475,6 +487,7 @@ cdef class Op:
         return indices
 
 cdef class Grammar:
+    """Wrapper class for :cpp:class:`cvc5::api::Grammar`."""
     cdef c_Grammar  cgrammar
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -482,45 +495,90 @@ cdef class Grammar:
         self.cgrammar = c_Grammar()
 
     def addRule(self, Term ntSymbol, Term rule):
+        """
+            Add \p rule to the set of rules corresponding to \p nySymbol.
+
+	    :param ntSymbol: the non-terminal to which the rule is added.
+            :param rule: the rule to add.
+        """
         self.cgrammar.addRule(ntSymbol.cterm, rule.cterm)
 
     def addAnyConstant(self, Term ntSymbol):
+        """
+            Allow \p nySymbol to be an arbitrary constant.
+
+            :param ntSymbol: the non-terminal allowed to be constant.
+        """
         self.cgrammar.addAnyConstant(ntSymbol.cterm)
 
     def addAnyVariable(self, Term ntSymbol):
+        """
+            Allow \p nySymbol to be any input variable to corresponding synth-fun/synth-inv with the same sort as \p nySymbol.
+
+            :param ntSymbol: the non-terminal allowed to be any input variable.
+        """
         self.cgrammar.addAnyVariable(ntSymbol.cterm)
 
     def addRules(self, Term ntSymbol, rules):
+        """
+            Add \p rules to the set of rules corresponding to \p ntSymbol.
+
+            :param ntSymbol: the non-terminal to which the rules are added. 
+            :param rules: the rules to add.
+        """
         cdef vector[c_Term] crules
         for r in rules:
             crules.push_back((<Term?> r).cterm)
         self.cgrammar.addRules(ntSymbol.cterm, crules)
 
 cdef class Result:
+    """Wrapper class for :cpp:class:`cvc5::api::Result`."""
     cdef c_Result cr
     def __cinit__(self):
         # gets populated by solver
         self.cr = c_Result()
 
     def isNull(self):
+        """
+            :return: true if Result is empty, i.e., a nullary Result,\ 
+	    and not an actual result returned from a checkSat() (and friends) query.
+        """
         return self.cr.isNull()
 
     def isSat(self):
+        """
+            :return: true if query was a satisfiable checkSat() or checkSatAssuming() query.
+        """
         return self.cr.isSat()
 
     def isUnsat(self):
+        """
+            :return: true if query was an usatisfiable checkSat() or checkSatAssuming() query.
+        """
         return self.cr.isUnsat()
 
     def isSatUnknown(self):
+        """
+            :return: true if query was a checkSat() or checkSatAssuming() query and cvc5 was not able to determine (un)satisfiability. 
+        """
         return self.cr.isSatUnknown()
 
     def isEntailed(self):
+        """
+            :return: true if corresponding query was an entailed checkEntailed() query.
+        """
         return self.cr.isEntailed()
 
     def isNotEntailed(self):
+        """
+            :return: true if corresponding query was a checkEntailed() query that is not entailed.
+        """
         return self.cr.isNotEntailed()
 
     def isEntailmentUnknown(self):
+        """
+            :return: true if query was a checkEntailed() query and cvc5 was not able to determine if it is entailed.
+        """
         return self.cr.isEntailmentUnknown()
 
     def __eq__(self, Result other):
@@ -564,6 +622,7 @@ cdef class RoundingMode:
 
 
 cdef class UnknownExplanation:
+    """Wrapper class for :cpp:enum:`cvc5::api::UnknownExplanation`."""
     cdef c_UnknownExplanation cue
     cdef str name
     def __cinit__(self, int ue):
