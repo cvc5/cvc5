@@ -282,8 +282,8 @@ class Printer
    * n declared via declare-fun.
    */
   virtual void toStreamModelTerm(std::ostream& out,
-                                 Node n,
-                                 Node value) const = 0;
+                                 const Node& n,
+                                 const Node& value) const = 0;
 
   /** write model response to command using another language printer */
   void toStreamUsing(Language lang,

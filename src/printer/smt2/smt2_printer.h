@@ -259,7 +259,7 @@ class Smt2Printer : public cvc5::Printer
    * To stream model term. This prints the appropriate output for term
    * n declared via declare-fun.
    */
-  void toStreamModelTerm(std::ostream& out, Node n, Node value) const override;
+  void toStreamModelTerm(std::ostream& out, const Node& n, const Node& value) const override;
 
   /**
    * To stream with let binding. This prints n, possibly in the scope

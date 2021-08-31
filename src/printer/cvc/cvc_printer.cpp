@@ -1053,7 +1053,7 @@ void CvcPrinter::toStreamModelSort(std::ostream& out,
   }
 }
 
-void CvcPrinter::toStreamModelTerm(std::ostream& out, Node n, Node value) const
+void CvcPrinter::toStreamModelTerm(std::ostream& out, const Node& n, const Node& value) const
 {
   TypeNode tn = n.getType();
   out << n << " : ";
