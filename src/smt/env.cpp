@@ -51,7 +51,7 @@ Env::Env(NodeManager* nm, const Options* opts)
   {
     d_options.copyValues(*opts);
   }
-  d_statisticsRegistry->registerTimer("driver::totalTime").start();
+  d_statisticsRegistry->registerTimer("global::totalTime").start();
   d_resourceManager = std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
 }
 
