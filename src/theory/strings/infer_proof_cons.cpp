@@ -260,9 +260,10 @@ void InferProofCons::convert(InferenceId infer,
       childrenSRew.insert(childrenSRew.end(), pcsr.begin(), pcsr.end());
       // now, conclude the proper equality
       std::vector<Node> argsSRew;
-      addMethodIds(argsSRew, MethodId::SB_DEFAULT,
-                                   MethodId::SBA_SEQUENTIAL,
-                                   MethodId::RW_EXT_REWRITE);
+      addMethodIds(argsSRew,
+                   MethodId::SB_DEFAULT,
+                   MethodId::SBA_SEQUENTIAL,
+                   MethodId::RW_EXT_REWRITE);
       Node mainEqSRew =
           psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
       if (CDProof::isSame(mainEqSRew, pmainEq))
