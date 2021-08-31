@@ -260,17 +260,35 @@ void set(Options& opts, const std::string& name, const std::string& optionarg)
 std::vector<std::vector<std::string> > getAll(const Options& opts)
 {
   std::vector<std::vector<std::string>> res;
-
-${options_getall}$
-
+  // clang-format off
+  ${options_getall}$
+  // clang-format on
   return res;
 }
 
 std::vector<std::string> getNames()
 {
   return {
-${options_all_names}$
+    // clang-format off
+    ${options_all_names}$
+    // clang-format on
   };
 }
+
+#if defined(CVC5_MUZZLED) || defined(CVC5_COMPETITION_MODE)
+#define DO_SEMANTIC_CHECKS_BY_DEFAULT false
+#else /* CVC5_MUZZLED || CVC5_COMPETITION_MODE */
+#define DO_SEMANTIC_CHECKS_BY_DEFAULT true
+#endif /* CVC5_MUZZLED || CVC5_COMPETITION_MODE */
+
+OptionInfo getInfo(const Options& opts, const std::string& name)
+{
+  // clang-format off
+  ${options_get_info}$
+  // clang-format on
+  return OptionInfo{name, {}, false, OptionInfo::VoidInfo{}};
+}
+
+#undef DO_SEMANTIC_CHECKS_BY_DEFAULT
 
 }  // namespace cvc5::options
