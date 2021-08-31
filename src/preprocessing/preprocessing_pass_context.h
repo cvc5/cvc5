@@ -69,7 +69,7 @@ class PreprocessingPassContext
   /** Get a pointer to the Rewriter owned by the associated Env. */
   theory::Rewriter* getRewriter();
 
-  /** Gets a reference to the top-level substitution map */
+  /** Get a reference to the top-level substitution map */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions();
 
   /** Record symbols in assertions
