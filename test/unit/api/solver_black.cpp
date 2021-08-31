@@ -1329,6 +1329,53 @@ TEST_F(TestApiBlackSolver, getOptionNames)
   ASSERT_EQ(std::find(names.begin(), names.end(), "foobar"), names.end());
 }
 
+TEST_F(TestApiBlackSolver, getOptionInfo)
+{
+  {
+    auto info = d_solver.getOptionInfo("verbose");
+    ASSERT_EQ(info.name, "verbose");
+    ASSERT_EQ(info.aliases, std::vector<std::string>{});
+    ASSERT_TRUE(std::holds_alternative<api::OptionInfo::VoidInfo>(info.valueInfo));
+  }
+  {
+    // int64 type with default
+    api::OptionInfo info = d_solver.getOptionInfo("verbosity");
+    EXPECT_EQ("verbosity", info.name);
+    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
+    EXPECT_TRUE(std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(info.valueInfo));
+    auto numInfo = std::get<OptionInfo::NumberInfo<int64_t>>(info.valueInfo);
+    EXPECT_EQ(0, numInfo.defaultValue);
+    EXPECT_EQ(0, numInfo.currentValue);
+    EXPECT_FALSE(numInfo.minimum || numInfo.maximum);
+    ASSERT_EQ(info.intValue(), 0);
+  }
+  {
+    auto info = d_solver.getOptionInfo("random-freq");
+    ASSERT_EQ(info.name, "random-freq");
+    ASSERT_EQ(info.aliases, std::vector<std::string>{"random-frequency"});
+    ASSERT_TRUE(std::holds_alternative<api::OptionInfo::NumberInfo<double>>(info.valueInfo));
+    auto ni = std::get<api::OptionInfo::NumberInfo<double>>(info.valueInfo);
+    ASSERT_EQ(ni.currentValue, 0.0);
+    ASSERT_EQ(ni.defaultValue, 0.0);
+    ASSERT_TRUE(ni.minimum && ni.maximum);
+    ASSERT_EQ(*ni.minimum, 0.0);
+    ASSERT_EQ(*ni.maximum, 1.0);
+    ASSERT_EQ(info.doubleValue(), 0.0);
+  }
+  {
+    // mode option
+    api::OptionInfo info = d_solver.getOptionInfo("output");
+    EXPECT_EQ("output", info.name);
+    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
+    EXPECT_TRUE(std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo));
+    auto modeInfo = std::get<OptionInfo::ModeInfo>(info.valueInfo);
+    EXPECT_EQ("NONE", modeInfo.defaultValue);
+    EXPECT_EQ("OutputTag::NONE", modeInfo.currentValue);
+    std::vector<std::string> modes{"NONE", "INST", "SYGUS", "TRIGGER"};
+    EXPECT_EQ(modes, modeInfo.modes);
+  }
+}
+
 TEST_F(TestApiBlackSolver, getUnsatAssumptions1)
 {
   d_solver.setOption("incremental", "false");

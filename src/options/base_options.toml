@@ -49,6 +49,7 @@ public = true
   type       = "Language"
   default    = "Language::LANG_AUTO"
   handler    = "stringToLanguage"
+  predicates = ["applyOutputLanguage"]
   includes   = ["options/language.h"]
   help       = "force output language (default is \"auto\"; see --output-lang help)"
 
@@ -216,10 +217,13 @@ public = true
   short      = "o"
   long       = "output=TAG"
   type       = "OutputTag"
+  default    = "NONE"
   handler    = "enableOutputTag"
   category   = "regular"
   help       = "Enable output tag."
   help_mode  = "Output tags."
+[[option.mode.NONE]]
+  name = "none"
 [[option.mode.INST]]
   name = "inst"
   help = "print instantiations during solving"

@@ -24,6 +24,8 @@ C++ API Class Hierarchy
 
   * class :ref:`api/cpp/op:op`
 
+  * class :ref:`api/cpp/optioninfo:optioninfo`
+
   * class :ref:`api/cpp/result:result`
 
     * enum :cpp:enum:`UnknownExplanation <cvc5::api::Result::UnknownExplanation>`

@@ -34,6 +34,7 @@
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
+#include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "smt/command.h"
@@ -511,6 +512,13 @@ Language OptionsHandler::stringToLanguage(const std::string& option,
   }
 
   Unreachable();
+}
+
+void OptionsHandler::applyOutputLanguage(const std::string& option,
+                                         const std::string& flag,
+                                         Language lang)
+{
+  d_options->base.out << language::SetLanguage(lang);
 }
 
 void OptionsHandler::languageIsNotAST(const std::string& option,
