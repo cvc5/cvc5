@@ -1099,7 +1099,6 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   AlwaysAssert(it != d_lazyFactMap.end());
   std::shared_ptr<InferInfo> ii = (*it).second;
   Assert(ii->d_conc == fact);
-  // return getProofFor(d_pnm, fact, ii->getId(), ii->d_idRev, ii->d_premises);
   // make a placeholder proof using STRINGS_INFERENCE, which is reconstructed
   // during post-process
   CDProof pf(d_pnm);
