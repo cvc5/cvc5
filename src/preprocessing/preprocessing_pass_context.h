@@ -66,6 +66,9 @@ class PreprocessingPassContext
   /** Get the current logic info of the environment */
   const LogicInfo& getLogicInfo();
 
+  /** Get a pointer to the Rewriter owned by the associated Env. */
+  theory::Rewriter* getRewriter();
+
   /** Gets a reference to the top-level substitution map */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions();
 
