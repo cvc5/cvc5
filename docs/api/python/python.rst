@@ -18,3 +18,8 @@ Python API Documentation
     datatypeconstructordecl
     datatypedecl
     datatypeselector
+    grammar
+    op
+    result
+    roundingmode
+    unknownexplanation
