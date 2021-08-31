@@ -787,7 +787,11 @@ void InferProofCons::convert(InferenceId infer,
       Trace("strings-ipc-prefix")
           << "- Possible conflicting equality : " << curr << std::endl;
       std::vector<Node> emp;
-      Node concE = psb.applyPredElim(curr, emp, MethodId::SB_DEFAULT, MethodId::SBA_SEQUENTIAL, MethodId::RW_REWRITE_EQ_EXT);
+      Node concE = psb.applyPredElim(curr,
+                                     emp,
+                                     MethodId::SB_DEFAULT,
+                                     MethodId::SBA_SEQUENTIAL,
+                                     MethodId::RW_REWRITE_EQ_EXT);
       Trace("strings-ipc-prefix")
           << "- After pred elim: " << concE << std::endl;
       if (concE == conc)
