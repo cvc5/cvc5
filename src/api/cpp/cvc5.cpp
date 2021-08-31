@@ -7178,6 +7178,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   auto info = options::getInfo(d_smtEngine->getOptions(), option);
+  CVC5_API_CHECK(info.name != "")
+      << "Querying invalid or unknown option " << option;
   return std::visit(
       overloaded{
           [&info](const options::OptionInfo::VoidInfo& vi) {
