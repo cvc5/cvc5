@@ -109,7 +109,8 @@ public:
   static std::string formatVariadic(const char* format, ...);
 }; /* class IllegalArgumentException */
 
-inline std::ostream& operator<<(std::ostream& os, const Exception& e);
+inline std::ostream& operator<<(std::ostream& os,
+                                const Exception& e) CVC5_EXPORT;
 inline std::ostream& operator<<(std::ostream& os, const Exception& e)
 {
   e.toStream(os);
