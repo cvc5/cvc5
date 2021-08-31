@@ -1198,6 +1198,17 @@ std::string SmtEngine::getModel(const std::vector<TypeNode>& declaredSorts,
                                 const std::vector<Node>& declaredFuns)
 {
   SmtScope smts(this);
+  // !!! Note that all methods called here should have a version at the API
+  // level. This is to ensure that the information associated with a model is
+  // completely accessible by the user. This is currently not rigorously
+  // enforced. An alternative design would be to have this method implemented
+  // at the API level, but this makes exceptions in the text interface less
+  // intuitive and makes it impossible to implement raw-benchmark at the
+  // SmtEngine level.
+  if (Dump.isOn("raw-benchmark"))
+  {
+    getPrinter().toStreamCmdGetModel(d_env->getDumpOut());
+  }
   TheoryModel* tm = getAvailableModel("get model");
   // use the smt::Model model utility for printing
   const Options& opts = d_env->getOptions();
