@@ -343,6 +343,7 @@ cdef class DatatypeSelector:
 
 
 cdef class Op:
+    """Wrapper class for :cpp:class:`cvc5::api::Op`."""
     cdef c_Op cop
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -365,6 +366,9 @@ cdef class Op:
         return cophash(self.cop)
 
     def getKind(self):
+        """
+            :return: the kind of this operator.
+        """
         return kind(<int> self.cop.getKind())
     
     def isIndexed(self):
