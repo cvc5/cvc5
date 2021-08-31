@@ -7381,7 +7381,8 @@ bool Solver::isModelCoreSymbol(const Term& v) const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::string Solver::getModel(const std::vector<Sort>& sorts, const std::vector<Term>& vars) const
+std::string Solver::getModel(const std::vector<Sort>& sorts,
+                             const std::vector<Term>& vars) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
@@ -7395,7 +7396,7 @@ std::string Solver::getModel(const std::vector<Sort>& sorts, const std::vector<T
   {
     CVC5_API_RECOVERABLE_CHECK(s.isUninterpretedSort())
         << "Expecting an uninterpreted sort as argument to "
-          "getModel.";
+           "getModel.";
   }
   CVC5_API_SOLVER_CHECK_TERMS(vars);
   for (const Term& v : vars)
@@ -7404,7 +7405,8 @@ std::string Solver::getModel(const std::vector<Sort>& sorts, const std::vector<T
         << "Expecting a free constant as argument to getModel.";
   }
   //////// all checks before this line
-  return d_smtEngine->getModel(Sort::sortVectorToTypeNodes(sorts), Term::termVectorToNodes(vars));
+  return d_smtEngine->getModel(Sort::sortVectorToTypeNodes(sorts),
+                               Term::termVectorToNodes(vars));
   ////////
   CVC5_API_TRY_CATCH_END;
 }

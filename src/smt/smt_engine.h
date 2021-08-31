@@ -517,11 +517,11 @@ class CVC5_EXPORT SmtEngine
    * @return true if v is a model core symbol
    */
   bool isModelCoreSymbol(Node v);
-  
+
   /**
    * Get a model (only if immediately preceded by an SAT or unknown query).
-   * Only permitted if the model option is on. 
-   * 
+   * Only permitted if the model option is on.
+   *
    * @param declaredSorts The sorts to print in the model
    * @param declaredFuns The free constants to print in the model. A subset
    * of these may be printed based on isModelCoreSymbol.

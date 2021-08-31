@@ -1195,7 +1195,7 @@ bool SmtEngine::isModelCoreSymbol(Node n)
 }
 
 std::string SmtEngine::getModel(const std::vector<TypeNode>& declaredSorts,
-                      const std::vector<Node>& declaredFuns)
+                                const std::vector<Node>& declaredFuns)
 {
   SmtScope smts(this);
   TheoryModel* tm = getAvailableModel("get model");
@@ -1208,7 +1208,8 @@ std::string SmtEngine::getModel(const std::vector<TypeNode>& declaredSorts,
     m.addDeclarationSort(tn, getModelDomainElements(tn));
   }
   const Options& opts = d_env->getOptions();
-  bool usingModelCores = (opts.smt.modelCoresMode != options::ModelCoresMode::NONE);
+  bool usingModelCores =
+      (opts.smt.modelCoresMode != options::ModelCoresMode::NONE);
   for (const Node& n : declaredFuns)
   {
     if (usingModelCores && !tm->isModelCoreSymbol(n))

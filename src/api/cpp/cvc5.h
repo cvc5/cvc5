@@ -3963,8 +3963,9 @@ class CVC5_EXPORT Solver
    * model. A subset of these may be printed based on isModelCoreSymbol.
    * @return a string representing the model.
    */
-  std::string getModel(const std::vector<Sort>& sorts, const std::vector<Term>& vars) const;
-  
+  std::string getModel(const std::vector<Sort>& sorts,
+                       const std::vector<Term>& vars) const;
+
   /**
    * Do quantifier elimination.
    * SMT-LIB:
