@@ -579,6 +579,15 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       pf << h << as[0] << as[1];
     }
     break;
+    case PfRule::ARITH_TRICHOTOMY:
+    {
+      // flip to get the correct GEQ index
+      Node res = children[0]->getResult();
+      Assert (res.getKind()==GEQ || res.getKind()==LEQ);
+      size_t geqIndex = res.getKind()==GEQ ? 0 : 1;
+      pf << h << h << cs[geqIndex] << cs[1-geqIndex];
+    }
+      break;
     // strings
     case PfRule::STRING_LENGTH_POS: pf << as[0]; break;
     case PfRule::STRING_LENGTH_NON_EMPTY: pf << h << cs[0]; break;
