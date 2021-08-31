@@ -445,32 +445,22 @@ public:
     SuppressWrongNoReturnWarning;
   }
 
-  template<bool checkApplies>
-  static inline Node run(TNode node) {
-    if (!checkApplies || applies(node)) {
-      Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ")" << std::endl;
+  template <bool checkApplies>
+  static inline Node run(TNode node)
+  {
+    if (!checkApplies || applies(node))
+    {
+      Debug("theory::bv::rewrite")
+          << "RewriteRule<" << rule << ">(" << node << ")" << std::endl;
       Assert(checkApplies || applies(node));
       //++ s_statistics->d_ruleApplications;
       Node result = apply(node);
-      if (result != node) {
-        if(Dump.isOn("bv-rewrites")) {
-          std::ostringstream os;
-          os << "RewriteRule <"<<rule<<">; expect unsat";
-
-          Node condition = node.eqNode(result).notNode();
-
-          const Printer& printer =
-              smt::currentSmtEngine()->getOutputManager().getPrinter();
-          std::ostream& out =
-              smt::currentSmtEngine()->getOutputManager().getDumpOut();
-
-          printer.toStreamCmdComment(out, os.str());
-          printer.toStreamCmdCheckSat(out, condition);
-        }
-      }
-      Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ") => " << result << std::endl;
+      Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node
+                                   << ") => " << result << std::endl;
       return result;
-    } else {
+    }
+    else
+    {
       return node;
     }
   }
