@@ -1335,6 +1335,12 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     EXPECT_THROW(d_solver.getOptionInfo("asdf-invalid"), CVC5ApiException);
   }
   {
+    api::OptionInfo info = d_solver.getOptionInfo("verbose");
+    EXPECT_EQ("verbose", info.name);
+    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
+    EXPECT_TRUE(std::holds_alternative<OptionInfo::VoidInfo>(info.valueInfo));
+  }
+  {
     // int64 type with default
     api::OptionInfo info = d_solver.getOptionInfo("verbosity");
     EXPECT_EQ("verbosity", info.name);

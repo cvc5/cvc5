@@ -792,6 +792,10 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                     ['name == "{}"'.format(x) for x in sorted(names)])
 
                 # Generate code for getOptionInfo
+                if option.alias:
+                    alias = ', '.join(map(lambda s: '"{}"'.format(s), option.alias))
+                else:
+                    alias = ''
                 if option.name:
                     constr = None
                     fmt = {
@@ -811,11 +815,9 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                         constr = 'OptionInfo::ModeInfo{{"{default}", {value}, {{ {modes} }}}}'.format(**fmt, modes=values)
                     else:
                         constr = 'OptionInfo::VoidInfo{}'
-                    if option.alias:
-                        alias = ', '.join(map(lambda s: '"{}"'.format(s), option.alias))
-                    else:
-                        alias = ''
                     options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, opts.{}.{}WasSetByUser, {}}};'.format(cond, long_get_option(option.long), module.id, option.name, constr, alias=alias))
+                else:
+                    options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, false, OptionInfo::VoidInfo{{}}}};'.format(cond, long_get_option(option.long), alias=alias))
 
                 if setoption_handlers:
                     setoption_handlers.append('  }} else if ({}) {{'.format(cond))
