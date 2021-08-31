@@ -296,8 +296,6 @@ class TheoryModel
    * has called buildModel(...) on this model.
    */
   Node getValue(TNode n) const;
-  /** get comments */
-  void getComments(std::ostream& out) const;
 
   //---------------------------- separation logic
   /** set the heap and value sep.nil is equal to */
@@ -318,6 +316,8 @@ class TheoryModel
   RepSet* getRepSetPtr() { return &d_rep_set; }
 
   //---------------------------- model cores
+  /** True if a model core has been computed for this model. */
+  bool isUsingModelCore() const;
   /** set using model core */
   void setUsingModelCore();
   /** record model core symbol */
@@ -394,8 +394,6 @@ class TheoryModel
   /** true/false nodes */
   Node d_true;
   Node d_false;
-  /** comment stream to include in printing */
-  std::stringstream d_comment_str;
   /** are we using model cores? */
   bool d_using_model_core;
   /** symbols that are in the model core */

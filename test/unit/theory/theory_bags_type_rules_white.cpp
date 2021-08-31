@@ -111,5 +111,40 @@ TEST_F(TestTheoryWhiteBagsTypeRule, to_set_operator)
   ASSERT_NO_THROW(d_nodeManager->mkNode(BAG_TO_SET, bag));
   ASSERT_TRUE(d_nodeManager->mkNode(BAG_TO_SET, bag).getType().isSet());
 }
+
+TEST_F(TestTheoryWhiteBagsTypeRule, map_operator)
+{
+  std::vector<Node> elements = getNStrings(1);
+  Node bag = d_nodeManager->mkBag(d_nodeManager->stringType(),
+                                  elements[0],
+                                  d_nodeManager->mkConst(Rational(10)));
+  Node set =
+      d_nodeManager->mkSingleton(d_nodeManager->stringType(), elements[0]);
+
+  Node x1 = d_nodeManager->mkBoundVar("x", d_nodeManager->stringType());
+  Node length = d_nodeManager->mkNode(STRING_LENGTH, x1);
+  std::vector<Node> args1;
+  args1.push_back(x1);
+  Node bound1 = d_nodeManager->mkNode(kind::BOUND_VAR_LIST, args1);
+  Node lambda1 = d_nodeManager->mkNode(LAMBDA, bound1, length);
+
+  ASSERT_NO_THROW(d_nodeManager->mkNode(BAG_MAP, lambda1, bag));
+  Node mappedBag = d_nodeManager->mkNode(BAG_MAP, lambda1, bag);
+  ASSERT_TRUE(mappedBag.getType().isBag());
+  ASSERT_EQ(d_nodeManager->integerType(),
+            mappedBag.getType().getBagElementType());
+
+  Node one = d_nodeManager->mkConst(Rational(1));
+  Node x2 = d_nodeManager->mkBoundVar("x", d_nodeManager->integerType());
+  std::vector<Node> args2;
+  args2.push_back(x2);
+  Node bound2 = d_nodeManager->mkNode(kind::BOUND_VAR_LIST, args2);
+  Node lambda2 = d_nodeManager->mkNode(LAMBDA, bound2, one);
+  ASSERT_THROW(d_nodeManager->mkNode(BAG_MAP, lambda2, bag).getType(true),
+               TypeCheckingExceptionPrivate);
+  ASSERT_THROW(d_nodeManager->mkNode(BAG_MAP, lambda2, set).getType(true),
+               TypeCheckingExceptionPrivate);
+}
+
 }  // namespace test
 }  // namespace cvc5

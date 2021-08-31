@@ -122,7 +122,7 @@ class Result
   /**
    * Write a Result out to a stream in this language.
    */
-  void toStream(std::ostream& out, OutputLanguage language) const;
+  void toStream(std::ostream& out, Language language) const;
 
   /**
    * This is mostly the same the default

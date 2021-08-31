@@ -334,7 +334,7 @@ api::Term Smt2::getExpressionForNameAndType(const std::string& name,
 
 bool Smt2::getTesterName(api::Term cons, std::string& name)
 {
-  if ((v2_6() || sygus_v2()) && strictModeEnabled())
+  if ((v2_6() || sygus()) && strictModeEnabled())
   {
     // 2.6 or above uses indexed tester symbols, if we are in strict mode,
     // we do not automatically define is-cons for constructor cons.
@@ -635,6 +635,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::BAG_IS_SINGLETON, "bag.is_singleton");
     addOperator(api::BAG_FROM_SET, "bag.from_set");
     addOperator(api::BAG_TO_SET, "bag.to_set");
+    addOperator(api::BAG_MAP, "bag.map");
   }
   if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
     defineType("String", d_solver->getStringSort(), true, true);
@@ -713,13 +714,7 @@ api::Grammar* Smt2::mkGrammar(const std::vector<api::Term>& boundVars,
 
 bool Smt2::sygus() const
 {
-  InputLanguage ilang = getLanguage();
-  return ilang == language::input::LANG_SYGUS_V2;
-}
-
-bool Smt2::sygus_v2() const
-{
-  return getLanguage() == language::input::LANG_SYGUS_V2;
+  return d_solver->getOption("input-language") == "LANG_SYGUS_V2";
 }
 
 void Smt2::checkThatLogicIsSet()
@@ -848,7 +843,7 @@ api::Term Smt2::mkAbstractValue(const std::string& name)
   return d_solver->mkAbstractValue(name.substr(1));
 }
 
-InputLanguage Smt2::getLanguage() const
+Language Smt2::getLanguage() const
 {
   return d_solver->getOptions().base.inputLanguage;
 }
@@ -1109,7 +1104,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         if ((*i).getSort().isFunction())
         {
           parseError(
-              "Cannot apply equalty to functions unless logic is prefixed by "
+              "Cannot apply equality to functions unless logic is prefixed by "
               "HO_.");
         }
       }

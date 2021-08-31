@@ -41,13 +41,15 @@ class RConsTypeInfo
    * Initialize a sygus enumerator and a candidate rewrite database for this
    * class' sygus datatype type.
    *
+   * @param env Reference to the environment
    * @param tds Database for sygus terms
    * @param s Statistics managed for the synth engine
    * @param stn The sygus datatype type encoding the syntax restrictions
    * @param builtinVars A list containing the builtin analog of sygus variable
    *                    list for the sygus datatype type
    */
-  void initialize(TermDbSygus* tds,
+  void initialize(Env& env,
+                  TermDbSygus* tds,
                   SygusStatistics& s,
                   TypeNode stn,
                   const std::vector<Node>& builtinVars);

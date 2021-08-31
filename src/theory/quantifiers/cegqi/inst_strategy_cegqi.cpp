@@ -70,7 +70,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersState& qs,
   }
   if (options::cegqiNestedQE())
   {
-    d_nestedQe.reset(new NestedQe(qs.getUserContext()));
+    d_nestedQe.reset(new NestedQe(qs.getEnv()));
   }
 }
 

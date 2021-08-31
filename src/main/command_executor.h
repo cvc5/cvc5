@@ -117,7 +117,7 @@ private:
 bool solverInvoke(api::Solver* solver,
                   SymbolManager* sm,
                   Command* cmd,
-                  std::ostream* out);
+                  std::ostream& out);
 
 }  // namespace main
 }  // namespace cvc5
