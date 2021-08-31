@@ -42,6 +42,10 @@ namespace strings {
  *
  * The main (private) method of this class is convert below, which is
  * called when we need to construct a proof node from an InferInfo.
+ *
+ * This class uses lazy proof reconstruction. Namely, the getProofFor method
+ * returns applications of the rule STRING_INFERENCE, which store the arguments
+ * to the proof conversion routine "convert" below.
  */
 class InferProofCons : public ProofGenerator
 {
@@ -72,21 +76,35 @@ class InferProofCons : public ProofGenerator
    *
    * It should be the case that a call was made to notifyFact(ii) where
    * ii.d_conc is fact in this SAT context.
+   *
+   * This returns the appropriate application of STRING_INFERENCE so that it
+   * can be reconstructed if necessary during proof post-processing.
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** Identify this generator (for debugging, etc..) */
   virtual std::string identify() const override;
-
+  /**
+   * Add proof of running convert on the given arguments to CDProof pf. This is
+   * called lazily during proof post-processing.
+   */
   static bool addProofTo(CDProof* pf,
                          Node conc,
                          InferenceId infer,
                          bool isRev,
                          const std::vector<Node>& exp);
+  /**
+   * Pack arguments of a STRING_INFERENCE rule application in args. This proof
+   * rule stores the arguments to the convert method of this class below.
+   */
   static void packArgs(Node conc,
                        InferenceId infer,
                        bool isRev,
                        const std::vector<Node>& exp,
                        std::vector<Node>& args);
+  /**
+   * Inverse of the above method, which recovers the arguments that were packed
+   * into the vector args.
+   */
   static bool unpackArgs(const std::vector<Node>& args,
                          Node& conc,
                          InferenceId& infer,
