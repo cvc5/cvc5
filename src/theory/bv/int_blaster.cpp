@@ -250,10 +250,8 @@ Node IntBlaster::translateWithChildren(
     {
       Assert(original.getNumChildren() == 2);
       uint64_t bvsize = original[0].getType().getBitVectorSize();
-      std::cout << "panda before" << std::endl;
       returnNode = createBVAddNode(
           translated_children[0], translated_children[1], bvsize);
-      std::cout << "panda after" << std::endl;
       break;
     }
     case kind::BITVECTOR_MULT:
@@ -815,8 +813,6 @@ Node IntBlaster::createBVSubNode(Node x, Node y, uint64_t bvsize)
 
 Node IntBlaster::createBVAddNode(Node x, Node y, uint64_t bvsize)
 {
-  std::cout << "panda x " << x << std::endl;
-  std::cout << "panda y " << y << std::endl;
   Node plus = d_nm->mkNode(kind::PLUS, x, y);
   Node p2 = pow2(bvsize);
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, plus, p2);
