@@ -581,11 +581,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     break;
     case PfRule::ARITH_TRICHOTOMY:
     {
-      // flip to get the correct GEQ index
-      Node res = children[0]->getResult();
-      Assert (res.getKind()==GEQ || res.getKind()==LEQ);
-      size_t geqIndex = res.getKind()==GEQ ? 0 : 1;
-      pf << h << h << cs[geqIndex] << cs[1-geqIndex];
+      // should be robust to different orderings
+      pf << h << h << h << cs[0] << cs[1];
     }
       break;
     // strings
