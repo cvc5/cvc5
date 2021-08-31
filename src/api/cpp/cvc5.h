@@ -3951,6 +3951,21 @@ class CVC5_EXPORT Solver
   bool isModelCoreSymbol(const Term& v) const;
 
   /**
+   * Get the model
+   * SMT-LIB:
+   * \verbatim
+   * ( get-model )
+   * \endverbatim
+   * Requires to enable option 'produce-models'.
+   * @param sorts The list of uninterpreted sorts that should be printed in the
+   * model.
+   * @param vars The list of free constants that should be printed in the
+   * model. A subset of these may be printed based on isModelCoreSymbol.
+   * @return a string representing the model.
+   */
+  std::string getModel(const std::vector<Sort>& sorts, const std::vector<Term>& vars) const;
+  
+  /**
    * Do quantifier elimination.
    * SMT-LIB:
    * \verbatim
@@ -4006,12 +4021,6 @@ class CVC5_EXPORT Solver
    * @param dataSort The data sort of the heap
    */
   void declareSeparationHeap(const Sort& locSort, const Sort& dataSort) const;
-
-  /**
-   * @return true if the separation logic heap has been declared for this
-   * solver.
-   */
-  bool hasSeparationHeap() const;
 
   /**
    * When using separation logic, obtain the term for the heap.

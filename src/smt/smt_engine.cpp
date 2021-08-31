@@ -1194,6 +1194,44 @@ bool SmtEngine::isModelCoreSymbol(Node n)
   return tm->isModelCoreSymbol(n);
 }
 
+std::string SmtEngine::getModel(const std::vector<TypeNode>& declaredSorts,
+                      const std::vector<Node>& declaredFuns)
+{
+  SmtScope smts(this);
+  TheoryModel* tm = getAvailableModel("get model");
+  // use the smt::Model model utility for printing
+  bool isKnownSat = (d_state->getMode() == SmtMode::SAT);
+  Model m(isKnownSat);
+  // set the model declarations, which determines what is printed in the model
+  for (const TypeNode& tn : declaredSorts)
+  {
+    m.addDeclarationSort(tn, getModelDomainElements(tn));
+  }
+  const Options& opts = d_env->getOptions();
+  bool usingModelCores = (opts.smt.modelCoresMode != options::ModelCoresMode::NONE);
+  for (const Node& n : declaredFuns)
+  {
+    if (usingModelCores && !tm->isModelCoreSymbol(n))
+    {
+      // skip if not in model core
+      continue;
+    }
+    Node value = tm->getValue(n);
+    m.addDeclarationTerm(n, value);
+  }
+  // for separation logic
+  TypeNode locT, dataT;
+  if (getSepHeapTypes(locT, dataT))
+  {
+    std::pair<Node, Node> sh = getSepHeapAndNilExpr();
+    m.setHeapModel(sh.first, sh.second);
+  }
+  // print the model
+  std::stringstream ssm;
+  ssm << m;
+  return ssm.str();
+}
+
 Result SmtEngine::blockModel()
 {
   Trace("smt") << "SMT blockModel()" << endl;

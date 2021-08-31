@@ -1746,54 +1746,19 @@ void GetAssignmentCommand::toStream(std::ostream& out,
 /* class GetModelCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-GetModelCommand::GetModelCommand(bool isKnownSat) : d_isKnownSat(isKnownSat) {}
+GetModelCommand::GetModelCommand() {}
 void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    // use the smt::Model model utility for printing
-    smt::Model m(d_isKnownSat);
-    // set the model declarations, which determines what is printed in the model
     std::vector<api::Sort> declareSorts = sm->getModelDeclareSorts();
-    for (const api::Sort& s : declareSorts)
-    {
-      std::vector<api::Term> elements = solver->getModelDomainElements(s);
-      m.addDeclarationSort(sortToTypeNode(s), termVectorToNodes(elements));
-    }
     std::vector<api::Term> declareTerms = sm->getModelDeclareTerms();
-    for (const api::Term& t : declareTerms)
-    {
-      if (!solver->isModelCoreSymbol(t))
-      {
-        // skip if not in model core
-        continue;
-      }
-      api::Term value = solver->getValue(t);
-      m.addDeclarationTerm(termToNode(t), termToNode(value));
-    }
-    // for separation logic
-    if (solver->hasSeparationHeap())
-    {
-      api::Term h = solver->getSeparationHeap();
-      api::Term neq = solver->getSeparationNilTerm();
-      m.setHeapModel(termToNode(h), termToNode(neq));
-    }
+    d_result = solver->getModel(declareSorts, declareTerms);
     d_commandStatus = CommandSuccess::instance();
-    // print the model as a string and remember the result
-    std::stringstream ssm;
-    ssm << m;
-    d_result = ssm.str();
   }
   catch (api::CVC5ApiRecoverableException& e)
   {
-    // The above implementation of get-model relies on multiple API commands,
-    // e.g. getValue, getModelDomainElements, isModelCoreSymbol,
-    // hasSeparationHeap, etc. On the other hand, the user requested a model
-    // via get-model. Hence, if an exception occurred above, we should report
-    // that the get model command failed.
-    std::stringstream ss;
-    ss << "Cannot get model, since an exception was raised: " << e.what();
-    d_commandStatus = new CommandRecoverableFailure(ss.str());
+    d_commandStatus = new CommandRecoverableFailure(e.what());
   }
   catch (UnsafeInterruptException& e)
   {
@@ -1804,12 +1769,6 @@ void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_commandStatus = new CommandFailure(e.what());
   }
 }
-
-/* Model is private to the library -- for now
-Model* GetModelCommand::getResult() const  {
-  return d_result;
-}
-*/
 
 void GetModelCommand::printResult(std::ostream& out, uint32_t verbosity) const
 {
@@ -1825,7 +1784,7 @@ void GetModelCommand::printResult(std::ostream& out, uint32_t verbosity) const
 
 Command* GetModelCommand::clone() const
 {
-  GetModelCommand* c = new GetModelCommand(d_isKnownSat);
+  GetModelCommand* c = new GetModelCommand;
   c->d_result = d_result;
   return c;
 }
