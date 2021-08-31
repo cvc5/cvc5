@@ -453,7 +453,6 @@ public:
       Debug("theory::bv::rewrite")
           << "RewriteRule<" << rule << ">(" << node << ")" << std::endl;
       Assert(checkApplies || applies(node));
-      //++ s_statistics->d_ruleApplications;
       Node result = apply(node);
       Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node
                                    << ") => " << result << std::endl;
