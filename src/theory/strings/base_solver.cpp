@@ -358,57 +358,52 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
         }
         Trace("strings-debug") << std::endl;
       }
-      size_t count = 0;
       size_t countc = 0;
       std::vector<Node> exp;
       // non-constant vector
       std::vector<Node> vecnc;
       size_t contentSize = 0;
-      while (count < n.getNumChildren())
+      for (size_t count = 0, nchild = n.getNumChildren(); count<nchild; ++count)
       {
         // Add explanations for the empty children
         Node emps;
         if (d_state.isEqualEmptyWord(n[count], emps))
         {
           d_im.addToExplanation(n[count], emps, exp);
+          continue;
+        }
+        else if (vecc[countc].isNull())
+        {
+          Assert(!isConst);
+          // no constant for this component, leave it as is
+          vecnc.push_back(n[count]);
+          continue;
+        }
+        // if we are not entirely a constant
+        if (!isConst)
+        {
+          // use the constant component
+          vecnc.push_back(vecc[countc]);
+          Assert(vecc[countc].isConst());
+          contentSize += Word::getLength(vecc[countc]);
+        }
+        Trace("strings-debug") << "...explain " << n[count] << " "
+                                << vecc[countc] << std::endl;
+        if (!d_state.areEqual(n[count], vecc[countc]))
+        {
+          Node nrr = d_state.getRepresentative(n[count]);
+          Assert(!d_eqcInfo[nrr].d_bestContent.isNull()
+                  && d_eqcInfo[nrr].d_bestContent.isConst());
+          // must flatten to avoid nested AND in explanations
+          utils::flattenOp(AND, d_eqcInfo[nrr].d_exp, exp);
+          // now explain equality to base
+          d_im.addToExplanation(n[count], d_eqcInfo[nrr].d_base, exp);
         }
         else
         {
-          if (vecc[countc].isNull())
-          {
-            Assert(!isConst);
-            // no constant for this component, leave it as is
-            vecnc.push_back(n[count]);
-          }
-          else
-          {
-            if (!isConst)
-            {
-              // use the constant
-              vecnc.push_back(vecc[countc]);
-              Assert(vecc[countc].isConst());
-              contentSize += Word::getLength(vecc[countc]);
-            }
-            Trace("strings-debug") << "...explain " << n[count] << " "
-                                   << vecc[countc] << std::endl;
-            if (!d_state.areEqual(n[count], vecc[countc]))
-            {
-              Node nrr = d_state.getRepresentative(n[count]);
-              Assert(!d_eqcInfo[nrr].d_bestContent.isNull()
-                     && d_eqcInfo[nrr].d_bestContent.isConst());
-              // must flatten to avoid nested AND in explanations
-              utils::flattenOp(AND, d_eqcInfo[nrr].d_exp, exp);
-              // now explain equality to base
-              d_im.addToExplanation(n[count], d_eqcInfo[nrr].d_base, exp);
-            }
-            else
-            {
-              d_im.addToExplanation(n[count], vecc[countc], exp);
-            }
-            countc++;
-          }
+          d_im.addToExplanation(n[count], vecc[countc], exp);
         }
-        count++;
+        countc++;
       }
       // exp contains an explanation of n==c
       Assert(!isConst || countc == vecc.size());
