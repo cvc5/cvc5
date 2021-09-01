@@ -307,8 +307,9 @@ void ProofNodeManager::ensureChecked(ProofNode* pn)
   if (pn->d_provenChecked)
   {
     // already checked
-    return true;
+    return;
   }
+  // directly call the proof checker
   Node res = d_checker->check(
       pn->getRule(), pn->getChildren(), pn->getArguments(), pn->getResult());
   pn->d_provenChecked = true;
@@ -327,8 +328,8 @@ Node ProofNodeManager::checkInternal(
   // a proof checking mode that does not eager check rule applications
   if (!expected.isNull())
   {
-    if (options::proofCheckMode() == options::ProofCheckMode::LAZY
-        || options::proofCheckMode() == options::ProofCheckMode::NONE)
+    if (options::proofCheck() == options::ProofCheckMode::LAZY
+        || options::proofCheck() == options::ProofCheckMode::NONE)
     {
       return expected;
     }
