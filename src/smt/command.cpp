@@ -38,8 +38,6 @@
 #include "proof/unsat_core.h"
 #include "smt/dump.h"
 #include "smt/model.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "util/unsafe_interrupt_exception.h"
 #include "util/utility.h"
 
@@ -1748,27 +1746,17 @@ void GetAssignmentCommand::toStream(std::ostream& out,
 /* class GetModelCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-GetModelCommand::GetModelCommand() : d_result(nullptr) {}
+GetModelCommand::GetModelCommand() {}
 void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = solver->getSmtEngine()->getModel();
-    // set the model declarations, which determines what is printed in the model
-    d_result->clearModelDeclarations();
     std::vector<api::Sort> declareSorts = sm->getModelDeclareSorts();
-    for (const api::Sort& s : declareSorts)
-    {
-      d_result->addDeclarationSort(sortToTypeNode(s));
-    }
     std::vector<api::Term> declareTerms = sm->getModelDeclareTerms();
-    for (const api::Term& t : declareTerms)
-    {
-      d_result->addDeclarationTerm(termToNode(t));
-    }
+    d_result = solver->getModel(declareSorts, declareTerms);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1782,12 +1770,6 @@ void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-/* Model is private to the library -- for now
-Model* GetModelCommand::getResult() const  {
-  return d_result;
-}
-*/
-
 void GetModelCommand::printResult(std::ostream& out, uint32_t verbosity) const
 {
   if (!ok())
@@ -1796,13 +1778,13 @@ void GetModelCommand::printResult(std::ostream& out, uint32_t verbosity) const
   }
   else
   {
-    out << *d_result;
+    out << d_result;
   }
 }
 
 Command* GetModelCommand::clone() const
 {
-  GetModelCommand* c = new GetModelCommand();
+  GetModelCommand* c = new GetModelCommand;
   c->d_result = d_result;
   return c;
 }
