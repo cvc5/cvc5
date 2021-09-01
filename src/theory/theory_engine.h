@@ -78,11 +78,13 @@ struct NodeTheoryPairHashFunction {
 
 /* Forward declarations */
 namespace theory {
-class TheoryModel;
+
 class CombinationEngine;
-class SharedSolver;
 class DecisionManager;
 class RelevanceManager;
+class Rewriter;
+class SharedSolver;
+class TheoryModel;
 
 }  // namespace theory
 
@@ -316,7 +318,7 @@ class TheoryEngine {
     d_theoryOut[theoryId] = new theory::EngineOutputChannel(this, theoryId);
     d_theoryTable[theoryId] =
         new TheoryClass(d_env, *d_theoryOut[theoryId], theory::Valuation(this));
-    theory::Rewriter::registerTheoryRewriter(
+    getRewriter()->registerTheoryRewriter(
         theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }
 
@@ -372,6 +374,11 @@ class TheoryEngine {
   }
 
  private:
+  /**
+   * Get a pointer to the rewriter owned by the associated Env.
+   */
+  theory::Rewriter* getRewriter();
+
   /**
    * Queue of nodes for pre-registration.
    */
