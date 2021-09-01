@@ -13,7 +13,6 @@
  * Black box testing of the Solver class of the Java API.
  */
 
-
 package cvc5;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,6 +38,6 @@ class SolverTest
   @Test void setLogic()
   {
     assertDoesNotThrow(() -> d_solver.setLogic("AUFLIRA"));
-    assertThrows(CVC5ApiException.class, () -> d_solver.setLogic("AF_BV"));    
+    assertThrows(CVC5ApiException.class, () -> d_solver.setLogic("AF_BV"));
   }
 }
