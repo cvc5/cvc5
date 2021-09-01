@@ -55,6 +55,7 @@ public = true
 
 [[option]]
   name       = "languageHelp"
+  long       = "language-help"
   category   = "undocumented"
   type       = "bool"
 
