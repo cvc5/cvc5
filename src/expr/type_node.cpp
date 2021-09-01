@@ -208,7 +208,7 @@ bool TypeNode::isClosedEnumerable()
   if (!getAttribute(IsClosedEnumerableComputedAttr()))
   {
     bool ret = true;
-    if (isArray() || isSort() || isCodatatype() || isFunction())
+    if (isArray() || isSort() || isCodatatype() || isFunction() || isRegExp())
     {
       ret = false;
     }
