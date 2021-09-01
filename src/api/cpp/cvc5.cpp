@@ -7906,12 +7906,6 @@ std::vector<Term> Solver::getSynthSolutions(
  */
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
 
-/*
- * !!! This is only temporarily available until the parser is fully migrated to
- * the new API. !!!
- */
-Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
-
 Statistics Solver::getStatistics() const
 {
   return Statistics(d_smtEngine->getStatisticsRegistry());

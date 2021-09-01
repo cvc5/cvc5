@@ -504,14 +504,13 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
   return RewriteResponse(tresponse.d_status, trn.getNode());
 }
 
-void Rewriter::clearCaches() {
-  Rewriter* rewriter = getInstance();
-
+void Rewriter::clearCaches()
+{
 #ifdef CVC5_ASSERTIONS
-  rewriter->d_rewriteStack.reset(nullptr);
+  d_rewriteStack.reset(nullptr);
 #endif
 
-  rewriter->clearCachesInternal();
+  clearCachesInternal();
 }
 
 }  // namespace theory

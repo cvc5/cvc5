@@ -44,6 +44,12 @@ const LogicInfo& PreprocessingPassContext::getLogicInfo()
 {
   return d_env.getLogicInfo();
 }
+
+theory::Rewriter* PreprocessingPassContext::getRewriter()
+{
+  return d_env.getRewriter();
+}
+
 theory::TrustSubstitutionMap&
 PreprocessingPassContext::getTopLevelSubstitutions()
 {
