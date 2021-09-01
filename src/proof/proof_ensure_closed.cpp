@@ -43,7 +43,7 @@ void ensureClosedWrtInternal(Node proven,
     return;
   }
   bool isTraceDebug = Trace.isOn(c);
-  if (!options::proofEagerChecking() && !isTraceDebug)
+  if (options::proofCheck()!=options::ProofCheckMode::EAGER && !isTraceDebug)
   {
     // trace is off and proof new eager checking is off, do not do check
     return;

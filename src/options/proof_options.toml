@@ -39,12 +39,25 @@ name   = "Proof"
   help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof"
 
 [[option]]
-  name       = "proofEagerChecking"
+  name       = "proofCheck"
   category   = "regular"
-  long       = "proof-eager-checking"
-  type       = "bool"
-  default    = "false"
-  help       = "check proofs eagerly with proof for local debugging"
+  long       = "proof-check=MODE"
+  type       = "ProofCheckMode"
+  default    = "CHECK"
+  help       = "select proof checking mode"
+  help_mode  = "Proof checking modes."
+[[option.mode.EAGER]]
+  name       = "none"
+  help       = "check rule applications, and proofs eagerly for local debugging"
+[[option.mode.CHECK]]
+  name       = "check"
+  help       = "check rule applications"
+[[option.mode.LAZY]]
+  name       = "lazy"
+  help       = "check rule applications during final proof construction"
+[[option.mode.NONE]]
+  name       = "none"
+  help       = "no proof checking"
 
 [[option]]
   name       = "proofGranularityMode"

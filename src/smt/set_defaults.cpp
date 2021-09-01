@@ -353,7 +353,6 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
                << reasonNoProofs.str() << "." << std::endl;
       opts.smt.produceProofs = false;
       opts.smt.checkProofs = false;
-      opts.proof.proofEagerChecking = false;
     }
   }
 
