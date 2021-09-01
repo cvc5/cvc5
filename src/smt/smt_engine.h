@@ -225,11 +225,6 @@ class CVC5_EXPORT SmtEngine
   bool isInternalSubsolver() const;
 
   /**
-   * Helper method for the API to put the total runtime into the statistics.
-   */
-  void setTotalTimeStatistic(double seconds) CVC5_EXPORT;
-
-  /**
    * Block the current model. Can be called only if immediately preceded by
    * a SAT or INVALID query. Only permitted if produce-models is on, and the
    * block-models option is set to a mode other than "none".
