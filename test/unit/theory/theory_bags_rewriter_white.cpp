@@ -694,5 +694,52 @@ TEST_F(TestTheoryWhiteBagsRewriter, to_set)
   ASSERT_TRUE(response.d_node == singleton
               && response.d_status == REWRITE_AGAIN_FULL);
 }
+
+TEST_F(TestTheoryWhiteBagsRewriter, map)
+{
+  Node emptybagString =
+      d_nodeManager->mkConst(EmptyBag(d_nodeManager->stringType()));
+
+  Node one = d_nodeManager->mkConst(Rational(1));
+  Node x = d_nodeManager->mkBoundVar("x", d_nodeManager->integerType());
+  std::vector<Node> args;
+  args.push_back(x);
+  Node bound = d_nodeManager->mkNode(kind::BOUND_VAR_LIST, args);
+  Node lambda = d_nodeManager->mkNode(LAMBDA, bound, one);
+
+  // (bag.map (lambda ((x U))  t) emptybag) = emptybag
+  Node n1 = d_nodeManager->mkNode(BAG_MAP, lambda, emptybagString);
+  RewriteResponse response1 = d_rewriter->postRewrite(n1);
+  TypeNode type = d_nodeManager->mkBagType(d_nodeManager->integerType());
+  Node emptybagInteger = d_nodeManager->mkConst(EmptyBag(type));
+  ASSERT_TRUE(response1.d_node == emptybagInteger
+              && response1.d_status == REWRITE_AGAIN_FULL);
+
+  std::vector<Node> elements = getNStrings(2);
+  Node a = d_nodeManager->mkConst(String("a"));
+  Node b = d_nodeManager->mkConst(String("b"));
+  Node A = d_nodeManager->mkBag(d_nodeManager->stringType(),
+                                a,
+                                d_nodeManager->mkConst(Rational(3)));
+  Node B = d_nodeManager->mkBag(d_nodeManager->stringType(),
+                                b,
+                                d_nodeManager->mkConst(Rational(4)));
+  Node unionDisjointAB = d_nodeManager->mkNode(UNION_DISJOINT, A, B);
+
+  ASSERT_TRUE(unionDisjointAB.isConst());
+  // - (bag.map (lambda ((x Int)) 1) (union_disjoint (bag "a" 3) (bag "b" 4))) =
+  //        (bag 1 7))
+  Node n2 = d_nodeManager->mkNode(BAG_MAP, lambda, unionDisjointAB);
+
+  std::cout << n2 << std::endl;
+
+  Node rewritten = Rewriter:: rewrite(n2);
+  std::cout << rewritten << std::endl;
+
+  Node bag = d_nodeManager->mkBag(d_nodeManager->integerType(),
+                                  one,               d_nodeManager->mkConst(Rational(7)));
+  ASSERT_TRUE(rewritten == bag);
+}
+
 }  // namespace test
 }  // namespace cvc5
