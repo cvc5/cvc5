@@ -309,6 +309,10 @@ void ProofNodeManager::ensureChecked(ProofNode* pn)
     // already checked
     return true;
   }
+  Node res = d_checker->check(pn->getRule(), pn->getChildren(), pn->getArguments(), pn->getResult());
+  pn->d_provenChecked = true;
+  // should have the correct result
+  Assert (res==pn->d_proven);
 }
 
 Node ProofNodeManager::checkInternal(
@@ -318,6 +322,8 @@ Node ProofNodeManager::checkInternal(
     Node expected,
     bool& didCheck)
 {
+  // if the user supplied an expected result, then we trust it if we are in
+  // a proof checking mode that does not eager check rule applications
   if (!expected.isNull())
   {
     if (options::proofCheckMode() == options::ProofCheckMode::LAZY
