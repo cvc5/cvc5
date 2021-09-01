@@ -302,13 +302,13 @@ bool ProofNodeManager::updateNode(ProofNode* pn, ProofNode* pnr)
       pn, pnr->getRule(), pnr->getChildren(), pnr->getArguments(), false);
 }
 
-void ProofNodeManager::ensureChecked(ProofNode* pn) {
+void ProofNodeManager::ensureChecked(ProofNode* pn)
+{
   if (pn->d_provenChecked)
   {
     // already checked
     return true;
   }
-  
 }
 
 Node ProofNodeManager::checkInternal(
@@ -320,8 +320,8 @@ Node ProofNodeManager::checkInternal(
 {
   if (!expected.isNull())
   {
-    if (options::proofCheckMode()==options::ProofCheckMode::LAZY || 
-      options::proofCheckMode()==options::ProofCheckMode::NONE)
+    if (options::proofCheckMode() == options::ProofCheckMode::LAZY
+        || options::proofCheckMode() == options::ProofCheckMode::NONE)
     {
       return expected;
     }
