@@ -161,6 +161,7 @@ const char* toString(PfRule id)
     case PfRule::RE_ELIM: return "RE_ELIM";
     case PfRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
     case PfRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
+    case PfRule::STRING_INFERENCE: return "STRING_INFERENCE";
     //================================================= Arith rules
     case PfRule::MACRO_ARITH_SCALE_SUM_UB:
       return "ARITH_SCALE_SUM_UPPER_BOUNDS";

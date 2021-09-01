@@ -95,6 +95,8 @@ PfManager::PfManager(Env& env)
         d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
       }
     }
+    // theory-specific lazy proof reconstruction
+    d_pfpp->setEliminateRule(PfRule::STRING_INFERENCE);
     d_pfpp->setEliminateRule(PfRule::BV_BITBLAST);
   }
   d_false = NodeManager::currentNM()->mkConst(false);

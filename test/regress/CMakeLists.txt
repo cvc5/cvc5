@@ -2540,6 +2540,7 @@ set(regress_2_tests
   regress2/strings/issue6639-replace-re-all.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
+  regress2/strings/proof-fail-083021-delta.smt2
   regress2/strings/pfnew-slow-2020-04-17.smt2
   regress2/strings/pfnew-policy_variable.smt2
   regress2/strings/range-perf.smt2

@@ -24,6 +24,7 @@
 #include "theory/builtin/proof_checker.h"
 #include "theory/bv/bitblast/proof_bitblaster.h"
 #include "theory/rewriter.h"
+#include "theory/strings/infer_proof_cons.h"
 #include "theory/theory.h"
 #include "util/rational.h"
 
@@ -1128,6 +1129,21 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Debug("macro::arith") << "Expansion done. Proved: " << sumBounds
                           << std::endl;
     return sumBounds;
+  }
+  else if (id == PfRule::STRING_INFERENCE)
+  {
+    // get the arguments
+    Node conc;
+    InferenceId iid;
+    bool isRev;
+    std::vector<Node> exp;
+    if (strings::InferProofCons::unpackArgs(args, conc, iid, isRev, exp))
+    {
+      if (strings::InferProofCons::addProofTo(cdp, conc, iid, isRev, exp))
+      {
+        return conc;
+      }
+    }
   }
   else if (id == PfRule::BV_BITBLAST)
   {

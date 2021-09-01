@@ -370,11 +370,6 @@ LogicInfo SmtEngine::getUserLogicInfo() const
   return res;
 }
 
-void SmtEngine::setTotalTimeStatistic(double seconds) {
-  d_env->getStatisticsRegistry().registerValue<double>("driver::totalTime",
-                                                       seconds);
-}
-
 void SmtEngine::setLogicInternal()
 {
   Assert(!d_state->isFullyInited())
