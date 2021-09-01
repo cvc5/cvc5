@@ -310,8 +310,7 @@ void ProofNodeManager::ensureChecked(ProofNode* pn)
     return;
   }
   // directly call the proof checker
-  Node res = d_checker->check(
-      pn->getRule(), pn->getChildren(), pn->getArguments(), pn->getResult());
+  Node res = d_checker->check(pn, pn->getResult());
   pn->d_provenChecked = true;
   // should have the correct result
   Assert(res == pn->d_proven);
