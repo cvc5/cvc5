@@ -309,10 +309,11 @@ void ProofNodeManager::ensureChecked(ProofNode* pn)
     // already checked
     return true;
   }
-  Node res = d_checker->check(pn->getRule(), pn->getChildren(), pn->getArguments(), pn->getResult());
+  Node res = d_checker->check(
+      pn->getRule(), pn->getChildren(), pn->getArguments(), pn->getResult());
   pn->d_provenChecked = true;
   // should have the correct result
-  Assert (res==pn->d_proven);
+  Assert(res == pn->d_proven);
 }
 
 Node ProofNodeManager::checkInternal(
