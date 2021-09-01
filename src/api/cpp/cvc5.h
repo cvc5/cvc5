@@ -4345,10 +4345,6 @@ class CVC5_EXPORT Solver
    */
   std::vector<Term> getSynthSolutions(const std::vector<Term>& terms) const;
 
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  SmtEngine* getSmtEngine(void) const;
-
   /**
    * Returns a snapshot of the current state of the statistic values of this
    * solver. The returned object is completely decoupled from the solver and

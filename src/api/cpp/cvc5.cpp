@@ -7930,12 +7930,6 @@ std::vector<Term> Solver::getSynthSolutions(
   CVC5_API_TRY_CATCH_END;
 }
 
-/*
- * !!! This is only temporarily available until the parser is fully migrated to
- * the new API. !!!
- */
-SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
-
 Statistics Solver::getStatistics() const
 {
   return Statistics(d_smtEngine->getStatisticsRegistry());

@@ -27,10 +27,6 @@ namespace cvc5 {
 
 class Command;
 
-namespace smt {
-class SmtEngine;
-}
-
 namespace main {
 
 class CommandExecutor
@@ -80,8 +76,6 @@ class CommandExecutor
 
   api::Result getResult() const { return d_result; }
   void reset();
-
-  SmtEngine* getSmtEngine() const { return d_solver->getSmtEngine(); }
 
   /** Store the current options as the original options */
   void storeOptionsAsOriginal();
