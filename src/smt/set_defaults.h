@@ -56,10 +56,34 @@ class SetDefaults
    */
   bool usesSygus(const Options& opts) const;
   /**
-   * Return true if proofs must be disabled. This is the case for any technique
-   * that answers "unsat" without showing a proof of unsatisfiabilty.
+   * Check if incompatible with incremental mode. Notice this method may modify
+   * the options to ensure that we are compatible with incremental mode.
+   *
+   * If this method returns true, then the reason why we were incompatible with
+   * incremental mode is written on the reason output stream. Suggestions for how to
+   * resolve the incompatibility exception are written on the suggest stream.
    */
-  bool mustDisableProofs(const Options& opts) const;
+  bool incompatibleWithIncremental(const LogicInfo& logic,
+                                   Options& opts,
+                                   std::ostream& reason,
+                                   std::ostream& suggest) const;
+  /**
+   * Return true if proofs must be disabled. This is the case for any technique
+   * that answers "unsat" without showing a proof of unsatisfiabilty. The output
+   * stream reason is similar to above.
+   */
+  bool incompatibleWithProofs(const Options& opts, std::ostream& reason) const;
+  /**
+   * Check whether we should disable models. The output stream reason is similar
+   * to above.
+   */
+  bool incompatibleWithModels(const Options& opts, std::ostream& reason) const;
+  /**
+   * Check if incompatible with unsat cores. Notice this method may modify
+   * the options to ensure that we are compatible with unsat cores.
+   * The output stream reason is similar to above.
+   */
+  bool incompatibleWithUnsatCores(Options& opts, std::ostream& reason) const;
   /**
    * Return true if we are using "safe" unsat cores, which disables all
    * techniques that may interfere with producing correct unsat cores.

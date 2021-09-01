@@ -93,10 +93,8 @@ class Rewriter {
   /** Set proof node manager */
   void setProofNodeManager(ProofNodeManager* pnm);
 
-  /**
-   * Garbage collects the rewrite caches.
-   */
-  static void clearCaches();
+  /** Garbage collects the rewrite caches. */
+  void clearCaches();
 
   /**
    * Registers a theory rewriter with this rewriter. The rewriter does not own
@@ -105,8 +103,7 @@ class Rewriter {
    * @param tid The theory that the theory rewriter should be associated with.
    * @param trew The theory rewriter to register.
    */
-  static void registerTheoryRewriter(theory::TheoryId tid,
-                                     TheoryRewriter* trew);
+  void registerTheoryRewriter(theory::TheoryId tid, TheoryRewriter* trew);
 
   /**
    * Register a prerewrite for a given kind.

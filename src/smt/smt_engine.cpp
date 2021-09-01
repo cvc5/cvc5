@@ -92,7 +92,6 @@ SmtEngine::SmtEngine(NodeManager* nm, const Options* optr)
       d_routListener(new ResourceOutListener(*this)),
       d_snmListener(new SmtNodeManagerListener(*getDumpManager(), d_outMgr)),
       d_smtSolver(nullptr),
-      d_model(nullptr),
       d_checkModels(nullptr),
       d_pfManager(nullptr),
       d_ucManager(nullptr),
@@ -224,7 +223,6 @@ void SmtEngine::finishInit()
   TheoryModel* tm = te->getModel();
   if (tm != nullptr)
   {
-    d_model.reset(new Model(tm));
     // make the check models utility
     d_checkModels.reset(new CheckModels(*d_env.get()));
   }
@@ -305,7 +303,6 @@ SmtEngine::~SmtEngine()
 
     d_absValues.reset(nullptr);
     d_asserts.reset(nullptr);
-    d_model.reset(nullptr);
 
     d_abductSolver.reset(nullptr);
     d_interpolSolver.reset(nullptr);
@@ -375,30 +372,6 @@ LogicInfo SmtEngine::getUserLogicInfo() const
   return res;
 }
 
-void SmtEngine::notifyStartParsing(const std::string& filename)
-{
-  d_env->setFilename(filename);
-  d_env->getStatisticsRegistry().registerValue<std::string>("driver::filename",
-                                                            filename);
-  // Copy the original options. This is called prior to beginning parsing.
-  // Hence reset should revert to these options, which note is after reading
-  // the command line.
-}
-
-const std::string& SmtEngine::getFilename() const
-{
-  return d_env->getFilename();
-}
-
-void SmtEngine::setResultStatistic(const std::string& result) {
-  d_env->getStatisticsRegistry().registerValue<std::string>("driver::sat/unsat",
-                                                            result);
-}
-void SmtEngine::setTotalTimeStatistic(double seconds) {
-  d_env->getStatisticsRegistry().registerValue<double>("driver::totalTime",
-                                                       seconds);
-}
-
 void SmtEngine::setLogicInternal()
 {
   Assert(!d_state->isFullyInited())
@@ -432,7 +405,10 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
 
   if (key == "filename")
   {
-    d_env->setFilename(value);
+    d_env->d_options.driver.filename = value;
+    d_env->d_originalOptions->driver.filename = value;
+    d_env->getStatisticsRegistry().registerValue<std::string>(
+        "driver::filename", value);
   }
   else if (key == "smt-lib-version" && !getOptions().base.inputLanguageWasSetByUser)
   {
@@ -486,6 +462,10 @@ std::string SmtEngine::getInfo(const std::string& key) const
   if (key == "error-behavior")
   {
     return "immediate-exit";
+  }
+  if (key == "filename")
+  {
+    return d_env->getOptions().driver.filename;
   }
   if (key == "name")
   {
@@ -724,12 +704,12 @@ void SmtEngine::defineFunctionRec(Node func,
 Result SmtEngine::quickCheck() {
   Assert(d_state->isFullyInited());
   Trace("smt") << "SMT quickCheck()" << endl;
-  const std::string& filename = d_env->getFilename();
+  const std::string& filename = d_env->getOptions().driver.filename;
   return Result(
       Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, filename);
 }
 
-Model* SmtEngine::getAvailableModel(const char* c) const
+TheoryModel* SmtEngine::getAvailableModel(const char* c) const
 {
   if (!d_env->getOptions().theory.assignFunctionValues)
   {
@@ -768,7 +748,7 @@ Model* SmtEngine::getAvailableModel(const char* c) const
     throw RecoverableModalException(ss.str().c_str());
   }
 
-  return d_model.get();
+  return m;
 }
 
 QuantifiersEngine* SmtEngine::getAvailableQuantifiersEngine(const char* c) const
@@ -940,7 +920,7 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
     {
       printStatisticsDiff();
     }
-    return Result(Result::SAT_UNKNOWN, why, d_env->getFilename());
+    return Result(Result::SAT_UNKNOWN, why, d_env->getOptions().driver.filename);
   }
 }
 
@@ -1138,7 +1118,7 @@ Node SmtEngine::getValue(const Node& ex) const
   }
 
   Trace("smt") << "--- getting value of " << n << endl;
-  Model* m = getAvailableModel("get-value");
+  TheoryModel* m = getAvailableModel("get-value");
   Assert(m != nullptr);
   Node resultNode = m->getValue(n);
   Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
@@ -1180,8 +1160,8 @@ std::vector<Node> SmtEngine::getValues(const std::vector<Node>& exprs) const
 std::vector<Node> SmtEngine::getModelDomainElements(TypeNode tn) const
 {
   Assert(tn.isSort());
-  Model* m = getAvailableModel("getModelDomainElements");
-  return m->getTheoryModel()->getDomainElements(tn);
+  TheoryModel* m = getAvailableModel("getModelDomainElements");
+  return m->getDomainElements(tn);
 }
 
 bool SmtEngine::isModelCoreSymbol(Node n)
@@ -1194,8 +1174,7 @@ bool SmtEngine::isModelCoreSymbol(Node n)
     // if the model core mode is none, we are always a model core symbol
     return true;
   }
-  Model* m = getAvailableModel("isModelCoreSymbol");
-  TheoryModel* tm = m->getTheoryModel();
+  TheoryModel* tm = getAvailableModel("isModelCoreSymbol");
   // compute the model core if not done so already
   if (!tm->isUsingModelCore())
   {
@@ -1210,41 +1189,54 @@ bool SmtEngine::isModelCoreSymbol(Node n)
   return tm->isModelCoreSymbol(n);
 }
 
-// TODO(#1108): Simplify the error reporting of this method.
-Model* SmtEngine::getModel() {
-  Trace("smt") << "SMT getModel()" << endl;
+std::string SmtEngine::getModel(const std::vector<TypeNode>& declaredSorts,
+                                const std::vector<Node>& declaredFuns)
+{
   SmtScope smts(this);
-
-  finishInit();
-
-  if (Dump.isOn("benchmark"))
+  // !!! Note that all methods called here should have a version at the API
+  // level. This is to ensure that the information associated with a model is
+  // completely accessible by the user. This is currently not rigorously
+  // enforced. An alternative design would be to have this method implemented
+  // at the API level, but this makes exceptions in the text interface less
+  // intuitive and makes it impossible to implement raw-benchmark at the
+  // SmtEngine level.
+  if (Dump.isOn("raw-benchmark"))
   {
     getPrinter().toStreamCmdGetModel(d_env->getDumpOut());
   }
-
-  Model* m = getAvailableModel("get model");
-
-  // Notice that the returned model is (currently) accessed by the
-  // GetModelCommand only, and is not returned to the user. The information
-  // in that model may become stale after it is returned. This is safe
-  // since GetModelCommand always calls this command again when it prints
-  // a model.
-
-  if (d_env->getOptions().smt.modelCoresMode
-      != options::ModelCoresMode::NONE)
+  TheoryModel* tm = getAvailableModel("get model");
+  // use the smt::Model model utility for printing
+  const Options& opts = d_env->getOptions();
+  bool isKnownSat = (d_state->getMode() == SmtMode::SAT);
+  Model m(isKnownSat, opts.driver.filename);
+  // set the model declarations, which determines what is printed in the model
+  for (const TypeNode& tn : declaredSorts)
   {
-    // If we enabled model cores, we compute a model core for m based on our
-    // (expanded) assertions using the model core builder utility
-    std::vector<Node> asserts = getAssertionsInternal();
-    d_pp->expandDefinitions(asserts);
-    ModelCoreBuilder::setModelCore(
-        asserts, m->getTheoryModel(), d_env->getOptions().smt.modelCoresMode);
+    m.addDeclarationSort(tn, getModelDomainElements(tn));
   }
-  // set the information on the SMT-level model
-  Assert(m != nullptr);
-  m->d_inputName = d_env->getFilename();
-  m->d_isKnownSat = (d_state->getMode() == SmtMode::SAT);
-  return m;
+  bool usingModelCores =
+      (opts.smt.modelCoresMode != options::ModelCoresMode::NONE);
+  for (const Node& n : declaredFuns)
+  {
+    if (usingModelCores && !tm->isModelCoreSymbol(n))
+    {
+      // skip if not in model core
+      continue;
+    }
+    Node value = tm->getValue(n);
+    m.addDeclarationTerm(n, value);
+  }
+  // for separation logic
+  TypeNode locT, dataT;
+  if (getSepHeapTypes(locT, dataT))
+  {
+    std::pair<Node, Node> sh = getSepHeapAndNilExpr();
+    m.setHeapModel(sh.first, sh.second);
+  }
+  // print the model
+  std::stringstream ssm;
+  ssm << m;
+  return ssm.str();
 }
 
 Result SmtEngine::blockModel()
@@ -1259,7 +1251,7 @@ Result SmtEngine::blockModel()
     getPrinter().toStreamCmdBlockModel(d_env->getDumpOut());
   }
 
-  Model* m = getAvailableModel("block model");
+  TheoryModel* m = getAvailableModel("block model");
 
   if (d_env->getOptions().smt.blockModelsMode
       == options::BlockModelsMode::NONE)
@@ -1271,10 +1263,8 @@ Result SmtEngine::blockModel()
 
   // get expanded assertions
   std::vector<Node> eassertsProc = getExpandedAssertions();
-  Node eblocker =
-      ModelBlocker::getModelBlocker(eassertsProc,
-                                    m->getTheoryModel(),
-                                    d_env->getOptions().smt.blockModelsMode);
+  Node eblocker = ModelBlocker::getModelBlocker(
+      eassertsProc, m, d_env->getOptions().smt.blockModelsMode);
   Trace("smt") << "Block formula: " << eblocker << std::endl;
   return assertFormula(eblocker);
 }
@@ -1291,16 +1281,13 @@ Result SmtEngine::blockModelValues(const std::vector<Node>& exprs)
     getPrinter().toStreamCmdBlockModelValues(d_env->getDumpOut(), exprs);
   }
 
-  Model* m = getAvailableModel("block model values");
+  TheoryModel* m = getAvailableModel("block model values");
 
   // get expanded assertions
   std::vector<Node> eassertsProc = getExpandedAssertions();
   // we always do block model values mode here
-  Node eblocker =
-      ModelBlocker::getModelBlocker(eassertsProc,
-                                    m->getTheoryModel(),
-                                    options::BlockModelsMode::VALUES,
-                                    exprs);
+  Node eblocker = ModelBlocker::getModelBlocker(
+      eassertsProc, m, options::BlockModelsMode::VALUES, exprs);
   return assertFormula(eblocker);
 }
 
@@ -1316,8 +1303,7 @@ std::pair<Node, Node> SmtEngine::getSepHeapAndNilExpr(void)
   NodeManagerScope nms(getNodeManager());
   Node heap;
   Node nil;
-  Model* m = getAvailableModel("get separation logic heap and nil");
-  TheoryModel* tm = m->getTheoryModel();
+  TheoryModel* tm = getAvailableModel("get separation logic heap and nil");
   if (!tm->getHeapModel(heap, nil))
   {
     const char* msg =
@@ -1565,7 +1551,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
 
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
-  Model* m = getAvailableModel("check model");
+  TheoryModel* m = getAvailableModel("check model");
   Assert(m != nullptr);
 
   // check the model with the theory engine for debugging
