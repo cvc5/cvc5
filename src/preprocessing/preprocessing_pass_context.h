@@ -75,7 +75,7 @@ class PreprocessingPassContext
   }
 
   /**
-   * Get The (user-context-dependent) set of symbols that occur in at least one
+   * Get the (user-context-dependent) set of symbols that occur in at least one
    * assertion in the current user context.
    */
   const context::CDHashSet<Node>& getSymsInAssertions() const
