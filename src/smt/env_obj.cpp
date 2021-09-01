@@ -14,7 +14,7 @@
  * instance, which gives access to global utilities available to internal code.
  */
 
-#include "smt/envobj.h"
+#include "smt/env_obj.h"
 
 #include "options/options.h"
 #include "smt/env.h"
