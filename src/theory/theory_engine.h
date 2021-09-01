@@ -123,7 +123,7 @@ class TheoryEngine
    * there is another theory it will be deleted.
    */
   template <class TheoryClass>
-  inline void addTheory(theory::TheoryId theoryId)
+  void addTheory(theory::TheoryId theoryId)
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new theory::EngineOutputChannel(this, theoryId);
@@ -153,7 +153,7 @@ class TheoryEngine
   /**
    * Get a pointer to the underlying propositional engine.
    */
-  inline prop::PropEngine* getPropEngine() const { return d_propEngine; }
+  prop::PropEngine* getPropEngine() const { return d_propEngine; }
 
   /** Get the proof node manager */
   ProofNodeManager* getProofNodeManager() const;
@@ -192,7 +192,7 @@ class TheoryEngine
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
   /** Return whether or not we are incomplete (in the current context). */
-  inline bool isIncomplete() const { return d_incomplete; }
+  bool isIncomplete() const { return d_incomplete; }
 
   /**
    * Returns true if we need another round of checking.  If this
@@ -209,7 +209,7 @@ class TheoryEngine
    * as it might decide to further instantiate some lemmas, precluding
    * a SAT response.
    */
-  inline bool needCheck() const { return d_outputChannelUsed || d_lemmasAdded; }
+  bool needCheck() const { return d_outputChannelUsed || d_lemmasAdded; }
   /**
    * Is the literal lit (possibly) critical for satisfying the input formula in
    * the current context? This call is applicable only during collectModelInfo
@@ -330,7 +330,7 @@ class TheoryEngine
    * @returns the theory, or NULL if the TNode is
    * of built-in type.
    */
-  inline theory::Theory* theoryOf(TNode node) const
+  theory::Theory* theoryOf(TNode node) const
   {
     return d_theoryTable[theory::Theory::theoryOf(node)];
   }
@@ -340,13 +340,13 @@ class TheoryEngine
    *
    * @returns the theory
    */
-  inline theory::Theory* theoryOf(theory::TheoryId theoryId) const
+  theory::Theory* theoryOf(theory::TheoryId theoryId) const
   {
     Assert(theoryId < theory::THEORY_LAST);
     return d_theoryTable[theoryId];
   }
 
-  inline bool isTheoryEnabled(theory::TheoryId theoryId) const
+  bool isTheoryEnabled(theory::TheoryId theoryId) const
   {
     return d_logicInfo.isTheoryEnabled(theoryId);
   }
