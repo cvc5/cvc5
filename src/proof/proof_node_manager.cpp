@@ -325,7 +325,7 @@ Node ProofNodeManager::checkInternal(
     bool& didCheck)
 {
   // if the user supplied an expected result, then we trust it if we are in
-  // a proof checking mode that does not eager check rule applications
+  // a proof checking mode that does not eagerly check rule applications
   if (!expected.isNull())
   {
     if (options::proofCheck() == options::ProofCheckMode::LAZY
