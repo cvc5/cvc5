@@ -294,6 +294,8 @@ libcvc5_add_sources(
   smt/dump_manager.h
   smt/env.cpp
   smt/env.h
+  smt/envobj.cpp
+  smt/envobj.h
   smt/expand_definitions.cpp
   smt/expand_definitions.h
   smt/listeners.cpp
