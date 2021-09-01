@@ -4333,10 +4333,6 @@ class CVC5_EXPORT Solver
   // to the new API. !!!
   SmtEngine* getSmtEngine(void) const;
 
-  // !!! This is only temporarily available until options are refactored at
-  // the driver level. !!!
-  Options& getOptions(void);
-
   /**
    * Returns a snapshot of the current state of the statistic values of this
    * solver. The returned object is completely decoupled from the solver and
