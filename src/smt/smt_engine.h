@@ -227,27 +227,6 @@ class CVC5_EXPORT SmtEngine
   bool isInternalSubsolver() const;
 
   /**
-   * Notify that we are now parsing the input with the given filename.
-   * This call sets the filename maintained by this SmtEngine for bookkeeping
-   * and also makes a copy of the current options of this SmtEngine. This
-   * is required so that the SMT-LIB command (reset) returns the SmtEngine
-   * to a state where its options were prior to parsing but after e.g.
-   * reading command line options.
-   */
-  void notifyStartParsing(const std::string& filename) CVC5_EXPORT;
-  /** return the input name (if any) */
-  const std::string& getFilename() const;
-
-  /**
-   * Helper method for the API to put the last check result into the statistics.
-   */
-  void setResultStatistic(const std::string& result) CVC5_EXPORT;
-  /**
-   * Helper method for the API to put the total runtime into the statistics.
-   */
-  void setTotalTimeStatistic(double seconds) CVC5_EXPORT;
-
-  /**
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
    * query).  Only permitted if produce-models is on.
    *
