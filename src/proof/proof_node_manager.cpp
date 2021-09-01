@@ -371,6 +371,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::clone(
       visited[cur] = cloned;
       // we trust the above cloning does not change what is proven
       cloned->d_proven = cur->d_proven;
+      cloned->d_provenChecked = cur->d_provenChecked;
     }
   }
   Assert(visited.find(orig) != visited.end());
