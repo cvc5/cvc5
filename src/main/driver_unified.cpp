@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -57,21 +56,8 @@ std::string progName;
 /** A pointer to the CommandExecutor (the signal handlers need it) */
 std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
 
-/** The time point the binary started, accessible to signal handlers */
-std::unique_ptr<TotalTimer> totalTime;
-
-TotalTimer::~TotalTimer()
-{
-  if (pExecutor != nullptr)
-  {
-    auto duration = std::chrono::steady_clock::now() - d_start;
-    pExecutor->getSmtEngine()->setTotalTimeStatistic(
-        std::chrono::duration<double>(duration).count());
-  }
-    }
-
-    }  // namespace main
-    }  // namespace cvc5
+}  // namespace main
+}  // namespace cvc5
 
     void printUsage(const api::DriverOptions& dopts, bool full)
     {
@@ -95,8 +81,6 @@ TotalTimer::~TotalTimer()
 
 int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 {
-  main::totalTime = std::make_unique<TotalTimer>();
-
   // Initialize the signal handlers
   signal_handlers::install();
 
@@ -196,8 +180,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   int returnValue = 0;
   {
-    // notify SmtEngine that we are starting to parse
-    pExecutor->getSmtEngine()->setInfo("filename", filenameStr);
+    // pass filename to solver (options & statistics)
+    solver->setInfo("filename", filenameStr);
 
     // Parse and execute commands until we are done
     std::unique_ptr<Command> cmd;
@@ -310,7 +294,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
     _exit(returnValue);
 #endif /* CVC5_COMPETITION_MODE */
 
-    totalTime.reset();
     pExecutor->flushOutputStreams();
 
 #ifdef CVC5_DEBUG
