@@ -105,8 +105,7 @@ class Rewriter {
    * @param tid The theory that the theory rewriter should be associated with.
    * @param trew The theory rewriter to register.
    */
-  static void registerTheoryRewriter(theory::TheoryId tid,
-                                     TheoryRewriter* trew);
+  void registerTheoryRewriter(theory::TheoryId tid, TheoryRewriter* trew);
 
   /**
    * Register a prerewrite for a given kind.
