@@ -22,7 +22,8 @@ namespace cvc5 {
 
 ProofNode::ProofNode(PfRule id,
                      const std::vector<std::shared_ptr<ProofNode>>& children,
-                     const std::vector<Node>& args) : d_provenChecked(false)
+                     const std::vector<Node>& args)
+    : d_provenChecked(false)
 {
   setValue(id, children, args);
 }

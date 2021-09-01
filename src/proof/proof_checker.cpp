@@ -245,7 +245,7 @@ Node ProofChecker::checkInternal(PfRule id,
     }
   }
   // fails if pedantic level is not met
-  if (options::proofCheck()==options::ProofCheckMode::EAGER)
+  if (options::proofCheck() == options::ProofCheckMode::EAGER)
   {
     std::stringstream serr;
     if (isPedanticFailure(id, serr, enableOutput))
