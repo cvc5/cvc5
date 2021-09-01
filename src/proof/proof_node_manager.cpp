@@ -32,7 +32,7 @@ ProofNodeManager::ProofNodeManager(ProofChecker* pc) : d_checker(pc)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   // we always allocate a proof checker, regardless of the proof checking mode
-  Assert (d_checker!=nullptr);
+  Assert(d_checker != nullptr);
 }
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
@@ -302,10 +302,7 @@ bool ProofNodeManager::updateNode(ProofNode* pn, ProofNode* pnr)
       pn, pnr->getRule(), pnr->getChildren(), pnr->getArguments(), false);
 }
 
-void ProofNodeManager::ensureChecked(ProofNode * pn)
-{
-  
-}
+void ProofNodeManager::ensureChecked(ProofNode* pn) {}
 
 Node ProofNodeManager::checkInternal(
     PfRule id,

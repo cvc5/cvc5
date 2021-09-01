@@ -166,7 +166,7 @@ class ProofNodeManager
   /**
    * Ensure that pn is checked, regardless of the proof check format.
    */
-  void ensureChecked(ProofNode * pn);
+  void ensureChecked(ProofNode* pn);
   /** Get the underlying proof checker */
   ProofChecker* getChecker() const;
   /**

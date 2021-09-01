@@ -105,7 +105,9 @@ class ProofCheckerStatistics
 class ProofChecker
 {
  public:
-  ProofChecker(bool eagerCheck, uint32_t pclevel = 0, rewriter::RewriteDb* rdb = nullptr);
+  ProofChecker(bool eagerCheck,
+               uint32_t pclevel = 0,
+               rewriter::RewriteDb* rdb = nullptr);
   ~ProofChecker() {}
   /**
    * Return the formula that is proven by proof node pn, or null if pn is not

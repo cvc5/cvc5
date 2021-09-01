@@ -85,7 +85,9 @@ ProofCheckerStatistics::ProofCheckerStatistics()
 {
 }
 
-ProofChecker::ProofChecker(bool eagerCheck, uint32_t pclevel, rewriter::RewriteDb* rdb)
+ProofChecker::ProofChecker(bool eagerCheck,
+                           uint32_t pclevel,
+                           rewriter::RewriteDb* rdb)
     : d_eagerCheck(eagerCheck), d_pclevel(pclevel), d_rdb(rdb)
 {
 }
