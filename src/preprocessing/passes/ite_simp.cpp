@@ -24,7 +24,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/nary_builder.h"
 #include "theory/arith/arith_ite_utils.h"
-#include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -38,33 +37,6 @@ namespace passes {
 /* -------------------------------------------------------------------------- */
 
 namespace {
-
-Node simpITE(util::ITEUtilities* ite_utils, TNode assertion)
-{
-  if (!ite_utils->containsTermITE(assertion))
-  {
-    return assertion;
-  }
-  else
-  {
-    Node result = ite_utils->simpITE(assertion);
-    Node res_rewritten = Rewriter::rewrite(result);
-
-    if (options::simplifyWithCareEnabled())
-    {
-      Chat() << "starting simplifyWithCare()" << endl;
-      Node postSimpWithCare = ite_utils->simplifyWithCare(res_rewritten);
-      Chat() << "ending simplifyWithCare()"
-             << " post simplifyWithCare()" << postSimpWithCare.getId() << endl;
-      result = Rewriter::rewrite(postSimpWithCare);
-    }
-    else
-    {
-      result = res_rewritten;
-    }
-    return result;
-  }
-}
 
 /**
  * Ensures the assertions asserted after index 'before' now effectively come
@@ -114,6 +86,33 @@ ITESimp::Statistics::Statistics()
 {
 }
 
+Node ITESimp::simpITE(util::ITEUtilities* ite_utils, TNode assertion)
+{
+  if (!ite_utils->containsTermITE(assertion))
+  {
+    return assertion;
+  }
+  else
+  {
+    Node result = ite_utils->simpITE(assertion);
+    Node res_rewritten = rewrite(result);
+
+    if (options::simplifyWithCareEnabled())
+    {
+      Chat() << "starting simplifyWithCare()" << endl;
+      Node postSimpWithCare = ite_utils->simplifyWithCare(res_rewritten);
+      Chat() << "ending simplifyWithCare()"
+             << " post simplifyWithCare()" << postSimpWithCare.getId() << endl;
+      result = rewrite(postSimpWithCare);
+    }
+    else
+    {
+      result = res_rewritten;
+    }
+    return result;
+  }
+}
+
 bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
 {
   bool result = true;
@@ -136,7 +135,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
         Chat() << "....node manager contains " << nm->poolSize()
                << " nodes before cleanup" << endl;
         d_iteUtilities.clear();
-        d_preprocContext->getRewriter()->clearCaches();
+        clearRewriterCaches();
         nm->reclaimZombiesUntil(options::zombieHuntThreshold());
         Chat() << "....node manager contains " << nm->poolSize()
                << " nodes after cleanup" << endl;
@@ -170,7 +169,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
           {
             Node more = aiteu.reduceConstantIteByGCD(res);
             Debug("arith::ite::red") << "  gcd->" << more << endl;
-            Node morer = Rewriter::rewrite(more);
+            Node morer = rewrite(more);
             assertionsToPreprocess->replace(i, morer);
           }
         }
@@ -187,7 +186,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
           for (size_t i = 0, N = assertionsToPreprocess->size(); i < N; ++i)
           {
             Node curr = (*assertionsToPreprocess)[i];
-            Node next = Rewriter::rewrite(aiteu.applySubstitutions(curr));
+            Node next = rewrite(aiteu.applySubstitutions(curr));
             Node res = aiteu.reduceVariablesInItes(next);
             Debug("arith::ite::red") << "@ " << i << " ... " << next << endl
                                      << "   ->" << res << endl;
@@ -204,13 +203,13 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
                ++i)
           {
             Node curr = (*assertionsToPreprocess)[i];
-            Node next = Rewriter::rewrite(aiteu.applySubstitutions(curr));
+            Node next = rewrite(aiteu.applySubstitutions(curr));
             Node res = aiteu.reduceVariablesInItes(next);
             Debug("arith::ite::red") << "@ " << i << " ... " << next << endl
                                      << "   ->" << res << endl;
             Node more = aiteu.reduceConstantIteByGCD(res);
             Debug("arith::ite::red") << "  gcd->" << more << endl;
-            Node morer = Rewriter::rewrite(more);
+            Node morer = rewrite(more);
             assertionsToPreprocess->replace(i, morer);
           }
         }
@@ -223,7 +222,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
 /* -------------------------------------------------------------------------- */
 
 ITESimp::ITESimp(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "ite-simp")
+    : PreprocessingPass(preprocContext, "ite-simp"), d_iteUtilities(d_env)
 {
 }
 

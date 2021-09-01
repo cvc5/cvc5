@@ -44,6 +44,13 @@ class EnvObj
    */
   Node rewrite(TNode node);
 
+  /**
+   * Garbage collect the rewrite caches.
+   * This is a wrapper around theory::Rewriter::clearCaches via Env.
+   */
+  void clearRewriterCaches();
+
+ private:
  protected:
   /** The associated environment. */
   Env& d_env;
