@@ -295,14 +295,21 @@ bool ProofNodeManager::updateNode(ProofNode* pn, ProofNode* pnr)
   {
     return false;
   }
-  // copy whether proven
+  // copy whether we did the check
   pn->d_provenChecked = pnr->d_provenChecked;
   // can shortcut re-check of rule
   return updateNodeInternal(
       pn, pnr->getRule(), pnr->getChildren(), pnr->getArguments(), false);
 }
 
-void ProofNodeManager::ensureChecked(ProofNode* pn) {}
+void ProofNodeManager::ensureChecked(ProofNode* pn) {
+  if (pn->d_provenChecked)
+  {
+    // already checked
+    return true;
+  }
+  
+}
 
 Node ProofNodeManager::checkInternal(
     PfRule id,
@@ -311,8 +318,17 @@ Node ProofNodeManager::checkInternal(
     Node expected,
     bool& didCheck)
 {
+  if (!expected.isNull())
+  {
+    if (options::proofCheckMode()==options::ProofCheckMode::LAZY || 
+      options::proofCheckMode()==options::ProofCheckMode::NONE)
+    {
+      return expected;
+    }
+  }
   // check with the checker, which takes expected as argument
   Node res = d_checker->check(id, children, args, expected);
+  didCheck = true;
   Assert(!res.isNull())
       << "ProofNodeManager::checkInternal: failed to check proof";
   return res;
@@ -444,6 +460,7 @@ bool ProofNodeManager::updateNodeInternal(
     }
     // proven field should already be the same as the result
     Assert(res == pn->d_proven);
+    pn->d_provenChecked = didCheck;
   }
 
   // we update its value
