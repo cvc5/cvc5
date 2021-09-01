@@ -47,17 +47,17 @@ name   = "Proof"
   help       = "select proof checking mode"
   help_mode  = "Proof checking modes."
 [[option.mode.EAGER]]
-  name       = "none"
-  help       = "check rule applications, and proofs eagerly for local debugging"
+  name       = "eager"
+  help       = "check rule applications and proofs from generators eagerly for local debugging"
 [[option.mode.CHECK]]
   name       = "check"
-  help       = "check rule applications"
+  help       = "check rule applications during construction"
 [[option.mode.LAZY]]
   name       = "lazy"
-  help       = "check rule applications during final proof construction"
+  help       = "check rule applications only during final proof construction"
 [[option.mode.NONE]]
   name       = "none"
-  help       = "no proof checking"
+  help       = "do not check rule applications"
 
 [[option]]
   name       = "proofGranularityMode"
