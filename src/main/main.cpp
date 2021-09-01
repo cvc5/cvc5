@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
 #ifdef CVC5_COMPETITION_MODE
     solver->getDriverOptions().out() << "unknown" << std::endl;
 #endif
-    if (language::isLangSmt2(solver->getOptions().base.outputLanguage))
+    if (solver->getOption("output-language") == "LANG_SMTLIB_V2_6")
     {
       solver->getDriverOptions().out()
           << "(error \"" << e << "\")" << std::endl;
@@ -89,7 +89,8 @@ int main(int argc, char* argv[])
       solver->getDriverOptions().err()
           << "(error \"" << e << "\")" << std::endl;
     }
-    if (solver->getOptions().base.statistics && pExecutor != nullptr)
+    if (solver->getOptionInfo("stats").boolValue()
+        && main::pExecutor != nullptr)
     {
       totalTime.reset();
       pExecutor->printStatistics(solver->getDriverOptions().err());
