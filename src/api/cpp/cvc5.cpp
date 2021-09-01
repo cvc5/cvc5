@@ -7383,6 +7383,36 @@ bool Solver::isModelCoreSymbol(const Term& v) const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::string Solver::getModel(const std::vector<Sort>& sorts,
+                             const std::vector<Term>& vars) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions().smt.produceModels)
+      << "Cannot get model unless model generation is enabled "
+         "(try --produce-models)";
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
+      << "Cannot get model unless after a SAT or unknown response.";
+  CVC5_API_SOLVER_CHECK_SORTS(sorts);
+  for (const Sort& s : sorts)
+  {
+    CVC5_API_RECOVERABLE_CHECK(s.isUninterpretedSort())
+        << "Expecting an uninterpreted sort as argument to "
+           "getModel.";
+  }
+  CVC5_API_SOLVER_CHECK_TERMS(vars);
+  for (const Term& v : vars)
+  {
+    CVC5_API_RECOVERABLE_CHECK(v.getKind() == CONSTANT)
+        << "Expecting a free constant as argument to getModel.";
+  }
+  //////// all checks before this line
+  return d_smtEngine->getModel(Sort::sortVectorToTypeNodes(sorts),
+                               Term::termVectorToNodes(vars));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Term Solver::getQuantifierElimination(const Term& q) const
 {
   NodeManagerScope scope(getNodeManager());
@@ -7901,18 +7931,6 @@ std::vector<Term> Solver::getSynthSolutions(
   ////////
   CVC5_API_TRY_CATCH_END;
 }
-
-/*
- * !!! This is only temporarily available until the parser is fully migrated to
- * the new API. !!!
- */
-SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
-
-/*
- * !!! This is only temporarily available until the parser is fully migrated to
- * the new API. !!!
- */
-Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
 
 Statistics Solver::getStatistics() const
 {

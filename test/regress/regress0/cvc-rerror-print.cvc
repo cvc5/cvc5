@@ -1,5 +1,5 @@
 % EXPECT: entailed
-% EXPECT: Cannot get model unless immediately preceded by SAT/NOT_ENTAILED or UNKNOWN response.
+% EXPECT: Cannot get model unless after a SAT or unknown response.
 OPTION "logic" "ALL";
 OPTION "produce-models" true;
 x : INT;
