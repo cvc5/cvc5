@@ -1137,9 +1137,9 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     InferenceId iid;
     bool isRev;
     std::vector<Node> exp;
-    if (strings::InferProofCons::unpackArgs(args, conc, iid, isRev, exp))
+    if (theory::strings::InferProofCons::unpackArgs(args, conc, iid, isRev, exp))
     {
-      if (strings::InferProofCons::addProofTo(cdp, conc, iid, isRev, exp))
+      if (theory::strings::InferProofCons::addProofTo(cdp, conc, iid, isRev, exp))
       {
         return conc;
       }
