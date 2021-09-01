@@ -85,8 +85,8 @@ ProofCheckerStatistics::ProofCheckerStatistics()
 {
 }
 
-ProofChecker::ProofChecker(options::ProofCheckMode pcMode, uint32_t pclevel, rewriter::RewriteDb* rdb)
-    : d_pcMode(pcMode), d_pclevel(pclevel), d_rdb(rdb)
+ProofChecker::ProofChecker(bool eagerCheck, uint32_t pclevel, rewriter::RewriteDb* rdb)
+    : d_eagerCheck(eagerCheck), d_pclevel(pclevel), d_rdb(rdb)
 {
 }
 
@@ -245,7 +245,7 @@ Node ProofChecker::checkInternal(PfRule id,
     }
   }
   // fails if pedantic level is not met
-  if (d_pcMode == options::ProofCheckMode::EAGER)
+  if (d_eagerCheck)
   {
     std::stringstream serr;
     if (isPedanticFailure(id, serr, enableOutput))

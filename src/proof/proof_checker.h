@@ -23,7 +23,6 @@
 #include "expr/node.h"
 #include "proof/proof_rule.h"
 #include "util/statistics_stats.h"
-#include "options/proof_options.h"
 
 namespace cvc5 {
 
@@ -106,7 +105,7 @@ class ProofCheckerStatistics
 class ProofChecker
 {
  public:
-  ProofChecker(options::ProofCheckMode pcMode, uint32_t pclevel = 0, rewriter::RewriteDb* rdb = nullptr);
+  ProofChecker(bool eagerCheck, uint32_t pclevel = 0, rewriter::RewriteDb* rdb = nullptr);
   ~ProofChecker() {}
   /**
    * Return the formula that is proven by proof node pn, or null if pn is not
@@ -190,8 +189,8 @@ class ProofChecker
   std::map<PfRule, ProofRuleChecker*> d_checker;
   /** Maps proof trusted rules to their pedantic level */
   std::map<PfRule, uint32_t> d_plevel;
-  /** The proof check mode */
-  options::ProofCheckMode d_pcMode;
+  /** Whether we check for pedantic failures eagerly */
+  bool d_eagerCheck;
   /** The pedantic level of this checker */
   uint32_t d_pclevel;
   /** Pointer to the rewrite database */

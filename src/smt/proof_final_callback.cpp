@@ -70,6 +70,10 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       }
     }
   }
+  if (options::proofCheck() != options::ProofCheckMode::NONE)
+  {
+    d_pnm->ensureChecked(pn.get());
+  }
   uint32_t plevel = d_pnm->getChecker()->getPedanticLevel(r);
   if (plevel != 0)
   {

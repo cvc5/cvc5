@@ -43,14 +43,14 @@ name   = "Proof"
   category   = "regular"
   long       = "proof-check=MODE"
   type       = "ProofCheckMode"
-  default    = "CHECK"
+  default    = "LAZY"
   help       = "select proof checking mode"
   help_mode  = "Proof checking modes."
 [[option.mode.EAGER]]
   name       = "eager"
   help       = "check rule applications and proofs from generators eagerly for local debugging"
-[[option.mode.CHECK]]
-  name       = "check"
+[[option.mode.EAGER_SIMPLE]]
+  name       = "eager-simple"
   help       = "check rule applications during construction"
 [[option.mode.LAZY]]
   name       = "lazy"

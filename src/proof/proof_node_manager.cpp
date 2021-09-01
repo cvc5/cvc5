@@ -31,6 +31,8 @@ namespace cvc5 {
 ProofNodeManager::ProofNodeManager(ProofChecker* pc) : d_checker(pc)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
+  // we always allocate a proof checker, regardless of the proof checking mode
+  Assert (d_checker!=nullptr);
 }
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
@@ -41,7 +43,8 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
 {
   Trace("pnm") << "ProofNodeManager::mkNode " << id << " {" << expected.getId()
                << "} " << expected << "\n";
-  Node res = checkInternal(id, children, args, expected);
+  bool didCheck = false;
+  Node res = checkInternal(id, children, args, expected, didCheck);
   if (res.isNull())
   {
     // if it was invalid, then we return the null node
@@ -51,6 +54,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
   std::shared_ptr<ProofNode> pn =
       std::make_shared<ProofNode>(id, children, args);
   pn->d_proven = res;
+  pn->d_provenChecked = didCheck;
   return pn;
 }
 
@@ -291,32 +295,29 @@ bool ProofNodeManager::updateNode(ProofNode* pn, ProofNode* pnr)
   {
     return false;
   }
+  // copy whether proven
+  pn->d_provenChecked = pnr->d_provenChecked;
   // can shortcut re-check of rule
   return updateNodeInternal(
       pn, pnr->getRule(), pnr->getChildren(), pnr->getArguments(), false);
+}
+
+void ProofNodeManager::ensureChecked(ProofNode * pn)
+{
+  
 }
 
 Node ProofNodeManager::checkInternal(
     PfRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args,
-    Node expected)
+    Node expected,
+    bool& didCheck)
 {
-  Node res;
-  if (d_checker)
-  {
-    // check with the checker, which takes expected as argument
-    res = d_checker->check(id, children, args, expected);
-    Assert(!res.isNull())
-        << "ProofNodeManager::checkInternal: failed to check proof";
-  }
-  else
-  {
-    // otherwise we trust the expected value, if it exists
-    Assert(!expected.isNull()) << "ProofNodeManager::checkInternal: no checker "
-                                  "or expected value provided";
-    res = expected;
-  }
+  // check with the checker, which takes expected as argument
+  Node res = d_checker->check(id, children, args, expected);
+  Assert(!res.isNull())
+      << "ProofNodeManager::checkInternal: failed to check proof";
   return res;
 }
 
@@ -437,7 +438,8 @@ bool ProofNodeManager::updateNodeInternal(
   if (needsCheck)
   {
     // We expect to prove the same thing as before
-    Node res = checkInternal(id, children, args, pn->d_proven);
+    bool didCheck = false;
+    Node res = checkInternal(id, children, args, pn->d_proven, didCheck);
     if (res.isNull())
     {
       // if it was invalid, then we do not update
