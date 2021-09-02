@@ -42,11 +42,6 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/symbol_manager.h"
-#include "options/base_options.h"
-#include "options/language.h"
-#include "options/main_options.h"
-#include "options/options.h"
-#include "options/parser_options.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -99,7 +94,7 @@ InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
   ParserBuilder parserBuilder(solver, sm, true);
   /* Create parser with bogus input. */
   d_parser = parserBuilder.build();
-  if (d_solver->getOptions().parser.forceLogicStringWasSetByUser)
+  if (d_solver->getOptionInfo("force-logic").setByUser)
   {
     LogicInfo tmp(d_solver->getOption("force-logic"));
     d_parser->forceLogic(tmp.getLogicString());

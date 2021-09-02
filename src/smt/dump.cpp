@@ -134,7 +134,6 @@ void DumpC::setDumpFromString(const std::string& optarg) {
       else if (!strcmp(optargPtr, "t-conflicts")
                || !strcmp(optargPtr, "t-lemmas")
                || !strcmp(optargPtr, "t-explanations")
-               || !strcmp(optargPtr, "bv-rewrites")
                || !strcmp(optargPtr, "theory::fullcheck"))
       {
       }
@@ -224,9 +223,6 @@ t-lemmas\n\
 \n\
 t-explanations\n\
 + Output correctness queries for all theory explanations\n\
-\n\
-bv-rewrites\n\
-+ Output correctness queries for all bitvector rewrites\n\
 \n\
 theory::fullcheck\n\
 + Output completeness queries for all full-check effort-level theory checks\n\

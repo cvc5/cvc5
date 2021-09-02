@@ -1371,7 +1371,7 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     auto modeInfo = std::get<OptionInfo::ModeInfo>(info.valueInfo);
     EXPECT_EQ("NONE", modeInfo.defaultValue);
     EXPECT_EQ("OutputTag::NONE", modeInfo.currentValue);
-    std::vector<std::string> modes{"NONE", "INST", "SYGUS", "TRIGGER"};
+    std::vector<std::string> modes{"INST", "NONE", "SYGUS", "TRIGGER"};
     EXPECT_EQ(modes, modeInfo.modes);
   }
 }
@@ -1569,6 +1569,47 @@ TEST_F(TestApiBlackSolver, isModelCoreSymbol)
   ASSERT_TRUE(d_solver.isModelCoreSymbol(y));
   ASSERT_FALSE(d_solver.isModelCoreSymbol(z));
   ASSERT_THROW(d_solver.isModelCoreSymbol(zero), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, getModel)
+{
+  d_solver.setOption("produce-models", "true");
+  Sort uSort = d_solver.mkUninterpretedSort("u");
+  Term x = d_solver.mkConst(uSort, "x");
+  Term y = d_solver.mkConst(uSort, "y");
+  Term z = d_solver.mkConst(uSort, "z");
+  Term f = d_solver.mkTerm(NOT, d_solver.mkTerm(EQUAL, x, y));
+  d_solver.assertFormula(f);
+  d_solver.checkSat();
+  std::vector<Sort> sorts;
+  sorts.push_back(uSort);
+  std::vector<Term> terms;
+  terms.push_back(x);
+  terms.push_back(y);
+  ASSERT_NO_THROW(d_solver.getModel(sorts, terms));
+  Term null;
+  terms.push_back(null);
+  ASSERT_THROW(d_solver.getModel(sorts, terms), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, getModel2)
+{
+  d_solver.setOption("produce-models", "true");
+  std::vector<Sort> sorts;
+  std::vector<Term> terms;
+  ASSERT_THROW(d_solver.getModel(sorts, terms), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, getModel3)
+{
+  d_solver.setOption("produce-models", "true");
+  std::vector<Sort> sorts;
+  std::vector<Term> terms;
+  d_solver.checkSat();
+  ASSERT_NO_THROW(d_solver.getModel(sorts, terms));
+  Sort integer = d_solver.getIntegerSort();
+  sorts.push_back(integer);
+  ASSERT_THROW(d_solver.getModel(sorts, terms), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, getQuantifierElimination)

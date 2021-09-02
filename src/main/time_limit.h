@@ -43,7 +43,7 @@ struct TimeLimit
  * thread needs to communicate back to the timer thread when it wants to
  * terminate, which is done via the TimeLimit object.
  */
-TimeLimit install_time_limit(const Options& opts);
+TimeLimit install_time_limit(uint64_t ms);
 
 }  // namespace main
 }  // namespace cvc5
