@@ -19,8 +19,8 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "printer/printer.h"
 #include "smt/dump.h"
+#include "smt/env.h"
 #include "smt/output_manager.h"
-#include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "util/statistics_stats.h"
@@ -45,9 +45,9 @@ void PreprocessingPass::dumpAssertions(const char* key,
   if (Dump.isOn("assertions") && Dump.isOn(std::string("assertions:") + key))
   {
     // Push the simplified assertions to the dump output stream
-    OutputManager& outMgr = d_preprocContext->getSmt()->getOutputManager();
-    const Printer& printer = outMgr.getPrinter();
-    std::ostream& out = outMgr.getDumpOut();
+    Env& env = d_preprocContext->getEnv();
+    const Printer& printer = env.getPrinter();
+    std::ostream& out = env.getDumpOut();
 
     for (const auto& n : assertionList)
     {

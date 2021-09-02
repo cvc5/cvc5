@@ -56,8 +56,6 @@ class PreprocessingPassContext
       Env& env,
       theory::booleans::CircuitPropagator* circuitPropagator);
 
-  /** Get the associated SmtEngine. */
-  SmtEngine* getSmt() const { return d_smt; }
   /** Get the associated Environment. */
   Env& getEnv() { return d_env; }
   /** Get the associated TheoryEngine. */
