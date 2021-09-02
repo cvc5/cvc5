@@ -520,7 +520,12 @@ std::string SmtEngine::getInfo(const std::string& key) const
   }
   Assert(key == "all-options");
   // get the options, like all-statistics
-  return toSExpr(options::getAll(getOptions()));
+  std::vector<std::vector<std::string>> res;
+  for (const auto& opt: options::getNames())
+  {
+    res.emplace_back(std::vector<std::string>{opt, options::get(getOptions(), opt)});
+  }
+  return toSExpr(res);
 }
 
 void SmtEngine::debugCheckFormals(const std::vector<Node>& formals, Node func)
