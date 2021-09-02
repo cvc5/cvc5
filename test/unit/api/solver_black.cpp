@@ -1332,10 +1332,13 @@ TEST_F(TestApiBlackSolver, getOptionNames)
 TEST_F(TestApiBlackSolver, getOptionInfo)
 {
   {
-    auto info = d_solver.getOptionInfo("verbose");
-    ASSERT_EQ(info.name, "verbose");
-    ASSERT_EQ(info.aliases, std::vector<std::string>{});
-    ASSERT_TRUE(std::holds_alternative<api::OptionInfo::VoidInfo>(info.valueInfo));
+    EXPECT_THROW(d_solver.getOptionInfo("asdf-invalid"), CVC5ApiException);
+  }
+  {
+    api::OptionInfo info = d_solver.getOptionInfo("verbose");
+    EXPECT_EQ("verbose", info.name);
+    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
+    EXPECT_TRUE(std::holds_alternative<OptionInfo::VoidInfo>(info.valueInfo));
   }
   {
     // int64 type with default

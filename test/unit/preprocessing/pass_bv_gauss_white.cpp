@@ -21,6 +21,7 @@
 #include "expr/node_manager.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/passes/bv_gauss.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "test_smt.h"
@@ -43,6 +44,9 @@ class TestPPWhiteBVGauss : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
+
+    d_preprocContext.reset(new preprocessing::PreprocessingPassContext(
+        d_smtEngine.get(), d_smtEngine->getEnv(), nullptr));
 
     d_zero = bv::utils::mkZero(16);
 
@@ -193,6 +197,8 @@ class TestPPWhiteBVGauss : public TestSmt
       }
     }
   }
+
+  std::unique_ptr<PreprocessingPassContext> d_preprocContext;
 
   Node d_p;
   Node d_x;
@@ -2399,7 +2405,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique1)
 
   AssertionPipeline apipe;
   apipe.push_back(a);
-  passes::BVGauss bgauss(nullptr, "bv-gauss-unit");
+  passes::BVGauss bgauss(d_preprocContext.get(), "bv-gauss-unit");
   std::unordered_map<Node, Node> res;
   PreprocessingPassResult pres = bgauss.applyInternal(&apipe);
   ASSERT_EQ(pres, PreprocessingPassResult::NO_CONFLICT);
@@ -2488,7 +2494,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique2)
   apipe.push_back(a);
   apipe.push_back(eq4);
   apipe.push_back(eq5);
-  passes::BVGauss bgauss(nullptr, "bv-gauss-unit");
+  passes::BVGauss bgauss(d_preprocContext.get(), "bv-gauss-unit");
   std::unordered_map<Node, Node> res;
   PreprocessingPassResult pres = bgauss.applyInternal(&apipe);
   ASSERT_EQ(pres, PreprocessingPassResult::NO_CONFLICT);
@@ -2539,7 +2545,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_partial)
   AssertionPipeline apipe;
   apipe.push_back(eq1);
   apipe.push_back(eq2);
-  passes::BVGauss bgauss(nullptr, "bv-gauss-unit");
+  passes::BVGauss bgauss(d_preprocContext.get(), "bv-gauss-unit");
   std::unordered_map<Node, Node> res;
   PreprocessingPassResult pres = bgauss.applyInternal(&apipe);
   ASSERT_EQ(pres, PreprocessingPassResult::NO_CONFLICT);
