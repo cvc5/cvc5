@@ -25,6 +25,9 @@
 #include "expr/type_node.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace theory {
 
 /** sort inference
@@ -63,6 +66,8 @@ public:
   };
 
  private:
+  /** Reference to the env */
+  Env& d_env;
   /** the id count for all subsorts we have allocated */
   int d_sortCount;
   UnionFind d_type_union_find;
@@ -106,7 +111,7 @@ private:
   void reset();
 
  public:
-  SortInference() : d_sortCount(1) {}
+  SortInference(Env& env) : d_env(env), d_sortCount(1) {}
   ~SortInference(){}
 
   /** initialize

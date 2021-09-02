@@ -59,7 +59,7 @@ void ModelManager::finishInit(eq::EqualityEngineNotify* notify)
   // not have a model builder
   if (d_modelBuilder == nullptr)
   {
-    d_alocModelBuilder.reset(new TheoryEngineModelBuilder);
+    d_alocModelBuilder.reset(new TheoryEngineModelBuilder(d_env));
     d_modelBuilder = d_alocModelBuilder.get();
   }
   // notice that the equality engine of the model has yet to be assigned.

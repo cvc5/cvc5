@@ -50,7 +50,7 @@ import toml
 ### Allowed attributes for module/option
 
 MODULE_ATTR_REQ = ['id', 'name']
-MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option', 'public']
+MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option']
 
 OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
@@ -195,7 +195,7 @@ def get_handler(option):
             return 'opts.handler().{}("{}", name, optionarg)'.format(option.handler, optname)
     elif option.mode:
         return 'stringTo{}(optionarg)'.format(option.type)
-    return 'handleOption<{}>("{}", name, optionarg)'.format(option.type, optname)
+    return 'handlers::handleOption<{}>("{}", name, optionarg)'.format(option.type, optname)
 
 
 def get_predicates(option):
@@ -212,22 +212,6 @@ def get_predicates(option):
     res += ['opts.handler().{}("{}", name, value);'.format(x, optname)
             for x in option.predicates]
     return res
-
-
-def get_getall(module, option):
-    """Render snippet to add option to result of getAll()"""
-    if option.type == 'bool':
-        return 'res.push_back({{"{}", opts.{}.{} ? "true" : "false"}});'.format(
-            option.long_name, module.id, option.name)
-    elif option.type == 'std::string':
-        return 'res.push_back({{"{}", opts.{}.{}}});'.format(
-            option.long_name, module.id, option.name)
-    elif is_numeric_cpp_type(option.type):
-        return 'res.push_back({{"{}", std::to_string(opts.{}.{})}});'.format(
-            option.long_name, module.id, option.name)
-    else:
-        return '{{ std::stringstream ss; ss << opts.{}.{}; res.push_back({{"{}", ss.str()}}); }}'.format(module.id,
-            option.name, option.long_name)
 
 
 class Module(object):
@@ -624,13 +608,7 @@ def codegen_module(module, dst_dir, tpls):
                     help=help_mode_format(option),
                     long=option.long.split('=')[0]))
 
-    if module.public:
-        visibility_include = '#include "cvc5_public.h"'
-    else:
-        visibility_include = '#include "cvc5_private.h"'
-    
     data = {
-        'visibility_include': visibility_include,
         'id_cap': module.id_cap,
         'id': module.id,
         'includes': '\n'.join(sorted(list(includes))),
@@ -700,7 +678,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     headers_handler = set()  # option includes (for handlers, predicates, ...)
     getopt_short = []        # short options for getopt_long
     getopt_long = []         # long options for getopt_long
-    options_getall = []      # options for options::getAll()
     options_get_info = []    # code for getOptionInfo()
     options_handler = []     # option handler calls
     options_names = set()    # option names
@@ -792,6 +769,10 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                     ['name == "{}"'.format(x) for x in sorted(names)])
 
                 # Generate code for getOptionInfo
+                if option.alias:
+                    alias = ', '.join(map(lambda s: '"{}"'.format(s), option.alias))
+                else:
+                    alias = ''
                 if option.name:
                     constr = None
                     fmt = {
@@ -811,11 +792,9 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                         constr = 'OptionInfo::ModeInfo{{"{default}", {value}, {{ {modes} }}}}'.format(**fmt, modes=values)
                     else:
                         constr = 'OptionInfo::VoidInfo{}'
-                    if option.alias:
-                        alias = ', '.join(map(lambda s: '"{}"'.format(s), option.alias))
-                    else:
-                        alias = ''
                     options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, opts.{}.{}WasSetByUser, {}}};'.format(cond, long_get_option(option.long), module.id, option.name, constr, alias=alias))
+                else:
+                    options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, false, OptionInfo::VoidInfo{{}}}};'.format(cond, long_get_option(option.long), alias=alias))
 
                 if setoption_handlers:
                     setoption_handlers.append('  }} else if ({}) {{'.format(cond))
@@ -889,11 +868,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                 cases.append('  break;')
                 options_handler.extend(cases)
 
-            if option.name:
-                # Build options for options::getOptions()
-                if option.long_name:
-                    options_getall.append(get_getall(module, option))
-
     options_all_names = ', '.join(map(lambda s: '"' + s + '"', sorted(options_names)))
     options_all_names = '\n'.join(textwrap.wrap(options_all_names, width=80, break_on_hyphens=False))
 
@@ -911,7 +885,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
         'help_others': '\n'.join(help_others),
         'options_handler': '\n    '.join(options_handler),
         'options_short': ''.join(getopt_short),
-        'options_getall': '\n  '.join(options_getall),
         'options_all_names': options_all_names,
         'options_get_info': '\n  '.join(sorted(options_get_info)),
         'getoption_handlers': '\n'.join(getoption_handlers),

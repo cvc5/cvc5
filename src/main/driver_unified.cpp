@@ -180,7 +180,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   int returnValue = 0;
   {
-    // pass filename to solver (options & statistics)
     solver->setInfo("filename", filenameStr);
 
     // Parse and execute commands until we are done
@@ -195,7 +194,9 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
         pExecutor->doCommand(cmd);
       }
       InteractiveShell shell(pExecutor->getSolver(),
-                             pExecutor->getSymbolManager());
+                             pExecutor->getSymbolManager(),
+                             dopts.in(),
+                             dopts.out());
 
       CVC5Message() << Configuration::getPackageName() << " "
                     << Configuration::getVersionString();
