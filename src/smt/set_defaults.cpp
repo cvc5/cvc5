@@ -145,6 +145,22 @@ void SetDefaults::setDefaultsPre(Options& opts)
 
 void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 {
+  if (opts.quantifiers.sygusInstWasSetByUser)
+  {
+    if (isSygus(opts))
+    {
+      throw OptionException(std::string(
+          "SyGuS instantiation quantifiers module cannot be enabled "
+          "for SyGuS inputs."));
+    }
+  }
+  else if (!isSygus(opts)
+           && (logic.isPure(THEORY_FP)
+               || (logic.isPure(THEORY_ARITH) && !logic.isLinear())))
+  {
+    opts.quantifiers.sygusInst = true;
+  }
+
   if (opts.bv.bitblastMode == options::BitblastMode::EAGER)
   {
     if (opts.smt.produceModels
@@ -1235,22 +1251,6 @@ void SetDefaults::widenLogic(LogicInfo& logic, Options& opts) const
 void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
                                          Options& opts) const
 {
-  if (opts.quantifiers.sygusInstWasSetByUser)
-  {
-    if (isSygus(opts))
-    {
-      throw OptionException(std::string(
-          "SyGuS instantiation quantifiers module cannot be enabled "
-          "for SyGuS inputs."));
-    }
-  }
-  else if (!isSygus(opts)
-           && (logic.isPure(THEORY_FP)
-               || (logic.isPure(THEORY_ARITH) && !logic.isLinear())))
-  {
-    opts.quantifiers.sygusInst = true;
-  }
-
   if (logic.hasCardinalityConstraints())
   {
     // must have finite model finding on
