@@ -24,50 +24,77 @@
 
 #include "context/cdhashset.h"
 #include "preprocessing/learned_literal_manager.h"
-#include "smt/smt_engine.h"
+#include "theory/logic_info.h"
 #include "util/resource_manager.h"
 
 namespace cvc5 {
+
+class Env;
 class SmtEngine;
 class TheoryEngine;
+
+namespace theory {
+class Rewriter;
+}
+
 namespace theory::booleans {
 class CircuitPropagator;
 }
+
 namespace prop {
 class PropEngine;
 }
+
 namespace preprocessing {
 
 class PreprocessingPassContext
 {
  public:
+  /** Constructor. */
   PreprocessingPassContext(
       SmtEngine* smt,
       Env& env,
       theory::booleans::CircuitPropagator* circuitPropagator);
 
-  SmtEngine* getSmt() { return d_smt; }
-  TheoryEngine* getTheoryEngine() { return d_smt->getTheoryEngine(); }
-  prop::PropEngine* getPropEngine() { return d_smt->getPropEngine(); }
-  context::Context* getUserContext();
-  context::Context* getDecisionContext();
+  /** Get the associated Environment. */
+  Env& getEnv() { return d_env; }
+  /** Get the associated TheoryEngine. */
+  TheoryEngine* getTheoryEngine() const;
+  /** Get the associated Propengine. */
+  prop::PropEngine* getPropEngine() const;
+  /** Get the current user context. */
+  context::Context* getUserContext() const;
+  /** Get the current decision context. */
+  context::Context* getDecisionContext() const;
 
-  theory::booleans::CircuitPropagator* getCircuitPropagator()
+  /** Get the associated circuit propagator. */
+  theory::booleans::CircuitPropagator* getCircuitPropagator() const
   {
     return d_circuitPropagator;
   }
 
-  context::CDHashSet<Node>& getSymsInAssertions() { return d_symsInAssertions; }
+  /**
+   * Get the (user-context-dependent) set of symbols that occur in at least one
+   * assertion in the current user context.
+   */
+  const context::CDHashSet<Node>& getSymsInAssertions() const
+  {
+    return d_symsInAssertions;
+  }
 
+  /** Spend resource in the resource manager of the associated Env. */
   void spendResource(Resource r);
 
   /** Get the options of the environment */
-  const Options& getOptions();
+  const Options& getOptions() const;
   /** Get the current logic info of the environment */
-  const LogicInfo& getLogicInfo();
+  const LogicInfo& getLogicInfo() const;
 
-  /** Gets a reference to the top-level substitution map */
-  theory::TrustSubstitutionMap& getTopLevelSubstitutions();
+  /** Get a pointer to the Rewriter owned by the associated Env. */
+  theory::Rewriter* getRewriter() const;
+
+  /** Get a reference to the top-level substitution map */
+  theory::TrustSubstitutionMap& getTopLevelSubstitutions() const;
 
   /** Record symbols in assertions
    *
@@ -87,7 +114,7 @@ class PreprocessingPassContext
   /**
    * Get the learned literals
    */
-  std::vector<Node> getLearnedLiterals();
+  std::vector<Node> getLearnedLiterals() const;
   /**
    * Add substitution to the top-level substitutions, which also as a
    * consequence is used by the theory model.
@@ -105,7 +132,7 @@ class PreprocessingPassContext
                        const std::vector<Node>& args);
 
   /** The the proof node manager associated with this context, if it exists */
-  ProofNodeManager* getProofNodeManager();
+  ProofNodeManager* getProofNodeManager() const;
 
  private:
   /** Pointer to the SmtEngine that this context was created in. */

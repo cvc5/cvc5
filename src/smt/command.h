@@ -950,7 +950,8 @@ class CVC5_EXPORT GetModelCommand : public Command
                 Language language = Language::LANG_AUTO) const override;
 
  protected:
-  smt::Model* d_result;
+  /** Result of printing the model */
+  std::string d_result;
 }; /* class GetModelCommand */
 
 /** The command to block models. */
