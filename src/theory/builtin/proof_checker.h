@@ -24,6 +24,9 @@
 #include "proof/proof_node.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace theory {
 namespace builtin {
 
@@ -31,7 +34,9 @@ namespace builtin {
 class BuiltinProofRuleChecker : public ProofRuleChecker
 {
  public:
-  BuiltinProofRuleChecker() : d_rdb(nullptr) {}
+  /** Constructor. */
+  BuiltinProofRuleChecker(Env& env);
+  /** Destructor. */
   ~BuiltinProofRuleChecker() {}
   /**
    * Apply rewrite on n (in skolem form). This encapsulates the exact behavior
@@ -117,9 +122,14 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   Node checkInternal(PfRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
-
   /** Pointer to the rewrite database */
   rewriter::RewriteDb* d_rdb;
+  /** extended rewriter object */
+  quantifiers::ExtendedRewriter d_ext_rewriter;
+
+ private:
+  /** Reference to the environment. */
+  Env& d_env;
 };
 
 }  // namespace builtin

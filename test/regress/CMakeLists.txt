@@ -2771,6 +2771,7 @@ set(regression_disabled_tests
   regress2/ho/SYO362^5.p
   # time out
   regress3/unifpi-solve-car_1.lus.sy
+  # unknown (is sat)
   regress3/issue4476-ext-rew.smt2
 )
 

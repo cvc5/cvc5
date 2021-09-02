@@ -871,12 +871,14 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
     }
     // Check that UNSAT results generate a proof correctly.
     if (d_env->getOptions().smt.checkProofs
-        || d_env->getOptions().proof.proofEagerChecking)
+        || d_env->getOptions().proof.proofCheck
+               == options::ProofCheckMode::EAGER)
     {
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
         if ((d_env->getOptions().smt.checkProofs
-             || d_env->getOptions().proof.proofEagerChecking)
+             || d_env->getOptions().proof.proofCheck
+                    == options::ProofCheckMode::EAGER)
             && !d_env->getOptions().smt.produceProofs)
         {
           throw ModalException(
@@ -1363,7 +1365,7 @@ void SmtEngine::checkProof()
   // internal check the proof
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
-  if (d_env->getOptions().proof.proofEagerChecking)
+  if (d_env->getOptions().proof.proofCheck == options::ProofCheckMode::EAGER)
   {
     pe->checkProof(d_asserts->getAssertionList());
   }
@@ -1441,7 +1443,6 @@ std::vector<Node> SmtEngine::reduceUnsatCore(const std::vector<Node>& core)
     coreChecker->getOptions().smt.produceProofs = false;
     coreChecker->getOptions().smt.checkProofs = false;
     coreChecker->getOptions().proof.proofReq = false;
-    coreChecker->getOptions().proof.proofEagerChecking = false;
 
     for (const Node& ucAssertion : core)
     {
@@ -1507,7 +1508,6 @@ void SmtEngine::checkUnsatCore() {
   coreChecker->getOptions().smt.produceProofs = false;
   coreChecker->getOptions().proof.proofReq = false;
   coreChecker->getOptions().smt.checkProofs = false;
-  coreChecker->getOptions().proof.proofEagerChecking = false;
 
   // set up separation logic heap if necessary
   TypeNode sepLocType, sepDataType;

@@ -14,7 +14,7 @@
  * internal code
  */
 
-#include "cvc5_public.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__ENV_H
 #define CVC5__SMT__ENV_H

@@ -19,6 +19,7 @@
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
 #include "rewriter/rewrite_proof_rule.h"
+#include "smt/env.h"
 #include "smt/term_formula_removal.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
@@ -31,6 +32,8 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 namespace builtin {
+
+BuiltinProofRuleChecker::BuiltinProofRuleChecker(Env& env) : d_env(env), d_rdb(nullptr) {}
 
 void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
 {
@@ -95,7 +98,7 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
   }
   if (idr == MethodId::RW_REWRITE_EQ_EXT)
   {
-    return Rewriter::rewriteEqualityExt(n);
+    return d_env.getRewriter()->rewriteEqualityExt(n);
   }
   if (idr == MethodId::RW_EVALUATE)
   {
