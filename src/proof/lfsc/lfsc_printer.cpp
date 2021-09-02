@@ -514,11 +514,12 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::FACTORING: pf << h << h << cs[0]; break;
     // Boolean
     case PfRule::SPLIT: pf << as[0]; break;
+    case PfRule::NOT_NOT_ELIM: pf << h << cs[0]; break;
     case PfRule::CONTRA: pf << h << cs[0] << cs[1]; break;
     case PfRule::MODUS_PONENS:
     case PfRule::EQ_RESOLVE: pf << h << h << cs[0] << cs[1]; break;
     case PfRule::NOT_AND: pf << h << h << cs[0]; break;
-    // case PfRule::NOT_OR_ELIM: pf << h << h <<
+    case PfRule::NOT_OR_ELIM:
     case PfRule::AND_ELIM: pf << h << h << args[0] << cs[0]; break;
     case PfRule::IMPLIES_ELIM:
     case PfRule::NOT_IMPLIES_ELIM1:
