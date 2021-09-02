@@ -144,8 +144,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
   }
 
   // Do theory specific preprocessing passes
-  TheoryEngine* theory_engine = d_preprocContext->getTheoryEngine();
-  if (theory_engine->getLogicInfo().isTheoryEnabled(theory::THEORY_ARITH)
+  if (d_env.getLogicInfo().isTheoryEnabled(theory::THEORY_ARITH)
       && !options::incrementalSolving())
   {
     if (!simpDidALotOfWork)
