@@ -361,8 +361,6 @@ class TheoryArrays : public Theory {
    * type array to an Info pointer that keeps track of information useful to axiom
    * instantiation
    */
-
-  Backtracker<TNode> d_backtracker;
   ArrayInfo d_infoMap;
 
   context::CDQueue<Node> d_mergeQueue;
