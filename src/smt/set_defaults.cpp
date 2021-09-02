@@ -154,7 +154,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
           "for SyGuS inputs."));
     }
   }
-  else if (!isSygus(opts)
+  else if (!isSygus(opts) && logic.isQuantified()
            && (logic.isPure(THEORY_FP)
                || (logic.isPure(THEORY_ARITH) && !logic.isLinear())))
   {
