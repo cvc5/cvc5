@@ -74,7 +74,7 @@ class Rewriter {
    * combination, which needs to guarantee that equalities between terms
    * can be communicated for all pairs of terms.
    */
-  static Node rewriteEqualityExt(TNode node);
+  Node rewriteEqualityExt(TNode node);
 
   /**
    * Rewrite with proof production, which is managed by the term conversion

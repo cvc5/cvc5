@@ -17,7 +17,7 @@ jobs:
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
           - name: macos:production
-            os: macos-latest
+            os: macos-11
             config: production --auto-download --all-bindings --editline
             cache-key: production
             python-bindings: true
