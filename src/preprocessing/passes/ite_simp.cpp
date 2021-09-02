@@ -135,7 +135,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
         Chat() << "....node manager contains " << nm->poolSize()
                << " nodes before cleanup" << endl;
         d_iteUtilities.clear();
-        clearRewriterCaches();
+        d_env.getRewriter()->clearCaches();
         nm->reclaimZombiesUntil(options::zombieHuntThreshold());
         Chat() << "....node manager contains " << nm->poolSize()
                << " nodes after cleanup" << endl;
