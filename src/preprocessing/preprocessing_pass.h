@@ -49,7 +49,7 @@ class PreprocessingPassContext;
  */
 enum PreprocessingPassResult { CONFLICT, NO_CONFLICT };
 
-class PreprocessingPass : public EnvObj
+class PreprocessingPass : protected EnvObj
 {
  public:
   /* Preprocesses a list of assertions assertionsToPreprocess */

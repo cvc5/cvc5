@@ -31,7 +31,7 @@ class Options;
 
 class EnvObj
 {
- public:
+ protected:
   /** Constructor. */
   EnvObj(Env& env);
   EnvObj() = delete;
@@ -44,7 +44,6 @@ class EnvObj
    */
   Node rewrite(TNode node);
 
- protected:
   /** The associated environment. */
   Env& d_env;
 };

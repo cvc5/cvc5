@@ -67,7 +67,7 @@ class ContainsTermITEVisitor
   NodeBoolMap d_cache;
 };
 
-class ITEUtilities : public EnvObj
+class ITEUtilities : protected EnvObj
 {
  public:
   ITEUtilities(Env& env);
@@ -164,7 +164,7 @@ class TermITEHeightCounter
  * A routine designed to undo the potentially large blow up
  * due to expansion caused by the ite simplifier.
  */
-class ITECompressor : public EnvObj
+class ITECompressor : protected EnvObj
 {
  public:
   ITECompressor(Env& env, ContainsTermITEVisitor* contains);
@@ -206,7 +206,7 @@ class ITECompressor : public EnvObj
   Statistics d_statistics;
 }; /* class ITECompressor */
 
-class ITESimplifier : public EnvObj
+class ITESimplifier : protected EnvObj
 {
  public:
   ITESimplifier(Env& env, ContainsTermITEVisitor* d_containsVisitor);
