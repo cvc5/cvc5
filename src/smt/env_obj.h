@@ -36,7 +36,7 @@ class EnvObj
   EnvObj(Env& env);
   EnvObj() = delete;
   /** Destructor.  */
-  ~EnvObj() {}
+  virtual ~EnvObj() {}
 
   /**
    * Rewrite a node.
