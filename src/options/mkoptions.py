@@ -990,6 +990,10 @@ def parse_module(filename, module):
                 perr(filename,
                      'defining handlers for bool options is not allowed',
                      option)
+            if option.category not in CATEGORY_VALUES:
+                perr(filename,
+                     "has invalid category '{}'".format(option.category),
+                     option)
             if option.category != 'undocumented' and not option.help:
                 perr(filename,
                      'help text required for {} options'.format(option.category),
