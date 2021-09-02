@@ -124,9 +124,9 @@ class LfscNodeConverter : public NodeConverter
    * Get character vector, add internal vector of characters for c.
    */
   void getCharVectorInternal(Node c, std::vector<Node>& chars);
-  /** is indexed operator kind */
+  /** Is k a kind that is printed as an indexed operator in LFSC? */
   static bool isIndexedOperatorKind(Kind k);
-  /** get indices, n is the operator */
+  /** get indices for printing the operator of n in the LFSC format */
   static std::vector<Node> getOperatorIndices(Kind k, Node n);
   /** terms with different syntax than smt2 */
   std::map<std::tuple<Kind, TypeNode, std::string>, Node> d_symbolsMap;
