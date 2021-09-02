@@ -20,6 +20,7 @@
 #include "printer/printer.h"
 #include "smt/dump.h"
 #include "smt/output_manager.h"
+#include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "util/statistics_stats.h"
