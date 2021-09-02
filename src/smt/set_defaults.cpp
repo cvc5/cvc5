@@ -484,10 +484,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     if (incompatibleWithQuantifiers(opts, reasonNoQuant))
     {
       std::stringstream ss;
-      ss << reasonNoQuant.str()
-         << " not supported in quantified logics.";
-         throw OptionException(
-                ss.str());
+      ss << reasonNoQuant.str() << " not supported in quantified logics.";
+      throw OptionException(ss.str());
     }
   }
 }
@@ -1368,9 +1366,11 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   }
   // counterexample-guided instantiation for non-sygus
   // enable if any possible quantifiers with arithmetic, datatypes or bitvectors
-  if ((logic.isQuantified() && (logic.isTheoryEnabled(THEORY_ARITH)
-       || logic.isTheoryEnabled(THEORY_DATATYPES)
-       || logic.isTheoryEnabled(THEORY_BV) || logic.isTheoryEnabled(THEORY_FP)))
+  if ((logic.isQuantified()
+       && (logic.isTheoryEnabled(THEORY_ARITH)
+           || logic.isTheoryEnabled(THEORY_DATATYPES)
+           || logic.isTheoryEnabled(THEORY_BV)
+           || logic.isTheoryEnabled(THEORY_FP)))
       || opts.quantifiers.cegqiAll)
   {
     if (!opts.quantifiers.cegqiWasSetByUser)
