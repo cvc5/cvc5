@@ -104,9 +104,7 @@ bool LeanProofPostprocessCallback::update(Node res,
                   *cdp);
       break;
     }
-    default:
-    {
-      return false;
+    default: { return false;
     }
   };
   return true;
