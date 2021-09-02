@@ -3951,6 +3951,22 @@ class CVC5_EXPORT Solver
   bool isModelCoreSymbol(const Term& v) const;
 
   /**
+   * Get the model
+   * SMT-LIB:
+   * \verbatim
+   * ( get-model )
+   * \endverbatim
+   * Requires to enable option 'produce-models'.
+   * @param sorts The list of uninterpreted sorts that should be printed in the
+   * model.
+   * @param vars The list of free constants that should be printed in the
+   * model. A subset of these may be printed based on isModelCoreSymbol.
+   * @return a string representing the model.
+   */
+  std::string getModel(const std::vector<Sort>& sorts,
+                       const std::vector<Term>& vars) const;
+
+  /**
    * Do quantifier elimination.
    * SMT-LIB:
    * \verbatim
@@ -4328,10 +4344,6 @@ class CVC5_EXPORT Solver
    * @return the synthesis solutions of the given terms
    */
   std::vector<Term> getSynthSolutions(const std::vector<Term>& terms) const;
-
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  SmtEngine* getSmtEngine(void) const;
 
   /**
    * Returns a snapshot of the current state of the statistic values of this

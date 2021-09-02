@@ -141,14 +141,13 @@ Node Rewriter::rewriteEqualityExt(TNode node)
 {
   Assert(node.getKind() == kind::EQUAL);
   // note we don't force caching of this method currently
-  return getInstance()->d_theoryRewriters[theoryOf(node)]->rewriteEqualityExt(
-      node);
+  return d_theoryRewriters[theoryOf(node)]->rewriteEqualityExt(node);
 }
 
 void Rewriter::registerTheoryRewriter(theory::TheoryId tid,
                                       TheoryRewriter* trew)
 {
-  getInstance()->d_theoryRewriters[tid] = trew;
+  d_theoryRewriters[tid] = trew;
 }
 
 void Rewriter::registerPreRewrite(
