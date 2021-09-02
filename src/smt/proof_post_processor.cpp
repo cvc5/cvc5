@@ -478,7 +478,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         rargs.push_back(args[3]);
       }
     }
-    Node tr = builtin::BuiltinProofRuleChecker::applyRewrite(ts, idr);
+    builtin::BuiltinProofRuleChecker* builtinPfC =
+        static_cast<builtin::BuiltinProofRuleChecker*>(
+            d_pnm->getChecker()->getCheckerFor(PfRule::MACRO_SR_EQ_INTRO));
+    Node tr = builtinPfC->applyRewrite(ts, idr);
     Trace("smt-proof-pp-debug")
         << "...eq intro rewrite equality is " << ts << " == " << tr << ", from "
         << idr << std::endl;
@@ -952,7 +955,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     {
       getMethodId(args[1], idr);
     }
-    Node ret = builtin::BuiltinProofRuleChecker::applyRewrite(args[0], idr);
+    builtin::BuiltinProofRuleChecker* builtinPfC =
+        static_cast<builtin::BuiltinProofRuleChecker*>(
+            d_pnm->getChecker()->getCheckerFor(PfRule::REWRITE));
+    Node ret = builtinPfC->applyRewrite(args[0], idr);
     Node eq = args[0].eqNode(ret);
     if (idr == MethodId::RW_REWRITE || idr == MethodId::RW_REWRITE_EQ_EXT)
     {
@@ -1009,8 +1015,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         }
         MethodId midi =
             i == 0 ? MethodId::RW_REWRITE : MethodId::RW_REWRITE_EQ_EXT;
-        Node retDef =
-            builtin::BuiltinProofRuleChecker::applyRewrite(retCurr, midi);
+        Node retDef = builtinPfC->applyRewrite(retCurr, midi);
         if (retDef != retCurr)
         {
           // will expand this as a default rewrite if needed

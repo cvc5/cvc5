@@ -39,7 +39,7 @@ function testwith {
 # simply check that make regress passes
 testwith regress ""
 # eager checking, fail if any intermediate proof went wrong
-testwith eager_checking "" --proof-req --proof-eager-checking
+testwith eager_checking "" --proof-req --proof-check=eager
 # check proofs, non-pedantic
 testwith check_proofs "" --proof-req --check-proofs
 # check proofs, pedantic level one

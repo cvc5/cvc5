@@ -47,7 +47,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * specifying a call to Rewriter::rewrite.
    * @return The rewritten form of n.
    */
-  static Node applyRewrite(Node n, MethodId idr = MethodId::RW_REWRITE);
+  Node applyRewrite(Node n, MethodId idr = MethodId::RW_REWRITE);
   /**
    * Get substitution for literal exp. Updates vars/subs to the substitution
    * specified by exp for the substitution method ids.
@@ -104,7 +104,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * @param idr The method identifier of the rewriter.
    * @return The substituted, rewritten form of n.
    */
-  static Node applySubstitutionRewrite(Node n,
+  Node applySubstitutionRewrite(Node n,
                                        const std::vector<Node>& exp,
                                        MethodId ids = MethodId::SB_DEFAULT,
                                        MethodId ida = MethodId::SBA_SEQUENTIAL,
@@ -122,14 +122,12 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   Node checkInternal(PfRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
-  /** Pointer to the rewrite database */
-  rewriter::RewriteDb* d_rdb;
-  /** extended rewriter object */
-  quantifiers::ExtendedRewriter d_ext_rewriter;
 
  private:
   /** Reference to the environment. */
   Env& d_env;
+  /** Pointer to the rewrite database */
+  rewriter::RewriteDb* d_rdb;
 };
 
 }  // namespace builtin
