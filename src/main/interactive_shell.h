@@ -19,14 +19,9 @@
 #include <iosfwd>
 #include <string>
 
-#include "options/language.h"
-#include "options/options.h"
-#include "util/unsafe_interrupt_exception.h"
-
 namespace cvc5 {
 
 class Command;
-class Options;
 
 namespace api {
 class Solver;

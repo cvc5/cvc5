@@ -264,7 +264,7 @@ TheoryEngine::TheoryEngine(Env& env)
 
   if (options::sortInference())
   {
-    d_sortInfer.reset(new SortInference);
+    d_sortInfer.reset(new SortInference(env));
   }
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
