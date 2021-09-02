@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-rlv=always --no-sygus-inst
+; COMMAND-LINE: --no-sygus-inst
 ; EXPECT: unsat
 (set-logic NRA)
 (set-info :status unsat)
