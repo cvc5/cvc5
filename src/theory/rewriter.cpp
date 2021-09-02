@@ -21,11 +21,11 @@
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/evaluator.h"
+#include "theory/quantifiers/extended_rewriter.h"
 #include "theory/rewriter_tables.h"
 #include "theory/theory.h"
 #include "util/resource_manager.h"
-#include "theory/evaluator.h"
-#include "theory/quantifiers/extended_rewriter.h"
 
 using namespace std;
 
@@ -472,7 +472,6 @@ void Rewriter::clearCaches()
   clearCachesInternal();
 }
 
-
 Node Rewriter::rewriteViaMethod(TNode n, MethodId idr)
 {
   if (idr == MethodId::RW_REWRITE)
@@ -499,8 +498,8 @@ Node Rewriter::rewriteViaMethod(TNode n, MethodId idr)
     return n;
   }
   // unknown rewriter
-  Unhandled() << "Rewriter::rewriteViaMethod: no rewriter for "
-                << idr << std::endl;
+  Unhandled() << "Rewriter::rewriteViaMethod: no rewriter for " << idr
+              << std::endl;
   return n;
 }
 

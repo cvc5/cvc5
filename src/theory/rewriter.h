@@ -18,8 +18,8 @@
 #pragma once
 
 #include "expr/node.h"
-#include "theory/theory_rewriter.h"
 #include "proof/method_id.h"
+#include "theory/theory_rewriter.h"
 
 namespace cvc5 {
 
@@ -108,7 +108,7 @@ class Rewriter {
 
   /** Get the theory rewriter for the given id */
   TheoryRewriter* getTheoryRewriter(theory::TheoryId theoryId);
-  
+
   /**
    * Apply rewrite on n. This encapsulates the exact behavior
    * of a REWRITE step in a proof.
@@ -119,6 +119,7 @@ class Rewriter {
    * @return The rewritten form of n.
    */
   Node rewriteViaMethod(TNode n, MethodId idr = MethodId::RW_REWRITE);
+
  private:
   /**
    * Get the rewriter associated with the SmtEngine in scope.
