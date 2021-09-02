@@ -14,7 +14,6 @@
 ##
 
 set(LIBCONTEXT_SOURCES
-  backtrackable.h
   cddense_set.h
   cdhashmap.h
   cdhashmap_forward.h
