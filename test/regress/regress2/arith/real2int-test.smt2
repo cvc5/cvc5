@@ -1,4 +1,4 @@
-; COMMAND-LINE: --solve-real-as-int --no-new-prop --nl-ext-tplanes
+; COMMAND-LINE: --solve-real-as-int --no-new-prop --nl-ext-tplanes --no-produce-proofs
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)
 (set-logic QF_NRA)
