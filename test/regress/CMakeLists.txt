@@ -2110,7 +2110,7 @@ set(regress_1_tests
   regress1/strings/bug686dd.smt2
   regress1/strings/bug768.smt2
   regress1/strings/bug799-min.smt2
-  regress1/strings/cee-norn-aes-trivially.smt2 
+  regress1/strings/cee-norn-aes-trivially.smt2
   regress1/strings/chapman150408.smt2
   regress1/strings/cmu-2db2-extf-reg.smt2
   regress1/strings/cmu-5042-0707-2.smt2
@@ -2509,6 +2509,7 @@ set(regress_2_tests
   regress2/ooo.rf6.smt2
   regress2/ooo.tag10.smt2
   regress2/piVC_5581bd.smt2
+  regress2/proofs/sat-proof-reloaded-reason.smt2
   regress2/push-pop/DRAGON_4_e2_2799_e3_1915.lus.ic3.1.min.smt2
   regress2/quantifiers/AdditiveMethods_AdditiveMethods..ctor.smt2
   regress2/quantifiers/cee-event-wrong-sat.smt2
@@ -2763,6 +2764,7 @@ set(regression_disabled_tests
   regress2/ho/SYO362^5.p
   # time out
   regress3/unifpi-solve-car_1.lus.sy
+  # unknown (is sat)
   regress3/issue4476-ext-rew.smt2
 )
 

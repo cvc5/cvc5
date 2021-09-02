@@ -1,6 +1,5 @@
 id     = "BASE"
 name   = "Base"
-public = true
 
 [[option]]
   name       = "in"
