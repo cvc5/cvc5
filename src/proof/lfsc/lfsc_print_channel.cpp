@@ -167,10 +167,7 @@ void LfscPrintChannelOut::cleanSymbols(std::string& s)
 
 LfscPrintChannelPre::LfscPrintChannelPre(LetBinding& lbind) : d_lbind(lbind) {}
 
-void LfscPrintChannelPre::printNode(TNode n)
-{
-  d_lbind.process(n);
-}
+void LfscPrintChannelPre::printNode(TNode n) { d_lbind.process(n); }
 void LfscPrintChannelPre::printTrust(TNode res, PfRule src)
 {
   d_lbind.process(res);
