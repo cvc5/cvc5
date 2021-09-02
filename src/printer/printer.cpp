@@ -66,22 +66,15 @@ void Printer::toStream(std::ostream& out, const smt::Model& m) const
   const std::vector<TypeNode>& dsorts = m.getDeclaredSorts();
   for (const TypeNode& tn : dsorts)
   {
-    toStreamModelSort(out, m, tn);
+    toStreamModelSort(out, tn, m.getDomainElements(tn));
   }
-
   // print the declared terms
   const std::vector<Node>& dterms = m.getDeclaredTerms();
   for (const Node& n : dterms)
   {
-    // take into account model core, independently of the format
-    if (!m.isModelCoreSymbol(n))
-    {
-      continue;
-    }
-    toStreamModelTerm(out, m, n);
+    toStreamModelTerm(out, n, m.getValue(n));
   }
-
-}/* Printer::toStream(Model) */
+}
 
 void Printer::toStreamUsing(Language lang,
                             std::ostream& out,

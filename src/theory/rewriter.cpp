@@ -148,7 +148,7 @@ Node Rewriter::rewriteEqualityExt(TNode node)
 void Rewriter::registerTheoryRewriter(theory::TheoryId tid,
                                       TheoryRewriter* trew)
 {
-  getInstance()->d_theoryRewriters[tid] = trew;
+  d_theoryRewriters[tid] = trew;
 }
 
 void Rewriter::registerPreRewrite(

@@ -61,6 +61,18 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
   return mkNode(PfRule::ASSUME, {}, {fact}, fact);
 }
 
+std::shared_ptr<ProofNode> ProofNodeManager::mkSymm(
+    std::shared_ptr<ProofNode> child, Node expected)
+{
+  if (child->getRule() == PfRule::SYMM)
+  {
+    Assert(expected.isNull()
+           || child->getChildren()[0]->getResult() == expected);
+    return child->getChildren()[0];
+  }
+  return mkNode(PfRule::SYMM, {child}, {}, expected);
+}
+
 std::shared_ptr<ProofNode> ProofNodeManager::mkTrans(
     const std::vector<std::shared_ptr<ProofNode>>& children, Node expected)
 {
@@ -173,7 +185,14 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
         // use SYMM if possible
         if (aMatch == aeqSym)
         {
-          updateNode(pfs.get(), PfRule::SYMM, children, {});
+          if (pfaa->getRule() == PfRule::SYMM)
+          {
+            updateNode(pfs.get(), pfaa->getChildren()[0].get());
+          }
+          else
+          {
+            updateNode(pfs.get(), PfRule::SYMM, children, {});
+          }
         }
         else
         {
@@ -263,6 +282,11 @@ bool ProofNodeManager::updateNode(ProofNode* pn, ProofNode* pnr)
 {
   Assert(pn != nullptr);
   Assert(pnr != nullptr);
+  if (pn == pnr)
+  {
+    // same node, no update necessary
+    return true;
+  }
   if (pn->getResult() != pnr->getResult())
   {
     return false;
@@ -299,7 +323,7 @@ Node ProofNodeManager::checkInternal(
 ProofChecker* ProofNodeManager::getChecker() const { return d_checker; }
 
 std::shared_ptr<ProofNode> ProofNodeManager::clone(
-    std::shared_ptr<ProofNode> pn)
+    std::shared_ptr<ProofNode> pn) const
 {
   const ProofNode* orig = pn.get();
   std::unordered_map<const ProofNode*, std::shared_ptr<ProofNode>> visited;
@@ -333,7 +357,13 @@ std::shared_ptr<ProofNode> ProofNodeManager::clone(
       {
         it = visited.find(cp.get());
         Assert(it != visited.end());
-        Assert(it->second != nullptr);
+        // if we encounter nullptr here, then this child is currently being
+        // traversed at a higher level, hence this corresponds to a cyclic
+        // proof.
+        if (it->second == nullptr)
+        {
+          Unreachable() << "Cyclic proof encountered when cloning a proof node";
+        }
         cchildren.push_back(it->second);
       }
       cloned = std::make_shared<ProofNode>(
@@ -345,6 +375,23 @@ std::shared_ptr<ProofNode> ProofNodeManager::clone(
   }
   Assert(visited.find(orig) != visited.end());
   return visited[orig];
+}
+
+ProofNode* ProofNodeManager::cancelDoubleSymm(ProofNode* pn)
+{
+  while (pn->getRule() == PfRule::SYMM)
+  {
+    std::shared_ptr<ProofNode> pnc = pn->getChildren()[0];
+    if (pnc->getRule() == PfRule::SYMM)
+    {
+      pn = pnc->getChildren()[0].get();
+    }
+    else
+    {
+      break;
+    }
+  }
+  return pn;
 }
 
 bool ProofNodeManager::updateNodeInternal(
