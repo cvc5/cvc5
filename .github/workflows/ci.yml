@@ -210,7 +210,7 @@ jobs:
 
     - name: Run Unit Tests
       if: matrix.check-units
-      run: make -j${{ env.num_proc }} units
+      run: make -j${{ env.num_proc }} apitests units
       working-directory: build
 
     - name: Install Check
