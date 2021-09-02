@@ -50,7 +50,6 @@ class EnvObj
    */
   void clearRewriterCaches();
 
- private:
  protected:
   /** The associated environment. */
   Env& d_env;
