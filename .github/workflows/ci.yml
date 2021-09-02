@@ -38,6 +38,7 @@ jobs:
             os: ubuntu-18.04
             config: production --auto-download --assertions --tracing --unit-testing --editline
             cache-key: dbg
+            check-units: true
             exclude_regress: 3-4
             run_regression_args: --no-check-unsat-cores
 
@@ -205,6 +206,11 @@ jobs:
         ARGS: --output-on-failure -LE regress[${{ matrix.exclude_regress }}]
         CVC5_REGRESSION_ARGS: --no-early-exit
         RUN_REGRESSION_ARGS: ${{ matrix.run_regression_args }}
+      working-directory: build
+
+    - name: Run Unit Tests
+      if: matrix.check-units
+      run: make -j${{ env.num_proc }} apitests units
       working-directory: build
 
     - name: Install Check

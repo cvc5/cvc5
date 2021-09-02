@@ -257,15 +257,6 @@ void set(Options& opts, const std::string& name, const std::string& optionarg)
   setInternal(opts, name, optionarg);
 }
 
-std::vector<std::vector<std::string> > getAll(const Options& opts)
-{
-  std::vector<std::vector<std::string>> res;
-  // clang-format off
-  ${options_getall}$
-  // clang-format on
-  return res;
-}
-
 std::vector<std::string> getNames()
 {
   return {

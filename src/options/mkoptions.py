@@ -214,22 +214,6 @@ def get_predicates(option):
     return res
 
 
-def get_getall(module, option):
-    """Render snippet to add option to result of getAll()"""
-    if option.type == 'bool':
-        return 'res.push_back({{"{}", opts.{}.{} ? "true" : "false"}});'.format(
-            option.long_name, module.id, option.name)
-    elif option.type == 'std::string':
-        return 'res.push_back({{"{}", opts.{}.{}}});'.format(
-            option.long_name, module.id, option.name)
-    elif is_numeric_cpp_type(option.type):
-        return 'res.push_back({{"{}", std::to_string(opts.{}.{})}});'.format(
-            option.long_name, module.id, option.name)
-    else:
-        return '{{ std::stringstream ss; ss << opts.{}.{}; res.push_back({{"{}", ss.str()}}); }}'.format(module.id,
-            option.name, option.long_name)
-
-
 class Module(object):
     """Options module.
 
@@ -694,7 +678,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     headers_handler = set()  # option includes (for handlers, predicates, ...)
     getopt_short = []        # short options for getopt_long
     getopt_long = []         # long options for getopt_long
-    options_getall = []      # options for options::getAll()
     options_get_info = []    # code for getOptionInfo()
     options_handler = []     # option handler calls
     options_names = set()    # option names
@@ -883,11 +866,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                 cases.append('  break;')
                 options_handler.extend(cases)
 
-            if option.name:
-                # Build options for options::getOptions()
-                if option.long_name:
-                    options_getall.append(get_getall(module, option))
-
     options_all_names = ', '.join(map(lambda s: '"' + s + '"', sorted(options_names)))
     options_all_names = '\n'.join(textwrap.wrap(options_all_names, width=80, break_on_hyphens=False))
 
@@ -905,7 +883,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
         'help_others': '\n'.join(help_others),
         'options_handler': '\n    '.join(options_handler),
         'options_short': ''.join(getopt_short),
-        'options_getall': '\n  '.join(options_getall),
         'options_all_names': options_all_names,
         'options_get_info': '\n  '.join(sorted(options_get_info)),
         'getoption_handlers': '\n'.join(getoption_handlers),
