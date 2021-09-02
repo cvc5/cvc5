@@ -31,6 +31,8 @@ namespace cvc5 {
 ProofNodeManager::ProofNodeManager(ProofChecker* pc) : d_checker(pc)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
+  // we always allocate a proof checker, regardless of the proof checking mode
+  Assert(d_checker != nullptr);
 }
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
@@ -41,7 +43,8 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
 {
   Trace("pnm") << "ProofNodeManager::mkNode " << id << " {" << expected.getId()
                << "} " << expected << "\n";
-  Node res = checkInternal(id, children, args, expected);
+  bool didCheck = false;
+  Node res = checkInternal(id, children, args, expected, didCheck);
   if (res.isNull())
   {
     // if it was invalid, then we return the null node
@@ -51,6 +54,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
   std::shared_ptr<ProofNode> pn =
       std::make_shared<ProofNode>(id, children, args);
   pn->d_proven = res;
+  pn->d_provenChecked = didCheck;
   return pn;
 }
 
@@ -291,32 +295,49 @@ bool ProofNodeManager::updateNode(ProofNode* pn, ProofNode* pnr)
   {
     return false;
   }
+  // copy whether we did the check
+  pn->d_provenChecked = pnr->d_provenChecked;
   // can shortcut re-check of rule
   return updateNodeInternal(
       pn, pnr->getRule(), pnr->getChildren(), pnr->getArguments(), false);
+}
+
+void ProofNodeManager::ensureChecked(ProofNode* pn)
+{
+  if (pn->d_provenChecked)
+  {
+    // already checked
+    return;
+  }
+  // directly call the proof checker
+  Node res = d_checker->check(pn, pn->getResult());
+  pn->d_provenChecked = true;
+  // should have the correct result
+  Assert(res == pn->d_proven);
 }
 
 Node ProofNodeManager::checkInternal(
     PfRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args,
-    Node expected)
+    Node expected,
+    bool& didCheck)
 {
-  Node res;
-  if (d_checker)
+  // if the user supplied an expected result, then we trust it if we are in
+  // a proof checking mode that does not eagerly check rule applications
+  if (!expected.isNull())
   {
-    // check with the checker, which takes expected as argument
-    res = d_checker->check(id, children, args, expected);
-    Assert(!res.isNull())
-        << "ProofNodeManager::checkInternal: failed to check proof";
+    if (options::proofCheck() == options::ProofCheckMode::LAZY
+        || options::proofCheck() == options::ProofCheckMode::NONE)
+    {
+      return expected;
+    }
   }
-  else
-  {
-    // otherwise we trust the expected value, if it exists
-    Assert(!expected.isNull()) << "ProofNodeManager::checkInternal: no checker "
-                                  "or expected value provided";
-    res = expected;
-  }
+  // check with the checker, which takes expected as argument
+  Node res = d_checker->check(id, children, args, expected);
+  didCheck = true;
+  Assert(!res.isNull())
+      << "ProofNodeManager::checkInternal: failed to check proof";
   return res;
 }
 
@@ -371,6 +392,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::clone(
       visited[cur] = cloned;
       // we trust the above cloning does not change what is proven
       cloned->d_proven = cur->d_proven;
+      cloned->d_provenChecked = cur->d_provenChecked;
     }
   }
   Assert(visited.find(orig) != visited.end());
@@ -403,7 +425,7 @@ bool ProofNodeManager::updateNodeInternal(
 {
   Assert(pn != nullptr);
   // ---------------- check for cyclic
-  if (options::proofEagerChecking())
+  if (options::proofCheck() == options::ProofCheckMode::EAGER)
   {
     std::unordered_set<const ProofNode*> visited;
     for (const std::shared_ptr<ProofNode>& cpc : children)
@@ -436,7 +458,8 @@ bool ProofNodeManager::updateNodeInternal(
   if (needsCheck)
   {
     // We expect to prove the same thing as before
-    Node res = checkInternal(id, children, args, pn->d_proven);
+    bool didCheck = false;
+    Node res = checkInternal(id, children, args, pn->d_proven, didCheck);
     if (res.isNull())
     {
       // if it was invalid, then we do not update
@@ -444,6 +467,7 @@ bool ProofNodeManager::updateNodeInternal(
     }
     // proven field should already be the same as the result
     Assert(res == pn->d_proven);
+    pn->d_provenChecked = didCheck;
   }
 
   // we update its value
