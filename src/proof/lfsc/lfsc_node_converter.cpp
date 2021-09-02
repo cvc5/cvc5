@@ -20,6 +20,7 @@
 #include "expr/array_store_all.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/nary_term_util.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
@@ -148,7 +149,6 @@ Node LfscNodeConverter::postConvert(Node n)
   }
   else if (k == APPLY_UF)
   {
-    // Assert(d_symbols.find(n.getOperator()) != d_symbols.end());
     return convert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
   else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER
@@ -350,6 +350,7 @@ Node LfscNodeConverter::postConvert(Node n)
   else if (k == MATCH)
   {
     // FIXME
+    // currently unsupported
     return n;
   }
   else if (k == BITVECTOR_BB_TERM)
@@ -736,7 +737,6 @@ void LfscNodeConverter::getCharVectorInternal(Node c, std::vector<Node>& chars)
 
 bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
 {
-  // TODO: this can be moved to a more central place
   return k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
          || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
          || k == BITVECTOR_ROTATE_LEFT || k == BITVECTOR_ROTATE_RIGHT
@@ -746,7 +746,6 @@ bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
 
 std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
 {
-  // TODO: this can be moved to a more central place
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> indices;
   switch (k)
@@ -811,33 +810,11 @@ Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
   Node nullTerm;
   switch (k)
   {
-    case OR: nullTerm = nm->mkConst(false); break;
-    case AND:
-    case SEP_STAR: nullTerm = nm->mkConst(true); break;
-    case PLUS: nullTerm = nm->mkConst(Rational(0)); break;
-    case MULT:
-    case NONLINEAR_MULT: nullTerm = nm->mkConst(Rational(1)); break;
-    case STRING_CONCAT:
-      // handles strings and sequences
-      nullTerm = theory::strings::Word::mkEmptyWord(tn);
-      break;
     case REGEXP_CONCAT:
-      // the language containing only the empty string
-      // nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
+      // the language containing only the empty string, which has special
+      // syntax in LFSC
       nullTerm = getSymbolInternal(k, tn, "re.empty");
       break;
-    case BITVECTOR_AND:
-      nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
-      break;
-    case BITVECTOR_OR:
-    case BITVECTOR_ADD:
-    case BITVECTOR_XOR:
-      nullTerm = theory::bv::utils::mkZero(tn.getBitVectorSize());
-      break;
-    case BITVECTOR_MULT:
-      nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
-      break;
-    case BITVECTOR_BB_TERM:
     case BITVECTOR_CONCAT:
     {
       // the null terminator of bitvector concat is a dummy variable of
@@ -848,10 +825,15 @@ Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
     }
     break;
     default:
-      // not handled as null-terminated
+      // no special handling, or not null terminated
       break;
   }
-  return nullTerm;
+  if (!nullTerm.isNull())
+  {
+    return nullTerm;
+  }
+  // otherwise, fall back to standard utility
+  return expr::getNullTerminator(k, tn);
 }
 
 Kind LfscNodeConverter::getBuiltinKindForInternalSymbol(Node op) const
@@ -1028,10 +1010,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   {
     opName << "_total";
   }
-  Node ret = getSymbolInternal(k, ftype, opName.str());
-  Trace("lfsc-term-process-debug2")
-      << "...return (simple) " << ret << std::endl;
-  return ret;
+  return getSymbolInternal(k, ftype, opName.str());
 }
 
 Node LfscNodeConverter::getOperatorOfClosure(Node q, bool macroApply)

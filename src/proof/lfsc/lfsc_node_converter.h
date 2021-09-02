@@ -27,6 +27,10 @@
 namespace cvc5 {
 namespace proof {
 
+/**
+ * This is a helper class for the LFSC printer that converts nodes into
+ * form that LFSC expects. It should only be used by the LFSC printer.
+ */
 class LfscNodeConverter : public NodeConverter
 {
  public:
@@ -55,7 +59,7 @@ class LfscNodeConverter : public NodeConverter
   /**
    * Recall that (forall ((x Int)) (P x)) is printed as:
    *   (apply (forall N Int) (apply P (bvar N Int)))
-   * in LFSC, where N is an integer.
+   * in LFSC, where N is an integer indicating the id of the variable.
    *
    * Get closure operator. In the above example, this method returns the
    * uninterpreted function whose name is "forall" and is used to construct
@@ -97,19 +101,32 @@ class LfscNodeConverter : public NodeConverter
    * signature.
    */
   Node maybeMkSkolemFun(Node k, bool macroApply = false);
-  /** Type as node */
+  /**
+   * Type as node, returns a node that prints in the form that LFSC will
+   * interpret as the type tni. This method is required since types can be
+   * passed as arguments to terms. This method assumes that tni has been
+   * converted to internal form (via the convertType method of this class).
+   */
   Node typeAsNode(TypeNode tni) const;
-  /** Get symbol for term */
+  /**
+   * Get symbol for term, a special case of the method below for the type and
+   * kind of n.
+   */
   Node getSymbolInternalFor(Node n, const std::string& name);
-  /** Get symbol internal, (k,tn,name) are for caching, name is the name */
+  /**
+   * Get symbol internal, (k,tn,name) are for caching, name is the name. This
+   * method returns a fresh symbol of the given name and type. It is frequently
+   * used when the type of a native operator does not match the type of the
+   * LFSC operator.
+   */
   Node getSymbolInternal(Kind k, TypeNode tn, const std::string& name);
   /**
    * Get character vector, add internal vector of characters for c.
    */
   void getCharVectorInternal(Node c, std::vector<Node>& chars);
-  /** is indexed operator kind */
+  /** Is k a kind that is printed as an indexed operator in LFSC? */
   static bool isIndexedOperatorKind(Kind k);
-  /** get indices, n is the operator */
+  /** get indices for printing the operator of n in the LFSC format */
   static std::vector<Node> getOperatorIndices(Kind k, Node n);
   /** terms with different syntax than smt2 */
   std::map<std::tuple<Kind, TypeNode, std::string>, Node> d_symbolsMap;
