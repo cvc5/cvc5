@@ -40,7 +40,7 @@ TheoryModel::TheoryModel(Env& env, std::string name, bool enableFuncModels)
       d_enableFuncModels(enableFuncModels)
 {
   // must use function models when ufHo is enabled
-  Assert(d_enableFuncModels || !options::ufHo());
+  Assert(d_enableFuncModels || !d_env.getLogicInfo().isHigherOrder());
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 }
@@ -52,7 +52,8 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
   Assert(ee != nullptr);
   d_equalityEngine = ee;
   // The kinds we are treating as function application in congruence
-  d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, options::ufHo());
+  d_equalityEngine->addFunctionKind(
+      kind::APPLY_UF, false, d_env.getLogicInfo().isHigherOrder());
   d_equalityEngine->addFunctionKind(kind::HO_APPLY);
   d_equalityEngine->addFunctionKind(kind::SELECT);
   // d_equalityEngine->addFunctionKind(kind::STORE);
@@ -293,7 +294,8 @@ Node TheoryModel::getModelValue(TNode n) const
   // return the representative of the term in the equality engine, if it exists
   TypeNode t = ret.getType();
   bool eeHasTerm;
-  if (!options::ufHo() && (t.isFunction() || t.isPredicate()))
+  if (!d_env.getLogicInfo().isHigherOrder()
+      && (t.isFunction() || t.isPredicate()))
   {
     // functions are in the equality engine, but *not* as first-class members
     // when higher-order is disabled. In this case, we cannot query
@@ -692,7 +694,8 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
   Trace("model-builder") << "  Assigning function (" << f << ") to (" << f_def << ")" << endl;
   Assert(d_uf_models.find(f) == d_uf_models.end());
 
-  if( options::ufHo() ){
+  if (d_env.getLogicInfo().isHigherOrder())
+  {
     //we must rewrite the function value since the definition needs to be a constant value
     f_def = Rewriter::rewrite( f_def );
     Trace("model-builder-debug")
@@ -705,7 +708,7 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     d_uf_models[f] = f_def;
   }
 
-  if (options::ufHo() && d_equalityEngine->hasTerm(f))
+  if (d_env.getLogicInfo().isHigherOrder() && d_equalityEngine->hasTerm(f))
   {
     Trace("model-builder-debug") << "  ...function is first-class member of equality engine" << std::endl;
     // assign to representative if higher-order
@@ -740,7 +743,8 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
     Assert(d_env.getTopLevelSubstitutions().apply(n) == n);
     if( !hasAssignedFunctionDefinition( n ) ){
       Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
-      if( options::ufHo() ){
+      if (d_env.getLogicInfo().isHigherOrder())
+      {
         // if in higher-order mode, assign function definitions modulo equality
         Node r = getRepresentative( n );
         std::map< Node, Node >::iterator itf = func_to_rep.find( r );

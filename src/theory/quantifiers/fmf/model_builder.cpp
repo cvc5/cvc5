@@ -34,7 +34,7 @@ QModelBuilder::QModelBuilder(QuantifiersState& qs,
                              QuantifiersInferenceManager& qim,
                              QuantifiersRegistry& qr,
                              TermRegistry& tr)
-    : TheoryEngineModelBuilder(),
+    : TheoryEngineModelBuilder(qs.getEnv()),
       d_addedLemmas(0),
       d_triedLemmas(0),
       d_qstate(qs),
