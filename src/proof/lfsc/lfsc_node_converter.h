@@ -59,7 +59,7 @@ class LfscNodeConverter : public NodeConverter
   /**
    * Recall that (forall ((x Int)) (P x)) is printed as:
    *   (apply (forall N Int) (apply P (bvar N Int)))
-   * in LFSC, where N is an integer.
+   * in LFSC, where N is an integer indicating the id of the variable.
    *
    * Get closure operator. In the above example, this method returns the
    * uninterpreted function whose name is "forall" and is used to construct
