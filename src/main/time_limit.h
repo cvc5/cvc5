@@ -16,7 +16,7 @@
 #ifndef CVC5__MAIN__TIME_LIMIT_H
 #define CVC5__MAIN__TIME_LIMIT_H
 
-#include "options/options.h"
+#include <cstdint>
 
 namespace cvc5 {
 namespace main {
