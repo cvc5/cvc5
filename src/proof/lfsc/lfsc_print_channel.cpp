@@ -27,7 +27,6 @@ namespace proof {
 LfscPrintChannelOut::LfscPrintChannelOut(std::ostream& out) : d_out(out) {}
 void LfscPrintChannelOut::printNode(TNode n)
 {
-  d_nodeCount++;
   d_out << " ";
   printNodeInternal(d_out, n);
 }
@@ -41,7 +40,6 @@ void LfscPrintChannelOut::printTypeNode(TypeNode tn)
 void LfscPrintChannelOut::printHole() { d_out << " _ "; }
 void LfscPrintChannelOut::printTrust(TNode res, PfRule src)
 {
-  d_trustCount++;
   d_out << std::endl << "(trust ";
   printNodeInternal(d_out, res);
   d_out << ") ; from " << src << std::endl;
@@ -171,12 +169,10 @@ LfscPrintChannelPre::LfscPrintChannelPre(LetBinding& lbind) : d_lbind(lbind) {}
 
 void LfscPrintChannelPre::printNode(TNode n)
 {
-  d_nodeCount++;
   d_lbind.process(n);
 }
 void LfscPrintChannelPre::printTrust(TNode res, PfRule src)
 {
-  d_trustCount++;
   d_lbind.process(res);
 }
 
