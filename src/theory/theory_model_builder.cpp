@@ -18,7 +18,6 @@
 #include "expr/dtype_cons.h"
 #include "expr/uninterpreted_constant.h"
 #include "options/quantifiers_options.h"
-#include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "smt/env.h"
