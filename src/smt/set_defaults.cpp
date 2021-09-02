@@ -1235,8 +1235,6 @@ void SetDefaults::widenLogic(LogicInfo& logic, Options& opts) const
 void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
                                          Options& opts) const
 {
-  Assert(logic.isQuantified());
-
   if (opts.quantifiers.sygusInstWasSetByUser)
   {
     if (isSygus(opts))
@@ -1371,9 +1369,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   }
   // counterexample-guided instantiation for non-sygus
   // enable if any possible quantifiers with arithmetic, datatypes or bitvectors
-  if ((logic.isTheoryEnabled(THEORY_ARITH)
+  if ((logic.isQuantified() && (logic.isTheoryEnabled(THEORY_ARITH)
        || logic.isTheoryEnabled(THEORY_DATATYPES)
-       || logic.isTheoryEnabled(THEORY_BV) || logic.isTheoryEnabled(THEORY_FP))
+       || logic.isTheoryEnabled(THEORY_BV) || logic.isTheoryEnabled(THEORY_FP)))
       || opts.quantifiers.cegqiAll)
   {
     if (!opts.quantifiers.cegqiWasSetByUser)
