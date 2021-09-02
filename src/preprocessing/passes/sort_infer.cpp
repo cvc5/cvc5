@@ -71,8 +71,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
       assertionsToPreprocess->push_back(nar);
     }
     // indicate correspondence between the functions
-    SmtEngine* smt = d_preprocContext->getSmt();
-    smt::DumpManager* dm = smt->getDumpManager();
+    smt::DumpManager* dm = d_env.getDumpManager();
     for (const std::pair<const Node, Node>& mrf : model_replace_f)
     {
       dm->setPrintFuncInModel(mrf.first, false);

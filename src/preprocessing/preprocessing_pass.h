@@ -34,6 +34,7 @@
 
 #include <string>
 
+#include "smt/env_obj.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
@@ -48,7 +49,8 @@ class PreprocessingPassContext;
  */
 enum PreprocessingPassResult { CONFLICT, NO_CONFLICT };
 
-class PreprocessingPass {
+class PreprocessingPass : public EnvObj
+{
  public:
   /* Preprocesses a list of assertions assertionsToPreprocess */
   PreprocessingPassResult apply(AssertionPipeline* assertionsToPreprocess);
