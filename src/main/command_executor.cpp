@@ -28,6 +28,8 @@
 #include "main/main.h"
 #include "smt/command.h"
 #include "smt/smt_engine.h"
+#include "options/base_options.h"
+#include "options/outputc.h"
 
 namespace cvc5 {
 namespace main {
@@ -197,6 +199,13 @@ bool solverInvoke(api::Solver* solver,
                   Command* cmd,
                   std::ostream& out)
 {
+  // print output for -o raw-benchmark
+  if (Output.isOn(options::OutputTag::RAW_BENCHMARK))
+  {
+    std::stringstream ss;
+    cmd->toStream(ss);
+    Output(options::OutputTag::RAW_BENCHMARK) << ss.str();
+  }
   cmd->invoke(solver, sm, out);
   // ignore the error if the command-verbosity is 0 for this command
   std::string commandName =
