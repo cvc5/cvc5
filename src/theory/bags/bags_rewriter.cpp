@@ -512,7 +512,7 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
   if (n[1].isConst())
   {
     // (bag.map f emptybag) = emptybag
-    // (bag.map f (bag "a" 3) = (bag (f "a") 3)
+    // (bag.map f (bag "a" 3)) = (bag (f "a") 3)
     std::map<Node, Rational> elements = NormalForm::getBagElements(n[1]);
     std::map<Node, Rational> mappedElements;
     std::map<Node, Rational>::iterator it = elements.begin();
