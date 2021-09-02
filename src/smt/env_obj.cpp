@@ -26,9 +26,4 @@ EnvObj::EnvObj(Env& env) : d_env(env) {}
 
 Node EnvObj::rewrite(TNode node) { return d_env.getRewriter()->rewrite(node); }
 
-void EnvObj::clearRewriterCaches()
-{
-  return d_env.getRewriter()->clearCaches();
-}
-
 }  // namespace cvc5
