@@ -109,6 +109,7 @@ Node NormalForm::evaluate(TNode n)
     case BAG_IS_SINGLETON: return evaluateIsSingleton(n);
     case BAG_FROM_SET: return evaluateFromSet(n);
     case BAG_TO_SET: return evaluateToSet(n);
+    case BAG_MAP: return evaluateBagMap(n);
     default: break;
   }
   Unhandled() << "Unexpected bag kind '" << n.getKind() << "' in node " << n
@@ -673,6 +674,35 @@ Node NormalForm::evaluateToSet(TNode n)
   TypeNode setType = nm->mkSetType(n[0].getType().getBagElementType());
   Node set = sets::NormalForm::elementsToSet(setElements, setType);
   return set;
+}
+
+
+Node NormalForm::evaluateBagMap(TNode n)
+{
+  Assert(n.getKind() == BAG_MAP);
+
+  // Examples
+  // --------
+  // - (bag.map ((lambda ((x String)) "z")
+  //            (union_disjoint (bag "a" 2) (bag "b" 3)) =
+  //     (union_disjoint
+  //       (bag ((lambda ((x String)) "z") "a") 2)
+  //       (bag ((lambda ((x String)) "z") "b") 3)) =
+  //     (bag "z" 5)
+
+  std::map<Node, Rational> elements = NormalForm::getBagElements(n[1]);
+  std::map<Node, Rational> mappedElements;
+  std::map<Node, Rational>::iterator it = elements.begin();
+  NodeManager* nm = NodeManager::currentNM();
+  while (it != elements.end())
+  {
+    Node mappedElement = nm->mkNode(APPLY_UF, n[0], it->first);
+    mappedElements[mappedElement] = it->second;
+    ++it;
+  }
+  TypeNode t = nm->mkBagType(n[0].getType().getRangeType());
+  Node ret = NormalForm::constructConstantBagFromElements(t, mappedElements);
+  return ret;
 }
 
 }  // namespace bags

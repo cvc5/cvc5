@@ -32,7 +32,10 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SynthVerify::SynthVerify(const Options& opts, TermDbSygus* tds) : d_tds(tds)
+SynthVerify::SynthVerify(const Options& opts,
+                         const LogicInfo& logicInfo,
+                         TermDbSygus* tds)
+    : d_tds(tds), d_subLogicInfo(logicInfo)
 {
   // determine the options to use for the verification subsolvers we spawn
   // we start with the provided options
@@ -43,7 +46,7 @@ SynthVerify::SynthVerify(const Options& opts, TermDbSygus* tds) : d_tds(tds)
   // Disable sygus on the subsolver. This is particularly important since it
   // ensures that recursive function definitions have the standard ownership
   // instead of being claimed by sygus in the subsolver.
-  d_subOptions.base.inputLanguage = language::input::LANG_SMTLIB_V2_6;
+  d_subOptions.base.inputLanguage = Language::LANG_SMTLIB_V2_6;
   d_subOptions.quantifiers.sygus = false;
   // use tangent planes by default, since we want to put effort into
   // the verification step for sygus queries with non-linear arithmetic
@@ -102,7 +105,7 @@ Result SynthVerify::verify(Node query,
     }
   }
   Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
-  Result r = checkWithSubsolver(query, vars, mvs, &d_subOptions);
+  Result r = checkWithSubsolver(query, vars, mvs, d_subOptions, d_subLogicInfo);
   Trace("sygus-engine") << "  ...got " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::SAT)
   {

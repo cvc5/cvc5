@@ -17,7 +17,7 @@ jobs:
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
           - name: macos:production
-            os: macos-latest
+            os: macos-11
             config: production --auto-download --all-bindings --editline
             cache-key: production
             python-bindings: true
@@ -211,7 +211,7 @@ jobs:
       run: |
         make -j${{ env.num_proc }} install
         echo -e "#include <cvc5/cvc5.h>\nint main() { cvc5::api::Solver s; return 0; }" > /tmp/test.cpp
-        g++ -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc5
+        g++ -std=c++17 /tmp/test.cpp -I install/include -L install/lib -lcvc5
       working-directory: build
 
     - name: Python Install Check

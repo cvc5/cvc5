@@ -40,7 +40,7 @@ class SymbolManager;
 
 class InteractiveShell
 {
-  const Options& d_options;
+  api::Solver* d_solver;
   std::istream& d_in;
   std::ostream& d_out;
   parser::Parser* d_parser;

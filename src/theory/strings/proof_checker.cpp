@@ -53,6 +53,8 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::RE_ELIM, this);
   pc->registerChecker(PfRule::STRING_CODE_INJ, this);
   pc->registerChecker(PfRule::STRING_SEQ_UNIT_INJ, this);
+  // trusted rule
+  pc->registerTrustedChecker(PfRule::STRING_INFERENCE, this, 2);
 }
 
 Node StringProofRuleChecker::checkInternal(PfRule id,
@@ -503,6 +505,11 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         << " == " << t[1] << std::endl;
     AlwaysAssert(t[0].getType() == t[1].getType());
     return t[0].eqNode(t[1]);
+  }
+  else if (id == PfRule::STRING_INFERENCE)
+  {
+    Assert(args.size() >= 3);
+    return args[0];
   }
   return Node::null();
 }

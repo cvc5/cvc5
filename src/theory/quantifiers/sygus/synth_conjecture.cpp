@@ -56,7 +56,7 @@ SynthConjecture::SynthConjecture(QuantifiersState& qs,
       d_treg(tr),
       d_stats(s),
       d_tds(tr.getTermDatabaseSygus()),
-      d_verify(qs.options(), d_tds),
+      d_verify(qs.options(), qs.getLogicInfo(), d_tds),
       d_hasSolution(false),
       d_ceg_si(new CegSingleInv(qs.getEnv(), tr, s)),
       d_templInfer(new SygusTemplateInfer),
@@ -64,10 +64,10 @@ SynthConjecture::SynthConjecture(QuantifiersState& qs,
       d_ceg_gc(new CegGrammarConstructor(d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(qs.getEnv(), d_tds)),
       d_exampleInfer(new ExampleInfer(d_tds)),
-      d_ceg_pbe(new SygusPbe(qim, d_tds, this)),
-      d_ceg_cegis(new Cegis(qim, d_tds, this)),
+      d_ceg_pbe(new SygusPbe(qs, qim, d_tds, this)),
+      d_ceg_cegis(new Cegis(qs, qim, d_tds, this)),
       d_ceg_cegisUnif(new CegisUnif(qs, qim, d_tds, this)),
-      d_sygus_ccore(new CegisCoreConnective(qim, d_tds, this)),
+      d_sygus_ccore(new CegisCoreConnective(qs, qim, d_tds, this)),
       d_master(nullptr),
       d_set_ce_sk_vars(false),
       d_repair_index(0),
@@ -609,7 +609,8 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
     }
     Trace("sygus-engine") << "Check side condition..." << std::endl;
     Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
-    Result r = checkWithSubsolver(sc);
+    Env& env = d_qstate.getEnv();
+    Result r = checkWithSubsolver(sc, env.getOptions(), env.getLogicInfo());
     Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
     if (r == Result::UNSAT)
     {

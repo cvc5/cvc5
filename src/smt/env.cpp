@@ -33,7 +33,7 @@ using namespace cvc5::smt;
 
 namespace cvc5 {
 
-Env::Env(NodeManager* nm, Options* opts)
+Env::Env(NodeManager* nm, const Options* opts)
     : d_context(new context::Context()),
       d_userContext(new context::UserContext()),
       d_nodeManager(nm),
@@ -51,6 +51,7 @@ Env::Env(NodeManager* nm, Options* opts)
   {
     d_options.copyValues(*opts);
   }
+  d_statisticsRegistry->registerTimer("global::totalTime").start();
   d_resourceManager = std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
 }
 
@@ -64,8 +65,6 @@ void Env::setProofNodeManager(ProofNodeManager* pnm)
   d_rewriter->setProofNodeManager(pnm);
   d_topLevelSubs->setProofNodeManager(pnm);
 }
-
-void Env::setFilename(const std::string& filename) { d_filename = filename; }
 
 void Env::shutdown()
 {
@@ -82,8 +81,6 @@ context::Context* Env::getContext() { return d_context.get(); }
 NodeManager* Env::getNodeManager() const { return d_nodeManager; }
 
 ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
-
-const std::string& Env::getFilename() const { return d_filename; }
 
 bool Env::isSatProofProducing() const
 {

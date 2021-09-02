@@ -342,6 +342,8 @@ class SphinxGenerator:
             res.append(val.format(opt['help_mode']))
             res.append(val.format(''))
             for k, v in opt['modes'].items():
+                if v == '':
+                    continue
                 res.append(val.format(':{}: {}'.format(k, v)))
         res.append('    ')
 
@@ -506,12 +508,13 @@ def help_mode_format(option):
     for value, attrib in option.mode.items():
         assert len(attrib) == 1
         attrib = attrib[0]
+        if 'help' not in attrib:
+            continue
         if value == option.default and attrib['name'] != "default":
             text.append('+ {} (default)'.format(attrib['name']))
         else:
             text.append('+ {}'.format(attrib['name']))
-        if 'help' in attrib:
-            text.extend('  {}'.format(x) for x in wrapper.wrap(attrib['help']))
+        text.extend('  {}'.format(x) for x in wrapper.wrap(attrib['help']))
 
     return '\n         '.join('"{}\\n"'.format(x) for x in text)
 
@@ -698,7 +701,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     getopt_short = []        # short options for getopt_long
     getopt_long = []         # long options for getopt_long
     options_getall = []      # options for options::getAll()
-    options_getoptions = []  # options for Options::getOptions()
+    options_get_info = []    # code for getOptionInfo()
     options_handler = []     # option handler calls
     options_names = set()    # option names
     help_common = []         # help text for all common options
@@ -787,6 +790,32 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
 
                 cond = ' || '.join(
                     ['name == "{}"'.format(x) for x in sorted(names)])
+
+                # Generate code for getOptionInfo
+                if option.name:
+                    constr = None
+                    fmt = {
+                        'type': option.type,
+                        'value': 'opts.{}.{}'.format(module.id, option.name),
+                        'default': option.default if option.default else '{}()'.format(option.type),
+                        'minimum': option.minimum if option.minimum else '{}',
+                        'maximum': option.maximum if option.maximum else '{}',
+                    }
+                    if option.type in ['bool', 'std::string']:
+                        constr = 'OptionInfo::ValueInfo<{type}>{{{default}, {value}}}'.format(**fmt)
+                    elif option.type == 'double' or is_numeric_cpp_type(option.type):
+                        constr = 'OptionInfo::NumberInfo<{type}>{{{default}, {value}, {minimum}, {maximum}}}'.format(**fmt)
+                    elif option.mode:
+                        values = ', '.join(map(lambda s: '"{}"'.format(s), sorted(option.mode.keys())))
+                        assert(option.default)
+                        constr = 'OptionInfo::ModeInfo{{"{default}", {value}, {{ {modes} }}}}'.format(**fmt, modes=values)
+                    else:
+                        constr = 'OptionInfo::VoidInfo{}'
+                    if option.alias:
+                        alias = ', '.join(map(lambda s: '"{}"'.format(s), option.alias))
+                    else:
+                        alias = ''
+                    options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, opts.{}.{}WasSetByUser, {}}};'.format(cond, long_get_option(option.long), module.id, option.name, constr, alias=alias))
 
                 if setoption_handlers:
                     setoption_handlers.append('  }} else if ({}) {{'.format(cond))
@@ -884,6 +913,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
         'options_short': ''.join(getopt_short),
         'options_getall': '\n  '.join(options_getall),
         'options_all_names': options_all_names,
+        'options_get_info': '\n  '.join(sorted(options_get_info)),
         'getoption_handlers': '\n'.join(getoption_handlers),
         'setoption_handlers': '\n'.join(setoption_handlers),
     }
@@ -971,6 +1001,8 @@ def parse_module(filename, module):
             option = Option(attribs)
             if option.mode and not option.help_mode:
                 perr(filename, 'defines modes but no help_mode', option)
+            if option.mode and not option.default:
+                perr(filename, "mode option has no default", option)
             if option.mode and option.default and \
                     option.default not in option.mode.keys():
                 perr(filename,

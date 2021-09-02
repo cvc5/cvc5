@@ -17,6 +17,7 @@
 
 #include "expr/node_algorithm.h"
 #include "smt/env.h"
+#include "smt/smt_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 
@@ -36,18 +37,39 @@ PreprocessingPassContext::PreprocessingPassContext(
       d_symsInAssertions(env.getUserContext())
 {
 }
+const Options& PreprocessingPassContext::getOptions() const
+{
+  return d_env.getOptions();
+}
+const LogicInfo& PreprocessingPassContext::getLogicInfo() const
+{
+  return d_env.getLogicInfo();
+}
+
+theory::Rewriter* PreprocessingPassContext::getRewriter() const
+{
+  return d_env.getRewriter();
+}
 
 theory::TrustSubstitutionMap&
-PreprocessingPassContext::getTopLevelSubstitutions()
+PreprocessingPassContext::getTopLevelSubstitutions() const
 {
   return d_env.getTopLevelSubstitutions();
 }
 
-context::Context* PreprocessingPassContext::getUserContext()
+TheoryEngine* PreprocessingPassContext::getTheoryEngine() const
+{
+  return d_smt->getTheoryEngine();
+}
+prop::PropEngine* PreprocessingPassContext::getPropEngine() const
+{
+  return d_smt->getPropEngine();
+}
+context::Context* PreprocessingPassContext::getUserContext() const
 {
   return d_env.getUserContext();
 }
-context::Context* PreprocessingPassContext::getDecisionContext()
+context::Context* PreprocessingPassContext::getDecisionContext() const
 {
   return d_env.getContext();
 }
@@ -75,7 +97,7 @@ void PreprocessingPassContext::notifyLearnedLiteral(TNode lit)
   d_llm.notifyLearnedLiteral(lit);
 }
 
-std::vector<Node> PreprocessingPassContext::getLearnedLiterals()
+std::vector<Node> PreprocessingPassContext::getLearnedLiterals() const
 {
   return d_llm.getLearnedLiterals();
 }
@@ -95,7 +117,7 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
   getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, {}, args);
 }
 
-ProofNodeManager* PreprocessingPassContext::getProofNodeManager()
+ProofNodeManager* PreprocessingPassContext::getProofNodeManager() const
 {
   return d_env.getProofNodeManager();
 }

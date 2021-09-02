@@ -100,7 +100,7 @@ class CVC5_EXPORT Input
     * @param filename the input filename
     * @param useMmap true if the parser should use memory-mapped I/O (default: false)
     */
-  static Input* newFileInput(InputLanguage lang,
+  static Input* newFileInput(const std::string& lang,
                              const std::string& filename,
                              bool useMmap = false);
 
@@ -113,7 +113,7 @@ class CVC5_EXPORT Input
    * (false, the default, means that the entire Input might be read
    * before being lexed and parsed)
    */
-  static Input* newStreamInput(InputLanguage lang,
+  static Input* newStreamInput(const std::string& lang,
                                std::istream& input,
                                const std::string& name);
 
@@ -123,7 +123,7 @@ class CVC5_EXPORT Input
    * @param input the input string
    * @param name the name of the stream, for use in error messages
    */
-  static Input* newStringInput(InputLanguage lang,
+  static Input* newStringInput(const std::string& lang,
                                const std::string& input,
                                const std::string& name);
 

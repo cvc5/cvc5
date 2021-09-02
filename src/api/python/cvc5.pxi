@@ -176,6 +176,9 @@ cdef class Datatype:
         """:return: whether this datatype has nested recursion (see :cpp:func:`Datatype::hasNestedRecursion() <cvc5::api::Datatype::hasNestedRecursion>`)."""
         return self.cd.hasNestedRecursion()
 
+    def isNull(self):
+        return self.cd.isNull()
+
     def __str__(self):
         return self.cd.toString().decode()
 
@@ -190,6 +193,7 @@ cdef class Datatype:
 
 
 cdef class DatatypeConstructor:
+    """Wrapper class for :cpp:class:`cvc5::api::DatatypeConstructor`."""
     cdef c_DatatypeConstructor cdc
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -207,35 +211,64 @@ cdef class DatatypeConstructor:
         return ds
 
     def getName(self):
+        """
+            :return: the name of the constructor.
+        """
         return self.cdc.getName().decode()
 
     def getConstructorTerm(self):
+        """
+            :return: the constructor operator as a term.
+        """
         cdef Term term = Term(self.solver)
         term.cterm = self.cdc.getConstructorTerm()
         return term
 
     def getSpecializedConstructorTerm(self, Sort retSort):
+        """
+            Specialized method for parametric datatypes (see :cpp:func:`DatatypeConstructor::getSpecializedConstructorTerm() <cvc5::api::DatatypeConstructor::getSpecializedConstructorTerm>`).
+
+            :param retSort: the desired return sort of the constructor
+            :return: the constructor operator as a term.
+        """
         cdef Term term = Term(self.solver)
         term.cterm = self.cdc.getSpecializedConstructorTerm(retSort.csort)
         return term
 
     def getTesterTerm(self):
+        """
+            :return: the tester operator that is related to this constructor, as a term.
+        """
         cdef Term term = Term(self.solver)
         term.cterm = self.cdc.getTesterTerm()
         return term
 
     def getNumSelectors(self):
+        """
+            :return: the number of selecters (so far) of this Datatype constructor.
+        """
         return self.cdc.getNumSelectors()
 
     def getSelector(self, str name):
+        """
+            :param name: the name of the datatype selector.
+            :return: the first datatype selector with the given name
+        """
         cdef DatatypeSelector ds = DatatypeSelector(self.solver)
         ds.cds = self.cdc.getSelector(name.encode())
         return ds
 
     def getSelectorTerm(self, str name):
+        """
+            :param name: the name of the datatype selector.
+            :return: a term representing the firstdatatype selector with the given name.
+        """
         cdef Term term = Term(self.solver)
         term.cterm = self.cdc.getSelectorTerm(name.encode())
         return term
+
+    def isNull(self):
+        return self.cdc.isNull()
 
     def __str__(self):
         return self.cdc.toString().decode()
@@ -251,6 +284,7 @@ cdef class DatatypeConstructor:
 
 
 cdef class DatatypeConstructorDecl:
+    """Wrapper class for :cpp:class:`cvc5::api::DatatypeConstructorDecl`."""
     cdef c_DatatypeConstructorDecl cddc
     cdef Solver solver
 
@@ -258,10 +292,24 @@ cdef class DatatypeConstructorDecl:
         self.solver = solver
 
     def addSelector(self, str name, Sort sort):
+        """
+            Add datatype selector declaration.
+
+            :param name: the name of the datatype selector declaration to add.
+            :param sort: the range sort of the datatype selector declaration to add.
+        """
         self.cddc.addSelector(name.encode(), sort.csort)
 
     def addSelectorSelf(self, str name):
+        """
+            Add datatype selector declaration whose range sort is the datatype itself.
+
+            :param name: the name of the datatype selector declaration to add.
+        """
         self.cddc.addSelectorSelf(name.encode())
+
+    def isNull(self):
+        return self.cddc.isNull()
 
     def __str__(self):
         return self.cddc.toString().decode()
@@ -271,22 +319,40 @@ cdef class DatatypeConstructorDecl:
 
 
 cdef class DatatypeDecl:
+    """Wrapper class for :cpp:class:`cvc5::api::DatatypeDecl`."""
     cdef c_DatatypeDecl cdd
     cdef Solver solver
     def __cinit__(self, Solver solver):
         self.solver = solver
 
     def addConstructor(self, DatatypeConstructorDecl ctor):
+        """
+            Add a datatype constructor declaration.
+
+            :param ctor: the datatype constructor declaration to add.
+        """
         self.cdd.addConstructor(ctor.cddc)
 
     def getNumConstructors(self):
+        """
+            :return: number of constructors (so far) for this datatype declaration.
+        """
         return self.cdd.getNumConstructors()
 
     def isParametric(self):
+        """
+            :return: is this datatype declaration parametric?
+        """
         return self.cdd.isParametric()
 
     def getName(self):
+        """
+            :return: the name of this datatype declaration.
+        """
         return self.cdd.getName().decode()
+
+    def isNull(self):
+        return self.cdd.isNull()
 
     def __str__(self):
         return self.cdd.toString().decode()
@@ -296,6 +362,7 @@ cdef class DatatypeDecl:
 
 
 cdef class DatatypeSelector:
+    """Wrapper class for :cpp:class:`cvc5::api::DatatypeSelector`."""
     cdef c_DatatypeSelector cds
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -303,22 +370,37 @@ cdef class DatatypeSelector:
         self.solver = solver
 
     def getName(self):
+        """
+            :return: the name of this datatype selector.
+        """
         return self.cds.getName().decode()
 
     def getSelectorTerm(self):
+        """
+            :return: the selector opeartor of this datatype selector as a term.
+        """
         cdef Term term = Term(self.solver)
         term.cterm = self.cds.getSelectorTerm()
         return term
 
     def getUpdaterTerm(self):
+        """
+            :return: the updater opeartor of this datatype selector as a term.
+        """
         cdef Term term = Term(self.solver)
         term.cterm = self.cds.getUpdaterTerm()
         return term
 
     def getRangeSort(self):
+        """
+            :return: the range sort of this selector.
+        """
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.cds.getRangeSort()
         return sort
+
+    def isNull(self):
+        return self.cds.isNull()
 
     def __str__(self):
         return self.cds.toString().decode()
@@ -1280,6 +1362,18 @@ cdef class Solver:
         cdef Term term = Term(self)
         term.cterm = self.csolver.getValue(t.cterm)
         return term
+
+    def getModelDomainElements(self, Sort s):
+        result = []
+        cresult = self.csolver.getModelDomainElements(s.csort)
+        for e in cresult:
+            term = Term(self)
+            term.cterm = e
+            result.append(term)
+        return result
+
+    def isModelCoreSymbol(self, Term v):
+        return self.csolver.isModelCoreSymbol(v.cterm)
 
     def getSeparationHeap(self):
         cdef Term term = Term(self)

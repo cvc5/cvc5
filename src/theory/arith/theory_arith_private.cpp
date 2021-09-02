@@ -114,7 +114,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_diseqQueue(d_env.getContext(), false),
       d_currentPropagationList(),
       d_learnedBounds(d_env.getContext()),
-      d_preregisteredNodes(d_env.getUserContext()),
+      d_preregisteredNodes(d_env.getContext()),
       d_partialModel(d_env.getContext(), DeltaComputeCallback(*this)),
       d_errorSet(
           d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(*this)),
