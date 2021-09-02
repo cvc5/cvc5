@@ -145,22 +145,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
 
 void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 {
-  if (opts.quantifiers.sygusInstWasSetByUser)
-  {
-    if (isSygus(opts))
-    {
-      throw OptionException(std::string(
-          "SyGuS instantiation quantifiers module cannot be enabled "
-          "for SyGuS inputs."));
-    }
-  }
-  else if (!isSygus(opts) && logic.isQuantified()
-           && (logic.isPure(THEORY_FP)
-               || (logic.isPure(THEORY_ARITH) && !logic.isLinear())))
-  {
-    opts.quantifiers.sygusInst = true;
-  }
-
   if (opts.bv.bitblastMode == options::BitblastMode::EAGER)
   {
     if (opts.smt.produceModels
@@ -193,13 +177,6 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 
   if (opts.smt.solveIntAsBV > 0)
   {
-    // not compatible with incremental
-    if (opts.base.incrementalSolving)
-    {
-      throw OptionException(
-          "solving integers as bitvectors is currently not supported "
-          "when solving incrementally.");
-    }
     // Int to BV currently always eliminates arithmetic completely (or otherwise
     // fails). Thus, it is safe to eliminate arithmetic. Also, bit-vectors
     // are required.
@@ -253,17 +230,6 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 
   if (opts.smt.ackermann)
   {
-    if (opts.base.incrementalSolving)
-    {
-      throw OptionException(
-          "Incremental Ackermannization is currently not supported.");
-    }
-
-    if (logic.isQuantified())
-    {
-      throw LogicException("Cannot use Ackermannization on quantified formula");
-    }
-
     if (logic.isTheoryEnabled(THEORY_UF))
     {
       logic = logic.getUnlockedCopy();
@@ -395,25 +361,6 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     opts.smt.produceAssertions = true;
   }
 
-  if (opts.bv.bvAssertInput && opts.smt.produceProofs)
-  {
-    Notice() << "Disabling bv-assert-input since it is incompatible with proofs."
-             << std::endl;
-    opts.bv.bvAssertInput = false;
-  }
-
-  // If proofs are required and the user did not specify a specific BV solver,
-  // we make sure to use the proof producing BITBLAST_INTERNAL solver.
-  if (opts.smt.produceProofs
-      && opts.bv.bvSolver != options::BVSolver::BITBLAST_INTERNAL
-      && !opts.bv.bvSolverWasSetByUser
-      && opts.bv.bvSatSolver == options::SatSolverMode::MINISAT)
-  {
-    Notice() << "Forcing internal bit-vector solver due to proof production."
-             << std::endl;
-    opts.bv.bvSolver = options::BVSolver::BITBLAST_INTERNAL;
-  }
-
   if (opts.smt.solveBVAsInt != options::SolveBVAsIntMode::OFF)
   {
     /**
@@ -514,6 +461,20 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 
   // widen the logic
   widenLogic(logic, opts);
+
+  // check if we have any options that are not supported with quantified logics
+  if (logic.isQuantified())
+  {
+    std::stringstream reasonNoQuant;
+    if (incompatibleWithQuantifiers(opts, reasonNoQuant))
+    {
+      std::stringstream ss;
+      ss << reasonNoQuant.str()
+         << " not supported in quantified logics.";
+         throw OptionException(
+                ss.str());
+    }
+  }
 }
 
 void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
@@ -896,7 +857,7 @@ bool SetDefaults::usesSygus(const Options& opts) const
   return false;
 }
 
-bool SetDefaults::incompatibleWithProofs(const Options& opts,
+bool SetDefaults::incompatibleWithProofs(Options& opts,
                                          std::ostream& reason) const
 {
   if (opts.quantifiers.globalNegate)
@@ -912,6 +873,24 @@ bool SetDefaults::incompatibleWithProofs(const Options& opts,
     // formulas is unsat in the standard way. Thus, proofs do not apply.
     reason << "sygus";
     return true;
+  }
+  // options that are automatically set to support proofs
+  if (opts.bv.bvAssertInput)
+  {
+    Notice()
+        << "Disabling bv-assert-input since it is incompatible with proofs."
+        << std::endl;
+    opts.bv.bvAssertInput = false;
+  }
+  // If proofs are required and the user did not specify a specific BV solver,
+  // we make sure to use the proof producing BITBLAST_INTERNAL solver.
+  if (opts.bv.bvSolver != options::BVSolver::BITBLAST_INTERNAL
+      && !opts.bv.bvSolverWasSetByUser
+      && opts.bv.bvSatSolver == options::SatSolverMode::MINISAT)
+  {
+    Notice() << "Forcing internal bit-vector solver due to proof production."
+             << std::endl;
+    opts.bv.bvSolver = options::BVSolver::BITBLAST_INTERNAL;
   }
   return false;
 }
@@ -947,6 +926,11 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
                                               std::ostream& reason,
                                               std::ostream& suggest) const
 {
+  if (opts.smt.ackermann)
+  {
+    reason << "ackermann";
+    return true;
+  }
   if (opts.smt.unconstrainedSimp)
   {
     if (opts.smt.unconstrainedSimpWasSetByUser)
@@ -977,6 +961,11 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
                 "incremental solving"
              << std::endl;
     opts.quantifiers.sygusInference = false;
+  }
+  if (opts.smt.solveIntAsBV > 0)
+  {
+    reason << "solveIntAsBV";
+    return true;
   }
   return false;
 }
@@ -1135,6 +1124,26 @@ bool SetDefaults::safeUnsatCores(const Options& opts) const
   return opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS;
 }
 
+bool SetDefaults::incompatibleWithQuantifiers(Options& opts,
+                                              std::ostream& reason) const
+{
+  if (opts.smt.ackermann)
+  {
+    reason << "ackermann";
+    return true;
+  }
+  if (opts.arith.nlRlvMode != options::NlRlvMode::NONE)
+  {
+    // Theory relevance is incompatible with CEGQI and SyQI, since there is no
+    // appropriate policy for the relevance of counterexample lemmas (when their
+    // guard is entailed to be false, the entire lemma is relevant, not just the
+    // guard). Hence, we throw an option exception if quantifiers are enabled.
+    reason << "--nl-ext-rlv";
+    return true;
+  }
+  return false;
+}
+
 void SetDefaults::widenLogic(LogicInfo& logic, Options& opts) const
 {
   bool needsUf = false;
@@ -1226,6 +1235,24 @@ void SetDefaults::widenLogic(LogicInfo& logic, Options& opts) const
 void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
                                          Options& opts) const
 {
+  Assert(logic.isQuantified());
+
+  if (opts.quantifiers.sygusInstWasSetByUser)
+  {
+    if (isSygus(opts))
+    {
+      throw OptionException(std::string(
+          "SyGuS instantiation quantifiers module cannot be enabled "
+          "for SyGuS inputs."));
+    }
+  }
+  else if (!isSygus(opts)
+           && (logic.isPure(THEORY_FP)
+               || (logic.isPure(THEORY_ARITH) && !logic.isLinear())))
+  {
+    opts.quantifiers.sygusInst = true;
+  }
+
   if (logic.hasCardinalityConstraints())
   {
     // must have finite model finding on
@@ -1344,11 +1371,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   }
   // counterexample-guided instantiation for non-sygus
   // enable if any possible quantifiers with arithmetic, datatypes or bitvectors
-  if ((logic.isQuantified()
-       && (logic.isTheoryEnabled(THEORY_ARITH)
-           || logic.isTheoryEnabled(THEORY_DATATYPES)
-           || logic.isTheoryEnabled(THEORY_BV)
-           || logic.isTheoryEnabled(THEORY_FP)))
+  if ((logic.isTheoryEnabled(THEORY_ARITH)
+       || logic.isTheoryEnabled(THEORY_DATATYPES)
+       || logic.isTheoryEnabled(THEORY_BV) || logic.isTheoryEnabled(THEORY_FP))
       || opts.quantifiers.cegqiAll)
   {
     if (!opts.quantifiers.cegqiWasSetByUser)
