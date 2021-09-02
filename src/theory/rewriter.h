@@ -110,8 +110,8 @@ class Rewriter {
   TheoryRewriter* getTheoryRewriter(theory::TheoryId theoryId);
 
   /**
-   * Apply rewrite on n. This encapsulates the exact behavior
-   * of a REWRITE step in a proof.
+   * Apply rewrite on n via the rewrite method identifier idr (see method_id.h).
+   * This encapsulates the exact behavior of a REWRITE step in a proof.
    *
    * @param n The node to rewrite,
    * @param idr The method identifier of the rewriter, by default RW_REWRITE
