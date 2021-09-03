@@ -81,19 +81,27 @@ Languages currently supported as arguments to the --output-lang option:\n\
 ";
 // clang-format on
 
-void printUsage(const std::string& msg, std::ostream& os) {
-  os << msg << "\n" << commonOptionsDescription << "\n\n" << additionalOptionsDescription << std::endl
-      << optionsFootnote << std::endl << std::flush;
+void printUsage(const std::string& msg, std::ostream& os)
+{
+  os << msg << "\n"
+     << commonOptionsDescription << "\n\n"
+     << additionalOptionsDescription << std::endl
+     << optionsFootnote << std::endl
+     << std::flush;
 }
 
-void printShortUsage(const std::string& msg, std::ostream& os) {
-  os << msg << "\n" << commonOptionsDescription << std::endl
-      << optionsFootnote << std::endl
-      << "For full usage, please use --help."
-      << std::endl << std::endl << std::flush;
+void printShortUsage(const std::string& msg, std::ostream& os)
+{
+  os << msg << "\n"
+     << commonOptionsDescription << std::endl
+     << optionsFootnote << std::endl
+     << "For full usage, please use --help." << std::endl
+     << std::endl
+     << std::flush;
 }
 
-void printLanguageHelp(std::ostream& os) {
+void printLanguageHelp(std::ostream& os)
+{
   os << languageDescription << std::flush;
 }
 
@@ -115,36 +123,39 @@ void printLanguageHelp(std::ostream& os) {
  * 4. the return value for getopt_long() when this long option (or the
  *    value to set the 3rd entry to; see #3)
  */
-// clang-format off
 static struct option cmdlineOptions[] = {
 // clang-format off
   ${cmdoptions_long}$
 // clang-format on
   {nullptr, no_argument, nullptr, '\0'}
 };
-// clang-format on
 
 std::string suggestCommandLineOptions(const std::string& optionName)
 {
   DidYouMean didYouMean;
 
   const char* opt;
-  for(size_t i = 0; (opt = cmdlineOptions[i].name) != nullptr; ++i) {
+  for (size_t i = 0; (opt = cmdlineOptions[i].name) != nullptr; ++i)
+  {
     didYouMean.addWord(std::string("--") + cmdlineOptions[i].name);
   }
 
-  return didYouMean.getMatchAsString(optionName.substr(0, optionName.find('=')));
+  return didYouMean.getMatchAsString(
+      optionName.substr(0, optionName.find('=')));
 }
 
-void parseInternal(api::Solver& solver, int argc,
-                                    char* argv[],
-                                    std::vector<std::string>& nonoptions)
+void parseInternal(api::Solver& solver,
+                   int argc,
+                   char* argv[],
+                   std::vector<std::string>& nonoptions)
 {
   Assert(argv != nullptr);
-  if(Debug.isOn("options")) {
-    Debug("options") << "starting a new parseInternal with "
-                     << argc << " arguments" << std::endl;
-    for( int i = 0; i < argc ; i++ ){
+  if (Debug.isOn("options"))
+  {
+    Debug("options") << "starting a new parseInternal with " << argc
+                     << " arguments" << std::endl;
+    for (int i = 0; i < argc; i++)
+    {
       Assert(argv[i] != NULL);
       Debug("options") << "  argv[" << i << "] = " << argv[i] << std::endl;
     }
@@ -162,8 +173,8 @@ void parseInternal(api::Solver& solver, int argc,
   int main_optind = 0;
   int old_optind;
 
-
-  while(true) { // Repeat Forever
+  while (true)
+  {  // Repeat Forever
 
     optopt = 0;
 
@@ -173,15 +184,14 @@ void parseInternal(api::Solver& solver, int argc,
     // If we encounter an element that is not at zero and does not start
     // with a "-", this is a non-option. We consume this element as a
     // non-option.
-    if (main_optind > 0 && main_optind < argc &&
-        argv[main_optind][0] != '-') {
+    if (main_optind > 0 && main_optind < argc && argv[main_optind][0] != '-')
+    {
       Debug("options") << "enqueueing " << argv[main_optind]
                        << " as a non-option." << std::endl;
       nonoptions.push_back(argv[main_optind]);
       ++main_optind;
       continue;
     }
-
 
     Debug("options") << "[ before, main_optind == " << main_optind << " ]"
                      << std::endl;
@@ -203,15 +213,19 @@ void parseInternal(api::Solver& solver, int argc,
     // The initial getopt_long call should always determine that argv[0]
     // is not an option and returns -1. We always manually advance beyond
     // this element.
-    if ( old_optind == 0  && c == -1 ) {
+    if (old_optind == 0 && c == -1)
+    {
       Assert(main_optind > 0);
       continue;
     }
 
-    if ( c == -1 ) {
-      if(Debug.isOn("options")) {
+    if (c == -1)
+    {
+      if (Debug.isOn("options"))
+      {
         Debug("options") << "done with option parsing" << std::endl;
-        for(int index = optind; index < argc; ++index) {
+        for (int index = optind; index < argc; ++index)
+        {
           Debug("options") << "remaining " << argv[index] << std::endl;
         }
       }
@@ -221,30 +235,29 @@ void parseInternal(api::Solver& solver, int argc,
     std::string option = argv[old_optind == 0 ? 1 : old_optind];
     std::string optionarg = (optarg == nullptr) ? "" : optarg;
 
-    Debug("preemptGetopt") << "processing option " << c
-                           << " (`" << char(c) << "'), " << option << std::endl;
+    Debug("preemptGetopt") << "processing option " << c << " (`" << char(c)
+                           << "'), " << option << std::endl;
 
-    switch(c)
+    switch (c)
     {
-    // clang-format off
+// clang-format off
     ${parseinternal_impl}$
-    // clang-format on
+// clang-format on
 
-    case ':':
+    case ':' :
       // This can be a long or short option, and the way to get at the
       // name of it is different.
       throw OptionException(std::string("option `") + option
                             + "' missing its required argument");
-
     case '?':
     default:
-      throw OptionException(std::string("can't understand option `") + option
-                            + "'" + suggestCommandLineOptions(option));
+        throw OptionException(std::string("can't understand option `") + option
+                              + "'" + suggestCommandLineOptions(option));
     }
   }
 
-  Debug("options") << "got " << nonoptions.size()
-                   << " non-option arguments." << std::endl;
+  Debug("options") << "got " << nonoptions.size() << " non-option arguments."
+                   << std::endl;
 }
 
 /**
@@ -254,31 +267,36 @@ void parseInternal(api::Solver& solver, int argc,
  *
  * Throws OptionException on failures.
  */
-std::vector<std::string> parse(
-    api::Solver& solver, int argc, char* argv[], std::string& binaryName)
+std::vector<std::string> parse(api::Solver& solver,
+                               int argc,
+                               char* argv[],
+                               std::string& binaryName)
 {
   Assert(argv != nullptr);
 
-  const char *progName = argv[0];
+  const char* progName = argv[0];
 
   // To debug options parsing, you may prefer to simply uncomment this
   // and recompile. Debug flags have not been parsed yet so these have
   // not been set.
-  //DebugChannel.on("options");
+  // DebugChannel.on("options");
 
   Debug("options") << "argv == " << argv << std::endl;
 
   // Find the base name of the program.
-  const char *x = strrchr(progName, '/');
-  if(x != nullptr) {
+  const char* x = strrchr(progName, '/');
+  if (x != nullptr)
+  {
     progName = x + 1;
   }
   binaryName = std::string(progName);
 
   std::vector<std::string> nonoptions;
   parseInternal(solver, argc, argv, nonoptions);
-  if (Debug.isOn("options")){
-    for (const auto& no: nonoptions){
+  if (Debug.isOn("options"))
+  {
+    for (const auto& no : nonoptions)
+    {
       Debug("options") << "nonoptions " << no << std::endl;
     }
   }
