@@ -62,6 +62,38 @@ OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
 
+################################################################################
+################################################################################
+# utility functions
+
+
+def wrap_line(s, indent, **kwargs):
+    """Wrap and indent text and forward all other kwargs to textwrap.wrap()."""
+    return ('\n' + ' ' * indent).join(
+        textwrap.wrap(s, width=80 - indent, **kwargs))
+
+
+def concat_format(s, objs):
+    """Helper method to render a string for a list of object"""
+    return '\n'.join([s.format(**o.__dict__) for o in objs])
+
+
+def all_options(modules, sorted=False):
+    """Helper to iterate all options from all modules."""
+    if sorted:
+        options = []
+        for m in modules:
+            options = options + [(m, o) for o in m.options]
+        options.sort(key=lambda t: t[1])
+        yield from options
+    else:
+        for module in modules:
+            if not module.options:
+                continue
+            for option in module.options:
+                yield module, option
+
+
 ### Other globals
 
 g_long_cache = dict()      # maps long options to filename/fileno
@@ -144,10 +176,6 @@ TPL_MODE_HANDLER_CASE = \
   {{
     return {type}::{enum};
   }}"""
-
-def concat_format(s, objs):
-    """Helper method to render a string for a list of object"""
-    return '\n'.join([s.format(**o.__dict__) for o in objs])
 
 
 def get_module_headers(modules):
@@ -252,7 +280,17 @@ class Option(object):
             self.long_name = r[0]
             if len(r) > 1:
                 self.long_opt = r[1]
+        self.names = set()
+        if self.long_name:
+            self.names.add(self.long_name)
+        if self.alias:
+            self.names.update(self.alias)
 
+    def __lt__(self, other):
+        if self.long_name and other.long_name:
+            return self.long_name < other.long_name
+        if self.long_name: return True
+        return False
 
 ################################################################################
 # stuff for options/options_public.cpp
