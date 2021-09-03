@@ -258,21 +258,17 @@ class Module(object):
 
 
 class Option(object):
-    """Module option.
-
-    An instance of this class corresponds to an option defined in a
-    MODULE_options.toml configuration file specified via [[option]].
-    """
+    """Represents on option."""
     def __init__(self, d):
         self.__dict__ = dict((k, None) for k in OPTION_ATTR_ALL)
         self.includes = []
         self.predicates = []
-        self.alternate = True    # add --no- alternative long option for bool
-        self.filename = None
         for (attr, val) in d.items():
             assert attr in self.__dict__
             if attr == 'alternate' or val:
                 self.__dict__[attr] = val
+        if self.type == 'bool' and self.alternate is None:
+            self.alternate = True
         self.long_name = None
         self.long_opt = None
         if self.long:
@@ -377,7 +373,7 @@ class SphinxGenerator:
             'name': names,
             'help': option.help,
             'expert': option.category == 'expert',
-            'alternate': option.type == 'bool' and option.alternate,
+            'alternate': option.alternate,
             'help_mode': option.help_mode,
             'modes': modes,
         }
@@ -726,7 +722,7 @@ def docgen_option(option, help_common, help_others):
     # Generate documentation for cmdline options
     if opts and option.category != 'undocumented':
         help_cmd = help_msg
-        if option.type == 'bool' and option.alternate:
+        if option.alternate:
             help_cmd += ' [*]'
         
         res = help_format(help_cmd, opts)
@@ -902,7 +898,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                         h.format(handler=option.handler, smtname=option.long_name))
 
             # Add --no- alternative options for boolean options
-            if option.long and option.type == 'bool' and option.alternate:
+            if option.long and option.alternate:
                 cases = []
                 cases.append(
                     'case {}: // --no-{}'.format(
@@ -1038,6 +1034,8 @@ def parse_module(filename, module):
                 perr(filename,
                      "invalid default value '{}'".format(option.default),
                      option)
+            if option.alternate and option.type != 'bool':
+                perr(filename, 'is alternate but not bool', option)
             if option.short and not option.long:
                 perr(filename,
                      "short option '{}' specified but no long option".format(
@@ -1055,7 +1053,6 @@ def parse_module(filename, module):
                 perr(filename,
                      'help text required for {} options'.format(option.category),
                      option)
-            option.filename = filename
             res.options.append(option)
 
     return res
