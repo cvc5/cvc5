@@ -51,10 +51,7 @@ prop::PropEngine* PreprocessingPassContext::getPropEngine() const
 {
   return d_smt->getPropEngine();
 }
-context::Context* PreprocessingPassContext::getDecisionContext() const
-{
-  return d_env.getContext();
-}
+
 void PreprocessingPassContext::spendResource(Resource r)
 {
   d_env.getResourceManager()->spendResource(r);

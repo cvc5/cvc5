@@ -33,7 +33,6 @@
 #include "options/options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "smt/env.h"
 
 using namespace cvc5;
 using namespace cvc5::theory;

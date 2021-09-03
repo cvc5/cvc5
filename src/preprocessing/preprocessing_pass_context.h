@@ -59,8 +59,6 @@ class PreprocessingPassContext : protected EnvObj
   TheoryEngine* getTheoryEngine() const;
   /** Get the associated Propengine. */
   prop::PropEngine* getPropEngine() const;
-  /** Get the current decision context. */
-  context::Context* getDecisionContext() const;
 
   /** Get the associated circuit propagator. */
   theory::booleans::CircuitPropagator* getCircuitPropagator() const
