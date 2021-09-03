@@ -253,6 +253,15 @@ class Option(object):
             if len(r) > 1:
                 self.long_opt = r[1]
 
+    def __lt__(self, other):
+        if self.long_name and other.long_name:
+            return self.long_name < other.long_name
+        if self.long_name: return True
+        return False
+
+    def __str__(self):
+        return self.long_name if self.long_name else self.name
+
 
 class SphinxGenerator:
     def __init__(self):
