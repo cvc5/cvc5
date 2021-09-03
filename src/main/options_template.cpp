@@ -222,10 +222,11 @@ void parseInternal(api::Solver& solver, int argc,
     Debug("preemptGetopt") << "processing option " << c
                            << " (`" << char(c) << "'), " << option << std::endl;
 
-    // clang-format off
     switch(c)
     {
+    // clang-format off
     ${parseinternal_impl}$
+    // clang-format on
 
     case ':':
       // This can be a long or short option, and the way to get at the
@@ -239,7 +240,6 @@ void parseInternal(api::Solver& solver, int argc,
                             + "'" + suggestCommandLineOptions(option));
     }
   }
-  // clang-format on
 
   Debug("options") << "got " << nonoptions.size()
                    << " non-option arguments." << std::endl;
