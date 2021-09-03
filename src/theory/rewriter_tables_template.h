@@ -82,17 +82,7 @@ ${post_rewrite_set_cache}
 
 Rewriter::Rewriter() : d_tpg(nullptr)
 {
-  for (size_t i = 0; i < kind::LAST_KIND; ++i)
-  {
-    d_preRewriters[i] = nullptr;
-    d_postRewriters[i] = nullptr;
-  }
 
-  for (size_t i = 0; i < theory::THEORY_LAST; ++i)
-  {
-    d_preRewritersEqual[i] = nullptr;
-    d_postRewritersEqual[i] = nullptr;
-  }
 }
 
 void Rewriter::clearCachesInternal()
