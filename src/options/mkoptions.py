@@ -224,7 +224,7 @@ class Option(object):
 # code generation functions
 
 ################################################################################
-# stuff for options/options.h
+# for options/options.h
 
 
 def generate_holder_fwd_decls(modules):
@@ -244,7 +244,7 @@ def generate_holder_ref_decls(modules):
 
 
 ################################################################################
-# stuff for options/options.cpp
+# for options/options.cpp
 
 
 def generate_module_headers(modules):
