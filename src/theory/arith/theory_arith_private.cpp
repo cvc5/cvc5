@@ -88,8 +88,8 @@ static bool complexityBelow(const DenseMap<Rational>& row, uint32_t cap);
 TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                                        Env& env,
                                        BranchAndBound& bab)
-    : d_containing(containing),
-      d_env(env),
+    : EnvObj(env),
+      d_containing(containing),
       d_foundNl(false),
       d_rowTracking(),
       d_bab(bab),
