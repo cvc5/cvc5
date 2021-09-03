@@ -26,6 +26,7 @@
 namespace cvc5 {
 
 class Env;
+class LogicInfo;
 class NodeManager;
 class Options;
 
@@ -43,6 +44,9 @@ class EnvObj
    * This is a wrapper around theory::Rewriter::rewrite via Env.
    */
   Node rewrite(TNode node);
+
+  /** Get the current logic information. */
+  const LogicInfo& getLogicInfo() const;
 
   /** The associated environment. */
   Env& d_env;
