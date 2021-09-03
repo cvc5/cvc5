@@ -117,7 +117,7 @@ void printLanguageHelp(std::ostream& os) {
  */
 // clang-format off
 static struct option cmdlineOptions[] = {
-  ${cmdline_options}$
+  ${cmdoptions_long}$
   {nullptr, no_argument, nullptr, '\0'}
 };
 // clang-format on
@@ -188,7 +188,7 @@ void parseInternal(api::Solver& solver, int argc,
                      << std::endl;
     // clang-format off
     int c = getopt_long(argc, argv,
-                        "+:${options_short}$",
+                        "+:${cmdoptions_short}$",
                         cmdlineOptions, NULL);
     // clang-format on
 
@@ -225,18 +225,18 @@ void parseInternal(api::Solver& solver, int argc,
     // clang-format off
     switch(c)
     {
-    ${options_handler}$
+    ${parseinternal_impl}$
 
-      case ':' :
+    case ':':
       // This can be a long or short option, and the way to get at the
       // name of it is different.
       throw OptionException(std::string("option `") + option
                             + "' missing its required argument");
 
-      case '?':
-      default:
-        throw OptionException(std::string("can't understand option `") + option
-                              + "'" + suggestCommandLineOptions(option));
+    case '?':
+    default:
+      throw OptionException(std::string("can't understand option `") + option
+                            + "'" + suggestCommandLineOptions(option));
     }
   }
   // clang-format on
