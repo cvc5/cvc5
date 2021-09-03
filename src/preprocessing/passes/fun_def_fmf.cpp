@@ -39,8 +39,7 @@ FunDefFmf::FunDefFmf(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "fun-def-fmf"),
       d_fmfRecFunctionsDefined(nullptr)
 {
-  d_fmfRecFunctionsDefined =
-      new (true) NodeList(preprocContext->getUserContext());
+  d_fmfRecFunctionsDefined = new (true) NodeList(userContext());
 }
 
 FunDefFmf::~FunDefFmf() { d_fmfRecFunctionsDefined->deleteSelf(); }

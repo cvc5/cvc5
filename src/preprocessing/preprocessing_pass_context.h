@@ -59,8 +59,6 @@ class PreprocessingPassContext : protected EnvObj
   TheoryEngine* getTheoryEngine() const;
   /** Get the associated Propengine. */
   prop::PropEngine* getPropEngine() const;
-  /** Get the current user context. */
-  context::Context* getUserContext() const;
   /** Get the current decision context. */
   context::Context* getDecisionContext() const;
 
@@ -81,11 +79,6 @@ class PreprocessingPassContext : protected EnvObj
 
   /** Spend resource in the resource manager of the associated Env. */
   void spendResource(Resource r);
-
-  /** Get the options of the environment */
-  const Options& getOptions() const;
-  /** Get the current logic info of the environment */
-  const LogicInfo& getLogicInfo() const;
 
   /** Get a reference to the top-level substitution map */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions() const;

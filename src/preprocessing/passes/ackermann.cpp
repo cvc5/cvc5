@@ -33,6 +33,7 @@
 #include "options/options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "smt/env.h"
 
 using namespace cvc5;
 using namespace cvc5::theory;
@@ -299,9 +300,9 @@ void usortsToBitVectors(const LogicInfo& d_logic,
 
 Ackermann::Ackermann(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "ackermann"),
-      d_funcToSkolem(preprocContext->getUserContext()),
-      d_usVarsToBVVars(preprocContext->getUserContext()),
-      d_logic(preprocContext->getLogicInfo())
+      d_funcToSkolem(userContext()),
+      d_usVarsToBVVars(userContext()),
+      d_logic(logicInfo())
 {
 }
 

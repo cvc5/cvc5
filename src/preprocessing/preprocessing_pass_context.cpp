@@ -31,19 +31,10 @@ PreprocessingPassContext::PreprocessingPassContext(
     : EnvObj(env),
       d_smt(smt),
       d_circuitPropagator(circuitPropagator),
-      d_llm(env.getTopLevelSubstitutions(),
-            env.getUserContext(),
-            env.getProofNodeManager()),
-      d_symsInAssertions(env.getUserContext())
+      d_llm(
+          env.getTopLevelSubstitutions(), userContext(), getProofNodeManager()),
+      d_symsInAssertions(userContext())
 {
-}
-const Options& PreprocessingPassContext::getOptions() const
-{
-  return d_env.getOptions();
-}
-const LogicInfo& PreprocessingPassContext::getLogicInfo() const
-{
-  return d_env.getLogicInfo();
 }
 
 theory::TrustSubstitutionMap&
@@ -59,10 +50,6 @@ TheoryEngine* PreprocessingPassContext::getTheoryEngine() const
 prop::PropEngine* PreprocessingPassContext::getPropEngine() const
 {
   return d_smt->getPropEngine();
-}
-context::Context* PreprocessingPassContext::getUserContext() const
-{
-  return d_env.getUserContext();
 }
 context::Context* PreprocessingPassContext::getDecisionContext() const
 {
