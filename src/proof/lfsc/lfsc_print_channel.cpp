@@ -163,10 +163,5 @@ void LfscPrintChannelPre::printOpenRule(const ProofNode* pn)
 
 }
 
-const std::unordered_set<DslPfRule>& LfscPrintChannelPre::getDslRewrites() const
-{
-  return d_dprs;
-}
-
 }  // namespace proof
 }  // namespace cvc5
