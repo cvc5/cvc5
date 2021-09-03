@@ -82,13 +82,12 @@ class InferBoundsResult;
  * Based upon:
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
-class TheoryArithPrivate {
-private:
-
+class TheoryArithPrivate : protected EnvObj
+{
+ private:
   static const uint32_t RESET_START = 2;
 
   TheoryArith& d_containing;
-  Env& d_env;
 
   const Options& options() const { return d_env.getOptions(); }
 
@@ -687,7 +686,6 @@ private:
   /** Debugging only routine. Prints the model. */
   void debugPrintModel(std::ostream& out) const;
 
-  inline LogicInfo getLogicInfo() const { return d_containing.getLogicInfo(); }
   inline bool done() const { return d_containing.done(); }
   inline TNode get() { return d_containing.get(); }
   inline bool isLeaf(TNode x) const { return d_containing.isLeaf(x); }
@@ -875,7 +873,7 @@ private:
 
 
   Statistics d_statistics;
-};/* class TheoryArithPrivate */
+}; /* class TheoryArithPrivate */
 
 }  // namespace arith
 }  // namespace theory
