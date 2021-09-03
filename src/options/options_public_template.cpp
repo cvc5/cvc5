@@ -207,8 +207,8 @@ namespace cvc5::options
     Trace("options") << "Options::getOption(" << name << ")" << std::endl;
     // clang-format off
   ${get_impl}$
-        // clang-format on
-        throw OptionException("Unrecognized option key or setting: " + name);
+    // clang-format on
+    throw OptionException("Unrecognized option key or setting: " + name);
   }
 
 void setInternal(Options & opts, const std::string& name,
