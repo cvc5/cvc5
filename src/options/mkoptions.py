@@ -1026,6 +1026,8 @@ class Checker:
             self.perr("of type '{}' has no help text", o.category, option=o)
         if o.alias and not o.long:
             self.perr('has aliases but no long', option=o)
+        if o.alternate and o.type != 'bool':
+            self.perr('is alternate but not bool', option=o)
         if o.long:
             self.__check_option_long(o, o.long_name)
             if o.alternate:
