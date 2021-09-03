@@ -144,16 +144,17 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
   }
 
   // Do theory specific preprocessing passes
-  if (d_env.getLogicInfo().isTheoryEnabled(theory::THEORY_ARITH)
+  if (logicInfo().isTheoryEnabled(theory::THEORY_ARITH)
       && !options::incrementalSolving())
   {
     if (!simpDidALotOfWork)
     {
       util::ContainsTermITEVisitor& contains =
           *(d_iteUtilities.getContainsVisitor());
-      arith::ArithIteUtils aiteu(contains,
-                                 d_preprocContext->getUserContext(),
-                                 d_preprocContext->getTopLevelSubstitutions().get());
+      arith::ArithIteUtils aiteu(
+          contains,
+          userContext(),
+          d_preprocContext->getTopLevelSubstitutions().get());
       bool anyItes = false;
       for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
       {

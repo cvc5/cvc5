@@ -28,9 +28,10 @@ namespace preprocessing {
 namespace passes {
 
 using namespace cvc5::theory;
-ForeignTheoryRewrite::ForeignTheoryRewrite(PreprocessingPassContext* preprocContext)
+ForeignTheoryRewrite::ForeignTheoryRewrite(
+    PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "foreign-theory-rewrite"),
-      d_cache(preprocContext->getUserContext()){};
+      d_cache(userContext()){};
 
 Node ForeignTheoryRewrite::simplify(Node n)
 {

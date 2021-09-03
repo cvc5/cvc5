@@ -189,7 +189,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
 
   // check whether it is not in the current logic, e.g. non-linear arithmetic.
   // if so, undo replacements until it is in the current logic.
-  const LogicInfo& logic = getLogicInfo();
+  const LogicInfo& logic = logicInfo();
   if (logic.isTheoryEnabled(THEORY_ARITH) && logic.isLinear())
   {
     fo_body = fitToLogic(sygusBody,
