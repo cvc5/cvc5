@@ -21,7 +21,7 @@ namespace cvc5 {
 namespace theory {
 
 TheoryState::TheoryState(Env& env, Valuation val)
-    : d_env(env),
+    : EnvObj(env),
       d_valuation(val),
       d_ee(nullptr),
       d_conflict(d_env.getContext(), false)
