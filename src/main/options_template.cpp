@@ -117,7 +117,9 @@ void printLanguageHelp(std::ostream& os) {
  */
 // clang-format off
 static struct option cmdlineOptions[] = {
+// clang-format off
   ${cmdoptions_long}$
+// clang-format on
   {nullptr, no_argument, nullptr, '\0'}
 };
 // clang-format on
