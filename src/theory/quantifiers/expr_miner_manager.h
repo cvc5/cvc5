@@ -24,6 +24,7 @@
 #include "theory/quantifiers/query_generator.h"
 #include "theory/quantifiers/solution_filter.h"
 #include "theory/quantifiers/sygus_sampler.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -39,7 +40,7 @@ namespace quantifiers {
  * coordination, possibly sharing information and utilities like a common
  * sampling object.
  */
-class ExpressionMinerManager
+class ExpressionMinerManager : protected EnvObj
 {
  public:
   ExpressionMinerManager(Env& env);
@@ -93,8 +94,6 @@ class ExpressionMinerManager
   bool addTerm(Node sol, std::ostream& out, bool& rew_print);
 
  private:
-  /** Reference to the env */
-  Env& d_env;
   /** whether we are doing rewrite synthesis */
   bool d_doRewSynth;
   /** whether we are doing query generation */
