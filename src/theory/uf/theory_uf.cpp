@@ -95,9 +95,9 @@ void TheoryUF::finishInit() {
     d_thss.reset(new CardinalityExtension(d_state, d_im, this));
   }
   // The kinds we are treating as function application in congruence
-  bool is_ho = logicInfo().isHigherOrder();
-  d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, is_ho);
-  if (is_ho)
+  bool isHo = logicInfo().isHigherOrder();
+  d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, isHo);
+  if (isHo)
   {
     d_equalityEngine->addFunctionKind(kind::HO_APPLY);
     d_ho.reset(new HoExtension(d_state, d_im));
