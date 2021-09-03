@@ -366,16 +366,6 @@ def die(msg):
     sys.exit('[error] {}'.format(msg))
 
 
-def perr(filename, msg, option=None):
-    msg_suffix = ''
-    if option:
-        if option.name:
-            msg_suffix = "option '{}' ".format(option.name)
-        else:
-            msg_suffix = "option '{}' ".format(option.long)
-    die('parse error in {}: {}{}'.format(filename, msg, msg_suffix))
-
-
 def write_file(directory, name, content):
     """
     Write string 'content' to file directory/name. If the file already exists,
