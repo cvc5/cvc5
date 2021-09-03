@@ -23,9 +23,9 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/smt_engine_subsolver.h"
-#include "smt/env_obj.h"
 
 namespace cvc5 {
 
