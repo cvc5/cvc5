@@ -875,15 +875,11 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
       }
     }
     // Check that UNSAT results generate a proof correctly.
-    if (d_env->getOptions().smt.checkProofs
-        || d_env->getOptions().proof.proofCheck
-               == options::ProofCheckMode::EAGER)
+    if (d_env->getOptions().smt.checkProofs)
     {
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
-        if ((d_env->getOptions().smt.checkProofs
-             || d_env->getOptions().proof.proofCheck
-                    == options::ProofCheckMode::EAGER)
+        if (d_env->getOptions().smt.checkProofs
             && !d_env->getOptions().smt.produceProofs)
         {
           throw ModalException(
