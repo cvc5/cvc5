@@ -38,7 +38,7 @@ namespace proof {
 class LfscPrintChannel
 {
  public:
-  LfscPrintChannel() : d_nodeCount(0), d_trustCount(0) {}
+  LfscPrintChannel() {}
   virtual ~LfscPrintChannel() {}
   /** Print node n */
   virtual void printNode(TNode n) {}
