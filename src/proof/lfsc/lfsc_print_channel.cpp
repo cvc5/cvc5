@@ -19,8 +19,6 @@
 
 #include "proof/lfsc/lfsc_util.h"
 
-using namespace cvc5::rewriter;
-
 namespace cvc5 {
 namespace proof {
 
@@ -129,10 +127,6 @@ void LfscPrintChannelOut::printProofId(std::ostream& out, size_t id)
 void LfscPrintChannelOut::printAssumeId(std::ostream& out, size_t id)
 {
   out << "__a" << id;
-}
-void LfscPrintChannelOut::printDslProofRuleId(std::ostream& out, DslPfRule id)
-{
-  out << "dsl." << id;
 }
 
 void LfscPrintChannelOut::cleanSymbols(std::string& s)
