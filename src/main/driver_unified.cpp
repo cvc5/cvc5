@@ -194,7 +194,9 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
         pExecutor->doCommand(cmd);
       }
       InteractiveShell shell(pExecutor->getSolver(),
-                             pExecutor->getSymbolManager());
+                             pExecutor->getSymbolManager(),
+                             dopts.in(),
+                             dopts.out());
 
       CVC5Message() << Configuration::getPackageName() << " "
                     << Configuration::getVersionString();

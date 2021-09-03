@@ -195,7 +195,7 @@ def get_handler(option):
             return 'opts.handler().{}("{}", name, optionarg)'.format(option.handler, optname)
     elif option.mode:
         return 'stringTo{}(optionarg)'.format(option.type)
-    return 'handleOption<{}>("{}", name, optionarg)'.format(option.type, optname)
+    return 'handlers::handleOption<{}>("{}", name, optionarg)'.format(option.type, optname)
 
 
 def get_predicates(option):
@@ -989,6 +989,10 @@ def parse_module(filename, module):
             if option.type == 'bool' and option.handler:
                 perr(filename,
                      'defining handlers for bool options is not allowed',
+                     option)
+            if option.category not in CATEGORY_VALUES:
+                perr(filename,
+                     "has invalid category '{}'".format(option.category),
                      option)
             if option.category != 'undocumented' and not option.help:
                 perr(filename,

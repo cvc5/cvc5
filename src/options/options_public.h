@@ -34,8 +34,6 @@
 
 namespace cvc5::options {
 
-bool getUfHo(const Options& opts) CVC5_EXPORT;
-
 /**
  * Retrieve an option value by name (as given in key) from the Options object
  * opts as a string.

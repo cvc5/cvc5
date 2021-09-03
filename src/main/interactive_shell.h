@@ -35,6 +35,29 @@ class SymbolManager;
 
 class InteractiveShell
 {
+ public:
+  InteractiveShell(api::Solver* solver,
+                   SymbolManager* sm,
+                   std::istream& in,
+                   std::ostream& out);
+
+  /**
+   * Close out the interactive session.
+   */
+  ~InteractiveShell();
+
+  /**
+   * Read a command from the interactive shell. This will read as
+   * many lines as necessary to parse a well-formed command.
+   */
+  Command* readCommand();
+
+  /**
+   * Return the internal parser being used.
+   */
+  parser::Parser* getParser() { return d_parser; }
+
+ private:
   api::Solver* d_solver;
   std::istream& d_in;
   std::ostream& d_out;
@@ -46,26 +69,6 @@ class InteractiveShell
 
   static const std::string INPUT_FILENAME;
   static const unsigned s_historyLimit = 500;
-
-public:
- InteractiveShell(api::Solver* solver, SymbolManager* sm);
-
- /**
-  * Close out the interactive session.
-  */
- ~InteractiveShell();
-
- /**
-  * Read a command from the interactive shell. This will read as
-  * many lines as necessary to parse a well-formed command.
-  */
- Command* readCommand();
-
- /**
-  * Return the internal parser being used.
-  */
- parser::Parser* getParser() { return d_parser; }
-
 };/* class InteractiveShell */
 
 }  // namespace cvc5

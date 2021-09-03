@@ -30,200 +30,166 @@ ${headers_handler}$
 #include <limits>
 
 namespace cvc5::options {
+  // Contains the default option handlers (i.e. parsers)
+  namespace handlers {
 
-bool getUfHo(const Options& opts) { return opts.uf.ufHo; }
-
-/** Set a given Options* as "current" just for a particular scope. */
-class OptionsGuard {
-  Options** d_field;
-  Options* d_old;
-public:
-  OptionsGuard(Options** field, Options* opts) :
-    d_field(field),
-    d_old(*field) {
-    *field = opts;
-  }
-  ~OptionsGuard() {
-    *d_field = d_old;
-  }
-};/* class OptionsGuard */
-
-
-/**
- * This is a default handler for options of built-in C++ type.  This
- * template is really just a helper for the handleOption() template,
- * below.  Variants of this template handle numeric and non-numeric,
- * integral and non-integral, signed and unsigned C++ types.
- * handleOption() makes sure to instantiate the right one.
- *
- * This implements default behavior when e.g. an option is
- * unsigned but the user specifies a negative argument; etc.
- */
-template <class T, bool is_numeric, bool is_integer>
-struct OptionHandler {
-  static T handle(const std::string& option, const std::string& flag, const std::string& optionarg);
-};/* struct OptionHandler<> */
-
-/** Variant for integral C++ types */
-template <class T>
-struct OptionHandler<T, true, true> {
-  static bool stringToInt(T& t, const std::string& str) {
-    std::istringstream ss(str);
-    ss >> t;
-    char tmp;
-    return !(ss.fail() || ss.get(tmp));
-  }
-
-  static bool containsMinus(const std::string& str) {
-    return str.find('-') != std::string::npos;
-  }
-
-  static T handle(const std::string& option, const std::string& flag, const std::string& optionarg) {
-    try {
-      T i;
-      bool success = stringToInt(i, optionarg);
-
-      if(!success){
-        throw OptionException(flag + ": failed to parse "+ optionarg +
-                              " as an integer of the appropriate type.");
-      }
-
-      // Depending in the platform unsigned numbers with '-' signs may parse.
-      // Reject these by looking for any minus if it is not signed.
-      if( (! std::numeric_limits<T>::is_signed) && containsMinus(optionarg) ) {
-        // unsigned type but user gave negative argument
-        throw OptionException(flag + " requires a nonnegative argument");
-      } else if(i < std::numeric_limits<T>::min()) {
-        // negative overflow for type
-        std::stringstream ss;
-        ss << flag << " requires an argument >= "
-           << std::numeric_limits<T>::min();
-        throw OptionException(ss.str());
-      } else if(i > std::numeric_limits<T>::max()) {
-        // positive overflow for type
-        std::stringstream ss;
-        ss << flag << " requires an argument <= "
-           << std::numeric_limits<T>::max();
-        throw OptionException(ss.str());
-      }
-
-      return i;
-
-      // if(std::numeric_limits<T>::is_signed) {
-      //   return T(i.getLong());
-      // } else {
-      //   return T(i.getUnsignedLong());
-      // }
-    } catch(std::invalid_argument&) {
-      // user gave something other than an integer
-      throw OptionException(flag + " requires an integer argument");
-    }
-  }
-};/* struct OptionHandler<T, true, true> */
-
-/** Variant for numeric but non-integral C++ types */
-template <class T>
-struct OptionHandler<T, true, false> {
-  static T handle(const std::string& option, const std::string& flag, const std::string& optionarg) {
-    std::stringstream inss(optionarg);
-    long double r;
-    inss >> r;
-    if(! inss.eof()) {
-      // we didn't consume the whole string (junk at end)
-      throw OptionException(flag + " requires a numeric argument");
-    }
-
-    if(! std::numeric_limits<T>::is_signed && r < 0.0) {
-      // unsigned type but user gave negative value
-      throw OptionException(flag + " requires a nonnegative argument");
-    } else if(r < -std::numeric_limits<T>::max()) {
-      // negative overflow for type
-      std::stringstream ss;
-      ss << flag << " requires an argument >= "
-         << -std::numeric_limits<T>::max();
-      throw OptionException(ss.str());
-    } else if(r > std::numeric_limits<T>::max()) {
-      // positive overflow for type
-      std::stringstream ss;
-      ss << flag << " requires an argument <= "
-         << std::numeric_limits<T>::max();
-      throw OptionException(ss.str());
-    }
-
-    return T(r);
-  }
-};/* struct OptionHandler<T, true, false> */
-
-/** Variant for non-numeric C++ types */
-template <class T>
-struct OptionHandler<T, false, false> {
-  static T handle(const std::string& option, const std::string& flag, const std::string& optionarg) {
-    T::unsupported_handleOption_call___please_write_me;
-    // The above line causes a compiler error if this version of the template
-    // is ever instantiated (meaning that a specialization is missing).  So
-    // don't worry about the segfault in the next line, the "return" is only
-    // there to keep the compiler from giving additional, distracting errors
-    // and warnings.
-    return *(T*)0;
-  }
-};/* struct OptionHandler<T, false, false> */
-
-/** Specialization for ManagedErr */
-template <>
-struct OptionHandler<ManagedErr, false, false>
-{
-  static ManagedErr handle(const std::string& option,
-                           const std::string& flag,
-                           const std::string& optionarg)
+  /**
+   * Utility function for handling numeric options. Takes care of checking for
+   * unsignedness, parsing and handling parsing exceptions. Expects `conv` to be
+   * a conversion function like `std::stod`, accepting a `std::string` and a
+   * `size_t*`. The argument `type` is only used to generate proper error
+   * messages and should be the string representation of `T`. If `T` is
+   * unsigned, checks that `optionarg` contains no minus. Then `conv` is called
+   * and the error conditions are handled: `conv` may throw an exception or
+   * `pos` may be smaller than the size of `optionarg`, indicating that not the
+   * entirety of `optionarg` was parsed.
+   */
+  template <typename T, typename FF>
+  T parseNumber(const std::string& flag,
+                const std::string& optionarg,
+                FF&& conv,
+                const std::string& type)
   {
-    ManagedErr res;
-    res.open(optionarg);
+    if (!std::numeric_limits<T>::is_signed
+        && (optionarg.find('-') != std::string::npos))
+    {
+      std::stringstream ss;
+      ss << "Argument '" << optionarg << "' for " << type << " option " << flag
+         << " is negative";
+      throw OptionException(ss.str());
+    }
+    size_t pos = 0;
+    T res;
+    try
+    {
+      res = conv(optionarg, &pos);
+    }
+    catch (const std::exception& e)
+    {
+      std::stringstream ss;
+      ss << "Argument '" << optionarg << "' for " << type << " option " << flag
+         << " did not parse as " << type;
+      throw OptionException(ss.str());
+    }
+    if (pos < optionarg.size())
+    {
+      std::stringstream ss;
+      ss << "Argument '" << optionarg << "' for " << type << " option " << flag
+         << " did parse only partially as " << type << ", leaving '"
+         << optionarg.substr(pos) << "'";
+      throw OptionException(ss.str());
+    }
     return res;
   }
-};
-/** Specialization for ManagedIn */
-template <>
-struct OptionHandler<ManagedIn, false, false>
-{
-  static ManagedIn handle(const std::string& option,
+
+  /** Default handler that triggers a compiler error */
+  template <typename T>
+  T handleOption(const std::string& option,
+                 const std::string& flag,
+                 const std::string& optionarg)
+  {
+    T::unsupported_handleOption_specialization;
+    return *static_cast<T*>(nullptr);
+  }
+
+  /** Handle a string option by returning it as is. */
+  template <>
+  std::string handleOption<std::string>(const std::string& option,
+                                        const std::string& flag,
+                                        const std::string& optionarg)
+  {
+    return optionarg;
+  }
+  /** Handle a bool option, recognizing "true" or "false". */
+  template <>
+  bool handleOption<bool>(const std::string& option,
                           const std::string& flag,
                           const std::string& optionarg)
+  {
+    if (optionarg == "true")
+    {
+      return true;
+    }
+    if (optionarg == "false")
+    {
+      return false;
+    }
+    throw OptionException("Argument '" + optionarg + "' for bool option " + flag
+                          + " is not a bool constant");
+  }
+
+  /** Handle a double option, using `parseNumber` with `std::stod`. */
+  template <>
+  double handleOption<double>(const std::string& option,
+                              const std::string& flag,
+                              const std::string& optionarg)
+  {
+    return parseNumber<double>(
+        flag,
+        optionarg,
+        [](const auto& s, auto p) { return std::stod(s, p); },
+        "double");
+  }
+
+  /** Handle a int64_t option, using `parseNumber` with `std::stoll`. */
+  template <>
+  int64_t handleOption<int64_t>(const std::string& option,
+                                const std::string& flag,
+                                const std::string& optionarg)
+  {
+    return parseNumber<int64_t>(
+        flag,
+        optionarg,
+        [](const auto& s, auto p) { return std::stoll(s, p); },
+        "int64_t");
+  }
+
+  /** Handle a uint64_t option, using `parseNumber` with `std::stoull`. */
+  template <>
+  uint64_t handleOption<uint64_t>(const std::string& option,
+                                  const std::string& flag,
+                                  const std::string& optionarg)
+  {
+    return parseNumber<uint64_t>(
+        flag,
+        optionarg,
+        [](const auto& s, auto p) { return std::stoull(s, p); },
+        "uint64_t");
+  }
+
+  /** Handle a ManagedIn option. */
+  template <>
+  ManagedIn handleOption<ManagedIn>(const std::string& option,
+                                    const std::string& flag,
+                                    const std::string& optionarg)
   {
     ManagedIn res;
     res.open(optionarg);
     return res;
   }
-};
-/** Specialization for ManagedOut */
-template <>
-struct OptionHandler<ManagedOut, false, false>
-{
-  static ManagedOut handle(const std::string& option,
-                           const std::string& flag,
-                           const std::string& optionarg)
+
+  /** Handle a ManagedErr option. */
+  template <>
+  ManagedErr handleOption<ManagedErr>(const std::string& option,
+                                      const std::string& flag,
+                                      const std::string& optionarg)
+  {
+    ManagedErr res;
+    res.open(optionarg);
+    return res;
+  }
+
+  /** Handle a ManagedOut option. */
+  template <>
+  ManagedOut handleOption<ManagedOut>(const std::string& option,
+                                      const std::string& flag,
+                                      const std::string& optionarg)
   {
     ManagedOut res;
     res.open(optionarg);
     return res;
   }
-};
-
-/** Handle an option of type T in the default way. */
-template <class T>
-T handleOption(const std::string& option, const std::string& flag, const std::string& optionarg) {
-  return OptionHandler<T, std::numeric_limits<T>::is_specialized, std::numeric_limits<T>::is_integer>::handle(option, flag, optionarg);
-}
-
-/** Handle an option of type std::string in the default way. */
-template <>
-std::string handleOption<std::string>(const std::string& option, const std::string& flag, const std::string& optionarg) {
-  return optionarg;
-}
-template <>
-bool handleOption<bool>(const std::string& option, const std::string& flag, const std::string& optionarg) {
-  Assert(optionarg == "true" || optionarg == "false");
-  return optionarg == "true";
-}
+  }
 
 std::string get(const Options& options, const std::string& name)
 {
