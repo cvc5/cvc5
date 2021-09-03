@@ -78,7 +78,7 @@ name   = "Bitvector Theory"
 
 [[option]]
   name       = "bitvectorAlgebraicSolver"
-  category   = "experimental"
+  category   = "expert"
   long       = "bv-algebraic-solver"
   type       = "bool"
   default    = "false"

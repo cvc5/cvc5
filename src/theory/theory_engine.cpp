@@ -219,8 +219,8 @@ context::UserContext* TheoryEngine::getUserContext() const
 }
 
 TheoryEngine::TheoryEngine(Env& env)
-    : d_propEngine(nullptr),
-      d_env(env),
+    : EnvObj(env),
+      d_propEngine(nullptr),
       d_logicInfo(env.getLogicInfo()),
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
                                            : nullptr),
@@ -264,7 +264,7 @@ TheoryEngine::TheoryEngine(Env& env)
 
   if (options::sortInference())
   {
-    d_sortInfer.reset(new SortInference);
+    d_sortInfer.reset(new SortInference(env));
   }
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);

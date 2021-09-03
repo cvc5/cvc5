@@ -26,6 +26,7 @@
 #include "expr/node.h"
 #include "options/theory_options.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 #include "theory/atom_requests.h"
 #include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
@@ -98,7 +99,7 @@ class PropEngine;
  * T-solvers look like a single unit to the propositional part of
  * cvc5.
  */
-class TheoryEngine
+class TheoryEngine : protected EnvObj
 {
   /** Shared terms database can use the internals notify the theories */
   friend class SharedTermsDatabase;
@@ -527,11 +528,6 @@ class TheoryEngine
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
-
-  /**
-   * Reference to the environment.
-   */
-  Env& d_env;
 
   /**
    * A table of from theory IDs to theory pointers. Never use this table

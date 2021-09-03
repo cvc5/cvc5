@@ -50,7 +50,7 @@ import toml
 ### Allowed attributes for module/option
 
 MODULE_ATTR_REQ = ['id', 'name']
-MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option', 'public']
+MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option']
 
 OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
@@ -195,7 +195,7 @@ def get_handler(option):
             return 'opts.handler().{}("{}", name, optionarg)'.format(option.handler, optname)
     elif option.mode:
         return 'stringTo{}(optionarg)'.format(option.type)
-    return 'handleOption<{}>("{}", name, optionarg)'.format(option.type, optname)
+    return 'handlers::handleOption<{}>("{}", name, optionarg)'.format(option.type, optname)
 
 
 def get_predicates(option):
@@ -608,13 +608,7 @@ def codegen_module(module, dst_dir, tpls):
                     help=help_mode_format(option),
                     long=option.long.split('=')[0]))
 
-    if module.public:
-        visibility_include = '#include "cvc5_public.h"'
-    else:
-        visibility_include = '#include "cvc5_private.h"'
-    
     data = {
-        'visibility_include': visibility_include,
         'id_cap': module.id_cap,
         'id': module.id,
         'includes': '\n'.join(sorted(list(includes))),
@@ -775,6 +769,10 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                     ['name == "{}"'.format(x) for x in sorted(names)])
 
                 # Generate code for getOptionInfo
+                if option.alias:
+                    alias = ', '.join(map(lambda s: '"{}"'.format(s), option.alias))
+                else:
+                    alias = ''
                 if option.name:
                     constr = None
                     fmt = {
@@ -794,11 +792,9 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                         constr = 'OptionInfo::ModeInfo{{"{default}", {value}, {{ {modes} }}}}'.format(**fmt, modes=values)
                     else:
                         constr = 'OptionInfo::VoidInfo{}'
-                    if option.alias:
-                        alias = ', '.join(map(lambda s: '"{}"'.format(s), option.alias))
-                    else:
-                        alias = ''
                     options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, opts.{}.{}WasSetByUser, {}}};'.format(cond, long_get_option(option.long), module.id, option.name, constr, alias=alias))
+                else:
+                    options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, false, OptionInfo::VoidInfo{{}}}};'.format(cond, long_get_option(option.long), alias=alias))
 
                 if setoption_handlers:
                     setoption_handlers.append('  }} else if ({}) {{'.format(cond))
@@ -993,6 +989,10 @@ def parse_module(filename, module):
             if option.type == 'bool' and option.handler:
                 perr(filename,
                      'defining handlers for bool options is not allowed',
+                     option)
+            if option.category not in CATEGORY_VALUES:
+                perr(filename,
+                     "has invalid category '{}'".format(option.category),
                      option)
             if option.category != 'undocumented' and not option.help:
                 perr(filename,

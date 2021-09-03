@@ -28,8 +28,8 @@ PreprocessingPassContext::PreprocessingPassContext(
     SmtEngine* smt,
     Env& env,
     theory::booleans::CircuitPropagator* circuitPropagator)
-    : d_smt(smt),
-      d_env(env),
+    : EnvObj(env),
+      d_smt(smt),
       d_circuitPropagator(circuitPropagator),
       d_llm(env.getTopLevelSubstitutions(),
             env.getUserContext(),
@@ -44,11 +44,6 @@ const Options& PreprocessingPassContext::getOptions() const
 const LogicInfo& PreprocessingPassContext::getLogicInfo() const
 {
   return d_env.getLogicInfo();
-}
-
-theory::Rewriter* PreprocessingPassContext::getRewriter() const
-{
-  return d_env.getRewriter();
 }
 
 theory::TrustSubstitutionMap&
