@@ -21,6 +21,7 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "smt/env.h"
 #include "theory/rewriter.h"
 #include "theory/uf/theory_uf_model.h"
 
@@ -30,6 +31,8 @@ using namespace cvc5::context;
 
 namespace cvc5 {
 namespace theory {
+
+TheoryEngineModelBuilder::TheoryEngineModelBuilder(Env& env) : EnvObj(env) {}
 
 void TheoryEngineModelBuilder::Assigner::initialize(
     TypeNode tn, TypeEnumeratorProperties* tep, const std::vector<Node>& aes)
@@ -63,8 +66,6 @@ Node TheoryEngineModelBuilder::Assigner::getNextAssignment()
   } while (!success);
   return n;
 }
-
-TheoryEngineModelBuilder::TheoryEngineModelBuilder() {}
 
 Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m, TNode r)
 {
@@ -129,7 +130,7 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
   {
     // selectors are always assignable (where we guarantee that they are not
     // evaluatable here)
-    if (!options::ufHo())
+    if (!d_env.getLogicInfo().isHigherOrder())
     {
       Assert(!n.getType().isFunction());
       return true;
@@ -151,7 +152,7 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
   else
   {
     // non-function variables, and fully applied functions
-    if (!options::ufHo())
+    if (!d_env.getLogicInfo().isHigherOrder())
     {
       // no functions exist, all functions are fully applied
       Assert(n.getKind() != kind::HO_APPLY);
@@ -1228,7 +1229,7 @@ bool TheoryEngineModelBuilder::processBuildModel(TheoryModel* m)
 
 void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
 {
-  Assert(!options::ufHo());
+  Assert(!d_env.getLogicInfo().isHigherOrder());
   uf::UfModelTree ufmt(f);
   Node default_v;
   for (size_t i = 0; i < m->d_uf_terms[f].size(); i++)
@@ -1273,7 +1274,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
 
 void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
 {
-  Assert(options::ufHo());
+  Assert(d_env.getLogicInfo().isHigherOrder());
   TypeNode type = f.getType();
   std::vector<TypeNode> argTypes = type.getArgTypes();
   std::vector<Node> args;
@@ -1397,7 +1398,7 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
   Trace("model-builder") << "Assigning function values..." << std::endl;
   std::vector<Node> funcs_to_assign = m->getFunctionsToAssign();
 
-  if (options::ufHo())
+  if (d_env.getLogicInfo().isHigherOrder())
   {
     // sort based on type size if higher-order
     Trace("model-builder") << "Sort functions by type..." << std::endl;
@@ -1424,7 +1425,7 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
     Trace("model-builder") << "  Function #" << k << " is " << f << std::endl;
     // std::map< Node, std::vector< Node > >::iterator itht =
     // m->d_ho_uf_terms.find( f );
-    if (!options::ufHo())
+    if (!d_env.getLogicInfo().isHigherOrder())
     {
       Trace("model-builder") << "  Assign function value for " << f
                              << " based on APPLY_UF" << std::endl;

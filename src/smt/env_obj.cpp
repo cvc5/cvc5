@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -10,25 +10,22 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of sygus_module.
+ * The base class for everything that nees access to the environment (Env)
+ * instance, which gives access to global utilities available to internal code.
  */
 
-#include "theory/quantifiers/sygus/sygus_module.h"
+#include "smt/env_obj.h"
 
-#include "theory/quantifiers/quantifiers_state.h"
+#include "options/options.h"
+#include "smt/env.h"
+#include "theory/rewriter.h"
 
 namespace cvc5 {
-namespace theory {
-namespace quantifiers {
 
-SygusModule::SygusModule(QuantifiersState& qs,
-                         QuantifiersInferenceManager& qim,
-                         TermDbSygus* tds,
-                         SynthConjecture* p)
-    : EnvObj(qs.getEnv()), d_qstate(qs), d_qim(qim), d_tds(tds), d_parent(p)
-{
-}
+EnvObj::EnvObj(Env& env) : d_env(env) {}
 
-}  // namespace quantifiers
-}  // namespace theory
+Node EnvObj::rewrite(TNode node) { return d_env.getRewriter()->rewrite(node); }
+
+const LogicInfo& EnvObj::getLogicInfo() const { return d_env.getLogicInfo(); }
+
 }  // namespace cvc5

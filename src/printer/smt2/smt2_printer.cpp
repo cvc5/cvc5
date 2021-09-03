@@ -1262,7 +1262,6 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
 
 void Smt2Printer::toStream(std::ostream& out, const smt::Model& m) const
 {
-  const theory::TheoryModel* tm = m.getTheoryModel();
   //print the model
   out << "(" << endl;
   // don't need to print approximations since they are built into choice
@@ -1271,7 +1270,7 @@ void Smt2Printer::toStream(std::ostream& out, const smt::Model& m) const
   out << ")" << endl;
   //print the heap model, if it exists
   Node h, neq;
-  if (tm->getHeapModel(h, neq))
+  if (m.getHeapModel(h, neq))
   {
     // description of the heap+what nil is equal to fully describes model
     out << "(heap" << endl;
@@ -1282,8 +1281,8 @@ void Smt2Printer::toStream(std::ostream& out, const smt::Model& m) const
 }
 
 void Smt2Printer::toStreamModelSort(std::ostream& out,
-                                    const smt::Model& m,
-                                    TypeNode tn) const
+                                    TypeNode tn,
+                                    const std::vector<Node>& elements) const
 {
   if (!tn.isSort())
   {
@@ -1291,8 +1290,6 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
         << tn << std::endl;
     return;
   }
-  const theory::TheoryModel* tm = m.getTheoryModel();
-  std::vector<Node> elements = tm->getDomainElements(tn);
   // print the cardinality
   out << "; cardinality of " << tn << " is " << elements.size() << endl;
   if (options::modelUninterpPrint()
@@ -1322,26 +1319,22 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
 }
 
 void Smt2Printer::toStreamModelTerm(std::ostream& out,
-                                    const smt::Model& m,
-                                    Node n) const
+                                    const Node& n,
+                                    const Node& value) const
 {
-  const theory::TheoryModel* tm = m.getTheoryModel();
-  // We get the value from the theory model directly, which notice
-  // does not have to go through the standard SmtEngine::getValue interface.
-  Node val = tm->getValue(n);
-  if (val.getKind() == kind::LAMBDA)
+  if (value.getKind() == kind::LAMBDA)
   {
     TypeNode rangeType = n.getType().getRangeType();
-    out << "(define-fun " << n << " " << val[0] << " " << rangeType << " ";
+    out << "(define-fun " << n << " " << value[0] << " " << rangeType << " ";
     // call toStream and force its type to be proper
-    toStreamCastToType(out, val[1], -1, rangeType);
+    toStreamCastToType(out, value[1], -1, rangeType);
     out << ")" << endl;
   }
   else
   {
     out << "(define-fun " << n << " () " << n.getType() << " ";
     // call toStream and force its type to be proper
-    toStreamCastToType(out, val, -1, n.getType());
+    toStreamCastToType(out, value, -1, n.getType());
     out << ")" << endl;
   }
 }

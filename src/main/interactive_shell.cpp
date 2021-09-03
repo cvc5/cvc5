@@ -85,11 +85,11 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBEDITLINE */
 
-InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
-    : d_solver(solver),
-      d_in(solver->getDriverOptions().in()),
-      d_out(solver->getDriverOptions().out()),
-      d_quit(false)
+InteractiveShell::InteractiveShell(api::Solver* solver,
+                                   SymbolManager* sm,
+                                   std::istream& in,
+                                   std::ostream& out)
+    : d_solver(solver), d_in(in), d_out(out), d_quit(false)
 {
   ParserBuilder parserBuilder(solver, sm, true);
   /* Create parser with bogus input. */

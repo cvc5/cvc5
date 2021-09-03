@@ -178,6 +178,8 @@ libcvc5_add_sources(
   proof/lazy_proof_chain.h
   proof/lazy_tree_proof_generator.cpp
   proof/lazy_tree_proof_generator.h
+  proof/lfsc/lfsc_node_converter.cpp
+  proof/lfsc/lfsc_node_converter.h
   proof/lfsc/lfsc_util.cpp
   proof/lfsc/lfsc_util.h
   proof/method_id.cpp
@@ -294,6 +296,8 @@ libcvc5_add_sources(
   smt/dump_manager.h
   smt/env.cpp
   smt/env.h
+  smt/env_obj.cpp
+  smt/env_obj.h
   smt/expand_definitions.cpp
   smt/expand_definitions.h
   smt/listeners.cpp

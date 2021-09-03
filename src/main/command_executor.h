@@ -21,15 +21,10 @@
 
 #include "api/cpp/cvc5.h"
 #include "expr/symbol_manager.h"
-#include "options/options.h"
 
 namespace cvc5 {
 
 class Command;
-
-namespace smt {
-class SmtEngine;
-}
 
 namespace main {
 
@@ -80,8 +75,6 @@ class CommandExecutor
 
   api::Result getResult() const { return d_result; }
   void reset();
-
-  SmtEngine* getSmtEngine() const { return d_solver->getSmtEngine(); }
 
   /** Store the current options as the original options */
   void storeOptionsAsOriginal();
