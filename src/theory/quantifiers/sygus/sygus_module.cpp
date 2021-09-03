@@ -15,6 +15,8 @@
 
 #include "theory/quantifiers/sygus/sygus_module.h"
 
+#include "theory/quantifiers/quantifiers_state.h"
+
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
@@ -23,7 +25,7 @@ SygusModule::SygusModule(QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          TermDbSygus* tds,
                          SynthConjecture* p)
-    : d_qstate(qs), d_qim(qim), d_tds(tds), d_parent(p)
+    : EnvObj(qs.getEnv()), d_qstate(qs), d_qim(qim), d_tds(tds), d_parent(p)
 {
 }
 
