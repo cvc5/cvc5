@@ -70,36 +70,9 @@ Node BuiltinProofRuleChecker::applySubstitutionRewrite(
   return applyRewrite(nks, idr);
 }
 
-Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
+Node BuiltinProofRuleChecker::applyRewrite(TNode n, MethodId idr)
 {
-  Trace("builtin-pfcheck-debug")
-      << "applyRewrite (" << idr << "): " << n << std::endl;
-  if (idr == MethodId::RW_REWRITE)
-  {
-    return Rewriter::rewrite(n);
-  }
-  if (idr == MethodId::RW_EXT_REWRITE)
-  {
-    return d_ext_rewriter.extendedRewrite(n);
-  }
-  if (idr == MethodId::RW_REWRITE_EQ_EXT)
-  {
-    return d_env.getRewriter()->rewriteEqualityExt(n);
-  }
-  if (idr == MethodId::RW_EVALUATE)
-  {
-    Evaluator eval;
-    return eval.eval(n, {}, {}, false);
-  }
-  if (idr == MethodId::RW_IDENTITY)
-  {
-    // does nothing
-    return n;
-  }
-  // unknown rewriter
-  Assert(false) << "BuiltinProofRuleChecker::applyRewrite: no rewriter for "
-                << idr << std::endl;
-  return n;
+  return d_env.getRewriter()->rewriteViaMethod(n, idr);
 }
 
 bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
