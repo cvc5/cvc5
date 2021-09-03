@@ -1,5 +1,3 @@
-; COMMAND-LINE: --no-sygus-inst
-; EXPECT: unsat
 (set-logic NRA)
 (set-info :status unsat)
 (declare-fun c () Real)
