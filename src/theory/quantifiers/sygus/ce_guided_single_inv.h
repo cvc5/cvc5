@@ -20,6 +20,7 @@
 
 #include "context/cdlist.h"
 #include "expr/subs.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/single_inv_partition.h"
@@ -40,63 +41,13 @@ class SygusReconstruct;
 // (2) inferring whether the conjecture corresponds to a deterministic transistion system (by utility d_ti).
 // For these techniques, we may generate a template (d_templ) which specifies a restricted
 // solution space. We may in turn embed this template as a SyGuS grammar.
-class CegSingleInv
+class CegSingleInv : protected EnvObj
 {
- private:
-  //presolve
-  void collectPresolveEqTerms( Node n,
-                               std::map< Node, std::vector< Node > >& teq );
-  void getPresolveEqConjuncts( std::vector< Node >& vars,
-                               std::vector< Node >& terms,
-                               std::map< Node, std::vector< Node > >& teq,
-                               Node n, std::vector< Node >& conj );
- private:
-  /** Reference to the env */
-  Env& d_env;
-  // single invocation inference utility
-  SingleInvocationPartition* d_sip;
-  /** solution reconstruction */
-  std::unique_ptr<SygusReconstruct> d_srcons;
-
-  // list of skolems for each argument of programs
-  std::vector<Node> d_single_inv_arg_sk;
-  // program to solution index
-  std::map<Node, unsigned> d_prog_to_sol_index;
-  // original conjecture
-  Node d_orig_conjecture;
-
- public:
-  //---------------------------------representation of the solution
-  /**
-   * The list of instantiations that suffice to show the first-order equivalent
-   * of the negated synthesis conjecture is unsatisfiable.
-   */
-  std::vector<std::vector<Node> > d_inst;
-  /**
-   * The list of instantiation lemmas, corresponding to instantiations of the
-   * first order conjecture for the term vectors above.
-   */
-  std::vector<Node> d_instConds;
-  /** The solutions, without reconstruction to syntax */
-  std::vector<Node> d_solutions;
-  /** The solutions, after reconstruction to syntax */
-  std::vector<Node> d_rcSolutions;
-  /** is solved */
-  bool d_isSolved;
-  //---------------------------------end representation of the solution
-
- private:
-  Node d_simp_quant;
-  // are we single invocation?
-  bool d_single_invocation;
-  // single invocation portion of quantified formula
-  Node d_single_inv;
-  
  public:
   CegSingleInv(Env& env, TermRegistry& tr, SygusStatistics& s);
   ~CegSingleInv();
 
-  // get simplified conjecture
+  /** Get simplified conjecture. */
   Node getSimplifiedConjecture() { return d_simp_quant; }
   /** initialize this class for synthesis conjecture q */
   void initialize( Node q );
@@ -146,7 +97,33 @@ class CegSingleInv
   /** preregister conjecture */
   void preregisterConjecture( Node q );
 
+  //---------------------------------representation of the solution
+  /**
+   * The list of instantiations that suffice to show the first-order equivalent
+   * of the negated synthesis conjecture is unsatisfiable.
+   */
+  std::vector<std::vector<Node> > d_inst;
+  /**
+   * The list of instantiation lemmas, corresponding to instantiations of the
+   * first order conjecture for the term vectors above.
+   */
+  std::vector<Node> d_instConds;
+  /** The solutions, without reconstruction to syntax */
+  std::vector<Node> d_solutions;
+  /** The solutions, after reconstruction to syntax */
+  std::vector<Node> d_rcSolutions;
+  /** is solved */
+  bool d_isSolved;
+  //---------------------------------end representation of the solution
+
  private:
+  // presolve
+  void collectPresolveEqTerms(Node n, std::map<Node, std::vector<Node> >& teq);
+  void getPresolveEqConjuncts(std::vector<Node>& vars,
+                              std::vector<Node>& terms,
+                              std::map<Node, std::vector<Node> >& teq,
+                              Node n,
+                              std::vector<Node>& conj);
   /** solve trivial
    *
    * If this method returns true, it sets d_isSolved to true and adds
@@ -165,6 +142,25 @@ class CegSingleInv
    * calls to the above method getSolutionFromInst.
    */
   void setSolution();
+
+  // single invocation inference utility
+  SingleInvocationPartition* d_sip;
+  /** solution reconstruction */
+  std::unique_ptr<SygusReconstruct> d_srcons;
+
+  // list of skolems for each argument of programs
+  std::vector<Node> d_single_inv_arg_sk;
+  // program to solution index
+  std::map<Node, unsigned> d_prog_to_sol_index;
+  // original conjecture
+  Node d_orig_conjecture;
+
+  Node d_simp_quant;
+  // are we single invocation?
+  bool d_single_invocation;
+  // single invocation portion of quantified formula
+  Node d_single_inv;
+
   /** Reference to the term registry */
   TermRegistry& d_treg;
   /** The conjecture */

@@ -62,6 +62,38 @@ OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
 
+################################################################################
+################################################################################
+# utility functions
+
+
+def wrap_line(s, indent, **kwargs):
+    """Wrap and indent text and forward all other kwargs to textwrap.wrap()."""
+    return ('\n' + ' ' * indent).join(
+        textwrap.wrap(s, width=80 - indent, **kwargs))
+
+
+def concat_format(s, objs):
+    """Helper method to render a string for a list of object"""
+    return '\n'.join([s.format(**o.__dict__) for o in objs])
+
+
+def all_options(modules, sorted=False):
+    """Helper to iterate all options from all modules."""
+    if sorted:
+        options = []
+        for m in modules:
+            options = options + [(m, o) for o in m.options]
+        options.sort(key=lambda t: t[1])
+        yield from options
+    else:
+        for module in modules:
+            if not module.options:
+                continue
+            for option in module.options:
+                yield module, option
+
+
 ### Other globals
 
 g_getopt_long_start = 256
@@ -142,10 +174,6 @@ TPL_MODE_HANDLER_CASE = \
   {{
     return {type}::{enum};
   }}"""
-
-def concat_format(s, objs):
-    """Helper method to render a string for a list of object"""
-    return '\n'.join([s.format(**o.__dict__) for o in objs])
 
 
 def get_module_headers(modules):
@@ -228,21 +256,17 @@ class Module(object):
 
 
 class Option(object):
-    """Module option.
-
-    An instance of this class corresponds to an option defined in a
-    MODULE_options.toml configuration file specified via [[option]].
-    """
+    """Represents on option."""
     def __init__(self, d):
         self.__dict__ = dict((k, None) for k in OPTION_ATTR_ALL)
         self.includes = []
         self.predicates = []
-        self.alternate = True    # add --no- alternative long option for bool
-        self.filename = None
         for (attr, val) in d.items():
             assert attr in self.__dict__
             if attr == 'alternate' or val:
                 self.__dict__[attr] = val
+        if self.type == 'bool' and self.alternate is None:
+            self.alternate = True
         self.long_name = None
         self.long_opt = None
         if self.long:
@@ -250,6 +274,60 @@ class Option(object):
             self.long_name = r[0]
             if len(r) > 1:
                 self.long_opt = r[1]
+        self.names = set()
+        if self.long_name:
+            self.names.add(self.long_name)
+        if self.alias:
+            self.names.update(self.alias)
+
+    def __lt__(self, other):
+        if self.long_name and other.long_name:
+            return self.long_name < other.long_name
+        if self.long_name: return True
+        return False
+
+################################################################################
+# stuff for options/options_public.cpp
+
+
+def generate_public_includes(modules):
+    """Generates the list of includes for options_public.cpp."""
+    headers = set()
+    for _, option in all_options(modules):
+        headers.update([format_include(x) for x in option.includes])
+    return '\n'.join(headers)
+
+
+def generate_getnames_impl(modules):
+    """Generates the implementation for options::getNames()."""
+    names = set()
+    for _, option in all_options(modules):
+        names.update(option.names)
+    res = ', '.join(map(lambda s: '"' + s + '"', sorted(names)))
+    return wrap_line(res, 4, break_on_hyphens=False)
+
+
+def generate_get_impl(modules):
+    """Generates the implementation for options::get()."""
+    res = []
+    for module, option in all_options(modules, True):
+        if not option.name or not option.long:
+            continue
+        cond = ' || '.join(['name == "{}"'.format(x) for x in option.names])
+        ret = None
+        if option.type == 'bool':
+            ret = 'return options.{}.{} ? "true" : "false";'.format(
+                module.id, option.name)
+        elif option.type == 'std::string':
+            ret = 'return options.{}.{};'.format(module.id, option.name)
+        elif is_numeric_cpp_type(option.type):
+            ret = 'return std::to_string(options.{}.{});'.format(
+                module.id, option.name)
+        else:
+            ret = '{{ std::stringstream s; s << options.{}.{}; return s.str(); }}'.format(
+                module.id, option.name)
+        res.append('if ({}) {}'.format(cond, ret))
+    return '\n  '.join(res)
 
     def __lt__(self, other):
         if self.long_name and other.long_name:
@@ -302,7 +380,7 @@ class SphinxGenerator:
             'name': names,
             'help': option.help,
             'expert': option.category == 'expert',
-            'alternate': option.type == 'bool' and option.alternate,
+            'alternate': option.alternate,
             'help_mode': option.help_mode,
             'modes': modes,
         }
@@ -641,7 +719,7 @@ def docgen_option(option, help_common, help_others):
     # Generate documentation for cmdline options
     if opts and option.category != 'undocumented':
         help_cmd = help_msg
-        if option.type == 'bool' and option.alternate:
+        if option.alternate:
             help_cmd += ' [*]'
         
         res = help_format(help_cmd, opts)
@@ -677,11 +755,9 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     getopt_long = []         # long options for getopt_long
     options_get_info = []    # code for getOptionInfo()
     options_handler = []     # option handler calls
-    options_names = set()    # option names
     help_common = []         # help text for all common options
     help_others = []         # help text for all non-common options
     setoption_handlers = []  # handlers for set-option command
-    getoption_handlers = []  # handlers for get-option command
 
     assign_impls = []
 
@@ -760,7 +836,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                 if option.alias:
                     names.update(option.alias)
                 assert names
-                options_names.update(names)
 
                 cond = ' || '.join(
                     ['name == "{}"'.format(x) for x in sorted(names)])
@@ -819,29 +894,8 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                     setoption_handlers.append(
                         h.format(handler=option.handler, smtname=option.long_name))
 
-
-                if option.name:
-                    getoption_handlers.append(
-                        'if ({}) {{'.format(cond))
-                    if option.type == 'bool':
-                        getoption_handlers.append(
-                            'return options.{}.{} ? "true" : "false";'.format(module.id, option.name))
-                    elif option.type == 'std::string':
-                        getoption_handlers.append(
-                            'return options.{}.{};'.format(module.id, option.name))
-                    elif is_numeric_cpp_type(option.type):
-                        getoption_handlers.append(
-                            'return std::to_string(options.{}.{});'.format(module.id, option.name))
-                    else:
-                        getoption_handlers.append('std::stringstream ss;')
-                        getoption_handlers.append(
-                            'ss << options.{}.{};'.format(module.id, option.name))
-                        getoption_handlers.append('return ss.str();')
-                    getoption_handlers.append('}')
-
-
             # Add --no- alternative options for boolean options
-            if option.long and option.type == 'bool' and option.alternate:
+            if option.long and option.alternate:
                 cases = []
                 cases.append(
                     'case {}: // --no-{}'.format(
@@ -865,9 +919,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                 cases.append('  break;')
                 options_handler.extend(cases)
 
-    options_all_names = ', '.join(map(lambda s: '"' + s + '"', sorted(options_names)))
-    options_all_names = '\n'.join(textwrap.wrap(options_all_names, width=80, break_on_hyphens=False))
-
     data = {
         'holder_fwd_decls': get_holder_fwd_decls(modules),
         'holder_mem_decls': get_holder_mem_decls(modules),
@@ -877,14 +928,16 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
         'holder_mem_inits': get_holder_mem_inits(modules),
         'holder_ref_inits': get_holder_ref_inits(modules),
         'holder_mem_copy': get_holder_mem_copy(modules),
+        # options/options_public.cpp
+        'options_includes': generate_public_includes(modules),
+        'getnames_impl': generate_getnames_impl(modules),
+        'get_impl': generate_get_impl(modules),
         'cmdline_options': '\n  '.join(getopt_long),
         'help_common': '\n'.join(help_common),
         'help_others': '\n'.join(help_others),
         'options_handler': '\n    '.join(options_handler),
         'options_short': ''.join(getopt_short),
-        'options_all_names': options_all_names,
         'options_get_info': '\n  '.join(sorted(options_get_info)),
-        'getoption_handlers': '\n'.join(getoption_handlers),
         'setoption_handlers': '\n'.join(setoption_handlers),
     }
     for tpl in tpls:

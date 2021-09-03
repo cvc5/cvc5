@@ -33,7 +33,7 @@ namespace cvc5 {
 namespace theory {
 
 TheoryModel::TheoryModel(Env& env, std::string name, bool enableFuncModels)
-    : d_env(env),
+    : EnvObj(env),
       d_name(name),
       d_equalityEngine(nullptr),
       d_using_model_core(false),

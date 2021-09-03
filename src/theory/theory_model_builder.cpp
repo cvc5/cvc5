@@ -32,7 +32,7 @@ using namespace cvc5::context;
 namespace cvc5 {
 namespace theory {
 
-TheoryEngineModelBuilder::TheoryEngineModelBuilder(Env& env) : d_env(env) {}
+TheoryEngineModelBuilder::TheoryEngineModelBuilder(Env& env) : EnvObj(env) {}
 
 void TheoryEngineModelBuilder::Assigner::initialize(
     TypeNode tn, TypeEnumeratorProperties* tep, const std::vector<Node>& aes)
