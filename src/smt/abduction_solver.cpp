@@ -79,7 +79,7 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
                                 Node& abd)
 {
   TypeNode grammarType;
-  return getAbduct(goal, grammarType, abd);
+  return getAbduct(axioms, goal, grammarType, abd);
 }
 
 bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
