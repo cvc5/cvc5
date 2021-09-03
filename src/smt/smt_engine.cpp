@@ -1755,7 +1755,8 @@ bool SmtEngine::getInterpol(const Node& conj,
   SmtScope smts(this);
   finishInit();
   std::vector<Node> axioms = getExpandedAssertions();
-  bool success = d_interpolSolver->getInterpol(axioms, conj, grammarType, interpol);
+  bool success =
+      d_interpolSolver->getInterpol(axioms, conj, grammarType, interpol);
   // notify the state of whether the get-interpol call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);

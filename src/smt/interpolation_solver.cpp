@@ -32,10 +32,7 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-InterpolationSolver::InterpolationSolver(Env& env)
-    : EnvObj(env)
-{
-}
+InterpolationSolver::InterpolationSolver(Env& env) : EnvObj(env) {}
 
 InterpolationSolver::~InterpolationSolver() {}
 
@@ -69,7 +66,9 @@ bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
   return false;
 }
 
-bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms, const Node& conj, Node& interpol)
+bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
+                                      const Node& conj,
+                                      Node& interpol)
 {
   TypeNode grammarType;
   return getInterpol(axioms, conj, grammarType, interpol);

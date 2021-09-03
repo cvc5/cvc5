@@ -57,7 +57,10 @@ class AbductionSolver : protected EnvObj
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
    */
-  bool getAbduct(const std::vector<Node>& axioms, const Node& goal, const TypeNode& grammarType, Node& abd);
+  bool getAbduct(const std::vector<Node>& axioms,
+                 const Node& goal,
+                 const TypeNode& grammarType,
+                 Node& abd);
 
   /**
    * Same as above, but without user-provided grammar restrictions. A default
@@ -72,7 +75,7 @@ class AbductionSolver : protected EnvObj
    * solution to the abduction problem (a) is SAT, and the assertions conjoined
    * with the abduct and the goal is UNSAT. If these criteria are not met, an
    * internal error is thrown.
-   * 
+   *
    * @param axioms The expanded assertions of the parent SMT engine
    * @param a The abduct to check.
    */

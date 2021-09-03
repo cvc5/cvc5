@@ -32,10 +32,7 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-AbductionSolver::AbductionSolver(Env& env)
-    : EnvObj(env)
-{
-}
+AbductionSolver::AbductionSolver(Env& env) : EnvObj(env) {}
 
 AbductionSolver::~AbductionSolver() {}
 bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
@@ -77,13 +74,16 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   return getAbductInternal(axioms, abd);
 }
 
-bool AbductionSolver::getAbduct(const std::vector<Node>& axioms, const Node& goal, Node& abd)
+bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
+                                const Node& goal,
+                                Node& abd)
 {
   TypeNode grammarType;
   return getAbduct(goal, grammarType, abd);
 }
 
-bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms, Node& abd)
+bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
+                                        Node& abd)
 {
   // should have initialized the subsolver by now
   Assert(d_subsolver != nullptr);

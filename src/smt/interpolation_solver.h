@@ -63,7 +63,9 @@ class InterpolationSolver : protected EnvObj
    * Same as above, but without user-provided grammar restrictions. A default
    * grammar is chosen internally using the sygus grammar constructor utility.
    */
-  bool getInterpol(const std::vector<Node>& axioms, const Node& conj, Node& interpol);
+  bool getInterpol(const std::vector<Node>& axioms,
+                   const Node& conj,
+                   Node& interpol);
 
   /**
    * Check that a solution to an interpolation problem is indeed a solution.
