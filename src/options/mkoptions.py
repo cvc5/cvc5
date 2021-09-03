@@ -11,34 +11,39 @@
 # directory for licensing information.
 # #############################################################################
 ##
-
 """
     Generate option handling code and documentation in one pass. The generated
     files are only written to the destination file if the contents of the file
     has changed (in order to avoid global re-compilation if only single option
     files changed).
 
-    mkoptions.py <tpl-src> <dst> <toml>+
+    mkoptions.py <src> <build> <dst> <toml>+
 
-      <tpl-src> location of all *_template.{cpp,h} files
-      <dst>     destination directory for the generated source code files
+      <src>     base source directory of all toml files
+      <build>   build directory to write the generated sphinx docs
+      <dst>     base destination directory for all generated files
       <toml>+   one or more *_options.toml files
 
 
-    Directory <tpl-src> must contain:
-        - options_template.cpp
-        - options_public_template.cpp
-        - module_template.cpp
-        - module_template.h
+    This script expects the following files (within <src>):
 
-    <toml>+ must be the list of all *.toml option configuration files from
-    the src/options directory.
+      - <src>/main/options_template.cpp
+      - <src>/options/module_template.cpp
+      - <src>/options/module_template.h
+      - <src>/options/options_public_template.cpp
+      - <src>/options/options_template.cpp
+      - <src>/options/options_template.h
+
+    <toml>+ must be the list of all *.toml option configuration files.
 
 
-    The script generates the following files:
-        - <dst>/MODULE_options.h
-        - <dst>/MODULE_options.cpp
-        - <dst>/options.cpp
+    This script generates the following files:
+      - <dst>/main/options.cpp
+      - <dst>/options/<module>_options.cpp (for every toml file)
+      - <dst>/options/<module>_options.h (for every toml file)
+      - <dst>/options/options_public.cpp
+      - <dst>/options/options.cpp
+      - <dst>/options/options.h
 """
 
 import os
@@ -54,10 +59,9 @@ MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option']
 
 OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
-    'name', 'short', 'long', 'alias',
-    'default', 'alternate', 'mode',
-    'handler', 'predicates', 'includes', 'minimum', 'maximum',
-    'help', 'help_mode'
+    'name', 'short', 'long', 'alias', 'default', 'alternate', 'mode',
+    'handler', 'predicates', 'includes', 'minimum', 'maximum', 'help',
+    'help_mode'
 ]
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
@@ -241,11 +245,7 @@ def get_predicates(option):
 
 
 class Module(object):
-    """Options module.
-
-    An options module represents a MODULE_options.toml option configuration
-    file and contains lists of options.
-    """
+    """Represents one options module from one <module>_options.toml file."""
     def __init__(self, d, filename):
         self.__dict__ = {k: d.get(k, None) for k in MODULE_ATTR_ALL}
         self.options = []
