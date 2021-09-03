@@ -22,7 +22,7 @@ namespace theory {
 namespace quantifiers {
 
 ExpressionMinerManager::ExpressionMinerManager(Env& env)
-    : d_env(env),
+    : EnvObj(env),
       d_doRewSynth(false),
       d_doQueryGen(false),
       d_doFilterLogicalStrength(false),
