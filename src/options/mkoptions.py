@@ -64,8 +64,6 @@ CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
 
 ### Other globals
 
-g_long_cache = dict()      # maps long options to filename/fileno
-
 g_getopt_long_start = 256
 
 ### Source code templates
