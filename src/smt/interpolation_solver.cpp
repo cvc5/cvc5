@@ -32,14 +32,15 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-InterpolationSolver::InterpolationSolver(Env& env, SmtEngine* parent)
-    : d_env(env), d_parent(parent)
+InterpolationSolver::InterpolationSolver(Env& env)
+    : EnvObj(env)
 {
 }
 
 InterpolationSolver::~InterpolationSolver() {}
 
-bool InterpolationSolver::getInterpol(const Node& conj,
+bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
+                                      const Node& conj,
                                       const TypeNode& grammarType,
                                       Node& interpol)
 {
@@ -51,7 +52,6 @@ bool InterpolationSolver::getInterpol(const Node& conj,
   }
   Trace("sygus-interpol") << "SmtEngine::getInterpol: conjecture " << conj
                           << std::endl;
-  std::vector<Node> axioms = d_parent->getExpandedAssertions();
   // must expand definitions
   Node conjn = d_env.getTopLevelSubstitutions().apply(conj);
   std::string name("A");
@@ -69,10 +69,10 @@ bool InterpolationSolver::getInterpol(const Node& conj,
   return false;
 }
 
-bool InterpolationSolver::getInterpol(const Node& conj, Node& interpol)
+bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms, const Node& conj, Node& interpol)
 {
   TypeNode grammarType;
-  return getInterpol(conj, grammarType, interpol);
+  return getInterpol(axioms, conj, grammarType, interpol);
 }
 
 void InterpolationSolver::checkInterpol(Node interpol,

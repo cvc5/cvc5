@@ -255,12 +255,12 @@ void SmtEngine::finishInit()
   // subsolvers
   if (d_env->getOptions().smt.produceAbducts)
   {
-    d_abductSolver.reset(new AbductionSolver(*d_env.get(), this));
+    d_abductSolver.reset(new AbductionSolver(*d_env.get()));
   }
   if (d_env->getOptions().smt.produceInterpols
       != options::ProduceInterpols::NONE)
   {
-    d_interpolSolver.reset(new InterpolationSolver(*d_env.get(), this));
+    d_interpolSolver.reset(new InterpolationSolver(*d_env.get()));
   }
 
   d_pp->finishInit();
@@ -1754,7 +1754,8 @@ bool SmtEngine::getInterpol(const Node& conj,
 {
   SmtScope smts(this);
   finishInit();
-  bool success = d_interpolSolver->getInterpol(conj, grammarType, interpol);
+  std::vector<Node> axioms = getExpandedAssertions();
+  bool success = d_interpolSolver->getInterpol(axioms, conj, grammarType, interpol);
   // notify the state of whether the get-interpol call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
@@ -1773,7 +1774,8 @@ bool SmtEngine::getAbduct(const Node& conj,
 {
   SmtScope smts(this);
   finishInit();
-  bool success = d_abductSolver->getAbduct(conj, grammarType, abd);
+  std::vector<Node> axioms = getExpandedAssertions();
+  bool success = d_abductSolver->getAbduct(axioms, conj, grammarType, abd);
   // notify the state of whether the get-abduct call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetAbduct(success);
