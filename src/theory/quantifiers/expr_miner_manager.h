@@ -19,12 +19,12 @@
 #define CVC5__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/query_generator.h"
 #include "theory/quantifiers/solution_filter.h"
 #include "theory/quantifiers/sygus_sampler.h"
-#include "smt/env_obj.h"
 
 namespace cvc5 {
 
