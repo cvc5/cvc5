@@ -28,7 +28,6 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace cvc5::kind;
@@ -38,10 +37,10 @@ namespace theory {
 namespace quantifiers {
 
 CegSingleInv::CegSingleInv(Env& env, TermRegistry& tr, SygusStatistics& s)
-    : d_env(env),
+    : EnvObj(env),
+      d_isSolved(false),
       d_sip(new SingleInvocationPartition),
       d_srcons(new SygusReconstruct(env, tr.getTermDatabaseSygus(), s)),
-      d_isSolved(false),
       d_single_invocation(false),
       d_treg(tr)
 {
@@ -277,7 +276,7 @@ bool CegSingleInv::solve()
       Assert(inst.size() == vars.size());
       Node ilem =
           body.substitute(vars.begin(), vars.end(), inst.begin(), inst.end());
-      ilem = Rewriter::rewrite(ilem);
+      ilem = rewrite(ilem);
       d_instConds.push_back(ilem);
       Trace("sygus-si") << "  Instantiation Lemma: " << ilem << std::endl;
     }
@@ -512,7 +511,7 @@ bool CegSingleInv::solveTrivial(Node q)
       // remake with eliminated nodes
       body = body.substitute(
           varsTmp.begin(), varsTmp.end(), subsTmp.begin(), subsTmp.end());
-      body = Rewriter::rewrite(body);
+      body = rewrite(body);
       // apply to subs
       // this ensures we behave correctly if we solve x before y in
       // x = y+1 ^ y = 2.
@@ -520,7 +519,7 @@ bool CegSingleInv::solveTrivial(Node q)
       {
         subs[i] = subs[i].substitute(
             varsTmp.begin(), varsTmp.end(), subsTmp.begin(), subsTmp.end());
-        subs[i] = Rewriter::rewrite(subs[i]);
+        subs[i] = rewrite(subs[i]);
       }
       vars.insert(vars.end(), varsTmp.begin(), varsTmp.end());
       subs.insert(subs.end(), subsTmp.begin(), subsTmp.end());
