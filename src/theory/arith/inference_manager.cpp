@@ -24,13 +24,14 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-InferenceManager::InferenceManager(TheoryArith& ta,
+InferenceManager::InferenceManager(Env& env,
+                                   TheoryArith& ta,
                                    ArithState& astate,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(ta, astate, pnm, "theory::arith::"),
+    : InferenceManagerBuffered(env, ta, astate, pnm, "theory::arith::"),
       // currently must track propagated literals if using the equality solver
       d_trackPropLits(astate.options().arith.arithEqSolver),
-      d_propLits(astate.getSatContext())
+      d_propLits(context())
 {
 }
 

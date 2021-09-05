@@ -47,11 +47,11 @@ TheoryUF::TheoryUF(Env& env,
     : Theory(THEORY_UF, env, out, valuation, instanceName),
       d_thss(nullptr),
       d_ho(nullptr),
-      d_functionsTerms(getSatContext()),
+      d_functionsTerms(context()),
       d_symb(userContext(), instanceName),
       d_rewriter(logicInfo().isHigherOrder()),
       d_state(env, valuation),
-      d_im(*this, d_state, d_pnm, "theory::uf::" + instanceName, false),
+      d_im(env, *this, d_state, d_pnm, "theory::uf::" + instanceName, false),
       d_notify(d_im, *this)
 {
   d_true = NodeManager::currentNM()->mkConst( true );

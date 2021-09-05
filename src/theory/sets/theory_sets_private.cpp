@@ -36,13 +36,15 @@ namespace cvc5 {
 namespace theory {
 namespace sets {
 
-TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
+TheorySetsPrivate::TheorySetsPrivate(Env& env,
+                                     TheorySets& external,
                                      SolverState& state,
                                      InferenceManager& im,
                                      SkolemCache& skc,
                                      ProofNodeManager* pnm)
-    : d_deq(state.getSatContext()),
-      d_termProcessed(state.getUserContext()),
+    : EnvObj(env),
+      d_deq(context()),
+      d_termProcessed(userContext()),
       d_fullCheckIncomplete(false),
       d_fullCheckIncompleteId(IncompleteId::UNKNOWN),
       d_external(external),
@@ -178,7 +180,7 @@ TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo(TNode n,
     EqcInfo* ei = NULL;
     if (doMake)
     {
-      ei = new EqcInfo(d_external.getSatContext());
+      ei = new EqcInfo(context());
       d_eqc_info[n] = ei;
     }
     return ei;
