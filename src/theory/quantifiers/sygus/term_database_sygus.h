@@ -21,6 +21,7 @@
 #include <unordered_set>
 
 #include "expr/dtype.h"
+#include "smt/env_obj.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/fun_def_evaluator.h"
@@ -28,7 +29,6 @@
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/type_info.h"
 #include "theory/quantifiers/term_database.h"
-#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -54,7 +54,8 @@ enum EnumeratorRole
 std::ostream& operator<<(std::ostream& os, EnumeratorRole r);
 
 // TODO :issue #1235 split and document this class
-class TermDbSygus : protected EnvObj {
+class TermDbSygus : protected EnvObj
+{
  public:
   TermDbSygus(Env& env, QuantifiersState& qs);
   ~TermDbSygus() {}
@@ -458,7 +459,6 @@ class TermDbSygus : protected EnvObj {
   /** get anchor */
   static Node getAnchor( Node n );
   static unsigned getAnchorDepth( Node n );
-
 };
 
 }  // namespace quantifiers

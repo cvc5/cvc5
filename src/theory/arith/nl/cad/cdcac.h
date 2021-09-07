@@ -26,11 +26,11 @@
 #include <vector>
 
 #include "smt/env.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/cad/cdcac_utils.h"
 #include "theory/arith/nl/cad/constraints.h"
 #include "theory/arith/nl/cad/proof_generator.h"
 #include "theory/arith/nl/cad/variable_ordering.h"
-#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {

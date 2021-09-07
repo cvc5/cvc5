@@ -35,7 +35,9 @@ PreprocessingPassResult ExtRewPre::applyInternal(
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     assertionsToPreprocess->replace(
-        i, extendedRewrite((*assertionsToPreprocess)[i], options::extRewPrepAgg()));
+        i,
+        extendedRewrite((*assertionsToPreprocess)[i],
+                        options::extRewPrepAgg()));
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
