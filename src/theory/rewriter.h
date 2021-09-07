@@ -86,7 +86,7 @@ class Rewriter {
                              bool isExtEq = false);
 
   /** Set proof node manager */
-  void setProofNodeManager(ProofNodeManager* pnm, bool aggr = true);
+  void setProofNodeManager(ProofNodeManager* pnm);
 
   /** Garbage collects the rewrite caches. */
   void clearCaches();

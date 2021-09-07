@@ -111,7 +111,7 @@ Node Rewriter::callExtendedRewrite(TNode node, bool aggr)
 Node Rewriter::extendedRewrite(TNode node, bool aggr)
 {
   quantifiers::ExtendedRewriter er(*this, aggr);
-  return er.extendedRewrite(n);
+  return er.extendedRewrite(node);
 }
 
 TrustNode Rewriter::rewriteWithProof(TNode node,

@@ -23,6 +23,7 @@
 #include "theory/quantifiers/sygus/example_eval_cache.h"
 #include "theory/quantifiers/sygus/sygus_enumerator_callback.h"
 #include "theory/quantifiers/sygus_sampler.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -38,10 +39,11 @@ class SygusStatistics;
  * not actively generated, or may be determined by the (fast) enumerator
  * when it is actively generated.
  */
-class EnumValueManager
+class EnumValueManager : protected EnvObj
 {
  public:
   EnumValueManager(Node e,
+                   Env& env,
                    QuantifiersState& qs,
                    QuantifiersInferenceManager& qim,
                    TermRegistry& tr,

@@ -22,6 +22,7 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/rewriter.h"
 
 #include <numeric>  // for std::iota
 #include <sstream>
@@ -32,7 +33,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-EnumStreamPermutation::EnumStreamPermutation(quantifiers::TermDbSygus* tds)
+EnumStreamPermutation::EnumStreamPermutation(TermDbSygus* tds)
     : d_tds(tds), d_first(true), d_curr_ind(0)
 {
 }
@@ -125,7 +126,7 @@ Node EnumStreamPermutation::getNext()
     d_first = false;
     Node bultin_value = d_tds->sygusToBuiltin(d_value, d_value.getType());
     d_perm_values.insert(
-        d_tds->getExtRewriter()->extendedRewrite(bultin_value));
+        Rewriter::callExtendedRewrite(bultin_value));
     return d_value;
   }
   unsigned n_classes = d_perm_state_class.size();
@@ -195,7 +196,7 @@ Node EnumStreamPermutation::getNext()
     if (options::sygusSymBreakDynamic())
     {
       bultin_perm_value =
-          d_tds->getExtRewriter()->extendedRewrite(bultin_perm_value);
+          Rewriter::callExtendedRewrite(bultin_perm_value);
       Trace("synth-stream-concrete-debug")
           << " and rewrites to " << bultin_perm_value;
     }
@@ -516,7 +517,7 @@ Node EnumStreamSubstitution::getNext()
   if (options::sygusSymBreakDynamic())
   {
     builtin_comb_value =
-        d_tds->getExtRewriter()->extendedRewrite(builtin_comb_value);
+        Rewriter::callExtendedRewrite(builtin_comb_value);
   }
   if (Trace.isOn("synth-stream-concrete"))
   {

@@ -34,12 +34,14 @@ namespace theory {
 namespace quantifiers {
 
 EnumValueManager::EnumValueManager(Node e,
+                   Env& env,
                                    QuantifiersState& qs,
                                    QuantifiersInferenceManager& qim,
                                    TermRegistry& tr,
                                    SygusStatistics& s,
                                    bool hasExamples)
-    : d_enum(e),
+    : EnvObj(env),
+      d_enum(e),
       d_qstate(qs),
       d_qim(qim),
       d_treg(tr),
