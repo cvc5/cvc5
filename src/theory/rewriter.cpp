@@ -107,12 +107,6 @@ Node Rewriter::rewrite(TNode node) {
   return getInstance()->rewriteTo(theoryOf(node), node);
 }
 
-Node Rewriter::rewriteExt(TNode node)
-{
-  quantifiers::ExtendedRewriter er;
-  return er.extendedRewrite(n);
-}
-
 TrustNode Rewriter::rewriteWithProof(TNode node,
                                      bool isExtEq)
 {
@@ -486,7 +480,8 @@ Node Rewriter::rewriteViaMethod(TNode n, MethodId idr)
   }
   if (idr == MethodId::RW_EXT_REWRITE)
   {
-    return rewriteExt(n);
+    quantifiers::ExtendedRewriter er;
+    return er.extendedRewrite(n);
   }
   if (idr == MethodId::RW_REWRITE_EQ_EXT)
   {
