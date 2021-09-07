@@ -23,7 +23,6 @@
 #include "theory/arith/nl/cad/projections.h"
 #include "theory/arith/nl/cad/variable_ordering.h"
 #include "theory/arith/nl/nl_model.h"
-#include "theory/quantifiers/extended_rewrite.h"
 
 namespace std {
 /** Generic streaming operator for std::vector. */
@@ -42,7 +41,7 @@ namespace nl {
 namespace cad {
 
 CDCAC::CDCAC(Env& env, const std::vector<poly::Variable>& ordering)
-    : d_env(env), d_variableOrdering(ordering)
+    : EnvObj(env), d_variableOrdering(ordering)
 {
   if (d_env.isTheoryProofProducing())
   {
@@ -276,9 +275,8 @@ PolyVector requiredCoefficientsLazardModified(
         Kind::EQUAL, nl::as_cvc_polynomial(coeff, vm), zero));
   }
   // if phi is false (i.e. p can not vanish)
-  quantifiers::ExtendedRewriter rew;
   Node rewritten =
-      rew.extendedRewrite(NodeManager::currentNM()->mkAnd(conditions));
+      Rewriter::callExtendedRewrite(NodeManager::currentNM()->mkAnd(conditions));
   if (rewritten.isConst())
   {
     Assert(rewritten.getKind() == Kind::CONST_BOOLEAN);

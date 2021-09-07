@@ -103,6 +103,11 @@ Node Rewriter::rewrite(TNode node) {
   return getInstance()->rewriteTo(theoryOf(node), node);
 }
 
+Node Rewriter::callExtendedRewrite(TNode node, bool aggr)
+{
+  return getInstance()->extendedRewrite(node, aggr);
+}
+
 Node Rewriter::extendedRewrite(TNode node, bool aggr)
 {
   quantifiers::ExtendedRewriter er(*this, aggr);

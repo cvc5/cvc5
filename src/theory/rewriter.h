@@ -38,11 +38,17 @@ class Rewriter {
   Rewriter();
 
   /**
+   * !!! Temporary until static access to rewriter is eliminated.
+   * 
    * Rewrites the node using theoryOf() to determine which rewriter to
    * use on the node.
    */
   static Node rewrite(TNode node);
-
+  /**
+   * !!! Temporary until static access to rewriter is eliminated.
+   */
+  static Node callExtendedRewrite(TNode node, bool aggr = true);
+  
   /**
    * Rewrites the equality node using theoryOf() to determine which rewriter to
    * use on the node corresponding to an equality s = t.
@@ -58,6 +64,10 @@ class Rewriter {
   /**
    * Extended rewrite of the given node. This method is implemented by a
    * custom ExtendRewriter class that wraps this class to perform custom
+   * rewrites (usually those that are not useful for solving, but e.g. useful
+   * for SyGuS symmetry breaking).
+   * @param node The node to rewrite
+   * @param aggr Whether to perform aggressive rewrites.
    */
   Node extendedRewrite(TNode node, bool aggr = true);
 
