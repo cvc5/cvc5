@@ -928,11 +928,11 @@ Node BVToInt::reconstructNode(Node originalNode,
 
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-int"),
-      d_binarizeCache(preprocContext->getUserContext()),
-      d_eliminationCache(preprocContext->getUserContext()),
-      d_rebuildCache(preprocContext->getUserContext()),
-      d_bvToIntCache(preprocContext->getUserContext()),
-      d_rangeAssertions(preprocContext->getUserContext())
+      d_binarizeCache(userContext()),
+      d_eliminationCache(userContext()),
+      d_rebuildCache(userContext()),
+      d_bvToIntCache(userContext()),
+      d_rangeAssertions(userContext())
 {
   d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConst<Rational>(0);
