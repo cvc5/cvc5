@@ -71,7 +71,7 @@ bool SygusPbe::initialize(Node conj,
   for (const Node& c : candidates)
   {
     Assert(ei->hasExamples(c));
-    d_sygus_unif[c].reset(new SygusUnifIo(d_parent));
+    d_sygus_unif[c].reset(new SygusUnifIo(d_env, d_parent));
     Trace("sygus-pbe") << "Initialize unif utility for " << c << "..."
                        << std::endl;
     std::map<Node, std::vector<Node>> strategy_lemmas;
