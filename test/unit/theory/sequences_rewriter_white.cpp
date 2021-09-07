@@ -20,7 +20,6 @@
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "test_smt.h"
-#include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
@@ -44,10 +43,10 @@ class TestTheoryWhiteSequencesRewriter : public TestSmt
   {
     TestSmt::SetUp();
     Options opts;
-    d_rewriter.reset(new ExtendedRewriter(true));
+    d_rewriter = d_smtEngine->getRewriter();
   }
 
-  std::unique_ptr<ExtendedRewriter> d_rewriter;
+  Rewriter* d_rewriter;
 
   void inNormalForm(Node t)
   {
@@ -155,7 +154,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
 
   Node slen_y = d_nodeManager->mkNode(kind::STRING_LENGTH, y);
   Node x_plus_slen_y = d_nodeManager->mkNode(kind::PLUS, x, slen_y);
-  Node x_plus_slen_y_eq_zero = Rewriter::rewrite(
+  Node x_plus_slen_y_eq_zero = d_rewriter->rewrite(
       d_nodeManager->mkNode(kind::EQUAL, x_plus_slen_y, zero));
 
   // x + (str.len y) = 0 |= 0 >= x --> true
@@ -166,7 +165,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
   ASSERT_FALSE(
       ArithEntail::checkWithAssumption(x_plus_slen_y_eq_zero, zero, x, true));
 
-  Node x_plus_slen_y_plus_z_eq_zero = Rewriter::rewrite(d_nodeManager->mkNode(
+  Node x_plus_slen_y_plus_z_eq_zero = d_rewriter->rewrite(d_nodeManager->mkNode(
       kind::EQUAL, d_nodeManager->mkNode(kind::PLUS, x_plus_slen_y, z), zero));
 
   // x + (str.len y) + z = 0 |= 0 > x --> false
@@ -174,7 +173,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
       x_plus_slen_y_plus_z_eq_zero, zero, x, true));
 
   Node x_plus_slen_y_plus_slen_y_eq_zero =
-      Rewriter::rewrite(d_nodeManager->mkNode(
+      d_rewriter->rewrite(d_nodeManager->mkNode(
           kind::EQUAL,
           d_nodeManager->mkNode(kind::PLUS, x_plus_slen_y, slen_y),
           zero));
@@ -187,7 +186,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
   Node six = d_nodeManager->mkConst(Rational(6));
   Node x_plus_five = d_nodeManager->mkNode(kind::PLUS, x, five);
   Node x_plus_five_lt_six =
-      Rewriter::rewrite(d_nodeManager->mkNode(kind::LT, x_plus_five, six));
+      d_rewriter->rewrite(d_nodeManager->mkNode(kind::LT, x_plus_five, six));
 
   // x + 5 < 6 |= 0 >= x --> true
   ASSERT_TRUE(
@@ -199,7 +198,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
 
   Node neg_x = d_nodeManager->mkNode(kind::UMINUS, x);
   Node x_plus_five_lt_five =
-      Rewriter::rewrite(d_nodeManager->mkNode(kind::LT, x_plus_five, five));
+      d_rewriter->rewrite(d_nodeManager->mkNode(kind::LT, x_plus_five, five));
 
   // x + 5 < 5 |= -x >= 0 --> true
   ASSERT_TRUE(ArithEntail::checkWithAssumption(
@@ -210,7 +209,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
       ArithEntail::checkWithAssumption(x_plus_five_lt_five, zero, x, false));
 
   // 0 < x |= x >= (str.len (int.to.str x))
-  Node assm = Rewriter::rewrite(d_nodeManager->mkNode(kind::LT, zero, x));
+  Node assm = d_rewriter->rewrite(d_nodeManager->mkNode(kind::LT, zero, x));
   ASSERT_TRUE(ArithEntail::checkWithAssumption(
       assm,
       x,
