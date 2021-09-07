@@ -34,7 +34,7 @@ namespace theory {
 namespace quantifiers {
 
 EnumValueManager::EnumValueManager(Node e,
-                   Env& env,
+                                   Env& env,
                                    QuantifiersState& qs,
                                    QuantifiersInferenceManager& qim,
                                    TermRegistry& tr,

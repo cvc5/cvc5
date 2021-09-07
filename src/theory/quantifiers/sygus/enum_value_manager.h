@@ -19,11 +19,11 @@
 #define CVC5__THEORY__QUANTIFIERS__SYGUS__ENUM_VALUE_MANAGER_H
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/enum_val_generator.h"
 #include "theory/quantifiers/sygus/example_eval_cache.h"
 #include "theory/quantifiers/sygus/sygus_enumerator_callback.h"
 #include "theory/quantifiers/sygus_sampler.h"
-#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {

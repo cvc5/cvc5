@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include "smt/env_obj.h"
 #include "theory/quantifiers/expr_miner_manager.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/cegis.h"
@@ -34,7 +35,6 @@
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus/synth_verify.h"
 #include "theory/quantifiers/sygus/template_infer.h"
-#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {

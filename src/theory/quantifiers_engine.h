@@ -24,8 +24,8 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
-#include "theory/quantifiers/quant_util.h"
 #include "smt/env_obj.h"
+#include "theory/quantifiers/quant_util.h"
 
 namespace cvc5 {
 
@@ -213,7 +213,7 @@ public:
   std::map<Node, Node> d_quants_red_lem;
   /** Number of rounds we have instantiated */
   uint32_t d_numInstRoundsLemma;
-};/* class QuantifiersEngine */
+}; /* class QuantifiersEngine */
 
 }  // namespace theory
 }  // namespace cvc5

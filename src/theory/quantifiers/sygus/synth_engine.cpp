@@ -154,8 +154,8 @@ void SynthEngine::assignConjecture(Node q)
   // allocate a new synthesis conjecture if not assigned
   if (d_conjs.back()->isAssigned())
   {
-    d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-        new SynthConjecture(d_env, d_qstate, d_qim, d_qreg, d_treg, d_statistics)));
+    d_conjs.push_back(std::unique_ptr<SynthConjecture>(new SynthConjecture(
+        d_env, d_qstate, d_qim, d_qreg, d_treg, d_statistics)));
   }
   d_conjs.back()->assign(q);
 }
