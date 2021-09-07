@@ -26,14 +26,15 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SynthEngine::SynthEngine(QuantifiersState& qs,
+SynthEngine::SynthEngine(Env& env,
+                         QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr)
     : QuantifiersModule(qs, qim, qr, tr), d_conj(nullptr), d_sqp(qs.getEnv())
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-      new SynthConjecture(qs, qim, qr, tr, d_statistics)));
+      new SynthConjecture(env, qs, qim, qr, tr, d_statistics)));
   d_conj = d_conjs.back().get();
 }
 
@@ -154,7 +155,7 @@ void SynthEngine::assignConjecture(Node q)
   if (d_conjs.back()->isAssigned())
   {
     d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-        new SynthConjecture(d_qstate, d_qim, d_qreg, d_treg, d_statistics)));
+        new SynthConjecture(d_env, d_qstate, d_qim, d_qreg, d_treg, d_statistics)));
   }
   d_conjs.back()->assign(q);
 }

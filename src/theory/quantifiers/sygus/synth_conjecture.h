@@ -34,6 +34,7 @@
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus/synth_verify.h"
 #include "theory/quantifiers/sygus/template_infer.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -51,10 +52,11 @@ class EnumValueManager;
  * determines which approach and optimizations are applicable to the
  * conjecture, and has interfaces for implementing them.
  */
-class SynthConjecture
+class SynthConjecture : protected EnvObj
 {
  public:
-  SynthConjecture(QuantifiersState& qs,
+  SynthConjecture(Env& env,
+                  QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr,
