@@ -47,10 +47,11 @@ TheoryUF::TheoryUF(Env& env,
     : Theory(THEORY_UF, env, out, valuation, instanceName),
       d_thss(nullptr),
       d_ho(nullptr),
-      d_functionsTerms(getSatContext()),
-      d_symb(getUserContext(), instanceName),
+      d_functionsTerms(context()),
+      d_symb(userContext(), instanceName),
+      d_rewriter(logicInfo().isHigherOrder()),
       d_state(env, valuation),
-      d_im(*this, d_state, d_pnm, "theory::uf::" + instanceName, false),
+      d_im(env, *this, d_state, d_pnm, "theory::uf::" + instanceName, false),
       d_notify(d_im, *this)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
@@ -94,8 +95,9 @@ void TheoryUF::finishInit() {
     d_thss.reset(new CardinalityExtension(d_state, d_im, this));
   }
   // The kinds we are treating as function application in congruence
-  d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, options::ufHo());
-  if (options::ufHo())
+  bool isHo = logicInfo().isHigherOrder();
+  d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, isHo);
+  if (isHo)
   {
     d_equalityEngine->addFunctionKind(kind::HO_APPLY);
     d_ho.reset(new HoExtension(d_state, d_im));
@@ -146,7 +148,7 @@ void TheoryUF::postCheck(Effort level)
   // check with the higher-order extension at full effort
   if (!d_state.isInConflict() && fullEffort(level))
   {
-    if (options::ufHo())
+    if (logicInfo().isHigherOrder())
     {
       d_ho->check();
     }
@@ -169,7 +171,7 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
   {
     case kind::EQUAL:
     {
-      if (options::ufHo() && options::ufHoExt())
+      if (logicInfo().isHigherOrder() && options::ufHoExt())
       {
         if (!pol && !d_state.isInConflict() && atom[0].getType().isFunction())
         {
@@ -184,7 +186,7 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
     {
       if (d_thss == nullptr)
       {
-        if (!getLogicInfo().hasCardinalityConstraints())
+        if (!logicInfo().hasCardinalityConstraints())
         {
           std::stringstream ss;
           ss << "Cardinality constraint " << atom
@@ -212,7 +214,8 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
   Kind k = node.getKind();
   if (k == kind::HO_APPLY)
   {
-    if( !options::ufHo() ){
+    if (!logicInfo().isHigherOrder())
+    {
       std::stringstream ss;
       ss << "Partial function applications are only supported with "
             "higher-order logic. Try adding the logic prefix HO_.";
@@ -230,7 +233,8 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
   {
     // check for higher-order
     // logic exception if higher-order is not enabled
-    if (isHigherOrderType(node.getOperator().getType()) && !options::ufHo())
+    if (isHigherOrderType(node.getOperator().getType())
+        && !logicInfo().isHigherOrder())
     {
       std::stringstream ss;
       ss << "UF received an application whose operator has higher-order type "
@@ -252,8 +256,7 @@ void TheoryUF::preRegisterTerm(TNode node)
   }
 
   // we always use APPLY_UF if not higher-order, HO_APPLY if higher-order
-  //Assert( node.getKind()!=kind::APPLY_UF || !options::ufHo() );
-  Assert(node.getKind() != kind::HO_APPLY || options::ufHo());
+  Assert(node.getKind() != kind::HO_APPLY || logicInfo().isHigherOrder());
 
   Kind k = node.getKind();
   switch (k)
@@ -314,7 +317,8 @@ TrustNode TheoryUF::explain(TNode literal) { return d_im.explainLit(literal); }
 
 bool TheoryUF::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 {
-  if( options::ufHo() ){
+  if (logicInfo().isHigherOrder())
+  {
     // must add extensionality disequalities for all pairs of (non-disequal)
     // function equivalence classes.
     if (!d_ho->collectModelInfoHo(m, termSet))

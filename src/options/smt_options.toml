@@ -301,7 +301,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "earlyIteRemoval"
-  category   = "experimental"
+  category   = "expert"
   long       = "early-ite-removal"
   type       = "bool"
   default    = "false"

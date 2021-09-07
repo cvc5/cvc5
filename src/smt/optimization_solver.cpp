@@ -22,6 +22,7 @@
 #include "options/language.h"
 #include "options/smt_options.h"
 #include "smt/assertions.h"
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "theory/smt_engine_subsolver.h"
 
@@ -147,7 +148,8 @@ std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
   std::unique_ptr<SmtEngine> optChecker;
   // initializeSubSolver will copy the options and theories enabled
   // from the current solver to optChecker and adds timeout
-  theory::initializeSubsolver(optChecker, nullptr, needsTimeout, timeout);
+  theory::initializeSubsolver(
+      optChecker, parentSMTSolver->getEnv(), needsTimeout, timeout);
   // we need to be in incremental mode for multiple objectives since we need to
   // push pop we need to produce models to inrement on our objective
   optChecker->setOption("incremental", "true");
@@ -275,7 +277,10 @@ Result OptimizationSolver::optimizeLexicographicIterative()
 Result OptimizationSolver::optimizeParetoNaiveGIA()
 {
   // initial call to Pareto optimizer, create the checker
-  if (!d_optChecker) d_optChecker = createOptCheckerWithTimeout(d_parent);
+  if (!d_optChecker)
+  {
+    d_optChecker = createOptCheckerWithTimeout(d_parent);
+  }
   NodeManager* nm = d_optChecker->getNodeManager();
 
   // checks whether the current set of assertions are satisfied or not

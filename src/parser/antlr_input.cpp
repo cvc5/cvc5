@@ -185,35 +185,30 @@ AntlrInputStream::newStringInputStream(const std::string& input,
   return new AntlrInputStream(name, inputStream, false, input_duplicate, NULL);
 }
 
-AntlrInput* AntlrInput::newInput(Language lang, AntlrInputStream& inputStream)
+AntlrInput* AntlrInput::newInput(const std::string& lang,
+                                 AntlrInputStream& inputStream)
 {
-  AntlrInput* input;
-
-  switch(lang) {
-    case Language::LANG_CVC:
-    {
-      input = new CvcInput(inputStream);
-      break;
-    }
-
-    case Language::LANG_SYGUS_V2: input = new SygusInput(inputStream); break;
-
-    case Language::LANG_TPTP: input = new TptpInput(inputStream); break;
-
-    default:
-      if (language::isLangSmt2(lang))
-      {
-        input = new Smt2Input(inputStream);
-      }
-      else
-      {
-        std::stringstream ss;
-        ss << "unable to detect input file format, try --lang ";
-        throw InputStreamException(ss.str());
-      }
+  if (lang == "LANG_CVC")
+  {
+    return new CvcInput(inputStream);
   }
-
-  return input;
+  else if (lang == "LANG_SYGUS_V2")
+  {
+    return new SygusInput(inputStream);
+  }
+  else if (lang == "LANG_TPTP")
+  {
+    return new TptpInput(inputStream);
+  }
+  else if (lang == "LANG_SMTLIB_V2_6")
+  {
+    return new Smt2Input(inputStream);
+  }
+  else
+  {
+    throw InputStreamException(
+        "unable to detect input file format, try --lang ");
+  }
 }
 
 AntlrInput::AntlrInput(AntlrInputStream& inputStream, unsigned int lookahead) :

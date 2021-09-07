@@ -16,6 +16,7 @@
 #include "smt/proof_manager.h"
 
 #include "options/base_options.h"
+#include "options/main_options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "proof/dot/dot_printer.h"
@@ -31,8 +32,10 @@ namespace cvc5 {
 namespace smt {
 
 PfManager::PfManager(Env& env)
-    : d_env(env),
-      d_pchecker(new ProofChecker(options::proofPedantic())),
+    : EnvObj(env),
+      d_pchecker(new ProofChecker(
+          options().proof.proofCheck == options::ProofCheckMode::EAGER,
+          options().proof.proofPedantic)),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
@@ -86,6 +89,8 @@ PfManager::PfManager(Env& env)
         d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
       }
     }
+    // theory-specific lazy proof reconstruction
+    d_pfpp->setEliminateRule(PfRule::STRING_INFERENCE);
     d_pfpp->setEliminateRule(PfRule::BV_BITBLAST);
   }
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -167,10 +172,10 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::TPTP)
   {
-    out << "% SZS output start Proof for " << d_env.getFilename() << std::endl;
+    out << "% SZS output start Proof for " << options().driver.filename << std::endl;
     // TODO (proj #37) print in TPTP compliant format
     out << *fp << std::endl;
-    out << "% SZS output end Proof for " << d_env.getFilename() << std::endl;
+    out << "% SZS output end Proof for " << options().driver.filename << std::endl;
   }
   else
   {

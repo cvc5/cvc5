@@ -21,15 +21,10 @@
 
 #include "api/cpp/cvc5.h"
 #include "expr/symbol_manager.h"
-#include "options/options.h"
 
 namespace cvc5 {
 
 class Command;
-
-namespace smt {
-class SmtEngine;
-}
 
 namespace main {
 
@@ -81,10 +76,6 @@ class CommandExecutor
   api::Result getResult() const { return d_result; }
   void reset();
 
-  SmtEngine* getSmtEngine() const { return d_solver->getSmtEngine(); }
-
-  /** Get the current options from the solver */
-  Options& getOptions();
   /** Store the current options as the original options */
   void storeOptionsAsOriginal();
 
@@ -117,7 +108,7 @@ private:
 bool solverInvoke(api::Solver* solver,
                   SymbolManager* sm,
                   Command* cmd,
-                  std::ostream* out);
+                  std::ostream& out);
 
 }  // namespace main
 }  // namespace cvc5

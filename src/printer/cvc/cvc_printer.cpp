@@ -1029,8 +1029,8 @@ void CvcPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 }/* CvcPrinter::toStream(CommandStatus*) */
 
 void CvcPrinter::toStreamModelSort(std::ostream& out,
-                                   const smt::Model& m,
-                                   TypeNode tn) const
+                                   TypeNode tn,
+                                   const std::vector<Node>& elements) const
 {
   if (!tn.isSort())
   {
@@ -1038,36 +1038,25 @@ void CvcPrinter::toStreamModelSort(std::ostream& out,
         << tn << std::endl;
     return;
   }
-  const theory::TheoryModel* tm = m.getTheoryModel();
-  const std::vector<Node>* type_reps = tm->getRepSet()->getTypeRepsOrNull(tn);
-  if (type_reps != nullptr)
+  out << "% cardinality of " << tn << " is " << elements.size() << std::endl;
+  toStreamCmdDeclareType(out, tn);
+  for (const Node& type_rep : elements)
   {
-    out << "% cardinality of " << tn << " is " << type_reps->size()
-        << std::endl;
-    toStreamCmdDeclareType(out, tn);
-    for (Node type_rep : *type_reps)
+    if (type_rep.isVar())
     {
-      if (type_rep.isVar())
-      {
-        out << type_rep << " : " << tn << ";" << std::endl;
-      }
-      else
-      {
-        out << "% rep: " << type_rep << std::endl;
-      }
+      out << type_rep << " : " << tn << ";" << std::endl;
     }
-  }
-  else
-  {
-    toStreamCmdDeclareType(out, tn);
+    else
+    {
+      out << "% rep: " << type_rep << std::endl;
+    }
   }
 }
 
 void CvcPrinter::toStreamModelTerm(std::ostream& out,
-                                   const smt::Model& m,
-                                   Node n) const
+                                   const Node& n,
+                                   const Node& value) const
 {
-  const theory::TheoryModel* tm = m.getTheoryModel();
   TypeNode tn = n.getType();
   out << n << " : ";
   if (tn.isFunction() || tn.isPredicate())
@@ -1087,24 +1076,11 @@ void CvcPrinter::toStreamModelTerm(std::ostream& out,
   {
     out << tn;
   }
-  // We get the value from the theory model directly, which notice
-  // does not have to go through the standard SmtEngine::getValue interface.
-  Node val = tm->getValue(n);
-  out << " = " << val << ";" << std::endl;
+  out << " = " << value << ";" << std::endl;
 }
 
 void CvcPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
-  const theory::TheoryModel* tm = m.getTheoryModel();
-  // print the model comments
-  std::stringstream c;
-  tm->getComments(c);
-  std::string ln;
-  while (std::getline(c, ln))
-  {
-    out << "; " << ln << std::endl;
-  }
-
   // print the model
   out << "MODEL BEGIN" << std::endl;
   this->Printer::toStream(out, m);

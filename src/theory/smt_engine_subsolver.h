@@ -41,13 +41,22 @@ namespace theory {
  * if the current SMT engine has declared a separation logic heap.
  *
  * @param smte The smt engine pointer to initialize
- * @param opts The options for the subsolver. If nullptr, then we copy the
- * options from the current SmtEngine in scope.
+ * @param opts The options for the subsolver.
+ * @param logicInfo The logic info to set on the subsolver
  * @param needsTimeout Whether we would like to set a timeout
  * @param timeout The timeout (in milliseconds)
  */
 void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
-                         Options* opts = nullptr,
+                         const Options& opts,
+                         const LogicInfo& logicInfo,
+                         bool needsTimeout = false,
+                         unsigned long timeout = 0);
+
+/**
+ * Version that uses the options and logicInfo in an environment.
+ */
+void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
+                         const Env& env,
                          bool needsTimeout = false,
                          unsigned long timeout = 0);
 
@@ -59,7 +68,8 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
  */
 Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
                           Node query,
-                          Options* opts = nullptr,
+                          const Options& opts,
+                          const LogicInfo& logicInfo,
                           bool needsTimeout = false,
                           unsigned long timeout = 0);
 
@@ -71,11 +81,13 @@ Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
  *
  * @param query The query to check
  * @param opts The options for the subsolver
+ * @param logicInfo The logic info to set on the subsolver
  * @param needsTimeout Whether we would like to set a timeout
  * @param timeout The timeout (in milliseconds)
  */
 Result checkWithSubsolver(Node query,
-                          Options* opts = nullptr,
+                          const Options& opts,
+                          const LogicInfo& logicInfo,
                           bool needsTimeout = false,
                           unsigned long timeout = 0);
 
@@ -88,13 +100,15 @@ Result checkWithSubsolver(Node query,
  * @param vars The variables we are interesting in getting a model for.
  * @param modelVals A vector storing the model values of variables in vars.
  * @param opts The options for the subsolver
+ * @param logicInfo The logic info to set on the subsolver
  * @param needsTimeout Whether we would like to set a timeout
  * @param timeout The timeout (in milliseconds)
  */
 Result checkWithSubsolver(Node query,
                           const std::vector<Node>& vars,
                           std::vector<Node>& modelVals,
-                          Options* opts = nullptr,
+                          const Options& opts,
+                          const LogicInfo& logicInfo,
                           bool needsTimeout = false,
                           unsigned long timeout = 0);
 
