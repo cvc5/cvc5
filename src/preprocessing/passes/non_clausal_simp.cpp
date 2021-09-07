@@ -53,16 +53,12 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "non-clausal-simp"),
       d_pnm(preprocContext->getProofNodeManager()),
       d_llpg(d_pnm ? new smt::PreprocessProofGenerator(
-                         d_pnm,
-                         preprocContext->getUserContext(),
-                         "NonClausalSimp::llpg")
+                 d_pnm, userContext(), "NonClausalSimp::llpg")
                    : nullptr),
-      d_llra(d_pnm ? new LazyCDProof(d_pnm,
-                                     nullptr,
-                                     preprocContext->getUserContext(),
-                                     "NonClausalSimp::llra")
+      d_llra(d_pnm ? new LazyCDProof(
+                 d_pnm, nullptr, userContext(), "NonClausalSimp::llra")
                    : nullptr),
-      d_tsubsList(preprocContext->getUserContext())
+      d_tsubsList(userContext())
 {
 }
 
@@ -91,7 +87,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   Trace("non-clausal-simplify") << "asserting to propagator" << std::endl;
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-    Assert(Rewriter::rewrite((*assertionsToPreprocess)[i])
+    Assert(rewrite((*assertionsToPreprocess)[i])
            == (*assertionsToPreprocess)[i]);
     // Don't reprocess substitutions
     if (assertionsToPreprocess->isSubstsIndex(i))
@@ -122,7 +118,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << "Iterate through " << propagator->getLearnedLiterals().size()
       << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
-  context::Context* u = d_preprocContext->getUserContext();
+  context::Context* u = userContext();
   TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
   CVC5_UNUSED SubstitutionMap& top_level_substs = ttls.get();
   // constant propagations
@@ -152,7 +148,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   {
     // Simplify the literal we learned wrt previous substitutions
     Node learnedLiteral = learned_literals[i].getNode();
-    Assert(Rewriter::rewrite(learnedLiteral) == learnedLiteral);
+    Assert(rewrite(learnedLiteral) == learnedLiteral);
     Assert(top_level_substs.apply(learnedLiteral) == learnedLiteral);
     // process the learned literal with substitutions and const propagations
     learnedLiteral = processLearnedLit(
@@ -198,7 +194,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         // The literal should rewrite to true
         Trace("non-clausal-simplify")
             << "solved " << learnedLiteral << std::endl;
-        Assert(Rewriter::rewrite(nss.apply(learnedLiteral)).isConst());
+        Assert(rewrite(nss.apply(learnedLiteral)).isConst());
         // else fall through
         break;
       }
@@ -282,7 +278,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   for (SubstitutionMap::iterator pos = cps.begin(); pos != cps.end(); ++pos)
   {
     Assert((*pos).second.isConst());
-    Assert(Rewriter::rewrite((*pos).first) == (*pos).first);
+    Assert(rewrite((*pos).first) == (*pos).first);
     Assert(cps.apply((*pos).second) == (*pos).second);
   }
 #endif /* CVC5_ASSERTIONS */
@@ -304,7 +300,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
           << "assertionNew = " << assertionNew.getNode() << std::endl;
       assertionsToPreprocess->replaceTrusted(i, assertionNew);
       assertion = assertionNew.getNode();
-      Assert(Rewriter::rewrite(assertion) == assertion);
+      Assert(rewrite(assertion) == assertion);
     }
     for (;;)
     {

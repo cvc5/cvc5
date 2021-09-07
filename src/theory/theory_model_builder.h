@@ -21,6 +21,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "smt/env_obj.h"
 #include "theory/theory_model.h"
 
 namespace cvc5 {
@@ -42,7 +43,7 @@ namespace theory {
  * this will set up the data structures in TheoryModel to represent
  * a model for the current set of assertions.
  */
-class TheoryEngineModelBuilder
+class TheoryEngineModelBuilder : protected EnvObj
 {
   typedef std::unordered_map<Node, Node> NodeMap;
   typedef std::unordered_set<Node> NodeSet;
@@ -315,9 +316,6 @@ class TheoryEngineModelBuilder
                             Node v,
                             std::map<Node, bool>& visited);
   //---------------------------------end for debugging finite model finding
-  /** Reference to the env */
-  Env& d_env;
-
 }; /* class TheoryEngineModelBuilder */
 
 }  // namespace theory

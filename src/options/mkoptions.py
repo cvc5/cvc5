@@ -62,9 +62,39 @@ OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
 
-### Other globals
+################################################################################
+################################################################################
+# utility functions
 
-g_long_cache = dict()      # maps long options to filename/fileno
+
+def wrap_line(s, indent, **kwargs):
+    """Wrap and indent text and forward all other kwargs to textwrap.wrap()."""
+    return ('\n' + ' ' * indent).join(
+        textwrap.wrap(s, width=80 - indent, **kwargs))
+
+
+def concat_format(s, objs):
+    """Helper method to render a string for a list of object"""
+    return '\n'.join([s.format(**o.__dict__) for o in objs])
+
+
+def all_options(modules, sorted=False):
+    """Helper to iterate all options from all modules."""
+    if sorted:
+        options = []
+        for m in modules:
+            options = options + [(m, o) for o in m.options]
+        options.sort(key=lambda t: t[1])
+        yield from options
+    else:
+        for module in modules:
+            if not module.options:
+                continue
+            for option in module.options:
+                yield module, option
+
+
+### Other globals
 
 g_getopt_long_start = 256
 
@@ -144,10 +174,6 @@ TPL_MODE_HANDLER_CASE = \
   {{
     return {type}::{enum};
   }}"""
-
-def concat_format(s, objs):
-    """Helper method to render a string for a list of object"""
-    return '\n'.join([s.format(**o.__dict__) for o in objs])
 
 
 def get_module_headers(modules):
@@ -230,21 +256,17 @@ class Module(object):
 
 
 class Option(object):
-    """Module option.
-
-    An instance of this class corresponds to an option defined in a
-    MODULE_options.toml configuration file specified via [[option]].
-    """
+    """Represents on option."""
     def __init__(self, d):
         self.__dict__ = dict((k, None) for k in OPTION_ATTR_ALL)
         self.includes = []
         self.predicates = []
-        self.alternate = True    # add --no- alternative long option for bool
-        self.filename = None
         for (attr, val) in d.items():
             assert attr in self.__dict__
             if attr == 'alternate' or val:
                 self.__dict__[attr] = val
+        if self.type == 'bool' and self.alternate is None:
+            self.alternate = True
         self.long_name = None
         self.long_opt = None
         if self.long:
@@ -252,6 +274,69 @@ class Option(object):
             self.long_name = r[0]
             if len(r) > 1:
                 self.long_opt = r[1]
+        self.names = set()
+        if self.long_name:
+            self.names.add(self.long_name)
+        if self.alias:
+            self.names.update(self.alias)
+
+    def __lt__(self, other):
+        if self.long_name and other.long_name:
+            return self.long_name < other.long_name
+        if self.long_name: return True
+        return False
+
+################################################################################
+# stuff for options/options_public.cpp
+
+
+def generate_public_includes(modules):
+    """Generates the list of includes for options_public.cpp."""
+    headers = set()
+    for _, option in all_options(modules):
+        headers.update([format_include(x) for x in option.includes])
+    return '\n'.join(headers)
+
+
+def generate_getnames_impl(modules):
+    """Generates the implementation for options::getNames()."""
+    names = set()
+    for _, option in all_options(modules):
+        names.update(option.names)
+    res = ', '.join(map(lambda s: '"' + s + '"', sorted(names)))
+    return wrap_line(res, 4, break_on_hyphens=False)
+
+
+def generate_get_impl(modules):
+    """Generates the implementation for options::get()."""
+    res = []
+    for module, option in all_options(modules, True):
+        if not option.name or not option.long:
+            continue
+        cond = ' || '.join(['name == "{}"'.format(x) for x in option.names])
+        ret = None
+        if option.type == 'bool':
+            ret = 'return options.{}.{} ? "true" : "false";'.format(
+                module.id, option.name)
+        elif option.type == 'std::string':
+            ret = 'return options.{}.{};'.format(module.id, option.name)
+        elif is_numeric_cpp_type(option.type):
+            ret = 'return std::to_string(options.{}.{});'.format(
+                module.id, option.name)
+        else:
+            ret = '{{ std::stringstream s; s << options.{}.{}; return s.str(); }}'.format(
+                module.id, option.name)
+        res.append('if ({}) {}'.format(cond, ret))
+    return '\n  '.join(res)
+
+    def __lt__(self, other):
+        if self.long_name and other.long_name:
+            return self.long_name < other.long_name
+        if self.long_name: return True
+        return False
+
+    def __str__(self):
+        return self.long_name if self.long_name else self.name
 
 
 class SphinxGenerator:
@@ -295,7 +380,7 @@ class SphinxGenerator:
             'name': names,
             'help': option.help,
             'expert': option.category == 'expert',
-            'alternate': option.type == 'bool' and option.alternate,
+            'alternate': option.alternate,
             'help_mode': option.help_mode,
             'modes': modes,
         }
@@ -355,16 +440,6 @@ class SphinxGenerator:
 
 def die(msg):
     sys.exit('[error] {}'.format(msg))
-
-
-def perr(filename, msg, option=None):
-    msg_suffix = ''
-    if option:
-        if option.name:
-            msg_suffix = "option '{}' ".format(option.name)
-        else:
-            msg_suffix = "option '{}' ".format(option.long)
-    die('parse error in {}: {}{}'.format(filename, msg, msg_suffix))
 
 
 def write_file(directory, name, content):
@@ -644,7 +719,7 @@ def docgen_option(option, help_common, help_others):
     # Generate documentation for cmdline options
     if opts and option.category != 'undocumented':
         help_cmd = help_msg
-        if option.type == 'bool' and option.alternate:
+        if option.alternate:
             help_cmd += ' [*]'
         
         res = help_format(help_cmd, opts)
@@ -680,11 +755,9 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     getopt_long = []         # long options for getopt_long
     options_get_info = []    # code for getOptionInfo()
     options_handler = []     # option handler calls
-    options_names = set()    # option names
     help_common = []         # help text for all common options
     help_others = []         # help text for all non-common options
     setoption_handlers = []  # handlers for set-option command
-    getoption_handlers = []  # handlers for get-option command
 
     assign_impls = []
 
@@ -763,7 +836,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                 if option.alias:
                     names.update(option.alias)
                 assert names
-                options_names.update(names)
 
                 cond = ' || '.join(
                     ['name == "{}"'.format(x) for x in sorted(names)])
@@ -822,29 +894,8 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                     setoption_handlers.append(
                         h.format(handler=option.handler, smtname=option.long_name))
 
-
-                if option.name:
-                    getoption_handlers.append(
-                        'if ({}) {{'.format(cond))
-                    if option.type == 'bool':
-                        getoption_handlers.append(
-                            'return options.{}.{} ? "true" : "false";'.format(module.id, option.name))
-                    elif option.type == 'std::string':
-                        getoption_handlers.append(
-                            'return options.{}.{};'.format(module.id, option.name))
-                    elif is_numeric_cpp_type(option.type):
-                        getoption_handlers.append(
-                            'return std::to_string(options.{}.{});'.format(module.id, option.name))
-                    else:
-                        getoption_handlers.append('std::stringstream ss;')
-                        getoption_handlers.append(
-                            'ss << options.{}.{};'.format(module.id, option.name))
-                        getoption_handlers.append('return ss.str();')
-                    getoption_handlers.append('}')
-
-
             # Add --no- alternative options for boolean options
-            if option.long and option.type == 'bool' and option.alternate:
+            if option.long and option.alternate:
                 cases = []
                 cases.append(
                     'case {}: // --no-{}'.format(
@@ -868,9 +919,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                 cases.append('  break;')
                 options_handler.extend(cases)
 
-    options_all_names = ', '.join(map(lambda s: '"' + s + '"', sorted(options_names)))
-    options_all_names = '\n'.join(textwrap.wrap(options_all_names, width=80, break_on_hyphens=False))
-
     data = {
         'holder_fwd_decls': get_holder_fwd_decls(modules),
         'holder_mem_decls': get_holder_mem_decls(modules),
@@ -880,14 +928,16 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
         'holder_mem_inits': get_holder_mem_inits(modules),
         'holder_ref_inits': get_holder_ref_inits(modules),
         'holder_mem_copy': get_holder_mem_copy(modules),
+        # options/options_public.cpp
+        'options_includes': generate_public_includes(modules),
+        'getnames_impl': generate_getnames_impl(modules),
+        'get_impl': generate_get_impl(modules),
         'cmdline_options': '\n  '.join(getopt_long),
         'help_common': '\n'.join(help_common),
         'help_others': '\n'.join(help_others),
         'options_handler': '\n    '.join(options_handler),
         'options_short': ''.join(getopt_short),
-        'options_all_names': options_all_names,
         'options_get_info': '\n  '.join(sorted(options_get_info)),
-        'getoption_handlers': '\n'.join(getoption_handlers),
         'setoption_handlers': '\n'.join(setoption_handlers),
     }
     for tpl in tpls:
@@ -898,119 +948,112 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
         sphinxgen.render('{}/docs/'.format(build_dir), 'options_generated.rst')
 
 
-def check_attribs(filename, req_attribs, valid_attribs, attribs, ctype):
-    """
-    Check if for a given module/option the defined attributes are valid and
-    if all required attributes are defined.
-    """
-    msg_for = ""
-    if 'name' in attribs:
-        msg_for = " for '{}'".format(attribs['name'])
-    elif 'long' in attribs:
-        msg_for = " for '{}'".format(attribs['long'])
-    for k in req_attribs:
-        if k not in attribs:
-            perr(filename,
-                 "required {} attribute '{}' not specified{}".format(
-                     ctype, k, msg_for))
-    for k in attribs:
-        if k not in valid_attribs:
-            perr(filename,
-                 "invalid {} attribute '{}' specified{}".format(
-                     ctype, k, msg_for))
+class Checker:
+    """Performs a variety of sanity checks on options and option modules, and
+    constructs `Module` and `Option` from dictionaries."""
+    def __init__(self):
+        self.__filename = None
+        self.__long_cache = {}
 
+    def perr(self, msg, *args, **kwargs):
+        """Print an error and die."""
+        if 'option' in kwargs:
+            msg = "option '{}' {}".format(kwargs['option'], msg)
+        msg = 'parse error in {}: {}'.format(self.__filename, msg)
+        die(msg.format(*args, **kwargs))
 
-def check_unique(filename, value, cache):
-    """
-    Check if given name is unique in cache.
-    """
-    if value in cache:
-        perr(filename,
-             "'{}' already defined in '{}'".format(value, cache[value]))
-    else:
-        cache[value] = filename
+    def __check_module_attribs(self, req, valid, module):
+        """Check the attributes of an option module."""
+        for k in req:
+            if k not in module:
+                self.perr("required module attribute '{}' not specified", k)
+        for k in module:
+            if k not in valid:
+                self.perr("invalid module attribute '{}' specified", k)
 
+    def __check_option_attribs(self, req, valid, option):
+        """Check the attributes of an option."""
+        if 'name' in option:
+            name = option['name']
+        else:
+            name = option.get('long', '--')
+        for k in req:
+            if k not in option:
+                self.perr(
+                    "required option attribute '{}' not specified for '{}'", k,
+                    name)
+        for k in option:
+            if k not in valid:
+                self.perr("invalid option attribute '{}' specified for '{}'",
+                          k, name)
 
-def check_long(filename, option, long_name, ctype=None):
-    """
-    Check if given long option name is valid.
-    """
-    global g_long_cache
-    if long_name is None:
-        return
-    if long_name.startswith('--'):
-        perr(filename, 'remove -- prefix from long', option)
-    r = r'^[0-9a-zA-Z\-=]+$'
-    if not re.match(r, long_name):
-        perr(filename,
-             "long '{}' does not match regex criteria '{}'".format(
-                 long_name, r), option)
-    name = long_get_option(long_name)
-    check_unique(filename, name, g_long_cache)
+    def __check_option_long(self, option, long):
+        """Check a long argument of an option (name and uniqueness)."""
+        if long.startswith('--'):
+            self.perr("remove '--' prefix from '{}'", long, option=option)
+        r = r'^[0-9a-zA-Z\-]+$'
+        if not re.match(r, long):
+            self.perr("long '{}' does not match '{}'", long, r, option=option)
+        if long in self.__long_cache:
+            file = self.__long_cache[long]
+            self.perr("long '{}' was already defined in '{}'",
+                      long,
+                      file,
+                      option=option)
+        self.__long_cache[long] = self.__filename
 
-    if ctype == 'bool':
-        check_unique(filename, 'no-{}'.format(name), g_long_cache)
+    def check_module(self, module, filename):
+        """Check the given module and return a `Module` object."""
+        self.__filename = os.path.basename(filename)
+        self.__check_module_attribs(MODULE_ATTR_REQ, MODULE_ATTR_ALL, module)
+        return Module(module, filename)
 
-
-def parse_module(filename, module):
-    """
-    Parse options module file.
-
-    Note: We could use an existing toml parser to parse the configuration
-    files.  However, since we only use a very restricted feature set of the
-    toml format, we chose to implement our own parser to get better error
-    messages.
-    """
-    # Check if parsed module attributes are valid and if all required
-    # attributes are defined.
-    check_attribs(filename,
-                  MODULE_ATTR_REQ, MODULE_ATTR_ALL, module, 'module')
-    res = Module(module, filename)
-
-    if 'option' in module:
-        for attribs in module['option']:
-            check_attribs(filename,
-                          OPTION_ATTR_REQ, OPTION_ATTR_ALL, attribs, 'option')
-            option = Option(attribs)
-            if option.mode and not option.help_mode:
-                perr(filename, 'defines modes but no help_mode', option)
-            if option.mode and not option.default:
-                perr(filename, "mode option has no default", option)
-            if option.mode and option.default and \
-                    option.default not in option.mode.keys():
-                perr(filename,
-                     "invalid default value '{}'".format(option.default),
-                     option)
-            if option.short and not option.long:
-                perr(filename,
-                     "short option '{}' specified but no long option".format(
-                         option.short),
-                     option)
-            if option.type == 'bool' and option.handler:
-                perr(filename,
-                     'defining handlers for bool options is not allowed',
-                     option)
-            if option.category not in CATEGORY_VALUES:
-                perr(filename,
-                     "has invalid category '{}'".format(option.category),
-                     option)
-            if option.category != 'undocumented' and not option.help:
-                perr(filename,
-                     'help text required for {} options'.format(option.category),
-                     option)
-            option.filename = filename
-            res.options.append(option)
-
-    return res
+    def check_option(self, option):
+        """Check the option module and return an `Option` object."""
+        self.__check_option_attribs(OPTION_ATTR_REQ, OPTION_ATTR_ALL, option)
+        o = Option(option)
+        if o.category not in CATEGORY_VALUES:
+            self.perr("has invalid category '{}'", o.category, option=o)
+        if o.mode and not o.help_mode:
+            self.perr('defines modes but no help_mode', option=o)
+        if o.mode and not o.default:
+            self.perr('mode option has no default', option=o)
+        if o.mode and o.default and o.default not in o.mode.keys():
+            self.perr("invalid default value '{}'", o.default, option=o)
+        if o.short and not o.long:
+            self.perr("has short '{}' but no long", o.short, option=o)
+        if o.category != 'undocumented' and not o.help:
+            self.perr("of type '{}' has no help text", o.category, option=o)
+        if o.alias and not o.long:
+            self.perr('has aliases but no long', option=o)
+        if o.alternate and o.type != 'bool':
+            self.perr('is alternate but not bool', option=o)
+        if o.long:
+            self.__check_option_long(o, o.long_name)
+            if o.alternate:
+                self.__check_option_long(o, 'no-' + o.long_name)
+            if o.type in ['bool', 'void'] and '=' in o.long:
+                self.perr('must not have an argument description', option=o)
+            if o.type not in ['bool', 'void'] and not '=' in o.long:
+                self.perr("needs argument description ('{}=...')",
+                          o.long,
+                          option=o)
+            if o.alias:
+                for alias in o.alias:
+                    self.__check_option_long(o, alias)
+                    if o.alternate:
+                        self.__check_option_long(o, 'no-' + alias)
+        return o
 
 
 def usage():
-    print('mkoptions.py <tpl-src> <dst> <toml>+')
+    """Print the command-line usage"""
+    print('mkoptions.py <src> <build> <dst> <toml>+')
     print('')
-    print('  <tpl-src> location of all *_template.{cpp,h} files')
-    print('  <build>   build directory')
-    print('  <dst>     destination directory for the generated files')
-    print('  <toml>+   one or more *_optios.toml files')
+    print('  <src>     base source directory of all toml files')
+    print('  <build>   build directory to write the generated sphinx docs')
+    print('  <dst>     base destination directory for all generated files')
+    print('  <toml>+   one or more *_options.toml files')
     print('')
 
 
@@ -1019,10 +1062,8 @@ def mkoptions_main():
         usage()
         die('missing arguments')
 
-    src_dir = sys.argv[1]
-    build_dir = sys.argv[2]
-    dst_dir = sys.argv[3]
-    filenames = sys.argv[4:]
+    # Load command line arguments
+    _, src_dir, build_dir, dst_dir, *filenames = sys.argv
 
     # Check if given directories exist.
     for d in [src_dir, dst_dir]:
@@ -1046,28 +1087,25 @@ def mkoptions_main():
         {'input': 'main/options_template.cpp'},
     ]
 
+    # Load all template files
     for tpl in module_tpls + global_tpls:
         tpl['output'] = tpl['input'].replace('_template', '')
         tpl['content'] = read_tpl(src_dir, tpl['input'])
 
-
-    # Parse files, check attributes and create module/option objects
+    # Parse and check toml files
+    checker = Checker()
     modules = []
     for filename in filenames:
-        module = parse_module(filename, toml.load(filename))
-
-        # Check if long options are valid and unique.  First populate
-        # g_long_cache with option.long and --no- alternatives if
-        # applicable.
-        for option in module.options:
-            check_long(filename, option, option.long, option.type)
+        data = toml.load(filename)
+        module = checker.check_module(data, filename)
+        if 'option' in data:
+            module.options = sorted(
+                [checker.check_option(a) for a in data['option']])
         modules.append(module)
 
-    # Create *_options.{h,cpp} in destination directory
+    # Generate code
     for module in modules:
         codegen_module(module, dst_dir, module_tpls)
-
-    # Create options.cpp in destination directory
     codegen_all_modules(modules, build_dir, dst_dir, global_tpls)
 
 
