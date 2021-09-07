@@ -1206,7 +1206,7 @@ class CVC5_EXPORT GetDifficultyCommand : public Command
       std::ostream& out,
       int toDepth = -1,
       size_t dag = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const override;
+      Language language = Language::LANG_AUTO) const override;
 
  protected:
   /** The symbol manager we were invoked with */

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of module for processing proof nodes.
+ * Implementation of module for processing the difficulty of input assumptions
+ * based on proof nodes.
  */
 
 #include "smt/difficulty_post_processor.h"

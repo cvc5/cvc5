@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The module for processing difficulty
+ * Implementation of module for processing the difficulty of input assumptions
+ * based on proof nodes.
  */
 
 #include "cvc5_private.h"

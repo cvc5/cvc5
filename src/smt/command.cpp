@@ -2474,7 +2474,7 @@ std::string GetDifficultyCommand::getCommandName() const
 void GetDifficultyCommand::toStream(std::ostream& out,
                                     int toDepth,
                                     size_t dag,
-                                    OutputLanguage language) const
+                                    Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetDifficulty(out);
 }
