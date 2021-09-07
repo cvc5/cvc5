@@ -192,9 +192,7 @@ TEST_F(TestTheoryWhiteArithCAD, lazard_simp)
     Node rewritten = Rewriter::rewrite(orig);
     EXPECT_NE(rewritten, d_nodeManager->mkConst(false));
   }
-  {
-    quantifiers::ExtendedRewriter extrew;
-    Node rewritten = extrew.extendedRewrite(orig);
+    Node rewritten = Rewriter::callExtendedRewrite(orig);
     EXPECT_EQ(rewritten, d_nodeManager->mkConst(false));
   }
 }
