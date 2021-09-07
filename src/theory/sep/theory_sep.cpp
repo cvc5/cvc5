@@ -1208,7 +1208,7 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
     bool tn_is_monotonic = true;
     if( tn.isSort() ){
       //TODO: use monotonicity inference
-      tn_is_monotonic = !getLogicInfo().isQuantified();
+      tn_is_monotonic = !logicInfo().isQuantified();
     }else{
       tn_is_monotonic = tn.getCardinality().isInfinite();
     }

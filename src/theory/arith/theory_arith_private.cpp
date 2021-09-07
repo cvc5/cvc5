@@ -88,17 +88,17 @@ static bool complexityBelow(const DenseMap<Rational>& row, uint32_t cap);
 TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                                        Env& env,
                                        BranchAndBound& bab)
-    : d_containing(containing),
-      d_env(env),
+    : EnvObj(env),
+      d_containing(containing),
       d_foundNl(false),
       d_rowTracking(),
       d_bab(bab),
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
                                            : nullptr),
       d_checker(),
-      d_pfGen(new EagerProofGenerator(d_pnm, d_env.getUserContext())),
-      d_constraintDatabase(d_env.getContext(),
-                           d_env.getUserContext(),
+      d_pfGen(new EagerProofGenerator(d_pnm, userContext())),
+      d_constraintDatabase(context(),
+                           userContext(),
                            d_partialModel,
                            d_congruenceManager,
                            RaiseConflict(*this),
@@ -107,15 +107,15 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_qflraStatus(Result::SAT_UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
-      d_learner(d_env.getUserContext()),
-      d_assertionsThatDoNotMatchTheirLiterals(d_env.getContext()),
+      d_learner(userContext()),
+      d_assertionsThatDoNotMatchTheirLiterals(context()),
       d_nextIntegerCheckVar(0),
-      d_constantIntegerVariables(d_env.getContext()),
-      d_diseqQueue(d_env.getContext(), false),
+      d_constantIntegerVariables(context()),
+      d_diseqQueue(context(), false),
       d_currentPropagationList(),
-      d_learnedBounds(d_env.getContext()),
-      d_preregisteredNodes(d_env.getContext()),
-      d_partialModel(d_env.getContext(), DeltaComputeCallback(*this)),
+      d_learnedBounds(context()),
+      d_preregisteredNodes(context()),
+      d_partialModel(context(), DeltaComputeCallback(*this)),
       d_errorSet(
           d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(*this)),
       d_tableau(),
@@ -123,23 +123,22 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
               d_tableau,
               d_rowTracking,
               BasicVarModelUpdateCallBack(*this)),
-      d_diosolver(d_env.getContext()),
+      d_diosolver(context()),
       d_restartsCounter(0),
       d_tableauSizeHasBeenModified(false),
       d_tableauResetDensity(1.6),
       d_tableauResetPeriod(10),
-      d_conflicts(d_env.getContext()),
-      d_blackBoxConflict(d_env.getContext(), Node::null()),
-      d_blackBoxConflictPf(d_env.getContext(),
-                           std::shared_ptr<ProofNode>(nullptr)),
-      d_congruenceManager(d_env.getContext(),
-                          d_env.getUserContext(),
+      d_conflicts(context()),
+      d_blackBoxConflict(context(), Node::null()),
+      d_blackBoxConflictPf(context(), std::shared_ptr<ProofNode>(nullptr)),
+      d_congruenceManager(context(),
+                          userContext(),
                           d_constraintDatabase,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
                           RaiseEqualityEngineConflict(*this),
                           d_pnm),
-      d_cmEnabled(d_env.getContext(), options().arith.arithCongMan),
+      d_cmEnabled(context(), options().arith.arithCongMan),
 
       d_dualSimplex(
           d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
@@ -151,22 +150,22 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
           d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_pass1SDP(NULL),
       d_otherSDP(NULL),
-      d_lastContextIntegerAttempted(d_env.getContext(), -1),
+      d_lastContextIntegerAttempted(context(), -1),
 
       d_DELTA_ZERO(0),
-      d_approxCuts(d_env.getContext()),
+      d_approxCuts(context()),
       d_fullCheckCounter(0),
-      d_cutCount(d_env.getContext(), 0),
-      d_cutInContext(d_env.getContext()),
-      d_likelyIntegerInfeasible(d_env.getContext(), false),
-      d_guessedCoeffSet(d_env.getContext(), false),
+      d_cutCount(context(), 0),
+      d_cutInContext(context()),
+      d_likelyIntegerInfeasible(context(), false),
+      d_guessedCoeffSet(context(), false),
       d_guessedCoeffs(),
       d_treeLog(NULL),
       d_replayVariables(),
       d_replayConstraints(),
       d_lhsTmp(),
       d_approxStats(NULL),
-      d_attemptSolveIntTurnedOff(d_env.getUserContext(), 0),
+      d_attemptSolveIntTurnedOff(userContext(), 0),
       d_dioSolveResources(0),
       d_solveIntMaybeHelp(0u),
       d_solveIntAttempts(0u),
@@ -1153,7 +1152,8 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
   if(!vl.singleton()){
     // vl is the product of at least 2 variables
     // vl : (* v1 v2 ...)
-    if(getLogicInfo().isLinear()){
+    if (logicInfo().isLinear())
+    {
       throw LogicException("A non-linear fact was asserted to arithmetic in a linear logic.");
     }
     d_foundNl = true;
@@ -1305,7 +1305,8 @@ void TheoryArithPrivate::releaseArithVar(ArithVar v){
 ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool aux, bool internal){
   //TODO : The VarList trick is good enough?
   Assert(isLeaf(x) || VarList::isMember(x) || x.getKind() == PLUS || internal);
-  if(getLogicInfo().isLinear() && Variable::isDivMember(x)){
+  if (logicInfo().isLinear() && Variable::isDivMember(x))
+  {
     stringstream ss;
     ss << "A non-linear fact (involving div/mod/divisibility) was asserted to "
           "arithmetic in a linear logic: "

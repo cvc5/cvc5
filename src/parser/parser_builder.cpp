@@ -21,9 +21,6 @@
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "cvc/cvc.h"
-#include "options/base_options.h"
-#include "options/options.h"
-#include "options/parser_options.h"
 #include "parser/antlr_input.h"
 #include "parser/input.h"
 #include "parser/parser.h"
@@ -41,7 +38,7 @@ ParserBuilder::ParserBuilder(api::Solver* solver,
   init(solver, sm);
   if (useOptions)
   {
-    withOptions(solver->getOptions());
+    withOptions();
   }
 }
 
@@ -109,17 +106,18 @@ ParserBuilder& ParserBuilder::withParseOnly(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withOptions(const Options& opts)
+ParserBuilder& ParserBuilder::withOptions()
 {
   ParserBuilder& retval = *this;
   retval = retval.withInputLanguage(d_solver->getOption("input-language"))
-               .withChecks(opts.parser.semanticChecks)
-               .withStrictMode(opts.parser.strictParsing)
-               .withParseOnly(opts.base.parseOnly)
-               .withIncludeFile(opts.parser.filesystemAccess);
-  if (opts.parser.forceLogicStringWasSetByUser)
+               .withChecks(d_solver->getOptionInfo("semantic-checks").boolValue())
+               .withStrictMode(d_solver->getOptionInfo("strict-parsing").boolValue())
+               .withParseOnly(d_solver->getOptionInfo("parse-only").boolValue())
+               .withIncludeFile(d_solver->getOptionInfo("filesystem-access").boolValue());
+  auto info = d_solver->getOptionInfo("force-logic");
+  if (info.setByUser)
   {
-    LogicInfo tmp(opts.parser.forceLogicString);
+    LogicInfo tmp(info.stringValue());
     retval = retval.withForcedLogic(tmp.getLogicString());
   }
   return retval;

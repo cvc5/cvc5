@@ -64,8 +64,8 @@ Theory::Theory(TheoryId id,
                OutputChannel& out,
                Valuation valuation,
                std::string name)
-    : d_id(id),
-      d_env(env),
+    : EnvObj(env),
+      d_id(id),
       d_facts(d_env.getContext()),
       d_factsHead(d_env.getContext(), 0),
       d_sharedTermsIndex(d_env.getContext(), 0),
@@ -338,7 +338,7 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!options::produceModels() && !getLogicInfo().isQuantified())
+  if (!options::produceModels() && !logicInfo().isQuantified())
   {
     // Don't care about the model and logic is not quantified, we can eliminate.
     return true;

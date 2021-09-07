@@ -33,7 +33,9 @@ namespace smt {
 
 PfManager::PfManager(Env& env, SmtEngine* smte)
     : d_env(env),
-      d_pchecker(new ProofChecker(options::proofPedantic())),
+      d_pchecker(new ProofChecker(
+          d_env.getOptions().proof.proofCheck == options::ProofCheckMode::EAGER,
+          d_env.getOptions().proof.proofPedantic)),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
@@ -82,6 +84,8 @@ PfManager::PfManager(Env& env, SmtEngine* smte)
         d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
       }
     }
+    // theory-specific lazy proof reconstruction
+    d_pfpp->setEliminateRule(PfRule::STRING_INFERENCE);
     d_pfpp->setEliminateRule(PfRule::BV_BITBLAST);
   }
   d_false = NodeManager::currentNM()->mkConst(false);

@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -59,7 +60,7 @@ namespace quantifiers {
  * of the SMT engine can be further queried for information regarding further
  * solutions.
  */
-class SygusInterpol
+class SygusInterpol : protected EnvObj
 {
  public:
   SygusInterpol(Env& env);
@@ -174,8 +175,6 @@ class SygusInterpol
    * @param itp the interpolation predicate.
    */
   bool findInterpol(SmtEngine* subsolver, Node& interpol, Node itp);
-  /** Reference to the env */
-  Env& d_env;
   /**
    * symbols from axioms and conjecture.
    */
