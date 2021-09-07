@@ -51,7 +51,7 @@ class EnvObj
   Node rewrite(TNode node);
   /**
    * Extended rewrite a node.
-   * This is a wrapper around theory::Rewriter::rewrite via Env.
+   * This is a wrapper around theory::Rewriter::extendedRewrite via Env.
    */
   Node extendedRewrite(TNode node, bool aggr = true);
 
