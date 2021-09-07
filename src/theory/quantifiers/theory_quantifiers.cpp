@@ -37,7 +37,7 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
       d_qstate(env, valuation, logicInfo()),
       d_qreg(),
       d_treg(d_qstate, d_qreg),
-      d_qim(*this, d_qstate, d_qreg, d_treg, d_pnm),
+      d_qim(env, *this, d_qstate, d_qreg, d_treg, d_pnm),
       d_qengine(nullptr)
 {
   // construct the quantifiers engine
