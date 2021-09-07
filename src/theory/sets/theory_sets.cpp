@@ -146,7 +146,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
   if (nk == COMPREHENSION)
   {
     // set comprehension is an implicit quantifier, require it in the logic
-    if (!getLogicInfo().isQuantified())
+    if (!logicInfo().isQuantified())
     {
       std::stringstream ss;
       ss << "Set comprehensions require quantifiers in the background logic.";

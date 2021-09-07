@@ -47,7 +47,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * specifying a call to Rewriter::rewrite.
    * @return The rewritten form of n.
    */
-  Node applyRewrite(Node n, MethodId idr = MethodId::RW_REWRITE);
+  Node applyRewrite(TNode n, MethodId idr = MethodId::RW_REWRITE);
   /**
    * Get substitution for literal exp. Updates vars/subs to the substitution
    * specified by exp for the substitution method ids.

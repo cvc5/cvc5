@@ -46,9 +46,8 @@ ModelManager::~ModelManager() {}
 void ModelManager::finishInit(eq::EqualityEngineNotify* notify)
 {
   // construct the model
-  const LogicInfo& logicInfo = d_env.getLogicInfo();
   // Initialize the model and model builder.
-  if (logicInfo.isQuantified())
+  if (logicInfo().isQuantified())
   {
     QuantifiersEngine* qe = d_te.getQuantifiersEngine();
     Assert(qe != nullptr);
