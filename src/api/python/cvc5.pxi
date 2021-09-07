@@ -44,10 +44,10 @@ cdef extern from "Python.h":
 
 ################################## DECORATORS #################################
 def expand_list_arg(num_req_args=0):
-    '''
+    """
     Creates a decorator that looks at index num_req_args of the args,
     if it's a list, it expands it before calling the function.
-    '''
+    """
     def decorator(func):
         def wrapper(owner, *args):
             if len(args) == num_req_args + 1 and \
@@ -589,14 +589,14 @@ cdef class Solver:
         del self.csolver
 
     def getBooleanSort(self):
-        """:return: the sort of booleans
+        """:return: sort Boolean
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.getBooleanSort()
         return sort
 
     def getIntegerSort(self):
-        """:return: the sort of integers
+        """:return: sort Integer
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.getIntegerSort()
@@ -608,35 +608,35 @@ cdef class Solver:
         return sort
 
     def getRealSort(self):
-        """:return: the sort of real numbers
+        """:return: sort Real
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.getRealSort()
         return sort
 
     def getRegExpSort(self):
-        """:return: the sort of regular expressions
+        """:return: sort of RegExp
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.getRegExpSort()
         return sort
 
     def getRoundingModeSort(self):
-        """:return: the sort of floating point rounding modes
+        """:return: sort RoundingMode
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.getRoundingModeSort()
         return sort
 
     def getStringSort(self):
-        """:return: the sort of strings
+        """:return: sort String
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.getStringSort()
         return sort
 
     def mkArraySort(self, Sort indexSort, Sort elemSort):
-        """:return: the sort of arrays
+        """:return: the array sort
         :param: `indexSort` the sort of indices
         :param: `elemSort` the sort of values
         """
@@ -645,15 +645,15 @@ cdef class Solver:
         return sort
 
     def mkBitVectorSort(self, uint32_t size):
-        """:return: the sort of bit-vectors
-        :param: `size` the number of bits
+        """:return: the bit-vector sort
+        :param: `size` the number of bits in the sort
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkBitVectorSort(size)
         return sort
 
     def mkFloatingPointSort(self, uint32_t exp, uint32_t sig):
-        """:return: the sort for floating-point numbers
+        """:return: the floating-point sort
         :param: `exp` the number of exponent bits
         :param: `sig` the number of significand bits
         """
@@ -662,8 +662,8 @@ cdef class Solver:
         return sort
 
     def mkDatatypeSort(self, DatatypeDecl dtypedecl):
-        """:return: the sort for a single datatype declaration
-        :param: `dtypdecl` the declaration
+        """:return: the datatype sort
+        :param: `dtypdecl` a datatype declaration
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkDatatypeSort(dtypedecl.cdd)
@@ -792,10 +792,10 @@ cdef class Solver:
 
     @expand_list_arg(num_req_args=0)
     def mkTupleSort(self, *sorts):
-        '''
+        """
         :return: a sort of tuples
         :param: `sorts`: a list of sorts of elements in the tuple.  Can be provided as a list or as separate arguments.
-        '''
+        """
         cdef Sort sort = Sort(self)
         cdef vector[c_Sort] v
         for s in sorts:
@@ -805,14 +805,14 @@ cdef class Solver:
 
     @expand_list_arg(num_req_args=1)
     def mkTerm(self, kind_or_op, *args):
-        '''
+        """
             Supports the following arguments
                   - Term mkTerm(Kind kind)
                   - Term mkTerm(Kind kind, Op child1, List[Term] children)
                   - Term mkTerm(Kind kind, List[Term] children)
 
             where List[Term] can also be comma-separated arguments
-        '''
+        """
         cdef Term term = Term(self)
         cdef vector[c_Term] v
 
@@ -842,14 +842,14 @@ cdef class Solver:
 
     @expand_list_arg(num_req_args=0)
     def mkOp(self, kind k, *args):
-        '''
+        """
         Supports the following uses
               - Op mkOp(Kind kind)
               - Op mkOp(Kind kind, Kind k)
               - Op mkOp(Kind kind, const string& arg)
               - Op mkOp(Kind kind, uint32_t arg)
               - Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)
-        '''
+        """
         cdef Op op = Op(self)
         cdef vector[int] v
 
@@ -1009,7 +1009,7 @@ cdef class Solver:
 
     @expand_list_arg(num_req_args=0)
     def mkBitVector(self, *args):
-        '''
+        """
         Supports the following arguments:
 
         - Term mkBitVector(int size, int val=0)
@@ -1309,13 +1309,13 @@ cdef class Solver:
 
     @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
-        '''
+        """
             Supports the following arguments:
                  Result checkSatAssuming(List[Term] assumptions)
 
                  where assumptions can also be comma-separated arguments of
                  type (boolean) Term
-        '''
+        """
         cdef Result r = Result()
         # used if assumptions is a list of terms
         cdef vector[c_Term] v
@@ -1326,13 +1326,12 @@ cdef class Solver:
 
     @expand_list_arg(num_req_args=0)
     def checkEntailed(self, *assumptions):
-        '''
-            Supports the following arguments:
+        """ Has the following signature
                  Result checkEntailed(List[Term] assumptions)
 
-                 where assumptions can also be comma-separated arguments of
-                 type (boolean) Term
-        '''
+        where assumptions can also be comma-separated arguments of
+        type (boolean) Term
+        """
         cdef Result r = Result()
         # used if assumptions is a list of terms
         cdef vector[c_Term] v
@@ -1343,13 +1342,13 @@ cdef class Solver:
 
     @expand_list_arg(num_req_args=1)
     def declareDatatype(self, str symbol, *ctors):
-        '''
+        """
             Supports the following arguments:
                  Sort declareDatatype(str symbol, List[Term] ctors)
 
                  where ctors can also be comma-separated arguments of
                   type DatatypeConstructorDecl
-        '''
+        """
         cdef Sort sort = Sort(self)
         cdef vector[c_DatatypeConstructorDecl] v
 
@@ -1374,13 +1373,13 @@ cdef class Solver:
         return sort
 
     def defineFun(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
-        '''
+        """
         Supports two uses:
                 Term defineFun(str symbol, List[Term] bound_vars,
                                Sort sort, Term term, bool glbl)
                 Term defineFun(Term fun, List[Term] bound_vars,
                                Term term, bool glbl)
-        '''
+        """
         cdef Term term = Term(self)
         cdef vector[c_Term] v
         for bv in bound_vars:
@@ -1401,13 +1400,13 @@ cdef class Solver:
         return term
 
     def defineFunRec(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
-        '''
+        """
         Supports two uses:
                 Term defineFunRec(str symbol, List[Term] bound_vars,
                                Sort sort, Term term, bool glbl)
                 Term defineFunRec(Term fun, List[Term] bound_vars,
                                Term term, bool glbl)
-        '''
+        """
         cdef Term term = Term(self)
         cdef vector[c_Term] v
         for bv in bound_vars:
@@ -2062,18 +2061,18 @@ cdef class Term:
         return self.cterm.isRealValue()
 
     def getRealValue(self):
-        '''Returns the value of a real term as a Fraction'''
+        """Returns the value of a real term as a Fraction"""
         return Fraction(self.cterm.getRealValue().decode())
 
     def isBitVectorValue(self):
         return self.cterm.isBitVectorValue()
 
     def getBitVectorValue(self, base = 2):
-        '''Returns the value of a bit-vector term as a 0/1 string'''
+        """Returns the value of a bit-vector term as a 0/1 string"""
         return self.cterm.getBitVectorValue(base).decode()
 
     def toPythonObj(self):
-        '''
+        """
         Converts a constant value Term to a Python object.
 
         Currently supports:
@@ -2084,7 +2083,7 @@ cdef class Term:
           String  -- returns a Python Unicode string
           Array   -- returns a Python dict mapping indices to values
                   -- the constant base is returned as the default value
-        '''
+        """
 
         if self.isBooleanValue():
             return self.getBooleanValue()
