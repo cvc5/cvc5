@@ -143,7 +143,7 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
     std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
     if (it != d_pcache.end())
     {
-      //Assert(it->second.d_id != DslPfRule::FAIL)
+      // Assert(it->second.d_id != DslPfRule::FAIL)
       //    << "unexpected failure for " << eqi;
       retId = it->second.d_id;
     }
