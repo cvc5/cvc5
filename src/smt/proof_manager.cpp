@@ -43,7 +43,8 @@ PfManager::PfManager(Env& env)
       d_rewriteDb(new rewriter::RewriteDb),
       d_pchecker(new ProofChecker(
           options().proof.proofCheck == options::ProofCheckMode::EAGER,
-          options().proof.proofPedantic)),
+          options().proof.proofPedantic,
+                                  d_rewriteDb.get())),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
