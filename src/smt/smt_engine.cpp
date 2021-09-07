@@ -194,20 +194,15 @@ void SmtEngine::finishInit()
   SetDefaults sdefaults(d_isInternalSubsolver);
   sdefaults.setDefaults(d_env->d_logic, getOptions());
 
-  ProofNodeManager* pnm = nullptr;
   if (d_env->getOptions().smt.produceProofs)
   {
     // ensure bound variable uses canonical bound variables
     getNodeManager()->getBoundVarManager()->enableKeepCacheValues();
     // make the proof manager
-    d_pfManager.reset(new PfManager(*d_env.get(), this));
+    d_pfManager.reset(new PfManager(*d_env.get()));
     PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager());
-    // use this proof node manager
-    pnm = d_pfManager->getProofNodeManager();
-    // enable proof support in the environment/rewriter
-    d_env->setProofNodeManager(pnm);
     // enable it in the assertions pipeline
     d_asserts->setProofGenerator(pppg);
     // enabled proofs in the preprocessor
