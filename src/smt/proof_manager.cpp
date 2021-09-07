@@ -172,10 +172,12 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::TPTP)
   {
-    out << "% SZS output start Proof for " << options().driver.filename << std::endl;
+    out << "% SZS output start Proof for " << options().driver.filename
+        << std::endl;
     // TODO (proj #37) print in TPTP compliant format
     out << *fp << std::endl;
-    out << "% SZS output end Proof for " << options().driver.filename << std::endl;
+    out << "% SZS output end Proof for " << options().driver.filename
+        << std::endl;
   }
   else
   {
