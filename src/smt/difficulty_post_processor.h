@@ -32,19 +32,31 @@ class Env;
 namespace smt {
 
 /**
+ * A postprocess callback that computes the difficulty based on the structure
+ * of the proof. In particular, this class assesses what the source of an
+ * assertion was by considering the shape of the proof. For instance, if
+ * assertion A entails x=t, and this was used to derive a substitution
+ * { x -> t } to assertion B, then B is the source of B*{ x -> t }. The
+ * difficulty of this assertion is carried to B and not A.
  */
 class DifficultyPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
   DifficultyPostprocessCallback(Env& env);
   ~DifficultyPostprocessCallback() {}
-  /** Set current difficulty */
+  /** 
+   * Set current difficulty of the next proof to process to the (integer)
+   * value stored in Node d.
+   */
   bool setCurrentDifficulty(Node d);
-  /** Should proof pn be updated? */
+  /** 
+   * Should proof pn be updated? This is used to selectively traverse to e.g.
+   * the source of an assertion.
+   */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
                     bool& continueUpdate) override;
-  /** Get the (acculumated) difficulty map */
+  /** Get the (acculumated) difficulty map for the last processed proof node */
   void getDifficultyMap(std::map<Node, Node>& dmap) const;
 
  private:
