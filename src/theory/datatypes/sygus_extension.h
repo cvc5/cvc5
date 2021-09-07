@@ -29,6 +29,7 @@
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -62,7 +63,7 @@ class InferenceManager;
  * We prioritize decisions of form (1) before (2). Both kinds of decision are
  * critical for solution completeness, which is enforced by DecisionManager.
  */
-class SygusExtension
+class SygusExtension : protected EnvObj
 {
   typedef context::CDHashMap<Node, int> IntMap;
   typedef context::CDHashMap<Node, Node> NodeMap;
@@ -70,7 +71,8 @@ class SygusExtension
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  SygusExtension(TheoryState& s,
+  SygusExtension(Env& env,
+                 TheoryState& s,
                  InferenceManager& im,
                  quantifiers::TermDbSygus* tds);
   ~SygusExtension();
