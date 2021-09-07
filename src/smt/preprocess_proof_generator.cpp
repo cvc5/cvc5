@@ -180,8 +180,9 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
         if (!proofStepProcessed)
         {
           // maybe its just an (extended) rewrite?
-          theory::quantifiers::ExtendedRewriter extr(true);
-          Node pr = extr.extendedRewrite(proven[0]);
+          // FIXME
+          //theory::quantifiers::ExtendedRewriter extr(true);
+          Node pr = theory::Rewriter::rewrite(proven[0]);
           if (proven[1] == pr)
           {
             Node idr = mkMethodId(MethodId::RW_EXT_REWRITE);

@@ -29,7 +29,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
+TermRegistry::TermRegistry(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
     : d_presolve(qs.getUserContext(), true),
       d_presolveCache(qs.getUserContext()),
       d_termEnum(new TermEnumeration),
@@ -42,7 +42,7 @@ TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
   if (options::sygus() || options::sygusInst())
   {
     // must be constructed here since it is required for datatypes finistInit
-    d_sygusTdb.reset(new TermDbSygus(qs));
+    d_sygusTdb.reset(new TermDbSygus(env, qs));
   }
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug")

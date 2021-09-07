@@ -24,6 +24,9 @@
 
 namespace cvc5 {
 namespace theory {
+  
+class Rewriter;
+
 namespace quantifiers {
 
 /** Extended rewriter

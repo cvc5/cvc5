@@ -28,6 +28,7 @@
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/type_info.h"
 #include "theory/quantifiers/term_database.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -53,9 +54,9 @@ enum EnumeratorRole
 std::ostream& operator<<(std::ostream& os, EnumeratorRole r);
 
 // TODO :issue #1235 split and document this class
-class TermDbSygus {
+class TermDbSygus : protected EnvObj {
  public:
-  TermDbSygus(QuantifiersState& qs);
+  TermDbSygus(Env& env, QuantifiersState& qs);
   ~TermDbSygus() {}
   /** Finish init, which sets the inference manager */
   void finishInit(QuantifiersInferenceManager* qim);
@@ -78,8 +79,6 @@ class TermDbSygus {
   //------------------------------utilities
   /** get the explanation utility */
   SygusExplain* getExplain() { return d_syexp.get(); }
-  /** get the extended rewrite utility */
-  ExtendedRewriter* getExtRewriter() { return d_ext_rw.get(); }
   /** get the evaluator */
   Evaluator* getEvaluator() { return d_eval.get(); }
   /** (recursive) function evaluator utility */
@@ -324,8 +323,6 @@ class TermDbSygus {
   //------------------------------utilities
   /** sygus explanation */
   std::unique_ptr<SygusExplain> d_syexp;
-  /** extended rewriter */
-  std::unique_ptr<ExtendedRewriter> d_ext_rw;
   /** evaluator */
   std::unique_ptr<Evaluator> d_eval;
   /** (recursive) function evaluator utility */
