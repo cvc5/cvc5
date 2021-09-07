@@ -48,12 +48,14 @@ namespace quantifiers {
 class ExtendedRewriter
 {
  public:
-  ExtendedRewriter(bool aggr = true);
+  ExtendedRewriter(Rewriter& rew, bool aggr = true);
   ~ExtendedRewriter() {}
   /** return the extended rewritten form of n */
   Node extendedRewrite(Node n) const;
 
  private:
+  /** The underlying rewriter that we are extending  */
+  Rewriter& d_rew;
   /** cache that the extended rewritten form of n is ret */
   void setCache(Node n, Node ret) const;
   /** get the cache for n */

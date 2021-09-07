@@ -34,14 +34,6 @@ class BuiltinProofRuleChecker;
 }
 
 /**
- * The rewrite environment holds everything that the individual rewrites have
- * access to.
- */
-class RewriteEnvironment
-{
-};
-
-/**
  * The identity rewrite just returns the original node.
  *
  * @param re The rewrite environment
