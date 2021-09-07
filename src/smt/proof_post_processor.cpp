@@ -477,10 +477,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         rargs.push_back(args[3]);
       }
     }
-    builtin::BuiltinProofRuleChecker* builtinPfC =
-        static_cast<builtin::BuiltinProofRuleChecker*>(
-            d_pnm->getChecker()->getCheckerFor(PfRule::MACRO_SR_EQ_INTRO));
-    Node tr = builtinPfC->applyRewrite(ts, idr);
+    Rewriter* rr = d_env.getRewriter();
+    Node tr = rr->rewriteViaMethod(ts, idr);
     Trace("smt-proof-pp-debug")
         << "...eq intro rewrite equality is " << ts << " == " << tr << ", from "
         << idr << std::endl;
@@ -953,17 +951,14 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     {
       getMethodId(args[1], idr);
     }
-    builtin::BuiltinProofRuleChecker* builtinPfC =
-        static_cast<builtin::BuiltinProofRuleChecker*>(
-            d_pnm->getChecker()->getCheckerFor(PfRule::REWRITE));
-    Node ret = builtinPfC->applyRewrite(args[0], idr);
+    Rewriter* rr = d_env.getRewriter();
+    Node ret = rr->rewriteViaMethod(args[0], idr);
     Node eq = args[0].eqNode(ret);
     if (idr == MethodId::RW_REWRITE || idr == MethodId::RW_REWRITE_EQ_EXT)
     {
       // rewrites from theory::Rewriter
       bool isExtEq = (idr == MethodId::RW_REWRITE_EQ_EXT);
       // use rewrite with proof interface
-      Rewriter* rr = d_smte->getRewriter();
       TrustNode trn = rr->rewriteWithProof(args[0], isExtEq);
       std::shared_ptr<ProofNode> pfn = trn.toProofNode();
       if (pfn == nullptr)
