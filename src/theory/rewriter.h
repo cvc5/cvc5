@@ -78,6 +78,11 @@ class Rewriter {
   Node rewriteEqualityExt(TNode node);
 
   /**
+   * Extended rewrite
+   */
+  Node rewriteExt(TNode node);
+
+  /**
    * Rewrite with proof production, which is managed by the term conversion
    * proof generator managed by this class (d_tpg). This method requires a call
    * to setProofNodeManager prior to this call.
