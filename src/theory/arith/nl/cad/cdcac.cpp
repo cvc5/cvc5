@@ -276,8 +276,8 @@ PolyVector requiredCoefficientsLazardModified(
         Kind::EQUAL, nl::as_cvc_polynomial(coeff, vm), zero));
   }
   // if phi is false (i.e. p can not vanish)
-  Node rewritten =
-      Rewriter::callExtendedRewrite(NodeManager::currentNM()->mkAnd(conditions));
+  Node rewritten = Rewriter::callExtendedRewrite(
+      NodeManager::currentNM()->mkAnd(conditions));
   if (rewritten.isConst())
   {
     Assert(rewritten.getKind() == Kind::CONST_BOOLEAN);

@@ -25,11 +25,11 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/datatypes/sygus_simple_sym.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
-#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
