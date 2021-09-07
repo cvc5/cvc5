@@ -175,8 +175,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     }
 
     if (d_solver->getOptions().driver.dumpDifficulty
-        && (isResultUnsat || res.isSat()
-            || res.isSatUnknown()))
+        && (isResultUnsat || res.isSat() || res.isSatUnknown()))
     {
       getterCommands.emplace_back(new GetDifficultyCommand());
     }

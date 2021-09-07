@@ -44,12 +44,12 @@ class DifficultyPostprocessCallback : public ProofNodeUpdaterCallback
  public:
   DifficultyPostprocessCallback(Env& env);
   ~DifficultyPostprocessCallback() {}
-  /** 
+  /**
    * Set current difficulty of the next proof to process to the (integer)
    * value stored in Node d.
    */
   bool setCurrentDifficulty(Node d);
-  /** 
+  /**
    * Should proof pn be updated? This is used to selectively traverse to e.g.
    * the source of an assertion.
    */

@@ -1202,11 +1202,10 @@ class CVC5_EXPORT GetDifficultyCommand : public Command
 
   Command* clone() const override;
   std::string getCommandName() const override;
-  void toStream(
-      std::ostream& out,
-      int toDepth = -1,
-      size_t dag = 1,
-      Language language = Language::LANG_AUTO) const override;
+  void toStream(std::ostream& out,
+                int toDepth = -1,
+                size_t dag = 1,
+                Language language = Language::LANG_AUTO) const override;
 
  protected:
   /** The symbol manager we were invoked with */

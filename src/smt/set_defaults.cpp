@@ -1146,8 +1146,8 @@ bool SetDefaults::safeUnsatCores(const Options& opts) const
 {
   // whether we want to force safe unsat cores, i.e., if we are in the default
   // ASSUMPTIONS mode, since other ones are experimental
-  return opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS ||
-      opts.smt.unsatCoresMode == options::UnsatCoresMode::PP_ONLY;
+  return opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS
+         || opts.smt.unsatCoresMode == options::UnsatCoresMode::PP_ONLY;
 }
 
 bool SetDefaults::incompatibleWithQuantifiers(Options& opts,

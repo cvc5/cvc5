@@ -15,10 +15,10 @@
 
 #include "theory/difficulty_manager.h"
 
+#include "options/smt_options.h"
 #include "smt/env.h"
 #include "theory/theory_model.h"
 #include "util/rational.h"
-#include "options/smt_options.h"
 
 namespace cvc5 {
 namespace theory {
@@ -39,7 +39,7 @@ void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
 
 void DifficultyManager::notifyLemma(const std::map<TNode, TNode>& rse, Node n)
 {
-  if (options::difficultyMode()!=options::DifficultyMode::LEMMA_LITERAL)
+  if (options::difficultyMode() != options::DifficultyMode::LEMMA_LITERAL)
   {
     return;
   }
@@ -77,7 +77,7 @@ void DifficultyManager::notifyLemma(const std::map<TNode, TNode>& rse, Node n)
 void DifficultyManager::notifyCandidateModel(const NodeList& input,
                                              TheoryModel* m)
 {
-  if (options::difficultyMode()!=options::DifficultyMode::MODEL_CHECK)
+  if (options::difficultyMode() != options::DifficultyMode::MODEL_CHECK)
   {
     return;
   }
