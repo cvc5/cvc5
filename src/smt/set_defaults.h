@@ -71,8 +71,11 @@ class SetDefaults
    * Return true if proofs must be disabled. This is the case for any technique
    * that answers "unsat" without showing a proof of unsatisfiabilty. The output
    * stream reason is similar to above.
+   *
+   * Notice this method may modify the options to ensure that we are compatible
+   * with proofs.
    */
-  bool incompatibleWithProofs(const Options& opts, std::ostream& reason) const;
+  bool incompatibleWithProofs(Options& opts, std::ostream& reason) const;
   /**
    * Check whether we should disable models. The output stream reason is similar
    * to above.
@@ -89,6 +92,12 @@ class SetDefaults
    * techniques that may interfere with producing correct unsat cores.
    */
   bool safeUnsatCores(const Options& opts) const;
+  /**
+   * Check if incompatible with quantified formulas. Notice this method may
+   * modify the options to ensure that we are compatible with quantified logics.
+   * The output stream reason is similar to above.
+   */
+  bool incompatibleWithQuantifiers(Options& opts, std::ostream& reason) const;
   //------------------------- options setting, prior finalization of logic
   /**
    * Set defaults pre, which sets all options prior to finalizing the logic.
