@@ -20,10 +20,10 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
-class Env;
 class ProofChecker;
 class ProofNode;
 class ProofNodeManager;
@@ -72,7 +72,7 @@ class ProofPostproccess;
  * - If SmtEngine has been configured in a way that is incompatible with proofs
  *   then unsat core production will be disabled.
  */
-class PfManager
+class PfManager : protected EnvObj
 {
  public:
   PfManager(Env& env);
@@ -123,8 +123,6 @@ class PfManager
    */
   void getAssertions(Assertions& as,
                      std::vector<Node>& assertions);
-  /** Reference to the env of SmtEngine */
-  Env& d_env;
   /** The false node */
   Node d_false;
   /** The rewrite proof database. */

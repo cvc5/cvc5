@@ -34,12 +34,14 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 
-TheoryInferenceManager::TheoryInferenceManager(Theory& t,
+TheoryInferenceManager::TheoryInferenceManager(Env& env,
+                                               Theory& t,
                                                TheoryState& state,
                                                ProofNodeManager* pnm,
                                                const std::string& statsName,
                                                bool cacheLemmas)
-    : d_theory(t),
+    : EnvObj(env),
+      d_theory(t),
       d_theoryState(state),
       d_out(t.getOutputChannel()),
       d_ee(nullptr),
@@ -47,8 +49,8 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_pfee(nullptr),
       d_pnm(pnm),
       d_cacheLemmas(cacheLemmas),
-      d_keep(t.getSatContext()),
-      d_lemmasSent(t.getUserContext()),
+      d_keep(context()),
+      d_lemmasSent(userContext()),
       d_numConflicts(0),
       d_numCurrentLemmas(0),
       d_numCurrentFacts(0),
@@ -93,10 +95,8 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
     d_pfee = d_ee->getProofEqualityEngine();
     if (d_pfee == nullptr)
     {
-      d_pfeeAlloc.reset(new eq::ProofEqEngine(d_theoryState.getSatContext(),
-                                              d_theoryState.getUserContext(),
-                                              *d_ee,
-                                              d_pnm));
+      d_pfeeAlloc.reset(
+          new eq::ProofEqEngine(context(), userContext(), *d_ee, d_pnm));
       d_pfee = d_pfeeAlloc.get();
       d_ee->setProofEqualityEngine(d_pfee);
     }

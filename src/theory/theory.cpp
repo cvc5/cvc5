@@ -132,11 +132,8 @@ void Theory::finishInitStandalone()
   if (needsEqualityEngine(esi))
   {
     // always associated with the same SAT context as the theory
-    d_allocEqualityEngine.reset(
-        new eq::EqualityEngine(*esi.d_notify,
-                               getSatContext(),
-                               esi.d_name,
-                               esi.d_constantsAreTriggers));
+    d_allocEqualityEngine.reset(new eq::EqualityEngine(
+        *esi.d_notify, context(), esi.d_name, esi.d_constantsAreTriggers));
     // use it as the official equality engine
     setEqualityEngine(d_allocEqualityEngine.get());
   }

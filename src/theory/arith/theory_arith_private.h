@@ -691,7 +691,6 @@ private:
   inline bool isLeaf(TNode x) const { return d_containing.isLeaf(x); }
   inline TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
   inline void debugPrintFacts() const { d_containing.debugPrintFacts(); }
-  inline context::Context* getSatContext() const { return d_containing.getSatContext(); }
   bool outputTrustedLemma(TrustNode lem, InferenceId id);
   bool outputLemma(TNode lem, InferenceId id);
   void outputTrustedConflict(TrustNode conf, InferenceId id);

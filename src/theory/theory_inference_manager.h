@@ -24,6 +24,7 @@
 #include "expr/node.h"
 #include "proof/proof_rule.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 #include "theory/inference_id.h"
 #include "theory/output_channel.h"
 #include "util/statistics_stats.h"
@@ -69,7 +70,7 @@ class ProofEqEngine;
  * setEqualityEngine, and use it for handling variants of assertInternalFact
  * below that involve proofs.
  */
-class TheoryInferenceManager
+class TheoryInferenceManager : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
 
@@ -88,7 +89,8 @@ class TheoryInferenceManager
    * only lemmas that are unique after rewriting are sent to the theory engine
    * from this inference manager.
    */
-  TheoryInferenceManager(Theory& t,
+  TheoryInferenceManager(Env& env,
+                         Theory& t,
                          TheoryState& state,
                          ProofNodeManager* pnm,
                          const std::string& statsName,

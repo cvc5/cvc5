@@ -1329,9 +1329,9 @@ ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool aux, bool internal){
   }
   d_constraintDatabase.addVariable(varX);
 
-  Debug("arith::arithvar") << "@" << getSatContext()->getLevel()
-                           << " " << x << " |-> " << varX
-                           << "(relaiming " << reclaim << ")" << endl;
+  Debug("arith::arithvar") << "@" << context()->getLevel() << " " << x
+                           << " |-> " << varX << "(relaiming " << reclaim << ")"
+                           << endl;
 
   Assert(!d_partialModel.hasUpperBound(varX));
   Assert(!d_partialModel.hasLowerBound(varX));
@@ -1412,7 +1412,7 @@ Comparison TheoryArithPrivate::mkIntegerEqualityFromAssignment(ArithVar v){
 
 TrustNode TheoryArithPrivate::dioCutting()
 {
-  context::Context::ScopedPush speculativePush(getSatContext());
+  context::Context::ScopedPush speculativePush(context());
   //DO NOT TOUCH THE OUTPUTSTREAM
 
   for(var_iterator vi = var_begin(), vend = var_end(); vi != vend; ++vi){
@@ -1872,7 +1872,7 @@ void TheoryArithPrivate::outputRestart() {
 }
 
 bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool emmmittedLemmaOrSplit){
-  int level = getSatContext()->getLevel();
+  int level = context()->getLevel();
   Debug("approx")
     << "attemptSolveInteger " << d_qflraStatus
     << " " << emmmittedLemmaOrSplit
@@ -1900,7 +1900,7 @@ bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool em
 
   if(d_lastContextIntegerAttempted <= 0){
     if(hasIntegerModel()){
-      d_lastContextIntegerAttempted = getSatContext()->getLevel();
+      d_lastContextIntegerAttempted = context()->getLevel();
       return false;
     }else{
       return getSolveIntegerResource();
@@ -1940,7 +1940,7 @@ bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
   d_replayedLemmas = false;
 
   /* use the try block for the purpose of pushing the sat context */
-  context::Context::ScopedPush speculativePush(getSatContext());
+  context::Context::ScopedPush speculativePush(context());
   d_cmEnabled = false;
   std::vector<ConstraintCPVec> res =
       replayLogRec(approx, tl.getRootId(), NullConstraint, 1);
@@ -2026,8 +2026,9 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
   if(d_partialModel.hasArithVar(norm)){
 
     v = d_partialModel.asArithVar(norm);
-    Debug("approx::constraint") << "replayGetConstraint found "
-                                << norm << " |-> " << v << " @ " << getSatContext()->getLevel() << endl;
+    Debug("approx::constraint")
+        << "replayGetConstraint found " << norm << " |-> " << v << " @ "
+        << context()->getLevel() << endl;
     Assert(!branch || d_partialModel.isIntegerInput(v));
   }else{
     v = requestArithVar(norm, true, true);
@@ -2035,8 +2036,9 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
 
     added = v;
 
-    Debug("approx::constraint") << "replayGetConstraint adding "
-                                << norm << " |-> " << v << " @ " << getSatContext()->getLevel() << endl;
+    Debug("approx::constraint")
+        << "replayGetConstraint adding " << norm << " |-> " << v << " @ "
+        << context()->getLevel() << endl;
 
     Polynomial poly = Polynomial::parsePolynomial(norm);
     vector<ArithVar> variables;
@@ -2171,7 +2173,7 @@ void TheoryArithPrivate::tryBranchCut(ApproximateSimplex* approx, int nid, Branc
 
   ConstraintP bcneg = bc->getNegation();
   {
-    context::Context::ScopedPush speculativePush(getSatContext());
+    context::Context::ScopedPush speculativePush(context());
     replayAssert(bcneg);
     if(conflictQueueEmpty()){
       TimerStat::CodeTimer codeTimer(d_statistics.d_replaySimplexTimer);
@@ -2316,7 +2318,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
   std::vector<ConstraintCPVec> res;
 
   { /* create a block for the purpose of pushing the sat context */
-    context::Context::ScopedPush speculativePush(getSatContext());
+    context::Context::ScopedPush speculativePush(context());
     Assert(!anyConflict());
     Assert(conflictQueueEmpty());
     set<ConstraintCP> propagated;
@@ -2758,7 +2760,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
   Assert(options().arith.useApprox);
   Assert(ApproximateSimplex::enabled());
 
-  int level = getSatContext()->getLevel();
+  int level = context()->getLevel();
   d_lastContextIntegerAttempted = level;
 
 
@@ -3652,7 +3654,8 @@ void TheoryArithPrivate::debugPrintModel(std::ostream& out) const{
 
 TrustNode TheoryArithPrivate::explain(TNode n)
 {
-  Debug("arith::explain") << "explain @" << getSatContext()->getLevel() << ": " << n << endl;
+  Debug("arith::explain") << "explain @" << context()->getLevel() << ": " << n
+                          << endl;
 
   ConstraintP c = d_constraintDatabase.lookup(n);
   TrustNode exp;
@@ -3703,7 +3706,8 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
 
   while(d_constraintDatabase.hasMorePropagations()){
     ConstraintCP c = d_constraintDatabase.nextPropagation();
-    Debug("arith::prop") << "next prop" << getSatContext()->getLevel() << ": " << c << endl;
+    Debug("arith::prop") << "next prop" << context()->getLevel() << ": " << c
+                         << endl;
 
     if(c->negationHasProof()){
       Debug("arith::prop") << "negation has proof " << c->getNegation() << endl;
@@ -3716,7 +3720,8 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
 
     if(!c->assertedToTheTheory()){
       Node literal = c->getLiteral();
-      Debug("arith::prop") << "propagating @" << getSatContext()->getLevel() << " " << literal << endl;
+      Debug("arith::prop") << "propagating @" << context()->getLevel() << " "
+                           << literal << endl;
 
       outputPropagate(literal);
     }else{

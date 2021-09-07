@@ -39,11 +39,11 @@ namespace cvc5 {
 namespace smt {
 
 PfManager::PfManager(Env& env)
-    : d_env(env),
+    : EnvObj(env),
       d_rewriteDb(new rewriter::RewriteDb),
       d_pchecker(new ProofChecker(
-          d_env.getOptions().proof.proofCheck == options::ProofCheckMode::EAGER,
-          d_env.getOptions().proof.proofPedantic)),
+          options().proof.proofCheck == options::ProofCheckMode::EAGER,
+          options().proof.proofPedantic)),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
@@ -170,6 +170,7 @@ void PfManager::printProof(std::ostream& out,
   {
     fp = d_pnm->clone(fp);
   }
+
   // according to the proof format, post process and print the proof node
   if (options::proofFormatMode() == options::ProofFormatMode::DOT)
   {
@@ -206,10 +207,12 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::TPTP)
   {
-    out << "% SZS output start Proof for " << d_env.getOptions().driver.filename << std::endl;
+    out << "% SZS output start Proof for " << options().driver.filename
+        << std::endl;
     // TODO (proj #37) print in TPTP compliant format
     out << *fp << std::endl;
-    out << "% SZS output end Proof for " << d_env.getOptions().driver.filename << std::endl;
+    out << "% SZS output end Proof for " << options().driver.filename
+        << std::endl;
   }
   else
   {
