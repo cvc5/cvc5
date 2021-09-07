@@ -30,10 +30,11 @@ namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
-InferenceManager::InferenceManager(Theory& t,
+InferenceManager::InferenceManager(Env& env,
+                                   Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, pnm, "theory::datatypes::"),
+    : InferenceManagerBuffered(env, t, state, pnm, "theory::datatypes::"),
       d_pnm(pnm),
       d_ipc(pnm == nullptr ? nullptr
                            : new InferProofCons(state.getSatContext(), pnm)),

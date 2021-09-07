@@ -17,10 +17,10 @@
 
 #include "expr/skolem_manager.h"
 #include "options/proof_options.h"
-#include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_node_manager.h"
 #include "smt/smt_engine.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/bv/bitblast/proof_bitblaster.h"
 #include "theory/rewriter.h"
@@ -34,14 +34,14 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
-                                                   SmtEngine* smte,
+ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
                                                    ProofGenerator* pppg,
+                                                   rewriter::RewriteDb* rdb,
                                                    bool updateScopedAssumptions)
-    : d_pnm(pnm),
-      d_smte(smte),
+    : d_env(env),
+      d_pnm(env.getProofNodeManager()),
       d_pppg(pppg),
-      d_wfpm(pnm),
+      d_wfpm(env.getProofNodeManager()),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -947,6 +947,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   {
     // get the kind of rewrite
     MethodId idr = MethodId::RW_REWRITE;
+    TheoryId theoryId = Theory::theoryOf(args[0]);
     if (args.size() >= 2)
     {
       getMethodId(args[1], idr);
@@ -970,7 +971,6 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         {
           // update to THEORY_REWRITE with idr
           Assert(args.size() >= 1);
-          TheoryId theoryId = Theory::theoryOf(args[0].getType());
           Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
           cdp->addStep(eq, PfRule::THEORY_REWRITE, {}, {eq, tid, args[1]});
         }
@@ -996,8 +996,20 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     }
     else
     {
-      // don't know how to eliminate
-      return Node::null();
+      // try to reconstruct as a standalone rewrite
+      std::vector<Node> targs;
+      targs.push_back(eq);
+      targs.push_back(
+          builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId));
+      // in this case, must be a non-standard rewrite kind
+      Assert(args.size() >= 2);
+      targs.push_back(args[1]);
+      Node eqp = expandMacros(PfRule::THEORY_REWRITE, {}, targs, cdp);
+      if (eqp.isNull())
+      {
+        // don't know how to eliminate
+        return Node::null();
+      }
     }
     if (args[0] == ret)
     {
@@ -1189,16 +1201,15 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
   return true;
 }
 
-ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
-                                     SmtEngine* smte,
+ProofPostproccess::ProofPostproccess(Env& env,
                                      ProofGenerator* pppg,
+                                     rewriter::RewriteDb* rdb,
                                      bool updateScopedAssumptions)
-    : d_pnm(pnm),
-      d_cb(pnm, smte, pppg, updateScopedAssumptions),
+    : d_cb(env, pppg, rdb, updateScopedAssumptions),
       // the update merges subproofs
-      d_updater(d_pnm, d_cb, true),
-      d_finalCb(pnm),
-      d_finalizer(d_pnm, d_finalCb)
+      d_updater(env.getProofNodeManager(), d_cb, options::proofPpMerge()),
+      d_finalCb(env.getProofNodeManager()),
+      d_finalizer(env.getProofNodeManager(), d_finalCb)
 {
 }
 
