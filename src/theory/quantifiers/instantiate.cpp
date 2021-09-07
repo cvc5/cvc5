@@ -24,8 +24,6 @@
 #include "proof/lazy_proof.h"
 #include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -591,19 +589,13 @@ bool Instantiate::recordInstantiationInternal(Node q, std::vector<Node>& terms)
   {
     Trace("inst-add-debug")
         << "Adding into context-dependent inst trie" << std::endl;
-    CDInstMatchTrie* imt;
-    std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
-    if (it != d_c_inst_match_trie.end())
+    const auto res = d_c_inst_match_trie.insert({q, nullptr});
+    if (res.second)
     {
-      imt = it->second;
-    }
-    else
-    {
-      imt = new CDInstMatchTrie(d_qstate.getUserContext());
-      d_c_inst_match_trie[q] = imt;
+      res.first->second = new CDInstMatchTrie(d_qstate.getUserContext());
     }
     d_c_inst_match_trie_dom.insert(q);
-    return imt->addInstMatch(d_qstate, q, terms);
+    return res.first->second->addInstMatch(d_qstate, q, terms);
   }
   Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
   return d_inst_match_trie[q].addInstMatch(d_qstate, q, terms);

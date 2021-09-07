@@ -16,6 +16,7 @@
 #include "smt/proof_manager.h"
 
 #include "options/base_options.h"
+#include "options/main_options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "proof/dot/dot_printer.h"
@@ -31,35 +32,42 @@
 namespace cvc5 {
 namespace smt {
 
-PfManager::PfManager(Env& env, SmtEngine* smte)
-    : d_env(env),
-      d_pchecker(new ProofChecker(options::proofPedantic())),
+PfManager::PfManager(Env& env)
+    : EnvObj(env),
+      d_pchecker(new ProofChecker(
+          options().proof.proofCheck == options::ProofCheckMode::EAGER,
+          options().proof.proofPedantic)),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
-      d_pfpp(new ProofPostproccess(
-          d_pnm.get(),
-          smte,
-          d_pppg.get(),
-          // by default the post-processor will update all assumptions, which
-          // can lead to SCOPE subproofs of the form
-          //   A
-          //  ...
-          //   B1    B2
-          //  ...   ...
-          // ------------
-          //      C
-          // ------------- SCOPE [B1, B2]
-          // B1 ^ B2 => C
-          //
-          // where A is an available assumption from outside the scope (note
-          // that B1 was an assumption of this SCOPE subproof but since it could
-          // be inferred from A, it was updated). This shape is problematic for
-          // the veriT reconstruction, so we disable the update of scoped
-          // assumptions (which would disable the update of B1 in this case).
-          options::proofFormatMode() != options::ProofFormatMode::VERIT)),
+      d_pfpp(nullptr),
       d_finalProof(nullptr)
 {
+  // enable proof support in the environment/rewriter
+  d_env.setProofNodeManager(d_pnm.get());
+  // Now, initialize the proof postprocessor with the environment.
+  // By default the post-processor will update all assumptions, which
+  // can lead to SCOPE subproofs of the form
+  //   A
+  //  ...
+  //   B1    B2
+  //  ...   ...
+  // ------------
+  //      C
+  // ------------- SCOPE [B1, B2]
+  // B1 ^ B2 => C
+  //
+  // where A is an available assumption from outside the scope (note
+  // that B1 was an assumption of this SCOPE subproof but since it could
+  // be inferred from A, it was updated). This shape is problematic for
+  // the veriT reconstruction, so we disable the update of scoped
+  // assumptions (which would disable the update of B1 in this case).
+  d_pfpp.reset(new ProofPostproccess(
+      env,
+      d_pppg.get(),
+      nullptr,
+      options::proofFormatMode() != options::ProofFormatMode::VERIT));
+
   // add rules to eliminate here
   if (options::proofGranularityMode() != options::ProofGranularityMode::OFF)
   {
@@ -82,6 +90,8 @@ PfManager::PfManager(Env& env, SmtEngine* smte)
         d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
       }
     }
+    // theory-specific lazy proof reconstruction
+    d_pfpp->setEliminateRule(PfRule::STRING_INFERENCE);
     d_pfpp->setEliminateRule(PfRule::BV_BITBLAST);
   }
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -155,6 +165,7 @@ void PfManager::printProof(std::ostream& out,
   // TODO (proj #37) according to the proof format, post process the proof node
   // TODO (proj #37) according to the proof format, print the proof node
 
+  // according to the proof format, post process and print the proof node
   if (options::proofFormatMode() == options::ProofFormatMode::DOT)
   {
     proof::DotPrinter dotPrinter;
@@ -162,13 +173,16 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::TPTP)
   {
-    out << "% SZS output start Proof for " << d_env.getFilename() << std::endl;
+    out << "% SZS output start Proof for " << options().driver.filename
+        << std::endl;
     // TODO (proj #37) print in TPTP compliant format
-    out << *fp;
-    out << "% SZS output end Proof for " << d_env.getFilename() << std::endl;
+    out << *fp << std::endl;
+    out << "% SZS output end Proof for " << options().driver.filename
+        << std::endl;
   }
   else
   {
+    // otherwise, print using default printer
     out << "(proof\n";
     out << *fp;
     out << "\n)\n";
@@ -233,6 +247,8 @@ void PfManager::getDifficultyMap(std::map<Node, Node>& dmap, Assertions& as)
 ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
 
 ProofNodeManager* PfManager::getProofNodeManager() const { return d_pnm.get(); }
+
+rewriter::RewriteDb* PfManager::getRewriteDatabase() const { return nullptr; }
 
 smt::PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const
 {

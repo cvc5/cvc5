@@ -37,8 +37,8 @@ namespace expr {
 string NodeValue::toString() const {
   stringstream ss;
 
-  OutputLanguage outlang = (this == &null()) ? language::output::LANG_AUTO
-                                             : options::outputLanguage();
+  Language outlang =
+      (this == &null()) ? Language::LANG_AUTO : options::outputLanguage();
   toStream(ss, -1, false, outlang);
   return ss.str();
 }
@@ -46,7 +46,7 @@ string NodeValue::toString() const {
 void NodeValue::toStream(std::ostream& out,
                          int toDepth,
                          size_t dag,
-                         OutputLanguage language) const
+                         Language language) const
 {
   // Ensure that this node value is live for the length of this call.
   // It really breaks things badly if we don't have a nonzero ref

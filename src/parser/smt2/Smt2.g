@@ -1759,13 +1759,13 @@ termAtomic[cvc5::api::Term& atomTerm]
     {
       Assert(AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0);
       std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
-      atomTerm = SOLVER->mkBitVector(hexStr, 16);
+      atomTerm = SOLVER->mkBitVector(hexStr.size() * 4, hexStr, 16);
     }
   | BINARY_LITERAL
     {
       Assert(AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0);
       std::string binStr = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
-      atomTerm = SOLVER->mkBitVector(binStr, 2);
+      atomTerm = SOLVER->mkBitVector(binStr.size(), binStr, 2);
     }
 
   // String constant

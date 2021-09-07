@@ -21,6 +21,7 @@
 #include <map>
 #include <vector>
 
+#include "expr/match_trie.h"
 #include "theory/quantifiers/sygus/rcons_obligation.h"
 #include "theory/quantifiers/sygus/rcons_type_info.h"
 
@@ -30,6 +31,7 @@ namespace quantifiers {
 
 using BuiltinSet = std::unordered_set<Node>;
 using TypeBuiltinSetMap = std::unordered_map<TypeNode, BuiltinSet>;
+using NodePairMap = std::unordered_map<Node, Node>;
 
 /** SygusReconstruct
  *
@@ -142,10 +144,11 @@ class SygusReconstruct : public expr::NotifyMatch
   /**
    * Constructor.
    *
+   * @param env reference to the environment
    * @param tds database for sygus terms
    * @param s statistics managed for the synth engine
    */
-  SygusReconstruct(TermDbSygus* tds, SygusStatistics& s);
+  SygusReconstruct(Env& env, TermDbSygus* tds, SygusStatistics& s);
 
   /** Reconstruct solution.
    *
@@ -295,6 +298,8 @@ class SygusReconstruct : public expr::NotifyMatch
   void printPool(
       const std::unordered_map<TypeNode, std::vector<Node>>& pool) const;
 
+  /** Reference to the env */
+  Env& d_env;
   /** pointer to the sygus term database */
   TermDbSygus* d_tds;
   /** reference to the statistics of parent */

@@ -30,10 +30,11 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusPbe::SygusPbe(QuantifiersInferenceManager& qim,
+SygusPbe::SygusPbe(QuantifiersState& qs,
+                   QuantifiersInferenceManager& qim,
                    TermDbSygus* tds,
                    SynthConjecture* p)
-    : SygusModule(qim, tds, p)
+    : SygusModule(qs, qim, tds, p)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -70,7 +71,7 @@ bool SygusPbe::initialize(Node conj,
   for (const Node& c : candidates)
   {
     Assert(ei->hasExamples(c));
-    d_sygus_unif[c].reset(new SygusUnifIo(d_parent));
+    d_sygus_unif[c].reset(new SygusUnifIo(d_env, d_parent));
     Trace("sygus-pbe") << "Initialize unif utility for " << c << "..."
                        << std::endl;
     std::map<Node, std::vector<Node>> strategy_lemmas;

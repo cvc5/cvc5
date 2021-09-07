@@ -25,6 +25,9 @@
 #include "theory/quantifiers/extended_rewrite.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace theory {
 namespace builtin {
 
@@ -32,7 +35,9 @@ namespace builtin {
 class BuiltinProofRuleChecker : public ProofRuleChecker
 {
  public:
-  BuiltinProofRuleChecker() {}
+  /** Constructor. */
+  BuiltinProofRuleChecker(Env& env);
+  /** Destructor. */
   ~BuiltinProofRuleChecker() {}
   /**
    * Apply rewrite on n (in skolem form). This encapsulates the exact behavior
@@ -43,7 +48,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * specifying a call to Rewriter::rewrite.
    * @return The rewritten form of n.
    */
-  Node applyRewrite(Node n, MethodId idr = MethodId::RW_REWRITE);
+  Node applyRewrite(TNode n, MethodId idr = MethodId::RW_REWRITE);
   /**
    * Get substitution for literal exp. Updates vars/subs to the substitution
    * specified by exp for the substitution method ids.
@@ -121,6 +126,10 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
 
   /** extended rewriter object */
   quantifiers::ExtendedRewriter d_ext_rewriter;
+
+ private:
+  /** Reference to the environment. */
+  Env& d_env;
 };
 
 }  // namespace builtin

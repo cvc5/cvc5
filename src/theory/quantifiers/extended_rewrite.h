@@ -54,20 +54,6 @@ class ExtendedRewriter
   Node extendedRewrite(Node n) const;
 
  private:
-  /**
-   * Whether this extended rewriter applies aggressive rewriting techniques,
-   * which are more expensive. Examples of aggressive rewriting include:
-   * - conditional rewriting,
-   * - condition merging,
-   * - sorting childing of commutative operators with more than 5 children.
-   *
-   * Aggressive rewriting is applied for SyGuS, whereas non-aggressive rewriting
-   * may be applied as a preprocessing step.
-   */
-  bool d_aggr;
-  /** true/false nodes */
-  Node d_true;
-  Node d_false;
   /** cache that the extended rewritten form of n is ret */
   void setCache(Node n, Node ret) const;
   /** get the cache for n */
@@ -256,6 +242,21 @@ class ExtendedRewriter
    */
   Node extendedRewriteStrings(Node ret) const;
   //--------------------------------------end theory-specific top-level calls
+
+  /**
+   * Whether this extended rewriter applies aggressive rewriting techniques,
+   * which are more expensive. Examples of aggressive rewriting include:
+   * - conditional rewriting,
+   * - condition merging,
+   * - sorting childing of commutative operators with more than 5 children.
+   *
+   * Aggressive rewriting is applied for SyGuS, whereas non-aggressive rewriting
+   * may be applied as a preprocessing step.
+   */
+  bool d_aggr;
+  /** true/false nodes */
+  Node d_true;
+  Node d_false;
 };
 
 }  // namespace quantifiers

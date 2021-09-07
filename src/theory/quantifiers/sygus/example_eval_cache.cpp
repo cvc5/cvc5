@@ -15,7 +15,6 @@
 #include "theory/quantifiers/sygus/example_eval_cache.h"
 
 #include "theory/quantifiers/sygus/example_min_eval.h"
-#include "theory/quantifiers/sygus/synth_conjecture.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;
@@ -25,23 +24,18 @@ namespace theory {
 namespace quantifiers {
 
 ExampleEvalCache::ExampleEvalCache(TermDbSygus* tds,
-                                   SynthConjecture* p,
-                                   Node f,
                                    Node e)
     : d_tds(tds), d_stn(e.getType())
 {
-  ExampleInfer* ei = p->getExampleInfer();
-  Assert(ei->hasExamples(f));
-  for (unsigned i = 0, nex = ei->getNumExamples(f); i < nex; i++)
-  {
-    std::vector<Node> input;
-    ei->getExample(f, i, input);
-    d_examples.push_back(input);
-  }
   d_indexSearchVals = !d_tds->isVariableAgnosticEnumerator(e);
 }
 
 ExampleEvalCache::~ExampleEvalCache() {}
+
+void ExampleEvalCache::addExample(const std::vector<Node>& ex)
+{
+  d_examples.push_back(ex);
+}
 
 Node ExampleEvalCache::addSearchVal(TypeNode tn, Node bv)
 {
