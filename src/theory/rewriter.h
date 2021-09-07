@@ -76,6 +76,11 @@ class Rewriter {
    * can be communicated for all pairs of terms.
    */
   Node rewriteEqualityExt(TNode node);
+  
+  /**
+   * Extended rewrite
+   */
+  Node rewriteExt(TNode node);
 
   /**
    * Rewrite with proof production, which is managed by the term conversion
