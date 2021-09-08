@@ -35,6 +35,11 @@
 namespace cvc5::options {
 
 /**
+ * Get a (sorted) list of all option names that are available.
+ */
+std::vector<std::string> getNames() CVC5_EXPORT;
+
+/**
  * Retrieve an option value by name (as given in key) from the Options object
  * opts as a string.
  */
@@ -47,11 +52,6 @@ std::string get(const Options& opts, const std::string& name) CVC5_EXPORT;
 void set(Options& opts,
          const std::string& name,
          const std::string& optionarg) CVC5_EXPORT;
-
-/**
- * Get a (sorted) list of all option names that are available.
- */
-std::vector<std::string> getNames() CVC5_EXPORT;
 
 /**
  * Represents information we can provide about a particular option. It contains

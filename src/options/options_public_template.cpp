@@ -13,23 +13,25 @@
  * Global (command-line, set-option, ...) parameters for SMT.
  */
 
-#include "options/options_public.h"
-
-
 #include "base/check.h"
 #include "base/output.h"
+#include "options/options.h"
 #include "options/options_handler.h"
 #include "options/options_listener.h"
-#include "options/options.h"
+#include "options/options_public.h"
 #include "options/uf_options.h"
+
+// clang-format off
 ${headers_module}$
-${headers_handler}$
+${options_includes}$
+// clang-format on
 
 #include <cstring>
 #include <iostream>
 #include <limits>
 
-namespace cvc5::options {
+namespace cvc5::options
+{
   // Contains the default option handlers (i.e. parsers)
   namespace handlers {
 
@@ -191,45 +193,37 @@ namespace cvc5::options {
   }
   }
 
-std::string get(const Options& options, const std::string& name)
-{
-  Trace("options") << "Options::getOption(" << name << ")" << std::endl;
-  // clang-format off
-  ${getoption_handlers}$
-  // clang-format on
-  throw OptionException("Unrecognized option key or setting: " + name);
-}
+  std::vector<std::string> getNames()
+  {
+    return {
+        // clang-format off
+    ${getnames_impl}$
+        // clang-format on
+    };
+  }
 
-void setInternal(Options& opts, const std::string& name,
-                                const std::string& optionarg)
-{
-  // clang-format off
-${setoption_handlers}$
-  // clang-format on
+  std::string get(const Options& options, const std::string& name)
+  {
+    Trace("options") << "Options::getOption(" << name << ")" << std::endl;
+    // clang-format off
+  ${get_impl}$
+    // clang-format on
+    throw OptionException("Unrecognized option key or setting: " + name);
+  }
+
+  void set(
+      Options & opts, const std::string& name, const std::string& optionarg)
+  {
+    Trace("options") << "set option " << name << " = " << optionarg
+                     << std::endl;
+    // clang-format off
+  ${set_impl}$
+    // clang-format on
   }
   else
   {
     throw OptionException("Unrecognized option key or setting: " + name);
   }
-  Trace("options") << "user assigned option " << name << " = " << optionarg << std::endl;
-}
-
-void set(Options& opts, const std::string& name, const std::string& optionarg)
-{
-
-  Trace("options") << "setOption(" << name << ", " << optionarg << ")"
-                   << std::endl;
-  // first update this object
-  setInternal(opts, name, optionarg);
-}
-
-std::vector<std::string> getNames()
-{
-  return {
-    // clang-format off
-    ${options_all_names}$
-    // clang-format on
-  };
 }
 
 #if defined(CVC5_MUZZLED) || defined(CVC5_COMPETITION_MODE)

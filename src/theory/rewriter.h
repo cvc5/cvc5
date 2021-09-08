@@ -18,6 +18,7 @@
 #pragma once
 
 #include "expr/node.h"
+#include "proof/method_id.h"
 #include "theory/theory_rewriter.h"
 
 namespace cvc5 {
@@ -28,41 +29,25 @@ class TrustNode;
 
 namespace theory {
 
-namespace builtin {
-class BuiltinProofRuleChecker;
-}
-
-/**
- * The rewrite environment holds everything that the individual rewrites have
- * access to.
- */
-class RewriteEnvironment
-{
-};
-
-/**
- * The identity rewrite just returns the original node.
- *
- * @param re The rewrite environment
- * @param n The node to rewrite
- * @return The original node
- */
-RewriteResponse identityRewrite(RewriteEnvironment* re, TNode n);
-
 /**
  * The main rewriter class.
  */
 class Rewriter {
-  friend builtin::BuiltinProofRuleChecker;
 
  public:
   Rewriter();
 
   /**
+   * !!! Temporary until static access to rewriter is eliminated.
+   *
    * Rewrites the node using theoryOf() to determine which rewriter to
    * use on the node.
    */
   static Node rewrite(TNode node);
+  /**
+   * !!! Temporary until static access to rewriter is eliminated.
+   */
+  static Node callExtendedRewrite(TNode node, bool aggr = true);
 
   /**
    * Rewrites the equality node using theoryOf() to determine which rewriter to
@@ -75,6 +60,16 @@ class Rewriter {
    * can be communicated for all pairs of terms.
    */
   Node rewriteEqualityExt(TNode node);
+
+  /**
+   * Extended rewrite of the given node. This method is implemented by a
+   * custom ExtendRewriter class that wraps this class to perform custom
+   * rewrites (usually those that are not useful for solving, but e.g. useful
+   * for SyGuS symmetry breaking).
+   * @param node The node to rewrite
+   * @param aggr Whether to perform aggressive rewrites.
+   */
+  Node extendedRewrite(TNode node, bool aggr = true);
 
   /**
    * Rewrite with proof production, which is managed by the term conversion
@@ -105,46 +100,19 @@ class Rewriter {
    */
   void registerTheoryRewriter(theory::TheoryId tid, TheoryRewriter* trew);
 
-  /**
-   * Register a prerewrite for a given kind.
-   *
-   * @param k The kind to register a rewrite for.
-   * @param fn The function that performs the rewrite.
-   */
-  void registerPreRewrite(
-      Kind k, std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn);
-
-  /**
-   * Register a postrewrite for a given kind.
-   *
-   * @param k The kind to register a rewrite for.
-   * @param fn The function that performs the rewrite.
-   */
-  void registerPostRewrite(
-      Kind k, std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn);
-
-  /**
-   * Register a prerewrite for equalities belonging to a given theory.
-   *
-   * @param tid The theory to register a rewrite for.
-   * @param fn The function that performs the rewrite.
-   */
-  void registerPreRewriteEqual(
-      theory::TheoryId tid,
-      std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn);
-
-  /**
-   * Register a postrewrite for equalities belonging to a given theory.
-   *
-   * @param tid The theory to register a rewrite for.
-   * @param fn The function that performs the rewrite.
-   */
-  void registerPostRewriteEqual(
-      theory::TheoryId tid,
-      std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn);
-
   /** Get the theory rewriter for the given id */
   TheoryRewriter* getTheoryRewriter(theory::TheoryId theoryId);
+
+  /**
+   * Apply rewrite on n via the rewrite method identifier idr (see method_id.h).
+   * This encapsulates the exact behavior of a REWRITE step in a proof.
+   *
+   * @param n The node to rewrite,
+   * @param idr The method identifier of the rewriter, by default RW_REWRITE
+   * specifying a call to rewrite.
+   * @return The rewritten form of n.
+   */
+  Node rewriteViaMethod(TNode n, MethodId idr = MethodId::RW_REWRITE);
 
  private:
   /**
@@ -199,27 +167,6 @@ class Rewriter {
 
   /** Theory rewriters used by this rewriter instance */
   TheoryRewriter* d_theoryRewriters[theory::THEORY_LAST];
-
-  /** Rewriter table for prewrites. Maps kinds to rewriter function. */
-  std::function<RewriteResponse(RewriteEnvironment*, TNode)>
-      d_preRewriters[kind::LAST_KIND];
-  /** Rewriter table for postrewrites. Maps kinds to rewriter function. */
-  std::function<RewriteResponse(RewriteEnvironment*, TNode)>
-      d_postRewriters[kind::LAST_KIND];
-  /**
-   * Rewriter table for prerewrites of equalities. Maps theory to rewriter
-   * function.
-   */
-  std::function<RewriteResponse(RewriteEnvironment*, TNode)>
-      d_preRewritersEqual[theory::THEORY_LAST];
-  /**
-   * Rewriter table for postrewrites of equalities. Maps theory to rewriter
-   * function.
-   */
-  std::function<RewriteResponse(RewriteEnvironment*, TNode)>
-      d_postRewritersEqual[theory::THEORY_LAST];
-
-  RewriteEnvironment d_re;
 
   /** The proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;

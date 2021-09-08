@@ -24,6 +24,7 @@
 
 #include "context/cdhashset.h"
 #include "preprocessing/learned_literal_manager.h"
+#include "smt/env_obj.h"
 #include "theory/logic_info.h"
 #include "util/resource_manager.h"
 
@@ -32,10 +33,6 @@ namespace cvc5 {
 class Env;
 class SmtEngine;
 class TheoryEngine;
-
-namespace theory {
-class Rewriter;
-}
 
 namespace theory::booleans {
 class CircuitPropagator;
@@ -47,7 +44,7 @@ class PropEngine;
 
 namespace preprocessing {
 
-class PreprocessingPassContext
+class PreprocessingPassContext : protected EnvObj
 {
  public:
   /** Constructor. */
@@ -62,10 +59,6 @@ class PreprocessingPassContext
   TheoryEngine* getTheoryEngine() const;
   /** Get the associated Propengine. */
   prop::PropEngine* getPropEngine() const;
-  /** Get the current user context. */
-  context::Context* getUserContext() const;
-  /** Get the current decision context. */
-  context::Context* getDecisionContext() const;
 
   /** Get the associated circuit propagator. */
   theory::booleans::CircuitPropagator* getCircuitPropagator() const
@@ -84,14 +77,6 @@ class PreprocessingPassContext
 
   /** Spend resource in the resource manager of the associated Env. */
   void spendResource(Resource r);
-
-  /** Get the options of the environment */
-  const Options& getOptions() const;
-  /** Get the current logic info of the environment */
-  const LogicInfo& getLogicInfo() const;
-
-  /** Get a pointer to the Rewriter owned by the associated Env. */
-  theory::Rewriter* getRewriter() const;
 
   /** Get a reference to the top-level substitution map */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions() const;
@@ -137,8 +122,6 @@ class PreprocessingPassContext
  private:
   /** Pointer to the SmtEngine that this context was created in. */
   SmtEngine* d_smt;
-  /** Reference to the environment. */
-  Env& d_env;
   /** Instance of the circuit propagator */
   theory::booleans::CircuitPropagator* d_circuitPropagator;
   /**
