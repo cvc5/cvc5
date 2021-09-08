@@ -20,7 +20,7 @@
 
 #include "base/output.h"
 #include "preprocessing/assertion_pipeline.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/quantifiers_preprocess.h"
 #include "theory/rewriter.h"
 
 namespace cvc5 {
@@ -40,7 +40,7 @@ PreprocessingPassResult QuantifiersPreprocess::applyInternal(
   for (size_t i = 0; i < size; ++i)
   {
     Node prev = (*assertionsToPreprocess)[i];
-    TrustNode trn = quantifiers::QuantifiersRewriter::preprocess(prev);
+    TrustNode trn = quantifiers::QuantifiersPreprocess::preprocess(prev);
     if (!trn.isNull())
     {
       Node next = trn.getNode();

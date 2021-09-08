@@ -252,7 +252,7 @@ bool Instantiate::addInstantiation(Node q,
       q, d_qreg.d_vars[q], terms, id, pfArg, doVts, pfTmp.get());
   Node orig_body = body;
   // now preprocess, storing the trust node for the rewrite
-  TrustNode tpBody = QuantifiersRewriter::preprocess(body, true);
+  TrustNode tpBody = QuantifiersPreprocess::preprocess(body, true);
   if (!tpBody.isNull())
   {
     Assert(tpBody.getKind() == TrustNodeKind::REWRITE);
