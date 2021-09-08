@@ -220,7 +220,10 @@ namespace cvc5::options
   ${set_impl}$
     // clang-format on
   }
-  else { throw OptionException("Unrecognized option key or setting: " + name); }
+  else
+  {
+    throw OptionException("Unrecognized option key or setting: " + name);
+  }
 }
 
 #if defined(CVC5_MUZZLED) || defined(CVC5_COMPETITION_MODE)
