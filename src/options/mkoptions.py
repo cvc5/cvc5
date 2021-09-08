@@ -918,12 +918,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
 
             sphinxgen.add(module, option)
 
-            # Generate handler call
-            handler = get_handler(option)
-
-            # Generate predicate calls
-            predicates = get_predicates(option)
-
             # Generate handlers for setOption/getOption
             if option.long:
                 # Make long and alias names available via set/get-option
@@ -964,32 +958,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                     options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, opts.{}.{}WasSetByUser, {}}};'.format(cond, long_get_option(option.long), module.id, option.name, constr, alias=alias))
                 else:
                     options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, false, OptionInfo::VoidInfo{{}}}};'.format(cond, long_get_option(option.long), alias=alias))
-
-                if setoption_handlers:
-                    setoption_handlers.append('  }} else if ({}) {{'.format(cond))
-                else:
-                    setoption_handlers.append('  if ({}) {{'.format(cond))
-                if option.name and not mode_handler:
-                    if predicates:
-                        setoption_handlers.append(
-                            TPL_ASSIGN_PRED.format(
-                                module=module.id,
-                                name=option.name,
-                                handler=handler,
-                                predicates='\n    '.join(predicates)))
-                    else:
-                        setoption_handlers.append(
-                            TPL_ASSIGN.format(
-                                module=module.id,
-                                name=option.name,
-                                handler=handler))
-                elif option.handler:
-                    h = '    opts.handler().{handler}("{smtname}", name'
-                    if argument_req:
-                        h += ', optionarg'
-                    h += ');'
-                    setoption_handlers.append(
-                        h.format(handler=option.handler, smtname=option.long_name))
 
     short, cmdline_opts, parseinternal = generate_parsing(modules)
 
