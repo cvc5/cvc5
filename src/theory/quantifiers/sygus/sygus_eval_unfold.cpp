@@ -324,13 +324,6 @@ Node SygusEvalUnfold::unfold(Node en,
   return ret;
 }
 
-Node SygusEvalUnfold::unfold(Node en)
-{
-  std::map<Node, Node> vtm;
-  std::vector<Node> exp;
-  return unfold(en, vtm, exp, false, false);
-}
-
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5
