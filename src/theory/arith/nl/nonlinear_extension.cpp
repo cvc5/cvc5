@@ -140,7 +140,8 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
       // not relevant, skip
       continue;
     }
-    if (bounds.add(lit, false))
+    // if using the bound inference utility
+    if (options().arith.nlRlvAssertBounds && bounds.add(lit, false))
     {
       continue;
     }
