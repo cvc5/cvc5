@@ -23,8 +23,8 @@
 namespace cvc5 {
 namespace theory {
 
-DifficultyManager::DifficultyManager(Env& env, Valuation val)
-    : d_val(val), d_dfmap(env.getUserContext())
+DifficultyManager::DifficultyManager(context::Context* c, Valuation val)
+    : d_val(val), d_dfmap(c)
 {
 }
 

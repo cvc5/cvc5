@@ -18,23 +18,19 @@
 #ifndef CVC5__THEORY__DIFFICULTY_MANAGER__H
 #define CVC5__THEORY__DIFFICULTY_MANAGER__H
 
-#include <unordered_map>
-#include <unordered_set>
-
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "theory/valuation.h"
 
 namespace cvc5 {
-
-class Env;
-
 namespace theory {
 
 class TheoryModel;
 
 /**
+ * Difficulty manager, which tracks an estimate of the difficulty of each
+ * preprocessed assertion during solving.
  */
 class DifficultyManager
 {
@@ -42,23 +38,37 @@ class DifficultyManager
   typedef context::CDHashMap<Node, uint64_t> NodeUIntMap;
 
  public:
-  DifficultyManager(Env& env, Valuation val);
+  DifficultyManager(context::Context* c, Valuation val);
   /**
-   * Get difficulty map
+   * Get difficulty map, which populates dmap mapping preprocessed assertions
+   * to a difficulty measure (a constant integer).
    */
   void getDifficultyMap(std::map<Node, Node>& dmap);
-  /** Notify lemma, for difficulty measurements */
+  /** 
+   * Notify lemma, for difficulty measurements. This increments the difficulty
+   * of assertions that share literals with that lemma if the difficulty mode
+   * is LEMMA_LITERAL.
+   *
+   * @param rse Mapping from literals to the preprocessed assertion that was
+   * the reason why that literal was relevant in the current context
+   * @param n The lemma
+   */
   void notifyLemma(const std::map<TNode, TNode>& rse, Node n);
-  /** Notify that tm is a (candidate) model */
+  /** 
+   * Notify that tm is a (candidate) model. This increments the difficulty
+   * of assertions that are not satisfied by that model. 
+   * 
+   * @param input The list of preprocessed assertions
+   * @param m The candidate model.
+   */
   void notifyCandidateModel(const NodeList& input, TheoryModel* m);
-
  private:
   /** Increment difficulty on assertion a */
   void incrementDifficulty(TNode a, uint64_t amount = 1);
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /**
-   * user-context dependent mapping from input assertions to difficulty measure
+   * User-context dependent mapping from input assertions to difficulty measure
    */
   NodeUIntMap d_dfmap;
 };

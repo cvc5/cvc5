@@ -35,7 +35,7 @@ RelevanceManager::RelevanceManager(Env& env, Valuation val)
 {
   if (options::produceDifficulty())
   {
-    d_dman.reset(new DifficultyManager(env, val));
+    d_dman.reset(new DifficultyManager(env.getUserContext(), val));
     d_trackRSetExp = true;
     d_miniscopeTopLevel = false;
   }
