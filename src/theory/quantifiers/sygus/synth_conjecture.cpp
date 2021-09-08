@@ -45,18 +45,20 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SynthConjecture::SynthConjecture(QuantifiersState& qs,
+SynthConjecture::SynthConjecture(Env& env,
+                                 QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
                                  QuantifiersRegistry& qr,
                                  TermRegistry& tr,
                                  SygusStatistics& s)
-    : d_qstate(qs),
+    : EnvObj(env),
+      d_qstate(qs),
       d_qim(qim),
       d_qreg(qr),
       d_treg(tr),
       d_stats(s),
       d_tds(tr.getTermDatabaseSygus()),
-      d_verify(qs.options(), qs.getLogicInfo(), d_tds),
+      d_verify(options(), qs.getLogicInfo(), d_tds),
       d_hasSolution(false),
       d_ceg_si(new CegSingleInv(qs.getEnv(), tr, s)),
       d_templInfer(new SygusTemplateInfer),
@@ -513,7 +515,7 @@ bool SynthConjecture::doCheck()
   {
     if (printDebug)
     {
-      const Options& sopts = d_qstate.options();
+      const Options& sopts = options();
       std::ostream& out = *sopts.base.out;
       out << "(sygus-candidate ";
       Assert(d_quant[0].getNumChildren() == candidate_values.size());
@@ -763,8 +765,8 @@ EnumValueManager* SynthConjecture::getEnumValueManagerFor(Node e)
   Node f = d_tds->getSynthFunForEnumerator(e);
   bool hasExamples = (d_exampleInfer->hasExamples(f)
                       && d_exampleInfer->getNumExamples(f) != 0);
-  d_enumManager[e].reset(
-      new EnumValueManager(e, d_qstate, d_qim, d_treg, d_stats, hasExamples));
+  d_enumManager[e].reset(new EnumValueManager(
+      d_env, e, d_qstate, d_qim, d_treg, d_stats, hasExamples));
   EnumValueManager* eman = d_enumManager[e].get();
   // set up the examples
   if (hasExamples)
@@ -800,8 +802,7 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
   Assert(d_master != nullptr);
   // we have generated a solution, print it
   // get the current output stream
-  const Options& sopts = d_qstate.options();
-  printSynthSolutionInternal(*sopts.base.out);
+  printSynthSolutionInternal(*options().base.out);
   excludeCurrentSolution(enums, values);
 }
 

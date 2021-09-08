@@ -33,13 +33,15 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-EnumValueManager::EnumValueManager(Node e,
+EnumValueManager::EnumValueManager(Env& env,
+                                   Node e,
                                    QuantifiersState& qs,
                                    QuantifiersInferenceManager& qim,
                                    TermRegistry& tr,
                                    SygusStatistics& s,
                                    bool hasExamples)
-    : d_enum(e),
+    : EnvObj(env),
+      d_enum(e),
       d_qstate(qs),
       d_qim(qim),
       d_treg(tr),
@@ -108,7 +110,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
             d_samplerRrV->initializeSygus(
                 d_tds, e, options::sygusSamples(), false);
             // use the default output for the output of sygusRewVerify
-            out = d_qstate.options().base.out;
+            out = options().base.out;
           }
           d_secd.reset(new SygusEnumeratorCallbackDefault(
               e, &d_stats, d_eec.get(), d_samplerRrV.get(), out));

@@ -42,7 +42,7 @@ class QuantifiersRegistry : public QuantifiersUtil
   friend class Instantiate;
 
  public:
-  QuantifiersRegistry();
+  QuantifiersRegistry(Env& env);
   ~QuantifiersRegistry() {}
   /**
    * Register quantifier, which allocates the instantiation constants for q.

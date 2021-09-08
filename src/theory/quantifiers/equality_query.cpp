@@ -29,8 +29,9 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-EqualityQuery::EqualityQuery(QuantifiersState& qs, FirstOrderModel* m)
-    : d_qstate(qs),
+EqualityQuery::EqualityQuery(Env& env, QuantifiersState& qs, FirstOrderModel* m)
+    : QuantifiersUtil(env),
+      d_qstate(qs),
       d_model(m),
       d_eqi_counter(qs.getSatContext()),
       d_reset_count(0)

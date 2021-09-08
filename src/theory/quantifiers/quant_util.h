@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/incomplete_id.h"
 #include "theory/theory.h"
 
@@ -34,9 +35,10 @@ namespace theory {
  * This is a lightweight version of a quantifiers module that does not implement
  * methods for checking satisfiability.
  */
-class QuantifiersUtil {
-public:
-  QuantifiersUtil(){}
+class QuantifiersUtil : protected EnvObj
+{
+ public:
+  QuantifiersUtil(Env& env);
   virtual ~QuantifiersUtil(){}
   /**  Called at the beginning of check-sat call. */
   virtual void presolve() {}

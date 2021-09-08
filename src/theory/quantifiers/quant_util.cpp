@@ -22,6 +22,8 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 
+QuantifiersUtil::QuantifiersUtil(Env& env) : EnvObj(env) {}
+
 QuantPhaseReq::QuantPhaseReq( Node n, bool computeEq ){
   initialize( n, computeEq );
 }
