@@ -35,13 +35,13 @@ namespace smt {
  * difficulty of this assertion is carried to B and not A. The reason is that
  * A can be understood as a definition, and is eliminated, whereas B was
  * persistent if B*{ x -> t } was a prepreprocessed assertion.
- * 
+ *
  * Note that this postprocess callback is intended to be run on the proof
  * of a single preprocessed assertion C. If C was derived by proof with
  * free assumptions A_1, ..., A_n, then for each A_i that is a "source" as
  * described above, we increment the difficulty of A_i by the difficulty value
  * assigned to C.
- * 
+ *
  * This means that the user of this method should:
  * (1) assign the current difficulty we are incrementing (setCurrentDifficulty),
  * (2) process the proof using a proof node updater with this callback.
@@ -57,7 +57,7 @@ class DifficultyPostprocessCallback : public ProofNodeUpdaterCallback
    * Set current difficulty of the next proof to process to the (integer)
    * value stored in Node d. This value will be assigned to all the free
    * assumptions of the proof we traverse next.
-   * 
+   *
    * @return true if the difficulty value was successfully extracted
    */
   bool setCurrentDifficulty(Node d);
