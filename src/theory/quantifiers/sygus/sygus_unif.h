@@ -42,10 +42,10 @@ class TermDbSygus;
  * Based on the above, solutions can be constructed via calls to
  * constructSolution.
  */
-class SygusUnif
+class SygusUnif : protected EnvObj
 {
  public:
-  SygusUnif();
+  SygusUnif(Env& env);
   virtual ~SygusUnif();
 
   /** initialize candidate

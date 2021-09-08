@@ -881,7 +881,7 @@ bool SortInference::isMonotonic( TypeNode tn ) {
 
 bool SortInference::isHandledApplyUf(Kind k) const
 {
-  return k == APPLY_UF && !d_env.getLogicInfo().isHigherOrder();
+  return k == APPLY_UF && !logicInfo().isHigherOrder();
 }
 
 }  // namespace theory

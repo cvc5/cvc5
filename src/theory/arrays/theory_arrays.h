@@ -302,7 +302,7 @@ class TheoryArrays : public Theory {
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       Debug("arrays::propagate")
-          << spaces(d_arrays.getSatContext()->getLevel())
+          << spaces(d_arrays.context()->getLevel())
           << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", "
           << (value ? "true" : "false") << ")" << std::endl;
       // Just forward to arrays
@@ -317,7 +317,10 @@ class TheoryArrays : public Theory {
                                      TNode t2,
                                      bool value) override
     {
-      Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ", " << (value ? "true" : "false") << ")" << std::endl;
+      Debug("arrays::propagate")
+          << spaces(d_arrays.context()->getLevel())
+          << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2
+          << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
         // Propagate equality between shared terms
         return d_arrays.propagateLit(t1.eqNode(t2));
@@ -327,7 +330,9 @@ class TheoryArrays : public Theory {
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
     {
-      Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
+      Debug("arrays::propagate") << spaces(d_arrays.context()->getLevel())
+                                 << "NotifyClass::eqNotifyConstantTermMerge("
+                                 << t1 << ", " << t2 << ")" << std::endl;
       d_arrays.conflict(t1, t2);
     }
 
