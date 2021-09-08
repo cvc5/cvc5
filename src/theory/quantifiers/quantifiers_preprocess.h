@@ -25,6 +25,11 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
+/**
+ * Module for doing preprocessing that is pertinent to quantifiers. These
+ * operations cannot be done in the rewriter since e.g. preskolemization
+ * depends on knowing the polarity of the position in which quantifiers occur.
+ */
 class QuantifiersPreprocess : protected EnvObj
 {
  public:
@@ -33,7 +38,6 @@ class QuantifiersPreprocess : protected EnvObj
    *
    * This returns the result of applying simple quantifiers-specific
    * preprocessing to n, including but not limited to:
-   * - rewrite rule elimination,
    * - pre-skolemization,
    * - aggressive prenexing.
    * The argument isInst is set to true if n is an instance of a previously
@@ -46,10 +50,11 @@ class QuantifiersPreprocess : protected EnvObj
   TrustNode preprocess(Node n, bool isInst = false) const;
 
  private:
-  using NodePolPairHashFunction = PairHashFunction<Node, bool, std::hash<Node>>;
-  /**
+  using NodePolPairHashFunction =
+      PairHashFunction<Node, bool, std::hash<Node>>;
+  /** 
    * Pre-skolemize quantifiers. Return the pre-skolemized form of n.
-   *
+   * 
    * @param n The formula to preskolemize.
    * @param polarity The polarity of n in the input.
    * @param fvs The free variables
@@ -58,8 +63,7 @@ class QuantifiersPreprocess : protected EnvObj
       Node n,
       bool polarity,
       std::vector<TNode>& fvs,
-      std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction>&
-          visited) const;
+      std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction>& visited) const;
   /**
    * Apply prenexing aggressively. Returns the prenex normal form of n.
    */
