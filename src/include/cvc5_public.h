@@ -24,19 +24,8 @@
 // as being _possibly_ unused, so that the compiler generates no
 // warning about it.  This might be the case for e.g. a variable
 // only used in DEBUG builds.
-
-#ifdef __GNUC__
-#define CVC5_UNUSED __attribute__((__unused__))
-#define CVC5_NORETURN __attribute__((__noreturn__))
-#define CVC5_CONST_FUNCTION __attribute__((__const__))
-#define CVC5_PURE_FUNCTION __attribute__((__pure__))
-#define CVC5_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
-#else /* ! __GNUC__ */
-#define CVC5_UNUSED
-#define CVC5_NORETURN
-#define CVC5_CONST_FUNCTION
-#define CVC5_PURE_FUNCTION
-#define CVC5_WARN_UNUSED_RESULT
-#endif /* __GNUC__ */
+#define CVC5_UNUSED [[maybe_unused]]
+#define CVC5_NORETURN [[noreturn]]
+#define CVC5_WARN_UNUSED_RESULT [[nodiscard]]
 
 #endif /* CVC5_PUBLIC_H */

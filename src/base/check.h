@@ -54,14 +54,7 @@
 #define CVC5_PREDICT_TRUE(x) x
 #endif
 
-#ifdef __has_cpp_attribute
-#if __has_cpp_attribute(fallthrough)
 #define CVC5_FALLTHROUGH [[fallthrough]]
-#endif // __has_cpp_attribute(fallthrough)
-#endif // __has_cpp_attribute
-#ifndef CVC5_FALLTHROUGH
-#define CVC5_FALLTHROUGH
-#endif
 
 namespace cvc5 {
 
