@@ -114,8 +114,13 @@ void QuantifiersEngine::finishInit(TheoryEngine* te)
   d_te = te;
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(
-      d_env, d_qstate, d_qim, d_qreg, d_treg, d_builder.get(), d_pnm, d_modules);
+  d_qmodules->initialize(d_env,
+                         d_qstate,
+                         d_qim,
+                         d_qreg,
+                         d_treg,
+                         d_builder.get(),
+                         d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
