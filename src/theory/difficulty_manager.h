@@ -44,7 +44,7 @@ class DifficultyManager
    * to a difficulty measure (a constant integer).
    */
   void getDifficultyMap(std::map<Node, Node>& dmap);
-  /** 
+  /**
    * Notify lemma, for difficulty measurements. This increments the difficulty
    * of assertions that share literals with that lemma if the difficulty mode
    * is LEMMA_LITERAL.
@@ -54,14 +54,15 @@ class DifficultyManager
    * @param n The lemma
    */
   void notifyLemma(const std::map<TNode, TNode>& rse, Node n);
-  /** 
+  /**
    * Notify that tm is a (candidate) model. This increments the difficulty
-   * of assertions that are not satisfied by that model. 
-   * 
+   * of assertions that are not satisfied by that model.
+   *
    * @param input The list of preprocessed assertions
    * @param m The candidate model.
    */
   void notifyCandidateModel(const NodeList& input, TheoryModel* m);
+
  private:
   /** Increment difficulty on assertion a */
   void incrementDifficulty(TNode a, uint64_t amount = 1);
