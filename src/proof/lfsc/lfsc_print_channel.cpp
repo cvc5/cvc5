@@ -77,7 +77,7 @@ void LfscPrintChannelOut::printEndLine() { d_out << std::endl; }
 
 void LfscPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 {
-  // must clean indexed symbols
+  // due to use of special names in the node converter, we must clean symbols
   std::stringstream ss;
   n.toStream(ss, -1, 0, Language::LANG_SMTLIB_V2_6);
   std::string s = ss.str();
@@ -87,7 +87,7 @@ void LfscPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 
 void LfscPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
 {
-  // must clean indexed symbols
+  // due to use of special names in the node converter, we must clean symbols
   std::stringstream ss;
   tn.toStream(ss, Language::LANG_SMTLIB_V2_6);
   std::string s = ss.str();
