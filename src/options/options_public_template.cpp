@@ -211,27 +211,19 @@ namespace cvc5::options
     throw OptionException("Unrecognized option key or setting: " + name);
   }
 
-void setInternal(Options & opts, const std::string& name,
-                                 const std::string& optionarg)
-{
-  // clang-format off
-${setoption_handlers}$
-  // clang-format on
+  void set(
+      Options & opts, const std::string& name, const std::string& optionarg)
+  {
+    Trace("options") << "set option " << name << " = " << optionarg
+                     << std::endl;
+    // clang-format off
+  ${set_impl}$
+    // clang-format on
   }
   else
   {
     throw OptionException("Unrecognized option key or setting: " + name);
   }
-  Trace("options") << "user assigned option " << name << " = " << optionarg << std::endl;
-}
-
-void set(Options& opts, const std::string& name, const std::string& optionarg)
-{
-
-  Trace("options") << "setOption(" << name << ", " << optionarg << ")"
-                   << std::endl;
-  // first update this object
-  setInternal(opts, name, optionarg);
 }
 
 #if defined(CVC5_MUZZLED) || defined(CVC5_COMPETITION_MODE)
