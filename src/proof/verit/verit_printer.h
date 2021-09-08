@@ -39,12 +39,12 @@ class VeritProofPrinter
   void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn);
 
  private:
-  /** Used for printing after the initial anchor */
+  /** Used for printing the node after the initial anchor has been printed */
   std::string veritPrinterInternal(std::ostream& out,
                                    std::shared_ptr<ProofNode> pfn);
   /** Flag to indicate whether the veriT proof format should be extended */
   bool d_extended;
-  /** The current level of nesting, which increases if a subproof is entered*/
+  /** The current level of nesting, which increases if a subproof is entered */
   int nested_level;
   /** Current step id */
   int step_id;
