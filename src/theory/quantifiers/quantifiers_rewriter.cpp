@@ -548,8 +548,7 @@ Node QuantifiersRewriter::computeExtendedRewrite(Node q)
 {
   Node body = q[1];
   // apply extended rewriter
-  ExtendedRewriter er;
-  Node bodyr = er.extendedRewrite(body);
+  Node bodyr = Rewriter::callExtendedRewrite(body);
   if (body != bodyr)
   {
     std::vector<Node> children;
