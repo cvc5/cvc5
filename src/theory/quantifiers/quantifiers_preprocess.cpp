@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Haniel Barbosa
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,33 +10,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of QuantifiersRewriter class.
+ * Preprocessor for the theory of quantifiers.
  */
 
-#include "theory/quantifiers/quantifiers_rewriter.h"
-
-#include "expr/bound_var_manager.h"
-#include "expr/dtype.h"
-#include "expr/dtype_cons.h"
-#include "expr/node_algorithm.h"
-#include "expr/skolem_manager.h"
-#include "options/quantifiers_options.h"
-#include "theory/arith/arith_msum.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
-#include "theory/quantifiers/bv_inverter.h"
-#include "theory/quantifiers/ematching/trigger.h"
-#include "theory/quantifiers/extended_rewrite.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_util.h"
-#include "theory/rewriter.h"
-#include "theory/strings/theory_strings_utils.h"
-#include "util/rational.h"
-
-using namespace std;
-using namespace cvc5::kind;
-using namespace cvc5::context;
+#include "theory/quantifiers/quantifiers_preprocess.h"
 
 namespace cvc5 {
 namespace theory {
@@ -1407,511 +1384,194 @@ Node QuantifiersRewriter::computePrenex(Node q,
   return body;
 }
 
-Node QuantifiersRewriter::computeSplit( std::vector< Node >& args, Node body, QAttributes& qa ) {
-  Assert(body.getKind() == OR);
-  size_t var_found_count = 0;
-  size_t eqc_count = 0;
-  size_t eqc_active = 0;
-  std::map< Node, int > var_to_eqc;
-  std::map< int, std::vector< Node > > eqc_to_var;
-  std::map< int, std::vector< Node > > eqc_to_lit;
-
-  std::vector<Node> lits;
-
-  for( unsigned i=0; i<body.getNumChildren(); i++ ){
-    //get variables contained in the literal
-    Node n = body[i];
-    std::vector< Node > lit_args;
-    computeArgVec( args, lit_args, n );
-    if( lit_args.empty() ){
-      lits.push_back( n );
-    }else {
-      //collect the equivalence classes this literal belongs to, and the new variables it contributes
-      std::vector< int > eqcs;
-      std::vector< Node > lit_new_args;
-      //for each variable in literal
-      for( unsigned j=0; j<lit_args.size(); j++) {
-        //see if the variable has already been found
-        if (var_to_eqc.find(lit_args[j])!=var_to_eqc.end()) {
-          int eqc = var_to_eqc[lit_args[j]];
-          if (std::find(eqcs.begin(), eqcs.end(), eqc)==eqcs.end()) {
-            eqcs.push_back(eqc);
-          }
-        }else{
-          var_found_count++;
-          lit_new_args.push_back(lit_args[j]);
-        }
-      }
-      if (eqcs.empty()) {
-        eqcs.push_back(eqc_count);
-        eqc_count++;
-        eqc_active++;
-      }
-
-      int eqcz = eqcs[0];
-      //merge equivalence classes with eqcz
-      for (unsigned j=1; j<eqcs.size(); j++) {
-        int eqc = eqcs[j];
-        //move all variables from equivalence class
-        for (unsigned k=0; k<eqc_to_var[eqc].size(); k++) {
-          Node v = eqc_to_var[eqc][k];
-          var_to_eqc[v] = eqcz;
-          eqc_to_var[eqcz].push_back(v);
-        }
-        eqc_to_var.erase(eqc);
-        //move all literals from equivalence class
-        for (unsigned k=0; k<eqc_to_lit[eqc].size(); k++) {
-          Node l = eqc_to_lit[eqc][k];
-          eqc_to_lit[eqcz].push_back(l);
-        }
-        eqc_to_lit.erase(eqc);
-        eqc_active--;
-      }
-      //add variables to equivalence class
-      for (unsigned j=0; j<lit_new_args.size(); j++) {
-        var_to_eqc[lit_new_args[j]] = eqcz;
-        eqc_to_var[eqcz].push_back(lit_new_args[j]);
-      }
-      //add literal to equivalence class
-      eqc_to_lit[eqcz].push_back(n);
-    }
-  }
-  if ( eqc_active>1 || !lits.empty() || var_to_eqc.size()!=args.size() ){
-    NodeManager* nm = NodeManager::currentNM();
-    Trace("clause-split-debug") << "Split quantified formula with body " << body << std::endl;
-    Trace("clause-split-debug") << "   Ground literals: " << std::endl;
-    for( size_t i=0; i<lits.size(); i++) {
-      Trace("clause-split-debug") << "      " << lits[i] << std::endl;
-    }
-    Trace("clause-split-debug") << std::endl;
-    Trace("clause-split-debug") << "Equivalence classes: " << std::endl;
-    for (std::map< int, std::vector< Node > >::iterator it = eqc_to_lit.begin(); it != eqc_to_lit.end(); ++it ){
-      Trace("clause-split-debug") << "   Literals: " << std::endl;
-      for (size_t i=0; i<it->second.size(); i++) {
-        Trace("clause-split-debug") << "      " << it->second[i] << std::endl;
-      }
-      int eqc = it->first;
-      Trace("clause-split-debug") << "   Variables: " << std::endl;
-      for (size_t i=0; i<eqc_to_var[eqc].size(); i++) {
-        Trace("clause-split-debug") << "      " << eqc_to_var[eqc][i] << std::endl;
-      }
-      Trace("clause-split-debug") << std::endl;
-      Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, eqc_to_var[eqc]);
-      Node bd =
-          it->second.size() == 1 ? it->second[0] : nm->mkNode(OR, it->second);
-      Node fa = nm->mkNode(FORALL, bvl, bd);
-      lits.push_back(fa);
-    }
-    Assert(!lits.empty());
-    Node nf = lits.size()==1 ? lits[0] : NodeManager::currentNM()->mkNode(OR,lits);
-    Trace("clause-split-debug") << "Made node : " << nf << std::endl;
-    return nf;
-  }else{
-    return mkForAll( args, body, qa );
-  }
-}
-
-Node QuantifiersRewriter::mkForAll(const std::vector<Node>& args,
-                                   Node body,
-                                   QAttributes& qa)
+Node QuantifiersRewriter::computePrenexAgg(Node n,
+                                           std::map<Node, Node>& visited)
 {
-  if (args.empty())
+  std::map< Node, Node >::iterator itv = visited.find( n );
+  if( itv!=visited.end() ){
+    return itv->second;
+  }
+  if (!expr::hasClosure(n))
   {
-    return body;
+    // trivial
+    return n;
   }
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> children;
-  children.push_back(nm->mkNode(kind::BOUND_VAR_LIST, args));
-  children.push_back(body);
-  if (!qa.d_ipl.isNull())
+  Node ret = n;
+  if (n.getKind() == NOT)
   {
-    children.push_back(qa.d_ipl);
+    ret = computePrenexAgg(n[0], visited).negate();
   }
-  return nm->mkNode(kind::FORALL, children);
-}
-
-Node QuantifiersRewriter::mkForall(const std::vector<Node>& args,
-                                   Node body,
-                                   bool marked)
-{
-  std::vector< Node > iplc;
-  return mkForall( args, body, iplc, marked );
-}
-
-Node QuantifiersRewriter::mkForall(const std::vector<Node>& args,
-                                   Node body,
-                                   std::vector<Node>& iplc,
-                                   bool marked)
-{
-  if (args.empty())
+  else if (n.getKind() == FORALL)
   {
-    return body;
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> children;
-  children.push_back(nm->mkNode(kind::BOUND_VAR_LIST, args));
-  children.push_back(body);
-  if (marked)
-  {
-    SkolemManager* sm = nm->getSkolemManager();
-    Node avar = sm->mkDummySkolem("id", nm->booleanType());
-    QuantIdNumAttribute ida;
-    avar.setAttribute(ida, 0);
-    iplc.push_back(nm->mkNode(kind::INST_ATTRIBUTE, avar));
-  }
-  if (!iplc.empty())
-  {
-    children.push_back(nm->mkNode(kind::INST_PATTERN_LIST, iplc));
-  }
-  return nm->mkNode(kind::FORALL, children);
-}
-
-//computes miniscoping, also eliminates variables that do not occur free in body
-Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> args(q[0].begin(), q[0].end());
-  Node body = q[1];
-  if( body.getKind()==FORALL ){
-    //combine prenex
-    std::vector< Node > newArgs;
-    newArgs.insert(newArgs.end(), q[0].begin(), q[0].end());
-    for( unsigned i=0; i<body[0].getNumChildren(); i++ ){
-      newArgs.push_back( body[0][i] );
-    }
-    return mkForAll( newArgs, body[1], qa );
-  }else if( body.getKind()==AND ){
-    // aggressive miniscoping implies that structural miniscoping should
-    // be applied first
-    if (options::miniscopeQuant() || options::aggressiveMiniscopeQuant())
+    std::vector<Node> children;
+    children.push_back(computePrenexAgg(n[1], visited));
+    std::vector<Node> args;
+    args.insert(args.end(), n[0].begin(), n[0].end());
+    // for each child, strip top level quant
+    for (unsigned i = 0; i < children.size(); i++)
     {
-      BoundVarManager* bvm = nm->getBoundVarManager();
-      // Break apart the quantifed formula
-      // forall x. P1 ^ ... ^ Pn ---> forall x. P1 ^ ... ^ forall x. Pn
-      NodeBuilder t(kind::AND);
-      std::vector<Node> argsc;
-      for (size_t i = 0, nchild = body.getNumChildren(); i < nchild; i++)
+      if (children[i].getKind() == FORALL)
       {
-        if (argsc.empty())
-        {
-          // If not done so, we must create fresh copy of args. This is to
-          // ensure that quantified formulas do not reuse variables.
-          for (const Node& v : q[0])
-          {
-            TypeNode vt = v.getType();
-            Node cacheVal = BoundVarManager::getCacheValue(q, v, i);
-            Node vv = bvm->mkBoundVar<QRewMiniscopeAttribute>(cacheVal, vt);
-            argsc.push_back(vv);
-          }
-        }
-        Node b = body[i];
-        Node bodyc =
-            b.substitute(args.begin(), args.end(), argsc.begin(), argsc.end());
-        if (b == bodyc)
-        {
-          // Did not contain variables in args, thus it is ground. Since we did
-          // not use them, we keep the variables argsc for the next child.
-          t << b;
-        }
-        else
-        {
-          // make the miniscoped quantified formula
-          Node cbvl = nm->mkNode(BOUND_VAR_LIST, argsc);
-          Node qq = nm->mkNode(FORALL, cbvl, bodyc);
-          t << qq;
-          // We used argsc, clear so we will construct a fresh copy above.
-          argsc.clear();
-        }
+        args.insert(args.end(), children[i][0].begin(), children[i][0].end());
+        children[i] = children[i][1];
       }
-      Node retVal = t;
-      return retVal;
     }
-  }else if( body.getKind()==OR ){
-    if( options::quantSplit() ){
-      //splitting subsumes free variable miniscoping, apply it with higher priority
-      return computeSplit( args, body, qa );
-    }
-    else if (options::miniscopeQuantFreeVar()
-             || options::aggressiveMiniscopeQuant())
+    // keep the pattern
+    std::vector<Node> iplc;
+    if (n.getNumChildren() == 3)
     {
-      // aggressive miniscoping implies that free variable miniscoping should
-      // be applied first
-      Node newBody = body;
-      NodeBuilder body_split(kind::OR);
-      NodeBuilder tb(kind::OR);
-      for (const Node& trm : body)
-      {
-        if (expr::hasSubterm(trm, args))
-        {
-          tb << trm;
-        }else{
-          body_split << trm;
-        }
-      }
-      if( tb.getNumChildren()==0 ){
-        return body_split;
-      }else if( body_split.getNumChildren()>0 ){
-        newBody = tb.getNumChildren()==1 ? tb.getChild( 0 ) : tb;
-        std::vector< Node > activeArgs;
-        computeArgVec2( args, activeArgs, newBody, qa.d_ipl );
-        body_split << mkForAll( activeArgs, newBody, qa );
-        return body_split.getNumChildren()==1 ? body_split.getChild( 0 ) : body_split;
-      }
+      iplc.insert(iplc.end(), n[2].begin(), n[2].end());
     }
-  }else if( body.getKind()==NOT ){
-    Assert(isLiteral(body[0]));
-  }
-  //remove variables that don't occur
-  std::vector< Node > activeArgs;
-  computeArgVec2( args, activeArgs, body, qa.d_ipl );
-  return mkForAll( activeArgs, body, qa );
-}
-
-Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& args, Node body ){
-  std::map<Node, std::vector<Node> > varLits;
-  std::map<Node, std::vector<Node> > litVars;
-  if (body.getKind() == OR) {
-    Trace("ag-miniscope") << "compute aggressive miniscoping on " << body << std::endl;
-    for (size_t i = 0; i < body.getNumChildren(); i++) {
-      std::vector<Node> activeArgs;
-      computeArgVec(args, activeArgs, body[i]);
-      for (unsigned j = 0; j < activeArgs.size(); j++) {
-        varLits[activeArgs[j]].push_back(body[i]);
-      }
-      std::vector<Node>& lit_body_i = litVars[body[i]];
-      std::vector<Node>::iterator lit_body_i_begin = lit_body_i.begin();
-      std::vector<Node>::const_iterator active_begin = activeArgs.begin();
-      std::vector<Node>::const_iterator active_end = activeArgs.end();
-      lit_body_i.insert(lit_body_i_begin, active_begin, active_end);
-    }
-    //find the variable in the least number of literals
-    Node bestVar;
-    for( std::map< Node, std::vector<Node> >::iterator it = varLits.begin(); it != varLits.end(); ++it ){
-      if( bestVar.isNull() || varLits[bestVar].size()>it->second.size() ){
-        bestVar = it->first;
-      }
-    }
-    Trace("ag-miniscope-debug") << "Best variable " << bestVar << " occurs in " << varLits[bestVar].size() << "/ " << body.getNumChildren() << " literals." << std::endl;
-    if( !bestVar.isNull() && varLits[bestVar].size()<body.getNumChildren() ){
-      //we can miniscope
-      Trace("ag-miniscope") << "Miniscope on " << bestVar << std::endl;
-      //make the bodies
-      std::vector<Node> qlit1;
-      qlit1.insert( qlit1.begin(), varLits[bestVar].begin(), varLits[bestVar].end() );
-      std::vector<Node> qlitt;
-      //for all literals not containing bestVar
-      for( size_t i=0; i<body.getNumChildren(); i++ ){
-        if( std::find( qlit1.begin(), qlit1.end(), body[i] )==qlit1.end() ){
-          qlitt.push_back( body[i] );
-        }
-      }
-      //make the variable lists
-      std::vector<Node> qvl1;
-      std::vector<Node> qvl2;
-      std::vector<Node> qvsh;
-      for( unsigned i=0; i<args.size(); i++ ){
-        bool found1 = false;
-        bool found2 = false;
-        for( size_t j=0; j<varLits[args[i]].size(); j++ ){
-          if( !found1 && std::find( qlit1.begin(), qlit1.end(), varLits[args[i]][j] )!=qlit1.end() ){
-            found1 = true;
-          }else if( !found2 && std::find( qlitt.begin(), qlitt.end(), varLits[args[i]][j] )!=qlitt.end() ){
-            found2 = true;
-          }
-          if( found1 && found2 ){
-            break;
-          }
-        }
-        if( found1 ){
-          if( found2 ){
-            qvsh.push_back( args[i] );
-          }else{
-            qvl1.push_back( args[i] );
-          }
-        }else{
-          Assert(found2);
-          qvl2.push_back( args[i] );
-        }
-      }
-      Assert(!qvl1.empty());
-      //check for literals that only contain shared variables
-      std::vector<Node> qlitsh;
-      std::vector<Node> qlit2;
-      for( size_t i=0; i<qlitt.size(); i++ ){
-        bool hasVar2 = false;
-        for( size_t j=0; j<litVars[qlitt[i]].size(); j++ ){
-          if( std::find( qvl2.begin(), qvl2.end(), litVars[qlitt[i]][j] )!=qvl2.end() ){
-            hasVar2 = true;
-            break;
-          }
-        }
-        if( hasVar2 ){
-          qlit2.push_back( qlitt[i] );
-        }else{
-          qlitsh.push_back( qlitt[i] );
-        }
-      }
-      varLits.clear();
-      litVars.clear();
-      Trace("ag-miniscope-debug") << "Split into literals : " << qlit1.size() << " / " << qlit2.size() << " / " << qlitsh.size();
-      Trace("ag-miniscope-debug") << ", variables : " << qvl1.size() << " / " << qvl2.size() << " / " << qvsh.size() << std::endl;
-      Node n1 = qlit1.size()==1 ? qlit1[0] : NodeManager::currentNM()->mkNode( OR, qlit1 );
-      n1 = computeAggressiveMiniscoping( qvl1, n1 );
-      qlitsh.push_back( n1 );
-      if( !qlit2.empty() ){
-        Node n2 = qlit2.size()==1 ? qlit2[0] : NodeManager::currentNM()->mkNode( OR, qlit2 );
-        n2 = computeAggressiveMiniscoping( qvl2, n2 );
-        qlitsh.push_back( n2 );
-      }
-      Node n = NodeManager::currentNM()->mkNode( OR, qlitsh );
-      if( !qvsh.empty() ){
-        Node bvl = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, qvsh);
-        n = NodeManager::currentNM()->mkNode( FORALL, bvl, n );
-      }
-      Trace("ag-miniscope") << "Return " << n << " for " << body << std::endl;
-      return n;
-    }
-  }
-  QAttributes qa;
-  return mkForAll( args, body, qa );
-}
-
-bool QuantifiersRewriter::doOperation(Node q,
-                                      RewriteStep computeOption,
-                                      QAttributes& qa)
-{
-  bool is_strict_trigger =
-      qa.d_hasPattern
-      && options::userPatternsQuant() == options::UserPatMode::STRICT;
-  bool is_std = qa.isStandard() && !is_strict_trigger;
-  if (computeOption == COMPUTE_ELIM_SYMBOLS)
-  {
-    return true;
-  }
-  else if (computeOption == COMPUTE_MINISCOPING)
-  {
-    return is_std;
-  }
-  else if (computeOption == COMPUTE_AGGRESSIVE_MINISCOPING)
-  {
-    return options::aggressiveMiniscopeQuant() && is_std;
-  }
-  else if (computeOption == COMPUTE_EXT_REWRITE)
-  {
-    return options::extRewriteQuant();
-  }
-  else if (computeOption == COMPUTE_PROCESS_TERMS)
-  {
-    return is_std && options::iteLiftQuant() != options::IteLiftQuantMode::NONE;
-  }
-  else if (computeOption == COMPUTE_COND_SPLIT)
-  {
-    return (options::iteDtTesterSplitQuant() || options::condVarSplitQuant())
-           && !is_strict_trigger;
-  }
-  else if (computeOption == COMPUTE_PRENEX)
-  {
-    return options::prenexQuant() != options::PrenexQuantMode::NONE
-           && !options::aggressiveMiniscopeQuant() && is_std;
-  }
-  else if (computeOption == COMPUTE_VAR_ELIMINATION)
-  {
-    return (options::varElimQuant() || options::dtVarExpandQuant()) && is_std;
+    Node nb = children.size() == 1 ? children[0] : nm->mkNode(OR, children);
+    ret = mkForall(args, nb, iplc, true);
   }
   else
   {
-    return false;
+    std::unordered_set<Node> argsSet;
+    std::unordered_set<Node> nargsSet;
+    Node q;
+    Node nn = computePrenex(q, n, argsSet, nargsSet, true, true);
+    Assert(n != nn || argsSet.empty());
+    Assert(n != nn || nargsSet.empty());
+    if (n != nn)
+    {
+      Node nnn = computePrenexAgg(nn, visited);
+      // merge prenex
+      if (nnn.getKind() == FORALL)
+      {
+        argsSet.insert(nnn[0].begin(), nnn[0].end());
+        nnn = nnn[1];
+        // pos polarity variables are inner
+        if (!argsSet.empty())
+        {
+          nnn = mkForall({argsSet.begin(), argsSet.end()}, nnn, true);
+        }
+        argsSet.clear();
+      }
+      else if (nnn.getKind() == NOT && nnn[0].getKind() == FORALL)
+      {
+        nargsSet.insert(nnn[0][0].begin(), nnn[0][0].end());
+        nnn = nnn[0][1].negate();
+      }
+      if (!nargsSet.empty())
+      {
+        nnn = mkForall({nargsSet.begin(), nargsSet.end()}, nnn.negate(), true)
+                  .negate();
+      }
+      if (!argsSet.empty())
+      {
+        nnn = mkForall({argsSet.begin(), argsSet.end()}, nnn, true);
+      }
+      ret = nnn;
+    }
   }
+  visited[n] = ret;
+  return ret;
 }
 
-//general method for computing various rewrites
-Node QuantifiersRewriter::computeOperation(Node f,
-                                           RewriteStep computeOption,
-                                           QAttributes& qa)
-{
-  Trace("quantifiers-rewrite-debug") << "Compute operation " << computeOption << " on " << f << " " << qa.d_qid_num << std::endl;
-  if (computeOption == COMPUTE_MINISCOPING)
-  {
-    if (options::prenexQuant() == options::PrenexQuantMode::NORMAL)
+Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::vector< TypeNode >& fvTypes, std::vector< TNode >& fvs ){
+  Trace("pre-sk") << "Pre-skolem " << n << " " << polarity << " " << fvs.size() << endl;
+  if( n.getKind()==kind::NOT ){
+    Node nn = preSkolemizeQuantifiers( n[0], !polarity, fvTypes, fvs );
+    return nn.negate();
+  }else if( n.getKind()==kind::FORALL ){
+    if (n.getNumChildren() == 3)
     {
-      if( !qa.d_qid_num.isNull() ){
-        //already processed this, return self
-        return f;
-      }
-    }
-    //return directly
-    return computeMiniscoping(f, qa);
-  }
-  std::vector<Node> args(f[0].begin(), f[0].end());
-  Node n = f[1];
-  if (computeOption == COMPUTE_ELIM_SYMBOLS)
-  {
-    n = computeElimSymbols(n);
-  }else if( computeOption==COMPUTE_AGGRESSIVE_MINISCOPING ){
-    return computeAggressiveMiniscoping( args, n );
-  }
-  else if (computeOption == COMPUTE_EXT_REWRITE)
-  {
-    return computeExtendedRewrite(f);
-  }
-  else if (computeOption == COMPUTE_PROCESS_TERMS)
-  {
-    std::vector< Node > new_conds;
-    n = computeProcessTerms( n, args, new_conds, f, qa );
-    if( !new_conds.empty() ){
-      new_conds.push_back( n );
-      n = NodeManager::currentNM()->mkNode( OR, new_conds );
-    }
-  }
-  else if (computeOption == COMPUTE_COND_SPLIT)
-  {
-    n = computeCondSplit(n, args, qa);
-  }
-  else if (computeOption == COMPUTE_PRENEX)
-  {
-    if (options::prenexQuant() == options::PrenexQuantMode::NORMAL)
-    {
-      //will rewrite at preprocess time
-      return f;
-    }
-    else
-    {
-      std::unordered_set<Node> argsSet, nargsSet;
-      n = computePrenex(f, n, argsSet, nargsSet, true, false);
-      Assert(nargsSet.empty());
-      args.insert(args.end(), argsSet.begin(), argsSet.end());
-    }
-  }
-  else if (computeOption == COMPUTE_VAR_ELIMINATION)
-  {
-    n = computeVarElimination( n, args, qa );
-  }
-  Trace("quantifiers-rewrite-debug") << "Compute Operation: return " << n << ", " << args.size() << std::endl;
-  if( f[1]==n && args.size()==f[0].getNumChildren() ){
-    return f;
-  }else{
-    if( args.empty() ){
+      // Do not pre-skolemize quantified formulas with three children.
+      // This includes non-standard quantified formulas
+      // like recursive function definitions, or sygus conjectures, and
+      // quantified formulas with triggers.
       return n;
-    }else{
-      std::vector< Node > children;
-      children.push_back( NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, args ) );
-      children.push_back( n );
-      if( !qa.d_ipl.isNull() && args.size()==f[0].getNumChildren() ){
-        children.push_back( qa.d_ipl );
+    }
+    else if (polarity)
+    {
+      if( options::preSkolemQuant() && options::preSkolemQuantNested() ){
+        vector< Node > children;
+        children.push_back( n[0] );
+        //add children to current scope
+        std::vector< TypeNode > fvt;
+        std::vector< TNode > fvss;
+        fvt.insert( fvt.begin(), fvTypes.begin(), fvTypes.end() );
+        fvss.insert( fvss.begin(), fvs.begin(), fvs.end() );
+        for( int i=0; i<(int)n[0].getNumChildren(); i++ ){
+          fvt.push_back( n[0][i].getType() );
+          fvss.push_back( n[0][i] );
+        }
+        //process body
+        children.push_back( preSkolemizeQuantifiers( n[1], polarity, fvt, fvss ) );
+        //return processed quantifier
+        return NodeManager::currentNM()->mkNode( kind::FORALL, children );
       }
-      return NodeManager::currentNM()->mkNode(kind::FORALL, children );
+    }else{
+      //process body
+      Node nn = preSkolemizeQuantifiers( n[1], polarity, fvTypes, fvs );
+      std::vector< Node > sk;
+      Node sub;
+      std::vector< unsigned > sub_vars;
+      //return skolemized body
+      return Skolemize::mkSkolemizedBody(
+          n, nn, fvTypes, fvs, sk, sub, sub_vars);
+    }
+  }else{
+    //check if it contains a quantifier as a subterm
+    //if so, we will write this node
+    if (expr::hasClosure(n))
+    {
+      if( ( n.getKind()==kind::ITE && n.getType().isBoolean() ) || ( n.getKind()==kind::EQUAL && n[0].getType().isBoolean() ) ){
+        if( options::preSkolemQuantAgg() ){
+          Node nn;
+          //must remove structure
+          if( n.getKind()==kind::ITE ){
+            nn = NodeManager::currentNM()->mkNode( kind::AND,
+                  NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n[1] ),
+                  NodeManager::currentNM()->mkNode( kind::OR, n[0], n[2] ) );
+          }else if( n.getKind()==kind::EQUAL ){
+            nn = NodeManager::currentNM()->mkNode( kind::AND,
+                  NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n.getKind()==kind::XOR ? n[1].notNode() : n[1] ),
+                  NodeManager::currentNM()->mkNode( kind::OR, n[0], n.getKind()==kind::XOR ? n[1] : n[1].notNode() ) );
+          }
+          return preSkolemizeQuantifiers( nn, polarity, fvTypes, fvs );
+        }
+      }else if( n.getKind()==kind::AND || n.getKind()==kind::OR ){
+        vector< Node > children;
+        for( int i=0; i<(int)n.getNumChildren(); i++ ){
+          children.push_back( preSkolemizeQuantifiers( n[i], polarity, fvTypes, fvs ) );
+        }
+        return NodeManager::currentNM()->mkNode( n.getKind(), children );
+      }
     }
   }
+  return n;
 }
 
-bool QuantifiersRewriter::isPrenexNormalForm( Node n ) {
-  if( n.getKind()==FORALL ){
-    return n[1].getKind()!=FORALL && isPrenexNormalForm( n[1] );
-  }else if( n.getKind()==NOT ){
-    return n[0].getKind()!=NOT && isPrenexNormalForm( n[0] );
-  }else{
-    return !expr::hasClosure(n);
+TrustNode QuantifiersRewriter::preprocess(Node n, bool isInst)
+{
+  Node prev = n;
+  if( options::preSkolemQuant() ){
+    if( !isInst || !options::preSkolemQuantNested() ){
+      Trace("quantifiers-preprocess-debug") << "Pre-skolemize " << n << "..." << std::endl;
+      //apply pre-skolemization to existential quantifiers
+      std::vector< TypeNode > fvTypes;
+      std::vector< TNode > fvs;
+      n = preSkolemizeQuantifiers( prev, true, fvTypes, fvs );
+    }
   }
+  //pull all quantifiers globally
+  if (options::prenexQuant() == options::PrenexQuantMode::NORMAL)
+  {
+    Trace("quantifiers-prenex") << "Prenexing : " << n << std::endl;
+    std::map<Node, Node> visited;
+    n = computePrenexAgg(n, visited);
+    n = Rewriter::rewrite( n );
+    Trace("quantifiers-prenex") << "Prenexing returned : " << n << std::endl;
+  }
+  if( n!=prev ){       
+    Trace("quantifiers-preprocess") << "Preprocess " << prev << std::endl;
+    Trace("quantifiers-preprocess") << "..returned " << n << std::endl;
+    return TrustNode::mkTrustRewrite(prev, n, nullptr);
+  }
+  return TrustNode::null();
 }
 
 }  // namespace quantifiers
