@@ -22,7 +22,6 @@
 #include "proof/method_id.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
-#include "theory/quantifiers/extended_rewrite.h"
 
 namespace cvc5 {
 
@@ -113,9 +112,6 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   Node checkInternal(PfRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
-
-  /** extended rewriter object */
-  quantifiers::ExtendedRewriter d_ext_rewriter;
 
  private:
   /** Reference to the environment. */

@@ -43,11 +43,11 @@ class EnumValueManager : protected EnvObj
 {
  public:
   EnumValueManager(Env& env,
-                   Node e,
                    QuantifiersState& qs,
                    QuantifiersInferenceManager& qim,
                    TermRegistry& tr,
                    SygusStatistics& s,
+                   Node e,
                    bool hasExamples);
   ~EnumValueManager();
   /**

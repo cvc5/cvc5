@@ -52,7 +52,9 @@ class TermEnumeration;
 class TermRegistry;
 }
 
-// TODO: organize this more/review this, github issue #1163
+/**
+ * The main class that manages techniques for quantified formulas.
+ */
 class QuantifiersEngine : protected EnvObj
 {
   friend class ::cvc5::TheoryEngine;

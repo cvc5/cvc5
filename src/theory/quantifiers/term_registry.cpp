@@ -45,7 +45,7 @@ TermRegistry::TermRegistry(Env& env,
   if (options::sygus() || options::sygusInst())
   {
     // must be constructed here since it is required for datatypes finistInit
-    d_sygusTdb.reset(new TermDbSygus(qs));
+    d_sygusTdb.reset(new TermDbSygus(env, qs));
   }
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug")

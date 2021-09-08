@@ -27,7 +27,8 @@ QuantifiersRegistry::QuantifiersRegistry(Env& env)
     : QuantifiersUtil(env),
       d_quantAttr(),
       d_quantBoundInf(options::fmfTypeCompletionThresh(),
-                      options::finiteModelFind())
+                      options::finiteModelFind()),
+      d_quantPreproc(env)
 {
 }
 
@@ -189,6 +190,10 @@ QuantAttributes& QuantifiersRegistry::getQuantAttributes()
 QuantifiersBoundInference& QuantifiersRegistry::getQuantifiersBoundInference()
 {
   return d_quantBoundInf;
+}
+QuantifiersPreprocess& QuantifiersRegistry::getPreprocess()
+{
+  return d_quantPreproc;
 }
 
 Node QuantifiersRegistry::getNameForQuant(Node q) const
