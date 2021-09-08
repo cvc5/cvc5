@@ -66,8 +66,6 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
       d_registeredTerms(getUserContext()),
       d_conv(new FpConverter(getUserContext())),
       d_expansionRequested(false),
-      d_realToFloatMap(getUserContext()),
-      d_floatToRealMap(getUserContext()),
       d_abstractionMap(getUserContext()),
       d_rewriter(getUserContext()),
       d_state(env, valuation),
@@ -148,72 +146,6 @@ void TheoryFp::finishInit()
   d_equalityEngine->addFunctionKind(kind::ROUNDINGMODE_BITBLAST);
 }
 
-Node TheoryFp::abstractRealToFloat(Node node)
-{
-  Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_REAL);
-  TypeNode t(node.getType());
-  Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
-
-  NodeManager *nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  ConversionAbstractionMap::const_iterator i(d_realToFloatMap.find(t));
-
-  Node fun;
-  if (i == d_realToFloatMap.end())
-  {
-    std::vector<TypeNode> args(2);
-    args[0] = node[0].getType();
-    args[1] = node[1].getType();
-    fun = sm->mkDummySkolem("floatingpoint_abstract_real_to_float",
-                            nm->mkFunctionType(args, node.getType()),
-                            "floatingpoint_abstract_real_to_float",
-                            NodeManager::SKOLEM_EXACT_NAME);
-    d_realToFloatMap.insert(t, fun);
-  }
-  else
-  {
-    fun = (*i).second;
-  }
-  Node uf = nm->mkNode(kind::APPLY_UF, fun, node[0], node[1]);
-
-  d_abstractionMap.insert(uf, node);
-
-  return uf;
-}
-
-Node TheoryFp::abstractFloatToReal(Node node)
-{
-  Assert(node.getKind() == kind::FLOATINGPOINT_TO_REAL_TOTAL);
-  TypeNode t(node[0].getType());
-  Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
-
-  NodeManager *nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  ConversionAbstractionMap::const_iterator i(d_floatToRealMap.find(t));
-
-  Node fun;
-  if (i == d_floatToRealMap.end())
-  {
-    std::vector<TypeNode> args(2);
-    args[0] = t;
-    args[1] = nm->realType();
-    fun = sm->mkDummySkolem("floatingpoint_abstract_float_to_real",
-                            nm->mkFunctionType(args, nm->realType()),
-                            "floatingpoint_abstract_float_to_real",
-                            NodeManager::SKOLEM_EXACT_NAME);
-    d_floatToRealMap.insert(t, fun);
-  }
-  else
-  {
-    fun = (*i).second;
-  }
-  Node uf = nm->mkNode(kind::APPLY_UF, fun, node[0], node[1]);
-
-  d_abstractionMap.insert(uf, node);
-
-  return uf;
-}
-
 TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
@@ -226,53 +158,6 @@ TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 
   Node res = node;
 
-  // Abstract conversion functions
-  if (node.getKind() == kind::FLOATINGPOINT_TO_REAL_TOTAL)
-  {
-    res = abstractFloatToReal(node);
-
-    // Generate some lemmas
-    NodeManager *nm = NodeManager::currentNM();
-
-    Node pd =
-        nm->mkNode(kind::IMPLIES,
-                   nm->mkNode(kind::OR,
-                              nm->mkNode(kind::FLOATINGPOINT_ISNAN, node[0]),
-                              nm->mkNode(kind::FLOATINGPOINT_ISINF, node[0])),
-                   nm->mkNode(kind::EQUAL, res, node[1]));
-    handleLemma(pd, InferenceId::FP_PREPROCESS);
-
-    Node z =
-        nm->mkNode(kind::IMPLIES,
-                   nm->mkNode(kind::FLOATINGPOINT_ISZ, node[0]),
-                   nm->mkNode(kind::EQUAL, res, nm->mkConst(Rational(0U))));
-    handleLemma(z, InferenceId::FP_PREPROCESS);
-
-    // TODO : bounds on the output from largest floats, #1914
-  }
-  else if (node.getKind() == kind::FLOATINGPOINT_TO_FP_REAL)
-  {
-    res = abstractRealToFloat(node);
-
-    // Generate some lemmas
-    NodeManager *nm = NodeManager::currentNM();
-
-    Node nnan =
-        nm->mkNode(kind::NOT, nm->mkNode(kind::FLOATINGPOINT_ISNAN, res));
-    handleLemma(nnan, InferenceId::FP_PREPROCESS);
-
-    Node z = nm->mkNode(
-        kind::IMPLIES,
-        nm->mkNode(kind::EQUAL, node[1], nm->mkConst(Rational(0U))),
-        nm->mkNode(kind::EQUAL,
-                   res,
-                   nm->mkConst(FloatingPoint::makeZero(
-                       res.getType().getConst<FloatingPointSize>(), false))));
-    handleLemma(z, InferenceId::FP_PREPROCESS);
-
-    // TODO : rounding-mode specific bounds on floats that don't give infinity
-    // BEWARE of directed rounding!   #1914
-  }
 
   if (res != node)
   {
@@ -587,80 +472,133 @@ void TheoryFp::registerTerm(TNode node)
 {
   Trace("fp-registerTerm") << "TheoryFp::registerTerm(): " << node << std::endl;
 
-  if (!isRegistered(node))
+  if (isRegistered(node))
   {
-    Kind k = node.getKind();
-    Assert(k != kind::FLOATINGPOINT_TO_FP_GENERIC
-           && k != kind::FLOATINGPOINT_SUB && k != kind::FLOATINGPOINT_EQ
-           && k != kind::FLOATINGPOINT_GEQ && k != kind::FLOATINGPOINT_GT);
+    return;
+  }
 
-    bool success = d_registeredTerms.insert(node);
-    (void)success;  // Only used for assertion
-    Assert(success);
+  Kind k = node.getKind();
+  Assert(k != kind::FLOATINGPOINT_TO_FP_GENERIC && k != kind::FLOATINGPOINT_SUB
+         && k != kind::FLOATINGPOINT_EQ && k != kind::FLOATINGPOINT_GEQ
+         && k != kind::FLOATINGPOINT_GT);
 
-    // Add to the equality engine
-    if (k == kind::EQUAL)
+  bool success = d_registeredTerms.insert(node);
+  (void)success;  // Only used for assertion
+  Assert(success);
+
+  // Add to the equality engine
+  if (k == kind::EQUAL)
+  {
+    d_equalityEngine->addTriggerPredicate(node);
+  }
+  else
+  {
+    d_equalityEngine->addTerm(node);
+  }
+
+  // Give the expansion of classifications in terms of equalities
+  // This should make equality reasoning slightly more powerful.
+  if ((k == kind::FLOATINGPOINT_ISNAN) || (k == kind::FLOATINGPOINT_ISZ)
+      || (k == kind::FLOATINGPOINT_ISINF))
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    FloatingPointSize s = node[0].getType().getConst<FloatingPointSize>();
+    Node equalityAlias = Node::null();
+
+    if (k == kind::FLOATINGPOINT_ISNAN)
     {
-      d_equalityEngine->addTriggerPredicate(node);
+      equalityAlias = nm->mkNode(
+          kind::EQUAL, node[0], nm->mkConst(FloatingPoint::makeNaN(s)));
+    }
+    else if (k == kind::FLOATINGPOINT_ISZ)
+    {
+      equalityAlias = nm->mkNode(
+          kind::OR,
+          nm->mkNode(kind::EQUAL,
+                     node[0],
+                     nm->mkConst(FloatingPoint::makeZero(s, true))),
+          nm->mkNode(kind::EQUAL,
+                     node[0],
+                     nm->mkConst(FloatingPoint::makeZero(s, false))));
+    }
+    else if (k == kind::FLOATINGPOINT_ISINF)
+    {
+      equalityAlias =
+          nm->mkNode(kind::OR,
+                     nm->mkNode(kind::EQUAL,
+                                node[0],
+                                nm->mkConst(FloatingPoint::makeInf(s, true))),
+                     nm->mkNode(kind::EQUAL,
+                                node[0],
+                                nm->mkConst(FloatingPoint::makeInf(s, false))));
     }
     else
     {
-      d_equalityEngine->addTerm(node);
+      Unreachable() << "Only isNaN, isInf and isZero have aliases";
     }
 
-    // Give the expansion of classifications in terms of equalities
-    // This should make equality reasoning slightly more powerful.
-    if ((k == kind::FLOATINGPOINT_ISNAN) || (k == kind::FLOATINGPOINT_ISZ)
-        || (k == kind::FLOATINGPOINT_ISINF))
-    {
-      NodeManager *nm = NodeManager::currentNM();
-      FloatingPointSize s = node[0].getType().getConst<FloatingPointSize>();
-      Node equalityAlias = Node::null();
-
-      if (k == kind::FLOATINGPOINT_ISNAN)
-      {
-        equalityAlias = nm->mkNode(
-            kind::EQUAL, node[0], nm->mkConst(FloatingPoint::makeNaN(s)));
-      }
-      else if (k == kind::FLOATINGPOINT_ISZ)
-      {
-        equalityAlias = nm->mkNode(
-            kind::OR,
-            nm->mkNode(kind::EQUAL,
-                       node[0],
-                       nm->mkConst(FloatingPoint::makeZero(s, true))),
-            nm->mkNode(kind::EQUAL,
-                       node[0],
-                       nm->mkConst(FloatingPoint::makeZero(s, false))));
-      }
-      else if (k == kind::FLOATINGPOINT_ISINF)
-      {
-        equalityAlias = nm->mkNode(
-            kind::OR,
-            nm->mkNode(kind::EQUAL,
-                       node[0],
-                       nm->mkConst(FloatingPoint::makeInf(s, true))),
-            nm->mkNode(kind::EQUAL,
-                       node[0],
-                       nm->mkConst(FloatingPoint::makeInf(s, false))));
-      }
-      else
-      {
-        Unreachable() << "Only isNaN, isInf and isZero have aliases";
-      }
-
-      handleLemma(nm->mkNode(kind::EQUAL, node, equalityAlias),
-                  InferenceId::FP_REGISTER_TERM);
-    }
-
-    /* When not word-blasting lazier, we word-blast every term on
-     * registration. */
-    if (!options::fpLazyWb())
-    {
-      convertAndEquateTerm(node);
-    }
+    handleLemma(nm->mkNode(kind::EQUAL, node, equalityAlias),
+                InferenceId::FP_REGISTER_TERM);
   }
-  return;
+  else if (k == kind::FLOATINGPOINT_TO_REAL_TOTAL)
+  {
+    // Purify (fp.to_real x)
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    Node sk = sm->mkPurifySkolem(node, "to_real", "fp purify skolem");
+    handleLemma(node.eqNode(sk), InferenceId::FP_REGISTER_TERM);
+    d_abstractionMap.insert(sk, node);
+
+    Node pd =
+        nm->mkNode(kind::IMPLIES,
+                   nm->mkNode(kind::OR,
+                              nm->mkNode(kind::FLOATINGPOINT_ISNAN, node[0]),
+                              nm->mkNode(kind::FLOATINGPOINT_ISINF, node[0])),
+                   nm->mkNode(kind::EQUAL, node, node[1]));
+    handleLemma(pd, InferenceId::FP_REGISTER_TERM);
+
+    Node z =
+        nm->mkNode(kind::IMPLIES,
+                   nm->mkNode(kind::FLOATINGPOINT_ISZ, node[0]),
+                   nm->mkNode(kind::EQUAL, node, nm->mkConst(Rational(0U))));
+    handleLemma(z, InferenceId::FP_REGISTER_TERM);
+    return;
+
+    // TODO : bounds on the output from largest floats, #1914
+  }
+  else if (k == kind::FLOATINGPOINT_TO_FP_REAL)
+  {
+    // Purify ((_ to_fp eb sb) rm x)
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    Node sk = sm->mkPurifySkolem(node, "to_real_fp", "fp purify skolem");
+    handleLemma(node.eqNode(sk), InferenceId::FP_REGISTER_TERM);
+    d_abstractionMap.insert(sk, node);
+
+    Node nnan =
+        nm->mkNode(kind::NOT, nm->mkNode(kind::FLOATINGPOINT_ISNAN, node));
+    handleLemma(nnan, InferenceId::FP_REGISTER_TERM);
+
+    Node z = nm->mkNode(
+        kind::IMPLIES,
+        nm->mkNode(kind::EQUAL, node[1], nm->mkConst(Rational(0U))),
+        nm->mkNode(kind::EQUAL,
+                   node,
+                   nm->mkConst(FloatingPoint::makeZero(
+                       node.getType().getConst<FloatingPointSize>(), false))));
+    handleLemma(z, InferenceId::FP_REGISTER_TERM);
+    return;
+
+    // TODO : rounding-mode specific bounds on floats that don't give infinity
+    // BEWARE of directed rounding!   #1914
+  }
+
+  /* When not word-blasting lazier, we word-blast every term on
+   * registration. */
+  if (!options::fpLazyWb())
+  {
+    convertAndEquateTerm(node);
+  }
 }
 
 bool TheoryFp::isRegistered(TNode node)
@@ -729,17 +667,25 @@ void TheoryFp::postCheck(Effort level)
   /* Resolve the abstractions for the conversion lemmas */
   if (level == EFFORT_LAST_CALL)
   {
-    Trace("fp") << "TheoryFp::check(): checking abstractions" << std::endl;
+    Trace("fp-abstraction")
+        << "TheoryFp::check(): checking abstractions" << std::endl;
     TheoryModel* m = getValuation().getModel();
     bool lemmaAdded = false;
 
-    for (AbstractionMap::const_iterator i = d_abstractionMap.begin();
-         i != d_abstractionMap.end();
-         ++i)
+    for (const auto& [abstract, concrete] : d_abstractionMap)
     {
-      if (m->hasTerm((*i).first))
+      Trace("fp-abstraction")
+          << "TheoryFp::check(): Abstraction: " << abstract << std::endl;
+      if (m->hasTerm(abstract))
       {  // Is actually used in the model
-        lemmaAdded |= refineAbstraction(m, (*i).first, (*i).second);
+        Trace("fp-abstraction")
+            << "TheoryFp::check(): ... relevant" << std::endl;
+        lemmaAdded |= refineAbstraction(m, abstract, concrete);
+      }
+      else
+      {
+        Trace("fp-abstraction")
+            << "TheoryFp::check(): ... not relevant" << std::endl;
       }
     }
   }
@@ -837,40 +783,36 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
   }
 
   std::unordered_set<TNode> visited;
-  std::stack<TNode> working;
+  std::vector<TNode> working;
   std::set<TNode> relevantVariables;
-  for (std::set<Node>::const_iterator i(relevantTerms.begin());
-       i != relevantTerms.end(); ++i) {
-    working.push(*i);
+  for (const Node& n : relevantTerms)
+  {
+    working.emplace_back(n);
   }
 
   while (!working.empty()) {
-    TNode current = working.top();
-    working.pop();
+    TNode current = working.back();
+    working.pop_back();
 
-    // Ignore things that have already been explored
-    if (visited.find(current) == visited.end()) {
-      visited.insert(current);
-
-      TypeNode t(current.getType());
-
-      if ((t.isRoundingMode() || t.isFloatingPoint()) &&
-          this->isLeaf(current)) {
-        relevantVariables.insert(current);
-      }
-
-      for (size_t i = 0; i < current.getNumChildren(); ++i) {
-        working.push(current[i]);
-      }
+    if (visited.find(current) != visited.end())
+    {
+      // Ignore things that have already been explored
+      continue;
     }
+    visited.insert(current);
+
+    TypeNode t = current.getType();
+
+    if ((t.isRoundingMode() || t.isFloatingPoint()) && this->isLeaf(current))
+    {
+      relevantVariables.insert(current);
+    }
+
+    working.insert(working.end(), current.begin(), current.end());
   }
 
-  for (std::set<TNode>::const_iterator i(relevantVariables.begin());
-       i != relevantVariables.end();
-       ++i)
+  for (const TNode& node : relevantVariables)
   {
-    TNode node = *i;
-
     Trace("fp-collectModelInfo")
         << "TheoryFp::collectModelInfo(): relevantVariable " << node
         << std::endl;
@@ -880,6 +822,8 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
     // if FpConverter::getValue() does not return a null node.
     if (!converted.isNull() && !m->assertEquality(node, converted, true))
     {
+      Trace("fp-collectModelInfo")
+          << "TheoryFp::collectModelInfo(): ... not converted" << std::endl;
       return false;
     }
 
