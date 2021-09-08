@@ -180,41 +180,6 @@ TPL_MODE_HANDLER_CASE = \
   }}"""
 
 
-def get_module_headers(modules):
-    """Render includes for module headers"""
-    return concat_format('#include "{header}"', modules)
-
-
-def get_holder_fwd_decls(modules):
-    """Render forward declaration of holder structs"""
-    return concat_format('  struct Holder{id_cap};', modules)
-
-
-def get_holder_mem_decls(modules):
-    """Render declarations of holder members of the Option class"""
-    return concat_format('    std::unique_ptr<options::Holder{id_cap}> d_{id};', modules)
-
-
-def get_holder_mem_inits(modules):
-    """Render initializations of holder members of the Option class"""
-    return concat_format('        d_{id}(std::make_unique<options::Holder{id_cap}>()),', modules)
-
-
-def get_holder_ref_inits(modules):
-    """Render initializations of holder references of the Option class"""
-    return concat_format('        {id}(*d_{id}),', modules)
-
-
-def get_holder_mem_copy(modules):
-    """Render copy operation of holder members of the Option class"""
-    return concat_format('      *d_{id} = *options.d_{id};', modules)
-
-
-def get_holder_ref_decls(modules):
-    """Render reference declarations for holder members of the Option class"""
-    return concat_format('  options::Holder{id_cap}& {id};', modules)
-
-
 def get_handler(option):
     """Render handler call for assignment functions"""
     optname = option.long_name if option.long else ""
@@ -337,6 +302,56 @@ def generate_get_impl(modules):
 
     def __str__(self):
         return self.long_name if self.long_name else self.name
+
+
+################################################################################
+################################################################################
+# code generation functions
+
+################################################################################
+# for options/options.h
+
+
+def generate_holder_fwd_decls(modules):
+    """Render forward declaration of holder structs"""
+    return concat_format('  struct Holder{id_cap};', modules)
+
+
+def generate_holder_mem_decls(modules):
+    """Render declarations of holder members of the Option class"""
+    return concat_format(
+        '    std::unique_ptr<options::Holder{id_cap}> d_{id};', modules)
+
+
+def generate_holder_ref_decls(modules):
+    """Render reference declarations for holder members of the Option class"""
+    return concat_format('  options::Holder{id_cap}& {id};', modules)
+
+
+################################################################################
+# for options/options.cpp
+
+
+def generate_module_headers(modules):
+    """Render includes for module headers"""
+    return concat_format('#include "{header}"', modules)
+
+
+def generate_holder_mem_inits(modules):
+    """Render initializations of holder members of the Option class"""
+    return concat_format(
+        '        d_{id}(std::make_unique<options::Holder{id_cap}>()),',
+        modules)
+
+
+def generate_holder_ref_inits(modules):
+    """Render initializations of holder references of the Option class"""
+    return concat_format('        {id}(*d_{id}),', modules)
+
+
+def generate_holder_mem_copy(modules):
+    """Render copy operation of holder members of the Option class"""
+    return concat_format('      *d_{id} = *options.d_{id};', modules)
 
 
 class SphinxGenerator:
@@ -745,9 +760,7 @@ def add_getopt_long(long_name, argument_req, getopt_long):
 
 
 def codegen_all_modules(modules, build_dir, dst_dir, tpls):
-    """
-    Generate code for all option modules (options.cpp).
-    """
+    """Generate code for all option modules."""
 
     headers_module = []      # generated *_options.h header includes
     headers_handler = set()  # option includes (for handlers, predicates, ...)
@@ -920,18 +933,20 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                 options_handler.extend(cases)
 
     data = {
-        'holder_fwd_decls': get_holder_fwd_decls(modules),
-        'holder_mem_decls': get_holder_mem_decls(modules),
-        'holder_ref_decls': get_holder_ref_decls(modules),
-        'headers_module': get_module_headers(modules),
-        'headers_handler': '\n'.join(sorted(list(headers_handler))),
-        'holder_mem_inits': get_holder_mem_inits(modules),
-        'holder_ref_inits': get_holder_ref_inits(modules),
-        'holder_mem_copy': get_holder_mem_copy(modules),
+        # options/options.h
+        'holder_fwd_decls': generate_holder_fwd_decls(modules),
+        'holder_mem_decls': generate_holder_mem_decls(modules),
+        'holder_ref_decls': generate_holder_ref_decls(modules),
+        # options/options.cpp
+        'headers_module': generate_module_headers(modules),
+        'holder_mem_inits': generate_holder_mem_inits(modules),
+        'holder_ref_inits': generate_holder_ref_inits(modules),
+        'holder_mem_copy': generate_holder_mem_copy(modules),
         # options/options_public.cpp
         'options_includes': generate_public_includes(modules),
         'getnames_impl': generate_getnames_impl(modules),
         'get_impl': generate_get_impl(modules),
+        'headers_handler': '\n'.join(sorted(list(headers_handler))),
         'cmdline_options': '\n  '.join(getopt_long),
         'help_common': '\n'.join(help_common),
         'help_others': '\n'.join(help_others),

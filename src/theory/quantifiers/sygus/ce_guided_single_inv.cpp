@@ -400,7 +400,7 @@ Node CegSingleInv::getSolutionFromInst(size_t index)
   }
   //simplify the solution using the extended rewriter
   Trace("csi-sol") << "Solution (pre-simplification): " << s << std::endl;
-  s = d_treg.getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(s);
+  s = extendedRewrite(s);
   Trace("csi-sol") << "Solution (post-simplification): " << s << std::endl;
   // wrap into lambda, as needed
   return SygusUtils::wrapSolutionForSynthFun(prog, s);
@@ -467,7 +467,7 @@ Node CegSingleInv::reconstructToSyntax(Node s,
   {
     Trace("csi-sol") << "Post-process solution..." << std::endl;
     Node prev = sol;
-    sol = d_treg.getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(sol);
+    sol = extendedRewrite(sol);
     if (prev != sol)
     {
       Trace("csi-sol") << "Solution (after post process) : " << sol

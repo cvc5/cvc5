@@ -459,29 +459,6 @@ class Theory : protected EnvObj
   TheoryId getId() const { return d_id; }
 
   /**
-   * Get a reference to the environment.
-   */
-  Env& getEnv() const { return d_env; }
-
-  /**
-   * Shorthand to access the options object.
-   */
-  const Options& options() const { return getEnv().getOptions(); }
-
-  /**
-   * Get the SAT context associated to this Theory.
-   */
-  context::Context* getSatContext() const { return d_env.getContext(); }
-
-  /**
-   * Get the context associated to this Theory.
-   */
-  context::UserContext* getUserContext() const
-  {
-    return d_env.getUserContext();
-  }
-
-  /**
    * Get the output channel associated to this theory.
    */
   OutputChannel& getOutputChannel() { return *d_out; }
@@ -520,7 +497,7 @@ class Theory : protected EnvObj
   void assertFact(TNode assertion, bool isPreregistered)
   {
     Trace("theory") << "Theory<" << getId() << ">::assertFact["
-                    << getSatContext()->getLevel() << "](" << assertion << ", "
+                    << context()->getLevel() << "](" << assertion << ", "
                     << (isPreregistered ? "true" : "false") << ")" << std::endl;
     d_facts.push_back(Assertion(assertion, isPreregistered));
   }
