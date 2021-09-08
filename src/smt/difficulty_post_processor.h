@@ -51,7 +51,7 @@ namespace smt {
 class DifficultyPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  DifficultyPostprocessCallback(Env& env);
+  DifficultyPostprocessCallback();
   ~DifficultyPostprocessCallback() {}
   /**
    * Set current difficulty of the next proof to process to the (integer)
