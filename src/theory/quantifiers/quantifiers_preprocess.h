@@ -37,7 +37,7 @@ class QuantifiersPreprocess : protected EnvObj
   /** preprocess
    *
    * This returns the result of applying simple quantifiers-specific
-   * preprocessing to n, including but not limited to:
+   * pre-processing to n, including but not limited to:
    * - pre-skolemization,
    * - aggressive prenexing.
    * The argument isInst is set to true if n is an instance of a previously
@@ -57,6 +57,7 @@ class QuantifiersPreprocess : protected EnvObj
    * @param n The formula to preskolemize.
    * @param polarity The polarity of n in the input.
    * @param fvs The free variables
+   * @param visited Cache of visited (node, polarity) pairs.
    */
   Node preSkolemizeQuantifiers(
       Node n,
@@ -68,7 +69,7 @@ class QuantifiersPreprocess : protected EnvObj
    * Apply prenexing aggressively. Returns the prenex normal form of n.
    */
   Node computePrenexAgg(Node n, std::map<Node, Node>& visited) const;
-}; /* class QuantifiersRewriter */
+};
 
 }  // namespace quantifiers
 }  // namespace theory

@@ -181,7 +181,7 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
     return ret;
   }
   // check if it contains a quantifier as a subterm
-  // if so, we will write this node
+  // if so, we may preprocess this node
   if (!expr::hasClosure(n))
   {
     visited[key] = n;

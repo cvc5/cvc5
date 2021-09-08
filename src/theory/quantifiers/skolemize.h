@@ -89,10 +89,10 @@ class Skolemize
    * The skolem constants/functions we generate by this
    * skolemization are added to sk.
    *
-   * The arguments fvTypes and fvs are used if we are
+   * The argument fvs are used if we are
    * performing skolemization within a nested quantified
    * formula. In this case, skolem constants we introduce
-   * must be parameterized based on fvTypes and must be
+   * must be parameterized based on the types of fvs and must be
    * applied to fvs.
    *
    * The last two arguments sub and sub_vars are used for
