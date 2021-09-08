@@ -1010,7 +1010,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         }
         MethodId midi =
             i == 0 ? MethodId::RW_REWRITE : MethodId::RW_REWRITE_EQ_EXT;
-        Node retDef = builtinPfC->applyRewrite(retCurr, midi);
+        Node retDef = rr->rewriteViaMethod(retCurr, midi);
         if (retDef != retCurr)
         {
           // will expand this as a default rewrite if needed
