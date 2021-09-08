@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include "smt/env_obj.h"
 #include "theory/quantifiers/expr_miner_manager.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/cegis.h"
@@ -51,10 +52,11 @@ class EnumValueManager;
  * determines which approach and optimizations are applicable to the
  * conjecture, and has interfaces for implementing them.
  */
-class SynthConjecture
+class SynthConjecture : protected EnvObj
 {
  public:
-  SynthConjecture(QuantifiersState& qs,
+  SynthConjecture(Env& env,
+                  QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr,

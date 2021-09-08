@@ -40,6 +40,7 @@ class UserContext;
 
 namespace smt {
 class DumpManager;
+class PfManager;
 }
 
 namespace theory {
@@ -56,6 +57,7 @@ class TrustSubstitutionMap;
 class Env
 {
   friend class SmtEngine;
+  friend class smt::PfManager;
 
  public:
   /**
