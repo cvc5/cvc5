@@ -22,17 +22,17 @@
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "options/smt_options.h"
+#include "smt/env.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
-#include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusInterpol::SygusInterpol() {}
+SygusInterpol::SygusInterpol(Env& env) : EnvObj(env) {}
 
 void SygusInterpol::collectSymbols(const std::vector<Node>& axioms,
                                    const Node& conj)
@@ -254,7 +254,7 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   constraint = constraint.substitute(
       d_syms.begin(), d_syms.end(), d_vars.begin(), d_vars.end());
   Trace("sygus-interpol-debug") << constraint << "...finish" << std::endl;
-  constraint = Rewriter::rewrite(constraint);
+  constraint = rewrite(constraint);
 
   d_sygusConj = constraint;
   Trace("sygus-interpol") << "Generate: " << d_sygusConj << std::endl;
@@ -324,7 +324,7 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   mkSygusConjecture(itp, axioms, conj);
 
   std::unique_ptr<SmtEngine> subSolver;
-  initializeSubsolver(subSolver);
+  initializeSubsolver(subSolver, d_env);
   // get the logic
   LogicInfo l = subSolver->getLogicInfo().getUnlockedCopy();
   // enable everything needed for sygus

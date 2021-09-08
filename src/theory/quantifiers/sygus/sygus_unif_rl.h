@@ -48,7 +48,7 @@ class SynthConjecture;
 class SygusUnifRl : public SygusUnif
 {
  public:
-  SygusUnifRl(SynthConjecture* p);
+  SygusUnifRl(Env& env, SynthConjecture* p);
   ~SygusUnifRl();
 
   /** initialize */

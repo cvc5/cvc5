@@ -18,13 +18,13 @@
 #include "base/modal_exception.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/model.h"
 #include "smt/node_command.h"
 #include "smt/preprocessor.h"
 #include "smt/smt_solver.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_engine.h"
+#include "theory/theory_model.h"
 
 using namespace cvc5::theory;
 
@@ -34,7 +34,7 @@ namespace smt {
 CheckModels::CheckModels(Env& e) : d_env(e) {}
 CheckModels::~CheckModels() {}
 
-void CheckModels::checkModel(Model* m,
+void CheckModels::checkModel(TheoryModel* m,
                              context::CDList<Node>* al,
                              bool hardFailure)
 {

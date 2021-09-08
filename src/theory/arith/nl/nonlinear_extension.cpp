@@ -37,18 +37,17 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-NonlinearExtension::NonlinearExtension(TheoryArith& containing,
+NonlinearExtension::NonlinearExtension(Env& env,
+                                       TheoryArith& containing,
                                        ArithState& state)
-    : d_containing(containing),
+    : EnvObj(env),
+      d_containing(containing),
       d_astate(state),
       d_im(containing.getInferenceManager()),
       d_needsLastCall(false),
       d_checkCounter(0),
       d_extTheoryCb(state.getEqualityEngine()),
-      d_extTheory(d_extTheoryCb,
-                  containing.getSatContext(),
-                  containing.getUserContext(),
-                  d_im),
+      d_extTheory(d_extTheoryCb, context(), userContext(), d_im),
       d_model(),
       d_trSlv(d_im, d_model, d_astate.getEnv()),
       d_extState(d_im, d_model, d_astate.getEnv()),
@@ -92,11 +91,6 @@ void NonlinearExtension::preRegisterTerm(TNode n)
 void NonlinearExtension::processSideEffect(const NlLemma& se)
 {
   d_trSlv.processSideEffect(se);
-}
-
-const Options& NonlinearExtension::options() const
-{
-  return d_containing.options();
 }
 
 void NonlinearExtension::computeRelevantAssertions(
@@ -146,7 +140,8 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
       // not relevant, skip
       continue;
     }
-    if (bounds.add(lit, false))
+    // if using the bound inference utility
+    if (options().arith.nlRlvAssertBounds && bounds.add(lit, false))
     {
       continue;
     }
@@ -252,7 +247,6 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
 
 void NonlinearExtension::check(Theory::Effort e)
 {
-  d_im.reset();
   Trace("nl-ext") << std::endl;
   Trace("nl-ext") << "NonlinearExtension::check, effort = " << e << std::endl;
   if (e == Theory::EFFORT_FULL)

@@ -23,10 +23,15 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "smt/smt_engine.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus_sampler.h"
+#include "theory/smt_engine_subsolver.h"
 
 namespace cvc5 {
+
+class Env;
+class SmtEngine;
+
 namespace theory {
 namespace quantifiers {
 
@@ -36,10 +41,10 @@ namespace quantifiers {
  * from (enumerated) expressions. This includes:
  * - candidate rewrite rules (--sygus-rr-synth)
  */
-class ExprMiner
+class ExprMiner : protected EnvObj
 {
  public:
-  ExprMiner() : d_sampler(nullptr) {}
+  ExprMiner(Env& env) : EnvObj(env), d_sampler(nullptr) {}
   virtual ~ExprMiner() {}
   /** initialize
    *

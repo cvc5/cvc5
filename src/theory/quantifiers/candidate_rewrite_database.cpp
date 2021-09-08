@@ -33,12 +33,11 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-CandidateRewriteDatabase::CandidateRewriteDatabase(bool doCheck,
-                                                   bool rewAccel,
-                                                   bool silent,
-                                                   bool filterPairs)
-    : d_tds(nullptr),
-      d_ext_rewrite(nullptr),
+CandidateRewriteDatabase::CandidateRewriteDatabase(
+    Env& env, bool doCheck, bool rewAccel, bool silent, bool filterPairs)
+    : ExprMiner(env),
+      d_tds(nullptr),
+      d_useExtRewriter(false),
       d_doCheck(doCheck),
       d_rewAccel(rewAccel),
       d_silent(silent),
@@ -53,7 +52,7 @@ void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
   d_candidate = Node::null();
   d_using_sygus = false;
   d_tds = nullptr;
-  d_ext_rewrite = nullptr;
+  d_useExtRewriter = false;
   if (d_filterPairs)
   {
     d_crewrite_filter.initialize(ss, nullptr, false);
@@ -70,7 +69,7 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
   d_candidate = f;
   d_using_sygus = true;
   d_tds = tds;
-  d_ext_rewrite = nullptr;
+  d_useExtRewriter = false;
   if (d_filterPairs)
   {
     d_crewrite_filter.initialize(ss, d_tds, d_using_sygus);
@@ -122,10 +121,10 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
       // get the rewritten form
       Node solbr;
       Node eq_solr;
-      if (d_ext_rewrite != nullptr)
+      if (d_useExtRewriter)
       {
-        solbr = d_ext_rewrite->extendedRewrite(solb);
-        eq_solr = d_ext_rewrite->extendedRewrite(eq_solb);
+        solbr = extendedRewrite(solb);
+        eq_solr = extendedRewrite(eq_solb);
       }
       else
       {
@@ -290,9 +289,9 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
 
 void CandidateRewriteDatabase::setSilent(bool flag) { d_silent = flag; }
 
-void CandidateRewriteDatabase::setExtendedRewriter(ExtendedRewriter* er)
+void CandidateRewriteDatabase::enableExtendedRewriter()
 {
-  d_ext_rewrite = er;
+  d_useExtRewriter = true;
 }
 
 }  // namespace quantifiers

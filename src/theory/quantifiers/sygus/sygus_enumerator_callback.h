@@ -74,8 +74,6 @@ class SygusEnumeratorCallback
   Node d_enum;
   /** The type of enum */
   TypeNode d_tn;
-  /** extended rewriter */
-  ExtendedRewriter d_extr;
   /** pointer to the statistics */
   SygusStatistics* d_stats;
 };
@@ -86,7 +84,8 @@ class SygusEnumeratorCallbackDefault : public SygusEnumeratorCallback
   SygusEnumeratorCallbackDefault(Node e,
                                  SygusStatistics* s = nullptr,
                                  ExampleEvalCache* eec = nullptr,
-                                 SygusSampler* ssrv = nullptr);
+                                 SygusSampler* ssrv = nullptr,
+                                 std::ostream* out = nullptr);
   virtual ~SygusEnumeratorCallbackDefault() {}
 
  protected:
@@ -101,6 +100,8 @@ class SygusEnumeratorCallbackDefault : public SygusEnumeratorCallback
   ExampleEvalCache* d_eec;
   /** sampler (for --sygus-rr-verify) */
   SygusSampler* d_samplerRrV;
+  /** The output stream to print unsound rewrites for above */
+  std::ostream* d_out;
 };
 
 }  // namespace quantifiers

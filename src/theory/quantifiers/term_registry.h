@@ -42,8 +42,7 @@ class TermRegistry
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  TermRegistry(QuantifiersState& qs,
-               QuantifiersRegistry& qr);
+  TermRegistry(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr);
   /** Finish init, which sets the inference manager on modules of this class */
   void finishInit(FirstOrderModel* fm, QuantifiersInferenceManager* qim);
   /** Presolve */

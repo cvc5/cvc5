@@ -24,7 +24,6 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -46,29 +45,31 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SynthConjecture::SynthConjecture(QuantifiersState& qs,
+SynthConjecture::SynthConjecture(Env& env,
+                                 QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
                                  QuantifiersRegistry& qr,
                                  TermRegistry& tr,
                                  SygusStatistics& s)
-    : d_qstate(qs),
+    : EnvObj(env),
+      d_qstate(qs),
       d_qim(qim),
       d_qreg(qr),
       d_treg(tr),
       d_stats(s),
       d_tds(tr.getTermDatabaseSygus()),
-      d_verify(d_tds),
+      d_verify(qs.options(), qs.getLogicInfo(), d_tds),
       d_hasSolution(false),
-      d_ceg_si(new CegSingleInv(tr, s)),
+      d_ceg_si(new CegSingleInv(env, tr, s)),
       d_templInfer(new SygusTemplateInfer),
       d_ceg_proc(new SynthConjectureProcess),
       d_ceg_gc(new CegGrammarConstructor(d_tds, this)),
-      d_sygus_rconst(new SygusRepairConst(d_tds)),
+      d_sygus_rconst(new SygusRepairConst(env, d_tds)),
       d_exampleInfer(new ExampleInfer(d_tds)),
-      d_ceg_pbe(new SygusPbe(qim, d_tds, this)),
-      d_ceg_cegis(new Cegis(qim, d_tds, this)),
+      d_ceg_pbe(new SygusPbe(qs, qim, d_tds, this)),
+      d_ceg_cegis(new Cegis(qs, qim, d_tds, this)),
       d_ceg_cegisUnif(new CegisUnif(qs, qim, d_tds, this)),
-      d_sygus_ccore(new CegisCoreConnective(qim, d_tds, this)),
+      d_sygus_ccore(new CegisCoreConnective(qs, qim, d_tds, this)),
       d_master(nullptr),
       d_set_ce_sk_vars(false),
       d_repair_index(0),
@@ -514,7 +515,7 @@ bool SynthConjecture::doCheck()
   {
     if (printDebug)
     {
-      Options& sopts = smt::currentSmtEngine()->getOptions();
+      const Options& sopts = d_qstate.options();
       std::ostream& out = *sopts.base.out;
       out << "(sygus-candidate ";
       Assert(d_quant[0].getNumChildren() == candidate_values.size());
@@ -610,7 +611,7 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
     }
     Trace("sygus-engine") << "Check side condition..." << std::endl;
     Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
-    Result r = checkWithSubsolver(sc);
+    Result r = checkWithSubsolver(sc, options(), logicInfo());
     Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
     if (r == Result::UNSAT)
     {
@@ -763,8 +764,8 @@ EnumValueManager* SynthConjecture::getEnumValueManagerFor(Node e)
   Node f = d_tds->getSynthFunForEnumerator(e);
   bool hasExamples = (d_exampleInfer->hasExamples(f)
                       && d_exampleInfer->getNumExamples(f) != 0);
-  d_enumManager[e].reset(
-      new EnumValueManager(e, d_qim, d_treg, d_stats, hasExamples));
+  d_enumManager[e].reset(new EnumValueManager(
+      d_env, d_qstate, d_qim, d_treg, d_stats, e, hasExamples));
   EnumValueManager* eman = d_enumManager[e].get();
   // set up the examples
   if (hasExamples)
@@ -800,7 +801,7 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
   Assert(d_master != nullptr);
   // we have generated a solution, print it
   // get the current output stream
-  Options& sopts = smt::currentSmtEngine()->getOptions();
+  const Options& sopts = d_qstate.options();
   printSynthSolutionInternal(*sopts.base.out);
   excludeCurrentSolution(enums, values);
 }
@@ -881,19 +882,21 @@ void SynthConjecture::printSynthSolutionInternal(std::ostream& out)
                      != options::SygusFilterSolMode::NONE))
       {
         Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
-        std::map<Node, ExpressionMinerManager>::iterator its =
+        std::map<Node, std::unique_ptr<ExpressionMinerManager>>::iterator its =
             d_exprm.find(prog);
         if (its == d_exprm.end())
         {
-          d_exprm[prog].initializeSygus(
+          d_exprm[prog].reset(new ExpressionMinerManager(d_env));
+          ExpressionMinerManager* emm = d_exprm[prog].get();
+          emm->initializeSygus(
               d_tds, d_candidates[i], options::sygusSamples(), true);
           if (options::sygusRewSynth())
           {
-            d_exprm[prog].enableRewriteRuleSynth();
+            emm->enableRewriteRuleSynth();
           }
           if (options::sygusQueryGen())
           {
-            d_exprm[prog].enableQueryGeneration(options::sygusQueryGenThresh());
+            emm->enableQueryGeneration(options::sygusQueryGenThresh());
           }
           if (options::sygusFilterSolMode()
               != options::SygusFilterSolMode::NONE)
@@ -901,18 +904,18 @@ void SynthConjecture::printSynthSolutionInternal(std::ostream& out)
             if (options::sygusFilterSolMode()
                 == options::SygusFilterSolMode::STRONG)
             {
-              d_exprm[prog].enableFilterStrongSolutions();
+              emm->enableFilterStrongSolutions();
             }
             else if (options::sygusFilterSolMode()
                      == options::SygusFilterSolMode::WEAK)
             {
-              d_exprm[prog].enableFilterWeakSolutions();
+              emm->enableFilterWeakSolutions();
             }
           }
           its = d_exprm.find(prog);
         }
         bool rew_print = false;
-        is_unique_term = d_exprm[prog].addTerm(sol, out, rew_print);
+        is_unique_term = its->second->addTerm(sol, out, rew_print);
         if (rew_print)
         {
           ++(d_stats.d_candidate_rewrites_print);

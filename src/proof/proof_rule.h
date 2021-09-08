@@ -848,7 +848,7 @@ enum class PfRule : uint32_t
   // Arguments: (F)
   // ---------------------------------------------------------------
   // Conclusion: F
-  // where F is an equality of the form t = QuantifiersRewriter::preprocess(t)
+  // where F is an equality of the form t = QuantifiersPreprocess::preprocess(t)
   QUANTIFIERS_PREPROCESS,
   //================================================= String rules
   //======================== Core solver
@@ -1077,6 +1077,15 @@ enum class PfRule : uint32_t
   // Also applies to the case where (seq.unit y) is a constant sequence
   // of length one.
   STRING_SEQ_UNIT_INJ,
+  //======================== Trusted
+  // ======== String inference
+  // Children: ?
+  // Arguments: (F id isRev exp)
+  // ---------------------
+  // Conclusion: F
+  // used to bookkeep an inference that has not yet been converted via
+  // strings::InferProofCons::convert.
+  STRING_INFERENCE,
 
   //================================================= Arithmetic rules
   // ======== Adding Inequalities
