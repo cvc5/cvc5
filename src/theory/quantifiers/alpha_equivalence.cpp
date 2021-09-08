@@ -18,7 +18,6 @@
 #include "proof/method_id.h"
 #include "proof/proof.h"
 #include "proof/proof_node.h"
-#include "theory/quantifiers/extended_rewrite.h"
 
 using namespace cvc5::kind;
 
@@ -135,11 +134,12 @@ Node AlphaEquivalenceDb::addTermToTypeTrie(Node t, Node q)
   return ret;
 }
 
-AlphaEquivalence::AlphaEquivalence(ProofNodeManager* pnm)
-    : d_termCanon(),
+AlphaEquivalence::AlphaEquivalence(Env& env)
+    : EnvObj(env),
+      d_termCanon(),
       d_aedb(&d_termCanon, true),
-      d_pnm(pnm),
-      d_pfAlpha(pnm ? new EagerProofGenerator(pnm) : nullptr)
+      d_pnm(env.getProofNodeManager()),
+      d_pfAlpha(d_pnm ? new EagerProofGenerator(d_pnm) : nullptr)
 {
 }
 
@@ -204,10 +204,9 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     }
     else
     {
-      theory::quantifiers::ExtendedRewriter extr(true);
       Node eq2 = sret.eqNode(q);
       transEq.push_back(eq2);
-      Node eq2r = extr.extendedRewrite(eq2);
+      Node eq2r = extendedRewrite(eq2);
       if (eq2r.isConst() && eq2r.getConst<bool>())
       {
         // ---------- MACRO_SR_PRED_INTRO

@@ -18,10 +18,10 @@
 #ifndef CVC5__ALPHA_EQUIVALENCE_H
 #define CVC5__ALPHA_EQUIVALENCE_H
 
-#include "theory/quantifiers/quant_util.h"
-
 #include "expr/term_canonize.h"
 #include "proof/eager_proof_generator.h"
+#include "theory/quantifiers/quant_util.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -105,10 +105,10 @@ class AlphaEquivalenceDb
  * A quantifiers module that computes reductions based on alpha-equivalence,
  * using the above utilities.
  */
-class AlphaEquivalence
+class AlphaEquivalence : protected EnvObj
 {
  public:
-  AlphaEquivalence(ProofNodeManager* pnm = nullptr);
+  AlphaEquivalence(Env& env);
   ~AlphaEquivalence(){}
   /** reduce quantifier
    *

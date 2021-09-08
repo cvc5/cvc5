@@ -96,7 +96,7 @@ void QuantifiersModules::initialize(Env& env,
   }
   if (options::quantAlphaEquiv())
   {
-    d_alpha_equiv.reset(new AlphaEquivalence(env.getProofNodeManager()));
+    d_alpha_equiv.reset(new AlphaEquivalence(env));
   }
   // full saturation : instantiate from relevant domain, then arbitrary terms
   if (options::fullSaturateQuant() || options::fullSaturateInterleave())
