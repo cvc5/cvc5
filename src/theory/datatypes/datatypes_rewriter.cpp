@@ -200,7 +200,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
           {
             vars.push_back(c[0][i]);
             Node sc = nm->mkNode(
-                APPLY_SELECTOR_TOTAL, dt[cindex].getSelectorInternal(t, i), h);
+                APPLY_SELECTOR, dt[cindex].getSelector(), h);
             subs.push_back(sc);
           }
         }
