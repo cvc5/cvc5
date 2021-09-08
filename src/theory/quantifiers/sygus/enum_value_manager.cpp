@@ -33,12 +33,12 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-EnumValueManager::EnumValueManager(Node e,
-                                   Env& env,
+EnumValueManager::EnumValueManager(Env& env,
                                    QuantifiersState& qs,
                                    QuantifiersInferenceManager& qim,
                                    TermRegistry& tr,
                                    SygusStatistics& s,
+                                   Node e,
                                    bool hasExamples)
     : EnvObj(env),
       d_enum(e),

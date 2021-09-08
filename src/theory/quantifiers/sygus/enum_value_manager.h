@@ -42,12 +42,12 @@ class SygusStatistics;
 class EnumValueManager : protected EnvObj
 {
  public:
-  EnumValueManager(Node e,
-                   Env& env,
+  EnumValueManager(Env& env,
                    QuantifiersState& qs,
                    QuantifiersInferenceManager& qim,
                    TermRegistry& tr,
                    SygusStatistics& s,
+                   Node e,
                    bool hasExamples);
   ~EnumValueManager();
   /**
