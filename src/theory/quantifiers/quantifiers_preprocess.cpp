@@ -15,12 +15,21 @@
 
 #include "theory/quantifiers/quantifiers_preprocess.h"
 
+#include "options/quantifiers_options.h"
+#include "theory/quantifiers/skolemize.h"
+#include "expr/node_algorithm.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
+
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
+QuantifiersPreprocess::QuantifiersPreprocess(Env& env) : EnvObj(env){}
+   
 Node QuantifiersPreprocess::computePrenexAgg(Node n,
-                                           std::map<Node, Node>& visited)
+                                           std::map<Node, Node>& visited) const
 {
   std::map<Node, Node>::iterator itv = visited.find(n);
   if (itv != visited.end())
@@ -59,15 +68,15 @@ Node QuantifiersPreprocess::computePrenexAgg(Node n,
     {
       iplc.insert(iplc.end(), n[2].begin(), n[2].end());
     }
-    Node nb = children.size() == 1 ? children[0] : nm->mkNode(OR, children);
-    ret = mkForall(args, nb, iplc, true);
+    Node nb = nm->mkOr(children);
+    ret = QuantifiersRewriter::mkForall(args, nb, iplc, true);
   }
   else
   {
     std::unordered_set<Node> argsSet;
     std::unordered_set<Node> nargsSet;
     Node q;
-    Node nn = computePrenex(q, n, argsSet, nargsSet, true, true);
+    Node nn = QuantifiersRewriter::computePrenex(q, n, argsSet, nargsSet, true, true);
     Assert(n != nn || argsSet.empty());
     Assert(n != nn || nargsSet.empty());
     if (n != nn)
@@ -81,7 +90,7 @@ Node QuantifiersPreprocess::computePrenexAgg(Node n,
         // pos polarity variables are inner
         if (!argsSet.empty())
         {
-          nnn = mkForall({argsSet.begin(), argsSet.end()}, nnn, true);
+          nnn = QuantifiersRewriter::mkForall({argsSet.begin(), argsSet.end()}, nnn, true);
         }
         argsSet.clear();
       }
@@ -92,12 +101,12 @@ Node QuantifiersPreprocess::computePrenexAgg(Node n,
       }
       if (!nargsSet.empty())
       {
-        nnn = mkForall({nargsSet.begin(), nargsSet.end()}, nnn.negate(), true)
+        nnn = QuantifiersRewriter::mkForall({nargsSet.begin(), nargsSet.end()}, nnn.negate(), true)
                   .negate();
       }
       if (!argsSet.empty())
       {
-        nnn = mkForall({argsSet.begin(), argsSet.end()}, nnn, true);
+        nnn = QuantifiersRewriter::mkForall({argsSet.begin(), argsSet.end()}, nnn, true);
       }
       ret = nnn;
     }
@@ -110,16 +119,17 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
     Node n,
     bool polarity,
     std::vector<TypeNode>& fvTypes,
-    std::vector<TNode>& fvs)
+    std::vector<TNode>& fvs) const
 {
+  NodeManager * nm = NodeManager::currentNM();
   Trace("pre-sk") << "Pre-skolem " << n << " " << polarity << " " << fvs.size()
-                  << endl;
-  if (n.getKind() == kind::NOT)
+                  << std::endl;
+  if (n.getKind() == NOT)
   {
     Node nn = preSkolemizeQuantifiers(n[0], !polarity, fvTypes, fvs);
     return nn.negate();
   }
-  else if (n.getKind() == kind::FORALL)
+  else if (n.getKind() == FORALL)
   {
     if (n.getNumChildren() == 3)
     {
@@ -131,9 +141,9 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
     }
     else if (polarity)
     {
-      if (options::preSkolemQuant() && options::preSkolemQuantNested())
+      if (options().quantifiers.preSkolemQuant && options().quantifiers.preSkolemQuantNested)
       {
-        vector<Node> children;
+        std::vector<Node> children;
         children.push_back(n[0]);
         // add children to current scope
         std::vector<TypeNode> fvt;
@@ -148,7 +158,7 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
         // process body
         children.push_back(preSkolemizeQuantifiers(n[1], polarity, fvt, fvss));
         // return processed quantifier
-        return NodeManager::currentNM()->mkNode(kind::FORALL, children);
+        return nm->mkNode(FORALL, children);
       }
     }
     else
@@ -169,58 +179,58 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
     // if so, we will write this node
     if (expr::hasClosure(n))
     {
-      if ((n.getKind() == kind::ITE && n.getType().isBoolean())
-          || (n.getKind() == kind::EQUAL && n[0].getType().isBoolean()))
+      if ((n.getKind() == ITE && n.getType().isBoolean())
+          || (n.getKind() == EQUAL && n[0].getType().isBoolean()))
       {
-        if (options::preSkolemQuantAgg())
+        if (options().quantifiers.preSkolemQuantAgg)
         {
           Node nn;
           // must remove structure
-          if (n.getKind() == kind::ITE)
+          if (n.getKind() == ITE)
           {
-            nn = NodeManager::currentNM()->mkNode(
-                kind::AND,
-                NodeManager::currentNM()->mkNode(
-                    kind::OR, n[0].notNode(), n[1]),
-                NodeManager::currentNM()->mkNode(kind::OR, n[0], n[2]));
+            nn = nm->mkNode(
+                AND,
+                nm->mkNode(
+                    OR, n[0].notNode(), n[1]),
+                nm->mkNode(OR, n[0], n[2]));
           }
-          else if (n.getKind() == kind::EQUAL)
+          else if (n.getKind() == EQUAL)
           {
-            nn = NodeManager::currentNM()->mkNode(
-                kind::AND,
-                NodeManager::currentNM()->mkNode(
-                    kind::OR,
+            nn = nm->mkNode(
+                AND,
+                nm->mkNode(
+                    OR,
                     n[0].notNode(),
-                    n.getKind() == kind::XOR ? n[1].notNode() : n[1]),
-                NodeManager::currentNM()->mkNode(
-                    kind::OR,
+                    n.getKind() == XOR ? n[1].notNode() : n[1]),
+                nm->mkNode(
+                    OR,
                     n[0],
-                    n.getKind() == kind::XOR ? n[1] : n[1].notNode()));
+                    n.getKind() == XOR ? n[1] : n[1].notNode()));
           }
           return preSkolemizeQuantifiers(nn, polarity, fvTypes, fvs);
         }
       }
-      else if (n.getKind() == kind::AND || n.getKind() == kind::OR)
+      else if (n.getKind() == AND || n.getKind() == OR)
       {
-        vector<Node> children;
+        std::vector<Node> children;
         for (int i = 0; i < (int)n.getNumChildren(); i++)
         {
           children.push_back(
               preSkolemizeQuantifiers(n[i], polarity, fvTypes, fvs));
         }
-        return NodeManager::currentNM()->mkNode(n.getKind(), children);
+        return nm->mkNode(n.getKind(), children);
       }
     }
   }
   return n;
 }
 
-TrustNode QuantifiersPreprocess::preprocess(Node n, bool isInst)
+TrustNode QuantifiersPreprocess::preprocess(Node n, bool isInst) const
 {
   Node prev = n;
-  if (options::preSkolemQuant())
+  if (options().quantifiers.preSkolemQuant)
   {
-    if (!isInst || !options::preSkolemQuantNested())
+    if (!isInst || !options().quantifiers.preSkolemQuantNested)
     {
       Trace("quantifiers-preprocess-debug")
           << "Pre-skolemize " << n << "..." << std::endl;
@@ -231,12 +241,12 @@ TrustNode QuantifiersPreprocess::preprocess(Node n, bool isInst)
     }
   }
   // pull all quantifiers globally
-  if (options::prenexQuant() == options::PrenexQuantMode::NORMAL)
+  if (options().quantifiers.prenexQuant == options::PrenexQuantMode::NORMAL)
   {
     Trace("quantifiers-prenex") << "Prenexing : " << n << std::endl;
     std::map<Node, Node> visited;
     n = computePrenexAgg(n, visited);
-    n = Rewriter::rewrite(n);
+    n = rewrite(n);
     Trace("quantifiers-prenex") << "Prenexing returned : " << n << std::endl;
   }
   if (n != prev)

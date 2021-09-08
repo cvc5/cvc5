@@ -37,10 +37,11 @@ PreprocessingPassResult QuantifiersPreprocess::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   size_t size = assertionsToPreprocess->size();
+  quantifiers::QuantifiersPreprocess qp(d_env);
   for (size_t i = 0; i < size; ++i)
   {
     Node prev = (*assertionsToPreprocess)[i];
-    TrustNode trn = quantifiers::QuantifiersPreprocess::preprocess(prev);
+    TrustNode trn = qp.preprocess(prev);
     if (!trn.isNull())
     {
       Node next = trn.getNode();

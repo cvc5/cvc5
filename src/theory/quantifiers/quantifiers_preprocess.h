@@ -20,13 +20,16 @@
 
 #include "proof/trust_node.h"
 
+#include "smt/env_obj.h"
+
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-class QuantifiersPreprocess
+class QuantifiersPreprocess : protected EnvObj
 {
  public:
+   QuantifiersPreprocess(Env& env);
   /** preprocess
    *
    * This returns the result of applying simple quantifiers-specific
@@ -41,18 +44,18 @@ class QuantifiersPreprocess
    *
    * The result is wrapped in a trust node of kind TrustNodeKind::REWRITE.
    */
-  static TrustNode preprocess(Node n, bool isInst = false);
+  TrustNode preprocess(Node n, bool isInst = false) const;
 
  private:
   /** Pre-skolemize quantifiers */
-  static Node preSkolemizeQuantifiers(Node n,
+  Node preSkolemizeQuantifiers(Node n,
                                       bool polarity,
                                       std::vector<TypeNode>& fvTypes,
-                                      std::vector<TNode>& fvs);
+                                      std::vector<TNode>& fvs) const;
   /**
    * Apply prenexing aggressively. Returns the prenex normal form of n.
    */
-  static Node computePrenexAgg(Node n, std::map<Node, Node>& visited);
+  Node computePrenexAgg(Node n, std::map<Node, Node>& visited) const;
 }; /* class QuantifiersRewriter */
 
 }  // namespace quantifiers

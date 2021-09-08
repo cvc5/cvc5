@@ -48,7 +48,7 @@ class EnvObj
    * Rewrite a node.
    * This is a wrapper around theory::Rewriter::rewrite via Env.
    */
-  Node rewrite(TNode node);
+  Node rewrite(TNode node) const;
 
   /** Get the current logic information. */
   const LogicInfo& logicInfo() const;
