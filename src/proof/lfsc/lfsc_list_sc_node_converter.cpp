@@ -101,10 +101,7 @@ Node LfscListScNodeConverter::postConvert(Node n)
     std::vector<Node> children;
     Node f = d_conv.getOperatorOfTerm(n);
     children.push_back(f);
-    for (size_t i = 0; i < 2; i++)
-    {
-      children.push_back(n[i]);
-    }
+    children.insert(children.end(), n.begin(), n.end());
     children.push_back(null);
     Node sop = mkOperatorFor("nary_concat", children, tn);
     children.insert(children.begin(), sop);
