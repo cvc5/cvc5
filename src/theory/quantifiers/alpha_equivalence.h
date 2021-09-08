@@ -20,6 +20,7 @@
 
 #include "expr/term_canonize.h"
 #include "proof/eager_proof_generator.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/quant_util.h"
 
 namespace cvc5 {
@@ -72,8 +73,8 @@ class AlphaEquivalenceDb
   Node addTerm(Node q);
   /**
    * Add term with substitution, which additionally finds a set of terms such
-   * that q * subs is alpha-equivalent (possibly modulo rewriting) to the
-   * returned quantified formula.
+   * that q' * subs is alpha-equivalent (possibly modulo rewriting) to q, where
+   * q' is the return quantified formula.
    */
   Node addTermWithSubstitution(Node q,
                                std::vector<Node>& vars,
@@ -104,10 +105,10 @@ class AlphaEquivalenceDb
  * A quantifiers module that computes reductions based on alpha-equivalence,
  * using the above utilities.
  */
-class AlphaEquivalence
+class AlphaEquivalence : protected EnvObj
 {
  public:
-  AlphaEquivalence(ProofNodeManager* pnm = nullptr);
+  AlphaEquivalence(Env& env);
   ~AlphaEquivalence(){}
   /** reduce quantifier
    *
@@ -125,9 +126,7 @@ class AlphaEquivalence
   AlphaEquivalenceDb d_aedb;
   /** Pointer to the proof node manager */
   ProofNodeManager* d_pnm;
-  /**
-   * A CDProof storing alpha equivalence steps.
-   */
+  /** An eager proof generator storing alpha equivalence proofs.*/
   std::unique_ptr<EagerProofGenerator> d_pfAlpha;
   /** Are proofs enabled for this object? */
   bool isProofEnabled() const;
