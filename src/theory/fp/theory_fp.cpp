@@ -482,8 +482,7 @@ void TheoryFp::registerTerm(TNode node)
          && k != kind::FLOATINGPOINT_EQ && k != kind::FLOATINGPOINT_GEQ
          && k != kind::FLOATINGPOINT_GT);
 
-  bool success = d_registeredTerms.insert(node);
-  (void)success;  // Only used for assertion
+  CVC5_UNUSED bool success = d_registeredTerms.insert(node);
   Assert(success);
 
   // Add to the equality engine
