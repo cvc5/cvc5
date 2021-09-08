@@ -30,9 +30,9 @@ namespace cvc5 {
 namespace proof {
 
 /**
- * LFSC proofs are printed in two phases, the first phase computes the
+ * LFSC proofs are printed in two phases: the first phase computes the
  * letification of terms in the proof as well as other information that is
- * required for printing the preamble of the proof, the second phase prints the
+ * required for printing the preamble of the proof. The second phase prints the
  * proof to an output stream. This is the base class for these two phases.
  */
 class LfscPrintChannel
