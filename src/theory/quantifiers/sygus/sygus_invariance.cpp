@@ -111,7 +111,7 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
 {
   TypeNode tn = nvn.getType();
   Node nbv = tds->sygusToBuiltin(nvn, tn);
-  Node nbvr = tds->getExtRewriter()->extendedRewrite(nbv);
+  Node nbvr = Rewriter::callExtendedRewrite(nbv);
   Trace("sygus-sb-mexp-debug") << "  min-exp check : " << nbv << " -> " << nbvr
                                << std::endl;
   bool exc_arg = false;
@@ -181,7 +181,7 @@ bool DivByZeroSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
 {
   TypeNode tn = nvn.getType();
   Node nbv = tds->sygusToBuiltin(nvn, tn);
-  Node nbvr = tds->getExtRewriter()->extendedRewrite(nbv);
+  Node nbvr = Rewriter::callExtendedRewrite(nbv);
   if (tds->involvesDivByZero(nbvr))
   {
     Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin(nvn)
@@ -212,7 +212,7 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
   {
     TypeNode tn = nvn.getType();
     Node nbv = tds->sygusToBuiltin(nvn, tn);
-    Node nbvr = tds->getExtRewriter()->extendedRewrite(nbv);
+    Node nbvr = Rewriter::callExtendedRewrite(nbv);
     // if for any of the examples, it is not contained, then we can exclude
     for (unsigned i = 0; i < d_neg_con_indices.size(); i++)
     {

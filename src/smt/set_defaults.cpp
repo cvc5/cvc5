@@ -662,6 +662,12 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       opts.arith.nlExtTangentPlanesInterleave = true;
     }
   }
+  if (!opts.arith.nlRlvAssertBoundsWasSetByUser)
+  {
+    // use bound inference to determine when bounds are irrelevant only when
+    // the logic is quantifier-free
+    opts.arith.nlRlvAssertBounds = !logic.isQuantified();
+  }
 
   // set the default decision mode
   setDefaultDecisionMode(logic, opts);

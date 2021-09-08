@@ -41,12 +41,12 @@ QuantifiersModules::QuantifiersModules()
 {
 }
 QuantifiersModules::~QuantifiersModules() {}
-void QuantifiersModules::initialize(QuantifiersState& qs,
+void QuantifiersModules::initialize(Env& env,
+                                    QuantifiersState& qs,
                                     QuantifiersInferenceManager& qim,
                                     QuantifiersRegistry& qr,
                                     TermRegistry& tr,
                                     QModelBuilder* builder,
-                                    ProofNodeManager* pnm,
                                     std::vector<QuantifiersModule*>& modules)
 {
   // add quantifiers modules
@@ -73,7 +73,7 @@ void QuantifiersModules::initialize(QuantifiersState& qs,
   }
   if (options::sygus())
   {
-    d_synth_e.reset(new SynthEngine(qs, qim, qr, tr));
+    d_synth_e.reset(new SynthEngine(env, qs, qim, qr, tr));
     modules.push_back(d_synth_e.get());
   }
   // bounded integer instantiation is used when the user requests it via
@@ -96,7 +96,7 @@ void QuantifiersModules::initialize(QuantifiersState& qs,
   }
   if (options::quantAlphaEquiv())
   {
-    d_alpha_equiv.reset(new AlphaEquivalence(pnm));
+    d_alpha_equiv.reset(new AlphaEquivalence(env.getProofNodeManager()));
   }
   // full saturation : instantiate from relevant domain, then arbitrary terms
   if (options::fullSaturateQuant() || options::fullSaturateInterleave())

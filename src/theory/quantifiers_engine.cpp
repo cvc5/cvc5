@@ -45,12 +45,14 @@ namespace cvc5 {
 namespace theory {
 
 QuantifiersEngine::QuantifiersEngine(
+    Env& env,
     quantifiers::QuantifiersState& qs,
     quantifiers::QuantifiersRegistry& qr,
     quantifiers::TermRegistry& tr,
     quantifiers::QuantifiersInferenceManager& qim,
     ProofNodeManager* pnm)
-    : d_qstate(qs),
+    : EnvObj(env),
+      d_qstate(qs),
       d_qim(qim),
       d_te(nullptr),
       d_pnm(pnm),
@@ -113,7 +115,7 @@ void QuantifiersEngine::finishInit(TheoryEngine* te)
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
   d_qmodules->initialize(
-      d_qstate, d_qim, d_qreg, d_treg, d_builder.get(), d_pnm, d_modules);
+      d_env, d_qstate, d_qim, d_qreg, d_treg, d_builder.get(), d_pnm, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
