@@ -128,7 +128,7 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
         visited) const
 {
   std::pair<Node, bool> key(n, polarity);
-  std::unordered_map<std::pair<Node, bool>, Node>::iterator it =
+  std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction>::iterator it =
       visited.find(key);
   if (it != visited.end())
   {
