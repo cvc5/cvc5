@@ -22,7 +22,6 @@
 
 #include "options/options.h"
 #include "theory/quantifiers/expr_miner.h"
-#include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5 {
@@ -62,8 +61,6 @@ class QueryCache : public ExprMiner
   Node d_true;
   /** Sampler, caches points that satisfy queries */
   SygusSampler d_sampler;
-  /** Extended rewriter */
-  ExtendedRewriter d_extr;
   /** The options for subsolver calls */
   Options d_subOptions;
 };

@@ -53,7 +53,7 @@ bool QueryCache::addTerm(Node sol, std::ostream& out) { return false; }
 bool QueryCache::addTerm(Node sol)
 {
   bool isSat = false;
-  sol = d_extr.extendedRewrite(sol);
+  sol = extendedRewrite(sol);
   if (sol.isConst())
   {
     isSat = sol.getConst<bool>();
