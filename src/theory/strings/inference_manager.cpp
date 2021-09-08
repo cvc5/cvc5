@@ -30,19 +30,19 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-InferenceManager::InferenceManager(Theory& t,
+InferenceManager::InferenceManager(Env& env,
+                                   Theory& t,
                                    SolverState& s,
                                    TermRegistry& tr,
                                    ExtTheory& e,
                                    SequencesStatistics& statistics,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, s, pnm, "theory::strings::", false),
+    : InferenceManagerBuffered(env, t, s, pnm, "theory::strings::", false),
       d_state(s),
       d_termReg(tr),
       d_extt(e),
       d_statistics(statistics),
-      d_ipc(pnm ? new InferProofCons(d_state.getSatContext(), pnm, d_statistics)
-                : nullptr)
+      d_ipc(pnm ? new InferProofCons(context(), pnm, d_statistics) : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));

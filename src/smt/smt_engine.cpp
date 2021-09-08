@@ -194,20 +194,15 @@ void SmtEngine::finishInit()
   SetDefaults sdefaults(d_isInternalSubsolver);
   sdefaults.setDefaults(d_env->d_logic, getOptions());
 
-  ProofNodeManager* pnm = nullptr;
   if (d_env->getOptions().smt.produceProofs)
   {
     // ensure bound variable uses canonical bound variables
     getNodeManager()->getBoundVarManager()->enableKeepCacheValues();
     // make the proof manager
-    d_pfManager.reset(new PfManager(*d_env.get(), this));
+    d_pfManager.reset(new PfManager(*d_env.get()));
     PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager());
-    // use this proof node manager
-    pnm = d_pfManager->getProofNodeManager();
-    // enable proof support in the environment/rewriter
-    d_env->setProofNodeManager(pnm);
     // enable it in the assertions pipeline
     d_asserts->setProofGenerator(pppg);
     // enabled proofs in the preprocessor
@@ -255,12 +250,12 @@ void SmtEngine::finishInit()
   // subsolvers
   if (d_env->getOptions().smt.produceAbducts)
   {
-    d_abductSolver.reset(new AbductionSolver(*d_env.get(), this));
+    d_abductSolver.reset(new AbductionSolver(*d_env.get()));
   }
   if (d_env->getOptions().smt.produceInterpols
       != options::ProduceInterpols::NONE)
   {
-    d_interpolSolver.reset(new InterpolationSolver(*d_env.get(), this));
+    d_interpolSolver.reset(new InterpolationSolver(*d_env.get()));
   }
 
   d_pp->finishInit();
@@ -1754,7 +1749,9 @@ bool SmtEngine::getInterpol(const Node& conj,
 {
   SmtScope smts(this);
   finishInit();
-  bool success = d_interpolSolver->getInterpol(conj, grammarType, interpol);
+  std::vector<Node> axioms = getExpandedAssertions();
+  bool success =
+      d_interpolSolver->getInterpol(axioms, conj, grammarType, interpol);
   // notify the state of whether the get-interpol call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
@@ -1773,7 +1770,8 @@ bool SmtEngine::getAbduct(const Node& conj,
 {
   SmtScope smts(this);
   finishInit();
-  bool success = d_abductSolver->getAbduct(conj, grammarType, abd);
+  std::vector<Node> axioms = getExpandedAssertions();
+  bool success = d_abductSolver->getAbduct(axioms, conj, grammarType, abd);
   // notify the state of whether the get-abduct call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetAbduct(success);

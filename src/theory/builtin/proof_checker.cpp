@@ -67,39 +67,7 @@ Node BuiltinProofRuleChecker::applySubstitutionRewrite(
     MethodId idr)
 {
   Node nks = applySubstitution(n, exp, ids, ida);
-  return applyRewrite(nks, idr);
-}
-
-Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
-{
-  Trace("builtin-pfcheck-debug")
-      << "applyRewrite (" << idr << "): " << n << std::endl;
-  if (idr == MethodId::RW_REWRITE)
-  {
-    return Rewriter::rewrite(n);
-  }
-  if (idr == MethodId::RW_EXT_REWRITE)
-  {
-    return d_ext_rewriter.extendedRewrite(n);
-  }
-  if (idr == MethodId::RW_REWRITE_EQ_EXT)
-  {
-    return d_env.getRewriter()->rewriteEqualityExt(n);
-  }
-  if (idr == MethodId::RW_EVALUATE)
-  {
-    Evaluator eval;
-    return eval.eval(n, {}, {}, false);
-  }
-  if (idr == MethodId::RW_IDENTITY)
-  {
-    // does nothing
-    return n;
-  }
-  // unknown rewriter
-  Assert(false) << "BuiltinProofRuleChecker::applyRewrite: no rewriter for "
-                << idr << std::endl;
-  return n;
+  return d_env.getRewriter()->rewriteViaMethod(nks, idr);
 }
 
 bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
@@ -281,7 +249,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    Node res = applyRewrite(args[0], idr);
+    Node res = d_env.getRewriter()->rewriteViaMethod(args[0], idr);
     if (res.isNull())
     {
       return Node::null();
@@ -292,7 +260,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Node res = applyRewrite(args[0], MethodId::RW_EVALUATE);
+    Node res = d_env.getRewriter()->rewriteViaMethod(args[0], MethodId::RW_EVALUATE);
     if (res.isNull())
     {
       return Node::null();
