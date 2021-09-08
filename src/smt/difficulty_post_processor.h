@@ -56,7 +56,8 @@ class DifficultyPostprocessCallback : public ProofNodeUpdaterCallback
   /**
    * Set current difficulty of the next proof to process to the (integer)
    * value stored in Node d. This value will be assigned to all the free
-   * assumptions of the proof we traverse next.
+   * assumptions of the proof we traverse next. This value is stored in
+   * d_currDifficulty.
    *
    * @return true if the difficulty value was successfully extracted
    */
