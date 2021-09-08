@@ -92,10 +92,6 @@ struct RewriteStackElement {
   NodeBuilder d_builder;
 };
 
-RewriteResponse identityRewrite(RewriteEnvironment* re, TNode n)
-{
-  return RewriteResponse(REWRITE_DONE, n);
-}
 
 Node Rewriter::rewrite(TNode node) {
   if (node.getNumChildren() == 0)
@@ -105,6 +101,17 @@ Node Rewriter::rewrite(TNode node) {
     return node;
   }
   return getInstance()->rewriteTo(theoryOf(node), node);
+}
+
+Node Rewriter::callExtendedRewrite(TNode node, bool aggr)
+{
+  return getInstance()->extendedRewrite(node, aggr);
+}
+
+Node Rewriter::extendedRewrite(TNode node, bool aggr)
+{
+  quantifiers::ExtendedRewriter er(*this, aggr);
+  return er.extendedRewrite(node);
 }
 
 TrustNode Rewriter::rewriteWithProof(TNode node,
@@ -480,8 +487,7 @@ Node Rewriter::rewriteViaMethod(TNode n, MethodId idr)
   }
   if (idr == MethodId::RW_EXT_REWRITE)
   {
-    quantifiers::ExtendedRewriter er;
-    return er.extendedRewrite(n);
+    return extendedRewrite(n);
   }
   if (idr == MethodId::RW_REWRITE_EQ_EXT)
   {

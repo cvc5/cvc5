@@ -51,10 +51,10 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
   return os;
 }
 
-TermDbSygus::TermDbSygus(QuantifiersState& qs)
-    : d_qstate(qs),
+TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs)
+    : EnvObj(env),
+      d_qstate(qs),
       d_syexp(new SygusExplain(this)),
-      d_ext_rw(new ExtendedRewriter(true)),
       d_eval(new Evaluator),
       d_funDefEval(new FunDefEvaluator),
       d_eval_unfold(new SygusEvalUnfold(this))
@@ -739,7 +739,15 @@ SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)
 
 Node TermDbSygus::rewriteNode(Node n) const
 {
-  Node res = extendedRewrite(n);
+  Node res;
+  if (options().quantifiers.sygusExtRew)
+  {
+    res = extendedRewrite(n);
+  }
+  else
+  {
+    res = rewrite(n);
+  }
   if (res.isConst())
   {
     // constant, we are done
