@@ -103,7 +103,6 @@ class Skolemize
    */
   static Node mkSkolemizedBody(Node q,
                                Node n,
-                               std::vector<TypeNode>& fvTypes,
                                std::vector<TNode>& fvs,
                                std::vector<Node>& sk,
                                Node& sub,

@@ -46,13 +46,20 @@ class QuantifiersPreprocess : protected EnvObj
   TrustNode preprocess(Node n, bool isInst = false) const;
 
  private:
-  /** Pre-skolemize quantifiers */
+  using NodePolPairHashFunction =
+      PairHashFunction<Node, bool, std::hash<Node>>;
+  /** 
+   * Pre-skolemize quantifiers. Return the pre-skolemized form of n.
+   * 
+   * @param n The formula to preskolemize.
+   * @param polarity The polarity of n in the input.
+   * @param fvs The free variables
+   */
   Node preSkolemizeQuantifiers(
       Node n,
       bool polarity,
-      std::vector<TypeNode>& fvTypes,
       std::vector<TNode>& fvs,
-      std::unordered_map<std::pair<Node, bool>, Node>& visited) const;
+      std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction>& visited) const;
   /**
    * Apply prenexing aggressively. Returns the prenex normal form of n.
    */

@@ -19,6 +19,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
+#include "theory/quantifiers/quant_util.h"
 
 using namespace cvc5::kind;
 
@@ -122,9 +123,8 @@ Node QuantifiersPreprocess::computePrenexAgg(
 Node QuantifiersPreprocess::preSkolemizeQuantifiers(
     Node n,
     bool polarity,
-    std::vector<TypeNode>& fvTypes,
     std::vector<TNode>& fvs,
-    std::unordered_map<std::pair<Node, bool>, Node>& visited) const
+    std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction>& visited) const
 {
   std::pair<Node, bool> key(n, polarity);
   std::unordered_map<std::pair<Node, bool>, Node>::iterator it =
@@ -154,19 +154,13 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
         std::vector<Node> children;
         children.push_back(n[0]);
         // add children to current scope
-        std::vector<TypeNode> fvt;
         std::vector<TNode> fvss;
-        fvt.insert(fvt.begin(), fvTypes.begin(), fvTypes.end());
-        fvss.insert(fvss.begin(), fvs.begin(), fvs.end());
-        for (const Node& v : n[0])
-        {
-          fvt.push_back(v.getType());
-          fvss.push_back(v);
-        }
+        fvss.insert(fvss.end(), fvs.begin(), fvs.end());
+        fvss.insert(fvss.end(), n[0].begin(), n[0].end());
         // process body in a new context
-        std::unordered_map<std::pair<Node, bool>, Node> visitedSub;
-        children.push_back(
-            preSkolemizeQuantifiers(n[1], polarity, fvt, fvss, visitedSub));
+        std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction> visitedSub;
+        Node pbody = preSkolemizeQuantifiers(n[1], polarity, fvss, visitedSub);
+        children.push_back(pbody);
         // return processed quantifier
         ret = nm->mkNode(FORALL, children);
       }
@@ -174,12 +168,12 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
     else
     {
       // will skolemize current, process body
-      Node nn = preSkolemizeQuantifiers(n[1], polarity, fvTypes, fvs);
+      Node nn = preSkolemizeQuantifiers(n[1], polarity, fvs, visited);
       std::vector<Node> sk;
       Node sub;
       std::vector<unsigned> sub_vars;
       // return skolemized body
-      ret = Skolemize::mkSkolemizedBody(n, nn, fvTypes, fvs, sk, sub, sub_vars);
+      ret = Skolemize::mkSkolemizedBody(n, nn, fvs, sk, sub, sub_vars);
     }
     visited[key] = ret;
     return ret;
@@ -188,7 +182,7 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
   // if so, we will write this node
   if (!expr::hasClosure(n))
   {
-    visited[n] = n;
+    visited[key] = n;
     return n;
   }
   Kind k = n.getKind();
@@ -212,7 +206,7 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
                         nm->mkNode(OR, n[0].notNode(), n[1]),
                         nm->mkNode(OR, n[0], n[1].notNode()));
       }
-      ret = preSkolemizeQuantifiers(nn, polarity, fvTypes, fvs);
+      ret = preSkolemizeQuantifiers(nn, polarity, fvs, visited);
     }
   }
   else if (k == AND || k == OR || k == NOT || k == IMPLIES)
@@ -225,7 +219,7 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
       QuantPhaseReq::getPolarity(n, i, true, polarity, newHasPol, newPol);
       Assert(newHasPol);
       children.push_back(
-          preSkolemizeQuantifiers(n[i], newPol, fvTypes, fvs, visited));
+          preSkolemizeQuantifiers(n[i], newPol, fvs, visited));
     }
     ret = nm->mkNode(k, children);
   }
@@ -243,10 +237,9 @@ TrustNode QuantifiersPreprocess::preprocess(Node n, bool isInst) const
       Trace("quantifiers-preprocess-debug")
           << "Pre-skolemize " << n << "..." << std::endl;
       // apply pre-skolemization to existential quantifiers
-      std::vector<TypeNode> fvTypes;
       std::vector<TNode> fvs;
-      std::unordered_map<std::pair<Node, bool>, Node> visited;
-      n = preSkolemizeQuantifiers(prev, true, fvTypes, fvs, visited);
+      std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction> visited;
+      n = preSkolemizeQuantifiers(prev, true, fvs, visited);
     }
   }
   // pull all quantifiers globally
