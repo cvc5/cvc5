@@ -701,7 +701,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   // set all defaults in the quantifiers theory, which includes sygus
   setDefaultsQuantifiers(logic, opts);
-  
+
   // shared selectors are generally not good to combine with standard
   // quantifier techniques e.g. E-matching
   if (opts.datatypes.dtSharedSelectorsWasSetByUser)

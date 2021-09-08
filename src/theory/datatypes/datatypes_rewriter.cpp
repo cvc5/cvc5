@@ -199,8 +199,8 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
           for (size_t i = 0, vsize = c[0].getNumChildren(); i < vsize; i++)
           {
             vars.push_back(c[0][i]);
-            Node sc = nm->mkNode(
-                APPLY_SELECTOR, dt[cindex][i].getSelector(), h);
+            Node sc =
+                nm->mkNode(APPLY_SELECTOR, dt[cindex][i].getSelector(), h);
             subs.push_back(sc);
           }
         }
