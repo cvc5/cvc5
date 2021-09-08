@@ -893,7 +893,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     """Generate code for all option modules."""
 
     headers_module = []      # generated *_options.h header includes
-    headers_handler = set()  # option includes (for handlers, predicates, ...)
     options_get_info = []    # code for getOptionInfo()
     help_common = []         # help text for all common options
     help_others = []         # help text for all non-common options
