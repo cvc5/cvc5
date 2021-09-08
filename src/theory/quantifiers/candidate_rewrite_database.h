@@ -100,14 +100,14 @@ class CandidateRewriteDatabase : public ExprMiner
   bool addTerm(Node sol, std::ostream& out) override;
   /** sets whether this class should output candidate rewrites it finds */
   void setSilent(bool flag);
-  /** set the (extended) rewriter used by this class */
-  void setExtendedRewriter(ExtendedRewriter* er);
+  /** Enable the (extended) rewriter for this class */
+  void enableExtendedRewriter();
 
  private:
   /** (required) pointer to the sygus term database of d_qe */
   TermDbSygus* d_tds;
-  /** an extended rewriter object */
-  ExtendedRewriter* d_ext_rewrite;
+  /** Whether we use the extended rewriter */
+  bool d_useExtRewriter;
   /** the function-to-synthesize we are testing (if sygus) */
   Node d_candidate;
   /** whether we are checking equivalence using subsolver */

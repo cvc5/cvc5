@@ -29,6 +29,11 @@ Node EnvObj::rewrite(TNode node) const
   return d_env.getRewriter()->rewrite(node);
 }
 
+Node EnvObj::extendedRewrite(TNode node, bool aggr) const
+{
+  return d_env.getRewriter()->extendedRewrite(node, aggr);
+}
+
 const LogicInfo& EnvObj::logicInfo() const { return d_env.getLogicInfo(); }
 
 const Options& EnvObj::options() const { return d_env.getOptions(); }

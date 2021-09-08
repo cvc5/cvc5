@@ -20,7 +20,6 @@
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "theory/quantifiers/extended_rewrite.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -32,11 +31,12 @@ ExtRewPre::ExtRewPre(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult ExtRewPre::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  theory::quantifiers::ExtendedRewriter extr(options::extRewPrepAgg());
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     assertionsToPreprocess->replace(
-        i, extr.extendedRewrite((*assertionsToPreprocess)[i]));
+        i,
+        extendedRewrite((*assertionsToPreprocess)[i],
+                        options::extRewPrepAgg()));
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
