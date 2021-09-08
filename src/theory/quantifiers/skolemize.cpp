@@ -186,7 +186,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
   NodeManager* nm = NodeManager::currentNM();
   // compute the argument types from the free variables
   std::vector<TypeNode> argTypes;
-  for (const Node& v : fvs)
+  for (TNode v : fvs)
   {
     argTypes.push_back(v.getType());
   }
