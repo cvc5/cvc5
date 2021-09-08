@@ -11,34 +11,39 @@
 # directory for licensing information.
 # #############################################################################
 ##
-
 """
     Generate option handling code and documentation in one pass. The generated
     files are only written to the destination file if the contents of the file
     has changed (in order to avoid global re-compilation if only single option
     files changed).
 
-    mkoptions.py <tpl-src> <dst> <toml>+
+    mkoptions.py <src> <build> <dst> <toml>+
 
-      <tpl-src> location of all *_template.{cpp,h} files
-      <dst>     destination directory for the generated source code files
+      <src>     base source directory of all toml files
+      <build>   build directory to write the generated sphinx docs
+      <dst>     base destination directory for all generated files
       <toml>+   one or more *_options.toml files
 
 
-    Directory <tpl-src> must contain:
-        - options_template.cpp
-        - options_public_template.cpp
-        - module_template.cpp
-        - module_template.h
+    This script expects the following files (within <src>):
 
-    <toml>+ must be the list of all *.toml option configuration files from
-    the src/options directory.
+      - <src>/main/options_template.cpp
+      - <src>/options/module_template.cpp
+      - <src>/options/module_template.h
+      - <src>/options/options_public_template.cpp
+      - <src>/options/options_template.cpp
+      - <src>/options/options_template.h
+
+    <toml>+ must be the list of all *.toml option configuration files.
 
 
-    The script generates the following files:
-        - <dst>/MODULE_options.h
-        - <dst>/MODULE_options.cpp
-        - <dst>/options.cpp
+    This script generates the following files:
+      - <dst>/main/options.cpp
+      - <dst>/options/<module>_options.cpp (for every toml file)
+      - <dst>/options/<module>_options.h (for every toml file)
+      - <dst>/options/options_public.cpp
+      - <dst>/options/options.cpp
+      - <dst>/options/options.h
 """
 
 import os
@@ -54,10 +59,9 @@ MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option']
 
 OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
-    'name', 'short', 'long', 'alias',
-    'default', 'alternate', 'mode',
-    'handler', 'predicates', 'includes', 'minimum', 'maximum',
-    'help', 'help_mode'
+    'name', 'short', 'long', 'alias', 'default', 'alternate', 'mode',
+    'handler', 'predicates', 'includes', 'minimum', 'maximum', 'help',
+    'help_mode'
 ]
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
@@ -99,13 +103,6 @@ def all_options(modules, sorted=False):
 g_getopt_long_start = 256
 
 ### Source code templates
-
-TPL_ASSIGN = '''    opts.{module}.{name} = {handler};
-    opts.{module}.{name}WasSetByUser = true;'''
-TPL_ASSIGN_PRED = '''    auto value = {handler};
-    {predicates}
-    opts.{module}.{name} = value;
-    opts.{module}.{name}WasSetByUser = true;'''
 
 TPL_CALL_SET_OPTION = 'setOption(std::string("{smtname}"), ("{value}"));'
 
@@ -176,41 +173,6 @@ TPL_MODE_HANDLER_CASE = \
   }}"""
 
 
-def get_module_headers(modules):
-    """Render includes for module headers"""
-    return concat_format('#include "{header}"', modules)
-
-
-def get_holder_fwd_decls(modules):
-    """Render forward declaration of holder structs"""
-    return concat_format('  struct Holder{id_cap};', modules)
-
-
-def get_holder_mem_decls(modules):
-    """Render declarations of holder members of the Option class"""
-    return concat_format('    std::unique_ptr<options::Holder{id_cap}> d_{id};', modules)
-
-
-def get_holder_mem_inits(modules):
-    """Render initializations of holder members of the Option class"""
-    return concat_format('        d_{id}(std::make_unique<options::Holder{id_cap}>()),', modules)
-
-
-def get_holder_ref_inits(modules):
-    """Render initializations of holder references of the Option class"""
-    return concat_format('        {id}(*d_{id}),', modules)
-
-
-def get_holder_mem_copy(modules):
-    """Render copy operation of holder members of the Option class"""
-    return concat_format('      *d_{id} = *options.d_{id};', modules)
-
-
-def get_holder_ref_decls(modules):
-    """Render reference declarations for holder members of the Option class"""
-    return concat_format('  options::Holder{id_cap}& {id};', modules)
-
-
 def get_handler(option):
     """Render handler call for assignment functions"""
     optname = option.long_name if option.long else ""
@@ -241,11 +203,7 @@ def get_predicates(option):
 
 
 class Module(object):
-    """Options module.
-
-    An options module represents a MODULE_options.toml option configuration
-    file and contains lists of options.
-    """
+    """Represents one options module from one <module>_options.toml file."""
     def __init__(self, d, filename):
         self.__dict__ = {k: d.get(k, None) for k in MODULE_ATTR_ALL}
         self.options = []
@@ -329,14 +287,135 @@ def generate_get_impl(modules):
         res.append('if ({}) {}'.format(cond, ret))
     return '\n  '.join(res)
 
-    def __lt__(self, other):
-        if self.long_name and other.long_name:
-            return self.long_name < other.long_name
-        if self.long_name: return True
-        return False
 
-    def __str__(self):
-        return self.long_name if self.long_name else self.name
+def _set_handlers(option):
+    """Render handler call for options::set()."""
+    optname = option.long_name if option.long else ""
+    if option.handler:
+        if option.type == 'void':
+            return 'opts.handler().{}("{}", name)'.format(
+                option.handler, optname)
+        else:
+            return 'opts.handler().{}("{}", name, optionarg)'.format(
+                option.handler, optname)
+    elif option.mode:
+        return 'stringTo{}(optionarg)'.format(option.type)
+    return 'handlers::handleOption<{}>("{}", name, optionarg)'.format(
+        option.type, optname)
+
+
+def _set_predicates(option):
+    """Render predicate calls for options::set()."""
+    if option.type == 'void':
+        return []
+    optname = option.long_name if option.long else ""
+    assert option.type != 'void'
+    res = []
+    if option.minimum:
+        res.append(
+            'opts.handler().checkMinimum("{}", name, value, static_cast<{}>({}));'
+            .format(optname, option.type, option.minimum))
+    if option.maximum:
+        res.append(
+            'opts.handler().checkMaximum("{}", name, value, static_cast<{}>({}));'
+            .format(optname, option.type, option.maximum))
+    res += [
+        'opts.handler().{}("{}", name, value);'.format(x, optname)
+        for x in option.predicates
+    ]
+    return res
+
+
+TPL_SET = '''    opts.{module}.{name} = {handler};
+    opts.{module}.{name}WasSetByUser = true;'''
+TPL_SET_PRED = '''    auto value = {handler};
+    {predicates}
+    opts.{module}.{name} = value;
+    opts.{module}.{name}WasSetByUser = true;'''
+
+
+def generate_set_impl(modules):
+    """Generates the implementation for options::set()."""
+    res = []
+    for module, option in all_options(modules, True):
+        if not option.long:
+            continue
+        cond = ' || '.join(['name == "{}"'.format(x) for x in option.names])
+        predicates = _set_predicates(option)
+        if res:
+            res.append('  }} else if ({}) {{'.format(cond))
+        else:
+            res.append('if ({}) {{'.format(cond))
+        if option.name and not (option.handler and option.mode):
+            if predicates:
+                res.append(
+                    TPL_SET_PRED.format(module=module.id,
+                                        name=option.name,
+                                        handler=_set_handlers(option),
+                                        predicates='\n    '.join(predicates)))
+            else:
+                res.append(
+                    TPL_SET.format(module=module.id,
+                                   name=option.name,
+                                   handler=_set_handlers(option)))
+        elif option.handler:
+            h = '  opts.handler().{handler}("{smtname}", name'
+            if option.type not in ['bool', 'void']:
+                h += ', optionarg'
+            h += ');'
+            res.append(
+                h.format(handler=option.handler, smtname=option.long_name))
+    return '\n'.join(res)
+
+
+################################################################################
+################################################################################
+# code generation functions
+
+################################################################################
+# for options/options.h
+
+
+def generate_holder_fwd_decls(modules):
+    """Render forward declaration of holder structs"""
+    return concat_format('  struct Holder{id_cap};', modules)
+
+
+def generate_holder_mem_decls(modules):
+    """Render declarations of holder members of the Option class"""
+    return concat_format(
+        '    std::unique_ptr<options::Holder{id_cap}> d_{id};', modules)
+
+
+def generate_holder_ref_decls(modules):
+    """Render reference declarations for holder members of the Option class"""
+    return concat_format('  options::Holder{id_cap}& {id};', modules)
+
+
+################################################################################
+# for options/options.cpp
+
+
+def generate_module_headers(modules):
+    """Render includes for module headers"""
+    return concat_format('#include "{header}"', modules)
+
+
+def generate_holder_mem_inits(modules):
+    """Render initializations of holder members of the Option class"""
+    return concat_format(
+        '        d_{id}(std::make_unique<options::Holder{id_cap}>()),',
+        modules)
+
+
+def generate_holder_ref_inits(modules):
+    """Render initializations of holder references of the Option class"""
+    return concat_format('        {id}(*d_{id}),', modules)
+
+
+def generate_holder_mem_copy(modules):
+    """Render copy operation of holder members of the Option class"""
+    return concat_format('      *d_{id} = *options.d_{id};', modules)
 
 
 ################################################################################
@@ -811,18 +890,13 @@ def docgen_option(option, help_common, help_others):
 
 
 def codegen_all_modules(modules, build_dir, dst_dir, tpls):
-    """
-    Generate code for all option modules (options.cpp).
-    """
+    """Generate code for all option modules."""
 
     headers_module = []      # generated *_options.h header includes
     headers_handler = set()  # option includes (for handlers, predicates, ...)
     options_get_info = []    # code for getOptionInfo()
     help_common = []         # help text for all common options
     help_others = []         # help text for all non-common options
-    setoption_handlers = []  # handlers for set-option command
-
-    assign_impls = []
 
     sphinxgen = SphinxGenerator()
 
@@ -920,22 +994,23 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     short, cmdline_opts, parseinternal = generate_parsing(modules)
 
     data = {
-        'holder_fwd_decls': get_holder_fwd_decls(modules),
-        'holder_mem_decls': get_holder_mem_decls(modules),
-        'holder_ref_decls': get_holder_ref_decls(modules),
-        'headers_module': get_module_headers(modules),
-        'headers_handler': '\n'.join(sorted(list(headers_handler))),
-        'holder_mem_inits': get_holder_mem_inits(modules),
-        'holder_ref_inits': get_holder_ref_inits(modules),
-        'holder_mem_copy': get_holder_mem_copy(modules),
+        # options/options.h
+        'holder_fwd_decls': generate_holder_fwd_decls(modules),
+        'holder_mem_decls': generate_holder_mem_decls(modules),
+        'holder_ref_decls': generate_holder_ref_decls(modules),
+        # options/options.cpp
+        'headers_module': generate_module_headers(modules),
+        'holder_mem_inits': generate_holder_mem_inits(modules),
+        'holder_ref_inits': generate_holder_ref_inits(modules),
+        'holder_mem_copy': generate_holder_mem_copy(modules),
         # options/options_public.cpp
         'options_includes': generate_public_includes(modules),
         'getnames_impl': generate_getnames_impl(modules),
         'get_impl': generate_get_impl(modules),
+        'set_impl': generate_set_impl(modules),
         'help_common': '\n'.join(help_common),
         'help_others': '\n'.join(help_others),
         'options_get_info': '\n  '.join(sorted(options_get_info)),
-        'setoption_handlers': '\n'.join(setoption_handlers),
         # main/options.cpp
         'cmdoptions_long': cmdline_opts,
         'cmdoptions_short': short,

@@ -35,9 +35,9 @@ using namespace cvc5::theory::arith;
 PseudoBooleanProcessor::PseudoBooleanProcessor(
     PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "pseudo-boolean-processor"),
-      d_pbBounds(preprocContext->getUserContext()),
-      d_subCache(preprocContext->getUserContext()),
-      d_pbs(preprocContext->getUserContext(), 0)
+      d_pbBounds(userContext()),
+      d_subCache(userContext()),
+      d_pbs(userContext(), 0)
 {
 }
 

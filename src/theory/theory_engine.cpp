@@ -158,7 +158,7 @@ void TheoryEngine::finishInit()
   if (options::relevanceFilter())
   {
     d_relManager.reset(
-        new RelevanceManager(d_env.getUserContext(), theory::Valuation(this)));
+        new RelevanceManager(userContext(), theory::Valuation(this)));
   }
 
   // initialize the quantifiers engine
@@ -208,14 +208,11 @@ void TheoryEngine::finishInit()
 
 ProofNodeManager* TheoryEngine::getProofNodeManager() const { return d_pnm; }
 
-context::Context* TheoryEngine::getSatContext() const
-{
-  return d_env.getContext();
-}
+context::Context* TheoryEngine::getSatContext() const { return context(); }
 
 context::UserContext* TheoryEngine::getUserContext() const
 {
-  return d_env.getUserContext();
+  return userContext();
 }
 
 TheoryEngine::TheoryEngine(Env& env)
@@ -224,36 +221,34 @@ TheoryEngine::TheoryEngine(Env& env)
       d_logicInfo(env.getLogicInfo()),
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
                                            : nullptr),
-      d_lazyProof(d_pnm != nullptr
-                      ? new LazyCDProof(d_pnm,
-                                        nullptr,
-                                        d_env.getUserContext(),
-                                        "TheoryEngine::LazyCDProof")
-                      : nullptr),
-      d_tepg(new TheoryEngineProofGenerator(d_pnm, d_env.getUserContext())),
+      d_lazyProof(
+          d_pnm != nullptr ? new LazyCDProof(
+              d_pnm, nullptr, userContext(), "TheoryEngine::LazyCDProof")
+                           : nullptr),
+      d_tepg(new TheoryEngineProofGenerator(d_pnm, userContext())),
       d_tc(nullptr),
       d_sharedSolver(nullptr),
       d_quantEngine(nullptr),
-      d_decManager(new DecisionManager(d_env.getUserContext())),
+      d_decManager(new DecisionManager(userContext())),
       d_relManager(nullptr),
-      d_inConflict(d_env.getContext(), false),
+      d_inConflict(context(), false),
       d_inSatMode(false),
       d_hasShutDown(false),
-      d_incomplete(d_env.getContext(), false),
-      d_incompleteTheory(d_env.getContext(), THEORY_BUILTIN),
-      d_incompleteId(d_env.getContext(), IncompleteId::UNKNOWN),
-      d_propagationMap(d_env.getContext()),
-      d_propagationMapTimestamp(d_env.getContext(), 0),
-      d_propagatedLiterals(d_env.getContext()),
-      d_propagatedLiteralsIndex(d_env.getContext(), 0),
-      d_atomRequests(d_env.getContext()),
+      d_incomplete(context(), false),
+      d_incompleteTheory(context(), THEORY_BUILTIN),
+      d_incompleteId(context(), IncompleteId::UNKNOWN),
+      d_propagationMap(context()),
+      d_propagationMapTimestamp(context(), 0),
+      d_propagatedLiterals(context()),
+      d_propagatedLiteralsIndex(context(), 0),
+      d_atomRequests(context()),
       d_combineTheoriesTime(smtStatisticsRegistry().registerTimer(
           "TheoryEngine::combineTheoriesTime")),
       d_true(),
       d_false(),
       d_interrupted(false),
       d_inPreregister(false),
-      d_factsAsserted(d_env.getContext(), false)
+      d_factsAsserted(context(), false)
 {
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST;
       ++ theoryId)
@@ -1063,7 +1058,7 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
   Debug("theory::propagate")
       << "TheoryEngine::propagate(" << literal << ", " << theory << ")" << endl;
 
-  Trace("dtview::prop") << std::string(d_env.getContext()->getLevel(), ' ')
+  Trace("dtview::prop") << std::string(context()->getLevel(), ' ')
                         << ":THEORY-PROP: " << literal << endl;
 
   // spendResource();

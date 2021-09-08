@@ -51,10 +51,10 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
   return os;
 }
 
-TermDbSygus::TermDbSygus(QuantifiersState& qs)
-    : d_qstate(qs),
+TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs)
+    : EnvObj(env),
+      d_qstate(qs),
       d_syexp(new SygusExplain(this)),
-      d_ext_rw(new ExtendedRewriter(true)),
       d_eval(new Evaluator),
       d_funDefEval(new FunDefEvaluator),
       d_eval_unfold(new SygusEvalUnfold(this))
@@ -1036,7 +1036,7 @@ Node TermDbSygus::evaluateWithUnfolding(Node n,
       }
       if (options::sygusExtRew())
       {
-        ret = getExtRewriter()->extendedRewrite(ret);
+        ret = extendedRewrite(ret);
       }
       // use rewriting, possibly involving recursive functions
       ret = rewriteNode(ret);
