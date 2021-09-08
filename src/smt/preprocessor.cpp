@@ -15,6 +15,7 @@
 
 #include "smt/preprocessor.h"
 
+#include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -132,6 +133,15 @@ Node Preprocessor::expandDefinitions(const Node& node,
   // now call expand definitions
   n = d_exDefs.expandDefinitions(n, cache);
   return n;
+}
+
+void Preprocessor::expandDefinitions(std::vector<Node>& ns)
+{
+  std::unordered_map<Node, Node> cache;
+  for (size_t i = 0, nasserts = ns.size(); i < nasserts; i++)
+  {
+    ns[i] = expandDefinitions(ns[i], cache);
+  }
 }
 
 Node Preprocessor::simplify(const Node& node)

@@ -23,7 +23,6 @@
 #include "proof/proof_node_manager.h"
 
 namespace cvc5 {
-namespace theory {
 
 LazyTreeProofGenerator::LazyTreeProofGenerator(ProofNodeManager* pnm,
                                                const std::string& name)
@@ -142,5 +141,4 @@ std::ostream& operator<<(std::ostream& os, const LazyTreeProofGenerator& ltpg)
   return os;
 }
 
-}  // namespace theory
 }  // namespace cvc5

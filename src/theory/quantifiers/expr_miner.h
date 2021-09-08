@@ -23,10 +23,15 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "smt/smt_engine.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus_sampler.h"
+#include "theory/smt_engine_subsolver.h"
 
 namespace cvc5 {
+
+class Env;
+class SmtEngine;
+
 namespace theory {
 namespace quantifiers {
 
@@ -36,10 +41,10 @@ namespace quantifiers {
  * from (enumerated) expressions. This includes:
  * - candidate rewrite rules (--sygus-rr-synth)
  */
-class ExprMiner
+class ExprMiner : protected EnvObj
 {
  public:
-  ExprMiner() : d_sampler(nullptr) {}
+  ExprMiner(Env& env) : EnvObj(env), d_sampler(nullptr) {}
   virtual ~ExprMiner() {}
   /** initialize
    *
@@ -62,13 +67,15 @@ class ExprMiner
  protected:
   /** the set of variables used by this class */
   std::vector<Node> d_vars;
-  /** pointer to the sygus sampler object we are using */
-  SygusSampler* d_sampler;
   /**
-   * Maps to skolems for each free variable that appears in a check. This is
+   * The set of skolems corresponding to the above variables. These are
    * used during initializeChecker so that query (which may contain free
    * variables) is converted to a formula without free variables.
    */
+  std::vector<Node> d_skolems;
+  /** pointer to the sygus sampler object we are using */
+  SygusSampler* d_sampler;
+  /** Maps to skolems for each free variable based on d_vars/d_skolems. */
   std::map<Node, Node> d_fv_to_skolem;
   /** convert */
   Node convertToSkolem(Node n);

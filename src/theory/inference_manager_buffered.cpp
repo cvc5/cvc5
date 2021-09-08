@@ -24,12 +24,13 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 
-InferenceManagerBuffered::InferenceManagerBuffered(Theory& t,
+InferenceManagerBuffered::InferenceManagerBuffered(Env& env,
+                                                   Theory& t,
                                                    TheoryState& state,
                                                    ProofNodeManager* pnm,
                                                    const std::string& statsName,
                                                    bool cacheLemmas)
-    : TheoryInferenceManager(t, state, pnm, statsName, cacheLemmas),
+    : TheoryInferenceManager(env, t, state, pnm, statsName, cacheLemmas),
       d_processingPendingLemmas(false)
 {
 }
@@ -185,6 +186,13 @@ void InferenceManagerBuffered::assertInternalFactTheoryInference(
   Assert(atom.getKind() != NOT && atom.getKind() != AND);
   // assert the internal fact
   assertInternalFact(atom, pol, fact->getId(), exp, pg);
+}
+
+void InferenceManagerBuffered::notifyInConflict()
+{
+  d_theoryState.notifyInConflict();
+  // also clear the pending facts, which will be stale after backtracking
+  clearPending();
 }
 
 }  // namespace theory

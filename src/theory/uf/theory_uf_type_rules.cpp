@@ -18,6 +18,8 @@
 #include <climits>
 #include <sstream>
 
+#include "util/rational.h"
+
 namespace cvc5 {
 namespace theory {
 namespace uf {

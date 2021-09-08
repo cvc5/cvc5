@@ -25,8 +25,6 @@ namespace cvc5 {
 class ProofGenerator;
 class ProofNode;
 
-namespace theory {
-
 /** A kind for trust nodes */
 enum class TrustNodeKind : uint32_t
 {
@@ -94,6 +92,9 @@ class TrustNode
   static TrustNode mkTrustRewrite(TNode n,
                                   Node nr,
                                   ProofGenerator* g = nullptr);
+  /** Make a trust node, replacing the original generator */
+  static TrustNode mkReplaceGenTrustNode(const TrustNode& orig,
+                                         ProofGenerator* g);
   /** The null proven node */
   static TrustNode null();
   ~TrustNode() {}
@@ -172,7 +173,6 @@ class TrustNode
  */
 std::ostream& operator<<(std::ostream& out, TrustNode n);
 
-}  // namespace theory
 }  // namespace cvc5
 
 #endif /* CVC5__PROOF__TRUST_NODE_H */

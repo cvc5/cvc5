@@ -46,7 +46,10 @@ class InferenceManager : public InferenceManagerBuffered
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  InferenceManager(TheoryArith& ta, ArithState& astate, ProofNodeManager* pnm);
+  InferenceManager(Env& env,
+                   TheoryArith& ta,
+                   ArithState& astate,
+                   ProofNodeManager* pnm);
 
   /**
    * Add a lemma as pending lemma to this inference manager.
@@ -97,6 +100,13 @@ class InferenceManager : public InferenceManagerBuffered
 
   /** Checks whether the given lemma is already present in the cache. */
   virtual bool hasCachedLemma(TNode lem, LemmaProperty p) override;
+  /** overrides propagateLit to track which literals have been propagated */
+  bool propagateLit(TNode lit) override;
+  /**
+   * Return true if we have propagated lit already. This call is only valid if
+   * d_trackPropLits is true.
+   */
+  bool hasPropagated(TNode lit) const;
 
  protected:
   /**
@@ -111,9 +121,12 @@ class InferenceManager : public InferenceManagerBuffered
    * conflict.
    */
   bool isEntailedFalse(const SimpleTheoryLemma& lem);
-
   /** The waiting lemmas. */
   std::vector<std::unique_ptr<SimpleTheoryLemma>> d_waitingLem;
+  /** Whether we are tracking the set of propagated literals */
+  bool d_trackPropLits;
+  /** The literals we have propagated */
+  NodeSet d_propLits;
 };
 
 }  // namespace arith

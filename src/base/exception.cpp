@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <ostream>
 #include <sstream>
 #include <string>
 
@@ -34,6 +35,8 @@ std::string Exception::toString() const
   toStream(ss);
   return ss.str();
 }
+
+void Exception::toStream(std::ostream& os) const { os << d_msg; }
 
 thread_local LastExceptionBuffer* LastExceptionBuffer::s_currentBuffer = nullptr;
 

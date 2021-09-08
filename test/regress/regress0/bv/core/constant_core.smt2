@@ -1,3 +1,5 @@
+; COMMAND-LINE:
+; EXPECT: unsat
 (set-logic QF_BV)
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")

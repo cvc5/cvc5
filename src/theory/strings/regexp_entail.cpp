@@ -18,6 +18,8 @@
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/rational.h"
+#include "util/string.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -361,6 +363,10 @@ bool RegExpEntail::isConstRegExp(TNode t)
             return false;
           }
         }
+      }
+      else if (ck == ITE)
+      {
+        return false;
       }
       else if (cur.isVar())
       {

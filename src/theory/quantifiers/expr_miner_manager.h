@@ -19,6 +19,7 @@
 #define CVC5__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/query_generator.h"
@@ -26,10 +27,10 @@
 #include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 /** ExpressionMinerManager
@@ -39,10 +40,10 @@ namespace quantifiers {
  * coordination, possibly sharing information and utilities like a common
  * sampling object.
  */
-class ExpressionMinerManager
+class ExpressionMinerManager : protected EnvObj
 {
  public:
-  ExpressionMinerManager();
+  ExpressionMinerManager(Env& env);
   ~ExpressionMinerManager() {}
   /**  Initialize this class
    *

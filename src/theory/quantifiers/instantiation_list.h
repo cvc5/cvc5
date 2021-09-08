@@ -22,20 +22,33 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/inference_id.h"
 
 namespace cvc5 {
+
+struct InstantiationVec
+{
+ public:
+  InstantiationVec(const std::vector<Node>& vec,
+                   theory::InferenceId id = theory::InferenceId::UNKNOWN,
+                   Node pfArg = Node::null());
+  /** The vector of terms */
+  std::vector<Node> d_vec;
+  /** The inference id */
+  theory::InferenceId d_id;
+  /** The proof argument */
+  Node d_pfArg;
+};
 
 /** A list of instantiations for a quantified formula */
 struct InstantiationList
 {
-  InstantiationList(Node q, const std::vector<std::vector<Node> >& inst)
-      : d_quant(q), d_inst(inst)
-  {
-  }
+  /** Initialize */
+  void initialize(Node q);
   /** The quantified formula */
   Node d_quant;
   /** The instantiation list */
-  std::vector<std::vector<Node> > d_inst;
+  std::vector<InstantiationVec> d_inst;
 };
 
 /** Print the instantiation list to stream out */

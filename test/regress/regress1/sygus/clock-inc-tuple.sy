@@ -1,7 +1,7 @@
 ; EXPECT: unsat
 ; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-out=status --decision=justification
 
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (declare-var m Int)
 (declare-var s Int)
 (declare-var inc Int)

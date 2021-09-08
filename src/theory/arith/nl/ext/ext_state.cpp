@@ -23,26 +23,25 @@
 #include "theory/arith/nl/ext/monomial.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
 
-ExtState::ExtState(InferenceManager& im,
-                   NlModel& model,
-                   ProofNodeManager* pnm,
-                   context::UserContext* c)
-    : d_im(im), d_model(model), d_pnm(pnm), d_ctx(c)
+ExtState::ExtState(InferenceManager& im, NlModel& model, Env& env)
+    : d_im(im), d_model(model), d_env(env)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   d_true = NodeManager::currentNM()->mkConst(true);
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
-  if (d_pnm != nullptr)
+  if (d_env.isTheoryProofProducing())
   {
-    d_proof.reset(new CDProofSet<CDProof>(d_pnm, d_ctx, "nl-ext"));
+    d_proof.reset(new CDProofSet<CDProof>(
+        d_env.getProofNodeManager(), d_env.getUserContext(), "nl-ext"));
   }
 }
 
@@ -104,7 +103,7 @@ bool ExtState::isProofEnabled() const { return d_proof.get() != nullptr; }
 CDProof* ExtState::getProof()
 {
   Assert(isProofEnabled());
-  return d_proof->allocateProof(d_ctx);
+  return d_proof->allocateProof(d_env.getUserContext());
 }
 
 }  // namespace nl

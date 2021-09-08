@@ -473,25 +473,17 @@ Abc_Obj_t* AigBitblaster::getBBAtom(TNode atom) const {
 }
 
 AigBitblaster::Statistics::Statistics()
-  : d_numClauses("theory::bv::AigBitblaster::numClauses", 0)
-  , d_numVariables("theory::bv::AigBitblaster::numVariables", 0)
-  , d_simplificationTime("theory::bv::AigBitblaster::simplificationTime")
-  , d_cnfConversionTime("theory::bv::AigBitblaster::cnfConversionTime")
-  , d_solveTime("theory::bv::AigBitblaster::solveTime")
+    : d_numClauses(smtStatisticsRegistry().registerInt(
+        "theory::bv::AigBitblaster::numClauses")),
+      d_numVariables(smtStatisticsRegistry().registerInt(
+          "theory::bv::AigBitblaster::numVariables")),
+      d_simplificationTime(smtStatisticsRegistry().registerTimer(
+          "theory::bv::AigBitblaster::simplificationTime")),
+      d_cnfConversionTime(smtStatisticsRegistry().registerTimer(
+          "theory::bv::AigBitblaster::cnfConversionTime")),
+      d_solveTime(smtStatisticsRegistry().registerTimer(
+          "theory::bv::AigBitblaster::solveTime"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numClauses); 
-  smtStatisticsRegistry()->registerStat(&d_numVariables);
-  smtStatisticsRegistry()->registerStat(&d_simplificationTime); 
-  smtStatisticsRegistry()->registerStat(&d_cnfConversionTime);
-  smtStatisticsRegistry()->registerStat(&d_solveTime); 
-}
-
-AigBitblaster::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_numClauses); 
-  smtStatisticsRegistry()->unregisterStat(&d_numVariables);
-  smtStatisticsRegistry()->unregisterStat(&d_simplificationTime); 
-  smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
-  smtStatisticsRegistry()->unregisterStat(&d_solveTime); 
 }
 
 }  // namespace bv

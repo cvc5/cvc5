@@ -7,13 +7,16 @@ name   = "SMT Layer"
   long       = "dump=MODE"
   type       = "std::string"
   help       = "dump preprocessed assertions, etc., see --dump=help"
+  predicates = ["setDumpMode"]
 
 [[option]]
   name       = "dumpToFileName"
   category   = "common"
   long       = "dump-to=FILE"
-  type       = "std::string"
+  type       = "ManagedOut"
   help       = "all dumping goes to FILE (instead of stdout)"
+  predicates = ["setDumpStream"]
+  includes   = ["<iostream>", "options/managed_streams.h"]
 
 [[option]]
   name       = "ackermann"
@@ -48,6 +51,14 @@ name   = "SMT Layer"
   help       = "use static learning (on by default)"
 
 [[option]]
+  name       = "learnedRewrite"
+  category   = "regular"
+  long       = "learned-rewrite"
+  type       = "bool"
+  default    = "false"
+  help       = "rewrite the input based on learned literals"
+
+[[option]]
   name       = "expandDefinitions"
   long       = "expand-definitions"
   category   = "regular"
@@ -77,14 +88,6 @@ name   = "SMT Layer"
   long       = "debug-check-models"
   type       = "bool"
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user and internal assertions"
-
-[[option]]
-  name       = "dumpModels"
-  category   = "regular"
-  long       = "dump-models"
-  type       = "bool"
-  default    = "false"
-  help       = "output models after every SAT/INVALID/UNKNOWN response"
 
 [[option]]
   name       = "modelCoresMode"
@@ -131,27 +134,11 @@ name   = "SMT Layer"
   help       = "produce proofs, support check-proofs and get-proof"
 
 [[option]]
-  name       = "dumpProofs"
-  category   = "regular"
-  long       = "dump-proofs"
-  type       = "bool"
-  default    = "false"
-  help       = "output proofs after every UNSAT/VALID response"
-
-[[option]]
   name       = "checkProofs"
   category   = "regular"
   long       = "check-proofs"
   type       = "bool"
   help       = "after UNSAT/VALID, check the generated proof (with proof)"
-
-[[option]]
-  name       = "dumpInstantiations"
-  category   = "regular"
-  long       = "dump-instantiations"
-  type       = "bool"
-  default    = "false"
-  help       = "output instantiations of quantified formulas after every UNSAT/VALID response"
 
 [[option]]
   name       = "sygusOut"
@@ -211,27 +198,19 @@ name   = "SMT Layer"
   help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
 
 [[option]]
+  name       = "minimalUnsatCores"
+  category   = "regular"
+  long       = "minimal-unsat-cores"
+  type       = "bool"
+  default    = "false"
+  help       = "if an unsat core is produced, it is reduced to a minimal unsat core"
+
+[[option]]
   name       = "checkUnsatCores"
   category   = "regular"
   long       = "check-unsat-cores"
   type       = "bool"
   help       = "after UNSAT/VALID, produce and check an unsat core (expensive)"
-
-[[option]]
-  name       = "dumpUnsatCores"
-  category   = "regular"
-  long       = "dump-unsat-cores"
-  type       = "bool"
-  default    = "false"
-  help       = "output unsat cores after every UNSAT/VALID response"
-
-[[option]]
-  name       = "dumpUnsatCoresFull"
-  category   = "regular"
-  long       = "dump-unsat-cores-full"
-  type       = "bool"
-  default    = "false"
-  help       = "dump the full unsat core, including unlabeled assertions"
 
 [[option]]
   name       = "unsatAssumptions"
@@ -322,7 +301,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "earlyIteRemoval"
-  category   = "experimental"
+  category   = "expert"
   long       = "early-ite-removal"
   type       = "bool"
   default    = "false"
@@ -347,7 +326,7 @@ name   = "SMT Layer"
   name       = "zombieHuntThreshold"
   category   = "regular"
   long       = "simp-ite-hunt-zombies=N"
-  type       = "uint32_t"
+  type       = "uint64_t"
   default    = "524288"
   help       = "post ite compression enables zombie removal while the number of nodes is above this threshold"
 
@@ -358,15 +337,6 @@ name   = "SMT Layer"
   type       = "bool"
   default    = "false"
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
-
-[[option]]
-  name       = "incrementalSolving"
-  category   = "common"
-  short      = "i"
-  long       = "incremental"
-  type       = "bool"
-  default    = "true"
-  help       = "enable incremental solving"
 
 [[option]]
   name       = "abstractValues"
@@ -384,10 +354,7 @@ name   = "SMT Layer"
   type       = "ModelUninterpPrintMode"
   default    = "None"
   help       = "determines how to print uninterpreted elements in models"
-  help_mode  = "uninterpreted elements in models printing  modes."
-[[option.mode.DtEnum]]
-  name = "dtenum"
-  help = "print uninterpreted elements as datatype enumerations, where the sort is the datatype"
+  help_mode  = "uninterpreted elements in models printing modes."
 [[option.mode.DeclSortAndFun]]
   name = "decl-sort-and-fun"
   help = "print uninterpreted elements declare-fun, and also include a declare-sort for the sort"
@@ -406,28 +373,6 @@ name   = "SMT Layer"
   type       = "bool"
   default    = "false"
   help       = "in models, use a witness constant for choice functions"
-
-[[option]]
-  name       = "regularChannelName"
-  long       = "regular-output-channel=CHANNEL"
-  category   = "regular"
-  type       = "std::string"
-  help       = "set the regular output channel of the solver"
-
-[[option]]
-  name       = "diagnosticChannelName"
-  long       = "diagnostic-output-channel=CHANNEL"
-  category   = "regular"
-  type       = "std::string"
-  help       = "set the diagnostic output channel of the solver"
-
-[[option]]
-  name       = "forceNoLimitCpuWhileDump"
-  category   = "regular"
-  long       = "force-no-limit-cpu-while-dump"
-  type       = "bool"
-  default    = "false"
-  help       = "Force no CPU limit when dumping models and proofs"
 
 [[option]]
   name       = "foreignTheoryRewrite"
@@ -462,7 +407,7 @@ name   = "SMT Layer"
   name       = "BVAndIntegerGranularity"
   category   = "undocumented"
   long       = "bvand-integer-granularity=N"
-  type       = "uint32_t"
+  type       = "uint64_t"
   default    = "1"
   help       = "granularity to use in --solve-bv-as-int mode and for iand operator (experimental)"
 
@@ -488,7 +433,7 @@ name   = "SMT Layer"
   name       = "solveIntAsBV"
   category   = "undocumented"
   long       = "solve-int-as-bv=N"
-  type       = "uint32_t"
+  type       = "uint64_t"
   default    = "0"
   help       = "attempt to solve a pure integer satisfiable problem by bitblasting in sufficient bitwidth (experimental)"
 

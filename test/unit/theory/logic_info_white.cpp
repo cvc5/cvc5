@@ -500,7 +500,7 @@ TEST_F(TestTheoryWhiteLogicInfo, smtlib_logics)
   ASSERT_FALSE(info.hasEverything());
   ASSERT_FALSE(info.hasNothing());
 
-  info = LogicInfo("QF_ALL_SUPPORTED");
+  info = LogicInfo("QF_ALL");
   ASSERT_TRUE(info.isLocked());
   ASSERT_FALSE(info.isPure(THEORY_BOOL));
   ASSERT_TRUE(info.isSharingEnabled());
@@ -519,7 +519,7 @@ TEST_F(TestTheoryWhiteLogicInfo, smtlib_logics)
   ASSERT_FALSE(info.hasEverything());
   ASSERT_FALSE(info.hasNothing());
 
-  info = LogicInfo("ALL_SUPPORTED");
+  info = LogicInfo("ALL");
   ASSERT_TRUE(info.isLocked());
   ASSERT_FALSE(info.isPure(THEORY_BOOL));
   ASSERT_TRUE(info.isSharingEnabled());
@@ -616,28 +616,14 @@ TEST_F(TestTheoryWhiteLogicInfo, default_logic)
   info.arithOnlyLinear();
   info.disableIntegers();
   info.lock();
-  if (cvc5::Configuration::isBuiltWithSymFPU())
-  {
-    ASSERT_EQ(info.getLogicString(), "SEP_AUFBVFPDTLRA");
-  }
-  else
-  {
-    ASSERT_EQ(info.getLogicString(), "SEP_AUFBVDTLRA");
-  }
+  ASSERT_EQ(info.getLogicString(), "SEP_AUFBVFPDTLRA");
 
   info = info.getUnlockedCopy();
   ASSERT_FALSE(info.isLocked());
   info.disableQuantifiers();
   info.disableTheory(THEORY_BAGS);
   info.lock();
-  if (cvc5::Configuration::isBuiltWithSymFPU())
-  {
-    ASSERT_EQ(info.getLogicString(), "QF_SEP_AUFBVFPDTLRA");
-  }
-  else
-  {
-    ASSERT_EQ(info.getLogicString(), "QF_SEP_AUFBVDTLRA");
-  }
+  ASSERT_EQ(info.getLogicString(), "QF_SEP_AUFBVFPDTLRA");
 
   info = info.getUnlockedCopy();
   ASSERT_FALSE(info.isLocked());
@@ -647,14 +633,7 @@ TEST_F(TestTheoryWhiteLogicInfo, default_logic)
   info.enableIntegers();
   info.disableReals();
   info.lock();
-  if (cvc5::Configuration::isBuiltWithSymFPU())
-  {
-    ASSERT_EQ(info.getLogicString(), "QF_SEP_AUFFPLIA");
-  }
-  else
-  {
-    ASSERT_EQ(info.getLogicString(), "QF_SEP_AUFLIA");
-  }
+  ASSERT_EQ(info.getLogicString(), "QF_SEP_AUFFPLIA");
 
   info = info.getUnlockedCopy();
   ASSERT_FALSE(info.isLocked());

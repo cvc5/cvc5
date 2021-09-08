@@ -26,8 +26,10 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusReconstruct::SygusReconstruct(TermDbSygus* tds, SygusStatistics& s)
-    : d_tds(tds), d_stats(s)
+SygusReconstruct::SygusReconstruct(Env& env,
+                                   TermDbSygus* tds,
+                                   SygusStatistics& s)
+    : d_env(env), d_tds(tds), d_stats(s)
 {
 }
 
@@ -408,7 +410,7 @@ void SygusReconstruct::initialize(TypeNode stn)
   // the database.
   for (TypeNode tn : sfTypes)
   {
-    d_stnInfo[tn].initialize(d_tds, d_stats, tn, builtinVars);
+    d_stnInfo[tn].initialize(d_env, d_tds, d_stats, tn, builtinVars);
   }
 }
 

@@ -15,6 +15,7 @@
 
 #include "theory/bv/bv_eager_solver.h"
 
+#include "options/base_options.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "theory/bv/bitblast/aig_bitblaster.h"
@@ -26,7 +27,8 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
-EagerBitblastSolver::EagerBitblastSolver(context::Context* c, BVSolverLazy* bv)
+EagerBitblastSolver::EagerBitblastSolver(context::Context* c,
+                                         BVSolverLayered* bv)
     : d_assertionSet(c),
       d_assumptionSet(c),
       d_context(c),

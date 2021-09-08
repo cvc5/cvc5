@@ -19,6 +19,7 @@
 #include "options/proof_options.h"
 #include "proof/proof_node.h"
 #include "smt/smt_statistics_registry.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -81,6 +82,13 @@ ProofCheckerStatistics::ProofCheckerStatistics()
           "ProofCheckerStatistics::ruleChecks")),
       d_totalRuleChecks(smtStatisticsRegistry().registerInt(
           "ProofCheckerStatistics::totalRuleChecks"))
+{
+}
+
+ProofChecker::ProofChecker(bool eagerCheck,
+                           uint32_t pclevel,
+                           rewriter::RewriteDb* rdb)
+    : d_eagerCheck(eagerCheck), d_pclevel(pclevel), d_rdb(rdb)
 {
 }
 
@@ -239,7 +247,7 @@ Node ProofChecker::checkInternal(PfRule id,
     }
   }
   // fails if pedantic level is not met
-  if (options::proofEagerChecking())
+  if (d_eagerCheck)
   {
     std::stringstream serr;
     if (isPedanticFailure(id, serr, enableOutput))
@@ -301,6 +309,8 @@ ProofRuleChecker* ProofChecker::getCheckerFor(PfRule id)
   }
   return it->second;
 }
+
+rewriter::RewriteDb* ProofChecker::getRewriteDatabase() { return d_rdb; }
 
 uint32_t ProofChecker::getPedanticLevel(PfRule id) const
 {

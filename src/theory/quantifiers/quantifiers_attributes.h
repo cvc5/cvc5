@@ -162,8 +162,7 @@ struct QAttributes
    * perform destructive updates (variable elimination, miniscoping, etc).
    *
    * A quantified formula is not standard if it is sygus, one for which
-   * we are performing quantifier elimination, is a function definition, or
-   * has a name.
+   * we are performing quantifier elimination, or is a function definition.
    */
   bool isStandard() const;
 };
@@ -180,16 +179,15 @@ class QuantAttributes
   QuantAttributes();
   ~QuantAttributes(){}
   /** set user attribute
-  * This function applies an attribute
-  * This can be called when we mark expressions with attributes, e.g. (! q
-  * :attribute attr [node_values, str_value...]),
-  * It can also be called internally in various ways (for SyGus, quantifier
-  * elimination, etc.)
-  */
+   * This function applies an attribute
+   * This can be called when we mark expressions with attributes, e.g. (! q
+   * :attribute attr [nodeValues]),
+   * It can also be called internally in various ways (for SyGus, quantifier
+   * elimination, etc.)
+   */
   static void setUserAttribute(const std::string& attr,
-                               Node q,
-                               std::vector<Node>& node_values,
-                               std::string str_value);
+                               TNode q,
+                               const std::vector<Node>& nodeValues);
 
   /** compute quantifier attributes */
   static void computeQuantAttributes(Node q, QAttributes& qa);
@@ -210,6 +208,8 @@ class QuantAttributes
   static Node getFunDefBody( Node q );
   /** is quant elim annotation */
   static bool checkQuantElimAnnotation( Node ipl );
+  /** does q have a user-provided pattern? */
+  static bool hasPattern(Node q);
 
   /** is function definition */
   bool isFunDef( Node q );

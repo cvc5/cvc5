@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --finite-model-find --quant-epr
 ; EXPECT: sat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 
 (declare-sort Loc 0)
 (declare-const l Loc)

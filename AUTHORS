@@ -38,8 +38,8 @@ Alumni:
 
 Other contributors to the cvc5 codebase are listed in the THANKS file.
 
-cvc5 is the fifth in the CVC series of tools (CVC, CVC Lite, CVC3) but does
-not directly incorporate code from any previous version prior to CVC4.
+cvc5 is the fifth in the CVC series of tools (CVC, CVC Lite, CVC3, CVC4) but
+does not directly incorporate code from any previous version prior to CVC4.
 Information about authors of previous CVC tools is included with their
 distributions.
 

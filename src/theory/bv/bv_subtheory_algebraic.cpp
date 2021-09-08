@@ -25,10 +25,11 @@
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/bv/bv_quick_check.h"
-#include "theory/bv/bv_solver_lazy.h"
+#include "theory/bv/bv_solver_layered.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "util/bitvector.h"
 
 using namespace cvc5::context;
 using namespace cvc5::prop;
@@ -231,7 +232,7 @@ void SubstitutionEx::storeCache(TNode from, TNode to, Node reason) {
   d_cache[from] = SubstitutionElement(to, reason);
 }
 
-AlgebraicSolver::AlgebraicSolver(context::Context* c, BVSolverLazy* bv)
+AlgebraicSolver::AlgebraicSolver(context::Context* c, BVSolverLayered* bv)
     : SubtheorySolver(c, bv),
       d_modelMap(),
       d_quickSolver(new BVQuickCheck("theory::bv::algebraic", bv)),

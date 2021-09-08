@@ -23,7 +23,6 @@
 #include "theory/quantifiers/sygus/sygus_unif.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/rewriter.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -443,7 +442,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
                 teut = children.size() == 1
                            ? children[0]
                            : nm->mkNode(eut.getKind(), children);
-                teut = Rewriter::rewrite(teut);
+                teut = rewrite(teut);
               }
               else
               {

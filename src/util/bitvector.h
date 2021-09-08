@@ -76,12 +76,16 @@ class BitVector
    *            bit-vector (4 * size of the given value string)
    *
    * @param num The value of the bit-vector in string representation.
+   *            This cannot be a negative value.
    * @param base The base of the string representation.
    */
   BitVector(const std::string& num, unsigned base = 2)
   {
     CheckArgument(base == 2 || base == 10 || base == 16, base);
+    CheckArgument(num[0] != '-', num);
     d_value = Integer(num, base);
+    CheckArgument(d_value == d_value.abs(), num);
+    // Compute the length, *without* any negative sign.
     switch (base)
     {
       case 10: d_size = d_value.length(); break;

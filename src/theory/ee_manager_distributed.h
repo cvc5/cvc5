@@ -22,6 +22,7 @@
 #include <memory>
 
 #include "theory/ee_manager.h"
+#include "theory/quantifiers/master_eq_notify.h"
 
 namespace cvc5 {
 namespace theory {
@@ -59,38 +60,8 @@ class EqEngineManagerDistributed : public EqEngineManager
   void notifyModel(bool incomplete) override;
 
  private:
-  /** notify class for master equality engine */
-  class MasterNotifyClass : public theory::eq::EqualityEngineNotify
-  {
-   public:
-    MasterNotifyClass(QuantifiersEngine* qe) : d_quantEngine(qe) {}
-    /**
-     * Called when a new equivalence class is created in the master equality
-     * engine.
-     */
-    void eqNotifyNewClass(TNode t) override;
-
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
-    {
-      return true;
-    }
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override
-    {
-      return true;
-    }
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
-    void eqNotifyMerge(TNode t1, TNode t2) override {}
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
-
-   private:
-    /** Pointer to quantifiers engine */
-    QuantifiersEngine* d_quantEngine;
-  };
   /** The master equality engine notify class */
-  std::unique_ptr<MasterNotifyClass> d_masterEENotify;
+  std::unique_ptr<quantifiers::MasterNotifyClass> d_masterEENotify;
   /** The master equality engine. */
   std::unique_ptr<eq::EqualityEngine> d_masterEqualityEngine;
   /** The equality engine of the shared solver / shared terms database. */

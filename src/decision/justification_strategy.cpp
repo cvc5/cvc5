@@ -25,10 +25,9 @@ namespace decision {
 
 JustificationStrategy::JustificationStrategy(context::Context* c,
                                              context::UserContext* u,
-                                             prop::SkolemDefManager* skdm)
-    : d_context(c),
-      d_cnfStream(nullptr),
-      d_satSolver(nullptr),
+                                             prop::SkolemDefManager* skdm,
+                                             ResourceManager* rm)
+    : DecisionEngine(c, rm),
       d_skdm(skdm),
       d_assertions(
           u,
@@ -40,16 +39,11 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
       d_lastDecisionLit(c),
       d_currStatusDec(false),
       d_useRlvOrder(options::jhRlvOrder()),
+      d_decisionStopOnly(options::decisionMode()
+                         == options::DecisionMode::STOPONLY),
       d_jhSkMode(options::jhSkolemMode()),
       d_jhSkRlvMode(options::jhSkolemRlvMode())
 {
-}
-
-void JustificationStrategy::finishInit(CDCLTSatSolverInterface* ss,
-                                       CnfStream* cs)
-{
-  d_satSolver = ss;
-  d_cnfStream = cs;
 }
 
 void JustificationStrategy::presolve()
@@ -64,12 +58,13 @@ void JustificationStrategy::presolve()
   d_stack.clear();
 }
 
-SatLiteral JustificationStrategy::getNext()
+SatLiteral JustificationStrategy::getNextInternal(bool& stopSearch)
 {
   // ensure we have an assertion
   if (!refreshCurrentAssertion())
   {
     Trace("jh-process") << "getNext, already finished" << std::endl;
+    stopSearch = true;
     return undefSatLiteral;
   }
   Assert(d_stack.hasCurrentAssertion());
@@ -185,6 +180,11 @@ SatLiteral JustificationStrategy::getNext()
           d_lastDecisionLit = next.first;
           // record that we made a decision
           d_currStatusDec = true;
+          if (d_decisionStopOnly)
+          {
+            // only doing stop-only, return undefSatLiteral.
+            return undefSatLiteral;
+          }
           return lastChildVal == SAT_VALUE_FALSE ? ~nsl : nsl;
         }
         else
@@ -210,6 +210,7 @@ SatLiteral JustificationStrategy::getNext()
   } while (d_stack.hasCurrentAssertion());
   // we exhausted all assertions
   Trace("jh-process") << "...exhausted all assertions" << std::endl;
+  stopSearch = true;
   return undefSatLiteral;
 }
 
@@ -482,6 +483,7 @@ bool JustificationStrategy::isDone() { return !refreshCurrentAssertion(); }
 
 void JustificationStrategy::addAssertion(TNode assertion)
 {
+  Trace("jh-assert") << "addAssertion " << assertion << std::endl;
   std::vector<TNode> toProcess;
   toProcess.push_back(assertion);
   insertToAssertionList(toProcess, false);
@@ -489,6 +491,8 @@ void JustificationStrategy::addAssertion(TNode assertion)
 
 void JustificationStrategy::addSkolemDefinition(TNode lem, TNode skolem)
 {
+  Trace("jh-assert") << "addSkolemDefinition " << lem << " / " << skolem
+                     << std::endl;
   if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ALWAYS)
   {
     // just add to main assertions list
@@ -565,6 +569,7 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
 
 bool JustificationStrategy::refreshCurrentAssertion()
 {
+  Trace("jh-process") << "refreshCurrentAssertion" << std::endl;
   // if we already have a current assertion, nothing to be done
   TNode curr = d_stack.getCurrentAssertion();
   if (!curr.isNull())
@@ -601,6 +606,7 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(bool useSkolemList)
   SatValue currValue;
   while (!curr.isNull())
   {
+    Trace("jh-process") << "Check assertion " << curr << std::endl;
     // we never add theory literals to our assertions lists
     Assert(!isTheoryLiteral(curr));
     currValue = lookupValue(curr);

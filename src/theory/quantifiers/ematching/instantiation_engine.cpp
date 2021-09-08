@@ -200,16 +200,12 @@ bool InstantiationEngine::checkCompleteFor( Node q ) {
 
 void InstantiationEngine::checkOwnership(Node q)
 {
-  if( options::strictTriggers() && q.getNumChildren()==3 ){
+  if (options::userPatternsQuant() == options::UserPatMode::STRICT
+      && q.getNumChildren() == 3)
+  {
     //if strict triggers, take ownership of this quantified formula
-    bool hasPat = false;
-    for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
-      if( q[2][i].getKind()==INST_PATTERN || q[2][i].getKind()==INST_NO_PATTERN  ){
-        hasPat = true;
-        break;
-      }
-    }
-    if( hasPat ){
+    if (QuantAttributes::hasPattern(q))
+    {
       d_qreg.setOwner(q, this, 1);
     }
   }

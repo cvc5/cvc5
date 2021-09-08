@@ -136,6 +136,71 @@ void getFreeAssumptionsMap(
   } while (!visit.empty());
 }
 
+bool containsAssumption(const ProofNode* pn,
+                        std::unordered_map<const ProofNode*, bool>& caMap)
+{
+  std::unordered_map<const ProofNode*, bool> visited;
+  std::unordered_map<const ProofNode*, bool>::iterator it;
+  std::vector<const ProofNode*> visit;
+  visit.push_back(pn);
+  bool foundAssumption = false;
+  const ProofNode* cur;
+  while (!visit.empty())
+  {
+    cur = visit.back();
+    visit.pop_back();
+    // have we already computed?
+    it = caMap.find(cur);
+    if (it != caMap.end())
+    {
+      // if cached, we set found assumption to true if applicable and continue
+      if (it->second)
+      {
+        foundAssumption = true;
+      }
+      continue;
+    }
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      PfRule r = cur->getRule();
+      if (r == PfRule::ASSUME)
+      {
+        visited[cur] = true;
+        caMap[cur] = true;
+        foundAssumption = true;
+      }
+      else if (!foundAssumption)
+      {
+        // if we haven't found an assumption yet, recurse. Otherwise, we will
+        // not bother computing whether this subproof contains an assumption
+        // since we know its parent already contains one by another child.
+        visited[cur] = false;
+        visit.push_back(cur);
+        const std::vector<std::shared_ptr<ProofNode>>& children =
+            cur->getChildren();
+        for (const std::shared_ptr<ProofNode>& cp : children)
+        {
+          visit.push_back(cp.get());
+        }
+      }
+    }
+    else if (!it->second)
+    {
+      visited[cur] = true;
+      // we contain an assumption if we've found an assumption in a child
+      caMap[cur] = foundAssumption;
+    }
+  }
+  return caMap[cur];
+}
+
+bool containsAssumption(const ProofNode* pn)
+{
+  std::unordered_map<const ProofNode*, bool> caMap;
+  return containsAssumption(pn, caMap);
+}
+
 bool containsSubproof(ProofNode* pn, ProofNode* pnc)
 {
   std::unordered_set<const ProofNode*> visited;

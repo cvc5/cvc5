@@ -1,4 +1,4 @@
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status sat)
 (declare-fun _substvar_301_ () Bool)
 (declare-fun _substvar_300_ () Bool)
