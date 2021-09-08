@@ -78,7 +78,7 @@ public:
   std::map< Node, bool > d_phase_reqs_equality;
   std::map< Node, Node > d_phase_reqs_equality_term;
 
-  /** 
+  /**
    * Get the polarity of the child^th child of n, assuming its polarity
    * is given by (hasPol, pol). A term has polarity if it is only relevant
    * if asserted with one polarity. Its polarity is (typically) the number
@@ -91,7 +91,7 @@ public:
                           bool& newHasPol,
                           bool& newPol);
 
-  /** 
+  /**
    * Get the entailed polarity of the child^th child of n, assuming its
    * entailed polarity is given by (hasPol, pol). A term has entailed polarity
    * if it must be asserted with a polarity. Its polarity is (typically) the
