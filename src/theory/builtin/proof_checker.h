@@ -39,16 +39,6 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   /** Destructor. */
   ~BuiltinProofRuleChecker() {}
   /**
-   * Apply rewrite on n (in skolem form). This encapsulates the exact behavior
-   * of a REWRITE step in a proof.
-   *
-   * @param n The node to rewrite,
-   * @param idr The method identifier of the rewriter, by default RW_REWRITE
-   * specifying a call to Rewriter::rewrite.
-   * @return The rewritten form of n.
-   */
-  Node applyRewrite(TNode n, MethodId idr = MethodId::RW_REWRITE);
-  /**
    * Get substitution for literal exp. Updates vars/subs to the substitution
    * specified by exp for the substitution method ids.
    */
