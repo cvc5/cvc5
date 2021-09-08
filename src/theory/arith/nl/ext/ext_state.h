@@ -20,6 +20,7 @@
 
 #include "expr/node.h"
 #include "proof/proof_set.h"
+#include "smt/env.h"
 #include "theory/arith/nl/ext/monomial.h"
 
 namespace cvc5 {
@@ -37,10 +38,7 @@ class NlModel;
 
 struct ExtState
 {
-  ExtState(InferenceManager& im,
-           NlModel& model,
-           ProofNodeManager* pnm,
-           context::UserContext* c);
+  ExtState(InferenceManager& im, NlModel& model, Env& env);
 
   void init(const std::vector<Node>& xts);
 
@@ -63,13 +61,8 @@ struct ExtState
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
-  /**
-   * Pointer to the current proof node manager. nullptr, if proofs are
-   * disabled.
-   */
-  ProofNodeManager* d_pnm;
-  /** The user context. */
-  context::UserContext* d_ctx;
+  /** Reference to the environment */
+  Env& d_env;
   /**
    * A CDProofSet that hands out CDProof objects for lemmas.
    */

@@ -19,6 +19,7 @@
 #include "theory/ee_setup_info.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
+#include "theory/theory_inference_manager.h"
 
 namespace cvc5 {
 namespace theory {
@@ -34,7 +35,8 @@ SharedSolver::SharedSolver(TheoryEngine& te, ProofNodeManager* pnm)
       d_logicInfo(te.getLogicInfo()),
       d_sharedTerms(&d_te, d_te.getSatContext(), d_te.getUserContext(), pnm),
       d_preRegistrationVisitor(&te, d_te.getSatContext()),
-      d_sharedTermsVisitor(&te, d_sharedTerms, d_te.getSatContext())
+      d_sharedTermsVisitor(&te, d_sharedTerms, d_te.getSatContext()),
+      d_im(te.theoryOf(THEORY_BUILTIN)->getInferenceManager())
 {
 }
 
@@ -56,13 +58,17 @@ void SharedSolver::preRegister(TNode atom)
   // See term_registration_visitor.h for more details.
   if (d_logicInfo.isSharingEnabled())
   {
-    // register it with the shared terms database if sharing is enabled
-    preRegisterSharedInternal(atom);
     // Collect the shared terms in atom, as well as calling preregister on the
     // appropriate theories in atom.
     // This calls Theory::preRegisterTerm and Theory::addSharedTerm, possibly
     // multiple times.
     NodeVisitor<SharedTermsVisitor>::run(d_sharedTermsVisitor, atom);
+    // Register it with the shared terms database if sharing is enabled.
+    // Notice that this must come *after* the above call, since we must ensure
+    // that all subterms of atom have already been added to the central
+    // equality engine before atom is added. This avoids spurious notifications
+    // from the equality engine.
+    preRegisterSharedInternal(atom);
   }
   else
   {
@@ -104,9 +110,13 @@ EqualityStatus SharedSolver::getEqualityStatus(TNode a, TNode b)
   return EQUALITY_UNKNOWN;
 }
 
-void SharedSolver::sendLemma(TrustNode trn, TheoryId atomsTo)
+bool SharedSolver::propagateLit(TNode predicate, bool value)
 {
-  d_te.lemma(trn, LemmaProperty::NONE, atomsTo);
+  if (value)
+  {
+    return d_im->propagateLit(predicate);
+  }
+  return d_im->propagateLit(predicate.notNode());
 }
 
 bool SharedSolver::propagateSharedEquality(theory::TheoryId theory,
@@ -129,6 +139,21 @@ bool SharedSolver::propagateSharedEquality(theory::TheoryId theory,
 }
 
 bool SharedSolver::isShared(TNode t) const { return d_sharedTerms.isShared(t); }
+
+void SharedSolver::sendLemma(TrustNode trn, TheoryId atomsTo, InferenceId id)
+{
+  // Do we need to check atoms
+  if (atomsTo != theory::THEORY_LAST)
+  {
+    d_te.ensureLemmaAtoms(trn.getNode(), atomsTo);
+  }
+  d_im->trustedLemma(trn, id);
+}
+
+void SharedSolver::sendConflict(TrustNode trn, InferenceId id)
+{
+  d_im->trustedConflict(trn, id);
+}
 
 }  // namespace theory
 }  // namespace cvc5

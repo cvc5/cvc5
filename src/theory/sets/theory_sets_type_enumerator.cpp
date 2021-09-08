@@ -15,6 +15,8 @@
 
 #include "theory/sets/theory_sets_type_enumerator.h"
 
+#include "util/bitvector.h"
+
 namespace cvc5 {
 namespace theory {
 namespace sets {

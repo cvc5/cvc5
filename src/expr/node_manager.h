@@ -23,14 +23,15 @@
 #ifndef CVC5__NODE_MANAGER_H
 #define CVC5__NODE_MANAGER_H
 
-#include <vector>
 #include <string>
 #include <unordered_set>
+#include <vector>
 
 #include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
+#include "util/floatingpoint_size.h"
 
 namespace cvc5 {
 
@@ -1094,14 +1095,6 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
                 "unexpected NULL index type");
   CheckArgument(!constituentType.isNull(), constituentType,
                 "unexpected NULL constituent type");
-  CheckArgument(indexType.isFirstClass(),
-                indexType,
-                "cannot index arrays by types that are not first-class. Try "
-                "option --uf-ho.");
-  CheckArgument(constituentType.isFirstClass(),
-                constituentType,
-                "cannot store types that are not first-class in arrays. Try "
-                "option --uf-ho.");
   Debug("arrays") << "making array type " << indexType << " "
                   << constituentType << std::endl;
   return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
@@ -1110,10 +1103,6 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
 inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
   CheckArgument(!elementType.isNull(), elementType,
                 "unexpected NULL element type");
-  CheckArgument(elementType.isFirstClass(),
-                elementType,
-                "cannot store types that are not first-class in sets. Try "
-                "option --uf-ho.");
   Debug("sets") << "making sets type " << elementType << std::endl;
   return mkTypeNode(kind::SET_TYPE, elementType);
 }

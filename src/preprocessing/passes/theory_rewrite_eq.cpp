@@ -45,7 +45,7 @@ PreprocessingPassResult TheoryRewriteEq::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-theory::TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
+TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
 {
   NodeManager* nm = NodeManager::currentNM();
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
@@ -97,7 +97,7 @@ theory::TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
       if (ret.getKind() == kind::EQUAL && !ret[0].getType().isBoolean())
       {
         // For example, (= x y) ---> (and (>= x y) (<= x y))
-        theory::TrustNode trn = te->ppRewriteEquality(ret);
+        TrustNode trn = te->ppRewriteEquality(ret);
         // can make proof producing by using proof generator from trn
         ret = trn.isNull() ? Node(ret) : trn.getNode();
       }

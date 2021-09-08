@@ -15,6 +15,8 @@
 
 #include "theory/strings/strings_fmf.h"
 
+#include "util/rational.h"
+
 using namespace std;
 using namespace cvc5::context;
 using namespace cvc5::kind;

@@ -1,4 +1,3 @@
-; REQUIRES: symfpu
 ; EXPECT: sat
 (set-logic QF_FP)
 (declare-fun a () RoundingMode)

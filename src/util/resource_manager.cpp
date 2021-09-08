@@ -22,9 +22,9 @@
 #include "base/check.h"
 #include "base/listener.h"
 #include "base/output.h"
+#include "options/base_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
-#include "options/resource_manager_options.h"
 #include "util/statistics_registry.h"
 
 using namespace std;
@@ -164,7 +164,7 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats,
 
   d_infidWeights.fill(1);
   d_resourceWeights.fill(1);
-  for (const auto& opt : d_options[options::resourceWeightHolder])
+  for (const auto& opt : d_options.base.resourceWeightHolder)
   {
     std::string name;
     uint64_t weight;
@@ -189,9 +189,9 @@ uint64_t ResourceManager::getTimeUsage() const { return d_cumulativeTimeUsed; }
 
 uint64_t ResourceManager::getResourceRemaining() const
 {
-  if (d_options[options::cumulativeResourceLimit] <= d_cumulativeResourceUsed)
+  if (d_options.base.cumulativeResourceLimit <= d_cumulativeResourceUsed)
     return 0;
-  return d_options[options::cumulativeResourceLimit] - d_cumulativeResourceUsed;
+  return d_options.base.cumulativeResourceLimit - d_cumulativeResourceUsed;
 }
 
 void ResourceManager::spendResource(uint64_t amount)
@@ -237,21 +237,21 @@ void ResourceManager::spendResource(theory::InferenceId iid)
 
 void ResourceManager::beginCall()
 {
-  d_perCallTimer.set(d_options[options::perCallMillisecondLimit]);
+  d_perCallTimer.set(d_options.base.perCallMillisecondLimit);
   d_thisCallResourceUsed = 0;
 
-  if (d_options[options::cumulativeResourceLimit] > 0)
+  if (d_options.base.cumulativeResourceLimit > 0)
   {
     // Compute remaining cumulative resource budget
     d_thisCallResourceBudget =
-        d_options[options::cumulativeResourceLimit] - d_cumulativeResourceUsed;
+        d_options.base.cumulativeResourceLimit - d_cumulativeResourceUsed;
   }
-  if (d_options[options::perCallResourceLimit] > 0)
+  if (d_options.base.perCallResourceLimit > 0)
   {
     // Check if per-call resource budget is even smaller
-    if (d_options[options::perCallResourceLimit] < d_thisCallResourceBudget)
+    if (d_options.base.perCallResourceLimit < d_thisCallResourceBudget)
     {
-      d_thisCallResourceBudget = d_options[options::perCallResourceLimit];
+      d_thisCallResourceBudget = d_options.base.perCallResourceLimit;
     }
   }
 }
@@ -265,25 +265,25 @@ void ResourceManager::endCall()
 
 bool ResourceManager::limitOn() const
 {
-  return (d_options[options::cumulativeResourceLimit] > 0)
-         || (d_options[options::perCallMillisecondLimit] > 0)
-         || (d_options[options::perCallResourceLimit] > 0);
+  return (d_options.base.cumulativeResourceLimit > 0)
+         || (d_options.base.perCallMillisecondLimit > 0)
+         || (d_options.base.perCallResourceLimit > 0);
 }
 
 bool ResourceManager::outOfResources() const
 {
-  if (d_options[options::perCallResourceLimit] > 0)
+  if (d_options.base.perCallResourceLimit > 0)
   {
     // Check if per-call resources are exhausted
-    if (d_thisCallResourceUsed >= d_options[options::perCallResourceLimit])
+    if (d_thisCallResourceUsed >= d_options.base.perCallResourceLimit)
     {
       return true;
     }
   }
-  if (d_options[options::cumulativeResourceLimit] > 0)
+  if (d_options.base.cumulativeResourceLimit > 0)
   {
     // Check if cumulative resources are exhausted
-    if (d_cumulativeResourceUsed >= d_options[options::cumulativeResourceLimit])
+    if (d_cumulativeResourceUsed >= d_options.base.cumulativeResourceLimit)
     {
       return true;
     }
@@ -293,7 +293,7 @@ bool ResourceManager::outOfResources() const
 
 bool ResourceManager::outOfTime() const
 {
-  if (d_options[options::perCallMillisecondLimit] == 0) return false;
+  if (d_options.base.perCallMillisecondLimit == 0) return false;
   return d_perCallTimer.expired();
 }
 

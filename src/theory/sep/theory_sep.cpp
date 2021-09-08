@@ -18,6 +18,7 @@
 #include <map>
 
 #include "base/map_util.h"
+#include "expr/emptyset.h"
 #include "expr/kind.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
@@ -32,6 +33,7 @@
 #include "theory/sep/theory_sep_rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
+#include "util/cardinality.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -40,20 +42,15 @@ namespace cvc5 {
 namespace theory {
 namespace sep {
 
-TheorySep::TheorySep(context::Context* c,
-                     context::UserContext* u,
-                     OutputChannel& out,
-                     Valuation valuation,
-                     const LogicInfo& logicInfo,
-                     ProofNodeManager* pnm)
-    : Theory(THEORY_SEP, c, u, out, valuation, logicInfo, pnm),
-      d_lemmas_produced_c(u),
+TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
+    : Theory(THEORY_SEP, env, out, valuation),
+      d_lemmas_produced_c(userContext()),
       d_bounds_init(false),
-      d_state(c, u, valuation),
-      d_im(*this, d_state, nullptr, "theory::sep::"),
+      d_state(env, valuation),
+      d_im(env, *this, d_state, d_pnm, "theory::sep::"),
       d_notify(*this),
-      d_reduce(u),
-      d_spatial_assertions(c)
+      d_reduce(userContext()),
+      d_spatial_assertions(context())
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -93,6 +90,7 @@ bool TheorySep::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
   esi.d_name = "theory::sep::ee";
+  esi.d_notifyMerge = true;
   return true;
 }
 
@@ -200,7 +198,6 @@ void TheorySep::postProcessModel( TheoryModel* m ){
         Trace("sep-model") << " " << l << " -> ";
         if( d_pto_model[l].isNull() ){
           Trace("sep-model") << "_";
-          //m->d_comment_str << "_";
           TypeEnumerator te_range( data_type );
           if (d_state.isFiniteType(data_type))
           {
@@ -470,7 +467,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
         << std::endl;
     Node g = sm->mkDummySkolem("G", nm->booleanType());
     d_neg_guard_strategy[g].reset(new DecisionStrategySingleton(
-        "sep_neg_guard", g, getSatContext(), getValuation()));
+        "sep_neg_guard", g, context(), getValuation()));
     DecisionStrategySingleton* ds = d_neg_guard_strategy[g].get();
     d_im.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_SEP_NEG_GUARD, ds);
@@ -924,7 +921,7 @@ TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {
   std::map< Node, HeapAssertInfo* >::iterator e_i = d_eqc_info.find( n );
   if( e_i==d_eqc_info.end() ){
     if( doMake ){
-      HeapAssertInfo* ei = new HeapAssertInfo( getSatContext() );
+      HeapAssertInfo* ei = new HeapAssertInfo(context());
       d_eqc_info[n] = ei;
       return ei;
     }else{
@@ -1211,7 +1208,7 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
     bool tn_is_monotonic = true;
     if( tn.isSort() ){
       //TODO: use monotonicity inference
-      tn_is_monotonic = !getLogicInfo().isQuantified();
+      tn_is_monotonic = !logicInfo().isQuantified();
     }else{
       tn_is_monotonic = tn.getCardinality().isInfinite();
     }
@@ -1782,11 +1779,12 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, 
       if( conc==d_false ){
         Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << id
                            << std::endl;
-        d_im.conflictExp(id, ant, nullptr);
+        d_im.conflictExp(id, PfRule::THEORY_INFERENCE, ant, {conc});
       }else{
         Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant
                            << " by " << id << std::endl;
-        TrustNode trn = d_im.mkLemmaExp(conc, ant, {});
+        TrustNode trn =
+            d_im.mkLemmaExp(conc, PfRule::THEORY_INFERENCE, ant, {}, {conc});
         d_im.addPendingLemma(
             trn.getNode(), id, LemmaProperty::NONE, trn.getGenerator());
       }

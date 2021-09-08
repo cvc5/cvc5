@@ -21,7 +21,6 @@
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "cvc/cvc.h"
-#include "options/options.h"
 #include "parser/antlr_input.h"
 #include "parser/input.h"
 #include "parser/parser.h"
@@ -31,24 +30,21 @@
 namespace cvc5 {
 namespace parser {
 
-ParserBuilder::ParserBuilder(api::Solver* solver, SymbolManager* sm)
-    : d_solver(solver), d_symman(sm)
-{
-  init(solver, sm);
-}
-
 ParserBuilder::ParserBuilder(api::Solver* solver,
                              SymbolManager* sm,
-                             const Options& options)
+                             bool useOptions)
     : d_solver(solver), d_symman(sm)
 {
   init(solver, sm);
-  withOptions(options);
+  if (useOptions)
+  {
+    withOptions();
+  }
 }
 
 void ParserBuilder::init(api::Solver* solver, SymbolManager* sm)
 {
-  d_lang = language::input::LANG_AUTO;
+  d_lang = "LANG_AUTO";
   d_solver = solver;
   d_symman = sm;
   d_checksEnabled = true;
@@ -62,24 +58,17 @@ void ParserBuilder::init(api::Solver* solver, SymbolManager* sm)
 Parser* ParserBuilder::build()
 {
   Parser* parser = NULL;
-  switch (d_lang)
+  if (d_lang == "LANG_SYGUS_V2" || d_lang == "LANG_SMTLIB_V2_6")
   {
-    case language::input::LANG_SYGUS_V2:
-      parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
-      break;
-    case language::input::LANG_TPTP:
-      parser = new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly);
-      break;
-    default:
-      if (language::isInputLang_smt2(d_lang))
-      {
-        parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
-      }
-      else
-      {
-        parser = new Cvc(d_solver, d_symman, d_strictMode, d_parseOnly);
-      }
-      break;
+    parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
+  }
+  else if (d_lang == "LANG_TPTP")
+  {
+    parser = new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly);
+  }
+  else
+  {
+    parser = new Cvc(d_solver, d_symman, d_strictMode, d_parseOnly);
   }
 
   if( d_checksEnabled ) {
@@ -106,7 +95,8 @@ ParserBuilder& ParserBuilder::withChecks(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withInputLanguage(InputLanguage lang) {
+ParserBuilder& ParserBuilder::withInputLanguage(const std::string& lang)
+{
   d_lang = lang;
   return *this;
 }
@@ -116,16 +106,18 @@ ParserBuilder& ParserBuilder::withParseOnly(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withOptions(const Options& options) {
+ParserBuilder& ParserBuilder::withOptions()
+{
   ParserBuilder& retval = *this;
-  retval =
-      retval.withInputLanguage(options.getInputLanguage())
-      .withChecks(options.getSemanticChecks())
-      .withStrictMode(options.getStrictParsing())
-      .withParseOnly(options.getParseOnly())
-      .withIncludeFile(options.getFilesystemAccess());
-  if(options.wasSetByUserForceLogicString()) {
-    LogicInfo tmp(options.getForceLogicString());
+  retval = retval.withInputLanguage(d_solver->getOption("input-language"))
+               .withChecks(d_solver->getOptionInfo("semantic-checks").boolValue())
+               .withStrictMode(d_solver->getOptionInfo("strict-parsing").boolValue())
+               .withParseOnly(d_solver->getOptionInfo("parse-only").boolValue())
+               .withIncludeFile(d_solver->getOptionInfo("filesystem-access").boolValue());
+  auto info = d_solver->getOptionInfo("force-logic");
+  if (info.setByUser)
+  {
+    LogicInfo tmp(info.stringValue());
     retval = retval.withForcedLogic(tmp.getLogicString());
   }
   return retval;
@@ -141,7 +133,8 @@ ParserBuilder& ParserBuilder::withIncludeFile(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withForcedLogic(const std::string& logic) {
+ParserBuilder& ParserBuilder::withForcedLogic(const std::string& logic)
+{
   d_logicIsForced = true;
   d_forcedLogic = logic;
   return *this;

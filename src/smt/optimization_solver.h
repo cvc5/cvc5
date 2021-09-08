@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Michael Chang, Yancheng Ou, Aina Niemetz
+ *   Yancheng Ou, Michael Chang, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -18,79 +18,99 @@
 #ifndef CVC5__SMT__OPTIMIZATION_SOLVER_H
 #define CVC5__SMT__OPTIMIZATION_SOLVER_H
 
+#include "context/cdhashmap_forward.h"
+#include "context/cdlist.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "util/result.h"
 
 namespace cvc5 {
 
+class Env;
 class SmtEngine;
 
 namespace smt {
 
+class OptimizationObjective;
+class OptimizationResult;
+
 /**
- * The optimization result of an optimization objective
- * containing:
- * - whether it's optimal or not
- * - if so, the optimal value, otherwise the value might be empty node or
- *   something suboptimal
+ * The optimization result, containing:
+ * - the optimization result: SAT/UNSAT/UNKNOWN
+ * - the optimal value if SAT and finite
+ *     (optimal value reached and it's not infinity),
+ *   or an empty node if SAT and infinite
+ *   otherwise the value might be empty node
+ *   or something suboptimal
+ * - whether the result is finite/+-infinity
  */
 class OptimizationResult
 {
  public:
-  /**
-   * Enum indicating whether the checkOpt result
-   * is optimal or not.
-   **/
-  enum ResultType
+  enum IsInfinity
   {
-    // the type of the target is not supported
-    UNSUPPORTED,
-    // whether the value is optimal is UNKNOWN
-    UNKNOWN,
-    // the original set of assertions has result UNSAT
-    UNSAT,
-    // the value is optimal
-    OPTIMAL,
-    // the goal is unbounded,
-    // if objective is maximize, it's +infinity
-    // if objective is minimize, it's -infinity
-    UNBOUNDED,
+    FINITE = 0,
+    POSTITIVE_INF,
+    NEGATIVE_INF
   };
-
   /**
    * Constructor
    * @param type the optimization outcome
    * @param value the optimized value
+   * @param isInf whether the result is FINITE/POSITIVE_INF/NEGATIVE_INF
    **/
-  OptimizationResult(ResultType type, TNode value)
-      : d_type(type), d_value(value)
+  OptimizationResult(Result result, TNode value, IsInfinity isInf = FINITE)
+      : d_result(result), d_value(value), d_infinity(isInf)
   {
   }
-  OptimizationResult() : d_type(UNSUPPORTED), d_value() {}
+  OptimizationResult()
+      : d_result(Result::Sat::SAT_UNKNOWN,
+                 Result::UnknownExplanation::NO_STATUS),
+        d_value(),
+        d_infinity(FINITE)
+  {
+  }
   ~OptimizationResult() = default;
 
   /**
    * Returns an enum indicating whether
-   * the result is optimal or not.
-   * @return an enum showing whether the result is optimal, unbounded,
-   *   unsat, unknown or unsupported.
+   * the result is SAT or not.
+   * @return whether the result is SAT, UNSAT or SAT_UNKNOWN
    **/
-  ResultType getType() { return d_type; }
+  Result getResult() const { return d_result; }
+
   /**
    * Returns the optimal value.
    * @return Node containing the optimal value,
-   *   if getType() is not OPTIMAL, it might return an empty node or a node
-   *   containing non-optimal value
+   *   if result is infinite, this will be an empty node,
+   *   if getResult() is UNSAT, it will return an empty node,
+   *   if getResult() is SAT_UNKNOWN, it will return something suboptimal
+   *   or an empty node, depending on how the solver runs.
    **/
-  Node getValue() { return d_value; }
+  Node getValue() const { return d_value; }
+
+  /**
+   * Checks whether the result is infinity
+   * @return whether the result is FINITE/POSITIVE_INF/NEGATIVE_INF
+   **/
+  IsInfinity isInfinity() const { return d_infinity; }
 
  private:
-  /** the indicating whether the result is optimal or something else **/
-  ResultType d_type;
-  /** if the result is optimal, this is storing the optimal value **/
+  /** indicating whether the result is SAT, UNSAT or UNKNOWN **/
+  Result d_result;
+  /** if the result is finite, this is storing the value **/
   Node d_value;
+  /** whether the result is finite/+infinity/-infinity **/
+  IsInfinity d_infinity;
 };
+
+/**
+ * To serialize the OptimizationResult.
+ * @param out the stream to put the serialized result
+ * @param result the OptimizationResult object to serialize
+ * @return the parameter out
+ **/
+std::ostream& operator<<(std::ostream& out, const OptimizationResult& result);
 
 /**
  * The optimization objective, which contains:
@@ -126,13 +146,13 @@ class OptimizationObjective
   ~OptimizationObjective() = default;
 
   /** A getter for d_type **/
-  ObjectiveType getType() { return d_type; }
+  ObjectiveType getType() const { return d_type; }
 
   /** A getter for d_target **/
-  Node getTarget() { return d_target; }
+  Node getTarget() const { return d_target; }
 
   /** A getter for d_bvSigned **/
-  bool bvIsSigned() { return d_bvSigned; }
+  bool bvIsSigned() const { return d_bvSigned; }
 
  private:
   /**
@@ -154,6 +174,15 @@ class OptimizationObjective
 };
 
 /**
+ * To serialize the OptimizationObjective.
+ * @param out the stream to put the serialized result
+ * @param objective the OptimizationObjective object to serialize
+ * @return the parameter out
+ **/
+std::ostream& operator<<(std::ostream& out,
+                         const OptimizationObjective& objective);
+
+/**
  * A solver for optimization queries.
  *
  * This class is responsible for responding to optmization queries. It
@@ -165,40 +194,56 @@ class OptimizationSolver
 {
  public:
   /**
+   * An enum specifying how multiple objectives are dealt with.
+   * Definition:
+   *   phi(x, y): set of assertions with variables x and y
+   *
+   * Box: treat the objectives as independent objectives
+   *   v_x = max(x) s.t. phi(x, y) = sat
+   *   v_y = max(y) s.t. phi(x, y) = sat
+   *
+   * Lexicographic: optimize the objectives one-by-one, in the order they are
+   * added:
+   *   v_x = max(x) s.t. phi(x, y) = sat
+   *   v_y = max(y) s.t. phi(v_x, y) = sat
+   *
+   * Pareto: optimize multiple goals to a state such that
+   * further optimization of one goal will worsen the other goal(s)
+   *   (v_x, v_y) s.t. phi(v_x, v_y) = sat, and
+   *     forall (x, y), (phi(x, y) = sat) -> (x <= v_x or y <= v_y)
+   **/
+  enum ObjectiveCombination
+  {
+    BOX,
+    LEXICOGRAPHIC,
+    PARETO,
+  };
+  /**
    * Constructor
    * @param parent the smt_solver that the user added their assertions to
    **/
-  OptimizationSolver(SmtEngine* parent)
-      : d_parent(parent), d_objectives(), d_results()
-  {
-  }
+  OptimizationSolver(SmtEngine* parent);
   ~OptimizationSolver() = default;
 
   /**
-   * Run the optimization loop for the pushed objective
-   * NOTE: this function currently supports only single objective
-   * for multiple pushed objectives it always optimizes the first one.
-   * Add support for multi-obj later
+   * Run the optimization loop for the added objective
+   * For multiple objective combination, it defaults to lexicographic,
+   * possible combinations: BOX, LEXICOGRAPHIC, PARETO
+   * @param combination BOX / LEXICOGRAPHIC / PARETO
    */
-  OptimizationResult::ResultType checkOpt();
+  Result checkOpt(ObjectiveCombination combination = LEXICOGRAPHIC);
 
   /**
-   * Push an objective.
-   * @param target the Node representing the expression that will be optimized
-   *for
+   * Add an optimization objective.
+   * @param target Node representing the expression that will be optimized for
    * @param type specifies whether it's maximize or minimize
    * @param bvSigned specifies whether we should use signed/unsigned
    *   comparison for BitVectors (only effective for BitVectors)
    *   and its default is false
    **/
-  void pushObjective(TNode target,
-                     OptimizationObjective::ObjectiveType type,
-                     bool bvSigned = false);
-
-  /**
-   * Pop the most recent objective.
-   **/
-  void popObjective();
+  void addObjective(TNode target,
+                    OptimizationObjective::ObjectiveType type,
+                    bool bvSigned = false);
 
   /**
    * Returns the values of the optimized objective after checkOpt is called
@@ -210,6 +255,8 @@ class OptimizationSolver
  private:
   /**
    * Initialize an SMT subsolver for offline optimization purpose
+   * @param env the environment, which determines options and logic for the
+   * subsolver
    * @param parentSMTSolver the parental solver containing the assertions
    * @param needsTimeout specifies whether it needs timeout for each single
    *    query
@@ -221,11 +268,56 @@ class OptimizationSolver
       bool needsTimeout = false,
       unsigned long timeout = 0);
 
-  /** The parent SMT engine **/
+  /**
+   * Optimize multiple goals in Box order
+   * @return SAT if all of the objectives are optimal (could be infinite);
+   *   UNSAT if at least one objective is UNSAT and no objective is SAT_UNKNOWN;
+   *   SAT_UNKNOWN if any of the objective is SAT_UNKNOWN.
+   **/
+  Result optimizeBox();
+
+  /**
+   * Optimize multiple goals in Lexicographic order,
+   * using iterative implementation
+   * @return SAT if the objectives are optimal,
+   *     if one of the objectives is unbounded (result is infinite),
+   *     the optimization will stop at that objective;
+   *   UNSAT if any of the objectives is UNSAT
+   *     and optimization will stop at that objective;
+   *   SAT_UNKNOWN if any of the objectives is UNKNOWN
+   *     and optimization will stop at that objective;
+   *   If the optimization is stopped at an objective,
+   *     all objectives following that objective will be SAT_UNKNOWN.
+   **/
+  Result optimizeLexicographicIterative();
+
+  /**
+   * Optimize multiple goals in Pareto order
+   * Using a variant of linear search called Guided Improvement Algorithm
+   * Could be called multiple times to iterate through the Pareto front
+   *
+   * Definition:
+   * Pareto front: Set of all possible Pareto optimal solutions
+   *
+   * Reference:
+   * D. Rayside, H.-C. Estler, and D. Jackson. The Guided Improvement Algorithm.
+   *  Technical Report MIT-CSAIL-TR-2009-033, MIT, 2009.
+   *
+   * @return if it finds a new Pareto optimal result it will return SAT;
+   *   if it exhausts the results in the Pareto front it will return UNSAT;
+   *   if the underlying SMT solver returns SAT_UNKNOWN,
+   *   it will return SAT_UNKNOWN.
+   **/
+  Result optimizeParetoNaiveGIA();
+
+  /** A pointer to the parent SMT engine **/
   SmtEngine* d_parent;
 
+  /** A subsolver for offline optimization **/
+  std::unique_ptr<SmtEngine> d_optChecker;
+
   /** The objectives to optimize for **/
-  std::vector<OptimizationObjective> d_objectives;
+  context::CDList<OptimizationObjective> d_objectives;
 
   /** The results of the optimizations from the last checkOpt call **/
   std::vector<OptimizationResult> d_results;

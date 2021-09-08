@@ -23,6 +23,7 @@
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "util/bitvector.h"
 
 namespace cvc5 {
 namespace theory {

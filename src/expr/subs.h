@@ -67,6 +67,8 @@ class Subs
   std::map<Node, Node> toMap() const;
   /** Get string for this substitution */
   std::string toString() const;
+  /** clear the substitution */
+  void clear();
   /** The data */
   std::vector<Node> d_vars;
   std::vector<Node> d_subs;

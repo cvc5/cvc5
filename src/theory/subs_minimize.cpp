@@ -19,6 +19,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/strings/word.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -446,7 +447,7 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
     }
   }
 
-  if ((arg == 1 && k == STRING_STRCTN) || (arg == 0 && k == STRING_SUBSTR))
+  if ((arg == 1 && k == STRING_CONTAINS) || (arg == 0 && k == STRING_SUBSTR))
   {
     // empty string
     if (strings::Word::getLength(n) == 0)
@@ -454,7 +455,7 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
       return true;
     }
   }
-  if ((arg != 0 && k == STRING_SUBSTR) || (arg == 2 && k == STRING_STRIDOF))
+  if ((arg != 0 && k == STRING_SUBSTR) || (arg == 2 && k == STRING_INDEXOF))
   {
     // negative integer
     if (n.getConst<Rational>().sgn() < 0)

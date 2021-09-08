@@ -24,6 +24,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
+#include "util/string.h"
 
 using namespace cvc5::theory;
 using namespace cvc5::kind;
@@ -31,7 +32,10 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-QuantElimSolver::QuantElimSolver(SmtSolver& sms) : d_smtSolver(sms) {}
+QuantElimSolver::QuantElimSolver(Env& env, SmtSolver& sms)
+    : d_env(env), d_smtSolver(sms)
+{
+}
 
 QuantElimSolver::~QuantElimSolver() {}
 
@@ -47,23 +51,19 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
         "Expecting a quantified formula as argument to get-qe.");
   }
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
   // ensure the body is rewritten
   q = nm->mkNode(q.getKind(), q[0], Rewriter::rewrite(q[1]));
   // do nested quantifier elimination if necessary
-  q = quantifiers::NestedQe::doNestedQe(q, true);
+  q = quantifiers::NestedQe::doNestedQe(d_env, q, true);
   Trace("smt-qe") << "QuantElimSolver: after nested quantifier elimination : "
                   << q << std::endl;
   // tag the quantified formula with the quant-elim attribute
   TypeNode t = nm->booleanType();
-  Node n_attr = sm->mkDummySkolem("qe", t, "Auxiliary variable for qe attr.");
-  std::vector<Node> node_values;
   TheoryEngine* te = d_smtSolver.getTheoryEngine();
   Assert(te != nullptr);
-  te->setUserAttribute(
-      doFull ? "quant-elim" : "quant-elim-partial", n_attr, node_values, "");
-  QuantifiersEngine* qe = te->getQuantifiersEngine();
-  n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);
+  Node keyword =
+      nm->mkConst(String(doFull ? "quant-elim" : "quant-elim-partial"));
+  Node n_attr = nm->mkNode(INST_ATTRIBUTE, keyword);
   n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
   std::vector<Node> children;
   children.push_back(q[0]);
@@ -75,8 +75,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
   Assert(ne.getNumChildren() == 3);
   // We consider this to be an entailment check, which also avoids incorrect
   // status reporting (see SmtEngineState::d_expectedStatus).
-  Result r =
-      d_smtSolver.checkSatisfiability(as, std::vector<Node>{ne}, false, true);
+  Result r = d_smtSolver.checkSatisfiability(as, std::vector<Node>{ne}, true);
   Trace("smt-qe") << "Query returned " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
   {
@@ -88,6 +87,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
       // failed, return original
       return q;
     }
+    QuantifiersEngine* qe = te->getQuantifiersEngine();
     // must use original quantified formula to compute QE, which ensures that
     // e.g. term formula removal is not run on the body. Notice that we assume
     // that the (single) quantified formula is preprocessed, rewritten

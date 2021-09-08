@@ -20,7 +20,6 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/dump_manager.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/theory_engine.h"
@@ -72,8 +71,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
       assertionsToPreprocess->push_back(nar);
     }
     // indicate correspondence between the functions
-    SmtEngine* smt = smt::currentSmtEngine();
-    smt::DumpManager* dm = smt->getDumpManager();
+    smt::DumpManager* dm = d_env.getDumpManager();
     for (const std::pair<const Node, Node>& mrf : model_replace_f)
     {
       dm->setPrintFuncInModel(mrf.first, false);

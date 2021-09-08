@@ -23,10 +23,10 @@
 #include "theory/inference_manager_buffered.h"
 
 namespace cvc5 {
-namespace theory {
 
 class EagerProofGenerator;
 
+namespace theory {
 namespace datatypes {
 
 /**
@@ -38,7 +38,10 @@ class InferenceManager : public InferenceManagerBuffered
   friend class DatatypesInference;
 
  public:
-  InferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
+  InferenceManager(Env& env,
+                   Theory& t,
+                   TheoryState& state,
+                   ProofNodeManager* pnm);
   ~InferenceManager();
   /**
    * Add pending inference, which may be processed as either a fact or

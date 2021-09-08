@@ -24,10 +24,14 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-InferenceManager::InferenceManager(TheoryArith& ta,
+InferenceManager::InferenceManager(Env& env,
+                                   TheoryArith& ta,
                                    ArithState& astate,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(ta, astate, pnm, "theory::arith::")
+    : InferenceManagerBuffered(env, ta, astate, pnm, "theory::arith::"),
+      // currently must track propagated literals if using the equality solver
+      d_trackPropLits(astate.options().arith.arithEqSolver),
+      d_propLits(context())
 {
 }
 
@@ -124,7 +128,7 @@ bool InferenceManager::cacheLemma(TNode lem, LemmaProperty p)
 
 bool InferenceManager::isEntailedFalse(const SimpleTheoryLemma& lem)
 {
-  if (options::nlExtEntailConflicts())
+  if (d_theoryState.options().arith.nlExtEntailConflicts)
   {
     Node ch_lemma = lem.d_node.negate();
     ch_lemma = Rewriter::rewrite(ch_lemma);
@@ -144,6 +148,21 @@ bool InferenceManager::isEntailedFalse(const SimpleTheoryLemma& lem)
     }
   }
   return false;
+}
+
+bool InferenceManager::propagateLit(TNode lit)
+{
+  if (d_trackPropLits)
+  {
+    d_propLits.insert(lit);
+  }
+  return TheoryInferenceManager::propagateLit(lit);
+}
+
+bool InferenceManager::hasPropagated(TNode lit) const
+{
+  Assert(d_trackPropLits);
+  return d_propLits.find(lit) != d_propLits.end();
 }
 
 }  // namespace arith

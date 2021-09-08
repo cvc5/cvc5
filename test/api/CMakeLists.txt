@@ -51,6 +51,7 @@ cvc5_add_api_test(smt2_compliance)
 cvc5_add_api_test(two_solvers)
 cvc5_add_api_test(issue5074)
 cvc5_add_api_test(issue4889)
+cvc5_add_api_test(issue6111)
 
 # if we've built using libedit, then we want the interactive shell tests
 if (USE_EDITLINE)
@@ -71,10 +72,4 @@ if (USE_EDITLINE)
       WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     )
   endif()
-endif()
-
-
-# add Python bindings tests if building with Python bindings
-if (BUILD_BINDINGS_PYTHON)
-  add_subdirectory(python)
 endif()

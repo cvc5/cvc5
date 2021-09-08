@@ -155,7 +155,8 @@ public:
    * @param inputStream the input stream
    *
    * */
-  static AntlrInput* newInput(InputLanguage lang, AntlrInputStream& inputStream);
+  static AntlrInput* newInput(const std::string& lang,
+                              AntlrInputStream& inputStream);
 
   /** Retrieve the text associated with a token. */
   static std::string tokenText(pANTLR3_COMMON_TOKEN token);

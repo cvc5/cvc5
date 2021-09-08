@@ -19,10 +19,11 @@
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_RL_H
 
 #include <map>
-#include "options/main_options.h"
-#include "theory/quantifiers/sygus/sygus_unif.h"
 
+#include "options/main_options.h"
 #include "theory/quantifiers/lazy_trie.h"
+#include "theory/quantifiers/sygus/sygus_unif.h"
+#include "util/bool.h"
 
 namespace cvc5 {
 namespace theory {
@@ -47,7 +48,7 @@ class SynthConjecture;
 class SygusUnifRl : public SygusUnif
 {
  public:
-  SygusUnifRl(SynthConjecture* p);
+  SygusUnifRl(Env& env, SynthConjecture* p);
   ~SygusUnifRl();
 
   /** initialize */

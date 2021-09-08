@@ -21,6 +21,8 @@
 #include "options/language.h"
 #include "smt/smt_engine.h"
 #include "test_smt.h"
+#include "util/regexp.h"
+#include "util/string.h"
 
 namespace cvc5 {
 
@@ -34,8 +36,8 @@ class TestPrinterBlackSmt2 : public TestSmt
   void checkToString(TNode n, const std::string& expected)
   {
     std::stringstream ss;
-    ss << Node::setdepth(-1)
-       << Node::setlanguage(language::output::LANG_SMTLIB_V2_6) << n;
+    ss << Node::setdepth(-1) << Node::setlanguage(Language::LANG_SMTLIB_V2_6)
+       << n;
     ASSERT_EQ(ss.str(), expected);
   }
 };

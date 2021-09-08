@@ -19,7 +19,6 @@ using namespace cvc5::api;
 
 int main()
 {
-#ifdef CVC5_USE_SYMFPU
   Solver slv;
   Sort sort_int = slv.getIntegerSort();
   Sort sort_array = slv.mkArraySort(sort_int, sort_int);
@@ -33,6 +32,5 @@ int main()
   Term rem = slv.mkTerm(FLOATINGPOINT_REM, ite, const1);
   Term isnan = slv.mkTerm(FLOATINGPOINT_ISNAN, rem);
   slv.checkSatAssuming(isnan);
-#endif
   return 0;
 }

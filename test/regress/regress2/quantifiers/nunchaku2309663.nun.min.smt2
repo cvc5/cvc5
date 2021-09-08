@@ -1,6 +1,6 @@
 ; EXPECT: unsat
 ; COMMAND-LINE: --finite-model-find
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((nat__ 0)) (((Suc__ (_select_Suc___0 nat__)) (zero__))))
 (declare-sort a__ 0)
