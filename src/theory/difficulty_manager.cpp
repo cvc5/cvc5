@@ -31,7 +31,7 @@ DifficultyManager::DifficultyManager(context::Context* c, Valuation val)
 void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
 {
   NodeManager* nm = NodeManager::currentNM();
-  for (std::pair<const Node, uint64_t>& p : d_dfmap)
+  for (const std::pair<const Node, uint64_t> p : d_dfmap)
   {
     dmap[p.first] = nm->mkConst(Rational(p.second));
   }
