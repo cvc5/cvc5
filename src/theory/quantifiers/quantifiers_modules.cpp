@@ -47,7 +47,6 @@ void QuantifiersModules::initialize(Env& env,
                                     QuantifiersRegistry& qr,
                                     TermRegistry& tr,
                                     QModelBuilder* builder,
-                                    ProofNodeManager* pnm,
                                     std::vector<QuantifiersModule*>& modules)
 {
   // add quantifiers modules
@@ -97,7 +96,7 @@ void QuantifiersModules::initialize(Env& env,
   }
   if (options::quantAlphaEquiv())
   {
-    d_alpha_equiv.reset(new AlphaEquivalence(pnm));
+    d_alpha_equiv.reset(new AlphaEquivalence(env.getProofNodeManager()));
   }
   // full saturation : instantiate from relevant domain, then arbitrary terms
   if (options::fullSaturateQuant() || options::fullSaturateInterleave())
