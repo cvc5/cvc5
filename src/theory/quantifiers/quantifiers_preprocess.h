@@ -19,7 +19,6 @@
 #define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_PREPROCESSOR_H
 
 #include "proof/trust_node.h"
-
 #include "smt/env_obj.h"
 
 namespace cvc5 {
@@ -29,7 +28,7 @@ namespace quantifiers {
 class QuantifiersPreprocess : protected EnvObj
 {
  public:
-   QuantifiersPreprocess(Env& env);
+  QuantifiersPreprocess(Env& env);
   /** preprocess
    *
    * This returns the result of applying simple quantifiers-specific
@@ -49,9 +48,9 @@ class QuantifiersPreprocess : protected EnvObj
  private:
   /** Pre-skolemize quantifiers */
   Node preSkolemizeQuantifiers(Node n,
-                                      bool polarity,
-                                      std::vector<TypeNode>& fvTypes,
-                                      std::vector<TNode>& fvs) const;
+                               bool polarity,
+                               std::vector<TypeNode>& fvTypes,
+                               std::vector<TNode>& fvs) const;
   /**
    * Apply prenexing aggressively. Returns the prenex normal form of n.
    */

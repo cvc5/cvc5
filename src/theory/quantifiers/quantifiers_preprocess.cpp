@@ -15,10 +15,10 @@
 
 #include "theory/quantifiers/quantifiers_preprocess.h"
 
-#include "options/quantifiers_options.h"
-#include "theory/quantifiers/skolemize.h"
 #include "expr/node_algorithm.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/skolemize.h"
 
 using namespace cvc5::kind;
 
@@ -26,10 +26,10 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-QuantifiersPreprocess::QuantifiersPreprocess(Env& env) : EnvObj(env){}
-   
-Node QuantifiersPreprocess::computePrenexAgg(Node n,
-                                           std::map<Node, Node>& visited) const
+QuantifiersPreprocess::QuantifiersPreprocess(Env& env) : EnvObj(env) {}
+
+Node QuantifiersPreprocess::computePrenexAgg(
+    Node n, std::map<Node, Node>& visited) const
 {
   std::map<Node, Node>::iterator itv = visited.find(n);
   if (itv != visited.end())
@@ -76,7 +76,8 @@ Node QuantifiersPreprocess::computePrenexAgg(Node n,
     std::unordered_set<Node> argsSet;
     std::unordered_set<Node> nargsSet;
     Node q;
-    Node nn = QuantifiersRewriter::computePrenex(q, n, argsSet, nargsSet, true, true);
+    Node nn =
+        QuantifiersRewriter::computePrenex(q, n, argsSet, nargsSet, true, true);
     Assert(n != nn || argsSet.empty());
     Assert(n != nn || nargsSet.empty());
     if (n != nn)
@@ -90,7 +91,8 @@ Node QuantifiersPreprocess::computePrenexAgg(Node n,
         // pos polarity variables are inner
         if (!argsSet.empty())
         {
-          nnn = QuantifiersRewriter::mkForall({argsSet.begin(), argsSet.end()}, nnn, true);
+          nnn = QuantifiersRewriter::mkForall(
+              {argsSet.begin(), argsSet.end()}, nnn, true);
         }
         argsSet.clear();
       }
@@ -101,12 +103,14 @@ Node QuantifiersPreprocess::computePrenexAgg(Node n,
       }
       if (!nargsSet.empty())
       {
-        nnn = QuantifiersRewriter::mkForall({nargsSet.begin(), nargsSet.end()}, nnn.negate(), true)
+        nnn = QuantifiersRewriter::mkForall(
+                  {nargsSet.begin(), nargsSet.end()}, nnn.negate(), true)
                   .negate();
       }
       if (!argsSet.empty())
       {
-        nnn = QuantifiersRewriter::mkForall({argsSet.begin(), argsSet.end()}, nnn, true);
+        nnn = QuantifiersRewriter::mkForall(
+            {argsSet.begin(), argsSet.end()}, nnn, true);
       }
       ret = nnn;
     }
@@ -121,7 +125,7 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
     std::vector<TypeNode>& fvTypes,
     std::vector<TNode>& fvs) const
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Trace("pre-sk") << "Pre-skolem " << n << " " << polarity << " " << fvs.size()
                   << std::endl;
   if (n.getKind() == NOT)
@@ -141,7 +145,8 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
     }
     else if (polarity)
     {
-      if (options().quantifiers.preSkolemQuant && options().quantifiers.preSkolemQuantNested)
+      if (options().quantifiers.preSkolemQuant
+          && options().quantifiers.preSkolemQuantNested)
       {
         std::vector<Node> children;
         children.push_back(n[0]);
@@ -188,24 +193,19 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
           // must remove structure
           if (n.getKind() == ITE)
           {
-            nn = nm->mkNode(
-                AND,
-                nm->mkNode(
-                    OR, n[0].notNode(), n[1]),
-                nm->mkNode(OR, n[0], n[2]));
+            nn = nm->mkNode(AND,
+                            nm->mkNode(OR, n[0].notNode(), n[1]),
+                            nm->mkNode(OR, n[0], n[2]));
           }
           else if (n.getKind() == EQUAL)
           {
             nn = nm->mkNode(
                 AND,
+                nm->mkNode(OR,
+                           n[0].notNode(),
+                           n.getKind() == XOR ? n[1].notNode() : n[1]),
                 nm->mkNode(
-                    OR,
-                    n[0].notNode(),
-                    n.getKind() == XOR ? n[1].notNode() : n[1]),
-                nm->mkNode(
-                    OR,
-                    n[0],
-                    n.getKind() == XOR ? n[1] : n[1].notNode()));
+                    OR, n[0], n.getKind() == XOR ? n[1] : n[1].notNode()));
           }
           return preSkolemizeQuantifiers(nn, polarity, fvTypes, fvs);
         }

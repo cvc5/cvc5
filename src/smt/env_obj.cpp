@@ -24,7 +24,10 @@ namespace cvc5 {
 
 EnvObj::EnvObj(Env& env) : d_env(env) {}
 
-Node EnvObj::rewrite(TNode node) const { return d_env.getRewriter()->rewrite(node); }
+Node EnvObj::rewrite(TNode node) const
+{
+  return d_env.getRewriter()->rewrite(node);
+}
 
 const LogicInfo& EnvObj::logicInfo() const { return d_env.getLogicInfo(); }
 
