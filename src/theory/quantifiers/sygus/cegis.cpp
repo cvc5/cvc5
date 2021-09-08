@@ -345,7 +345,7 @@ void Cegis::addRefinementLemma(Node lem)
                           d_rl_vals.end());
   }
   // rewrite with extended rewriter
-  slem = extendedRewrite(slem);
+  slem = d_tds->rewriteNode(slem);
   // collect all variables in slem
   expr::getSymbols(slem, d_refinement_lemma_vars);
   std::vector<Node> waiting;
@@ -509,7 +509,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
       Node lemcs = lem.substitute(vs.begin(), vs.end(), ms.begin(), ms.end());
       Trace("sygus-cref-eval2")
           << "...under substitution it is : " << lemcs << std::endl;
-      Node lemcsu = vsit.doEvaluateWithUnfolding(d_tds, lemcs);
+      Node lemcsu = d_tds->rewriteNode(lemcs);
       Trace("sygus-cref-eval2")
           << "...after unfolding is : " << lemcsu << std::endl;
       if (lemcsu.isConst() && !lemcsu.getConst<bool>())

@@ -180,7 +180,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
           Node conj = nm->mkNode(DT_SYGUS_EVAL, eval_children);
           eval_children[0] = vn;
           Node eval_fun = nm->mkNode(DT_SYGUS_EVAL, eval_children);
-          res = d_tds->evaluateWithUnfolding(eval_fun);
+          res = d_tds->rewriteNode(eval_fun);
           Trace("sygus-eval-unfold")
               << "Evaluate with unfolding returns " << res << std::endl;
           esit.init(conj, n, res);
