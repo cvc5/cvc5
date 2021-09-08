@@ -31,7 +31,6 @@
 namespace cvc5 {
 
 using namespace theory;
-using namespace theory::quantifiers;
 using namespace theory::strings;
 
 namespace test {
