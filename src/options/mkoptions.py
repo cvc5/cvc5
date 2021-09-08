@@ -104,13 +104,6 @@ g_getopt_long_start = 256
 
 ### Source code templates
 
-TPL_ASSIGN = '''    opts.{module}.{name} = {handler};
-    opts.{module}.{name}WasSetByUser = true;'''
-TPL_ASSIGN_PRED = '''    auto value = {handler};
-    {predicates}
-    opts.{module}.{name} = value;
-    opts.{module}.{name}WasSetByUser = true;'''
-
 TPL_CALL_SET_OPTION = 'setOption(std::string("{smtname}"), ("{value}"));'
 
 TPL_GETOPT_LONG = '{{ "{}", {}_argument, nullptr, {} }},'
@@ -294,14 +287,85 @@ def generate_get_impl(modules):
         res.append('if ({}) {}'.format(cond, ret))
     return '\n  '.join(res)
 
-    def __lt__(self, other):
-        if self.long_name and other.long_name:
-            return self.long_name < other.long_name
-        if self.long_name: return True
-        return False
 
-    def __str__(self):
-        return self.long_name if self.long_name else self.name
+def _set_handlers(option):
+    """Render handler call for options::set()."""
+    optname = option.long_name if option.long else ""
+    if option.handler:
+        if option.type == 'void':
+            return 'opts.handler().{}("{}", name)'.format(
+                option.handler, optname)
+        else:
+            return 'opts.handler().{}("{}", name, optionarg)'.format(
+                option.handler, optname)
+    elif option.mode:
+        return 'stringTo{}(optionarg)'.format(option.type)
+    return 'handlers::handleOption<{}>("{}", name, optionarg)'.format(
+        option.type, optname)
+
+
+def _set_predicates(option):
+    """Render predicate calls for options::set()."""
+    if option.type == 'void':
+        return []
+    optname = option.long_name if option.long else ""
+    assert option.type != 'void'
+    res = []
+    if option.minimum:
+        res.append(
+            'opts.handler().checkMinimum("{}", name, value, static_cast<{}>({}));'
+            .format(optname, option.type, option.minimum))
+    if option.maximum:
+        res.append(
+            'opts.handler().checkMaximum("{}", name, value, static_cast<{}>({}));'
+            .format(optname, option.type, option.maximum))
+    res += [
+        'opts.handler().{}("{}", name, value);'.format(x, optname)
+        for x in option.predicates
+    ]
+    return res
+
+
+TPL_SET = '''    opts.{module}.{name} = {handler};
+    opts.{module}.{name}WasSetByUser = true;'''
+TPL_SET_PRED = '''    auto value = {handler};
+    {predicates}
+    opts.{module}.{name} = value;
+    opts.{module}.{name}WasSetByUser = true;'''
+
+
+def generate_set_impl(modules):
+    """Generates the implementation for options::set()."""
+    res = []
+    for module, option in all_options(modules, True):
+        if not option.long:
+            continue
+        cond = ' || '.join(['name == "{}"'.format(x) for x in option.names])
+        predicates = _set_predicates(option)
+        if res:
+            res.append('  }} else if ({}) {{'.format(cond))
+        else:
+            res.append('if ({}) {{'.format(cond))
+        if option.name and not (option.handler and option.mode):
+            if predicates:
+                res.append(
+                    TPL_SET_PRED.format(module=module.id,
+                                        name=option.name,
+                                        handler=_set_handlers(option),
+                                        predicates='\n    '.join(predicates)))
+            else:
+                res.append(
+                    TPL_SET.format(module=module.id,
+                                   name=option.name,
+                                   handler=_set_handlers(option)))
+        elif option.handler:
+            h = '  opts.handler().{handler}("{smtname}", name'
+            if option.type not in ['bool', 'void']:
+                h += ', optionarg'
+            h += ');'
+            res.append(
+                h.format(handler=option.handler, smtname=option.long_name))
+    return '\n'.join(res)
 
 
 ################################################################################
@@ -763,16 +827,12 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     """Generate code for all option modules."""
 
     headers_module = []      # generated *_options.h header includes
-    headers_handler = set()  # option includes (for handlers, predicates, ...)
     getopt_short = []        # short options for getopt_long
     getopt_long = []         # long options for getopt_long
     options_get_info = []    # code for getOptionInfo()
     options_handler = []     # option handler calls
     help_common = []         # help text for all common options
     help_others = []         # help text for all non-common options
-    setoption_handlers = []  # handlers for set-option command
-
-    assign_impls = []
 
     sphinxgen = SphinxGenerator()
 
@@ -793,12 +853,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
             docgen_option(option, help_common, help_others)
 
             sphinxgen.add(module, option)
-
-            # Generate handler call
-            handler = get_handler(option)
-
-            # Generate predicate calls
-            predicates = get_predicates(option)
 
             # Generate options_handler and getopt_long
             cases = []
@@ -881,32 +935,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                 else:
                     options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, false, OptionInfo::VoidInfo{{}}}};'.format(cond, long_get_option(option.long), alias=alias))
 
-                if setoption_handlers:
-                    setoption_handlers.append('  }} else if ({}) {{'.format(cond))
-                else:
-                    setoption_handlers.append('  if ({}) {{'.format(cond))
-                if option.name and not mode_handler:
-                    if predicates:
-                        setoption_handlers.append(
-                            TPL_ASSIGN_PRED.format(
-                                module=module.id,
-                                name=option.name,
-                                handler=handler,
-                                predicates='\n    '.join(predicates)))
-                    else:
-                        setoption_handlers.append(
-                            TPL_ASSIGN.format(
-                                module=module.id,
-                                name=option.name,
-                                handler=handler))
-                elif option.handler:
-                    h = '    opts.handler().{handler}("{smtname}", name'
-                    if argument_req:
-                        h += ', optionarg'
-                    h += ');'
-                    setoption_handlers.append(
-                        h.format(handler=option.handler, smtname=option.long_name))
-
             # Add --no- alternative options for boolean options
             if option.long and option.alternate:
                 cases = []
@@ -946,14 +974,13 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
         'options_includes': generate_public_includes(modules),
         'getnames_impl': generate_getnames_impl(modules),
         'get_impl': generate_get_impl(modules),
-        'headers_handler': '\n'.join(sorted(list(headers_handler))),
+        'set_impl': generate_set_impl(modules),
         'cmdline_options': '\n  '.join(getopt_long),
         'help_common': '\n'.join(help_common),
         'help_others': '\n'.join(help_others),
         'options_handler': '\n    '.join(options_handler),
         'options_short': ''.join(getopt_short),
         'options_get_info': '\n  '.join(sorted(options_get_info)),
-        'setoption_handlers': '\n'.join(setoption_handlers),
     }
     for tpl in tpls:
         write_file(dst_dir, tpl['output'], tpl['content'].format(**data))
