@@ -827,16 +827,12 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     """Generate code for all option modules."""
 
     headers_module = []      # generated *_options.h header includes
-    headers_handler = set()  # option includes (for handlers, predicates, ...)
     getopt_short = []        # short options for getopt_long
     getopt_long = []         # long options for getopt_long
     options_get_info = []    # code for getOptionInfo()
     options_handler = []     # option handler calls
     help_common = []         # help text for all common options
     help_others = []         # help text for all non-common options
-    setoption_handlers = []  # handlers for set-option command
-
-    assign_impls = []
 
     sphinxgen = SphinxGenerator()
 
