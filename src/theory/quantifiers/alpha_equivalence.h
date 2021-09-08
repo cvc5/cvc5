@@ -20,8 +20,8 @@
 
 #include "expr/term_canonize.h"
 #include "proof/eager_proof_generator.h"
-#include "theory/quantifiers/quant_util.h"
 #include "smt/env_obj.h"
+#include "theory/quantifiers/quant_util.h"
 
 namespace cvc5 {
 namespace theory {
