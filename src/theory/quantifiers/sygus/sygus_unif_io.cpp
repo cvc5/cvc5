@@ -569,7 +569,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   std::vector<Node> base_results;
   TypeNode xtn = e.getType();
   Node bv = d_tds->sygusToBuiltin(v, xtn);
-  bv = d_tds->getExtRewriter()->extendedRewrite(bv);
+  bv = extendedRewrite(bv);
   Trace("sygus-sui-enum") << "PBE Compute Examples for " << bv << std::endl;
   // compte the results (should be cached)
   ExampleEvalCache* eec = d_parent->getExampleEvalCache(e);

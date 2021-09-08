@@ -45,12 +45,14 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SynthConjecture::SynthConjecture(QuantifiersState& qs,
+SynthConjecture::SynthConjecture(Env& env,
+                                 QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
                                  QuantifiersRegistry& qr,
                                  TermRegistry& tr,
                                  SygusStatistics& s)
-    : d_qstate(qs),
+    : EnvObj(env),
+      d_qstate(qs),
       d_qim(qim),
       d_qreg(qr),
       d_treg(tr),
@@ -58,11 +60,11 @@ SynthConjecture::SynthConjecture(QuantifiersState& qs,
       d_tds(tr.getTermDatabaseSygus()),
       d_verify(qs.options(), qs.getLogicInfo(), d_tds),
       d_hasSolution(false),
-      d_ceg_si(new CegSingleInv(qs.getEnv(), tr, s)),
+      d_ceg_si(new CegSingleInv(env, tr, s)),
       d_templInfer(new SygusTemplateInfer),
       d_ceg_proc(new SynthConjectureProcess),
       d_ceg_gc(new CegGrammarConstructor(d_tds, this)),
-      d_sygus_rconst(new SygusRepairConst(qs.getEnv(), d_tds)),
+      d_sygus_rconst(new SygusRepairConst(env, d_tds)),
       d_exampleInfer(new ExampleInfer(d_tds)),
       d_ceg_pbe(new SygusPbe(qs, qim, d_tds, this)),
       d_ceg_cegis(new Cegis(qs, qim, d_tds, this)),
@@ -609,8 +611,7 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
     }
     Trace("sygus-engine") << "Check side condition..." << std::endl;
     Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
-    Env& env = d_qstate.getEnv();
-    Result r = checkWithSubsolver(sc, env.getOptions(), env.getLogicInfo());
+    Result r = checkWithSubsolver(sc, options(), logicInfo());
     Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
     if (r == Result::UNSAT)
     {
@@ -763,8 +764,8 @@ EnumValueManager* SynthConjecture::getEnumValueManagerFor(Node e)
   Node f = d_tds->getSynthFunForEnumerator(e);
   bool hasExamples = (d_exampleInfer->hasExamples(f)
                       && d_exampleInfer->getNumExamples(f) != 0);
-  d_enumManager[e].reset(
-      new EnumValueManager(e, d_qstate, d_qim, d_treg, d_stats, hasExamples));
+  d_enumManager[e].reset(new EnumValueManager(
+      d_env, d_qstate, d_qim, d_treg, d_stats, e, hasExamples));
   EnumValueManager* eman = d_enumManager[e].get();
   // set up the examples
   if (hasExamples)
@@ -885,7 +886,7 @@ void SynthConjecture::printSynthSolutionInternal(std::ostream& out)
             d_exprm.find(prog);
         if (its == d_exprm.end())
         {
-          d_exprm[prog].reset(new ExpressionMinerManager(d_qstate.getEnv()));
+          d_exprm[prog].reset(new ExpressionMinerManager(d_env));
           ExpressionMinerManager* emm = d_exprm[prog].get();
           emm->initializeSygus(
               d_tds, d_candidates[i], options::sygusSamples(), true);
