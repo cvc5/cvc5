@@ -271,21 +271,6 @@ class TermDbSygus {
                        Node bn,
                        const std::vector<Node>& args,
                        bool tryEval = true);
-  /** evaluate with unfolding
-   *
-   * n is any term that may involve sygus evaluation functions. This function
-   * returns the result of unfolding the evaluation functions within n and
-   * rewriting the result. For example, if eval_A is the evaluation function
-   * for the datatype:
-   *   A -> C_0 | C_1 | C_x | C_+( C_A, C_A )
-   * corresponding to grammar:
-   *   A -> 0 | 1 | x | A + A
-   * then calling this function on eval( C_+( x, 1 ), 4 ) = y returns 5 = y.
-   * The node returned by this function is in (extended) rewritten form.
-   */
-  Node evaluateWithUnfolding(Node n);
-  /** same as above, but with a cache of visited nodes */
-  Node evaluateWithUnfolding(Node n, std::unordered_map<Node, Node>& visited);
   /** is evaluation point?
    *
    * Returns true if n is of the form eval( x, c1...cn ) for some variable x
