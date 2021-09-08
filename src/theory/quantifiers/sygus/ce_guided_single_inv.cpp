@@ -228,8 +228,9 @@ bool CegSingleInv::solve()
   // solve the single invocation conjecture using a fresh copy of SMT engine
   std::unique_ptr<SmtEngine> siSmt;
   initializeSubsolver(siSmt, d_env);
-  // do not use shared selectors in subsolver, since this leads to bad solutions
-  options.datatypes.dtSharedSelectors = false;
+  // do not use shared selectors in subsolver, since this leads to solutions
+  // with non-user symbols
+  siSmt->setOption("dt-share-sel", "false");
   siSmt->assertFormula(siq);
   Result r = siSmt->checkSat();
   Trace("sygus-si") << "Result: " << r << std::endl;

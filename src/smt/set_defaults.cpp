@@ -706,7 +706,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   // quantifier techniques e.g. E-matching
   if (opts.datatypes.dtSharedSelectorsWasSetByUser)
   {
-    if (logic.isQuantified() && !usesSygus(opts)
+    if (logic.isQuantified() && !usesSygus(opts))
     {
       opts.datatypes.dtSharedSelectors = false;
     }
