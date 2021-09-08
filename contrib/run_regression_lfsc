@@ -1,10 +1,10 @@
 #!/bin/bash
 
-CVC5_CHECK_DIR=/space/ajreynol/cvc4/deps/bin/
+CVC5_CHECK_DIR=/space/ajreynol/cvc5/deps/bin/
 CVC5_BINARY=cvc5
 TIMEOUT=30
 
-# usage : run_regression_lfsc [cvc4 command line options + benchmark]
+# usage : run_regression_lfsc [cvc5 command line options + benchmark]
 echo -n "Call run_regression_lfsc $@ "
 
 # call with timeout

@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/sygus/sygus_unif.h"
 
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "util/random.h"
@@ -26,7 +27,11 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusUnif::SygusUnif() : d_tds(nullptr), d_enableMinimality(false) {}
+SygusUnif::SygusUnif(Env& env)
+    : EnvObj(env), d_tds(nullptr), d_enableMinimality(false)
+{
+}
+
 SygusUnif::~SygusUnif() {}
 
 void SygusUnif::initializeCandidate(
@@ -38,7 +43,8 @@ void SygusUnif::initializeCandidate(
   d_tds = tds;
   d_candidates.push_back(f);
   // initialize the strategy
-  d_strategy[f].initialize(tds, f, enums);
+  d_strategy.emplace(f, SygusUnifStrategy(d_env));
+  d_strategy.at(f).initialize(tds, f, enums);
 }
 
 Node SygusUnif::getMinimalTerm(const std::vector<Node>& terms)
@@ -52,7 +58,7 @@ Node SygusUnif::getMinimalTerm(const std::vector<Node>& terms)
     unsigned ssize = 0;
     if (it == d_termToSize.end())
     {
-      ssize = d_tds->getSygusTermSize(n);
+      ssize = datatypes::utils::getSygusTermSize(n);
       d_termToSize[n] = ssize;
     }
     else

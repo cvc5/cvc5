@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((St 0) (Ex 0) (List!2293 0))
 (((Block!2236 (body!2237 List!2293)) (For!2238 (init!2239 St) (expr!2240 Ex) (step!2241 St) (body!2242 St)) (IfTE (expr!2244 Ex) (then!2245 St) (elze!2246 St)) (Skip!2250) (While (expr!2252 Ex) (body St)))

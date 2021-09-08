@@ -27,6 +27,8 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -40,8 +42,8 @@ UnconstrainedSimplifier::UnconstrainedSimplifier(
     : PreprocessingPass(preprocContext, "unconstrained-simplifier"),
       d_numUnconstrainedElim(smtStatisticsRegistry().registerInt(
           "preprocessor::number of unconstrained elims")),
-      d_context(preprocContext->getDecisionContext()),
-      d_substitutions(preprocContext->getDecisionContext())
+      d_context(context()),
+      d_substitutions(context())
 {
 }
 
@@ -589,7 +591,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         // Uninterpreted function - if domain is infinite, no quantifiers are
         // used, and any child is unconstrained, result is unconstrained
         case kind::APPLY_UF:
-          if (d_preprocContext->getLogicInfo().isQuantified()
+          if (logicInfo().isQuantified()
               || !current.getType().getCardinality().isInfinite())
           {
             break;

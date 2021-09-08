@@ -1,4 +1,4 @@
-( set-logic QF_ALL_SUPPORTED)
+( set-logic QF_ALL)
 ( set-info :source | SMT-COMP'06 organizers |)
 ( set-info :smt-lib-version 2.6)
 ( set-info :category "check")

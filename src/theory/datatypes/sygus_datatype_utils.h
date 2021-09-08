@@ -227,6 +227,27 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
                                           const std::vector<Node>& syms,
                                           const std::vector<Node>& vars);
 
+/**
+ * Get SyGuS term size, which is based on the weight of constructor applications
+ * in n.
+ */
+unsigned getSygusTermSize(Node n);
+
+/**
+ * Set expanded definition form of sygus op to eop. This is called when
+ * we require associating a sygus operator op to its expanded form, which
+ * replaces user-defined functions with their definitions. This allows
+ * the utilities above to consider op to be the original form, which is
+ * printed in the final solution (see isExternal to sygusToBuiltin above),
+ * whereas the internal solver will reason about eop.
+ */
+void setExpandedDefinitionForm(Node op, Node eop);
+/**
+ * Get the expanded definition form of sygus operator op, returns the
+ * expanded form if the above method has been called for op, or returns op
+ * otherwise.
+ */
+Node getExpandedDefinitionForm(Node op);
 // ------------------------ end sygus utils
 
 }  // namespace utils

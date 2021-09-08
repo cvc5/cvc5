@@ -27,6 +27,9 @@ name   = "Proof"
 [[option.mode.LFSC]]
   name       = "lfsc"
   help       = "Output LFSC proof"
+[[option.mode.TPTP]]
+  name       = "tptp"
+  help       = "Output TPTP proof (work in progress)"
 
 [[option]]
   name       = "proofPrintConclusion"
@@ -40,17 +43,30 @@ name   = "Proof"
   name       = "proofPedantic"
   category   = "regular"
   long       = "proof-pedantic=N"
-  type       = "uint32_t"
+  type       = "uint64_t"
   default    = "0"
   help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof"
 
 [[option]]
-  name       = "proofEagerChecking"
+  name       = "proofCheck"
   category   = "regular"
-  long       = "proof-eager-checking"
-  type       = "bool"
-  default    = "false"
-  help       = "check proofs eagerly with proof for local debugging"
+  long       = "proof-check=MODE"
+  type       = "ProofCheckMode"
+  default    = "LAZY"
+  help       = "select proof checking mode"
+  help_mode  = "Proof checking modes."
+[[option.mode.EAGER]]
+  name       = "eager"
+  help       = "check rule applications and proofs from generators eagerly for local debugging"
+[[option.mode.EAGER_SIMPLE]]
+  name       = "eager-simple"
+  help       = "check rule applications during construction"
+[[option.mode.LAZY]]
+  name       = "lazy"
+  help       = "check rule applications only during final proof construction"
+[[option.mode.NONE]]
+  name       = "none"
+  help       = "do not check rule applications"
 
 [[option]]
   name       = "checkProofsFail"
@@ -77,6 +93,14 @@ name   = "Proof"
   help       = "debug proof node updater"
 
 [[option]]
+  name       = "proofPpMerge"
+  category   = "regular"
+  long       = "proof-pp-merge"
+  type       = "bool"
+  default    = "true"
+  help       = "merge subproofs in final proof post-processor"
+
+[[option]]
   name       = "proofGranularityMode"
   category   = "regular"
   long       = "proof-granularity=MODE"
@@ -96,3 +120,19 @@ name   = "Proof"
 [[option.mode.DSL_REWRITE]]
   name = "dsl-rewrite"
   help = "Allow DSL rewrites and evaluation steps, expand macros, rewrite, substitution, and theory rewrite steps."
+
+[[option]]
+  name       = "proofRewriteRconsRecLimit"
+  category   = "regular"
+  long       = "proof-rewrite-rcons-limit=N"
+  type       = "int64_t"
+  default    = "5"
+  help       = "the matching recursion limit for reconstructing proofs of theory rewrites"
+
+[[option]]
+  name       = "proofAnnotate"
+  category   = "regular"
+  long       = "proof-annotate"
+  type       = "bool"
+  default    = "false"
+  help       = "add optional annotations to proofs"

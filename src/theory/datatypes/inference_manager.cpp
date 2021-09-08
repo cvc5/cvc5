@@ -17,8 +17,8 @@
 
 #include "expr/dtype.h"
 #include "options/datatypes_options.h"
+#include "proof/eager_proof_generator.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/eager_proof_generator.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
@@ -30,10 +30,11 @@ namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
-InferenceManager::InferenceManager(Theory& t,
+InferenceManager::InferenceManager(Env& env,
+                                   Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, pnm, "theory::datatypes::"),
+    : InferenceManagerBuffered(env, t, state, pnm, "theory::datatypes::"),
       d_pnm(pnm),
       d_ipc(pnm == nullptr ? nullptr
                            : new InferProofCons(state.getSatContext(), pnm)),
@@ -69,6 +70,13 @@ void InferenceManager::addPendingInference(Node conc,
 
 void InferenceManager::process()
 {
+  // if we are in conflict, immediately reset and clear pending
+  if (d_theoryState.isInConflict())
+  {
+    reset();
+    clearPending();
+    return;
+  }
   // process pending lemmas, used infrequently, only for definitional lemmas
   doPendingLemmas();
   // now process the pending facts

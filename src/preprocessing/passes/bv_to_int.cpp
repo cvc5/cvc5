@@ -34,6 +34,9 @@
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
+#include "util/iand.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -405,6 +408,14 @@ Node BVToInt::translateWithChildren(Node original,
       returnNode = translated_children[0];
       break;
     }
+    case kind::INT_TO_BITVECTOR:
+    {
+      // ((_ int2bv n) t) ---> (mod t 2^n)
+      size_t sz = original.getOperator().getConst<IntToBitVector>().d_size;
+      returnNode = d_nm->mkNode(
+          kind::INTS_MODULUS_TOTAL, translated_children[0], pow2(sz));
+    }
+    break;
     case kind::BITVECTOR_AND:
     {
       // We support three configurations:
@@ -917,11 +928,11 @@ Node BVToInt::reconstructNode(Node originalNode,
 
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-int"),
-      d_binarizeCache(preprocContext->getUserContext()),
-      d_eliminationCache(preprocContext->getUserContext()),
-      d_rebuildCache(preprocContext->getUserContext()),
-      d_bvToIntCache(preprocContext->getUserContext()),
-      d_rangeAssertions(preprocContext->getUserContext())
+      d_binarizeCache(userContext()),
+      d_eliminationCache(userContext()),
+      d_rebuildCache(userContext()),
+      d_bvToIntCache(userContext()),
+      d_rangeAssertions(userContext())
 {
   d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConst<Rational>(0);

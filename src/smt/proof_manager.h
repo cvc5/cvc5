@@ -20,6 +20,7 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -28,7 +29,7 @@ class ProofNode;
 class ProofNodeManager;
 class SmtEngine;
 
-namespace theory {
+namespace rewriter {
 class RewriteDb;
 }
 
@@ -71,10 +72,10 @@ class ProofPostproccess;
  * - If SmtEngine has been configured in a way that is incompatible with proofs
  *   then unsat core production will be disabled.
  */
-class PfManager
+class PfManager : protected EnvObj
 {
  public:
-  PfManager(context::UserContext* u, SmtEngine* smte);
+  PfManager(Env& env);
   ~PfManager();
   /**
    * Print the proof on the given output stream.
@@ -107,7 +108,7 @@ class PfManager
   /** Get a pointer to the ProofNodeManager owned by this. */
   ProofNodeManager* getProofNodeManager() const;
   /** Get the rewrite database, containing definitions of rewrites from DSL. */
-  theory::RewriteDb* getRewriteDatabase() const;
+  rewriter::RewriteDb* getRewriteDatabase() const;
   /** Get the proof generator for proofs of preprocessing. */
   smt::PreprocessProofGenerator* getPreprocessProofGenerator() const;
   //--------------------------- end access to utilities
@@ -124,12 +125,12 @@ class PfManager
                      std::vector<Node>& assertions);
   /** The false node */
   Node d_false;
+  /** The rewrite proof database. */
+  std::unique_ptr<rewriter::RewriteDb> d_rewriteDb;
   /** For the new proofs module */
   std::unique_ptr<ProofChecker> d_pchecker;
   /** A proof node manager based on the above checker */
   std::unique_ptr<ProofNodeManager> d_pnm;
-  /** The rewrite proof database. */
-  std::unique_ptr<theory::RewriteDb> d_rewriteDb;
   /** The preprocess proof generator. */
   std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
   /** The proof post-processor */

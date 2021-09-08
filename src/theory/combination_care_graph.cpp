@@ -19,6 +19,7 @@
 #include "prop/prop_engine.h"
 #include "theory/care_graph.h"
 #include "theory/model_manager.h"
+#include "theory/shared_solver.h"
 #include "theory/theory_engine.h"
 
 namespace cvc5 {
@@ -78,7 +79,8 @@ void CombinationCareGraph::combineTheories()
       Node split = equality.orNode(equality.notNode());
       tsplit = TrustNode::mkTrustLemma(split, nullptr);
     }
-    sendLemma(tsplit, carePair.d_theory);
+    d_sharedSolver->sendLemma(
+        tsplit, carePair.d_theory, InferenceId::COMBINATION_SPLIT);
 
     // Could check the equality status here:
     //   EqualityStatus es = getEqualityStatus(carePair.d_a, carePair.d_b);

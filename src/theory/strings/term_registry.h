@@ -20,8 +20,8 @@
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
-#include "expr/proof_node_manager.h"
-#include "theory/eager_proof_generator.h"
+#include "proof/eager_proof_generator.h"
+#include "proof/proof_node_manager.h"
 #include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"

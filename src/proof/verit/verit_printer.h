@@ -18,7 +18,7 @@
 #ifndef CVC4__PROOF__VERIT_PROOF_PRINTER_H
 #define CVC4__PROOF__VERIT_PROOF_PRINTER_H
 
-#include "expr/proof_node.h"
+#include "proof/proof_node.h"
 
 namespace cvc5 {
 

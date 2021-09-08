@@ -18,8 +18,6 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
-#include "expr/proof_checker.h"
-#include "expr/proof_node.h"
 #include "proof/lean/lean_rules.h"
 
 namespace cvc5 {

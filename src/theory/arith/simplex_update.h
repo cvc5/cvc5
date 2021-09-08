@@ -29,10 +29,11 @@
 
 #pragma once
 
-#include "theory/arith/delta_rational.h"
+#include <optional>
+
 #include "theory/arith/arithvar.h"
 #include "theory/arith/constraint_forward.h"
-#include "util/maybe.h"
+#include "theory/arith/delta_rational.h"
 
 namespace cvc5 {
 namespace theory {
@@ -109,7 +110,7 @@ private:
    * This is changed via the updateProposal(...) methods.
    * The value needs to satisfy debugSgnAgreement() or it is in conflict.
    */
-  Maybe<DeltaRational> d_nonbasicDelta;
+  std::optional<DeltaRational> d_nonbasicDelta;
 
   /**
    * This is true if the pivot-and-update is *known* to cause a conflict.
@@ -118,16 +119,16 @@ private:
   bool d_foundConflict;
 
   /** This is the change in the size of the error set. */
-  Maybe<int> d_errorsChange;
+  std::optional<int> d_errorsChange;
 
   /** This is the sgn of the change in the value of the focus set.*/
-  Maybe<int> d_focusDirection;
+  std::optional<int> d_focusDirection;
 
   /** This is the sgn of the change in the value of the focus set.*/
-  Maybe<DeltaRational> d_focusChange;
+  std::optional<DeltaRational> d_focusChange;
 
   /** This is the coefficient in the tableau for the entry.*/
-  Maybe<const Rational*> d_tableauCoefficient;
+  std::optional<const Rational*> d_tableauCoefficient;
 
   /**
    * This is the constraint that nonbasic is basic is updating s.t. its variable is against it.
@@ -329,18 +330,19 @@ private:
     if(d_foundConflict){
       return ConflictFound;
     }
-    else if (d_errorsChange.just() && d_errorsChange.value() < 0)
+    else if (d_errorsChange && d_errorsChange.value() < 0)
     {
       return ErrorDropped;
     }
-    else if (d_errorsChange.nothing() || d_errorsChange.value() == 0)
+    else if (d_errorsChange.value_or(0) == 0)
     {
-      if(d_focusDirection.just()){
-        if (d_focusDirection.value() > 0)
+      if (d_focusDirection)
+      {
+        if (*d_focusDirection > 0)
         {
           return FocusImproved;
         }
-        else if (d_focusDirection.value() == 0)
+        else if (*d_focusDirection == 0)
         {
           return Degenerate;
         }

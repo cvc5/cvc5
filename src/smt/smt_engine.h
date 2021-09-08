@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+
  *
  * This file is part of the cvc5 project.
  *
@@ -42,10 +42,10 @@ class Env;
 class NodeManager;
 class TheoryEngine;
 class UnsatCore;
-class LogicRequest;
 class StatisticsRegistry;
 class Printer;
 class ResourceManager;
+struct InstantiationList;
 
 /* -------------------------------------------------------------------------- */
 
@@ -76,7 +76,6 @@ namespace prop {
 
 namespace smt {
 /** Utilities */
-class Model;
 class SmtEngineState;
 class AbstractValues;
 class Assertions;
@@ -103,9 +102,10 @@ class UnsatCoreManager;
 /* -------------------------------------------------------------------------- */
 
 namespace theory {
-  class Rewriter;
-  class QuantifiersEngine;
-  }  // namespace theory
+class TheoryModel;
+class Rewriter;
+class QuantifiersEngine;
+}  // namespace theory
 
 /* -------------------------------------------------------------------------- */
 
@@ -114,7 +114,6 @@ class CVC5_EXPORT SmtEngine
   friend class ::cvc5::api::Solver;
   friend class ::cvc5::smt::SmtEngineState;
   friend class ::cvc5::smt::SmtScope;
-  friend class ::cvc5::LogicRequest;
 
   /* .......................................................................  */
  public:
@@ -125,7 +124,7 @@ class CVC5_EXPORT SmtEngine
    * If provided, optr is a pointer to a set of options that should initialize the values
    * of the options object owned by this class.
    */
-  SmtEngine(NodeManager* nm, Options* optr = nullptr);
+  SmtEngine(NodeManager* nm, const Options* optr = nullptr);
   /** Destruct the SMT engine.  */
   ~SmtEngine();
 
@@ -224,33 +223,6 @@ class CVC5_EXPORT SmtEngine
   void setIsInternalSubsolver();
   /** Is this an internal subsolver? */
   bool isInternalSubsolver() const;
-
-  /**
-   * Notify that we are now parsing the input with the given filename.
-   * This call sets the filename maintained by this SmtEngine for bookkeeping
-   * and also makes a copy of the current options of this SmtEngine. This
-   * is required so that the SMT-LIB command (reset) returns the SmtEngine
-   * to a state where its options were prior to parsing but after e.g.
-   * reading command line options.
-   */
-  void notifyStartParsing(const std::string& filename) CVC5_EXPORT;
-  /** return the input name (if any) */
-  const std::string& getFilename() const;
-
-  /**
-   * Helper method for the API to put the last check result into the statistics.
-   */
-  void setResultStatistic(const std::string& result) CVC5_EXPORT;
-  /**
-   * Helper method for the API to put the total runtime into the statistics.
-   */
-  void setTotalTimeStatistic(double seconds) CVC5_EXPORT;
-
-  /**
-   * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
-   * query).  Only permitted if produce-models is on.
-   */
-  smt::Model* getModel();
 
   /**
    * Block the current model. Can be called only if immediately preceded by
@@ -359,13 +331,17 @@ class CVC5_EXPORT SmtEngine
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
    * literals and conjunction of literals.  Returns false if
-   * immediately determined to be inconsistent.  This version
-   * takes a Boolean flag to determine whether to include this asserted
-   * formula in an unsat core (if one is later requested).
+   * immediately determined to be inconsistent. Note this formula will
+   * be included in the unsat core when applicable.
    *
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
-  Result assertFormula(const Node& formula, bool inUnsatCore = true);
+  Result assertFormula(const Node& formula);
+
+  /**
+   * Reduce an unsatisfiable core to make it minimal.
+   */
+  std::vector<Node> reduceUnsatCore(const std::vector<Node>& core);
 
   /**
    * Check if a given (set of) expression(s) is entailed with respect to the
@@ -375,9 +351,8 @@ class CVC5_EXPORT SmtEngine
    *
    * @throw Exception
    */
-  Result checkEntailed(const Node& assumption, bool inUnsatCore = true);
-  Result checkEntailed(const std::vector<Node>& assumptions,
-                       bool inUnsatCore = true);
+  Result checkEntailed(const Node& assumption);
+  Result checkEntailed(const std::vector<Node>& assumptions);
 
   /**
    * Assert a formula (if provided) to the current context and call
@@ -386,9 +361,8 @@ class CVC5_EXPORT SmtEngine
    * @throw Exception
    */
   Result checkSat();
-  Result checkSat(const Node& assumption, bool inUnsatCore = true);
-  Result checkSat(const std::vector<Node>& assumptions,
-                  bool inUnsatCore = true);
+  Result checkSat(const Node& assumption);
+  Result checkSat(const std::vector<Node>& assumptions);
 
   /**
    * Returns a set of so-called "failed" assumptions.
@@ -527,7 +501,30 @@ class CVC5_EXPORT SmtEngine
   /**
    * Same as getValue but for a vector of expressions
    */
-  std::vector<Node> getValues(const std::vector<Node>& exprs);
+  std::vector<Node> getValues(const std::vector<Node>& exprs) const;
+
+  /**
+   * @return the domain elements for uninterpreted sort tn.
+   */
+  std::vector<Node> getModelDomainElements(TypeNode tn) const;
+
+  /**
+   * @return true if v is a model core symbol
+   */
+  bool isModelCoreSymbol(Node v);
+
+  /**
+   * Get a model (only if immediately preceded by an SAT or unknown query).
+   * Only permitted if the model option is on.
+   *
+   * @param declaredSorts The sorts to print in the model
+   * @param declaredFuns The free constants to print in the model. A subset
+   * of these may be printed based on isModelCoreSymbol.
+   * @return the string corresponding to the model. If the output language is
+   * smt2, then this corresponds to a response to the get-model command.
+   */
+  std::string getModel(const std::vector<TypeNode>& declaredSorts,
+                       const std::vector<Node>& declaredFuns);
 
   /** print instantiations
    *
@@ -671,7 +668,7 @@ class CVC5_EXPORT SmtEngine
    * refutation.
    */
   void getRelevantInstantiationTermVectors(
-      std::map<Node, std::vector<std::vector<Node>>>& insts);
+      std::map<Node, InstantiationList>& insts, bool getDebugInfo = false);
   /**
    * Get instantiation term vectors, which maps each instantiated quantified
    * formula to the list of instantiations for that quantified formula. This
@@ -807,12 +804,6 @@ class CVC5_EXPORT SmtEngine
 
   /**
    * Print statistics from the statistics registry in the env object owned by
-   * this SmtEngine.
-   */
-  void printStatistics(std::ostream& out) const;
-
-  /**
-   * Print statistics from the statistics registry in the env object owned by
    * this SmtEngine. Safe to use in a signal handler.
    */
   void printStatisticsSafe(int fd) const;
@@ -823,17 +814,7 @@ class CVC5_EXPORT SmtEngine
    * time. Internally prints the diff and then stores a snapshot for the next
    * call.
    */
-  void printStatisticsDiff(std::ostream&) const;
-
-  /**
-   * Set user attribute.
-   * This function is called when an attribute is set by a user.
-   * In SMT-LIBv2 this is done via the syntax (! expr :attr)
-   */
-  void setUserAttribute(const std::string& attr,
-                        Node expr,
-                        const std::vector<Node>& expr_values,
-                        const std::string& str_value);
+  void printStatisticsDiff() const;
 
   /** Get the options object (const and non-const versions) */
   Options& getOptions();
@@ -958,7 +939,7 @@ class CVC5_EXPORT SmtEngine
    * @param c used for giving an error message to indicate the context
    * this method was called.
    */
-  smt::Model* getAvailableModel(const char* c) const;
+  theory::TheoryModel* getAvailableModel(const char* c) const;
   /**
    * Get available quantifiers engine, which throws a modal exception if it
    * does not exist. This can happen if a quantifiers-specific call (e.g.
@@ -1009,7 +990,6 @@ class CVC5_EXPORT SmtEngine
    * Check satisfiability (used to check satisfiability and entailment).
    */
   Result checkSatInternal(const std::vector<Node>& assumptions,
-                          bool inUnsatCore,
                           bool isEntailmentCheck);
 
   /**
@@ -1034,7 +1014,13 @@ class CVC5_EXPORT SmtEngine
    * element is the nil expression.
    */
   std::pair<Node, Node> getSepHeapAndNilExpr();
-
+  /**
+   * Get assertions internal, which is only called after initialization. This
+   * should be used internally to get the assertions instead of getAssertions
+   * or getExpandedAssertions, which may trigger initialization and SMT state
+   * changes.
+   */
+  std::vector<Node> getAssertionsInternal();
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SmtEngine instance. */
@@ -1062,13 +1048,6 @@ class CVC5_EXPORT SmtEngine
 
   /** The SMT solver */
   std::unique_ptr<smt::SmtSolver> d_smtSolver;
-
-  /**
-   * The SMT-level model object, which contains information about how to
-   * print the model, as well as a pointer to the underlying TheoryModel
-   * implementation maintained by the SmtSolver.
-   */
-  std::unique_ptr<smt::Model> d_model;
 
   /**
    * The utility used for checking models
@@ -1115,12 +1094,6 @@ class CVC5_EXPORT SmtEngine
 
   /** the output manager for commands */
   mutable OutputManager d_outMgr;
-  /**
-   * The options manager, which is responsible for implementing core options
-   * such as those related to time outs and printing. It is also responsible
-   * for set default options based on the logic.
-   */
-  std::unique_ptr<smt::OptionsManager> d_optm;
   /**
    * The preprocessor.
    */

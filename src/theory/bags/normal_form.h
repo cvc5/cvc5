@@ -190,6 +190,11 @@ class NormalForm
    * @return a constant set constructed from the elements in A.
    */
   static Node evaluateToSet(TNode n);
+  /**
+   * @param n has the form (bag.map f A) where A is a constant bag
+   * @return a constant bag constructed from the images of elements in A.
+   */
+  static Node evaluateBagMap(TNode n);
 };
 }  // namespace bags
 }  // namespace theory

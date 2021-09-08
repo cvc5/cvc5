@@ -51,10 +51,10 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
   return os;
 }
 
-TermDbSygus::TermDbSygus(QuantifiersState& qs)
-    : d_qstate(qs),
+TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs)
+    : EnvObj(env),
+      d_qstate(qs),
       d_syexp(new SygusExplain(this)),
-      d_ext_rw(new ExtendedRewriter(true)),
       d_eval(new Evaluator),
       d_funDefEval(new FunDefEvaluator),
       d_eval_unfold(new SygusEvalUnfold(this))
@@ -357,23 +357,6 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
   Trace("sygus-db-debug") << "SygusToBuiltin: variable for " << n << " is "
                           << ret << ", fv_num=" << fv_num << std::endl;
   return ret;
-}
-
-unsigned TermDbSygus::getSygusTermSize( Node n ){
-  if (n.getKind() != APPLY_CONSTRUCTOR)
-  {
-    return 0;
-  }
-  unsigned sum = 0;
-  for (unsigned i = 0; i < n.getNumChildren(); i++)
-  {
-    sum += getSygusTermSize(n[i]);
-  }
-  const DType& dt = datatypes::utils::datatypeOf(n.getOperator());
-  int cindex = datatypes::utils::indexOf(n.getOperator());
-  Assert(cindex >= 0 && cindex < (int)dt.getNumConstructors());
-  unsigned weight = dt[cindex].getWeight();
-  return weight + sum;
 }
 
 bool TermDbSygus::registerSygusType(TypeNode tn)
@@ -1053,7 +1036,7 @@ Node TermDbSygus::evaluateWithUnfolding(Node n,
       }
       if (options::sygusExtRew())
       {
-        ret = getExtRewriter()->extendedRewrite(ret);
+        ret = extendedRewrite(ret);
       }
       // use rewriting, possibly involving recursive functions
       ret = rewriteNode(ret);

@@ -17,6 +17,9 @@
 #include <sstream>
 
 #include "proof/lfsc/lfsc_util.h"
+#include "rewriter/rewrite_proof_rule.h"
+
+using namespace cvc5::rewriter;
 
 namespace cvc5 {
 namespace proof {
@@ -80,7 +83,7 @@ void LfscPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 {
   // must clean indexed symbols
   std::stringstream ss;
-  n.toStream(ss, -1, 0, language::output::LANG_SMTLIB_V2_6);
+  n.toStream(ss, -1, 0, Language::LANG_SMTLIB_V2_6);
   std::string s = ss.str();
   cleanSymbols(s);
   out << s;
@@ -90,7 +93,7 @@ void LfscPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
 {
   // must clean indexed symbols
   std::stringstream ss;
-  tn.toStream(ss, language::output::LANG_SMTLIB_V2_6);
+  tn.toStream(ss, Language::LANG_SMTLIB_V2_6);
   std::string s = ss.str();
   cleanSymbols(s);
   out << s;
@@ -102,6 +105,21 @@ void LfscPrintChannelOut::printRule(std::ostream& out, const ProofNode* pn)
   {
     const std::vector<Node>& args = pn->getArguments();
     out << getLfscRule(args[0]);
+    return;
+  }
+  else if (pn->getRule() == PfRule::DSL_REWRITE)
+  {
+    const std::vector<Node>& args = pn->getArguments();
+    DslPfRule di;
+    if (rewriter::getDslPfRule(args[0], di))
+    {
+      printDslProofRuleId(out, di);
+    }
+    else
+    {
+      out << "?";
+      Assert(false);
+    }
     return;
   }
   // Otherwise, convert to lower case
@@ -129,6 +147,10 @@ void LfscPrintChannelOut::printAssumeId(std::ostream& out, size_t id)
 {
   out << "__a" << id;
 }
+void LfscPrintChannelOut::printDslProofRuleId(std::ostream& out, DslPfRule id)
+{
+  out << "dsl." << id;
+}
 
 void LfscPrintChannelOut::cleanSymbols(std::string& s)
 {
@@ -145,20 +167,40 @@ void LfscPrintChannelOut::cleanSymbols(std::string& s)
   }
 }
 
-LfscPrintChannelLetifyNode::LfscPrintChannelLetifyNode(LetBinding& lbind)
-    : d_lbind(lbind)
-{
-}
+LfscPrintChannelPre::LfscPrintChannelPre(LetBinding& lbind) : d_lbind(lbind) {}
 
-void LfscPrintChannelLetifyNode::printNode(TNode n)
+void LfscPrintChannelPre::printNode(TNode n)
 {
   d_nodeCount++;
   d_lbind.process(n);
 }
-void LfscPrintChannelLetifyNode::printTrust(TNode res, PfRule src)
+void LfscPrintChannelPre::printTrust(TNode res, PfRule src)
 {
   d_trustCount++;
   d_lbind.process(res);
+}
+
+void LfscPrintChannelPre::printOpenRule(const ProofNode* pn)
+{
+  // if its a DSL rule, remember it
+  if (pn->getRule() == PfRule::DSL_REWRITE)
+  {
+    Node idn = pn->getArguments()[0];
+    DslPfRule di;
+    if (rewriter::getDslPfRule(idn, di))
+    {
+      d_dprs.insert(di);
+    }
+    else
+    {
+      Assert(false);
+    }
+  }
+}
+
+const std::unordered_set<DslPfRule>& LfscPrintChannelPre::getDslRewrites() const
+{
+  return d_dprs;
 }
 
 }  // namespace proof

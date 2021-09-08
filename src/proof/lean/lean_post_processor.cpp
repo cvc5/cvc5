@@ -14,11 +14,11 @@
 
 #include "proof/lean/lean_post_processor.h"
 
-#include "expr/lazy_proof.h"
-#include "expr/proof_checker.h"
-#include "expr/proof_node_algorithm.h"
-#include "expr/proof_node_manager.h"
+#include "proof/lazy_proof.h"
 #include "proof/lean/lean_rules.h"
+#include "proof/proof_node_algorithm.h"
+#include "proof/proof_node_manager.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 
@@ -104,7 +104,9 @@ bool LeanProofPostprocessCallback::update(Node res,
                   *cdp);
       break;
     }
-    default: { return false;
+    default:
+    {
+      return false;
     }
   };
   return true;

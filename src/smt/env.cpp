@@ -18,9 +18,10 @@
 
 #include "context/context.h"
 #include "expr/node.h"
-#include "expr/term_conversion_proof_generator.h"
 #include "options/base_options.h"
+#include "options/smt_options.h"
 #include "printer/printer.h"
+#include "proof/conv_proof_generator.h"
 #include "smt/dump_manager.h"
 #include "smt/smt_engine_stats.h"
 #include "theory/rewriter.h"
@@ -32,7 +33,7 @@ using namespace cvc5::smt;
 
 namespace cvc5 {
 
-Env::Env(NodeManager* nm, Options* opts)
+Env::Env(NodeManager* nm, const Options* opts)
     : d_context(new context::Context()),
       d_userContext(new context::UserContext()),
       d_nodeManager(nm),
@@ -43,12 +44,14 @@ Env::Env(NodeManager* nm, Options* opts)
       d_logic(),
       d_statisticsRegistry(std::make_unique<StatisticsRegistry>()),
       d_options(),
+      d_originalOptions(opts),
       d_resourceManager()
 {
   if (opts != nullptr)
   {
     d_options.copyValues(*opts);
   }
+  d_statisticsRegistry->registerTimer("global::totalTime").start();
   d_resourceManager = std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
 }
 
@@ -79,6 +82,22 @@ NodeManager* Env::getNodeManager() const { return d_nodeManager; }
 
 ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 
+bool Env::isSatProofProducing() const
+{
+  return d_proofNodeManager != nullptr
+         && (!d_options.smt.unsatCores
+             || d_options.smt.unsatCoresMode
+                    != options::UnsatCoresMode::ASSUMPTIONS);
+}
+
+bool Env::isTheoryProofProducing() const
+{
+  return d_proofNodeManager != nullptr
+         && (!d_options.smt.unsatCores
+             || d_options.smt.unsatCoresMode
+                    == options::UnsatCoresMode::FULL_PROOF);
+}
+
 theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
 
 theory::TrustSubstitutionMap& Env::getTopLevelSubstitutions()
@@ -97,6 +116,8 @@ StatisticsRegistry& Env::getStatisticsRegistry()
 
 const Options& Env::getOptions() const { return d_options; }
 
+const Options& Env::getOriginalOptions() const { return *d_originalOptions; }
+
 ResourceManager* Env::getResourceManager() const
 {
   return d_resourceManager.get();
@@ -104,9 +125,9 @@ ResourceManager* Env::getResourceManager() const
 
 const Printer& Env::getPrinter()
 {
-  return *Printer::getPrinter(d_options[options::outputLanguage]);
+  return *Printer::getPrinter(d_options.base.outputLanguage);
 }
 
-std::ostream& Env::getDumpOut() { return *d_options.getOut(); }
+std::ostream& Env::getDumpOut() { return *d_options.base.out; }
 
 }  // namespace cvc5

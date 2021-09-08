@@ -24,7 +24,7 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "expr/proof_node_manager.h"
+#include "proof/proof_node_manager.h"
 #include "theory/ext_theory.h"
 #include "theory/inference_manager_buffered.h"
 #include "theory/output_channel.h"
@@ -77,7 +77,8 @@ class InferenceManager : public InferenceManagerBuffered
   friend class InferInfo;
 
  public:
-  InferenceManager(Theory& t,
+  InferenceManager(Env& env,
+                   Theory& t,
                    SolverState& s,
                    TermRegistry& tr,
                    ExtTheory& e,

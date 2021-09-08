@@ -13,14 +13,14 @@
  **/
 
 #include "proof/lfsc/lfsc_post_processor.h"
-#include "proof/lfsc/lfsc_printer.h"
 
-#include "expr/lazy_proof.h"
-#include "expr/proof_checker.h"
-#include "expr/proof_node_algorithm.h"
-#include "expr/proof_node_manager.h"
-#include "expr/proof_node_updater.h"
 #include "options/proof_options.h"
+#include "proof/lazy_proof.h"
+#include "proof/lfsc/lfsc_printer.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
+#include "proof/proof_node_manager.h"
+#include "proof/proof_node_updater.h"
 
 using namespace cvc5::kind;
 
@@ -292,34 +292,6 @@ bool LfscProofPostprocessCallback::update(Node res,
           currEq = nextEq;
         }
       }
-    }
-    break;
-    case PfRule::AND_ELIM:
-    {
-      // TODO: use rule with side condition, delete this block
-      uint32_t i;
-      bool b CVC5_UNUSED = ProofRuleChecker::getUInt32(args[0], i);
-      Assert(b);
-      // we start with the n-ary AND
-      Node cur = children[0];
-      std::vector<Node> cchildren(cur.begin(), cur.end());
-      // get its chain form
-      Node curChain = mkChain(AND, cchildren);
-      // currently there is assymmetry on how the first step below is handled,
-      // where from n-ary AND we conclude a chained AND. This could be made
-      // symmetric by an explicit, internal-only rule to conclude chained form
-      // from n-ary form.
-      for (uint32_t j = 0; j < i; j++)
-      {
-        Node cur_r = j == 0 ? curChain[1] : cur[1];
-        addLfscRule(cdp, cur_r, {cur}, LfscRule::AND_ELIM2, {});
-        cur = cur_r;
-      }
-      // We always get the left child, even if we are at the end
-      // (i=cchildren.size()-1) or at the beginning (i=0). For the end case,
-      // we are taking F from (and F true), in the beginning case, we are
-      // taking F from the original n-ary (and F ...).
-      addLfscRule(cdp, cur[0], {cur}, LfscRule::AND_ELIM1, {});
     }
     break;
     case PfRule::AND_INTRO:

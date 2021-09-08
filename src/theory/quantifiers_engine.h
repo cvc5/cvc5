@@ -24,6 +24,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/quant_util.h"
 
 namespace cvc5 {
@@ -51,14 +52,18 @@ class TermEnumeration;
 class TermRegistry;
 }
 
-// TODO: organize this more/review this, github issue #1163
-class QuantifiersEngine {
+/**
+ * The main class that manages techniques for quantified formulas.
+ */
+class QuantifiersEngine : protected EnvObj
+{
   friend class ::cvc5::TheoryEngine;
   typedef context::CDHashMap<Node, bool> BoolMap;
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  QuantifiersEngine(quantifiers::QuantifiersState& qstate,
+  QuantifiersEngine(Env& env,
+                    quantifiers::QuantifiersState& qstate,
                     quantifiers::QuantifiersRegistry& qr,
                     quantifiers::TermRegistry& tr,
                     quantifiers::QuantifiersInferenceManager& qim,
@@ -206,7 +211,10 @@ public:
   /** quantifiers reduced */
   BoolMap d_quants_red;
   std::map<Node, TrustNode> d_quantsRedTrustLem;
-};/* class QuantifiersEngine */
+  std::map<Node, Node> d_quants_red_lem;
+  /** Number of rounds we have instantiated */
+  uint32_t d_numInstRoundsLemma;
+}; /* class QuantifiersEngine */
 
 }  // namespace theory
 }  // namespace cvc5

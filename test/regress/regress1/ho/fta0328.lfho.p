@@ -1,4 +1,4 @@
-% COMMAND-LINE:  --uf-ho --uf-ho --finite-model-find
+% COMMAND-LINE:  --finite-model-find
 % EXPECT: % SZS status CounterSatisfiable for fta0328.lfho
 
 % TIMEFORMAT='%3R'; { time (exec 2>&1; /Users/blanchette/.isabelle/contrib/e-2.0-2/x86_64-darwin/eprover --auto-schedule --tstp-in --tstp-out --silent --cpu-limit=2 --proof-object=1 /Users/blanchette/hgs/matryoshka/papers/2019-TACAS-ehoh/eval/judgment_day/judgment_day_lifting_32/fta/prob_804__4064966_1 ) ; }

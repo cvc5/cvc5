@@ -21,6 +21,7 @@
 #include <unordered_set>
 
 #include "expr/dtype.h"
+#include "smt/env_obj.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/fun_def_evaluator.h"
@@ -53,9 +54,10 @@ enum EnumeratorRole
 std::ostream& operator<<(std::ostream& os, EnumeratorRole r);
 
 // TODO :issue #1235 split and document this class
-class TermDbSygus {
+class TermDbSygus : protected EnvObj
+{
  public:
-  TermDbSygus(QuantifiersState& qs);
+  TermDbSygus(Env& env, QuantifiersState& qs);
   ~TermDbSygus() {}
   /** Finish init, which sets the inference manager */
   void finishInit(QuantifiersInferenceManager* qim);
@@ -78,8 +80,6 @@ class TermDbSygus {
   //------------------------------utilities
   /** get the explanation utility */
   SygusExplain* getExplain() { return d_syexp.get(); }
-  /** get the extended rewrite utility */
-  ExtendedRewriter* getExtRewriter() { return d_ext_rw.get(); }
   /** get the evaluator */
   Evaluator* getEvaluator() { return d_eval.get(); }
   /** (recursive) function evaluator utility */
@@ -324,8 +324,6 @@ class TermDbSygus {
   //------------------------------utilities
   /** sygus explanation */
   std::unique_ptr<SygusExplain> d_syexp;
-  /** extended rewriter */
-  std::unique_ptr<ExtendedRewriter> d_ext_rw;
   /** evaluator */
   std::unique_ptr<Evaluator> d_eval;
   /** (recursive) function evaluator utility */
@@ -456,13 +454,11 @@ class TermDbSygus {
 
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);
-  unsigned getSygusTermSize( Node n );
   /** involves div-by-zero */
   bool involvesDivByZero( Node n );
   /** get anchor */
   static Node getAnchor( Node n );
   static unsigned getAnchorDepth( Node n );
-
 };
 
 }  // namespace quantifiers

@@ -25,7 +25,7 @@ QuantifiersModule::QuantifiersModule(
     quantifiers::QuantifiersInferenceManager& qim,
     quantifiers::QuantifiersRegistry& qr,
     quantifiers::TermRegistry& tr)
-    : d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr)
+    : EnvObj(qs.getEnv()), d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr)
 {
 }
 

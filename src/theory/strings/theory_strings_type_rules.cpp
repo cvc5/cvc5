@@ -19,6 +19,7 @@
 #include "expr/node_manager.h"
 #include "expr/sequence.h"
 #include "options/strings_options.h"
+#include "util/cardinality.h"
 
 namespace cvc5 {
 namespace theory {

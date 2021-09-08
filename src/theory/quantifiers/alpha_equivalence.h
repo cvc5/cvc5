@@ -18,14 +18,12 @@
 #ifndef CVC5__ALPHA_EQUIVALENCE_H
 #define CVC5__ALPHA_EQUIVALENCE_H
 
+#include "expr/term_canonize.h"
+#include "proof/eager_proof_generator.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/quant_util.h"
 
-#include "expr/term_canonize.h"
-
 namespace cvc5 {
-
-class CDProof;
-
 namespace theory {
 namespace quantifiers {
 
@@ -73,24 +71,44 @@ class AlphaEquivalenceDb
    * to addTerm.
    */
   Node addTerm(Node q);
+  /**
+   * Add term with substitution, which additionally finds a set of terms such
+   * that q' * subs is alpha-equivalent (possibly modulo rewriting) to q, where
+   * q' is the return quantified formula.
+   */
+  Node addTermWithSubstitution(Node q,
+                               std::vector<Node>& vars,
+                               std::vector<Node>& subs);
 
  private:
+  /**
+   * Add term to the trie, where t is the canonized form of the body of
+   * quantified formula q. Returns the quantified formula, if any, that already
+   * had been added to this class, or q otherwise.
+   */
+  Node addTermToTypeTrie(Node t, Node q);
   /** a trie per # of variables per type */
   AlphaEquivalenceTypeNode d_ae_typ_trie;
   /** pointer to the term canonize utility */
   expr::TermCanonize* d_tc;
   /** whether to sort children of commutative operators during canonization. */
   bool d_sortCommutativeOpChildren;
+  /**
+   * Maps quantified formulas to variables map, used for tracking substitutions
+   * in addTermWithSubstitution. The range in d_bvmap[q] contains the mapping
+   * from canonical free variables to variables in q.
+   */
+  std::map<Node, std::map<Node, TNode> > d_bvmap;
 };
 
 /**
  * A quantifiers module that computes reductions based on alpha-equivalence,
  * using the above utilities.
  */
-class AlphaEquivalence
+class AlphaEquivalence : protected EnvObj
 {
  public:
-  AlphaEquivalence(ProofNodeManager* pnm = nullptr);
+  AlphaEquivalence(Env& env);
   ~AlphaEquivalence(){}
   /** reduce quantifier
    *
@@ -108,10 +126,8 @@ class AlphaEquivalence
   AlphaEquivalenceDb d_aedb;
   /** Pointer to the proof node manager */
   ProofNodeManager* d_pnm;
-  /**
-   * A CDProof storing alpha equivalence steps.
-   */
-  std::unique_ptr<CDProof> d_pfAlpha;
+  /** An eager proof generator storing alpha equivalence proofs.*/
+  std::unique_ptr<EagerProofGenerator> d_pfAlpha;
   /** Are proofs enabled for this object? */
   bool isProofEnabled() const;
 };

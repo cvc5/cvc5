@@ -42,10 +42,12 @@ using namespace cvc5::context;
 using namespace cvc5::theory;
 using namespace cvc5::theory::datatypes;
 
-SygusExtension::SygusExtension(TheoryState& s,
+SygusExtension::SygusExtension(Env& env,
+                               TheoryState& s,
                                InferenceManager& im,
                                quantifiers::TermDbSygus* tds)
-    : d_state(s),
+    : EnvObj(env),
+      d_state(s),
       d_im(im),
       d_tds(tds),
       d_ssb(tds),
@@ -764,12 +766,12 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
             deq_child[1].push_back(1);
           }
         }
-        if (nk == ITE || nk == STRING_STRREPL || nk == STRING_STRREPLALL)
+        if (nk == ITE || nk == STRING_REPLACE || nk == STRING_REPLACE_ALL)
         {
           deq_child[0].push_back(1);
           deq_child[1].push_back(2);
         }
-        if (nk == STRING_STRREPL || nk == STRING_STRREPLALL)
+        if (nk == STRING_REPLACE || nk == STRING_REPLACE_ALL)
         {
           deq_child[0].push_back(0);
           deq_child[1].push_back(1);
@@ -1037,10 +1039,10 @@ Node SygusExtension::registerSearchValue(Node a,
                             << ", type=" << tn << std::endl;
     Node bv = d_tds->sygusToBuiltin(cnv, tn);
     Trace("sygus-sb-debug") << "  ......builtin is " << bv << std::endl;
-    Node bvr = d_tds->getExtRewriter()->extendedRewrite(bv);
+    Node bvr = extendedRewrite(bv);
     Trace("sygus-sb-debug") << "  ......search value rewrites to " << bvr << std::endl;
     Trace("dt-sygus") << "  * DT builtin : " << n << " -> " << bvr << std::endl;
-    unsigned sz = d_tds->getSygusTermSize( nv );      
+    unsigned sz = utils::getSygusTermSize(nv);
     if( d_tds->involvesDivByZero( bvr ) ){
       quantifiers::DivByZeroSygusInvarianceTest dbzet;
       Trace("sygus-sb-mexp-debug") << "Minimize explanation for div-by-zero in "
@@ -1108,7 +1110,7 @@ Node SygusExtension::registerSearchValue(Node a,
             its = d_sampler[a].find(tn);
           }
           // check equivalent
-          its->second.checkEquivalent(bv, bvr);
+          its->second.checkEquivalent(bv, bvr, *d_state.options().base.out);
         }
       }
 
@@ -1143,7 +1145,7 @@ Node SygusExtension::registerSearchValue(Node a,
           }
           Trace("sygus-sb-exc") << std::endl;
         }
-        Assert(d_tds->getSygusTermSize(bad_val) == sz);
+        Assert(utils::getSygusTermSize(bad_val) == sz);
 
         // generalize the explanation for why the analog of bad_val
         // is equivalent to bvr
@@ -1177,7 +1179,7 @@ void SygusExtension::registerSymBreakLemmaForValue(
 {
   TypeNode tn = val.getType();
   Node x = getFreeVar(tn);
-  unsigned sz = d_tds->getSygusTermSize(val);
+  unsigned sz = utils::getSygusTermSize(val);
   std::vector<Node> exp;
   d_tds->getExplain()->getExplanationFor(x, val, exp, et, valr, var_count, sz);
   Node lem =

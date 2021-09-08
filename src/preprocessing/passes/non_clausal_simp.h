@@ -21,7 +21,7 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 
 namespace cvc5 {
 
@@ -76,7 +76,7 @@ class NonClausalSimp : public PreprocessingPass
    * This tracks the proof in the learned literal preprocess proof generator
    * d_llpg below and returns the rewritten learned literal.
    */
-  Node processRewrittenLearnedLit(theory::TrustNode trn);
+  Node processRewrittenLearnedLit(TrustNode trn);
   /** Is proof enabled? */
   bool isProofEnabled() const;
   /** The proof node manager */

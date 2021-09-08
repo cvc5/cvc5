@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((Formula!953 0)) (((And!954 (lhs!955 Formula!953) (rhs!956 Formula!953)) (Not!957 (f!958 Formula!953)) (Or!959 (lhs!960 Formula!953) (rhs!961 Formula!953)) (Variable!962 (id!963 (_ BitVec 32))))))
 (declare-fun error_value!964 () Bool)

@@ -160,7 +160,8 @@ class VariadicTrie
 class CegisCoreConnective : public Cegis
 {
  public:
-  CegisCoreConnective(QuantifiersInferenceManager& qim,
+  CegisCoreConnective(QuantifiersState& qs,
+                      QuantifiersInferenceManager& qim,
                       TermDbSygus* tds,
                       SynthConjecture* p);
   ~CegisCoreConnective() {}
@@ -175,8 +176,7 @@ class CegisCoreConnective : public Cegis
   /** do cegis-implementation-specific initialization for this class */
   bool processInitialize(Node conj,
                          Node n,
-                         const std::vector<Node>& candidates,
-                         std::vector<Node>& lemmas) override;
+                         const std::vector<Node>& candidates) override;
   /** do cegis-implementation-specific post-processing for construct candidate
    *
    * satisfiedRl is whether all refinement lemmas are satisfied under the
@@ -186,8 +186,7 @@ class CegisCoreConnective : public Cegis
                                   const std::vector<Node>& enum_values,
                                   const std::vector<Node>& candidates,
                                   std::vector<Node>& candidate_values,
-                                  bool satisfiedRl,
-                                  std::vector<Node>& lems) override;
+                                  bool satisfiedRl) override;
 
   /** construct solution
    *

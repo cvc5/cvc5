@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file lfsc_printer.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for printing Lfsc proof nodes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for LFSC proofs.
+ */
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__LFSC__LFSC_UTIL_H
-#define CVC4__PROOF__LFSC__LFSC_UTIL_H
+#ifndef CVC5__PROOF__LFSC__LFSC_UTIL_H
+#define CVC5__PROOF__LFSC__LFSC_UTIL_H
 
 #include <iostream>
 #include <map>
@@ -27,16 +28,9 @@ namespace cvc5 {
 namespace proof {
 
 /**
-work steps:
-1. make new rules in the lfsc signature
-2. add to LfscRule enum
-3. print in toString
-4. convert PfRule to LfscRule in the postprocessor
-5. Add printing code to computeProofArgs
-*/
-
-/**
- * LFSC rules
+ * LFSC rules. The enum below contains all rules that don't correspond to a
+ * PfRule, e.g. congruence in LFSC does not have the same form as congruence
+ * in the internal calculus.
  */
 enum class LfscRule : uint32_t
 {
@@ -51,9 +45,7 @@ enum class LfscRule : uint32_t
   NEG_SYMM,
   // congruence is done via a higher-order variant of congruence
   CONG,
-  // we use unrolled binary versions of and elim / intro
-  AND_ELIM1,
-  AND_ELIM2,
+  // we use unrolled binary versions of and intro
   AND_INTRO1,
   AND_INTRO2,
   // needed as a helper for SCOPE
@@ -93,8 +85,11 @@ const char* toString(LfscRule id);
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, LfscRule id);
+/** Get LFSC rule from a node */
 LfscRule getLfscRule(Node n);
+/** Get LFSC rule from a node, return true if success and store in lr */
 bool getLfscRule(Node n, LfscRule& lr);
+/** Make node for LFSC rule */
 Node mkLfscRuleNode(LfscRule r);
 
 /** Helper class used for letifying LFSC proofs. */

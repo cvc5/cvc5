@@ -15,16 +15,18 @@
 
 #include "smt/proof_post_processor.h"
 
-#include "expr/proof_node_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/proof_options.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "proof/proof_node_manager.h"
 #include "smt/smt_engine.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/bv/bitblast/proof_bitblaster.h"
 #include "theory/rewriter.h"
+#include "theory/strings/infer_proof_cons.h"
 #include "theory/theory.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::theory;
@@ -32,15 +34,15 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
-                                                   SmtEngine* smte,
+ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
                                                    ProofGenerator* pppg,
+                                                   rewriter::RewriteDb* rdb,
                                                    bool updateScopedAssumptions)
-    : d_pnm(pnm),
-      d_smte(smte),
+    : d_env(env),
+      d_pnm(env.getProofNodeManager()),
       d_pppg(pppg),
-      d_wfpm(pnm),
-      d_trrc(pnm),
+      d_rdbPc(env, rdb),
+      d_wfpm(env.getProofNodeManager()),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -431,7 +433,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       MethodId ids = MethodId::SB_DEFAULT;
       if (args.size() >= 2)
       {
-        if (builtin::BuiltinProofRuleChecker::getMethodId(args[1], ids))
+        if (getMethodId(args[1], ids))
         {
           sargs.push_back(args[1]);
         }
@@ -439,7 +441,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       MethodId ida = MethodId::SBA_SEQUENTIAL;
       if (args.size() >= 3)
       {
-        if (builtin::BuiltinProofRuleChecker::getMethodId(args[2], ida))
+        if (getMethodId(args[2], ida))
         {
           sargs.push_back(args[2]);
         }
@@ -471,15 +473,13 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     MethodId idr = MethodId::RW_REWRITE;
     if (args.size() >= 4)
     {
-      if (builtin::BuiltinProofRuleChecker::getMethodId(args[3], idr))
+      if (getMethodId(args[3], idr))
       {
         rargs.push_back(args[3]);
       }
     }
-    builtin::BuiltinProofRuleChecker* builtinPfC =
-        static_cast<builtin::BuiltinProofRuleChecker*>(
-            d_pnm->getChecker()->getCheckerFor(PfRule::MACRO_SR_EQ_INTRO));
-    Node tr = builtinPfC->applyRewrite(ts, idr);
+    Rewriter* rr = d_env.getRewriter();
+    Node tr = rr->rewriteViaMethod(ts, idr);
     Trace("smt-proof-pp-debug")
         << "...eq intro rewrite equality is " << ts << " == " << tr << ", from "
         << idr << std::endl;
@@ -804,12 +804,12 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     MethodId ids = MethodId::SB_DEFAULT;
     if (args.size() >= 2)
     {
-      builtin::BuiltinProofRuleChecker::getMethodId(args[1], ids);
+      getMethodId(args[1], ids);
     }
     MethodId ida = MethodId::SBA_SEQUENTIAL;
     if (args.size() >= 3)
     {
-      builtin::BuiltinProofRuleChecker::getMethodId(args[2], ida);
+      getMethodId(args[2], ida);
     }
     std::vector<std::shared_ptr<CDProof>> pfs;
     std::vector<TNode> vsList;
@@ -930,13 +930,12 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     }
     // should give a proof, if not, then tcpg does not agree with the
     // substitution.
-    Assert(pfn != nullptr);
     if (pfn == nullptr)
     {
-      AlwaysAssert(false) << "resort to TRUST_SUBS" << std::endl
-                          << eq << std::endl
-                          << eqq << std::endl
-                          << "from " << children << " applied to " << t;
+      Warning() << "resort to TRUST_SUBS" << std::endl
+                << eq << std::endl
+                << eqq << std::endl
+                << "from " << children << " applied to " << t << std::endl;
       cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
     }
     else
@@ -949,21 +948,19 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   {
     // get the kind of rewrite
     MethodId idr = MethodId::RW_REWRITE;
+    TheoryId theoryId = Theory::theoryOf(args[0]);
     if (args.size() >= 2)
     {
-      builtin::BuiltinProofRuleChecker::getMethodId(args[1], idr);
+      getMethodId(args[1], idr);
     }
-    builtin::BuiltinProofRuleChecker* builtinPfC =
-        static_cast<builtin::BuiltinProofRuleChecker*>(
-            d_pnm->getChecker()->getCheckerFor(PfRule::REWRITE));
-    Node ret = builtinPfC->applyRewrite(args[0], idr);
+    Rewriter* rr = d_env.getRewriter();
+    Node ret = rr->rewriteViaMethod(args[0], idr);
     Node eq = args[0].eqNode(ret);
     if (idr == MethodId::RW_REWRITE || idr == MethodId::RW_REWRITE_EQ_EXT)
     {
       // rewrites from theory::Rewriter
       bool isExtEq = (idr == MethodId::RW_REWRITE_EQ_EXT);
       // use rewrite with proof interface
-      Rewriter* rr = d_smte->getRewriter();
       TrustNode trn = rr->rewriteWithProof(args[0], isExtEq);
       std::shared_ptr<ProofNode> pfn = trn.toProofNode();
       if (pfn == nullptr)
@@ -975,7 +972,6 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         {
           // update to THEORY_REWRITE with idr
           Assert(args.size() >= 1);
-          TheoryId theoryId = Theory::theoryOf(args[0].getType());
           Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
           cdp->addStep(eq, PfRule::THEORY_REWRITE, {}, {eq, tid, args[1]});
         }
@@ -1001,8 +997,60 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     }
     else
     {
-      // don't know how to eliminate
-      return Node::null();
+      Node retCurr = args[0];
+      std::vector<Node> transEq;
+      // try to reconstruct the (extended) rewrite
+      // first, use the standard rewriter followed by the extended equality
+      // rewriter
+      for (size_t i = 0; i < 2; i++)
+      {
+        if (i == 1 && retCurr.getKind() != EQUAL)
+        {
+          break;
+        }
+        MethodId midi =
+            i == 0 ? MethodId::RW_REWRITE : MethodId::RW_REWRITE_EQ_EXT;
+        Node retDef = rr->rewriteViaMethod(retCurr, midi);
+        if (retDef != retCurr)
+        {
+          // will expand this as a default rewrite if needed
+          Node eqd = retCurr.eqNode(retDef);
+          Node mid = mkMethodId(midi);
+          cdp->addStep(eqd, PfRule::REWRITE, {}, {retCurr, mid});
+          transEq.push_back(eqd);
+        }
+        retCurr = retDef;
+        if (retCurr == ret)
+        {
+          // already successful
+          break;
+        }
+      }
+      if (retCurr != ret)
+      {
+        // try to prove the rewritten form is equal to the extended rewritten
+        // form, treated as a stand alone (theory) rewrite
+        Node eqp = retCurr.eqNode(ret);
+        std::vector<Node> targs;
+        targs.push_back(eqp);
+        targs.push_back(
+            builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId));
+        // in this case, must be a non-standard rewrite kind
+        Assert(args.size() >= 2);
+        targs.push_back(args[1]);
+        Node eqpp = expandMacros(PfRule::THEORY_REWRITE, {}, targs, cdp);
+        transEq.push_back(eqp);
+        if (eqpp.isNull())
+        {
+          // don't know how to eliminate
+          return Node::null();
+        }
+      }
+      if (transEq.size() > 1)
+      {
+        // put together with transitivity
+        cdp->addStep(eq, PfRule::TRANS, transEq, {});
+      }
     }
     if (args[0] == ret)
     {
@@ -1018,11 +1066,14 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Assert(eq.getKind() == EQUAL);
     TheoryId tid = THEORY_BUILTIN;
     builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
-    theory::MethodId mid = MethodId::RW_REWRITE;
-    builtin::BuiltinProofRuleChecker::getMethodId(args[2], mid);
-    // first, try to replay the rewrite using the standard reconstruction module
-    if (d_trrc.reconstruct(cdp, eq, tid, mid))
+    MethodId mid = MethodId::RW_REWRITE;
+    getMethodId(args[2], mid);
+    uint32_t recLimit = options::proofRewriteRconsRecLimit();
+    // attempt to reconstruct the proof of the equality into cdp using the
+    // rewrite database proof reconstructor
+    if (d_rdbPc.prove(cdp, args[0][0], args[0][1], tid, mid, recLimit))
     {
+      // if successful, we update the proof
       return eq;
     }
     // otherwise no update
@@ -1078,6 +1129,33 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Debug("macro::arith") << "Expansion done. Proved: " << sumBounds
                           << std::endl;
     return sumBounds;
+  }
+  else if (id == PfRule::STRING_INFERENCE)
+  {
+    // get the arguments
+    Node conc;
+    InferenceId iid;
+    bool isRev;
+    std::vector<Node> exp;
+    if (theory::strings::InferProofCons::unpackArgs(
+            args, conc, iid, isRev, exp))
+    {
+      if (theory::strings::InferProofCons::addProofTo(
+              cdp, conc, iid, isRev, exp))
+      {
+        return conc;
+      }
+    }
+  }
+  else if (id == PfRule::BV_BITBLAST)
+  {
+    bv::BBProof bb(nullptr, d_pnm, true);
+    Node eq = args[0];
+    Assert(eq.getKind() == EQUAL);
+    bb.bbAtom(eq[0]);
+    Node bbAtom = bb.getStoredBBAtom(eq[0]);
+    bb.getProofGenerator()->addProofTo(eq[0].eqNode(bbAtom), cdp);
+    return eq;
   }
 
   // TRUST, PREPROCESS, THEORY_LEMMA, THEORY_PREPROCESS?
@@ -1167,91 +1245,15 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
   return true;
 }
 
-ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(
-    ProofNodeManager* pnm)
-    : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
-        "finalProof::ruleCount")),
-      d_totalRuleCount(
-          smtStatisticsRegistry().registerInt("finalProof::totalRuleCount")),
-      d_minPedanticLevel(
-          smtStatisticsRegistry().registerInt("finalProof::minPedanticLevel")),
-      d_numFinalProofs(
-          smtStatisticsRegistry().registerInt("finalProofs::numFinalProofs")),
-      d_pnm(pnm),
-      d_pedanticFailure(false)
-{
-  d_minPedanticLevel += 10;
-}
-
-void ProofPostprocessFinalCallback::initializeUpdate()
-{
-  d_pedanticFailure = false;
-  d_pedanticFailureOut.str("");
-  ++d_numFinalProofs;
-}
-
-bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                                 const std::vector<Node>& fa,
-                                                 bool& continueUpdate)
-{
-  PfRule r = pn->getRule();
-  // if not doing eager pedantic checking, fail if below threshold
-  if (!options::proofEagerChecking())
-  {
-    if (!d_pedanticFailure)
-    {
-      Assert(d_pedanticFailureOut.str().empty());
-      if (d_pnm->getChecker()->isPedanticFailure(r, d_pedanticFailureOut))
-      {
-        d_pedanticFailure = true;
-      }
-    }
-  }
-  uint32_t plevel = d_pnm->getChecker()->getPedanticLevel(r);
-  if (plevel != 0)
-  {
-    d_minPedanticLevel.minAssign(plevel);
-  }
-  // record stats for the rule
-  d_ruleCount << r;
-  ++d_totalRuleCount;
-  // print for debugging
-  if (Trace.isOn("final-pf-hole"))
-  {
-    // currently only track theory rewrites
-    if (r == PfRule::THEORY_REWRITE)
-    {
-      const std::vector<Node>& args = pn->getArguments();
-      Node eq = args[0];
-      TheoryId tid = THEORY_BUILTIN;
-      builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
-      Trace("final-pf-hole")
-          << "hole " << r << " " << tid << " : " << eq << std::endl;
-    }
-  }
-  return false;
-}
-
-bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
-{
-  if (d_pedanticFailure)
-  {
-    out << d_pedanticFailureOut.str();
-    return true;
-  }
-  return false;
-}
-
-ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
-                                     SmtEngine* smte,
+ProofPostproccess::ProofPostproccess(Env& env,
                                      ProofGenerator* pppg,
+                                     rewriter::RewriteDb* rdb,
                                      bool updateScopedAssumptions)
-    : d_pnm(pnm),
-      d_cb(pnm, smte, pppg, updateScopedAssumptions),
+    : d_cb(env, pppg, rdb, updateScopedAssumptions),
       // the update merges subproofs
-      d_updater(d_pnm, d_cb, true),
-      d_finalCb(pnm),
-      d_finalizer(d_pnm, d_finalCb)
+      d_updater(env.getProofNodeManager(), d_cb, options::proofPpMerge()),
+      d_finalCb(env.getProofNodeManager()),
+      d_finalizer(env.getProofNodeManager(), d_finalCb)
 {
 }
 

@@ -16,6 +16,7 @@
 #include "theory/quantifiers/quantifiers_modules.h"
 
 #include "options/quantifiers_options.h"
+#include "options/strings_options.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/term_registry.h"
 
@@ -40,12 +41,12 @@ QuantifiersModules::QuantifiersModules()
 {
 }
 QuantifiersModules::~QuantifiersModules() {}
-void QuantifiersModules::initialize(QuantifiersState& qs,
+void QuantifiersModules::initialize(Env& env,
+                                    QuantifiersState& qs,
                                     QuantifiersInferenceManager& qim,
                                     QuantifiersRegistry& qr,
                                     TermRegistry& tr,
                                     QModelBuilder* builder,
-                                    ProofNodeManager* pnm,
                                     std::vector<QuantifiersModule*>& modules)
 {
   // add quantifiers modules
@@ -72,17 +73,18 @@ void QuantifiersModules::initialize(QuantifiersState& qs,
   }
   if (options::sygus())
   {
-    d_synth_e.reset(new SynthEngine(qs, qim, qr, tr));
+    d_synth_e.reset(new SynthEngine(env, qs, qim, qr, tr));
     modules.push_back(d_synth_e.get());
   }
-  // finite model finding
-  if (options::fmfBound())
+  // bounded integer instantiation is used when the user requests it via
+  // fmfBound, or if strings are enabled.
+  if (options::fmfBound() || options::stringExp())
   {
     d_bint.reset(new BoundedIntegers(qs, qim, qr, tr));
     modules.push_back(d_bint.get());
   }
 
-  if (options::finiteModelFind() || options::fmfBound())
+  if (options::finiteModelFind() || options::fmfBound() || options::stringExp())
   {
     d_model_engine.reset(new ModelEngine(qs, qim, qr, tr, builder));
     modules.push_back(d_model_engine.get());
@@ -94,7 +96,7 @@ void QuantifiersModules::initialize(QuantifiersState& qs,
   }
   if (options::quantAlphaEquiv())
   {
-    d_alpha_equiv.reset(new AlphaEquivalence(pnm));
+    d_alpha_equiv.reset(new AlphaEquivalence(env));
   }
   // full saturation : instantiate from relevant domain, then arbitrary terms
   if (options::fullSaturateQuant() || options::fullSaturateInterleave())

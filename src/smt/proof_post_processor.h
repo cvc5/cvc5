@@ -22,14 +22,17 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "expr/proof_node_updater.h"
-#include "smt/theory_rewrite_rcons.h"
+#include "proof/proof_node_updater.h"
+#include "rewriter/rewrite_db_proof_cons.h"
+#include "rewriter/rewrites.h"
+#include "smt/proof_final_callback.h"
 #include "smt/witness_form.h"
+#include "theory/inference_id.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
 
-class SmtEngine;
+class Env;
 
 namespace smt {
 
@@ -40,9 +43,9 @@ namespace smt {
 class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  ProofPostprocessCallback(ProofNodeManager* pnm,
-                           SmtEngine* smte,
+  ProofPostprocessCallback(Env& env,
                            ProofGenerator* pppg,
+                           rewriter::RewriteDb* rdb,
                            bool updateScopedAssumptions);
   ~ProofPostprocessCallback() {}
   /**
@@ -72,16 +75,16 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
  private:
   /** Common constants */
   Node d_true;
-  /** The proof node manager */
+  /** Reference to the env */
+  Env& d_env;
+  /** Pointer to the proof node manager */
   ProofNodeManager* d_pnm;
-  /** Pointer to the SmtEngine, which should have proofs enabled */
-  SmtEngine* d_smte;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
+  /** The rewrite database proof generator */
+  rewriter::RewriteDbProofCons d_rdbPc;
   /** The witness form proof generator */
   WitnessFormGenerator d_wfpm;
-  /** The theory rewrite reconstruction proof generator */
-  TheoryRewriteRCons d_trrc;
   /** The witness form assumptions used in the proof */
   std::vector<Node> d_wfAssumptions;
   /** Kinds of proof rules we are eliminating */
@@ -239,40 +242,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
                              CDProof* cdp);
 };
 
-/** Final callback class, for stats and pedantic checking */
-class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
-{
- public:
-  ProofPostprocessFinalCallback(ProofNodeManager* pnm);
-  /**
-   * Initialize, called once for each new ProofNode to process. This initializes
-   * static information to be used by successive calls to update.
-   */
-  void initializeUpdate();
-  /** Should proof pn be updated? Returns false, adds to stats. */
-  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
-                    const std::vector<Node>& fa,
-                    bool& continueUpdate) override;
-  /** was pedantic failure */
-  bool wasPedanticFailure(std::ostream& out) const;
-
- private:
-  /** Counts number of postprocessed proof nodes for each kind of proof rule */
-  HistogramStat<PfRule> d_ruleCount;
-  /** Total number of postprocessed rule applications */
-  IntStat d_totalRuleCount;
-  /** The minimum pedantic level of any rule encountered */
-  IntStat d_minPedanticLevel;
-  /** The total number of final proofs */
-  IntStat d_numFinalProofs;
-  /** Proof node manager (used for pedantic checking) */
-  ProofNodeManager* d_pnm;
-  /** Was there a pedantic failure? */
-  bool d_pedanticFailure;
-  /** The pedantic failure string for debugging */
-  std::stringstream d_pedanticFailureOut;
-};
-
 /**
  * The proof postprocessor module. This postprocesses the final proof
  * produced by an SmtEngine. Its main two tasks are to:
@@ -283,16 +252,15 @@ class ProofPostproccess
 {
  public:
   /**
-   * @param pnm The proof node manager we are using
-   * @param smte The SMT engine whose proofs are being post-processed
+   * @param env The environment we are using
    * @param pppg The proof generator for pre-processing proofs
    * @param updateScopedAssumptions Whether we post-process assumptions in
    * scope. Since doing so is sound and only problematic depending on who is
    * consuming the proof, it's true by default.
    */
-  ProofPostproccess(ProofNodeManager* pnm,
-                    SmtEngine* smte,
+  ProofPostproccess(Env& env,
                     ProofGenerator* pppg,
+                    rewriter::RewriteDb* rdb,
                     bool updateScopedAssumptions = true);
   ~ProofPostproccess();
   /** post-process */
@@ -303,8 +271,6 @@ class ProofPostproccess
   void setAssertions(const std::vector<Node>& assertions);
 
  private:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** The post process callback */
   ProofPostprocessCallback d_cb;
   /**
@@ -313,8 +279,7 @@ class ProofPostproccess
    */
   ProofNodeUpdater d_updater;
   /** The post process callback for finalization */
-  ProofPostprocessFinalCallback d_finalCb;
-
+  ProofFinalCallback d_finalCb;
   /**
    * The finalizer, which is responsible for taking stats and checking for
    * (lazy) pedantic failures.

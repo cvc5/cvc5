@@ -15,9 +15,9 @@
 
 #include "theory/uf/proof_equality_engine.h"
 
-#include "expr/lazy_proof_chain.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
+#include "proof/lazy_proof_chain.h"
+#include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
 #include "theory/rewriter.h"
 #include "theory/uf/eq_proof.h"
 #include "theory/uf/equality_engine.h"
@@ -36,6 +36,7 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
     : EagerProofGenerator(pnm, u, "pfee::" + ee.identify()),
       d_ee(ee),
       d_factPg(c, pnm),
+      d_assumpPg(pnm),
       d_pnm(pnm),
       d_proof(pnm, nullptr, c, "pfee::LazyCDProof::" + ee.identify()),
       d_keep(c)
@@ -225,7 +226,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   LazyCDProof* curr;
   TrustNodeKind tnk;
   // same policy as above: for conflicts, use existing lazy proof
-  if (conc == d_false)
+  if (conc == d_false && noExplain.empty())
   {
     curr = &d_proof;
     tnk = TrustNodeKind::CONFLICT;
@@ -264,7 +265,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   LazyCDProof* curr;
   TrustNodeKind tnk;
   // same policy as above: for conflicts, use existing lazy proof
-  if (conc == d_false)
+  if (conc == d_false && noExplain.empty())
   {
     curr = &d_proof;
     tnk = TrustNodeKind::CONFLICT;
@@ -314,6 +315,8 @@ void ProofEqEngine::explainVecWithProof(TrustNodeKind& tnk,
       assumps.push_back(e);
       // it is not a conflict, since it may involve new literals
       tnk = TrustNodeKind::LEMMA;
+      // ensure this is an assumption
+      curr->addLazyStep(e, &d_assumpPg);
     }
   }
 }

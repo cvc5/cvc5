@@ -45,10 +45,7 @@ class SmtSolver;
 class SygusSolver
 {
  public:
-  SygusSolver(SmtSolver& sms,
-              Preprocessor& pp,
-              context::UserContext* u,
-              OutputManager& outMgr);
+  SygusSolver(Env& env, SmtSolver& sms, Preprocessor& pp);
   ~SygusSolver();
 
   /**
@@ -161,6 +158,20 @@ class SygusSolver
    * previously not stale.
    */
   void setSygusConjectureStale();
+  /**
+   * Expand definitions in sygus datatype tn, which ensures that all
+   * sygus constructors that are used to build values of sygus datatype
+   * tn are associated with their expanded definition form.
+   *
+   * This method is required at this level since sygus grammars may include
+   * user-defined functions. Thus, we must use the preprocessor here to
+   * associate the use of those functions with their expanded form, since
+   * the internal sygus solver must reason about sygus operators after
+   * expansion.
+   */
+  void expandDefinitionsSygusDt(TypeNode tn) const;
+  /** Reference to the env class */
+  Env& d_env;
   /** The SMT solver, which is used during checkSynth. */
   SmtSolver& d_smtSolver;
   /** The preprocessor, used for checkSynthSolution. */
@@ -180,8 +191,6 @@ class SygusSolver
    * Whether we need to reconstruct the sygus conjecture.
    */
   context::CDO<bool> d_sygusConjectureStale;
-  /** Reference to the output manager of the smt engine */
-  OutputManager& d_outMgr;
 };
 
 }  // namespace smt

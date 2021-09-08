@@ -1,6 +1,6 @@
 ; Temporarily disable checking of unsat cores (see issue #3606)
-; COMMAND-LINE: --no-check-unsat-cores  --no-check-unsat-cores
-(set-logic ALL_SUPPORTED)
+; COMMAND-LINE: --no-check-unsat-cores
+(set-logic ALL)
 (set-option :strings-exp true)
 (set-info :status unsat)
 (declare-fun a () String)

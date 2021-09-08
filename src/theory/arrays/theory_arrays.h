@@ -132,12 +132,9 @@ class TheoryArrays : public Theory {
   IntStat d_numSetModelValConflicts;
 
  public:
-  TheoryArrays(context::Context* c,
-               context::UserContext* u,
+  TheoryArrays(Env& env,
                OutputChannel& out,
                Valuation valuation,
-               const LogicInfo& logicInfo,
-               ProofNodeManager* pnm = nullptr,
                std::string name = "theory::arrays::");
   ~TheoryArrays();
 
@@ -305,7 +302,7 @@ class TheoryArrays : public Theory {
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       Debug("arrays::propagate")
-          << spaces(d_arrays.getSatContext()->getLevel())
+          << spaces(d_arrays.context()->getLevel())
           << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", "
           << (value ? "true" : "false") << ")" << std::endl;
       // Just forward to arrays
@@ -320,7 +317,10 @@ class TheoryArrays : public Theory {
                                      TNode t2,
                                      bool value) override
     {
-      Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ", " << (value ? "true" : "false") << ")" << std::endl;
+      Debug("arrays::propagate")
+          << spaces(d_arrays.context()->getLevel())
+          << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2
+          << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
         // Propagate equality between shared terms
         return d_arrays.propagateLit(t1.eqNode(t2));
@@ -330,11 +330,16 @@ class TheoryArrays : public Theory {
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
     {
-      Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
+      Debug("arrays::propagate") << spaces(d_arrays.context()->getLevel())
+                                 << "NotifyClass::eqNotifyConstantTermMerge("
+                                 << t1 << ", " << t2 << ")" << std::endl;
       d_arrays.conflict(t1, t2);
     }
 
-    void eqNotifyNewClass(TNode t) override {}
+    void eqNotifyNewClass(TNode t) override
+    {
+      d_arrays.preRegisterTermInternal(t);
+    }
     void eqNotifyMerge(TNode t1, TNode t2) override
     {
       if (t1.getType().isArray()) {
@@ -361,8 +366,6 @@ class TheoryArrays : public Theory {
    * type array to an Info pointer that keeps track of information useful to axiom
    * instantiation
    */
-
-  Backtracker<TNode> d_backtracker;
   ArrayInfo d_infoMap;
 
   context::CDQueue<Node> d_mergeQueue;

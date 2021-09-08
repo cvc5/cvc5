@@ -25,6 +25,7 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "util/rational.h"
 
 using namespace cvc5::theory;
 
@@ -33,8 +34,7 @@ namespace preprocessing {
 namespace passes {
 
 RealToInt::RealToInt(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "real-to-int"),
-      d_cache(preprocContext->getUserContext())
+    : PreprocessingPass(preprocContext, "real-to-int"), d_cache(userContext())
 {
 }
 

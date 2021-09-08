@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__STRINGS__THEORY_DATATYPES_UTILS_H
-#define CVC5__THEORY__STRINGS__THEORY_DATATYPES_UTILS_H
+#ifndef CVC5__THEORY__DATATYPES__THEORY_DATATYPES_UTILS_H
+#define CVC5__THEORY__DATATYPES__THEORY_DATATYPES_UTILS_H
 
 #include <vector>
 
@@ -34,7 +34,17 @@ namespace utils {
  * This returns the term C( sel^{C,1}( n ), ..., sel^{C,m}( n ) ),
  * where C is the index^{th} constructor of datatype dt.
  */
-Node getInstCons(Node n, const DType& dt, int index);
+Node getInstCons(Node n, const DType& dt, size_t index);
+/**
+ * Apply constructor, taking into account whether the datatype is parametric.
+ *
+ * Return the index^th constructor of dt applied to children, where tn is the
+ * datatype type for dt, instantiated if dt is parametric.
+ */
+Node mkApplyCons(TypeNode tn,
+                 const DType& dt,
+                 size_t index,
+                 const std::vector<Node>& children);
 /** is instantiation cons
  *
  * If this method returns a value >=0, then that value, call it index,

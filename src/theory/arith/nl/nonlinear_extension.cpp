@@ -19,6 +19,7 @@
 #include "theory/arith/nl/nonlinear_extension.h"
 
 #include "options/arith_options.h"
+#include "options/smt_options.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/bound_inference.h"
 #include "theory/arith/inference_manager.h"
@@ -27,6 +28,7 @@
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -35,44 +37,44 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-NonlinearExtension::NonlinearExtension(TheoryArith& containing,
-                                       ArithState& state,
-                                       eq::EqualityEngine* ee,
-                                       ProofNodeManager* pnm)
-    : d_containing(containing),
+NonlinearExtension::NonlinearExtension(Env& env,
+                                       TheoryArith& containing,
+                                       ArithState& state)
+    : EnvObj(env),
+      d_containing(containing),
+      d_astate(state),
       d_im(containing.getInferenceManager()),
       d_needsLastCall(false),
       d_checkCounter(0),
-      d_extTheoryCb(ee),
-      d_extTheory(d_extTheoryCb,
-                  containing.getSatContext(),
-                  containing.getUserContext(),
-                  containing.getOutputChannel()),
-      d_model(containing.getSatContext()),
-      d_trSlv(d_im, d_model, pnm, containing.getUserContext()),
-      d_extState(d_im, d_model, pnm, containing.getUserContext()),
+      d_extTheoryCb(state.getEqualityEngine()),
+      d_extTheory(d_extTheoryCb, context(), userContext(), d_im),
+      d_model(),
+      d_trSlv(d_im, d_model, d_astate.getEnv()),
+      d_extState(d_im, d_model, d_astate.getEnv()),
       d_factoringSlv(&d_extState),
       d_monomialBoundsSlv(&d_extState),
       d_monomialSlv(&d_extState),
       d_splitZeroSlv(&d_extState),
       d_tangentPlaneSlv(&d_extState),
-      d_cadSlv(d_im, d_model, state.getUserContext(), pnm),
+      d_cadSlv(d_astate.getEnv(), d_im, d_model),
       d_icpSlv(d_im),
-      d_iandSlv(d_im, state, d_model)
+      d_iandSlv(d_im, state, d_model),
+      d_pow2Slv(d_im, state, d_model)
 {
   d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
   d_extTheory.addFunctionKind(kind::EXPONENTIAL);
   d_extTheory.addFunctionKind(kind::SINE);
   d_extTheory.addFunctionKind(kind::PI);
   d_extTheory.addFunctionKind(kind::IAND);
+  d_extTheory.addFunctionKind(kind::POW2);
   d_true = NodeManager::currentNM()->mkConst(true);
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
 
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
+  if (d_astate.getEnv().isTheoryProofProducing())
   {
+    ProofChecker* pc = d_astate.getEnv().getProofNodeManager()->getChecker();
     d_proofChecker.registerTo(pc);
   }
 }
@@ -111,11 +113,11 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("nl-ext-assert-debug") << "Getting assertions..." << std::endl;
   bool useRelevance = false;
-  if (options::nlRlvMode() == options::NlRlvMode::INTERLEAVE)
+  if (options().arith.nlRlvMode == options::NlRlvMode::INTERLEAVE)
   {
     useRelevance = (d_checkCounter % 2);
   }
-  else if (options::nlRlvMode() == options::NlRlvMode::ALWAYS)
+  else if (options().arith.nlRlvMode == options::NlRlvMode::ALWAYS)
   {
     useRelevance = true;
   }
@@ -138,7 +140,8 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
       // not relevant, skip
       continue;
     }
-    if (bounds.add(lit, false))
+    // if using the bound inference utility
+    if (options().arith.nlRlvAssertBounds && bounds.add(lit, false))
     {
       continue;
     }
@@ -218,7 +221,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
   // relevance here, since we may have discarded literals that are relevant
   // that are entailed based on the techniques in getAssertions.
   std::vector<Node> passertions = assertions;
-  if (options::nlExt() == options::NlExtMode::FULL)
+  if (options().arith.nlExt == options::NlExtMode::FULL)
   {
     // preprocess the assertions with the trancendental solver
     if (!d_trSlv.preprocessAssertionsCheckModel(passertions))
@@ -226,7 +229,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
       return false;
     }
   }
-  if (options::nlCad())
+  if (options().arith.nlCad)
   {
     d_cadSlv.constructModelIfAvailable(passertions);
   }
@@ -244,13 +247,12 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
 
 void NonlinearExtension::check(Theory::Effort e)
 {
-  d_im.reset();
   Trace("nl-ext") << std::endl;
   Trace("nl-ext") << "NonlinearExtension::check, effort = " << e << std::endl;
   if (e == Theory::EFFORT_FULL)
   {
     d_needsLastCall = true;
-    if (options::nlExtRewrites())
+    if (options().arith.nlExtRewrites)
     {
       std::vector<Node> nred;
       if (!d_extTheory.doInferences(0, nred))
@@ -474,8 +476,8 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
       }
 
       // we are incomplete
-      if (options::nlExt() == options::NlExtMode::FULL
-          && options::nlExtIncPrecision() && d_model.usedApproximate())
+      if (options().arith.nlExt == options::NlExtMode::FULL
+          && options().arith.nlExtIncPrecision && d_model.usedApproximate())
       {
         d_trSlv.incrementTaylorDegree();
         needsRecheck = true;
@@ -519,7 +521,10 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel,
     d_approximations.clear();
     d_witnesses.clear();
     // modify the model values
-    d_model.getModelValueRepair(arithModel, d_approximations, d_witnesses);
+    d_model.getModelValueRepair(arithModel,
+                                d_approximations,
+                                d_witnesses,
+                                options().smt.modelWitnessValue);
   }
 }
 
@@ -544,7 +549,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
   }
   if (!d_strategy.isStrategyInit())
   {
-    d_strategy.initializeStrategy();
+    d_strategy.initializeStrategy(options());
   }
 
   auto steps = d_strategy.getStrategy();
@@ -567,6 +572,11 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         break;
       case InferStep::IAND_FULL: d_iandSlv.checkFullRefine(); break;
       case InferStep::IAND_INITIAL: d_iandSlv.checkInitialRefine(); break;
+      case InferStep::POW2_INIT:
+        d_pow2Slv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::POW2_FULL: d_pow2Slv.checkFullRefine(); break;
+      case InferStep::POW2_INITIAL: d_pow2Slv.checkInitialRefine(); break;
       case InferStep::ICP:
         d_icpSlv.reset(assertions);
         d_icpSlv.check();

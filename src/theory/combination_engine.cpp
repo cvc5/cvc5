@@ -16,12 +16,12 @@
 #include "theory/combination_engine.h"
 
 #include "expr/node_visitor.h"
+#include "proof/eager_proof_generator.h"
 #include "theory/care_graph.h"
-#include "theory/eager_proof_generator.h"
+#include "theory/ee_manager_central.h"
 #include "theory/ee_manager_distributed.h"
 #include "theory/model_manager.h"
 #include "theory/model_manager_distributed.h"
-#include "theory/shared_solver.h"
 #include "theory/shared_solver_distributed.h"
 #include "theory/theory_engine.h"
 
@@ -32,8 +32,8 @@ CombinationEngine::CombinationEngine(TheoryEngine& te,
                                      Env& env,
                                      const std::vector<Theory*>& paraTheories,
                                      ProofNodeManager* pnm)
-    : d_te(te),
-      d_env(env),
+    : EnvObj(env),
+      d_te(te),
       d_valuation(&te),
       d_pnm(pnm),
       d_logicInfo(te.getLogicInfo()),
@@ -52,6 +52,18 @@ CombinationEngine::CombinationEngine(TheoryEngine& te,
     // make the distributed equality engine manager
     d_eemanager.reset(
         new EqEngineManagerDistributed(d_te, *d_sharedSolver.get()));
+    // make the distributed model manager
+    d_mmanager.reset(
+        new ModelManagerDistributed(d_te, d_env, *d_eemanager.get()));
+  }
+  else if (options::eeMode() == options::EqEngineMode::CENTRAL)
+  {
+    // for now, the shared solver is the same in both approaches; use the
+    // distributed one for now
+    d_sharedSolver.reset(new SharedSolverDistributed(d_te, d_pnm));
+    // make the central equality engine manager
+    d_eemanager.reset(
+        new EqEngineManagerCentral(d_te, *d_sharedSolver.get(), d_pnm));
     // make the distributed model manager
     d_mmanager.reset(
         new ModelManagerDistributed(d_te, d_env, *d_eemanager.get()));
@@ -108,11 +120,6 @@ eq::EqualityEngineNotify* CombinationEngine::getModelEqualityEngineNotify()
 {
   // by default, no notifications from model's equality engine
   return nullptr;
-}
-
-void CombinationEngine::sendLemma(TrustNode trn, TheoryId atomsTo)
-{
-  d_te.lemma(trn, LemmaProperty::NONE, atomsTo);
 }
 
 void CombinationEngine::resetRound()

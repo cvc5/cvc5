@@ -1,5 +1,5 @@
 % EXPECT: sat
-OPTION "logic" "ALL_SUPPORTED";
+OPTION "logic" "ALL";
 IntTup: TYPE = [INT, INT, INT];
 x : SET OF IntTup;
 y : SET OF IntTup;

@@ -25,10 +25,11 @@ namespace cvc5 {
 namespace theory {
 namespace sets {
 
-InferenceManager::InferenceManager(Theory& t,
+InferenceManager::InferenceManager(Env& env,
+                                   Theory& t,
                                    SolverState& s,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, s, pnm, "theory::sets::"), d_state(s)
+    : InferenceManagerBuffered(env, t, s, pnm, "theory::sets::"), d_state(s)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -92,7 +93,7 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
       || (atom.getKind() == EQUAL && atom[0].getType().isSet()))
   {
     // send to equality engine
-    if (assertInternalFact(atom, polarity, id, exp))
+    if (assertSetsFact(atom, polarity, id, exp))
     {
       // return true if this wasn't redundant
       return true;
@@ -111,6 +112,17 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
   }
   return false;
 }
+
+bool InferenceManager::assertSetsFact(Node atom,
+                                      bool polarity,
+                                      InferenceId id,
+                                      Node exp)
+{
+  Node conc = polarity ? atom : atom.notNode();
+  return assertInternalFact(
+      atom, polarity, id, PfRule::THEORY_INFERENCE, {exp}, {conc});
+}
+
 void InferenceManager::assertInference(Node fact,
                                        InferenceId id,
                                        Node exp,

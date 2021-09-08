@@ -84,9 +84,9 @@ bool ExtTheoryCallback::getReduction(int effort,
 ExtTheory::ExtTheory(ExtTheoryCallback& p,
                      context::Context* c,
                      context::UserContext* u,
-                     OutputChannel& out)
+                     TheoryInferenceManager& im)
     : d_parent(p),
-      d_out(out),
+      d_im(im),
       d_ext_func_terms(c),
       d_extfExtReducedIdMap(c),
       d_ci_inactive(u),
@@ -237,7 +237,7 @@ bool ExtTheory::doInferencesInternal(int effort,
           if (!nr.isNull() && n != nr)
           {
             Node lem = NodeManager::currentNM()->mkNode(kind::EQUAL, n, nr);
-            if (sendLemma(lem, true))
+            if (sendLemma(lem, InferenceId::EXTT_SIMPLIFY, true))
             {
               Trace("extt-lemma")
                   << "ExtTheory : reduction lemma : " << lem << std::endl;
@@ -287,7 +287,7 @@ bool ExtTheory::doInferencesInternal(int effort,
             Trace("extt-debug") << "ExtTheory::doInferences : infer : " << eq
                                 << " by " << exp[i] << std::endl;
             Trace("extt-debug") << "...send lemma " << lem << std::endl;
-            if (sendLemma(lem))
+            if (sendLemma(lem, InferenceId::EXTT_SIMPLIFY))
             {
               Trace("extt-lemma")
                   << "ExtTheory : substitution + rewrite lemma : " << lem
@@ -359,14 +359,14 @@ bool ExtTheory::doInferencesInternal(int effort,
   return false;
 }
 
-bool ExtTheory::sendLemma(Node lem, bool preprocess)
+bool ExtTheory::sendLemma(Node lem, InferenceId id, bool preprocess)
 {
   if (preprocess)
   {
     if (d_pp_lemmas.find(lem) == d_pp_lemmas.end())
     {
       d_pp_lemmas.insert(lem);
-      d_out.lemma(lem);
+      d_im.lemma(lem, id);
       return true;
     }
   }
@@ -375,7 +375,7 @@ bool ExtTheory::sendLemma(Node lem, bool preprocess)
     if (d_lemmas.find(lem) == d_lemmas.end())
     {
       d_lemmas.insert(lem);
-      d_out.lemma(lem);
+      d_im.lemma(lem, id);
       return true;
     }
   }
