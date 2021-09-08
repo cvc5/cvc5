@@ -17,9 +17,9 @@
 
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/quant_util.h"
 
 using namespace cvc5::kind;
 
@@ -124,7 +124,8 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
     Node n,
     bool polarity,
     std::vector<TNode>& fvs,
-    std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction>& visited) const
+    std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction>&
+        visited) const
 {
   std::pair<Node, bool> key(n, polarity);
   std::unordered_map<std::pair<Node, bool>, Node>::iterator it =
@@ -158,7 +159,8 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
         fvss.insert(fvss.end(), fvs.begin(), fvs.end());
         fvss.insert(fvss.end(), n[0].begin(), n[0].end());
         // process body in a new context
-        std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction> visitedSub;
+        std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction>
+            visitedSub;
         Node pbody = preSkolemizeQuantifiers(n[1], polarity, fvss, visitedSub);
         children.push_back(pbody);
         // return processed quantifier
@@ -218,8 +220,7 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
       bool newPol;
       QuantPhaseReq::getPolarity(n, i, true, polarity, newHasPol, newPol);
       Assert(newHasPol);
-      children.push_back(
-          preSkolemizeQuantifiers(n[i], newPol, fvs, visited));
+      children.push_back(preSkolemizeQuantifiers(n[i], newPol, fvs, visited));
     }
     ret = nm->mkNode(k, children);
   }
@@ -238,7 +239,8 @@ TrustNode QuantifiersPreprocess::preprocess(Node n, bool isInst) const
           << "Pre-skolemize " << n << "..." << std::endl;
       // apply pre-skolemization to existential quantifiers
       std::vector<TNode> fvs;
-      std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction> visited;
+      std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction>
+          visited;
       n = preSkolemizeQuantifiers(prev, true, fvs, visited);
     }
   }
