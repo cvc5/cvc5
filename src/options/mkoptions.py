@@ -451,9 +451,7 @@ def _cli_help_format_options(option):
 
 
 def _cli_help_wrap(help_msg, opts):
-    """
-    Format cmdline documentation (--help) to be 80 chars wide.
-    """
+    """Format cmdline documentation (--help) to be 80 chars wide."""
     width = 80
     width_opt = 25
     wrapper = \
@@ -468,7 +466,7 @@ def _cli_help_wrap(help_msg, opts):
 
 
 def generate_cli_help(modules):
-    """foo"""
+    """Generate the output for --help."""
     common = []
     others = []
     for module in modules:
