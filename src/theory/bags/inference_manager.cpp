@@ -24,10 +24,11 @@ namespace cvc5 {
 namespace theory {
 namespace bags {
 
-InferenceManager::InferenceManager(Theory& t,
+InferenceManager::InferenceManager(Env& env,
+                                   Theory& t,
                                    SolverState& s,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, s, pnm, "theory::bags::"), d_state(s)
+    : InferenceManagerBuffered(env, t, s, pnm, "theory::bags::"), d_state(s)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
