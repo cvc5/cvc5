@@ -452,11 +452,8 @@ def _cli_help_format_options(option):
 
 def _cli_help_wrap(help_msg, opts):
     """Format cmdline documentation (--help) to be 80 chars wide."""
-    width = 80
     width_opt = 25
-    wrapper = \
-        textwrap.TextWrapper(width=width - width_opt, break_on_hyphens=False)
-    text = wrapper.wrap(help_msg)
+    text = textwrap.wrap(help_msg, 80 - width_opt, break_on_hyphens=False)
     if len(opts) > width_opt - 3:
         lines = ['  {}'.format(opts), ' ' * width_opt + text[0]]
     else:
@@ -509,7 +506,7 @@ class SphinxGenerator:
                 names.append('--{}={}'.format(option.long_name, option.long_opt))
             else:
                 names.append('--{}'.format(option.long_name))
-        
+
         if option.alias:
             if option.long_opt:
                 names.extend(['--{}={}'.format(a, option.long_opt) for a in option.alias])
@@ -521,7 +518,7 @@ class SphinxGenerator:
                 names.append('-{} {}'.format(option.short, option.long_opt))
             else:
                 names.append('-{}'.format(option.short))
-        
+
         modes = None
         if option.mode:
             modes = {}
@@ -545,7 +542,7 @@ class SphinxGenerator:
             if module.name not in self.others:
                 self.others[module.name] = []
             self.others[module.name].append(data)
-    
+
     def __render_option(self, res, opt):
         desc = '``{}``'
         val = '    {}'
@@ -1114,7 +1111,7 @@ def mkoptions_main():
     for file in filenames:
         if not os.path.exists(file):
             die("configuration file '{}' does not exist".format(file))
-    
+
     module_tpls = [
         {'input': 'options/module_template.h'},
         {'input': 'options/module_template.cpp'},
