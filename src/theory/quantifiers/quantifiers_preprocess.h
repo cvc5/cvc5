@@ -42,9 +42,13 @@ class QuantifiersPreprocess
    * The result is wrapped in a trust node of kind TrustNodeKind::REWRITE.
    */
   static TrustNode preprocess(Node n, bool isInst = false);
-private:
+
+ private:
   /** Pre-skolemize quantifiers */
-  static Node preSkolemizeQuantifiers(Node n, bool polarity, std::vector< TypeNode >& fvTypes, std::vector<TNode>& fvs);
+  static Node preSkolemizeQuantifiers(Node n,
+                                      bool polarity,
+                                      std::vector<TypeNode>& fvTypes,
+                                      std::vector<TNode>& fvs);
   /**
    * Apply prenexing aggressively. Returns the prenex normal form of n.
    */
