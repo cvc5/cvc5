@@ -17,6 +17,7 @@
 #include "theory/bv/bv_solver_bitblast_internal.h"
 
 #include "proof/conv_proof_generator.h"
+#include "theory/bv/bitblast/bitblast_proof_generator.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"

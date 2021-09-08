@@ -589,6 +589,8 @@ libcvc5_add_sources(
   theory/bv/abstraction.h
   theory/bv/bitblast/aig_bitblaster.cpp
   theory/bv/bitblast/aig_bitblaster.h
+  theory/bv/bitblast/bitblast_proof_generator.cpp
+  theory/bv/bitblast/bitblast_proof_generator.h
   theory/bv/bitblast/bitblast_strategies_template.h
   theory/bv/bitblast/bitblast_utils.h
   theory/bv/bitblast/bitblaster.h

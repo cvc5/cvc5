@@ -17,74 +17,12 @@
 #include <unordered_set>
 
 #include "proof/conv_proof_generator.h"
+#include "theory/bv/bitblast/bitblast_proof_generator.h"
 #include "theory/theory_model.h"
 
 namespace cvc5 {
 namespace theory {
 namespace bv {
-
-BitblastProofGenerator::BitblastProofGenerator(ProofNodeManager* pnm,
-                                               TConvProofGenerator* tcpg)
-    : d_pnm(pnm), d_tcpg(tcpg)
-{
-}
-
-std::shared_ptr<ProofNode> BitblastProofGenerator::getProofFor(Node eq)
-{
-  const auto& [t, bbt] = d_cache.at(eq);
-
-  CDProof cdp(d_pnm);
-  /* Coarse-grained bit-blast step. */
-  if (t.isNull())
-  {
-    cdp.addStep(eq, PfRule::BV_BITBLAST, {}, {eq});
-  }
-  else
-  {
-    /* Fine-grained bit-blast step for bit-blasting bit-vector atoms (bbAtom()).
-     * Bit-blasting atoms involves three steps:
-     * 1) pre-rewrite: rewrite atom
-     * 2) bit-blast rewritten atom
-     * 3) post-rewrite: rewrite bit-blasted atom
-     * bit-blasts and post-rewrites.
-     */
-
-    Node rwt = Rewriter::rewrite(t);
-
-    std::vector<Node> transSteps;
-
-    // Record pre-rewrite of bit-blasted term.
-    if (t != rwt)
-    {
-      cdp.addStep(t.eqNode(rwt), PfRule::REWRITE, {}, {t});
-      transSteps.push_back(t.eqNode(rwt));
-    }
-
-    // Record bit-blast step.
-    cdp.addProof(d_tcpg->getProofFor(rwt.eqNode(bbt)));
-    transSteps.push_back(rwt.eqNode(bbt));
-
-    // Record post-rewrite of bit-blasted term.
-    Node rwbbt = Rewriter::rewrite(bbt);
-    if (bbt != rwbbt)
-    {
-      cdp.addStep(bbt.eqNode(rwbbt), PfRule::REWRITE, {}, {bbt});
-      transSteps.push_back(bbt.eqNode(rwbbt));
-    }
-
-    if (transSteps.size() > 1)
-    {
-      cdp.addStep(eq, PfRule::TRANS, transSteps, {});
-    }
-  }
-
-  return cdp.getProofFor(eq);
-}
-
-void BitblastProofGenerator::addBitblastStep(TNode t, TNode bbt, TNode eq)
-{
-  d_cache.emplace(eq, std::make_tuple(t, bbt));
-}
 
 BBProof::BBProof(TheoryState* state, ProofNodeManager* pnm, bool fineGrained)
     : d_bb(new NodeBitblaster(state)),

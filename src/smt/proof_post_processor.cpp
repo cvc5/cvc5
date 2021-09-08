@@ -22,6 +22,7 @@
 #include "proof/proof_node_manager.h"
 #include "smt/smt_engine.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/bv/bitblast/bitblast_proof_generator.h"
 #include "theory/bv/bitblast/proof_bitblaster.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"

@@ -27,39 +27,7 @@ class TConvProofGenerator;
 namespace theory {
 namespace bv {
 
-/** Proof generator fot bit-blast proofs. */
-class BitblastProofGenerator : public ProofGenerator
-{
- public:
-  BitblastProofGenerator(ProofNodeManager* pnm, TConvProofGenerator* tcpg);
-  ~BitblastProofGenerator(){};
-
-  /**
-   * Get proof for, which expects an equality of the form t = bb(t).
-   * This returns a proof based on the term conversion proof generator utility.
-   */
-  std::shared_ptr<ProofNode> getProofFor(Node eq) override;
-
-  std::string identify() const override { return "BitblastStepProofGenerator"; }
-
-  /** Record bit-blast step. */
-  void addBitblastStep(TNode t, TNode bbt, TNode eq);
-
- private:
-  /** The associated proof node manager. */
-  ProofNodeManager* d_pnm;
-  /**
-   * The associated term conversion proof generator, which tracks the
-   * individual bit-blast steps.
-   */
-  TConvProofGenerator* d_tcpg;
-
-  /**
-   * Cache that maps equalities to information required to reconstruct the
-   * proof for given equality.
-   */
-  std::unordered_map<Node, std::tuple<Node, Node>> d_cache;
-};
+class BitblastProofGenerator;
 
 class BBProof
 {
