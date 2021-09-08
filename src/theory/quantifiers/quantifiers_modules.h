@@ -18,7 +18,6 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
 #define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
 
-#include "smt/env_obj.h"
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
@@ -46,19 +45,20 @@ namespace quantifiers {
  * used by quantifiers engine. It generates this list of modules in its
  * initialize method, which is based on the options.
  */
-class QuantifiersModules : protected EnvObj
+class QuantifiersModules
 {
   friend class ::cvc5::theory::QuantifiersEngine;
 
  public:
-  QuantifiersModules(Env& env);
+  QuantifiersModules();
   ~QuantifiersModules();
   /** initialize
    *
    * This constructs the above modules based on the current options. It adds
    * a pointer to each module it constructs to modules.
    */
-  void initialize(QuantifiersState& qs,
+  void initialize(Env& env,
+                  QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr,
