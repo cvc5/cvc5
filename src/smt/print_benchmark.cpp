@@ -21,7 +21,7 @@
 namespace cvc5 {
 namespace smt {
 
-void PrintBenchmark::printBenchmark(std::ostream& out, const std::vector<Node>& assertions)
+void PrintBenchmark::printAssertions(std::ostream& out, const std::vector<Node>& assertions)
 {
   std::unordered_set<Node> syms;
   std::unordered_set<TNode> visited;
@@ -33,6 +33,7 @@ void PrintBenchmark::printBenchmark(std::ostream& out, const std::vector<Node>& 
     expr::getTypes(a, types, typeVisited);
   }
   // print the declared types
+  std::unordered_set<TypeNode> sts;
   for (const TypeNode& st : types)
   {
     // note that we must get all "component types" of a type, so that
@@ -58,6 +59,10 @@ void PrintBenchmark::printBenchmark(std::ostream& out, const std::vector<Node>& 
         d_printer->toStreamCmdDatatypeDeclaration(out, dts);
       }
     }
+  }
+  for (const Node& a : assertions)
+  {
+    d_printer->toStreamCmdAssert(out, a);
   }
 }
 

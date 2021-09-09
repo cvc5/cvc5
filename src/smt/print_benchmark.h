@@ -35,8 +35,16 @@ namespace smt {
 class PrintBenchmark {
  public:
   PrintBenchmark(Printer * p ) : d_printer(p) {}
-  void printBenchmark(std::ostream& out, const std::vector<Node>& assertions);
+  /**
+   * Print assertions, without special handling of defined functions.
+   */
+  void printAssertions(std::ostream& out, const std::vector<Node>& assertions);
 private:
+  /** 
+   * Pointer to the printer we are using, which is responsible for printing
+   * individual commands.
+   */
+  Printer * d_printer;
 };
 
 }  // namespace smt
