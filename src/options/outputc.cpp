@@ -18,6 +18,11 @@ Cvc5ostream OutputC::operator()(const options::OutputTag tag) const
   }
 }
 
+Cvc5ostream OutputC::operator()(const std::string& tag) const
+{
+  return (*this)(options::stringToOutputTag(tag));
+}
+
 bool OutputC::isOn(const options::OutputTag tag) const
 {
   return options::outputTagHolder()[static_cast<size_t>(tag)];
