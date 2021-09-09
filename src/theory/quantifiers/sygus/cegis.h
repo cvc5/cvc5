@@ -19,6 +19,8 @@
 #define CVC5__THEORY__QUANTIFIERS__CEGIS_H
 
 #include <map>
+
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/sygus_module.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
@@ -42,7 +44,8 @@ namespace quantifiers {
 class Cegis : public SygusModule
 {
  public:
-  Cegis(QuantifiersState& qs,
+  Cegis(Env& env,
+        QuantifiersState& qs,
         QuantifiersInferenceManager& qim,
         TermDbSygus* tds,
         SynthConjecture* p);
