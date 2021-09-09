@@ -113,6 +113,7 @@ void PrintBenchmark::printAssertions(std::ostream& out,
       Assert(!itd->second.first);
       d_printer->toStreamCmdDefineFunction(out, f, itd->second.second);
     }
+    // print a recursive function definition block
     if (!recDefs.empty())
     {
       std::vector<Node> funcs;
@@ -213,8 +214,8 @@ void PrintBenchmark::getConnectedDefinitions(
   }
   else
   {
-    recDefs.push_back(n);
     // a recursively defined symbol
+    recDefs.push_back(n);
     // get the symbols in the body
     std::unordered_set<Node> symsBody;
     expr::getSymbols(it->second.second, symsBody, visited);
@@ -244,7 +245,7 @@ bool PrintBenchmark::decomposeDefinition(Node a,
   {
     isRecDef = true;
     sym = a[1][0].getOperator();
-    body = a[1][1];
+    body = nm->mkNode(LAMBDA, a[0], a[1][1]);
     return true;
   }
   return false;

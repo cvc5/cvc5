@@ -48,19 +48,40 @@ class PrintBenchmark
   void printAssertions(std::ostream& out, const std::vector<Node>& assertions);
 
  private:
-  /** print declared symbols not in */
+  /** 
+   * print declared symbols in funs but not processed; updates processed to
+   * include what was printed 
+   */
   void printDeclaredFuns(std::ostream& out,
                          const std::unordered_set<Node>& funs,
-                         std::unordered_set<Node>& alreadyPrinted);
+                         std::unordered_set<Node>& processed);
   /**
-   * Get the connected subfield types
+   * Get the connected types. This traverses subfield types of datatypes and
+   * adds to connectedTypes everything that is necessary for printing tn.
+   * 
+   * @param tn The type to traverse
+   * @param connectedTypes The types that tn depends on
+   * @param process The types we have already processed. We update this set
+   * with those added to connectedTypes.
    */
   void getConnectedSubfieldTypes(TypeNode tn,
                                  std::vector<TypeNode>& connectedTypes,
                                  std::unordered_set<TypeNode>& processed);
-
+  /**
+   * Get connected definitions for symbol v.
+   * 
+   * @param recDefs The recursive function definitions that v depends on
+   * @param ordinaryDefs The non-recursive definitions that v depends on
+   * @param syms The declared symbols that v depends on
+   * @param defMap Map from symbols to their definitions
+   * @param processedDefs The (recursive or non-recursive) definitions we have
+   * processed already. We update this with symbols we add to recDefs and
+   * ordinaryDefs.
+   * @param visited The set of terms we have already visited when searching for
+   * free symbols. This set is updated.
+   */
   void getConnectedDefinitions(
-      Node n,
+      Node v,
       std::vector<Node>& recDefs,
       std::vector<Node>& ordinaryDefs,
       std::unordered_set<Node>& syms,
@@ -68,7 +89,12 @@ class PrintBenchmark
       std::unordered_set<Node>& processedDefs,
       std::unordered_set<TNode>& visited);
   /**
-   * decompose definition
+   * Decompose definition assertion a.
+   * 
+   * @param a The definition assertion 
+   * @param isRecDef Updated to true if a is a recursive function definition (a quantified formula)
+   * @param sym Updated to the symbol that a defines
+   * @param body Update to the term that defines sym
    */
   bool decomposeDefinition(Node a, bool& isRecDef, Node& sym, Node& body);
   /**
