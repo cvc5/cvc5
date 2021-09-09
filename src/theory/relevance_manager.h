@@ -106,7 +106,8 @@ class RelevanceManager
    * if not already done so. This call is valid during a full effort check in
    * TheoryEngine, or after TheoryEngine has terminated with "sat". This method
    * sets the flag success to false if we failed to compute relevant
-   * assertions, which can occur if
+   * assertions, which occurs if the values from the SAT solver do not satisfy
+   * the assertions we are notified of. This should never happen.
    *
    * The value of this return is only valid if success was not updated to false.
    */
