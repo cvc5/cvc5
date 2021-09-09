@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_PBE_H
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_PBE_H
 
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/sygus_module.h"
 
 namespace cvc5 {
@@ -86,7 +87,8 @@ class SynthConjecture;
 class SygusPbe : public SygusModule
 {
  public:
-  SygusPbe(QuantifiersState& qs,
+  SygusPbe(Env& env,
+           QuantifiersState& qs,
            QuantifiersInferenceManager& qim,
            TermDbSygus* tds,
            SynthConjecture* p);

@@ -30,13 +30,14 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-CegisUnif::CegisUnif(QuantifiersState& qs,
+CegisUnif::CegisUnif(Env& env,
+                     QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
                      TermDbSygus* tds,
                      SynthConjecture* p)
-    : Cegis(qs, qim, tds, p),
-      d_sygus_unif(qs.getEnv(), p),
-      d_u_enum_manager(qs, qim, tds, p)
+    : Cegis(env, qs, qim, tds, p),
+      d_sygus_unif(env, p),
+      d_u_enum_manager(env, qs, qim, tds, p)
 {
 }
 
@@ -403,6 +404,7 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
 }
 
 CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
+    Env& env,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
     TermDbSygus* tds,
