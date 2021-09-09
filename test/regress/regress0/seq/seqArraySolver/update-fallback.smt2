@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --strings-seq-update
+; COMMAND-LINE: --strings-exp --strings-seq-update=lazy
 ; EXPECT: unsat
 
 (set-logic QF_SLIA)
