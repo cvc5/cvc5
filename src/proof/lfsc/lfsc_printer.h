@@ -37,6 +37,9 @@ class LfscPrintChannel;
  * The LFSC printer, which prints proof nodes in a proof that is checkable
  * by LFSC using the signature, currently located at:
  * https://github.com/CVC4/signatures/tree/master/lfsc/new.
+ *
+ * It expects to print proof nodes that have been processed by the LFSC
+ * proof post processor.
  */
 class LfscPrinter
 {
