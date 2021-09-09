@@ -71,7 +71,7 @@ class TermPoolQuantInfo
 class TermPools : public QuantifiersUtil
 {
  public:
-  TermPools(QuantifiersState& qs);
+  TermPools(Env& env, QuantifiersState& qs);
   ~TermPools() {}
   /** reset, which resets the current values of pools */
   bool reset(Theory::Effort e) override;

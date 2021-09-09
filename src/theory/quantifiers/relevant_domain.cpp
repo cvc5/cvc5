@@ -75,10 +75,11 @@ void RelevantDomain::RDomain::removeRedundantTerms(QuantifiersState& qs)
   }
 }
 
-RelevantDomain::RelevantDomain(QuantifiersState& qs,
+RelevantDomain::RelevantDomain(Env& env,
+                               QuantifiersState& qs,
                                QuantifiersRegistry& qr,
                                TermRegistry& tr)
-    : d_qs(qs), d_qreg(qr), d_treg(tr)
+    : QuantifiersUtil(env), d_qs(qs), d_qreg(qr), d_treg(tr)
 {
   d_is_computed = false;
 }

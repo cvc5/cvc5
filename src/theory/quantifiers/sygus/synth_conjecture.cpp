@@ -58,7 +58,7 @@ SynthConjecture::SynthConjecture(Env& env,
       d_treg(tr),
       d_stats(s),
       d_tds(tr.getTermDatabaseSygus()),
-      d_verify(qs.options(), qs.getLogicInfo(), d_tds),
+      d_verify(options(), qs.getLogicInfo(), d_tds),
       d_hasSolution(false),
       d_ceg_si(new CegSingleInv(env, tr, s)),
       d_templInfer(new SygusTemplateInfer),
@@ -515,7 +515,7 @@ bool SynthConjecture::doCheck()
   {
     if (printDebug)
     {
-      const Options& sopts = d_qstate.options();
+      const Options& sopts = options();
       std::ostream& out = *sopts.base.out;
       out << "(sygus-candidate ";
       Assert(d_quant[0].getNumChildren() == candidate_values.size());
@@ -801,8 +801,7 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
   Assert(d_master != nullptr);
   // we have generated a solution, print it
   // get the current output stream
-  const Options& sopts = d_qstate.options();
-  printSynthSolutionInternal(*sopts.base.out);
+  printSynthSolutionInternal(*options().base.out);
   excludeCurrentSolution(enums, values);
 }
 
