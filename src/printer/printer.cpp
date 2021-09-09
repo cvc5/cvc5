@@ -204,6 +204,13 @@ void Printer::toStreamCmdDeclareFunction(std::ostream& out,
   printUnknownCommand(out, "declare-fun");
 }
 
+void Printer::toStreamCmdDeclareFunction(std::ostream& out, const Node& v) const
+{
+  std::stringstream vs;
+  vs << v;
+  toStreamCmdDeclareFunction(out, vs.str(), v.getType());
+}
+
 void Printer::toStreamCmdDeclarePool(std::ostream& out,
                                      const std::string& id,
                                      TypeNode type,
@@ -235,6 +242,23 @@ void Printer::toStreamCmdDefineFunction(std::ostream& out,
   printUnknownCommand(out, "define-fun");
 }
 
+void Printer::toStreamCmdDefineFunction(std::ostream& out, Node v, Node lambda)
+{
+  std::stringstream vs;
+  vs << v;
+  std::vector<Node> formals;
+  Node body = lambda;
+  TypeNode rangeType = v.getType();
+  if (body.getKind()==kind::LAMBDA)
+  {
+    formals.insert(formals.end(), lambda[0].begin(), lambda[0].end());
+    body = lambda[1];
+    Assert (rangeType.isFunction());
+    rangeType = rangeType.getRangeType();
+  }
+  toStreamCmdDefineFunction(out, vs.str(), formals, rangeType, body);
+}
+
 void Printer::toStreamCmdDefineFunctionRec(
     std::ostream& out,
     const std::vector<Node>& funcs,
@@ -242,6 +266,29 @@ void Printer::toStreamCmdDefineFunctionRec(
     const std::vector<Node>& formulas) const
 {
   printUnknownCommand(out, "define-fun-rec");
+}
+
+void Printer::toStreamCmdDefineFunctionRec(std::ostream& out, const std::vector<Node>& funcs, const std::vector<Node>& lambdas)
+{
+  std::vector<std::vector<Node>> formals;
+  std::vector<Node> formulas;
+  for (const Node& l : lambdas)
+  {
+    std::vector<Node> formalsVec;
+    Node formula;
+    if (l.getKind()==kind::LAMBDA)
+    {
+      formalsVec.insert(formalsVec.end(), l[0].begin(), l[0].end());
+      formula = l[1];
+    }
+    else
+    {
+      formula = l;
+    }
+    formals.emplace_back(formalsVec);
+    formulas.emplace_back(formula);
+  }
+  toStreamCmdDefineFunctionRec(out, funcs, formals, formulas);
 }
 
 void Printer::toStreamCmdSetUserAttribute(std::ostream& out,
