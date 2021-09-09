@@ -20,6 +20,7 @@
 #include <map>
 #include <vector>
 
+#include "smt/env_obj.h"
 #include "theory/decision_strategy.h"
 #include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
@@ -49,7 +50,8 @@ namespace quantifiers {
 class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 {
  public:
-  CegisUnifEnumDecisionStrategy(QuantifiersState& qs,
+  CegisUnifEnumDecisionStrategy(Env& env,
+                                QuantifiersState& qs,
                                 QuantifiersInferenceManager& qim,
                                 TermDbSygus* tds,
                                 SynthConjecture* parent);
@@ -207,7 +209,8 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 class CegisUnif : public Cegis
 {
  public:
-  CegisUnif(QuantifiersState& qs,
+  CegisUnif(Env& env,
+            QuantifiersState& qs,
             QuantifiersInferenceManager& qim,
             TermDbSygus* tds,
             SynthConjecture* p);

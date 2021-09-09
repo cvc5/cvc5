@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_POOL_H
 #define CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_POOL_H
 
+#include "smt/env_obj.h"
 #include "theory/quantifiers/quant_module.h"
 
 namespace cvc5 {
@@ -38,7 +39,8 @@ namespace quantifiers {
 class InstStrategyPool : public QuantifiersModule
 {
  public:
-  InstStrategyPool(QuantifiersState& qs,
+  InstStrategyPool(Env& env,
+                   QuantifiersState& qs,
                    QuantifiersInferenceManager& qim,
                    QuantifiersRegistry& qr,
                    TermRegistry& tr);
