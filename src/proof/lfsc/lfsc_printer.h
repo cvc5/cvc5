@@ -26,7 +26,6 @@
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/print_expr.h"
 #include "proof/proof_node.h"
-#include "rewriter/rewrite_db.h"
 
 namespace cvc5 {
 namespace proof {
@@ -36,7 +35,7 @@ class LfscPrintChannel;
 class LfscPrinter
 {
  public:
-  LfscPrinter(LfscNodeConverter& ltp, rewriter::RewriteDb* rdb);
+  LfscPrinter(LfscNodeConverter& ltp);
   ~LfscPrinter() {}
 
   /**
@@ -106,10 +105,6 @@ class LfscPrinter
   void computeProofLetification(const ProofNode* pn,
                                 std::vector<const ProofNode*>& pletList,
                                 std::map<const ProofNode*, size_t>& pletMap);
-  /** Print DSL rule */
-  void printDslRule(std::ostream& out,
-                    rewriter::DslPfRule id,
-                    std::vector<Node>& format);
   //------------------------------ end printing proofs
   /** The term processor */
   LfscNodeConverter& d_tproc;
