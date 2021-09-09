@@ -113,7 +113,7 @@ class RelevanceManager
   const std::unordered_set<TNode>& getRelevantAssertions(bool& success);
   /** Notify lemma, for difficulty measurements */
   void notifyLemma(Node n);
-  /** Notify that tm is a (candidate) model */
+  /** Notify that m is a (candidate) model, for difficulty measurements */
   void notifyCandidateModel(TheoryModel* m);
   /**
    * Get difficulty map
