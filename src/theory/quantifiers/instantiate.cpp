@@ -28,7 +28,7 @@
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/quantifiers_preprocess.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_registry.h"
@@ -252,7 +252,7 @@ bool Instantiate::addInstantiation(Node q,
       q, d_qreg.d_vars[q], terms, id, pfArg, doVts, pfTmp.get());
   Node orig_body = body;
   // now preprocess, storing the trust node for the rewrite
-  TrustNode tpBody = QuantifiersRewriter::preprocess(body, true);
+  TrustNode tpBody = d_qreg.getPreprocess().preprocess(body, true);
   if (!tpBody.isNull())
   {
     Assert(tpBody.getKind() == TrustNodeKind::REWRITE);
