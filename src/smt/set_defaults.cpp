@@ -1161,7 +1161,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
 bool SetDefaults::safeUnsatCores(const Options& opts) const
 {
   // whether we want to force safe unsat cores, i.e., if we are in the default
-  // ASSUMPTIONS mode, since other ones are experimental
+  // ASSUMPTIONS mode or PP_ONLY, since other ones are experimental
   return opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS
          || opts.smt.unsatCoresMode == options::UnsatCoresMode::PP_ONLY;
 }
