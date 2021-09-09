@@ -203,7 +203,7 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
       // Mark the substitution and continue
       Node result = builder;
 
-      result = Rewriter::rewrite(result);
+      result = rewrite(result);
       cache[current] = result;
     }
     else

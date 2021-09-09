@@ -94,7 +94,7 @@ PreprocessingPassResult BvIntroPow2::applyInternal(
     Node res = pow2Rewrite(cur, cache);
     if (res != cur)
     {
-      res = Rewriter::rewrite(res);
+      res = rewrite(res);
       assertionsToPreprocess->replace(i, res);
     }
   }
