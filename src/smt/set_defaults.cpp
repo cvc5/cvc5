@@ -661,6 +661,12 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       opts.arith.nlExtTangentPlanesInterleave = true;
     }
   }
+  if (!opts.arith.nlRlvAssertBoundsWasSetByUser)
+  {
+    // use bound inference to determine when bounds are irrelevant only when
+    // the logic is quantifier-free
+    opts.arith.nlRlvAssertBounds = !logic.isQuantified();
+  }
 
   // set the default decision mode
   setDefaultDecisionMode(logic, opts);
@@ -707,6 +713,16 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   // set all defaults in the quantifiers theory, which includes sygus
   setDefaultsQuantifiers(logic, opts);
+
+  // shared selectors are generally not good to combine with standard
+  // quantifier techniques e.g. E-matching
+  if (opts.datatypes.dtSharedSelectorsWasSetByUser)
+  {
+    if (logic.isQuantified() && !usesSygus(opts))
+    {
+      opts.datatypes.dtSharedSelectors = false;
+    }
+  }
 
   // until bugs 371,431 are fixed
   if (!opts.prop.minisatUseElimWasSetByUser)

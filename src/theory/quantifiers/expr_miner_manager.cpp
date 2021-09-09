@@ -87,7 +87,7 @@ void ExpressionMinerManager::enableRewriteRuleSynth()
   {
     d_crd.initialize(vars, &d_sampler);
   }
-  d_crd.setExtendedRewriter(&d_ext_rew);
+  d_crd.enableExtendedRewriter();
   d_crd.setSilent(false);
 }
 

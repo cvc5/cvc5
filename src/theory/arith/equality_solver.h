@@ -21,6 +21,7 @@
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/arith_state.h"
 #include "theory/ee_setup_info.h"
 #include "theory/uf/equality_engine.h"
@@ -39,12 +40,12 @@ class InferenceManager;
  * the literals that it propagates and only explains the literals that
  * originated from this class.
  */
-class EqualitySolver
+class EqualitySolver : protected EnvObj
 {
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  EqualitySolver(ArithState& astate, InferenceManager& aim);
+  EqualitySolver(Env& env, ArithState& astate, InferenceManager& aim);
   ~EqualitySolver() {}
   //--------------------------------- initialization
   /**

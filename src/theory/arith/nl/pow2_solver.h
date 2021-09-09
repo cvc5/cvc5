@@ -20,6 +20,7 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -35,12 +36,12 @@ class NlModel;
 /** pow2 solver class
  *
  */
-class Pow2Solver
+class Pow2Solver : protected EnvObj
 {
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  Pow2Solver(InferenceManager& im, ArithState& state, NlModel& model);
+  Pow2Solver(Env& env, InferenceManager& im, ArithState& state, NlModel& model);
   ~Pow2Solver();
 
   /** init last call

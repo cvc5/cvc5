@@ -25,8 +25,8 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-DifficultyPostprocessCallback::DifficultyPostprocessCallback(Env& env)
-    : d_env(env), d_currDifficulty(0)
+DifficultyPostprocessCallback::DifficultyPostprocessCallback()
+    : d_currDifficulty(0)
 {
 }
 

@@ -275,10 +275,6 @@ TypeNode Command::grammarToTypeNode(api::Grammar* grammar)
                             : sortToTypeNode(grammar->resolve());
 }
 
-Options& Command::getOriginalOptionsFrom(api::Solver* s)
-{
-  return *s->d_originalOptions.get();
-}
 
 /* -------------------------------------------------------------------------- */
 /* class EmptyCommand                                                         */

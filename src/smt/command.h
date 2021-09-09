@@ -299,8 +299,6 @@ class CVC5_EXPORT Command
       const std::vector<api::Sort>& sorts);
   /** Helper to convert a Grammar to an internal TypeNode */
   static TypeNode grammarToTypeNode(api::Grammar* grammar);
-  /** Get original options from the solver (for ResetCommand) */
-  Options& getOriginalOptionsFrom(api::Solver* s);
 }; /* class Command */
 
 /**

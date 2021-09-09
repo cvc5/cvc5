@@ -21,7 +21,7 @@
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/quantifiers_preprocess.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/rewriter.h"
@@ -118,6 +118,7 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
 
   // process eassertions
   std::vector<Node> processed_assertions;
+  quantifiers::QuantifiersPreprocess qp(d_env);
   for (const Node& as : eassertions)
   {
     // substitution for this assertion
@@ -131,7 +132,7 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
     if (pas.getKind() == FORALL)
     {
       // preprocess the quantified formula
-      TrustNode trn = quantifiers::QuantifiersRewriter::preprocess(pas);
+      TrustNode trn = qp.preprocess(pas);
       if (!trn.isNull())
       {
         pas = trn.getNode();
