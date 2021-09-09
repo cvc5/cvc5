@@ -196,7 +196,8 @@ void PfManager::checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
                            << std::endl;
 }
 
-void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap, Assertions& as)
+void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
+                                       Assertions& as)
 {
   Trace("difficulty") << "PfManager::translateDifficultyMap" << std::endl;
   if (dmap.empty())
