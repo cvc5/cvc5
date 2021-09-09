@@ -213,10 +213,6 @@ void LfscPrinter::print(std::ostream& out,
   }
   // Print the body of the outermost scope
   printProofInternal(&lpcp, pnBody, emptyLetBind, pletMap, passumeMap);
-  Trace("lfsc-print-debug2")
-      << "node count let " << lpcp.d_nodeCount << std::endl;
-  Trace("lfsc-print-debug2")
-      << "trust count let " << lpcp.d_trustCount << std::endl;
 
   // [3] print warnings
   for (PfRule r : d_trustWarned)
@@ -315,10 +311,6 @@ void LfscPrinter::printProofLetify(
 
   // [2] print the proof body
   printProofInternal(out, pn, lbind, pletMap, passumeMap);
-  Trace("lfsc-print-debug2")
-      << "node count print " << out->d_nodeCount << std::endl;
-  Trace("lfsc-print-debug2")
-      << "trust count print " << out->d_trustCount << std::endl;
 
   // print the closing parenthesis
   out->printCloseRule(cparen);
