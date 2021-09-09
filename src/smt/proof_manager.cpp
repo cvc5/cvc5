@@ -225,7 +225,7 @@ void PfManager::getDifficultyMap(std::map<Node, Node>& dmap, Assertions& as)
   // analyze proof
   Assert(fpf->getRule() == PfRule::SAT_REFUTATION);
   const std::vector<std::shared_ptr<ProofNode>>& children = fpf->getChildren();
-  DifficultyPostprocessCallback dpc(d_env);
+  DifficultyPostprocessCallback dpc;
   ProofNodeUpdater dpnu(d_pnm.get(), dpc);
   for (const std::shared_ptr<ProofNode>& c : children)
   {
