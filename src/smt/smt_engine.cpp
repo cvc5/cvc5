@@ -1840,7 +1840,7 @@ void SmtEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   TheoryEngine* te = getTheoryEngine();
   te->getDifficultyMap(dmap);
   // then ask proof manager to translate dmap in terms of the input
-  d_pfManager->getDifficultyMap(dmap, *d_asserts);
+  d_pfManager->translateDifficultyMap(dmap, *d_asserts);
 }
 
 void SmtEngine::push()
