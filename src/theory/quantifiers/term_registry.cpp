@@ -20,6 +20,7 @@
 #include "options/smt_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
+#include "theory/quantifiers/ho_term_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
@@ -28,19 +29,23 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
+TermRegistry::TermRegistry(Env& env,
+                           QuantifiersState& qs,
+                           QuantifiersRegistry& qr)
     : d_presolve(qs.getUserContext(), true),
       d_presolveCache(qs.getUserContext()),
       d_termEnum(new TermEnumeration),
-      d_termPools(new TermPools(qs)),
-      d_termDb(new TermDb(qs, qr)),
+      d_termPools(new TermPools(env, qs)),
+      d_termDb(qs.getEnv().getLogicInfo().isHigherOrder()
+                   ? new HoTermDb(env, qs, qr)
+                   : new TermDb(env, qs, qr)),
       d_sygusTdb(nullptr),
       d_qmodel(nullptr)
 {
   if (options::sygus() || options::sygusInst())
   {
     // must be constructed here since it is required for datatypes finistInit
-    d_sygusTdb.reset(new TermDbSygus(qs));
+    d_sygusTdb.reset(new TermDbSygus(env, qs));
   }
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug")

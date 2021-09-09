@@ -41,7 +41,7 @@ using namespace cvc5::theory::bv;
 
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-int"),
-      d_intBlaster(preprocContext->getSmt()->getUserContext(),
+      d_intBlaster(preprocContext->getEnv().getUserContext(),
                    options::solveBVAsInt(),
                    options::BVAndIntegerGranularity(),
                    options::bvToIntFreshVars()){};

@@ -51,6 +51,8 @@ enum class SkolemFunId
    * i = 0, ..., n.
    */
   RE_UNFOLD_POS_COMPONENT,
+  /** Higher-order type match predicate, see HoTermDb */
+  HO_TYPE_MATCH_PRED,
 };
 /** Converts a skolem function name to a string. */
 const char* toString(SkolemFunId id);

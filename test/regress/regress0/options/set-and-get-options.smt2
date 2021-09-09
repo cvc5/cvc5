@@ -3,7 +3,7 @@
 ; EXPECT: true
 ; EXPECT: false
 ; EXPECT: 15
-; EXPECT: "SimplificationMode::NONE"
+; EXPECT: SimplificationMode::NONE
 
 (get-option :command-verbosity)
 (set-option :command-verbosity (* 1))

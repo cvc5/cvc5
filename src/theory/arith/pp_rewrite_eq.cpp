@@ -16,6 +16,7 @@
 #include "theory/arith/pp_rewrite_eq.h"
 
 #include "options/arith_options.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 
 namespace cvc5 {
@@ -44,10 +45,12 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
   // don't need to rewrite terms since rewritten is not a non-standard op
   if (proofsEnabled())
   {
+    Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARITH);
     return d_ppPfGen.mkTrustedRewrite(
         atom,
         rewritten,
-        d_pnm->mkNode(PfRule::INT_TRUST, {}, {atom.eqNode(rewritten)}));
+        d_pnm->mkNode(
+            PfRule::THEORY_INFERENCE, {}, {atom.eqNode(rewritten), t}));
   }
   return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
 }

@@ -16,6 +16,7 @@
 #include "theory/bv/int_blaster.h"
 
 #include <cmath>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -25,8 +26,9 @@
 #include "expr/skolem_manager.h"
 #include "options/option_exception.h"
 #include "options/uf_options.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
-#include "theory/bv/theory_bv_rewrite_rules_simplification.h"
+#include "util/bitvector.h"
 #include "util/iand.h"
 #include "util/rational.h"
 
@@ -240,7 +242,7 @@ Node IntBlaster::translateWithChildren(
   // The translation of the original node is determined by the kind of
   // the node.
   kind::Kind_t oldKind = original.getKind();
-  // signed comparisons were supposed to be eliminated by this point.
+  // Some BV operators were eliminated before this point.
   Assert(oldKind != kind::BITVECTOR_SDIV);
   Assert(oldKind != kind::BITVECTOR_SREM);
   Assert(oldKind != kind::BITVECTOR_SMOD);
@@ -255,23 +257,29 @@ Node IntBlaster::translateWithChildren(
   Assert(oldKind != kind::BITVECTOR_SLE);
   Assert(oldKind != kind::BITVECTOR_SGE);
   Assert(oldKind != kind::EXISTS);
-  Assert(oldKind != kind::BITVECTOR_UDIV || !(original[1].isConst() && original[1].getConst<BitVector>().getValue().isZero()));
-  // The following variable will only be used in assertions.
-  CVC5_UNUSED uint64_t originalNumChildren = original.getNumChildren();
+  // BV division by zero was eliminated before this point.
+  Assert(oldKind != kind::BITVECTOR_UDIV
+         || !(original[1].isConst()
+              && original[1].getConst<BitVector>().getValue().isZero()));
+
+  // Store the translated node
   Node returnNode;
+
+  // Translate according to the kind of the original node.
   switch (oldKind)
   {
     case kind::BITVECTOR_ADD:
     {
-      Assert(originalNumChildren == 2);
-  uint64_t bvsize = original[0].getType().getBitVectorSize();
-      returnNode = createBVAddNode(translated_children[0], translated_children[1], bvsize);
+      Assert(original.getNumChildren() == 2);
+      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      returnNode = createBVAddNode(
+          translated_children[0], translated_children[1], bvsize);
       break;
     }
     case kind::BITVECTOR_MULT:
     {
-      Assert(originalNumChildren == 2);
-  uint64_t bvsize = original[0].getType().getBitVectorSize();
+      Assert(original.getNumChildren() == 2);
+      uint64_t bvsize = original[0].getType().getBitVectorSize();
       Node mult = d_nm->mkNode(kind::MULT, translated_children);
       Node p2 = pow2(bvsize);
       returnNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, mult, p2);
@@ -280,7 +288,7 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_UDIV:
     {
       // we use an ITE for the case where the second operand is 0.
-  uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint64_t bvsize = original[0].getType().getBitVectorSize();
       Node pow2BvSize = pow2(bvsize);
       Node divNode =
           d_nm->mkNode(kind::INTS_DIVISION_TOTAL, translated_children);
@@ -305,21 +313,20 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_NOT:
     {
-      // we use a specified function to generate the node.
-  uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createBVNotNode(translated_children[0], bvsize);
       break;
     }
     case kind::BITVECTOR_NEG:
     {
-  uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createBVNegNode(translated_children[0], bvsize);
       break;
     }
     case kind::BITVECTOR_TO_NAT:
     {
       // In this case, we already translated the child to integer.
-      // So the result is the translated child.
+      // The result is simply the translated child.
       returnNode = translated_children[0];
       break;
     }
@@ -335,49 +342,41 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_OR:
     {
       Assert(translated_children.size() == 2);
-  uint64_t bvsize = original[0].getType().getBitVectorSize();
-      returnNode = createBVOrNode(translated_children[0], translated_children[1], bvsize, lemmas);
+      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      returnNode = createBVOrNode(
+          translated_children[0], translated_children[1], bvsize, lemmas);
       break;
     }
     case kind::BITVECTOR_XOR:
     {
       Assert(translated_children.size() == 2);
-  uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint64_t bvsize = original[0].getType().getBitVectorSize();
       // Based on Hacker's Delight section 2-2 equation n:
       // x xor y = x|y - x&y
-      Node bvor = createBVOrNode(translated_children[0], translated_children[1], bvsize, lemmas);
-      Node bvand = createBVAndNode(translated_children[0], translated_children[1], bvsize, lemmas);
+      Node bvor = createBVOrNode(
+          translated_children[0], translated_children[1], bvsize, lemmas);
+      Node bvand = createBVAndNode(
+          translated_children[0], translated_children[1], bvsize, lemmas);
       returnNode = createBVSubNode(bvor, bvand, bvsize);
       break;
     }
     case kind::BITVECTOR_AND:
     {
       Assert(translated_children.size() == 2);
-  uint64_t bvsize = original[0].getType().getBitVectorSize();
-      returnNode = createBVAndNode(translated_children[0], translated_children[1], bvsize, lemmas);
+      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      returnNode = createBVAndNode(
+          translated_children[0], translated_children[1], bvsize, lemmas);
       break;
     }
     case kind::BITVECTOR_SHL:
     {
-      /**
-       * a << b is a*2^b.
-       * The exponentiation is simulated by an ite.
-       * Only cases where b <= bit width are considered.
-       * Otherwise, the result is 0.
-       */
-  uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createShiftNode(translated_children, bvsize, true);
       break;
     }
     case kind::BITVECTOR_LSHR:
     {
-      /**
-       * a >> b is a div 2^b.
-       * The exponentiation is simulated by an ite.
-       * Only cases where b <= bit width are considered.
-       * Otherwise, the result is 0.
-       */
-  uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint64_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createShiftNode(translated_children, bvsize, false);
       break;
     }
@@ -397,7 +396,7 @@ Node IntBlaster::translateWithChildren(
        *
        */
       // signed_min is 100000...
-  uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint64_t bvsize = original[0].getType().getBitVectorSize();
       Node signed_min = pow2(bvsize - 1);
       Node condition =
           d_nm->mkNode(kind::LT, translated_children[0], signed_min);
@@ -420,61 +419,17 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_ZERO_EXTEND:
     {
+      // zero extension does not change the integer translation.
       returnNode = translated_children[0];
       break;
     }
     case kind::BITVECTOR_SIGN_EXTEND:
     {
-  uint64_t bvsize = original[0].getType().getBitVectorSize();
-      Node arg = translated_children[0];
-      if (arg.isConst())
-      {
-        Rational c(arg.getConst<Rational>());
-        Rational twoToKMinusOne(intpow2(bvsize - 1));
-        uint64_t amount = bv::utils::getSignExtendAmount(original);
-        /* if the msb is 0, this is like zero_extend.
-         *  msb is 0 <-> the value is less than 2^{bvsize-1}
-         */
-        if (c < twoToKMinusOne || amount == 0)
-        {
-          returnNode = arg;
-        }
-        else
-        {
-          /* otherwise, we add the integer equivalent of
-           * 11....1 `amount` times
-           */
-          Rational max_of_amount = intpow2(amount) - 1;
-          Rational mul = max_of_amount * intpow2(bvsize);
-          Rational sum = mul + c;
-          returnNode = d_nm->mkConst(sum);
-        }
-      }
-      else
-      {
-        uint64_t amount = bv::utils::getSignExtendAmount(original);
-        if (amount == 0)
-        {
-          returnNode = translated_children[0];
-        }
-        else
-        {
-          Rational twoToKMinusOne(intpow2(bvsize - 1));
-          Node minSigned = d_nm->mkConst(twoToKMinusOne);
-          /* condition checks whether the msb is 1.
-           * This holds when the integer value is smaller than
-           * 100...0, which is 2^{bvsize-1}.
-           */
-          Node condition = d_nm->mkNode(kind::LT, arg, minSigned);
-          Node thenResult = arg;
-          Node left = maxInt(amount);
-          Node mul = d_nm->mkNode(kind::MULT, left, pow2(bvsize));
-          Node sum = d_nm->mkNode(kind::PLUS, mul, arg);
-          Node elseResult = sum;
-          Node ite = d_nm->mkNode(kind::ITE, condition, thenResult, elseResult);
-          returnNode = ite;
-        }
-      }
+      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      returnNode =
+          createSignExtendNode(translated_children[0],
+                               bvsize,
+                               bv::utils::getSignExtendAmount(original));
       break;
     }
     case kind::BITVECTOR_CONCAT:
@@ -512,14 +467,10 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_SLT:
     {
-  uint64_t bvsize = original[0].getType().getBitVectorSize();
-      Trace("int-blaster-debug") << "first arg: " << original[0] << std::endl;
-      Trace("int-blaster-debug") << "translated first arg: " << translated_children[0] << std::endl;
-      Trace("int-blaster-debug") << "second arg: " << original[1] << std::endl;
-      Trace("int-blaster-debug") << "translated second arg: " << translated_children[1] << std::endl;
-      Trace("int-blaster-debug") << "first uts: " << uts(translated_children[0], bvsize) << std::endl;
-      Trace("int-blaster-debug") << "second uts: " << uts(translated_children[1], bvsize) << std::endl;
-      returnNode = d_nm->mkNode(kind::LT, uts(translated_children[0], bvsize), uts(translated_children[1], bvsize));
+      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      returnNode = d_nm->mkNode(kind::LT,
+                                uts(translated_children[0], bvsize),
+                                uts(translated_children[1], bvsize));
       break;
     }
     case kind::BITVECTOR_ULE:
@@ -547,14 +498,14 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_SLTBV:
     {
-  uint64_t bvsize = original[0].getType().getBitVectorSize();
-      returnNode = d_nm->mkNode(
-          kind::ITE,
-          d_nm->mkNode(kind::LT,
-                       uts(translated_children[0], bvsize),
-                       uts(translated_children[1], bvsize)),
-          d_one,
-          d_zero);
+      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      returnNode =
+          d_nm->mkNode(kind::ITE,
+                       d_nm->mkNode(kind::LT,
+                                    uts(translated_children[0], bvsize),
+                                    uts(translated_children[1], bvsize)),
+                       d_one,
+                       d_zero);
       break;
     }
     case kind::ITE:
@@ -579,7 +530,7 @@ Node IntBlaster::translateWithChildren(
       returnNode = d_nm->mkNode(kind::APPLY_UF, translated_children);
       // Add range constraints if necessary.
       // If the original range was a BV sort, the original application of
-      // the function Must be within the range determined by the
+      // the function must be within the range determined by the
       // bitwidth.
       if (original.getType().isBitVector())
       {
@@ -641,6 +592,58 @@ Node IntBlaster::uts(Node x, uint64_t bvsize) {
   return d_nm->mkNode(kind::MINUS, twoTimesNode, x);
 }
 
+Node IntBlaster::createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount)
+{
+      Node returnNode;
+      if (x.isConst())
+      {
+        Rational c(x.getConst<Rational>());
+        Rational twoToKMinusOne(intpow2(bvsize - 1));
+        /* if the msb is 0, this is like zero_extend.
+         *  msb is 0 <-> the value is less than 2^{bvsize-1}
+         */
+        if (c < twoToKMinusOne || amount == 0)
+        {
+          returnNode = x;
+        }
+        else
+        {
+          /* otherwise, we add the integer equivalent of
+           * 11....1 `amount` times
+           */
+          Rational max_of_amount = intpow2(amount) - 1;
+          Rational mul = max_of_amount * intpow2(bvsize);
+          Rational sum = mul + c;
+          returnNode = d_nm->mkConst(sum);
+        }
+      }
+      else
+      {
+        if (amount == 0)
+        {
+          returnNode = x;
+        }
+        else
+        {
+          Rational twoToKMinusOne(intpow2(bvsize - 1));
+          Node minSigned = d_nm->mkConst(twoToKMinusOne);
+          /* condition checks whether the msb is 1.
+           * This holds when the integer value is smaller than
+           * 100...0, which is 2^{bvsize-1}.
+           */
+          Node condition = d_nm->mkNode(kind::LT, x, minSigned);
+          Node thenResult = x;
+          Node left = maxInt(amount);
+          Node mul = d_nm->mkNode(kind::MULT, left, pow2(bvsize));
+          Node sum = d_nm->mkNode(kind::PLUS, mul, x);
+          Node elseResult = sum;
+          Node ite = d_nm->mkNode(kind::ITE, condition, thenResult, elseResult);
+          returnNode = ite;
+        }
+      }
+  return returnNode;
+}
+
 Node IntBlaster::translateNoChildren(Node original,
                                      std::vector<Node>& lemmas,
                                      std::map<Node, Node>& skolems)
@@ -650,7 +653,9 @@ Node IntBlaster::translateNoChildren(Node original,
       << std::endl;
   // The result of the translation
   Node translation;
-  // The translation is done differently for variables (bound or free)  and constants (values)
+
+  // The translation is done differently for variables (bound or free)  and
+  // constants (values)
   Assert(original.isVar() || original.isConst());
   if (original.isVar())
   {
@@ -673,7 +678,7 @@ Node IntBlaster::translateNoChildren(Node original,
         // In the former case, we must include range lemmas, while in the
         // latter we don't.
         // This is determined by the option bv-to-int-fresh-vars.
-	// The variables intCast and bvCast are used for models:
+        // The variables intCast and bvCast are used for models:
         // even if we introduce a fresh variable,
         // it is associated with intCast (which is (bv2nat original)).
         // bvCast is either ( (_ nat2bv k) original) or just original.
@@ -686,8 +691,7 @@ Node IntBlaster::translateNoChildren(Node original,
           translation = d_nm->getSkolemManager()->mkPurifySkolem(
               intCast,
               "__intblast__var",
-              "Variable introduced in intblasting for "
-                  + original.toString());
+              "Variable introduced in intblasting for " + original.toString());
           uint64_t bvsize = original.getType().getBitVectorSize();
           addRangeConstraint(translation, bvsize, lemmas);
           // put new definition of old variable in skolems
@@ -717,15 +721,15 @@ Node IntBlaster::translateNoChildren(Node original,
       // translate function symbol
       translation = translateFunctionSymbol(original, skolems);
     }
-    else {
-	// leave other variables intact
-	translation = original;
+    else
+    {
+      // leave other variables intact
+      translation = original;
     }
-
   }
   else
   {
-    // original is a const
+    // original is a constant (value)
     if (original.getKind() == kind::CONST_BITVECTOR)
     {
       // Bit-vector constants are transformed into their integer value.
@@ -747,41 +751,38 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
 {
   // construct the new function symbol.
   Node intUF;
+  // old and new types of domain and result
   TypeNode tn = bvUF.getType();
   TypeNode bvRange = tn.getRangeType();
   std::vector<TypeNode> bvDomain = tn.getArgTypes();
   std::vector<TypeNode> intDomain;
-  /**
-   * if the original range is a bit-vector sort,
-   * the new range should be an integer sort.
-   * Otherwise, we keep the original range.
-   * Similarly for the domains.
-   */
+
+  // if the original range is a bit-vector sort,
+  // the new range should be an integer sort.
+  // Otherwise, we keep the original range.
+  // Similarly for the domain sorts.
   TypeNode intRange = bvRange.isBitVector() ? d_nm->integerType() : bvRange;
   for (const TypeNode& d : bvDomain)
   {
     intDomain.push_back(d.isBitVector() ? d_nm->integerType() : d);
   }
+  
+  // create the new function symbol as a skolem
   std::ostringstream os;
   os << "__intblast_fun_" << bvUF << "_int";
   SkolemManager* sm = d_nm->getSkolemManager();
   intUF = sm->mkDummySkolem(
       os.str(), d_nm->mkFunctionType(intDomain, intRange), "bv2int function");
-  
   // add definition of old function symbol to skolems.
-  // create the application of the translated function.
-  // The application will be used inside a lambda
-  // expression.
-  
+
   // formal arguments of the lambda expression.
   std::vector<Node> args;
 
   // arguments to be passed in the application.
-  // They will be casted versions of the original BV
-  // arguments, with the function symbol itself
-  // on front. Non-BV arguments will stay intact.
   std::vector<Node> achildren;
   achildren.push_back(intUF);
+
+  // iterate the arguments, cast BV arguments to integers
   int i = 0;
   for (const TypeNode& d : bvDomain)
   {
@@ -797,6 +798,8 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
     achildren.push_back(castedArg);
     i++;
   }
+
+  // create the lambda expression, and add it to skolems
   Node app = d_nm->mkNode(kind::APPLY_UF, achildren);
   Node body = castToType(app, bvRange);
   Node bvlist = d_nm->mkNode(kind::BOUND_VAR_LIST, args);
@@ -833,10 +836,12 @@ Node IntBlaster::castToType(Node n, TypeNode tn)
     return n;
   }
   // We only case int to bv or vice verse.
-  Trace("int-blaster") << "castToType from " << n.getType() << " to " << tn
-                       << std::endl;
   Assert((n.getType().isBitVector() && tn.isInteger())
          || (n.getType().isInteger() && tn.isBitVector()));
+  Trace("int-blaster") << "castToType from " << n.getType() << " to " << tn
+                       << std::endl;
+
+  // casting integers to bit-vectors
   if (n.getType().isInteger())
   {
     Assert(tn.isBitVector());
@@ -844,6 +849,8 @@ Node IntBlaster::castToType(Node n, TypeNode tn)
     Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
     return d_nm->mkNode(intToBVOp, n);
   }
+
+  // casting bit-vectors to ingers
   Assert(n.getType().isBitVector());
   Assert(tn.isInteger());
   return d_nm->mkNode(kind::BITVECTOR_TO_NAT, n);

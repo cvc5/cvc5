@@ -16,6 +16,7 @@
 
 #include "theory/smt_engine_subsolver.h"
 
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/rewriter.h"
@@ -42,30 +43,34 @@ Result quickCheck(Node& query)
 }
 
 void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
-                         Options* opts,
+                         const Options& opts,
+                         const LogicInfo& logicInfo,
                          bool needsTimeout,
                          unsigned long timeout)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SmtEngine* smtCurr = smt::currentSmtEngine();
-  if (opts == nullptr)
-  {
-    // must copy the options
-    opts = &smtCurr->getOptions();
-  }
-  smte.reset(new SmtEngine(nm, opts));
+  smte.reset(new SmtEngine(nm, &opts));
   smte->setIsInternalSubsolver();
-  smte->setLogic(smtCurr->getLogicInfo());
+  smte->setLogic(logicInfo);
   // set the options
   if (needsTimeout)
   {
     smte->setTimeLimit(timeout);
   }
 }
+void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
+                         const Env& env,
+                         bool needsTimeout,
+                         unsigned long timeout)
+{
+  initializeSubsolver(
+      smte, env.getOptions(), env.getLogicInfo(), needsTimeout, timeout);
+}
 
 Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
                           Node query,
-                          Options* opts,
+                          const Options& opts,
+                          const LogicInfo& logicInfo,
                           bool needsTimeout,
                           unsigned long timeout)
 {
@@ -75,26 +80,28 @@ Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
   {
     return r;
   }
-  initializeSubsolver(smte, opts, needsTimeout, timeout);
+  initializeSubsolver(smte, opts, logicInfo, needsTimeout, timeout);
   smte->assertFormula(query);
   return smte->checkSat();
 }
 
 Result checkWithSubsolver(Node query,
-                          Options* opts,
+                          const Options& opts,
+                          const LogicInfo& logicInfo,
                           bool needsTimeout,
                           unsigned long timeout)
 {
   std::vector<Node> vars;
   std::vector<Node> modelVals;
   return checkWithSubsolver(
-      query, vars, modelVals, opts, needsTimeout, timeout);
+      query, vars, modelVals, opts, logicInfo, needsTimeout, timeout);
 }
 
 Result checkWithSubsolver(Node query,
                           const std::vector<Node>& vars,
                           std::vector<Node>& modelVals,
-                          Options* opts,
+                          const Options& opts,
+                          const LogicInfo& logicInfo,
                           bool needsTimeout,
                           unsigned long timeout)
 {
@@ -116,7 +123,7 @@ Result checkWithSubsolver(Node query,
     return r;
   }
   std::unique_ptr<SmtEngine> smte;
-  initializeSubsolver(smte, opts, needsTimeout, timeout);
+  initializeSubsolver(smte, opts, logicInfo, needsTimeout, timeout);
   smte->assertFormula(query);
   r = smte->checkSat();
   if (r.asSatisfiabilityResult().isSat() == Result::SAT)

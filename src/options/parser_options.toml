@@ -1,6 +1,5 @@
 id     = "PARSER"
 name   = "Parser"
-public = true
 
 [[option]]
   name       = "strictParsing"

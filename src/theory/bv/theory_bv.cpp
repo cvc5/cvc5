@@ -38,9 +38,9 @@ TheoryBV::TheoryBV(Env& env,
       d_internal(nullptr),
       d_rewriter(),
       d_state(env, valuation),
-      d_im(*this, d_state, nullptr, "theory::bv::"),
+      d_im(env, *this, d_state, nullptr, "theory::bv::"),
       d_notify(d_im),
-      d_invalidateModelCache(getSatContext(), true),
+      d_invalidateModelCache(context(), true),
       d_stats("theory::bv::")
 {
   switch (options::bvSolver())
@@ -49,8 +49,8 @@ TheoryBV::TheoryBV(Env& env,
       d_internal.reset(new BVSolverBitblast(&d_state, d_im, d_pnm));
       break;
     case options::BVSolver::LAYERED:
-      d_internal.reset(new BVSolverLayered(
-          *this, getSatContext(), getUserContext(), d_pnm, name));
+      d_internal.reset(
+          new BVSolverLayered(*this, context(), userContext(), d_pnm, name));
       break;
 
     default:
