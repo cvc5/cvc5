@@ -63,16 +63,16 @@ Node buildConjunct(const std::vector<TNode> &assumptions) {
 TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_FP, env, out, valuation),
       d_notification(*this),
-      d_registeredTerms(getUserContext()),
-      d_conv(new FpConverter(getUserContext())),
+      d_registeredTerms(userContext()),
+      d_conv(new FpConverter(userContext())),
       d_expansionRequested(false),
-      d_realToFloatMap(getUserContext()),
-      d_floatToRealMap(getUserContext()),
-      d_abstractionMap(getUserContext()),
-      d_rewriter(getUserContext()),
+      d_realToFloatMap(userContext()),
+      d_floatToRealMap(userContext()),
+      d_abstractionMap(userContext()),
+      d_rewriter(userContext()),
       d_state(env, valuation),
-      d_im(*this, d_state, d_pnm, "theory::fp::", false),
-      d_wbFactsCache(getUserContext())
+      d_im(env, *this, d_state, d_pnm, "theory::fp::", false),
+      d_wbFactsCache(userContext())
 {
   // indicate we are using the default theory state and inference manager
   d_theoryState = &d_state;

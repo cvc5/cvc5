@@ -1,6 +1,5 @@
 id     = "BASE"
 name   = "Base"
-public = true
 
 [[option]]
   name       = "in"
@@ -55,6 +54,7 @@ public = true
 
 [[option]]
   name       = "languageHelp"
+  long       = "language-help"
   category   = "undocumented"
   type       = "bool"
 

@@ -16,13 +16,17 @@
 #include "theory/uf/theory_uf_rewriter.h"
 
 #include "expr/node_algorithm.h"
-#include "options/uf_options.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 
 namespace cvc5 {
 namespace theory {
 namespace uf {
+
+TheoryUfRewriter::TheoryUfRewriter(bool isHigherOrder)
+    : d_isHigherOrder(isHigherOrder)
+{
+}
 
 RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
 {
@@ -56,7 +60,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       Node ret;
       // build capture-avoiding substitution since in HOL shadowing may have
       // been introduced
-      if (options::ufHo())
+      if (d_isHigherOrder)
       {
         std::vector<Node> vars;
         std::vector<Node> subs;
@@ -119,7 +123,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
 
       // build capture-avoiding substitution since in HOL shadowing may have
       // been introduced
-      if (options::ufHo())
+      if (d_isHigherOrder)
       {
         Node arg = Rewriter::rewrite(node[1]);
         Node var = node[0][0][0];

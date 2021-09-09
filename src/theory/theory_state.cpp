@@ -21,23 +21,17 @@ namespace cvc5 {
 namespace theory {
 
 TheoryState::TheoryState(Env& env, Valuation val)
-    : d_env(env),
-      d_valuation(val),
-      d_ee(nullptr),
-      d_conflict(d_env.getContext(), false)
+    : EnvObj(env), d_valuation(val), d_ee(nullptr), d_conflict(context(), false)
 {
 }
 
 void TheoryState::setEqualityEngine(eq::EqualityEngine* ee) { d_ee = ee; }
 
-context::Context* TheoryState::getSatContext() const
-{
-  return d_env.getContext();
-}
+context::Context* TheoryState::getSatContext() const { return context(); }
 
 context::UserContext* TheoryState::getUserContext() const
 {
-  return d_env.getUserContext();
+  return userContext();
 }
 
 bool TheoryState::hasTerm(TNode a) const

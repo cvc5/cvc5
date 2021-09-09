@@ -305,11 +305,19 @@ void SatProofManager::processRedundantLit(
     printClause(reason);
     Trace("sat-proof") << "\n";
   }
-  // check if redundant literals in the reason. The first literal is the one we
-  // will be eliminating, so we check the others
+  // Since processRedundantLit calls can reallocate memory in the SAT solver due
+  // to explaining stuff, we directly get the literals and the clause node here
+  std::vector<SatLiteral> toProcess;
   for (unsigned i = 1, size = reason.size(); i < size; ++i)
   {
-    SatLiteral satLit = MinisatSatSolver::toSatLiteral(reason[i]);
+    toProcess.push_back(MinisatSatSolver::toSatLiteral(reason[i]));
+  }
+  Node clauseNode = getClauseNode(reason);
+    // check if redundant literals in the reason. The first literal is the one we
+  // will be eliminating, so we check the others
+  for (unsigned i = 0, size = toProcess.size(); i < size; ++i)
+  {
+    SatLiteral satLit = toProcess[i];
     // if literal does not occur in the conclusion we process it as well
     if (!conclusionLits.count(satLit))
     {
@@ -325,7 +333,6 @@ void SatProofManager::processRedundantLit(
   // reason, not only with ~lit, since the learned clause is built under the
   // assumption that the redundant literal is removed via the resolution with
   // the explanation of its negation
-  Node clauseNode = getClauseNode(reason);
   Node litNode = d_cnfStream->getNodeCache()[lit];
   bool negated = lit.isNegated();
   Assert(!negated || litNode.getKind() == kind::NOT);
@@ -678,7 +685,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     }
   } while (expanded);
   // now we should be able to close it
-  if (options::proofEagerChecking())
+  if (options::proofCheck() == options::ProofCheckMode::EAGER)
   {
     std::vector<Node> assumptionsVec;
     for (const Node& a : d_assumptions)

@@ -23,6 +23,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
+QuantRelevance::QuantRelevance(Env& env) : QuantifiersUtil(env) {}
+
 void QuantRelevance::registerQuantifier(Node f)
 {
   // compute symbols in f

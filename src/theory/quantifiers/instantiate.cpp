@@ -28,7 +28,7 @@
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/quantifiers_preprocess.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_registry.h"
@@ -42,12 +42,14 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-Instantiate::Instantiate(QuantifiersState& qs,
+Instantiate::Instantiate(Env& env,
+                         QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr,
                          ProofNodeManager* pnm)
-    : d_qstate(qs),
+    : QuantifiersUtil(env),
+      d_qstate(qs),
       d_qim(qim),
       d_qreg(qr),
       d_treg(tr),
@@ -252,7 +254,7 @@ bool Instantiate::addInstantiation(Node q,
       q, d_qreg.d_vars[q], terms, id, pfArg, doVts, pfTmp.get());
   Node orig_body = body;
   // now preprocess, storing the trust node for the rewrite
-  TrustNode tpBody = QuantifiersRewriter::preprocess(body, true);
+  TrustNode tpBody = d_qreg.getPreprocess().preprocess(body, true);
   if (!tpBody.isNull())
   {
     Assert(tpBody.getKind() == TrustNodeKind::REWRITE);
@@ -589,19 +591,13 @@ bool Instantiate::recordInstantiationInternal(Node q, std::vector<Node>& terms)
   {
     Trace("inst-add-debug")
         << "Adding into context-dependent inst trie" << std::endl;
-    CDInstMatchTrie* imt;
-    std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
-    if (it != d_c_inst_match_trie.end())
+    const auto res = d_c_inst_match_trie.insert({q, nullptr});
+    if (res.second)
     {
-      imt = it->second;
-    }
-    else
-    {
-      imt = new CDInstMatchTrie(d_qstate.getUserContext());
-      d_c_inst_match_trie[q] = imt;
+      res.first->second = new CDInstMatchTrie(d_qstate.getUserContext());
     }
     d_c_inst_match_trie_dom.insert(q);
-    return imt->addInstMatch(d_qstate, q, terms);
+    return res.first->second->addInstMatch(d_qstate, q, terms);
   }
   Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
   return d_inst_match_trie[q].addInstMatch(d_qstate, q, terms);

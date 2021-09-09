@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/sygus_enumerator_basic.h"
 
 #include "options/datatypes_options.h"
+#include "theory/rewriter.h"
 
 using namespace cvc5::kind;
 using namespace std;
@@ -40,7 +41,7 @@ bool EnumValGeneratorBasic::increment()
   if (options::sygusSymBreakDynamic())
   {
     Node nextb = d_tds->sygusToBuiltin(d_currTerm);
-    nextb = d_tds->getExtRewriter()->extendedRewrite(nextb);
+    nextb = Rewriter::callExtendedRewrite(nextb);
     if (d_cache.find(nextb) == d_cache.end())
     {
       d_cache.insert(nextb);
