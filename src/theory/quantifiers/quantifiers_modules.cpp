@@ -62,7 +62,7 @@ void QuantifiersModules::initialize(Env& env,
   }
   if (!options::finiteModelFind() || options::fmfInstEngine())
   {
-    d_inst_engine.reset(new InstantiationEngine(qs, qim, qr, tr));
+    d_inst_engine.reset(new InstantiationEngine(env, qs, qim, qr, tr));
     modules.push_back(d_inst_engine.get());
   }
   if (options::cegqi())
@@ -101,7 +101,7 @@ void QuantifiersModules::initialize(Env& env,
   // full saturation : instantiate from relevant domain, then arbitrary terms
   if (options::fullSaturateQuant() || options::fullSaturateInterleave())
   {
-    d_rel_dom.reset(new RelevantDomain(qs, qr, tr));
+    d_rel_dom.reset(new RelevantDomain(env, qs, qr, tr));
     d_fs.reset(new InstStrategyEnum(qs, qim, qr, tr, d_rel_dom.get()));
     modules.push_back(d_fs.get());
   }

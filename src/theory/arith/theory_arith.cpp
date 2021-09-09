@@ -42,12 +42,12 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_astate(env, valuation),
       d_im(env, *this, d_astate, d_pnm),
       d_ppre(context(), d_pnm),
-      d_bab(d_astate, d_im, d_ppre, d_pnm),
+      d_bab(env, d_astate, d_im, d_ppre, d_pnm),
       d_eqSolver(nullptr),
       d_internal(new TheoryArithPrivate(*this, env, d_bab)),
       d_nonlinearExtension(nullptr),
       d_opElim(d_pnm, logicInfo()),
-      d_arithPreproc(d_astate, d_im, d_pnm, d_opElim),
+      d_arithPreproc(env, d_astate, d_im, d_pnm, d_opElim),
       d_rewriter(d_opElim)
 {
   // currently a cyclic dependency to TheoryArithPrivate
@@ -58,7 +58,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
 
   if (options().arith.arithEqSolver)
   {
-    d_eqSolver.reset(new EqualitySolver(d_astate, d_im));
+    d_eqSolver.reset(new EqualitySolver(env, d_astate, d_im));
   }
 }
 

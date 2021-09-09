@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file lfsc_print_channel.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for printing Lfsc proof nodes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Print channels for LFSC proofs.
+ */
 
 #include "cvc5_private.h"
 
@@ -29,24 +30,40 @@
 namespace cvc5 {
 namespace proof {
 
+/**
+ * LFSC proofs are printed in two phases: the first phase computes the
+ * letification of terms in the proof as well as other information that is
+ * required for printing the preamble of the proof. The second phase prints the
+ * proof to an output stream. This is the base class for these two phases.
+ */
 class LfscPrintChannel
 {
  public:
-  LfscPrintChannel() : d_nodeCount(0), d_trustCount(0) {}
+  LfscPrintChannel() {}
   virtual ~LfscPrintChannel() {}
+  /** Print node n */
   virtual void printNode(TNode n) {}
+  /** Print type node n */
   virtual void printTypeNode(TypeNode tn) {}
+  /** Print a hole */
   virtual void printHole() {}
+  /**
+   * Print an application of the trusting the result res, whose source is the
+   * given proof rule.
+   */
   virtual void printTrust(TNode res, PfRule src) {}
+  /** Print the opening of the rule of proof rule pn, e.g. "(and_elim ". */
   virtual void printOpenRule(const ProofNode* pn) {}
+  /** Print the opening of LFSC rule lr, e.g. "(cong " */
   virtual void printOpenLfscRule(LfscRule lr) {}
+  /** Print the closing of # nparen proof rules */
   virtual void printCloseRule(size_t nparen = 1) {}
+  /** Print a letified proof with the given identifier */
   virtual void printProofId(size_t id) {}
+  /** Print a proof assumption with the given identifier */
   virtual void printAssumeId(size_t id) {}
+  /** Print an end line */
   virtual void printEndLine() {}
-  /** temproary debug */
-  size_t d_nodeCount;
-  size_t d_trustCount;
 };
 
 /** Prints the proof to output stream d_out */
