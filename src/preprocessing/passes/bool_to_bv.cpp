@@ -50,7 +50,7 @@ PreprocessingPassResult BoolToBV::applyInternal(
     for (size_t i = 0; i < size; ++i)
     {
       Node newAssertion = lowerAssertion((*assertionsToPreprocess)[i], true);
-      assertionsToPreprocess->replace(i, Rewriter::rewrite(newAssertion));
+      assertionsToPreprocess->replace(i, rewrite(newAssertion));
     }
   }
   else
@@ -59,7 +59,7 @@ PreprocessingPassResult BoolToBV::applyInternal(
     for (size_t i = 0; i < size; ++i)
     {
       assertionsToPreprocess->replace(
-          i, Rewriter::rewrite(lowerIte((*assertionsToPreprocess)[i])));
+          i, rewrite(lowerIte((*assertionsToPreprocess)[i])));
     }
   }
 

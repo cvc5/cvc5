@@ -49,7 +49,7 @@ PreprocessingPassResult StringsEagerPp::applyInternal(
     }
     if (prev != rew)
     {
-      assertionsToPreprocess->replace(i, theory::Rewriter::rewrite(rew));
+      assertionsToPreprocess->replace(i, rewrite(rew));
     }
   }
 

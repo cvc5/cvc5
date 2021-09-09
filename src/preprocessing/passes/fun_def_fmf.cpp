@@ -153,7 +153,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
             << "FMF fun def: FUNCTION : rewrite " << assertions[i] << std::endl;
         Trace("fmf-fun-def") << "  to " << std::endl;
         Node new_q = nm->mkNode(FORALL, bvl, bd);
-        new_q = Rewriter::rewrite(new_q);
+        new_q = rewrite(new_q);
         assertionsToPreprocess->replace(i, new_q);
         Trace("fmf-fun-def") << "  " << assertions[i] << std::endl;
         fd_assertions.push_back(i);
@@ -187,7 +187,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
     Assert(constraints.empty());
     if (n != assertions[i])
     {
-      n = Rewriter::rewrite(n);
+      n = rewrite(n);
       Trace("fmf-fun-def-rewrite")
           << "FMF fun def : rewrite " << assertions[i] << std::endl;
       Trace("fmf-fun-def-rewrite") << "  to " << std::endl;
@@ -232,7 +232,7 @@ Node FunDefFmf::simplifyFormula(
     for (unsigned i = 0; i < constraints.size(); i++)
     {
       constraints[i] = nm->mkNode(FORALL, n[0], constraints[i]);
-      constraints[i] = Rewriter::rewrite(constraints[i]);
+      constraints[i] = rewrite(constraints[i]);
     }
     if (c != n[1])
     {
@@ -365,7 +365,7 @@ Node FunDefFmf::simplifyFormula(
     if (constraints.size() > 1)
     {
       cons = nm->mkNode(AND, constraints);
-      cons = Rewriter::rewrite(cons);
+      cons = rewrite(cons);
       constraints.clear();
       constraints.push_back(cons);
     }
