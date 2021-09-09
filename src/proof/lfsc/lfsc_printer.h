@@ -73,7 +73,7 @@ class LfscPrinter
   /**
    * Print node b to stream in the expected format of LFSC, with let binding,
    * where n has been processed by the LFSC node converter.
-   * 
+   *
    * @param out The output stream
    * @param n The node to print
    * @param lbind The let binding to consider
@@ -112,7 +112,7 @@ class LfscPrinter
   /**
    * Get the arguments for the proof node application. This adds the arguments
    * of the given proof to the vector pargs.
-   * 
+   *
    * @return false if the proof cannot be printed in LFSC format.
    */
   bool computeProofArgs(const ProofNode* pn, std::vector<PExpr>& pargs);

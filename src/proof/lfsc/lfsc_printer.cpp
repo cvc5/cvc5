@@ -728,6 +728,5 @@ void LfscPrinter::printType(std::ostream& out, TypeNode tn)
   LfscPrintChannelOut::printTypeNodeInternal(out, tni);
 }
 
-
 }  // namespace proof
 }  // namespace cvc5
