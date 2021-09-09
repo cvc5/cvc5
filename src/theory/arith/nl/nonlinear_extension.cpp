@@ -58,8 +58,8 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_tangentPlaneSlv(&d_extState),
       d_cadSlv(d_astate.getEnv(), d_im, d_model),
       d_icpSlv(d_im),
-      d_iandSlv(d_im, state, d_model),
-      d_pow2Slv(d_im, state, d_model)
+      d_iandSlv(env, d_im, state, d_model),
+      d_pow2Slv(env, d_im, state, d_model)
 {
   d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
   d_extTheory.addFunctionKind(kind::EXPONENTIAL);
@@ -140,7 +140,8 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
       // not relevant, skip
       continue;
     }
-    if (bounds.add(lit, false))
+    // if using the bound inference utility
+    if (options().arith.nlRlvAssertBounds && bounds.add(lit, false))
     {
       continue;
     }

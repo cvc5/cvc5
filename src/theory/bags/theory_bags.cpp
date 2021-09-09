@@ -35,7 +35,7 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_notify(*this, d_im),
       d_statistics(),
       d_rewriter(&d_statistics.d_rewrites),
-      d_termReg(d_state, d_im),
+      d_termReg(env, d_state, d_im),
       d_solver(d_state, d_im, d_termReg)
 {
   // use the official theory state and inference manager objects

@@ -41,7 +41,8 @@ QuantifiersModules::QuantifiersModules()
 {
 }
 QuantifiersModules::~QuantifiersModules() {}
-void QuantifiersModules::initialize(QuantifiersState& qs,
+void QuantifiersModules::initialize(Env& env,
+                                    QuantifiersState& qs,
                                     QuantifiersInferenceManager& qim,
                                     QuantifiersRegistry& qr,
                                     TermRegistry& tr,
@@ -61,7 +62,7 @@ void QuantifiersModules::initialize(QuantifiersState& qs,
   }
   if (!options::finiteModelFind() || options::fmfInstEngine())
   {
-    d_inst_engine.reset(new InstantiationEngine(qs, qim, qr, tr));
+    d_inst_engine.reset(new InstantiationEngine(env, qs, qim, qr, tr));
     modules.push_back(d_inst_engine.get());
   }
   if (options::cegqi())
@@ -72,7 +73,7 @@ void QuantifiersModules::initialize(QuantifiersState& qs,
   }
   if (options::sygus())
   {
-    d_synth_e.reset(new SynthEngine(qs, qim, qr, tr));
+    d_synth_e.reset(new SynthEngine(env, qs, qim, qr, tr));
     modules.push_back(d_synth_e.get());
   }
   // bounded integer instantiation is used when the user requests it via
@@ -100,7 +101,7 @@ void QuantifiersModules::initialize(QuantifiersState& qs,
   // full saturation : instantiate from relevant domain, then arbitrary terms
   if (options::fullSaturateQuant() || options::fullSaturateInterleave())
   {
-    d_rel_dom.reset(new RelevantDomain(qs, qr, tr));
+    d_rel_dom.reset(new RelevantDomain(env, qs, qr, tr));
     d_fs.reset(new InstStrategyEnum(qs, qim, qr, tr, d_rel_dom.get()));
     modules.push_back(d_fs.get());
   }

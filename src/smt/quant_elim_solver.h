@@ -20,10 +20,9 @@
 
 #include "expr/node.h"
 #include "smt/assertions.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
-class Env;
-
 namespace smt {
 
 class SmtSolver;
@@ -36,7 +35,7 @@ class SmtSolver;
  * quantifier instantiations used for unsat which are in turn used for
  * constructing the solution for the quantifier elimination query.
  */
-class QuantElimSolver
+class QuantElimSolver : protected EnvObj
 {
  public:
   QuantElimSolver(Env& env, SmtSolver& sms);
@@ -97,8 +96,6 @@ class QuantElimSolver
                                 bool isInternalSubsolver);
 
  private:
-  /** Reference to the env */
-  Env& d_env;
   /** The SMT solver, which is used during doQuantifierElimination. */
   SmtSolver& d_smtSolver;
 };
