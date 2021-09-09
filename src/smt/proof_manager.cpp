@@ -227,6 +227,9 @@ void PfManager::getDifficultyMap(std::map<Node, Node>& dmap, Assertions& as)
   const std::vector<std::shared_ptr<ProofNode>>& children = fpf->getChildren();
   DifficultyPostprocessCallback dpc;
   ProofNodeUpdater dpnu(d_pnm.get(), dpc);
+  // For each child of SAT_REFUTATION, we increment the difficulty on all
+  // "source" free assumptions (see DifficultyPostprocessCallback) by the
+  // difficulty of the preprocessed assertion.
   for (const std::shared_ptr<ProofNode>& c : children)
   {
     Node res = c->getResult();
