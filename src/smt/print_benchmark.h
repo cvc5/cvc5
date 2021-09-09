@@ -48,9 +48,9 @@ class PrintBenchmark
   void printAssertions(std::ostream& out, const std::vector<Node>& assertions);
 
  private:
-  /** 
+  /**
    * print declared symbols in funs but not processed; updates processed to
-   * include what was printed 
+   * include what was printed
    */
   void printDeclaredFuns(std::ostream& out,
                          const std::unordered_set<Node>& funs,
@@ -58,7 +58,7 @@ class PrintBenchmark
   /**
    * Get the connected types. This traverses subfield types of datatypes and
    * adds to connectedTypes everything that is necessary for printing tn.
-   * 
+   *
    * @param tn The type to traverse
    * @param connectedTypes The types that tn depends on
    * @param process The types we have already processed. We update this set
@@ -69,7 +69,7 @@ class PrintBenchmark
                                  std::unordered_set<TypeNode>& processed);
   /**
    * Get connected definitions for symbol v.
-   * 
+   *
    * @param recDefs The recursive function definitions that v depends on
    * @param ordinaryDefs The non-recursive definitions that v depends on
    * @param syms The declared symbols that v depends on
@@ -90,9 +90,10 @@ class PrintBenchmark
       std::unordered_set<TNode>& visited);
   /**
    * Decompose definition assertion a.
-   * 
-   * @param a The definition assertion 
-   * @param isRecDef Updated to true if a is a recursive function definition (a quantified formula)
+   *
+   * @param a The definition assertion
+   * @param isRecDef Updated to true if a is a recursive function definition (a
+   * quantified formula)
    * @param sym Updated to the symbol that a defines
    * @param body Update to the term that defines sym
    */
