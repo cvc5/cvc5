@@ -71,7 +71,7 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
       d_abstractionMap(getUserContext()),
       d_rewriter(getUserContext()),
       d_state(env, valuation),
-      d_im(*this, d_state, d_pnm, "theory::fp::", false),
+      d_im(*this, d_state, d_pnm, "theory::fp::", true),
       d_wbFactsCache(getUserContext())
 {
   // indicate we are using the default theory state and inference manager
