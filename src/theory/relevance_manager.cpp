@@ -25,9 +25,9 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 
-RelevanceManager::RelevanceManager(Env& env, Valuation val)
+RelevanceManager::RelevanceManager(context::UserContext* userContext, Valuation val)
     : d_val(val),
-      d_input(env.getUserContext()),
+      d_input(userContext),
       d_computed(false),
       d_success(false),
       d_trackRSetExp(false),
@@ -35,7 +35,7 @@ RelevanceManager::RelevanceManager(Env& env, Valuation val)
 {
   if (options::produceDifficulty())
   {
-    d_dman.reset(new DifficultyManager(env.getUserContext(), val));
+    d_dman.reset(new DifficultyManager(userContext, val));
     d_trackRSetExp = true;
     d_miniscopeTopLevel = false;
   }

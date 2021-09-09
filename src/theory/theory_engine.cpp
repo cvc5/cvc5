@@ -157,7 +157,7 @@ void TheoryEngine::finishInit()
   // create the relevance filter if any option requires it
   if (options::relevanceFilter() || options::produceDifficulty())
   {
-    d_relManager.reset(new RelevanceManager(d_env, theory::Valuation(this)));
+    d_relManager.reset(new RelevanceManager(userContext(), Valuation(this)));
   }
 
   // initialize the quantifiers engine
