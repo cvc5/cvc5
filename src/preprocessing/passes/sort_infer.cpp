@@ -52,7 +52,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
       Node next = si->simplify(prev, model_replace_f, visited);
       if (next != prev)
       {
-        next = theory::Rewriter::rewrite(next);
+        next = rewrite(next);
         assertionsToPreprocess->replace(i, next);
         Trace("sort-infer-preprocess")
             << "*** Preprocess SortInferencePass " << prev << endl;
@@ -64,7 +64,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
     si->getNewAssertions(newAsserts);
     for (const Node& na : newAsserts)
     {
-      Node nar = theory::Rewriter::rewrite(na);
+      Node nar = rewrite(na);
       Trace("sort-infer-preprocess")
           << "*** Preprocess SortInferencePass : new constraint " << nar
           << endl;
