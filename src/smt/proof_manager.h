@@ -96,6 +96,22 @@ class PfManager : protected EnvObj
   void checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as);
 
   /**
+   * Translated difficulty map. This takes a mapping dmap from preprocessed
+   * assertions to values estimating their difficulty. It translates this
+   * map so that dmap contains a mapping from *input* assertions to values
+   * estimating their difficulty.
+   *
+   * It does this translation by constructing a proof of preprocessing for all
+   * preprocessed assertions marked as having a difficulty, traversing those
+   * proofs, and conditionally incrementing the difficulty of the input
+   * assertion on which they depend.
+   *
+   * @param dmap Map estimating the difficulty of preprocessed assertions
+   * @param as The input assertions
+   */
+  void translateDifficultyMap(std::map<Node, Node>& dmap, Assertions& as);
+
+  /**
    * Get final proof.
    *
    * The argument pfn is the proof for false in the current context.
