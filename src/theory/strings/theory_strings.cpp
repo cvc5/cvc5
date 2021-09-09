@@ -456,7 +456,7 @@ bool TheoryStrings::collectModelInfoType(
           Trace("strings-model") << "-> assign via str.code: " << assignedValue << std::endl;
         }
       }
-      else if (options::stringSeqUpdate())
+      else if (options::stringSeqUpdate() != options::StringSeqUpdateMode::NONE)
       {
         // determine skeleton based on the write model, if it exists
         const std::map< Node, Node >& writeModel = d_susolver.getWriteModel(eqc);
@@ -1160,6 +1160,7 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
     case CHECK_LENGTH_EQC: d_csolver.checkLengthsEqc(); break;
     case CHECK_SEQUENCES_ARRAY_CONCAT: d_susolver.checkArrayConcat(); break;
     case CHECK_SEQUENCES_ARRAY: d_susolver.checkArray(); break;
+    case CHECK_SEQUENCES_ARRAY_EAGER: d_susolver.checkArrayEager(); break;
     case CHECK_REGISTER_TERMS_NF: checkRegisterTermsNormalForms(); break;
     case CHECK_EXTF_REDUCTION: d_esolver.checkExtfReductions(effort); break;
     case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(); break;

@@ -57,6 +57,7 @@ class SequencesUpdateSolver
    * Perform reasoning about seq.nth and seq.update operations.
    */
   void checkArray();
+  void checkArrayEager();
 
   /** is handled update */
   static bool isHandledUpdate(Node n);

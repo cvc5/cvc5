@@ -155,7 +155,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     // never necessary to reduce seq.unit
     return false;
   }
-  else if (options::stringSeqUpdate())
+  else if (options::stringSeqUpdate() != options::StringSeqUpdateMode::NONE)
   {
     if (k==SEQ_NTH)
     {

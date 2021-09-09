@@ -90,8 +90,7 @@ void Strategy::initializeStrategy()
   // initialize the strategy if not already done so
   if (!d_strategy_init)
   {
-    std::map<Theory::Effort, unsigned> step_begin;
-    std::map<Theory::Effort, unsigned> step_end;
+    std::map<Theory::Effort, unsigned> step_begin; std::map<Theory::Effort, unsigned> step_end;
     d_strategy_init = true;
     // beginning indices
     step_begin[Theory::EFFORT_FULL] = 0;
@@ -103,6 +102,10 @@ void Strategy::initializeStrategy()
     addStrategyStep(CHECK_INIT);
     addStrategyStep(CHECK_CONST_EQC);
     addStrategyStep(CHECK_EXTF_EVAL, 0);
+	if (options::stringSeqUpdate() == options::StringSeqUpdateMode::EAGER)
+	{
+		addStrategyStep(CHECK_SEQUENCES_ARRAY_EAGER);
+	}
     // we must check cycles before using flat forms
     addStrategyStep(CHECK_CYCLES);
     if (options::stringFlatForms())
@@ -132,7 +135,7 @@ void Strategy::initializeStrategy()
     {
       addStrategyStep(CHECK_LENGTH_EQC);
     }
-    if (options::stringSeqUpdate())
+    if (options::stringSeqUpdate() != options::StringSeqUpdateMode::NONE)
     {
       addStrategyStep(CHECK_SEQUENCES_ARRAY_CONCAT);
       addStrategyStep(CHECK_SEQUENCES_ARRAY);

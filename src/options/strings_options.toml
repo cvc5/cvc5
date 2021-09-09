@@ -201,8 +201,20 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringSeqUpdate"
-  category   = "regular"
-  long       = "strings-seq-update"
-  type       = "bool"
-  default    = "false"
-  help       = "use array-inspired solver for sequence updates"
+  category   = "expert"
+  long       = "strings-seq-update=MODE"
+  type       = "StringSeqUpdateMode"
+  default    = "NONE"
+  help       = "use array-inspired solver for sequence updates in eager or lazy mode"
+  help_mode  = "use array-inspired solver for sequence updates in eager or lazy mode"
+[[option.mode.LAZY]]
+  name = "lazy"
+  help = "use array-inspired solver for sequence updates in lazy mode"
+[[option.mode.EAGER]]
+  name = "eager"
+  help = "use array-inspired solver for sequence updates in eager mode"
+[[option.mode.NONE]]
+  name = "none"
+  help = "do not use array-inspired solver for sequence updates"
+
+

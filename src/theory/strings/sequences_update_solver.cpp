@@ -91,6 +91,20 @@ void SequencesUpdateSolver::checkArray()
   Trace("seq-update") << "SequencesUpdateSolver::checkArray..." << std::endl;
   d_sasolver.check(d_currTerms[SEQ_NTH], d_currTerms[STRING_UPDATE]);
 }
+
+void SequencesUpdateSolver::checkArrayEager()
+{
+  if (!d_termReg.hasSeqUpdate())
+  {
+    Trace("seq-update") << "No seq.update/seq.nth terms, skipping check..."
+                        << std::endl;
+    return;
+  }
+  Trace("seq-update") << "SequencesUpdateSolver::checkArray..." << std::endl;
+  std::vector<Node> nthTerms = d_esolver.getActive(SEQ_NTH);
+  std::vector<Node> updateTerms = d_esolver.getActive(STRING_UPDATE);
+  d_sasolver.check(nthTerms, updateTerms);
+}
   
 void SequencesUpdateSolver::checkTerms(Kind k)
 {
