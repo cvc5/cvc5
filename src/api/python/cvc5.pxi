@@ -93,7 +93,10 @@ cdef c_hash[c_Term] ctermhash = c_hash[c_Term]()
 
 
 cdef class Datatype:
-    """Wrapper class for :cpp:class:`cvc5::api::Datatype`."""
+    """
+        A cvc5 datatype.
+	Wrapper class for :cpp:class:`cvc5::api::Datatype`.
+    """
     cdef c_Datatype cd
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -149,31 +152,31 @@ cdef class Datatype:
         return self.cd.getNumConstructors()
 
     def isParametric(self):
-        """:return: whether this datatype is parametric."""
+        """:return: True if this datatype is parametric."""
         return self.cd.isParametric()
 
     def isCodatatype(self):
-        """:return: whether this datatype corresponds to a co-datatype."""
+        """:return: True if this datatype corresponds to a co-datatype."""
         return self.cd.isCodatatype()
 
     def isTuple(self):
-        """:return: whether this datatype corresponds to a tuple."""
+        """:return: True if this datatype corresponds to a tuple."""
         return self.cd.isTuple()
 
     def isRecord(self):
-        """:return: whether this datatype corresponds to a record."""
+        """:return: True if this datatype corresponds to a record."""
         return self.cd.isRecord()
 
     def isFinite(self):
-        """:return: whether this datatype is finite."""
+        """:return: True if this datatype is finite."""
         return self.cd.isFinite()
 
     def isWellFounded(self):
-        """:return: whether this datatype is well-founded (see :cpp:func:`Datatype::isWellFounded() <cvc5::api::Datatype::isWellFounded>`)."""
+        """:return: True if this datatype is well-founded (see :cpp:func:`Datatype::isWellFounded() <cvc5::api::Datatype::isWellFounded>`)."""
         return self.cd.isWellFounded()
 
     def hasNestedRecursion(self):
-        """:return: whether this datatype has nested recursion (see :cpp:func:`Datatype::hasNestedRecursion() <cvc5::api::Datatype::hasNestedRecursion>`)."""
+        """:return: True if this datatype has nested recursion (see :cpp:func:`Datatype::hasNestedRecursion() <cvc5::api::Datatype::hasNestedRecursion>`)."""
         return self.cd.hasNestedRecursion()
 
     def isNull(self):
@@ -194,7 +197,10 @@ cdef class Datatype:
 
 
 cdef class DatatypeConstructor:
-    """Wrapper class for :cpp:class:`cvc5::api::DatatypeConstructor`."""
+    """
+        A cvc5 datatype constructor.
+	Wrapper class for :cpp:class:`cvc5::api::DatatypeConstructor`.
+    """
     cdef c_DatatypeConstructor cdc
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -286,7 +292,10 @@ cdef class DatatypeConstructor:
 
 
 cdef class DatatypeConstructorDecl:
-    """Wrapper class for :cpp:class:`cvc5::api::DatatypeConstructorDecl`."""
+    """
+        A cvc5 datatype constructor declaration.
+	Wrapper class for :cpp:class:`cvc5::api::DatatypeConstructorDecl`.
+    """
     cdef c_DatatypeConstructorDecl cddc
     cdef Solver solver
 
@@ -322,7 +331,10 @@ cdef class DatatypeConstructorDecl:
 
 
 cdef class DatatypeDecl:
-    """Wrapper class for :cpp:class:`cvc5::api::DatatypeDecl`."""
+    """
+        A cvc5 datatype declaration.
+        Wrapper class for :cpp:class:`cvc5::api::DatatypeDecl`.
+    """
     cdef c_DatatypeDecl cdd
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -366,7 +378,10 @@ cdef class DatatypeDecl:
 
 
 cdef class DatatypeSelector:
-    """Wrapper class for :cpp:class:`cvc5::api::DatatypeSelector`."""
+    """
+        A cvc5 datatype selector.
+	Wrapper class for :cpp:class:`cvc5::api::DatatypeSelector`.
+    """
     cdef c_DatatypeSelector cds
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -415,7 +430,13 @@ cdef class DatatypeSelector:
 
 
 cdef class Op:
-    """Wrapper class for :cpp:class:`cvc5::api::Op`."""
+    """
+        A cvc5 operator.
+	An operator is a term that represents certain operators,
+	instantiated with its required parameters, e.g.,
+	a term of kind BITVECTOR_EXTRACT.
+        Wrapper class for :cpp:class:`cvc5::api::Op`.
+    """
     cdef c_Op cop
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -487,7 +508,10 @@ cdef class Op:
         return indices
 
 cdef class Grammar:
-    """Wrapper class for :cpp:class:`cvc5::api::Grammar`."""
+    """
+        A Sygus Grammar.
+	Wrapper class for :cpp:class:`cvc5::api::Grammar`.
+    """
     cdef c_Grammar  cgrammar
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -496,7 +520,7 @@ cdef class Grammar:
 
     def addRule(self, Term ntSymbol, Term rule):
         """
-            Add \p rule to the set of rules corresponding to \p nySymbol.
+            Add "``rule``" to the set of rules corresponding to "``nySymbol``".
 
 	    :param ntSymbol: the non-terminal to which the rule is added.
             :param rule: the rule to add.
@@ -532,7 +556,10 @@ cdef class Grammar:
         self.cgrammar.addRules(ntSymbol.cterm, crules)
 
 cdef class Result:
-    """Wrapper class for :cpp:class:`cvc5::api::Result`."""
+    """
+        Encapsulation of a three-valued solver result, with explanations.
+	Wrapper class for :cpp:class:`cvc5::api::Result`.
+    """
     cdef c_Result cr
     def __cinit__(self):
         # gets populated by solver
@@ -598,7 +625,22 @@ cdef class Result:
 
 
 cdef class RoundingMode:
-    """Wrapper class for :cpp:enum:`cvc5::api::RoundingMode`."""
+    """
+        Rounding modes for floating-point numbers.
+
+        For many floating-point operations, infinitely precise results may not be
+        representable with the number of available bits. Thus, the results are
+        rounded in a certain way to one of the representable floating-point numbers.
+
+        \verbatim embed:rst:leading-asterisk
+        These rounding modes directly follow the SMT-LIB theory for floating-point
+        arithmetic, which in turn is based on IEEE Standard 754 :cite:`IEEE754`.
+        The rounding modes are specified in Sections 4.3.1 and 4.3.2 of the IEEE
+        Standard 754.
+        \endverbatim
+        
+	Wrapper class for :cpp:enum:`cvc5::api::RoundingMode`.
+    """
     cdef c_RoundingMode crm
     cdef str name
     def __cinit__(self, int rm):
@@ -623,7 +665,9 @@ cdef class RoundingMode:
 
 
 cdef class UnknownExplanation:
-    """Wrapper class for :cpp:enum:`cvc5::api::UnknownExplanation`."""
+    """
+        Wrapper class for :cpp:enum:`cvc5::api::UnknownExplanation`.
+    """
     cdef c_UnknownExplanation cue
     cdef str name
     def __cinit__(self, int ue):
