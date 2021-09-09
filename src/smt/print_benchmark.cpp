@@ -21,18 +21,25 @@
 namespace cvc5 {
 namespace smt {
 
-void PrintBenchmark::printAssertions(std::ostream& out, const std::vector<Node>& assertions)
+void PrintBenchmark::printAssertions(std::ostream& out, 
+                                     const std::vector<Node>& defs,
+                                     const std::vector<Node>& assertions)
 {
   std::unordered_set<Node> syms;
   std::unordered_set<TNode> visited;
   std::unordered_set<TypeNode> types;
   std::unordered_set<TNode> typeVisited;
+  for (const Node& a : defs)
+  {
+    expr::getSymbols(a, syms, visited);
+    expr::getTypes(a, types, typeVisited);
+  }
   for (const Node& a : assertions)
   {
     expr::getSymbols(a, syms, visited);
     expr::getTypes(a, types, typeVisited);
   }
-  // print the declared types
+  // print the declared types first
   std::unordered_set<TypeNode> sts;
   for (const TypeNode& st : types)
   {
@@ -60,10 +67,19 @@ void PrintBenchmark::printAssertions(std::ostream& out, const std::vector<Node>&
       }
     }
   }
+  // print the declared symbols
+  
+  // print the assertions
   for (const Node& a : assertions)
   {
     d_printer->toStreamCmdAssert(out, a);
   }
+}
+void PrintBenchmark::printAssertions(std::ostream& out, 
+                                     const std::vector<Node>& assertions)
+{
+  std::vector<Node> defs;
+  printAssertions(out, defs, assertions);
 }
 
 }  // namespace smt

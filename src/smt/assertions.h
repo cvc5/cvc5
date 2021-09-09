@@ -23,11 +23,9 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
-
-class Env;
-
 namespace smt {
 
 class AbstractValues;
@@ -39,7 +37,7 @@ class AbstractValues;
  * check-sat calls. It is *not* responsible for the preprocessing itself, and
  * instead is intended to be the input to a preprocessor utility.
  */
-class Assertions
+class Assertions : protected EnvObj
 {
   /** The type of our internal assertion list */
   typedef context::CDList<Node> AssertionList;
@@ -94,9 +92,15 @@ class Assertions
   preprocessing::AssertionPipeline& getAssertionPipeline();
   /**
    * Get assertions list corresponding to the original list of assertions,
-   * before preprocessing.
+   * before preprocessing. This includes assertions corresponding to define-fun
+   * and define-fun-rec.
    */
   context::CDList<Node>* getAssertionList();
+  /**
+   * Get assertions list corresponding to the original list of assertions
+   * that correspond to definitions (define-fun or define-fun-rec).
+   */
+  context::CDList<Node>* getAssertionListDefinitions();
   /**
    * Get the list of assumptions, which are those registered to this class
    * on initializeCheckSat.
@@ -141,21 +145,19 @@ class Assertions
    * (this is used to distinguish assertions and assumptions)
    */
   void addFormula(TNode n,
-                  bool inInput,
                   bool isAssumption,
                   bool isFunDef,
                   bool maybeHasFv);
-  /** Reference to the environment. */
-  Env& d_env;
   /** Reference to the abstract values utility */
   AbstractValues& d_absValues;
   /** Whether we are producing assertions */
   bool d_produceAssertions;
   /**
-   * The assertion list (before any conversion) for supporting
-   * getAssertions().  Only maintained if in incremental mode.
+   * The assertion list (before any conversion) for supporting getAssertions().
    */
   AssertionList d_assertionList;
+  /** The subset of above the correspond to define-fun or define-fun-rec */
+  AssertionList d_assertionListDefs;
   /**
    * List of lemmas generated for global (recursive) function definitions. We
    * assert this list of definitions in each check-sat call.

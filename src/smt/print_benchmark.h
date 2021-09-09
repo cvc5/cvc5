@@ -38,7 +38,14 @@ class PrintBenchmark {
   /**
    * Print assertions, without special handling of defined functions.
    */
-  void printAssertions(std::ostream& out, const std::vector<Node>& assertions);
+  void printAssertions(std::ostream& out, 
+                       const std::vector<Node>& defs,
+                       const std::vector<Node>& assertions);
+  /**
+   * Print assertions, without special handling of defined functions.
+   */
+  void printAssertions(std::ostream& out,
+                       const std::vector<Node>& assertions);
 private:
   /** 
    * Pointer to the printer we are using, which is responsible for printing
