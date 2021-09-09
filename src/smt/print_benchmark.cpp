@@ -245,10 +245,20 @@ bool PrintBenchmark::decomposeDefinition(Node a,
   {
     isRecDef = true;
     sym = a[1][0].getOperator();
-    body = nm->mkNode(LAMBDA, a[0], a[1][1]);
+    body = NodeManager::currentNM()->mkNode(LAMBDA, a[0], a[1][1]);
     return true;
   }
   return false;
+}
+
+void PrintBenchmark::printBenchmark(std::ostream& out,
+                      const std::string& logic,
+                      const std::vector<Node>& defs,
+                      const std::vector<Node>& assertions)
+{
+  d_printer->toStreamCmdSetBenchmarkLogic(out, logic);
+  printAssertions(out, defs, assertions);
+  d_printer->toStreamCmdCheckSat(out);
 }
 
 }  // namespace smt
