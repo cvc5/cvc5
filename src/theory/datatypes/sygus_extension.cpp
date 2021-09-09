@@ -1110,7 +1110,7 @@ Node SygusExtension::registerSearchValue(Node a,
             its = d_sampler[a].find(tn);
           }
           // check equivalent
-          its->second.checkEquivalent(bv, bvr, *d_state.options().base.out);
+          its->second.checkEquivalent(bv, bvr, *options().base.out);
         }
       }
 

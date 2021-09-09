@@ -43,7 +43,7 @@ class QuantifiersState;
 class EqualityQuery : public QuantifiersUtil
 {
  public:
-  EqualityQuery(QuantifiersState& qs, FirstOrderModel* m);
+  EqualityQuery(Env& env, QuantifiersState& qs, FirstOrderModel* m);
   virtual ~EqualityQuery();
 
   /** reset */
