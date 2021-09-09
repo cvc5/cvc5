@@ -41,24 +41,55 @@ std::shared_ptr<ProofNode> BitblastProofGenerator::getProofFor(Node eq)
   {
     /* Fine-grained bit-blast step for bit-blasting bit-vector atoms (bbAtom()).
      * Bit-blasting atoms involves three steps:
+     *
      * 1) pre-rewrite: rewrite atom
      * 2) bit-blast rewritten atom
      * 3) post-rewrite: rewrite bit-blasted atom
-     * bit-blasts and post-rewrites.
+     *
+     * The CDProof is used for constructing the following proof of
+     * transitivity:
+     *
+     * --------- RW  ----------- BB ------------- RW
+     *  t = rwt       rwt = bbt      bbt = rwbbt
+     * ---------------------------------------------- TRANS
+     *                  t = rwbbt
+     *
+     *
+     * where BB corresponds to the conversion proof PI_1 and a bit-blasting
+     * step.  Note that if t and bbt remain the same after rewriting the
+     * transitivity proof is not needed.
+     *
+     * The full proof tree is as follows:
+     *
+     * ------------------- RW        ------------------ BB ------------ RW
+     *  P(x,y) = P(x',y')      PI_1   P(x'',y'') = bbt      bbt = rwbbt
+     * ------------------------------------------------------------------ TRANS
+     *                     P(x,y) = rwbbt
+     *
+     *
+     *      PI_1 :=     -------- BB* ---------- BB*
+     *                   x' = x''     y' = y''
+     *                  ----------------------- CONG
+     *                   P(x',y') = P(x'',y'')
+     *
+     *
+     * where P is an arbitrary bit-vector atom and t := P(x,y), rwt := P(x',y').
+     * BB* corresponds to recursively applying bit-blasting to all the
+     * sub-terms and recording these bit-blast steps in the conversion proof.
      */
 
     Node rwt = Rewriter::rewrite(t);
 
     std::vector<Node> transSteps;
 
-    // Record pre-rewrite of bit-blasted term.
+    // Record pre-rewrite of bit-vector atom.
     if (t != rwt)
     {
       cdp.addStep(t.eqNode(rwt), PfRule::REWRITE, {}, {t});
       transSteps.push_back(t.eqNode(rwt));
     }
 
-    // Record bit-blast step.
+    // Add bit-blast proof from conversion generator.
     cdp.addProof(d_tcpg->getProofFor(rwt.eqNode(bbt)));
     transSteps.push_back(rwt.eqNode(bbt));
 
@@ -70,6 +101,9 @@ std::shared_ptr<ProofNode> BitblastProofGenerator::getProofFor(Node eq)
       transSteps.push_back(bbt.eqNode(rwbbt));
     }
 
+    // If pre- and post-rewrite did not apply, no rewrite steps need to be
+    // recorded and the given equality `eq` is already justified by the proof
+    // given by the conversion proof generator.
     if (transSteps.size() > 1)
     {
       cdp.addStep(eq, PfRule::TRANS, transSteps, {});

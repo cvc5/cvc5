@@ -42,7 +42,15 @@ class BitblastProofGenerator : public ProofGenerator
 
   std::string identify() const override { return "BitblastStepProofGenerator"; }
 
-  /** Record bit-blast step. */
+  /**
+   * Record bit-blast step for bit-vector atom t.
+   *
+   * @param t Bit-vector atom
+   * @param bbt The bit-blasted term obtained from bit-blasting t without
+   *            applying any rewriting.
+   * @param eq The equality that needs to be justified,
+   *           i.e.,t = rewrite(bb(rewrite(t)))
+   */
   void addBitblastStep(TNode t, TNode bbt, TNode eq);
 
  private:
