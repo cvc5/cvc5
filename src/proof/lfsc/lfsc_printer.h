@@ -33,6 +33,11 @@ namespace proof {
 
 class LfscPrintChannel;
 
+/**
+ * The LFSC printer, which prints proof nodes in a proof that is checkable
+ * by LFSC using the signature, currently located at:
+ * https://github.com/CVC4/signatures/tree/master/lfsc/new.
+ */
 class LfscPrinter
 {
  public:
@@ -40,7 +45,7 @@ class LfscPrinter
   ~LfscPrinter() {}
 
   /**
-   * Print the full proof of assertions => false by pn.
+   * Print the full proof of assertions => false by pn on output stream out.
    */
   void print(std::ostream& out,
              const std::vector<Node>& assertions,
@@ -61,11 +66,19 @@ class LfscPrinter
    */
   void printLetify(std::ostream& out, Node n);
   /**
-   * Print node to stream in the expected format of LFSC.
+   * Print node to stream in the expected format of LFSC, where n has been
+   * processed by the LFSC node converter.
    */
   void printInternal(std::ostream& out, Node n);
   /**
-   * Print node to stream in the expected format of LFSC.
+   * Print node b to stream in the expected format of LFSC, with let binding,
+   * where n has been processed by the LFSC node converter.
+   * 
+   * @param out The output stream
+   * @param n The node to print
+   * @param lbind The let binding to consider
+   * @param letTop Whether we should consider the top-most application in n
+   * for the let binding (see LetBinding::convert).
    */
   void printInternal(std::ostream& out,
                      Node n,
@@ -97,7 +110,10 @@ class LfscPrinter
                           const std::map<const ProofNode*, size_t>& pletMap,
                           std::map<Node, size_t>& passumeMap);
   /**
-   * Get the arguments for the proof node application
+   * Get the arguments for the proof node application. This adds the arguments
+   * of the given proof to the vector pargs.
+   * 
+   * @return false if the proof cannot be printed in LFSC format.
    */
   bool computeProofArgs(const ProofNode* pn, std::vector<PExpr>& pargs);
   /**
