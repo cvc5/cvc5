@@ -119,16 +119,6 @@ class LfscPrinter
   size_t d_assumpCounter;
   /** for debugging the open rules, the set of PfRule we have warned about */
   std::unordered_set<PfRule, PfRuleHashFunction> d_trustWarned;
-  /** Pointer to the rewrite database */
-  rewriter::RewriteDb* d_rdb;
-  /**
-   * Mapping rewrite rules to format for conditions.
-   * The output of a DslRule is thus listing the term arguments, then
-   * a list of ( holes | child proofs ) based on this list.
-   * Each rule is mapped to a list of terms, where Node::null signifies
-   * positions of holes, non-null nodes are child proofs to print.
-   */
-  std::map<rewriter::DslPfRule, std::vector<Node>> d_dslFormat;
 };
 
 }  // namespace proof
