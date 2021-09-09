@@ -21,7 +21,7 @@
 namespace cvc5 {
 namespace smt {
 
-void PrintBenchmark::printAssertions(std::ostream& out, 
+void PrintBenchmark::printAssertions(std::ostream& out,
                                      const std::vector<Node>& defs,
                                      const std::vector<Node>& assertions)
 {
@@ -68,14 +68,14 @@ void PrintBenchmark::printAssertions(std::ostream& out,
     }
   }
   // print the declared symbols
-  
+
   // print the assertions
   for (const Node& a : assertions)
   {
     d_printer->toStreamCmdAssert(out, a);
   }
 }
-void PrintBenchmark::printAssertions(std::ostream& out, 
+void PrintBenchmark::printAssertions(std::ostream& out,
                                      const std::vector<Node>& assertions)
 {
   std::vector<Node> defs;
