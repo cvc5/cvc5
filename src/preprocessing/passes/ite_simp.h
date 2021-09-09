@@ -42,6 +42,7 @@ class ITESimp : public PreprocessingPass
     Statistics();
   };
 
+  Node simpITE(util::ITEUtilities* ite_utils, TNode assertion);
   bool doneSimpITE(AssertionPipeline *assertionsToPreprocesss);
 
   /** A collection of ite preprocessing passes. */

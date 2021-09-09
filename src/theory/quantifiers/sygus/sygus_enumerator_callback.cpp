@@ -19,6 +19,7 @@
 #include "theory/quantifiers/sygus/example_eval_cache.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus_sampler.h"
+#include "theory/rewriter.h"
 
 namespace cvc5 {
 namespace theory {
@@ -33,7 +34,7 @@ SygusEnumeratorCallback::SygusEnumeratorCallback(Node e, SygusStatistics* s)
 bool SygusEnumeratorCallback::addTerm(Node n, std::unordered_set<Node>& bterms)
 {
   Node bn = datatypes::utils::sygusToBuiltin(n);
-  Node bnr = d_extr.extendedRewrite(bn);
+  Node bnr = Rewriter::callExtendedRewrite(bn);
   if (d_stats != nullptr)
   {
     ++(d_stats->d_enumTermsRewrite);

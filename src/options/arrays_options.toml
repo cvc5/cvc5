@@ -67,7 +67,7 @@ name   = "Arrays Theory"
 
 [[option]]
   name       = "arraysExp"
-  category   = "experimental"
+  category   = "expert"
   long       = "arrays-exp"
   type       = "bool"
   default    = "false"

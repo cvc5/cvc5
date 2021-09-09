@@ -10,7 +10,11 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Global (command-line, set-option, ...) parameters for SMT.
+ * Implements a basic options API intended to be used by the external API:
+ * - list option names (`getNames()`)
+ * - get option value by name (`get()`)
+ * - set option value by name (`set()`)
+ * - get more detailed option information (`getInfo()`)
  */
 
 #include "cvc5_public.h"
@@ -30,7 +34,10 @@
 
 namespace cvc5::options {
 
-bool getUfHo(const Options& opts) CVC5_EXPORT;
+/**
+ * Get a (sorted) list of all option names that are available.
+ */
+std::vector<std::string> getNames() CVC5_EXPORT;
 
 /**
  * Retrieve an option value by name (as given in key) from the Options object
@@ -45,16 +52,6 @@ std::string get(const Options& opts, const std::string& name) CVC5_EXPORT;
 void set(Options& opts,
          const std::string& name,
          const std::string& optionarg) CVC5_EXPORT;
-
-/**
- * Get the setting for all options.
- */
-std::vector<std::vector<std::string> > getAll(const Options& opts) CVC5_EXPORT;
-
-/**
- * Get a (sorted) list of all option names that are available.
- */
-std::vector<std::string> getNames() CVC5_EXPORT;
 
 /**
  * Represents information we can provide about a particular option. It contains

@@ -273,10 +273,6 @@ class QuantifiersRewriter : public TheoryRewriter
                             std::unordered_set<Node>& nargs,
                             bool pol,
                             bool prenexAgg);
-  /**
-   * Apply prenexing aggressively. Returns the prenex normal form of n.
-   */
-  static Node computePrenexAgg(Node n, std::map<Node, Node>& visited);
   static Node computeSplit( std::vector< Node >& args, Node body, QAttributes& qa );
 private:
  static Node computeOperation(Node f,
@@ -291,25 +287,8 @@ private:
   /** options */
  static bool doOperation(Node f, RewriteStep computeOption, QAttributes& qa);
 
-private:
-  static Node preSkolemizeQuantifiers(Node n, bool polarity, std::vector< TypeNode >& fvTypes, std::vector<TNode>& fvs);
 public:
   static bool isPrenexNormalForm( Node n );
-  /** preprocess
-   *
-   * This returns the result of applying simple quantifiers-specific
-   * preprocessing to n, including but not limited to:
-   * - rewrite rule elimination,
-   * - pre-skolemization,
-   * - aggressive prenexing.
-   * The argument isInst is set to true if n is an instance of a previously
-   * registered quantified formula. If this flag is true, we do not apply
-   * certain steps like pre-skolemization since we know they will have no
-   * effect.
-   *
-   * The result is wrapped in a trust node of kind TrustNodeKind::REWRITE.
-   */
-  static TrustNode preprocess(Node n, bool isInst = false);
   static Node mkForAll(const std::vector<Node>& args,
                        Node body,
                        QAttributes& qa);

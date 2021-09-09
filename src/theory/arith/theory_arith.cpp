@@ -40,14 +40,14 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
           "theory::arith::ppRewriteTimer")),
       d_astate(env, valuation),
-      d_im(*this, d_astate, d_pnm),
-      d_ppre(getSatContext(), d_pnm),
-      d_bab(d_astate, d_im, d_ppre, d_pnm),
+      d_im(env, *this, d_astate, d_pnm),
+      d_ppre(context(), d_pnm),
+      d_bab(env, d_astate, d_im, d_ppre, d_pnm),
       d_eqSolver(nullptr),
       d_internal(new TheoryArithPrivate(*this, env, d_bab)),
       d_nonlinearExtension(nullptr),
-      d_opElim(d_pnm, getLogicInfo()),
-      d_arithPreproc(d_astate, d_im, d_pnm, d_opElim),
+      d_opElim(d_pnm, logicInfo()),
+      d_arithPreproc(env, d_astate, d_im, d_pnm, d_opElim),
       d_rewriter(d_opElim)
 {
   // currently a cyclic dependency to TheoryArithPrivate
@@ -58,7 +58,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
 
   if (options().arith.arithEqSolver)
   {
-    d_eqSolver.reset(new EqualitySolver(d_astate, d_im));
+    d_eqSolver.reset(new EqualitySolver(env, d_astate, d_im));
   }
 }
 
@@ -87,8 +87,8 @@ bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 }
 void TheoryArith::finishInit()
 {
-  if (getLogicInfo().isTheoryEnabled(THEORY_ARITH)
-      && getLogicInfo().areTranscendentalsUsed())
+  const LogicInfo& logic = logicInfo();
+  if (logic.isTheoryEnabled(THEORY_ARITH) && logic.areTranscendentalsUsed())
   {
     // witness is used to eliminate square root
     d_valuation.setUnevaluatedKind(kind::WITNESS);
@@ -98,10 +98,10 @@ void TheoryArith::finishInit()
     d_valuation.setUnevaluatedKind(kind::PI);
   }
   // only need to create nonlinear extension if non-linear logic
-  const LogicInfo& logicInfo = getLogicInfo();
-  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
+  if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
   {
-    d_nonlinearExtension.reset(new nl::NonlinearExtension(*this, d_astate));
+    d_nonlinearExtension.reset(
+        new nl::NonlinearExtension(d_env, *this, d_astate));
   }
   if (d_eqSolver != nullptr)
   {

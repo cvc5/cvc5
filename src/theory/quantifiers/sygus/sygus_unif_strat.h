@@ -19,7 +19,9 @@
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_STRAT_H
 
 #include <map>
+
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -276,10 +278,10 @@ struct StrategyRestrictions
  * the grammar of the function to synthesize f. This tree is represented by
  * the above classes.
  */
-class SygusUnifStrategy
+class SygusUnifStrategy : protected EnvObj
 {
  public:
-  SygusUnifStrategy() : d_tds(nullptr) {}
+  SygusUnifStrategy(Env& env) : EnvObj(env), d_tds(nullptr) {}
   /** initialize
    *
    * This initializes this class with function-to-synthesize f. We also call

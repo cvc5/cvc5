@@ -413,8 +413,6 @@ class Smt2 : public Parser
 
   void addSepOperators();
 
-  Language getLanguage() const;
-
   /**
    * Utility function to create a conjunction of expressions.
    *

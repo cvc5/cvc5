@@ -27,7 +27,11 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusUnif::SygusUnif() : d_tds(nullptr), d_enableMinimality(false) {}
+SygusUnif::SygusUnif(Env& env)
+    : EnvObj(env), d_tds(nullptr), d_enableMinimality(false)
+{
+}
+
 SygusUnif::~SygusUnif() {}
 
 void SygusUnif::initializeCandidate(
@@ -39,7 +43,8 @@ void SygusUnif::initializeCandidate(
   d_tds = tds;
   d_candidates.push_back(f);
   // initialize the strategy
-  d_strategy[f].initialize(tds, f, enums);
+  d_strategy.emplace(f, SygusUnifStrategy(d_env));
+  d_strategy.at(f).initialize(tds, f, enums);
 }
 
 Node SygusUnif::getMinimalTerm(const std::vector<Node>& terms)

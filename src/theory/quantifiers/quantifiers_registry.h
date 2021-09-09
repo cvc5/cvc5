@@ -22,6 +22,7 @@
 #include "theory/quantifiers/quant_bound_inference.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_preprocess.h"
 
 namespace cvc5 {
 namespace theory {
@@ -42,7 +43,7 @@ class QuantifiersRegistry : public QuantifiersUtil
   friend class Instantiate;
 
  public:
-  QuantifiersRegistry();
+  QuantifiersRegistry(Env& env);
   ~QuantifiersRegistry() {}
   /**
    * Register quantifier, which allocates the instantiation constants for q.
@@ -91,6 +92,8 @@ class QuantifiersRegistry : public QuantifiersUtil
   QuantAttributes& getQuantAttributes();
   /** Get quantifiers bound inference utility */
   QuantifiersBoundInference& getQuantifiersBoundInference();
+  /** Get the preprocess utility */
+  QuantifiersPreprocess& getPreprocess();
   /**
    * Get quantifiers name, which returns a variable corresponding to the name of
    * quantified formula q if q has a name, or otherwise returns q itself.
@@ -126,6 +129,8 @@ class QuantifiersRegistry : public QuantifiersUtil
   QuantAttributes d_quantAttr;
   /** The quantifiers bound inference class */
   QuantifiersBoundInference d_quantBoundInf;
+  /** The quantifiers preprocessor utility */
+  QuantifiersPreprocess d_quantPreproc;
 };
 
 }  // namespace quantifiers
