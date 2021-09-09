@@ -424,7 +424,7 @@ class DType
    */
   const std::vector<std::shared_ptr<DTypeConstructor> >& getConstructors()
       const;
-      
+
   /**
    * Return the subfield types of this datatype. This is the set of all types T
    * for which there exists an argument to a constructor of type T.

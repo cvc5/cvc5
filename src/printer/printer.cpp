@@ -249,11 +249,11 @@ void Printer::toStreamCmdDefineFunction(std::ostream& out, Node v, Node lambda)
   std::vector<Node> formals;
   Node body = lambda;
   TypeNode rangeType = v.getType();
-  if (body.getKind()==kind::LAMBDA)
+  if (body.getKind() == kind::LAMBDA)
   {
     formals.insert(formals.end(), lambda[0].begin(), lambda[0].end());
     body = lambda[1];
-    Assert (rangeType.isFunction());
+    Assert(rangeType.isFunction());
     rangeType = rangeType.getRangeType();
   }
   toStreamCmdDefineFunction(out, vs.str(), formals, rangeType, body);
@@ -268,7 +268,9 @@ void Printer::toStreamCmdDefineFunctionRec(
   printUnknownCommand(out, "define-fun-rec");
 }
 
-void Printer::toStreamCmdDefineFunctionRec(std::ostream& out, const std::vector<Node>& funcs, const std::vector<Node>& lambdas)
+void Printer::toStreamCmdDefineFunctionRec(std::ostream& out,
+                                           const std::vector<Node>& funcs,
+                                           const std::vector<Node>& lambdas)
 {
   std::vector<std::vector<Node>> formals;
   std::vector<Node> formulas;
@@ -276,7 +278,7 @@ void Printer::toStreamCmdDefineFunctionRec(std::ostream& out, const std::vector<
   {
     std::vector<Node> formalsVec;
     Node formula;
-    if (l.getKind()==kind::LAMBDA)
+    if (l.getKind() == kind::LAMBDA)
     {
       formalsVec.insert(formalsVec.end(), l[0].begin(), l[0].end());
       formula = l[1];

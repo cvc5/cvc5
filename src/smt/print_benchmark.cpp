@@ -15,16 +15,16 @@
 
 #include "smt/print_benchmark.h"
 
+#include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "printer/printer.h"
-#include "expr/dtype.h"
 
 using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace smt {
 
-void PrintBenchmark::printAssertions(std::ostream& out, 
+void PrintBenchmark::printAssertions(std::ostream& out,
                                      const std::vector<Node>& defs,
                                      const std::vector<Node>& assertions)
 {
@@ -71,11 +71,11 @@ void PrintBenchmark::printAssertions(std::ostream& out,
       }
     }
   }
-  
+
   // global visited cache for expr::getSymbols calls
   std::unordered_set<TNode> visited;
-  
-  // print the definitions 
+
+  // print the definitions
   std::unordered_map<Node, std::pair<bool, Node>> defMap;
   std::vector<Node> defSyms;
   // first, record all the defined symbols
@@ -85,30 +85,32 @@ void PrintBenchmark::printAssertions(std::ostream& out,
     Node defSym;
     Node defBody;
     decomposeDefinition(a, isRec, defSym, defBody);
-    Assert (!defSym.isNull());
-    Assert (defMap.find(defSym)!=defMap.end());
+    Assert(!defSym.isNull());
+    Assert(defMap.find(defSym) != defMap.end());
     defMap[defSym] = std::pair<bool, Node>(isRec, defBody);
     defSyms.push_back(defSym);
   }
   // go back and print the definitions
   std::unordered_set<Node> alreadyPrintedDecl;
   std::unordered_set<Node> alreadyPrintedDef;
-  
+
   std::unordered_map<Node, std::pair<bool, Node>>::const_iterator itd;
   for (const Node& s : defSyms)
   {
     std::vector<Node> recDefs;
     std::vector<Node> ordinaryDefs;
     std::unordered_set<Node> syms;
-    getConnectedDefinitions(s, recDefs, ordinaryDefs, syms, defMap, alreadyPrintedDef, visited);
-    // print the declarations that are encountered for the first time in this block
+    getConnectedDefinitions(
+        s, recDefs, ordinaryDefs, syms, defMap, alreadyPrintedDef, visited);
+    // print the declarations that are encountered for the first time in this
+    // block
     printDeclaredFuns(out, syms, alreadyPrintedDecl);
     // print the ordinary definitions
     for (const Node& f : ordinaryDefs)
     {
       itd = defMap.find(f);
-      Assert (itd!=defMap.end());
-      Assert (!itd->second.first);
+      Assert(itd != defMap.end());
+      Assert(!itd->second.first);
       d_printer->toStreamCmdDefineFunction(out, f, itd->second.second);
     }
     if (!recDefs.empty())
@@ -118,7 +120,7 @@ void PrintBenchmark::printAssertions(std::ostream& out,
       d_printer->toStreamCmdDefineFunctionRec(out, funcs, lambdas);
     }
   }
-  
+
   // print the remaining declared symbols
   std::unordered_set<Node> syms;
   for (const Node& a : assertions)
@@ -126,14 +128,14 @@ void PrintBenchmark::printAssertions(std::ostream& out,
     expr::getSymbols(a, syms, visited);
   }
   printDeclaredFuns(out, syms, alreadyPrintedDecl);
-                    
+
   // print the assertions
   for (const Node& a : assertions)
   {
     d_printer->toStreamCmdAssert(out, a);
   }
 }
-void PrintBenchmark::printAssertions(std::ostream& out, 
+void PrintBenchmark::printAssertions(std::ostream& out,
                                      const std::vector<Node>& assertions)
 {
   std::vector<Node> defs;
@@ -141,13 +143,13 @@ void PrintBenchmark::printAssertions(std::ostream& out,
 }
 
 void PrintBenchmark::printDeclaredFuns(std::ostream& out,
-                        const std::unordered_set<Node>& funs,
-                        std::unordered_set<Node>& alreadyPrinted)
+                                       const std::unordered_set<Node>& funs,
+                                       std::unordered_set<Node>& alreadyPrinted)
 {
   for (const Node& f : funs)
   {
-    Assert (f.isVar());
-    if (alreadyPrinted.find(f)==alreadyPrinted.end())
+    Assert(f.isVar());
+    if (alreadyPrinted.find(f) == alreadyPrinted.end())
     {
       d_printer->toStreamCmdDeclareFunction(out, f);
     }
@@ -155,9 +157,12 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
   alreadyPrinted.insert(funs.begin(), funs.end());
 }
 
-void PrintBenchmark::getConnectedSubfieldTypes(TypeNode tn, std::vector<TypeNode>& connectedTypes, std::unordered_set<TypeNode>& processed)
+void PrintBenchmark::getConnectedSubfieldTypes(
+    TypeNode tn,
+    std::vector<TypeNode>& connectedTypes,
+    std::unordered_set<TypeNode>& processed)
 {
-  if (processed.find(tn)!=processed.end())
+  if (processed.find(tn) != processed.end())
   {
     return;
   }
@@ -169,7 +174,8 @@ void PrintBenchmark::getConnectedSubfieldTypes(TypeNode tn, std::vector<TypeNode
   else if (tn.isDatatype())
   {
     connectedTypes.push_back(tn);
-    std::unordered_set<TypeNode> subfieldTypes = tn.getDType().getSubfieldTypes();
+    std::unordered_set<TypeNode> subfieldTypes =
+        tn.getDType().getSubfieldTypes();
     for (const TypeNode& ctn : subfieldTypes)
     {
       getConnectedSubfieldTypes(ctn, connectedTypes, processed);
@@ -177,17 +183,25 @@ void PrintBenchmark::getConnectedSubfieldTypes(TypeNode tn, std::vector<TypeNode
   }
 }
 
-void PrintBenchmark::getConnectedDefinitions(Node n, std::vector<Node>& recDefs, std::vector<Node>& ordinaryDefs, std::unordered_set<Node>& syms, const std::unordered_map<Node, std::pair<bool, Node>>& defMap, std::unordered_set<Node>& processedDefs, std::unordered_set<TNode>& visited)
+void PrintBenchmark::getConnectedDefinitions(
+    Node n,
+    std::vector<Node>& recDefs,
+    std::vector<Node>& ordinaryDefs,
+    std::unordered_set<Node>& syms,
+    const std::unordered_map<Node, std::pair<bool, Node>>& defMap,
+    std::unordered_set<Node>& processedDefs,
+    std::unordered_set<TNode>& visited)
 {
   // does it have a definition?
-  std::unordered_map<Node, std::pair<bool, Node>>::const_iterator it = defMap.find(n);
-  if (it==defMap.end())
+  std::unordered_map<Node, std::pair<bool, Node>>::const_iterator it =
+      defMap.find(n);
+  if (it == defMap.end())
   {
     // an ordinary declared symbol
     syms.insert(n);
     return;
   }
-  if (processedDefs.find(n)!=processedDefs.end())
+  if (processedDefs.find(n) != processedDefs.end())
   {
     return;
   }
@@ -206,14 +220,18 @@ void PrintBenchmark::getConnectedDefinitions(Node n, std::vector<Node>& recDefs,
     expr::getSymbols(it->second.second, symsBody, visited);
     for (const Node& s : symsBody)
     {
-      getConnectedDefinitions(s, recDefs, ordinaryDefs, syms, defMap, processedDefs, visited);
+      getConnectedDefinitions(
+          s, recDefs, ordinaryDefs, syms, defMap, processedDefs, visited);
     }
   }
 }
 
-bool PrintBenchmark::decomposeDefinition(Node a, bool& isRecDef, Node& sym, Node& body)
+bool PrintBenchmark::decomposeDefinition(Node a,
+                                         bool& isRecDef,
+                                         Node& sym,
+                                         Node& body)
 {
-  if (a.getKind()==EQUAL && a[0].isVar())
+  if (a.getKind() == EQUAL && a[0].isVar())
   {
     // an ordinary define-fun
     isRecDef = false;
@@ -221,7 +239,8 @@ bool PrintBenchmark::decomposeDefinition(Node a, bool& isRecDef, Node& sym, Node
     body = a[1];
     return true;
   }
-  else if (a.getKind() == FORALL && a[1].getKind()==EQUAL && a[1][0].getKind()==APPLY_UF)
+  else if (a.getKind() == FORALL && a[1].getKind() == EQUAL
+           && a[1][0].getKind() == APPLY_UF)
   {
     isRecDef = true;
     sym = a[1][0].getOperator();

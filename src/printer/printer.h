@@ -121,7 +121,9 @@ class Printer
       const std::vector<std::vector<Node>>& formals,
       const std::vector<Node>& formulas) const;
   /** Variant of above that takes the definition */
-  void toStreamCmdDefineFunctionRec(std::ostream& out, const std::vector<Node>& funcs, const std::vector<Node>& lambdas);
+  void toStreamCmdDefineFunctionRec(std::ostream& out,
+                                    const std::vector<Node>& funcs,
+                                    const std::vector<Node>& lambdas);
 
   /** Print set-user-attribute command */
   void toStreamCmdSetUserAttribute(std::ostream& out,
