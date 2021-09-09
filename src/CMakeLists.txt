@@ -294,6 +294,8 @@ libcvc5_add_sources(
   smt/check_models.h
   smt/command.cpp
   smt/command.h
+  smt/difficulty_post_processor.cpp
+  smt/difficulty_post_processor.h
   smt/dump.cpp
   smt/dump.h
   smt/dump_manager.cpp
