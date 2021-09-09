@@ -95,7 +95,7 @@ cdef c_hash[c_Term] ctermhash = c_hash[c_Term]()
 cdef class Datatype:
     """
         A cvc5 datatype.
-	Wrapper class for :cpp:class:`cvc5::api::Datatype`.
+        Wrapper class for :cpp:class:`cvc5::api::Datatype`.
     """
     cdef c_Datatype cd
     cdef Solver solver
@@ -199,7 +199,7 @@ cdef class Datatype:
 cdef class DatatypeConstructor:
     """
         A cvc5 datatype constructor.
-	Wrapper class for :cpp:class:`cvc5::api::DatatypeConstructor`.
+        Wrapper class for :cpp:class:`cvc5::api::DatatypeConstructor`.
     """
     cdef c_DatatypeConstructor cdc
     cdef Solver solver
@@ -294,7 +294,7 @@ cdef class DatatypeConstructor:
 cdef class DatatypeConstructorDecl:
     """
         A cvc5 datatype constructor declaration.
-	Wrapper class for :cpp:class:`cvc5::api::DatatypeConstructorDecl`.
+        Wrapper class for :cpp:class:`cvc5::api::DatatypeConstructorDecl`.
     """
     cdef c_DatatypeConstructorDecl cddc
     cdef Solver solver
@@ -380,7 +380,7 @@ cdef class DatatypeDecl:
 cdef class DatatypeSelector:
     """
         A cvc5 datatype selector.
-	Wrapper class for :cpp:class:`cvc5::api::DatatypeSelector`.
+        Wrapper class for :cpp:class:`cvc5::api::DatatypeSelector`.
     """
     cdef c_DatatypeSelector cds
     cdef Solver solver
@@ -432,9 +432,9 @@ cdef class DatatypeSelector:
 cdef class Op:
     """
         A cvc5 operator.
-	An operator is a term that represents certain operators,
-	instantiated with its required parameters, e.g.,
-	a term of kind BITVECTOR_EXTRACT.
+        An operator is a term that represents certain operators,
+        instantiated with its required parameters, e.g.,
+        a term of kind BITVECTOR_EXTRACT.
         Wrapper class for :cpp:class:`cvc5::api::Op`.
     """
     cdef c_Op cop
@@ -466,13 +466,13 @@ cdef class Op:
     
     def isIndexed(self):
         """
-            :return: true iff this operator is indexed.
+            :return: True iff this operator is indexed.
         """
         return self.cop.isIndexed()
 
     def isNull(self):
         """
-            :return: true iff this operator is a null term.
+            :return: True iff this operator is a null term.
         """
         return self.cop.isNull()
 
@@ -510,7 +510,7 @@ cdef class Op:
 cdef class Grammar:
     """
         A Sygus Grammar.
-	Wrapper class for :cpp:class:`cvc5::api::Grammar`.
+        Wrapper class for :cpp:class:`cvc5::api::Grammar`.
     """
     cdef c_Grammar  cgrammar
     cdef Solver solver
@@ -520,16 +520,16 @@ cdef class Grammar:
 
     def addRule(self, Term ntSymbol, Term rule):
         """
-            Add "``rule``" to the set of rules corresponding to "``nySymbol``".
+            Add "``rule``" to the set of rules corresponding to "``ntSymbol``".
 
-	    :param ntSymbol: the non-terminal to which the rule is added.
+            :param ntSymbol: the non-terminal to which the rule is added.
             :param rule: the rule to add.
         """
         self.cgrammar.addRule(ntSymbol.cterm, rule.cterm)
 
     def addAnyConstant(self, Term ntSymbol):
         """
-            Allow \p nySymbol to be an arbitrary constant.
+            Allow "``ntSymbol``" to be an arbitrary constant.
 
             :param ntSymbol: the non-terminal allowed to be constant.
         """
@@ -537,7 +537,7 @@ cdef class Grammar:
 
     def addAnyVariable(self, Term ntSymbol):
         """
-            Allow \p nySymbol to be any input variable to corresponding synth-fun/synth-inv with the same sort as \p nySymbol.
+            Allow "``ntSymbol``" to be any input variable to corresponding synth-fun/synth-inv with the same sort as "``ntSymbol``".
 
             :param ntSymbol: the non-terminal allowed to be any input variable.
         """
@@ -545,7 +545,7 @@ cdef class Grammar:
 
     def addRules(self, Term ntSymbol, rules):
         """
-            Add \p rules to the set of rules corresponding to \p ntSymbol.
+            Add "``ntSymbol``" to the set of rules corresponding to "``ntSymbol``".
 
             :param ntSymbol: the non-terminal to which the rules are added. 
             :param rules: the rules to add.
@@ -558,7 +558,7 @@ cdef class Grammar:
 cdef class Result:
     """
         Encapsulation of a three-valued solver result, with explanations.
-	Wrapper class for :cpp:class:`cvc5::api::Result`.
+        Wrapper class for :cpp:class:`cvc5::api::Result`.
     """
     cdef c_Result cr
     def __cinit__(self):
@@ -567,55 +567,58 @@ cdef class Result:
 
     def isNull(self):
         """
-            :return: true if Result is empty, i.e., a nullary Result,\ 
-	    and not an actual result returned from a checkSat() (and friends) query.
+            :return: True if Result is empty, i.e., a nullary Result,
+            and not an actual result returned from a checkSat() (and friends) query.
         """
         return self.cr.isNull()
 
     def isSat(self):
         """
-            :return: true if query was a satisfiable checkSat() or checkSatAssuming() query.
+            :return: True if query was a satisfiable checkSat() or checkSatAssuming() query.
         """
         return self.cr.isSat()
 
     def isUnsat(self):
         """
-            :return: true if query was an usatisfiable checkSat() or checkSatAssuming() query.
+            :return: True if query was an usatisfiable checkSat() or checkSatAssuming() query.
         """
         return self.cr.isUnsat()
 
     def isSatUnknown(self):
         """
-            :return: true if query was a checkSat() or checkSatAssuming() query and cvc5 was not able to determine (un)satisfiability. 
+            :return: True if query was a checkSat() or checkSatAssuming() query and cvc5 was not able to determine (un)satisfiability. 
         """
         return self.cr.isSatUnknown()
 
     def isEntailed(self):
         """
-            :return: true if corresponding query was an entailed checkEntailed() query.
+            :return: True if corresponding query was an entailed checkEntailed() query.
         """
         return self.cr.isEntailed()
 
     def isNotEntailed(self):
         """
-            :return: true if corresponding query was a checkEntailed() query that is not entailed.
+            :return: True if corresponding query was a checkEntailed() query that is not entailed.
         """
         return self.cr.isNotEntailed()
 
     def isEntailmentUnknown(self):
         """
-            :return: true if query was a checkEntailed() query and cvc5 was not able to determine if it is entailed.
+            :return: True if query was a checkEntailed() query and cvc5 was not able to determine if it is entailed.
         """
         return self.cr.isEntailmentUnknown()
+    
+    def getUnknownExplanation(self):
+        """
+            :return: an explanation for an unknown query result.
+        """
+        return UnknownExplanation(<int> self.cr.getUnknownExplanation())
 
     def __eq__(self, Result other):
         return self.cr == other.cr
 
     def __ne__(self, Result other):
         return self.cr != other.cr
-
-    def getUnknownExplanation(self):
-        return UnknownExplanation(<int> self.cr.getUnknownExplanation())
 
     def __str__(self):
         return self.cr.toString().decode()
@@ -632,14 +635,12 @@ cdef class RoundingMode:
         representable with the number of available bits. Thus, the results are
         rounded in a certain way to one of the representable floating-point numbers.
 
-        \verbatim embed:rst:leading-asterisk
         These rounding modes directly follow the SMT-LIB theory for floating-point
         arithmetic, which in turn is based on IEEE Standard 754 :cite:`IEEE754`.
         The rounding modes are specified in Sections 4.3.1 and 4.3.2 of the IEEE
         Standard 754.
-        \endverbatim
         
-	Wrapper class for :cpp:enum:`cvc5::api::RoundingMode`.
+        Wrapper class for :cpp:enum:`cvc5::api::RoundingMode`.
     """
     cdef c_RoundingMode crm
     cdef str name
