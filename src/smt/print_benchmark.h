@@ -95,7 +95,8 @@ class PrintBenchmark
    * processed already. We update this with symbols we add to recDefs and
    * ordinaryDefs.
    * @param visited The set of terms we have already visited when searching for
-   * free symbols. This set is updated.
+   * free symbols. This set is updated for the bodies of definitions processed
+   * in this call.
    */
   void getConnectedDefinitions(
       Node v,
