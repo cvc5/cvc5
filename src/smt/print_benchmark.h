@@ -57,7 +57,7 @@ class PrintBenchmark
   /** 
    * Print benchmark, which prints a parsable benchmark on the output stream
    * out. It relies on the printAssertions method above, as well as printing
-   * the logic based on info and a final check-sat command.
+   * the logic based on given string and a final check-sat command.
    */
   void printBenchmark(std::ostream& out,
                        const std::string& logic,

@@ -252,9 +252,9 @@ bool PrintBenchmark::decomposeDefinition(Node a,
 }
 
 void PrintBenchmark::printBenchmark(std::ostream& out,
-                      const std::string& logic,
-                      const std::vector<Node>& defs,
-                      const std::vector<Node>& assertions)
+                                    const std::string& logic,
+                                    const std::vector<Node>& defs,
+                                    const std::vector<Node>& assertions)
 {
   d_printer->toStreamCmdSetBenchmarkLogic(out, logic);
   printAssertions(out, defs, assertions);
