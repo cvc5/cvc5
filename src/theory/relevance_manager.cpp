@@ -17,15 +17,28 @@
 
 #include <sstream>
 
+#include "options/smt_options.h"
+#include "smt/env.h"
+
 using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace theory {
 
-RelevanceManager::RelevanceManager(context::UserContext* userContext,
-                                   Valuation val)
-    : d_val(val), d_input(userContext), d_computed(false), d_success(false)
+RelevanceManager::RelevanceManager(Env& env, Valuation val)
+    : d_val(val),
+      d_input(env.getUserContext()),
+      d_computed(false),
+      d_success(false),
+      d_trackRSetExp(false),
+      d_miniscopeTopLevel(true)
 {
+  if (options::produceDifficulty())
+  {
+    d_dman.reset(new DifficultyManager(env.getUserContext(), val));
+    d_trackRSetExp = true;
+    d_miniscopeTopLevel = false;
+  }
 }
 
 void RelevanceManager::notifyPreprocessedAssertions(
@@ -35,7 +48,7 @@ void RelevanceManager::notifyPreprocessedAssertions(
   std::vector<Node> toProcess;
   for (const Node& a : assertions)
   {
-    if (a.getKind() == AND)
+    if (d_miniscopeTopLevel && a.getKind() == AND)
     {
       // split top-level AND
       for (const Node& ac : a)
@@ -64,8 +77,10 @@ void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
   while (i < toProcess.size())
   {
     Node a = toProcess[i];
-    if (a.getKind() == AND)
+    if (d_miniscopeTopLevel && a.getKind() == AND)
     {
+      // difficulty tracking requires splitting top-level AND earlier
+      Assert(d_dman == nullptr);
       // split AND
       for (const Node& ac : a)
       {
@@ -91,6 +106,7 @@ void RelevanceManager::computeRelevance()
 {
   d_computed = true;
   d_rset.clear();
+  d_rsetExp.clear();
   Trace("rel-manager") << "RelevanceManager::computeRelevance..." << std::endl;
   std::unordered_map<TNode, int> cache;
   for (const Node& node: d_input)
@@ -271,6 +287,10 @@ int RelevanceManager::justify(TNode n, std::unordered_map<TNode, int>& cache)
         {
           ret = value ? 1 : -1;
           d_rset.insert(cur);
+          if (d_trackRSetExp)
+          {
+            d_rsetExp[cur] = n;
+          }
         }
         cache[cur] = ret;
       }
@@ -324,6 +344,32 @@ const std::unordered_set<TNode>& RelevanceManager::getRelevantAssertions(
   // update success flag
   success = d_success;
   return d_rset;
+}
+
+void RelevanceManager::notifyLemma(Node n)
+{
+  if (d_dman != nullptr)
+  {
+    // ensure we know which literals are relevant, and why
+    computeRelevance();
+    d_dman->notifyLemma(d_rsetExp, n);
+  }
+}
+
+void RelevanceManager::notifyCandidateModel(TheoryModel* m)
+{
+  if (d_dman != nullptr)
+  {
+    d_dman->notifyCandidateModel(d_input, m);
+  }
+}
+
+void RelevanceManager::getDifficultyMap(std::map<Node, Node>& dmap)
+{
+  if (d_dman != nullptr)
+  {
+    d_dman->getDifficultyMap(dmap);
+  }
 }
 
 }  // namespace theory
