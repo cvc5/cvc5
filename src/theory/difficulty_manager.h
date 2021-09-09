@@ -47,13 +47,16 @@ class DifficultyManager
   /**
    * Notify lemma, for difficulty measurements. This increments the difficulty
    * of assertions that share literals with that lemma if the difficulty mode
-   * is LEMMA_LITERAL.
+   * is LEMMA_LITERAL. In particular, for each literal lit in the lemma lem, we
+   * increment the difficulty of the assertion res[lit], which corresponds to
+   * the assertion that was the reason why the literal is relevant in the
+   * current context.
    *
    * @param rse Mapping from literals to the preprocessed assertion that was
    * the reason why that literal was relevant in the current context
-   * @param n The lemma
+   * @param lem The lemma
    */
-  void notifyLemma(const std::map<TNode, TNode>& rse, Node n);
+  void notifyLemma(const std::map<TNode, TNode>& rse, Node lem);
   /**
    * Notify that tm is a (candidate) model. This increments the difficulty
    * of assertions that are not satisfied by that model.
