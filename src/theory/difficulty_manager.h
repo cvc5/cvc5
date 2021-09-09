@@ -58,7 +58,7 @@ class DifficultyManager
    */
   void notifyLemma(const std::map<TNode, TNode>& rse, Node lem);
   /**
-   * Notify that tm is a (candidate) model. This increments the difficulty
+   * Notify that `m` is a (candidate) model. This increments the difficulty
    * of assertions that are not satisfied by that model.
    *
    * @param input The list of preprocessed assertions
