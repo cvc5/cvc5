@@ -81,11 +81,6 @@ void LfscPrinter::printProofLetify(
       out->printOpenLfscRule(LfscRule::LAMBDA);
       cparen++;
       out->printProofId(pid);
-      // debugging
-      if (Trace.isOn("lfsc-print-debug"))
-      {
-        // out << "; proves " << p->getResult();
-      }
       out->printEndLine();
     }
     out->printEndLine();
