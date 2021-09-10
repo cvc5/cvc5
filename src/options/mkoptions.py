@@ -418,6 +418,78 @@ def generate_holder_mem_copy(modules):
     return concat_format('      *d_{id} = *options.d_{id};', modules)
 
 
+################################################################################
+# stuff for main/options.cpp
+
+
+def _cli_help_format_options(option):
+    """
+    Format short and long options for the cmdline documentation
+    (--long | --alias | -short).
+    """
+    opts = []
+    if option.long:
+        if option.long_opt:
+            opts.append('--{}={}'.format(option.long_name, option.long_opt))
+        else:
+            opts.append('--{}'.format(option.long_name))
+
+    if option.alias:
+        if option.long_opt:
+            opts.extend(
+                ['--{}={}'.format(a, option.long_opt) for a in option.alias])
+        else:
+            opts.extend(['--{}'.format(a) for a in option.alias])
+
+    if option.short:
+        if option.long_opt:
+            opts.append('-{} {}'.format(option.short, option.long_opt))
+        else:
+            opts.append('-{}'.format(option.short))
+
+    return ' | '.join(opts)
+
+
+def _cli_help_wrap(help_msg, opts):
+    """Format cmdline documentation (--help) to be 80 chars wide."""
+    width_opt = 25
+    text = textwrap.wrap(help_msg, 80 - width_opt, break_on_hyphens=False)
+    if len(opts) > width_opt - 3:
+        lines = ['  {}'.format(opts), ' ' * width_opt + text[0]]
+    else:
+        lines = ['  {}{}'.format(opts.ljust(width_opt - 2), text[0])]
+    lines.extend([' ' * width_opt + l for l in text[1:]])
+    return lines
+
+
+def generate_cli_help(modules):
+    """Generate the output for --help."""
+    common = []
+    others = []
+    for module in modules:
+        if not module.options:
+            continue
+        others.append('')
+        others.append('From the {} module:'.format(module.name))
+        for option in module.options:
+            if option.category == 'undocumented':
+                continue
+            msg = option.help
+            if option.category == 'expert':
+                msg += ' (EXPERTS only)'
+            opts = _cli_help_format_options(option)
+            if opts:
+                if option.alternate:
+                    msg += ' [*]'
+                res = _cli_help_wrap(msg, opts)
+
+                if option.category == 'common':
+                    common.extend(res)
+                else:
+                    others.extend(res)
+    return '\n'.join(common), '\n'.join(others)
+
+
 class SphinxGenerator:
     def __init__(self):
         self.common = []
@@ -434,7 +506,7 @@ class SphinxGenerator:
                 names.append('--{}={}'.format(option.long_name, option.long_opt))
             else:
                 names.append('--{}'.format(option.long_name))
-        
+
         if option.alias:
             if option.long_opt:
                 names.extend(['--{}={}'.format(a, option.long_opt) for a in option.alias])
@@ -446,7 +518,7 @@ class SphinxGenerator:
                 names.append('-{} {}'.format(option.short, option.long_opt))
             else:
                 names.append('-{}'.format(option.short))
-        
+
         modes = None
         if option.mode:
             modes = {}
@@ -470,7 +542,7 @@ class SphinxGenerator:
             if module.name not in self.others:
                 self.others[module.name] = []
             self.others[module.name].append(data)
-    
+
     def __render_option(self, res, opt):
         desc = '``{}``'
         val = '    {}'
@@ -584,50 +656,6 @@ def format_include(include):
         return '#include {}'.format(include)
     return '#include "{}"'.format(include)
 
-
-def help_format_options(option):
-    """
-    Format short and long options for the cmdline documentation
-    (--long | --alias | -short).
-    """
-    opts = []
-    if option.long:
-        if option.long_opt:
-            opts.append('--{}={}'.format(option.long_name, option.long_opt))
-        else:
-            opts.append('--{}'.format(option.long_name))
-    
-    if option.alias:
-        if option.long_opt:
-            opts.extend(['--{}={}'.format(a, option.long_opt) for a in option.alias])
-        else:
-            opts.extend(['--{}'.format(a) for a in option.alias])
-
-    if option.short:
-        if option.long_opt:
-            opts.append('-{} {}'.format(option.short, option.long_opt))
-        else:
-            opts.append('-{}'.format(option.short))
-
-    return ' | '.join(opts)
-
-
-def help_format(help_msg, opts):
-    """
-    Format cmdline documentation (--help) to be 80 chars wide.
-    """
-    width = 80
-    width_opt = 25
-    wrapper = \
-        textwrap.TextWrapper(width=width - width_opt, break_on_hyphens=False)
-    text = wrapper.wrap(help_msg.replace('"', '\\"'))
-    if len(opts) > width_opt - 3:
-        lines = ['  {}'.format(opts)]
-        lines.append(' ' * width_opt + text[0])
-    else:
-        lines = ['  {}{}'.format(opts.ljust(width_opt - 2), text[0])]
-    lines.extend([' ' * width_opt + l for l in text[1:]])
-    return ['"{}\\n"'.format(x) for x in lines]
 
 def help_mode_format(option):
     """
@@ -781,34 +809,6 @@ def codegen_module(module, dst_dir, tpls):
         write_file(dst_dir, filename, tpl['content'].format(**data))
 
 
-def docgen_option(option, help_common, help_others):
-    """
-    Generate documentation for options.
-    """
-
-    if option.category == 'undocumented':
-        return
-
-    help_msg = option.help
-    if option.category == 'expert':
-        help_msg += ' (EXPERTS only)'
-
-    opts = help_format_options(option)
-
-    # Generate documentation for cmdline options
-    if opts and option.category != 'undocumented':
-        help_cmd = help_msg
-        if option.alternate:
-            help_cmd += ' [*]'
-        
-        res = help_format(help_cmd, opts)
-
-        if option.category == 'common':
-            help_common.extend(res)
-        else:
-            help_others.extend(res)
-
-
 def add_getopt_long(long_name, argument_req, getopt_long):
     """
     For each long option we need to add an instance of the option struct in
@@ -831,17 +831,11 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     getopt_long = []         # long options for getopt_long
     options_get_info = []    # code for getOptionInfo()
     options_handler = []     # option handler calls
-    help_common = []         # help text for all common options
-    help_others = []         # help text for all non-common options
 
     sphinxgen = SphinxGenerator()
 
     for module in modules:
         headers_module.append(format_include(module.header))
-
-        if module.options:
-            help_others.append(
-                '"\\nFrom the {} module:\\n"'.format(module.name))
 
         for option in \
             sorted(module.options, key=lambda x: x.long if x.long else x.name):
@@ -849,8 +843,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
             assert option.name or option.short or option.long
             mode_handler = option.handler and option.mode
             argument_req = option.type not in ['bool', 'void']
-
-            docgen_option(option, help_common, help_others)
 
             sphinxgen.add(module, option)
 
@@ -960,6 +952,8 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                 cases.append('  break;')
                 options_handler.extend(cases)
 
+    help_common, help_others = generate_cli_help(modules)
+
     data = {
         # options/options.h
         'holder_fwd_decls': generate_holder_fwd_decls(modules),
@@ -976,8 +970,8 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
         'get_impl': generate_get_impl(modules),
         'set_impl': generate_set_impl(modules),
         'cmdline_options': '\n  '.join(getopt_long),
-        'help_common': '\n'.join(help_common),
-        'help_others': '\n'.join(help_others),
+        'help_common': help_common,
+        'help_others': help_others,
         'options_handler': '\n    '.join(options_handler),
         'options_short': ''.join(getopt_short),
         'options_get_info': '\n  '.join(sorted(options_get_info)),
@@ -1117,7 +1111,7 @@ def mkoptions_main():
     for file in filenames:
         if not os.path.exists(file):
             die("configuration file '{}' does not exist".format(file))
-    
+
     module_tpls = [
         {'input': 'options/module_template.h'},
         {'input': 'options/module_template.cpp'},
