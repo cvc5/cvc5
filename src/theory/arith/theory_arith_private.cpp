@@ -171,7 +171,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_solveIntAttempts(0u),
       d_newFacts(false),
       d_previousStatus(Result::SAT_UNKNOWN),
-      d_statistics("theory::arith::")
+      d_statistics(statisticsRegistry(), "theory::arith::")
 {
 }
 
@@ -260,152 +260,152 @@ TheoryArithPrivate::ModelException::ModelException(TNode n, const char* msg)
 }
 TheoryArithPrivate::ModelException::~ModelException() {}
 
-TheoryArithPrivate::Statistics::Statistics(const std::string& name)
+TheoryArithPrivate::Statistics::Statistics(StatisticsRegistry& reg, const std::string& name)
     : d_statAssertUpperConflicts(
-        smtStatisticsRegistry().registerInt(name + "AssertUpperConflicts")),
+        reg.registerInt(name + "AssertUpperConflicts")),
       d_statAssertLowerConflicts(
-          smtStatisticsRegistry().registerInt(name + "AssertLowerConflicts")),
+          reg.registerInt(name + "AssertLowerConflicts")),
       d_statUserVariables(
-          smtStatisticsRegistry().registerInt(name + "UserVariables")),
+          reg.registerInt(name + "UserVariables")),
       d_statAuxiliaryVariables(
-          smtStatisticsRegistry().registerInt(name + "AuxiliaryVariables")),
+          reg.registerInt(name + "AuxiliaryVariables")),
       d_statDisequalitySplits(
-          smtStatisticsRegistry().registerInt(name + "DisequalitySplits")),
+          reg.registerInt(name + "DisequalitySplits")),
       d_statDisequalityConflicts(
-          smtStatisticsRegistry().registerInt(name + "DisequalityConflicts")),
+          reg.registerInt(name + "DisequalityConflicts")),
       d_simplifyTimer(
-          smtStatisticsRegistry().registerTimer(name + "simplifyTimer")),
+          reg.registerTimer(name + "simplifyTimer")),
       d_staticLearningTimer(
-          smtStatisticsRegistry().registerTimer(name + "staticLearningTimer")),
+          reg.registerTimer(name + "staticLearningTimer")),
       d_presolveTime(
-          smtStatisticsRegistry().registerTimer(name + "presolveTime")),
+          reg.registerTimer(name + "presolveTime")),
       d_newPropTime(
-          smtStatisticsRegistry().registerTimer(name + "newPropTimer")),
-      d_externalBranchAndBounds(smtStatisticsRegistry().registerInt(
+          reg.registerTimer(name + "newPropTimer")),
+      d_externalBranchAndBounds(reg.registerInt(
           name + "externalBranchAndBounds")),
       d_initialTableauSize(
-          smtStatisticsRegistry().registerInt(name + "initialTableauSize")),
+          reg.registerInt(name + "initialTableauSize")),
       d_currSetToSmaller(
-          smtStatisticsRegistry().registerInt(name + "currSetToSmaller")),
+          reg.registerInt(name + "currSetToSmaller")),
       d_smallerSetToCurr(
-          smtStatisticsRegistry().registerInt(name + "smallerSetToCurr")),
+          reg.registerInt(name + "smallerSetToCurr")),
       d_restartTimer(
-          smtStatisticsRegistry().registerTimer(name + "restartTimer")),
+          reg.registerTimer(name + "restartTimer")),
       d_boundComputationTime(
-          smtStatisticsRegistry().registerTimer(name + "bound::time")),
-      d_boundComputations(smtStatisticsRegistry().registerInt(
+          reg.registerTimer(name + "bound::time")),
+      d_boundComputations(reg.registerInt(
           name + "bound::boundComputations")),
-      d_boundPropagations(smtStatisticsRegistry().registerInt(
+      d_boundPropagations(reg.registerInt(
           name + "bound::boundPropagations")),
       d_unknownChecks(
-          smtStatisticsRegistry().registerInt(name + "status::unknowns")),
-      d_maxUnknownsInARow(smtStatisticsRegistry().registerInt(
+          reg.registerInt(name + "status::unknowns")),
+      d_maxUnknownsInARow(reg.registerInt(
           name + "status::maxUnknownsInARow")),
-      d_avgUnknownsInARow(smtStatisticsRegistry().registerAverage(
+      d_avgUnknownsInARow(reg.registerAverage(
           name + "status::avgUnknownsInARow")),
-      d_revertsOnConflicts(smtStatisticsRegistry().registerInt(
+      d_revertsOnConflicts(reg.registerInt(
           name + "status::revertsOnConflicts")),
-      d_commitsOnConflicts(smtStatisticsRegistry().registerInt(
+      d_commitsOnConflicts(reg.registerInt(
           name + "status::commitsOnConflicts")),
-      d_nontrivialSatChecks(smtStatisticsRegistry().registerInt(
+      d_nontrivialSatChecks(reg.registerInt(
           name + "status::nontrivialSatChecks")),
       d_replayLogRecCount(
-          smtStatisticsRegistry().registerInt(name + "z::approx::replay::rec")),
-      d_replayLogRecConflictEscalation(smtStatisticsRegistry().registerInt(
+          reg.registerInt(name + "z::approx::replay::rec")),
+      d_replayLogRecConflictEscalation(reg.registerInt(
           name + "z::approx::replay::rec::escalation")),
-      d_replayLogRecEarlyExit(smtStatisticsRegistry().registerInt(
+      d_replayLogRecEarlyExit(reg.registerInt(
           name + "z::approx::replay::rec::earlyexit")),
-      d_replayBranchCloseFailures(smtStatisticsRegistry().registerInt(
+      d_replayBranchCloseFailures(reg.registerInt(
           name + "z::approx::replay::rec::branch::closefailures")),
-      d_replayLeafCloseFailures(smtStatisticsRegistry().registerInt(
+      d_replayLeafCloseFailures(reg.registerInt(
           name + "z::approx::replay::rec::leaf::closefailures")),
-      d_replayBranchSkips(smtStatisticsRegistry().registerInt(
+      d_replayBranchSkips(reg.registerInt(
           name + "z::approx::replay::rec::branch::skips")),
-      d_mirCutsAttempted(smtStatisticsRegistry().registerInt(
+      d_mirCutsAttempted(reg.registerInt(
           name + "z::approx::cuts::mir::attempted")),
-      d_gmiCutsAttempted(smtStatisticsRegistry().registerInt(
+      d_gmiCutsAttempted(reg.registerInt(
           name + "z::approx::cuts::gmi::attempted")),
-      d_branchCutsAttempted(smtStatisticsRegistry().registerInt(
+      d_branchCutsAttempted(reg.registerInt(
           name + "z::approx::cuts::branch::attempted")),
-      d_cutsReconstructed(smtStatisticsRegistry().registerInt(
+      d_cutsReconstructed(reg.registerInt(
           name + "z::approx::cuts::reconstructed")),
-      d_cutsReconstructionFailed(smtStatisticsRegistry().registerInt(
+      d_cutsReconstructionFailed(reg.registerInt(
           name + "z::approx::cuts::reconstructed::failed")),
-      d_cutsProven(smtStatisticsRegistry().registerInt(
+      d_cutsProven(reg.registerInt(
           name + "z::approx::cuts::proofs")),
-      d_cutsProofFailed(smtStatisticsRegistry().registerInt(
+      d_cutsProofFailed(reg.registerInt(
           name + "z::approx::cuts::proofs::failed")),
-      d_mipReplayLemmaCalls(smtStatisticsRegistry().registerInt(
+      d_mipReplayLemmaCalls(reg.registerInt(
           name + "z::approx::external::calls")),
-      d_mipExternalCuts(smtStatisticsRegistry().registerInt(
+      d_mipExternalCuts(reg.registerInt(
           name + "z::approx::external::cuts")),
-      d_mipExternalBranch(smtStatisticsRegistry().registerInt(
+      d_mipExternalBranch(reg.registerInt(
           name + "z::approx::external::branches")),
-      d_inSolveInteger(smtStatisticsRegistry().registerInt(
+      d_inSolveInteger(reg.registerInt(
           name + "z::approx::inSolverInteger")),
-      d_branchesExhausted(smtStatisticsRegistry().registerInt(
+      d_branchesExhausted(reg.registerInt(
           name + "z::approx::exhausted::branches")),
-      d_execExhausted(smtStatisticsRegistry().registerInt(
+      d_execExhausted(reg.registerInt(
           name + "z::approx::exhausted::exec")),
-      d_pivotsExhausted(smtStatisticsRegistry().registerInt(
+      d_pivotsExhausted(reg.registerInt(
           name + "z::approx::exhausted::pivots")),
       d_panicBranches(
-          smtStatisticsRegistry().registerInt(name + "z::arith::paniclemmas")),
+          reg.registerInt(name + "z::arith::paniclemmas")),
       d_relaxCalls(
-          smtStatisticsRegistry().registerInt(name + "z::arith::relax::calls")),
-      d_relaxLinFeas(smtStatisticsRegistry().registerInt(
+          reg.registerInt(name + "z::arith::relax::calls")),
+      d_relaxLinFeas(reg.registerInt(
           name + "z::arith::relax::feasible::res")),
-      d_relaxLinFeasFailures(smtStatisticsRegistry().registerInt(
+      d_relaxLinFeasFailures(reg.registerInt(
           name + "z::arith::relax::feasible::failures")),
-      d_relaxLinInfeas(smtStatisticsRegistry().registerInt(
+      d_relaxLinInfeas(reg.registerInt(
           name + "z::arith::relax::infeasible")),
-      d_relaxLinInfeasFailures(smtStatisticsRegistry().registerInt(
+      d_relaxLinInfeasFailures(reg.registerInt(
           name + "z::arith::relax::infeasible::failures")),
-      d_relaxLinExhausted(smtStatisticsRegistry().registerInt(
+      d_relaxLinExhausted(reg.registerInt(
           name + "z::arith::relax::exhausted")),
       d_relaxOthers(
-          smtStatisticsRegistry().registerInt(name + "z::arith::relax::other")),
-      d_applyRowsDeleted(smtStatisticsRegistry().registerInt(
+          reg.registerInt(name + "z::arith::relax::other")),
+      d_applyRowsDeleted(reg.registerInt(
           name + "z::arith::cuts::applyRowsDeleted")),
-      d_replaySimplexTimer(smtStatisticsRegistry().registerTimer(
+      d_replaySimplexTimer(reg.registerTimer(
           name + "z::approx::replay::simplex::timer")),
-      d_replayLogTimer(smtStatisticsRegistry().registerTimer(
+      d_replayLogTimer(reg.registerTimer(
           name + "z::approx::replay::log::timer")),
       d_solveIntTimer(
-          smtStatisticsRegistry().registerTimer(name + "z::solveInt::timer")),
-      d_solveRealRelaxTimer(smtStatisticsRegistry().registerTimer(
+          reg.registerTimer(name + "z::solveInt::timer")),
+      d_solveRealRelaxTimer(reg.registerTimer(
           name + "z::solveRealRelax::timer")),
       d_solveIntCalls(
-          smtStatisticsRegistry().registerInt(name + "z::solveInt::calls")),
-      d_solveStandardEffort(smtStatisticsRegistry().registerInt(
+          reg.registerInt(name + "z::solveInt::calls")),
+      d_solveStandardEffort(reg.registerInt(
           name + "z::solveInt::calls::standardEffort")),
       d_approxDisabled(
-          smtStatisticsRegistry().registerInt(name + "z::approxDisabled")),
+          reg.registerInt(name + "z::approxDisabled")),
       d_replayAttemptFailed(
-          smtStatisticsRegistry().registerInt(name + "z::replayAttemptFailed")),
-      d_cutsRejectedDuringReplay(smtStatisticsRegistry().registerInt(
+          reg.registerInt(name + "z::replayAttemptFailed")),
+      d_cutsRejectedDuringReplay(reg.registerInt(
           name + "z::approx::replay::cuts::rejected")),
-      d_cutsRejectedDuringLemmas(smtStatisticsRegistry().registerInt(
+      d_cutsRejectedDuringLemmas(reg.registerInt(
           name + "z::approx::external::cuts::rejected")),
-      d_satPivots(smtStatisticsRegistry().registerHistogram<uint32_t>(
+      d_satPivots(reg.registerHistogram<uint32_t>(
           name + "pivots::sat")),
-      d_unsatPivots(smtStatisticsRegistry().registerHistogram<uint32_t>(
+      d_unsatPivots(reg.registerHistogram<uint32_t>(
           name + "pivots::unsat")),
-      d_unknownPivots(smtStatisticsRegistry().registerHistogram<uint32_t>(
+      d_unknownPivots(reg.registerHistogram<uint32_t>(
           name + "pivots::unknown")),
-      d_solveIntModelsAttempts(smtStatisticsRegistry().registerInt(
+      d_solveIntModelsAttempts(reg.registerInt(
           name + "z::solveInt::models::attempts")),
-      d_solveIntModelsSuccessful(smtStatisticsRegistry().registerInt(
+      d_solveIntModelsSuccessful(reg.registerInt(
           name + "zzz::solveInt::models::successful")),
-      d_mipTimer(smtStatisticsRegistry().registerTimer(
+      d_mipTimer(reg.registerTimer(
           name + "z::approx::mip::timer")),
       d_lpTimer(
-          smtStatisticsRegistry().registerTimer(name + "z::approx::lp::timer")),
-      d_mipProofsAttempted(smtStatisticsRegistry().registerInt(
+          reg.registerTimer(name + "z::approx::lp::timer")),
+      d_mipProofsAttempted(reg.registerInt(
           name + "z::mip::proofs::attempted")),
-      d_mipProofsSuccessful(smtStatisticsRegistry().registerInt(
+      d_mipProofsSuccessful(reg.registerInt(
           name + "z::mip::proofs::successful")),
-      d_numBranchesFailed(smtStatisticsRegistry().registerInt(
+      d_numBranchesFailed(reg.registerInt(
           name + "z::mip::branch::proof::failed"))
 {
 }

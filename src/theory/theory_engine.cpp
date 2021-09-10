@@ -242,7 +242,7 @@ TheoryEngine::TheoryEngine(Env& env)
       d_propagatedLiterals(context()),
       d_propagatedLiteralsIndex(context(), 0),
       d_atomRequests(context()),
-      d_combineTheoriesTime(smtStatisticsRegistry().registerTimer(
+      d_combineTheoriesTime(statisticsRegistry().registerTimer(
           "TheoryEngine::combineTheoriesTime")),
       d_true(),
       d_false(),
