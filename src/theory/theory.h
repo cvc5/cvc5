@@ -440,11 +440,6 @@ class Theory : protected EnvObj
     EFFORT_LAST_CALL = 200
   }; /* enum Effort */
 
-  static bool standardEffortOrMore(Effort e) { return e >= EFFORT_STANDARD; }
-  static bool standardEffortOnly(Effort e)
-  {
-    return e >= EFFORT_STANDARD && e < EFFORT_FULL;
-  }
   static bool fullEffort(Effort e) { return e == EFFORT_FULL; }
 
   /**
