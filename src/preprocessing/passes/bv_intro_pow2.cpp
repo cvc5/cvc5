@@ -52,16 +52,6 @@ PreprocessingPassResult BvIntroPow2::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-/**
- * x & (x-1) = 0 => 1 << sk
- *
- * WARNING: this is an **EQUISATISFIABLE** transformation!
- * Only to be called on top level assertions.
- *
- * @param node
- *
- * @return
- */
 bool BvIntroPow2::isPowerOfTwo(TNode node)
 {
   if (node.getKind() != kind::EQUAL)
