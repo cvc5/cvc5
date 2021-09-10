@@ -30,7 +30,7 @@ QuantifiersInferenceManager::QuantifiersInferenceManager(
     TermRegistry& tr,
     ProofNodeManager* pnm)
     : InferenceManagerBuffered(env, t, state, pnm, "theory::quantifiers::"),
-      d_instantiate(new Instantiate(state, *this, qr, tr, pnm)),
+      d_instantiate(new Instantiate(env, state, *this, qr, tr, pnm)),
       d_skolemize(new Skolemize(state, tr, pnm))
 {
 }

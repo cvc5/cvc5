@@ -58,7 +58,7 @@ SynthConjecture::SynthConjecture(Env& env,
       d_treg(tr),
       d_stats(s),
       d_tds(tr.getTermDatabaseSygus()),
-      d_verify(qs.options(), qs.getLogicInfo(), d_tds),
+      d_verify(options(), qs.getLogicInfo(), d_tds),
       d_hasSolution(false),
       d_ceg_si(new CegSingleInv(env, tr, s)),
       d_templInfer(new SygusTemplateInfer),
@@ -66,10 +66,10 @@ SynthConjecture::SynthConjecture(Env& env,
       d_ceg_gc(new CegGrammarConstructor(d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(env, d_tds)),
       d_exampleInfer(new ExampleInfer(d_tds)),
-      d_ceg_pbe(new SygusPbe(qs, qim, d_tds, this)),
-      d_ceg_cegis(new Cegis(qs, qim, d_tds, this)),
-      d_ceg_cegisUnif(new CegisUnif(qs, qim, d_tds, this)),
-      d_sygus_ccore(new CegisCoreConnective(qs, qim, d_tds, this)),
+      d_ceg_pbe(new SygusPbe(env, qs, qim, d_tds, this)),
+      d_ceg_cegis(new Cegis(env, qs, qim, d_tds, this)),
+      d_ceg_cegisUnif(new CegisUnif(env, qs, qim, d_tds, this)),
+      d_sygus_ccore(new CegisCoreConnective(env, qs, qim, d_tds, this)),
       d_master(nullptr),
       d_set_ce_sk_vars(false),
       d_repair_index(0),
@@ -515,7 +515,7 @@ bool SynthConjecture::doCheck()
   {
     if (printDebug)
     {
-      const Options& sopts = d_qstate.options();
+      const Options& sopts = options();
       std::ostream& out = *sopts.base.out;
       out << "(sygus-candidate ";
       Assert(d_quant[0].getNumChildren() == candidate_values.size());
@@ -801,8 +801,7 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
   Assert(d_master != nullptr);
   // we have generated a solution, print it
   // get the current output stream
-  const Options& sopts = d_qstate.options();
-  printSynthSolutionInternal(*sopts.base.out);
+  printSynthSolutionInternal(*options().base.out);
   excludeCurrentSolution(enums, values);
 }
 

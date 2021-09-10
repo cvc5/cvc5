@@ -49,11 +49,6 @@ void EvalSygusInvarianceTest::init(Node conj, Node var, Node res)
   d_result = res;
 }
 
-Node EvalSygusInvarianceTest::doEvaluateWithUnfolding(TermDbSygus* tds, Node n)
-{
-  return tds->evaluateWithUnfolding(n, d_visited);
-}
-
 bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
 {
   TNode tnvn = nvn;
@@ -61,7 +56,7 @@ bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
   for (const Node& c : d_terms)
   {
     Node conj_subs = c.substitute(d_var, tnvn, cache);
-    Node conj_subs_unfold = doEvaluateWithUnfolding(tds, conj_subs);
+    Node conj_subs_unfold = tds->rewriteNode(conj_subs);
     Trace("sygus-cref-eval2-debug")
         << "  ...check unfolding : " << conj_subs_unfold << std::endl;
     Trace("sygus-cref-eval2-debug")

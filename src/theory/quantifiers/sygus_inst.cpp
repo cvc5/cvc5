@@ -182,14 +182,15 @@ void addSpecialValues(const TypeNode& tn,
 
 }  // namespace
 
-SygusInst::SygusInst(QuantifiersState& qs,
+SygusInst::SygusInst(Env& env,
+                     QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
                      QuantifiersRegistry& qr,
                      TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr),
-      d_ce_lemma_added(qs.getUserContext()),
-      d_global_terms(qs.getUserContext()),
-      d_notified_assertions(qs.getUserContext())
+    : QuantifiersModule(env, qs, qim, qr, tr),
+      d_ce_lemma_added(userContext()),
+      d_global_terms(userContext()),
+      d_notified_assertions(userContext())
 {
 }
 

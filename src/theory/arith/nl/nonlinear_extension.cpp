@@ -49,17 +49,17 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_extTheoryCb(state.getEqualityEngine()),
       d_extTheory(d_extTheoryCb, context(), userContext(), d_im),
       d_model(),
-      d_trSlv(d_im, d_model, d_astate.getEnv()),
-      d_extState(d_im, d_model, d_astate.getEnv()),
+      d_trSlv(d_im, d_model, d_env),
+      d_extState(d_im, d_model, d_env),
       d_factoringSlv(&d_extState),
       d_monomialBoundsSlv(&d_extState),
       d_monomialSlv(&d_extState),
       d_splitZeroSlv(&d_extState),
       d_tangentPlaneSlv(&d_extState),
-      d_cadSlv(d_astate.getEnv(), d_im, d_model),
+      d_cadSlv(d_env, d_im, d_model),
       d_icpSlv(d_im),
-      d_iandSlv(d_im, state, d_model),
-      d_pow2Slv(d_im, state, d_model)
+      d_iandSlv(env, d_im, state, d_model),
+      d_pow2Slv(env, d_im, state, d_model)
 {
   d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
   d_extTheory.addFunctionKind(kind::EXPONENTIAL);
@@ -72,9 +72,9 @@ NonlinearExtension::NonlinearExtension(Env& env,
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
 
-  if (d_astate.getEnv().isTheoryProofProducing())
+  if (d_env.isTheoryProofProducing())
   {
-    ProofChecker* pc = d_astate.getEnv().getProofNodeManager()->getChecker();
+    ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
     d_proofChecker.registerTo(pc);
   }
 }

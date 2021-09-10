@@ -43,11 +43,58 @@ using namespace cvc5::theory;
 namespace {
 
 /**
+ * Trace nodes back to their assertions using CircuitPropagator's
+ * BackEdgesMap.
+ */
+void traceBackToAssertions(booleans::CircuitPropagator* propagator,
+                           const std::vector<Node>& nodes,
+                           std::vector<TNode>& assertions)
+{
+  const booleans::CircuitPropagator::BackEdgesMap& backEdges =
+      propagator->getBackEdges();
+  for (vector<Node>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
+  {
+    booleans::CircuitPropagator::BackEdgesMap::const_iterator j =
+        backEdges.find(*i);
+    // term must appear in map, otherwise how did we get here?!
+    Assert(j != backEdges.end());
+    // if term maps to empty, that means it's a top-level assertion
+    if (!(*j).second.empty())
+    {
+      traceBackToAssertions(propagator, (*j).second, assertions);
+    }
+    else
+    {
+      assertions.push_back(*i);
+    }
+  }
+}
+
+}  // namespace
+
+MipLibTrick::MipLibTrick(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "miplib-trick")
+{
+  if (!options().base.incrementalSolving)
+  {
+    NodeManager::currentNM()->subscribeEvents(this);
+  }
+}
+
+MipLibTrick::~MipLibTrick()
+{
+  if (!options().base.incrementalSolving)
+  {
+    NodeManager::currentNM()->unsubscribeEvents(this);
+  }
+}
+
+/**
  * Remove conjuncts in toRemove from conjunction n. Return # of removed
  * conjuncts.
  */
-size_t removeFromConjunction(Node& n,
-                             const std::unordered_set<unsigned long>& toRemove)
+size_t MipLibTrick::removeFromConjunction(
+    Node& n, const std::unordered_set<unsigned long>& toRemove)
 {
   Assert(n.getKind() == kind::AND);
   Node trueNode = NodeManager::currentNM()->mkConst(true);
@@ -109,60 +156,13 @@ size_t removeFromConjunction(Node& n,
       {
         n = b;
       }
-      n = Rewriter::rewrite(n);
+      n = rewrite(n);
       return removals;
     }
   }
 
   Assert(removals == 0);
   return 0;
-}
-
-/**
- * Trace nodes back to their assertions using CircuitPropagator's
- * BackEdgesMap.
- */
-void traceBackToAssertions(booleans::CircuitPropagator* propagator,
-                           const std::vector<Node>& nodes,
-                           std::vector<TNode>& assertions)
-{
-  const booleans::CircuitPropagator::BackEdgesMap& backEdges =
-      propagator->getBackEdges();
-  for (vector<Node>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
-  {
-    booleans::CircuitPropagator::BackEdgesMap::const_iterator j =
-        backEdges.find(*i);
-    // term must appear in map, otherwise how did we get here?!
-    Assert(j != backEdges.end());
-    // if term maps to empty, that means it's a top-level assertion
-    if (!(*j).second.empty())
-    {
-      traceBackToAssertions(propagator, (*j).second, assertions);
-    }
-    else
-    {
-      assertions.push_back(*i);
-    }
-  }
-}
-
-}  // namespace
-
-MipLibTrick::MipLibTrick(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "miplib-trick")
-{
-  if (!options::incrementalSolving())
-  {
-    NodeManager::currentNM()->subscribeEvents(this);
-  }
-}
-
-MipLibTrick::~MipLibTrick()
-{
-  if (!options::incrementalSolving())
-  {
-    NodeManager::currentNM()->unsubscribeEvents(this);
-  }
 }
 
 void MipLibTrick::nmNotifyNewVar(TNode n)
@@ -188,7 +188,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
 {
   Assert(assertionsToPreprocess->getRealAssertionsEnd()
          == assertionsToPreprocess->size());
-  Assert(!options::incrementalSolving());
+  Assert(!options().base.incrementalSolving);
 
   context::Context fakeContext;
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
@@ -530,12 +530,12 @@ PreprocessingPassResult MipLibTrick::applyInternal(
                   nm->integerType(),
                   "a variable introduced due to scrubbing a miplib encoding",
                   NodeManager::SKOLEM_EXACT_NAME);
-              Node geq = Rewriter::rewrite(nm->mkNode(kind::GEQ, newVar, zero));
-              Node leq = Rewriter::rewrite(nm->mkNode(kind::LEQ, newVar, one));
+              Node geq = rewrite(nm->mkNode(kind::GEQ, newVar, zero));
+              Node leq = rewrite(nm->mkNode(kind::LEQ, newVar, one));
               TrustNode tgeq = TrustNode::mkTrustLemma(geq, nullptr);
               TrustNode tleq = TrustNode::mkTrustLemma(leq, nullptr);
 
-              Node n = Rewriter::rewrite(geq.andNode(leq));
+              Node n = rewrite(geq.andNode(leq));
               assertionsToPreprocess->push_back(n);
               TrustSubstitutionMap tnullMap(&fakeContext, nullptr);
               CVC5_UNUSED SubstitutionMap& nullMap = tnullMap.get();
@@ -575,8 +575,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
                 kind::MULT, nm->mkConst(coef[pos_var][0]), newVars[0]);
           }
           Debug("miplib") << "vars[] " << var << endl
-                          << "    eq " << Rewriter::rewrite(sum) << endl;
-          Node newAssertion = var.eqNode(Rewriter::rewrite(sum));
+                          << "    eq " << rewrite(sum) << endl;
+          Node newAssertion = var.eqNode(rewrite(sum));
           if (top_level_substs.hasSubstitution(newAssertion[0]))
           {
             // Warning() << "RE-SUBSTITUTION " << newAssertion[0] << endl;
@@ -586,7 +586,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
             Assert(top_level_substs.getSubstitution(newAssertion[0])
                    == newAssertion[1]);
           }
-          else if (pos.getNumChildren() <= options::arithMLTrickSubstitutions())
+          else if (pos.getNumChildren()
+                   <= options().arith.arithMLTrickSubstitutions)
           {
             top_level_substs.addSubstitution(newAssertion[0], newAssertion[1]);
             Debug("miplib") << "addSubs: " << newAssertion[0] << " to "
@@ -596,10 +597,10 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           {
             Debug("miplib")
                 << "skipSubs: " << newAssertion[0] << " to " << newAssertion[1]
-                << " (threshold is " << options::arithMLTrickSubstitutions()
-                << ")" << endl;
+                << " (threshold is "
+                << options().arith.arithMLTrickSubstitutions << ")" << endl;
           }
-          newAssertion = Rewriter::rewrite(newAssertion);
+          newAssertion = rewrite(newAssertion);
           Debug("miplib") << "  " << newAssertion << endl;
 
           assertionsToPreprocess->push_back(newAssertion);
@@ -642,7 +643,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
       }
       Debug("miplib") << "had: " << assertion[i] << endl;
       assertionsToPreprocess->replace(
-          i, Rewriter::rewrite(top_level_substs.apply(assertion)));
+          i, rewrite(top_level_substs.apply(assertion)));
       Debug("miplib") << "now: " << assertion << endl;
     }
   }
