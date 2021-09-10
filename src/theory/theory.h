@@ -440,18 +440,7 @@ class Theory : protected EnvObj
     EFFORT_LAST_CALL = 200
   }; /* enum Effort */
 
-  static inline bool standardEffortOrMore(Effort e) CVC5_CONST_FUNCTION
-  {
-    return e >= EFFORT_STANDARD;
-  }
-  static inline bool standardEffortOnly(Effort e) CVC5_CONST_FUNCTION
-  {
-    return e >= EFFORT_STANDARD && e < EFFORT_FULL;
-  }
-  static inline bool fullEffort(Effort e) CVC5_CONST_FUNCTION
-  {
-    return e == EFFORT_FULL;
-  }
+  static bool fullEffort(Effort e) { return e == EFFORT_FULL; }
 
   /**
    * Get the id for this Theory.
