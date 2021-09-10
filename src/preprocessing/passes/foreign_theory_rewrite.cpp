@@ -36,7 +36,7 @@ ForeignTheoryRewrite::ForeignTheoryRewrite(
 Node ForeignTheoryRewrite::simplify(Node n)
 {
   std::vector<Node> toVisit;
-  n = Rewriter::rewrite(n);
+  n = rewrite(n);
   toVisit.push_back(n);
   // traverse n and rewrite until fixpoint
   while (!toVisit.empty())
@@ -143,7 +143,7 @@ PreprocessingPassResult ForeignTheoryRewrite::applyInternal(
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     assertionsToPreprocess->replace(
-        i, Rewriter::rewrite(simplify((*assertionsToPreprocess)[i])));
+        i, rewrite(simplify((*assertionsToPreprocess)[i])));
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
