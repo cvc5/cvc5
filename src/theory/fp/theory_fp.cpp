@@ -72,7 +72,7 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(userContext()),
       d_state(env, valuation),
       d_im(env, *this, d_state, d_pnm, "theory::fp::", true),
-      d_wbFactsCache(userContext())
+      d_wbFactsCache(userContext()),
       d_true(d_env.getNodeManager()->mkConst(true))
 {
   // indicate we are using the default theory state and inference manager
