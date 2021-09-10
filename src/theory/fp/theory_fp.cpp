@@ -27,7 +27,6 @@
 #include "theory/fp/fp_converter.h"
 #include "theory/fp/theory_fp_rewriter.h"
 #include "theory/output_channel.h"
-#include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "util/floatingpoint.h"
 
@@ -72,7 +71,8 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(userContext()),
       d_state(env, valuation),
       d_im(env, *this, d_state, d_pnm, "theory::fp::", false),
-      d_wbFactsCache(userContext())
+      d_wbFactsCache(userContext()),
+      d_true(d_env.getNodeManager()->mkConst(true))
 {
   // indicate we are using the default theory state and inference manager
   d_theoryState = &d_state;
@@ -312,7 +312,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
 
     Node evaluate =
         nm->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL, floatValue, undefValue);
-    Node concreteValue = Rewriter::rewrite(evaluate);
+    Node concreteValue = rewrite(evaluate);
     Assert(concreteValue.isConst());
 
     Trace("fp-refineAbstraction")
@@ -358,7 +358,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
       handleLemma(fl, InferenceId::FP_PREPROCESS);
 
       // Then the backwards constraints
-      Node floatAboveAbstract = Rewriter::rewrite(
+      Node floatAboveAbstract = rewrite(
           nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
                      nm->mkConst(FloatingPointToFPReal(
                          concrete[0].getType().getConst<FloatingPointSize>())),
@@ -375,7 +375,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
               nm->mkNode(kind::GEQ, abstract, abstractValue)));
       handleLemma(bg, InferenceId::FP_PREPROCESS);
 
-      Node floatBelowAbstract = Rewriter::rewrite(
+      Node floatBelowAbstract = rewrite(
           nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
                      nm->mkConst(FloatingPointToFPReal(
                          concrete[0].getType().getConst<FloatingPointSize>())),
@@ -428,7 +428,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
                        concrete.getType().getConst<FloatingPointSize>())),
                    rmValue,
                    realValue);
-    Node concreteValue = Rewriter::rewrite(evaluate);
+    Node concreteValue = rewrite(evaluate);
     Assert(concreteValue.isConst());
 
     Trace("fp-refineAbstraction")
@@ -472,9 +472,9 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
       if (!abstractValue.getConst<FloatingPoint>().isInfinite())
       {
         Node realValueOfAbstract =
-            Rewriter::rewrite(nm->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL,
-                                         abstractValue,
-                                         nm->mkConst(Rational(0U))));
+            rewrite(nm->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL,
+                               abstractValue,
+                               nm->mkConst(Rational(0U))));
 
         Node bg = nm->mkNode(
             kind::IMPLIES,
@@ -655,7 +655,7 @@ void TheoryFp::registerTerm(TNode node)
 
     /* When not word-blasting lazier, we word-blast every term on
      * registration. */
-    if (!options::fpLazyWb())
+    if (!options().fp.fpLazyWb)
     {
       convertAndEquateTerm(node);
     }
@@ -670,7 +670,7 @@ bool TheoryFp::isRegistered(TNode node)
 
 void TheoryFp::preRegisterTerm(TNode node)
 {
-  if (!options::fpExp())
+  if (!options().fp.fpExp)
   {
     TypeNode tn = node.getType();
     if (tn.isFloatingPoint())
@@ -701,7 +701,11 @@ void TheoryFp::handleLemma(Node node, InferenceId id)
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
   // will be preprocessed when sent, which is important because it contains
   // embedded ITEs
-  d_im.lemma(node, id);
+  if (rewrite(node) != d_true)
+  {
+    /* We only send non-trivial lemmas. */
+    d_im.lemma(node, id);
+  }
 }
 
 bool TheoryFp::propagateLit(TNode node)
@@ -752,7 +756,8 @@ bool TheoryFp::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
   /* Word-blast lazier if configured. */
-  if (options::fpLazyWb() && d_wbFactsCache.find(atom) == d_wbFactsCache.end())
+  if (options().fp.fpLazyWb
+      && d_wbFactsCache.find(atom) == d_wbFactsCache.end())
   {
     d_wbFactsCache.insert(atom);
     convertAndEquateTerm(atom);
@@ -785,7 +790,7 @@ bool TheoryFp::preNotifyFact(
 void TheoryFp::notifySharedTerm(TNode n)
 {
   /* Word-blast lazier if configured. */
-  if (options::fpLazyWb() && d_wbFactsCache.find(n) == d_wbFactsCache.end())
+  if (options().fp.fpLazyWb && d_wbFactsCache.find(n) == d_wbFactsCache.end())
   {
     d_wbFactsCache.insert(n);
     convertAndEquateTerm(n);
