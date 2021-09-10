@@ -33,7 +33,7 @@ namespace cvc5 {
 namespace theory {
 namespace fp {
 
-class FpConverter;
+class FpWordBlaster;
 
 class TheoryFp : public Theory
 {
@@ -120,7 +120,7 @@ class TheoryFp : public Theory
   context::CDHashSet<Node> d_registeredTerms;
 
   /** The word-blaster. Translates FP -> BV. */
-  std::unique_ptr<FpConverter> d_conv;
+  std::unique_ptr<FpWordBlaster> d_conv;
 
   bool d_expansionRequested;
 

@@ -24,7 +24,7 @@
 #include "expr/skolem_manager.h"
 #include "options/fp_options.h"
 #include "smt/logic_exception.h"
-#include "theory/fp/fp_converter.h"
+#include "theory/fp/fp_word_blaster.h"
 #include "theory/fp/theory_fp_rewriter.h"
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
@@ -64,7 +64,7 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_FP, env, out, valuation),
       d_notification(*this),
       d_registeredTerms(userContext()),
-      d_conv(new FpConverter(userContext())),
+      d_conv(new FpWordBlaster(userContext())),
       d_expansionRequested(false),
       d_realToFloatMap(userContext()),
       d_floatToRealMap(userContext()),
@@ -876,8 +876,8 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
         << std::endl;
 
     Node converted = d_conv->getValue(d_valuation, node);
-    // We only assign the value if the FpConverter actually has one, that is,
-    // if FpConverter::getValue() does not return a null node.
+    // We only assign the value if the FpWordBlaster actually has one, that is,
+    // if FpWordBlaster::getValue() does not return a null node.
     if (!converted.isNull() && !m->assertEquality(node, converted, true))
     {
       return false;
