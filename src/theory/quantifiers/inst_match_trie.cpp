@@ -189,16 +189,18 @@ CDInstMatchTrie::~CDInstMatchTrie()
   d_data.clear();
 }
 
-bool CDInstMatchTrie::existsInstMatch(quantifiers::QuantifiersState& qs,
+bool CDInstMatchTrie::existsInstMatch(Env& env,
+                                      quantifiers::QuantifiersState& qs,
                                       Node q,
                                       const std::vector<Node>& m,
                                       bool modEq,
                                       unsigned index)
 {
-  return !addInstMatch(qs, q, m, modEq, index, true);
+  return !addInstMatch(env, qs, q, m, modEq, index, true);
 }
 
-bool CDInstMatchTrie::addInstMatch(quantifiers::QuantifiersState& qs,
+bool CDInstMatchTrie::addInstMatch(Env& env,
+                                   quantifiers::QuantifiersState& qs,
                                    Node f,
                                    const std::vector<Node>& m,
                                    bool modEq,
@@ -226,7 +228,8 @@ bool CDInstMatchTrie::addInstMatch(quantifiers::QuantifiersState& qs,
   std::map<Node, CDInstMatchTrie*>::iterator it = d_data.find(n);
   if (it != d_data.end())
   {
-    bool ret = it->second->addInstMatch(qs, f, m, modEq, index + 1, onlyExist);
+    bool ret =
+        it->second->addInstMatch(env, qs, f, m, modEq, index + 1, onlyExist);
     if (!onlyExist || !ret)
     {
       return reset || ret;
@@ -246,7 +249,8 @@ bool CDInstMatchTrie::addInstMatch(quantifiers::QuantifiersState& qs,
           std::map<Node, CDInstMatchTrie*>::iterator itc = d_data.find(en);
           if (itc != d_data.end())
           {
-            if (itc->second->addInstMatch(qs, f, m, modEq, index + 1, true))
+            if (itc->second->addInstMatch(
+                    env, qs, f, m, modEq, index + 1, true))
             {
               return false;
             }
@@ -259,10 +263,10 @@ bool CDInstMatchTrie::addInstMatch(quantifiers::QuantifiersState& qs,
 
   if (!onlyExist)
   {
-    CDInstMatchTrie* imt = new CDInstMatchTrie(qs.getUserContext());
+    CDInstMatchTrie* imt = new CDInstMatchTrie(env.getUserContext());
     Assert(d_data.find(n) == d_data.end());
     d_data[n] = imt;
-    imt->addInstMatch(qs, f, m, modEq, index + 1, false);
+    imt->addInstMatch(env, qs, f, m, modEq, index + 1, false);
   }
   return true;
 }

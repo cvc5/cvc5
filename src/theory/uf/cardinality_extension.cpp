@@ -186,7 +186,7 @@ void Region::setDisequal( Node n1, Node n2, int type, bool valid ){
 void Region::setRep( Node n, bool valid ) {
   Assert(hasRep(n) != valid);
   if( valid && d_nodes.find( n )==d_nodes.end() ){
-    d_nodes[n] = new RegionNodeInfo(d_cf->d_state.getSatContext());
+    d_nodes[n] = new RegionNodeInfo(d_cf->d_thss->context());
   }
   d_nodes[n]->setValid(valid);
   d_reps_size = d_reps_size + ( valid ? 1 : -1 );
@@ -447,8 +447,8 @@ void Region::debugPrint( const char* c, bool incClique ) {
 }
 
 SortModel::CardinalityDecisionStrategy::CardinalityDecisionStrategy(
-    Node t, context::Context* satContext, Valuation valuation)
-    : DecisionStrategyFmf(satContext, valuation), d_cardinality_term(t)
+    Env& env, Node t, Valuation valuation)
+    : DecisionStrategyFmf(env, valuation), d_cardinality_term(t)
 {
 }
 Node SortModel::CardinalityDecisionStrategy::mkLiteral(unsigned i)
@@ -470,15 +470,15 @@ SortModel::SortModel(Node n,
       d_state(state),
       d_im(im),
       d_thss(thss),
-      d_regions_index(d_state.getSatContext(), 0),
-      d_regions_map(d_state.getSatContext()),
-      d_split_score(d_state.getSatContext()),
-      d_disequalities_index(d_state.getSatContext(), 0),
-      d_reps(d_state.getSatContext(), 0),
-      d_cardinality(d_state.getSatContext(), 1),
-      d_hasCard(d_state.getSatContext(), false),
-      d_maxNegCard(d_state.getSatContext(), 0),
-      d_initialized(d_state.getUserContext(), false),
+      d_regions_index(thss->context(), 0),
+      d_regions_map(thss->context()),
+      d_split_score(thss->context()),
+      d_disequalities_index(thss->context(), 0),
+      d_reps(thss->context(), 0),
+      d_cardinality(thss->context(), 1),
+      d_hasCard(thss->context(), false),
+      d_maxNegCard(thss->context(), 0),
+      d_initialized(thss->userContext(), false),
       d_c_dec_strat(nullptr)
 {
   d_cardinality_term = n;
@@ -489,7 +489,7 @@ SortModel::SortModel(Node n,
     // We are guaranteed that the decision manager is ready since we
     // construct this module during TheoryUF::finishInit.
     d_c_dec_strat.reset(new CardinalityDecisionStrategy(
-        n, d_state.getSatContext(), thss->getTheory()->getValuation()));
+        thss->d_env, n, thss->getTheory()->getValuation()));
   }
 }
 
@@ -530,7 +530,7 @@ void SortModel::newEqClass( Node n ){
         d_regions[d_regions_index]->setValid(true);
         Assert(d_regions[d_regions_index]->getNumReps() == 0);
       }else{
-        d_regions.push_back(new Region(this, d_state.getSatContext()));
+        d_regions.push_back(new Region(this, d_thss->context()));
       }
       d_regions[d_regions_index]->addRep(n);
       d_regions_index = d_regions_index + 1;
@@ -1225,29 +1225,31 @@ Node SortModel::getCardinalityLiteral(uint32_t c)
   return lit;
 }
 
-CardinalityExtension::CardinalityExtension(TheoryState& state,
+CardinalityExtension::CardinalityExtension(Env& env,
+                                           TheoryState& state,
                                            TheoryInferenceManager& im,
                                            TheoryUF* th)
-    : d_state(state),
+    : EnvObj(env),
+      d_state(state),
       d_im(im),
       d_th(th),
       d_rep_model(),
-      d_min_pos_com_card(state.getSatContext(), 0),
-      d_min_pos_com_card_set(state.getSatContext(), false),
+      d_min_pos_com_card(context(), 0),
+      d_min_pos_com_card_set(context(), false),
       d_cc_dec_strat(nullptr),
-      d_initializedCombinedCardinality(state.getUserContext(), false),
-      d_card_assertions_eqv_lemma(state.getUserContext()),
-      d_min_pos_tn_master_card(state.getSatContext(), 0),
-      d_min_pos_tn_master_card_set(state.getSatContext(), false),
-      d_rel_eqc(state.getSatContext())
+      d_initializedCombinedCardinality(userContext(), false),
+      d_card_assertions_eqv_lemma(userContext()),
+      d_min_pos_tn_master_card(context(), 0),
+      d_min_pos_tn_master_card_set(context(), false),
+      d_rel_eqc(context())
 {
   if (options::ufssMode() == options::UfssMode::FULL && options::ufssFairness())
   {
     // Register the strategy with the decision manager of the theory.
     // We are guaranteed that the decision manager is ready since we
     // construct this module during TheoryUF::finishInit.
-    d_cc_dec_strat.reset(new CombinedCardinalityDecisionStrategy(
-        state.getSatContext(), th->getValuation()));
+    d_cc_dec_strat.reset(
+        new CombinedCardinalityDecisionStrategy(env, th->getValuation()));
   }
 }
 
@@ -1560,9 +1562,8 @@ void CardinalityExtension::presolve()
 }
 
 CardinalityExtension::CombinedCardinalityDecisionStrategy::
-    CombinedCardinalityDecisionStrategy(context::Context* satContext,
-                                        Valuation valuation)
-    : DecisionStrategyFmf(satContext, valuation)
+    CombinedCardinalityDecisionStrategy(Env& env, Valuation valuation)
+    : DecisionStrategyFmf(env, valuation)
 {
 }
 Node CardinalityExtension::CombinedCardinalityDecisionStrategy::mkLiteral(

@@ -23,6 +23,7 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -131,7 +132,8 @@ class CDInstMatchTrie
    * equalities in the equality engine of qs.
    * It additionally takes a context c, for which the entry is valid in.
    */
-  bool existsInstMatch(QuantifiersState& qs,
+  bool existsInstMatch(Env& env,
+                       QuantifiersState& qs,
                        Node q,
                        const std::vector<Node>& m,
                        bool modEq = false,
@@ -145,7 +147,8 @@ class CDInstMatchTrie
    * equalities in the equality engine of qs.
    * It additionally takes a context c, for which the entry is valid in.
    */
-  bool addInstMatch(QuantifiersState& qs,
+  bool addInstMatch(Env& env,
+                    QuantifiersState& qs,
                     Node q,
                     const std::vector<Node>& m,
                     bool modEq = false,

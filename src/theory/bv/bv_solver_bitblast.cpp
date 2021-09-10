@@ -108,23 +108,23 @@ class BBRegistrar : public prop::Registrar
   std::unordered_set<TNode> d_registeredAtoms;
 };
 
-BVSolverBitblast::BVSolverBitblast(TheoryState* s,
+BVSolverBitblast::BVSolverBitblast(Env& env,
+                                   TheoryState* s,
                                    TheoryInferenceManager& inferMgr,
                                    ProofNodeManager* pnm)
-    : BVSolver(*s, inferMgr),
+    : BVSolver(env, *s, inferMgr),
       d_bitblaster(new NodeBitblaster(s)),
       d_bbRegistrar(new BBRegistrar(d_bitblaster.get())),
       d_nullContext(new context::Context()),
-      d_bbFacts(s->getSatContext()),
-      d_bbInputFacts(s->getSatContext()),
-      d_assumptions(s->getSatContext()),
-      d_assertions(s->getSatContext()),
-      d_epg(pnm ? new EagerProofGenerator(pnm, s->getUserContext(), "")
-                : nullptr),
-      d_factLiteralCache(s->getSatContext()),
-      d_literalFactCache(s->getSatContext()),
+      d_bbFacts(context()),
+      d_bbInputFacts(context()),
+      d_assumptions(context()),
+      d_assertions(context()),
+      d_epg(pnm ? new EagerProofGenerator(pnm, userContext(), "") : nullptr),
+      d_factLiteralCache(context()),
+      d_literalFactCache(context()),
       d_propagate(options::bitvectorPropagate()),
-      d_resetNotify(new NotifyResetAssertions(s->getUserContext()))
+      d_resetNotify(new NotifyResetAssertions(userContext()))
 {
   if (pnm != nullptr)
   {

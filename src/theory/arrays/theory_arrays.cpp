@@ -2127,7 +2127,7 @@ void TheoryArrays::conflict(TNode a, TNode b) {
 
 TheoryArrays::TheoryArraysDecisionStrategy::TheoryArraysDecisionStrategy(
     TheoryArrays* ta)
-    : d_ta(ta)
+    : DecisionStrategy(ta->d_env), d_ta(ta)
 {
 }
 void TheoryArrays::TheoryArraysDecisionStrategy::initialize() {}

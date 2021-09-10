@@ -37,12 +37,13 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
-BVSolverLayered::BVSolverLayered(TheoryBV& bv,
+BVSolverLayered::BVSolverLayered(Env& env,
+                                 TheoryBV& bv,
                                  context::Context* c,
                                  context::UserContext* u,
                                  ProofNodeManager* pnm,
                                  std::string name)
-    : BVSolver(bv.d_state, bv.d_im),
+    : BVSolver(env, bv.d_state, bv.d_im),
       d_bv(bv),
       d_context(c),
       d_alreadyPropagatedSet(c),
