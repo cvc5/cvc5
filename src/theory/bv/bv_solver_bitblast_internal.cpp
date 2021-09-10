@@ -74,7 +74,7 @@ BVSolverBitblastInternal::BVSolverBitblastInternal(
     ProofNodeManager* pnm)
     : BVSolver(env, *s, inferMgr),
       d_pnm(pnm),
-      d_bitblaster(new BBProof(s, pnm, false))
+      d_bitblaster(new BBProof(env, s, pnm, false))
 {
 }
 
