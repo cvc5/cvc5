@@ -1853,11 +1853,12 @@ bool MatchGen::isHandled( TNode n ) {
   return true;
 }
 
-QuantConflictFind::QuantConflictFind(QuantifiersState& qs,
+QuantConflictFind::QuantConflictFind(Env& env,
+                                     QuantifiersState& qs,
                                      QuantifiersInferenceManager& qim,
                                      QuantifiersRegistry& qr,
                                      TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr),
+    : QuantifiersModule(env, qs, qim, qr, tr),
       d_conflict(qs.getSatContext(), false),
       d_true(NodeManager::currentNM()->mkConst<bool>(true)),
       d_false(NodeManager::currentNM()->mkConst<bool>(false)),

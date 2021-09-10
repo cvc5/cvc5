@@ -30,11 +30,12 @@ using namespace cvc5::context;
 using namespace cvc5::theory;
 using namespace cvc5::theory::quantifiers;
 
-QModelBuilder::QModelBuilder(QuantifiersState& qs,
+QModelBuilder::QModelBuilder(Env& env,
+                             QuantifiersState& qs,
                              QuantifiersInferenceManager& qim,
                              QuantifiersRegistry& qr,
                              TermRegistry& tr)
-    : TheoryEngineModelBuilder(qs.getEnv()),
+    : TheoryEngineModelBuilder(env),
       d_addedLemmas(0),
       d_triedLemmas(0),
       d_qstate(qs),
@@ -48,7 +49,7 @@ QModelBuilder::QModelBuilder(QuantifiersState& qs,
 void QModelBuilder::finishInit()
 {
   // allocate the default model
-  d_modelAloc.reset(new FirstOrderModel(d_qstate, d_qreg, d_treg));
+  d_modelAloc.reset(new FirstOrderModel(d_env, d_qstate, d_qreg, d_treg));
   d_model = d_modelAloc.get();
 }
 

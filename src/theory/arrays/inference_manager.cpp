@@ -33,7 +33,7 @@ InferenceManager::InferenceManager(Env& env,
                                    ProofNodeManager* pnm)
     : TheoryInferenceManager(env, t, state, pnm, "theory::arrays::", false),
       d_lemmaPg(pnm ? new EagerProofGenerator(
-                    pnm, state.getUserContext(), "ArrayLemmaProofGenerator")
+                    pnm, userContext(), "ArrayLemmaProofGenerator")
                     : nullptr)
 {
 }

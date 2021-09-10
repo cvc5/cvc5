@@ -104,7 +104,8 @@ class Instantiate : public QuantifiersUtil
       context::CDHashMap<Node, std::shared_ptr<InstLemmaList>>;
 
  public:
-  Instantiate(QuantifiersState& qs,
+  Instantiate(Env& env,
+              QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
               QuantifiersRegistry& qr,
               TermRegistry& tr,

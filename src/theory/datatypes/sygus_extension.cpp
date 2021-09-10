@@ -42,10 +42,12 @@ using namespace cvc5::context;
 using namespace cvc5::theory;
 using namespace cvc5::theory::datatypes;
 
-SygusExtension::SygusExtension(TheoryState& s,
+SygusExtension::SygusExtension(Env& env,
+                               TheoryState& s,
                                InferenceManager& im,
                                quantifiers::TermDbSygus* tds)
-    : d_state(s),
+    : EnvObj(env),
+      d_state(s),
       d_im(im),
       d_tds(tds),
       d_ssb(tds),
@@ -1037,7 +1039,7 @@ Node SygusExtension::registerSearchValue(Node a,
                             << ", type=" << tn << std::endl;
     Node bv = d_tds->sygusToBuiltin(cnv, tn);
     Trace("sygus-sb-debug") << "  ......builtin is " << bv << std::endl;
-    Node bvr = d_tds->getExtRewriter()->extendedRewrite(bv);
+    Node bvr = extendedRewrite(bv);
     Trace("sygus-sb-debug") << "  ......search value rewrites to " << bvr << std::endl;
     Trace("dt-sygus") << "  * DT builtin : " << n << " -> " << bvr << std::endl;
     unsigned sz = utils::getSygusTermSize(nv);
@@ -1108,7 +1110,7 @@ Node SygusExtension::registerSearchValue(Node a,
             its = d_sampler[a].find(tn);
           }
           // check equivalent
-          its->second.checkEquivalent(bv, bvr, *d_state.options().base.out);
+          its->second.checkEquivalent(bv, bvr, *options().base.out);
         }
       }
 
