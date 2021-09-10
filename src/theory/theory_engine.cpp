@@ -84,24 +84,6 @@ namespace theory {
 
 /* -------------------------------------------------------------------------- */
 
-inline void flattenAnd(Node n, std::vector<TNode>& out){
-  Assert(n.getKind() == kind::AND);
-  for(Node::iterator i=n.begin(), i_end=n.end(); i != i_end; ++i){
-    Node curr = *i;
-    if(curr.getKind() == kind::AND){
-      flattenAnd(curr, out);
-    }else{
-      out.push_back(curr);
-    }
-  }
-}
-
-inline Node flattenAnd(Node n){
-  std::vector<TNode> out;
-  flattenAnd(n, out);
-  return NodeManager::currentNM()->mkNode(kind::AND, out);
-}
-
 /**
  * Compute the string for a given theory id. In this module, we use
  * THEORY_SAT_SOLVER as an id, which is not a normal id but maps to
@@ -262,8 +244,8 @@ TheoryEngine::TheoryEngine(Env& env)
     d_sortInfer.reset(new SortInference(env));
   }
 
-  d_true = NodeManager::currentNM()->mkConst<bool>(true);
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_true = getNodeManager()->mkConst<bool>(true);
+  d_false = getNodeManager()->mkConst<bool>(false);
 }
 
 TheoryEngine::~TheoryEngine() {
@@ -1697,7 +1679,7 @@ TrustNode TheoryEngine::getExplanation(
   if (exp.size() == 0)
   {
     // Normalize to true
-    expNode = NodeManager::currentNM()->mkConst<bool>(true);
+    expNode = getNodeManager()->mkConst<bool>(true);
   }
   else if (exp.size() == 1)
   {
@@ -1897,7 +1879,8 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
       }
     }
     if( is_conjunction ){
-      return std::pair<bool, Node>(true, NodeManager::currentNM()->mkNode(kind::AND, children));
+      return std::pair<bool, Node>(
+          true, getNodeManager()->mkNode(kind::AND, children));
     }else{
       return std::pair<bool, Node>(false, Node::null());
     }
@@ -1916,7 +1899,9 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
         }
         std::pair<bool, Node> chres2 = entailmentCheck(mode, ch2);
         if( chres2.first ){
-          return std::pair<bool, Node>(true, NodeManager::currentNM()->mkNode(kind::AND, chres.second, chres2.second));
+          return std::pair<bool, Node>(
+              true,
+              getNodeManager()->mkNode(kind::AND, chres.second, chres2.second));
         }else{
           break;
         }

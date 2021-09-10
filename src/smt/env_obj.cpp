@@ -45,4 +45,6 @@ context::UserContext* EnvObj::userContext() const
   return d_env.getUserContext();
 }
 
+NodeManager* EnvObj::getNodeManager() const { return d_env.getNodeManager(); }
+
 }  // namespace cvc5

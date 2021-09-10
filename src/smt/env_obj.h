@@ -67,6 +67,9 @@ class EnvObj
   /** Get a pointer to the UserContext via Env. */
   context::UserContext* userContext() const;
 
+  /** Get a pointer to the NodeManager via Env. */
+  NodeManager* getNodeManager() const;
+
   /** The associated environment. */
   Env& d_env;
 };
