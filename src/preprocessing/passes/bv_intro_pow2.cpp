@@ -39,7 +39,7 @@ PreprocessingPassResult BvIntroPow2::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   std::unordered_map<Node, Node> cache;
-  for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
+  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Node cur = (*assertionsToPreprocess)[i];
     Node res = pow2Rewrite(cur, cache);
