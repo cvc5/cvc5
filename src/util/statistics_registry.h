@@ -74,6 +74,7 @@
 #include <typeinfo>
 
 #include "base/check.h"
+#include "smt/env_obj.h"
 #include "util/statistics_stats.h"
 #include "util/statistics_value.h"
 
@@ -111,7 +112,7 @@ struct StatisticBaseValue;
  * However, no data is stored in the registry and the modification functions
  * of the proxy objects do nothing.
  */
-class StatisticsRegistry
+class StatisticsRegistry: protected EnvObj
 {
  public:
   friend std::ostream& operator<<(std::ostream& os,
@@ -124,7 +125,7 @@ class StatisticsRegistry
    * pre-registered as such. This argument mostly exists so that unit tests
    * can disable this pre-registration.
    */
-  StatisticsRegistry(bool registerPublic = true);
+  StatisticsRegistry(Env& env, bool registerPublic = true);
 
   /** Register a new running average statistic for `name` */
 

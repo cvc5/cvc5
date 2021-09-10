@@ -22,7 +22,7 @@
 
 namespace cvc5 {
 
-StatisticsRegistry::StatisticsRegistry(bool registerPublic)
+StatisticsRegistry::StatisticsRegistry(Env& env, bool registerPublic): EnvObj(env)
 {
   if (registerPublic)
   {
@@ -52,8 +52,8 @@ void StatisticsRegistry::storeSnapshot()
     d_lastSnapshot = std::make_unique<Snapshot>();
     for (const auto& s : d_stats)
     {
-      if (!options::statisticsExpert() && s.second->d_expert) continue;
-      if (!options::statisticsAll() && s.second->isDefault()) continue;
+      if (!options().base.statisticsExpert && s.second->d_expert) continue;
+      if (!options().base.statisticsAll && s.second->isDefault()) continue;
       d_lastSnapshot->emplace(
           s.first,
           s.second->getViewer());
@@ -78,8 +78,8 @@ void StatisticsRegistry::print(std::ostream& os) const
   {
     for (const auto& s : d_stats)
     {
-      if (!options::statisticsExpert() && s.second->d_expert) continue;
-      if (!options::statisticsAll() && s.second->isDefault()) continue;
+      if (!options().base.statisticsExpert && s.second->d_expert) continue;
+      if (!options().base.statisticsAll && s.second->isDefault()) continue;
       os << s.first << " = " << *s.second << std::endl;
     }
   }
@@ -91,8 +91,8 @@ void StatisticsRegistry::printSafe(int fd) const
   {
     for (const auto& s : d_stats)
     {
-      if (!options::statisticsExpert() && s.second->d_expert) continue;
-      if (!options::statisticsAll() && s.second->isDefault()) continue;
+      if (!options().base.statisticsExpert && s.second->d_expert) continue;
+      if (!options().base.statisticsAll && s.second->isDefault()) continue;
 
       safe_print(fd, s.first);
       safe_print(fd, " = ");
@@ -113,8 +113,8 @@ void StatisticsRegistry::printDiff(std::ostream& os) const
     }
     for (const auto& s : d_stats)
     {
-      if (!options::statisticsExpert() && s.second->d_expert) continue;
-      if (!options::statisticsAll() && s.second->isDefault())
+      if (!options().base.statisticsExpert && s.second->d_expert) continue;
+      if (!options().base.statisticsAll && s.second->isDefault())
       {
         auto oldit = d_lastSnapshot->find(s.first);
         if (oldit != d_lastSnapshot->end() && oldit->second != s.second->getViewer())
