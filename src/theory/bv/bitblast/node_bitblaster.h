@@ -28,12 +28,12 @@ namespace bv {
  *
  * Implements the bare minimum to bit-blast bit-vector atoms/terms.
  */
-class NodeBitblaster : public TBitblaster<Node>
+class NodeBitblaster : public TBitblaster<Node>, protected EnvObj
 {
   using Bits = std::vector<Node>;
 
  public:
-  NodeBitblaster(TheoryState* state);
+  NodeBitblaster(Env& env, TheoryState* state);
   ~NodeBitblaster() = default;
 
   /** Bit-blast term 'node' and return bit-blasted 'bits'. */
