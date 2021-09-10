@@ -70,7 +70,7 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
       d_abstractionMap(userContext()),
       d_rewriter(userContext()),
       d_state(env, valuation),
-      d_im(env, *this, d_state, d_pnm, "theory::fp::", false),
+      d_im(env, *this, d_state, d_pnm, "theory::fp::", true),
       d_wbFactsCache(userContext()),
       d_true(d_env.getNodeManager()->mkConst(true))
 {
