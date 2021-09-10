@@ -16,30 +16,20 @@
 #include "options/options.h"
 
 #include "base/check.h"
-#include "base/exception.h"
-#include "base/output.h"
-#include "options/language.h"
+#include "base/cvc5config.h"
 #include "options/options_handler.h"
 #include "options/options_listener.h"
 
 // clang-format off
 ${headers_module}$
-
-#include "base/cvc5config.h"
-
-${headers_handler}$
-
-using namespace cvc5;
-using namespace cvc5::options;
 // clang-format on
 
 namespace cvc5
 {
   thread_local Options* Options::s_current = nullptr;
 
-  Options::Options(OptionsListener * ol)
+  Options::Options()
       :
-        d_olisten(ol),
 // clang-format off
 ${holder_mem_inits}$
 ${holder_ref_inits}$
@@ -50,21 +40,13 @@ ${holder_ref_inits}$
 
   Options::~Options() {}
 
-void Options::copyValues(const Options& options){
-  if(this != &options) {
+  void Options::copyValues(const Options& options)
+  {
+    if (this != &options)
+    {
 // clang-format off
 ${holder_mem_copy}$
 // clang-format on
-  }
-}
-
-void Options::setListener(OptionsListener* ol) { d_olisten = ol; }
-  
-void Options::notifyListener(const std::string& key)
-  {
-    if (d_olisten != nullptr)
-    {
-      d_olisten->notifySetOption(key);
     }
   }
 

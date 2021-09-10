@@ -66,7 +66,7 @@ class CVC5_EXPORT Exception : public std::exception
    * a derived class, it's recommended that this method print the
    * type of exception before the actual message.
    */
-  virtual void toStream(std::ostream& os) const { os << d_msg; }
+  virtual void toStream(std::ostream& os) const;
 
 }; /* class Exception */
 

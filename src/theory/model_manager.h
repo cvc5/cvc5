@@ -20,6 +20,7 @@
 
 #include <memory>
 
+#include "smt/env_obj.h"
 #include "theory/ee_manager.h"
 #include "theory/logic_info.h"
 
@@ -40,7 +41,7 @@ class TheoryModel;
  * method is a manager-specific way for setting up the equality engine of the
  * model in preparation for model building.
  */
-class ModelManager
+class ModelManager : protected EnvObj
 {
  public:
   ModelManager(TheoryEngine& te, Env& env, EqEngineManager& eem);
@@ -108,26 +109,9 @@ class ModelManager
    * @return true if we are in conflict.
    */
   bool collectModelBooleanVariables();
-  /**
-   * Collect asserted terms for theory with the given identifier, add to
-   * termSet.
-   *
-   * @param tid The theory whose assertions we are collecting
-   * @param termSet The set to add terms to
-   * @param includeShared Whether to include the shared terms of the theory
-   */
-  void collectAssertedTerms(TheoryId tid,
-                            std::set<Node>& termSet,
-                            bool includeShared = true) const;
-  /**
-   * Helper function for collectAssertedTerms, adds all subterms
-   * belonging to theory tid to termSet.
-   */
-  void collectTerms(TheoryId tid, TNode n, std::set<Node>& termSet) const;
+
   /** Reference to the theory engine */
   TheoryEngine& d_te;
-  /** Reference to the environment */
-  Env& d_env;
   /** The equality engine manager */
   EqEngineManager& d_eem;
   /**

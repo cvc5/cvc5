@@ -26,14 +26,15 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SynthEngine::SynthEngine(QuantifiersState& qs,
+SynthEngine::SynthEngine(Env& env,
+                         QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr), d_conj(nullptr), d_sqp()
+    : QuantifiersModule(env, qs, qim, qr, tr), d_conj(nullptr), d_sqp(env)
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-      new SynthConjecture(qs, qim, qr, tr, d_statistics)));
+      new SynthConjecture(env, qs, qim, qr, tr, d_statistics)));
   d_conj = d_conjs.back().get();
 }
 
@@ -153,8 +154,8 @@ void SynthEngine::assignConjecture(Node q)
   // allocate a new synthesis conjecture if not assigned
   if (d_conjs.back()->isAssigned())
   {
-    d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-        new SynthConjecture(d_qstate, d_qim, d_qreg, d_treg, d_statistics)));
+    d_conjs.push_back(std::unique_ptr<SynthConjecture>(new SynthConjecture(
+        d_env, d_qstate, d_qim, d_qreg, d_treg, d_statistics)));
   }
   d_conjs.back()->assign(q);
 }
@@ -213,24 +214,10 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
     Trace("sygus-engine-debug") << "Do conjecture check..." << std::endl;
     Trace("sygus-engine-debug")
         << "  *** Check candidate phase..." << std::endl;
-    std::vector<Node> cclems;
-    bool ret = conj->doCheck(cclems);
-    bool addedLemma = false;
-    for (const Node& lem : cclems)
-    {
-      if (d_qim.addPendingLemma(lem, InferenceId::UNKNOWN))
-      {
-        ++(d_statistics.d_cegqi_lemmas_ce);
-        addedLemma = true;
-      }
-      else
-      {
-        // this may happen if we eagerly unfold, simplify to true
-        Trace("sygus-engine-debug")
-            << "  ...FAILED to add candidate!" << std::endl;
-      }
-    }
-    if (addedLemma)
+    size_t prevPending = d_qim.numPendingLemmas();
+    bool ret = conj->doCheck();
+    // if we added a lemma, return true
+    if (d_qim.numPendingLemmas() > prevPending)
     {
       Trace("sygus-engine-debug")
           << "  ...check for counterexample." << std::endl;

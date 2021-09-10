@@ -30,10 +30,12 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusPbe::SygusPbe(QuantifiersInferenceManager& qim,
+SygusPbe::SygusPbe(Env& env,
+                   QuantifiersState& qs,
+                   QuantifiersInferenceManager& qim,
                    TermDbSygus* tds,
                    SynthConjecture* p)
-    : SygusModule(qim, tds, p)
+    : SygusModule(env, qs, qim, tds, p)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -44,8 +46,7 @@ SygusPbe::~SygusPbe() {}
 
 bool SygusPbe::initialize(Node conj,
                           Node n,
-                          const std::vector<Node>& candidates,
-                          std::vector<Node>& lemmas)
+                          const std::vector<Node>& candidates)
 {
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
@@ -71,7 +72,7 @@ bool SygusPbe::initialize(Node conj,
   for (const Node& c : candidates)
   {
     Assert(ei->hasExamples(c));
-    d_sygus_unif[c].reset(new SygusUnifIo(d_parent));
+    d_sygus_unif[c].reset(new SygusUnifIo(d_env, d_parent));
     Trace("sygus-pbe") << "Initialize unif utility for " << c << "..."
                        << std::endl;
     std::map<Node, std::vector<Node>> strategy_lemmas;
@@ -131,7 +132,7 @@ bool SygusPbe::initialize(Node conj,
         // Apply extended rewriting on the lemma. This helps utilities like
         // SygusEnumerator more easily recognize the shape of this lemma, e.g.
         // ( ~is-ite(x) or ( ~is-ite(x) ^ P ) ) --> ~is-ite(x).
-        lem = d_tds->getExtRewriter()->extendedRewrite(lem);
+        lem = extendedRewrite(lem);
         Trace("sygus-pbe") << "  static redundant op lemma : " << lem
                            << std::endl;
         // Register as a symmetry breaking lemma with the term database.
@@ -166,8 +167,7 @@ bool SygusPbe::allowPartialModel() { return !options::sygusPbeMultiFair(); }
 bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
                                    const std::vector<Node>& enum_values,
                                    const std::vector<Node>& candidates,
-                                   std::vector<Node>& candidate_values,
-                                   std::vector<Node>& lems)
+                                   std::vector<Node>& candidate_values)
 {
   Assert(enums.size() == enum_values.size());
   if( !enums.empty() ){
@@ -234,9 +234,10 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
         Assert(!g.isNull());
         for (unsigned k = 0, size = enum_lems.size(); k < size; k++)
         {
-          enum_lems[k] = nm->mkNode(OR, g.negate(), enum_lems[k]);
+          Node lem = nm->mkNode(OR, g.negate(), enum_lems[k]);
+          d_qim.addPendingLemma(lem,
+                                InferenceId::QUANTIFIERS_SYGUS_PBE_EXCLUDE);
         }
-        lems.insert(lems.end(), enum_lems.begin(), enum_lems.end());
       }
     }
   }
@@ -244,7 +245,14 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
     Node c = candidates[i];
     //build decision tree for candidate
     std::vector<Node> sol;
-    if (d_sygus_unif[c]->constructSolution(sol, lems))
+    std::vector<Node> lems;
+    bool solSuccess = d_sygus_unif[c]->constructSolution(sol, lems);
+    for (const Node& lem : lems)
+    {
+      d_qim.addPendingLemma(lem,
+                            InferenceId::QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL);
+    }
+    if (solSuccess)
     {
       Assert(sol.size() == 1);
       candidate_values.push_back(sol[0]);

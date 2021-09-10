@@ -228,7 +228,7 @@ void ExtfSolver::checkExtfReductions(int effort)
   for (const Node& n : extf)
   {
     Assert(!d_state.isInConflict());
-    Trace("strings-process")
+    Trace("strings-extf-debug")
         << "  check " << n
         << ", active in model=" << d_extfInfoTmp[n].d_modelActive << std::endl;
     bool ret = doReduction(effort, n);
@@ -678,12 +678,8 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
     return mv;
   }
   Node nr = d_state.getRepresentative(n);
-  Node c = d_bsolver.explainBestContentEqc(n, nr, exp);
-  if (!c.isNull())
-  {
-    return c;
-  }
-  else if (effort >= 1 && n.getType().isStringLike())
+  // if the normal form is available, use it
+  if (effort >= 1 && n.getType().isStringLike())
   {
     Assert(effort < 3);
     // normal forms
@@ -696,6 +692,12 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
       d_im.addToExplanation(n, nfnr.d_base, exp);
     }
     return ns;
+  }
+  // otherwise, we use the best content heuristic
+  Node c = d_bsolver.explainBestContentEqc(n, nr, exp);
+  if (!c.isNull())
+  {
+    return c;
   }
   return n;
 }

@@ -21,6 +21,8 @@
 #include "theory/builtin/proof_checker.h"
 #include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_inference_manager.h"
+#include "theory/theory_state.h"
 
 namespace cvc5 {
 namespace theory {
@@ -29,12 +31,7 @@ namespace builtin {
 class TheoryBuiltin : public Theory
 {
  public:
-  TheoryBuiltin(context::Context* c,
-                context::UserContext* u,
-                OutputChannel& out,
-                Valuation valuation,
-                const LogicInfo& logicInfo,
-                ProofNodeManager* pnm = nullptr);
+  TheoryBuiltin(Env& env, OutputChannel& out, Valuation valuation);
 
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
@@ -51,6 +48,10 @@ class TheoryBuiltin : public Theory
   TheoryBuiltinRewriter d_rewriter;
   /** Proof rule checker */
   BuiltinProofRuleChecker d_checker;
+  /** A (default) theory state object */
+  TheoryState d_state;
+  /** A (default) inference manager */
+  TheoryInferenceManager d_im;
 }; /* class TheoryBuiltin */
 
 }  // namespace builtin

@@ -21,6 +21,7 @@
 #include "context/cdhashmap.h"
 #include "expr/node_trie.h"
 #include "expr/term_canonize.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/quant_module.h"
 #include "theory/type_enumerator.h"
 
@@ -437,7 +438,8 @@ private:  //information about ground equivalence classes
   unsigned flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth );
 
  public:
-  ConjectureGenerator(QuantifiersState& qs,
+  ConjectureGenerator(Env& env,
+                      QuantifiersState& qs,
                       QuantifiersInferenceManager& qim,
                       QuantifiersRegistry& qr,
                       TermRegistry& tr);

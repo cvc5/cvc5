@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,26 +10,27 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * The assumption proof generator class.
  */
 
-#include "options/printer_modes.h"
+#include "proof/assumption_proof_generator.h"
 
-namespace cvc5::options {
+#include "proof/proof_node_manager.h"
 
-std::ostream& operator<<(std::ostream& out, InstFormatMode mode)
+namespace cvc5 {
+
+AssumptionProofGenerator::AssumptionProofGenerator(ProofNodeManager* pnm)
+    : d_pnm(pnm)
 {
-  out << "InstFormatMode::";
-  switch (mode)
-  {
-    case options::InstFormatMode::DEFAULT: out << "DEFAULT"; break;
-    case options::InstFormatMode::SZS: out << "SZS"; break;
-    default: out << "UNKNOWN![" << unsigned(mode) << "]";
-  }
-  return out;
+}
+
+std::shared_ptr<ProofNode> AssumptionProofGenerator::getProofFor(Node f)
+{
+  return d_pnm->mkAssume(f);
+}
+std::string AssumptionProofGenerator::identify() const
+{
+  return "AssumptionProofGenerator";
 }
 
 }  // namespace cvc5

@@ -1,6 +1,5 @@
 id     = "DRIVER"
 name   = "Driver"
-public = true
 
 [[option]]
   name       = "version"
@@ -70,15 +69,14 @@ public = true
   category   = "regular"
   long       = "interactive"
   type       = "bool"
-  help       = "force interactive/non-interactive mode"
+  help       = "force interactive shell/non-interactive mode"
 
 [[option]]
-  name       = "interactivePrompt"
+  name       = "filename"
   category   = "undocumented"
-  long       = "interactive-prompt"
-  type       = "bool"
-  default    = "true"
-  help       = "interactive prompting while in interactive mode"
+  long       = "filename=FILENAME"
+  type       = "std::string"
+  help       = "filename of the input"
 
 [[option]]
   name       = "segvSpin"
@@ -111,6 +109,14 @@ public = true
   type       = "bool"
   default    = "false"
   help       = "output instantiations of quantified formulas after every UNSAT/VALID response"
+
+[[option]]
+  name       = "dumpInstantiationsDebug"
+  category   = "regular"
+  long       = "dump-instantiations-debug"
+  type       = "bool"
+  default    = "false"
+  help       = "output instantiations of quantified formulas after every UNSAT/VALID response, with debug information"
 
 [[option]]
   name       = "dumpUnsatCores"

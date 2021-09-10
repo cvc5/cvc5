@@ -17,14 +17,14 @@
 
 #include "expr/skolem_manager.h"
 #include "options/proof_options.h"
-#include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_node_manager.h"
 #include "smt/smt_engine.h"
-#include "smt/smt_statistics_registry.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/bv/bitblast/proof_bitblaster.h"
 #include "theory/rewriter.h"
+#include "theory/strings/infer_proof_cons.h"
 #include "theory/theory.h"
 #include "util/rational.h"
 
@@ -34,14 +34,14 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
-                                                   SmtEngine* smte,
+ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
                                                    ProofGenerator* pppg,
+                                                   rewriter::RewriteDb* rdb,
                                                    bool updateScopedAssumptions)
-    : d_pnm(pnm),
-      d_smte(smte),
+    : d_env(env),
+      d_pnm(env.getProofNodeManager()),
       d_pppg(pppg),
-      d_wfpm(pnm),
+      d_wfpm(env.getProofNodeManager()),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -477,10 +477,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         rargs.push_back(args[3]);
       }
     }
-    builtin::BuiltinProofRuleChecker* builtinPfC =
-        static_cast<builtin::BuiltinProofRuleChecker*>(
-            d_pnm->getChecker()->getCheckerFor(PfRule::MACRO_SR_EQ_INTRO));
-    Node tr = builtinPfC->applyRewrite(ts, idr);
+    Rewriter* rr = d_env.getRewriter();
+    Node tr = rr->rewriteViaMethod(ts, idr);
     Trace("smt-proof-pp-debug")
         << "...eq intro rewrite equality is " << ts << " == " << tr << ", from "
         << idr << std::endl;
@@ -949,21 +947,19 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   {
     // get the kind of rewrite
     MethodId idr = MethodId::RW_REWRITE;
+    TheoryId theoryId = Theory::theoryOf(args[0]);
     if (args.size() >= 2)
     {
       getMethodId(args[1], idr);
     }
-    builtin::BuiltinProofRuleChecker* builtinPfC =
-        static_cast<builtin::BuiltinProofRuleChecker*>(
-            d_pnm->getChecker()->getCheckerFor(PfRule::REWRITE));
-    Node ret = builtinPfC->applyRewrite(args[0], idr);
+    Rewriter* rr = d_env.getRewriter();
+    Node ret = rr->rewriteViaMethod(args[0], idr);
     Node eq = args[0].eqNode(ret);
     if (idr == MethodId::RW_REWRITE || idr == MethodId::RW_REWRITE_EQ_EXT)
     {
       // rewrites from theory::Rewriter
       bool isExtEq = (idr == MethodId::RW_REWRITE_EQ_EXT);
       // use rewrite with proof interface
-      Rewriter* rr = d_smte->getRewriter();
       TrustNode trn = rr->rewriteWithProof(args[0], isExtEq);
       std::shared_ptr<ProofNode> pfn = trn.toProofNode();
       if (pfn == nullptr)
@@ -975,7 +971,6 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         {
           // update to THEORY_REWRITE with idr
           Assert(args.size() >= 1);
-          TheoryId theoryId = Theory::theoryOf(args[0].getType());
           Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
           cdp->addStep(eq, PfRule::THEORY_REWRITE, {}, {eq, tid, args[1]});
         }
@@ -1001,8 +996,20 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     }
     else
     {
-      // don't know how to eliminate
-      return Node::null();
+      // try to reconstruct as a standalone rewrite
+      std::vector<Node> targs;
+      targs.push_back(eq);
+      targs.push_back(
+          builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId));
+      // in this case, must be a non-standard rewrite kind
+      Assert(args.size() >= 2);
+      targs.push_back(args[1]);
+      Node eqp = expandMacros(PfRule::THEORY_REWRITE, {}, targs, cdp);
+      if (eqp.isNull())
+      {
+        // don't know how to eliminate
+        return Node::null();
+      }
     }
     if (args[0] == ret)
     {
@@ -1080,6 +1087,21 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Debug("macro::arith") << "Expansion done. Proved: " << sumBounds
                           << std::endl;
     return sumBounds;
+  }
+  else if (id == PfRule::STRING_INFERENCE)
+  {
+    // get the arguments
+    Node conc;
+    InferenceId iid;
+    bool isRev;
+    std::vector<Node> exp;
+    if (strings::InferProofCons::unpackArgs(args, conc, iid, isRev, exp))
+    {
+      if (strings::InferProofCons::addProofTo(cdp, conc, iid, isRev, exp))
+      {
+        return conc;
+      }
+    }
   }
   else if (id == PfRule::BV_BITBLAST)
   {
@@ -1179,77 +1201,15 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
   return true;
 }
 
-ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(
-    ProofNodeManager* pnm)
-    : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
-        "finalProof::ruleCount")),
-      d_totalRuleCount(
-          smtStatisticsRegistry().registerInt("finalProof::totalRuleCount")),
-      d_minPedanticLevel(
-          smtStatisticsRegistry().registerInt("finalProof::minPedanticLevel")),
-      d_numFinalProofs(
-          smtStatisticsRegistry().registerInt("finalProofs::numFinalProofs")),
-      d_pnm(pnm),
-      d_pedanticFailure(false)
-{
-  d_minPedanticLevel += 10;
-}
-
-void ProofPostprocessFinalCallback::initializeUpdate()
-{
-  d_pedanticFailure = false;
-  d_pedanticFailureOut.str("");
-  ++d_numFinalProofs;
-}
-
-bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                                 const std::vector<Node>& fa,
-                                                 bool& continueUpdate)
-{
-  PfRule r = pn->getRule();
-  // if not doing eager pedantic checking, fail if below threshold
-  if (!options::proofEagerChecking())
-  {
-    if (!d_pedanticFailure)
-    {
-      Assert(d_pedanticFailureOut.str().empty());
-      if (d_pnm->getChecker()->isPedanticFailure(r, d_pedanticFailureOut))
-      {
-        d_pedanticFailure = true;
-      }
-    }
-  }
-  uint32_t plevel = d_pnm->getChecker()->getPedanticLevel(r);
-  if (plevel != 0)
-  {
-    d_minPedanticLevel.minAssign(plevel);
-  }
-  // record stats for the rule
-  d_ruleCount << r;
-  ++d_totalRuleCount;
-  return false;
-}
-
-bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
-{
-  if (d_pedanticFailure)
-  {
-    out << d_pedanticFailureOut.str();
-    return true;
-  }
-  return false;
-}
-
-ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
-                                     SmtEngine* smte,
+ProofPostproccess::ProofPostproccess(Env& env,
                                      ProofGenerator* pppg,
+                                     rewriter::RewriteDb* rdb,
                                      bool updateScopedAssumptions)
-    : d_pnm(pnm),
-      d_cb(pnm, smte, pppg, updateScopedAssumptions),
+    : d_cb(env, pppg, rdb, updateScopedAssumptions),
       // the update merges subproofs
-      d_updater(d_pnm, d_cb, true),
-      d_finalCb(pnm),
-      d_finalizer(d_pnm, d_finalCb)
+      d_updater(env.getProofNodeManager(), d_cb, options::proofPpMerge()),
+      d_finalCb(env.getProofNodeManager()),
+      d_finalizer(env.getProofNodeManager(), d_finalCb)
 {
 }
 

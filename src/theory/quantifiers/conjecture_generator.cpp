@@ -86,15 +86,15 @@ void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& 
   }
 }
 
-ConjectureGenerator::ConjectureGenerator(QuantifiersState& qs,
+ConjectureGenerator::ConjectureGenerator(Env& env,
+                                         QuantifiersState& qs,
                                          QuantifiersInferenceManager& qim,
                                          QuantifiersRegistry& qr,
                                          TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr),
+    : QuantifiersModule(env, qs, qim, qr, tr),
       d_notify(*this),
-      d_uequalityEngine(
-          d_notify, qs.getSatContext(), "ConjectureGenerator::ee", false),
-      d_ee_conjectures(qs.getSatContext()),
+      d_uequalityEngine(d_notify, context(), "ConjectureGenerator::ee", false),
+      d_ee_conjectures(context()),
       d_conj_count(0),
       d_subs_confirmCount(0),
       d_subs_unkCount(0),
@@ -351,7 +351,7 @@ bool ConjectureGenerator::hasEnumeratedUf( Node n ) {
       if( !lem.empty() ){
         for (const Node& l : lem)
         {
-          d_qim.addPendingLemma(l, InferenceId::UNKNOWN);
+          d_qim.addPendingLemma(l, InferenceId::QUANTIFIERS_CONJ_GEN_GT_ENUM);
         }
         d_hasAddedLemma = true;
         return false;
@@ -936,7 +936,8 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               d_eq_conjectures[rhs].push_back( lhs );
 
               Node lem = NodeManager::currentNM()->mkNode( OR, rsg.negate(), rsg );
-              d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
+              d_qim.addPendingLemma(lem,
+                                    InferenceId::QUANTIFIERS_CONJ_GEN_SPLIT);
               d_qim.addPendingPhaseRequirement(rsg, false);
               addedLemmas++;
               if( (int)addedLemmas>=options::conjectureGenPerRound() ){

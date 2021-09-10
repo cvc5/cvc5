@@ -70,40 +70,53 @@ class QuantifiersRewriter : public TheoryRewriter
   static bool isVarElim(Node v, Node s);
   /** get variable elimination literal
    *
-   * If n asserted with polarity pol is equivalent to an equality of the form
-   * v = s for some v in args, where isVariableElim( v, s ) holds, then this
-   * method removes v from args, adds v to vars, adds s to subs, and returns
-   * true. Otherwise, it returns false.
+   * If n asserted with polarity pol in body, and is equivalent to an equality
+   * of the form v = s for some v in args, where isVariableElim( v, s ) holds,
+   * then this method removes v from args, adds v to vars, adds s to subs, and
+   * returns true. Otherwise, it returns false.
    */
-  static bool getVarElimLit(Node n,
+  static bool getVarElimLit(Node body,
+                            Node n,
                             bool pol,
                             std::vector<Node>& args,
                             std::vector<Node>& vars,
                             std::vector<Node>& subs);
+  /**
+   * Get variable eliminate for an equality based on theory-specific reasoning.
+   */
+  static Node getVarElimEq(Node lit, const std::vector<Node>& args, Node& var);
+  /** variable eliminate for real equalities
+   *
+   * If this returns a non-null value ret, then var is updated to a member of
+   * args, lit is equivalent to ( var = ret ).
+   */
+  static Node getVarElimEqReal(Node lit,
+                               const std::vector<Node>& args,
+                               Node& var);
   /** variable eliminate for bit-vector equalities
    *
    * If this returns a non-null value ret, then var is updated to a member of
    * args, lit is equivalent to ( var = ret ).
    */
-  static Node getVarElimLitBv(Node lit,
-                              const std::vector<Node>& args,
-                              Node& var);
+  static Node getVarElimEqBv(Node lit,
+                             const std::vector<Node>& args,
+                             Node& var);
   /** variable eliminate for string equalities
    *
    * If this returns a non-null value ret, then var is updated to a member of
    * args, lit is equivalent to ( var = ret ).
    */
-  static Node getVarElimLitString(Node lit,
-                                  const std::vector<Node>& args,
-                                  Node& var);
+  static Node getVarElimEqString(Node lit,
+                                 const std::vector<Node>& args,
+                                 Node& var);
   /** get variable elimination
    *
-   * If n asserted with polarity pol entails a literal lit that corresponds
-   * to a variable elimination for some v via the above method, we return true.
-   * In this case, we update args/vars/subs based on eliminating v.
+   * If there exists an n with some polarity in body, and entails a literal that
+   * corresponds to a variable elimination for some v via the above method
+   * getVarElimLit, we return true. In this case, we update args/vars/subs
+   * based on eliminating v.
    */
-  static bool getVarElim(Node n,
-                         bool pol,
+  static bool getVarElim(Node body,
                          std::vector<Node>& args,
                          std::vector<Node>& vars,
                          std::vector<Node>& subs);
@@ -133,6 +146,15 @@ class QuantifiersRewriter : public TheoryRewriter
                              QAttributes& qa);
   //-------------------------------------end variable elimination utilities
  private:
+  /**
+   * Helper method for getVarElim, called when n has polarity pol in body.
+   */
+  static bool getVarElimInternal(Node body,
+                                 Node n,
+                                 bool pol,
+                                 std::vector<Node>& args,
+                                 std::vector<Node>& vars,
+                                 std::vector<Node>& subs);
   static int getPurifyIdLit2(Node n, std::map<Node, int>& visited);
   static bool addCheckElimChild(std::vector<Node>& children,
                                 Node c,
@@ -251,10 +273,6 @@ class QuantifiersRewriter : public TheoryRewriter
                             std::unordered_set<Node>& nargs,
                             bool pol,
                             bool prenexAgg);
-  /**
-   * Apply prenexing aggressively. Returns the prenex normal form of n.
-   */
-  static Node computePrenexAgg(Node n, std::map<Node, Node>& visited);
   static Node computeSplit( std::vector< Node >& args, Node body, QAttributes& qa );
 private:
  static Node computeOperation(Node f,
@@ -269,25 +287,8 @@ private:
   /** options */
  static bool doOperation(Node f, RewriteStep computeOption, QAttributes& qa);
 
-private:
-  static Node preSkolemizeQuantifiers(Node n, bool polarity, std::vector< TypeNode >& fvTypes, std::vector<TNode>& fvs);
 public:
   static bool isPrenexNormalForm( Node n );
-  /** preprocess
-   *
-   * This returns the result of applying simple quantifiers-specific
-   * preprocessing to n, including but not limited to:
-   * - rewrite rule elimination,
-   * - pre-skolemization,
-   * - aggressive prenexing.
-   * The argument isInst is set to true if n is an instance of a previously
-   * registered quantified formula. If this flag is true, we do not apply
-   * certain steps like pre-skolemization since we know they will have no
-   * effect.
-   *
-   * The result is wrapped in a trust node of kind TrustNodeKind::REWRITE.
-   */
-  static TrustNode preprocess(Node n, bool isInst = false);
   static Node mkForAll(const std::vector<Node>& args,
                        Node body,
                        QAttributes& qa);

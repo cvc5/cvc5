@@ -60,27 +60,22 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level){
 }/* ostream& operator<<(ostream&, Theory::Effort) */
 
 Theory::Theory(TheoryId id,
-               context::Context* satContext,
-               context::UserContext* userContext,
+               Env& env,
                OutputChannel& out,
                Valuation valuation,
-               const LogicInfo& logicInfo,
-               ProofNodeManager* pnm,
                std::string name)
-    : d_id(id),
-      d_satContext(satContext),
-      d_userContext(userContext),
-      d_logicInfo(logicInfo),
-      d_facts(satContext),
-      d_factsHead(satContext, 0),
-      d_sharedTermsIndex(satContext, 0),
+    : EnvObj(env),
+      d_id(id),
+      d_facts(d_env.getContext()),
+      d_factsHead(d_env.getContext(), 0),
+      d_sharedTermsIndex(d_env.getContext(), 0),
       d_careGraph(nullptr),
       d_instanceName(name),
       d_checkTime(smtStatisticsRegistry().registerTimer(getStatsPrefix(id)
                                                         + name + "checkTime")),
       d_computeCareGraphTime(smtStatisticsRegistry().registerTimer(
           getStatsPrefix(id) + name + "computeCareGraphTime")),
-      d_sharedTerms(satContext),
+      d_sharedTerms(d_env.getContext()),
       d_out(&out),
       d_valuation(valuation),
       d_equalityEngine(nullptr),
@@ -88,7 +83,8 @@ Theory::Theory(TheoryId id,
       d_theoryState(nullptr),
       d_inferManager(nullptr),
       d_quantEngine(nullptr),
-      d_pnm(pnm)
+      d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
+                                           : nullptr)
 {
 }
 
@@ -135,9 +131,9 @@ void Theory::finishInitStandalone()
   EeSetupInfo esi;
   if (needsEqualityEngine(esi))
   {
-    // always associated with the same SAT context as the theory (d_satContext)
+    // always associated with the same SAT context as the theory
     d_allocEqualityEngine.reset(new eq::EqualityEngine(
-        *esi.d_notify, d_satContext, esi.d_name, esi.d_constantsAreTriggers));
+        *esi.d_notify, context(), esi.d_name, esi.d_constantsAreTriggers));
     // use it as the official equality engine
     setEqualityEngine(d_allocEqualityEngine.get());
   }
@@ -339,7 +335,7 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!options::produceModels() && !d_logicInfo.isQuantified())
+  if (!options::produceModels() && !logicInfo().isQuantified())
   {
     // Don't care about the model and logic is not quantified, we can eliminate.
     return true;
@@ -386,6 +382,60 @@ bool Theory::collectModelInfo(TheoryModel* m, const std::set<Node>& termSet)
 void Theory::computeRelevantTerms(std::set<Node>& termSet)
 {
   // by default, there are no additional relevant terms
+}
+
+void Theory::collectAssertedTerms(std::set<Node>& termSet,
+                                  bool includeShared) const
+{
+  // Collect all terms appearing in assertions
+  context::CDList<Assertion>::const_iterator assert_it = facts_begin(),
+                                             assert_it_end = facts_end();
+  for (; assert_it != assert_it_end; ++assert_it)
+  {
+    collectTerms(*assert_it, termSet);
+  }
+
+  if (includeShared)
+  {
+    // Add terms that are shared terms
+    context::CDList<TNode>::const_iterator shared_it = shared_terms_begin(),
+                                           shared_it_end = shared_terms_end();
+    for (; shared_it != shared_it_end; ++shared_it)
+    {
+      collectTerms(*shared_it, termSet);
+    }
+  }
+}
+
+void Theory::collectTerms(TNode n, std::set<Node>& termSet) const
+{
+  const std::set<Kind>& irrKinds =
+      d_theoryState->getModel()->getIrrelevantKinds();
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (termSet.find(cur) != termSet.end())
+    {
+      // already visited
+      continue;
+    }
+    Kind k = cur.getKind();
+    // only add to term set if a relevant kind
+    if (irrKinds.find(k) == irrKinds.end())
+    {
+      termSet.insert(cur);
+    }
+    // traverse owned terms, don't go under quantifiers
+    if ((k == kind::NOT || k == kind::EQUAL || Theory::theoryOf(cur) == d_id)
+        && !cur.isClosure())
+    {
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
 }
 
 bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
@@ -467,7 +517,7 @@ void Theory::getCareGraph(CareGraph* careGraph) {
 
 bool Theory::proofsEnabled() const
 {
-  return d_pnm != nullptr;
+  return d_env.getProofNodeManager() != nullptr;
 }
 
 EqualityStatus Theory::getEqualityStatus(TNode a, TNode b)
@@ -621,7 +671,7 @@ bool Theory::usesCentralEqualityEngine(TheoryId id)
   }
   return id == THEORY_UF || id == THEORY_DATATYPES || id == THEORY_BAGS
          || id == THEORY_FP || id == THEORY_SETS || id == THEORY_STRINGS
-         || id == THEORY_SEP || id == THEORY_ARRAYS;
+         || id == THEORY_SEP || id == THEORY_ARRAYS || id == THEORY_BV;
 }
 
 bool Theory::expUsingCentralEqualityEngine(TheoryId id)

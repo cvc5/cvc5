@@ -50,21 +50,16 @@ struct SeqModelVarAttributeId
 };
 using SeqModelVarAttribute = expr::Attribute<SeqModelVarAttributeId, Node>;
 
-TheoryStrings::TheoryStrings(context::Context* c,
-                             context::UserContext* u,
-                             OutputChannel& out,
-                             Valuation valuation,
-                             const LogicInfo& logicInfo,
-                             ProofNodeManager* pnm)
-    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo, pnm),
+TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
+    : Theory(THEORY_STRINGS, env, out, valuation),
       d_notify(*this),
       d_statistics(),
-      d_state(c, u, d_valuation),
+      d_state(env, d_valuation),
       d_eagerSolver(d_state),
-      d_termReg(d_state, d_statistics, pnm),
+      d_termReg(d_state, d_statistics, d_pnm),
       d_extTheoryCb(),
-      d_extTheory(d_extTheoryCb, c, u, out),
-      d_im(*this, d_state, d_termReg, d_extTheory, d_statistics, pnm),
+      d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics, d_pnm),
+      d_extTheory(d_extTheoryCb, context(), userContext(), d_im),
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(d_state, d_im),
       d_csolver(d_state, d_im, d_termReg, d_bsolver),
@@ -82,8 +77,8 @@ TheoryStrings::TheoryStrings(context::Context* c,
                 d_csolver,
                 d_esolver,
                 d_statistics),
-      d_regexp_elim(options::regExpElimAgg(), pnm, u),
-      d_stringsFmf(c, u, valuation, d_termReg)
+      d_regexp_elim(options::regExpElimAgg(), d_pnm, userContext()),
+      d_stringsFmf(context(), userContext(), valuation, d_termReg)
 {
   d_termReg.finishInit(&d_im);
 
@@ -375,7 +370,7 @@ bool TheoryStrings::collectModelInfoType(
               argVal = nfe.d_nf[0][0];
             }
             Assert(!argVal.isNull()) << "No value for " << nfe.d_nf[0][0];
-            Node c = Rewriter::rewrite(nm->mkNode(SEQ_UNIT, argVal));
+            Node c = rewrite(nm->mkNode(SEQ_UNIT, argVal));
             pure_eq_assign[eqc] = c;
             Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
             m->getEqualityEngine()->addTerm(c);
@@ -919,7 +914,7 @@ void TheoryStrings::checkCodes()
         Trace("strings-code-debug") << "Get proxy variable for " << c
                                     << std::endl;
         Node cc = nm->mkNode(kind::STRING_TO_CODE, c);
-        cc = Rewriter::rewrite(cc);
+        cc = rewrite(cc);
         Assert(cc.isConst());
         Node cp = d_termReg.ensureProxyVariableFor(c);
         Node vc = nm->mkNode(STRING_TO_CODE, cp);
@@ -963,7 +958,7 @@ void TheoryStrings::checkCodes()
           Node eqn = c1[0].eqNode(c2[0]);
           // str.code(x)==-1 V str.code(x)!=str.code(y) V x==y
           Node inj_lem = nm->mkNode(kind::OR, eq_no, deq, eqn);
-          deq = Rewriter::rewrite(deq);
+          deq = rewrite(deq);
           d_im.addPendingPhaseRequirement(deq, false);
           std::vector<Node> emptyVec;
           d_im.sendInference(emptyVec, inj_lem, InferenceId::STRINGS_CODE_INJ);
@@ -993,6 +988,15 @@ void TheoryStrings::checkRegisterTermsNormalForms()
 TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
+  if (atom.getKind() == EQUAL)
+  {
+    // always apply aggressive equality rewrites here
+    Node ret = d_rewriter.rewriteEqualityExt(atom);
+    if (ret != atom)
+    {
+      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+    }
+  }
   if (atom.getKind() == STRING_FROM_CODE)
   {
     // str.from_code(t) --->

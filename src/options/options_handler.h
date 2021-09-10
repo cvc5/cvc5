@@ -25,8 +25,8 @@
 #include "options/bv_options.h"
 #include "options/decision_options.h"
 #include "options/language.h"
+#include "options/managed_streams.h"
 #include "options/option_exception.h"
-#include "options/printer_modes.h"
 #include "options/quantifiers_options.h"
 
 namespace cvc5 {
@@ -45,28 +45,32 @@ public:
   OptionsHandler(Options* options);
 
   template <typename T>
-  void geqZero(const std::string& option,
-               const std::string& flag,
-               T value) const
+  void checkMinimum(const std::string& option,
+                    const std::string& flag,
+                    T value,
+                    T minimum) const
   {
-    if (value < 0)
+    if (value < minimum)
     {
       std::stringstream ss;
-      ss << flag << ": " << value << " is not a legal setting, should be "
-         << value << " >= 0.";
+      ss << flag << " = " << value
+         << " is not a legal setting, value should be at least " << minimum
+         << ".";
       throw OptionException(ss.str());
     }
   }
   template <typename T>
-  void betweenZeroAndOne(const std::string& option,
-                         const std::string& flag,
-                         T value) const
+  void checkMaximum(const std::string& option,
+                    const std::string& flag,
+                    T value,
+                    T maximum) const
   {
-    if (value < 0 || value > 1)
+    if (value > maximum)
     {
       std::stringstream ss;
-      ss << flag << ": " << value
-         << " is not a legal setting, should be 0 <= " << flag << " <= 1.";
+      ss << flag << " = " << value
+         << " is not a legal setting, value should be at most " << maximum
+         << ".";
       throw OptionException(ss.str());
     }
   }
@@ -95,11 +99,6 @@ public:
                       const std::string& flag,
                       bool arg);
 
-  // printer/options_handlers.h
-  InstFormatMode stringToInstFormatMode(const std::string& option,
-                                        const std::string& flag,
-                                        const std::string& optarg);
-
   /**
    * Throws a ModalException if this option is being set after final
    * initialization.
@@ -118,12 +117,12 @@ public:
                          const std::string& optarg);
 
   /* expr/options_handlers.h */
-  void setDefaultExprDepthPredicate(const std::string& option,
-                                    const std::string& flag,
-                                    int depth);
-  void setDefaultDagThreshPredicate(const std::string& option,
-                                    const std::string& flag,
-                                    int dag);
+  void setDefaultExprDepth(const std::string& option,
+                           const std::string& flag,
+                           int depth);
+  void setDefaultDagThresh(const std::string& option,
+                           const std::string& flag,
+                           int dag);
 
   /* main/options_handlers.h */
   void copyright(const std::string& option, const std::string& flag);
@@ -133,17 +132,35 @@ public:
   void threadN(const std::string& option, const std::string& flag);
 
   /* options/base_options_handlers.h */
+  void setDumpStream(const std::string& option,
+                     const std::string& flag,
+                     const ManagedOut& mo);
+  void setErrStream(const std::string& option,
+                    const std::string& flag,
+                    const ManagedErr& me);
+  void setInStream(const std::string& option,
+                   const std::string& flag,
+                   const ManagedIn& mi);
+  void setOutStream(const std::string& option,
+                    const std::string& flag,
+                    const ManagedOut& mo);
   void setVerbosity(const std::string& option,
                     const std::string& flag,
                     int value);
   void increaseVerbosity(const std::string& option, const std::string& flag);
   void decreaseVerbosity(const std::string& option, const std::string& flag);
-  OutputLanguage stringToOutputLanguage(const std::string& option,
-                                        const std::string& flag,
-                                        const std::string& optarg);
-  InputLanguage stringToInputLanguage(const std::string& option,
-                                      const std::string& flag,
-                                      const std::string& optarg);
+  /** Convert optarg to Language enum */
+  Language stringToLanguage(const std::string& option,
+                            const std::string& flag,
+                            const std::string& optarg);
+  /** Apply the output language to the default output stream */
+  void applyOutputLanguage(const std::string& option,
+                           const std::string& flag,
+                           Language lang);
+  /** Check that lang is not LANG_AST (which is not allowed as input language). */
+  void languageIsNotAST(const std::string& option,
+                        const std::string& flag,
+                        Language lang);
   void enableTraceTag(const std::string& option,
                       const std::string& flag,
                       const std::string& optarg);
@@ -155,14 +172,17 @@ public:
                        const std::string& flag,
                        const std::string& optarg);
 
+  void setDumpMode(const std::string& option,
+                   const std::string& flag,
+                   const std::string& optarg);
+  void setPrintSuccess(const std::string& option,
+                       const std::string& flag,
+                       bool value);
+
  private:
 
   /** Pointer to the containing Options object.*/
   Options* d_options;
-
-  /* Help strings */
-  static const std::string s_instFormatHelp;
-
 }; /* class OptionHandler */
 
 }  // namespace options

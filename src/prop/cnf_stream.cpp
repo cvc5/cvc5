@@ -27,7 +27,7 @@
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
 #include "smt/dump.h"
-#include "smt/smt_engine.h"
+#include "smt/env.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory.h"
@@ -39,12 +39,12 @@ namespace prop {
 CnfStream::CnfStream(SatSolver* satSolver,
                      Registrar* registrar,
                      context::Context* context,
-                     OutputManager* outMgr,
+                     Env* env,
                      ResourceManager* rm,
                      FormulaLitPolicy flpol,
                      std::string name)
     : d_satSolver(satSolver),
-      d_outMgr(outMgr),
+      d_env(env),
       d_booleanVariables(context),
       d_notifyFormulas(context),
       d_nodeToLiteralMap(context),
@@ -61,10 +61,10 @@ CnfStream::CnfStream(SatSolver* satSolver,
 bool CnfStream::assertClause(TNode node, SatClause& c)
 {
   Trace("cnf") << "Inserting into stream " << c << " node = " << node << "\n";
-  if (Dump.isOn("clauses") && d_outMgr != nullptr)
+  if (Dump.isOn("clauses") && d_env != nullptr)
   {
-    const Printer& printer = d_outMgr->getPrinter();
-    std::ostream& out = d_outMgr->getDumpOut();
+    const Printer& printer = d_env->getPrinter();
+    std::ostream& out = d_env->getDumpOut();
     if (c.size() == 1)
     {
       printer.toStreamCmdAssert(out, getNode(c[0]));

@@ -39,12 +39,9 @@ class TheoryBV : public Theory
   friend class BVSolverLayered;
 
  public:
-  TheoryBV(context::Context* c,
-           context::UserContext* u,
+  TheoryBV(Env& env,
            OutputChannel& out,
            Valuation valuation,
-           const LogicInfo& logicInfo,
-           ProofNodeManager* pnm = nullptr,
            std::string name = "");
 
   ~TheoryBV();

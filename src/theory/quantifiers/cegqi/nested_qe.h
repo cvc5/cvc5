@@ -25,6 +25,9 @@
 #include "expr/node.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace theory {
 namespace quantifiers {
 
@@ -33,7 +36,7 @@ class NestedQe
   using NodeNodeMap = context::CDHashMap<Node, Node>;
 
  public:
-  NestedQe(context::UserContext* u);
+  NestedQe(Env& env);
   ~NestedQe() {}
   /**
    * Process quantified formula. If this returns true, then q was processed
@@ -64,15 +67,17 @@ class NestedQe
    * returned formula is quantifier-free. Otherwise, it is a quantified formula
    * with no nested quantification.
    */
-  static Node doNestedQe(Node q, bool keepTopLevel = false);
+  static Node doNestedQe(Env& env, Node q, bool keepTopLevel = false);
   /**
    * Run quantifier elimination on quantified formula q, where q has no nested
    * quantification. This method invokes a subsolver for performing quantifier
    * elimination.
    */
-  static Node doQe(Node q);
+  static Node doQe(Env& env, Node q);
 
  private:
+  /** Reference to the env */
+  Env& d_env;
   /**
    * Mapping from quantified formulas q to the result of doNestedQe(q, true).
    */

@@ -17,7 +17,7 @@ jobs:
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
           - name: macos:production
-            os: macos-latest
+            os: macos-11
             config: production --auto-download --all-bindings --editline
             cache-key: production
             python-bindings: true
@@ -26,7 +26,7 @@ jobs:
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
           - name: ubuntu:production-clang
-            os: ubuntu-latest
+            os: ubuntu-18.04
             env: CC=clang CXX=clang++
             config: production --auto-download
             cache-key: productionclang
@@ -35,9 +35,10 @@ jobs:
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
           - name: ubuntu:production-dbg
-            os: ubuntu-latest
+            os: ubuntu-18.04
             config: production --auto-download --assertions --tracing --unit-testing --editline
             cache-key: dbg
+            check-units: true
             exclude_regress: 3-4
             run_regression_args: --no-check-unsat-cores
 
@@ -207,11 +208,16 @@ jobs:
         RUN_REGRESSION_ARGS: ${{ matrix.run_regression_args }}
       working-directory: build
 
+    - name: Run Unit Tests
+      if: matrix.check-units
+      run: make -j${{ env.num_proc }} apitests units
+      working-directory: build
+
     - name: Install Check
       run: |
         make -j${{ env.num_proc }} install
         echo -e "#include <cvc5/cvc5.h>\nint main() { cvc5::api::Solver s; return 0; }" > /tmp/test.cpp
-        g++ -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc5
+        g++ -std=c++17 /tmp/test.cpp -I install/include -L install/lib -lcvc5
       working-directory: build
 
     - name: Python Install Check

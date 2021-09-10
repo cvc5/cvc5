@@ -14,7 +14,7 @@
  * internal code
  */
 
-#include "cvc5_public.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__ENV_H
 #define CVC5__SMT__ENV_H
@@ -40,6 +40,7 @@ class UserContext;
 
 namespace smt {
 class DumpManager;
+class PfManager;
 }
 
 namespace theory {
@@ -56,12 +57,13 @@ class TrustSubstitutionMap;
 class Env
 {
   friend class SmtEngine;
+  friend class smt::PfManager;
 
  public:
   /**
    * Construct an Env with the given node manager.
    */
-  Env(NodeManager* nm, Options* opts);
+  Env(NodeManager* nm, const Options* opts);
   /** Destruct the env.  */
   ~Env();
 
@@ -81,6 +83,21 @@ class Env
    * environment is initialized, and only non-null if proofs are enabled.
    */
   ProofNodeManager* getProofNodeManager();
+
+  /**
+   * Check whether the SAT solver should produce proofs. Other than whether
+   * the proof node manager is set, SAT proofs are only generated when the
+   * unsat core mode is not ASSUMPTIONS.
+   */
+  bool isSatProofProducing() const;
+
+  /**
+   * Check whether theories should produce proofs as well. Other than whether
+   * the proof node manager is set, theory engine proofs are conditioned on the
+   * relationship between proofs and unsat cores: the unsat cores are in
+   * FULL_PROOF mode, no proofs are generated on theory engine.
+   */
+  bool isTheoryProofProducing() const;
 
   /** Get a pointer to the Rewriter owned by this Env. */
   theory::Rewriter* getRewriter();

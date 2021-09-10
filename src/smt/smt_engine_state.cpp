@@ -17,19 +17,18 @@
 
 #include "base/modal_exception.h"
 #include "options/base_options.h"
+#include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/smt_options.h"
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 
 namespace cvc5 {
 namespace smt {
 
-SmtEngineState::SmtEngineState(context::Context* c,
-                               context::UserContext* u,
-                               SmtEngine& smt)
+SmtEngineState::SmtEngineState(Env& env, SmtEngine& smt)
     : d_smt(smt),
-      d_context(c),
-      d_userContext(u),
+      d_env(env),
       d_pendingPops(0),
       d_fullyInited(false),
       d_queryMade(false),
@@ -45,7 +44,7 @@ void SmtEngineState::notifyExpectedStatus(const std::string& status)
   Assert(status == "sat" || status == "unsat" || status == "unknown")
       << "SmtEngineState::notifyExpectedStatus: unexpected status string "
       << status;
-  d_expectedStatus = Result(status, d_filename);
+  d_expectedStatus = Result(status, d_env.getOptions().driver.filename);
 }
 
 void SmtEngineState::notifyResetAssertions()
@@ -57,7 +56,7 @@ void SmtEngineState::notifyResetAssertions()
   }
   // Remember the global push/pop around everything when beyond Start mode
   // (see solver execution modes in the SMT-LIB standard)
-  Assert(d_userLevels.size() == 0 && d_userContext->getLevel() == 1);
+  Assert(d_userLevels.size() == 0 && getUserContext()->getLevel() == 1);
   popto(0);
 }
 
@@ -158,7 +157,7 @@ void SmtEngineState::shutdown()
 {
   doPendingPops();
 
-  while (options::incrementalSolving() && d_userContext->getLevel() > 1)
+  while (options::incrementalSolving() && getUserContext()->getLevel() > 1)
   {
     internalPop(true);
   }
@@ -168,11 +167,6 @@ void SmtEngineState::cleanup()
 {
   // pop to level zero
   popto(0);
-}
-
-void SmtEngineState::setFilename(const std::string& filename)
-{
-  d_filename = filename;
 }
 
 void SmtEngineState::userPush()
@@ -187,10 +181,10 @@ void SmtEngineState::userPush()
   // staying symmetric with pop.
   d_smtMode = SmtMode::ASSERT;
 
-  d_userLevels.push_back(d_userContext->getLevel());
+  d_userLevels.push_back(getUserContext()->getLevel());
   internalPush();
   Trace("userpushpop") << "SmtEngineState: pushed to level "
-                       << d_userContext->getLevel() << std::endl;
+                       << getUserContext()->getLevel() << std::endl;
 }
 
 void SmtEngineState::userPop()
@@ -212,36 +206,36 @@ void SmtEngineState::userPop()
   // is no longer in scope!).
   d_smtMode = SmtMode::ASSERT;
 
-  AlwaysAssert(d_userContext->getLevel() > 0);
-  AlwaysAssert(d_userLevels.back() < d_userContext->getLevel());
-  while (d_userLevels.back() < d_userContext->getLevel())
+  AlwaysAssert(getUserContext()->getLevel() > 0);
+  AlwaysAssert(d_userLevels.back() < getUserContext()->getLevel());
+  while (d_userLevels.back() < getUserContext()->getLevel())
   {
     internalPop(true);
   }
   d_userLevels.pop_back();
 }
-
+context::Context* SmtEngineState::getContext() { return d_env.getContext(); }
+context::UserContext* SmtEngineState::getUserContext()
+{
+  return d_env.getUserContext();
+}
 void SmtEngineState::push()
 {
-  d_userContext->push();
-  d_context->push();
+  getUserContext()->push();
+  getContext()->push();
 }
 
 void SmtEngineState::pop()
 {
-  d_userContext->pop();
-  d_context->pop();
+  getUserContext()->pop();
+  getContext()->pop();
 }
 
 void SmtEngineState::popto(int toLevel)
 {
-  d_context->popto(toLevel);
-  d_userContext->popto(toLevel);
+  getContext()->popto(toLevel);
+  getUserContext()->popto(toLevel);
 }
-
-context::UserContext* SmtEngineState::getUserContext() { return d_userContext; }
-
-context::Context* SmtEngineState::getContext() { return d_context; }
 
 Result SmtEngineState::getStatus() const { return d_status; }
 
@@ -255,8 +249,6 @@ size_t SmtEngineState::getNumUserLevels() const { return d_userLevels.size(); }
 
 SmtMode SmtEngineState::getMode() const { return d_smtMode; }
 
-const std::string& SmtEngineState::getFilename() const { return d_filename; }
-
 void SmtEngineState::internalPush()
 {
   Assert(d_fullyInited);
@@ -266,7 +258,7 @@ void SmtEngineState::internalPush()
   {
     // notifies the SmtEngine to process the assertions immediately
     d_smt.notifyPushPre();
-    d_userContext->push();
+    getUserContext()->push();
     // the context push is done inside of the SAT solver
     d_smt.notifyPushPost();
   }
@@ -300,7 +292,7 @@ void SmtEngineState::doPendingPops()
     // the context pop is done inside of the SAT solver
     d_smt.notifyPopPre();
     // pop the context
-    d_userContext->pop();
+    getUserContext()->pop();
     --d_pendingPops;
     // no need for pop post (for now)
   }

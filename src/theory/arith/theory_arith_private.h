@@ -82,12 +82,14 @@ class InferBoundsResult;
  * Based upon:
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
-class TheoryArithPrivate {
-private:
-
+class TheoryArithPrivate : protected EnvObj
+{
+ private:
   static const uint32_t RESET_START = 2;
 
   TheoryArith& d_containing;
+
+  const Options& options() const { return d_env.getOptions(); }
 
   /**
    * Whether we encountered non-linear arithmetic at any time during solving.
@@ -423,11 +425,7 @@ private:
   DeltaRational getDeltaValue(TNode term) const
       /* throw(DeltaRationalException, ModelException) */;
  public:
-  TheoryArithPrivate(TheoryArith& containing,
-                     context::Context* c,
-                     context::UserContext* u,
-                     BranchAndBound& bab,
-                     ProofNodeManager* pnm);
+  TheoryArithPrivate(TheoryArith& containing, Env& env, BranchAndBound& bab);
   ~TheoryArithPrivate();
 
   //--------------------------------- initialization
@@ -688,13 +686,11 @@ private:
   /** Debugging only routine. Prints the model. */
   void debugPrintModel(std::ostream& out) const;
 
-  inline LogicInfo getLogicInfo() const { return d_containing.getLogicInfo(); }
   inline bool done() const { return d_containing.done(); }
   inline TNode get() { return d_containing.get(); }
   inline bool isLeaf(TNode x) const { return d_containing.isLeaf(x); }
   inline TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
   inline void debugPrintFacts() const { d_containing.debugPrintFacts(); }
-  inline context::Context* getSatContext() const { return d_containing.getSatContext(); }
   bool outputTrustedLemma(TrustNode lem, InferenceId id);
   bool outputLemma(TNode lem, InferenceId id);
   void outputTrustedConflict(TrustNode conf, InferenceId id);
@@ -876,7 +872,7 @@ private:
 
 
   Statistics d_statistics;
-};/* class TheoryArithPrivate */
+}; /* class TheoryArithPrivate */
 
 }  // namespace arith
 }  // namespace theory

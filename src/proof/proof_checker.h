@@ -29,7 +29,7 @@ namespace cvc5 {
 class ProofChecker;
 class ProofNode;
 
-namespace theory {
+namespace rewriter {
 class RewriteDb;
 }
 
@@ -105,7 +105,9 @@ class ProofCheckerStatistics
 class ProofChecker
 {
  public:
-  ProofChecker(uint32_t pclevel = 0, theory::RewriteDb* rdb = nullptr);
+  ProofChecker(bool eagerCheck,
+               uint32_t pclevel = 0,
+               rewriter::RewriteDb* rdb = nullptr);
   ~ProofChecker() {}
   /**
    * Return the formula that is proven by proof node pn, or null if pn is not
@@ -167,7 +169,7 @@ class ProofChecker
   /** get checker for */
   ProofRuleChecker* getCheckerFor(PfRule id);
   /** get the rewrite database */
-  theory::RewriteDb* getRewriteDatabase();
+  rewriter::RewriteDb* getRewriteDatabase();
   /**
    * Get the pedantic level for id if it has been assigned a pedantic
    * level via registerTrustedChecker above, or zero otherwise.
@@ -189,10 +191,12 @@ class ProofChecker
   std::map<PfRule, ProofRuleChecker*> d_checker;
   /** Maps proof trusted rules to their pedantic level */
   std::map<PfRule, uint32_t> d_plevel;
+  /** Whether we check for pedantic failures eagerly */
+  bool d_eagerCheck;
   /** The pedantic level of this checker */
   uint32_t d_pclevel;
   /** Pointer to the rewrite database */
-  theory::RewriteDb* d_rdb;
+  rewriter::RewriteDb* d_rdb;
   /**
    * Check internal. This is used by check and checkDebug above. It writes
    * checking errors on out when enableOutput is true. We treat trusted checkers

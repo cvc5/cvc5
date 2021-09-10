@@ -30,36 +30,28 @@
 namespace cvc5 {
 
 using namespace parser;
-using namespace language::input;
 
 namespace test {
 
 class TestParserBlackParser : public TestInternal
 {
  protected:
-  TestParserBlackParser(InputLanguage lang) : d_lang(lang) {}
+  TestParserBlackParser(const std::string& lang) : d_lang(lang) {}
 
   virtual ~TestParserBlackParser() {}
 
   void SetUp() override
   {
     TestInternal::SetUp();
-    d_options.base.parseOnly = true;
     d_symman.reset(nullptr);
-    d_solver.reset(new cvc5::api::Solver(&d_options));
+    d_solver.reset(new cvc5::api::Solver());
+    d_solver->setOption("parse-only", "true");
   }
 
   void TearDown() override
   {
     d_symman.reset(nullptr);
     d_solver.reset(nullptr);
-  }
-
-  void setUp()
-  {
-    /* ensure the old symbol manager is deleted */
-    d_symman.reset(nullptr);
-    d_solver.reset(new api::Solver(&d_options));
   }
 
   /* Set up declaration context for expr inputs */
@@ -86,10 +78,10 @@ class TestParserBlackParser : public TestInternal
   void tryGoodInput(const std::string goodInput)
   {
     d_symman.reset(new SymbolManager(d_solver.get()));
-    std::unique_ptr<Parser> parser(ParserBuilder(d_solver.get(), d_symman.get())
-                                       .withOptions(d_options)
-                                       .withInputLanguage(d_lang)
-                                       .build());
+    std::unique_ptr<Parser> parser(
+        ParserBuilder(d_solver.get(), d_symman.get(), true)
+            .withInputLanguage(d_lang)
+            .build());
     parser->setInput(Input::newStringInput(d_lang, goodInput, "test"));
     ASSERT_FALSE(parser->done());
     Command* cmd;
@@ -105,11 +97,11 @@ class TestParserBlackParser : public TestInternal
   void tryBadInput(const std::string badInput, bool strictMode = false)
   {
     d_symman.reset(new SymbolManager(d_solver.get()));
-    std::unique_ptr<Parser> parser(ParserBuilder(d_solver.get(), d_symman.get())
-                                       .withOptions(d_options)
-                                       .withInputLanguage(d_lang)
-                                       .withStrictMode(strictMode)
-                                       .build());
+    std::unique_ptr<Parser> parser(
+        ParserBuilder(d_solver.get(), d_symman.get(), true)
+            .withInputLanguage(d_lang)
+            .withStrictMode(strictMode)
+            .build());
     parser->setInput(Input::newStringInput(d_lang, badInput, "test"));
     ASSERT_THROW(
         {
@@ -127,12 +119,12 @@ class TestParserBlackParser : public TestInternal
   void tryGoodExpr(const std::string goodExpr)
   {
     d_symman.reset(new SymbolManager(d_solver.get()));
-    std::unique_ptr<Parser> parser(ParserBuilder(d_solver.get(), d_symman.get())
-                                       .withOptions(d_options)
-                                       .withInputLanguage(d_lang)
-                                       .build());
+    std::unique_ptr<Parser> parser(
+        ParserBuilder(d_solver.get(), d_symman.get(), true)
+            .withInputLanguage(d_lang)
+            .build());
     parser->setInput(Input::newStringInput(d_lang, goodExpr, "test"));
-    if (d_lang == LANG_SMTLIB_V2)
+    if (d_lang == "LANG_SMTLIB_V2_6")
     {
       /* Use QF_LIA to make multiplication ("*") available */
       std::unique_ptr<Command> cmd(
@@ -161,11 +153,11 @@ class TestParserBlackParser : public TestInternal
   void tryBadExpr(const std::string badExpr, bool strictMode = false)
   {
     d_symman.reset(new SymbolManager(d_solver.get()));
-    std::unique_ptr<Parser> parser(ParserBuilder(d_solver.get(), d_symman.get())
-                                       .withOptions(d_options)
-                                       .withInputLanguage(d_lang)
-                                       .withStrictMode(strictMode)
-                                       .build());
+    std::unique_ptr<Parser> parser(
+        ParserBuilder(d_solver.get(), d_symman.get(), true)
+            .withInputLanguage(d_lang)
+            .withStrictMode(strictMode)
+            .build());
     parser->setInput(Input::newStringInput(d_lang, badExpr, "test"));
     setupContext(*parser);
     ASSERT_FALSE(parser->done());
@@ -177,8 +169,7 @@ class TestParserBlackParser : public TestInternal
                  , ParserException);
   }
 
-  Options d_options;
-  InputLanguage d_lang;
+  std::string d_lang;
   std::unique_ptr<cvc5::api::Solver> d_solver;
   std::unique_ptr<SymbolManager> d_symman;
 };
@@ -188,7 +179,7 @@ class TestParserBlackParser : public TestInternal
 class TestParserBlackCvCParser : public TestParserBlackParser
 {
  protected:
-  TestParserBlackCvCParser() : TestParserBlackParser(LANG_CVC) {}
+  TestParserBlackCvCParser() : TestParserBlackParser("LANG_CVC") {}
 };
 
 TEST_F(TestParserBlackCvCParser, good_inputs)
@@ -286,7 +277,7 @@ TEST_F(TestParserBlackCvCParser, bad_exprs)
 class TestParserBlackSmt2Parser : public TestParserBlackParser
 {
  protected:
-  TestParserBlackSmt2Parser() : TestParserBlackParser(LANG_SMTLIB_V2) {}
+  TestParserBlackSmt2Parser() : TestParserBlackParser("LANG_SMTLIB_V2_6") {}
 };
 
 TEST_F(TestParserBlackSmt2Parser, good_inputs)

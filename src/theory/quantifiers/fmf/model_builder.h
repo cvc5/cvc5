@@ -43,7 +43,8 @@ class QModelBuilder : public TheoryEngineModelBuilder
   unsigned d_triedLemmas;
 
  public:
-  QModelBuilder(QuantifiersState& qs,
+  QModelBuilder(Env& env,
+                QuantifiersState& qs,
                 QuantifiersInferenceManager& qim,
                 QuantifiersRegistry& qr,
                 TermRegistry& tr);

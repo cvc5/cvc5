@@ -31,12 +31,6 @@ class SygusStatistics
 {
  public:
   SygusStatistics();
-  /** Number of counterexample lemmas */
-  IntStat d_cegqi_lemmas_ce;
-  /** Number of refinement lemmas */
-  IntStat d_cegqi_lemmas_refine;
-  /** Number of single invocation lemmas */
-  IntStat d_cegqi_si_lemmas;
   /** Number of solutions printed (could be >1 for --sygus-stream) */
   IntStat d_solutions;
   /** Number of solutions filtered */

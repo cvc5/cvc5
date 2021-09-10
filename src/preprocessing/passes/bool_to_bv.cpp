@@ -20,6 +20,7 @@
 
 #include "base/map_util.h"
 #include "expr/node.h"
+#include "options/bv_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_statistics_registry.h"
@@ -35,7 +36,7 @@ using namespace cvc5::theory;
 BoolToBV::BoolToBV(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bool-to-bv"), d_statistics()
 {
-  d_boolToBVMode = options::boolToBitvector();
+  d_boolToBVMode = options().bv.boolToBitvector;
 };
 
 PreprocessingPassResult BoolToBV::applyInternal(
@@ -50,7 +51,7 @@ PreprocessingPassResult BoolToBV::applyInternal(
     for (size_t i = 0; i < size; ++i)
     {
       Node newAssertion = lowerAssertion((*assertionsToPreprocess)[i], true);
-      assertionsToPreprocess->replace(i, Rewriter::rewrite(newAssertion));
+      assertionsToPreprocess->replace(i, rewrite(newAssertion));
     }
   }
   else
@@ -59,7 +60,7 @@ PreprocessingPassResult BoolToBV::applyInternal(
     for (size_t i = 0; i < size; ++i)
     {
       assertionsToPreprocess->replace(
-          i, Rewriter::rewrite(lowerIte((*assertionsToPreprocess)[i])));
+          i, rewrite(lowerIte((*assertionsToPreprocess)[i])));
     }
   }
 

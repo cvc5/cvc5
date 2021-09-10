@@ -22,6 +22,7 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -34,12 +35,12 @@ class SolverState;
  * Term registry, the purpose of this class is to maintain a database of
  * commonly used terms, and mappings from bags to their "proxy variables".
  */
-class TermRegistry
+class TermRegistry : protected EnvObj
 {
   typedef context::CDHashMap<Node, Node> NodeMap;
 
  public:
-  TermRegistry(SolverState& state, InferenceManager& im);
+  TermRegistry(Env& env, SolverState& state, InferenceManager& im);
 
   /**
    * Returns the existing empty bag for type tn

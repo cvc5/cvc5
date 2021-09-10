@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include "smt/env_obj.h"
 #include "theory/quantifiers/expr_miner_manager.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/cegis.h"
@@ -42,6 +43,7 @@ namespace quantifiers {
 class CegGrammarConstructor;
 class SygusPbe;
 class SygusStatistics;
+class EnumValueManager;
 
 /** a synthesis conjecture
  * This class implements approaches for a synthesis conjecture, given by data
@@ -50,10 +52,11 @@ class SygusStatistics;
  * determines which approach and optimizations are applicable to the
  * conjecture, and has interfaces for implementing them.
  */
-class SynthConjecture
+class SynthConjecture : protected EnvObj
 {
  public:
-  SynthConjecture(QuantifiersState& qs,
+  SynthConjecture(Env& env,
+                  QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr,
@@ -83,7 +86,7 @@ class SynthConjecture
    * concrete terms t1, ..., tn to check, where we make up to n calls to doCheck
    * when each of t1, ..., tn fails to satisfy the current refinement lemmas.
    */
-  bool doCheck(std::vector<Node>& lems);
+  bool doCheck();
   /** do refinement
    *
    * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
@@ -210,8 +213,8 @@ class SynthConjecture
   std::unique_ptr<SygusRepairConst> d_sygus_rconst;
   /** example inference utility */
   std::unique_ptr<ExampleInfer> d_exampleInfer;
-  /** example evaluation cache utility for each enumerator */
-  std::map<Node, std::unique_ptr<ExampleEvalCache> > d_exampleEvalCache;
+  /** map from enumerators to their enumerator manager */
+  std::map<Node, std::unique_ptr<EnumValueManager>> d_enumManager;
 
   //------------------------modules
   /** program by examples module */
@@ -250,40 +253,9 @@ class SynthConjecture
                            std::vector<Node>& v,
                            bool& activeIncomplete);
   /**
-   * Get model value for term n. If n has a value that was excluded by
-   * datatypes sygus symmetry breaking, this method returns null. It sets
-   * activeIncomplete to true if there is an actively-generated enumerator whose
-   * current value is null but it has not finished generating values.
+   * Get or make enumerator manager for the enumerator e.
    */
-  Node getEnumeratedValue(Node n, bool& activeIncomplete);
-  /** enumerator generators for each actively-generated enumerator */
-  std::map<Node, std::unique_ptr<EnumValGenerator> > d_evg;
-  /**
-   * Map from enumerators to whether they are currently being
-   * "actively-generated". That is, we are in a state where we have called
-   * d_evg[e].addValue(v) for some v, and d_evg[e].getNext() has not yet
-   * returned null. The range of this map stores the abstract value that
-   * we are currently generating values from.
-   */
-  std::map<Node, Node> d_ev_curr_active_gen;
-  /** the current waiting value of each actively-generated enumerator, if any
-   *
-   * This caches values that are actively generated and that we have not yet
-   * passed to a call to SygusModule::constructCandidates. An example of when
-   * this may occur is when there are two actively-generated enumerators e1 and
-   * e2. Say on some iteration we actively-generate v1 for e1, the value
-   * of e2 was excluded by symmetry breaking, and say the current master sygus
-   * module does not handle partial models. Hence, we abort the current check.
-   * We remember that the value of e1 was v1 by storing it here, so that on
-   * a future check when v2 has a proper value, it is returned.
-   */
-  std::map<Node, Node> d_ev_active_gen_waiting;
-  /** the first value enumerated for each actively-generated enumerator
-   *
-   * This is to implement an optimization that only guards the blocking lemma
-   * for the first value of an actively-generated enumerator.
-   */
-  std::map<Node, Node> d_ev_active_gen_first_val;
+  EnumValueManager* getEnumValueManagerFor(Node e);
   //------------------------end enumerators
 
   /** list of constants for quantified formula
@@ -341,8 +313,6 @@ class SynthConjecture
    * not yet tried to repair.
    */
   unsigned d_repair_index;
-  /** number of times we have called doRefine */
-  unsigned d_refine_count;
   /** record solution (this is used to construct solutions later) */
   void recordSolution(std::vector<Node>& vs);
   /** get synth solutions internal
@@ -395,7 +365,7 @@ class SynthConjecture
    * This is used for the sygusRewSynth() option to synthesize new candidate
    * rewrite rules.
    */
-  std::map<Node, ExpressionMinerManager> d_exprm;
+  std::map<Node, std::unique_ptr<ExpressionMinerManager>> d_exprm;
 };
 
 }  // namespace quantifiers
