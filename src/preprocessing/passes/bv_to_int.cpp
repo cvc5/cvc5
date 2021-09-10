@@ -424,13 +424,13 @@ Node BVToInt::translateWithChildren(Node original,
       // operators)
       // 3. translating into a sum
       uint64_t bvsize = original[0].getType().getBitVectorSize();
-      if (options::solveBVAsInt() == options::SolveBVAsIntMode::IAND)
+      if (options().smt.solveBVAsInt == options::SolveBVAsIntMode::IAND)
       {
         Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
         returnNode = d_nm->mkNode(
             kind::IAND, iAndOp, translated_children[0], translated_children[1]);
       }
-      else if (options::solveBVAsInt() == options::SolveBVAsIntMode::BV)
+      else if (options().smt.solveBVAsInt == options::SolveBVAsIntMode::BV)
       {
         // translate the children back to BV
         Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
@@ -445,14 +445,14 @@ Node BVToInt::translateWithChildren(Node original,
       }
       else
       {
-        Assert(options::solveBVAsInt() == options::SolveBVAsIntMode::SUM);
+        Assert(options().smt.solveBVAsInt == options::SolveBVAsIntMode::SUM);
         // Construct a sum of ites, based on granularity.
         Assert(translated_children.size() == 2);
         returnNode =
             d_iandUtils.createSumNode(translated_children[0],
                                       translated_children[1],
                                       bvsize,
-                                      options::BVAndIntegerGranularity());
+                                      options().smt.BVAndIntegerGranularity);
       }
       break;
     }
@@ -657,7 +657,7 @@ Node BVToInt::translateWithChildren(Node original,
        * of the bounds that were relevant for the original
        * bit-vectors.
        */
-      if (childrenTypesChanged(original) && options::ufHo())
+      if (childrenTypesChanged(original) && options().uf.ufHo)
       {
         throw TypeCheckingExceptionPrivate(
             original,

@@ -75,7 +75,7 @@ void traceBackToAssertions(booleans::CircuitPropagator* propagator,
 MipLibTrick::MipLibTrick(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "miplib-trick")
 {
-  if (!options::incrementalSolving())
+  if (!options().base.incrementalSolving)
   {
     NodeManager::currentNM()->subscribeEvents(this);
   }
@@ -83,7 +83,7 @@ MipLibTrick::MipLibTrick(PreprocessingPassContext* preprocContext)
 
 MipLibTrick::~MipLibTrick()
 {
-  if (!options::incrementalSolving())
+  if (!options().base.incrementalSolving)
   {
     NodeManager::currentNM()->unsubscribeEvents(this);
   }
@@ -188,7 +188,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
 {
   Assert(assertionsToPreprocess->getRealAssertionsEnd()
          == assertionsToPreprocess->size());
-  Assert(!options::incrementalSolving());
+  Assert(!options().base.incrementalSolving);
 
   context::Context fakeContext;
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
@@ -586,7 +586,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
             Assert(top_level_substs.getSubstitution(newAssertion[0])
                    == newAssertion[1]);
           }
-          else if (pos.getNumChildren() <= options::arithMLTrickSubstitutions())
+          else if (pos.getNumChildren()
+                   <= options().arith.arithMLTrickSubstitutions)
           {
             top_level_substs.addSubstitution(newAssertion[0], newAssertion[1]);
             Debug("miplib") << "addSubs: " << newAssertion[0] << " to "
@@ -596,8 +597,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           {
             Debug("miplib")
                 << "skipSubs: " << newAssertion[0] << " to " << newAssertion[1]
-                << " (threshold is " << options::arithMLTrickSubstitutions()
-                << ")" << endl;
+                << " (threshold is "
+                << options().arith.arithMLTrickSubstitutions << ")" << endl;
           }
           newAssertion = rewrite(newAssertion);
           Debug("miplib") << "  " << newAssertion << endl;
