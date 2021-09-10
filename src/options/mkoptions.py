@@ -434,7 +434,8 @@ def _add_cmdoption(option, name, opts, next_id):
 
 def generate_parsing(modules):
     """Generates the implementation for main::parseInternal() and matching
-    options definitions suitable for getopt_long(). Returns a tuple with:
+    options definitions suitable for getopt_long().
+    Returns a tuple with:
     - short options description (passed as third argument to getopt_long)
     - long options description (passed as fourth argument to getopt_long)
     - handler code that turns getopt_long return value to a setOption call

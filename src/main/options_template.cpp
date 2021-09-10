@@ -86,8 +86,7 @@ void printUsage(const std::string& msg, std::ostream& os)
   os << msg << "\n"
      << commonOptionsDescription << "\n\n"
      << additionalOptionsDescription << std::endl
-     << optionsFootnote << std::endl
-     << std::flush;
+     << optionsFootnote << std::endl;
 }
 
 void printShortUsage(const std::string& msg, std::ostream& os)
@@ -96,8 +95,7 @@ void printShortUsage(const std::string& msg, std::ostream& os)
      << commonOptionsDescription << std::endl
      << optionsFootnote << std::endl
      << "For full usage, please use --help." << std::endl
-     << std::endl
-     << std::flush;
+     << std::endl;
 }
 
 void printLanguageHelp(std::ostream& os)
@@ -118,7 +116,7 @@ void printLanguageHelp(std::ostream& os)
  *    required_argument - an argument is expected
  *    optional_argument - an argument is permitted but not required
  * 3. this is a pointer to an int which is set to the 4th entry of the
- *    array if the option is present; or NULL, in which case
+ *    array if the option is present; or nullptr, in which case
  *    getopt_long() returns the 4th entry
  * 4. the return value for getopt_long() when this long option (or the
  *    value to set the 3rd entry to; see #3)
@@ -154,9 +152,9 @@ void parseInternal(api::Solver& solver,
   {
     Debug("options") << "starting a new parseInternal with " << argc
                      << " arguments" << std::endl;
-    for (int i = 0; i < argc; i++)
+    for (int i = 0; i < argc; ++i)
     {
-      Assert(argv[i] != NULL);
+      Assert(argv[i] != nullptr);
       Debug("options") << "  argv[" << i << "] = " << argv[i] << std::endl;
     }
   }
@@ -201,7 +199,7 @@ void parseInternal(api::Solver& solver,
     // clang-format off
     int c = getopt_long(argc, argv,
                         "+:${cmdoptions_short}$",
-                        cmdlineOptions, NULL);
+                        cmdlineOptions, nullptr);
     // clang-format on
 
     main_optind = optind;
