@@ -76,12 +76,12 @@ QuantifiersEngine::QuantifiersEngine(
   {
     Trace("quant-init-debug") << "...make fmc builder." << std::endl;
     d_builder.reset(
-        new quantifiers::fmcheck::FullModelChecker(qs, qim, qr, tr));
+        new quantifiers::fmcheck::FullModelChecker(env, qs, qim, qr, tr));
   }
   else
   {
     Trace("quant-init-debug") << "...make default model builder." << std::endl;
-    d_builder.reset(new quantifiers::QModelBuilder(qs, qim, qr, tr));
+    d_builder.reset(new quantifiers::QModelBuilder(env, qs, qim, qr, tr));
   }
   // set the model object
   d_builder->finishInit();
@@ -113,7 +113,7 @@ void QuantifiersEngine::finishInit(TheoryEngine* te)
   d_model->finishInit(te->getModel());
   d_te = te;
   // Initialize the modules and the utilities here.
-  d_qmodules.reset(new quantifiers::QuantifiersModules);
+  d_qmodules.reset(new quantifiers::QuantifiersModules());
   d_qmodules->initialize(
       d_env, d_qstate, d_qim, d_qreg, d_treg, d_builder.get(), d_modules);
   if (d_qmodules->d_rel_dom.get())

@@ -42,12 +42,14 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-Instantiate::Instantiate(QuantifiersState& qs,
+Instantiate::Instantiate(Env& env,
+                         QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr,
                          ProofNodeManager* pnm)
-    : d_qstate(qs),
+    : QuantifiersUtil(env),
+      d_qstate(qs),
       d_qim(qim),
       d_qreg(qr),
       d_treg(tr),

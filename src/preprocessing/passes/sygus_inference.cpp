@@ -65,7 +65,7 @@ PreprocessingPassResult SygusInference::applyInternal(
           prev.substitute(funs.begin(), funs.end(), sols.begin(), sols.end());
       if (curr != prev)
       {
-        curr = theory::Rewriter::rewrite(curr);
+        curr = rewrite(curr);
         Trace("sygus-infer-debug")
             << "...rewrote " << prev << " to " << curr << std::endl;
         assertionsToPreprocess->replace(i, curr);
@@ -127,7 +127,7 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
     std::map<TypeNode, unsigned> type_count;
     Node pas = as;
     // rewrite
-    pas = theory::Rewriter::rewrite(pas);
+    pas = rewrite(pas);
     Trace("sygus-infer") << "assertion : " << pas << std::endl;
     if (pas.getKind() == FORALL)
     {

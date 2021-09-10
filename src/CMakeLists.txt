@@ -294,6 +294,8 @@ libcvc5_add_sources(
   smt/check_models.h
   smt/command.cpp
   smt/command.h
+  smt/difficulty_post_processor.cpp
+  smt/difficulty_post_processor.h
   smt/dump.cpp
   smt/dump.h
   smt/dump_manager.cpp
@@ -688,6 +690,8 @@ libcvc5_add_sources(
   theory/decision_manager.h
   theory/decision_strategy.cpp
   theory/decision_strategy.h
+  theory/difficulty_manager.cpp
+  theory/difficulty_manager.h
   theory/ee_manager.cpp
   theory/ee_manager.h
   theory/ee_manager_central.cpp

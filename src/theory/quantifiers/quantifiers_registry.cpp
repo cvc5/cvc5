@@ -24,7 +24,8 @@ namespace theory {
 namespace quantifiers {
 
 QuantifiersRegistry::QuantifiersRegistry(Env& env)
-    : d_quantAttr(),
+    : QuantifiersUtil(env),
+      d_quantAttr(),
       d_quantBoundInf(options::fmfTypeCompletionThresh(),
                       options::finiteModelFind()),
       d_quantPreproc(env)
