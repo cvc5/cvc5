@@ -71,7 +71,8 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(userContext()),
       d_state(env, valuation),
       d_im(env, *this, d_state, d_pnm, "theory::fp::", false),
-      d_wbFactsCache(userContext())
+      d_wbFactsCache(userContext()),
+      d_true(d_env.getNodeManager()->mkConst(true))
 {
   // indicate we are using the default theory state and inference manager
   d_theoryState = &d_state;
@@ -700,7 +701,11 @@ void TheoryFp::handleLemma(Node node, InferenceId id)
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
   // will be preprocessed when sent, which is important because it contains
   // embedded ITEs
-  d_im.lemma(node, id);
+  if (rewrite(node) != d_true)
+  {
+    /* We only send non-trivial lemmas. */
+    d_im.lemma(node, id);
+  }
 }
 
 bool TheoryFp::propagateLit(TNode node)
