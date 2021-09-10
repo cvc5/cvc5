@@ -818,7 +818,7 @@ FpWordBlaster::uf FpWordBlaster::buildComponents(TNode current)
   return tmp;
 }
 
-Node FpWordBlaster::convert(TNode node)
+Node FpWordBlaster::wordBlast(TNode node)
 {
   std::vector<TNode> visit;
   std::unordered_map<TNode, bool> visited;

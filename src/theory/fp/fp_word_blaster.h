@@ -297,7 +297,7 @@ class FpWordBlaster
   ~FpWordBlaster();
 
   /** Adds a node to the conversion, returns the converted node */
-  Node convert(TNode);
+  Node wordBlast(TNode);
 
   /**
    * Gives the node representing the value of a word-blasted variable.
