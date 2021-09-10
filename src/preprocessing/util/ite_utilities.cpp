@@ -1451,7 +1451,7 @@ uint32_t countReachable(TNode x, Kind k)
 
 Node ITESimplifier::simpITEAtom(TNode atom)
 {
-  static int CVC5_UNUSED instance = 0;
+  CVC5_UNUSED static int instance = 0;
   Debug("ite::atom") << "still simplifying " << (++instance) << endl;
   Node attempt = transformAtom(atom);
   Debug("ite::atom") << "  finished " << instance << endl;

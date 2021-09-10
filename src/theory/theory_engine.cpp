@@ -695,7 +695,7 @@ void TheoryEngine::postsolve() {
   d_inSatMode = false;
   // Reset the interrupt flag
   d_interrupted = false;
-  bool CVC5_UNUSED wasInConflict = d_inConflict;
+  CVC5_UNUSED bool wasInConflict = d_inConflict;
 
   try {
     // Definition of the statement that is to be run by every theory

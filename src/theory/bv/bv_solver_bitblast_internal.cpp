@@ -68,8 +68,11 @@ void collectBVAtoms(TNode n, std::unordered_set<Node>& atoms)
 }  // namespace
 
 BVSolverBitblastInternal::BVSolverBitblastInternal(
-    TheoryState* s, TheoryInferenceManager& inferMgr, ProofNodeManager* pnm)
-    : BVSolver(*s, inferMgr),
+    Env& env,
+    TheoryState* s,
+    TheoryInferenceManager& inferMgr,
+    ProofNodeManager* pnm)
+    : BVSolver(env, *s, inferMgr),
       d_pnm(pnm),
       d_bitblaster(new BBProof(s, pnm, false))
 {

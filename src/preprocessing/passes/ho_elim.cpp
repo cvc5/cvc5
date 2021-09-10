@@ -180,7 +180,7 @@ Node HoElim::eliminateHo(Node n)
       if (cur.isVar())
       {
         Node ret = cur;
-        if (options::hoElim())
+        if (options().quantifiers.hoElim)
         {
           if (tn.isFunction())
           {
@@ -203,7 +203,7 @@ Node HoElim::eliminateHo(Node n)
       else
       {
         d_visited[cur] = Node::null();
-        if (cur.getKind() == APPLY_UF && options::hoElim())
+        if (cur.getKind() == APPLY_UF && options().quantifiers.hoElim)
         {
           Node op = cur.getOperator();
           // convert apply uf with variable arguments eagerly to ho apply
@@ -275,7 +275,7 @@ Node HoElim::eliminateHo(Node n)
           children.insert(children.begin(), retOp);
         }
         // process ho apply
-        if (ret.getKind() == HO_APPLY && options::hoElim())
+        if (ret.getKind() == HO_APPLY && options().quantifiers.hoElim)
         {
           TypeNode tnr = ret.getType();
           tnr = getUSort(tnr);
@@ -382,7 +382,7 @@ PreprocessingPassResult HoElim::applyInternal(
   // extensionality: process all function types
   for (const TypeNode& ftn : d_funTypes)
   {
-    if (options::hoElim())
+    if (options().quantifiers.hoElim)
     {
       Node h = getHoApplyUf(ftn);
       Trace("ho-elim-ax") << "Make extensionality for " << h << std::endl;
@@ -406,7 +406,7 @@ PreprocessingPassResult HoElim::applyInternal(
       // exists another function that acts like the "store" operator for
       // arrays, e.g. it is the same function with one I/O pair updated.
       // Without this axiom, the translation is model unsound.
-      if (options::hoElimStoreAx())
+      if (options().quantifiers.hoElimStoreAx)
       {
         Node u = nm->mkBoundVar("u", uf);
         Node v = nm->mkBoundVar("v", uf);
@@ -428,7 +428,7 @@ PreprocessingPassResult HoElim::applyInternal(
         Trace("ho-elim-ax") << "...store axiom : " << store << std::endl;
       }
     }
-    else if (options::hoElimStoreAx())
+    else if (options().quantifiers.hoElimStoreAx)
     {
       Node u = nm->mkBoundVar("u", ftn);
       Node v = nm->mkBoundVar("v", ftn);

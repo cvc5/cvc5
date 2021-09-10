@@ -20,6 +20,7 @@
 
 #include "base/map_util.h"
 #include "expr/node.h"
+#include "options/bv_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_statistics_registry.h"
@@ -36,7 +37,7 @@ BoolToBV::BoolToBV(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bool-to-bv"),
       d_statistics(statisticsRegistry())
 {
-  d_boolToBVMode = options::boolToBitvector();
+  d_boolToBVMode = options().bv.boolToBitvector;
 };
 
 PreprocessingPassResult BoolToBV::applyInternal(
