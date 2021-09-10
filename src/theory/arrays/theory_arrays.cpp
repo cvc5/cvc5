@@ -60,10 +60,8 @@ TheoryArrays::TheoryArrays(Env& env,
                            Valuation valuation,
                            std::string name)
     : Theory(THEORY_ARRAYS, env, out, valuation, name),
-      d_numRow(
-          statisticsRegistry().registerInt(name + "number of Row lemmas")),
-      d_numExt(
-          statisticsRegistry().registerInt(name + "number of Ext lemmas")),
+      d_numRow(statisticsRegistry().registerInt(name + "number of Row lemmas")),
+      d_numExt(statisticsRegistry().registerInt(name + "number of Ext lemmas")),
       d_numProp(
           statisticsRegistry().registerInt(name + "number of propagations")),
       d_numExplain(

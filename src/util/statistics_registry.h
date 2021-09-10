@@ -112,7 +112,7 @@ struct StatisticBaseValue;
  * However, no data is stored in the registry and the modification functions
  * of the proxy objects do nothing.
  */
-class StatisticsRegistry: protected EnvObj
+class StatisticsRegistry : protected EnvObj
 {
  public:
   friend std::ostream& operator<<(std::ostream& os,

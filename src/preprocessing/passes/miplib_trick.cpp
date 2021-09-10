@@ -73,7 +73,8 @@ void traceBackToAssertions(booleans::CircuitPropagator* propagator,
 }  // namespace
 
 MipLibTrick::MipLibTrick(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "miplib-trick"), d_statistics(statisticsRegistry())
+    : PreprocessingPass(preprocContext, "miplib-trick"),
+      d_statistics(statisticsRegistry())
 {
   if (!options::incrementalSolving())
   {

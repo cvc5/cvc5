@@ -22,7 +22,8 @@
 
 namespace cvc5 {
 
-StatisticsRegistry::StatisticsRegistry(Env& env, bool registerPublic): EnvObj(env)
+StatisticsRegistry::StatisticsRegistry(Env& env, bool registerPublic)
+    : EnvObj(env)
 {
   if (registerPublic)
   {

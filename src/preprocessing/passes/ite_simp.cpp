@@ -222,8 +222,9 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
 /* -------------------------------------------------------------------------- */
 
 ITESimp::ITESimp(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "ite-simp"), d_iteUtilities(d_env),
-    d_statistics(statisticsRegistry())
+    : PreprocessingPass(preprocContext, "ite-simp"),
+      d_iteUtilities(d_env),
+      d_statistics(statisticsRegistry())
 {
 }
 

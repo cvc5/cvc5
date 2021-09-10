@@ -288,10 +288,10 @@ void BVToBool::liftBvToBool(const std::vector<Node>& assertions,
 }
 
 BVToBool::Statistics::Statistics(StatisticsRegistry& reg)
-    : d_numTermsLifted(reg.registerInt(
-        "preprocessing::passes::BVToBool::NumTermsLifted")),
-      d_numAtomsLifted(reg.registerInt(
-          "preprocessing::passes::BVToBool::NumAtomsLifted")),
+    : d_numTermsLifted(
+        reg.registerInt("preprocessing::passes::BVToBool::NumTermsLifted")),
+      d_numAtomsLifted(
+          reg.registerInt("preprocessing::passes::BVToBool::NumAtomsLifted")),
       d_numTermsForcedLifted(reg.registerInt(
           "preprocessing::passes::BVToBool::NumTermsForcedLifted"))
 {
