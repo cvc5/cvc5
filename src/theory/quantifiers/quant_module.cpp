@@ -21,11 +21,12 @@ namespace cvc5 {
 namespace theory {
 
 QuantifiersModule::QuantifiersModule(
+    Env& env,
     quantifiers::QuantifiersState& qs,
     quantifiers::QuantifiersInferenceManager& qim,
     quantifiers::QuantifiersRegistry& qr,
     quantifiers::TermRegistry& tr)
-    : EnvObj(qs.getEnv()), d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr)
+    : EnvObj(env), d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr)
 {
 }
 

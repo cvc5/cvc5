@@ -42,8 +42,8 @@ UnconstrainedSimplifier::UnconstrainedSimplifier(
     : PreprocessingPass(preprocContext, "unconstrained-simplifier"),
       d_numUnconstrainedElim(smtStatisticsRegistry().registerInt(
           "preprocessor::number of unconstrained elims")),
-      d_context(preprocContext->getDecisionContext()),
-      d_substitutions(preprocContext->getDecisionContext())
+      d_context(context()),
+      d_substitutions(context())
 {
 }
 
@@ -231,7 +231,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               // Special case: condition is unconstrained, then and else are
               // different, and total cardinality of the type is 2, then the
               // result is unconstrained
-              Node test = Rewriter::rewrite(parent[1].eqNode(parent[2]));
+              Node test = rewrite(parent[1].eqNode(parent[2]));
               if (test == nm->mkConst<bool>(false))
               {
                 ++d_numUnconstrainedElim;
@@ -530,7 +530,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             {
               // TODO(#2377): could build ITE here
               Node test = other.eqNode(nm->mkConst<Rational>(0));
-              if (Rewriter::rewrite(test) != nm->mkConst<bool>(false))
+              if (rewrite(test) != nm->mkConst<bool>(false))
               {
                 break;
               }
@@ -573,7 +573,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               Node test = nm->mkNode(extractOp, children);
               BitVector one(1, unsigned(1));
               test = test.eqNode(nm->mkConst<BitVector>(one));
-              if (Rewriter::rewrite(test) != nm->mkConst<bool>(true))
+              if (rewrite(test) != nm->mkConst<bool>(true))
               {
                 done = true;
                 break;
@@ -591,7 +591,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         // Uninterpreted function - if domain is infinite, no quantifiers are
         // used, and any child is unconstrained, result is unconstrained
         case kind::APPLY_UF:
-          if (d_preprocContext->getLogicInfo().isQuantified()
+          if (logicInfo().isQuantified()
               || !current.getType().getCardinality().isInfinite())
           {
             break;
@@ -753,8 +753,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             }
             currentSub = newUnconstrainedVar(parent.getType(), currentSub);
             current = parent;
-            Node test =
-                Rewriter::rewrite(other.eqNode(nm->mkConst<BitVector>(bv)));
+            Node test = rewrite(other.eqNode(nm->mkConst<BitVector>(bv)));
             if (test == nm->mkConst<bool>(false))
             {
               break;
@@ -861,7 +860,7 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
     for (size_t i = 0, asize = assertions.size(); i < asize; ++i)
     {
       Node a = assertions[i];
-      Node as = Rewriter::rewrite(d_substitutions.apply(a));
+      Node as = rewrite(d_substitutions.apply(a));
       // replace the assertion
       assertionsToPreprocess->replace(i, as);
     }

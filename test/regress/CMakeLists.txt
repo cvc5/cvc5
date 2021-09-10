@@ -2331,6 +2331,7 @@ set(regress_1_tests
   regress1/sygus/interpol_from_pono_2.smt2
   regress1/sygus/issue2914.sy
   regress1/sygus/issue2935.sy
+  regress1/sygus/issue3109-share-sel.sy
   regress1/sygus/issue3199.smt2
   regress1/sygus/issue3200.smt2
   regress1/sygus/issue3201.smt2
@@ -2345,7 +2346,6 @@ set(regress_1_tests
   regress1/sygus/issue3634.smt2
   regress1/sygus/issue3635.smt2
   regress1/sygus/issue3644.smt2
-  regress1/sygus/issue3648.smt2
   regress1/sygus/issue3649.sy
   regress1/sygus/issue3802-default-consts.sy
   regress1/sygus/issue3839-cond-rewrite.smt2
@@ -2740,6 +2740,8 @@ set(regression_disabled_tests
   regress1/sygus/interpol_from_pono_3.smt2
   regress1/sygus/interpol_dt.smt2
   regress1/sygus/inv_gen_fig8.sy
+  # timeout since nl-rlv is required; however it cannot be used with quantifiers
+  regress1/sygus/issue3648.smt2
   # new reconstruct algorithm is slow at reconstructing random constants (see wishue #82)
   regress0/sygus/c100.sy
   # For the six regressions below, solution terms require rewrites not in

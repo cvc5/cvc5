@@ -37,8 +37,9 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-TermDb::TermDb(QuantifiersState& qs, QuantifiersRegistry& qr)
-    : d_qstate(qs),
+TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
+    : QuantifiersUtil(env),
+      d_qstate(qs),
       d_qim(nullptr),
       d_qreg(qr),
       d_termsContext(),

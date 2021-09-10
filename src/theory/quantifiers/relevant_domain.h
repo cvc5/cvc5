@@ -45,7 +45,8 @@ class TermRegistry;
 class RelevantDomain : public QuantifiersUtil
 {
  public:
-  RelevantDomain(QuantifiersState& qs,
+  RelevantDomain(Env& env,
+                 QuantifiersState& qs,
                  QuantifiersRegistry& qr,
                  TermRegistry& tr);
   virtual ~RelevantDomain();

@@ -49,6 +49,9 @@ class MipLibTrick : public PreprocessingPass, public NodeManagerListener
     Statistics();
   };
 
+  size_t removeFromConjunction(
+      Node& n, const std::unordered_set<unsigned long>& toRemove);
+
   Statistics d_statistics;
 
   std::vector<Node> d_boolVars;

@@ -46,10 +46,6 @@ class TheoryState : protected EnvObj
   context::Context* getSatContext() const;
   /** Get the user context */
   context::UserContext* getUserContext() const;
-  /** Get the environment */
-  Env& getEnv() const { return d_env; }
-  /** Get the options */
-  const Options& options() const { return getEnv().getOptions(); }
   //-------------------------------------- equality information
   /** Is t registered as a term in the equality engine of this class? */
   virtual bool hasTerm(TNode a) const;
