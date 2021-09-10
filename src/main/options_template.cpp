@@ -48,13 +48,14 @@ namespace cvc5::main {
 
 // clang-format off
 static const std::string commonOptionsDescription =
-    "Most commonly-used cvc5 options:\n"
+R"FOOBAR(Most commonly-used cvc5 options:
 ${help_common}$
-    ;
+)FOOBAR";
 
 static const std::string additionalOptionsDescription =
-    "Additional cvc5 options:\n"
-${help_others}$;
+R"FOOBAR(Additional cvc5 options:
+${help_others}$
+)FOOBAR";
 
 static const std::string optionsFootnote = "\n\
 [*] Each of these options has a --no-OPTIONNAME variant, which reverses the\n\

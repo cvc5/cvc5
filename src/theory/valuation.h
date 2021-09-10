@@ -151,7 +151,7 @@ public:
    * differ from the input due to theory-rewriting and preprocessing,
    * as well as CNF conversion
    */
-  Node ensureLiteral(TNode n) CVC5_WARN_UNUSED_RESULT;
+  CVC5_WARN_UNUSED_RESULT Node ensureLiteral(TNode n);
 
   /**
    * This returns the theory-preprocessed form of term n. The theory
