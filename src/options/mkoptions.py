@@ -422,6 +422,82 @@ def generate_holder_mem_copy(modules):
 # stuff for main/options.cpp
 
 
+def _add_cmdoption(option, name, opts, next_id):
+    fmt = {
+        'name': name,
+        'arg': 'no' if option.type in ['bool', 'void'] else 'required',
+        'next_id': next_id
+    }
+    opts.append(
+        '{{ "{name}", {arg}_argument, nullptr, {next_id} }},'.format(**fmt))
+
+
+def generate_parsing(modules):
+    """Generates the implementation for main::parseInternal() and matching
+    options definitions suitable for getopt_long(). Returns a tuple with:
+    - short options description (passed as third argument to getopt_long)
+    - long options description (passed as fourth argument to getopt_long)
+    - handler code that turns getopt_long return value to a setOption call
+    """
+    short = ""
+    opts = []
+    code = []
+    next_id = 256
+    for _, option in all_options(modules, False):
+        needs_impl = False
+        if option.short:  # short option
+            needs_impl = True
+            code.append("case '{0}': // -{0}".format(option.short))
+            short += option.short
+            if option.type not in ['bool', 'void']:
+                short += ':'
+        if option.long:  # long option
+            needs_impl = True
+            _add_cmdoption(option, option.long_name, opts, next_id)
+            code.append('case {}: // --{}'.format(next_id, option.long_name))
+            next_id += 1
+        if option.alias:  # long option aliases
+            needs_impl = True
+            for alias in option.alias:
+                _add_cmdoption(option, alias, opts, next_id)
+                code.append('case {}: // --{}'.format(next_id, alias))
+                next_id += 1
+
+        if needs_impl:
+            # there is some way to call it, add call to solver.setOption()
+            if option.type == 'bool':
+                code.append('  solver.setOption("{}", "true"); break;'.format(
+                    option.long_name))
+            elif option.type == 'void':
+                code.append('  solver.setOption("{}", ""); break;'.format(
+                    option.long_name))
+            else:
+                code.append(
+                    '  solver.setOption("{}", optionarg); break;'.format(
+                        option.long_name))
+
+        if option.alternate:
+            assert option.type == 'bool'
+            # bool option that wants a --no-*
+            needs_impl = False
+            if option.long:  # long option
+                needs_impl = True
+                _add_cmdoption(option, 'no-' + option.long_name, opts, next_id)
+                code.append('case {}: // --no-{}'.format(
+                    next_id, option.long_name))
+                next_id += 1
+            if option.alias:  # long option aliases
+                needs_impl = True
+                for alias in option.alias:
+                    _add_cmdoption(option, 'no-' + alias, opts, next_id)
+                    code.append('case {}: // --no-{}'.format(next_id, alias))
+                    next_id += 1
+            code.append('  solver.setOption("{}", "false"); break;'.format(
+                option.long_name))
+
+    return short, '\n  '.join(opts), '\n    '.join(code)
+
+
 def _cli_help_format_options(option):
     """
     Format short and long options for the cmdline documentation
@@ -809,34 +885,6 @@ def codegen_module(module, dst_dir, tpls):
         write_file(dst_dir, filename, tpl['content'].format(**data))
 
 
-def docgen_option(option, help_common, help_others):
-    """
-    Generate documentation for options.
-    """
-
-    if option.category == 'undocumented':
-        return
-
-    help_msg = option.help
-    if option.category == 'expert':
-        help_msg += ' (EXPERTS only)'
-
-    opts = help_format_options(option)
-
-    # Generate documentation for cmdline options
-    if opts and option.category != 'undocumented':
-        help_cmd = help_msg
-        if option.alternate:
-            help_cmd += ' [*]'
-        
-        res = help_format(help_cmd, opts)
-
-        if option.category == 'common':
-            help_common.extend(res)
-        else:
-            help_others.extend(res)
-
-
 def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     """Generate code for all option modules."""
 
@@ -919,11 +967,8 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
         'getnames_impl': generate_getnames_impl(modules),
         'get_impl': generate_get_impl(modules),
         'set_impl': generate_set_impl(modules),
-        'cmdline_options': '\n  '.join(getopt_long),
         'help_common': help_common,
         'help_others': help_others,
-        'options_handler': '\n    '.join(options_handler),
-        'options_short': ''.join(getopt_short),
         'options_get_info': '\n  '.join(sorted(options_get_info)),
         # main/options.cpp
         'cmdoptions_long': cmdline_opts,
