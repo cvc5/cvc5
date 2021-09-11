@@ -1,4 +1,4 @@
-; REQUIRES: symfpu
+; COMMAND-LINE: --no-jh-rlv-order
 ; EXPECT: unsat
 (set-logic AUFBVFPDTNIRA)
 (set-info :status unsat)

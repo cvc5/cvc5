@@ -17,6 +17,7 @@
 
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -285,11 +286,13 @@ void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
   }
 }
 
-FullModelChecker::FullModelChecker(QuantifiersState& qs,
+FullModelChecker::FullModelChecker(Env& env,
+                                   QuantifiersState& qs,
                                    QuantifiersInferenceManager& qim,
                                    QuantifiersRegistry& qr,
                                    TermRegistry& tr)
-    : QModelBuilder(qs, qim, qr, tr), d_fm(new FirstOrderModelFmc(qs, qr, tr))
+    : QModelBuilder(env, qs, qim, qr, tr),
+      d_fm(new FirstOrderModelFmc(env, qs, qr, tr))
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -706,7 +709,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         d_star_insts[f].push_back(i);
         continue;
       }
-      if (options::fmfBound())
+      if (options::fmfBound() || options::stringExp())
       {
         std::vector<Node> cond;
         cond.push_back(d_quant_cond[f]);
@@ -724,8 +727,11 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       }
       // just add the instance
       d_triedLemmas++;
-      if (instq->addInstantiation(
-              f, inst, InferenceId::QUANTIFIERS_INST_FMF_FMC, true))
+      if (instq->addInstantiation(f,
+                                  inst,
+                                  InferenceId::QUANTIFIERS_INST_FMF_FMC,
+                                  Node::null(),
+                                  true))
       {
         Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
         d_addedLemmas++;
@@ -874,8 +880,11 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
       if (ev!=d_true) {
         Trace("fmc-exh-debug") << ", add!";
         //add as instantiation
-        if (ie->addInstantiation(
-                f, inst, InferenceId::QUANTIFIERS_INST_FMF_FMC_EXH, true))
+        if (ie->addInstantiation(f,
+                                 inst,
+                                 InferenceId::QUANTIFIERS_INST_FMF_FMC_EXH,
+                                 Node::null(),
+                                 true))
         {
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
@@ -941,8 +950,9 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
   else if( n.getNumChildren()==0 ){
     Node r = n;
     if( !n.isConst() ){
-      if( !fm->hasTerm(n) ){
-        r = getSomeDomainElement(fm, n.getType() );
+      TypeNode tn = n.getType();
+      if( !fm->hasTerm(n) && tn.isFirstClass() ){
+        r = getSomeDomainElement(fm, tn );
       }
       r = fm->getRepresentative( r );
     }

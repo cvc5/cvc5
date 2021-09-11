@@ -17,9 +17,11 @@
 
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/model_manager.h"
 #include "theory/rewriter.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -242,7 +244,8 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
   {
     // failed to reconstruct, add trust
     Trace("dt-ipc") << "...failed " << infer << std::endl;
-    cdp->addStep(conc, PfRule::DT_TRUST, expv, {conc});
+    Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_DATATYPES);
+    cdp->addStep(conc, PfRule::THEORY_INFERENCE, expv, {conc, t});
   }
   else
   {

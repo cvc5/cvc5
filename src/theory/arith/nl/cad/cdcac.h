@@ -25,6 +25,8 @@
 
 #include <vector>
 
+#include "smt/env.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/cad/cdcac_utils.h"
 #include "theory/arith/nl/cad/constraints.h"
 #include "theory/arith/nl/cad/proof_generator.h"
@@ -43,13 +45,11 @@ namespace cad {
  * This class implements Cylindrical Algebraic Coverings as presented in
  * https://arxiv.org/pdf/2003.05633.pdf
  */
-class CDCAC
+class CDCAC : protected EnvObj
 {
  public:
   /** Initialize this method with the given variable ordering. */
-  CDCAC(context::Context* ctx,
-        ProofNodeManager* pnm,
-        const std::vector<poly::Variable>& ordering = {});
+  CDCAC(Env& env, const std::vector<poly::Variable>& ordering = {});
 
   /** Reset this instance. */
   void reset();
@@ -101,9 +101,11 @@ class CDCAC
 
   /**
    * Collects the coefficients required for projection from the given
-   * polynomial. Implements Algorithm 6.
+   * polynomial. Implements Algorithm 6, depending on the command line
+   * arguments. Either directly implements Algorithm 6, or improved variants
+   * based on Lazard's projection.
    */
-  PolyVector requiredCoefficients(const poly::Polynomial& p) const;
+  PolyVector requiredCoefficients(const poly::Polynomial& p);
 
   /**
    * Constructs a characterization of the given covering.

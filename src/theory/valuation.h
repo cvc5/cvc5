@@ -151,7 +151,7 @@ public:
    * differ from the input due to theory-rewriting and preprocessing,
    * as well as CNF conversion
    */
-  Node ensureLiteral(TNode n) CVC5_WARN_UNUSED_RESULT;
+  CVC5_WARN_UNUSED_RESULT Node ensureLiteral(TNode n);
 
   /**
    * This returns the theory-preprocessed form of term n. The theory
@@ -185,7 +185,7 @@ public:
   bool isDecision(Node lit) const;
 
   /**
-   * Return the current decision level of `lit`.
+   * Return SAT context level at which `lit` was decided on.
    *
    * @param lit: The node in question, must have an associated SAT literal.
    * @return Decision level of the SAT variable of `lit` (phase is disregarded),

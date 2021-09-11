@@ -182,14 +182,15 @@ void addSpecialValues(const TypeNode& tn,
 
 }  // namespace
 
-SygusInst::SygusInst(QuantifiersState& qs,
+SygusInst::SygusInst(Env& env,
+                     QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
                      QuantifiersRegistry& qr,
                      TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr),
-      d_ce_lemma_added(qs.getUserContext()),
-      d_global_terms(qs.getUserContext()),
-      d_notified_assertions(qs.getUserContext())
+    : QuantifiersModule(env, qs, qim, qr, tr),
+      d_ce_lemma_added(userContext()),
+      d_global_terms(userContext()),
+      d_notified_assertions(userContext())
 {
 }
 
@@ -258,7 +259,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
     Assert(inst_constants.size() == dt_evals.size());
     Assert(inst_constants.size() == q[0].getNumChildren());
 
-    std::vector<Node> terms, eval_unfold_lemmas;
+    std::vector<Node> terms, values, eval_unfold_lemmas;
     for (size_t i = 0, size = q[0].getNumChildren(); i < size; ++i)
     {
       Node dt_var = inst_constants[i];
@@ -266,6 +267,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
       Node value = model->getValue(dt_var);
       Node t = datatypes::utils::sygusToBuiltin(value);
       terms.push_back(t);
+      values.push_back(value);
 
       std::vector<Node> exp;
       syexplain.getExplanationForEquality(dt_var, value, exp);
@@ -285,7 +287,10 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
 
     if (mode == options::SygusInstMode::PRIORITY_INST)
     {
-      if (!inst->addInstantiation(q, terms, InferenceId::QUANTIFIERS_INST_SYQI))
+      if (!inst->addInstantiation(q,
+                                  terms,
+                                  InferenceId::QUANTIFIERS_INST_SYQI,
+                                  nm->mkNode(kind::SEXPR, values)))
       {
         sendEvalUnfoldLemmas(eval_unfold_lemmas);
       }
@@ -294,13 +299,19 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
     {
       if (!sendEvalUnfoldLemmas(eval_unfold_lemmas))
       {
-        inst->addInstantiation(q, terms, InferenceId::QUANTIFIERS_INST_SYQI);
+        inst->addInstantiation(q,
+                               terms,
+                               InferenceId::QUANTIFIERS_INST_SYQI,
+                               nm->mkNode(kind::SEXPR, values));
       }
     }
     else
     {
       Assert(mode == options::SygusInstMode::INTERLEAVE);
-      inst->addInstantiation(q, terms, InferenceId::QUANTIFIERS_INST_SYQI);
+      inst->addInstantiation(q,
+                             terms,
+                             InferenceId::QUANTIFIERS_INST_SYQI,
+                             nm->mkNode(kind::SEXPR, values));
       sendEvalUnfoldLemmas(eval_unfold_lemmas);
     }
   }

@@ -122,7 +122,7 @@ public class Result extends AbstractPointer
 
   /**
    * Return true if query was a checkSat() or checkSatAssuming() query and
-   * CVC4 was not able to determine (un)satisfiability.
+   * cvc5 was not able to determine (un)satisfiability.
    */
   public boolean isSatUnknown()
   {
@@ -153,8 +153,8 @@ public class Result extends AbstractPointer
   private native boolean isNotEntailed(long pointer);
 
   /**
-   * Return true if query was a checkEntailed() () query and CVC4 was not able
-   * to determine if it is entailed.
+   * Return true if query was a checkEntailed() query and cvc5 was not able to
+   * determine if it is entailed.
    */
   public boolean isEntailmentUnknown()
   {

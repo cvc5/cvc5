@@ -1,7 +1,7 @@
 ; EXPECT: unsat
 ; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-si=none --sygus-active-gen=enum
 
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 
 (declare-datatypes ((IntRange 0))
    (((IntRange (lower Int) (upper Int)))))

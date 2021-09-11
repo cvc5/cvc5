@@ -93,7 +93,7 @@ class NodeValue
     using value_type = T;
     using difference_type = std::ptrdiff_t;
     using pointer = T*;
-    using reference = T&;
+    using reference = T;
 
     iterator() : d_i(NULL) {}
     explicit iterator(const_nv_iterator i) : d_i(i) {}
@@ -233,7 +233,7 @@ class NodeValue
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                OutputLanguage = language::output::LANG_AUTO) const;
+                Language = Language::LANG_AUTO) const;
 
   void printAst(std::ostream& out, int indent = 0) const;
 
@@ -525,17 +525,13 @@ inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
  * flushes the stream.
  */
 static void __attribute__((used)) debugPrintNodeValue(const expr::NodeValue* nv) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(true)
-            << Node::setlanguage(language::output::LANG_AST)
-            << *nv << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(true)
+            << Node::setlanguage(Language::LANG_AST) << *nv << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintNodeValueNoDag(const expr::NodeValue* nv) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(false)
-            << Node::setlanguage(language::output::LANG_AST)
-            << *nv << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(false)
+            << Node::setlanguage(Language::LANG_AST) << *nv << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* nv) {

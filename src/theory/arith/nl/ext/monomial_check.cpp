@@ -22,6 +22,7 @@
 #include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace theory {

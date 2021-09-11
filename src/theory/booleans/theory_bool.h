@@ -29,12 +29,7 @@ namespace booleans {
 
 class TheoryBool : public Theory {
  public:
-  TheoryBool(context::Context* c,
-             context::UserContext* u,
-             OutputChannel& out,
-             Valuation valuation,
-             const LogicInfo& logicInfo,
-             ProofNodeManager* pnm = nullptr);
+  TheoryBool(Env& env, OutputChannel& out, Valuation valuation);
 
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;

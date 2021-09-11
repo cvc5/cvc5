@@ -19,6 +19,7 @@ sort BOOLEAN_TYPE \
     "Boolean type"
 
 constant CONST_BOOLEAN \
+    skip \
     bool \
     ::cvc5::BoolHashFunction \
     "util/bool.h" \

@@ -25,9 +25,10 @@
 
 #include <unordered_map>
 
-#include "expr/node.h"
-#include "context/cdo.h"
 #include "context/cdinsert_hashmap.h"
+#include "context/cdo.h"
+#include "expr/node.h"
+#include "util/integer.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -39,14 +40,12 @@ class ContainsTermITEVisitor;
 namespace theory {
 
 class SubstitutionMap;
-class TheoryModel;
 
 namespace arith {
 
 class ArithIteUtils {
   preprocessing::util::ContainsTermITEVisitor& d_contains;
-  SubstitutionMap* d_subs;
-  TheoryModel* d_model;
+  SubstitutionMap& d_subs;
 
   typedef std::unordered_map<Node, Node> NodeMap;
   // cache for reduce vars
@@ -75,7 +74,7 @@ class ArithIteUtils {
 public:
  ArithIteUtils(preprocessing::util::ContainsTermITEVisitor& contains,
                context::Context* userContext,
-               TheoryModel* model);
+               SubstitutionMap& subs);
  ~ArithIteUtils();
 
  //(ite ?v_2 ?v_1 (ite ?v_3 (- ?v_1 128) (- ?v_1 256)))

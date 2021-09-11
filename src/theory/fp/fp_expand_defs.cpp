@@ -16,6 +16,7 @@
 #include "theory/fp/fp_expand_defs.h"
 
 #include "expr/skolem_manager.h"
+#include "util/floatingpoint.h"
 
 namespace cvc5 {
 namespace theory {
@@ -50,11 +51,7 @@ Node FpExpandDefs::minUF(Node node)
     args[1] = t;
     fun = sm->mkDummySkolem("floatingpoint_min_zero_case",
                             nm->mkFunctionType(args,
-#ifdef SYMFPUPROPISBOOL
-                                               nm->booleanType()
-#else
                                                nm->mkBitVectorType(1U)
-#endif
                                                    ),
                             "floatingpoint_min_zero_case",
                             NodeManager::SKOLEM_EXACT_NAME);
@@ -88,11 +85,7 @@ Node FpExpandDefs::maxUF(Node node)
     args[1] = t;
     fun = sm->mkDummySkolem("floatingpoint_max_zero_case",
                             nm->mkFunctionType(args,
-#ifdef SYMFPUPROPISBOOL
-                                               nm->booleanType()
-#else
                                                nm->mkBitVectorType(1U)
-#endif
                                                    ),
                             "floatingpoint_max_zero_case",
                             NodeManager::SKOLEM_EXACT_NAME);

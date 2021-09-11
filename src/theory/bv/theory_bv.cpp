@@ -20,8 +20,8 @@
 #include "proof/proof_checker.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/bv_solver_bitblast.h"
-#include "theory/bv/bv_solver_lazy.h"
-#include "theory/bv/bv_solver_simple.h"
+#include "theory/bv/bv_solver_bitblast_internal.h"
+#include "theory/bv/bv_solver_layered.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ee_setup_info.h"
 #include "theory/trust_substitutions.h"
@@ -30,34 +30,35 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
-TheoryBV::TheoryBV(context::Context* c,
-                   context::UserContext* u,
+TheoryBV::TheoryBV(Env& env,
                    OutputChannel& out,
                    Valuation valuation,
-                   const LogicInfo& logicInfo,
-                   ProofNodeManager* pnm,
                    std::string name)
-    : Theory(THEORY_BV, c, u, out, valuation, logicInfo, pnm, name),
+    : Theory(THEORY_BV, env, out, valuation, name),
       d_internal(nullptr),
       d_rewriter(),
-      d_state(c, u, valuation),
-      d_im(*this, d_state, nullptr, "theory::bv::"),
+      d_state(env, valuation),
+      d_im(env, *this, d_state, nullptr, "theory::bv::"),
       d_notify(d_im),
+      d_invalidateModelCache(context(), true),
       d_stats("theory::bv::")
 {
-  switch (options::bvSolver())
+  switch (options().bv.bvSolver)
   {
     case options::BVSolver::BITBLAST:
-      d_internal.reset(new BVSolverBitblast(&d_state, d_im, pnm));
+      d_internal.reset(new BVSolverBitblast(d_env, &d_state, d_im, d_pnm));
       break;
 
-    case options::BVSolver::LAZY:
-      d_internal.reset(new BVSolverLazy(*this, c, u, pnm, name));
+    case options::BVSolver::LAYERED:
+      d_internal.reset(new BVSolverLayered(
+          *this, d_env, context(), userContext(), d_pnm, name));
       break;
 
     default:
-      AlwaysAssert(options::bvSolver() == options::BVSolver::SIMPLE);
-      d_internal.reset(new BVSolverSimple(&d_state, d_im, pnm));
+      AlwaysAssert(options().bv.bvSolver
+                   == options::BVSolver::BITBLAST_INTERNAL);
+      d_internal.reset(
+          new BVSolverBitblastInternal(d_env, &d_state, d_im, d_pnm));
   }
   d_theoryState = &d_state;
   d_inferManager = &d_im;
@@ -69,9 +70,10 @@ TheoryRewriter* TheoryBV::getTheoryRewriter() { return &d_rewriter; }
 
 ProofRuleChecker* TheoryBV::getProofChecker()
 {
-  if (options::bvSolver() == options::BVSolver::SIMPLE)
+  if (options().bv.bvSolver == options::BVSolver::BITBLAST_INTERNAL)
   {
-    return static_cast<BVSolverSimple*>(d_internal.get())->getProofChecker();
+    return static_cast<BVSolverBitblastInternal*>(d_internal.get())
+        ->getProofChecker();
   }
   return nullptr;
 }
@@ -157,7 +159,11 @@ void TheoryBV::preRegisterTerm(TNode node)
 
 bool TheoryBV::preCheck(Effort e) { return d_internal->preCheck(e); }
 
-void TheoryBV::postCheck(Effort e) { d_internal->postCheck(e); }
+void TheoryBV::postCheck(Effort e)
+{
+  d_invalidateModelCache = true;
+  d_internal->postCheck(e);
+}
 
 bool TheoryBV::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
@@ -173,6 +179,11 @@ void TheoryBV::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
 bool TheoryBV::needsCheckLastEffort()
 {
   return d_internal->needsCheckLastEffort();
+}
+
+void TheoryBV::computeRelevantTerms(std::set<Node>& termSet)
+{
+  return d_internal->computeRelevantTerms(termSet);
 }
 
 bool TheoryBV::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
@@ -213,7 +224,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
      * x = c::sk2       if h == bw(x)-1, where bw(sk2) = l
      * x = sk1::c::sk2  otherwise, where bw(sk1) = bw(x)-1-h and bw(sk2) = l
      */
-    Node node = Rewriter::rewrite(in);
+    Node node = rewrite(in);
     if ((node[0].getKind() == kind::BITVECTOR_EXTRACT && node[1].isConst())
         || (node[1].getKind() == kind::BITVECTOR_EXTRACT
             && node[0].isConst()))
@@ -276,7 +287,27 @@ void TheoryBV::presolve() { d_internal->presolve(); }
 
 EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 {
-  return d_internal->getEqualityStatus(a, b);
+  EqualityStatus status = d_internal->getEqualityStatus(a, b);
+
+  if (status == EqualityStatus::EQUALITY_UNKNOWN)
+  {
+    Node value_a = getValue(a);
+    Node value_b = getValue(b);
+
+    if (value_a.isNull() || value_b.isNull())
+    {
+      return status;
+    }
+
+    if (value_a == value_b)
+    {
+      Debug("theory-bv") << EQUALITY_TRUE_IN_MODEL << std::endl;
+      return EQUALITY_TRUE_IN_MODEL;
+    }
+    Debug("theory-bv") << EQUALITY_FALSE_IN_MODEL << std::endl;
+    return EQUALITY_FALSE_IN_MODEL;
+  }
+  return status;
 }
 
 TrustNode TheoryBV::explain(TNode node) { return d_internal->explain(node); }
@@ -295,6 +326,80 @@ bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions,
                                 std::vector<Node>& new_assertions)
 {
   return d_internal->applyAbstraction(assertions, new_assertions);
+}
+
+Node TheoryBV::getValue(TNode node)
+{
+  if (d_invalidateModelCache.get())
+  {
+    d_modelCache.clear();
+  }
+  d_invalidateModelCache.set(false);
+
+  std::vector<TNode> visit;
+
+  TNode cur;
+  visit.push_back(node);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+
+    auto it = d_modelCache.find(cur);
+    if (it != d_modelCache.end() && !it->second.isNull())
+    {
+      continue;
+    }
+
+    if (cur.isConst())
+    {
+      d_modelCache[cur] = cur;
+      continue;
+    }
+
+    Node value = d_internal->getValue(cur, false);
+    if (value.isConst())
+    {
+      d_modelCache[cur] = value;
+      continue;
+    }
+
+    if (Theory::isLeafOf(cur, theory::THEORY_BV))
+    {
+      value = d_internal->getValue(cur, true);
+      d_modelCache[cur] = value;
+      continue;
+    }
+
+    if (it == d_modelCache.end())
+    {
+      visit.push_back(cur);
+      d_modelCache.emplace(cur, Node());
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+    else if (it->second.isNull())
+    {
+      NodeBuilder nb(cur.getKind());
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        nb << cur.getOperator();
+      }
+
+      std::unordered_map<Node, Node>::iterator iit;
+      for (const TNode& child : cur)
+      {
+        iit = d_modelCache.find(child);
+        Assert(iit != d_modelCache.end());
+        Assert(iit->second.isConst());
+        nb << iit->second;
+      }
+      it->second = rewrite(nb.constructNode());
+    }
+  } while (!visit.empty());
+
+  auto it = d_modelCache.find(node);
+  Assert(it != d_modelCache.end());
+  return it->second;
 }
 
 TheoryBV::Statistics::Statistics(const std::string& name)

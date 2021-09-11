@@ -18,6 +18,7 @@
 #include "options/smt_options.h"
 #include "prop/minisat/minisat.h"
 #include "theory/builtin/proof_checker.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace prop {
@@ -514,7 +515,7 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
   }
 }
 
-void ProofCnfStream::convertPropagation(theory::TrustNode trn)
+void ProofCnfStream::convertPropagation(TrustNode trn)
 {
   Node proven = trn.getProven();
   Trace("cnf") << "ProofCnfStream::convertPropagation: proven explanation"

@@ -18,6 +18,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::context;
@@ -27,10 +28,11 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-SolverState::SolverState(context::Context* c,
-                         context::UserContext* u,
-                         Valuation& v)
-    : TheoryState(c, u, v), d_eeDisequalities(c), d_pendingConflictSet(c, false), d_pendingConflict(InferenceId::UNKNOWN)
+SolverState::SolverState(Env& env, Valuation& v)
+    : TheoryState(env, v),
+      d_eeDisequalities(env.getContext()),
+      d_pendingConflictSet(env.getContext(), false),
+      d_pendingConflict(InferenceId::UNKNOWN)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -63,7 +65,7 @@ EqcInfo* SolverState::getOrMakeEqcInfo(Node eqc, bool doMake)
   }
   if (doMake)
   {
-    EqcInfo* ei = new EqcInfo(d_context);
+    EqcInfo* ei = new EqcInfo(d_env.getContext());
     d_eqcInfo[eqc] = ei;
     return ei;
   }

@@ -34,6 +34,9 @@
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
+#include "util/iand.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -57,7 +60,7 @@ Node BVToInt::mkRangeConstraint(Node newVar, uint64_t k)
   Node lower = d_nm->mkNode(kind::LEQ, d_zero, newVar);
   Node upper = d_nm->mkNode(kind::LT, newVar, pow2(k));
   Node result = d_nm->mkNode(kind::AND, lower, upper);
-  return Rewriter::rewrite(result);
+  return rewrite(result);
 }
 
 Node BVToInt::maxInt(uint64_t k)
@@ -253,7 +256,7 @@ Node BVToInt::eliminationPass(Node n)
 Node BVToInt::bvToInt(Node n)
 {
   // make sure the node is re-written before processing it.
-  n = Rewriter::rewrite(n);
+  n = rewrite(n);
   n = makeBinary(n);
   n = eliminationPass(n);
   // binarize again, in case the elimination pass introduced
@@ -405,6 +408,14 @@ Node BVToInt::translateWithChildren(Node original,
       returnNode = translated_children[0];
       break;
     }
+    case kind::INT_TO_BITVECTOR:
+    {
+      // ((_ int2bv n) t) ---> (mod t 2^n)
+      size_t sz = original.getOperator().getConst<IntToBitVector>().d_size;
+      returnNode = d_nm->mkNode(
+          kind::INTS_MODULUS_TOTAL, translated_children[0], pow2(sz));
+    }
+    break;
     case kind::BITVECTOR_AND:
     {
       // We support three configurations:
@@ -413,13 +424,13 @@ Node BVToInt::translateWithChildren(Node original,
       // operators)
       // 3. translating into a sum
       uint64_t bvsize = original[0].getType().getBitVectorSize();
-      if (options::solveBVAsInt() == options::SolveBVAsIntMode::IAND)
+      if (options().smt.solveBVAsInt == options::SolveBVAsIntMode::IAND)
       {
         Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
         returnNode = d_nm->mkNode(
             kind::IAND, iAndOp, translated_children[0], translated_children[1]);
       }
-      else if (options::solveBVAsInt() == options::SolveBVAsIntMode::BV)
+      else if (options().smt.solveBVAsInt == options::SolveBVAsIntMode::BV)
       {
         // translate the children back to BV
         Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
@@ -434,14 +445,14 @@ Node BVToInt::translateWithChildren(Node original,
       }
       else
       {
-        Assert(options::solveBVAsInt() == options::SolveBVAsIntMode::SUM);
+        Assert(options().smt.solveBVAsInt == options::SolveBVAsIntMode::SUM);
         // Construct a sum of ites, based on granularity.
         Assert(translated_children.size() == 2);
         returnNode =
             d_iandUtils.createSumNode(translated_children[0],
                                       translated_children[1],
                                       bvsize,
-                                      options::BVAndIntegerGranularity());
+                                      options().smt.BVAndIntegerGranularity);
       }
       break;
     }
@@ -646,7 +657,7 @@ Node BVToInt::translateWithChildren(Node original,
        * of the bounds that were relevant for the original
        * bit-vectors.
        */
-      if (childrenTypesChanged(original) && options::ufHo())
+      if (childrenTypesChanged(original) && options().uf.ufHo)
       {
         throw TypeCheckingExceptionPrivate(
             original,
@@ -917,11 +928,11 @@ Node BVToInt::reconstructNode(Node originalNode,
 
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-int"),
-      d_binarizeCache(preprocContext->getUserContext()),
-      d_eliminationCache(preprocContext->getUserContext()),
-      d_rebuildCache(preprocContext->getUserContext()),
-      d_bvToIntCache(preprocContext->getUserContext()),
-      d_rangeAssertions(preprocContext->getUserContext())
+      d_binarizeCache(userContext()),
+      d_eliminationCache(userContext()),
+      d_rebuildCache(userContext()),
+      d_bvToIntCache(userContext()),
+      d_rangeAssertions(userContext())
 {
   d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConst<Rational>(0);
@@ -935,7 +946,7 @@ PreprocessingPassResult BVToInt::applyInternal(
   {
     Node bvNode = (*assertionsToPreprocess)[i];
     Node intNode = bvToInt(bvNode);
-    Node rwNode = Rewriter::rewrite(intNode);
+    Node rwNode = rewrite(intNode);
     Trace("bv-to-int-debug") << "bv node: " << bvNode << std::endl;
     Trace("bv-to-int-debug") << "int node: " << intNode << std::endl;
     Trace("bv-to-int-debug") << "rw node: " << rwNode << std::endl;
@@ -955,7 +966,7 @@ void BVToInt::addFinalizeRangeAssertions(
   vec_range.assign(d_rangeAssertions.key_begin(), d_rangeAssertions.key_end());
   // conjoin all range assertions and add the conjunction
   // as a new assertion
-  Node rangeAssertions = Rewriter::rewrite(d_nm->mkAnd(vec_range));
+  Node rangeAssertions = rewrite(d_nm->mkAnd(vec_range));
   assertionsToPreprocess->push_back(rangeAssertions);
   Trace("bv-to-int-debug") << "range constraints: "
                            << rangeAssertions.toString() << std::endl;

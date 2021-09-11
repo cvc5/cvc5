@@ -47,7 +47,7 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)
   {
     Node assertion = (*assertions)[i];
-    std::vector<theory::TrustNode> newAsserts;
+    std::vector<TrustNode> newAsserts;
     std::vector<Node> newSkolems;
     TrustNode trn = pe->removeItes(assertion, newAsserts, newSkolems);
     if (!trn.isNull())
@@ -64,7 +64,7 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
   }
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)
   {
-    assertions->replace(i, Rewriter::rewrite((*assertions)[i]));
+    assertions->replace(i, rewrite((*assertions)[i]));
   }
 
   return PreprocessingPassResult::NO_CONFLICT;

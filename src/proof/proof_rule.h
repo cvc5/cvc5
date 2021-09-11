@@ -219,10 +219,12 @@ enum class PfRule : uint32_t
   THEORY_REWRITE,
   // The remaining rules in this section have the signature of a "trusted rule":
   //
-  // Children: none
+  // Children: ?
   // Arguments: (F)
   // ---------------------------------------------------------------
   // Conclusion: F
+  //
+  // Unless stated below, the expected children vector of the rule is empty.
   //
   // where F is an equality of the form t = t' where t was replaced by t'
   // based on some preprocessing pass, or otherwise F was added as a new
@@ -248,8 +250,15 @@ enum class PfRule : uint32_t
   // could not be replayed during proof postprocessing.
   TRUST_SUBS,
   // where F is an equality (= t t') that holds by a form of substitution that
-  // could not be determined by the TrustSubstitutionMap.
+  // could not be determined by the TrustSubstitutionMap. This inference may
+  // contain possibly multiple children corresponding to the formulas used to
+  // derive the substitution.
   TRUST_SUBS_MAP,
+  // where F is a solved equality of the form (= x t) derived as the solved
+  // form of F', where F' is given as a child.
+  TRUST_SUBS_EQ,
+  // where F is a fact derived by a theory-specific inference
+  THEORY_INFERENCE,
   // ========= SAT Refutation for assumption-based unsat cores
   // Children: (P1, ..., Pn)
   // Arguments: none
@@ -681,9 +690,9 @@ enum class PfRule : uint32_t
   //================================================= Array rules
   // ======== Read over write
   // Children: (P:(not (= i1 i2)))
-  // Arguments: ((select (store a i2 e) i1))
+  // Arguments: ((select (store a i1 e) i2))
   // ----------------------------------------
-  // Conclusion: (= (select (store a i2 e) i1) (select a i1))
+  // Conclusion: (= (select (store a i1 e) i2) (select a i2))
   ARRAYS_READ_OVER_WRITE,
   // ======== Read over write, contrapositive
   // Children: (P:(not (= (select (store a i2 e) i1) (select a i1)))
@@ -704,12 +713,15 @@ enum class PfRule : uint32_t
   // Conclusion: (not (= (select a k) (select b k)))
   // where k is arrays::SkolemCache::getExtIndexSkolem((not (= a b))).
   ARRAYS_EXT,
-  // ======== Array Trust
-  // Children: (P1 ... Pn)
-  // Arguments: (F)
-  // ---------------------
-  // Conclusion: F
-  ARRAYS_TRUST,
+  // ======== EQ_RANGE expansion
+  // Children: none
+  // Arguments: ((eqrange a b i j))
+  // ----------------------------------------
+  // Conclusion: (=
+  //              (eqrange a b i j)
+  //              (forall ((x T))
+  //               (=> (and (<= i x) (<= x j)) (= (select a x) (select b x)))))
+  ARRAYS_EQ_RANGE_EXPAND,
 
   //================================================= Bit-Vector rules
   // Note: bitblast() represents the result of the bit-blasted term as a
@@ -723,63 +735,18 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (= t bitblast(t))
   BV_BITBLAST,
-  // ======== Bitblast Bit-Vector Constant
+  // ======== Bitblast Bit-Vector Constant, Variable
   // Children: none
   // Arguments: (= t bitblast(t))
   // ---------------------
   // Conclusion: (= t bitblast(t))
-  BV_BITBLAST_CONST,
-  // ======== Bitblast Bit-Vector Variable
-  // Children: none
-  // Arguments: (= t bitblast(t))
-  // ---------------------
-  // Conclusion: (= t bitblast(t))
-  BV_BITBLAST_VAR,
   // ======== Bitblast Bit-Vector Terms
-  // TODO cvc4-projects issue #275
   // Children: none
   // Arguments: (= (KIND bitblast(child_1) ... bitblast(child_n)) bitblast(t))
   // ---------------------
   // Conclusion: (= (KIND bitblast(child_1) ... bitblast(child_n)) bitblast(t))
-  BV_BITBLAST_EQUAL,
-  BV_BITBLAST_ULT,
-  BV_BITBLAST_ULE,
-  BV_BITBLAST_UGT,
-  BV_BITBLAST_UGE,
-  BV_BITBLAST_SLT,
-  BV_BITBLAST_SLE,
-  BV_BITBLAST_SGT,
-  BV_BITBLAST_SGE,
-  BV_BITBLAST_NOT,
-  BV_BITBLAST_CONCAT,
-  BV_BITBLAST_AND,
-  BV_BITBLAST_OR,
-  BV_BITBLAST_XOR,
-  BV_BITBLAST_XNOR,
-  BV_BITBLAST_NAND,
-  BV_BITBLAST_NOR,
-  BV_BITBLAST_COMP,
-  BV_BITBLAST_MULT,
-  BV_BITBLAST_ADD,
-  BV_BITBLAST_SUB,
-  BV_BITBLAST_NEG,
-  BV_BITBLAST_UDIV,
-  BV_BITBLAST_UREM,
-  BV_BITBLAST_SDIV,
-  BV_BITBLAST_SREM,
-  BV_BITBLAST_SMOD,
-  BV_BITBLAST_SHL,
-  BV_BITBLAST_LSHR,
-  BV_BITBLAST_ASHR,
-  BV_BITBLAST_ULTBV,
-  BV_BITBLAST_SLTBV,
-  BV_BITBLAST_ITE,
-  BV_BITBLAST_EXTRACT,
-  BV_BITBLAST_REPEAT,
-  BV_BITBLAST_ZERO_EXTEND,
-  BV_BITBLAST_SIGN_EXTEND,
-  BV_BITBLAST_ROTATE_RIGHT,
-  BV_BITBLAST_ROTATE_LEFT,
+  BV_BITBLAST_STEP,
+
   // ======== Eager Atom
   // Children: none
   // Arguments: (F)
@@ -827,12 +794,6 @@ enum class PfRule : uint32_t
   // Conclusion: false
   // for i != j.
   DT_CLASH,
-  // ======== Datatype Trust
-  // Children: (P1 ... Pn)
-  // Arguments: (F)
-  // ---------------------
-  // Conclusion: F
-  DT_TRUST,
 
   //================================================= Quantifiers rules
   // ======== Skolem intro
@@ -863,11 +824,24 @@ enum class PfRule : uint32_t
   SKOLEMIZE,
   // ======== Instantiate
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
-  // Arguments: (t1 ... tn)
+  // Arguments: (t1 ... tn, (id (t)?)? )
   // ----------------------------------------
   // Conclusion: F*sigma
-  // sigma maps x1 ... xn to t1 ... tn.
+  // where sigma maps x1 ... xn to t1 ... tn.
+  //
+  // The optional argument id indicates the inference id that caused the
+  // instantiation. The term t indicates an additional term (e.g. the trigger)
+  // associated with the instantiation, which depends on the id. If the id
+  // has prefix "QUANTIFIERS_INST_E_MATCHING", then t is the trigger that
+  // generated the instantiation.
   INSTANTIATE,
+  // ======== (Trusted) quantifiers preprocess
+  // Children: ?
+  // Arguments: (F)
+  // ---------------------------------------------------------------
+  // Conclusion: F
+  // where F is an equality of the form t = QuantifiersPreprocess::preprocess(t)
+  QUANTIFIERS_PREPROCESS,
 
   //================================================= String rules
   //======================== Core solver
@@ -1096,12 +1070,15 @@ enum class PfRule : uint32_t
   // Also applies to the case where (seq.unit y) is a constant sequence
   // of length one.
   STRING_SEQ_UNIT_INJ,
-  // ======== String Trust
-  // Children: none
-  // Arguments: (Q)
+  //======================== Trusted
+  // ======== String inference
+  // Children: ?
+  // Arguments: (F id isRev exp)
   // ---------------------
-  // Conclusion: (Q)
-  STRING_TRUST,
+  // Conclusion: F
+  // used to bookkeep an inference that has not yet been converted via
+  // strings::InferProofCons::convert.
+  STRING_INFERENCE,
 
   //================================================= Arithmetic rules
   // ======== Adding Inequalities
@@ -1166,12 +1143,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: arith::OperatorElim::getAxiomFor(t)
   ARITH_OP_ELIM_AXIOM,
-  // ======== Int Trust
-  // Children: (P1 ... Pn)
-  // Arguments: (Q)
-  // ---------------------
-  // Conclusion: (Q)
-  INT_TRUST,
 
   //======== Multiplication sign inference
   // Children: none
@@ -1417,6 +1388,14 @@ enum class PfRule : uint32_t
   // (in variables x1...xn-1). It generates the conclusion that no xn exists
   // that extends the Cell and satisfies all assumptions.
   ARITH_NL_CAD_RECURSIVE,
+
+  //================================================ Place holder for Lfsc rules
+  // ======== Lfsc rule
+  // Children: (P1 ... Pn)
+  // Arguments: (id, Q, A1, ..., Am)
+  // ---------------------
+  // Conclusion: (Q)
+  LFSC_RULE,
 
   //================================================= Unknown rule
   UNKNOWN,

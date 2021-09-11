@@ -30,11 +30,12 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-InstStrategyPool::InstStrategyPool(QuantifiersState& qs,
+InstStrategyPool::InstStrategyPool(Env& env,
+                                   QuantifiersState& qs,
                                    QuantifiersInferenceManager& qim,
                                    QuantifiersRegistry& qr,
                                    TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr)
+    : QuantifiersModule(env, qs, qim, qr, tr)
 {
 }
 

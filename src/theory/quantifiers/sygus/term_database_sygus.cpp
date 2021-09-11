@@ -51,10 +51,10 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
   return os;
 }
 
-TermDbSygus::TermDbSygus(QuantifiersState& qs)
-    : d_qstate(qs),
+TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs)
+    : EnvObj(env),
+      d_qstate(qs),
       d_syexp(new SygusExplain(this)),
-      d_ext_rw(new ExtendedRewriter(true)),
       d_eval(new Evaluator),
       d_funDefEval(new FunDefEvaluator),
       d_eval_unfold(new SygusEvalUnfold(this))
@@ -357,23 +357,6 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
   Trace("sygus-db-debug") << "SygusToBuiltin: variable for " << n << " is "
                           << ret << ", fv_num=" << fv_num << std::endl;
   return ret;
-}
-
-unsigned TermDbSygus::getSygusTermSize( Node n ){
-  if (n.getKind() != APPLY_CONSTRUCTOR)
-  {
-    return 0;
-  }
-  unsigned sum = 0;
-  for (unsigned i = 0; i < n.getNumChildren(); i++)
-  {
-    sum += getSygusTermSize(n[i]);
-  }
-  const DType& dt = datatypes::utils::datatypeOf(n.getOperator());
-  int cindex = datatypes::utils::indexOf(n.getOperator());
-  Assert(cindex >= 0 && cindex < (int)dt.getNumConstructors());
-  unsigned weight = dt[cindex].getWeight();
-  return weight + sum;
 }
 
 bool TermDbSygus::registerSygusType(TypeNode tn)
@@ -756,7 +739,15 @@ SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)
 
 Node TermDbSygus::rewriteNode(Node n) const
 {
-  Node res = Rewriter::rewrite(n);
+  Node res;
+  if (options().quantifiers.sygusExtRew)
+  {
+    res = extendedRewrite(n);
+  }
+  else
+  {
+    res = rewrite(n);
+  }
   if (res.isConst())
   {
     // constant, we are done
@@ -1016,59 +1007,6 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
   // Call the rewrite node function, which may involve recursive function
   // evaluation.
   return rewriteNode(res);
-}
-
-Node TermDbSygus::evaluateWithUnfolding(Node n,
-                                        std::unordered_map<Node, Node>& visited)
-{
-  std::unordered_map<Node, Node>::iterator it = visited.find(n);
-  if( it==visited.end() ){
-    Node ret = n;
-    while (ret.getKind() == DT_SYGUS_EVAL
-           && ret[0].getKind() == APPLY_CONSTRUCTOR)
-    {
-      if (ret == n && ret[0].isConst())
-      {
-        // use rewriting, possibly involving recursive functions
-        ret = rewriteNode(ret);
-      }
-      else
-      {
-        ret = d_eval_unfold->unfold(ret);
-      }
-    }    
-    if( ret.getNumChildren()>0 ){
-      std::vector< Node > children;
-      if( ret.getMetaKind() == kind::metakind::PARAMETERIZED ){
-        children.push_back( ret.getOperator() );
-      }
-      bool childChanged = false;
-      for( unsigned i=0; i<ret.getNumChildren(); i++ ){
-        Node nc = evaluateWithUnfolding(ret[i], visited);
-        childChanged = childChanged || nc!=ret[i];
-        children.push_back( nc );
-      }
-      if( childChanged ){
-        ret = NodeManager::currentNM()->mkNode( ret.getKind(), children );
-      }
-      if (options::sygusExtRew())
-      {
-        ret = getExtRewriter()->extendedRewrite(ret);
-      }
-      // use rewriting, possibly involving recursive functions
-      ret = rewriteNode(ret);
-    }
-    visited[n] = ret;
-    return ret;
-  }else{
-    return it->second;
-  }
-}
-
-Node TermDbSygus::evaluateWithUnfolding(Node n)
-{
-  std::unordered_map<Node, Node> visited;
-  return evaluateWithUnfolding(n, visited);
 }
 
 bool TermDbSygus::isEvaluationPoint(Node n) const

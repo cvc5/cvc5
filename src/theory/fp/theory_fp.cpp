@@ -27,8 +27,8 @@
 #include "theory/fp/fp_converter.h"
 #include "theory/fp/theory_fp_rewriter.h"
 #include "theory/output_channel.h"
-#include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "util/floatingpoint.h"
 
 using namespace std;
 
@@ -59,28 +59,25 @@ Node buildConjunct(const std::vector<TNode> &assumptions) {
 }  // namespace helper
 
 /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-TheoryFp::TheoryFp(context::Context* c,
-                   context::UserContext* u,
-                   OutputChannel& out,
-                   Valuation valuation,
-                   const LogicInfo& logicInfo,
-                   ProofNodeManager* pnm)
-    : Theory(THEORY_FP, c, u, out, valuation, logicInfo, pnm),
+TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
+    : Theory(THEORY_FP, env, out, valuation),
       d_notification(*this),
-      d_registeredTerms(u),
-      d_conv(new FpConverter(u)),
+      d_registeredTerms(userContext()),
+      d_conv(new FpConverter(userContext())),
       d_expansionRequested(false),
-      d_realToFloatMap(u),
-      d_floatToRealMap(u),
-      d_abstractionMap(u),
-      d_rewriter(u),
-      d_state(c, u, valuation),
-      d_im(*this, d_state, pnm, "theory::fp::", false)
+      d_realToFloatMap(userContext()),
+      d_floatToRealMap(userContext()),
+      d_abstractionMap(userContext()),
+      d_rewriter(userContext()),
+      d_state(env, valuation),
+      d_im(env, *this, d_state, d_pnm, "theory::fp::", true),
+      d_wbFactsCache(userContext()),
+      d_true(d_env.getNodeManager()->mkConst(true))
 {
   // indicate we are using the default theory state and inference manager
   d_theoryState = &d_state;
   d_inferManager = &d_im;
-} /* TheoryFp::TheoryFp() */
+}
 
 TheoryRewriter* TheoryFp::getTheoryRewriter() { return &d_rewriter; }
 
@@ -100,7 +97,7 @@ void TheoryFp::finishInit()
 
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ABS);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_NEG);
-  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_PLUS);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ADD);
   // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_SUB); // Removed
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MULT);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_DIV);
@@ -303,6 +300,9 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
     Node floatValue = m->getValue(concrete[0]);
     Node undefValue = m->getValue(concrete[1]);
 
+    Assert(!abstractValue.isNull());
+    Assert(!floatValue.isNull());
+    Assert(!undefValue.isNull());
     Assert(abstractValue.isConst());
     Assert(floatValue.isConst());
     Assert(undefValue.isConst());
@@ -312,7 +312,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
 
     Node evaluate =
         nm->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL, floatValue, undefValue);
-    Node concreteValue = Rewriter::rewrite(evaluate);
+    Node concreteValue = rewrite(evaluate);
     Assert(concreteValue.isConst());
 
     Trace("fp-refineAbstraction")
@@ -358,11 +358,11 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
       handleLemma(fl, InferenceId::FP_PREPROCESS);
 
       // Then the backwards constraints
-      Node floatAboveAbstract = Rewriter::rewrite(
+      Node floatAboveAbstract = rewrite(
           nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
                      nm->mkConst(FloatingPointToFPReal(
                          concrete[0].getType().getConst<FloatingPointSize>())),
-                     nm->mkConst(ROUND_TOWARD_POSITIVE),
+                     nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE),
                      abstractValue));
 
       Node bg = nm->mkNode(
@@ -375,11 +375,11 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
               nm->mkNode(kind::GEQ, abstract, abstractValue)));
       handleLemma(bg, InferenceId::FP_PREPROCESS);
 
-      Node floatBelowAbstract = Rewriter::rewrite(
+      Node floatBelowAbstract = rewrite(
           nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
                      nm->mkConst(FloatingPointToFPReal(
                          concrete[0].getType().getConst<FloatingPointSize>())),
-                     nm->mkConst(ROUND_TOWARD_NEGATIVE),
+                     nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE),
                      abstractValue));
 
       Node bl = nm->mkNode(
@@ -412,6 +412,9 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
     Node rmValue = m->getValue(concrete[0]);
     Node realValue = m->getValue(concrete[1]);
 
+    Assert(!abstractValue.isNull());
+    Assert(!rmValue.isNull());
+    Assert(!realValue.isNull());
     Assert(abstractValue.isConst());
     Assert(rmValue.isConst());
     Assert(realValue.isConst());
@@ -425,7 +428,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
                        concrete.getType().getConst<FloatingPointSize>())),
                    rmValue,
                    realValue);
-    Node concreteValue = Rewriter::rewrite(evaluate);
+    Node concreteValue = rewrite(evaluate);
     Assert(concreteValue.isConst());
 
     Trace("fp-refineAbstraction")
@@ -469,9 +472,9 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
       if (!abstractValue.getConst<FloatingPoint>().isInfinite())
       {
         Node realValueOfAbstract =
-            Rewriter::rewrite(nm->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL,
-                                         abstractValue,
-                                         nm->mkConst(Rational(0U))));
+            rewrite(nm->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL,
+                               abstractValue,
+                               nm->mkConst(Rational(0U))));
 
         Node bg = nm->mkNode(
             kind::IMPLIES,
@@ -508,11 +511,15 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
   return false;
 }
 
-void TheoryFp::convertAndEquateTerm(TNode node) {
+void TheoryFp::convertAndEquateTerm(TNode node)
+{
   Trace("fp-convertTerm") << "TheoryFp::convertTerm(): " << node << std::endl;
-  size_t oldAdditionalAssertions = d_conv->d_additionalAssertions.size();
+
+  size_t oldSize = d_conv->d_additionalAssertions.size();
 
   Node converted(d_conv->convert(node));
+
+  size_t newSize = d_conv->d_additionalAssertions.size();
 
   if (converted != node) {
     Debug("fp-convertTerm")
@@ -521,39 +528,34 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
         << "TheoryFp::convertTerm(): after  " << converted << std::endl;
   }
 
-  size_t newAdditionalAssertions = d_conv->d_additionalAssertions.size();
-  Assert(oldAdditionalAssertions <= newAdditionalAssertions);
+  Assert(oldSize <= newSize);
 
-  while (oldAdditionalAssertions < newAdditionalAssertions) {
-    Node addA = d_conv->d_additionalAssertions[oldAdditionalAssertions];
+  while (oldSize < newSize)
+  {
+    Node addA = d_conv->d_additionalAssertions[oldSize];
 
     Debug("fp-convertTerm") << "TheoryFp::convertTerm(): additional assertion  "
                             << addA << std::endl;
 
-#ifdef SYMFPUPROPISBOOL
-    handleLemma(addA, false, true);
-#else
-    NodeManager *nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
 
     handleLemma(
         nm->mkNode(kind::EQUAL, addA, nm->mkConst(::cvc5::BitVector(1U, 1U))),
         InferenceId::FP_EQUATE_TERM);
-#endif
 
-    ++oldAdditionalAssertions;
+    ++oldSize;
   }
 
   // Equate the floating-point atom and the converted one.
   // Also adds the bit-vectors to the bit-vector solver.
-  if (node.getType().isBoolean()) {
-    if (converted != node) {
+  if (node.getType().isBoolean())
+  {
+    if (converted != node)
+    {
       Assert(converted.getType().isBitVector());
 
-      NodeManager *nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
 
-#ifdef SYMFPUPROPISBOOL
-      handleLemma(nm->mkNode(kind::EQUAL, node, converted));
-#else
       handleLemma(
           nm->mkNode(kind::EQUAL,
                      node,
@@ -561,13 +563,14 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
                                 converted,
                                 nm->mkConst(::cvc5::BitVector(1U, 1U)))),
           InferenceId::FP_EQUATE_TERM);
-#endif
-
-    } else {
+    }
+    else
+    {
       Assert((node.getKind() == kind::EQUAL));
     }
-
-  } else if (node.getType().isBitVector()) {
+  }
+  else if (node.getType().isBitVector())
+  {
     if (converted != node) {
       Assert(converted.getType().isBitVector());
 
@@ -580,10 +583,12 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
   return;
 }
 
-void TheoryFp::registerTerm(TNode node) {
+void TheoryFp::registerTerm(TNode node)
+{
   Trace("fp-registerTerm") << "TheoryFp::registerTerm(): " << node << std::endl;
 
-  if (!isRegistered(node)) {
+  if (!isRegistered(node))
+  {
     Kind k = node.getKind();
     Assert(k != kind::FLOATINGPOINT_TO_FP_GENERIC
            && k != kind::FLOATINGPOINT_SUB && k != kind::FLOATINGPOINT_EQ
@@ -648,19 +653,24 @@ void TheoryFp::registerTerm(TNode node) {
                   InferenceId::FP_REGISTER_TERM);
     }
 
-    // Use symfpu to produce an equivalent bit-vector statement
-    convertAndEquateTerm(node);
+    /* When not word-blasting lazier, we word-blast every term on
+     * registration. */
+    if (!options().fp.fpLazyWb)
+    {
+      convertAndEquateTerm(node);
+    }
   }
   return;
 }
 
-bool TheoryFp::isRegistered(TNode node) {
-  return !(d_registeredTerms.find(node) == d_registeredTerms.end());
+bool TheoryFp::isRegistered(TNode node)
+{
+  return d_registeredTerms.find(node) != d_registeredTerms.end();
 }
 
 void TheoryFp::preRegisterTerm(TNode node)
 {
-  if (Configuration::isBuiltWithSymFPU() && !options::fpExp())
+  if (!options().fp.fpExp)
   {
     TypeNode tn = node.getType();
     if (tn.isFloatingPoint())
@@ -691,7 +701,11 @@ void TheoryFp::handleLemma(Node node, InferenceId id)
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
   // will be preprocessed when sent, which is important because it contains
   // embedded ITEs
-  d_im.lemma(node, id);
+  if (rewrite(node) != d_true)
+  {
+    /* We only send non-trivial lemmas. */
+    d_im.lemma(node, id);
+  }
 }
 
 bool TheoryFp::propagateLit(TNode node)
@@ -716,7 +730,7 @@ bool TheoryFp::needsCheckLastEffort()
 
 void TheoryFp::postCheck(Effort level)
 {
-  // Resolve the abstractions for the conversion lemmas
+  /* Resolve the abstractions for the conversion lemmas */
   if (level == EFFORT_LAST_CALL)
   {
     Trace("fp") << "TheoryFp::check(): checking abstractions" << std::endl;
@@ -741,6 +755,14 @@ void TheoryFp::postCheck(Effort level)
 bool TheoryFp::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
+  /* Word-blast lazier if configured. */
+  if (options().fp.fpLazyWb
+      && d_wbFactsCache.find(atom) == d_wbFactsCache.end())
+  {
+    d_wbFactsCache.insert(atom);
+    convertAndEquateTerm(atom);
+  }
+
   if (atom.getKind() == kind::EQUAL)
   {
     Assert(!(atom[0].getType().isFloatingPoint()
@@ -763,6 +785,16 @@ bool TheoryFp::preNotifyFact(
     }
   }
   return false;
+}
+
+void TheoryFp::notifySharedTerm(TNode n)
+{
+  /* Word-blast lazier if configured. */
+  if (options().fp.fpLazyWb && d_wbFactsCache.find(n) == d_wbFactsCache.end())
+  {
+    d_wbFactsCache.insert(n);
+    convertAndEquateTerm(n);
+  }
 }
 
 TrustNode TheoryFp::explain(TNode n)
@@ -848,7 +880,10 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
         << "TheoryFp::collectModelInfo(): relevantVariable " << node
         << std::endl;
 
-    if (!m->assertEquality(node, d_conv->getValue(d_valuation, node), true))
+    Node converted = d_conv->getValue(d_valuation, node);
+    // We only assign the value if the FpConverter actually has one, that is,
+    // if FpConverter::getValue() does not return a null node.
+    if (!converted.isNull() && !m->assertEquality(node, converted, true))
     {
       return false;
     }

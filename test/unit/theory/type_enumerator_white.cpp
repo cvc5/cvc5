@@ -22,9 +22,12 @@
 #include "expr/dtype.h"
 #include "expr/kind.h"
 #include "expr/type_node.h"
+#include "expr/uninterpreted_constant.h"
 #include "options/language.h"
 #include "test_smt.h"
 #include "theory/type_enumerator.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 

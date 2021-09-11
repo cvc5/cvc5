@@ -19,6 +19,7 @@
 #include "expr/node.h"
 #include "test_node.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "util/string.h"
 
 namespace cvc5 {
 

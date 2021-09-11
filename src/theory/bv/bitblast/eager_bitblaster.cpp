@@ -16,13 +16,14 @@
 #include "theory/bv/bitblast/eager_bitblaster.h"
 
 #include "cvc5_private.h"
+#include "options/base_options.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/bv/bv_solver_lazy.h"
+#include "theory/bv/bv_solver_layered.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/theory_model.h"
 
@@ -30,7 +31,8 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
-EagerBitblaster::EagerBitblaster(BVSolverLazy* theory_bv, context::Context* c)
+EagerBitblaster::EagerBitblaster(BVSolverLayered* theory_bv,
+                                 context::Context* c)
     : TBitblaster<Node>(),
       d_context(c),
       d_satSolver(),

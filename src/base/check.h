@@ -39,30 +39,6 @@
 #include "base/exception.h"
 #include "cvc5_export.h"
 
-// Define CVC5_PREDICT_FALSE(x) that helps the compiler predict that x will be
-// false (if there is compiler support).
-#ifdef __has_builtin
-#if __has_builtin(__builtin_expect)
-#define CVC5_PREDICT_FALSE(x) (__builtin_expect(x, false))
-#define CVC5_PREDICT_TRUE(x) (__builtin_expect(x, true))
-#else
-#define CVC5_PREDICT_FALSE(x) x
-#define CVC5_PREDICT_TRUE(x) x
-#endif
-#else
-#define CVC5_PREDICT_FALSE(x) x
-#define CVC5_PREDICT_TRUE(x) x
-#endif
-
-#ifdef __has_cpp_attribute
-#if __has_cpp_attribute(fallthrough)
-#define CVC5_FALLTHROUGH [[fallthrough]]
-#endif // __has_cpp_attribute(fallthrough)
-#endif // __has_cpp_attribute
-#ifndef CVC5_FALLTHROUGH
-#define CVC5_FALLTHROUGH
-#endif
-
 namespace cvc5 {
 
 // Implementation notes:
@@ -185,13 +161,13 @@ class AssertArgumentException : public Exception
 
 }; /* class AssertArgumentException */
 
-#define Unreachable() CVC5_FATAL() << "Unreachable code reached"
+#define Unreachable() CVC5_FATAL() << "Unreachable code reached "
 
-#define Unhandled() CVC5_FATAL() << "Unhandled case encountered"
+#define Unhandled() CVC5_FATAL() << "Unhandled case encountered "
 
-#define Unimplemented() CVC5_FATAL() << "Unimplemented code encountered"
+#define Unimplemented() CVC5_FATAL() << "Unimplemented code encountered "
 
-#define InternalError() CVC5_FATAL() << "Internal error detected"
+#define InternalError() CVC5_FATAL() << "Internal error detected "
 
 #define IllegalArgument(arg, msg...)      \
   throw ::cvc5::IllegalArgumentException( \

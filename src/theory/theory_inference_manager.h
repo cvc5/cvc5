@@ -24,6 +24,7 @@
 #include "expr/node.h"
 #include "proof/proof_rule.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 #include "theory/inference_id.h"
 #include "theory/output_channel.h"
 #include "util/statistics_stats.h"
@@ -66,7 +67,7 @@ class ProofEqEngine;
  * setEqualityEngine, and use it for handling variants of assertInternalFact
  * below that involve proofs.
  */
-class TheoryInferenceManager
+class TheoryInferenceManager : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
 
@@ -85,7 +86,8 @@ class TheoryInferenceManager
    * only lemmas that are unique after rewriting are sent to the theory engine
    * from this inference manager.
    */
-  TheoryInferenceManager(Theory& t,
+  TheoryInferenceManager(Env& env,
+                         Theory& t,
                          TheoryState& state,
                          ProofNodeManager* pnm,
                          const std::string& statsName,
@@ -132,7 +134,7 @@ class TheoryInferenceManager
    * EqualityEngineNotify::eqNotifyTriggerPredicate and
    * EqualityEngineNotify::eqNotifyTriggerTermEquality.
    */
-  bool propagateLit(TNode lit);
+  virtual bool propagateLit(TNode lit);
   /**
    * Return an explanation for the literal represented by parameter lit
    * (which was previously propagated by this theory). By default, this
@@ -300,6 +302,8 @@ class TheoryInferenceManager
    * Theory's preNotifyFact and notifyFact method have been called with
    * isInternal = true.
    *
+   * Note this method should never be used when proofs are enabled.
+   *
    * @param atom The atom of the fact to assert
    * @param pol Its polarity
    * @param exp Its explanation, i.e. ( exp => (~) atom ) is valid.
@@ -371,6 +375,11 @@ class TheoryInferenceManager
    * this context level.
    */
   void setIncomplete(IncompleteId id);
+  /**
+   * Notify this inference manager that a conflict was sent in this SAT context.
+   * This method is called via TheoryEngine when a conflict is sent.
+   */
+  virtual void notifyInConflict();
 
  protected:
   /**
@@ -429,7 +438,9 @@ class TheoryInferenceManager
   /** Pointer to the decision manager */
   DecisionManager* d_decManager;
   /** A proof equality engine */
-  std::unique_ptr<eq::ProofEqEngine> d_pfee;
+  eq::ProofEqEngine* d_pfee;
+  /** The proof equality engine we allocated */
+  std::unique_ptr<eq::ProofEqEngine> d_pfeeAlloc;
   /** The proof node manager of the theory */
   ProofNodeManager* d_pnm;
   /** Whether this manager caches lemmas */

@@ -16,6 +16,7 @@
 #include "theory/quantifiers/fmf/model_builder.h"
 
 #include "options/quantifiers_options.h"
+#include "options/strings_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/instantiate.h"
@@ -29,11 +30,12 @@ using namespace cvc5::context;
 using namespace cvc5::theory;
 using namespace cvc5::theory::quantifiers;
 
-QModelBuilder::QModelBuilder(QuantifiersState& qs,
+QModelBuilder::QModelBuilder(Env& env,
+                             QuantifiersState& qs,
                              QuantifiersInferenceManager& qim,
                              QuantifiersRegistry& qr,
                              TermRegistry& tr)
-    : TheoryEngineModelBuilder(),
+    : TheoryEngineModelBuilder(env),
       d_addedLemmas(0),
       d_triedLemmas(0),
       d_qstate(qs),
@@ -47,12 +49,13 @@ QModelBuilder::QModelBuilder(QuantifiersState& qs,
 void QModelBuilder::finishInit()
 {
   // allocate the default model
-  d_modelAloc.reset(new FirstOrderModel(d_qstate, d_qreg, d_treg));
+  d_modelAloc.reset(new FirstOrderModel(d_env, d_qstate, d_qreg, d_treg));
   d_model = d_modelAloc.get();
 }
 
 bool QModelBuilder::optUseModel() {
-  return options::mbqiMode() != options::MbqiMode::NONE || options::fmfBound();
+  return options::mbqiMode() != options::MbqiMode::NONE || options::fmfBound()
+         || options::stringExp();
 }
 
 bool QModelBuilder::preProcessBuildModel(TheoryModel* m) {

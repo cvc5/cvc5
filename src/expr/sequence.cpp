@@ -15,6 +15,7 @@
 
 #include "expr/sequence.h"
 
+#include <limits>
 #include <sstream>
 #include <vector>
 

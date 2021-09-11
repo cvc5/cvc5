@@ -33,9 +33,7 @@
 #include "util/floatingpoint_size.h"
 #include "util/hash.h"
 
-#ifdef CVC5_USE_SYMFPU
 #include "symfpu/core/unpackedFloat.h"
-#endif
 
 #ifdef CVC5_SYM_SYMBOLIC_EVAL
 // This allows debugging of the cvc5 symbolic back-end.
@@ -120,9 +118,7 @@ class symbolicProposition : public nodeWrapper
  protected:
   bool checkNodeType(const TNode node);
 
-#ifdef CVC5_USE_SYMFPU
   friend ::symfpu::ite<symbolicProposition, symbolicProposition>;  // For ITE
-#endif
 
  public:
   symbolicProposition(const Node n);
@@ -141,9 +137,7 @@ class symbolicRoundingMode : public nodeWrapper
  protected:
   bool checkNodeType(const TNode n);
 
-#ifdef CVC5_USE_SYMFPU
   friend ::symfpu::ite<symbolicProposition, symbolicRoundingMode>;  // For ITE
-#endif
 
  public:
   symbolicRoundingMode(const Node n);
@@ -183,10 +177,8 @@ class symbolicBitVector : public nodeWrapper
   bool checkNodeType(const TNode n);
   friend symbolicBitVector<!isSigned>;  // To allow conversion between the types
 
-#ifdef CVC5_USE_SYMFPU
   friend ::symfpu::ite<symbolicProposition,
                        symbolicBitVector<isSigned> >;  // For ITE
-#endif
 
  public:
   symbolicBitVector(const Node n);
@@ -308,13 +300,15 @@ class FpConverter
   /** Adds a node to the conversion, returns the converted node */
   Node convert(TNode);
 
-  /** Gives the node representing the value of a given variable */
+  /**
+   * Gives the node representing the value of a word-blasted variable.
+   * Returns a null node if it has not been word-blasted.
+   */
   Node getValue(Valuation&, TNode);
 
   context::CDList<Node> d_additionalAssertions;
 
  protected:
-#ifdef CVC5_USE_SYMFPU
   typedef symfpuSymbolic::traits traits;
   typedef ::symfpu::unpackedFloat<symfpuSymbolic::traits> uf;
   typedef symfpuSymbolic::traits::rm rm;
@@ -348,7 +342,6 @@ class FpConverter
 
   /* Creates the relevant components for a variable */
   uf buildComponents(TNode current);
-#endif
 };
 
 }  // namespace fp

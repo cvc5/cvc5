@@ -29,8 +29,8 @@
 #include "base/check.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "options/base_options.h"
 #include "options/options.h"
-#include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 
@@ -299,16 +299,16 @@ void usortsToBitVectors(const LogicInfo& d_logic,
 
 Ackermann::Ackermann(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "ackermann"),
-      d_funcToSkolem(preprocContext->getUserContext()),
-      d_usVarsToBVVars(preprocContext->getUserContext()),
-      d_logic(preprocContext->getLogicInfo())
+      d_funcToSkolem(userContext()),
+      d_usVarsToBVVars(userContext()),
+      d_logic(logicInfo())
 {
 }
 
 PreprocessingPassResult Ackermann::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  AlwaysAssert(!options::incrementalSolving());
+  AlwaysAssert(!options().base.incrementalSolving);
 
   /* collect all function applications and generate consistency lemmas
    * accordingly */

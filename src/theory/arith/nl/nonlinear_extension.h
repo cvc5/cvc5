@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/cad_solver.h"
 #include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/ext/factoring_check.h"
@@ -33,6 +34,7 @@
 #include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/icp/icp_solver.h"
 #include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/pow2_solver.h"
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/strategy.h"
 #include "theory/arith/nl/transcendental/transcendental_solver.h"
@@ -78,15 +80,12 @@ class NlLemma;
  * for valid arithmetic theory lemmas, based on the current set of assertions,
  * where d_im is the inference manager of TheoryArith.
  */
-class NonlinearExtension
+class NonlinearExtension : EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  NonlinearExtension(TheoryArith& containing,
-                     ArithState& state,
-                     eq::EqualityEngine* ee,
-                     ProofNodeManager* pnm);
+  NonlinearExtension(Env& env, TheoryArith& containing, ArithState& state);
   ~NonlinearExtension();
   /**
    * Does non-context dependent setup for a node connected to a theory.
@@ -222,6 +221,8 @@ class NonlinearExtension
   Node d_true;
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
+  /** A reference to the arithmetic state object */
+  ArithState& d_astate;
   InferenceManager& d_im;
   /** The statistics class */
   NlStats d_stats;
@@ -276,6 +277,13 @@ class NonlinearExtension
    * constraints involving integer and.
    */
   IAndSolver d_iandSlv;
+
+  /** The pow2 solver
+   *
+   * This is the subsolver responsible for running the procedure for
+   * constraints involving powers of 2.
+   */
+  Pow2Solver d_pow2Slv;
 
   /** The strategy for the nonlinear extension. */
   Strategy d_strategy;

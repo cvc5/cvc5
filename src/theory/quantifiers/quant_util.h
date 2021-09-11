@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/incomplete_id.h"
 #include "theory/theory.h"
 
@@ -34,10 +35,13 @@ namespace theory {
  * This is a lightweight version of a quantifiers module that does not implement
  * methods for checking satisfiability.
  */
-class QuantifiersUtil {
-public:
-  QuantifiersUtil(){}
+class QuantifiersUtil : protected EnvObj
+{
+ public:
+  QuantifiersUtil(Env& env);
   virtual ~QuantifiersUtil(){}
+  /**  Called at the beginning of check-sat call. */
+  virtual void presolve() {}
   /* reset
    * Called at the beginning of an instantiation round
    * Returns false if the reset failed. When reset fails, the utility should
@@ -76,8 +80,35 @@ public:
   std::map< Node, bool > d_phase_reqs_equality;
   std::map< Node, Node > d_phase_reqs_equality_term;
 
-  static void getPolarity( Node n, int child, bool hasPol, bool pol, bool& newHasPol, bool& newPol );
-  static void getEntailPolarity( Node n, int child, bool hasPol, bool pol, bool& newHasPol, bool& newPol );
+  /**
+   * Get the polarity of the child^th child of n, assuming its polarity
+   * is given by (hasPol, pol). A term has polarity if it is only relevant
+   * if asserted with one polarity. Its polarity is (typically) the number
+   * of negations it is beneath.
+   */
+  static void getPolarity(Node n,
+                          size_t child,
+                          bool hasPol,
+                          bool pol,
+                          bool& newHasPol,
+                          bool& newPol);
+
+  /**
+   * Get the entailed polarity of the child^th child of n, assuming its
+   * entailed polarity is given by (hasPol, pol). A term has entailed polarity
+   * if it must be asserted with a polarity. Its polarity is (typically) the
+   * number of negations it is beneath.
+   *
+   * Entailed polarity and polarity above differ, e.g.:
+   *   (and A B): A and B have true polarity and true entailed polarity
+   *   (or A B): A and B have true polarity and no entailed polarity
+   */
+  static void getEntailPolarity(Node n,
+                                size_t child,
+                                bool hasPol,
+                                bool pol,
+                                bool& newHasPol,
+                                bool& newPol);
 };
 
 }

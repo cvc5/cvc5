@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__MODEL_ENGINE_H
 #define CVC5__THEORY__QUANTIFIERS__MODEL_ENGINE_H
 
+#include "smt/env_obj.h"
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/quant_module.h"
 #include "theory/theory_model.h"
@@ -38,13 +39,12 @@ private:
   //temporary statistics
   //is the exhaustive instantiation incomplete?
   bool d_incomplete_check;
-  // set of quantified formulas for which check was incomplete
-  std::vector< Node > d_incomplete_quants;
   int d_addedLemmas;
   int d_triedLemmas;
   int d_totalLemmas;
 public:
- ModelEngine(QuantifiersState& qs,
+ ModelEngine(Env& env,
+             QuantifiersState& qs,
              QuantifiersInferenceManager& qim,
              QuantifiersRegistry& qr,
              TermRegistry& tr,
@@ -59,15 +59,18 @@ public:
  bool checkComplete(IncompleteId& incId) override;
  bool checkCompleteFor(Node q) override;
  void registerQuantifier(Node f) override;
- void assertNode(Node f) override;
  Node explain(TNode n) { return Node::null(); }
  void debugPrint(const char* c);
  /** Identify this module */
  std::string identify() const override { return "ModelEngine"; }
 
 private:
+ /** Should we process quantified formula q? */
+ bool shouldProcess(Node q);
  /** Pointer to the model builder of quantifiers engine */
  QModelBuilder* d_builder;
+ /** set of quantified formulas for which check was incomplete */
+ std::unordered_set<Node> d_incompleteQuants;
 };/* class ModelEngine */
 
 }  // namespace quantifiers

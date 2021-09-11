@@ -15,6 +15,7 @@
 
 #include "theory/bags/term_registry.h"
 
+#include "expr/emptyset.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
 
@@ -25,10 +26,11 @@ namespace cvc5 {
 namespace theory {
 namespace bags {
 
-TermRegistry::TermRegistry(SolverState& state, InferenceManager& im)
-    : d_im(im),
-      d_proxy(state.getUserContext()),
-      d_proxy_to_term(state.getUserContext())
+TermRegistry::TermRegistry(Env& env, SolverState& state, InferenceManager& im)
+    : EnvObj(env),
+      d_im(im),
+      d_proxy(userContext()),
+      d_proxy_to_term(userContext())
 {
 }
 

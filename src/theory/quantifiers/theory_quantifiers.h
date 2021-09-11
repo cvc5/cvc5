@@ -37,12 +37,7 @@ class QuantifiersMacros;
 
 class TheoryQuantifiers : public Theory {
  public:
-  TheoryQuantifiers(context::Context* c,
-                    context::UserContext* u,
-                    OutputChannel& out,
-                    Valuation valuation,
-                    const LogicInfo& logicInfo,
-                    ProofNodeManager* pnm = nullptr);
+  TheoryQuantifiers(Env& env, OutputChannel& out, Valuation valuation);
   ~TheoryQuantifiers();
 
   //--------------------------------- initialization
@@ -82,10 +77,6 @@ class TheoryQuantifiers : public Theory {
   {
     return std::string("TheoryQuantifiers");
   }
-  void setUserAttribute(const std::string& attr,
-                        Node n,
-                        std::vector<Node> node_values,
-                        std::string str_value) override;
 
  private:
   /** The theory rewriter for this theory. */

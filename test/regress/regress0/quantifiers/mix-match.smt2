@@ -1,6 +1,6 @@
 ; COMMAND-LINE:
 ; EXPECT: unsat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status unsat)
 (declare-fun P (Real) Bool)
 (assert (forall ((x Int)) (P x)))

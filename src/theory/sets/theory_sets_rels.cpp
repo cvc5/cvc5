@@ -18,6 +18,7 @@
 #include "expr/skolem_manager.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/sets/theory_sets_private.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -348,7 +349,7 @@ void TheorySetsRels::check(Theory::Effort level)
               Assert(reasons.size() >= 1);
               sendInfer(
                   new_membership,
-                  InferenceId::UNKNOWN,
+                  InferenceId::SETS_RELS_JOIN_IMAGE_UP,
                   reasons.size() > 1 ? nm->mkNode(AND, reasons) : reasons[0]);
               break;
             }

@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "api/cpp/cvc5.h"
+#include "expr/array_store_all.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
@@ -26,9 +27,14 @@
 #include "expr/node_manager.h"
 #include "expr/node_value.h"
 #include "expr/skolem_manager.h"
+#include "options/base_options.h"
+#include "options/language.h"
+#include "options/options_public.h"
 #include "smt/smt_engine.h"
 #include "test_node.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 
@@ -61,12 +67,8 @@ class TestNodeBlackNode : public TestNode
     TestNode::SetUp();
     // setup an SMT engine so that options are in scope
     Options opts;
-    char* argv[2];
-    argv[0] = strdup("");
-    argv[1] = strdup("--output-lang=ast");
-    Options::parseOptions(&opts, 2, argv);
-    free(argv[0]);
-    free(argv[1]);
+    opts.base.outputLanguage = Language::LANG_AST;
+    opts.base.outputLanguageWasSetByUser = true;
     d_smt.reset(new SmtEngine(d_nodeManager.get(), &opts));
   }
 
@@ -484,6 +486,24 @@ TEST_F(TestNodeBlackNode, iterator)
   }
 }
 
+TEST_F(TestNodeBlackNode, const_reverse_iterator)
+{
+  NodeBuilder b;
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
+  Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->booleanType());
+  Node z = d_skolemManager->mkDummySkolem("z", d_nodeManager->booleanType());
+  Node n = b << x << y << z << kind::AND;
+
+  {  // same for const iterator
+    const Node& c = n;
+    Node::const_reverse_iterator i = c.rbegin();
+    ASSERT_EQ(*i++, z);
+    ASSERT_EQ(*i++, y);
+    ASSERT_EQ(*i++, x);
+    ASSERT_EQ(i, n.rend());
+  }
+}
+
 TEST_F(TestNodeBlackNode, kinded_iterator)
 {
   TypeNode integerType = d_nodeManager->integerType();
@@ -623,7 +643,7 @@ TEST_F(TestNodeBlackNode, dagifier)
       OR, {fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy});
 
   std::stringstream sstr;
-  sstr << Node::setdepth(-1) << Node::setlanguage(language::output::LANG_CVC);
+  sstr << Node::setdepth(-1) << Node::setlanguage(Language::LANG_CVC);
   sstr << Node::dag(false) << n;  // never dagify
   ASSERT_EQ(sstr.str(),
             "(f(f(f(x))) = x) OR (f(f(f(x))) = y) OR (f(x) = g(x)) OR (x = "

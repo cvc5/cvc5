@@ -20,7 +20,6 @@
 #include "proof/proof_node_manager.h"
 
 namespace cvc5 {
-namespace theory {
 
 EagerProofGenerator::EagerProofGenerator(ProofNodeManager* pnm,
                                          context::Context* c,
@@ -155,5 +154,4 @@ TrustNode EagerProofGenerator::mkTrustNodeSplit(Node f)
 
 std::string EagerProofGenerator::identify() const { return d_name; }
 
-}  // namespace theory
 }  // namespace cvc5

@@ -16,10 +16,12 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/uninterpreted_constant.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "smt/env.h"
 #include "theory/rewriter.h"
 #include "theory/uf/theory_uf_model.h"
 
@@ -29,6 +31,8 @@ using namespace cvc5::context;
 
 namespace cvc5 {
 namespace theory {
+
+TheoryEngineModelBuilder::TheoryEngineModelBuilder(Env& env) : EnvObj(env) {}
 
 void TheoryEngineModelBuilder::Assigner::initialize(
     TypeNode tn, TypeEnumeratorProperties* tep, const std::vector<Node>& aes)
@@ -62,8 +66,6 @@ Node TheoryEngineModelBuilder::Assigner::getNextAssignment()
   } while (!success);
   return n;
 }
-
-TheoryEngineModelBuilder::TheoryEngineModelBuilder() {}
 
 Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m, TNode r)
 {
@@ -128,7 +130,7 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
   {
     // selectors are always assignable (where we guarantee that they are not
     // evaluatable here)
-    if (!options::ufHo())
+    if (!logicInfo().isHigherOrder())
     {
       Assert(!n.getType().isFunction());
       return true;
@@ -150,7 +152,7 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
   else
   {
     // non-function variables, and fully applied functions
-    if (!options::ufHo())
+    if (!logicInfo().isHigherOrder())
     {
       // no functions exist, all functions are fully applied
       Assert(n.getKind() != kind::HO_APPLY);
@@ -1088,7 +1090,6 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, TheoryModel* m)
 
 void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
 {
-#ifdef CVC5_ASSERTIONS
   if (tm->hasApproximations())
   {
     // models with approximations may fail the assertions below
@@ -1110,7 +1111,7 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       // if Boolean, it does not necessarily have a constant representative, use
       // get value instead
       rep = tm->getValue(eqc);
-      Assert(rep.isConst());
+      AlwaysAssert(rep.isConst());
     }
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, tm->d_equalityEngine);
     for (; !eqc_i.isFinished(); ++eqc_i)
@@ -1118,21 +1119,26 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       Node n = *eqc_i;
       static int repCheckInstance = 0;
       ++repCheckInstance;
-
+      AlwaysAssert(rep.getType().isSubtypeOf(n.getType()))
+          << "Representative " << rep << " of " << n
+          << " violates type constraints (" << rep.getType() << " and "
+          << n.getType() << ")";
       // non-linear mult is not necessarily accurate wrt getValue
       if (n.getKind() != kind::NONLINEAR_MULT)
       {
-        Debug("check-model::rep-checking") << "( " << repCheckInstance << ") "
-                                           << "n: " << n << endl
-                                           << "getValue(n): " << tm->getValue(n)
-                                           << endl
-                                           << "rep: " << rep << endl;
-        Assert(tm->getValue(*eqc_i) == rep)
-            << "run with -d check-model::rep-checking for details";
+        if (tm->getValue(*eqc_i) != rep)
+        {
+          std::stringstream err;
+          err << "Failed representative check:" << std::endl
+              << "( " << repCheckInstance << ") "
+              << "n: " << n << endl
+              << "getValue(n): " << tm->getValue(n) << std::endl
+              << "rep: " << rep << std::endl;
+          AlwaysAssert(tm->getValue(*eqc_i) == rep) << err.str();
+        }
       }
     }
   }
-#endif /* CVC5_ASSERTIONS */
 
   // builder-specific debugging
   debugModel(tm);
@@ -1223,7 +1229,7 @@ bool TheoryEngineModelBuilder::processBuildModel(TheoryModel* m)
 
 void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
 {
-  Assert(!options::ufHo());
+  Assert(!logicInfo().isHigherOrder());
   uf::UfModelTree ufmt(f);
   Node default_v;
   for (size_t i = 0; i < m->d_uf_terms[f].size(); i++)
@@ -1268,7 +1274,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
 
 void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
 {
-  Assert(options::ufHo());
+  Assert(logicInfo().isHigherOrder());
   TypeNode type = f.getType();
   std::vector<TypeNode> argTypes = type.getArgTypes();
   std::vector<Node> args;
@@ -1392,7 +1398,7 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
   Trace("model-builder") << "Assigning function values..." << std::endl;
   std::vector<Node> funcs_to_assign = m->getFunctionsToAssign();
 
-  if (options::ufHo())
+  if (logicInfo().isHigherOrder())
   {
     // sort based on type size if higher-order
     Trace("model-builder") << "Sort functions by type..." << std::endl;
@@ -1419,7 +1425,7 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
     Trace("model-builder") << "  Function #" << k << " is " << f << std::endl;
     // std::map< Node, std::vector< Node > >::iterator itht =
     // m->d_ho_uf_terms.find( f );
-    if (!options::ufHo())
+    if (!logicInfo().isHigherOrder())
     {
       Trace("model-builder") << "  Assign function value for " << f
                              << " based on APPLY_UF" << std::endl;

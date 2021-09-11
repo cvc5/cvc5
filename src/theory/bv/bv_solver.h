@@ -20,19 +20,21 @@
 #ifndef CVC5__THEORY__BV__BV_SOLVER_H
 #define CVC5__THEORY__BV__BV_SOLVER_H
 
+#include "smt/env.h"
+#include "smt/env_obj.h"
 #include "theory/theory.h"
 
 namespace cvc5 {
 namespace theory {
 namespace bv {
 
-class BVSolver
+class BVSolver : protected EnvObj
 {
  public:
-  BVSolver(TheoryState& state, TheoryInferenceManager& inferMgr)
-      : d_state(state), d_im(inferMgr){};
+  BVSolver(Env& env, TheoryState& state, TheoryInferenceManager& inferMgr)
+      : EnvObj(env), d_state(state), d_im(inferMgr){};
 
-  virtual ~BVSolver(){};
+  virtual ~BVSolver() {}
 
   /**
    * Returns true if we need an equality engine. If so, we initialize the
@@ -71,7 +73,7 @@ class BVSolver
 
   virtual bool needsCheckLastEffort() { return false; }
 
-  virtual void propagate(Theory::Effort e){};
+  virtual void propagate(Theory::Effort e) {}
 
   virtual TrustNode explain(TNode n)
   {
@@ -80,17 +82,20 @@ class BVSolver
     return TrustNode::null();
   }
 
+  /** Additionally collect terms relevant for collecting model values. */
+  virtual void computeRelevantTerms(std::set<Node>& termSet) {}
+
   /** Collect model values in m based on the relevant terms given by termSet */
   virtual bool collectModelValues(TheoryModel* m,
                                   const std::set<Node>& termSet) = 0;
 
   virtual std::string identify() const = 0;
 
-  virtual TrustNode ppRewrite(TNode t) { return TrustNode::null(); };
+  virtual TrustNode ppRewrite(TNode t) { return TrustNode::null(); }
 
-  virtual void ppStaticLearn(TNode in, NodeBuilder& learned){};
+  virtual void ppStaticLearn(TNode in, NodeBuilder& learned) {}
 
-  virtual void presolve(){};
+  virtual void presolve() {}
 
   virtual void notifySharedTerm(TNode t) {}
 
@@ -98,6 +103,14 @@ class BVSolver
   {
     return EqualityStatus::EQUALITY_UNKNOWN;
   }
+
+  /**
+   * Get the current value of `node`.
+   *
+   * The `initialize` flag indicates whether bits should be zero-initialized
+   * if they don't have a value yet.
+   */
+  virtual Node getValue(TNode node, bool initialize) { return Node::null(); }
 
   /** Called by abstraction preprocessing pass. */
   virtual bool applyAbstraction(const std::vector<Node>& assertions,

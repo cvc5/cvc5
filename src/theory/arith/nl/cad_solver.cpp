@@ -27,13 +27,10 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-CadSolver::CadSolver(InferenceManager& im,
-                     NlModel& model,
-                     context::Context* ctx,
-                     ProofNodeManager* pnm)
+CadSolver::CadSolver(Env& env, InferenceManager& im, NlModel& model)
     :
 #ifdef CVC5_POLY_IMP
-      d_CAC(ctx, pnm),
+      d_CAC(env),
 #endif
       d_foundSatisfiability(false),
       d_im(im),
@@ -44,9 +41,9 @@ CadSolver::CadSolver(InferenceManager& im,
   d_ranVariable = sm->mkDummySkolem(
       "__z", nm->realType(), "", NodeManager::SKOLEM_EXACT_NAME);
 #ifdef CVC5_POLY_IMP
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
+  if (env.isTheoryProofProducing())
   {
+    ProofChecker* pc = env.getProofNodeManager()->getChecker();
     // add checkers
     d_proofChecker.registerTo(pc);
   }

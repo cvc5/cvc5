@@ -34,11 +34,9 @@ namespace cvc5 {
 
 class ProofGenerator;
 class ProofNode;
-
-namespace theory {
-
 class EagerProofGenerator;
 
+namespace theory {
 namespace booleans {
 
 /**
@@ -101,7 +99,7 @@ class CircuitPropagator
    * @return a trust node encapsulating the proof for a conflict as a lemma that
    * proves false, or the null trust node otherwise
    */
-  TrustNode propagate() CVC5_WARN_UNUSED_RESULT;
+  CVC5_WARN_UNUSED_RESULT TrustNode propagate();
 
   /**
    * Get the back edges of this circuit.

@@ -23,6 +23,7 @@
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
+#include "util/integer.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -92,14 +93,29 @@ class BVGauss : public PreprocessingPass
     NONE
   };
 
-  static Result gaussElim(Integer prime,
-                          std::vector<Integer>& rhs,
-                          std::vector<std::vector<Integer>>& lhs);
+  Result gaussElim(Integer prime,
+                   std::vector<Integer>& rhs,
+                   std::vector<std::vector<Integer>>& lhs);
 
-  static Result gaussElimRewriteForUrem(const std::vector<Node>& equations,
-                                        std::unordered_map<Node, Node>& res);
+  Result gaussElimRewriteForUrem(const std::vector<Node>& equations,
+                                 std::unordered_map<Node, Node>& res);
 
-  static unsigned getMinBwExpr(Node expr);
+  uint32_t getMinBwExpr(Node expr);
+
+  /**
+   * Return true if given node is a bit-vector value (after rewriting).
+   */
+  bool is_bv_const(Node n);
+  /**
+   * Return the bit-vector value resulting from rewriting node 'n'.
+   * Asserts that given node can be rewritten to a bit-vector value.
+   */
+  Node get_bv_const(Node n);
+  /**
+   * Return the Integer value representing the given bit-vector value.
+   * Asserts that given node can be rewritten to a bit-vector value.
+   */
+  Integer get_bv_const_value(Node n);
 };
 
 }  // namespace passes

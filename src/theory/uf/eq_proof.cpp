@@ -1049,6 +1049,13 @@ Node EqProof::addToProof(CDProof* p,
     }
     // build constant application (f c1 ... cn) and equality (= (f c1 ... cn) c)
     Kind k = d_node[0].getKind();
+    std::vector<Node> cargs;
+    cargs.push_back(ProofRuleChecker::mkKindNode(k));
+    if (d_node[0].getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
+      constChildren.insert(constChildren.begin(), d_node[0].getOperator());
+      cargs.push_back(d_node[0].getOperator());
+    }
     Node constApp = NodeManager::currentNM()->mkNode(k, constChildren);
     Node constEquality = constApp.eqNode(d_node[1]);
     Trace("eqproof-conv") << "EqProof::addToProof: adding "
@@ -1060,11 +1067,7 @@ Node EqProof::addToProof(CDProof* p,
     Trace("eqproof-conv") << "EqProof::addToProof: adding  " << PfRule::CONG
                           << " step for " << congConclusion << " from "
                           << subChildren << "\n";
-    p->addStep(congConclusion,
-               PfRule::CONG,
-               {subChildren},
-               {ProofRuleChecker::mkKindNode(k)},
-               true);
+    p->addStep(congConclusion, PfRule::CONG, {subChildren}, cargs, true);
     Trace("eqproof-conv") << "EqProof::addToProof: adding  " << PfRule::TRANS
                           << " step for original conclusion " << d_node << "\n";
     std::vector<Node> transitivityChildren{congConclusion, constEquality};
@@ -1321,24 +1324,30 @@ Node EqProof::addToProof(CDProof* p,
     }
   }
   std::vector<Node> children(arity + 1);
-  // Check if there is a justification for equality between functions (HO case)
-  if (!transitivityChildren[0].empty())
-  {
-    Assert(k == kind::APPLY_UF) << "Congruence with different functions only "
-                                   "allowed for uninterpreted functions.\n";
-
-    children[0] =
-        conclusion[0].getOperator().eqNode(conclusion[1].getOperator());
-    Assert(transitivityChildren[0].size() == 1
-           && CDProof::isSame(children[0], transitivityChildren[0][0]))
-        << "Justification of operators equality is wrong: "
-        << transitivityChildren[0] << "\n";
-  }
   // Proccess transitivity matrix to (possibly) generate transitivity steps for
   // congruence premises (= ai bi)
-  for (unsigned i = 1; i <= arity; ++i)
+  for (unsigned i = 0; i <= arity; ++i)
   {
-    Node transConclusion = conclusion[0][i - 1].eqNode(conclusion[1][i - 1]);
+    Node transConclusion;
+    // We special case the operator case because there is only ever the need to
+    // do something when in some HO case
+    if (i == 0)
+    {
+      // no justification for equality between functions, skip
+      if (transitivityChildren[0].empty())
+      {
+        continue;
+      }
+      // HO case
+      Assert(k == kind::APPLY_UF) << "Congruence with different functions only "
+                                     "allowed for uninterpreted functions.\n";
+      transConclusion =
+          conclusion[0].getOperator().eqNode(conclusion[1].getOperator());
+    }
+    else
+    {
+      transConclusion = conclusion[0][i - 1].eqNode(conclusion[1][i - 1]);
+    }
     children[i] = transConclusion;
     Assert(!transitivityChildren[i].empty())
         << "EqProof::addToProof: did not add any justification for " << i

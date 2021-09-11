@@ -47,11 +47,12 @@ TrustNode InstRewriterCegqi::rewriteInstantiation(Node q,
   return d_parent->rewriteInstantiation(q, terms, inst, doVts);
 }
 
-InstStrategyCegqi::InstStrategyCegqi(QuantifiersState& qs,
+InstStrategyCegqi::InstStrategyCegqi(Env& env,
+                                     QuantifiersState& qs,
                                      QuantifiersInferenceManager& qim,
                                      QuantifiersRegistry& qr,
                                      TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr),
+    : QuantifiersModule(env, qs, qim, qr, tr),
       d_irew(new InstRewriterCegqi(this)),
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
@@ -70,7 +71,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersState& qs,
   }
   if (options::cegqiNestedQE())
   {
-    d_nestedQe.reset(new NestedQe(qs.getUserContext()));
+    d_nestedQe.reset(new NestedQe(d_env));
   }
 }
 
@@ -491,7 +492,7 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   else if (inst->addInstantiation(d_curr_quant,
                                   subs,
                                   InferenceId::QUANTIFIERS_INST_CEGQI,
-                                  false,
+                                  Node::null(),
                                   false,
                                   usedVts))
   {

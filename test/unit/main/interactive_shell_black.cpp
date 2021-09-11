@@ -35,12 +35,12 @@ class TestMainBlackInteractiveShell : public TestInternal
   void SetUp() override
   {
     TestInternal::SetUp();
-    d_sin.reset(new std::stringstream);
-    d_sout.reset(new std::stringstream);
-    d_options.set(options::in, d_sin.get());
-    d_options.set(options::out, d_sout.get());
-    d_options.set(options::inputLanguage, language::input::LANG_CVC);
-    d_solver.reset(new cvc5::api::Solver(&d_options));
+
+    d_sin = std::make_unique<std::stringstream>();
+    d_sout = std::make_unique<std::stringstream>();
+
+    d_solver.reset(new cvc5::api::Solver());
+    d_solver->setOption("input-language", "smt2");
     d_symman.reset(new SymbolManager(d_solver.get()));
   }
 
@@ -80,27 +80,26 @@ class TestMainBlackInteractiveShell : public TestInternal
   std::unique_ptr<std::stringstream> d_sout;
   std::unique_ptr<SymbolManager> d_symman;
   std::unique_ptr<cvc5::api::Solver> d_solver;
-  Options d_options;
 };
 
 TEST_F(TestMainBlackInteractiveShell, assert_true)
 {
-  *d_sin << "ASSERT TRUE;\n" << std::flush;
-  InteractiveShell shell(d_solver.get(), d_symman.get());
+  *d_sin << "(assert true)\n" << std::flush;
+  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
   countCommands(shell, 1, 1);
 }
 
 TEST_F(TestMainBlackInteractiveShell, query_false)
 {
-  *d_sin << "QUERY FALSE;\n" << std::flush;
-  InteractiveShell shell(d_solver.get(), d_symman.get());
+  *d_sin << "(check-sat)\n" << std::flush;
+  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
   countCommands(shell, 1, 1);
 }
 
 TEST_F(TestMainBlackInteractiveShell, def_use1)
 {
-  InteractiveShell shell(d_solver.get(), d_symman.get());
-  *d_sin << "x : REAL; ASSERT x > 0;\n" << std::flush;
+  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
+  *d_sin << "(declare-const x Real) (assert (> x 0))\n" << std::flush;
   /* readCommand may return a sequence, so we can't say for sure
      whether it will return 1 or 2... */
   countCommands(shell, 1, 2);
@@ -108,18 +107,18 @@ TEST_F(TestMainBlackInteractiveShell, def_use1)
 
 TEST_F(TestMainBlackInteractiveShell, def_use2)
 {
-  InteractiveShell shell(d_solver.get(), d_symman.get());
+  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
   /* readCommand may return a sequence, see above. */
-  *d_sin << "x : REAL;\n" << std::flush;
+  *d_sin << "(declare-const x Real)\n" << std::flush;
   Command* tmp = shell.readCommand();
-  *d_sin << "ASSERT x > 0;\n" << std::flush;
+  *d_sin << "(assert (> x 0))\n" << std::flush;
   countCommands(shell, 1, 1);
   delete tmp;
 }
 
 TEST_F(TestMainBlackInteractiveShell, empty_line)
 {
-  InteractiveShell shell(d_solver.get(), d_symman.get());
+  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
   *d_sin << std::flush;
   countCommands(shell, 0, 0);
 }
@@ -127,7 +126,7 @@ TEST_F(TestMainBlackInteractiveShell, empty_line)
 TEST_F(TestMainBlackInteractiveShell, repeated_empty_lines)
 {
   *d_sin << "\n\n\n";
-  InteractiveShell shell(d_solver.get(), d_symman.get());
+  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
   /* Might return up to four empties, might return nothing */
   countCommands(shell, 0, 3);
 }
