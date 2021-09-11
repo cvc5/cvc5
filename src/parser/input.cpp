@@ -51,7 +51,7 @@ InputStream *Input::getInputStream() {
   return d_inputStream;
 }
 
-Input* Input::newFileInput(Language lang,
+Input* Input::newFileInput(const std::string& lang,
                            const std::string& filename,
                            bool useMmap)
 {
@@ -60,7 +60,7 @@ Input* Input::newFileInput(Language lang,
   return AntlrInput::newInput(lang, *inputStream);
 }
 
-Input* Input::newStreamInput(Language lang,
+Input* Input::newStreamInput(const std::string& lang,
                              std::istream& input,
                              const std::string& name)
 {
@@ -69,7 +69,7 @@ Input* Input::newStreamInput(Language lang,
   return AntlrInput::newInput(lang, *inputStream);
 }
 
-Input* Input::newStringInput(Language lang,
+Input* Input::newStringInput(const std::string& lang,
                              const std::string& str,
                              const std::string& name)
 {

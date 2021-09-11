@@ -28,7 +28,6 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace cvc5::kind;
@@ -38,9 +37,10 @@ namespace theory {
 namespace quantifiers {
 
 CegSingleInv::CegSingleInv(Env& env, TermRegistry& tr, SygusStatistics& s)
-    : d_sip(new SingleInvocationPartition),
-      d_srcons(new SygusReconstruct(env, tr.getTermDatabaseSygus(), s)),
+    : EnvObj(env),
       d_isSolved(false),
+      d_sip(new SingleInvocationPartition),
+      d_srcons(new SygusReconstruct(env, tr.getTermDatabaseSygus(), s)),
       d_single_invocation(false),
       d_treg(tr)
 {
@@ -227,7 +227,10 @@ bool CegSingleInv::solve()
   }
   // solve the single invocation conjecture using a fresh copy of SMT engine
   std::unique_ptr<SmtEngine> siSmt;
-  initializeSubsolver(siSmt);
+  initializeSubsolver(siSmt, d_env);
+  // do not use shared selectors in subsolver, since this leads to solutions
+  // with non-user symbols
+  siSmt->setOption("dt-share-sel", "false");
   siSmt->assertFormula(siq);
   Result r = siSmt->checkSat();
   Trace("sygus-si") << "Result: " << r << std::endl;
@@ -276,7 +279,7 @@ bool CegSingleInv::solve()
       Assert(inst.size() == vars.size());
       Node ilem =
           body.substitute(vars.begin(), vars.end(), inst.begin(), inst.end());
-      ilem = Rewriter::rewrite(ilem);
+      ilem = rewrite(ilem);
       d_instConds.push_back(ilem);
       Trace("sygus-si") << "  Instantiation Lemma: " << ilem << std::endl;
     }
@@ -400,7 +403,7 @@ Node CegSingleInv::getSolutionFromInst(size_t index)
   }
   //simplify the solution using the extended rewriter
   Trace("csi-sol") << "Solution (pre-simplification): " << s << std::endl;
-  s = d_treg.getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(s);
+  s = extendedRewrite(s);
   Trace("csi-sol") << "Solution (post-simplification): " << s << std::endl;
   // wrap into lambda, as needed
   return SygusUtils::wrapSolutionForSynthFun(prog, s);
@@ -467,7 +470,7 @@ Node CegSingleInv::reconstructToSyntax(Node s,
   {
     Trace("csi-sol") << "Post-process solution..." << std::endl;
     Node prev = sol;
-    sol = d_treg.getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(sol);
+    sol = extendedRewrite(sol);
     if (prev != sol)
     {
       Trace("csi-sol") << "Solution (after post process) : " << sol
@@ -511,7 +514,7 @@ bool CegSingleInv::solveTrivial(Node q)
       // remake with eliminated nodes
       body = body.substitute(
           varsTmp.begin(), varsTmp.end(), subsTmp.begin(), subsTmp.end());
-      body = Rewriter::rewrite(body);
+      body = rewrite(body);
       // apply to subs
       // this ensures we behave correctly if we solve x before y in
       // x = y+1 ^ y = 2.
@@ -519,7 +522,7 @@ bool CegSingleInv::solveTrivial(Node q)
       {
         subs[i] = subs[i].substitute(
             varsTmp.begin(), varsTmp.end(), subsTmp.begin(), subsTmp.end());
-        subs[i] = Rewriter::rewrite(subs[i]);
+        subs[i] = rewrite(subs[i]);
       }
       vars.insert(vars.end(), varsTmp.begin(), varsTmp.end());
       subs.insert(subs.end(), subsTmp.begin(), subsTmp.end());

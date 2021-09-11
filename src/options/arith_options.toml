@@ -418,6 +418,14 @@ name   = "Arithmetic Theory"
   help = "Use all lemma schemes"
 
 [[option]]
+  name       = "nlRlvAssertBounds"
+  category   = "regular"
+  long       = "nl-rlv-assert-bounds"
+  type       = "bool"
+  default    = "false"
+  help       = "use bound inference utility to prune when an assertion is entailed by another"
+
+[[option]]
   name       = "nlExtResBound"
   category   = "regular"
   long       = "nl-ext-rbound"

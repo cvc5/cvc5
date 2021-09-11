@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
 #define CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
 
+#include "smt/env_obj.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
@@ -69,7 +70,8 @@ class InstStrategyCegqi : public QuantifiersModule
   typedef context::CDHashMap<Node, int> NodeIntMap;
 
  public:
-  InstStrategyCegqi(QuantifiersState& qs,
+  InstStrategyCegqi(Env& env,
+                    QuantifiersState& qs,
                     QuantifiersInferenceManager& qim,
                     QuantifiersRegistry& qr,
                     TermRegistry& tr);

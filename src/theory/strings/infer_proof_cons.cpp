@@ -59,6 +59,69 @@ void InferProofCons::notifyFact(const InferInfo& ii)
   d_lazyFactMap.insert(ii.d_conc, iic);
 }
 
+bool InferProofCons::addProofTo(CDProof* pf,
+                                Node conc,
+                                InferenceId infer,
+                                bool isRev,
+                                const std::vector<Node>& exp)
+{
+  // now go back and convert it to proof steps and add to proof
+  bool useBuffer = false;
+  ProofStep ps;
+  TheoryProofStepBuffer psb(pf->getManager()->getChecker());
+  // run the conversion
+  convert(infer, isRev, conc, exp, ps, psb, useBuffer);
+  // make the proof based on the step or the buffer
+  if (useBuffer)
+  {
+    if (!pf->addSteps(psb))
+    {
+      return false;
+    }
+  }
+  else
+  {
+    if (!pf->addStep(conc, ps))
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+void InferProofCons::packArgs(Node conc,
+                              InferenceId infer,
+                              bool isRev,
+                              const std::vector<Node>& exp,
+                              std::vector<Node>& args)
+{
+  args.push_back(conc);
+  args.push_back(mkInferenceIdNode(infer));
+  args.push_back(NodeManager::currentNM()->mkConst(isRev));
+  // The vector exp is stored as arguments; its flatten form are premises. We
+  // need both since the grouping of exp is important, e.g. { (and a b), c }
+  // is different from { a, b, c } in the convert routine, since positions
+  // of formulas in exp have special meaning.
+  args.insert(args.end(), exp.begin(), exp.end());
+}
+
+bool InferProofCons::unpackArgs(const std::vector<Node>& args,
+                                Node& conc,
+                                InferenceId& infer,
+                                bool& isRev,
+                                std::vector<Node>& exp)
+{
+  Assert(args.size() >= 3);
+  conc = args[0];
+  if (!getInferenceId(args[1], infer))
+  {
+    return false;
+  }
+  isRev = args[2].getConst<bool>();
+  exp.insert(exp.end(), args.begin() + 3, args.end());
+  return true;
+}
+
 void InferProofCons::convert(InferenceId infer,
                              bool isRev,
                              Node conc,
@@ -134,7 +197,7 @@ void InferProofCons::convert(InferenceId infer,
           useBuffer = true;
         }
       }
-      if (!useBuffer)
+      else
       {
         // use the predicate version?
         ps.d_args.push_back(conc);
@@ -933,8 +996,6 @@ void InferProofCons::convert(InferenceId infer,
     ps.d_args.push_back(t);
     // use the trust rule
     ps.d_rule = PfRule::THEORY_INFERENCE;
-    // add to stats
-    d_statistics.d_inferencesNoPf << infer;
   }
   if (Trace.isOn("strings-ipc-debug"))
   {
@@ -1023,8 +1084,6 @@ Node InferProofCons::convertTrans(Node eqa,
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
 {
-  // temporary proof
-  CDProof pf(d_pnm);
   // get the inference
   NodeInferInfoMap::iterator it = d_lazyFactMap.find(fact);
   if (it == d_lazyFactMap.end())
@@ -1038,28 +1097,20 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
     }
   }
   AlwaysAssert(it != d_lazyFactMap.end());
-  // now go back and convert it to proof steps and add to proof
-  bool useBuffer = false;
-  ProofStep ps;
-  TheoryProofStepBuffer psb(d_pnm->getChecker());
   std::shared_ptr<InferInfo> ii = (*it).second;
-  // run the conversion
-  convert(ii->getId(), ii->d_idRev, ii->d_conc, ii->d_premises, ps, psb, useBuffer);
-  // make the proof based on the step or the buffer
-  if (useBuffer)
+  Assert(ii->d_conc == fact);
+  // make a placeholder proof using STRINGS_INFERENCE, which is reconstructed
+  // during post-process
+  CDProof pf(d_pnm);
+  std::vector<Node> args;
+  packArgs(ii->d_conc, ii->getId(), ii->d_idRev, ii->d_premises, args);
+  // must flatten
+  std::vector<Node> exp;
+  for (const Node& ec : ii->d_premises)
   {
-    if (!pf.addSteps(psb))
-    {
-      return nullptr;
-    }
+    utils::flattenOp(AND, ec, exp);
   }
-  else
-  {
-    if (!pf.addStep(fact, ps))
-    {
-      return nullptr;
-    }
-  }
+  pf.addStep(fact, PfRule::STRING_INFERENCE, exp, args);
   return pf.getProofFor(fact);
 }
 
@@ -1071,7 +1122,7 @@ std::string InferProofCons::identify() const
 bool InferProofCons::purifyCoreSubstitution(Node& tgt,
                                             std::vector<Node>& children,
                                             TheoryProofStepBuffer& psb,
-                                            bool concludeTgtNew) const
+                                            bool concludeTgtNew)
 {
   // collect the terms to purify, which are the LHS of the substitution
   std::unordered_set<Node> termsToPurify;
@@ -1106,7 +1157,7 @@ Node InferProofCons::purifyCorePredicate(
     Node lit,
     bool concludeNew,
     TheoryProofStepBuffer& psb,
-    std::unordered_set<Node>& termsToPurify) const
+    std::unordered_set<Node>& termsToPurify)
 {
   bool pol = lit.getKind() != NOT;
   Node atom = pol ? lit : lit[0];
@@ -1145,8 +1196,8 @@ Node InferProofCons::purifyCorePredicate(
   return newLit;
 }
 
-Node InferProofCons::purifyCoreTerm(
-    Node n, std::unordered_set<Node>& termsToPurify) const
+Node InferProofCons::purifyCoreTerm(Node n,
+                                    std::unordered_set<Node>& termsToPurify)
 {
   Assert(n.getType().isStringLike());
   if (n.getNumChildren() == 0)

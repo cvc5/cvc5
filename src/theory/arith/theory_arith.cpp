@@ -40,14 +40,14 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
           "theory::arith::ppRewriteTimer")),
       d_astate(env, valuation),
-      d_im(*this, d_astate, d_pnm),
-      d_ppre(getSatContext(), d_pnm),
-      d_bab(d_astate, d_im, d_ppre, d_pnm),
+      d_im(env, *this, d_astate, d_pnm),
+      d_ppre(context(), d_pnm),
+      d_bab(env, d_astate, d_im, d_ppre, d_pnm),
       d_eqSolver(nullptr),
       d_internal(new TheoryArithPrivate(*this, env, d_bab)),
       d_nonlinearExtension(nullptr),
-      d_opElim(d_pnm, getLogicInfo()),
-      d_arithPreproc(d_astate, d_im, d_pnm, d_opElim),
+      d_opElim(d_pnm, logicInfo()),
+      d_arithPreproc(env, d_astate, d_im, d_pnm, d_opElim),
       d_rewriter(d_opElim)
 {
   // currently a cyclic dependency to TheoryArithPrivate
@@ -58,7 +58,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
 
   if (options().arith.arithEqSolver)
   {
-    d_eqSolver.reset(new EqualitySolver(d_astate, d_im));
+    d_eqSolver.reset(new EqualitySolver(env, d_astate, d_im));
   }
 }
 
@@ -87,8 +87,8 @@ bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 }
 void TheoryArith::finishInit()
 {
-  if (getLogicInfo().isTheoryEnabled(THEORY_ARITH)
-      && getLogicInfo().areTranscendentalsUsed())
+  const LogicInfo& logic = logicInfo();
+  if (logic.isTheoryEnabled(THEORY_ARITH) && logic.areTranscendentalsUsed())
   {
     // witness is used to eliminate square root
     d_valuation.setUnevaluatedKind(kind::WITNESS);
@@ -98,10 +98,10 @@ void TheoryArith::finishInit()
     d_valuation.setUnevaluatedKind(kind::PI);
   }
   // only need to create nonlinear extension if non-linear logic
-  const LogicInfo& logicInfo = getLogicInfo();
-  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
+  if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
   {
-    d_nonlinearExtension.reset(new nl::NonlinearExtension(*this, d_astate));
+    d_nonlinearExtension.reset(
+        new nl::NonlinearExtension(d_env, *this, d_astate));
   }
   if (d_eqSolver != nullptr)
   {
@@ -160,6 +160,7 @@ bool TheoryArith::preCheck(Effort level)
 
 void TheoryArith::postCheck(Effort level)
 {
+  d_im.reset();
   Trace("arith-check") << "TheoryArith::postCheck " << level << std::endl;
   // check with the non-linear solver at last call
   if (level == Theory::EFFORT_LAST_CALL)
@@ -176,12 +177,20 @@ void TheoryArith::postCheck(Effort level)
     // linear solver emitted a conflict or lemma, return
     return;
   }
+  if (d_im.hasSent())
+  {
+    return;
+  }
 
   if (Theory::fullEffort(level))
   {
+    d_arithModelCache.clear();
     if (d_nonlinearExtension != nullptr)
     {
+      std::set<Node> termSet;
+      updateModelCache(termSet);
       d_nonlinearExtension->check(level);
+      d_nonlinearExtension->interceptModel(d_arithModelCache, termSet);
     }
     else if (d_internal->foundNonlinear())
     {
@@ -247,59 +256,38 @@ bool TheoryArith::collectModelInfo(TheoryModel* m,
 bool TheoryArith::collectModelValues(TheoryModel* m,
                                      const std::set<Node>& termSet)
 {
-  // get the model from the linear solver
-  std::map<Node, Node> arithModel;
-  d_internal->collectModelValues(termSet, arithModel);
-  // Double check that the model from the linear solver respects integer types,
-  // if it does not, add a branch and bound lemma. This typically should never
-  // be necessary, but is needed in rare cases.
-  bool addedLemma = false;
-  bool badAssignment = false;
-  for (const std::pair<const Node, Node>& p : arithModel)
+  if (Trace.isOn("arith::model"))
   {
-    if (p.first.getType().isInteger() && !p.second.getType().isInteger())
+    Trace("arith::model") << "arithmetic model after pruning" << std::endl;
+    for (const auto& p : d_arithModelCache)
     {
-      Assert(false) << "TheoryArithPrivate generated a bad model value for "
-                       "integer variable "
-                    << p.first << " : " << p.second;
-      // must branch and bound
-      TrustNode lem =
-          d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());
-      if (d_im.trustedLemma(lem, InferenceId::ARITH_BB_LEMMA))
-      {
-        addedLemma = true;
-      }
-      badAssignment = true;
+      Trace("arith::model") << "\t" << p.first << " -> " << p.second << std::endl;
     }
   }
-  if (addedLemma)
+
+  updateModelCache(termSet);
+
+  if (sanityCheckIntegerModel())
   {
-    // we had to add a branch and bound lemma since the linear solver assigned
-    // a non-integer value to an integer variable.
+    // We added a lemma
     return false;
   }
-  // this would imply that linear arithmetic's model failed to satisfy a branch
-  // and bound lemma
-  AlwaysAssert(!badAssignment)
-      << "Bad assignment from TheoryArithPrivate::collectModelValues, and no "
-         "branching lemma was sent";
 
-  // if non-linear is enabled, intercept the model, which may repair its values
-  if (d_nonlinearExtension != nullptr)
-  {
-    // Non-linear may repair values to satisfy non-linear constraints (see
-    // documentation for NonlinearExtension::interceptModel).
-    d_nonlinearExtension->interceptModel(arithModel, termSet);
-  }
   // We are now ready to assert the model.
-  for (const std::pair<const Node, Node>& p : arithModel)
+  for (const std::pair<const Node, Node>& p : d_arithModelCache)
   {
+    if (termSet.find(p.first) == termSet.end())
+    {
+      continue;
+    }
     // maps to constant of comparable type
     Assert(p.first.getType().isComparableTo(p.second.getType()));
     if (m->assertEquality(p.first, p.second, true))
     {
       continue;
     }
+    Assert(false) << "A model equality could not be asserted: " << p.first
+                        << " == " << p.second << std::endl;
     // If we failed to assert an equality, it is likely due to theory
     // combination, namely the repaired model for non-linear changed
     // an equality status that was agreed upon by both (linear) arithmetic
@@ -332,7 +320,18 @@ void TheoryArith::presolve(){
 }
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
-  return d_internal->getEqualityStatus(a,b);
+  Debug("arith") << "TheoryArith::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
+  if (d_arithModelCache.empty())
+  {
+    return d_internal->getEqualityStatus(a,b);
+  }
+  Node aval = Rewriter::rewrite(a.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
+  Node bval = Rewriter::rewrite(b.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
+  if (aval == bval)
+  {
+    return EQUALITY_TRUE_IN_MODEL;
+  }
+  return EQUALITY_FALSE_IN_MODEL;
 }
 
 Node TheoryArith::getModelValue(TNode var) {
@@ -350,6 +349,62 @@ std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
 eq::ProofEqEngine* TheoryArith::getProofEqEngine()
 {
   return d_im.getProofEqEngine();
+}
+
+void TheoryArith::updateModelCache(std::set<Node>& termSet)
+{
+  if (d_arithModelCache.empty())
+  {
+    collectAssertedTerms(termSet);
+    d_internal->collectModelValues(termSet, d_arithModelCache);
+  }
+}
+void TheoryArith::updateModelCache(const std::set<Node>& termSet)
+{
+  if (d_arithModelCache.empty())
+  {
+    d_internal->collectModelValues(termSet, d_arithModelCache);
+  }
+}
+bool TheoryArith::sanityCheckIntegerModel()
+{
+
+    // Double check that the model from the linear solver respects integer types,
+    // if it does not, add a branch and bound lemma. This typically should never
+    // be necessary, but is needed in rare cases.
+    bool addedLemma = false;
+    bool badAssignment = false;
+    Trace("arith-check") << "model:" << std::endl;
+    for (const auto& p : d_arithModelCache)
+    {
+      Trace("arith-check") << p.first << " -> " << p.second << std::endl;
+      if (p.first.getType().isInteger() && !p.second.getType().isInteger())
+      {
+        Assert(false) << "TheoryArithPrivate generated a bad model value for "
+                        "integer variable "
+                      << p.first << " : " << p.second;
+        // must branch and bound
+        TrustNode lem =
+            d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());
+        if (d_im.trustedLemma(lem, InferenceId::ARITH_BB_LEMMA))
+        {
+          addedLemma = true;
+        }
+        badAssignment = true;
+      }
+    }
+    if (addedLemma)
+    {
+      // we had to add a branch and bound lemma since the linear solver assigned
+      // a non-integer value to an integer variable.
+      return true;
+    }
+    // this would imply that linear arithmetic's model failed to satisfy a branch
+    // and bound lemma
+    AlwaysAssert(!badAssignment)
+        << "Bad assignment from TheoryArithPrivate::collectModelValues, and no "
+          "branching lemma was sent";
+    return false;
 }
 
 }  // namespace arith

@@ -108,11 +108,12 @@ class BBRegistrar : public prop::Registrar
   std::unordered_set<TNode> d_registeredAtoms;
 };
 
-BVSolverBitblast::BVSolverBitblast(TheoryState* s,
+BVSolverBitblast::BVSolverBitblast(Env& env,
+                                   TheoryState* s,
                                    TheoryInferenceManager& inferMgr,
                                    ProofNodeManager* pnm)
-    : BVSolver(*s, inferMgr),
-      d_bitblaster(new NodeBitblaster(s)),
+    : BVSolver(env, *s, inferMgr),
+      d_bitblaster(new NodeBitblaster(env, s)),
       d_bbRegistrar(new BBRegistrar(d_bitblaster.get())),
       d_nullContext(new context::Context()),
       d_bbFacts(s->getSatContext()),
@@ -123,7 +124,7 @@ BVSolverBitblast::BVSolverBitblast(TheoryState* s,
                 : nullptr),
       d_factLiteralCache(s->getSatContext()),
       d_literalFactCache(s->getSatContext()),
-      d_propagate(options::bitvectorPropagate()),
+      d_propagate(options().bv.bitvectorPropagate),
       d_resetNotify(new NotifyResetAssertions(s->getUserContext()))
 {
   if (pnm != nullptr)
@@ -147,7 +148,7 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
 
   // If we permanently added assertions to the SAT solver and the assertions
   // were reset, we have to reset the SAT solver and the CNF stream.
-  if (options::bvAssertInput() && d_resetNotify->doneResetAssertions())
+  if (options().bv.bvAssertInput && d_resetNotify->doneResetAssertions())
   {
     d_satSolver.reset(nullptr);
     d_cnfStream.reset(nullptr);
@@ -248,7 +249,7 @@ bool BVSolverBitblast::preNotifyFact(
    * If this is the case we can assert `fact` to the SAT solver instead of
    * using assumptions.
    */
-  if (options::bvAssertInput() && val.isSatLiteral(fact)
+  if (options().bv.bvAssertInput && val.isSatLiteral(fact)
       && val.getDecisionLevel(fact) == 0 && val.getIntroLevel(fact) == 0)
   {
     Assert(!val.isDecision(fact));
@@ -277,7 +278,7 @@ void BVSolverBitblast::computeRelevantTerms(std::set<Node>& termSet)
    * in BitblastMode::EAGER and therefore add all variables from the
    * bit-blaster to `termSet`.
    */
-  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  if (options().bv.bitblastMode == options::BitblastMode::EAGER)
   {
     d_bitblaster->computeRelevantTerms(termSet);
   }
@@ -303,7 +304,7 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
 
   // In eager bitblast mode we also have to collect the model values for
   // Boolean variables in the CNF stream.
-  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  if (options().bv.bitblastMode == options::BitblastMode::EAGER)
   {
     NodeManager* nm = NodeManager::currentNM();
     std::vector<TNode> vars;
@@ -327,7 +328,7 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
 
 void BVSolverBitblast::initSatSolver()
 {
-  switch (options::bvSatSolver())
+  switch (options().bv.bvSatSolver)
   {
     case options::SatSolverMode::CRYPTOMINISAT:
       d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(

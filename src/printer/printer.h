@@ -271,19 +271,19 @@ class Printer
 
   /**
    * To stream model sort. This prints the appropriate output for type
-   * tn declared via declare-sort or declare-datatype.
+   * tn declared via declare-sort.
    */
   virtual void toStreamModelSort(std::ostream& out,
-                                 const smt::Model& m,
-                                 TypeNode tn) const = 0;
+                                 TypeNode tn,
+                                 const std::vector<Node>& elements) const = 0;
 
   /**
    * To stream model term. This prints the appropriate output for term
    * n declared via declare-fun.
    */
   virtual void toStreamModelTerm(std::ostream& out,
-                                 const smt::Model& m,
-                                 Node n) const = 0;
+                                 const Node& n,
+                                 const Node& value) const = 0;
 
   /** write model response to command using another language printer */
   void toStreamUsing(Language lang,

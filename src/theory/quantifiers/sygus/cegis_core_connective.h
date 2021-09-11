@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "expr/node_trie.h"
+#include "smt/env_obj.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/sygus/cegis.h"
 #include "util/result.h"
@@ -160,7 +161,9 @@ class VariadicTrie
 class CegisCoreConnective : public Cegis
 {
  public:
-  CegisCoreConnective(QuantifiersInferenceManager& qim,
+  CegisCoreConnective(Env& env,
+                      QuantifiersState& qs,
+                      QuantifiersInferenceManager& qim,
                       TermDbSygus* tds,
                       SynthConjecture* p);
   ~CegisCoreConnective() {}

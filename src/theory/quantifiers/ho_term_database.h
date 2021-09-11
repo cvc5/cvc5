@@ -34,7 +34,7 @@ namespace quantifiers {
 class HoTermDb : public TermDb
 {
  public:
-  HoTermDb(QuantifiersState& qs, QuantifiersRegistry& qr);
+  HoTermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr);
   ~HoTermDb();
   /** identify */
   std::string identify() const override { return "HoTermDb"; }

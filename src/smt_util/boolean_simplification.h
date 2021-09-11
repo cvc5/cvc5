@@ -36,9 +36,8 @@ class BooleanSimplification {
   BooleanSimplification() = delete;
   BooleanSimplification(const BooleanSimplification&) = delete;
 
-  static bool push_back_associative_commute_recursive(
-      Node n, std::vector<Node>& buffer, Kind k, Kind notK, bool negateNode)
-      CVC5_WARN_UNUSED_RESULT;
+  CVC5_WARN_UNUSED_RESULT static bool push_back_associative_commute_recursive(
+      Node n, std::vector<Node>& buffer, Kind k, Kind notK, bool negateNode);
 
  public:
   /**

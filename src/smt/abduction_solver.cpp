@@ -32,10 +32,11 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-AbductionSolver::AbductionSolver(SmtEngine* parent) : d_parent(parent) {}
+AbductionSolver::AbductionSolver(Env& env) : EnvObj(env) {}
 
 AbductionSolver::~AbductionSolver() {}
-bool AbductionSolver::getAbduct(const Node& goal,
+bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
+                                const Node& goal,
                                 const TypeNode& grammarType,
                                 Node& abd)
 {
@@ -45,10 +46,9 @@ bool AbductionSolver::getAbduct(const Node& goal,
     throw ModalException(msg);
   }
   Trace("sygus-abduct") << "SmtEngine::getAbduct: goal " << goal << std::endl;
-  std::vector<Node> axioms = d_parent->getExpandedAssertions();
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // must expand definitions
-  Node conjn = d_parent->getEnv().getTopLevelSubstitutions().apply(goal);
+  Node conjn = d_env.getTopLevelSubstitutions().apply(goal);
   // now negate
   conjn = conjn.negate();
   d_abdConj = conjn;
@@ -63,7 +63,7 @@ bool AbductionSolver::getAbduct(const Node& goal,
   Trace("sygus-abduct") << "SmtEngine::getAbduct: made conjecture : " << aconj
                         << ", solving for " << d_sssf << std::endl;
   // we generate a new smt engine to do the abduction query
-  initializeSubsolver(d_subsolver);
+  initializeSubsolver(d_subsolver, d_env);
   // get the logic
   LogicInfo l = d_subsolver->getLogicInfo().getUnlockedCopy();
   // enable everything needed for sygus
@@ -71,16 +71,19 @@ bool AbductionSolver::getAbduct(const Node& goal,
   d_subsolver->setLogic(l);
   // assert the abduction query
   d_subsolver->assertFormula(aconj);
-  return getAbductInternal(abd);
+  return getAbductInternal(axioms, abd);
 }
 
-bool AbductionSolver::getAbduct(const Node& goal, Node& abd)
+bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
+                                const Node& goal,
+                                Node& abd)
 {
   TypeNode grammarType;
-  return getAbduct(goal, grammarType, abd);
+  return getAbduct(axioms, goal, grammarType, abd);
 }
 
-bool AbductionSolver::getAbductInternal(Node& abd)
+bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
+                                        Node& abd)
 {
   // should have initialized the subsolver by now
   Assert(d_subsolver != nullptr);
@@ -125,7 +128,7 @@ bool AbductionSolver::getAbductInternal(Node& abd)
       // if check abducts option is set, we check the correctness
       if (options::checkAbducts())
       {
-        checkAbduct(abd);
+        checkAbduct(axioms, abd);
       }
       return true;
     }
@@ -136,13 +139,13 @@ bool AbductionSolver::getAbductInternal(Node& abd)
   return false;
 }
 
-void AbductionSolver::checkAbduct(Node a)
+void AbductionSolver::checkAbduct(const std::vector<Node>& axioms, Node a)
 {
   Assert(a.getType().isBoolean());
   Trace("check-abduct") << "SmtEngine::checkAbduct: get expanded assertions"
                         << std::endl;
 
-  std::vector<Node> asserts = d_parent->getExpandedAssertions();
+  std::vector<Node> asserts(axioms.begin(), axioms.end());
   asserts.push_back(a);
 
   // two checks: first, consistent with assertions, second, implies negated goal
@@ -153,7 +156,7 @@ void AbductionSolver::checkAbduct(Node a)
                           << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
     std::unique_ptr<SmtEngine> abdChecker;
-    initializeSubsolver(abdChecker);
+    initializeSubsolver(abdChecker, d_env);
     Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
                           << ": asserting formulas" << std::endl;
     for (const Node& e : asserts)
