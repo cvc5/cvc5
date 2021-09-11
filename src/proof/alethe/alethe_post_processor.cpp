@@ -52,6 +52,77 @@ static Node removeAttributes(Node res,
   return res;
 }
 
+AletheProofPostprocessCallback::AletheProofPostprocessCallback(
+    ProofNodeManager* pnm)
+    : d_pnm(pnm), d_nm(NodeManager::currentNM())
+{
+  d_cl = d_nm->mkBoundVar("cl", d_nm->stringType());
+}
+
+bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                                 const std::vector<Node>& fa,
+                                                 bool& continueUpdate)
+{
+  if (pn->getRule() == PfRule::ALETHE_RULE)
+  {
+    return false;
+  }
+  return true;
+}
+
+bool AletheProofPostprocessCallback::addAletheStep(
+    Node res,
+    AletheRule rule,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof& cdp)
+{
+  return addAletheStep(res, rule, res, children, args, cdp);
+}
+
+bool AletheProofPostprocessCallback::addAletheStep(
+    Node res,
+    AletheRule rule,
+    Node conclusion,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof& cdp)
+{
+  // delete attributes
+  Node sanitized_conclusion = conclusion;
+  if (expr::hasClosure(conclusion))
+  {
+    sanitized_conclusion = removeAttributes(
+        conclusion, {kind::INST_PATTERN, kind::INST_PATTERN_LIST}, [](Node n) {
+          return expr::hasClosure(n);
+        });
+  }
+
+  std::vector<Node> new_args = std::vector<Node>();
+  new_args.push_back(d_nm->mkConst<Rational>(static_cast<unsigned>(rule)));
+  new_args.push_back(res);
+  new_args.push_back(sanitized_conclusion);
+  new_args.insert(new_args.end(), args.begin(), args.end());
+  Trace("alethe-proof") << "... add Alethe step " << res << " / " << conclusion
+                       << " " << rule << " " << children << " / " << new_args
+                       << std::endl;
+  return cdp.addStep(res, PfRule::ALETHE_RULE, children, new_args);
+}
+
+// Replace a node (or F1 ... Fn) by (cl F1 ... Fn)
+bool AletheProofPostprocessCallback::addAletheStepFromOr(
+    Node res,
+    AletheRule rule,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof& cdp)
+{
+  std::vector<Node> subterms = {d_cl};
+  subterms.insert(subterms.end(), res.begin(), res.end());
+  Node conclusion = d_nm->mkNode(kind::SEXPR, subterms);
+  return addAletheStep(res, rule, conclusion, children, args, cdp);
+}
+
 }  // namespace proof
 
 }  // namespace cvc5
