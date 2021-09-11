@@ -1439,15 +1439,15 @@ enum class PfRule : uint32_t
   // This allows us to specify which rule in the Lean calculus the current rule
   // corresponds to.
   LEAN_RULE,
-  //================================================ Place holder for veriT
+  //================================================ Place holder for Alethe
   // rules
-  // ======== veriT rule
+  // ======== Alethe rule
   // Children: (P1 ... Pn)
   // Arguments: (id, Q, Q', A1, ..., Am)
   // ---------------------
   // Conclusion: (Q)
-  // where Q' is the representation of Q to be printed by the veriT printer.
-  VERIT_RULE,
+  // where Q' is the representation of Q to be printed by the Alethe printer.
+  ALETHE_RULE,
 
   //================================================= Unknown rule
   UNKNOWN,
