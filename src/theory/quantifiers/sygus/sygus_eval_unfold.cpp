@@ -180,7 +180,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
           Node conj = nm->mkNode(DT_SYGUS_EVAL, eval_children);
           eval_children[0] = vn;
           Node eval_fun = nm->mkNode(DT_SYGUS_EVAL, eval_children);
-          res = d_tds->evaluateWithUnfolding(eval_fun);
+          res = d_tds->rewriteNode(eval_fun);
           Trace("sygus-eval-unfold")
               << "Evaluate with unfolding returns " << res << std::endl;
           esit.init(conj, n, res);
@@ -322,13 +322,6 @@ Node SygusEvalUnfold::unfold(Node en,
   ret = Rewriter::rewrite(ret);
   Trace("sygus-eval-unfold-debug") << "Rewritten : " << ret << std::endl;
   return ret;
-}
-
-Node SygusEvalUnfold::unfold(Node en)
-{
-  std::map<Node, Node> vtm;
-  std::vector<Node> exp;
-  return unfold(en, vtm, exp, false, false);
 }
 
 }  // namespace quantifiers

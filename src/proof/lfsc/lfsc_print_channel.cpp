@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file lfsc_print_channel.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for printing Lfsc proof nodes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Print channels for LFSC proofs.
+ */
 
 #include "proof/lfsc/lfsc_print_channel.h"
 
@@ -27,7 +28,6 @@ namespace proof {
 LfscPrintChannelOut::LfscPrintChannelOut(std::ostream& out) : d_out(out) {}
 void LfscPrintChannelOut::printNode(TNode n)
 {
-  d_nodeCount++;
   d_out << " ";
   printNodeInternal(d_out, n);
 }
@@ -41,7 +41,6 @@ void LfscPrintChannelOut::printTypeNode(TypeNode tn)
 void LfscPrintChannelOut::printHole() { d_out << " _ "; }
 void LfscPrintChannelOut::printTrust(TNode res, PfRule src)
 {
-  d_trustCount++;
   d_out << std::endl << "(trust ";
   printNodeInternal(d_out, res);
   d_out << ") ; from " << src << std::endl;
@@ -81,7 +80,7 @@ void LfscPrintChannelOut::printEndLine() { d_out << std::endl; }
 
 void LfscPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 {
-  // must clean indexed symbols
+  // due to use of special names in the node converter, we must clean symbols
   std::stringstream ss;
   n.toStream(ss, -1, 0, Language::LANG_SMTLIB_V2_6);
   std::string s = ss.str();
@@ -91,7 +90,7 @@ void LfscPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 
 void LfscPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
 {
-  // must clean indexed symbols
+  // due to use of special names in the node converter, we must clean symbols
   std::stringstream ss;
   tn.toStream(ss, Language::LANG_SMTLIB_V2_6);
   std::string s = ss.str();
@@ -147,6 +146,7 @@ void LfscPrintChannelOut::printAssumeId(std::ostream& out, size_t id)
 {
   out << "__a" << id;
 }
+
 void LfscPrintChannelOut::printDslProofRuleId(std::ostream& out, DslPfRule id)
 {
   out << "dsl." << id;
@@ -169,14 +169,9 @@ void LfscPrintChannelOut::cleanSymbols(std::string& s)
 
 LfscPrintChannelPre::LfscPrintChannelPre(LetBinding& lbind) : d_lbind(lbind) {}
 
-void LfscPrintChannelPre::printNode(TNode n)
-{
-  d_nodeCount++;
-  d_lbind.process(n);
-}
+void LfscPrintChannelPre::printNode(TNode n) { d_lbind.process(n); }
 void LfscPrintChannelPre::printTrust(TNode res, PfRule src)
 {
-  d_trustCount++;
   d_lbind.process(res);
 }
 

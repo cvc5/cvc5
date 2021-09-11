@@ -18,6 +18,7 @@
 #ifndef CVC5__INST_STRATEGY_ENUMERATIVE_H
 #define CVC5__INST_STRATEGY_ENUMERATIVE_H
 
+#include "smt/env_obj.h"
 #include "theory/quantifiers/quant_module.h"
 
 namespace cvc5 {
@@ -62,7 +63,8 @@ class RelevantDomain;
 class InstStrategyEnum : public QuantifiersModule
 {
  public:
-  InstStrategyEnum(QuantifiersState& qs,
+  InstStrategyEnum(Env& env,
+                   QuantifiersState& qs,
                    QuantifiersInferenceManager& qim,
                    QuantifiersRegistry& qr,
                    TermRegistry& tr,

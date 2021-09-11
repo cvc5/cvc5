@@ -315,7 +315,7 @@ PreprocessingPassResult HoElim::applyInternal(
     Node res = eliminateLambdaComplete(prev, newLambda);
     if (res != prev)
     {
-      res = theory::Rewriter::rewrite(res);
+      res = rewrite(res);
       Assert(!expr::hasFreeVar(res));
       assertionsToPreprocess->replace(i, res);
     }
@@ -361,7 +361,7 @@ PreprocessingPassResult HoElim::applyInternal(
   if (!axioms.empty())
   {
     Node conj = nm->mkAnd(axioms);
-    conj = theory::Rewriter::rewrite(conj);
+    conj = rewrite(conj);
     Assert(!expr::hasFreeVar(conj));
     assertionsToPreprocess->conjoin(0, conj);
   }
@@ -374,7 +374,7 @@ PreprocessingPassResult HoElim::applyInternal(
     Node res = eliminateHo(prev);
     if (res != prev)
     {
-      res = theory::Rewriter::rewrite(res);
+      res = rewrite(res);
       Assert(!expr::hasFreeVar(res));
       assertionsToPreprocess->replace(i, res);
     }
@@ -456,7 +456,7 @@ PreprocessingPassResult HoElim::applyInternal(
   if (!axioms.empty())
   {
     Node conj = nm->mkAnd(axioms);
-    conj = theory::Rewriter::rewrite(conj);
+    conj = rewrite(conj);
     Assert(!expr::hasFreeVar(conj));
     assertionsToPreprocess->conjoin(0, conj);
   }
