@@ -103,6 +103,52 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
                           CDProof& cdp);
 };
 
+/**
+ * Final callback class used by the Alethe to add last step to proof in certain
+ * cases.
+ */
+class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
+{
+ public:
+  AletheProofPostprocessFinalCallback(ProofNodeManager* pnm);
+  ~AletheProofPostprocessFinalCallback() {}
+  /** Should proof pn be updated?
+   *
+   * @param pn the proof node that maybe should be updated
+   * @param continueUpdate indicates whether we should continue recursively
+   * updating pn
+   * @return whether we should run the update method on pn
+   */
+  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    const std::vector<Node>& fa,
+                    bool& continueUpdate) override;
+  /**
+   * This method gets a proof node pn = false printed as (cl false) and updates
+   * the proof for false such that (cl) is printed.
+   *
+   * @param res The expected result of the application,
+   * @param rule The id of the Alethe rule,
+   * @param children The children of the application,
+   * @param args The arguments of the application,
+   * @param cdp The proof to add to,
+   * @return True if the step could be added, or false if not.
+   */
+  bool update(Node res,
+              PfRule id,
+              const std::vector<Node>& children,
+              const std::vector<Node>& args,
+              CDProof* cdp,
+              bool& continueUpdate) override;
+
+ private:
+  /** The proof node manager */
+  ProofNodeManager* d_pnm;
+  /** The node manager */
+  NodeManager* d_nm;
+  /** The variable cl **/
+  Node d_cl;
+};
+
 }  // namespace proof
 
 }  // namespace cvc5
