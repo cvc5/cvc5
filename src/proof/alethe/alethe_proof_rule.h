@@ -370,8 +370,6 @@ enum class AletheRule : uint32_t
   // --------------------------------------------------------
   // G > k. (forall (x1 ... xn) (= F G))
   SKO_FORALL,
-  /** Special Rules*/
-  //================================================= Extended Rule
   // ======== symm
   // > i. (= F G)
   // ...
