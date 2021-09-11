@@ -168,6 +168,32 @@ class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
   Node d_cl;
 };
 
+/**
+ * The proof postprocessor module. This postprocesses a proof node into one
+ * using the rules from the Alethe calculus.
+ */
+class AletheProofPostprocess
+{
+ public:
+  AletheProofPostprocess(ProofNodeManager* pnm);
+  ~AletheProofPostprocess();
+  /** post-process */
+  void process(std::shared_ptr<ProofNode> pf);
+
+ private:
+  /** The proof node manager */
+  ProofNodeManager* d_pnm;
+  /** The post process callback */
+  AletheProofPostprocessCallback d_cb;
+  /** The updater, which is responsible for translating proof rules */
+  ProofNodeUpdater d_updater;
+  /** The final post process callback */
+  AletheProofPostprocessFinalCallback d_fcb;
+  /** The updater, which is responsible for adding additional steps to the end
+   * of the proof */
+  ProofNodeUpdater d_finalize;
+};
+
 }  // namespace proof
 
 }  // namespace cvc5
