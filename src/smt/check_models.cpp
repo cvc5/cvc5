@@ -88,7 +88,8 @@ void CheckModels::checkModel(TheoryModel* m,
     // Otherwise, we did not succeed in showing the current assertion to be
     // true. This may either indicate that our model is wrong, or that we cannot
     // check it. The latter may be the case for several reasons.
-    // For example, quantified formulas are not checkable, although we assign
+    // One example is the occurrence of partial operators. Another example
+    // are quantified formulas, which are not checkable, although we assign
     // them to true/false based on the satisfying assignment. However,
     // quantified formulas can be modified during preprocess, so they may not
     // correspond to those in the satisfying assignment. Hence we throw
