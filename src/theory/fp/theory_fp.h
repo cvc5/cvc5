@@ -157,6 +157,9 @@ class TheoryFp : public Theory
   TheoryInferenceManager d_im;
   /** Cache of word-blasted facts. */
   context::CDHashSet<Node> d_wbFactsCache;
+
+  /** True constant. */
+  Node d_true;
 };
 
 }  // namespace fp
